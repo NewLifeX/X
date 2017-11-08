@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
@@ -114,9 +116,10 @@ namespace NewLife.Http
             if (rs != null && rs.Count == 0 && ContentLength != 0)
             {
                 rs = await SendDataAsync(null, null, response);
-
-                // chunk编码
             }
+
+            // chunk编码
+            if (rs.Count > 0 && Headers["Transfer-Encoding"].EqualIgnoreCase("chunked")) rs = ParseChunk(rs);
 
             return rs;
         }
@@ -197,6 +200,30 @@ namespace NewLife.Http
             if (hs.TryGetValue("Connection", out str) && str.EqualIgnoreCase("Close")) Client.TryDispose();
 
             return rs.Sub(p + 4, len);
+        }
+
+        private Packet ParseChunk(Packet rs)
+        {
+            // chunk编码
+            // 1 ba \r\n xxxx \r\n 0 \r\n\r\n
+
+            var p = (Int32)rs.Data.IndexOf(rs.Offset, rs.Count, new Byte[] { 0x0D, 0x0A });
+            if (p <= 0) return rs;
+
+            // 第一段长度
+            var str = rs.Sub(0, p).ToStr();
+            //if (str.Length % 2 != 0) str = "0" + str;
+            //var len = (Int32)str.ToHex().ToUInt32(0, false);
+            //Int32.TryParse(str, NumberStyles.HexNumber, null, out var len);
+            var len = Int32.Parse(str, NumberStyles.HexNumber);
+
+            if (ContentLength < 0) ContentLength = len;
+
+            var pk = rs.Sub(p + 2, len);
+
+            // 暂时不支持多段编码
+
+            return pk;
         }
         #endregion
 

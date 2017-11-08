@@ -73,13 +73,11 @@ namespace NewLife.Data
         /// <returns></returns>
         public Packet Sub(Int32 offset, Int32 count = -1)
         {
-            offset += Offset;
-
+            // count 是 offset 之后的个数
             if (count < 0 || offset + count > Count) count = Count - offset;
-
             if (count < 0) count = 0;
 
-            return new Packet(Data, offset, count);
+            return new Packet(Data, Offset + offset, count);
         }
 
         /// <summary>返回字节数组。如果是完整数组直接返回，否则截取</summary>
