@@ -54,25 +54,36 @@ namespace NewLife.Http
         protected virtual async Task<Packet> SendDataAsync(NetUri remote, Packet request, Packet response)
         {
             var tc = Client;
-            if (tc == null || !tc.Connected)
+            NetworkStream ns = null;
+
+            // 判断连接是否可用
+            var active = false;
+            try
             {
+                ns = tc?.GetStream();
+                active = tc != null && tc.Connected && ns != null && ns.CanWrite && ns.CanRead;
+            }
+            catch { }
+
+            // 如果连接不可用，则重新建立连接
+            if (!active)
+            {
+                tc.TryDispose();
                 tc = new TcpClient();
                 await tc.ConnectAsync(remote.Address, remote.Port);
 
                 Client = tc;
+                ns = tc.GetStream();
             }
-
-            var ns = tc.GetStream();
 
             // 发送
             //await ns.WriteAsync(data, 0, data.Length);
-            request?.WriteTo(ns);
+            if (request != null) await request.CopyToAsync(ns);
 
             var source = new CancellationTokenSource(15000);
 
             // 接收
-            var buf = response.Data;
-            var count = await ns.ReadAsync(buf, 0, buf.Length, source.Token);
+            var count = await ns.ReadAsync(response.Data, response.Offset, response.Count, source.Token);
 
             return response.Sub(0, count);
         }
@@ -100,7 +111,12 @@ namespace NewLife.Http
             rs = ParseResponse(rs);
 
             // 头部和主体分两个包回来
-            if (rs != null && rs.Count == 0 && ContentLength != 0) return await SendDataAsync(null, null, response);
+            if (rs != null && rs.Count == 0 && ContentLength != 0)
+            {
+                rs = await SendDataAsync(null, null, response);
+
+                // chunk编码
+            }
 
             return rs;
         }
@@ -160,6 +176,7 @@ namespace NewLife.Http
             //if (code == 302) return null;
             if (code != 200) throw new Exception($"{code} {ss.Skip(2).Join(" ")}");
 
+            // 分析头部
             var hs = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
             foreach (var item in lines)
             {
@@ -220,8 +237,14 @@ namespace NewLife.Http
         /// <returns></returns>
         public async Task<String> GetAsync(String url)
         {
-            var rs = await SendAsync(url, null);
-            return rs?.ToStr();
+            using (var pi = _Pool.AcquireItem())
+            {
+                // 发出请求
+                var rs = await SendAsync(url, null, pi.Value);
+                if (rs == null || rs.Count == 0) return null;
+
+                return rs?.ToStr();
+            }
         }
         #endregion
     }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace NewLife.Data
 {
@@ -175,6 +176,15 @@ namespace NewLife.Data
             offset += len;
             count -= len;
             if (count > 0) Next?.WriteTo(buffer, offset, count);
+        }
+
+        /// <summary>异步复制到目标数据流</summary>
+        /// <param name="stream"></param>
+        /// <returns></returns>
+        public async Task CopyToAsync(Stream stream)
+        {
+            await stream.WriteAsync(Data, Offset, Count);
+            if (Next != null) await Next.CopyToAsync(stream);
         }
 
         /// <summary>深度克隆一份数据包，拷贝数据区</summary>
