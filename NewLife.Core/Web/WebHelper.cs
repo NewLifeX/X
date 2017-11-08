@@ -117,11 +117,12 @@ namespace NewLife.Web
 
                     if (Request != null)
                     {
-                        if (String.IsNullOrEmpty(str)) str = Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
-                        if (String.IsNullOrEmpty(str)) str = Request.ServerVariables["X-Forwarded-For"];
-                        if (String.IsNullOrEmpty(str)) str = Request.ServerVariables["REMOTE_ADDR"];
-                        if (String.IsNullOrEmpty(str)) str = Request.UserHostName;
-                        if (String.IsNullOrEmpty(str)) str = Request.UserHostAddress;
+                        if (str.IsNullOrEmpty()) str = Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
+                        if (str.IsNullOrEmpty()) str = Request.ServerVariables["X-Real-IP"];
+                        if (str.IsNullOrEmpty()) str = Request.ServerVariables["X-Forwarded-For"];
+                        if (str.IsNullOrEmpty()) str = Request.ServerVariables["REMOTE_ADDR"];
+                        if (str.IsNullOrEmpty()) str = Request.UserHostName;
+                        if (str.IsNullOrEmpty()) str = Request.UserHostAddress;
 
                         //// 加上浏览器端口
                         //var port = Request.ServerVariables["REMOTE_PORT"];

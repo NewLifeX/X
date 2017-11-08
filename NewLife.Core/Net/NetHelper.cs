@@ -519,6 +519,10 @@ namespace System
             var p = addr.IndexOf("://");
             if (p >= 0) addr = addr.Substring(p + 3);
 
+            // 有可能是多个IP地址
+            p = addr.IndexOf(",");
+            if (p >= 0) addr = addr.Split(",").FirstOrDefault();
+
             // 过滤IPv4/IPv6端口
             if (addr.Replace("::", "").Contains(":")) addr = addr.Substring(0, addr.LastIndexOf(":"));
 
