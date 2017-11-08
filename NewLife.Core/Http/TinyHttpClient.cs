@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
@@ -23,8 +24,14 @@ namespace NewLife.Http
         /// <summary>内容长度</summary>
         public Int32 ContentLength { get; private set; }
 
+        /// <summary>保持连接</summary>
+        public Boolean KeepAlive { get; set; }
+
         /// <summary>状态码</summary>
         public Int32 StatusCode { get; set; }
+
+        /// <summary>头部集合</summary>
+        public IDictionary<String, String> Headers { get; set; } = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
         #endregion
 
         #region 构造
@@ -47,7 +54,7 @@ namespace NewLife.Http
         protected virtual async Task<Packet> SendDataAsync(NetUri remote, Packet request, Packet response)
         {
             var tc = Client;
-            if (tc == null)
+            if (tc == null || !tc.Connected)
             {
                 tc = new TcpClient();
                 await tc.ConnectAsync(remote.Address, remote.Port);
@@ -93,7 +100,7 @@ namespace NewLife.Http
             rs = ParseResponse(rs);
 
             // 头部和主体分两个包回来
-            if (rs != null && rs.Count == 0 && ContentLength > 0) return await SendDataAsync(null, null, response);
+            if (rs != null && rs.Count == 0 && ContentLength != 0) return await SendDataAsync(null, null, response);
 
             return rs;
         }
@@ -116,6 +123,9 @@ namespace NewLife.Http
 
             // 主体数据长度
             if (data != null && data.Length > 0) header.AppendLine($"Content-Length: {data.Length}");
+
+            // 保持连接
+            if (KeepAlive) header.AppendLine("Connection: keep-alive");
 
             header.AppendLine();
 
@@ -150,15 +160,24 @@ namespace NewLife.Http
             //if (code == 302) return null;
             if (code != 200) throw new Exception($"{code} {ss.Skip(2).Join(" ")}");
 
-            var len = -1;
+            var hs = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
             foreach (var item in lines)
             {
-                if (item.StartsWithIgnoreCase("Content-Length:"))
-                {
-                    ContentLength = len = item.Split(":").LastOrDefault().ToInt();
-                    break;
-                }
+                var p2 = item.IndexOf(':');
+                if (p2 <= 0) continue;
+
+                var key = item.Substring(0, p2);
+                var value = item.Substring(p2 + 1).Trim();
+
+                hs[key] = value;
             }
+            Headers = hs;
+
+            var len = -1;
+            if (hs.TryGetValue("Content-Length", out str)) len = str.ToInt(-1);
+            ContentLength = len;
+
+            if (hs.TryGetValue("Connection", out str) && str.EqualIgnoreCase("Close")) Client.TryDispose();
 
             return rs.Sub(p + 4, len);
         }
