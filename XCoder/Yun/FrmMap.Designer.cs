@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.lbMethod = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
             this.cbCoordtype = new System.Windows.Forms.ComboBox();
@@ -53,6 +54,18 @@
             this.txtLocation2 = new System.Windows.Forms.TextBox();
             this.gbReceive.SuspendLayout();
             this.SuspendLayout();
+            // 
+            // gbReceive
+            // 
+            this.gbReceive.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.gbReceive.Controls.Add(this.txtReceive);
+            this.gbReceive.Location = new System.Drawing.Point(2, 108);
+            this.gbReceive.Name = "gbReceive";
+            this.gbReceive.Size = new System.Drawing.Size(381, 378);
+            this.gbReceive.TabIndex = 24;
+            this.gbReceive.TabStop = false;
             // 
             // lbMethod
             // 
@@ -195,18 +208,6 @@
             this.txtCity.TabIndex = 28;
             this.txtCity.Text = "上海";
             // 
-            // gbReceive
-            // 
-            this.gbReceive.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.gbReceive.Controls.Add(this.txtReceive);
-            this.gbReceive.Location = new System.Drawing.Point(2, 108);
-            this.gbReceive.Name = "gbReceive";
-            this.gbReceive.Size = new System.Drawing.Size(381, 378);
-            this.gbReceive.TabIndex = 24;
-            this.gbReceive.TabStop = false;
-            // 
             // label3
             // 
             this.label3.AutoSize = true;
@@ -275,8 +276,6 @@
             this.Load += new System.EventHandler(this.FrmMain_Load);
             this.gbReceive.ResumeLayout(false);
             this.ResumeLayout(false);
-            this.PerformLayout();
-
         }
 
         #endregion

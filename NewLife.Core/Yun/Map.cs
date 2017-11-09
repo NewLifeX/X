@@ -69,7 +69,7 @@ namespace NewLife.Yun
     public class Map : DisposeBase
     {
         #region 属性
-        /// <summary>应用密钥</summary>
+        /// <summary>应用密钥。多个key逗号分隔</summary>
         public String AppKey { get; set; }
 
         /// <summary>应用密码参数名</summary>
@@ -110,7 +110,8 @@ namespace NewLife.Yun
         /// <returns></returns>
         public virtual async Task<String> GetStringAsync(String url)
         {
-            if (AppKey.IsNullOrEmpty()) throw new ArgumentNullException(nameof(AppKey));
+            var key = AcquireKey();
+            if (key.IsNullOrEmpty()) throw new ArgumentNullException(nameof(AppKey));
 
             if (_Client == null) _Client = new WebClientX { Log = Log };
 
@@ -119,7 +120,7 @@ namespace NewLife.Yun
             else
                 url += "?";
 
-            url += KeyName + "=" + AppKey;
+            url += KeyName + "=" + key;
 
             LastUrl = url;
             LastString = null;
@@ -143,6 +144,31 @@ namespace NewLife.Yun
             LastResult = (IDictionary<String, Object>)rs;
 
             return (T)rs;
+        }
+        #endregion
+
+        #region 密钥管理
+        private String[] _Keys;
+        private Int32 _KeyIndex;
+
+        private String AcquireKey()
+        {
+            if (_Keys == null) _Keys = AppKey.Split(",");
+
+            var key = _Keys[_KeyIndex++];
+            if (_KeyIndex >= _Keys.Length) _KeyIndex = 0;
+
+            return key;
+        }
+
+        private void RemoveKey(String key)
+        {
+            if (_Keys == null) return;
+
+            var list = new List<String>(_Keys);
+            if (list.Contains(key)) list.Remove(key);
+
+            _Keys = list.ToArray();
         }
         #endregion
 

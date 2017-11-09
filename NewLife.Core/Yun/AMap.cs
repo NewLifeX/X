@@ -20,7 +20,16 @@ namespace NewLife.Yun
         /// <summary>高德地图</summary>
         public AMap()
         {
-            AppKey = "99ac084eb7dd8015fe0ff4404fa800da";
+            AppKey = "99ac084eb7dd8015fe0ff4404fa800da," +
+                "37262598ce2e94f31349ce892b4dbde1," +
+                "c313359ec97eb28b57861c2ba177daef," +
+                "bcd72261d7c2e9a00cea3ba5d234eda6," +
+                "33cad9379e0592a40185c2e4faf10348," +
+                "18a6fa58d5ed2ff21711671c2f07cd3b," +
+                "cba659ee8bff537bd78e1af625e29c7e," +
+                "8a02a1813747a77cc202896ace9d50cc," +
+                "953d44e2b8f1a7f126b5970dd2883b2f," +
+                "3607f421048ff109ba56f36c0e77d3a1";
             KeyName = "key";
             //CoordType = "wgs84ll";
         }
