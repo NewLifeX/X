@@ -86,6 +86,9 @@ namespace NewLife.Yun
 
         /// <summary>最后结果</summary>
         public IDictionary<String, Object> LastResult { get; private set; }
+
+        /// <summary>收到异常响应时是否抛出异常</summary>
+        public Boolean ThrowException { get; set; }
         #endregion
 
         #region 构造

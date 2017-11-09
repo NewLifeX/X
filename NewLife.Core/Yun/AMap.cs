@@ -36,7 +36,7 @@ namespace NewLife.Yun
             if (dic == null || dic.Count == 0) return default(T);
 
             var status = dic["status"].ToInt();
-            if (status != 1) throw new Exception(dic["info"] + "");
+            if (status != 1) return !ThrowException ? default(T) : throw new Exception(dic["info"] + "");
 
             if (result.IsNullOrEmpty()) return (T)dic;
 

@@ -36,7 +36,7 @@ namespace NewLife.Yun
             if (dic == null || dic.Count == 0) return default(T);
 
             var status = dic["status"].ToInt();
-            if (status != 0) throw new Exception((dic["msg"] ?? dic["message"]) + "");
+            if (status != 0) return !ThrowException ? default(T) : throw new Exception((dic["msg"] ?? dic["message"]) + "");
 
             if (result.IsNullOrEmpty()) return (T)dic;
 
@@ -83,7 +83,7 @@ namespace NewLife.Yun
                 Location = gp,
             };
 
-            if (formatAddress) geo = await GetGeoAsync(gp);
+            if (formatAddress && gp != null) geo = await GetGeoAsync(gp);
 
             geo.Precise = rs["precise"].ToBoolean();
             geo.Confidence = rs["confidence"].ToInt();
@@ -212,8 +212,15 @@ namespace NewLife.Yun
 
                 geo.Location = point;
             }
+            //else if (rs["num"] is Int32 num && num > 0 && rs["name"] != null)
+            //{
+            //    // 多个目标城市匹配，重新搜索
+            //    return await PlaceSearchAsync(query, tag, rs["name"] + "", formatAddress);
+            //}
+            else
+                return null;
 
-            if (formatAddress) geo = await GetGeoAsync(geo.Location);
+            if (formatAddress && geo?.Location != null) geo = await GetGeoAsync(geo.Location);
 
             geo.Name = rs["name"] + "";
             geo.Address = rs["address"] + "";
