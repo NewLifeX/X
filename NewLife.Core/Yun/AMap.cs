@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Web;
 using NewLife.Data;
 using NewLife.Serialization;
 
@@ -53,6 +54,10 @@ namespace NewLife.Yun
         public async Task<IDictionary<String, Object>> GetGeocoderAsync(String address, String city = null)
         {
             if (address.IsNullOrEmpty()) throw new ArgumentNullException(nameof(address));
+
+            // 编码
+            address = HttpUtility.UrlEncode(address);
+            city = HttpUtility.UrlEncode(city);
 
             var url = _geoUrl.F(address, city);
 
@@ -221,6 +226,9 @@ namespace NewLife.Yun
         public async Task<IList<GeoArea>> GetAreaAsync(String keywords, Int32 subdistrict = 1, Int32 code = 0)
         {
             if (keywords.IsNullOrEmpty()) throw new ArgumentNullException(nameof(keywords));
+
+            // 编码
+            keywords = HttpUtility.UrlEncode(keywords);
 
             var url = _areaUrl.F(keywords, subdistrict, code);
 
