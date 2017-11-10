@@ -22,7 +22,7 @@ namespace NewLife.Yun
         {
             AppKey = "C73357a276668f8b0563d3f936475007";
             KeyName = "ak";
-            CoordType = "wgs84ll";
+            //CoordType = "wgs84ll";
         }
         #endregion
 

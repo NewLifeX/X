@@ -116,7 +116,7 @@ namespace NewLife.Yun
             var url = _geoUrl.F(address, city);
 
             var list = await InvokeAsync<IList<Object>>(url, "geocodes");
-            return list.FirstOrDefault() as IDictionary<String, Object>;
+            return list?.FirstOrDefault() as IDictionary<String, Object>;
         }
 
         /// <summary>查询地址获取坐标</summary>
@@ -139,28 +139,32 @@ namespace NewLife.Yun
             }
 
             var geo = new GeoAddress();
+            var reader = new JsonReader();
+            reader.ToObject(rs, null, geo);
+
+            geo.Code = rs["adcode"].ToInt();
+
+            if (rs["township"] is IList<Object> ts && ts.Count > 0) geo.Township = ts[0] + "";
+            if (rs["number"] is IList<Object> ns && ns.Count > 0) geo.StreetNumber = ns[0] + "";
+
+            geo.Location = gp;
 
             if (formatAddress)
             {
-                geo = await GetGeoAsync(gp);
-                if (geo.Level.IsNullOrEmpty()) geo.Level = rs["level"] + "";
+                var geo2 = await GetGeoAsync(gp);
+                if (geo2 != null)
+                {
+                    geo = geo2;
+                    if (geo.Level.IsNullOrEmpty()) geo.Level = rs["level"] + "";
+                }
             }
-            else
-            {
-                var reader = new JsonReader();
-                reader.ToObject(rs, null, geo);
 
-                geo.Code = rs["adcode"].ToInt();
-
-                if (rs["township"] is IList<Object> ts && ts.Count > 0) geo.Township = ts[0] + "";
-                if (rs["number"] is IList<Object> ns && ns.Count > 0) geo.StreetNumber = ns[0] + "";
-
-                geo.Location = gp;
-            }
             {
                 var addr = rs["formatted_address"] + "";
                 if (!addr.IsNullOrEmpty()) geo.Address = addr;
             }
+            // 替换竖线
+            if (!geo.Address.IsNullOrEmpty()) geo.Address = geo.Address.Replace("|", null);
 
             return geo;
         }
@@ -191,11 +195,11 @@ namespace NewLife.Yun
             var rs = await GetGeocoderAsync(point);
             if (rs == null || rs.Count == 0) return null;
 
-            var addr = new GeoAddress
+            var geo = new GeoAddress
             {
                 Address = rs["formatted_address"] + ""
             };
-            addr.Location = new GeoPoint
+            geo.Location = new GeoPoint
             {
                 Longitude = point.Longitude,
                 Latitude = point.Latitude
@@ -203,25 +207,27 @@ namespace NewLife.Yun
             if (rs["addressComponent"] is IDictionary<String, Object> component)
             {
                 var reader = new JsonReader();
-                reader.ToObject(component, null, addr);
+                reader.ToObject(component, null, geo);
 
-                addr.Code = component["adcode"].ToInt();
-                addr.Township = component["township"] + "";
+                geo.Code = component["adcode"].ToInt();
+                geo.Township = component["township"] + "";
 
                 // 去掉乡镇代码后面多余的0
-                var tcode = addr.Towncode;
-                if (!tcode.IsNullOrEmpty() && tcode.Length > 6 + 3) addr.Towncode = tcode.TrimEnd("000");
+                var tcode = geo.Towncode;
+                if (!tcode.IsNullOrEmpty() && tcode.Length > 6 + 3) geo.Towncode = tcode.TrimEnd("000");
 
                 if (component["streetNumber"] is IDictionary<String, Object> sn && sn.Count > 0)
                 {
-                    addr.Street = sn["street"] + "";
-                    addr.StreetNumber = sn["number"] + "";
+                    geo.Street = sn["street"] + "";
+                    geo.StreetNumber = sn["number"] + "";
                 }
             }
 
-            addr.Location = point;
+            geo.Location = point;
+            // 替换竖线
+            if (!geo.Address.IsNullOrEmpty()) geo.Address = geo.Address.Replace("|", null);
 
-            return addr;
+            return geo;
         }
         #endregion
 
