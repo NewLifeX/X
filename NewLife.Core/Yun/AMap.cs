@@ -210,7 +210,11 @@ namespace NewLife.Yun
                 reader.ToObject(component, null, geo);
 
                 geo.Code = component["adcode"].ToInt();
-                geo.Township = component["township"] + "";
+
+                geo.Township = null;
+                geo.Towncode = null;
+                if (component["township"] is String ts) geo.Township = ts;
+                if (component["towncode"] is String tc) geo.Towncode = tc;
 
                 // 去掉乡镇代码后面多余的0
                 var tcode = geo.Towncode;
