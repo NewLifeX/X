@@ -37,7 +37,15 @@ namespace NewLife.Yun
             if (dic == null || dic.Count == 0) return default(T);
 
             var status = dic["status"].ToInt();
-            if (status != 0) return !ThrowException ? default(T) : throw new Exception((dic["msg"] ?? dic["message"]) + "");
+            if (status != 0)
+            {
+                var msg = (dic["msg"] ?? dic["message"]) + "";
+
+                // 删除无效密钥
+                if (IsValidKey(msg)) RemoveKey(LastKey);
+
+                return !ThrowException ? default(T) : throw new Exception(msg);
+            }
 
             if (result.IsNullOrEmpty()) return (T)dic;
 
@@ -236,6 +244,21 @@ namespace NewLife.Yun
             geo.Address = rs["address"] + "";
 
             return geo;
+        }
+        #endregion
+
+        #region 密钥管理
+        private String[] _KeyWords = new[] { "AK" };
+        /// <summary>是否无效Key。可能禁用或超出限制</summary>
+        /// <param name="result"></param>
+        /// <returns></returns>
+        protected override Boolean IsValidKey(String result)
+        {
+            if (result.IsNullOrEmpty()) return false;
+
+            if (_KeyWords.Any(e => result.Contains(e))) return true;
+
+            return base.IsValidKey(result);
         }
         #endregion
     }

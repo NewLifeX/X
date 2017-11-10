@@ -20,7 +20,9 @@ namespace NewLife.Yun
         /// <summary>高德地图</summary>
         public AMap()
         {
-            AppKey = "99ac084eb7dd8015fe0ff4404fa800da," +
+            AppKey = "" +
+                // 大石头
+                "99ac084eb7dd8015fe0ff4404fa800da," +
                 "37262598ce2e94f31349ce892b4dbde1," +
                 "c313359ec97eb28b57861c2ba177daef," +
                 "bcd72261d7c2e9a00cea3ba5d234eda6," +
@@ -29,7 +31,42 @@ namespace NewLife.Yun
                 "cba659ee8bff537bd78e1af625e29c7e," +
                 "8a02a1813747a77cc202896ace9d50cc," +
                 "953d44e2b8f1a7f126b5970dd2883b2f," +
-                "3607f421048ff109ba56f36c0e77d3a1";
+                "3607f421048ff109ba56f36c0e77d3a1," +
+                "" +
+                // 六条
+                "2aada76e462af71e1b67ba1df22d0fa4," +
+                "038a84bf20e8306fdd2203110739110c," +
+                "29360e6eeb7b921d644cde3068ddf24f," +
+                "a8e5e3e7b4068be9c525bd2b7854eb20," +
+                "9935cf01abd570532ab7a19f83f905d3," +
+                "ecacc934a6529b39513ea2bfa8a03def," +
+                "08c70a500587c1006e10e4a096cb6b58," +
+                "3508dadf3777531cef63bdc061ac020f," +
+                "331566353c89521faffd84af22cd4f5f," +
+                "6f19a71c6fd71baf54680eb63c4d5fce," +
+                "" +
+                // 照月
+                "e21e2089c19945c83d3ed8cecbcbb685," +
+                "3ca359e489f0251de0255ec1f53b0c70," +
+                "1c3fa2a36a844b90ec16cb160a46478b," +
+                "2dbec473a85f148b6392289385fee01e," +
+                "4e09815630bcc72af47e9b3123c3a1f4," +
+                "43c6c1d607b62118951e14830d171cbd," +
+                "10858d92ddcabd5ddf5e41ab142e5ca0," +
+                "d14b543d43be7d4a00ffc19a93487a44," +
+                "9cf4e3e6e6bf207943f47d517818cb32," +
+                "a5ebae758cf05562f2db8b7ff296876b," +
+                "" +
+                // 老邱
+                "88518231bdda6c6eec394488b9c456fd," +
+                "d8c5125ae7947e1e7eaac6c92a898801," +
+                "001d285749a8cef63b5d1aaed8333e66," +
+                "cd671f341ef0f25b169d4ea780514e63," +
+                "ab086ac2309ae555a64baa2b32beefd0," +
+                "2bd19587c3f9eefefe77ecfccec05b7a," +
+                "c751fd89fbde2572956e09e3a09dee41," +
+                "0d751f074063ff308b93cae343cad9f2," +
+                "8e3802ad274b4c079619e772671f851f";
             KeyName = "key";
             //CoordType = "wgs84ll";
         }
@@ -46,7 +83,15 @@ namespace NewLife.Yun
             if (dic == null || dic.Count == 0) return default(T);
 
             var status = dic["status"].ToInt();
-            if (status != 1) return !ThrowException ? default(T) : throw new Exception(dic["info"] + "");
+            if (status != 1)
+            {
+                var msg = dic["info"] + "";
+
+                // 删除无效密钥
+                if (IsValidKey(msg)) RemoveKey(LastKey);
+
+                return !ThrowException ? default(T) : throw new Exception(msg);
+            }
 
             if (result.IsNullOrEmpty()) return (T)dic;
 
@@ -278,6 +323,21 @@ namespace NewLife.Yun
             }
 
             return addrs;
+        }
+        #endregion
+
+        #region 密钥管理
+        private String[] _KeyWords = new[] { "TOO_FREQUENT", "LIMIT", "NOMATCH", "RECYCLED" };
+        /// <summary>是否无效Key。可能禁用或超出限制</summary>
+        /// <param name="result"></param>
+        /// <returns></returns>
+        protected override Boolean IsValidKey(String result)
+        {
+            if (result.IsNullOrEmpty()) return false;
+
+            if (_KeyWords.Any(e => result.Contains(e))) return true;
+
+            return base.IsValidKey(result);
         }
         #endregion
     }

@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Log;
+using NewLife.Security;
 using NewLife.Serialization;
 using NewLife.Web;
 
@@ -75,6 +77,9 @@ namespace NewLife.Yun
         /// <summary>应用密码参数名</summary>
         protected String KeyName { get; set; } = "key";
 
+        /// <summary>最后密钥</summary>
+        public String LastKey { get; private set; }
+
         /// <summary>坐标系</summary>
         public String CoordType { get; set; }
 
@@ -111,7 +116,7 @@ namespace NewLife.Yun
         public virtual async Task<String> GetStringAsync(String url)
         {
             var key = AcquireKey();
-            if (key.IsNullOrEmpty()) throw new ArgumentNullException(nameof(AppKey));
+            if (key.IsNullOrEmpty()) throw new ArgumentNullException(nameof(AppKey), "没有可用密钥");
 
             if (_Client == null) _Client = new WebClientX { Log = Log };
 
@@ -124,8 +129,14 @@ namespace NewLife.Yun
 
             LastUrl = url;
             LastString = null;
+            LastKey = key;
 
-            return LastString = await _Client.DownloadStringAsync(url);
+            var rs = await _Client.DownloadStringAsync(url);
+
+            //// 删除无效密钥
+            //if (IsValidKey(rs)) RemoveKey(key);
+
+            return LastString = rs;
         }
 
         /// <summary>远程调用</summary>
@@ -149,26 +160,48 @@ namespace NewLife.Yun
 
         #region 密钥管理
         private String[] _Keys;
-        private Int32 _KeyIndex;
+        //private Int32 _KeyIndex;
 
-        private String AcquireKey()
+        /// <summary>申请密钥</summary>
+        /// <returns></returns>
+        protected String AcquireKey()
         {
-            if (_Keys == null) _Keys = AppKey.Split(",");
+            var ks = _Keys;
+            if (ks == null) ks = _Keys = AppKey.Split(",");
 
-            var key = _Keys[_KeyIndex++];
-            if (_KeyIndex >= _Keys.Length) _KeyIndex = 0;
+            //var key = _Keys[_KeyIndex++];
+            //if (_KeyIndex >= _Keys.Length) _KeyIndex = 0;
+
+            // 使用本地变量保存数据，避免多线程冲突
+            var idx = Rand.Next(ks.Length);
+            var key = ks[idx];
 
             return key;
         }
 
-        private void RemoveKey(String key)
+        /// <summary>移除不可用密钥</summary>
+        /// <param name="key"></param>
+        protected void RemoveKey(String key)
         {
-            if (_Keys == null) return;
+            // 使用本地变量保存数据，避免多线程冲突
+            var ks = _Keys;
+            if (ks == null || ks.Length == 0) return;
 
-            var list = new List<String>(_Keys);
+            var list = new List<String>(ks);
             if (list.Contains(key)) list.Remove(key);
 
             _Keys = list.ToArray();
+        }
+
+        private String[] _KeyWords = new[] { "INVALID", "LIMIT" };
+        /// <summary>是否无效Key。可能禁用或超出限制</summary>
+        /// <param name="result"></param>
+        /// <returns></returns>
+        protected virtual Boolean IsValidKey(String result)
+        {
+            if (result.IsNullOrEmpty()) return false;
+
+            return _KeyWords.Any(e => result.Contains(e));
         }
         #endregion
 
