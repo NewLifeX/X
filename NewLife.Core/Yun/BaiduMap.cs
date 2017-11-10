@@ -241,7 +241,8 @@ namespace NewLife.Yun
             if (formatAddress && geo?.Location != null) geo = await GetGeoAsync(geo.Location);
 
             geo.Name = rs["name"] + "";
-            geo.Address = rs["address"] + "";
+            var addr = rs["address"] + "";
+            if (!addr.IsNullOrEmpty()) geo.Address = addr;
 
             return geo;
         }

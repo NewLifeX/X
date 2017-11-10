@@ -138,27 +138,31 @@ namespace NewLife.Yun
                 gp.Latitude = ds[1].ToDouble();
             }
 
-            var addr = new GeoAddress();
+            var geo = new GeoAddress();
 
             if (formatAddress)
             {
-                addr = await GetGeoAsync(gp);
-                if (addr.Level.IsNullOrEmpty()) addr.Level = rs["level"] + "";
+                geo = await GetGeoAsync(gp);
+                if (geo.Level.IsNullOrEmpty()) geo.Level = rs["level"] + "";
             }
             else
             {
                 var reader = new JsonReader();
-                reader.ToObject(rs, null, addr);
+                reader.ToObject(rs, null, geo);
 
-                addr.Code = rs["adcode"].ToInt();
+                geo.Code = rs["adcode"].ToInt();
 
-                if (rs["township"] is IList<Object> ts && ts.Count > 0) addr.Township = ts[0] + "";
-                if (rs["number"] is IList<Object> ns && ns.Count > 0) addr.StreetNumber = ns[0] + "";
+                if (rs["township"] is IList<Object> ts && ts.Count > 0) geo.Township = ts[0] + "";
+                if (rs["number"] is IList<Object> ns && ns.Count > 0) geo.StreetNumber = ns[0] + "";
 
-                addr.Location = gp;
+                geo.Location = gp;
+            }
+            {
+                var addr = rs["formatted_address"] + "";
+                if (!addr.IsNullOrEmpty()) geo.Address = addr;
             }
 
-            return addr;
+            return geo;
         }
         #endregion
 

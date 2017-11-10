@@ -114,23 +114,24 @@ namespace XCoder.Yun
             map.CoordType = cfg.Coordtype;
 
             // 准备参数
-            //var addr = txtAddress.Text;
-            //var city = txtCity.Text;
-            //var point = new GeoPoint(txtLocation.Text);
+            var addr = txtAddress.Text;
+            var city = txtCity.Text;
+            var point = new GeoPoint(txtLocation.Text);
+            var point2 = new GeoPoint(txtLocation2.Text);
 
             var mps = method.GetParameters();
 
             Task.Run(async () =>
             {
                 Object result = null;
-                var point = new GeoPoint(cfg.Location);
-                var point2 = new GeoPoint(cfg.Location2);
+                //var point = new GeoPoint(cfg.Location);
+                //var point2 = new GeoPoint(cfg.Location2);
                 try
                 {
                     var im = map as IMap;
                     if (method.Name == nameof(im.GetGeocoderAsync) && mps.Length == 2)
                     {
-                        result = await im.GetGeocoderAsync(cfg.Address, cfg.City);
+                        result = await im.GetGeocoderAsync(addr,city);
                     }
                     else if (method.Name == nameof(im.GetGeocoderAsync) && mps.Length == 1)
                     {
@@ -138,7 +139,7 @@ namespace XCoder.Yun
                     }
                     else if (method.Name == nameof(im.GetGeoAsync) && mps.Length == 3)
                     {
-                        result = await im.GetGeoAsync(cfg.Address, cfg.City, cfg.FormatAddress);
+                        result = await im.GetGeoAsync(addr, city, cfg.FormatAddress);
                     }
                     else if (method.Name == nameof(im.GetGeoAsync) && mps.Length == 1)
                     {
@@ -150,16 +151,16 @@ namespace XCoder.Yun
                     }
                     else if (map is BaiduMap bd && method.Name == nameof(bd.PlaceSearchAsync))
                     {
-                        result = await bd.PlaceSearchAsync(cfg.Address, null, cfg.City, cfg.FormatAddress);
+                        result = await bd.PlaceSearchAsync(addr, null, city, cfg.FormatAddress);
                     }
                     else if (map is AMap am && method.Name == nameof(am.GetAreaAsync))
                     {
-                        result = (await am.GetAreaAsync(cfg.City))?.ToArray();
+                        result = (await am.GetAreaAsync(city))?.ToArray();
                     }
                     else
                     {
                         var ps = new Dictionary<String, Object>();
-                        if (mps.Any(k => k.Name.EqualIgnoreCase("address"))) ps["address"] = cfg.Address;
+                        if (mps.Any(k => k.Name.EqualIgnoreCase("address"))) ps["address"] = addr;
                         if (mps.Any(k => k.Name.EqualIgnoreCase("city"))) ps["city"] = cfg.City;
 
                         var task = map.InvokeWithParams(method, ps) as Task;
@@ -182,8 +183,8 @@ namespace XCoder.Yun
                 {
                     pgResult.SelectedObject = result;
 
-                    if (result is GeoAddress addr)
-                        txtLocation.Text = addr.Location + "";
+                    if (result is GeoAddress geo)
+                        txtLocation.Text = geo.Location + "";
                     else if (result is GeoPoint gp)
                         txtLocation.Text = gp + "";
                 });
