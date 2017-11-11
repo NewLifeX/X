@@ -308,6 +308,9 @@ namespace XCode.DataAccessLayer
                 }
                 catch (DbException ex)
                 {
+                    // 数据库异常最好销毁连接
+                    cmd.Connection.TryDispose();
+
                     throw OnException(ex, cmd);
                 }
                 finally
