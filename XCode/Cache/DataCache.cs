@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -81,12 +82,12 @@ namespace XCode.Cache
 
         #region 总记录数
         /// <summary>每个表总记录数</summary>
-        public IDictionary<String, Int64> Counts { get; set; } = new Dictionary<String, Int64>();
+        public IDictionary<String, Int64> Counts { get; set; } = new ConcurrentDictionary<String, Int64>();
         #endregion
 
         #region 字段缓存
         /// <summary>字段缓存，每个缓存项的值</summary>
-        public IDictionary<String, Dictionary<String, String>> FieldCache { get; set; } = new Dictionary<String, Dictionary<String, String>>();
+        public IDictionary<String, Dictionary<String, String>> FieldCache { get; set; } = new ConcurrentDictionary<String, Dictionary<String, String>>();
         #endregion
     }
 }
