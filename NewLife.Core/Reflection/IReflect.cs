@@ -687,7 +687,7 @@ namespace NewLife.Reflection
             // 接口
             if (baseType.IsInterface)
             {
-                if (type.GetInterface(baseType.Name) != null) return true;
+                if (type.GetInterface(baseType.FullName) != null) return true;
                 if (type.GetInterfaces().Any(e => e.IsGenericType && baseType.IsGenericTypeDefinition ? e.GetGenericTypeDefinition() == baseType : e == baseType)) return true;
             }
 
