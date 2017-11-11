@@ -254,7 +254,12 @@ namespace NewLife.Collections
 
         /// <summary>释放时，返回是否有效。无效资源将会被抛弃，不再加入空闲队列</summary>
         /// <param name="value"></param>
-        protected virtual Boolean OnRelease(T value) { return true; }
+        protected virtual Boolean OnRelease(T value)
+        {
+            if (value is DisposeBase db && db.Disposed) return false;
+
+            return true;
+        }
 
         /// <summary>销毁时触发</summary>
         /// <param name="value"></param>
