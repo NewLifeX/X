@@ -16,8 +16,9 @@ namespace XCode
         /// <summary>数据列</summary>
         public String Name { get; set; }
 
+        private MapProvider _Provider;
         /// <summary>目标提供者</summary>
-        public MapProvider Provider { get; set; }
+        public MapProvider Provider { get { return _Provider ?? (_Provider = GetProvider(_Type, _Key)); } set { _Provider = value; } }
         #endregion
 
         #region 构造
@@ -35,19 +36,23 @@ namespace XCode
         public MapAttribute(String name, Type type, String key = null)
         {
             Name = name;
-
-            // 区分实体类和提供者
-            if (type.As<MapProvider>())
-                Provider = Activator.CreateInstance(type) as MapProvider;
-            else
-            {
-                if (key.IsNullOrEmpty()) key = EntityFactory.CreateOperate(type)?.Unique?.Name;
-                Provider = new MapProvider { EntityType = type, Key = key };
-            }
+            _Type = type;
+            _Key = key;
         }
         #endregion
 
         #region 方法
+        private Type _Type;
+        private String _Key;
+
+        private MapProvider GetProvider(Type type, String key)
+        {
+            // 区分实体类和提供者
+            if (type.As<MapProvider>()) return Activator.CreateInstance(type) as MapProvider;
+
+            if (key.IsNullOrEmpty()) key = EntityFactory.CreateOperate(type)?.Unique?.Name;
+            return new MapProvider { EntityType = type, Key = key };
+        }
         #endregion
     }
 
