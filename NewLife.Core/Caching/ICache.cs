@@ -71,7 +71,7 @@ namespace NewLife.Caching
         /// <typeparam name="T"></typeparam>
         /// <param name="keys"></param>
         /// <returns></returns>
-        IDictionary<String, T> GetAll<T>(params String[] keys);
+        IDictionary<String, T> GetAll<T>(IEnumerable<String> keys);
 
         /// <summary>批量设置缓存项</summary>
         /// <typeparam name="T"></typeparam>

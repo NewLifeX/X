@@ -148,7 +148,7 @@ namespace NewLife.Caching
         /// <typeparam name="T"></typeparam>
         /// <param name="keys"></param>
         /// <returns></returns>
-        public virtual IDictionary<String, T> GetAll<T>(params String[] keys)
+        public virtual IDictionary<String, T> GetAll<T>(IEnumerable<String> keys)
         {
             var dic = new Dictionary<String, T>();
             foreach (var key in keys)
