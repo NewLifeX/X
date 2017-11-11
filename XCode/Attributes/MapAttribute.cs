@@ -47,6 +47,8 @@ namespace XCode
 
         private MapProvider GetProvider(Type type, String key)
         {
+            if (type == null) return null;
+
             // 区分实体类和提供者
             if (type.As<MapProvider>()) return Activator.CreateInstance(type) as MapProvider;
 

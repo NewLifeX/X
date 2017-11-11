@@ -25,7 +25,7 @@ namespace XCode
         /// <returns></returns>
         public static IEntityOperate CreateOperate(Type type)
         {
-            if (type == null) throw new ArgumentNullException("type");
+            if (type == null) throw new ArgumentNullException(nameof(type));
 
             // 有可能有子类直接继承实体类，这里需要找到继承泛型实体类的那一层
             while (!type.BaseType.IsGenericType) type = type.BaseType;
