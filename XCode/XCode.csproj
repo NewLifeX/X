@@ -214,6 +214,7 @@
     <Compile Include="Transform\Sync.cs" />
     <Compile Include="Transform\IETLStat.cs" />
     <Compile Include="Transform\IExtracter.cs" />
+    <Compile Include="Transform\IdentityExtracter.cs" />
     <Compile Include="Transform\TimeExtracter.cs" />
     <Compile Include="Transform\ExtractSetting.cs" />
     <Compile Include="Transform\ETL.cs" />

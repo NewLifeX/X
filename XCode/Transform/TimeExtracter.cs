@@ -25,47 +25,18 @@ using XCode.Configuration;
  *              Row = 0;
  *              滑动时间窗口 start = end
  *      返回这一批数据
+ *      
+ *  时间段抽取简易流程：
+ *      验证时间start
+ *      抽取一段数据 list = FindAll(UpdateTime >= start && UpdateTime < end, UpdateTime.Asc() & ID.Asc(), null, 0, 0)
  */
 
 namespace XCode.Transform
 {
     /// <summary>以时间为比较点的数据抽取器</summary>
-    public class TimeExtracter : IExtracter
+    public class TimeExtracter : ExtracterBase, IExtracter
     {
         #region 属性
-        /// <summary>名称</summary>
-        public String Name { get; set; }
-
-        /// <summary>实体工厂</summary>
-        public IEntityOperate Factory { get; set; }
-
-        /// <summary>获取 或 设置 时间字段</summary>
-        public String FieldName { get; set; }
-
-        /// <summary>附加条件</summary>
-        public String Where { get; set; }
-
-        private FieldItem _Field;
-        /// <summary>时间字段</summary>
-        public FieldItem Field
-        {
-            get
-            {
-                if (_Field == null && !FieldName.IsNullOrEmpty())
-                {
-                    _Field = Factory.Table.FindByName(FieldName);
-                    if (_Field == null) throw new ArgumentNullException(nameof(Field));
-                }
-                return _Field;
-            }
-        }
-
-        /// <summary>排序</summary>
-        public String OrderBy { get; set; }
-
-        /// <summary>选择列</summary>
-        public String Selects { get; set; }
-
         /// <summary>本批数据开始时间</summary>
         public DateTime ActualStart { get; set; }
 
@@ -73,27 +44,19 @@ namespace XCode.Transform
         public DateTime ActualEnd { get; set; }
         #endregion
 
-        #region 构造
-        /// <summary>实例化时基抽取算法</summary>
-        public TimeExtracter()
-        {
-            Name = GetType().Name.TrimEnd("Extracter");
-        }
-        #endregion
-
         #region 方法
         /// <summary>初始化</summary>
-        public virtual void Init()
+        public override void Init()
         {
-            // 自动找时间字段
-            if (FieldName.IsNullOrEmpty())
-            {
-                var fi2 = Factory.MasterTime;
-                if (fi2 != null) FieldName = fi2.Name;
-            }
-            if (Field == null) throw new ArgumentNullException(nameof(FieldName), "未指定用于顺序抽取数据的时间字段！");
-
             var fi = Field;
+            // 自动找时间字段
+            if (fi == null && FieldName.IsNullOrEmpty()) fi = Field = Factory.MasterTime;
+
+            base.Init();
+
+            fi = Field;
+            if (fi == null) throw new ArgumentNullException(nameof(FieldName), "未指定用于顺序抽取数据的时间字段！");
+
             // 先按时间升序，再按主键升序，避免同一秒存在多行数据时，数据顺序不统一
             var sort = fi.Asc();
             var uq = Factory.Unique;
@@ -136,7 +99,8 @@ namespace XCode.Transform
             ActualEnd = end;
 
             var size = set.BatchSize;
-            if (size <= 0) size = 1000;
+            // 如果批大小为零，表示不分批
+            //if (size <= 0) size = 1000;
 
             // 分批获取数据，如果没有取到，则结束
             var list = FetchData(start, end, set.Row, size);
@@ -209,30 +173,6 @@ namespace XCode.Transform
             var list = Factory.FindAll(exp, null, fi.Min(), 0, 0);
 
             return list.Count > 0 ? (DateTime)list[0][FieldName] : DateTime.MaxValue;
-        }
-
-        //private DateTime NextStart { get; set; }
-        //private Int32 NextRow { get; set; }
-
-        ///// <summary>当前批数据处理完成，移动到下一块</summary>
-        //public void SaveNext()
-        //{
-        //    var set = Setting;
-        //    set.Start = NextStart;
-        //    set.Row = NextRow;
-        //}
-        #endregion
-
-        #region 日志
-        /// <summary>日志</summary>
-        public ILog Log { get; set; } = Logger.Null;
-
-        /// <summary>写日志</summary>
-        /// <param name="format"></param>
-        /// <param name="args"></param>
-        public void WriteLog(String format, params Object[] args)
-        {
-            Log?.Info(format, args);
         }
         #endregion
     }
