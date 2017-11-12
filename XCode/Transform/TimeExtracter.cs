@@ -36,9 +36,6 @@ namespace XCode.Transform
         /// <summary>名称</summary>
         public String Name { get; set; }
 
-        ///// <summary>设置</summary>
-        //public IExtractSetting Setting { get; set; }
-
         /// <summary>实体工厂</summary>
         public IEntityOperate Factory { get; set; }
 
@@ -63,6 +60,12 @@ namespace XCode.Transform
             }
         }
 
+        /// <summary>排序</summary>
+        public String OrderBy { get; set; }
+
+        /// <summary>选择列</summary>
+        public String Selects { get; set; }
+
         /// <summary>本批数据开始时间</summary>
         public DateTime ActualStart { get; set; }
 
@@ -85,10 +88,18 @@ namespace XCode.Transform
             // 自动找时间字段
             if (FieldName.IsNullOrEmpty())
             {
-                var fi = Factory.MasterTime;
-                if (fi != null) FieldName = fi.Name;
+                var fi2 = Factory.MasterTime;
+                if (fi2 != null) FieldName = fi2.Name;
             }
             if (Field == null) throw new ArgumentNullException(nameof(FieldName), "未指定用于顺序抽取数据的时间字段！");
+
+            var fi = Field;
+            // 先按时间升序，再按主键升序，避免同一秒存在多行数据时，数据顺序不统一
+            var sort = fi.Asc();
+            var uq = Factory.Unique;
+            if (uq != null && uq.Name != fi.Name) sort &= uq.Asc();
+
+            OrderBy = sort;
         }
         #endregion
 
@@ -181,12 +192,7 @@ namespace XCode.Transform
 
             if (!Where.IsNullOrEmpty()) exp &= Where;
 
-            // 先按时间升序，再按主键升序，避免同一秒存在多行数据时，数据顺序不统一
-            var sort = fi.Asc();
-            var uq = Factory.Unique;
-            if (uq != null && uq.Name != fi.Name) sort &= uq.Asc();
-
-            return Factory.FindAll(exp, sort, null, startRow, maxRows);
+            return Factory.FindAll(exp, OrderBy, Selects, startRow, maxRows);
         }
 
         /// <summary>获取大于等于指定时间的最小修改时间</summary>
