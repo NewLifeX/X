@@ -138,9 +138,6 @@ namespace XCode.Transform
             return true;
         }
 
-        /// <summary>最后一次处理的配置</summary>
-        private IExtractSetting _Last;
-
         /// <summary>抽取并处理一批数据</summary>
         /// <returns>返回抽取数据行数，没有数据返回0，初始化或配置失败返回-1</returns>
         public virtual Int32 Process()
@@ -151,7 +148,7 @@ namespace XCode.Transform
             var set = ctx.Setting ?? Setting;
 
             // 最后一次处理之前，重新启动
-            if (!_Inited || _Last != null && (set.Start < _Last.Start || set.Start == _Last.Start && set.Row < _Last.Row))
+            if (!_Inited)
             {
                 if (!Init(set)) return -1;
                 _Inited = true;
@@ -206,8 +203,6 @@ namespace XCode.Transform
                 ProcessListAsync(ctx);
 
             Modules.Processed(ctx);
-
-            _Last = ctx.Setting;
 
             return list == null ? 0 : list.Count;
         }
