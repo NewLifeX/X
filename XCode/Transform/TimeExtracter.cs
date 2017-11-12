@@ -173,7 +173,11 @@ namespace XCode.Transform
         protected virtual IList<IEntity> FetchData(DateTime start, DateTime end, Int32 startRow, Int32 maxRows)
         {
             var fi = Field;
-            var exp = fi.Between(start, end);
+            //var exp = fi.Between(start, end);
+            // (2017-11-08 23:59:30, 2017-11-09 00:00:00)因Between的BUG变成了(2017-11-08 23:59:30, 2017-11-10 00:00:00)
+            var exp = new WhereExpression();
+            if (start > DateTime.MinValue) exp &= fi >= start;
+            if (end > DateTime.MinValue) exp &= fi < end;
 
             if (!Where.IsNullOrEmpty()) exp &= Where;
 

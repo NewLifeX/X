@@ -33,7 +33,7 @@ namespace XCode
                 if (end <= DateTime.MinValue || end >= DateTime.MaxValue) return exp;
 
                 // 如果只有日期，则加一天，表示包含这一天
-                if (end == end.Date) end = end.AddDays(1);
+                if (start == start.Date && end == end.Date) end = end.AddDays(1);
 
                 return exp & fi < end;
             }
