@@ -73,16 +73,13 @@ namespace XCode.Transform
         public virtual IList<IEntity> Fetch(IExtractSetting set)
         {
             if (Field == null) throw new ArgumentNullException(nameof(FieldName), "未指定用于顺序抽取数据的时间字段！");
-
-            //var set = Setting;
-            //if (set == null) set = Setting = new ExtractSetting();
             if (set == null) throw new ArgumentNullException(nameof(set), "没有设置数据抽取配置");
 
             // 验证时间段
             var start = set.Start;
             // 有步进且位于第一页时，重新计算最小时间
             if (set.Step > 0 && set.Row == 0) start = GetMinTime(start);
-            var now = DateTime.Now;
+            var now = DateTime.Now.AddSeconds(-set.Offset);
             if (start >= now) return null;
 
             // 结束时间，必须是小于当前时间的有效值
