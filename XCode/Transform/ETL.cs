@@ -78,7 +78,7 @@ namespace XCode.Transform
         private Int32 _currentTask;
 
         /// <summary>过滤模块列表</summary>
-        public List<IETLModule> Modules { get; set; } = new List<IETLModule>();
+        public IETLModule Module { get; set; }
         #endregion
 
         #region 构造
@@ -100,7 +100,7 @@ namespace XCode.Transform
         /// <summary>开始</summary>
         public virtual void Start()
         {
-            Modules.Start();
+            Module?.Start();
 
             var ext = Extracter;
             if (ext == null) throw new ArgumentNullException(nameof(Extracter), "没有设置数据抽取器");
@@ -120,7 +120,7 @@ namespace XCode.Transform
             _Inited = false;
 
             _timer.TryDispose();
-            Modules.Stop();
+            Module?.Stop();
         }
         #endregion
 
@@ -133,7 +133,7 @@ namespace XCode.Transform
         {
             WriteLog("开始处理{0}，区间({1} + {3:n0}, {2})", Name, set.Start, set.End, set.Row);
 
-            Modules.Init();
+            Module?.Init();
 
             return true;
         }
@@ -143,7 +143,11 @@ namespace XCode.Transform
         public virtual Int32 Process()
         {
             var ctx = new DataContext();
-            if (!Modules.Processing(ctx)) { _Inited = false; return -1; }
+            if (Module != null && !Module.Processing(ctx))
+            {
+                _Inited = false;
+                return -1;
+            }
 
             var set = ctx.Setting ?? Setting;
 
@@ -177,7 +181,7 @@ namespace XCode.Transform
                 st.Times++;
                 //st.FetchSpeed = ctx.FetchSpeed;
 
-                Modules.Fetched(ctx);
+                Module?.Fetched(ctx);
             }
             catch (Exception ex)
             {
@@ -202,7 +206,7 @@ namespace XCode.Transform
             else
                 ProcessListAsync(ctx);
 
-            Modules.Processed(ctx);
+            Module?.Processed(ctx);
 
             return list == null ? 0 : list.Count;
         }
@@ -319,7 +323,7 @@ namespace XCode.Transform
             var ends = end > DateTime.MinValue && end < DateTime.MaxValue ? ", {0}".F(end) : "";
             WriteLog("共处理{0}行，区间({1}, {2})，抓取{4:n0}ms，{5:n0}qps，处理{6:n0}ms，{7:n0}tps", total, set.Start, set.Row, ends, ctx.FetchCost, ctx.FetchSpeed, ctx.ProcessCost, ctx.ProcessSpeed);
 
-            Modules.OnFinished(ctx);
+            Module?.OnFinished(ctx);
         }
 
         /// <summary>处理单行数据</summary>
@@ -334,7 +338,7 @@ namespace XCode.Transform
         /// <returns></returns>
         protected virtual Exception OnError(DataContext ctx)
         {
-            Modules.OnError(ctx);
+            Module?.OnError(ctx);
 
             var ex = ctx.Error;
             // 处理单个实体时的异常，会被外层捕获，需要判断跳过
