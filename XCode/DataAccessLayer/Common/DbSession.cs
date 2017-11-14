@@ -107,8 +107,9 @@ namespace XCode.DataAccessLayer
         /// <summary>关闭</summary>
         public void Close()
         {
-            var tid = Thread.CurrentThread.ManagedThreadId;
-            if (ThreadID != tid) DAL.WriteLog("本会话由线程{0}创建，当前线程{1}非法使用该会话！", ThreadID, tid);
+            // 有可能是GC调用关闭
+            //var tid = Thread.CurrentThread.ManagedThreadId;
+            //if (ThreadID != tid) DAL.WriteLog("本会话由线程{0}创建，当前线程{1}非法使用该会话！", ThreadID, tid);
 
             var conn = Conn;
             if (conn != null)
