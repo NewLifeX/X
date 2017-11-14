@@ -83,7 +83,7 @@ namespace XCode.Transform
         {
             var fi = Field;
             // 自动找字段
-            if (fi == null && FieldName.IsNullOrEmpty()) fi = Field = Factory?.Table.FindByName(FieldName);
+            if (fi == null && !FieldName.IsNullOrEmpty()) fi = Field = Factory?.Table.FindByName(FieldName);
 
             if (fi == null) throw new ArgumentNullException(nameof(FieldName), "未指定用于顺序抽取数据的排序字段！");
         }

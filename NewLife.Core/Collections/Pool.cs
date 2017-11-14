@@ -107,6 +107,7 @@ namespace NewLife.Collections
             return new PoolItem<T>(this, pi.Value);
         }
 
+        private Boolean _inited;
         /// <summary>申请</summary>
         /// <param name="msTimeout">池满时等待的最大超时时间。超时后仍无法得到资源将抛出异常</param>
         /// <returns></returns>
@@ -155,7 +156,11 @@ namespace NewLife.Collections
                         Value = Create(),
                     };
 
-                    if (BusyCount == 0) WriteLog($"Init Min={Min} Max={Max} IdleTime={IdleTime}s AllIdleTime={AllIdleTime}s WaitTime={WaitTime}ms");
+                    if (BusyCount == 0 && !_inited)
+                    {
+                        _inited = true;
+                        WriteLog($"Init Min={Min} Max={Max} IdleTime={IdleTime}s AllIdleTime={AllIdleTime}s WaitTime={WaitTime}ms");
+                    }
                     WriteLog("Acquire Create Free={0} Busy={1}", FreeCount, BusyCount + 1);
                 }
 
