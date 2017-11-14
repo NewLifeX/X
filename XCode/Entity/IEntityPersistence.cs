@@ -123,15 +123,23 @@ namespace XCode
             if (ds.Count == 0) return 0;
 
             IDataParameter[] dps = null;
-            var sql = SQL(entity, DataObjectMethodType.Update, ref dps);
-            if (sql.IsNullOrEmpty()) return 0;
+            var sql = "";
+
+            // 双锁判断脏数据
+            lock (entity)
+            {
+                if (ds.Count == 0) return 0;
+
+                sql = SQL(entity, DataObjectMethodType.Update, ref dps);
+                if (sql.IsNullOrEmpty()) return 0;
+
+                //清除脏数据，避免重复提交
+                ds.Clear();
+            }
 
             var op = EntityFactory.CreateOperate(entity.GetType());
             var session = op.Session;
             var rs = session.Execute(sql, CommandType.Text, dps);
-
-            //清除脏数据，避免重复提交
-            ds.Clear();
 
             //EntityAddition.ClearValues(entity as EntityBase);
 
