@@ -124,7 +124,7 @@ namespace XCode
 
             IDataParameter[] dps = null;
             var sql = SQL(entity, DataObjectMethodType.Update, ref dps);
-            if (String.IsNullOrEmpty(sql)) return 0;
+            if (sql.IsNullOrEmpty()) return 0;
 
             var op = EntityFactory.CreateOperate(entity.GetType());
             var session = op.Session;
@@ -133,7 +133,7 @@ namespace XCode
             //清除脏数据，避免重复提交
             ds.Clear();
 
-            EntityAddition.ClearValues(entity as EntityBase);
+            //EntityAddition.ClearValues(entity as EntityBase);
 
             return rs;
         }
@@ -306,6 +306,9 @@ namespace XCode
             //if (String.IsNullOrEmpty(def)) return null;
             if (def.Empty) return null;
 
+            // 处理累加字段
+            var dfs = (entity as EntityBase).Addition.Get();
+
             var op = EntityFactory.CreateOperate(entity.GetType());
             var up = op.Session.Dal.Db.UserParameter;
 
@@ -332,10 +335,13 @@ namespace XCode
                 else
                 {
                     // 检查累加
-                    if (!CheckAdditionalValue(sb, entity, fi.Name, name))
+                    if (!CheckAdditionalValue(sb, dfs, fi.Name, name))
                         sb.Append(op.FormatValue(fi, value)); // 数据
                 }
             }
+
+            // 重置累加数据
+            (entity as EntityBase).Addition.Reset(dfs);
 
             if (sb.Length <= 0) return null;
 
@@ -442,14 +448,81 @@ namespace XCode
             return dp;
         }
 
-        static Boolean CheckAdditionalValue(StringBuilder sb, IEntity entity, String name, String cname)
+        static Boolean CheckAdditionalValue(StringBuilder sb, IDictionary<String, Object[]> dfs, String name, String cname)
         {
-            if (!EntityAddition.TryGetValue(entity as EntityBase, name, out var addvalue, out var sign)) return false;
+            if (dfs == null || !dfs.TryGetValue(name, out var vs)) return false;
 
+            var cur = vs[0];
+            var old = vs[1];
+
+            // 如果原始值是0，不使用累加，因为可能原始数据字段是NULL，导致累加失败
+            if (Convert.ToInt64(old) == 0) return false;
+
+            var sign = true;
+            var value = old;
+
+            // 计算累加数据
+            switch (cur.GetType().GetTypeCode())
+            {
+                case TypeCode.Char:
+                case TypeCode.Byte:
+                case TypeCode.SByte:
+                case TypeCode.Int16:
+                case TypeCode.Int32:
+                case TypeCode.Int64:
+                case TypeCode.UInt16:
+                case TypeCode.UInt32:
+                case TypeCode.UInt64:
+                    {
+                        var v = Convert.ToInt64(cur) - Convert.ToInt64(old);
+                        if (v < 0)
+                        {
+                            v = -v;
+                            sign = false;
+                        }
+                        value = v;
+                    }
+                    break;
+                case TypeCode.Single:
+                    {
+                        var v = (Single)cur - (Single)old;
+                        if (v < 0)
+                        {
+                            v = -v;
+                            sign = false;
+                        }
+                        value = v;
+                    }
+                    break;
+                case TypeCode.Double:
+                    {
+                        var v = (Double)cur - (Double)old;
+                        if (v < 0)
+                        {
+                            v = -v;
+                            sign = false;
+                        }
+                        value = v;
+                    }
+                    break;
+                case TypeCode.Decimal:
+                    {
+                        var v = (Decimal)cur - (Decimal)old;
+                        if (v < 0)
+                        {
+                            v = -v;
+                            sign = false;
+                        }
+                        value = v;
+                    }
+                    break;
+                default:
+                    break;
+            }
             if (sign)
-                sb.AppendFormat("{0}+{1}", cname, addvalue);
+                sb.AppendFormat("{0}+{1}", cname, value);
             else
-                sb.AppendFormat("{0}-{1}", cname, addvalue);
+                sb.AppendFormat("{0}-{1}", cname, value);
 
             return true;
         }
