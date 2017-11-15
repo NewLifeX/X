@@ -120,11 +120,23 @@ namespace Test
 
         static void Test2()
         {
-            var url = "http://www.baidu.com";
+            var rds = new RedisClient();
+            rds.Server = new NetUri("tcp://127.0.0.1:6379");
 
-            var client = new TinyHttpClient();
-            var rs = client.GetAsync(url).Result;
-            Console.WriteLine(rs);
+            var p = rds.Ping();
+            Console.WriteLine(p);
+
+            var inf = rds.GetInfo();
+            foreach (var item in inf)
+            {
+                Console.WriteLine("{0}\t{1}", item.Key, item.Value);
+            }
+
+            //var url = "http://www.baidu.com";
+
+            //var client = new TinyHttpClient();
+            //var rs = client.GetAsync(url).Result;
+            //Console.WriteLine(rs);
 
             //var client = new NewLife.Http.HttpClient();
             //client.Remote = new NetUri(url);
