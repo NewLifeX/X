@@ -70,9 +70,9 @@ namespace NewLife.Caching
         private static Byte[] NewLine = new[] { (Byte)'\r', (Byte)'\n' };
         /// <summary>异步发出请求，并接收响应</summary>
         /// <param name="cmd"></param>
-        /// <param name="data"></param>
+        /// <param name="args"></param>
         /// <returns></returns>
-        protected virtual async Task<Object> SendAsync(String cmd, params Byte[] data)
+        protected virtual async Task<Object> SendAsync(String cmd, params Byte[][] args)
         {
             var ns = await GetStreamAsync();
 
@@ -80,14 +80,23 @@ namespace NewLife.Caching
             // *1\r\n$4\r\nINFO\r\n
 
             // 区分有参数和无参数
-            if (data == null || data.Length == 0)
+            if (args == null || args.Length == 0)
             {
                 var str = "*1\r\n${0}\r\n{1}\r\n".F(cmd.Length, cmd);
                 ns.Write(str.GetBytes());
             }
             else
             {
+                var str = "*{2}\r\n${0}\r\n{1}\r\n".F(cmd.Length, cmd, 1 + args.Length);
+                ns.Write(str.GetBytes());
 
+                foreach (var item in args)
+                {
+                    str = "${0}\r\n".F(item.Length);
+                    ns.Write(str.GetBytes());
+                    ns.Write(item);
+                    ns.Write(NewLine);
+                }
             }
 
             // 接收
@@ -139,15 +148,26 @@ namespace NewLife.Caching
         #endregion
 
         #region 主要方法
-        public virtual Object Execute(String cmd, params Byte[] args)
+        /// <summary>执行命令</summary>
+        /// <param name="cmd"></param>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        public virtual Object Execute(String cmd, params String[] args)
         {
-            return Task.Run(() => SendAsync(cmd)).Result;
+            return Task.Run(() => SendAsync(cmd, args.Select(e => e.GetBytes()).ToArray())).Result;
         }
 
+        /// <summary>心跳</summary>
+        /// <returns></returns>
         public Boolean Ping() { return Execute("PING") + "" == "PONG"; }
 
+        /// <summary>选择Db</summary>
+        /// <param name="db"></param>
+        /// <returns></returns>
         public Boolean Select(Int32 db) { return Execute("SELECT") + "" == "OK"; }
 
+        /// <summary>获取信息</summary>
+        /// <returns></returns>
         public IDictionary<String, String> GetInfo()
         {
             var rs = Execute("INFO") as Packet;
@@ -164,7 +184,7 @@ namespace NewLife.Caching
         /// <returns></returns>
         public Boolean Set<T>(String key, T value)
         {
-            return Execute("SET", key.GetBytes()) + "" == "OK";
+            return Execute("SET", key) + "" == "OK";
         }
 
         //public Boolean Set<T>(String key, T value, Int32 seconds)
@@ -184,13 +204,51 @@ namespace NewLife.Caching
         /// <returns></returns>
         public T Get<T>(String key)
         {
-            var rs = Execute("GET", key.GetBytes());
+            //var rs = Execute("GET", key.GetBytes());
+            var rs = Task.Run(() => SendAsync("GET", key.GetBytes())).Result;
+            var pk = rs as Packet;
 
             var type = typeof(T);
-            if (type == typeof(Byte[])) return (T)(Object)(rs as Packet).ToArray();
-            if (type.GetTypeCode() != TypeCode.Object) return rs.ChangeType<T>();
+            if (type == typeof(Byte[])) return (T)(Object)pk.ToArray();
 
-            if (rs is Packet pk) return pk.ToStr().ToJsonEntity<T>();
+            switch (type.GetTypeCode())
+            {
+                case TypeCode.Boolean:
+                    break;
+                case TypeCode.Char:
+                    break;
+                case TypeCode.SByte:
+                    break;
+                case TypeCode.Byte:
+                    break;
+                case TypeCode.Int16:
+                    break;
+                case TypeCode.UInt16:
+                    break;
+                case TypeCode.Int32:
+                case TypeCode.UInt32:
+                case TypeCode.Int64:
+                case TypeCode.UInt64:
+                    return (T)(Object)rs;
+                case TypeCode.Single:
+                    break;
+                case TypeCode.Double:
+                    break;
+                case TypeCode.Decimal:
+                    break;
+                case TypeCode.DateTime:
+                    break;
+                case TypeCode.String:
+                    return (T)(Object)pk.ToStr().Trim('\"');
+                default:
+                    break;
+            }
+            if (type.GetTypeCode() != TypeCode.Object)
+            {
+                return rs.ChangeType<T>();
+            }
+
+            if (pk != null) return pk.ToStr().ToJsonEntity<T>();
 
             throw new NotSupportedException();
         }

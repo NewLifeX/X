@@ -126,6 +126,9 @@ namespace Test
             var p = rds.Ping();
             Console.WriteLine(p);
 
+            var v = rds.Get<String>("name");
+            Console.WriteLine(v);
+
             var inf = rds.GetInfo();
             foreach (var item in inf)
             {
