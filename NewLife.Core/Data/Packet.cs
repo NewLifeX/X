@@ -80,6 +80,44 @@ namespace NewLife.Data
             return new Packet(Data, Offset + offset, count);
         }
 
+        /// <summary>查找目标数组</summary>
+        /// <param name="data">目标数组</param>
+        /// <param name="offset">本数组起始偏移</param>
+        /// <param name="count">本数组搜索个数</param>
+        /// <returns></returns>
+        public Int32 IndexOf(Byte[] data, Int32 offset = 0, Int32 count = -1)
+        {
+            //return (Int32)IOHelper.IndexOf(Data, Offset, Count, data, offset, count);
+
+            var start = Offset + offset;
+            var length = data.Length;
+
+            if (count < 0 || count > Count - offset) count = Count - offset;
+
+            // 已匹配字节数
+            var win = 0;
+            // 索引加上data剩余字节数必须小于count
+            for (var i = 0; i + length - win < count; i++)
+            {
+                if (Data[start + i] == data[win])
+                {
+                    win++;
+
+                    // 全部匹配，退出
+                    if (win >= length) return (start + i - Offset) - length + 1;
+                }
+                else
+                {
+                    //win = 0; // 只要有一个不匹配，马上清零
+                    // 不能直接清零，那样会导致数据丢失，需要逐位探测，窗口一个个字节滑动
+                    i = i - win;
+                    win = 0;
+                }
+            }
+
+            return -1;
+        }
+
         /// <summary>返回字节数组。如果是完整数组直接返回，否则截取</summary>
         /// <remarks>不一定是全新数据，如果需要全新数据请克隆</remarks>
         /// <returns></returns>

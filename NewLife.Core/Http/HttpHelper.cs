@@ -95,6 +95,7 @@ namespace NewLife.Http
             return rs;
         }
 
+        private static Byte[] NewLine = new[] { (Byte)'\r', (Byte)'\n', (Byte)'\r', (Byte)'\n' };
         /// <summary>分析头部</summary>
         /// <param name="pk"></param>
         /// <returns></returns>
@@ -103,7 +104,7 @@ namespace NewLife.Http
             // 客户端收到响应，服务端收到请求
             var headers = new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
 
-            var p = (Int32)pk.Data.IndexOf(pk.Offset, pk.Count, "\r\n\r\n".GetBytes());
+            var p = pk.IndexOf(NewLine);
             if (p < 0) return headers;
 
 #if DEBUG

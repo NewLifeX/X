@@ -35,9 +35,10 @@ namespace NewLife.Http
         /// <summary>主体长度</summary>
         internal Int32 BodyLength { get; set; }
 
+        private static Byte[] NewLine = new[] { (Byte)'\r', (Byte)'\n', (Byte)'\r', (Byte)'\n' };
         internal Boolean ParseHeader(Packet pk)
         {
-            var p = (Int32)pk.Data.IndexOf(pk.Offset, pk.Count, "\r\n\r\n".GetBytes());
+            var p = pk.IndexOf(NewLine);
             if (p < 0) return false;
 
             var str = pk.ReadBytes(0, p).ToStr();

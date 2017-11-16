@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
@@ -156,14 +155,16 @@ namespace NewLife.Http
             return req;
         }
 
+        private static Byte[] NewLine4 = new[] { (Byte)'\r', (Byte)'\n', (Byte)'\r', (Byte)'\n' };
+        private static Byte[] NewLine3 = new[] { (Byte)'\r', (Byte)'\n', (Byte)'\n' };
         /// <summary>解析响应</summary>
         /// <param name="rs"></param>
         /// <returns></returns>
         protected virtual Packet ParseResponse(Packet rs)
         {
-            var p = (Int32)rs.Data.IndexOf(rs.Offset, rs.Count, "\r\n\r\n".GetBytes());
+            var p = rs.IndexOf(NewLine4);
             // 兼容某些非法响应
-            if (p < 0) p = (Int32)rs.Data.IndexOf(rs.Offset, rs.Count, "\r\n\n".GetBytes());
+            if (p < 0) p = rs.IndexOf(NewLine3);
             if (p < 0) return null;
 
             var str = rs.ReadBytes(0, p).ToStr();
@@ -202,12 +203,13 @@ namespace NewLife.Http
             return rs.Sub(p + 4, len);
         }
 
+        private static Byte[] NewLine = new[] { (Byte)'\r', (Byte)'\n' };
         private Packet ParseChunk(Packet rs)
         {
             // chunk编码
             // 1 ba \r\n xxxx \r\n 0 \r\n\r\n
 
-            var p = (Int32)rs.Data.IndexOf(rs.Offset, rs.Count, new Byte[] { 0x0D, 0x0A });
+            var p = rs.IndexOf(NewLine);
             if (p <= 0) return rs;
 
             // 第一段长度
