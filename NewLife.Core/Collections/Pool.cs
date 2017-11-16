@@ -91,7 +91,7 @@ namespace NewLife.Collections
         public T Acquire(Int32 msTimeout = 0)
         {
             var pi = OnAcquire(msTimeout);
-            if (pi == null) return default(T);
+            if (pi == null) return default;
 
             return pi.Value;
         }
@@ -287,13 +287,14 @@ namespace NewLife.Collections
 
         private void Work(Object state)
         {
-            // 总数小于等于最小个数时不处理
-            if (FreeCount + BusyCount <= Min) return;
+            //// 总数小于等于最小个数时不处理
+            //if (FreeCount + BusyCount <= Min) return;
 
             // 遍历并干掉过期项
             var count = 0;
 
-            if (IdleTime > 0 && !_free2.IsEmpty)
+            // 总数小于等于最小个数时不处理
+            if (IdleTime > 0 && !_free2.IsEmpty && FreeCount + BusyCount > Min)
             {
                 var exp = DateTime.Now.AddSeconds(-IdleTime);
                 // 移除扩展空闲集合里面的超时项
@@ -345,7 +346,7 @@ namespace NewLife.Collections
         /// <summary>成功数</summary>
         public Int32 Success { get => _Success; }
 
-        /// <summary>平均耗时</summary>
+        /// <summary>平均耗时。单位ms</summary>
         private Double Cost;
         #endregion
 

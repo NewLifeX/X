@@ -128,6 +128,7 @@ namespace Test
             var rds = Redis.Create("127.0.0.1:6379", 4);
             rds.Password = "";
             //rds.Log = XTrace.Log;
+            rds.Pool.Log = XTrace.Log;
 
             rds.Bench();
             return;

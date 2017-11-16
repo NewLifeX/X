@@ -138,11 +138,13 @@ namespace NewLife.Caching
             {
                 return _Pool ?? (_Pool = new MyPool
                 {
+                    Name = "RedisPool",
                     Instance = this,
                     Min = 2,
                     Max = 1000,
                     IdleTime = 20,
                     AllIdleTime = 120,
+                    Log = Log,
                 });
             }
         }

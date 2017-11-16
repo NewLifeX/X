@@ -313,7 +313,7 @@ namespace NewLife.Caching
 
             // 最大
             if (cpu < 64) BenchOne(times * cpu, 64);
-            if (cpu < 256) BenchOne(times * cpu, 256);
+            if (cpu * 8 >= 256) BenchOne(times * cpu, cpu * 8);
         }
 
         /// <summary>使用指定线程测试指定次数</summary>
