@@ -23,6 +23,15 @@ namespace NewLife.Caching
 
         /// <summary>内容类型</summary>
         public NetUri Server { get; set; }
+
+        /// <summary>密码</summary>
+        public String Password { get; set; }
+
+        /// <summary>是否已登录</summary>
+        public Boolean Logined { get; private set; }
+
+        /// <summary>登录时间</summary>
+        public DateTime LoginTime { get; private set; }
         #endregion
 
         #region 构造
@@ -32,14 +41,26 @@ namespace NewLife.Caching
         {
             base.OnDispose(disposing);
 
+            // 销毁时退出
+            if (Logined)
+            {
+                try
+                {
+                    var tc = Client;
+                    if (tc != null && tc.Connected && tc.GetStream() != null) Quit();
+                }
+                catch { }
+            }
+
             Client.TryDispose();
         }
         #endregion
 
         #region 核心方法
         /// <summary>异步请求</summary>
+        /// <param name="create">新建连接</param>
         /// <returns></returns>
-        private async Task<Stream> GetStreamAsync()
+        private async Task<Stream> GetStreamAsync(Boolean create)
         {
             var tc = Client;
             NetworkStream ns = null;
@@ -49,13 +70,15 @@ namespace NewLife.Caching
             try
             {
                 ns = tc?.GetStream();
-                active = tc != null && tc.Connected && ns != null && ns.CanWrite && ns.CanRead;
+                active = ns != null && tc.Connected && ns != null && ns.CanWrite && ns.CanRead;
             }
             catch { }
 
             // 如果连接不可用，则重新建立连接
             if (!active)
             {
+                Logined = false;
+
                 tc.TryDispose();
                 tc = new TcpClient();
                 await tc.ConnectAsync(Server.Address, Server.Port);
@@ -74,7 +97,20 @@ namespace NewLife.Caching
         /// <returns></returns>
         protected virtual async Task<Object> SendAsync(String cmd, params Byte[][] args)
         {
-            var ns = await GetStreamAsync();
+            var isQuit = cmd == "QUIT";
+
+            var ns = await GetStreamAsync(isQuit);
+            if (ns == null) return null;
+
+            // 验证登录
+            if (!Logined && !Password.IsNullOrEmpty() && cmd != "AUTH")
+            {
+                var ars = await SendAsync("AUTH", Password.GetBytes());
+                if (ars + "" != "OK") throw new Exception("登录失败！" + ars);
+
+                Logined = true;
+                LoginTime = DateTime.Now;
+            }
 
             // *<number of arguments>\r\n$<number of bytes of argument 1>\r\n<argument data>\r\n
             // *1\r\n$4\r\nINFO\r\n
@@ -119,6 +155,8 @@ namespace NewLife.Caching
             var count = await ns.ReadAsync(buf, 0, buf.Length, source.Token);
             if (count == 0) return null;
 
+            if (isQuit) Logined = false;
+
             /*
              * 响应格式
              * 1：简单字符串，非二进制安全字符串，一般是状态回复。  +开头，例：+OK\r\n 
@@ -159,7 +197,7 @@ namespace NewLife.Caching
             }
 
             var str2 = rs.ToStr().Trim();
-            if (log != null) WriteLog("=> {0} {1}", header, str2);
+            if (log != null) WriteLog("=> {0}", str2);
 
             if (header == '+') return str2;
             if (header == '-') throw new Exception(str2);
@@ -197,6 +235,10 @@ namespace NewLife.Caching
         /// <param name="password"></param>
         /// <returns></returns>
         public Boolean Auth(String password) { return Execute("AUTH", password) + "" == "OK"; }
+
+        /// <summary>退出</summary>
+        /// <returns></returns>
+        public Boolean Quit() { return Execute("QUIT") + "" == "OK"; }
 
         /// <summary>获取信息</summary>
         /// <returns></returns>

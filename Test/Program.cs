@@ -123,10 +123,11 @@ namespace Test
             var rds = new RedisClient
             {
                 Log = XTrace.Log,
-                Server = new NetUri("tcp://127.0.0.1:6379")
+                Server = new NetUri("tcp://127.0.0.1:6379"),
             };
+            rds.Password = "";
 
-            var f = rds.Select(5);
+            var f = rds.Select(4);
             //Console.WriteLine(f);
 
             var p = rds.Ping();
@@ -163,6 +164,9 @@ namespace Test
             {
                 Console.WriteLine("{0}\t{1}", item.Key, item.Value);
             }
+
+            //rds.Quit();
+            rds.Dispose();
 
             //var url = "http://www.baidu.com";
 
