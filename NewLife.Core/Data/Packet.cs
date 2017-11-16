@@ -272,6 +272,10 @@ namespace NewLife.Data
         {
             return new Packet(value);
         }
+
+        /// <summary>已重载</summary>
+        /// <returns></returns>
+        public override String ToString() => $"[{Data.Length}]({Offset}, {Count})";
         #endregion
     }
 }
