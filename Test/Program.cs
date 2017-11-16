@@ -120,31 +120,39 @@ namespace Test
 
         static void Test2()
         {
-            var rds = new RedisClient();
-            rds.Server = new NetUri("tcp://127.0.0.1:6379");
+            var rds = new RedisClient
+            {
+                Log = XTrace.Log,
+                Server = new NetUri("tcp://127.0.0.1:6379")
+            };
+
+            var f = rds.Select(5);
+            //Console.WriteLine(f);
 
             var p = rds.Ping();
-            Console.WriteLine(p);
+            //Console.WriteLine(p);
 
             var num = Rand.Next(10243);
             rds.Set("num", num);
             var num2 = rds.Get<Int16>("num");
-            Console.WriteLine("{0} => {1}", num, num2);
+            //Console.WriteLine("{0} => {1}", num, num2);
 
             var d1 = (Double)Rand.Next(10243) / 100;
             rds.Set("dd", d1);
             var d2 = rds.Get<Double>("dd");
-            Console.WriteLine("{0} => {1}", d1, d2);
+            //Console.WriteLine("{0} => {1}", d1, d2);
 
             var dt = DateTime.Now;
             rds.Set("dt", dt);
             var dt2 = rds.Get<DateTime>("dt");
-            Console.WriteLine("{0} => {1}", dt, dt2);
+            //Console.WriteLine("{0} => {1}", dt, dt2);
 
-            var v = rds.Get<String>("name");
-            Console.WriteLine(v);
+            var v = Rand.NextString(7);
+            rds.Set("name", v);
+            v = rds.Get<String>("name");
+            //Console.WriteLine(v);
 
-            var buf1 = Rand.NextBytes(32);
+            var buf1 = Rand.NextBytes(35);
             rds.Set("bs", buf1);
             var buf2 = rds.Get<Byte[]>("bs");
             Console.WriteLine(buf1.ToHex());

@@ -6,8 +6,8 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using NewLife.Collections;
 using NewLife.Data;
+using NewLife.Log;
 using NewLife.Net;
 using NewLife.Reflection;
 using NewLife.Serialization;
@@ -79,6 +79,9 @@ namespace NewLife.Caching
             // *<number of arguments>\r\n$<number of bytes of argument 1>\r\n<argument data>\r\n
             // *1\r\n$4\r\nINFO\r\n
 
+            var log = Log == null && Log == Logger.Null ? null : new StringBuilder();
+            log?.Append(cmd);
+
             // 区分有参数和无参数
             if (args == null || args.Length == 0)
             {
@@ -87,17 +90,28 @@ namespace NewLife.Caching
             }
             else
             {
+                //WriteLog("{0} {1} {2}", cmd, args[0].ToStr(), args.Length - 1);
+
                 var str = "*{2}\r\n${0}\r\n{1}\r\n".F(cmd.Length, cmd, 1 + args.Length);
                 ns.Write(str.GetBytes());
 
                 foreach (var item in args)
                 {
+                    if (log != null)
+                    {
+                        if (item.Length <= 32)
+                            log.AppendFormat(" {0}", item.ToStr());
+                        else
+                            log.AppendFormat(" [{0}]", item.Length);
+                    }
+
                     str = "${0}\r\n".F(item.Length);
                     ns.Write(str.GetBytes());
                     ns.Write(item);
                     ns.Write(NewLine);
                 }
             }
+            if (log != null) WriteLog(log.ToString());
 
             // 接收
             var source = new CancellationTokenSource(15000);
@@ -120,23 +134,36 @@ namespace NewLife.Caching
             var header = rs[0];
             rs = rs.Sub(1);
 
-            if (header == '+') return rs.ToStr().Trim();
-            if (header == '-') throw new Exception(rs.ToStr().Trim());
-            if (header == ':') return rs.ToStr().Trim().ToInt();
+            log.Clear();
 
             if (header == '$')
             {
-                //var p = rs.Data.IndexOf(NewLine, rs.Offset) - rs.Offset;
-                //var p = Array.IndexOf(rs.Data, 0x0D, rs.Offset) - rs.Offset;
                 var p = (Int32)rs.Data.IndexOf(NewLine) - rs.Offset;
                 if (p > 0)
                 {
                     var len = rs.Sub(0, p).ToStr().ToInt();
 
                     p += 2;
-                    return rs.Sub(p, rs.Count - p - 2);
+                    rs = rs.Sub(p, rs.Count - p - 2);
+
+                    if (log != null)
+                    {
+                        if (rs.Count <= 32)
+                            WriteLog("=> {0}", rs.ToStr());
+                        else
+                            WriteLog("=> [{0}]", rs.Count);
+                    }
+
+                    return rs;
                 }
             }
+
+            var str2 = rs.ToStr().Trim();
+            if (log != null) WriteLog("=> {0} {1}", header, str2);
+
+            if (header == '+') return str2;
+            if (header == '-') throw new Exception(str2);
+            if (header == ':') return str2.ToInt();
 
             throw new NotSupportedException();
 
@@ -164,7 +191,7 @@ namespace NewLife.Caching
         /// <summary>选择Db</summary>
         /// <param name="db"></param>
         /// <returns></returns>
-        public Boolean Select(Int32 db) { return Execute("SELECT") + "" == "OK"; }
+        public Boolean Select(Int32 db) { return Execute("SELECT", db + "") + "" == "OK"; }
 
         /// <summary>验证密码</summary>
         /// <param name="password"></param>
@@ -235,6 +262,19 @@ namespace NewLife.Caching
             return str.ToJsonEntity<T>();
 
             //throw new NotSupportedException();
+        }
+        #endregion
+
+        #region 日志
+        /// <summary>日志</summary>
+        public ILog Log { get; set; } = Logger.Null;
+
+        /// <summary>写日志</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        public void WriteLog(String format, params Object[] args)
+        {
+            Log?.Info(format, args);
         }
         #endregion
     }
