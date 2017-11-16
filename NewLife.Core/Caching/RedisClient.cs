@@ -80,7 +80,12 @@ namespace NewLife.Caching
                 Logined = false;
 
                 tc.TryDispose();
-                tc = new TcpClient();
+
+                tc = new TcpClient
+                {
+                    SendTimeout = 5000,
+                    ReceiveTimeout = 5000
+                };
                 await tc.ConnectAsync(Server.Address, Server.Port);
 
                 Client = tc;
@@ -148,9 +153,9 @@ namespace NewLife.Caching
             if (log != null) WriteLog(log.ToString());
 
             // 接收
-            var source = new CancellationTokenSource(15000);
+            //var source = new CancellationTokenSource(15000);
             var buf = new Byte[64 * 1024];
-            var count = await ns.ReadAsync(buf, 0, buf.Length, source.Token);
+            var count = await ns.ReadAsync(buf, 0, buf.Length);
             if (count == 0) return null;
 
             if (isQuit) Logined = false;

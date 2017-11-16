@@ -16,11 +16,13 @@ namespace NewLife.Collections
         /// <summary>名称</summary>
         public String Name { get; set; }
 
+        private Int32 _FreeCount;
         /// <summary>空闲个数</summary>
-        public Int32 FreeCount { get; private set; }
+        public Int32 FreeCount { get => _FreeCount; }
 
+        private Int32 _BusyCount;
         /// <summary>繁忙个数</summary>
-        public Int32 BusyCount { get; private set; }
+        public Int32 BusyCount { get => _BusyCount; }
 
         /// <summary>最大个数。默认100</summary>
         public Int32 Max { get; set; } = 100;
@@ -127,13 +129,15 @@ namespace NewLife.Collections
                 // 从空闲集合借一个
                 if (_free.TryPop(out pi) || _free2.TryDequeue(out pi))
                 {
-                    FreeCount = _free.Count + _free2.Count;
+                    //FreeCount = _free.Count + _free2.Count;
+                    Interlocked.Decrement(ref _FreeCount);
                     flag = true;
                 }
                 else
                 {
                     // 超出最大值后，抛出异常
-                    var count = _busy.Count;
+                    //var count = _busy.Count;
+                    var count = BusyCount;
                     if (count >= Max)
                     {
                         // 如果超时时间未到，等一会重试
@@ -156,12 +160,12 @@ namespace NewLife.Collections
                         Value = Create(),
                     };
 
-                    if (BusyCount == 0 && !_inited)
+                    if (count == 0 && !_inited)
                     {
                         _inited = true;
                         WriteLog($"Init Min={Min} Max={Max} IdleTime={IdleTime}s AllIdleTime={AllIdleTime}s WaitTime={WaitTime}ms");
                     }
-                    WriteLog("Acquire Create Free={0} Busy={1}", FreeCount, BusyCount + 1);
+                    WriteLog("Acquire Create Free={0} Busy={1}", FreeCount, count + 1);
                 }
 
                 // 抛弃无效资源
@@ -176,7 +180,8 @@ namespace NewLife.Collections
             // 加入繁忙集合
             _busy.TryAdd(pi.Value, pi);
 
-            BusyCount = _busy.Count;
+            //BusyCount = _busy.Count;
+            Interlocked.Increment(ref _BusyCount);
 
 #if DEBUG
             //WriteLog("Acquire Free={0} Busy={1}", FreeCount, BusyCount);
@@ -206,7 +211,8 @@ namespace NewLife.Collections
                 return;
             }
 
-            BusyCount = _busy.Count;
+            //BusyCount = _busy.Count;
+            Interlocked.Decrement(ref _BusyCount);
 
             // 抛弃无效资源
             if (!OnRelease(pi.Value)) return;
@@ -217,7 +223,7 @@ namespace NewLife.Collections
             var min = Min;
 
             // 如果空闲数不足最小值，则返回到基础空闲集合
-            if (_free.Count < min)
+            if (_FreeCount < min)
                 _free.Push(pi);
             else
                 _free2.Enqueue(pi);
@@ -225,7 +231,8 @@ namespace NewLife.Collections
             // 最后时间
             pi.LastTime = DateTime.Now;
 
-            FreeCount = _free.Count + _free2.Count;
+            //FreeCount = _free.Count + _free2.Count;
+            Interlocked.Increment(ref _FreeCount);
 
             // 启动定期清理的定时器
             StartTimer();
@@ -328,7 +335,8 @@ namespace NewLife.Collections
 
             if (count > 0)
             {
-                FreeCount = _free.Count + _free2.Count;
+                _FreeCount = _free.Count + _free2.Count;
+                _BusyCount = _busy.Count;
 
                 var p = Total == 0 ? 0 : (Double)Success / Total;
 
