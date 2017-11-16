@@ -126,8 +126,29 @@ namespace Test
             var p = rds.Ping();
             Console.WriteLine(p);
 
+            var num = Rand.Next(10243);
+            rds.Set("num", num);
+            var num2 = rds.Get<Int16>("num");
+            Console.WriteLine("{0} => {1}", num, num2);
+
+            var d1 = (Double)Rand.Next(10243) / 100;
+            rds.Set("dd", d1);
+            var d2 = rds.Get<Double>("dd");
+            Console.WriteLine("{0} => {1}", d1, d2);
+
+            var dt = DateTime.Now;
+            rds.Set("dt", dt);
+            var dt2 = rds.Get<DateTime>("dt");
+            Console.WriteLine("{0} => {1}", dt, dt2);
+
             var v = rds.Get<String>("name");
             Console.WriteLine(v);
+
+            var buf1 = Rand.NextBytes(32);
+            rds.Set("bs", buf1);
+            var buf2 = rds.Get<Byte[]>("bs");
+            Console.WriteLine(buf1.ToHex());
+            Console.WriteLine(buf2.ToHex());
 
             var inf = rds.GetInfo();
             foreach (var item in inf)

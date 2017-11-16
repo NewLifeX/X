@@ -166,6 +166,11 @@ namespace NewLife.Caching
         /// <returns></returns>
         public Boolean Select(Int32 db) { return Execute("SELECT") + "" == "OK"; }
 
+        /// <summary>验证密码</summary>
+        /// <param name="password"></param>
+        /// <returns></returns>
+        public Boolean Auth(String password) { return Execute("AUTH", password) + "" == "OK"; }
+
         /// <summary>获取信息</summary>
         /// <returns></returns>
         public IDictionary<String, String> GetInfo()
@@ -184,7 +189,19 @@ namespace NewLife.Caching
         /// <returns></returns>
         public Boolean Set<T>(String key, T value)
         {
-            return Execute("SET", key) + "" == "OK";
+            Byte[] val = null;
+
+            var type = typeof(T);
+            if (type == typeof(Byte[]))
+                val = (Byte[])(Object)value;
+            else if (type.GetTypeCode() != TypeCode.Object)
+                val = "{0}".F(value).GetBytes();
+            else
+                val = val.ToJson().GetBytes();
+
+            var rs = Task.Run(() => SendAsync("SET", key.GetBytes(), val)).Result;
+
+            return rs + "" == "OK";
         }
 
         //public Boolean Set<T>(String key, T value, Int32 seconds)
@@ -211,46 +228,13 @@ namespace NewLife.Caching
             var type = typeof(T);
             if (type == typeof(Byte[])) return (T)(Object)pk.ToArray();
 
-            switch (type.GetTypeCode())
-            {
-                case TypeCode.Boolean:
-                    break;
-                case TypeCode.Char:
-                    break;
-                case TypeCode.SByte:
-                    break;
-                case TypeCode.Byte:
-                    break;
-                case TypeCode.Int16:
-                    break;
-                case TypeCode.UInt16:
-                    break;
-                case TypeCode.Int32:
-                case TypeCode.UInt32:
-                case TypeCode.Int64:
-                case TypeCode.UInt64:
-                    return (T)(Object)rs;
-                case TypeCode.Single:
-                    break;
-                case TypeCode.Double:
-                    break;
-                case TypeCode.Decimal:
-                    break;
-                case TypeCode.DateTime:
-                    break;
-                case TypeCode.String:
-                    return (T)(Object)pk.ToStr().Trim('\"');
-                default:
-                    break;
-            }
-            if (type.GetTypeCode() != TypeCode.Object)
-            {
-                return rs.ChangeType<T>();
-            }
+            var str = pk.ToStr().Trim('\"');
+            if (type.GetTypeCode() == TypeCode.String) return (T)(Object)str;
+            if (type.GetTypeCode() != TypeCode.Object) return str.ChangeType<T>();
 
-            if (pk != null) return pk.ToStr().ToJsonEntity<T>();
+            return str.ToJsonEntity<T>();
 
-            throw new NotSupportedException();
+            //throw new NotSupportedException();
         }
         #endregion
     }
