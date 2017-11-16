@@ -141,7 +141,7 @@ namespace NewLife.Reflection
             AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
             {
                 var flag = XTrace.Debug && XTrace.Log.Level == LogLevel.Debug;
-                if (flag) XTrace.WriteLine("[{0}]请求只反射加载[{1}]", args.RequestingAssembly?.FullName, args.Name);
+                if (flag) XTrace.WriteLine("[{0}]请求加载[{1}]", args.RequestingAssembly?.FullName, args.Name);
                 return OnResolve(args.Name);
             };
 #endif
@@ -751,7 +751,42 @@ namespace NewLife.Reflection
 
             foreach (var item in ReflectionOnlyGetAssemblies())
             {
-                if (item.Asm.FullName == name) return item.Asm;
+                if (item.Asm.FullName == name)
+                {
+                    // 只反射程序集需要真实加载
+                    try
+                    {
+                        var asm = Assembly.LoadFile(item.Asm.Location);
+                        if (asm != null) return asm;
+                    }
+                    catch (Exception ex) { XTrace.WriteException(ex); }
+
+                    //return item.Asm;
+                }
+            }
+
+            // 支持加载不同版本
+            var p = name.IndexOf(", ");
+            if (p > 0)
+            {
+                name = name.Substring(0, p);
+                foreach (var item in GetAssemblies())
+                {
+                    if (item.Asm.GetName().Name == name) return item.Asm;
+                }
+
+                foreach (var item in ReflectionOnlyGetAssemblies())
+                {
+                    if (item.Asm.GetName().Name == name)
+                    {
+                        try
+                        {
+                            var asm = Assembly.LoadFile(item.Asm.Location);
+                            if (asm != null) return asm;
+                        }
+                        catch (Exception ex) { XTrace.WriteException(ex); }
+                    }
+                }
             }
 
             return null;
