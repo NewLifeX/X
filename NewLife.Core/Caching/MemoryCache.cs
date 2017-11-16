@@ -65,7 +65,7 @@ namespace NewLife.Caching
         /// <returns></returns>
         public override Boolean Set<T>(String key, T value, Int32 expire = -1)
         {
-            if (expire <= 0) expire = Expire;
+            if (expire < 0) expire = Expire;
 
             _cache.AddOrUpdate(key,
                 k => new CacheItem(value, expire),

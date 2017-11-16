@@ -120,17 +120,24 @@ namespace Test
 
         static void Test2()
         {
-            var rds = new RedisClient
-            {
-                Log = XTrace.Log,
-                Server = new NetUri("tcp://127.0.0.1:6379"),
-            };
+            //var rds = new RedisClient
+            //{
+            //    Log = XTrace.Log,
+            //    Server = new NetUri("tcp://127.0.0.1:6379"),
+            //};
+            var rds = Redis.Create("127.0.0.1:6379", 4);
             rds.Password = "";
+            //rds.Log = XTrace.Log;
 
-            var f = rds.Select(4);
+            rds.Bench();
+            return;
+
+            var rc = rds.Pool.Acquire();
+
+            var f = rc.Select(4);
             //Console.WriteLine(f);
 
-            var p = rds.Ping();
+            var p = rc.Ping();
             //Console.WriteLine(p);
 
             var num = Rand.Next(10243);
@@ -159,7 +166,7 @@ namespace Test
             Console.WriteLine(buf1.ToHex());
             Console.WriteLine(buf2.ToHex());
 
-            var inf = rds.GetInfo();
+            var inf = rc.GetInfo();
             foreach (var item in inf)
             {
                 Console.WriteLine("{0}\t{1}", item.Key, item.Value);

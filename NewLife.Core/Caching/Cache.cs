@@ -75,8 +75,8 @@ namespace NewLife.Caching
         /// <summary>名称</summary>
         public String Name { get; protected set; }
 
-        /// <summary>默认缓存时间。默认365*24*3600秒</summary>
-        public Int32 Expire { get; set; } = 365 * 24 * 3600;
+        /// <summary>默认缓存时间。默认24*3600秒</summary>
+        public Int32 Expire { get; set; } = 24 * 3600;
 
         /// <summary>获取和设置缓存，永不过期</summary>
         /// <param name="key"></param>

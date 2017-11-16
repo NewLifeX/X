@@ -106,7 +106,7 @@ namespace NewLife.Caching
             if (!Logined && !Password.IsNullOrEmpty() && cmd != "AUTH")
             {
                 var ars = await SendAsync("AUTH", Password.GetBytes());
-                if (ars + "" != "OK") throw new Exception("登录失败！" + ars);
+                if (ars as String != "OK") throw new Exception("登录失败！" + ars);
 
                 Logined = true;
                 LoginTime = DateTime.Now;
@@ -126,8 +126,6 @@ namespace NewLife.Caching
             }
             else
             {
-                //WriteLog("{0} {1} {2}", cmd, args[0].ToStr(), args.Length - 1);
-
                 var str = "*{2}\r\n${0}\r\n{1}\r\n".F(cmd.Length, cmd, 1 + args.Length);
                 ns.Write(str.GetBytes());
 
@@ -201,11 +199,10 @@ namespace NewLife.Caching
 
             if (header == '+') return str2;
             if (header == '-') throw new Exception(str2);
-            if (header == ':') return str2.ToInt();
+            //if (header == ':') return str2.ToInt();
+            if (header == ':') return str2;
 
             throw new NotSupportedException();
-
-            //return rs;
         }
         #endregion
 
@@ -224,21 +221,21 @@ namespace NewLife.Caching
 
         /// <summary>心跳</summary>
         /// <returns></returns>
-        public Boolean Ping() { return Execute("PING") + "" == "PONG"; }
+        public Boolean Ping() { return Execute("PING") as String == "PONG"; }
 
         /// <summary>选择Db</summary>
         /// <param name="db"></param>
         /// <returns></returns>
-        public Boolean Select(Int32 db) { return Execute("SELECT", db + "") + "" == "OK"; }
+        public Boolean Select(Int32 db) { return Execute("SELECT", db + "") as String == "OK"; }
 
         /// <summary>验证密码</summary>
         /// <param name="password"></param>
         /// <returns></returns>
-        public Boolean Auth(String password) { return Execute("AUTH", password) + "" == "OK"; }
+        public Boolean Auth(String password) { return Execute("AUTH", password) as String == "OK"; }
 
         /// <summary>退出</summary>
         /// <returns></returns>
-        public Boolean Quit() { return Execute("QUIT") + "" == "OK"; }
+        public Boolean Quit() { return Execute("QUIT") as String == "OK"; }
 
         /// <summary>获取信息</summary>
         /// <returns></returns>
@@ -250,39 +247,27 @@ namespace NewLife.Caching
             var inf = rs.ToStr();
             return inf.SplitAsDictionary(":", "\r\n");
         }
+        #endregion
 
+        #region 获取设置
         /// <summary>设置</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="key"></param>
         /// <param name="value"></param>
+        /// <param name="secTimeout">超时时间</param>
         /// <returns></returns>
-        public Boolean Set<T>(String key, T value)
+        public Boolean Set<T>(String key, T value, Int32 secTimeout = 0)
         {
-            Byte[] val = null;
+            var val = ToBytes(value);
 
-            var type = typeof(T);
-            if (type == typeof(Byte[]))
-                val = (Byte[])(Object)value;
-            else if (type.GetTypeCode() != TypeCode.Object)
-                val = "{0}".F(value).GetBytes();
+            Object rs = null;
+            if (secTimeout <= 0)
+                rs = Task.Run(() => SendAsync("SET", key.GetBytes(), val)).Result;
             else
-                val = val.ToJson().GetBytes();
+                rs = Task.Run(() => SendAsync("SETEX", key.GetBytes(), secTimeout.ToString().GetBytes(), val)).Result;
 
-            var rs = Task.Run(() => SendAsync("SET", key.GetBytes(), val)).Result;
-
-            return rs + "" == "OK";
+            return rs as String == "OK";
         }
-
-        //public Boolean Set<T>(String key, T value, Int32 seconds)
-        //{
-        //    Execute("MULTI");
-        //    Execute("SET", key, JsonConvert.SerializeObject(value));
-        //    Execute("EXPIRE", key, seconds.ToString());
-
-        //    var reply = Execute(RedisCommand.EXEC) as Object[];
-
-        //    return reply[0].ToString() == ReplyFormat.ReplySuccess;
-        //}
 
         /// <summary>读取</summary>
         /// <typeparam name="T"></typeparam>
@@ -294,6 +279,72 @@ namespace NewLife.Caching
             var rs = Task.Run(() => SendAsync("GET", key.GetBytes())).Result;
             var pk = rs as Packet;
 
+            return FromBytes<T>(pk);
+        }
+
+        /// <summary>批量设置</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="values"></param>
+        /// <returns></returns>
+        public Boolean SetAll<T>(IDictionary<String, T> values)
+        {
+            var ps = new List<Byte[]>();
+            foreach (var item in values)
+            {
+                ps.Add(item.Key.GetBytes());
+                ps.Add(ToBytes(item.Value));
+            }
+
+            var rs = Task.Run(() => SendAsync("MSET", ps.ToArray())).Result;
+
+            return rs as String == "OK";
+        }
+
+        /// <summary>批量获取</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="keys"></param>
+        /// <returns></returns>
+        public IDictionary<String, T> GetAll<T>(IEnumerable<String> keys)
+        {
+            var rs = Execute("MGET", keys.ToArray());
+
+            var dic = new Dictionary<String, T>();
+            throw new NotSupportedException();
+
+            return dic;
+        }
+        #endregion
+
+        #region 高级操作
+        #endregion
+
+        #region 辅助
+        /// <summary>数值转字节数组</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        protected virtual Byte[] ToBytes<T>(T value)
+        {
+            Byte[] val = null;
+
+            var type = typeof(T);
+            if (type == typeof(Byte[]))
+                val = (Byte[])(Object)value;
+            else if (type.GetTypeCode() != TypeCode.Object)
+                val = "{0}".F(value).GetBytes();
+            else
+                val = val.ToJson().GetBytes();
+
+            return val;
+        }
+
+        /// <summary>字节数组转对象</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="pk"></param>
+        /// <returns></returns>
+        protected virtual T FromBytes<T>(Packet pk)
+        {
+
             var type = typeof(T);
             if (type == typeof(Byte[])) return (T)(Object)pk.ToArray();
 
@@ -302,8 +353,6 @@ namespace NewLife.Caching
             if (type.GetTypeCode() != TypeCode.Object) return str.ChangeType<T>();
 
             return str.ToJsonEntity<T>();
-
-            //throw new NotSupportedException();
         }
         #endregion
 
