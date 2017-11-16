@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Log;
@@ -120,7 +119,7 @@ namespace NewLife.Caching
             // *<number of arguments>\r\n$<number of bytes of argument 1>\r\n<argument data>\r\n
             // *1\r\n$4\r\nINFO\r\n
 
-            var log = Log == null && Log == Logger.Null ? null : new StringBuilder();
+            var log = Log == null || Log == Logger.Null ? null : new StringBuilder();
             log?.Append(cmd);
 
             // 区分有参数和无参数
@@ -172,32 +171,12 @@ namespace NewLife.Caching
             // 解析响应
             var rs = new Packet(buf, 0, count);
 
-            var header = rs[0];
+            var header = (Char)rs[0];
+
+            if (header == '$') return ReadBlock(rs);
+            if (header == '*') return ReadBlocks(rs);
+
             rs = rs.Sub(1);
-
-            log.Clear();
-
-            if (header == '$')
-            {
-                var p = (Int32)rs.Data.IndexOf(NewLine) - rs.Offset;
-                if (p > 0)
-                {
-                    var len = rs.Sub(0, p).ToStr().ToInt();
-
-                    p += 2;
-                    rs = rs.Sub(p, rs.Count - p - 2);
-
-                    if (log != null)
-                    {
-                        if (rs.Count <= 32)
-                            WriteLog("=> {0}", rs.ToStr());
-                        else
-                            WriteLog("=> [{0}]", rs.Count);
-                    }
-
-                    return rs;
-                }
-            }
 
             var str2 = rs.ToStr().Trim();
             if (log != null) WriteLog("=> {0}", str2);
@@ -208,6 +187,61 @@ namespace NewLife.Caching
             if (header == ':') return str2;
 
             throw new NotSupportedException();
+        }
+
+        private Packet ReadBlock(Packet pk)
+        {
+            var rs = ReadPacket(pk);
+
+            if (Log != null && Log != Logger.Null)
+            {
+                if (rs.Count <= 32)
+                    WriteLog("=> {0}", rs.ToStr());
+                else
+                    WriteLog("=> [{0}]", rs.Count);
+            }
+
+            return rs;
+        }
+
+        private Packet[] ReadBlocks(Packet pk)
+        {
+            var header = (Char)pk[0];
+
+            // 结果集数量
+            var p = pk.IndexOf(NewLine);
+            if (p <= 0) throw new Exception("无法解析响应 {0} [{1}]".F(header, pk.Count));
+
+            var n = pk.Sub(1, p - 1).ToStr().ToInt();
+            WriteLog("=> *{0} [{1}]", n, pk.Count);
+
+            pk = pk.Sub(p + 2);
+            var arr = new Packet[n];
+            for (var i = 0; i < n; i++)
+            {
+                var rs = ReadPacket(pk);
+                arr[i] = rs;
+
+                // 下一块，在前一块末尾加 \r\n
+                pk = pk.Sub(rs.Offset + rs.Count + 2 - pk.Offset);
+            }
+
+            return arr;
+        }
+
+        private Packet ReadPacket(Packet pk)
+        {
+            var header = (Char)pk[0];
+
+            var p = pk.IndexOf(NewLine);
+            if (p <= 0) throw new Exception("无法解析响应 {0} [{1}]".F(header, pk.Count));
+
+            var len = pk.Sub(1, p - 1).ToStr().ToInt();
+
+            p += 2;
+            pk = pk.Sub(p, len);
+
+            return pk;
         }
         #endregion
 
@@ -311,10 +345,14 @@ namespace NewLife.Caching
         /// <returns></returns>
         public IDictionary<String, T> GetAll<T>(IEnumerable<String> keys)
         {
-            var rs = Execute("MGET", keys.ToArray());
+            var ks = keys.ToArray();
+            var rs = Execute("MGET", ks) as Packet[];
 
             var dic = new Dictionary<String, T>();
-            throw new NotSupportedException();
+            for (var i = 0; i < rs.Length; i++)
+            {
+                dic[ks[i]] = FromBytes<T>(rs[i]);
+            }
 
             return dic;
         }

@@ -127,11 +127,11 @@ namespace Test
             //};
             var rds = Redis.Create("127.0.0.1:6379", 4);
             rds.Password = "";
-            //rds.Log = XTrace.Log;
+            rds.Log = XTrace.Log;
             rds.Pool.Log = XTrace.Log;
 
-            rds.Bench();
-            return;
+            //rds.Bench();
+            //return;
 
             var rc = rds.Pool.Acquire();
 
@@ -140,6 +140,9 @@ namespace Test
 
             var p = rc.Ping();
             //Console.WriteLine(p);
+
+            var vs = rds.GetAll<String>(new[] { "num", "dd", "dt" });
+            Console.WriteLine(vs);
 
             var num = Rand.Next(10243);
             rds.Set("num", num);
