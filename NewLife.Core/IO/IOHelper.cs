@@ -321,7 +321,9 @@ namespace System
         {
             var bdt = baseYear == 1970 ? _dt1970 : new DateTime(baseYear, 1, 1);
 
-            var seconds = (Int32)stream.ReadBytes(4).ToUInt32();
+            var buf = new Byte[4];
+            stream.Read(buf, 0, 4);
+            var seconds = (Int32)buf.ToUInt32();
             if (seconds <= 0) return bdt;
 
             return bdt.AddSeconds(seconds);
@@ -566,7 +568,7 @@ namespace System
             if (isLittleEndian) return BitConverter.ToUInt32(data, offset);
 
             // BitConverter得到小端，如果不是小端字节顺序，则倒序
-            data = data.ReadBytes(offset, 4);
+            if (offset > 0) data = data.ReadBytes(offset, 4);
             if (isLittleEndian)
                 return (UInt32)(data[0] | data[1] << 8 | data[2] << 0x10 | data[3] << 0x18);
             else
@@ -582,7 +584,7 @@ namespace System
         {
             if (isLittleEndian) return BitConverter.ToUInt64(data, offset);
 
-            data = data.ReadBytes(offset, 8);
+            if (offset > 0) data = data.ReadBytes(offset, 8);
             if (isLittleEndian)
             {
                 var num1 = data[0] | data[1] << 8 | data[2] << 0x10 | data[3] << 0x18;

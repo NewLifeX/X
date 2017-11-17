@@ -59,7 +59,7 @@ namespace NewLife.Caching
         /// <summary>异步请求</summary>
         /// <param name="create">新建连接</param>
         /// <returns></returns>
-        private async Task<Stream> GetStreamAsync(Boolean create)
+        private Stream GetStream(Boolean create)
         {
             var tc = Client;
             NetworkStream ns = null;
@@ -85,7 +85,7 @@ namespace NewLife.Caching
                     SendTimeout = 5000,
                     ReceiveTimeout = 5000
                 };
-                await tc.ConnectAsync(Server.Address, Server.Port);
+                tc.Connect(Server.Address, Server.Port);
 
                 Client = tc;
                 ns = tc.GetStream();
@@ -99,17 +99,17 @@ namespace NewLife.Caching
         /// <param name="cmd"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        protected virtual async Task<Object> SendAsync(String cmd, params Byte[][] args)
+        protected virtual Object SendCommand(String cmd, params Byte[][] args)
         {
             var isQuit = cmd == "QUIT";
 
-            var ns = await GetStreamAsync(isQuit);
+            var ns = GetStream(isQuit);
             if (ns == null) return null;
 
             // 验证登录
             if (!Logined && !Password.IsNullOrEmpty() && cmd != "AUTH")
             {
-                var ars = await SendAsync("AUTH", Password.GetBytes());
+                var ars = SendCommand("AUTH", Password.GetBytes());
                 if (ars as String != "OK") throw new Exception("登录失败！" + ars);
 
                 Logined = true;
@@ -128,10 +128,11 @@ namespace NewLife.Caching
                 var str = "*1\r\n${0}\r\n{1}\r\n".F(cmd.Length, cmd);
                 ns.Write(str.GetBytes());
             }
-            else
+            else //if (args.Sum(e => e.Length) < 1400)
             {
+                var ms = new MemoryStream();
                 var str = "*{2}\r\n${0}\r\n{1}\r\n".F(cmd.Length, cmd, 1 + args.Length);
-                ns.Write(str.GetBytes());
+                ms.Write(str.GetBytes());
 
                 foreach (var item in args)
                 {
@@ -144,17 +145,48 @@ namespace NewLife.Caching
                     }
 
                     str = "${0}\r\n".F(item.Length);
-                    ns.Write(str.GetBytes());
-                    ns.Write(item);
-                    ns.Write(NewLine);
+                    ms.Write(str.GetBytes());
+                    ms.Write(item);
+                    ms.Write(NewLine);
+
+                    if (ms.Length > 1400)
+                    {
+                        ms.WriteTo(ns);
+
+                        // 从头开始
+                        ms.Position = 0;
+                        ms.SetLength(0);
+                    }
                 }
+                if (ms.Length > 0) ms.WriteTo(ns);
             }
+            //else
+            //{
+            //    var str = "*{2}\r\n${0}\r\n{1}\r\n".F(cmd.Length, cmd, 1 + args.Length);
+            //    ns.Write(str.GetBytes());
+
+            //    foreach (var item in args)
+            //    {
+            //        if (log != null)
+            //        {
+            //            if (item.Length <= 32)
+            //                log.AppendFormat(" {0}", item.ToStr());
+            //            else
+            //                log.AppendFormat(" [{0}]", item.Length);
+            //        }
+
+            //        str = "${0}\r\n".F(item.Length);
+            //        ns.Write(str.GetBytes());
+            //        ns.Write(item);
+            //        ns.Write(NewLine);
+            //    }
+            //}
             if (log != null) WriteLog(log.ToString());
 
             // 接收
             //var source = new CancellationTokenSource(15000);
             var buf = new Byte[64 * 1024];
-            var count = await ns.ReadAsync(buf, 0, buf.Length);
+            var count = ns.Read(buf, 0, buf.Length);
             if (count == 0) return null;
 
             if (isQuit) Logined = false;
@@ -255,7 +287,7 @@ namespace NewLife.Caching
         /// <returns></returns>
         public virtual Object Execute(String cmd, params String[] args)
         {
-            return Task.Run(() => SendAsync(cmd, args.Select(e => e.GetBytes()).ToArray())).Result;
+            return SendCommand(cmd, args.Select(e => e.GetBytes()).ToArray());
         }
 
         /// <summary>心跳</summary>
@@ -301,9 +333,9 @@ namespace NewLife.Caching
 
             Object rs = null;
             if (secTimeout <= 0)
-                rs = Task.Run(() => SendAsync("SET", key.GetBytes(), val)).Result;
+                rs = SendCommand("SET", key.GetBytes(), val);
             else
-                rs = Task.Run(() => SendAsync("SETEX", key.GetBytes(), secTimeout.ToString().GetBytes(), val)).Result;
+                rs = SendCommand("SETEX", key.GetBytes(), secTimeout.ToString().GetBytes(), val);
 
             return rs as String == "OK";
         }
@@ -315,7 +347,7 @@ namespace NewLife.Caching
         public T Get<T>(String key)
         {
             //var rs = Execute("GET", key.GetBytes());
-            var rs = Task.Run(() => SendAsync("GET", key.GetBytes())).Result;
+            var rs = SendCommand("GET", key.GetBytes());
             var pk = rs as Packet;
 
             return FromBytes<T>(pk);
@@ -334,7 +366,7 @@ namespace NewLife.Caching
                 ps.Add(ToBytes(item.Value));
             }
 
-            var rs = Task.Run(() => SendAsync("MSET", ps.ToArray())).Result;
+            var rs = SendCommand("MSET", ps.ToArray());
 
             return rs as String == "OK";
         }

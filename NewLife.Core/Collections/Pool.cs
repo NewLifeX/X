@@ -115,11 +115,11 @@ namespace NewLife.Collections
         /// <returns></returns>
         private Item OnAcquire(Int32 msTimeout = 0)
         {
-            var sw = Stopwatch.StartNew();
+            var sw = Log == null || Log == Logger.Null ? null : Stopwatch.StartNew();
             Interlocked.Increment(ref _Total);
 
             if (msTimeout <= 0) msTimeout = WaitTime;
-            var end = DateTime.Now.AddMilliseconds(msTimeout);
+            var end = TimerX.Now.AddMilliseconds(msTimeout);
 
             Item pi = null;
             var flag = false;
@@ -141,7 +141,7 @@ namespace NewLife.Collections
                     if (count >= Max)
                     {
                         // 如果超时时间未到，等一会重试
-                        if (msTimeout > 0 && DateTime.Now < end)
+                        if (msTimeout > 0 && TimerX.Now < end)
                         {
                             Thread.Sleep(10);
                             continue;
@@ -175,7 +175,7 @@ namespace NewLife.Collections
             if (flag) Interlocked.Increment(ref _Success);
 
             // 最后时间
-            pi.LastTime = DateTime.Now;
+            pi.LastTime = TimerX.Now;
 
             // 加入繁忙集合
             _busy.TryAdd(pi.Value, pi);
@@ -186,13 +186,16 @@ namespace NewLife.Collections
 #if DEBUG
             //WriteLog("Acquire Free={0} Busy={1}", FreeCount, BusyCount);
 #endif
-            sw.Stop();
-            var ms = sw.Elapsed.TotalMilliseconds;
+            if (sw != null)
+            {
+                sw.Stop();
+                var ms = sw.Elapsed.TotalMilliseconds;
 
-            if (Cost < 0.001)
-                Cost = ms;
-            else
-                Cost = (Cost * 3 + ms) / 4;
+                if (Cost < 0.001)
+                    Cost = ms;
+                else
+                    Cost = (Cost * 3 + ms) / 4;
+            }
 
             return pi;
         }
@@ -229,7 +232,7 @@ namespace NewLife.Collections
                 _free2.Enqueue(pi);
 
             // 最后时间
-            pi.LastTime = DateTime.Now;
+            pi.LastTime = TimerX.Now;
 
             //FreeCount = _free.Count + _free2.Count;
             Interlocked.Increment(ref _FreeCount);
@@ -303,7 +306,7 @@ namespace NewLife.Collections
             // 总数小于等于最小个数时不处理
             if (IdleTime > 0 && !_free2.IsEmpty && FreeCount + BusyCount > Min)
             {
-                var exp = DateTime.Now.AddSeconds(-IdleTime);
+                var exp = TimerX.Now.AddSeconds(-IdleTime);
                 // 移除扩展空闲集合里面的超时项
                 while (_free2.TryPeek(out var pi) && pi.LastTime < exp)
                 {
@@ -319,7 +322,7 @@ namespace NewLife.Collections
 
             if (AllIdleTime > 0 && !_free.IsEmpty)
             {
-                var exp = DateTime.Now.AddSeconds(-AllIdleTime);
+                var exp = TimerX.Now.AddSeconds(-AllIdleTime);
                 // 移除基础空闲集合里面的超时项
                 while (_free.TryPeek(out var pi) && pi.LastTime < exp)
                 {
