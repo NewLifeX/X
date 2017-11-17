@@ -417,6 +417,8 @@ namespace XCode.DataAccessLayer
             //return Execute(sql, type, ps);
             using (var cmd = OnCreateCommand(sql, type, ps))
             {
+                Transaction?.Check(cmd, true);
+
                 return ExecuteScalar<Int64>(cmd);
             }
         }

@@ -111,6 +111,8 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public DbTransaction Check(DbCommand cmd, Boolean execute)
         {
+            if (cmd.Transaction != null) return cmd.Transaction;
+
             cmd.Transaction = _Tran;
             if (cmd.Connection == null) cmd.Connection = Conn;
 
