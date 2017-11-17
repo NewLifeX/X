@@ -49,7 +49,7 @@ namespace Test
                 try
                 {
 #endif
-                Test2();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -71,51 +71,19 @@ namespace Test
         private static Int32 ths = 0;
         static void Test1()
         {
-            //Console.Title = "SQLite极速插入测试 之 天下无贼 v2.0 " + AssemblyX.Entry.Compile.ToFullString();
+            var user = UserX.FindByKey(1);
+            Console.WriteLine(user.Logins);
+            using (var tran = UserX.Meta.CreateTrans())
+            {
+                user.Logins++;
+                user.Save();
 
-            ////Console.WriteLine(DateTime.Now.ToFullString());
-            //Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.High;
+                Console.WriteLine(user.Logins);
 
-            //if (ths <= 0)
-            //{
-            //    foreach (var item in ".".AsDirectory().GetAllFiles("*.db"))
-            //    {
-            //        item.Delete();
-            //    }
+                throw new Exception("xxx");
 
-            //    //var db = "Membership.db".GetFullPath();
-            //    //if (File.Exists(db)) File.Delete(db);
-
-            //    //Console.Write("请输入线程数（推荐1）：");
-            //    //ths = Console.ReadLine().ToInt();
-            //    //if (ths < 1) ths = 1;
-            //    ths = 1;
-            //}
-
-            ////var set = XCode.Setting.Current;
-            ////set.UserParameter = true;
-
-            ////UserOnline.Meta.Modules.Modules.Clear();
-            ////Shard.Meta.ConnName = "Membership";
-            //var ds = new XCode.Common.DataSimulation<DemoEntity>
-            //{
-            //    Log = XTrace.Log,
-            //    //ds.BatchSize = 10000;
-            //    Threads = ths,
-            //    UseSql = true
-            //};
-            //ds.Run(400000);
-        }
-
-        class A
-        {
-            public String Name { get; set; }
-            public DateTime Time { get; set; }
-        }
-
-        static void TestTimer(Object state)
-        {
-            XTrace.WriteLine("State={0} Timer={1} Scheduler={2}", state, TimerX.Current, TimerScheduler.Current);
+                tran.Commit();
+            }
         }
 
         static void Test2()
