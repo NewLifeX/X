@@ -90,7 +90,7 @@ namespace NewLife.Net
             get
             {
                 // Host每次改变都会清空
-                if (_EndPoint == null) _EndPoint = new IPEndPoint(ParseAddress(_Host) ?? IPAddress.Any, _Port);
+                if (_EndPoint == null) _EndPoint = new IPEndPoint(NetHelper.ParseAddress(_Host) ?? IPAddress.Any, _Port);
                 return _EndPoint;
             }
             set
@@ -221,7 +221,7 @@ namespace NewLife.Net
         /// <returns></returns>
         public static IPAddress ParseAddress(String hostname)
         {
-            if (String.IsNullOrEmpty(hostname)) return null;
+            if (hostname.IsNullOrEmpty()) return null;
             if (hostname == "*") return null;
 
             try
