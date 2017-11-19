@@ -197,12 +197,34 @@ namespace XCoder.Tools
 
         private void btnDSA_Click(Object sender, EventArgs e)
         {
+            var buf = GetBytes();
+            var key = rtPass.Text;
 
+            if (key.Length < 100)
+            {
+                key = DSAHelper.GenerateKey().First();
+                rtPass.Text = key;
+            }
+
+            buf = DSAHelper.Sign(buf, key);
+
+            rtResult.Text = buf.ToHex() + Environment.NewLine + Environment.NewLine + buf.ToBase64();
         }
 
         private void btnDSA2_Click(Object sender, EventArgs e)
         {
+            var buf = GetBytes();
+            var pass = rtPass.Text;
 
+            var v = rtResult.Text;
+            if (v.Contains("\n\n")) v = v.Substring(null, "\n\n");
+            var sign = GetBytes(v);
+
+            var rs = DSAHelper.Verify(buf, pass, sign);
+            if (rs)
+                MessageBox.Show("验证通过", "DSA数字签名", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            else
+                MessageBox.Show("验证失败", "DSA数字签名", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
         private void btnUrl_Click(Object sender, EventArgs e)

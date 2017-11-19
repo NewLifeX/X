@@ -55,12 +55,6 @@
             this.btnUrl = new System.Windows.Forms.Button();
             this.btnHtml2 = new System.Windows.Forms.Button();
             this.btnHtml = new System.Windows.Forms.Button();
-            this.button15 = new System.Windows.Forms.Button();
-            this.button16 = new System.Windows.Forms.Button();
-            this.button17 = new System.Windows.Forms.Button();
-            this.button18 = new System.Windows.Forms.Button();
-            this.button19 = new System.Windows.Forms.Button();
-            this.button20 = new System.Windows.Forms.Button();
             this.gbPass = new System.Windows.Forms.GroupBox();
             this.rtPass = new System.Windows.Forms.RichTextBox();
             this.btnExchange = new System.Windows.Forms.Button();
@@ -74,12 +68,6 @@
             // 
             this.gbFunc.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left)));
-            this.gbFunc.Controls.Add(this.button19);
-            this.gbFunc.Controls.Add(this.button20);
-            this.gbFunc.Controls.Add(this.button17);
-            this.gbFunc.Controls.Add(this.button18);
-            this.gbFunc.Controls.Add(this.button15);
-            this.gbFunc.Controls.Add(this.button16);
             this.gbFunc.Controls.Add(this.btnHtml2);
             this.gbFunc.Controls.Add(this.btnHtml);
             this.gbFunc.Controls.Add(this.btnUrl2);
@@ -374,60 +362,6 @@
             this.btnHtml.UseVisualStyleBackColor = true;
             this.btnHtml.Click += new System.EventHandler(this.btnHtml_Click);
             // 
-            // button15
-            // 
-            this.button15.Location = new System.Drawing.Point(125, 463);
-            this.button15.Name = "button15";
-            this.button15.Size = new System.Drawing.Size(112, 34);
-            this.button15.TabIndex = 23;
-            this.button15.Text = "CRC_16";
-            this.button15.UseVisualStyleBackColor = true;
-            // 
-            // button16
-            // 
-            this.button16.Location = new System.Drawing.Point(6, 463);
-            this.button16.Name = "button16";
-            this.button16.Size = new System.Drawing.Size(112, 34);
-            this.button16.TabIndex = 22;
-            this.button16.Text = "CRC_32";
-            this.button16.UseVisualStyleBackColor = true;
-            // 
-            // button17
-            // 
-            this.button17.Location = new System.Drawing.Point(125, 503);
-            this.button17.Name = "button17";
-            this.button17.Size = new System.Drawing.Size(112, 34);
-            this.button17.TabIndex = 25;
-            this.button17.Text = "CRC_16";
-            this.button17.UseVisualStyleBackColor = true;
-            // 
-            // button18
-            // 
-            this.button18.Location = new System.Drawing.Point(6, 503);
-            this.button18.Name = "button18";
-            this.button18.Size = new System.Drawing.Size(112, 34);
-            this.button18.TabIndex = 24;
-            this.button18.Text = "CRC_32";
-            this.button18.UseVisualStyleBackColor = true;
-            // 
-            // button19
-            // 
-            this.button19.Location = new System.Drawing.Point(125, 543);
-            this.button19.Name = "button19";
-            this.button19.Size = new System.Drawing.Size(112, 34);
-            this.button19.TabIndex = 27;
-            this.button19.Text = "CRC_16";
-            this.button19.UseVisualStyleBackColor = true;
-            // 
-            // button20
-            // 
-            this.button20.Location = new System.Drawing.Point(6, 543);
-            this.button20.Name = "button20";
-            this.button20.Size = new System.Drawing.Size(112, 34);
-            this.button20.TabIndex = 26;
-            this.button20.Text = "CRC_32";
-            this.button20.UseVisualStyleBackColor = true;
-            // 
             // gbPass
             // 
             this.gbPass.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
@@ -496,12 +430,6 @@
         private System.Windows.Forms.Button btnMD5;
         private System.Windows.Forms.Button btnCRC2;
         private System.Windows.Forms.Button btnCRC;
-        private System.Windows.Forms.Button button19;
-        private System.Windows.Forms.Button button20;
-        private System.Windows.Forms.Button button17;
-        private System.Windows.Forms.Button button18;
-        private System.Windows.Forms.Button button15;
-        private System.Windows.Forms.Button button16;
         private System.Windows.Forms.Button btnHtml2;
         private System.Windows.Forms.Button btnHtml;
         private System.Windows.Forms.Button btnUrl2;
