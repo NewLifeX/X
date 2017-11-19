@@ -13,26 +13,34 @@ namespace XCoder.Tools
         }
 
         #region 辅助
+        /// <summary>从字符串中获取字节数组</summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        private Byte[] GetBytes(String str)
+        {
+            if (str.IsNullOrEmpty()) return new Byte[0];
+
+            try
+            {
+                return str.ToHex();
+            }
+            catch { }
+
+            try
+            {
+                return str.ToBase64();
+            }
+            catch { }
+
+            return str.GetBytes();
+        }
+
         /// <summary>从原文中获取字节数组</summary>
         /// <returns></returns>
         private Byte[] GetBytes()
         {
             var v = rtSource.Text;
-            if (v.IsNullOrEmpty()) return new byte[0];
-
-            try
-            {
-                return v.ToHex();
-            }
-            catch { }
-
-            try
-            {
-                return v.ToBase64();
-            }
-            catch { }
-
-            return v.GetBytes();
+            return GetBytes(v);
         }
         #endregion
 
@@ -93,6 +101,44 @@ namespace XCoder.Tools
         {
             var buf = GetBytes();
             rtResult.Text = "{0:X4}\r\n{0}".F(buf.Crc16());
+        }
+
+        private void btnDES_Click(Object sender, EventArgs e)
+        {
+
+        }
+
+        private void btnDES2_Click(Object sender, EventArgs e)
+        {
+
+        }
+
+        private void btnAES_Click(Object sender, EventArgs e)
+        {
+
+        }
+
+        private void btnAES2_Click(Object sender, EventArgs e)
+        {
+
+        }
+
+        private void btnRC4_Click(Object sender, EventArgs e)
+        {
+            var buf = GetBytes();
+            var pass = GetBytes(rtPass.Text);
+            buf = buf.RC4(pass);
+
+            rtResult.Text = buf.ToHex() + Environment.NewLine + Environment.NewLine + buf.ToBase64();
+        }
+
+        private void btnRC42_Click(Object sender, EventArgs e)
+        {
+            var buf = GetBytes();
+            var pass = GetBytes(rtPass.Text);
+            buf = buf.RC4(pass);
+
+            rtResult.Text = buf.ToStr() + Environment.NewLine + Environment.NewLine + buf.ToHex() + Environment.NewLine + Environment.NewLine + buf.ToBase64();
         }
     }
 }

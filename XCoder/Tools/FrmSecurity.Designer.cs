@@ -240,6 +240,7 @@
             this.btnDES2.TabIndex = 9;
             this.btnDES2.Text = "DES解密";
             this.btnDES2.UseVisualStyleBackColor = true;
+            this.btnDES2.Click += new System.EventHandler(this.btnDES2_Click);
             // 
             // btnDES
             // 
@@ -249,6 +250,7 @@
             this.btnDES.TabIndex = 8;
             this.btnDES.Text = "DES加密";
             this.btnDES.UseVisualStyleBackColor = true;
+            this.btnDES.Click += new System.EventHandler(this.btnDES_Click);
             // 
             // btnAES2
             // 
@@ -258,6 +260,7 @@
             this.btnAES2.TabIndex = 11;
             this.btnAES2.Text = "AES解密";
             this.btnAES2.UseVisualStyleBackColor = true;
+            this.btnAES2.Click += new System.EventHandler(this.btnAES2_Click);
             // 
             // btnAES
             // 
@@ -267,6 +270,7 @@
             this.btnAES.TabIndex = 10;
             this.btnAES.Text = "AES加密";
             this.btnAES.UseVisualStyleBackColor = true;
+            this.btnAES.Click += new System.EventHandler(this.btnAES_Click);
             // 
             // btnRC42
             // 
@@ -276,6 +280,7 @@
             this.btnRC42.TabIndex = 13;
             this.btnRC42.Text = "RC4解密";
             this.btnRC42.UseVisualStyleBackColor = true;
+            this.btnRC42.Click += new System.EventHandler(this.btnRC42_Click);
             // 
             // btnRC4
             // 
@@ -285,6 +290,7 @@
             this.btnRC4.TabIndex = 12;
             this.btnRC4.Text = "RC4加密";
             this.btnRC4.UseVisualStyleBackColor = true;
+            this.btnRC4.Click += new System.EventHandler(this.btnRC4_Click);
             // 
             // btnRSA2
             // 
