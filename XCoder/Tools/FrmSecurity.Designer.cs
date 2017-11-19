@@ -300,6 +300,7 @@
             this.btnRSA2.TabIndex = 15;
             this.btnRSA2.Text = "RSA解密";
             this.btnRSA2.UseVisualStyleBackColor = true;
+            this.btnRSA2.Click += new System.EventHandler(this.btnRSA2_Click);
             // 
             // btnRSA
             // 
@@ -309,6 +310,7 @@
             this.btnRSA.TabIndex = 14;
             this.btnRSA.Text = "RSA加密";
             this.btnRSA.UseVisualStyleBackColor = true;
+            this.btnRSA.Click += new System.EventHandler(this.btnRSA_Click);
             // 
             // btnDSA2
             // 
@@ -318,6 +320,7 @@
             this.btnDSA2.TabIndex = 17;
             this.btnDSA2.Text = "DSA解密";
             this.btnDSA2.UseVisualStyleBackColor = true;
+            this.btnDSA2.Click += new System.EventHandler(this.btnDSA2_Click);
             // 
             // btnDSA
             // 
@@ -327,6 +330,7 @@
             this.btnDSA.TabIndex = 16;
             this.btnDSA.Text = "DSA加密";
             this.btnDSA.UseVisualStyleBackColor = true;
+            this.btnDSA.Click += new System.EventHandler(this.btnDSA_Click);
             // 
             // btnUrl2
             // 
@@ -336,6 +340,7 @@
             this.btnUrl2.TabIndex = 19;
             this.btnUrl2.Text = "Url解码";
             this.btnUrl2.UseVisualStyleBackColor = true;
+            this.btnUrl2.Click += new System.EventHandler(this.btnUrl2_Click);
             // 
             // btnUrl
             // 
@@ -345,6 +350,7 @@
             this.btnUrl.TabIndex = 18;
             this.btnUrl.Text = "Url编码";
             this.btnUrl.UseVisualStyleBackColor = true;
+            this.btnUrl.Click += new System.EventHandler(this.btnUrl_Click);
             // 
             // button13
             // 

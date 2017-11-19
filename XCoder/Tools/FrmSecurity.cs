@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Security.Cryptography;
+using System.Web;
 using System.Windows.Forms;
 
 namespace XCoder.Tools
@@ -164,6 +165,40 @@ namespace XCoder.Tools
             buf = buf.RC4(pass);
 
             rtResult.Text = buf.ToStr() + Environment.NewLine + Environment.NewLine + buf.ToHex() + Environment.NewLine + Environment.NewLine + buf.ToBase64();
+        }
+
+        private void btnRSA_Click(Object sender, EventArgs e)
+        {
+
+        }
+
+        private void btnRSA2_Click(Object sender, EventArgs e)
+        {
+
+        }
+
+        private void btnDSA_Click(Object sender, EventArgs e)
+        {
+
+        }
+
+        private void btnDSA2_Click(Object sender, EventArgs e)
+        {
+
+        }
+
+        private void btnUrl_Click(Object sender, EventArgs e)
+        {
+            var v = rtSource.Text;
+            v = HttpUtility.UrlEncode(v);
+            rtResult.Text = v;
+        }
+
+        private void btnUrl2_Click(Object sender, EventArgs e)
+        {
+            var v = rtSource.Text;
+            v = HttpUtility.UrlDecode(v);
+            rtResult.Text = v;
         }
     }
 }
