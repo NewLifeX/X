@@ -75,17 +75,44 @@ namespace System
         }
 
         /// <summary>对称加密算法扩展</summary>
-        /// <param name="sa"></param>
-        /// <param name="data"></param>
+        /// <param name="sa">算法</param>
+        /// <param name="data">数据</param>
+        /// <param name="pass">密码</param>
+        /// <param name="mode">模式。.Net默认CBC，Java默认ECB</param>
+        /// <param name="padding">填充算法。默认PKCS7，等同Java的PKCS5</param>
         /// <returns></returns>
-        public static Byte[] Encrypt(this SymmetricAlgorithm sa, Byte[] data)
+        public static Byte[] Encrypt(this SymmetricAlgorithm sa, Byte[] data, Byte[] pass = null, CipherMode mode = CipherMode.CBC, PaddingMode padding = PaddingMode.PKCS7)
         {
-            if (data == null || data.Length < 1) throw new ArgumentNullException("data");
+            if (data == null || data.Length < 1) throw new ArgumentNullException(nameof(data));
+
+            if (pass != null && pass.Length > 0)
+            {
+                var keySize = sa.KeySize / 8;
+                if (pass.Length != keySize) pass = new Byte[keySize].Write(0, pass);
+
+                sa.Key = pass;
+                sa.IV = pass;
+
+                sa.Mode = mode;
+                sa.Padding = padding;
+            }
 
             var outstream = new MemoryStream();
             using (var stream = new CryptoStream(outstream, sa.CreateEncryptor(), CryptoStreamMode.Write))
             {
                 stream.Write(data, 0, data.Length);
+
+                // 数据长度必须是8的倍数
+                if (sa.Padding == PaddingMode.None)
+                {
+                    var len = data.Length % 8;
+                    if (len > 0)
+                    {
+                        var buf = new Byte[8 - len];
+                        stream.Write(buf, 0, buf.Length);
+                    }
+                }
+
                 stream.FlushFinalBlock();
 
                 return outstream.ToArray();
@@ -110,12 +137,27 @@ namespace System
         }
 
         /// <summary>对称解密算法扩展</summary>
-        /// <param name="sa"></param>
-        /// <param name="data"></param>
+        /// <param name="sa">算法</param>
+        /// <param name="data">数据</param>
+        /// <param name="pass">密码</param>
+        /// <param name="mode">模式。.Net默认CBC，Java默认ECB</param>
+        /// <param name="padding">填充算法。默认PKCS7，等同Java的PKCS5</param>
         /// <returns></returns>
-        public static Byte[] Descrypt(this SymmetricAlgorithm sa, Byte[] data)
+        public static Byte[] Descrypt(this SymmetricAlgorithm sa, Byte[] data, Byte[] pass = null, CipherMode mode = CipherMode.CBC, PaddingMode padding = PaddingMode.PKCS7)
         {
-            if (data == null || data.Length < 1) throw new ArgumentNullException("data");
+            if (data == null || data.Length < 1) throw new ArgumentNullException(nameof(data));
+
+            if (pass != null && pass.Length > 0)
+            {
+                var keySize = sa.KeySize / 8;
+                if (pass.Length != keySize) pass = new Byte[keySize].Write(0, pass);
+
+                sa.Key = pass;
+                sa.IV = pass;
+
+                sa.Mode = mode;
+                sa.Padding = padding;
+            }
 
             using (var stream = new CryptoStream(new MemoryStream(data), sa.CreateDecryptor(), CryptoStreamMode.Read))
             {

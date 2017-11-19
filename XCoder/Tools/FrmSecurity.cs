@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Security.Cryptography;
 using System.Windows.Forms;
 
 namespace XCoder.Tools
@@ -105,12 +106,24 @@ namespace XCoder.Tools
 
         private void btnDES_Click(Object sender, EventArgs e)
         {
+            var buf = GetBytes();
+            var pass = GetBytes(rtPass.Text);
 
+            var des = new DESCryptoServiceProvider();
+            buf = des.Encrypt(buf, pass);
+
+            rtResult.Text = buf.ToHex() + Environment.NewLine + Environment.NewLine + buf.ToBase64();
         }
 
         private void btnDES2_Click(Object sender, EventArgs e)
         {
+            var buf = GetBytes();
+            var pass = GetBytes(rtPass.Text);
 
+            var des = new DESCryptoServiceProvider();
+            buf = des.Descrypt(buf, pass);
+
+            rtResult.Text = buf.ToStr() + Environment.NewLine + Environment.NewLine + buf.ToHex() + Environment.NewLine + Environment.NewLine + buf.ToBase64();
         }
 
         private void btnAES_Click(Object sender, EventArgs e)
