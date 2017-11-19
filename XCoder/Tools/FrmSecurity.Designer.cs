@@ -30,9 +30,9 @@
         {
             this.gbFunc = new System.Windows.Forms.GroupBox();
             this.gbSource = new System.Windows.Forms.GroupBox();
-            this.richTextBox1 = new System.Windows.Forms.RichTextBox();
+            this.rtSource = new System.Windows.Forms.RichTextBox();
             this.gbResult = new System.Windows.Forms.GroupBox();
-            this.richTextBox2 = new System.Windows.Forms.RichTextBox();
+            this.rtResult = new System.Windows.Forms.RichTextBox();
             this.btnHex = new System.Windows.Forms.Button();
             this.btnHex2 = new System.Windows.Forms.Button();
             this.btnB642 = new System.Windows.Forms.Button();
@@ -62,7 +62,8 @@
             this.button19 = new System.Windows.Forms.Button();
             this.button20 = new System.Windows.Forms.Button();
             this.gbPass = new System.Windows.Forms.GroupBox();
-            this.richTextBox3 = new System.Windows.Forms.RichTextBox();
+            this.rtPass = new System.Windows.Forms.RichTextBox();
+            this.btnExchange = new System.Windows.Forms.Button();
             this.gbFunc.SuspendLayout();
             this.gbSource.SuspendLayout();
             this.gbResult.SuspendLayout();
@@ -112,7 +113,7 @@
             // 
             this.gbSource.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.gbSource.Controls.Add(this.richTextBox1);
+            this.gbSource.Controls.Add(this.rtSource);
             this.gbSource.Location = new System.Drawing.Point(261, 12);
             this.gbSource.Name = "gbSource";
             this.gbSource.Size = new System.Drawing.Size(600, 250);
@@ -120,21 +121,21 @@
             this.gbSource.TabStop = false;
             this.gbSource.Text = "原文";
             // 
-            // richTextBox1
+            // rtSource
             // 
-            this.richTextBox1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.richTextBox1.Location = new System.Drawing.Point(3, 17);
-            this.richTextBox1.Name = "richTextBox1";
-            this.richTextBox1.Size = new System.Drawing.Size(594, 230);
-            this.richTextBox1.TabIndex = 2;
-            this.richTextBox1.Text = "";
+            this.rtSource.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.rtSource.Location = new System.Drawing.Point(3, 17);
+            this.rtSource.Name = "rtSource";
+            this.rtSource.Size = new System.Drawing.Size(594, 230);
+            this.rtSource.TabIndex = 2;
+            this.rtSource.Text = "学无先后达者为师";
             // 
             // gbResult
             // 
             this.gbResult.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.gbResult.Controls.Add(this.richTextBox2);
+            this.gbResult.Controls.Add(this.rtResult);
             this.gbResult.Location = new System.Drawing.Point(261, 368);
             this.gbResult.Name = "gbResult";
             this.gbResult.Size = new System.Drawing.Size(600, 250);
@@ -142,14 +143,14 @@
             this.gbResult.TabStop = false;
             this.gbResult.Text = "结果";
             // 
-            // richTextBox2
+            // rtResult
             // 
-            this.richTextBox2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.richTextBox2.Location = new System.Drawing.Point(3, 17);
-            this.richTextBox2.Name = "richTextBox2";
-            this.richTextBox2.Size = new System.Drawing.Size(594, 230);
-            this.richTextBox2.TabIndex = 2;
-            this.richTextBox2.Text = "";
+            this.rtResult.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.rtResult.Location = new System.Drawing.Point(3, 17);
+            this.rtResult.Name = "rtResult";
+            this.rtResult.Size = new System.Drawing.Size(594, 230);
+            this.rtResult.TabIndex = 2;
+            this.rtResult.Text = "";
             // 
             // btnHex
             // 
@@ -159,6 +160,7 @@
             this.btnHex.TabIndex = 0;
             this.btnHex.Text = "HEX编码";
             this.btnHex.UseVisualStyleBackColor = true;
+            this.btnHex.Click += new System.EventHandler(this.btnHex_Click);
             // 
             // btnHex2
             // 
@@ -168,6 +170,7 @@
             this.btnHex2.TabIndex = 1;
             this.btnHex2.Text = "HEX解码";
             this.btnHex2.UseVisualStyleBackColor = true;
+            this.btnHex2.Click += new System.EventHandler(this.btnHex2_Click);
             // 
             // btnB642
             // 
@@ -407,28 +410,40 @@
             // 
             this.gbPass.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.gbPass.Controls.Add(this.richTextBox3);
+            this.gbPass.Controls.Add(this.rtPass);
             this.gbPass.Location = new System.Drawing.Point(261, 265);
             this.gbPass.Name = "gbPass";
-            this.gbPass.Size = new System.Drawing.Size(600, 100);
+            this.gbPass.Size = new System.Drawing.Size(525, 100);
             this.gbPass.TabIndex = 5;
             this.gbPass.TabStop = false;
             this.gbPass.Text = "密码";
             // 
-            // richTextBox3
+            // rtPass
             // 
-            this.richTextBox3.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.richTextBox3.Location = new System.Drawing.Point(3, 17);
-            this.richTextBox3.Name = "richTextBox3";
-            this.richTextBox3.Size = new System.Drawing.Size(594, 80);
-            this.richTextBox3.TabIndex = 2;
-            this.richTextBox3.Text = "";
+            this.rtPass.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.rtPass.Location = new System.Drawing.Point(3, 17);
+            this.rtPass.Name = "rtPass";
+            this.rtPass.Size = new System.Drawing.Size(519, 80);
+            this.rtPass.TabIndex = 2;
+            this.rtPass.Text = "NewLife";
+            // 
+            // btnExchange
+            // 
+            this.btnExchange.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnExchange.Location = new System.Drawing.Point(789, 306);
+            this.btnExchange.Name = "btnExchange";
+            this.btnExchange.Size = new System.Drawing.Size(69, 34);
+            this.btnExchange.TabIndex = 6;
+            this.btnExchange.Text = "上下互换";
+            this.btnExchange.UseVisualStyleBackColor = true;
+            this.btnExchange.Click += new System.EventHandler(this.btnExchange_Click);
             // 
             // FrmSecurity
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(869, 629);
+            this.Controls.Add(this.btnExchange);
             this.Controls.Add(this.gbPass);
             this.Controls.Add(this.gbResult);
             this.Controls.Add(this.gbSource);
@@ -447,9 +462,9 @@
 
         private System.Windows.Forms.GroupBox gbFunc;
         private System.Windows.Forms.GroupBox gbSource;
-        private System.Windows.Forms.RichTextBox richTextBox1;
+        private System.Windows.Forms.RichTextBox rtSource;
         private System.Windows.Forms.GroupBox gbResult;
-        private System.Windows.Forms.RichTextBox richTextBox2;
+        private System.Windows.Forms.RichTextBox rtResult;
         private System.Windows.Forms.Button btnHex2;
         private System.Windows.Forms.Button btnHex;
         private System.Windows.Forms.Button btnB642;
@@ -479,6 +494,7 @@
         private System.Windows.Forms.Button btnDES2;
         private System.Windows.Forms.Button btnDES;
         private System.Windows.Forms.GroupBox gbPass;
-        private System.Windows.Forms.RichTextBox richTextBox3;
+        private System.Windows.Forms.RichTextBox rtPass;
+        private System.Windows.Forms.Button btnExchange;
     }
 }
