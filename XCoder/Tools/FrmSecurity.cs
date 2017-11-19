@@ -21,6 +21,13 @@ namespace XCoder.Tools
         #region 辅助
         #endregion
 
+        private void btnExchange_Click(Object sender, EventArgs e)
+        {
+            var v = rtSource.Text;
+            rtSource.Text = rtResult.Text;
+            rtResult.Text = v;
+        }
+
         private void btnHex_Click(Object sender, EventArgs e)
         {
             var v = rtSource.Text;
@@ -36,11 +43,16 @@ namespace XCoder.Tools
             rtResult.Text = rs.ToStr();
         }
 
-        private void btnExchange_Click(Object sender, EventArgs e)
+        private void btnB64_Click(Object sender, EventArgs e)
         {
             var v = rtSource.Text;
-            rtSource.Text = rtResult.Text;
-            rtResult.Text = v;
+            rtResult.Text = v.GetBytes().ToBase64();
+        }
+
+        private void btnB642_Click(Object sender, EventArgs e)
+        {
+            var v = rtSource.Text;
+            rtResult.Text = v.ToBase64().ToStr();
         }
     }
 }

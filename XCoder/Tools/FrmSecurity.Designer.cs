@@ -180,6 +180,7 @@
             this.btnB642.TabIndex = 3;
             this.btnB642.Text = "Base64解码";
             this.btnB642.UseVisualStyleBackColor = true;
+            this.btnB642.Click += new System.EventHandler(this.btnB642_Click);
             // 
             // btnB64
             // 
@@ -189,6 +190,7 @@
             this.btnB64.TabIndex = 2;
             this.btnB64.Text = "Base64编码";
             this.btnB64.UseVisualStyleBackColor = true;
+            this.btnB64.Click += new System.EventHandler(this.btnB64_Click);
             // 
             // btnMD52
             // 
