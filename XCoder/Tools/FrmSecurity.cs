@@ -128,12 +128,24 @@ namespace XCoder.Tools
 
         private void btnAES_Click(Object sender, EventArgs e)
         {
+            var buf = GetBytes();
+            var pass = GetBytes(rtPass.Text);
 
+            var des = new AesCryptoServiceProvider();
+            buf = des.Encrypt(buf, pass);
+
+            rtResult.Text = buf.ToHex() + Environment.NewLine + Environment.NewLine + buf.ToBase64();
         }
 
         private void btnAES2_Click(Object sender, EventArgs e)
         {
+            var buf = GetBytes();
+            var pass = GetBytes(rtPass.Text);
 
+            var des = new AesCryptoServiceProvider();
+            buf = des.Descrypt(buf, pass);
+
+            rtResult.Text = buf.ToStr() + Environment.NewLine + Environment.NewLine + buf.ToHex() + Environment.NewLine + Environment.NewLine + buf.ToBase64();
         }
 
         private void btnRC4_Click(Object sender, EventArgs e)

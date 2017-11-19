@@ -91,6 +91,10 @@ namespace System
                 if (pass.Length != keySize) pass = new Byte[keySize].Write(0, pass);
 
                 sa.Key = pass;
+
+                var ivSize = sa.IV.Length;
+                if (pass.Length != ivSize) pass = new Byte[ivSize].Write(0, pass);
+
                 sa.IV = pass;
 
                 sa.Mode = mode;
@@ -153,6 +157,10 @@ namespace System
                 if (pass.Length != keySize) pass = new Byte[keySize].Write(0, pass);
 
                 sa.Key = pass;
+
+                var ivSize = sa.IV.Length;
+                if (pass.Length != ivSize) pass = new Byte[ivSize].Write(0, pass);
+
                 sa.IV = pass;
 
                 sa.Mode = mode;

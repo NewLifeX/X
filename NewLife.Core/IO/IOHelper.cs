@@ -356,6 +356,7 @@ namespace System
         public static Byte[] Write(this Byte[] dst, Int32 dstOffset, Byte[] src, Int32 srcOffset = 0, Int32 count = -1)
         {
             if (count <= 0) count = src.Length - srcOffset;
+            if (dstOffset + count > dst.Length) count = dst.Length - dstOffset;
 
 #if MF
             Array.Copy(src, srcOffset, dst, dstOffset, count);
