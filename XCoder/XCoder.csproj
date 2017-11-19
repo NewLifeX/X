@@ -70,6 +70,12 @@
       <DependentUpon>FrmMDI.cs</DependentUpon>
     </Compile>
     <Compile Include="IXForm.cs" />
+    <Compile Include="Tools\FrmSecurity.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Tools\FrmSecurity.Designer.cs">
+      <DependentUpon>FrmSecurity.cs</DependentUpon>
+    </Compile>
     <Compile Include="Yun\FrmMap.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -168,6 +174,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="FrmMDI.resx">
       <DependentUpon>FrmMDI.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Tools\FrmSecurity.resx">
+      <DependentUpon>FrmSecurity.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Yun\FrmMap.resx">
       <DependentUpon>FrmMap.cs</DependentUpon>
