@@ -31,7 +31,9 @@ namespace XCoder.Tools
 
         private void btnHex2_Click(Object sender, EventArgs e)
         {
-
+            var v = rtSource.Text;
+            var rs = v.ToHex();
+            rtResult.Text = rs.ToStr();
         }
 
         private void btnExchange_Click(Object sender, EventArgs e)
