@@ -320,7 +320,7 @@
             this.btnDSA2.Name = "btnDSA2";
             this.btnDSA2.Size = new System.Drawing.Size(112, 34);
             this.btnDSA2.TabIndex = 17;
-            this.btnDSA2.Text = "DSA解密";
+            this.btnDSA2.Text = "DSA验证";
             this.btnDSA2.UseVisualStyleBackColor = true;
             this.btnDSA2.Click += new System.EventHandler(this.btnDSA2_Click);
             // 
@@ -330,7 +330,7 @@
             this.btnDSA.Name = "btnDSA";
             this.btnDSA.Size = new System.Drawing.Size(112, 34);
             this.btnDSA.TabIndex = 16;
-            this.btnDSA.Text = "DSA加密";
+            this.btnDSA.Text = "DSA签名";
             this.btnDSA.UseVisualStyleBackColor = true;
             this.btnDSA.Click += new System.EventHandler(this.btnDSA_Click);
             // 

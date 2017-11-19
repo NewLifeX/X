@@ -1,8 +1,10 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Web;
 using System.Windows.Forms;
+using NewLife.Security;
 
 namespace XCoder.Tools
 {
@@ -169,12 +171,28 @@ namespace XCoder.Tools
 
         private void btnRSA_Click(Object sender, EventArgs e)
         {
+            var buf = GetBytes();
+            var key = rtPass.Text;
 
+            if (key.Length < 100)
+            {
+                key = RSAHelper.GenerateKey().First();
+                rtPass.Text = key;
+            }
+
+            buf = RSAHelper.Encrypt(buf, key);
+
+            rtResult.Text = buf.ToHex() + Environment.NewLine + Environment.NewLine + buf.ToBase64();
         }
 
         private void btnRSA2_Click(Object sender, EventArgs e)
         {
+            var buf = GetBytes();
+            var pass = rtPass.Text;
 
+            buf = RSAHelper.Decrypt(buf, pass);
+
+            rtResult.Text = buf.ToStr() + Environment.NewLine + Environment.NewLine + buf.ToHex() + Environment.NewLine + Environment.NewLine + buf.ToBase64();
         }
 
         private void btnDSA_Click(Object sender, EventArgs e)
