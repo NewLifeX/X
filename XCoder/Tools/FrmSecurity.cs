@@ -1,11 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace XCoder.Tools
@@ -19,6 +13,27 @@ namespace XCoder.Tools
         }
 
         #region 辅助
+        /// <summary>从原文中获取字节数组</summary>
+        /// <returns></returns>
+        private Byte[] GetBytes()
+        {
+            var v = rtSource.Text;
+            if (v.IsNullOrEmpty()) return new byte[0];
+
+            try
+            {
+                return v.ToHex();
+            }
+            catch { }
+
+            try
+            {
+                return v.ToBase64();
+            }
+            catch { }
+
+            return v.GetBytes();
+        }
         #endregion
 
         private void btnExchange_Click(Object sender, EventArgs e)
@@ -30,41 +45,54 @@ namespace XCoder.Tools
 
         private void btnHex_Click(Object sender, EventArgs e)
         {
-            var v = rtSource.Text;
-            var rs = v.GetBytes();
-            v = rs.ToHex(" ", 32);
-            rtResult.Text = v;
+            var buf = GetBytes();
+            rtResult.Text = buf.ToHex(" ", 32);
         }
 
         private void btnHex2_Click(Object sender, EventArgs e)
         {
             var v = rtSource.Text;
-            var rs = v.ToHex();
-            rtResult.Text = rs.ToStr();
+            rtResult.Text = v.ToHex().ToStr();
         }
 
         private void btnB64_Click(Object sender, EventArgs e)
         {
-            var v = rtSource.Text;
-            rtResult.Text = v.GetBytes().ToBase64();
+            var buf = GetBytes();
+            rtResult.Text = buf.ToBase64();
         }
 
         private void btnB642_Click(Object sender, EventArgs e)
         {
             var v = rtSource.Text;
-            rtResult.Text = v.ToBase64().ToStr();
+            //rtResult.Text = v.ToBase64().ToStr();
+            var buf = v.ToBase64();
+            rtResult.Text = buf.ToStr() + Environment.NewLine + buf.ToHex();
         }
 
         private void btnMD5_Click(Object sender, EventArgs e)
         {
-            var v = rtSource.Text;
-            rtResult.Text = v.MD5();
+            var buf = GetBytes();
+            var str = buf.MD5().ToHex();
+            rtResult.Text = str.ToUpper() + Environment.NewLine + str.ToLower();
         }
 
         private void btnMD52_Click(Object sender, EventArgs e)
         {
-            var v = rtSource.Text;
-            rtResult.Text = v.MD5_16();
+            var buf = GetBytes();
+            var str = buf.MD5().ToHex(0, 8);
+            rtResult.Text = str.ToUpper() + Environment.NewLine + str.ToLower();
+        }
+
+        private void btnCRC_Click(Object sender, EventArgs e)
+        {
+            var buf = GetBytes();
+            rtResult.Text = "{0:X8}\r\n{0}".F(buf.Crc());
+        }
+
+        private void btnCRC2_Click(Object sender, EventArgs e)
+        {
+            var buf = GetBytes();
+            rtResult.Text = "{0:X4}\r\n{0}".F(buf.Crc16());
         }
     }
 }

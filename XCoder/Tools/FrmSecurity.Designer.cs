@@ -220,6 +220,7 @@
             this.btnCRC2.TabIndex = 7;
             this.btnCRC2.Text = "CRC_16";
             this.btnCRC2.UseVisualStyleBackColor = true;
+            this.btnCRC2.Click += new System.EventHandler(this.btnCRC2_Click);
             // 
             // btnCRC
             // 
@@ -229,6 +230,7 @@
             this.btnCRC.TabIndex = 6;
             this.btnCRC.Text = "CRC_32";
             this.btnCRC.UseVisualStyleBackColor = true;
+            this.btnCRC.Click += new System.EventHandler(this.btnCRC_Click);
             // 
             // btnDES2
             // 
