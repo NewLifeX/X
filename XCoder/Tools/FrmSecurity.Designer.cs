@@ -53,8 +53,8 @@
             this.btnDSA = new System.Windows.Forms.Button();
             this.btnUrl2 = new System.Windows.Forms.Button();
             this.btnUrl = new System.Windows.Forms.Button();
-            this.button13 = new System.Windows.Forms.Button();
-            this.button14 = new System.Windows.Forms.Button();
+            this.btnHtml2 = new System.Windows.Forms.Button();
+            this.btnHtml = new System.Windows.Forms.Button();
             this.button15 = new System.Windows.Forms.Button();
             this.button16 = new System.Windows.Forms.Button();
             this.button17 = new System.Windows.Forms.Button();
@@ -80,8 +80,8 @@
             this.gbFunc.Controls.Add(this.button18);
             this.gbFunc.Controls.Add(this.button15);
             this.gbFunc.Controls.Add(this.button16);
-            this.gbFunc.Controls.Add(this.button13);
-            this.gbFunc.Controls.Add(this.button14);
+            this.gbFunc.Controls.Add(this.btnHtml2);
+            this.gbFunc.Controls.Add(this.btnHtml);
             this.gbFunc.Controls.Add(this.btnUrl2);
             this.gbFunc.Controls.Add(this.btnUrl);
             this.gbFunc.Controls.Add(this.btnDSA2);
@@ -124,6 +124,7 @@
             // rtSource
             // 
             this.rtSource.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.rtSource.Font = new System.Drawing.Font("宋体", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.rtSource.Location = new System.Drawing.Point(3, 17);
             this.rtSource.Name = "rtSource";
             this.rtSource.Size = new System.Drawing.Size(594, 230);
@@ -146,6 +147,7 @@
             // rtResult
             // 
             this.rtResult.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.rtResult.Font = new System.Drawing.Font("宋体", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.rtResult.Location = new System.Drawing.Point(3, 17);
             this.rtResult.Name = "rtResult";
             this.rtResult.Size = new System.Drawing.Size(594, 230);
@@ -352,23 +354,25 @@
             this.btnUrl.UseVisualStyleBackColor = true;
             this.btnUrl.Click += new System.EventHandler(this.btnUrl_Click);
             // 
-            // button13
+            // btnHtml2
             // 
-            this.button13.Location = new System.Drawing.Point(125, 423);
-            this.button13.Name = "button13";
-            this.button13.Size = new System.Drawing.Size(112, 34);
-            this.button13.TabIndex = 21;
-            this.button13.Text = "CRC_16";
-            this.button13.UseVisualStyleBackColor = true;
+            this.btnHtml2.Location = new System.Drawing.Point(125, 423);
+            this.btnHtml2.Name = "btnHtml2";
+            this.btnHtml2.Size = new System.Drawing.Size(112, 34);
+            this.btnHtml2.TabIndex = 21;
+            this.btnHtml2.Text = "Html解码";
+            this.btnHtml2.UseVisualStyleBackColor = true;
+            this.btnHtml2.Click += new System.EventHandler(this.btnHtml2_Click);
             // 
-            // button14
+            // btnHtml
             // 
-            this.button14.Location = new System.Drawing.Point(6, 423);
-            this.button14.Name = "button14";
-            this.button14.Size = new System.Drawing.Size(112, 34);
-            this.button14.TabIndex = 20;
-            this.button14.Text = "CRC_32";
-            this.button14.UseVisualStyleBackColor = true;
+            this.btnHtml.Location = new System.Drawing.Point(6, 423);
+            this.btnHtml.Name = "btnHtml";
+            this.btnHtml.Size = new System.Drawing.Size(112, 34);
+            this.btnHtml.TabIndex = 20;
+            this.btnHtml.Text = "Html编码";
+            this.btnHtml.UseVisualStyleBackColor = true;
+            this.btnHtml.Click += new System.EventHandler(this.btnHtml_Click);
             // 
             // button15
             // 
@@ -439,6 +443,7 @@
             // rtPass
             // 
             this.rtPass.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.rtPass.Font = new System.Drawing.Font("宋体", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.rtPass.Location = new System.Drawing.Point(3, 17);
             this.rtPass.Name = "rtPass";
             this.rtPass.Size = new System.Drawing.Size(519, 80);
@@ -497,8 +502,8 @@
         private System.Windows.Forms.Button button18;
         private System.Windows.Forms.Button button15;
         private System.Windows.Forms.Button button16;
-        private System.Windows.Forms.Button button13;
-        private System.Windows.Forms.Button button14;
+        private System.Windows.Forms.Button btnHtml2;
+        private System.Windows.Forms.Button btnHtml;
         private System.Windows.Forms.Button btnUrl2;
         private System.Windows.Forms.Button btnUrl;
         private System.Windows.Forms.Button btnDSA2;

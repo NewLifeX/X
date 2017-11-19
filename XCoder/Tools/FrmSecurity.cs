@@ -200,5 +200,19 @@ namespace XCoder.Tools
             v = HttpUtility.UrlDecode(v);
             rtResult.Text = v;
         }
+
+        private void btnHtml_Click(Object sender, EventArgs e)
+        {
+            var v = rtSource.Text;
+            v = HttpUtility.HtmlEncode(v);
+            rtResult.Text = v;
+        }
+
+        private void btnHtml2_Click(Object sender, EventArgs e)
+        {
+            var v = rtSource.Text;
+            v = HttpUtility.HtmlDecode(v);
+            rtResult.Text = v;
+        }
     }
 }
