@@ -54,5 +54,17 @@ namespace XCoder.Tools
             var v = rtSource.Text;
             rtResult.Text = v.ToBase64().ToStr();
         }
+
+        private void btnMD5_Click(Object sender, EventArgs e)
+        {
+            var v = rtSource.Text;
+            rtResult.Text = v.MD5();
+        }
+
+        private void btnMD52_Click(Object sender, EventArgs e)
+        {
+            var v = rtSource.Text;
+            rtResult.Text = v.MD5_16();
+        }
     }
 }

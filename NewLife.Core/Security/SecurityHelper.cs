@@ -42,7 +42,7 @@ namespace System
             if (encoding == null) encoding = Encoding.UTF8;
 
             var buf = MD5(encoding.GetBytes(data + ""));
-            return buf.ToHex(0, 16);
+            return buf.ToHex(0, 8);
         }
 
         /// <summary>Crc散列</summary>

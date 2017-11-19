@@ -200,6 +200,7 @@
             this.btnMD52.TabIndex = 5;
             this.btnMD52.Text = "MD5_16";
             this.btnMD52.UseVisualStyleBackColor = true;
+            this.btnMD52.Click += new System.EventHandler(this.btnMD52_Click);
             // 
             // btnMD5
             // 
@@ -209,6 +210,7 @@
             this.btnMD5.TabIndex = 4;
             this.btnMD5.Text = "MD5_32";
             this.btnMD5.UseVisualStyleBackColor = true;
+            this.btnMD5.Click += new System.EventHandler(this.btnMD5_Click);
             // 
             // btnCRC2
             // 
