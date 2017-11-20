@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using NewLife.Threading;
 
 namespace NewLife.Caching
 {
@@ -26,25 +27,26 @@ namespace NewLife.Caching
         public Boolean Acquire(Int32 msTimeout)
         {
             var rds = Client;
-            var now = DateTime.Now;
-            var expire = now.AddMilliseconds(msTimeout);
-
-            // 申请加锁。没有冲突时可以直接返回
-            var rs = rds.Add(Key, expire);
-            if (rs) return true;
+            var now = TimerX.Now;
 
             // 循环等待
             var end = now.AddMilliseconds(msTimeout);
             while (true)
             {
+                var expire = now.AddMilliseconds(msTimeout);
+
+                // 申请加锁。没有冲突时可以直接返回
+                var rs = rds.Add(Key, expire);
+                if (rs) return true;
+
                 now = DateTime.Now;
                 if (now > end) break;
 
-                // 超期检测
+                // 死锁超期检测
                 var dt = rds.Get<DateTime>(Key);
                 if (dt <= now)
                 {
-                    // 开抢
+                    // 开抢死锁。所有竞争者都会修改该锁的时间戳，但是只有一个能拿到旧的超时的值
                     expire = now.AddMilliseconds(msTimeout);
                     var old = rds.GetSet(Key, expire);
                     // 如果拿到超时值，说明抢到了锁。其它线程会抢到一个为超时的值
