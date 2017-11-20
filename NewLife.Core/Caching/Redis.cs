@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Collections;
 using NewLife.Log;
@@ -423,6 +424,7 @@ namespace NewLife.Caching
                 {
                     var vnum = rds.Get<Int32>(key);
                     vnum++;
+                    Thread.Sleep(Rand.Next(100, 1000));
                     rds.Set(key, vnum);
                 }
             });
