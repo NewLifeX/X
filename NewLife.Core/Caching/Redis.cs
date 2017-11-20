@@ -92,7 +92,7 @@ namespace NewLife.Caching
         /// <summary>为同一服务器创建不同Db的子级库</summary>
         /// <param name="db"></param>
         /// <returns></returns>
-        public Redis CreateSub(Int32 db)
+        public virtual Redis CreateSub(Int32 db)
         {
             if (Db != 0) throw new ArgumentOutOfRangeException(nameof(Db), "只有Db=0的库才能创建子级库连接");
             if (db == 0) return this;
