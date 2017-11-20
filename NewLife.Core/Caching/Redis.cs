@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Threading.Tasks;
 using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Net;
+using NewLife.Security;
 
 namespace NewLife.Caching
 {
@@ -148,6 +151,18 @@ namespace NewLife.Caching
                 });
             }
         }
+
+        /// <summary>执行命令</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="func"></param>
+        /// <returns></returns>
+        public virtual T Execute<T>(Func<RedisClient, T> func)
+        {
+            using (var pi = Pool.AcquireItem())
+            {
+                return func(pi.Value);
+            }
+        }
         #endregion
 
         #region 基础操作
@@ -188,40 +203,28 @@ namespace NewLife.Caching
         {
             if (expire < 0) expire = Expire;
 
-            using (var pi = Pool.AcquireItem())
-            {
-                return pi.Value.Set(key, value, expire);
-            }
+            return Execute(rds => rds.Set(key, value, expire));
         }
 
         /// <summary>获取单体</summary>
         /// <param name="key">键</param>
         public override T Get<T>(String key)
         {
-            using (var pi = Pool.AcquireItem())
-            {
-                return pi.Value.Get<T>(key);
-            }
+            return Execute(rds => rds.Get<T>(key));
         }
 
         /// <summary>移除单体</summary>
         /// <param name="key">键</param>
         public override Boolean Remove(String key)
         {
-            using (var pi = Pool.AcquireItem())
-            {
-                return pi.Value.Execute("DEL", key) as String == "1";
-            }
+            return Execute(rds => rds.Execute("DEL", key) as String == "1");
         }
 
         /// <summary>是否存在</summary>
         /// <param name="key">键</param>
         public override Boolean ContainsKey(String key)
         {
-            using (var pi = Pool.AcquireItem())
-            {
-                return pi.Value.Execute("EXISTS", key) as String == "OK";
-            }
+            return Execute(rds => rds.Execute("EXISTS", key) as String == "OK");
         }
 
         /// <summary>设置缓存项有效期</summary>
@@ -229,10 +232,7 @@ namespace NewLife.Caching
         /// <param name="expire">过期时间</param>
         public override Boolean SetExpire(String key, TimeSpan expire)
         {
-            using (var pi = Pool.AcquireItem())
-            {
-                return pi.Value.Execute("EXPIRE", key, ((Int32)expire.TotalSeconds).ToString()) as String == "1";
-            }
+            return Execute(rds => rds.Execute("EXPIRE", key, ((Int32)expire.TotalSeconds).ToString()) as String == "1");
         }
 
         /// <summary>获取缓存项有效期</summary>
@@ -240,11 +240,8 @@ namespace NewLife.Caching
         /// <returns></returns>
         public override TimeSpan GetExpire(String key)
         {
-            using (var pi = Pool.AcquireItem())
-            {
-                var sec = (pi.Value.Execute("TTL", key) as String).ToInt();
-                return TimeSpan.FromSeconds(sec);
-            }
+            var sec = Execute(rds => rds.Execute<Int32>("TTL", key));
+            return TimeSpan.FromSeconds(sec);
         }
         #endregion
 
@@ -255,10 +252,7 @@ namespace NewLife.Caching
         /// <returns></returns>
         public override IDictionary<String, T> GetAll<T>(IEnumerable<String> keys)
         {
-            using (var pi = Pool.AcquireItem())
-            {
-                return pi.Value.GetAll<T>(keys);
-            }
+            return Execute(rds => rds.GetAll<T>(keys));
         }
 
         /// <summary>批量设置缓存项</summary>
@@ -269,10 +263,7 @@ namespace NewLife.Caching
         {
             if (expire > 0) throw new ArgumentException("批量设置不支持过期时间", nameof(expire));
 
-            using (var pi = Pool.AcquireItem())
-            {
-                pi.Value.SetAll(values);
-            }
+            Execute(rds => rds.SetAll(values));
         }
         #endregion
 
@@ -283,16 +274,10 @@ namespace NewLife.Caching
         /// <returns></returns>
         public override Int64 Increment(String key, Int64 value)
         {
-            using (var pi = Pool.AcquireItem())
-            {
-                var rs = "";
-                if (value == 1)
-                    rs = pi.Value.Execute("INCR", key) as String;
-                else
-                    rs = pi.Value.Execute("INCRBY", key, value.ToString()) as String;
-
-                return rs.ToLong();
-            }
+            if (value == 1)
+                return Execute(rds => rds.Execute<Int64>("INCR", key));
+            else
+                return Execute(rds => rds.Execute<Int64>("INCRBY", key, value));
         }
 
         /// <summary>累加，原子操作，乘以100后按整数操作</summary>
@@ -301,10 +286,7 @@ namespace NewLife.Caching
         /// <returns></returns>
         public override Double Increment(String key, Double value)
         {
-            using (var pi = Pool.AcquireItem())
-            {
-                return (pi.Value.Execute("INCRBYFLOAT", key, value.ToString()) as String).ToDouble();
-            }
+            return Execute(rds => rds.Execute<Double>("INCRBYFLOAT", key, value));
         }
 
         /// <summary>递减，原子操作</summary>
@@ -313,16 +295,10 @@ namespace NewLife.Caching
         /// <returns></returns>
         public override Int64 Decrement(String key, Int64 value)
         {
-            using (var pi = Pool.AcquireItem())
-            {
-                var rs = "";
-                if (value == 1)
-                    rs = pi.Value.Execute("DECR", key) as String;
-                else
-                    rs = pi.Value.Execute("DECRBY", key, value.ToString()) as String;
-
-                return rs.ToLong();
-            }
+            if (value == 1)
+                return Execute(rds => rds.Execute<Int64>("DECR", key));
+            else
+                return Execute(rds => rds.Execute<Int64>("DECRBY", key, value.ToString()));
         }
 
         /// <summary>递减，原子操作，乘以100后按整数操作</summary>
@@ -331,7 +307,8 @@ namespace NewLife.Caching
         /// <returns></returns>
         public override Double Decrement(String key, Double value)
         {
-            return (Double)Decrement(key, (Int64)(value * 100)) / 100;
+            //return (Double)Decrement(key, (Int64)(value * 100)) / 100;
+            return Increment(key, -value);
         }
 
         /// <summary>添加，不存在时设置</summary>
@@ -341,10 +318,7 @@ namespace NewLife.Caching
         /// <returns></returns>
         public Boolean Add<T>(String key, T value)
         {
-            using (var pi = Pool.AcquireItem())
-            {
-                return pi.Value.Execute<Int32>("SETNX", key, value) == 1;
-            }
+            return Execute(rds => rds.Execute<Int32>("SETNX", key, value) == 1);
         }
 
         /// <summary>设置新值并获取旧值，原子操作</summary>
@@ -354,15 +328,22 @@ namespace NewLife.Caching
         /// <returns></returns>
         public T GetSet<T>(String key, T value)
         {
-            using (var pi = Pool.AcquireItem())
-            {
-                return pi.Value.Execute<T>("GETSET", key, value);
-            }
+            return Execute(rds => rds.Execute<T>("GETSET", key, value));
         }
         #endregion
 
         #region 事务
+        /// <summary>申请加锁</summary>
+        /// <param name="key"></param>
+        /// <param name="msTimeout"></param>
+        /// <returns></returns>
+        public IDisposable AcquireLock(String key, Int32 msTimeout)
+        {
+            var rlock = new RedisLock(this, key);
+            if (!rlock.Acquire(msTimeout)) throw new InvalidOperationException($"锁定[{key}]失败！msTimeout={msTimeout}");
 
+            return rlock;
+        }
         #endregion
 
         #region 性能测试
@@ -372,6 +353,87 @@ namespace NewLife.Caching
             XTrace.WriteLine($"目标服务器：{Server}/{Db}");
 
             base.Bench();
+        }
+
+        /// <summary>测试</summary>
+        public static void Test()
+        {
+            //var rds = new RedisClient
+            //{
+            //    Log = XTrace.Log,
+            //    Server = new NetUri("tcp://127.0.0.1:6379"),
+            //};
+            var rds = Redis.Create("127.0.0.1:6379", 4);
+            rds.Password = "";
+            rds.Log = XTrace.Log;
+            rds.Pool.Log = XTrace.Log;
+
+            //rds.Bench();
+            //return;
+
+            var rc = rds.Pool.Acquire();
+
+            var f = rc.Select(4);
+            //Console.WriteLine(f);
+
+            var p = rc.Ping();
+            //Console.WriteLine(p);
+
+            var vs = rds.GetAll<String>(new[] { "num", "dd", "dt" });
+            Console.WriteLine(vs);
+
+            var num = Rand.Next(10243);
+            rds.Set("num", num);
+            var num2 = rds.Get<Int16>("num");
+            //Console.WriteLine("{0} => {1}", num, num2);
+
+            var d1 = (Double)Rand.Next(10243) / 100;
+            rds.Set("dd", d1);
+            var d2 = rds.Get<Double>("dd");
+            //Console.WriteLine("{0} => {1}", d1, d2);
+
+            var dt = DateTime.Now;
+            rds.Set("dt", dt);
+            var dt2 = rds.Get<DateTime>("dt");
+            //Console.WriteLine("{0} => {1}", dt, dt2);
+
+            var v = Rand.NextString(7);
+            rds.Set("name", v);
+            v = rds.Get<String>("name");
+            //Console.WriteLine(v);
+
+            var buf1 = Rand.NextBytes(35);
+            rds.Set("bs", buf1);
+            var buf2 = rds.Get<Byte[]>("bs");
+            Console.WriteLine(buf1.ToHex());
+            Console.WriteLine(buf2.ToHex());
+
+            //var inf = rc.GetInfo();
+            //foreach (var item in inf)
+            //{
+            //    Console.WriteLine("{0}\t{1}", item.Key, item.Value);
+            //}
+
+            // 加锁测试
+            var sw = Stopwatch.StartNew();
+            Parallel.For(0, 5, k =>
+            {
+                var key = "num";
+                using (var rlock = rds.AcquireLock(key, 3000))
+                {
+                    var vnum = rds.Get<Int32>(key);
+                    vnum++;
+                    rds.Set(key, vnum);
+                }
+            });
+            sw.Stop();
+
+            // 加锁结果检查
+            var rnum = rds.Get<Int32>("num");
+            Console.WriteLine("加锁累加结果：{0} 匹配：{1} 耗时：{2:n0}ms", rnum, rnum == num2 + 5, sw.ElapsedMilliseconds);
+
+            //rds.Quit();
+            rds.Dispose();
         }
         #endregion
 
