@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Net;
@@ -94,7 +93,11 @@ namespace NewLife.Caching
             return ns;
         }
 
+        /// <summary>收发缓冲区。单线程共用</summary>
+        [ThreadStatic]
+        private static Byte[] _Buffer;
         private static Byte[] NewLine = new[] { (Byte)'\r', (Byte)'\n' };
+
         /// <summary>异步发出请求，并接收响应</summary>
         /// <param name="cmd"></param>
         /// <param name="args"></param>
@@ -116,6 +119,10 @@ namespace NewLife.Caching
                 LoginTime = DateTime.Now;
             }
 
+            // 收发共用的缓冲区
+            if (_Buffer == null) _Buffer = new Byte[8 * 1024];
+            var buf = _Buffer;
+
             // *<number of arguments>\r\n$<number of bytes of argument 1>\r\n<argument data>\r\n
             // *1\r\n$4\r\nINFO\r\n
 
@@ -128,9 +135,9 @@ namespace NewLife.Caching
                 var str = "*1\r\n${0}\r\n{1}\r\n".F(cmd.Length, cmd);
                 ns.Write(str.GetBytes());
             }
-            else //if (args.Sum(e => e.Length) < 1400)
+            else
             {
-                var ms = new MemoryStream();
+                var ms = new MemoryStream(buf);
                 var str = "*{2}\r\n${0}\r\n{1}\r\n".F(cmd.Length, cmd, 1 + args.Length);
                 ms.Write(str.GetBytes());
 
@@ -160,32 +167,9 @@ namespace NewLife.Caching
                 }
                 if (ms.Length > 0) ms.WriteTo(ns);
             }
-            //else
-            //{
-            //    var str = "*{2}\r\n${0}\r\n{1}\r\n".F(cmd.Length, cmd, 1 + args.Length);
-            //    ns.Write(str.GetBytes());
-
-            //    foreach (var item in args)
-            //    {
-            //        if (log != null)
-            //        {
-            //            if (item.Length <= 32)
-            //                log.AppendFormat(" {0}", item.ToStr());
-            //            else
-            //                log.AppendFormat(" [{0}]", item.Length);
-            //        }
-
-            //        str = "${0}\r\n".F(item.Length);
-            //        ns.Write(str.GetBytes());
-            //        ns.Write(item);
-            //        ns.Write(NewLine);
-            //    }
-            //}
             if (log != null) WriteLog(log.ToString());
 
             // 接收
-            //var source = new CancellationTokenSource(15000);
-            var buf = new Byte[64 * 1024];
             var count = ns.Read(buf, 0, buf.Length);
             if (count == 0) return null;
 
@@ -281,7 +265,7 @@ namespace NewLife.Caching
         #endregion
 
         #region 主要方法
-        /// <summary>执行命令</summary>
+        /// <summary>执行命令。返回字符串、Packet、Packet[]</summary>
         /// <param name="cmd"></param>
         /// <param name="args"></param>
         /// <returns></returns>
