@@ -333,6 +333,32 @@ namespace NewLife.Caching
         {
             return (Double)Decrement(key, (Int64)(value * 100)) / 100;
         }
+
+        /// <summary>添加，不存在时设置</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public Boolean Add<T>(String key, T value)
+        {
+            using (var pi = Pool.AcquireItem())
+            {
+                return pi.Value.Execute<Int32>("SETNX", key, value) == 1;
+            }
+        }
+
+        /// <summary>设置新值并获取旧值，原子操作</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public T GetSet<T>(String key, T value)
+        {
+            using (var pi = Pool.AcquireItem())
+            {
+                return pi.Value.Execute<T>("GETSET", key, value);
+            }
+        }
         #endregion
 
         #region 事务

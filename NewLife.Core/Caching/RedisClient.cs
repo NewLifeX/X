@@ -77,7 +77,9 @@ namespace NewLife.Caching
             {
                 Logined = false;
 
+                Client = null;
                 tc.TryDispose();
+                if (!create) return null;
 
                 tc = new TcpClient
                 {
@@ -106,7 +108,7 @@ namespace NewLife.Caching
         {
             var isQuit = cmd == "QUIT";
 
-            var ns = GetStream(isQuit);
+            var ns = GetStream(!isQuit);
             if (ns == null) return null;
 
             // 验证登录
@@ -138,6 +140,8 @@ namespace NewLife.Caching
             else
             {
                 var ms = new MemoryStream(buf);
+                ms.SetLength(0);
+
                 var str = "*{2}\r\n${0}\r\n{1}\r\n".F(cmd.Length, cmd, 1 + args.Length);
                 ms.Write(str.GetBytes());
 
@@ -229,9 +233,10 @@ namespace NewLife.Caching
             if (p <= 0) throw new Exception("无法解析响应 {0} [{1}]".F(header, pk.Count));
 
             var n = pk.Sub(1, p - 1).ToStr().ToInt();
-            WriteLog("=> *{0} [{1}]", n, pk.Count);
 
             pk = pk.Sub(p + 2);
+            if (Log != null && Log != Logger.Null) WriteLog("=> *{0} [{1}] {2}", n, pk.Count, pk.Sub(0, 32).ToStr().Replace(Environment.NewLine, "\\r\\n"));
+
             var arr = new Packet[n];
             for (var i = 0; i < n; i++)
             {
@@ -252,10 +257,14 @@ namespace NewLife.Caching
             var p = pk.IndexOf(NewLine);
             if (p <= 0) throw new Exception("无法解析响应 {0} [{1}]".F(header, pk.Count));
 
+            // 解析长度
             var len = pk.Sub(1, p - 1).ToStr().ToInt();
 
-            p += 2;
-            pk = pk.Sub(p, len);
+            // 出错或没有内容
+            if (len <= 0) return pk.Sub(p, 0);
+
+            // 解析内容，跳过长度后的\r\n
+            pk = pk.Sub(p + 2, len);
 
             return pk;
         }
@@ -269,28 +278,53 @@ namespace NewLife.Caching
         /// <param name="cmd"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        public virtual Object Execute(String cmd, params String[] args)
+        public virtual Object Execute(String cmd, params Object[] args)
         {
-            return SendCommand(cmd, args.Select(e => e.GetBytes()).ToArray());
+            return SendCommand(cmd, args.Select(e => ToBytes(e)).ToArray());
+        }
+
+        /// <summary>执行命令。返回基本类型、对象、对象数组</summary>
+        /// <param name="cmd"></param>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        public virtual TResult Execute<TResult>(String cmd, params Object[] args)
+        {
+            var rs = SendCommand(cmd, args.Select(e => ToBytes(e)).ToArray());
+            if (rs is String str) return str.ChangeType<TResult>();
+
+            if (rs is Packet pk) return FromBytes<TResult>(pk);
+
+            if (rs is Packet[] pks)
+            {
+                var elmType = typeof(TResult).GetElementTypeEx();
+                var arr = Array.CreateInstance(elmType, pks.Length);
+                for (var i = 0; i < pks.Length; i++)
+                {
+                    arr.SetValue(FromBytes(pks[i], elmType), i);
+                }
+                return (TResult)(Object)arr;
+            }
+
+            return default;
         }
 
         /// <summary>心跳</summary>
         /// <returns></returns>
-        public Boolean Ping() { return Execute("PING") as String == "PONG"; }
+        public Boolean Ping() { return Execute<String>("PING") == "PONG"; }
 
         /// <summary>选择Db</summary>
         /// <param name="db"></param>
         /// <returns></returns>
-        public Boolean Select(Int32 db) { return Execute("SELECT", db + "") as String == "OK"; }
+        public Boolean Select(Int32 db) { return Execute<String>("SELECT", db + "") == "OK"; }
 
         /// <summary>验证密码</summary>
         /// <param name="password"></param>
         /// <returns></returns>
-        public Boolean Auth(String password) { return Execute("AUTH", password) as String == "OK"; }
+        public Boolean Auth(String password) { return Execute<String>("AUTH", password) == "OK"; }
 
         /// <summary>退出</summary>
         /// <returns></returns>
-        public Boolean Quit() { return Execute("QUIT") as String == "OK"; }
+        public Boolean Quit() { return Execute<String>("QUIT") == "OK"; }
 
         /// <summary>获取信息</summary>
         /// <returns></returns>
@@ -313,15 +347,10 @@ namespace NewLife.Caching
         /// <returns></returns>
         public Boolean Set<T>(String key, T value, Int32 secTimeout = 0)
         {
-            var val = ToBytes(value);
-
-            Object rs = null;
             if (secTimeout <= 0)
-                rs = SendCommand("SET", key.GetBytes(), val);
+                return Execute<String>("SET", key, value) == "OK";
             else
-                rs = SendCommand("SETEX", key.GetBytes(), secTimeout.ToString().GetBytes(), val);
-
-            return rs as String == "OK";
+                return Execute<String>("SETEX", key, secTimeout, value) == "OK";
         }
 
         /// <summary>读取</summary>
@@ -330,11 +359,11 @@ namespace NewLife.Caching
         /// <returns></returns>
         public T Get<T>(String key)
         {
-            //var rs = Execute("GET", key.GetBytes());
-            var rs = SendCommand("GET", key.GetBytes());
-            var pk = rs as Packet;
+            return Execute<T>("GET", key);
+            //var rs = SendCommand("GET", key.GetBytes());
+            //var pk = rs as Packet;
 
-            return FromBytes<T>(pk);
+            //return FromBytes<T>(pk);
         }
 
         /// <summary>批量设置</summary>
@@ -379,40 +408,43 @@ namespace NewLife.Caching
 
         #region 辅助
         /// <summary>数值转字节数组</summary>
-        /// <typeparam name="T"></typeparam>
         /// <param name="value"></param>
         /// <returns></returns>
-        protected virtual Byte[] ToBytes<T>(T value)
+        protected virtual Byte[] ToBytes(Object value)
         {
-            Byte[] val = null;
+            if (value == null) return new Byte[0];
 
-            var type = typeof(T);
-            if (type == typeof(Byte[]))
-                val = (Byte[])(Object)value;
-            else if (type.GetTypeCode() != TypeCode.Object)
-                val = "{0}".F(value).GetBytes();
-            else
-                val = val.ToJson().GetBytes();
+            var type = value.GetType();
+            if (type == typeof(Byte[])) return (Byte[])value;
 
-            return val;
+            switch (type.GetTypeCode())
+            {
+                case TypeCode.Object: return value.ToJson().GetBytes();
+                case TypeCode.String: return (value as String).GetBytes();
+                default: return "{0}".F(value).GetBytes();
+            }
+        }
+
+        /// <summary>字节数组转对象</summary>
+        /// <param name="pk"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        protected virtual Object FromBytes(Packet pk, Type type)
+        {
+            if (type == typeof(Byte[])) return pk.ToArray();
+
+            var str = pk.ToStr().Trim('\"');
+            if (type.GetTypeCode() == TypeCode.String) return str;
+            if (type.GetTypeCode() != TypeCode.Object) return str.ChangeType(type);
+
+            return str.ToJsonEntity(type);
         }
 
         /// <summary>字节数组转对象</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="pk"></param>
         /// <returns></returns>
-        protected virtual T FromBytes<T>(Packet pk)
-        {
-
-            var type = typeof(T);
-            if (type == typeof(Byte[])) return (T)(Object)pk.ToArray();
-
-            var str = pk.ToStr().Trim('\"');
-            if (type.GetTypeCode() == TypeCode.String) return (T)(Object)str;
-            if (type.GetTypeCode() != TypeCode.Object) return str.ChangeType<T>();
-
-            return str.ToJsonEntity<T>();
-        }
+        protected T FromBytes<T>(Packet pk) { return (T)FromBytes(pk, typeof(T)); }
         #endregion
 
         #region 日志

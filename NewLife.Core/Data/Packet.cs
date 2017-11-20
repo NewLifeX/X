@@ -97,7 +97,7 @@ namespace NewLife.Data
             // 已匹配字节数
             var win = 0;
             // 索引加上data剩余字节数必须小于count
-            for (var i = 0; i + length - win < count; i++)
+            for (var i = 0; i + length - win <= count; i++)
             {
                 if (Data[start + i] == data[win])
                 {
