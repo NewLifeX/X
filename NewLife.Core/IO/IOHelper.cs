@@ -749,7 +749,7 @@ namespace System
         public static Int32 ReadEncodedInt(this Stream stream)
         {
             Byte b;
-            var rs = 0;
+            UInt32 rs = 0;
             Byte n = 0;
             while (true)
             {
@@ -758,22 +758,22 @@ namespace System
                 b = (Byte)bt;
 
                 // 必须转为Int32，否则可能溢出
-                rs += (Int32)((b & 0x7f) << n);
+                rs |= (UInt32)((b & 0x7f) << n);
                 if ((b & 0x80) == 0) break;
 
                 n += 7;
                 if (n >= 32) throw new FormatException("数字值过大，无法使用压缩格式读取！");
             }
-            return rs;
+            return (Int32)rs;
         }
 
         /// <summary>以压缩格式读取32位整数</summary>
         /// <param name="stream">数据流</param>
         /// <returns></returns>
-        public static Int64 ReadEncodedInt64(this Stream stream)
+        public static UInt64 ReadEncodedInt64(this Stream stream)
         {
             Byte b;
-            Int64 rs = 0;
+            UInt64 rs = 0;
             Byte n = 0;
             while (true)
             {
@@ -782,7 +782,7 @@ namespace System
                 b = (Byte)bt;
 
                 // 必须转为Int32，否则可能溢出
-                rs += (Int64)((b & 0x7f) << n);
+                rs |= (UInt64)(b & 0x7f) << n;
                 if ((b & 0x80) == 0) break;
 
                 n += 7;
@@ -795,7 +795,7 @@ namespace System
         /// <param name="stream"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        internal static Boolean TryReadEncodedInt(this Stream stream, out Int32 value)
+        internal static Boolean TryReadEncodedInt(this Stream stream, out UInt32 value)
         {
             Byte b;
             value = 0;
@@ -807,7 +807,7 @@ namespace System
                 b = (Byte)bt;
 
                 // 必须转为Int32，否则可能溢出
-                value += (Int32)((b & 0x7f) << n);
+                value += (UInt32)((b & 0x7f) << n);
                 if ((b & 0x80) == 0) break;
 
                 n += 7;
