@@ -116,7 +116,7 @@ namespace NewLife.Net
             var client = Client;
             if (client != null)
             {
-                Client = null;
+               
                 WriteLog("Close {0} {1}", reason, this);
 
                 // 提前关闭这个标识，否则Close时可能触发自动重连机制
@@ -132,11 +132,13 @@ namespace NewLife.Net
                 }
                 catch (Exception ex)
                 {
+ 					Client = null;
                     if (!ex.IsDisposed()) OnError("Close", ex);
                     if (ThrowException) throw;
 
                     return false;
                 }
+				 Client = null;
             }
 
             return true;
