@@ -159,10 +159,11 @@ namespace NewLife.Web
             var uri = req.Url;
 
             var str = req.RawUrl;
-            if (str != null) uri = new Uri(uri, str);
+            if (!str.IsNullOrEmpty()) uri = new Uri(uri, str);
 
-            str = req.ServerVariables["X-Request-Uri"];
-            if (str != null) uri = new Uri(uri, str);
+            str = req.ServerVariables["HTTP_X_REQUEST_URI"];
+            if (str.IsNullOrEmpty()) str = req.ServerVariables["X-Request-Uri"];
+            if (!str.IsNullOrEmpty()) uri = new Uri(uri, str);
 
             return uri;
         }
