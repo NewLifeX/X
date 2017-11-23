@@ -56,6 +56,7 @@ namespace XCode.Transform
 
             fi = Field;
             if (fi == null) throw new ArgumentNullException(nameof(FieldName), "未指定用于顺序抽取数据的时间字段！");
+            FieldName = fi.Name;
 
             // 先按时间升序，再按主键升序，避免同一秒存在多行数据时，数据顺序不统一
             var sort = fi.Asc();
