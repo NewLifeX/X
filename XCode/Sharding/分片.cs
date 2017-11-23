@@ -12,8 +12,7 @@ namespace XCode.Sharding
     [DataObject]
     [Description("分片")]
     [BindIndex("IU_Shard_Name", true, "Name")]
-    [BindIndex("IX_Shard_EntityType", false, "EntityType")]
-    [BindIndex("IX_Shard_UpdateUserID_UpdateTime", false, "UpdateUserID,UpdateTime")]
+    [BindIndex("IX_Shard_Type", false, "Type")]
     [BindTable("Shard", Description = "分片", ConnName = "Shard", DbType = DatabaseType.SqlServer)]
     public partial class Shard : IShard
     {
@@ -34,13 +33,13 @@ namespace XCode.Sharding
         [BindColumn("Name", "名称", "nvarchar(50)", Master = true)]
         public String Name { get { return _Name; } set { if (OnPropertyChanging(__.Name, value)) { _Name = value; OnPropertyChanged(__.Name); } } }
 
-        private String _EntityType;
+        private String _Type;
         /// <summary>实体类</summary>
         [DisplayName("实体类")]
         [Description("实体类")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn("EntityType", "实体类", "nvarchar(50)")]
-        public String EntityType { get { return _EntityType; } set { if (OnPropertyChanging(__.EntityType, value)) { _EntityType = value; OnPropertyChanged(__.EntityType); } } }
+        [BindColumn("Type", "实体类", "nvarchar(50)")]
+        public String Type { get { return _Type; } set { if (OnPropertyChanging(__.Type, value)) { _Type = value; OnPropertyChanged(__.Type); } } }
 
         private String _ConnName;
         /// <summary>连接名</summary>
@@ -127,7 +126,7 @@ namespace XCode.Sharding
                 {
                     case __.ID : return _ID;
                     case __.Name : return _Name;
-                    case __.EntityType : return _EntityType;
+                    case __.Type : return _Type;
                     case __.ConnName : return _ConnName;
                     case __.TableName : return _TableName;
                     case __.CreateUserID : return _CreateUserID;
@@ -146,7 +145,7 @@ namespace XCode.Sharding
                 {
                     case __.ID : _ID = Convert.ToInt32(value); break;
                     case __.Name : _Name = Convert.ToString(value); break;
-                    case __.EntityType : _EntityType = Convert.ToString(value); break;
+                    case __.Type : _Type = Convert.ToString(value); break;
                     case __.ConnName : _ConnName = Convert.ToString(value); break;
                     case __.TableName : _TableName = Convert.ToString(value); break;
                     case __.CreateUserID : _CreateUserID = Convert.ToInt32(value); break;
@@ -173,7 +172,7 @@ namespace XCode.Sharding
             public static readonly Field Name = FindByName(__.Name);
 
             /// <summary>实体类</summary>
-            public static readonly Field EntityType = FindByName(__.EntityType);
+            public static readonly Field Type = FindByName(__.Type);
 
             /// <summary>连接名</summary>
             public static readonly Field ConnName = FindByName(__.ConnName);
@@ -215,7 +214,7 @@ namespace XCode.Sharding
             public const String Name = "Name";
 
             /// <summary>实体类</summary>
-            public const String EntityType = "EntityType";
+            public const String Type = "Type";
 
             /// <summary>连接名</summary>
             public const String ConnName = "ConnName";
@@ -258,7 +257,7 @@ namespace XCode.Sharding
         String Name { get; set; }
 
         /// <summary>实体类</summary>
-        String EntityType { get; set; }
+        String Type { get; set; }
 
         /// <summary>连接名</summary>
         String ConnName { get; set; }

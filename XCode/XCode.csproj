@@ -133,8 +133,6 @@
     <Compile Include="PreApplicationStartCode.cs" />
     <Compile Include="Remoting\ApiUserSession.cs" />
     <Compile Include="Setting.cs" />
-    <Compile Include="Sharding\分片.Biz.cs" />
-    <Compile Include="Sharding\分片.cs" />
     <Compile Include="Sync\ISyncMaster.cs" />
     <Compile Include="Sync\ISyncSlave.cs" />
     <Compile Include="Sync\SyncManager.cs" />
@@ -249,23 +247,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>生成实体类.tt</DependentUpon>
     </None>
-    <None Include="Sharding\生成实体类.log">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>生成实体类.tt</DependentUpon>
-    </None>
     <None Include="UpdateInfo.txt" />
     <None Include="Membership\Member.xml">
       <SubType>Designer</SubType>
     </None>
-    <None Include="Sharding\Shard.xml">
-      <SubType>Designer</SubType>
-    </None>
     <Content Include="Membership\生成实体类.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>生成实体类.log</LastGenOutput>
-    </Content>
-    <Content Include="Sharding\生成实体类.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>生成实体类.log</LastGenOutput>
     </Content>

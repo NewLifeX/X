@@ -89,14 +89,14 @@ namespace XCode.Sharding
         }
 
         /// <summary>根据实体类查找</summary>
-        /// <param name="entitytype">实体类</param>
+        /// <param name="type">实体类</param>
         /// <returns>实体列表</returns>
-        public static IList<Shard> FindByEntityType(String entitytype)
+        public static IList<Shard> FindByType(String type)
         {
             // 实体缓存
-            if (Meta.Count < 1000) return Meta.Cache.FindAll(e => e.EntityType == entitytype);
+            if (Meta.Count < 1000) return Meta.Cache.FindAll(e => e.Type == type);
 
-            return FindAll(_.EntityType == entitytype);
+            return FindAll(_.Type == type);
         }
         #endregion
 
