@@ -71,14 +71,23 @@ namespace NewLife.Cube.Admin.Controllers
             catch { }
 
             ViewBag.WebServerName = name;
-            
+
             ViewBag.MyAsms = AssemblyX.GetMyAssemblies().OrderBy(e => e.Name).OrderByDescending(e => e.Compile).ToArray();
 
             var Asms = AssemblyX.GetAssemblies(null).ToArray();
             Asms = Asms.OrderBy(e => e.Name).OrderByDescending(e => e.Compile).ToArray();
             ViewBag.Asms = Asms;
 
-            return View();
+            //return View();
+            switch ((id + "").ToLower())
+            {
+                case "processmodules": return View("ProcessModules");
+                case "assembly": return View("Assembly");
+                case "session": return View("Session");
+                case "cache": return View("Cache");
+                case "servervar": return View("ServerVar");
+                default: return View();
+            }
         }
 
         /// <summary>菜单不可见</summary>

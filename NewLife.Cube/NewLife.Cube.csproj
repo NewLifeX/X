@@ -122,6 +122,31 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Index.cshtml</DependentUpon>
     </Compile>
+    <Compile Include="Areas\Admin\Views\Index\Assembly.generated.cs">
+      <DependentUpon>Assembly.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Areas\Admin\Views\Index\Session.generated.cs">
+      <DependentUpon>Session.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Areas\Admin\Views\Index\Cache.generated.cs">
+      <DependentUpon>Cache.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Areas\Admin\Views\Index\ServerVar.generated.cs">
+      <DependentUpon>ServerVar.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Areas\Admin\Views\Index\ProcessModules.generated.cs">
+      <DependentUpon>ProcessModules.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
     <Compile Include="Areas\Admin\Views\Index\Main.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -421,6 +446,26 @@
     <Content Include="Areas\Admin\Views\VisitStat\_List_Search.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_List_Search.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Areas\Admin\Views\Index\ProcessModules.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ProcessModules.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Areas\Admin\Views\Index\Assembly.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>Assembly.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Areas\Admin\Views\Index\Session.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>Session.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Areas\Admin\Views\Index\Cache.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>Cache.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Areas\Admin\Views\Index\ServerVar.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ServerVar.generated.cs</LastGenOutput>
     </Content>
     <None Include="Content\jweui\css\demos.css" />
     <None Include="Content\jweui\css\jquery-weui.css" />
