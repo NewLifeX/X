@@ -174,7 +174,7 @@ namespace NewLife.Caching
             {
                 using (var pi = Pool.AcquireItem())
                 {
-                    return (pi.Value.Execute("DBSIZE") as String).ToInt();
+                    return pi.Value.Execute<Int32>("DBSIZE");
                 }
             }
         }
@@ -188,8 +188,11 @@ namespace NewLife.Caching
 
                 using (var pi = Pool.AcquireItem())
                 {
-                    var rs = pi.Value.Execute("KEYS", "*");
+                    var rs = pi.Value.Execute<String>("KEYS", "*");
+                    var ss = rs.Split(Environment.NewLine);
+
                     var list = new List<String>();
+                    list.AddRange(ss);
 
                     return list;
                 }
@@ -218,14 +221,14 @@ namespace NewLife.Caching
         /// <param name="key">键</param>
         public override Boolean Remove(String key)
         {
-            return Execute(rds => rds.Execute("DEL", key) as String == "1");
+            return Execute(rds => rds.Execute<String>("DEL", key) == "1");
         }
 
         /// <summary>是否存在</summary>
         /// <param name="key">键</param>
         public override Boolean ContainsKey(String key)
         {
-            return Execute(rds => rds.Execute("EXISTS", key) as String == "OK");
+            return Execute(rds => rds.Execute<String>("EXISTS", key) == "OK");
         }
 
         /// <summary>设置缓存项有效期</summary>
@@ -233,7 +236,7 @@ namespace NewLife.Caching
         /// <param name="expire">过期时间</param>
         public override Boolean SetExpire(String key, TimeSpan expire)
         {
-            return Execute(rds => rds.Execute("EXPIRE", key, ((Int32)expire.TotalSeconds).ToString()) as String == "1");
+            return Execute(rds => rds.Execute<String>("EXPIRE", key, (Int32)expire.TotalSeconds) == "1");
         }
 
         /// <summary>获取缓存项有效期</summary>

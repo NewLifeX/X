@@ -13,6 +13,10 @@ using NewLife.Serialization;
 namespace NewLife.Caching
 {
     /// <summary>Redis客户端</summary>
+    /// <remarks>
+    /// 以极简原则进行设计，每个客户端不支持并行命令处理，可通过多客户端多线程解决。
+    /// 收发共用64k缓冲区，所以命令请求和响应不能超过64k。
+    /// </remarks>
     public class RedisClient : DisposeBase
     {
         #region 属性
@@ -30,6 +34,9 @@ namespace NewLife.Caching
 
         /// <summary>登录时间</summary>
         public DateTime LoginTime { get; private set; }
+
+        /// <summary>是否正在处理命令</summary>
+        public Boolean Busy { get; private set; }
         #endregion
 
         #region 构造
@@ -95,9 +102,9 @@ namespace NewLife.Caching
             return ns;
         }
 
-        /// <summary>收发缓冲区。单线程共用</summary>
-        [ThreadStatic]
-        private static Byte[] _Buffer;
+        /// <summary>收发缓冲区。不支持收发超过64k的大包</summary>
+        private Byte[] _Buffer;
+
         private static Byte[] NewLine = new[] { (Byte)'\r', (Byte)'\n' };
 
         /// <summary>异步发出请求，并接收响应</summary>
@@ -122,8 +129,8 @@ namespace NewLife.Caching
             }
 
             // 收发共用的缓冲区
-            if (_Buffer == null) _Buffer = new Byte[8 * 1024];
             var buf = _Buffer;
+            if (buf == null) _Buffer = buf = new Byte[64 * 1024];
 
             // *<number of arguments>\r\n$<number of bytes of argument 1>\r\n<argument data>\r\n
             // *1\r\n$4\r\nINFO\r\n
@@ -141,6 +148,7 @@ namespace NewLife.Caching
             {
                 var ms = new MemoryStream(buf);
                 ms.SetLength(0);
+                ms.Position = 0;
 
                 var str = "*{2}\r\n${0}\r\n{1}\r\n".F(cmd.Length, cmd, 1 + args.Length);
                 ms.Write(str.GetBytes());
@@ -165,8 +173,8 @@ namespace NewLife.Caching
                         ms.WriteTo(ns);
 
                         // 从头开始
-                        ms.Position = 0;
                         ms.SetLength(0);
+                        ms.Position = 0;
                     }
                 }
                 if (ms.Length > 0) ms.WriteTo(ns);
@@ -203,7 +211,6 @@ namespace NewLife.Caching
 
             if (header == '+') return str2;
             if (header == '-') throw new Exception(str2);
-            //if (header == ':') return str2.ToInt();
             if (header == ':') return str2;
 
             throw new NotSupportedException();
@@ -268,9 +275,6 @@ namespace NewLife.Caching
 
             return pk;
         }
-        #endregion
-
-        #region 缓冲池
         #endregion
 
         #region 主要方法
@@ -360,10 +364,6 @@ namespace NewLife.Caching
         public T Get<T>(String key)
         {
             return Execute<T>("GET", key);
-            //var rs = SendCommand("GET", key.GetBytes());
-            //var pk = rs as Packet;
-
-            //return FromBytes<T>(pk);
         }
 
         /// <summary>批量设置</summary>
@@ -401,9 +401,6 @@ namespace NewLife.Caching
 
             return dic;
         }
-        #endregion
-
-        #region 高级操作
         #endregion
 
         #region 辅助
