@@ -202,7 +202,7 @@ namespace XCode
         ICollection<String> AdditionalFields { get; }
 
         /// <summary>主时间字段。代表当前数据行更新时间</summary>
-        FieldItem MasterTime { get; }
+        FieldItem MasterTime { get; set; }
 
         /// <summary>默认选择的字段</summary>
         String Selects { get; set; }

@@ -241,6 +241,7 @@ namespace XCode
 
                     return _MasterTime;
                 }
+                set { _MasterTime = value; }
             }
 
             private FieldItem GetMasterTime()
