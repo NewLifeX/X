@@ -213,7 +213,7 @@ namespace NewLife.Caching
             if (header == '-') throw new Exception(str2);
             if (header == ':') return str2;
 
-            throw new NotSupportedException();
+            throw new NotSupportedException("无法解析响应 {0} {1}".F(header, str2.Replace(Environment.NewLine, "\\r\\n")));
         }
 
         private Packet ReadBlock(Packet pk)
