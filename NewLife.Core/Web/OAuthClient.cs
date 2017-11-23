@@ -79,7 +79,8 @@ namespace NewLife.Web
             {
                 // 从Http请求头中取出原始主机名和端口
                 var req = HttpContext.Current.Request;
-                var uri = new Uri("{0}://{1}:{2}".F(req.Url.Scheme, req.ServerVariables["SERVER_NAME"], req.ServerVariables["Server_Port"]));
+                var uri = req.GetRawUrl();
+
                 uri = new Uri(uri, redirect);
                 redirect = uri.ToString();
             }

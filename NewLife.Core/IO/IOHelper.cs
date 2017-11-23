@@ -138,8 +138,7 @@ namespace System
                 }
 
                 // 反射读取内存流中数据的原始位置，然后直接把数据拿出来用
-                Object obj = 0;
-                if (ms.TryGetValue("_origin", out obj))
+                if (ms.TryGetValue("_origin", out var obj))
                 {
                     var _origin = (Int32)obj;
                     // 其实地址不为0时，一般不能直接访问缓冲区，因为可能被限制访问
@@ -159,8 +158,7 @@ namespace System
             {
                 var ms = des as MemoryStream;
                 // 
-                Object obj = 0;
-                if (ms.TryGetValue("_origin", out obj))
+                if (ms.TryGetValue("_origin", out var obj))
                 {
                     var _origin = (Int32)obj;
                     // 缓冲区还剩下多少空间
