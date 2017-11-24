@@ -11,10 +11,15 @@
     var fact = ViewBag.Factory as IEntityOperate;
     var page = ViewBag.Page as Pager;
     var fields = ViewBag.Fields as List<FieldItem>;
+    var enableSelect = this.EnableSelect();
 }
 <table class="table table-bordered table-hover table-striped table-condensed">
     <thead>
         <tr>
+            @if (enableSelect)
+            {
+                <th class="text-center" style="width:10px;"><input type="checkbox" id="chkAll" title="全选" /></th>
+            }
             <th class="text-center hidden-md hidden-sm hidden-xs"><a href="@Html.Raw(page.GetSortUrl("ID"))">编号</a></th>
             <th class="text-center"><a href="@Html.Raw(page.GetSortUrl("Year"))">年</a></th>
             <th class="text-center"><a href="@Html.Raw(page.GetSortUrl("Month"))">月</a></th>
@@ -41,6 +46,10 @@
             var m = entity.Month > 0 ? entity.Month + "" : "";
             var d = entity.Day > 0 ? entity.Day + "" : "";
             <tr>
+                @if (enableSelect)
+                {
+                    <td class="text-center"><input type="checkbox" name="keys" value="@entity.ID" /></td>
+                }
                 <td class="text-center hidden-md hidden-sm hidden-xs">@entity.ID</td>
                 <td class="text-right">@y</td>
                 <td class="text-right">@m</td>

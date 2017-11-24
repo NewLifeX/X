@@ -125,7 +125,16 @@ WriteLiteral(">\r\n");
             
             #line default
             #line hidden
-WriteLiteral("            <div");
+WriteLiteral("            ");
+
+            
+            #line 19 "..\..\Views\Shared\_List_Toolbar.cshtml"
+       Write(Html.Partial("_List_Toolbar_Batch"));
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\r\n            <div");
 
 WriteLiteral(" class=\"pull-right form-group\"");
 
@@ -134,7 +143,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                ");
 
             
-            #line 20 "..\..\Views\Shared\_List_Toolbar.cshtml"
+            #line 21 "..\..\Views\Shared\_List_Toolbar.cshtml"
            Write(Html.Partial("_List_Search"));
 
             
@@ -145,7 +154,7 @@ WriteLiteral("\r\n");
 WriteLiteral("                ");
 
             
-            #line 21 "..\..\Views\Shared\_List_Toolbar.cshtml"
+            #line 22 "..\..\Views\Shared\_List_Toolbar.cshtml"
            Write(Html.Partial("_List_Toolbar_Search"));
 
             
@@ -156,7 +165,7 @@ WriteLiteral("\r\n");
 WriteLiteral("                ");
 
             
-            #line 22 "..\..\Views\Shared\_List_Toolbar.cshtml"
+            #line 23 "..\..\Views\Shared\_List_Toolbar.cshtml"
            Write(Html.Partial("_List_Toolbar_Adv"));
 
             

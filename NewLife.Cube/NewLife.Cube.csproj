@@ -414,6 +414,11 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </Compile>
+    <Compile Include="Views\Shared\_List_Toolbar_Batch.generated.cs">
+      <DependentUpon>_List_Toolbar_Batch.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
     <Compile Include="Views\Shared\_List_Toolbar_Search.generated.cs">
       <DependentUpon>_List_Toolbar_Search.cshtml</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -764,6 +769,10 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_List_Search.generated.cs</LastGenOutput>
     </None>
+    <Content Include="Views\Shared\_List_Toolbar_Batch.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>_List_Toolbar_Batch.generated.cs</LastGenOutput>
+    </Content>
     <None Include="Views\Shared\_List_Toolbar_Search.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_List_Toolbar_Search.generated.cs</LastGenOutput>

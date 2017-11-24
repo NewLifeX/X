@@ -3,14 +3,20 @@
 @using XCode;
 @using XCode.Configuration;
 @{
+    var user = ViewBag.User as IUser ?? User.Identity as IUser;
     var fact = ViewBag.Factory as IEntityOperate;
     var page = ViewBag.Page as Pager;
     var fields = ViewBag.Fields as List<FieldItem>;
-    var user = ViewBag.User as IUser ?? User.Identity as IUser;
+    var fk = fact.Unique;
+    var enableSelect = this.EnableSelect();
 }
 <table class="table table-bordered table-hover table-striped table-condensed">
     <thead>
         <tr>
+            @if (enableSelect)
+            {
+                <th class="text-center" style="width:10px;"><input type="checkbox" id="chkAll" title="全选" /></th>
+            }
             @foreach (var item in fields)
             {
                 var sortUrl = item.OriField != null ? page.GetSortUrl(item.OriField.Name) : page.GetSortUrl(item.Name);
@@ -33,6 +39,10 @@
             }
             var id = entity["ID"];
             <tr>
+                @if (enableSelect)
+                {
+                    <td class="text-center"><input type="checkbox" name="keys" value="@entity[fk.Name]" /></td>
+                }
                 @foreach (var item in fields)
                 {
                     if (FirstFlag == 0)
@@ -49,7 +59,7 @@
                 <td class="text-center">
                     @if (p != null && p.Childs != null && p.Childs.Count > 0 && entity != p.Childs[0])
                     {
-                    <a href="@Url.Action("Up", new { id })"><span class="glyphicon glyphicon-arrow-up" style="color: green;"></span></a>
+                        <a href="@Url.Action("Up", new { id })"><span class="glyphicon glyphicon-arrow-up" style="color: green;"></span></a>
                     }
                 </td>
                 <td class="text-center">

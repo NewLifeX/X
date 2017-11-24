@@ -114,6 +114,10 @@ namespace NewLife.Cube
             return Entity<TEntity>.FindByKeyForEdit(key);
         }
 
+        /// <summary>获取选中键</summary>
+        /// <returns></returns>
+        protected virtual String[] SelectKeys => Request["Keys"].Split(",");
+
         /// <summary>导出当前页以后的数据</summary>
         /// <returns></returns>
         protected virtual IEnumerable<TEntity> ExportData()
@@ -530,6 +534,56 @@ namespace NewLife.Cube
 
             return sb.ToString();
         }
+        #endregion
+
+        #region 批量删除
+        /// <summary>删除选中</summary>
+        /// <returns></returns>
+        [EntityAuthorize(PermissionFlags.Delete)]
+        [DisplayName("删除选中")]
+        public virtual ActionResult DeleteSelect()
+        {
+            var count = 0;
+            var keys = SelectKeys;
+            if (keys != null && keys.Length > 0)
+            {
+                foreach (var item in keys)
+                {
+                    var entity = Entity<TEntity>.FindByKey(item);
+                    if (entity != null)
+                    {
+                        entity.Delete();
+                        count++;
+                    }
+                }
+            }
+            Js.Alert("共删除{0}行数据".F(count));
+            return Index();
+        }
+
+        /// <summary>删除全部</summary>
+        /// <returns></returns>
+        [EntityAuthorize(PermissionFlags.Delete)]
+        [DisplayName("删除全部")]
+        public virtual ActionResult DeleteAll()
+        {
+            var count = 0;
+            var p = new Pager(Session[CacheKey] as Pager);
+            if (p != null)
+            {
+                p.PageIndex = 0;
+                p.PageSize = 100000;
+                // 不要查记录数
+                p.RetrieveTotalCount = false;
+
+                var list = Search(p).ToList();
+                count += list.Count;
+                list.Delete();
+            }
+
+            Js.Alert("共删除{0}行数据".F(count));
+            return Index();
+        }
 
         /// <summary>清空全表数据</summary>
         /// <returns></returns>
@@ -537,16 +591,7 @@ namespace NewLife.Cube
         [DisplayName("清空")]
         public virtual ActionResult Clear()
         {
-            //var list = Entity<TEntity>.FindAll();
-
-            //list.Delete();
-
             var count = Entity<TEntity>.Meta.Session.Truncate();
-            //return Content("共删除{0}行数据".F(count));
-            //return Index();
-            //var url = Request.UrlReferrer + "";
-            //Js.Alert("共删除{0}行数据".F(count)).Redirect(url);
-            //return new EmptyResult();
             Js.Alert("共删除{0}行数据".F(count));
             return Index();
         }

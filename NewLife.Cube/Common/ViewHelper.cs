@@ -7,6 +7,7 @@ using System.Web.Mvc;
 using System.Web.Routing;
 using XCode;
 using XCode.Configuration;
+using XCode.Membership;
 
 namespace NewLife.Cube
 {
@@ -235,6 +236,23 @@ namespace NewLife.Cube
         internal static Boolean MakeFormView()
         {
             return false;
+        }
+
+        /// <summary>是否启用多选</summary>
+        /// <param name="page"></param>
+        /// <returns></returns>
+        public static Boolean EnableSelect(this WebViewPage page)
+        {
+            var fact = page.ViewBag.Factory as IEntityOperate;
+            var fk = fact?.Unique;
+            if (fk == null) return false;
+
+            if (page.ViewData.ContainsKey("EnableSelect")) return (Boolean)page.ViewData["EnableSelect"];
+
+            var user = page.ViewBag.User as IUser ?? page.User.Identity as IUser;
+            if (user == null) return false;
+
+            return user.Has(PermissionFlags.Update, PermissionFlags.Delete);
         }
     }
 

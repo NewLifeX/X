@@ -8,22 +8,14 @@
     var page = ViewBag.Page as Pager;
     var fields = ViewBag.Fields as List<FieldItem>;
     var fk = fact.Unique;
-    var enableSelect = false;
-    if (ViewData.ContainsKey("EnableSelect"))
-    {
-        enableSelect = (Boolean)ViewData["EnableSelect"];
-    }
-    else
-    {
-        enableSelect = user.Has(PermissionFlags.Update, PermissionFlags.Delete);
-    }
+    var enableSelect = this.EnableSelect();
 }
 <table class="table table-bordered table-hover table-striped table-condensed">
     <thead>
         <tr>
-            @if (fk != null && enableSelect)
+            @if (enableSelect)
             {
-                <th class="text-center" style="width:10px;"><input type="checkbox" id="chbAll" title="全选" /></th>
+                <th class="text-center" style="width:10px;"><input type="checkbox" id="chkAll" title="全选" /></th>
             }
             @foreach (var item in fields)
             {
@@ -47,7 +39,7 @@
         @foreach (var entity in Model)
         {
             <tr>
-                @if (fk != null && enableSelect)
+                @if (enableSelect)
                 {
                     <td class="text-center"><input type="checkbox" name="keys" value="@entity[fk.Name]" /></td>
                 }
@@ -65,8 +57,3 @@
         }
     </tbody>
 </table>
-<script>
-    $('#chbAll').click(function () {
-        $('input[name="keys"]').prop('checked', $(this).is(':checked'));
-    });
-</script>

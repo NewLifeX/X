@@ -574,30 +574,30 @@ WriteAttribute("src", Tuple.Create(" src=\"", 7532), Tuple.Create("\"", 7588)
 , 7538), false)
 );
 
-WriteLiteral("></script>\r\n    <script>\r\n        $(function () {\r\n            $(\"input[type=chec" +
-"kbox][class=chkSwitch]\").bootstrapSwitch();\r\n        })\r\n    </script>\r\n\r\n    ");
+WriteLiteral("></script>\r\n    <script>\r\n        $(function () {\r\n            $(\"input.chkSwitch" +
+"\").bootstrapSwitch();\r\n        })\r\n    </script>\r\n\r\n    ");
 
 WriteLiteral("\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 7774), Tuple.Create("\"", 7823)
-, Tuple.Create(Tuple.Create("", 7780), Tuple.Create<System.Object, System.Int32>(Href("~/Content/artDialog/dist/dialog-plus-min.js")
-, 7780), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 7752), Tuple.Create("\"", 7801)
+, Tuple.Create(Tuple.Create("", 7758), Tuple.Create<System.Object, System.Int32>(Href("~/Content/artDialog/dist/dialog-plus-min.js")
+, 7758), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 7847), Tuple.Create("\"", 7896)
-, Tuple.Create(Tuple.Create("", 7853), Tuple.Create<System.Object, System.Int32>(Href("~/Content/artDialog/dist/dialog.new.life.js")
-, 7853), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 7825), Tuple.Create("\"", 7874)
+, Tuple.Create(Tuple.Create("", 7831), Tuple.Create<System.Object, System.Int32>(Href("~/Content/artDialog/dist/dialog.new.life.js")
+, 7831), false)
 );
 
 WriteLiteral("></script>\r\n    ");
 
 WriteLiteral("\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 7941), Tuple.Create("\"", 7964)
-, Tuple.Create(Tuple.Create("", 7947), Tuple.Create<System.Object, System.Int32>(Href("~/Content/Cube.js")
-, 7947), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 7919), Tuple.Create("\"", 7942)
+, Tuple.Create(Tuple.Create("", 7925), Tuple.Create<System.Object, System.Int32>(Href("~/Content/Cube.js")
+, 7925), false)
 );
 
 WriteLiteral("></script>\r\n</body>\r\n</html>");

@@ -16,6 +16,7 @@
             {
                 @Html.ActionLink("添加" + ViewContext.Controller.GetType().GetDisplayName(), "Add", null, new { @class = "btn btn-success btn-sm" })
             }
+            @Html.Partial("_List_Toolbar_Batch")
             <div class="pull-right form-group">
                 @Html.Partial("_List_Search")
                 @Html.Partial("_List_Toolbar_Search")

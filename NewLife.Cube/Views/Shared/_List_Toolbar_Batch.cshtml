@@ -1,0 +1,35 @@
+﻿@using NewLife.Common;
+@{
+    var user = ViewBag.User as IUser ?? User.Identity as IUser;
+    var fact = ViewBag.Factory as IEntityOperate;
+    var enableSelect = this.EnableSelect();
+}
+@if (enableSelect)
+{
+    <div class="form-group toolbar-batch">
+        @*@Html.ActionLink("批量删除", "Add", null, new { @class = "btn btn-error btn-sm" })
+        @Html.ActionLink("批量启用", "Add", null, new { @class = "btn btn-info btn-sm" })
+        @Html.ActionLink("批量禁用", "Add", null, new { @class = "btn btn-warning btn-sm" })*@
+    </div>
+    <script>
+        $(function () {
+            $('.toolbar-batch').prop('readonly', true);
+
+            $('#chkAll').click(function () {
+                // 全选
+                $('input[name="keys"]').prop('checked', $(this).is(':checked'));
+
+                // 启用禁用批量操作区
+                var on = $(this).is(':checked');
+                $('.toolbar-batch').attr('enable', on);
+            });
+
+            $('input[name="keys"]').click(function () {
+                // 启用禁用批量操作区
+                var ks = $('input:checked[name="keys"]');
+                var on = ks.length > 0;
+                $('.toolbar-batch').attr('enable', on);
+            });
+        })
+    </script>
+}
