@@ -575,29 +575,29 @@ WriteAttribute("src", Tuple.Create(" src=\"", 7532), Tuple.Create("\"", 7588)
 );
 
 WriteLiteral("></script>\r\n    <script>\r\n        $(function () {\r\n            $(\"input[type=chec" +
-"kbox]\").bootstrapSwitch();\r\n        })\r\n    </script>\r\n\r\n    ");
+"kbox][class=chkSwitch]\").bootstrapSwitch();\r\n        })\r\n    </script>\r\n\r\n    ");
 
 WriteLiteral("\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 7757), Tuple.Create("\"", 7806)
-, Tuple.Create(Tuple.Create("", 7763), Tuple.Create<System.Object, System.Int32>(Href("~/Content/artDialog/dist/dialog-plus-min.js")
-, 7763), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 7774), Tuple.Create("\"", 7823)
+, Tuple.Create(Tuple.Create("", 7780), Tuple.Create<System.Object, System.Int32>(Href("~/Content/artDialog/dist/dialog-plus-min.js")
+, 7780), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 7830), Tuple.Create("\"", 7879)
-, Tuple.Create(Tuple.Create("", 7836), Tuple.Create<System.Object, System.Int32>(Href("~/Content/artDialog/dist/dialog.new.life.js")
-, 7836), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 7847), Tuple.Create("\"", 7896)
+, Tuple.Create(Tuple.Create("", 7853), Tuple.Create<System.Object, System.Int32>(Href("~/Content/artDialog/dist/dialog.new.life.js")
+, 7853), false)
 );
 
 WriteLiteral("></script>\r\n    ");
 
 WriteLiteral("\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 7924), Tuple.Create("\"", 7947)
-, Tuple.Create(Tuple.Create("", 7930), Tuple.Create<System.Object, System.Int32>(Href("~/Content/Cube.js")
-, 7930), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 7941), Tuple.Create("\"", 7964)
+, Tuple.Create(Tuple.Create("", 7947), Tuple.Create<System.Object, System.Int32>(Href("~/Content/Cube.js")
+, 7947), false)
 );
 
 WriteLiteral("></script>\r\n</body>\r\n</html>");

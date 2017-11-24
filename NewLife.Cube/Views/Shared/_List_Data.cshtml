@@ -7,10 +7,24 @@
     var fact = ViewBag.Factory as IEntityOperate;
     var page = ViewBag.Page as Pager;
     var fields = ViewBag.Fields as List<FieldItem>;
+    var fk = fact.Unique;
+    var enableSelect = false;
+    if (ViewData.ContainsKey("EnableSelect"))
+    {
+        enableSelect = (Boolean)ViewData["EnableSelect"];
+    }
+    else
+    {
+        enableSelect = user.Has(PermissionFlags.Update, PermissionFlags.Delete);
+    }
 }
 <table class="table table-bordered table-hover table-striped table-condensed">
     <thead>
         <tr>
+            @if (fk != null && enableSelect)
+            {
+                <th class="text-center" style="width:10px;"><input type="checkbox" id="chbAll" title="全选" /></th>
+            }
             @foreach (var item in fields)
             {
                 var sortUrl = item.OriField != null ? page.GetSortUrl(item.OriField.Name) : page.GetSortUrl(item.Name);
@@ -33,6 +47,10 @@
         @foreach (var entity in Model)
         {
             <tr>
+                @if (fk != null && enableSelect)
+                {
+                    <td class="text-center"><input type="checkbox" name="keys" value="@entity[fk.Name]" /></td>
+                }
                 @foreach (var item in fields)
                 {
                     @Html.Partial("_List_Data_Item", new Pair(entity, item))
@@ -47,3 +65,8 @@
         }
     </tbody>
 </table>
+<script>
+    $('#chbAll').click(function () {
+        $('input[name="keys"]').prop('checked', $(this).is(':checked'));
+    });
+</script>
