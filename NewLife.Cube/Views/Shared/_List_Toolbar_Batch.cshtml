@@ -7,11 +7,12 @@
 @if (enableSelect)
 {
     <div class="form-group toolbar-batch">
-        <button type="submit" class="btn btn-purple btn-sm" data-action="delete" disabled>
+        <button type="button" class="btn btn-purple btn-sm" data-action="delete"  data-url="@Url.Action("DeleteSelect")" disabled>
             <span class="ace-icon fa fa-search icon-on-right bigger-110"></span>
             批量删除
         </button>
         <input type="hidden" data-id="ids" name="keys"/>
+         
         @*@Html.ActionLink("批量删除", "DeleteSelect", null, new {  @class = "btn btn-error btn-sm", @data_action="delete" })
     @Html.ActionLink("批量启用", "Add", null, new { @class = "btn btn-info btn-sm" })
     @Html.ActionLink("批量禁用", "Add", null, new { @class = "btn btn-warning btn-sm" })*@
@@ -22,8 +23,32 @@
             var $toolbarContext = $('.toolbar-batch'),
                 $ids = $('input[data-id=ids]', $toolbarContext),
                 $batchButtons = $('button[data-action], input[data-action]'), //button, input=button, a 3种类型都可以
-                $table = $('.table-data-list'),
+                $table = $('.table'),
                 $keys = $('input[name="keys"]', $table);
+
+            //按钮事件
+            $toolbarContext.on('click',
+                'button[data-action], input[data-action]',
+                function (e) {
+
+                    var that = $(this),
+                        url = that.data('url'),
+                    //构建一个form提交
+                        form = $('<form name="batchForm" method="post" style="display:none;"></form>');
+                    if (url) {
+                        var ids = getIds().join();
+                        form.attr('action', url).html('<input name="Keys" value="' + ids + '" />');
+                        var body = $('body').append(form);
+                        form.submit();
+
+                        //body.remove(form);
+
+                    }
+
+                    //阻止按钮本身的事件冒泡
+                    return false;
+
+                });
 
             $table.on('click', '#chkAll', function () {
                  
