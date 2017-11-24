@@ -7,33 +7,57 @@
 @if (enableSelect)
 {
     <div class="form-group toolbar-batch">
-        <button type="submit" class="btn btn-purple btn-sm">
+        <button type="submit" class="btn btn-purple btn-sm" data-action="delete" disabled>
             <span class="ace-icon fa fa-search icon-on-right bigger-110"></span>
             批量删除
         </button>
-        @Html.ActionLink("批量删除", "DeleteSelect", null, new { @class = "btn btn-error btn-sm" })
-        @*@Html.ActionLink("批量启用", "Add", null, new { @class = "btn btn-info btn-sm" })
-        @Html.ActionLink("批量禁用", "Add", null, new { @class = "btn btn-warning btn-sm" })*@
+        <input type="hidden" data-id="ids" name="keys"/>
+        @*@Html.ActionLink("批量删除", "DeleteSelect", null, new {  @class = "btn btn-error btn-sm", @data_action="delete" })
+    @Html.ActionLink("批量启用", "Add", null, new { @class = "btn btn-info btn-sm" })
+    @Html.ActionLink("批量禁用", "Add", null, new { @class = "btn btn-warning btn-sm" })*@
     </div>
     <script>
         $(function () {
-            $('.toolbar-batch').prop('readonly', true);
 
-            $('#chkAll').click(function () {
+            var $toolbarContext = $('.toolbar-batch'),
+                $ids = $('input[data-id=ids]', $toolbarContext),
+                $batchButtons = $('button[data-action], input[data-action]'), //button, input=button, a 3种类型都可以
+                $table = $('.table-data-list'),
+                $keys = $('input[name="keys"]', $table);
+
+            $table.on('click', '#chkAll', function () {
+                 
                 // 全选
-                $('input[name="keys"]').prop('checked', $(this).is(':checked'));
+                $keys.prop('checked', this.checked);
+
+                // 启用禁用批量操作区 
+                $batchButtons.prop('disabled', !this.checked);
+
+                //收集选中id
+                var ids = getIds();
+
+                $ids.val(ids.join());
+            });
+            
+            $table.on('click.checked', 'tbody input[name="keys"]', function (e) {
+
 
                 // 启用禁用批量操作区
-                var on = $(this).is(':checked');
-                $('.toolbar-batch').attr('enable', on);
+                var ids = getIds(),
+                    on = ids.length > 0;
+
+                $batchButtons.prop('disabled', !on);
+
+                $ids.val(ids.join()); 
             });
 
-            $('input[name="keys"]').click(function () {
-                // 启用禁用批量操作区
-                var ks = $('input:checked[name="keys"]');
-                var on = ks.length > 0;
-                $('.toolbar-batch').attr('enable', on);
-            });
+            function getIds() {
+                var ids = [];
+                $table.find('tbody :checked').each(function () {
+                    ids.push(this.value);
+                });
+                return ids; 
+            }
         })
     </script>
 }
