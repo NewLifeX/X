@@ -72,7 +72,28 @@ WriteLiteral("    <div");
 
 WriteLiteral(" class=\"form-group toolbar-batch\"");
 
-WriteLiteral(">\r\n        ");
+WriteLiteral(">\r\n        <button");
+
+WriteLiteral(" type=\"submit\"");
+
+WriteLiteral(" class=\"btn btn-purple btn-sm\"");
+
+WriteLiteral(">\r\n            <span");
+
+WriteLiteral(" class=\"ace-icon fa fa-search icon-on-right bigger-110\"");
+
+WriteLiteral("></span>\r\n            批量删除\r\n        </button>\r\n");
+
+WriteLiteral("        ");
+
+            
+            #line 14 "..\..\Views\Shared\_List_Toolbar_Batch.cshtml"
+   Write(Html.ActionLink("批量删除", "DeleteSelect", null, new { @class = "btn btn-error btn-sm" }));
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\r\n        ");
 
 WriteLiteral("\r\n    </div>\r\n");
 
@@ -100,7 +121,7 @@ WriteLiteral(@"    <script>
 ");
 
             
-            #line 35 "..\..\Views\Shared\_List_Toolbar_Batch.cshtml"
+            #line 39 "..\..\Views\Shared\_List_Toolbar_Batch.cshtml"
 }
             
             #line default

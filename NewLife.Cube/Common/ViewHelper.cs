@@ -86,11 +86,16 @@ namespace NewLife.Cube
     var fact = ViewBag.Factory as IEntityOperate;
     var page = ViewBag.Page as Pager;
     var fields = ViewBag.Fields as List<FieldItem>;
+    var enableSelect = this.EnableSelect();
 }
 <table class=""table table-bordered table-hover table-striped table-condensed"">
     <thead>
         <tr>
-            @foreach (var item in fields)
+            @if (enableSelect)
+            {
+                <th class=""text-center"" style=""width:10px;""><input type=""checkbox"" id=""chkAll"" title=""全选"" /></th>
+            }
+            @foreach(var item in fields)
             {
                 var sortUrl = item.OriField != null ? page.GetSortUrl(item.OriField.Name) : page.GetSortUrl(item.Name);
                 if (item.PrimaryKey)
@@ -112,6 +117,10 @@ namespace NewLife.Cube
         @foreach (var entity in Model)
         {
             <tr>
+                @if (enableSelect)
+                {
+                    <td class=""text-center""><input type=""checkbox"" name=""keys"" value=""@entity.ID"" /></td>
+                }
                 @foreach (var item in fields)
                 {
                     @Html.Partial(""_List_Data_Item"", new Pair(entity, item))
@@ -127,6 +136,7 @@ namespace NewLife.Cube
     </tbody>
 </table>";
             var sb = new StringBuilder();
+            var fact = EntityFactory.CreateOperate(entityType);
 
             sb.AppendFormat("@model IList<{0}>", entityType.FullName);
             sb.AppendLine();
@@ -162,8 +172,14 @@ namespace NewLife.Cube
             }
 
             var ps = new Int32[2];
-            sb.Append("            @if");
-            sb.Append(tmp.Substring("            @if", "                @foreach (var item in fields)", 0, ps));
+            var str = tmp.Substring("            @if (ManageProvider", "                @foreach (var item in fields)", 0, ps);
+            if (fact.Unique != null)
+                str = str.Replace("@entity.ID", "@entity." + fact.Unique.Name);
+            else
+                str = str.Replace("@entity.ID", "");
+
+            sb.Append("            @if (ManageProvider");
+            sb.Append(str);
 
             ident = new String(' ', 4 * 4);
             foreach (var item in fields)

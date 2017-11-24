@@ -7,8 +7,12 @@
 @if (enableSelect)
 {
     <div class="form-group toolbar-batch">
-        @*@Html.ActionLink("批量删除", "Add", null, new { @class = "btn btn-error btn-sm" })
-        @Html.ActionLink("批量启用", "Add", null, new { @class = "btn btn-info btn-sm" })
+        <button type="submit" class="btn btn-purple btn-sm">
+            <span class="ace-icon fa fa-search icon-on-right bigger-110"></span>
+            批量删除
+        </button>
+        @Html.ActionLink("批量删除", "DeleteSelect", null, new { @class = "btn btn-error btn-sm" })
+        @*@Html.ActionLink("批量启用", "Add", null, new { @class = "btn btn-info btn-sm" })
         @Html.ActionLink("批量禁用", "Add", null, new { @class = "btn btn-warning btn-sm" })*@
     </div>
     <script>
