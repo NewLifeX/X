@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -141,8 +142,8 @@ namespace NewLife.Caching
             // 区分有参数和无参数
             if (args == null || args.Length == 0)
             {
-                var str = "*1\r\n${0}\r\n{1}\r\n".F(cmd.Length, cmd);
-                ns.Write(str.GetBytes());
+                //var str = "*1\r\n${0}\r\n{1}\r\n".F(cmd.Length, cmd);
+                ns.Write(GetHeaderBytes(cmd, 0));
             }
             else
             {
@@ -150,8 +151,8 @@ namespace NewLife.Caching
                 ms.SetLength(0);
                 ms.Position = 0;
 
-                var str = "*{2}\r\n${0}\r\n{1}\r\n".F(cmd.Length, cmd, 1 + args.Length);
-                ms.Write(str.GetBytes());
+                //var str = "*{2}\r\n${0}\r\n{1}\r\n".F(cmd.Length, cmd, 1 + args.Length);
+                ns.Write(GetHeaderBytes(cmd, args.Length));
 
                 foreach (var item in args)
                 {
@@ -163,8 +164,10 @@ namespace NewLife.Caching
                             log.AppendFormat(" [{0}]", item.Length);
                     }
 
-                    str = "${0}\r\n".F(item.Length);
-                    ms.Write(str.GetBytes());
+                    //str = "${0}\r\n".F(item.Length);
+                    //ms.Write(str.GetBytes());
+                    ms.Write(item.Length.ToString().GetBytes());
+                    ms.Write(NewLine);
                     ms.Write(item);
                     ms.Write(NewLine);
 
@@ -442,6 +445,24 @@ namespace NewLife.Caching
         /// <param name="pk"></param>
         /// <returns></returns>
         protected T FromBytes<T>(Packet pk) { return (T)FromBytes(pk, typeof(T)); }
+
+        private static ConcurrentDictionary<String, Byte[]> _cache0 = new ConcurrentDictionary<String, Byte[]>();
+        private static ConcurrentDictionary<String, Byte[]> _cache1 = new ConcurrentDictionary<String, Byte[]>();
+        private static ConcurrentDictionary<String, Byte[]> _cache2 = new ConcurrentDictionary<String, Byte[]>();
+        private static ConcurrentDictionary<String, Byte[]> _cache3 = new ConcurrentDictionary<String, Byte[]>();
+        /// <summary>获取命令对应的字节数组，全局缓存</summary>
+        /// <param name="cmd"></param>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        private static Byte[] GetHeaderBytes(String cmd, Int32 args = 0)
+        {
+            if (args == 0) return _cache0.GetOrAdd(cmd, k => "*1\r\n${0}\r\n{1}\r\n".F(k.Length, k).GetBytes());
+            if (args == 1) return _cache1.GetOrAdd(cmd, k => "*2\r\n${0}\r\n{1}\r\n".F(k.Length, k).GetBytes());
+            if (args == 2) return _cache2.GetOrAdd(cmd, k => "*3\r\n${0}\r\n{1}\r\n".F(k.Length, k).GetBytes());
+            if (args == 3) return _cache3.GetOrAdd(cmd, k => "*4\r\n${0}\r\n{1}\r\n".F(k.Length, k).GetBytes());
+
+            return "*{2}\r\n${0}\r\n{1}\r\n".F(cmd.Length, cmd, 1 + args).GetBytes();
+        }
         #endregion
 
         #region 日志
