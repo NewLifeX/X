@@ -41,7 +41,7 @@ namespace NewLife.Caching
                 var dic = new Dictionary<String, CacheSetting>();
                 foreach (var item in list)
                 {
-                    if (!item.Name.IsNullOrEmpty()) dic[item.Name] = item;
+                    if (item != null && !item.Name.IsNullOrEmpty()) dic[item.Name] = item;
                 }
                 Items = dic.Select(e => e.Value).ToArray();
             }
@@ -54,16 +54,19 @@ namespace NewLife.Caching
         /// <returns></returns>
         public CacheSetting GetOrAdd(String name)
         {
-            var item = Items.FirstOrDefault(e => e.Name == name);
+            var ms = Items ?? new CacheSetting[0];
+            var item = ms.FirstOrDefault(e => e?.Name == name);
             if (item != null) return item;
 
             // 如果找不到，则增加
             item = new CacheSetting { Name = name };
             //Items.Add(item);
-            lock (Items)
+            lock (ms)
             {
-                var list = new List<CacheSetting>(Items);
-                list.Add(item);
+                var list = new List<CacheSetting>(ms)
+                {
+                    item
+                };
 
                 Items = list.ToArray();
             }
