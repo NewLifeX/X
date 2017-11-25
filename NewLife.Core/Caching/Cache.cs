@@ -50,7 +50,7 @@ namespace NewLife.Caching
                 var id = set.Provider;
 
                 var type = ObjectContainer.Current.ResolveType<ICache>(id);
-                if (type == null) throw new ArgumentNullException(nameof(type), "找不到名为[{0}]的缓存实现".F(id));
+                if (type == null) throw new ArgumentNullException(nameof(type), "找不到名为[{0}]的缓存实现[{1}]".F(set.Name, id));
 
                 var ic = type.CreateInstance() as ICache;
                 if (ic is Cache ic2) ic2.Init(set);

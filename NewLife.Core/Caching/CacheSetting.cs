@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Xml.Serialization;
 using NewLife.Xml;
@@ -77,6 +78,7 @@ namespace NewLife.Caching
     }
 
     /// <summary>配置项</summary>
+    [DebuggerDisplay("{Name} {Provider} {Value}")]
     public class CacheSetting
     {
         /// <summary>名称</summary>
@@ -90,5 +92,9 @@ namespace NewLife.Caching
         /// <summary>提供者</summary>
         [XmlAttribute]
         public String Provider { get; set; }
+
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override String ToString() => Name;
     }
 }

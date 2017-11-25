@@ -69,7 +69,7 @@ namespace NewLife.Serialization
             var elmType = type.GetElementTypeEx();
 
             var list = value as IList;
-            if (list == null) list = typeof(List<>).MakeGenericType(elmType).CreateInstance() as IList;
+            if (list == null|| value is Array) list = typeof(List<>).MakeGenericType(elmType).CreateInstance() as IList;
 
             // 清空已有数据
             list.Clear();
