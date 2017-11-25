@@ -78,7 +78,8 @@ namespace ASP
             #line hidden
 WriteLiteral("\r\n<table");
 
-WriteLiteral(" class=\"table table-bordered table-hover table-striped table-condensed\"");
+WriteLiteral(" class=\"table table-bordered table-hover table-striped table-condensed table-data" +
+"-list\"");
 
 WriteLiteral(">\r\n    <thead>\r\n        <tr>\r\n");
 
@@ -133,36 +134,36 @@ WriteLiteral("            ");
             #line hidden
 WriteLiteral("                <th");
 
-WriteAttribute("class", Tuple.Create(" class=\"", 957), Tuple.Create("\"", 969)
+WriteAttribute("class", Tuple.Create(" class=\"", 973), Tuple.Create("\"", 985)
             
             #line 24 "..\..\Views\Shared\_ListTree_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 965), Tuple.Create<System.Object, System.Int32>(cls
+, Tuple.Create(Tuple.Create("", 981), Tuple.Create<System.Object, System.Int32>(cls
             
             #line default
             #line hidden
-, 965), false)
+, 981), false)
 );
 
-WriteAttribute("title", Tuple.Create(" title=\"", 970), Tuple.Create("\"", 995)
+WriteAttribute("title", Tuple.Create(" title=\"", 986), Tuple.Create("\"", 1011)
             
             #line 24 "..\..\Views\Shared\_ListTree_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 978), Tuple.Create<System.Object, System.Int32>(item.Description
+, Tuple.Create(Tuple.Create("", 994), Tuple.Create<System.Object, System.Int32>(item.Description
             
             #line default
             #line hidden
-, 978), false)
+, 994), false)
 );
 
 WriteLiteral("><a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 999), Tuple.Create("\"", 1024)
+WriteAttribute("href", Tuple.Create(" href=\"", 1015), Tuple.Create("\"", 1040)
             
             #line 24 "..\..\Views\Shared\_ListTree_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 1006), Tuple.Create<System.Object, System.Int32>(Html.Raw(sortUrl)
+, Tuple.Create(Tuple.Create("", 1022), Tuple.Create<System.Object, System.Int32>(Html.Raw(sortUrl)
             
             #line default
             #line hidden
-, 1006), false)
+, 1022), false)
 );
 
 WriteLiteral(">");
@@ -244,14 +245,14 @@ WriteLiteral(" type=\"checkbox\"");
 
 WriteLiteral(" name=\"keys\"");
 
-WriteAttribute("value", Tuple.Create(" value=\"", 1701), Tuple.Create("\"", 1725)
+WriteAttribute("value", Tuple.Create(" value=\"", 1717), Tuple.Create("\"", 1741)
             
             #line 44 "..\..\Views\Shared\_ListTree_Data.cshtml"
-      , Tuple.Create(Tuple.Create("", 1709), Tuple.Create<System.Object, System.Int32>(entity[fk.Name]
+      , Tuple.Create(Tuple.Create("", 1725), Tuple.Create<System.Object, System.Int32>(entity[fk.Name]
             
             #line default
             #line hidden
-, 1709), false)
+, 1725), false)
 );
 
 WriteLiteral(" /></td>\r\n");
@@ -332,14 +333,14 @@ WriteLiteral(">\r\n");
             #line hidden
 WriteLiteral("                        <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 2400), Tuple.Create("\"", 2436)
+WriteAttribute("href", Tuple.Create(" href=\"", 2416), Tuple.Create("\"", 2452)
             
             #line 62 "..\..\Views\Shared\_ListTree_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 2407), Tuple.Create<System.Object, System.Int32>(Url.Action("Up", new { id })
+, Tuple.Create(Tuple.Create("", 2423), Tuple.Create<System.Object, System.Int32>(Url.Action("Up", new { id })
             
             #line default
             #line hidden
-, 2407), false)
+, 2423), false)
 );
 
 WriteLiteral("><span");
@@ -379,14 +380,14 @@ WriteLiteral(">\r\n");
             #line hidden
 WriteLiteral("                        <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 2732), Tuple.Create("\"", 2770)
+WriteAttribute("href", Tuple.Create(" href=\"", 2748), Tuple.Create("\"", 2786)
             
             #line 68 "..\..\Views\Shared\_ListTree_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 2739), Tuple.Create<System.Object, System.Int32>(Url.Action("Down", new { id })
+, Tuple.Create(Tuple.Create("", 2755), Tuple.Create<System.Object, System.Int32>(Url.Action("Down", new { id })
             
             #line default
             #line hidden
-, 2739), false)
+, 2755), false)
 );
 
 WriteLiteral("><span");

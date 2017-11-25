@@ -7,7 +7,7 @@
 @if (enableSelect)
 {
     <div class="form-group toolbar-batch">
-        <button type="button" class="btn btn-purple btn-sm" data-action="delete"  data-url="@Url.Action("DeleteSelect")" disabled>
+        <button type="button" class="btn btn-purple btn-sm" data-action="delete"  data-url="@Url.Action("DeleteSelect")" data-method="post" data-fields="keys,keys2" disabled>
             <span class="ace-icon fa fa-search icon-on-right bigger-110"></span>
             批量删除
         </button>

@@ -78,7 +78,8 @@ namespace ASP
             #line hidden
 WriteLiteral("\r\n<table");
 
-WriteLiteral(" class=\"table table-bordered table-hover table-striped table-condensed\"");
+WriteLiteral(" class=\"table table-bordered table-hover table-striped table-condensed table-data" +
+"-list\"");
 
 WriteLiteral(">\r\n    <thead>\r\n        <tr>\r\n");
 
@@ -138,26 +139,26 @@ WriteLiteral(" class=\"text-center\"");
 
 WriteLiteral(" style=\"min-width:134px;\"");
 
-WriteAttribute("title", Tuple.Create(" title=\"", 971), Tuple.Create("\"", 996)
+WriteAttribute("title", Tuple.Create(" title=\"", 987), Tuple.Create("\"", 1012)
             
             #line 25 "..\..\Views\Shared\_List_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 979), Tuple.Create<System.Object, System.Int32>(item.Description
+, Tuple.Create(Tuple.Create("", 995), Tuple.Create<System.Object, System.Int32>(item.Description
             
             #line default
             #line hidden
-, 979), false)
+, 995), false)
 );
 
 WriteLiteral("><a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1000), Tuple.Create("\"", 1025)
+WriteAttribute("href", Tuple.Create(" href=\"", 1016), Tuple.Create("\"", 1041)
             
             #line 25 "..\..\Views\Shared\_List_Data.cshtml"
-                        , Tuple.Create(Tuple.Create("", 1007), Tuple.Create<System.Object, System.Int32>(Html.Raw(sortUrl)
+                        , Tuple.Create(Tuple.Create("", 1023), Tuple.Create<System.Object, System.Int32>(Html.Raw(sortUrl)
             
             #line default
             #line hidden
-, 1007), false)
+, 1023), false)
 );
 
 WriteLiteral(">");
@@ -184,26 +185,26 @@ WriteLiteral("                    <th");
 
 WriteLiteral(" class=\"text-center\"");
 
-WriteAttribute("title", Tuple.Create(" title=\"", 1158), Tuple.Create("\"", 1183)
+WriteAttribute("title", Tuple.Create(" title=\"", 1174), Tuple.Create("\"", 1199)
             
             #line 29 "..\..\Views\Shared\_List_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 1166), Tuple.Create<System.Object, System.Int32>(item.Description
+, Tuple.Create(Tuple.Create("", 1182), Tuple.Create<System.Object, System.Int32>(item.Description
             
             #line default
             #line hidden
-, 1166), false)
+, 1182), false)
 );
 
 WriteLiteral("><a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1187), Tuple.Create("\"", 1212)
+WriteAttribute("href", Tuple.Create(" href=\"", 1203), Tuple.Create("\"", 1228)
             
             #line 29 "..\..\Views\Shared\_List_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 1194), Tuple.Create<System.Object, System.Int32>(Html.Raw(sortUrl)
+, Tuple.Create(Tuple.Create("", 1210), Tuple.Create<System.Object, System.Int32>(Html.Raw(sortUrl)
             
             #line default
             #line hidden
-, 1194), false)
+, 1210), false)
 );
 
 WriteLiteral(">");
@@ -292,14 +293,14 @@ WriteLiteral(" type=\"checkbox\"");
 
 WriteLiteral(" name=\"keys\"");
 
-WriteAttribute("value", Tuple.Create(" value=\"", 1724), Tuple.Create("\"", 1748)
+WriteAttribute("value", Tuple.Create(" value=\"", 1740), Tuple.Create("\"", 1764)
             
             #line 44 "..\..\Views\Shared\_List_Data.cshtml"
-      , Tuple.Create(Tuple.Create("", 1732), Tuple.Create<System.Object, System.Int32>(entity[fk.Name]
+      , Tuple.Create(Tuple.Create("", 1748), Tuple.Create<System.Object, System.Int32>(entity[fk.Name]
             
             #line default
             #line hidden
-, 1732), false)
+, 1748), false)
 );
 
 WriteLiteral(" /></td>\r\n");
