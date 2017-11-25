@@ -166,6 +166,7 @@ namespace NewLife.Caching
 
                     //str = "${0}\r\n".F(item.Length);
                     //ms.Write(str.GetBytes());
+                    ms.WriteByte((Byte)'$');
                     ms.Write(item.Length.ToString().GetBytes());
                     ms.Write(NewLine);
                     ms.Write(item);
