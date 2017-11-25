@@ -19,7 +19,7 @@ namespace NewLife.Caching
 
         /// <summary>配置项</summary>
         [Description("配置项。名称、地址、提供者，Memory/Redis")]
-        public List<CacheSetting> Items { get; set; } = new List<CacheSetting>();
+        public CacheSetting[] Items { get; set; } = new CacheSetting[0];
         #endregion
 
         #region 构造
@@ -36,14 +36,14 @@ namespace NewLife.Caching
         {
             // 排除重复
             var list = Items;
-            if (list != null && list.Count > 0)
+            if (list != null && list.Length > 0)
             {
                 var dic = new Dictionary<String, CacheSetting>();
                 foreach (var item in list)
                 {
                     if (!item.Name.IsNullOrEmpty()) dic[item.Name] = item;
                 }
-                Items = dic.Select(e => e.Value).ToList();
+                Items = dic.Select(e => e.Value).ToArray();
             }
 
             base.OnLoaded();
@@ -59,7 +59,14 @@ namespace NewLife.Caching
 
             // 如果找不到，则增加
             item = new CacheSetting { Name = name };
-            Items.Add(item);
+            //Items.Add(item);
+            lock (Items)
+            {
+                var list = new List<CacheSetting>(Items);
+                list.Add(item);
+
+                Items = list.ToArray();
+            }
 
             return item;
         }

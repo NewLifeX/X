@@ -149,8 +149,8 @@ namespace XCode.Transform
             //var exp = fi.Between(start, end);
             // (2017-11-08 23:59:30, 2017-11-09 00:00:00)因Between的BUG变成了(2017-11-08 23:59:30, 2017-11-10 00:00:00)
             var exp = new WhereExpression();
-            if (start > DateTime.MinValue) exp &= fi >= start;
-            if (end > DateTime.MinValue) exp &= fi < end;
+            if (start > DateTime.MinValue && start < DateTime.MaxValue) exp &= fi >= start;
+            if (end > DateTime.MinValue && end < DateTime.MaxValue) exp &= fi < end;
 
             if (!Where.IsNullOrEmpty()) exp &= Where;
 
