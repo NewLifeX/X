@@ -93,9 +93,9 @@ WriteLiteral(@"    <script>
 
             $table.on('click.checked', 'tbody input[name=""keys""]', function (e) {
                 // 启用禁用批量操作区
-                var on = ids.length > 0;
+                //var on = ids.length > 0;
 
-                $batchButtons.prop('disabled', !on);
+                $batchButtons.prop('disabled', !this.value);
             });
         })
     </script>

@@ -35,9 +35,7 @@
                     curl = $(this).attr('href');
                 }
             }
-
             doAction(method, curl, parameter);
-
             //阻止按钮本身的事件冒泡
             return false;
         });
