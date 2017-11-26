@@ -641,7 +641,7 @@ namespace NewLife.Cube
         /// <returns></returns>
         protected virtual ActionResult JsonRefresh(Object data)
         {
-            return Json(data, "[refresh]");
+            return JsonTips(data, "[refresh]");
         }
         #endregion
 
