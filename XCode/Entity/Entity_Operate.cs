@@ -233,7 +233,7 @@ namespace XCode
             {
                 get
                 {
-                    if (!_MasterTime_)
+                    if (_MasterTime == null && !_MasterTime_)
                     {
                         _MasterTime = GetMasterTime();
                         _MasterTime_ = true;
@@ -241,7 +241,7 @@ namespace XCode
 
                     return _MasterTime;
                 }
-                set { _MasterTime = value; }
+                set { _MasterTime = value; _MasterTime_ = false; }
             }
 
             private FieldItem GetMasterTime()
