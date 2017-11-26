@@ -152,7 +152,7 @@ namespace NewLife.Caching
                 ms.Position = 0;
 
                 //var str = "*{2}\r\n${0}\r\n{1}\r\n".F(cmd.Length, cmd, 1 + args.Length);
-                ns.Write(GetHeaderBytes(cmd, args.Length));
+                ms.Write(GetHeaderBytes(cmd, args.Length));
 
                 foreach (var item in args)
                 {
