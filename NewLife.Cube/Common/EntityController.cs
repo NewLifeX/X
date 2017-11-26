@@ -191,46 +191,50 @@ namespace NewLife.Cube
                 var entity = Find(id);
                 OnDelete(entity);
 
-                Js.Alert("删除成功！").Redirect(url);
-                return new EmptyResult();
+                //Js.Alert("删除成功！").Redirect(url);
+                //return new EmptyResult();
+                if (Request.IsAjaxRequest())
+                    return JsonRefresh("删除成功！");
+                else if (!url.IsNullOrEmpty())
+                    return Redirect(url);
+                else
+                    return RedirectToAction("Index");
             }
             catch (Exception ex)
             {
-                Js.Alert("删除失败！" + ex.Message).Redirect(url);
-                return new EmptyResult();
-            }
-
-            //// 跳转到来源地址
-            //if (url != "")
-            //    return Redirect(url);
-            //else
-            //    return RedirectToAction("Index");
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        [EntityAuthorize(PermissionFlags.Delete)]
-        [DisplayName("删除{type}")]
-        public virtual JsonResult DeleteAjax(Int32 id)
-        {
-            var url = Request.UrlReferrer + "";
-
-            try
-            {
-                var entity = Find(id);
-                OnDelete(entity);
-
-                return Json(new { msg = "删除成功！", code = 0, url = url }, JsonRequestBehavior.AllowGet);
-            }
-            catch (Exception ex)
-            {
-                return Json(new { msg = "删除失败！" + ex.Message, url, code = -1 }, JsonRequestBehavior.AllowGet);
-
+                //Js.Alert("删除失败！" + ex.Message).Redirect(url);
+                //return new EmptyResult();
+                if (Request.IsAjaxRequest())
+                    return JsonTips("删除失败！" + ex.GetTrue().Message);
+                else
+                    throw;
             }
         }
+
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        ///// <param name="id"></param>
+        ///// <returns></returns>
+        //[EntityAuthorize(PermissionFlags.Delete)]
+        //[DisplayName("删除{type}")]
+        //public virtual JsonResult DeleteAjax(Int32 id)
+        //{
+        //    var url = Request.UrlReferrer + "";
+
+        //    try
+        //    {
+        //        var entity = Find(id);
+        //        OnDelete(entity);
+
+        //        return Json(new { msg = "删除成功！", code = 0, url = url }, JsonRequestBehavior.AllowGet);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return Json(new { msg = "删除失败！" + ex.Message, url, code = -1 }, JsonRequestBehavior.AllowGet);
+
+        //    }
+        //}
 
         /// <summary>表单，添加/修改</summary>
         /// <returns></returns>
@@ -543,22 +547,28 @@ namespace NewLife.Cube
         [DisplayName("删除选中")]
         public virtual ActionResult DeleteSelect()
         {
-            var count = 0;
-            var keys = SelectKeys;
-            if (keys != null && keys.Length > 0)
+            try
             {
-                foreach (var item in keys)
+                var count = 0;
+                var keys = SelectKeys;
+                if (keys != null && keys.Length > 0)
                 {
-                    var entity = Entity<TEntity>.FindByKey(item);
-                    if (entity != null)
+                    foreach (var item in keys)
                     {
-                        entity.Delete();
-                        count++;
+                        var entity = Entity<TEntity>.FindByKey(item);
+                        if (entity != null)
+                        {
+                            entity.Delete();
+                            count++;
+                        }
                     }
                 }
+                return JsonRefresh("共删除{0}行数据".F(count));
             }
-            Js.Alert("共删除{0}行数据".F(count));
-            return Index();
+            catch (Exception ex)
+            {
+                return JsonTips(ex);
+            }
         }
 
         /// <summary>删除全部</summary>
@@ -567,22 +577,30 @@ namespace NewLife.Cube
         [DisplayName("删除全部")]
         public virtual ActionResult DeleteAll()
         {
-            var count = 0;
-            var p = new Pager(Session[CacheKey] as Pager);
-            if (p != null)
+            try
             {
-                p.PageIndex = 0;
-                p.PageSize = 100000;
-                // 不要查记录数
-                p.RetrieveTotalCount = false;
+                var count = 0;
+                var p = new Pager(Session[CacheKey] as Pager);
+                if (p != null)
+                {
+                    p.PageIndex = 0;
+                    p.PageSize = 100000;
+                    // 不要查记录数
+                    p.RetrieveTotalCount = false;
 
-                var list = Search(p).ToList();
-                count += list.Count;
-                list.Delete();
+                    var list = Search(p).ToList();
+                    count += list.Count;
+                    list.Delete();
+                }
+
+                //Js.Alert("共删除{0}行数据".F(count));
+                //return Index();
+                return JsonRefresh("共删除{0}行数据".F(count));
             }
-
-            Js.Alert("共删除{0}行数据".F(count));
-            return Index();
+            catch (Exception ex)
+            {
+                return JsonTips(ex);
+            }
         }
 
         /// <summary>清空全表数据</summary>
@@ -591,9 +609,39 @@ namespace NewLife.Cube
         [DisplayName("清空")]
         public virtual ActionResult Clear()
         {
-            var count = Entity<TEntity>.Meta.Session.Truncate();
-            Js.Alert("共删除{0}行数据".F(count));
-            return Index();
+            try
+            {
+                var count = Entity<TEntity>.Meta.Session.Truncate();
+                //Js.Alert("共删除{0}行数据".F(count));
+                //return Index();
+                return JsonRefresh("共删除{0}行数据".F(count));
+            }
+            catch (Exception ex)
+            {
+                return JsonTips(ex);
+            }
+        }
+        #endregion
+
+        #region Ajax处理
+        /// <summary>返回结果并跳转</summary>
+        /// <param name="data">结果。可以是错误文本、成功文本、其它结构化数据</param>
+        /// <param name="url">提示信息后跳转的目标地址，[refresh]表示刷新当前页</param>
+        /// <returns></returns>
+        protected virtual ActionResult JsonTips(Object data, String url = null)
+        {
+            if (data is Exception ex)
+                return Json(new { result = false, data = ex.GetTrue()?.Message, url }, JsonRequestBehavior.AllowGet);
+            else
+                return Json(new { result = true, data = data, url }, JsonRequestBehavior.AllowGet);
+        }
+
+        /// <summary>返回结果并刷新</summary>
+        /// <param name="data">消息</param>
+        /// <returns></returns>
+        protected virtual ActionResult JsonRefresh(Object data)
+        {
+            return Json(data, "[refresh]");
         }
         #endregion
 

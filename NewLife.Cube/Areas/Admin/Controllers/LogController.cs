@@ -59,19 +59,22 @@ namespace NewLife.Cube.Admin.Controllers
         public override ActionResult Delete(Int32 id)
         {
             //return base.Delete(id);
-            throw new Exception("不允许删除日志");
+            if (Request.IsAjaxRequest())
+                return JsonTips("不允许删除");
+            else
+                throw new Exception("不允许删除日志");
         }
 
-        /// <summary>不允许删除日志</summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        [DisplayName()]
-        public override JsonResult DeleteAjax(Int32 id)
-        {
-            var url = Request.UrlReferrer + "";
+        ///// <summary>不允许删除日志</summary>
+        ///// <param name="id"></param>
+        ///// <returns></returns>
+        //[DisplayName()]
+        //public override JsonResult DeleteAjax(Int32 id)
+        //{
+        //    var url = Request.UrlReferrer + "";
 
-            return Json(new { msg = "不允许删除日志！", code = -1, url = url }, JsonRequestBehavior.AllowGet);
-        }
+        //    return Json(new { msg = "不允许删除日志！", code = -1, url = url }, JsonRequestBehavior.AllowGet);
+        //}
 
         /// <summary>清空全表数据</summary>
         /// <returns></returns>
