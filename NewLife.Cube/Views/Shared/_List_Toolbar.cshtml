@@ -32,3 +32,27 @@
         </form>
     </div>
 </div>
+@if (enableSelect)
+{
+    <script>
+        $(function () {
+            var $toolbarContext = $('.toolbar-batch'),
+                $batchButtons = $('button[data-action], input[data-action]'), //button, input=button, a 3种类型都可以
+                $table = $('.table'),
+                $keys = $('input[name="keys"]', $table);
+
+            $table.on('click', '#chkAll', function () {
+                // 全选
+                $keys.prop('checked', this.checked);
+
+                // 启用禁用批量操作区
+                $batchButtons.prop('disabled', !this.checked);
+            });
+
+            $table.on('click.checked', 'tbody input[name="keys"]', function (e) {
+                // 启用禁用批量操作区
+                $batchButtons.prop('disabled', !this.value);
+            });
+        })
+    </script>
+}

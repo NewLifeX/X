@@ -1,4 +1,7 @@
-﻿$(function () {
+﻿// 以下时间用于魔方判断是否需要更新脚本
+// 2017-11-26 00:00:00
+
+$(function () {
 
     window.infoDialog = parent['infoDialog'] || function (title, msg) { alert(msg); };
     window.confirmDialog = parent['confirmDialog'] || function (msg, func) { if (confirm(msg)) func(); };

@@ -71,38 +71,6 @@ WriteLiteral("\r\n");
             
             #line 12 "..\..\Views\Shared\_List_Toolbar_Batch.cshtml"
                
-
-            
-            #line default
-            #line hidden
-WriteLiteral(@"    <script>
-        $(function () {
-
-            var $toolbarContext = $('.toolbar-batch'),
-                $batchButtons = $('button[data-action], input[data-action]'), //button, input=button, a 3种类型都可以
-                $table = $('.table'),
-                $keys = $('input[name=""keys""]', $table);
-
-            $table.on('click', '#chkAll', function () {
-                // 全选
-                $keys.prop('checked', this.checked);
-
-                // 启用禁用批量操作区
-                $batchButtons.prop('disabled', !this.checked);
-            });
-
-            $table.on('click.checked', 'tbody input[name=""keys""]', function (e) {
-                // 启用禁用批量操作区
-                //var on = ids.length > 0;
-
-                $batchButtons.prop('disabled', !this.value);
-            });
-        })
-    </script>
-");
-
-            
-            #line 37 "..\..\Views\Shared\_List_Toolbar_Batch.cshtml"
 }
             
             #line default

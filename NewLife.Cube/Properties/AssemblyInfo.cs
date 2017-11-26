@@ -36,10 +36,12 @@ using NewLife.Cube;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("1.3.*")]
-[assembly: AssemblyFileVersion("1.3.2017.0526")]
+[assembly: AssemblyVersion("2.0.*")]
+[assembly: AssemblyFileVersion("2.0.2017.1126")]
 
 /*
+ * v2.0.2017.1126   借助Ajax支持高级操作，如：删除选中、批量启用禁用等
+ * 
  * v1.3.2016.1206   增加文件管理，增强数据字段映射
  * 
  * v1.2.2016.0325   自动检查并下载魔方资源
