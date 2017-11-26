@@ -154,7 +154,7 @@ WriteLiteral(" data-action=\"delete\"");
 
 WriteLiteral(" data-fields=\"keys\"");
 
-WriteLiteral(" onclick=\"return confirm(\'该操作将删除选中数据并不可恢复！\\n确认删除？\');\"");
+WriteLiteral("  data-confirm=\"该操作将删除选中数据并不可恢复！\\n确认删除？\"");
 
 WriteLiteral(" title=\"删除选中数据\"");
 
@@ -162,19 +162,19 @@ WriteLiteral(">删除选中</a>\r\n            </li>\r\n");
 
 WriteLiteral("            <li>\r\n                <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1213), Tuple.Create("\"", 1244)
+WriteAttribute("href", Tuple.Create(" href=\"", 1200), Tuple.Create("\"", 1231)
             
             #line 34 "..\..\Views\Shared\_List_Toolbar_Adv.cshtml"
-, Tuple.Create(Tuple.Create("", 1220), Tuple.Create<System.Object, System.Int32>(Url.Action("DeleteAll")
+, Tuple.Create(Tuple.Create("", 1207), Tuple.Create<System.Object, System.Int32>(Url.Action("DeleteAll")
             
             #line default
             #line hidden
-, 1220), false)
+, 1207), false)
 );
 
 WriteLiteral(" data-action=\"delete\"");
 
-WriteLiteral(" onclick=\"return confirm(\'该操作将删除当前查询的所有数据并不可恢复！\\n确认删除？\');\"");
+WriteLiteral(" data-confirm=\"该操作将删除当前查询的所有数据并不可恢复！\\n确认删除？\"");
 
 WriteLiteral(" title=\"删除当前查询的所有数据\"");
 
@@ -213,14 +213,14 @@ WriteLiteral("></li>\r\n");
             #line hidden
 WriteLiteral("                <li>\r\n                    <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1574), Tuple.Create("\"", 1601)
+WriteAttribute("href", Tuple.Create(" href=\"", 1547), Tuple.Create("\"", 1574)
             
             #line 43 "..\..\Views\Shared\_List_Toolbar_Adv.cshtml"
-, Tuple.Create(Tuple.Create("", 1581), Tuple.Create<System.Object, System.Int32>(Url.Action("Clear")
+, Tuple.Create(Tuple.Create("", 1554), Tuple.Create<System.Object, System.Int32>(Url.Action("Clear")
             
             #line default
             #line hidden
-, 1581), false)
+, 1554), false)
 );
 
 WriteLiteral(" data-action=\"delete\"");
@@ -240,28 +240,28 @@ WriteLiteral(">清空数据表</a>\r\n                </li>\r\n");
             #line hidden
 WriteLiteral("            <li>\r\n                <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1783), Tuple.Create("\"", 1813)
+WriteAttribute("href", Tuple.Create(" href=\"", 1756), Tuple.Create("\"", 1786)
             
             #line 47 "..\..\Views\Shared\_List_Toolbar_Adv.cshtml"
-, Tuple.Create(Tuple.Create("", 1790), Tuple.Create<System.Object, System.Int32>(Url.Action("MakeList")
+, Tuple.Create(Tuple.Create("", 1763), Tuple.Create<System.Object, System.Int32>(Url.Action("MakeList")
             
             #line default
             #line hidden
-, 1790), false)
+, 1763), false)
 );
 
 WriteLiteral(">生成列表</a>\r\n            </li>\r\n");
 
 WriteLiteral("            <li>\r\n                <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1880), Tuple.Create("\"", 1910)
+WriteAttribute("href", Tuple.Create(" href=\"", 1853), Tuple.Create("\"", 1883)
             
             #line 50 "..\..\Views\Shared\_List_Toolbar_Adv.cshtml"
-, Tuple.Create(Tuple.Create("", 1887), Tuple.Create<System.Object, System.Int32>(Url.Action("MakeForm")
+, Tuple.Create(Tuple.Create("", 1860), Tuple.Create<System.Object, System.Int32>(Url.Action("MakeForm")
             
             #line default
             #line hidden
-, 1887), false)
+, 1860), false)
 );
 
 WriteLiteral(">生成表单</a>\r\n            </li>\r\n");

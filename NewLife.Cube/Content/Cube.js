@@ -8,6 +8,15 @@
     $(document).on('click',
         'button[data-action], input[data-action], a[data-action]',
         function (e) {
+            var cf = $(this).data('confirm');
+            var flag = true;
+
+            if (cf && cf.length > 0) {
+                flag = confirm(cf);
+            }
+
+            if (!flag) return;
+
             var fields = $(this).attr('data-fields');
             //参数
             var parameter = '';
