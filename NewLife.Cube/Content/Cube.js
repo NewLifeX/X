@@ -15,7 +15,7 @@
                 flag = confirm(cf);
             }
 
-            if (!flag) return;
+            if (!flag) return false;
 
             var fields = $(this).attr('data-fields');
             //参数
