@@ -297,14 +297,26 @@ namespace NewLife.Caching
         /// <returns></returns>
         public virtual TResult Execute<TResult>(String cmd, params Object[] args)
         {
+            var type = typeof(TResult);
             var rs = SendCommand(cmd, args.Select(e => ToBytes(e)).ToArray());
-            if (rs is String str) return str.ChangeType<TResult>();
+            if (rs is String str)
+            {
+                try
+                {
+                    return str.ChangeType<TResult>();
+                }
+                catch (Exception ex)
+                {
+                    //if (type.GetTypeCode() != TypeCode.Object)
+                    throw new Exception("不能把字符串[{0}]转为类型[{1}]".F(str, type.FullName), ex);
+                }
+            }
 
             if (rs is Packet pk) return FromBytes<TResult>(pk);
 
             if (rs is Packet[] pks)
             {
-                var elmType = typeof(TResult).GetElementTypeEx();
+                var elmType = type.GetElementTypeEx();
                 var arr = Array.CreateInstance(elmType, pks.Length);
                 for (var i = 0; i < pks.Length; i++)
                 {
