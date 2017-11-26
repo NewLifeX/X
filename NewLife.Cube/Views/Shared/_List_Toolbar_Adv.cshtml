@@ -1,6 +1,6 @@
 ﻿@using NewLife.Common;
 @{
-    //var user = ViewBag.User as IUser ?? User.Identity as IUser;
+    var user = ViewBag.User as IUser ?? User.Identity as IUser;
 }
 <div class="btn-group">
     <button data-toggle="dropdown" class="btn btn-info btn-sm btn-sm-force dropdown-toggle" aria-expanded="false">
@@ -24,7 +24,7 @@
         @*<li>
                 <a href="@Url.Action("ImportJson")">导入Json</a>
             </li>*@
-        @if (User.IsInRole("管理员"))
+        @if (user.Has(PermissionFlags.Delete))
         {
             <li class="divider"></li>
             <li>
