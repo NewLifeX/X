@@ -191,8 +191,6 @@ namespace NewLife.Cube
                 var entity = Find(id);
                 OnDelete(entity);
 
-                //Js.Alert("删除成功！").Redirect(url);
-                //return new EmptyResult();
                 if (Request.IsAjaxRequest())
                     return JsonRefresh("删除成功！");
                 else if (!url.IsNullOrEmpty())
@@ -202,8 +200,6 @@ namespace NewLife.Cube
             }
             catch (Exception ex)
             {
-                //Js.Alert("删除失败！" + ex.Message).Redirect(url);
-                //return new EmptyResult();
                 if (Request.IsAjaxRequest())
                     return JsonTips("删除失败！" + ex.GetTrue().Message);
                 else
@@ -577,6 +573,7 @@ namespace NewLife.Cube
         [DisplayName("删除全部")]
         public virtual ActionResult DeleteAll()
         {
+            var url = Request.UrlReferrer + "";
             try
             {
                 var count = 0;
@@ -593,13 +590,19 @@ namespace NewLife.Cube
                     list.Delete();
                 }
 
-                //Js.Alert("共删除{0}行数据".F(count));
-                //return Index();
-                return JsonRefresh("共删除{0}行数据".F(count));
+                if (Request.IsAjaxRequest())
+                    return JsonRefresh("共删除{0}行数据".F(count));
+                else if (!url.IsNullOrEmpty())
+                    return Redirect(url);
+                else
+                    return RedirectToAction("Index");
             }
             catch (Exception ex)
             {
-                return JsonTips(ex);
+                if (Request.IsAjaxRequest())
+                    return JsonTips("删除失败！" + ex.GetTrue().Message);
+                else
+                    throw;
             }
         }
 
@@ -609,16 +612,24 @@ namespace NewLife.Cube
         [DisplayName("清空")]
         public virtual ActionResult Clear()
         {
+            var url = Request.UrlReferrer + "";
             try
             {
                 var count = Entity<TEntity>.Meta.Session.Truncate();
-                //Js.Alert("共删除{0}行数据".F(count));
-                //return Index();
-                return JsonRefresh("共删除{0}行数据".F(count));
+
+                if (Request.IsAjaxRequest())
+                    return JsonRefresh("共删除{0}行数据".F(count));
+                else if (!url.IsNullOrEmpty())
+                    return Redirect(url);
+                else
+                    return RedirectToAction("Index");
             }
             catch (Exception ex)
             {
-                return JsonTips(ex);
+                if (Request.IsAjaxRequest())
+                    return JsonTips("删除失败！" + ex.GetTrue().Message);
+                else
+                    throw;
             }
         }
         #endregion

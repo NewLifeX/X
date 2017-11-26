@@ -8,6 +8,8 @@
 
     var act = ViewBag.Action as String;
     if (act.IsNullOrEmpty()) { act = Url.Action("Index"); }
+
+    var enableSelect = this.EnableSelect();
 }
 <div class="tableTools-container">
     <div class="form-inline">
@@ -16,7 +18,12 @@
             {
                 @Html.ActionLink("添加" + ViewContext.Controller.GetType().GetDisplayName(), "Add", null, new { @class = "btn btn-success btn-sm" })
             }
-            @Html.Partial("_List_Toolbar_Batch")
+            @if (enableSelect)
+            {
+                <div class="form-group toolbar-batch">
+                    @Html.Partial("_List_Toolbar_Batch")
+                </div>
+            }
             <div class="pull-right form-group">
                 @Html.Partial("_List_Search")
                 @Html.Partial("_List_Toolbar_Search")
