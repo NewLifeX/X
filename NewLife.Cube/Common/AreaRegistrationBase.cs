@@ -152,7 +152,7 @@ namespace NewLife.Cube
             {
                 Log = XTrace.Log
             };
-            wc.DownloadLinkAndExtract(url, "Cube_Content", "~/Content".GetFullPath(), false);
+            wc.DownloadLinkAndExtract(url, "Cube_Content", "~/Content".GetFullPath(), true);
         }
 
         /// <summary>注册区域</summary>
