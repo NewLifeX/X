@@ -249,25 +249,7 @@ namespace NewLife.Cube.Admin.Controllers
         [EntityAuthorize(PermissionFlags.Update)]
         public ActionResult EnableSelect(String keys)
         {
-            var count = 0;
-            var ids = Request["keys"].SplitAsInt();
-            if (ids.Length > 0)
-            {
-                //var list = UserX.FindAll(UserX._.ID.In(ids));
-                Parallel.ForEach(ids, id =>
-                {
-                    var user = UserX.FindByID(id);
-                    if (user != null && !user.Enable)
-                    {
-                        user.Enable = true;
-                        user.Save();
-
-                        Interlocked.Increment(ref count);
-                    }
-                });
-            }
-
-            return JsonRefresh("共启用[{0}]个用户".F(count));
+            return EnableOrDisableSelect();
         }
 
         /// <summary>批量禁用</summary>
@@ -276,6 +258,11 @@ namespace NewLife.Cube.Admin.Controllers
         [EntityAuthorize(PermissionFlags.Update)]
         public ActionResult DisableSelect(String keys)
         {
+            return EnableOrDisableSelect(false);
+        }
+
+        private ActionResult EnableOrDisableSelect(bool isEnable = true)
+        {
             var count = 0;
             var ids = Request["keys"].SplitAsInt();
             if (ids.Length > 0)
@@ -283,9 +270,9 @@ namespace NewLife.Cube.Admin.Controllers
                 Parallel.ForEach(ids, id =>
                 {
                     var user = UserX.FindByID(id);
-                    if (user != null && user.Enable)
+                    if (user != null && user.Enable != isEnable)
                     {
-                        user.Enable = false;
+                        user.Enable = isEnable;
                         user.Save();
 
                         Interlocked.Increment(ref count);
@@ -293,7 +280,7 @@ namespace NewLife.Cube.Admin.Controllers
                 });
             }
 
-            return JsonRefresh("共禁用[{0}]个用户".F(count));
+            return JsonRefresh("共{1}[{0}]个用户".F(count, isEnable ? "启用" : "禁用"));
         }
     }
 }
