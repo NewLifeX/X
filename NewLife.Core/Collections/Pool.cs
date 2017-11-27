@@ -93,7 +93,7 @@ namespace NewLife.Collections
         public T Acquire(Int32 msTimeout = 0)
         {
             var pi = OnAcquire(msTimeout);
-            if (pi == null) return default;
+            if (pi == null) return default(T);
 
             return pi.Value;
         }
@@ -271,7 +271,8 @@ namespace NewLife.Collections
         /// <param name="value"></param>
         protected virtual Boolean OnRelease(T value)
         {
-            if (value is DisposeBase db && db.Disposed) return false;
+            var db = value as DisposeBase;
+            if (db != null && db.Disposed) return false;
 
             return true;
         }

@@ -325,7 +325,7 @@ namespace NewLife.Caching
                 return (TResult)(Object)arr;
             }
 
-            return default;
+            return default(TResult);
         }
 
         /// <summary>心跳</summary>
