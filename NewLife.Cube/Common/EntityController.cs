@@ -43,26 +43,30 @@ namespace NewLife.Cube
         /// <param name="filterContext"></param>
         protected override void OnActionExecuting(ActionExecutingContext filterContext)
         {
-            // 默认加上实体工厂
-            ViewBag.Factory = Entity<TEntity>.Meta.Factory;
+            // Ajax请求不需要设置ViewBag
+            if (!Request.IsAjaxRequest())
+            {
+                // 默认加上实体工厂
+                ViewBag.Factory = Entity<TEntity>.Meta.Factory;
 
-            // 默认加上分页给前台
-            var ps = filterContext.ActionParameters.ToNullable();
-            var p = ps["p"] as Pager ?? new Pager();
-            ViewBag.Page = p;
+                // 默认加上分页给前台
+                var ps = filterContext.ActionParameters.ToNullable();
+                var p = ps["p"] as Pager ?? new Pager();
+                ViewBag.Page = p;
 
-            // 用于显示的列
-            if (!ps.ContainsKey("entity")) ViewBag.Fields = GetFields(false);
+                // 用于显示的列
+                if (!ps.ContainsKey("entity")) ViewBag.Fields = GetFields(false);
 
-            if (ViewBag.HeaderTitle == null) ViewBag.HeaderTitle = Entity<TEntity>.Meta.Table.Description + "管理";
+                if (ViewBag.HeaderTitle == null) ViewBag.HeaderTitle = Entity<TEntity>.Meta.Table.Description + "管理";
 
-            var txt = (String)ViewBag.HeaderContent;
-            if (txt.IsNullOrEmpty()) txt = ManageProvider.Menu?.Current?.Remark;
-            if (txt.IsNullOrEmpty()) txt = GetType().GetDescription();
-            if (txt.IsNullOrEmpty()) txt = Entity<TEntity>.Meta.Table.Description;
-            //if (txt.IsNullOrEmpty() && SysConfig.Current.Develop)
-            //    txt = "这里是页头内容，来自于菜单备注，或者给控制器增加Description特性";
-            ViewBag.HeaderContent = txt;
+                var txt = (String)ViewBag.HeaderContent;
+                if (txt.IsNullOrEmpty()) txt = ManageProvider.Menu?.Current?.Remark;
+                if (txt.IsNullOrEmpty()) txt = GetType().GetDescription();
+                if (txt.IsNullOrEmpty()) txt = Entity<TEntity>.Meta.Table.Description;
+                //if (txt.IsNullOrEmpty() && SysConfig.Current.Develop)
+                //    txt = "这里是页头内容，来自于菜单备注，或者给控制器增加Description特性";
+                ViewBag.HeaderContent = txt;
+            }
 
             base.OnActionExecuting(filterContext);
         }
@@ -186,25 +190,15 @@ namespace NewLife.Cube
         {
             var url = Request.UrlReferrer + "";
 
-            try
-            {
-                var entity = Find(id);
-                OnDelete(entity);
+            var entity = Find(id);
+            OnDelete(entity);
 
-                if (Request.IsAjaxRequest())
-                    return JsonRefresh("删除成功！");
-                else if (!url.IsNullOrEmpty())
-                    return Redirect(url);
-                else
-                    return RedirectToAction("Index");
-            }
-            catch (Exception ex)
-            {
-                if (Request.IsAjaxRequest())
-                    return JsonTips("删除失败！" + ex.GetTrue().Message);
-                else
-                    throw;
-            }
+            if (Request.IsAjaxRequest())
+                return JsonRefresh("删除成功！");
+            else if (!url.IsNullOrEmpty())
+                return Redirect(url);
+            else
+                return RedirectToAction("Index");
         }
 
         ///// <summary>
@@ -543,28 +537,21 @@ namespace NewLife.Cube
         [DisplayName("删除选中")]
         public virtual ActionResult DeleteSelect()
         {
-            try
+            var count = 0;
+            var keys = SelectKeys;
+            if (keys != null && keys.Length > 0)
             {
-                var count = 0;
-                var keys = SelectKeys;
-                if (keys != null && keys.Length > 0)
+                foreach (var item in keys)
                 {
-                    foreach (var item in keys)
+                    var entity = Entity<TEntity>.FindByKey(item);
+                    if (entity != null)
                     {
-                        var entity = Entity<TEntity>.FindByKey(item);
-                        if (entity != null)
-                        {
-                            entity.Delete();
-                            count++;
-                        }
+                        entity.Delete();
+                        count++;
                     }
                 }
-                return JsonRefresh("共删除{0}行数据".F(count));
             }
-            catch (Exception ex)
-            {
-                return JsonTips(ex);
-            }
+            return JsonRefresh("共删除{0}行数据".F(count));
         }
 
         /// <summary>删除全部</summary>
@@ -574,36 +561,27 @@ namespace NewLife.Cube
         public virtual ActionResult DeleteAll()
         {
             var url = Request.UrlReferrer + "";
-            try
-            {
-                var count = 0;
-                var p = new Pager(Session[CacheKey] as Pager);
-                if (p != null)
-                {
-                    p.PageIndex = 0;
-                    p.PageSize = 100000;
-                    // 不要查记录数
-                    p.RetrieveTotalCount = false;
 
-                    var list = Search(p).ToList();
-                    count += list.Count;
-                    list.Delete();
-                }
-
-                if (Request.IsAjaxRequest())
-                    return JsonRefresh("共删除{0}行数据".F(count));
-                else if (!url.IsNullOrEmpty())
-                    return Redirect(url);
-                else
-                    return RedirectToAction("Index");
-            }
-            catch (Exception ex)
+            var count = 0;
+            var p = new Pager(Session[CacheKey] as Pager);
+            if (p != null)
             {
-                if (Request.IsAjaxRequest())
-                    return JsonTips("删除失败！" + ex.GetTrue().Message);
-                else
-                    throw;
+                p.PageIndex = 0;
+                p.PageSize = 100000;
+                // 不要查记录数
+                p.RetrieveTotalCount = false;
+
+                var list = Search(p).ToList();
+                count += list.Count;
+                list.Delete();
             }
+
+            if (Request.IsAjaxRequest())
+                return JsonRefresh("共删除{0}行数据".F(count));
+            else if (!url.IsNullOrEmpty())
+                return Redirect(url);
+            else
+                return RedirectToAction("Index");
         }
 
         /// <summary>清空全表数据</summary>
@@ -613,46 +591,15 @@ namespace NewLife.Cube
         public virtual ActionResult Clear()
         {
             var url = Request.UrlReferrer + "";
-            try
-            {
-                var count = Entity<TEntity>.Meta.Session.Truncate();
 
-                if (Request.IsAjaxRequest())
-                    return JsonRefresh("共删除{0}行数据".F(count));
-                else if (!url.IsNullOrEmpty())
-                    return Redirect(url);
-                else
-                    return RedirectToAction("Index");
-            }
-            catch (Exception ex)
-            {
-                if (Request.IsAjaxRequest())
-                    return JsonTips("删除失败！" + ex.GetTrue().Message);
-                else
-                    throw;
-            }
-        }
-        #endregion
+            var count = Entity<TEntity>.Meta.Session.Truncate();
 
-        #region Ajax处理
-        /// <summary>返回结果并跳转</summary>
-        /// <param name="data">结果。可以是错误文本、成功文本、其它结构化数据</param>
-        /// <param name="url">提示信息后跳转的目标地址，[refresh]表示刷新当前页</param>
-        /// <returns></returns>
-        protected virtual ActionResult JsonTips(Object data, String url = null)
-        {
-            if (data is Exception ex)
-                return Json(new { result = false, data = ex.GetTrue()?.Message, url }, JsonRequestBehavior.AllowGet);
+            if (Request.IsAjaxRequest())
+                return JsonRefresh("共删除{0}行数据".F(count));
+            else if (!url.IsNullOrEmpty())
+                return Redirect(url);
             else
-                return Json(new { result = true, data = data, url }, JsonRequestBehavior.AllowGet);
-        }
-
-        /// <summary>返回结果并刷新</summary>
-        /// <param name="data">消息</param>
-        /// <returns></returns>
-        protected virtual ActionResult JsonRefresh(Object data)
-        {
-            return JsonTips(data, "[refresh]");
+                return RedirectToAction("Index");
         }
         #endregion
 
