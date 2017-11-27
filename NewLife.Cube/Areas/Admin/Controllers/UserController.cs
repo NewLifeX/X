@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 using System.Web.Security;
 using NewLife.Web;
@@ -227,6 +229,7 @@ namespace NewLife.Cube.Admin.Controllers
         /// <summary>清空密码</summary>
         /// <param name="id"></param>
         /// <returns></returns>
+        [EntityAuthorize(PermissionFlags.Update)]
         public ActionResult ClearPassword(Int32 id)
         {
             if (ManageProvider.User.RoleName != "管理员") throw new Exception("非法操作！");
@@ -238,6 +241,59 @@ namespace NewLife.Cube.Admin.Controllers
             user.SaveWithoutValid();
 
             return RedirectToAction("Edit", new { id });
+        }
+
+        /// <summary>批量启用</summary>
+        /// <param name="keys"></param>
+        /// <returns></returns>
+        [EntityAuthorize(PermissionFlags.Update)]
+        public ActionResult EnableSelect(String keys)
+        {
+            var count = 0;
+            var ids = Request["keys"].SplitAsInt();
+            if (ids.Length > 0)
+            {
+                //var list = UserX.FindAll(UserX._.ID.In(ids));
+                Parallel.ForEach(ids, id =>
+                {
+                    var user = UserX.FindByID(id);
+                    if (user != null && !user.Enable)
+                    {
+                        user.Enable = true;
+                        user.Save();
+
+                        Interlocked.Increment(ref count);
+                    }
+                });
+            }
+
+            return JsonRefresh("共启用[{0}]个用户".F(count));
+        }
+
+        /// <summary>批量禁用</summary>
+        /// <param name="keys"></param>
+        /// <returns></returns>
+        [EntityAuthorize(PermissionFlags.Update)]
+        public ActionResult DisableSelect(String keys)
+        {
+            var count = 0;
+            var ids = Request["keys"].SplitAsInt();
+            if (ids.Length > 0)
+            {
+                Parallel.ForEach(ids, id =>
+                {
+                    var user = UserX.FindByID(id);
+                    if (user != null && user.Enable)
+                    {
+                        user.Enable = false;
+                        user.Save();
+
+                        Interlocked.Increment(ref count);
+                    }
+                });
+            }
+
+            return JsonRefresh("共禁用[{0}]个用户".F(count));
         }
     }
 }
