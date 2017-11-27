@@ -1,5 +1,5 @@
 ﻿// 以下时间用于魔方判断是否需要更新脚本
-// 2017-11-26 00:00:00
+// 2017-11-27 00:00:00
 
 $(function () {
 
@@ -11,47 +11,50 @@ $(function () {
     $(document).on('click',
         'button[data-action], input[data-action], a[data-action]',
         function (e) {
-            var cf = $(this).data('confirm');
-            var flag = true;
+            $this = $(this);
+            var cf = $this.data('confirm');
 
             if (cf && cf.length > 0) {
-                flag = confirm(cf);
+                confirmDialog(cf, () => doClickAction($this));
+                return false;
             }
 
-            if (!flag) return false;
-
-            var fields = $(this).attr('data-fields');
-            //参数
-            var parameter = '';
-            if (fields && fields.length > 0) {
-                var fieldArr = fields.split(',');
-                for (var i = 0; i < fieldArr.length; i++) {
-                    var detailArr = $('[name=' + fieldArr[i] + ']');
-                    //不对name容器标签进行限制，直接进行序列化
-                    //如果有特殊需求，可以再指定筛选器进行筛选
-                    parameter += ((parameter.length > 0 ? '&' : '') + detailArr.serialize());
-                }
-            }
-
-            //method
-            var cmethod = $(this).data('method');
-            var method = 'GET';
-            if (cmethod && cmethod.length > 0) {
-                method = cmethod;
-            }
-
-            //url
-            var curl = $(this).data('url');
-            if (!curl || curl.length <= 0) {
-                if ($(this)[0].tagName == 'A') {
-                    curl = $(this).attr('href');
-                }
-            }
-            doAction(method, curl, parameter);
+            doClickAction($this);
             //阻止按钮本身的事件冒泡
             return false;
         });
 });
+
+function doClickAction($this) {
+    var fields = $this.data('fields');
+    //参数
+    var parameter = '';
+    if (fields && fields.length > 0) {
+        var fieldArr = fields.split(',');
+        for (var i = 0; i < fieldArr.length; i++) {
+            var detailArr = $('[name=' + fieldArr[i] + ']');
+            //不对name容器标签进行限制，直接进行序列化
+            //如果有特殊需求，可以再指定筛选器进行筛选
+            parameter += ((parameter.length > 0 ? '&' : '') + detailArr.serialize());
+        }
+    }
+
+    //method
+    var cmethod = $this.data('method');
+    var method = 'GET';
+    if (cmethod && cmethod.length > 0) {
+        method = cmethod;
+    }
+
+    //url
+    var curl = $this.data('url');
+    if (!curl || curl.length <= 0) {
+        if ($this[0].tagName == 'A') {
+            curl = $this.attr('href');
+        }
+    }
+    doAction(method, curl, parameter);
+}
 
 //ajax请求 methodName 指定GET与POST
 function doAction(methodName, actionUrl, actionParamter) {

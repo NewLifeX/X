@@ -1,5 +1,4 @@
-﻿@using System.Text;
-@{
+﻿@{
     var fact = ViewBag.Factory as IEntityOperate;
     var fi = fact.Fields.FirstOrDefault(e => e.Name.EqualIgnoreCase("Deleted", "IsDelete", "IsDeleted"));
     var entity = Model as IEntity;
@@ -7,12 +6,6 @@
     var rv = entity.GetRouteKey();
 
     var user = ViewBag.User as IUser ?? User.Identity as IUser;
-
-    //var ajax = true;
-    //if (ViewBag.AjaxDelete is Boolean)
-    //{
-    //    ajax = (Boolean)ViewBag.AjaxDelete;
-    //}
 }
 @if (user.Has(PermissionFlags.Update))
 {
@@ -29,25 +22,11 @@ else if (user.Has(PermissionFlags.Detail))
     if (fi != null && fi.Type == typeof(Boolean) && (Boolean)entity[fi.Name])
     {
         <i class="glyphicon glyphicon-transfer" style="color: green;"></i>
-        //if (ajax)
-        //{
-        <a href="@Url.Action("Delete", rv)" data-action="delete" onclick="return confirm('确认恢复？');">恢复</a>
-            @*}
-                else
-                {
-                    <a href="@Url.Action("Delete", rv)" onclick="return confirm('确认恢复？');">恢复</a>
-                }*@
+        <a href="@Url.Action("Delete", rv)" data-action="delete" data-confirm="确认恢复？">恢复</a>
     }
     else
     {
         <i class="glyphicon glyphicon-remove" style="color: red;"></i>
-        //if (ajax)
-        //{
-        <a href="@Url.Action("Delete", rv)" data-action="delete" onclick="return confirm('确认删除？');">删除</a>
-        //}
-        //else
-        //{
-        //    <a href="@Url.Action("Delete", rv)" onclick="return confirm('确认删除？');">删除</a>
-        //}
+        <a href="@Url.Action("Delete", rv)" data-action="delete" data-confirm="确认删除？">删除</a>
     }
 }
