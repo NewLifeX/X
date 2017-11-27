@@ -75,13 +75,39 @@ namespace XCode.Membership
             return result;
         }
 
-        /// <summary>已重载。</summary>
+        ///// <summary>已重载。</summary>
+        ///// <returns></returns>
+        //public override Int32 Delete()
+        //{
+        //    LogProvider.Provider.WriteLog("删除", this);
+
+        //    return base.Delete();
+        //}
+
+        /// <summary>删除。</summary>
         /// <returns></returns>
-        public override Int32 Delete()
+        protected override Int32 OnDelete()
         {
             LogProvider.Provider.WriteLog("删除", this);
 
-            return base.Delete();
+            var rs = 0;
+            using (var ts = Meta.CreateTrans())
+            {
+                rs += base.OnDelete();
+
+                var ms = Childs;
+                if (ms != null && ms.Count > 0)
+                {
+                    foreach (var item in ms)
+                    {
+                        rs += item.Delete();
+                    }
+                }
+
+                ts.Commit();
+
+                return rs;
+            }
         }
 
         /// <summary>加载权限字典</summary>
