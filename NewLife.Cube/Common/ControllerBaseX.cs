@@ -83,5 +83,24 @@ namespace NewLife.Cube
             return dic;
         }
         #endregion
+
+        #region Ajax处理
+        /// <summary>返回结果并跳转</summary>
+        /// <param name="data">结果。可以是错误文本、成功文本、其它结构化数据</param>
+        /// <param name="url">提示信息后跳转的目标地址，[refresh]表示刷新当前页</param>
+        /// <returns></returns>
+        protected virtual ActionResult JsonTips(Object data, String url = null)
+        {
+            return ControllerHelper.JsonTips(data, url);
+        }
+
+        /// <summary>返回结果并刷新</summary>
+        /// <param name="data">消息</param>
+        /// <returns></returns>
+        protected virtual ActionResult JsonRefresh(Object data)
+        {
+            return ControllerHelper.JsonRefresh(data);
+        }
+        #endregion
     }
 }

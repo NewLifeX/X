@@ -207,6 +207,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>_List_Search.cshtml</DependentUpon>
     </Compile>
+    <Compile Include="Areas\Admin\Views\User\_List_Toolbar_Batch.generated.cs">
+      <DependentUpon>_List_Toolbar_Batch.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
     <Compile Include="Areas\Admin\Views\User\_Login_Forgot.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -238,6 +243,7 @@
       <DependentUpon>_ViewStart.cshtml</DependentUpon>
     </Compile>
     <Compile Include="Common\BootstrapJs.cs" />
+    <Compile Include="Common\ControllerHelper.cs" />
     <Compile Include="Common\EntityTreeController.cs" />
     <Compile Include="Common\ObjectController.cs" />
     <Compile Include="Common\ControllerBaseX.cs" />
@@ -471,6 +477,10 @@
     <Content Include="Areas\Admin\Views\Index\ServerVar.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>ServerVar.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Areas\Admin\Views\User\_List_Toolbar_Batch.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>_List_Toolbar_Batch.generated.cs</LastGenOutput>
     </Content>
     <None Include="Content\jweui\css\demos.css" />
     <None Include="Content\jweui\css\jquery-weui.css" />

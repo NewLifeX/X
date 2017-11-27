@@ -53,10 +53,7 @@ namespace NewLife.Cube.Admin.Controllers
         public override ActionResult Delete(Int32 id)
         {
             //return base.Delete(id);
-            if (Request.IsAjaxRequest())
-                return JsonTips("不允许删除");
-            else
-                throw new Exception("不允许删除");
+            throw new Exception("不允许删除");
         }
 
         ///// <summary>不允许删除</summary>
