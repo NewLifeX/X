@@ -40,7 +40,7 @@
             if (User.IsInRole("管理员"))
             {
                 <li>
-                    <a href="@Url.Action("Clear")" data-action="delete" onclick="return confirm('该操作将删除数据表所有数据并不可恢复！\n确认清空？');" title="删除数据表所有数据">清空数据表</a>
+                    <a href="@Url.Action("Clear")" data-action="delete" data-confirm="该操作将删除数据表所有数据并不可恢复！确认清空？" title="删除数据表所有数据">清空数据表</a>
                 </li>
             }
             <li>
