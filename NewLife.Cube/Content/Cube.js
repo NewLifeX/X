@@ -1,5 +1,5 @@
 ﻿// 以下时间用于魔方判断是否需要更新脚本
-// 2017-11-27 00:00:00
+// 2017-11-28 00:00:00
 
 $(function () {
 
@@ -86,7 +86,8 @@ function doAction(methodName, actionUrl, actionParamter) {
             }
             if (rs.url && rs.url.length > 0) {
                 if (rs.url == '[refresh]') {
-                    location.reload();
+                    //刷新页面但不重新加载页面的所有静态资源
+                    location.reload(false);
                 } else {
                     window.location.href = rs.url;
                 }
