@@ -28,10 +28,10 @@
         {
             <li class="divider"></li>
             <li>
-                <a href="javascript:void(0);" data-url="@Url.Action("DeleteSelect")" data-action="delete" data-fields="keys" data-confirm="该操作将删除选中数据并不可恢复！确认删除？" title="删除选中数据">删除选中</a>
+                <a href="@Url.Action("DeleteSelect")" data-action="delete" data-fields="keys" data-confirm="该操作将删除选中数据并不可恢复！确认删除？" title="删除选中数据">删除选中</a>
             </li>
             <li>
-                <a href="javascript:void(0);" data-url="@Url.Action("DeleteAll")" data-action="delete" data-confirm="该操作将删除当前查询的所有数据并不可恢复！确认删除？" title="删除当前查询的所有数据">删除全部</a>
+                <a href="@Url.Action("DeleteAll")" data-action="delete" data-confirm="该操作将删除当前查询的所有数据并不可恢复！确认删除？" title="删除当前查询的所有数据">删除全部</a>
             </li>
         }
         @if (SysConfig.Current.Develop)
@@ -40,7 +40,7 @@
             if (User.IsInRole("管理员"))
             {
                 <li>
-                    <a href="javascript:void(0);" data-url="@Url.Action("Clear")" data-action="delete" data-confirm="该操作将删除数据表所有数据并不可恢复！确认清空？" title="删除数据表所有数据">清空数据表</a>
+                    <a href="@Url.Action("Clear")" data-action="delete" data-confirm="该操作将删除数据表所有数据并不可恢复！确认清空？" title="删除数据表所有数据">清空数据表</a>
                 </li>
             }
             <li>

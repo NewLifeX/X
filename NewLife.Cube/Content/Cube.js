@@ -1,5 +1,5 @@
 ﻿// 以下时间用于魔方判断是否需要更新脚本
-// 2017-11-28 00:00:00
+// 2017-11-28 20:40:00
 
 $(function () {
 
@@ -12,6 +12,13 @@ $(function () {
         'button[data-action], input[data-action], a[data-action]',
         function (e) {
             $this = $(this);
+            //动态设置标签参数
+            var url = $this.attr('href');
+            if (url.length > 0) {
+                $this.data('url', url);
+                $this.attr('href', 'javascript:void(0);');
+            }
+
             var cf = $this.data('confirm');
 
             if (cf && cf.length > 0) {

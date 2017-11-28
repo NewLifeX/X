@@ -44,7 +44,6 @@
             $table.on('click', '#chkAll', function () {
                 // 全选
                 $keys.prop('checked', this.checked);
-
                 // 启用禁用批量操作区
                 $batchButtons.prop('disabled', !this.checked);
             });
