@@ -825,7 +825,7 @@ namespace System
         /// <returns>实际写入字节数</returns>
         public static Stream WriteEncodedInt(this Stream stream, Int64 value)
         {
-            if (_encodes == null) _encodes = new Byte[8];
+            if (_encodes == null) _encodes = new Byte[16];
 
             var count = 0;
             var num = (UInt64)value;
