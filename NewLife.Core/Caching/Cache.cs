@@ -66,6 +66,9 @@ namespace NewLife.Caching
         {
             if (name == null) name = "";
 
+            // 尝试直接获取，避免多次调用CacheConfig.GetOrAdd影响应性能
+            if (_cache.TryGetValue(name, out var ic)) return ic;
+
             var item = CacheConfig.Current.GetOrAdd(name);
             return Create(item);
         }
