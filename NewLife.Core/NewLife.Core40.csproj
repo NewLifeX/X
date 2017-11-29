@@ -76,6 +76,9 @@
     <Compile Include="Caching\CacheSetting.cs" />
     <Compile Include="Caching\ICache.cs" />
     <Compile Include="Caching\MemoryCache.cs" />
+    <Compile Include="Caching\Redis.cs" />
+    <Compile Include="Caching\RedisClient.cs" />
+    <Compile Include="Caching\RedisLock.cs" />
     <Compile Include="Collections\CollectionHelper.cs" />
     <Compile Include="Collections\ConcurrentHashSet.cs" />
     <Compile Include="Collections\DictionaryCache.cs" />
@@ -297,6 +300,7 @@
     <Compile Include="Threading\TaskAwaiter.cs" />
     <Compile Include="Threading\TaskEx.cs" />
     <Compile Include="Threading\TaskHelper.cs" />
+    <Compile Include="Threading\ThreadPoolX.cs" />
     <Compile Include="Threading\TimerManager.cs" />
     <Compile Include="Threading\TimerX.cs" />
     <Compile Include="Threading\TimerScheduler.cs" />

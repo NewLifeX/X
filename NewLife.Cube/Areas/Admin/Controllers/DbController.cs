@@ -8,6 +8,9 @@ using System.Web.Mvc;
 using NewLife.Web;
 using XCode.DataAccessLayer;
 using XCode.Membership;
+#if NET4
+using Task = System.Threading.Tasks.TaskEx;
+#endif
 
 namespace NewLife.Cube.Admin.Controllers
 {

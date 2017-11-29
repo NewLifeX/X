@@ -200,6 +200,9 @@
     <Compile Include="..\NewLife.Cube\Common\ControllerBaseX.cs">
       <Link>Common\ControllerBaseX.cs</Link>
     </Compile>
+    <Compile Include="..\NewLife.Cube\Common\ControllerHelper.cs">
+      <Link>Common\ControllerHelper.cs</Link>
+    </Compile>
     <Compile Include="..\NewLife.Cube\Common\DbRunTimeModule.cs">
       <Link>Common\DbRunTimeModule.cs</Link>
     </Compile>
