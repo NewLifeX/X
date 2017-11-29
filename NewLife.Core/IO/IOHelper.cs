@@ -299,7 +299,7 @@ namespace System
         /// <returns></returns>
         public static Stream WriteDateTime(this Stream stream, DateTime dt, Int32 baseYear = 1970)
         {
-            var seconds = -1;
+            var seconds = 0;
             if (dt.Year >= baseYear)
             {
                 var bdt = baseYear == 1970 ? _dt1970 : new DateTime(baseYear, 1, 1);
@@ -814,6 +814,8 @@ namespace System
             return true;
         }
 
+        [ThreadStatic]
+        private static Byte[] _encodes;
         /// <summary>
         /// 以7位压缩格式写入32位整数，小于7位用1个字节，小于14位用2个字节。
         /// 由每次写入的一个字节的第一位标记后面的字节是否还是当前数据，所以每个字节实际可利用存储空间只有后7位。
@@ -823,20 +825,18 @@ namespace System
         /// <returns>实际写入字节数</returns>
         public static Stream WriteEncodedInt(this Stream stream, Int64 value)
         {
-            var list = new List<Byte>();
+            if (_encodes == null) _encodes = new Byte[8];
 
-            var count = 1;
+            var count = 0;
             var num = (UInt64)value;
             while (num >= 0x80)
             {
-                list.Add((Byte)(num | 0x80));
+                _encodes[count++] = (Byte)(num | 0x80);
                 num = num >> 7;
-
-                count++;
             }
-            list.Add((Byte)num);
+            _encodes[count++] = (Byte)num;
 
-            stream.Write(list.ToArray(), 0, list.Count);
+            stream.Write(_encodes, 0, count);
 
             return stream;
         }
