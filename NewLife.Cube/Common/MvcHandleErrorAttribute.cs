@@ -32,19 +32,15 @@ namespace NewLife.Cube
                         else
                             ex = null;
                     }
-
                     if (ex != null) XTrace.WriteException(ex);
                 }
-
                 ctx.ExceptionHandled = true;
-
                 var vr = new ViewResult();
                 vr.ViewName = "CubeError";
                 vr.ViewBag.Context = ctx;
 
                 ctx.Result = vr;
             }
-
             base.OnException(ctx);
         }
     }
