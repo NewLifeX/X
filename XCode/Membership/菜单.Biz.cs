@@ -501,7 +501,7 @@ namespace XCode.Membership
                     {
                         while ((mask & idx) != 0)
                         {
-                            if (idx >= 0x80) throw new XException("控制器{0}的Action过多[{1}]，不够分配权限位", type.Name, dic.Join(",", e => e.Key));
+                            if (idx >= 0x80000000) throw new XException("控制器{0}的Action过多[{1}]，不够分配权限位", type.Name, dic.Join(",", e => e.Key));
                             idx <<= 1;
                         }
                         mask |= idx;
