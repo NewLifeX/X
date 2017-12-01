@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NewLife.Agent
 {
@@ -22,7 +19,7 @@ namespace NewLife.Agent
         /// <param name="job"></param>
         public void Add(IJob job)
         {
-            lock (Jobs)
+            lock (this)
             {
                 var list = new List<IJob>(Jobs);
                 if (!list.Contains(job))

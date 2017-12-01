@@ -358,19 +358,16 @@ namespace NewLife.Agent
                     // 使用专用的时间间隔
                     if (i < vs.Length) time = vs[i];
 
+                    var si = ss[i] = new ServiceItem(i, null, time);
                     if (i < tcount)
-                        ss[i] = new ServiceItem(i, null, time)
-                        {
-                            Callback = Work
-                        };
+                    {
+                        si.Callback = Work;
+                    }
                     else
                     {
-                        var job = Schedule.Jobs[i - tcount];
+                        var job = sch.Jobs[i - tcount];
                         if (job is JobBase jb) jb.Log = Log;
-                        ss[i] = new ServiceItem(i, null, time)
-                        {
-                            Job = job
-                        };
+                        si.Job = job;
                     }
 
                     //StartWork(i);
@@ -429,6 +426,16 @@ namespace NewLife.Agent
             }
 
             //Interactive.Hide();
+        }
+
+        /// <summary>唤醒指定任务马上开始处理任务</summary>
+        /// <param name="index"></param>
+        public virtual void Wake(Int32 index)
+        {
+            var ss = Items;
+            if (index < 0 || index >= ss.Length) return;
+
+            ss[index].Event?.Set();
         }
         #endregion
 
