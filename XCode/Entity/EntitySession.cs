@@ -84,6 +84,8 @@ namespace XCode
             ConnName = connName;
             TableName = tableName;
             Key = connName + "###" + tableName;
+
+            Queue = new EntityQueue(this);
         }
 
         private static DictionaryCache<String, EntitySession<TEntity>> _es = new DictionaryCache<String, EntitySession<TEntity>>(StringComparer.OrdinalIgnoreCase);
@@ -902,6 +904,11 @@ namespace XCode
 
             return rs;
         }
+        #endregion
+
+        #region 队列
+        /// <summary>实体队列</summary>
+        public EntityQueue Queue { get; private set; }
         #endregion
     }
 }

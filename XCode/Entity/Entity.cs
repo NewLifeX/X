@@ -254,7 +254,7 @@ namespace XCode
 
             if (!HasDirty) return false;
 
-            return Meta.Session.Dal.Queue.Add(this, msDelay);
+            return Meta.Session.Queue.Add(this, msDelay);
         }
 
         [NonSerialized]

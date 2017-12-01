@@ -524,7 +524,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 修正连接
-        /// <summary>根据类型修正字段的一些默认值。仅考虑MSSQL</summary>
+        /// <summary>根据类型修正字段的一些默认值</summary>
         /// <param name="dc"></param>
         /// <param name="oridc"></param>
         /// <returns></returns>
