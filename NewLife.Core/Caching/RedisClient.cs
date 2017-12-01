@@ -208,16 +208,16 @@ namespace NewLife.Caching
             if (header == '$') return ReadBlock(rs);
             if (header == '*') return ReadBlocks(rs);
 
-            rs = rs.Sub(1);
+            var pk = rs.Sub(1);
 
-            var str2 = rs.ToStr().Trim();
+            var str2 = pk.ToStr().Trim();
             if (log != null) WriteLog("=> {0}", str2);
 
             if (header == '+') return str2;
             if (header == '-') throw new Exception(str2);
             if (header == ':') return str2;
 
-            throw new NotSupportedException("无法解析响应 {0} {1}".F(header, str2.Replace(Environment.NewLine, "\\r\\n")));
+            throw new InvalidDataException("无法解析响应 [{0}] [{1}]={2}".F(header, rs.Count, rs.ToHex(32, "-")));
         }
 
         private Packet ReadBlock(Packet pk)
@@ -266,7 +266,7 @@ namespace NewLife.Caching
             var header = (Char)pk[0];
 
             var p = pk.IndexOf(NewLine);
-            if (p <= 0) throw new Exception("无法解析响应 {0} [{1}]".F(header, pk.Count));
+            if (p <= 0) throw new InvalidDataException("无法解析响应 [{0}] [{1}]={2}".F((Byte)header, pk.Count, pk.ToHex(32, "-")));
 
             // 解析长度
             var len = pk.Sub(1, p - 1).ToStr().ToInt();
