@@ -327,6 +327,7 @@ namespace NewLife.Caching
             if (threads <= 0) threads = Environment.ProcessorCount;
             if (times <= 0) times = threads * 1_000;
 
+            XTrace.WriteLine("");
             XTrace.WriteLine($"测试 {times:n0} 项，{threads,3:n0} 线程");
 
             var key = "Stat_171006";
@@ -352,13 +353,13 @@ namespace NewLife.Caching
                 var count = times / threads;
                 for (var i = 0; i < count; i++)
                 {
-                    v = Get<Int32>(key);
+                    v = Get<Int32>(key + i);
                 }
             });
             sw.Stop();
 
             var speed = times * 1000 / sw.ElapsedMilliseconds;
-            XTrace.WriteLine($"读取 {times:n0} 项，{threads,3:n0} 线程，耗时 {sw.ElapsedMilliseconds:n0}ms 速度 {speed:n0} ops");
+            XTrace.WriteLine($"读取 {times:n0} 项，{threads,3:n0} 线程，耗时 {sw.ElapsedMilliseconds,7:n0}ms 速度 {speed,9:n0} ops");
         }
 
         /// <summary>赋值测试</summary>
@@ -375,13 +376,13 @@ namespace NewLife.Caching
                 for (var i = 0; i < count; i++)
                 {
                     v += 1;
-                    Set(key, v);
+                    Set(key + i, v);
                 }
             });
             sw.Stop();
 
             var speed = times * 1000 / sw.ElapsedMilliseconds;
-            XTrace.WriteLine($"赋值 {times:n0} 项，{threads,3:n0} 线程，耗时 {sw.ElapsedMilliseconds:n0}ms 速度 {speed:n0} ops");
+            XTrace.WriteLine($"赋值 {times:n0} 项，{threads,3:n0} 线程，耗时 {sw.ElapsedMilliseconds,7:n0}ms 速度 {speed,9:n0} ops");
         }
         #endregion
 

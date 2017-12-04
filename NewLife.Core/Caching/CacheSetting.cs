@@ -51,9 +51,11 @@ namespace NewLife.Caching
         }
 
         /// <summary>获取 或 增加 配置项</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
+        /// <param name="provider">提供者</param>
+        /// <param name="value">配置</param>
         /// <returns></returns>
-        public CacheSetting GetOrAdd(String name)
+        public CacheSetting GetOrAdd(String name, String provider = null, String value = null)
         {
             var ms = Items ?? new CacheSetting[0];
             var item = ms.FirstOrDefault(e => e?.Name == name);
@@ -71,6 +73,8 @@ namespace NewLife.Caching
 
                 Items = list.ToArray();
             }
+
+            Save();
 
             return item;
         }

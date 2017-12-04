@@ -109,7 +109,7 @@ namespace XCode.DataAccessLayer
                 // 繁忙超时时间。出现Busy时，SQLite内部会在该超时时间内多次尝试
                 //if (!builder.ContainsKey("BusyTimeout")) builder["BusyTimeout"] = 50 + "";
                 // 重试次数。SQLite.Net驱动在遇到Busy时会多次尝试，每次随机等待1~150ms
-                if (!builder.ContainsKey("PrepareRetries")) builder["PrepareRetries"] = 10 + "";
+                //if (!builder.ContainsKey("PrepareRetries")) builder["PrepareRetries"] = 10 + "";
             }
 
             DAL.WriteLog(builder.ToString());

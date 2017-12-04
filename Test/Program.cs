@@ -88,7 +88,10 @@ namespace Test
 
         static void Test2()
         {
-            Redis.Test();
+            //Redis.Test();
+
+            var rds = Redis.Create("127.0.0.1:6379", 5);
+            rds.Bench();
 
             //var url = "http://www.baidu.com";
 
