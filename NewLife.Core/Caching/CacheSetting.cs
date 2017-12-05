@@ -74,7 +74,14 @@ namespace NewLife.Caching
                 Items = list.ToArray();
             }
 
-            Save();
+            // 添加提供者并保存
+            if (!provider.IsNullOrEmpty())
+            {
+                item.Provider = provider;
+                item.Value = value;
+
+                Save();
+            }
 
             return item;
         }
