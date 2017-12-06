@@ -18,7 +18,8 @@ namespace NewLife.Caching
         /// <summary>实例化一个内存字典缓存</summary>
         public MemoryCache()
         {
-            _cache = new ConcurrentDictionary<String, CacheItem>(StringComparer.OrdinalIgnoreCase);
+            //_cache = new ConcurrentDictionary<String, CacheItem>(StringComparer.OrdinalIgnoreCase);
+            _cache = new ConcurrentDictionary<String, CacheItem>();
             Name = "Memory";
         }
 
