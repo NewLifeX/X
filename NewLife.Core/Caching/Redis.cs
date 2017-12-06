@@ -352,11 +352,12 @@ namespace NewLife.Caching
 
         #region 性能测试
         /// <summary>性能测试</summary>
-        public override void Bench()
+        /// <param name="rand">随机读写</param>
+        public override void Bench(Boolean rand = false)
         {
             XTrace.WriteLine($"目标服务器：{Server}/{Db}");
 
-            base.Bench();
+            base.Bench(rand);
         }
 
         /// <summary>测试</summary>

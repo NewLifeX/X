@@ -86,7 +86,8 @@ namespace NewLife.Caching
                 {
                     item.Value = value;
                     item.ExpiredTime = TimerX.Now.AddSeconds(expire);
-                    if (_cache.TryUpdate(key, item, item)) return true;
+                    //if (_cache.TryUpdate(key, item, item)) return true;
+                    return true;
                 }
 
                 if (ci == null) ci = new CacheItem(value, expire);
@@ -308,11 +309,15 @@ namespace NewLife.Caching
         /// <summary>使用指定线程测试指定次数</summary>
         /// <param name="times">次数</param>
         /// <param name="threads">线程</param>
-        public override void BenchOne(Int64 times, Int32 threads)
+        /// <param name="rand">随机读写</param>
+        public override void BenchOne(Int64 times, Int32 threads, Boolean rand)
         {
-            times *= 100;
+            if (rand)
+                times *= 100;
+            else
+                times *= 1000;
 
-            base.BenchOne(times, threads);
+            base.BenchOne(times, threads, rand);
         }
         #endregion
     }

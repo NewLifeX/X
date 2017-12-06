@@ -28,7 +28,7 @@ namespace NewLife.Cube
         /// 
         /// </summary>
         /// <param name="message"></param>
-        public static string Toast(string message)
+        public static String Toast(String message)
         {
             return "$.toast(\"" + Encode(message) + "\");";
         }
@@ -37,7 +37,7 @@ namespace NewLife.Cube
         /// 
         /// </summary>
         /// <param name="message"></param>
-        public static string Alert(string message)
+        public static String Alert(String message)
         {
             return "$.alert(\"" + Encode(message) + "\");";
         }

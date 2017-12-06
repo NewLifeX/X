@@ -89,8 +89,7 @@ namespace NewLife
 #elif  __CORE__
                 return Is64BitProcess;
 #else
-                Boolean flag;
-                return Win32Native.DoesWin32MethodExist("kernel32.dll", "IsWow64Process") && Win32Native.IsWow64Process(Win32Native.GetCurrentProcess(), out flag) && flag;
+                return Win32Native.DoesWin32MethodExist("kernel32.dll", "IsWow64Process") && Win32Native.IsWow64Process(Win32Native.GetCurrentProcess(), out var flag) && flag;
 #endif
             }
         }

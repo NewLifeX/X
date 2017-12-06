@@ -120,7 +120,8 @@ namespace NewLife.Caching
 
         #region 性能测试
         /// <summary>多线程性能测试</summary>
-        void Bench();
+        /// <param name="rand">随机读写</param>
+        void Bench(Boolean rand = false);
         #endregion
     }
 }

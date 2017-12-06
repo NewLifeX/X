@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -49,7 +50,7 @@ namespace Test
                 try
                 {
 #endif
-                Test2();
+                    Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -93,7 +94,15 @@ namespace Test
             //var rds = Redis.Create("127.0.0.1:6379", 5);
             //rds.Bench();
 
+            //Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.AboveNormal;
+            GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+            //GC.TryStartNoGCRegion(4L * 1024 * 1024 * 1024);
+
             Cache.Default.Bench();
+            //var ch = Cache.Default as Cache;
+            //ch.BenchOne(40_000, 4, false);
+
+            //GC.EndNoGCRegion();
 
             //var url = "http://www.baidu.com";
 

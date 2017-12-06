@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Win32;
 using NewLife.Log;
@@ -277,28 +278,46 @@ namespace NewLife.Caching
 
         #region 性能测试
         /// <summary>多线程性能测试</summary>
+        /// <param name="rand">随机读写</param>
         /// <remarks>
-        /// Memory性能测试，逻辑处理器 4 个
-        /// 测试 1,000,000 项，  1 线程
-        /// 读取 1,000,000 项，  1 线程，耗时 128ms 速度 7,812,500 ops
-        /// 赋值 1,000,000 项，  1 线程，耗时 470ms 速度 2,127,659 ops
-        /// 测试 2,000,000 项，  2 线程
-        /// 读取 2,000,000 项，  2 线程，耗时 206ms 速度 9,708,737 ops
-        /// 赋值 2,000,000 项，  2 线程，耗时 797ms 速度 2,509,410 ops
-        /// 测试 8,000,000 项，  8 线程
-        /// 读取 8,000,000 项，  8 线程，耗时 589ms 速度 13,582,342 ops
-        /// 赋值 8,000,000 项，  8 线程，耗时 3,438ms 速度 2,326,934 ops
-        /// 测试 4,000,000 项，  4 线程
-        /// 读取 4,000,000 项，  4 线程，耗时 230ms 速度 17,391,304 ops
-        /// 赋值 4,000,000 项，  4 线程，耗时 1,657ms 速度 2,414,001 ops
-        /// 测试 4,000,000 项， 64 线程
-        /// 读取 4,000,000 项， 64 线程，耗时 258ms 速度 15,503,875 ops
-        /// 赋值 4,000,000 项， 64 线程，耗时 1,805ms 速度 2,216,066 ops
-        /// 测试 4,000,000 项，256 线程
-        /// 读取 4,000,000 项，256 线程，耗时 238ms 速度 16,806,722 ops
-        /// 赋值 4,000,000 项，256 线程，耗时 1,786ms 速度 2,239,641 ops
+        /// Memory性能测试[顺序]，逻辑处理器 32 个 2,000MHz Intel(R) Xeon(R) CPU E5-2640 v2 @ 2.00GHz
+        /// 
+        /// 测试 10,000,000 项，  1 线程
+        /// 赋值 10,000,000 项，  1 线程，耗时   3,764ms 速度 2,656,748 ops
+        /// 读取 10,000,000 项，  1 线程，耗时   1,296ms 速度 7,716,049 ops
+        /// 删除 10,000,000 项，  1 线程，耗时   1,230ms 速度 8,130,081 ops
+        /// 
+        /// 测试 20,000,000 项，  2 线程
+        /// 赋值 20,000,000 项，  2 线程，耗时   3,088ms 速度 6,476,683 ops
+        /// 读取 20,000,000 项，  2 线程，耗时   1,051ms 速度 19,029,495 ops
+        /// 删除 20,000,000 项，  2 线程，耗时   1,011ms 速度 19,782,393 ops
+        /// 
+        /// 测试 40,000,000 项，  4 线程
+        /// 赋值 40,000,000 项，  4 线程，耗时   3,060ms 速度 13,071,895 ops
+        /// 读取 40,000,000 项，  4 线程，耗时   1,023ms 速度 39,100,684 ops
+        /// 删除 40,000,000 项，  4 线程，耗时     994ms 速度 40,241,448 ops
+        /// 
+        /// 测试 80,000,000 项，  8 线程
+        /// 赋值 80,000,000 项，  8 线程，耗时   3,124ms 速度 25,608,194 ops
+        /// 读取 80,000,000 项，  8 线程，耗时   1,171ms 速度 68,317,677 ops
+        /// 删除 80,000,000 项，  8 线程，耗时   1,199ms 速度 66,722,268 ops
+        /// 
+        /// 测试 320,000,000 项， 32 线程
+        /// 赋值 320,000,000 项， 32 线程，耗时  13,857ms 速度 23,093,021 ops
+        /// 读取 320,000,000 项， 32 线程，耗时   1,950ms 速度 164,102,564 ops
+        /// 删除 320,000,000 项， 32 线程，耗时   3,359ms 速度 95,266,448 ops
+        /// 
+        /// 测试 320,000,000 项， 64 线程
+        /// 赋值 320,000,000 项， 64 线程，耗时   9,648ms 速度 33,167,495 ops
+        /// 读取 320,000,000 项， 64 线程，耗时   1,974ms 速度 162,107,396 ops
+        /// 删除 320,000,000 项， 64 线程，耗时   1,907ms 速度 167,802,831 ops
+        /// 
+        /// 测试 320,000,000 项，256 线程
+        /// 赋值 320,000,000 项，256 线程，耗时  12,429ms 速度 25,746,238 ops
+        /// 读取 320,000,000 项，256 线程，耗时   1,907ms 速度 167,802,831 ops
+        /// 删除 320,000,000 项，256 线程，耗时   2,350ms 速度 136,170,212 ops
         /// </remarks>
-        public virtual void Bench()
+        public virtual void Bench(Boolean rand = false)
         {
             var processor = "";
             var frequency = 0;
@@ -309,30 +328,35 @@ namespace NewLife.Caching
             }
 
             var cpu = Environment.ProcessorCount;
-            XTrace.WriteLine($"{Name}性能测试，逻辑处理器 {cpu:n0} 个 {frequency:n0}MHz {processor}");
+            XTrace.WriteLine($"{Name}性能测试[{(rand ? "随机" : "顺序")}]，逻辑处理器 {cpu:n0} 个 {frequency:n0}MHz {processor}");
 
             var times = 10_000;
 
             // 单线程
-            BenchOne(times, 1);
+            BenchOne(times, 1, rand);
 
             // 多线程
-            if (cpu != 2) BenchOne(times * 2, 2);
-            if (cpu != 4) BenchOne(times * 4, 4);
-            if (cpu != 8) BenchOne(times * 8, 8);
+            if (cpu != 2) BenchOne(times * 2, 2, rand);
+            if (cpu != 4) BenchOne(times * 4, 4, rand);
+            if (cpu != 8) BenchOne(times * 8, 8, rand);
 
             // CPU个数
-            BenchOne(times * cpu, cpu);
+            BenchOne(times * cpu, cpu, rand);
+
+            //// 1.5倍
+            //var cpu2 = cpu * 3 / 2;
+            //if (!(new[] { 2, 4, 8, 64, 256 }).Contains(cpu2)) BenchOne(times * cpu2, cpu2, rand);
 
             // 最大
-            if (cpu < 64) BenchOne(times * cpu, 64);
-            if (cpu * 8 >= 256) BenchOne(times * cpu, cpu * 8);
+            if (cpu < 64) BenchOne(times * cpu, 64, rand);
+            if (cpu * 8 >= 256) BenchOne(times * cpu, cpu * 8, rand);
         }
 
         /// <summary>使用指定线程测试指定次数</summary>
         /// <param name="times">次数</param>
         /// <param name="threads">线程</param>
-        public virtual void BenchOne(Int64 times, Int32 threads)
+        /// <param name="rand">随机读写</param>
+        public virtual void BenchOne(Int64 times, Int32 threads, Boolean rand)
         {
             if (threads <= 0) threads = Environment.ProcessorCount;
             if (times <= 0) times = threads * 1_000;
@@ -340,36 +364,53 @@ namespace NewLife.Caching
             XTrace.WriteLine("");
             XTrace.WriteLine($"测试 {times:n0} 项，{threads,3:n0} 线程");
 
-            var key = "Bench_" + Rand.NextString(8);
-            Set(key, 0);
+            var key = "Bench_";
+            Set(key, Rand.NextBytes(32));
+            var v = Get<Byte[]>(key);
+            Remove(key);
 
             // 赋值测试
-            BenchSet(key, times, threads);
+            BenchSet(key, times, threads, rand);
 
             // 读取测试
-            BenchGet(key, times, threads);
+            BenchGet(key, times, threads, rand);
 
             // 删除测试
-            BenchRemove(key, times, threads);
+            BenchRemove(key, times, threads, rand);
         }
 
         /// <summary>读取测试</summary>
         /// <param name="key">键</param>
         /// <param name="times">次数</param>
         /// <param name="threads">线程</param>
-        protected virtual void BenchGet(String key, Int64 times, Int32 threads)
+        /// <param name="rand">随机读写</param>
+        protected virtual void BenchGet(String key, Int64 times, Int32 threads, Boolean rand)
         {
-            var v = Get<Int32>(key);
+            var v = Get<Byte[]>(key);
 
             var sw = Stopwatch.StartNew();
-            Parallel.For(0, threads, k =>
+            if (rand)
             {
-                //var count = times / threads;
-                for (var i = k; i < times; i += threads)
+                Parallel.For(0, threads, k =>
                 {
-                    var val = Get<Int32>(key + i);
-                }
-            });
+                    for (var i = k; i < times; i += threads)
+                    {
+                        var val = Get<Byte[]>(key + i);
+                    }
+                });
+            }
+            else
+            {
+                Parallel.For(0, threads, k =>
+                {
+                    var mykey = key + k;
+                    var count = times / threads;
+                    for (var i = 0; i < count; i++)
+                    {
+                        var val = Get<Byte[]>(mykey);
+                    }
+                });
+            }
             sw.Stop();
 
             var speed = times * 1000 / sw.ElapsedMilliseconds;
@@ -380,18 +421,36 @@ namespace NewLife.Caching
         /// <param name="key">键</param>
         /// <param name="times">次数</param>
         /// <param name="threads">线程</param>
-        protected virtual void BenchSet(String key, Int64 times, Int32 threads)
+        /// <param name="rand">随机读写</param>
+        protected virtual void BenchSet(String key, Int64 times, Int32 threads, Boolean rand)
         {
-            Set(key, Rand.Next());
+            //Set(key, Rand.NextBytes(32));
 
             var sw = Stopwatch.StartNew();
-            Parallel.For(0, threads, k =>
+            if (rand)
             {
-                for (var i = k; i < times; i += threads)
+                Parallel.For(0, threads, k =>
                 {
-                    Set(key + i, i);
-                }
-            });
+                    var val = Rand.NextBytes(32);
+                    for (var i = k; i < times; i += threads)
+                    {
+                        Set(key + i, val);
+                    }
+                });
+            }
+            else
+            {
+                Parallel.For(0, threads, k =>
+                {
+                    var mykey = key + k;
+                    var val = Rand.NextBytes(32);
+                    var count = times / threads;
+                    for (var i = 0; i < count; i++)
+                    {
+                        Set(mykey, val);
+                    }
+                });
+            }
             sw.Stop();
 
             var speed = times * 1000 / sw.ElapsedMilliseconds;
@@ -402,18 +461,34 @@ namespace NewLife.Caching
         /// <param name="key">键</param>
         /// <param name="times">次数</param>
         /// <param name="threads">线程</param>
-        protected virtual void BenchRemove(String key, Int64 times, Int32 threads)
+        /// <param name="rand">随机读写</param>
+        protected virtual void BenchRemove(String key, Int64 times, Int32 threads, Boolean rand)
         {
             Remove(key);
 
             var sw = Stopwatch.StartNew();
-            Parallel.For(0, threads, k =>
+            if (rand)
             {
-                for (var i = k; i < times; i += threads)
+                Parallel.For(0, threads, k =>
                 {
-                    Remove(key + i);
-                }
-            });
+                    for (var i = k; i < times; i += threads)
+                    {
+                        Remove(key + i);
+                    }
+                });
+            }
+            else
+            {
+                Parallel.For(0, threads, k =>
+                {
+                    var mykey = key + k;
+                    var count = times / threads;
+                    for (var i = 0; i < count; i++)
+                    {
+                        Remove(mykey);
+                    }
+                });
+            }
             sw.Stop();
 
             var speed = times * 1000 / sw.ElapsedMilliseconds;
