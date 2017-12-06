@@ -117,5 +117,10 @@ namespace NewLife.Caching
         /// <returns></returns>
         Double Decrement(String key, Double value);
         #endregion
+
+        #region 性能测试
+        /// <summary>多线程性能测试</summary>
+        void Bench();
+        #endregion
     }
 }

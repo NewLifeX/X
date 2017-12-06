@@ -90,8 +90,10 @@ namespace Test
         {
             //Redis.Test();
 
-            var rds = Redis.Create("127.0.0.1:6379", 5);
-            rds.Bench();
+            //var rds = Redis.Create("127.0.0.1:6379", 5);
+            //rds.Bench();
+
+            Cache.Default.Bench();
 
             //var url = "http://www.baidu.com";
 

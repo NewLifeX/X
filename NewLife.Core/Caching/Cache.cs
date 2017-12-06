@@ -3,9 +3,11 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Microsoft.Win32;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Reflection;
+using NewLife.Security;
 
 namespace NewLife.Caching
 {
@@ -298,8 +300,16 @@ namespace NewLife.Caching
         /// </remarks>
         public virtual void Bench()
         {
+            var processor = "";
+            var frequency = 0;
+            using (var reg = Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\CentralProcessor\0"))
+            {
+                processor = (reg.GetValue("ProcessorNameString") + "").Trim();
+                frequency = reg.GetValue("~MHz").ToInt();
+            }
+
             var cpu = Environment.ProcessorCount;
-            XTrace.WriteLine($"{Name}性能测试，逻辑处理器 {cpu:n0} 个");
+            XTrace.WriteLine($"{Name}性能测试，逻辑处理器 {cpu:n0} 个 {frequency:n0}MHz {processor}");
 
             var times = 10_000;
 
@@ -330,14 +340,17 @@ namespace NewLife.Caching
             XTrace.WriteLine("");
             XTrace.WriteLine($"测试 {times:n0} 项，{threads,3:n0} 线程");
 
-            var key = "Stat_171006";
+            var key = "Bench_" + Rand.NextString(8);
             Set(key, 0);
+
+            // 赋值测试
+            BenchSet(key, times, threads);
 
             // 读取测试
             BenchGet(key, times, threads);
 
-            // 赋值测试
-            BenchSet(key, times, threads);
+            // 删除测试
+            BenchRemove(key, times, threads);
         }
 
         /// <summary>读取测试</summary>
@@ -347,13 +360,14 @@ namespace NewLife.Caching
         protected virtual void BenchGet(String key, Int64 times, Int32 threads)
         {
             var v = Get<Int32>(key);
+
             var sw = Stopwatch.StartNew();
             Parallel.For(0, threads, k =>
             {
-                var count = times / threads;
-                for (var i = 0; i < count; i++)
+                //var count = times / threads;
+                for (var i = k; i < times; i += threads)
                 {
-                    v = Get<Int32>(key + i);
+                    var val = Get<Int32>(key + i);
                 }
             });
             sw.Stop();
@@ -368,21 +382,42 @@ namespace NewLife.Caching
         /// <param name="threads">线程</param>
         protected virtual void BenchSet(String key, Int64 times, Int32 threads)
         {
-            var v = Get<Int32>(key);
+            Set(key, Rand.Next());
+
             var sw = Stopwatch.StartNew();
             Parallel.For(0, threads, k =>
             {
-                var count = times / threads;
-                for (var i = 0; i < count; i++)
+                for (var i = k; i < times; i += threads)
                 {
-                    v += 1;
-                    Set(key + i, v);
+                    Set(key + i, i);
                 }
             });
             sw.Stop();
 
             var speed = times * 1000 / sw.ElapsedMilliseconds;
             XTrace.WriteLine($"赋值 {times:n0} 项，{threads,3:n0} 线程，耗时 {sw.ElapsedMilliseconds,7:n0}ms 速度 {speed,9:n0} ops");
+        }
+
+        /// <summary>删除测试</summary>
+        /// <param name="key">键</param>
+        /// <param name="times">次数</param>
+        /// <param name="threads">线程</param>
+        protected virtual void BenchRemove(String key, Int64 times, Int32 threads)
+        {
+            Remove(key);
+
+            var sw = Stopwatch.StartNew();
+            Parallel.For(0, threads, k =>
+            {
+                for (var i = k; i < times; i += threads)
+                {
+                    Remove(key + i);
+                }
+            });
+            sw.Stop();
+
+            var speed = times * 1000 / sw.ElapsedMilliseconds;
+            XTrace.WriteLine($"删除 {times:n0} 项，{threads,3:n0} 线程，耗时 {sw.ElapsedMilliseconds,7:n0}ms 速度 {speed,9:n0} ops");
         }
         #endregion
 
