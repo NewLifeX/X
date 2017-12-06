@@ -58,9 +58,11 @@ namespace NewLife.Net
             // 考虑到超长数据包，拆分为多个包
             if (count <= BufferSize)
             {
-                var qi = new QueueItem();
-                qi.Packet = pk;
-                qi.Remote = remote;
+                var qi = new QueueItem
+                {
+                    Packet = pk,
+                    Remote = remote
+                };
 
                 _SendQueue.Enqueue(qi);
             }
@@ -75,10 +77,12 @@ namespace NewLife.Net
 
                     var len = Math.Min(remain, BufferSize);
 
-                    var qi = new QueueItem();
-                    //qi.Packet = new Packet(pk.Data, pk.Offset + idx, len);
-                    qi.Packet = new Packet(pk.ReadBytes(idx, len));
-                    qi.Remote = remote;
+                    var qi = new QueueItem
+                    {
+                        //qi.Packet = new Packet(pk.Data, pk.Offset + idx, len);
+                        Packet = new Packet(pk.ReadBytes(idx, len)),
+                        Remote = remote
+                    };
 
                     _SendQueue.Enqueue(qi);
 

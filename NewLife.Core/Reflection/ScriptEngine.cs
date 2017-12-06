@@ -356,9 +356,11 @@ namespace NewLife.Reflection
         {
             if (options == null)
             {
-                options = new CompilerParameters();
-                options.GenerateInMemory = true;
-                options.GenerateExecutable = !IsExpression;
+                options = new CompilerParameters
+                {
+                    GenerateInMemory = true,
+                    GenerateExecutable = !IsExpression
+                };
             }
 
             var hs = new HashSet<String>(StringComparer.OrdinalIgnoreCase);

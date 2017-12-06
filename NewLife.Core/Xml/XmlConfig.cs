@@ -210,10 +210,12 @@ namespace NewLife.Xml
                 var config = this as TConfig;
 
                 Object obj = config;
-                var xml = new NewLife.Serialization.Xml();
-                xml.Stream = new MemoryStream(data);
-                xml.UseAttribute = false;
-                xml.UseComment = true;
+                var xml = new Serialization.Xml
+                {
+                    Stream = new MemoryStream(data),
+                    UseAttribute = false,
+                    UseComment = true
+                };
 
                 if (_.Debug) xml.Log = XTrace.Log;
 
@@ -296,10 +298,12 @@ namespace NewLife.Xml
 
         private String GetXml()
         {
-            var xml = new NewLife.Serialization.Xml();
-            xml.Encoding = Encoding.UTF8;
-            xml.UseAttribute = false;
-            xml.UseComment = true;
+            var xml = new NewLife.Serialization.Xml
+            {
+                Encoding = Encoding.UTF8,
+                UseAttribute = false,
+                UseComment = true
+            };
 
             if (_.Debug) xml.Log = XTrace.Log;
 

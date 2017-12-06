@@ -240,8 +240,10 @@ namespace NewLife.Net
             if (base.OnReceive(pk, remote)) return true;
 
             // 分析处理
-            var e = new ReceivedEventArgs(pk);
-            e.UserState = Remote.EndPoint;
+            var e = new ReceivedEventArgs(pk)
+            {
+                UserState = Remote.EndPoint
+            };
 
             if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", e.Length, e.ToHex(32, null));
 

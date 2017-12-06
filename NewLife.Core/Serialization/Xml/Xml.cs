@@ -68,8 +68,10 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public Xml AddHandler<THandler>(Int32 priority = 0) where THandler : IXmlHandler, new()
         {
-            var handler = new THandler();
-            handler.Host = this;
+            var handler = new THandler
+            {
+                Host = this
+            };
             if (priority != 0) handler.Priority = priority;
 
             return AddHandler(handler);
@@ -193,10 +195,12 @@ namespace NewLife.Serialization
         {
             if (_Writer == null)
             {
-                var set = new XmlWriterSettings();
-                //set.Encoding = Encoding.TrimPreamble();
-                set.Encoding = Encoding;
-                set.Indent = true;
+                var set = new XmlWriterSettings
+                {
+                    //set.Encoding = Encoding.TrimPreamble();
+                    Encoding = Encoding,
+                    Indent = true
+                };
 
                 _Writer = XmlWriter.Create(Stream, set);
             }

@@ -179,9 +179,11 @@ namespace NewLife.Net
             MakeBat(updatebat, dest, ".".GetFullPath());
 
             // 执行更新程序包
-            var si = new ProcessStartInfo();
-            si.FileName = updatebat;
-            si.Arguments = ">>update.log";
+            var si = new ProcessStartInfo
+            {
+                FileName = updatebat,
+                Arguments = ">>update.log"
+            };
             si.WorkingDirectory = Path.GetDirectoryName(si.FileName);
             // 必须创建无窗口进程，否则会等待目标进程完成
             //if (!XTrace.Debug)
@@ -213,8 +215,10 @@ namespace NewLife.Net
         {
             if (_Client != null) return _Client;
 
-            var web = new WebClientX(true, true);
-            web.UserAgent = "NewLife.Upgrade";
+            var web = new WebClientX(true, true)
+            {
+                UserAgent = "NewLife.Upgrade"
+            };
             return _Client = web;
         }
 

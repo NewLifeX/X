@@ -43,11 +43,13 @@ namespace NewLife.Xml
             // 删除字节序
             //encoding = encoding.TrimPreamble();
 
-            var xml = new NewLife.Serialization.Xml();
-            xml.Stream = stream;
-            xml.Encoding = encoding;
-            xml.UseAttribute = false;
-            xml.UseComment = attachComment;
+            var xml = new NewLife.Serialization.Xml
+            {
+                Stream = stream,
+                Encoding = encoding,
+                UseAttribute = false,
+                UseComment = attachComment
+            };
             xml.Write(obj);
         }
 
@@ -98,8 +100,10 @@ namespace NewLife.Xml
             if (xml.IsNullOrWhiteSpace()) throw new ArgumentNullException("xml");
             if (type == null) throw new ArgumentNullException("type");
 
-            var x = new NewLife.Serialization.Xml();
-            x.Stream = new MemoryStream(xml.GetBytes());
+            var x = new NewLife.Serialization.Xml
+            {
+                Stream = new MemoryStream(xml.GetBytes())
+            };
 
             return x.Read(type);
 
@@ -136,9 +140,11 @@ namespace NewLife.Xml
             if (type == null) throw new ArgumentNullException("type");
             if (encoding == null) encoding = Encoding.UTF8;
 
-            var x = new NewLife.Serialization.Xml();
-            x.Stream = stream;
-            x.Encoding = encoding;
+            var x = new NewLife.Serialization.Xml
+            {
+                Stream = stream,
+                Encoding = encoding
+            };
 
             return x.Read(type);
 

@@ -112,10 +112,12 @@ namespace NewLife.Security
                 dataHandle = GCHandle.Alloc(nameData, GCHandleType.Pinned);
                 var nameBlob = new CryptoApiBlob(nameData.Length, dataHandle.AddrOfPinnedObject());
 
-                var kpi = new CryptKeyProviderInformation();
-                kpi.ContainerName = containerName;
-                kpi.ProviderType = 1; // PROV_RSA_FULL
-                kpi.KeySpec = 1; // AT_KEYEXCHANGE
+                var kpi = new CryptKeyProviderInformation
+                {
+                    ContainerName = containerName,
+                    ProviderType = 1, // PROV_RSA_FULL
+                    KeySpec = 1 // AT_KEYEXCHANGE
+                };
 
                 var startSystemTime = ToSystemTime(startTime);
                 var endSystemTime = ToSystemTime(endTime);
