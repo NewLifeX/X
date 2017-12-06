@@ -67,15 +67,29 @@ namespace NewLife.Caching
         {
             if (expire < 0) expire = Expire;
 
-            _cache.AddOrUpdate(key,
-                k => new CacheItem(value, expire),
-                (k, item) =>
+            //_cache.AddOrUpdate(key,
+            //    k => new CacheItem(value, expire),
+            //    (k, item) =>
+            //    {
+            //        item.Value = value;
+            //        item.ExpiredTime = DateTime.Now.AddSeconds(expire);
+
+            //        return item;
+            //    });
+
+            // 不用AddOrUpdate，避免匿名委托带来的GC损耗
+            CacheItem ci = null;
+            do
+            {
+                if (_cache.TryGetValue(key, out var item))
                 {
                     item.Value = value;
-                    item.ExpiredTime = DateTime.Now.AddSeconds(expire);
+                    item.ExpiredTime = TimerX.Now.AddSeconds(expire);
+                    if (_cache.TryUpdate(key, item, item)) return true;
+                }
 
-                    return item;
-                });
+                if (ci == null) ci = new CacheItem(value, expire);
+            } while (!_cache.TryAdd(key, ci));
 
             return true;
         }
@@ -93,7 +107,7 @@ namespace NewLife.Caching
         /// <summary>移除缓存项</summary>
         /// <param name="key">键</param>
         /// <returns></returns>
-        public override Boolean Remove(String key) { return _cache.Remove(key); }
+        public override Boolean Remove(String key) { return _cache.TryRemove(key, out var item); }
 
         /// <summary>设置缓存项有效期</summary>
         /// <param name="key">键</param>
