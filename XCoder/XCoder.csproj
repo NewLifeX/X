@@ -63,6 +63,12 @@
     <Compile Include="FolderInfo\FrmMain.Designer.cs">
       <DependentUpon>FrmMain.cs</DependentUpon>
     </Compile>
+    <Compile Include="FolderInfo\FrmSplitFile.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FolderInfo\FrmSplitFile.Designer.cs">
+      <DependentUpon>FrmSplitFile.cs</DependentUpon>
+    </Compile>
     <Compile Include="FrmMDI.cs">
       <SubType>Form</SubType>
     </Compile>
