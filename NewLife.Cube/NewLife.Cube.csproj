@@ -167,6 +167,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>_Navbar.cshtml</DependentUpon>
     </Compile>
+    <Compile Include="Areas\Admin\Views\Log\_List_Data.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>_List_Data.cshtml</DependentUpon>
+    </Compile>
     <Compile Include="Areas\Admin\Views\Log\_List_Search.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -481,6 +486,10 @@
     <Content Include="Areas\Admin\Views\User\_List_Toolbar_Batch.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_List_Toolbar_Batch.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Areas\Admin\Views\Log\_List_Data.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>_List_Data.generated.cs</LastGenOutput>
     </Content>
     <None Include="Content\jweui\css\demos.css" />
     <None Include="Content\jweui\css\jquery-weui.css" />

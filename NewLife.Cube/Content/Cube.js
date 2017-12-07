@@ -1,5 +1,5 @@
 ﻿// 以下时间用于魔方判断是否需要更新脚本
-// 2017-11-29 00:00:00
+// 2017-12-07 00:00:00
 
 $(function () {
 
@@ -7,9 +7,10 @@ $(function () {
     window.confirmDialog = parent['confirmDialog'] || function (msg, func) { if (confirm(msg)) func(); };
     window.tips = parent['tips'] || function (msg, modal, time, jumpUrl) { alert(msg); location.reload(); };
 
-    //按钮事件
+    //根据data-action的值确定操作类型 action为请求后端执行业务操作，url为直接跳转指定url地址
+    //按钮请求action
     $(document).on('click',
-        'button[data-action], input[data-action], a[data-action]',
+        'button[data-action="action"], input[data-action="action"], a[data-action="action"]',
         function (e) {
             $this = $(this);
             //动态设置标签参数
@@ -29,6 +30,17 @@ $(function () {
             doClickAction($this);
             //阻止按钮本身的事件冒泡
             return false;
+        });
+    //直接执行Url地址
+    $(document).on('click'
+        , 'button[data-action="url"],input[data-action="url"],a[data-action="url"]'
+        , function (data) {
+            $this = $(this);
+            var url = $this.attr('href');
+            if (url && url.length > 0) {
+                $this.data('url', url);
+            }
+            location = url;
         });
 });
 
@@ -78,13 +90,13 @@ function doAction(methodName, actionUrl, actionParamter) {
         data: actionParamter,
         error: function (ex) {
             tips('请求异常！', 0, 1000);
-            console.log(ex);
+            //console.log(ex);
         },
         beforeSend: function () {
             tips('正在操作中，请稍候...', 0, 2000);
         },
         success: function (s) {
-            console.log(s);
+            //console.log(s);
         },
         complete: function (result) {
             var rs = result.responseJSON;

@@ -150,7 +150,7 @@ WriteAttribute("href", Tuple.Create(" href=\"", 1004), Tuple.Create("\"", 1038)
 , 1011), false)
 );
 
-WriteLiteral(" data-action=\"delete\"");
+WriteLiteral(" data-action=\"action\"");
 
 WriteLiteral(" data-fields=\"keys\"");
 
@@ -172,7 +172,7 @@ WriteAttribute("href", Tuple.Create(" href=\"", 1197), Tuple.Create("\"", 1228)
 , 1204), false)
 );
 
-WriteLiteral(" data-action=\"delete\"");
+WriteLiteral(" data-action=\"action\"");
 
 WriteLiteral(" data-confirm=\"该操作将删除当前查询的所有数据并不可恢复！确认删除？\"");
 
@@ -223,7 +223,7 @@ WriteAttribute("href", Tuple.Create(" href=\"", 1542), Tuple.Create("\"", 1569)
 , 1549), false)
 );
 
-WriteLiteral(" data-action=\"delete\"");
+WriteLiteral(" data-action=\"action\"");
 
 WriteLiteral(" data-confirm=\"该操作将删除数据表所有数据并不可恢复！确认清空？\"");
 
