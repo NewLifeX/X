@@ -306,15 +306,33 @@ WriteLiteral("</td>\r\n");
                 }
                 else
                 {
+                    //防止内容過長
+                    if (item.Name.EqualIgnoreCase("remark"))
+                    {
 
             
             #line default
             #line hidden
-WriteLiteral("                    <td>");
+WriteLiteral("                        <td");
+
+WriteLiteral(" style=\"max-width:600px;overflow:hidden;white-space: nowrap;text-overflow: ellips" +
+"is;\"");
+
+WriteAttribute("title", Tuple.Create(" title=\"", 2967), Tuple.Create("\"", 2993)
+            
+            #line 89 "..\..\Views\Shared\_List_Data_Item.cshtml"
+                                        , Tuple.Create(Tuple.Create("", 2975), Tuple.Create<System.Object, System.Int32>(entity[item.Name]
+            
+            #line default
+            #line hidden
+, 2975), false)
+);
+
+WriteLiteral(">");
 
             
-            #line 86 "..\..\Views\Shared\_List_Data_Item.cshtml"
-                   Write(entity[item.Name]);
+            #line 89 "..\..\Views\Shared\_List_Data_Item.cshtml"
+                                                                                                                                       Write(entity[item.Name]);
 
             
             #line default
@@ -322,7 +340,28 @@ WriteLiteral("                    <td>");
 WriteLiteral("</td>\r\n");
 
             
-            #line 87 "..\..\Views\Shared\_List_Data_Item.cshtml"
+            #line 90 "..\..\Views\Shared\_List_Data_Item.cshtml"
+                    }
+                    else
+                    {
+
+            
+            #line default
+            #line hidden
+WriteLiteral("                        <td>");
+
+            
+            #line 93 "..\..\Views\Shared\_List_Data_Item.cshtml"
+                       Write(entity[item.Name]);
+
+            
+            #line default
+            #line hidden
+WriteLiteral("</td>\r\n");
+
+            
+            #line 94 "..\..\Views\Shared\_List_Data_Item.cshtml"
+                    }
                 }
             }
             break;
@@ -331,7 +370,7 @@ WriteLiteral("</td>\r\n");
             #line default
             #line hidden
             
-            #line 92 "..\..\Views\Shared\_List_Data_Item.cshtml"
+            #line 100 "..\..\Views\Shared\_List_Data_Item.cshtml"
                         
     }
 }
