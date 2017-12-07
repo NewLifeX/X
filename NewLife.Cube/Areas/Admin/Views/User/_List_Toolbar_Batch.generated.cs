@@ -74,7 +74,7 @@ WriteLiteral(" type=\"button\"");
 
 WriteLiteral(" class=\"btn btn-purple btn-sm\"");
 
-WriteLiteral(" data-action=\"enable\"");
+WriteLiteral(" data-action=\"action\"");
 
 WriteLiteral(" data-url=\"");
 
@@ -97,7 +97,7 @@ WriteLiteral(" type=\"button\"");
 
 WriteLiteral(" class=\"btn btn-purple btn-sm\"");
 
-WriteLiteral(" data-action=\"enable\"");
+WriteLiteral(" data-action=\"action\"");
 
 WriteLiteral(" data-url=\"");
 
