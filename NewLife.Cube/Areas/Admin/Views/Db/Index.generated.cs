@@ -138,28 +138,31 @@ WriteLiteral("</td>\r\n                <td>");
             
             #line default
             #line hidden
-WriteLiteral("</td>\r\n                <td><span");
+WriteLiteral("</td>\r\n                <td");
 
-WriteAttribute("title", Tuple.Create(" title=\"", 897), Tuple.Create("\"", 929)
+WriteLiteral(" style=\"max-width:600px;overflow:hidden;white-space: nowrap;text-overflow: ellips" +
+"is;\"");
+
+WriteAttribute("title", Tuple.Create(" title=\"", 976), Tuple.Create("\"", 1008)
             
             #line 29 "..\..\Areas\Admin\Views\Db\Index.cshtml"
-, Tuple.Create(Tuple.Create("", 905), Tuple.Create<System.Object, System.Int32>(dal.Db.ConnectionString
+                                 , Tuple.Create(Tuple.Create("", 984), Tuple.Create<System.Object, System.Int32>(dal.Db.ConnectionString
             
             #line default
             #line hidden
-, 905), false)
+, 984), false)
 );
 
 WriteLiteral(">");
 
             
             #line 29 "..\..\Areas\Admin\Views\Db\Index.cshtml"
-                                                      Write(item.ConnStr);
+                                                                                                                                     Write(item.ConnStr);
 
             
             #line default
             #line hidden
-WriteLiteral("</span></td>\r\n                <td>");
+WriteLiteral("</td>\r\n                <td>");
 
             
             #line 30 "..\..\Areas\Admin\Views\Db\Index.cshtml"

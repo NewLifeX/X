@@ -26,7 +26,7 @@
             <tr>
                 <td>@item.Name</td>
                 <td>@item.Type</td>
-                <td><span title="@dal.Db.ConnectionString">@item.ConnStr</span></td>
+                <td style="max-width:600px;overflow:hidden;white-space: nowrap;text-overflow: ellipsis;" title="@dal.Db.ConnectionString">@item.ConnStr</td>
                 <td>@item.Version</td>
                 <td>@Html.ActionLink("备份", "Backup", new { Name = item.Name })，共 @item.Backups.ToString("n0")个</td>
                 <td>@Html.ActionLink("备份并压缩", "BackupAndCompress", new { Name = item.Name })</td>
