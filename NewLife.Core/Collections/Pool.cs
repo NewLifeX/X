@@ -317,6 +317,7 @@ namespace NewLife.Collections
                         OnDestroy(pi.Value);
 
                         count++;
+                        Interlocked.Decrement(ref _FreeCount);
                     }
                 }
             }
@@ -333,14 +334,15 @@ namespace NewLife.Collections
                         OnDestroy(pi.Value);
 
                         count++;
+                        Interlocked.Decrement(ref _FreeCount);
                     }
                 }
             }
 
             if (count > 0)
             {
-                _FreeCount = _free.Count + _free2.Count;
-                _BusyCount = _busy.Count;
+                //_FreeCount = _free.Count + _free2.Count;
+                //_BusyCount = _busy.Count;
 
                 var p = Total == 0 ? 0 : (Double)Success / Total;
 
