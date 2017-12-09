@@ -470,6 +470,39 @@ namespace System.IO
             return list.ToArray();
         }
 
+        /// <summary>从多个目标目录复制较新文件到当前目录</summary>
+        /// <param name="di">当前目录</param>
+        /// <param name="source">多个目标目录</param>
+        /// <param name="exts">文件扩展列表。比如*.exe;*.dll;*.config</param>
+        /// <param name="allSub">是否包含所有子孙目录文件</param>
+        /// <returns></returns>
+        public static String[] CopyIfNewer(this DirectoryInfo di, String[] source, String exts = null, Boolean allSub = false)
+        {
+            var list = new List<String>();
+            var cur = di.FullName;
+            foreach (var item in source)
+            {
+                // 跳过当前目录
+                if (item.GetFullPath().EqualIgnoreCase(cur)) continue;
+
+                Console.WriteLine("复制 {0} => {1}", item, cur);
+
+                try
+                {
+                    var rs = item.AsDirectory().CopyToIfNewer(cur, exts, allSub, name =>
+                    {
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.WriteLine("\t{1}\t{0}", name, item.CombinePath(name).AsFile().LastWriteTime.ToFullString());
+                        Console.ResetColor();
+                    });
+                    if (rs != null && rs.Length > 0) list.AddRange(rs);
+                }
+                catch (Exception ex) { Console.WriteLine(" " + ex.Message); }
+            }
+
+            return list.ToArray();
+        }
+
 #if !__MOBILE__
         /// <summary>压缩</summary>
         /// <param name="di"></param>

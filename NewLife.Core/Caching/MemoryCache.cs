@@ -243,6 +243,8 @@ namespace NewLife.Caching
                         case TypeCode.Double:
                             newValue = (Double)oldValue + (Double)value;
                             break;
+                        default:
+                            throw new NotSupportedException("不支持类型[{0}]的递增".F(value.GetType().FullName));
                     }
                 } while (Interlocked.CompareExchange(ref _Value, newValue, oldValue) != oldValue);
 
@@ -274,6 +276,8 @@ namespace NewLife.Caching
                         case TypeCode.Double:
                             newValue = (Double)oldValue - (Double)value;
                             break;
+                        default:
+                            throw new NotSupportedException("不支持类型[{0}]的递减".F(value.GetType().FullName));
                     }
                 } while (Interlocked.CompareExchange(ref _Value, newValue, oldValue) != oldValue);
 
