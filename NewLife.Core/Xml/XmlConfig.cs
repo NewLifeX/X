@@ -50,7 +50,7 @@ namespace NewLife.Xml
                     XTrace.WriteLine("{0}的配置文件{1}有更新，重新加载配置！", typeof(TConfig), config.ConfigFile);
 
                     // 异步更新
-                    Task.Run(() => config.Load(dcf));
+                    ThreadPoolX.QueueUserWorkItem(() => config.Load(dcf));
 
                     return config;
                 }

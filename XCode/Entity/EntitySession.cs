@@ -469,7 +469,7 @@ namespace XCode
                     {
                         _NextCount = now.AddSeconds(60);
                         // 异步更新
-                        TaskEx.Run(() => LongCount = GetCount(_Count));
+                        ThreadPoolX.QueueUserWorkItem(() => LongCount = GetCount(_Count));
                     }
 
                     return n;
