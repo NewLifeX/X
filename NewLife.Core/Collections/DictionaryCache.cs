@@ -163,7 +163,7 @@ namespace NewLife.Collections
                 {
                     value = func(key);
 
-                    if (CacheDefault || !Object.Equals(value, default(TValue))) items[key] = new CacheItem(value, exp);
+                    if (CacheDefault || !Equals(value, default(TValue))) items[key] = new CacheItem(value, exp);
                 }
                 StartTimer();
 

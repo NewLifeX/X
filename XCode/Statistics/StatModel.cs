@@ -157,28 +157,25 @@ namespace XCode.Statistics
 
         /// <summary>获取哈希</summary>
         /// <returns></returns>
-        public override Int32 GetHashCode()
-        {
-            return Level.GetHashCode() ^ Time.GetHashCode();
-        }
+        public override Int32 GetHashCode() => Level.GetHashCode() ^ Time.GetHashCode();
 
-        /// <summary>相等</summary>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
-        /// <returns></returns>
-        public static Boolean operator ==(StatModel x, StatModel y)
-        {
-            if (ReferenceEquals(x, y)) return true;
-            if ((Object)x == null || (Object)y == null) return false;
+        ///// <summary>相等</summary>
+        ///// <param name="x"></param>
+        ///// <param name="y"></param>
+        ///// <returns></returns>
+        //public static Boolean operator ==(StatModel x, StatModel y)
+        //{
+        //    if (ReferenceEquals(x, y)) return true;
+        //    if ((Object)x == null || (Object)y == null) return false;
 
-            return x.Equals(y);
-        }
+        //    return x.Equals(y);
+        //}
 
-        /// <summary>不等</summary>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
-        /// <returns></returns>
-        public static Boolean operator !=(StatModel x, StatModel y) => !(x == y);
+        ///// <summary>不等</summary>
+        ///// <param name="x"></param>
+        ///// <param name="y"></param>
+        ///// <returns></returns>
+        //public static Boolean operator !=(StatModel x, StatModel y) => !(x == y);
         #endregion
     }
 }

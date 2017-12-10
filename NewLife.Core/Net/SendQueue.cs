@@ -51,7 +51,7 @@ namespace NewLife.Net
             ss.LastTime = DateTime.Now;
 
             // 打开UDP广播
-            if (ss.Local.Type == NetType.Udp && remote != null && Object.Equals(remote.Address, IPAddress.Broadcast)) ss.Client.EnableBroadcast = true;
+            if (ss.Local.Type == NetType.Udp && remote != null && Equals(remote.Address, IPAddress.Broadcast)) ss.Client.EnableBroadcast = true;
 
             // 同时只允许一个异步发送，其它发送放入队列
 

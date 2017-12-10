@@ -448,7 +448,7 @@ namespace XCode.DataAccessLayer
                 if (!writeDefaultValueMember)
                 {
                     var dobj = def.GetValue(pi);
-                    if (Object.Equals(obj, dobj)) continue;
+                    if (Equals(obj, dobj)) continue;
                     if (code == TypeCode.String && "" + obj == "" + dobj) continue;
                 }
 

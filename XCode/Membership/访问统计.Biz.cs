@@ -31,6 +31,24 @@ namespace XCode.Membership
         /// <summary>错误</summary>
         public String Error { get; set; }
         #endregion
+
+        #region 相等比较
+        /// <summary>相等</summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public override Boolean Equals(Object obj)
+        {
+            if (!base.Equals(obj)) return false;
+
+            if (obj is VisitStatModel model) return Page + "" == model.Page + "";
+
+            return false;
+        }
+
+        /// <summary>获取哈希</summary>
+        /// <returns></returns>
+        public override Int32 GetHashCode() => base.GetHashCode() ^ Page.GetHashCode();
+        #endregion
     }
 
     /// <summary>访问统计</summary>
