@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using NewLife.Collections;
 using NewLife.Data;
 using XCode;
 using XCode.Cache;
@@ -67,11 +68,11 @@ namespace XCode.Membership
             // 过滤器 UserModule、TimeModule、IPModule
             Meta.Modules.Add<TimeModule>();
 
-            // 单对象缓存从键
-            var sc = Meta.SingleCache;
-            if (sc.Expire < 20 * 60) sc.Expire = 20 * 60;
-            sc.FindSlaveKeyMethod = k => FindByModel(GetModel(k), false);
-            sc.GetSlaveKeyMethod = e => GetKey(e.ToModel());
+            //// 单对象缓存从键
+            //var sc = Meta.SingleCache;
+            //if (sc.Expire < 20 * 60) sc.Expire = 20 * 60;
+            //sc.FindSlaveKeyMethod = k => FindByModel(GetModel(k), false);
+            //sc.GetSlaveKeyMethod = e => GetKey(e.ToModel());
 
 #if !DEBUG
             // 关闭SQL日志
@@ -100,6 +101,7 @@ namespace XCode.Membership
             //return Find(_.ID == id);
         }
 
+        private static DictionaryCache<VisitStatModel, VisitStat> _cache = new DictionaryCache<VisitStatModel, VisitStat> { Expire = 20 * 60, Period = 60 };
         /// <summary>根据模型查找</summary>
         /// <param name="model"></param>
         /// <param name="cache"></param>
@@ -108,7 +110,13 @@ namespace XCode.Membership
         {
             if (model == null) return null;
 
-            if (cache) return Meta.SingleCache.GetItemWithSlaveKey(GetKey(model)) as VisitStat;
+            //if (cache) return Meta.SingleCache.GetItemWithSlaveKey(GetKey(model)) as VisitStat;
+            if (cache)
+            {
+                if (_cache.FindMethod == null) _cache.FindMethod = m => FindByModel(m, false);
+
+                return _cache[model];
+            }
 
             var exp = new WhereExpression();
             exp &= _.Level == model.Level;
@@ -240,39 +248,39 @@ namespace XCode.Membership
         #endregion
 
         #region 辅助
-        /// <summary>实体转模型</summary>
-        /// <returns></returns>
-        public VisitStatModel ToModel()
-        {
-            var model = new VisitStatModel
-            {
-                Page = Page,
-                Level = Level,
-                Time = Time,
-            };
+        ///// <summary>实体转模型</summary>
+        ///// <returns></returns>
+        //public VisitStatModel ToModel()
+        //{
+        //    var model = new VisitStatModel
+        //    {
+        //        Page = Page,
+        //        Level = Level,
+        //        Time = Time,
+        //    };
 
-            return model;
-        }
+        //    return model;
+        //}
 
-        private static String GetKey(VisitStatModel model)
-        {
-            return $"{model.Page}_{(Int32)model.Level}_{model.Time.ToFullString()}";
-        }
+        //private static String GetKey(VisitStatModel model)
+        //{
+        //    return $"{model.Page}_{(Int32)model.Level}_{model.Time.ToFullString()}";
+        //}
 
-        private static VisitStatModel GetModel(String key)
-        {
-            var ks = key.Split("_");
-            if (ks.Length < 3) return null;
+        //private static VisitStatModel GetModel(String key)
+        //{
+        //    var ks = key.Split("_");
+        //    if (ks.Length < 3) return null;
 
-            var model = new VisitStatModel
-            {
-                Page = ks[0],
-                Level = (StatLevels)ks[1].ToInt(),
-                Time = ks[2].ToDateTime(),
-            };
+        //    var model = new VisitStatModel
+        //    {
+        //        Page = ks[0],
+        //        Level = (StatLevels)ks[1].ToInt(),
+        //        Time = ks[2].ToDateTime(),
+        //    };
 
-            return model;
-        }
+        //    return model;
+        //}
         #endregion
     }
 }

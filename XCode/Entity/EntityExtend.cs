@@ -22,11 +22,12 @@ namespace XCode
         {
             if (func == null) throw new ArgumentNullException(nameof(func));
 
-            //return (T)GetItem(key, k => func(k));
+            return (T)GetItem(key, k => func(k));
 
-            if (FindMethod == null) FindMethod = k => func(k);
+            //if (FindMethod == null) FindMethod = k => func(k);
 
-            return (T)this[key];
+            //var rs = this[key];
+            //return (T)rs;
         }
 
         /// <summary>设置扩展属性项</summary>

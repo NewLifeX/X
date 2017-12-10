@@ -142,7 +142,11 @@ namespace NewLife.Collections
             {
                 //if (func == null) throw new ArgumentNullException(nameof(FindMethod));
 
-                var item2 = new CacheItem(func(key), Expire);
+                // 查数据，避免缓存穿透
+                var value = func(key);
+                if (value == null) return default(TValue);
+
+                var item2 = new CacheItem(value, Expire);
                 item = _cache.GetOrAdd(key, item2);
 
                 if (item == item2) Interlocked.Increment(ref _count);
