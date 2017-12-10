@@ -673,9 +673,9 @@ namespace XCode.DataAccessLayer
         private DictionaryCache<String, DataTable> _schCache = new DictionaryCache<String, DataTable>(StringComparer.OrdinalIgnoreCase)
         {
             Expire = 10,
-            ClearPeriod = 10 * 60,
-            // 不能异步。否则，修改表结构后，第一次获取会是旧的
-            Asynchronous = false
+            Period = 10 * 60,
+            //// 不能异步。否则，修改表结构后，第一次获取会是旧的
+            //Asynchronous = false
         };
 
         /// <summary>返回数据源的架构信息。缓存10分钟</summary>
@@ -687,7 +687,12 @@ namespace XCode.DataAccessLayer
             // 小心collectionName为空，此时列出所有架构名称
             var key = "" + collectionName;
             if (restrictionValues != null && restrictionValues.Length > 0) key += "_" + String.Join("_", restrictionValues);
-            return _schCache.GetItem(key, k => GetSchemaInternal(k, collectionName, restrictionValues));
+
+            //return _schCache.GetItem(key, k => GetSchemaInternal(k, collectionName, restrictionValues));
+            var dt = _schCache[key];
+            if (dt == null) _schCache[key] = dt = GetSchemaInternal(key, collectionName, restrictionValues);
+
+            return dt;
         }
 
         DataTable GetSchemaInternal(String key, String collectionName, String[] restrictionValues)

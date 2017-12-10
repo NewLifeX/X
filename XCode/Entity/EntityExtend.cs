@@ -9,7 +9,7 @@ namespace XCode
         /// <summary>实例化一个不区分键大小写的实体扩展</summary>
         public EntityExtend() : base(StringComparer.OrdinalIgnoreCase)
         {
-            Asynchronous = true;
+            //Asynchronous = true;
             // 扩展属性默认10秒过期，然后异步更新
             Expire = Setting.Current.ExtendExpire;
         }
@@ -22,14 +22,18 @@ namespace XCode
         {
             if (func == null) throw new ArgumentNullException(nameof(func));
 
-            return (T)GetItem(key, k => func(k));
+            //return (T)GetItem(key, k => func(k));
+
+            if (FindMethod == null) FindMethod = k => func(k);
+
+            return (T)this[key];
         }
 
         /// <summary>设置扩展属性项</summary>
         /// <param name="key"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public virtual Boolean Set(String key, Object value)
+        public override Boolean Set(String key, Object value)
         {
             if (value == null) return Remove(key);
 

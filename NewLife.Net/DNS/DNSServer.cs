@@ -133,7 +133,7 @@ namespace NewLife.Net.DNS
             _Clients = null;
         }
 
-        DictionaryCache<String, DNSEntity> cache = new DictionaryCache<String, DNSEntity>() { Expire = 600, Asynchronous = true, CacheDefault = false };
+        DictionaryCache<String, DNSEntity> cache = new DictionaryCache<String, DNSEntity>() { Expire = 600/*, Asynchronous = true, CacheDefault = false*/ };
 
         /// <summary>接收处理</summary>
         /// <param name="session"></param>
@@ -171,8 +171,10 @@ namespace NewLife.Net.DNS
             // 结合数据库缓存，可以在这里进行返回
             if (OnRequest != null)
             {
-                var e = new DNSEventArgs();
-                e.Request = request;
+                var e = new DNSEventArgs
+                {
+                    Request = request
+                };
                 OnRequest(this, e);
                 if (e.Response != null) return e.Response;
             }
@@ -186,7 +188,10 @@ namespace NewLife.Net.DNS
             }
 
             // 读取缓存
-            var rs = cache.GetItem(request.ToString(), k => GetDNS(k, request));
+            //var rs = cache.GetItem(request.ToString(), k => GetDNS(k, request));
+            var key = request.ToString();
+            var rs = cache[key];
+            if (rs == null) cache[key] = rs = GetDNS(key, request);
 
             // 返回给客户端
             if (rs != null)
@@ -195,8 +200,7 @@ namespace NewLife.Net.DNS
                 if (rq.Type == DNSQueryType.PTR && rs.Questions[0].Type == DNSQueryType.PTR)
                 {
                     var ptr = rq as DNS_PTR;
-                    var ptr2 = rs.GetAnswer() as DNS_PTR;
-                    if (ptr2 != null)
+                    if (rs.GetAnswer() is DNS_PTR ptr2)
                     {
                         ptr2.Name = ptr.Name;
                         ptr2.DomainName = DomainName;
@@ -226,13 +230,17 @@ namespace NewLife.Net.DNS
             var addr = ptr.Address;
             if (addr != null && addr.IsLocal())
             {
-                var ptr2 = new DNS_PTR();
-                ptr2.Name = ptr.Name;
-                ptr2.DomainName = DomainName;
+                var ptr2 = new DNS_PTR
+                {
+                    Name = ptr.Name,
+                    DomainName = DomainName
+                };
 
-                var rs = new DNSEntity();
-                rs.Questions = request.Questions;
-                rs.Answers = new DNSRecord[] { ptr2 };
+                var rs = new DNSEntity
+                {
+                    Questions = request.Questions,
+                    Answers = new DNSRecord[] { ptr2 }
+                };
 
                 rs.Header.ID = request.Header.ID;
                 return rs;
