@@ -156,7 +156,20 @@ namespace XCode.Web
             var ts = DateTime.Now - ctx.Timestamp;
 
             // 访问统计
-            VisitStat.Add(page, title, (Int32)ts.TotalMilliseconds, user?.ID ?? 0, ip, GetError(ctx)?.Message);
+            //VisitStat.Add(page, title, (Int32)ts.TotalMilliseconds, user?.ID ?? 0, ip, GetError(ctx)?.Message);
+
+            var model = new VisitStatModel
+            {
+                Time = DateTime.Now,
+                Page = page,
+                Title = title,
+                Cost = (Int32)ts.TotalMilliseconds,
+                User = user + "",
+                IP = ip,
+                Error = GetError(ctx)?.Message,
+            };
+
+            VisitStat.Process(model);
         }
 
         /// <summary>获取错误，排除HttpException</summary>

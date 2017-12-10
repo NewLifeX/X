@@ -11,6 +11,10 @@ namespace XCode.Statistics
     [Description("统计层级")]
     public enum StatLevels
     {
+        /// <summary>全部</summary>
+        [Description("全部")]
+        All = 0,
+
         /// <summary>年</summary>
         [Description("年")]
         Year = 1,
@@ -19,8 +23,8 @@ namespace XCode.Statistics
         [Description("月")]
         Month = 2,
 
-        /// <summary>天</summary>
-        [Description("天")]
+        /// <summary>日</summary>
+        [Description("日")]
         Day = 3,
 
         /// <summary>小时</summary>

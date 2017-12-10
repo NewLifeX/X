@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using NewLife.Log;
 
 namespace XCode.Statistics
@@ -12,6 +8,7 @@ namespace XCode.Statistics
     {
         private static String _Last;
         /// <summary>获取 或 新增 统计对象</summary>
+        /// <typeparam name="TEntity"></typeparam>
         /// <typeparam name="TModel"></typeparam>
         /// <param name="model"></param>
         /// <param name="find"></param>

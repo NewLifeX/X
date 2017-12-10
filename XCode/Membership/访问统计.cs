@@ -11,8 +11,8 @@ namespace XCode.Membership
     [Serializable]
     [DataObject]
     [Description("访问统计")]
-    [BindIndex("IX_VisitStat_Year_Month_Day", false, "Year,Month,Day")]
-    [BindIndex("IU_VisitStat_Page_Year_Month_Day", true, "Page,Year,Month,Day")]
+    [BindIndex("IU_VisitStat_Page_Level_Time", true, "Page,Level,Time")]
+    [BindIndex("IX_VisitStat_Level_Time", false, "Level,Time")]
     [BindTable("VisitStat", Description = "访问统计", ConnName = "Log", DbType = DatabaseType.None)]
     public partial class VisitStat : IVisitStat
     {
@@ -25,29 +25,21 @@ namespace XCode.Membership
         [BindColumn("ID", "编号", "")]
         public Int32 ID { get { return _ID; } set { if (OnPropertyChanging(__.ID, value)) { _ID = value; OnPropertyChanged(__.ID); } } }
 
-        private Int32 _Year;
-        /// <summary>年</summary>
-        [DisplayName("年")]
-        [Description("年")]
+        private XCode.Statistics.StatLevels _Level;
+        /// <summary>层级</summary>
+        [DisplayName("层级")]
+        [Description("层级")]
         [DataObjectField(false, false, false, 0)]
-        [BindColumn("Year", "年", "")]
-        public Int32 Year { get { return _Year; } set { if (OnPropertyChanging(__.Year, value)) { _Year = value; OnPropertyChanged(__.Year); } } }
+        [BindColumn("Level", "层级", "")]
+        public XCode.Statistics.StatLevels Level { get { return _Level; } set { if (OnPropertyChanging(__.Level, value)) { _Level = value; OnPropertyChanged(__.Level); } } }
 
-        private Int32 _Month;
-        /// <summary>月</summary>
-        [DisplayName("月")]
-        [Description("月")]
-        [DataObjectField(false, false, false, 0)]
-        [BindColumn("Month", "月", "")]
-        public Int32 Month { get { return _Month; } set { if (OnPropertyChanging(__.Month, value)) { _Month = value; OnPropertyChanged(__.Month); } } }
-
-        private Int32 _Day;
-        /// <summary>日</summary>
-        [DisplayName("日")]
-        [Description("日")]
-        [DataObjectField(false, false, false, 0)]
-        [BindColumn("Day", "日", "")]
-        public Int32 Day { get { return _Day; } set { if (OnPropertyChanging(__.Day, value)) { _Day = value; OnPropertyChanged(__.Day); } } }
+        private DateTime _Time;
+        /// <summary>时间</summary>
+        [DisplayName("时间")]
+        [Description("时间")]
+        [DataObjectField(false, false, true, 0)]
+        [BindColumn("Time", "时间", "")]
+        public DateTime Time { get { return _Time; } set { if (OnPropertyChanging(__.Time, value)) { _Time = value; OnPropertyChanged(__.Time); } } }
 
         private String _Page;
         /// <summary>页面</summary>
@@ -141,9 +133,8 @@ namespace XCode.Membership
                 switch (name)
                 {
                     case __.ID : return _ID;
-                    case __.Year : return _Year;
-                    case __.Month : return _Month;
-                    case __.Day : return _Day;
+                    case __.Level : return _Level;
+                    case __.Time : return _Time;
                     case __.Page : return _Page;
                     case __.Title : return _Title;
                     case __.Times : return _Times;
@@ -162,9 +153,8 @@ namespace XCode.Membership
                 switch (name)
                 {
                     case __.ID : _ID = Convert.ToInt32(value); break;
-                    case __.Year : _Year = Convert.ToInt32(value); break;
-                    case __.Month : _Month = Convert.ToInt32(value); break;
-                    case __.Day : _Day = Convert.ToInt32(value); break;
+                    case __.Level : _Level = (XCode.Statistics.StatLevels)Convert.ToInt32(value); break;
+                    case __.Time : _Time = Convert.ToDateTime(value); break;
                     case __.Page : _Page = Convert.ToString(value); break;
                     case __.Title : _Title = Convert.ToString(value); break;
                     case __.Times : _Times = Convert.ToInt32(value); break;
@@ -188,14 +178,11 @@ namespace XCode.Membership
             /// <summary>编号</summary>
             public static readonly Field ID = FindByName(__.ID);
 
-            /// <summary>年</summary>
-            public static readonly Field Year = FindByName(__.Year);
+            /// <summary>层级</summary>
+            public static readonly Field Level = FindByName(__.Level);
 
-            /// <summary>月</summary>
-            public static readonly Field Month = FindByName(__.Month);
-
-            /// <summary>日</summary>
-            public static readonly Field Day = FindByName(__.Day);
+            /// <summary>时间</summary>
+            public static readonly Field Time = FindByName(__.Time);
 
             /// <summary>页面</summary>
             public static readonly Field Page = FindByName(__.Page);
@@ -236,14 +223,11 @@ namespace XCode.Membership
             /// <summary>编号</summary>
             public const String ID = "ID";
 
-            /// <summary>年</summary>
-            public const String Year = "Year";
+            /// <summary>层级</summary>
+            public const String Level = "Level";
 
-            /// <summary>月</summary>
-            public const String Month = "Month";
-
-            /// <summary>日</summary>
-            public const String Day = "Day";
+            /// <summary>时间</summary>
+            public const String Time = "Time";
 
             /// <summary>页面</summary>
             public const String Page = "Page";
@@ -285,14 +269,11 @@ namespace XCode.Membership
         /// <summary>编号</summary>
         Int32 ID { get; set; }
 
-        /// <summary>年</summary>
-        Int32 Year { get; set; }
+        /// <summary>层级</summary>
+        XCode.Statistics.StatLevels Level { get; set; }
 
-        /// <summary>月</summary>
-        Int32 Month { get; set; }
-
-        /// <summary>日</summary>
-        Int32 Day { get; set; }
+        /// <summary>时间</summary>
+        DateTime Time { get; set; }
 
         /// <summary>页面</summary>
         String Page { get; set; }

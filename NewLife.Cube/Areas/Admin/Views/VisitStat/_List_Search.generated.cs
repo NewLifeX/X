@@ -33,6 +33,12 @@ namespace ASP
     using XCode;
     using XCode.Membership;
     
+    #line 1 "..\..\Areas\Admin\Views\VisitStat\_List_Search.cshtml"
+    using XCode.Statistics;
+    
+    #line default
+    #line hidden
+    
     [System.CodeDom.Compiler.GeneratedCodeAttribute("RazorGenerator", "2.0.0.0")]
     [System.Web.WebPages.PageVirtualPathAttribute("~/Areas/Admin/Views/VisitStat/_List_Search.cshtml")]
     public partial class _Areas_Admin_Views_VisitStat__List_Search_cshtml : System.Web.Mvc.WebViewPage<dynamic>
@@ -43,47 +49,20 @@ namespace ASP
         public override void Execute()
         {
             
-            #line 1 "..\..\Areas\Admin\Views\VisitStat\_List_Search.cshtml"
+            #line 2 "..\..\Areas\Admin\Views\VisitStat\_List_Search.cshtml"
   
-    var now = DateTime.Now;
+    var page = ViewBag.Page as Pager;
 
-    var year = Request["year"].ToInt(-1);
-    var month = Request["month"].ToInt(-1);
-    var day = Request["day"].ToInt(-1);
-
-    var ys = new Dictionary<Int32, String>();
-    ys.Add(0, "全部");
-    for (int i = 0; i > -10; i--)
+    var level = (StatLevels)page["Level"].ToInt();
+    var formatStr = "";
+    switch (level)
     {
-        ys.Add(now.Year + i , now.Year + i + "");
+        case StatLevels.Year: formatStr = "yyyy"; break;
+        case StatLevels.Month: formatStr = "yyyy-MM"; break;
+        case StatLevels.Day: formatStr = "yyyy-MM-dd"; break;
+        case StatLevels.Hour: formatStr = "yyyy-MM-dd HH"; break;
+        case StatLevels.Minute: formatStr = "yyyy-MM-dd HH:mm"; break;
     }
-
-    var ms = new Dictionary<Int32, String>();
-    if (year > 0)
-    {
-        ms.Add(0, "全年");
-        // 不要当前月以后的月份
-        var max = year == now.Year ? now.Month : 12;
-        for (int i = 1; i <= max; i++)
-        {
-            ms.Add(i, i + "");
-        }
-    }
-
-    var ds = new Dictionary<Int32, String>();
-    if (year > 0 && month > 0)
-    {
-        ds.Add(0, "全月");
-        // 该月有多少天
-        var max = DateTime.DaysInMonth(year, month);
-        // 不要当前月以后的月份
-        if (year == now.Year && month == now.Month) { max = now.Day; }
-        for (int i = 1; i <= max; i++)
-        {
-            ds.Add(i, i + "");
-        }
-    }
-
 
             
             #line default
@@ -97,8 +76,8 @@ WriteLiteral(">\r\n");
 WriteLiteral("    ");
 
             
-            #line 43 "..\..\Areas\Admin\Views\VisitStat\_List_Search.cshtml"
-Write(Html.ForDropDownList("p", VisitStat.FindAllPageName(), Request["p"], "全部页面", true));
+            #line 17 "..\..\Areas\Admin\Views\VisitStat\_List_Search.cshtml"
+Write(Html.ForDropDownList("p", VisitStat.FindAllPageName(), page["p"], "全部页面", true));
 
             
             #line default
@@ -112,8 +91,8 @@ WriteLiteral(">\r\n");
 WriteLiteral("    ");
 
             
-            #line 46 "..\..\Areas\Admin\Views\VisitStat\_List_Search.cshtml"
-Write(Html.ForDropDownList("year", ys, Request["year"], "所有年份", true));
+            #line 20 "..\..\Areas\Admin\Views\VisitStat\_List_Search.cshtml"
+Write(Html.ForDropDownList("Level", System.EnumHelper.GetDescriptions(typeof(StatLevels)), page["Level"], null, true));
 
             
             #line default
@@ -122,41 +101,48 @@ WriteLiteral("\r\n</div>\r\n<div");
 
 WriteLiteral(" class=\"form-group\"");
 
-WriteLiteral(">\r\n");
+WriteLiteral(">\r\n    <div");
 
-WriteLiteral("    ");
+WriteLiteral(" class=\"input-group\"");
 
+WriteLiteral(">\r\n        <span");
+
+WriteLiteral(" class=\"input-group-addon\"");
+
+WriteLiteral("><i");
+
+WriteLiteral(" class=\"fa fa-calendar\"");
+
+WriteLiteral("></i></span>\r\n        <input");
+
+WriteLiteral(" name=\"dtEnd\"");
+
+WriteLiteral(" id=\"dtEnd\"");
+
+WriteAttribute("value", Tuple.Create(" value=\"", 953), Tuple.Create("\"", 974)
             
-            #line 49 "..\..\Areas\Admin\Views\VisitStat\_List_Search.cshtml"
-Write(Html.ForDropDownList("month", ms, Request["month"], "所有月份", true));
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n</div>\r\n<div");
-
-WriteLiteral(" class=\"form-group\"");
-
-WriteLiteral(">\r\n");
-
-WriteLiteral("    ");
-
-            
-            #line 52 "..\..\Areas\Admin\Views\VisitStat\_List_Search.cshtml"
-Write(Html.ForDropDownList("day", ds, Request["day"], "所有天", true));
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n</div>\r\n");
-
-            
-            #line 54 "..\..\Areas\Admin\Views\VisitStat\_List_Search.cshtml"
-Write(Html.Partial("_DateRange"));
-
+            #line 25 "..\..\Areas\Admin\Views\VisitStat\_List_Search.cshtml"
+, Tuple.Create(Tuple.Create("", 961), Tuple.Create<System.Object, System.Int32>(page["Time"]
             
             #line default
             #line hidden
+, 961), false)
+);
+
+WriteAttribute("dateformat", Tuple.Create(" dateformat=\"", 975), Tuple.Create("\"", 998)
+            
+            #line 25 "..\..\Areas\Admin\Views\VisitStat\_List_Search.cshtml"
+, Tuple.Create(Tuple.Create("", 988), Tuple.Create<System.Object, System.Int32>(formatStr
+            
+            #line default
+            #line hidden
+, 988), false)
+);
+
+WriteLiteral(" class=\"form-control form_datetime\"");
+
+WriteLiteral(" />\r\n    </div>\r\n</div>");
+
         }
     }
 }

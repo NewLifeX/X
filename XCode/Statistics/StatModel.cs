@@ -1,9 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using NewLife.Reflection;
 
 namespace XCode.Statistics
@@ -18,6 +14,7 @@ namespace XCode.Statistics
         public virtual void Copy(T model)
         {
             Time = model.Time;
+            Level = model.Level;
         }
 
         /// <summary>克隆到目标类型</summary>
@@ -74,6 +71,7 @@ namespace XCode.Statistics
             var dt = Time;
             switch (level)
             {
+                case StatLevels.All: return new DateTime(1, 1, 1);
                 case StatLevels.Year: return new DateTime(dt.Year, 1, 1);
                 case StatLevels.Month: return new DateTime(dt.Year, dt.Month, 1);
                 case StatLevels.Day: return dt.Date;
@@ -93,6 +91,7 @@ namespace XCode.Statistics
             var dt = Time;
             switch (Level)
             {
+                case StatLevels.All: return "全部";
                 case StatLevels.Year: return "{0:yyyy}".F(dt);
                 case StatLevels.Month: return "{0:yyyy-MM}".F(dt);
                 case StatLevels.Day: return "{0:yyyy-MM-dd}".F(dt);
@@ -106,42 +105,16 @@ namespace XCode.Statistics
         /// <param name="ps"></param>
         public virtual void Fill(IDictionary<String, String> ps)
         {
-            this.Copy(ps, true);
+            //this.Copy(ps, true);
+
+            foreach (var pi in GetType().GetProperties())
+            {
+                if (!pi.CanWrite) continue;
+                if (pi.GetIndexParameters().Length > 0) continue;
+
+                if (ps.TryGetValue(pi.Name, out var val)) this.SetValue(pi, val.ChangeType(pi.PropertyType));
+            }
         }
-
-        ///// <summary>拷贝</summary>
-        ///// <param name="model"></param>
-        //public virtual void Copy(StatModel model)
-        //{
-        //    Time = model.Time;
-        //}
-
-        ///// <summary>克隆</summary>
-        ///// <returns></returns>
-        //public StatModel Clone()
-        //{
-        //    var model = GetType().CreateInstance() as StatModel;
-        //    model.Copy(this);
-
-        //    return model;
-        //}
-
-        ///// <summary>分割为多个层级</summary>
-        ///// <param name="levels"></param>
-        ///// <returns></returns>
-        //public virtual List<StatModel> Split(params StatLevels[] levels)
-        //{
-        //    var list = new List<StatModel>();
-        //    foreach (var item in levels)
-        //    {
-        //        var st = Clone();
-        //        st.Level = item;
-
-        //        list.Add(st);
-        //    }
-
-        //    return list;
-        //}
         #endregion
     }
 }

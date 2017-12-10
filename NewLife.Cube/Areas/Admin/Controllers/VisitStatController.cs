@@ -23,7 +23,10 @@ namespace NewLife.Cube.Admin.Controllers
         /// <returns></returns>
         protected override IEnumerable<VisitStat> Search(Pager p)
         {
-            return VisitStat.Search(p["p"], p["year"].ToInt(-1), p["month"].ToInt(-1), p["day"].ToInt(-1), p["dtStart"].ToDateTime(), p["dtEnd"].ToDateTime(), p);
+            var model = new VisitStatModel();
+            model.Fill(p.Params);
+
+            return VisitStat.Search(model, p["dtStart"].ToDateTime(), p["dtEnd"].ToDateTime(), p);
         }
 
         /// <summary>不允许添加修改</summary>
