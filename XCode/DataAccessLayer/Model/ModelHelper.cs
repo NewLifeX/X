@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -516,10 +517,10 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        static DictionaryCache<Type, Object> cache = new DictionaryCache<Type, Object>();
+        static ConcurrentDictionary<Type, Object> cache = new ConcurrentDictionary<Type, Object>();
         static Object GetDefault(Type type)
         {
-            return cache.GetItem(type, item => item.CreateInstance());
+            return cache.GetOrAdd(type, item => item.CreateInstance());
         }
         #endregion
 

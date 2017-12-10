@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
@@ -88,7 +89,7 @@ namespace XCode
             Queue = new EntityQueue(this);
         }
 
-        private static DictionaryCache<String, EntitySession<TEntity>> _es = new DictionaryCache<String, EntitySession<TEntity>>(StringComparer.OrdinalIgnoreCase);
+        private static ConcurrentDictionary<String, EntitySession<TEntity>> _es = new ConcurrentDictionary<String, EntitySession<TEntity>>(StringComparer.OrdinalIgnoreCase);
         /// <summary>创建指定表名连接名的会话</summary>
         /// <param name="connName"></param>
         /// <param name="tableName"></param>
@@ -100,7 +101,7 @@ namespace XCode
 
             // 字符串连接有较大性能损耗
             var key = connName + "###" + tableName;
-            return _es.GetItem(key, k => new EntitySession<TEntity>(connName, tableName));
+            return _es.GetOrAdd(key, k => new EntitySession<TEntity>(connName, tableName));
         }
         #endregion
 

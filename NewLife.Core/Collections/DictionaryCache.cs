@@ -15,7 +15,7 @@ namespace NewLife.Collections
     /// <remarks>常用匿名函数或者Lambda表达式作为委托。</remarks>
     /// <typeparam name="TKey">键类型</typeparam>
     /// <typeparam name="TValue">值类型</typeparam>
-    public class DictionaryCache<TKey, TValue> : IDisposable
+    public class DictionaryCache<TKey, TValue> : DisposeBase
     {
         #region 属性
         /// <summary>过期时间。单位是秒，默认0秒，表示永不过期</summary>
@@ -54,19 +54,14 @@ namespace NewLife.Collections
             Items = new Dictionary<TKey, CacheItem>(comparer);
         }
 
-        /// <summary>销毁资源</summary>
-        ~DictionaryCache()
+        /// <summary>销毁</summary>
+        /// <param name="disposing"></param>
+        protected override void OnDispose(Boolean disposing)
         {
-            Dispose();
-        }
+            base.OnDispose(disposing);
 
-        /// <summary>销毁字典，关闭</summary>
-        public void Dispose()
-        {
-            lock (Items)
-            {
-                Items.Clear();
-            }
+            Items.Clear();
+
             StopTimer();
         }
         #endregion

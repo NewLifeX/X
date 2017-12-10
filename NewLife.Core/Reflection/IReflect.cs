@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -310,8 +311,8 @@ namespace NewLife.Reflection
         #endregion
 
         #region 反射获取 字段/属性
-        private DictionaryCache<Type, IList<FieldInfo>> _cache1 = new DictionaryCache<Type, IList<FieldInfo>>();
-        private DictionaryCache<Type, IList<FieldInfo>> _cache2 = new DictionaryCache<Type, IList<FieldInfo>>();
+        private ConcurrentDictionary<Type, IList<FieldInfo>> _cache1 = new ConcurrentDictionary<Type, IList<FieldInfo>>();
+        private ConcurrentDictionary<Type, IList<FieldInfo>> _cache2 = new ConcurrentDictionary<Type, IList<FieldInfo>>();
         /// <summary>获取字段</summary>
         /// <param name="type"></param>
         /// <param name="baseFirst"></param>
@@ -319,9 +320,9 @@ namespace NewLife.Reflection
         public virtual IList<FieldInfo> GetFields(Type type, Boolean baseFirst = true)
         {
             if (baseFirst)
-                return _cache1.GetItem(type, key => GetFields2(key, true));
+                return _cache1.GetOrAdd(type, key => GetFields2(key, true));
             else
-                return _cache2.GetItem(type, key => GetFields2(key, false));
+                return _cache2.GetOrAdd(type, key => GetFields2(key, false));
         }
 
         IList<FieldInfo> GetFields2(Type type, Boolean baseFirst)
@@ -346,8 +347,8 @@ namespace NewLife.Reflection
             return list;
         }
 
-        private DictionaryCache<Type, IList<PropertyInfo>> _cache3 = new DictionaryCache<Type, IList<PropertyInfo>>();
-        private DictionaryCache<Type, IList<PropertyInfo>> _cache4 = new DictionaryCache<Type, IList<PropertyInfo>>();
+        private ConcurrentDictionary<Type, IList<PropertyInfo>> _cache3 = new ConcurrentDictionary<Type, IList<PropertyInfo>>();
+        private ConcurrentDictionary<Type, IList<PropertyInfo>> _cache4 = new ConcurrentDictionary<Type, IList<PropertyInfo>>();
         /// <summary>获取属性</summary>
         /// <param name="type"></param>
         /// <param name="baseFirst"></param>
@@ -355,9 +356,9 @@ namespace NewLife.Reflection
         public virtual IList<PropertyInfo> GetProperties(Type type, Boolean baseFirst = true)
         {
             if (baseFirst)
-                return _cache3.GetItem(type, key => GetProperties2(key, true));
+                return _cache3.GetOrAdd(type, key => GetProperties2(key, true));
             else
-                return _cache4.GetItem(type, key => GetProperties2(key, false));
+                return _cache4.GetOrAdd(type, key => GetProperties2(key, false));
         }
 
         IList<PropertyInfo> GetProperties2(Type type, Boolean baseFirst)

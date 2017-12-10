@@ -118,7 +118,7 @@ namespace NewLife.Reflection
         #region 构造
         private AssemblyX(Assembly asm) { _Asm = asm; }
 
-        private static DictionaryCache<Assembly, AssemblyX> cache = new DictionaryCache<Assembly, AssemblyX>();
+        private static ConcurrentDictionary<Assembly, AssemblyX> cache = new ConcurrentDictionary<Assembly, AssemblyX>();
         /// <summary>创建程序集辅助对象</summary>
         /// <param name="asm"></param>
         /// <returns></returns>
@@ -126,7 +126,7 @@ namespace NewLife.Reflection
         {
             if (asm == null) return null;
 
-            return cache.GetItem(asm, key => new AssemblyX(key));
+            return cache.GetOrAdd(asm, key => new AssemblyX(key));
         }
 
         static AssemblyX()
@@ -227,7 +227,7 @@ namespace NewLife.Reflection
         #endregion
 
         #region 方法
-        DictionaryCache<String, Type> typeCache2 = new DictionaryCache<String, Type>();
+        ConcurrentDictionary<String, Type> typeCache2 = new ConcurrentDictionary<String, Type>();
         /// <summary>从程序集中查找指定名称的类型</summary>
         /// <param name="typeName"></param>
         /// <returns></returns>
@@ -235,7 +235,7 @@ namespace NewLife.Reflection
         {
             if (String.IsNullOrEmpty(typeName)) throw new ArgumentNullException("typeName");
 
-            return typeCache2.GetItem(typeName, GetTypeInternal);
+            return typeCache2.GetOrAdd(typeName, GetTypeInternal);
         }
 
         /// <summary>在程序集中查找类型</summary>
