@@ -92,10 +92,14 @@ namespace XCode.Membership
         {
             if (model == null) return null;
 
-            if (cache)
-                return Meta.SingleCache.GetItemWithSlaveKey(GetKey(model)) as VisitStat;
-            else
-                return Find(_.Page == model.Page & _.Level == model.Level & _.Time == model.GetDate(model.Level));
+            if (cache) return Meta.SingleCache.GetItemWithSlaveKey(GetKey(model)) as VisitStat;
+
+            var exp = new WhereExpression();
+            exp &= _.Level == model.Level;
+            if (model.Level > 0 && model.Time > DateTime.MinValue) exp &= _.Time == model.GetDate(model.Level);
+            exp &= _.Page == model.Page;
+
+            return Find(exp);
         }
         #endregion
 
@@ -110,7 +114,7 @@ namespace XCode.Membership
         {
             var exp = new WhereExpression();
             if (model.Level >= 0) exp &= _.Level == model.Level;
-            if (model.Time > DateTime.MinValue) exp &= _.Time == model.Time;
+            if (model.Level > 0 && model.Time > DateTime.MinValue) exp &= _.Time == model.GetDate(model.Level);
             if (!model.Page.IsNullOrEmpty()) exp &= _.Page == model.Page;
 
             exp &= _.CreateTime.Between(start, end);
@@ -152,7 +156,7 @@ namespace XCode.Membership
             // 全局
             if (!model.Page.IsNullOrEmpty())
             {
-                model.Page = null;
+                model.Page = "全部";
 
                 list.AddRange(model.Split(levels));
             }

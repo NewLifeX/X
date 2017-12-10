@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Tables Version="9.6.6553.24355" NameSpace="XCode.Membership" ConnName="Membership" Output="" BaseClass="Entity">
+<Tables Version="9.6.6553.28584" NameSpace="XCode.Membership" ConnName="Membership" Output="" BaseClass="Entity">
   <Table Name="User" Description="用户" DbType="SqlServer" RenderGenEntity="true">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
@@ -103,7 +103,7 @@
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
       <Column Name="Level" DataType="Int32" Description="层级" Type="XCode.Statistics.StatLevels" />
       <Column Name="Time" DataType="DateTime" Description="时间" />
-      <Column Name="Page" DataType="String" Description="页面" />
+      <Column Name="Page" DataType="String" Nullable="False" Description="页面" />
       <Column Name="Title" DataType="String" Master="True" Description="标题" />
       <Column Name="Times" DataType="Int32" Description="次数" />
       <Column Name="Users" DataType="Int32" Description="用户" />

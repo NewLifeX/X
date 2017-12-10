@@ -25,6 +25,7 @@ namespace NewLife.Cube.Admin.Controllers
         {
             var model = new VisitStatModel();
             model.Fill(p.Params);
+            model.Page = p["p"];
 
             return VisitStat.Search(model, p["dtStart"].ToDateTime(), p["dtEnd"].ToDateTime(), p);
         }

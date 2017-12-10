@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel;
 
 namespace XCode.Statistics
 {
@@ -11,8 +6,8 @@ namespace XCode.Statistics
     [Description("统计层级")]
     public enum StatLevels
     {
-        /// <summary>全部</summary>
-        [Description("全部")]
+        /// <summary>全局</summary>
+        [Description("全局")]
         All = 0,
 
         /// <summary>年</summary>

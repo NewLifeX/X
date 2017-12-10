@@ -45,7 +45,7 @@ namespace XCode.Membership
         /// <summary>页面</summary>
         [DisplayName("页面")]
         [Description("页面")]
-        [DataObjectField(false, false, true, 50)]
+        [DataObjectField(false, false, false, 50)]
         [BindColumn("Page", "页面", "")]
         public String Page { get { return _Page; } set { if (OnPropertyChanging(__.Page, value)) { _Page = value; OnPropertyChanged(__.Page); } } }
 

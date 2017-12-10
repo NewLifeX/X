@@ -37,6 +37,7 @@ namespace XCode.Statistics
             {
                 var st = Clone();
                 st.Level = item;
+                st.Time = st.GetDate(item);
 
                 list.Add(st);
             }
