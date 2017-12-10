@@ -27,7 +27,7 @@ namespace XCode.Statistics
                 st = new TEntity
                 {
                     Level = model.Level,
-                    Time = model.GetDate(model.Level),
+                    Time = model.Time,
                     CreateTime = DateTime.Now,
                 };
 

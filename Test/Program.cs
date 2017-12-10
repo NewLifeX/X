@@ -29,6 +29,7 @@ using NewLife.Yun;
 using XCode;
 using XCode.DataAccessLayer;
 using XCode.Membership;
+using XCode.Statistics;
 
 namespace Test
 {
@@ -50,7 +51,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test2();
+                Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -89,31 +90,15 @@ namespace Test
 
         static void Test2()
         {
-            //Redis.Test();
+            var m1 = new StatModel();
+            var m2 = new StatModel();
 
-            //var rds = Redis.Create("127.0.0.1:6379", 5);
-            //rds.Bench();
+            Console.WriteLine(m1.Equals(m2));
+            Console.WriteLine(m1 == m2);
 
-            //Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.AboveNormal;
-            GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
-            //GC.TryStartNoGCRegion(4L * 1024 * 1024 * 1024);
-
-            Cache.Default.Bench();
-            //var ch = Cache.Default as Cache;
-            //ch.BenchOne(40_000, 4, false);
-
-            //GC.EndNoGCRegion();
-
-            //var url = "http://www.baidu.com";
-
-            //var client = new TinyHttpClient();
-            //var rs = client.GetAsync(url).Result;
-            //Console.WriteLine(rs);
-
-            //var client = new NewLife.Http.HttpClient();
-            //client.Remote = new NetUri(url);
-            //client.Request.Url = new Uri(url);
-            //client.Open();            
+            var dic = new Dictionary<StatModel, Int32>();
+            dic.Add(m1, 1234);
+            Console.WriteLine(dic.ContainsKey(m2));
         }
 
         private static TimerX _timer;

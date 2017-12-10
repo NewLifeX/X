@@ -6,7 +6,7 @@ namespace XCode.Statistics
 {
     /// <summary>统计模型</summary>
     /// <typeparam name="T"></typeparam>
-    public class StatModel<T> : StatModel where T : StatModel<T>, new()
+    public class StatModel<T> : StatModel/*, IEqualityComparer<T>*/ where T : StatModel<T>, new()
     {
         #region 方法
         /// <summary>拷贝</summary>
@@ -17,12 +17,13 @@ namespace XCode.Statistics
             Level = model.Level;
         }
 
-        /// <summary>克隆到目标类型</summary>
+        /// <summary>克隆到目标类型，同时根据层级格式化时间</summary>
         /// <returns></returns>
         public virtual T Clone()
         {
             var model = new T();
             model.Copy(this);
+            Time = GetDate(model.Level);
 
             return model;
         }
@@ -44,6 +45,28 @@ namespace XCode.Statistics
 
             return list;
         }
+        #endregion
+
+        #region 相等比较
+        ///// <summary>相等</summary>
+        ///// <param name="x"></param>
+        ///// <param name="y"></param>
+        ///// <returns></returns>
+        //public virtual Boolean Equals(T x, T y)
+        //{
+        //    if (x == null) return y == null;
+        //    if (y != null) return false;
+
+        //    return x.Level == y.Level && x.Time == y.Time;
+        //}
+
+        ///// <summary>获取哈希</summary>
+        ///// <param name="obj"></param>
+        ///// <returns></returns>
+        //public virtual Int32 GetHashCode(T obj)
+        //{
+        //    return Level.GetHashCode() ^ Time.GetHashCode();
+        //}
         #endregion
     }
 
@@ -116,6 +139,46 @@ namespace XCode.Statistics
                 if (ps.TryGetValue(pi.Name, out var val)) this.SetValue(pi, val.ChangeType(pi.PropertyType));
             }
         }
+        #endregion
+
+        #region 相等比较
+        /// <summary>相等</summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public override Boolean Equals(Object obj)
+        {
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj == null) return false;
+
+            if (obj is StatModel model) return Level == model.Level && Time == model.Time;
+
+            return false;
+        }
+
+        /// <summary>获取哈希</summary>
+        /// <returns></returns>
+        public override Int32 GetHashCode()
+        {
+            return Level.GetHashCode() ^ Time.GetHashCode();
+        }
+
+        /// <summary>相等</summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <returns></returns>
+        public static Boolean operator ==(StatModel x, StatModel y)
+        {
+            if (ReferenceEquals(x, y)) return true;
+            if ((Object)x == null || (Object)y == null) return false;
+
+            return x.Equals(y);
+        }
+
+        /// <summary>不等</summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <returns></returns>
+        public static Boolean operator !=(StatModel x, StatModel y) => !(x == y);
         #endregion
     }
 }
