@@ -21,7 +21,7 @@ namespace XCode.Statistics
         /// <returns></returns>
         public virtual T Clone()
         {
-            var model = new T();
+            var model = GetType().CreateInstance() as T;
             model.Copy(this);
             // 克隆不能格式化时间，否则会丢失时间精度
             //Time = GetDate(model.Level);
