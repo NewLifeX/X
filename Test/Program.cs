@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.MemoryMappedFiles;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -90,18 +91,24 @@ namespace Test
 
         static void Test2()
         {
-            var m1 = new StatModel { Level = StatLevels.Day, Time = DateTime.Now.Date };
-            var m2 = new StatModel { Level = StatLevels.Day, Time = DateTime.Now.Date };
+            using (var mmf = MemoryMappedFile.CreateFromFile("mmf.db", FileMode.OpenOrCreate, "mmf", 1 << 10))
+            {
+                var ms = mmf.CreateViewStream(8, 64);
+                var str = ms.ReadArray().ToStr();
+                XTrace.WriteLine(str);
 
-            Console.WriteLine(m1.Equals(m2));
-            Console.WriteLine(m1 == m2);
+                str = "学无先后达者为师 " + DateTime.Now;
+                ms.Position = 0;
+                ms.WriteArray(str.GetBytes());
+                //ms.Flush();
 
-            var dic = new Dictionary<StatModel, Int32>();
-            dic.Add(m1, 1234);
-            Console.WriteLine(dic.ContainsKey(m2));
+                //ms.Position = 0;
+                //str = ms.ReadArray().ToStr();
+                //Console.WriteLine(str);
+            }
         }
 
-        private static TimerX _timer;
+        //private static TimerX _timer;
         static void Test3()
         {
             //var db = DbFactory.GetDefault("Oracle".GetTypeEx());
