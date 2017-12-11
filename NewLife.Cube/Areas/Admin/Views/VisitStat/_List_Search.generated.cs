@@ -53,17 +53,6 @@ namespace ASP
   
     var page = ViewBag.Page as Pager;
 
-    var level = (StatLevels)page["Level"].ToInt();
-    var formatStr = "";
-    switch (level)
-    {
-        case StatLevels.Year: formatStr = "yyyy"; break;
-        case StatLevels.Month: formatStr = "yyyy-MM"; break;
-        case StatLevels.Day: formatStr = "yyyy-MM-dd"; break;
-        case StatLevels.Hour: formatStr = "yyyy-MM-dd HH"; break;
-        case StatLevels.Minute: formatStr = "yyyy-MM-dd HH:mm"; break;
-    }
-
             
             #line default
             #line hidden
@@ -76,73 +65,21 @@ WriteLiteral(">\r\n");
 WriteLiteral("    ");
 
             
-            #line 17 "..\..\Areas\Admin\Views\VisitStat\_List_Search.cshtml"
+            #line 6 "..\..\Areas\Admin\Views\VisitStat\_List_Search.cshtml"
 Write(Html.ForDropDownList("p", VisitStat.FindAllPageName(), page["p"], "全部页面", true));
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n</div>\r\n<div");
-
-WriteLiteral(" class=\"form-group\"");
-
-WriteLiteral(">\r\n");
-
-WriteLiteral("    ");
+WriteLiteral("\r\n</div>\r\n");
 
             
-            #line 20 "..\..\Areas\Admin\Views\VisitStat\_List_Search.cshtml"
-Write(Html.ForDropDownList("Level", System.EnumHelper.GetDescriptions(typeof(StatLevels)), page["Level"], null, true));
+            #line 8 "..\..\Areas\Admin\Views\VisitStat\_List_Search.cshtml"
+Write(Html.Partial("_StatLevel", new[] { StatLevels.All, StatLevels.Year, StatLevels.Month, StatLevels.Day }));
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n</div>\r\n<div");
-
-WriteLiteral(" class=\"form-group\"");
-
-WriteLiteral(">\r\n    <div");
-
-WriteLiteral(" class=\"input-group\"");
-
-WriteLiteral(">\r\n        <span");
-
-WriteLiteral(" class=\"input-group-addon\"");
-
-WriteLiteral("><i");
-
-WriteLiteral(" class=\"fa fa-calendar\"");
-
-WriteLiteral("></i></span>\r\n        <input");
-
-WriteLiteral(" name=\"dtEnd\"");
-
-WriteLiteral(" id=\"dtEnd\"");
-
-WriteAttribute("value", Tuple.Create(" value=\"", 953), Tuple.Create("\"", 974)
-            
-            #line 25 "..\..\Areas\Admin\Views\VisitStat\_List_Search.cshtml"
-, Tuple.Create(Tuple.Create("", 961), Tuple.Create<System.Object, System.Int32>(page["Time"]
-            
-            #line default
-            #line hidden
-, 961), false)
-);
-
-WriteAttribute("dateformat", Tuple.Create(" dateformat=\"", 975), Tuple.Create("\"", 998)
-            
-            #line 25 "..\..\Areas\Admin\Views\VisitStat\_List_Search.cshtml"
-, Tuple.Create(Tuple.Create("", 988), Tuple.Create<System.Object, System.Int32>(formatStr
-            
-            #line default
-            #line hidden
-, 988), false)
-);
-
-WriteLiteral(" class=\"form-control form_datetime\"");
-
-WriteLiteral(" />\r\n    </div>\r\n</div>");
-
         }
     }
 }

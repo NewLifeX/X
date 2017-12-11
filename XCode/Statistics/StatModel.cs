@@ -138,6 +138,9 @@ namespace XCode.Statistics
 
                 if (ps.TryGetValue(pi.Name, out var val)) this.SetValue(pi, val.ChangeType(pi.PropertyType));
             }
+
+            // 格式化时间
+            Time = GetDate(Level);
         }
         #endregion
 
