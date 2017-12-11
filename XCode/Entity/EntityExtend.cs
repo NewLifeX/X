@@ -38,9 +38,9 @@ namespace XCode
         {
             if (value == null) return Remove(key);
 
-            this[key] = value;
+            //this[key] = value;
 
-            return true;
+            return base.Set(key, value);
         }
     }
 }
