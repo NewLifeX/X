@@ -120,7 +120,7 @@ namespace XCode.Membership
 
             var exp = new WhereExpression();
             exp &= _.Level == model.Level;
-            if (model.Level > 0 && model.Time > DateTime.MinValue) exp &= _.Time == model.Time;
+            if (model.Level > 0 && model.Time > DateTime.MinValue) exp &= _.Time == model.GetDate(model.Level);
             exp &= _.Page == model.Page;
 
             return Find(exp);
@@ -136,11 +136,9 @@ namespace XCode.Membership
         /// <returns></returns>
         public static IList<VisitStat> Search(VisitStatModel model, DateTime start, DateTime end, PageParameter param)
         {
-            model = model.Clone();
-
             var exp = new WhereExpression();
             if (model.Level >= 0) exp &= _.Level == model.Level;
-            if (model.Level > 0 && model.Time > DateTime.MinValue) exp &= _.Time == model.Time;
+            if (model.Level > 0 && model.Time > DateTime.MinValue) exp &= _.Time == model.GetDate(model.Level);
             if (!model.Page.IsNullOrEmpty()) exp &= _.Page == model.Page;
 
             exp &= _.CreateTime.Between(start, end);

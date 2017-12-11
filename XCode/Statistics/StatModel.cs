@@ -17,13 +17,14 @@ namespace XCode.Statistics
             Level = model.Level;
         }
 
-        /// <summary>克隆到目标类型，同时根据层级格式化时间</summary>
+        /// <summary>克隆到目标类型</summary>
         /// <returns></returns>
         public virtual T Clone()
         {
             var model = new T();
             model.Copy(this);
-            Time = GetDate(model.Level);
+            // 克隆不能格式化时间，否则会丢失时间精度
+            //Time = GetDate(model.Level);
 
             return model;
         }
