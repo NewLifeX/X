@@ -90,8 +90,8 @@ namespace Test
 
         static void Test2()
         {
-            var m1 = new StatModel();
-            var m2 = new StatModel();
+            var m1 = new StatModel { Level = StatLevels.Day, Time = DateTime.Now.Date };
+            var m2 = new StatModel { Level = StatLevels.Day, Time = DateTime.Now.Date };
 
             Console.WriteLine(m1.Equals(m2));
             Console.WriteLine(m1 == m2);

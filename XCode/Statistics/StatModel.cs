@@ -115,13 +115,13 @@ namespace XCode.Statistics
             var dt = Time;
             switch (Level)
             {
-                case StatLevels.All: return "全部";
+                case StatLevels.All: return "全局";
                 case StatLevels.Year: return "{0:yyyy}".F(dt);
                 case StatLevels.Month: return "{0:yyyy-MM}".F(dt);
                 case StatLevels.Day: return "{0:yyyy-MM-dd}".F(dt);
                 case StatLevels.Hour: return "{0:yyyy-MM-dd HH}".F(dt);
                 case StatLevels.Minute: return "{0:yyyy-MM-dd HH:mm}".F(dt);
-                default: return "全部";
+                default: return Level + "";
             }
         }
 

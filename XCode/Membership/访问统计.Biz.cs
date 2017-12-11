@@ -199,10 +199,9 @@ namespace XCode.Membership
             });
             if (st == null) return null;
 
-            if (st.Cost == 0)
-                st.Cost = model.Cost;
-            else
-                st.Cost = (st.Cost * 3 + model.Cost) / 4;
+            // 历史平均
+            st.Cost = (Int32)(((Int64)st.Cost * st.Times + model.Cost) / (st.Times + 1));
+            if (model.Cost > st.MaxCost) st.MaxCost = model.Cost;
 
             if (!model.Title.IsNullOrEmpty()) st.Title = model.Title;
             st.Times++;

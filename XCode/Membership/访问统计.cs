@@ -97,6 +97,14 @@ namespace XCode.Membership
         [BindColumn("Cost", "耗时。毫秒", "")]
         public Int32 Cost { get { return _Cost; } set { if (OnPropertyChanging(__.Cost, value)) { _Cost = value; OnPropertyChanged(__.Cost); } } }
 
+        private Int32 _MaxCost;
+        /// <summary>最大耗时。毫秒</summary>
+        [DisplayName("最大耗时")]
+        [Description("最大耗时。毫秒")]
+        [DataObjectField(false, false, false, 0)]
+        [BindColumn("MaxCost", "最大耗时。毫秒", "")]
+        public Int32 MaxCost { get { return _MaxCost; } set { if (OnPropertyChanging(__.MaxCost, value)) { _MaxCost = value; OnPropertyChanged(__.MaxCost); } } }
+
         private DateTime _CreateTime;
         /// <summary>创建时间</summary>
         [DisplayName("创建时间")]
@@ -142,6 +150,7 @@ namespace XCode.Membership
                     case __.IPs : return _IPs;
                     case __.Error : return _Error;
                     case __.Cost : return _Cost;
+                    case __.MaxCost : return _MaxCost;
                     case __.CreateTime : return _CreateTime;
                     case __.UpdateTime : return _UpdateTime;
                     case __.Remark : return _Remark;
@@ -162,6 +171,7 @@ namespace XCode.Membership
                     case __.IPs : _IPs = Convert.ToInt32(value); break;
                     case __.Error : _Error = Convert.ToInt32(value); break;
                     case __.Cost : _Cost = Convert.ToInt32(value); break;
+                    case __.MaxCost : _MaxCost = Convert.ToInt32(value); break;
                     case __.CreateTime : _CreateTime = Convert.ToDateTime(value); break;
                     case __.UpdateTime : _UpdateTime = Convert.ToDateTime(value); break;
                     case __.Remark : _Remark = Convert.ToString(value); break;
@@ -204,6 +214,9 @@ namespace XCode.Membership
 
             /// <summary>耗时。毫秒</summary>
             public static readonly Field Cost = FindByName(__.Cost);
+
+            /// <summary>最大耗时。毫秒</summary>
+            public static readonly Field MaxCost = FindByName(__.MaxCost);
 
             /// <summary>创建时间</summary>
             public static readonly Field CreateTime = FindByName(__.CreateTime);
@@ -250,6 +263,9 @@ namespace XCode.Membership
             /// <summary>耗时。毫秒</summary>
             public const String Cost = "Cost";
 
+            /// <summary>最大耗时。毫秒</summary>
+            public const String MaxCost = "MaxCost";
+
             /// <summary>创建时间</summary>
             public const String CreateTime = "CreateTime";
 
@@ -295,6 +311,9 @@ namespace XCode.Membership
 
         /// <summary>耗时。毫秒</summary>
         Int32 Cost { get; set; }
+
+        /// <summary>最大耗时。毫秒</summary>
+        Int32 MaxCost { get; set; }
 
         /// <summary>创建时间</summary>
         DateTime CreateTime { get; set; }

@@ -30,7 +30,8 @@
             <th class="text-center"><a href="@Html.Raw(page.GetSortUrl("Users"))">用户</a></th>
             <th class="text-center"><a href="@Html.Raw(page.GetSortUrl("IPs"))">IP</a></th>
             <th class="text-center"><a href="@Html.Raw(page.GetSortUrl("Error"))">错误</a></th>
-            <th class="text-center"><a href="@Html.Raw(page.GetSortUrl("Cost"))">耗时</a></th>
+            <th class="text-center"><a href="@Html.Raw(page.GetSortUrl("Cost"))">平均耗时</a></th>
+            <th class="text-center"><a href="@Html.Raw(page.GetSortUrl("MaxCost"))">最大耗时</a></th>
             <th class="text-center"><a href="@Html.Raw(page.GetSortUrl("CreateTime"))">创建时间</a></th>
             <th class="text-center"><a href="@Html.Raw(page.GetSortUrl("UpdateTime"))">更新时间</a></th>
             @if (ManageProvider.User.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
@@ -61,6 +62,7 @@
                 <td class="text-right">@entity.IPs.ToString("n0")</td>
                 <td class="text-right">@entity.Error.ToString("n0")</td>
                 <td class="text-right">@entity.Cost.ToString("n0") ms</td>
+                <td class="text-right">@entity.MaxCost.ToString("n0") ms</td>
                 <td>@entity.CreateTime.ToFullString("")</td>
                 <td>@entity.UpdateTime.ToFullString("")</td>
                 @if (ManageProvider.User.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
