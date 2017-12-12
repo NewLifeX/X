@@ -98,7 +98,7 @@ namespace NewLife
 
             // 释放非托管资源
 
-            if (OnDisposed != null) OnDisposed(this, EventArgs.Empty);
+            OnDisposed?.Invoke(this, EventArgs.Empty);
         }
 
         /// <summary>析构函数</summary>

@@ -83,6 +83,7 @@
       <DependentUpon>FrmSecurity.cs</DependentUpon>
     </Compile>
     <Compile Include="XNet\IPPacket.cs" />
+    <Compile Include="XNet\MySqlParser.cs" />
     <Compile Include="XNet\RawSocket.cs" />
     <Compile Include="XNet\TcpPacket.cs" />
     <Compile Include="Yun\FrmMap.cs">
