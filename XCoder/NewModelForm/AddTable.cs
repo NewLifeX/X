@@ -59,19 +59,19 @@ namespace XCoder
 
         public static BaseForm CreateForm(IDataTable table)
         {
-            AddTable frm = new AddTable(table);
+            var frm = new AddTable(table);
             frm.Dock = DockStyle.Fill;
             return WinFormHelper.CreateForm(frm, "添加表");
         }
 
         private void toolAddColumns_Click(Object sender, EventArgs e)
         {
-            IDataColumn dc = CurrentTable.CreateColumn();
+            var dc = CurrentTable.CreateColumn();
             //CurrentTable.Columns.Add(dc);
             var id = CurrentTable.Columns.Count + 1;
             dc.ColumnName = "Column" + id;
             dc.Description = "字段" + id;
-            DialogResult dr = AddField.CreateForm(dc, true).ShowDialog();
+            var dr = AddField.CreateForm(dc, true).ShowDialog();
             if (dr != DialogResult.Cancel)
             {
                 CurrentTable.Columns.Add(dc);
@@ -82,7 +82,7 @@ namespace XCoder
         private void toolEidtColumn_Click(Object sender, EventArgs e)
         {
 
-            DataGridViewRow row = dgvColumns.Rows[dgvColumns.CurrentCell.RowIndex];
+            var row = dgvColumns.Rows[dgvColumns.CurrentCell.RowIndex];
             if (row == null) return;
 
             AddField.CreateForm((IDataColumn)row.DataBoundItem, false).ShowDialog();

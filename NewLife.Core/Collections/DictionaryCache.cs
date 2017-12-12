@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Threading;
@@ -123,17 +121,14 @@ namespace NewLife.Collections
                 if (Expire > 0 && item.Expired)
                 {
                     //if (func == null) throw new ArgumentNullException(nameof(FindMethod));
-                    if (func == null)
-                        return default(TValue);
-                    else
+                    if (func == null) return default(TValue);
+
+                    // 超时异步更新
+                    Task.Run(() =>
                     {
-                        // 超时异步更新
-                        Task.Run(() =>
-                        {
-                            item.Value = func(key);
-                            item.ExpiredTime = TimerX.Now.AddSeconds(Expire);
-                        });
-                    }
+                        item.Value = func(key);
+                        item.ExpiredTime = TimerX.Now.AddSeconds(Expire);
+                    });
                 }
 
                 return item.Value;
@@ -223,7 +218,12 @@ namespace NewLife.Collections
                 {
                     value = func(key);
 
-                    if (/*CacheDefault ||*/ !Equals(value, default(TValue))) items[key] = new CacheItem(value, exp);
+                    if (/*CacheDefault ||*/ !Equals(value, default(TValue)))
+                    {
+                        items[key] = new CacheItem(value, exp);
+
+                        Interlocked.Increment(ref _count);
+                    }
                 }
                 StartTimer();
 
@@ -275,7 +275,7 @@ namespace NewLife.Collections
         {
             var period = Period;
             // 缓存数大于0才启动定时器
-            if (period <= 0 || _count < 1) return;
+            if (period <= 0 || _count <= 0) return;
 
             if (_timer == null)
             {

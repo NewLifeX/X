@@ -32,7 +32,7 @@ namespace XCoder
         {
             if (tables == null || tables.Count < 1) throw new ArgumentNullException("tables");
 
-            FrmModel frm = new FrmModel();
+            var frm = new FrmModel();
             frm.Tables = tables;
 
             return frm;
@@ -48,7 +48,7 @@ namespace XCoder
         #region 选择数据表
         IDataTable GetSelectedTable()
         {
-            ComboBox cb = cbTables;
+            var cb = cbTables;
             if (cb == null || cb.SelectedItem == null) return null;
 
             return cb.SelectedItem as IDataTable;
@@ -56,7 +56,7 @@ namespace XCoder
 
         private void cbTables_SelectedIndexChanged(Object sender, EventArgs e)
         {
-            IDataTable table = GetSelectedTable();
+            var table = GetSelectedTable();
             if (table == null) return;
 
             pgTable.SelectedObject = table;
@@ -71,10 +71,10 @@ namespace XCoder
         {
             if (e.RowIndex < 0) return;
 
-            DataGridView dgv = sender as DataGridView;
+            var dgv = sender as DataGridView;
             if (dgv == null) return;
 
-            DataGridViewRow row = dgv.Rows[e.RowIndex];
+            var row = dgv.Rows[e.RowIndex];
             if (row == null) return;
 
             pgColumn.SelectedObject = row.DataBoundItem;
@@ -85,7 +85,7 @@ namespace XCoder
             cbTables.Items.Clear();
             if (Tables != null && tables.Count > 0)
             {
-                foreach (IDataTable item in tables)
+                foreach (var item in tables)
                 {
                     cbTables.Items.Add(item);
                 }
@@ -102,7 +102,7 @@ namespace XCoder
         {
             if (Tables == null || Tables.Count < 1) return;
 
-            Type type = Tables[0].GetType();
+            var type = Tables[0].GetType();
             if (type == null) return;
 
             var table = type.CreateInstance() as IDataTable;
@@ -170,7 +170,7 @@ namespace XCoder
         {
             if (cbConn.SelectedItem == null) return;
 
-            IDataTable table = GetSelectedTable();
+            var table = GetSelectedTable();
             if (table == null) return;
 
             var dal = DAL.Create("" + cbConn.SelectedItem);
@@ -178,7 +178,7 @@ namespace XCoder
 
             try
             {
-                IMetaData md = dal.Db.CreateMetaData();
+                var md = dal.Db.CreateMetaData();
                 var sql = CreateTable(md, table);
 
                 FrmText.Create(table.TableName + "表建表语句", sql).Show();
@@ -191,7 +191,7 @@ namespace XCoder
 
         static String CreateTable(IMetaData md, IDataTable table)
         {
-            String sql = md.GetSchemaSQL(DDLSchema.CreateTable, table);
+            var sql = md.GetSchemaSQL(DDLSchema.CreateTable, table);
 
             var sb = new StringBuilder();
             if (!String.IsNullOrEmpty(sql)) sb.AppendLine(sql + "; ");
@@ -204,7 +204,7 @@ namespace XCoder
             }
 
             // 加上字段注释
-            foreach (IDataColumn item in table.Columns)
+            foreach (var item in table.Columns)
             {
                 if (!String.IsNullOrEmpty(item.Description))
                 {
@@ -216,7 +216,7 @@ namespace XCoder
             // 加上索引
             if (table.Indexes != null)
             {
-                foreach (IDataIndex item in table.Indexes)
+                foreach (var item in table.Indexes)
                 {
                     if (!item.PrimaryKey)
                     {
@@ -238,7 +238,7 @@ namespace XCoder
 
             try
             {
-                IMetaData md = dal.Db.CreateMetaData();
+                var md = dal.Db.CreateMetaData();
                 var sb = new StringBuilder();
                 foreach (var table in Tables)
                 {

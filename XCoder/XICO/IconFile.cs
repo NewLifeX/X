@@ -399,25 +399,25 @@ typedef struct
                 ClrImportant = reader.ReadUInt32();
                 #endregion
 
-                Int32 count = RgbCount();
+                var count = RgbCount();
                 if (count == -1) return;
 
-                for (Int32 i = 0; i != count; i++)
+                for (var i = 0; i != count; i++)
                 {
-                    Byte Blue = reader.ReadByte();
-                    Byte Green = reader.ReadByte();
-                    Byte Red = reader.ReadByte();
-                    Byte Reserved = reader.ReadByte();
-                    ColorTable.Add(Color.FromArgb((Int32)Reserved, (Int32)Red, (Int32)Green, (Int32)Blue));
+                    var Blue = reader.ReadByte();
+                    var Green = reader.ReadByte();
+                    var Red = reader.ReadByte();
+                    var Reserved = reader.ReadByte();
+                    ColorTable.Add(Color.FromArgb(Reserved, Red, Green, Blue));
                 }
 
-                Int32 size = (Int32)(BitCount * Width) / 8;       // 象素的大小*象素数 /字节数              
+                var size = (Int32)(BitCount * Width) / 8;       // 象素的大小*象素数 /字节数              
                 if ((Double)size < BitCount * Width / 8) size++;       //如果是 宽19*4（16色）/8 =9.5 就+1;
                 if (size < 4) size = 4;
-                Byte[] WidthByte = new Byte[size];
+                var WidthByte = new Byte[size];
 
                 IconBmp = new Bitmap((Int32)Width, (Int32)(Height / 2));
-                for (Int32 i = (Int32)(Height / 2); i != 0; i--)
+                for (var i = (Int32)(Height / 2); i != 0; i--)
                 {
                     //for (Int32 z = 0; z != Size; z++)
                     //{
@@ -429,11 +429,11 @@ typedef struct
                 }
 
                 //取掩码
-                Int32 MaskSize = (Int32)(Width / 8);
+                var MaskSize = (Int32)(Width / 8);
                 if ((Double)MaskSize < Width / 8) MaskSize++;       //如果是 宽19*4（16色）/8 =9.5 就+1;
                 if (MaskSize < 4) MaskSize = 4;
-                Byte[] MashByte = new Byte[MaskSize];
-                for (Int32 i = (Int32)(Height / 2); i != 0; i--)
+                var MashByte = new Byte[MaskSize];
+                for (var i = (Int32)(Height / 2); i != 0; i--)
                 {
                     //for (Int32 z = 0; z != MaskSize; z++)
                     //{
@@ -466,12 +466,12 @@ typedef struct
 
             private void IconSet(Bitmap IconImage, Int32 RowIndex, Byte[] ImageByte)
             {
-                Int32 idx = 0;
+                var idx = 0;
                 switch (BitCount)
                 {
                     case 1:
                         #region 一次读8位 绘制8个点
-                        for (Int32 i = 0; i != ImageByte.Length; i++)
+                        for (var i = 0; i != ImageByte.Length; i++)
                         {
                             var MyArray = new BitArray(new Byte[] { ImageByte[i] });
 
@@ -504,10 +504,10 @@ typedef struct
                         break;
                     case 4:
                         #region 一次读8位 绘制2个点
-                        for (Int32 i = 0; i != ImageByte.Length; i++)
+                        for (var i = 0; i != ImageByte.Length; i++)
                         {
-                            Int32 High = ImageByte[i] >> 4;  //取高4位
-                            Int32 Low = ImageByte[i] - (High << 4); //取低4位
+                            var High = ImageByte[i] >> 4;  //取高4位
+                            var Low = ImageByte[i] - (High << 4); //取低4位
                             if (idx >= IconImage.Width) return;
                             IconImage.SetPixel(idx, RowIndex, ColorTable[High]);
                             idx++;
@@ -519,7 +519,7 @@ typedef struct
                         break;
                     case 8:
                         #region 一次读8位 绘制一个点
-                        for (Int32 i = 0; i != ImageByte.Length; i++)
+                        for (var i = 0; i != ImageByte.Length; i++)
                         {
                             if (idx >= IconImage.Width) return;
                             IconImage.SetPixel(idx, RowIndex, ColorTable[ImageByte[i]]);
@@ -529,7 +529,7 @@ typedef struct
                         break;
                     case 24:
                         #region 一次读24位 绘制一个点
-                        for (Int32 i = 0; i != ImageByte.Length / 3; i++)
+                        for (var i = 0; i != ImageByte.Length / 3; i++)
                         {
                             if (i >= IconImage.Width) return;
                             IconImage.SetPixel(i, RowIndex, Color.FromArgb(ImageByte[idx + 2], ImageByte[idx + 1], ImageByte[idx]));
@@ -539,7 +539,7 @@ typedef struct
                         break;
                     case 32:
                         #region 一次读32位 绘制一个点
-                        for (Int32 i = 0; i != ImageByte.Length / 4; i++)
+                        for (var i = 0; i != ImageByte.Length / 4; i++)
                         {
                             if (i >= IconImage.Width) return;
 
@@ -556,8 +556,8 @@ typedef struct
             private void IconMask(Bitmap IconImage, Int32 RowIndex, Byte[] MaskByte)
             {
                 var Set = new BitArray(MaskByte);
-                Int32 idx = 0;
-                for (Int32 i = Set.Count; i != 0; i--)
+                var idx = 0;
+                for (var i = Set.Count; i != 0; i--)
                 {
                     if (idx >= IconImage.Width) return;
 

@@ -135,8 +135,8 @@ namespace XCoder
         void AutoDetectDatabase()
         {
             // 加上本机MSSQL
-            String localName = "local_MSSQL";
-            String localstr = "Data Source=.;Initial Catalog=master;Integrated Security=True;";
+            var localName = "local_MSSQL";
+            var localstr = "Data Source=.;Initial Catalog=master;Integrated Security=True;";
             if (!ContainConnStr(localstr)) DAL.AddConnStr(localName, localstr, null, "mssql");
 
             // 检测本地Access和SQLite
@@ -155,7 +155,7 @@ namespace XCoder
 
             var n = 0;
             var ss = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.*", SearchOption.TopDirectoryOnly);
-            foreach (String item in ss)
+            foreach (var item in ss)
             {
                 var ext = Path.GetExtension(item);
                 //if (ext.EqualIC(".exe")) continue;
@@ -188,8 +188,8 @@ namespace XCoder
 
         Boolean DetectFileDb(String item)
         {
-            String access = "Standard Jet DB";
-            String sqlite = "SQLite";
+            var access = "Standard Jet DB";
+            var sqlite = "SQLite";
 
             using (var fs = new FileStream(item, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
@@ -274,10 +274,10 @@ namespace XCoder
                 var sysdbnames = new String[] { "master", "tempdb", "model", "msdb" };
                 foreach (DataRow dr in dt.Rows)
                 {
-                    String dbname = dr[0].ToString();
+                    var dbname = dr[0].ToString();
                     if (Array.IndexOf(sysdbnames, dbname) >= 0) continue;
 
-                    String connName = String.Format("{0}_{1}", item, dbname);
+                    var connName = String.Format("{0}_{1}", item, dbname);
 
                     builder["Database"] = dbname;
                     DAL.AddConnStr(connName, builder.ToString(), null, dbprovider);
@@ -285,7 +285,7 @@ namespace XCoder
 
                     try
                     {
-                        String ver = dal.Db.ServerVersion;
+                        var ver = dal.Db.ServerVersion;
                         names.Add(connName);
                     }
                     catch
@@ -345,7 +345,7 @@ namespace XCoder
 
         void SetDatabaseList(List<String> list)
         {
-            String str = cbConn.Text;
+            var str = cbConn.Text;
 
             cbConn.DataSource = list;
             //cbConn.DisplayMember = "value";
@@ -537,7 +537,7 @@ namespace XCoder
             var control = sender as Control;
             if (control == null) return;
 
-            String url = String.Empty;
+            var url = String.Empty;
             if (control.Tag != null) url = control.Tag.ToString();
             if (String.IsNullOrEmpty(url)) url = control.Text;
             if (String.IsNullOrEmpty(url)) return;
@@ -579,12 +579,12 @@ namespace XCoder
             {
                 list.Add("[文件]" + item);
             }
-            foreach (String item in Engine.Templates.Keys)
+            foreach (var item in Engine.Templates.Keys)
             {
-                String[] ks = item.Split('.');
+                var ks = item.Split('.');
                 if (ks == null || ks.Length < 1) continue;
 
-                String name = "[内置]" + ks[0];
+                var name = "[内置]" + ks[0];
                 if (!list.Contains(name)) list.Add(name);
             }
             cb.Items.Clear();
@@ -742,7 +742,7 @@ namespace XCoder
             if (saveFileDialog1.ShowDialog() != DialogResult.OK || String.IsNullOrEmpty(saveFileDialog1.FileName)) return;
             try
             {
-                String xml = DAL.Export(tables);
+                var xml = DAL.Export(tables);
                 File.WriteAllText(saveFileDialog1.FileName, xml);
 
                 MessageBox.Show("导出架构成功！", "导出架构", MessageBoxButtons.OK);
@@ -756,7 +756,7 @@ namespace XCoder
 
         private void 架构管理SToolStripMenuItem_Click(Object sender, EventArgs e)
         {
-            String connName = "" + cbConn.SelectedValue;
+            var connName = "" + cbConn.SelectedValue;
             if (String.IsNullOrEmpty(connName)) return;
 
             FrmSchema.Create(DAL.Create(connName).Db).Show();
@@ -764,7 +764,7 @@ namespace XCoder
 
         private void sQL查询器QToolStripMenuItem_Click(Object sender, EventArgs e)
         {
-            String connName = "" + cbConn.SelectedValue;
+            var connName = "" + cbConn.SelectedValue;
             if (String.IsNullOrEmpty(connName)) return;
 
             FrmQuery.Create(DAL.Create(connName)).Show();

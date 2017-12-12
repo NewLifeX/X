@@ -30,14 +30,14 @@ namespace XCoder
 
         public static void ReleaseAllTemplateFiles()
         {
-            String path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Engine.TemplatePath);
-            Dictionary<String, String> dic = GetTemplates();
+            var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Engine.TemplatePath);
+            var dic = GetTemplates();
 
-            foreach (String item in dic.Keys)
+            foreach (var item in dic.Keys)
             {
                 // 第一层是目录，然后是文件
-                String dir = item.Substring(0, item.IndexOf("."));
-                String file = item.Substring(dir.Length + 1);
+                var dir = item.Substring(0, item.IndexOf("."));
+                var file = item.Substring(dir.Length + 1);
 
                 dir = Path.Combine(path, dir);
                 file = Path.Combine(dir, file);

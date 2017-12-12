@@ -72,7 +72,7 @@ namespace XCoder
             }
             else
             {
-                DataColumn.RawType = string.Format(combRawType.Text.Trim() + "({0})", DataColumn.Length);
+                DataColumn.RawType = String.Format(combRawType.Text.Trim() + "({0})", DataColumn.Length);
             }
 
             DataColumn.Identity = ckbIdentity.Checked;
@@ -83,7 +83,7 @@ namespace XCoder
 
         public static BaseForm CreateForm(IDataColumn column, Boolean isNew)
         {
-            AddField frm = new AddField(column, isNew);
+            var frm = new AddField(column, isNew);
             frm.Dock = DockStyle.Fill;
             return WinFormHelper.CreateForm(frm, "编辑字段信息");
         }

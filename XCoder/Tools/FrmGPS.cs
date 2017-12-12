@@ -17,7 +17,7 @@ namespace XCoder.Tools
             InitializeComponent();
         }
 
-        private void btn_16_latlong_Click(object sender, EventArgs e)
+        private void btn_16_latlong_Click(Object sender, EventArgs e)
         {
             var temp = txt_16_latlong.Text.Trim();
             var _lat = temp.Substring(0, 8);
@@ -26,7 +26,7 @@ namespace XCoder.Tools
             SetText(_lat, _long);
         }
 
-        private void btn_latlong_Click(object sender, EventArgs e)
+        private void btn_latlong_Click(Object sender, EventArgs e)
         {
             var _lat = txt_16_lat.Text.Trim();
             var _long = txt_16_long.Text.Trim();
@@ -34,7 +34,7 @@ namespace XCoder.Tools
             SetText(_lat, _long);
         }
 
-        private void SetText(string _lat, string _long)
+        private void SetText(String _lat, String _long)
         {
             var v_lat = BitConverter.ToSingle(_lat.ToHex(), 0);
             var v_long = BitConverter.ToSingle(_long.ToHex(), 0);
