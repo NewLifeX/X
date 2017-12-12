@@ -119,6 +119,14 @@ namespace NewLife.Caching
             var ns = GetStream(!isQuit);
             if (ns == null) return null;
 
+            // 收发共用的缓冲区
+            var buf = _Buffer;
+            if (buf == null) _Buffer = buf = new Byte[64 * 1024];
+
+            // 干掉历史残留数据
+            var count = 0;
+            if (ns is NetworkStream nss && nss.DataAvailable) count = ns.Read(buf, 0, buf.Length);
+
             // 验证登录
             if (!Logined && !Password.IsNullOrEmpty() && cmd != "AUTH")
             {
@@ -128,10 +136,6 @@ namespace NewLife.Caching
                 Logined = true;
                 LoginTime = DateTime.Now;
             }
-
-            // 收发共用的缓冲区
-            var buf = _Buffer;
-            if (buf == null) _Buffer = buf = new Byte[64 * 1024];
 
             // *<number of arguments>\r\n$<number of bytes of argument 1>\r\n<argument data>\r\n
             // *1\r\n$4\r\nINFO\r\n
@@ -186,7 +190,7 @@ namespace NewLife.Caching
             if (log != null) WriteLog(log.ToString());
 
             // 接收
-            var count = ns.Read(buf, 0, buf.Length);
+            count = ns.Read(buf, 0, buf.Length);
             if (count == 0) return null;
 
             if (isQuit) Logined = false;
@@ -205,8 +209,8 @@ namespace NewLife.Caching
 
             var header = (Char)rs[0];
 
-            if (header == '$') return ReadBlock(rs);
-            if (header == '*') return ReadBlocks(rs);
+            if (header == '$') return ReadBlock(rs, ns);
+            if (header == '*') return ReadBlocks(rs, ns);
 
             var pk = rs.Sub(1);
 
@@ -220,9 +224,9 @@ namespace NewLife.Caching
             throw new InvalidDataException("无法解析响应 [{0}] [{1}]={2}".F(header, rs.Count, rs.ToHex(32, "-")));
         }
 
-        private Packet ReadBlock(Packet pk)
+        private Packet ReadBlock(Packet pk, Stream ms)
         {
-            var rs = ReadPacket(pk);
+            var rs = ReadPacket(pk, ms);
 
             if (Log != null && Log != Logger.Null)
             {
@@ -235,7 +239,7 @@ namespace NewLife.Caching
             return rs;
         }
 
-        private Packet[] ReadBlocks(Packet pk)
+        private Packet[] ReadBlocks(Packet pk, Stream ms)
         {
             var header = (Char)pk[0];
 
@@ -251,7 +255,7 @@ namespace NewLife.Caching
             var arr = new Packet[n];
             for (var i = 0; i < n; i++)
             {
-                var rs = ReadPacket(pk);
+                var rs = ReadPacket(pk, ms);
                 arr[i] = rs;
 
                 // 下一块，在前一块末尾加 \r\n
@@ -261,7 +265,7 @@ namespace NewLife.Caching
             return arr;
         }
 
-        private Packet ReadPacket(Packet pk)
+        private Packet ReadPacket(Packet pk, Stream ms)
         {
             var header = (Char)pk[0];
 
@@ -273,6 +277,26 @@ namespace NewLife.Caching
 
             // 出错或没有内容
             if (len <= 0) return pk.Sub(p, 0);
+
+            // 数据不足时，继续从网络流读取
+            var remain = pk.Count - (p + 2);
+            if (remain < len)
+            {
+                // 需要读取更多数据，加2字节的结尾换行
+                var over = len - remain + 2;
+                // 优先使用数据区
+                if (pk.Offset + pk.Count + over <= pk.Data.Length)
+                {
+                    var count = ms.Read(pk.Data, pk.Offset + pk.Count, over);
+                    if (count > 0) pk.Set(pk.Data, pk.Offset, pk.Count + count);
+                }
+                else
+                {
+                    var buf = new Byte[over];
+                    var count = ms.Read(buf, 0, over);
+                    if (count > 0) pk.Next = new Packet(buf, 0, count);
+                }
+            }
 
             // 解析内容，跳过长度后的\r\n
             pk = pk.Sub(p + 2, len);
