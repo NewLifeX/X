@@ -687,11 +687,11 @@ namespace System
                     return new UdpServer { Remote = remote };
                 case NetType.Http:
                     var http = new HttpClient { Remote = remote };
-                    http.IsSSL = remote.Protocol.EqualIgnoreCase("https");
+                    //http.IsSSL = remote.Protocol.EqualIgnoreCase("https");
                     return http;
                 case NetType.WebSocket:
                     var ws = new HttpClient { Remote = remote };
-                    ws.IsSSL = remote.Protocol.EqualIgnoreCase("https");
+                    //ws.IsSSL = remote.Protocol.EqualIgnoreCase("https");
                     ws.IsWebSocket = true;
                     return ws;
                 default:
