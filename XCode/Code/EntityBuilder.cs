@@ -588,7 +588,7 @@ namespace XCode.Code
                     WriteLine("// 这里验证参数范围，建议抛出参数异常，指定参数名，前端用户界面可以捕获参数异常并聚焦到对应的参数输入框");
                     foreach (var item in cs)
                     {
-                        WriteLine("if (String.IsNullOrEmpty({0})) throw new ArgumentNullException({0}, \"{1}不能为空！\");", NameOf(item.Name), item.DisplayName ?? item.Name);
+                        WriteLine("if ({0}.IsNullOrEmpty()) throw new ArgumentNullException({1}, \"{2}不能为空！\");", item.Name, NameOf(item.Name), item.DisplayName ?? item.Name);
                     }
                 }
 
