@@ -21,20 +21,8 @@ namespace NewLife.Collections
         /// <summary>过期时间。单位是秒，默认0秒，表示永不过期</summary>
         public Int32 Expire { get; set; }
 
-        /// <summary>过期清理时间，缓存项过期后达到这个时间时，将被移除缓存。单位是秒，默认0秒，表示不清理过期项</summary>
+        /// <summary>定时清理时间，默认0秒，表示不清理过期项</summary>
         public Int32 Period { get; set; }
-
-        /// <summary>异步更新。默认false</summary>
-        [Obsolete]
-        public Boolean Asynchronous { get; set; }
-
-        /// <summary>移除过期缓存项时，自动调用其Dispose。默认false</summary>
-        [Obsolete]
-        public Boolean AutoDispose { get; set; }
-
-        /// <summary>是否缓存默认值，有时候委托返回默认值不希望被缓存，而是下一次尽快进行再次计算。默认true</summary>
-        [Obsolete]
-        public Boolean CacheDefault { get; set; } = true;
 
         /// <summary>查找数据的方法</summary>
         public Func<TKey, TValue> FindMethod { get; set; }
@@ -109,7 +97,7 @@ namespace NewLife.Collections
         /// <returns></returns>
         public TValue this[TKey key] { get => Get(key); set => Set(key, value); }
 
-        /// <summary>获取</summary>
+        /// <summary>获取 GetOrAdd</summary>
         /// <param name="key"></param>
         /// <returns></returns>
         public virtual TValue Get(TKey key)
@@ -118,11 +106,9 @@ namespace NewLife.Collections
 
             if (_cache.TryGetValue(key, out var item))
             {
-                if (Expire > 0 && item.Expired)
+                // 找到后判断过期
+                if (Expire > 0 && func != null && item.Expired)
                 {
-                    //if (func == null) throw new ArgumentNullException(nameof(FindMethod));
-                    if (func == null) return default(TValue);
-
                     // 超时异步更新
                     Task.Run(() =>
                     {
@@ -133,30 +119,40 @@ namespace NewLife.Collections
 
                 return item.Value;
             }
-            else if (func != null)
-            {
-                //if (func == null) throw new ArgumentNullException(nameof(FindMethod));
 
+            // 找不到，则查找数据并加入缓存
+            if (func != null)
+            {
                 // 查数据，避免缓存穿透
                 var value = func(key);
-                if (value == null) return default(TValue);
-
-                var item2 = new CacheItem(value, Expire);
-                item = _cache.GetOrAdd(key, item2);
-
-                if (item == item2) Interlocked.Increment(ref _count);
-
-                return item.Value;
+                if (value != null)
+                {
+                    // 如果没有添加成功，则返回旧值
+                    if (!TryAdd(key, value, false, out var rs)) return rs;
+                    return value;
+                }
             }
 
             return default(TValue);
         }
 
-        /// <summary>设置</summary>
+        /// <summary>设置 AddOrUpdate</summary>
         /// <param name="key"></param>
         /// <param name="value"></param>
         /// <returns></returns>
         public virtual Boolean Set(TKey key, TValue value)
+        {
+            // 不用AddOrUpdate，避免匿名委托带来的GC损耗
+            return TryAdd(key, value, true, out var rs);
+        }
+
+        /// <summary>尝试添加，或返回旧值</summary>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        /// <param name="updateIfExists"></param>
+        /// <param name="resultingValue"></param>
+        /// <returns></returns>
+        public virtual Boolean TryAdd(TKey key, TValue value, Boolean updateIfExists, out TValue resultingValue)
         {
             // 不用AddOrUpdate，避免匿名委托带来的GC损耗
             CacheItem ci = null;
@@ -164,15 +160,21 @@ namespace NewLife.Collections
             {
                 if (_cache.TryGetValue(key, out var item))
                 {
-                    item.Value = value;
-                    item.ExpiredTime = TimerX.Now.AddSeconds(Expire);
-                    return true;
+                    resultingValue = item.Value;
+                    if (updateIfExists)
+                    {
+                        item.Value = value;
+                        item.ExpiredTime = TimerX.Now.AddSeconds(Expire);
+                    }
+                    return false;
                 }
 
                 if (ci == null) ci = new CacheItem(value, Expire);
             } while (!_cache.TryAdd(key, ci));
 
             Interlocked.Increment(ref _count);
+
+            resultingValue = default(TValue);
 
             StartTimer();
 
@@ -197,28 +199,11 @@ namespace NewLife.Collections
             {
                 if (items.TryGetValue(key, out item) && (exp <= 0 || !item.Expired)) return item.Value;
 
-                //// 对于缓存命中，仅是缓存过期的项，如果采用异步，则马上修改缓存时间，让后面的来访者直接采用已过期的缓存项
-                //if (exp > 0 && Asynchronous)
-                //{
-                //    if (item != null)
-                //    {
-                //        item.ExpiredTime = TimerX.Now.AddSeconds(exp);
-                //        // 异步更新缓存
-                //        if (func != null) Task.Run(() => { item.Value = func(key); });
-
-                //        return item.Value;
-                //    }
-                //}
-
-                if (func == null)
-                {
-                    //if (CacheDefault) items[key] = new CacheItem(value, exp);
-                }
-                else
+                if (func != null)
                 {
                     value = func(key);
 
-                    if (/*CacheDefault ||*/ !Equals(value, default(TValue)))
+                    if (!Equals(value, default(TValue)))
                     {
                         items[key] = new CacheItem(value, exp);
 
