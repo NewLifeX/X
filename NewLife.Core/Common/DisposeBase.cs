@@ -59,22 +59,22 @@ namespace NewLife
             if (disposed != 0) return;
             if (Interlocked.CompareExchange(ref disposed, 1, 0) != 0) return;
 
-            if (XTrace.Debug)
-            {
-                try
-                {
-                    OnDispose(disposing);
-                }
-                catch (Exception ex)
-                {
-                    XTrace.WriteLine("设计错误，OnDispose中尽可能的不要抛出异常！{0}", ex.ToString());
-                    throw;
-                }
-            }
-            else
+            //if (XTrace.Debug)
+            //{
+            try
             {
                 OnDispose(disposing);
             }
+            catch (Exception ex)
+            {
+                if (XTrace.Debug) XTrace.WriteLine("设计错误，OnDispose中尽可能的不要抛出异常！{0}", ex.ToString());
+                //throw;
+            }
+            //}
+            //else
+            //{
+            //    OnDispose(disposing);
+            //}
 
             // 只有基类的OnDispose被调用，才有可能是2
             if (Interlocked.CompareExchange(ref disposed, 3, 2) != 2) throw new XException("设计错误，OnDispose应该只被调用一次！代码不应该直接调用OnDispose，而应该调用Dispose。子类重载OnDispose时必须首先调用基类方法！");
