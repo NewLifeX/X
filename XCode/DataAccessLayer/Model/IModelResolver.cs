@@ -54,8 +54,8 @@ namespace XCode.DataAccessLayer
             name = name.Replace("\\", "_");
 
             // 全大写或全小写名字，格式化为驼峰格式
-            if ((name == name.ToUpper() || name == name.ToLower()))
-            {
+            //if ((name == name.ToUpper() || name == name.ToLower()))//
+            //{
                 var ns = name.Split("_");
                 var sb = new StringBuilder();
                 foreach (var item in ns)
@@ -70,7 +70,7 @@ namespace XCode.DataAccessLayer
                     }
                 }
                 name = sb.ToString();
-            }
+            //}
 
             return name;
         }
