@@ -64,7 +64,7 @@ namespace NewLife.Collections
             base.OnDispose(disposing);
 
             _count = 0;
-            _cache.Clear();
+            //_cache.Clear();
 
             StopTimer();
         }
