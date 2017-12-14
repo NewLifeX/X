@@ -116,6 +116,36 @@ WriteLiteral(">下载表结构</th>\r\n        </tr>\r\n    </thead>\r\n    <tbo
          foreach (var item in dbs)
         {
             var dal = DAL.Create(item.Name);
+            // 密码需要保密
+            var str = item.ConnStr;
+            if (!str.IsNullOrEmpty())
+            {
+                var ss = str.Split(";");
+                for (var i = 0; i < ss.Length; i++)
+                {
+                    if (ss[i].StartsWithIgnoreCase("password=", "pass=", "pwd="))
+                    {
+                        ss[i] = ss[i].Substring(null, "=") + "={保密}";
+                        str = ss.Join(";");
+                        break;
+                    }
+                }
+            }
+            var str2 = dal.Db.ConnectionString;
+            if (!str2.IsNullOrEmpty())
+            {
+                var ss = str2.Split(";");
+                for (var i = 0; i < ss.Length; i++)
+                {
+                    if (ss[i].StartsWithIgnoreCase("password=", "pass=", "pwd="))
+                    {
+                        ss[i] = ss[i].Substring(null, "=") + "={保密}";
+                        str2 = ss.Join(";");
+                        break;
+                    }
+                }
+            }
+
 
             
             #line default
@@ -123,7 +153,7 @@ WriteLiteral(">下载表结构</th>\r\n        </tr>\r\n    </thead>\r\n    <tbo
 WriteLiteral("            <tr>\r\n                <td>");
 
             
-            #line 27 "..\..\Areas\Admin\Views\Db\Index.cshtml"
+            #line 57 "..\..\Areas\Admin\Views\Db\Index.cshtml"
                Write(item.Name);
 
             
@@ -132,7 +162,7 @@ WriteLiteral("            <tr>\r\n                <td>");
 WriteLiteral("</td>\r\n                <td>");
 
             
-            #line 28 "..\..\Areas\Admin\Views\Db\Index.cshtml"
+            #line 58 "..\..\Areas\Admin\Views\Db\Index.cshtml"
                Write(item.Type);
 
             
@@ -143,21 +173,21 @@ WriteLiteral("</td>\r\n                <td");
 WriteLiteral(" style=\"max-width:600px;overflow:hidden;white-space: nowrap;text-overflow: ellips" +
 "is;\"");
 
-WriteAttribute("title", Tuple.Create(" title=\"", 976), Tuple.Create("\"", 1008)
+WriteAttribute("title", Tuple.Create(" title=\"", 2048), Tuple.Create("\"", 2061)
             
-            #line 29 "..\..\Areas\Admin\Views\Db\Index.cshtml"
-                                 , Tuple.Create(Tuple.Create("", 984), Tuple.Create<System.Object, System.Int32>(dal.Db.ConnectionString
+            #line 59 "..\..\Areas\Admin\Views\Db\Index.cshtml"
+                                , Tuple.Create(Tuple.Create("", 2056), Tuple.Create<System.Object, System.Int32>(str2
             
             #line default
             #line hidden
-, 984), false)
+, 2056), false)
 );
 
 WriteLiteral(">");
 
             
-            #line 29 "..\..\Areas\Admin\Views\Db\Index.cshtml"
-                                                                                                                                     Write(item.ConnStr);
+            #line 59 "..\..\Areas\Admin\Views\Db\Index.cshtml"
+                                                                                                                  Write(str);
 
             
             #line default
@@ -165,7 +195,7 @@ WriteLiteral(">");
 WriteLiteral("</td>\r\n                <td>");
 
             
-            #line 30 "..\..\Areas\Admin\Views\Db\Index.cshtml"
+            #line 60 "..\..\Areas\Admin\Views\Db\Index.cshtml"
                Write(item.Version);
 
             
@@ -174,7 +204,7 @@ WriteLiteral("</td>\r\n                <td>");
 WriteLiteral("</td>\r\n                <td>");
 
             
-            #line 31 "..\..\Areas\Admin\Views\Db\Index.cshtml"
+            #line 61 "..\..\Areas\Admin\Views\Db\Index.cshtml"
                Write(Html.ActionLink("备份", "Backup", new { Name = item.Name }));
 
             
@@ -183,7 +213,7 @@ WriteLiteral("</td>\r\n                <td>");
 WriteLiteral("，共 ");
 
             
-            #line 31 "..\..\Areas\Admin\Views\Db\Index.cshtml"
+            #line 61 "..\..\Areas\Admin\Views\Db\Index.cshtml"
                                                                             Write(item.Backups.ToString("n0"));
 
             
@@ -192,7 +222,7 @@ WriteLiteral("，共 ");
 WriteLiteral("个</td>\r\n                <td>");
 
             
-            #line 32 "..\..\Areas\Admin\Views\Db\Index.cshtml"
+            #line 62 "..\..\Areas\Admin\Views\Db\Index.cshtml"
                Write(Html.ActionLink("备份并压缩", "BackupAndCompress", new { Name = item.Name }));
 
             
@@ -205,7 +235,7 @@ WriteLiteral(" class=\"text-center\"");
 WriteLiteral(">");
 
             
-            #line 33 "..\..\Areas\Admin\Views\Db\Index.cshtml"
+            #line 63 "..\..\Areas\Admin\Views\Db\Index.cshtml"
                                    Write(Html.ActionLink("下载", "Download", new { Name = item.Name }));
 
             
@@ -214,7 +244,7 @@ WriteLiteral(">");
 WriteLiteral("</td>\r\n            </tr>\r\n");
 
             
-            #line 35 "..\..\Areas\Admin\Views\Db\Index.cshtml"
+            #line 65 "..\..\Areas\Admin\Views\Db\Index.cshtml"
         }
 
             
