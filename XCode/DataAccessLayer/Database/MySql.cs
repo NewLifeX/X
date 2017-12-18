@@ -35,6 +35,7 @@ namespace XCode.DataAccessLayer
         const String Server_Key = "Server";
         const String CharSet = "CharSet";
         const String AllowZeroDatetime = "Allow Zero Datetime";
+        const String MaxPoolSize = "MaxPoolSize";
         protected override void OnSetConnectionString(XDbConnectionStringBuilder builder)
         {
             base.OnSetConnectionString(builder);
@@ -46,6 +47,8 @@ namespace XCode.DataAccessLayer
             }
             if (!builder.ContainsKey(CharSet)) builder[CharSet] = "utf8";
             //if (!builder.ContainsKey(AllowZeroDatetime)) builder[AllowZeroDatetime] = "True";
+            // 默认最大连接数1000
+            if (!builder.ContainsKey(MaxPoolSize)) builder[MaxPoolSize] = "1000";
         }
         #endregion
 
