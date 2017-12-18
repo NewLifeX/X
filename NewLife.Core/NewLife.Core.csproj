@@ -75,6 +75,7 @@
     <Compile Include="Applications\IP\Zip.cs" />
     <Compile Include="Caching\Cache.cs" />
     <Compile Include="Caching\ICache.cs" />
+    <Compile Include="Caching\IProducerConsumer.cs" />
     <Compile Include="Caching\MemoryCache.cs" />
     <Compile Include="Caching\CacheSetting.cs" />
     <Compile Include="Caching\Redis.cs" />

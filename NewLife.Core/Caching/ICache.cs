@@ -80,16 +80,22 @@ namespace NewLife.Caching
         void SetAll<T>(IDictionary<String, T> values, Int32 expire = -1);
 
         /// <summary>获取列表</summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="key"></param>
+        /// <typeparam name="T">元素类型</typeparam>
+        /// <param name="key">键</param>
         /// <returns></returns>
         IList<T> GetList<T>(String key);
 
         /// <summary>获取哈希</summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="key"></param>
+        /// <typeparam name="T">元素类型</typeparam>
+        /// <param name="key">键</param>
         /// <returns></returns>
         IDictionary<String, T> GetDictionary<T>(String key);
+
+        /// <summary>获取队列</summary>
+        /// <typeparam name="T">元素类型</typeparam>
+        /// <param name="key">键</param>
+        /// <returns></returns>
+        IProducerConsumer<T> GetQueue<T>(String key);
         #endregion
 
         #region 高级操作

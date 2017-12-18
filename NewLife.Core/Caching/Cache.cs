@@ -178,36 +178,22 @@ namespace NewLife.Caching
         }
 
         /// <summary>获取列表</summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="key"></param>
+        /// <typeparam name="T">元素类型</typeparam>
+        /// <param name="key">键</param>
         /// <returns></returns>
-        public virtual IList<T> GetList<T>(String key)
-        {
-            var list = Get<IList<T>>(key);
-            if (list == null)
-            {
-                list = new List<T>();
-                Set(key, list);
-            }
-
-            return list;
-        }
+        public virtual IList<T> GetList<T>(String key) { throw new NotSupportedException(); }
 
         /// <summary>获取哈希</summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="key"></param>
+        /// <typeparam name="T">元素类型</typeparam>
+        /// <param name="key">键</param>
         /// <returns></returns>
-        public virtual IDictionary<String, T> GetDictionary<T>(String key)
-        {
-            var dic = Get<IDictionary<String, T>>(key);
-            if (dic == null)
-            {
-                dic = new Dictionary<String, T>();
-                Set(key, dic);
-            }
+        public virtual IDictionary<String, T> GetDictionary<T>(String key) { throw new NotSupportedException(); }
 
-            return dic;
-        }
+        /// <summary>获取队列</summary>
+        /// <typeparam name="T">元素类型</typeparam>
+        /// <param name="key">键</param>
+        /// <returns></returns>
+        public virtual IProducerConsumer<T> GetQueue<T>(String key) { throw new NotSupportedException(); }
         #endregion
 
         #region 高级操作

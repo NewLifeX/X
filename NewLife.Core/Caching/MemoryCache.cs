@@ -256,6 +256,56 @@ namespace NewLife.Caching
         }
         #endregion
 
+        #region 集合操作
+        /// <summary>获取列表</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public override IList<T> GetList<T>(String key)
+        {
+            var list = Get<IList<T>>(key);
+            if (list == null)
+            {
+                list = new List<T>();
+                Set(key, list);
+            }
+
+            return list;
+        }
+
+        /// <summary>获取哈希</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public override IDictionary<String, T> GetDictionary<T>(String key)
+        {
+            var dic = Get<IDictionary<String, T>>(key);
+            if (dic == null)
+            {
+                dic = new ConcurrentDictionary<String, T>();
+                Set(key, dic);
+            }
+
+            return dic;
+        }
+
+        /// <summary>获取队列</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public override IProducerConsumer<T> GetQueue<T>(String key)
+        {
+            var queue = new MemoryQueue<T>(new ConcurrentQueue<T>());
+            do
+            {
+                var queue2 = Get<IProducerConsumer<T>>(key);
+                if (queue2 != null) return queue2;
+            } while (!Set(key, queue));
+
+            return queue;
+        }
+        #endregion
+
         #region 缓存项
         /// <summary>缓存项</summary>
         class CacheItem
@@ -383,5 +433,43 @@ namespace NewLife.Caching
             base.BenchOne(times, threads, rand);
         }
         #endregion
+    }
+
+    /// <summary>生产者消费者</summary>
+    /// <typeparam name="T"></typeparam>
+    class MemoryQueue<T> : IProducerConsumer<T>
+    {
+        private IProducerConsumerCollection<T> _Collection;
+
+        public MemoryQueue(IProducerConsumerCollection<T> collection) { _Collection = collection; }
+
+        /// <summary>生产添加</summary>
+        /// <param name="values"></param>
+        /// <returns></returns>
+        public Int32 Add(IEnumerable<T> values)
+        {
+            var count = 0;
+            foreach (var item in values)
+            {
+                if (_Collection.TryAdd(item)) count++;
+            }
+
+            return count;
+        }
+
+        /// <summary>消费获取</summary>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        public IEnumerable<T> Take(Int32 count = 1)
+        {
+            if (count <= 0) yield break;
+
+            for (var i = 0; i < count; i++)
+            {
+                if (!_Collection.TryTake(out var item)) break;
+
+                yield return item;
+            }
+        }
     }
 }
