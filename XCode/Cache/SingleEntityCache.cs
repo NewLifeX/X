@@ -370,7 +370,7 @@ namespace XCode.Cache
             }
             catch (Exception ex)
             {
-                XTrace.WriteException(ex);
+                XTrace.WriteLine($"[{TableName}/{ConnName}]" + ex.GetTrue());
             }
         }
         #endregion

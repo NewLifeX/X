@@ -138,7 +138,14 @@ namespace XCode.Cache
         {
             WriteLog("更新{0}（第{2}次） 原因：{1}", ToString(), state + "", Times);
 
-            _Entities = Invoke<Object, IList<TEntity>>(s => FillListMethod(), null);
+            try
+            {
+                _Entities = Invoke<Object, IList<TEntity>>(s => FillListMethod(), null);
+            }
+            catch (Exception ex)
+            {
+                XTrace.WriteLine($"[{TableName}/{ConnName}]" + ex.GetTrue());
+            }
 
             ExpiredTime = TimerX.Now.AddSeconds(Expire);
             WriteLog("完成{0}[{1}]（第{2}次）", ToString(), _Entities.Count, Times);
