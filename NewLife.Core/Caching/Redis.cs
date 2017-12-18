@@ -21,7 +21,7 @@ namespace NewLife.Caching
         /// <returns></returns>
         public static Redis Create(String server, Int32 db)
         {
-            if (String.IsNullOrEmpty(server) || server == ".") server = "127.0.0.1";
+            if (server.IsNullOrEmpty() || server == ".") server = "127.0.0.1";
 
             var pass = "";
             if (server.Contains("@"))
@@ -119,11 +119,16 @@ namespace NewLife.Caching
             {
                 var rds = Instance;
                 var svr = rds.Server;
+                if (svr.IsNullOrEmpty()) throw new ArgumentNullException(nameof(rds.Server));
+
                 if (!svr.Contains("://")) svr = "tcp://" + svr;
+
+                var uri = new NetUri(svr);
+                if (uri.Port == 0) uri.Port = 6379;
 
                 var rc = new RedisClient
                 {
-                    Server = new NetUri(svr),
+                    Server = uri,
                     Password = rds.Password,
                 };
                 if (rds.Db > 0) rc.Select(rds.Db);
@@ -217,11 +222,11 @@ namespace NewLife.Caching
             return Execute(rds => rds.Get<T>(key));
         }
 
-        /// <summary>移除单体</summary>
-        /// <param name="key">键</param>
-        public override Boolean Remove(String key)
+        /// <summary>批量移除缓存项</summary>
+        /// <param name="keys">键集合</param>
+        public override Int32 Remove(params String[] keys)
         {
-            return Execute(rds => rds.Execute<String>("DEL", key) == "1");
+            return Execute(rds => rds.Execute<Int32>("DEL", keys));
         }
 
         /// <summary>是否存在</summary>

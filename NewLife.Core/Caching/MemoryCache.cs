@@ -110,10 +110,18 @@ namespace NewLife.Caching
             return (T)item.Value;
         }
 
-        /// <summary>移除缓存项</summary>
-        /// <param name="key">键</param>
+        /// <summary>批量移除缓存项</summary>
+        /// <param name="keys">键集合</param>
         /// <returns></returns>
-        public override Boolean Remove(String key) { return _cache.TryRemove(key, out var item); }
+        public override Int32 Remove(params String[] keys)
+        {
+            var count = 0;
+            foreach (var k in keys)
+            {
+                if (_cache.TryRemove(k, out var item)) count++;
+            }
+            return count;
+        }
 
         /// <summary>设置缓存项有效期</summary>
         /// <param name="key">键</param>

@@ -50,10 +50,10 @@ namespace NewLife.Caching
         /// <returns></returns>
         T Get<T>(String key);
 
-        /// <summary>移除缓存项</summary>
-        /// <param name="key">键</param>
+        /// <summary>批量移除缓存项</summary>
+        /// <param name="keys">键集合</param>
         /// <returns></returns>
-        Boolean Remove(String key);
+        Int32 Remove(params String[] keys);
 
         /// <summary>设置缓存项有效期</summary>
         /// <param name="key">键</param>
