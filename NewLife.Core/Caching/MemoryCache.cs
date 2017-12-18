@@ -166,10 +166,30 @@ namespace NewLife.Caching
             return true;
         }
 
-        //public virtual Boolean Update<T>(String key, T value, Int32 expire = -1)
-        //{
+        /// <summary>设置新值并获取旧值，原子操作</summary>
+        /// <typeparam name="T">值类型</typeparam>
+        /// <param name="key">键</param>
+        /// <param name="value">值</param>
+        /// <returns></returns>
+        public override T Replace<T>(String key, T value)
+        {
+            var expire = Expire;
 
-        //}
+            CacheItem ci = null;
+            do
+            {
+                if (_cache.TryGetValue(key, out var item))
+                {
+                    var rs = item.Value;
+                    item.Value = value;
+                    return (T)rs;
+                }
+
+                if (ci == null) ci = new CacheItem(value, expire);
+            } while (!_cache.TryAdd(key, ci));
+
+            return default(T);
+        }
 
         /// <summary>累加，原子操作</summary>
         /// <param name="key">键</param>

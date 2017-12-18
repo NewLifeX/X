@@ -219,6 +219,18 @@ namespace NewLife.Caching
         /// <returns></returns>
         public virtual Boolean Add<T>(String key, T value, Int32 expire = -1) { return Set(key, value, expire); }
 
+        /// <summary>设置新值并获取旧值，原子操作</summary>
+        /// <typeparam name="T">值类型</typeparam>
+        /// <param name="key">键</param>
+        /// <param name="value">值</param>
+        /// <returns></returns>
+        public virtual T Replace<T>(String key, T value)
+        {
+            var rs = Get<T>(key);
+            Set(key, value);
+            return rs;
+        }
+
         /// <summary>累加，原子操作</summary>
         /// <param name="key">键</param>
         /// <param name="value">变化量</param>

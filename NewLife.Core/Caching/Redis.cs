@@ -288,6 +288,16 @@ namespace NewLife.Caching
             return Execute(rds => rds.Execute<Int32>("SETNX", key, value) == 1);
         }
 
+        /// <summary>设置新值并获取旧值，原子操作</summary>
+        /// <typeparam name="T">值类型</typeparam>
+        /// <param name="key">键</param>
+        /// <param name="value">值</param>
+        /// <returns></returns>
+        public override T Replace<T>(String key, T value)
+        {
+            return Execute(rds => rds.Execute<T>("GETSET", key, value));
+        }
+
         /// <summary>累加，原子操作</summary>
         /// <param name="key">键</param>
         /// <param name="value">变化量</param>
@@ -329,16 +339,6 @@ namespace NewLife.Caching
         {
             //return (Double)Decrement(key, (Int64)(value * 100)) / 100;
             return Increment(key, -value);
-        }
-
-        /// <summary>设置新值并获取旧值，原子操作</summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public T GetSet<T>(String key, T value)
-        {
-            return Execute(rds => rds.Execute<T>("GETSET", key, value));
         }
         #endregion
 

@@ -101,6 +101,16 @@ namespace NewLife.Caching
         /// <returns></returns>
         Boolean Add<T>(String key, T value, Int32 expire = -1);
 
+        /// <summary>设置新值并获取旧值，原子操作</summary>
+        /// <remarks>
+        /// 常常配合Increment使用，用于累加到一定数后重置归零，又避免多线程冲突。
+        /// </remarks>
+        /// <typeparam name="T">值类型</typeparam>
+        /// <param name="key">键</param>
+        /// <param name="value">值</param>
+        /// <returns></returns>
+        T Replace<T>(String key, T value);
+
         /// <summary>累加，原子操作</summary>
         /// <param name="key">键</param>
         /// <param name="value">变化量</param>
