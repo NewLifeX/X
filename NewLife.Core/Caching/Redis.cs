@@ -342,20 +342,6 @@ namespace NewLife.Caching
         }
         #endregion
 
-        #region 事务
-        /// <summary>申请加锁</summary>
-        /// <param name="key"></param>
-        /// <param name="msTimeout"></param>
-        /// <returns></returns>
-        public IDisposable AcquireLock(String key, Int32 msTimeout)
-        {
-            var rlock = new RedisLock(this, key);
-            if (!rlock.Acquire(msTimeout)) throw new InvalidOperationException($"锁定[{key}]失败！msTimeout={msTimeout}");
-
-            return rlock;
-        }
-        #endregion
-
         #region 性能测试
         /// <summary>性能测试</summary>
         /// <param name="rand">随机读写</param>

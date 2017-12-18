@@ -79,7 +79,7 @@
     <Compile Include="Caching\CacheSetting.cs" />
     <Compile Include="Caching\Redis.cs" />
     <Compile Include="Caching\RedisClient.cs" />
-    <Compile Include="Caching\RedisLock.cs" />
+    <Compile Include="Caching\CacheLock.cs" />
     <Compile Include="Collections\CollectionHelper.cs" />
     <Compile Include="Collections\ConcurrentHashSet.cs" />
     <Compile Include="Collections\DictionaryCache.cs" />

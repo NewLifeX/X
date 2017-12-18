@@ -136,6 +136,14 @@ namespace NewLife.Caching
         Double Decrement(String key, Double value);
         #endregion
 
+        #region 事务
+        /// <summary>申请分布式锁</summary>
+        /// <param name="key">要锁定的key</param>
+        /// <param name="msTimeout"></param>
+        /// <returns></returns>
+        IDisposable AcquireLock(String key, Int32 msTimeout);
+        #endregion
+
         #region 性能测试
         /// <summary>多线程性能测试</summary>
         /// <param name="rand">随机读写</param>
