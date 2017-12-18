@@ -37,7 +37,13 @@ namespace XCode
             var dic = _cache;
             if (dic == null) dic = _cache = new Dictionary<String, CacheItem>();
 
-            if (dic.TryGetValue(key, out var ci) && !ci.Expired) return (T)ci.Value;
+            CacheItem ci = null;
+            try
+            {
+                // 比较小几率出现多线程问题
+                if (dic.TryGetValue(key, out ci) && !ci.Expired) return (T)ci.Value;
+            }
+            catch { }
             lock (dic)
             {
                 if (dic.TryGetValue(key, out ci) && !ci.Expired) return (T)ci.Value;
