@@ -60,6 +60,7 @@ namespace NewLife.Caching
         public override Boolean ContainsKey(String key) { return _cache.ContainsKey(key); }
 
         /// <summary>添加缓存项</summary>
+        /// <typeparam name="T">值类型</typeparam>
         /// <param name="key">键</param>
         /// <param name="value">值</param>
         /// <param name="expire">过期时间，秒。小于0时采用默认缓存时间<seealso cref="Cache.Expire"/></param>
@@ -85,7 +86,10 @@ namespace NewLife.Caching
                 if (_cache.TryGetValue(key, out var item))
                 {
                     item.Value = value;
-                    item.ExpiredTime = TimerX.Now.AddSeconds(expire);
+                    if (expire <= 0)
+                        item.ExpiredTime = DateTime.MaxValue;
+                    else
+                        item.ExpiredTime = TimerX.Now.AddSeconds(expire);
                     //if (_cache.TryUpdate(key, item, item)) return true;
                     return true;
                 }
@@ -135,6 +139,30 @@ namespace NewLife.Caching
         #endregion
 
         #region 高级操作
+        /// <summary>添加，已存在时不更新</summary>
+        /// <typeparam name="T">值类型</typeparam>
+        /// <param name="key">键</param>
+        /// <param name="value">值</param>
+        /// <param name="expire">过期时间，秒。小于0时采用默认缓存时间<seealso cref="Cache.Expire"/></param>
+        /// <returns></returns>
+        public override Boolean Add<T>(String key, T value, Int32 expire = -1)
+        {
+            CacheItem ci = null;
+            do
+            {
+                if (_cache.TryGetValue(key, out var item)) return false;
+
+                if (ci == null) ci = new CacheItem(value, expire);
+            } while (!_cache.TryAdd(key, ci));
+
+            return true;
+        }
+
+        //public virtual Boolean Update<T>(String key, T value, Int32 expire = -1)
+        //{
+
+        //}
+
         /// <summary>累加，原子操作</summary>
         /// <param name="key">键</param>
         /// <param name="value">变化量</param>
@@ -217,7 +245,10 @@ namespace NewLife.Caching
             public CacheItem(Object value, Int32 expire)
             {
                 Value = value;
-                ExpiredTime = TimerX.Now.AddSeconds(expire);
+                if (expire <= 0)
+                    ExpiredTime = DateTime.MaxValue;
+                else
+                    ExpiredTime = TimerX.Now.AddSeconds(expire);
             }
 
             public Object Inc(Object value)

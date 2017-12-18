@@ -211,6 +211,14 @@ namespace NewLife.Caching
         #endregion
 
         #region 高级操作
+        /// <summary>添加，已存在时不更新</summary>
+        /// <typeparam name="T">值类型</typeparam>
+        /// <param name="key">键</param>
+        /// <param name="value">值</param>
+        /// <param name="expire">过期时间，秒。小于0时采用默认缓存时间<seealso cref="Cache.Expire"/></param>
+        /// <returns></returns>
+        public virtual Boolean Add<T>(String key, T value, Int32 expire = -1) { return Set(key, value, expire); }
+
         /// <summary>累加，原子操作</summary>
         /// <param name="key">键</param>
         /// <param name="value">变化量</param>

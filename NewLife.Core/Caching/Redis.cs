@@ -272,6 +272,17 @@ namespace NewLife.Caching
         #endregion
 
         #region 高级操作
+        /// <summary>添加，已存在时不更新</summary>
+        /// <typeparam name="T">值类型</typeparam>
+        /// <param name="key">键</param>
+        /// <param name="value">值</param>
+        /// <param name="expire">过期时间，秒。小于0时采用默认缓存时间<seealso cref="Cache.Expire"/></param>
+        /// <returns></returns>
+        public override Boolean Add<T>(String key, T value, Int32 expire = -1)
+        {
+            return Execute(rds => rds.Execute<Int32>("SETNX", key, value) == 1);
+        }
+
         /// <summary>累加，原子操作</summary>
         /// <param name="key">键</param>
         /// <param name="value">变化量</param>
@@ -313,16 +324,6 @@ namespace NewLife.Caching
         {
             //return (Double)Decrement(key, (Int64)(value * 100)) / 100;
             return Increment(key, -value);
-        }
-
-        /// <summary>添加，不存在时设置</summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public Boolean Add<T>(String key, T value)
-        {
-            return Execute(rds => rds.Execute<Int32>("SETNX", key, value) == 1);
         }
 
         /// <summary>设置新值并获取旧值，原子操作</summary>
