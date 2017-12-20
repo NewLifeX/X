@@ -184,7 +184,9 @@ namespace NewLife.Serialization
                 if (writer.WriteState == WriteState.Attribute)
                     writer.WriteEndAttribute();
                 else
-                    writer.WriteEndElement();
+                    //writer.WriteEndElement();
+                    //替换成WriteFullEndElement方法，写入完整的结束标记。解决读取空节点（短结束标记"/ >"）发生错误。
+                    writer.WriteFullEndElement();
             }
         }
 
