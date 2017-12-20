@@ -66,6 +66,10 @@ namespace NewLife.Cube
         /// <summary>下拉选择框。使用Bootstrap，美观，但有呈现方面的性能损耗</summary>
         [Description("下拉选择框。使用Bootstrap，美观，但有呈现方面的性能损耗")]
         public Boolean BootstrapSelect { get; set; } = true;
+
+        /// <summary>强制SSL。强制使用https访问</summary>
+        [Description("强制SSL。强制使用https访问")]
+        public Boolean ForceSSL { get; set; } 
         #endregion
 
         #region 方法

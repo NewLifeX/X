@@ -250,6 +250,7 @@
     <Compile Include="Common\BootstrapJs.cs" />
     <Compile Include="Common\ControllerHelper.cs" />
     <Compile Include="Common\EntityTreeController.cs" />
+    <Compile Include="Common\CubeModule.cs" />
     <Compile Include="Common\ObjectController.cs" />
     <Compile Include="Common\ControllerBaseX.cs" />
     <Compile Include="Common\DbRunTimeModule.cs" />
