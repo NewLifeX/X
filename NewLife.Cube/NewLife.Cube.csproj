@@ -543,6 +543,7 @@
     <None Include="Content\jweui\lib\weui.min.css" />
     <None Include="Content\jweui\lib\zepto.js" />
     <None Include="index.html" />
+    <Content Include="Content\bootstrap\js\bootstrap.js" />
     <Content Include="Scripts\ApiClient.js" />
     <Content Include="Scripts\WebSocketX.js" />
     <None Include="Areas\Admin\Views\File\Index.cshtml">
