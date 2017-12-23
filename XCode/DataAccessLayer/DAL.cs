@@ -32,6 +32,7 @@ namespace XCode.DataAccessLayer
             _ConnName = connName;
 
             //if (!ConnStrs.ContainsKey(connName)) throw new XCodeException("请在使用数据库前设置[" + connName + "]连接字符串");
+            if (!ConnStrs.ContainsKey(connName)) OnResolve?.Invoke(connName);
             if (!ConnStrs.ContainsKey(connName))
             {
                 var connstr = "Data Source=" + Setting.Current.SQLiteDbPath.CombinePath(connName + ".db;Migration=On");
@@ -44,7 +45,9 @@ namespace XCode.DataAccessLayer
 
             //Queue = new EntityQueue(this);
         }
+        #endregion
 
+        #region 静态管理
         private static Dictionary<String, DAL> _dals = new Dictionary<String, DAL>(StringComparer.OrdinalIgnoreCase);
         /// <summary>创建一个数据访问层对象。</summary>
         /// <param name="connName">配置名</param>
@@ -66,6 +69,10 @@ namespace XCode.DataAccessLayer
 
             return dal;
         }
+
+
+        /// <summary>找不到连接名时调用。支持用户自定义默认连接</summary>
+        public static Action<String> OnResolve;
 
         private static Dictionary<String, String> _connStrs;
         private static Dictionary<String, Type> _connTypes = new Dictionary<String, Type>(StringComparer.OrdinalIgnoreCase);
@@ -172,7 +179,7 @@ namespace XCode.DataAccessLayer
         {
             get
             {
-                if (_ProviderType == null && _connTypes.ContainsKey(ConnName)) _ProviderType = _connTypes[ConnName];
+                if (_ProviderType == null && _connTypes.ContainsKey(_ConnName)) _ProviderType = _connTypes[_ConnName];
                 return _ProviderType;
             }
         }
@@ -204,7 +211,7 @@ namespace XCode.DataAccessLayer
                     _ProviderType = null;
                     _Db = null;
 
-                    AddConnStr(ConnName, _ConnStr, null, null);
+                    AddConnStr(_ConnName, _ConnStr, null, null);
                 }
             }
         }
@@ -221,15 +228,15 @@ namespace XCode.DataAccessLayer
                     if (_Db != null) return _Db;
 
                     var type = ProviderType;
-                    if (type == null) throw new XCodeException("无法识别{0}的数据提供者！", ConnName);
+                    if (type == null) throw new XCodeException("无法识别{0}的数据提供者！", _ConnName);
 
                     //_Db = type.CreateInstance() as IDatabase;
                     //if (!String.IsNullOrEmpty(ConnName)) _Db.ConnName = ConnName;
                     //if (!String.IsNullOrEmpty(ConnStr)) _Db.ConnectionString = DecodeConnStr(ConnStr);
                     //!!! 重量级更新：经常出现链接字符串为127/master的连接错误，非常有可能是因为这里线程冲突，A线程创建了实例但未来得及赋值连接字符串，就被B线程使用了
                     var db = type.CreateInstance() as IDatabase;
-                    if (!String.IsNullOrEmpty(ConnName)) db.ConnName = ConnName;
-                    if (!String.IsNullOrEmpty(ConnStr)) db.ConnectionString = DecodeConnStr(ConnStr);
+                    if (!_ConnName.IsNullOrEmpty()) db.ConnName = _ConnName;
+                    if (!ConnStr.IsNullOrEmpty()) db.ConnectionString = DecodeConnStr(ConnStr);
 
                     //Interlocked.CompareExchange<IDatabase>(ref _Db, db, null);
                     _Db = db;
@@ -411,13 +418,14 @@ namespace XCode.DataAccessLayer
         /// <summary>检查数据表架构，不受反向工程启用开关限制，仅检查未经过常规检查的表</summary>
         public void CheckTables()
         {
-            WriteLog("开始检查连接[{0}/{1}]的数据库架构……", ConnName, DbType);
+            var name = _ConnName;
+            WriteLog("开始检查连接[{0}/{1}]的数据库架构……", name, DbType);
 
             var sw = Stopwatch.StartNew();
 
             try
             {
-                var list = EntityFactory.GetTables(ConnName);
+                var list = EntityFactory.GetTables(name);
                 if (list != null && list.Count > 0)
                 {
                     // 移除所有已初始化的
@@ -431,7 +439,7 @@ namespace XCode.DataAccessLayer
 
                     if (list != null && list.Count > 0)
                     {
-                        WriteLog(ConnName + "待检查表架构的实体个数：" + list.Count);
+                        WriteLog(name + "待检查表架构的实体个数：" + list.Count);
 
                         SetTables(list.ToArray());
                     }
@@ -441,7 +449,7 @@ namespace XCode.DataAccessLayer
             {
                 sw.Stop();
 
-                WriteLog("检查连接[{0}/{1}]的数据库架构耗时{2:n0}ms", ConnName, DbType, sw.Elapsed.TotalMilliseconds);
+                WriteLog("检查连接[{0}/{1}]的数据库架构耗时{2:n0}ms", name, DbType, sw.Elapsed.TotalMilliseconds);
             }
         }
 
@@ -461,7 +469,7 @@ namespace XCode.DataAccessLayer
         {
             get
             {
-                return _Assembly ?? (_Assembly = EntityAssembly.CreateWithCache(ConnName, Tables));
+                return _Assembly ?? (_Assembly = EntityAssembly.CreateWithCache(_ConnName, Tables));
             }
             set { _Assembly = value; }
         }
