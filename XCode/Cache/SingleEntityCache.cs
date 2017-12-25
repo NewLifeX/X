@@ -414,7 +414,7 @@ namespace XCode.Cache
         public void Remove(TEntity entity)
         {
             if (entity == null) return;
-
+            if (GetKeyMethod == null) return;
             var key = GetKeyMethod(entity);
             RemoveKey(key);
         }
