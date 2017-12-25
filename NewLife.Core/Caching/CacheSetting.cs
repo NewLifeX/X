@@ -20,7 +20,7 @@ namespace NewLife.Caching
 
         /// <summary>配置项</summary>
         [Description("配置项。名称、地址、提供者，Memory/Redis")]
-        public CacheSetting[] Items { get; set; } = new CacheSetting[0];
+        public CacheSetting[] Items {  get; private set; } = new CacheSetting[0];
         #endregion
 
         #region 构造
