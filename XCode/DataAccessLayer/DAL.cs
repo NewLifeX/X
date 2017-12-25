@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
@@ -32,7 +33,11 @@ namespace XCode.DataAccessLayer
             _ConnName = connName;
 
             //if (!ConnStrs.ContainsKey(connName)) throw new XCodeException("请在使用数据库前设置[" + connName + "]连接字符串");
-            if (!ConnStrs.ContainsKey(connName)) OnResolve?.Invoke(connName);
+            if (!ConnStrs.ContainsKey(connName)) OnResolve?.Invoke(this, new ResolveEventArgs(connName));
+            if (!ConnStrs.ContainsKey(connName) && _defs.TryGetValue(connName, out var kv))
+            {
+                AddConnStr(connName, kv.Item1, null, kv.Item2);
+            }
             if (!ConnStrs.ContainsKey(connName))
             {
                 var connstr = "Data Source=" + Setting.Current.SQLiteDbPath.CombinePath(connName + ".db;Migration=On");
@@ -69,10 +74,6 @@ namespace XCode.DataAccessLayer
 
             return dal;
         }
-
-
-        /// <summary>找不到连接名时调用。支持用户自定义默认连接</summary>
-        public static Action<String> OnResolve;
 
         private static Dictionary<String, String> _connStrs;
         private static Dictionary<String, Type> _connTypes = new Dictionary<String, Type>(StringComparer.OrdinalIgnoreCase);
@@ -165,6 +166,19 @@ namespace XCode.DataAccessLayer
                 ConnStrs[connName] = connStr;
                 _connTypes[connName] = type ?? throw new XCodeException("无法识别{0}的提供者{1}！", connName, provider);
             }
+        }
+
+        /// <summary>找不到连接名时调用。支持用户自定义默认连接</summary>
+        public static event EventHandler<ResolveEventArgs> OnResolve;
+
+        private static ConcurrentDictionary<String, Tuple<String, String>> _defs = new ConcurrentDictionary<String, Tuple<String, String>>(StringComparer.OrdinalIgnoreCase);
+        /// <summary>注册默认连接字符串。无法从配置文件获取时使用</summary>
+        /// <param name="connName">连接名</param>
+        /// <param name="connStr">连接字符串</param>
+        /// <param name="provider">数据库提供者</param>
+        public static void RegisterDefault(String connName, String connStr, String provider)
+        {
+            _defs[connName] = new Tuple<String, String>(connStr, provider);
         }
         #endregion
 
