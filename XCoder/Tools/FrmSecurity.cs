@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Text;
 using System.Web;
 using System.Windows.Forms;
 using NewLife.Security;
@@ -46,6 +47,21 @@ namespace XCoder.Tools
             var v = rtSource.Text;
             return GetBytes(v);
         }
+
+        private void SetResult(params String[] rs)
+        {
+            var sb = new StringBuilder();
+            foreach (var item in rs)
+            {
+                if (sb.Length > 0)
+                {
+                    sb.AppendLine();
+                    sb.AppendLine();
+                }
+                sb.Append(item);
+            }
+            rtResult.Text = sb.ToString();
+        }
         #endregion
 
         private void btnExchange_Click(Object sender, EventArgs e)
@@ -58,7 +74,8 @@ namespace XCoder.Tools
         private void btnHex_Click(Object sender, EventArgs e)
         {
             var buf = GetBytes();
-            rtResult.Text = buf.ToHex(" ", 32);
+            //rtResult.Text = buf.ToHex(" ", 32);
+            SetResult(buf.ToHex(" ", 32), buf.ToHex("-", 32));
         }
 
         private void btnHex2_Click(Object sender, EventArgs e)
@@ -70,7 +87,8 @@ namespace XCoder.Tools
         private void btnB64_Click(Object sender, EventArgs e)
         {
             var buf = GetBytes();
-            rtResult.Text = buf.ToBase64();
+            //rtResult.Text = buf.ToBase64();
+            SetResult(buf.ToBase64(), buf.ToUrlBase64());
         }
 
         private void btnB642_Click(Object sender, EventArgs e)
@@ -78,7 +96,8 @@ namespace XCoder.Tools
             var v = rtSource.Text;
             //rtResult.Text = v.ToBase64().ToStr();
             var buf = v.ToBase64();
-            rtResult.Text = buf.ToStr() + Environment.NewLine + buf.ToHex();
+            //rtResult.Text = buf.ToStr() + Environment.NewLine + buf.ToHex();
+            SetResult(buf.ToStr(), buf.ToHex());
         }
 
         private void btnMD5_Click(Object sender, EventArgs e)

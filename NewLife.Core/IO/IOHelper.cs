@@ -1236,12 +1236,36 @@ namespace System
 #endif
         }
 
+        /// <summary>字节数组转为Url改进型Base64编码</summary>
+        /// <param name="data"></param>
+        /// <param name="offset"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        public static String ToUrlBase64(this Byte[] data, Int32 offset = 0, Int32 count = -1)
+        {
+            var str = ToBase64(data, offset, count, false);
+            str = str.TrimEnd('=');
+            str = str.Replace('+', '-').Replace('/', '_');
+            return str;
+        }
+
         /// <summary>Base64字符串转为字节数组</summary>
         /// <param name="data"></param>
         /// <returns></returns>
         public static Byte[] ToBase64(this String data)
         {
-            if (String.IsNullOrEmpty(data)) return new Byte[0];
+            if (data.IsNullOrEmpty()) return new Byte[0];
+
+            if (data[data.Length - 1] != '=')
+            {
+                // 如果不是4的整数倍，后面补上等号
+                var n = data.Length % 4;
+                //if (n == 3) throw new InvalidCastException("无效Base64字符串");
+                if (n > 0 && n < 3) data += new String('=', n);
+            }
+
+            // 针对Url特殊处理
+            data = data.Replace('-', '+').Replace('_', '/');
 
             return Convert.FromBase64String(data);
         }
