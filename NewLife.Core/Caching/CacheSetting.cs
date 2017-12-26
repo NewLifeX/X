@@ -50,6 +50,14 @@ namespace NewLife.Caching
             base.OnLoaded();
         }
 
+        /// <summary>保存时排序</summary>
+        /// <param name="filename"></param>
+        public override void Save(String filename)
+        {
+            Items = Items.OrderBy(e => e?.Name).ToArray();
+            base.Save(filename);
+        }
+
         /// <summary>获取 或 增加 配置项</summary>
         /// <param name="name">名称</param>
         /// <param name="provider">提供者</param>

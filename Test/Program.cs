@@ -52,7 +52,7 @@ namespace Test
                 try
                 {
 #endif
-                Test3();
+                    Test4();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -138,6 +138,15 @@ namespace Test
             {
                 Console.WriteLine(item);
             }
+        }
+
+        static void Test4()
+        {
+            var cfg = CacheConfig.Current;
+            Console.WriteLine(cfg.GetOrAdd("Bill01"));
+
+            var set = cfg.GetOrAdd("aa_test", "redis");
+            Console.WriteLine(set);
         }
     }
 }

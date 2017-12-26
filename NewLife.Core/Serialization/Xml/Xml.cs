@@ -184,9 +184,11 @@ namespace NewLife.Serialization
                 if (writer.WriteState == WriteState.Attribute)
                     writer.WriteEndAttribute();
                 else
-                    //writer.WriteEndElement();
+                {
+                    writer.WriteEndElement();
                     //替换成WriteFullEndElement方法，写入完整的结束标记。解决读取空节点（短结束标记"/ >"）发生错误。
-                    writer.WriteFullEndElement();
+                    //writer.WriteFullEndElement();
+                }
             }
         }
 
@@ -246,15 +248,21 @@ namespace NewLife.Serialization
             // 要先写入根
             Depth++;
 
+            var d = reader.Depth;
             ReadStart(type);
+
             try
             {
-                foreach (var item in Handlers)
+                // 如果读取器层级没有递增，说明这是空节点，需要跳过
+                if (reader.Depth == d + 1)
                 {
-                    if (item.TryRead(type, ref value)) return true;
-                }
+                    foreach (var item in Handlers)
+                    {
+                        if (item.TryRead(type, ref value)) return true;
+                    }
 
-                value = reader.ReadContentAs(type, null);
+                    value = reader.ReadContentAs(type, null);
+                }
             }
             finally
             {
@@ -288,8 +296,8 @@ namespace NewLife.Serialization
         public void ReadEnd()
         {
             var reader = GetReader();
-            if (reader.NodeType == XmlNodeType.EndElement) reader.ReadEndElement();
             if (reader.NodeType == XmlNodeType.Attribute) reader.Read();
+            if (reader.NodeType == XmlNodeType.EndElement) reader.ReadEndElement();
         }
 
         private XmlReader _Reader;
