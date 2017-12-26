@@ -77,7 +77,16 @@ namespace XCoder.Tools
         private void btnExchange_Click(Object sender, EventArgs e)
         {
             var v = rtSource.Text;
-            rtSource.Text = rtResult.Text;
+            var v2 = rtResult.Text;
+            // 结果区只要第一行
+            if (!v2.IsNullOrEmpty())
+            {
+                var ss = v2.Split("\n");
+                var n = 0;
+                if (ss.Length > n + 1 && ss[n].StartsWith("/*") && ss[n].EndsWith("*/")) n++;
+                v2 = ss[n];
+            }
+            rtSource.Text = v2;
             rtResult.Text = v;
         }
 
@@ -85,7 +94,7 @@ namespace XCoder.Tools
         {
             var buf = GetBytes();
             //rtResult.Text = buf.ToHex(" ", 32);
-            SetResult(buf.ToHex(" ", 32), buf.ToHex("-", 32));
+            SetResult(buf.ToHex(), buf.ToHex(" ", 32), buf.ToHex("-", 32));
         }
 
         private void btnHex2_Click(Object sender, EventArgs e)
