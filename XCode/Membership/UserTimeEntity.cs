@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -197,13 +198,13 @@ namespace XCode.Membership
             return true;
         }
 
-        private static DictionaryCache<Type, ICollection<String>> _ipFieldNames = new DictionaryCache<Type, ICollection<String>>();
+        private static ConcurrentDictionary<Type, ICollection<String>> _ipFieldNames = new ConcurrentDictionary<Type, ICollection<String>>();
         /// <summary>获取实体类的字段名。带缓存</summary>
         /// <param name="entityType"></param>
         /// <returns></returns>
         protected static ICollection<String> GetIPFieldNames(Type entityType)
         {
-            return _ipFieldNames.GetItem(entityType, t =>
+            return _ipFieldNames.GetOrAdd(entityType, t =>
             {
                 var fs = GetFieldNames(t);
                 if (fs == null || fs.Count == 0) return null;

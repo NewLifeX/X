@@ -98,11 +98,13 @@ namespace NewLife.Reflection
 
             // - PEFileHeader
 
-            var image = new PEImage();
+            var image = new PEImage
+            {
 
-            // 执行环境平台
-            // Machine				2
-            image.Machine = (ImageFileMachine)reader.ReadUInt16();
+                // 执行环境平台
+                // Machine				2
+                Machine = (ImageFileMachine)reader.ReadUInt16()
+            };
 
             // NumberOfSections		2
             var sections = reader.ReadUInt16();
@@ -237,10 +239,12 @@ namespace NewLife.Reflection
 
             for (var i = 0; i < count; i++)
             {
-                var section = new Section();
+                var section = new Section
+                {
 
-                // Name
-                section.Name = Encoding.ASCII.GetString(reader.ReadBytes(8)).TrimEnd('\0');
+                    // Name
+                    Name = Encoding.ASCII.GetString(reader.ReadBytes(8)).TrimEnd('\0')
+                };
 
                 // VirtualSize		4
                 stream.Seek(4, SeekOrigin.Current);

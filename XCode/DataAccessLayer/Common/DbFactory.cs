@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Model;
@@ -56,14 +57,14 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 默认提供者
-        private static DictionaryCache<Type, IDatabase> defaultDbs2 = new DictionaryCache<Type, IDatabase>();
+        private static ConcurrentDictionary<Type, IDatabase> defaultDbs2 = new ConcurrentDictionary<Type, IDatabase>();
         /// <summary>根据名称获取默认提供者</summary>
         /// <param name="dbType"></param>
         /// <returns></returns>
         public static IDatabase GetDefault(Type dbType)
         {
             if (dbType == null) return null;
-            return defaultDbs2.GetItem(dbType, dt => (IDatabase)dt.CreateInstance());
+            return defaultDbs2.GetOrAdd(dbType, dt => (IDatabase)dt.CreateInstance());
         }
         #endregion
 

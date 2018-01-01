@@ -2,10 +2,13 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Win32;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Reflection;
+using NewLife.Security;
 
 namespace NewLife.Caching
 {
@@ -130,10 +133,10 @@ namespace NewLife.Caching
         /// <returns></returns>
         public abstract T Get<T>(String key);
 
-        /// <summary>移除缓存项</summary>
-        /// <param name="key">键</param>
+        /// <summary>批量移除缓存项</summary>
+        /// <param name="keys">键集合</param>
         /// <returns></returns>
-        public abstract Boolean Remove(String key);
+        public abstract Int32 Remove(params String[] keys);
 
         /// <summary>设置缓存项有效期</summary>
         /// <param name="key">键</param>
@@ -175,39 +178,45 @@ namespace NewLife.Caching
         }
 
         /// <summary>获取列表</summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="key"></param>
+        /// <typeparam name="T">元素类型</typeparam>
+        /// <param name="key">键</param>
         /// <returns></returns>
-        public virtual IList<T> GetList<T>(String key)
-        {
-            var list = Get<IList<T>>(key);
-            if (list == null)
-            {
-                list = new List<T>();
-                Set(key, list);
-            }
-
-            return list;
-        }
+        public virtual IList<T> GetList<T>(String key) { throw new NotSupportedException(); }
 
         /// <summary>获取哈希</summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="key"></param>
+        /// <typeparam name="T">元素类型</typeparam>
+        /// <param name="key">键</param>
         /// <returns></returns>
-        public virtual IDictionary<String, T> GetDictionary<T>(String key)
-        {
-            var dic = Get<IDictionary<String, T>>(key);
-            if (dic == null)
-            {
-                dic = new Dictionary<String, T>();
-                Set(key, dic);
-            }
+        public virtual IDictionary<String, T> GetDictionary<T>(String key) { throw new NotSupportedException(); }
 
-            return dic;
-        }
+        /// <summary>获取队列</summary>
+        /// <typeparam name="T">元素类型</typeparam>
+        /// <param name="key">键</param>
+        /// <returns></returns>
+        public virtual IProducerConsumer<T> GetQueue<T>(String key) { throw new NotSupportedException(); }
         #endregion
 
         #region 高级操作
+        /// <summary>添加，已存在时不更新</summary>
+        /// <typeparam name="T">值类型</typeparam>
+        /// <param name="key">键</param>
+        /// <param name="value">值</param>
+        /// <param name="expire">过期时间，秒。小于0时采用默认缓存时间<seealso cref="Cache.Expire"/></param>
+        /// <returns></returns>
+        public virtual Boolean Add<T>(String key, T value, Int32 expire = -1) { return Set(key, value, expire); }
+
+        /// <summary>设置新值并获取旧值，原子操作</summary>
+        /// <typeparam name="T">值类型</typeparam>
+        /// <param name="key">键</param>
+        /// <param name="value">值</param>
+        /// <returns></returns>
+        public virtual T Replace<T>(String key, T value)
+        {
+            var rs = Get<T>(key);
+            Set(key, value);
+            return rs;
+        }
+
         /// <summary>累加，原子操作</summary>
         /// <param name="key">键</param>
         /// <param name="value">变化量</param>
@@ -273,115 +282,237 @@ namespace NewLife.Caching
         }
         #endregion
 
+        #region 事务
+        /// <summary>申请分布式锁</summary>
+        /// <param name="key"></param>
+        /// <param name="msTimeout"></param>
+        /// <returns></returns>
+        public IDisposable AcquireLock(String key, Int32 msTimeout)
+        {
+            var rlock = new CacheLock(this, key);
+            if (!rlock.Acquire(msTimeout)) throw new InvalidOperationException($"锁定[{key}]失败！msTimeout={msTimeout}");
+
+            return rlock;
+        }
+        #endregion
+
         #region 性能测试
         /// <summary>多线程性能测试</summary>
+        /// <param name="rand">随机读写</param>
         /// <remarks>
-        /// Memory性能测试，逻辑处理器 4 个
-        /// 测试 1,000,000 项，  1 线程
-        /// 读取 1,000,000 项，  1 线程，耗时 128ms 速度 7,812,500 ops
-        /// 赋值 1,000,000 项，  1 线程，耗时 470ms 速度 2,127,659 ops
-        /// 测试 2,000,000 项，  2 线程
-        /// 读取 2,000,000 项，  2 线程，耗时 206ms 速度 9,708,737 ops
-        /// 赋值 2,000,000 项，  2 线程，耗时 797ms 速度 2,509,410 ops
-        /// 测试 8,000,000 项，  8 线程
-        /// 读取 8,000,000 项，  8 线程，耗时 589ms 速度 13,582,342 ops
-        /// 赋值 8,000,000 项，  8 线程，耗时 3,438ms 速度 2,326,934 ops
-        /// 测试 4,000,000 项，  4 线程
-        /// 读取 4,000,000 项，  4 线程，耗时 230ms 速度 17,391,304 ops
-        /// 赋值 4,000,000 项，  4 线程，耗时 1,657ms 速度 2,414,001 ops
-        /// 测试 4,000,000 项， 64 线程
-        /// 读取 4,000,000 项， 64 线程，耗时 258ms 速度 15,503,875 ops
-        /// 赋值 4,000,000 项， 64 线程，耗时 1,805ms 速度 2,216,066 ops
-        /// 测试 4,000,000 项，256 线程
-        /// 读取 4,000,000 项，256 线程，耗时 238ms 速度 16,806,722 ops
-        /// 赋值 4,000,000 项，256 线程，耗时 1,786ms 速度 2,239,641 ops
+        /// Memory性能测试[顺序]，逻辑处理器 32 个 2,000MHz Intel(R) Xeon(R) CPU E5-2640 v2 @ 2.00GHz
+        /// 
+        /// 测试 10,000,000 项，  1 线程
+        /// 赋值 10,000,000 项，  1 线程，耗时   3,764ms 速度 2,656,748 ops
+        /// 读取 10,000,000 项，  1 线程，耗时   1,296ms 速度 7,716,049 ops
+        /// 删除 10,000,000 项，  1 线程，耗时   1,230ms 速度 8,130,081 ops
+        /// 
+        /// 测试 20,000,000 项，  2 线程
+        /// 赋值 20,000,000 项，  2 线程，耗时   3,088ms 速度 6,476,683 ops
+        /// 读取 20,000,000 项，  2 线程，耗时   1,051ms 速度 19,029,495 ops
+        /// 删除 20,000,000 项，  2 线程，耗时   1,011ms 速度 19,782,393 ops
+        /// 
+        /// 测试 40,000,000 项，  4 线程
+        /// 赋值 40,000,000 项，  4 线程，耗时   3,060ms 速度 13,071,895 ops
+        /// 读取 40,000,000 项，  4 线程，耗时   1,023ms 速度 39,100,684 ops
+        /// 删除 40,000,000 项，  4 线程，耗时     994ms 速度 40,241,448 ops
+        /// 
+        /// 测试 80,000,000 项，  8 线程
+        /// 赋值 80,000,000 项，  8 线程，耗时   3,124ms 速度 25,608,194 ops
+        /// 读取 80,000,000 项，  8 线程，耗时   1,171ms 速度 68,317,677 ops
+        /// 删除 80,000,000 项，  8 线程，耗时   1,199ms 速度 66,722,268 ops
+        /// 
+        /// 测试 320,000,000 项， 32 线程
+        /// 赋值 320,000,000 项， 32 线程，耗时  13,857ms 速度 23,093,021 ops
+        /// 读取 320,000,000 项， 32 线程，耗时   1,950ms 速度 164,102,564 ops
+        /// 删除 320,000,000 项， 32 线程，耗时   3,359ms 速度 95,266,448 ops
+        /// 
+        /// 测试 320,000,000 项， 64 线程
+        /// 赋值 320,000,000 项， 64 线程，耗时   9,648ms 速度 33,167,495 ops
+        /// 读取 320,000,000 项， 64 线程，耗时   1,974ms 速度 162,107,396 ops
+        /// 删除 320,000,000 项， 64 线程，耗时   1,907ms 速度 167,802,831 ops
+        /// 
+        /// 测试 320,000,000 项，256 线程
+        /// 赋值 320,000,000 项，256 线程，耗时  12,429ms 速度 25,746,238 ops
+        /// 读取 320,000,000 项，256 线程，耗时   1,907ms 速度 167,802,831 ops
+        /// 删除 320,000,000 项，256 线程，耗时   2,350ms 速度 136,170,212 ops
         /// </remarks>
-        public virtual void Bench()
+        public virtual void Bench(Boolean rand = false)
         {
+            var processor = "";
+            var frequency = 0;
+            using (var reg = Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\CentralProcessor\0"))
+            {
+                processor = (reg.GetValue("ProcessorNameString") + "").Trim();
+                frequency = reg.GetValue("~MHz").ToInt();
+            }
+
             var cpu = Environment.ProcessorCount;
-            XTrace.WriteLine($"{Name}性能测试，逻辑处理器 {cpu:n0} 个");
+            XTrace.WriteLine($"{Name}性能测试[{(rand ? "随机" : "顺序")}]，逻辑处理器 {cpu:n0} 个 {frequency:n0}MHz {processor}");
 
             var times = 10_000;
 
             // 单线程
-            BenchOne(times, 1);
+            BenchOne(times, 1, rand);
 
             // 多线程
-            if (cpu != 2) BenchOne(times * 2, 2);
-            if (cpu != 4) BenchOne(times * 4, 4);
-            if (cpu != 8) BenchOne(times * 8, 8);
+            if (cpu != 2) BenchOne(times * 2, 2, rand);
+            if (cpu != 4) BenchOne(times * 4, 4, rand);
+            if (cpu != 8) BenchOne(times * 8, 8, rand);
 
             // CPU个数
-            BenchOne(times * cpu, cpu);
+            BenchOne(times * cpu, cpu, rand);
+
+            //// 1.5倍
+            //var cpu2 = cpu * 3 / 2;
+            //if (!(new[] { 2, 4, 8, 64, 256 }).Contains(cpu2)) BenchOne(times * cpu2, cpu2, rand);
 
             // 最大
-            if (cpu < 64) BenchOne(times * cpu, 64);
-            if (cpu * 8 >= 256) BenchOne(times * cpu, cpu * 8);
+            if (cpu < 64) BenchOne(times * cpu, 64, rand);
+            if (cpu * 8 >= 256) BenchOne(times * cpu, cpu * 8, rand);
         }
 
         /// <summary>使用指定线程测试指定次数</summary>
         /// <param name="times">次数</param>
         /// <param name="threads">线程</param>
-        public virtual void BenchOne(Int64 times, Int32 threads)
+        /// <param name="rand">随机读写</param>
+        public virtual void BenchOne(Int64 times, Int32 threads, Boolean rand)
         {
             if (threads <= 0) threads = Environment.ProcessorCount;
             if (times <= 0) times = threads * 1_000;
 
+            XTrace.WriteLine("");
             XTrace.WriteLine($"测试 {times:n0} 项，{threads,3:n0} 线程");
 
-            var key = "Stat_171006";
-            Set(key, 0);
-
-            // 读取测试
-            BenchGet(key, times, threads);
+            var key = "Bench_";
+            Set(key, Rand.NextBytes(32));
+            var v = Get<Byte[]>(key);
+            Remove(key);
 
             // 赋值测试
-            BenchSet(key, times, threads);
+            BenchSet(key, times, threads, rand);
+
+            // 读取测试
+            BenchGet(key, times, threads, rand);
+
+            // 删除测试
+            BenchRemove(key, times, threads, rand);
         }
 
         /// <summary>读取测试</summary>
         /// <param name="key">键</param>
         /// <param name="times">次数</param>
         /// <param name="threads">线程</param>
-        protected virtual void BenchGet(String key, Int64 times, Int32 threads)
+        /// <param name="rand">随机读写</param>
+        protected virtual void BenchGet(String key, Int64 times, Int32 threads, Boolean rand)
         {
-            var v = Get<Int32>(key);
+            var v = Get<Byte[]>(key);
+
             var sw = Stopwatch.StartNew();
-            Parallel.For(0, threads, k =>
+            if (rand)
             {
-                var count = times / threads;
-                for (var i = 0; i < count; i++)
+                Parallel.For(0, threads, k =>
                 {
-                    v = Get<Int32>(key);
-                }
-            });
+                    for (var i = k; i < times; i += threads)
+                    {
+                        var val = Get<Byte[]>(key + i);
+                    }
+                });
+            }
+            else
+            {
+                Parallel.For(0, threads, k =>
+                {
+                    var mykey = key + k;
+                    var count = times / threads;
+                    for (var i = 0; i < count; i++)
+                    {
+                        var val = Get<Byte[]>(mykey);
+                    }
+                });
+            }
             sw.Stop();
 
             var speed = times * 1000 / sw.ElapsedMilliseconds;
-            XTrace.WriteLine($"读取 {times:n0} 项，{threads,3:n0} 线程，耗时 {sw.ElapsedMilliseconds:n0}ms 速度 {speed:n0} ops");
+            XTrace.WriteLine($"读取 {times:n0} 项，{threads,3:n0} 线程，耗时 {sw.ElapsedMilliseconds,7:n0}ms 速度 {speed,9:n0} ops");
         }
 
         /// <summary>赋值测试</summary>
         /// <param name="key">键</param>
         /// <param name="times">次数</param>
         /// <param name="threads">线程</param>
-        protected virtual void BenchSet(String key, Int64 times, Int32 threads)
+        /// <param name="rand">随机读写</param>
+        protected virtual void BenchSet(String key, Int64 times, Int32 threads, Boolean rand)
         {
-            var v = Get<Int32>(key);
+            //Set(key, Rand.NextBytes(32));
+
             var sw = Stopwatch.StartNew();
-            Parallel.For(0, threads, k =>
+            if (rand)
             {
-                var count = times / threads;
-                for (var i = 0; i < count; i++)
+                Parallel.For(0, threads, k =>
                 {
-                    v += 1;
-                    Set(key, v);
-                }
-            });
+                    var val = Rand.NextBytes(32);
+                    for (var i = k; i < times; i += threads)
+                    {
+                        Set(key + i, val);
+                    }
+                });
+            }
+            else
+            {
+                Parallel.For(0, threads, k =>
+                {
+                    var mykey = key + k;
+                    var val = Rand.NextBytes(32);
+                    var count = times / threads;
+                    for (var i = 0; i < count; i++)
+                    {
+                        Set(mykey, val);
+                    }
+                });
+            }
             sw.Stop();
 
             var speed = times * 1000 / sw.ElapsedMilliseconds;
-            XTrace.WriteLine($"赋值 {times:n0} 项，{threads,3:n0} 线程，耗时 {sw.ElapsedMilliseconds:n0}ms 速度 {speed:n0} ops");
+            XTrace.WriteLine($"赋值 {times:n0} 项，{threads,3:n0} 线程，耗时 {sw.ElapsedMilliseconds,7:n0}ms 速度 {speed,9:n0} ops");
+        }
+
+        /// <summary>删除测试</summary>
+        /// <param name="key">键</param>
+        /// <param name="times">次数</param>
+        /// <param name="threads">线程</param>
+        /// <param name="rand">随机读写</param>
+        protected virtual void BenchRemove(String key, Int64 times, Int32 threads, Boolean rand)
+        {
+            Remove(key);
+
+            var sw = Stopwatch.StartNew();
+            if (rand)
+            {
+                Parallel.For(0, threads, k =>
+                {
+                    for (var i = k; i < times; i += threads)
+                    {
+                        Remove(key + i);
+                    }
+                });
+            }
+            else
+            {
+                Parallel.For(0, threads, k =>
+                {
+                    var mykey = key + k;
+                    var count = times / threads;
+                    for (var i = 0; i < count; i++)
+                    {
+                        Remove(mykey);
+                    }
+                });
+            }
+            sw.Stop();
+
+            var speed = times * 1000 / sw.ElapsedMilliseconds;
+            XTrace.WriteLine($"删除 {times:n0} 项，{threads,3:n0} 线程，耗时 {sw.ElapsedMilliseconds,7:n0}ms 速度 {speed,9:n0} ops");
         }
         #endregion
 

@@ -89,8 +89,10 @@ namespace NewLife.Messaging
             buf[2] = (Byte)(len & 0xFF);
             buf[3] = (Byte)(len >> 8);
 
-            var rs = new Packet(buf);
-            rs.Next = Payload;
+            var rs = new Packet(buf)
+            {
+                Next = Payload
+            };
 
             return rs;
         }

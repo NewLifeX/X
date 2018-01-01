@@ -63,6 +63,12 @@
     <Compile Include="FolderInfo\FrmMain.Designer.cs">
       <DependentUpon>FrmMain.cs</DependentUpon>
     </Compile>
+    <Compile Include="FolderInfo\FrmSplitFile.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FolderInfo\FrmSplitFile.Designer.cs">
+      <DependentUpon>FrmSplitFile.cs</DependentUpon>
+    </Compile>
     <Compile Include="FrmMDI.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -76,6 +82,10 @@
     <Compile Include="Tools\FrmSecurity.Designer.cs">
       <DependentUpon>FrmSecurity.cs</DependentUpon>
     </Compile>
+    <Compile Include="XNet\IPPacket.cs" />
+    <Compile Include="XNet\MySqlParser.cs" />
+    <Compile Include="XNet\RawSocket.cs" />
+    <Compile Include="XNet\TcpPacket.cs" />
     <Compile Include="Yun\FrmMap.cs">
       <SubType>Form</SubType>
     </Compile>

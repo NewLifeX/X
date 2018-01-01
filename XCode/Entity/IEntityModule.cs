@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NewLife.Collections;
@@ -233,13 +234,13 @@ namespace XCode
             return false;
         }
 
-        private static DictionaryCache<Type, ICollection<String>> _fieldNames = new DictionaryCache<Type, ICollection<String>>();
+        private static ConcurrentDictionary<Type, ICollection<String>> _fieldNames = new ConcurrentDictionary<Type, ICollection<String>>();
         /// <summary>获取实体类的字段名。带缓存</summary>
         /// <param name="entityType"></param>
         /// <returns></returns>
         protected static ICollection<String> GetFieldNames(Type entityType)
         {
-            return _fieldNames.GetItem(entityType, t =>
+            return _fieldNames.GetOrAdd(entityType, t =>
             {
                 var fact = EntityFactory.CreateOperate(t);
                 //return fact == null ? null : fact.FieldNames;

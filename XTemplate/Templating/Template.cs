@@ -1,6 +1,7 @@
 ﻿using System;
 using System.CodeDom;
 using System.CodeDom.Compiler;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -134,7 +135,7 @@ namespace XTemplate.Templating
         #endregion
 
         #region 创建
-        private static DictionaryCache<String, Template> cache = new DictionaryCache<String, Template>();
+        private static ConcurrentDictionary<String, Template> cache = new ConcurrentDictionary<String, Template>();
         /// <summary>根据名称和模版创建模版实例，带缓存，避免重复编译</summary>
         /// <param name="name">名称</param>
         /// <param name="templates">模版</param>
@@ -178,7 +179,7 @@ namespace XTemplate.Templating
             }
 
             var hash = Hash(sb.ToString());
-            return cache.GetItem(hash, k =>
+            return cache.GetOrAdd(hash, k =>
             {
                 var entity = new Template();
 

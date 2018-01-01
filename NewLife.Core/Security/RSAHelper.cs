@@ -117,9 +117,11 @@ namespace NewLife.Security
 
             ms = new MemoryStream(keys);
 
-            var sa = new TSymmetricAlgorithm();
-            sa.Key = ms.ReadWithLength();
-            sa.IV = ms.ReadWithLength();
+            var sa = new TSymmetricAlgorithm
+            {
+                Key = ms.ReadWithLength(),
+                IV = ms.ReadWithLength()
+            };
 
             // 对称解密
             return sa.Descrypt(buf);

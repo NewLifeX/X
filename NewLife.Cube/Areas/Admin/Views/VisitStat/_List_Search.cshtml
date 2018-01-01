@@ -1,54 +1,8 @@
-﻿@{
-    var now = DateTime.Now;
-
-    var year = Request["year"].ToInt(-1);
-    var month = Request["month"].ToInt(-1);
-    var day = Request["day"].ToInt(-1);
-
-    var ys = new Dictionary<Int32, String>();
-    ys.Add(0, "全部");
-    for (int i = 0; i > -10; i--)
-    {
-        ys.Add(now.Year + i , now.Year + i + "");
-    }
-
-    var ms = new Dictionary<Int32, String>();
-    if (year > 0)
-    {
-        ms.Add(0, "全年");
-        // 不要当前月以后的月份
-        var max = year == now.Year ? now.Month : 12;
-        for (int i = 1; i <= max; i++)
-        {
-            ms.Add(i, i + "");
-        }
-    }
-
-    var ds = new Dictionary<Int32, String>();
-    if (year > 0 && month > 0)
-    {
-        ds.Add(0, "全月");
-        // 该月有多少天
-        var max = DateTime.DaysInMonth(year, month);
-        // 不要当前月以后的月份
-        if (year == now.Year && month == now.Month) { max = now.Day; }
-        for (int i = 1; i <= max; i++)
-        {
-            ds.Add(i, i + "");
-        }
-    }
-
+﻿@using XCode.Statistics;
+@{
+    var page = ViewBag.Page as Pager;
 }
 <div class="form-group">
-    @Html.ForDropDownList("p", VisitStat.FindAllPageName(), Request["p"], "全部页面", true)
+    @Html.ForDropDownList("p", VisitStat.FindAllPageName(), page["p"], "全部页面", true)
 </div>
-<div class="form-group">
-    @Html.ForDropDownList("year", ys, Request["year"], "所有年份", true)
-</div>
-<div class="form-group">
-    @Html.ForDropDownList("month", ms, Request["month"], "所有月份", true)
-</div>
-<div class="form-group">
-    @Html.ForDropDownList("day", ds, Request["day"], "所有天", true)
-</div>
-@Html.Partial("_DateRange")
+@Html.Partial("_StatLevel", new[] { StatLevels.All, StatLevels.Year, StatLevels.Month, StatLevels.Day })

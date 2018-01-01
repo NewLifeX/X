@@ -191,7 +191,7 @@ namespace XNet
                     _Client = new UdpServer();
                     break;
                 default:
-                    if ((Int32)mode > 0)
+                    if (mode > 0)
                     {
                         var ns = GetServer(cbMode.Text);
                         if (ns == null) throw new XException("未识别服务[{0}]", mode);
@@ -390,7 +390,7 @@ namespace XNet
                     //});
                     var any = _Client.Local.Address.IsAny();
                     var list = new List<ISocketClient>();
-                    for (int i = 0; i < ths; i++)
+                    for (var i = 0; i < ths; i++)
                     {
                         var client = _Client.Remote.CreateRemote();
                         if (!any) client.Local.EndPoint = new IPEndPoint(_Client.Local.Address, 2000 + i);
@@ -417,7 +417,7 @@ namespace XNet
                 TaskEx.Run(async () =>
                 {
                     BizLog.Info("准备向[{0}]个客户端发送[{1}]次[{2}]的数据", _Server.SessionCount, count, buf.Length);
-                    for (Int32 i = 0; i < count && _Server != null; i++)
+                    for (var i = 0; i < count && _Server != null; i++)
                     {
                         var sw = Stopwatch.StartNew();
                         var cs = await _Server.SendAllAsync(buf);

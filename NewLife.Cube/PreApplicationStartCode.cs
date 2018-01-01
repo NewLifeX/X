@@ -19,7 +19,6 @@ namespace NewLife.Cube
 #if !NET4
             HttpApplication.RegisterModule(typeof(ErrorModule));
             HttpApplication.RegisterModule(typeof(DbRunTimeModule));
-            //HttpApplication.RegisterModule(typeof(ManagerModule));
 
             var set = Setting.Current;
             if (set.WebOnline || set.WebBehavior || set.WebStatistics)
@@ -29,6 +28,8 @@ namespace NewLife.Cube
                 UserBehaviorModule.WebStatistics = set.WebStatistics;
                 HttpApplication.RegisterModule(typeof(UserBehaviorModule));
             }
+
+            if (set.ForceSSL) HttpApplication.RegisterModule(typeof(CubeModule));
 #endif
         }
     }

@@ -83,7 +83,15 @@ else
                 }
                 else
                 {
-                    <td>@entity[item.Name]</td>
+                    //防止内容過長
+                    if (item.Name.EqualIgnoreCase("remark"))
+                    {
+                        <td style="max-width:600px;overflow:hidden;white-space: nowrap;text-overflow: ellipsis;" title="@entity[item.Name]">@entity[item.Name]</td>
+                    }
+                    else
+                    {
+                        <td>@entity[item.Name]</td>
+                    }
                 }
             }
             break;

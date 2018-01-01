@@ -224,9 +224,11 @@ namespace NewLife.Yun
 
             if (rs["location"] is IDictionary<String, Object> ds && ds.Count >= 2)
             {
-                var point = new GeoPoint();
-                point.Longitude = ds["lng"].ToDouble();
-                point.Latitude = ds["lat"].ToDouble();
+                var point = new GeoPoint
+                {
+                    Longitude = ds["lng"].ToDouble(),
+                    Latitude = ds["lat"].ToDouble()
+                };
 
                 geo.Location = point;
             }

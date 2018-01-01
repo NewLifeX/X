@@ -99,7 +99,7 @@ namespace XCode
             }
 
             // 不处理相同数据的赋值
-            if (Object.Equals(value, oldValue)) return;
+            if (Equals(value, oldValue)) return;
 
             if (type == typeof(String))
             {

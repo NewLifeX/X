@@ -10,7 +10,7 @@ namespace NewLife.Caching
         /// <summary>名称</summary>
         String Name { get; }
 
-        /// <summary>默认缓存时间。默认365*24*3600秒</summary>
+        /// <summary>默认缓存时间。默认0秒表示不过期</summary>
         Int32 Expire { get; set; }
 
         /// <summary>获取和设置缓存，永不过期</summary>
@@ -50,10 +50,10 @@ namespace NewLife.Caching
         /// <returns></returns>
         T Get<T>(String key);
 
-        /// <summary>移除缓存项</summary>
-        /// <param name="key">键</param>
+        /// <summary>批量移除缓存项</summary>
+        /// <param name="keys">键集合</param>
         /// <returns></returns>
-        Boolean Remove(String key);
+        Int32 Remove(params String[] keys);
 
         /// <summary>设置缓存项有效期</summary>
         /// <param name="key">键</param>
@@ -80,19 +80,43 @@ namespace NewLife.Caching
         void SetAll<T>(IDictionary<String, T> values, Int32 expire = -1);
 
         /// <summary>获取列表</summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="key"></param>
+        /// <typeparam name="T">元素类型</typeparam>
+        /// <param name="key">键</param>
         /// <returns></returns>
         IList<T> GetList<T>(String key);
 
         /// <summary>获取哈希</summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="key"></param>
+        /// <typeparam name="T">元素类型</typeparam>
+        /// <param name="key">键</param>
         /// <returns></returns>
         IDictionary<String, T> GetDictionary<T>(String key);
+
+        /// <summary>获取队列</summary>
+        /// <typeparam name="T">元素类型</typeparam>
+        /// <param name="key">键</param>
+        /// <returns></returns>
+        IProducerConsumer<T> GetQueue<T>(String key);
         #endregion
 
         #region 高级操作
+        /// <summary>添加，已存在时不更新</summary>
+        /// <typeparam name="T">值类型</typeparam>
+        /// <param name="key">键</param>
+        /// <param name="value">值</param>
+        /// <param name="expire">过期时间，秒。小于0时采用默认缓存时间<seealso cref="Cache.Expire"/></param>
+        /// <returns></returns>
+        Boolean Add<T>(String key, T value, Int32 expire = -1);
+
+        /// <summary>设置新值并获取旧值，原子操作</summary>
+        /// <remarks>
+        /// 常常配合Increment使用，用于累加到一定数后重置归零，又避免多线程冲突。
+        /// </remarks>
+        /// <typeparam name="T">值类型</typeparam>
+        /// <param name="key">键</param>
+        /// <param name="value">值</param>
+        /// <returns></returns>
+        T Replace<T>(String key, T value);
+
         /// <summary>累加，原子操作</summary>
         /// <param name="key">键</param>
         /// <param name="value">变化量</param>
@@ -116,6 +140,20 @@ namespace NewLife.Caching
         /// <param name="value">变化量</param>
         /// <returns></returns>
         Double Decrement(String key, Double value);
+        #endregion
+
+        #region 事务
+        /// <summary>申请分布式锁</summary>
+        /// <param name="key">要锁定的key</param>
+        /// <param name="msTimeout"></param>
+        /// <returns></returns>
+        IDisposable AcquireLock(String key, Int32 msTimeout);
+        #endregion
+
+        #region 性能测试
+        /// <summary>多线程性能测试</summary>
+        /// <param name="rand">随机读写</param>
+        void Bench(Boolean rand = false);
         #endregion
     }
 }

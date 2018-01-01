@@ -83,7 +83,7 @@ namespace NewLife.Remoting
         public IApiServer Add(NetUri uri)
         {
             Type type;
-            if (!Providers.TryGetValue(uri.Protocol, out type)) return null;
+            if (!Providers.TryGetValue(uri.Type + "", out type)) return null;
 
             var svr = type.CreateInstance() as IApiServer;
             if (svr != null)

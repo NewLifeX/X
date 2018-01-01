@@ -16,7 +16,7 @@ namespace XCoder
         /// <param name="titleText">标题文本</param>        
         public static BaseForm CreateForm(Control cl, String titleText = "")
         {
-            BaseForm tf = new BaseForm();
+            var tf = new BaseForm();
             tf.Size = new Size(cl.Width + 15, cl.Size.Height + 40);
             tf.Controls.Add(cl);//将控件添加到窗体中
             tf.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;

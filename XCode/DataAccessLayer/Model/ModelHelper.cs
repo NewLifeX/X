@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -448,7 +449,7 @@ namespace XCode.DataAccessLayer
                 if (!writeDefaultValueMember)
                 {
                     var dobj = def.GetValue(pi);
-                    if (Object.Equals(obj, dobj)) continue;
+                    if (Equals(obj, dobj)) continue;
                     if (code == TypeCode.String && "" + obj == "" + dobj) continue;
                 }
 
@@ -516,15 +517,15 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        static DictionaryCache<Type, Object> cache = new DictionaryCache<Type, Object>();
+        static ConcurrentDictionary<Type, Object> cache = new ConcurrentDictionary<Type, Object>();
         static Object GetDefault(Type type)
         {
-            return cache.GetItem(type, item => item.CreateInstance());
+            return cache.GetOrAdd(type, item => item.CreateInstance());
         }
         #endregion
 
         #region 修正连接
-        /// <summary>根据类型修正字段的一些默认值。仅考虑MSSQL</summary>
+        /// <summary>根据类型修正字段的一些默认值</summary>
         /// <param name="dc"></param>
         /// <param name="oridc"></param>
         /// <returns></returns>

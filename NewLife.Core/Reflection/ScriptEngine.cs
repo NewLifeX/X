@@ -1,5 +1,6 @@
 ﻿using System;
 using System.CodeDom.Compiler;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
@@ -105,7 +106,7 @@ namespace NewLife.Reflection
             IsExpression = isExpression;
         }
 
-        static DictionaryCache<String, ScriptEngine> _cache = new DictionaryCache<String, ScriptEngine>(StringComparer.OrdinalIgnoreCase);
+        static ConcurrentDictionary<String, ScriptEngine> _cache = new ConcurrentDictionary<String, ScriptEngine>(StringComparer.OrdinalIgnoreCase);
         /// <summary>为指定代码片段创建脚本引擎实例。采用缓存，避免同一脚本重复创建引擎。</summary>
         /// <param name="code">代码片段</param>
         /// <param name="isExpression">是否表达式，表达式将编译成为一个Main方法</param>
@@ -115,7 +116,7 @@ namespace NewLife.Reflection
             if (String.IsNullOrEmpty(code)) throw new ArgumentNullException("code");
 
             var key = code + isExpression;
-            return _cache.GetItem(key, k => new ScriptEngine(code, isExpression));
+            return _cache.GetOrAdd(key, k => new ScriptEngine(code, isExpression));
         }
         #endregion
 
@@ -356,9 +357,11 @@ namespace NewLife.Reflection
         {
             if (options == null)
             {
-                options = new CompilerParameters();
-                options.GenerateInMemory = true;
-                options.GenerateExecutable = !IsExpression;
+                options = new CompilerParameters
+                {
+                    GenerateInMemory = true,
+                    GenerateExecutable = !IsExpression
+                };
             }
 
             var hs = new HashSet<String>(StringComparer.OrdinalIgnoreCase);

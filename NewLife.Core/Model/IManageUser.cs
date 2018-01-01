@@ -100,7 +100,7 @@ namespace NewLife.Model
 
             if (session != null)
             {
-                user.LastLoginIP = session.Remote?.EndPoint?.Address + "";
+                user.LastLoginIP = session.Remote?.Address + "";
                 // 销毁时
                 session.OnDisposed += (s, e) =>
                 {
@@ -124,7 +124,7 @@ namespace NewLife.Model
 
             if (session != null)
             {
-                user.RegisterIP = session.Remote?.EndPoint?.Address + "";
+                user.RegisterIP = session.Remote?.Address + "";
                 // 销毁时
                 session.OnDisposed += (s, e) =>
                 {

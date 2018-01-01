@@ -57,7 +57,7 @@
 					        var url = jumpUrl.substr(6).split('|'),
 								fid = url[0],
 								url = url[1];
-					        console.log(fid)
+					        //console.log(fid)
 					        var iframe = $(fid || 'iframe');
 					        if (iframe.length) {
 					            iframe.get('0').src = url;
@@ -187,7 +187,7 @@
 							var url = jumpUrl.substr(6).split('|'),
 								fid = url[0] ,
 								url = url[1];
-							console.log(fid)
+							//console.log(fid);
 							var iframe = $( fid || 'iframe');
 							if (iframe.length) {
 								iframe.get('0').src = url;

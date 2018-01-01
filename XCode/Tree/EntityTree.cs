@@ -77,7 +77,7 @@ namespace XCode
         /// <summary>在缓存中查找节点</summary>
         protected static TEntity FindByKeyWithCache(TKey key)
         {
-            return Meta.Session.Cache.Find(e => Object.Equals(e[Setting.Key], key));
+            return Meta.Session.Cache.Find(e => Equals(e[Setting.Key], key));
         }
 
         /// <summary>子孙节点</summary>
@@ -237,7 +237,7 @@ namespace XCode
         [DataObjectMethod(DataObjectMethodType.Select)]
         public static IList<TEntity> FindAllByParent(TKey parentKey)
         {
-            var list = Meta.Session.Cache.FindAll(e => Object.Equals(e[Setting.Parent], parentKey)).ToList();
+            var list = Meta.Session.Cache.FindAll(e => Equals(e[Setting.Parent], parentKey)).ToList();
             // 如果是顶级，那么包含所有无头节点，无头节点由错误数据造成
             if (IsNull(parentKey)) list.AddRange(FindAllNoParent());
             // 一个元素不需要排序
@@ -441,15 +441,15 @@ namespace XCode
             if (IsNull(key)) return false;
 
             // 自身
-            if (Object.Equals((TKey)this[Setting.Key], key)) return true;
+            if (Equals((TKey)this[Setting.Key], key)) return true;
 
             // 子级
             var list = Childs;
-            if (list != null && list.Any(e => Object.Equals(e[Setting.Key], key))) return true;
+            if (list != null && list.Any(e => Equals(e[Setting.Key], key))) return true;
 
             // 子孙
             list = AllChilds;
-            if (list != null && list.Any(e => Object.Equals(e[Setting.Key], key))) return true;
+            if (list != null && list.Any(e => Equals(e[Setting.Key], key))) return true;
 
             return false;
         }
@@ -575,7 +575,7 @@ namespace XCode
             var v2 = entity[Setting.Key];
             if (typeof(TKey) == typeof(String)) return "" + v1 == "" + v2;
 
-            return Object.Equals(v1, v2);
+            return Equals(v1, v2);
         }
         #endregion
 
@@ -620,14 +620,14 @@ namespace XCode
             else
             {
                 // 更新状态，且pkey不为空时，判断两者是否相等
-                if (!pisnull && Object.Equals(pkey, key)) throw new XException("上级不能是当前节点！");
+                if (!pisnull && Equals(pkey, key)) throw new XException("上级不能是当前节点！");
             }
 
             // 编辑状态且设置了父节点时才处理
             if (!isnull && !pisnull)
             {
                 var list = AllChilds;
-                if (list != null && list.Any(e => Object.Equals(e[Setting.Key], pkey)))
+                if (list != null && list.Any(e => Equals(e[Setting.Key], pkey)))
                     throw new XException("上级[" + pkey + "]是当前节点的子孙节点！");
             }
         }
@@ -635,7 +635,7 @@ namespace XCode
         private static Boolean IsNull(TKey value)
         {
             // 为空或者默认值，返回空
-            if (value == null || Object.Equals(value, default(TKey))) return true;
+            if (value == null || Equals(value, default(TKey))) return true;
 
             // 字符串的空
             if (typeof(TKey) == typeof(String) && String.IsNullOrEmpty(value.ToString())) return true;

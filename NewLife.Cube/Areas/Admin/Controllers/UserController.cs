@@ -261,7 +261,7 @@ namespace NewLife.Cube.Admin.Controllers
             return EnableOrDisableSelect(false);
         }
 
-        private ActionResult EnableOrDisableSelect(bool isEnable = true)
+        private ActionResult EnableOrDisableSelect(Boolean isEnable = true)
         {
             var count = 0;
             var ids = Request["keys"].SplitAsInt();

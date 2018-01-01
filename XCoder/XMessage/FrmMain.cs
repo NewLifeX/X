@@ -363,7 +363,7 @@ namespace XMessage
                 buf = pk.ToArray();
                 TaskEx.Run(async () =>
                 {
-                    for (Int32 i = 0; i < count; i++)
+                    for (var i = 0; i < count; i++)
                     {
                         var cs = await _Server.SendAllAsync(buf);
                         BizLog.Info("已向[{0}]个客户端发送[{1}]数据", cs, buf.Length);

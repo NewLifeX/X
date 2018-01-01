@@ -64,8 +64,10 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public Json AddHandler<THandler>(Int32 priority = 0) where THandler : IJsonHandler, new()
         {
-            var handler = new THandler();
-            handler.Host = this;
+            var handler = new THandler
+            {
+                Host = this
+            };
             if (priority != 0) handler.Priority = priority;
 
             return AddHandler(handler);

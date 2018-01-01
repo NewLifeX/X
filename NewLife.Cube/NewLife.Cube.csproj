@@ -167,6 +167,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>_Navbar.cshtml</DependentUpon>
     </Compile>
+    <Compile Include="Areas\Admin\Views\Log\_List_Data.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>_List_Data.cshtml</DependentUpon>
+    </Compile>
     <Compile Include="Areas\Admin\Views\Log\_List_Search.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -245,6 +250,7 @@
     <Compile Include="Common\BootstrapJs.cs" />
     <Compile Include="Common\ControllerHelper.cs" />
     <Compile Include="Common\EntityTreeController.cs" />
+    <Compile Include="Common\CubeModule.cs" />
     <Compile Include="Common\ObjectController.cs" />
     <Compile Include="Common\ControllerBaseX.cs" />
     <Compile Include="Common\DbRunTimeModule.cs" />
@@ -289,6 +295,11 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Index.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Shared\_StatLevel.generated.cs">
+      <DependentUpon>_StatLevel.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
     </Compile>
     <Compile Include="Views\Shared\_DateRange.generated.cs">
       <DependentUpon>_DateRange.cshtml</DependentUpon>
@@ -482,6 +493,10 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_List_Toolbar_Batch.generated.cs</LastGenOutput>
     </Content>
+    <Content Include="Areas\Admin\Views\Log\_List_Data.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>_List_Data.generated.cs</LastGenOutput>
+    </Content>
     <None Include="Content\jweui\css\demos.css" />
     <None Include="Content\jweui\css\jquery-weui.css" />
     <None Include="Content\jweui\css\jquery-weui.min.css" />
@@ -528,6 +543,7 @@
     <None Include="Content\jweui\lib\weui.min.css" />
     <None Include="Content\jweui\lib\zepto.js" />
     <None Include="index.html" />
+    <Content Include="Content\bootstrap\js\bootstrap.js" />
     <Content Include="Scripts\ApiClient.js" />
     <Content Include="Scripts\WebSocketX.js" />
     <None Include="Areas\Admin\Views\File\Index.cshtml">
@@ -673,6 +689,10 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Index.generated.cs</LastGenOutput>
     </None>
+    <Content Include="Views\Shared\_StatLevel.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>_StatLevel.generated.cs</LastGenOutput>
+    </Content>
     <None Include="Views\Shared\_DateRange.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_DateRange.generated.cs</LastGenOutput>

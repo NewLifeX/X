@@ -182,8 +182,7 @@ namespace NewLife
         {
             if (comb.IsNullOrWhiteSpace()) { throw new ArgumentNullException("comb"); }
 
-            Int32 a; Int16 b, c; Byte[] d;
-            if (new GuidParser(comb, sequentialType).TryParse(out a, out b, out c, out d))
+            if (new GuidParser(comb, sequentialType).TryParse(out var a, out var b, out var c, out var d))
             {
                 m_value = new Byte[_SizeOfGuid];
                 Init(a, b, c, d);
@@ -725,8 +724,7 @@ namespace NewLife
         {
             if (comb.IsNullOrWhiteSpace()) { throw new ArgumentNullException("comb"); }
 
-            Int32 a; Int16 b, c; Byte[] d;
-            if (new GuidParser(comb, sequentialType).TryParse(out a, out b, out c, out d))
+            if (new GuidParser(comb, sequentialType).TryParse(out var a, out var b, out var c, out var d))
             {
                 result = new CombGuid(a, b, c, d);
                 return true;
@@ -1167,25 +1165,23 @@ namespace NewLife
                 var hasHyphen = _length == 36;
 
                 a = 0; b = 0; c = 0; d = null;
-                UInt64 _a, _b, _c;
 
-                if (!ParseHex(8, hasHyphen, out _a)) { return false; }
-
-                if (hasHyphen && !ParseChar('-')) { return false; }
-
-                if (!ParseHex(4, hasHyphen, out _b)) { return false; }
+                if (!ParseHex(8, hasHyphen, out var _a)) { return false; }
 
                 if (hasHyphen && !ParseChar('-')) { return false; }
 
-                if (!ParseHex(4, hasHyphen, out _c)) { return false; }
+                if (!ParseHex(4, hasHyphen, out var _b)) { return false; }
+
+                if (hasHyphen && !ParseChar('-')) { return false; }
+
+                if (!ParseHex(4, hasHyphen, out var _c)) { return false; }
 
                 if (hasHyphen && !ParseChar('-')) { return false; }
 
                 var _d = new Byte[8];
                 for (var i = 0; i < _d.Length; i++)
                 {
-                    UInt64 dd;
-                    if (!ParseHex(2, hasHyphen, out dd)) { return false; }
+                    if (!ParseHex(2, hasHyphen, out var dd)) { return false; }
 
                     if (i == 1 && hasHyphen && !ParseChar('-')) { return false; }
 

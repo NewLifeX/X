@@ -406,11 +406,26 @@ WriteLiteral(">");
             
             #line default
             #line hidden
-WriteLiteral("</td>\r\n                <td>");
+WriteLiteral("</td>\r\n                <td");
+
+WriteLiteral(" style=\"max-width:600px;overflow:hidden;white-space: nowrap;text-overflow: ellips" +
+"is;\"");
+
+WriteAttribute("title", Tuple.Create(" title=\"", 2422), Tuple.Create("\"", 2444)
+            
+            #line 49 "..\..\Areas\Admin\Views\UserOnline\_List_Data.cshtml"
+                                , Tuple.Create(Tuple.Create("", 2430), Tuple.Create<System.Object, System.Int32>(entity.Status
+            
+            #line default
+            #line hidden
+, 2430), false)
+);
+
+WriteLiteral(">");
 
             
             #line 49 "..\..\Areas\Admin\Views\UserOnline\_List_Data.cshtml"
-               Write(entity.Status);
+                                                                                                                           Write(entity.Status);
 
             
             #line default

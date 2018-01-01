@@ -48,7 +48,7 @@ namespace XCoder
 
         private void toolEidtTable_Click(Object sender, EventArgs e)
         {
-            DataGridViewRow row = dgvTables.Rows[dgvTables.CurrentCell.RowIndex];
+            var row = dgvTables.Rows[dgvTables.CurrentCell.RowIndex];
             if (row == null) return;
 
             AddTable.CreateForm((IDataTable)row.DataBoundItem).ShowDialog();
@@ -77,7 +77,7 @@ namespace XCoder
             if (saveFileDialog1.ShowDialog() != DialogResult.OK || String.IsNullOrEmpty(saveFileDialog1.FileName)) return;
             try
             {
-                String xml = DAL.Export(Tables);
+                var xml = DAL.Export(Tables);
                 File.WriteAllText(saveFileDialog1.FileName, xml);
 
                 MessageBox.Show("保存模型成功！", "保存模型", MessageBoxButtons.OK);

@@ -91,8 +91,10 @@ namespace NewLife.Remoting
             // 压缩（>=64 Byte）
             if (Compressed)
             {
-                var def = new DeflateFilter();
-                def.MinSize = 256;
+                var def = new DeflateFilter
+                {
+                    MinSize = 256
+                };
                 Filters.Add(def);
 
                 WriteLog("压缩：{0} MinSize={1}", def, def.MinSize);
@@ -101,8 +103,10 @@ namespace NewLife.Remoting
             // 加密
             if (Encrypted)
             {
-                var rc4 = new RC4Filter();
-                rc4.GetKey = GetKeyFunc();
+                var rc4 = new RC4Filter
+                {
+                    GetKey = GetKeyFunc()
+                };
                 Filters.Add(rc4);
 
                 WriteLog("加密：{0}", rc4);

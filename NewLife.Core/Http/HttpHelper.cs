@@ -63,8 +63,10 @@ namespace NewLife.Http
             sb.AppendLine();
 
             //return sb.ToString();
-            var rs = new Packet(sb.ToString().GetBytes());
-            rs.Next = pk;
+            var rs = new Packet(sb.ToString().GetBytes())
+            {
+                Next = pk
+            };
             return rs;
         }
 
@@ -90,8 +92,10 @@ namespace NewLife.Http
             sb.AppendLine();
 
             //return sb.ToString();
-            var rs = new Packet(sb.ToString().GetBytes());
-            rs.Next = pk;
+            var rs = new Packet(sb.ToString().GetBytes())
+            {
+                Next = pk
+            };
             return rs;
         }
 

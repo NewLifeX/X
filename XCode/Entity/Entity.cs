@@ -254,7 +254,7 @@ namespace XCode
 
             if (!HasDirty) return false;
 
-            return Meta.Session.Dal.Queue.Add(this, msDelay);
+            return Meta.Session.Queue.Add(this, msDelay);
         }
 
         [NonSerialized]
@@ -369,7 +369,7 @@ namespace XCode
                 // 如果是Guid等主键，可能提前赋值，插入操作不能比较主键，直接判断判断存在的唯一索引即可
                 if (isNew && !field.IsIdentity) return true;
 
-                return !Object.Equals(val, list[0][field.Name]);
+                return !Equals(val, list[0][field.Name]);
             }
             else
             {
@@ -390,7 +390,7 @@ namespace XCode
                 // 如果是Guid等主键，可能提前赋值，插入操作不能比较主键，直接判断判断存在的唯一索引即可
                 if (isNew && !field.IsIdentity) return true;
 
-                return !Object.Equals(val, list[0][field.Name]);
+                return !Equals(val, list[0][field.Name]);
             }
         }
         #endregion

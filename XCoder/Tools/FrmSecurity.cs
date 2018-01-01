@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Text;
 using System.Web;
 using System.Windows.Forms;
 using NewLife.Security;
@@ -46,19 +47,54 @@ namespace XCoder.Tools
             var v = rtSource.Text;
             return GetBytes(v);
         }
+
+        private void SetResult(params String[] rs)
+        {
+            var sb = new StringBuilder();
+            foreach (var item in rs)
+            {
+                if (sb.Length > 0)
+                {
+                    sb.AppendLine();
+                    sb.AppendLine();
+                }
+                sb.Append(item);
+            }
+            rtResult.Text = sb.ToString();
+        }
+
+        private void SetResult(Byte[] data)
+        {
+            SetResult("/*HEX编码、Base64编码、Url改进Base64编码*/", data.ToHex(), data.ToBase64(), data.ToUrlBase64());
+        }
+
+        private void SetResult2(Byte[] data)
+        {
+            SetResult("/*字符串、HEX编码、Base64编码*/", data.ToStr(), data.ToHex(), data.ToBase64());
+        }
         #endregion
 
         private void btnExchange_Click(Object sender, EventArgs e)
         {
             var v = rtSource.Text;
-            rtSource.Text = rtResult.Text;
+            var v2 = rtResult.Text;
+            // 结果区只要第一行
+            if (!v2.IsNullOrEmpty())
+            {
+                var ss = v2.Split("\n");
+                var n = 0;
+                if (ss.Length > n + 1 && ss[n].StartsWith("/*") && ss[n].EndsWith("*/")) n++;
+                v2 = ss[n];
+            }
+            rtSource.Text = v2;
             rtResult.Text = v;
         }
 
         private void btnHex_Click(Object sender, EventArgs e)
         {
             var buf = GetBytes();
-            rtResult.Text = buf.ToHex(" ", 32);
+            //rtResult.Text = buf.ToHex(" ", 32);
+            SetResult(buf.ToHex(), buf.ToHex(" ", 32), buf.ToHex("-", 32));
         }
 
         private void btnHex2_Click(Object sender, EventArgs e)
@@ -70,7 +106,8 @@ namespace XCoder.Tools
         private void btnB64_Click(Object sender, EventArgs e)
         {
             var buf = GetBytes();
-            rtResult.Text = buf.ToBase64();
+            //rtResult.Text = buf.ToBase64();
+            SetResult(buf.ToBase64(), buf.ToUrlBase64());
         }
 
         private void btnB642_Click(Object sender, EventArgs e)
@@ -78,7 +115,8 @@ namespace XCoder.Tools
             var v = rtSource.Text;
             //rtResult.Text = v.ToBase64().ToStr();
             var buf = v.ToBase64();
-            rtResult.Text = buf.ToStr() + Environment.NewLine + buf.ToHex();
+            //rtResult.Text = buf.ToStr() + Environment.NewLine + buf.ToHex();
+            SetResult(buf.ToStr(), buf.ToHex());
         }
 
         private void btnMD5_Click(Object sender, EventArgs e)
@@ -115,7 +153,8 @@ namespace XCoder.Tools
             var des = new DESCryptoServiceProvider();
             buf = des.Encrypt(buf, pass);
 
-            rtResult.Text = buf.ToHex() + Environment.NewLine + Environment.NewLine + buf.ToBase64();
+            //rtResult.Text = buf.ToHex() + Environment.NewLine + Environment.NewLine + buf.ToBase64();
+            SetResult(buf);
         }
 
         private void btnDES2_Click(Object sender, EventArgs e)
@@ -126,7 +165,7 @@ namespace XCoder.Tools
             var des = new DESCryptoServiceProvider();
             buf = des.Descrypt(buf, pass);
 
-            rtResult.Text = buf.ToStr() + Environment.NewLine + Environment.NewLine + buf.ToHex() + Environment.NewLine + Environment.NewLine + buf.ToBase64();
+            SetResult2(buf);
         }
 
         private void btnAES_Click(Object sender, EventArgs e)
@@ -137,7 +176,7 @@ namespace XCoder.Tools
             var des = new AesCryptoServiceProvider();
             buf = des.Encrypt(buf, pass);
 
-            rtResult.Text = buf.ToHex() + Environment.NewLine + Environment.NewLine + buf.ToBase64();
+            SetResult(buf);
         }
 
         private void btnAES2_Click(Object sender, EventArgs e)
@@ -148,7 +187,7 @@ namespace XCoder.Tools
             var des = new AesCryptoServiceProvider();
             buf = des.Descrypt(buf, pass);
 
-            rtResult.Text = buf.ToStr() + Environment.NewLine + Environment.NewLine + buf.ToHex() + Environment.NewLine + Environment.NewLine + buf.ToBase64();
+            SetResult2(buf);
         }
 
         private void btnRC4_Click(Object sender, EventArgs e)
@@ -157,7 +196,7 @@ namespace XCoder.Tools
             var pass = GetBytes(rtPass.Text);
             buf = buf.RC4(pass);
 
-            rtResult.Text = buf.ToHex() + Environment.NewLine + Environment.NewLine + buf.ToBase64();
+            SetResult(buf);
         }
 
         private void btnRC42_Click(Object sender, EventArgs e)
@@ -166,7 +205,7 @@ namespace XCoder.Tools
             var pass = GetBytes(rtPass.Text);
             buf = buf.RC4(pass);
 
-            rtResult.Text = buf.ToStr() + Environment.NewLine + Environment.NewLine + buf.ToHex() + Environment.NewLine + Environment.NewLine + buf.ToBase64();
+            SetResult2(buf);
         }
 
         private void btnRSA_Click(Object sender, EventArgs e)
@@ -182,7 +221,7 @@ namespace XCoder.Tools
 
             buf = RSAHelper.Encrypt(buf, key);
 
-            rtResult.Text = buf.ToHex() + Environment.NewLine + Environment.NewLine + buf.ToBase64();
+            SetResult(buf);
         }
 
         private void btnRSA2_Click(Object sender, EventArgs e)
@@ -192,7 +231,7 @@ namespace XCoder.Tools
 
             buf = RSAHelper.Decrypt(buf, pass);
 
-            rtResult.Text = buf.ToStr() + Environment.NewLine + Environment.NewLine + buf.ToHex() + Environment.NewLine + Environment.NewLine + buf.ToBase64();
+            SetResult2(buf);
         }
 
         private void btnDSA_Click(Object sender, EventArgs e)
@@ -208,7 +247,7 @@ namespace XCoder.Tools
 
             buf = DSAHelper.Sign(buf, key);
 
-            rtResult.Text = buf.ToHex() + Environment.NewLine + Environment.NewLine + buf.ToBase64();
+            SetResult(buf);
         }
 
         private void btnDSA2_Click(Object sender, EventArgs e)

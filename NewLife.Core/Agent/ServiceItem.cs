@@ -110,6 +110,8 @@ namespace NewLife.Agent
             Active = true;
             var set = Setting.Current;
 
+            var ctx = new JobContext();
+            ctx["Worker"] = this;
             while (true)
             {
                 var isContinute = false;
@@ -121,7 +123,7 @@ namespace NewLife.Agent
                     if (Callback != null)
                         isContinute = Callback(Index);
                     else if (Job != null)
-                        Job.Execute(null);
+                        Job.Execute(ctx);
                 }
                 catch (ThreadAbortException)
                 {

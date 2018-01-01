@@ -211,8 +211,10 @@ namespace NewLife.Net
 
         private void OnReceive(Packet pk, IPEndPoint remote)
         {
-            var e = new ReceivedEventArgs(pk);
-            e.UserState = remote;
+            var e = new ReceivedEventArgs(pk)
+            {
+                UserState = remote
+            };
 
             LastTime = DateTime.Now;
             //if (StatReceive != null) StatReceive.Increment(e.Length);
