@@ -5,6 +5,7 @@ using System.Web.Mvc;
 using NewLife.Common;
 using NewLife.Web;
 using XCode.Membership;
+using XCode.Statistics;
 
 namespace NewLife.Cube.Admin.Controllers
 {
@@ -24,7 +25,7 @@ namespace NewLife.Cube.Admin.Controllers
         protected override IEnumerable<VisitStat> Search(Pager p)
         {
             var model = new VisitStatModel();
-            model.Fill(p.Params);
+            model.Fill(p.Params, StatLevels.Day);
             model.Page = p["p"];
 
             return VisitStat.Search(model, p["dtStart"].ToDateTime(), p["dtEnd"].ToDateTime(), p);

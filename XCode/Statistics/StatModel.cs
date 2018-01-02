@@ -127,8 +127,9 @@ namespace XCode.Statistics
         }
 
         /// <summary>使用参数填充</summary>
-        /// <param name="ps"></param>
-        public virtual void Fill(IDictionary<String, String> ps)
+        /// <param name="ps">请求参数</param>
+        /// <param name="defLevel">默认级别</param>
+        public virtual void Fill(IDictionary<String, String> ps, StatLevels defLevel = StatLevels.Day)
         {
             //this.Copy(ps, true);
 
@@ -137,7 +138,19 @@ namespace XCode.Statistics
                 if (!pi.CanWrite) continue;
                 if (pi.GetIndexParameters().Length > 0) continue;
 
-                if (ps.TryGetValue(pi.Name, out var val)) this.SetValue(pi, val.ChangeType(pi.PropertyType));
+                if (ps.TryGetValue(pi.Name, out var val))
+                {
+                    if (pi.PropertyType.IsInt() || pi.PropertyType.IsEnum)
+                        this.SetValue(pi, val.ToInt(-1));
+                    else
+                        this.SetValue(pi, val.ChangeType(pi.PropertyType));
+                }
+            }
+
+            if (Level < 0)
+            {
+                Level = defLevel;
+                ps[nameof(Level)] = (Int32)Level + "";
             }
 
             // 格式化时间
