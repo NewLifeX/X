@@ -161,12 +161,12 @@ namespace NewLife.Caching
                 foreach (var item in args)
                 {
                     var len = 1 + item.Length.ToString().GetBytes().Length + NewLine.Length * 2 + item.Length;
-                    //防止写入内容过长导致的缓冲区长度不足的问题
-                    if (len > buf.Length)
+                    // 防止写入内容过长导致的缓冲区长度不足的问题
+                    if (ms.Position + len > ms.Length)
                     {
-                        ms = new MemoryStream();
-                        ms.SetLength(0);
-                        ms.Position = 0;
+                        var ms2 = new MemoryStream();
+                        ms.WriteTo(ms2);
+                        ms = ms2;
                     }
 
                     if (log != null)
