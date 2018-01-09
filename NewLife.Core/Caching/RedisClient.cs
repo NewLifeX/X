@@ -160,6 +160,15 @@ namespace NewLife.Caching
 
                 foreach (var item in args)
                 {
+                    var len = 1 + item.Length.ToString().GetBytes().Length + NewLine.Length * 2 + item.Length;
+                    //防止写入内容过长导致的缓冲区长度不足的问题
+                    if (len > buf.Length)
+                    {
+                        ms = new MemoryStream();
+                        ms.SetLength(0);
+                        ms.Position = 0;
+                    }
+
                     if (log != null)
                     {
                         if (item.Length <= 32)
@@ -179,7 +188,8 @@ namespace NewLife.Caching
                     if (ms.Length > 1400)
                     {
                         ms.WriteTo(ns);
-
+                        //重置memoryStream的长度
+                        ms = new MemoryStream(buf);
                         // 从头开始
                         ms.SetLength(0);
                         ms.Position = 0;
