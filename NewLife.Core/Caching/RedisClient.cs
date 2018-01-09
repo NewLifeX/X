@@ -290,7 +290,7 @@ namespace NewLife.Caching
 
             // 数据不足时，继续从网络流读取
             var remain = pk.Count - (p + 2);
-            if (remain < len)
+            while (remain < len)
             {
                 // 需要读取更多数据，加2字节的结尾换行
                 var over = len - remain + 2;
@@ -306,6 +306,7 @@ namespace NewLife.Caching
                     var count = ms.Read(buf, 0, over);
                     if (count > 0) pk.Next = new Packet(buf, 0, count);
                 }
+                remain = pk.Count - (p + 2);
             }
 
             // 解析内容，跳过长度后的\r\n
@@ -478,6 +479,7 @@ namespace NewLife.Caching
         /// <returns></returns>
         protected virtual Object FromBytes(Packet pk, Type type)
         {
+            if (type == typeof(Packet)) return pk;
             if (type == typeof(Byte[])) return pk.ToArray();
 
             var str = pk.ToStr().Trim('\"');
