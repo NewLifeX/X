@@ -289,24 +289,31 @@ namespace NewLife.Caching
             if (len <= 0) return pk.Sub(p, 0);
 
             // 数据不足时，继续从网络流读取
-            var remain = pk.Count - (p + 2);
-            while (remain < len)
+            var dlen = pk.Total - (p + 2);
+            var cur = pk;
+            while (dlen < len)
             {
                 // 需要读取更多数据，加2字节的结尾换行
-                var over = len - remain + 2;
-                // 优先使用数据区
-                if (pk.Offset + pk.Count + over <= pk.Data.Length)
+                var over = len - dlen + 2;
+                var count = 0;
+                // 优先使用缓冲区
+                if (cur.Offset + cur.Count + over <= cur.Data.Length)
                 {
-                    var count = ms.Read(pk.Data, pk.Offset + pk.Count, over);
-                    if (count > 0) pk.Set(pk.Data, pk.Offset, pk.Count + count);
+                    count = ms.Read(cur.Data, cur.Offset + cur.Count, over);
+                    if (count > 0) cur.Set(cur.Data, cur.Offset, cur.Count + count);
                 }
                 else
                 {
                     var buf = new Byte[over];
-                    var count = ms.Read(buf, 0, over);
-                    if (count > 0) pk.Next = new Packet(buf, 0, count);
+                    count = ms.Read(buf, 0, over);
+                    if (count > 0)
+                    {
+                        cur.Next = new Packet(buf, 0, count);
+                        cur = cur.Next;
+                    }
                 }
-                remain = pk.Count - (p + 2);
+                //remain = pk.Total - (p + 2);
+                dlen += count;
             }
 
             // 解析内容，跳过长度后的\r\n

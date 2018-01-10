@@ -73,11 +73,31 @@ namespace NewLife.Data
         /// <returns></returns>
         public Packet Sub(Int32 offset, Int32 count = -1)
         {
-            // count 是 offset 之后的个数
-            if (count < 0 || offset + count > Count) count = Count - offset;
-            if (count < 0) count = 0;
+            var start = Offset + offset;
+            var remain = Count - offset;
 
-            return new Packet(Data, Offset + offset, count);
+            if (Next == null)
+            {
+                // count 是 offset 之后的个数
+                if (count < 0 || count > remain) count = remain;
+                if (count < 0) count = 0;
+
+                return new Packet(Data, start, count);
+            }
+            else
+            {
+                // 如果当前段用完，则取下一段
+                if (remain <= 0) return Next.Sub(offset - Count, count);
+
+                // 当前包用一截，剩下的全部
+                if (count < 0) return new Packet(Data, start, remain) { Next = Next };
+
+                // 当前包可以读完
+                if (count <= remain) return new Packet(Data, start, count);
+
+                // 当前包用一截，剩下的再截取
+                return new Packet(Data, start, remain) { Next = Next.Sub(0, count - remain) };
+            }
         }
 
         /// <summary>查找目标数组</summary>
@@ -116,6 +136,17 @@ namespace NewLife.Data
             }
 
             return -1;
+        }
+
+        /// <summary>附加一个包到当前包链的末尾</summary>
+        /// <param name="pk"></param>
+        public void Append(Packet pk)
+        {
+            if (pk == null) return;
+
+            var p = this;
+            while (p.Next != null) p = p.Next;
+            p.Next = pk;
         }
 
         /// <summary>返回字节数组。如果是完整数组直接返回，否则截取</summary>
