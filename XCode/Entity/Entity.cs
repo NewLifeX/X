@@ -737,8 +737,17 @@ namespace XCode
             // 先查询满足条件的记录数，如果没有数据，则直接返回空集合，不再查询数据
             if (page.RetrieveTotalCount)
             {
-                var rows = page.TotalCount = FindCount(where, null, null, 0, 0);
+                var session = Meta.Session;
+                var rows = 0L;
+
+                // 如果总记录数超过10万，为了提高性能，返回快速查找且带有缓存的总记录数
+                if ((where == null || where is WhereExpression wh && wh.Empty) && session.LongCount > 100000)
+                    rows = session.Count;
+                else
+                    rows = FindCount(where, null, null, 0, 0);
                 if (rows <= 0) return new List<TEntity>();
+
+                page.TotalCount = rows;
             }
 
             // 验证排序字段，避免非法
@@ -783,8 +792,8 @@ namespace XCode
         {
             var session = Meta.Session;
 
-            // 如果总记录数超过10万，为了提高性能，返回快速查找且带有缓存的总记录数
-            if (String.IsNullOrEmpty(where) && session.LongCount > 100000) return session.Count;
+            //// 如果总记录数超过10万，为了提高性能，返回快速查找且带有缓存的总记录数
+            //if (String.IsNullOrEmpty(where) && session.LongCount > 100000) return session.Count;
 
             var sb = new SelectBuilder
             {
@@ -811,8 +820,8 @@ namespace XCode
             var ps = session.Dal.Db.UserParameter ? new Dictionary<String, Object>() : null;
             var wh = where?.GetString(ps);
 
-            // 如果总记录数超过10万，为了提高性能，返回快速查找且带有缓存的总记录数
-            if (String.IsNullOrEmpty(wh) && session.LongCount > 100000) return session.LongCount;
+            //// 如果总记录数超过10万，为了提高性能，返回快速查找且带有缓存的总记录数
+            //if (String.IsNullOrEmpty(wh) && session.LongCount > 100000) return session.LongCount;
 
             var builder = new SelectBuilder
             {
