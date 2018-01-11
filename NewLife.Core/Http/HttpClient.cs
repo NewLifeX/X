@@ -3,6 +3,10 @@ using System.Net;
 using NewLife.Data;
 using NewLife.Net;
 
+
+ //TODO請求需要Mask,如果用這裏做WS通訊會存在問題
+
+
 namespace NewLife.Http
 {
     /// <summary>Http客户端</summary>
