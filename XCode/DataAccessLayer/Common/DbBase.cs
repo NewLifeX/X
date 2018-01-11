@@ -158,7 +158,7 @@ namespace XCode.DataAccessLayer
                         Factory = Factory,
                         ConnectionString = ConnectionString,
                     };
-                    if (DAL.Debug) pool.Log = XTrace.Log;
+                    if (DAL.Debug && XTrace.Log.Level == LogLevel.Debug) pool.Log = XTrace.Log;
 
                     return _Pool = pool;
                 }
