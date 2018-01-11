@@ -147,17 +147,21 @@ namespace XCode.DataAccessLayer
         {
             get
             {
-                if (_Pool == null)
+                if (_Pool != null) return _Pool;
+                lock (this)
                 {
-                    _Pool = new ConnectionPool
+                    if (_Pool != null) return _Pool;
+
+                    var pool = new ConnectionPool
                     {
                         Name = ConnName + "Pool",
                         Factory = Factory,
                         ConnectionString = ConnectionString,
                     };
-                    if (DAL.Debug) _Pool.Log = XTrace.Log;
+                    if (DAL.Debug) pool.Log = XTrace.Log;
+
+                    return _Pool = pool;
                 }
-                return _Pool;
             }
         }
 

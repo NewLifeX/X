@@ -47,6 +47,8 @@ namespace NewLife.Collections
 
         /// <summary>借出去的放在这</summary>
         private ConcurrentDictionary<T, Item> _busy = new ConcurrentDictionary<T, Item>();
+
+        private Object SyncRoot = new Object();
         #endregion
 
         #region 构造
@@ -72,6 +74,20 @@ namespace NewLife.Collections
             while (_free.TryPop(out var pi)) OnDestroy(pi.Value);
             while (_free2.TryDequeue(out var pi)) OnDestroy(pi.Value);
             _busy.Clear();
+        }
+
+        private volatile Boolean _inited;
+        private void Init()
+        {
+            if (_inited) return;
+
+            lock (SyncRoot)
+            {
+                if (_inited) return;
+                _inited = true;
+
+                WriteLog($"Init {typeof(T).FullName} Min={Min} Max={Max} IdleTime={IdleTime}s AllIdleTime={AllIdleTime}s WaitTime={WaitTime}ms");
+            }
         }
         #endregion
 
@@ -109,7 +125,6 @@ namespace NewLife.Collections
             return new PoolItem<T>(this, pi.Value);
         }
 
-        private Boolean _inited;
         /// <summary>申请</summary>
         /// <param name="msTimeout">池满时等待的最大超时时间。超时后仍无法得到资源将抛出异常</param>
         /// <returns></returns>
@@ -160,11 +175,7 @@ namespace NewLife.Collections
                         Value = Create(),
                     };
 
-                    if (count == 0 && !_inited)
-                    {
-                        _inited = true;
-                        WriteLog($"Init {typeof(T).FullName} Min={Min} Max={Max} IdleTime={IdleTime}s AllIdleTime={AllIdleTime}s WaitTime={WaitTime}ms");
-                    }
+                    if (count == 0) Init();
                     WriteLog("Acquire Create Free={0} Busy={1}", FreeCount, count + 1);
                 }
 
