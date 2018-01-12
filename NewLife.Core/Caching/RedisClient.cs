@@ -160,6 +160,15 @@ namespace NewLife.Caching
 
                 foreach (var item in args)
                 {
+                    var len = 1 + item.Length.ToString().GetBytes().Length + NewLine.Length * 2 + item.Length;
+                    // 防止写入内容过长导致的缓冲区长度不足的问题
+                    if (ms.Position + len > ms.Length)
+                    {
+                        var ms2 = new MemoryStream();
+                        ms.WriteTo(ms2);
+                        ms = ms2;
+                    }
+
                     if (log != null)
                     {
                         if (item.Length <= 32)
@@ -179,7 +188,8 @@ namespace NewLife.Caching
                     if (ms.Length > 1400)
                     {
                         ms.WriteTo(ns);
-
+                        //重置memoryStream的长度
+                        ms = new MemoryStream(buf);
                         // 从头开始
                         ms.SetLength(0);
                         ms.Position = 0;
@@ -279,23 +289,31 @@ namespace NewLife.Caching
             if (len <= 0) return pk.Sub(p, 0);
 
             // 数据不足时，继续从网络流读取
-            var remain = pk.Count - (p + 2);
-            if (remain < len)
+            var dlen = pk.Total - (p + 2);
+            var cur = pk;
+            while (dlen < len)
             {
                 // 需要读取更多数据，加2字节的结尾换行
-                var over = len - remain + 2;
-                // 优先使用数据区
-                if (pk.Offset + pk.Count + over <= pk.Data.Length)
+                var over = len - dlen + 2;
+                var count = 0;
+                // 优先使用缓冲区
+                if (cur.Offset + cur.Count + over <= cur.Data.Length)
                 {
-                    var count = ms.Read(pk.Data, pk.Offset + pk.Count, over);
-                    if (count > 0) pk.Set(pk.Data, pk.Offset, pk.Count + count);
+                    count = ms.Read(cur.Data, cur.Offset + cur.Count, over);
+                    if (count > 0) cur.Set(cur.Data, cur.Offset, cur.Count + count);
                 }
                 else
                 {
                     var buf = new Byte[over];
-                    var count = ms.Read(buf, 0, over);
-                    if (count > 0) pk.Next = new Packet(buf, 0, count);
+                    count = ms.Read(buf, 0, over);
+                    if (count > 0)
+                    {
+                        cur.Next = new Packet(buf, 0, count);
+                        cur = cur.Next;
+                    }
                 }
+                //remain = pk.Total - (p + 2);
+                dlen += count;
             }
 
             // 解析内容，跳过长度后的\r\n
@@ -468,6 +486,7 @@ namespace NewLife.Caching
         /// <returns></returns>
         protected virtual Object FromBytes(Packet pk, Type type)
         {
+            if (type == typeof(Packet)) return pk;
             if (type == typeof(Byte[])) return pk.ToArray();
 
             var str = pk.ToStr().Trim('\"');

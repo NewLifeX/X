@@ -32,8 +32,8 @@ namespace XCode.DataAccessLayer
 
             Max = 1000;
 
-            IdleTime = 10;
-            AllIdleTime = 60;
+            IdleTime = 30;
+            AllIdleTime = 180;
         }
 
         /// <summary>创建时连接数据库</summary>
