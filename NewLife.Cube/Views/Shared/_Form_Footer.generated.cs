@@ -58,7 +58,16 @@ namespace ASP
   
     var entity = Model as IEntity;
     var fact = EntityFactory.CreateOperate(entity.GetType());
-    var fields = ViewBag.Fields as List<FieldItem>;
+    var fields = ViewBag.Fields as IReadOnlyList<FieldItem>;
+
+    var set = NewLife.Cube.Setting.Current;
+    var cls = set.FormGroupClass;
+    if (cls.IsNullOrEmpty()) { cls = "form-group col-xs-12 col-sm-6 col-lg-4"; }
+
+    var total = 12;
+    var label = 4;
+    var span = 0;
+    var input = total - label - span;
 
     var cid = fact.Table.FindByName("CreateUserID") as FieldItem;
     var uid = fact.Table.FindByName("UpdateUserID") as FieldItem;
@@ -67,16 +76,20 @@ namespace ASP
     var remark = fact.Table.FindByName("Remark") as FieldItem;
     if (remark == null) { remark = fact.Table.FindByName("Description"); }
 
+    var hasUser = cid != null || uid != null;
+    if (hasUser && ViewData["Provider"] == null) { ViewData["Provider"] = ManageProvider.Provider; }
+    var provider = ViewData["Provider"] as IManageProvider;
+
             
             #line default
             #line hidden
 WriteLiteral("\r\n");
 
             
-            #line 15 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 28 "..\..\Views\Shared\_Form_Footer.cshtml"
  if (cid != null && !fields.Contains(cid))
 {
-    var user = fact.Table.FindByName("CreateUserName") as FieldItem;
+    var user = fact.Table.FindByName("UpdateUserID") as FieldItem;
     var time = fact.Table.FindByName("CreateTime") as FieldItem;
 
             
@@ -84,30 +97,67 @@ WriteLiteral("\r\n");
             #line hidden
 WriteLiteral("    <div");
 
-WriteLiteral(" class=\"form-group col-sm-12 col-md-6\"");
+WriteLiteral(" class=\"form-group col-xs-12 col-sm-6\"");
 
 WriteLiteral(">\r\n        <label");
 
-WriteLiteral(" class=\"control-label col-xs-2 col-sm-2 col-md-2\"");
+WriteAttribute("class", Tuple.Create(" class=\"", 1342), Tuple.Create("\"", 1391)
+, Tuple.Create(Tuple.Create("", 1350), Tuple.Create("control-label", 1350), true)
+, Tuple.Create(Tuple.Create(" ", 1363), Tuple.Create("col-xs-", 1364), true)
+            
+            #line 33 "..\..\Views\Shared\_Form_Footer.cshtml"
+, Tuple.Create(Tuple.Create("", 1371), Tuple.Create<System.Object, System.Int32>(label
+            
+            #line default
+            #line hidden
+, 1371), false)
+, Tuple.Create(Tuple.Create(" ", 1377), Tuple.Create("col-sm-", 1378), true)
+            
+            #line 33 "..\..\Views\Shared\_Form_Footer.cshtml"
+, Tuple.Create(Tuple.Create("", 1385), Tuple.Create<System.Object, System.Int32>(label
+            
+            #line default
+            #line hidden
+, 1385), false)
+);
 
 WriteLiteral(">创建</label>\r\n        <div");
 
-WriteLiteral(" class=\"control-label col-xs-8 col-sm-8 col-md-10\"");
+WriteAttribute("class", Tuple.Create(" class=\"", 1417), Tuple.Create("\"", 1476)
+, Tuple.Create(Tuple.Create("", 1425), Tuple.Create("control-label", 1425), true)
+, Tuple.Create(Tuple.Create(" ", 1438), Tuple.Create("col-xs-", 1439), true)
+            
+            #line 34 "..\..\Views\Shared\_Form_Footer.cshtml"
+, Tuple.Create(Tuple.Create("", 1446), Tuple.Create<System.Object, System.Int32>(total - label
+            
+            #line default
+            #line hidden
+, 1446), false)
+, Tuple.Create(Tuple.Create(" ", 1462), Tuple.Create("col-sm-", 1463), true)
+            
+            #line 34 "..\..\Views\Shared\_Form_Footer.cshtml"
+, Tuple.Create(Tuple.Create("", 1470), Tuple.Create<System.Object, System.Int32>(input
+            
+            #line default
+            #line hidden
+, 1470), false)
+);
 
 WriteLiteral(" style=\"text-align: left;\"");
 
 WriteLiteral(">\r\n");
 
             
-            #line 22 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 35 "..\..\Views\Shared\_Form_Footer.cshtml"
             
             
             #line default
             #line hidden
             
-            #line 22 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 35 "..\..\Views\Shared\_Form_Footer.cshtml"
              if (user != null)
-                {
+            {
+                var val = entity[user.Name];
 
             
             #line default
@@ -116,11 +166,21 @@ WriteLiteral("                <span");
 
 WriteLiteral(" class=\"text-primary\"");
 
+WriteAttribute("title", Tuple.Create(" title=\"", 1641), Tuple.Create("\"", 1653)
+            
+            #line 38 "..\..\Views\Shared\_Form_Footer.cshtml"
+, Tuple.Create(Tuple.Create("", 1649), Tuple.Create<System.Object, System.Int32>(val
+            
+            #line default
+            #line hidden
+, 1649), false)
+);
+
 WriteLiteral(">");
 
             
-            #line 24 "..\..\Views\Shared\_Form_Footer.cshtml"
-                                      Write(entity[user.Name]);
+            #line 38 "..\..\Views\Shared\_Form_Footer.cshtml"
+                                                   Write(provider.FindByID(val));
 
             
             #line default
@@ -128,7 +188,7 @@ WriteLiteral(">");
 WriteLiteral("</span>\r\n");
 
             
-            #line 25 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 39 "..\..\Views\Shared\_Form_Footer.cshtml"
             }
 
             
@@ -137,10 +197,10 @@ WriteLiteral("</span>\r\n");
 WriteLiteral("            ");
 
             
-            #line 26 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 40 "..\..\Views\Shared\_Form_Footer.cshtml"
              if (time != null)
-                {
-                    var dt = (DateTime)entity[time.Name];
+            {
+                var dt = (DateTime)entity[time.Name];
 
             
             #line default
@@ -152,7 +212,7 @@ WriteLiteral(" class=\"text-success\"");
 WriteLiteral(">");
 
             
-            #line 29 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 43 "..\..\Views\Shared\_Form_Footer.cshtml"
                                       Write(dt.ToFullString());
 
             
@@ -161,7 +221,7 @@ WriteLiteral(">");
 WriteLiteral("</span>\r\n");
 
             
-            #line 30 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 44 "..\..\Views\Shared\_Form_Footer.cshtml"
             }
 
             
@@ -170,91 +230,10 @@ WriteLiteral("</span>\r\n");
 WriteLiteral("            ");
 
             
-            #line 31 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 45 "..\..\Views\Shared\_Form_Footer.cshtml"
              if (cip != null)
-                {
-                    var ip = entity[cip.Name] + "";
-
-            
-            #line default
-            #line hidden
-WriteLiteral("                <span");
-
-WriteLiteral(" class=\"text-primary\"");
-
-WriteAttribute("title", Tuple.Create(" title=\"", 1487), Tuple.Create("\"", 1498)
-            
-            #line 34 "..\..\Views\Shared\_Form_Footer.cshtml"
-, Tuple.Create(Tuple.Create("", 1495), Tuple.Create<System.Object, System.Int32>(ip
-            
-            #line default
-            #line hidden
-, 1495), false)
-);
-
-WriteLiteral(">");
-
-            
-            #line 34 "..\..\Views\Shared\_Form_Footer.cshtml"
-                                                  Write(ip.IPToAddress());
-
-            
-            #line default
-            #line hidden
-WriteLiteral("</span>\r\n");
-
-            
-            #line 35 "..\..\Views\Shared\_Form_Footer.cshtml"
-            }
-
-            
-            #line default
-            #line hidden
-WriteLiteral("        </div>\r\n    </div>\r\n");
-
-            
-            #line 38 "..\..\Views\Shared\_Form_Footer.cshtml"
-}
-
-            
-            #line default
-            #line hidden
-            
-            #line 39 "..\..\Views\Shared\_Form_Footer.cshtml"
- if (uid != null && !fields.Contains(uid))
-{
-    var user = fact.Table.FindByName("UpdateUserName") as FieldItem;
-    var time = fact.Table.FindByName("UpdateTime") as FieldItem;
-
-            
-            #line default
-            #line hidden
-WriteLiteral("    <div");
-
-WriteLiteral(" class=\"form-group col-sm-12 col-md-6\"");
-
-WriteLiteral(">\r\n        <label");
-
-WriteLiteral(" class=\"control-label col-xs-2 col-sm-2 col-md-2\"");
-
-WriteLiteral(">更新</label>\r\n        <div");
-
-WriteLiteral(" class=\"control-label col-xs-8 col-sm-8 col-md-10\"");
-
-WriteLiteral(" style=\"text-align: left;\"");
-
-WriteLiteral(">\r\n");
-
-            
-            #line 46 "..\..\Views\Shared\_Form_Footer.cshtml"
-            
-            
-            #line default
-            #line hidden
-            
-            #line 46 "..\..\Views\Shared\_Form_Footer.cshtml"
-             if (user != null)
-                {
+            {
+                var ip = entity[cip.Name] + "";
 
             
             #line default
@@ -267,7 +246,16 @@ WriteLiteral(">");
 
             
             #line 48 "..\..\Views\Shared\_Form_Footer.cshtml"
-                                      Write(entity[user.Name]);
+                                      Write(ip);
+
+            
+            #line default
+            #line hidden
+WriteLiteral(" ");
+
+            
+            #line 48 "..\..\Views\Shared\_Form_Footer.cshtml"
+                                          Write(ip.IPToAddress());
 
             
             #line default
@@ -281,13 +269,131 @@ WriteLiteral("</span>\r\n");
             
             #line default
             #line hidden
+WriteLiteral("        </div>\r\n    </div>\r\n");
+
+            
+            #line 52 "..\..\Views\Shared\_Form_Footer.cshtml"
+}
+
+            
+            #line default
+            #line hidden
+            
+            #line 53 "..\..\Views\Shared\_Form_Footer.cshtml"
+ if (uid != null && !fields.Contains(uid))
+{
+    var user = fact.Table.FindByName("UpdateUserID") as FieldItem;
+    var time = fact.Table.FindByName("UpdateTime") as FieldItem;
+
+            
+            #line default
+            #line hidden
+WriteLiteral("    <div");
+
+WriteLiteral(" class=\"form-group col-xs-12 col-sm-6\"");
+
+WriteLiteral(">\r\n        <label");
+
+WriteAttribute("class", Tuple.Create(" class=\"", 2347), Tuple.Create("\"", 2396)
+, Tuple.Create(Tuple.Create("", 2355), Tuple.Create("control-label", 2355), true)
+, Tuple.Create(Tuple.Create(" ", 2368), Tuple.Create("col-xs-", 2369), true)
+            
+            #line 58 "..\..\Views\Shared\_Form_Footer.cshtml"
+, Tuple.Create(Tuple.Create("", 2376), Tuple.Create<System.Object, System.Int32>(label
+            
+            #line default
+            #line hidden
+, 2376), false)
+, Tuple.Create(Tuple.Create(" ", 2382), Tuple.Create("col-sm-", 2383), true)
+            
+            #line 58 "..\..\Views\Shared\_Form_Footer.cshtml"
+, Tuple.Create(Tuple.Create("", 2390), Tuple.Create<System.Object, System.Int32>(label
+            
+            #line default
+            #line hidden
+, 2390), false)
+);
+
+WriteLiteral(">更新</label>\r\n        <div");
+
+WriteAttribute("class", Tuple.Create(" class=\"", 2422), Tuple.Create("\"", 2481)
+, Tuple.Create(Tuple.Create("", 2430), Tuple.Create("control-label", 2430), true)
+, Tuple.Create(Tuple.Create(" ", 2443), Tuple.Create("col-xs-", 2444), true)
+            
+            #line 59 "..\..\Views\Shared\_Form_Footer.cshtml"
+, Tuple.Create(Tuple.Create("", 2451), Tuple.Create<System.Object, System.Int32>(total - label
+            
+            #line default
+            #line hidden
+, 2451), false)
+, Tuple.Create(Tuple.Create(" ", 2467), Tuple.Create("col-sm-", 2468), true)
+            
+            #line 59 "..\..\Views\Shared\_Form_Footer.cshtml"
+, Tuple.Create(Tuple.Create("", 2475), Tuple.Create<System.Object, System.Int32>(input
+            
+            #line default
+            #line hidden
+, 2475), false)
+);
+
+WriteLiteral(" style=\"text-align: left;\"");
+
+WriteLiteral(">\r\n");
+
+            
+            #line 60 "..\..\Views\Shared\_Form_Footer.cshtml"
+            
+            
+            #line default
+            #line hidden
+            
+            #line 60 "..\..\Views\Shared\_Form_Footer.cshtml"
+             if (user != null)
+            {
+                var val = entity[user.Name];
+
+            
+            #line default
+            #line hidden
+WriteLiteral("                <span");
+
+WriteLiteral(" class=\"text-primary\"");
+
+WriteAttribute("title", Tuple.Create(" title=\"", 2646), Tuple.Create("\"", 2658)
+            
+            #line 63 "..\..\Views\Shared\_Form_Footer.cshtml"
+, Tuple.Create(Tuple.Create("", 2654), Tuple.Create<System.Object, System.Int32>(val
+            
+            #line default
+            #line hidden
+, 2654), false)
+);
+
+WriteLiteral(">");
+
+            
+            #line 63 "..\..\Views\Shared\_Form_Footer.cshtml"
+                                                   Write(provider.FindByID(val));
+
+            
+            #line default
+            #line hidden
+WriteLiteral("</span>\r\n");
+
+            
+            #line 64 "..\..\Views\Shared\_Form_Footer.cshtml"
+            }
+
+            
+            #line default
+            #line hidden
 WriteLiteral("            ");
 
             
-            #line 50 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 65 "..\..\Views\Shared\_Form_Footer.cshtml"
              if (time != null)
-                {
-                    var dt = (DateTime)entity[time.Name];
+            {
+                var dt = (DateTime)entity[time.Name];
 
             
             #line default
@@ -299,7 +405,7 @@ WriteLiteral(" class=\"text-success\"");
 WriteLiteral(">");
 
             
-            #line 53 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 68 "..\..\Views\Shared\_Form_Footer.cshtml"
                                       Write(dt.ToFullString());
 
             
@@ -308,7 +414,7 @@ WriteLiteral(">");
 WriteLiteral("</span>\r\n");
 
             
-            #line 54 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 69 "..\..\Views\Shared\_Form_Footer.cshtml"
             }
 
             
@@ -317,10 +423,10 @@ WriteLiteral("</span>\r\n");
 WriteLiteral("            ");
 
             
-            #line 55 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 70 "..\..\Views\Shared\_Form_Footer.cshtml"
              if (uip != null)
-                {
-                    var ip = entity[uip.Name] + "";
+            {
+                var ip = entity[uip.Name] + "";
 
             
             #line default
@@ -329,21 +435,20 @@ WriteLiteral("                <span");
 
 WriteLiteral(" class=\"text-primary\"");
 
-WriteAttribute("title", Tuple.Create(" title=\"", 2447), Tuple.Create("\"", 2458)
-            
-            #line 58 "..\..\Views\Shared\_Form_Footer.cshtml"
-, Tuple.Create(Tuple.Create("", 2455), Tuple.Create<System.Object, System.Int32>(ip
-            
-            #line default
-            #line hidden
-, 2455), false)
-);
-
 WriteLiteral(">");
 
             
-            #line 58 "..\..\Views\Shared\_Form_Footer.cshtml"
-                                                  Write(ip.IPToAddress());
+            #line 73 "..\..\Views\Shared\_Form_Footer.cshtml"
+                                      Write(ip);
+
+            
+            #line default
+            #line hidden
+WriteLiteral(" ");
+
+            
+            #line 73 "..\..\Views\Shared\_Form_Footer.cshtml"
+                                          Write(ip.IPToAddress());
 
             
             #line default
@@ -351,7 +456,7 @@ WriteLiteral(">");
 WriteLiteral("</span>\r\n");
 
             
-            #line 59 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 74 "..\..\Views\Shared\_Form_Footer.cshtml"
             }
 
             
@@ -360,14 +465,14 @@ WriteLiteral("</span>\r\n");
 WriteLiteral("        </div>\r\n    </div>\r\n");
 
             
-            #line 62 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 77 "..\..\Views\Shared\_Form_Footer.cshtml"
 }
 
             
             #line default
             #line hidden
             
-            #line 63 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 78 "..\..\Views\Shared\_Form_Footer.cshtml"
  if (remark != null && !fields.Contains(remark))
 {
 
@@ -385,7 +490,7 @@ WriteLiteral(" class=\"control-label col-md-2\"");
 WriteLiteral(">");
 
             
-            #line 66 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 81 "..\..\Views\Shared\_Form_Footer.cshtml"
                                          Write(remark.DisplayName);
 
             
@@ -400,7 +505,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("            ");
 
             
-            #line 68 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 83 "..\..\Views\Shared\_Form_Footer.cshtml"
        Write(Html.ForString(remark.Name, (String)entity[remark.Name], -1));
 
             
@@ -411,7 +516,7 @@ WriteLiteral("\r\n");
 WriteLiteral("            ");
 
             
-            #line 69 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 84 "..\..\Views\Shared\_Form_Footer.cshtml"
        Write(Html.ForDescription(remark));
 
             
@@ -420,7 +525,7 @@ WriteLiteral("            ");
 WriteLiteral("\r\n        </div>\r\n    </div>\r\n");
 
             
-            #line 72 "..\..\Views\Shared\_Form_Footer.cshtml"
+            #line 87 "..\..\Views\Shared\_Form_Footer.cshtml"
 }
             
             #line default

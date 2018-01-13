@@ -125,24 +125,24 @@ WriteLiteral(">");
             #line hidden
 WriteLiteral("</label>\r\n<div");
 
-WriteAttribute("class", Tuple.Create(" class=\"", 893), Tuple.Create("\"", 947)
+WriteAttribute("class", Tuple.Create(" class=\"", 893), Tuple.Create("\"", 950)
 , Tuple.Create(Tuple.Create("", 901), Tuple.Create("input-group", 901), true)
 , Tuple.Create(Tuple.Create(" ", 912), Tuple.Create("col-xs-", 913), true)
             
             #line 34 "..\..\Views\Shared\_Form_Item.cshtml"
-, Tuple.Create(Tuple.Create("", 920), Tuple.Create<System.Object, System.Int32>(input+span
+, Tuple.Create(Tuple.Create("", 920), Tuple.Create<System.Object, System.Int32>(total - label
             
             #line default
             #line hidden
 , 920), false)
-, Tuple.Create(Tuple.Create(" ", 933), Tuple.Create("col-sm-", 934), true)
+, Tuple.Create(Tuple.Create(" ", 936), Tuple.Create("col-sm-", 937), true)
             
             #line 34 "..\..\Views\Shared\_Form_Item.cshtml"
-, Tuple.Create(Tuple.Create("", 941), Tuple.Create<System.Object, System.Int32>(input
+, Tuple.Create(Tuple.Create("", 944), Tuple.Create<System.Object, System.Int32>(input
             
             #line default
             #line hidden
-, 941), false)
+, 944), false)
 );
 
 WriteLiteral(">\r\n");
@@ -168,17 +168,17 @@ WriteLiteral("\r\n</div>\r\n");
             #line hidden
 WriteLiteral("    <span");
 
-WriteAttribute("class", Tuple.Create(" class=\"", 1021), Tuple.Create("\"", 1060)
-, Tuple.Create(Tuple.Create("", 1029), Tuple.Create("col-sm-", 1029), true)
+WriteAttribute("class", Tuple.Create(" class=\"", 1024), Tuple.Create("\"", 1063)
+, Tuple.Create(Tuple.Create("", 1032), Tuple.Create("col-sm-", 1032), true)
             
             #line 39 "..\..\Views\Shared\_Form_Item.cshtml"
-, Tuple.Create(Tuple.Create("", 1036), Tuple.Create<System.Object, System.Int32>(span
+, Tuple.Create(Tuple.Create("", 1039), Tuple.Create<System.Object, System.Int32>(span
             
             #line default
             #line hidden
-, 1036), false)
-, Tuple.Create(Tuple.Create(" ", 1041), Tuple.Create("alert", 1042), true)
-, Tuple.Create(Tuple.Create(" ", 1047), Tuple.Create("alert-danger", 1048), true)
+, 1039), false)
+, Tuple.Create(Tuple.Create(" ", 1044), Tuple.Create("alert", 1045), true)
+, Tuple.Create(Tuple.Create(" ", 1050), Tuple.Create("alert-danger", 1051), true)
 );
 
 WriteLiteral(">\r\n");
@@ -205,16 +205,16 @@ else if (!des.IsNullOrEmpty())
             #line hidden
 WriteLiteral("    <span");
 
-WriteAttribute("class", Tuple.Create(" class=\"", 1168), Tuple.Create("\"", 1198)
-, Tuple.Create(Tuple.Create("", 1176), Tuple.Create("hidden-xs", 1176), true)
-, Tuple.Create(Tuple.Create(" ", 1185), Tuple.Create("col-sm-", 1186), true)
+WriteAttribute("class", Tuple.Create(" class=\"", 1171), Tuple.Create("\"", 1201)
+, Tuple.Create(Tuple.Create("", 1179), Tuple.Create("hidden-xs", 1179), true)
+, Tuple.Create(Tuple.Create(" ", 1188), Tuple.Create("col-sm-", 1189), true)
             
             #line 45 "..\..\Views\Shared\_Form_Item.cshtml"
-, Tuple.Create(Tuple.Create("", 1193), Tuple.Create<System.Object, System.Int32>(span
+, Tuple.Create(Tuple.Create("", 1196), Tuple.Create<System.Object, System.Int32>(span
             
             #line default
             #line hidden
-, 1193), false)
+, 1196), false)
 );
 
 WriteLiteral(">");

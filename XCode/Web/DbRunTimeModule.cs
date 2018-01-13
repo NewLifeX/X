@@ -24,7 +24,7 @@ namespace XCode.Web
         /// <returns></returns>
         protected override String Render(HttpContext context)
         {
-            TimeSpan ts = DateTime.Now - HttpContext.Current.Timestamp;
+            var ts = DateTime.Now - context.Timestamp;
 
             Int32 StartQueryTimes = (Int32)context.Items["DAL.QueryTimes"];
             Int32 StartExecuteTimes = (Int32)context.Items["DAL.ExecuteTimes"];

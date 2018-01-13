@@ -6,7 +6,7 @@
     var user = ViewBag.User as IUser ?? User.Identity as IUser;
     var fact = ViewBag.Factory as IEntityOperate;
     var page = ViewBag.Page as Pager;
-    var fields = ViewBag.Fields as List<FieldItem>;
+    var fields = ViewBag.Fields as IReadOnlyList<FieldItem>;
     var fk = fact.Unique;
     var enableSelect = this.EnableSelect();
 }

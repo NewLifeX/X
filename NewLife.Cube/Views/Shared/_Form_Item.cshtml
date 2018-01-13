@@ -31,7 +31,7 @@
     var input = total - label - span;
 }
 <label class="control-label col-xs-@label col-sm-@label">@item.DisplayName</label>
-<div class="input-group col-xs-@(input+span) col-sm-@input">
+<div class="input-group col-xs-@(total - label) col-sm-@input">
     @Html.ForEditor(item, entity)
 </div>
 @if (err > 0)
