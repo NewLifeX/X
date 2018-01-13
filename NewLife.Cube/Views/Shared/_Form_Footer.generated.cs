@@ -89,7 +89,7 @@ WriteLiteral("\r\n");
             #line 28 "..\..\Views\Shared\_Form_Footer.cshtml"
  if (cid != null && !fields.Contains(cid))
 {
-    var user = fact.Table.FindByName("UpdateUserID") as FieldItem;
+    var user = fact.Table.FindByName("CreateUserID") as FieldItem;
     var time = fact.Table.FindByName("CreateTime") as FieldItem;
 
             

@@ -27,7 +27,7 @@
 }
 @if (cid != null && !fields.Contains(cid))
 {
-    var user = fact.Table.FindByName("UpdateUserID") as FieldItem;
+    var user = fact.Table.FindByName("CreateUserID") as FieldItem;
     var time = fact.Table.FindByName("CreateTime") as FieldItem;
     <div class="form-group col-xs-12 col-sm-6">
         <label class="control-label col-xs-@label col-sm-@label">创建</label>

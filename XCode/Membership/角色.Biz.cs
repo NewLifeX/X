@@ -211,6 +211,16 @@ namespace XCode.Membership
             return base.Save();
         }
 
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override Int32 Update()
+        {
+            // 先处理一次，否则可能因为别的字段没有修改而没有脏数据
+            SavePermission();
+
+            return base.Update();
+        }
+
         /// <summary>加载权限字典</summary>
         internal protected override void OnLoad()
         {

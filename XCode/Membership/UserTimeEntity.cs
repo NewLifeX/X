@@ -73,6 +73,7 @@ namespace XCode.Membership
 #else
             var user = Provider?.Current;
 #endif
+            if (user == null && Provider == null) user = ManageProvider.Provider?.Current;
             if (user != null)
             {
                 if (isNew) SetNoDirtyItem(fs, entity, __.CreateUserID, user.ID);
