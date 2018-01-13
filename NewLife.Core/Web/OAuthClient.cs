@@ -63,7 +63,8 @@ namespace NewLife.Web
         /// <summary>跳转验证</summary>
         /// <param name="redirect">验证完成后调整的目标地址</param>
         /// <param name="state">用户状态数据</param>
-        public virtual void Authorize(String redirect, String state = null)
+        /// <param name="request">Http请求对象</param>
+        public virtual String Authorize(String redirect, String state = null, HttpRequest request = null)
         {
             if (redirect.IsNullOrEmpty()) throw new ArgumentNullException(nameof(redirect));
 
@@ -77,9 +78,10 @@ namespace NewLife.Web
             if (redirect.StartsWith("~/")) redirect = HttpRuntime.AppDomainAppVirtualPath.EnsureEnd("/") + redirect.Substring(2);
             if (redirect.StartsWith("/"))
             {
+                if (request == null) throw new ArgumentNullException(nameof(request), "使用相对跳转地址时，需要传入HttpRequest");
                 // 从Http请求头中取出原始主机名和端口
-                var req = HttpContext.Current.Request;
-                var uri = req.GetRawUrl();
+                //var request = HttpContext.Current.Request;
+                var uri = request.GetRawUrl();
 
                 uri = new Uri(uri, redirect);
                 redirect = uri.ToString();
@@ -94,8 +96,9 @@ namespace NewLife.Web
             WriteLog("Authorize {0}", url);
 
 #if !__CORE__
-            HttpContext.Current.Response.Redirect(url);
+            //HttpContext.Current.Response.Redirect(url);
 #endif
+            return url;
         }
 
         /// <summary>根据授权码获取访问令牌</summary>
