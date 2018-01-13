@@ -16,57 +16,52 @@ namespace NewLife.Web
         /// <param name="context"></param>
         void IHttpModule.Init(HttpApplication context)
         {
-            if (!IsWriteRunTime) return;
+            if (!XTrace.Debug) return;
 
             context.BeginRequest += new EventHandler(OnBeginRequest);
             context.PostReleaseRequestState += new EventHandler(WriteRunTime);
         }
 
-        void OnBeginRequest(Object sender, EventArgs e)
-        {
-            OnInit();
-        }
+        void OnBeginRequest(Object sender, EventArgs e) => OnInit((sender as HttpApplication)?.Context);
 
         /// <summary>初始化</summary>
-        protected virtual void OnInit()
-        {
-        }
+        protected virtual void OnInit(HttpContext context) { }
         #endregion
 
         #region 属性
-        /// <summary>上下文</summary>
-        public static HttpContext Context { get { return HttpContext.Current; } }
+        ///// <summary>上下文</summary>
+        //public static HttpContext Context { get { return HttpContext.Current; } }
 
-        /// <summary>请求</summary>
-        public static HttpRequest Request { get { return HttpContext.Current.Request; } }
+        ///// <summary>请求</summary>
+        //public static HttpRequest Request { get { return HttpContext.Current.Request; } }
 
-        /// <summary>响应</summary>
-        public static HttpResponse Response { get { return HttpContext.Current.Response; } }
+        ///// <summary>响应</summary>
+        //public static HttpResponse Response { get { return HttpContext.Current.Response; } }
         #endregion
 
         #region 运行时输出
-        /// <summary>当前请求是否输出执行时间</summary>
-        /// <remarks>如果要所有请求不输出执行时间，则从配置中移除当前模块</remarks>
-        public static Boolean IsWriteRunTime
-        {
-            get
-            {
-                var obj = Context.Items["IsWriteRunTime"];
-                return (obj is Boolean) ? (Boolean)obj : XTrace.Debug;
-            }
-            set { Context.Items["IsWriteRunTime"] = value; }
-        }
+        ///// <summary>当前请求是否输出执行时间</summary>
+        ///// <remarks>如果要所有请求不输出执行时间，则从配置中移除当前模块</remarks>
+        //public static Boolean IsWriteRunTime
+        //{
+        //    get
+        //    {
+        //        var obj = Context.Items["IsWriteRunTime"];
+        //        return (obj is Boolean) ? (Boolean)obj : XTrace.Debug;
+        //    }
+        //    set { Context.Items["IsWriteRunTime"] = value; }
+        //}
 
-        /// <summary>当前请求是否已经输出执行时间</summary>
-        public static Boolean HasWrite
-        {
-            get
-            {
-                var obj = Context.Items["HasWrite"];
-                return (obj is Boolean) ? (Boolean)obj : false;
-            }
-            set { Context.Items["HasWrite"] = value; }
-        }
+        ///// <summary>当前请求是否已经输出执行时间</summary>
+        //public static Boolean HasWrite
+        //{
+        //    get
+        //    {
+        //        var obj = Context.Items["HasWrite"];
+        //        return (obj is Boolean) ? (Boolean)obj : false;
+        //    }
+        //    set { Context.Items["HasWrite"] = value; }
+        //}
 
         /// <summary>执行时间字符串</summary>
         public static String RunTimeFormat { get; set; } = "页面执行时间{0}毫秒！";
@@ -74,33 +69,41 @@ namespace NewLife.Web
         /// <summary>输出运行时间</summary>
         void WriteRunTime(Object sender, EventArgs e)
         {
-            if (!IsWriteRunTime) return;
+            var ctx = (sender as HttpApplication)?.Context;
+            var req = ctx.Request;
+            var res = ctx.Response;
 
-            if (!Request.PhysicalPath.EndsWithIgnoreCase(".aspx")) return;
+            if (ctx.Items["HasWrite"] is Boolean b && b) return;
+            ctx.Items["HasWrite"] = true;
+
+            //if (!IsWriteRunTime) return;
+
+            if (!req.PhysicalPath.EndsWithIgnoreCase(".aspx")) return;
 
             //判断是否为Ajax 异步请求，以排除“Sys.WebForms.PageRequestManagerParserErrorException: 未能分析从服务器收到的消息 ”异常
-            if (Request.Headers["X-MicrosoftAjax"] != null || Request.Headers["x-requested-with"] != null) return;
+            if (req.Headers["X-MicrosoftAjax"] != null || req.Headers["x-requested-with"] != null) return;
 
-            if (HasWrite) return;
-            HasWrite = true;
+            //if (HasWrite) return;
+            //HasWrite = true;
 
             // 只处理Page页面
-            var page = Context.Handler as Page;
+            var page = ctx.Handler as Page;
             if (page == null) return;
 
-            var str = Render();
+            var str = Render(ctx);
             if (String.IsNullOrEmpty(str)) return;
 
             // 尝试找到页面，并在页面上写上信息
             if (page.FindControl("RunTime") is Literal lt)
                 lt.Text = str;
             else
-                Response.Write(str);
+                res.Write(str);
         }
 
         /// <summary>输出</summary>
+        /// <param name="context"></param>
         /// <returns></returns>
-        protected virtual String Render()
+        protected virtual String Render(HttpContext context)
         {
             var ts = DateTime.Now - HttpContext.Current.Timestamp;
 
