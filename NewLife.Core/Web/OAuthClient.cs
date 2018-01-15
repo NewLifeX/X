@@ -24,6 +24,12 @@ namespace NewLife.Web
 
         /// <summary>访问令牌地址</summary>
         public String AccessUrl { get; set; }
+
+        /// <summary>基础地址。用于相对路径生成完整绝对路径</summary>
+        /// <remarks>
+        /// 为了解决反向代理问题，可调用WebHelper.GetRawUrl取得原始访问地址作为基础地址。
+        /// </remarks>
+        public String BaseUrl { get; set; }
         #endregion
 
         #region 返回参数
@@ -63,8 +69,7 @@ namespace NewLife.Web
         /// <summary>跳转验证</summary>
         /// <param name="redirect">验证完成后调整的目标地址</param>
         /// <param name="state">用户状态数据</param>
-        /// <param name="request">Http请求对象</param>
-        public virtual String Authorize(String redirect, String state = null, HttpRequest request = null)
+        public virtual String Authorize(String redirect, String state = null)
         {
             if (redirect.IsNullOrEmpty()) throw new ArgumentNullException(nameof(redirect));
 
@@ -78,12 +83,13 @@ namespace NewLife.Web
             if (redirect.StartsWith("~/")) redirect = HttpRuntime.AppDomainAppVirtualPath.EnsureEnd("/") + redirect.Substring(2);
             if (redirect.StartsWith("/"))
             {
-                if (request == null) throw new ArgumentNullException(nameof(request), "使用相对跳转地址时，需要传入HttpRequest");
+                var burl = BaseUrl;
+                if (burl.IsNullOrEmpty()) throw new ArgumentNullException(nameof(BaseUrl), "使用相对跳转地址时，需要设置BaseUrl");
                 // 从Http请求头中取出原始主机名和端口
                 //var request = HttpContext.Current.Request;
-                var uri = request.GetRawUrl();
+                //var uri = request.GetRawUrl();
 
-                uri = new Uri(uri, redirect);
+                var uri = new Uri(new Uri(BaseUrl), redirect);
                 redirect = uri.ToString();
             }
 
