@@ -742,7 +742,7 @@ namespace XCode
 
                 // 如果总记录数超过10万，为了提高性能，返回快速查找且带有缓存的总记录数
                 if ((where == null || where is WhereExpression wh && wh.Empty) && session.LongCount > 100000)
-                    rows = session.Count;
+                    rows = session.LongCount;
                 else
                     rows = FindCount(where, null, null, 0, 0);
                 if (rows <= 0) return new List<TEntity>();
