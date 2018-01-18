@@ -5,13 +5,13 @@ using System.Runtime.InteropServices;
 // 有关程序集的常规信息通过下列特性集
 // 控制。更改这些特性值可修改
 // 与程序集关联的信息。
-[assembly: AssemblyTitle("NewLife.Cube.Template")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("魔方平台模版")]
+[assembly: AssemblyDescription("Mvc权限管理后台，支持模版视图重载覆盖")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("新生命开发团队")]
 [assembly: AssemblyProduct("NewLife.Cube.Template")]
-[assembly: AssemblyCopyright("Copyright ©  2018")]
-[assembly: AssemblyTrademark("")]
+[assembly: AssemblyCopyright("©2002-2018 新生命开发团队")]
+[assembly: AssemblyTrademark("四叶草")]
 [assembly: AssemblyCulture("")]
 
 // 将 ComVisible 设置为 false 会使此程序集中的类型
@@ -31,5 +31,10 @@ using System.Runtime.InteropServices;
 //
 // 可以指定所有值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用 "*":
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyVersion("1.0.*")]
+[assembly: AssemblyFileVersion("1.0.2018.0118")]
+
+/*
+ * 
+ * v1.0.2018.0118   建立魔方平台模版
+ */
