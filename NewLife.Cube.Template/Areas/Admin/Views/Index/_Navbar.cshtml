@@ -1,0 +1,119 @@
+﻿@using NewLife.Common;
+@using XCode.Membership;
+@{
+    var user = ViewBag.User as IUser ?? User.Identity as IUser;
+    var uid = 0;
+    if (user != null) { uid = user.ID; }
+    var cfg = ViewBag.Config as SysConfig;
+    var name = cfg == null ? "" : cfg.DisplayName;
+}
+<nav class="navbar navbar-static-top  " role="navigation" style="margin-bottom: 0">
+    <div class="navbar-header">
+        <a class="navbar-minimalize minimalize-styl-2 " style="color:white;" href="#"><i class="fa fa-bars"></i> </a>
+        @*<form role="search" class="navbar-form-custom" action="">
+                <div class="form-group">
+                    <input type="text" placeholder="Search for something..." class="form-control" name="top-search" id="top-search">
+                </div>
+            </form>*@
+    </div>
+    <ul class="nav navbar-top-links navbar-right">
+
+        <li class="dropdown">
+            <a class="dropdown-toggle count-info" data-toggle="dropdown" href="#">
+                <i class="fa fa-envelope"></i> <span class="label label-warning"></span>
+            </a>
+            @*<ul class="dropdown-menu dropdown-messages">
+                    <li>
+                        <div class="dropdown-messages-box">
+                            <a href="profile.html" class="pull-left">
+                                <img alt="image" class="img-circle" src="img/a7.jpg">
+                            </a>
+                            <div class="media-body">
+                                <small class="pull-right">46h ago</small>
+                                <strong>Mike Loreipsum</strong> started following <strong>Monica Smith</strong>. <br>
+                                <small class="text-muted">3 days ago at 7:58 pm - 10.06.2014</small>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="divider"></li>
+
+                    <li>
+                        <div class="text-center link-block">
+                            <a href="mailbox.html">
+                                <i class="fa fa-envelope"></i> <strong>Read All Messages</strong>
+                            </a>
+                        </div>
+                    </li>
+                </ul>*@
+        </li>
+        <li class="dropdown">
+            <a class="dropdown-toggle count-info" data-toggle="dropdown" href="#">
+                <i class="fa fa-bell"></i> <span class="label label-primary"></span>
+            </a>
+            @*<ul class="dropdown-menu dropdown-alerts">
+                    <li>
+                        <a href="mailbox.html">
+                            <div>
+                                <i class="fa fa-envelope fa-fw"></i> You have 16 messages
+                                <span class="pull-right text-muted small">4 minutes ago</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="divider"></li>
+                    <li>
+                        <div class="text-center link-block">
+                            <a href="notifications.html">
+                                <strong>See All Alerts</strong>
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        </div>
+                    </li>
+                </ul>*@
+        </li>
+
+        <li class="dropdown">
+            <a class="dropdown-toggle count-info" data-toggle="dropdown" href="empty_page.html#">
+                <i class="fa fa-sign-out">@user</i> <span class="label label-primary"></span>
+            </a>
+            <ul class="dropdown-menu ">
+                <li>
+                    <a href="~/">
+                        <i class="fa fa-home"></i> 网站首页
+                    </a>
+                </li>
+                <li class="divider"></li>
+                @if (user.Has("Admin/Sys", PermissionFlags.Detail))
+                {
+                    <li>
+                        <a href="~/Admin/Sys">
+                                <i class="fa fa-cog"></i> 设置
+                        </a>
+                    </li>
+                    <li class="divider"></li>
+                }
+              
+                <li>
+                    <a href="~/Admin/User/Info/@uid">
+                            <i class="fa fa-user"></i>个人信息
+                    </a>
+                </li>
+                <li class="divider"></li>
+                <li>
+                    <div class="text-center link-block">
+                        <a href="~/Admin/User/Logout">
+                            注销
+                            <i class="fa fa-power-off"></i>
+                        </a>
+                    </div>
+                </li>
+            </ul>
+        </li>
+
+        @*<li>
+                <a href="login.html">
+                    <i class="fa fa-sign-out"></i> Log out
+                </a>
+            </li>*@
+    </ul>
+
+</nav>

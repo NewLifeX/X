@@ -1,0 +1,26 @@
+﻿@using XCode;
+@using NewLife.Cube;
+@using XCode.Membership;
+@{
+    var entity = Model as IEntity;
+    var isNew = entity.IsNullKey;
+    var user = ViewBag.User as IUser ?? User.Identity as IUser;
+}
+
+@if (user.Has(PermissionFlags.Insert, PermissionFlags.Update))
+{
+    <div class="form-group">
+        <div class="col-sm-5 col-sm-offset-3">
+            <button class="btn btn-primary btn-sm" type="submit"><i class="glyphicon glyphicon-@(isNew ? "plus" : "save")"></i><strong>@(isNew ? " 新增" : " 保存")</strong></button>
+            <button class="btn btn-default btn-sm" type="submit" onclick="history.go(-1);"><i class="glyphicon glyphicon-remove"></i><strong> 取消</strong></button>
+        </div>
+    </div>
+}
+
+@*<div class="hr-line-dashed"></div>
+<div class="form-group">
+    <div class="col-sm-4 col-sm-offset-2">
+        <button class="btn btn-white" type="submit">Cancel</button>
+        <button class="btn btn-primary" type="submit">Save changes</button>
+    </div>
+</div>*@

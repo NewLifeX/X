@@ -1,0 +1,48 @@
+﻿@using System.Reflection;
+@using XCode;
+@using NewLife.Cube;
+@using XCode.Membership;
+@using XCode.Configuration
+@{
+    Layout = NewLife.Cube.Setting.Current.Layout;
+
+    var fact = ViewBag.Factory as IEntityOperate;
+    var fields = ViewBag.Fields as List<FieldItem>;
+    var entity = Model as IEntity;
+    var isNew = entity.IsNullKey;
+
+    var rv = entity.GetRouteKey();
+    IDictionary<string, object> dic = new Dictionary<string, object>();
+    dic.Add("class", "form-horizontal");
+}
+
+<div class="col-lg-12" style="padding:0px;">
+    <div class="ibox float-e-margins">
+        <div class="ibox-title">
+            <h5>@ViewBag.HeaderContent</h5>
+        </div>
+        <div class="ibox-content">
+            @Html.Partial("_Form_Header", entity)
+            @using (Html.BeginForm((isNew ? "Add" : "Edit"), null, rv, FormMethod.Post, dic))
+            {
+                @Html.AntiForgeryToken()
+                
+                foreach (var item in fields)
+                {
+                    if (!item.IsIdentity)
+                    {
+                        @Html.Partial("_Form_Group", new Pair(Model, item))
+                    }
+                }
+                <div class="hr-line-dashed"></div>
+                @Html.Partial("_Form_Action", entity)
+            }
+        </div>
+    </div>
+</div>
+@section css{
+
+}
+@section scripts{
+
+}

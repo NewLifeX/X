@@ -1,0 +1,28 @@
+﻿@using NewLife;
+@using NewLife.Web;
+@using XCode;
+@using XCode.Membership;
+@using NewLife.Cube;
+@{
+    var fact = ViewBag.Factory as IEntityOperate;
+    var page = ViewBag.Page as Pager ?? new Pager();
+    var user = ViewBag.User as IUser ?? (User == null ? null : User.Identity as IUser);
+
+    var act = ViewBag.Action as String;
+    if (act.IsNullOrEmpty()) { act = Url.Action("Index"); }
+}
+<div class="tableTools-container">
+    <div class="form-inline">
+        <form action="@Html.Raw(page.GetFormAction(act))" method="post" role="form">
+            @if (user.Has(PermissionFlags.Insert))
+            {
+                @Html.ActionLink("添加" + ViewContext.Controller.GetType().GetDisplayName(), "Add", null, new { @class = "btn btn-success btn-sm" })
+            }
+            <div class="pull-right form-group">
+                @Html.Partial("_List_Search")
+                @Html.Partial("_List_Toolbar_Search")
+                @Html.Partial("_List_Toolbar_Adv")
+            </div>
+        </form>
+    </div>
+</div>

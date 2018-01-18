@@ -1,0 +1,58 @@
+﻿@using System.ComponentModel;
+@using System.Reflection;
+@using NewLife.Reflection;
+@using NewLife.Cube;
+@{
+    Layout = NewLife.Cube.Setting.Current.Layout;
+
+    var Obj = Model as Object;
+    var pis = ViewBag.Properties as IEnumerable<PropertyInfo>;
+}
+
+<div class="col-lg-12" style="padding:0px;">
+    <div class="ibox float-e-margins">
+        <div class="ibox-content form-horizontal" style="padding-top:40px;">
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+                @Html.ValidationSummary(true)
+                foreach (var pi in pis)
+                {
+                    var name = pi.Name;
+                    var dis = pi.GetDisplayName();
+                    var des = pi.GetDescription();
+                    if (dis.IsNullOrEmpty() && !des.IsNullOrEmpty()) { dis = des; des = null; }
+                    if (!dis.IsNullOrEmpty() && des.IsNullOrEmpty() && dis.Contains("。")) { des = dis.Substring("。"); dis = dis.Substring(null, "。"); }
+                    var type = Type.GetTypeCode(pi.PropertyType);
+
+                    <div class="form-group col-lg-12">
+                        <label class="control-label col-sm-3" for="@pi.Name">@(dis ?? pi.Name)</label>
+                        <div class="col-sm-5 ">
+                            @if (type == TypeCode.DateTime)
+                            {
+                                <div class="input-group date">
+                                    <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+                                    <input id="@pi.Name" name="@pi.Name" type="text" dateformat="yyyy-mm-dd hh:ii:ss" class="form-control form_datetime" value="@Obj.GetValue(pi)">
+                                </div>
+                            }
+                            else
+                            {
+                                @Html.ForEditor(pi.Name, Obj.GetValue(pi), pi.PropertyType)
+                            }
+                        </div>
+                        <span class="col-sm-4">&nbsp; @des</span>
+                    </div>
+                }
+
+                <div class="col-lg-12 hr-line-dashed">&nbsp;</div>
+                <div class="form-group">
+                    <div class="col-sm-5 col-sm-offset-3">
+                        <button type="submit" class="btn btn-success btn-sm"><i class="glyphicon glyphicon-save"></i><strong>保存</strong></button>
+                        <button type="button" class="btn btn-danger btn-sm" onclick="history.go(-1);"><i class="glyphicon glyphicon-remove"></i><strong>取消</strong></button>
+                    </div>
+                </div>
+
+            }
+        </div>
+    </div>
+</div>

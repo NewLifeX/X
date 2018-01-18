@@ -1,0 +1,77 @@
+﻿@using NewLife.Model;
+@using NewLife.Common;
+@using XCode.Membership;
+@{
+    var user = ViewBag.User as IUser ?? User.Identity as IUser;
+
+    var fact = ObjectContainer.Current.Resolve<IMenuFactory>();
+
+    var Menus = fact.Root.Childs;
+    if (user != null && user.Role != null)
+    {
+        Menus = fact.GetMySubMenus(fact.Root.ID);
+    }
+
+    // 如果顶级只有一层，并且至少有三级目录，则提升一级
+    if (Menus.Count == 1 && Menus[0].Childs.All(m => m.Childs.Count > 0)) { Menus = Menus[0].Childs; }
+
+    String[] icos = new String[] { "fa-tachometer", "fa-desktop", "fa-list", "fa-pencil-square-o", "fa-list-alt", "fa-calendar", "fa-picture-o", "fa-tag", "fa-file-o",
+                                "fa-bar-chart-o","fa-cloud","fa-coffee","fa-heart-o","fa-laptop","fa-picture-o","fa-star","fa-umbrella","fa-truck","fa-tags","fa-ticket" };
+    Int32 _idx = 0;
+
+    var cfg = ViewBag.Config as SysConfig;
+    var name = cfg == null ? "" : cfg.DisplayName;
+}
+<div class="sidebar-collapse">
+    <ul class="nav metismenu" id="side-menu">
+        <li class="nav-header">
+            <div class="dropdown profile-element" style="text-align:center;">
+                <span>
+                    <img alt="Logo" class="img-circle" style="width:42px;height:42px;" src="~/image/logo.png" />
+                </span>
+                <a data-toggle="dropdown" class="dropdown-toggle" href="empty_page.html#">
+                    <span class="clear">
+                        <span class="block m-t-xs"><strong class="font-bold">@name</strong></span>
+                    </span>
+                </a>
+                @*<ul class="dropdown-menu animated fadeInRight m-t-xs">
+                        <li><a href="profile.html">Profile</a></li>
+                        <li><a href="contacts.html">Contacts</a></li>
+                        <li><a href="mailbox.html">Mailbox</a></li>
+                        <li class="divider"></li>
+                        <li><a href="login.html">Logout</a></li>
+                    </ul>*@
+            </div>
+            <div class="logo-element">
+                <img alt="Logo" class="img-circle" style="width:42px;height:42px;" src="~/image/logo.png" />
+            </div>
+        </li>
+
+        @foreach (IMenu menu in Menus.Where(m => m.Visible))
+        {
+            var childs = fact.GetMySubMenus(menu.ID).Where(m => m.Visible);
+            if (_idx >= icos.Length) { _idx = 0; }
+
+            <li @Html.Raw(menu == Menus[0] ? "class=\"active\"" : "")>
+                <a href="#">
+                    <i class="fa @icos[_idx++]"></i>
+                    <span class="nav-label">@menu.DisplayName</span>
+                    @if (childs.Any())
+                    {
+                        <span class="fa arrow"></span>
+                    }
+                </a>
+                @if (childs.Any())
+                {
+                    <ul class="nav nav-second-level collapse">
+                        @foreach (IMenu menu2 in childs)
+                    {
+                            @Html.Partial("_Left_Item", menu2);
+                    }
+                    </ul>
+                }
+            </li>
+        }
+    </ul>
+    <!-- /.nav-list -->
+</div>

@@ -1,0 +1,59 @@
+﻿@using NewLife;
+@using XCode;
+@using NewLife.Cube;
+@using XCode.Configuration;
+@{
+    var pair = Model as Pair;
+    var entity = pair.First as IEntity;
+    var item = pair.Second as FieldItem;
+
+    var err = 0;
+    ModelState st = null;
+    if (ViewData.ModelState.TryGetValue(item.Name, out st) && st != null) { err = st.Errors.Count; }
+
+    var des = item.Description.TrimStart(item.DisplayName).TrimStart(",", ".", "，", "。");
+
+    var total = 12;
+    var label = 3;
+    var span = 4;
+    if (err == 0 && des.IsNullOrEmpty())
+    {
+        span = 0;
+    }
+    else if (item.Type == typeof(Boolean) || item.Type.IsEnum)
+    {
+        span += 1;
+    }
+    var cls_err = err > 0 ? "has-error" : "";
+
+    var input = total - label - span;
+
+    var type = Type.GetTypeCode(item.Type);
+
+}
+<label class="control-label col-sm-3">@item.DisplayName</label>
+
+<div class="col-sm-5 @cls_err">
+    @if (type == TypeCode.DateTime)
+    {
+        <div class="input-group date">
+            <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+            <input id="@item" name="@item" type="text" dateformat="yyyy-mm-dd hh:ii:ss" class="form-control form_datetime" value="@entity[item].ToDateTime()">
+        </div>
+    }
+    else
+    {
+        @Html.ForEditor(item, entity)
+    }
+</div>
+
+@if (err > 0)
+{
+    <span class="col-sm-4 alert alert-danger">
+        @Html.ValidationMessage(item.Name)
+    </span>
+}
+else if (!des.IsNullOrEmpty())
+{
+    <span class="col-sm-4">@Html.ForDescription(item)</span>
+}

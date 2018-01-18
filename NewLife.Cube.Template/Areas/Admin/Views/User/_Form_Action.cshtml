@@ -1,0 +1,16 @@
+﻿@using XCode.Membership;
+@{
+    var entity = Model as IEntity;
+    var isNew = entity.IsNullKey;
+    var user = ViewBag.User as IUser ?? User.Identity as IUser;
+}
+@if (user.Has(PermissionFlags.Insert, PermissionFlags.Update))
+{
+    <div class="form-group">
+        <div class="col-sm-5 col-sm-offset-3">
+            <button type="submit" class="btn btn-success btn-sm"><i class="glyphicon glyphicon-@(isNew ? "plus" : "save")"></i><strong>@(isNew ? "新增" : "保存")</strong></button>
+            <button type="button" class="btn btn-danger btn-sm" onclick="history.go(-1);"><i class="glyphicon glyphicon-remove"></i><strong>取消</strong></button>
+            <a href="~/Admin/User/ClearPassword/@entity["ID"]" class=" btn btn-info btn-sm" title="数据库为空密码时，任何密码均可登录">清空密码</a>
+        </div>
+    </div>
+}

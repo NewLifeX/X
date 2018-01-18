@@ -1,0 +1,28 @@
+﻿
+@using XCode;
+@using XCode.Membership;
+@using NewLife.Cube;
+@{
+    var fact = ViewBag.Factory as IEntityOperate;
+    var fi = fact.Fields.FirstOrDefault(e => e.Name.EqualIgnoreCase("Deleted", "IsDelete", "IsDeleted"));
+    var entity = Model as IEntity;
+
+    var rv = entity.GetRouteKey();
+
+    var user = ViewBag.User as IUser ?? User.Identity as IUser;
+
+    var eid = entity["ID"] + "";
+}
+@if (user.Has(PermissionFlags.Update))
+{
+    <a title="编辑" href="@Url.Action("Edit", rv)"><i class="fa fa-pencil" style="color:#1c84c6;font-size:16px;padding:0px 5px 0px 0px;"></i></a>
+}
+else if (user.Has(PermissionFlags.Detail))
+{
+    <a title="详细" href="@Url.Action("Detail", rv)"><i class="fa fa-bars" style="color:#1ab394;font-size:16px;padding:0px 5px 0px 5px;"></i></a>
+}
+@if (user.Has(PermissionFlags.Delete))
+{
+    <input type="hidden" id="delete_@eid" value="@Url.Action("Delete", rv)" />
+    <a href="#" title="删除" onclick="DeleteList('@eid')"><i class="fa fa-trash" style="color:red;font-size:16px;padding:0px 0px 0px 5px;"></i></a>
+}

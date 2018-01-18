@@ -1,0 +1,24 @@
+﻿@using NewLife;
+@using XCode;
+@using XCode.Configuration;
+@{
+    var pair = Model as Pair;
+    var entity = pair.First as IEntity;
+    var item = pair.Second as FieldItem;
+
+    var bs = this.Bootstrap();
+    bs.Set(item);
+}
+@if (item.Name == "Permission")
+{
+    if (!entity.IsNullKey)
+    {
+        @Html.Partial("SetPermission", new { Role = entity })
+    }
+}
+else
+{
+    <div class="form-group">
+        @Html.Partial("_Form_Item", new Pair(entity, item))
+    </div>
+}

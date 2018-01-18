@@ -1,0 +1,49 @@
+﻿@using NewLife.Web;
+@using XCode;
+@{
+    Layout = NewLife.Cube.Setting.Current.Layout;
+
+    var fact = ViewBag.Factory as IEntityOperate;
+    var page = ViewBag.Page as Pager;
+}
+
+<!--工具栏-->
+<div class="clearfix p-xs">
+    @Html.Partial("_List_Toolbar")
+</div>
+<!--数据-->
+<div class="table-responsive">
+    @Html.Partial("_ListTree_Data")
+</div>
+<!--分页-->
+<div class="panel-footer">
+    @Html.Partial("_List_Pager")
+</div>
+@section css{
+    <link href="~/Template/css/plugins/sweetalert/sweetalert.css" rel="stylesheet" />
+}
+@section scripts{
+    <script src="~/Template/js/plugins/sweetalert/sweetalert.min.js"></script>
+    <script type="text/javascript">
+
+        function DeleteList(id) {
+            swal({
+                title: "确定删除?",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "确定",
+                cancelButtonText: "取消",
+                closeOnConfirm: false,
+                closeOnCancel: true
+            },
+                function (isConfirm) {
+                    if (isConfirm) {
+                        swal({ title: "删除成功!", type: "success", timer: 1500});
+                        setTimeout(function () { location = $("#delete_" + id).val(); }, 1000);
+                    }
+                });
+        }
+
+    </script>
+}

@@ -1,0 +1,103 @@
+﻿@using NewLife.Common;
+@using XCode.Membership;
+@using NewLife.Cube;
+@{
+    var menu = ManageProvider.Menu.Current;
+    var set = NewLife.Cube.Setting.Current;
+}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="新生命团队,NewLife,魔方,Cube,XCode" />
+    @*上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！*@
+    <title>@ViewBag.Title - @SysConfig.Current.DisplayName</title>
+    <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon">
+
+    <link href="~/Template/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Template/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+    <link href="~/Template/css/animate.css" rel="stylesheet" />
+    <link href="~/Template/css/style.css" rel="stylesheet" />
+
+    <!-- plugins css -->
+    <link href="~/Template/css/plugins/datetimepicker/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+    <link href="~/Template/css/plugins/switch/bootstrap-switch.min.css" rel="stylesheet" />
+    <link href="~/Template/css/plugins/awesome-bootstrap-checkbox/awesome-bootstrap-checkbox.css" rel="stylesheet" />
+
+    <!-- 页面内联样式 -->
+    @RenderSection("css", required: false)
+
+    <!-- Mainly scripts -->
+    <script src="~/Template/js/jquery-2.1.1.js"></script>
+    <script src="~/Template/js/bootstrap.min.js"></script>
+    <script src="~/Template/js/plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="~/Template/js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
+
+    <!-- Custom and plugin javascript -->
+    <script src="~/Template/js/inspinia.js"></script>
+    <script src="~/Template/js/plugins/pace/pace.min.js"></script>
+
+</head>
+<body style="background-color:#ffffff">
+    <!--页面具体内容-->
+    <div style="background-color:#ffffff">
+        <!--页头-->
+        <div class="wrapper border-bottom page-heading">
+            @Html.Partial("_Ace_Layout_Nav")
+        </div>
+        <!--具体页面-->
+        <div class="wrapper wrapper-content">
+            @RenderBody()
+        </div>
+        @if (DbRunTimeModule.Enable)
+        {
+            <div class="panel-footer" style="padding-bottom:50px;background-color:transparent;border-top:0px solid #ffffff;">
+                @Html.Raw(DbRunTimeModule.GetInfo())
+            </div>
+        }
+        <div class="footer">
+            <div>
+                <strong>Copyright</strong> WsLink Company &copy; 2014-@DateTime.Now.Year
+            </div>
+        </div>
+    </div>
+    <!-- plugin javascript-->
+    <script src="~/Template/js/plugins/datetimepicker/bootstrap-datetimepicker.min.js"></script>
+    <script src="~/Template/js/plugins/datetimepicker/locales/bootstrap-datetimepicker.zh-CN.js"></script>
+    <script src="~/Template/js/plugins/switch/bootstrap-switch.min.js"></script>
+
+    <script type="text/javascript">
+        $('select').addClass("form-control");
+        $("input[type=checkbox]").bootstrapSwitch();
+
+        $(".form_datetime").datetimepicker({
+            format: $(this).attr("dateformat"),
+            language: "zh-CN",
+            autoclose: true,
+            todayBtn: true,
+            pickerPosition: "bottom-left"
+        });
+
+        var ua = navigator.userAgent.toLowerCase();
+        var _parent = self.parent;
+        if (/iphone|ipad|ipod/.test(ua)) {
+            if (_parent) {
+                $("#wrapper").width(self.parent.window.innerWidth);
+            }
+        } else if (/android/.test(ua)) {
+            var w = window.screen.width;
+            var k = $(document).width();
+            if (k > w && k < 1000) {
+                if (_parent) {
+                    $("#wrapper").width(self.parent.window.innerWidth);
+                }
+            }
+        }
+
+    </script>
+    <!-- 独立页面脚本 -->
+    @RenderSection("scripts", required: false)
+</body>
+</html>

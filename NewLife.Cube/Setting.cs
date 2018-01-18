@@ -45,7 +45,7 @@ namespace NewLife.Cube
 
         /// <summary>登录提示。留空表示不显示登录提示信息</summary>
         [Description("登录提示。留空表示不显示登录提示信息")]
-        public String LoginTip { get; set; } = "请输入登录信息……";
+        public String LoginTip { get; set; }
 
         /// <summary>用户在线。记录用户在线状态</summary>
         [Description("用户在线。记录用户在线状态")]

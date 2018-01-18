@@ -1,0 +1,76 @@
+﻿@{
+    Layout = null;
+
+    var User = ViewBag.User;
+    var Config = ViewBag.Config;
+}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+
+    <title>@ViewBag.Title - @Config.DisplayName</title>
+    <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+
+    <link href="~/Template/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Template/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+    <link href="~/Template/css/animate.css" rel="stylesheet" />
+    <link href="~/Template/css/style.css" rel="stylesheet" />
+
+</head>
+<body>
+    <div id="wrapper">
+        <!-- navbar -->
+        <nav class="navbar-default navbar-static-side" role="navigation">
+            @Html.Partial("_Left")
+        </nav>
+
+        <!-- page-wrapper -->
+        <div id="page-wrapper" class="gray-bg">
+            <!-- navbar-header -->
+            <div class="row border-bottom">
+                @Html.Partial("_Navbar")
+            </div>
+
+            <!-- -->
+            <div class="wrapper wrapper-content">
+                <iframe style="width: 100%; height: 100%; margin: 0; padding: 0; border: none;" id="main" name="main" src="@ViewBag.Main"></iframe>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Mainly scripts -->
+    <script src="~/Template/js/jquery-2.1.1.js"></script>
+    <script src="~/Template/js/bootstrap.min.js"></script>
+    <script src="~/Template/js/plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="~/Template/js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
+
+    <!-- Custom and plugin javascript -->
+    <script src="~/Template/js/inspinia.js"></script>
+    <script src="~/Template/js/plugins/pace/pace.min.js"></script>
+
+    <script type="text/javascript">
+        $(function () {
+            var $frmContent = $('#main');
+            function fixFrmContentSize() {
+                var offset = $frmContent.offset();
+                var top = offset.top;
+                var height = document.documentElement.clientHeight;
+                $frmContent.height(height - top - 10);
+            }
+            fixFrmContentSize();
+            $(window).resize(fixFrmContentSize);
+
+            //增加iframe被嵌套的检测2015-6-4 景裔增加
+            if (window != top) {
+                top.location.href = location.href;
+            }
+        });
+
+    </script>
+</body>
+</html>

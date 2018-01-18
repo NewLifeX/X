@@ -1,0 +1,30 @@
+﻿@using XCode;
+@using XCode.Membership;
+@using NewLife.Cube;
+@{
+    var menu = ManageProvider.Menu.Current;
+}
+@if (menu != null)
+{
+    <ol class="breadcrumb">
+        <li> <strong><a href="#" onclick="history.go(-1);"><i class="fa fa-reply" style="font-size:16px;color:#ed5565;" aria-hidden="true"></i>@*&nbsp;返回&nbsp;*@</a></strong></li>
+        <li>
+            @if (menu != null)
+            {
+                foreach (IMenu item in (menu as IEntityTree).AllParents)
+                {
+                    if (item.ID != 0)
+                    {
+                        @*<a href="@(item.Url!=null? Url.Content(item.Url):"#")">@item.DisplayName</a>*@
+                        <a href="#">@item.DisplayName</a>
+                    }
+                }
+            }
+        </li>
+        <li class="active">
+            <strong>
+                <a href="@Url.Content(menu.Url)" target="_blank">@(menu != null ? menu.DisplayName : ViewBag.Title)</a>
+            </strong>
+        </li>
+    </ol>
+}
