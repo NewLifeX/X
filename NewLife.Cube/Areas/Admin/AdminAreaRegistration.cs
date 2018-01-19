@@ -6,7 +6,7 @@ using XCode.Membership;
 namespace NewLife.Cube.Admin
 {
     /// <summary>权限管理区域注册</summary>
-    [DisplayName("管理平台")]
+    [DisplayName("系统管理")]
     public class AdminAreaRegistration : AreaRegistrationBase
     {
         /// <summary>注册区域</summary>
