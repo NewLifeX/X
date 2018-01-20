@@ -235,8 +235,8 @@ namespace NewLife.Cube
             var entity = Factory.Create() as TEntity;
 
             // 记下添加前的来源页，待会添加成功以后跳转
-            Session["Cube_Add_Referrer"] = Request.UrlReferrer.ToString();
-
+            //Session["Cube_Add_Referrer"] = Request.UrlReferrer.ToString();
+            //默认添加成功后返回Index页面
             return FormView(entity);
         }
 
@@ -343,7 +343,9 @@ namespace NewLife.Cube
             {
                 ViewBag.StatusMessage = "保存成功！";
                 // 更新完成保持本页
-                return FormView(entity);
+                //return FormView(entity);
+                //默认修改成功后返回Index页面
+                return RedirectToAction("Index");
             }
         }
 
