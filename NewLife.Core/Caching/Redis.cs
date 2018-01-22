@@ -30,7 +30,7 @@ namespace NewLife.Caching
                 server = server.Substring("@", null);
             }
             //适配多种配置连接字符
-            if (server.Contains(";") && pass.IsNullOrEmpty())
+            else if (server.Contains(";") && pass.IsNullOrEmpty())
             {
                 var dic = server.SplitAsDictionary("=", ";");
                 pass = dic.ContainsKey("password") ? dic["password"] : "";
