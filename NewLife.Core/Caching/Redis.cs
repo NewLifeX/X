@@ -29,6 +29,13 @@ namespace NewLife.Caching
                 pass = server.Substring(null, "@");
                 server = server.Substring("@", null);
             }
+            //适配多种配置连接字符
+            if (server.Contains(";") && pass.IsNullOrEmpty())
+            {
+                var dic = server.SplitAsDictionary("=", ";");
+                pass = dic.ContainsKey("password") ? dic["password"] : "";
+                server = dic.ContainsKey("server") ? dic["server"] : "";
+            }
 
             var name = "{0}_{1}".F(server, db);
             var set = CacheConfig.Current.GetOrAdd(name);
