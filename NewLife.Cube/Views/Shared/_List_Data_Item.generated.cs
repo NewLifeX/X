@@ -60,13 +60,15 @@ namespace ASP
     var entity = pair.First as IEntity;
     var item = pair.Second as FieldItem;
 
+    var value = entity[item.Name];
+
             
             #line default
             #line hidden
 WriteLiteral("\r\n");
 
             
-            #line 8 "..\..\Views\Shared\_List_Data_Item.cshtml"
+            #line 10 "..\..\Views\Shared\_List_Data_Item.cshtml"
  if (item.IsIdentity)
 {
 
@@ -80,8 +82,8 @@ WriteLiteral(" class=\"text-center\"");
 WriteLiteral(">");
 
             
-            #line 10 "..\..\Views\Shared\_List_Data_Item.cshtml"
-                       Write(entity[item.Name]);
+            #line 12 "..\..\Views\Shared\_List_Data_Item.cshtml"
+                       Write(value);
 
             
             #line default
@@ -89,14 +91,14 @@ WriteLiteral(">");
 WriteLiteral("</td>\r\n");
 
             
-            #line 11 "..\..\Views\Shared\_List_Data_Item.cshtml"
+            #line 13 "..\..\Views\Shared\_List_Data_Item.cshtml"
 }
 else
 {
     switch (Type.GetTypeCode(item.Type))
     {
         case TypeCode.Boolean:
-            if ((Boolean)entity[item.Name])
+            if ((Boolean)value)
             {
 
             
@@ -115,7 +117,7 @@ WriteLiteral(" style=\"color: green;\"");
 WriteLiteral("></i>\r\n                </td>\r\n");
 
             
-            #line 22 "..\..\Views\Shared\_List_Data_Item.cshtml"
+            #line 24 "..\..\Views\Shared\_List_Data_Item.cshtml"
             }
             else
             {
@@ -136,22 +138,20 @@ WriteLiteral(" style=\"color: red;\"");
 WriteLiteral("></i>\r\n                </td>\r\n");
 
             
-            #line 28 "..\..\Views\Shared\_List_Data_Item.cshtml"
+            #line 30 "..\..\Views\Shared\_List_Data_Item.cshtml"
             }
             break;
         case TypeCode.DateTime:
-            var dt = (DateTime)entity[item.Name];
-            if (dt > DateTime.MinValue && dt.Year > 1900)
-            {
+            var dt = (DateTime)value;
 
             
             #line default
             #line hidden
-WriteLiteral("                <td>");
+WriteLiteral("            <td>");
 
             
             #line 34 "..\..\Views\Shared\_List_Data_Item.cshtml"
-                Write(((DateTime)entity[item.Name]).ToFullString(""));
+           Write(dt.ToFullString(""));
 
             
             #line default
@@ -160,18 +160,6 @@ WriteLiteral("</td>\r\n");
 
             
             #line 35 "..\..\Views\Shared\_List_Data_Item.cshtml"
-            }
-            else
-            {
-
-            
-            #line default
-            #line hidden
-WriteLiteral("                <td></td>\r\n");
-
-            
-            #line 39 "..\..\Views\Shared\_List_Data_Item.cshtml"
-            }
             break;
         case TypeCode.Decimal:
 
@@ -181,8 +169,8 @@ WriteLiteral("                <td></td>\r\n");
 WriteLiteral("            <td>");
 
             
-            #line 42 "..\..\Views\Shared\_List_Data_Item.cshtml"
-           Write(entity[item.Name]);
+            #line 37 "..\..\Views\Shared\_List_Data_Item.cshtml"
+           Write(value);
 
             
             #line default
@@ -190,7 +178,7 @@ WriteLiteral("            <td>");
 WriteLiteral("</td>\r\n");
 
             
-            #line 43 "..\..\Views\Shared\_List_Data_Item.cshtml"
+            #line 38 "..\..\Views\Shared\_List_Data_Item.cshtml"
             break;
         case TypeCode.Single:
         case TypeCode.Double:
@@ -201,8 +189,8 @@ WriteLiteral("</td>\r\n");
 WriteLiteral("            <td>");
 
             
-            #line 46 "..\..\Views\Shared\_List_Data_Item.cshtml"
-           Write(entity[item.Name]);
+            #line 41 "..\..\Views\Shared\_List_Data_Item.cshtml"
+           Write(value);
 
             
             #line default
@@ -210,7 +198,7 @@ WriteLiteral("            <td>");
 WriteLiteral("</td>\r\n");
 
             
-            #line 47 "..\..\Views\Shared\_List_Data_Item.cshtml"
+            #line 42 "..\..\Views\Shared\_List_Data_Item.cshtml"
             break;
         case TypeCode.Byte:
         case TypeCode.Int16:
@@ -222,11 +210,10 @@ WriteLiteral("</td>\r\n");
             //特殊处理枚举
             if (item.Type.IsEnum)
             {
-                var v = entity[item.Name];
-                var val = v + "";
+                var val = "";
                 try
                 {
-                    val = System.EnumHelper.GetDescription((Enum)v) ?? v + "";
+                    val = System.EnumHelper.GetDescription((Enum)value) ?? value + "";
                 }
                 catch { }
 
@@ -240,7 +227,7 @@ WriteLiteral(" class=\"text-center\"");
 WriteLiteral(">");
 
             
-            #line 65 "..\..\Views\Shared\_List_Data_Item.cshtml"
+            #line 59 "..\..\Views\Shared\_List_Data_Item.cshtml"
                                    Write(val);
 
             
@@ -249,7 +236,28 @@ WriteLiteral(">");
 WriteLiteral("</td>\r\n");
 
             
-            #line 66 "..\..\Views\Shared\_List_Data_Item.cshtml"
+            #line 60 "..\..\Views\Shared\_List_Data_Item.cshtml"
+            }
+            else if (item.Name.EqualIgnoreCase("CreateUserID", "UpdateUserID"))
+            {
+                var provider = ViewData["Provider"] as IManageProvider;
+
+            
+            #line default
+            #line hidden
+WriteLiteral("                <td>");
+
+            
+            #line 64 "..\..\Views\Shared\_List_Data_Item.cshtml"
+               Write(provider.FindByID(value));
+
+            
+            #line default
+            #line hidden
+WriteLiteral("</td>\r\n");
+
+            
+            #line 65 "..\..\Views\Shared\_List_Data_Item.cshtml"
             }
             else
             {
@@ -264,8 +272,8 @@ WriteLiteral(" class=\"text-right\"");
 WriteLiteral(">");
 
             
-            #line 69 "..\..\Views\Shared\_List_Data_Item.cshtml"
-                                  Write(Convert.ToInt64(entity[item.Name]).ToString("n0"));
+            #line 68 "..\..\Views\Shared\_List_Data_Item.cshtml"
+                                  Write(Convert.ToInt64(value).ToString("n0"));
 
             
             #line default
@@ -273,13 +281,13 @@ WriteLiteral(">");
 WriteLiteral("</td>\r\n");
 
             
-            #line 70 "..\..\Views\Shared\_List_Data_Item.cshtml"
+            #line 69 "..\..\Views\Shared\_List_Data_Item.cshtml"
             }
             break;
         case TypeCode.String:
         default:
             {
-                var val = entity[item.Name];
+                var val = value;
                 var map = item.Map;
                 if (map != null && map.Provider != null && val + "" != "")
                 {
@@ -293,8 +301,8 @@ WriteLiteral("</td>\r\n");
 WriteLiteral("                    <td>");
 
             
-            #line 82 "..\..\Views\Shared\_List_Data_Item.cshtml"
-                   Write(Html.ActionLink(entity[item.Name] + "", "Edit", map.Provider.EntityType.Name, dic, null));
+            #line 81 "..\..\Views\Shared\_List_Data_Item.cshtml"
+                   Write(Html.ActionLink(value + "", "Edit", map.Provider.EntityType.Name, dic, null));
 
             
             #line default
@@ -302,57 +310,67 @@ WriteLiteral("                    <td>");
 WriteLiteral("</td>\r\n");
 
             
-            #line 83 "..\..\Views\Shared\_List_Data_Item.cshtml"
+            #line 82 "..\..\Views\Shared\_List_Data_Item.cshtml"
                 }
-                else
+                else if (item.Name.EqualIgnoreCase("CreateIP", "UpdateIP"))
                 {
-                    //防止内容過長
-                    if (item.Name.EqualIgnoreCase("remark"))
-                    {
 
             
             #line default
             #line hidden
-WriteLiteral("                        <td");
+WriteLiteral("                    <td");
 
-WriteLiteral(" style=\"max-width:600px;overflow:hidden;white-space: nowrap;text-overflow: ellips" +
-"is;\"");
-
-WriteAttribute("title", Tuple.Create(" title=\"", 2967), Tuple.Create("\"", 2993)
+WriteAttribute("title", Tuple.Create(" title=\"", 2759), Tuple.Create("\"", 2794)
             
-            #line 89 "..\..\Views\Shared\_List_Data_Item.cshtml"
-                                        , Tuple.Create(Tuple.Create("", 2975), Tuple.Create<System.Object, System.Int32>(entity[item.Name]
+            #line 85 "..\..\Views\Shared\_List_Data_Item.cshtml"
+, Tuple.Create(Tuple.Create("", 2767), Tuple.Create<System.Object, System.Int32>((value+"").IPToAddress()
             
             #line default
             #line hidden
-, 2975), false)
+, 2767), false)
 );
 
 WriteLiteral(">");
 
             
-            #line 89 "..\..\Views\Shared\_List_Data_Item.cshtml"
-                                                                                                                                       Write(entity[item.Name]);
+            #line 85 "..\..\Views\Shared\_List_Data_Item.cshtml"
+                                                       Write(value);
 
             
             #line default
             #line hidden
 WriteLiteral("</td>\r\n");
+
+            
+            #line 86 "..\..\Views\Shared\_List_Data_Item.cshtml"
+                }
+                else if (item.Name.EqualIgnoreCase("Remark", "Description"))
+                {
+                    //防止内容过长
+
+            
+            #line default
+            #line hidden
+WriteLiteral("                    <td");
+
+WriteLiteral(" style=\"max-width:600px;overflow:hidden;white-space: nowrap;text-overflow: ellips" +
+"is;\"");
+
+WriteAttribute("title", Tuple.Create(" title=\"", 3063), Tuple.Create("\"", 3077)
+            
+            #line 90 "..\..\Views\Shared\_List_Data_Item.cshtml"
+                                    , Tuple.Create(Tuple.Create("", 3071), Tuple.Create<System.Object, System.Int32>(value
+            
+            #line default
+            #line hidden
+, 3071), false)
+);
+
+WriteLiteral(">");
 
             
             #line 90 "..\..\Views\Shared\_List_Data_Item.cshtml"
-                    }
-                    else
-                    {
-
-            
-            #line default
-            #line hidden
-WriteLiteral("                        <td>");
-
-            
-            #line 93 "..\..\Views\Shared\_List_Data_Item.cshtml"
-                       Write(entity[item.Name]);
+                                                                                                                       Write(value);
 
             
             #line default
@@ -360,8 +378,27 @@ WriteLiteral("                        <td>");
 WriteLiteral("</td>\r\n");
 
             
+            #line 91 "..\..\Views\Shared\_List_Data_Item.cshtml"
+                }
+                else
+                {
+
+            
+            #line default
+            #line hidden
+WriteLiteral("                    <td>");
+
+            
             #line 94 "..\..\Views\Shared\_List_Data_Item.cshtml"
-                    }
+                   Write(value);
+
+            
+            #line default
+            #line hidden
+WriteLiteral("</td>\r\n");
+
+            
+            #line 95 "..\..\Views\Shared\_List_Data_Item.cshtml"
                 }
             }
             break;

@@ -147,7 +147,7 @@ namespace XCode.Statistics
                 }
             }
 
-            if (Level < 0)
+            if (ps[nameof(Level)].ToInt(-1) < 0)
             {
                 Level = defLevel;
                 ps[nameof(Level)] = (Int32)Level + "";

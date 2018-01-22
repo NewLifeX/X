@@ -229,7 +229,15 @@ namespace XCoder.Tools
             var buf = GetBytes();
             var pass = rtPass.Text;
 
-            buf = RSAHelper.Decrypt(buf, pass);
+            try
+            {
+                buf = RSAHelper.Decrypt(buf, pass, true);
+            }
+            catch (CryptographicException)
+            {
+                // 换一种填充方式
+                buf = RSAHelper.Decrypt(buf, pass, false);
+            }
 
             SetResult2(buf);
         }

@@ -12,20 +12,22 @@ namespace XCode.Web
         public static String DbRunTimeFormat { get; set; } = "查询{0}次，执行{1}次，耗时{2:n0}毫秒！";
 
         /// <summary>初始化模块，准备拦截请求。</summary>
-        protected override void OnInit()
+        /// <param name="context"></param>
+        protected override void OnInit(HttpContext context)
         {
-            Context.Items["DAL.QueryTimes"] = DAL.QueryTimes;
-            Context.Items["DAL.ExecuteTimes"] = DAL.ExecuteTimes;
+            context.Items["DAL.QueryTimes"] = DAL.QueryTimes;
+            context.Items["DAL.ExecuteTimes"] = DAL.ExecuteTimes;
         }
 
         /// <summary>输出</summary>
+        /// <param name="context"></param>
         /// <returns></returns>
-        protected override String Render()
+        protected override String Render(HttpContext context)
         {
-            TimeSpan ts = DateTime.Now - HttpContext.Current.Timestamp;
+            var ts = DateTime.Now - context.Timestamp;
 
-            Int32 StartQueryTimes = (Int32)Context.Items["DAL.QueryTimes"];
-            Int32 StartExecuteTimes = (Int32)Context.Items["DAL.ExecuteTimes"];
+            Int32 StartQueryTimes = (Int32)context.Items["DAL.QueryTimes"];
+            Int32 StartExecuteTimes = (Int32)context.Items["DAL.ExecuteTimes"];
 
             return String.Format(DbRunTimeFormat, DAL.QueryTimes - StartQueryTimes, DAL.ExecuteTimes - StartExecuteTimes, ts.TotalMilliseconds);
         }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Web;
 using System.Web.Mvc;
@@ -85,8 +86,9 @@ namespace NewLife.Cube
 @{
     var fact = ViewBag.Factory as IEntityOperate;
     var page = ViewBag.Page as Pager;
-    var fields = ViewBag.Fields as List<FieldItem>;
+    var fields = ViewBag.Fields as IReadOnlyList<FieldItem>;
     var enableSelect = this.EnableSelect();
+    //var provider = ManageProvider.Provider;
 }
 <table class=""table table-bordered table-hover table-striped table-condensed"">
     <thead>
@@ -141,8 +143,13 @@ namespace NewLife.Cube
             sb.AppendFormat("@model IList<{0}>", entityType.FullName);
             sb.AppendLine();
 
+            var str = tmp.Substring(null, "            @foreach");
+            // 如果有用户字段，则启用provider
+            if (fields.Any(f => f.Name.EqualIgnoreCase("CreateUserID", "UpdateUserID")))
+                str = str.Replace("//var provider", "var provider");
+            sb.Append(str);
+
             var ident = new String(' ', 4 * 3);
-            sb.Append(tmp.Substring(null, "            @foreach"));
 
             foreach (var item in fields)
             {
@@ -172,7 +179,7 @@ namespace NewLife.Cube
             }
 
             var ps = new Int32[2];
-            var str = tmp.Substring("            @if (ManageProvider", "                @foreach (var item in fields)", 0, ps);
+            str = tmp.Substring("            @if (ManageProvider", "                @foreach (var item in fields)", 0, ps);
             if (fact.Unique != null)
                 str = str.Replace("@entity.ID", "@entity." + fact.Unique.Name);
             else
@@ -221,6 +228,8 @@ namespace NewLife.Cube
                             // 特殊处理枚举
                             if (item.Type.IsEnum)
                                 sb.AppendFormat(@"<td class=""text-center"">@entity.{0}</td>", item.Name);
+                            else if (item.Name.EqualIgnoreCase("CreateUserID", "UpdateUserID"))
+                                BuildUser(item, sb);
                             else
                                 sb.AppendFormat(@"<td class=""text-right"">@entity.{0}.ToString(""n0"")</td>", item.Name);
                             break;
@@ -230,6 +239,8 @@ namespace NewLife.Cube
                                 var prv = item.Map.Provider;
                                 sb.AppendFormat(@"<td><a href=""{1}?{2}=@entity.{3}"">@entity.{0}</a></td>", item.Name, prv.EntityType.Name, prv.Key, item.OriField?.Name);
                             }
+                            else if (item.Name.EqualIgnoreCase("CreateIP", "UpdateIP"))
+                                BuildIP(item, sb);
                             else
                                 sb.AppendFormat(@"<td>@entity.{0}</td>", item.Name);
                             break;
@@ -247,6 +258,16 @@ namespace NewLife.Cube
             File.WriteAllText(vpath.GetFullPath().EnsureDirectory(true), sb.ToString(), Encoding.UTF8);
 
             return true;
+        }
+
+        private static void BuildUser(FieldItem item, StringBuilder sb)
+        {
+            sb.AppendFormat(@"<td class=""text-right"">@provider.FindByID(entity.{0})</td>", item.Name);
+        }
+
+        private static void BuildIP(FieldItem item, StringBuilder sb)
+        {
+            sb.AppendFormat(@"<td title=""@entity.{0}.IPToAddress()"">@entity.{0}</td>", item.Name);
         }
 
         internal static Boolean MakeFormView()

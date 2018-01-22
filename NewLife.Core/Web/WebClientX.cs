@@ -659,23 +659,27 @@ namespace NewLife.Web
         #endregion
 
         #region 连接池
+        private static Object SyncRoot = new Object();
         private static WebClientPool _Pool;
         /// <summary>默认连接池</summary>
         public static Pool<WebClientX> Pool
         {
             get
             {
-                if (_Pool == null)
+                if (_Pool != null) return _Pool;
+                lock (SyncRoot)
                 {
-                    _Pool = new WebClientPool
+                    if (_Pool != null) return _Pool;
+
+                    var pool = new WebClientPool
                     {
                         Name = "WebClientPool",
                         Min = 2,
                         AllIdleTime = 60
                     };
-                }
 
-                return _Pool;
+                    return _Pool = pool;
+                }
             }
         }
 

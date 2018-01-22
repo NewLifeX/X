@@ -89,13 +89,13 @@ namespace NewLife.Web
 
         /// <summary>检查浏览器缓存是否依然有效，如果有效则跳过Render</summary>
         /// <returns></returns>
-        public virtual Boolean CheckCache()
+        public virtual Boolean CheckCache(HttpContext context)
         {
             //增加 浏览器缓存 304缓存
             //if (BrowserCache)
             {
-                var Request = HttpContext.Current.Request;
-                var Response = HttpContext.Current.Response;
+                var Request = context.Request;
+                var Response = context.Response;
 
                 var since = Request.ServerVariables["HTTP_IF_MODIFIED_SINCE"];
                 if (!String.IsNullOrEmpty(since))
@@ -124,10 +124,10 @@ namespace NewLife.Web
         }
 
         /// <summary>输出数据流</summary>
-        public virtual void Render()
+        public virtual void Render(HttpContext context)
         {
-            var Request = HttpContext.Current.Request;
-            var Response = HttpContext.Current.Response;
+            var Request = context.Request;
+            var Response = context.Response;
 
             var stream = Stream;
 

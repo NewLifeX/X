@@ -401,9 +401,9 @@ namespace XCode.Membership
                 user.Password = password;
             }
 
-            user.SaveLoginInfo();
-
             Current = user;
+
+            user.SaveLoginInfo();
 
             if (hashTimes == -1)
                 WriteLog("自动登录", username);

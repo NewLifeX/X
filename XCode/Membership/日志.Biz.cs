@@ -75,16 +75,16 @@ namespace XCode.Membership
         #endregion
 
         #region 扩展属性
-        /// <summary>创建人名称</summary>
-        [XmlIgnore, ScriptIgnore]
-        [DisplayName("创建人")]
-        [Map("CreateUserID")]
-        public String CreateUserName { get { return ManageProvider.Provider.FindByID(CreateUserID) + ""; } }
+        ///// <summary>创建人名称</summary>
+        //[XmlIgnore, ScriptIgnore]
+        //[DisplayName("创建人")]
+        //[Map("CreateUserID")]
+        //public String CreateUserName { get { return ManageProvider.Provider.FindByID(CreateUserID) + ""; } }
 
-        /// <summary>物理地址</summary>
-        //[BindRelation("CreateIP")]
-        [DisplayName("物理地址")]
-        public String CreateAddress { get { return CreateIP.IPToAddress(); } }
+        ///// <summary>物理地址</summary>
+        ////[BindRelation("CreateIP")]
+        //[DisplayName("物理地址")]
+        //public String CreateAddress { get { return CreateIP.IPToAddress(); } }
         #endregion
 
         #region 扩展查询
@@ -187,7 +187,7 @@ namespace XCode.Membership
         /// <returns></returns>
         public override String ToString()
         {
-            return String.Format("{0} {1} {2} {3:yyyy-MM-dd HH:mm:ss} {4}", Category, Action, UserName ?? CreateUserName, CreateTime, Remark);
+            return String.Format("{0} {1} {2} {3:yyyy-MM-dd HH:mm:ss} {4}", Category, Action, UserName, CreateTime, Remark);
         }
         #endregion
     }

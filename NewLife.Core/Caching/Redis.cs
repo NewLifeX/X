@@ -152,16 +152,24 @@ namespace NewLife.Caching
         {
             get
             {
-                return _Pool ?? (_Pool = new MyPool
+                if (_Pool != null) return _Pool;
+                lock (this)
                 {
-                    Name = "RedisPool",
-                    Instance = this,
-                    Min = 2,
-                    Max = 1000,
-                    IdleTime = 20,
-                    AllIdleTime = 120,
-                    Log = Log,
-                });
+                    if (_Pool != null) return _Pool;
+
+                    var pool = new MyPool
+                    {
+                        Name = Name + "Pool",
+                        Instance = this,
+                        Min = 2,
+                        Max = 1000,
+                        IdleTime = 20,
+                        AllIdleTime = 120,
+                        Log = Log,
+                    };
+
+                    return _Pool = pool;
+                }
             }
         }
 

@@ -167,6 +167,23 @@ namespace NewLife.Web
 
             return uri;
         }
+
+        /// <summary>获取原始请求Url，支持反向代理</summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        public static Uri GetRawUrl(this HttpRequestBase req)
+        {
+            var uri = req.Url;
+
+            var str = req.RawUrl;
+            if (!str.IsNullOrEmpty()) uri = new Uri(uri, str);
+
+            str = req.ServerVariables["HTTP_X_REQUEST_URI"];
+            if (str.IsNullOrEmpty()) str = req.ServerVariables["X-Request-Uri"];
+            if (!str.IsNullOrEmpty()) uri = new Uri(uri, str);
+
+            return uri;
+        }
         #endregion
 #endif
 

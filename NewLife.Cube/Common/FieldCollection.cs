@@ -45,9 +45,9 @@ namespace NewLife.Cube
             }
             else
             {
-                //RemoveCreateField();
-                //RemoveUpdateField();
-                //RemoveRemarkField();
+                RemoveCreateField();
+                RemoveUpdateField();
+                RemoveRemarkField();
             }
 
             // IP地址字段
@@ -208,7 +208,10 @@ namespace NewLife.Cube
         /// <returns></returns>
         public FieldCollection RemoveCreateField()
         {
-            RemoveAll(e => e.Name.EqualIgnoreCase("CreateUserID", "CreateUserName", "CreateTime", "CreateIP", "CreateAddress"));
+            var rs = RemoveAll(e => e.Name.EqualIgnoreCase("CreateUserID"));
+            if (rs > 0) RemoveAll(e => e.Name.EqualIgnoreCase("CreateTime"));
+
+            RemoveAll(e => e.Name.EqualIgnoreCase("CreateIP"));
 
             return this;
         }
@@ -217,7 +220,10 @@ namespace NewLife.Cube
         /// <returns></returns>
         public FieldCollection RemoveUpdateField()
         {
-            RemoveAll(e => e.Name.EqualIgnoreCase("UpdateUserID", "UpdateUserName", "UpdateTime", "UpdateIP", "CreateAddress"));
+            var rs = RemoveAll(e => e.Name.EqualIgnoreCase("UpdateUserID"));
+            if (rs > 0) RemoveAll(e => e.Name.EqualIgnoreCase("UpdateTime"));
+
+            RemoveAll(e => e.Name.EqualIgnoreCase("UpdateIP"));
 
             return this;
         }

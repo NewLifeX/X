@@ -88,7 +88,7 @@ namespace ASP
   
     var fact = ViewBag.Factory as IEntityOperate;
     var page = ViewBag.Page as Pager;
-    var fields = ViewBag.Fields as List<FieldItem>;
+    var fields = ViewBag.Fields as IReadOnlyList<FieldItem>;
     var enableSelect = this.EnableSelect();
 
     var level = (XCode.Statistics.StatLevels)page["Level"].ToInt();
@@ -145,14 +145,14 @@ WriteLiteral(" class=\"text-center hidden-md hidden-sm hidden-xs\"");
 
 WriteLiteral("><a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 852), Tuple.Create("\"", 891)
+WriteAttribute("href", Tuple.Create(" href=\"", 861), Tuple.Create("\"", 900)
             
             #line 25 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 859), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetSortUrl("ID"))
+, Tuple.Create(Tuple.Create("", 868), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetSortUrl("ID"))
             
             #line default
             #line hidden
-, 859), false)
+, 868), false)
 );
 
 WriteLiteral(">编号</a></th>\r\n            <th");
@@ -161,14 +161,14 @@ WriteLiteral(" class=\"text-center\"");
 
 WriteLiteral("><a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 944), Tuple.Create("\"", 985)
+WriteAttribute("href", Tuple.Create(" href=\"", 953), Tuple.Create("\"", 994)
             
             #line 26 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 951), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetSortUrl("Time"))
+, Tuple.Create(Tuple.Create("", 960), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetSortUrl("Time"))
             
             #line default
             #line hidden
-, 951), false)
+, 960), false)
 );
 
 WriteLiteral(">时间</a></th>\r\n            <th");
@@ -177,14 +177,14 @@ WriteLiteral(" class=\"text-center\"");
 
 WriteLiteral("><a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1038), Tuple.Create("\"", 1079)
+WriteAttribute("href", Tuple.Create(" href=\"", 1047), Tuple.Create("\"", 1088)
             
             #line 27 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 1045), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetSortUrl("Page"))
+, Tuple.Create(Tuple.Create("", 1054), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetSortUrl("Page"))
             
             #line default
             #line hidden
-, 1045), false)
+, 1054), false)
 );
 
 WriteLiteral(">页面</a></th>\r\n            <th");
@@ -193,14 +193,14 @@ WriteLiteral(" class=\"text-center\"");
 
 WriteLiteral("><a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1132), Tuple.Create("\"", 1174)
+WriteAttribute("href", Tuple.Create(" href=\"", 1141), Tuple.Create("\"", 1183)
             
             #line 28 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 1139), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetSortUrl("Title"))
+, Tuple.Create(Tuple.Create("", 1148), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetSortUrl("Title"))
             
             #line default
             #line hidden
-, 1139), false)
+, 1148), false)
 );
 
 WriteLiteral(">标题</a></th>\r\n            <th");
@@ -209,14 +209,14 @@ WriteLiteral(" class=\"text-center\"");
 
 WriteLiteral("><a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1227), Tuple.Create("\"", 1269)
+WriteAttribute("href", Tuple.Create(" href=\"", 1236), Tuple.Create("\"", 1278)
             
             #line 29 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 1234), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetSortUrl("Times"))
+, Tuple.Create(Tuple.Create("", 1243), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetSortUrl("Times"))
             
             #line default
             #line hidden
-, 1234), false)
+, 1243), false)
 );
 
 WriteLiteral(">次数</a></th>\r\n            <th");
@@ -225,14 +225,14 @@ WriteLiteral(" class=\"text-center\"");
 
 WriteLiteral("><a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1322), Tuple.Create("\"", 1364)
+WriteAttribute("href", Tuple.Create(" href=\"", 1331), Tuple.Create("\"", 1373)
             
             #line 30 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 1329), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetSortUrl("Users"))
+, Tuple.Create(Tuple.Create("", 1338), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetSortUrl("Users"))
             
             #line default
             #line hidden
-, 1329), false)
+, 1338), false)
 );
 
 WriteLiteral(">用户</a></th>\r\n            <th");
@@ -241,14 +241,14 @@ WriteLiteral(" class=\"text-center\"");
 
 WriteLiteral("><a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1417), Tuple.Create("\"", 1457)
+WriteAttribute("href", Tuple.Create(" href=\"", 1426), Tuple.Create("\"", 1466)
             
             #line 31 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 1424), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetSortUrl("IPs"))
+, Tuple.Create(Tuple.Create("", 1433), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetSortUrl("IPs"))
             
             #line default
             #line hidden
-, 1424), false)
+, 1433), false)
 );
 
 WriteLiteral(">IP</a></th>\r\n            <th");
@@ -257,14 +257,14 @@ WriteLiteral(" class=\"text-center\"");
 
 WriteLiteral("><a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1510), Tuple.Create("\"", 1552)
+WriteAttribute("href", Tuple.Create(" href=\"", 1519), Tuple.Create("\"", 1561)
             
             #line 32 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 1517), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetSortUrl("Error"))
+, Tuple.Create(Tuple.Create("", 1526), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetSortUrl("Error"))
             
             #line default
             #line hidden
-, 1517), false)
+, 1526), false)
 );
 
 WriteLiteral(">错误</a></th>\r\n            <th");
@@ -273,14 +273,14 @@ WriteLiteral(" class=\"text-center\"");
 
 WriteLiteral("><a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1605), Tuple.Create("\"", 1646)
+WriteAttribute("href", Tuple.Create(" href=\"", 1614), Tuple.Create("\"", 1655)
             
             #line 33 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 1612), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetSortUrl("Cost"))
+, Tuple.Create(Tuple.Create("", 1621), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetSortUrl("Cost"))
             
             #line default
             #line hidden
-, 1612), false)
+, 1621), false)
 );
 
 WriteLiteral(">平均耗时</a></th>\r\n            <th");
@@ -289,14 +289,14 @@ WriteLiteral(" class=\"text-center\"");
 
 WriteLiteral("><a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1701), Tuple.Create("\"", 1745)
+WriteAttribute("href", Tuple.Create(" href=\"", 1710), Tuple.Create("\"", 1754)
             
             #line 34 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 1708), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetSortUrl("MaxCost"))
+, Tuple.Create(Tuple.Create("", 1717), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetSortUrl("MaxCost"))
             
             #line default
             #line hidden
-, 1708), false)
+, 1717), false)
 );
 
 WriteLiteral(">最大耗时</a></th>\r\n            <th");
@@ -305,14 +305,14 @@ WriteLiteral(" class=\"text-center\"");
 
 WriteLiteral("><a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1800), Tuple.Create("\"", 1847)
+WriteAttribute("href", Tuple.Create(" href=\"", 1809), Tuple.Create("\"", 1856)
             
             #line 35 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 1807), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetSortUrl("CreateTime"))
+, Tuple.Create(Tuple.Create("", 1816), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetSortUrl("CreateTime"))
             
             #line default
             #line hidden
-, 1807), false)
+, 1816), false)
 );
 
 WriteLiteral(">创建时间</a></th>\r\n            <th");
@@ -321,14 +321,14 @@ WriteLiteral(" class=\"text-center\"");
 
 WriteLiteral("><a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1902), Tuple.Create("\"", 1949)
+WriteAttribute("href", Tuple.Create(" href=\"", 1911), Tuple.Create("\"", 1958)
             
             #line 36 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 1909), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetSortUrl("UpdateTime"))
+, Tuple.Create(Tuple.Create("", 1918), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetSortUrl("UpdateTime"))
             
             #line default
             #line hidden
-, 1909), false)
+, 1918), false)
 );
 
 WriteLiteral(">更新时间</a></th>\r\n");
@@ -407,14 +407,14 @@ WriteLiteral(" type=\"checkbox\"");
 
 WriteLiteral(" name=\"keys\"");
 
-WriteAttribute("value", Tuple.Create(" value=\"", 2544), Tuple.Create("\"", 2562)
+WriteAttribute("value", Tuple.Create(" value=\"", 2553), Tuple.Create("\"", 2571)
             
             #line 54 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
-      , Tuple.Create(Tuple.Create("", 2552), Tuple.Create<System.Object, System.Int32>(entity.ID
+      , Tuple.Create(Tuple.Create("", 2561), Tuple.Create<System.Object, System.Int32>(entity.ID
             
             #line default
             #line hidden
-, 2552), false)
+, 2561), false)
 );
 
 WriteLiteral(" /></td>\r\n");
