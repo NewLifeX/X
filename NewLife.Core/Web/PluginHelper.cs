@@ -33,7 +33,11 @@ namespace NewLife.Web
                 if (File.Exists(file))
                 {
                     try { Assembly.LoadFrom(file); }
-                    catch { }
+                    catch
+                    {
+                        // 加载失败，删了它
+                        File.Delete(file);
+                    }
                 }
             }
 
