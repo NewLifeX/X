@@ -142,11 +142,15 @@ namespace Test
 
         static void Test4()
         {
-            var cfg = CacheConfig.Current;
-            Console.WriteLine(cfg.GetOrAdd("Bill01"));
+            //var cfg = CacheConfig.Current;
+            //Console.WriteLine(cfg.GetOrAdd("Bill01"));
 
-            var set = cfg.GetOrAdd("aa_test", "redis");
-            Console.WriteLine(set);
+            //var set = cfg.GetOrAdd("aa_test", "redis");
+            //Console.WriteLine(set);
+
+            var ip = "223.5.5.5";
+            ip = ip.IPToAddress();
+            Console.WriteLine(ip);
         }
     }
 }

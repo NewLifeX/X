@@ -497,7 +497,7 @@ namespace NewLife.Web
                 // 如果文件存在，另外改一个名字吧
                 var ext = Path.GetExtension(link.Name);
                 file2 = Path.GetFileNameWithoutExtension(link.Name);
-                file2 = "{0}_{1:yyyyMMddHHmmss}.{2}".F(file2, DateTime.Now, ext);
+                file2 = "{0}_{1:yyyyMMddHHmmss}{2}".F(file2, DateTime.Now, ext);
                 file2 = destdir.CombinePath(file2).EnsureDirectory();
             }
 
