@@ -32,11 +32,25 @@ namespace NewLife.Web
 
                 if (File.Exists(file))
                 {
-                    try { Assembly.LoadFrom(file); }
-                    catch
+                    var ver = new Version(Assembly.GetExecutingAssembly().ImageRuntimeVersion.TrimStart('v'));
+                    var asm = AssemblyX.ReflectionOnlyLoadFrom(file, ver);
+                    if (asm == null)
                     {
                         // 加载失败，删了它
                         File.Delete(file);
+                    }
+                    else
+                    {
+                        try { Assembly.LoadFrom(file); }
+                        catch
+                        {
+                            try
+                            {
+                                // 加载失败，删了它
+                                File.Delete(file);
+                            }
+                            catch { }
+                        }
                     }
                 }
             }
