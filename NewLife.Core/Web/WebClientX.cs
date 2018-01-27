@@ -703,6 +703,46 @@ namespace NewLife.Web
         }
         #endregion
 
+        #region 辅助
+        private static Boolean? _useUnsafeHeaderParsing;
+        /// <summary>设置是否允许不安全头部</summary>
+        /// <remarks>
+        /// 微软WebClient默认要求严格的Http头部，否则报错
+        /// </remarks>
+        /// <param name="useUnsafe"></param>
+        /// <returns></returns>
+        public static Boolean SetAllowUnsafeHeaderParsing(Boolean useUnsafe)
+        {
+            if (_useUnsafeHeaderParsing != null && _useUnsafeHeaderParsing.Value == useUnsafe) return true;
+
+            //Get the assembly that contains the internal class
+            var aNetAssembly = Assembly.GetAssembly(typeof(System.Net.Configuration.SettingsSection));
+            if (aNetAssembly == null) return false;
+
+            //Use the assembly in order to get the internal type for the internal class
+            var type = aNetAssembly.GetType("System.Net.Configuration.SettingsSectionInternal");
+            if (type == null) return false;
+
+            //Use the internal static property to get an instance of the internal settings class.
+            //If the static instance isn't created allready the property will create it for us.
+            var section = type.InvokeMember("Section", BindingFlags.Static | BindingFlags.GetProperty | BindingFlags.NonPublic, null, null, new Object[] { });
+
+            if (section != null)
+            {
+                //Locate the private bool field that tells the framework is unsafe header parsing should be allowed or not
+                var useUnsafeHeaderParsing = type.GetField("useUnsafeHeaderParsing", BindingFlags.NonPublic | BindingFlags.Instance);
+                if (useUnsafeHeaderParsing != null)
+                {
+                    useUnsafeHeaderParsing.SetValue(section, useUnsafe);
+                    _useUnsafeHeaderParsing = useUnsafe;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        #endregion
+
         #region 日志
         /// <summary>日志</summary>
         public ILog Log { get; set; } = Logger.Null;
