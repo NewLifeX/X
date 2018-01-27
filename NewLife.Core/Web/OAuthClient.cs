@@ -117,14 +117,15 @@ namespace NewLife.Web
         /// <summary>设置为QQ专属地址</summary>
         public void SetQQ()
         {
-            var url = "https://graph.qq.com/oauth2.0/";
-            AuthUrl = url + "authorize?response_type={response_type}&client_id={key}&redirect_uri={redirect}&state={state}&scope={scope}";
-            AccessUrl = url + "token?grant_type=authorization_code&client_id={key}&client_secret={secret}&code={code}&state={state}&redirect_uri={redirect}";
-
             var set = OAuthConfig.Current;
             var mi = set.GetOrAdd("QQ");
             mi.Enable = true;
-            if (mi.Server.IsNullOrEmpty()) mi.Server = url;
+
+            var url = "https://graph.qq.com/oauth2.0/";
+            if (!mi.Server.IsNullOrEmpty()) url = mi.Server.EnsureEnd("/");
+
+            AuthUrl = url + "authorize?response_type={response_type}&client_id={key}&redirect_uri={redirect}&state={state}&scope={scope}";
+            AccessUrl = url + "token?grant_type=authorization_code&client_id={key}&client_secret={secret}&code={code}&state={state}&redirect_uri={redirect}";
 
             set.SaveAsync();
         }
@@ -132,7 +133,13 @@ namespace NewLife.Web
         /// <summary>设置百度</summary>
         public void SetBaidu()
         {
+            var set = OAuthConfig.Current;
+            var mi = set.GetOrAdd("Baidu");
+            mi.Enable = true;
+
             var url = "http://openapi.baidu.com/oauth/2.0/";
+            if (!mi.Server.IsNullOrEmpty()) url = mi.Server.EnsureEnd("/");
+
             AuthUrl = url + "authorize?response_type={response_type}&client_id={key}&redirect_uri={redirect}&state={state}&scope={scope}";
             AccessUrl = url + "token?grant_type=authorization_code&client_id={key}&client_secret={secret}&code={code}&state={state}&redirect_uri={redirect}";
             UserUrl = "https://openapi.baidu.com/rest/2.0/passport/users/getLoggedInUser?access_token={token}";
@@ -147,18 +154,19 @@ namespace NewLife.Web
                 if (dic.ContainsKey("portrait")) Avatar = "http://tb.himg.baidu.com/sys/portrait/item/" + dic["portrait"].Trim();
             };
 
-            var set = OAuthConfig.Current;
-            var mi = set.GetOrAdd("Baidu");
-            mi.Enable = true;
-            if (mi.Server.IsNullOrEmpty()) mi.Server = url;
-
             set.SaveAsync();
         }
 
         /// <summary>设置淘宝</summary>
         public void SetTaobao()
         {
+            var set = OAuthConfig.Current;
+            var mi = set.GetOrAdd("Taobao");
+            mi.Enable = true;
+
             var url = "https://oauth.taobao.com/";
+            if (!mi.Server.IsNullOrEmpty()) url = mi.Server.EnsureEnd("/");
+
             AuthUrl = url + "authorize?response_type={response_type}&client_id={key}&redirect_uri={redirect}&state={state}&scope={scope}";
             AccessUrl = url + "token?grant_type=authorization_code&client_id={key}&client_secret={secret}&code={code}&state={state}&redirect_uri={redirect}";
             //UserUrl = "https://openapi.baidu.com/rest/2.0/passport/users/getLoggedInUser?access_token={token}";
@@ -169,18 +177,19 @@ namespace NewLife.Web
                 if (dic.ContainsKey("taobao_user_nick")) UserName = dic["taobao_user_nick"].Trim();
             };
 
-            var set = OAuthConfig.Current;
-            var mi = set.GetOrAdd("Taobao");
-            mi.Enable = true;
-            if (mi.Server.IsNullOrEmpty()) mi.Server = url;
-
             set.SaveAsync();
         }
 
         /// <summary>设置Github</summary>
         public void SetGithub()
         {
+            var set = OAuthConfig.Current;
+            var mi = set.GetOrAdd("Github");
+            mi.Enable = true;
+
             var url = "https://github.com/login/oauth/";
+            if (!mi.Server.IsNullOrEmpty()) url = mi.Server.EnsureEnd("/");
+
             AuthUrl = url + "authorize?response_type={response_type}&client_id={key}&redirect_uri={redirect}&state={state}&scope={scope}";
             AccessUrl = url + "access_token?grant_type=authorization_code&client_id={key}&client_secret={secret}&code={code}&state={state}&redirect_uri={redirect}";
             UserUrl = "https://api.github.com/user?access_token={token}";
@@ -191,11 +200,6 @@ namespace NewLife.Web
                 if (dic.ContainsKey("login")) UserName = dic["login"].Trim();
                 if (dic.ContainsKey("name")) NickName = dic["name"].Trim();
             };
-
-            var set = OAuthConfig.Current;
-            var mi = set.GetOrAdd("Github");
-            mi.Enable = true;
-            if (mi.Server.IsNullOrEmpty()) mi.Server = url;
 
             set.SaveAsync();
 
