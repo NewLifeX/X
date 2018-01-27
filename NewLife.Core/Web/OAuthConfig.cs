@@ -68,6 +68,14 @@ namespace NewLife.Web
             base.OnLoaded();
         }
 
+        /// <summary>获取</summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public OAuthItem Get(String name)
+        {
+            return Items.FirstOrDefault(e => e.Name.EqualIgnoreCase(name));
+        }
+
         /// <summary>获取或添加</summary>
         /// <param name="name"></param>
         /// <returns></returns>

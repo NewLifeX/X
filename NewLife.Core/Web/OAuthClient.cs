@@ -31,6 +31,12 @@ namespace NewLife.Web
         /// </remarks>
         public String BaseUrl { get; set; }
 
+        /// <summary>重定向地址</summary>
+        /// <remarks>
+        /// 某些提供商（如百度）会在获取AccessToken时要求传递与前面一致的重定向地址
+        /// </remarks>
+        public String RedirectUri { get; set; }
+
         /// <summary>响应类型</summary>
         /// <remarks>
         /// 验证服务器跳转回来子系统时的类型，默认code，此时还需要子系统服务端请求验证服务器换取AccessToken；
@@ -62,6 +68,23 @@ namespace NewLife.Web
         public IDictionary<String, String> Items { get; private set; }
         #endregion
 
+        #region 方法
+        /// <summary>应用参数设置</summary>
+        /// <param name="mi"></param>
+        public void Apply(OAuthItem mi)
+        {
+            Key = mi.AppID;
+            Secret = mi.Secret;
+            Scope = mi.Scope;
+
+            switch (mi.Name.ToLower())
+            {
+                case "qq": SetQQ(); break;
+                case "baidu": SetBaidu(); break;
+            }
+        }
+        #endregion
+
         #region 默认提供者
         /// <summary>设置为QQ专属地址</summary>
         public void SetQQ()
@@ -77,6 +100,17 @@ namespace NewLife.Web
             var url = "http://openapi.baidu.com/oauth/2.0/";
             AuthUrl = url + "authorize?response_type={response_type}&client_id={key}&redirect_uri={redirect}&state={state}&scope={scope}";
             AccessUrl = url + "token?grant_type=authorization_code&client_id={key}&client_secret={secret}&code={code}&state={state}&redirect_uri={redirect}";
+            UserUrl = "https://openapi.baidu.com/rest/2.0/passport/users/getLoggedInUser?access_token={token}";
+
+            _OnGetUserInfo = dic =>
+            {
+                if (dic.ContainsKey("uid")) UserID = dic["uid"].Trim().ToLong();
+                if (dic.ContainsKey("uname")) UserName = dic["uname"].Trim();
+
+                // small image: http://tb.himg.baidu.com/sys/portraitn/item/{$portrait}
+                // large image: http://tb.himg.baidu.com/sys/portrait/item/{$portrait}
+                if (dic.ContainsKey("portrait")) Avatar = "http://tb.himg.baidu.com/sys/portrait/item/" + dic["portrait"].Trim();
+            };
 
             var set = OAuthConfig.Current;
             var mi = set.GetOrAdd("Baidu");
@@ -88,7 +122,6 @@ namespace NewLife.Web
         #endregion
 
         #region 跳转验证
-        private String _redirect;
         private String _state;
 
         /// <summary>跳转验证</summary>
@@ -118,9 +151,9 @@ namespace NewLife.Web
                 redirect = uri.ToString();
             }
 
-            if (redirect.Contains("/")) redirect = HttpUtility.UrlEncode(redirect);
+            //if (redirect.Contains("/")) redirect = HttpUtility.UrlEncode(redirect);
 #endif
-            _redirect = redirect;
+            RedirectUri = redirect;
             _state = state;
 
             var url = GetUrl(AuthUrl);
@@ -149,6 +182,8 @@ namespace NewLife.Web
 
             html = html.Trim();
 
+            if (Log != null && Log.Enable) WriteLog(html);
+
             IDictionary<String, String> dic = null;
             if (html.StartsWith("{") && html.EndsWith("}"))
             {
@@ -171,6 +206,69 @@ namespace NewLife.Web
         }
         #endregion
 
+        #region 用户信息
+        /// <summary>用户信息地址</summary>
+        public String UserUrl { get; set; }
+
+        /// <summary>用户ID</summary>
+        public Int64 UserID { get; set; }
+
+        /// <summary>用户名</summary>
+        public String UserName { get; set; }
+
+        /// <summary>头像</summary>
+        public String Avatar { get; set; }
+
+        private Action<IDictionary<String, String>> _OnGetUserInfo;
+
+        /// <summary>获取用户信息</summary>
+        /// <returns></returns>
+        public virtual async Task<String> GetUserInfo()
+        {
+            var url = UserUrl;
+            if (url.IsNullOrEmpty()) throw new ArgumentNullException(nameof(UserUrl), "未设置用户信息地址");
+
+            url = GetUrl(url);
+            WriteLog("GetUserInfo {0}", url);
+
+            var html = await Request(url);
+            if (html.IsNullOrEmpty()) return null;
+
+            html = html.Trim();
+
+            if (Log != null && Log.Enable) WriteLog(html);
+
+            IDictionary<String, String> dic = null;
+            if (html.StartsWith("{") && html.EndsWith("}"))
+            {
+                dic = new JsonParser(html).Decode().ToDictionary().ToDictionary(e => e.Key.ToLower(), e => e.Value + "");
+            }
+            else if (html.Contains("=") && html.Contains("&"))
+            {
+                dic = html.SplitAsDictionary("=", "&").ToDictionary(e => e.Key.ToLower(), e => e.Value);
+            }
+            if (dic != null)
+            {
+                if (dic.ContainsKey("uid")) UserID = dic["uid"].Trim().ToLong();
+                if (dic.ContainsKey("userid")) UserID = dic["userid"].Trim().ToLong();
+                if (dic.ContainsKey("user_id")) UserID = dic["user_id"].Trim().ToLong();
+                if (dic.ContainsKey("username")) UserName = dic["username"].Trim();
+                if (dic.ContainsKey("user_name")) UserName = dic["user_name"].Trim();
+                if (dic.ContainsKey("openid")) OpenID = dic["openid"].Trim();
+
+                _OnGetUserInfo?.Invoke(dic);
+            }
+            //Items = dic;
+            // 合并字典
+            foreach (var item in dic)
+            {
+                Items[item.Key] = item.Value;
+            }
+
+            return html;
+        }
+        #endregion
+
         #region 辅助
         /// <summary>替换地址模版参数</summary>
         /// <param name="url"></param>
@@ -183,7 +281,7 @@ namespace NewLife.Web
                .Replace("{response_type}", ResponseType)
                .Replace("{token}", AccessToken)
                .Replace("{code}", Code)
-               .Replace("{redirect}", _redirect)
+               .Replace("{redirect}", HttpUtility.UrlEncode(RedirectUri + ""))
                .Replace("{scope}", Scope)
                .Replace("{state}", _state);
 

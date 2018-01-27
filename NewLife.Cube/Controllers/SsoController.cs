@@ -45,20 +45,14 @@ namespace NewLife.Cube.Controllers
             var mi = ms.FirstOrDefault(e => e.Enable && (name.IsNullOrEmpty() || e.Name.EqualIgnoreCase(name)));
             if (mi == null) throw new InvalidOperationException($"未找到有效的OAuth服务端设置[{name}]");
 
+            name = mi.Name;
+
             var sso = new OAuthClient()
             {
                 Log = XTrace.Log,
                 BaseUrl = Request.GetRawUrl() + "",
             };
-
-            sso.Key = mi.AppID;
-            sso.Secret = mi.Secret;
-            sso.Scope = mi.Scope;
-
-            switch (mi.Name)
-            {
-                case "Baidu": sso.SetBaidu(); break;
-            }
+            sso.Apply(mi);
 
             var redirect = "~/Sso/LoginInfo";
 
@@ -70,7 +64,7 @@ namespace NewLife.Cube.Controllers
 
             redirect = OAuthHelper.GetUrl(redirect, returnUrl);
 
-            var url = sso.Authorize(redirect, null);
+            var url = sso.Authorize(redirect, name);
 
             return Redirect(url);
         }
@@ -82,9 +76,25 @@ namespace NewLife.Cube.Controllers
         [AllowAnonymous]
         public async Task<ActionResult> LoginInfo(String code, String state)
         {
+            // 异步会导致HttpContext.Current.Session为空无法赋值
             var ss = Session;
 
-            var sso = new OAuthClient() { Log = XTrace.Log };
+            var name = state + "";
+            var set = OAuthConfig.Current;
+            var mi = set.Get(name);
+            if (mi == null) throw new InvalidOperationException($"未找到有效的OAuth服务端设置[{name}]");
+
+            var redirect = "~/Sso/LoginInfo";
+            redirect = OAuthHelper.GetUrl(redirect, null);
+
+            var sso = new OAuthClient()
+            {
+                Log = XTrace.Log,
+                BaseUrl = Request.GetRawUrl() + "",
+            };
+            sso.Apply(mi);
+            sso.Authorize(redirect, name);
+
             await sso.GetAccessToken(code);
             // 如果拿不到访问令牌，则重新跳转
             if (sso.AccessToken.IsNullOrEmpty())
@@ -95,13 +105,14 @@ namespace NewLife.Cube.Controllers
                 //return RedirectToAction("Login");
             }
 
-            //// 拿到OpenID
-            //var inf = await sso.GetUserInfo();
-            //var uid = inf["user_id"].ToInt();
+            // 获取用户信息
+            await sso.GetUserInfo();
 
-            //// 用户登录
-            //var user = UserX.Login(uid, sso.OpenID);
-            //if (user == null) return RedirectToAction("Login", "Account");
+            XTrace.WriteLine("{0} {1} {2} 登录成功", sso.UserID, sso.UserName, sso.OpenID);
+
+            // 用户登录
+            var user = Provider.Login(sso.UserName ?? (sso.UserID + ""), sso.OpenID);
+            if (user == null) return RedirectToAction("Login", "Account");
 
             //// 异步会导致HttpContext.Current.Session为空无法赋值
             //ss["User"] = user;
@@ -110,7 +121,10 @@ namespace NewLife.Cube.Controllers
             //user.SaveAsync();
 
             var returnUrl = Request["returnUrl"];
-            return Login("", returnUrl);
+            if (Url.IsLocalUrl(returnUrl))
+                return Redirect(returnUrl);
+            else
+                return RedirectToAction("Index", "Index", new { page = returnUrl });
         }
         #endregion
 
