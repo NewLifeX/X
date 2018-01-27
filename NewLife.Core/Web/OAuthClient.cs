@@ -13,6 +13,9 @@ namespace NewLife.Web
     public class OAuthClient
     {
         #region 属性
+        /// <summary>名称</summary>
+        public String Name { get; set; }
+
         /// <summary>应用Key</summary>
         public String Key { get; set; }
 
@@ -70,9 +73,30 @@ namespace NewLife.Web
 
         #region 方法
         /// <summary>应用参数设置</summary>
-        /// <param name="mi"></param>
-        public void Apply(OAuthItem mi)
+        /// <param name="name"></param>
+        /// <param name="baseUrl"></param>
+        public void Apply(String name, String baseUrl = null)
         {
+            var set = OAuthConfig.Current;
+            var ms = set.Items;
+            if (ms == null || ms.Length == 0) throw new InvalidOperationException("未设置OAuth服务端");
+
+            var mi = ms.FirstOrDefault(e => e.Enable && (name.IsNullOrEmpty() || e.Name.EqualIgnoreCase(name)));
+            if (mi == null) throw new InvalidOperationException($"未找到有效的OAuth服务端设置[{name}]");
+
+            name = mi.Name;
+
+            if (set.Debug) Log = XTrace.Log;
+            BaseUrl = baseUrl;
+
+            Apply(mi);
+        }
+
+        /// <summary>应用参数设置</summary>
+        /// <param name="mi"></param>
+        public virtual void Apply(OAuthItem mi)
+        {
+            Name = mi.Name;
             Key = mi.AppID;
             Secret = mi.Secret;
             Scope = mi.Scope;

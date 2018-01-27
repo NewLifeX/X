@@ -38,21 +38,8 @@ namespace NewLife.Cube.Controllers
         [AllowAnonymous]
         public ActionResult Login(String name, String returnUrl)
         {
-            var set = OAuthConfig.Current;
-            var ms = set.Items;
-            if (ms == null || ms.Length == 0) throw new InvalidOperationException("未设置OAuth服务端");
-
-            var mi = ms.FirstOrDefault(e => e.Enable && (name.IsNullOrEmpty() || e.Name.EqualIgnoreCase(name)));
-            if (mi == null) throw new InvalidOperationException($"未找到有效的OAuth服务端设置[{name}]");
-
-            name = mi.Name;
-
-            var sso = new OAuthClient()
-            {
-                Log = XTrace.Log,
-                BaseUrl = Request.GetRawUrl() + "",
-            };
-            sso.Apply(mi);
+            var sso = new OAuthClient();
+            sso.Apply(name, Request.GetRawUrl() + "");
 
             var redirect = "~/Sso/LoginInfo";
 
@@ -63,8 +50,7 @@ namespace NewLife.Cube.Controllers
             }
 
             redirect = OAuthHelper.GetUrl(redirect, returnUrl);
-
-            var url = sso.Authorize(redirect, name);
+            var url = sso.Authorize(redirect, sso.Name);
 
             return Redirect(url);
         }
@@ -78,22 +64,14 @@ namespace NewLife.Cube.Controllers
         {
             // 异步会导致HttpContext.Current.Session为空无法赋值
             var ss = Session;
+            var returnUrl = Request["returnUrl"];
 
-            var name = state + "";
-            var set = OAuthConfig.Current;
-            var mi = set.Get(name);
-            if (mi == null) throw new InvalidOperationException($"未找到有效的OAuth服务端设置[{name}]");
+            var sso = new OAuthClient();
+            sso.Apply(state + "", Request.GetRawUrl() + "");
 
             var redirect = "~/Sso/LoginInfo";
-            redirect = OAuthHelper.GetUrl(redirect, null);
-
-            var sso = new OAuthClient()
-            {
-                Log = XTrace.Log,
-                BaseUrl = Request.GetRawUrl() + "",
-            };
-            sso.Apply(mi);
-            sso.Authorize(redirect, name);
+            redirect = OAuthHelper.GetUrl(redirect, returnUrl);
+            sso.Authorize(redirect, sso.Name);
 
             await sso.GetAccessToken(code);
             // 如果拿不到访问令牌，则重新跳转
@@ -101,8 +79,8 @@ namespace NewLife.Cube.Controllers
             {
                 XTrace.WriteLine("拿不到访问令牌，重新跳转 code={0} state={1}", code, state);
 
-                return Redirect(OAuthHelper.GetUrl("Login"));
-                //return RedirectToAction("Login");
+                //return Redirect(OAuthHelper.GetUrl("Login"));
+                return RedirectToAction("Login", new { name = sso.Name, returnUrl });
             }
 
             // 获取用户信息
@@ -120,7 +98,7 @@ namespace NewLife.Cube.Controllers
             //// 保存信息
             //user.SaveAsync();
 
-            var returnUrl = Request["returnUrl"];
+            //var returnUrl = Request["returnUrl"];
             if (Url.IsLocalUrl(returnUrl))
                 return Redirect(returnUrl);
             else
