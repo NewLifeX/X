@@ -30,6 +30,16 @@ namespace NewLife.Web
         /// 为了解决反向代理问题，可调用WebHelper.GetRawUrl取得原始访问地址作为基础地址。
         /// </remarks>
         public String BaseUrl { get; set; }
+
+        /// <summary>响应类型</summary>
+        /// <remarks>
+        /// 验证服务器跳转回来子系统时的类型，默认code，此时还需要子系统服务端请求验证服务器换取AccessToken；
+        /// 可选token，此时验证服务器直接返回AccessToken，子系统不需要再次请求。
+        /// </remarks>
+        public String ResponseType { get; set; } = "code";
+
+        /// <summary>作用域</summary>
+        public String Scope { get; set; }
         #endregion
 
         #region 返回参数
@@ -52,13 +62,28 @@ namespace NewLife.Web
         public IDictionary<String, String> Items { get; private set; }
         #endregion
 
-        #region QQ专属
+        #region 默认提供者
         /// <summary>设置为QQ专属地址</summary>
         public void SetQQ()
         {
             var url = "https://graph.qq.com/oauth2.0/";
-            AuthUrl = url + "authorize?response_type=code&client_id={key}&state={state}&redirect_uri={redirect}";
+            AuthUrl = url + "authorize?response_type={response_type}&client_id={key}&redirect_uri={redirect}&state={state}&scope={scope}";
             AccessUrl = url + "token?grant_type=authorization_code&client_id={key}&client_secret={secret}&code={code}&state={state}&redirect_uri={redirect}";
+        }
+
+        /// <summary>设置百度</summary>
+        public void SetBaidu()
+        {
+            var url = "http://openapi.baidu.com/oauth/2.0/";
+            AuthUrl = url + "authorize?response_type={response_type}&client_id={key}&redirect_uri={redirect}&state={state}&scope={scope}";
+            AccessUrl = url + "token?grant_type=authorization_code&client_id={key}&client_secret={secret}&code={code}&state={state}&redirect_uri={redirect}";
+
+            var set = OAuthConfig.Current;
+            var mi = set.GetOrAdd("Baidu");
+            mi.Enable = true;
+            mi.Server = url;
+
+            set.SaveAsync();
         }
         #endregion
 
@@ -155,9 +180,11 @@ namespace NewLife.Web
             url = url
                .Replace("{key}", Key)
                .Replace("{secret}", Secret)
+               .Replace("{response_type}", ResponseType)
                .Replace("{token}", AccessToken)
                .Replace("{code}", Code)
                .Replace("{redirect}", _redirect)
+               .Replace("{scope}", Scope)
                .Replace("{state}", _state);
 
             return url;

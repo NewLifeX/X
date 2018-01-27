@@ -5,6 +5,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using System.Web.Security;
+using NewLife.Cube.Web;
+using NewLife.Log;
 using NewLife.Web;
 using XCode;
 using XCode.Membership;
@@ -49,6 +51,7 @@ namespace NewLife.Cube.Admin.Controllers
             return base.FormView(entity);
         }
 
+        #region 登录注销
         /// <summary>登录</summary>
         /// <param name="returnUrl"></param>
         /// <returns></returns>
@@ -116,6 +119,10 @@ namespace NewLife.Cube.Admin.Controllers
 
             return RedirectToAction("Login");
         }
+        #endregion
+
+        #region 第三方登录
+        #endregion
 
         /// <summary>用户资料</summary>
         /// <param name="id"></param>
@@ -164,26 +171,26 @@ namespace NewLife.Cube.Admin.Controllers
             return View(user);
         }
 
-        /// <summary>忘记密码</summary>
-        /// <param name="email"></param>
-        /// <returns></returns>
-        [HttpPost]
-        [AllowAnonymous]
-        public ActionResult ForgetPassword(String email)
-        {
-            var set = Setting.Current;
-            if (!set.AllowForgot) throw new Exception("禁止取回密码！");
+        ///// <summary>忘记密码</summary>
+        ///// <param name="email"></param>
+        ///// <returns></returns>
+        //[HttpPost]
+        //[AllowAnonymous]
+        //public ActionResult ForgetPassword(String email)
+        //{
+        //    var set = Setting.Current;
+        //    if (!set.AllowForgot) throw new Exception("禁止取回密码！");
 
-            //throw new NotImplementedException("未实现！");
-            var user = UserX.FindByMail(email);
-            if (user == null)
-            {
-                //throw new Exception("未找到");
-                Js.Alert("未找到用户");
-            }
+        //    //throw new NotImplementedException("未实现！");
+        //    var user = UserX.FindByMail(email);
+        //    if (user == null)
+        //    {
+        //        //throw new Exception("未找到");
+        //        Js.Alert("未找到用户");
+        //    }
 
-            return View("Login");
-        }
+        //    return View("Login");
+        //}
 
         /// <summary>注册</summary>
         /// <param name="email"></param>

@@ -1,0 +1,40 @@
+﻿@using NewLife.Cube.Web;
+@{
+    var set = NewLife.Cube.Setting.Current;
+    var returnUrl = ViewBag.ReturnUrl as String;
+}
+<div class="toolbar clearfix text-center">
+    <div class="row" style="padding-top:30px;">
+        <span>
+            第三方登录：
+        </span>
+        <a href="@OAuthHelper.GetLoginUrl("Master",returnUrl)">
+            <i class="glyphicon glyphicon-menu-right"></i>
+            主站
+        </a>
+        <a href="@OAuthHelper.GetLoginUrl("QQ",returnUrl)">
+            <i class="glyphicon glyphicon-menu-right"></i>
+            QQ
+        </a>
+        <a href="@OAuthHelper.GetLoginUrl("Weixin",returnUrl)">
+            <i class="glyphicon glyphicon-menu-right"></i>
+            微信
+        </a>
+        <a href="@OAuthHelper.GetLoginUrl("Baidu",returnUrl)">
+            <i class="glyphicon glyphicon-menu-right"></i>
+            百度
+        </a>
+        <a href="@OAuthHelper.GetLoginUrl("Weibo",returnUrl)">
+            <i class="glyphicon glyphicon-menu-right"></i>
+            微博
+        </a>
+        <a href="@OAuthHelper.GetLoginUrl("Taobao",returnUrl)">
+            <i class="glyphicon glyphicon-menu-right"></i>
+            淘宝
+        </a>
+        <a href="@OAuthHelper.GetLoginUrl("Alipay",returnUrl)">
+            <i class="glyphicon glyphicon-menu-right"></i>
+            支付宝
+        </a>
+    </div>
+</div>

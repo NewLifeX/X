@@ -290,6 +290,8 @@
     <Compile Include="Threading\ThreadPoolX.cs" />
     <Compile Include="Threading\TimerX.cs" />
     <Compile Include="Threading\TimerScheduler.cs" />
+    <Compile Include="Web\OAuthServer.cs" />
+    <Compile Include="Web\OAuthConfig.cs" />
     <Compile Include="Yun\AMap.cs" />
     <Compile Include="Yun\BaiduMap.cs" />
     <Compile Include="Web\Js.cs" />

@@ -188,7 +188,7 @@ WriteLiteral("                    ");
 
             
             #line 50 "..\..\Areas\Admin\Views\User\Login.cshtml"
-               Write(Html.Partial("_Login_Forgot"));
+               Write(Html.Partial("_Login_Login3"));
 
             
             #line default
@@ -199,6 +199,17 @@ WriteLiteral("                    ");
 
             
             #line 51 "..\..\Areas\Admin\Views\User\Login.cshtml"
+               Write(Html.Partial("_Login_Forgot"));
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\r\n");
+
+WriteLiteral("                    ");
+
+            
+            #line 52 "..\..\Areas\Admin\Views\User\Login.cshtml"
                Write(Html.Partial("_Login_Register"));
 
             
@@ -207,16 +218,16 @@ WriteLiteral("                    ");
 WriteLiteral("\r\n                </div>\r\n            </div>\r\n        </div>\r\n    </div>\r\n    <!-" +
 "- JQuery作为一等公民，页面内部随时可能使用 -->\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 3579), Tuple.Create("\"", 3617)
-, Tuple.Create(Tuple.Create("", 3585), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery-2.1.3.min.js")
-, 3585), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 3631), Tuple.Create("\"", 3669)
+, Tuple.Create(Tuple.Create("", 3637), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery-2.1.3.min.js")
+, 3637), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 3641), Tuple.Create("\"", 3686)
-, Tuple.Create(Tuple.Create("", 3647), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/js/bootstrap.min.js")
-, 3647), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 3693), Tuple.Create("\"", 3738)
+, Tuple.Create(Tuple.Create("", 3699), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/js/bootstrap.min.js")
+, 3699), false)
 );
 
 WriteLiteral(@"></script>

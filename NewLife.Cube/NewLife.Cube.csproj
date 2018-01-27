@@ -222,6 +222,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>_Login_Forgot.cshtml</DependentUpon>
     </Compile>
+    <Compile Include="Areas\Admin\Views\User\_Login_Login3.generated.cs">
+      <DependentUpon>_Login_Login3.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
     <Compile Include="Areas\Admin\Views\User\_Login_Login.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -268,6 +273,7 @@
     <Compile Include="Common\MvcHandleErrorAttribute.cs" />
     <Compile Include="Common\WeuiJS.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\SsoController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -451,6 +457,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>_ViewStart.cshtml</DependentUpon>
     </Compile>
+    <Compile Include="Web\OAuthHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Areas\Admin\Views\Db\Index.cshtml">
@@ -496,6 +503,10 @@
     <Content Include="Areas\Admin\Views\Log\_List_Data.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_List_Data.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Areas\Admin\Views\User\_Login_Login3.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>_Login_Login3.generated.cs</LastGenOutput>
     </Content>
     <None Include="Content\jweui\css\demos.css" />
     <None Include="Content\jweui\css\jquery-weui.css" />
