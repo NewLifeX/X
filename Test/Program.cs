@@ -148,6 +148,18 @@ namespace Test
             //var set = cfg.GetOrAdd("aa_test", "redis");
             //Console.WriteLine(set);
 
+            WebClientX.SetAllowUnsafeHeaderParsing(true);
+
+            var url = "https://api.github.com/user?access_token=ccb5c1363318ee2fa1d9374e87961bdf01a4c682";
+
+            var client = new WebClientX(true, true);
+            //var buf = client.DownloadDataAsync(url).Result;
+            //var ms = new MemoryStream(buf);
+            //var ms2 = ms.DecompressGZip();
+            //buf = ms2.ReadBytes();
+            var html = client.GetHtml(url);
+            Console.WriteLine(html);
+
             var ip = "223.5.5.5";
             ip = ip.IPToAddress();
             Console.WriteLine(ip);

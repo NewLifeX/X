@@ -266,6 +266,7 @@ namespace NewLife.Web
                     handler.UseProxy = false;
                     handler.Proxy = null;
                 }
+                if (AutomaticDecompression != DecompressionMethods.None) handler.AutomaticDecompression = AutomaticDecompression;
 
                 http = new HttpClientX(handler);
 
