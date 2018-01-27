@@ -81,7 +81,9 @@ namespace NewLife.Web
             var ms = set.Items;
             if (ms == null || ms.Length == 0) throw new InvalidOperationException("未设置OAuth服务端");
 
-            var mi = ms.FirstOrDefault(e => e.Enable && (name.IsNullOrEmpty() || e.Name.EqualIgnoreCase(name)));
+            //var mi = ms.FirstOrDefault(e => e.Enable && (name.IsNullOrEmpty() || e.Name.EqualIgnoreCase(name)));
+            var mi = set.GetOrAdd(name);
+            if (name.IsNullOrEmpty()) mi = ms.FirstOrDefault(e => e.Enable);
             if (mi == null) throw new InvalidOperationException($"未找到有效的OAuth服务端设置[{name}]");
 
             name = mi.Name;
@@ -106,6 +108,7 @@ namespace NewLife.Web
                 case "qq": SetQQ(); break;
                 case "baidu": SetBaidu(); break;
                 case "taobao": SetTaobao(); break;
+                case "github": SetGithub(); break;
             }
         }
         #endregion
@@ -117,6 +120,13 @@ namespace NewLife.Web
             var url = "https://graph.qq.com/oauth2.0/";
             AuthUrl = url + "authorize?response_type={response_type}&client_id={key}&redirect_uri={redirect}&state={state}&scope={scope}";
             AccessUrl = url + "token?grant_type=authorization_code&client_id={key}&client_secret={secret}&code={code}&state={state}&redirect_uri={redirect}";
+
+            var set = OAuthConfig.Current;
+            var mi = set.GetOrAdd("QQ");
+            mi.Enable = true;
+            if (mi.Server.IsNullOrEmpty()) mi.Server = url;
+
+            set.SaveAsync();
         }
 
         /// <summary>设置百度</summary>
@@ -140,7 +150,7 @@ namespace NewLife.Web
             var set = OAuthConfig.Current;
             var mi = set.GetOrAdd("Baidu");
             mi.Enable = true;
-            mi.Server = url;
+            if (mi.Server.IsNullOrEmpty()) mi.Server = url;
 
             set.SaveAsync();
         }
@@ -160,11 +170,37 @@ namespace NewLife.Web
             };
 
             var set = OAuthConfig.Current;
-            var mi = set.GetOrAdd("Baidu");
+            var mi = set.GetOrAdd("Taobao");
             mi.Enable = true;
-            mi.Server = url;
+            if (mi.Server.IsNullOrEmpty()) mi.Server = url;
 
             set.SaveAsync();
+        }
+
+        /// <summary>设置Github</summary>
+        public void SetGithub()
+        {
+            var url = "https://github.com/login/oauth/";
+            AuthUrl = url + "authorize?response_type={response_type}&client_id={key}&redirect_uri={redirect}&state={state}&scope={scope}";
+            AccessUrl = url + "access_token?grant_type=authorization_code&client_id={key}&client_secret={secret}&code={code}&state={state}&redirect_uri={redirect}";
+            UserUrl = "https://api.github.com/user?access_token={token}";
+
+            _OnGetUserInfo = dic =>
+            {
+                if (dic.ContainsKey("id")) UserID = dic["id"].Trim('\"').ToLong();
+                if (dic.ContainsKey("login")) UserName = dic["login"].Trim();
+                if (dic.ContainsKey("name")) NickName = dic["name"].Trim();
+            };
+
+            var set = OAuthConfig.Current;
+            var mi = set.GetOrAdd("Github");
+            mi.Enable = true;
+            if (mi.Server.IsNullOrEmpty()) mi.Server = url;
+
+            set.SaveAsync();
+
+            // 允许宽松头部
+            WebClientX.SetAllowUnsafeHeaderParsing(true);
         }
         #endregion
 
@@ -264,6 +300,9 @@ namespace NewLife.Web
 
         /// <summary>用户名</summary>
         public String UserName { get; set; }
+
+        /// <summary>昵称</summary>
+        public String NickName { get; set; }
 
         /// <summary>头像</summary>
         public String Avatar { get; set; }

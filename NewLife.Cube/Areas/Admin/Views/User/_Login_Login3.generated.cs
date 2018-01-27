@@ -133,10 +133,10 @@ WriteLiteral(" class=\"glyphicon glyphicon-menu-right\"");
 
 WriteLiteral("></i>\r\n            百度\r\n        </a>\r\n        <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 899), Tuple.Create("\"", 949)
+WriteAttribute("href", Tuple.Create(" href=\"", 899), Tuple.Create("\"", 950)
             
             #line 27 "..\..\Areas\Admin\Views\User\_Login_Login3.cshtml"
-, Tuple.Create(Tuple.Create("", 906), Tuple.Create<System.Object, System.Int32>(OAuthHelper.GetLoginUrl("Weibo",returnUrl)
+, Tuple.Create(Tuple.Create("", 906), Tuple.Create<System.Object, System.Int32>(OAuthHelper.GetLoginUrl("Github",returnUrl)
             
             #line default
             #line hidden
@@ -147,39 +147,9 @@ WriteLiteral(">\r\n            <i");
 
 WriteLiteral(" class=\"glyphicon glyphicon-menu-right\"");
 
-WriteLiteral("></i>\r\n            微博\r\n        </a>\r\n        <a");
+WriteLiteral("></i>\r\n            Github\r\n        </a>\r\n        ");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1053), Tuple.Create("\"", 1104)
-            
-            #line 31 "..\..\Areas\Admin\Views\User\_Login_Login3.cshtml"
-, Tuple.Create(Tuple.Create("", 1060), Tuple.Create<System.Object, System.Int32>(OAuthHelper.GetLoginUrl("Taobao",returnUrl)
-            
-            #line default
-            #line hidden
-, 1060), false)
-);
-
-WriteLiteral(">\r\n            <i");
-
-WriteLiteral(" class=\"glyphicon glyphicon-menu-right\"");
-
-WriteLiteral("></i>\r\n            淘宝\r\n        </a>\r\n        <a");
-
-WriteAttribute("href", Tuple.Create(" href=\"", 1208), Tuple.Create("\"", 1259)
-            
-            #line 35 "..\..\Areas\Admin\Views\User\_Login_Login3.cshtml"
-, Tuple.Create(Tuple.Create("", 1215), Tuple.Create<System.Object, System.Int32>(OAuthHelper.GetLoginUrl("Alipay",returnUrl)
-            
-            #line default
-            #line hidden
-, 1215), false)
-);
-
-WriteLiteral(">\r\n            <i");
-
-WriteLiteral(" class=\"glyphicon glyphicon-menu-right\"");
-
-WriteLiteral("></i>\r\n            支付宝\r\n        </a>\r\n    </div>\r\n</div>");
+WriteLiteral("\r\n    </div>\r\n</div>");
 
         }
     }

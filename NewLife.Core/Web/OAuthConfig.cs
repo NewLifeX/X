@@ -81,6 +81,8 @@ namespace NewLife.Web
         /// <returns></returns>
         public OAuthItem GetOrAdd(String name)
         {
+            if (name.IsNullOrEmpty()) return null;
+
             var mi = Items.FirstOrDefault(e => e.Name.EqualIgnoreCase(name));
             if (mi != null) return mi;
 
