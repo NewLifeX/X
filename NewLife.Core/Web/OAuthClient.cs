@@ -105,6 +105,7 @@ namespace NewLife.Web
             {
                 case "qq": SetQQ(); break;
                 case "baidu": SetBaidu(); break;
+                case "taobao": SetTaobao(); break;
             }
         }
         #endregion
@@ -134,6 +135,28 @@ namespace NewLife.Web
                 // small image: http://tb.himg.baidu.com/sys/portraitn/item/{$portrait}
                 // large image: http://tb.himg.baidu.com/sys/portrait/item/{$portrait}
                 if (dic.ContainsKey("portrait")) Avatar = "http://tb.himg.baidu.com/sys/portrait/item/" + dic["portrait"].Trim();
+            };
+
+            var set = OAuthConfig.Current;
+            var mi = set.GetOrAdd("Baidu");
+            mi.Enable = true;
+            mi.Server = url;
+
+            set.SaveAsync();
+        }
+
+        /// <summary>设置淘宝</summary>
+        public void SetTaobao()
+        {
+            var url = "https://oauth.taobao.com/";
+            AuthUrl = url + "authorize?response_type={response_type}&client_id={key}&redirect_uri={redirect}&state={state}&scope={scope}";
+            AccessUrl = url + "token?grant_type=authorization_code&client_id={key}&client_secret={secret}&code={code}&state={state}&redirect_uri={redirect}";
+            //UserUrl = "https://openapi.baidu.com/rest/2.0/passport/users/getLoggedInUser?access_token={token}";
+
+            _OnGetUserInfo = dic =>
+            {
+                if (dic.ContainsKey("taobao_user_id")) UserID = dic["taobao_user_id"].Trim('\"').ToLong();
+                if (dic.ContainsKey("taobao_user_nick")) UserName = dic["taobao_user_nick"].Trim();
             };
 
             var set = OAuthConfig.Current;
@@ -223,6 +246,8 @@ namespace NewLife.Web
                 if (dic.ContainsKey("expires_in")) Expire = DateTime.Now.AddSeconds(dic["expires_in"].Trim().ToInt());
                 if (dic.ContainsKey("refresh_token")) RefreshToken = dic["refresh_token"].Trim();
                 if (dic.ContainsKey("openid")) OpenID = dic["openid"].Trim();
+
+                _OnGetUserInfo?.Invoke(dic);
             }
             Items = dic;
 
