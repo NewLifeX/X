@@ -85,7 +85,7 @@ namespace NewLife.Cube.Controllers
             // 获取用户信息
             await sso.GetUserInfo();
 
-            XTrace.WriteLine("{0} {1} {2} 登录成功", sso.UserID, sso.UserName, sso.OpenID);
+            XTrace.WriteLine("{0} {1} {2} {3} 登录成功", sso.UserID, sso.UserName, sso.NickName, sso.OpenID);
 
             // 用户登录
             var user = Provider.Login(sso.UserName ?? (sso.UserID + ""), sso.OpenID);

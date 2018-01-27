@@ -201,6 +201,8 @@ namespace NewLife.Web
 
             // 允许宽松头部
             WebClientX.SetAllowUnsafeHeaderParsing(true);
+
+            if (_Client == null) _Client = new WebClientX(true, true);
         }
         #endregion
 
@@ -379,11 +381,15 @@ namespace NewLife.Web
         /// <summary>最后一次请求的响应内容</summary>
         public String LastHtml { get; set; }
 
+        private WebClientX _Client;
+
         /// <summary>创建客户端</summary>
         /// <param name="url">路径</param>
         /// <returns></returns>
         protected virtual async Task<String> Request(String url)
         {
+            if (_Client != null) return LastHtml = await _Client.DownloadStringAsync(url);
+
             return LastHtml = await WebClientX.GetStringAsync(url);
         }
         #endregion
