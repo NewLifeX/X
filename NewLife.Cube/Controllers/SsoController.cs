@@ -30,15 +30,25 @@ namespace NewLife.Cube.Controllers
         }
 
         #region 单点登录客户端
+        /// <summary>获取OAuth客户端</summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        protected virtual OAuthClient GetClient(String name)
+        {
+            var sso = new OAuthClient();
+            sso.Apply(name, Request.GetRawUrl() + "");
+
+            return sso;
+        }
+
         /// <summary>第三方登录</summary>
         /// <param name="name"></param>
         /// <param name="returnUrl"></param>
         /// <returns></returns>
         [AllowAnonymous]
-        public ActionResult Login(String name, String returnUrl)
+        public virtual ActionResult Login(String name, String returnUrl)
         {
-            var sso = new OAuthClient();
-            sso.Apply(name, Request.GetRawUrl() + "");
+            var client = GetClient(name);
 
             var redirect = "~/Sso/LoginInfo";
 
@@ -49,7 +59,7 @@ namespace NewLife.Cube.Controllers
             }
 
             redirect = OAuthHelper.GetUrl(redirect, returnUrl);
-            var url = sso.Authorize(redirect, sso.Name);
+            var url = client.Authorize(redirect, client.Name);
 
             return Redirect(url);
         }
@@ -59,37 +69,51 @@ namespace NewLife.Cube.Controllers
         /// <param name="state"></param>
         /// <returns></returns>
         [AllowAnonymous]
-        public async Task<ActionResult> LoginInfo(String code, String state)
+        public virtual async Task<ActionResult> LoginInfo(String code, String state)
         {
             // 异步会导致HttpContext.Current.Session为空无法赋值
             var ss = Session;
             var returnUrl = Request["returnUrl"];
 
-            var sso = new OAuthClient();
-            sso.Apply(state + "", Request.GetRawUrl() + "");
+            var client = GetClient(state + "");
 
             var redirect = "~/Sso/LoginInfo";
             redirect = OAuthHelper.GetUrl(redirect, returnUrl);
-            sso.Authorize(redirect, sso.Name);
+            client.Authorize(redirect, client.Name);
 
-            await sso.GetAccessToken(code);
+            await client.GetAccessToken(code);
             // 如果拿不到访问令牌，则重新跳转
-            if (sso.AccessToken.IsNullOrEmpty())
+            if (client.AccessToken.IsNullOrEmpty())
             {
                 XTrace.WriteLine("拿不到访问令牌，重新跳转 code={0} state={1}", code, state);
 
                 //return Redirect(OAuthHelper.GetUrl("Login"));
-                return RedirectToAction("Login", new { name = sso.Name, returnUrl });
+                return RedirectToAction("Login", new { name = client.Name, returnUrl });
             }
 
+            // 获取OpenID。部分提供商不需要
+            if (!client.OpenIDUrl.IsNullOrEmpty()) await client.GetOpenID();
+
             // 获取用户信息
-            await sso.GetUserInfo();
+            if (!client.UserUrl.IsNullOrEmpty()) await client.GetUserInfo();
 
-            XTrace.WriteLine("{0} {1} {2} {3} 登录成功", sso.UserID, sso.UserName, sso.NickName, sso.OpenID);
+            var url = OnLogin(client);
 
-            // 用户登录
-            var user = Provider.Login(sso.UserName ?? (sso.UserID + ""), sso.OpenID);
-            if (user == null) return RedirectToAction("Login", "Account");
+            if (!url.IsNullOrEmpty()) return Redirect(url);
+
+            //return RedirectToAction("Index", "Index", new { page = returnUrl });
+            var msg = $"{client.Name} 登录成功！<br/>{client.UserID} {client.UserName} {client.NickName} {client.OpenID} {client.AccessToken} <br/><img src=\"{client.Avatar}\"/> ";
+            return Content(msg);
+        }
+
+        /// <summary>登录成功</summary>
+        /// <param name="client"></param>
+        /// <returns></returns>
+        protected virtual String OnLogin(OAuthClient client)
+        {
+            //// 用户登录
+            //var user = Provider.Login(client.UserName ?? (client.UserID + ""), client.OpenID);
+            //if (user == null) return RedirectToAction("Login", "Account");
 
             //// 异步会导致HttpContext.Current.Session为空无法赋值
             //ss["User"] = user;
@@ -97,11 +121,12 @@ namespace NewLife.Cube.Controllers
             //// 保存信息
             //user.SaveAsync();
 
-            //var returnUrl = Request["returnUrl"];
-            if (Url.IsLocalUrl(returnUrl))
-                return Redirect(returnUrl);
-            else
-                return RedirectToAction("Index", "Index", new { page = returnUrl });
+            XTrace.WriteLine("{0} {1} {2} {3} 登录成功", client.UserID, client.UserName, client.NickName, client.OpenID);
+
+            var returnUrl = Request["returnUrl"];
+            if (Url.IsLocalUrl(returnUrl)) return returnUrl;
+
+            return null;
         }
         #endregion
 

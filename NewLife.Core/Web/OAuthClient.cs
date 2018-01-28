@@ -126,6 +126,24 @@ namespace NewLife.Web
 
             AuthUrl = url + "authorize?response_type={response_type}&client_id={key}&redirect_uri={redirect}&state={state}&scope={scope}";
             AccessUrl = url + "token?grant_type=authorization_code&client_id={key}&client_secret={secret}&code={code}&state={state}&redirect_uri={redirect}";
+            OpenIDUrl = url + "me?access_token={token}";
+            UserUrl = "https://graph.qq.com/user/get_user_info?access_token={token}&oauth_consumer_key={key}&openid={openid}";
+
+            _OnGetUserInfo = dic =>
+            {
+                if (dic.ContainsKey("nickname")) NickName = dic["nickname"].Trim();
+
+                // 从大到小找头像
+                var avs = "figureurl_qq_2,figureurl_qq_1,figureurl_2,figureurl_1,figureurl".Split(",");
+                foreach (var item in avs)
+                {
+                    if (dic.TryGetValue(item, out var av) && !av.IsNullOrEmpty())
+                    {
+                        Avatar = av.Trim();
+                        break;
+                    }
+                }
+            };
 
             set.SaveAsync();
         }
@@ -210,7 +228,7 @@ namespace NewLife.Web
         }
         #endregion
 
-        #region 跳转验证
+        #region 1-跳转验证
         private String _state;
 
         /// <summary>跳转验证</summary>
@@ -253,7 +271,9 @@ namespace NewLife.Web
 #endif
             return url;
         }
+        #endregion
 
+        #region 2-获取访问令牌
         /// <summary>根据授权码获取访问令牌</summary>
         /// <param name="code"></param>
         /// <returns></returns>
@@ -270,18 +290,9 @@ namespace NewLife.Web
             if (html.IsNullOrEmpty()) return null;
 
             html = html.Trim();
-
             if (Log != null && Log.Enable) WriteLog(html);
 
-            IDictionary<String, String> dic = null;
-            if (html.StartsWith("{") && html.EndsWith("}"))
-            {
-                dic = new JsonParser(html).Decode().ToDictionary().ToDictionary(e => e.Key.ToLower(), e => e.Value + "");
-            }
-            else if (html.Contains("=") && html.Contains("&"))
-            {
-                dic = html.SplitAsDictionary("=", "&").ToDictionary(e => e.Key.ToLower(), e => e.Value);
-            }
+            var dic = GetNameValues(html);
             if (dic != null)
             {
                 if (dic.ContainsKey("access_token")) AccessToken = dic["access_token"].Trim();
@@ -297,7 +308,40 @@ namespace NewLife.Web
         }
         #endregion
 
-        #region 用户信息
+        #region 3-获取OpenID
+        /// <summary>OpenID地址</summary>
+        public String OpenIDUrl { get; set; }
+
+        /// <summary>根据授权码获取访问令牌</summary>
+        /// <returns></returns>
+        public virtual async Task<String> GetOpenID()
+        {
+            if (AccessToken.IsNullOrEmpty()) throw new ArgumentNullException(nameof(AccessToken), "未设置授权码");
+
+            var url = GetUrl(OpenIDUrl);
+            WriteLog("GetOpenID {0}", url);
+
+            var html = await Request(url);
+            if (html.IsNullOrEmpty()) return null;
+
+            html = html.Trim();
+            if (Log != null && Log.Enable) WriteLog(html);
+
+            var dic = GetNameValues(html);
+            if (dic != null)
+            {
+                if (dic.ContainsKey("expires_in")) Expire = DateTime.Now.AddSeconds(dic["expires_in"].Trim().ToInt());
+                if (dic.ContainsKey("openid")) OpenID = dic["openid"].Trim();
+
+                _OnGetUserInfo?.Invoke(dic);
+            }
+            Items = dic;
+
+            return html;
+        }
+        #endregion
+
+        #region 4-用户信息
         /// <summary>用户信息地址</summary>
         public String UserUrl { get; set; }
 
@@ -329,18 +373,9 @@ namespace NewLife.Web
             if (html.IsNullOrEmpty()) return null;
 
             html = html.Trim();
-
             if (Log != null && Log.Enable) WriteLog(html);
 
-            IDictionary<String, String> dic = null;
-            if (html.StartsWith("{") && html.EndsWith("}"))
-            {
-                dic = new JsonParser(html).Decode().ToDictionary().ToDictionary(e => e.Key.ToLower(), e => e.Value + "");
-            }
-            else if (html.Contains("=") && html.Contains("&"))
-            {
-                dic = html.SplitAsDictionary("=", "&").ToDictionary(e => e.Key.ToLower(), e => e.Value);
-            }
+            var dic = GetNameValues(html);
             if (dic != null)
             {
                 if (dic.ContainsKey("uid")) UserID = dic["uid"].Trim().ToLong();
@@ -348,15 +383,21 @@ namespace NewLife.Web
                 if (dic.ContainsKey("user_id")) UserID = dic["user_id"].Trim().ToLong();
                 if (dic.ContainsKey("username")) UserName = dic["username"].Trim();
                 if (dic.ContainsKey("user_name")) UserName = dic["user_name"].Trim();
+                if (dic.ContainsKey("nickname")) NickName = dic["nickname"].Trim();
                 if (dic.ContainsKey("openid")) OpenID = dic["openid"].Trim();
 
                 _OnGetUserInfo?.Invoke(dic);
-            }
-            //Items = dic;
-            // 合并字典
-            foreach (var item in dic)
-            {
-                Items[item.Key] = item.Value;
+                //Items = dic;
+                // 合并字典
+                if (Items == null)
+                    Items = dic;
+                else
+                {
+                    foreach (var item in dic)
+                    {
+                        Items[item.Key] = item.Value;
+                    }
+                }
             }
 
             return html;
@@ -375,11 +416,37 @@ namespace NewLife.Web
                .Replace("{response_type}", ResponseType)
                .Replace("{token}", AccessToken)
                .Replace("{code}", Code)
+               .Replace("{openid}", OpenID)
                .Replace("{redirect}", HttpUtility.UrlEncode(RedirectUri + ""))
                .Replace("{scope}", Scope)
                .Replace("{state}", _state);
 
             return url;
+        }
+
+        /// <summary>获取名值字典</summary>
+        /// <param name="html"></param>
+        /// <returns></returns>
+        protected virtual IDictionary<String, String> GetNameValues(String html)
+        {
+            // 部分提供者的返回Json不是{开头，比如QQ
+            var p1 = html.IndexOf('{');
+            var p2 = html.LastIndexOf('}');
+            if (p1 > 0 && p2 > p1) html = html.Substring(p1, p2 - p1 + 1);
+
+            IDictionary<String, String> dic = null;
+            // Json格式转为名值字典
+            if (p1 >= 0 && p2 > p1)
+            {
+                dic = new JsonParser(html).Decode().ToDictionary().ToDictionary(e => e.Key.ToLower(), e => e.Value + "", StringComparer.OrdinalIgnoreCase);
+            }
+            // Url格式转为名值字典
+            else if (html.Contains("=") && html.Contains("&"))
+            {
+                dic = html.SplitAsDictionary("=", "&").ToDictionary(e => e.Key.ToLower(), e => e.Value + "", StringComparer.OrdinalIgnoreCase);
+            }
+
+            return dic;
         }
 
         /// <summary>最后一次请求的响应内容</summary>
