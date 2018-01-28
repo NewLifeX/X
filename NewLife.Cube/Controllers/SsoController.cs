@@ -8,6 +8,29 @@ using NewLife.Model;
 using NewLife.Web;
 using XCode.Membership;
 
+/*
+ * 魔方OAuth在禁用本地登录，且只设置一个第三方登录时，形成单点登录。
+ * 
+ * 验证流程：
+ *      进入登录页~/Admin/User/Login
+ *      if 允许本地登录
+ *          输入密码登录 或 选择第三方登录
+ *      else if 多个第三方登录
+ *          选择第三方登录
+ *      else
+ *          直接跳转唯一的第三方登录
+ *      登录完成，进入绑定流程
+ * 
+ * 绑定流程：
+ *      if 本地已登录
+ *          第三方绑定到当前已登录本地用户
+ *      else 允许本地登录
+ *          显示登录框，输入密码登录后绑定
+ *          或 直接进入，自动注册本地用户
+ *      else
+ *          直接进入，自动注册本地用户
+ */
+
 namespace NewLife.Cube.Controllers
 {
     /// <summary>单点登录控制器</summary>
