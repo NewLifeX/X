@@ -217,6 +217,7 @@ namespace NewLife.Web
                 if (dic.ContainsKey("id")) UserID = dic["id"].Trim('\"').ToLong();
                 if (dic.ContainsKey("login")) UserName = dic["login"].Trim();
                 if (dic.ContainsKey("name")) NickName = dic["name"].Trim();
+                if (dic.ContainsKey("avatar_url")) Avatar = dic["avatar_url"].Trim();
             };
 
             set.SaveAsync();
