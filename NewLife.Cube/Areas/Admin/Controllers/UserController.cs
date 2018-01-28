@@ -5,8 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using System.Web.Security;
-using NewLife.Cube.Web;
-using NewLife.Log;
 using NewLife.Web;
 using XCode;
 using XCode.Membership;

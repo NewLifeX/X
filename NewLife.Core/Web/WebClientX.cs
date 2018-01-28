@@ -305,7 +305,8 @@ namespace NewLife.Web
             var source = new CancellationTokenSource(time);
             var task = content != null ? http.PostAsync(address, content, source.Token) : http.GetAsync(address, source.Token);
             var rs = await task;
-            Response = rs.EnsureSuccessStatusCode();
+            //Response = rs.EnsureSuccessStatusCode();
+            Response = rs;
             SetCookie();
 
             // 修改引用地址

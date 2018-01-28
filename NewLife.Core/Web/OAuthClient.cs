@@ -155,7 +155,7 @@ namespace NewLife.Web
             var mi = set.GetOrAdd("Baidu");
             mi.Enable = true;
 
-            var url = "http://openapi.baidu.com/oauth/2.0/";
+            var url = "https://openapi.baidu.com/oauth/2.0/";
             if (!mi.Server.IsNullOrEmpty()) url = mi.Server.EnsureEnd("/");
 
             AuthUrl = url + "authorize?response_type={response_type}&client_id={key}&redirect_uri={redirect}&state={state}&scope={scope}";

@@ -2,9 +2,12 @@
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using NewLife.Cube.Entity;
 using NewLife.Cube.Web;
 using NewLife.Log;
 using NewLife.Model;
+using NewLife.Security;
+using NewLife.Serialization;
 using NewLife.Web;
 using XCode.Membership;
 
@@ -19,7 +22,11 @@ using XCode.Membership;
  *          选择第三方登录
  *      else
  *          直接跳转唯一的第三方登录
- *      登录完成，进入绑定流程
+ *      登录完成
+ *      if 有绑定用户
+ *          登录完成，跳转来源页
+ *      else
+ *          进入绑定流程
  * 
  * 绑定流程：
  *      if 本地已登录
@@ -92,7 +99,7 @@ namespace NewLife.Cube.Controllers
         /// <param name="state"></param>
         /// <returns></returns>
         [AllowAnonymous]
-        public virtual async Task<ActionResult> LoginInfo(String code, String state)
+        public virtual ActionResult LoginInfo(String code, String state)
         {
             // 异步会导致HttpContext.Current.Session为空无法赋值
             var ss = Session;
@@ -104,7 +111,8 @@ namespace NewLife.Cube.Controllers
             redirect = OAuthHelper.GetUrl(redirect, returnUrl);
             client.Authorize(redirect, client.Name);
 
-            await client.GetAccessToken(code);
+            Task.Run(() => client.GetAccessToken(code)).Wait();
+
             // 如果拿不到访问令牌，则重新跳转
             if (client.AccessToken.IsNullOrEmpty())
             {
@@ -115,18 +123,18 @@ namespace NewLife.Cube.Controllers
             }
 
             // 获取OpenID。部分提供商不需要
-            if (!client.OpenIDUrl.IsNullOrEmpty()) await client.GetOpenID();
+            if (!client.OpenIDUrl.IsNullOrEmpty()) Task.Run(() => client.GetOpenID()).Wait();
 
             // 获取用户信息
-            if (!client.UserUrl.IsNullOrEmpty()) await client.GetUserInfo();
+            if (!client.UserUrl.IsNullOrEmpty()) Task.Run(() => client.GetUserInfo()).Wait();
 
             var url = OnLogin(client);
 
             if (!url.IsNullOrEmpty()) return Redirect(url);
 
-            //return RedirectToAction("Index", "Index", new { page = returnUrl });
-            var msg = $"{client.Name} 登录成功！<br/>{client.UserID} {client.UserName} {client.NickName} {client.OpenID} {client.AccessToken} <br/><img src=\"{client.Avatar}\"/> ";
-            return Content(msg);
+            return RedirectToAction("Index", "Index", new { page = returnUrl });
+            //var msg = $"{client.Name} 登录成功！<br/>{client.UserID} {client.UserName} {client.NickName} OpenID={client.OpenID} AccessToken={client.AccessToken} <br/><img src=\"{client.Avatar}\"/> ";
+            //return Content(msg);
         }
 
         /// <summary>登录成功</summary>
@@ -144,12 +152,65 @@ namespace NewLife.Cube.Controllers
             //// 保存信息
             //user.SaveAsync();
 
+            var openid = client.OpenID;
+            if (openid.IsNullOrEmpty()) openid = client.UserName;
+
+            // 根据OpenID找到用户绑定信息
+            var uc = UserConnect.FindByProviderAndOpenID(client.Name, openid);
+            if (uc == null) uc = new UserConnect { Provider = client.Name, OpenID = openid };
+
+            if (!client.NickName.IsNullOrEmpty()) uc.NickName = client.NickName;
+            if (!client.Avatar.IsNullOrEmpty()) uc.Avatar = client.Avatar;
+
+            uc.LinkID = client.UserID;
+            //ub.OpenID = client.OpenID;
+            uc.AccessToken = client.AccessToken;
+            uc.RefreshToken = client.RefreshToken;
+            uc.Expire = client.Expire;
+
+            if (client.Items != null) uc.Remark = client.Items.ToJson();
+
+            var user = Provider.FindByID(uc.UserID);
+
+            // 如果未绑定
+            if (user == null || !uc.Enable) user = OnBind(uc);
+
+            // 修正昵称
+            if (!uc.NickName.IsNullOrEmpty() && user.NickName.IsNullOrEmpty())
+            {
+                user.NickName = uc.NickName;
+                user.Save();
+            }
+
+            uc.Save();
+
+            if (!user.Enable) throw new InvalidOperationException("用户已禁用！");
+
+            Provider.Current = user;
+
             XTrace.WriteLine("{0} {1} {2} {3} 登录成功", client.UserID, client.UserName, client.NickName, client.OpenID);
 
             var returnUrl = Request["returnUrl"];
             if (Url.IsLocalUrl(returnUrl)) return returnUrl;
 
-            return null;
+            //return null;
+            return "~/Admin";
+        }
+
+        /// <summary>绑定用户</summary>
+        /// <param name="uc"></param>
+        protected virtual IManageUser OnBind(UserConnect uc)
+        {
+            var username = uc.Provider + "_" + uc.OpenID;
+            // 如果未登录，需要注册一个
+            var user = Provider.Current;
+            if (user == null) user = Provider.FindByName(username);
+            if (user == null) user = Provider.Register(username, Rand.NextString(16), null, true);
+
+            uc.UserID = user.ID;
+            uc.Enable = true;
+
+            return user;
         }
         #endregion
 
