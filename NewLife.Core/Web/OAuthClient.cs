@@ -188,7 +188,7 @@ namespace NewLife.Web
         /// <summary>根据授权码获取访问令牌</summary>
         /// <param name="code"></param>
         /// <returns></returns>
-        public virtual async Task<String> GetAccessToken(String code)
+        public virtual String GetAccessToken(String code)
         {
             if (code.IsNullOrEmpty()) throw new ArgumentNullException(nameof(code), "未设置授权码");
 
@@ -197,7 +197,7 @@ namespace NewLife.Web
             var url = GetUrl(AccessUrl);
             WriteLog("GetAccessToken {0}", url);
 
-            var html = await Request(url);
+            var html = Request(url);
             if (html.IsNullOrEmpty()) return null;
 
             html = html.Trim();
@@ -225,14 +225,14 @@ namespace NewLife.Web
 
         /// <summary>根据授权码获取访问令牌</summary>
         /// <returns></returns>
-        public virtual async Task<String> GetOpenID()
+        public virtual String GetOpenID()
         {
             if (AccessToken.IsNullOrEmpty()) throw new ArgumentNullException(nameof(AccessToken), "未设置授权码");
 
             var url = GetUrl(OpenIDUrl);
             WriteLog("GetOpenID {0}", url);
 
-            var html = await Request(url);
+            var html = Request(url);
             if (html.IsNullOrEmpty()) return null;
 
             html = html.Trim();
@@ -270,7 +270,7 @@ namespace NewLife.Web
 
         /// <summary>获取用户信息</summary>
         /// <returns></returns>
-        public virtual async Task<String> GetUserInfo()
+        public virtual String GetUserInfo()
         {
             var url = UserUrl;
             if (url.IsNullOrEmpty()) throw new ArgumentNullException(nameof(UserUrl), "未设置用户信息地址");
@@ -278,7 +278,7 @@ namespace NewLife.Web
             url = GetUrl(url);
             WriteLog("GetUserInfo {0}", url);
 
-            var html = await Request(url);
+            var html = Request(url);
             if (html.IsNullOrEmpty()) return null;
 
             html = html.Trim();
@@ -376,12 +376,15 @@ namespace NewLife.Web
         /// <summary>最后一次请求的响应内容</summary>
         public String LastHtml { get; set; }
 
+        private WebClientX _Client;
         /// <summary>创建客户端</summary>
         /// <param name="url">路径</param>
         /// <returns></returns>
-        protected virtual async Task<String> Request(String url)
+        protected virtual String Request(String url)
         {
-            return LastHtml = await WebClientX.GetStringAsync(url);
+            if (_Client == null) _Client = new WebClientX();
+
+            return LastHtml = _Client.GetHtml(url);
         }
 
         /// <summary>从响应数据中获取信息</summary>

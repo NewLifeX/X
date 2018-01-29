@@ -42,7 +42,7 @@ namespace NewLife.Web.OAuth
         /// <summary>创建客户端</summary>
         /// <param name="url">路径</param>
         /// <returns></returns>
-        protected override async Task<String> Request(String url)
+        protected override String Request(String url)
         {
             if (_Client == null)
             {
@@ -52,7 +52,7 @@ namespace NewLife.Web.OAuth
                 // 必须指定中文编码
                 _Client = new WebClientX(true, true);
             }
-            return LastHtml = await _Client.DownloadStringAsync(url);
+            return LastHtml = _Client.GetHtml(url);
         }
     }
 }

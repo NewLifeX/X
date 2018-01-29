@@ -113,38 +113,33 @@ namespace NewLife.Cube.Controllers
         [AllowAnonymous]
         public virtual ActionResult LoginInfo(String code, String state)
         {
-            // 异步会导致HttpContext.Current.Session为空无法赋值
-            var ss = Session;
             var returnUrl = Request["returnUrl"];
 
             var client = GetClient(state + "");
             var redirect = GetRedirect(returnUrl);
             client.Authorize(redirect, null, Request.GetRawUrl());
 
-            Task.Run(() => client.GetAccessToken(code)).Wait();
+            client.GetAccessToken(code);
 
             // 如果拿不到访问令牌，则重新跳转
             if (client.AccessToken.IsNullOrEmpty())
             {
                 XTrace.WriteLine("拿不到访问令牌，重新跳转 code={0} state={1}", code, state);
 
-                //return Redirect(OAuthHelper.GetUrl("Login"));
                 return RedirectToAction("Login", new { name = client.Name, returnUrl });
             }
 
             // 获取OpenID。部分提供商不需要
-            if (!client.OpenIDUrl.IsNullOrEmpty()) Task.Run(() => client.GetOpenID()).Wait();
+            if (!client.OpenIDUrl.IsNullOrEmpty()) client.GetOpenID();
 
             // 获取用户信息
-            if (!client.UserUrl.IsNullOrEmpty()) Task.Run(() => client.GetUserInfo()).Wait();
+            if (!client.UserUrl.IsNullOrEmpty()) client.GetUserInfo();
 
             var url = OnLogin(client);
 
             if (!url.IsNullOrEmpty()) return Redirect(url);
 
             return RedirectToAction("Index", "Index", new { page = returnUrl });
-            //var msg = $"{client.Name} 登录成功！<br/>{client.UserID} {client.UserName} {client.NickName} OpenID={client.OpenID} AccessToken={client.AccessToken} <br/><img src=\"{client.Avatar}\"/> ";
-            //return Content(msg);
         }
 
         /// <summary>登录成功</summary>
