@@ -53,104 +53,100 @@ namespace ASP
   
     var set = NewLife.Cube.Setting.Current;
     var returnUrl = ViewBag.ReturnUrl as String;
+    var ms = NewLife.Web.OAuthConfig.Current.Items.Where(e => !e.AppID.IsNullOrEmpty()).ToList();
+    var dic = "NewLife=新生命,Baidu=百度,Weixin=微信,Taobao=淘宝".SplitAsDictionary("=", ",");
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n<div");
+WriteLiteral("\r\n");
+
+            
+            #line 8 "..\..\Areas\Admin\Views\User\_Login_Login3.cshtml"
+ if (ms.Count > 0)
+{
+
+            
+            #line default
+            #line hidden
+WriteLiteral("    <div");
 
 WriteLiteral(" class=\"toolbar clearfix text-center\"");
 
-WriteLiteral(">\r\n    <div");
+WriteLiteral(">\r\n        <div");
 
 WriteLiteral(" class=\"row\"");
 
 WriteLiteral(" style=\"padding-top:30px;\"");
 
-WriteLiteral(">\r\n        <span>\r\n            第三方登录：\r\n        </span>\r\n        <a");
+WriteLiteral(">\r\n            <span>\r\n                第三方登录：\r\n            </span>\r\n");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 284), Tuple.Create("\"", 335)
-            
-            #line 11 "..\..\Areas\Admin\Views\User\_Login_Login3.cshtml"
-, Tuple.Create(Tuple.Create("", 291), Tuple.Create<System.Object, System.Int32>(OAuthHelper.GetLoginUrl("Master",returnUrl)
-            
-            #line default
-            #line hidden
-, 291), false)
-);
-
-WriteLiteral(">\r\n            <i");
-
-WriteLiteral(" class=\"glyphicon glyphicon-menu-right\"");
-
-WriteLiteral("></i>\r\n            主站\r\n        </a>\r\n        <a");
-
-WriteAttribute("href", Tuple.Create(" href=\"", 439), Tuple.Create("\"", 486)
             
             #line 15 "..\..\Areas\Admin\Views\User\_Login_Login3.cshtml"
-, Tuple.Create(Tuple.Create("", 446), Tuple.Create<System.Object, System.Int32>(OAuthHelper.GetLoginUrl("QQ",returnUrl)
+            
             
             #line default
             #line hidden
-, 446), false)
-);
-
-WriteLiteral(">\r\n            <i");
-
-WriteLiteral(" class=\"glyphicon glyphicon-menu-right\"");
-
-WriteLiteral("></i>\r\n            QQ\r\n        </a>\r\n        <a");
-
-WriteAttribute("href", Tuple.Create(" href=\"", 590), Tuple.Create("\"", 641)
             
-            #line 19 "..\..\Areas\Admin\Views\User\_Login_Login3.cshtml"
-, Tuple.Create(Tuple.Create("", 597), Tuple.Create<System.Object, System.Int32>(OAuthHelper.GetLoginUrl("Weixin",returnUrl)
-            
-            #line default
-            #line hidden
-, 597), false)
-);
+            #line 15 "..\..\Areas\Admin\Views\User\_Login_Login3.cshtml"
+             foreach (var mi in ms)
+            {
+                var nickName = "";
+                if (!dic.TryGetValue(mi.Name, out nickName)) { nickName = mi.Name; }
 
-WriteLiteral(">\r\n            <i");
+                var url = "Sso/Login?name=" + mi.Name;
+                if (!returnUrl.IsNullOrEmpty()) { url += "&returnUrl=" + HttpUtility.UrlEncode(returnUrl); }
 
-WriteLiteral(" class=\"glyphicon glyphicon-menu-right\"");
+                url = HttpRuntime.AppDomainAppVirtualPath + url;
 
-WriteLiteral("></i>\r\n            微信\r\n        </a>\r\n        <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 745), Tuple.Create("\"", 795)
-            
-            #line 23 "..\..\Areas\Admin\Views\User\_Login_Login3.cshtml"
-, Tuple.Create(Tuple.Create("", 752), Tuple.Create<System.Object, System.Int32>(OAuthHelper.GetLoginUrl("Baidu",returnUrl)
             
             #line default
             #line hidden
-, 752), false)
+WriteLiteral("                <a");
+
+WriteAttribute("href", Tuple.Create(" href=\"", 933), Tuple.Create("\"", 944)
+            
+            #line 25 "..\..\Areas\Admin\Views\User\_Login_Login3.cshtml"
+, Tuple.Create(Tuple.Create("", 940), Tuple.Create<System.Object, System.Int32>(url
+            
+            #line default
+            #line hidden
+, 940), false)
 );
 
-WriteLiteral(">\r\n            <i");
+WriteLiteral(">\r\n                    <i");
 
 WriteLiteral(" class=\"glyphicon glyphicon-menu-right\"");
 
-WriteLiteral("></i>\r\n            百度\r\n        </a>\r\n        <a");
+WriteLiteral("></i>\r\n");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 899), Tuple.Create("\"", 950)
+WriteLiteral("                    ");
+
             
             #line 27 "..\..\Areas\Admin\Views\User\_Login_Login3.cshtml"
-, Tuple.Create(Tuple.Create("", 906), Tuple.Create<System.Object, System.Int32>(OAuthHelper.GetLoginUrl("Github",returnUrl)
+               Write(nickName);
+
             
             #line default
             #line hidden
-, 906), false)
-);
+WriteLiteral("\r\n                </a>\r\n");
 
-WriteLiteral(">\r\n            <i");
+            
+            #line 29 "..\..\Areas\Admin\Views\User\_Login_Login3.cshtml"
+            }
 
-WriteLiteral(" class=\"glyphicon glyphicon-menu-right\"");
+            
+            #line default
+            #line hidden
+WriteLiteral("        </div>\r\n    </div>\r\n");
 
-WriteLiteral("></i>\r\n            Github\r\n        </a>\r\n        ");
-
-WriteLiteral("\r\n    </div>\r\n</div>");
-
+            
+            #line 32 "..\..\Areas\Admin\Views\User\_Login_Login3.cshtml"
+}
+            
+            #line default
+            #line hidden
         }
     }
 }

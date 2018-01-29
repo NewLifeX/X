@@ -35,6 +35,10 @@ namespace NewLife.Cube
         [Description("默认角色。注册用户得到的角色")]
         public Int32 DefaultRole { get; set; } = 3;
 
+        /// <summary>启用密码登录</summary>
+        [Description("启用密码登录")]
+        public Boolean AllowLogin { get; set; } = true;
+
         /// <summary>启用注册</summary>
         [Description("启用注册")]
         public Boolean AllowRegister { get; set; } = true;

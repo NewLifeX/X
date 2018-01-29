@@ -174,7 +174,7 @@ namespace NewLife.Cube.Controllers
 
             Provider.Current = user;
 
-            XTrace.WriteLine("{0} {1} {2} {3} 登录成功", client.UserID, client.UserName, client.NickName, client.OpenID);
+            //XTrace.WriteLine("{0} {1} {2} {3} 登录成功", client.UserID, client.UserName, client.NickName, client.OpenID);
 
             var returnUrl = Request["returnUrl"];
             if (Url.IsLocalUrl(returnUrl)) return returnUrl;

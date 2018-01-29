@@ -173,21 +173,39 @@ WriteLiteral(" class=\"tab-content\"");
 
 WriteLiteral(">\r\n");
 
-WriteLiteral("                    ");
-
             
             #line 49 "..\..\Areas\Admin\Views\User\Login.cshtml"
+                    
+            
+            #line default
+            #line hidden
+            
+            #line 49 "..\..\Areas\Admin\Views\User\Login.cshtml"
+                     if (NewLife.Cube.Setting.Current.AllowLogin)
+                    {
+                    
+            
+            #line default
+            #line hidden
+            
+            #line 51 "..\..\Areas\Admin\Views\User\Login.cshtml"
                Write(Html.Partial("_Login_Login"));
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n");
+            
+            #line 51 "..\..\Areas\Admin\Views\User\Login.cshtml"
+                                                 
+                    }
 
+            
+            #line default
+            #line hidden
 WriteLiteral("                    ");
 
             
-            #line 50 "..\..\Areas\Admin\Views\User\Login.cshtml"
+            #line 53 "..\..\Areas\Admin\Views\User\Login.cshtml"
                Write(Html.Partial("_Login_Login3"));
 
             
@@ -198,7 +216,7 @@ WriteLiteral("\r\n");
 WriteLiteral("                    ");
 
             
-            #line 51 "..\..\Areas\Admin\Views\User\Login.cshtml"
+            #line 54 "..\..\Areas\Admin\Views\User\Login.cshtml"
                Write(Html.Partial("_Login_Forgot"));
 
             
@@ -209,7 +227,7 @@ WriteLiteral("\r\n");
 WriteLiteral("                    ");
 
             
-            #line 52 "..\..\Areas\Admin\Views\User\Login.cshtml"
+            #line 55 "..\..\Areas\Admin\Views\User\Login.cshtml"
                Write(Html.Partial("_Login_Register"));
 
             
@@ -218,16 +236,16 @@ WriteLiteral("                    ");
 WriteLiteral("\r\n                </div>\r\n            </div>\r\n        </div>\r\n    </div>\r\n    <!-" +
 "- JQuery作为一等公民，页面内部随时可能使用 -->\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 3631), Tuple.Create("\"", 3669)
-, Tuple.Create(Tuple.Create("", 3637), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery-2.1.3.min.js")
-, 3637), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 3744), Tuple.Create("\"", 3782)
+, Tuple.Create(Tuple.Create("", 3750), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery-2.1.3.min.js")
+, 3750), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 3693), Tuple.Create("\"", 3738)
-, Tuple.Create(Tuple.Create("", 3699), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/js/bootstrap.min.js")
-, 3699), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 3806), Tuple.Create("\"", 3851)
+, Tuple.Create(Tuple.Create("", 3812), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/js/bootstrap.min.js")
+, 3812), false)
 );
 
 WriteLiteral(@"></script>

@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Mvc;
 using System.Web.Security;
 using NewLife.Cube.Entity;
@@ -66,6 +68,22 @@ namespace NewLife.Cube.Admin.Controllers
                     return RedirectToAction("Index", "Index", new { page = returnUrl });
             }
 
+            // 如果禁用本地登录，且只有一个第三方登录，直接跳转，构成单点登录
+            if (!Setting.Current.AllowLogin)
+            {
+                var ms = OAuthConfig.Current.Items.Where(e => !e.AppID.IsNullOrEmpty()).ToList();
+                if (ms.Count == 0) throw new Exception("禁用了本地密码登录，且没有配置第三方登录");
+
+                // 只有一个，跳转
+                if (ms.Count == 1)
+                {
+                    var url = $"~/Sso/Login?name={ms[0].Name}";
+                    if (!returnUrl.IsNullOrEmpty()) url += "?returnUrl=" + HttpUtility.UrlEncode(returnUrl);
+
+                    return Redirect(url);
+                }
+            }
+
             ViewBag.ReturnUrl = returnUrl;
 
             return View();
@@ -109,12 +127,15 @@ namespace NewLife.Cube.Admin.Controllers
         }
 
         /// <summary>注销</summary>
+        /// <param name="returnUrl"></param>
         /// <returns></returns>
         [AllowAnonymous]
-        public ActionResult Logout()
+        public ActionResult Logout(String returnUrl)
         {
             ManageProvider.User?.Logout();
             //ManageProvider.User = null;
+
+            if (!returnUrl.IsNullOrEmpty()) return Redirect(returnUrl);
 
             return RedirectToAction("Login");
         }
