@@ -65,10 +65,10 @@ namespace NewLife.Cube.Controllers
         /// <returns></returns>
         protected virtual OAuthClient GetClient(String name)
         {
-            var sso = new OAuthClient();
-            sso.Apply(name, Request.GetRawUrl() + "");
+            var client = OAuthClient.Create(name);
+            //client.Apply(name, Request.GetRawUrl() + "");
 
-            return sso;
+            return client;
         }
 
         /// <summary>第三方登录</summary>
@@ -82,14 +82,15 @@ namespace NewLife.Cube.Controllers
 
             var redirect = "~/Sso/LoginInfo";
 
+            var buri = Request.GetRawUrl();
             if (!returnUrl.IsNullOrEmpty() && returnUrl.StartsWithIgnoreCase("http"))
             {
                 var uri = new Uri(returnUrl);
-                if (uri != null && uri.Host.EqualIgnoreCase(Request.Url.Host)) returnUrl = uri.PathAndQuery;
+                if (uri != null && uri.Host.EqualIgnoreCase(buri.Host)) returnUrl = uri.PathAndQuery;
             }
 
             redirect = OAuthHelper.GetUrl(redirect, returnUrl);
-            var url = client.Authorize(redirect, client.Name);
+            var url = client.Authorize(redirect, client.Name, buri);
 
             return Redirect(url);
         }
@@ -107,9 +108,10 @@ namespace NewLife.Cube.Controllers
 
             var client = GetClient(state + "");
 
+            var buri = Request.GetRawUrl();
             var redirect = "~/Sso/LoginInfo";
             redirect = OAuthHelper.GetUrl(redirect, returnUrl);
-            client.Authorize(redirect, client.Name);
+            client.Authorize(redirect, client.Name, buri);
 
             Task.Run(() => client.GetAccessToken(code)).Wait();
 

@@ -4,12 +4,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using NewLife.Log;
+using NewLife.Reflection;
 using NewLife.Security;
 using NewLife.Serialization;
 
 namespace NewLife.Web
 {
-    /// <summary>OAuth 2.0</summary>
+    /// <summary>OAuth 2.0 客户端</summary>
     public class OAuthClient
     {
         #region 属性
@@ -27,18 +28,6 @@ namespace NewLife.Web
 
         /// <summary>访问令牌地址</summary>
         public String AccessUrl { get; set; }
-
-        /// <summary>基础地址。用于相对路径生成完整绝对路径</summary>
-        /// <remarks>
-        /// 为了解决反向代理问题，可调用WebHelper.GetRawUrl取得原始访问地址作为基础地址。
-        /// </remarks>
-        public String BaseUrl { get; set; }
-
-        /// <summary>重定向地址</summary>
-        /// <remarks>
-        /// 某些提供商（如百度）会在获取AccessToken时要求传递与前面一致的重定向地址
-        /// </remarks>
-        public String RedirectUri { get; set; }
 
         /// <summary>响应类型</summary>
         /// <remarks>
@@ -71,11 +60,48 @@ namespace NewLife.Web
         public IDictionary<String, String> Items { get; private set; }
         #endregion
 
+        #region 构造
+        /// <summary>实例化</summary>
+        public OAuthClient()
+        {
+            Name = GetType().Name.TrimEnd("Client");
+        }
+        #endregion
+
+        #region 静态创建
+        private static IDictionary<String, Type> _map;
+        /// <summary>根据名称创建客户端</summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public static OAuthClient Create(String name)
+        {
+            // 初始化映射表
+            if (_map == null)
+            {
+                var dic = new Dictionary<String, Type>(StringComparer.OrdinalIgnoreCase);
+                foreach (var item in typeof(OAuthClient).GetAllSubclasses(true))
+                {
+                    var key = item.Name.TrimEnd("Client");
+                    dic[key] = item;
+                }
+
+                _map = dic;
+            }
+
+            if (!_map.TryGetValue(name, out var type)) throw new Exception($"找不到[{name}]的OAuth客户端");
+
+            var client = type.CreateInstance() as OAuthClient;
+            //client.Name = name;
+            client.Apply(name);
+
+            return client;
+        }
+        #endregion
+
         #region 方法
         /// <summary>应用参数设置</summary>
         /// <param name="name"></param>
-        /// <param name="baseUrl"></param>
-        public void Apply(String name, String baseUrl = null)
+        public void Apply(String name)
         {
             var set = OAuthConfig.Current;
             var ms = set.Items;
@@ -86,10 +112,9 @@ namespace NewLife.Web
             if (name.IsNullOrEmpty()) mi = ms.FirstOrDefault(e => e.Enable);
             if (mi == null) throw new InvalidOperationException($"未找到有效的OAuth服务端设置[{name}]");
 
-            name = mi.Name;
+            Name = mi.Name;
 
             if (set.Debug) Log = XTrace.Log;
-            BaseUrl = baseUrl;
 
             Apply(mi);
         }
@@ -102,140 +127,18 @@ namespace NewLife.Web
             Key = mi.AppID;
             Secret = mi.Secret;
             Scope = mi.Scope;
-
-            switch (mi.Name.ToLower())
-            {
-                case "qq": SetQQ(); break;
-                case "baidu": SetBaidu(); break;
-                case "taobao": SetTaobao(); break;
-                case "github": SetGithub(); break;
-            }
-        }
-        #endregion
-
-        #region 默认提供者
-        /// <summary>设置为QQ专属地址</summary>
-        public void SetQQ()
-        {
-            var set = OAuthConfig.Current;
-            var mi = set.GetOrAdd("QQ");
-            mi.Enable = true;
-
-            var url = "https://graph.qq.com/oauth2.0/";
-            if (!mi.Server.IsNullOrEmpty()) url = mi.Server.EnsureEnd("/");
-
-            AuthUrl = url + "authorize?response_type={response_type}&client_id={key}&redirect_uri={redirect}&state={state}&scope={scope}";
-            AccessUrl = url + "token?grant_type=authorization_code&client_id={key}&client_secret={secret}&code={code}&state={state}&redirect_uri={redirect}";
-            OpenIDUrl = url + "me?access_token={token}";
-            UserUrl = "https://graph.qq.com/user/get_user_info?access_token={token}&oauth_consumer_key={key}&openid={openid}";
-
-            _OnGetUserInfo = dic =>
-            {
-                if (dic.ContainsKey("nickname")) NickName = dic["nickname"].Trim();
-
-                // 从大到小找头像
-                var avs = "figureurl_qq_2,figureurl_qq_1,figureurl_2,figureurl_1,figureurl".Split(",");
-                foreach (var item in avs)
-                {
-                    if (dic.TryGetValue(item, out var av) && !av.IsNullOrEmpty())
-                    {
-                        Avatar = av.Trim();
-                        break;
-                    }
-                }
-            };
-
-            set.SaveAsync();
-        }
-
-        /// <summary>设置百度</summary>
-        public void SetBaidu()
-        {
-            var set = OAuthConfig.Current;
-            var mi = set.GetOrAdd("Baidu");
-            mi.Enable = true;
-
-            var url = "https://openapi.baidu.com/oauth/2.0/";
-            if (!mi.Server.IsNullOrEmpty()) url = mi.Server.EnsureEnd("/");
-
-            AuthUrl = url + "authorize?response_type={response_type}&client_id={key}&redirect_uri={redirect}&state={state}&scope={scope}";
-            AccessUrl = url + "token?grant_type=authorization_code&client_id={key}&client_secret={secret}&code={code}&state={state}&redirect_uri={redirect}";
-            UserUrl = "https://openapi.baidu.com/rest/2.0/passport/users/getLoggedInUser?access_token={token}";
-
-            _OnGetUserInfo = dic =>
-            {
-                if (dic.ContainsKey("uid")) UserID = dic["uid"].Trim().ToLong();
-                if (dic.ContainsKey("uname")) UserName = dic["uname"].Trim();
-
-                // small image: http://tb.himg.baidu.com/sys/portraitn/item/{$portrait}
-                // large image: http://tb.himg.baidu.com/sys/portrait/item/{$portrait}
-                if (dic.ContainsKey("portrait")) Avatar = "http://tb.himg.baidu.com/sys/portrait/item/" + dic["portrait"].Trim();
-            };
-
-            set.SaveAsync();
-        }
-
-        /// <summary>设置淘宝</summary>
-        public void SetTaobao()
-        {
-            var set = OAuthConfig.Current;
-            var mi = set.GetOrAdd("Taobao");
-            mi.Enable = true;
-
-            var url = "https://oauth.taobao.com/";
-            if (!mi.Server.IsNullOrEmpty()) url = mi.Server.EnsureEnd("/");
-
-            AuthUrl = url + "authorize?response_type={response_type}&client_id={key}&redirect_uri={redirect}&state={state}&scope={scope}";
-            AccessUrl = url + "token?grant_type=authorization_code&client_id={key}&client_secret={secret}&code={code}&state={state}&redirect_uri={redirect}";
-            //UserUrl = "https://openapi.baidu.com/rest/2.0/passport/users/getLoggedInUser?access_token={token}";
-
-            _OnGetUserInfo = dic =>
-            {
-                if (dic.ContainsKey("taobao_user_id")) UserID = dic["taobao_user_id"].Trim('\"').ToLong();
-                if (dic.ContainsKey("taobao_user_nick")) UserName = dic["taobao_user_nick"].Trim();
-            };
-
-            set.SaveAsync();
-        }
-
-        /// <summary>设置Github</summary>
-        public void SetGithub()
-        {
-            var set = OAuthConfig.Current;
-            var mi = set.GetOrAdd("Github");
-            mi.Enable = true;
-
-            var url = "https://github.com/login/oauth/";
-            if (!mi.Server.IsNullOrEmpty()) url = mi.Server.EnsureEnd("/");
-
-            AuthUrl = url + "authorize?response_type={response_type}&client_id={key}&redirect_uri={redirect}&state={state}&scope={scope}";
-            AccessUrl = url + "access_token?grant_type=authorization_code&client_id={key}&client_secret={secret}&code={code}&state={state}&redirect_uri={redirect}";
-            UserUrl = "https://api.github.com/user?access_token={token}";
-
-            _OnGetUserInfo = dic =>
-            {
-                if (dic.ContainsKey("id")) UserID = dic["id"].Trim('\"').ToLong();
-                if (dic.ContainsKey("login")) UserName = dic["login"].Trim();
-                if (dic.ContainsKey("name")) NickName = dic["name"].Trim();
-                if (dic.ContainsKey("avatar_url")) Avatar = dic["avatar_url"].Trim();
-            };
-
-            set.SaveAsync();
-
-            // 允许宽松头部
-            WebClientX.SetAllowUnsafeHeaderParsing(true);
-
-            if (_Client == null) _Client = new WebClientX(true, true);
         }
         #endregion
 
         #region 1-跳转验证
+        private String _redirect;
         private String _state;
 
         /// <summary>跳转验证</summary>
         /// <param name="redirect">验证完成后调整的目标地址</param>
         /// <param name="state">用户状态数据</param>
-        public virtual String Authorize(String redirect, String state = null)
+        /// <param name="baseUri">相对地址的基地址</param>
+        public virtual String Authorize(String redirect, String state = null, Uri baseUri = null)
         {
             if (redirect.IsNullOrEmpty()) throw new ArgumentNullException(nameof(redirect));
 
@@ -249,19 +152,13 @@ namespace NewLife.Web
             if (redirect.StartsWith("~/")) redirect = HttpRuntime.AppDomainAppVirtualPath.EnsureEnd("/") + redirect.Substring(2);
             if (redirect.StartsWith("/"))
             {
-                var burl = BaseUrl;
-                if (burl.IsNullOrEmpty()) throw new ArgumentNullException(nameof(BaseUrl), "使用相对跳转地址时，需要设置BaseUrl");
-                // 从Http请求头中取出原始主机名和端口
-                //var request = HttpContext.Current.Request;
-                //var uri = request.GetRawUrl();
+                if (baseUri == null) throw new ArgumentNullException(nameof(baseUri), "使用相对跳转地址时，需要设置BaseUrl");
 
-                var uri = new Uri(new Uri(BaseUrl), redirect);
+                var uri = new Uri(baseUri, redirect);
                 redirect = uri.ToString();
             }
-
-            //if (redirect.Contains("/")) redirect = HttpUtility.UrlEncode(redirect);
 #endif
-            RedirectUri = redirect;
+            _redirect = redirect;
             _state = state;
 
             var url = GetUrl(AuthUrl);
@@ -301,7 +198,8 @@ namespace NewLife.Web
                 if (dic.ContainsKey("refresh_token")) RefreshToken = dic["refresh_token"].Trim();
                 if (dic.ContainsKey("openid")) OpenID = dic["openid"].Trim();
 
-                _OnGetUserInfo?.Invoke(dic);
+                //_OnGetUserInfo?.Invoke(dic);
+                OnGetInfo(dic);
             }
             Items = dic;
 
@@ -334,7 +232,8 @@ namespace NewLife.Web
                 if (dic.ContainsKey("expires_in")) Expire = DateTime.Now.AddSeconds(dic["expires_in"].Trim().ToInt());
                 if (dic.ContainsKey("openid")) OpenID = dic["openid"].Trim();
 
-                _OnGetUserInfo?.Invoke(dic);
+                //_OnGetUserInfo?.Invoke(dic);
+                OnGetInfo(dic);
             }
             Items = dic;
 
@@ -358,8 +257,6 @@ namespace NewLife.Web
         /// <summary>头像</summary>
         public String Avatar { get; set; }
 
-        private Action<IDictionary<String, String>> _OnGetUserInfo;
-
         /// <summary>获取用户信息</summary>
         /// <returns></returns>
         public virtual async Task<String> GetUserInfo()
@@ -382,12 +279,14 @@ namespace NewLife.Web
                 if (dic.ContainsKey("uid")) UserID = dic["uid"].Trim().ToLong();
                 if (dic.ContainsKey("userid")) UserID = dic["userid"].Trim().ToLong();
                 if (dic.ContainsKey("user_id")) UserID = dic["user_id"].Trim().ToLong();
+                if (dic.ContainsKey("name")) UserName = dic["name"].Trim();
                 if (dic.ContainsKey("username")) UserName = dic["username"].Trim();
                 if (dic.ContainsKey("user_name")) UserName = dic["user_name"].Trim();
                 if (dic.ContainsKey("nickname")) NickName = dic["nickname"].Trim();
-                if (dic.ContainsKey("openid")) OpenID = dic["openid"].Trim();
 
-                _OnGetUserInfo?.Invoke(dic);
+                //_OnGetUserInfo?.Invoke(dic);
+                OnGetInfo(dic);
+
                 //Items = dic;
                 // 合并字典
                 if (Items == null)
@@ -418,7 +317,7 @@ namespace NewLife.Web
                .Replace("{token}", AccessToken)
                .Replace("{code}", Code)
                .Replace("{openid}", OpenID)
-               .Replace("{redirect}", HttpUtility.UrlEncode(RedirectUri + ""))
+               .Replace("{redirect}", HttpUtility.UrlEncode(_redirect + ""))
                .Replace("{scope}", Scope)
                .Replace("{state}", _state);
 
@@ -453,16 +352,19 @@ namespace NewLife.Web
         /// <summary>最后一次请求的响应内容</summary>
         public String LastHtml { get; set; }
 
-        private WebClientX _Client;
-
         /// <summary>创建客户端</summary>
         /// <param name="url">路径</param>
         /// <returns></returns>
         protected virtual async Task<String> Request(String url)
         {
-            if (_Client != null) return LastHtml = await _Client.DownloadStringAsync(url);
-
             return LastHtml = await WebClientX.GetStringAsync(url);
+        }
+
+        /// <summary>从响应数据中获取信息</summary>
+        /// <param name="dic"></param>
+        protected virtual void OnGetInfo(IDictionary<String, String> dic)
+        {
+            if (dic.ContainsKey("openid")) OpenID = dic["openid"].Trim();
         }
         #endregion
 

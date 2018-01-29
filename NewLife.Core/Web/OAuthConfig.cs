@@ -115,9 +115,9 @@ namespace NewLife.Web
         [XmlAttribute]
         public Boolean Enable { get; set; }
 
-        /// <summary>服务地址</summary>
-        [XmlAttribute]
-        public String Server { get; set; }
+        ///// <summary>服务地址</summary>
+        //[XmlAttribute]
+        //public String Server { get; set; }
 
         /// <summary>应用标识</summary>
         [XmlAttribute]
