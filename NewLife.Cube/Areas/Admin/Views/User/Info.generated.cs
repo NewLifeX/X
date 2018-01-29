@@ -14,10 +14,15 @@ namespace ASP
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using System.Linq;
-    using System.Net;
     
     #line 2 "..\..\Areas\Admin\Views\User\Info.cshtml"
+    using System.Linq;
+    
+    #line default
+    #line hidden
+    using System.Net;
+    
+    #line 3 "..\..\Areas\Admin\Views\User\Info.cshtml"
     using System.Reflection;
     
     #line default
@@ -34,16 +39,22 @@ namespace ASP
     using System.Web.WebPages;
     using NewLife;
     using NewLife.Cube;
+    
+    #line 6 "..\..\Areas\Admin\Views\User\Info.cshtml"
+    using NewLife.Cube.Entity;
+    
+    #line default
+    #line hidden
     using NewLife.Reflection;
     using NewLife.Web;
     
-    #line 3 "..\..\Areas\Admin\Views\User\Info.cshtml"
+    #line 4 "..\..\Areas\Admin\Views\User\Info.cshtml"
     using XCode;
     
     #line default
     #line hidden
     
-    #line 4 "..\..\Areas\Admin\Views\User\Info.cshtml"
+    #line 5 "..\..\Areas\Admin\Views\User\Info.cshtml"
     using XCode.Configuration;
     
     #line default
@@ -60,10 +71,13 @@ namespace ASP
         public override void Execute()
         {
             
-            #line 5 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 7 "..\..\Areas\Admin\Views\User\Info.cshtml"
   
     var fact = EntityFactory.CreateOperate(ViewData.ModelMetadata.ModelType);
     var user = Model as IUser;
+
+    var ms = NewLife.Web.OAuthConfig.Current.Items.Where(e => !e.AppID.IsNullOrEmpty()).ToList();
+    var binds = ViewBag.Binds as IList<UserConnect>;
 
             
             #line default
@@ -83,13 +97,13 @@ WriteLiteral(" class=\"form-horizontal\"");
 WriteLiteral(">\r\n");
 
             
-            #line 12 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 17 "..\..\Areas\Admin\Views\User\Info.cshtml"
             
             
             #line default
             #line hidden
             
-            #line 12 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 17 "..\..\Areas\Admin\Views\User\Info.cshtml"
              if (ViewBag.StatusMessage != null)
             {
 
@@ -119,7 +133,7 @@ WriteLiteral(" aria-hidden=\"true\"");
 WriteLiteral(">&times;</span></button>\r\n                    <strong>");
 
             
-            #line 16 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 21 "..\..\Areas\Admin\Views\User\Info.cshtml"
                        Write(ViewBag.StatusMessage);
 
             
@@ -128,7 +142,7 @@ WriteLiteral(">&times;</span></button>\r\n                    <strong>");
 WriteLiteral("</strong>\r\n                </div>\r\n");
 
             
-            #line 18 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 23 "..\..\Areas\Admin\Views\User\Info.cshtml"
             }
 
             
@@ -137,7 +151,7 @@ WriteLiteral("</strong>\r\n                </div>\r\n");
 WriteLiteral("            ");
 
             
-            #line 19 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 24 "..\..\Areas\Admin\Views\User\Info.cshtml"
              using (Html.BeginForm("Info", null, new { id = Model[fact.Unique.Name] }))
             {
                 
@@ -145,14 +159,14 @@ WriteLiteral("            ");
             #line default
             #line hidden
             
-            #line 21 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 26 "..\..\Areas\Admin\Views\User\Info.cshtml"
            Write(Html.ValidationSummary());
 
             
             #line default
             #line hidden
             
-            #line 21 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 26 "..\..\Areas\Admin\Views\User\Info.cshtml"
                                          
 
             
@@ -172,14 +186,14 @@ WriteLiteral(" class=\"input-group col-md-6\"");
 
 WriteLiteral(">\r\n                        <input");
 
-WriteAttribute("value", Tuple.Create(" value=\"", 1055), Tuple.Create("\"", 1073)
+WriteAttribute("value", Tuple.Create(" value=\"", 1259), Tuple.Create("\"", 1277)
             
-            #line 26 "..\..\Areas\Admin\Views\User\Info.cshtml"
-, Tuple.Create(Tuple.Create("", 1063), Tuple.Create<System.Object, System.Int32>(user.Name
+            #line 31 "..\..\Areas\Admin\Views\User\Info.cshtml"
+, Tuple.Create(Tuple.Create("", 1267), Tuple.Create<System.Object, System.Int32>(user.Name
             
             #line default
             #line hidden
-, 1063), false)
+, 1267), false)
 );
 
 WriteLiteral(" class=\"col-xs-12 col-sm-8 col-md-6 col-lg-4\"");
@@ -205,7 +219,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                        ");
 
             
-            #line 32 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 37 "..\..\Areas\Admin\Views\User\Info.cshtml"
                    Write(Html.ForEditor("Password"));
 
             
@@ -230,7 +244,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                        ");
 
             
-            #line 38 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 43 "..\..\Areas\Admin\Views\User\Info.cshtml"
                    Write(Html.ForEditor("DisplayName"));
 
             
@@ -241,7 +255,7 @@ WriteLiteral("\r\n");
 WriteLiteral("                        ");
 
             
-            #line 39 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 44 "..\..\Areas\Admin\Views\User\Info.cshtml"
                    Write(Html.ForDescription("DisplayName"));
 
             
@@ -266,7 +280,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                        ");
 
             
-            #line 45 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 50 "..\..\Areas\Admin\Views\User\Info.cshtml"
                    Write(Html.ForEditor("SexKind", user.Sex));
 
             
@@ -277,7 +291,7 @@ WriteLiteral("\r\n");
 WriteLiteral("                        ");
 
             
-            #line 46 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 51 "..\..\Areas\Admin\Views\User\Info.cshtml"
                    Write(Html.ForDescription("Sex"));
 
             
@@ -302,7 +316,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                        ");
 
             
-            #line 52 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 57 "..\..\Areas\Admin\Views\User\Info.cshtml"
                    Write(Html.ForEditor("Mail"));
 
             
@@ -327,7 +341,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                        ");
 
             
-            #line 58 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 63 "..\..\Areas\Admin\Views\User\Info.cshtml"
                    Write(Html.ForEditor("Phone"));
 
             
@@ -352,7 +366,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                        ");
 
             
-            #line 64 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 69 "..\..\Areas\Admin\Views\User\Info.cshtml"
                    Write(Html.ForEditor("Code"));
 
             
@@ -363,7 +377,7 @@ WriteLiteral("\r\n");
 WriteLiteral("                        ");
 
             
-            #line 65 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 70 "..\..\Areas\Admin\Views\User\Info.cshtml"
                    Write(Html.ForDescription("Code"));
 
             
@@ -388,7 +402,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                        ");
 
             
-            #line 71 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 76 "..\..\Areas\Admin\Views\User\Info.cshtml"
                    Write(Html.ForEditor("Question"));
 
             
@@ -399,7 +413,7 @@ WriteLiteral("\r\n");
 WriteLiteral("                        ");
 
             
-            #line 72 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 77 "..\..\Areas\Admin\Views\User\Info.cshtml"
                    Write(Html.ForDescription("Question"));
 
             
@@ -424,7 +438,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                        ");
 
             
-            #line 78 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 83 "..\..\Areas\Admin\Views\User\Info.cshtml"
                    Write(Html.ForEditor("Answer"));
 
             
@@ -435,7 +449,7 @@ WriteLiteral("\r\n");
 WriteLiteral("                        ");
 
             
-            #line 79 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 84 "..\..\Areas\Admin\Views\User\Info.cshtml"
                    Write(Html.ForDescription("Answer"));
 
             
@@ -460,7 +474,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                        ");
 
             
-            #line 85 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 90 "..\..\Areas\Admin\Views\User\Info.cshtml"
                    Write(user.RoleName);
 
             
@@ -485,7 +499,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                        ");
 
             
-            #line 91 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 96 "..\..\Areas\Admin\Views\User\Info.cshtml"
                    Write(user.Logins);
 
             
@@ -510,7 +524,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                        ");
 
             
-            #line 97 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 102 "..\..\Areas\Admin\Views\User\Info.cshtml"
                    Write(user.LastLogin.ToFullString(""));
 
             
@@ -535,7 +549,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                        ");
 
             
-            #line 103 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 108 "..\..\Areas\Admin\Views\User\Info.cshtml"
                    Write(user.LastLoginIP);
 
             
@@ -560,7 +574,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                        ");
 
             
-            #line 109 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 114 "..\..\Areas\Admin\Views\User\Info.cshtml"
                    Write(user.Profile);
 
             
@@ -568,6 +582,146 @@ WriteLiteral("                        ");
             #line hidden
 WriteLiteral("\r\n                    </div>\r\n                </div>\r\n");
 
+            
+            #line 117 "..\..\Areas\Admin\Views\User\Info.cshtml"
+                if (ms.Count > 0)
+                {
+
+            
+            #line default
+            #line hidden
+WriteLiteral("                    <div");
+
+WriteLiteral(" class=\"form-group\"");
+
+WriteLiteral(">\r\n                        <label");
+
+WriteLiteral(" class=\"control-label col-md-2\"");
+
+WriteLiteral(">第三方绑定</label>\r\n                        <div");
+
+WriteLiteral(" class=\"input-group col-md-6\"");
+
+WriteLiteral(">\r\n                            <ul>\r\n");
+
+            
+            #line 123 "..\..\Areas\Admin\Views\User\Info.cshtml"
+                                
+            
+            #line default
+            #line hidden
+            
+            #line 123 "..\..\Areas\Admin\Views\User\Info.cshtml"
+                                 foreach (var mi in ms)
+                                {
+                                    var uc = binds.FirstOrDefault(e => e.Enable && e.Provider.EqualIgnoreCase(mi.Name));
+                                    if (uc != null)
+                                    {
+
+            
+            #line default
+            #line hidden
+WriteLiteral("                                        <li>\r\n                                   " +
+"         <span>");
+
+            
+            #line 129 "..\..\Areas\Admin\Views\User\Info.cshtml"
+                                             Write(mi.Name);
+
+            
+            #line default
+            #line hidden
+WriteLiteral("（已绑定）</span> \r\n                                            <a");
+
+WriteAttribute("href", Tuple.Create(" href=\"", 5936), Tuple.Create("\"", 5964)
+, Tuple.Create(Tuple.Create("", 5943), Tuple.Create<System.Object, System.Int32>(Href("~/Sso/UnBind/")
+, 5943), false)
+            
+            #line 130 "..\..\Areas\Admin\Views\User\Info.cshtml"
+, Tuple.Create(Tuple.Create("", 5956), Tuple.Create<System.Object, System.Int32>(mi.Name
+            
+            #line default
+            #line hidden
+, 5956), false)
+);
+
+WriteAttribute("title", Tuple.Create(" title=\"", 5965), Tuple.Create("\"", 5986)
+, Tuple.Create(Tuple.Create("", 5973), Tuple.Create("取消绑定", 5973), true)
+            
+            #line 130 "..\..\Areas\Admin\Views\User\Info.cshtml"
+       , Tuple.Create(Tuple.Create(" ", 5977), Tuple.Create<System.Object, System.Int32>(mi.Name
+            
+            #line default
+            #line hidden
+, 5978), false)
+);
+
+WriteLiteral(">取消绑定</a>\r\n                                        </li>\r\n");
+
+            
+            #line 132 "..\..\Areas\Admin\Views\User\Info.cshtml"
+                                    }
+                                    else
+                                    {
+
+            
+            #line default
+            #line hidden
+WriteLiteral("                                        <li>\r\n                                   " +
+"         <span>");
+
+            
+            #line 136 "..\..\Areas\Admin\Views\User\Info.cshtml"
+                                             Write(mi.Name);
+
+            
+            #line default
+            #line hidden
+WriteLiteral("（未绑定）</span>\r\n                                            <a");
+
+WriteAttribute("href", Tuple.Create(" href=\"", 6329), Tuple.Create("\"", 6355)
+, Tuple.Create(Tuple.Create("", 6336), Tuple.Create<System.Object, System.Int32>(Href("~/Sso/Bind/")
+, 6336), false)
+            
+            #line 137 "..\..\Areas\Admin\Views\User\Info.cshtml"
+, Tuple.Create(Tuple.Create("", 6347), Tuple.Create<System.Object, System.Int32>(mi.Name
+            
+            #line default
+            #line hidden
+, 6347), false)
+);
+
+WriteAttribute("title", Tuple.Create(" title=\"", 6356), Tuple.Create("\"", 6375)
+, Tuple.Create(Tuple.Create("", 6364), Tuple.Create("绑定", 6364), true)
+            
+            #line 137 "..\..\Areas\Admin\Views\User\Info.cshtml"
+   , Tuple.Create(Tuple.Create(" ", 6366), Tuple.Create<System.Object, System.Int32>(mi.Name
+            
+            #line default
+            #line hidden
+, 6367), false)
+);
+
+WriteLiteral(">去绑定</a>\r\n                                        </li>\r\n");
+
+            
+            #line 139 "..\..\Areas\Admin\Views\User\Info.cshtml"
+                                    }
+                                }
+
+            
+            #line default
+            #line hidden
+WriteLiteral("                            </ul>\r\n                        </div>\r\n              " +
+"      </div>\r\n");
+
+            
+            #line 144 "..\..\Areas\Admin\Views\User\Info.cshtml"
+                }
+
+            
+            #line default
+            #line hidden
 WriteLiteral("                <div");
 
 WriteLiteral(" class=\"clearfix form-actions\"");
@@ -601,7 +755,7 @@ WriteLiteral(" class=\"glyphicon glyphicon-remove\"");
 WriteLiteral("></i><strong>取消</strong></button>\r\n                </div>\r\n");
 
             
-            #line 117 "..\..\Areas\Admin\Views\User\Info.cshtml"
+            #line 150 "..\..\Areas\Admin\Views\User\Info.cshtml"
             }
 
             

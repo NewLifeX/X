@@ -137,8 +137,8 @@ namespace NewLife.Cube.Entity
         /// <returns>实体对象</returns>
         public static UserConnect FindByProviderAndOpenID(String provider, String openid)
         {
-            // 实体缓存
-            if (Meta.Session.Count < 1000) return Meta.Cache.Find(e => e.Provider == provider && e.OpenID == openid);
+            //// 实体缓存
+            //if (Meta.Session.Count < 1000) return Meta.Cache.Find(e => e.Provider == provider && e.OpenID == openid);
 
             return Find(_.Provider == provider & _.OpenID == openid);
         }
@@ -148,8 +148,8 @@ namespace NewLife.Cube.Entity
         /// <returns>实体列表</returns>
         public static IList<UserConnect> FindAllByUserID(Int32 userid)
         {
-            // 实体缓存
-            if (Meta.Session.Count < 1000) return Meta.Cache.FindAll(e => e.UserID == userid);
+            //// 实体缓存
+            //if (Meta.Session.Count < 1000) return Meta.Cache.FindAll(e => e.UserID == userid);
 
             return FindAll(_.UserID == userid);
         }

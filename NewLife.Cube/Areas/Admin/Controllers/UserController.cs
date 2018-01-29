@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using System.Web.Security;
+using NewLife.Cube.Entity;
 using NewLife.Web;
 using XCode;
 using XCode.Membership;
@@ -144,6 +145,10 @@ namespace NewLife.Cube.Admin.Controllers
             // 用于显示的列
             if (ViewBag.Fields == null) ViewBag.Fields = GetFields(true);
             ViewBag.Factory = UserX.Meta.Factory;
+
+            // 第三方绑定
+            var ucs = UserConnect.FindAllByUserID(user.ID);
+            ViewBag.Binds = ucs;
 
             return View(user);
         }

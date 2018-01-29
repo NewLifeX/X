@@ -211,7 +211,6 @@ namespace NewLife.Web
                 if (dic.ContainsKey("refresh_token")) RefreshToken = dic["refresh_token"].Trim();
                 if (dic.ContainsKey("openid")) OpenID = dic["openid"].Trim();
 
-                //_OnGetUserInfo?.Invoke(dic);
                 OnGetInfo(dic);
             }
             Items = dic;
@@ -245,7 +244,6 @@ namespace NewLife.Web
                 if (dic.ContainsKey("expires_in")) Expire = DateTime.Now.AddSeconds(dic["expires_in"].Trim().ToInt());
                 if (dic.ContainsKey("openid")) OpenID = dic["openid"].Trim();
 
-                //_OnGetUserInfo?.Invoke(dic);
                 OnGetInfo(dic);
             }
             Items = dic;
@@ -297,10 +295,8 @@ namespace NewLife.Web
                 if (dic.ContainsKey("user_name")) UserName = dic["user_name"].Trim();
                 if (dic.ContainsKey("nickname")) NickName = dic["nickname"].Trim();
 
-                //_OnGetUserInfo?.Invoke(dic);
                 OnGetInfo(dic);
 
-                //Items = dic;
                 // 合并字典
                 if (Items == null)
                     Items = dic;

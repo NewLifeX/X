@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
@@ -32,7 +33,7 @@ using XCode.Membership;
  *      if 本地已登录
  *          第三方绑定到当前已登录本地用户
  *      else 允许本地登录
- *          显示登录框，输入密码登录后绑定
+ *          显示登录框，输入密码登录后绑定（暂不支持）
  *          或 直接进入，自动注册本地用户
  *      else
  *          直接进入，自动注册本地用户
@@ -66,9 +67,29 @@ namespace NewLife.Cube.Controllers
         protected virtual OAuthClient GetClient(String name)
         {
             var client = OAuthClient.Create(name);
-            //client.Apply(name, Request.GetRawUrl() + "");
 
             return client;
+        }
+
+        /// <summary>获取回调地址</summary>
+        /// <param name="returnUrl"></param>
+        /// <returns></returns>
+        protected virtual String GetRedirect(String returnUrl = null)
+        {
+            // 自动计算回调地址，方便重载使用，如 Sso2Controller
+            var url = "~/{0}/LoginInfo".F(GetType().Name.TrimEnd("Controller"));
+
+            var buri = Request.GetRawUrl();
+            if (!returnUrl.IsNullOrEmpty() && returnUrl.StartsWithIgnoreCase("http"))
+            {
+                var uri = new Uri(returnUrl);
+                if (uri != null && uri.Host.EqualIgnoreCase(buri.Host)) returnUrl = uri.PathAndQuery;
+            }
+
+            //redirect = OAuthHelper.GetUrl(redirect, returnUrl);
+            if (!returnUrl.IsNullOrEmpty()) url += "?returnUrl=" + HttpUtility.UrlEncode(returnUrl);
+
+            return url;
         }
 
         /// <summary>第三方登录</summary>
@@ -79,18 +100,8 @@ namespace NewLife.Cube.Controllers
         public virtual ActionResult Login(String name, String returnUrl)
         {
             var client = GetClient(name);
-
-            var redirect = "~/Sso/LoginInfo";
-
-            var buri = Request.GetRawUrl();
-            if (!returnUrl.IsNullOrEmpty() && returnUrl.StartsWithIgnoreCase("http"))
-            {
-                var uri = new Uri(returnUrl);
-                if (uri != null && uri.Host.EqualIgnoreCase(buri.Host)) returnUrl = uri.PathAndQuery;
-            }
-
-            redirect = OAuthHelper.GetUrl(redirect, returnUrl);
-            var url = client.Authorize(redirect, client.Name, buri);
+            var redirect = GetRedirect(returnUrl);
+            var url = client.Authorize(redirect, client.Name, Request.GetRawUrl());
 
             return Redirect(url);
         }
@@ -107,11 +118,8 @@ namespace NewLife.Cube.Controllers
             var returnUrl = Request["returnUrl"];
 
             var client = GetClient(state + "");
-
-            var buri = Request.GetRawUrl();
-            var redirect = "~/Sso/LoginInfo";
-            redirect = OAuthHelper.GetUrl(redirect, returnUrl);
-            client.Authorize(redirect, client.Name, buri);
+            var redirect = GetRedirect(returnUrl);
+            client.Authorize(redirect, null, Request.GetRawUrl());
 
             Task.Run(() => client.GetAccessToken(code)).Wait();
 
@@ -155,14 +163,14 @@ namespace NewLife.Cube.Controllers
             var user = Provider.FindByID(uc.UserID);
 
             // 如果未绑定
-            if (user == null || !uc.Enable) user = OnBind(uc);
+            if (user == null || !uc.Enable) user = OnBind(uc, client);
 
             // 填充昵称等数据
             client.Fill(user);
             var dic = client.Items;
             if (dic != null && user is UserX user2)
             {
-                if (user2.Mail.IsNullOrEmpty()) user2.Mail = dic["email"];
+                if (user2.Mail.IsNullOrEmpty() && dic.TryGetValue("email", out var email)) user2.Mail = email;
             }
 
             user.Save();
@@ -184,18 +192,81 @@ namespace NewLife.Cube.Controllers
 
         /// <summary>绑定用户</summary>
         /// <param name="uc"></param>
-        protected virtual IManageUser OnBind(UserConnect uc)
+        /// <param name="client"></param>
+        protected virtual IManageUser OnBind(UserConnect uc, OAuthClient client)
         {
-            var username = uc.Provider + "_" + uc.OpenID;
+            var prv = Provider;
+
             // 如果未登录，需要注册一个
-            var user = Provider.Current;
-            if (user == null) user = Provider.FindByName(username);
-            if (user == null) user = Provider.Register(username, Rand.NextString(16), null, true);
+            var user = prv.Current;
+            //if (user == null) throw new Exception("该账号未绑定本地用户！");
+
+            if (user == null)
+            {
+                var name = client.UserName;
+                if (name.IsNullOrEmpty())
+                {
+                    var openid = client.OpenID ?? client.AccessToken;
+                    name = openid;
+
+                    // 过长，需要随机一个较短的
+                    if (name.Length > 12)
+                    {
+                        var num = name.GetBytes().Crc16();
+                        while (true)
+                        {
+                            name = uc.Provider + "_" + num.ToString("X4");
+                            user = prv.FindByName(name);
+                            if (user == null) break;
+
+                            if (num >= UInt16.MaxValue) throw new InvalidOperationException("不可能的设计错误！");
+                            num++;
+                        }
+                    }
+                }
+
+                // 注册用户，随机密码
+                user = prv.Register(name, Rand.NextString(16), null, true);
+            }
 
             uc.UserID = user.ID;
             uc.Enable = true;
 
             return user;
+        }
+
+        /// <summary>绑定</summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public virtual ActionResult Bind(String id)
+        {
+            var user = Provider.Current;
+            if (user == null) throw new Exception("未登录！");
+
+            return Login(id, Request.UrlReferrer + "");
+        }
+
+        /// <summary>取消绑定</summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public virtual ActionResult UnBind(String id)
+        {
+            var user = Provider.Current;
+            if (user == null) throw new Exception("未登录！");
+
+            var binds = UserConnect.FindAllByUserID(user.ID);
+
+            var uc = binds.FirstOrDefault(e => e.Provider.EqualIgnoreCase(id));
+            if (uc != null)
+            {
+                uc.Enable = false;
+                uc.Save();
+            }
+
+            var url = Request.UrlReferrer + "";
+            if (url.IsNullOrEmpty()) url = "/";
+
+            return Redirect(url);
         }
         #endregion
 
