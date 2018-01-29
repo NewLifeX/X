@@ -54,7 +54,7 @@ namespace NewLife.Web
             {
                 var list = new List<OAuthItem>
                 {
-                    new OAuthItem { Name = "Master" },
+                    new OAuthItem { Name = "Master", Server="http://sso.newlifex.com" },
                     new OAuthItem { Name = "QQ" },
                     new OAuthItem { Name = "Weixin" },
                     new OAuthItem { Name = "Baidu" },
@@ -111,13 +111,13 @@ namespace NewLife.Web
         [XmlAttribute]
         public String Name { get; set; }
 
-        /// <summary>启用</summary>
-        [XmlAttribute]
-        public Boolean Enable { get; set; }
-
-        ///// <summary>服务地址</summary>
+        ///// <summary>启用</summary>
         //[XmlAttribute]
-        //public String Server { get; set; }
+        //public Boolean Enable { get; set; }
+
+        /// <summary>服务地址</summary>
+        [XmlAttribute]
+        public String Server { get; set; }
 
         /// <summary>应用标识</summary>
         [XmlAttribute]

@@ -76,6 +76,8 @@ namespace NewLife.Web
         /// <returns></returns>
         public static OAuthClient Create(String name)
         {
+            if (name.IsNullOrEmpty()) throw new ArgumentNullException(nameof(name));
+
             // 初始化映射表
             if (_map == null)
             {
@@ -89,9 +91,11 @@ namespace NewLife.Web
                 _map = dic;
             }
 
-            if (!_map.TryGetValue(name, out var type)) throw new Exception($"找不到[{name}]的OAuth客户端");
+            //if (!_map.TryGetValue(name, out var type)) throw new Exception($"找不到[{name}]的OAuth客户端");
+            // 找不到就用默认
+            _map.TryGetValue(name, out var type);
 
-            var client = type.CreateInstance() as OAuthClient;
+            var client = type?.CreateInstance() as OAuthClient ?? new OAuthClient();
             //client.Name = name;
             client.Apply(name);
 
@@ -110,7 +114,7 @@ namespace NewLife.Web
 
             //var mi = ms.FirstOrDefault(e => e.Enable && (name.IsNullOrEmpty() || e.Name.EqualIgnoreCase(name)));
             var mi = set.GetOrAdd(name);
-            if (name.IsNullOrEmpty()) mi = ms.FirstOrDefault(e => e.Enable);
+            if (name.IsNullOrEmpty()) mi = ms.FirstOrDefault(e => !e.AppID.IsNullOrEmpty());
             if (mi == null) throw new InvalidOperationException($"未找到有效的OAuth服务端设置[{name}]");
 
             Name = mi.Name;
@@ -128,6 +132,14 @@ namespace NewLife.Web
             Key = mi.AppID;
             Secret = mi.Secret;
             Scope = mi.Scope;
+
+            var url = mi.Server;
+            if (!url.IsNullOrEmpty())
+            {
+                url = url.EnsureEnd("/");
+                AuthUrl = url + "authorize?response_type={response_type}&client_id={key}&redirect_uri={redirect}&state={state}&scope={scope}";
+                AccessUrl = url + "access_token?grant_type=authorization_code&client_id={key}&client_secret={secret}&code={code}&state={state}&redirect_uri={redirect}";
+            }
         }
         #endregion
 
