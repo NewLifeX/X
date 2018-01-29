@@ -13,6 +13,7 @@ using NewLife.Data;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Reflection;
+using NewLife.Serialization;
 using NewLife.Threading;
 using NewLife.Web;
 using XCode;
@@ -158,6 +159,22 @@ namespace NewLife.Cube.Entity
         #endregion
 
         #region 业务操作
+        /// <summary>填充用户</summary>
+        /// <param name="client"></param>
+        public virtual void Fill(OAuthClient client)
+        {
+            var uc = this;
+            if (!client.NickName.IsNullOrEmpty()) uc.NickName = client.NickName;
+            if (!client.Avatar.IsNullOrEmpty()) uc.Avatar = client.Avatar;
+
+            uc.LinkID = client.UserID;
+            //ub.OpenID = client.OpenID;
+            uc.AccessToken = client.AccessToken;
+            uc.RefreshToken = client.RefreshToken;
+            uc.Expire = client.Expire;
+
+            if (client.Items != null) uc.Remark = client.Items.ToJson();
+        }
         #endregion
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using NewLife.Model;
 
 namespace NewLife.Web.OAuth
 {
@@ -28,6 +29,13 @@ namespace NewLife.Web.OAuth
             if (dic.ContainsKey("name")) NickName = dic["name"].Trim();
             if (dic.ContainsKey("avatar_url")) Avatar = dic["avatar_url"].Trim();
         }
+
+        ///// <summary>填充用户</summary>
+        ///// <param name="user"></param>
+        //public override void Fill(IManageUser user)
+        //{
+        //    base.Fill(user);
+        //}
 
         private WebClientX _Client;
 

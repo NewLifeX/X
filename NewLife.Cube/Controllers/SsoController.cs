@@ -144,16 +144,6 @@ namespace NewLife.Cube.Controllers
         /// <returns></returns>
         protected virtual String OnLogin(OAuthClient client)
         {
-            //// 用户登录
-            //var user = Provider.Login(client.UserName ?? (client.UserID + ""), client.OpenID);
-            //if (user == null) return RedirectToAction("Login", "Account");
-
-            //// 异步会导致HttpContext.Current.Session为空无法赋值
-            //ss["User"] = user;
-
-            //// 保存信息
-            //user.SaveAsync();
-
             var openid = client.OpenID;
             if (openid.IsNullOrEmpty()) openid = client.UserName;
 
@@ -161,28 +151,21 @@ namespace NewLife.Cube.Controllers
             var uc = UserConnect.FindByProviderAndOpenID(client.Name, openid);
             if (uc == null) uc = new UserConnect { Provider = client.Name, OpenID = openid };
 
-            if (!client.NickName.IsNullOrEmpty()) uc.NickName = client.NickName;
-            if (!client.Avatar.IsNullOrEmpty()) uc.Avatar = client.Avatar;
-
-            uc.LinkID = client.UserID;
-            //ub.OpenID = client.OpenID;
-            uc.AccessToken = client.AccessToken;
-            uc.RefreshToken = client.RefreshToken;
-            uc.Expire = client.Expire;
-
-            if (client.Items != null) uc.Remark = client.Items.ToJson();
-
+            uc.Fill(client);
             var user = Provider.FindByID(uc.UserID);
 
             // 如果未绑定
             if (user == null || !uc.Enable) user = OnBind(uc);
 
-            // 修正昵称
-            if (!uc.NickName.IsNullOrEmpty() && user.NickName.IsNullOrEmpty())
+            // 填充昵称等数据
+            client.Fill(user);
+            var dic = client.Items;
+            if (dic != null && user is UserX user2)
             {
-                user.NickName = uc.NickName;
-                user.Save();
+                if (user2.Mail.IsNullOrEmpty()) user2.Mail = dic["email"];
             }
+
+            user.Save();
 
             uc.Save();
 

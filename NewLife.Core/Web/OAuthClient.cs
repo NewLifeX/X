@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using NewLife.Log;
+using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Security;
 using NewLife.Serialization;
@@ -301,6 +302,21 @@ namespace NewLife.Web
             }
 
             return html;
+        }
+
+        /// <summary>填充用户</summary>
+        /// <param name="user"></param>
+        public virtual void Fill(IManageUser user)
+        {
+            if (user.Name.IsNullOrEmpty()) user.Name = UserName ?? OpenID;
+            if (user.NickName.IsNullOrEmpty()) user.NickName = NickName;
+
+            var dic = Items;
+            if (dic != null && user is IIndexAccessor entity)
+            {
+                entity["Avatar"] = Avatar;
+                if (dic.TryGetValue("email", out var email)) entity["email"] = email;
+            }
         }
         #endregion
 
