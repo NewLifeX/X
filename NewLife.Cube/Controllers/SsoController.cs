@@ -131,12 +131,10 @@ namespace NewLife.Cube.Controllers
 
             // 获取OpenID。部分提供商不需要
             if (!client.OpenIDUrl.IsNullOrEmpty()) client.GetOpenID();
-
             // 获取用户信息
             if (!client.UserUrl.IsNullOrEmpty()) client.GetUserInfo();
 
             var url = OnLogin(client);
-
             if (!url.IsNullOrEmpty()) return Redirect(url);
 
             return RedirectToAction("Index", "Index", new { page = returnUrl });
@@ -194,10 +192,10 @@ namespace NewLife.Cube.Controllers
 
             // 如果未登录，需要注册一个
             var user = prv.Current;
-            //if (user == null) throw new Exception("该账号未绑定本地用户！");
 
             if (user == null)
             {
+                // 如果用户名不能用，则考虑OpenID
                 var name = client.UserName;
                 if (name.IsNullOrEmpty() || prv.FindByName(name) != null)
                 {
@@ -357,7 +355,6 @@ namespace NewLife.Cube.Controllers
                 }
             }, JsonRequestBehavior.AllowGet);
         }
-        #endregion
 
         /// <summary>4，注销登录</summary>
         /// <remarks>
@@ -368,12 +365,11 @@ namespace NewLife.Cube.Controllers
         [AllowAnonymous]
         public virtual ActionResult Logout(String redirect_uri)
         {
-            if (redirect_uri.IsNullOrEmpty()) throw new ArgumentNullException(nameof(redirect_uri));
+            Provider.Current = null;
 
-            var url = GetUrl("~/Account/Logout", redirect_uri);
-
-            return Redirect(url);
+            return Redirect(redirect_uri);
         }
+        #endregion
 
         private String GetUrl(String baseUrl, String returnUrl = null)
         {
