@@ -204,7 +204,7 @@ namespace NewLife.Cube.Controllers
             if (user == null)
             {
                 var name = client.UserName;
-                if (name.IsNullOrEmpty())
+                if (name.IsNullOrEmpty() || prv.FindByName(name) != null)
                 {
                     var openid = client.OpenID ?? client.AccessToken;
                     name = openid;
