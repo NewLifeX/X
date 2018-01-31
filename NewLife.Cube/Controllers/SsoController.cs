@@ -50,7 +50,7 @@ namespace NewLife.Cube.Controllers
             var oc = ObjectContainer.Current;
             oc.Register<SsoProvider, SsoProvider>();
 
-            Provider = ObjectContainer.Current.Resolve<SsoProvider>();
+            Provider = ObjectContainer.Current.ResolveInstance<SsoProvider>();
 
             OAuthServer.Instance.Log = XTrace.Log;
         }
