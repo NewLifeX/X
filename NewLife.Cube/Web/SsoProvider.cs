@@ -11,6 +11,7 @@ namespace NewLife.Cube.Web
     /// <summary>单点登录提供者</summary>
     public class SsoProvider
     {
+        #region 属性
         /// <summary>用户管理提供者</summary>
         public IManageProvider Provider { get; set; }
 
@@ -22,7 +23,19 @@ namespace NewLife.Cube.Web
 
         /// <summary>已登录用户</summary>
         public IManageUser Current => Provider.Current;
+        #endregion
 
+        #region 构造
+        /// <summary>实例化</summary>
+        public SsoProvider()
+        {
+            Provider = ManageProvider.Provider;
+            RedirectUrl = "~/Sso/LoginInfo";
+            SuccessUrl = "~/Admin";
+        }
+        #endregion
+
+        #region 方法
         /// <summary>获取OAuth客户端</summary>
         /// <param name="name"></param>
         /// <returns></returns>
@@ -76,9 +89,10 @@ namespace NewLife.Cube.Web
         }
 
         /// <summary>登录成功</summary>
-        /// <param name="client"></param>
+        /// <param name="client">OAuth客户端</param>
+        /// <param name="service">服务提供者。可用于获取HttpContext成员</param>
         /// <returns></returns>
-        public virtual String OnLogin(OAuthClient client)
+        public virtual String OnLogin(OAuthClient client, IServiceProvider service)
         {
             var openid = client.OpenID;
             if (openid.IsNullOrEmpty()) openid = client.UserName;
@@ -162,5 +176,6 @@ namespace NewLife.Cube.Web
         {
             Provider.Current = null;
         }
+        #endregion
     }
 }

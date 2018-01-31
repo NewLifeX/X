@@ -46,13 +46,11 @@ namespace NewLife.Cube.Controllers
 
         static SsoController()
         {
-            var prov = new SsoProvider
-            {
-                Provider = ManageProvider.Provider,
-                RedirectUrl = "~/Sso/LoginInfo",
-                SuccessUrl = "~/Admin",
-            };
-            Provider = prov;
+            // 注册单点登录
+            var oc = ObjectContainer.Current;
+            oc.Register<SsoProvider, SsoProvider>();
+
+            Provider = ObjectContainer.Current.Resolve<SsoProvider>();
 
             OAuthServer.Instance.Log = XTrace.Log;
         }
@@ -109,7 +107,7 @@ namespace NewLife.Cube.Controllers
             // 获取用户信息
             if (!client.UserUrl.IsNullOrEmpty()) client.GetUserInfo();
 
-            var url = prov.OnLogin(client);
+            var url = prov.OnLogin(client, HttpContext);
             return Redirect(url);
         }
 
