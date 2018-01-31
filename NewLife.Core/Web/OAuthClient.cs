@@ -294,6 +294,7 @@ namespace NewLife.Web
                 if (dic.ContainsKey("username")) UserName = dic["username"].Trim();
                 if (dic.ContainsKey("user_name")) UserName = dic["user_name"].Trim();
                 if (dic.ContainsKey("nickname")) NickName = dic["nickname"].Trim();
+                if (dic.ContainsKey("Avatar")) Avatar = dic["Avatar"].Trim();
 
                 OnGetInfo(dic);
 
