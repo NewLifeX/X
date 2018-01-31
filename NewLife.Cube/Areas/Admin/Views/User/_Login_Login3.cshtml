@@ -18,7 +18,7 @@
                 if (!dic.TryGetValue(mi.Name, out nickName)) { nickName = mi.Name; }
 
                 var url = "Sso/Login?name=" + mi.Name;
-                if (!returnUrl.IsNullOrEmpty()) { url += "&returnUrl=" + HttpUtility.UrlEncode(returnUrl); }
+                if (!returnUrl.IsNullOrEmpty()) { url += "&r=" + HttpUtility.UrlEncode(returnUrl); }
 
                 url = HttpRuntime.AppDomainAppVirtualPath + url;
 

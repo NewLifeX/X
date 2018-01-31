@@ -95,7 +95,7 @@ WriteLiteral(">\r\n            <span>\r\n                第三方登录：\r\n 
                 if (!dic.TryGetValue(mi.Name, out nickName)) { nickName = mi.Name; }
 
                 var url = "Sso/Login?name=" + mi.Name;
-                if (!returnUrl.IsNullOrEmpty()) { url += "&returnUrl=" + HttpUtility.UrlEncode(returnUrl); }
+                if (!returnUrl.IsNullOrEmpty()) { url += "&r=" + HttpUtility.UrlEncode(returnUrl); }
 
                 url = HttpRuntime.AppDomainAppVirtualPath + url;
 
@@ -105,14 +105,14 @@ WriteLiteral(">\r\n            <span>\r\n                第三方登录：\r\n 
             #line hidden
 WriteLiteral("                <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 933), Tuple.Create("\"", 944)
+WriteAttribute("href", Tuple.Create(" href=\"", 925), Tuple.Create("\"", 936)
             
             #line 25 "..\..\Areas\Admin\Views\User\_Login_Login3.cshtml"
-, Tuple.Create(Tuple.Create("", 940), Tuple.Create<System.Object, System.Int32>(url
+, Tuple.Create(Tuple.Create("", 932), Tuple.Create<System.Object, System.Int32>(url
             
             #line default
             #line hidden
-, 940), false)
+, 932), false)
 );
 
 WriteLiteral(">\r\n                    <i");

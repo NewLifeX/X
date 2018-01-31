@@ -147,7 +147,7 @@ namespace NewLife.Web
         private String _redirect;
         private String _state;
 
-        /// <summary>跳转验证</summary>
+        /// <summary>构建跳转验证地址</summary>
         /// <param name="redirect">验证完成后调整的目标地址</param>
         /// <param name="state">用户状态数据</param>
         /// <param name="baseUri">相对地址的基地址</param>

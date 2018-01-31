@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using NewLife.Cube.Entity;
 using NewLife.Cube.Web;
 using NewLife.Log;
 using NewLife.Model;
-using NewLife.Security;
-using NewLife.Serialization;
 using NewLife.Web;
 using XCode.Membership;
 
@@ -45,10 +42,18 @@ namespace NewLife.Cube.Controllers
     public class SsoController : Controller
     {
         /// <summary>当前提供者</summary>
-        public static IManageProvider Provider { get; set; } = ManageProvider.Provider;
+        public static SsoProvider Provider { get; set; }
 
         static SsoController()
         {
+            var prov = new SsoProvider
+            {
+                Provider = ManageProvider.Provider,
+                RedirectUrl = "~/Sso/LoginInfo",
+                SuccessUrl = "~/Admin",
+            };
+            Provider = prov;
+
             OAuthServer.Instance.Log = XTrace.Log;
         }
 
@@ -61,47 +66,15 @@ namespace NewLife.Cube.Controllers
         }
 
         #region 单点登录客户端
-        /// <summary>获取OAuth客户端</summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        protected virtual OAuthClient GetClient(String name)
-        {
-            var client = OAuthClient.Create(name);
-
-            return client;
-        }
-
-        /// <summary>获取回调地址</summary>
-        /// <param name="returnUrl"></param>
-        /// <returns></returns>
-        protected virtual String GetRedirect(String returnUrl = null)
-        {
-            // 自动计算回调地址，方便重载使用，如 Sso2Controller
-            var url = "~/{0}/LoginInfo".F(GetType().Name.TrimEnd("Controller"));
-
-            var buri = Request.GetRawUrl();
-            if (!returnUrl.IsNullOrEmpty() && returnUrl.StartsWithIgnoreCase("http"))
-            {
-                var uri = new Uri(returnUrl);
-                if (uri != null && uri.Host.EqualIgnoreCase(buri.Host)) returnUrl = uri.PathAndQuery;
-            }
-
-            //redirect = OAuthHelper.GetUrl(redirect, returnUrl);
-            if (!returnUrl.IsNullOrEmpty()) url += "?returnUrl=" + HttpUtility.UrlEncode(returnUrl);
-
-            return url;
-        }
-
         /// <summary>第三方登录</summary>
         /// <param name="name"></param>
-        /// <param name="returnUrl"></param>
         /// <returns></returns>
         [AllowAnonymous]
-        public virtual ActionResult Login(String name, String returnUrl)
+        public virtual ActionResult Login(String name)
         {
-            var client = GetClient(name);
-            var redirect = GetRedirect(returnUrl);
-            var url = client.Authorize(redirect, client.Name, Request.GetRawUrl());
+            var client = Provider.GetClient(name);
+            var redirect = Provider.GetRedirect(Request);
+            var url = client.Authorize(redirect, client.Name);
 
             return Redirect(url);
         }
@@ -113,20 +86,22 @@ namespace NewLife.Cube.Controllers
         [AllowAnonymous]
         public virtual ActionResult LoginInfo(String code, String state)
         {
-            var returnUrl = Request["returnUrl"];
+            // 构造redirect_uri，部分提供商要求获取AccessToken的时候也要传递
+            var prov = Provider;
+            var client = prov.GetClient(state + "");
+            var redirect = prov.GetRedirect(Request);
+            client.Authorize(redirect);
 
-            var client = GetClient(state + "");
-            var redirect = GetRedirect(returnUrl);
-            client.Authorize(redirect, null, Request.GetRawUrl());
-
+            // 获取访问令牌
             client.GetAccessToken(code);
 
-            // 如果拿不到访问令牌，则重新跳转
-            if (client.AccessToken.IsNullOrEmpty())
+            // 如果拿不到访问令牌或用户信息，则重新跳转
+            if (client.AccessToken.IsNullOrEmpty() && client.OpenID.IsNullOrEmpty() && client.UserID == 0)
             {
                 XTrace.WriteLine("拿不到访问令牌，重新跳转 code={0} state={1}", code, state);
 
-                return RedirectToAction("Login", new { name = client.Name, returnUrl });
+                var returnUrl = prov.GetReturnUrl(Request);
+                return RedirectToAction("Login", new { name = client.Name, r = returnUrl });
             }
 
             // 获取OpenID。部分提供商不需要
@@ -134,98 +109,8 @@ namespace NewLife.Cube.Controllers
             // 获取用户信息
             if (!client.UserUrl.IsNullOrEmpty()) client.GetUserInfo();
 
-            var url = OnLogin(client);
-            if (!url.IsNullOrEmpty()) return Redirect(url);
-
-            return RedirectToAction("Index", "Index", new { page = returnUrl });
-        }
-
-        /// <summary>登录成功</summary>
-        /// <param name="client"></param>
-        /// <returns></returns>
-        protected virtual String OnLogin(OAuthClient client)
-        {
-            var openid = client.OpenID;
-            if (openid.IsNullOrEmpty()) openid = client.UserName;
-
-            // 根据OpenID找到用户绑定信息
-            var uc = UserConnect.FindByProviderAndOpenID(client.Name, openid);
-            if (uc == null) uc = new UserConnect { Provider = client.Name, OpenID = openid };
-
-            uc.Fill(client);
-            var user = Provider.FindByID(uc.UserID);
-
-            // 如果未绑定
-            if (user == null || !uc.Enable) user = OnBind(uc, client);
-
-            // 填充昵称等数据
-            client.Fill(user);
-            var dic = client.Items;
-            if (dic != null && user is UserX user2)
-            {
-                if (user2.Mail.IsNullOrEmpty() && dic.TryGetValue("email", out var email)) user2.Mail = email;
-            }
-
-            user.Save();
-
-            uc.Save();
-
-            if (!user.Enable) throw new InvalidOperationException("用户已禁用！");
-
-            Provider.Current = user;
-
-            //XTrace.WriteLine("{0} {1} {2} {3} 登录成功", client.UserID, client.UserName, client.NickName, client.OpenID);
-
-            var returnUrl = Request["returnUrl"];
-            if (Url.IsLocalUrl(returnUrl)) return returnUrl;
-
-            //return null;
-            return "~/Admin";
-        }
-
-        /// <summary>绑定用户</summary>
-        /// <param name="uc"></param>
-        /// <param name="client"></param>
-        protected virtual IManageUser OnBind(UserConnect uc, OAuthClient client)
-        {
-            var prv = Provider;
-
-            // 如果未登录，需要注册一个
-            var user = prv.Current;
-
-            if (user == null)
-            {
-                // 如果用户名不能用，则考虑OpenID
-                var name = client.UserName;
-                if (name.IsNullOrEmpty() || prv.FindByName(name) != null)
-                {
-                    var openid = client.OpenID ?? client.AccessToken;
-                    name = openid;
-
-                    // 过长，需要随机一个较短的
-                    if (name.Length > 12)
-                    {
-                        var num = name.GetBytes().Crc16();
-                        while (true)
-                        {
-                            name = uc.Provider + "_" + num.ToString("X4");
-                            user = prv.FindByName(name);
-                            if (user == null) break;
-
-                            if (num >= UInt16.MaxValue) throw new InvalidOperationException("不可能的设计错误！");
-                            num++;
-                        }
-                    }
-                }
-
-                // 注册用户，随机密码
-                user = prv.Register(name, Rand.NextString(16), null, true);
-            }
-
-            uc.UserID = user.ID;
-            uc.Enable = true;
-
-            return user;
+            var url = prov.OnLogin(client);
+            return Redirect(url);
         }
 
         /// <summary>绑定</summary>
@@ -233,10 +118,17 @@ namespace NewLife.Cube.Controllers
         /// <returns></returns>
         public virtual ActionResult Bind(String id)
         {
-            var user = Provider.Current;
+            var prov = Provider;
+
+            var user = prov.Current;
             if (user == null) throw new Exception("未登录！");
 
-            return Login(id, Request.UrlReferrer + "");
+            //return Login(id, Request.UrlReferrer + "");
+            var client = prov.GetClient(id);
+            var redirect = prov.GetRedirect(Request, Request.UrlReferrer + "");
+            var url = client.Authorize(redirect, client.Name);
+
+            return Redirect(url);
         }
 
         /// <summary>取消绑定</summary>
@@ -301,9 +193,7 @@ namespace NewLife.Cube.Controllers
 
             var sso = OAuthServer.Instance;
 
-            //var provider = FrontManagerProvider.Provider ?? ManageProvider.Provider;
-            var provider = Provider;
-            var user = provider?.Current;
+            var user = Provider?.Current;
             if (user == null) throw new InvalidOperationException("未登录！");
 
             // 返回给子系统的数据：
@@ -365,7 +255,7 @@ namespace NewLife.Cube.Controllers
         [AllowAnonymous]
         public virtual ActionResult Logout(String redirect_uri)
         {
-            Provider.Current = null;
+            Provider.Logout();
 
             return Redirect(redirect_uri);
         }
