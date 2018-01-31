@@ -320,12 +320,12 @@ namespace NewLife.Web
             if (user.Name.IsNullOrEmpty()) user.Name = UserName ?? OpenID;
             if (user.NickName.IsNullOrEmpty()) user.NickName = NickName;
 
-            var dic = Items;
-            if (dic != null && user is IIndexAccessor entity)
-            {
-                entity["Avatar"] = Avatar;
-                if (dic.TryGetValue("email", out var email)) entity["email"] = email;
-            }
+            //var dic = Items;
+            //if (dic != null && user is IIndexAccessor entity)
+            //{
+            //    entity["Avatar"] = Avatar;
+            //    if (dic.TryGetValue("email", out var email)) entity["email"] = email;
+            //}
         }
         #endregion
 
