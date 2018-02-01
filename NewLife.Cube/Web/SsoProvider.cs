@@ -4,6 +4,7 @@ using NewLife.Cube.Entity;
 using NewLife.Model;
 using NewLife.Security;
 using NewLife.Web;
+using XCode;
 using XCode.Membership;
 
 namespace NewLife.Cube.Web
@@ -168,8 +169,11 @@ namespace NewLife.Cube.Web
                     }
                 }
 
+                // 新注册用户采用魔方默认角色
+                var rid = Setting.Current.DefaultRole;
+
                 // 注册用户，随机密码
-                user = prv.Register(name, Rand.NextString(16), null, true);
+                user = prv.Register(name, Rand.NextString(16), rid, true);
             }
 
             uc.UserID = user.ID;
