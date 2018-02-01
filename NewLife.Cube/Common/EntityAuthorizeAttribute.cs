@@ -2,6 +2,7 @@
 using System.Web;
 using System.Web.Mvc;
 using NewLife.Log;
+using NewLife.Web;
 using XCode.Membership;
 
 namespace NewLife.Cube
@@ -63,24 +64,25 @@ namespace NewLife.Cube
             // 允许匿名访问时，直接跳过检查
             if (act.IsDefined(typeof(AllowAnonymousAttribute), true) || act.ControllerDescriptor.IsDefined(typeof(AllowAnonymousAttribute), true)) return;
 
+            var ctx = filterContext.HttpContext;
             // 判断当前登录用户
             var user = ManageProvider.User;
             if (user == null)
             {
                 //HandleUnauthorizedRequest(filterContext);
-                var ctx = filterContext.HttpContext;
-                var rurl = HttpRuntime.AppDomainAppVirtualPath.EnsureEnd("/");
-                rurl += "Admin/User/Login";
+                //var rurl = HttpRuntime.AppDomainAppVirtualPath.EnsureEnd("/");
+                //rurl += "Admin/User/Login";
 
                 var retUrl = ctx.Request.Url?.PathAndQuery;
-                if (!retUrl.IsNullOrEmpty() && retUrl != "/") rurl += "?returnUrl=" + retUrl;
+                //if (!retUrl.IsNullOrEmpty() && retUrl != "/") rurl += "?returnUrl=" + retUrl;
 
-                filterContext.HttpContext.Response.Redirect(rurl, true);
+                var rurl = "~/Admin/User/Login".AppendReturn(retUrl);
+                ctx.Response.Redirect(rurl, true);
                 return;
             }
 
             // 根据请求Url定位资源菜单
-            var url = filterContext.HttpContext.Request.AppRelativeCurrentExecutionFilePath;
+            var url = ctx.Request.AppRelativeCurrentExecutionFilePath;
             var menu = ManageProvider.Menu?.Current;
             if (menu != null)
             {

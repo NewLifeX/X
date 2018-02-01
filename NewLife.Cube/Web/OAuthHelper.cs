@@ -16,7 +16,7 @@ namespace NewLife.Cube.Web
         public static String GetLoginUrl(String name, String returnUrl)
         {
             var url = "Sso/Login?name=" + name;
-            if (!returnUrl.IsNullOrEmpty()) url += "&returnUrl=" + HttpUtility.UrlEncode(returnUrl);
+            if (!returnUrl.IsNullOrEmpty()) url += "&r=" + HttpUtility.UrlEncode(returnUrl);
 
             url = HttpRuntime.AppDomainAppVirtualPath + url;
 
@@ -31,7 +31,7 @@ namespace NewLife.Cube.Web
         {
             var url = baseUrl;
 
-            //if (returnUrl.IsNullOrEmpty()) returnUrl = Request["returnUrl"];
+            //if (returnUrl.IsNullOrEmpty()) returnUrl = Request["r"];
 
             if (!returnUrl.IsNullOrEmpty())
             {
@@ -40,7 +40,7 @@ namespace NewLife.Cube.Web
                 else
                     url += "?";
 
-                url += "returnUrl=" + HttpUtility.UrlEncode(returnUrl);
+                url += "r=" + HttpUtility.UrlEncode(returnUrl);
             }
 
             return url;

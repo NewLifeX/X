@@ -162,14 +162,7 @@ namespace NewLife.Web
 
 #if !__CORE__
             // 如果是相对路径，自动加上前缀。需要考虑反向代理的可能，不能直接使用Request.Url
-            if (redirect.StartsWith("~/")) redirect = HttpRuntime.AppDomainAppVirtualPath.EnsureEnd("/") + redirect.Substring(2);
-            if (redirect.StartsWith("/"))
-            {
-                if (baseUri == null) throw new ArgumentNullException(nameof(baseUri), "使用相对跳转地址时，需要设置BaseUrl");
-
-                var uri = new Uri(baseUri, redirect);
-                redirect = uri.ToString();
-            }
+            redirect = redirect.AsUri(baseUri) + "";
 #endif
             _redirect = redirect;
             _state = state;

@@ -52,7 +52,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test4();
+                Test4();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -142,6 +142,10 @@ namespace Test
 
         static void Test4()
         {
+            var str = "~/Sso/Login";
+            var uri2 = new Uri("Sso/Login", UriKind.Absolute);
+            //var uri = str.AsUri("http://xxx.yyy.zzz/ss/dd/ff".AsUri());
+            var uri = str.AsUri();
             //var cfg = CacheConfig.Current;
             //Console.WriteLine(cfg.GetOrAdd("Bill01"));
 

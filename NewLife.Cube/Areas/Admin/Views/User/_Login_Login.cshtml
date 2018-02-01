@@ -7,7 +7,7 @@
         <i class="glyphicon glyphicon-cloud login-logo center-block"></i>
     </div>
     <!-- 登录-->
-    @using (Html.BeginForm("Login", "User", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "cube-login" }))
+    @using (Html.BeginForm("Login", "User", new { r = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "cube-login" }))
     {
         @Html.ValidationSummary()
         <span class="heading text-primary">用户登录</span>

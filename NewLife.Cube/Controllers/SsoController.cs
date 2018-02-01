@@ -70,8 +70,9 @@ namespace NewLife.Cube.Controllers
         [AllowAnonymous]
         public virtual ActionResult Login(String name)
         {
-            var client = Provider.GetClient(name);
-            var redirect = Provider.GetRedirect(Request);
+            var prov = Provider;
+            var client = prov.GetClient(name);
+            var redirect = prov.GetRedirect(Request);
             var url = client.Authorize(redirect, client.Name);
 
             return Redirect(url);
@@ -124,6 +125,8 @@ namespace NewLife.Cube.Controllers
             //return Login(id, Request.UrlReferrer + "");
             var client = prov.GetClient(id);
             var redirect = prov.GetRedirect(Request, Request.UrlReferrer + "");
+            // 附加绑定动作
+            redirect += "&_sso_action=bind";
             var url = client.Authorize(redirect, client.Name);
 
             return Redirect(url);
@@ -175,9 +178,11 @@ namespace NewLife.Cube.Controllers
             // 判断合法性，然后跳转到登录页面，登录完成后跳转回来
             var key = OAuthServer.Instance.Authorize(appid, redirect_uri, response_type, scope, state);
 
-            var url = GetUrl("~/Account/Login", "~/sso/auth2/" + key);
+            var prov = Provider;
+            //var uri = prov.LoginUrl.AsUri(Request.GetRawUrl());
+            var uri = prov.LoginUrl.AppendReturn("~/Sso/Auth2/" + key);
 
-            return Redirect(url);
+            return Redirect(uri + "");
         }
 
         /// <summary>2，用户登录成功后返回这里</summary>
@@ -264,7 +269,7 @@ namespace NewLife.Cube.Controllers
             var url = baseUrl;
             //if (url.StartsWith("~/")) url = Server.UrlPathEncode(url);
 
-            if (returnUrl.IsNullOrEmpty()) returnUrl = Request["returnUrl"];
+            if (returnUrl.IsNullOrEmpty()) returnUrl = Request["r"];
 
             if (!returnUrl.IsNullOrEmpty())
             {
@@ -274,7 +279,7 @@ namespace NewLife.Cube.Controllers
                     url += "?";
 
                 if (returnUrl.StartsWith("~/")) returnUrl = HttpRuntime.AppDomainAppVirtualPath + returnUrl.Substring(2);
-                url += "returnUrl=" + HttpUtility.UrlEncode(returnUrl);
+                url += "r=" + HttpUtility.UrlEncode(returnUrl);
             }
 
             return url;

@@ -54,11 +54,11 @@ namespace NewLife.Cube.Admin.Controllers
 
         #region 登录注销
         /// <summary>登录</summary>
-        /// <param name="returnUrl"></param>
         /// <returns></returns>
         [AllowAnonymous]
-        public ActionResult Login(String returnUrl)
+        public ActionResult Login()
         {
+            var returnUrl = Request["r"];
             // 如果已登录，直接跳转
             if (ManageProvider.User != null)
             {
@@ -78,7 +78,7 @@ namespace NewLife.Cube.Admin.Controllers
                 if (ms.Count == 1)
                 {
                     var url = $"~/Sso/Login?name={ms[0].Name}";
-                    if (!returnUrl.IsNullOrEmpty()) url += "?returnUrl=" + HttpUtility.UrlEncode(returnUrl);
+                    if (!returnUrl.IsNullOrEmpty()) url += "&r=" + HttpUtility.UrlEncode(returnUrl);
 
                     return Redirect(url);
                 }
@@ -93,12 +93,12 @@ namespace NewLife.Cube.Admin.Controllers
         /// <param name="username"></param>
         /// <param name="password"></param>
         /// <param name="remember"></param>
-        /// <param name="returnUrl"></param>
         /// <returns></returns>
         [HttpPost]
         [AllowAnonymous]
-        public ActionResult Login(String username, String password, Boolean? remember, String returnUrl)
+        public ActionResult Login(String username, String password, Boolean? remember)
         {
+            var returnUrl = Request["r"];
             try
             {
                 var provider = ManageProvider.Provider;
@@ -127,11 +127,11 @@ namespace NewLife.Cube.Admin.Controllers
         }
 
         /// <summary>注销</summary>
-        /// <param name="returnUrl"></param>
         /// <returns></returns>
         [AllowAnonymous]
-        public ActionResult Logout(String returnUrl)
+        public ActionResult Logout()
         {
+            var returnUrl = Request["r"];
             ManageProvider.User?.Logout();
             //ManageProvider.User = null;
 
@@ -139,9 +139,6 @@ namespace NewLife.Cube.Admin.Controllers
 
             return RedirectToAction("Login");
         }
-        #endregion
-
-        #region 第三方登录
         #endregion
 
         /// <summary>用户资料</summary>

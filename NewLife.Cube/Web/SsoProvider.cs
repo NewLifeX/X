@@ -21,6 +21,9 @@ namespace NewLife.Cube.Web
         /// <summary>登录成功后跳转地址。~/Admin</summary>
         public String SuccessUrl { get; set; }
 
+        /// <summary>本地登录检查地址。~/Admin/User/Login</summary>
+        public String LoginUrl { get; set; }
+
         /// <summary>已登录用户</summary>
         public IManageUser Current => Provider.Current;
         #endregion
@@ -32,6 +35,7 @@ namespace NewLife.Cube.Web
             Provider = ManageProvider.Provider;
             RedirectUrl = "~/Sso/LoginInfo";
             SuccessUrl = "~/Admin";
+            LoginUrl = "~/Admin/User/Login";
         }
         #endregion
 
@@ -64,28 +68,25 @@ namespace NewLife.Cube.Web
         /// <returns></returns>
         public virtual String GetRedirect(HttpRequestBase request, String returnUrl = null)
         {
-            var baseUri = request.GetRawUrl();
+            if (returnUrl.IsNullOrEmpty()) returnUrl = request["r"];
 
-            var url = RedirectUrl;
-            if (url.StartsWith("~/")) url = HttpRuntime.AppDomainAppVirtualPath.EnsureEnd("/") + url.Substring(2);
-            if (url.StartsWith("/"))
-            {
-                var uri = new Uri(baseUri, url);
-                url = uri.ToString();
-            }
+            var uri = RedirectUrl.AsUri(request.GetRawUrl()) + "";
 
-            if (returnUrl.IsNullOrEmpty()) returnUrl = GetReturnUrl(request);
-            if (!returnUrl.IsNullOrEmpty() && returnUrl != "/")
-            {
-                if (url.Contains("?"))
-                    url += "&";
-                else
-                    url += "?";
+            return uri.AppendReturn(returnUrl);
 
-                url += "r=" + HttpUtility.UrlEncode(returnUrl);
-            }
+            //var baseUri = request.GetRawUrl();
 
-            return url;
+            //var url = RedirectUrl;
+            //if (url.StartsWith("~/")) url = HttpRuntime.AppDomainAppVirtualPath.EnsureEnd("/") + url.Substring(2);
+
+            //var uri = url.StartsWith("/") ? new Uri(baseUri, url) : new Uri(url);
+
+            ////if (returnUrl.IsNullOrEmpty()) returnUrl = GetReturnUrl(request);
+            //if (returnUrl.IsNullOrEmpty()) returnUrl = request["r"];
+
+            //uri = uri.PackReturn(returnUrl);
+
+            //return url;
         }
 
         /// <summary>登录成功</summary>
@@ -103,9 +104,14 @@ namespace NewLife.Cube.Web
 
             uc.Fill(client);
 
+            // 强行绑定，把第三方账号强行绑定到当前已登录账号
+            var forceBind = false;
+            var req = service.GetService<HttpRequest>();
+            if (req != null) forceBind = req["_sso_action"].EqualIgnoreCase("bind");
+
             // 检查绑定
             var user = Provider.FindByID(uc.UserID);
-            if (user == null || !uc.Enable) user = OnBind(uc, client);
+            if (forceBind || user == null || !uc.Enable) user = OnBind(uc, client);
 
             // 填充昵称等数据
             client.Fill(user);
@@ -134,20 +140,22 @@ namespace NewLife.Cube.Web
 
             // 如果未登录，需要注册一个
             var user = prv.Current;
-
             if (user == null)
             {
                 // 如果用户名不能用，则考虑OpenID
                 var name = client.UserName;
                 if (name.IsNullOrEmpty() || prv.FindByName(name) != null)
                 {
-                    var openid = client.OpenID ?? client.AccessToken;
-                    name = openid;
+                    // OpenID和AccessToken不可能同时为空
+                    var openid = client.OpenID;
+                    if (openid.IsNullOrEmpty()) openid = client.AccessToken;
 
+                    if (openid.Length < 12)
+                        name = openid;
                     // 过长，需要随机一个较短的
-                    if (name.Length > 12)
+                    else
                     {
-                        var num = name.GetBytes().Crc16();
+                        var num = openid.GetBytes().Crc16();
                         while (true)
                         {
                             name = uc.Provider + "_" + num.ToString("X4");
