@@ -133,6 +133,42 @@ namespace XCoder.Tools
             rtResult.Text = str.ToUpper() + Environment.NewLine + str.ToLower();
         }
 
+        private void btnSHA1_Click(Object sender, EventArgs e)
+        {
+            var buf = GetBytes();
+            var key = GetBytes(rtPass.Text);
+
+            buf = buf.SHA1(key);
+            SetResult(buf);
+        }
+
+        private void btnSHA256_Click(Object sender, EventArgs e)
+        {
+            var buf = GetBytes();
+            var key = GetBytes(rtPass.Text);
+
+            buf = buf.SHA256(key);
+            SetResult(buf);
+        }
+
+        private void btnSHA384_Click(Object sender, EventArgs e)
+        {
+            var buf = GetBytes();
+            var key = GetBytes(rtPass.Text);
+
+            buf = buf.SHA384(key);
+            SetResult(buf);
+        }
+
+        private void btnSHA512_Click(Object sender, EventArgs e)
+        {
+            var buf = GetBytes();
+            var key = GetBytes(rtPass.Text);
+
+            buf = buf.SHA512(key);
+            SetResult(buf);
+        }
+
         private void btnCRC_Click(Object sender, EventArgs e)
         {
             var buf = GetBytes();
@@ -153,7 +189,6 @@ namespace XCoder.Tools
             var des = new DESCryptoServiceProvider();
             buf = des.Encrypt(buf, pass);
 
-            //rtResult.Text = buf.ToHex() + Environment.NewLine + Environment.NewLine + buf.ToBase64();
             SetResult(buf);
         }
 
@@ -173,8 +208,8 @@ namespace XCoder.Tools
             var buf = GetBytes();
             var pass = GetBytes(rtPass.Text);
 
-            var des = new AesCryptoServiceProvider();
-            buf = des.Encrypt(buf, pass);
+            var aes = new AesCryptoServiceProvider();
+            buf = aes.Encrypt(buf, pass);
 
             SetResult(buf);
         }
@@ -184,8 +219,8 @@ namespace XCoder.Tools
             var buf = GetBytes();
             var pass = GetBytes(rtPass.Text);
 
-            var des = new AesCryptoServiceProvider();
-            buf = des.Descrypt(buf, pass);
+            var aes = new AesCryptoServiceProvider();
+            buf = aes.Descrypt(buf, pass);
 
             SetResult2(buf);
         }
