@@ -9,11 +9,11 @@ namespace NewLife.Web.OAuth
         /// <summary>实例化</summary>
         public QQClient()
         {
-            var url = "https://graph.qq.com/oauth2.0/";
+            Server = "https://graph.qq.com/oauth2.0/";
 
-            AuthUrl = url + "authorize?response_type={response_type}&client_id={key}&redirect_uri={redirect}&state={state}&scope={scope}";
-            AccessUrl = url + "token?grant_type=authorization_code&client_id={key}&client_secret={secret}&code={code}&state={state}&redirect_uri={redirect}";
-            OpenIDUrl = url + "me?access_token={token}";
+            AuthUrl = "authorize?response_type={response_type}&client_id={key}&redirect_uri={redirect}&state={state}&scope={scope}";
+            AccessUrl = "token?grant_type=authorization_code&client_id={key}&client_secret={secret}&code={code}&state={state}&redirect_uri={redirect}";
+            OpenIDUrl = "me?access_token={token}";
             UserUrl = "https://graph.qq.com/user/get_user_info?access_token={token}&oauth_consumer_key={key}&openid={openid}";
         }
 

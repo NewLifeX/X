@@ -162,27 +162,26 @@ namespace NewLife.Cube.Controllers
         /// 子系统需要验证访问者身份时，引导用户跳转到这里。
         /// 用户登录完成后，得到一个独一无二的code，并跳转回去子系统。
         /// </remarks>
-        /// <param name="appid">应用标识</param>
+        /// <param name="client_id">应用标识</param>
         /// <param name="redirect_uri">回调地址</param>
         /// <param name="response_type">响应类型。默认code</param>
         /// <param name="scope">授权域</param>
         /// <param name="state">用户状态数据</param>
         /// <returns></returns>
         [AllowAnonymous]
-        public virtual ActionResult Authorize(String appid, String redirect_uri, String response_type = null, String scope = null, String state = null)
+        public virtual ActionResult Authorize(String client_id, String redirect_uri, String response_type = null, String scope = null, String state = null)
         {
-            if (appid.IsNullOrEmpty()) throw new ArgumentNullException(nameof(appid));
+            if (client_id.IsNullOrEmpty()) throw new ArgumentNullException(nameof(client_id));
             if (redirect_uri.IsNullOrEmpty()) throw new ArgumentNullException(nameof(redirect_uri));
             if (response_type.IsNullOrEmpty()) response_type = "code";
 
             // 判断合法性，然后跳转到登录页面，登录完成后跳转回来
-            var key = OAuthServer.Instance.Authorize(appid, redirect_uri, response_type, scope, state);
+            var key = OAuthServer.Instance.Authorize(client_id, redirect_uri, response_type, scope, state);
 
             var prov = Provider;
-            //var uri = prov.LoginUrl.AsUri(Request.GetRawUrl());
             var uri = prov.LoginUrl.AppendReturn("~/Sso/Auth2/" + key);
 
-            return Redirect(uri + "");
+            return Redirect(uri);
         }
 
         /// <summary>2，用户登录成功后返回这里</summary>
@@ -213,16 +212,16 @@ namespace NewLife.Cube.Controllers
         /// 子系统根据验证用户身份时得到的code，直接在服务器间请求本系统。
         /// 传递应用标识和密钥，主要是为了向本系统表明其合法身份。
         /// </remarks>
-        /// <param name="appid">应用标识</param>
-        /// <param name="secret">密钥</param>
+        /// <param name="client_id">应用标识</param>
+        /// <param name="client_secret">密钥</param>
         /// <param name="code">代码</param>
         /// <param name="grant_type">授权类型。</param>
         /// <returns></returns>
         [AllowAnonymous]
-        public virtual ActionResult Token(String appid, String secret, String code, String grant_type = null)
+        public virtual ActionResult Token(String client_id, String client_secret, String code, String grant_type = null)
         {
-            if (appid.IsNullOrEmpty()) throw new ArgumentNullException(nameof(appid));
-            if (secret.IsNullOrEmpty()) throw new ArgumentNullException(nameof(secret));
+            if (client_id.IsNullOrEmpty()) throw new ArgumentNullException(nameof(client_id));
+            if (client_secret.IsNullOrEmpty()) throw new ArgumentNullException(nameof(client_secret));
             if (code.IsNullOrEmpty()) throw new ArgumentNullException(nameof(code));
             if (grant_type.IsNullOrEmpty()) grant_type = "authorization_code";
 
@@ -258,9 +257,12 @@ namespace NewLife.Cube.Controllers
         [AllowAnonymous]
         public virtual ActionResult Logout(String redirect_uri)
         {
-            Provider.Logout();
+            Provider?.Logout();
 
-            return Redirect(redirect_uri);
+            var url = redirect_uri;
+            if (url.IsNullOrEmpty()) url = "~/";
+
+            return Redirect(url);
         }
         #endregion
 

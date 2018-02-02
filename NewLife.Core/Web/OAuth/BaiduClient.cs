@@ -9,10 +9,10 @@ namespace NewLife.Web.OAuth
         /// <summary>实例化</summary>
         public BaiduClient()
         {
-            var url = "https://openapi.baidu.com/oauth/2.0/";
+            Server = "https://openapi.baidu.com/oauth/2.0/";
 
-            AuthUrl = url + "authorize?response_type={response_type}&client_id={key}&redirect_uri={redirect}&state={state}&scope={scope}";
-            AccessUrl = url + "token?grant_type=authorization_code&client_id={key}&client_secret={secret}&code={code}&state={state}&redirect_uri={redirect}";
+            AuthUrl = "authorize?response_type={response_type}&client_id={key}&redirect_uri={redirect}&state={state}&scope={scope}";
+            AccessUrl = "token?grant_type=authorization_code&client_id={key}&client_secret={secret}&code={code}&state={state}&redirect_uri={redirect}";
             UserUrl = "https://openapi.baidu.com/rest/2.0/passport/users/getLoggedInUser?access_token={token}";
         }
 

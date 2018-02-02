@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Web;
 using NewLife.Log;
 using NewLife.Model;
@@ -17,6 +16,9 @@ namespace NewLife.Web
         #region 属性
         /// <summary>名称</summary>
         public String Name { get; set; }
+
+        /// <summary>验证服务器地址</summary>
+        public String Server { get; set; }
 
         /// <summary>应用Key</summary>
         public String Key { get; set; }
@@ -66,6 +68,10 @@ namespace NewLife.Web
         public OAuthClient()
         {
             Name = GetType().Name.TrimEnd("Client");
+
+            // 标准地址格式
+            AuthUrl = "authorize?response_type={response_type}&client_id={key}&redirect_uri={redirect}&state={state}&scope={scope}";
+            AccessUrl = "access_token?grant_type=authorization_code&client_id={key}&client_secret={secret}&code={code}&state={state}&redirect_uri={redirect}";
         }
         #endregion
 
@@ -96,7 +102,6 @@ namespace NewLife.Web
             _map.TryGetValue(name, out var type);
 
             var client = type?.CreateInstance() as OAuthClient ?? new OAuthClient();
-            //client.Name = name;
             client.Apply(name);
 
             return client;
@@ -112,7 +117,6 @@ namespace NewLife.Web
             var ms = set.Items;
             if (ms == null || ms.Length == 0) throw new InvalidOperationException("未设置OAuth服务端");
 
-            //var mi = ms.FirstOrDefault(e => e.Enable && (name.IsNullOrEmpty() || e.Name.EqualIgnoreCase(name)));
             var mi = set.GetOrAdd(name);
             if (name.IsNullOrEmpty()) mi = ms.FirstOrDefault(e => !e.AppID.IsNullOrEmpty());
             if (mi == null) throw new InvalidOperationException($"未找到有效的OAuth服务端设置[{name}]");
@@ -129,17 +133,10 @@ namespace NewLife.Web
         public virtual void Apply(OAuthItem mi)
         {
             Name = mi.Name;
-            Key = mi.AppID;
-            Secret = mi.Secret;
-            Scope = mi.Scope;
-
-            var url = mi.Server;
-            if (!url.IsNullOrEmpty())
-            {
-                url = url.EnsureEnd("/");
-                AuthUrl = url + "authorize?response_type={response_type}&client_id={key}&redirect_uri={redirect}&state={state}&scope={scope}";
-                AccessUrl = url + "access_token?grant_type=authorization_code&client_id={key}&client_secret={secret}&code={code}&state={state}&redirect_uri={redirect}";
-            }
+            if (!mi.Server.IsNullOrEmpty()) Server = mi.Server;
+            if (!mi.AppID.IsNullOrEmpty()) Key = mi.AppID;
+            if (!mi.Secret.IsNullOrEmpty()) Secret = mi.Secret;
+            if (!mi.Scope.IsNullOrEmpty()) Scope = mi.Scope;
         }
         #endregion
 
@@ -170,9 +167,6 @@ namespace NewLife.Web
             var url = GetUrl(AuthUrl);
             WriteLog("Authorize {0}", url);
 
-#if !__CORE__
-            //HttpContext.Current.Response.Redirect(url);
-#endif
             return url;
         }
         #endregion
@@ -328,6 +322,8 @@ namespace NewLife.Web
         /// <returns></returns>
         protected virtual String GetUrl(String url)
         {
+            if (!url.StartsWithIgnoreCase("http")) url = Server.EnsureEnd("/") + url.TrimStart('/');
+
             url = url
                .Replace("{key}", Key)
                .Replace("{secret}", Secret)

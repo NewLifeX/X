@@ -4,7 +4,6 @@ using NewLife.Cube.Entity;
 using NewLife.Model;
 using NewLife.Security;
 using NewLife.Web;
-using XCode;
 using XCode.Membership;
 
 namespace NewLife.Cube.Web
@@ -74,20 +73,6 @@ namespace NewLife.Cube.Web
             var uri = RedirectUrl.AsUri(request.GetRawUrl()) + "";
 
             return uri.AppendReturn(returnUrl);
-
-            //var baseUri = request.GetRawUrl();
-
-            //var url = RedirectUrl;
-            //if (url.StartsWith("~/")) url = HttpRuntime.AppDomainAppVirtualPath.EnsureEnd("/") + url.Substring(2);
-
-            //var uri = url.StartsWith("/") ? new Uri(baseUri, url) : new Uri(url);
-
-            ////if (returnUrl.IsNullOrEmpty()) returnUrl = GetReturnUrl(request);
-            //if (returnUrl.IsNullOrEmpty()) returnUrl = request["r"];
-
-            //uri = uri.PackReturn(returnUrl);
-
-            //return url;
         }
 
         /// <summary>登录成功</summary>
