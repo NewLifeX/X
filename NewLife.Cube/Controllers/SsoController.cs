@@ -91,6 +91,8 @@ namespace NewLife.Cube.Controllers
             var redirect = prov.GetRedirect(Request);
             client.Authorize(redirect);
 
+            var returnUrl = prov.GetReturnUrl(Request);
+
             // 获取访问令牌
             client.GetAccessToken(code);
 
@@ -99,7 +101,6 @@ namespace NewLife.Cube.Controllers
             {
                 XTrace.WriteLine("拿不到访问令牌，重新跳转 code={0} state={1}", code, state);
 
-                var returnUrl = prov.GetReturnUrl(Request);
                 return RedirectToAction("Login", new { name = client.Name, r = returnUrl });
             }
 
@@ -109,6 +110,8 @@ namespace NewLife.Cube.Controllers
             if (!client.UserUrl.IsNullOrEmpty()) client.GetUserInfo();
 
             var url = prov.OnLogin(client, HttpContext);
+            if (!returnUrl.IsNullOrEmpty()) Redirect(returnUrl);
+
             return Redirect(url);
         }
 
@@ -218,7 +221,7 @@ namespace NewLife.Cube.Controllers
         /// <param name="grant_type">授权类型。</param>
         /// <returns></returns>
         [AllowAnonymous]
-        public virtual ActionResult Token(String client_id, String client_secret, String code, String grant_type = null)
+        public virtual ActionResult Access_Token(String client_id, String client_secret, String code, String grant_type = null)
         {
             if (client_id.IsNullOrEmpty()) throw new ArgumentNullException(nameof(client_id));
             if (client_secret.IsNullOrEmpty()) throw new ArgumentNullException(nameof(client_secret));
@@ -236,15 +239,11 @@ namespace NewLife.Cube.Controllers
 
             return Json(new
             {
-                result = true,
-                data = new
-                {
-                    user.ID,
-                    user.Name,
-                    user.NickName,
-                    user2?.RoleID,
-                    user2?.RoleName,
-                }
+                userid = user.ID,
+                username = user.Name,
+                user.NickName,
+                user2?.RoleID,
+                user2?.RoleName,
             }, JsonRequestBehavior.AllowGet);
         }
 

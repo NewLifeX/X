@@ -196,7 +196,6 @@ namespace NewLife.Web
                 if (dic.ContainsKey("access_token")) AccessToken = dic["access_token"].Trim();
                 if (dic.ContainsKey("expires_in")) Expire = DateTime.Now.AddSeconds(dic["expires_in"].Trim().ToInt());
                 if (dic.ContainsKey("refresh_token")) RefreshToken = dic["refresh_token"].Trim();
-                if (dic.ContainsKey("openid")) OpenID = dic["openid"].Trim();
 
                 OnGetInfo(dic);
             }
@@ -274,14 +273,6 @@ namespace NewLife.Web
             var dic = GetNameValues(html);
             if (dic != null)
             {
-                if (dic.ContainsKey("uid")) UserID = dic["uid"].Trim().ToLong();
-                if (dic.ContainsKey("userid")) UserID = dic["userid"].Trim().ToLong();
-                if (dic.ContainsKey("user_id")) UserID = dic["user_id"].Trim().ToLong();
-                if (dic.ContainsKey("name")) UserName = dic["name"].Trim();
-                if (dic.ContainsKey("username")) UserName = dic["username"].Trim();
-                if (dic.ContainsKey("user_name")) UserName = dic["user_name"].Trim();
-                if (dic.ContainsKey("nickname")) NickName = dic["nickname"].Trim();
-                if (dic.ContainsKey("Avatar")) Avatar = dic["Avatar"].Trim();
 
                 OnGetInfo(dic);
 
@@ -360,7 +351,7 @@ namespace NewLife.Web
                 dic = html.SplitAsDictionary("=", "&").ToDictionary(e => e.Key.ToLower(), e => e.Value + "", StringComparer.OrdinalIgnoreCase);
             }
 
-            return dic;
+            return dic.ToNullable();
         }
 
         /// <summary>最后一次请求的响应内容</summary>
@@ -382,6 +373,15 @@ namespace NewLife.Web
         protected virtual void OnGetInfo(IDictionary<String, String> dic)
         {
             if (dic.ContainsKey("openid")) OpenID = dic["openid"].Trim();
+
+            if (dic.ContainsKey("uid")) UserID = dic["uid"].Trim().ToLong();
+            if (dic.ContainsKey("userid")) UserID = dic["userid"].Trim().ToLong();
+            if (dic.ContainsKey("user_id")) UserID = dic["user_id"].Trim().ToLong();
+            if (dic.ContainsKey("name")) UserName = dic["name"].Trim();
+            if (dic.ContainsKey("username")) UserName = dic["username"].Trim();
+            if (dic.ContainsKey("user_name")) UserName = dic["user_name"].Trim();
+            if (dic.ContainsKey("nickname")) NickName = dic["nickname"].Trim();
+            if (dic.ContainsKey("Avatar")) Avatar = dic["Avatar"].Trim();
         }
         #endregion
 

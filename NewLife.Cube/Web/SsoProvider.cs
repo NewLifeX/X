@@ -112,6 +112,7 @@ namespace NewLife.Cube.Web
 
             if (!user.Enable) throw new InvalidOperationException("用户已禁用！");
 
+            // 登录成功，保存当前用户
             Provider.Current = user;
 
             return SuccessUrl;

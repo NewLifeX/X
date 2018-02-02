@@ -80,7 +80,7 @@ namespace NewLife.Web
             var code = "";
             do
             {
-                code = Rand.NextString(8);
+                code = Rand.NextString(16);
             }
             while (!Cache.Add("Code:" + code, model, 10 * 60));
 
@@ -105,7 +105,7 @@ namespace NewLife.Web
             var model = Cache.Get<Model>(k);
             if (model == null) throw new ArgumentOutOfRangeException(nameof(code));
 
-            if (Log != null) WriteLog("Token code={0} user={1}", code, model.User.ToJson(false));
+            if (Log != null) WriteLog("GetUser code={0} user={1}", code, model.User);
 
             Cache.Remove(k);
 
