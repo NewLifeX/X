@@ -258,7 +258,7 @@ namespace NewLife.Web
                 var handler = new HttpClientHandler();
                 if (p != null)
                 {
-                    handler.UseProxy = false;
+                    handler.UseProxy = true;
                     handler.Proxy = p;
                 }
                 else
