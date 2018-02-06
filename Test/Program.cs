@@ -52,7 +52,7 @@ namespace Test
                 try
                 {
 #endif
-                Test4();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -74,19 +74,25 @@ namespace Test
         private static Int32 ths = 0;
         static void Test1()
         {
-            var user = UserX.FindByKey(1);
-            Console.WriteLine(user.Logins);
-            using (var tran = UserX.Meta.CreateTrans())
-            {
-                user.Logins++;
-                user.Save();
+            var set = XCode.Setting.Current;
+            set.Migration = Migration.ReadOnly;
+            Console.WriteLine("Setting: {0}", set.Migration);
 
-                Console.WriteLine(user.Logins);
+            DAL.AddConnStr("orc", "data source=xxx", null, "Oracle");
+            var dal = DAL.Create("orc");
+            Console.WriteLine("Oracle: {0}", dal.Db.Migration);
 
-                throw new Exception("xxx");
+            DAL.AddConnStr("orc2", "data source=xxx;Migration=full", null, "Oracle");
+            dal = DAL.Create("orc2");
+            Console.WriteLine("Oracle2: {0}", dal.Db.Migration);
 
-                tran.Commit();
-            }
+            DAL.AddConnStr("mysql", "data source=xxx;", null, "mysql");
+            dal = DAL.Create("mysql");
+            Console.WriteLine("MySql: {0}", dal.Db.Migration);
+
+            DAL.AddConnStr("mysql2", "data source=xxx;Migration=on", null, "mysql");
+            dal = DAL.Create("mysql2");
+            Console.WriteLine("MySql2: {0}", dal.Db.Migration);
         }
 
         static void Test2()

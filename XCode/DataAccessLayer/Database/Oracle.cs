@@ -61,6 +61,15 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
+        #region 构造
+        /// <summary>实例化</summary>
+        public Oracle()
+        {
+            // Oracle强制关闭反向工程，无视配置文件设置，但代码设置和连接字符串设置有效
+            Migration = Migration.Off;
+        }
+        #endregion
+
         #region 方法
         /// <summary>创建数据库会话</summary>
         /// <returns></returns>
