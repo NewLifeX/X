@@ -41,6 +41,13 @@ namespace XCode.DataAccessLayer
 
         protected override void OnSetConnectionString(XDbConnectionStringBuilder builder)
         {
+            // Oracle强制关闭反向工程，禁止通过连接字符串设置
+            if (builder.TryGetAndRemove(_.Migration, out var value) && !value.IsNullOrEmpty())
+            {
+                //var mode = (Migration)Enum.Parse(typeof(Migration), value, true);
+                //DAL.WriteLog("");
+            }
+
             base.OnSetConnectionString(builder);
 
             // 修正数据源
@@ -54,7 +61,7 @@ namespace XCode.DataAccessLayer
                     var name = uri.PathAndQuery.TrimStart("/");
                     if (name.IsNullOrEmpty()) name = "ORCL";
 
-                    str = "(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL={0})(HOST={1})(PORT={2})))(CONNECT_DATA=(SERVICE_NAME={3})))".F(type, uri.Host, port, name);
+                    str = $"(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL={type})(HOST={uri.Host})(PORT={port})))(CONNECT_DATA=(SERVICE_NAME={name})))";
                 }
                 builder.Add("Data Source", str);
             }
