@@ -50,9 +50,6 @@ namespace XCode.Cache
         #endregion
 
         #region 缓存核心
-        /// <summary>当前更新任务</summary>
-        private Task _task;
-
         private IList<TEntity> _Entities = new List<TEntity>();
         /// <summary>实体集合。无数据返回空集合而不是null</summary>
         public IList<TEntity> Entities
@@ -77,24 +74,40 @@ namespace XCode.Cache
                 return;
             }
 
-            // 建立异步更新任务
-            if (_task == null)
+            /*
+             * 来到这里，都是缓存超时的线程
+             * 1，第一次请求，还没有缓存数据，需要等待首次数据
+             *      WaitFirst   加锁等待
+             *      !WaitFirst  跳过等待
+             * 2，缓存过期，开个异步更新，继续走
+             */
+
+            if (Times == 0)
             {
-                lock (this)
+                if (WaitFirst)
                 {
-                    if (_task == null)
+                    lock (this)
                     {
-                        var reason = Times == 0 ? "第一次" : "过期{0:n0}秒".F(sec);
-                        _task = UpdateCacheAsync(reason);
-                        _task.ContinueWith(t => { _task = null; });
+                        if (Times == 0) UpdateCache("第一次");
+                    }
+                }
+                else
+                {
+                    if (Monitor.TryEnter(this, 5000))
+                    {
+                        try
+                        {
+                            if (Times == 0) UpdateCache("第一次");
+                        }
+                        finally
+                        {
+                            Monitor.Exit(this);
+                        }
                     }
                 }
             }
-            // 第一次所有线程一起等待结果
-            if (Times == 1 && WaitFirst && _task != null && _task.Id != Task.CurrentId)
-            {
-                if (!_task.Wait(5000)) XTrace.WriteLine("{0}缓存初始化超时[Task={1}]，当前线程可能取得空数据", ToString(), _task.Id);
-            }
+            else
+                UpdateCacheAsync("过期{0:n0}秒".F(sec));
 
             // 只要访问了实体缓存数据集合，就认为是使用了实体缓存，允许更新缓存数据期间向缓存集合添删数据
             Using = true;
@@ -124,19 +137,25 @@ namespace XCode.Cache
         #endregion
 
         #region 缓存操作
-        Task UpdateCacheAsync(String reason)
+        private volatile Int32 _updating;
+
+        void UpdateCacheAsync(String reason)
         {
+            // 控制只有一个线程能更新
+            if (Interlocked.CompareExchange(ref _updating, 1, 0) != 0) return;
+
+            ThreadPoolX.QueueUserWorkItem(() => UpdateCache(reason));
+        }
+
+        void UpdateCache(String reason)
+        {
+            Interlocked.Increment(ref _updating);
+
             // 这里直接计算有效期，避免每次判断缓存有效期时进行的时间相加而带来的性能损耗
             // 设置时间放在获取缓存之前，让其它线程不要空等
             if (Times > 0) ExpiredTime = TimerX.Now.AddSeconds(Expire);
-            Times++;
 
-            return Task.Factory.StartNew(FillWaper, reason);
-        }
-
-        private void FillWaper(Object state)
-        {
-            WriteLog("更新{0}（第{2}次） 原因：{1}", ToString(), state + "", Times);
+            WriteLog("更新{0}（第{2}次） 原因：{1}", ToString(), reason, Times + 1);
 
             try
             {
@@ -146,7 +165,12 @@ namespace XCode.Cache
             {
                 XTrace.WriteLine($"[{TableName}/{ConnName}]" + ex.GetTrue());
             }
+            finally
+            {
+                _updating = 0;
+            }
 
+            Times++;
             ExpiredTime = TimerX.Now.AddSeconds(Expire);
             WriteLog("完成{0}[{1}]（第{2}次）", ToString(), _Entities.Count, Times);
         }
@@ -156,11 +180,8 @@ namespace XCode.Cache
         {
             if (!Using) return;
 
-            //lock (this)
-            //{
             // 直接执行异步更新，明明白白，确保任何情况下数据最新，并且不影响其它任务的性能
             UpdateCacheAsync(reason);
-            //}
         }
 
         private IEntityOperate Operate = Entity<TEntity>.Meta.Factory;
