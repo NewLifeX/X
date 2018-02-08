@@ -29,5 +29,18 @@ namespace NewLife.Web.OAuth
             // large image: http://tb.himg.baidu.com/sys/portrait/item/{$portrait}
             if (dic.ContainsKey("portrait")) Avatar = "http://tb.himg.baidu.com/sys/portrait/item/" + dic["portrait"].Trim();
         }
+
+        ///// <summary>根据授权码获取访问令牌</summary>
+        ///// <param name="code"></param>
+        ///// <returns></returns>
+        //public override String GetAccessToken(String code)
+        //{
+        //    var html = base.GetAccessToken(code);
+
+        //    var dic = Items;
+        //    if (dic.TryGetValue("error", out var error)) throw new Exception($"{error} {dic["error_description"]}");
+
+        //    return html;
+        //}
     }
 }

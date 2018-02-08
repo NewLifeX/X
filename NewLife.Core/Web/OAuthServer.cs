@@ -54,7 +54,7 @@ namespace NewLife.Web
             {
                 key = Rand.Next();
             }
-            while (!Cache.Add("Model:" + key, model, 10 * 60));
+            while (!Cache.Add("Model:" + key, model, 20 * 60));
 
             if (Log != null) WriteLog("Authorize key={0} {1}", key, model.ToJson(false));
 
@@ -82,7 +82,7 @@ namespace NewLife.Web
             {
                 code = Rand.NextString(16);
             }
-            while (!Cache.Add("Code:" + code, model, 10 * 60));
+            while (!Cache.Add("Code:" + code, model, 20 * 60));
 
             if (Log != null) WriteLog("key={0} code={1}", key, code);
 
@@ -91,7 +91,8 @@ namespace NewLife.Web
                 url += "&";
             else
                 url += "?";
-            url += $"code={code}&state={model.State}";
+            url += "code=" + code;
+            if (!model.State.IsNullOrEmpty()) url += "state=" + model.State;
 
             return url;
         }

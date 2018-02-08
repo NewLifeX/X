@@ -46,20 +46,22 @@ namespace NewLife.Cube.Web
         public virtual OAuthClient GetClient(String name) => OAuthClient.Create(name);
 
         /// <summary>获取返回地址</summary>
-        /// <param name="request"></param>
+        /// <param name="request">请求对象</param>
+        /// <param name="referr">是否使用引用</param>
         /// <returns></returns>
-        public virtual String GetReturnUrl(HttpRequestBase request)
+        public virtual String GetReturnUrl(HttpRequestBase request, Boolean referr)
         {
-            var returnUrl = request["r"];
-            if (!returnUrl.IsNullOrEmpty() && returnUrl.StartsWithIgnoreCase("http"))
+            var url = request["r"];
+            if (url.IsNullOrEmpty() && referr) url = request.UrlReferrer + "";
+            if (!url.IsNullOrEmpty() && url.StartsWithIgnoreCase("http"))
             {
                 var baseUri = request.GetRawUrl();
 
-                var uri = new Uri(returnUrl);
-                if (uri != null && uri.Host.EqualIgnoreCase(baseUri.Host)) returnUrl = uri.PathAndQuery;
+                var uri = new Uri(url);
+                if (uri != null && uri.Host.EqualIgnoreCase(baseUri.Host)) url = uri.PathAndQuery;
             }
 
-            return returnUrl;
+            return url;
         }
 
         /// <summary>获取回调地址</summary>

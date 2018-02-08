@@ -155,7 +155,7 @@ namespace NewLife.Web
             if (Key.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Key), "未设置应用标识");
             if (Secret.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Secret), "未设置应用密钥");
 
-            if (state.IsNullOrEmpty()) state = Rand.Next().ToString();
+            //if (state.IsNullOrEmpty()) state = Rand.Next().ToString();
 
 #if !__CORE__
             // 如果是相对路径，自动加上前缀。需要考虑反向代理的可能，不能直接使用Request.Url
@@ -387,7 +387,7 @@ namespace NewLife.Web
 
         #region 日志
         /// <summary>日志</summary>
-        public ILog Log { get; set; } = Logger.Null;
+        public ILog Log { get; set; }
 
         /// <summary>写日志</summary>
         /// <param name="format"></param>

@@ -58,10 +58,7 @@ namespace NewLife.Cube.Controllers
         /// <summary>首页</summary>
         /// <returns></returns>
         [AllowAnonymous]
-        public virtual ActionResult Index()
-        {
-            return View("Index");
-        }
+        public virtual ActionResult Index() => View("Index");
 
         #region 单点登录客户端
         /// <summary>第三方登录</summary>
@@ -73,7 +70,14 @@ namespace NewLife.Cube.Controllers
             var prov = Provider;
             var client = prov.GetClient(name);
             var redirect = prov.GetRedirect(Request);
-            var url = client.Authorize(redirect, client.Name);
+
+            var state = Request["state"];
+            if (!state.IsNullOrEmpty())
+                state = client.Name + "_" + state;
+            else
+                state = client.Name;
+
+            var url = client.Authorize(redirect, state);
 
             return Redirect(url);
         }
@@ -85,23 +89,40 @@ namespace NewLife.Cube.Controllers
         [AllowAnonymous]
         public virtual ActionResult LoginInfo(String code, String state)
         {
-            // 构造redirect_uri，部分提供商要求获取AccessToken的时候也要传递
+            var name = state + "";
+            var p = name.IndexOf('_');
+            if (p > 0)
+            {
+                name = state.Substring(0, p);
+                state = state.Substring(p + 1);
+            }
+
             var prov = Provider;
-            var client = prov.GetClient(state + "");
+            var client = prov.GetClient(name);
+
+            // 构造redirect_uri，部分提供商（百度）要求获取AccessToken的时候也要传递
             var redirect = prov.GetRedirect(Request);
             client.Authorize(redirect);
 
-            var returnUrl = prov.GetReturnUrl(Request);
+            var returnUrl = prov.GetReturnUrl(Request, false);
 
             // 获取访问令牌
-            client.GetAccessToken(code);
+            var html = client.GetAccessToken(code);
 
             // 如果拿不到访问令牌或用户信息，则重新跳转
             if (client.AccessToken.IsNullOrEmpty() && client.OpenID.IsNullOrEmpty() && client.UserID == 0)
             {
+                // 如果拿不到访问令牌，刷新一次，然后报错
+                if (state.EqualIgnoreCase("refresh"))
+                {
+                    if (client.Log == null) XTrace.WriteLine(html);
+
+                    throw new InvalidOperationException("内部错误，无法获取令牌");
+                }
+
                 XTrace.WriteLine("拿不到访问令牌，重新跳转 code={0} state={1}", code, state);
 
-                return RedirectToAction("Login", new { name = client.Name, r = returnUrl });
+                return RedirectToAction("Login", new { name = client.Name, r = returnUrl, state = "refresh" });
             }
 
             // 获取OpenID。部分提供商不需要
@@ -251,39 +272,20 @@ namespace NewLife.Cube.Controllers
         /// <remarks>
         /// 子系统引导用户跳转到这里注销登录。
         /// </remarks>
-        /// <param name="redirect_uri">回调地址</param>
         /// <returns></returns>
         [AllowAnonymous]
-        public virtual ActionResult Logout(String redirect_uri)
+        public virtual ActionResult Logout()
         {
             Provider?.Logout();
 
-            var url = redirect_uri;
+            var url = Provider?.GetReturnUrl(Request, false);
             if (url.IsNullOrEmpty()) url = "~/";
 
             return Redirect(url);
         }
         #endregion
 
-        private String GetUrl(String baseUrl, String returnUrl = null)
-        {
-            var url = baseUrl;
-            //if (url.StartsWith("~/")) url = Server.UrlPathEncode(url);
-
-            if (returnUrl.IsNullOrEmpty()) returnUrl = Request["r"];
-
-            if (!returnUrl.IsNullOrEmpty())
-            {
-                if (url.Contains("?"))
-                    url += "&";
-                else
-                    url += "?";
-
-                if (returnUrl.StartsWith("~/")) returnUrl = HttpRuntime.AppDomainAppVirtualPath + returnUrl.Substring(2);
-                url += "r=" + HttpUtility.UrlEncode(returnUrl);
-            }
-
-            return url;
-        }
+        #region 辅助
+        #endregion
     }
 }
