@@ -4,6 +4,7 @@ using NewLife.Cube.Entity;
 using NewLife.Model;
 using NewLife.Security;
 using NewLife.Web;
+using XCode;
 using XCode.Membership;
 
 namespace NewLife.Cube.Web
@@ -95,19 +96,14 @@ namespace NewLife.Cube.Web
             // 强行绑定，把第三方账号强行绑定到当前已登录账号
             var forceBind = false;
             var req = service.GetService<HttpRequest>();
-            if (req != null) forceBind = req["_sso_action"].EqualIgnoreCase("bind");
+            if (req != null) forceBind = req["sso_action"].EqualIgnoreCase("bind");
 
             // 检查绑定
             var user = Provider.FindByID(uc.UserID);
             if (forceBind || user == null || !uc.Enable) user = OnBind(uc, client);
 
             // 填充昵称等数据
-            client.Fill(user);
-            var dic = client.Items;
-            if (dic != null && user is UserX user2)
-            {
-                if (user2.Mail.IsNullOrEmpty() && dic.TryGetValue("email", out var email)) user2.Mail = email;
-            }
+            Fill(client, user);
 
             if (user is IAuthUser user3) user3.Save();
             uc.Save();
@@ -118,6 +114,27 @@ namespace NewLife.Cube.Web
             Provider.Current = user;
 
             return SuccessUrl;
+        }
+
+        /// <summary>填充用户</summary>
+        /// <param name="client"></param>
+        /// <param name="user"></param>
+        protected virtual void Fill(OAuthClient client, IManageUser user)
+        {
+            if (user.Name.IsNullOrEmpty()) user.Name = client.UserName ?? client.OpenID;
+            if (user.NickName.IsNullOrEmpty()) user.NickName = client.NickName;
+
+            var dic = client.Items;
+            // 邮箱
+            if (dic != null && user is UserX user2)
+            {
+                if (user2.Mail.IsNullOrEmpty() && dic.TryGetValue("email", out var email)) user2.Mail = email;
+            }
+            // 头像
+            if (dic != null && user is IEntity entity)
+            {
+                if ((entity["Avatar"] + "").IsNullOrEmpty()) entity.SetItem("Avatar", client.Avatar);
+            }
         }
 
         /// <summary>绑定用户</summary>
@@ -131,43 +148,70 @@ namespace NewLife.Cube.Web
             var user = prv.Current;
             if (user == null)
             {
-                // 如果用户名不能用，则考虑OpenID
-                var name = client.UserName;
-                if (name.IsNullOrEmpty() || prv.FindByName(name) != null)
+                var name = "";
+                var set = Setting.Current;
+                switch (set.BindMode)
                 {
-                    // OpenID和AccessToken不可能同时为空
-                    var openid = client.OpenID;
-                    if (openid.IsNullOrEmpty()) openid = client.AccessToken;
-
-                    if (openid.Length < 12)
-                        name = openid;
-                    // 过长，需要随机一个较短的
-                    else
-                    {
-                        var num = openid.GetBytes().Crc16();
-                        while (true)
-                        {
-                            name = uc.Provider + "_" + num.ToString("X4");
-                            user = prv.FindByName(name);
-                            if (user == null) break;
-
-                            if (num >= UInt16.MaxValue) throw new InvalidOperationException("不可能的设计错误！");
-                            num++;
-                        }
-                    }
+                    case BindModes.Default:
+                        throw new InvalidOperationException("绑定要求本地已登录！");
+                    case BindModes.Auto:
+                        // 如果用户名不能用，则考虑OpenID
+                        name = GetBindUserName(client);
+                        break;
+                    case BindModes.Override:
+                        name = client.UserName;
+                        user = prv.FindByName(name);
+                        break;
                 }
+                if (user == null)
+                {
+                    // 新注册用户采用魔方默认角色
+                    var rid = set.DefaultRole;
 
-                // 新注册用户采用魔方默认角色
-                var rid = Setting.Current.DefaultRole;
-
-                // 注册用户，随机密码
-                user = prv.Register(name, Rand.NextString(16), rid, true);
+                    // 注册用户，随机密码
+                    user = prv.Register(name, Rand.NextString(16), rid, true);
+                }
             }
 
             uc.UserID = user.ID;
             uc.Enable = true;
 
             return user;
+        }
+
+        /// <summary>计算绑定用户名</summary>
+        /// <param name="client"></param>
+        /// <returns></returns>
+        protected virtual String GetBindUserName(OAuthClient client)
+        {
+            var prv = Provider;
+
+            var name = client.UserName;
+            if (name.IsNullOrEmpty() || prv.FindByName(name) != null)
+            {
+                // OpenID和AccessToken不可能同时为空
+                var openid = client.OpenID;
+                if (openid.IsNullOrEmpty()) openid = client.AccessToken;
+
+                if (openid.Length < 12)
+                    name = openid;
+                // 过长，需要随机一个较短的
+                else
+                {
+                    var num = openid.GetBytes().Crc16();
+                    while (true)
+                    {
+                        name = client.Name + "_" + num.ToString("X4");
+                        var user = prv.FindByName(name);
+                        if (user == null) break;
+
+                        if (num >= UInt16.MaxValue) throw new InvalidOperationException("不可能的设计错误！");
+                        num++;
+                    }
+                }
+            }
+
+            return name;
         }
 
         /// <summary>注销</summary>

@@ -150,7 +150,7 @@ namespace NewLife.Cube.Controllers
             var client = prov.GetClient(id);
             var redirect = prov.GetRedirect(Request, Request.UrlReferrer + "");
             // 附加绑定动作
-            redirect += "&_sso_action=bind";
+            redirect += "&sso_action=bind";
             var url = client.Authorize(redirect, client.Name);
 
             return Redirect(url);
@@ -256,15 +256,12 @@ namespace NewLife.Cube.Controllers
             // openid 用户唯一标识
 
             var user = OAuthServer.Instance.GetUser(code);
-            var user2 = user as IUser;
 
             return Json(new
             {
                 userid = user.ID,
                 username = user.Name,
                 user.NickName,
-                user2?.RoleID,
-                user2?.RoleName,
             }, JsonRequestBehavior.AllowGet);
         }
 
