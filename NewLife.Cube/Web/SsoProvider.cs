@@ -107,7 +107,7 @@ namespace NewLife.Cube.Web
                 if (user2.Mail.IsNullOrEmpty() && dic.TryGetValue("email", out var email)) user2.Mail = email;
             }
 
-            user.Save();
+            if (user is IAuthUser user3) user3.Save();
             uc.Save();
 
             if (!user.Enable) throw new InvalidOperationException("用户已禁用！");

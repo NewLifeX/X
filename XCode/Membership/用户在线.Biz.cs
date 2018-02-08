@@ -176,7 +176,7 @@ namespace XCode.Membership
 
             if (user == null) return SetStatus(sessionid, page, status, 0, null, ip);
 
-            user.Online = true;
+            if (user is IAuthUser user2) user2.Online = true;
             (user as IEntity).SaveAsync(1000);
 
             return SetStatus(sessionid, page, status, user.ID, user + "", ip);
@@ -199,10 +199,10 @@ namespace XCode.Membership
             foreach (var item in list)
             {
                 var user = ManageProvider.Provider.FindByID(item.UserID);
-                if (user != null)
+                if (user is IAuthUser user2)
                 {
-                    user.Online = false;
-                    user.Save();
+                    user2.Online = false;
+                    user2.Save();
                 }
             }
 
