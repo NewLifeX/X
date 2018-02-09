@@ -77,7 +77,7 @@ namespace NewLife.Cube
                 //if (!retUrl.IsNullOrEmpty() && retUrl != "/") rurl += "?returnUrl=" + retUrl;
 
                 var rurl = "~/Admin/User/Login".AppendReturn(retUrl);
-                ctx.Response.Redirect(rurl, true);
+                ctx.Response.Redirect(rurl);
                 return;
             }
 

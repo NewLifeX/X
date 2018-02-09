@@ -63,7 +63,7 @@ WriteLiteral("\r\n");
 
             
             #line 8 "..\..\Areas\Admin\Views\User\_Login_Login3.cshtml"
- if (ms.Count > 0 && set.BindMode > BindModes.Default)
+ if (ms.Count > 0 && set.AutoRegister)
 {
 
             
@@ -105,14 +105,14 @@ WriteLiteral(">\r\n            <span>\r\n                第三方登录：\r\n 
             #line hidden
 WriteLiteral("                <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 961), Tuple.Create("\"", 972)
+WriteAttribute("href", Tuple.Create(" href=\"", 945), Tuple.Create("\"", 956)
             
             #line 25 "..\..\Areas\Admin\Views\User\_Login_Login3.cshtml"
-, Tuple.Create(Tuple.Create("", 968), Tuple.Create<System.Object, System.Int32>(url
+, Tuple.Create(Tuple.Create("", 952), Tuple.Create<System.Object, System.Int32>(url
             
             #line default
             #line hidden
-, 968), false)
+, 952), false)
 );
 
 WriteLiteral(">\r\n                    <i");

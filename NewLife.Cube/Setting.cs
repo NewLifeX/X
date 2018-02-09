@@ -5,21 +5,21 @@ using NewLife.Xml;
 
 namespace NewLife.Cube
 {
-    /// <summary>绑定模式</summary>
-    public enum BindModes
-    {
-        /// <summary>默认。要求已登录本地用户</summary>
-        [Description("默认")]
-        Default = 0,
+    ///// <summary>绑定模式</summary>
+    //public enum BindModes
+    //{
+    //    /// <summary>默认。要求已登录本地用户</summary>
+    //    [Description("默认")]
+    //    Default = 0,
 
-        /// <summary>自动。本地未登录时自动注册新用户</summary>
-        [Description("自动")]
-        Auto = 1,
+    //    /// <summary>自动。本地未登录时自动注册新用户</summary>
+    //    [Description("自动")]
+    //    Auto = 1,
 
-        /// <summary>覆盖。本地未登录时，覆盖绑定同名用户</summary>
-        [Description("覆盖")]
-        Override = 2,
-    }
+    //    /// <summary>覆盖。本地未登录时，覆盖绑定同名用户</summary>
+    //    [Description("覆盖")]
+    //    Override = 2,
+    //}
 
     /// <summary>魔方设置</summary>
     [DisplayName("魔方设置")]
@@ -51,17 +51,21 @@ namespace NewLife.Cube
         [Description("默认角色。注册用户得到的角色")]
         public Int32 DefaultRole { get; set; } = 1;
 
-        /// <summary>启用密码登录</summary>
-        [Description("启用密码登录")]
+        /// <summary>启用密码登录。允许输入用户名密码进行登录</summary>
+        [Description("启用密码登录。允许输入用户名密码进行登录")]
         public Boolean AllowLogin { get; set; } = true;
 
-        /// <summary>启用注册</summary>
-        [Description("启用注册")]
+        /// <summary>启用注册。允许输入用户名密码进行注册</summary>
+        [Description("启用注册。允许输入用户名密码进行注册")]
         public Boolean AllowRegister { get; set; } = true;
 
-        /// <summary>绑定模式。第三方登录后如何注册</summary>
-        [Description("绑定模式。第三方登录后，0默认要求已登录本地用户，1自动注册，2覆盖注册同名")]
-        public BindModes BindMode { get; set; } = BindModes.Auto;
+        /// <summary>自动注册。第三方登录后，如果本地未登录，自动注册新用户</summary>
+        [Description("自动注册。第三方登录后，如果本地未登录，自动注册新用户")]
+        public Boolean AutoRegister { get; set; } = true;
+
+        ///// <summary>绑定模式。第三方登录后如何注册</summary>
+        //[Description("绑定模式。第三方登录后，0默认要求已登录本地用户，1自动注册，2覆盖注册同名")]
+        //public BindModes BindMode { get; set; } = BindModes.Auto;
 
         /// <summary>登录提示。留空表示不显示登录提示信息</summary>
         [Description("登录提示。留空表示不显示登录提示信息")]

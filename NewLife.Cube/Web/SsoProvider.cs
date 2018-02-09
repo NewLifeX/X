@@ -148,21 +148,34 @@ namespace NewLife.Cube.Web
             var user = prv.Current;
             if (user == null)
             {
-                var name = "";
                 var set = Setting.Current;
-                switch (set.BindMode)
+                if (!set.AutoRegister) throw new InvalidOperationException("绑定要求本地已登录！");
+
+                // 先找用户名，如果存在，就加上提供者前缀，直接覆盖
+                var name = client.UserName;
+                if (!name.IsNullOrEmpty())
                 {
-                    case BindModes.Default:
-                        throw new InvalidOperationException("绑定要求本地已登录！");
-                    case BindModes.Auto:
-                        // 如果用户名不能用，则考虑OpenID
-                        name = GetBindUserName(client);
-                        break;
-                    case BindModes.Override:
-                        name = client.UserName;
+                    user = prv.FindByName(name);
+                    if (user != null)
+                    {
+                        name = client.Name + "_" + name;
                         user = prv.FindByName(name);
-                        break;
+                    }
                 }
+                else
+                // QQ、微信 等不返回用户名
+                {
+                    // OpenID和AccessToken不可能同时为空
+                    var openid = client.OpenID;
+                    if (openid.IsNullOrEmpty()) openid = client.AccessToken;
+
+                    // 过长，需要随机一个较短的
+                    var num = openid.GetBytes().Crc();
+
+                    name = client.Name + "_" + num.ToString("X8");
+                    user = prv.FindByName(name);
+                }
+
                 if (user == null)
                 {
                     // 新注册用户采用魔方默认角色
@@ -177,41 +190,6 @@ namespace NewLife.Cube.Web
             uc.Enable = true;
 
             return user;
-        }
-
-        /// <summary>计算绑定用户名</summary>
-        /// <param name="client"></param>
-        /// <returns></returns>
-        protected virtual String GetBindUserName(OAuthClient client)
-        {
-            var prv = Provider;
-
-            var name = client.UserName;
-            if (name.IsNullOrEmpty() || prv.FindByName(name) != null)
-            {
-                // OpenID和AccessToken不可能同时为空
-                var openid = client.OpenID;
-                if (openid.IsNullOrEmpty()) openid = client.AccessToken;
-
-                if (openid.Length < 12)
-                    name = openid;
-                // 过长，需要随机一个较短的
-                else
-                {
-                    var num = openid.GetBytes().Crc16();
-                    while (true)
-                    {
-                        name = client.Name + "_" + num.ToString("X4");
-                        var user = prv.FindByName(name);
-                        if (user == null) break;
-
-                        if (num >= UInt16.MaxValue) throw new InvalidOperationException("不可能的设计错误！");
-                        num++;
-                    }
-                }
-            }
-
-            return name;
         }
 
         /// <summary>注销</summary>
