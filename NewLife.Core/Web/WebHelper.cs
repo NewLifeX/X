@@ -323,8 +323,8 @@ namespace NewLife.Web
                 url += "&";
             else
                 url += "?";
-            url += returnKey + "=" + returnUrl;
-            //url += returnKey + "=" + HttpUtility.UrlEncode(returnUrl);
+            //url += returnKey + "=" + returnUrl;
+            url += returnKey + "=" + HttpUtility.UrlEncode(returnUrl);
 
             return url;
         }

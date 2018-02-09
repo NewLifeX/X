@@ -67,7 +67,8 @@ namespace NewLife.Cube.Controllers
         {
             var prov = Provider;
             var client = prov.GetClient(name);
-            var redirect = prov.GetRedirect(Request);
+            var rurl = prov.GetReturnUrl(Request, true);
+            var redirect = prov.GetRedirect(Request, rurl);
 
             var state = Request["state"];
             if (!state.IsNullOrEmpty())

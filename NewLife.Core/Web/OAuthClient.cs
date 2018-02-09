@@ -82,7 +82,7 @@ namespace NewLife.Web
         /// <returns></returns>
         public static OAuthClient Create(String name)
         {
-            if (name.IsNullOrEmpty()) throw new ArgumentNullException(nameof(name));
+            //if (name.IsNullOrEmpty()) throw new ArgumentNullException(nameof(name));
 
             // 初始化映射表
             if (_map == null)
@@ -91,11 +91,22 @@ namespace NewLife.Web
                 foreach (var item in typeof(OAuthClient).GetAllSubclasses(true))
                 {
                     var key = item.Name.TrimEnd("Client");
+                    var ct = item.CreateInstance() as OAuthClient;
+                    if (!ct.Name.IsNullOrEmpty()) key = ct.Name;
+
                     dic[key] = item;
                 }
 
                 _map = dic;
             }
+
+            if (name.IsNullOrEmpty())
+            {
+                var set = OAuthConfig.Current;
+                var mi = set.Items.FirstOrDefault(e => !e.AppID.IsNullOrEmpty());
+                if (mi != null) name = mi.Name;
+            }
+            if (name.IsNullOrEmpty()) throw new ArgumentNullException(nameof(name));
 
             //if (!_map.TryGetValue(name, out var type)) throw new Exception($"找不到[{name}]的OAuth客户端");
             // 找不到就用默认
