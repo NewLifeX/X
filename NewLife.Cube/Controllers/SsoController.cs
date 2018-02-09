@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Linq;
-using System.Web;
 using System.Web.Mvc;
 using NewLife.Cube.Entity;
 using NewLife.Cube.Web;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Web;
-using XCode.Membership;
 
 /*
  * 魔方OAuth在禁用本地登录，且只设置一个第三方登录时，形成单点登录。
@@ -200,12 +198,20 @@ namespace NewLife.Cube.Controllers
             if (response_type.IsNullOrEmpty()) response_type = "code";
 
             // 判断合法性，然后跳转到登录页面，登录完成后跳转回来
-            var key = OAuthServer.Instance.Authorize(client_id, redirect_uri, response_type, scope, state);
+            var sso = OAuthServer.Instance;
+            var key = sso.Authorize(client_id, redirect_uri, response_type, scope, state);
 
             var prov = Provider;
-            var uri = prov.LoginUrl.AppendReturn("~/Sso/Auth2/" + key);
+            var url = "";
 
-            return Redirect(uri);
+            // 如果已经登录，直接返回。否则跳到登录页面
+            var user = prov?.Current;
+            if (user != null)
+                url = sso.GetResult(key, user as IManageUser);
+            else
+                url = prov.LoginUrl.AppendReturn("~/Sso/Auth2/" + key);
+
+            return Redirect(url);
         }
 
         /// <summary>2，用户登录成功后返回这里</summary>
