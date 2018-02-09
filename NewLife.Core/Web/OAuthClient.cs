@@ -106,7 +106,7 @@ namespace NewLife.Web
                 var mi = set.Items.FirstOrDefault(e => !e.AppID.IsNullOrEmpty());
                 if (mi != null) name = mi.Name;
             }
-            if (name.IsNullOrEmpty()) throw new ArgumentNullException(nameof(name));
+            if (name.IsNullOrEmpty()) throw new ArgumentNullException(nameof(name), "未正确配置OAuth");
 
             //if (!_map.TryGetValue(name, out var type)) throw new Exception($"找不到[{name}]的OAuth客户端");
             // 找不到就用默认
