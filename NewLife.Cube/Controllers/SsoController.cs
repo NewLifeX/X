@@ -98,6 +98,8 @@ namespace NewLife.Cube.Controllers
             var prov = Provider;
             var client = prov.GetClient(name);
 
+            client.WriteLog("LoginInfo name={0} code={1} state={2}", name, code, state);
+
             // 构造redirect_uri，部分提供商（百度）要求获取AccessToken的时候也要传递
             var redirect = prov.GetRedirect(Request);
             client.Authorize(redirect);
@@ -207,7 +209,7 @@ namespace NewLife.Cube.Controllers
             // 如果已经登录，直接返回。否则跳到登录页面
             var user = prov?.Current;
             if (user != null)
-                url = sso.GetResult(key, user as IManageUser);
+                url = sso.GetResult(key, user);
             else
                 url = prov.LoginUrl.AppendReturn("~/Sso/Auth2/" + key);
 
@@ -232,7 +234,7 @@ namespace NewLife.Cube.Controllers
             // code 授权码，子系统凭借该代码来索取用户信息
             // state 子系统传过来的用户状态数据，原样返回
 
-            var url = sso.GetResult(id, user as IManageUser);
+            var url = sso.GetResult(id, user);
 
             return Redirect(url);
         }
@@ -261,14 +263,57 @@ namespace NewLife.Cube.Controllers
             // refresh_token 刷新令牌
             // openid 用户唯一标识
 
-            var user = OAuthServer.Instance.GetUser(code);
-
-            return Json(new
+            var sso = OAuthServer.Instance;
+            try
             {
-                userid = user.ID,
-                username = user.Name,
-                user.NickName,
-            }, JsonRequestBehavior.AllowGet);
+                var token = OAuthServer.Instance.GetToken(code);
+
+                // 返回UserInfo告知客户端可以请求用户信息
+                return Json(new
+                {
+                    //userid = user.ID,
+                    //username = user.Name,
+                    //nickname = user.NickName,
+                    access_token = token,
+                    expires_in = sso.Expire,
+                    scope = "basic,UserInfo",
+                }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { error = ex.GetTrue().Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        /// <summary>3，根据token获取用户信息</summary>
+        /// <param name="access_token">访问令牌</param>
+        /// <returns></returns>
+        [AllowAnonymous]
+        public virtual ActionResult UserInfo(String access_token)
+        {
+            if (access_token.IsNullOrEmpty()) throw new ArgumentNullException(nameof(access_token));
+
+            try
+            {
+                var sso = OAuthServer.Instance;
+                var username = sso.TokenProvider.Decode(access_token, out var expire);
+                if (username.IsNullOrEmpty()) throw new Exception("非法访问令牌");
+                if (expire < DateTime.Now) throw new Exception("令牌已过期");
+
+                var user = Provider?.Provider?.FindByName(username);
+                if (user == null) throw new Exception("用户不存在");
+
+                return Json(new
+                {
+                    userid = user.ID,
+                    username = user.Name,
+                    nickname = user.NickName,
+                }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { error = ex.GetTrue().Message }, JsonRequestBehavior.AllowGet);
+            }
         }
 
         /// <summary>4，注销登录</summary>

@@ -11,11 +11,20 @@ namespace NewLife.Web
     {
         #region 属性
         private ICache Cache { get; } = NewLife.Caching.Cache.Default;
+
+        /// <summary>令牌提供者</summary>
+        public TokenProvider TokenProvider { get; set; }
+
+        /// <summary>令牌有效期。默认24小时</summary>
+        public Int32 Expire { get; set; } = 24 * 3600;
         #endregion
 
         #region 静态
         /// <summary>实例</summary>
         public static OAuthServer Instance { get; set; } = new OAuthServer();
+        #endregion
+
+        #region 构造
         #endregion
 
         #region 方法
@@ -32,9 +41,9 @@ namespace NewLife.Web
         /// <returns></returns>
         public virtual Int32 Authorize(String appid, String redirect_uri, String response_type = null, String scope = null, String state = null)
         {
-            if (appid.IsNullOrEmpty()) throw new ArgumentNullException(nameof(appid));
-            if (redirect_uri.IsNullOrEmpty()) throw new ArgumentNullException(nameof(redirect_uri));
-            if (response_type.IsNullOrEmpty()) response_type = "code";
+            //if (appid.IsNullOrEmpty()) throw new ArgumentNullException(nameof(appid));
+            //if (redirect_uri.IsNullOrEmpty()) throw new ArgumentNullException(nameof(redirect_uri));
+            //if (response_type.IsNullOrEmpty()) response_type = "code";
 
             if (!response_type.EqualIgnoreCase("code")) throw new NotSupportedException(nameof(response_type));
 
@@ -56,7 +65,7 @@ namespace NewLife.Web
             }
             while (!Cache.Add("Model:" + key, model, 20 * 60));
 
-            if (Log != null) WriteLog("Authorize key={0} {1}", key, model.ToJson(false));
+            if (Log != null) WriteLog("Authorize {2} key={0} {1}", key, model.ToJson(false), appid);
 
             return key;
         }
@@ -73,8 +82,14 @@ namespace NewLife.Web
 
             Cache.Remove(k);
 
-            // 保存用户信息
-            model.User = user;
+            //// 保存用户信息
+            //model.User = user;
+            var prv = TokenProvider;
+            if (prv == null) prv = TokenProvider = new TokenProvider();
+            if (prv.Key.IsNullOrEmpty()) prv.ReadKey("..\\Keys\\OAuth.prvkey", true);
+
+            // 建立令牌
+            model.Token = prv.Encode(user.Name, DateTime.Now.AddSeconds(Expire));
 
             // 随机code，并尝试加入缓存
             var code = "";
@@ -84,7 +99,7 @@ namespace NewLife.Web
             }
             while (!Cache.Add("Code:" + code, model, 20 * 60));
 
-            if (Log != null) WriteLog("key={0} code={1}", key, code);
+            if (Log != null) WriteLog("{2} key={0} code={1}", key, code, model.AppID);
 
             var url = model.Uri;
             if (url.Contains("?"))
@@ -92,26 +107,42 @@ namespace NewLife.Web
             else
                 url += "?";
             url += "code=" + code;
-            if (!model.State.IsNullOrEmpty()) url += "state=" + model.State;
+            if (!model.State.IsNullOrEmpty()) url += "&state=" + model.State;
 
             return url;
         }
 
-        /// <summary>根据Code获取用户信息</summary>
+        /// <summary>根据Code获取令牌</summary>
         /// <param name="code"></param>
         /// <returns></returns>
-        public virtual IManageUser GetUser(String code)
+        public virtual String GetToken(String code)
         {
             var k = "Code:" + code;
             var model = Cache.Get<Model>(k);
             if (model == null) throw new ArgumentOutOfRangeException(nameof(code));
 
-            if (Log != null) WriteLog("GetUser code={0} user={1}", code, model.User);
+            if (Log != null) WriteLog("Token {0} code={1} token={2}", model.AppID, code, model.Token);
 
             Cache.Remove(k);
 
-            return model.User;
+            return model.Token;
         }
+
+        ///// <summary>根据Token获取用户信息</summary>
+        ///// <param name="token"></param>
+        ///// <returns></returns>
+        //public virtual IManageUser GetUser(String token)
+        //{
+        //    var k = "Code:" + token;
+        //    var model = Cache.Get<Model>(k);
+        //    if (model == null) throw new ArgumentOutOfRangeException(nameof(token));
+
+        //    if (Log != null) WriteLog("GetUser code={0} user={1}", token, model.User);
+
+        //    Cache.Remove(k);
+
+        //    return model.User;
+        //}
         #endregion
 
         #region 内嵌
@@ -123,9 +154,9 @@ namespace NewLife.Web
             public String Scope { get; set; }
             public String State { get; set; }
 
-            //public String Token { get; set; }
+            public String Token { get; set; }
 
-            public IManageUser User { get; set; }
+            //public IManageUser User { get; set; }
         }
         #endregion
 

@@ -298,6 +298,7 @@
     <Compile Include="Web\OAuth\QQClient.cs" />
     <Compile Include="Web\OAuthServer.cs" />
     <Compile Include="Web\OAuthConfig.cs" />
+    <Compile Include="Web\TokenProvider.cs" />
     <Compile Include="Yun\AMap.cs" />
     <Compile Include="Yun\BaiduMap.cs" />
     <Compile Include="Web\Js.cs" />

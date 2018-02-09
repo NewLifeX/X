@@ -165,7 +165,7 @@ namespace NewLife.Web
             _state = state;
 
             var url = GetUrl(AuthUrl);
-            WriteLog("Authorize {0}", url);
+            if (!state.IsNullOrEmpty()) WriteLog("Authorize {0}", url);
 
             return url;
         }
@@ -196,6 +196,13 @@ namespace NewLife.Web
                 if (dic.ContainsKey("access_token")) AccessToken = dic["access_token"].Trim();
                 if (dic.ContainsKey("expires_in")) Expire = DateTime.Now.AddSeconds(dic["expires_in"].Trim().ToInt());
                 if (dic.ContainsKey("refresh_token")) RefreshToken = dic["refresh_token"].Trim();
+
+                // 如果响应区域包含用户信息，则增加用户地址
+                if (UserUrl.IsNullOrEmpty() && dic.ContainsKey("scope"))
+                {
+                    var ss = dic["scope"].Trim().Split(",");
+                    if (ss.Contains("UserInfo")) UserUrl = "userinfo?access_token={token}";
+                }
 
                 OnGetInfo(dic);
             }
