@@ -36,10 +36,12 @@ using NewLife.Cube;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("2.0.*")]
-[assembly: AssemblyFileVersion("2.0.2017.1126")]
+[assembly: AssemblyVersion("2.1.*")]
+[assembly: AssemblyFileVersion("2.1.2018.0211")]
 
 /*
+ * v2.1.2018.0211   集成OAuth客户端服务端，支持QQ、百度、GitHub等
+ * 
  * v2.0.2017.1126   借助Ajax支持高级操作，如：删除选中、批量启用禁用等
  * 
  * v1.3.2016.1206   增加文件管理，增强数据字段映射
