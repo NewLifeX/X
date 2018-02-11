@@ -476,6 +476,16 @@ namespace XCode
         }
 
         /// <summary>根据条件查找单个实体</summary>
+        /// <param name="whereClause">查询条件</param>
+        /// <returns></returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static TEntity Find(String whereClause)
+        {
+            var list = FindAll(whereClause, null, null, 0, 1);
+            return list.Count < 1 ? null : list[0];
+        }
+
+        /// <summary>根据条件查找单个实体</summary>
         /// <param name="where">查询条件</param>
         /// <returns></returns>
         public static TEntity Find(Expression where)
@@ -727,8 +737,17 @@ namespace XCode
             // 先查询满足条件的记录数，如果没有数据，则直接返回空集合，不再查询数据
             if (page.RetrieveTotalCount)
             {
-                var rows = page.TotalCount = FindCount(where, null, null, 0, 0);
+                var session = Meta.Session;
+                var rows = 0L;
+
+                // 如果总记录数超过10万，为了提高性能，返回快速查找且带有缓存的总记录数
+                if ((where == null || where is WhereExpression wh && wh.Empty) && session.LongCount > 100000)
+                    rows = session.LongCount;
+                else
+                    rows = FindCount(where, null, null, 0, 0);
                 if (rows <= 0) return new List<TEntity>();
+
+                page.TotalCount = rows;
             }
 
             // 验证排序字段，避免非法
@@ -773,8 +792,8 @@ namespace XCode
         {
             var session = Meta.Session;
 
-            // 如果总记录数超过10万，为了提高性能，返回快速查找且带有缓存的总记录数
-            if (String.IsNullOrEmpty(where) && session.LongCount > 100000) return session.Count;
+            //// 如果总记录数超过10万，为了提高性能，返回快速查找且带有缓存的总记录数
+            //if (String.IsNullOrEmpty(where) && session.LongCount > 100000) return session.Count;
 
             var sb = new SelectBuilder
             {
@@ -801,8 +820,8 @@ namespace XCode
             var ps = session.Dal.Db.UserParameter ? new Dictionary<String, Object>() : null;
             var wh = where?.GetString(ps);
 
-            // 如果总记录数超过10万，为了提高性能，返回快速查找且带有缓存的总记录数
-            if (String.IsNullOrEmpty(wh) && session.LongCount > 100000) return session.LongCount;
+            //// 如果总记录数超过10万，为了提高性能，返回快速查找且带有缓存的总记录数
+            //if (String.IsNullOrEmpty(wh) && session.LongCount > 100000) return session.LongCount;
 
             var builder = new SelectBuilder
             {
@@ -960,11 +979,43 @@ namespace XCode
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         public static Int32 Insert(TEntity obj) { return obj.Insert(); }
 
+        /// <summary>把一个实体对象持久化到数据库</summary>
+        /// <param name="names">更新属性列表</param>
+        /// <param name="values">更新值列表</param>
+        /// <returns>返回受影响的行数</returns>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
+        public static Int32 Insert(String[] names, Object[] values)
+        {
+            return Persistence.Insert(Meta.Factory, names, values);
+        }
+
         /// <summary>把一个实体对象更新到数据库</summary>
         /// <param name="obj">实体对象</param>
         /// <returns>返回受影响的行数</returns>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         public static Int32 Update(TEntity obj) { return obj.Update(); }
+
+        /// <summary>更新一批实体数据</summary>
+        /// <param name="setClause">要更新的项和数据</param>
+        /// <param name="whereClause">指定要更新的实体</param>
+        /// <returns></returns>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
+        public static Int32 Update(String setClause, String whereClause)
+        {
+            return Persistence.Update(Meta.Factory, setClause, whereClause);
+        }
+
+        /// <summary>更新一批实体数据</summary>
+        /// <param name="setNames">更新属性列表</param>
+        /// <param name="setValues">更新值列表</param>
+        /// <param name="whereNames">条件属性列表</param>
+        /// <param name="whereValues">条件值列表</param>
+        /// <returns>返回受影响的行数</returns>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
+        public static Int32 Update(String[] setNames, Object[] setValues, String[] whereNames, Object[] whereValues)
+        {
+            return Persistence.Update(Meta.Factory, setNames, setValues, whereNames, whereValues);
+        }
 
         /// <summary>
         /// 从数据库中删除指定实体对象。
@@ -974,6 +1025,25 @@ namespace XCode
         /// <returns>返回受影响的行数，可用于判断被删除了多少行，从而知道操作是否成功</returns>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         public static Int32 Delete(TEntity obj) { return obj.Delete(); }
+
+        /// <summary>从数据库中删除指定条件的实体对象。</summary>
+        /// <param name="whereClause">限制条件</param>
+        /// <returns></returns>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
+        public static Int32 Delete(String whereClause)
+        {
+            return Persistence.Delete(Meta.Factory, whereClause);
+        }
+
+        /// <summary>从数据库中删除指定属性列表和值列表所限定的实体对象。</summary>
+        /// <param name="names">属性列表</param>
+        /// <param name="values">值列表</param>
+        /// <returns></returns>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
+        public static Int32 Delete(String[] names, Object[] values)
+        {
+            return Persistence.Delete(Meta.Factory, names, values);
+        }
 
         /// <summary>把一个实体对象更新到数据库</summary>
         /// <param name="obj">实体对象</param>

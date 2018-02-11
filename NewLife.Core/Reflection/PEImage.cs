@@ -58,7 +58,7 @@ namespace NewLife.Reflection
             {
                 using (var fs = new FileStream(file, FileMode.Open, FileAccess.Read))
                 {
-                    return PEImage.Read(fs);
+                    return Read(fs);
                 }
             }
             catch (Exception ex)
@@ -332,6 +332,51 @@ namespace NewLife.Reflection
         #endregion
 
         #region 辅助
+        /// <summary>能否在指定版本下加载程序集</summary>
+        /// <remarks>
+        /// 必须加强过滤，下面一旦只读加载，就再也不能删除文件
+        /// </remarks>
+        /// <param name="file">程序集文件</param>
+        /// <param name="ver">指定模版，默认空表示当前版本</param>
+        /// <param name="debug">是否输出调试日志</param>
+        /// <returns></returns>
+        public static Boolean CanLoad(String file, Version ver = null, Boolean debug = false)
+        {
+            if (file.IsNullOrEmpty()) return false;
+            if (!File.Exists(file)) return false;
+
+            // 仅加载.Net文件，并且小于等于当前版本
+            var pe = Read(file);
+            if (pe == null || !pe.IsNet) return false;
+
+            if (ver == null) ver = new Version(Assembly.GetExecutingAssembly().ImageRuntimeVersion.TrimStart('v'));
+
+            // 只判断主次版本，只要这两个相同，后面可以兼容
+            var pv = pe.Version;
+            if (pv.Major > ver.Major || pv.Major == ver.Major && pv.Minor > ver.Minor)
+            {
+                if (debug) XTrace.WriteLine("程序集 {0} 的版本 {1} 大于当前运行时 {2}", file, pv, ver);
+                return false;
+            }
+            // 必须加强过滤，下面一旦只读加载，就再也不能删除文件
+            if (!pe.ExecutableKind.Has(PortableExecutableKinds.ILOnly))
+            {
+                // 判断x86/x64兼容。无法区分x86/x64的SQLite驱动
+                //XTrace.WriteLine("{0,12} {1} {2}", item, pe.Machine, pe.ExecutableKind);
+                //var x64 = pe.ExecutableKind.Has(PortableExecutableKinds.Required32Bit);
+                //var x64 = pe.Machine == ImageFileMachine.AMD64;
+                var x64 = pe.Machine == ImageFileMachine.AMD64;
+                if (Runtime.Is64BitProcess ^ x64)
+                {
+                    if (debug) XTrace.WriteLine("程序集 {0} 的代码特性是 {1}，而当前进程是 {2} 进程", file, pe.Machine, Runtime.Is64BitProcess ? "64位" : "32位");
+
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         Int64 ResolveVirtualAddress(RVA rva)
         {
             var section = GetSectionAtVirtualAddress(rva);

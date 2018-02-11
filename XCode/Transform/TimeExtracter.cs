@@ -85,11 +85,10 @@ namespace XCode.Transform
 
             // 结束时间，必须是小于当前时间的有效值
             var end = set.Step <= 0 ? DateTime.MaxValue : start.AddSeconds(set.Step);
-            //var end = DateTime.MaxValue;
             // 结束时间有效时，设定末端边界
-            if (set.End > DateTime.MinValue && set.End < DateTime.MaxValue && set.End < end)
-                end = set.End;
-
+            if (set.End > DateTime.MinValue && set.End < DateTime.MaxValue && end > set.End) end = set.End;
+            // 不能超过当前时间
+            if (set.Step > 0 && end > now) end = now;
             // 区间无效
             if (start >= end) return null;
 

@@ -7,9 +7,9 @@ namespace NewLife.Security
     public static class DSAHelper
     {
         #region 产生密钥
-        /// <summary>产生非对称密钥对</summary>
+        /// <summary>产生非对称密钥对（私钥和公钥）</summary>
         /// <param name="keySize">密钥长度，默认1024位强密钥</param>
-        /// <returns></returns>
+        /// <returns>私钥和公钥</returns>
         public static String[] GenerateKey(Int32 keySize = 1024)
         {
             var dsa = new DSACryptoServiceProvider(keySize);

@@ -52,7 +52,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test4();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -74,19 +74,25 @@ namespace Test
         private static Int32 ths = 0;
         static void Test1()
         {
-            var user = UserX.FindByKey(1);
-            Console.WriteLine(user.Logins);
-            using (var tran = UserX.Meta.CreateTrans())
-            {
-                user.Logins++;
-                user.Save();
+            var set = XCode.Setting.Current;
+            set.Migration = Migration.ReadOnly;
+            Console.WriteLine("Setting: {0}", set.Migration);
 
-                Console.WriteLine(user.Logins);
+            DAL.AddConnStr("orc", "data source=xxx", null, "Oracle");
+            var dal = DAL.Create("orc");
+            Console.WriteLine("Oracle: {0}", dal.Db.Migration);
 
-                throw new Exception("xxx");
+            DAL.AddConnStr("orc2", "data source=xxx;Migration=full", null, "Oracle");
+            dal = DAL.Create("orc2");
+            Console.WriteLine("Oracle2: {0}", dal.Db.Migration);
 
-                tran.Commit();
-            }
+            DAL.AddConnStr("mysql", "data source=xxx;", null, "mysql");
+            dal = DAL.Create("mysql");
+            Console.WriteLine("MySql: {0}", dal.Db.Migration);
+
+            DAL.AddConnStr("mysql2", "data source=xxx;Migration=on", null, "mysql");
+            dal = DAL.Create("mysql2");
+            Console.WriteLine("MySql2: {0}", dal.Db.Migration);
         }
 
         static void Test2()
@@ -142,11 +148,31 @@ namespace Test
 
         static void Test4()
         {
-            var cfg = CacheConfig.Current;
-            Console.WriteLine(cfg.GetOrAdd("Bill01"));
+            var str = "~/Sso/Login";
+            var uri2 = new Uri("Sso/Login", UriKind.Absolute);
+            //var uri = str.AsUri("http://xxx.yyy.zzz/ss/dd/ff".AsUri());
+            var uri = str.AsUri();
+            //var cfg = CacheConfig.Current;
+            //Console.WriteLine(cfg.GetOrAdd("Bill01"));
 
-            var set = cfg.GetOrAdd("aa_test", "redis");
-            Console.WriteLine(set);
+            //var set = cfg.GetOrAdd("aa_test", "redis");
+            //Console.WriteLine(set);
+
+            WebClientX.SetAllowUnsafeHeaderParsing(true);
+
+            var url = "https://api.github.com/user?access_token=ccb5c1363318ee2fa1d9374e87961bdf01a4c682";
+
+            var client = new WebClientX(true, true);
+            //var buf = client.DownloadDataAsync(url).Result;
+            //var ms = new MemoryStream(buf);
+            //var ms2 = ms.DecompressGZip();
+            //buf = ms2.ReadBytes();
+            var html = client.GetHtml(url);
+            Console.WriteLine(html);
+
+            var ip = "223.5.5.5";
+            ip = ip.IPToAddress();
+            Console.WriteLine(ip);
         }
     }
 }

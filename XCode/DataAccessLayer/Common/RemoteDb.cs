@@ -83,6 +83,15 @@ namespace XCode.DataAccessLayer
                 return base.DefaultConnectionString;
             }
         }
+
+        const String Pooling = "Pooling";
+        protected override void OnSetConnectionString(XDbConnectionStringBuilder builder)
+        {
+            base.OnSetConnectionString(builder);
+
+            // 关闭底层连接池，使用XCode连接池
+            if (!builder.ContainsKey(Pooling)) builder[Pooling] = "false";
+        }
         #endregion
     }
 

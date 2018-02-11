@@ -47,7 +47,7 @@ namespace NewLife.Cube.Admin.Controllers
                 var dal = DAL.Create(item.Key);
                 di.Type = dal.DbType;
 
-                var t = Task.Run(() =>
+                var t = Task.Factory.StartNew(() =>
                 {
                     try
                     {

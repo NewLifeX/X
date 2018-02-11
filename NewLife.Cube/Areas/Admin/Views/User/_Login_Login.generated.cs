@@ -74,7 +74,7 @@ WriteLiteral("></i>\r\n    </div>\r\n    <!-- 登录-->\r\n");
             #line hidden
             
             #line 10 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
-     using (Html.BeginForm("Login", "User", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "cube-login" }))
+     using (Html.BeginForm("Login", "User", new { r = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "cube-login" }))
     {
         
             
@@ -146,15 +146,15 @@ WriteLiteral("></i>\r\n            ");
 
 WriteLiteral("\r\n        </div>\r\n");
 
-WriteLiteral("            <div");
+WriteLiteral("        <div");
 
 WriteLiteral(" class=\"form-group\"");
 
-WriteLiteral(">\r\n                <div");
+WriteLiteral(">\r\n            <div");
 
 WriteLiteral(" class=\"main-checkbox\"");
 
-WriteLiteral(">\r\n                    <input");
+WriteLiteral(">\r\n                <input");
 
 WriteLiteral(" type=\"checkbox\"");
 
@@ -164,21 +164,21 @@ WriteLiteral(" id=\"remember\"");
 
 WriteLiteral(" name=\"remember\"");
 
-WriteLiteral(" />\r\n                    <label");
+WriteLiteral(" />\r\n                <label");
 
 WriteLiteral(" for=\"remember\"");
 
-WriteLiteral("></label>\r\n                </div>\r\n                <span");
+WriteLiteral("></label>\r\n            </div>\r\n            <span");
 
 WriteLiteral(" class=\"text text-primary\"");
 
-WriteLiteral(">记住我</span>\r\n                <button");
+WriteLiteral(">记住我</span>\r\n            <button");
 
 WriteLiteral(" type=\"submit\"");
 
 WriteLiteral(" class=\"btn btn-default\"");
 
-WriteLiteral(">登录</button>\r\n            </div>\r\n");
+WriteLiteral(">登录</button>\r\n        </div>\r\n");
 
             
             #line 31 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
@@ -192,7 +192,7 @@ WriteLiteral("    ");
 
             
             #line 33 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
-     if (set.AllowRegister || set.AllowForgot)
+     if (set.AllowRegister)
     {
 
             
@@ -208,49 +208,20 @@ WriteLiteral(" class=\"row\"");
 
 WriteLiteral(" style=\"padding-top:30px;\"");
 
-WriteLiteral(">\r\n");
+WriteLiteral(">\r\n                ");
+
+WriteLiteral("\r\n");
 
             
-            #line 37 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
+            #line 44 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
                 
             
             #line default
             #line hidden
             
-            #line 37 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
-                 if (set.AllowForgot)
-                {
-
-            
-            #line default
-            #line hidden
-WriteLiteral("                    <a");
-
-WriteLiteral(" href=\"#Forgot\"");
-
-WriteLiteral(" data-toggle=\"tab\"");
-
-WriteLiteral(">\r\n                        <i");
-
-WriteLiteral(" class=\"glyphicon glyphicon-info-sign\"");
-
-WriteLiteral("></i>\r\n                        忘记密码？\r\n                    </a>\r\n");
-
-            
-            #line 43 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
-
-                }
-
-            
-            #line default
-            #line hidden
-WriteLiteral("                ");
-
-            
-            #line 45 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
+            #line 44 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
                  if (set.AllowRegister)
                 {
-
 
             
             #line default
@@ -261,15 +232,14 @@ WriteLiteral(" href=\"#Register\"");
 
 WriteLiteral(" data-toggle=\"tab\"");
 
-WriteLiteral(">                        \r\n                        <i");
+WriteLiteral(">\r\n                        <i");
 
 WriteLiteral(" class=\"glyphicon glyphicon-menu-right\"");
 
 WriteLiteral("></i>\r\n                        我要注册\r\n                    </a>\r\n");
 
             
-            #line 52 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
-
+            #line 50 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
                 }
 
             
@@ -278,22 +248,16 @@ WriteLiteral("></i>\r\n                        我要注册\r\n                 
 WriteLiteral("            </div>\r\n        </div>\r\n");
 
             
-            #line 56 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
+            #line 53 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
     }
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n");
+WriteLiteral("    ");
 
             
-            #line 58 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
-    
-            
-            #line default
-            #line hidden
-            
-            #line 58 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
+            #line 54 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
      if (!set.LoginTip.IsNullOrEmpty())
     {
 
@@ -311,7 +275,7 @@ WriteLiteral(" class=\"ace-icon fa fa-coffee green\"");
 WriteLiteral("></i>\r\n\r\n        </h4>\r\n");
 
             
-            #line 64 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
+            #line 60 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
 
 
             
@@ -324,7 +288,7 @@ WriteLiteral(" class=\"space-6\"");
 WriteLiteral("></div>\r\n");
 
             
-            #line 66 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
+            #line 62 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
 
 
             
@@ -361,7 +325,7 @@ WriteLiteral(">&times;</span></button>\r\n");
 WriteLiteral("                ");
 
             
-            #line 70 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
+            #line 66 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
            Write(Html.Raw(set.LoginTip));
 
             
@@ -370,13 +334,13 @@ WriteLiteral("                ");
 WriteLiteral("\r\n            </div>\r\n        </nav>\r\n");
 
             
-            #line 73 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
+            #line 69 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
     }
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n\r\n</div>");
+WriteLiteral("</div>");
 
         }
     }

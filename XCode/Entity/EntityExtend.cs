@@ -32,10 +32,10 @@ namespace XCode
         public virtual T Get<T>(String key, Func<String, T> func = null)
         {
             //if (func == null) throw new ArgumentNullException(nameof(func));
-            if (key == null || func == null) return default(T);
+            if (key == null) return default(T);
 
             var dic = _cache;
-            if (dic == null) dic = _cache = new Dictionary<String, CacheItem>();
+            if (dic == null) dic = _cache = new Dictionary<String, CacheItem>(StringComparer.OrdinalIgnoreCase);
 
             CacheItem ci = null;
             try
@@ -76,7 +76,7 @@ namespace XCode
                 return true;
             }
 
-            if (dic == null) dic = _cache = new Dictionary<String, CacheItem>();
+            if (dic == null) dic = _cache = new Dictionary<String, CacheItem>(StringComparer.OrdinalIgnoreCase);
 
             lock (dic)
             {

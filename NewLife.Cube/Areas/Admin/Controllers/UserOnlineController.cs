@@ -1,9 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Web.Mvc;
-using System.Web.Security;
-using NewLife.Web;
-using XCode;
 using XCode.Membership;
 
 namespace NewLife.Cube.Admin.Controllers
@@ -17,14 +14,6 @@ namespace NewLife.Cube.Admin.Controllers
         {
             MenuOrder = 60;
         }
-
-        ///// <summary>搜索数据集</summary>
-        ///// <param name="p"></param>
-        ///// <returns></returns>
-        //protected override IList<UserOnline> FindAll(Pager p)
-        //{
-        //    return UserX.Search(p["Q"], p["RoleID"].ToInt(), null, p);
-        //}
 
         /// <summary>不允许添加修改日志</summary>
         /// <param name="entity"></param>

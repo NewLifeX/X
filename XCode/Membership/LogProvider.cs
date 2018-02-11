@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using System.Web;
 using NewLife.Model;
 using NewLife.Reflection;
 
@@ -98,6 +99,11 @@ namespace XCode.Membership
     /// <typeparam name="TLog"></typeparam>
     public class LogProvider<TLog> : LogProvider where TLog : Log<TLog>, new()
     {
+        #region 提供者
+        /// <summary>当前用户提供者</summary>
+        public IManageProvider Provider2 { get; set; }
+        #endregion
+
         /// <summary>写日志</summary>
         /// <param name="category">类型</param>
         /// <param name="action">操作</param>
@@ -126,6 +132,23 @@ namespace XCode.Membership
             if (userid > 0) log.CreateUserID = userid;
             if (!name.IsNullOrEmpty()) log.UserName = name;
             if (!ip.IsNullOrEmpty()) log.CreateIP = ip;
+
+            // 获取当前登录信息
+            if (log.CreateUserID == 0 || name.IsNullOrEmpty())
+            {
+                // 当前登录用户
+#if !__CORE__
+                var user = Provider2?.Current ?? HttpContext.Current?.User?.Identity as IManageUser;
+#else
+                var user = Provider2?.Current;
+#endif
+                if (user == null && Provider2 == null) user = ManageProvider.Provider?.Current;
+                if (user != null)
+                {
+                    if (log.CreateUserID == 0) log.CreateUserID = user.ID;
+                    if (log.UserName.IsNullOrEmpty()) log.UserName = user + "";
+                }
+            }
 
             log.Remark = remark;
             log.SaveAsync();

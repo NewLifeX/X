@@ -44,10 +44,10 @@ namespace XCode.Membership
         /// <summary>注册用户</summary>
         /// <param name="name">用户名</param>
         /// <param name="password">密码</param>
-        /// <param name="rolename">角色名称</param>
+        /// <param name="roleid">角色</param>
         /// <param name="enable">是否启用</param>
         /// <returns></returns>
-        IManageUser Register(String name, String password, String rolename = "注册用户", Boolean enable = false);
+        IManageUser Register(String name, String password, Int32 roleid = 0, Boolean enable = false);
 
         /// <summary>获取服务</summary>
         /// <remarks>
@@ -115,10 +115,10 @@ namespace XCode.Membership
         /// <summary>注册用户</summary>
         /// <param name="name">用户名</param>
         /// <param name="password">密码</param>
-        /// <param name="rolename">角色名称</param>
+        /// <param name="roleid">角色</param>
         /// <param name="enable">是否启用。某些系统可能需要验证审核</param>
         /// <returns></returns>
-        public abstract IManageUser Register(String name, String password, String rolename, Boolean enable);
+        public abstract IManageUser Register(String name, String password, Int32 roleid, Boolean enable);
 
         /// <summary>获取服务</summary>
         /// <typeparam name="TService"></typeparam>
@@ -202,22 +202,23 @@ namespace XCode.Membership
         /// <summary>注册用户</summary>
         /// <param name="name">用户名</param>
         /// <param name="password">密码</param>
-        /// <param name="rolename">角色名称</param>
+        /// <param name="roleid">角色</param>
         /// <param name="enable">是否启用。某些系统可能需要验证审核</param>
         /// <returns></returns>
-        public override IManageUser Register(String name, String password, String rolename, Boolean enable)
+        public override IManageUser Register(String name, String password, Int32 roleid, Boolean enable)
         {
             var user = new TUser();
             user.Name = name;
             user.Password = password;
             user.Enable = enable;
 
-            if (!String.IsNullOrEmpty(rolename))
-            {
-                var fact = Get<IRole>();
-                var role = fact.FindOrCreateByName(rolename);
-                user.RoleID = role.ID;
-            }
+            //if (!String.IsNullOrEmpty(rolename))
+            //{
+            //    var fact = Get<IRole>();
+            //    var role = fact.FindOrCreateByName(rolename);
+            //    user.RoleID = role.ID;
+            //}
+            user.RoleID = roleid;
 
             user.Register();
 

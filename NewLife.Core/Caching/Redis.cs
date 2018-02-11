@@ -29,6 +29,13 @@ namespace NewLife.Caching
                 pass = server.Substring(null, "@");
                 server = server.Substring("@", null);
             }
+            //适配多种配置连接字符
+            else if (server.Contains(";") && pass.IsNullOrEmpty())
+            {
+                var dic = server.SplitAsDictionary("=", ";");
+                pass = dic.ContainsKey("password") ? dic["password"] : "";
+                server = dic.ContainsKey("server") ? dic["server"] : "";
+            }
 
             var name = "{0}_{1}".F(server, db);
             var set = CacheConfig.Current.GetOrAdd(name);
@@ -145,16 +152,24 @@ namespace NewLife.Caching
         {
             get
             {
-                return _Pool ?? (_Pool = new MyPool
+                if (_Pool != null) return _Pool;
+                lock (this)
                 {
-                    Name = "RedisPool",
-                    Instance = this,
-                    Min = 2,
-                    Max = 1000,
-                    IdleTime = 20,
-                    AllIdleTime = 120,
-                    Log = Log,
-                });
+                    if (_Pool != null) return _Pool;
+
+                    var pool = new MyPool
+                    {
+                        Name = Name + "Pool",
+                        Instance = this,
+                        Min = 2,
+                        Max = 1000,
+                        IdleTime = 20,
+                        AllIdleTime = 120,
+                        Log = Log,
+                    };
+
+                    return _Pool = pool;
+                }
             }
         }
 
