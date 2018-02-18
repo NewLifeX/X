@@ -54,7 +54,6 @@ namespace NewLife.Web
             {
                 var list = new List<OAuthItem>
                 {
-                    new OAuthItem { Name = "Master", Server="http://sso.newlifex.com" },
                     new OAuthItem { Name = "QQ" },
                     new OAuthItem { Name = "Weixin" },
                     new OAuthItem { Name = "Baidu" },
@@ -63,6 +62,8 @@ namespace NewLife.Web
                     //new OAuthItem { Name = "Alipay" },
                     new OAuthItem { Name = "Github" }
                 };
+                var mi = new OAuthItem { Name = "NewLife", Server = "http://sso.newlifex.com/sso", AppID = "abcd", Secret = "1234" };
+                list.Add(mi);
                 Items = list.ToArray();
             }
 
