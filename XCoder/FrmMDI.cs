@@ -5,6 +5,9 @@ using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using NewLife.Reflection;
+using NewLife.Net;
+using System.IO;
+using NewLife.Log;
 
 namespace XCoder
 {
@@ -139,6 +142,37 @@ namespace XCoder
         private void aboutToolStripMenuItem_Click(Object sender, EventArgs e)
         {
             Process.Start("http://www.NewLifeX.com");
+        }
+
+        private void 检查更新ToolStripMenuItem_Click(Object sender, EventArgs e)
+        {
+            var cfg = XConfig.Current;
+            cfg.LastUpdate = DateTime.Now;
+            cfg.Save();
+
+            try
+            {
+                var root = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                var up = new Upgrade();
+                up.Log = XTrace.Log;
+                up.Name = "XCoder";
+                up.Server = cfg.UpdateServer;
+                up.UpdatePath = root.CombinePath(up.UpdatePath);
+                if (up.Check())
+                {
+                    up.Download();
+                    up.Update();
+                }
+                else if (up.Links != null && up.Links.Length > 0)
+                    MessageBox.Show("没有可用更新！最新{0}".F(up.Links[0].Time), "自动更新");
+                else
+                    MessageBox.Show("没有可用更新！", "自动更新");
+            }
+            catch (Exception ex)
+            {
+                XTrace.WriteException(ex);
+                MessageBox.Show("更新失败！" + ex.Message, "自动更新");
+            }
         }
     }
 }

@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 #if !__CORE__
 using System.Windows.Forms;
 #endif
@@ -133,7 +134,7 @@ namespace NewLife.Net
                 var sw = Stopwatch.StartNew();
 
                 var web = CreateClient();
-                web.DownloadFileAsync(link.Url, file).Wait();
+                Task.Run(() => web.DownloadFileAsync(link.Url, file)).Wait();
 
                 sw.Stop();
                 WriteLog("下载完成！大小{0:n0}字节，耗时{1:n0}ms", file.AsFile().Length, sw.ElapsedMilliseconds);

@@ -147,7 +147,7 @@ namespace XCoder
             if (isAsync)
             {
                 // 释放T4模版
-                var b = File.Exists("XCoder.tt");
+                var b = File.Exists("XCoder.tt");   
                 var txt = Source.GetText("XCoder.tt");
                 txt = txt.Replace("{XCoderPath}", AppDomain.CurrentDomain.BaseDirectory);
                 File.WriteAllText("XCoder.tt", txt);
