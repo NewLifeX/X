@@ -83,7 +83,6 @@
             this.qQ群1600800ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.qQ群1600800ToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.博客ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.检查更新ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.关于ToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.label9 = new System.Windows.Forms.Label();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
@@ -625,7 +624,6 @@
             this.qQ群1600800ToolStripMenuItem,
             this.qQ群1600800ToolStripMenuItem1,
             this.博客ToolStripMenuItem,
-            this.检查更新ToolStripMenuItem,
             this.关于ToolStripMenuItem1});
             this.关于ToolStripMenuItem.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Bold);
             this.关于ToolStripMenuItem.Name = "关于ToolStripMenuItem";
@@ -677,13 +675,6 @@
             this.博客ToolStripMenuItem.Size = new System.Drawing.Size(220, 22);
             this.博客ToolStripMenuItem.Text = "博客nnhy.cnblogs.com";
             this.博客ToolStripMenuItem.Click += new System.EventHandler(this.博客ToolStripMenuItem_Click);
-            // 
-            // 检查更新ToolStripMenuItem
-            // 
-            this.检查更新ToolStripMenuItem.Name = "检查更新ToolStripMenuItem";
-            this.检查更新ToolStripMenuItem.Size = new System.Drawing.Size(220, 22);
-            this.检查更新ToolStripMenuItem.Text = "检查更新(&U)";
-            this.检查更新ToolStripMenuItem.Click += new System.EventHandler(this.检查更新ToolStripMenuItem_Click);
             // 
             // 关于ToolStripMenuItem1
             // 
@@ -795,7 +786,6 @@
         private System.Windows.Forms.ToolStripMenuItem sQL查询器QToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 表名字段名命名规范ToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem2;
-        private System.Windows.Forms.ToolStripMenuItem 检查更新ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 关于ToolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem 组件手册ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem qQ群1600800ToolStripMenuItem;

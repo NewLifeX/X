@@ -32,16 +32,13 @@ namespace NewLife.Net
         public DateTime Compile { get; set; }
 
         /// <summary>更新完成以后自动启动主程序</summary>
-        public Boolean AutoStart { get; set; }
+        public Boolean AutoStart { get; set; } = true;
 
         /// <summary>更新目录</summary>
-        public String UpdatePath { get; set; }
-
-        /// <summary>临时目录</summary>
-        public String TempPath { get; set; }
+        public String UpdatePath { get; set; } = "Update";
 
         /// <summary>超链接信息，其中第一个为最佳匹配项</summary>
-        public Link[] Links { get; set; }
+        public Link[] Links { get; set; } = new Link[0];
         #endregion
 
         #region 构造
@@ -55,12 +52,7 @@ namespace NewLife.Net
             Name = asm.GetName().Name;
             Compile = asmx.Compile;
 
-            AutoStart = true;
-            UpdatePath = "Update";
             Server = NewLife.Setting.Current.PluginServer;
-
-            TempPath = XTrace.TempPath;
-            Links = new Link[0];
         }
         #endregion
 
@@ -171,7 +163,7 @@ namespace NewLife.Net
             // 解压更新程序包
             if (!file.EndsWithIgnoreCase(".zip")) return false;
 
-            var dest = TempPath.CombinePath(Path.GetFileNameWithoutExtension(file)).GetFullPath();
+            var dest = XTrace.TempPath.CombinePath(Path.GetFileNameWithoutExtension(file)).GetFullPath();
             WriteLog("解压缩更新包到临时目录 {0}", dest);
             //ZipFile.ExtractToDirectory(file, p);
             file.AsFile().Extract(dest, true);
@@ -239,7 +231,7 @@ namespace NewLife.Net
 
             // 备份配置文件
             sb.AppendLine("echo %time% 备份配置文件");
-            var cfgs = Directory.GetFiles(curdir);
+            var cfgs = Directory.GetFiles(curdir, "*.exe.config");
             foreach (var item in cfgs)
             {
                 if (item.EndsWithIgnoreCase(".config", ".xml"))

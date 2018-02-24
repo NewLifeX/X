@@ -638,37 +638,6 @@ namespace XCoder
             Process.Start("http://www.NewLifeX.com/showtopic-260.aspx?r=XCoder_v" + AssemblyX.Create(Assembly.GetExecutingAssembly()).Version);
         }
 
-        private void 检查更新ToolStripMenuItem_Click(Object sender, EventArgs e)
-        {
-            var cfg = XConfig.Current;
-            cfg.LastUpdate = DateTime.Now;
-            cfg.Save();
-
-            try
-            {
-                var root = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-                var up = new Upgrade();
-                up.Log = XTrace.Log;
-                up.Name = "XCoder";
-                up.Server = cfg.UpdateServer;
-                up.UpdatePath = root.CombinePath(up.UpdatePath);
-                if (up.Check())
-                {
-                    up.Download();
-                    up.Update();
-                }
-                else if (up.Links != null && up.Links.Length > 0)
-                    MessageBox.Show("没有可用更新！最新{0}".F(up.Links[0].Time), "自动更新");
-                else
-                    MessageBox.Show("没有可用更新！", "自动更新");
-            }
-            catch (Exception ex)
-            {
-                XTrace.WriteException(ex);
-                MessageBox.Show("更新失败！" + ex.Message, "自动更新");
-            }
-        }
-
         private void 关于ToolStripMenuItem1_Click(Object sender, EventArgs e)
         {
             FrmText.Create("升级历史", Source.GetText("UpdateInfo")).Show();
