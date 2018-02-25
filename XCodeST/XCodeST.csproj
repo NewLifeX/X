@@ -44,7 +44,9 @@
     <Compile Include="..\XCode\Configuration\FieldExtension.cs" Link="Configuration\FieldExtension.cs" />
     <Compile Include="..\XCode\Configuration\FieldItem.cs" Link="Configuration\FieldItem.cs" />
     <Compile Include="..\XCode\Configuration\TableItem.cs" Link="Configuration\TableItem.cs" />
+    <Compile Include="..\XCode\DataAccessLayer\Common\ConnectionPool.cs" Link="DataAccessLayer\Common\ConnectionPool.cs" />
     <Compile Include="..\XCode\DataAccessLayer\Common\DatabaseType.cs" Link="DataAccessLayer\Common\DatabaseType.cs" />
+    <Compile Include="..\XCode\DataAccessLayer\Common\DataResult.cs" Link="DataAccessLayer\Common\DataResult.cs" />
     <Compile Include="..\XCode\DataAccessLayer\Common\DbBase.cs" Link="DataAccessLayer\Common\DbBase.cs" />
     <Compile Include="..\XCode\DataAccessLayer\Common\DbFactory.cs" Link="DataAccessLayer\Common\DbFactory.cs" />
     <Compile Include="..\XCode\DataAccessLayer\Common\DbSession.cs" Link="DataAccessLayer\Common\DbSession.cs" />
