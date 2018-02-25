@@ -677,7 +677,7 @@ namespace NewLife.Cube
         /// <summary>获取要显示的字段列表</summary>
         /// <param name="isForm">是否是表单</param>
         /// <returns></returns>
-        protected virtual IReadOnlyList<FieldItem> GetFields(Boolean isForm)
+        protected virtual IList<FieldItem> GetFields(Boolean isForm)
         {
             return (isForm ? FormFields : ListFields) ?? Entity<TEntity>.Meta.Fields.ToList();
         }

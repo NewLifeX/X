@@ -3,7 +3,7 @@
 @{
     var entity = Model as IEntity;
     var fact = EntityFactory.CreateOperate(entity.GetType());
-    var fields = ViewBag.Fields as IReadOnlyList<FieldItem>;
+    var fields = ViewBag.Fields as IList<FieldItem>;
 
     var set = NewLife.Cube.Setting.Current;
     var cls = set.FormGroupClass;

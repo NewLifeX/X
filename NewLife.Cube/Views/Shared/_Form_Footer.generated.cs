@@ -58,7 +58,7 @@ namespace ASP
   
     var entity = Model as IEntity;
     var fact = EntityFactory.CreateOperate(entity.GetType());
-    var fields = ViewBag.Fields as IReadOnlyList<FieldItem>;
+    var fields = ViewBag.Fields as IList<FieldItem>;
 
     var set = NewLife.Cube.Setting.Current;
     var cls = set.FormGroupClass;
@@ -101,46 +101,46 @@ WriteLiteral(" class=\"form-group col-xs-12 col-sm-6\"");
 
 WriteLiteral(">\r\n        <label");
 
-WriteAttribute("class", Tuple.Create(" class=\"", 1342), Tuple.Create("\"", 1391)
-, Tuple.Create(Tuple.Create("", 1350), Tuple.Create("control-label", 1350), true)
-, Tuple.Create(Tuple.Create(" ", 1363), Tuple.Create("col-xs-", 1364), true)
+WriteAttribute("class", Tuple.Create(" class=\"", 1334), Tuple.Create("\"", 1383)
+, Tuple.Create(Tuple.Create("", 1342), Tuple.Create("control-label", 1342), true)
+, Tuple.Create(Tuple.Create(" ", 1355), Tuple.Create("col-xs-", 1356), true)
             
             #line 33 "..\..\Views\Shared\_Form_Footer.cshtml"
-, Tuple.Create(Tuple.Create("", 1371), Tuple.Create<System.Object, System.Int32>(label
+, Tuple.Create(Tuple.Create("", 1363), Tuple.Create<System.Object, System.Int32>(label
             
             #line default
             #line hidden
-, 1371), false)
-, Tuple.Create(Tuple.Create(" ", 1377), Tuple.Create("col-sm-", 1378), true)
+, 1363), false)
+, Tuple.Create(Tuple.Create(" ", 1369), Tuple.Create("col-sm-", 1370), true)
             
             #line 33 "..\..\Views\Shared\_Form_Footer.cshtml"
-, Tuple.Create(Tuple.Create("", 1385), Tuple.Create<System.Object, System.Int32>(label
+, Tuple.Create(Tuple.Create("", 1377), Tuple.Create<System.Object, System.Int32>(label
             
             #line default
             #line hidden
-, 1385), false)
+, 1377), false)
 );
 
 WriteLiteral(">创建</label>\r\n        <div");
 
-WriteAttribute("class", Tuple.Create(" class=\"", 1417), Tuple.Create("\"", 1476)
-, Tuple.Create(Tuple.Create("", 1425), Tuple.Create("control-label", 1425), true)
-, Tuple.Create(Tuple.Create(" ", 1438), Tuple.Create("col-xs-", 1439), true)
+WriteAttribute("class", Tuple.Create(" class=\"", 1409), Tuple.Create("\"", 1468)
+, Tuple.Create(Tuple.Create("", 1417), Tuple.Create("control-label", 1417), true)
+, Tuple.Create(Tuple.Create(" ", 1430), Tuple.Create("col-xs-", 1431), true)
             
             #line 34 "..\..\Views\Shared\_Form_Footer.cshtml"
-, Tuple.Create(Tuple.Create("", 1446), Tuple.Create<System.Object, System.Int32>(total - label
+, Tuple.Create(Tuple.Create("", 1438), Tuple.Create<System.Object, System.Int32>(total - label
             
             #line default
             #line hidden
-, 1446), false)
-, Tuple.Create(Tuple.Create(" ", 1462), Tuple.Create("col-sm-", 1463), true)
+, 1438), false)
+, Tuple.Create(Tuple.Create(" ", 1454), Tuple.Create("col-sm-", 1455), true)
             
             #line 34 "..\..\Views\Shared\_Form_Footer.cshtml"
-, Tuple.Create(Tuple.Create("", 1470), Tuple.Create<System.Object, System.Int32>(input
+, Tuple.Create(Tuple.Create("", 1462), Tuple.Create<System.Object, System.Int32>(input
             
             #line default
             #line hidden
-, 1470), false)
+, 1462), false)
 );
 
 WriteLiteral(" style=\"text-align: left;\"");
@@ -166,14 +166,14 @@ WriteLiteral("                <span");
 
 WriteLiteral(" class=\"text-primary\"");
 
-WriteAttribute("title", Tuple.Create(" title=\"", 1641), Tuple.Create("\"", 1653)
+WriteAttribute("title", Tuple.Create(" title=\"", 1633), Tuple.Create("\"", 1645)
             
             #line 38 "..\..\Views\Shared\_Form_Footer.cshtml"
-, Tuple.Create(Tuple.Create("", 1649), Tuple.Create<System.Object, System.Int32>(val
+, Tuple.Create(Tuple.Create("", 1641), Tuple.Create<System.Object, System.Int32>(val
             
             #line default
             #line hidden
-, 1649), false)
+, 1641), false)
 );
 
 WriteLiteral(">");
@@ -294,46 +294,46 @@ WriteLiteral(" class=\"form-group col-xs-12 col-sm-6\"");
 
 WriteLiteral(">\r\n        <label");
 
-WriteAttribute("class", Tuple.Create(" class=\"", 2347), Tuple.Create("\"", 2396)
-, Tuple.Create(Tuple.Create("", 2355), Tuple.Create("control-label", 2355), true)
-, Tuple.Create(Tuple.Create(" ", 2368), Tuple.Create("col-xs-", 2369), true)
+WriteAttribute("class", Tuple.Create(" class=\"", 2339), Tuple.Create("\"", 2388)
+, Tuple.Create(Tuple.Create("", 2347), Tuple.Create("control-label", 2347), true)
+, Tuple.Create(Tuple.Create(" ", 2360), Tuple.Create("col-xs-", 2361), true)
             
             #line 58 "..\..\Views\Shared\_Form_Footer.cshtml"
-, Tuple.Create(Tuple.Create("", 2376), Tuple.Create<System.Object, System.Int32>(label
+, Tuple.Create(Tuple.Create("", 2368), Tuple.Create<System.Object, System.Int32>(label
             
             #line default
             #line hidden
-, 2376), false)
-, Tuple.Create(Tuple.Create(" ", 2382), Tuple.Create("col-sm-", 2383), true)
+, 2368), false)
+, Tuple.Create(Tuple.Create(" ", 2374), Tuple.Create("col-sm-", 2375), true)
             
             #line 58 "..\..\Views\Shared\_Form_Footer.cshtml"
-, Tuple.Create(Tuple.Create("", 2390), Tuple.Create<System.Object, System.Int32>(label
+, Tuple.Create(Tuple.Create("", 2382), Tuple.Create<System.Object, System.Int32>(label
             
             #line default
             #line hidden
-, 2390), false)
+, 2382), false)
 );
 
 WriteLiteral(">更新</label>\r\n        <div");
 
-WriteAttribute("class", Tuple.Create(" class=\"", 2422), Tuple.Create("\"", 2481)
-, Tuple.Create(Tuple.Create("", 2430), Tuple.Create("control-label", 2430), true)
-, Tuple.Create(Tuple.Create(" ", 2443), Tuple.Create("col-xs-", 2444), true)
+WriteAttribute("class", Tuple.Create(" class=\"", 2414), Tuple.Create("\"", 2473)
+, Tuple.Create(Tuple.Create("", 2422), Tuple.Create("control-label", 2422), true)
+, Tuple.Create(Tuple.Create(" ", 2435), Tuple.Create("col-xs-", 2436), true)
             
             #line 59 "..\..\Views\Shared\_Form_Footer.cshtml"
-, Tuple.Create(Tuple.Create("", 2451), Tuple.Create<System.Object, System.Int32>(total - label
+, Tuple.Create(Tuple.Create("", 2443), Tuple.Create<System.Object, System.Int32>(total - label
             
             #line default
             #line hidden
-, 2451), false)
-, Tuple.Create(Tuple.Create(" ", 2467), Tuple.Create("col-sm-", 2468), true)
+, 2443), false)
+, Tuple.Create(Tuple.Create(" ", 2459), Tuple.Create("col-sm-", 2460), true)
             
             #line 59 "..\..\Views\Shared\_Form_Footer.cshtml"
-, Tuple.Create(Tuple.Create("", 2475), Tuple.Create<System.Object, System.Int32>(input
+, Tuple.Create(Tuple.Create("", 2467), Tuple.Create<System.Object, System.Int32>(input
             
             #line default
             #line hidden
-, 2475), false)
+, 2467), false)
 );
 
 WriteLiteral(" style=\"text-align: left;\"");
@@ -359,14 +359,14 @@ WriteLiteral("                <span");
 
 WriteLiteral(" class=\"text-primary\"");
 
-WriteAttribute("title", Tuple.Create(" title=\"", 2646), Tuple.Create("\"", 2658)
+WriteAttribute("title", Tuple.Create(" title=\"", 2638), Tuple.Create("\"", 2650)
             
             #line 63 "..\..\Views\Shared\_Form_Footer.cshtml"
-, Tuple.Create(Tuple.Create("", 2654), Tuple.Create<System.Object, System.Int32>(val
+, Tuple.Create(Tuple.Create("", 2646), Tuple.Create<System.Object, System.Int32>(val
             
             #line default
             #line hidden
-, 2654), false)
+, 2646), false)
 );
 
 WriteLiteral(">");
