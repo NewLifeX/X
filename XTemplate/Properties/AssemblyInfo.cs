@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyProduct("XTemplate")]
 [assembly: AssemblyCompany("新生命开发团队")]
-[assembly: AssemblyCopyright("©2002-2017 新生命开发团队 http://www.NewLifeX.com")]
+[assembly: AssemblyCopyright("©2002-2018 新生命开发团队 http://www.NewLifeX.com")]
 [assembly: AssemblyTrademark("四叶草")]
 [assembly: AssemblyCulture("")]
 

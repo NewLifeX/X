@@ -12,7 +12,7 @@ using NewLife.Cube;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyProduct("NewLife.Admin")]
 [assembly: AssemblyCompany("新生命开发团队")]
-[assembly: AssemblyCopyright("©2002-2017 新生命开发团队 http://git.newlifex.com/NewLife/X/Tree/master/NewLife.Cube")]
+[assembly: AssemblyCopyright("©2002-2018 新生命开发团队 http://git.newlifex.com/NewLife/X/Tree/master/NewLife.Cube")]
 [assembly: AssemblyTrademark("四叶草")]
 [assembly: AssemblyCulture("")]
 
