@@ -8,6 +8,7 @@ using NewLife.Reflection;
 using NewLife.Net;
 using System.IO;
 using NewLife.Log;
+using NewLife.Threading;
 
 namespace XCoder
 {
@@ -41,6 +42,8 @@ namespace XCoder
             Text = String.Format("{2} v{0} {1:HH:mm:ss}", asm.CompileVersion, asm.Compile, set.Title);
 
             _load.ContinueWith(t => LoadForms(t.Result));
+
+            ThreadPoolX.QueueUserWorkItem(() => CheckUpdate(true));
         }
 
         void LoadForms(Type[] ts)
@@ -71,6 +74,20 @@ namespace XCoder
                     };
                 }
             });
+        }
+
+        private void FrmMDI_FormClosing(Object sender, FormClosingEventArgs e)
+        {
+            var set = XConfig.Current;
+            var area = Screen.PrimaryScreen.WorkingArea;
+            if (Left >= 0 && Top >= 0 && Width < area.Width - 60 && Height < area.Height - 60)
+            {
+                set.Width = Width;
+                set.Height = Height;
+                set.Top = Top;
+                set.Left = Left;
+                set.Save();
+            }
         }
         #endregion
 
@@ -123,35 +140,30 @@ namespace XCoder
                 childForm.Close();
             }
         }
-        #endregion
-
-        private void FrmMDI_FormClosing(Object sender, FormClosingEventArgs e)
-        {
-            var set = XConfig.Current;
-            var area = Screen.PrimaryScreen.WorkingArea;
-            if (Left >= 0 && Top >= 0 && Width < area.Width - 60 && Height < area.Height - 60)
-            {
-                set.Width = Width;
-                set.Height = Height;
-                set.Top = Top;
-                set.Left = Left;
-                set.Save();
-            }
-        }
 
         private void aboutToolStripMenuItem_Click(Object sender, EventArgs e)
         {
             Process.Start("http://www.NewLifeX.com");
         }
+        #endregion
 
+        #region 自动更新
         private void 检查更新ToolStripMenuItem_Click(Object sender, EventArgs e)
         {
-            var cfg = XConfig.Current;
-            cfg.LastUpdate = DateTime.Now;
-            cfg.Save();
+            ThreadPoolX.QueueUserWorkItem(() => CheckUpdate(false));
+        }
 
-            try
+        private void CheckUpdate(Boolean auto)
+        {
+            if (auto) XTrace.WriteLine("自动更新！");
+
+            Upgrade.DeleteBuckup();
+
+            var cfg = XConfig.Current;
+            if (cfg.LastUpdate.Date < DateTime.Now.Date || !auto)
             {
+                cfg.LastUpdate = DateTime.Now;
+
                 var root = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
                 var up = new Upgrade();
                 up.Log = XTrace.Log;
@@ -161,18 +173,19 @@ namespace XCoder
                 if (up.Check())
                 {
                     up.Download();
-                    up.Update();
+                    if (!auto || MessageBox.Show("发现新版本{0}，是否更新？".F(up.Links[0].Time), "自动更新", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                        up.Update();
                 }
-                else if (up.Links != null && up.Links.Length > 0)
-                    MessageBox.Show("没有可用更新！最新{0}".F(up.Links[0].Time), "自动更新");
-                else
-                    MessageBox.Show("没有可用更新！", "自动更新");
-            }
-            catch (Exception ex)
-            {
-                XTrace.WriteException(ex);
-                MessageBox.Show("更新失败！" + ex.Message, "自动更新");
+                else if (!auto)
+                {
+                    if (up.Links != null && up.Links.Length > 0)
+                        MessageBox.Show("没有可用更新！最新{0}".F(up.Links[0].Time), "自动更新");
+                    else
+                        MessageBox.Show("没有可用更新！", "自动更新");
+                }
+                cfg.Save();
             }
         }
+        #endregion
     }
 }

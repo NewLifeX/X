@@ -4,11 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
-#if !__CORE__
-using System.Windows.Forms;
-#endif
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Web;
@@ -22,11 +18,11 @@ namespace NewLife.Net
     public class Upgrade
     {
         #region 属性
-        /// <summary>服务器地址</summary>
-        public String Server { get; set; }
-
         /// <summary>名称</summary>
         public String Name { get; set; }
+
+        /// <summary>服务器地址</summary>
+        public String Server { get; set; }
 
         /// <summary>版本</summary>
         public Version Version { get; set; }
@@ -101,10 +97,7 @@ namespace NewLife.Net
                 if (!link.Name.StartsWithIgnoreCase(Name) || !link.Name.Contains(Name)) continue;
 
                 // 第一个时间命中
-                if (link.Time.Year <= DateTime.Now.Year)
-                {
-                    list.Add(link);
-                }
+                if (link.Time.Year <= DateTime.Now.Year) list.Add(link);
             }
             if (list.Count < 1) return false;
 
@@ -171,29 +164,7 @@ namespace NewLife.Net
 
             var dest = XTrace.TempPath.CombinePath(Path.GetFileNameWithoutExtension(file)).GetFullPath();
             WriteLog("解压缩更新包到临时目录 {0}", dest);
-            //ZipFile.ExtractToDirectory(file, p);
             file.AsFile().Extract(dest, true);
-
-            //var updatebat = UpdatePath.CombinePath("update.bat").GetFullPath();
-            //MakeBat(updatebat, dest, ".".GetFullPath());
-
-            //// 执行更新程序包
-            //var si = new ProcessStartInfo
-            //{
-            //    FileName = updatebat,
-            //    Arguments = ">>update.log"
-            //};
-            //si.WorkingDirectory = Path.GetDirectoryName(si.FileName);
-            //// 必须创建无窗口进程，否则会等待目标进程完成
-            ////if (!XTrace.Debug)
-            //{
-            //    si.CreateNoWindow = true;
-            //    si.WindowStyle = ProcessWindowStyle.Hidden;
-            //}
-            //si.UseShellExecute = false;
-            //Process.Start(si);
-
-            //WriteLog("已启动更新程序来升级，升级脚本 {0}", updatebat);
 
             // 拷贝替换更新
             CopyAndReplace(dest);
@@ -203,54 +174,30 @@ namespace NewLife.Net
             WriteLog("设置已更新标记 {0}", file);
             File.CreateText(file).Close();
 
-            // 启动进程
-            var exe = Assembly.GetEntryAssembly().Location;
-            WriteLog("启动进程 {0}", exe);
-            Process.Start(exe);
+            if (AutoStart)
+            {
+                // 启动进程
+                var exe = Assembly.GetEntryAssembly().Location;
+                WriteLog("启动进程 {0}", exe);
+                Process.Start(exe);
 
-            //#if !__CORE__
-            //            Application.Exit();
-            //#endif
-
-            WriteLog("退出当前进程");
-            if (!Runtime.IsConsole) Process.GetCurrentProcess().CloseMainWindow();
-            Environment.Exit(0);
-            Process.GetCurrentProcess().Kill();
+                WriteLog("退出当前进程");
+                if (!Runtime.IsConsole) Process.GetCurrentProcess().CloseMainWindow();
+                Environment.Exit(0);
+                Process.GetCurrentProcess().Kill();
+            }
 
             return true;
         }
 
-        private void DeleteBuckup()
-        {
-            // 删除备份
-            var di = ".".AsDirectory();
-            var fs = di.GetAllFiles("*.del");
-            foreach (var item in fs)
-            {
-                item.Delete();
-            }
-        }
-
         /// <summary>正在使用锁定的文件不可删除，但可以改名</summary>
-        /// <param name="dest"></param>
-        private void CopyAndReplace(String dest)
+        /// <param name="source"></param>
+        private void CopyAndReplace(String source)
         {
             // 删除备份
             DeleteBuckup();
 
-            var di = dest.AsDirectory();
-
-            //// 改名已有文件
-            //var fis1 = dest.AsDirectory().GetAllFiles("*.exe;*.dll");
-            //foreach (var item in fis1)
-            //{
-            //    var fi = ".".CombinePath(item.Name).AsFile();
-            //    //if (fi.Exists) fi.Replace(fi.FullName + ".del", null);
-            //    if (fi.Exists) fi.MoveTo(fi.FullName + ".del");
-            //}
-
-            //// 拷贝
-            //dest.AsDirectory().CopyTo(".", null, true);
+            var di = source.AsDirectory();
 
             // 来源目录根，用于截断
             var root = di.FullName.EnsureEnd(Path.DirectorySeparatorChar.ToString());
@@ -273,9 +220,6 @@ namespace NewLife.Net
 
             // 删除临时目录
             di.Delete(true);
-
-            // 启动
-            //var bin = Application.ExecutablePath;
         }
         #endregion
 
@@ -292,73 +236,17 @@ namespace NewLife.Net
             return _Client = web;
         }
 
-        //        void MakeBat(String updatebat, String tmpdir, String curdir)
-        //        {
-        //            var pid = Process.GetCurrentProcess().Id;
-
-        //            var sb = new StringBuilder();
-
-        //            sb.AppendLine("@echo off");
-        //            sb.AppendLine("echo %time% 等待主程序[PID={0}]退出".F(pid));
-        //            // 等待2秒(3-1)后，干掉当前进程
-        //            sb.AppendFormat("ping -n 3 127.0.0.1 >nul");
-        //            sb.AppendLine();
-        //            sb.AppendFormat("taskkill /F /PID {0}", pid);
-        //            sb.AppendLine();
-
-        //            // 备份配置文件
-        //            sb.AppendLine("echo %time% 备份配置文件");
-        //            var cfgs = Directory.GetFiles(curdir, "*.exe.config");
-        //            foreach (var item in cfgs)
-        //            {
-        //                if (item.EndsWithIgnoreCase(".config", ".xml"))
-        //                {
-        //                    sb.AppendFormat("move /Y \"{0}\" \"{0}.bak\"", item.GetFullPath());
-        //                    sb.AppendLine();
-        //                }
-        //            }
-
-        //            // 复制
-        //            sb.AppendLine("echo %time% 复制更新文件");
-        //            sb.AppendFormat("copy \"{0}\\*.*\" \"{1}\" /y", tmpdir, curdir);
-        //            sb.AppendLine();
-        //            sb.AppendLine("rd \"" + tmpdir + "\" /s /q");
-
-        //            // 还原配置文件
-        //            sb.AppendLine("echo %time% 还原配置文件");
-        //            foreach (var item in cfgs)
-        //            {
-        //                if (item.EndsWithIgnoreCase(".config", ".xml"))
-        //                {
-        //                    sb.AppendFormat("move /Y \"{0}.bak\" \"{0}\"", item.GetFullPath());
-        //                    sb.AppendLine();
-        //                }
-        //            }
-
-        //#if !__CORE__
-        //            // 启动
-        //            if (AutoStart)
-        //            {
-        //                sb.AppendLine("echo %time% 启动主程序");
-        //                var bin = Application.ExecutablePath;
-        //                sb.AppendFormat("start /D \"{0}\" /I {1}", Path.GetDirectoryName(bin), bin);
-        //                sb.AppendLine();
-        //            }
-        //#endif
-
-        //#if !DEBUG
-        //            //sb.AppendFormat("del \"{0}\" /f/q", updatebat);
-        //            //sb.AppendLine();
-        //#endif
-
-        //            sb.AppendFormat("ping -n 3 127.0.0.1 >nul");
-        //            sb.AppendLine();
-        //            sb.AppendLine("exit");
-
-        //            if (File.Exists(updatebat)) File.Delete(updatebat);
-        //            // 批处理文件不能用UTF8编码保存，否则里面的中文会乱码，特别不能用带有BOM的编码输出
-        //            File.WriteAllText(updatebat, sb.ToString(), Encoding.Default);
-        //        }
+        /// <summary>删除备份文件</summary>
+        public static void DeleteBuckup()
+        {
+            // 删除备份
+            var di = ".".AsDirectory();
+            var fs = di.GetAllFiles("*.del");
+            foreach (var item in fs)
+            {
+                item.Delete();
+            }
+        }
         #endregion
 
         #region 日志

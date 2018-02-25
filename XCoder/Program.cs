@@ -37,30 +37,13 @@ namespace XCoder
                 return;
             }
 
-            try
-            {
-                //Update(true);
-
-                if (!Runtime.Mono) new TimerX(s => Runtime.ReleaseMemory(), null, 5000, 10000);
-            }
-            catch (Exception ex)
-            {
-                XTrace.WriteException(ex);
-            }
+            if (!Runtime.Mono) new TimerX(s => Runtime.ReleaseMemory(), null, 5000, 10000);
 
             if (XConfig.Current.IsNew) "学无先后达者为师，欢迎使用新生命超级码神工具！".SpeechTip();
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new FrmMDI());
-
-            //// 此时执行自动更新
-            //var up = _upgrade;
-            //if (up != null)
-            //{
-            //    _upgrade = null;
-            //    up.Update();
-            //}
         }
 
         /// <summary>参数启动</summary>
@@ -108,53 +91,10 @@ namespace XCoder
                 case "-makemodel":
                     MakeModel(dic["Model"], dic["ConnStr"], dic["Provider"]);
                     return;
-                //case "-update":
-                //    Update(false);
-                //    return;
                 default:
                     break;
             }
         }
-
-        //static Upgrade _upgrade;
-        //static void Update(Boolean isAsync)
-        //{
-        //    if (!isAsync) XTrace.WriteLine("自动更新！");
-
-        //    var cfg = XConfig.Current;
-        //    if (cfg.LastUpdate.Date < DateTime.Now.Date)
-        //    {
-        //        cfg.LastUpdate = DateTime.Now;
-
-        //        var root = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-        //        var up = new Upgrade();
-        //        up.Log = XTrace.Log;
-        //        up.Name = "XCoder";
-        //        up.Server = cfg.UpdateServer;
-        //        up.UpdatePath = root.CombinePath(up.UpdatePath);
-        //        if (up.Check())
-        //        {
-        //            up.Download();
-        //            if (!isAsync)
-        //                up.Update();
-        //            else
-        //                // 留到执行完成以后自动更新
-        //                _upgrade = up;
-        //        }
-        //        cfg.Save();
-        //    }
-
-        //    if (isAsync)
-        //    {
-        //        // 释放T4模版
-        //        var b = File.Exists("XCoder.tt");   
-        //        var txt = Source.GetText("XCoder.tt");
-        //        txt = txt.Replace("{XCoderPath}", AppDomain.CurrentDomain.BaseDirectory);
-        //        File.WriteAllText("XCoder.tt", txt);
-
-        //        //if (!b) MessageBox.Show("新版本增加XCoder.tt，拷贝到类库项目里面。\r\nVS中修改文件内参数，右键执行自定义工具！", "提示");
-        //    }
-        //}
 
         static void Render(String mdl, String cfg)
         {
