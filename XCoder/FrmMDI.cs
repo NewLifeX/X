@@ -163,6 +163,7 @@ namespace XCoder
             if (cfg.LastUpdate.Date < DateTime.Now.Date || !auto)
             {
                 cfg.LastUpdate = DateTime.Now;
+                cfg.Save();
 
                 var root = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
                 var up = new Upgrade();
@@ -183,7 +184,6 @@ namespace XCoder
                     else
                         MessageBox.Show("没有可用更新！", "自动更新");
                 }
-                cfg.Save();
             }
         }
         #endregion

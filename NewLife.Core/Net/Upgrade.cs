@@ -38,6 +38,9 @@ namespace NewLife.Net
 
         /// <summary>超链接信息，其中第一个为最佳匹配项</summary>
         public Link[] Links { get; set; } = new Link[0];
+
+        /// <summary>更新源文件</summary>
+        public String SourceFile { get; set; }
         #endregion
 
         #region 构造
@@ -131,33 +134,16 @@ namespace NewLife.Net
                 WriteLog("下载完成！大小{0:n0}字节，耗时{1:n0}ms", file.AsFile().Length, sw.ElapsedMilliseconds);
             }
 
-            // 设置更新标记
-            file += ".update";
-            WriteLog("设置更新标记 {0}", file);
-            File.CreateText(file).Close();
+            SourceFile = file;
         }
 
         /// <summary>检查并执行更新操作</summary>
         public Boolean Update()
         {
-            // 查找更新目录
-            var fis = Directory.GetFiles(UpdatePath, "*.update");
-            if (fis == null || fis.Length == 0) return false;
-
-            var file = fis[0].GetFullPath().TrimEnd(".update");
-            WriteLog("发现更新包 {0}，删除所有更新标记文件", file);
-            foreach (var item in fis)
-            {
-                try
-                {
-                    File.Delete(item);
-                }
-                catch { }
-            }
+            var file = SourceFile;
 
             if (!File.Exists(file)) return false;
-            // 如果已经更新过，则也不再更新
-            if (File.Exists(file + ".updated")) return false;
+            WriteLog("发现更新包 {0}", file);
 
             // 解压更新程序包
             if (!file.EndsWithIgnoreCase(".zip")) return false;
@@ -168,11 +154,6 @@ namespace NewLife.Net
 
             // 拷贝替换更新
             CopyAndReplace(dest);
-
-            // 设置更新标记
-            file += ".updated";
-            WriteLog("设置已更新标记 {0}", file);
-            File.CreateText(file).Close();
 
             if (AutoStart)
             {
