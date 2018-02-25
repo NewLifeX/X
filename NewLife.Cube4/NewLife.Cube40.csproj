@@ -245,6 +245,18 @@
     <Compile Include="..\NewLife.Cube\Controllers\HomeController.cs">
       <Link>Controllers\HomeController.cs</Link>
     </Compile>
+    <Compile Include="..\NewLife.Cube\Entity\XCoder.cs">
+      <Link>Entity\XCoder.cs</Link>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>XCoder.tt</DependentUpon>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Entity\用户链接.Biz.cs">
+      <Link>Entity\用户链接.Biz.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Entity\用户链接.cs">
+      <Link>Entity\用户链接.cs</Link>
+    </Compile>
     <Compile Include="..\NewLife.Cube\PreApplicationStartCode.cs">
       <Link>PreApplicationStartCode.cs</Link>
     </Compile>
@@ -415,6 +427,14 @@
     </Content>
     <Content Include="..\NewLife.Cube\Areas\Admin\Views\Role\_Form_Group.cshtml">
       <Link>Areas\Admin\Views\Role\_Form_Group.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Entity\Cube.xml">
+      <Link>Entity\Cube.xml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Entity\XCoder.tt">
+      <Link>Entity\XCoder.tt</Link>
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>XCoder.cs</LastGenOutput>
     </Content>
     <Content Include="favicon.ico" />
     <Content Include="..\NewLife.Cube\Areas\Admin\Views\User\Info.cshtml">

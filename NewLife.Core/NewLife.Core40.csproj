@@ -133,6 +133,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Messaging\MessageEventArgs.cs" />
+    <Compile Include="Model\IAuthUser.cs" />
     <Compile Include="Model\IFactory.cs" />
     <Compile Include="Model\IHistory.cs" />
     <Compile Include="Model\IOnline.cs" />
@@ -316,8 +317,16 @@
     <Compile Include="Web\Modules\RunTimeModule.cs" />
     <Compile Include="Data\PageParameter.cs" />
     <Compile Include="Web\OAuthClient.cs" />
+    <Compile Include="Web\OAuthConfig.cs" />
+    <Compile Include="Web\OAuthServer.cs" />
+    <Compile Include="Web\OAuth\BaiduClient.cs" />
+    <Compile Include="Web\OAuth\GithubClient.cs" />
+    <Compile Include="Web\OAuth\QQClient.cs" />
+    <Compile Include="Web\OAuth\TaobaoClient.cs" />
+    <Compile Include="Web\OAuth\WeixinClient.cs" />
     <Compile Include="Web\Pager.cs" />
     <Compile Include="Web\PluginHelper.cs" />
+    <Compile Include="Web\TokenProvider.cs" />
     <Compile Include="Web\WebClientX.cs" />
     <Compile Include="Web\WebDownload.cs" />
     <Compile Include="Web\WebHelper.cs" />

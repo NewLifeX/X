@@ -69,7 +69,7 @@ namespace ASP
     var user = ViewBag.User as IUser ?? User.Identity as IUser;
     var fact = ViewBag.Factory as IEntityOperate;
     var page = ViewBag.Page as Pager;
-    var fields = ViewBag.Fields as IReadOnlyList<FieldItem>;
+    var fields = ViewBag.Fields as IList<FieldItem>;
     var fk = fact.Unique;
     var enableSelect = this.EnableSelect();
 
@@ -134,36 +134,36 @@ WriteLiteral("            ");
             #line hidden
 WriteLiteral("                <th");
 
-WriteAttribute("class", Tuple.Create(" class=\"", 982), Tuple.Create("\"", 994)
+WriteAttribute("class", Tuple.Create(" class=\"", 974), Tuple.Create("\"", 986)
             
             #line 24 "..\..\Views\Shared\_ListTree_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 990), Tuple.Create<System.Object, System.Int32>(cls
+, Tuple.Create(Tuple.Create("", 982), Tuple.Create<System.Object, System.Int32>(cls
             
             #line default
             #line hidden
-, 990), false)
+, 982), false)
 );
 
-WriteAttribute("title", Tuple.Create(" title=\"", 995), Tuple.Create("\"", 1020)
+WriteAttribute("title", Tuple.Create(" title=\"", 987), Tuple.Create("\"", 1012)
             
             #line 24 "..\..\Views\Shared\_ListTree_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 1003), Tuple.Create<System.Object, System.Int32>(item.Description
+, Tuple.Create(Tuple.Create("", 995), Tuple.Create<System.Object, System.Int32>(item.Description
             
             #line default
             #line hidden
-, 1003), false)
+, 995), false)
 );
 
 WriteLiteral("><a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1024), Tuple.Create("\"", 1049)
+WriteAttribute("href", Tuple.Create(" href=\"", 1016), Tuple.Create("\"", 1041)
             
             #line 24 "..\..\Views\Shared\_ListTree_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 1031), Tuple.Create<System.Object, System.Int32>(Html.Raw(sortUrl)
+, Tuple.Create(Tuple.Create("", 1023), Tuple.Create<System.Object, System.Int32>(Html.Raw(sortUrl)
             
             #line default
             #line hidden
-, 1031), false)
+, 1023), false)
 );
 
 WriteLiteral(">");
@@ -245,14 +245,14 @@ WriteLiteral(" type=\"checkbox\"");
 
 WriteLiteral(" name=\"keys\"");
 
-WriteAttribute("value", Tuple.Create(" value=\"", 1726), Tuple.Create("\"", 1750)
+WriteAttribute("value", Tuple.Create(" value=\"", 1718), Tuple.Create("\"", 1742)
             
             #line 44 "..\..\Views\Shared\_ListTree_Data.cshtml"
-      , Tuple.Create(Tuple.Create("", 1734), Tuple.Create<System.Object, System.Int32>(entity[fk.Name]
+      , Tuple.Create(Tuple.Create("", 1726), Tuple.Create<System.Object, System.Int32>(entity[fk.Name]
             
             #line default
             #line hidden
-, 1734), false)
+, 1726), false)
 );
 
 WriteLiteral(" /></td>\r\n");
@@ -333,14 +333,14 @@ WriteLiteral(">\r\n");
             #line hidden
 WriteLiteral("                        <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 2425), Tuple.Create("\"", 2461)
+WriteAttribute("href", Tuple.Create(" href=\"", 2417), Tuple.Create("\"", 2453)
             
             #line 62 "..\..\Views\Shared\_ListTree_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 2432), Tuple.Create<System.Object, System.Int32>(Url.Action("Up", new { id })
+, Tuple.Create(Tuple.Create("", 2424), Tuple.Create<System.Object, System.Int32>(Url.Action("Up", new { id })
             
             #line default
             #line hidden
-, 2432), false)
+, 2424), false)
 );
 
 WriteLiteral("><span");
@@ -380,14 +380,14 @@ WriteLiteral(">\r\n");
             #line hidden
 WriteLiteral("                        <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 2757), Tuple.Create("\"", 2795)
+WriteAttribute("href", Tuple.Create(" href=\"", 2749), Tuple.Create("\"", 2787)
             
             #line 68 "..\..\Views\Shared\_ListTree_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 2764), Tuple.Create<System.Object, System.Int32>(Url.Action("Down", new { id })
+, Tuple.Create(Tuple.Create("", 2756), Tuple.Create<System.Object, System.Int32>(Url.Action("Down", new { id })
             
             #line default
             #line hidden
-, 2764), false)
+, 2756), false)
 );
 
 WriteLiteral("><span");
