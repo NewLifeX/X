@@ -33,8 +33,10 @@
     <Compile Include="..\NewLife.Core\Applications\IP\Ip.cs" Link="Applications\IP\Ip.cs" />
     <Compile Include="..\NewLife.Core\Applications\IP\Zip.cs" Link="Applications\IP\Zip.cs" />
     <Compile Include="..\NewLife.Core\Caching\Cache.cs" Link="Caching\Cache.cs" />
+    <Compile Include="..\NewLife.Core\Caching\CacheLock.cs" Link="Caching\CacheLock.cs" />
     <Compile Include="..\NewLife.Core\Caching\CacheSetting.cs" Link="Caching\CacheSetting.cs" />
     <Compile Include="..\NewLife.Core\Caching\ICache.cs" Link="Caching\ICache.cs" />
+    <Compile Include="..\NewLife.Core\Caching\IProducerConsumer.cs" Link="Caching\IProducerConsumer.cs" />
     <Compile Include="..\NewLife.Core\Caching\MemoryCache.cs" Link="Caching\MemoryCache.cs" />
     <Compile Include="..\NewLife.Core\Caching\Redis.cs" Link="Caching\Redis.cs" />
     <Compile Include="..\NewLife.Core\Caching\RedisClient.cs" Link="Caching\RedisClient.cs" />
@@ -214,12 +216,21 @@
     <Compile Include="..\NewLife.Core\Serialization\Xml\XmlList.cs" Link="Serialization\Xml\XmlList.cs" />
     <Compile Include="..\NewLife.Core\Setting.cs" Link="Setting.cs" />
     <Compile Include="..\NewLife.Core\Threading\TaskHelper.cs" Link="Threading\TaskHelper.cs" />
+    <Compile Include="..\NewLife.Core\Threading\ThreadPoolX.cs" Link="Threading\ThreadPoolX.cs" />
     <Compile Include="..\NewLife.Core\Threading\TimerScheduler.cs" Link="Threading\TimerScheduler.cs" />
     <Compile Include="..\NewLife.Core\Threading\TimerX.cs" Link="Threading\TimerX.cs" />
     <Compile Include="..\NewLife.Core\Web\Link.cs" Link="Web\Link.cs" />
     <Compile Include="..\NewLife.Core\Web\OAuthClient.cs" Link="Web\OAuthClient.cs" />
+    <Compile Include="..\NewLife.Core\Web\OAuthConfig.cs" Link="Web\OAuthConfig.cs" />
+    <Compile Include="..\NewLife.Core\Web\OAuthServer.cs" Link="Web\OAuthServer.cs" />
+    <Compile Include="..\NewLife.Core\Web\OAuth\BaiduClient.cs" Link="Web\OAuth\BaiduClient.cs" />
+    <Compile Include="..\NewLife.Core\Web\OAuth\GithubClient.cs" Link="Web\OAuth\GithubClient.cs" />
+    <Compile Include="..\NewLife.Core\Web\OAuth\QQClient.cs" Link="Web\OAuth\QQClient.cs" />
+    <Compile Include="..\NewLife.Core\Web\OAuth\TaobaoClient.cs" Link="Web\OAuth\TaobaoClient.cs" />
+    <Compile Include="..\NewLife.Core\Web\OAuth\WeixinClient.cs" Link="Web\OAuth\WeixinClient.cs" />
     <Compile Include="..\NewLife.Core\Web\Pager.cs" Link="Web\Pager.cs" />
     <Compile Include="..\NewLife.Core\Web\PluginHelper.cs" Link="Web\PluginHelper.cs" />
+    <Compile Include="..\NewLife.Core\Web\TokenProvider.cs" Link="Web\TokenProvider.cs" />
     <Compile Include="..\NewLife.Core\Web\WebClientX.cs" Link="Web\WebClientX.cs" />
     <Compile Include="..\NewLife.Core\Web\WebHelper.cs" Link="Web\WebHelper.cs" />
     <Compile Include="..\NewLife.Core\Xml\SerializableDictionary.cs" Link="Xml\SerializableDictionary.cs" />
@@ -255,6 +266,7 @@
     <Folder Include="Stub\" />
     <Folder Include="Threading\" />
     <Folder Include="Web\Modules\" />
+    <Folder Include="Web\OAuth\" />
     <Folder Include="Xml\" />
     <Folder Include="Http\" />
     <Folder Include="Caching\" />
