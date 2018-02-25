@@ -112,7 +112,7 @@ namespace NewLife.Net
             Links = list.OrderByDescending(e => e.Time).ToArray();
 
             // 只有文件时间大于编译时间才更新，需要考虑文件编译后过一段时间才打包
-            return Links[0].Time > Compile.AddMinutes(30);
+            return Links[0].Time > Compile.AddMinutes(10);
         }
 
         /// <summary>开始更新</summary>
@@ -213,7 +213,9 @@ namespace NewLife.Net
             //#endif
 
             WriteLog("退出当前进程");
-            Process.GetCurrentProcess().Close();
+            if (!Runtime.IsConsole) Process.GetCurrentProcess().CloseMainWindow();
+            Environment.Exit(0);
+            Process.GetCurrentProcess().Kill();
 
             return true;
         }
