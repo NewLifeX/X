@@ -39,7 +39,7 @@ namespace XCoder
 
             if (!Runtime.Mono) new TimerX(s => Runtime.ReleaseMemory(), null, 5000, 10000);
 
-            if (XConfig.Current.IsNew) "学无先后达者为师，欢迎使用新生命超级码神工具！".SpeechTip();
+            if (XConfig.Current.IsNew) "学无先后达者为师，欢迎使用新生命码神工具！".SpeechTip();
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);

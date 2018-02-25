@@ -167,7 +167,7 @@
             this.MainMenuStrip = this.menuStrip;
             this.Name = "FrmMDI";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "新生命超级码神工具";
+            this.Text = "新生命码神工具";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FrmMDI_FormClosing);
             this.Shown += new System.EventHandler(this.FrmMDI_Shown);
             this.menuStrip.ResumeLayout(false);
