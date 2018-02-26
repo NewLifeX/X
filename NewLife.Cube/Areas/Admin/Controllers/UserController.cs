@@ -189,29 +189,8 @@ namespace NewLife.Cube.Admin.Controllers
 
             user.Update();
 
-            return View(user);
+            return Info(user.ID);
         }
-
-        ///// <summary>忘记密码</summary>
-        ///// <param name="email"></param>
-        ///// <returns></returns>
-        //[HttpPost]
-        //[AllowAnonymous]
-        //public ActionResult ForgetPassword(String email)
-        //{
-        //    var set = Setting.Current;
-        //    if (!set.AllowForgot) throw new Exception("禁止取回密码！");
-
-        //    //throw new NotImplementedException("未实现！");
-        //    var user = UserX.FindByMail(email);
-        //    if (user == null)
-        //    {
-        //        //throw new Exception("未找到");
-        //        Js.Alert("未找到用户");
-        //    }
-
-        //    return View("Login");
-        //}
 
         /// <summary>注册</summary>
         /// <param name="email"></param>

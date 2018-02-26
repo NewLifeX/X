@@ -65,13 +65,13 @@ namespace XCode.Membership
         [BindColumn("Mail", "邮件", "nvarchar(50)")]
         public String Mail { get { return _Mail; } set { if (OnPropertyChanging(__.Mail, value)) { _Mail = value; OnPropertyChanged(__.Mail); } } }
 
-        private String _Phone;
-        /// <summary>电话</summary>
-        [DisplayName("电话")]
-        [Description("电话")]
+        private String _Mobile;
+        /// <summary>手机</summary>
+        [DisplayName("手机")]
+        [Description("手机")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn("Phone", "电话", "nvarchar(50)")]
-        public String Phone { get { return _Phone; } set { if (OnPropertyChanging(__.Phone, value)) { _Phone = value; OnPropertyChanged(__.Phone); } } }
+        [BindColumn("Mobile", "手机", "nvarchar(50)")]
+        public String Mobile { get { return _Mobile; } set { if (OnPropertyChanging(__.Mobile, value)) { _Mobile = value; OnPropertyChanged(__.Mobile); } } }
 
         private String _Code;
         /// <summary>代码。身份证、员工编号等</summary>
@@ -104,22 +104,6 @@ namespace XCode.Membership
         [DataObjectField(false, false, false, 0)]
         [BindColumn("Enable", "启用", "bit")]
         public Boolean Enable { get { return _Enable; } set { if (OnPropertyChanging(__.Enable, value)) { _Enable = value; OnPropertyChanged(__.Enable); } } }
-
-        private DateTime _StartTime;
-        /// <summary>开始时间</summary>
-        [DisplayName("开始时间")]
-        [Description("开始时间")]
-        [DataObjectField(false, false, true, 0)]
-        [BindColumn("StartTime", "开始时间", "datetime")]
-        public DateTime StartTime { get { return _StartTime; } set { if (OnPropertyChanging(__.StartTime, value)) { _StartTime = value; OnPropertyChanged(__.StartTime); } } }
-
-        private DateTime _EndTime;
-        /// <summary>结束时间</summary>
-        [DisplayName("结束时间")]
-        [Description("结束时间")]
-        [DataObjectField(false, false, true, 0)]
-        [BindColumn("EndTime", "结束时间", "datetime")]
-        public DateTime EndTime { get { return _EndTime; } set { if (OnPropertyChanging(__.EndTime, value)) { _EndTime = value; OnPropertyChanged(__.EndTime); } } }
 
         private Int32 _Logins;
         /// <summary>登录次数</summary>
@@ -160,30 +144,6 @@ namespace XCode.Membership
         [DataObjectField(false, false, true, 50)]
         [BindColumn("RegisterIP", "注册IP", "nvarchar(50)")]
         public String RegisterIP { get { return _RegisterIP; } set { if (OnPropertyChanging(__.RegisterIP, value)) { _RegisterIP = value; OnPropertyChanged(__.RegisterIP); } } }
-
-        private String _Question;
-        /// <summary>问题</summary>
-        [DisplayName("问题")]
-        [Description("问题")]
-        [DataObjectField(false, false, true, 50)]
-        [BindColumn("Question", "问题", "nvarchar(50)")]
-        public String Question { get { return _Question; } set { if (OnPropertyChanging(__.Question, value)) { _Question = value; OnPropertyChanged(__.Question); } } }
-
-        private String _Answer;
-        /// <summary>答案</summary>
-        [DisplayName("答案")]
-        [Description("答案")]
-        [DataObjectField(false, false, true, 50)]
-        [BindColumn("Answer", "答案", "nvarchar(50)")]
-        public String Answer { get { return _Answer; } set { if (OnPropertyChanging(__.Answer, value)) { _Answer = value; OnPropertyChanged(__.Answer); } } }
-
-        private String _Profile;
-        /// <summary>配置信息</summary>
-        [DisplayName("配置信息")]
-        [Description("配置信息")]
-        [DataObjectField(false, false, true, 500)]
-        [BindColumn("Profile", "配置信息", "nvarchar(500)")]
-        public String Profile { get { return _Profile; } set { if (OnPropertyChanging(__.Profile, value)) { _Profile = value; OnPropertyChanged(__.Profile); } } }
         #endregion
 
         #region 获取/设置 字段值
@@ -202,21 +162,16 @@ namespace XCode.Membership
                     case __.DisplayName : return _DisplayName;
                     case __.Sex : return _Sex;
                     case __.Mail : return _Mail;
-                    case __.Phone : return _Phone;
+                    case __.Mobile : return _Mobile;
                     case __.Code : return _Code;
                     case __.RoleID : return _RoleID;
                     case __.Online : return _Online;
                     case __.Enable : return _Enable;
-                    case __.StartTime : return _StartTime;
-                    case __.EndTime : return _EndTime;
                     case __.Logins : return _Logins;
                     case __.LastLogin : return _LastLogin;
                     case __.LastLoginIP : return _LastLoginIP;
                     case __.RegisterTime : return _RegisterTime;
                     case __.RegisterIP : return _RegisterIP;
-                    case __.Question : return _Question;
-                    case __.Answer : return _Answer;
-                    case __.Profile : return _Profile;
                     default: return base[name];
                 }
             }
@@ -230,21 +185,16 @@ namespace XCode.Membership
                     case __.DisplayName : _DisplayName = Convert.ToString(value); break;
                     case __.Sex : _Sex = (SexKinds)Convert.ToInt32(value); break;
                     case __.Mail : _Mail = Convert.ToString(value); break;
-                    case __.Phone : _Phone = Convert.ToString(value); break;
+                    case __.Mobile : _Mobile = Convert.ToString(value); break;
                     case __.Code : _Code = Convert.ToString(value); break;
                     case __.RoleID : _RoleID = Convert.ToInt32(value); break;
                     case __.Online : _Online = Convert.ToBoolean(value); break;
                     case __.Enable : _Enable = Convert.ToBoolean(value); break;
-                    case __.StartTime : _StartTime = Convert.ToDateTime(value); break;
-                    case __.EndTime : _EndTime = Convert.ToDateTime(value); break;
                     case __.Logins : _Logins = Convert.ToInt32(value); break;
                     case __.LastLogin : _LastLogin = Convert.ToDateTime(value); break;
                     case __.LastLoginIP : _LastLoginIP = Convert.ToString(value); break;
                     case __.RegisterTime : _RegisterTime = Convert.ToDateTime(value); break;
                     case __.RegisterIP : _RegisterIP = Convert.ToString(value); break;
-                    case __.Question : _Question = Convert.ToString(value); break;
-                    case __.Answer : _Answer = Convert.ToString(value); break;
-                    case __.Profile : _Profile = Convert.ToString(value); break;
                     default: base[name] = value; break;
                 }
             }
@@ -273,8 +223,8 @@ namespace XCode.Membership
             /// <summary>邮件</summary>
             public static readonly Field Mail = FindByName(__.Mail);
 
-            /// <summary>电话</summary>
-            public static readonly Field Phone = FindByName(__.Phone);
+            /// <summary>手机</summary>
+            public static readonly Field Mobile = FindByName(__.Mobile);
 
             /// <summary>代码。身份证、员工编号等</summary>
             public static readonly Field Code = FindByName(__.Code);
@@ -287,12 +237,6 @@ namespace XCode.Membership
 
             /// <summary>启用</summary>
             public static readonly Field Enable = FindByName(__.Enable);
-
-            /// <summary>开始时间</summary>
-            public static readonly Field StartTime = FindByName(__.StartTime);
-
-            /// <summary>结束时间</summary>
-            public static readonly Field EndTime = FindByName(__.EndTime);
 
             /// <summary>登录次数</summary>
             public static readonly Field Logins = FindByName(__.Logins);
@@ -308,15 +252,6 @@ namespace XCode.Membership
 
             /// <summary>注册IP</summary>
             public static readonly Field RegisterIP = FindByName(__.RegisterIP);
-
-            /// <summary>问题</summary>
-            public static readonly Field Question = FindByName(__.Question);
-
-            /// <summary>答案</summary>
-            public static readonly Field Answer = FindByName(__.Answer);
-
-            /// <summary>配置信息</summary>
-            public static readonly Field Profile = FindByName(__.Profile);
 
             static Field FindByName(String name) { return Meta.Table.FindByName(name); }
         }
@@ -342,8 +277,8 @@ namespace XCode.Membership
             /// <summary>邮件</summary>
             public const String Mail = "Mail";
 
-            /// <summary>电话</summary>
-            public const String Phone = "Phone";
+            /// <summary>手机</summary>
+            public const String Mobile = "Mobile";
 
             /// <summary>代码。身份证、员工编号等</summary>
             public const String Code = "Code";
@@ -356,12 +291,6 @@ namespace XCode.Membership
 
             /// <summary>启用</summary>
             public const String Enable = "Enable";
-
-            /// <summary>开始时间</summary>
-            public const String StartTime = "StartTime";
-
-            /// <summary>结束时间</summary>
-            public const String EndTime = "EndTime";
 
             /// <summary>登录次数</summary>
             public const String Logins = "Logins";
@@ -377,15 +306,6 @@ namespace XCode.Membership
 
             /// <summary>注册IP</summary>
             public const String RegisterIP = "RegisterIP";
-
-            /// <summary>问题</summary>
-            public const String Question = "Question";
-
-            /// <summary>答案</summary>
-            public const String Answer = "Answer";
-
-            /// <summary>配置信息</summary>
-            public const String Profile = "Profile";
         }
         #endregion
     }
@@ -412,8 +332,8 @@ namespace XCode.Membership
         /// <summary>邮件</summary>
         String Mail { get; set; }
 
-        /// <summary>电话</summary>
-        String Phone { get; set; }
+        /// <summary>手机</summary>
+        String Mobile { get; set; }
 
         /// <summary>代码。身份证、员工编号等</summary>
         String Code { get; set; }
@@ -426,12 +346,6 @@ namespace XCode.Membership
 
         /// <summary>启用</summary>
         Boolean Enable { get; set; }
-
-        /// <summary>开始时间</summary>
-        DateTime StartTime { get; set; }
-
-        /// <summary>结束时间</summary>
-        DateTime EndTime { get; set; }
 
         /// <summary>登录次数</summary>
         Int32 Logins { get; set; }
@@ -447,15 +361,6 @@ namespace XCode.Membership
 
         /// <summary>注册IP</summary>
         String RegisterIP { get; set; }
-
-        /// <summary>问题</summary>
-        String Question { get; set; }
-
-        /// <summary>答案</summary>
-        String Answer { get; set; }
-
-        /// <summary>配置信息</summary>
-        String Profile { get; set; }
         #endregion
 
         #region 获取/设置 字段值

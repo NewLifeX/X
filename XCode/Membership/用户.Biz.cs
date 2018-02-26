@@ -203,7 +203,7 @@ namespace XCode.Membership
         /// <returns></returns>
         public static TEntity FindByName(String name)
         {
-            if (String.IsNullOrEmpty(name)) return null;
+            if (name.IsNullOrEmpty()) return null;
 
             if (Meta.Count >= 1000)
                 return Find(__.Name, name);
@@ -216,6 +216,8 @@ namespace XCode.Membership
         /// <returns></returns>
         public static TEntity FindByMail(String mail)
         {
+            if (mail.IsNullOrEmpty()) return null;
+
             if (Meta.Count >= 1000)
                 return Find(__.Mail, mail);
             else // 实体缓存
@@ -223,14 +225,16 @@ namespace XCode.Membership
         }
 
         /// <summary>根据手机号码查找</summary>
-        /// <param name="phone"></param>
+        /// <param name="mobile"></param>
         /// <returns></returns>
-        public static TEntity FindByPhone(String phone)
+        public static TEntity FindByMobile(String mobile)
         {
+            if (mobile.IsNullOrEmpty()) return null;
+
             if (Meta.Count >= 1000)
-                return Find(__.Phone, phone);
+                return Find(__.Mobile, mobile);
             else // 实体缓存
-                return Meta.Cache.Find(e => e.Phone.EqualIgnoreCase(phone));
+                return Meta.Cache.Find(e => e.Mobile.EqualIgnoreCase(mobile));
         }
 
         /// <summary>根据唯一代码查找</summary>
@@ -238,6 +242,8 @@ namespace XCode.Membership
         /// <returns></returns>
         public static TEntity FindByCode(String code)
         {
+            if (code.IsNullOrEmpty()) return null;
+
             if (Meta.Count >= 1000)
                 return Find(__.Code, code);
             else // 实体缓存
@@ -274,10 +280,10 @@ namespace XCode.Membership
             // 先精确查询，再模糊
             if (!key.IsNullOrEmpty())
             {
-                var list = FindAll(exp & (_.Code == key | _.Name == key | _.DisplayName == key | _.Mail == key | _.Phone == key), p);
+                var list = FindAll(exp & (_.Code == key | _.Name == key | _.DisplayName == key | _.Mail == key | _.Mobile == key), p);
                 if (list.Count > 0) return list;
 
-                exp &= (_.Code.Contains(key) | _.Name.Contains(key) | _.DisplayName.Contains(key) | _.Mail.Contains(key) | _.Phone.Contains(key));
+                exp &= (_.Code.Contains(key) | _.Name.Contains(key) | _.DisplayName.Contains(key) | _.Mail.Contains(key) | _.Mobile.Contains(key));
             }
 
             return FindAll(exp, p);
