@@ -129,6 +129,15 @@ namespace NewLife.Cube.Web
             if (dic != null && user is UserX user2)
             {
                 if (user2.Mail.IsNullOrEmpty() && dic.TryGetValue("email", out var email)) user2.Mail = email;
+                if (user2.Mail.IsNullOrEmpty() && dic.TryGetValue("mail", out email)) user2.Mail = email;
+                if (user2.Mobile.IsNullOrEmpty() && dic.TryGetValue("mobile", out var mobile)) user2.Mobile = mobile;
+                if (user2.Code.IsNullOrEmpty() && dic.TryGetValue("code", out var code)) user2.Code = code;
+                if (user2.Sex == SexKinds.未知 && dic.TryGetValue("sex", out var sex)) user2.Sex = (SexKinds)sex.ToInt();
+
+                // 如果默认角色为0，则使用认证中心提供的角色
+                var set = Setting.Current;
+                var rid = set.DefaultRole;
+                if (rid == 0 && dic.TryGetValue("roleid", out var roleid) && roleid.ToInt() > 0) user2.RoleID = roleid.ToInt();
             }
             // 头像
             if (dic != null && user is IEntity entity)

@@ -6,6 +6,7 @@ using NewLife.Cube.Web;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Web;
+using XCode.Membership;
 
 /*
  * 魔方OAuth在禁用本地登录，且只设置一个第三方登录时，形成单点登录。
@@ -272,9 +273,6 @@ namespace NewLife.Cube.Controllers
                 // 返回UserInfo告知客户端可以请求用户信息
                 return Json(new
                 {
-                    //userid = user.ID,
-                    //username = user.Name,
-                    //nickname = user.NickName,
                     access_token = token,
                     expires_in = sso.Expire,
                     scope = "basic,UserInfo",
@@ -304,12 +302,25 @@ namespace NewLife.Cube.Controllers
                 var user = Provider?.Provider?.FindByName(username);
                 if (user == null) throw new Exception("用户不存在");
 
-                return Json(new
-                {
-                    userid = user.ID,
-                    username = user.Name,
-                    nickname = user.NickName,
-                }, JsonRequestBehavior.AllowGet);
+                if (user is UserX user2)
+                    return Json(new
+                    {
+                        userid = user.ID,
+                        username = user.Name,
+                        nickname = user.NickName,
+                        sex = user2.Sex,
+                        mail = user2.Mail,
+                        mobile = user2.Mobile,
+                        code = user2.Code,
+                        roleid = user2.RoleID,
+                    }, JsonRequestBehavior.AllowGet);
+                else
+                    return Json(new
+                    {
+                        userid = user.ID,
+                        username = user.Name,
+                        nickname = user.NickName,
+                    }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
