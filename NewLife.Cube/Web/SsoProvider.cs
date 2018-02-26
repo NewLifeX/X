@@ -208,5 +208,51 @@ namespace NewLife.Cube.Web
             Provider.Current = null;
         }
         #endregion
+
+        #region 服务端
+        /// <summary>获取访问令牌</summary>
+        /// <param name="sso"></param>
+        /// <param name="code"></param>
+        /// <returns></returns>
+        public virtual Object GetAccessToken(OAuthServer sso, String code)
+        {
+            var token = sso.GetToken(code);
+
+            return new
+            {
+                access_token = token,
+                expires_in = sso.Expire,
+                scope = "basic,UserInfo",
+            };
+        }
+
+        /// <summary>获取用户信息</summary>
+        /// <param name="sso"></param>
+        /// <param name="token"></param>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public virtual Object GetUserInfo(OAuthServer sso, String token, IManageUser user)
+        {
+            if (user is UserX user2)
+                return new
+                {
+                    userid = user.ID,
+                    username = user.Name,
+                    nickname = user.NickName,
+                    sex = user2.Sex,
+                    mail = user2.Mail,
+                    mobile = user2.Mobile,
+                    code = user2.Code,
+                    roleid = user2.RoleID,
+                };
+            else
+                return new
+                {
+                    userid = user.ID,
+                    username = user.Name,
+                    nickname = user.NickName,
+                };
+        }
+        #endregion
     }
 }

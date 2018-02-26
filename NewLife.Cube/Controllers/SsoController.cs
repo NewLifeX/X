@@ -268,15 +268,11 @@ namespace NewLife.Cube.Controllers
             var sso = OAuthServer.Instance;
             try
             {
-                var token = OAuthServer.Instance.GetToken(code);
+                //var token = sso.GetToken(code);
+                var rs = Provider.GetAccessToken(sso, code);
 
                 // 返回UserInfo告知客户端可以请求用户信息
-                return Json(new
-                {
-                    access_token = token,
-                    expires_in = sso.Expire,
-                    scope = "basic,UserInfo",
-                }, JsonRequestBehavior.AllowGet);
+                return Json(rs, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
@@ -302,25 +298,8 @@ namespace NewLife.Cube.Controllers
                 var user = Provider?.Provider?.FindByName(username);
                 if (user == null) throw new Exception("用户不存在");
 
-                if (user is UserX user2)
-                    return Json(new
-                    {
-                        userid = user.ID,
-                        username = user.Name,
-                        nickname = user.NickName,
-                        sex = user2.Sex,
-                        mail = user2.Mail,
-                        mobile = user2.Mobile,
-                        code = user2.Code,
-                        roleid = user2.RoleID,
-                    }, JsonRequestBehavior.AllowGet);
-                else
-                    return Json(new
-                    {
-                        userid = user.ID,
-                        username = user.Name,
-                        nickname = user.NickName,
-                    }, JsonRequestBehavior.AllowGet);
+                var rs = Provider.GetUserInfo(sso, access_token, user);
+                return Json(rs, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
