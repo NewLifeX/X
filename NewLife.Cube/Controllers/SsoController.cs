@@ -133,7 +133,7 @@ namespace NewLife.Cube.Controllers
             if (!client.UserUrl.IsNullOrEmpty()) client.GetUserInfo();
 
             var url = prov.OnLogin(client, HttpContext);
-            if (!returnUrl.IsNullOrEmpty()) Redirect(returnUrl);
+            if (!returnUrl.IsNullOrEmpty()) return Redirect(returnUrl);
 
             return Redirect(url);
         }
