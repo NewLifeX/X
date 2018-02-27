@@ -1260,8 +1260,7 @@ namespace System
             {
                 // 如果不是4的整数倍，后面补上等号
                 var n = data.Length % 4;
-                //if (n == 3) throw new InvalidCastException("无效Base64字符串");
-                if (n > 0 && n < 3) data += new String('=', n);
+                if (n > 0) data += new String('=', 4 - n);
             }
 
             // 针对Url特殊处理
