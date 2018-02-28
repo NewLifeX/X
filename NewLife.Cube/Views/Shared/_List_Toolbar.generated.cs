@@ -67,6 +67,8 @@ namespace ASP
     var act = ViewBag.Action as String;
     if (act.IsNullOrEmpty()) { act = Url.Action("Index"); }
 
+    var enableSelect = this.EnableSelect();
+
             
             #line default
             #line hidden
@@ -80,14 +82,14 @@ WriteLiteral(" class=\"form-inline\"");
 
 WriteLiteral(">\r\n        <form");
 
-WriteAttribute("action", Tuple.Create(" action=\"", 438), Tuple.Create("\"", 481)
+WriteAttribute("action", Tuple.Create(" action=\"", 485), Tuple.Create("\"", 528)
             
-            #line 14 "..\..\Views\Shared\_List_Toolbar.cshtml"
-, Tuple.Create(Tuple.Create("", 447), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetFormAction(act))
+            #line 16 "..\..\Views\Shared\_List_Toolbar.cshtml"
+, Tuple.Create(Tuple.Create("", 494), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetFormAction(act))
             
             #line default
             #line hidden
-, 447), false)
+, 494), false)
 );
 
 WriteLiteral(" method=\"post\"");
@@ -97,13 +99,13 @@ WriteLiteral(" role=\"form\"");
 WriteLiteral(">\r\n");
 
             
-            #line 15 "..\..\Views\Shared\_List_Toolbar.cshtml"
+            #line 17 "..\..\Views\Shared\_List_Toolbar.cshtml"
             
             
             #line default
             #line hidden
             
-            #line 15 "..\..\Views\Shared\_List_Toolbar.cshtml"
+            #line 17 "..\..\Views\Shared\_List_Toolbar.cshtml"
              if (user.Has(PermissionFlags.Insert))
             {
                 
@@ -111,14 +113,14 @@ WriteLiteral(">\r\n");
             #line default
             #line hidden
             
-            #line 17 "..\..\Views\Shared\_List_Toolbar.cshtml"
+            #line 19 "..\..\Views\Shared\_List_Toolbar.cshtml"
            Write(Html.ActionLink("添加" + ViewContext.Controller.GetType().GetDisplayName(), "Add", null, new { @class = "btn btn-success btn-sm" }));
 
             
             #line default
             #line hidden
             
-            #line 17 "..\..\Views\Shared\_List_Toolbar.cshtml"
+            #line 19 "..\..\Views\Shared\_List_Toolbar.cshtml"
                                                                                                                                                   
             }
 
@@ -128,13 +130,38 @@ WriteLiteral(">\r\n");
 WriteLiteral("            ");
 
             
-            #line 19 "..\..\Views\Shared\_List_Toolbar.cshtml"
-       Write(Html.Partial("_List_Toolbar_Batch"));
+            #line 21 "..\..\Views\Shared\_List_Toolbar.cshtml"
+             if (enableSelect)
+            {
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n            <div");
+WriteLiteral("                <div");
+
+WriteLiteral(" class=\"form-group toolbar-batch\"");
+
+WriteLiteral(">\r\n");
+
+WriteLiteral("                    ");
+
+            
+            #line 24 "..\..\Views\Shared\_List_Toolbar.cshtml"
+               Write(Html.Partial("_List_Toolbar_Batch"));
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\r\n                </div>\r\n");
+
+            
+            #line 26 "..\..\Views\Shared\_List_Toolbar.cshtml"
+            }
+
+            
+            #line default
+            #line hidden
+WriteLiteral("            <div");
 
 WriteLiteral(" class=\"pull-right form-group\"");
 
@@ -143,7 +170,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                ");
 
             
-            #line 21 "..\..\Views\Shared\_List_Toolbar.cshtml"
+            #line 28 "..\..\Views\Shared\_List_Toolbar.cshtml"
            Write(Html.Partial("_List_Search"));
 
             
@@ -154,7 +181,7 @@ WriteLiteral("\r\n");
 WriteLiteral("                ");
 
             
-            #line 22 "..\..\Views\Shared\_List_Toolbar.cshtml"
+            #line 29 "..\..\Views\Shared\_List_Toolbar.cshtml"
            Write(Html.Partial("_List_Toolbar_Search"));
 
             
@@ -165,14 +192,49 @@ WriteLiteral("\r\n");
 WriteLiteral("                ");
 
             
-            #line 23 "..\..\Views\Shared\_List_Toolbar.cshtml"
+            #line 30 "..\..\Views\Shared\_List_Toolbar.cshtml"
            Write(Html.Partial("_List_Toolbar_Adv"));
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n            </div>\r\n        </form>\r\n    </div>\r\n</div>");
+WriteLiteral("\r\n            </div>\r\n        </form>\r\n    </div>\r\n</div>\r\n");
 
+            
+            #line 35 "..\..\Views\Shared\_List_Toolbar.cshtml"
+ if (enableSelect)
+{
+
+            
+            #line default
+            #line hidden
+WriteLiteral("    <script>\r\n        $(function () {\r\n            var $toolbarContext = $(\'.tool" +
+"bar-batch\'),\r\n                $batchButtons = $(\'button[data-action=\"action\"], i" +
+"nput[data-action=\"action\"]\'), //button, input=button, a 3种类型都可以\r\n               " +
+" $table = $(\'.table\'),\r\n                $keys = $(\'input[name=\"keys\"]\', $table);" +
+"\r\n\r\n            $table.on(\'click\', \'#chkAll\', function () {\r\n                // " +
+"全选\r\n                $keys.prop(\'checked\', this.checked);\r\n                // 启用禁" +
+"用批量操作区\r\n                $batchButtons.prop(\'disabled\', !this.checked);\r\n        " +
+"    });\r\n\r\n            $table.on(\'click.checked\', \'tbody input[name=\"keys\"]\', fu" +
+"nction (e) {\r\n                //页面中所有的checkbox\r\n                var allbox = $ta" +
+"ble.find(\'tbody :checkbox[name=\"keys\"]\');\r\n                //页面中所选中的checkbox\r\n  " +
+"              var selecteds = $table.find(\'tbody :checkbox:checked[name=\"keys\"]\'" +
+");\r\n                if (selecteds.length > 0) {\r\n                    // 启用禁用批量操作" +
+"区\r\n                    $batchButtons.prop(\'disabled\', false);\r\n                 " +
+"   //需要判断当前页面所有行的checkbox是否都选中，以此来决定是否需要改变checkbox#chkAll 的状态\r\n                 " +
+"   if (allbox.length == selecteds.length) {\r\n                        $table.find" +
+"(\'#chkAll\').prop(\'checked\', true);\r\n                    } else {\r\n              " +
+"          $table.find(\'#chkAll\').prop(\'checked\', false);\r\n                    }\r" +
+"\n                }\r\n                else {\r\n                    $batchButtons.pr" +
+"op(\'disabled\', true);\r\n                    $table.find(\'#chkAll\').prop(\'checked\'" +
+", false);\r\n                }\r\n            });\r\n        })\r\n    </script>\r\n");
+
+            
+            #line 73 "..\..\Views\Shared\_List_Toolbar.cshtml"
+}
+            
+            #line default
+            #line hidden
         }
     }
 }

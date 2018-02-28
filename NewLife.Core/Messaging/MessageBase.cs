@@ -62,10 +62,12 @@ namespace NewLife.Messaging
         /// <returns></returns>
         protected virtual IFormatterX CreateFormatter(Boolean isRead)
         {
-            var fn = new Binary();
-            fn.EncodeInt = true;
-            fn.UseFieldSize = true;
-            fn.UseProperty = false;
+            var fn = new Binary
+            {
+                EncodeInt = true,
+                UseFieldSize = true,
+                UseProperty = false
+            };
 
             return fn;
         }

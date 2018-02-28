@@ -18,19 +18,19 @@ namespace XCoder.Tools
         {
             InitializeComponent();
         }
-        private void FrmMain_Load(object sender, EventArgs e)
+        private void FrmMain_Load(Object sender, EventArgs e)
         {
             var frm = new FrmGPS();
             ShowForm(frm);
         }
-        private void btn_Include_Click(object sender, EventArgs e)
+        private void btn_Include_Click(Object sender, EventArgs e)
         {
 #if !NET4
             var frm = new FrmInclude();
             ShowForm(frm);
 #endif
         }
-        private void btn_gps_Click(object sender, EventArgs e)
+        private void btn_gps_Click(Object sender, EventArgs e)
         {
             var frm = new FrmGPS();
             ShowForm(frm);

@@ -8,6 +8,9 @@ using System.Web.Mvc;
 using NewLife.Web;
 using XCode.DataAccessLayer;
 using XCode.Membership;
+#if NET4
+using Task = System.Threading.Tasks.TaskEx;
+#endif
 
 namespace NewLife.Cube.Admin.Controllers
 {
@@ -44,7 +47,7 @@ namespace NewLife.Cube.Admin.Controllers
                 var dal = DAL.Create(item.Key);
                 di.Type = dal.DbType;
 
-                var t = Task.Run(() =>
+                var t = Task.Factory.StartNew(() =>
                 {
                     try
                     {

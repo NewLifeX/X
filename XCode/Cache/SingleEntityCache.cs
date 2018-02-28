@@ -133,7 +133,7 @@ namespace XCode.Cache
             // 如果满了，删除前面
             if (slist != null)
             {
-                over = es.Count - list.Count - MaxEntity;
+                over -= list.Count;
                 if (over > 0)
                 {
                     for (var i = 0; i < slist.Count && over > 0; i++)
@@ -150,19 +150,12 @@ namespace XCode.Cache
                 }
             }
 
+            // 主从一起删除
+            var ses = _SlaveEntities;
             foreach (var item in list)
             {
-                es.Remove(item.Key);
-            }
-
-            // 删除从表
-            var ses = _SlaveEntities;
-            if (ses != null && list.Count > 0)
-            {
-                foreach (var item in list)
-                {
-                    if (!item.SlaveKey.IsNullOrEmpty()) ses.Remove(item.SlaveKey);
-                }
+                if (es.Remove(item.Key)) Interlocked.Decrement(ref _Count);
+                if (ses != null && !item.SlaveKey.IsNullOrEmpty()) ses.Remove(item.SlaveKey);
             }
         }
         #endregion
@@ -199,6 +192,9 @@ namespace XCode.Cache
         #endregion
 
         #region 单对象缓存
+        /// <summary>缓存个数</summary>
+        private Int32 _Count;
+
         /// <summary>单对象缓存</summary>
         private ConcurrentDictionary<TKey, CacheItem> Entities = new ConcurrentDictionary<TKey, CacheItem>();
 
@@ -267,14 +263,21 @@ namespace XCode.Cache
             Interlocked.Increment(ref Success);
 
             // 获取 或 添加
-            if (!dic.TryGetValue(key, out var item))
+            CacheItem item = null;
+            CacheItem ci = null;
+            while (!dic.TryGetValue(key, out item))
             {
-                item = Object.ReferenceEquals(dic, Entities) ? CreateItem(key) : CreateSlaveItem(key);
+                if (ci == null) ci = Object.ReferenceEquals(dic, Entities) ? CreateItem(key) : CreateSlaveItem(key);
                 // 不要缓存空值
-                if (item == null) return null;
+                if (ci == null) return null;
 
                 // 尝试添加，即使多线程并发，这里宁可多浪费点时间，也不要带来锁定
-                dic.TryAdd(key, item);
+                if (dic.TryAdd(key, ci))
+                {
+                    item = ci;
+                    Interlocked.Increment(ref _Count);
+                    break;
+                }
             }
             // 最后访问时间
             item.VisitTime = TimerX.Now;
@@ -333,13 +336,6 @@ namespace XCode.Cache
             // 新增或更新
             es[key] = item;
 
-            //// 如果满了，删除前面一个
-            //while (MaxEntity > 0 && es.Count >= MaxEntity)
-            //{
-            //    RemoveKey(es.Keys.First());
-            //    WriteLog("单对象缓存满，删除{0}", key);
-            //}
-
             if (!skey.IsNullOrWhiteSpace())
             {
                 var ses = SlaveEntities;
@@ -374,7 +370,7 @@ namespace XCode.Cache
             }
             catch (Exception ex)
             {
-                XTrace.WriteException(ex);
+                XTrace.WriteLine($"[{TableName}/{ConnName}]" + ex.GetTrue());
             }
         }
         #endregion
@@ -418,7 +414,7 @@ namespace XCode.Cache
         public void Remove(TEntity entity)
         {
             if (entity == null) return;
-
+            if (GetKeyMethod == null) return;
             var key = GetKeyMethod(entity);
             RemoveKey(key);
         }

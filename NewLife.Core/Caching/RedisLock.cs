@@ -48,7 +48,7 @@ namespace NewLife.Caching
                 {
                     // 开抢死锁。所有竞争者都会修改该锁的时间戳，但是只有一个能拿到旧的超时的值
                     expire = now.AddMilliseconds(msTimeout);
-                    var old = rds.GetSet(Key, expire);
+                    var old = rds.Replace(Key, expire);
                     // 如果拿到超时值，说明抢到了锁。其它线程会抢到一个为超时的值
                     if (old <= now) return true;
                 }

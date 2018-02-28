@@ -43,21 +43,21 @@ namespace NewLife.XRegex
         {
             if (String.IsNullOrEmpty(content)) return;
 
-            String p = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, name);
+            var p = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, name);
             p = Path.Combine(p, "最近");
 
             #region 预处理
             if (Directory.Exists(p))
             {
                 // 拿出所有文件
-                String[] files = Directory.GetFiles(p, "*.txt", SearchOption.TopDirectoryOnly);
+                var files = Directory.GetFiles(p, "*.txt", SearchOption.TopDirectoryOnly);
                 if (files != null && files.Length > 0)
                 {
                     // 内容比对
-                    List<String> list = new List<String>();
-                    foreach (String item in files)
+                    var list = new List<String>();
+                    foreach (var item in files)
                     {
-                        String content2 = File.ReadAllText(item);
+                        var content2 = File.ReadAllText(item);
                         if (content2 == content)
                             File.Delete(item);
                         else
@@ -71,7 +71,7 @@ namespace NewLife.XRegex
                         list.Sort();
 
                         // 删除最后的
-                        for (Int32 i = list.Count - 1; i >= 10; i--)
+                        for (var i = list.Count - 1; i >= 10; i--)
                         {
                             File.Delete(list[i]);
                         }
@@ -83,7 +83,7 @@ namespace NewLife.XRegex
             #endregion
 
             // 写入
-            String file = String.Format("{0:yyyy-MM-dd_HHmmss}.txt", DateTime.Now);
+            var file = String.Format("{0:yyyy-MM-dd_HHmmss}.txt", DateTime.Now);
             file = Path.Combine(p, file);
             File.WriteAllText(file, content);
         }
@@ -92,7 +92,7 @@ namespace NewLife.XRegex
         #region 正则匹配
         private void radioButton1_CheckedChanged(Object sender, EventArgs e)
         {
-            RadioButton rb = sender as RadioButton;
+            var rb = sender as RadioButton;
             if (rb.Checked)
             {
                 button2.Text = "正则匹配";
@@ -131,14 +131,14 @@ namespace NewLife.XRegex
             RegexOptions options;
             GetReg(out pattern, out options);
 
-            Boolean isSuccess = false;
-            AutoResetEvent e = new AutoResetEvent(false);
-            Thread thread = new Thread(new ThreadStart(delegate
+            var isSuccess = false;
+            var e = new AutoResetEvent(false);
+            var thread = new Thread(new ThreadStart(delegate
             {
                 try
                 {
                     // 如果正则表达式过于复杂，创建对象时可能需要花很长时间，甚至超时
-                    Regex reg = new Regex(pattern, options);
+                    var reg = new Regex(pattern, options);
                     callback(reg);
 
                     isSuccess = true;
@@ -162,8 +162,8 @@ namespace NewLife.XRegex
             //    ShowError("执行正则表达式超时！");
             //    return;
             //}
-            Boolean b = false;
-            for (Int32 i = 0; i < timeout / 100; i++)
+            var b = false;
+            for (var i = 0; i < timeout / 100; i++)
             {
                 if (e.WaitOne(100))
                 {
@@ -184,20 +184,20 @@ namespace NewLife.XRegex
         private void button2_Click(Object sender, EventArgs e)
         {
             if (String.IsNullOrEmpty(txtPattern.Text)) return;
-            String content = txtContent.Text;
+            var content = txtContent.Text;
             if (String.IsNullOrEmpty(content)) return;
 
             // 是否替换
-            Boolean isReplace = !radioButton1.Checked;
-            String replacement = rtReplace.Text;
+            var isReplace = !radioButton1.Checked;
+            var replacement = rtReplace.Text;
             if (isReplace && String.IsNullOrEmpty(replacement)) return;
 
             Regex r = null;
             MatchCollection ms = null;
-            Int32 count = 0;
+            var count = 0;
 
             // 异步执行，防止超时
-            Boolean isSuccess = ProcessAsync(delegate(Regex reg)
+            var isSuccess = ProcessAsync(delegate(Regex reg)
             {
                 r = reg;
                 ms = reg.Matches(content);
@@ -214,7 +214,7 @@ namespace NewLife.XRegex
 
             lbStatus.Text = String.Format("成功{0} {1} 项！", !isReplace ? "匹配" : "替换", count);
 
-            Int32 i = 1;
+            var i = 1;
             foreach (Match match in ms)
             {
                 var item = lvMatch.Items.Add(i.ToString());
@@ -230,28 +230,28 @@ namespace NewLife.XRegex
         private void button5_Click(Object sender, EventArgs e)
         {
             if (String.IsNullOrEmpty(txtPattern.Text)) return;
-            String replacement = rtReplace.Text;
+            var replacement = rtReplace.Text;
             if (String.IsNullOrEmpty(replacement)) return;
 
             // 获取文件
-            String[] files = GetFiles();
+            var files = GetFiles();
             lbStatus.Text = String.Format("共有符合条件的文件 {0} 个！", files.Length);
 
             MatchCollection ms = null;
-            Int32 count = 0;
+            var count = 0;
 
             // 异步执行，防止超时
-            Boolean isSuccess = ProcessAsync(delegate(Regex reg)
+            var isSuccess = ProcessAsync(delegate(Regex reg)
             {
-                foreach (String item in files)
+                foreach (var item in files)
                 {
-                    String content = File.ReadAllText(item);
+                    var content = File.ReadAllText(item);
                     ms = reg.Matches(content);
                     if (ms != null) count = ms.Count;
                     // 有匹配项才替换
                     if (count > 0)
                     {
-                        String content2 = reg.Replace(content, replacement);
+                        var content2 = reg.Replace(content, replacement);
                         // 有改变才更新文件
                         if (content != content2) File.WriteAllText(item, content2);
                     }
@@ -272,13 +272,13 @@ namespace NewLife.XRegex
             if (lvMatch.SelectedItems == null || lvMatch.SelectedItems.Count < 1) return;
 
             // 当前选择项
-            Match m = lvMatch.SelectedItems[0].Tag as Match;
+            var m = lvMatch.SelectedItems[0].Tag as Match;
             //rtContent.SelectedText = m.Value;
             txtContent.Select(m.Index, m.Length);
             txtContent.ScrollToCaret();
 
             // 分组的选择是否与当前一致
-            Match m2 = lvGroup.Tag as Match;
+            var m2 = lvGroup.Tag as Match;
             if (m2 != null && m2 == m) return;
 
             lvGroup.Tag = m;
@@ -286,7 +286,7 @@ namespace NewLife.XRegex
             lvCapture.Items.Clear();
 
             var reg = lvMatch.Tag as Regex;
-            for (Int32 i = 0; i < m.Groups.Count; i++)
+            for (var i = 0; i < m.Groups.Count; i++)
             {
                 var g = m.Groups[i];
                 var item = lvGroup.Items.Add(i.ToString());
@@ -302,19 +302,19 @@ namespace NewLife.XRegex
             if (lvGroup.SelectedItems == null || lvGroup.SelectedItems.Count < 1) return;
 
             // 当前选择项
-            Group g = lvGroup.SelectedItems[0].Tag as Group;
+            var g = lvGroup.SelectedItems[0].Tag as Group;
             //rtContent.SelectedText = g.Value;
             txtContent.Select(g.Index, g.Length);
             txtContent.ScrollToCaret();
 
             // 分组的选择是否与当前一致
-            Group g2 = lvCapture.Tag as Group;
+            var g2 = lvCapture.Tag as Group;
             if (g2 != null && g2 == g) return;
 
             lvCapture.Tag = g;
             lvCapture.Items.Clear();
 
-            for (Int32 i = 0; i < g.Captures.Count; i++)
+            for (var i = 0; i < g.Captures.Count; i++)
             {
                 var c = g.Captures[i];
                 var item = lvCapture.Items.Add(i.ToString());
@@ -329,7 +329,7 @@ namespace NewLife.XRegex
             if (lvCapture.SelectedItems == null || lvCapture.SelectedItems.Count < 1) return;
 
             // 当前选择项
-            Capture c = lvCapture.SelectedItems[0].Tag as Capture;
+            var c = lvCapture.SelectedItems[0].Tag as Capture;
             txtContent.SelectedText = c.Value;
             txtContent.Select(c.Index, c.Length);
             txtContent.ScrollToCaret();
@@ -352,8 +352,8 @@ namespace NewLife.XRegex
             {
                 if (String.IsNullOrEmpty(_FileVersion))
                 {
-                    Assembly asm = Assembly.GetExecutingAssembly();
-                    AssemblyFileVersionAttribute av = Attribute.GetCustomAttribute(asm, typeof(AssemblyFileVersionAttribute)) as AssemblyFileVersionAttribute;
+                    var asm = Assembly.GetExecutingAssembly();
+                    var av = Attribute.GetCustomAttribute(asm, typeof(AssemblyFileVersionAttribute)) as AssemblyFileVersionAttribute;
                     if (av != null) _FileVersion = av.Version;
                     if (String.IsNullOrEmpty(_FileVersion)) _FileVersion = "1.0";
                 }
@@ -376,7 +376,7 @@ namespace NewLife.XRegex
         #region 菜单
         private void ptMenu_Opening(Object sender, CancelEventArgs e)
         {
-            for (Int32 i = ptMenu.Items.Count - 1; i >= 1; i--)
+            for (var i = ptMenu.Items.Count - 1; i >= 1; i--)
             {
                 ptMenu.Items.RemoveAt(i);
             }
@@ -385,7 +385,7 @@ namespace NewLife.XRegex
 
         private void txtMenu_Opening(Object sender, CancelEventArgs e)
         {
-            for (Int32 i = txtMenu.Items.Count - 1; i >= 1; i--)
+            for (var i = txtMenu.Items.Count - 1; i >= 1; i--)
             {
                 txtMenu.Items.RemoveAt(i);
             }
@@ -420,12 +420,12 @@ namespace NewLife.XRegex
                 }
             }
             // 遍历文件
-            String[] files = Directory.GetFiles(path, "*.txt", SearchOption.TopDirectoryOnly);
+            var files = Directory.GetFiles(path, "*.txt", SearchOption.TopDirectoryOnly);
             if (files != null && files.Length > 0)
             {
-                foreach (String item in files)
+                foreach (var item in files)
                 {
-                    ToolStripMenuItem menu = new ToolStripMenuItem(Path.GetFileNameWithoutExtension(item));
+                    var menu = new ToolStripMenuItem(Path.GetFileNameWithoutExtension(item));
                     menu.Click += MenuItem_Click;
                     menu.Tag = Path.Combine(path, item);
 
@@ -436,11 +436,11 @@ namespace NewLife.XRegex
 
         private void MenuItem_Click(Object sender, EventArgs e)
         {
-            ToolStripMenuItem menu = sender as ToolStripMenuItem;
+            var menu = sender as ToolStripMenuItem;
             if (menu == null) return;
 
             // 找文件路径
-            String file = (String)menu.Tag;
+            var file = (String)menu.Tag;
             if (String.IsNullOrEmpty(file)) return;
             if (!File.Exists(file)) return;
 
@@ -448,7 +448,7 @@ namespace NewLife.XRegex
             ToolStripItem item = menu;
             while (item.OwnerItem != null) item = item.OwnerItem;
 
-            ContextMenuStrip cms = item.Owner as ContextMenuStrip;
+            var cms = item.Owner as ContextMenuStrip;
             if (cms == null) return;
 
             TextBoxBase rt = null;
@@ -459,7 +459,7 @@ namespace NewLife.XRegex
 
             if (rt == null) return;
 
-            String content = File.ReadAllText(file);
+            var content = File.ReadAllText(file);
             rt.SelectedText = content;
         }
         #endregion
@@ -467,14 +467,14 @@ namespace NewLife.XRegex
         #region 打开目录
         private void button4_Click(Object sender, EventArgs e)
         {
-            Button btn = sender as Button;
+            var btn = sender as Button;
             GetFolder(btn);
             if (!String.IsNullOrEmpty(folderBrowserDialog1.SelectedPath)) GetFiles();
         }
 
         void GetFolder(Button btn)
         {
-            FolderBrowserDialog fb = folderBrowserDialog1;
+            var fb = folderBrowserDialog1;
 
             if (fb.ShowDialog() != DialogResult.OK) return;
             btn.Tag = fb.SelectedPath;
@@ -486,8 +486,8 @@ namespace NewLife.XRegex
         String[] GetFiles()
         {
             // 获取目录，如果没有选择，则打开选择
-            Button btn = button4;
-            String path = btn.Tag == null ? null : (String)btn.Tag;
+            var btn = button4;
+            var path = btn.Tag == null ? null : (String)btn.Tag;
             if (String.IsNullOrEmpty(path))
             {
                 GetFolder(btn);
@@ -497,7 +497,7 @@ namespace NewLife.XRegex
             if (String.IsNullOrEmpty(path) || !Directory.Exists(path)) return null;
 
             // 获取文件
-            String[] files = Directory.GetFiles(path, textBox2.Text, SearchOption.AllDirectories);
+            var files = Directory.GetFiles(path, textBox2.Text, SearchOption.AllDirectories);
             if (files == null || files.Length < 1)
             {
                 ShowError("没有符合条件的文件！");

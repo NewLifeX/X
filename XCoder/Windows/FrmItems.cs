@@ -39,7 +39,7 @@ namespace XCoder
         /// <returns></returns>
         public static FrmItems Create(Dictionary<String, String> dic)
         {
-            FrmItems item = new FrmItems();
+            var item = new FrmItems();
 
             if (dic == null) item.CreatDic();
             else
@@ -53,7 +53,7 @@ namespace XCoder
         /// <returns></returns>
         public static FrmItems Create(ModelConfig xconfig)
         {
-            FrmItems item = new FrmItems();
+            var item = new FrmItems();
 
             if (xconfig == null) throw new Exception("配置信息异常");
 
@@ -69,7 +69,7 @@ namespace XCoder
         /// <summary>初始化字典</summary>
         private void CreatDic()
         {
-            Dictionary<String, String> dic = new Dictionary<String, String>();
+            var dic = new Dictionary<String, String>();
             dic.Add("key", "value");
             Dic = dic;
 
@@ -81,13 +81,13 @@ namespace XCoder
         //加载
         void SetDic(Dictionary<String, String> dic)
         {
-            DataGridViewColumnCollection columns = dataGridView1.Columns;
+            var columns = dataGridView1.Columns;
             columns.Add("key", "键");
             columns.Add("value", "值");
 
             foreach (var item in dic)
             {
-                DataGridViewRowCollection rows = dataGridView1.Rows;
+                var rows = dataGridView1.Rows;
                 rows.Add(item.Key, item.Value);
             }
         }
@@ -106,7 +106,7 @@ namespace XCoder
             var rows = dataGridView1.Rows;
             var column = dataGridView1.Columns;
 
-            for (Int32 i = 0; i < rows.Count-1; i++)
+            for (var i = 0; i < rows.Count-1; i++)
             {
                 XConfig.Items.Add(rows[i].Cells[0].Value.ToString(), rows[i].Cells[1].Value.ToString());
             }

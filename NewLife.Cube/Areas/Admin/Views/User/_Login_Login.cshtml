@@ -7,7 +7,7 @@
         <i class="glyphicon glyphicon-cloud login-logo center-block"></i>
     </div>
     <!-- 登录-->
-    @using (Html.BeginForm("Login", "User", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "cube-login" }))
+    @using (Html.BeginForm("Login", "User", new { r = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "cube-login" }))
     {
         @Html.ValidationSummary()
         <span class="heading text-primary">用户登录</span>
@@ -20,41 +20,37 @@
             <i class="glyphicon glyphicon-lock"></i>
             @*<a href="#Forgot" data-toggle="tab" class="glyphicon glyphicon-question-sign"></a>*@
         </div>
-            <div class="form-group">
-                <div class="main-checkbox">
-                    <input type="checkbox" value="true" id="remember" name="remember" />
-                    <label for="remember"></label>
-                </div>
-                <span class="text text-primary">记住我</span>
-                <button type="submit" class="btn btn-default">登录</button>
+        <div class="form-group">
+            <div class="main-checkbox">
+                <input type="checkbox" value="true" id="remember" name="remember" />
+                <label for="remember"></label>
             </div>
+            <span class="text text-primary">记住我</span>
+            <button type="submit" class="btn btn-default">登录</button>
+        </div>
 
     }
-    @if (set.AllowRegister || set.AllowForgot)
+    @if (set.AllowRegister)
     {
         <div class="toolbar clearfix text-center">
             <div class="row" style="padding-top:30px;">
-                @if (set.AllowForgot)
-                {
-                    <a href="#Forgot" data-toggle="tab">
-                        <i class="glyphicon glyphicon-info-sign"></i>
-                        忘记密码？
-                    </a>
-
-                }
+                @*@if (set.AllowForgot)
+                    {
+                        <a href="#Forgot" data-toggle="tab">
+                            <i class="glyphicon glyphicon-info-sign"></i>
+                            忘记密码？
+                        </a>
+                    }*@
                 @if (set.AllowRegister)
                 {
-
-                    <a href="#Register" data-toggle="tab">                        
+                    <a href="#Register" data-toggle="tab">
                         <i class="glyphicon glyphicon-menu-right"></i>
                         我要注册
                     </a>
-
                 }
             </div>
         </div>
     }
-
     @if (!set.LoginTip.IsNullOrEmpty())
     {
         <h4 class="header blue lighter bigger">
@@ -71,6 +67,4 @@
             </div>
         </nav>
     }
-
-
 </div>

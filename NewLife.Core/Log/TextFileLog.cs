@@ -32,7 +32,7 @@ namespace NewLife.Log
             _Timer = new TimerX(WriteFile, null, 1000, 1000) { Async = true };
         }
 
-        static DictionaryCache<String, TextFileLog> cache = new DictionaryCache<String, TextFileLog>(StringComparer.OrdinalIgnoreCase);
+        static ConcurrentDictionary<String, TextFileLog> cache = new ConcurrentDictionary<String, TextFileLog>(StringComparer.OrdinalIgnoreCase);
         /// <summary>每个目录的日志实例应该只有一个，所以采用静态创建</summary>
         /// <param name="path">日志目录或日志文件路径</param>
         /// <param name="fileFormat"></param>
@@ -43,7 +43,7 @@ namespace NewLife.Log
             if (path.IsNullOrEmpty()) path = Runtime.IsWeb ? "../Log" : "Log";
 
             var key = (path + fileFormat).ToLower();
-            return cache.GetItem(key, k => new TextFileLog(path, false, fileFormat));
+            return cache.GetOrAdd(key, k => new TextFileLog(path, false, fileFormat));
         }
 
         /// <summary>每个目录的日志实例应该只有一个，所以采用静态创建</summary>
@@ -51,10 +51,9 @@ namespace NewLife.Log
         /// <returns></returns>
         public static TextFileLog CreateFile(String path)
         {
-            if (String.IsNullOrEmpty(path)) return Create(path);
+            if (path.IsNullOrEmpty()) return Create(path);
 
-            var key = path.ToLower();
-            return cache.GetItem(key, k => new TextFileLog(path, true));
+            return cache.GetOrAdd(path, k => new TextFileLog(k, true));
         }
 
         /// <summary>销毁</summary>

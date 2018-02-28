@@ -167,6 +167,23 @@ namespace NewLife.Web
 
             return uri;
         }
+
+        /// <summary>获取原始请求Url，支持反向代理</summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        public static Uri GetRawUrl(this HttpRequestBase req)
+        {
+            var uri = req.Url;
+
+            var str = req.RawUrl;
+            if (!str.IsNullOrEmpty()) uri = new Uri(uri, str);
+
+            str = req.ServerVariables["HTTP_X_REQUEST_URI"];
+            if (str.IsNullOrEmpty()) str = req.ServerVariables["X-Request-Uri"];
+            if (!str.IsNullOrEmpty()) uri = new Uri(uri, str);
+
+            return uri;
+        }
         #endregion
 #endif
 
@@ -230,6 +247,86 @@ namespace NewLife.Web
                     sb.UrlParam(item.Key, item.Value);
             }
             return sb;
+        }
+
+        /// <summary>相对路径转Uri</summary>
+        /// <param name="url">相对路径</param>
+        /// <param name="baseUri">基础</param>
+        /// <returns></returns>
+        public static Uri AsUri(this String url, Uri baseUri = null)
+        {
+            if (url.IsNullOrEmpty()) return null;
+
+            // 虚拟路径
+            if (url.StartsWith("~/")) url = HttpRuntime.AppDomainAppVirtualPath.EnsureEnd("/") + url.Substring(2);
+
+            // 绝对路径
+            if (!url.StartsWith("/")) return new Uri(url);
+
+            // 相对路径
+            if (baseUri == null) throw new ArgumentNullException(nameof(baseUri));
+            return new Uri(baseUri, url);
+        }
+
+        /// <summary>打包返回地址</summary>
+        /// <param name="uri"></param>
+        /// <param name="returnUrl"></param>
+        /// <param name="returnKey"></param>
+        /// <returns></returns>
+        public static Uri AppendReturn(this Uri uri, String returnUrl, String returnKey = null)
+        {
+            if (uri == null || returnUrl.IsNullOrEmpty()) return uri;
+
+            if (returnKey.IsNullOrEmpty()) returnKey = "r";
+
+            // 如果协议和主机相同，则削减为只要路径查询部分
+            if (returnUrl.StartsWithIgnoreCase("http"))
+            {
+                var ruri = new Uri(returnUrl);
+                if (ruri.Scheme.EqualIgnoreCase(uri.Scheme) && ruri.Host.EqualIgnoreCase(uri.Host)) returnUrl = ruri.PathAndQuery;
+            }
+            else if (returnUrl.StartsWith("~/"))
+                returnUrl = HttpRuntime.AppDomainAppVirtualPath.EnsureEnd("/") + returnUrl.Substring(2);
+
+            var url = uri + "";
+            if (url.Contains("?"))
+                url += "&";
+            else
+                url += "?";
+            url += returnKey + "=" + HttpUtility.UrlEncode(returnUrl);
+
+            return new Uri(url);
+        }
+
+        /// <summary>打包返回地址</summary>
+        /// <param name="url"></param>
+        /// <param name="returnUrl"></param>
+        /// <param name="returnKey"></param>
+        /// <returns></returns>
+        public static String AppendReturn(this String url, String returnUrl, String returnKey = null)
+        {
+            if (url.IsNullOrEmpty() || returnUrl.IsNullOrEmpty()) return url;
+
+            if (returnKey.IsNullOrEmpty()) returnKey = "r";
+
+            // 如果协议和主机相同，则削减为只要路径查询部分
+            if (url.StartsWithIgnoreCase("http") && returnUrl.StartsWithIgnoreCase("http"))
+            {
+                var uri = new Uri(url);
+                var ruri = new Uri(returnUrl);
+                if (ruri.Scheme.EqualIgnoreCase(uri.Scheme) && ruri.Host.EqualIgnoreCase(uri.Host)) returnUrl = ruri.PathAndQuery;
+            }
+            else if (returnUrl.StartsWith("~/"))
+                returnUrl = HttpRuntime.AppDomainAppVirtualPath.EnsureEnd("/") + returnUrl.Substring(2);
+
+            if (url.Contains("?"))
+                url += "&";
+            else
+                url += "?";
+            //url += returnKey + "=" + returnUrl;
+            url += returnKey + "=" + HttpUtility.UrlEncode(returnUrl);
+
+            return url;
         }
         #endregion
     }

@@ -65,11 +65,18 @@ namespace ASP
     Layout = NewLife.Cube.Setting.Current.Layout;
 
     var fact = ViewBag.Factory as IEntityOperate;
-    var fields = ViewBag.Fields as List<FieldItem>;
+    var fields = ViewBag.Fields as IReadOnlyList<FieldItem>;
     var entity = Model as IEntity;
     var isNew = entity.IsNullKey;
 
+    //var hasUser = fields.Any(f => f.Name.EqualIgnoreCase("CreateUserID", "UpdateUserID"));
+    //if (hasUser && ViewData["Provider"] == null) { ViewData["Provider"] = ManageProvider.Provider; }
+
     var rv = entity.GetRouteKey();
+
+    //if (fields.Any(f => f.Name.EqualIgnoreCase("CreateUserID"))) { fields = fields.Where(f => !f.Name.EqualIgnoreCase("CreateTime")).ToList(); }
+    //if (fields.Any(f => f.Name.EqualIgnoreCase("UpdateUserID"))) { fields = fields.Where(f => !f.Name.EqualIgnoreCase("UpdateTime")).ToList(); }
+    //fields = fields.Where(f => !f.Name.EqualIgnoreCase("CreateUserID", "UpdateUserID", "CreateIP", "CreateIP")).ToList();
 
             
             #line default
@@ -83,7 +90,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("    ");
 
             
-            #line 16 "..\..\Views\Shared\Form.cshtml"
+            #line 23 "..\..\Views\Shared\Form.cshtml"
 Write(Html.Partial("_Form_Header", entity));
 
             
@@ -92,13 +99,13 @@ Write(Html.Partial("_Form_Header", entity));
 WriteLiteral("\r\n");
 
             
-            #line 17 "..\..\Views\Shared\Form.cshtml"
+            #line 24 "..\..\Views\Shared\Form.cshtml"
     
             
             #line default
             #line hidden
             
-            #line 17 "..\..\Views\Shared\Form.cshtml"
+            #line 24 "..\..\Views\Shared\Form.cshtml"
      using (Html.BeginForm((isNew ? "Add" : "Edit"), null, rv))
     {
         
@@ -106,21 +113,21 @@ WriteLiteral("\r\n");
             #line default
             #line hidden
             
-            #line 19 "..\..\Views\Shared\Form.cshtml"
+            #line 26 "..\..\Views\Shared\Form.cshtml"
    Write(Html.AntiForgeryToken());
 
             
             #line default
             #line hidden
             
-            #line 19 "..\..\Views\Shared\Form.cshtml"
+            #line 26 "..\..\Views\Shared\Form.cshtml"
                                 
         
             
             #line default
             #line hidden
             
-            #line 20 "..\..\Views\Shared\Form.cshtml"
+            #line 27 "..\..\Views\Shared\Form.cshtml"
                                      
         //解决主键为(0长度字符串"")的异常信息无法显示问题
 
@@ -130,13 +137,13 @@ WriteLiteral("\r\n");
 WriteLiteral("        <ul>\r\n");
 
             
-            #line 23 "..\..\Views\Shared\Form.cshtml"
+            #line 30 "..\..\Views\Shared\Form.cshtml"
             
             
             #line default
             #line hidden
             
-            #line 23 "..\..\Views\Shared\Form.cshtml"
+            #line 30 "..\..\Views\Shared\Form.cshtml"
              foreach (var item in ViewData.ModelState.Values)
             {
                 foreach (var error in item.Errors)
@@ -148,7 +155,7 @@ WriteLiteral("        <ul>\r\n");
 WriteLiteral("                    <li>");
 
             
-            #line 27 "..\..\Views\Shared\Form.cshtml"
+            #line 34 "..\..\Views\Shared\Form.cshtml"
                    Write(error.Exception);
 
             
@@ -157,7 +164,7 @@ WriteLiteral("                    <li>");
 WriteLiteral("</li>\r\n");
 
             
-            #line 28 "..\..\Views\Shared\Form.cshtml"
+            #line 35 "..\..\Views\Shared\Form.cshtml"
                 }
             }
 
@@ -167,7 +174,7 @@ WriteLiteral("</li>\r\n");
 WriteLiteral("        </ul>\r\n");
 
             
-            #line 31 "..\..\Views\Shared\Form.cshtml"
+            #line 38 "..\..\Views\Shared\Form.cshtml"
         foreach (var item in fields)
         {
             
@@ -175,46 +182,53 @@ WriteLiteral("        </ul>\r\n");
             #line default
             #line hidden
             
-            #line 33 "..\..\Views\Shared\Form.cshtml"
+            #line 40 "..\..\Views\Shared\Form.cshtml"
                                                                                                      
-    if (!item.IsIdentity)
-    {
-        
+            if (!item.IsIdentity)
+            {
+                
             
             #line default
             #line hidden
             
-            #line 36 "..\..\Views\Shared\Form.cshtml"
-   Write(Html.Partial("_Form_Group", new Pair(Model, item)));
+            #line 43 "..\..\Views\Shared\Form.cshtml"
+           Write(Html.Partial("_Form_Group", new Pair(Model, item)));
 
             
             #line default
             #line hidden
             
-            #line 36 "..\..\Views\Shared\Form.cshtml"
-                                                           
+            #line 43 "..\..\Views\Shared\Form.cshtml"
+                                                                   
+            }
         }
-    }
-    
+        
             
             #line default
             #line hidden
             
-            #line 39 "..\..\Views\Shared\Form.cshtml"
+            #line 46 "..\..\Views\Shared\Form.cshtml"
+   Write(Html.Partial("_Form_Footer", entity));
+
+            
+            #line default
+            #line hidden
+            
+            #line 46 "..\..\Views\Shared\Form.cshtml"
                                              
         
             
             #line default
             #line hidden
             
-            #line 40 "..\..\Views\Shared\Form.cshtml"
+            #line 47 "..\..\Views\Shared\Form.cshtml"
    Write(Html.Partial("_Form_Action", entity));
 
             
             #line default
             #line hidden
             
-            #line 40 "..\..\Views\Shared\Form.cshtml"
+            #line 47 "..\..\Views\Shared\Form.cshtml"
                                              
     }
 

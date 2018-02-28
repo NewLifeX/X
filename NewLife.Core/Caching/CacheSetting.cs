@@ -20,7 +20,7 @@ namespace NewLife.Caching
 
         /// <summary>配置项</summary>
         [Description("配置项。名称、地址、提供者，Memory/Redis")]
-        public CacheSetting[] Items { get; set; } = new CacheSetting[0];
+        public CacheSetting[] Items {  get; private set; } = new CacheSetting[0];
         #endregion
 
         #region 构造
@@ -50,10 +50,20 @@ namespace NewLife.Caching
             base.OnLoaded();
         }
 
+        /// <summary>保存时排序</summary>
+        /// <param name="filename"></param>
+        public override void Save(String filename)
+        {
+            Items = Items.OrderBy(e => e?.Name).ToArray();
+            base.Save(filename);
+        }
+
         /// <summary>获取 或 增加 配置项</summary>
-        /// <param name="name"></param>
+        /// <param name="name">名称</param>
+        /// <param name="provider">提供者</param>
+        /// <param name="value">配置</param>
         /// <returns></returns>
-        public CacheSetting GetOrAdd(String name)
+        public CacheSetting GetOrAdd(String name, String provider = null, String value = null)
         {
             var ms = Items ?? new CacheSetting[0];
             var item = ms.FirstOrDefault(e => e?.Name == name);
@@ -70,6 +80,15 @@ namespace NewLife.Caching
                 };
 
                 Items = list.ToArray();
+            }
+
+            // 添加提供者并保存
+            if (!provider.IsNullOrEmpty())
+            {
+                item.Provider = provider;
+                item.Value = value;
+
+                Save();
             }
 
             return item;

@@ -36,10 +36,14 @@
     <Compile Include="..\NewLife.Core\Caching\CacheSetting.cs" Link="Caching\CacheSetting.cs" />
     <Compile Include="..\NewLife.Core\Caching\ICache.cs" Link="Caching\ICache.cs" />
     <Compile Include="..\NewLife.Core\Caching\MemoryCache.cs" Link="Caching\MemoryCache.cs" />
+    <Compile Include="..\NewLife.Core\Caching\Redis.cs" Link="Caching\Redis.cs" />
+    <Compile Include="..\NewLife.Core\Caching\RedisClient.cs" Link="Caching\RedisClient.cs" />
+    <Compile Include="..\NewLife.Core\Caching\RedisLock.cs" Link="Caching\RedisLock.cs" />
     <Compile Include="..\NewLife.Core\Collections\CollectionHelper.cs" Link="Collections\CollectionHelper.cs" />
     <Compile Include="..\NewLife.Core\Collections\ConcurrentHashSet.cs" Link="Collections\ConcurrentHashSet.cs" />
     <Compile Include="..\NewLife.Core\Collections\DictionaryCache.cs" Link="Collections\DictionaryCache.cs" />
     <Compile Include="..\NewLife.Core\Collections\NullableDictionary.cs" Link="Collections\NullableDictionary.cs" />
+    <Compile Include="..\NewLife.Core\Collections\Pool.cs" Link="Collections\Pool.cs" />
     <Compile Include="..\NewLife.Core\Common\DisposeBase.cs" Link="Common\DisposeBase.cs" />
     <Compile Include="..\NewLife.Core\Common\IdentityCard.cs" Link="Common\IdentityCard.cs" />
     <Compile Include="..\NewLife.Core\Common\PinYin.cs" Link="Common\PinYin.cs" />
@@ -71,6 +75,7 @@
     <Compile Include="..\NewLife.Core\Http\HttpResponse.cs" Link="Http\HttpResponse.cs" />
     <Compile Include="..\NewLife.Core\Http\HttpServer.cs" Link="Http\HttpServer.cs" />
     <Compile Include="..\NewLife.Core\Http\HttpSession.cs" Link="Http\HttpSession.cs" />
+    <Compile Include="..\NewLife.Core\Http\TinyHttpClient.cs" Link="Http\TinyHttpClient.cs" />
     <Compile Include="..\NewLife.Core\IO\EncodingHelper.cs" Link="IO\EncodingHelper.cs" />
     <Compile Include="..\NewLife.Core\IO\IOHelper.cs" Link="IO\IOHelper.cs" />
     <Compile Include="..\NewLife.Core\IO\PathHelper.cs" Link="IO\PathHelper.cs" />

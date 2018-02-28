@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Tables Version="9.6.6507.25130" NameSpace="XCode.Membership" ConnName="Membership" Output="" BaseClass="Entity">
+<Tables Version="9.6.6587.18270" NameSpace="XCode.Membership" ConnName="Membership" Output="" BaseClass="Entity">
   <Table Name="User" Description="用户" DbType="SqlServer" RenderGenEntity="true">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
@@ -33,8 +33,14 @@
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
       <Column Name="Name" DataType="String" Master="True" Nullable="False" Description="名称" />
-      <Column Name="IsSystem" DataType="Boolean" Description="是否系统角色。系统角色用于业务系统开发使用，禁止修改名称或删除" />
+      <Column Name="IsSystem" DataType="Boolean" Description="系统。系统角色用于业务系统开发使用，禁止修改名称或删除" />
       <Column Name="Remark" DataType="String" Description="说明" />
+      <Column Name="CreateUserID" DataType="Int32" Description="创建用户" />
+      <Column Name="CreateIP" DataType="String" Description="创建地址" />
+      <Column Name="CreateTime" DataType="DateTime" Description="创建时间" />
+      <Column Name="UpdateUserID" DataType="Int32" Description="更新用户" />
+      <Column Name="UpdateIP" DataType="String" Description="更新地址" />
+      <Column Name="UpdateTime" DataType="DateTime" Description="更新时间" />
       <Column Name="Permission" DataType="String" Length="500" Description="权限。对不同资源的权限，逗号分隔，每个资源的权限子项竖线分隔" />
     </Columns>
     <Indexes>
@@ -101,23 +107,23 @@
   <Table Name="VisitStat" Description="访问统计" ConnName="Log">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
-      <Column Name="Year" DataType="Int32" Description="年" />
-      <Column Name="Month" DataType="Int32" Description="月" />
-      <Column Name="Day" DataType="Int32" Description="日" />
-      <Column Name="Page" DataType="String" Description="页面" />
+      <Column Name="Level" DataType="Int32" Description="层级" Type="XCode.Statistics.StatLevels" />
+      <Column Name="Time" DataType="DateTime" Description="时间" />
+      <Column Name="Page" DataType="String" Nullable="False" Description="页面" />
       <Column Name="Title" DataType="String" Master="True" Description="标题" />
       <Column Name="Times" DataType="Int32" Description="次数" />
       <Column Name="Users" DataType="Int32" Description="用户" />
       <Column Name="IPs" DataType="Int32" Description="IP" />
       <Column Name="Error" DataType="Int32" Description="错误" />
       <Column Name="Cost" DataType="Int32" Description="耗时。毫秒" />
+      <Column Name="MaxCost" DataType="Int32" Description="最大耗时。毫秒" />
       <Column Name="CreateTime" DataType="DateTime" Description="创建时间" />
       <Column Name="UpdateTime" DataType="DateTime" Description="更新时间" />
       <Column Name="Remark" DataType="String" Length="500" Description="详细信息" />
     </Columns>
     <Indexes>
-      <Index Columns="Year,Month,Day" />
-      <Index Columns="Page,Year,Month,Day" Unique="True" />
+      <Index Columns="Page,Level,Time" Unique="True" />
+      <Index Columns="Level,Time" />
     </Indexes>
   </Table>
 </Tables>

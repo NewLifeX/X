@@ -50,11 +50,12 @@ namespace NewLife.Web
             var buri = new Uri(baseurl);
             foreach (Match item in _regA.Matches(html))
             {
-                var link = new Link();
-
-                link.Html = item.Value;
-                link.Name = item.Groups["名称"].Value.Trim();
-                link.Url = item.Groups["链接"].Value.Trim();
+                var link = new Link
+                {
+                    Html = item.Value,
+                    Name = item.Groups["名称"].Value.Trim(),
+                    Url = item.Groups["链接"].Value.Trim()
+                };
                 link.RawUrl = link.Url;
 
                 // 过滤器
@@ -105,9 +106,10 @@ namespace NewLife.Web
             var buri = new Uri(url);
             foreach (var item in ns)
             {
-                var link = new Link();
-
-                link.Name = item;
+                var link = new Link
+                {
+                    Name = item
+                };
                 //link.Name = Path.GetFileNameWithoutExtension(item);
                 //link.Url = new Uri(buri, item).ToString();
                 //link.RawUrl = link.Url;

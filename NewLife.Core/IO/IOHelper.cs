@@ -299,7 +299,7 @@ namespace System
         /// <returns></returns>
         public static Stream WriteDateTime(this Stream stream, DateTime dt, Int32 baseYear = 1970)
         {
-            var seconds = -1;
+            var seconds = 0;
             if (dt.Year >= baseYear)
             {
                 var bdt = baseYear == 1970 ? _dt1970 : new DateTime(baseYear, 1, 1);
@@ -814,6 +814,8 @@ namespace System
             return true;
         }
 
+        [ThreadStatic]
+        private static Byte[] _encodes;
         /// <summary>
         /// 以7位压缩格式写入32位整数，小于7位用1个字节，小于14位用2个字节。
         /// 由每次写入的一个字节的第一位标记后面的字节是否还是当前数据，所以每个字节实际可利用存储空间只有后7位。
@@ -823,20 +825,18 @@ namespace System
         /// <returns>实际写入字节数</returns>
         public static Stream WriteEncodedInt(this Stream stream, Int64 value)
         {
-            var list = new List<Byte>();
+            if (_encodes == null) _encodes = new Byte[16];
 
-            var count = 1;
+            var count = 0;
             var num = (UInt64)value;
             while (num >= 0x80)
             {
-                list.Add((Byte)(num | 0x80));
+                _encodes[count++] = (Byte)(num | 0x80);
                 num = num >> 7;
-
-                count++;
             }
-            list.Add((Byte)num);
+            _encodes[count++] = (Byte)num;
 
-            stream.Write(list.ToArray(), 0, list.Count);
+            stream.Write(_encodes, 0, count);
 
             return stream;
         }
@@ -1236,12 +1236,36 @@ namespace System
 #endif
         }
 
+        /// <summary>字节数组转为Url改进型Base64编码</summary>
+        /// <param name="data"></param>
+        /// <param name="offset"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        public static String ToUrlBase64(this Byte[] data, Int32 offset = 0, Int32 count = -1)
+        {
+            var str = ToBase64(data, offset, count, false);
+            str = str.TrimEnd('=');
+            str = str.Replace('+', '-').Replace('/', '_');
+            return str;
+        }
+
         /// <summary>Base64字符串转为字节数组</summary>
         /// <param name="data"></param>
         /// <returns></returns>
         public static Byte[] ToBase64(this String data)
         {
-            if (String.IsNullOrEmpty(data)) return new Byte[0];
+            if (data.IsNullOrEmpty()) return new Byte[0];
+
+            if (data[data.Length - 1] != '=')
+            {
+                // 如果不是4的整数倍，后面补上等号
+                var n = data.Length % 4;
+                //if (n == 3) throw new InvalidCastException("无效Base64字符串");
+                if (n > 0 && n < 3) data += new String('=', n);
+            }
+
+            // 针对Url特殊处理
+            data = data.Replace('-', '+').Replace('_', '/');
 
             return Convert.FromBase64String(data);
         }

@@ -1,6 +1,6 @@
 ﻿@using NewLife.Common;
 @{
-    //var user = ViewBag.User as IUser ?? User.Identity as IUser;
+    var user = ViewBag.User as IUser ?? User.Identity as IUser;
 }
 <div class="btn-group">
     <button data-toggle="dropdown" class="btn btn-info btn-sm btn-sm-force dropdown-toggle" aria-expanded="false">
@@ -24,14 +24,14 @@
         @*<li>
                 <a href="@Url.Action("ImportJson")">导入Json</a>
             </li>*@
-        @if (User.IsInRole("管理员"))
+        @if (user.Has(PermissionFlags.Delete))
         {
             <li class="divider"></li>
             <li>
-                <a href="@Url.Action("DeleteSelect")" data-fields="keys" onclick="return confirm('该操作将删除选中数据并不可恢复！\n确认删除？');" title="删除选中数据">删除选中</a>
+                <a href="@Url.Action("DeleteSelect")" data-action="action" data-fields="keys" data-confirm="该操作将删除选中数据并不可恢复！确认删除？" title="删除选中数据">删除选中</a>
             </li>
             <li>
-                <a href="@Url.Action("DeleteAll")" onclick="return confirm('该操作将删除当前查询的所有数据并不可恢复！\n确认删除？');" title="删除当前查询的所有数据">删除全部</a>
+                <a href="@Url.Action("DeleteAll")" data-action="action" data-confirm="该操作将删除当前查询的所有数据并不可恢复！确认删除？" title="删除当前查询的所有数据">删除全部</a>
             </li>
         }
         @if (SysConfig.Current.Develop)
@@ -40,7 +40,7 @@
             if (User.IsInRole("管理员"))
             {
                 <li>
-                    <a href="@Url.Action("Clear")" onclick="return confirm('该操作将删除数据表所有数据并不可恢复！\n确认清空？');" title="删除数据表所有数据">清空数据表</a>
+                    <a href="@Url.Action("Clear")" data-action="action" data-confirm="该操作将删除数据表所有数据并不可恢复！确认清空？" title="删除数据表所有数据">清空数据表</a>
                 </li>
             }
             <li>

@@ -155,7 +155,7 @@ namespace NewLife.Remoting
         {
             Type type;
             var nu = new NetUri(uri);
-            if (!Providers.TryGetValue(nu.Protocol, out type)) return false;
+            if (!Providers.TryGetValue(nu.Type + "", out type)) return false;
 
             WriteLog("{0} SetRemote {1}", type.Name, nu);
 

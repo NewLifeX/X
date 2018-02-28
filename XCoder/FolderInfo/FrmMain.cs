@@ -65,7 +65,7 @@ namespace XCoder.FolderInfo
             list.AddRange(dis);
             list.AddRange(fis);
 
-            Int32 max = 0;
+            var max = 0;
             foreach (var item in list)
             {
                 max = Math.Max(max, StrLen(item.Name));
@@ -73,7 +73,7 @@ namespace XCoder.FolderInfo
             max++;
             foreach (var item in list)
             {
-                Int32 len = max;
+                var len = max;
                 len -= (StrLen(item.Name) - item.Name.Length);
                 Int64 size = 0;
 
@@ -99,7 +99,7 @@ namespace XCoder.FolderInfo
         String FormatSize(Int64 size)
         {
             if (size < 1024) return size.ToString() + " Byte";
-            Double ds = (Double)size / 1024;
+            var ds = (Double)size / 1024;
             if (ds < 1024) return ds.ToString("N2") + " K";
             ds = ds / 1024;
             if (ds < 1024) return ds.ToString("N2") + " M";
@@ -158,7 +158,7 @@ namespace XCoder.FolderInfo
         {
             var node = obj as TreeNode;
             if (node == null || node.Tag == null) return;
-            Int64 size = FolderSize(node.Tag as DirectoryInfo);
+            var size = FolderSize(node.Tag as DirectoryInfo);
             var str = node.Text.Substring(0, node.Text.Length - 10) + String.Format("{0,10}", FormatSize(size));
             //SetNodeText(node, str, GetColor(size));
             this.Invoke(() =>

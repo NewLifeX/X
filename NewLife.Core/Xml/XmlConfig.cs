@@ -2,6 +2,7 @@
 using System.IO;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using NewLife.Log;
@@ -24,7 +25,7 @@ namespace NewLife.Xml
     /// 用户也可以通过配置实体类的静态构造函数修改基类的<see cref="_.ConfigFile"/>和<see cref="_.ReloadTime"/>来动态配置加载信息。
     /// </remarks>
     /// <typeparam name="TConfig"></typeparam>
-    public class XmlConfig<TConfig> where TConfig : XmlConfig<TConfig>, new()
+    public class XmlConfig<TConfig> : DisposeBase where TConfig : XmlConfig<TConfig>, new()
     {
         #region 静态
         private static Boolean _loading;
@@ -49,7 +50,7 @@ namespace NewLife.Xml
                     XTrace.WriteLine("{0}的配置文件{1}有更新，重新加载配置！", typeof(TConfig), config.ConfigFile);
 
                     // 异步更新
-                    Task.Run(() => config.Load(dcf));
+                    ThreadPoolX.QueueUserWorkItem(() => config.Load(dcf));
 
                     return config;
                 }
@@ -193,6 +194,17 @@ namespace NewLife.Xml
         public Boolean IsNew { get; set; }
         #endregion
 
+        #region 构造
+        /// <summary>销毁</summary>
+        /// <param name="disposing"></param>
+        protected override void OnDispose(Boolean disposing)
+        {
+            base.OnDispose(disposing);
+
+            _Timer.TryDispose();
+        }
+        #endregion
+
         #region 加载
         /// <summary>加载指定配置文件</summary>
         /// <param name="filename"></param>
@@ -210,10 +222,12 @@ namespace NewLife.Xml
                 var config = this as TConfig;
 
                 Object obj = config;
-                var xml = new NewLife.Serialization.Xml();
-                xml.Stream = new MemoryStream(data);
-                xml.UseAttribute = false;
-                xml.UseComment = true;
+                var xml = new Serialization.Xml
+                {
+                    Stream = new MemoryStream(data),
+                    UseAttribute = false,
+                    UseComment = true
+                };
 
                 if (_.Debug) xml.Log = XTrace.Log;
 
@@ -291,15 +305,44 @@ namespace NewLife.Xml
         /// <summary>保存到配置文件中去</summary>
         public virtual void Save() { Save(null); }
 
+        private TimerX _Timer;
+        /// <summary>异步保存</summary>
+        public virtual void SaveAsync()
+        {
+            if (_Timer == null)
+            {
+                lock (this)
+                {
+                    if (_Timer == null) _Timer = new TimerX(DoSave, null, 1000, 5000) { Async = true };
+                }
+            }
+
+            Interlocked.Increment(ref _commits);
+        }
+
+        private Int32 _commits;
+        private void DoSave(Object state)
+        {
+            var old = _commits;
+            //if (Interlocked.CompareExchange(ref _commits, 0, old) != old) return;
+            if (old == 0) return;
+
+            Save(null);
+
+            Interlocked.Add(ref _commits, -old);
+        }
+
         /// <summary>新创建配置文件时执行</summary>
         protected virtual void OnNew() { }
 
         private String GetXml()
         {
-            var xml = new NewLife.Serialization.Xml();
-            xml.Encoding = Encoding.UTF8;
-            xml.UseAttribute = false;
-            xml.UseComment = true;
+            var xml = new NewLife.Serialization.Xml
+            {
+                Encoding = Encoding.UTF8,
+                UseAttribute = false,
+                UseComment = true
+            };
 
             if (_.Debug) xml.Log = XTrace.Log;
 

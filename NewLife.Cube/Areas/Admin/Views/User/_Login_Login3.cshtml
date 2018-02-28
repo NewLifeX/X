@@ -1,0 +1,32 @@
+﻿@using NewLife.Cube.Web;
+@{
+    var set = NewLife.Cube.Setting.Current;
+    var returnUrl = ViewBag.ReturnUrl as String;
+    var ms = NewLife.Web.OAuthConfig.Current.Items.Where(e => !e.AppID.IsNullOrEmpty()).ToList();
+    var dic = "NewLife=新生命,Baidu=百度,Weixin=微信,Taobao=淘宝".SplitAsDictionary("=", ",");
+}
+@if (ms.Count > 0 && set.AutoRegister)
+{
+    <div class="toolbar clearfix text-center">
+        <div class="row" style="padding-top:30px;">
+            <span>
+                第三方登录：
+            </span>
+            @foreach (var mi in ms)
+            {
+                var nickName = "";
+                if (!dic.TryGetValue(mi.Name, out nickName)) { nickName = mi.Name; }
+
+                var url = "Sso/Login?name=" + mi.Name;
+                if (!returnUrl.IsNullOrEmpty()) { url += "&r=" + HttpUtility.UrlEncode(returnUrl); }
+
+                url = HttpRuntime.AppDomainAppVirtualPath + url;
+
+                <a href="@url">
+                    <i class="glyphicon glyphicon-menu-right"></i>
+                    @nickName
+                </a>
+            }
+        </div>
+    </div>
+}

@@ -31,25 +31,6 @@
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\x86\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
-    <DocumentationFile>..\..\Bin\XCode.XML</DocumentationFile>
-    <DebugType>full</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
-    <OutputPath>bin\x86\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <DocumentationFile>..\..\Bin\XCode.XML</DocumentationFile>
-    <Optimize>true</Optimize>
-    <WarningLevel>2</WarningLevel>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
@@ -126,6 +107,10 @@
     <Compile Include="Membership\角色.cs" />
     <Compile Include="Membership\访问统计.Biz.cs" />
     <Compile Include="Membership\访问统计.cs" />
+    <Compile Include="Statistics\IStat.cs" />
+    <Compile Include="Statistics\StatHelper.cs" />
+    <Compile Include="Statistics\StatLevels.cs" />
+    <Compile Include="Statistics\StatModel.cs" />
     <Compile Include="Model\ConcatExpression.cs" />
     <Compile Include="Model\Expression.cs" />
     <Compile Include="Model\FormatExpression.cs" />
@@ -217,8 +202,8 @@
     <Compile Include="Transform\TimeExtracter.cs" />
     <Compile Include="Transform\ExtractSetting.cs" />
     <Compile Include="Transform\ETL.cs" />
-    <Compile Include="Web\UserBehaviorModule..cs" />
     <Compile Include="Web\EntityGrid.cs" />
+    <Compile Include="Web\UserBehaviorModule..cs" />
     <None Include="Cache\readme.md" />
     <Compile Include="Transform\EntityTransform.cs" />
     <Compile Include="Tree\IEntityTreeSettting.cs" />

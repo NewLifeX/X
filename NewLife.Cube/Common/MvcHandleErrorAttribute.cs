@@ -23,8 +23,7 @@ namespace NewLife.Cube
                 if (ex != null)
                 {
                     // 避免反复出现缺少文件
-                    var hex = ex as HttpException;
-                    if (hex != null && (UInt32)hex.ErrorCode == 0x80004005)
+                    if (ex is HttpException hex && (UInt32)hex.ErrorCode == 0x80004005)
                     {
                         var url = HttpContext.Current.Request.RawUrl + "";
                         if (!NotFoundFiles.Contains(url))
@@ -32,15 +31,30 @@ namespace NewLife.Cube
                         else
                             ex = null;
                     }
+
                     if (ex != null) XTrace.WriteException(ex);
                 }
-                ctx.ExceptionHandled = true;
-                var vr = new ViewResult();
-                vr.ViewName = "CubeError";
-                vr.ViewBag.Context = ctx;
 
-                ctx.Result = vr;
+                ctx.ExceptionHandled = true;
+
+                if (ctx.RequestContext.HttpContext.Request.IsAjaxRequest())
+                {
+                    var act = "操作";
+                    if (ctx.RouteData.Values.ContainsKey("action")) act = "[{0}]".F(ctx.RouteData.Values["action"]);
+                    ctx.Result = ControllerHelper.JsonTips("{0}失败！{1}".F(act, ex.Message));
+                }
+                else
+                {
+                    var vr = new ViewResult
+                    {
+                        ViewName = "CubeError"
+                    };
+                    vr.ViewBag.Context = ctx;
+
+                    ctx.Result = vr;
+                }
             }
+
             base.OnException(ctx);
         }
     }

@@ -147,17 +147,21 @@ namespace XCode.DataAccessLayer
         {
             get
             {
-                if (_Pool == null)
+                if (_Pool != null) return _Pool;
+                lock (this)
                 {
-                    _Pool = new ConnectionPool
+                    if (_Pool != null) return _Pool;
+
+                    var pool = new ConnectionPool
                     {
                         Name = ConnName + "Pool",
                         Factory = Factory,
                         ConnectionString = ConnectionString,
                     };
-                    if (DAL.Debug) _Pool.Log = XTrace.Log;
+                    if (DAL.Debug && XTrace.Log.Level == LogLevel.Debug) pool.Log = XTrace.Log;
+
+                    return _Pool = pool;
                 }
-                return _Pool;
             }
         }
 
@@ -205,7 +209,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>反向工程。Off 关闭；ReadOnly 只读不执行；On 打开，新建；Full 完全，修改删除</summary>
-        public Migration Migration { get; set; } = Migration.On;
+        public Migration Migration { get; set; } = Setting.Current.Migration;
 
         /// <summary>跟踪SQL执行时间，大于该阀值将输出日志</summary>
         public Int32 TraceSQLTime { get; set; } = Setting.Current.TraceSQLTime;

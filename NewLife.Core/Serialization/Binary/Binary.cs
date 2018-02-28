@@ -81,8 +81,10 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public Binary AddHandler<THandler>(Int32 priority = 0) where THandler : IBinaryHandler, new()
         {
-            var handler = new THandler();
-            handler.Host = this;
+            var handler = new THandler
+            {
+                Host = this
+            };
             if (priority != 0) handler.Priority = priority;
 
             return AddHandler(handler);

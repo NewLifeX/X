@@ -1,138 +1,82 @@
-﻿$(function () {
+﻿// 以下时间用于魔方判断是否需要更新脚本
+// 2017-12-07 00:00:00
+
+$(function () {
 
     window.infoDialog = parent['infoDialog'] || function (title, msg) { alert(msg); };
     window.confirmDialog = parent['confirmDialog'] || function (msg, func) { if (confirm(msg)) func(); };
     window.tips = parent['tips'] || function (msg, modal, time, jumpUrl) { alert(msg); location.reload(); };
 
-    //$.ajaxSetup({
-    //    //url: "/xmlhttp/",
-    //    //global: false,
-    //    //type: "GET"
-    //    X-Requested-With
-    //});
-
-    //为所有data-action加上事件
-    //$('[data-action]').each(function () {
-    //    $(this).data('click', this.onclick);
-    //    this.onclick = null;
-    //});
-
-    //$(document).on('click', '[data-action]', function (e) {
-
-    //    var that = $(this),
-    //        oldClick = that.data('click');
-    //    //isAjax = that.data('ajax');
-    //    action = that.data('action');
-    //    //if (!!isAjax) {
-    //    //如果标志为ajax，阻止默认事件，
-    //    //this.onclick = null;
-    //    //e.stopPropagation();
-    //    //e.preventDefault();
-    //    //switch (action) {
-    //    //    case 'view':
-    //    //        break;
-    //    //    case 'edit':
-    //    //        break;
-    //    //    case 'delete':
-    //    //        confirmDialog('确认删除？', function () {
-    //    //            $.get(that.attr('href'),
-    //    //                function (data) {
-    //    //                    var url = 'iframe|' + data.url;
-    //    //                    if (data.code != 0) {
-    //    //                        url = null;
-    //    //                    }
-    //    //                    tips(data.msg, 0, 1000, url);
-
-    //    //                }).error(function (error) {
-    //    //                    infoDialog('提示', error || '删除失败', 1);
-    //    //                });
-    //    //        });
-    //    //        break;
-    //    //    case 'add':
-    //    //        break;
-    //    //}
-
-    //    //return false;
-    //    //} else {
-
-    //    //    oldClick && oldClick.call(this);
-    //    //}
-    //});
-
-    //批量操作
-    var $toolbarContext = $(document),
-        $table = $('.table');
-
-    //按钮事件
-    $toolbarContext.on('click',
-        'button[data-action], input[data-action], a[data-action]',
+    //根据data-action的值确定操作类型 action为请求后端执行业务操作，url为直接跳转指定url地址
+    //按钮请求action
+    $(document).on('click',
+        'button[data-action="action"], input[data-action="action"], a[data-action="action"]',
         function (e) {
-            var fields = $(this).attr('data-fields');
-            //参数
-            var parameter = '';
-            //if (fields.length == 0 || fields == '' || fields == undefined) {
-            if (fields && fields.length > 0) {
-                //var tempstr = '';
-                var fieldArr = fields.split(',');
-                for (var i = 0; i < fieldArr.length; i++) {
-                    //tempstr = '';
-
-                    var detailArr = $('[name=' + fieldArr[i] + ']');
-                    //不对name容器标签进行限制，直接进行序列化
-                    //如果有特殊需求，可以再指定筛选器进行筛选
-                    parameter += ((parameter.length > 0 ? '&' : '') + detailArr.serialize());
-
-                    //if (fieldArr[i] == 'q') {
-                    //    //tempstr = tempstr + '=' + $('#q').val();
-                    //    tempstr = ((tempstr.length > 0 ? '&' : '') + 'q=' + $('#q').val());
-                    //} else {
-                    //for (var j = 0; j < detailArr.length; j++) {
-                    //    if (detailArr[j].tagName == 'INPUT') {
-                    //        if (tempstr.indexOf(detailArr[j].val()) < 0) {
-                    //            tempstr += detailArr[j].val() + ',';
-                    //        }
-                    //    }
-                    //}
-                    //}
-                    //parameter += fieldArr[i] + '=' + tempstr.substr(0, tempstr.length - 1) + '&'; 
-                }
-
+            $this = $(this);
+            //动态设置标签参数
+            var url = $this.attr('href');
+            if (url && url.length > 0) {
+                $this.data('url', url);
+                $this.attr('href', 'javascript:void(0);');
             }
 
-            //method
-            var cmethod = $(this).data('method');
-            var method = 'GET';
-            if (cmethod && cmethod.length > 0) {
-                method = cmethod;
+            var cf = $this.data('confirm');
+
+            if (cf && cf.length > 0) {
+                confirmDialog(cf, () => doClickAction($this));
+                return false;
             }
 
-            //url
-            var curl = $(this).data('url');
-
-            if (!curl || curl.length <= 0) {
-                if ($(this)[0].tagName == 'A') {
-                    curl = $(this).attr('href');
-                }
-            }
-
-            //if (curl && curl.length == 0) {
-            //    if ($(this).tagName == 'A') {
-            //        url = $(this).href;
-            //    }
-            //} else {
-            //    url = curl;
-            //}
-
-            doAction(method, curl, parameter);
-
+            doClickAction($this);
             //阻止按钮本身的事件冒泡
             return false;
         });
+    //直接执行Url地址
+    $(document).on('click'
+        , 'button[data-action="url"],input[data-action="url"],a[data-action="url"]'
+        , function (data) {
+            $this = $(this);
+            var url = $this.attr('href');
+            if (url && url.length > 0) {
+                $this.data('url', url);
+            }
+            location = url;
+        });
 });
+
+function doClickAction($this) {
+    var fields = $this.data('fields');
+    //参数
+    var parameter = '';
+    if (fields && fields.length > 0) {
+        var fieldArr = fields.split(',');
+        for (var i = 0; i < fieldArr.length; i++) {
+            var detailArr = $('[name=' + fieldArr[i] + ']');
+            //不对name容器标签进行限制，直接进行序列化
+            //如果有特殊需求，可以再指定筛选器进行筛选
+            parameter += ((parameter.length > 0 ? '&' : '') + detailArr.serialize());
+        }
+    }
+
+    //method
+    var cmethod = $this.data('method');
+    var method = 'GET';
+    if (cmethod && cmethod.length > 0) {
+        method = cmethod;
+    }
+
+    //url
+    var curl = $this.data('url');
+    if (!curl || curl.length <= 0) {
+        if ($this[0].tagName == 'A') {
+            curl = $this.attr('href');
+        }
+    }
+    doAction(method, curl, parameter);
+}
 
 //ajax请求 methodName 指定GET与POST
 function doAction(methodName, actionUrl, actionParamter) {
-    //if (methodName == '' || methodName == undefined || actionUrl == '' || actionUrl == undefined || actionParamter == '' || actionParamter == undefined) {
     if (!methodName || methodName.length <= 0 || !actionUrl || actionUrl.length <= 0) {
         tips('请求参数异常，请保证请求的地址跟参数正确！', 0, 1000);
         return;
@@ -146,24 +90,25 @@ function doAction(methodName, actionUrl, actionParamter) {
         data: actionParamter,
         error: function (ex) {
             tips('请求异常！', 0, 1000);
-            console.log(ex);
+            //console.log(ex);
         },
         beforeSend: function () {
             tips('正在操作中，请稍候...', 0, 2000);
         },
         success: function (s) {
-            console.log(s);
+            //console.log(s);
         },
         complete: function (result) {
-            //tips(result.data, 0, 1000);
-            if (result.responseJSON.data && result.responseJSON.data.length > 0) {
-                tips(result.responseJSON.data, 0, 1000);
+            var rs = result.responseJSON;
+            if (rs.data && rs.data.length > 0) {
+                tips(rs.data, 0, 1000);
             }
-            if (result.responseJSON.url && result.responseJSON.url.length > 0) {
-                if (result.responseJSON.url == '[refresh]') {
-                    location.reload();
+            if (rs.url && rs.url.length > 0) {
+                if (rs.url == '[refresh]') {
+                    //刷新页面但不重新加载页面的所有静态资源
+                    location.reload(false);
                 } else {
-                    window.location.href = result.responseJSON.url;
+                    window.location.href = rs.url;
                 }
             }
         }

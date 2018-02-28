@@ -36,7 +36,7 @@ namespace XCode.Membership
     /// 基础实体类应该是只有一个泛型参数的，需要用到别的类型时，可以继承一个，也可以通过虚拟重载等手段让基类实现
     /// </remarks>
     /// <typeparam name="TEntity">管理员类型</typeparam>
-    public abstract partial class User<TEntity> : LogEntity<TEntity>, IUser, IManageUser, IIdentity
+    public abstract partial class User<TEntity> : LogEntity<TEntity>, IUser, IAuthUser, IIdentity
         where TEntity : User<TEntity>, new()
     {
         #region 对象操作
@@ -79,17 +79,18 @@ namespace XCode.Membership
             if (String.IsNullOrEmpty(Name)) throw new ArgumentNullException(__.Name, "用户名不能为空！");
             if (RoleID < 1) throw new ArgumentNullException(__.RoleID, "没有指定角色！");
 
+            var pass = Password;
             if (isNew)
             {
-                if (!String.IsNullOrEmpty(Password) && Password.Length != 32) Password = Password.MD5();
+                if (!pass.IsNullOrEmpty() && pass.Length != 32) Password = pass.MD5();
             }
             else
             {
                 // 编辑修改密码
                 if (Dirtys[__.Password])
                 {
-                    if (!Password.IsNullOrEmpty())
-                        Password = Password.MD5();
+                    if (!pass.IsNullOrEmpty())
+                        Password = pass.MD5();
                     else
                         Dirtys.Remove(__.Password);
                 }
@@ -401,9 +402,9 @@ namespace XCode.Membership
                 user.Password = password;
             }
 
-            user.SaveLoginInfo();
-
             Current = user;
+
+            user.SaveLoginInfo();
 
             if (hashTimes == -1)
                 WriteLog("自动登录", username);

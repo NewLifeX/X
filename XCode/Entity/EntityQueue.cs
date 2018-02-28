@@ -24,7 +24,7 @@ namespace XCode
         public Boolean Debug { get; set; }
 
         /// <summary>数据访问</summary>
-        public DAL Dal { get; }
+        public IEntitySession Session { get; }
 
         /// <summary>周期。默认1000毫秒，根据繁忙程度动态调节，尽量靠近每次持久化1000个对象</summary>
         public Int32 Period { get; set; } = 1000;
@@ -35,17 +35,17 @@ namespace XCode
         /// <summary>保存速度，每秒保存多少个实体</summary>
         public Int32 Speed { get; private set; }
 
-        /// <summary>完成事件。</summary>
-        public event EventHandler<EventArgs<IEntity, Int32>> Completed;
+        ///// <summary>完成事件。</summary>
+        //public event EventHandler<EventArgs<IEntity, Int32>> Completed;
 
         private TimerX _Timer;
         #endregion
 
         #region 构造
         /// <summary>实例化实体队列</summary>
-        public EntityQueue(DAL dal)
+        public EntityQueue(IEntitySession session)
         {
-            Dal = dal;
+            Session = session;
             _Timer = new TimerX(Work, null, Period, Period, "EQ") { Async = true };
         }
         #endregion
@@ -123,14 +123,15 @@ namespace XCode
         private void Process(Object state)
         {
             var list = state as ICollection<IEntity>;
-            var dal = Dal;
+            var ss = Session;
+            var dal = ss.Dal;
             var useTrans = dal.DbType == DatabaseType.SQLite;
 
             var speed = Speed;
             if (Debug || list.Count > 10000)
             {
                 var cost = speed == 0 ? 0 : list.Count * 1000 / speed;
-                XTrace.WriteLine($"实体队列[{dal.ConnName}]\t保存 {list.Count:n0}\t预测耗时 {cost:n0}ms");
+                XTrace.WriteLine($"实体队列[{ss.TableName}/{ss.ConnName}]\t保存 {list.Count:n0}\t预测耗时 {cost:n0}ms");
             }
 
             var rs = new List<Int32>();
@@ -190,17 +191,17 @@ namespace XCode
             Speed = ms == 0 ? 0 : (Int32)(list.Count * 1000 / ms);
             if (Debug || list.Count > 10000)
             {
-                XTrace.WriteLine($"实体队列[{dal.ConnName}]\t耗时 {ms:n0}ms\t速度 {speed:n0}tps\t周期 {p:n0}ms");
+                XTrace.WriteLine($"实体队列[{ss.TableName}/{ss.ConnName}]\t耗时 {ms:n0}ms\t速度 {speed:n0}tps\t周期 {p:n0}ms");
             }
 
-            if (Completed != null)
-            {
-                var k = 0;
-                foreach (var item in list)
-                {
-                    Completed(this, new EventArgs<IEntity, Int32>(item, rs[k++]));
-                }
-            }
+            //if (Completed != null)
+            //{
+            //    var k = 0;
+            //    foreach (var item in list)
+            //    {
+            //        Completed(this, new EventArgs<IEntity, Int32>(item, rs[k++]));
+            //    }
+            //}
 
             // 马上再来一次，以便于连续处理数据
             _Timer.SetNext(-1);

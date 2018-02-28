@@ -181,7 +181,7 @@ namespace XCom
 
             Task.Factory.StartNew(() =>
             {
-                for (Int32 i = 0; i < count; i++)
+                for (var i = 0; i < count; i++)
                 {
                     spList.Send(str);
 

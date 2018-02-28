@@ -75,13 +75,39 @@ namespace XCode.Membership
             return result;
         }
 
-        /// <summary>已重载。</summary>
+        ///// <summary>已重载。</summary>
+        ///// <returns></returns>
+        //public override Int32 Delete()
+        //{
+        //    LogProvider.Provider.WriteLog("删除", this);
+
+        //    return base.Delete();
+        //}
+
+        /// <summary>删除。</summary>
         /// <returns></returns>
-        public override Int32 Delete()
+        protected override Int32 OnDelete()
         {
             LogProvider.Provider.WriteLog("删除", this);
 
-            return base.Delete();
+            var rs = 0;
+            using (var ts = Meta.CreateTrans())
+            {
+                rs += base.OnDelete();
+
+                var ms = Childs;
+                if (ms != null && ms.Count > 0)
+                {
+                    foreach (var item in ms)
+                    {
+                        rs += item.Delete();
+                    }
+                }
+
+                ts.Commit();
+
+                return rs;
+            }
         }
 
         /// <summary>加载权限字典</summary>
@@ -398,7 +424,8 @@ namespace XCode.Membership
                 var r = Root as IMenu;
                 var root = r.FindByPath(rootName);
                 if (root == null) root = r.Childs.FirstOrDefault(e => e.Name.EqualIgnoreCase(rootName));
-                if (root == null) root = FindByName(rootName);
+                if (root == null) root = r.Childs.FirstOrDefault(e => e.Url.EqualIgnoreCase("~/" + rootName));
+                //if (root == null) root = FindByName(rootName);
                 if (root == null)
                 {
                     root = r.Add(rootName, null, "~/" + rootName);
@@ -474,7 +501,8 @@ namespace XCode.Membership
                     {
                         while ((mask & idx) != 0)
                         {
-                            if (idx >= 0x80) throw new XException("控制器{0}的Action过多，不够分配权限位", type.Name);
+                            // Int32.MaxValue 是 0x7FFF_FFFF
+                            if (idx >= 0x40000000) throw new XException("控制器{0}的Action过多[{1}]，不够分配权限位", type.Name, dic.Join(",", e => e.Key));
                             idx <<= 1;
                         }
                         mask |= idx;

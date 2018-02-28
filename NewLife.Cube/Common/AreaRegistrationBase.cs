@@ -132,7 +132,18 @@ namespace NewLife.Cube
         {
             var js = "~/Content/Cube.js".GetFullPath();
             var css = "~/Content/Cube.css".GetFullPath();
-            if (File.Exists(js) && File.Exists(css)) return;
+            if (File.Exists(js) && File.Exists(css))
+            {
+                // 判断脚本时间
+                var dt = DateTime.MinValue;
+                var ss = File.ReadAllLines(js);
+                for (var i = 0; i < 5; i++)
+                {
+                    if (DateTime.TryParse(ss[i].TrimStart("//").Trim(), out dt)) break;
+                }
+                // 要求脚本最小更新时间
+                if (dt >= "2017-12-07 00:00:00".ToDateTime()) return;
+            }
 
             var url = Setting.Current.PluginServer;
             if (url.IsNullOrEmpty()) return;
@@ -141,7 +152,7 @@ namespace NewLife.Cube
             {
                 Log = XTrace.Log
             };
-            wc.DownloadLinkAndExtract(url, "Cube_Content", "~/Content".GetFullPath(), false);
+            wc.DownloadLinkAndExtract(url, "Cube_Content", "~/Content".GetFullPath(), true);
         }
 
         /// <summary>注册区域</summary>

@@ -41,7 +41,12 @@ namespace XCode.Cache
             DataCache data = null;
             if (!file.IsNullOrEmpty() && File.Exists(file))
             {
-                data = File.ReadAllText(file).ToJsonEntity<DataCache>();
+                // 如果数据损坏，迟点异常
+                try
+                {
+                    data = File.ReadAllText(file).ToJsonEntity<DataCache>();
+                }
+                catch { }
             }
 
             if (data == null && create)

@@ -64,84 +64,13 @@ WriteLiteral("\r\n");
             #line 7 "..\..\Views\Shared\_List_Toolbar_Batch.cshtml"
  if (enableSelect)
 {
-
+    
             
             #line default
             #line hidden
-WriteLiteral("    <div");
-
-WriteLiteral(" class=\"form-group toolbar-batch\"");
-
-WriteLiteral(">\r\n        <button");
-
-WriteLiteral(" type=\"button\"");
-
-WriteLiteral(" class=\"btn btn-purple btn-sm\"");
-
-WriteLiteral(" data-action=\"delete\"");
-
-WriteLiteral("  data-url=\"");
-
             
-            #line 10 "..\..\Views\Shared\_List_Toolbar_Batch.cshtml"
-                                                                                       Write(Url.Action("DeleteSelect"));
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\"");
-
-WriteLiteral(" data-method=\"post\"");
-
-WriteLiteral(" data-fields=\"keys,keys2\"");
-
-WriteLiteral(" disabled>\r\n            <span");
-
-WriteLiteral(" class=\"ace-icon fa fa-search icon-on-right bigger-110\"");
-
-WriteLiteral("></span>\r\n            批量删除\r\n        </button>\r\n        <input");
-
-WriteLiteral(" type=\"hidden\"");
-
-WriteLiteral(" data-id=\"ids\"");
-
-WriteLiteral(" name=\"keys\"");
-
-WriteLiteral("/>\r\n         \r\n        ");
-
-WriteLiteral("\r\n    </div>\r\n");
-
-WriteLiteral("    <script>\r\n        $(function () {\r\n\r\n            var $toolbarContext = $(\'.to" +
-"olbar-batch\'),\r\n                $ids = $(\'input[data-id=ids]\', $toolbarContext)," +
-"\r\n                $batchButtons = $(\'button[data-action], input[data-action]\'), " +
-"//button, input=button, a 3种类型都可以\r\n                $table = $(\'.table\'),\r\n      " +
-"          $keys = $(\'input[name=\"keys\"]\', $table);\r\n\r\n            //按钮事件\r\n      " +
-"      $toolbarContext.on(\'click\',\r\n                \'button[data-action], input[d" +
-"ata-action]\',\r\n                function (e) {\r\n\r\n                    var that = " +
-"$(this),\r\n                        url = that.data(\'url\'),\r\n                    /" +
-"/构建一个form提交\r\n                        form = $(\'<form name=\"batchForm\" method=\"po" +
-"st\" style=\"display:none;\"></form>\');\r\n                    if (url) {\r\n          " +
-"              var ids = getIds().join();\r\n                        form.attr(\'act" +
-"ion\', url).html(\'<input name=\"Keys\" value=\"\' + ids + \'\" />\');\r\n                 " +
-"       var body = $(\'body\').append(form);\r\n                        form.submit()" +
-";\r\n\r\n                        //body.remove(form);\r\n\r\n                    }\r\n\r\n  " +
-"                  //阻止按钮本身的事件冒泡\r\n                    return false;\r\n\r\n          " +
-"      });\r\n\r\n            $table.on(\'click\', \'#chkAll\', function () {\r\n          " +
-"       \r\n                // 全选\r\n                $keys.prop(\'checked\', this.check" +
-"ed);\r\n\r\n                // 启用禁用批量操作区 \r\n                $batchButtons.prop(\'disab" +
-"led\', !this.checked);\r\n\r\n                //收集选中id\r\n                var ids = get" +
-"Ids();\r\n\r\n                $ids.val(ids.join());\r\n            });\r\n            \r\n" +
-"            $table.on(\'click.checked\', \'tbody input[name=\"keys\"]\', function (e) " +
-"{\r\n\r\n\r\n                // 启用禁用批量操作区\r\n                var ids = getIds(),\r\n      " +
-"              on = ids.length > 0;\r\n\r\n                $batchButtons.prop(\'disabl" +
-"ed\', !on);\r\n\r\n                $ids.val(ids.join()); \r\n            });\r\n\r\n       " +
-"     function getIds() {\r\n                var ids = [];\r\n                $table." +
-"find(\'tbody :checked\').each(function () {\r\n                    ids.push(this.val" +
-"ue);\r\n                });\r\n                return ids; \r\n            }\r\n        " +
-"})\r\n    </script>\r\n");
-
-            
-            #line 88 "..\..\Views\Shared\_List_Toolbar_Batch.cshtml"
+            #line 12 "..\..\Views\Shared\_List_Toolbar_Batch.cshtml"
+               
 }
             
             #line default

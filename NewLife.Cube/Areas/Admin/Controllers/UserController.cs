@@ -1,8 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Web;
 using System.Web.Mvc;
 using System.Web.Security;
+using NewLife.Cube.Entity;
 using NewLife.Web;
 using XCode;
 using XCode.Membership;
@@ -47,12 +52,13 @@ namespace NewLife.Cube.Admin.Controllers
             return base.FormView(entity);
         }
 
+        #region 登录注销
         /// <summary>登录</summary>
-        /// <param name="returnUrl"></param>
         /// <returns></returns>
         [AllowAnonymous]
-        public ActionResult Login(String returnUrl)
+        public ActionResult Login()
         {
+            var returnUrl = Request["r"];
             // 如果已登录，直接跳转
             if (ManageProvider.User != null)
             {
@@ -60,6 +66,22 @@ namespace NewLife.Cube.Admin.Controllers
                     return Redirect(returnUrl);
                 else
                     return RedirectToAction("Index", "Index", new { page = returnUrl });
+            }
+
+            // 如果禁用本地登录，且只有一个第三方登录，直接跳转，构成单点登录
+            if (!Setting.Current.AllowLogin)
+            {
+                var ms = OAuthConfig.Current.Items.Where(e => !e.AppID.IsNullOrEmpty()).ToList();
+                if (ms.Count == 0) throw new Exception("禁用了本地密码登录，且没有配置第三方登录");
+
+                // 只有一个，跳转
+                if (ms.Count == 1)
+                {
+                    var url = $"~/Sso/Login?name={ms[0].Name}";
+                    if (!returnUrl.IsNullOrEmpty()) url += "&r=" + HttpUtility.UrlEncode(returnUrl);
+
+                    return Redirect(url);
+                }
             }
 
             ViewBag.ReturnUrl = returnUrl;
@@ -71,12 +93,12 @@ namespace NewLife.Cube.Admin.Controllers
         /// <param name="username"></param>
         /// <param name="password"></param>
         /// <param name="remember"></param>
-        /// <param name="returnUrl"></param>
         /// <returns></returns>
         [HttpPost]
         [AllowAnonymous]
-        public ActionResult Login(String username, String password, Boolean? remember, String returnUrl)
+        public ActionResult Login(String username, String password, Boolean? remember)
         {
+            var returnUrl = Request["r"];
             try
             {
                 var provider = ManageProvider.Provider;
@@ -109,11 +131,15 @@ namespace NewLife.Cube.Admin.Controllers
         [AllowAnonymous]
         public ActionResult Logout()
         {
+            var returnUrl = Request["r"];
             ManageProvider.User?.Logout();
             //ManageProvider.User = null;
 
+            if (!returnUrl.IsNullOrEmpty()) return Redirect(returnUrl);
+
             return RedirectToAction("Login");
         }
+        #endregion
 
         /// <summary>用户资料</summary>
         /// <param name="id"></param>
@@ -137,6 +163,10 @@ namespace NewLife.Cube.Admin.Controllers
             // 用于显示的列
             if (ViewBag.Fields == null) ViewBag.Fields = GetFields(true);
             ViewBag.Factory = UserX.Meta.Factory;
+
+            // 第三方绑定
+            var ucs = UserConnect.FindAllByUserID(user.ID);
+            ViewBag.Binds = ucs;
 
             return View(user);
         }
@@ -162,26 +192,26 @@ namespace NewLife.Cube.Admin.Controllers
             return View(user);
         }
 
-        /// <summary>忘记密码</summary>
-        /// <param name="email"></param>
-        /// <returns></returns>
-        [HttpPost]
-        [AllowAnonymous]
-        public ActionResult ForgetPassword(String email)
-        {
-            var set = Setting.Current;
-            if (!set.AllowForgot) throw new Exception("禁止取回密码！");
+        ///// <summary>忘记密码</summary>
+        ///// <param name="email"></param>
+        ///// <returns></returns>
+        //[HttpPost]
+        //[AllowAnonymous]
+        //public ActionResult ForgetPassword(String email)
+        //{
+        //    var set = Setting.Current;
+        //    if (!set.AllowForgot) throw new Exception("禁止取回密码！");
 
-            //throw new NotImplementedException("未实现！");
-            var user = UserX.FindByMail(email);
-            if (user == null)
-            {
-                //throw new Exception("未找到");
-                Js.Alert("未找到用户");
-            }
+        //    //throw new NotImplementedException("未实现！");
+        //    var user = UserX.FindByMail(email);
+        //    if (user == null)
+        //    {
+        //        //throw new Exception("未找到");
+        //        Js.Alert("未找到用户");
+        //    }
 
-            return View("Login");
-        }
+        //    return View("Login");
+        //}
 
         /// <summary>注册</summary>
         /// <param name="email"></param>
@@ -227,6 +257,7 @@ namespace NewLife.Cube.Admin.Controllers
         /// <summary>清空密码</summary>
         /// <param name="id"></param>
         /// <returns></returns>
+        [EntityAuthorize(PermissionFlags.Update)]
         public ActionResult ClearPassword(Int32 id)
         {
             if (ManageProvider.User.RoleName != "管理员") throw new Exception("非法操作！");
@@ -238,6 +269,46 @@ namespace NewLife.Cube.Admin.Controllers
             user.SaveWithoutValid();
 
             return RedirectToAction("Edit", new { id });
+        }
+
+        /// <summary>批量启用</summary>
+        /// <param name="keys"></param>
+        /// <returns></returns>
+        [EntityAuthorize(PermissionFlags.Update)]
+        public ActionResult EnableSelect(String keys)
+        {
+            return EnableOrDisableSelect();
+        }
+
+        /// <summary>批量禁用</summary>
+        /// <param name="keys"></param>
+        /// <returns></returns>
+        [EntityAuthorize(PermissionFlags.Update)]
+        public ActionResult DisableSelect(String keys)
+        {
+            return EnableOrDisableSelect(false);
+        }
+
+        private ActionResult EnableOrDisableSelect(Boolean isEnable = true)
+        {
+            var count = 0;
+            var ids = Request["keys"].SplitAsInt();
+            if (ids.Length > 0)
+            {
+                Parallel.ForEach(ids, id =>
+                {
+                    var user = UserX.FindByID(id);
+                    if (user != null && user.Enable != isEnable)
+                    {
+                        user.Enable = isEnable;
+                        user.Save();
+
+                        Interlocked.Increment(ref count);
+                    }
+                });
+            }
+
+            return JsonRefresh("共{1}[{0}]个用户".F(count, isEnable ? "启用" : "禁用"));
         }
     }
 }

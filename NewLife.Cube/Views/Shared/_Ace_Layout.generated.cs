@@ -250,16 +250,16 @@ WriteLiteral(" />\r\n\r\n    <!-- 自定义样式 -->\r\n    <link");
 
 WriteLiteral(" rel=\"stylesheet\"");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1712), Tuple.Create("\"", 1737)
-, Tuple.Create(Tuple.Create("", 1719), Tuple.Create<System.Object, System.Int32>(Href("~/Content/Cube.css")
+WriteAttribute("href", Tuple.Create(" href=\"", 1712), Tuple.Create("\"", 1753)
+, Tuple.Create(Tuple.Create("", 1719), Tuple.Create<System.Object, System.Int32>(Href("~/Content/Cube.css?v=2.0.2017.1126")
 , 1719), false)
 );
 
 WriteLiteral(">\r\n    <!-- JQuery作为一等公民，页面内部随时可能使用 -->\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 1790), Tuple.Create("\"", 1828)
-, Tuple.Create(Tuple.Create("", 1796), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery-2.1.3.min.js")
-, 1796), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 1806), Tuple.Create("\"", 1844)
+, Tuple.Create(Tuple.Create("", 1812), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery-2.1.3.min.js")
+, 1812), false)
 );
 
 WriteLiteral("></script>\r\n</head>\r\n<body>\r\n    <div");
@@ -361,9 +361,9 @@ WriteLiteral("\r\n            </div>\r\n");
             #line hidden
 WriteLiteral("    </div>\r\n    <!-- 最早引入基本脚本 -->\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 2556), Tuple.Create("\"", 2601)
-, Tuple.Create(Tuple.Create("", 2562), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/js/bootstrap.min.js")
-, 2562), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 2572), Tuple.Create("\"", 2617)
+, Tuple.Create(Tuple.Create("", 2578), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/js/bootstrap.min.js")
+, 2578), false)
 );
 
 WriteLiteral("></script>\r\n");
@@ -384,9 +384,9 @@ WriteLiteral("></script>\r\n");
             #line hidden
 WriteLiteral("        <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 2667), Tuple.Create("\"", 2724)
-, Tuple.Create(Tuple.Create("", 2673), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/js/bootstrap-multiselect.min.js")
-, 2673), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 2683), Tuple.Create("\"", 2740)
+, Tuple.Create(Tuple.Create("", 2689), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/js/bootstrap-multiselect.min.js")
+, 2689), false)
 );
 
 WriteLiteral("></script>\r\n");
@@ -411,16 +411,16 @@ Write(RenderSection("scripts", required: false));
             #line hidden
 WriteLiteral("\r\n\r\n    <!--日历控件支持-->\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 2826), Tuple.Create("\"", 2888)
-, Tuple.Create(Tuple.Create("", 2832), Tuple.Create<System.Object, System.Int32>(Href("~/Content/DateTimePicker/bootstrap-datetimepicker.min.js")
-, 2832), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 2842), Tuple.Create("\"", 2904)
+, Tuple.Create(Tuple.Create("", 2848), Tuple.Create<System.Object, System.Int32>(Href("~/Content/DateTimePicker/bootstrap-datetimepicker.min.js")
+, 2848), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 2912), Tuple.Create("\"", 2984)
-, Tuple.Create(Tuple.Create("", 2918), Tuple.Create<System.Object, System.Int32>(Href("~/Content/DateTimePicker/locales/bootstrap-datetimepicker.zh-CN.js")
-, 2918), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 2928), Tuple.Create("\"", 3000)
+, Tuple.Create(Tuple.Create("", 2934), Tuple.Create<System.Object, System.Int32>(Href("~/Content/DateTimePicker/locales/bootstrap-datetimepicker.zh-CN.js")
+, 2934), false)
 );
 
 WriteLiteral("></script>\r\n    <script>\r\n        $(function () {\r\n            $(\'.form_datetime\'" +
@@ -569,9 +569,9 @@ WriteLiteral(@"            $('tr').dblclick(function () {
     <!--开关插件-->
     <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 7532), Tuple.Create("\"", 7588)
-, Tuple.Create(Tuple.Create("", 7538), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap-switch/bootstrap-switch.min.js")
-, 7538), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 7548), Tuple.Create("\"", 7604)
+, Tuple.Create(Tuple.Create("", 7554), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap-switch/bootstrap-switch.min.js")
+, 7554), false)
 );
 
 WriteLiteral("></script>\r\n    <script>\r\n        $(function () {\r\n            $(\"input.chkSwitch" +
@@ -579,25 +579,25 @@ WriteLiteral("></script>\r\n    <script>\r\n        $(function () {\r\n         
 
 WriteLiteral("\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 7752), Tuple.Create("\"", 7801)
-, Tuple.Create(Tuple.Create("", 7758), Tuple.Create<System.Object, System.Int32>(Href("~/Content/artDialog/dist/dialog-plus-min.js")
-, 7758), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 7768), Tuple.Create("\"", 7817)
+, Tuple.Create(Tuple.Create("", 7774), Tuple.Create<System.Object, System.Int32>(Href("~/Content/artDialog/dist/dialog-plus-min.js")
+, 7774), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 7825), Tuple.Create("\"", 7874)
-, Tuple.Create(Tuple.Create("", 7831), Tuple.Create<System.Object, System.Int32>(Href("~/Content/artDialog/dist/dialog.new.life.js")
-, 7831), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 7841), Tuple.Create("\"", 7890)
+, Tuple.Create(Tuple.Create("", 7847), Tuple.Create<System.Object, System.Int32>(Href("~/Content/artDialog/dist/dialog.new.life.js")
+, 7847), false)
 );
 
 WriteLiteral("></script>\r\n    ");
 
 WriteLiteral("\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 7919), Tuple.Create("\"", 7942)
-, Tuple.Create(Tuple.Create("", 7925), Tuple.Create<System.Object, System.Int32>(Href("~/Content/Cube.js")
-, 7925), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 7935), Tuple.Create("\"", 7974)
+, Tuple.Create(Tuple.Create("", 7941), Tuple.Create<System.Object, System.Int32>(Href("~/Content/Cube.js?v=2.0.2017.1126")
+, 7941), false)
 );
 
 WriteLiteral("></script>\r\n</body>\r\n</html>");

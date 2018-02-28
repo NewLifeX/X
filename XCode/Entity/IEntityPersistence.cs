@@ -29,6 +29,42 @@ namespace XCode
         /// <param name="entity"></param>
         /// <returns></returns>
         Int32 Delete(IEntity entity);
+
+        /// <summary>把一个实体对象持久化到数据库</summary>
+        /// <param name="factory">实体工厂</param>
+        /// <param name="names">更新属性列表</param>
+        /// <param name="values">更新值列表</param>
+        /// <returns>返回受影响的行数</returns>
+        Int32 Insert(IEntityOperate factory, String[] names, Object[] values);
+
+        /// <summary>更新一批实体数据</summary>
+        /// <param name="factory">实体工厂</param>
+        /// <param name="setClause">要更新的项和数据</param>
+        /// <param name="whereClause">指定要更新的实体</param>
+        /// <returns></returns>
+        Int32 Update(IEntityOperate factory, String setClause, String whereClause);
+
+        /// <summary>更新一批实体数据</summary>
+        /// <param name="factory">实体工厂</param>
+        /// <param name="setNames">更新属性列表</param>
+        /// <param name="setValues">更新值列表</param>
+        /// <param name="whereNames">条件属性列表</param>
+        /// <param name="whereValues">条件值列表</param>
+        /// <returns>返回受影响的行数</returns>
+        Int32 Update(IEntityOperate factory, String[] setNames, Object[] setValues, String[] whereNames, Object[] whereValues);
+
+        /// <summary>从数据库中删除指定条件的实体对象。</summary>
+        /// <param name="factory">实体工厂</param>
+        /// <param name="whereClause">限制条件</param>
+        /// <returns></returns>
+        Int32 Delete(IEntityOperate factory, String whereClause);
+
+        /// <summary>从数据库中删除指定属性列表和值列表所限定的实体对象。</summary>
+        /// <param name="factory">实体工厂</param>
+        /// <param name="names">属性列表</param>
+        /// <param name="values">值列表</param>
+        /// <returns></returns>
+        Int32 Delete(IEntityOperate factory, String[] names, Object[] values);
         #endregion
 
         #region 获取语句
@@ -163,6 +199,108 @@ namespace XCode
             entity.Dirtys.Clear();
 
             return rs;
+        }
+
+        /// <summary>把一个实体对象持久化到数据库</summary>
+        /// <param name="factory">实体工厂</param>
+        /// <param name="names">更新属性列表</param>
+        /// <param name="values">更新值列表</param>
+        /// <returns>返回受影响的行数</returns>
+        public virtual Int32 Insert(IEntityOperate factory, String[] names, Object[] values)
+        {
+            if (names == null) throw new ArgumentNullException(nameof(names), "属性列表和值列表不能为空");
+            if (values == null) throw new ArgumentNullException(nameof(values), "属性列表和值列表不能为空");
+            if (names.Length != values.Length) throw new ArgumentException("属性列表必须和值列表一一对应");
+
+            var fs = new Dictionary<String, FieldItem>(StringComparer.OrdinalIgnoreCase);
+            foreach (var fi in factory.Fields)
+                fs.Add(fi.Name, fi);
+            var sbn = new StringBuilder();
+            var sbv = new StringBuilder();
+            for (Int32 i = 0; i < names.Length; i++)
+            {
+                if (!fs.ContainsKey(names[i])) throw new ArgumentException("类[" + factory.EntityType.FullName + "]中不存在[" + names[i] + "]属性");
+                // 同时构造SQL语句。names是属性列表，必须转换成对应的字段列表
+                if (i > 0)
+                {
+                    sbn.Append(", ");
+                    sbv.Append(", ");
+                }
+                sbn.Append(factory.FormatName(fs[names[i]].Name));
+                //sbv.Append(SqlDataFormat(values[i], fs[names[i]]));
+                sbv.Append(factory.FormatValue(names[i], values[i]));
+            }
+            return factory.Session.Execute(String.Format("Insert Into {2}({0}) values({1})", sbn.ToString(), sbv.ToString(), factory.FormatedTableName));
+        }
+
+        /// <summary>更新一批实体数据</summary>
+        /// <param name="factory">实体工厂</param>
+        /// <param name="setClause">要更新的项和数据</param>
+        /// <param name="whereClause">指定要更新的实体</param>
+        /// <returns></returns>
+        public virtual Int32 Update(IEntityOperate factory, String setClause, String whereClause)
+        {
+            if (setClause.IsNullOrEmpty() || !setClause.Contains("=")) throw new ArgumentException("非法参数");
+
+            var sql = String.Format("Update {0} Set {1}", factory.FormatedTableName, setClause);
+            if (!String.IsNullOrEmpty(whereClause)) sql += " Where " + whereClause;
+            return factory.Session.Execute(sql);
+        }
+
+        /// <summary>更新一批实体数据</summary>
+        /// <param name="factory">实体工厂</param>
+        /// <param name="setNames">更新属性列表</param>
+        /// <param name="setValues">更新值列表</param>
+        /// <param name="whereNames">条件属性列表</param>
+        /// <param name="whereValues">条件值列表</param>
+        /// <returns>返回受影响的行数</returns>
+        public virtual Int32 Update(IEntityOperate factory, String[] setNames, Object[] setValues, String[] whereNames, Object[] whereValues)
+        {
+            var sc = Join(factory, setNames, setValues, ", ");
+            var wc = Join(factory, whereNames, whereValues, " And ");
+            return Update(factory, sc, wc);
+        }
+
+        /// <summary>从数据库中删除指定条件的实体对象。</summary>
+        /// <param name="factory">实体工厂</param>
+        /// <param name="whereClause">限制条件</param>
+        /// <returns></returns>
+        public virtual Int32 Delete(IEntityOperate factory, String whereClause)
+        {
+            var sql = String.Format("Delete From {0}", factory.FormatedTableName);
+            if (!whereClause.IsNullOrEmpty()) sql += " Where " + whereClause;
+            return factory.Session.Execute(sql);
+        }
+
+        /// <summary>从数据库中删除指定属性列表和值列表所限定的实体对象。</summary>
+        /// <param name="factory">实体工厂</param>
+        /// <param name="names">属性列表</param>
+        /// <param name="values">值列表</param>
+        /// <returns></returns>
+        public virtual Int32 Delete(IEntityOperate factory, String[] names, Object[] values)
+        {
+            return Delete(factory, Join(factory, names, values, "And"));
+        }
+
+        private static String Join(IEntityOperate factory, String[] names, Object[] values, String split)
+        {
+            var fs = new Dictionary<String, FieldItem>(StringComparer.OrdinalIgnoreCase);
+            foreach (var fi in factory.Fields)
+                fs.Add(fi.Name, fi);
+
+            var sb = new StringBuilder();
+            var sbv = new StringBuilder();
+            for (Int32 i = 0; i < names.Length; i++)
+            {
+                if (!fs.ContainsKey(names[i])) throw new ArgumentException("类[" + factory.EntityType.FullName + "]中不存在[" + names[i] + "]属性");
+
+                if (i > 0) sb.AppendFormat(" {0} ", split);
+                sb.Append(factory.FormatName(fs[names[i]].Name));
+                sb.Append("=");
+                sb.Append(factory.FormatValue(names[i], values[i]));
+            }
+
+            return sb.ToString();
         }
         #endregion
 

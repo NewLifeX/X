@@ -10,7 +10,7 @@
 @{
     var fact = ViewBag.Factory as IEntityOperate;
     var page = ViewBag.Page as Pager;
-    var fields = ViewBag.Fields as List<FieldItem>;
+    var fields = ViewBag.Fields as IReadOnlyList<FieldItem>;
     var enableSelect = this.EnableSelect();
 }
 <table class="table table-bordered table-hover table-striped table-condensed">
@@ -46,7 +46,7 @@
                 <td class="text-center hidden-md hidden-sm hidden-xs">@entity.ID</td>
                 <td>@entity.Name</td>
                 <td class="text-right">@entity.Times.ToString("n0")</td>
-                <td>@entity.Status</td>
+                <td style="max-width:600px;overflow:hidden;white-space: nowrap;text-overflow: ellipsis;" title="@entity.Status">@entity.Status</td>
                 <td class="text-right">@entity.OnlineTime.ToString("n0")</td>
                 <td>@entity.CreateIP</td>
                 <td>@entity.CreateAddress</td>

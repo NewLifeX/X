@@ -1,10 +1,15 @@
 ﻿@model XCode.Membership.IUser
+@using System.Linq
 @using System.Reflection
 @using XCode
 @using XCode.Configuration
+@using NewLife.Cube.Entity;
 @{
     var fact = EntityFactory.CreateOperate(ViewData.ModelMetadata.ModelType);
     var user = Model as IUser;
+
+    var ms = NewLife.Web.OAuthConfig.Current.Items.Where(e => !e.AppID.IsNullOrEmpty()).ToList();
+    var binds = ViewBag.Binds as IList<UserConnect>;
 }
 <div class="row">
     <div class="col-md-12">
@@ -109,6 +114,34 @@
                         @user.Profile
                     </div>
                 </div>
+                if (ms.Count > 0)
+                {
+                    <div class="form-group">
+                        <label class="control-label col-md-2">第三方绑定</label>
+                        <div class="input-group col-md-6">
+                            <ul>
+                                @foreach (var mi in ms)
+                                {
+                                    var uc = binds.FirstOrDefault(e => e.Enable && e.Provider.EqualIgnoreCase(mi.Name));
+                                    if (uc != null)
+                                    {
+                                        <li>
+                                            <span>@mi.Name（已绑定）</span> 
+                                            <a href="~/Sso/UnBind/@mi.Name" title="取消绑定 @mi.Name">取消绑定</a>
+                                        </li>
+                                    }
+                                    else
+                                    {
+                                        <li>
+                                            <span>@mi.Name（未绑定）</span>
+                                            <a href="~/Sso/Bind/@mi.Name" title="绑定 @mi.Name">去绑定</a>
+                                        </li>
+                                    }
+                                }
+                            </ul>
+                        </div>
+                    </div>
+                }
                 <div class="clearfix form-actions">
                     <label class="control-label col-md-4"></label>
                     <button type="submit" class="btn btn-success btn-sm"><i class="glyphicon glyphicon-save" )"></i><strong>保存</strong></button>

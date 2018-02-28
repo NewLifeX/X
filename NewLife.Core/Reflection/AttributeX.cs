@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Concurrent;
+using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using NewLife.Collections;
@@ -71,7 +72,7 @@ namespace System
         }
 #endif
 
-        private static DictionaryCache<String, Object> _asmCache = new DictionaryCache<String, Object>();
+        private static ConcurrentDictionary<String, Object> _asmCache = new ConcurrentDictionary<String, Object>();
 
         /// <summary>获取自定义属性，带有缓存功能，避免因.Net内部GetCustomAttributes没有缓存而带来的损耗</summary>
         /// <typeparam name="TAttribute"></typeparam>
@@ -83,7 +84,7 @@ namespace System
 
             var key = String.Format("{0}_{1}", assembly.FullName, typeof(TAttribute).FullName);
 
-            return (TAttribute[])_asmCache.GetItem(key, k =>
+            return (TAttribute[])_asmCache.GetOrAdd(key, k =>
             {
                 var atts = assembly.GetCustomAttributes(typeof(TAttribute), true) as TAttribute[];
                 return atts == null ? new TAttribute[0] : atts;

@@ -81,8 +81,10 @@ namespace NewLife.Common
         {
             var area = card.Substring(0, 6);
 
-            var idc = new IdentityCard();
-            idc.AreaNum = ParseArea(area);
+            var idc = new IdentityCard
+            {
+                AreaNum = ParseArea(area)
+            };
 
             if (card.Length == 15)
                 idc.ParseBirthdayAndSex15(card);

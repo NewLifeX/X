@@ -118,7 +118,7 @@ namespace NewLife.Reflection
         #region 构造
         private AssemblyX(Assembly asm) { _Asm = asm; }
 
-        private static DictionaryCache<Assembly, AssemblyX> cache = new DictionaryCache<Assembly, AssemblyX>();
+        private static ConcurrentDictionary<Assembly, AssemblyX> cache = new ConcurrentDictionary<Assembly, AssemblyX>();
         /// <summary>创建程序集辅助对象</summary>
         /// <param name="asm"></param>
         /// <returns></returns>
@@ -126,7 +126,7 @@ namespace NewLife.Reflection
         {
             if (asm == null) return null;
 
-            return cache.GetItem(asm, key => new AssemblyX(key));
+            return cache.GetOrAdd(asm, key => new AssemblyX(key));
         }
 
         static AssemblyX()
@@ -227,7 +227,7 @@ namespace NewLife.Reflection
         #endregion
 
         #region 方法
-        DictionaryCache<String, Type> typeCache2 = new DictionaryCache<String, Type>();
+        ConcurrentDictionary<String, Type> typeCache2 = new ConcurrentDictionary<String, Type>();
         /// <summary>从程序集中查找指定名称的类型</summary>
         /// <param name="typeName"></param>
         /// <returns></returns>
@@ -235,7 +235,7 @@ namespace NewLife.Reflection
         {
             if (String.IsNullOrEmpty(typeName)) throw new ArgumentNullException("typeName");
 
-            return typeCache2.GetItem(typeName, GetTypeInternal);
+            return typeCache2.GetOrAdd(typeName, GetTypeInternal);
         }
 
         /// <summary>在程序集中查找类型</summary>
@@ -651,39 +651,13 @@ namespace NewLife.Reflection
         public static Assembly ReflectionOnlyLoadFrom(String file, Version ver = null)
         {
             // 仅加载.Net文件，并且小于等于当前版本
-            var pe = PEImage.Read(file);
-            if (pe == null || !pe.IsNet) return null;
-
-            if (ver == null) ver = new Version(Assembly.GetExecutingAssembly().ImageRuntimeVersion.TrimStart('v'));
-
-            // 只判断主次版本，只要这两个相同，后面可以兼容
-            var pv = pe.Version;
-            if (pv.Major > ver.Major || pv.Major == ver.Major && pv.Minor > ver.Minor)
-            {
-                if (XTrace.Debug) XTrace.WriteLine("程序集 {0} 的版本 {1} 大于当前运行时 {2}", file, pv, ver);
-                return null;
-            }
-            // 必须加强过滤，下面一旦只读加载，就再也不能删除文件
-            if (!pe.ExecutableKind.Has(PortableExecutableKinds.ILOnly))
-            {
-                // 判断x86/x64兼容。无法区分x86/x64的SQLite驱动
-                //XTrace.WriteLine("{0,12} {1} {2}", item, pe.Machine, pe.ExecutableKind);
-                //var x64 = pe.ExecutableKind.Has(PortableExecutableKinds.Required32Bit);
-                //var x64 = pe.Machine == ImageFileMachine.AMD64;
-                var x64 = pe.Machine == ImageFileMachine.AMD64;
-                if (Runtime.Is64BitProcess ^ x64)
-                {
-                    if (XTrace.Debug) XTrace.WriteLine("程序集 {0} 的代码特性是 {1}，而当前进程是 {2} 进程", file, pe.Machine, Runtime.Is64BitProcess ? "64位" : "32位");
-                    return null;
-                }
-            }
+            if (!PEImage.CanLoad(file, ver, XTrace.Debug)) return null;
 
             try
             {
                 return Assembly.ReflectionOnlyLoadFrom(file);
             }
             catch { return null; }
-            //return null;
         }
 #endif
 

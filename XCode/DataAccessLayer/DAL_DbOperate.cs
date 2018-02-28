@@ -205,9 +205,9 @@ namespace XCode.DataAccessLayer
         public Int32 Rollback() { return Session.Rollback(); }
         #endregion
 
-        #region 队列
-        /// <summary>实体队列</summary>
-        public EntityQueue Queue { get; private set; }
-        #endregion
+        //#region 队列
+        ///// <summary>实体队列</summary>
+        //public EntityQueue Queue { get; private set; }
+        //#endregion
     }
 }

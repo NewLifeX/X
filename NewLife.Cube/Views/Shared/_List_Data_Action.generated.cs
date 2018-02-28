@@ -16,12 +16,7 @@ namespace ASP
     using System.IO;
     using System.Linq;
     using System.Net;
-    
-    #line 1 "..\..\Views\Shared\_List_Data_Action.cshtml"
     using System.Text;
-    
-    #line default
-    #line hidden
     using System.Web;
     using System.Web.Helpers;
     using System.Web.Mvc;
@@ -48,7 +43,7 @@ namespace ASP
         public override void Execute()
         {
             
-            #line 2 "..\..\Views\Shared\_List_Data_Action.cshtml"
+            #line 1 "..\..\Views\Shared\_List_Data_Action.cshtml"
   
     var fact = ViewBag.Factory as IEntityOperate;
     var fi = fact.Fields.FirstOrDefault(e => e.Name.EqualIgnoreCase("Deleted", "IsDelete", "IsDeleted"));
@@ -58,19 +53,13 @@ namespace ASP
 
     var user = ViewBag.User as IUser ?? User.Identity as IUser;
 
-    //var ajax = true;
-    //if (ViewBag.AjaxDelete is Boolean)
-    //{
-    //    ajax = (Boolean)ViewBag.AjaxDelete;
-    //}
-
             
             #line default
             #line hidden
 WriteLiteral("\r\n");
 
             
-            #line 17 "..\..\Views\Shared\_List_Data_Action.cshtml"
+            #line 10 "..\..\Views\Shared\_List_Data_Action.cshtml"
  if (user.Has(PermissionFlags.Update))
 {
 
@@ -87,14 +76,14 @@ WriteLiteral("></i>\r\n");
 
 WriteLiteral("    <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 576), Tuple.Create("\"", 606)
+WriteAttribute("href", Tuple.Create(" href=\"", 422), Tuple.Create("\"", 452)
             
-            #line 20 "..\..\Views\Shared\_List_Data_Action.cshtml"
-, Tuple.Create(Tuple.Create("", 583), Tuple.Create<System.Object, System.Int32>(Url.Action("Edit", rv)
+            #line 13 "..\..\Views\Shared\_List_Data_Action.cshtml"
+, Tuple.Create(Tuple.Create("", 429), Tuple.Create<System.Object, System.Int32>(Url.Action("Edit", rv)
             
             #line default
             #line hidden
-, 583), false)
+, 429), false)
 );
 
 WriteLiteral(" class=\"editcell\"");
@@ -102,7 +91,7 @@ WriteLiteral(" class=\"editcell\"");
 WriteLiteral(">编辑</a>\r\n");
 
             
-            #line 21 "..\..\Views\Shared\_List_Data_Action.cshtml"
+            #line 14 "..\..\Views\Shared\_List_Data_Action.cshtml"
 }
 else if (user.Has(PermissionFlags.Detail))
 {
@@ -120,14 +109,14 @@ WriteLiteral("></i>\r\n");
 
 WriteLiteral("    <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 756), Tuple.Create("\"", 788)
+WriteAttribute("href", Tuple.Create(" href=\"", 602), Tuple.Create("\"", 634)
             
-            #line 25 "..\..\Views\Shared\_List_Data_Action.cshtml"
-, Tuple.Create(Tuple.Create("", 763), Tuple.Create<System.Object, System.Int32>(Url.Action("Detail", rv)
+            #line 18 "..\..\Views\Shared\_List_Data_Action.cshtml"
+, Tuple.Create(Tuple.Create("", 609), Tuple.Create<System.Object, System.Int32>(Url.Action("Detail", rv)
             
             #line default
             #line hidden
-, 763), false)
+, 609), false)
 );
 
 WriteLiteral(" class=\"editcell\"");
@@ -135,14 +124,14 @@ WriteLiteral(" class=\"editcell\"");
 WriteLiteral(">查看</a>\r\n");
 
             
-            #line 26 "..\..\Views\Shared\_List_Data_Action.cshtml"
+            #line 19 "..\..\Views\Shared\_List_Data_Action.cshtml"
 }
 
             
             #line default
             #line hidden
             
-            #line 27 "..\..\Views\Shared\_List_Data_Action.cshtml"
+            #line 20 "..\..\Views\Shared\_List_Data_Action.cshtml"
  if (user.Has(PermissionFlags.Delete))
 {
     if (fi != null && fi.Type == typeof(Boolean) && (Boolean)entity[fi.Name])
@@ -159,41 +148,26 @@ WriteLiteral(" style=\"color: green;\"");
 
 WriteLiteral("></i>\r\n");
 
-            
-            #line 32 "..\..\Views\Shared\_List_Data_Action.cshtml"
-        //if (ajax)
-        //{
-
-            
-            #line default
-            #line hidden
 WriteLiteral("        <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1067), Tuple.Create("\"", 1099)
+WriteAttribute("href", Tuple.Create(" href=\"", 879), Tuple.Create("\"", 911)
             
-            #line 34 "..\..\Views\Shared\_List_Data_Action.cshtml"
-, Tuple.Create(Tuple.Create("", 1074), Tuple.Create<System.Object, System.Int32>(Url.Action("Delete", rv)
+            #line 25 "..\..\Views\Shared\_List_Data_Action.cshtml"
+, Tuple.Create(Tuple.Create("", 886), Tuple.Create<System.Object, System.Int32>(Url.Action("Delete", rv)
             
             #line default
             #line hidden
-, 1074), false)
+, 886), false)
 );
 
-WriteLiteral(" data-action=\"delete\"");
+WriteLiteral(" data-action=\"action\"");
 
-WriteLiteral(" onclick=\"return confirm(\'确认恢复？\');\"");
+WriteLiteral(" data-confirm=\"确认恢复？\"");
 
 WriteLiteral(">恢复</a>\r\n");
 
             
-            #line 35 "..\..\Views\Shared\_List_Data_Action.cshtml"
-            
-            
-            #line default
-            #line hidden
-            
-            #line 39 "..\..\Views\Shared\_List_Data_Action.cshtml"
-                   
+            #line 26 "..\..\Views\Shared\_List_Data_Action.cshtml"
     }
     else
     {
@@ -209,39 +183,26 @@ WriteLiteral(" style=\"color: red;\"");
 
 WriteLiteral("></i>\r\n");
 
-            
-            #line 44 "..\..\Views\Shared\_List_Data_Action.cshtml"
-        //if (ajax)
-        //{
-
-            
-            #line default
-            #line hidden
 WriteLiteral("        <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1483), Tuple.Create("\"", 1515)
+WriteAttribute("href", Tuple.Create(" href=\"", 1069), Tuple.Create("\"", 1101)
             
-            #line 46 "..\..\Views\Shared\_List_Data_Action.cshtml"
-, Tuple.Create(Tuple.Create("", 1490), Tuple.Create<System.Object, System.Int32>(Url.Action("Delete", rv)
+            #line 30 "..\..\Views\Shared\_List_Data_Action.cshtml"
+, Tuple.Create(Tuple.Create("", 1076), Tuple.Create<System.Object, System.Int32>(Url.Action("Delete", rv)
             
             #line default
             #line hidden
-, 1490), false)
+, 1076), false)
 );
 
-WriteLiteral(" data-action=\"delete\"");
+WriteLiteral(" data-action=\"action\"");
 
-WriteLiteral(" onclick=\"return confirm(\'确认删除？\');\"");
+WriteLiteral(" data-confirm=\"确认删除？\"");
 
 WriteLiteral(">删除</a>\r\n");
 
             
-            #line 47 "..\..\Views\Shared\_List_Data_Action.cshtml"
-        //}
-        //else
-        //{
-        //    <a href="@Url.Action("Delete", rv)" onclick="return confirm('确认删除？');">删除</a>
-        //}
+            #line 31 "..\..\Views\Shared\_List_Data_Action.cshtml"
     }
 }
             

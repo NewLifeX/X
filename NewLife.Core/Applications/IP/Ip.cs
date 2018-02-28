@@ -20,17 +20,8 @@ namespace NewLife.IP
         static Ip()
         {
             var dir = Runtime.IsWeb ? "..\\Data" : ".";
-            var ip = dir.CombinePath("ip.gz");
+            var ip = dir.CombinePath("ip.gz").GetFullPath();
             if (File.Exists(ip)) DbFile = ip;
-
-            // 删除旧版本
-            ip = "App_Data\\ip.gz".GetFullPath();
-            if (File.Exists(ip))
-            {
-                File.Delete(ip);
-                var di = "App_Data".AsDirectory();
-                if (di.GetFiles().Length == 0) di.Delete(true);
-            }
 
             // 如果本地没有IP数据库，则从网络下载
             if (DbFile.IsNullOrWhiteSpace())
@@ -38,7 +29,7 @@ namespace NewLife.IP
                 Task.Factory.StartNew(() =>
                 {
                     var url = Setting.Current.PluginServer;
-                    XTrace.WriteLine("没有找到IP数据库，准备联网获取 {0}", url);
+                    XTrace.WriteLine("没有找到IP数据库{0}，准备联网获取 {1}", ip, url);
 
                     var client = new WebClientX
                     {

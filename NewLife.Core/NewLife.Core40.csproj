@@ -23,7 +23,6 @@
     <DebugType>full</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
-    <LangVersion>7.1</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <OutputPath>..\..\Bin4\</OutputPath>
@@ -34,7 +33,6 @@
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
-    <LangVersion>7.1</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
@@ -73,9 +71,14 @@
     <Compile Include="Applications\IP\Ip.cs" />
     <Compile Include="Applications\IP\Zip.cs" />
     <Compile Include="Caching\Cache.cs" />
+    <Compile Include="Caching\CacheLock.cs" />
     <Compile Include="Caching\CacheSetting.cs" />
     <Compile Include="Caching\ICache.cs" />
+    <Compile Include="Caching\IProducerConsumer.cs" />
     <Compile Include="Caching\MemoryCache.cs" />
+    <Compile Include="Caching\Redis.cs" />
+    <Compile Include="Caching\RedisClient.cs" />
+    <Compile Include="Caching\RedisLock.cs" />
     <Compile Include="Collections\CollectionHelper.cs" />
     <Compile Include="Collections\ConcurrentHashSet.cs" />
     <Compile Include="Collections\DictionaryCache.cs" />
@@ -297,6 +300,7 @@
     <Compile Include="Threading\TaskAwaiter.cs" />
     <Compile Include="Threading\TaskEx.cs" />
     <Compile Include="Threading\TaskHelper.cs" />
+    <Compile Include="Threading\ThreadPoolX.cs" />
     <Compile Include="Threading\TimerManager.cs" />
     <Compile Include="Threading\TimerX.cs" />
     <Compile Include="Threading\TimerScheduler.cs" />

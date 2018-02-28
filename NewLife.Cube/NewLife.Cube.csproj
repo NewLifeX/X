@@ -25,6 +25,8 @@
     <UpgradeBackupLocation>
     </UpgradeBackupLocation>
     <OldToolsVersion>15.0</OldToolsVersion>
+    <Use64BitIISExpress />
+    <UseGlobalApplicationHostFile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
@@ -94,6 +96,7 @@
     <Compile Include="Areas\Admin\AdminAreaRegistration.cs" />
     <Compile Include="Areas\Admin\Controllers\DbController.cs" />
     <Compile Include="Areas\Admin\Controllers\FileController.cs" />
+    <Compile Include="Areas\Admin\Controllers\UserConnectController.cs" />
     <Compile Include="Areas\Admin\Controllers\VisitStatController.cs" />
     <Compile Include="Areas\Admin\Controllers\RoleController.cs" />
     <Compile Include="Areas\Admin\Controllers\LogController.cs" />
@@ -167,6 +170,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>_Navbar.cshtml</DependentUpon>
     </Compile>
+    <Compile Include="Areas\Admin\Views\Log\_List_Data.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>_List_Data.cshtml</DependentUpon>
+    </Compile>
     <Compile Include="Areas\Admin\Views\Log\_List_Search.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -207,10 +215,20 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>_List_Search.cshtml</DependentUpon>
     </Compile>
+    <Compile Include="Areas\Admin\Views\User\_List_Toolbar_Batch.generated.cs">
+      <DependentUpon>_List_Toolbar_Batch.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
     <Compile Include="Areas\Admin\Views\User\_Login_Forgot.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>_Login_Forgot.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Areas\Admin\Views\User\_Login_Login3.generated.cs">
+      <DependentUpon>_Login_Login3.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
     </Compile>
     <Compile Include="Areas\Admin\Views\User\_Login_Login.generated.cs">
       <AutoGen>True</AutoGen>
@@ -238,7 +256,9 @@
       <DependentUpon>_ViewStart.cshtml</DependentUpon>
     </Compile>
     <Compile Include="Common\BootstrapJs.cs" />
+    <Compile Include="Common\ControllerHelper.cs" />
     <Compile Include="Common\EntityTreeController.cs" />
+    <Compile Include="Common\CubeModule.cs" />
     <Compile Include="Common\ObjectController.cs" />
     <Compile Include="Common\ControllerBaseX.cs" />
     <Compile Include="Common\DbRunTimeModule.cs" />
@@ -256,6 +276,9 @@
     <Compile Include="Common\MvcHandleErrorAttribute.cs" />
     <Compile Include="Common\WeuiJS.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\SsoController.cs" />
+    <Compile Include="Entity\用户链接.Biz.cs" />
+    <Compile Include="Entity\用户链接.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -283,6 +306,11 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Index.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Shared\_StatLevel.generated.cs">
+      <DependentUpon>_StatLevel.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
     </Compile>
     <Compile Include="Views\Shared\_DateRange.generated.cs">
       <DependentUpon>_DateRange.cshtml</DependentUpon>
@@ -434,6 +462,8 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>_ViewStart.cshtml</DependentUpon>
     </Compile>
+    <Compile Include="Web\OAuthHelper.cs" />
+    <Compile Include="Web\SsoProvider.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Areas\Admin\Views\Db\Index.cshtml">
@@ -471,6 +501,18 @@
     <Content Include="Areas\Admin\Views\Index\ServerVar.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>ServerVar.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Areas\Admin\Views\User\_List_Toolbar_Batch.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>_List_Toolbar_Batch.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Areas\Admin\Views\Log\_List_Data.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>_List_Data.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Areas\Admin\Views\User\_Login_Login3.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>_Login_Login3.generated.cs</LastGenOutput>
     </Content>
     <None Include="Content\jweui\css\demos.css" />
     <None Include="Content\jweui\css\jquery-weui.css" />
@@ -517,7 +559,20 @@
     <None Include="Content\jweui\lib\weui.css" />
     <None Include="Content\jweui\lib\weui.min.css" />
     <None Include="Content\jweui\lib\zepto.js" />
+    <Content Include="Entity\XCoder.log">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>XCoder.tt</DependentUpon>
+    </Content>
     <None Include="index.html" />
+    <Content Include="Content\bootstrap\js\bootstrap.js" />
+    <Content Include="Entity\Cube.xml">
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="Entity\XCoder.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>XCoder.log</LastGenOutput>
+    </Content>
     <Content Include="Scripts\ApiClient.js" />
     <Content Include="Scripts\WebSocketX.js" />
     <None Include="Areas\Admin\Views\File\Index.cshtml">
@@ -663,6 +718,10 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Index.generated.cs</LastGenOutput>
     </None>
+    <Content Include="Views\Shared\_StatLevel.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>_StatLevel.generated.cs</LastGenOutput>
+    </Content>
     <None Include="Views\Shared\_DateRange.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_DateRange.generated.cs</LastGenOutput>
@@ -818,7 +877,9 @@
       <LastGenOutput>_List_Pager1.generated.cs</LastGenOutput>
     </None>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
   <ItemGroup>
     <None Include="packages.config">
       <SubType>Designer</SubType>
@@ -848,7 +909,16 @@
     <VisualStudio>
       <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
         <WebProjectProperties>
-          <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
+          <UseIIS>True</UseIIS>
+          <AutoAssignPort>True</AutoAssignPort>
+          <DevelopmentServerPort>0</DevelopmentServerPort>
+          <DevelopmentServerVPath>/</DevelopmentServerVPath>
+          <IISUrl>http://localhost:1080/</IISUrl>
+          <NTLMAuthentication>False</NTLMAuthentication>
+          <UseCustomServer>False</UseCustomServer>
+          <CustomServerUrl>
+          </CustomServerUrl>
+          <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
     </VisualStudio>

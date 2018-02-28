@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -215,7 +216,7 @@ namespace XCode.Configuration
             InitFields();
         }
 
-        static DictionaryCache<Type, TableItem> cache = new DictionaryCache<Type, TableItem>();
+        static ConcurrentDictionary<Type, TableItem> cache = new ConcurrentDictionary<Type, TableItem>();
         /// <summary>创建</summary>
         /// <param name="type">类型</param>
         /// <returns></returns>
@@ -224,7 +225,7 @@ namespace XCode.Configuration
             if (type == null) throw new ArgumentNullException("type");
 
             // 不能给没有BindTableAttribute特性的类型创建TableItem，否则可能会在InitFields中抛出异常
-            return cache.GetItem(type, key => key.GetCustomAttribute<BindTableAttribute>(true) != null ? new TableItem(key) : null);
+            return cache.GetOrAdd(type, key => key.GetCustomAttribute<BindTableAttribute>(true) != null ? new TableItem(key) : null);
         }
 
         void InitFields()

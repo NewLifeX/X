@@ -6,9 +6,12 @@
     var user = ViewBag.User as IUser ?? User.Identity as IUser;
     var fact = ViewBag.Factory as IEntityOperate;
     var page = ViewBag.Page as Pager;
-    var fields = ViewBag.Fields as List<FieldItem>;
+    var fields = ViewBag.Fields as IReadOnlyList<FieldItem>;
     var fk = fact.Unique;
     var enableSelect = this.EnableSelect();
+
+    var hasUser = fields.Any(f => f.Name.EqualIgnoreCase("CreateUserID", "UpdateUserID"));
+    if (hasUser && !ViewData.ContainsKey("")) { ViewData["Provider"] = ManageProvider.Provider; }
 }
 <table class="table table-bordered table-hover table-striped table-condensed table-data-list">
     <thead>

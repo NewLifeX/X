@@ -588,7 +588,7 @@ namespace XCode.Code
                     WriteLine("// 这里验证参数范围，建议抛出参数异常，指定参数名，前端用户界面可以捕获参数异常并聚焦到对应的参数输入框");
                     foreach (var item in cs)
                     {
-                        WriteLine("if (String.IsNullOrEmpty({0})) throw new ArgumentNullException({0}, \"{1}不能为空！\");", NameOf(item.Name), item.DisplayName ?? item.Name);
+                        WriteLine("if ({0}.IsNullOrEmpty()) throw new ArgumentNullException({1}, \"{2}不能为空！\");", item.Name, NameOf(item.Name), item.DisplayName ?? item.Name);
                     }
                 }
 
@@ -666,7 +666,7 @@ namespace XCode.Code
             WriteLine("//protected override void InitData()");
             WriteLine("//{");
             WriteLine("//    // InitData一般用于当数据表没有数据时添加一些默认数据，该实体类的任何第一次数据库操作都会触发该方法，默认异步调用");
-            WriteLine("//    if (Meta.Count > 0) return;");
+            WriteLine("//    if (Meta.Session.Count > 0) return;");
             WriteLine();
             WriteLine("//    if (XTrace.Debug) XTrace.WriteLine(\"开始初始化{0}[{1}]数据……\");", name, Table.DisplayName);
             WriteLine();
@@ -799,7 +799,7 @@ namespace XCode.Code
 
                     WriteLine();
                     WriteLine("// 实体缓存");
-                    WriteLine("if (Meta.Count < 1000) return Meta.Cache.Find(e => e.{0} == {1});", pk.Name, name);
+                    WriteLine("if (Meta.Session.Count < 1000) return Meta.Cache.Find(e => e.{0} == {1});", pk.Name, name);
 
                     WriteLine();
                     WriteLine("// 单对象缓存");
@@ -852,7 +852,7 @@ namespace XCode.Code
                     if (di.Unique)
                     {
                         WriteLine("// 实体缓存");
-                        WriteLine("if (Meta.Count < 1000) return Meta.Cache.Find(e => {0});", wh);
+                        WriteLine("if (Meta.Session.Count < 1000) return Meta.Cache.Find(e => {0});", wh);
 
                         // 单对象缓存
                         if (cs.Length == 1 && cs[0].Master)
@@ -868,7 +868,7 @@ namespace XCode.Code
                     else
                     {
                         WriteLine("// 实体缓存");
-                        WriteLine("if (Meta.Count < 1000) return Meta.Cache.FindAll(e => {0});", wh);
+                        WriteLine("if (Meta.Session.Count < 1000) return Meta.Cache.FindAll(e => {0});", wh);
 
                         WriteLine();
                         WriteLine("return FindAll({0});", exp);

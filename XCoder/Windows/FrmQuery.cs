@@ -29,7 +29,7 @@ namespace XCoder
         {
             if (db == null) throw new ArgumentNullException("db");
 
-            FrmQuery frm = new FrmQuery();
+            var frm = new FrmQuery();
             frm.Dal = db;
 
             return frm;
@@ -53,7 +53,7 @@ namespace XCoder
                 DataTable dt = null;
                 try
                 {
-                    DataSet ds = Dal.Session.Query(sql);
+                    var ds = Dal.Session.Query(sql);
                     if (ds != null && ds.Tables != null && ds.Tables.Count > 0) dt = ds.Tables[0];
 
                     msg = "查询完成！";
@@ -86,7 +86,7 @@ namespace XCoder
                 String msg = null;
                 try
                 {
-                    Int32 n = Dal.Session.Execute(sql);
+                    var n = Dal.Session.Execute(sql);
 
                     msg = String.Format("执行完成！共影响{0}行！", n);
                 }

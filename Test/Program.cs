@@ -3,9 +3,11 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.MemoryMappedFiles;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,6 +30,7 @@ using NewLife.Yun;
 using XCode;
 using XCode.DataAccessLayer;
 using XCode.Membership;
+using XCode.Statistics;
 
 namespace Test
 {
@@ -49,7 +52,7 @@ namespace Test
                 try
                 {
 #endif
-                Test2();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -71,117 +74,105 @@ namespace Test
         private static Int32 ths = 0;
         static void Test1()
         {
-            var user = UserX.FindByKey(1);
-            Console.WriteLine(user.Logins);
-            using (var tran = UserX.Meta.CreateTrans())
-            {
-                user.Logins++;
-                user.Save();
+            var set = XCode.Setting.Current;
+            set.Migration = Migration.ReadOnly;
+            Console.WriteLine("Setting: {0}", set.Migration);
 
-                Console.WriteLine(user.Logins);
+            DAL.AddConnStr("orc", "data source=xxx", null, "Oracle");
+            var dal = DAL.Create("orc");
+            Console.WriteLine("Oracle: {0}", dal.Db.Migration);
 
-                throw new Exception("xxx");
+            DAL.AddConnStr("orc2", "data source=xxx;Migration=full", null, "Oracle");
+            dal = DAL.Create("orc2");
+            Console.WriteLine("Oracle2: {0}", dal.Db.Migration);
 
-                tran.Commit();
-            }
+            DAL.AddConnStr("mysql", "data source=xxx;", null, "mysql");
+            dal = DAL.Create("mysql");
+            Console.WriteLine("MySql: {0}", dal.Db.Migration);
+
+            DAL.AddConnStr("mysql2", "data source=xxx;Migration=on", null, "mysql");
+            dal = DAL.Create("mysql2");
+            Console.WriteLine("MySql2: {0}", dal.Db.Migration);
         }
 
         static void Test2()
         {
-            Redis.Test();
+            using (var mmf = MemoryMappedFile.CreateFromFile("mmf.db", FileMode.OpenOrCreate, "mmf", 1 << 10))
+            {
+                var ms = mmf.CreateViewStream(8, 64);
+                var str = ms.ReadArray().ToStr();
+                XTrace.WriteLine(str);
 
-            //var url = "http://www.baidu.com";
+                str = "学无先后达者为师 " + DateTime.Now;
+                ms.Position = 0;
+                ms.WriteArray(str.GetBytes());
+                //ms.Flush();
 
-            //var client = new TinyHttpClient();
-            //var rs = client.GetAsync(url).Result;
-            //Console.WriteLine(rs);
-
-            //var client = new NewLife.Http.HttpClient();
-            //client.Remote = new NetUri(url);
-            //client.Request.Url = new Uri(url);
-            //client.Open();            
+                //ms.Position = 0;
+                //str = ms.ReadArray().ToStr();
+                //Console.WriteLine(str);
+            }
         }
 
-        private static TimerX _timer;
+        //private static TimerX _timer;
         static void Test3()
         {
-            //var db = DbFactory.GetDefault("Oracle".GetTypeEx());
-            //var dal = DAL.Create("Oracle");
-            //var dp = dal.Db.CreateParameter("name", new[] { DateTime.Now, DateTime.MinValue, DateTime.MaxValue });
-            //dal.Session.Execute("xxxx", System.Data.CommandType.Text, dp);
+            var rds = Redis.Create(null, 0);
+            rds.Log = XTrace.Log;
+            //rds.Set("123", 456);
+            //rds.Set("abc", "def");
+            //var rs = rds.Remove("123", "abc");
+            //Console.WriteLine(rs);
 
-            //if (_timer == null) _timer = new TimerX(s =>
-            //{
-            //    Console.WriteLine();
-            //    XTrace.WriteLine("start");
-            //    Parallel.For(0, 3, k =>
-            //    {
-            //        Thread.Sleep(300);
-            //        XTrace.WriteLine("pfor {0}", k);
-            //    });
-            //    XTrace.WriteLine("end");
-            //}, null, 1000, 5000);
+            var queue = rds.GetQueue<String>("q");
+            //var queue = Cache.Default.GetQueue<String>("q");
 
-            //var list = new LinkList<Int32>();
-            //list.Add(123);
-            //list.Add(456);
-            //list.Add(789);
+            Console.WriteLine("入队：");
+            var ps = new List<String>();
+            for (int i = 0; i < 5; i++)
+            {
+                var str = Rand.NextString(6);
+                ps.Add(str);
+                Console.WriteLine(str);
+            }
+            queue.Add(ps);
 
-            //Console.WriteLine(list.Contains(456));
-            //list.Remove(456);
+            Console.WriteLine();
+            Console.WriteLine("出队：");
+            var bs = queue.Take(5);
+            foreach (var item in bs)
+            {
+                Console.WriteLine(item);
+            }
+        }
 
-            //foreach (var item in list)
-            //{
-            //    Console.WriteLine(item);
-            //}
+        static void Test4()
+        {
+            var str = "~/Sso/Login";
+            var uri2 = new Uri("Sso/Login", UriKind.Absolute);
+            //var uri = str.AsUri("http://xxx.yyy.zzz/ss/dd/ff".AsUri());
+            var uri = str.AsUri();
+            //var cfg = CacheConfig.Current;
+            //Console.WriteLine(cfg.GetOrAdd("Bill01"));
 
-            //var pool = new Pool<TcpClient>();
-            //pool.Log = XTrace.Log;
-            //pool.Max = 4;
-            //Task.Run(() =>
-            //{
-            //    var st = new Stack<TcpClient>();
-            //    for (var i = 0; i < 4; i++)
-            //    {
-            //        st.Push(pool.Acquire(3000));
-            //        Thread.Sleep(500);
-            //    }
-            //    Thread.Sleep(100);
-            //    for (var i = 0; i < 4; i++)
-            //    {
-            //        pool.Release(st.Pop());
-            //        Thread.Sleep(500);
-            //    }
-            //});
-            //Task.Run(() =>
-            //{
-            //    Thread.Sleep(1900);
-            //    var st = new Stack<TcpClient>();
-            //    for (var i = 0; i < 4; i++)
-            //    {
-            //        st.Push(pool.Acquire(2000));
-            //        Thread.Sleep(500);
-            //    }
-            //    Thread.Sleep(1000);
-            //    for (var i = 0; i < 4; i++)
-            //    {
-            //        pool.Release(st.Pop());
-            //        Thread.Sleep(500);
-            //    }
-            //});
-            //Parallel.For(0, 2, k =>
-            //{
-            //    var st = new Stack<TcpClient>();
-            //    for (var i = 0; i < 10; i++)
-            //    {
-            //        if (st.Count == 0 || Rand.Next(2) == 0)
-            //            st.Push(pool.Acquire());
-            //        else
-            //            pool.Release(st.Pop());
+            //var set = cfg.GetOrAdd("aa_test", "redis");
+            //Console.WriteLine(set);
 
-            //        Thread.Sleep(Rand.Next(200, 3000));
-            //    }
-            //});
+            WebClientX.SetAllowUnsafeHeaderParsing(true);
+
+            var url = "https://api.github.com/user?access_token=ccb5c1363318ee2fa1d9374e87961bdf01a4c682";
+
+            var client = new WebClientX(true, true);
+            //var buf = client.DownloadDataAsync(url).Result;
+            //var ms = new MemoryStream(buf);
+            //var ms2 = ms.DecompressGZip();
+            //buf = ms2.ReadBytes();
+            var html = client.GetHtml(url);
+            Console.WriteLine(html);
+
+            var ip = "223.5.5.5";
+            ip = ip.IPToAddress();
+            Console.WriteLine(ip);
         }
     }
 }

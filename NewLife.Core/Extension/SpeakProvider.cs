@@ -69,8 +69,10 @@ namespace NewLife.Extension
             if (Runtime.IsWeb) dir = dir.CombinePath("Bin");
             dir.EnsureDirectory();
 
-            var client = new WebClientX(true, true);
-            client.Log = XTrace.Log;
+            var client = new WebClientX(true, true)
+            {
+                Log = XTrace.Log
+            };
 
             var file2 = client.DownloadLinkAndExtract(url, "SpeechRuntime", dir);
 

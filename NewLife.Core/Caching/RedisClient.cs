@@ -119,6 +119,14 @@ namespace NewLife.Caching
             var ns = GetStream(!isQuit);
             if (ns == null) return null;
 
+            // 收发共用的缓冲区
+            var buf = _Buffer;
+            if (buf == null) _Buffer = buf = new Byte[64 * 1024];
+
+            // 干掉历史残留数据
+            var count = 0;
+            if (ns is NetworkStream nss && nss.DataAvailable) count = ns.Read(buf, 0, buf.Length);
+
             // 验证登录
             if (!Logined && !Password.IsNullOrEmpty() && cmd != "AUTH")
             {
@@ -128,10 +136,6 @@ namespace NewLife.Caching
                 Logined = true;
                 LoginTime = DateTime.Now;
             }
-
-            // 收发共用的缓冲区
-            var buf = _Buffer;
-            if (buf == null) _Buffer = buf = new Byte[64 * 1024];
 
             // *<number of arguments>\r\n$<number of bytes of argument 1>\r\n<argument data>\r\n
             // *1\r\n$4\r\nINFO\r\n
@@ -156,6 +160,15 @@ namespace NewLife.Caching
 
                 foreach (var item in args)
                 {
+                    var len = 1 + item.Length.ToString().GetBytes().Length + NewLine.Length * 2 + item.Length;
+                    // 防止写入内容过长导致的缓冲区长度不足的问题
+                    if (ms.Position + len > ms.Length)
+                    {
+                        var ms2 = new MemoryStream();
+                        ms.WriteTo(ms2);
+                        ms = ms2;
+                    }
+
                     if (log != null)
                     {
                         if (item.Length <= 32)
@@ -175,7 +188,8 @@ namespace NewLife.Caching
                     if (ms.Length > 1400)
                     {
                         ms.WriteTo(ns);
-
+                        //重置memoryStream的长度
+                        ms = new MemoryStream(buf);
                         // 从头开始
                         ms.SetLength(0);
                         ms.Position = 0;
@@ -186,7 +200,7 @@ namespace NewLife.Caching
             if (log != null) WriteLog(log.ToString());
 
             // 接收
-            var count = ns.Read(buf, 0, buf.Length);
+            count = ns.Read(buf, 0, buf.Length);
             if (count == 0) return null;
 
             if (isQuit) Logined = false;
@@ -205,24 +219,24 @@ namespace NewLife.Caching
 
             var header = (Char)rs[0];
 
-            if (header == '$') return ReadBlock(rs);
-            if (header == '*') return ReadBlocks(rs);
+            if (header == '$') return ReadBlock(rs, ns);
+            if (header == '*') return ReadBlocks(rs, ns);
 
-            rs = rs.Sub(1);
+            var pk = rs.Sub(1);
 
-            var str2 = rs.ToStr().Trim();
+            var str2 = pk.ToStr().Trim();
             if (log != null) WriteLog("=> {0}", str2);
 
             if (header == '+') return str2;
             if (header == '-') throw new Exception(str2);
             if (header == ':') return str2;
 
-            throw new NotSupportedException("无法解析响应 {0} {1}".F(header, str2.Replace(Environment.NewLine, "\\r\\n")));
+            throw new InvalidDataException("无法解析响应 [{0}] [{1}]={2}".F(header, rs.Count, rs.ToHex(32, "-")));
         }
 
-        private Packet ReadBlock(Packet pk)
+        private Packet ReadBlock(Packet pk, Stream ms)
         {
-            var rs = ReadPacket(pk);
+            var rs = ReadPacket(pk, ms);
 
             if (Log != null && Log != Logger.Null)
             {
@@ -235,7 +249,7 @@ namespace NewLife.Caching
             return rs;
         }
 
-        private Packet[] ReadBlocks(Packet pk)
+        private Packet[] ReadBlocks(Packet pk, Stream ms)
         {
             var header = (Char)pk[0];
 
@@ -251,7 +265,7 @@ namespace NewLife.Caching
             var arr = new Packet[n];
             for (var i = 0; i < n; i++)
             {
-                var rs = ReadPacket(pk);
+                var rs = ReadPacket(pk, ms);
                 arr[i] = rs;
 
                 // 下一块，在前一块末尾加 \r\n
@@ -261,18 +275,46 @@ namespace NewLife.Caching
             return arr;
         }
 
-        private Packet ReadPacket(Packet pk)
+        private Packet ReadPacket(Packet pk, Stream ms)
         {
             var header = (Char)pk[0];
 
             var p = pk.IndexOf(NewLine);
-            if (p <= 0) throw new Exception("无法解析响应 {0} [{1}]".F(header, pk.Count));
+            if (p <= 0) throw new InvalidDataException("无法解析响应 [{0}] [{1}]={2}".F((Byte)header, pk.Count, pk.ToHex(32, "-")));
 
             // 解析长度
             var len = pk.Sub(1, p - 1).ToStr().ToInt();
 
             // 出错或没有内容
             if (len <= 0) return pk.Sub(p, 0);
+
+            // 数据不足时，继续从网络流读取
+            var dlen = pk.Total - (p + 2);
+            var cur = pk;
+            while (dlen < len)
+            {
+                // 需要读取更多数据，加2字节的结尾换行
+                var over = len - dlen + 2;
+                var count = 0;
+                // 优先使用缓冲区
+                if (cur.Offset + cur.Count + over <= cur.Data.Length)
+                {
+                    count = ms.Read(cur.Data, cur.Offset + cur.Count, over);
+                    if (count > 0) cur.Set(cur.Data, cur.Offset, cur.Count + count);
+                }
+                else
+                {
+                    var buf = new Byte[over];
+                    count = ms.Read(buf, 0, over);
+                    if (count > 0)
+                    {
+                        cur.Next = new Packet(buf, 0, count);
+                        cur = cur.Next;
+                    }
+                }
+                //remain = pk.Total - (p + 2);
+                dlen += count;
+            }
 
             // 解析内容，跳过长度后的\r\n
             pk = pk.Sub(p + 2, len);
@@ -297,14 +339,26 @@ namespace NewLife.Caching
         /// <returns></returns>
         public virtual TResult Execute<TResult>(String cmd, params Object[] args)
         {
+            var type = typeof(TResult);
             var rs = SendCommand(cmd, args.Select(e => ToBytes(e)).ToArray());
-            if (rs is String str) return str.ChangeType<TResult>();
+            if (rs is String str)
+            {
+                try
+                {
+                    return str.ChangeType<TResult>();
+                }
+                catch (Exception ex)
+                {
+                    //if (type.GetTypeCode() != TypeCode.Object)
+                    throw new Exception("不能把字符串[{0}]转为类型[{1}]".F(str, type.FullName), ex);
+                }
+            }
 
             if (rs is Packet pk) return FromBytes<TResult>(pk);
 
             if (rs is Packet[] pks)
             {
-                var elmType = typeof(TResult).GetElementTypeEx();
+                var elmType = type.GetElementTypeEx();
                 var arr = Array.CreateInstance(elmType, pks.Length);
                 for (var i = 0; i < pks.Length; i++)
                 {
@@ -313,7 +367,7 @@ namespace NewLife.Caching
                 return (TResult)(Object)arr;
             }
 
-            return default;
+            return default(TResult);
         }
 
         /// <summary>心跳</summary>
@@ -432,6 +486,7 @@ namespace NewLife.Caching
         /// <returns></returns>
         protected virtual Object FromBytes(Packet pk, Type type)
         {
+            if (type == typeof(Packet)) return pk;
             if (type == typeof(Byte[])) return pk.ToArray();
 
             var str = pk.ToStr().Trim('\"');

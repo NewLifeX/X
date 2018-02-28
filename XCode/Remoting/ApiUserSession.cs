@@ -13,7 +13,7 @@ namespace XCode.Remoting
     {
         #region 属性
         /// <summary>当前登录用户</summary>
-        public IManageUser Current { get; set; }
+        public IAuthUser Current { get; set; }
 
         /// <summary>在线对象</summary>
         public IOnline Online { get; private set; }
@@ -128,7 +128,7 @@ namespace XCode.Remoting
 
         /// <summary>登录或注册完成后，保存登录信息</summary>
         /// <param name="user"></param>
-        protected virtual void SaveLogin(IManageUser user)
+        protected virtual void SaveLogin(IAuthUser user)
         {
             var ns = Session as NetSession;
             user.SaveLogin(ns);
@@ -153,13 +153,13 @@ namespace XCode.Remoting
         /// <param name="user"></param>
         /// <param name="pass"></param>
         /// <returns></returns>
-        protected abstract IManageUser CheckUser(String user, String pass);
+        protected abstract IAuthUser CheckUser(String user, String pass);
 
         /// <summary>注册，登录找不到用户时调用注册，返回空表示禁止注册</summary>
         /// <param name="user"></param>
         /// <param name="pass"></param>
         /// <returns></returns>
-        protected abstract IManageUser Register(String user, String pass);
+        protected abstract IAuthUser Register(String user, String pass);
         #endregion
 
         #region 心跳

@@ -31,7 +31,7 @@ namespace XCode
         /// <returns></returns>
         private Boolean CheckEqual(Object v1, Object v2)
         {
-            if (v1 == null || v2 == null) return Object.Equals(v1, v2);
+            if (v1 == null || v2 == null) return Equals(v1, v2);
 
             switch (Type.GetTypeCode(v1.GetType()))
             {
@@ -59,7 +59,7 @@ namespace XCode
                     break;
             }
 
-            return Object.Equals(v1, v2);
+            return Equals(v1, v2);
         }
 
         /// <summary>属性改变。重载时记得调用基类的该方法，以设置脏数据属性，否则数据将无法Update到数据库。</summary>

@@ -47,6 +47,8 @@ namespace NewLife.Collections
 
         /// <summary>借出去的放在这</summary>
         private ConcurrentDictionary<T, Item> _busy = new ConcurrentDictionary<T, Item>();
+
+        private Object SyncRoot = new Object();
         #endregion
 
         #region 构造
@@ -73,6 +75,20 @@ namespace NewLife.Collections
             while (_free2.TryDequeue(out var pi)) OnDestroy(pi.Value);
             _busy.Clear();
         }
+
+        private volatile Boolean _inited;
+        private void Init()
+        {
+            if (_inited) return;
+
+            lock (SyncRoot)
+            {
+                if (_inited) return;
+                _inited = true;
+
+                WriteLog($"Init {typeof(T).FullName} Min={Min} Max={Max} IdleTime={IdleTime}s AllIdleTime={AllIdleTime}s WaitTime={WaitTime}ms");
+            }
+        }
         #endregion
 
         #region 内嵌
@@ -93,7 +109,7 @@ namespace NewLife.Collections
         public T Acquire(Int32 msTimeout = 0)
         {
             var pi = OnAcquire(msTimeout);
-            if (pi == null) return default;
+            if (pi == null) return default(T);
 
             return pi.Value;
         }
@@ -109,7 +125,6 @@ namespace NewLife.Collections
             return new PoolItem<T>(this, pi.Value);
         }
 
-        private Boolean _inited;
         /// <summary>申请</summary>
         /// <param name="msTimeout">池满时等待的最大超时时间。超时后仍无法得到资源将抛出异常</param>
         /// <returns></returns>
@@ -160,11 +175,7 @@ namespace NewLife.Collections
                         Value = Create(),
                     };
 
-                    if (count == 0 && !_inited)
-                    {
-                        _inited = true;
-                        WriteLog($"Init {typeof(T).FullName} Min={Min} Max={Max} IdleTime={IdleTime}s AllIdleTime={AllIdleTime}s WaitTime={WaitTime}ms");
-                    }
+                    if (count == 0) Init();
                     WriteLog("Acquire Create Free={0} Busy={1}", FreeCount, count + 1);
                 }
 
@@ -271,7 +282,8 @@ namespace NewLife.Collections
         /// <param name="value"></param>
         protected virtual Boolean OnRelease(T value)
         {
-            if (value is DisposeBase db && db.Disposed) return false;
+            var db = value as DisposeBase;
+            if (db != null && db.Disposed) return false;
 
             return true;
         }
@@ -316,6 +328,7 @@ namespace NewLife.Collections
                         OnDestroy(pi.Value);
 
                         count++;
+                        Interlocked.Decrement(ref _FreeCount);
                     }
                 }
             }
@@ -332,14 +345,15 @@ namespace NewLife.Collections
                         OnDestroy(pi.Value);
 
                         count++;
+                        Interlocked.Decrement(ref _FreeCount);
                     }
                 }
             }
 
             if (count > 0)
             {
-                _FreeCount = _free.Count + _free2.Count;
-                _BusyCount = _busy.Count;
+                //_FreeCount = _free.Count + _free2.Count;
+                //_BusyCount = _busy.Count;
 
                 var p = Total == 0 ? 0 : (Double)Success / Total;
 

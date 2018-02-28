@@ -81,7 +81,7 @@ namespace NewLife.Collections
         {
             for (var node = Head; node != null; node = node.Next)
             {
-                if (Object.Equals(node.Value, item))
+                if (Equals(node.Value, item))
                 {
                     var p = node.Prev;
                     var n = node.Next;
@@ -139,7 +139,7 @@ namespace NewLife.Collections
         {
             for (var node = Head; node != null; node = node.Next)
             {
-                if (Object.Equals(node.Value, item)) return true;
+                if (Equals(node.Value, item)) return true;
             }
 
             return false;

@@ -37,26 +37,26 @@ namespace XCoder.XRegex
         /// <param name="name">名称</param>
         public static void ReleaseTemplateFiles(String name)
         {
-            String path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, name);
+            var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, name);
             if (Directory.Exists(path)) return;
 
-            String[] ss = Assembly.GetExecutingAssembly().GetManifestResourceNames();
+            var ss = Assembly.GetExecutingAssembly().GetManifestResourceNames();
             if (ss == null || ss.Length <= 0) return;
 
             // 取命名空间
-            String prefix = typeof(FileResource).FullName;
+            var prefix = typeof(FileResource).FullName;
             prefix = prefix.Substring(0, prefix.LastIndexOf("."));
             prefix += "." + name + ".";
 
             //找到资源名
-            foreach (String item in ss)
+            foreach (var item in ss)
             {
                 if (item.StartsWith(prefix))
                 {
-                    String fileName = item.Substring(prefix.Length);
+                    var fileName = item.Substring(prefix.Length);
                     fileName = fileName.Replace(".", @"\");
                     // 最后一个斜杠变回圆点
-                    Char[] cc = fileName.ToCharArray();
+                    var cc = fileName.ToCharArray();
                     cc[fileName.LastIndexOf("\\")] = '.';
                     fileName = new String(cc);
                     fileName = Path.Combine(path, fileName);
@@ -75,13 +75,13 @@ namespace XCoder.XRegex
         {
             try
             {
-                Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(name);
+                var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(name);
                 if (stream == null) return;
 
-                Byte[] buffer = new Byte[stream.Length];
-                Int32 count = stream.Read(buffer, 0, buffer.Length);
+                var buffer = new Byte[stream.Length];
+                var count = stream.Read(buffer, 0, buffer.Length);
 
-                String p = Path.GetDirectoryName(fileName);
+                var p = Path.GetDirectoryName(fileName);
                 if (!String.IsNullOrEmpty(p) && !Directory.Exists(p)) Directory.CreateDirectory(p);
 
                 File.WriteAllBytes(fileName, buffer);

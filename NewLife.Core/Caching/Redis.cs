@@ -21,13 +21,20 @@ namespace NewLife.Caching
         /// <returns></returns>
         public static Redis Create(String server, Int32 db)
         {
-            if (String.IsNullOrEmpty(server) || server == ".") server = "127.0.0.1";
+            if (server.IsNullOrEmpty() || server == ".") server = "127.0.0.1";
 
             var pass = "";
             if (server.Contains("@"))
             {
                 pass = server.Substring(null, "@");
                 server = server.Substring("@", null);
+            }
+            //适配多种配置连接字符
+            else if (server.Contains(";") && pass.IsNullOrEmpty())
+            {
+                var dic = server.SplitAsDictionary("=", ";");
+                pass = dic.ContainsKey("password") ? dic["password"] : "";
+                server = dic.ContainsKey("server") ? dic["server"] : "";
             }
 
             var name = "{0}_{1}".F(server, db);
@@ -119,11 +126,16 @@ namespace NewLife.Caching
             {
                 var rds = Instance;
                 var svr = rds.Server;
+                if (svr.IsNullOrEmpty()) throw new ArgumentNullException(nameof(rds.Server));
+
                 if (!svr.Contains("://")) svr = "tcp://" + svr;
+
+                var uri = new NetUri(svr);
+                if (uri.Port == 0) uri.Port = 6379;
 
                 var rc = new RedisClient
                 {
-                    Server = new NetUri(svr),
+                    Server = uri,
                     Password = rds.Password,
                 };
                 if (rds.Db > 0) rc.Select(rds.Db);
@@ -140,16 +152,24 @@ namespace NewLife.Caching
         {
             get
             {
-                return _Pool ?? (_Pool = new MyPool
+                if (_Pool != null) return _Pool;
+                lock (this)
                 {
-                    Name = "RedisPool",
-                    Instance = this,
-                    Min = 2,
-                    Max = 1000,
-                    IdleTime = 20,
-                    AllIdleTime = 120,
-                    Log = Log,
-                });
+                    if (_Pool != null) return _Pool;
+
+                    var pool = new MyPool
+                    {
+                        Name = Name + "Pool",
+                        Instance = this,
+                        Min = 2,
+                        Max = 1000,
+                        IdleTime = 20,
+                        AllIdleTime = 120,
+                        Log = Log,
+                    };
+
+                    return _Pool = pool;
+                }
             }
         }
 
@@ -217,11 +237,11 @@ namespace NewLife.Caching
             return Execute(rds => rds.Get<T>(key));
         }
 
-        /// <summary>移除单体</summary>
-        /// <param name="key">键</param>
-        public override Boolean Remove(String key)
+        /// <summary>批量移除缓存项</summary>
+        /// <param name="keys">键集合</param>
+        public override Int32 Remove(params String[] keys)
         {
-            return Execute(rds => rds.Execute<String>("DEL", key) == "1");
+            return Execute(rds => rds.Execute<Int32>("DEL", keys));
         }
 
         /// <summary>是否存在</summary>
@@ -269,9 +289,39 @@ namespace NewLife.Caching
 
             Execute(rds => rds.SetAll(values));
         }
+
+        /// <summary>获取队列</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public override IProducerConsumer<T> GetQueue<T>(String key)
+        {
+            return new RedisQueue<T>(this, key);
+        }
         #endregion
 
         #region 高级操作
+        /// <summary>添加，已存在时不更新</summary>
+        /// <typeparam name="T">值类型</typeparam>
+        /// <param name="key">键</param>
+        /// <param name="value">值</param>
+        /// <param name="expire">过期时间，秒。小于0时采用默认缓存时间<seealso cref="Cache.Expire"/></param>
+        /// <returns></returns>
+        public override Boolean Add<T>(String key, T value, Int32 expire = -1)
+        {
+            return Execute(rds => rds.Execute<Int32>("SETNX", key, value) == 1);
+        }
+
+        /// <summary>设置新值并获取旧值，原子操作</summary>
+        /// <typeparam name="T">值类型</typeparam>
+        /// <param name="key">键</param>
+        /// <param name="value">值</param>
+        /// <returns></returns>
+        public override T Replace<T>(String key, T value)
+        {
+            return Execute(rds => rds.Execute<T>("GETSET", key, value));
+        }
+
         /// <summary>累加，原子操作</summary>
         /// <param name="key">键</param>
         /// <param name="value">变化量</param>
@@ -314,49 +364,16 @@ namespace NewLife.Caching
             //return (Double)Decrement(key, (Int64)(value * 100)) / 100;
             return Increment(key, -value);
         }
-
-        /// <summary>添加，不存在时设置</summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public Boolean Add<T>(String key, T value)
-        {
-            return Execute(rds => rds.Execute<Int32>("SETNX", key, value) == 1);
-        }
-
-        /// <summary>设置新值并获取旧值，原子操作</summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public T GetSet<T>(String key, T value)
-        {
-            return Execute(rds => rds.Execute<T>("GETSET", key, value));
-        }
-        #endregion
-
-        #region 事务
-        /// <summary>申请加锁</summary>
-        /// <param name="key"></param>
-        /// <param name="msTimeout"></param>
-        /// <returns></returns>
-        public IDisposable AcquireLock(String key, Int32 msTimeout)
-        {
-            var rlock = new RedisLock(this, key);
-            if (!rlock.Acquire(msTimeout)) throw new InvalidOperationException($"锁定[{key}]失败！msTimeout={msTimeout}");
-
-            return rlock;
-        }
         #endregion
 
         #region 性能测试
         /// <summary>性能测试</summary>
-        public override void Bench()
+        /// <param name="rand">随机读写</param>
+        public override void Bench(Boolean rand = false)
         {
             XTrace.WriteLine($"目标服务器：{Server}/{Db}");
 
-            base.Bench();
+            base.Bench(rand);
         }
 
         /// <summary>测试</summary>
@@ -454,5 +471,53 @@ namespace NewLife.Caching
             Log?.Info(format, args);
         }
         #endregion
+    }
+
+    /// <summary>生产者消费者</summary>
+    /// <typeparam name="T"></typeparam>
+    class RedisQueue<T> : IProducerConsumer<T>
+    {
+        private Redis _Redis;
+        private String _Key;
+
+        public RedisQueue(Redis rds, String key)
+        {
+            _Redis = rds;
+            _Key = key;
+        }
+
+        /// <summary>生产添加</summary>
+        /// <param name="values"></param>
+        /// <returns></returns>
+        public Int32 Add(IEnumerable<T> values)
+        {
+            var ps = new List<Object>
+            {
+                _Key
+            };
+            foreach (var item in values)
+            {
+                ps.Add(item);
+            }
+            return _Redis.Execute(rc => rc.Execute<Int32>("RPUSH", ps.ToArray()));
+        }
+
+        /// <summary>消费获取</summary>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        public IEnumerable<T> Take(Int32 count = 1)
+        {
+            if (count <= 0) yield break;
+
+            //return _Redis.Execute(rc => rc.Execute<T[]>("LRANGE", _Key, 0, count - 1));
+
+            for (var i = 0; i < count; i++)
+            {
+                var value = _Redis.Execute(rc => rc.Execute<T>("LPOP", _Key));
+                if (Equals(value, default(T))) break;
+
+                yield return value;
+            }
+        }
     }
 }

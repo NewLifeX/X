@@ -258,7 +258,7 @@ namespace NewLife.Web
                 var handler = new HttpClientHandler();
                 if (p != null)
                 {
-                    handler.UseProxy = false;
+                    handler.UseProxy = true;
                     handler.Proxy = p;
                 }
                 else
@@ -266,6 +266,7 @@ namespace NewLife.Web
                     handler.UseProxy = false;
                     handler.Proxy = null;
                 }
+                if (AutomaticDecompression != DecompressionMethods.None) handler.AutomaticDecompression = AutomaticDecompression;
 
                 http = new HttpClientX(handler);
 
@@ -304,7 +305,8 @@ namespace NewLife.Web
             var source = new CancellationTokenSource(time);
             var task = content != null ? http.PostAsync(address, content, source.Token) : http.GetAsync(address, source.Token);
             var rs = await task;
-            Response = rs.EnsureSuccessStatusCode();
+            //Response = rs.EnsureSuccessStatusCode();
+            Response = rs;
             SetCookie();
 
             // 修改引用地址
@@ -497,7 +499,7 @@ namespace NewLife.Web
                 // 如果文件存在，另外改一个名字吧
                 var ext = Path.GetExtension(link.Name);
                 file2 = Path.GetFileNameWithoutExtension(link.Name);
-                file2 = "{0}_{1:yyyyMMddHHmmss}.{2}".F(file2, DateTime.Now, ext);
+                file2 = "{0}_{1:yyyyMMddHHmmss}{2}".F(file2, DateTime.Now, ext);
                 file2 = destdir.CombinePath(file2).EnsureDirectory();
             }
 
@@ -659,23 +661,27 @@ namespace NewLife.Web
         #endregion
 
         #region 连接池
+        private static Object SyncRoot = new Object();
         private static WebClientPool _Pool;
         /// <summary>默认连接池</summary>
         public static Pool<WebClientX> Pool
         {
             get
             {
-                if (_Pool == null)
+                if (_Pool != null) return _Pool;
+                lock (SyncRoot)
                 {
-                    _Pool = new WebClientPool
+                    if (_Pool != null) return _Pool;
+
+                    var pool = new WebClientPool
                     {
                         Name = "WebClientPool",
                         Min = 2,
                         AllIdleTime = 60
                     };
-                }
 
-                return _Pool;
+                    return _Pool = pool;
+                }
             }
         }
 
@@ -696,6 +702,46 @@ namespace NewLife.Web
             {
                 return new WebClientX();
             }
+        }
+        #endregion
+
+        #region 辅助
+        private static Boolean? _useUnsafeHeaderParsing;
+        /// <summary>设置是否允许不安全头部</summary>
+        /// <remarks>
+        /// 微软WebClient默认要求严格的Http头部，否则报错
+        /// </remarks>
+        /// <param name="useUnsafe"></param>
+        /// <returns></returns>
+        public static Boolean SetAllowUnsafeHeaderParsing(Boolean useUnsafe)
+        {
+            if (_useUnsafeHeaderParsing != null && _useUnsafeHeaderParsing.Value == useUnsafe) return true;
+
+            //Get the assembly that contains the internal class
+            var aNetAssembly = Assembly.GetAssembly(typeof(System.Net.Configuration.SettingsSection));
+            if (aNetAssembly == null) return false;
+
+            //Use the assembly in order to get the internal type for the internal class
+            var type = aNetAssembly.GetType("System.Net.Configuration.SettingsSectionInternal");
+            if (type == null) return false;
+
+            //Use the internal static property to get an instance of the internal settings class.
+            //If the static instance isn't created allready the property will create it for us.
+            var section = type.InvokeMember("Section", BindingFlags.Static | BindingFlags.GetProperty | BindingFlags.NonPublic, null, null, new Object[] { });
+
+            if (section != null)
+            {
+                //Locate the private bool field that tells the framework is unsafe header parsing should be allowed or not
+                var useUnsafeHeaderParsing = type.GetField("useUnsafeHeaderParsing", BindingFlags.NonPublic | BindingFlags.Instance);
+                if (useUnsafeHeaderParsing != null)
+                {
+                    useUnsafeHeaderParsing.SetValue(section, useUnsafe);
+                    _useUnsafeHeaderParsing = useUnsafe;
+                    return true;
+                }
+            }
+
+            return false;
         }
         #endregion
 
