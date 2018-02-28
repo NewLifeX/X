@@ -189,6 +189,7 @@ namespace NewLife.Cube.Web
                 {
                     // 新注册用户采用魔方默认角色
                     var rid = set.DefaultRole;
+                    if (rid == 0 && client.Items.TryGetValue("roleid", out var roleid)) rid = roleid.ToInt();
 
                     // 注册用户，随机密码
                     user = prv.Register(name, Rand.NextString(16), rid, true);

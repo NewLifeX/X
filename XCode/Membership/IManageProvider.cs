@@ -211,13 +211,6 @@ namespace XCode.Membership
             user.Name = name;
             user.Password = password;
             user.Enable = enable;
-
-            //if (!String.IsNullOrEmpty(rolename))
-            //{
-            //    var fact = Get<IRole>();
-            //    var role = fact.FindOrCreateByName(rolename);
-            //    user.RoleID = role.ID;
-            //}
             user.RoleID = roleid;
 
             user.Register();

@@ -64,8 +64,8 @@ namespace XCode.Membership
             if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}用户数据……", typeof(TEntity).Name);
 
             Add("admin", null, 1, "管理员");
-            Add("poweruser", null, 2, "高级用户");
-            Add("user", null, 3, "普通用户");
+            //Add("poweruser", null, 2, "高级用户");
+            //Add("user", null, 3, "普通用户");
 
             if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}用户数据！", typeof(TEntity).Name);
         }
@@ -448,27 +448,36 @@ namespace XCode.Membership
             //Thread.CurrentPrincipal = null;
         }
 
-        /// <summary>注册用户。默认写日志后Insert，注册仅保存基本信息，需要扩展的同学请重载</summary>
+        /// <summary>注册用户。第一注册用户自动抢管理员</summary>
         public virtual void Register()
         {
-            if (RoleID == 0)
+            //!!! 第一个用户注册时，如果只有一个默认admin账号，则自动抢管理员
+            if (Meta.Count < 3 && FindCount() <= 1)
             {
-                // 填写角色。最后一个普通角色，如果没有，再管理员角色
-                var eop = ManageProvider.GetFactory<IRole>();
-                var list = eop.FindAllWithCache().Cast<IRole>();
-
-                // 找游客组
-                var role = list.FirstOrDefault(e => e.Name == "游客");
-
-                // 最后一个非系统角色
-                if (role == null) role = list.Where(e => !e.IsSystem).OrderBy(e => e.ID).LastOrDefault();
-                // 没有非系统角色，随便一个啦
-                if (role == null) role = list.LastOrDefault();
-
-                RoleID = role.ID;
+                var list = FindAll();
+                if (list.Count == 0 || list.Count == 1 && list[0].DisableAdmin())
+                {
+                    RoleID = 1;
+                    Enable = true;
+                }
             }
 
             Insert();
+        }
+
+        /// <summary>禁用默认管理员</summary>
+        /// <returns></returns>
+        private Boolean DisableAdmin()
+        {
+            if (!Name.EqualIgnoreCase("admin")) return false;
+            if (!Password.EqualIgnoreCase("admin".MD5())) return false;
+
+            Enable = false;
+            RoleID = 4;
+
+            Save();
+
+            return true;
         }
 
 #if !__CORE__
