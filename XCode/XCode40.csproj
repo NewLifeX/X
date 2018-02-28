@@ -113,6 +113,10 @@
     <Compile Include="PreApplicationStartCode.cs" />
     <Compile Include="Remoting\ApiUserSession.cs" />
     <Compile Include="Setting.cs" />
+    <Compile Include="Statistics\IStat.cs" />
+    <Compile Include="Statistics\StatHelper.cs" />
+    <Compile Include="Statistics\StatLevels.cs" />
+    <Compile Include="Statistics\StatModel.cs" />
     <Compile Include="Sync\ISyncMaster.cs" />
     <Compile Include="Sync\ISyncSlave.cs" />
     <Compile Include="Sync\SyncManager.cs" />

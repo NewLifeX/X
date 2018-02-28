@@ -65,7 +65,7 @@ namespace ASP
     Layout = NewLife.Cube.Setting.Current.Layout;
 
     var fact = ViewBag.Factory as IEntityOperate;
-    var fields = ViewBag.Fields as IReadOnlyList<FieldItem>;
+    var fields = ViewBag.Fields as IList<FieldItem>;
     var entity = Model as IEntity;
     var isNew = entity.IsNullKey;
 
