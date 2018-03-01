@@ -240,7 +240,7 @@ namespace XCode.Membership
 
             // 角色列表
             var roles = new List<String>();
-            if (user is IUser) roles.Add((user as IUser).RoleName);
+            if (user is IUser user2) roles.Add(user2.RoleName);
 
             ctx.User = new GenericPrincipal(id, roles.ToArray());
         }

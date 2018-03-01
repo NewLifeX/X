@@ -51,7 +51,8 @@ namespace NewLife.Cube
             // 只验证管辖范围
             if (!AreaRegistrationBase.Contains(filterContext.Controller)) return;
 
-            ManageProvider.Provider.SetPrincipal();
+            var prv = ManageProvider.Provider;
+            prv.SetPrincipal();
 
             var act = filterContext.ActionDescriptor;
 
@@ -66,7 +67,7 @@ namespace NewLife.Cube
 
             var ctx = filterContext.HttpContext;
             // 判断当前登录用户
-            var user = ManageProvider.User;
+            var user = prv.Current;
             if (user == null)
             {
                 //HandleUnauthorizedRequest(filterContext);
@@ -84,9 +85,9 @@ namespace NewLife.Cube
             // 根据请求Url定位资源菜单
             var url = ctx.Request.AppRelativeCurrentExecutionFilePath;
             var menu = ManageProvider.Menu?.Current;
-            if (menu != null)
+            if (menu != null && user is IUser user2)
             {
-                var role = user?.Role;
+                var role = user2?.Role;
                 if (role != null && role.Has(menu.ID, Permission)) return;
             }
             else

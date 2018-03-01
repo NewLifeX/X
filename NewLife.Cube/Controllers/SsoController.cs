@@ -223,6 +223,7 @@ namespace NewLife.Cube.Controllers
         /// 构建身份验证结构，返回code给子系统
         /// </remarks>
         /// <returns></returns>
+        [AllowAnonymous]
         public virtual ActionResult Auth2(Int32 id)
         {
             if (id <= 0) throw new ArgumentNullException(nameof(id));

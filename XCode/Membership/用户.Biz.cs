@@ -76,8 +76,8 @@ namespace XCode.Membership
         {
             base.Valid(isNew);
 
-            if (String.IsNullOrEmpty(Name)) throw new ArgumentNullException(__.Name, "用户名不能为空！");
-            if (RoleID < 1) throw new ArgumentNullException(__.RoleID, "没有指定角色！");
+            if (Name.IsNullOrEmpty()) throw new ArgumentNullException(__.Name, "用户名不能为空！");
+            //if (RoleID < 1) throw new ArgumentNullException(__.RoleID, "没有指定角色！");
 
             var pass = Password;
             if (isNew)

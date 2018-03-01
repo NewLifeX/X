@@ -212,7 +212,7 @@ namespace NewLife.Cube
         /// <summary>判断控制器是否归属于魔方管辖</summary>
         /// <param name="controller"></param>
         /// <returns></returns>
-        internal static Boolean Contains(IController controller)
+        public static Boolean Contains(IController controller)
         {
             // 判断控制器是否在管辖范围之内，不拦截其它控制器的异常信息
             var ns = controller.GetType().Namespace;
