@@ -223,7 +223,7 @@ namespace NewLife.Serialization
 
             if (type == typeof(Int32)) return value.ToInt();
             if (type == typeof(Int64)) return value.ToLong();
-            if (type == typeof(String)) return value as String;
+            if (type == typeof(String)) return value + "";
 
             if (type.IsEnum) return Enum.Parse(type, value + "");
             if (type == typeof(DateTime)) return CreateDateTime(value);
