@@ -62,7 +62,7 @@ namespace NewLife.Web
                     //new OAuthItem { Name = "Alipay" },
                     new OAuthItem { Name = "Github" }
                 };
-                var mi = new OAuthItem { Name = "NewLife", Server = "http://sso.newlifex.com/sso", AppID = "abcd", Secret = "1234" };
+                var mi = new OAuthItem { Name = "NewLife", Server = "https://sso.newlifex.com/sso", AppID = "abcd", Secret = "1234" };
                 list.Add(mi);
                 Items = list.ToArray();
             }
