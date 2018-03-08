@@ -186,24 +186,24 @@ WriteLiteral("                            <img");
 
 WriteLiteral(" class=\"nav-user-photo\"");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 1783), Tuple.Create("\"", 1801)
+WriteAttribute("src", Tuple.Create(" src=\"", 1783), Tuple.Create("\"", 1809)
             
             #line 43 "..\..\Areas\Admin\Views\Index\_Navbar.cshtml"
-, Tuple.Create(Tuple.Create("", 1789), Tuple.Create<System.Object, System.Int32>(user.Avatar
+, Tuple.Create(Tuple.Create("", 1789), Tuple.Create<System.Object, System.Int32>(user.GetAvatarUrl()
             
             #line default
             #line hidden
 , 1789), false)
 );
 
-WriteAttribute("alt", Tuple.Create(" alt=\"", 1802), Tuple.Create("\"", 1813)
+WriteAttribute("alt", Tuple.Create(" alt=\"", 1810), Tuple.Create("\"", 1821)
             
             #line 43 "..\..\Areas\Admin\Views\Index\_Navbar.cshtml"
-, Tuple.Create(Tuple.Create("", 1808), Tuple.Create<System.Object, System.Int32>(user
+        , Tuple.Create(Tuple.Create("", 1816), Tuple.Create<System.Object, System.Int32>(user
             
             #line default
             #line hidden
-, 1808), false)
+, 1816), false)
 );
 
 WriteLiteral(" />\r\n");
@@ -245,9 +245,9 @@ WriteLiteral(" class=\"user-menu dropdown-menu-right dropdown-menu dropdown-yell
 
 WriteLiteral(">\r\n                        <li>\r\n                            <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 2321), Tuple.Create("\"", 2330)
-, Tuple.Create(Tuple.Create("", 2328), Tuple.Create<System.Object, System.Int32>(Href("~/")
-, 2328), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 2329), Tuple.Create("\"", 2338)
+, Tuple.Create(Tuple.Create("", 2336), Tuple.Create<System.Object, System.Int32>(Href("~/")
+, 2336), false)
 );
 
 WriteLiteral(" target=\"_blank\"");
@@ -275,9 +275,9 @@ WriteLiteral("></i>\r\n                                网站首页\r\n         
             #line hidden
 WriteLiteral("                            <li>\r\n                                <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 2695), Tuple.Create("\"", 2713)
-, Tuple.Create(Tuple.Create("", 2702), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/Sys")
-, 2702), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 2703), Tuple.Create("\"", 2721)
+, Tuple.Create(Tuple.Create("", 2710), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/Sys")
+, 2710), false)
 );
 
 WriteLiteral(" target=\"main\"");
@@ -298,16 +298,16 @@ WriteLiteral("></i>\r\n                                    设置\r\n           
             #line hidden
 WriteLiteral("\r\n                        <li>\r\n                            <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 3005), Tuple.Create("\"", 3034)
-, Tuple.Create(Tuple.Create("", 3012), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/User/Info/")
-, 3012), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 3013), Tuple.Create("\"", 3042)
+, Tuple.Create(Tuple.Create("", 3020), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/User/Info/")
+, 3020), false)
             
             #line 72 "..\..\Areas\Admin\Views\Index\_Navbar.cshtml"
-, Tuple.Create(Tuple.Create("", 3030), Tuple.Create<System.Object, System.Int32>(uid
+, Tuple.Create(Tuple.Create("", 3038), Tuple.Create<System.Object, System.Int32>(uid
             
             #line default
             #line hidden
-, 3030), false)
+, 3038), false)
 );
 
 WriteLiteral(" target=\"main\"");
@@ -323,9 +323,9 @@ WriteLiteral(" class=\"divider\"");
 
 WriteLiteral("></li>\r\n\r\n                        <li>\r\n                            <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 3339), Tuple.Create("\"", 3365)
-, Tuple.Create(Tuple.Create("", 3346), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/User/Logout")
-, 3346), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 3347), Tuple.Create("\"", 3373)
+, Tuple.Create(Tuple.Create("", 3354), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/User/Logout")
+, 3354), false)
 );
 
 WriteLiteral(">\r\n                                <i");

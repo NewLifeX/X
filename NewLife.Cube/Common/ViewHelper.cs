@@ -291,6 +291,21 @@ namespace NewLife.Cube
 
             return user.Has(PermissionFlags.Update, PermissionFlags.Delete);
         }
+
+        /// <summary>获取头像地址</summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public static String GetAvatarUrl(this IUser user)
+        {
+            if (user == null || user.Avatar.IsNullOrEmpty()) return null;
+
+            var set = Setting.Current;
+            var av = set.AvatarPath.CombinePath(user.ID + "").GetFullPath();
+
+            if (File.Exists(av)) return "/Sso/Avatar/" + user.ID;
+
+            return user.Avatar;
+        }
     }
 
     /// <summary>Bootstrap页面控制。允许继承</summary>

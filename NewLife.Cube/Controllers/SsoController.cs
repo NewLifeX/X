@@ -343,21 +343,15 @@ namespace NewLife.Cube.Controllers
             if (prv == null) throw new ArgumentNullException(nameof(Provider));
 
             var set = Setting.Current;
-
-            var user = prv.Provider?.FindByID(id);
-            if (user == null) throw new Exception("用户不存在 " + id);
-
-            var av = user.GetValue("Avatar") as String;
-            if (av.IsNullOrEmpty()) throw new Exception("用户头像不存在 " + user);
-
-            // 读取头像
-            if (av.StartsWithIgnoreCase("http"))
+            var av = set.AvatarPath.CombinePath(id + "").GetFullPath();
+            if (!System.IO.File.Exists(av))
             {
-                if (prv.FetchAvatar(user) && user is IAuthUser user2) user2.Save();
-            }
+                var user = prv.Provider?.FindByID(id);
+                if (user == null) throw new Exception("用户不存在 " + id);
 
-            av = set.AvatarPath.CombinePath(user.ID + "").GetFullPath();
-            if (!System.IO.File.Exists(av)) throw new Exception("用户头像不存在 " + user);
+                prv.FetchAvatar(user);
+            }
+            if (!System.IO.File.Exists(av)) throw new Exception("用户头像不存在 " + id);
 
             return File(av, "image");
         }

@@ -151,7 +151,7 @@ namespace NewLife.Cube.Web
                 // 头像
                 if (user2.Avatar.IsNullOrEmpty()) user2.Avatar = client.Avatar;
 
-                // 下载远程头像
+                // 下载远程头像到本地，Avatar还是保存远程头像地址
                 if (user2.Avatar.StartsWithIgnoreCase("http") && !set.AvatarPath.IsNullOrEmpty()) FetchAvatar(user);
             }
         }
@@ -283,6 +283,10 @@ namespace NewLife.Cube.Web
             // 不要扩展名
             var set = Setting.Current;
             av = set.AvatarPath.CombinePath(user.ID + "").GetFullPath();
+
+            // 头像是否已存在
+            if (File.Exists(av)) return false;
+
             av.EnsureDirectory(true);
 
             try
@@ -290,8 +294,8 @@ namespace NewLife.Cube.Web
                 var wc = new WebClientX(true, true);
                 Task.Run(() => wc.DownloadFileAsync(url, av)).Wait(5000);
 
-                // 更新头像
-                user.SetValue("Avatar", "/Sso/Avatar/" + user.ID);
+                //// 更新头像
+                //user.SetValue("Avatar", "/Sso/Avatar/" + user.ID);
 
                 return true;
             }
