@@ -24,8 +24,13 @@
             @using (Html.BeginForm("Info", null, new { id = Model[fact.Unique.Name] }))
             {
                 @Html.ValidationSummary()
+                if (!user.Avatar.IsNullOrEmpty())
+                {
+                    <div class="form-group">
+                        <img src="@user.Avatar" />
+                    </div>
+                }
                 <div class="form-group">
-
                     <label class="control-label col-md-2">名称</label>
                     <div class="input-group col-md-6">
                         <input value="@user.Name" class="col-xs-12 col-sm-8 col-md-6 col-lg-4" disabled="disabled" />
@@ -106,7 +111,7 @@
                                     if (uc != null)
                                     {
                                         <li>
-                                            <span>@mi.Name（已绑定）</span> 
+                                            <span>@mi.Name（已绑定）</span>
                                             <a href="~/Sso/UnBind/@mi.Name" title="取消绑定 @mi.Name">取消绑定</a>
                                         </li>
                                     }

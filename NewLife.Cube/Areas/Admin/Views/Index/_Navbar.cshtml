@@ -38,7 +38,10 @@
                 <!-- #section:basics/navbar.user_menu -->
                 <li class="light-blue">
                     <a data-toggle="dropdown" href="~/Admin/User/Info/@uid" class="dropdown-toggle" target="main">
-                        @*<img class="nav-user-photo" src="~/Content/ace/avatars/user.jpg" alt="@User.FriendName" />*@
+                        @if (!user.Avatar.IsNullOrEmpty())
+                        {
+                            <img class="nav-user-photo" src="@user.Avatar" alt="@user" />
+                        }
                         <span class="user-info">
                             @*<small>欢迎，</small>*@
                             @user @*[@User["RoleName"]]*@

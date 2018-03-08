@@ -365,7 +365,7 @@ namespace NewLife.Web
                 dic = html.SplitAsDictionary("=", "&").ToDictionary(e => e.Key.ToLower(), e => e.Value + "", StringComparer.OrdinalIgnoreCase);
             }
 
-            return dic.ToNullable();
+            return dic.ToNullable(StringComparer.OrdinalIgnoreCase);
         }
 
         /// <summary>最后一次请求的响应内容</summary>

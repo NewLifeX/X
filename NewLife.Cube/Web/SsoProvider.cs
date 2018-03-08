@@ -246,6 +246,7 @@ namespace NewLife.Cube.Web
                     code = user2.Code,
                     roleid = user2.RoleID,
                     rolename = user2.RoleName,
+                    avatar = user2.Avatar,
                 };
             else
                 return new
