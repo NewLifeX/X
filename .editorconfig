@@ -82,7 +82,7 @@ csharp_style_expression_bodied_operators = when_on_single_line:suggestion
 # Prefer property-like constructs to have an expression-body
 csharp_style_expression_bodied_properties = true:suggestion
 csharp_style_expression_bodied_indexers = true:suggestion
-csharp_style_expression_bodied_accessors = true:suggestion
+#csharp_style_expression_bodied_accessors = true:suggestion
 
 # Suggest more modern language features when available
 csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion

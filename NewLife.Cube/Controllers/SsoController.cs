@@ -277,6 +277,8 @@ namespace NewLife.Cube.Controllers
             }
             catch (Exception ex)
             {
+                XTrace.WriteLine($"Access_Token {client_id} {client_secret} {code}");
+                XTrace.WriteException(ex);
                 return Json(new { error = ex.GetTrue().Message }, JsonRequestBehavior.AllowGet);
             }
         }
@@ -292,9 +294,7 @@ namespace NewLife.Cube.Controllers
             try
             {
                 var sso = OAuthServer.Instance;
-                var username = sso.TokenProvider.Decode(access_token, out var expire);
-                if (username.IsNullOrEmpty()) throw new Exception("非法访问令牌");
-                if (expire < DateTime.Now) throw new Exception("令牌已过期");
+                var username = sso.Decode(access_token);
 
                 var user = Provider?.Provider?.FindByName(username);
                 if (user == null) throw new Exception("用户不存在");
@@ -304,6 +304,8 @@ namespace NewLife.Cube.Controllers
             }
             catch (Exception ex)
             {
+                XTrace.WriteLine($"UserInfo {access_token}");
+                XTrace.WriteException(ex);
                 return Json(new { error = ex.GetTrue().Message }, JsonRequestBehavior.AllowGet);
             }
         }

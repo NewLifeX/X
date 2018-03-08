@@ -82,7 +82,7 @@ namespace XCode.Membership
         public static IManageProvider Provider { get { return ObjectContainer.Current.ResolveInstance<IManageProvider>(); } }
 
         /// <summary>当前登录用户</summary>
-        public static IUser User { get { return Provider.Current as IUser; } set { Provider.Current = value as IManageUser; } }
+        public static IUser User { get => Provider.Current as IUser; set => Provider.Current = value as IManageUser; }
 
         /// <summary>菜单工厂</summary>
         public static IMenuFactory Menu { get { return GetFactory<IMenu>() as IMenuFactory; } }
@@ -180,7 +180,7 @@ namespace XCode.Membership
     public class ManageProvider<TUser> : ManageProvider where TUser : User<TUser>, new()
     {
         /// <summary>当前用户</summary>
-        public override IManageUser Current { get { return User<TUser>.Current; } set { User<TUser>.Current = (TUser)value; } }
+        public override IManageUser Current { get => User<TUser>.Current; set => User<TUser>.Current = (TUser)value; }
 
         /// <summary>根据用户编号查找</summary>
         /// <param name="userid"></param>

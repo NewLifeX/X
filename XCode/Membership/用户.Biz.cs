@@ -573,7 +573,7 @@ namespace XCode.Membership
         //Object IManageUser.Uid { get { return ID; } }
 
         /// <summary>昵称</summary>
-        String IManageUser.NickName { get { return DisplayName; } set { DisplayName = value; } }
+        String IManageUser.NickName { get => DisplayName; set => DisplayName = value; }
 
         String IIdentity.Name => Name;
 

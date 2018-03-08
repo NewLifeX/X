@@ -13,7 +13,7 @@ namespace NewLife.Web
         private ICache Cache { get; } = NewLife.Caching.Cache.Default;
 
         /// <summary>令牌提供者</summary>
-        public TokenProvider TokenProvider { get; set; }
+        public TokenProvider TokenProvider { get; set; } = new TokenProvider();
 
         /// <summary>令牌有效期。默认24小时</summary>
         public Int32 Expire { get; set; } = 24 * 3600;
@@ -82,11 +82,7 @@ namespace NewLife.Web
 
             Cache.Remove(k);
 
-            //// 保存用户信息
-            //model.User = user;
-            var prv = TokenProvider;
-            if (prv == null) prv = TokenProvider = new TokenProvider();
-            if (prv.Key.IsNullOrEmpty()) prv.ReadKey("..\\Keys\\OAuth.prvkey", true);
+            var prv = GetProvider();
 
             // 建立令牌
             model.Token = prv.Encode(user.Name, DateTime.Now.AddSeconds(Expire));
@@ -128,21 +124,30 @@ namespace NewLife.Web
             return model.Token;
         }
 
-        ///// <summary>根据Token获取用户信息</summary>
-        ///// <param name="token"></param>
-        ///// <returns></returns>
-        //public virtual IManageUser GetUser(String token)
-        //{
-        //    var k = "Code:" + token;
-        //    var model = Cache.Get<Model>(k);
-        //    if (model == null) throw new ArgumentOutOfRangeException(nameof(token));
+        /// <summary>解码令牌</summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        public String Decode(String token)
+        {
+            var prv = GetProvider();
 
-        //    if (Log != null) WriteLog("GetUser code={0} user={1}", token, model.User);
+            var username = prv.Decode(token, out var expire);
+            if (username.IsNullOrEmpty()) throw new Exception("非法访问令牌");
+            if (expire < DateTime.Now) throw new Exception("令牌已过期");
 
-        //    Cache.Remove(k);
+            return username;
+        }
+        #endregion
 
-        //    return model.User;
-        //}
+        #region 辅助
+        private TokenProvider GetProvider()
+        {
+            var prv = TokenProvider;
+            if (prv == null) prv = TokenProvider = new TokenProvider();
+            if (prv.Key.IsNullOrEmpty()) prv.ReadKey("..\\Keys\\OAuth.prvkey", true);
+
+            return prv;
+        }
         #endregion
 
         #region 内嵌

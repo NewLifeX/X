@@ -245,6 +245,7 @@ namespace NewLife.Cube.Web
                     mobile = user2.Mobile,
                     code = user2.Code,
                     roleid = user2.RoleID,
+                    rolename = user2.RoleName,
                 };
             else
                 return new
