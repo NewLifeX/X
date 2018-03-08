@@ -297,7 +297,7 @@ namespace NewLife.Cube.Controllers
                 var username = sso.Decode(access_token);
 
                 var user = Provider?.Provider?.FindByName(username);
-                if (user == null) throw new Exception("用户不存在");
+                if (user == null) throw new Exception("用户不存在 " + username);
 
                 var rs = Provider.GetUserInfo(sso, access_token, user);
                 return Json(rs, JsonRequestBehavior.AllowGet);
