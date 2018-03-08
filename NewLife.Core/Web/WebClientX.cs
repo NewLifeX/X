@@ -73,6 +73,11 @@ namespace NewLife.Web
         #endregion
 
         #region 构造
+        static WebClientX()
+        {
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+        }
+
         /// <summary>实例化</summary>
         public WebClientX() { }
 
