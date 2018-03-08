@@ -81,6 +81,14 @@ namespace XCode.Membership
         [BindColumn("Code", "代码。身份证、员工编号等", "nvarchar(50)")]
         public String Code { get { return _Code; } set { if (OnPropertyChanging(__.Code, value)) { _Code = value; OnPropertyChanged(__.Code); } } }
 
+        private String _Avatar;
+        /// <summary>头像</summary>
+        [DisplayName("头像")]
+        [Description("头像")]
+        [DataObjectField(false, false, true, 200)]
+        [BindColumn("Avatar", "头像", "nvarchar(200)")]
+        public String Avatar { get { return _Avatar; } set { if (OnPropertyChanging(__.Avatar, value)) { _Avatar = value; OnPropertyChanged(__.Avatar); } } }
+
         private Int32 _RoleID;
         /// <summary>角色</summary>
         [DisplayName("角色")]
@@ -164,6 +172,7 @@ namespace XCode.Membership
                     case __.Mail : return _Mail;
                     case __.Mobile : return _Mobile;
                     case __.Code : return _Code;
+                    case __.Avatar : return _Avatar;
                     case __.RoleID : return _RoleID;
                     case __.Online : return _Online;
                     case __.Enable : return _Enable;
@@ -187,6 +196,7 @@ namespace XCode.Membership
                     case __.Mail : _Mail = Convert.ToString(value); break;
                     case __.Mobile : _Mobile = Convert.ToString(value); break;
                     case __.Code : _Code = Convert.ToString(value); break;
+                    case __.Avatar : _Avatar = Convert.ToString(value); break;
                     case __.RoleID : _RoleID = Convert.ToInt32(value); break;
                     case __.Online : _Online = Convert.ToBoolean(value); break;
                     case __.Enable : _Enable = Convert.ToBoolean(value); break;
@@ -228,6 +238,9 @@ namespace XCode.Membership
 
             /// <summary>代码。身份证、员工编号等</summary>
             public static readonly Field Code = FindByName(__.Code);
+
+            /// <summary>头像</summary>
+            public static readonly Field Avatar = FindByName(__.Avatar);
 
             /// <summary>角色</summary>
             public static readonly Field RoleID = FindByName(__.RoleID);
@@ -283,6 +296,9 @@ namespace XCode.Membership
             /// <summary>代码。身份证、员工编号等</summary>
             public const String Code = "Code";
 
+            /// <summary>头像</summary>
+            public const String Avatar = "Avatar";
+
             /// <summary>角色</summary>
             public const String RoleID = "RoleID";
 
@@ -337,6 +353,9 @@ namespace XCode.Membership
 
         /// <summary>代码。身份证、员工编号等</summary>
         String Code { get; set; }
+
+        /// <summary>头像</summary>
+        String Avatar { get; set; }
 
         /// <summary>角色</summary>
         Int32 RoleID { get; set; }

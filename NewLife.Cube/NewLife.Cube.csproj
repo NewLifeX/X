@@ -662,7 +662,7 @@
     <None Include="Content\js\jquery.validate.min.js" />
     <None Include="Content\js\jquery1x.min.js" />
     <None Include="Content\js\respond.min.js" />
-    <None Include="favicon.ico" />
+    <Content Include="favicon.ico" />
     <None Include="Areas\Admin\Views\Log\_List_Search.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_List_Search.generated.cs</LastGenOutput>

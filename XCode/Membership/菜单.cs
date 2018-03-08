@@ -74,19 +74,19 @@ namespace XCode.Membership
         public String Icon { get { return _Icon; } set { if (OnPropertyChanging(__.Icon, value)) { _Icon = value; OnPropertyChanged(__.Icon); } } }
 
         private Boolean _Visible;
-        /// <summary>是否可见</summary>
-        [DisplayName("是否可见")]
-        [Description("是否可见")]
+        /// <summary>可见</summary>
+        [DisplayName("可见")]
+        [Description("可见")]
         [DataObjectField(false, false, false, 0)]
-        [BindColumn("Visible", "是否可见", "")]
+        [BindColumn("Visible", "可见", "")]
         public Boolean Visible { get { return _Visible; } set { if (OnPropertyChanging(__.Visible, value)) { _Visible = value; OnPropertyChanged(__.Visible); } } }
 
         private Boolean _Necessary;
-        /// <summary>必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色</summary>
-        [DisplayName("必要的菜单")]
-        [Description("必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色")]
+        /// <summary>必要。必要的菜单，必须至少有角色拥有这些权限，如果没有则自动授权给系统角色</summary>
+        [DisplayName("必要")]
+        [Description("必要。必要的菜单，必须至少有角色拥有这些权限，如果没有则自动授权给系统角色")]
         [DataObjectField(false, false, false, 0)]
-        [BindColumn("Necessary", "必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色", "")]
+        [BindColumn("Necessary", "必要。必要的菜单，必须至少有角色拥有这些权限，如果没有则自动授权给系统角色", "")]
         public Boolean Necessary { get { return _Necessary; } set { if (OnPropertyChanging(__.Necessary, value)) { _Necessary = value; OnPropertyChanged(__.Necessary); } } }
 
         private String _Permission;
@@ -176,10 +176,10 @@ namespace XCode.Membership
             /// <summary>图标</summary>
             public static readonly Field Icon = FindByName(__.Icon);
 
-            /// <summary>是否可见</summary>
+            /// <summary>可见</summary>
             public static readonly Field Visible = FindByName(__.Visible);
 
-            /// <summary>必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色</summary>
+            /// <summary>必要。必要的菜单，必须至少有角色拥有这些权限，如果没有则自动授权给系统角色</summary>
             public static readonly Field Necessary = FindByName(__.Necessary);
 
             /// <summary>权限子项。逗号分隔，每个权限子项名值竖线分隔</summary>
@@ -215,10 +215,10 @@ namespace XCode.Membership
             /// <summary>图标</summary>
             public const String Icon = "Icon";
 
-            /// <summary>是否可见</summary>
+            /// <summary>可见</summary>
             public const String Visible = "Visible";
 
-            /// <summary>必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色</summary>
+            /// <summary>必要。必要的菜单，必须至少有角色拥有这些权限，如果没有则自动授权给系统角色</summary>
             public const String Necessary = "Necessary";
 
             /// <summary>权限子项。逗号分隔，每个权限子项名值竖线分隔</summary>
@@ -255,10 +255,10 @@ namespace XCode.Membership
         /// <summary>图标</summary>
         String Icon { get; set; }
 
-        /// <summary>是否可见</summary>
+        /// <summary>可见</summary>
         Boolean Visible { get; set; }
 
-        /// <summary>必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色</summary>
+        /// <summary>必要。必要的菜单，必须至少有角色拥有这些权限，如果没有则自动授权给系统角色</summary>
         Boolean Necessary { get; set; }
 
         /// <summary>权限子项。逗号分隔，每个权限子项名值竖线分隔</summary>
