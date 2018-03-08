@@ -207,11 +207,13 @@ namespace XCode.Membership
         /// <returns></returns>
         public override IManageUser Register(String name, String password, Int32 roleid, Boolean enable)
         {
-            var user = new TUser();
-            user.Name = name;
-            user.Password = password;
-            user.Enable = enable;
-            user.RoleID = roleid;
+            var user = new TUser
+            {
+                Name = name,
+                Password = password,
+                Enable = enable,
+                RoleID = roleid
+            };
 
             user.Register();
 

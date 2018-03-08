@@ -462,6 +462,9 @@ namespace XCode.Membership
                 }
             }
 
+            RegisterTime = DateTime.Now;
+            RegisterIP = WebHelper.UserHost;
+
             Insert();
         }
 

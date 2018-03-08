@@ -105,7 +105,13 @@ namespace NewLife.Cube.Web
             // 填充昵称等数据
             Fill(client, user);
 
-            if (user is IAuthUser user3) user3.Save();
+            if (user is IAuthUser user3)
+            {
+                user3.Logins++;
+                user3.LastLogin = DateTime.Now;
+                user3.LastLoginIP = WebHelper.UserHost;
+                user3.Save();
+            }
             uc.Save();
 
             if (!user.Enable) throw new InvalidOperationException("用户已禁用！");
@@ -116,13 +122,12 @@ namespace NewLife.Cube.Web
             return SuccessUrl;
         }
 
-        /// <summary>填充用户</summary>
+        /// <summary>填充用户，登录成功并获取用户信息之后</summary>
         /// <param name="client"></param>
         /// <param name="user"></param>
         protected virtual void Fill(OAuthClient client, IManageUser user)
         {
-            if (user.Name.IsNullOrEmpty()) user.Name = client.UserName ?? client.OpenID;
-            if (user.NickName.IsNullOrEmpty()) user.NickName = client.NickName;
+            client.Fill(user);
 
             var dic = client.Items;
             // 邮箱
@@ -139,14 +144,9 @@ namespace NewLife.Cube.Web
                 var rid = set.DefaultRole;
                 if (rid == 0 && dic.TryGetValue("roleid", out var roleid) && roleid.ToInt() > 0) user2.RoleID = roleid.ToInt();
             }
-            // 头像
-            if (dic != null && user is IEntity entity)
-            {
-                if ((entity["Avatar"] + "").IsNullOrEmpty()) entity.SetItem("Avatar", client.Avatar);
-            }
         }
 
-        /// <summary>绑定用户</summary>
+        /// <summary>绑定用户，用户未有效绑定或需要强制绑定时</summary>
         /// <param name="uc"></param>
         /// <param name="client"></param>
         public virtual IManageUser OnBind(UserConnect uc, OAuthClient client)

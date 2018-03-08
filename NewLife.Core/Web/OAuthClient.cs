@@ -309,19 +309,15 @@ namespace NewLife.Web
             return html;
         }
 
-        /// <summary>填充用户</summary>
+        /// <summary>填充用户，登录成功并获取用户信息之后</summary>
         /// <param name="user"></param>
         public virtual void Fill(IManageUser user)
         {
             if (user.Name.IsNullOrEmpty()) user.Name = UserName ?? OpenID;
             if (user.NickName.IsNullOrEmpty()) user.NickName = NickName;
 
-            //var dic = Items;
-            //if (dic != null && user is IIndexAccessor entity)
-            //{
-            //    entity["Avatar"] = Avatar;
-            //    if (dic.TryGetValue("email", out var email)) entity["email"] = email;
-            //}
+            // 头像
+            if (!Avatar.IsNullOrEmpty()) user.SetValue(nameof(Avatar), Avatar);
         }
         #endregion
 
@@ -391,15 +387,20 @@ namespace NewLife.Web
         protected virtual void OnGetInfo(IDictionary<String, String> dic)
         {
             if (dic.ContainsKey("openid")) OpenID = dic["openid"].Trim();
+            if (dic.TryGetValue("openid", out var str)) OpenID = str.Trim();
 
-            if (dic.ContainsKey("uid")) UserID = dic["uid"].Trim().ToLong();
-            if (dic.ContainsKey("userid")) UserID = dic["userid"].Trim().ToLong();
-            if (dic.ContainsKey("user_id")) UserID = dic["user_id"].Trim().ToLong();
-            if (dic.ContainsKey("name")) UserName = dic["name"].Trim();
-            if (dic.ContainsKey("username")) UserName = dic["username"].Trim();
-            if (dic.ContainsKey("user_name")) UserName = dic["user_name"].Trim();
-            if (dic.ContainsKey("nickname")) NickName = dic["nickname"].Trim();
-            if (dic.ContainsKey("Avatar")) Avatar = dic["Avatar"].Trim();
+            if (dic.TryGetValue("uid", out str)) UserID = str.ToLong();
+            if (dic.TryGetValue("userid", out str)) UserID = str.ToLong();
+            if (dic.TryGetValue("user_id", out str)) UserID = str.ToLong();
+
+            if (dic.TryGetValue("name", out str)) UserName = str.Trim();
+            if (dic.TryGetValue("username", out str)) UserName = str.Trim();
+            if (dic.TryGetValue("user_name", out str)) UserName = str.Trim();
+
+            if (dic.TryGetValue("nickname", out str)) NickName = str.Trim();
+            if (dic.TryGetValue("nick_name", out str)) NickName = str.Trim();
+
+            if (dic.TryGetValue("Avatar", out str)) Avatar = str.Trim();
         }
         #endregion
 
