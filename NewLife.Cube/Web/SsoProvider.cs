@@ -1,7 +1,11 @@
 ﻿using System;
+using System.IO;
+using System.Threading.Tasks;
 using System.Web;
 using NewLife.Cube.Entity;
+using NewLife.Log;
 using NewLife.Model;
+using NewLife.Reflection;
 using NewLife.Security;
 using NewLife.Web;
 using XCode;
@@ -130,7 +134,7 @@ namespace NewLife.Cube.Web
             client.Fill(user);
 
             var dic = client.Items;
-            // 邮箱
+            // 用户信息
             if (dic != null && user is UserX user2)
             {
                 if (user2.Mail.IsNullOrEmpty() && dic.TryGetValue("email", out var email)) user2.Mail = email;
@@ -143,6 +147,12 @@ namespace NewLife.Cube.Web
                 var set = Setting.Current;
                 var rid = set.DefaultRole;
                 if (rid == 0 && dic.TryGetValue("roleid", out var roleid) && roleid.ToInt() > 0) user2.RoleID = roleid.ToInt();
+
+                // 头像
+                if (user2.Avatar.IsNullOrEmpty()) user2.Avatar = client.Avatar;
+
+                // 下载远程头像
+                if (user2.Avatar.StartsWithIgnoreCase("http") && !set.AvatarPath.IsNullOrEmpty()) FetchAvatar(user);
             }
         }
 
@@ -255,6 +265,42 @@ namespace NewLife.Cube.Web
                     username = user.Name,
                     nickname = user.NickName,
                 };
+        }
+        #endregion
+
+        #region 辅助
+        /// <summary>抓取远程头像</summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public virtual Boolean FetchAvatar(IManageUser user)
+        {
+            var av = user.GetValue("Avatar") as String;
+            if (av.IsNullOrEmpty()) throw new Exception("用户头像不存在 " + user);
+
+            var url = av;
+            if (!url.StartsWithIgnoreCase("http")) return false;
+
+            // 不要扩展名
+            var set = Setting.Current;
+            av = set.AvatarPath.CombinePath(user.ID + "").GetFullPath();
+            av.EnsureDirectory(true);
+
+            try
+            {
+                var wc = new WebClientX(true, true);
+                Task.Run(() => wc.DownloadFileAsync(url, av)).Wait(5000);
+
+                // 更新头像
+                user.SetValue("Avatar", "/Sso/Avatar/" + user.ID);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                XTrace.WriteException(ex);
+            }
+
+            return false;
         }
         #endregion
     }

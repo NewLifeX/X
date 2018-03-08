@@ -1,10 +1,13 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 using NewLife.Cube.Entity;
 using NewLife.Cube.Web;
 using NewLife.Log;
 using NewLife.Model;
+using NewLife.Reflection;
 using NewLife.Web;
 using XCode.Membership;
 
@@ -328,6 +331,36 @@ namespace NewLife.Cube.Controllers
         #endregion
 
         #region 辅助
+        /// <summary>获取用户头像</summary>
+        /// <param name="id">用户编号</param>
+        /// <returns></returns>
+        [AllowAnonymous]
+        public virtual ActionResult Avatar(Int32 id)
+        {
+            if (id <= 0) throw new ArgumentNullException(nameof(id));
+
+            var prv = Provider;
+            if (prv == null) throw new ArgumentNullException(nameof(Provider));
+
+            var set = Setting.Current;
+
+            var user = prv.Provider?.FindByID(id);
+            if (user == null) throw new Exception("用户不存在 " + id);
+
+            var av = user.GetValue("Avatar") as String;
+            if (av.IsNullOrEmpty()) throw new Exception("用户头像不存在 " + user);
+
+            // 读取头像
+            if (av.StartsWithIgnoreCase("http"))
+            {
+                if (prv.FetchAvatar(user) && user is IAuthUser user2) user2.Save();
+            }
+
+            av = set.AvatarPath.CombinePath(user.ID + "").GetFullPath();
+            if (!System.IO.File.Exists(av)) throw new Exception("用户头像不存在 " + user);
+
+            return File(av, "image");
+        }
         #endregion
     }
 }

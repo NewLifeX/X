@@ -316,8 +316,8 @@ namespace NewLife.Web
             if (user.Name.IsNullOrEmpty()) user.Name = UserName ?? OpenID;
             if (user.NickName.IsNullOrEmpty()) user.NickName = NickName;
 
-            // 头像
-            if (!Avatar.IsNullOrEmpty()) user.SetValue(nameof(Avatar), Avatar);
+            //// 头像
+            //if (!Avatar.IsNullOrEmpty()) user.SetValue(nameof(Avatar), Avatar);
         }
         #endregion
 

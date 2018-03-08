@@ -74,6 +74,10 @@ namespace NewLife.Cube
         /// <summary>强制SSL。强制使用https访问</summary>
         [Description("强制SSL。强制使用https访问")]
         public Boolean ForceSSL { get; set; }
+
+        /// <summary>头像目录。设定后下载远程头像到本地</summary>
+        [Description("头像目录。设定后下载远程头像到本地")]
+        public String AvatarPath { get; set; } = "..\\Avatars";
         #endregion
 
         #region 方法

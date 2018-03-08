@@ -38,7 +38,7 @@
                 <!-- #section:basics/navbar.user_menu -->
                 <li class="light-blue">
                     <a data-toggle="dropdown" href="~/Admin/User/Info/@uid" class="dropdown-toggle" target="main">
-                        @if (!user.Avatar.IsNullOrEmpty())
+                        @if (user != null && !user.Avatar.IsNullOrEmpty())
                         {
                             <img class="nav-user-photo" src="@user.Avatar" alt="@user" />
                         }
