@@ -75,7 +75,11 @@ namespace NewLife.Web
         #region 构造
         static WebClientX()
         {
+#if NET4
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls;
+#else
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+#endif
         }
 
         /// <summary>实例化</summary>

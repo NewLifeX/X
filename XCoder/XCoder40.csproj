@@ -30,9 +30,7 @@
     <WarningLevel>3</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
-  <PropertyGroup>
-    <ApplicationManifest>app.manifest</ApplicationManifest>
-  </PropertyGroup>
+  <PropertyGroup />
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
@@ -44,6 +42,7 @@
     <Reference Include="System.Web" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.XML" />
+    <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Engine\IcoHelper.cs" />
@@ -59,6 +58,12 @@
     </Compile>
     <Compile Include="FolderInfo\FrmMain.Designer.cs">
       <DependentUpon>FrmMain.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FolderInfo\FrmSplitFile.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FolderInfo\FrmSplitFile.Designer.cs">
+      <DependentUpon>FrmSplitFile.cs</DependentUpon>
     </Compile>
     <Compile Include="FrmMDI.cs">
       <SubType>Form</SubType>
@@ -95,11 +100,23 @@
     <Compile Include="Tools\FrmGPS.Designer.cs">
       <DependentUpon>FrmGPS.cs</DependentUpon>
     </Compile>
+    <Compile Include="Tools\FrmInclude.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Tools\FrmInclude.Designer.cs">
+      <DependentUpon>FrmInclude.cs</DependentUpon>
+    </Compile>
     <Compile Include="Tools\FrmMain.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Tools\FrmMain.Designer.cs">
       <DependentUpon>FrmMain.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Tools\FrmSecurity.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Tools\FrmSecurity.Designer.cs">
+      <DependentUpon>FrmSecurity.cs</DependentUpon>
     </Compile>
     <Compile Include="XCom\FrmMain.cs">
       <SubType>Form</SubType>
@@ -144,6 +161,13 @@
     <Compile Include="XNet\FrmMain.designer.cs">
       <DependentUpon>FrmMain.cs</DependentUpon>
     </Compile>
+    <Compile Include="Yun\FrmMap.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Yun\FrmMap.Designer.cs">
+      <DependentUpon>FrmMap.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Yun\MapSetting.cs" />
     <EmbeddedResource Include="FileEncoding\FrmMain.resx">
       <DependentUpon>FrmMain.cs</DependentUpon>
     </EmbeddedResource>
@@ -234,8 +258,14 @@
     <EmbeddedResource Include="Tools\FrmGPS.resx">
       <DependentUpon>FrmGPS.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Tools\FrmInclude.resx">
+      <DependentUpon>FrmInclude.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Tools\FrmMain.resx">
       <DependentUpon>FrmMain.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Tools\FrmSecurity.resx">
+      <DependentUpon>FrmSecurity.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Windows\FrmItems.resx">
       <DependentUpon>FrmItems.cs</DependentUpon>
@@ -286,8 +316,8 @@
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
-    <None Include="app.manifest" />
     <None Include="packages.config" />
+    <None Include="Properties\app.manifest" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -322,6 +352,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="XNet\FrmMain.resx">
       <DependentUpon>FrmMain.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Yun\FrmMap.resx">
+      <DependentUpon>FrmMap.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="数据库命名规范.txt" />
   </ItemGroup>

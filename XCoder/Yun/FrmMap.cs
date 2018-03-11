@@ -121,7 +121,7 @@ namespace XCoder.Yun
 
             var mps = method.GetParameters();
 
-            Task.Run(async () =>
+            Task.Factory.StartNew(async () =>
             {
                 Object result = null;
                 //var point = new GeoPoint(cfg.Location);
