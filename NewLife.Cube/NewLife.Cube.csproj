@@ -475,54 +475,54 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Index.generated.cs</LastGenOutput>
     </None>
-    <Content Include="Areas\Admin\Views\UserOnline\_List_Data.cshtml">
+    <None Include="Areas\Admin\Views\UserOnline\_List_Data.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_List_Data.generated.cs</LastGenOutput>
-    </Content>
-    <Content Include="Areas\Admin\Views\VisitStat\_List_Data.cshtml">
+    </None>
+    <None Include="Areas\Admin\Views\VisitStat\_List_Data.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_List_Data.generated.cs</LastGenOutput>
-    </Content>
-    <Content Include="Areas\Admin\Views\VisitStat\_List_Search.cshtml">
+    </None>
+    <None Include="Areas\Admin\Views\VisitStat\_List_Search.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_List_Search.generated.cs</LastGenOutput>
-    </Content>
-    <Content Include="Areas\Admin\Views\Index\ProcessModules.cshtml">
+    </None>
+    <None Include="Areas\Admin\Views\Index\ProcessModules.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>ProcessModules.generated.cs</LastGenOutput>
-    </Content>
-    <Content Include="Areas\Admin\Views\Index\Assembly.cshtml">
+    </None>
+    <None Include="Areas\Admin\Views\Index\Assembly.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Assembly.generated.cs</LastGenOutput>
-    </Content>
-    <Content Include="Areas\Admin\Views\Index\Session.cshtml">
+    </None>
+    <None Include="Areas\Admin\Views\Index\Session.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Session.generated.cs</LastGenOutput>
-    </Content>
-    <Content Include="Areas\Admin\Views\Index\Cache.cshtml">
+    </None>
+    <None Include="Areas\Admin\Views\Index\Cache.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Cache.generated.cs</LastGenOutput>
-    </Content>
-    <Content Include="Areas\Admin\Views\Index\ServerVar.cshtml">
+    </None>
+    <None Include="Areas\Admin\Views\Index\ServerVar.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>ServerVar.generated.cs</LastGenOutput>
-    </Content>
-    <Content Include="Areas\Admin\Views\User\_List_Toolbar_Batch.cshtml">
+    </None>
+    <None Include="Areas\Admin\Views\User\_List_Toolbar_Batch.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_List_Toolbar_Batch.generated.cs</LastGenOutput>
-    </Content>
-    <Content Include="Areas\Admin\Views\Log\_List_Data.cshtml">
+    </None>
+    <None Include="Areas\Admin\Views\Log\_List_Data.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_List_Data.generated.cs</LastGenOutput>
-    </Content>
-    <Content Include="Areas\Admin\Views\User\_Login_Login3.cshtml">
+    </None>
+    <None Include="Areas\Admin\Views\User\_Login_Login3.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_Login_Login3.generated.cs</LastGenOutput>
-    </Content>
-    <Content Include="Areas\Admin\Views\User\_List_Data.cshtml">
+    </None>
+    <None Include="Areas\Admin\Views\User\_List_Data.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_List_Data.generated.cs</LastGenOutput>
-    </Content>
+    </None>
     <None Include="Content\jweui\css\demos.css" />
     <None Include="Content\jweui\css\jquery-weui.css" />
     <None Include="Content\jweui\css\jquery-weui.min.css" />
@@ -574,7 +574,7 @@
       <DependentUpon>XCoder.tt</DependentUpon>
     </Content>
     <None Include="index.html" />
-    <Content Include="Content\bootstrap\js\bootstrap.js" />
+    <None Include="Content\bootstrap\js\bootstrap.js" />
     <Content Include="Entity\Cube.xml">
       <SubType>Designer</SubType>
     </Content>
@@ -727,10 +727,10 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Index.generated.cs</LastGenOutput>
     </None>
-    <Content Include="Views\Shared\_StatLevel.cshtml">
+    <None Include="Views\Shared\_StatLevel.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_StatLevel.generated.cs</LastGenOutput>
-    </Content>
+    </None>
     <None Include="Views\Shared\_DateRange.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_DateRange.generated.cs</LastGenOutput>
@@ -829,18 +829,18 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_ListTree_Data.generated.cs</LastGenOutput>
     </None>
-    <Content Include="Views\Shared\_List_Data_Item_First.cshtml">
+    <None Include="Views\Shared\_List_Data_Item_First.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_List_Data_Item_First.generated.cs</LastGenOutput>
-    </Content>
+    </None>
     <None Include="Views\Shared\_List_Search.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_List_Search.generated.cs</LastGenOutput>
     </None>
-    <Content Include="Views\Shared\_List_Toolbar_Batch.cshtml">
+    <None Include="Views\Shared\_List_Toolbar_Batch.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_List_Toolbar_Batch.generated.cs</LastGenOutput>
-    </Content>
+    </None>
     <None Include="Views\Shared\_List_Toolbar_Search.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_List_Toolbar_Search.generated.cs</LastGenOutput>
