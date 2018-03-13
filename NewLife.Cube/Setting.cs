@@ -31,8 +31,8 @@ namespace NewLife.Cube
         [Description("布局页。")]
         public String Layout { get; set; } = "~/Views/Shared/_Ace_Layout.cshtml";
 
-        /// <summary>默认角色。注册用户得到的角色</summary>
-        [Description("默认角色。注册用户得到的角色")]
+        /// <summary>默认角色。注册用户得到的角色，0使用认证中心角色，-1强制使用</summary>
+        [Description("默认角色。注册用户得到的角色，0使用认证中心角色，-1强制使用")]
         public Int32 DefaultRole { get; set; } = 0;
 
         /// <summary>启用密码登录。允许输入用户名密码进行登录</summary>

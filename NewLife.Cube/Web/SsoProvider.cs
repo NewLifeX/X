@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using System.Web;
@@ -8,7 +9,6 @@ using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Security;
 using NewLife.Web;
-using XCode;
 using XCode.Membership;
 
 namespace NewLife.Cube.Web
@@ -146,7 +146,12 @@ namespace NewLife.Cube.Web
                 // 如果默认角色为0，则使用认证中心提供的角色
                 var set = Setting.Current;
                 var rid = set.DefaultRole;
-                if (rid == 0 && dic.TryGetValue("roleid", out var roleid) && roleid.ToInt() > 0) user2.RoleID = roleid.ToInt();
+                //if (rid == 0 && dic.TryGetValue("roleid", out var roleid) && roleid.ToInt() > 0) user2.RoleID = roleid.ToInt();
+                if (rid <= 0)
+                {
+                    // 0使用认证中心角色，-1强制使用
+                    if (user2.RoleID <= 0 || rid < 0) user2.RoleID = GetRole(dic);
+                }
 
                 // 头像
                 if (user2.Avatar.IsNullOrEmpty()) user2.Avatar = client.Avatar;
@@ -199,7 +204,8 @@ namespace NewLife.Cube.Web
                 {
                     // 新注册用户采用魔方默认角色
                     var rid = set.DefaultRole;
-                    if (rid == 0 && client.Items.TryGetValue("roleid", out var roleid)) rid = roleid.ToInt();
+                    //if (rid == 0 && client.Items.TryGetValue("roleid", out var roleid)) rid = roleid.ToInt();
+                    if (rid <= 0) rid = GetRole(client.Items);
 
                     // 注册用户，随机密码
                     user = prv.Register(name, Rand.NextString(16), rid, true);
@@ -305,6 +311,20 @@ namespace NewLife.Cube.Web
             }
 
             return false;
+        }
+
+        private Int32 GetRole(IDictionary<String, String> dic)
+        {
+            // 先找RoleName，再找RoleID
+            if (dic.TryGetValue("RoleName", out var name))
+            {
+                var r = Role.FindByName(name);
+                if (r != null) return r.ID;
+            }
+
+            if (dic.TryGetValue("RoleID", out var rid)) return rid.ToInt();
+
+            return 0;
         }
         #endregion
     }
