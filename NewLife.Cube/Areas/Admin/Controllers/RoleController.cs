@@ -74,7 +74,11 @@ namespace NewLife.Cube.Admin.Controllers
 
             return base.Edit(entity);
         }
-
+        [DisplayName("打印")]
+        public ActionResult Print()
+        {
+            return View();
+        }
         Boolean GetBool(String name)
         {
             var v = Request[name];
