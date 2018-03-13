@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using System.Web.WebPages;
 using NewLife.Cube.Precompiled;
+using NewLife.IO;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Web;
@@ -130,6 +131,11 @@ namespace NewLife.Cube
 
         static void CheckContent()
         {
+            // 释放ico图标
+            var ico = "favicon.ico";
+            if (!File.Exists(ico.GetFullPath())) Assembly.GetExecutingAssembly().ReleaseFile(ico, ".".GetFullPath());
+
+            // 检查魔方样式
             var js = "~/Content/Cube.js".GetFullPath();
             var css = "~/Content/Cube.css".GetFullPath();
             if (File.Exists(js) && File.Exists(css))
