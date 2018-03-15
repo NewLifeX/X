@@ -400,11 +400,11 @@ namespace XCode.Configuration
         #region 复杂运算
         /// <summary>IsNullOrEmpty操作，用于空或者0长度字符串</summary>
         /// <returns></returns>
-        public Expression IsNullOrEmpty() { return IsNull() | Equal(""); }
+        public Expression IsNullOrEmpty() => IsNull() | Equal("");
 
         /// <summary>NotIsNullOrEmpty操作</summary>
         /// <returns></returns>
-        public Expression NotIsNullOrEmpty() { return NotIsNull() & NotEqual(""); }
+        public Expression NotIsNullOrEmpty() => NotIsNull() & NotEqual("");
 
         /// <summary>是否True或者False/Null，参数决定两组之一</summary>
         /// <param name="flag"></param>
@@ -416,7 +416,8 @@ namespace XCode.Configuration
             var f = flag.Value;
             if (f) return Equal(true);
 
-            if (Type == typeof(Boolean) && !IsNullable) return Equal(false);
+            // IsTrue/IsFalse 不再需要判空，因为那样还不如直接使用等于号
+            //if (Type == typeof(Boolean) && !IsNullable) return Equal(false);
 
             return NotEqual(true) | IsNull();
         }
@@ -431,7 +432,8 @@ namespace XCode.Configuration
             var f = flag.Value;
             if (!f) return Equal(false);
 
-            if (Type == typeof(Boolean) && !IsNullable) return Equal(true);
+            // IsTrue/IsFalse 不再需要判空，因为那样还不如直接使用等于号
+            //if (Type == typeof(Boolean) && !IsNullable) return Equal(true);
 
             return NotEqual(false) | IsNull();
         }

@@ -91,10 +91,11 @@ namespace XCode.Transform
                     if (e.Arg == null) continue;
                 }
 
+                var fact = dal.CreateOperate(item.TableName);
                 if (!PartialTableNames.Contains(item.TableName) && !PartialTableNames.Contains(item.Name))
-                    total += TransformTable(dal.CreateOperate(item.TableName));
+                    total += TransformTable(fact);
                 else
-                    total += TransformTable(dal.CreateOperate(item.TableName), PartialCount, PartialDesc);
+                    total += TransformTable(fact, PartialCount, PartialDesc);
             }
 
             return total;
