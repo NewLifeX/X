@@ -10,6 +10,7 @@ using NewLife.Cube.Precompiled;
 using NewLife.IO;
 using NewLife.Log;
 using NewLife.Reflection;
+using NewLife.Threading;
 using NewLife.Web;
 using XCode;
 using XCode.Membership;
@@ -133,7 +134,15 @@ namespace NewLife.Cube
         {
             // 释放ico图标
             var ico = "favicon.ico";
-            if (!File.Exists(ico.GetFullPath())) Assembly.GetExecutingAssembly().ReleaseFile(ico, ".".GetFullPath());
+            var ico2 = ico.GetFullPath();
+            if (!File.Exists(ico2))
+            {
+                // 延迟时间释放，给子系统覆盖的机会
+                TimerX.Delay(s =>
+                {
+                    if (!File.Exists(ico2)) Assembly.GetExecutingAssembly().ReleaseFile(ico, ico2);
+                }, 15000);
+            }
 
             // 检查魔方样式
             var js = "~/Content/Cube.js".GetFullPath();
