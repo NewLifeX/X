@@ -65,7 +65,7 @@ namespace NewLife.Web
             }
             while (!Cache.Add("Model:" + key, model, 20 * 60));
 
-            if (Log != null) WriteLog("Authorize {2} key={0} {1}", key, model.ToJson(false), appid);
+            if (Log != null) WriteLog("Authorize appid={0} redirect_uri={1}", appid, redirect_uri);
 
             return key;
         }
@@ -86,6 +86,7 @@ namespace NewLife.Web
 
             // 建立令牌
             model.Token = prv.Encode(user.Name, DateTime.Now.AddSeconds(Expire));
+            model.User = user;
 
             // 随机code，并尝试加入缓存
             var code = "";
@@ -95,7 +96,7 @@ namespace NewLife.Web
             }
             while (!Cache.Add("Code:" + code, model, 20 * 60));
 
-            if (Log != null) WriteLog("{2} key={0} code={1}", key, code, model.AppID);
+            if (Log != null) WriteLog("Authorize appid={0} code={2} redirect_uri={1} {3}", model.AppID, model.Uri, code, user);
 
             var url = model.Uri;
             if (url.Contains("?"))
@@ -117,7 +118,7 @@ namespace NewLife.Web
             var model = Cache.Get<Model>(k);
             if (model == null) throw new ArgumentOutOfRangeException(nameof(code));
 
-            if (Log != null) WriteLog("Token {0} code={1} token={2}", model.AppID, code, model.Token);
+            if (Log != null) WriteLog("Token appid={0} code={1} token={2} {3}", model.AppID, code, model.Token, model.User);
 
             Cache.Remove(k);
 
@@ -158,10 +159,8 @@ namespace NewLife.Web
             public String Type { get; set; }
             public String Scope { get; set; }
             public String State { get; set; }
-
+            public IManageUser User { get; set; }
             public String Token { get; set; }
-
-            //public IManageUser User { get; set; }
         }
         #endregion
 

@@ -54,7 +54,8 @@ namespace NewLife.Cube.Controllers
 
             Provider = ObjectContainer.Current.ResolveInstance<SsoProvider>();
 
-            OAuthServer.Instance.Log = XTrace.Log;
+            //OAuthServer.Instance.Log = XTrace.Log;
+            OAuthServer.Instance.Log = LogProvider.Provider.AsLog("OAuth");
         }
 
         /// <summary>首页</summary>
@@ -288,7 +289,7 @@ namespace NewLife.Cube.Controllers
             }
             catch (Exception ex)
             {
-                XTrace.WriteLine($"Access_Token {client_id} {client_secret} {code}");
+                XTrace.WriteLine($"Access_Token client_id={client_id} client_secret={client_secret} code={code}");
                 XTrace.WriteException(ex);
                 return Json(new { error = ex.GetTrue().Message }, JsonRequestBehavior.AllowGet);
             }
@@ -302,12 +303,15 @@ namespace NewLife.Cube.Controllers
         {
             if (access_token.IsNullOrEmpty()) throw new ArgumentNullException(nameof(access_token));
 
+            var sso = OAuthServer.Instance;
+            IManageUser user = null;
+
+            var msg = "";
             try
             {
-                var sso = OAuthServer.Instance;
                 var username = sso.Decode(access_token);
 
-                var user = Provider?.Provider?.FindByName(username);
+                user = Provider?.Provider?.FindByName(username);
                 if (user == null) throw new Exception("用户不存在 " + username);
 
                 var rs = Provider.GetUserInfo(sso, access_token, user);
@@ -315,9 +319,15 @@ namespace NewLife.Cube.Controllers
             }
             catch (Exception ex)
             {
+                msg = ex.GetTrue().Message;
+
                 XTrace.WriteLine($"UserInfo {access_token}");
                 XTrace.WriteException(ex);
                 return Json(new { error = ex.GetTrue().Message }, JsonRequestBehavior.AllowGet);
+            }
+            finally
+            {
+                sso.WriteLog("UserInfo {0} access_token={1} msg={2}", user, access_token, msg);
             }
         }
 
