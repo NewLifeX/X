@@ -76,6 +76,8 @@ namespace NewLife.Cube.Web
         public virtual String GetRedirect(HttpRequestBase request, String returnUrl = null)
         {
             if (returnUrl.IsNullOrEmpty()) returnUrl = request["r"];
+            // 过滤环回重定向
+            if (!returnUrl.IsNullOrEmpty() && returnUrl.StartsWithIgnoreCase("/Sso/Login")) returnUrl = null;
 
             var uri = RedirectUrl.AsUri(request.GetRawUrl()) + "";
 
