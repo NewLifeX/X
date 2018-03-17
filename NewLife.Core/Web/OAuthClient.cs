@@ -20,6 +20,9 @@ namespace NewLife.Web
         /// <summary>验证服务器地址</summary>
         public String Server { get; set; }
 
+        /// <summary>令牌服务地址。可以不同于验证地址的内网直达地址</summary>
+        public String AccessServer { get; set; }
+
         /// <summary>应用Key</summary>
         public String Key { get; set; }
 
@@ -145,6 +148,7 @@ namespace NewLife.Web
         {
             Name = mi.Name;
             if (!mi.Server.IsNullOrEmpty()) Server = mi.Server;
+            if (!mi.AccessServer.IsNullOrEmpty()) AccessServer = mi.AccessServer;
             if (!mi.AppID.IsNullOrEmpty()) Key = mi.AppID;
             if (!mi.Secret.IsNullOrEmpty()) Secret = mi.Secret;
             if (!mi.Scope.IsNullOrEmpty()) Scope = mi.Scope;
@@ -327,7 +331,14 @@ namespace NewLife.Web
         /// <returns></returns>
         protected virtual String GetUrl(String url)
         {
-            if (!url.StartsWithIgnoreCase("http")) url = Server.EnsureEnd("/") + url.TrimStart('/');
+            if (!url.StartsWithIgnoreCase("http"))
+            {
+                // 授权以外的连接，使用令牌服务地址
+                if (!AccessServer.IsNullOrEmpty() && !url.StartsWithIgnoreCase("auth"))
+                    url = AccessServer.EnsureEnd("/") + url.TrimStart('/');
+                else
+                    url = Server.EnsureEnd("/") + url.TrimStart('/');
+            }
 
             url = url
                .Replace("{key}", Key)

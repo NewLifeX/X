@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Xml.Serialization;
+using NewLife.Common;
 using NewLife.Xml;
 
 namespace NewLife.Web
@@ -15,26 +16,6 @@ namespace NewLife.Web
         /// <summary>调试开关。默认true</summary>
         [Description("调试开关。默认true")]
         public Boolean Debug { get; set; } = true;
-
-        ///// <summary>服务地址</summary>
-        //[Description("服务地址")]
-        //public String Server { get; set; } 
-
-        ///// <summary>应用标识</summary>
-        //[Description("应用标识")]
-        //public String AppID { get; set; }
-
-        ///// <summary>密钥</summary>
-        //[Description("密钥")]
-        //public String Secret { get; set; }
-
-        ///// <summary>授权类型</summary>
-        //[Description("授权类型")]
-        //public String GrantType { get; set; } = "authorization_code";
-
-        ///// <summary>授权范围</summary>
-        //[Description("授权范围")]
-        //public String Scope { get; set; } = "userinfo,user_id";
 
         /// <summary>应用地址。域名和端口，应用系统经过反向代理重定向时指定外部地址</summary>
         [Description("应用地址。域名和端口，应用系统经过反向代理重定向时指定外部地址")]
@@ -62,7 +43,15 @@ namespace NewLife.Web
                     //new OAuthItem { Name = "Alipay" },
                     new OAuthItem { Name = "Github" }
                 };
-                var mi = new OAuthItem { Name = "NewLife", Server = "https://sso.newlifex.com/sso", AppID = "abcd", Secret = "1234" };
+
+                var sc = SysConfig.Current;
+                var mi = new OAuthItem
+                {
+                    Name = "NewLife",
+                    Server = "https://sso.newlifex.com/sso",
+                    AppID = sc.Name,
+                    Secret = sc.Name.GetBytes().RC4("NewLife".GetBytes()).ToBase64(),
+                };
                 list.Add(mi);
                 Items = list.ToArray();
             }
@@ -112,13 +101,13 @@ namespace NewLife.Web
         [XmlAttribute]
         public String Name { get; set; }
 
-        ///// <summary>启用</summary>
-        //[XmlAttribute]
-        //public Boolean Enable { get; set; }
-
-        /// <summary>服务地址</summary>
+        /// <summary>验证服务地址</summary>
         [XmlAttribute]
         public String Server { get; set; }
+
+        /// <summary>令牌服务地址。可以不同于验证地址的内网直达地址</summary>
+        [XmlAttribute]
+        public String AccessServer { get; set; }
 
         /// <summary>应用标识</summary>
         [XmlAttribute]
@@ -127,10 +116,6 @@ namespace NewLife.Web
         /// <summary>密钥</summary>
         [XmlAttribute]
         public String Secret { get; set; }
-
-        ///// <summary>授权类型</summary>
-        //[XmlAttribute]
-        //public String GrantType { get; set; } = "authorization_code";
 
         /// <summary>授权范围</summary>
         [XmlAttribute]
