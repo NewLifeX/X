@@ -16,6 +16,7 @@ using NewLife;
 using NewLife.Agent;
 using NewLife.Caching;
 using NewLife.Collections;
+using NewLife.Common;
 using NewLife.Data;
 using NewLife.Http;
 using NewLife.Log;
@@ -74,6 +75,15 @@ namespace Test
         private static Int32 ths = 0;
         static void Test1()
         {
+            var list = new List<Boolean>();
+            list.Add(false);
+            list.Add(true);
+            list = list.OrderByDescending(e => e).ToList();
+            Console.WriteLine(list[0]);
+
+            var asmx = SysConfig.SysAssembly;
+            Console.WriteLine(asmx);
+
             var set = XCode.Setting.Current;
             set.Migration = Migration.ReadOnly;
             Console.WriteLine("Setting: {0}", set.Migration);
