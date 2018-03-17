@@ -54,7 +54,7 @@ namespace NewLife.Cube.Admin.Controllers
                     var any = false;
                     foreach (var pf in item.Permissions)
                     {
-                        var has2 = GetBool("pf" + item.ID + "_" + ((Int32)pf.Key));
+                        var has2 = GetBool("pf" + item.ID + "_" + pf.Key);
 
                         if (has2)
                             entity.Set(item.ID, (PermissionFlags)pf.Key);
@@ -74,11 +74,15 @@ namespace NewLife.Cube.Admin.Controllers
 
             return base.Edit(entity);
         }
+
+        /// <summary>打印</summary>
+        /// <returns></returns>
         [DisplayName("打印")]
         public ActionResult Print()
         {
             return View();
         }
+
         Boolean GetBool(String name)
         {
             var v = Request[name];
