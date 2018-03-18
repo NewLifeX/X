@@ -152,7 +152,7 @@ namespace NewLife.Cube.Web
                 if (rid <= 0)
                 {
                     // 0使用认证中心角色，-1强制使用
-                    if (user2.RoleID <= 0 || rid < 0) user2.RoleID = GetRole(dic);
+                    if (user2.RoleID <= 0 || rid < 0) user2.RoleID = GetRole(dic, rid < 0);
                 }
 
                 // 头像
@@ -207,7 +207,7 @@ namespace NewLife.Cube.Web
                     // 新注册用户采用魔方默认角色
                     var rid = set.DefaultRole;
                     //if (rid == 0 && client.Items.TryGetValue("roleid", out var roleid)) rid = roleid.ToInt();
-                    if (rid <= 0) rid = GetRole(client.Items);
+                    if (rid <= 0) rid = GetRole(client.Items, rid < 0);
 
                     // 注册用户，随机密码
                     user = prv.Register(name, Rand.NextString(16), rid, true);
@@ -315,13 +315,20 @@ namespace NewLife.Cube.Web
             return false;
         }
 
-        private Int32 GetRole(IDictionary<String, String> dic)
+        private Int32 GetRole(IDictionary<String, String> dic, Boolean create)
         {
             // 先找RoleName，再找RoleID
             if (dic.TryGetValue("RoleName", out var name))
             {
                 var r = Role.FindByName(name);
                 if (r != null) return r.ID;
+
+                if (create)
+                {
+                    r = new Role { Name = name };
+                    r.Insert();
+                    return r.ID;
+                }
             }
 
             if (dic.TryGetValue("RoleID", out var rid)) return rid.ToInt();
