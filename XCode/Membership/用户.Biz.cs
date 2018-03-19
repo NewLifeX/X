@@ -95,13 +95,25 @@ namespace XCode.Membership
                         Dirtys.Remove(__.Password);
                 }
             }
+
+            // 重新整理角色
+            var ids = (RoleIDs + "").SplitAsInt().ToList();
+            if (RoleID > 0) ids.Insert(0, RoleID);
+            ids = ids.Where(e => e > 0).Distinct().ToList();
+            if (ids.Count > 0)
+            {
+                RoleID = ids[0];
+                var str = ids.Skip(1).Join();
+                if (!str.IsNullOrEmpty()) str = "," + str + ",";
+                RoleIDs = str;
+            }
         }
 
         /// <summary>删除用户</summary>
         /// <returns></returns>
         protected override Int32 OnDelete()
         {
-            if (Meta.Count <= 1) throw new Exception("必须保留至少一个可用账号！");
+            if (Meta.Count <= 1 && FindCount() <= 1) throw new Exception("必须保留至少一个可用账号！");
 
             return base.OnDelete();
         }
@@ -274,7 +286,7 @@ namespace XCode.Membership
         public static IList<TEntity> Search(String key, Int32 roleId, Boolean? isEnable, DateTime start, DateTime end, Pager p)
         {
             var exp = _.LastLogin.Between(start, end);
-            if (roleId >= 0) exp &= _.RoleID == roleId;
+            if (roleId > 0) exp &= _.RoleID == roleId | _.RoleIDs.Contains("," + roleId + ",");
             if (isEnable != null) exp &= _.Enable == isEnable;
 
             // 先精确查询，再模糊
@@ -320,7 +332,7 @@ namespace XCode.Membership
 
         /// <summary>已重载。显示友好名字</summary>
         /// <returns></returns>
-        public override String ToString() { return FriendName; }
+        public override String ToString() => FriendName;
         #endregion
 
         #region 业务
@@ -544,34 +556,19 @@ namespace XCode.Membership
 #endif
         #endregion
 
-        #region 权限日志
+        #region 权限
         /// <summary>角色</summary>
         /// <remarks>扩展属性不缓存空对象，一般来说，每个管理员都有对应的角色，如果没有，可能是在初始化</remarks>
         [XmlIgnore, ScriptIgnore]
-        public virtual IRole Role
-        {
-            get
-            {
-                if (RoleID <= 0) return null;
-
-                //var role = ManageProvider.Get<IRole>();
-
-                //return role.FindByID(RoleID);
-
-                return Extends.Get(nameof(Role), k => ManageProvider.Get<IRole>()?.FindByID(RoleID));
-            }
-        }
+        public virtual IRole Role => Extends.Get(nameof(Role), k => ManageProvider.Get<IRole>()?.FindByID(RoleID));
 
         /// <summary>角色名</summary>
         [DisplayName("角色")]
         [Map(__.RoleID, typeof(RoleMapProvider))]
-        public virtual String RoleName { get { return Role?.Name; } }
+        public virtual String RoleName => Role + "";
         #endregion
 
         #region IManageUser 成员
-        ///// <summary>编号</summary>
-        //Object IManageUser.Uid { get { return ID; } }
-
         /// <summary>昵称</summary>
         String IManageUser.NickName { get => DisplayName; set => DisplayName = value; }
 
@@ -580,9 +577,6 @@ namespace XCode.Membership
         String IIdentity.AuthenticationType => "XCode";
 
         Boolean IIdentity.IsAuthenticated => true;
-
-        ///// <summary>是否管理员</summary>
-        //Boolean IManageUser.IsAdmin { get { return RoleName == "管理员" || RoleName == "超级管理员"; } set { } }
         #endregion
     }
 
@@ -611,7 +605,6 @@ namespace XCode.Membership
         void Logout();
 
         /// <summary>保存</summary>
-        /// <returns></returns>
         Int32 Save();
     }
 }

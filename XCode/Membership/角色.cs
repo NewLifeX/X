@@ -48,6 +48,14 @@ namespace XCode.Membership
         [BindColumn("Remark", "说明", "")]
         public String Remark { get { return _Remark; } set { if (OnPropertyChanging(__.Remark, value)) { _Remark = value; OnPropertyChanged(__.Remark); } } }
 
+        private String _Permission;
+        /// <summary>权限。对不同资源的权限，逗号分隔，每个资源的权限子项竖线分隔</summary>
+        [DisplayName("权限")]
+        [Description("权限。对不同资源的权限，逗号分隔，每个资源的权限子项竖线分隔")]
+        [DataObjectField(false, false, true, 500)]
+        [BindColumn("Permission", "权限。对不同资源的权限，逗号分隔，每个资源的权限子项竖线分隔", "")]
+        public String Permission { get { return _Permission; } set { if (OnPropertyChanging(__.Permission, value)) { _Permission = value; OnPropertyChanged(__.Permission); } } }
+
         private Int32 _CreateUserID;
         /// <summary>创建用户</summary>
         [DisplayName("创建用户")]
@@ -95,14 +103,6 @@ namespace XCode.Membership
         [DataObjectField(false, false, true, 0)]
         [BindColumn("UpdateTime", "更新时间", "")]
         public DateTime UpdateTime { get { return _UpdateTime; } set { if (OnPropertyChanging(__.UpdateTime, value)) { _UpdateTime = value; OnPropertyChanged(__.UpdateTime); } } }
-
-        private String _Permission;
-        /// <summary>权限。对不同资源的权限，逗号分隔，每个资源的权限子项竖线分隔</summary>
-        [DisplayName("权限")]
-        [Description("权限。对不同资源的权限，逗号分隔，每个资源的权限子项竖线分隔")]
-        [DataObjectField(false, false, true, 500)]
-        [BindColumn("Permission", "权限。对不同资源的权限，逗号分隔，每个资源的权限子项竖线分隔", "")]
-        public String Permission { get { return _Permission; } set { if (OnPropertyChanging(__.Permission, value)) { _Permission = value; OnPropertyChanged(__.Permission); } } }
         #endregion
 
         #region 获取/设置 字段值
@@ -119,13 +119,13 @@ namespace XCode.Membership
                     case __.Name : return _Name;
                     case __.IsSystem : return _IsSystem;
                     case __.Remark : return _Remark;
+                    case __.Permission : return _Permission;
                     case __.CreateUserID : return _CreateUserID;
                     case __.CreateIP : return _CreateIP;
                     case __.CreateTime : return _CreateTime;
                     case __.UpdateUserID : return _UpdateUserID;
                     case __.UpdateIP : return _UpdateIP;
                     case __.UpdateTime : return _UpdateTime;
-                    case __.Permission : return _Permission;
                     default: return base[name];
                 }
             }
@@ -137,13 +137,13 @@ namespace XCode.Membership
                     case __.Name : _Name = Convert.ToString(value); break;
                     case __.IsSystem : _IsSystem = Convert.ToBoolean(value); break;
                     case __.Remark : _Remark = Convert.ToString(value); break;
+                    case __.Permission : _Permission = Convert.ToString(value); break;
                     case __.CreateUserID : _CreateUserID = Convert.ToInt32(value); break;
                     case __.CreateIP : _CreateIP = Convert.ToString(value); break;
                     case __.CreateTime : _CreateTime = Convert.ToDateTime(value); break;
                     case __.UpdateUserID : _UpdateUserID = Convert.ToInt32(value); break;
                     case __.UpdateIP : _UpdateIP = Convert.ToString(value); break;
                     case __.UpdateTime : _UpdateTime = Convert.ToDateTime(value); break;
-                    case __.Permission : _Permission = Convert.ToString(value); break;
                     default: base[name] = value; break;
                 }
             }
@@ -166,6 +166,9 @@ namespace XCode.Membership
             /// <summary>说明</summary>
             public static readonly Field Remark = FindByName(__.Remark);
 
+            /// <summary>权限。对不同资源的权限，逗号分隔，每个资源的权限子项竖线分隔</summary>
+            public static readonly Field Permission = FindByName(__.Permission);
+
             /// <summary>创建用户</summary>
             public static readonly Field CreateUserID = FindByName(__.CreateUserID);
 
@@ -183,9 +186,6 @@ namespace XCode.Membership
 
             /// <summary>更新时间</summary>
             public static readonly Field UpdateTime = FindByName(__.UpdateTime);
-
-            /// <summary>权限。对不同资源的权限，逗号分隔，每个资源的权限子项竖线分隔</summary>
-            public static readonly Field Permission = FindByName(__.Permission);
 
             static Field FindByName(String name) { return Meta.Table.FindByName(name); }
         }
@@ -205,6 +205,9 @@ namespace XCode.Membership
             /// <summary>说明</summary>
             public const String Remark = "Remark";
 
+            /// <summary>权限。对不同资源的权限，逗号分隔，每个资源的权限子项竖线分隔</summary>
+            public const String Permission = "Permission";
+
             /// <summary>创建用户</summary>
             public const String CreateUserID = "CreateUserID";
 
@@ -222,9 +225,6 @@ namespace XCode.Membership
 
             /// <summary>更新时间</summary>
             public const String UpdateTime = "UpdateTime";
-
-            /// <summary>权限。对不同资源的权限，逗号分隔，每个资源的权限子项竖线分隔</summary>
-            public const String Permission = "Permission";
         }
         #endregion
     }
@@ -245,6 +245,9 @@ namespace XCode.Membership
         /// <summary>说明</summary>
         String Remark { get; set; }
 
+        /// <summary>权限。对不同资源的权限，逗号分隔，每个资源的权限子项竖线分隔</summary>
+        String Permission { get; set; }
+
         /// <summary>创建用户</summary>
         Int32 CreateUserID { get; set; }
 
@@ -262,9 +265,6 @@ namespace XCode.Membership
 
         /// <summary>更新时间</summary>
         DateTime UpdateTime { get; set; }
-
-        /// <summary>权限。对不同资源的权限，逗号分隔，每个资源的权限子项竖线分隔</summary>
-        String Permission { get; set; }
         #endregion
 
         #region 获取/设置 字段值
