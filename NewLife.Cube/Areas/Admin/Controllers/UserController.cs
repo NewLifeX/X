@@ -37,6 +37,15 @@ namespace NewLife.Cube.Admin.Controllers
         /// <returns></returns>
         protected override IEnumerable<UserX> Search(Pager p)
         {
+            var id = p["id"].ToInt(-1);
+            if (id > 0)
+            {
+                var list = new List<UserX>();
+                var entity = UserX.FindByID(id);
+                if (entity != null) list.Add(entity);
+                return list;
+            }
+
             return UserX.Search(p["Q"], p["RoleID"].ToInt(-1), null, p["dtStart"].ToDateTime(), p["dtEnd"].ToDateTime(), p);
         }
 

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Web.Mvc;
+using NewLife.Web;
 using XCode;
 using XCode.Membership;
 
@@ -30,6 +31,23 @@ namespace NewLife.Cube.Admin.Controllers
             bs.MaxColumn = 1;
 
             base.OnActionExecuting(filterContext);
+        }
+
+        /// <summary>搜索数据集</summary>
+        /// <param name="p"></param>
+        /// <returns></returns>
+        protected override IEnumerable<Role> Search(Pager p)
+        {
+            var id = p["id"].ToInt(-1);
+            if (id > 0)
+            {
+                var list = new List<Role>();
+                var entity = Role.FindByID(id);
+                if (entity != null) list.Add(entity);
+                return list;
+            }
+
+            return Role.Search(p["dtStart"].ToDateTime(), p["dtEnd"].ToDateTime(), p["Q"], p);
         }
 
         /// <summary>保存</summary>
