@@ -97,10 +97,8 @@ namespace XCode.Membership
             }
 
             // 重新整理角色
-            var ids = (RoleIDs + "").SplitAsInt().ToList();
-            if (RoleID > 0) ids.Insert(0, RoleID);
-            ids = ids.Where(e => e > 0).Distinct().OrderBy(e => e).ToList();
-            if (ids.Count > 0)
+            var ids = GetRoleIDs();
+            if (ids.Length > 0)
             {
                 RoleID = ids[0];
                 var str = ids.Skip(1).Join();
@@ -562,10 +560,56 @@ namespace XCode.Membership
         [XmlIgnore, ScriptIgnore]
         public virtual IRole Role => Extends.Get(nameof(Role), k => ManageProvider.Get<IRole>()?.FindByID(RoleID));
 
+        /// <summary>角色集合</summary>
+        [XmlIgnore, ScriptIgnore]
+        public virtual IRole[] Roles => Extends.Get(nameof(Roles), k => GetRoleIDs().Select(e => ManageProvider.Get<IRole>()?.FindByID(e)).Where(e => e != null).ToArray());
+
+        /// <summary>获取角色列表</summary>
+        /// <returns></returns>
+        public virtual Int32[] GetRoleIDs()
+        {
+            var ids = RoleIDs.SplitAsInt().Where(e => e > 0 && e != RoleID).Distinct().OrderBy(e => e).ToList();
+            if (RoleID > 0) ids.Insert(0, RoleID);
+
+            return ids.ToArray();
+        }
+
         /// <summary>角色名</summary>
         [DisplayName("角色")]
         [Map(__.RoleID, typeof(RoleMapProvider))]
         public virtual String RoleName => Role + "";
+
+        /// <summary>用户是否拥有当前菜单的指定权限</summary>
+        /// <param name="menu">指定菜单</param>
+        /// <param name="flags">是否拥有多个权限中的任意一个，或的关系。如果需要表示与的关系，可以传入一个多权限位合并</param>
+        /// <returns></returns>
+        public Boolean Has(IMenu menu, params PermissionFlags[] flags)
+        {
+            if (menu == null) throw new ArgumentNullException(nameof(menu));
+
+            // 角色集合
+            var rs = Roles;
+
+            // 如果没有指定权限子项，则指判断是否拥有资源
+            if (flags == null || flags.Length == 0) return rs.Any(r => r.Has(menu.ID));
+
+            foreach (var item in flags)
+            {
+                // 如果判断None，则直接返回
+                if (item == PermissionFlags.None) return true;
+
+                // 菜单必须拥有这些权限位才行
+                if (menu.Permissions.ContainsKey((Int32)item))
+                {
+                    //// 如果判断None，则直接返回
+                    //if (item == PermissionFlags.None) return true;
+
+                    if (rs.Any(r => r.Has(menu.ID, item))) return true;
+                }
+            }
+
+            return false;
+        }
         #endregion
 
         #region IManageUser 成员
@@ -598,8 +642,17 @@ namespace XCode.Membership
         /// <summary>角色</summary>
         IRole Role { get; }
 
+        /// <summary>角色集合</summary>
+        IRole[] Roles { get; }
+
         /// <summary>角色名</summary>
         String RoleName { get; }
+
+        /// <summary>用户是否拥有当前菜单的指定权限</summary>
+        /// <param name="menu">指定菜单</param>
+        /// <param name="flags">是否拥有多个权限中的任意一个，或的关系。如果需要表示与的关系，可以传入一个多权限位合并</param>
+        /// <returns></returns>
+        Boolean Has(IMenu menu, params PermissionFlags[] flags);
 
         /// <summary>注销</summary>
         void Logout();

@@ -18,7 +18,7 @@ namespace NewLife.Cube
 {
     /// <summary>实体控制器基类</summary>
     /// <typeparam name="TEntity"></typeparam>
-    [EntityAuthorize]
+    //[EntityAuthorize]
     public class EntityController<TEntity> : ControllerBaseX where TEntity : Entity<TEntity>, new()
     {
         #region 属性

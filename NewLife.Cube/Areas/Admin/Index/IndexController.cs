@@ -47,7 +47,7 @@ namespace NewLife.Cube.Admin.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [DisplayName("服务器信息")]
-        [EntityAuthorize(PermissionFlags.Detail, ResourceName = "Main")]
+        [EntityAuthorize(PermissionFlags.Detail)]
         public ActionResult Main(String id)
         {
             if (id == "Restart")
@@ -71,7 +71,6 @@ namespace NewLife.Cube.Admin.Controllers
             catch { }
 
             ViewBag.WebServerName = name;
-
             ViewBag.MyAsms = AssemblyX.GetMyAssemblies().OrderBy(e => e.Name).OrderByDescending(e => e.Compile).ToArray();
 
             var Asms = AssemblyX.GetAssemblies(null).ToArray();
@@ -90,18 +89,18 @@ namespace NewLife.Cube.Admin.Controllers
             }
         }
 
-        /// <summary>菜单不可见</summary>
-        /// <param name="menu"></param>
-        /// <returns></returns>
-        protected override IDictionary<MethodInfo, Int32> ScanActionMenu(IMenu menu)
-        {
-            if (menu.Visible)
-            {
-                menu.Visible = false;
-                (menu as IEntity).Save();
-            }
+        ///// <summary>菜单不可见</summary>
+        ///// <param name="menu"></param>
+        ///// <returns></returns>
+        //protected override IDictionary<MethodInfo, Int32> ScanActionMenu(IMenu menu)
+        //{
+        //    if (menu.Visible)
+        //    {
+        //        menu.Visible = false;
+        //        (menu as IEntity).Save();
+        //    }
 
-            return base.ScanActionMenu(menu);
-        }
+        //    return base.ScanActionMenu(menu);
+        //}
     }
 }

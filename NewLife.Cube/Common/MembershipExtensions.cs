@@ -43,6 +43,7 @@ namespace NewLife.Cube
         /// <param name="respath"></param>
         /// <param name="flags">是否拥有多个权限中的任意一个，或的关系。如果需要表示与的关系，可以传入一个多权限位合并</param>
         /// <returns></returns>
+        [Obsolete]
         public static Boolean Has(this IUser user, String respath, params PermissionFlags[] flags)
         {
             if (user == null || user.Role == null) return false;

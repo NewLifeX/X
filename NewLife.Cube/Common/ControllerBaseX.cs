@@ -39,45 +39,45 @@ namespace NewLife.Cube
                 }
                 else
                 {
-                    var name = att.ResourceName;
+                    //var name = att.ResourceName;
                     var pm = (Int32)att.Permission;
-                    if (name.IsNullOrEmpty() || name == type.Name.TrimEnd("Controller"))
-                    {
-                        dic.Add(method, pm);
-                    }
-                    else
-                    {
-                        // 指定了资源名称，也就是专有菜单
-                        var nodeName = method.Name;
-                        var dis = method.GetDisplayName();
-                        var node = menu.Parent.FindByPath(nodeName);
-                        if (node == null)
-                        {
-                            XTrace.WriteLine("为控制器{0}添加独立菜单{1}[{2}]", type.FullName, nodeName, name);
-                            node = menu.Parent.Add(nodeName, dis, type.FullName + "." + nodeName, menu.Url + "/" + nodeName);
-                        }
-                        if (node.FullName.IsNullOrEmpty()) node.FullName = type.FullName + "." + nodeName;
+                    //if (name.IsNullOrEmpty() || name == type.Name.TrimEnd("Controller"))
+                    //{
+                    dic.Add(method, pm);
+                    //}
+                    //else
+                    //{
+                    //    // 指定了资源名称，也就是专有菜单
+                    //    var nodeName = method.Name;
+                    //    var dis = method.GetDisplayName();
+                    //    var node = menu.Parent.FindByPath(nodeName);
+                    //    if (node == null)
+                    //    {
+                    //        XTrace.WriteLine("为控制器{0}添加独立菜单{1}[{2}]", type.FullName, nodeName, name);
+                    //        node = menu.Parent.Add(nodeName, dis, type.FullName + "." + nodeName, menu.Url + "/" + nodeName);
+                    //    }
+                    //    if (node.FullName.IsNullOrEmpty()) node.FullName = type.FullName + "." + nodeName;
 
-                        // 权限名
-                        if (pm >= 0x10)
-                            node.Permissions[pm] = dis ?? method.Name;
-                        else if (att.Permission.ToString().Contains("|"))
-                            node.Permissions[pm] = att.Permission.GetDescription();
-                        else
-                        {
-                            // 附加的独立Action菜单，遍历所有权限位
-                            var n = 1;
-                            for (var i = 0; i < 8; i++)
-                            {
-                                var v = (PermissionFlags)n;
-                                if (att.Permission.Has(v)) node.Permissions[n] = v.GetDescription();
+                    //    // 权限名
+                    //    if (pm >= 0x10)
+                    //        node.Permissions[pm] = dis ?? method.Name;
+                    //    else if (att.Permission.ToString().Contains("|"))
+                    //        node.Permissions[pm] = att.Permission.GetDescription();
+                    //    else
+                    //    {
+                    //        // 附加的独立Action菜单，遍历所有权限位
+                    //        var n = 1;
+                    //        for (var i = 0; i < 8; i++)
+                    //        {
+                    //            var v = (PermissionFlags)n;
+                    //            if (att.Permission.Has(v)) node.Permissions[n] = v.GetDescription();
 
-                                n <<= 1;
-                            }
-                        }
+                    //            n <<= 1;
+                    //        }
+                    //    }
 
-                        (node as IEntity).Save();
-                    }
+                    //    (node as IEntity).Save();
+                    //}
                 }
             }
 

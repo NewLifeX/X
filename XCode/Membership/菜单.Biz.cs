@@ -196,7 +196,7 @@ namespace XCode.Membership
         /// <summary>取得当前角色的子菜单，有权限、可显示、排序</summary>
         /// <param name="filters"></param>
         /// <returns></returns>
-        public IList<IMenu> GetMySubMenus(Int32[] filters)
+        public IList<IMenu> GetSubMenus(Int32[] filters)
         {
             var list = Childs;
             if (list == null || list.Count < 1) return new List<IMenu>();
@@ -383,17 +383,24 @@ namespace XCode.Membership
             /// <returns></returns>
             IMenu IMenuFactory.FindByUrl(String url) => FindByUrl(url);
 
+            /// <summary>根据全名找到菜单</summary>
+            /// <param name="fullName"></param>
+            /// <returns></returns>
+            IMenu IMenuFactory.FindByFullName(String fullName) => FindByFullName(fullName);
+
             /// <summary>获取指定菜单下，当前用户有权访问的子菜单。</summary>
             /// <param name="menuid"></param>
+            /// <param name="user"></param>
             /// <returns></returns>
-            IList<IMenu> IMenuFactory.GetMySubMenus(Int32 menuid)
+            IList<IMenu> IMenuFactory.GetMySubMenus(Int32 menuid, IUser user)
             {
                 var factory = this as IMenuFactory;
                 var root = factory.Root;
 
                 // 当前用户
-                var admin = ManageProvider.Provider.Current as IUser;
-                if (admin == null || admin.Role == null) return new List<IMenu>();
+                //var user = ManageProvider.Provider.Current as IUser;
+                var rs = user?.Roles;
+                if (rs == null || rs.Length == 0) return new List<IMenu>();
 
                 IMenu menu = null;
 
@@ -406,7 +413,7 @@ namespace XCode.Membership
                     if (menu == null || menu.Childs == null || menu.Childs.Count < 1) return new List<IMenu>();
                 }
 
-                return menu.GetMySubMenus(admin.Role.Resources);
+                return menu.GetSubMenus(rs.SelectMany(e => e.Resources).ToArray());
             }
 
             /// <summary>扫描命名空间下的控制器并添加为菜单</summary>
@@ -557,6 +564,11 @@ namespace XCode.Membership
         /// <returns></returns>
         IMenu FindByID(Int32 id);
 
+        /// <summary>根据全名找到菜单</summary>
+        /// <param name="fullName"></param>
+        /// <returns></returns>
+        IMenu FindByFullName(String fullName);
+
         /// <summary>根据Url找到菜单</summary>
         /// <param name="url"></param>
         /// <returns></returns>
@@ -564,8 +576,9 @@ namespace XCode.Membership
 
         /// <summary>获取指定菜单下，当前用户有权访问的子菜单。</summary>
         /// <param name="menuid"></param>
+        /// <param name="user"></param>
         /// <returns></returns>
-        IList<IMenu> GetMySubMenus(Int32 menuid);
+        IList<IMenu> GetMySubMenus(Int32 menuid, IUser user);
 
         /// <summary>扫描命名空间下的控制器并添加为菜单</summary>
         /// <param name="rootName"></param>
@@ -615,7 +628,7 @@ namespace XCode.Membership
         /// <summary></summary>
         /// <param name="filters"></param>
         /// <returns></returns>
-        IList<IMenu> GetMySubMenus(Int32[] filters);
+        IList<IMenu> GetSubMenus(Int32[] filters);
 
         /// <summary>可选权限子项</summary>
         Dictionary<Int32, String> Permissions { get; }
