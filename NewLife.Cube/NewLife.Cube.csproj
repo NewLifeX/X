@@ -180,6 +180,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>_List_Search.cshtml</DependentUpon>
     </Compile>
+    <Compile Include="Areas\Admin\Views\Menu\_ListTree_Data.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>_ListTree_Data.cshtml</DependentUpon>
+    </Compile>
     <Compile Include="Areas\Admin\Views\Role\_Form_Group.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -480,10 +485,14 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Index.generated.cs</LastGenOutput>
     </None>
-    <Content Include="Areas\Admin\Views\Role\_List_Data.cshtml">
+    <None Include="Areas\Admin\Views\Role\_List_Data.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_List_Data.generated.cs</LastGenOutput>
-    </Content>
+    </None>
+    <None Include="Areas\Admin\Views\Menu\_ListTree_Data.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>_ListTree_Data.generated.cs</LastGenOutput>
+    </None>
     <None Include="Areas\Admin\Views\UserOnline\_List_Data.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_List_Data.generated.cs</LastGenOutput>

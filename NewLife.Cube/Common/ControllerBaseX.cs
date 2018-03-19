@@ -54,8 +54,9 @@ namespace NewLife.Cube
                         if (node == null)
                         {
                             XTrace.WriteLine("为控制器{0}添加独立菜单{1}[{2}]", type.FullName, nodeName, name);
-                            node = menu.Parent.Add(nodeName, dis, menu.Url + "/" + nodeName);
+                            node = menu.Parent.Add(nodeName, dis, type.FullName + "." + nodeName, menu.Url + "/" + nodeName);
                         }
+                        if (node.FullName.IsNullOrEmpty()) node.FullName = type.FullName + "." + nodeName;
 
                         // 权限名
                         if (pm >= 0x10)

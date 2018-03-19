@@ -99,7 +99,7 @@ namespace XCode.Membership
             // 重新整理角色
             var ids = (RoleIDs + "").SplitAsInt().ToList();
             if (RoleID > 0) ids.Insert(0, RoleID);
-            ids = ids.Where(e => e > 0).Distinct().ToList();
+            ids = ids.Where(e => e > 0).Distinct().OrderBy(e => e).ToList();
             if (ids.Count > 0)
             {
                 RoleID = ids[0];

@@ -703,7 +703,7 @@ namespace NewLife.Cube
             // 只写实体类过滤掉添删改权限
             if (Factory.Table.DataTable.InsertOnly)
             {
-                var arr = new PermissionFlags[] { PermissionFlags.Insert, PermissionFlags.Update, PermissionFlags.Delete }.Select(e => (Int32)e).ToArray();
+                var arr = new [] { PermissionFlags.Insert, PermissionFlags.Update, PermissionFlags.Delete }.Select(e => (Int32)e).ToArray();
                 dic = dic.Where(e => !arr.Contains(e.Value)).ToDictionary(e => e.Key, e => e.Value);
             }
 

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Tables Version="9.6.6650.29434" NameSpace="XCode.Membership" ConnName="Membership" Output="" BaseClass="Entity">
+<Tables Version="9.6.6652.19307" NameSpace="XCode.Membership" ConnName="Membership" Output="" BaseClass="Entity">
   <Table Name="User" Description="用户" DbType="SqlServer" RenderGenEntity="true">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
@@ -49,6 +49,7 @@
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
       <Column Name="Name" DataType="String" Master="True" Nullable="False" Description="名称" />
       <Column Name="DisplayName" DataType="String" Description="显示名" />
+      <Column Name="FullName" DataType="String" Description="全名" />
       <Column Name="ParentID" DataType="Int32" Description="父编号" />
       <Column Name="Url" DataType="String" Length="200" Description="链接" />
       <Column Name="Sort" DataType="Int32" Description="排序" />

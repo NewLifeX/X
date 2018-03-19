@@ -75,21 +75,13 @@ namespace XCode.Membership
             return result;
         }
 
-        ///// <summary>已重载。</summary>
-        ///// <returns></returns>
-        //public override Int32 Delete()
-        //{
-        //    LogProvider.Provider.WriteLog("删除", this);
-
-        //    return base.Delete();
-        //}
-
         /// <summary>删除。</summary>
         /// <returns></returns>
         protected override Int32 OnDelete()
         {
             LogProvider.Provider.WriteLog("删除", this);
 
+            // 递归删除子菜单
             var rs = 0;
             using (var ts = Meta.CreateTrans())
             {
@@ -153,7 +145,7 @@ namespace XCode.Membership
 
         /// <summary>友好名称。优先显示名</summary>
         [XmlIgnore, ScriptIgnore]
-        public String FriendName { get { return DisplayName.IsNullOrWhiteSpace() ? Name : DisplayName; } }
+        public String FriendName => DisplayName.IsNullOrWhiteSpace() ? Name : DisplayName;
         #endregion
 
         #region 扩展查询
@@ -170,12 +162,17 @@ namespace XCode.Membership
         /// <summary>根据名字查找</summary>
         /// <param name="name">名称</param>
         /// <returns></returns>
-        public static TEntity FindByName(String name) { return Meta.Cache.Find(e => e.Name.EqualIgnoreCase(name)); }
+        public static TEntity FindByName(String name) => Meta.Cache.Find(e => e.Name.EqualIgnoreCase(name));
+
+        /// <summary>根据全名查找</summary>
+        /// <param name="name">全名</param>
+        /// <returns></returns>
+        public static TEntity FindByFullName(String name) => Meta.Cache.Find(e => e.FullName.EqualIgnoreCase(name));
 
         /// <summary>根据Url查找</summary>
         /// <param name="url"></param>
         /// <returns></returns>
-        public static TEntity FindByUrl(String url) { return Meta.Cache.Find(e => e.Url.EqualIgnoreCase(url)); }
+        public static TEntity FindByUrl(String url) => Meta.Cache.Find(e => e.Url.EqualIgnoreCase(url));
 
         /// <summary>根据名字查找，支持路径查找</summary>
         /// <param name="name">名称</param>
@@ -215,14 +212,16 @@ namespace XCode.Membership
         /// <summary>添加子菜单</summary>
         /// <param name="name"></param>
         /// <param name="displayName"></param>
+        /// <param name="fullName"></param>
         /// <param name="url"></param>
         /// <returns></returns>
-        public TEntity Add(String name, String displayName, String url)
+        public IMenu Add(String name, String displayName, String fullName, String url)
         {
             var entity = new TEntity
             {
                 Name = name,
                 DisplayName = displayName,
+                FullName = fullName,
                 Url = url,
                 ParentID = ID,
                 Parent = this as TEntity,
@@ -292,10 +291,9 @@ namespace XCode.Membership
         public override String ToString()
         {
             var path = GetFullPath(true, "\\", e => e.FriendName);
-            if (!String.IsNullOrEmpty(path))
-                return path;
-            else
-                return FriendName;
+            if (!path.IsNullOrEmpty()) return path;
+
+            return FriendName;
         }
         #endregion
 
@@ -313,21 +311,21 @@ namespace XCode.Membership
             return GetFullPath(includeSelf, separator, d);
         }
 
-        IMenu IMenu.Add(String name, String displayName, String url) { return Add(name, displayName, url); }
+        //IMenu IMenu.Add(String name, String displayName, String fullName, String url) => Add(name, displayName, fullName, url);
 
         /// <summary>父菜单</summary>
-        IMenu IMenu.Parent { get { return Parent; } }
+        IMenu IMenu.Parent => Parent;
 
         /// <summary>子菜单</summary>
-        IList<IMenu> IMenu.Childs { get { return Childs.OfType<IMenu>().ToList(); } }
+        IList<IMenu> IMenu.Childs => Childs.OfType<IMenu>().ToList();
 
         /// <summary>子孙菜单</summary>
-        IList<IMenu> IMenu.AllChilds { get { return AllChilds.OfType<IMenu>().ToList(); } }
+        IList<IMenu> IMenu.AllChilds => AllChilds.OfType<IMenu>().ToList();
 
         /// <summary>根据层次路径查找</summary>
         /// <param name="path">层次路径</param>
         /// <returns></returns>
-        IMenu IMenu.FindByPath(String path) { return FindByPath(path, _.Name, _.DisplayName); }
+        IMenu IMenu.FindByPath(String path) => FindByPath(path, _.Name, _.DisplayName);
         #endregion
 
         #region 菜单工厂
@@ -335,7 +333,7 @@ namespace XCode.Membership
         public class MenuFactory : EntityOperate, IMenuFactory
         {
             #region IMenuFactory 成员
-            IMenu IMenuFactory.Root { get { return Root; } }
+            IMenu IMenuFactory.Root => Root;
 
             /// <summary>当前请求所在菜单。自动根据当前请求的文件路径定位</summary>
             IMenu IMenuFactory.Current
@@ -378,12 +376,12 @@ namespace XCode.Membership
             /// <summary>根据编号找到菜单</summary>
             /// <param name="id"></param>
             /// <returns></returns>
-            IMenu IMenuFactory.FindByID(Int32 id) { return FindByID(id); }
+            IMenu IMenuFactory.FindByID(Int32 id) => FindByID(id);
 
             /// <summary>根据Url找到菜单</summary>
             /// <param name="url"></param>
             /// <returns></returns>
-            IMenu IMenuFactory.FindByUrl(String url) { return FindByUrl(url); }
+            IMenu IMenuFactory.FindByUrl(String url) => FindByUrl(url);
 
             /// <summary>获取指定菜单下，当前用户有权访问的子菜单。</summary>
             /// <param name="menuid"></param>
@@ -420,6 +418,10 @@ namespace XCode.Membership
             {
                 var list = new List<IMenu>();
 
+                // 所有控制器
+                var types = asm.GetTypes().Where(e => e.Name.EndsWith("Controller") && e.Namespace == nameSpace).ToList();
+                if (types.Count == 0) return list;
+
                 // 如果根菜单不存在，则添加
                 var r = Root as IMenu;
                 var root = r.FindByPath(rootName);
@@ -428,23 +430,22 @@ namespace XCode.Membership
                 //if (root == null) root = FindByName(rootName);
                 if (root == null)
                 {
-                    root = r.Add(rootName, null, "~/" + rootName);
+                    root = r.Add(rootName, null, nameSpace, "~/" + rootName);
                     list.Add(root);
+                }
+                if (root.FullName.IsNullOrEmpty())
+                {
+                    root.FullName = nameSpace;
+                    (root as IEntity).Save();
                 }
 
                 var ms = new List<IMenu>();
 
                 // 遍历该程序集所有类型
-                foreach (var type in asm.GetTypes())
+                foreach (var type in types)
                 {
-                    var name = type.Name;
-                    if (!name.EndsWith("Controller")) continue;
-
-                    name = name.TrimEnd("Controller");
-                    if (type.Namespace != nameSpace) continue;
-
+                    var name = type.Name.TrimEnd("Controller");
                     var url = root.Url;
-
                     var node = root;
 
                     // 添加Controller
@@ -456,18 +457,18 @@ namespace XCode.Membership
                         if (controller == null)
                         {
                             // DisplayName特性作为中文名
-                            controller = node.Add(name, type.GetDisplayName(), url);
-                            controller.Remark = type.GetDescription();
+                            controller = node.Add(name, type.GetDisplayName(), type.FullName, url);
 
-                            list.Add(node);
+                            list.Add(controller);
                         }
                     }
+                    if (controller.FullName.IsNullOrEmpty()) controller.FullName = type.FullName;
+                    if (controller.Remark.IsNullOrEmpty()) controller.Remark = type.GetDescription();
 
                     // 反射调用控制器的GetActions方法来获取动作
                     var func = type.GetMethodEx("ScanActionMenu");
                     if (func == null) continue;
 
-                    //var acts = type.Invoke(func) as MethodInfo[];
                     var acts = func.As<Func<IMenu, IDictionary<MethodInfo, Int32>>>(type.CreateInstance()).Invoke(controller);
                     if (acts == null || acts.Count == 0) continue;
 
@@ -517,19 +518,7 @@ namespace XCode.Membership
                     }
 
                     ms.Add(controller);
-
-                    //controller.Save();
                 }
-
-                //// 所有都是新增菜单才排序
-                //if (ms.All(m => m.Sort == 0))
-                //{
-                //    ms = ms.OrderByDescending(m => m.Name).ToList();
-                //    for (Int32 i = 0; i < ms.Count; i++)
-                //    {
-                //        ms[i].Sort = i;
-                //    }
-                //}
 
                 for (var i = 0; i < ms.Count; i++)
                 {
@@ -598,9 +587,10 @@ namespace XCode.Membership
         /// <summary>添加子菜单</summary>
         /// <param name="name"></param>
         /// <param name="displayName"></param>
+        /// <param name="fullName"></param>
         /// <param name="url"></param>
         /// <returns></returns>
-        IMenu Add(String name, String displayName, String url);
+        IMenu Add(String name, String displayName, String fullName, String url);
 
         /// <summary>父菜单</summary>
         IMenu Parent { get; }
