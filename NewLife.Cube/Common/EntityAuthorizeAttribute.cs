@@ -11,9 +11,6 @@ namespace NewLife.Cube
     public class EntityAuthorizeAttribute : AuthorizeAttribute
     {
         #region 属性
-        ///// <summary>资源名称。需要增加新菜单而不需要控制器名称时，指定资源名称</summary>
-        //public String ResourceName { get; set; }
-
         /// <summary>授权项</summary>
         public PermissionFlags Permission { get; }
 
@@ -83,14 +80,11 @@ namespace NewLife.Cube
 
             // 当前菜单
             filterContext.Controller.ViewBag.Menu = menu;
+            // 兼容旧版本视图权限
+            filterContext.HttpContext.Items["CurrentMenu"] = menu;
 
-            //// 根据请求Url定位资源菜单
-            //var url = ctx.Request.AppRelativeCurrentExecutionFilePath;
-            //var menu = ManageProvider.Menu?.Current;
             if (menu != null && user is IUser user2)
             {
-                //var role = user2?.Role;
-                //if (role != null && role.Has(menu.ID, Permission)) return;
                 if (user2.Has(menu, Permission)) return;
             }
             else
