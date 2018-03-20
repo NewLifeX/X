@@ -430,7 +430,7 @@ WriteLiteral("                        ");
 
             
             #line 81 "..\..\Areas\Admin\Views\User\Info.cshtml"
-                   Write(user.RoleName);
+                    Write(user.Roles.Join(",", r => r + ""));
 
             
             #line default
@@ -563,27 +563,27 @@ WriteLiteral("                                        <li>\r\n                  
             #line hidden
 WriteLiteral("（已绑定）</span>\r\n                                            <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 5226), Tuple.Create("\"", 5254)
-, Tuple.Create(Tuple.Create("", 5233), Tuple.Create<System.Object, System.Int32>(Href("~/Sso/UnBind/")
-, 5233), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 5248), Tuple.Create("\"", 5276)
+, Tuple.Create(Tuple.Create("", 5255), Tuple.Create<System.Object, System.Int32>(Href("~/Sso/UnBind/")
+, 5255), false)
             
             #line 115 "..\..\Areas\Admin\Views\User\Info.cshtml"
-, Tuple.Create(Tuple.Create("", 5246), Tuple.Create<System.Object, System.Int32>(mi.Name
-            
-            #line default
-            #line hidden
-, 5246), false)
-);
-
-WriteAttribute("title", Tuple.Create(" title=\"", 5255), Tuple.Create("\"", 5276)
-, Tuple.Create(Tuple.Create("", 5263), Tuple.Create("取消绑定", 5263), true)
-            
-            #line 115 "..\..\Areas\Admin\Views\User\Info.cshtml"
-       , Tuple.Create(Tuple.Create(" ", 5267), Tuple.Create<System.Object, System.Int32>(mi.Name
+, Tuple.Create(Tuple.Create("", 5268), Tuple.Create<System.Object, System.Int32>(mi.Name
             
             #line default
             #line hidden
 , 5268), false)
+);
+
+WriteAttribute("title", Tuple.Create(" title=\"", 5277), Tuple.Create("\"", 5298)
+, Tuple.Create(Tuple.Create("", 5285), Tuple.Create("取消绑定", 5285), true)
+            
+            #line 115 "..\..\Areas\Admin\Views\User\Info.cshtml"
+       , Tuple.Create(Tuple.Create(" ", 5289), Tuple.Create<System.Object, System.Int32>(mi.Name
+            
+            #line default
+            #line hidden
+, 5290), false)
 );
 
 WriteLiteral(">取消绑定</a>\r\n                                        </li>\r\n");
@@ -609,27 +609,27 @@ WriteLiteral("                                        <li>\r\n                  
             #line hidden
 WriteLiteral("（未绑定）</span>\r\n                                            <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 5619), Tuple.Create("\"", 5645)
-, Tuple.Create(Tuple.Create("", 5626), Tuple.Create<System.Object, System.Int32>(Href("~/Sso/Bind/")
-, 5626), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 5641), Tuple.Create("\"", 5667)
+, Tuple.Create(Tuple.Create("", 5648), Tuple.Create<System.Object, System.Int32>(Href("~/Sso/Bind/")
+, 5648), false)
             
             #line 122 "..\..\Areas\Admin\Views\User\Info.cshtml"
-, Tuple.Create(Tuple.Create("", 5637), Tuple.Create<System.Object, System.Int32>(mi.Name
+, Tuple.Create(Tuple.Create("", 5659), Tuple.Create<System.Object, System.Int32>(mi.Name
             
             #line default
             #line hidden
-, 5637), false)
+, 5659), false)
 );
 
-WriteAttribute("title", Tuple.Create(" title=\"", 5646), Tuple.Create("\"", 5665)
-, Tuple.Create(Tuple.Create("", 5654), Tuple.Create("绑定", 5654), true)
+WriteAttribute("title", Tuple.Create(" title=\"", 5668), Tuple.Create("\"", 5687)
+, Tuple.Create(Tuple.Create("", 5676), Tuple.Create("绑定", 5676), true)
             
             #line 122 "..\..\Areas\Admin\Views\User\Info.cshtml"
-   , Tuple.Create(Tuple.Create(" ", 5656), Tuple.Create<System.Object, System.Int32>(mi.Name
+   , Tuple.Create(Tuple.Create(" ", 5678), Tuple.Create<System.Object, System.Int32>(mi.Name
             
             #line default
             #line hidden
-, 5657), false)
+, 5679), false)
 );
 
 WriteLiteral(">去绑定</a>\r\n                                        </li>\r\n");

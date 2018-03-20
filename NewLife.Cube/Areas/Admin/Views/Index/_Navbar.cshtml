@@ -44,7 +44,7 @@
                         }
                         <span class="user-info">
                             @*<small>欢迎，</small>*@
-                            @user @*[@User["RoleName"]]*@
+                            @user <br /> [@(user.Roles.Join(",", r => r + ""))]
                         </span>
 
                         <i class="ace-icon fa fa-caret-down"></i>
@@ -59,14 +59,14 @@
                         </li>
 
                         @*@if (user.Has("Admin/Sys", PermissionFlags.Detail))
-                        {
-                            <li>
-                                <a href="~/Admin/Sys" target="main">
-                                    <i class="ace-icon fa fa-cog"></i>
-                                    设置
-                                </a>
-                            </li>
-                        }*@
+                            {
+                                <li>
+                                    <a href="~/Admin/Sys" target="main">
+                                        <i class="ace-icon fa fa-cog"></i>
+                                        设置
+                                    </a>
+                                </li>
+                            }*@
 
                         <li>
                             <a href="~/Admin/User/Info/@uid" target="main">

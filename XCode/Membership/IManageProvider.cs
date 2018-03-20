@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Principal;
 using System.Text;
 using System.Web;
@@ -242,7 +243,7 @@ namespace XCode.Membership
 
             // 角色列表
             var roles = new List<String>();
-            if (user is IUser user2) roles.Add(user2.RoleName);
+            if (user is IUser user2) roles.AddRange(user2.Roles.Select(e => e + ""));
 
             ctx.User = new GenericPrincipal(id, roles.ToArray());
         }
