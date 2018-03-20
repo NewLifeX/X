@@ -66,7 +66,6 @@ namespace ASP
             
             #line 5 "..\..\Views\Shared\_ListTree_Data.cshtml"
   
-    var user = ViewBag.User as IUser ?? User.Identity as IUser;
     var fact = ViewBag.Factory as IEntityOperate;
     var page = ViewBag.Page as Pager;
     var fields = ViewBag.Fields as IList<FieldItem>;
@@ -84,13 +83,13 @@ WriteLiteral(" class=\"table table-bordered table-hover table-striped table-cond
 WriteLiteral(">\r\n    <thead>\r\n        <tr>\r\n");
 
             
-            #line 16 "..\..\Views\Shared\_ListTree_Data.cshtml"
+            #line 15 "..\..\Views\Shared\_ListTree_Data.cshtml"
             
             
             #line default
             #line hidden
             
-            #line 16 "..\..\Views\Shared\_ListTree_Data.cshtml"
+            #line 15 "..\..\Views\Shared\_ListTree_Data.cshtml"
              if (enableSelect)
             {
 
@@ -114,7 +113,7 @@ WriteLiteral(" title=\"全选\"");
 WriteLiteral(" /></th>\r\n");
 
             
-            #line 19 "..\..\Views\Shared\_ListTree_Data.cshtml"
+            #line 18 "..\..\Views\Shared\_ListTree_Data.cshtml"
             }
 
             
@@ -123,7 +122,7 @@ WriteLiteral(" /></th>\r\n");
 WriteLiteral("            ");
 
             
-            #line 20 "..\..\Views\Shared\_ListTree_Data.cshtml"
+            #line 19 "..\..\Views\Shared\_ListTree_Data.cshtml"
              foreach (var item in fields)
             {
                 var sortUrl = item.OriField != null ? page.GetSortUrl(item.OriField.Name) : page.GetSortUrl(item.Name);
@@ -134,42 +133,42 @@ WriteLiteral("            ");
             #line hidden
 WriteLiteral("                <th");
 
-WriteAttribute("class", Tuple.Create(" class=\"", 974), Tuple.Create("\"", 986)
+WriteAttribute("class", Tuple.Create(" class=\"", 909), Tuple.Create("\"", 921)
             
-            #line 24 "..\..\Views\Shared\_ListTree_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 982), Tuple.Create<System.Object, System.Int32>(cls
+            #line 23 "..\..\Views\Shared\_ListTree_Data.cshtml"
+, Tuple.Create(Tuple.Create("", 917), Tuple.Create<System.Object, System.Int32>(cls
             
             #line default
             #line hidden
-, 982), false)
+, 917), false)
 );
 
-WriteAttribute("title", Tuple.Create(" title=\"", 987), Tuple.Create("\"", 1012)
+WriteAttribute("title", Tuple.Create(" title=\"", 922), Tuple.Create("\"", 947)
             
-            #line 24 "..\..\Views\Shared\_ListTree_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 995), Tuple.Create<System.Object, System.Int32>(item.Description
+            #line 23 "..\..\Views\Shared\_ListTree_Data.cshtml"
+, Tuple.Create(Tuple.Create("", 930), Tuple.Create<System.Object, System.Int32>(item.Description
             
             #line default
             #line hidden
-, 995), false)
+, 930), false)
 );
 
 WriteLiteral("><a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1016), Tuple.Create("\"", 1041)
+WriteAttribute("href", Tuple.Create(" href=\"", 951), Tuple.Create("\"", 976)
             
-            #line 24 "..\..\Views\Shared\_ListTree_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 1023), Tuple.Create<System.Object, System.Int32>(Html.Raw(sortUrl)
+            #line 23 "..\..\Views\Shared\_ListTree_Data.cshtml"
+, Tuple.Create(Tuple.Create("", 958), Tuple.Create<System.Object, System.Int32>(Html.Raw(sortUrl)
             
             #line default
             #line hidden
-, 1023), false)
+, 958), false)
 );
 
 WriteLiteral(">");
 
             
-            #line 24 "..\..\Views\Shared\_ListTree_Data.cshtml"
+            #line 23 "..\..\Views\Shared\_ListTree_Data.cshtml"
                                                                                    Write(item.DisplayName);
 
             
@@ -178,7 +177,7 @@ WriteLiteral(">");
 WriteLiteral("</a></th>\r\n");
 
             
-            #line 25 "..\..\Views\Shared\_ListTree_Data.cshtml"
+            #line 24 "..\..\Views\Shared\_ListTree_Data.cshtml"
             }
 
             
@@ -192,20 +191,45 @@ WriteLiteral(">升</th>\r\n            <th");
 
 WriteLiteral(" class=\"text-center\"");
 
-WriteLiteral(">降</th>\r\n            <th");
+WriteLiteral(">降</th>\r\n");
+
+            
+            #line 27 "..\..\Views\Shared\_ListTree_Data.cshtml"
+            
+            
+            #line default
+            #line hidden
+            
+            #line 27 "..\..\Views\Shared\_ListTree_Data.cshtml"
+             if (this.Has(PermissionFlags.Update, PermissionFlags.Delete))
+            {
+
+            
+            #line default
+            #line hidden
+WriteLiteral("                <th");
 
 WriteLiteral(" class=\"text-center\"");
 
-WriteLiteral(">操作</th>\r\n        </tr>\r\n    </thead>\r\n    <tbody>\r\n");
+WriteLiteral(">操作</th>\r\n");
 
             
-            #line 32 "..\..\Views\Shared\_ListTree_Data.cshtml"
+            #line 30 "..\..\Views\Shared\_ListTree_Data.cshtml"
+            }
+
+            
+            #line default
+            #line hidden
+WriteLiteral("        </tr>\r\n    </thead>\r\n    <tbody>\r\n");
+
+            
+            #line 34 "..\..\Views\Shared\_ListTree_Data.cshtml"
         
             
             #line default
             #line hidden
             
-            #line 32 "..\..\Views\Shared\_ListTree_Data.cshtml"
+            #line 34 "..\..\Views\Shared\_ListTree_Data.cshtml"
          foreach (IEntityTree entity in Model)
         {
             var FirstFlag = 0;
@@ -222,13 +246,13 @@ WriteLiteral(">操作</th>\r\n        </tr>\r\n    </thead>\r\n    <tbody>\r\n")
 WriteLiteral("            <tr>\r\n");
 
             
-            #line 42 "..\..\Views\Shared\_ListTree_Data.cshtml"
+            #line 44 "..\..\Views\Shared\_ListTree_Data.cshtml"
                 
             
             #line default
             #line hidden
             
-            #line 42 "..\..\Views\Shared\_ListTree_Data.cshtml"
+            #line 44 "..\..\Views\Shared\_ListTree_Data.cshtml"
                  if (enableSelect)
                 {
 
@@ -245,20 +269,20 @@ WriteLiteral(" type=\"checkbox\"");
 
 WriteLiteral(" name=\"keys\"");
 
-WriteAttribute("value", Tuple.Create(" value=\"", 1718), Tuple.Create("\"", 1742)
+WriteAttribute("value", Tuple.Create(" value=\"", 1763), Tuple.Create("\"", 1787)
             
-            #line 44 "..\..\Views\Shared\_ListTree_Data.cshtml"
-      , Tuple.Create(Tuple.Create("", 1726), Tuple.Create<System.Object, System.Int32>(entity[fk.Name]
+            #line 46 "..\..\Views\Shared\_ListTree_Data.cshtml"
+      , Tuple.Create(Tuple.Create("", 1771), Tuple.Create<System.Object, System.Int32>(entity[fk.Name]
             
             #line default
             #line hidden
-, 1726), false)
+, 1771), false)
 );
 
 WriteLiteral(" /></td>\r\n");
 
             
-            #line 45 "..\..\Views\Shared\_ListTree_Data.cshtml"
+            #line 47 "..\..\Views\Shared\_ListTree_Data.cshtml"
                 }
 
             
@@ -267,7 +291,7 @@ WriteLiteral(" /></td>\r\n");
 WriteLiteral("                ");
 
             
-            #line 46 "..\..\Views\Shared\_ListTree_Data.cshtml"
+            #line 48 "..\..\Views\Shared\_ListTree_Data.cshtml"
                  foreach (var item in fields)
                 {
                     if (FirstFlag == 0)
@@ -277,14 +301,14 @@ WriteLiteral("                ");
             #line default
             #line hidden
             
-            #line 50 "..\..\Views\Shared\_ListTree_Data.cshtml"
+            #line 52 "..\..\Views\Shared\_ListTree_Data.cshtml"
                    Write(Html.Partial("_List_Data_Item_First", new Pair(entity, item)));
 
             
             #line default
             #line hidden
             
-            #line 50 "..\..\Views\Shared\_ListTree_Data.cshtml"
+            #line 52 "..\..\Views\Shared\_ListTree_Data.cshtml"
                                                                                       
                     }
                     else
@@ -294,14 +318,14 @@ WriteLiteral("                ");
             #line default
             #line hidden
             
-            #line 54 "..\..\Views\Shared\_ListTree_Data.cshtml"
+            #line 56 "..\..\Views\Shared\_ListTree_Data.cshtml"
                    Write(Html.Partial("_List_Data_Item", new Pair(entity, item)));
 
             
             #line default
             #line hidden
             
-            #line 54 "..\..\Views\Shared\_ListTree_Data.cshtml"
+            #line 56 "..\..\Views\Shared\_ListTree_Data.cshtml"
                                                                                 
                     }
 
@@ -318,13 +342,13 @@ WriteLiteral(" class=\"text-center\"");
 WriteLiteral(">\r\n");
 
             
-            #line 60 "..\..\Views\Shared\_ListTree_Data.cshtml"
+            #line 62 "..\..\Views\Shared\_ListTree_Data.cshtml"
                     
             
             #line default
             #line hidden
             
-            #line 60 "..\..\Views\Shared\_ListTree_Data.cshtml"
+            #line 62 "..\..\Views\Shared\_ListTree_Data.cshtml"
                      if (p != null && p.Childs != null && p.Childs.Count > 0 && entity != p.Childs[0])
                     {
 
@@ -333,14 +357,14 @@ WriteLiteral(">\r\n");
             #line hidden
 WriteLiteral("                        <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 2417), Tuple.Create("\"", 2453)
+WriteAttribute("href", Tuple.Create(" href=\"", 2462), Tuple.Create("\"", 2498)
             
-            #line 62 "..\..\Views\Shared\_ListTree_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 2424), Tuple.Create<System.Object, System.Int32>(Url.Action("Up", new { id })
+            #line 64 "..\..\Views\Shared\_ListTree_Data.cshtml"
+, Tuple.Create(Tuple.Create("", 2469), Tuple.Create<System.Object, System.Int32>(Url.Action("Up", new { id })
             
             #line default
             #line hidden
-, 2424), false)
+, 2469), false)
 );
 
 WriteLiteral("><span");
@@ -352,7 +376,7 @@ WriteLiteral(" style=\"color: green;\"");
 WriteLiteral("></span></a>\r\n");
 
             
-            #line 63 "..\..\Views\Shared\_ListTree_Data.cshtml"
+            #line 65 "..\..\Views\Shared\_ListTree_Data.cshtml"
                     }
 
             
@@ -365,13 +389,13 @@ WriteLiteral(" class=\"text-center\"");
 WriteLiteral(">\r\n");
 
             
-            #line 66 "..\..\Views\Shared\_ListTree_Data.cshtml"
+            #line 68 "..\..\Views\Shared\_ListTree_Data.cshtml"
                     
             
             #line default
             #line hidden
             
-            #line 66 "..\..\Views\Shared\_ListTree_Data.cshtml"
+            #line 68 "..\..\Views\Shared\_ListTree_Data.cshtml"
                      if (p != null && entity != p.Childs[p.Childs.Count - 1])
                     {
 
@@ -380,14 +404,14 @@ WriteLiteral(">\r\n");
             #line hidden
 WriteLiteral("                        <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 2749), Tuple.Create("\"", 2787)
+WriteAttribute("href", Tuple.Create(" href=\"", 2794), Tuple.Create("\"", 2832)
             
-            #line 68 "..\..\Views\Shared\_ListTree_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 2756), Tuple.Create<System.Object, System.Int32>(Url.Action("Down", new { id })
+            #line 70 "..\..\Views\Shared\_ListTree_Data.cshtml"
+, Tuple.Create(Tuple.Create("", 2801), Tuple.Create<System.Object, System.Int32>(Url.Action("Down", new { id })
             
             #line default
             #line hidden
-, 2756), false)
+, 2801), false)
 );
 
 WriteLiteral("><span");
@@ -399,7 +423,7 @@ WriteLiteral(" style=\"color: red;\"");
 WriteLiteral("></span></a>\r\n");
 
             
-            #line 69 "..\..\Views\Shared\_ListTree_Data.cshtml"
+            #line 71 "..\..\Views\Shared\_ListTree_Data.cshtml"
                     }
 
             
@@ -408,14 +432,14 @@ WriteLiteral("></span></a>\r\n");
 WriteLiteral("                </td>\r\n");
 
             
-            #line 71 "..\..\Views\Shared\_ListTree_Data.cshtml"
+            #line 73 "..\..\Views\Shared\_ListTree_Data.cshtml"
                 
             
             #line default
             #line hidden
             
-            #line 71 "..\..\Views\Shared\_ListTree_Data.cshtml"
-                 if (user.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
+            #line 73 "..\..\Views\Shared\_ListTree_Data.cshtml"
+                 if (this.Has(PermissionFlags.Update, PermissionFlags.Delete))
                 {
 
             
@@ -430,7 +454,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                        ");
 
             
-            #line 74 "..\..\Views\Shared\_ListTree_Data.cshtml"
+            #line 76 "..\..\Views\Shared\_ListTree_Data.cshtml"
                    Write(Html.Partial("_List_Data_Action", (Object)entity));
 
             
@@ -439,7 +463,7 @@ WriteLiteral("                        ");
 WriteLiteral("\r\n                    </td>\r\n");
 
             
-            #line 76 "..\..\Views\Shared\_ListTree_Data.cshtml"
+            #line 78 "..\..\Views\Shared\_ListTree_Data.cshtml"
                 }
 
             
@@ -448,7 +472,7 @@ WriteLiteral("\r\n                    </td>\r\n");
 WriteLiteral("            </tr>\r\n");
 
             
-            #line 78 "..\..\Views\Shared\_ListTree_Data.cshtml"
+            #line 80 "..\..\Views\Shared\_ListTree_Data.cshtml"
         }
 
             

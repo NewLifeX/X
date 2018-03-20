@@ -51,16 +51,14 @@ namespace ASP
 
     var rv = entity.GetRouteKey();
 
-    var user = ViewBag.User as IUser ?? User.Identity as IUser;
-
             
             #line default
             #line hidden
 WriteLiteral("\r\n");
 
             
-            #line 10 "..\..\Views\Shared\_List_Data_Action.cshtml"
- if (user.Has(PermissionFlags.Update))
+            #line 8 "..\..\Views\Shared\_List_Data_Action.cshtml"
+ if (this.Has(PermissionFlags.Update))
 {
 
             
@@ -76,14 +74,14 @@ WriteLiteral("></i>\r\n");
 
 WriteLiteral("    <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 422), Tuple.Create("\"", 452)
+WriteAttribute("href", Tuple.Create(" href=\"", 355), Tuple.Create("\"", 385)
             
-            #line 13 "..\..\Views\Shared\_List_Data_Action.cshtml"
-, Tuple.Create(Tuple.Create("", 429), Tuple.Create<System.Object, System.Int32>(Url.Action("Edit", rv)
+            #line 11 "..\..\Views\Shared\_List_Data_Action.cshtml"
+, Tuple.Create(Tuple.Create("", 362), Tuple.Create<System.Object, System.Int32>(Url.Action("Edit", rv)
             
             #line default
             #line hidden
-, 429), false)
+, 362), false)
 );
 
 WriteLiteral(" class=\"editcell\"");
@@ -91,9 +89,9 @@ WriteLiteral(" class=\"editcell\"");
 WriteLiteral(">编辑</a>\r\n");
 
             
-            #line 14 "..\..\Views\Shared\_List_Data_Action.cshtml"
+            #line 12 "..\..\Views\Shared\_List_Data_Action.cshtml"
 }
-else if (user.Has(PermissionFlags.Detail))
+else
 {
 
             
@@ -109,14 +107,14 @@ WriteLiteral("></i>\r\n");
 
 WriteLiteral("    <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 602), Tuple.Create("\"", 634)
+WriteAttribute("href", Tuple.Create(" href=\"", 497), Tuple.Create("\"", 529)
             
-            #line 18 "..\..\Views\Shared\_List_Data_Action.cshtml"
-, Tuple.Create(Tuple.Create("", 609), Tuple.Create<System.Object, System.Int32>(Url.Action("Detail", rv)
+            #line 16 "..\..\Views\Shared\_List_Data_Action.cshtml"
+, Tuple.Create(Tuple.Create("", 504), Tuple.Create<System.Object, System.Int32>(Url.Action("Detail", rv)
             
             #line default
             #line hidden
-, 609), false)
+, 504), false)
 );
 
 WriteLiteral(" class=\"editcell\"");
@@ -124,15 +122,15 @@ WriteLiteral(" class=\"editcell\"");
 WriteLiteral(">查看</a>\r\n");
 
             
-            #line 19 "..\..\Views\Shared\_List_Data_Action.cshtml"
+            #line 17 "..\..\Views\Shared\_List_Data_Action.cshtml"
 }
 
             
             #line default
             #line hidden
             
-            #line 20 "..\..\Views\Shared\_List_Data_Action.cshtml"
- if (user.Has(PermissionFlags.Delete))
+            #line 18 "..\..\Views\Shared\_List_Data_Action.cshtml"
+ if (this.Has(PermissionFlags.Delete))
 {
     if (fi != null && fi.Type == typeof(Boolean) && (Boolean)entity[fi.Name])
     {
@@ -150,14 +148,14 @@ WriteLiteral("></i>\r\n");
 
 WriteLiteral("        <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 879), Tuple.Create("\"", 911)
+WriteAttribute("href", Tuple.Create(" href=\"", 774), Tuple.Create("\"", 806)
             
-            #line 25 "..\..\Views\Shared\_List_Data_Action.cshtml"
-, Tuple.Create(Tuple.Create("", 886), Tuple.Create<System.Object, System.Int32>(Url.Action("Delete", rv)
+            #line 23 "..\..\Views\Shared\_List_Data_Action.cshtml"
+, Tuple.Create(Tuple.Create("", 781), Tuple.Create<System.Object, System.Int32>(Url.Action("Delete", rv)
             
             #line default
             #line hidden
-, 886), false)
+, 781), false)
 );
 
 WriteLiteral(" data-action=\"action\"");
@@ -167,7 +165,7 @@ WriteLiteral(" data-confirm=\"确认恢复？\"");
 WriteLiteral(">恢复</a>\r\n");
 
             
-            #line 26 "..\..\Views\Shared\_List_Data_Action.cshtml"
+            #line 24 "..\..\Views\Shared\_List_Data_Action.cshtml"
     }
     else
     {
@@ -185,14 +183,14 @@ WriteLiteral("></i>\r\n");
 
 WriteLiteral("        <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1069), Tuple.Create("\"", 1101)
+WriteAttribute("href", Tuple.Create(" href=\"", 964), Tuple.Create("\"", 996)
             
-            #line 30 "..\..\Views\Shared\_List_Data_Action.cshtml"
-, Tuple.Create(Tuple.Create("", 1076), Tuple.Create<System.Object, System.Int32>(Url.Action("Delete", rv)
+            #line 28 "..\..\Views\Shared\_List_Data_Action.cshtml"
+, Tuple.Create(Tuple.Create("", 971), Tuple.Create<System.Object, System.Int32>(Url.Action("Delete", rv)
             
             #line default
             #line hidden
-, 1076), false)
+, 971), false)
 );
 
 WriteLiteral(" data-action=\"action\"");
@@ -202,7 +200,7 @@ WriteLiteral(" data-confirm=\"确认删除？\"");
 WriteLiteral(">删除</a>\r\n");
 
             
-            #line 31 "..\..\Views\Shared\_List_Data_Action.cshtml"
+            #line 29 "..\..\Views\Shared\_List_Data_Action.cshtml"
     }
 }
             

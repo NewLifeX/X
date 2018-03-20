@@ -109,7 +109,7 @@ namespace NewLife.Cube
                     <th class=""text-center""><a href=""@Html.Raw(sortUrl)"">@item.DisplayName</a></th>
                 }
             }
-            @if (ManageProvider.User.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
+            @if (this.Has(PermissionFlags.Update, PermissionFlags.Delete))
             {
                 <th class=""text-center"" style=""min-width:100px;"">操作</th>
             }
@@ -127,7 +127,7 @@ namespace NewLife.Cube
                 {
                     @Html.Partial(""_List_Data_Item"", new Pair(entity, item))
                 }
-                @if (ManageProvider.User.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
+                @if (this.Has(PermissionFlags.Update, PermissionFlags.Delete))
                 {
                     <td class=""text-center"">
                         @Html.Partial(""_List_Data_Action"", (Object)entity)
@@ -286,10 +286,14 @@ namespace NewLife.Cube
 
             if (page.ViewData.ContainsKey("EnableSelect")) return (Boolean)page.ViewData["EnableSelect"];
 
-            var user = page.ViewBag.User as IUser ?? page.User.Identity as IUser;
-            if (user == null) return false;
+            return page.Has(PermissionFlags.Update, PermissionFlags.Delete);
 
-            return user.Has(PermissionFlags.Update, PermissionFlags.Delete);
+            //var user = page.ViewBag.User as IUser ?? page.User.Identity as IUser;
+            //if (user == null) return false;
+
+            //var menu = page.ViewBag.Menu as IMenu;
+
+            //return user.Has(menu, PermissionFlags.Update, PermissionFlags.Delete);
         }
 
         /// <summary>获取头像地址</summary>

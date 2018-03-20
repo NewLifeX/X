@@ -4,20 +4,18 @@
     var entity = Model as IEntity;
 
     var rv = entity.GetRouteKey();
-
-    var user = ViewBag.User as IUser ?? User.Identity as IUser;
 }
-@if (user.Has(PermissionFlags.Update))
+@if (this.Has(PermissionFlags.Update))
 {
     <i class="glyphicon glyphicon-edit" style="color: blue;"></i>
     <a href="@Url.Action("Edit", rv)" class="editcell">编辑</a>
 }
-else if (user.Has(PermissionFlags.Detail))
+else
 {
     <i class="glyphicon glyphicon-edit" style="color: blue;"></i>
     <a href="@Url.Action("Detail", rv)" class="editcell">查看</a>
 }
-@if (user.Has(PermissionFlags.Delete))
+@if (this.Has(PermissionFlags.Delete))
 {
     if (fi != null && fi.Type == typeof(Boolean) && (Boolean)entity[fi.Name])
     {

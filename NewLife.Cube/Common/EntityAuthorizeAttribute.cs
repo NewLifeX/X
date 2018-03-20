@@ -81,7 +81,8 @@ namespace NewLife.Cube
             var m2 = m1 + "." + act.ActionName;
             var menu = mf.FindByFullName(m2) ?? mf.FindByFullName(m1);
 
-            filterContext.RequestContext.RouteData.Values[""] = menu;
+            // 当前菜单
+            filterContext.Controller.ViewBag.Menu = menu;
 
             //// 根据请求Url定位资源菜单
             //var url = ctx.Request.AppRelativeCurrentExecutionFilePath;

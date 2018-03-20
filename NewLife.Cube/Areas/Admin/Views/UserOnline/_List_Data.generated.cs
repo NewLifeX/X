@@ -291,7 +291,7 @@ WriteLiteral(">修改时间</a></th>\r\n");
             #line hidden
             
             #line 32 "..\..\Areas\Admin\Views\UserOnline\_List_Data.cshtml"
-             if (ManageProvider.User.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
+             if (this.Has(PermissionFlags.Update, PermissionFlags.Delete))
             {
 
             
@@ -352,14 +352,14 @@ WriteLiteral(" type=\"checkbox\"");
 
 WriteLiteral(" name=\"keys\"");
 
-WriteAttribute("value", Tuple.Create(" value=\"", 2079), Tuple.Create("\"", 2097)
+WriteAttribute("value", Tuple.Create(" value=\"", 2040), Tuple.Create("\"", 2058)
             
             #line 44 "..\..\Areas\Admin\Views\UserOnline\_List_Data.cshtml"
-      , Tuple.Create(Tuple.Create("", 2087), Tuple.Create<System.Object, System.Int32>(entity.ID
+      , Tuple.Create(Tuple.Create("", 2048), Tuple.Create<System.Object, System.Int32>(entity.ID
             
             #line default
             #line hidden
-, 2087), false)
+, 2048), false)
 );
 
 WriteLiteral(" /></td>\r\n");
@@ -411,14 +411,14 @@ WriteLiteral("</td>\r\n                <td");
 WriteLiteral(" style=\"max-width:600px;overflow:hidden;white-space: nowrap;text-overflow: ellips" +
 "is;\"");
 
-WriteAttribute("title", Tuple.Create(" title=\"", 2431), Tuple.Create("\"", 2453)
+WriteAttribute("title", Tuple.Create(" title=\"", 2392), Tuple.Create("\"", 2414)
             
             #line 49 "..\..\Areas\Admin\Views\UserOnline\_List_Data.cshtml"
-                                , Tuple.Create(Tuple.Create("", 2439), Tuple.Create<System.Object, System.Int32>(entity.Status
+                                , Tuple.Create(Tuple.Create("", 2400), Tuple.Create<System.Object, System.Int32>(entity.Status
             
             #line default
             #line hidden
-, 2439), false)
+, 2400), false)
 );
 
 WriteLiteral(">");
@@ -489,7 +489,7 @@ WriteLiteral("</td>\r\n");
             #line hidden
             
             #line 55 "..\..\Areas\Admin\Views\UserOnline\_List_Data.cshtml"
-                 if (ManageProvider.User.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
+                 if (this.Has(PermissionFlags.Update, PermissionFlags.Delete))
                 {
 
             

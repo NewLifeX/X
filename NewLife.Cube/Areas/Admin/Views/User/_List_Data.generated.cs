@@ -362,7 +362,7 @@ WriteLiteral(">物理地址</a></th>\r\n");
             #line hidden
             
             #line 37 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
-             if (ManageProvider.User.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
+             if (this.Has(PermissionFlags.Update, PermissionFlags.Delete))
             {
 
             
@@ -425,14 +425,14 @@ WriteLiteral(" type=\"checkbox\"");
 
 WriteLiteral(" name=\"keys\"");
 
-WriteAttribute("value", Tuple.Create(" value=\"", 2586), Tuple.Create("\"", 2604)
+WriteAttribute("value", Tuple.Create(" value=\"", 2547), Tuple.Create("\"", 2565)
             
             #line 49 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
-      , Tuple.Create(Tuple.Create("", 2594), Tuple.Create<System.Object, System.Int32>(entity.ID
+      , Tuple.Create(Tuple.Create("", 2555), Tuple.Create<System.Object, System.Int32>(entity.ID
             
             #line default
             #line hidden
-, 2594), false)
+, 2555), false)
 );
 
 WriteLiteral(" /></td>\r\n");
@@ -508,15 +508,15 @@ WriteLiteral("</td>\r\n                <td>");
             #line hidden
 WriteLiteral("</td>\r\n                <td><a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 2966), Tuple.Create("\"", 2995)
-, Tuple.Create(Tuple.Create("", 2973), Tuple.Create("Role?ID=", 2973), true)
+WriteAttribute("href", Tuple.Create(" href=\"", 2927), Tuple.Create("\"", 2956)
+, Tuple.Create(Tuple.Create("", 2934), Tuple.Create("Role?ID=", 2934), true)
             
             #line 57 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 2981), Tuple.Create<System.Object, System.Int32>(entity.RoleID
+, Tuple.Create(Tuple.Create("", 2942), Tuple.Create<System.Object, System.Int32>(entity.RoleID
             
             #line default
             #line hidden
-, 2981), false)
+, 2942), false)
 );
 
 WriteLiteral(">");
@@ -534,28 +534,28 @@ WriteLiteral(" class=\"text-center\"");
 
 WriteLiteral(">\r\n                    <i");
 
-WriteAttribute("class", Tuple.Create(" class=\"", 3088), Tuple.Create("\"", 3150)
-, Tuple.Create(Tuple.Create("", 3096), Tuple.Create("glyphicon", 3096), true)
-, Tuple.Create(Tuple.Create(" ", 3105), Tuple.Create("glyphicon-", 3106), true)
+WriteAttribute("class", Tuple.Create(" class=\"", 3049), Tuple.Create("\"", 3111)
+, Tuple.Create(Tuple.Create("", 3057), Tuple.Create("glyphicon", 3057), true)
+, Tuple.Create(Tuple.Create(" ", 3066), Tuple.Create("glyphicon-", 3067), true)
             
             #line 59 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 3116), Tuple.Create<System.Object, System.Int32>(entity.Online ? "ok" : "remove"
+, Tuple.Create(Tuple.Create("", 3077), Tuple.Create<System.Object, System.Int32>(entity.Online ? "ok" : "remove"
             
             #line default
             #line hidden
-, 3116), false)
+, 3077), false)
 );
 
-WriteAttribute("style", Tuple.Create(" style=\"", 3151), Tuple.Create("\"", 3201)
-, Tuple.Create(Tuple.Create("", 3159), Tuple.Create("color:", 3159), true)
+WriteAttribute("style", Tuple.Create(" style=\"", 3112), Tuple.Create("\"", 3162)
+, Tuple.Create(Tuple.Create("", 3120), Tuple.Create("color:", 3120), true)
             
             #line 59 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
-                    , Tuple.Create(Tuple.Create(" ", 3165), Tuple.Create<System.Object, System.Int32>(entity.Online ? "green" : "red"
+                    , Tuple.Create(Tuple.Create(" ", 3126), Tuple.Create<System.Object, System.Int32>(entity.Online ? "green" : "red"
             
             #line default
             #line hidden
-, 3166), false)
-, Tuple.Create(Tuple.Create("", 3200), Tuple.Create(";", 3200), true)
+, 3127), false)
+, Tuple.Create(Tuple.Create("", 3161), Tuple.Create(";", 3161), true)
 );
 
 WriteLiteral("></i>\r\n                </td>\r\n                <td");
@@ -564,28 +564,28 @@ WriteLiteral(" class=\"text-center\"");
 
 WriteLiteral(">\r\n                    <i");
 
-WriteAttribute("class", Tuple.Create(" class=\"", 3296), Tuple.Create("\"", 3358)
-, Tuple.Create(Tuple.Create("", 3304), Tuple.Create("glyphicon", 3304), true)
-, Tuple.Create(Tuple.Create(" ", 3313), Tuple.Create("glyphicon-", 3314), true)
+WriteAttribute("class", Tuple.Create(" class=\"", 3257), Tuple.Create("\"", 3319)
+, Tuple.Create(Tuple.Create("", 3265), Tuple.Create("glyphicon", 3265), true)
+, Tuple.Create(Tuple.Create(" ", 3274), Tuple.Create("glyphicon-", 3275), true)
             
             #line 62 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 3324), Tuple.Create<System.Object, System.Int32>(entity.Enable ? "ok" : "remove"
+, Tuple.Create(Tuple.Create("", 3285), Tuple.Create<System.Object, System.Int32>(entity.Enable ? "ok" : "remove"
             
             #line default
             #line hidden
-, 3324), false)
+, 3285), false)
 );
 
-WriteAttribute("style", Tuple.Create(" style=\"", 3359), Tuple.Create("\"", 3409)
-, Tuple.Create(Tuple.Create("", 3367), Tuple.Create("color:", 3367), true)
+WriteAttribute("style", Tuple.Create(" style=\"", 3320), Tuple.Create("\"", 3370)
+, Tuple.Create(Tuple.Create("", 3328), Tuple.Create("color:", 3328), true)
             
             #line 62 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
-                    , Tuple.Create(Tuple.Create(" ", 3373), Tuple.Create<System.Object, System.Int32>(entity.Enable ? "green" : "red"
+                    , Tuple.Create(Tuple.Create(" ", 3334), Tuple.Create<System.Object, System.Int32>(entity.Enable ? "green" : "red"
             
             #line default
             #line hidden
-, 3374), false)
-, Tuple.Create(Tuple.Create("", 3408), Tuple.Create(";", 3408), true)
+, 3335), false)
+, Tuple.Create(Tuple.Create("", 3369), Tuple.Create(";", 3369), true)
 );
 
 WriteLiteral("></i>\r\n                </td>\r\n                <td");
@@ -638,7 +638,7 @@ WriteLiteral("</td>\r\n");
             #line hidden
             
             #line 68 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
-                 if (ManageProvider.User.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
+                 if (this.Has(PermissionFlags.Update, PermissionFlags.Delete))
                 {
 
             

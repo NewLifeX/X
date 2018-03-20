@@ -293,7 +293,7 @@ WriteLiteral(">时间</a></th>\r\n");
             #line hidden
             
             #line 32 "..\..\Areas\Admin\Views\Log\_List_Data.cshtml"
-             if (ManageProvider.User.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
+             if (this.Has(PermissionFlags.Update, PermissionFlags.Delete))
             {
 
             
@@ -356,14 +356,14 @@ WriteLiteral(" type=\"checkbox\"");
 
 WriteLiteral(" name=\"keys\"");
 
-WriteAttribute("value", Tuple.Create(" value=\"", 2118), Tuple.Create("\"", 2136)
+WriteAttribute("value", Tuple.Create(" value=\"", 2079), Tuple.Create("\"", 2097)
             
             #line 44 "..\..\Areas\Admin\Views\Log\_List_Data.cshtml"
-      , Tuple.Create(Tuple.Create("", 2126), Tuple.Create<System.Object, System.Int32>(entity.ID
+      , Tuple.Create(Tuple.Create("", 2087), Tuple.Create<System.Object, System.Int32>(entity.ID
             
             #line default
             #line hidden
-, 2126), false)
+, 2087), false)
 );
 
 WriteLiteral(" /></td>\r\n");
@@ -411,14 +411,14 @@ WriteLiteral("</td>\r\n                <td");
 WriteLiteral(" style=\"max-width:600px;overflow:hidden;white-space: nowrap;text-overflow: ellips" +
 "is;\"");
 
-WriteAttribute("title", Tuple.Create(" title=\"", 2441), Tuple.Create("\"", 2463)
+WriteAttribute("title", Tuple.Create(" title=\"", 2402), Tuple.Create("\"", 2424)
             
             #line 49 "..\..\Areas\Admin\Views\Log\_List_Data.cshtml"
-                                , Tuple.Create(Tuple.Create("", 2449), Tuple.Create<System.Object, System.Int32>(entity.Remark
+                                , Tuple.Create(Tuple.Create("", 2410), Tuple.Create<System.Object, System.Int32>(entity.Remark
             
             #line default
             #line hidden
-, 2449), false)
+, 2410), false)
 );
 
 WriteLiteral(">");
@@ -495,7 +495,7 @@ WriteLiteral("</td>\r\n");
             #line hidden
             
             #line 55 "..\..\Areas\Admin\Views\Log\_List_Data.cshtml"
-                 if (ManageProvider.User.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
+                 if (this.Has(PermissionFlags.Update, PermissionFlags.Delete))
                 {
 
             

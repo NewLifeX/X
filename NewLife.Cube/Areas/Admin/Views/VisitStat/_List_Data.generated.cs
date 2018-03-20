@@ -341,7 +341,7 @@ WriteLiteral(">更新时间</a></th>\r\n");
             #line hidden
             
             #line 37 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
-             if (ManageProvider.User.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
+             if (this.Has(PermissionFlags.Update, PermissionFlags.Delete))
             {
 
             
@@ -407,14 +407,14 @@ WriteLiteral(" type=\"checkbox\"");
 
 WriteLiteral(" name=\"keys\"");
 
-WriteAttribute("value", Tuple.Create(" value=\"", 2553), Tuple.Create("\"", 2571)
+WriteAttribute("value", Tuple.Create(" value=\"", 2514), Tuple.Create("\"", 2532)
             
             #line 54 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
-      , Tuple.Create(Tuple.Create("", 2561), Tuple.Create<System.Object, System.Int32>(entity.ID
+      , Tuple.Create(Tuple.Create("", 2522), Tuple.Create<System.Object, System.Int32>(entity.ID
             
             #line default
             #line hidden
-, 2561), false)
+, 2522), false)
 );
 
 WriteLiteral(" /></td>\r\n");
@@ -576,7 +576,7 @@ WriteLiteral("</td>\r\n");
             #line hidden
             
             #line 68 "..\..\Areas\Admin\Views\VisitStat\_List_Data.cshtml"
-                 if (ManageProvider.User.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
+                 if (this.Has(PermissionFlags.Update, PermissionFlags.Delete))
                 {
 
             

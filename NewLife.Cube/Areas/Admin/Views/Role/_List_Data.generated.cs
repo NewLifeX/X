@@ -264,7 +264,7 @@ WriteLiteral(">更新时间</a></th>\r\n");
             #line hidden
             
             #line 31 "..\..\Areas\Admin\Views\Role\_List_Data.cshtml"
-             if (ManageProvider.User.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
+             if (this.Has(PermissionFlags.Update, PermissionFlags.Delete))
             {
 
             
@@ -327,14 +327,14 @@ WriteLiteral(" type=\"checkbox\"");
 
 WriteLiteral(" name=\"keys\"");
 
-WriteAttribute("value", Tuple.Create(" value=\"", 2002), Tuple.Create("\"", 2020)
+WriteAttribute("value", Tuple.Create(" value=\"", 1963), Tuple.Create("\"", 1981)
             
             #line 43 "..\..\Areas\Admin\Views\Role\_List_Data.cshtml"
-      , Tuple.Create(Tuple.Create("", 2010), Tuple.Create<System.Object, System.Int32>(entity.ID
+      , Tuple.Create(Tuple.Create("", 1971), Tuple.Create<System.Object, System.Int32>(entity.ID
             
             #line default
             #line hidden
-, 2010), false)
+, 1971), false)
 );
 
 WriteLiteral(" /></td>\r\n");
@@ -374,28 +374,28 @@ WriteLiteral(" class=\"text-center\"");
 
 WriteLiteral(">\r\n                    <i");
 
-WriteAttribute("class", Tuple.Create(" class=\"", 2240), Tuple.Create("\"", 2304)
-, Tuple.Create(Tuple.Create("", 2248), Tuple.Create("glyphicon", 2248), true)
-, Tuple.Create(Tuple.Create(" ", 2257), Tuple.Create("glyphicon-", 2258), true)
+WriteAttribute("class", Tuple.Create(" class=\"", 2201), Tuple.Create("\"", 2265)
+, Tuple.Create(Tuple.Create("", 2209), Tuple.Create("glyphicon", 2209), true)
+, Tuple.Create(Tuple.Create(" ", 2218), Tuple.Create("glyphicon-", 2219), true)
             
             #line 48 "..\..\Areas\Admin\Views\Role\_List_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 2268), Tuple.Create<System.Object, System.Int32>(entity.IsSystem ? "ok" : "remove"
+, Tuple.Create(Tuple.Create("", 2229), Tuple.Create<System.Object, System.Int32>(entity.IsSystem ? "ok" : "remove"
             
             #line default
             #line hidden
-, 2268), false)
+, 2229), false)
 );
 
-WriteAttribute("style", Tuple.Create(" style=\"", 2305), Tuple.Create("\"", 2357)
-, Tuple.Create(Tuple.Create("", 2313), Tuple.Create("color:", 2313), true)
+WriteAttribute("style", Tuple.Create(" style=\"", 2266), Tuple.Create("\"", 2318)
+, Tuple.Create(Tuple.Create("", 2274), Tuple.Create("color:", 2274), true)
             
             #line 48 "..\..\Areas\Admin\Views\Role\_List_Data.cshtml"
-                      , Tuple.Create(Tuple.Create(" ", 2319), Tuple.Create<System.Object, System.Int32>(entity.IsSystem ? "green" : "red"
+                      , Tuple.Create(Tuple.Create(" ", 2280), Tuple.Create<System.Object, System.Int32>(entity.IsSystem ? "green" : "red"
             
             #line default
             #line hidden
-, 2320), false)
-, Tuple.Create(Tuple.Create("", 2356), Tuple.Create(";", 2356), true)
+, 2281), false)
+, Tuple.Create(Tuple.Create("", 2317), Tuple.Create(";", 2317), true)
 );
 
 WriteLiteral("></i>\r\n                </td>\r\n                <td>");
@@ -422,14 +422,14 @@ WriteLiteral(">");
             #line hidden
 WriteLiteral("</td>\r\n                <td");
 
-WriteAttribute("title", Tuple.Create(" title=\"", 2533), Tuple.Create("\"", 2571)
+WriteAttribute("title", Tuple.Create(" title=\"", 2494), Tuple.Create("\"", 2532)
             
             #line 52 "..\..\Areas\Admin\Views\Role\_List_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 2541), Tuple.Create<System.Object, System.Int32>(entity.UpdateIP.IPToAddress()
+, Tuple.Create(Tuple.Create("", 2502), Tuple.Create<System.Object, System.Int32>(entity.UpdateIP.IPToAddress()
             
             #line default
             #line hidden
-, 2541), false)
+, 2502), false)
 );
 
 WriteLiteral(">");
@@ -460,7 +460,7 @@ WriteLiteral("</td>\r\n");
             #line hidden
             
             #line 54 "..\..\Areas\Admin\Views\Role\_List_Data.cshtml"
-                 if (ManageProvider.User.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
+                 if (this.Has(PermissionFlags.Update, PermissionFlags.Delete))
                 {
 
             
