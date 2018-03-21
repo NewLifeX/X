@@ -11,13 +11,14 @@ XCode是一个超越了ORM范围的映射组件，除了对象到关系数据库
 * 分布式支持。尽管XCode采用了最好的分页算法，但对于大型系统甚至超级系统来说，单表数千万乃至数亿的数据是远远不能满足要求的。不管从数据存储还是从性能瓶颈的角度来考虑，分布式是必然趋势！XCode原生支持分布式设计。单表拆成多表，拆分到不同数据库、不同数据库服务器，XCode能够完全屏蔽数据层，使用起来就跟一张超级大表一样。其它绝大多数ORM不会对分布式实行原生支持，需要分布式数据库或者极其昂贵的硬件来配合才能做到。
 * 总的来说，最好的分页算法保证基本操作不犯错，化繁为简和多级缓存的设计保证XCode在性能上永无止境，所以，XCode的最大优势就是性能！
 
-<br/>
-# 教程
+## 教程
 
 ### 打开Visual Studio，新建一个控制台应用
-<br/>
-## 使用NuGet安装到你的项目
+
+### 使用NuGet安装到你的项目
+
 PM> Install-Package NewLife.XCode
+
 ### 编写一个简单Xml模型（如果你已有现成的数据库，则可以使用XCoder.exe工具生成）
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -34,25 +35,19 @@ PM> Install-Package NewLife.XCode
 ```
 这是一个简单的XCode映射模型，跟hibernate原理相似，依靠这个模型，我们可以自动生成我们想要的数据库而不用写任何sql语句，所以也不用打开你的Sqlserver管理工具、navicat、mysqladminister等等
 ，这个xml会自动帮你生成，一切都来得如此简单快捷。
-
-<br>
 ### 生成C#模型
-* 右击 <font face="微软雅黑" color="red" size="2">生成实体类.tt</font> 文件,选择“运行自定义工具”，单击右上角的“显示所有文件”，这时你会看到
+* 右击 生成实体类.tt 文件,选择“运行自定义工具”，单击右上角的“显示所有文件”，这时你会看到
 生成一个MyEntity文件目录，目录包含了两个文件：用户信息.Biz.cs、用户信息.cs，然后右击文件夹，选择“包括在项目中”，我们可以大概预览一下里面的
 代码。作为一个orm组件，你完全不用关心里面代码的写法，我们只需会用就行了。
 
-<br>
 ### 使用XCode实现简单的增删改查
 * Program.cs文件最上面
-<br>
 ```
 using XCode.Code;
 ```
 不然会使用不了Save、Update、Delete等扩展方法。
-<br>
-<br>
+
 * 新增一条数据。注：这里没有指定数据库，所以XCode默认的是sqlite数据库
-<br>
 ```csharp
             Model.UserInfo user = new Model.UserInfo();
             user.UserName = "张三";
@@ -63,7 +58,6 @@ using XCode.Code;
             Console.WriteLine("插入一条新数据，用户id为：" + user.UserId);
 ```
 * 修改一条数据
-<br>
 ```csharp
             Model.UserInfo user = new Model.UserInfo();
             user.UserId = 1;
@@ -76,7 +70,6 @@ using XCode.Code;
             Console.WriteLine($"用户ID={user.UserId}已修改岁数，岁数为：{user.Age}");
 ```
 * 删除一条数据
-<br>
 ```csharp
             Model.UserInfo user = new Model.UserInfo();
             user.UserId = 1;
@@ -86,7 +79,6 @@ using XCode.Code;
             Console.WriteLine("用户" + (user == null ? "已删除" : "还存在"));
 ```
 * 查询数据，查询是一个十分复杂的需求，这里只举一些简单的例子，如果你想学更高级更复杂的查询，可以浏览页面底部的链接
-<br>
 ```csharp
             //根据UserId查询用户信息
             var userId = 2;
@@ -104,47 +96,27 @@ using XCode.Code;
 ```
 
 ## 更多
-<br>
 因为时间有限，只写了一些简单的例子，这个markdown会持续更新，敬请期待
 
-<br>
-<br>
 ## 相关教程
 * 初级
-<br>
 [ORM组件XCode（简介）](http://www.cnblogs.com/nnhy/archive/2010/09/13/1824666.html)
-<br>
 [ORM组件XCode（动手）](http://www.cnblogs.com/nnhy/archive/2010/09/15/1826602.html)
-<br>
-
 ---
-<br>
 * 系列
- <br>
 [NewLife.XCode 上手指南](http://www.cnblogs.com/JangoJing/archive/2012/07/26/2610034.html)
-<br>
 [NewLife.XCode 上手指南(二) 反向工程使用举例](http://www.cnblogs.com/JangoJing/archive/2012/07/26/2610368.html)
-<br>
 [NewLife.Xcode 上手指南(三) 扩展属性的使用](http://www.cnblogs.com/JangoJing/archive/2012/07/31/2616238.html)
-<br>
 [NewLife.XCode 上手指南(四) 级联操作](http://www.cnblogs.com/JangoJing/archive/2012/08/02/2619311.html)
-<br>
 [NewLife.XCode 上手指南(五) 复杂查询](http://www.cnblogs.com/JangoJing/archive/2012/08/17/2644124.html)
-<br>
 ---
-<br>
 * 进阶
-<br>
 [充血模型的ORM能做什么？——ORM组件XCode（十八般武艺）](http://www.cnblogs.com/nnhy/archive/2010/09/25/1834320.html)
-<br>
 [NewLife.XCode中如何借助分部抽象多个具有很多共同字段的实体类](http://www.cnblogs.com/nnhy/archive/2012/04/27/2473052.html)
-<br>
 [ORM组件XCode（撬动千万级数据）](http://www.cnblogs.com/nnhy/archive/2010/09/15/1827477.html)
-<br>
 [ORM组件XCode（动手）](http://www.cnblogs.com/nnhy/archive/2010/09/15/1826602.html)
-<br>
 [ORM组件XCode（动手）](http://www.cnblogs.com/nnhy/archive/2010/09/15/1826602.html)
-<br>
+
 
  
 #### 新生命开发团队  
