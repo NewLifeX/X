@@ -349,21 +349,21 @@ namespace NewLife.Cube.Web
             if (dic.TryGetValue("RoleNames", out var roleNames))
             {
                 var names = roleNames.Split(",");
-                var rs = names.Select(e => Role.FindByName(e)).Where(e => e != null).ToList();
-                if (rs.Count > 0) return rs.Select(e => e.ID).ToArray();
-
-                if (create)
+                var rs = new List<Int32>();
+                foreach (var item in names)
                 {
-                    foreach (var item in names)
+                    var r = Role.FindByName(item);
+                    if (r != null)
+                        rs.Add(r.ID);
+                    else if (create)
                     {
-                        var r = new Role { Name = item };
+                        r = new Role { Name = item };
                         r.Insert();
-
-                        rs.Add(r);
+                        rs.Add(r.ID);
                     }
-
-                    return rs.Select(e => e.ID).ToArray();
                 }
+
+                if (rs.Count > 0) return rs.ToArray();
             }
 
             if (dic.TryGetValue("RoleIDs", out var rids)) return rids.SplitAsInt();
