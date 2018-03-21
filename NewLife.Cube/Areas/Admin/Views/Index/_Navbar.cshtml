@@ -3,7 +3,12 @@
 @{
     var user = ViewBag.User as IUser ?? User.Identity as IUser;
     var uid = 0;
-    if (user != null) { uid = user.ID; }
+    var roleNames = "";
+    if (user != null)
+    {
+        uid = user.ID;
+        roleNames = user.Roles == null ? "" : user.Roles.Join();
+    }
     var cfg = ViewBag.Config as SysConfig;
     var name = cfg == null ? "" : cfg.DisplayName;
 }
@@ -44,7 +49,7 @@
                         }
                         <span class="user-info">
                             @*<small>欢迎，</small>*@
-                            @user <br /> [@(user.Roles.Join(",", r => r + ""))]
+                            @user <br /> [@roleNames]
                         </span>
 
                         <i class="ace-icon fa fa-caret-down"></i>

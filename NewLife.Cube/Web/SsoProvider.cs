@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using NewLife.Cube.Entity;
@@ -152,7 +153,11 @@ namespace NewLife.Cube.Web
                 if (rid <= 0)
                 {
                     // 0使用认证中心角色，-1强制使用
-                    if (user2.RoleID <= 0 || rid < 0) user2.RoleID = GetRole(dic, rid < 0);
+                    if (user2.RoleID <= 0 || rid < 0)
+                    {
+                        user2.RoleID = GetRole(dic, rid < -1);
+                        user2.RoleIDs = GetRoles(client.Items, rid < -2).Join();
+                    }
                 }
 
                 // 头像
@@ -207,10 +212,11 @@ namespace NewLife.Cube.Web
                     // 新注册用户采用魔方默认角色
                     var rid = set.DefaultRole;
                     //if (rid == 0 && client.Items.TryGetValue("roleid", out var roleid)) rid = roleid.ToInt();
-                    if (rid <= 0) rid = GetRole(client.Items, rid < 0);
+                    if (rid <= 0) rid = GetRole(client.Items, rid < -1);
 
                     // 注册用户，随机密码
                     user = prv.Register(name, Rand.NextString(16), rid, true);
+                    if (user is UserX user2) user2.RoleIDs = GetRoles(client.Items, rid < -2).Join();
                 }
             }
 
@@ -264,6 +270,8 @@ namespace NewLife.Cube.Web
                     code = user2.Code,
                     roleid = user2.RoleID,
                     rolename = user2.RoleName,
+                    roleids = user2.RoleIDs,
+                    rolenames = user2.Roles.Join(",", e => e + ""),
                     avatar = user2.Avatar,
                 };
             else
@@ -334,6 +342,33 @@ namespace NewLife.Cube.Web
             if (dic.TryGetValue("RoleID", out var rid)) return rid.ToInt();
 
             return 0;
+        }
+
+        private Int32[] GetRoles(IDictionary<String, String> dic, Boolean create)
+        {
+            if (dic.TryGetValue("RoleNames", out var roleNames))
+            {
+                var names = roleNames.Split(",");
+                var rs = names.Select(e => Role.FindByName(e)).Where(e => e != null).ToList();
+                if (rs.Count > 0) return rs.Select(e => e.ID).ToArray();
+
+                if (create)
+                {
+                    foreach (var item in names)
+                    {
+                        var r = new Role { Name = item };
+                        r.Insert();
+
+                        rs.Add(r);
+                    }
+
+                    return rs.Select(e => e.ID).ToArray();
+                }
+            }
+
+            if (dic.TryGetValue("RoleIDs", out var rids)) return rids.SplitAsInt();
+
+            return new Int32[0];
         }
         #endregion
     }
