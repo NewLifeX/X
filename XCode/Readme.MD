@@ -95,6 +95,23 @@ using XCode.Code;
 
 ```
 
+## 一些高级的用法
+* 更新（注：XCode是使用缓存，所以有些高级方法会绕过缓存直接更新数据库，这样会导致缓存数据与数据库的数据不一致。）
+	更新某些字段。
+```csharp
+            Model.UserInfo.Update(Model.UserInfo._.UserName == "李四"& Model.UserInfo._.Age==18, Model.UserInfo._.UserId == 1);
+            //相当于Update UserInfo Set UserName='李四' And Age=18 Where UserId=1
+```
+
+复杂的查询语句
+
+```csharp
+            var userList = Model.UserInfo.FindAll(Model.UserInfo._.UserName == "张三" & Model.UserInfo._.Age == 19, " UserName desc", string.Join(",", Model.UserInfo._.UserName, Model.UserInfo._.Age), 0, 0);
+            //相当于Select UserName,Age From UserInfo Where UserName='张三' And Age=19 Order By  UserName desc
+```
+
+这里的Orderby写法似乎没这么优雅。
+
 ## 更多
 因为时间有限，只写了一些简单的例子，这个markdown会持续更新，敬请期待
 
@@ -111,11 +128,11 @@ using XCode.Code;
 [NewLife.XCode 上手指南(五) 复杂查询](http://www.cnblogs.com/JangoJing/archive/2012/08/17/2644124.html)
 ---
 * 进阶
-[充血模型的ORM能做什么？——ORM组件XCode（十八般武艺）](http://www.cnblogs.com/nnhy/archive/2010/09/25/1834320.html)
-[NewLife.XCode中如何借助分部抽象多个具有很多共同字段的实体类](http://www.cnblogs.com/nnhy/archive/2012/04/27/2473052.html)
-[ORM组件XCode（撬动千万级数据）](http://www.cnblogs.com/nnhy/archive/2010/09/15/1827477.html)
-[ORM组件XCode（动手）](http://www.cnblogs.com/nnhy/archive/2010/09/15/1826602.html)
-[ORM组件XCode（动手）](http://www.cnblogs.com/nnhy/archive/2010/09/15/1826602.html)
+> [充血模型的ORM能做什么？——ORM组件XCode（十八般武艺）](http://www.cnblogs.com/nnhy/archive/2010/09/25/1834320.html)
+>[NewLife.XCode中如何借助分部抽象多个具有很多共同字段的实体类](http://www.cnblogs.com/nnhy/archive/2012/04/27/2473052.html)
+>[ORM组件XCode（撬动千万级数据）](http://www.cnblogs.com/nnhy/archive/2010/09/15/1827477.html)
+>[ORM组件XCode（动手）](http://www.cnblogs.com/nnhy/archive/2010/09/15/1826602.html)
+
 
 
  
