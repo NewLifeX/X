@@ -248,7 +248,7 @@ namespace NewLife.Caching
         /// <param name="key">键</param>
         public override Boolean ContainsKey(String key)
         {
-            return Execute(rds => rds.Execute<String>("EXISTS", key) == "OK");
+            return Execute(rds => rds.Execute<Int32>("EXISTS", key) > 0);
         }
 
         /// <summary>设置缓存项有效期</summary>
