@@ -55,6 +55,7 @@ using XCode.Code;
 <br>
 <br>
 * 新增一条数据。注：这里没有指定数据库，所以XCode默认的是sqlite数据库
+<br>
 ```csharp
             Model.UserInfo user = new Model.UserInfo();
             user.UserName = "张三";
@@ -65,7 +66,7 @@ using XCode.Code;
             Console.WriteLine("插入一条新数据，用户id为：" + user.UserId);
 ```
 * 修改一条数据
-
+<br>
 ```csharp
             Model.UserInfo user = new Model.UserInfo();
             user.UserId = 1;
@@ -78,7 +79,7 @@ using XCode.Code;
             Console.WriteLine($"用户ID={user.UserId}已修改岁数，岁数为：{user.Age}");
 ```
 * 删除一条数据
-
+<br>
 ```csharp
             Model.UserInfo user = new Model.UserInfo();
             user.UserId = 1;
@@ -88,7 +89,7 @@ using XCode.Code;
             Console.WriteLine("用户" + (user == null ? "已删除" : "还存在"));
 ```
 * 查询数据，查询是一个十分复杂的需求，这里只举一些简单的例子，如果你想学更高级更复杂的查询，可以浏览页面底部的链接
-
+<br>
 ```csharp
             //根据UserId查询用户信息
             var userId = 2;
@@ -106,6 +107,7 @@ using XCode.Code;
 ```
 
 ## 更多
+<br>
 因为时间有限，只写了一些简单的例子，这个markdown会持续更新，敬请期待
 
 <br>
@@ -119,6 +121,7 @@ using XCode.Code;
 <br>
 
 ---
+<br>
 * 系列
  <br>
 [NewLife.XCode 上手指南](http://www.cnblogs.com/JangoJing/archive/2012/07/26/2610034.html)
@@ -132,6 +135,7 @@ using XCode.Code;
 [NewLife.XCode 上手指南(五) 复杂查询](http://www.cnblogs.com/JangoJing/archive/2012/08/17/2644124.html)
 <br>
 ---
+<br>
 * 进阶
 <br>
 [充血模型的ORM能做什么？——ORM组件XCode（十八般武艺）](http://www.cnblogs.com/nnhy/archive/2010/09/25/1834320.html)
