@@ -14,15 +14,11 @@ XCode是一个超越了ORM范围的映射组件，除了对象到关系数据库
 <br/>
 # 教程
 
-##打开Visual Studio，新建一个控制台应用
+### 打开Visual Studio，新建一个控制台应用
 <br/>
-##使用NuGet安装到你的项目
-
-
-    PM> Install-Package NewLife.XCode
-
-
-## 编写一个简单Xml模型（如果你已有现成的数据库，则可以使用XCoder.exe工具生成）
+## 使用NuGet安装到你的项目
+PM> Install-Package NewLife.XCode
+### 编写一个简单Xml模型（如果你已有现成的数据库，则可以使用XCoder.exe工具生成）
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
 <Tables Version="9.6.6644.19804" Output="MyEntity" NameSpace="Model" BaseClass="Entity" ConnName="DB">
@@ -40,14 +36,15 @@ XCode是一个超越了ORM范围的映射组件，除了对象到关系数据库
 ，这个xml会自动帮你生成，一切都来得如此简单快捷。
 
 <br>
-## 生成C#模型
+### 生成C#模型
 * 右击 <font face="微软雅黑" color="red" size="2">生成实体类.tt</font> 文件,选择“运行自定义工具”，单击右上角的“显示所有文件”，这时你会看到
 生成一个MyEntity文件目录，目录包含了两个文件：用户信息.Biz.cs、用户信息.cs，然后右击文件夹，选择“包括在项目中”，我们可以大概预览一下里面的
 代码。作为一个orm组件，你完全不用关心里面代码的写法，我们只需会用就行了。
 
 <br>
-## 使用XCode实现简单的增删改查
+### 使用XCode实现简单的增删改查
 * Program.cs文件最上面
+<br>
 ```
 using XCode.Code;
 ```
