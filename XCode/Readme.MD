@@ -109,8 +109,33 @@ using XCode.Code;
             var userList = Model.UserInfo.FindAll(Model.UserInfo._.UserName == "张三" & Model.UserInfo._.Age == 19, " UserName desc", string.Join(",", Model.UserInfo._.UserName, Model.UserInfo._.Age), 0, 0);
             //相当于Select UserName,Age From UserInfo Where UserName='张三' And Age=19 Order By  UserName desc
 ```
-
 这里的Orderby写法似乎没这么优雅。
+
+分页查询语句
+
+```csharp
+var userList = Model.UserInfo.FindAll(Model.UserInfo._.UserName == "张三" & Model.UserInfo._.Age == 19,
+                new NewLife.Data.PageParameter
+                {
+                    PageIndex = 2,//第二页
+                    PageSize = 10,//每页十行
+                    Sort = "Age",
+                    Desc = true,//Age倒序
+                    TotalCount = Model.UserInfo.FindCount()//总条数，用于计算页数
+                });
+            //相当于Select * From UserInfo Where UserName='张三' And Age=19 Order By Age Desc limit 10, 10
+```
+以上的分页有缺点，就是只应用单字段排序
+
+复合排序的分页查询语句
+
+```csharp
+            var pageIndex = 2;//第二页
+            var pageSize = 10;//每页十行
+
+            var userList = Model.UserInfo.FindAll(Model.UserInfo._.UserName == "张三" & Model.UserInfo._.Age == 19, " UserName desc,Age asc", string.Join(",", Model.UserInfo._.UserName, Model.UserInfo._.Age), (pageIndex - 1) * pageSize, pageSize);
+            //相当于Select UserName,Age From UserInfo Where UserName='张三' And Age=19 Order By  UserName desc,Age asc limit 10, 10
+```
 
 ## 更多
 因为时间有限，只写了一些简单的例子，这个markdown会持续更新，敬请期待
