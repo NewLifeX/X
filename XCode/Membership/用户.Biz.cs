@@ -463,21 +463,26 @@ namespace XCode.Membership
         /// <summary>注册用户。第一注册用户自动抢管理员</summary>
         public virtual void Register()
         {
-            //!!! 第一个用户注册时，如果只有一个默认admin账号，则自动抢管理员
-            if (Meta.Count < 3 && FindCount() <= 1)
+            using (var tran = Meta.CreateTrans())
             {
-                var list = FindAll();
-                if (list.Count == 0 || list.Count == 1 && list[0].DisableAdmin())
+                //!!! 第一个用户注册时，如果只有一个默认admin账号，则自动抢管理员
+                if (Meta.Count < 3 && FindCount() <= 1)
                 {
-                    RoleID = 1;
-                    Enable = true;
+                    var list = FindAll();
+                    if (list.Count == 0 || list.Count == 1 && list[0].DisableAdmin())
+                    {
+                        RoleID = 1;
+                        Enable = true;
+                    }
                 }
+
+                RegisterTime = DateTime.Now;
+                RegisterIP = WebHelper.UserHost;
+
+                Insert();
+
+                tran.Commit();
             }
-
-            RegisterTime = DateTime.Now;
-            RegisterIP = WebHelper.UserHost;
-
-            Insert();
         }
 
         /// <summary>禁用默认管理员</summary>
