@@ -62,26 +62,14 @@ namespace NewLife.Cube
 
             var ctx = filterContext.HttpContext;
             // 判断当前登录用户
-            var user = prv.Current;
+            var user = prv.TryLogin();
             if (user == null)
             {
-                // 尝试从Cookie登录
-                user = prv.LoadCookie(true);
-                if (user != null)
-                {
-                    prv.Current = user;
+                var retUrl = ctx.Request.Url?.PathAndQuery;
 
-                    // 设置前端当前用户
-                    prv.SetPrincipal();
-                }
-                else
-                {
-                    var retUrl = ctx.Request.Url?.PathAndQuery;
-
-                    var rurl = "~/Admin/User/Login".AppendReturn(retUrl);
-                    ctx.Response.Redirect(rurl);
-                    return;
-                }
+                var rurl = "~/Admin/User/Login".AppendReturn(retUrl);
+                ctx.Response.Redirect(rurl);
+                return;
             }
 
             // 根据控制器定位资源菜单

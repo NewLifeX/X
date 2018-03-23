@@ -31,7 +31,7 @@ namespace NewLife.Cube.Admin.Controllers
         [AllowAnonymous]
         public ActionResult Index()
         {
-            var user = ManageProvider.User;
+            var user = ManageProvider.Provider.TryLogin();
             if (user == null) return RedirectToAction("Login", "User", new { r = Request.Url.PathAndQuery });
 
             ViewBag.User = ManageProvider.User;

@@ -309,6 +309,27 @@ namespace XCode.Membership
             ctx.User = new GenericPrincipal(id, roles.ToArray());
         }
 
+        /// <summary>尝试登录。如果Session未登录则借助Cookie</summary>
+        /// <param name="provider">提供者</param>
+        public static IManageUser TryLogin(this IManageProvider provider)
+        {
+            // 判断当前登录用户
+            var user = provider.Current;
+            if (user != null) return user;
+
+            // 尝试从Cookie登录
+            user = provider.LoadCookie(true);
+            if (user != null)
+            {
+                provider.Current = user;
+
+                // 设置前端当前用户
+                provider.SetPrincipal();
+            }
+
+            return user;
+        }
+
         #region Cookie
         private static String GetCookieKey(IManageProvider provider)
         {

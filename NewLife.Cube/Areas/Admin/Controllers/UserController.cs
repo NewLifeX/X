@@ -86,10 +86,12 @@ namespace NewLife.Cube.Admin.Controllers
                 // 只有一个，跳转
                 if (ms.Count == 1)
                 {
-                    var url = $"~/Sso/Login?name={ms[0].Name}";
-                    if (!returnUrl.IsNullOrEmpty()) url += "&r=" + HttpUtility.UrlEncode(returnUrl);
+                    //var url = $"~/Sso/Login?name={ms[0].Name}";
+                    //if (!returnUrl.IsNullOrEmpty()) url += "&r=" + HttpUtility.UrlEncode(returnUrl);
 
-                    return Redirect(url);
+                    //return Redirect(url);
+
+                    return RedirectToAction("Login", "Sso", new { name = ms[0].Name, r = returnUrl });
                 }
             }
 
@@ -145,7 +147,7 @@ namespace NewLife.Cube.Admin.Controllers
 
             if (!returnUrl.IsNullOrEmpty()) return Redirect(returnUrl);
 
-            return RedirectToAction("Login");
+            return RedirectToAction(nameof(Login));
         }
         #endregion
 
