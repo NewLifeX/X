@@ -141,8 +141,7 @@ namespace NewLife.Cube.Admin.Controllers
         public ActionResult Logout()
         {
             var returnUrl = Request["r"];
-            ManageProvider.User?.Logout();
-            ManageProvider.Provider.SaveCookie(null);
+            ManageProvider.Provider.Logout();
 
             if (!returnUrl.IsNullOrEmpty()) return Redirect(returnUrl);
 

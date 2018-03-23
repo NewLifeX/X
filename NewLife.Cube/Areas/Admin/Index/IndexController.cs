@@ -27,10 +27,13 @@ namespace NewLife.Cube.Admin.Controllers
 
         /// <summary>首页</summary>
         /// <returns></returns>
-        [EntityAuthorize(PermissionFlags.Detail)]
-        //[AllowAnonymous]
+        //[EntityAuthorize(PermissionFlags.Detail)]
+        [AllowAnonymous]
         public ActionResult Index()
         {
+            var user = ManageProvider.User;
+            if (user == null) return RedirectToAction("Login", "User", new { r = Request.Url.PathAndQuery });
+
             ViewBag.User = ManageProvider.User;
             ViewBag.Config = SysConfig.Current;
 
@@ -47,7 +50,7 @@ namespace NewLife.Cube.Admin.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [DisplayName("服务器信息")]
-        [EntityAuthorize(PermissionFlags.Detail)]
+        //[EntityAuthorize(PermissionFlags.Detail)]
         public ActionResult Main(String id)
         {
             if (id == "Restart")
@@ -89,18 +92,18 @@ namespace NewLife.Cube.Admin.Controllers
             }
         }
 
-        ///// <summary>菜单不可见</summary>
-        ///// <param name="menu"></param>
-        ///// <returns></returns>
-        //protected override IDictionary<MethodInfo, Int32> ScanActionMenu(IMenu menu)
-        //{
-        //    if (menu.Visible)
-        //    {
-        //        menu.Visible = false;
-        //        (menu as IEntity).Save();
-        //    }
+        /// <summary>菜单不可见</summary>
+        /// <param name="menu"></param>
+        /// <returns></returns>
+        protected override IDictionary<MethodInfo, Int32> ScanActionMenu(IMenu menu)
+        {
+            if (menu.Visible)
+            {
+                menu.Visible = false;
+                (menu as IEntity).Save();
+            }
 
-        //    return base.ScanActionMenu(menu);
-        //}
+            return base.ScanActionMenu(menu);
+        }
     }
 }
