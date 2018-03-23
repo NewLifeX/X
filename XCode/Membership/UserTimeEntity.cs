@@ -68,12 +68,12 @@ namespace XCode.Membership
             var fs = GetFieldNames(entity.GetType());
 
             // 当前登录用户
+            var prv = Provider ?? ManageProvider.Provider;
 #if !__CORE__
-            var user = Provider?.Current ?? HttpContext.Current?.User?.Identity as IManageUser;
+            var user = prv?.Current ?? HttpContext.Current?.User?.Identity as IManageUser;
 #else
-            var user = Provider?.Current;
+            var user = prv?.Current;
 #endif
-            if (user == null && Provider == null) user = ManageProvider.Provider?.Current;
             if (user != null)
             {
                 if (isNew) SetNoDirtyItem(fs, entity, __.CreateUserID, user.ID);

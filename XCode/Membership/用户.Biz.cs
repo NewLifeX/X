@@ -119,6 +119,7 @@ namespace XCode.Membership
 
         #region 扩展属性
         /// <summary>当前登录用户</summary>
+        [Obsolete]
         public static TEntity Current
         {
             get
@@ -130,19 +131,20 @@ namespace XCode.Membership
                 var ms = HttpContext.Current.Items;
 
                 // 从Session中获取
-                if (ss[key] is TEntity entity) return entity;
+                return ss[key] as TEntity;
+                //if (ss[key] is TEntity entity) return entity;
 
-                // 设置一个陷阱，避免重复计算Cookie
-                if (ms[key] != null) return null;
+                //// 设置一个陷阱，避免重复计算Cookie
+                //if (ms[key] != null) return null;
 
-                // 从Cookie中获取
-                entity = GetCookie(key);
-                if (entity != null)
-                    ss[key] = entity;
-                else
-                    ms[key] = "1";
+                //// 从Cookie中获取
+                //entity = GetCookie(key);
+                //if (entity != null)
+                //    ss[key] = entity;
+                //else
+                //    ms[key] = "1";
 
-                return entity;
+                //return entity;
 #else
                 return null;
 #endif
@@ -157,8 +159,7 @@ namespace XCode.Membership
                 // 特殊处理注销
                 if (value == null)
                 {
-                    var entity = Current;
-                    if (entity != null) WriteLog("注销", entity.Name);
+                    if (ss[key] is TEntity entity) WriteLog("注销", entity.Name);
 
                     // 修改Session
                     ss.Remove(key);
@@ -169,8 +170,8 @@ namespace XCode.Membership
                     ss[key] = value;
                 }
 
-                // 修改Cookie
-                SetCookie(key, value);
+                //// 修改Cookie
+                //SetCookie(key, value);
 #else
                 // 特殊处理注销
                 if (value == null)
@@ -348,11 +349,11 @@ namespace XCode.Membership
             {
                 var user = Login(username, password, 1);
 #if !__CORE__
-                if (rememberme && user != null)
-                {
-                    var cookie = HttpContext.Current.Response.Cookies["Admin"];
-                    if (cookie != null) cookie.Expires = DateTime.Now.Date.AddYears(1);
-                }
+                //if (rememberme && user != null)
+                //{
+                //    var cookie = HttpContext.Current.Response.Cookies["Admin"];
+                //    if (cookie != null) cookie.Expires = DateTime.Now.Date.AddYears(1);
+                //}
 #endif
                 return user;
             }
@@ -418,7 +419,7 @@ namespace XCode.Membership
                 user.Password = password;
             }
 
-            Current = user;
+            //Current = user;
 
             user.SaveLoginInfo();
 
@@ -447,14 +448,15 @@ namespace XCode.Membership
         /// <summary>注销</summary>
         public virtual void Logout()
         {
-            var user = Current;
+            //var user = Current;
+            var user = this;
             if (user != null)
             {
                 user.Online = false;
                 user.SaveAsync();
             }
 
-            Current = null;
+            //Current = null;
             //Thread.CurrentPrincipal = null;
         }
 
@@ -494,63 +496,63 @@ namespace XCode.Membership
         }
 
 #if !__CORE__
-        static Boolean _isInGetCookie;
-        static TEntity GetCookie(String key)
-        {
-            if (_isInGetCookie) return null;
+        //static Boolean _isInGetCookie;
+        //static TEntity GetCookie(String key)
+        //{
+        //    if (_isInGetCookie) return null;
 
-            var cookie = HttpContext.Current.Request.Cookies[key];
-            if (cookie == null) return null;
+        //    var cookie = HttpContext.Current.Request.Cookies[key];
+        //    if (cookie == null) return null;
 
-            var user = HttpUtility.UrlDecode(cookie["u"]);
-            var pass = cookie["p"];
-            if (String.IsNullOrEmpty(user) || String.IsNullOrEmpty(pass)) return null;
+        //    var user = HttpUtility.UrlDecode(cookie["u"]);
+        //    var pass = cookie["p"];
+        //    if (String.IsNullOrEmpty(user) || String.IsNullOrEmpty(pass)) return null;
 
-            _isInGetCookie = true;
-            try
-            {
-                return Login(user, pass, -1);
-            }
-            catch (DbException ex)
-            {
-                XTrace.WriteLine("{0}登录失败！{1}", user, ex);
-                return null;
-            }
-            catch (Exception ex)
-            {
-                WriteLog("登录", user + "登录失败！" + ex.Message);
-                return null;
-            }
-            finally { _isInGetCookie = false; }
-        }
+        //    _isInGetCookie = true;
+        //    try
+        //    {
+        //        return Login(user, pass, -1);
+        //    }
+        //    catch (DbException ex)
+        //    {
+        //        XTrace.WriteLine("{0}登录失败！{1}", user, ex);
+        //        return null;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        WriteLog("登录", user + "登录失败！" + ex.Message);
+        //        return null;
+        //    }
+        //    finally { _isInGetCookie = false; }
+        //}
 
-        static void SetCookie(String key, TEntity entity)
-        {
-            var context = HttpContext.Current;
-            var res = context?.Response;
-            if (res == null) return;
+        //static void SetCookie(String key, TEntity entity)
+        //{
+        //    var context = HttpContext.Current;
+        //    var res = context?.Response;
+        //    if (res == null) return;
 
-            var reqcookie = context.Request.Cookies[key];
-            if (entity != null)
-            {
-                var user = HttpUtility.UrlEncode(entity.Name);
-                var pass = !String.IsNullOrEmpty(entity.Password) ? entity.Password.MD5() : null;
-                if (reqcookie == null || user != reqcookie["u"] || pass != reqcookie["p"])
-                {
-                    // 只有需要写入Cookie时才设置，否则会清空原来的非会话Cookie
-                    var cookie = res.Cookies[key];
-                    cookie["u"] = user;
-                    cookie["p"] = pass;
-                }
-            }
-            else
-            {
-                var cookie = res.Cookies[key];
-                cookie.Value = null;
-                cookie.Expires = DateTime.Now.AddYears(-1);
-                //HttpContext.Current.Response.Cookies.Remove(key);
-            }
-        }
+        //    var reqcookie = context.Request.Cookies[key];
+        //    if (entity != null)
+        //    {
+        //        var user = HttpUtility.UrlEncode(entity.Name);
+        //        var pass = !String.IsNullOrEmpty(entity.Password) ? entity.Password.MD5() : null;
+        //        if (reqcookie == null || user != reqcookie["u"] || pass != reqcookie["p"])
+        //        {
+        //            // 只有需要写入Cookie时才设置，否则会清空原来的非会话Cookie
+        //            var cookie = res.Cookies[key];
+        //            cookie["u"] = user;
+        //            cookie["p"] = pass;
+        //        }
+        //    }
+        //    else
+        //    {
+        //        var cookie = res.Cookies[key];
+        //        cookie.Value = null;
+        //        cookie.Expires = DateTime.Now.AddYears(-1);
+        //        //HttpContext.Current.Response.Cookies.Remove(key);
+        //    }
+        //}
 #endif
         #endregion
 

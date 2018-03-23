@@ -1,5 +1,6 @@
 ﻿using System;
 using NewLife.Net;
+using NewLife.Web;
 
 namespace NewLife.Model
 {
@@ -96,6 +97,8 @@ namespace NewLife.Model
                     user.Save();
                 };
             }
+            else
+                user.LastLoginIP = WebHelper.UserHost;
 
             user.Online = true;
             user.Save();

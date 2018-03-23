@@ -142,7 +142,7 @@ namespace NewLife.Cube.Admin.Controllers
         {
             var returnUrl = Request["r"];
             ManageProvider.User?.Logout();
-            //ManageProvider.User = null;
+            ManageProvider.Provider.SaveCookie(null);
 
             if (!returnUrl.IsNullOrEmpty()) return Redirect(returnUrl);
 

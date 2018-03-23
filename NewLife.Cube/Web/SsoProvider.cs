@@ -106,7 +106,8 @@ namespace NewLife.Cube.Web
             if (req != null) forceBind = req["sso_action"].EqualIgnoreCase("bind");
 
             // 检查绑定
-            var user = Provider.FindByID(uc.UserID);
+            var prv = Provider;
+            var user = prv.FindByID(uc.UserID);
             if (forceBind || user == null || !uc.Enable) user = OnBind(uc, client);
 
             // 填充昵称等数据
@@ -124,7 +125,9 @@ namespace NewLife.Cube.Web
             if (!user.Enable) throw new InvalidOperationException("用户已禁用！");
 
             // 登录成功，保存当前用户
-            Provider.Current = user;
+            prv.Current = user;
+            prv.SaveCookie(user);
+            LogProvider.Provider.WriteLog(user.GetType(), client.Name, "单点登录", user.ID, user + "", req.UserHostAddress);
 
             return SuccessUrl;
         }
@@ -228,10 +231,7 @@ namespace NewLife.Cube.Web
 
         /// <summary>注销</summary>
         /// <returns></returns>
-        public virtual void Logout()
-        {
-            Provider.Current = null;
-        }
+        public virtual void Logout() => Provider.Logout();
         #endregion
 
         #region 服务端

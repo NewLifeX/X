@@ -166,12 +166,12 @@ namespace XCode.Membership
             if (log.CreateUserID == 0 || name.IsNullOrEmpty())
             {
                 // 当前登录用户
+                var prv = Provider2 ?? ManageProvider.Provider;
 #if !__CORE__
-                var user = Provider2?.Current ?? HttpContext.Current?.User?.Identity as IManageUser;
+                var user = prv?.Current ?? HttpContext.Current?.User?.Identity as IManageUser;
 #else
-                var user = Provider2?.Current;
+                var user = prv?.Current;
 #endif
-                if (user == null && Provider2 == null) user = ManageProvider.Provider?.Current;
                 if (user != null)
                 {
                     if (log.CreateUserID == 0) log.CreateUserID = user.ID;

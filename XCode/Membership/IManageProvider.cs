@@ -80,13 +80,18 @@ namespace XCode.Membership
         }
 
         /// <summary>当前管理提供者</summary>
-        public static IManageProvider Provider { get { return ObjectContainer.Current.ResolveInstance<IManageProvider>(); } }
+        public static IManageProvider Provider => ObjectContainer.Current.ResolveInstance<IManageProvider>();
 
         /// <summary>当前登录用户</summary>
         public static IUser User { get => Provider.Current as IUser; set => Provider.Current = value as IManageUser; }
 
         /// <summary>菜单工厂</summary>
         public static IMenuFactory Menu { get { return GetFactory<IMenu>() as IMenuFactory; } }
+        #endregion
+
+        #region 属性
+        /// <summary>保存于Cookie的凭证</summary>
+        public String CookieKey { get; set; } = "Admin";
         #endregion
 
         #region IManageProvider 接口
@@ -111,7 +116,7 @@ namespace XCode.Membership
         public abstract IManageUser Login(String name, String password, Boolean rememberme);
 
         /// <summary>注销</summary>
-        public virtual void Logout() { Current = null; }
+        public virtual void Logout() => Current = null;
 
         /// <summary>注册用户</summary>
         /// <param name="name">用户名</param>
@@ -124,7 +129,7 @@ namespace XCode.Membership
         /// <summary>获取服务</summary>
         /// <typeparam name="TService"></typeparam>
         /// <returns></returns>
-        public TService GetService<TService>() { return (TService)GetService(typeof(TService)); }
+        public TService GetService<TService>() => (TService)GetService(typeof(TService));
 
         /// <summary>获取服务</summary>
         /// <param name="serviceType"></param>
@@ -180,25 +185,81 @@ namespace XCode.Membership
     /// <typeparam name="TUser"></typeparam>
     public class ManageProvider<TUser> : ManageProvider where TUser : User<TUser>, new()
     {
-        /// <summary>当前用户</summary>
-        public override IManageUser Current { get => User<TUser>.Current; set => User<TUser>.Current = (TUser)value; }
+        /// <summary>当前用户。借助Session</summary>
+        public override IManageUser Current
+        {
+            get
+            {
+                var key = CookieKey;
+                var ss = HttpContext.Current?.Session;
+                if (ss == null) return null;
+
+                // 从Session中获取
+                return ss[key] as IManageUser;
+            }
+            set
+            {
+                var key = CookieKey;
+                var ss = HttpContext.Current?.Session;
+                if (ss == null) return;
+
+                // 特殊处理注销
+                if (value == null)
+                {
+                    // 修改Session
+                    ss.Remove(key);
+
+                    if (ss[key] is IAuthUser au)
+                    {
+                        au.Online = false;
+                        au.Save();
+                    }
+                }
+                else
+                {
+                    // 修改Session
+                    ss[key] = value;
+                }
+            }
+        }
 
         /// <summary>根据用户编号查找</summary>
         /// <param name="userid"></param>
         /// <returns></returns>
-        public override IManageUser FindByID(Object userid) { return User<TUser>.FindByID((Int32)userid); }
+        public override IManageUser FindByID(Object userid) => User<TUser>.FindByID((Int32)userid);
 
         /// <summary>根据用户帐号查找</summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public override IManageUser FindByName(String name) { return User<TUser>.FindByName(name); }
+        public override IManageUser FindByName(String name) => User<TUser>.FindByName(name);
 
         /// <summary>登录</summary>
         /// <param name="name"></param>
         /// <param name="password"></param>
         /// <param name="rememberme">是否记住密码</param>
         /// <returns></returns>
-        public override IManageUser Login(String name, String password, Boolean rememberme) { return User<TUser>.Login(name, password, rememberme); }
+        public override IManageUser Login(String name, String password, Boolean rememberme)
+        {
+            var user = User<TUser>.Login(name, password, rememberme);
+
+            this.SaveCookie(user);
+
+            if (rememberme && user != null)
+            {
+                var cookie = HttpContext.Current.Response.Cookies[CookieKey];
+                if (cookie != null) cookie.Expires = DateTime.Now.Date.AddYears(1);
+            }
+
+            return user;
+        }
+
+        /// <summary>注销</summary>
+        public override void Logout()
+        {
+            base.Logout();
+
+            this.SaveCookie(null);
+        }
 
         /// <summary>注册用户</summary>
         /// <param name="name">用户名</param>
@@ -247,6 +308,90 @@ namespace XCode.Membership
 
             ctx.User = new GenericPrincipal(id, roles.ToArray());
         }
+
+        #region Cookie
+        private static String GetCookieKey(IManageProvider provider)
+        {
+            var key = (provider as ManageProvider)?.CookieKey;
+            if (key.IsNullOrEmpty()) key = "cube_user";
+
+            return key;
+        }
+
+        /// <summary>从Cookie加载用户信息</summary>
+        /// <param name="provider">提供者</param>
+        /// <param name="autologin">是否自动登录</param>
+        /// <returns></returns>
+        public static IManageUser LoadCookie(this IManageProvider provider, Boolean autologin = true)
+        {
+            var key = GetCookieKey(provider);
+            var cookie = HttpContext.Current?.Request?.Cookies[key];
+            if (cookie == null) return null;
+
+            var user = HttpUtility.UrlDecode(cookie["u"]);
+            var pass = cookie["p"];
+            if (user.IsNullOrEmpty() || pass.IsNullOrEmpty()) return null;
+
+            var u = provider.FindByName(user);
+            if (u == null || !u.Enable) return null;
+
+            var mu = u as IAuthUser;
+            if (!pass.EqualIgnoreCase(mu.Password.MD5())) return null;
+
+            // 保存登录信息
+            if (autologin)
+            {
+                mu.SaveLogin(null);
+                LogProvider.Provider.WriteLog("用户", "自动登录", user + "", u.ID, u + "");
+            }
+
+            return u;
+        }
+
+        /// <summary>保存用户信息到Cookie</summary>
+        /// <param name="provider">提供者</param>
+        /// <param name="user"></param>
+        public static void SaveCookie(this IManageProvider provider, IManageUser user)
+        {
+            var context = HttpContext.Current;
+            var res = context?.Response;
+            if (res == null) return;
+
+            var key = GetCookieKey(provider);
+            var reqcookie = context.Request.Cookies[key];
+            if (user is IAuthUser au)
+            {
+                var u = HttpUtility.UrlEncode(user.Name);
+                var p = !au.Password.IsNullOrEmpty() ? au.Password.MD5() : null;
+                if (reqcookie == null || u != reqcookie["u"] || p != reqcookie["p"])
+                {
+                    // 只有需要写入Cookie时才设置，否则会清空原来的非会话Cookie
+                    var cookie = res.Cookies[key];
+                    cookie["u"] = HttpUtility.UrlEncode(u);
+                    cookie["p"] = p;
+                }
+            }
+            else
+            {
+                var cookie = res.Cookies[key];
+                cookie.Value = null;
+                cookie.Expires = DateTime.Now.AddYears(-1);
+                //HttpContext.Current.Response.Cookies.Remove(key);
+            }
+        }
+
+        ///// <summary>清空Cookie</summary>
+        ///// <param name="provider">提供者</param>
+        //public static void ClearCookie(this IManageProvider provider)
+        //{
+        //    var key = GetCookieKey(provider);
+        //    var cookie = HttpContext.Current?.Response?.Cookies[key];
+        //    if (cookie == null) return;
+
+        //    cookie.Value = null;
+        //    cookie.Expires = DateTime.Now.AddYears(-1);
+        //}
+        #endregion
     }
 #endif
 }
