@@ -92,7 +92,7 @@ WriteLiteral(">\r\n");
             #line hidden
             
             #line 13 "..\..\Views\Shared\ObjectForm.cshtml"
-             using (Html.BeginForm())
+             using (Html.BeginForm("Update"))
             {
                 
             
@@ -145,14 +145,14 @@ WriteLiteral(">\r\n                        <label");
 
 WriteLiteral(" class=\"control-label col-xs-2 col-md-3 no-padding-left\"");
 
-WriteAttribute("for", Tuple.Create(" for=\"", 1171), Tuple.Create("\"", 1185)
+WriteAttribute("for", Tuple.Create(" for=\"", 1179), Tuple.Create("\"", 1193)
             
             #line 29 "..\..\Views\Shared\ObjectForm.cshtml"
-            , Tuple.Create(Tuple.Create("", 1177), Tuple.Create<System.Object, System.Int32>(pi.Name
+            , Tuple.Create(Tuple.Create("", 1185), Tuple.Create<System.Object, System.Int32>(pi.Name
             
             #line default
             #line hidden
-, 1177), false)
+, 1185), false)
 );
 
 WriteLiteral(">");
@@ -208,19 +208,21 @@ WriteLiteral("</span>\r\n                    </div>\r\n");
             
             #line 36 "..\..\Views\Shared\ObjectForm.cshtml"
                 }
+                if (this.Has(PermissionFlags.Update))
+                {
 
             
             #line default
             #line hidden
-WriteLiteral("                <div");
+WriteLiteral("                    <div");
 
 WriteLiteral(" class=\"clearfix form-actions col-sm-12 col-md-12\"");
 
-WriteLiteral(">\r\n                    <label");
+WriteLiteral(">\r\n                        <label");
 
 WriteLiteral(" class=\"control-label col-xs-4 col-sm-5 col-md-5\"");
 
-WriteLiteral("></label>\r\n                    <button");
+WriteLiteral("></label>\r\n                        <button");
 
 WriteLiteral(" type=\"submit\"");
 
@@ -230,7 +232,7 @@ WriteLiteral("><i");
 
 WriteLiteral(" class=\"glyphicon glyphicon-save\"");
 
-WriteLiteral("></i><strong>保存</strong></button>\r\n                    <button");
+WriteLiteral("></i><strong>保存</strong></button>\r\n                        <button");
 
 WriteLiteral(" type=\"button\"");
 
@@ -242,10 +244,11 @@ WriteLiteral("><i");
 
 WriteLiteral(" class=\"glyphicon glyphicon-remove\"");
 
-WriteLiteral("></i><strong>取消</strong></button>\r\n                </div>\r\n");
+WriteLiteral("></i><strong>取消</strong></button>\r\n                    </div>\r\n");
 
             
-            #line 42 "..\..\Views\Shared\ObjectForm.cshtml"
+            #line 44 "..\..\Views\Shared\ObjectForm.cshtml"
+                }
             }
 
             

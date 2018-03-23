@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -59,9 +60,10 @@ namespace NewLife.Cube
         /// <summary>保存对象</summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        [HttpPost]
+        //[HttpPost]
+        //[DisplayName("修改")]
         [EntityAuthorize(PermissionFlags.Update)]
-        public ActionResult Index(TObject obj)
+        public ActionResult Update(TObject obj)
         {
             WriteLog(obj);
 
