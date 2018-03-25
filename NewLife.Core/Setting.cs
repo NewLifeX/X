@@ -79,7 +79,12 @@ namespace NewLife
         /// <returns></returns>
         public String GetPluginPath()
         {
-            return PluginPath.GetBasePath();
+            var plugin = PluginPath;
+#if __CORE__
+            // NetCore特殊性，要求把插件放到程序根目录
+            plugin = ".".GetFullPath();
+#endif
+            return plugin.GetBasePath();
         }
 
         /// <summary>获取插件缓存目录</summary>

@@ -8,11 +8,9 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Web;
 using NewLife;
 using NewLife.Log;
 using NewLife.Reflection;
-using NewLife.Threading;
 using NewLife.Web;
 
 namespace XCode.DataAccessLayer
@@ -294,11 +292,16 @@ namespace XCode.DataAccessLayer
             // 有些数据库驱动不区分x86/x64，并且逐步以Fx4为主，所以来一个默认
             linkName += ";" + name;
 
+#if __CORE__
+            linkName = name + "_st;" + linkName;
+#endif
+
             var type = PluginHelper.LoadPlugin(className, null, assemblyFile, linkName);
 
             // 反射实现获取数据库工厂
             var file = assemblyFile;
-            file = NewLife.Setting.Current.GetPluginPath().CombinePath(file);
+            var plugin = NewLife.Setting.Current.GetPluginPath();
+            file = plugin.CombinePath(file);
 
             // 如果还没有，就写异常
             if (type == null && !File.Exists(file)) throw new FileNotFoundException("缺少文件" + file + "！", file);
