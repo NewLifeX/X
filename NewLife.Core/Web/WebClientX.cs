@@ -171,6 +171,7 @@ namespace NewLife.Web
             while (true)
             {
                 var http = Check(address);
+                http.Timeout = time;
                 http.Request.Method = data == null || data.Length == 0 ? "GET" : "POST";
 
                 Log.Info("WebClientX.SendAsync {0}", address);
@@ -726,6 +727,9 @@ namespace NewLife.Web
         {
             if (_useUnsafeHeaderParsing != null && _useUnsafeHeaderParsing.Value == useUnsafe) return true;
 
+#if __CORE__
+            _useUnsafeHeaderParsing = true;
+#else
             //Get the assembly that contains the internal class
             var aNetAssembly = Assembly.GetAssembly(typeof(System.Net.Configuration.SettingsSection));
             if (aNetAssembly == null) return false;
@@ -749,6 +753,7 @@ namespace NewLife.Web
                     return true;
                 }
             }
+#endif
 
             return false;
         }
