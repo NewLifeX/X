@@ -86,7 +86,7 @@ namespace NewLife.Cube
 @{
     var fact = ViewBag.Factory as IEntityOperate;
     var page = ViewBag.Page as Pager;
-    var fields = ViewBag.Fields as IReadOnlyList<FieldItem>;
+    var fields = ViewBag.Fields as IList<FieldItem>;
     var enableSelect = this.EnableSelect();
     //var provider = ManageProvider.Provider;
 }

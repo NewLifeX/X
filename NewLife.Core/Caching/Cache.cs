@@ -340,11 +340,13 @@ namespace NewLife.Caching
         {
             var processor = "";
             var frequency = 0;
+#if !__CORE__
             using (var reg = Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\CentralProcessor\0"))
             {
                 processor = (reg.GetValue("ProcessorNameString") + "").Trim();
                 frequency = reg.GetValue("~MHz").ToInt();
             }
+#endif
 
             var cpu = Environment.ProcessorCount;
             XTrace.WriteLine($"{Name}性能测试[{(rand ? "随机" : "顺序")}]，逻辑处理器 {cpu:n0} 个 {frequency:n0}MHz {processor}");
@@ -513,12 +515,12 @@ namespace NewLife.Caching
             var speed = times * 1000 / sw.ElapsedMilliseconds;
             XTrace.WriteLine($"删除 {times:n0} 项，{threads,3:n0} 线程，耗时 {sw.ElapsedMilliseconds,7:n0}ms 速度 {speed,9:n0} ops");
         }
-        #endregion
+#endregion
 
-        #region 辅助
+#region 辅助
         /// <summary>已重载。</summary>
         /// <returns></returns>
         public override String ToString() { return Name; }
-        #endregion
+#endregion
     }
 }

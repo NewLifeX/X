@@ -87,9 +87,9 @@ namespace NewLife.Cube.Web
 
         /// <summary>登录成功</summary>
         /// <param name="client">OAuth客户端</param>
-        /// <param name="service">服务提供者。可用于获取HttpContext成员</param>
+        /// <param name="context">服务提供者。可用于获取HttpContext成员</param>
         /// <returns></returns>
-        public virtual String OnLogin(OAuthClient client, IServiceProvider service)
+        public virtual String OnLogin(OAuthClient client, IServiceProvider context)
         {
             var openid = client.OpenID;
             if (openid.IsNullOrEmpty()) openid = client.UserName;
@@ -102,7 +102,7 @@ namespace NewLife.Cube.Web
 
             // 强行绑定，把第三方账号强行绑定到当前已登录账号
             var forceBind = false;
-            var req = service.GetService<HttpRequest>();
+            var req = context.GetService<HttpRequest>();
             if (req != null) forceBind = req["sso_action"].EqualIgnoreCase("bind");
 
             // 检查绑定
@@ -125,7 +125,8 @@ namespace NewLife.Cube.Web
             if (!user.Enable) throw new InvalidOperationException("用户已禁用！");
 
             // 登录成功，保存当前用户
-            prv.Current = user;
+            //prv.Current = user;
+            prv.SetCurrent(user, context);
             prv.SaveCookie(user);
             LogProvider.Provider.WriteLog(user.GetType(), client.Name, "单点登录", user.ID, user + "", req.UserHostAddress);
 
@@ -308,7 +309,7 @@ namespace NewLife.Cube.Web
             try
             {
                 var wc = new WebClientX(true, true);
-                Task.Run(() => wc.DownloadFileAsync(url, av)).Wait(5000);
+                Task.Factory.StartNew(() => wc.DownloadFileAsync(url, av)).Wait(5000);
 
                 //// 更新头像
                 //user.SetValue("Avatar", "/Sso/Avatar/" + user.ID);
