@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using Microsoft.Extensions.Configuration;
+using MySql.Data.MySqlClient;
 using NewLife.Log;
 using NewLife.Net;
 using XCode.DataAccessLayer;
@@ -10,7 +11,7 @@ namespace TestST
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Main(String[] args)
         {
             XTrace.UseConsole();
 
@@ -62,11 +63,18 @@ namespace TestST
             //    Console.WriteLine("{0}\t{1}", item.Key, item.Value);
             //}
 
-            //var dal = DAL.Create("Sqlite");
-            //Console.WriteLine(dal.Db.ConnectionString);
+            var fact = MySqlClientFactory.Instance;
 
-            var n = UserX.Meta.Count;
-            Console.WriteLine(n);
+            //var dal = DAL.Create("Sqlite");
+            DAL.AddConnStr("Membership", "Server=.;Port=3306;Database=mysql;Uid=root;Pwd=root", null, "MySql");
+            var dal = DAL.Create("Membership");
+            Console.WriteLine(dal.Db.ConnectionString);
+
+            var ds = dal.Select("select * from 'user'");
+            Console.WriteLine(ds.Tables.Count);
+
+            //var n = UserX.Meta.Count;
+            //Console.WriteLine(n);
         }
     }
 }
