@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
 using Microsoft.Extensions.Configuration;
-using MySql.Data.MySqlClient;
 using NewLife.Log;
 using NewLife.Net;
 using XCode.DataAccessLayer;
-using XCode.Membership;
 
 namespace TestST
 {
@@ -63,15 +61,15 @@ namespace TestST
             //    Console.WriteLine("{0}\t{1}", item.Key, item.Value);
             //}
 
-            var fact = MySqlClientFactory.Instance;
+            //var fact = MySqlClientFactory.Instance;
 
             //var dal = DAL.Create("Sqlite");
-            DAL.AddConnStr("Membership", "Server=.;Port=3306;Database=mysql;Uid=root;Pwd=root", null, "MySql");
+            DAL.AddConnStr("Membership", "Server=.;Port=3306;Database=world;Uid=root;Pwd=root", null, "MySql");
             var dal = DAL.Create("Membership");
             Console.WriteLine(dal.Db.ConnectionString);
 
-            var ds = dal.Select("select * from 'user'");
-            Console.WriteLine(ds.Tables.Count);
+            var ds = dal.Select("select * from city");
+            Console.WriteLine(ds.Tables[0].Rows.Count);
 
             //var n = UserX.Meta.Count;
             //Console.WriteLine(n);
