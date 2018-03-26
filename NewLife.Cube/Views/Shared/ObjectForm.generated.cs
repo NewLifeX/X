@@ -14,7 +14,7 @@ namespace ASP
     using System;
     using System.Collections.Generic;
     
-    #line 1 "..\..\Views\Shared\ObjectForm.cshtml"
+    #line 2 "..\..\Views\Shared\ObjectForm.cshtml"
     using System.ComponentModel;
     
     #line default
@@ -23,7 +23,7 @@ namespace ASP
     using System.Linq;
     using System.Net;
     
-    #line 2 "..\..\Views\Shared\ObjectForm.cshtml"
+    #line 3 "..\..\Views\Shared\ObjectForm.cshtml"
     using System.Reflection;
     
     #line default
@@ -41,7 +41,7 @@ namespace ASP
     using NewLife;
     using NewLife.Cube;
     
-    #line 3 "..\..\Views\Shared\ObjectForm.cshtml"
+    #line 4 "..\..\Views\Shared\ObjectForm.cshtml"
     using NewLife.Reflection;
     
     #line default
@@ -52,7 +52,7 @@ namespace ASP
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("RazorGenerator", "2.0.0.0")]
     [System.Web.WebPages.PageVirtualPathAttribute("~/Views/Shared/ObjectForm.cshtml")]
-    public partial class _Views_Shared_ObjectForm_cshtml : System.Web.Mvc.WebViewPage<dynamic>
+    public partial class _Views_Shared_ObjectForm_cshtml : System.Web.Mvc.WebViewPage<Object>
     {
         public _Views_Shared_ObjectForm_cshtml()
         {
@@ -60,7 +60,7 @@ namespace ASP
         public override void Execute()
         {
             
-            #line 4 "..\..\Views\Shared\ObjectForm.cshtml"
+            #line 5 "..\..\Views\Shared\ObjectForm.cshtml"
   
     Layout = NewLife.Cube.Setting.Current.Layout;
 
@@ -71,6 +71,21 @@ namespace ASP
             #line default
             #line hidden
 WriteLiteral("\r\n<div");
+
+WriteLiteral(" class=\"row\"");
+
+WriteLiteral(">\r\n");
+
+WriteLiteral("    ");
+
+            
+            #line 12 "..\..\Views\Shared\ObjectForm.cshtml"
+Write(Html.Partial("_Object_Nav", Model));
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\r\n</div>\r\n<div");
 
 WriteLiteral(" class=\"row\"");
 
@@ -85,13 +100,13 @@ WriteLiteral(" class=\"form-horizontal\"");
 WriteLiteral(">\r\n");
 
             
-            #line 13 "..\..\Views\Shared\ObjectForm.cshtml"
+            #line 17 "..\..\Views\Shared\ObjectForm.cshtml"
             
             
             #line default
             #line hidden
             
-            #line 13 "..\..\Views\Shared\ObjectForm.cshtml"
+            #line 17 "..\..\Views\Shared\ObjectForm.cshtml"
              using (Html.BeginForm("Update"))
             {
                 
@@ -99,28 +114,28 @@ WriteLiteral(">\r\n");
             #line default
             #line hidden
             
-            #line 15 "..\..\Views\Shared\ObjectForm.cshtml"
+            #line 19 "..\..\Views\Shared\ObjectForm.cshtml"
            Write(Html.AntiForgeryToken());
 
             
             #line default
             #line hidden
             
-            #line 15 "..\..\Views\Shared\ObjectForm.cshtml"
+            #line 19 "..\..\Views\Shared\ObjectForm.cshtml"
                                         
                 
             
             #line default
             #line hidden
             
-            #line 16 "..\..\Views\Shared\ObjectForm.cshtml"
+            #line 20 "..\..\Views\Shared\ObjectForm.cshtml"
            Write(Html.ValidationSummary(true));
 
             
             #line default
             #line hidden
             
-            #line 16 "..\..\Views\Shared\ObjectForm.cshtml"
+            #line 20 "..\..\Views\Shared\ObjectForm.cshtml"
                                              
                 foreach (var pi in pis)
                 {
@@ -145,20 +160,20 @@ WriteLiteral(">\r\n                        <label");
 
 WriteLiteral(" class=\"control-label col-xs-2 col-md-3 no-padding-left\"");
 
-WriteAttribute("for", Tuple.Create(" for=\"", 1179), Tuple.Create("\"", 1193)
+WriteAttribute("for", Tuple.Create(" for=\"", 1262), Tuple.Create("\"", 1276)
             
-            #line 29 "..\..\Views\Shared\ObjectForm.cshtml"
-            , Tuple.Create(Tuple.Create("", 1185), Tuple.Create<System.Object, System.Int32>(pi.Name
+            #line 33 "..\..\Views\Shared\ObjectForm.cshtml"
+            , Tuple.Create(Tuple.Create("", 1268), Tuple.Create<System.Object, System.Int32>(pi.Name
             
             #line default
             #line hidden
-, 1185), false)
+, 1268), false)
 );
 
 WriteLiteral(">");
 
             
-            #line 29 "..\..\Views\Shared\ObjectForm.cshtml"
+            #line 33 "..\..\Views\Shared\ObjectForm.cshtml"
                                                                                                   Write(dis ?? pi.Name);
 
             
@@ -173,7 +188,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                            ");
 
             
-            #line 31 "..\..\Views\Shared\ObjectForm.cshtml"
+            #line 35 "..\..\Views\Shared\ObjectForm.cshtml"
                        Write(Html.ForEditor(pi.Name, Obj.GetValue(pi), pi.PropertyType));
 
             
@@ -184,7 +199,7 @@ WriteLiteral("\r\n");
 WriteLiteral("                            ");
 
             
-            #line 32 "..\..\Views\Shared\ObjectForm.cshtml"
+            #line 36 "..\..\Views\Shared\ObjectForm.cshtml"
                        Write(Html.ValidationMessage(pi.Name));
 
             
@@ -197,7 +212,7 @@ WriteLiteral(" class=\"hidden-xs col-md-5\"");
 WriteLiteral(">&nbsp; ");
 
             
-            #line 34 "..\..\Views\Shared\ObjectForm.cshtml"
+            #line 38 "..\..\Views\Shared\ObjectForm.cshtml"
                                                            Write(des);
 
             
@@ -206,7 +221,7 @@ WriteLiteral(">&nbsp; ");
 WriteLiteral("</span>\r\n                    </div>\r\n");
 
             
-            #line 36 "..\..\Views\Shared\ObjectForm.cshtml"
+            #line 40 "..\..\Views\Shared\ObjectForm.cshtml"
                 }
                 if (this.Has(PermissionFlags.Update))
                 {
@@ -247,7 +262,7 @@ WriteLiteral(" class=\"glyphicon glyphicon-remove\"");
 WriteLiteral("></i><strong>取消</strong></button>\r\n                    </div>\r\n");
 
             
-            #line 44 "..\..\Views\Shared\ObjectForm.cshtml"
+            #line 48 "..\..\Views\Shared\ObjectForm.cshtml"
                 }
             }
 
