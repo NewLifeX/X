@@ -182,7 +182,15 @@ namespace XCode.Membership
         public abstract IManageUser Login(String name, String password, Boolean rememberme);
 
         /// <summary>注销</summary>
-        public virtual void Logout() => Current = null;
+        public virtual void Logout()
+        {
+            Current = null;
+
+            // 注销时销毁所有Session
+            var context = HttpContext.Current;
+            var ss = context?.Session;
+            ss?.Clear();
+        }
 
         /// <summary>注册用户</summary>
         /// <param name="name">用户名</param>
