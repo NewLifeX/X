@@ -26,7 +26,7 @@ namespace XCode.DataAccessLayer
         static DbBase()
         {
 #if !__CORE__
-            var root = Runtime.IsWeb ? HttpRuntime.BinDirectory : AppDomain.CurrentDomain.BaseDirectory;
+            var root = Runtime.IsWeb ? System.Web.HttpRuntime.BinDirectory : AppDomain.CurrentDomain.BaseDirectory;
 #else
             var root = AppDomain.CurrentDomain.BaseDirectory;
 #endif
