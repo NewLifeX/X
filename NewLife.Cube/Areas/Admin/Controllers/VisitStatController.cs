@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Reflection;
 using System.Web.Mvc;
 using NewLife.Common;
 using NewLife.Web;
+using XCode;
 using XCode.Membership;
 using XCode.Statistics;
 
@@ -81,6 +83,20 @@ namespace NewLife.Cube.Admin.Controllers
             if (!SysConfig.Current.Develop || !Setting.Current.Debug || ManageProvider.User?.Role?.Name != "管理员") throw new Exception("不允许删除");
 
             return base.Clear();
+        }
+
+        /// <summary>菜单不可见</summary>
+        /// <param name="menu"></param>
+        /// <returns></returns>
+        protected override IDictionary<MethodInfo, Int32> ScanActionMenu(IMenu menu)
+        {
+            if (menu.Visible)
+            {
+                menu.Visible = false;
+                (menu as IEntity).Save();
+            }
+
+            return base.ScanActionMenu(menu);
         }
     }
 }

@@ -55,7 +55,7 @@ namespace XCode.Membership
         static Role()
         {
             // 用于引发基类的静态构造函数
-            TEntity entity = new TEntity();
+            var entity = new TEntity();
 
             Meta.Modules.Add<UserModule>();
             Meta.Modules.Add<TimeModule>();

@@ -30,7 +30,7 @@
                         <td>
                             @if (entity.Childs.Count == 0)
                             {
-                                foreach (var item in entity.Permissions)
+                                foreach (var item in entity.Permissions.OrderBy(e => e.Key))
                                 {
                                     var id = "pf" + entity.ID + "_" + ((Int32)item.Key);
                                     @Html.CheckBox(id, role.Has(entity.ID, (PermissionFlags)item.Key))

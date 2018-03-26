@@ -66,36 +66,51 @@ namespace ASP
             
             #line default
             #line hidden
-WriteLiteral("\n<div");
+WriteLiteral("\r\n<div");
 
 WriteLiteral(" class=\"form-group\"");
 
-WriteLiteral(">\n    <label");
+WriteLiteral(">\r\n");
 
-WriteLiteral(" for=\"RoleID\"");
+WriteLiteral("    ");
 
-WriteLiteral(" class=\"control-label\"");
+            
+            #line 9 "..\..\Areas\Admin\Views\User\_List_Search.cshtml"
+Write(Html.ActionLink("用户链接", "Index", "UserConnect", null, new { @class = "btn btn-success btn-sm" }));
 
-WriteLiteral(">角色：</label>\n");
+            
+            #line default
+            #line hidden
+WriteLiteral("\r\n");
 
 WriteLiteral("    ");
 
             
             #line 10 "..\..\Areas\Admin\Views\User\_List_Search.cshtml"
+Write(Html.ActionLink("用户在线", "Index", "UserOnline", null, new { @class = "btn btn-success btn-sm" }));
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\r\n    <label");
+
+WriteLiteral(" for=\"RoleID\"");
+
+WriteLiteral(" class=\"control-label\"");
+
+WriteLiteral(">角色：</label>\r\n");
+
+WriteLiteral("    ");
+
+            
+            #line 12 "..\..\Areas\Admin\Views\User\_List_Search.cshtml"
 Write(Html.ForDropDownList("RoleID", Role.FindAllWithCache().Cast<IEntity>().ToList(), "全部", true));
 
             
             #line default
             #line hidden
-WriteLiteral("\n</div>\n");
+WriteLiteral("\r\n</div>\r\n");
 
-            
-            #line 12 "..\..\Areas\Admin\Views\User\_List_Search.cshtml"
-Write(Html.Partial("_DateRange"));
-
-            
-            #line default
-            #line hidden
         }
     }
 }

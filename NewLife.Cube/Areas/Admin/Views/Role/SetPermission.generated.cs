@@ -145,7 +145,7 @@ WriteLiteral("</td>\r\n                        <td>\r\n");
             #line 31 "..\..\Areas\Admin\Views\Role\SetPermission.cshtml"
                              if (entity.Childs.Count == 0)
                             {
-                                foreach (var item in entity.Permissions)
+                                foreach (var item in entity.Permissions.OrderBy(e => e.Key))
                                 {
                                     var id = "pf" + entity.ID + "_" + ((Int32)item.Key);
                                     
