@@ -112,16 +112,10 @@ namespace XCode.Membership
             var ids = menus.Select(e => (Int32)e["ID"]).ToArray();
             foreach (var role in list)
             {
-                if (!role.CheckValid(ids))
-                {
-                    XTrace.WriteLine("删除[{0}]中的无效资源权限！", role);
-                    //role.Save();
-                }
+                if (!role.CheckValid(ids)) XTrace.WriteLine("删除[{0}]中的无效资源权限！", role);
             }
 
             // 所有角色都有权进入管理平台，否则无法使用后台
-            //var menu = eopMenu.EntityType.GetValue("Root", false) as IMenu;
-            //menu = menu.Childs.FirstOrDefault(e => e.Name.EqualIgnoreCase("Admin"));
             var menu = menus.FirstOrDefault(e => e.Name == "Admin");
             if (menu != null)
             {
@@ -138,10 +132,10 @@ namespace XCode.Membership
 
             // 如果没有任何角色拥有权限管理的权限，那是很悲催的事情
             var count = 0;
-            //var nes = eopMenu.EntityType.GetValue("Necessaries", false) as Int32[];
             foreach (var item in menus)
             {
-                if (item.Visible && !list.Any(e => e.Has(item.ID, PermissionFlags.Detail)))
+                //if (item.Visible && !list.Any(e => e.Has(item.ID, PermissionFlags.Detail)))
+                if (!list.Any(e => e.Has(item.ID, PermissionFlags.Detail)))
                 {
                     count++;
                     sys.Set(item.ID, PermissionFlags.All);
@@ -335,20 +329,21 @@ namespace XCode.Membership
         {
             if (resids == null || resids.Length == 0) return true;
 
-            var count = Permissions.Count;
+            var ps = Permissions;
+            var count = ps.Count;
 
             var list = new List<Int32>();
-            foreach (var item in Permissions)
+            foreach (var item in ps)
             {
                 if (!resids.Contains(item.Key)) list.Add(item.Key);
             }
             // 删除无效项
             foreach (var item in list)
             {
-                Permissions.Remove(item);
+                ps.Remove(item);
             }
 
-            return count == Permissions.Count;
+            return count == ps.Count;
         }
 
         void LoadPermission()

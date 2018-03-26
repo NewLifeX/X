@@ -472,7 +472,7 @@ namespace XCode.Membership
                     if (controller.FullName.IsNullOrEmpty()) controller.FullName = type.FullName;
                     if (controller.Remark.IsNullOrEmpty()) controller.Remark = type.GetDescription();
 
-                    // 反射调用控制器的GetActions方法来获取动作
+                    // 反射调用控制器的方法来获取动作
                     var func = type.GetMethodEx("ScanActionMenu");
                     if (func == null) continue;
 
@@ -481,8 +481,6 @@ namespace XCode.Membership
 
                     // 可选权限子项
                     controller.Permissions.Clear();
-                    var dic = new Dictionary<String, Int32>();
-                    var mask = 0;
 
                     // 添加该类型下的所有Action作为可选权限子项
                     foreach (var item in acts)
@@ -493,28 +491,8 @@ namespace XCode.Membership
                         if (!dn.IsNullOrEmpty()) dn = dn.Replace("{type}", (controller as TEntity)?.FriendName);
 
                         var pmName = !dn.IsNullOrEmpty() ? dn : method.Name;
-                        if (item.Value == 0)
-                            dic.Add(pmName, item.Value);
-                        else
-                        {
-                            if (item.Value < 0x10) pmName = ((PermissionFlags)item.Value).GetDescription();
-                            mask |= item.Value;
-                            controller.Permissions[item.Value] = pmName;
-                        }
-                    }
-
-                    // 分配权限位
-                    var idx = 0x10;
-                    foreach (var item in dic)
-                    {
-                        while ((mask & idx) != 0)
-                        {
-                            // Int32.MaxValue 是 0x7FFF_FFFF
-                            if (idx >= 0x40000000) throw new XException("控制器{0}的Action过多[{1}]，不够分配权限位", type.Name, dic.Join(",", e => e.Key));
-                            idx <<= 1;
-                        }
-                        mask |= idx;
-                        controller.Permissions[idx] = item.Key;
+                        if (item.Value <= (Int32)PermissionFlags.Delete) pmName = ((PermissionFlags)item.Value).GetDescription();
+                        controller.Permissions[item.Value] = pmName;
                     }
 
                     // 排序

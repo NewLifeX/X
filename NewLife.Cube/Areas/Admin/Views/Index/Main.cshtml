@@ -28,7 +28,11 @@
                 应用系统：
             </td>
             <td class="value">
-                @HttpRuntime.AppDomainAppVirtualPath&nbsp;<a href="@Url.Action("Main/Restart")" onclick="return confirm('仅重启ASP.Net应用程序域，而不是操作系统！\n确认重启？')">重启应用系统</a>
+                @HttpRuntime.AppDomainAppVirtualPath&nbsp;
+                @if (this.Has((PermissionFlags)16))
+                {
+                    <a href="@Url.Action("Restart")" onclick="return confirm('仅重启ASP.Net应用程序域，而不是操作系统！\n确认重启？')">重启应用系统</a>
+                }
                 &nbsp;&nbsp;&nbsp;&nbsp;@req.GetRawUrl()
             </td>
             <td class="name">
@@ -149,7 +153,7 @@
     </thead>
     <tbody>
         @foreach (AssemblyX item in ViewBag.MyAsms)
-            {
+        {
             <tr>
                 <td>@item.Name</td>
                 <td>@item.Title</td>

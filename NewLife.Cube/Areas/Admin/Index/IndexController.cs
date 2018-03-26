@@ -50,14 +50,14 @@ namespace NewLife.Cube.Admin.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [DisplayName("服务器信息")]
-        //[EntityAuthorize(PermissionFlags.Detail)]
+        [EntityAuthorize(PermissionFlags.Detail)]
         public ActionResult Main(String id)
         {
-            if (id == "Restart")
-            {
-                HttpRuntime.UnloadAppDomain();
-                id = null;
-            }
+            //if (id == "Restart")
+            //{
+            //    HttpRuntime.UnloadAppDomain();
+            //    id = null;
+            //}
 
             ViewBag.Act = id;
             //ViewBag.User = ManageProvider.User;
@@ -90,6 +90,17 @@ namespace NewLife.Cube.Admin.Controllers
                 case "servervar": return View("ServerVar");
                 default: return View();
             }
+        }
+
+        /// <summary>重启</summary>
+        /// <returns></returns>
+        [DisplayName("重启")]
+        [EntityAuthorize((PermissionFlags)16)]
+        public ActionResult Restart()
+        {
+            HttpRuntime.UnloadAppDomain();
+
+            return RedirectToAction(nameof(Main));
         }
 
         /// <summary>菜单不可见</summary>

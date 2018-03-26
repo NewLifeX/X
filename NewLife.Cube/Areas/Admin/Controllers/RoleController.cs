@@ -96,6 +96,7 @@ namespace NewLife.Cube.Admin.Controllers
         /// <summary>打印</summary>
         /// <returns></returns>
         [DisplayName("打印")]
+        [EntityAuthorize((PermissionFlags)16)]
         public ActionResult Print()
         {
             return View();
