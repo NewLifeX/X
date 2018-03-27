@@ -91,7 +91,7 @@ namespace NewLife.Cube.Admin.Controllers
 
                     //return Redirect(url);
 
-                    return RedirectToAction("Login", "Sso", new { name = ms[0].Name, r = returnUrl });
+                    return RedirectToAction("Login", "Sso", new { area = "", name = ms[0].Name, r = returnUrl });
                 }
             }
 
