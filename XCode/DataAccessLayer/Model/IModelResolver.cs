@@ -76,7 +76,7 @@ namespace XCode.DataAccessLayer
                 }
                 name = sb.ToString();
             }
-            else
+            else if (name == name.ToUpper() || name == name.ToLower())
             {
                 name = name.Substring(0, 1).ToUpper() + name.Substring(1).ToLower();
             }
