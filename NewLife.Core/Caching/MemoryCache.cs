@@ -22,6 +22,8 @@ namespace NewLife.Caching
             //_cache = new ConcurrentDictionary<String, CacheItem>(StringComparer.OrdinalIgnoreCase);
             _cache = new ConcurrentDictionary<String, CacheItem>();
             Name = "Memory";
+
+            Init(null);
         }
 
         /// <summary>销毁</summary>
@@ -45,8 +47,8 @@ namespace NewLife.Caching
 
         #region 方法
         /// <summary>初始化配置</summary>
-        /// <param name="set"></param>
-        protected override void Init(CacheSetting set)
+        /// <param name="config"></param>
+        public override void Init(String config)
         {
             if (clearTimer == null)
             {

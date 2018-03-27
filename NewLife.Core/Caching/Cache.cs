@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.Win32;
 using NewLife.Log;
-using NewLife.Model;
-using NewLife.Reflection;
 using NewLife.Security;
 
 namespace NewLife.Caching
@@ -23,62 +20,62 @@ namespace NewLife.Caching
             //// 查找一个外部缓存提供者来作为默认缓存
             //Default = ObjectContainer.Current.AutoRegister<ICache, MemoryCache>().ResolveInstance<ICache>();
 
-            var ioc = ObjectContainer.Current;
-            // 遍历所有程序集，自动加载
-            foreach (var item in typeof(ICache).GetAllSubclasses(true))
-            {
-                // 实例化一次，让这个类有机会执行类型构造函数，可以获取旧的类型实现
-                if (item.CreateInstance() is ICache ic)
-                {
-                    var id = ic.Name;
-                    if (id.IsNullOrEmpty()) id = item.Name.TrimEnd("Cache");
+            //var ioc = ObjectContainer.Current;
+            //// 遍历所有程序集，自动加载
+            //foreach (var item in typeof(ICache).GetAllSubclasses(true))
+            //{
+            //    // 实例化一次，让这个类有机会执行类型构造函数，可以获取旧的类型实现
+            //    if (item.CreateInstance() is ICache ic)
+            //    {
+            //        var id = ic.Name;
+            //        if (id.IsNullOrEmpty()) id = item.Name.TrimEnd("Cache");
 
-                    /*if (XTrace.Debug)*/
-                    XTrace.WriteLine("发现缓存实现 [{0}] = {1}", id, item.FullName);
+            //        /*if (XTrace.Debug)*/
+            //        XTrace.WriteLine("发现缓存实现 [{0}] = {1}", id, item.FullName);
 
-                    ioc.Register<ICache>(ic, id);
-                }
-            }
+            //        ioc.Register<ICache>(ic, id);
+            //    }
+            //}
         }
 
-        private static ConcurrentDictionary<String, ICache> _cache = new ConcurrentDictionary<String, ICache>();
-        /// <summary>创建缓存实例</summary>
-        /// <param name="set">配置项</param>
-        /// <returns></returns>
-        public static ICache Create(CacheSetting set)
-        {
-            return _cache.GetOrAdd(set.Name, k =>
-            {
-                var id = set.Provider;
+        //private static ConcurrentDictionary<String, ICache> _cache = new ConcurrentDictionary<String, ICache>();
+        ///// <summary>创建缓存实例</summary>
+        ///// <param name="set">配置项</param>
+        ///// <returns></returns>
+        //public static ICache Create(CacheSetting set)
+        //{
+        //    return _cache.GetOrAdd(set.Name, k =>
+        //    {
+        //        var id = set.Provider;
 
-                var type = ObjectContainer.Current.ResolveType<ICache>(id);
-                if (type == null) throw new ArgumentNullException(nameof(type), "找不到名为[{0}]的缓存实现[{1}]".F(set.Name, id));
+        //        var type = ObjectContainer.Current.ResolveType<ICache>(id);
+        //        if (type == null) throw new ArgumentNullException(nameof(type), "找不到名为[{0}]的缓存实现[{1}]".F(set.Name, id));
 
-                var ic = type.CreateInstance() as ICache;
-                if (ic is Cache ic2) ic2.Init(set);
+        //        var ic = type.CreateInstance() as ICache;
+        //        if (ic is Cache ic2) ic2.Init(set);
 
-                return ic;
-            });
-        }
+        //        return ic;
+        //    });
+        //}
 
-        /// <summary>创建缓存实例</summary>
-        /// <param name="name">名字。memory、redis://127.0.0.1:6379?Db=6</param>
-        /// <returns></returns>
-        public static ICache Create(String name)
-        {
-            if (name == null) name = "";
+        ///// <summary>创建缓存实例</summary>
+        ///// <param name="name">名字。memory、redis://127.0.0.1:6379?Db=6</param>
+        ///// <returns></returns>
+        //public static ICache Create(String name)
+        //{
+        //    if (name == null) name = "";
 
-            // 尝试直接获取，避免多次调用CacheConfig.GetOrAdd影响应性能
-            if (_cache.TryGetValue(name, out var ic)) return ic;
+        //    // 尝试直接获取，避免多次调用CacheConfig.GetOrAdd影响应性能
+        //    if (_cache.TryGetValue(name, out var ic)) return ic;
 
-            var item = CacheConfig.Current.GetOrAdd(name);
-            return Create(item);
-        }
+        //    var item = CacheConfig.Current.GetOrAdd(name);
+        //    return Create(item);
+        //}
         #endregion
 
         #region 属性
         /// <summary>名称</summary>
-        public String Name { get; protected set; }
+        public String Name { get; set; }
 
         /// <summary>默认缓存时间。默认0秒表示不过期</summary>
         public Int32 Expire { get; set; }
@@ -105,8 +102,8 @@ namespace NewLife.Caching
 
         #region 基础操作
         /// <summary>初始化配置</summary>
-        /// <param name="set"></param>
-        protected virtual void Init(CacheSetting set) { }
+        /// <param name="config"></param>
+        public virtual void Init(String config) { }
 
         /// <summary>是否包含缓存项</summary>
         /// <param name="key"></param>
@@ -515,12 +512,12 @@ namespace NewLife.Caching
             var speed = times * 1000 / sw.ElapsedMilliseconds;
             XTrace.WriteLine($"删除 {times:n0} 项，{threads,3:n0} 线程，耗时 {sw.ElapsedMilliseconds,7:n0}ms 速度 {speed,9:n0} ops");
         }
-#endregion
+        #endregion
 
-#region 辅助
+        #region 辅助
         /// <summary>已重载。</summary>
         /// <returns></returns>
         public override String ToString() { return Name; }
-#endregion
+        #endregion
     }
 }

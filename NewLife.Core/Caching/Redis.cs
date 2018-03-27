@@ -37,15 +37,7 @@ namespace NewLife.Caching
                 server = dic.ContainsKey("server") ? dic["server"] : "";
             }
 
-            var name = "{0}_{1}".F(server, db);
-            var set = CacheConfig.Current.GetOrAdd(name);
-            if (set.Provider.IsNullOrEmpty())
-            {
-                set.Provider = "Redis";
-                set.Value = $"Server={server};Password={pass};Db={db}";
-            }
-
-            return Create(set) as Redis;
+            return new Redis { Server = server, Password = pass, Db = db };
         }
         #endregion
 
@@ -62,10 +54,9 @@ namespace NewLife.Caching
 
         #region 构造
         /// <summary>初始化</summary>
-        /// <param name="set"></param>
-        protected override void Init(CacheSetting set)
+        /// <param name="config"></param>
+        public override void Init(String config)
         {
-            var config = set?.Value;
             if (config.IsNullOrEmpty()) return;
 
             var dic = config.SplitAsDictionary("=", ";");
