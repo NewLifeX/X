@@ -51,6 +51,22 @@ namespace NewLife.Cube
             var act = filterContext.ActionDescriptor;
             var ctrl = act.ControllerDescriptor;
 
+            // 根据控制器定位资源菜单
+            var ctx = filterContext.HttpContext;
+            var menu = ctx.Items["CurrentMenu"] as IMenu;
+            if (menu == null)
+            {
+                var mf = ManageProvider.Menu;
+                var m1 = ctrl.ControllerType.FullName;
+                var m2 = m1 + "." + act.ActionName;
+                menu = mf.FindByFullName(m2) ?? mf.FindByFullName(m1);
+
+                // 当前菜单
+                filterContext.Controller.ViewBag.Menu = menu;
+                // 兼容旧版本视图权限
+                ctx.Items["CurrentMenu"] = menu;
+            }
+
             // 如果控制器或者Action放有该特性，则跳过全局
             if (IsGlobal)
             {
@@ -60,7 +76,6 @@ namespace NewLife.Cube
             // 允许匿名访问时，直接跳过检查
             if (act.IsDefined(typeof(AllowAnonymousAttribute), true) || ctrl.IsDefined(typeof(AllowAnonymousAttribute), true)) return;
 
-            var ctx = filterContext.HttpContext;
             // 判断当前登录用户
             var user = prv.TryLogin();
             if (user == null)
@@ -72,27 +87,17 @@ namespace NewLife.Cube
                 return;
             }
 
-            // 根据控制器定位资源菜单
-            var mf = ManageProvider.Menu;
-            var m1 = ctrl.ControllerType.FullName;
-            var m2 = m1 + "." + act.ActionName;
-            var menu = mf.FindByFullName(m2) ?? mf.FindByFullName(m1);
-
-            // 当前菜单
-            filterContext.Controller.ViewBag.Menu = menu;
-            // 兼容旧版本视图权限
-            filterContext.HttpContext.Items["CurrentMenu"] = menu;
-
+            // 判断权限
             if (menu != null && user is IUser user2)
             {
                 if (user2.Has(menu, Permission)) return;
             }
             else
             {
-                XTrace.WriteLine("设计错误！验证权限时无法找到[{0}]的菜单", m2);
+                XTrace.WriteLine("设计错误！验证权限时无法找到[{0}/{1}]的菜单", ctrl.ControllerType.FullName, act.ActionName);
             }
 
-            var res = "[{0}/{1}] {2}".F(ctrl.ControllerName, act.ActionName, menu != null ? (menu + "") : m2);
+            var res = "[{0}/{1}]".F(ctrl.ControllerName, act.ActionName);
             var msg = "访问资源 {0} 需要 {1} 权限".F(res, Permission.GetDescription());
             LogProvider.Provider.WriteLog("访问", "拒绝", msg);
 
@@ -103,6 +108,7 @@ namespace NewLife.Cube
             vr.ViewBag.Context = filterContext;
             vr.ViewBag.Resource = res;
             vr.ViewBag.Permission = Permission;
+            vr.ViewBag.Menu = menu;
 
             filterContext.Result = vr;
         }

@@ -73,8 +73,13 @@ namespace NewLife.Cube
         /// <returns></returns>
         public static Boolean Has(this WebViewPage page, params PermissionFlags[] flags)
         {
+            // 没有用户时无权
             var user = page.ViewBag.User as IUser ?? page.User.Identity as IUser;
+            if (user == null) return false;
+
+            // 没有菜单时不做权限控制
             var menu = page.ViewBag.Menu as IMenu;
+            if (menu == null) return true;
 
             return user.Has(menu, flags);
         }

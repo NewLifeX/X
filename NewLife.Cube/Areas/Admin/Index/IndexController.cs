@@ -98,7 +98,12 @@ namespace NewLife.Cube.Admin.Controllers
         [EntityAuthorize((PermissionFlags)16)]
         public ActionResult Restart()
         {
-            HttpRuntime.UnloadAppDomain();
+            //System.Web.HttpContext.Current.User = null;
+            try
+            {
+                HttpRuntime.UnloadAppDomain();
+            }
+            catch { }
 
             return RedirectToAction(nameof(Main));
         }
