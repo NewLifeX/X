@@ -29,6 +29,7 @@ using NewLife.Threading;
 using NewLife.Web;
 using NewLife.Yun;
 using XCode;
+using XCode.Code;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 using XCode.Statistics;
@@ -75,34 +76,7 @@ namespace Test
         private static Int32 ths = 0;
         static void Test1()
         {
-            var list = new List<Boolean>();
-            list.Add(false);
-            list.Add(true);
-            list = list.OrderByDescending(e => e).ToList();
-            Console.WriteLine(list[0]);
-
-            var asmx = SysConfig.SysAssembly;
-            Console.WriteLine(asmx);
-
-            var set = XCode.Setting.Current;
-            set.Migration = Migration.ReadOnly;
-            Console.WriteLine("Setting: {0}", set.Migration);
-
-            DAL.AddConnStr("orc", "data source=xxx", null, "Oracle");
-            var dal = DAL.Create("orc");
-            Console.WriteLine("Oracle: {0}", dal.Db.Migration);
-
-            DAL.AddConnStr("orc2", "data source=xxx;Migration=full", null, "Oracle");
-            dal = DAL.Create("orc2");
-            Console.WriteLine("Oracle2: {0}", dal.Db.Migration);
-
-            DAL.AddConnStr("mysql", "data source=xxx;", null, "mysql");
-            dal = DAL.Create("mysql");
-            Console.WriteLine("MySql: {0}", dal.Db.Migration);
-
-            DAL.AddConnStr("mysql2", "data source=xxx;Migration=on", null, "mysql");
-            dal = DAL.Create("mysql2");
-            Console.WriteLine("MySql2: {0}", dal.Db.Migration);
+            EntityBuilder.Build("DataCockpit.xml");
         }
 
         static void Test2()
