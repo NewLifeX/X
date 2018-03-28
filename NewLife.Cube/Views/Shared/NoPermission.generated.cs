@@ -45,7 +45,9 @@ namespace ASP
             
             #line 2 "..\..\Views\Shared\NoPermission.cshtml"
   
-    Layout = "_Ace_Layout.cshtml";
+    //Layout = "_Ace_Layout.cshtml";
+    Layout = "_Layout.cshtml";
+    //Layout = NewLife.Cube.Setting.Current.Layout;
 
     var context = ViewBag.Context as AuthorizationContext;
     var Resource = ViewBag.Resource;
@@ -66,14 +68,14 @@ WriteLiteral(">\r\n    <div");
 
 WriteLiteral(" class=\"panel-body\"");
 
-WriteAttribute("title", Tuple.Create(" title=\"", 460), Tuple.Create("\"", 504)
+WriteAttribute("title", Tuple.Create(" title=\"", 547), Tuple.Create("\"", 591)
             
-            #line 14 "..\..\Views\Shared\NoPermission.cshtml"
-, Tuple.Create(Tuple.Create("", 468), Tuple.Create<System.Object, System.Int32>(menu == null ? "" : menu.FullName
+            #line 16 "..\..\Views\Shared\NoPermission.cshtml"
+, Tuple.Create(Tuple.Create("", 555), Tuple.Create<System.Object, System.Int32>(menu == null ? "" : menu.FullName
             
             #line default
             #line hidden
-, 468), false)
+, 555), false)
 );
 
 WriteLiteral(">\r\n        <strong>\r\n            <pre");
@@ -85,7 +87,7 @@ WriteLiteral(" role=\"alert\"");
 WriteLiteral(">访问资源 ");
 
             
-            #line 16 "..\..\Views\Shared\NoPermission.cshtml"
+            #line 18 "..\..\Views\Shared\NoPermission.cshtml"
                                                          Write(Resource);
 
             
@@ -94,7 +96,7 @@ WriteLiteral(">访问资源 ");
 WriteLiteral(" 需要 ");
 
             
-            #line 16 "..\..\Views\Shared\NoPermission.cshtml"
+            #line 18 "..\..\Views\Shared\NoPermission.cshtml"
                                                                       Write(pm);
 
             
@@ -106,9 +108,9 @@ WriteLiteral(" class=\"panel-footer\"");
 
 WriteLiteral(">\r\n        <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 688), Tuple.Create("\"", 714)
-, Tuple.Create(Tuple.Create("", 695), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/User/Logout")
-, 695), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 775), Tuple.Create("\"", 801)
+, Tuple.Create(Tuple.Create("", 782), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/User/Logout")
+, 782), false)
 );
 
 WriteLiteral(" class=\"btn btn-primary\"");

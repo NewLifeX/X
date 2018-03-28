@@ -45,7 +45,9 @@ namespace ASP
             
             #line 2 "..\..\Views\Shared\CubeError.cshtml"
   
-    Layout = "_Ace_Layout.cshtml";
+    //Layout = "_Ace_Layout.cshtml";
+    Layout = "_Layout.cshtml";
+    //Layout = NewLife.Cube.Setting.Current.Layout;
     ViewBag.Title = "处理你的请求时出错";
 
     var context = ViewBag.Context as ExceptionContext;
@@ -76,7 +78,7 @@ WriteLiteral(" role=\"alert\"");
 WriteLiteral(">");
 
             
-            #line 17 "..\..\Views\Shared\CubeError.cshtml"
+            #line 19 "..\..\Views\Shared\CubeError.cshtml"
                                                     Write(error);
 
             

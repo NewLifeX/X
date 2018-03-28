@@ -1,6 +1,8 @@
 ﻿@model System.Web.Mvc.HandleErrorInfo
 @{
-    Layout = "_Ace_Layout.cshtml";
+    //Layout = "_Ace_Layout.cshtml";
+    Layout = "_Layout.cshtml";
+    //Layout = NewLife.Cube.Setting.Current.Layout;
     ViewBag.Title = "处理你的请求时出错";
 
     var context = ViewBag.Context as ExceptionContext;
