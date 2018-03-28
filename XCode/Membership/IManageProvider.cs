@@ -342,7 +342,7 @@ namespace XCode.Membership
             if (user == null) return;
 
             var id = user as IIdentity;
-            if (id == null) return;
+            if (id == null || ctx.User?.Identity == id) return;
 
             // 角色列表
             var roles = new List<String>();
@@ -360,17 +360,15 @@ namespace XCode.Membership
         {
             // 判断当前登录用户
             var user = provider.GetCurrent(context);
-            if (user != null) return user;
-
-            // 尝试从Cookie登录
-            user = provider.LoadCookie(true, context);
-            if (user != null)
+            if (user == null)
             {
-                provider.SetCurrent(user, context);
-
-                // 设置前端当前用户
-                provider.SetPrincipal(context);
+                // 尝试从Cookie登录
+                user = provider.LoadCookie(true, context);
+                if (user != null) provider.SetCurrent(user, context);
             }
+
+            // 设置前端当前用户
+            if (user != null) provider.SetPrincipal(context);
 
             return user;
         }

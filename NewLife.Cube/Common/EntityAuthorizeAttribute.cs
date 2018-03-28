@@ -1,8 +1,13 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Reflection;
 using System.Web;
 using System.Web.Mvc;
 using NewLife.Log;
+using NewLife.Reflection;
 using NewLife.Web;
+using XCode;
 using XCode.Membership;
 
 namespace NewLife.Cube
@@ -33,48 +38,47 @@ namespace NewLife.Cube
         #endregion
 
         #region 方法
-        /// <summary>授权核心</summary>
-        /// <param name="httpContext"></param>
-        /// <returns></returns>
-        protected override Boolean AuthorizeCore(HttpContextBase httpContext) => httpContext.User?.Identity is IUser user;
-
         /// <summary>授权发生时触发</summary>
         /// <param name="filterContext"></param>
         public override void OnAuthorization(AuthorizationContext filterContext)
         {
-            // 只验证管辖范围
-            if (!AreaRegistrationBase.Contains(filterContext.Controller)) return;
-
-            var prv = ManageProvider.Provider;
-            prv.SetPrincipal();
-
+            /*
+             * 验证范围：
+             * 1，魔方区域下的所有控制器
+             * 2，所有带有EntityAuthorize特性的控制器或动作
+             */
             var act = filterContext.ActionDescriptor;
             var ctrl = act.ControllerDescriptor;
 
-            // 根据控制器定位资源菜单
-            var ctx = filterContext.HttpContext;
-            var menu = ctx.Items["CurrentMenu"] as IMenu;
-            if (menu == null)
-            {
-                var mf = ManageProvider.Menu;
-                var m1 = ctrl.ControllerType.FullName;
-                var m2 = m1 + "." + act.ActionName;
-                menu = mf.FindByFullName(m2) ?? mf.FindByFullName(m1);
-
-                // 当前菜单
-                filterContext.Controller.ViewBag.Menu = menu;
-                // 兼容旧版本视图权限
-                ctx.Items["CurrentMenu"] = menu;
-            }
-
-            // 如果控制器或者Action放有该特性，则跳过全局
-            if (IsGlobal)
-            {
-                if (act.IsDefined(typeof(EntityAuthorizeAttribute), true) || ctrl.IsDefined(typeof(EntityAuthorizeAttribute), true)) return;
-            }
-
             // 允许匿名访问时，直接跳过检查
             if (act.IsDefined(typeof(AllowAnonymousAttribute), true) || ctrl.IsDefined(typeof(AllowAnonymousAttribute), true)) return;
+
+            // 如果控制器或者Action放有该特性，则跳过全局
+            var hasAtt = act.IsDefined(typeof(EntityAuthorizeAttribute), true) || ctrl.IsDefined(typeof(EntityAuthorizeAttribute), true);
+            if (IsGlobal && hasAtt) return;
+
+            // 只验证管辖范围
+            var create = false;
+            if (!AreaRegistrationBase.Contains(filterContext.Controller))
+            {
+                if (!hasAtt) return;
+                // 不属于魔方而又加了权限特性，需要创建菜单
+                create = true;
+            }
+
+            // 根据控制器定位资源菜单
+            var menu = GetMenu(filterContext, create);
+
+            base.OnAuthorization(filterContext);
+        }
+
+        /// <summary>授权核心</summary>
+        /// <param name="httpContext"></param>
+        /// <returns></returns>
+        protected override Boolean AuthorizeCore(HttpContextBase httpContext)
+        {
+            var prv = ManageProvider.Provider;
+            var ctx = httpContext;
 
             // 判断当前登录用户
             var user = prv.TryLogin();
@@ -84,22 +88,33 @@ namespace NewLife.Cube
 
                 var rurl = "~/Admin/User/Login".AppendReturn(retUrl);
                 ctx.Response.Redirect(rurl);
-                return;
+                return true;
             }
+
+            var menu = ctx.Items["CurrentMenu"] as IMenu;
 
             // 判断权限
             if (menu != null && user is IUser user2)
             {
-                if (user2.Has(menu, Permission)) return;
+                if (user2.Has(menu, Permission)) return true;
             }
-            else
-            {
-                XTrace.WriteLine("设计错误！验证权限时无法找到[{0}/{1}]的菜单", ctrl.ControllerType.FullName, act.ActionName);
-            }
+
+            return false;
+        }
+
+        /// <summary>未认证请求</summary>
+        /// <param name="filterContext"></param>
+        protected override void HandleUnauthorizedRequest(AuthorizationContext filterContext)
+        {
+            var act = filterContext.ActionDescriptor;
+            var ctrl = act.ControllerDescriptor;
 
             var res = "[{0}/{1}]".F(ctrl.ControllerName, act.ActionName);
             var msg = "访问资源 {0} 需要 {1} 权限".F(res, Permission.GetDescription());
             LogProvider.Provider.WriteLog("访问", "拒绝", msg);
+
+            var ctx = filterContext.HttpContext;
+            var menu = ctx.Items["CurrentMenu"] as IMenu;
 
             var vr = new ViewResult()
             {
@@ -111,6 +126,94 @@ namespace NewLife.Cube
             vr.ViewBag.Menu = menu;
 
             filterContext.Result = vr;
+        }
+
+        private IMenu GetMenu(AuthorizationContext filterContext, Boolean create)
+        {
+            var act = filterContext.ActionDescriptor;
+            var ctrl = act.ControllerDescriptor;
+            var type = ctrl.ControllerType;
+            var fullName = type.FullName + "." + act.ActionName;
+
+            var ctx = filterContext.HttpContext;
+            var mf = ManageProvider.Menu;
+            var menu = ctx.Items["CurrentMenu"] as IMenu;
+            if (menu == null)
+            {
+                menu = mf.FindByFullName(fullName) ?? mf.FindByFullName(type.FullName);
+
+                // 当前菜单
+                filterContext.Controller.ViewBag.Menu = menu;
+                // 兼容旧版本视图权限
+                ctx.Items["CurrentMenu"] = menu;
+            }
+
+            // 创建菜单
+            if (create)
+            {
+                if (CreateMenu(type)) menu = mf.FindByFullName(fullName);
+                //var name = type.Namespace.TrimEnd(".Controllers");
+                //var root = mf.FindByFullName(name);
+                //if (root == null)
+                //{
+                //    root = mf.Root.GetType().CreateInstance() as IMenu;
+                //    root.FullName = name;
+                //    root.Name = name;
+                //    (root as IEntity).Insert();
+                //}
+
+                //var node = mf.Root.GetType().CreateInstance() as IMenu;
+                //node.FullName = type.FullName + "." + act.ActionName;
+                //node.Name = type.Name;
+                //node.DisplayName = type.GetDisplayName();
+                //node.ParentID = root.ID;
+                //(node as IEntity).Insert();
+            }
+
+            if (menu == null) XTrace.WriteLine("设计错误！验证权限时无法找到[{0}/{1}]的菜单", type.FullName, act.ActionName);
+
+            return menu;
+        }
+
+        private static ConcurrentDictionary<String, Type> _ss = new ConcurrentDictionary<String, Type>();
+        private Boolean CreateMenu(Type type)
+        {
+            if (!_ss.TryAdd(type.Namespace, type)) return false;
+
+            var mf = ManageProvider.Menu;
+            var ms = mf.ScanController(type.Namespace.TrimEnd(".Controllers"), type.Assembly, type.Namespace);
+
+            // 遍历菜单，设置权限项
+            foreach (var controller in ms)
+            {
+                if (controller.FullName.IsNullOrEmpty()) continue;
+
+                var ctype = type.Assembly.GetType(controller.FullName);
+                //ctype = controller.FullName.GetTypeEx(false);
+                if (ctype == null) continue;
+
+                // 添加该类型下的所有Action
+                var dic = new Dictionary<MethodInfo, Int32>();
+                foreach (var method in ctype.GetMethods())
+                {
+                    if (method.IsStatic || !method.IsPublic) continue;
+                    if (!method.ReturnType.As<ActionResult>()) continue;
+                    if (method.GetCustomAttribute<AllowAnonymousAttribute>() != null) continue;
+
+                    var att = method.GetCustomAttribute<EntityAuthorizeAttribute>();
+                    if (att != null && att.Permission > PermissionFlags.None)
+                    {
+                        var dn = method.GetDisplayName();
+                        var pmName = !dn.IsNullOrEmpty() ? dn : method.Name;
+                        if (att.Permission <= PermissionFlags.Delete) pmName = att.Permission.GetDescription();
+                        controller.Permissions[(Int32)att.Permission] = pmName;
+                    }
+
+                   (controller as IEntity).Save();
+                }
+            }
+
+            return true;
         }
         #endregion
     }

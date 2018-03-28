@@ -424,6 +424,7 @@ namespace XCode.Membership
             public virtual IList<IMenu> ScanController(String rootName, Assembly asm, String nameSpace)
             {
                 var list = new List<IMenu>();
+                var mf = this as IMenuFactory;
 
                 // 所有控制器
                 var types = asm.GetTypes().Where(e => e.Name.EndsWith("Controller") && e.Namespace == nameSpace).ToList();
@@ -431,16 +432,16 @@ namespace XCode.Membership
 
                 // 如果根菜单不存在，则添加
                 var r = Root as IMenu;
-                var root = r.FindByPath(rootName);
-                if (root == null) root = r.Childs.FirstOrDefault(e => e.Name.EqualIgnoreCase(rootName));
-                if (root == null) root = r.Childs.FirstOrDefault(e => e.Url.EqualIgnoreCase("~/" + rootName));
-                //if (root == null) root = FindByName(rootName);
+                var root = mf.FindByFullName(nameSpace);
+                if (root == null) root = r.FindByPath(rootName);
+                //if (root == null) root = r.Childs.FirstOrDefault(e => e.Name.EqualIgnoreCase(rootName));
+                //if (root == null) root = r.Childs.FirstOrDefault(e => e.Url.EqualIgnoreCase("~/" + rootName));
                 if (root == null)
                 {
                     root = r.Add(rootName, null, nameSpace, "~/" + rootName);
                     list.Add(root);
                 }
-                if (root.FullName.IsNullOrEmpty())
+                if (root.FullName != nameSpace)
                 {
                     root.FullName = nameSpace;
                     (root as IEntity).Save();
@@ -466,11 +467,14 @@ namespace XCode.Membership
                             // DisplayName特性作为中文名
                             controller = node.Add(name, type.GetDisplayName(), type.FullName, url);
 
-                            list.Add(controller);
+                            //list.Add(controller);
                         }
                     }
                     if (controller.FullName.IsNullOrEmpty()) controller.FullName = type.FullName;
                     if (controller.Remark.IsNullOrEmpty()) controller.Remark = type.GetDescription();
+
+                    ms.Add(controller);
+                    list.Add(controller);
 
                     // 反射调用控制器的方法来获取动作
                     var func = type.GetMethodEx("ScanActionMenu");
@@ -501,8 +505,6 @@ namespace XCode.Membership
                         var pi = type.GetPropertyEx("MenuOrder");
                         if (pi != null) controller.Sort = pi.GetValue(null).ToInt();
                     }
-
-                    ms.Add(controller);
                 }
 
                 for (var i = 0; i < ms.Count; i++)

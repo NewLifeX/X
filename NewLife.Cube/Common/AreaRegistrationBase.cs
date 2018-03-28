@@ -224,6 +224,7 @@ namespace NewLife.Cube
             }
         }
 
+        private static ICollection<String> _areas;
         /// <summary>判断控制器是否归属于魔方管辖</summary>
         /// <param name="controller"></param>
         /// <returns></returns>
@@ -233,9 +234,12 @@ namespace NewLife.Cube
             var ns = controller.GetType().Namespace;
             if (!ns.EndsWith(".Controllers")) return false;
 
+            if (_areas == null) _areas = new HashSet<String>(Areas.Select(e => e.Namespace));
+
             // 该控制器父级命名空间必须有对应的区域注册类，才会拦截其异常
             ns = ns.TrimEnd(".Controllers");
-            return Areas.Any(e => e.Namespace == ns);
+            //return Areas.Any(e => e.Namespace == ns);
+            return _areas.Contains(ns);
         }
     }
 }
