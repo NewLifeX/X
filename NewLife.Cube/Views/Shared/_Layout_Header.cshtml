@@ -24,12 +24,12 @@
                 @if (user == null)
                 {
                     <li class="">@Html.ActionLink("注册", "Register", "Account")</li>
-                    <li class="">@Html.ActionLink("登录", "Login", "Account", new { ReturnUrl = retUrl }, null)</li>
+                    <li class="">@Html.ActionLink("登录", "Login", "Account", new { r = retUrl }, null)</li>
                 }
                 else
                 {
                     <li class="">@Html.ActionLink(user + "", "Detail", "Account", new { user.ID }, null)</li>
-                    <li class="">@Html.ActionLink("注销", "Logout", "Account", new { ReturnUrl = retUrl }, null)</li>
+                    <li class="">@Html.ActionLink("注销", "Logout", "Account", new { r = retUrl }, null)</li>
                 }
             </ul>
         </div>

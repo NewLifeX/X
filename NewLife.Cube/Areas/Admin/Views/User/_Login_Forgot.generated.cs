@@ -66,7 +66,7 @@ WriteLiteral("></i>\r\n    </div>\r\n    <!-- 登录-->\r\n");
             #line hidden
             
             #line 7 "..\..\Areas\Admin\Views\User\_Login_Forgot.cshtml"
-     using (Html.BeginForm("ForgetPassword", "User", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "cube-login" }))
+     using (Html.BeginForm("ForgetPassword", "User", new { r = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "cube-login" }))
     {
         
             

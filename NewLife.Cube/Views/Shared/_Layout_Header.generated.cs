@@ -192,7 +192,7 @@ WriteLiteral(">");
 
             
             #line 27 "..\..\Views\Shared\_Layout_Header.cshtml"
-                            Write(Html.ActionLink("登录", "Login", "Account", new { ReturnUrl = retUrl }, null));
+                            Write(Html.ActionLink("登录", "Login", "Account", new { r = retUrl }, null));
 
             
             #line default
@@ -231,7 +231,7 @@ WriteLiteral(">");
 
             
             #line 32 "..\..\Views\Shared\_Layout_Header.cshtml"
-                            Write(Html.ActionLink("注销", "Logout", "Account", new { ReturnUrl = retUrl }, null));
+                            Write(Html.ActionLink("注销", "Logout", "Account", new { r = retUrl }, null));
 
             
             #line default
