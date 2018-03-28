@@ -183,6 +183,13 @@ namespace NewLife.Cube
             var mf = ManageProvider.Menu;
             var ms = mf.ScanController(type.Namespace.TrimEnd(".Controllers"), type.Assembly, type.Namespace);
 
+            var root = mf.FindByFullName(type.Namespace);
+            if (root != null)
+            {
+                root.Url = "~";
+                (root as IEntity).Save();
+            }
+
             // 遍历菜单，设置权限项
             foreach (var controller in ms)
             {
@@ -208,9 +215,11 @@ namespace NewLife.Cube
                         if (att.Permission <= PermissionFlags.Delete) pmName = att.Permission.GetDescription();
                         controller.Permissions[(Int32)att.Permission] = pmName;
                     }
-
-                   (controller as IEntity).Save();
                 }
+
+                controller.Url = "~/" + ctype.Name.TrimEnd("Controller");
+
+                (controller as IEntity).Save();
             }
 
             return true;
