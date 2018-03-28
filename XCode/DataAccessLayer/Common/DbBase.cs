@@ -293,7 +293,7 @@ namespace XCode.DataAccessLayer
             linkName += ";" + name;
 
 #if __CORE__
-            linkName = name + "_st;" + linkName;
+            linkName = "st_" + name;
 #endif
 
             var type = PluginHelper.LoadPlugin(className, null, assemblyFile, linkName);
