@@ -10,6 +10,8 @@ using NewLife.Common;
 using NewLife.Reflection;
 using XCode.Membership;
 using XCode;
+using System.Web.Hosting;
+using System.IO;
 
 namespace NewLife.Cube.Admin.Controllers
 {
@@ -99,11 +101,23 @@ namespace NewLife.Cube.Admin.Controllers
         public ActionResult Restart()
         {
             //System.Web.HttpContext.Current.User = null;
-            try
+            //try
+            //{
+            //    Process.GetCurrentProcess().Kill();
+            //}
+            //catch { }
+            //try
             {
-                HttpRuntime.UnloadAppDomain();
+                //AppDomain.Unload(AppDomain.CurrentDomain);
+                //HttpContext.User = null;
+                //HttpRuntime.UnloadAppDomain();
+                //HostingEnvironment.InitiateShutdown();
+                //ApplicationManager.GetApplicationManager().ShutdownAll();
+                // 通过修改web.config时间来重启站点，稳定可靠
+                var wc = "web.config".GetFullPath();
+                System.IO.File.SetLastWriteTime(wc, DateTime.Now);
             }
-            catch { }
+            //catch { }
 
             return RedirectToAction(nameof(Main));
         }
