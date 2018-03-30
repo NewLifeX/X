@@ -412,6 +412,9 @@ namespace NewLife.Web
             if (dic.TryGetValue("nick_name", out str)) NickName = str.Trim();
 
             if (dic.TryGetValue("Avatar", out str)) Avatar = str.Trim();
+
+            // 获取用户信息出错时抛出异常
+            if (dic.TryGetValue("error", out str)) throw new InvalidOperationException(str);
         }
         #endregion
 
