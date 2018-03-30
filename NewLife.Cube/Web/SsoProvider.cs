@@ -255,6 +255,21 @@ namespace NewLife.Cube.Web
         /// <summary>获取用户信息</summary>
         /// <param name="sso"></param>
         /// <param name="token"></param>
+        /// <returns></returns>
+        public virtual IManageUser GetUser(OAuthServer sso, String token)
+        {
+            var username = sso.Decode(token);
+
+            var user = Provider?.FindByName(username);
+            // 两级单点登录可能因缓存造成查不到用户
+            if (user == null) user = UserX.Find(UserX._.Name == username);
+
+            return user;
+        }
+
+        /// <summary>获取用户信息</summary>
+        /// <param name="sso"></param>
+        /// <param name="token"></param>
         /// <param name="user"></param>
         /// <returns></returns>
         public virtual Object GetUserInfo(OAuthServer sso, String token, IManageUser user)

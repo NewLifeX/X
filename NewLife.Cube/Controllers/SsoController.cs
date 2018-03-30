@@ -309,10 +309,11 @@ namespace NewLife.Cube.Controllers
             var msg = "";
             try
             {
-                var username = sso.Decode(access_token);
+                //var username = sso.Decode(access_token);
 
-                user = Provider?.Provider?.FindByName(username);
-                if (user == null) throw new Exception("用户不存在 " + username);
+                user = Provider?.GetUser(sso, access_token);
+                //if (user == null) throw new Exception("用户不存在 " + username);
+                if (user == null) throw new Exception("用户不存在");
 
                 var rs = Provider.GetUserInfo(sso, access_token, user);
                 return Json(rs, JsonRequestBehavior.AllowGet);
