@@ -45,7 +45,7 @@ namespace XCode.Membership
         /// <summary>全名</summary>
         [DisplayName("全名")]
         [Description("全名")]
-        [DataObjectField(false, false, true, 50)]
+        [DataObjectField(false, false, true, 200)]
         [BindColumn("FullName", "全名", "")]
         public String FullName { get { return _FullName; } set { if (OnPropertyChanging(__.FullName, value)) { _FullName = value; OnPropertyChanged(__.FullName); } } }
 

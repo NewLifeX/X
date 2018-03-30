@@ -69,7 +69,7 @@ namespace NewLife.Cube.Entity
         /// <summary>头像</summary>
         [DisplayName("头像")]
         [Description("头像")]
-        [DataObjectField(false, false, true, 50)]
+        [DataObjectField(false, false, true, 200)]
         [BindColumn("Avatar", "头像", "")]
         public String Avatar { get { return _Avatar; } set { if (OnPropertyChanging(__.Avatar, value)) { _Avatar = value; OnPropertyChanged(__.Avatar); } } }
 
