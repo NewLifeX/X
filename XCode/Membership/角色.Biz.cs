@@ -393,9 +393,9 @@ namespace XCode.Membership
         /// <summary>根据名称查找角色，若不存在则创建</summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        IRole IRole.FindOrCreateByName(String name)
+        IRole IRole.GetOrAdd(String name)
         {
-            if (String.IsNullOrEmpty(name)) return null;
+            if (name.IsNullOrEmpty()) return null;
 
             return Add(name, false);
         }
@@ -411,10 +411,12 @@ namespace XCode.Membership
             var entity = Find(__.Name, name);
             if (entity != null) return entity;
 
-            entity = new TEntity();
-            entity.Name = name;
-            entity.IsSystem = issys;
-            entity.Remark = remark;
+            entity = new TEntity
+            {
+                Name = name,
+                IsSystem = issys,
+                Remark = remark
+            };
             entity.Save();
 
             return entity;
@@ -459,7 +461,7 @@ namespace XCode.Membership
         /// <summary>根据名称查找角色，若不存在则创建</summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        IRole FindOrCreateByName(String name);
+        IRole GetOrAdd(String name);
 
         /// <summary>保存</summary>
         /// <returns></returns>
