@@ -76,7 +76,10 @@ namespace Test
         private static Int32 ths = 0;
         static void Test1()
         {
-            EntityBuilder.Build("DataCockpit.xml");
+            //EntityBuilder.Build("DataCockpit.xml");
+
+            Role.Meta.Session.Dal.Db.Readonly = true;
+            Role.GetOrAdd("sss");
         }
 
         static void Test2()

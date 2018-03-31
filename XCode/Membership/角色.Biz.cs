@@ -393,6 +393,16 @@ namespace XCode.Membership
         /// <summary>根据名称查找角色，若不存在则创建</summary>
         /// <param name="name"></param>
         /// <returns></returns>
+        public static IRole GetOrAdd(String name)
+        {
+            if (name.IsNullOrEmpty()) return null;
+
+            return Add(name, false);
+        }
+
+        /// <summary>根据名称查找角色，若不存在则创建</summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         IRole IRole.GetOrAdd(String name)
         {
             if (name.IsNullOrEmpty()) return null;

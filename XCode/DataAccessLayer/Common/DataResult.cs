@@ -23,10 +23,7 @@ namespace XCode.DataAccessLayer
         #region 辅助
         /// <summary>返回行数字段数</summary>
         /// <returns></returns>
-        public override String ToString()
-        {
-            return "Rows={0} Names={1}".F(Rows == null ? 0 : Rows.Count, Names == null ? 0 : Names.Length);
-        }
+        public override String ToString() => "Rows={0} Names={1}".F(Rows == null ? 0 : Rows.Count, Names == null ? 0 : Names.Length);
         #endregion
     }
 }

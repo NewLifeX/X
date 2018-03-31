@@ -11,12 +11,12 @@ namespace XCode.DataAccessLayer
         [ThreadStatic]
         private static Int32 _QueryTimes;
         /// <summary>查询次数</summary>
-        public static Int32 QueryTimes { get { return _QueryTimes; } }
+        public static Int32 QueryTimes => _QueryTimes;
 
         [ThreadStatic]
         private static Int32 _ExecuteTimes;
         /// <summary>执行次数</summary>
-        public static Int32 ExecuteTimes { get { return _ExecuteTimes; } }
+        public static Int32 ExecuteTimes => _ExecuteTimes;
         #endregion
 
         #region 数据操作方法
@@ -74,6 +74,8 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Int32 Execute(String sql)
         {
+            if (Db.Readonly) throw new InvalidOperationException($"数据连接[{ConnName}]只读，禁止执行{sql}");
+
             CheckBeforeUseDatabase();
 
             Interlocked.Increment(ref _ExecuteTimes);
@@ -86,6 +88,8 @@ namespace XCode.DataAccessLayer
         /// <returns>新增行的自动编号</returns>
         public Int64 InsertAndGetIdentity(String sql)
         {
+            if (Db.Readonly) throw new InvalidOperationException($"数据连接[{ConnName}]只读，禁止执行{sql}");
+
             CheckBeforeUseDatabase();
 
             Interlocked.Increment(ref _ExecuteTimes);
@@ -127,6 +131,8 @@ namespace XCode.DataAccessLayer
         /// <returns>新增行的自动编号</returns>
         public Int64 InsertAndGetIdentity(String sql, CommandType type, params IDataParameter[] ps)
         {
+            if (Db.Readonly) throw new InvalidOperationException($"数据连接[{ConnName}]只读，禁止执行{sql}");
+
             CheckBeforeUseDatabase();
 
             Interlocked.Increment(ref _ExecuteTimes);
@@ -154,6 +160,8 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Int32 Execute(String sql, CommandType type, IDictionary<String, Object> ps)
         {
+            if (Db.Readonly) throw new InvalidOperationException($"数据连接[{ConnName}]只读，禁止执行{sql}");
+
             CheckBeforeUseDatabase();
 
             Interlocked.Increment(ref _ExecuteTimes);
