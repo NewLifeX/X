@@ -143,6 +143,11 @@ namespace NewLife.Cube.Admin.Controllers
         public ActionResult Logout()
         {
             var returnUrl = Request["r"];
+
+            // 如果是单点登录，则走单点登录注销
+            var name = Session["Cube_Sso"] + "";
+            if (!name.IsNullOrEmpty()) return RedirectToAction("Logout", "Sso", new { area = "", name, r = returnUrl });
+
             ManageProvider.Provider.Logout();
 
             if (!returnUrl.IsNullOrEmpty()) return Redirect(returnUrl);

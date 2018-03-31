@@ -5,7 +5,6 @@ using System.Web;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Reflection;
-using NewLife.Security;
 using NewLife.Serialization;
 
 namespace NewLife.Web

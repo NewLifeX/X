@@ -139,6 +139,10 @@ namespace NewLife.Cube.Controllers
                 if (!client.UserUrl.IsNullOrEmpty()) client.GetUserInfo();
 
                 var url = prov.OnLogin(client, HttpContext);
+
+                // 标记登录提供商
+                Session["Cube_Sso"] = client.Name;
+
                 if (!returnUrl.IsNullOrEmpty()) return Redirect(returnUrl);
 
                 return Redirect(url);
@@ -148,6 +152,33 @@ namespace NewLife.Cube.Controllers
                 XTrace.WriteException(ex);
                 throw;
             }
+        }
+
+        /// <summary>注销登录</summary>
+        /// <remarks>
+        /// 子系统引导用户跳转到这里注销登录。
+        /// </remarks>
+        /// <returns></returns>
+        [AllowAnonymous]
+        public virtual ActionResult Logout(String name = null)
+        {
+            Provider?.Logout();
+
+            var url = Provider?.GetReturnUrl(Request, false);
+            if (url.IsNullOrEmpty()) url = "~/";
+
+            //// 准备返回地址
+            //var url = Request["r"];
+            //if (url.IsNullOrEmpty()) url = "/";
+            //if (!url.StartsWithIgnoreCase("http")) url = new Uri(Request.Url, url).ToString();
+
+            //// 准备跳转到验证中心
+            //if (!name.IsNullOrEmpty())
+            //{
+
+            //}
+
+            return Redirect(url);
         }
 
         /// <summary>绑定</summary>
@@ -330,22 +361,6 @@ namespace NewLife.Cube.Controllers
             {
                 sso.WriteLog("UserInfo {0} access_token={1} msg={2}", user, access_token, msg);
             }
-        }
-
-        /// <summary>4，注销登录</summary>
-        /// <remarks>
-        /// 子系统引导用户跳转到这里注销登录。
-        /// </remarks>
-        /// <returns></returns>
-        [AllowAnonymous]
-        public virtual ActionResult Logout()
-        {
-            Provider?.Logout();
-
-            var url = Provider?.GetReturnUrl(Request, false);
-            if (url.IsNullOrEmpty()) url = "~/";
-
-            return Redirect(url);
         }
         #endregion
 
