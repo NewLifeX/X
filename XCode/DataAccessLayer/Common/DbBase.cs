@@ -166,10 +166,11 @@ namespace XCode.DataAccessLayer
         /// <param name="builder"></param>
         protected virtual void OnSetConnectionString(ConnectionStringBuilder builder)
         {
-            if (builder.TryGetAndRemove(_.Owner, out var value) && !String.IsNullOrEmpty(value)) Owner = value;
-            if (builder.TryGetAndRemove(_.ShowSQL, out value) && !String.IsNullOrEmpty(value)) ShowSQL = value.ToBoolean();
-            if (builder.TryGetAndRemove(_.UserParameter, out value) && !String.IsNullOrEmpty(value)) UserParameter = value.ToBoolean();
-            if (builder.TryGetAndRemove(_.Migration, out value) && !String.IsNullOrEmpty(value)) Migration = (Migration)Enum.Parse(typeof(Migration), value, true);
+            if (builder.TryGetAndRemove(nameof(Owner), out var value) && !value.IsNullOrEmpty()) Owner = value;
+            if (builder.TryGetAndRemove(nameof(ShowSQL), out value) && !value.IsNullOrEmpty()) ShowSQL = value.ToBoolean();
+            if (builder.TryGetAndRemove(nameof(UserParameter), out value) && !value.IsNullOrEmpty()) UserParameter = value.ToBoolean();
+            if (builder.TryGetAndRemove(nameof(Migration), out value) && !value.IsNullOrEmpty()) Migration = (Migration)Enum.Parse(typeof(Migration), value, true);
+            if (builder.TryGetAndRemove(nameof(TablePrefix), out value) && !value.IsNullOrEmpty()) TablePrefix = value;
         }
 
         /// <summary>拥有者</summary>
@@ -211,6 +212,9 @@ namespace XCode.DataAccessLayer
 
         /// <summary>本连接数据只读。需求不够强劲，暂不支持在连接字符串中设置</summary>
         public Boolean Readonly { get; set; }
+
+        /// <summary>表前缀。所有在该连接上的表名都自动增加该前缀</summary>
+        public String TablePrefix { get; set; }
         #endregion
 
         #region 方法
