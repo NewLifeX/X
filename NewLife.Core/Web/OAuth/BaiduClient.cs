@@ -13,7 +13,8 @@ namespace NewLife.Web.OAuth
 
             AuthUrl = "authorize?response_type={response_type}&client_id={key}&redirect_uri={redirect}&state={state}&scope={scope}";
             AccessUrl = "token?grant_type=authorization_code&client_id={key}&client_secret={secret}&code={code}&state={state}&redirect_uri={redirect}";
-            UserUrl = "https://openapi.baidu.com/rest/2.0/passport/users/getLoggedInUser?access_token={token}";
+            //UserUrl = "https://openapi.baidu.com/rest/2.0/passport/users/getLoggedInUser?access_token={token}";
+            UserUrl = "https://openapi.baidu.com/rest/2.0/passport/users/getInfo?access_token={token}";
         }
 
         /// <summary>从响应数据中获取信息</summary>
@@ -24,6 +25,7 @@ namespace NewLife.Web.OAuth
 
             if (dic.ContainsKey("uid")) UserID = dic["uid"].Trim().ToLong();
             if (dic.ContainsKey("uname")) UserName = dic["uname"].Trim();
+            if (dic.ContainsKey("realname")) NickName = dic["realname"].Trim();
 
             // small image: http://tb.himg.baidu.com/sys/portraitn/item/{$portrait}
             // large image: http://tb.himg.baidu.com/sys/portrait/item/{$portrait}
