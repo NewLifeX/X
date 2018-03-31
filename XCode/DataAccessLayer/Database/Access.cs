@@ -69,7 +69,7 @@ namespace XCode.DataAccessLayer
             return false;
         }
 
-        protected override void OnSetConnectionString(XDbConnectionStringBuilder builder)
+        protected override void OnSetConnectionString(ConnectionStringBuilder builder)
         {
             base.OnSetConnectionString(builder);
 
@@ -77,10 +77,7 @@ namespace XCode.DataAccessLayer
             if (!String.IsNullOrEmpty(FileName))
             {
                 var ext = Path.GetExtension(FileName);
-                if (ext.EqualIgnoreCase(".xls"))
-                {
-                    if (!builder.ContainsKey("Extended Properties")) builder["Extended Properties"] = "Excel 8.0";
-                }
+                if (ext.EqualIgnoreCase(".xls")) builder.TryAdd("Extended Properties", "Excel 8.0");
             }
         }
         #endregion

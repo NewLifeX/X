@@ -358,7 +358,7 @@ namespace XCode.DataAccessLayer
         /// <summary>快速查询单表记录数，稍有偏差</summary>
         /// <param name="tableName"></param>
         /// <returns></returns>
-        public virtual Int64 QueryCountFast(String tableName) { return QueryCount(tableName); }
+        public virtual Int64 QueryCountFast(String tableName) => QueryCount(tableName);
 
         /// <summary>执行SQL语句，返回受影响的行数</summary>
         /// <param name="sql">SQL语句</param>

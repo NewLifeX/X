@@ -36,19 +36,20 @@ namespace XCode.DataAccessLayer
         const String CharSet = "CharSet";
         const String AllowZeroDatetime = "Allow Zero Datetime";
         const String MaxPoolSize = "MaxPoolSize";
-        protected override void OnSetConnectionString(XDbConnectionStringBuilder builder)
+        protected override void OnSetConnectionString(ConnectionStringBuilder builder)
         {
             base.OnSetConnectionString(builder);
 
-            if (builder.ContainsKey(Server_Key) && (builder[Server_Key] == "." || builder[Server_Key] == "localhost"))
+            var key = builder[Server_Key];
+            if (key.EqualIgnoreCase(".", "localhost"))
             {
                 //builder[Server_Key] = "127.0.0.1";
                 builder[Server_Key] = IPAddress.Loopback.ToString();
             }
-            if (!builder.ContainsKey(CharSet)) builder[CharSet] = "utf8";
+            builder.TryAdd(CharSet, "utf8");
             //if (!builder.ContainsKey(AllowZeroDatetime)) builder[AllowZeroDatetime] = "True";
             // 默认最大连接数1000
-            if (!builder.ContainsKey(MaxPoolSize)) builder[MaxPoolSize] = "1000";
+            builder.TryAdd(MaxPoolSize, "1000");
         }
         #endregion
 

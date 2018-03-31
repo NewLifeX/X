@@ -23,13 +23,14 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        protected override void OnSetConnectionString(XDbConnectionStringBuilder builder)
+        protected override void OnSetConnectionString(ConnectionStringBuilder builder)
         {
             base.OnSetConnectionString(builder);
 
             //if (!builder.TryGetValue(_.DataSource, out file)) return;
             // 允许空，当作内存数据库处理
-            builder.TryGetValue(_.DataSource, out var file);
+            //builder.TryGetValue(_.DataSource, out var file);
+            var file = builder[_.DataSource];
             file = OnResolveFile(file);
             builder[_.DataSource] = file;
             FileName = file;

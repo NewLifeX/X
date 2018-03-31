@@ -67,7 +67,7 @@ namespace XCode.DataAccessLayer
             return base.OnResolveFile(file);
         }
 
-        protected override void OnSetConnectionString(XDbConnectionStringBuilder builder)
+        protected override void OnSetConnectionString(ConnectionStringBuilder builder)
         {
             base.OnSetConnectionString(builder);
 
@@ -75,28 +75,24 @@ namespace XCode.DataAccessLayer
             //if (!builder.ContainsKey("count_changes")) builder["count_changes"] = "1";
 
             // 优化SQLite，如果原始字符串里面没有这些参数，就设置这些参数
-            if (!builder.ContainsKey("Pooling")) builder["Pooling"] = "true";
+            builder.TryAdd("Pooling", "true");
             //if (!builder.ContainsKey("Cache Size")) builder["Cache Size"] = "5000";
-            if (!builder.ContainsKey("Cache Size")) builder["Cache Size"] = (512 * 1024 * 1024 / -1024) + "";
+            builder.TryAdd("Cache Size", (512 * 1024 * 1024 / -1024) + "");
             // 加大Page Size会导致磁盘IO大大加大，性能反而有所下降
             //if (!builder.ContainsKey("Page Size")) builder["Page Size"] = "32768";
             // 这两个设置可以让SQLite拥有数十倍的极限性能，但同时又加大了风险，如果系统遭遇突然断电，数据库会出错，而导致系统无法自动恢复
-            if (!builder.ContainsKey("Synchronous")) builder["Synchronous"] = "Off";
+            builder.TryAdd("Synchronous", "Off");
             // Journal Mode的内存设置太激进了，容易出事，关闭
             //if (!builder.ContainsKey("Journal Mode")) builder["Journal Mode"] = "Memory";
             // 数据库中一种高效的日志算法，对于非内存数据库而言，磁盘I/O操作是数据库效率的一大瓶颈。
             // 在相同的数据量下，采用WAL日志的数据库系统在事务提交时，磁盘写操作只有传统的回滚日志的一半左右，大大提高了数据库磁盘I/O操作的效率，从而提高了数据库的性能。
-            if (!builder.ContainsKey("Journal Mode")) builder["Journal Mode"] = "WAL";
+            builder.TryAdd("Journal Mode", "WAL");
             // 绝大多数情况下，都是小型应用，发生数据损坏的几率微乎其微，而多出来的问题让人觉得很烦，所以还是采用内存设置
             // 将来可以增加自动恢复数据的功能
             //if (!builder.ContainsKey("Journal Mode")) builder["Journal Mode"] = "Memory";
 
             // 自动清理数据
-            if (builder.ContainsKey("autoVacuum"))
-            {
-                AutoVacuum = builder["autoVacuum"].ToBoolean();
-                builder.Remove("autoVacuum");
-            }
+            if (builder.TryGetAndRemove("autoVacuum", out var vac)) AutoVacuum = vac.ToBoolean();
 
             // 默认超时时间
             //if (!builder.ContainsKey("Default Timeout")) builder["Default Timeout"] = 5 + "";

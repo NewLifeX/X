@@ -112,10 +112,7 @@ namespace XCode.DataAccessLayer
 #if DEBUG
                 XTrace.WriteLine("{0} 设定 {1}", ConnName, value);
 #endif
-                var builder = new XDbConnectionStringBuilder
-                {
-                    ConnectionString = value
-                };
+                var builder = new ConnectionStringBuilder(value);
 
                 OnSetConnectionString(builder);
 
@@ -167,7 +164,7 @@ namespace XCode.DataAccessLayer
 
         /// <summary>设置连接字符串时允许从中取值或修改，基类用于读取拥有者Owner，子类重写时应调用基类</summary>
         /// <param name="builder"></param>
-        protected virtual void OnSetConnectionString(XDbConnectionStringBuilder builder)
+        protected virtual void OnSetConnectionString(ConnectionStringBuilder builder)
         {
             if (builder.TryGetAndRemove(_.Owner, out var value) && !String.IsNullOrEmpty(value)) Owner = value;
             if (builder.TryGetAndRemove(_.ShowSQL, out value) && !String.IsNullOrEmpty(value)) ShowSQL = value.ToBoolean();

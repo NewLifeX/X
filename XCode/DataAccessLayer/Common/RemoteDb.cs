@@ -85,12 +85,12 @@ namespace XCode.DataAccessLayer
         }
 
         const String Pooling = "Pooling";
-        protected override void OnSetConnectionString(XDbConnectionStringBuilder builder)
+        protected override void OnSetConnectionString(ConnectionStringBuilder builder)
         {
             base.OnSetConnectionString(builder);
 
             // 关闭底层连接池，使用XCode连接池
-            if (!builder.ContainsKey(Pooling)) builder[Pooling] = "false";
+            builder.TryAdd(Pooling, "false");
         }
         #endregion
     }
@@ -160,17 +160,14 @@ namespace XCode.DataAccessLayer
         private static void OpenDatabase(IDbConnection conn, String dbName)
         {
             // 如果没有打开，则改变链接字符串
-            var builder = new XDbConnectionStringBuilder
-            {
-                ConnectionString = conn.ConnectionString
-            };
+            var builder = new ConnectionStringBuilder(conn.ConnectionString);
             var flag = false;
-            if (builder.ContainsKey("Database"))
+            if (builder["Database"] != null)
             {
                 builder["Database"] = dbName;
                 flag = true;
             }
-            else if (builder.ContainsKey("Initial Catalog"))
+            else if (builder["Initial Catalog"] != null)
             {
                 builder["Initial Catalog"] = dbName;
                 flag = true;

@@ -73,14 +73,14 @@ namespace XCode.DataAccessLayer
         public String DataPath { get; set; }
 
         const String Application_Name = "Application Name";
-        protected override void OnSetConnectionString(XDbConnectionStringBuilder builder)
+        protected override void OnSetConnectionString(ConnectionStringBuilder builder)
         {
             // 获取数据目录，用于反向工程创建数据库
-            if (builder.TryGetAndRemove("DataPath", out var str) && !String.IsNullOrEmpty(str)) DataPath = str;
+            if (builder.TryGetAndRemove("DataPath", out var str) && !str.IsNullOrEmpty()) DataPath = str;
 
             base.OnSetConnectionString(builder);
 
-            if (!builder.ContainsKey(Application_Name))
+            if (builder[Application_Name] == null)
             {
 #if !__CORE__
                 var name = Runtime.IsWeb ? System.Web.Hosting.HostingEnvironment.SiteName : AppDomain.CurrentDomain.FriendlyName;
