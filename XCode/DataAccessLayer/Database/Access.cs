@@ -90,7 +90,7 @@ namespace XCode.DataAccessLayer
         //public override DateTime DateTimeMin { get { return DateTime.MinValue; } }
 
         /// <summary>长文本长度</summary>
-        public override Int32 LongTextLength { get { return 255; } }
+        public override Int32 LongTextLength => 255;
 
         public override String FormatName(String name)
         {

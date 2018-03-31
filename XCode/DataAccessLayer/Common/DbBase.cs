@@ -542,12 +542,12 @@ namespace XCode.DataAccessLayer
 
         #region 数据库特性
         /// <summary>长文本长度</summary>
-        public virtual Int32 LongTextLength { get { return 4000; } }
+        public virtual Int32 LongTextLength => 4000;
 
         /// <summary>
         /// 保留字字符串，其实可以在首次使用时动态从Schema中加载
         /// </summary>
-        protected virtual String ReservedWordsStr { get { return null; } }
+        protected virtual String ReservedWordsStr => null;
 
         private Dictionary<String, Boolean> _ReservedWords = null;
         /// <summary>
@@ -577,7 +577,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="word"></param>
         /// <returns></returns>
-        internal Boolean IsReservedWord(String word) { return !String.IsNullOrEmpty(word) && ReservedWords.ContainsKey(word); }
+        internal Boolean IsReservedWord(String word) => !String.IsNullOrEmpty(word) && ReservedWords.ContainsKey(word);
 
         /// <summary>格式化时间为SQL字符串</summary>
         /// <remarks>
@@ -586,12 +586,12 @@ namespace XCode.DataAccessLayer
         /// </remarks>
         /// <param name="dateTime">时间值</param>
         /// <returns></returns>
-        public virtual String FormatDateTime(DateTime dateTime) { return "'" + dateTime.ToFullString() + "'"; }
+        public virtual String FormatDateTime(DateTime dateTime) => "'" + dateTime.ToFullString() + "'";
 
         /// <summary>格式化关键字</summary>
         /// <param name="keyWord">表名</param>
         /// <returns></returns>
-        public virtual String FormatKeyWord(String keyWord) { return keyWord; }
+        public virtual String FormatKeyWord(String keyWord) => keyWord;
 
         /// <summary>格式化名称，如果是关键字，则格式化后返回，否则原样返回</summary>
         /// <param name="name">名称</param>

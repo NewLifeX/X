@@ -298,12 +298,12 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>长文本长度</summary>
-        public override Int32 LongTextLength { get { return 4000; } }
+        public override Int32 LongTextLength => 4000;
 
         /// <summary>格式化时间为SQL字符串</summary>
         /// <param name="dateTime">时间值</param>
         /// <returns></returns>
-        public override String FormatDateTime(DateTime dateTime) { return "{ts'" + dateTime.ToFullString() + "'}"; }
+        public override String FormatDateTime(DateTime dateTime) => "{ts'" + dateTime.ToFullString() + "'}";
 
         /// <summary>格式化名称，如果是关键字，则格式化后返回，否则原样返回</summary>
         /// <param name="name">名称</param>

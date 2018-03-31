@@ -169,9 +169,9 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>长文本长度</summary>
-        public override Int32 LongTextLength { get { return 255; } }
+        public override Int32 LongTextLength => 4000;
 
-        internal protected override String ParamPrefix { get { return "?"; } }
+        internal protected override String ParamPrefix => "?";
 
         /// <summary>创建参数</summary>
         /// <param name="name">名称</param>

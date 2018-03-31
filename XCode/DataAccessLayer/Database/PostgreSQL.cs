@@ -156,12 +156,12 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>长文本长度</summary>
-        public override Int32 LongTextLength { get { return 4000; } }
+        public override Int32 LongTextLength => 4000;
 
-        internal protected override String ParamPrefix { get { return "$"; } }
+        internal protected override String ParamPrefix => "$";
 
         /// <summary>系统数据库名</summary>
-        public override String SystemDatabaseName { get { return "PostgreSQL"; } }
+        public override String SystemDatabaseName => "PostgreSQL";
 
         /// <summary>字符串相加</summary>
         /// <param name="left"></param>
