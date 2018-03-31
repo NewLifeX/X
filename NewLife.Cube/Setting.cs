@@ -47,6 +47,10 @@ namespace NewLife.Cube
         [Description("自动注册。第三方登录后，如果本地未登录，自动注册新用户")]
         public Boolean AutoRegister { get; set; } = true;
 
+        /// <summary>强行绑定用户。根据OAuth登录返回用户名强项绑定本地同名用户，而不需要增加提供者前缀</summary>
+        [Description("强行绑定用户。根据OAuth登录返回用户名强项绑定本地同名用户，而不需要增加提供者前缀")]
+        public Boolean ForceBindUser { get; set; }
+
         /// <summary>登录提示。留空表示不显示登录提示信息</summary>
         [Description("登录提示。留空表示不显示登录提示信息")]
         public String LoginTip { get; set; }

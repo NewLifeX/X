@@ -105,7 +105,7 @@ namespace NewLife.Cube.Web
             var req = context.GetService<HttpRequest>();
             if (req != null) forceBind = req["sso_action"].EqualIgnoreCase("bind");
 
-            // 检查绑定
+            // 检查绑定，新用户的uc.UserID为0
             var prv = Provider;
             var user = prv.FindByID(uc.UserID);
             if (forceBind || user == null || !uc.Enable) user = OnBind(uc, client);
@@ -191,7 +191,7 @@ namespace NewLife.Cube.Web
                 if (!name.IsNullOrEmpty())
                 {
                     user = prv.FindByName(name);
-                    if (user != null)
+                    if (user != null && !set.ForceBindUser)
                     {
                         name = client.Name + "_" + name;
                         user = prv.FindByName(name);
@@ -287,7 +287,7 @@ namespace NewLife.Cube.Web
                     roleid = user2.RoleID,
                     rolename = user2.RoleName,
                     roleids = user2.RoleIDs,
-                    rolenames = user2.Roles.Join(",", e => e + ""),
+                    rolenames = user2.Roles.Skip(1).Join(",", e => e + ""),
                     avatar = user2.Avatar,
                 };
             else
@@ -355,7 +355,8 @@ namespace NewLife.Cube.Web
                 }
             }
 
-            if (dic.TryGetValue("RoleID", out var rid)) return rid.ToInt();
+            // 判断角色有效
+            if (dic.TryGetValue("RoleID", out var rid) && Role.FindByID(rid.ToInt()) != null) return rid.ToInt();
 
             return 0;
         }
@@ -382,7 +383,8 @@ namespace NewLife.Cube.Web
                 if (rs.Count > 0) return rs.ToArray();
             }
 
-            if (dic.TryGetValue("RoleIDs", out var rids)) return rids.SplitAsInt();
+            // 判断角色有效
+            if (dic.TryGetValue("RoleIDs", out var rids)) return rids.SplitAsInt().Where(e => Role.FindByID(e) != null).ToArray();
 
             return new Int32[0];
         }
