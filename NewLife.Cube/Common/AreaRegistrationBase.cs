@@ -181,19 +181,19 @@ namespace NewLife.Cube
             // 注册本区域默认路由
 
             // Json输出，需要配置web.config
-            context.MapRoute(
-                AreaName + "_Data",
-                AreaName + "/{controller}.json/",
-                new { controller = "Index", action = "Index", id = UrlParameter.Optional, output = "json" },
-                new[] { ns }
-            );
+            //context.MapRoute(
+            //    AreaName + "_Data",
+            //    AreaName + "/{controller}.json/",
+            //    new { controller = "Index", action = "Index", id = UrlParameter.Optional, output = "json" },
+            //    new[] { ns }
+            //);
             // Json输出，不需要配置web.config
-            context.MapRoute(
-                AreaName + "_Json",
-                AreaName + "/{controller}Json/{action}/{id}",
-                new { controller = "Index", action = "Export", id = UrlParameter.Optional, output = "json" },
-                new[] { ns }
-            );
+            //context.MapRoute(
+            //    AreaName + "_Json",
+            //    AreaName + "/{controller}Json/{action}/{id}",
+            //    new { controller = "Index", action = "Export", id = UrlParameter.Optional, output = "json" },
+            //    new[] { ns }
+            //);
             // 本区域默认配置
             context.MapRoute(
                 AreaName,
