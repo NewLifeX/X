@@ -1,30 +1,14 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web;
-using System.Xml.Serialization;
-using NewLife;
-using NewLife.Data;
-using NewLife.Log;
-using NewLife.Model;
-using NewLife.Reflection;
 using NewLife.Serialization;
-using NewLife.Threading;
 using NewLife.Web;
 using XCode;
-using XCode.Cache;
-using XCode.Configuration;
-using XCode.DataAccessLayer;
 using XCode.Membership;
 
 namespace NewLife.Cube.Entity
 {
     /// <summary>用户链接。第三方绑定</summary>
+    [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
     public partial class UserConnect : Entity<UserConnect>
     {
         #region 对象操作

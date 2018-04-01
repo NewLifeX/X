@@ -45,23 +45,17 @@ namespace XCode.Configuration
         {
             get
             {
-                if (String.IsNullOrEmpty(_TableName))
+                if (_TableName.IsNullOrEmpty())
                 {
                     var table = _Table;
-                    var str = table != null ? table.Name : EntityType.Name;
-                    //var conn = ConnName;
+                    var name = table != null ? table.Name : EntityType.Name;
 
-                    //if (conn != null && DAL.ConnStrs.ContainsKey(conn))
-                    //{
-                    //    // 特殊处理Oracle数据库，在表名前加上方案名（用户名）
-                    //    var dal = DAL.Create(conn);
-                    //    if (dal != null && !str.Contains("."))
-                    //    {
-                    //        // 角色名作为点前缀来约束表名，支持所有数据库
-                    //        if (!dal.Db.Owner.IsNullOrEmpty()) str = dal.Db.Owner + "." + str;
-                    //    }
-                    //}
-                    _TableName = str;
+                    // 检查自动表前缀
+                    var dal = DAL.Create(ConnName);
+                    var pf = dal.Db.TablePrefix;
+                    if (!pf.IsNullOrEmpty() && !name.StartsWithIgnoreCase(pf)) name = pf + name;
+
+                    _TableName = name;
                 }
                 return _TableName;
             }
