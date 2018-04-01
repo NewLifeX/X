@@ -14,9 +14,8 @@ namespace XCode.Configuration
     public class TableItem
     {
         #region 特性
-        private Type _EntityType;
         /// <summary>实体类型</summary>
-        public Type EntityType { get { return _EntityType; } }
+        public Type EntityType { get; }
 
         /// <summary>绑定表特性</summary>
         private BindTableAttribute _Table;
@@ -45,21 +44,23 @@ namespace XCode.Configuration
         {
             get
             {
-                if (_TableName.IsNullOrEmpty())
-                {
-                    var table = _Table;
-                    var name = table != null ? table.Name : EntityType.Name;
+                if (_TableName.IsNullOrEmpty()) _TableName = GetTableName(_Table);
 
-                    // 检查自动表前缀
-                    var dal = DAL.Create(ConnName);
-                    var pf = dal.Db.TablePrefix;
-                    if (!pf.IsNullOrEmpty() && !name.StartsWithIgnoreCase(pf)) name = pf + name;
-
-                    _TableName = name;
-                }
                 return _TableName;
             }
             set { _TableName = value; DataTable.TableName = value; }
+        }
+
+        private String GetTableName(BindTableAttribute table)
+        {
+            var name = table != null ? table.Name : EntityType.Name;
+
+            // 检查自动表前缀
+            var dal = DAL.Create(ConnName);
+            var pf = dal.Db.TablePrefix;
+            if (!pf.IsNullOrEmpty() && !name.StartsWithIgnoreCase(pf)) name = pf + name;
+
+            return name;
         }
 
         private String _ConnName;
@@ -197,7 +198,7 @@ namespace XCode.Configuration
         #region 构造
         private TableItem(Type type)
         {
-            _EntityType = type;
+            EntityType = type;
             _Table = type.GetCustomAttribute<BindTableAttribute>(true);
             if (_Table == null) throw new ArgumentOutOfRangeException("type", "类型" + type + "没有" + typeof(BindTableAttribute).Name + "特性！");
 
@@ -227,7 +228,9 @@ namespace XCode.Configuration
             var bt = _Table;
             var table = DAL.CreateTable();
             DataTable = table;
-            table.TableName = bt.Name;
+            //table.TableName = bt.Name;
+            // 构建DataTable时也要注意表前缀，避免反向工程用错
+            table.TableName = GetTableName(bt);
             table.Name = EntityType.Name;
             table.DbType = bt.DbType;
             table.IsView = bt.IsView;
@@ -445,12 +448,10 @@ namespace XCode.Configuration
         {
             var f = new Field(this, name, type, description, length);
 
-            var list = new List<FieldItem>(Fields);
-            list.Add(f);
+            var list = new List<FieldItem>(Fields) { f };
             Fields = list.ToArray();
 
-            list = new List<FieldItem>(AllFields);
-            list.Add(f);
+            list = new List<FieldItem>(AllFields) { f };
             AllFields = list.ToArray();
 
             var dc = DataTable.CreateColumn();
