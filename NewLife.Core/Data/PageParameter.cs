@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Web.Script.Serialization;
+using System.Xml.Serialization;
 
 namespace NewLife.Data
 {
@@ -8,6 +10,7 @@ namespace NewLife.Data
         #region 核心属性
         private String _Sort;
         /// <summary>获取 或 设置 排序字段</summary>
+        [XmlIgnore, ScriptIgnore]
         public virtual String Sort
         {
             get { return _Sort; }
@@ -39,6 +42,7 @@ namespace NewLife.Data
         }
 
         /// <summary>获取 或 设置 是否降序</summary>
+        [XmlIgnore, ScriptIgnore]
         public virtual Boolean Desc { get; set; }
 
         private Int32 _PageIndex = 1;
@@ -81,9 +85,11 @@ namespace NewLife.Data
 
         /// <summary>获取 或 设置 开始行</summary>
         /// <remarks>如果设定了开始行，分页时将不再使用PageIndex</remarks>
+        [XmlIgnore, ScriptIgnore]
         public virtual Int64 StartRow { get; set; } = -1;
 
         /// <summary>获取 或 设置 是否获取总记录数</summary>
+        [XmlIgnore, ScriptIgnore]
         public Boolean RetrieveTotalCount { get; set; }
         #endregion
 

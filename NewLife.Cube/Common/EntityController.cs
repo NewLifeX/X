@@ -23,18 +23,21 @@ namespace NewLife.Cube
     {
         #region 属性
         /// <summary>实体工厂</summary>
-        public static IEntityOperate Factory { get { return Entity<TEntity>.Meta.Factory; } }
+        public static IEntityOperate Factory => Entity<TEntity>.Meta.Factory;
 
-        private String CacheKey { get { return "CubeView_{0}".F(typeof(TEntity).FullName); } }
+        private String CacheKey => $"CubeView_{typeof(TEntity).FullName}";
         #endregion
 
         #region 构造
-        /// <summary>构造函数</summary>
-        public EntityController()
+        static EntityController()
         {
             // 强行实例化一次，初始化实体对象
             var entity = new TEntity();
+        }
 
+        /// <summary>构造函数</summary>
+        public EntityController()
+        {
             var title = Entity<TEntity>.Meta.Table.DataTable.DisplayName + "管理";
             ViewBag.Title = title;
         }
@@ -165,6 +168,9 @@ namespace NewLife.Cube
 
             var list = Search(p);
 
+            // Json输出
+            if (IsJsonRequest) return JsonOK(new { data = list, pager = p });
+
             return View("List", list);
         }
 
@@ -177,6 +183,9 @@ namespace NewLife.Cube
         {
             var entity = Find(id);
             if (entity.IsNullKey) throw new XException("要查看的数据[{0}]不存在！", id);
+
+            // Json输出
+            if (IsJsonRequest) return JsonOK(new { data = entity, id });
 
             return FormView(entity);
         }
@@ -200,31 +209,6 @@ namespace NewLife.Cube
             else
                 return RedirectToAction("Index");
         }
-
-        ///// <summary>
-        ///// 
-        ///// </summary>
-        ///// <param name="id"></param>
-        ///// <returns></returns>
-        //[EntityAuthorize(PermissionFlags.Delete)]
-        //[DisplayName("删除{type}")]
-        //public virtual JsonResult DeleteAjax(Int32 id)
-        //{
-        //    var url = Request.UrlReferrer + "";
-
-        //    try
-        //    {
-        //        var entity = Find(id);
-        //        OnDelete(entity);
-
-        //        return Json(new { msg = "删除成功！", code = 0, url = url }, JsonRequestBehavior.AllowGet);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return Json(new { msg = "删除失败！" + ex.Message, url, code = -1 }, JsonRequestBehavior.AllowGet);
-
-        //    }
-        //}
 
         /// <summary>表单，添加/修改</summary>
         /// <returns></returns>
@@ -703,11 +687,35 @@ namespace NewLife.Cube
             // 只写实体类过滤掉添删改权限
             if (Factory.Table.DataTable.InsertOnly)
             {
-                var arr = new [] { PermissionFlags.Insert, PermissionFlags.Update, PermissionFlags.Delete }.Select(e => (Int32)e).ToArray();
+                var arr = new[] { PermissionFlags.Insert, PermissionFlags.Update, PermissionFlags.Delete }.Select(e => (Int32)e).ToArray();
                 dic = dic.Where(e => !arr.Contains(e.Value)).ToDictionary(e => e.Key, e => e.Value);
             }
 
             return dic;
+        }
+        #endregion
+
+        #region 辅助
+        /// <summary>是否Json请求</summary>
+        protected virtual Boolean IsJsonRequest
+        {
+            get
+            {
+                if (Request.ContentType.EqualIgnoreCase("application/json")) return true;
+                if (Request["output"].EqualIgnoreCase("json")) return true;
+
+                return false;
+            }
+        }
+
+        /// <summary>返回Json数据</summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        protected virtual ActionResult JsonOK(Object data)
+        {
+            var json = data.ToJson();
+
+            return Content(json, "application/json", Encoding.UTF8);
         }
         #endregion
     }

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Web;
+using System.Web.Script.Serialization;
+using System.Xml.Serialization;
 using NewLife.Data;
 
 namespace NewLife.Web
@@ -28,6 +30,7 @@ namespace NewLife.Web
         }
 
         /// <summary>名称类。用户可根据需要修改Url参数名</summary>
+        [XmlIgnore, ScriptIgnore]
         public __ _ = new __();
         #endregion
 
@@ -35,6 +38,7 @@ namespace NewLife.Web
 #if !__CORE__
         private IDictionary<String, String> _Params;
         /// <summary>参数集合</summary>
+        [XmlIgnore, ScriptIgnore]
         public IDictionary<String, String> Params { get { return _Params ?? (_Params = WebHelper.Params); } set { _Params = value; } }
 #else
         /// <summary>参数集合</summary>
@@ -42,11 +46,13 @@ namespace NewLife.Web
 #endif
 
         /// <summary>分页链接模版。内部将会替换{链接}和{名称}</summary>
+        [XmlIgnore, ScriptIgnore]
         public String PageUrlTemplate { get; set; } = "<a href=\"{链接}\">{名称}</a>";
 
         private static PageParameter _def = new PageParameter();
 
         /// <summary>默认参数。如果分页参数为默认参数，则不参与构造Url</summary>
+        [XmlIgnore, ScriptIgnore]
         public PageParameter Default { get; set; } = _def;
 
         /// <summary>获取/设置 参数</summary>

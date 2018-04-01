@@ -24,7 +24,7 @@ namespace NewLife.Cube
             if (data is Exception ex)
                 vr.Data = new { result = false, data = ex.GetTrue()?.Message, url };
             else
-                vr.Data = new { result = true, data = data, url };
+                vr.Data = new { result = true, data, url };
 
             return vr;
         }
@@ -32,10 +32,7 @@ namespace NewLife.Cube
         /// <summary>返回结果并刷新</summary>
         /// <param name="data">消息</param>
         /// <returns></returns>
-        public static ActionResult JsonRefresh(Object data)
-        {
-            return JsonTips(data, "[refresh]");
-        }
+        public static ActionResult JsonRefresh(Object data) => JsonTips(data, "[refresh]");
         #endregion
     }
 }
