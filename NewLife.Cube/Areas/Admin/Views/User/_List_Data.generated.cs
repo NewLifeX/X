@@ -340,16 +340,20 @@ WriteLiteral(">最后IP</a></th>\r\n            <th");
 
 WriteLiteral(" class=\"text-center\"");
 
-WriteLiteral(">日志</th>\r\n");
+WriteLiteral(">日志</th>\r\n            <th");
+
+WriteLiteral(" class=\"text-center\"");
+
+WriteLiteral(">令牌</th>\r\n");
 
             
-            #line 37 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
+            #line 38 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
             
             
             #line default
             #line hidden
             
-            #line 37 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
+            #line 38 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
              if (this.Has(PermissionFlags.Update, PermissionFlags.Delete))
             {
 
@@ -365,7 +369,7 @@ WriteLiteral(" style=\"min-width:100px;\"");
 WriteLiteral(">操作</th>\r\n");
 
             
-            #line 40 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
+            #line 41 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
             }
 
             
@@ -374,13 +378,13 @@ WriteLiteral(">操作</th>\r\n");
 WriteLiteral("        </tr>\r\n    </thead>\r\n    <tbody>\r\n");
 
             
-            #line 44 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
+            #line 45 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
         
             
             #line default
             #line hidden
             
-            #line 44 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
+            #line 45 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
          foreach (var entity in Model)
         {
 
@@ -390,13 +394,13 @@ WriteLiteral("        </tr>\r\n    </thead>\r\n    <tbody>\r\n");
 WriteLiteral("            <tr>\r\n");
 
             
-            #line 47 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
+            #line 48 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
                 
             
             #line default
             #line hidden
             
-            #line 47 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
+            #line 48 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
                  if (enableSelect)
                 {
 
@@ -413,20 +417,20 @@ WriteLiteral(" type=\"checkbox\"");
 
 WriteLiteral(" name=\"keys\"");
 
-WriteAttribute("value", Tuple.Create(" value=\"", 2476), Tuple.Create("\"", 2494)
+WriteAttribute("value", Tuple.Create(" value=\"", 2521), Tuple.Create("\"", 2539)
             
-            #line 49 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
-      , Tuple.Create(Tuple.Create("", 2484), Tuple.Create<System.Object, System.Int32>(entity.ID
+            #line 50 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
+      , Tuple.Create(Tuple.Create("", 2529), Tuple.Create<System.Object, System.Int32>(entity.ID
             
             #line default
             #line hidden
-, 2484), false)
+, 2529), false)
 );
 
 WriteLiteral(" /></td>\r\n");
 
             
-            #line 50 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
+            #line 51 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
                 }
 
             
@@ -439,7 +443,7 @@ WriteLiteral(" class=\"text-center hidden-md hidden-sm hidden-xs\"");
 WriteLiteral(">");
 
             
-            #line 51 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
+            #line 52 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
                                                                  Write(entity.ID);
 
             
@@ -448,7 +452,7 @@ WriteLiteral(">");
 WriteLiteral("</td>\r\n                <td>");
 
             
-            #line 52 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
+            #line 53 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
                Write(entity.Name);
 
             
@@ -457,7 +461,7 @@ WriteLiteral("</td>\r\n                <td>");
 WriteLiteral("</td>\r\n                <td>");
 
             
-            #line 53 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
+            #line 54 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
                Write(entity.DisplayName);
 
             
@@ -470,7 +474,7 @@ WriteLiteral(" class=\"text-center\"");
 WriteLiteral(">");
 
             
-            #line 54 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
+            #line 55 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
                                    Write(entity.Sex);
 
             
@@ -479,7 +483,7 @@ WriteLiteral(">");
 WriteLiteral("</td>\r\n                <td>");
 
             
-            #line 55 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
+            #line 56 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
                Write(entity.Mail);
 
             
@@ -488,7 +492,7 @@ WriteLiteral("</td>\r\n                <td>");
 WriteLiteral("</td>\r\n                <td>");
 
             
-            #line 56 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
+            #line 57 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
                Write(entity.Mobile);
 
             
@@ -496,21 +500,21 @@ WriteLiteral("</td>\r\n                <td>");
             #line hidden
 WriteLiteral("</td>\r\n                <td><a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 2856), Tuple.Create("\"", 2885)
-, Tuple.Create(Tuple.Create("", 2863), Tuple.Create("Role?ID=", 2863), true)
+WriteAttribute("href", Tuple.Create(" href=\"", 2901), Tuple.Create("\"", 2930)
+, Tuple.Create(Tuple.Create("", 2908), Tuple.Create("Role?ID=", 2908), true)
             
-            #line 57 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 2871), Tuple.Create<System.Object, System.Int32>(entity.RoleID
+            #line 58 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
+, Tuple.Create(Tuple.Create("", 2916), Tuple.Create<System.Object, System.Int32>(entity.RoleID
             
             #line default
             #line hidden
-, 2871), false)
+, 2916), false)
 );
 
 WriteLiteral(">");
 
             
-            #line 57 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
+            #line 58 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
                                                 Write(entity.RoleName);
 
             
@@ -522,28 +526,28 @@ WriteLiteral(" class=\"text-center\"");
 
 WriteLiteral(">\r\n                    <i");
 
-WriteAttribute("class", Tuple.Create(" class=\"", 2978), Tuple.Create("\"", 3040)
-, Tuple.Create(Tuple.Create("", 2986), Tuple.Create("glyphicon", 2986), true)
-, Tuple.Create(Tuple.Create(" ", 2995), Tuple.Create("glyphicon-", 2996), true)
+WriteAttribute("class", Tuple.Create(" class=\"", 3023), Tuple.Create("\"", 3085)
+, Tuple.Create(Tuple.Create("", 3031), Tuple.Create("glyphicon", 3031), true)
+, Tuple.Create(Tuple.Create(" ", 3040), Tuple.Create("glyphicon-", 3041), true)
             
-            #line 59 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 3006), Tuple.Create<System.Object, System.Int32>(entity.Online ? "ok" : "remove"
+            #line 60 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
+, Tuple.Create(Tuple.Create("", 3051), Tuple.Create<System.Object, System.Int32>(entity.Online ? "ok" : "remove"
             
             #line default
             #line hidden
-, 3006), false)
+, 3051), false)
 );
 
-WriteAttribute("style", Tuple.Create(" style=\"", 3041), Tuple.Create("\"", 3091)
-, Tuple.Create(Tuple.Create("", 3049), Tuple.Create("color:", 3049), true)
+WriteAttribute("style", Tuple.Create(" style=\"", 3086), Tuple.Create("\"", 3136)
+, Tuple.Create(Tuple.Create("", 3094), Tuple.Create("color:", 3094), true)
             
-            #line 59 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
-                    , Tuple.Create(Tuple.Create(" ", 3055), Tuple.Create<System.Object, System.Int32>(entity.Online ? "green" : "red"
+            #line 60 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
+                    , Tuple.Create(Tuple.Create(" ", 3100), Tuple.Create<System.Object, System.Int32>(entity.Online ? "green" : "red"
             
             #line default
             #line hidden
-, 3056), false)
-, Tuple.Create(Tuple.Create("", 3090), Tuple.Create(";", 3090), true)
+, 3101), false)
+, Tuple.Create(Tuple.Create("", 3135), Tuple.Create(";", 3135), true)
 );
 
 WriteLiteral("></i>\r\n                </td>\r\n                <td");
@@ -552,28 +556,28 @@ WriteLiteral(" class=\"text-center\"");
 
 WriteLiteral(">\r\n                    <i");
 
-WriteAttribute("class", Tuple.Create(" class=\"", 3186), Tuple.Create("\"", 3248)
-, Tuple.Create(Tuple.Create("", 3194), Tuple.Create("glyphicon", 3194), true)
-, Tuple.Create(Tuple.Create(" ", 3203), Tuple.Create("glyphicon-", 3204), true)
+WriteAttribute("class", Tuple.Create(" class=\"", 3231), Tuple.Create("\"", 3293)
+, Tuple.Create(Tuple.Create("", 3239), Tuple.Create("glyphicon", 3239), true)
+, Tuple.Create(Tuple.Create(" ", 3248), Tuple.Create("glyphicon-", 3249), true)
             
-            #line 62 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 3214), Tuple.Create<System.Object, System.Int32>(entity.Enable ? "ok" : "remove"
+            #line 63 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
+, Tuple.Create(Tuple.Create("", 3259), Tuple.Create<System.Object, System.Int32>(entity.Enable ? "ok" : "remove"
             
             #line default
             #line hidden
-, 3214), false)
+, 3259), false)
 );
 
-WriteAttribute("style", Tuple.Create(" style=\"", 3249), Tuple.Create("\"", 3299)
-, Tuple.Create(Tuple.Create("", 3257), Tuple.Create("color:", 3257), true)
+WriteAttribute("style", Tuple.Create(" style=\"", 3294), Tuple.Create("\"", 3344)
+, Tuple.Create(Tuple.Create("", 3302), Tuple.Create("color:", 3302), true)
             
-            #line 62 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
-                    , Tuple.Create(Tuple.Create(" ", 3263), Tuple.Create<System.Object, System.Int32>(entity.Enable ? "green" : "red"
+            #line 63 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
+                    , Tuple.Create(Tuple.Create(" ", 3308), Tuple.Create<System.Object, System.Int32>(entity.Enable ? "green" : "red"
             
             #line default
             #line hidden
-, 3264), false)
-, Tuple.Create(Tuple.Create("", 3298), Tuple.Create(";", 3298), true)
+, 3309), false)
+, Tuple.Create(Tuple.Create("", 3343), Tuple.Create(";", 3343), true)
 );
 
 WriteLiteral("></i>\r\n                </td>\r\n                <td");
@@ -583,7 +587,7 @@ WriteLiteral(" class=\"text-right\"");
 WriteLiteral(">");
 
             
-            #line 64 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
+            #line 65 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
                                   Write(entity.Logins.ToString("n0"));
 
             
@@ -592,7 +596,7 @@ WriteLiteral(">");
 WriteLiteral("</td>\r\n                <td>");
 
             
-            #line 65 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
+            #line 66 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
                Write(entity.LastLogin.ToFullString(""));
 
             
@@ -600,20 +604,20 @@ WriteLiteral("</td>\r\n                <td>");
             #line hidden
 WriteLiteral("</td>\r\n                <td");
 
-WriteAttribute("title", Tuple.Create(" title=\"", 3485), Tuple.Create("\"", 3517)
+WriteAttribute("title", Tuple.Create(" title=\"", 3530), Tuple.Create("\"", 3562)
             
-            #line 66 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 3493), Tuple.Create<System.Object, System.Int32>(entity.LastLoginAddress
+            #line 67 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
+, Tuple.Create(Tuple.Create("", 3538), Tuple.Create<System.Object, System.Int32>(entity.LastLoginAddress
             
             #line default
             #line hidden
-, 3493), false)
+, 3538), false)
 );
 
 WriteLiteral(">");
 
             
-            #line 66 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
+            #line 67 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
                                                 Write(entity.LastLoginIP);
 
             
@@ -622,8 +626,17 @@ WriteLiteral(">");
 WriteLiteral("</td>\r\n                <td>");
 
             
-            #line 67 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
+            #line 68 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
                Write(Html.ActionLink("日志", "Index", "Log", new { UserID = entity.ID }, null));
+
+            
+            #line default
+            #line hidden
+WriteLiteral("</td>\r\n                <td>");
+
+            
+            #line 69 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
+               Write(Html.ActionLink("令牌", "Index", "UserToken", new { UserID = entity.ID }, null));
 
             
             #line default
@@ -631,13 +644,13 @@ WriteLiteral("</td>\r\n                <td>");
 WriteLiteral("</td>\r\n");
 
             
-            #line 68 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
+            #line 70 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
                 
             
             #line default
             #line hidden
             
-            #line 68 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
+            #line 70 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
                  if (this.Has(PermissionFlags.Update, PermissionFlags.Delete))
                 {
 
@@ -653,7 +666,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                        ");
 
             
-            #line 71 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
+            #line 73 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
                    Write(Html.Partial("_List_Data_Action", (Object)entity));
 
             
@@ -662,7 +675,7 @@ WriteLiteral("                        ");
 WriteLiteral("\r\n                    </td>\r\n");
 
             
-            #line 73 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
+            #line 75 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
                 }
 
             
@@ -671,7 +684,7 @@ WriteLiteral("\r\n                    </td>\r\n");
 WriteLiteral("            </tr>\r\n");
 
             
-            #line 75 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
+            #line 77 "..\..\Areas\Admin\Views\User\_List_Data.cshtml"
         }
 
             
