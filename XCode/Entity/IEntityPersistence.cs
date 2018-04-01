@@ -100,7 +100,7 @@ namespace XCode
             var sql = SQL(entity, DataObjectMethodType.Insert, ref dps);
             if (String.IsNullOrEmpty(sql)) return 0;
 
-            Int32 rs = 0;
+            var rs = 0;
 
             //检查是否有标识列，标识列需要特殊处理
             var field = op.Table.Identity;
@@ -217,7 +217,7 @@ namespace XCode
                 fs.Add(fi.Name, fi);
             var sbn = new StringBuilder();
             var sbv = new StringBuilder();
-            for (Int32 i = 0; i < names.Length; i++)
+            for (var i = 0; i < names.Length; i++)
             {
                 if (!fs.ContainsKey(names[i])) throw new ArgumentException("类[" + factory.EntityType.FullName + "]中不存在[" + names[i] + "]属性");
                 // 同时构造SQL语句。names是属性列表，必须转换成对应的字段列表
@@ -290,7 +290,7 @@ namespace XCode
 
             var sb = new StringBuilder();
             var sbv = new StringBuilder();
-            for (Int32 i = 0; i < names.Length; i++)
+            for (var i = 0; i < names.Length; i++)
             {
                 if (!fs.ContainsKey(names[i])) throw new ArgumentException("类[" + factory.EntityType.FullName + "]中不存在[" + names[i] + "]属性");
 

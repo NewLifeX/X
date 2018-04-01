@@ -96,8 +96,8 @@ namespace XCode
         /// <returns></returns>
         public static EntitySession<TEntity> Create(String connName, String tableName)
         {
-            if (String.IsNullOrEmpty(connName)) throw new ArgumentNullException("connName");
-            if (String.IsNullOrEmpty(tableName)) throw new ArgumentNullException("tableName");
+            if (connName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(connName));
+            if (tableName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(tableName));
 
             // 字符串连接有较大性能损耗
             var key = connName + "###" + tableName;
@@ -578,11 +578,11 @@ namespace XCode
             //_Count = -1L;
         }
 
-        String CacheKey { get { return String.Format("{0}_{1}_{2}", ConnName, TableName, ThisType.Name); } }
+        String CacheKey => $"{ConnName}_{TableName}_{ThisType.Name}";
         #endregion
 
         #region 数据库操作
-        void InitData() { WaitForInitData(); }
+        void InitData() => WaitForInitData();
 
         /// <summary>执行SQL查询，返回记录集</summary>
         /// <param name="builder">SQL语句</param>
@@ -596,17 +596,6 @@ namespace XCode
             return Dal.Select(builder, startRowIndex, maximumRows);
         }
 
-        /// <summary>查询</summary>
-        /// <param name="sql">SQL语句</param>
-        /// <returns>结果记录集</returns>
-        [Obsolete("请优先考虑使用SelectBuilder参数做查询！")]
-        public virtual DataSet Query(String sql)
-        {
-            InitData();
-
-            return Dal.Select(sql);
-        }
-
         /// <summary>查询记录数</summary>
         /// <param name="builder">查询生成器</param>
         /// <returns>记录数</returns>
@@ -615,20 +604,6 @@ namespace XCode
             InitData();
 
             return Dal.SelectCount(builder);
-        }
-
-        /// <summary>根据条件把普通查询SQL格式化为分页SQL。</summary>
-        /// <remarks>
-        /// 因为需要继承重写的原因，在数据类中并不方便缓存分页SQL。
-        /// 所以在这里做缓存。
-        /// </remarks>
-        /// <param name="builder">查询生成器</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <returns>分页SQL</returns>
-        public virtual SelectBuilder PageSplit(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows)
-        {
-            return Dal.PageSplit(builder, startRowIndex, maximumRows);
         }
 
         /// <summary>执行</summary>
@@ -769,31 +744,14 @@ namespace XCode
         #endregion
 
         #region 参数化
-        ///// <summary>创建参数</summary>
-        ///// <param name="fi"></param>
-        ///// <param name="value"></param>
-        ///// <returns></returns>
-        //public virtual IDataParameter CreateParameter(FieldItem fi, Object value)
-        //{
-        //    var name = fi.ColumnName;
-        //    if (name.IsNullOrEmpty()) name = fi.Name;
-
-        //    var dp = Dal.Db.CreateParameter(name, value, fi.Type);
-
-        //    var dbp = dp as DbParameter;
-        //    if (dbp != null) dbp.IsNullable = fi.IsNullable;
-
-        //    return dp;
-        //}
-
         /// <summary>格式化参数名</summary>
         /// <param name="name">名称</param>
         /// <returns></returns>
-        public virtual String FormatParameterName(String name) { return Dal.Db.FormatParameterName(name); }
+        public virtual String FormatParameterName(String name) => Dal.Db.FormatParameterName(name);
         #endregion
 
         #region 实体操作
-        private IEntityPersistence Persistence { get { return XCodeService.Container.ResolveInstance<IEntityPersistence>(); } }
+        private IEntityPersistence Persistence => XCodeService.Container.ResolveInstance<IEntityPersistence>();
 
         /// <summary>把该对象持久化到数据库，添加/更新实体缓存和单对象缓存，增加总计数</summary>
         /// <param name="entity">实体对象</param>

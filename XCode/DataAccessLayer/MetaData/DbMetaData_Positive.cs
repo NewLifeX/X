@@ -377,7 +377,7 @@ namespace XCode.DataAccessLayer
             // 处理枚举
             if (type.IsEnum) type = typeof(Int32);
 
-            if (!Types.TryGetValue(type, out String[] ns)) return null;
+            if (!Types.TryGetValue(type, out var ns)) return null;
 
             var typeName = ns.FirstOrDefault();
             // 大文本选第二个类型
@@ -442,7 +442,7 @@ namespace XCode.DataAccessLayer
             foreach (var dr in rows)
             {
                 var tname = (dr["DataType"] + "").TrimStart("System.");
-                if (!dic.TryGetValue(tname, out List<String> list)) dic[tname] = list = new List<String>();
+                if (!dic.TryGetValue(tname, out var list)) dic[tname] = list = new List<String>();
                 var v = dr["CreateFormat"] + "";
                 if (v.IsNullOrEmpty()) v = dr["TypeName"] + "";
                 list.Add(v);

@@ -26,8 +26,8 @@ namespace XCode.Web
         {
             var ts = DateTime.Now - context.Timestamp;
 
-            Int32 StartQueryTimes = (Int32)context.Items["DAL.QueryTimes"];
-            Int32 StartExecuteTimes = (Int32)context.Items["DAL.ExecuteTimes"];
+            var StartQueryTimes = (Int32)context.Items["DAL.QueryTimes"];
+            var StartExecuteTimes = (Int32)context.Items["DAL.ExecuteTimes"];
 
             return String.Format(DbRunTimeFormat, DAL.QueryTimes - StartQueryTimes, DAL.ExecuteTimes - StartExecuteTimes, ts.TotalMilliseconds);
         }

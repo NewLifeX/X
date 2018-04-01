@@ -850,7 +850,7 @@ namespace XCode
         public static SelectBuilder FindSQL(String where, String order, String selects, Int32 startRowIndex = 0, Int32 maximumRows = 0)
         {
             var builder = CreateBuilder(where, order, selects, startRowIndex, maximumRows, false);
-            return Meta.Session.PageSplit(builder, startRowIndex, maximumRows);
+            return Meta.Session.Dal.PageSplit(builder, startRowIndex, maximumRows);
         }
 
         /// <summary>获取查询唯一键的SQL。比如Select ID From Table</summary>

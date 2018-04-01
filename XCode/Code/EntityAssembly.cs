@@ -136,7 +136,7 @@ namespace XCode.Code
                     else
                     {
                         var name = tb.Name;
-                        for (Int32 i = 2; i < Int32.MaxValue; i++)
+                        for (var i = 2; i < Int32.MaxValue; i++)
                         {
                             name = tb.Name + i;
                             if (!list.Contains(name))
