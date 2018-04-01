@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using XCode.Cache;
 using XCode.Configuration;
+using XCode.DataAccessLayer;
 
 namespace XCode
 {
@@ -49,13 +50,11 @@ namespace XCode
             /// <summary>链接名。线程内允许修改，修改者负责还原。若要还原默认值，设为null即可</summary>
             public static String ConnName
             {
-                get { return _ConnName ?? (_ConnName = Table.ConnName); }
+                get { if (_ConnName.IsNullOrEmpty()) _ConnName = Table.ConnName; return _ConnName; }
                 set
                 {
                     _Session = null;
                     _ConnName = value;
-
-                    if (_ConnName.IsNullOrEmpty()) _ConnName = Table.ConnName;
                 }
             }
 
@@ -64,13 +63,25 @@ namespace XCode
             /// <summary>表名。线程内允许修改，修改者负责还原</summary>
             public static String TableName
             {
-                get { return _TableName ?? (_TableName = Table.TableName); }
+                get
+                {
+                    if (_TableName == null)
+                    {
+                        var name = Table.TableName;
+
+                        // 检查自动表前缀
+                        var dal = DAL.Create(ConnName);
+                        var pf = dal.Db.TablePrefix;
+                        if (!pf.IsNullOrEmpty() && !name.StartsWithIgnoreCase(pf)) name = pf + name;
+
+                        _TableName = name;
+                    }
+                    return _TableName;
+                }
                 set
                 {
                     _Session = null;
                     _TableName = value;
-
-                    if (_TableName.IsNullOrEmpty()) _TableName = Table.TableName;
                 }
             }
 
@@ -170,7 +181,7 @@ namespace XCode
             /// <param name="tableName"></param>
             /// <param name="func"></param>
             /// <returns></returns>
-            public static Object ProcessWithSplit(String connName, String tableName, Func<Object> func)
+            public static T ProcessWithSplit<T>(String connName, String tableName, Func<T> func)
             {
                 using (var split = CreateSplit(connName, tableName))
                 {
