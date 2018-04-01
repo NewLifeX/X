@@ -347,6 +347,23 @@ namespace NewLife.Cube
         #endregion
 
         #region 高级Action
+        /// <summary>数据列表首页</summary>
+        /// <returns></returns>
+        [EntityAuthorize(PermissionFlags.Detail)]
+        [DisplayName("导出")]
+        public virtual ActionResult Export(Pager p = null)
+        {
+            if (p == null) p = new Pager();
+
+            // 需要总记录数来分页
+            p.RetrieveTotalCount = true;
+
+            var list = Search(p);
+
+            // Json输出
+            return JsonOK(new { data = list, pager = p });
+        }
+
         /// <summary>导出Xml</summary>
         /// <returns></returns>
         [EntityAuthorize(PermissionFlags.Detail)]
@@ -703,6 +720,7 @@ namespace NewLife.Cube
             {
                 if (Request.ContentType.EqualIgnoreCase("application/json")) return true;
                 if (Request["output"].EqualIgnoreCase("json")) return true;
+                if ((RouteData.Values["output"] + "").EqualIgnoreCase("json")) return true;
 
                 return false;
             }

@@ -84,6 +84,7 @@ namespace NewLife.Cube
 
             //var routes = RouteTable.Routes;
             //routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
+            //routes.MapMvcAttributeRoutes();
 
             //routes.MapRoute(
             //    name: "Virtual",
@@ -178,6 +179,22 @@ namespace NewLife.Cube
             XTrace.WriteLine("开始注册权限管理区域[{0}]，控制器命名空间[{1}]", AreaName, ns);
 
             // 注册本区域默认路由
+
+            // Json输出，需要配置web.config
+            context.MapRoute(
+                AreaName + "_Data",
+                AreaName + "/{controller}.json/",
+                new { controller = "Index", action = "Index", id = UrlParameter.Optional, output = "json" },
+                new[] { ns }
+            );
+            // Json输出，不需要配置web.config
+            context.MapRoute(
+                AreaName + "_Json",
+                AreaName + "/{controller}Json/{action}/{id}",
+                new { controller = "Index", action = "Export", id = UrlParameter.Optional, output = "json" },
+                new[] { ns }
+            );
+            // 本区域默认配置
             context.MapRoute(
                 AreaName,
                 AreaName + "/{controller}/{action}/{id}",
