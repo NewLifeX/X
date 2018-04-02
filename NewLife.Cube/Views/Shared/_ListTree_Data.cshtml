@@ -24,7 +24,7 @@
             }
             <th class="text-center">升</th>
             <th class="text-center">降</th>
-            @if (this.Has(PermissionFlags.Update, PermissionFlags.Delete))
+            @if (this.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
             {
                 <th class="text-center">操作</th>
             }
@@ -70,7 +70,7 @@
                         <a href="@Url.Action("Down", new { id })"><span class="glyphicon glyphicon-arrow-down" style="color: red;"></span></a>
                     }
                 </td>
-                @if (this.Has(PermissionFlags.Update, PermissionFlags.Delete))
+                @if (this.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
                 {
                     <td class="text-center">
                         @Html.Partial("_List_Data_Action", (Object)entity)

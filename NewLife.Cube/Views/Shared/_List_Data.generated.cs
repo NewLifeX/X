@@ -232,7 +232,7 @@ WriteLiteral("            ");
 
             
             #line 34 "..\..\Views\Shared\_List_Data.cshtml"
-             if (this.Has(PermissionFlags.Update, PermissionFlags.Delete))
+             if (this.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
             {
 
             
@@ -343,7 +343,7 @@ WriteLiteral("                ");
 
             
             #line 52 "..\..\Views\Shared\_List_Data.cshtml"
-                 if (this.Has(PermissionFlags.Update, PermissionFlags.Delete))
+                 if (this.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
                 {
 
             

@@ -291,7 +291,7 @@ WriteLiteral(">修改时间</a></th>\n");
             #line hidden
             
             #line 32 "..\..\Areas\Admin\Views\UserOnline\_List_Data.cshtml"
-             if (this.Has(PermissionFlags.Update, PermissionFlags.Delete))
+             if (this.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
             {
 
             
@@ -489,7 +489,7 @@ WriteLiteral("</td>\n");
             #line hidden
             
             #line 55 "..\..\Areas\Admin\Views\UserOnline\_List_Data.cshtml"
-                 if (this.Has(PermissionFlags.Update, PermissionFlags.Delete))
+                 if (this.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
                 {
 
             

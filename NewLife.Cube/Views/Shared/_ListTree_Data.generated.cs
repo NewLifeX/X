@@ -201,7 +201,7 @@ WriteLiteral(">降</th>\r\n");
             #line hidden
             
             #line 27 "..\..\Views\Shared\_ListTree_Data.cshtml"
-             if (this.Has(PermissionFlags.Update, PermissionFlags.Delete))
+             if (this.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
             {
 
             
@@ -439,7 +439,7 @@ WriteLiteral("                </td>\r\n");
             #line hidden
             
             #line 73 "..\..\Views\Shared\_ListTree_Data.cshtml"
-                 if (this.Has(PermissionFlags.Update, PermissionFlags.Delete))
+                 if (this.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
                 {
 
             

@@ -8,7 +8,7 @@
     <i class="glyphicon glyphicon-edit" style="color: blue;"></i>
     <a href="@Url.Action("Edit", rv)" class="editcell">编辑</a>
 }
-else
+else if (this.Has(PermissionFlags.Detail))
 {
     <i class="glyphicon glyphicon-edit" style="color: blue;"></i>
     <a href="@Url.Action("Detail", rv)" class="editcell">查看</a>

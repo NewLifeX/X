@@ -89,7 +89,7 @@ WriteLiteral(">编辑</a>\r\n");
             
             #line 10 "..\..\Views\Shared\_List_Data_Action.cshtml"
 }
-else
+else if (this.Has(PermissionFlags.Detail))
 {
 
             
@@ -105,14 +105,14 @@ WriteLiteral("></i>\r\n");
 
 WriteLiteral("    <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 339), Tuple.Create("\"", 371)
+WriteAttribute("href", Tuple.Create(" href=\"", 377), Tuple.Create("\"", 409)
             
             #line 14 "..\..\Views\Shared\_List_Data_Action.cshtml"
-, Tuple.Create(Tuple.Create("", 346), Tuple.Create<System.Object, System.Int32>(Url.Action("Detail", rv)
+, Tuple.Create(Tuple.Create("", 384), Tuple.Create<System.Object, System.Int32>(Url.Action("Detail", rv)
             
             #line default
             #line hidden
-, 346), false)
+, 384), false)
 );
 
 WriteLiteral(" class=\"editcell\"");
@@ -148,14 +148,14 @@ WriteLiteral("></i>\r\n");
 
 WriteLiteral("        <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 821), Tuple.Create("\"", 853)
+WriteAttribute("href", Tuple.Create(" href=\"", 859), Tuple.Create("\"", 891)
             
             #line 23 "..\..\Views\Shared\_List_Data_Action.cshtml"
-, Tuple.Create(Tuple.Create("", 828), Tuple.Create<System.Object, System.Int32>(Url.Action("Delete", rv)
+, Tuple.Create(Tuple.Create("", 866), Tuple.Create<System.Object, System.Int32>(Url.Action("Delete", rv)
             
             #line default
             #line hidden
-, 828), false)
+, 866), false)
 );
 
 WriteLiteral(" data-action=\"action\"");
@@ -183,14 +183,14 @@ WriteLiteral("></i>\r\n");
 
 WriteLiteral("        <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1011), Tuple.Create("\"", 1043)
+WriteAttribute("href", Tuple.Create(" href=\"", 1049), Tuple.Create("\"", 1081)
             
             #line 28 "..\..\Views\Shared\_List_Data_Action.cshtml"
-, Tuple.Create(Tuple.Create("", 1018), Tuple.Create<System.Object, System.Int32>(Url.Action("Delete", rv)
+, Tuple.Create(Tuple.Create("", 1056), Tuple.Create<System.Object, System.Int32>(Url.Action("Delete", rv)
             
             #line default
             #line hidden
-, 1018), false)
+, 1056), false)
 );
 
 WriteLiteral(" data-action=\"action\"");

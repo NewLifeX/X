@@ -28,7 +28,7 @@
             <th class="text-center"><a href="@Html.Raw(page.GetSortUrl("UpdateUserID"))">更新用户</a></th>
             <th class="text-center"><a href="@Html.Raw(page.GetSortUrl("UpdateIP"))">更新地址</a></th>
             <th class="text-center" style="min-width:134px;"><a href="@Html.Raw(page.GetSortUrl("UpdateTime"))">更新时间</a></th>
-            @if (this.Has(PermissionFlags.Update, PermissionFlags.Delete))
+            @if (this.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
             {
                 <th class="text-center" style="min-width:100px;">操作</th>
             }
@@ -51,7 +51,7 @@
                 <td class="text-right">@provider.FindByID(entity.UpdateUserID)</td>
                 <td title="@entity.UpdateIP.IPToAddress()">@entity.UpdateIP</td>
                 <td>@entity.UpdateTime.ToFullString("")</td>
-                @if (this.Has(PermissionFlags.Update, PermissionFlags.Delete))
+                @if (this.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
                 {
                     <td class="text-center">
                         @Html.Partial("_List_Data_Action", (Object)entity)

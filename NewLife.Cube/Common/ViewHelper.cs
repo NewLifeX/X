@@ -109,7 +109,7 @@ namespace NewLife.Cube
                     <th class=""text-center""><a href=""@Html.Raw(sortUrl)"">@item.DisplayName</a></th>
                 }
             }
-            @if (this.Has(PermissionFlags.Update, PermissionFlags.Delete))
+            @if (this.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
             {
                 <th class=""text-center"" style=""min-width:100px;"">操作</th>
             }
@@ -127,7 +127,7 @@ namespace NewLife.Cube
                 {
                     @Html.Partial(""_List_Data_Item"", new Pair(entity, item))
                 }
-                @if (this.Has(PermissionFlags.Update, PermissionFlags.Delete))
+                @if (this.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
                 {
                     <td class=""text-center"">
                         @Html.Partial(""_List_Data_Action"", (Object)entity)

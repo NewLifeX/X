@@ -282,7 +282,7 @@ WriteLiteral(">权限子项</a></th>\n");
             #line hidden
             
             #line 33 "..\..\Areas\Admin\Views\Menu\_ListTree_Data.cshtml"
-             if (this.Has(PermissionFlags.Update, PermissionFlags.Delete))
+             if (this.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
             {
 
             
@@ -516,7 +516,7 @@ WriteLiteral("</td>\n");
             #line hidden
             
             #line 68 "..\..\Areas\Admin\Views\Menu\_ListTree_Data.cshtml"
-                 if (this.Has(PermissionFlags.Update, PermissionFlags.Delete))
+                 if (this.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
                 {
 
             
