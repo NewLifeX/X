@@ -1,6 +1,4 @@
 ﻿@{
-    var fact = ViewBag.Factory as IEntityOperate;
-    var fi = fact.Fields.FirstOrDefault(e => e.Name.EqualIgnoreCase("Deleted", "IsDelete", "IsDeleted"));
     var entity = Model as IEntity;
 
     var rv = entity.GetRouteKey();
@@ -17,6 +15,8 @@ else
 }
 @if (this.Has(PermissionFlags.Delete))
 {
+    var fact = ViewBag.Factory as IEntityOperate;
+    var fi = (fact == null || fact.Fields == null) ? null : fact.Fields.FirstOrDefault(e => e.Name.EqualIgnoreCase("Deleted", "IsDelete", "IsDeleted"));
     if (fi != null && fi.Type == typeof(Boolean) && (Boolean)entity[fi.Name])
     {
         <i class="glyphicon glyphicon-transfer" style="color: green;"></i>

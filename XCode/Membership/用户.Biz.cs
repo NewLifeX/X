@@ -184,12 +184,14 @@ namespace XCode.Membership
         }
 
         /// <summary>友好名字</summary>
-        public virtual String FriendName { get { return String.IsNullOrEmpty(DisplayName) ? Name : DisplayName; } }
+        [XmlIgnore, ScriptIgnore]
+        public virtual String FriendName => String.IsNullOrEmpty(DisplayName) ? Name : DisplayName;
 
         /// <summary>物理地址</summary>
         [DisplayName("物理地址")]
         //[BindRelation(__.LastLoginIP)]
-        public String LastLoginAddress { get { return LastLoginIP.IPToAddress(); } }
+        [XmlIgnore, ScriptIgnore]
+        public String LastLoginAddress => LastLoginIP.IPToAddress();
         #endregion
 
         #region 扩展查询
@@ -584,6 +586,7 @@ namespace XCode.Membership
         /// <summary>角色名</summary>
         [DisplayName("角色")]
         [Map(__.RoleID, typeof(RoleMapProvider))]
+        [XmlIgnore, ScriptIgnore]
         public virtual String RoleName => Role + "";
 
         /// <summary>用户是否拥有当前菜单的指定权限</summary>

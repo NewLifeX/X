@@ -166,12 +166,26 @@ namespace NewLife.Cube
             // 需要总记录数来分页
             p.RetrieveTotalCount = true;
 
-            var list = Search(p);
-
             // Json输出
-            if (IsJsonRequest) return JsonOK(new { data = list, pager = p });
+            if (IsJsonRequest)
+            {
+                try
+                {
+                    var list = Search(p);
 
-            return View("List", list);
+                    return JsonOK(list, new { pager = p });
+                }
+                catch (Exception ex)
+                {
+                    return JsonError(ex, new { pager = p });
+                }
+            }
+            else
+            {
+                var list = Search(p);
+
+                return View("List", list);
+            }
         }
 
         /// <summary>表单，查看</summary>
@@ -185,7 +199,7 @@ namespace NewLife.Cube
             if (entity.IsNullKey) throw new XException("要查看的数据[{0}]不存在！", id);
 
             // Json输出
-            if (IsJsonRequest) return JsonOK(new { data = entity, id });
+            if (IsJsonRequest) return JsonOK(entity, new { id });
 
             return FormView(entity);
         }
@@ -361,7 +375,7 @@ namespace NewLife.Cube
             var list = Search(p);
 
             // Json输出
-            return JsonOK(new { data = list, pager = p });
+            return JsonOK(list, new { pager = p });
         }
 
         /// <summary>导出Xml</summary>
@@ -727,11 +741,41 @@ namespace NewLife.Cube
         }
 
         /// <summary>返回Json数据</summary>
-        /// <param name="data"></param>
+        /// <param name="data">数据对象，作为data成员返回</param>
+        /// <param name="extend">与data并行的其它顶级成员</param>
         /// <returns></returns>
-        protected virtual ActionResult JsonOK(Object data)
+        protected virtual ActionResult JsonOK(Object data, Object extend = null)
         {
-            var json = data.ToJson();
+            var dic = new Dictionary<String, Object>
+            {
+                ["result"] = true,
+                ["data"] = data
+            };
+
+            if (extend != null) dic.Merge(extend);
+
+            var json = dic.ToJson();
+
+            return Content(json, "application/json", Encoding.UTF8);
+        }
+
+        /// <summary>返回Json错误</summary>
+        /// <param name="data">数据对象或异常对象，作为data成员返回</param>
+        /// <param name="extend">与data并行的其它顶级成员</param>
+        /// <returns></returns>
+        protected virtual ActionResult JsonError(Object data, Object extend = null)
+        {
+            if (data is Exception ex) data = ex.GetTrue().Message;
+
+            var dic = new Dictionary<String, Object>
+            {
+                ["result"] = false,
+                ["data"] = data
+            };
+
+            if (extend != null) dic.Merge(extend);
+
+            var json = dic.ToJson();
 
             return Content(json, "application/json", Encoding.UTF8);
         }
