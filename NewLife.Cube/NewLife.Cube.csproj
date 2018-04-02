@@ -211,6 +211,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>_List_Data.cshtml</DependentUpon>
     </Compile>
+    <Compile Include="Areas\Admin\Views\UserToken\_List_Data.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>_List_Data.cshtml</DependentUpon>
+    </Compile>
     <Compile Include="Areas\Admin\Views\User\Login.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -511,6 +516,10 @@
       <LastGenOutput>_Object_Nav.generated.cs</LastGenOutput>
     </Content>
     <None Include="Areas\Admin\Views\UserOnline\_List_Data.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>_List_Data.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Areas\Admin\Views\UserToken\_List_Data.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_List_Data.generated.cs</LastGenOutput>
     </None>

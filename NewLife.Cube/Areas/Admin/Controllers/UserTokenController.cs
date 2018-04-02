@@ -17,6 +17,8 @@ namespace NewLife.Cube.Admin.Controllers
         static UserTokenController()
         {
             MenuOrder = 40;
+
+            FormFields.RemoveField("UserID");
         }
 
         /// <summary>搜索数据集</summary>
@@ -24,16 +26,76 @@ namespace NewLife.Cube.Admin.Controllers
         /// <returns></returns>
         protected override IEnumerable<UserToken> Search(Pager p)
         {
-            var id = p["id"].ToInt(-1);
-            if (id > 0)
+            //var id = p["id"].ToInt(-1);
+            //if (id > 0)
+            //{
+            //    var list = new List<UserToken>();
+            //    var entity = UserToken.FindByID(id);
+            //    if (entity != null) list.Add(entity);
+            //    return list;
+            //}
+
+            var token = p["Q"];
+            var userid = p["UserID"].ToInt(-1);
+
+            // 强制当前用户
+            if (userid < 0)
             {
-                var list = new List<UserToken>();
-                var entity = UserToken.FindByID(id);
-                if (entity != null) list.Add(entity);
-                return list;
+                var user = ManageProvider.Provider?.Current;
+                userid = user.ID;
             }
 
-            return UserToken.Search(p["Q"], p["RoleID"].ToInt(-1), null, p["dtStart"].ToDateTime(), p["dtEnd"].ToDateTime(), p);
+            return UserToken.Search(token, userid, null, p["dtStart"].ToDateTime(), p["dtEnd"].ToDateTime(), p);
+        }
+
+        /// <summary>新增时</summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        protected override Int32 OnInsert(UserToken entity)
+        {
+            // 强制当前用户
+            if (entity.UserID <= 0)
+            {
+                var user = ManageProvider.Provider?.Current;
+                entity.UserID = user.ID;
+            }
+
+            return base.OnInsert(entity);
+        }
+
+        /// <summary>更新时</summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        protected override Int32 OnUpdate(UserToken entity)
+        {
+            var user = ManageProvider.Provider?.Current;
+            if (entity.UserID != user.ID) throw new InvalidOperationException("越权访问数据！");
+
+            return base.OnUpdate(entity);
+        }
+
+        /// <summary>删除时</summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        protected override Int32 OnDelete(UserToken entity)
+        {
+            var user = ManageProvider.Provider?.Current;
+            if (entity.UserID != user.ID) throw new InvalidOperationException("越权访问数据！");
+
+            return base.OnDelete(entity);
+        }
+
+        /// <summary>查找</summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        protected override UserToken Find(Object key)
+        {
+            var entity = base.Find(key);
+
+            var user = ManageProvider.Provider?.Current;
+            if (entity.UserID != user.ID) throw new InvalidOperationException("越权访问数据！");
+
+            return entity;
         }
 
         /// <summary>菜单不可见</summary>

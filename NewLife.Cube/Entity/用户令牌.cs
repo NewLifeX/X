@@ -37,7 +37,7 @@ namespace NewLife.Cube.Entity
         /// <summary>地址。锁定该令牌只能访问该资源路径</summary>
         [DisplayName("地址")]
         [Description("地址。锁定该令牌只能访问该资源路径")]
-        [DataObjectField(false, false, true, 50)]
+        [DataObjectField(false, false, true, 200)]
         [BindColumn("Url", "地址。锁定该令牌只能访问该资源路径", "")]
         public String Url { get { return _Url; } set { if (OnPropertyChanging(__.Url, value)) { _Url = value; OnPropertyChanged(__.Url); } } }
 
@@ -57,6 +57,14 @@ namespace NewLife.Cube.Entity
         [BindColumn("Expire", "过期时间", "")]
         public DateTime Expire { get { return _Expire; } set { if (OnPropertyChanging(__.Expire, value)) { _Expire = value; OnPropertyChanged(__.Expire); } } }
 
+        private Boolean _Enable;
+        /// <summary>启用</summary>
+        [DisplayName("启用")]
+        [Description("启用")]
+        [DataObjectField(false, false, false, 0)]
+        [BindColumn("Enable", "启用", "")]
+        public Boolean Enable { get { return _Enable; } set { if (OnPropertyChanging(__.Enable, value)) { _Enable = value; OnPropertyChanged(__.Enable); } } }
+
         private Int32 _Times;
         /// <summary>次数。该令牌使用次数</summary>
         [DisplayName("次数")]
@@ -65,13 +73,21 @@ namespace NewLife.Cube.Entity
         [BindColumn("Times", "次数。该令牌使用次数", "")]
         public Int32 Times { get { return _Times; } set { if (OnPropertyChanging(__.Times, value)) { _Times = value; OnPropertyChanged(__.Times); } } }
 
-        private Boolean _Enable;
-        /// <summary>启用</summary>
-        [DisplayName("启用")]
-        [Description("启用")]
-        [DataObjectField(false, false, false, 0)]
-        [BindColumn("Enable", "启用", "")]
-        public Boolean Enable { get { return _Enable; } set { if (OnPropertyChanging(__.Enable, value)) { _Enable = value; OnPropertyChanged(__.Enable); } } }
+        private String _LastIP;
+        /// <summary>最后地址</summary>
+        [DisplayName("最后地址")]
+        [Description("最后地址")]
+        [DataObjectField(false, false, true, 50)]
+        [BindColumn("LastIP", "最后地址", "")]
+        public String LastIP { get { return _LastIP; } set { if (OnPropertyChanging(__.LastIP, value)) { _LastIP = value; OnPropertyChanged(__.LastIP); } } }
+
+        private DateTime _LastTime;
+        /// <summary>最后时间</summary>
+        [DisplayName("最后时间")]
+        [Description("最后时间")]
+        [DataObjectField(false, false, true, 0)]
+        [BindColumn("LastTime", "最后时间", "")]
+        public DateTime LastTime { get { return _LastTime; } set { if (OnPropertyChanging(__.LastTime, value)) { _LastTime = value; OnPropertyChanged(__.LastTime); } } }
 
         private Int32 _CreateUserID;
         /// <summary>创建用户</summary>
@@ -145,8 +161,10 @@ namespace NewLife.Cube.Entity
                     case __.Url : return _Url;
                     case __.UserID : return _UserID;
                     case __.Expire : return _Expire;
-                    case __.Times : return _Times;
                     case __.Enable : return _Enable;
+                    case __.Times : return _Times;
+                    case __.LastIP : return _LastIP;
+                    case __.LastTime : return _LastTime;
                     case __.CreateUserID : return _CreateUserID;
                     case __.CreateIP : return _CreateIP;
                     case __.CreateTime : return _CreateTime;
@@ -166,8 +184,10 @@ namespace NewLife.Cube.Entity
                     case __.Url : _Url = Convert.ToString(value); break;
                     case __.UserID : _UserID = Convert.ToInt32(value); break;
                     case __.Expire : _Expire = Convert.ToDateTime(value); break;
-                    case __.Times : _Times = Convert.ToInt32(value); break;
                     case __.Enable : _Enable = Convert.ToBoolean(value); break;
+                    case __.Times : _Times = Convert.ToInt32(value); break;
+                    case __.LastIP : _LastIP = Convert.ToString(value); break;
+                    case __.LastTime : _LastTime = Convert.ToDateTime(value); break;
                     case __.CreateUserID : _CreateUserID = Convert.ToInt32(value); break;
                     case __.CreateIP : _CreateIP = Convert.ToString(value); break;
                     case __.CreateTime : _CreateTime = Convert.ToDateTime(value); break;
@@ -200,11 +220,17 @@ namespace NewLife.Cube.Entity
             /// <summary>过期时间</summary>
             public static readonly Field Expire = FindByName(__.Expire);
 
+            /// <summary>启用</summary>
+            public static readonly Field Enable = FindByName(__.Enable);
+
             /// <summary>次数。该令牌使用次数</summary>
             public static readonly Field Times = FindByName(__.Times);
 
-            /// <summary>启用</summary>
-            public static readonly Field Enable = FindByName(__.Enable);
+            /// <summary>最后地址</summary>
+            public static readonly Field LastIP = FindByName(__.LastIP);
+
+            /// <summary>最后时间</summary>
+            public static readonly Field LastTime = FindByName(__.LastTime);
 
             /// <summary>创建用户</summary>
             public static readonly Field CreateUserID = FindByName(__.CreateUserID);
@@ -248,11 +274,17 @@ namespace NewLife.Cube.Entity
             /// <summary>过期时间</summary>
             public const String Expire = "Expire";
 
+            /// <summary>启用</summary>
+            public const String Enable = "Enable";
+
             /// <summary>次数。该令牌使用次数</summary>
             public const String Times = "Times";
 
-            /// <summary>启用</summary>
-            public const String Enable = "Enable";
+            /// <summary>最后地址</summary>
+            public const String LastIP = "LastIP";
+
+            /// <summary>最后时间</summary>
+            public const String LastTime = "LastTime";
 
             /// <summary>创建用户</summary>
             public const String CreateUserID = "CreateUserID";
@@ -297,11 +329,17 @@ namespace NewLife.Cube.Entity
         /// <summary>过期时间</summary>
         DateTime Expire { get; set; }
 
+        /// <summary>启用</summary>
+        Boolean Enable { get; set; }
+
         /// <summary>次数。该令牌使用次数</summary>
         Int32 Times { get; set; }
 
-        /// <summary>启用</summary>
-        Boolean Enable { get; set; }
+        /// <summary>最后地址</summary>
+        String LastIP { get; set; }
+
+        /// <summary>最后时间</summary>
+        DateTime LastTime { get; set; }
 
         /// <summary>创建用户</summary>
         Int32 CreateUserID { get; set; }

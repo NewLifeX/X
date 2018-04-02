@@ -234,6 +234,14 @@ namespace NewLife.Cube
         {
             var entity = Factory.Create() as TEntity;
 
+            // 填充QueryString参数
+            var qs = Request.QueryString;
+            foreach (var item in Entity<TEntity>.Meta.Fields)
+            {
+                var v = qs[item.Name];
+                if (!v.IsNullOrEmpty()) entity[item.Name] = v;
+            }
+
             // 记下添加前的来源页，待会添加成功以后跳转
             Session["Cube_Add_Referrer"] = Request.UrlReferrer.ToString();
 

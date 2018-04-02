@@ -1,29 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web;
-using System.Xml.Serialization;
-using NewLife;
-using NewLife.Data;
-using NewLife.Log;
-using NewLife.Model;
-using NewLife.Reflection;
-using NewLife.Threading;
 using NewLife.Web;
 using XCode;
-using XCode.Cache;
-using XCode.Configuration;
-using XCode.DataAccessLayer;
 using XCode.Membership;
 
 namespace NewLife.Cube.Entity
 {
     /// <summary>用户令牌。授权其他人直接拥有指定用户的身份，支持有效期，支持数据接口</summary>
+    [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
     public partial class UserToken : Entity<UserToken>
     {
         #region 对象操作
@@ -161,7 +145,7 @@ namespace NewLife.Cube.Entity
         public static IList<UserToken> Search(String token, Int32 userid, Boolean? isEnable, DateTime start, DateTime end, Pager p)
         {
             var exp = _.Expire.Between(start, end);
-            if (userid > 0) exp &= _.UserID == userid;
+            if (userid >= 0) exp &= _.UserID == userid;
             if (isEnable != null) exp &= _.Enable == isEnable;
             if (!token.IsNullOrEmpty()) exp &= _.Token == token;
 

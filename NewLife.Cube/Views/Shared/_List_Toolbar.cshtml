@@ -15,7 +15,8 @@
         <form action="@Html.Raw(page.GetFormAction(act))" method="post" role="form">
             @if (this.Has(PermissionFlags.Insert))
             {
-                @Html.ActionLink("添加" + ViewContext.Controller.GetType().GetDisplayName(), "Add", null, new { @class = "btn btn-success btn-sm" })
+                var rv = page.GetRouteValue();
+                @Html.ActionLink("添加" + ViewContext.Controller.GetType().GetDisplayName(), "Add", rv, new { @class = "btn btn-success btn-sm" }.ToDictionary())
             }
             @if (enableSelect)
             {
