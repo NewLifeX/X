@@ -194,6 +194,25 @@ namespace NewLife.Cube
             //    new { controller = "Index", action = "Export", id = UrlParameter.Optional, output = "json" },
             //    new[] { ns }
             //);
+            //context.MapRoute(
+            //    AreaName + "_Detail",
+            //    AreaName + "/{controller}/{id}",
+            //    new { controller = "Index", action = "Detail" },
+            //    new[] { ns }
+            //);
+            //context.MapRoute(
+            //    AreaName + "_Detail_Json",
+            //    AreaName + "/{controller}/{id}/Json",
+            //    new { controller = "Index", action = "Detail", output = "json" },
+            //    new { id = @"\d+" },
+            //    new[] { ns }
+            //);
+            //context.MapRoute(
+            //    AreaName + "_Json",
+            //    AreaName + "/{controller}/Json",
+            //    new { controller = "Index", action = "Index", output = "json" },
+            //    new[] { ns }
+            //);
             // 本区域默认配置
             context.MapRoute(
                 AreaName,

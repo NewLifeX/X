@@ -83,6 +83,22 @@ namespace NewLife.Cube
             var title = ViewBag.Title + "";
             HttpContext.Items["Title"] = title;
         }
+
+        /// <summary>触发异常时</summary>
+        /// <param name="filterContext"></param>
+        protected override void OnException(ExceptionContext filterContext)
+        {
+            // Json输出
+            if (!filterContext.ExceptionHandled && IsJsonRequest)
+            {
+                var ex = filterContext.Exception;
+
+                filterContext.Result = JsonError(ex);
+                filterContext.ExceptionHandled = true;
+            }
+
+            base.OnException(filterContext);
+        }
         #endregion
 
         #region 数据获取
@@ -166,26 +182,12 @@ namespace NewLife.Cube
             // 需要总记录数来分页
             p.RetrieveTotalCount = true;
 
+            var list = Search(p);
+
             // Json输出
-            if (IsJsonRequest)
-            {
-                try
-                {
-                    var list = Search(p);
+            if (IsJsonRequest) return JsonOK(list, new { pager = p });
 
-                    return JsonOK(list, new { pager = p });
-                }
-                catch (Exception ex)
-                {
-                    return JsonError(ex, new { pager = p });
-                }
-            }
-            else
-            {
-                var list = Search(p);
-
-                return View("List", list);
-            }
+            return View("List", list);
         }
 
         /// <summary>表单，查看</summary>
@@ -297,6 +299,9 @@ namespace NewLife.Cube
         {
             var entity = Find(id);
             if (entity.IsNullKey) throw new XException("要编辑的数据[{0}]不存在！", id);
+
+            // Json输出
+            if (IsJsonRequest) return JsonOK(entity, new { id });
 
             return FormView(entity);
         }
