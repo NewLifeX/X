@@ -116,6 +116,7 @@
     <Compile Include="Http\TinyHttpClient.cs" />
     <Compile Include="IO\EncodingHelper.cs" />
     <Compile Include="IO\PathHelper.cs" />
+    <Compile Include="Json\JsonConfigFileAttribute.cs" />
     <Compile Include="Log\ActionLog.cs" />
     <Compile Include="Log\CompositeLog.cs" />
     <Compile Include="Log\ConsoleLog.cs" />
