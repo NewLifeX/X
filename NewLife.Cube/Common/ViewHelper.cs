@@ -6,6 +6,7 @@ using System.Text;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
+using NewLife.Web;
 using XCode;
 using XCode.Configuration;
 using XCode.Membership;
@@ -72,6 +73,20 @@ namespace NewLife.Cube
 
             return rv;
         }
+
+        /// <summary>获取排序分页以外的参数</summary>
+        /// <returns></returns>
+        public static RouteValueDictionary GetRouteValue(this Pager page)
+        {
+            var dic = new RouteValueDictionary();
+            foreach (var item in page.Params)
+            {
+                if (!item.Key.EqualIgnoreCase(page._.Sort, page._.Desc, page._.PageIndex, page._.PageSize)) dic[item.Key] = item.Value;
+            }
+
+            return dic;
+        }
+
 
         internal static Boolean MakeListDataView(Type entityType, String vpath, List<FieldItem> fields)
         {
@@ -179,13 +194,13 @@ namespace NewLife.Cube
             }
 
             var ps = new Int32[2];
-            str = tmp.Substring("            @if (ManageProvider", "                @foreach (var item in fields)", 0, ps);
+            str = tmp.Substring("            @if (this.Has", "                @foreach (var item in fields)", 0, ps);
             if (fact.Unique != null)
                 str = str.Replace("@entity.ID", "@entity." + fact.Unique.Name);
             else
                 str = str.Replace("@entity.ID", "");
 
-            sb.Append("            @if (ManageProvider");
+            sb.Append("            @if (this.Has");
             sb.Append(str);
 
             ident = new String(' ', 4 * 4);
