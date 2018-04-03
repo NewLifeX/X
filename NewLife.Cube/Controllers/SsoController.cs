@@ -1,13 +1,11 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Web.Mvc;
 using NewLife.Cube.Entity;
 using NewLife.Cube.Web;
 using NewLife.Log;
 using NewLife.Model;
-using NewLife.Reflection;
 using NewLife.Web;
 using XCode.Membership;
 
@@ -142,6 +140,7 @@ namespace NewLife.Cube.Controllers
 
                 // 标记登录提供商
                 Session["Cube_Sso"] = client.Name;
+                Session["Cube_Sso_Client"] = client;
 
                 if (!returnUrl.IsNullOrEmpty()) return Redirect(returnUrl);
 
@@ -160,23 +159,40 @@ namespace NewLife.Cube.Controllers
         /// </remarks>
         /// <returns></returns>
         [AllowAnonymous]
-        public virtual ActionResult Logout(String name = null)
+        public virtual ActionResult Logout()
         {
-            Provider?.Logout();
+            // 先读Session，待会会清空
+            var client = Session["Cube_Sso_Client"] as OAuthClient;
 
-            var url = Provider?.GetReturnUrl(Request, false);
+            var prv = Provider;
+            prv?.Logout();
+
+            var url = "";
+
+            // 准备跳转到验证中心
+            if (client != null)
+            {
+                if (!client.LogoutUrl.IsNullOrEmpty())
+                {
+                    // 准备返回地址
+                    url = Request["r"];
+                    if (url.IsNullOrEmpty()) url = prv.SuccessUrl;
+
+                    var state = Request["state"];
+                    if (!state.IsNullOrEmpty())
+                        state = client.Name + "_" + state;
+                    else
+                        state = client.Name;
+
+                    // 跳转到验证中心注销地址
+                    url = client.Logout(url, state, Request.GetRawUrl());
+
+                    return Redirect(url);
+                }
+            }
+
+            url = Provider?.GetReturnUrl(Request, false);
             if (url.IsNullOrEmpty()) url = "~/";
-
-            //// 准备返回地址
-            //var url = Request["r"];
-            //if (url.IsNullOrEmpty()) url = "/";
-            //if (!url.StartsWithIgnoreCase("http")) url = new Uri(Request.Url, url).ToString();
-
-            //// 准备跳转到验证中心
-            //if (!name.IsNullOrEmpty())
-            //{
-
-            //}
 
             return Redirect(url);
         }

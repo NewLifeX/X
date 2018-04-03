@@ -215,7 +215,11 @@ namespace NewLife.Web
                 if (UserUrl.IsNullOrEmpty() && dic.ContainsKey("scope"))
                 {
                     var ss = dic["scope"].Trim().Split(",");
-                    if (ss.Contains("UserInfo")) UserUrl = "userinfo?access_token={token}";
+                    if (ss.Contains("UserInfo"))
+                    {
+                        UserUrl = "userinfo?access_token={token}";
+                        LogoutUrl = "logout?client_id={key}&redirect_uri={redirect}&state={state}";
+                    }
                 }
 
                 OnGetInfo(dic);
@@ -321,6 +325,34 @@ namespace NewLife.Web
 
             //// 头像
             //if (!Avatar.IsNullOrEmpty()) user.SetValue(nameof(Avatar), Avatar);
+        }
+        #endregion
+
+        #region 5-注销
+        /// <summary>注销地址</summary>
+        public String LogoutUrl { get; set; }
+
+        /// <summary>注销</summary>
+        /// <param name="redirect">完成后调整的目标地址</param>
+        /// <param name="state">用户状态数据</param>
+        /// <param name="baseUri">相对地址的基地址</param>
+        /// <returns></returns>
+        public virtual String Logout(String redirect = null, String state = null, Uri baseUri = null)
+        {
+            var url = LogoutUrl;
+            if (url.IsNullOrEmpty()) throw new ArgumentNullException(nameof(LogoutUrl), "未设置注销地址");
+
+#if !__CORE__
+            // 如果是相对路径，自动加上前缀。需要考虑反向代理的可能，不能直接使用Request.Url
+            redirect = redirect.AsUri(baseUri) + "";
+#endif
+            _redirect = redirect;
+            _state = state;
+
+            url = GetUrl(url);
+            WriteLog("Logout {0}", url);
+
+            return url;
         }
         #endregion
 
