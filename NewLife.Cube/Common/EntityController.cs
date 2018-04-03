@@ -803,6 +803,7 @@ namespace NewLife.Cube
             get
             {
                 if (Request.ContentType.EqualIgnoreCase("application/json")) return true;
+                if (Request.AcceptTypes.Any(e => e == "application/json")) return true;
                 if (Request["output"].EqualIgnoreCase("json")) return true;
                 if ((RouteData.Values["output"] + "").EqualIgnoreCase("json")) return true;
 
