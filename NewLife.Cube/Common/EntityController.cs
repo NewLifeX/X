@@ -7,6 +7,7 @@ using System.Text;
 using System.Web;
 using System.Web.Mvc;
 using NewLife.Common;
+using NewLife.Cube.Entity;
 using NewLife.Serialization;
 using NewLife.Web;
 using NewLife.Xml;
@@ -392,21 +393,30 @@ namespace NewLife.Cube
         #endregion
 
         #region 高级Action
-        /// <summary>数据列表首页</summary>
+        /// <summary>数据接口</summary>
         /// <returns></returns>
-        [EntityAuthorize(PermissionFlags.Detail)]
-        [DisplayName("导出")]
-        public virtual ActionResult Export(Pager p = null)
+        [AllowAnonymous]
+        [DisplayName("数据接口")]
+        public virtual ActionResult Json(String token)
         {
-            if (p == null) p = new Pager();
+            try
+            {
+                var user = UserToken.Valid(token);
 
-            // 需要总记录数来分页
-            p.RetrieveTotalCount = true;
+                var p = new Pager();
 
-            var list = Search(p);
+                // 需要总记录数来分页
+                p.RetrieveTotalCount = true;
 
-            // Json输出
-            return JsonOK(list, new { pager = p });
+                var list = Search(p);
+
+                // Json输出
+                return JsonOK(list, new { pager = p });
+            }
+            catch (Exception ex)
+            {
+                return JsonError(ex.GetTrue());
+            }
         }
 
         /// <summary>导出Xml</summary>

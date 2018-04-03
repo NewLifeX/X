@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using NewLife.Web;
 using XCode;
 using XCode.Membership;
@@ -20,74 +21,13 @@ namespace NewLife.Cube.Entity
             Meta.Modules.Add<UserModule>();
             Meta.Modules.Add<TimeModule>();
             Meta.Modules.Add<IPModule>();
+
+
+            var sc = Meta.SingleCache;
+            sc.FindSlaveKeyMethod = k => Find(_.Token == k);
+            sc.GetSlaveKeyMethod = e => e.Token;
+            sc.SlaveKeyIgnoreCase = true;
         }
-
-        /// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>
-        /// <param name="isNew">是否插入</param>
-        public override void Valid(Boolean isNew)
-        {
-            // 如果没有脏数据，则不需要进行任何处理
-            if (!HasDirty) return;
-
-            // 在新插入数据或者修改了指定字段时进行修正
-            // 处理当前已登录用户信息，可以由UserModule过滤器代劳
-            /*var user = ManageProvider.User;
-            if (user != null)
-            {
-                if (isNew && !Dirtys[nameof(CreateUserID)) nameof(CreateUserID) = user.ID;
-                if (!Dirtys[nameof(UpdateUserID)]) nameof(UpdateUserID) = user.ID;
-            }*/
-            //if (isNew && !Dirtys[nameof(CreateTime)]) nameof(CreateTime) = DateTime.Now;
-            //if (!Dirtys[nameof(UpdateTime)]) nameof(UpdateTime) = DateTime.Now;
-            //if (isNew && !Dirtys[nameof(CreateIP)]) nameof(CreateIP) = WebHelper.UserHost;
-            //if (!Dirtys[nameof(UpdateIP)]) nameof(UpdateIP) = WebHelper.UserHost;
-
-            // 检查唯一索引
-            // CheckExist(isNew, __.Token);
-        }
-
-        ///// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>
-        //[EditorBrowsable(EditorBrowsableState.Never)]
-        //protected override void InitData()
-        //{
-        //    // InitData一般用于当数据表没有数据时添加一些默认数据，该实体类的任何第一次数据库操作都会触发该方法，默认异步调用
-        //    if (Meta.Session.Count > 0) return;
-
-        //    if (XTrace.Debug) XTrace.WriteLine("开始初始化UserToken[用户令牌]数据……");
-
-        //    var entity = new UserToken();
-        //    entity.ID = 0;
-        //    entity.Token = "abc";
-        //    entity.Url = "abc";
-        //    entity.UserID = 0;
-        //    entity.Expire = DateTime.Now;
-        //    entity.Times = 0;
-        //    entity.Enable = true;
-        //    entity.CreateUserID = 0;
-        //    entity.CreateIP = "abc";
-        //    entity.CreateTime = DateTime.Now;
-        //    entity.UpdateUserID = 0;
-        //    entity.UpdateIP = "abc";
-        //    entity.UpdateTime = DateTime.Now;
-        //    entity.Remark = "abc";
-        //    entity.Insert();
-
-        //    if (XTrace.Debug) XTrace.WriteLine("完成初始化UserToken[用户令牌]数据！");
-        //}
-
-        ///// <summary>已重载。基类先调用Valid(true)验证数据，然后在事务保护内调用OnInsert</summary>
-        ///// <returns></returns>
-        //public override Int32 Insert()
-        //{
-        //    return base.Insert();
-        //}
-
-        ///// <summary>已重载。在事务保护范围内处理业务，位于Valid之后</summary>
-        ///// <returns></returns>
-        //protected override Int32 OnDelete()
-        //{
-        //    return base.OnDelete();
-        //}
         #endregion
 
         #region 扩展属性
@@ -115,10 +55,13 @@ namespace NewLife.Cube.Entity
         /// <returns>实体对象</returns>
         public static UserToken FindByToken(String token)
         {
+            if (token.IsNullOrEmpty()) return null;
+
             // 实体缓存
             if (Meta.Session.Count < 1000) return Meta.Cache.Find(e => e.Token == token);
 
-            return Find(_.Token == token);
+            //return Find(_.Token == token);
+            return Meta.SingleCache[token] as UserToken;
         }
 
         /// <summary>根据用户查找</summary>
@@ -154,6 +97,33 @@ namespace NewLife.Cube.Entity
         #endregion
 
         #region 业务操作
+        /// <summary>验证token是否可用</summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        public static IUser Valid(String token)
+        {
+            if (token.IsNullOrEmpty()) throw new Exception("缺少令牌token");
+
+            var ut = UserToken.FindByToken(token);
+            if (ut == null) throw new Exception("无效令牌token");
+
+            ut.Times++;
+            ut.LastIP = WebHelper.UserHost;
+            ut.LastTime = DateTime.Now;
+            ut.SaveAsync(5000);
+
+            if (!ut.Enable || ut.UserID <= 0) throw new Exception("令牌已停用");
+
+            if (ut.Expire.Year > 2000 && ut.Expire < DateTime.Now) throw new Exception("令牌已过期");
+
+            var user = ManageProvider.Provider.FindByID(ut.UserID) as IUser;
+            if (user == null || !user.Enable) throw new Exception("无效令牌身份");
+
+            // 拥有系统角色
+            if (!user.Roles.Any(r => r.IsSystem)) throw new Exception("无权查看该数据");
+
+            return user;
+        }
         #endregion
     }
 }
