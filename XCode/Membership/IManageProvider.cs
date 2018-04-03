@@ -278,6 +278,7 @@ namespace XCode.Membership
         {
             var user = User<TUser>.Login(name, password, rememberme);
 
+            Current = user;
             this.SaveCookie(user);
 
 #if !__CORE__
