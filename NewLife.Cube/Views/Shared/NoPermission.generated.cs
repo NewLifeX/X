@@ -49,7 +49,7 @@ namespace ASP
     Layout = "_Layout.cshtml";
     //Layout = NewLife.Cube.Setting.Current.Layout;
 
-    var context = ViewBag.Context as AuthorizationContext;
+    //var context = ViewBag.Context as AuthorizationContext;
     var Resource = ViewBag.Resource;
     var Permission = (PermissionFlags)ViewBag.Permission;
     var pm = Permission.GetDescription();
@@ -68,14 +68,14 @@ WriteLiteral(">\r\n    <div");
 
 WriteLiteral(" class=\"panel-body\"");
 
-WriteAttribute("title", Tuple.Create(" title=\"", 547), Tuple.Create("\"", 591)
+WriteAttribute("title", Tuple.Create(" title=\"", 549), Tuple.Create("\"", 593)
             
             #line 16 "..\..\Views\Shared\NoPermission.cshtml"
-, Tuple.Create(Tuple.Create("", 555), Tuple.Create<System.Object, System.Int32>(menu == null ? "" : menu.FullName
+, Tuple.Create(Tuple.Create("", 557), Tuple.Create<System.Object, System.Int32>(menu == null ? "" : menu.FullName
             
             #line default
             #line hidden
-, 555), false)
+, 557), false)
 );
 
 WriteLiteral(">\r\n        <strong>\r\n            <pre");
@@ -108,9 +108,9 @@ WriteLiteral(" class=\"panel-footer\"");
 
 WriteLiteral(">\r\n        <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 775), Tuple.Create("\"", 801)
-, Tuple.Create(Tuple.Create("", 782), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/User/Logout")
-, 782), false)
+WriteAttribute("href", Tuple.Create(" href=\"", 777), Tuple.Create("\"", 803)
+, Tuple.Create(Tuple.Create("", 784), Tuple.Create<System.Object, System.Int32>(Href("~/Admin/User/Logout")
+, 784), false)
 );
 
 WriteLiteral(" class=\"btn btn-primary\"");

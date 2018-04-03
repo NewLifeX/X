@@ -31,11 +31,18 @@ namespace NewLife.Cube
                         ex = null;
                 }
 
+                // 拦截没有权限
+                if (ex is NoPermissionException nex)
+                {
+                    ctx.Result = ctx.Controller.NoPermission(nex);
+                    ctx.ExceptionHandled = true;
+                }
+
                 if (ex != null) XTrace.WriteException(ex);
             }
 
             // 判断控制器是否在管辖范围之内，不拦截其它控制器的异常信息
-            if (AreaRegistrationBase.Contains(ctx.Controller))
+            if (!ctx.ExceptionHandled && AreaRegistrationBase.Contains(ctx.Controller))
             {
                 ctx.ExceptionHandled = true;
 

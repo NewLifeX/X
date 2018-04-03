@@ -36,10 +36,12 @@ using NewLife.Cube;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("2.2.*")]
-[assembly: AssemblyFileVersion("2.2.2018.0326")]
+[assembly: AssemblyVersion("2.3.*")]
+[assembly: AssemblyFileVersion("2.3.2018.0403")]
 
 /*
+ * v2.3.2018.0403   支持数据权限，控制器重载ValidPermission
+ * 
  * v2.2.2018.0326   重构权限体系，支持多角色
  * 
  * v2.1.2018.0211   集成OAuth客户端服务端，支持QQ、百度、GitHub等

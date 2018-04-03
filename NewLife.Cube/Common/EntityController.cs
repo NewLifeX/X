@@ -88,13 +88,20 @@ namespace NewLife.Cube
         /// <param name="filterContext"></param>
         protected override void OnException(ExceptionContext filterContext)
         {
-            // Json输出
-            if (!filterContext.ExceptionHandled && IsJsonRequest)
+            if (!filterContext.ExceptionHandled)
             {
                 var ex = filterContext.Exception;
-
-                filterContext.Result = JsonError(ex);
-                filterContext.ExceptionHandled = true;
+                // Json输出
+                if (IsJsonRequest)
+                {
+                    filterContext.Result = JsonError(ex);
+                    filterContext.ExceptionHandled = true;
+                }
+                //else if (ex is NoPermissionException nex)
+                //{
+                //    filterContext.Result = this.NoPermission(nex);
+                //    filterContext.ExceptionHandled = true;
+                //}
             }
 
             base.OnException(filterContext);
@@ -200,6 +207,9 @@ namespace NewLife.Cube
             var entity = Find(id);
             if (entity.IsNullKey) throw new XException("要查看的数据[{0}]不存在！", id);
 
+            // 验证数据权限
+            Valid(entity, DataObjectMethodType.Select);
+
             // Json输出
             if (IsJsonRequest) return JsonOK(entity, new { id });
 
@@ -216,6 +226,8 @@ namespace NewLife.Cube
             var url = Request.UrlReferrer + "";
 
             var entity = Find(id);
+            Valid(entity, DataObjectMethodType.Delete);
+
             OnDelete(entity);
 
             if (Request.IsAjaxRequest())
@@ -242,6 +254,9 @@ namespace NewLife.Cube
                 if (!v.IsNullOrEmpty()) entity[item.Name] = v;
             }
 
+            // 验证数据权限
+            Valid(entity, DataObjectMethodType.Insert);
+
             // 记下添加前的来源页，待会添加成功以后跳转
             Session["Cube_Add_Referrer"] = Request.UrlReferrer.ToString();
 
@@ -259,7 +274,7 @@ namespace NewLife.Cube
             // 检测避免乱用Add/id
             if (Factory.Unique.IsIdentity && entity[Factory.Unique.Name].ToInt() != 0) throw new Exception("我们约定添加数据时路由id部分默认没有数据，以免模型绑定器错误识别！");
 
-            if (!Valid(entity))
+            if (!Valid(entity, DataObjectMethodType.Insert))
             {
                 ViewBag.StatusMessage = "验证失败！";
                 return FormView(entity);
@@ -308,6 +323,9 @@ namespace NewLife.Cube
             var entity = Find(id);
             if (entity.IsNullKey) throw new XException("要编辑的数据[{0}]不存在！", id);
 
+            // 验证数据权限
+            Valid(entity, DataObjectMethodType.Update);
+
             // Json输出
             if (IsJsonRequest) return JsonOK(entity, new { id });
 
@@ -322,7 +340,7 @@ namespace NewLife.Cube
         [ValidateInput(false)]
         public virtual ActionResult Edit(TEntity entity)
         {
-            if (!Valid(entity))
+            if (!Valid(entity, DataObjectMethodType.Update))
             {
                 ViewBag.StatusMessage = "验证失败！";
                 return FormView(entity);
@@ -569,14 +587,21 @@ namespace NewLife.Cube
             var keys = SelectKeys;
             if (keys != null && keys.Length > 0)
             {
-                foreach (var item in keys)
+                using (var tran = Entity<TEntity>.Meta.CreateTrans())
                 {
-                    var entity = Entity<TEntity>.FindByKey(item);
-                    if (entity != null)
+                    foreach (var item in keys)
                     {
-                        entity.Delete();
-                        count++;
+                        var entity = Entity<TEntity>.FindByKey(item);
+                        if (entity != null)
+                        {
+                            // 验证数据权限
+                            Valid(entity, DataObjectMethodType.Delete);
+
+                            entity.Delete();
+                            count++;
+                        }
                     }
+                    tran.Commit();
                 }
             }
             return JsonRefresh("共删除{0}行数据".F(count));
@@ -601,7 +626,18 @@ namespace NewLife.Cube
 
                 var list = Search(p).ToList();
                 count += list.Count;
-                list.Delete();
+                //list.Delete();
+                using (var tran = Entity<TEntity>.Meta.CreateTrans())
+                {
+                    foreach (var entity in list)
+                    {
+                        // 验证数据权限
+                        Valid(entity, DataObjectMethodType.Delete);
+
+                        entity.Delete();
+                    }
+                    tran.Commit();
+                }
             }
 
             if (Request.IsAjaxRequest())
@@ -673,22 +709,43 @@ namespace NewLife.Cube
         /// <summary>添加实体对象</summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        protected virtual Int32 OnInsert(TEntity entity) { return entity.Insert(); }
+        protected virtual Int32 OnInsert(TEntity entity) => entity.Insert();
 
         /// <summary>更新实体对象</summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        protected virtual Int32 OnUpdate(TEntity entity) { return entity.Update(); }
+        protected virtual Int32 OnUpdate(TEntity entity) => entity.Update();
 
         /// <summary>删除实体对象</summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        protected virtual Int32 OnDelete(TEntity entity) { return entity.Delete(); }
+        protected virtual Int32 OnDelete(TEntity entity) => entity.Delete();
 
         /// <summary>验证实体对象</summary>
         /// <param name="entity"></param>
+        /// <param name="type"></param>
         /// <returns></returns>
-        protected virtual Boolean Valid(TEntity entity) { return true; }
+        protected virtual Boolean Valid(TEntity entity, DataObjectMethodType type)
+        {
+            if (!ValidPermission(entity, type))
+            {
+                switch (type)
+                {
+                    case DataObjectMethodType.Select: throw new NoPermissionException(PermissionFlags.Detail, "无权查看数据");
+                    case DataObjectMethodType.Update: throw new NoPermissionException(PermissionFlags.Update, "无权更新数据");
+                    case DataObjectMethodType.Insert: throw new NoPermissionException(PermissionFlags.Insert, "无权新增数据");
+                    case DataObjectMethodType.Delete: throw new NoPermissionException(PermissionFlags.Delete, "无权删除数据");
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>验证实体对象</summary>
+        /// <param name="entity"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        protected virtual Boolean ValidPermission(TEntity entity, DataObjectMethodType type) => true;
         #endregion
 
         #region 列表字段和表单字段

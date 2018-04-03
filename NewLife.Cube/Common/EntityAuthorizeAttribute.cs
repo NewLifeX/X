@@ -106,24 +106,7 @@ namespace NewLife.Cube
         /// <param name="filterContext"></param>
         protected override void HandleUnauthorizedRequest(AuthorizationContext filterContext)
         {
-            var act = filterContext.ActionDescriptor;
-            var ctrl = act.ControllerDescriptor;
-
-            var res = "[{0}/{1}]".F(ctrl.ControllerName, act.ActionName);
-            var msg = "访问资源 {0} 需要 {1} 权限".F(res, Permission.GetDescription());
-            LogProvider.Provider.WriteLog("访问", "拒绝", msg);
-
-            var ctx = filterContext.HttpContext;
-            var menu = ctx.Items["CurrentMenu"] as IMenu;
-
-            var vr = new ViewResult()
-            {
-                ViewName = "NoPermission"
-            };
-            vr.ViewBag.Context = filterContext;
-            vr.ViewBag.Resource = res;
-            vr.ViewBag.Permission = Permission;
-            vr.ViewBag.Menu = menu;
+            var vr = filterContext.NoPermission(Permission);
 
             filterContext.Result = vr;
         }
