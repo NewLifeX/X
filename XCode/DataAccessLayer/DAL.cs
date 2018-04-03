@@ -471,6 +471,16 @@ namespace XCode.DataAccessLayer
         /// <param name="tables"></param>
         public void SetTables(params IDataTable[] tables)
         {
+            // 构建DataTable时也要注意表前缀，避免反向工程用错
+            var pf = Db.TablePrefix;
+            if (!pf.IsNullOrEmpty())
+            {
+                foreach (var tbl in tables)
+                {
+                    if (!tbl.TableName.StartsWithIgnoreCase(pf)) tbl.TableName = pf + tbl.TableName;
+                }
+            }
+
             Db.CreateMetaData().SetTables(Db.Migration, tables);
         }
         #endregion

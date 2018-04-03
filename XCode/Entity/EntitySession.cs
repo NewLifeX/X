@@ -106,16 +106,16 @@ namespace XCode
         #endregion
 
         #region 主要属性
-        private Type ThisType { get { return typeof(TEntity); } }
+        private Type ThisType => typeof(TEntity);
 
         /// <summary>表信息</summary>
-        TableItem Table { get { return TableItem.Create(ThisType); } }
+        TableItem Table => TableItem.Create(ThisType);
 
-        IEntityOperate Operate { get { return EntityFactory.CreateOperate(ThisType); } }
+        IEntityOperate Operate => EntityFactory.CreateOperate(ThisType);
 
         private DAL _Dal;
         /// <summary>数据操作层</summary>
-        public DAL Dal { get { return _Dal ?? (_Dal = DAL.Create(ConnName)); } }
+        public DAL Dal => _Dal ?? (_Dal = DAL.Create(ConnName));
 
         private String _FormatedTableName;
         /// <summary>已格式化的表名，带有中括号等</summary>
@@ -125,18 +125,21 @@ namespace XCode
             {
                 if (_FormatedTableName.IsNullOrEmpty())
                 {
-                    var str = Dal.Db.FormatName(TableName);
-                    var conn = ConnName;
-                    if (conn != null && DAL.ConnStrs.ContainsKey(conn))
+                    var str = TableName;
+
+                    // 检查自动表前缀
+                    var dal = DAL.Create(ConnName);
+                    var pf = dal.Db.TablePrefix;
+                    if (!pf.IsNullOrEmpty() && !str.StartsWithIgnoreCase(pf)) str = pf + str;
+
+                    str = Dal.Db.FormatName(str);
+
+                    // 特殊处理Oracle数据库，在表名前加上方案名（用户名）
+                    if (!str.Contains("."))
                     {
-                        // 特殊处理Oracle数据库，在表名前加上方案名（用户名）
-                        var dal = DAL.Create(conn);
-                        if (dal != null && !str.Contains("."))
-                        {
-                            // 角色名作为点前缀来约束表名，支持所有数据库
-                            var owner = dal.Db.Owner;
-                            if (!owner.IsNullOrEmpty()) str = Dal.Db.FormatName(owner) + "." + str;
-                        }
+                        // 角色名作为点前缀来约束表名，支持所有数据库
+                        var owner = dal.Db.Owner;
+                        if (!owner.IsNullOrEmpty()) str = Dal.Db.FormatName(owner) + "." + str;
                     }
 
                     _FormatedTableName = str;
@@ -153,10 +156,13 @@ namespace XCode
             {
                 if (_Default != null) return _Default;
 
-                if (ConnName == Table.ConnName && TableName == Table.TableName)
+                var cname = Table.ConnName;
+                var tname = Table.TableName;
+
+                if (ConnName == cname && TableName == tname)
                     _Default = this;
                 else
-                    _Default = Create(Table.ConnName, Table.TableName);
+                    _Default = Create(cname, tname);
 
                 return _Default;
             }
@@ -545,7 +551,7 @@ namespace XCode
             // 100w数据时，没有预热Select Count需要3000ms，预热后需要500ms
             if (count < 500000)
             {
-                if (count <= 0) count = Dal.Session.QueryCountFast(TableName);
+                if (count <= 0) count = Dal.Session.QueryCountFast(FormatedTableName);
 
                 // 查真实记录数，修正FastCount不够准确的情况
                 if (count < 10000000)
@@ -561,7 +567,7 @@ namespace XCode
             else
             {
                 // 异步查询弥补不足，千万数据以内
-                if (count < 10000000) count = Dal.Session.QueryCountFast(TableName);
+                if (count < 10000000) count = Dal.Session.QueryCountFast(FormatedTableName);
             }
 
             return count;
@@ -674,7 +680,7 @@ namespace XCode
         /// <returns></returns>
         public Int32 Truncate()
         {
-            var rs = Dal.Session.Truncate(TableName);
+            var rs = Dal.Session.Truncate(FormatedTableName);
 
             // 干掉所有缓存
             _cache?.Clear("Truncate");

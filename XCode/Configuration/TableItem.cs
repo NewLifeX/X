@@ -44,24 +44,25 @@ namespace XCode.Configuration
         {
             get
             {
-                if (_TableName.IsNullOrEmpty()) _TableName = GetTableName(_Table);
+                //if (_TableName.IsNullOrEmpty()) _TableName = GetTableName(_Table);
+                if (_TableName.IsNullOrEmpty()) _TableName = _Table?.Name ?? EntityType.Name;
 
                 return _TableName;
             }
             set { _TableName = value; DataTable.TableName = value; }
         }
 
-        private String GetTableName(BindTableAttribute table)
-        {
-            var name = table != null ? table.Name : EntityType.Name;
+        //private String GetTableName(BindTableAttribute table)
+        //{
+        //    var name = table != null ? table.Name : EntityType.Name;
 
-            // 检查自动表前缀
-            var dal = DAL.Create(ConnName);
-            var pf = dal.Db.TablePrefix;
-            if (!pf.IsNullOrEmpty() && !name.StartsWithIgnoreCase(pf)) name = pf + name;
+        //    // 检查自动表前缀
+        //    var dal = DAL.Create(ConnName);
+        //    var pf = dal.Db.TablePrefix;
+        //    if (!pf.IsNullOrEmpty() && !name.StartsWithIgnoreCase(pf)) name = pf + name;
 
-            return name;
-        }
+        //    return name;
+        //}
 
         private String _ConnName;
         /// <summary>连接名</summary>
@@ -228,9 +229,9 @@ namespace XCode.Configuration
             var bt = _Table;
             var table = DAL.CreateTable();
             DataTable = table;
-            //table.TableName = bt.Name;
-            // 构建DataTable时也要注意表前缀，避免反向工程用错
-            table.TableName = GetTableName(bt);
+            table.TableName = bt.Name;
+            //// 构建DataTable时也要注意表前缀，避免反向工程用错
+            //table.TableName = GetTableName(bt);
             table.Name = EntityType.Name;
             table.DbType = bt.DbType;
             table.IsView = bt.IsView;

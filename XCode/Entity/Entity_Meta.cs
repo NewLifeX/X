@@ -69,10 +69,10 @@ namespace XCode
                     {
                         var name = Table.TableName;
 
-                        // 检查自动表前缀
-                        var dal = DAL.Create(ConnName);
-                        var pf = dal.Db.TablePrefix;
-                        if (!pf.IsNullOrEmpty() && !name.StartsWithIgnoreCase(pf)) name = pf + name;
+                        //// 检查自动表前缀
+                        //var dal = DAL.Create(ConnName);
+                        //var pf = dal.Db.TablePrefix;
+                        //if (!pf.IsNullOrEmpty() && !name.StartsWithIgnoreCase(pf)) name = pf + name;
 
                         _TableName = name;
                     }
