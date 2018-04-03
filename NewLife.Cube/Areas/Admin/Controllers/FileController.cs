@@ -10,7 +10,7 @@ using XCode.Membership;
 namespace NewLife.Cube.Admin.Controllers
 {
     /// <summary>文件管理</summary>
-    [DisplayName("文件管理")]
+    [DisplayName("文件")]
     [EntityAuthorize(PermissionFlags.Detail)]
     public class FileController : ControllerBaseX
     {

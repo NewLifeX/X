@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Reflection;
 using NewLife.Cube.Entity;
 using NewLife.Web;
@@ -96,6 +97,9 @@ namespace NewLife.Cube.Admin.Controllers
         protected override Boolean ValidPermission(UserToken entity, DataObjectMethodType type)
         {
             var user = ManageProvider.Provider?.Current;
+
+            // 系统角色拥有特权
+            if (user is UserX user2 && user2.Roles.Any(e => e.IsSystem)) return true;
 
             // 特殊处理添加操作
             if (type == DataObjectMethodType.Insert && entity.UserID <= 0)
