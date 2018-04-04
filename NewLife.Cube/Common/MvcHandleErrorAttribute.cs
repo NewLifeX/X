@@ -40,9 +40,10 @@ namespace NewLife.Cube
 
                 if (ex != null) XTrace.WriteException(ex);
             }
+            if (ctx.ExceptionHandled) return;
 
             // 判断控制器是否在管辖范围之内，不拦截其它控制器的异常信息
-            if (!ctx.ExceptionHandled && AreaRegistrationBase.Contains(ctx.Controller))
+            if (Setting.Current.CatchAllException || AreaRegistrationBase.Contains(ctx.Controller))
             {
                 ctx.ExceptionHandled = true;
 

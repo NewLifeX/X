@@ -67,6 +67,10 @@ namespace NewLife.Cube
         [Description("访问统计。统计页面访问量")]
         public Boolean WebStatistics { get; set; } = true;
 
+        /// <summary>捕获所有异常。默认false只捕获魔方区域异常</summary>
+        [Description("捕获所有异常。默认false只捕获魔方区域异常")]
+        public Boolean CatchAllException { get; set; }
+
         /// <summary>表单组样式。大中小屏幕分别3/2/1列</summary>
         [Description("表单组样式。大中小屏幕分别3/2/1列")]
         public String FormGroupClass { get; set; } = "form-group col-xs-12 col-sm-6 col-lg-4";
