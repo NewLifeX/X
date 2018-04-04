@@ -33,8 +33,8 @@ namespace NewLife.Cube.Admin.Controllers
             // 强制当前用户
             if (userid < 0)
             {
-                var user = ManageProvider.Provider?.Current;
-                userid = user.ID;
+                var user = ManageProvider.User;
+                if (!user.Roles.Any(e => e.IsSystem)) userid = user.ID;
             }
 
             return UserToken.Search(token, userid, null, p["dtStart"].ToDateTime(), p["dtEnd"].ToDateTime(), p);

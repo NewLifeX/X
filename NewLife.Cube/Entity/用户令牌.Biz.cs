@@ -28,6 +28,13 @@ namespace NewLife.Cube.Entity
             sc.GetSlaveKeyMethod = e => e.Token;
             sc.SlaveKeyIgnoreCase = true;
         }
+
+        /// <summary>检查参数</summary>
+        /// <param name="isNew"></param>
+        public override void Valid(Boolean isNew)
+        {
+            if (UserID <= 0) throw new ArgumentNullException(nameof(UserID));
+        }
         #endregion
 
         #region 扩展属性

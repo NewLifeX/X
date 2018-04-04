@@ -282,6 +282,7 @@ namespace NewLife.Cube
             }
 
             var rs = false;
+            var err = "";
             try
             {
                 OnInsert(entity);
@@ -289,16 +290,18 @@ namespace NewLife.Cube
             }
             catch (ArgumentException aex)
             {
+                err = aex.Message;
                 ModelState.AddModelError(aex.ParamName, aex.Message);
             }
             catch (Exception ex)
             {
+                err = ex.Message;
                 ModelState.AddModelError("", ex.Message);
             }
 
             if (!rs)
             {
-                ViewBag.StatusMessage = "添加失败！";
+                ViewBag.StatusMessage = "添加失败！" + err;
                 // 添加失败，ID清零，否则会显示保存按钮
                 entity[Entity<TEntity>.Meta.Unique.Name] = 0;
                 return FormView(entity);
@@ -348,6 +351,7 @@ namespace NewLife.Cube
             }
 
             var rs = 0;
+            var err = "";
             try
             {
                 rs = OnUpdate(entity);
@@ -355,10 +359,12 @@ namespace NewLife.Cube
             }
             catch (ArgumentException aex)
             {
+                err = aex.Message;
                 ModelState.AddModelError(aex.ParamName, aex.Message);
             }
             catch (Exception ex)
             {
+                err = ex.Message;
                 //ModelState.AddModelError("", ex.Message);
                 ModelState.AddModelError("", ex);
             }
@@ -366,7 +372,7 @@ namespace NewLife.Cube
             ViewBag.RowsAffected = rs;
             if (rs <= 0)
             {
-                ViewBag.StatusMessage = "保存失败！";
+                ViewBag.StatusMessage = "保存失败！" + err;
                 return FormView(entity);
             }
             else
