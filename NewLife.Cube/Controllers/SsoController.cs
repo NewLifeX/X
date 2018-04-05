@@ -59,7 +59,7 @@ namespace NewLife.Cube.Controllers
         /// <summary>首页</summary>
         /// <returns></returns>
         [AllowAnonymous]
-        public virtual ActionResult Index() => View("Index");
+        public virtual ActionResult Index() => Redirect("~/");
 
         #region 单点登录客户端
         /// <summary>第三方登录</summary>

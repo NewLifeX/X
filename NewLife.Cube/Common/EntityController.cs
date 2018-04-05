@@ -826,46 +826,6 @@ namespace NewLife.Cube
                 return false;
             }
         }
-
-        /// <summary>返回Json数据</summary>
-        /// <param name="data">数据对象，作为data成员返回</param>
-        /// <param name="extend">与data并行的其它顶级成员</param>
-        /// <returns></returns>
-        protected virtual ActionResult JsonOK(Object data, Object extend = null)
-        {
-            var dic = new Dictionary<String, Object>
-            {
-                ["result"] = true,
-                ["data"] = data
-            };
-
-            if (extend != null) dic.Merge(extend);
-
-            var json = dic.ToJson();
-
-            return Content(json, "application/json", Encoding.UTF8);
-        }
-
-        /// <summary>返回Json错误</summary>
-        /// <param name="data">数据对象或异常对象，作为data成员返回</param>
-        /// <param name="extend">与data并行的其它顶级成员</param>
-        /// <returns></returns>
-        protected virtual ActionResult JsonError(Object data, Object extend = null)
-        {
-            if (data is Exception ex) data = ex.GetTrue().Message;
-
-            var dic = new Dictionary<String, Object>
-            {
-                ["result"] = false,
-                ["data"] = data
-            };
-
-            if (extend != null) dic.Merge(extend);
-
-            var json = dic.ToJson();
-
-            return Content(json, "application/json", Encoding.UTF8);
-        }
         #endregion
     }
 }
