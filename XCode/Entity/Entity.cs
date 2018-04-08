@@ -729,10 +729,11 @@ namespace XCode
         /// <summary>同时查询满足条件的记录集和记录总数。没有数据时返回空集合而不是null</summary>
         /// <param name="where">条件，不带Where</param>
         /// <param name="page">分页排序参数，同时返回满足条件的总记录数</param>
+        /// <param name="selects">查询列，默认null表示所有字段</param>
         /// <returns></returns>
-        public static IList<TEntity> FindAll(Expression where, PageParameter page = null)
+        public static IList<TEntity> FindAll(Expression where, PageParameter page = null, String selects = null)
         {
-            if (page == null) return FindAll(where, null, null, 0, 0);
+            if (page == null) return FindAll(where, null, selects, 0, 0);
 
             // 先查询满足条件的记录数，如果没有数据，则直接返回空集合，不再查询数据
             if (page.RetrieveTotalCount)
@@ -764,9 +765,9 @@ namespace XCode
 
             // 采用起始行还是分页
             if (page.StartRow >= 0)
-                return FindAll(where, orderby, null, page.StartRow, page.PageSize);
+                return FindAll(where, orderby, selects, page.StartRow, page.PageSize);
             else
-                return FindAll(where, orderby, null, (page.PageIndex - 1) * page.PageSize, page.PageSize);
+                return FindAll(where, orderby, selects, (page.PageIndex - 1) * page.PageSize, page.PageSize);
         }
         #endregion
 
