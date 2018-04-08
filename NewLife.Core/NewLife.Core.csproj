@@ -116,7 +116,9 @@
     <Compile Include="Http\TinyHttpClient.cs" />
     <Compile Include="IO\EncodingHelper.cs" />
     <Compile Include="IO\PathHelper.cs" />
+    <Compile Include="Json\JsonConfig.cs" />
     <Compile Include="Json\JsonConfigFileAttribute.cs" />
+    <Compile Include="Json\JsonConfigTest.cs" />
     <Compile Include="Log\ActionLog.cs" />
     <Compile Include="Log\CompositeLog.cs" />
     <Compile Include="Log\ConsoleLog.cs" />
@@ -270,6 +272,7 @@
     <Compile Include="Serialization\Json\JsonGeneral.cs" />
     <Compile Include="Serialization\Json\JsonArray.cs" />
     <Compile Include="Serialization\Json\IJson.cs" />
+    <Compile Include="Serialization\Json\JsonIgnoreAttribute.cs" />
     <Compile Include="Serialization\Json\JsonParser.cs" />
     <Compile Include="Serialization\Json\JsonReader.cs" />
     <Compile Include="Serialization\Json\JsonTest.cs" />

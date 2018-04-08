@@ -223,17 +223,21 @@ namespace NewLife.Json
                 var data = File.ReadAllBytes(filename);
                 var config = this as TConfig;
 
-                Object obj = config;
-                var json = new Serialization.Json
-                {
-                    Stream = new MemoryStream(data),
-                    UseProperty = true,
-                    Indented = true
-                };
+               
+                //var json = new Serialization.Json
+                //{
+                //    Stream = new MemoryStream(data),
+                //    UseProperty = true,
+                //    Indented = true
+                //};
 
-                if (_.Debug) json.Log = XTrace.Log;
+                //if (_.Debug) json.Log = XTrace.Log;
 
-                if (!json.TryRead(GetType(), ref obj)) return false;
+                //Object obj = config;
+                var cfg = new FastJson().Read(data.ToStr(), config.GetType());
+                config.Copy(cfg);
+
+                //if (!json.TryRead(GetType(), ref obj)) return false;
 
                 config.ConfigFile = filename;
                 config.SetExpire();  // 设定过期时间
@@ -346,9 +350,7 @@ namespace NewLife.Json
 
             if (_.Debug) json.Log = XTrace.Log;
 
-            json.Write(this);
-
-            return json.GetBytes().ToStr();
+            return this.ToJson(true);
         }
         #endregion
     }
