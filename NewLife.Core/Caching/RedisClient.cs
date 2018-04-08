@@ -255,7 +255,7 @@ namespace NewLife.Caching
 
             // 结果集数量
             var p = pk.IndexOf(NewLine);
-            if (p <= 0) throw new Exception("无法解析响应 {0} [{1}]".F(header, pk.Count));
+            if (p <= 0) throw new InvalidDataException("无法解析响应 {0} [{1}]".F(header, pk.Count));
 
             var n = pk.Sub(1, p - 1).ToStr().ToInt();
 
