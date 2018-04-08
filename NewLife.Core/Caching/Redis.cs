@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Collections;
@@ -50,6 +51,9 @@ namespace NewLife.Caching
 
         /// <summary>目标数据库。默认0</summary>
         public Int32 Db { get; set; }
+
+        /// <summary>出错重试次数。如果出现协议解析错误，可以重试的次数，默认0</summary>
+        public Int32 Retry { get; set; }
         #endregion
 
         #region 构造
@@ -172,7 +176,18 @@ namespace NewLife.Caching
         {
             using (var pi = Pool.AcquireItem())
             {
-                return func(pi.Value);
+                var i = 0;
+                do
+                {
+                    try
+                    {
+                        return func(pi.Value);
+                    }
+                    catch (InvalidDataException)
+                    {
+                        if (i++ >= Retry) throw;
+                    }
+                } while (true);
             }
         }
         #endregion
