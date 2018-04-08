@@ -745,7 +745,7 @@ namespace XCode
                 if ((where == null || where is WhereExpression wh && wh.Empty) && session.LongCount > 100000)
                     rows = session.LongCount;
                 else
-                    rows = FindCount(where, null, null, 0, 0);
+                    rows = FindCount(where, null, selects, 0, 0);
                 if (rows <= 0) return new List<TEntity>();
 
                 page.TotalCount = rows;
@@ -780,7 +780,7 @@ namespace XCode
         #region 取总记录数
         /// <summary>返回总记录数</summary>
         /// <returns></returns>
-        public static Int64 FindCount() { return FindCount("", null, null, 0, 0); }
+        public static Int64 FindCount() => FindCount("", null, null, 0, 0);
 
         /// <summary>返回总记录数</summary>
         /// <param name="where">条件，不带Where</param>
