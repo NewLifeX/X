@@ -279,20 +279,27 @@ namespace System
 #endif
 #if !__MOBILE__
 
-            var list = new List<IPAddress>();
+            var dic = new Dictionary<UnicastIPAddressInformation, Int32>();
             foreach (var item in GetActiveInterfaces())
             {
                 if (item != null && item.UnicastAddresses.Count > 0)
                 {
+                    var gw = item.GatewayAddresses.Count;
                     foreach (var elm in item.UnicastAddresses)
                     {
-                        if (list.Contains(elm.Address)) continue;
-                        list.Add(elm.Address);
+                        if (elm.DuplicateAddressDetectionState != DuplicateAddressDetectionState.Preferred) continue;
 
-                        yield return elm.Address;
+                        dic.Add(elm, gw);
                     }
                 }
             }
+
+            // 带网关的接口地址很重要，优先返回
+            var ips = dic.OrderByDescending(e => e.Value)
+                .ThenByDescending(e => e.Key.PrefixOrigin == PrefixOrigin.Dhcp || e.Key.PrefixOrigin == PrefixOrigin.Manual)
+                .Select(e => e.Key.Address).ToList();
+
+            return ips;
 #endif
         }
 

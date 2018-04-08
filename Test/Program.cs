@@ -78,8 +78,11 @@ namespace Test
         {
             //EntityBuilder.Build("DataCockpit.xml");
 
-            Role.Meta.Session.Dal.Db.Readonly = true;
-            Role.GetOrAdd("sss");
+            //Role.Meta.Session.Dal.Db.Readonly = true;
+            //Role.GetOrAdd("sss");
+
+            var ip = NetHelper.MyIP();
+            Console.WriteLine(ip);
         }
 
         static void Test2()
