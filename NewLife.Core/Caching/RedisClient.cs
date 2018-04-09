@@ -78,6 +78,7 @@ namespace NewLife.Caching
                 ns = tc?.GetStream();
                 active = ns != null && tc.Connected && ns != null && ns.CanWrite && ns.CanRead;
             }
+            catch (ObjectDisposedException) { }
             catch (Exception ex) { XTrace.WriteException(ex); }
 
             // 如果连接不可用，则重新建立连接
