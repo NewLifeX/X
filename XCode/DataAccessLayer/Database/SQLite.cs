@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using NewLife;
+using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Security;
 
@@ -132,7 +133,7 @@ namespace XCode.DataAccessLayer
                     var type = _Factory.CreateConnection().GetType();
                     type.Invoke("ClearAllPools");
                 }
-                catch { }
+                catch (Exception ex) { XTrace.WriteException(ex); }
             }
         }
         #endregion
@@ -365,7 +366,7 @@ namespace XCode.DataAccessLayer
             {
                 Execute("Update sqlite_sequence Set seq=0 where name='{0}'".F(Database.FormatName(tableName)));
             }
-            catch { }
+            catch (Exception ex) { XTrace.WriteException(ex); }
 
             rs += Execute("PRAGMA auto_vacuum = 1");
             rs += Execute("VACUUM");

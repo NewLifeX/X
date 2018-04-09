@@ -2,7 +2,6 @@
 using System.Collections.Concurrent;
 using System.IO;
 using System.Text;
-using NewLife.Collections;
 using NewLife.Threading;
 
 namespace NewLife.Log

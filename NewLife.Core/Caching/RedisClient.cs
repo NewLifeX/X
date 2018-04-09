@@ -55,7 +55,7 @@ namespace NewLife.Caching
                     var tc = Client;
                     if (tc != null && tc.Connected && tc.GetStream() != null) Quit();
                 }
-                catch { }
+                catch (Exception ex) { XTrace.WriteException(ex); }
             }
 
             Client.TryDispose();
@@ -78,7 +78,7 @@ namespace NewLife.Caching
                 ns = tc?.GetStream();
                 active = ns != null && tc.Connected && ns != null && ns.CanWrite && ns.CanRead;
             }
-            catch { }
+            catch (Exception ex) { XTrace.WriteException(ex); }
 
             // 如果连接不可用，则重新建立连接
             if (!active)

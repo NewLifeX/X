@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using NewLife.Collections;
+using NewLife.Log;
 using NewLife.Threading;
 
 namespace XCode
@@ -34,6 +35,7 @@ namespace XCode
             //if (func == null) throw new ArgumentNullException(nameof(func));
             if (key == null) return default(T);
 
+            // 不能使用并行字段，那会造成内存暴涨，因为大多数实体对象没有或者只有很少扩展数据
             var dic = _cache;
             if (dic == null) dic = _cache = new Dictionary<String, CacheItem>(StringComparer.OrdinalIgnoreCase);
 
@@ -43,7 +45,8 @@ namespace XCode
                 // 比较小几率出现多线程问题
                 if (dic.TryGetValue(key, out ci) && !ci.Expired) return (T)ci.Value;
             }
-            catch { }
+            catch (Exception ex) { XTrace.WriteException(ex); }
+
             lock (dic)
             {
                 if (dic.TryGetValue(key, out ci) && !ci.Expired) return (T)ci.Value;

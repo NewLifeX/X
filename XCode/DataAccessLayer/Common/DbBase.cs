@@ -57,7 +57,7 @@ namespace XCode.DataAccessLayer
                 {
                     _metadata.Dispose();
                 }
-                catch { }
+                catch (Exception ex) { XTrace.WriteException(ex); }
                 _metadata = null;
             }
         }

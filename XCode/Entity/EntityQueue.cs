@@ -151,7 +151,7 @@ namespace XCode
                         // 加入队列时已经Valid一次，这里不需要再次Valid
                         rs.Add(item.SaveWithoutValid());
                     }
-                    catch { }
+                    catch (Exception ex) { XTrace.WriteException(ex); }
                 }
 
                 if (useTrans) dal.Commit();

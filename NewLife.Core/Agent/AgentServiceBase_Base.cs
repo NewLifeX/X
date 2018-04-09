@@ -65,7 +65,7 @@ namespace NewLife.Agent
                                 last = obj as AgentServiceBase;
                             }
                         }
-                        catch { }
+                        catch (Exception ex) { XTrace.WriteException(ex); }
                     }
                     if (_Instance == null) _Instance = last;
                 }

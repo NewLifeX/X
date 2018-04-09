@@ -451,7 +451,7 @@ namespace XCode.DataAccessLayer
                 var sql = "select b.name n, a.value v from sys.extended_properties a inner join sysobjects b on a.major_id=b.id and a.minor_id=0 and a.name = 'MS_Description'";
                 DescriptionTable = session.Query(sql).Tables[0];
             }
-            catch { }
+            catch (Exception ex) { XTrace.WriteException(ex); }
             //session.ShowSQL = old;
 
             var dt = GetSchema(_.Tables, null);
@@ -463,7 +463,7 @@ namespace XCode.DataAccessLayer
                 AllFields = session.Query(SchemaSql).Tables[0];
                 AllIndexes = session.Query(IndexSql).Tables[0];
             }
-            catch { }
+            catch (Exception ex) { XTrace.WriteException(ex); }
             //session.ShowSQL = old;
             #endregion
 
@@ -743,8 +743,11 @@ namespace XCode.DataAccessLayer
 
             var count = 0;
             var session = Database.CreateSession();
-            try { count = session.Execute(sb.ToString()); }
-            catch { }
+            try
+            {
+                count = session.Execute(sb.ToString());
+            }
+            catch (Exception ex) { XTrace.WriteException(ex); }
             return session.Execute(String.Format("Drop Database {0}", FormatName(databaseName))) > 0;
         }
 

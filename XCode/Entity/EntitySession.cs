@@ -214,7 +214,7 @@ namespace XCode
                 {
                     CheckModel();
                 }
-                catch { }
+                catch (Exception ex) { XTrace.WriteException(ex); }
 
                 //var init = Setting.Current.InitData;
                 var init = this == Default;
