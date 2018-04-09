@@ -55,6 +55,7 @@ namespace NewLife.Caching
                     var tc = Client;
                     if (tc != null && tc.Connected && tc.GetStream() != null) Quit();
                 }
+                catch (ObjectDisposedException) { }
                 catch (Exception ex) { XTrace.WriteException(ex); }
             }
 
