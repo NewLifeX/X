@@ -38,6 +38,9 @@ namespace XCode
         ///// <summary>完成事件。</summary>
         //public event EventHandler<EventArgs<IEntity, Int32>> Completed;
 
+        /// <summary>错误发生时</summary>
+        public event EventHandler<EventArgs<Exception>> Error;
+
         private TimerX _Timer;
         #endregion
 
@@ -151,7 +154,13 @@ namespace XCode
                         // 加入队列时已经Valid一次，这里不需要再次Valid
                         rs.Add(item.SaveWithoutValid());
                     }
-                    catch (Exception ex) { XTrace.WriteException(ex); }
+                    catch (Exception ex)
+                    {
+                        if (Error != null)
+                            Error(this, new EventArgs<Exception>(ex));
+                        else
+                            XTrace.WriteException(ex);
+                    }
                 }
 
                 if (useTrans) dal.Commit();
