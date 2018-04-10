@@ -123,6 +123,7 @@ namespace XCode.Membership
 
         #region 扩展属性
         /// <summary></summary>
+        [XmlIgnore, ScriptIgnore]
         public String Url2 => Url?.Replace("~", "");
 
         /// <summary>父菜单名</summary>

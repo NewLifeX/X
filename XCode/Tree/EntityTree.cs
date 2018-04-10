@@ -51,6 +51,7 @@ namespace XCode
         }
 
         /// <summary>子节点</summary>
+        [XmlIgnore, ScriptIgnore]
         public virtual IList<TEntity> Childs
         {
             get { return Extends.Get(nameof(Childs), e => FindChilds()); }
@@ -166,6 +167,7 @@ namespace XCode
 
         /// <summary>树形节点名，根据深度带全角空格前缀</summary>
         [DisplayName("节点名")]
+        [XmlIgnore, ScriptIgnore]
         public virtual String TreeNodeName
         {
             get
@@ -500,32 +502,32 @@ namespace XCode
             }
         }
 
-        /// <summary>批量保存，保存整棵树</summary>
-        /// <param name="saveSelf">是否保存自己</param>
-        /// <returns></returns>
-        public virtual Int32 BatchSave(Boolean saveSelf)
-        {
-            var count = 0;
+        ///// <summary>批量保存，保存整棵树</summary>
+        ///// <param name="saveSelf">是否保存自己</param>
+        ///// <returns></returns>
+        //public virtual Int32 BatchSave(Boolean saveSelf)
+        //{
+        //    var count = 0;
 
-            using (var trans = new EntityTransaction<TEntity>())
-            {
-                var list = Childs;
-                if (saveSelf) count += Save();
-                // 上面保存数据后，可能会引起扩展属性抖动（不断更新）
-                if (list != null && list.Count > 0)
-                {
-                    foreach (var item in list)
-                    {
-                        item[Setting.Parent] = this[Setting.Key];
-                        count += item.BatchSave(true);
-                    }
-                }
+        //    using (var trans = new EntityTransaction<TEntity>())
+        //    {
+        //        var list = Childs;
+        //        if (saveSelf) count += Save();
+        //        // 上面保存数据后，可能会引起扩展属性抖动（不断更新）
+        //        if (list != null && list.Count > 0)
+        //        {
+        //            foreach (var item in list)
+        //            {
+        //                item[Setting.Parent] = this[Setting.Key];
+        //                count += item.BatchSave(true);
+        //            }
+        //        }
 
-                trans.Commit();
+        //        trans.Commit();
 
-                return count;
-            }
-        }
+        //        return count;
+        //    }
+        //}
 
         /// <summary>排序上升</summary>
         public void Up()

@@ -401,10 +401,11 @@ namespace NewLife.Cube
         #region 高级Action
         /// <summary>数据接口</summary>
         /// <param name="id">令牌</param>
+        /// <param name="p">分页</param>
         /// <returns></returns>
         [AllowAnonymous]
         [DisplayName("数据接口")]
-        public virtual ActionResult Json(String id)
+        public virtual ActionResult Json(String id, Pager p)
         {
             if (id.IsNullOrEmpty()) id = Request["token"];
             if (id.IsNullOrEmpty()) id = Request["key"];
@@ -413,11 +414,8 @@ namespace NewLife.Cube
             {
                 var user = UserToken.Valid(id);
 
-                var p = new Pager
-                {
-                    // 需要总记录数来分页
-                    RetrieveTotalCount = true
-                };
+                // 需要总记录数来分页
+                p.RetrieveTotalCount = true;
 
                 var list = Search(p);
 
