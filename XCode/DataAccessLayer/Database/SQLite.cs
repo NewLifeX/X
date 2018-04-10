@@ -369,7 +369,7 @@ namespace XCode.DataAccessLayer
             catch (Exception ex) { XTrace.WriteException(ex); }
 
             rs += Execute("PRAGMA auto_vacuum = 1");
-            rs += Execute("VACUUM");
+            //rs += Execute("VACUUM");
 
             return rs;
         }
