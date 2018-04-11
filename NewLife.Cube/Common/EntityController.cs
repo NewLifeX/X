@@ -638,7 +638,7 @@ namespace NewLife.Cube
             var p = new Pager(Session[CacheKey] as Pager);
             if (p != null)
             {
-                p.PageIndex = 0;
+                p.PageIndex = 1;
                 p.PageSize = 100000;
                 // 不要查记录数
                 p.RetrieveTotalCount = false;

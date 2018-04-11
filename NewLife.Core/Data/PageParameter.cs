@@ -45,14 +45,12 @@ namespace NewLife.Data
         [XmlIgnore, ScriptIgnore]
         public virtual Boolean Desc { get; set; }
 
-        private Int32 _PageIndex = 1;
-        /// <summary>获取 或 设置 页面索引</summary>
+        /// <summary>获取 或 设置 页面索引。从1开始，默认1</summary>
         /// <remarks>如果设定了开始行，分页时将不再使用PageIndex</remarks>
-        public virtual Int32 PageIndex { get { return _PageIndex; } set { _PageIndex = value > 1 ? value : 1; } }
+        public virtual Int32 PageIndex { get; set; } = 1;
 
-        private Int32 _PageSize = 20;
-        /// <summary>获取 或 设置 页面大小</summary>
-        public virtual Int32 PageSize { get { return _PageSize; } set { _PageSize = value > 1 ? value : 20; } }
+        /// <summary>获取 或 设置 页面大小。默认20，若为0表示不分页</summary>
+        public virtual Int32 PageSize { get; set; } = 20;
         #endregion
 
         #region 扩展属性
