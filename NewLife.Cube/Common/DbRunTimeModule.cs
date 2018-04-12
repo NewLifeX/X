@@ -25,8 +25,8 @@ namespace NewLife.Cube
         }
         #endregion
 
-        /// <summary>上下文</summary>
-        public static HttpContext Context { get { return HttpContext.Current; } }
+        ///// <summary>上下文</summary>
+        //public static HttpContext Context { get { return HttpContext.Current; } }
 
         /// <summary>执行时间字符串</summary>
         public static String DbRunTimeFormat { get; set; } = "查询{0}次，执行{1}次，耗时{2:n0}毫秒";
@@ -37,11 +37,12 @@ namespace NewLife.Cube
         /// <summary>初始化模块，准备拦截请求。</summary>
         void OnInit()
         {
-            Context.Items[_QueryTimes] = DAL.QueryTimes;
-            Context.Items[_ExecuteTimes] = DAL.ExecuteTimes;
+            var ctx = HttpContext.Current;
+            ctx.Items[_QueryTimes] = DAL.QueryTimes;
+            ctx.Items[_ExecuteTimes] = DAL.ExecuteTimes;
 
             // 设计时收集执行的SQL语句
-            if (SysConfig.Current.Develop) Context.Items["XCode_SQLList"] = new List<String>();
+            if (SysConfig.Current.Develop) ctx.Items["XCode_SQLList"] = new List<String>();
         }
 
         private static Boolean _tip;
@@ -49,9 +50,10 @@ namespace NewLife.Cube
         /// <returns></returns>
         public static String GetInfo()
         {
-            var ts = DateTime.Now - HttpContext.Current.Timestamp;
+            var ctx = HttpContext.Current;
+            var ts = DateTime.Now - ctx.Timestamp;
 
-            if (!Context.Items.Contains(_QueryTimes) || !Context.Items.Contains(_ExecuteTimes))
+            if (!ctx.Items.Contains(_QueryTimes) || !ctx.Items.Contains(_ExecuteTimes))
             {
                 //throw new XException("设计错误！需要在web.config中配置{0}", typeof(DbRunTimeModule).FullName);
                 if (!_tip)
@@ -62,15 +64,15 @@ namespace NewLife.Cube
                 return null;
             }
 
-            var StartQueryTimes = (Int32)Context.Items[_QueryTimes];
-            var StartExecuteTimes = (Int32)Context.Items[_ExecuteTimes];
+            var StartQueryTimes = (Int32)ctx.Items[_QueryTimes];
+            var StartExecuteTimes = (Int32)ctx.Items[_ExecuteTimes];
 
             var inf = String.Format(DbRunTimeFormat, DAL.QueryTimes - StartQueryTimes, DAL.ExecuteTimes - StartExecuteTimes, ts.TotalMilliseconds);
 
             // 设计时收集执行的SQL语句
             if (SysConfig.Current.Develop)
             {
-                var list = Context.Items["XCode_SQLList"] as List<String>;
+                var list = ctx.Items["XCode_SQLList"] as List<String>;
                 if (list != null && list.Count > 0) inf += "<br />" + list.Select(e => HttpUtility.HtmlEncode(e)).Join("<br />" + Environment.NewLine);
             }
 
@@ -83,18 +85,9 @@ namespace NewLife.Cube
         {
             get
             {
-                //if (_Enable == null) _Enable = Config.GetConfig<Boolean>("NewLife.Cube.ShowRunTime", XTrace.Debug);
                 if (_Enable == null) _Enable = Setting.Current.ShowRunTime;
                 return _Enable.Value;
             }
         }
-
-        //public static void Init()
-        //{
-        //    if (Enable)
-        //    {
-        //        HttpApplication.RegisterModule();
-        //    }
-        //}
     }
 }
