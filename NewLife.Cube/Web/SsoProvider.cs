@@ -159,8 +159,8 @@ namespace NewLife.Cube.Web
                     // 0使用认证中心角色，-1强制使用
                     if (user2.RoleID <= 0 || rid < 0)
                     {
-                        user2.RoleID = GetRole(dic, rid < -1);
-                        user2.RoleIDs = GetRoles(client.Items, rid < -2).Join();
+                        user2.RoleID = GetRole(dic, rid <= -1);
+                        user2.RoleIDs = GetRoles(client.Items, rid <= -1).Join();
                     }
                 }
 
