@@ -216,11 +216,11 @@ namespace NewLife.Cube.Web
                     // 新注册用户采用魔方默认角色
                     var rid = set.DefaultRole;
                     //if (rid == 0 && client.Items.TryGetValue("roleid", out var roleid)) rid = roleid.ToInt();
-                    if (rid <= 0) rid = GetRole(client.Items, rid < -1);
+                    //if (rid <= 0) rid = GetRole(client.Items, rid < -1);
 
                     // 注册用户，随机密码
                     user = prv.Register(name, Rand.NextString(16), rid, true);
-                    if (user is UserX user2) user2.RoleIDs = GetRoles(client.Items, rid < -2).Join();
+                    //if (user is UserX user2) user2.RoleIDs = GetRoles(client.Items, rid < -2).Join();
                 }
             }
 
@@ -355,8 +355,8 @@ namespace NewLife.Cube.Web
                 }
             }
 
-            // 判断角色有效
-            if (dic.TryGetValue("RoleID", out var rid) && Role.FindByID(rid.ToInt()) != null) return rid.ToInt();
+            //// 判断角色有效
+            //if (dic.TryGetValue("RoleID", out var rid) && Role.FindByID(rid.ToInt()) != null) return rid.ToInt();
 
             return 0;
         }
@@ -383,8 +383,8 @@ namespace NewLife.Cube.Web
                 if (rs.Count > 0) return rs.ToArray();
             }
 
-            // 判断角色有效
-            if (dic.TryGetValue("RoleIDs", out var rids)) return rids.SplitAsInt().Where(e => Role.FindByID(e) != null).ToArray();
+            //// 判断角色有效
+            //if (dic.TryGetValue("RoleIDs", out var rids)) return rids.SplitAsInt().Where(e => Role.FindByID(e) != null).ToArray();
 
             return new Int32[0];
         }

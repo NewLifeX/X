@@ -573,14 +573,14 @@ namespace XCode.Membership
         [XmlIgnore, ScriptIgnore]
         public virtual IRole[] Roles => Extends.Get(nameof(Roles), k => GetRoleIDs().Select(e => ManageProvider.Get<IRole>()?.FindByID(e)).Where(e => e != null).ToArray());
 
-        /// <summary>获取角色列表</summary>
+        /// <summary>获取角色列表。主角色在前，其它角色升序在后</summary>
         /// <returns></returns>
         public virtual Int32[] GetRoleIDs()
         {
-            var ids = RoleIDs.SplitAsInt().Where(e => e > 0 && e != RoleID).Distinct().OrderBy(e => e).ToList();
+            var ids = RoleIDs.SplitAsInt().OrderBy(e => e).ToList();
             if (RoleID > 0) ids.Insert(0, RoleID);
 
-            return ids.ToArray();
+            return ids.Distinct().ToArray();
         }
 
         /// <summary>角色名</summary>
