@@ -127,7 +127,8 @@ namespace NewLife.Cube.Web
             // 登录成功，保存当前用户
             //prv.Current = user;
             prv.SetCurrent(user, context);
-            prv.SaveCookie(user);
+            // 单点登录不要保存Cookie，让它在Session过期时请求认证中心
+            //prv.SaveCookie(user);
             LogProvider.Provider.WriteLog(user.GetType(), client.Name, "单点登录", user.ID, user + "", req.UserHostAddress);
 
             return SuccessUrl;
