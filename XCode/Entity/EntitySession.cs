@@ -687,8 +687,8 @@ namespace XCode
             _singleCache?.Clear("Truncate");
             LongCount = 0;
 
-            // 重新初始化
-            hasCheckInitData = false;
+            //// 重新初始化
+            //hasCheckInitData = false;
 
             return rs;
         }
