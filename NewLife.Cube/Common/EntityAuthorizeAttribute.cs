@@ -69,6 +69,9 @@ namespace NewLife.Cube
             // 根据控制器定位资源菜单
             var menu = GetMenu(filterContext, create);
 
+            // 如果已经处理过，就不处理了
+            if (filterContext.Result != null) return;
+
             base.OnAuthorization(filterContext);
         }
 
@@ -82,14 +85,7 @@ namespace NewLife.Cube
 
             // 判断当前登录用户
             var user = prv.TryLogin();
-            if (user == null)
-            {
-                var retUrl = ctx.Request.Url?.PathAndQuery;
-
-                var rurl = "~/Admin/User/Login".AppendReturn(retUrl);
-                ctx.Response.Redirect(rurl);
-                return true;
-            }
+            if (user == null) return false;
 
             var menu = ctx.Items["CurrentMenu"] as IMenu;
 
@@ -106,9 +102,19 @@ namespace NewLife.Cube
         /// <param name="filterContext"></param>
         protected override void HandleUnauthorizedRequest(AuthorizationContext filterContext)
         {
-            var vr = filterContext.NoPermission(Permission);
+            // 来到这里，有可能没登录，有可能没权限
+            var prv = ManageProvider.Provider;
+            if (prv?.Current == null)
+            {
+                var retUrl = filterContext.HttpContext.Request.Url?.PathAndQuery;
 
-            filterContext.Result = vr;
+                var rurl = "~/Admin/User/Login".AppendReturn(retUrl);
+                filterContext.Result = new RedirectResult(rurl);
+            }
+            else
+            {
+                filterContext.Result = filterContext.NoPermission(Permission);
+            }
         }
 
         private IMenu GetMenu(AuthorizationContext filterContext, Boolean create)

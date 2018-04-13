@@ -142,7 +142,7 @@ namespace NewLife.Cube.Controllers
                 Session["Cube_Sso"] = client.Name;
                 Session["Cube_Sso_Client"] = client;
 
-                if (!returnUrl.IsNullOrEmpty()) return Redirect(returnUrl);
+                if (!returnUrl.IsNullOrEmpty()) url = returnUrl;
 
                 return Redirect(url);
             }

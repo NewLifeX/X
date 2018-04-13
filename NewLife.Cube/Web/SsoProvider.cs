@@ -58,6 +58,7 @@ namespace NewLife.Cube.Web
         public virtual String GetReturnUrl(HttpRequestBase request, Boolean referr)
         {
             var url = request["r"];
+            if (url.IsNullOrEmpty()) url = request["redirect_uri"];
             if (url.IsNullOrEmpty() && referr) url = request.UrlReferrer + "";
             if (!url.IsNullOrEmpty() && url.StartsWithIgnoreCase("http"))
             {
