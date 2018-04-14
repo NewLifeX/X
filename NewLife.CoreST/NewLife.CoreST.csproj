@@ -265,7 +265,6 @@
     <Folder Include="Serialization\Interface\" />
     <Folder Include="Serialization\Json\" />
     <Folder Include="Serialization\Xml\" />
-    <Folder Include="Stub\" />
     <Folder Include="Threading\" />
     <Folder Include="Web\Modules\" />
     <Folder Include="Web\OAuth\" />

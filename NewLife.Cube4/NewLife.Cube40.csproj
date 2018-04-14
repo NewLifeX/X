@@ -239,6 +239,9 @@
     <Compile Include="..\NewLife.Cube\Common\MvcHandleErrorAttribute.cs">
       <Link>Common\MvcHandleErrorAttribute.cs</Link>
     </Compile>
+    <Compile Include="..\NewLife.Cube\Common\NoPermissionException.cs">
+      <Link>Common\NoPermissionException.cs</Link>
+    </Compile>
     <Compile Include="..\NewLife.Cube\Common\ObjectController.cs">
       <Link>Common\ObjectController.cs</Link>
     </Compile>
@@ -262,6 +265,12 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>XCoder.tt</DependentUpon>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Entity\用户令牌.Biz.cs">
+      <Link>Entity\用户令牌.Biz.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Entity\用户令牌.cs">
+      <Link>Entity\用户令牌.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Cube\Entity\用户链接.Biz.cs">
       <Link>Entity\用户链接.Biz.cs</Link>
