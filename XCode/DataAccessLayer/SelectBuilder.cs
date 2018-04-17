@@ -240,12 +240,12 @@ $";
             var m = regexSelect.Match(sql);
             if (m != null && m.Success)
             {
-                Column = m.Groups["选择列"].Value;
-                Table = m.Groups["数据表"].Value;
-                Where = m.Groups["条件"].Value;
-                GroupBy = m.Groups["分组"].Value;
-                Having = m.Groups["分组条件"].Value;
-                OrderBy = m.Groups["排序"].Value;
+                Column = (m.Groups["选择列"].Value + "").Trim();
+                Table = (m.Groups["数据表"].Value + "").Trim();
+                Where = (m.Groups["条件"].Value + "").Trim();
+                GroupBy = (m.Groups["分组"].Value + "").Trim();
+                Having = (m.Groups["分组条件"].Value + "").Trim();
+                OrderBy = (m.Groups["排序"].Value + "").Trim();
                 //Limit = m.Groups["Limit"].Value;
 
                 return true;
@@ -265,10 +265,10 @@ $";
             sb.Append(ColumnOrDefault);
             sb.Append(" From ");
             sb.Append(Table);
-            if (!String.IsNullOrEmpty(Where)) sb.Append(" Where " + Where);
-            if (!String.IsNullOrEmpty(GroupBy)) sb.Append(" Group By " + GroupBy);
-            if (!String.IsNullOrEmpty(Having)) sb.Append(" Having " + Having);
-            if (!String.IsNullOrEmpty(OrderBy)) sb.Append(" Order By " + OrderBy);
+            if (!Where.IsNullOrEmpty()) sb.Append(" Where " + Where);
+            if (!GroupBy.IsNullOrEmpty()) sb.Append(" Group By " + GroupBy);
+            if (!Having.IsNullOrEmpty()) sb.Append(" Having " + Having);
+            if (!OrderBy.IsNullOrEmpty()) sb.Append(" Order By " + OrderBy);
             if (!Limit.IsNullOrEmpty()) sb.Append(Limit.EnsureStart(" "));
 
             return sb.ToString();
@@ -326,7 +326,7 @@ $";
         /// <returns></returns>
         public SelectBuilder AppendWhereAnd(String format, params Object[] args)
         {
-            if (!String.IsNullOrEmpty(Where))
+            if (!Where.IsNullOrEmpty())
             {
                 if (Where.Contains(" ") && Where.ToLower().Contains("or"))
                     Where = String.Format("({0}) And ", Where);

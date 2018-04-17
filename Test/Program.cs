@@ -20,6 +20,7 @@ using NewLife.Common;
 using NewLife.Data;
 using NewLife.Http;
 using NewLife.Log;
+using NewLife.Model;
 using NewLife.Net;
 using NewLife.Reflection;
 using NewLife.Remoting;
@@ -76,6 +77,24 @@ namespace Test
         private static Int32 ths = 0;
         static void Test1()
         {
+            //var orc = ObjectContainer.Current.ResolveInstance<IDatabase>(DatabaseType.Oracle);
+            var db = DbFactory.Create(DatabaseType.Oracle);
+            var sql = "select * from table where date>1234 ";
+            var sb = new SelectBuilder();
+            sb.Parse(sql);
+
+            Console.WriteLine(db.PageSplit(sb, 0, 20));
+            Console.WriteLine(db.PageSplit(sb, 20, 0));
+            Console.WriteLine(db.PageSplit(sb, 20, 30));
+
+            sql = "select * from table where date>1234 order by cc";
+            sb = new SelectBuilder();
+            sb.Parse(sql);
+
+            Console.WriteLine(db.PageSplit(sb, 0, 20));
+            Console.WriteLine(db.PageSplit(sb, 20, 0));
+            Console.WriteLine(db.PageSplit(sb, 20, 30));
+
             //EntityBuilder.Build("DataCockpit.xml");
 
             //Role.Meta.Session.Dal.Db.Readonly = true;

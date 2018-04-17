@@ -108,15 +108,17 @@ namespace XCode.DataAccessLayer
             // 从第一行开始
             if (startRowIndex <= 0)
             {
-                if (maximumRows > 0) sql = String.Format("Select * From ({1}) XCode_T0 Where rownum<={0}", maximumRows, sql);
+                if (maximumRows <= 0) return sql;
+
+                if (!sql.ToLower().Contains("order by")) return "Select * From ({1}) T0 Where rownum<={0}".F(maximumRows, sql);
             }
-            else
-            {
-                if (maximumRows <= 0)
-                    sql = String.Format("Select * From ({1}) XCode_T0 Where rownum>={0}", startRowIndex + 1, sql);
-                else
-                    sql = String.Format("Select * From (Select XCode_T0.*, rownum as rowNumber From ({1}) XCode_T0 Where rownum<={2}) XCode_T1 Where rowNumber>{0}", startRowIndex, sql, startRowIndex + maximumRows);
-            }
+
+            //if (maximumRows <= 0)
+            //    sql = String.Format("Select * From ({1}) XCode_T0 Where rownum>={0}", startRowIndex + 1, sql);
+            //else
+            sql = "Select * From (Select T0.*, rownum as rowNumber From ({1}) T0) T1 Where rowNumber>{0}".F(startRowIndex, sql);
+            if (maximumRows > 0) sql += " And rowNumber<={0}".F(startRowIndex + maximumRows);
+
             return sql;
         }
 
@@ -132,17 +134,33 @@ namespace XCode.DataAccessLayer
         /// <returns>分页SQL</returns>
         public override SelectBuilder PageSplit(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows)
         {
+            /*
+             * Oracle的rownum分页，在内层有Order By非主键排序时，外层的rownum会优先生效，
+             * 导致排序字段有相同值时无法在多次查询中保持顺序，（Oracle算法参数会改变）。
+             * 其一，可以在排序字段后加上主键，确保排序内容唯一；
+             * 其二，可以在第二层提前取得rownum，然后在第三层外使用；
+             * 
+             * 原分页算法始于2005年，只有在特殊情况下遇到分页出现重复数据的BUG：
+             * 排序、排序字段不包含主键且不唯一、排序字段拥有相同数值的数据行刚好被分到不同页上
+             */
+
             // 从第一行开始，不需要分页
             if (startRowIndex <= 0)
             {
-                if (maximumRows > 0) builder = builder.AsChild("XCode_T0", false).AppendWhereAnd("rownum<={0}", maximumRows);
-                return builder;
-            }
-            if (maximumRows < 1) return builder.AsChild("XCode_T0", false).AppendWhereAnd("rownum>={0}", startRowIndex + 1);
+                if (maximumRows <= 0) return builder;
 
-            builder = builder.AsChild("XCode_T0", false).AppendWhereAnd("rownum<={0}", startRowIndex + maximumRows);
-            builder.Column = "XCode_T0.*, rownum as rowNumber";
-            builder = builder.AsChild("XCode_T1", false).AppendWhereAnd("rowNumber>{0}", startRowIndex);
+                // 如果带有排序，需要生成完整语句
+                if (builder.OrderBy.IsNullOrEmpty()) return builder.AsChild("T0", false).AppendWhereAnd("rownum<={0}", maximumRows);
+
+                //if (maximumRows < 1) return builder.AsChild("XCode_T0", false).AppendWhereAnd("rownum>={0}", startRowIndex + 1);
+            }
+
+            builder = builder.AsChild("T0", false);
+            //builder.AppendWhereAnd("rownum<={0}", startRowIndex + maximumRows);
+            builder.Column = "T0.*, rownum as rowNumber";
+            builder = builder.AsChild("T1", false);
+            builder.AppendWhereAnd("rowNumber>{0}", startRowIndex);
+            if (maximumRows > 0) builder.AppendWhereAnd("rowNumber<={0}", startRowIndex + maximumRows);
 
             return builder;
         }
