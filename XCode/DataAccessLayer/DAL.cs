@@ -110,7 +110,7 @@ namespace XCode.DataAccessLayer
                             cs.Add(name, set.ConnectionString);
                             _connTypes.Add(name, type);
                         }
-                    }
+                    }           
                     _connStrs = cs;
 #else
                     var file = "web.config".GetFullPath();
@@ -139,6 +139,31 @@ namespace XCode.DataAccessLayer
                                 cs.Add(name, constr);
                                 _connTypes.Add(name, type);
                             }
+                        }
+                    }
+
+                    var settings = "appsettings.json".GetFullPath();
+                    if (File.Exists(settings))
+                    {
+                        // 读取配置文件
+
+                        var css2 = new ConfigurationBuilder().AddJsonFile(settings).Build().GetSection("AppSettings")
+                                   .GetSection("connectionStrings");
+                        if (css2 != null)
+                        {
+                            foreach (var item in css2.GetChildren())
+                            {
+                                var name = item["name"];
+                                var constr = item["connectionString"];
+                                var provider = item["providerName"];
+
+                                var type = DbFactory.GetProviderType(constr, provider);
+                                if (type == null) XTrace.WriteLine("无法识别{0}的提供者{1}！", name, provider);
+
+                                cs.Add(name, constr);
+                                _connTypes.Add(name, type);
+                            }
+
                         }
                     }
                     _connStrs = cs;
