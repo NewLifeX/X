@@ -190,6 +190,9 @@ namespace XCode.Membership
             var context = HttpContext.Current;
             var ss = context?.Session;
             ss?.Clear();
+
+            // 销毁Cookie
+            this.SaveCookie(null, TimeSpan.FromDays(-1));
         }
 
         /// <summary>注册用户</summary>
@@ -279,26 +282,29 @@ namespace XCode.Membership
             var user = User<TUser>.Login(name, password, rememberme);
 
             Current = user;
-            this.SaveCookie(user);
+
+            var expire = TimeSpan.FromDays(0);
+            if (rememberme && user != null) expire = TimeSpan.FromDays(365);
+            this.SaveCookie(user, expire);
 
 #if !__CORE__
-            if (rememberme && user != null)
-            {
-                var cookie = HttpContext.Current.Response.Cookies[CookieKey];
-                if (cookie != null) cookie.Expires = DateTime.Now.Date.AddYears(1);
-            }
+            //if (rememberme && user != null) this.SetCookie(TimeSpan.FromDays(365));
+            //{
+            //    var cookie = HttpContext.Current.Response.Cookies[CookieKey];
+            //    if (cookie != null) cookie.Expires = DateTime.Now.Date.AddYears(1);
+            //}
 #endif
 
             return user;
         }
 
-        /// <summary>注销</summary>
-        public override void Logout()
-        {
-            base.Logout();
+        ///// <summary>注销</summary>
+        //public override void Logout()
+        //{
+        //    base.Logout();
 
-            this.SaveCookie(null);
-        }
+        //    this.SaveCookie(null);
+        //}
 
         /// <summary>注册用户</summary>
         /// <param name="name">用户名</param>
@@ -400,7 +406,12 @@ namespace XCode.Membership
 
             var user = HttpUtility.UrlDecode(cookie["u"]);
             var pass = cookie["p"];
-            if (user.IsNullOrEmpty() || pass.IsNullOrEmpty()) return null;
+            var exp = cookie["e"].ToInt(-1);
+            if (user.IsNullOrEmpty() || pass.IsNullOrEmpty() || exp <= 0) return null;
+
+            // 判断有效期
+            var expire = new DateTime(1970, 1, 1).AddSeconds(exp);
+            if (expire < DateTime.Now) return null;
 
             var u = provider.FindByName(user);
             if (u == null || !u.Enable) return null;
@@ -412,7 +423,7 @@ namespace XCode.Membership
             if (autologin)
             {
                 mu.SaveLogin(null);
-                LogProvider.Provider.WriteLog("用户", "自动登录", user + "", u.ID, u + "");
+                LogProvider.Provider.WriteLog("用户", "自动登录", user + " Expire=" + expire.ToFullString(), u.ID, u + "");
             }
 
             return u;
@@ -423,9 +434,10 @@ namespace XCode.Membership
 
         /// <summary>保存用户信息到Cookie</summary>
         /// <param name="provider">提供者</param>
-        /// <param name="user"></param>
+        /// <param name="user">用户</param>
+        /// <param name="expire">过期时间</param>
         /// <param name="context">Http上下文，兼容NetCore</param>
-        public static void SaveCookie(this IManageProvider provider, IManageUser user, IServiceProvider context = null)
+        public static void SaveCookie(this IManageProvider provider, IManageUser user, TimeSpan expire, IServiceProvider context = null)
         {
 #if !__CORE__
             if (context == null) context = HttpContext.Current;
@@ -447,6 +459,14 @@ namespace XCode.Membership
                     cookie.HttpOnly = true;
                     cookie["u"] = u;
                     cookie["p"] = p;
+
+                    // 过期时间
+                    if (expire.TotalSeconds >= 1)
+                    {
+                        var exp = DateTime.Now.Add(expire);
+                        cookie.Expires = exp;
+                        cookie["e"] = (Int32)((exp - new DateTime(1970, 1, 1)).TotalSeconds) + "";
+                    }
                 }
             }
             else
@@ -457,6 +477,26 @@ namespace XCode.Membership
             }
 #endif
         }
+
+        ///// <summary>设置会话超时时间</summary>
+        ///// <param name="provider">提供者</param>
+        ///// <param name="expire"></param>
+        ///// <param name="context">Http上下文，兼容NetCore</param>
+        //public static void SetCookie(this IManageProvider provider, TimeSpan expire, IServiceProvider context = null)
+        //{
+        //    var key = GetCookieKey(provider);
+
+        //    if (context == null) context = HttpContext.Current;
+        //    var res = context?.GetService<HttpResponse>();
+
+        //    var cookie = res.Cookies[key];
+        //    if (cookie != null)
+        //    {
+        //        var exp = DateTime.Now.Add(expire);
+        //        cookie.Expires = exp;
+        //        cookie["e"] = (Int32)((exp - new DateTime(1970, 1, 1)).TotalSeconds) + "";
+        //    }
+        //}
         #endregion
     }
 }

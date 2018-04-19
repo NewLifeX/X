@@ -51,6 +51,10 @@ namespace NewLife.Cube
         [Description("强行绑定用户。根据OAuth登录返回用户名强项绑定本地同名用户，而不需要增加提供者前缀")]
         public Boolean ForceBindUser { get; set; }
 
+        /// <summary>会话超时。单点登录后会话超时时间，该时间内可借助Cookie登录，默认0s</summary>
+        [Description("会话超时。单点登录后会话超时时间，该时间内可借助Cookie登录，默认0s")]
+        public Int32 SessionTimeout { get; set; } = 0;
+
         /// <summary>登录提示。留空表示不显示登录提示信息</summary>
         [Description("登录提示。留空表示不显示登录提示信息")]
         public String LoginTip { get; set; }

@@ -130,6 +130,9 @@ namespace NewLife.Cube.Web
             prv.SetCurrent(user, context);
             // 单点登录不要保存Cookie，让它在Session过期时请求认证中心
             //prv.SaveCookie(user);
+            var set = Setting.Current;
+            if (set.SessionTimeout > 0) prv.SaveCookie(user, TimeSpan.FromSeconds(set.SessionTimeout), context);
+
             LogProvider.Provider.WriteLog(user.GetType(), client.Name, "单点登录", user.ID, user + "", req.UserHostAddress);
 
             return SuccessUrl;
