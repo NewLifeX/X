@@ -344,7 +344,7 @@ namespace NewLife.Cube.Web
         private Int32 GetRole(IDictionary<String, String> dic, Boolean create)
         {
             // 先找RoleName，再找RoleID
-            if (dic.TryGetValue("RoleName", out var name))
+            if (dic.TryGetValue("RoleName", out var name) && !name.IsNullOrEmpty())
             {
                 var r = Role.FindByName(name);
                 if (r != null) return r.ID;
