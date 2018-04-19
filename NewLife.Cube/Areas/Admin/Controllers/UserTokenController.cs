@@ -40,61 +40,12 @@ namespace NewLife.Cube.Admin.Controllers
             return UserToken.Search(token, userid, null, p["dtStart"].ToDateTime(), p["dtEnd"].ToDateTime(), p);
         }
 
-        ///// <summary>新增时</summary>
-        ///// <param name="entity"></param>
-        ///// <returns></returns>
-        //protected override Int32 OnInsert(UserToken entity)
-        //{
-        //    // 强制当前用户
-        //    if (entity.UserID <= 0)
-        //    {
-        //        var user = ManageProvider.Provider?.Current;
-        //        entity.UserID = user.ID;
-        //    }
-
-        //    return base.OnInsert(entity);
-        //}
-
-        ///// <summary>更新时</summary>
-        ///// <param name="entity"></param>
-        ///// <returns></returns>
-        //protected override Int32 OnUpdate(UserToken entity)
-        //{
-        //    var user = ManageProvider.Provider?.Current;
-        //    if (entity.UserID != user.ID) throw new InvalidOperationException("越权访问数据！");
-
-        //    return base.OnUpdate(entity);
-        //}
-
-        ///// <summary>删除时</summary>
-        ///// <param name="entity"></param>
-        ///// <returns></returns>
-        //protected override Int32 OnDelete(UserToken entity)
-        //{
-        //    var user = ManageProvider.Provider?.Current;
-        //    if (entity.UserID != user.ID) throw new InvalidOperationException("越权访问数据！");
-
-        //    return base.OnDelete(entity);
-        //}
-
-        ///// <summary>查找</summary>
-        ///// <param name="key"></param>
-        ///// <returns></returns>
-        //protected override UserToken Find(Object key)
-        //{
-        //    var entity = base.Find(key);
-
-        //    var user = ManageProvider.Provider?.Current;
-        //    if (entity.UserID != user.ID) throw new InvalidOperationException("越权访问数据！");
-
-        //    return entity;
-        //}
-
         /// <summary>验证权限</summary>
-        /// <param name="entity"></param>
-        /// <param name="type"></param>
+        /// <param name="entity">实体对象</param>
+        /// <param name="type">操作类型</param>
+        /// <param name="post">是否提交数据阶段</param>
         /// <returns></returns>
-        protected override Boolean ValidPermission(UserToken entity, DataObjectMethodType type)
+        protected override Boolean ValidPermission(UserToken entity, DataObjectMethodType type, Boolean post)
         {
             var user = ManageProvider.Provider?.Current;
 

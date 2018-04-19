@@ -209,7 +209,7 @@ namespace NewLife.Cube
             if (entity.IsNullKey) throw new XException("要查看的数据[{0}]不存在！", id);
 
             // 验证数据权限
-            Valid(entity, DataObjectMethodType.Select);
+            Valid(entity, DataObjectMethodType.Select, false);
 
             // Json输出
             if (IsJsonRequest) return JsonOK(entity, new { id });
@@ -227,7 +227,7 @@ namespace NewLife.Cube
             var url = Request.UrlReferrer + "";
 
             var entity = Find(id);
-            Valid(entity, DataObjectMethodType.Delete);
+            Valid(entity, DataObjectMethodType.Delete, true);
 
             OnDelete(entity);
 
@@ -256,7 +256,7 @@ namespace NewLife.Cube
             }
 
             // 验证数据权限
-            Valid(entity, DataObjectMethodType.Insert);
+            Valid(entity, DataObjectMethodType.Insert, false);
 
             // 记下添加前的来源页，待会添加成功以后跳转
             Session["Cube_Add_Referrer"] = Request.UrlReferrer.ToString();
@@ -275,7 +275,7 @@ namespace NewLife.Cube
             // 检测避免乱用Add/id
             if (Factory.Unique.IsIdentity && entity[Factory.Unique.Name].ToInt() != 0) throw new Exception("我们约定添加数据时路由id部分默认没有数据，以免模型绑定器错误识别！");
 
-            if (!Valid(entity, DataObjectMethodType.Insert))
+            if (!Valid(entity, DataObjectMethodType.Insert, true))
             {
                 ViewBag.StatusMessage = "验证失败！";
                 return FormView(entity);
@@ -328,7 +328,7 @@ namespace NewLife.Cube
             if (entity.IsNullKey) throw new XException("要编辑的数据[{0}]不存在！", id);
 
             // 验证数据权限
-            Valid(entity, DataObjectMethodType.Update);
+            Valid(entity, DataObjectMethodType.Update, false);
 
             // Json输出
             if (IsJsonRequest) return JsonOK(entity, new { id });
@@ -344,7 +344,7 @@ namespace NewLife.Cube
         [ValidateInput(false)]
         public virtual ActionResult Edit(TEntity entity)
         {
-            if (!Valid(entity, DataObjectMethodType.Update))
+            if (!Valid(entity, DataObjectMethodType.Update, true))
             {
                 ViewBag.StatusMessage = "验证失败！";
                 return FormView(entity);
@@ -614,7 +614,7 @@ namespace NewLife.Cube
                         if (entity != null)
                         {
                             // 验证数据权限
-                            Valid(entity, DataObjectMethodType.Delete);
+                            Valid(entity, DataObjectMethodType.Delete, true);
 
                             entity.Delete();
                             count++;
@@ -651,7 +651,7 @@ namespace NewLife.Cube
                     foreach (var entity in list)
                     {
                         // 验证数据权限
-                        Valid(entity, DataObjectMethodType.Delete);
+                        Valid(entity, DataObjectMethodType.Delete, true);
 
                         entity.Delete();
                     }
@@ -741,12 +741,13 @@ namespace NewLife.Cube
         protected virtual Int32 OnDelete(TEntity entity) => entity.Delete();
 
         /// <summary>验证实体对象</summary>
-        /// <param name="entity"></param>
-        /// <param name="type"></param>
+        /// <param name="entity">实体对象</param>
+        /// <param name="type">操作类型</param>
+        /// <param name="post">是否提交数据阶段</param>
         /// <returns></returns>
-        protected virtual Boolean Valid(TEntity entity, DataObjectMethodType type)
+        protected virtual Boolean Valid(TEntity entity, DataObjectMethodType type, Boolean post)
         {
-            if (!ValidPermission(entity, type))
+            if (!ValidPermission(entity, type, post))
             {
                 switch (type)
                 {
@@ -761,10 +762,11 @@ namespace NewLife.Cube
         }
 
         /// <summary>验证实体对象</summary>
-        /// <param name="entity"></param>
-        /// <param name="type"></param>
+        /// <param name="entity">实体对象</param>
+        /// <param name="type">操作类型</param>
+        /// <param name="post">是否提交数据阶段</param>
         /// <returns></returns>
-        protected virtual Boolean ValidPermission(TEntity entity, DataObjectMethodType type) => true;
+        protected virtual Boolean ValidPermission(TEntity entity, DataObjectMethodType type, Boolean post) => true;
         #endregion
 
         #region 列表字段和表单字段
