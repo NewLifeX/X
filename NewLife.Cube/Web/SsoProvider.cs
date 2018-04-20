@@ -193,6 +193,7 @@ namespace NewLife.Cube.Web
 
                 // 先找用户名，如果存在，就加上提供者前缀，直接覆盖
                 var name = client.UserName;
+                if (name.IsNullOrEmpty()) name = client.NickName;
                 if (!name.IsNullOrEmpty())
                 {
                     user = prv.FindByName(name);
