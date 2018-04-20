@@ -55,7 +55,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test1();
+                test6();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -138,7 +138,7 @@ namespace Test
 
             Console.WriteLine("入队：");
             var ps = new List<String>();
-            for (int i = 0; i < 5; i++)
+            for (var i = 0; i < 5; i++)
             {
                 var str = Rand.NextString(6);
                 ps.Add(str);
@@ -183,5 +183,17 @@ namespace Test
             ip = ip.IPToAddress();
             Console.WriteLine(ip);
         }
+        static void test6()
+        {
+            var ser = new ApiServer(3344);
+            ser.Log = XTrace.Log;
+            ser.Start();
+
+            while (true)
+            {
+
+            }
+        }
     }
+
 }

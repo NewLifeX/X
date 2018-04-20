@@ -16,8 +16,8 @@ namespace NewLife.Net
 
         public Int32 BufferSize { get; private set; }
 
-        private SocketAsyncEventArgs _seSend;
-        private Int32 _Sending;
+        private ConcurrentQueue<SocketAsyncEventArgs> _seSendPool = new ConcurrentQueue<SocketAsyncEventArgs>();
+
         private ConcurrentQueue<QueueItem> _SendQueue = new ConcurrentQueue<QueueItem>();
         #endregion
 
@@ -97,9 +97,12 @@ namespace NewLife.Net
 
         internal void Release(String reason)
         {
-            _seSend.TryDispose();
-            _seSend = null;
-
+            foreach (var item in _seSendPool)
+            {
+                item.Dispose();
+            }
+            _seSendPool.TryDispose();
+            _seSendPool = null;
             Session.WriteLog("释放SendSA {0} {1}", 1, reason);
         }
 
@@ -112,18 +115,19 @@ namespace NewLife.Net
             if (qu.IsEmpty) return;
 
             // 如果没有在发送，就开始发送
-            if (Interlocked.CompareExchange(ref _Sending, 1, 0) != 0) return;
+            //if (Interlocked.CompareExchange(ref _Sending, 1, 0) != 0) return;
 
             QueueItem qi = null;
             if (!qu.TryDequeue(out qi)) return;
 
-            var se = _seSend;
-            if (se == null)
+            SocketAsyncEventArgs se;
+            if (!_seSendPool.TryDequeue(out se))
             {
                 var buf = new Byte[BufferSize];
-                se = _seSend = new SocketAsyncEventArgs();
+                se = new SocketAsyncEventArgs();
                 se.SetBuffer(buf, 0, buf.Length);
                 se.Completed += (s, e) => Process(e);
+                _seSendPool.Enqueue(se);
 
                 Session.WriteLog("创建SendSA {0}", 1);
             }
@@ -153,7 +157,17 @@ namespace NewLife.Net
                 if (!qu.TryDequeue(out qi)) break;
             }
 
-            se.SetBuffer(0, p);
+            try
+            {
+                se.SetBuffer(0, p);
+            }
+            catch (Exception e)
+            {
+                Session.WriteLog("SendSAErr {0}", e.Message);
+                //未测试下面这句
+                //Check(false);
+                return;
+            }
 
             if (!Session.OnSendAsync(se))
             {
@@ -190,9 +204,10 @@ namespace NewLife.Net
                     return;
                 }
             }
-
+            //回收se
+            _seSendPool.Enqueue(se);
             // 发送新的数据
-            if (Interlocked.CompareExchange(ref _Sending, 0, 1) == 1) Check(true);
+            // if (Interlocked.CompareExchange(ref _Sending, 0, 1) == 1) Check(true);
         }
         #endregion
 
