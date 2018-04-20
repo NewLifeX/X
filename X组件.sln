@@ -8,6 +8,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Others", "Others", "{32891F
 		.editorconfig = .editorconfig
 		.gitignore = .gitignore
 		Readme.MD = Readme.MD
+		XCode\Readme.MD = XCode\Readme.MD
 		发布NuGet.cs = 发布NuGet.cs
 	EndProjectSection
 EndProject
