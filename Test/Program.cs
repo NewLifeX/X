@@ -19,6 +19,7 @@ using NewLife.Collections;
 using NewLife.Common;
 using NewLife.Data;
 using NewLife.Http;
+using NewLife.Json;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Net;
@@ -55,7 +56,7 @@ namespace Test
                 try
                 {
 #endif
-                test6();
+                    Test5();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -183,16 +184,10 @@ namespace Test
             ip = ip.IPToAddress();
             Console.WriteLine(ip);
         }
-        static void test6()
+
+        static void Test5()
         {
-            var ser = new ApiServer(3344);
-            ser.Log = XTrace.Log;
-            ser.Start();
-
-            while (true)
-            {
-
-            }
+            JsonConfigTest.Start();
         }
     }
 
