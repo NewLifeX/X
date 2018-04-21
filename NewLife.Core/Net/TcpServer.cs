@@ -54,8 +54,8 @@ namespace NewLife.Net
         /// <summary>启用Http，数据处理时截去请求响应头，默认false</summary>
         public Boolean EnableHttp { get; set; }
 
-        /// <summary>粘包处理接口</summary>
-        public IPacketFactory SessionPacket { get; set; }
+        ///// <summary>粘包处理接口</summary>
+        //public IPacketFactory SessionPacket { get; set; }
 
         /// <summary>会话统计</summary>
         public IStatistics StatSession { get; set; } = new Statistics();
@@ -293,7 +293,7 @@ namespace NewLife.Net
             session.LogReceive = LogReceive;
             session.StatSend.Parent = StatSend;
             session.StatReceive.Parent = StatReceive;
-            session.Packet = SessionPacket?.Create();
+            //session.Packet = SessionPacket?.Create();
             session.ProcessAsync = ProcessAsync;
 
             return session;

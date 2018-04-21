@@ -33,8 +33,8 @@ namespace NewLife.Net
         /// <summary>会话统计</summary>
         public IStatistics StatSession { get; set; }
 
-        /// <summary>粘包处理接口</summary>
-        public IPacketFactory SessionPacket { get; set; }
+        ///// <summary>粘包处理接口</summary>
+        //public IPacketFactory SessionPacket { get; set; }
         #endregion
 
         #region 构造
@@ -166,10 +166,10 @@ namespace NewLife.Net
             }
         }
 
-        /// <summary>发送数据包到目的地址</summary>
-        /// <param name="pk"></param>
-        /// <returns></returns>
-        public override async Task<Packet> SendAsync(Packet pk) => await SendAsync(pk, Remote.EndPoint, true);
+        ///// <summary>发送数据包到目的地址</summary>
+        ///// <param name="pk"></param>
+        ///// <returns></returns>
+        //public override async Task<Packet> SendAsync(Packet pk) => await SendAsync(pk, Remote.EndPoint, true);
 
         /// <summary>发送数据包到目的地址</summary>
         /// <param name="pk"></param>
@@ -190,7 +190,7 @@ namespace NewLife.Net
 
             //if (Packet == null) Packet = new PacketProvider();
 
-            var task = !wait ? null : Packet.Add(pk, remote, Timeout);
+            var task = !wait ? null : Protocol.Add(pk, remote, Timeout);
 
             // 这里先发送，基类的SendAsync注定发给Remote而不是remote
             if (!OnSend(pk, remote)) return null;
@@ -349,7 +349,7 @@ namespace NewLife.Net
                     // UDP不好分会话统计
                     //us.StatSend.Parent = StatSend;
                     //us.StatReceive.Parent = StatReceive;
-                    Packet = SessionPacket?.Create()
+                    //Packet = SessionPacket?.Create()
                 };
 
                 session = us;

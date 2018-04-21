@@ -133,7 +133,7 @@ namespace NewLife.Http
                         Response = header = res;
 
                         // 握手响应包
-                        if (IsWebSocket && pk.Count == 0) Packet?.Match(pk, remote);
+                        if (IsWebSocket && pk.Count == 0) Protocol?.Match(pk, remote);
 
 #if DEBUG
                         WriteLog(" {0} {1} {2}", (Int32)header.StatusCode, header.StatusCode, header.ContentLength);

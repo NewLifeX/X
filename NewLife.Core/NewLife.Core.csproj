@@ -153,6 +153,7 @@
     <Compile Include="Net\INetSession.cs" />
     <Compile Include="Net\IPacket.cs" />
     <Compile Include="Net\IPacketQueue.cs" />
+    <Compile Include="Net\IProtocol.cs" />
     <Compile Include="Net\ISocket.cs" />
     <Compile Include="Net\ISocketServer.cs" />
     <Compile Include="Net\ISocketClient.cs" />

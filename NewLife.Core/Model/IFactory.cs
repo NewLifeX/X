@@ -20,9 +20,6 @@ namespace NewLife.Model
         /// <summary>创建对象实例</summary>
         /// <param name="args"></param>
         /// <returns></returns>
-        public virtual T Create(Object args = null)
-        {
-            return (T)typeof(T).CreateInstance();
-        }
+        public virtual T Create(Object args = null) => (T)typeof(T).CreateInstance();
     }
 }

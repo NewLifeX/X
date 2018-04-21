@@ -256,7 +256,7 @@ namespace NewLife.Net
         #endregion
 
         #region 接收
-        /// <summary>接收数据。不建议使用，通过SendAsync(null)拦截收到的数据包</summary>
+        /// <summary>接收数据</summary>
         /// <returns></returns>
         public virtual Packet Receive()
         {
@@ -264,10 +264,15 @@ namespace NewLife.Net
 
             if (!Open()) return null;
 
-            var task = SendAsync((Packet)null);
-            if (Timeout > 0 && !task.Wait(Timeout)) return null;
+            //var task = SendAsync((Packet)null);
+            //if (Timeout > 0 && !task.Wait(Timeout)) return null;
 
-            return task.Result;
+            //return task.Result;
+
+            var buf = new Byte[BufferSize];
+            var size = Client.Receive(buf);
+
+            return new Packet(buf, 0, size);
         }
 
         /// <summary>当前异步接收个数</summary>
@@ -431,7 +436,7 @@ namespace NewLife.Net
         {
             try
             {
-                var pt = Packet;
+                var pt = Protocol;
                 if (pt == null)
                     OnReceive(pk, remote);
                 else
@@ -466,11 +471,13 @@ namespace NewLife.Net
         /// <returns>是否已处理，已处理的数据不再向下传递</returns>
         protected virtual Boolean OnReceive(Packet pk, IPEndPoint remote)
         {
-            var pt = Packet;
+            var pt = Protocol;
             if (pt == null) return false;
 
             // 同步匹配
             return pt.Match(pk, remote);
+
+            //return true;
         }
 
         /// <summary>数据到达事件</summary>
@@ -485,24 +492,24 @@ namespace NewLife.Net
 
             Received?.Invoke(sender, e);
 
-            var pt = Packet;
-            if (pt != null && e.Packet != null && MessageReceived != null)
-            {
-                var msg = pt.LoadMessage(e.Packet);
-                var me = new MessageEventArgs
-                {
-                    Packet = e.Packet,
-                    UserState = e.UserState,
-                    Message = msg
-                };
-                MessageReceived(sender, me);
-            }
+            //var pt = Packet;
+            //if (pt != null && e.Packet != null && MessageReceived != null)
+            //{
+            //    var msg = pt.LoadMessage(e.Packet);
+            //    var me = new MessageEventArgs
+            //    {
+            //        Packet = e.Packet,
+            //        UserState = e.UserState,
+            //        Message = msg
+            //    };
+            //    MessageReceived(sender, me);
+            //}
         }
         #endregion
 
         #region 数据包处理
-        /// <summary>粘包处理接口</summary>
-        public IPacket Packet { get; set; } = new PacketProvider();
+        /// <summary>协议实现</summary>
+        public IProtocol Protocol { get; set; }
 
         /// <summary>异步发送数据</summary>
         /// <param name="pk">要发送的数据</param>
@@ -510,37 +517,39 @@ namespace NewLife.Net
         public virtual async Task<Packet> SendAsync(Packet pk)
         {
             //if (Packet == null) Packet = new PacketProvider();
+            var pt = Protocol;
+            if (pt == null) throw new ArgumentNullException(nameof(Protocol));
 
-            var task = Packet.Add(pk, Remote.EndPoint, Timeout);
+            var task = pt.Add(pk, Remote.EndPoint, Timeout);
 
             if (pk != null && !Send(pk)) return null;
 
             return await task;
         }
 
-        /// <summary>发送消息并等待响应</summary>
-        /// <param name="msg"></param>
-        /// <returns></returns>
-        public virtual async Task<IMessage> SendAsync(IMessage msg)
-        {
-            if (msg == null) throw new ArgumentNullException(nameof(msg));
+        ///// <summary>发送消息并等待响应</summary>
+        ///// <param name="msg"></param>
+        ///// <returns></returns>
+        //public virtual async Task<IMessage> SendAsync(IMessage msg)
+        //{
+        //    if (msg == null) throw new ArgumentNullException(nameof(msg));
 
-            var pk = msg.ToPacket();
-            //if (Packet == null) Packet = new PacketProvider();
-            var pt = Packet;
+        //    var pk = msg.ToPacket();
+        //    //if (Packet == null) Packet = new PacketProvider();
+        //    var pt = Packet;
 
-            var task = msg.Reply ? null : pt.Add(pk, Remote.EndPoint, Timeout);
+        //    var task = msg.Reply ? null : pt.Add(pk, Remote.EndPoint, Timeout);
 
-            if (!Send(pk)) return null;
+        //    if (!Send(pk)) return null;
 
-            // 如果是响应包，直接返回不等待
-            if (msg.Reply) return null;
+        //    // 如果是响应包，直接返回不等待
+        //    if (msg.Reply) return null;
 
-            return pt.LoadMessage(await task);
-        }
+        //    return pt.LoadMessage(await task);
+        //}
 
-        /// <summary>消息到达事件</summary>
-        public event EventHandler<MessageEventArgs> MessageReceived;
+        ///// <summary>消息到达事件</summary>
+        //public event EventHandler<MessageEventArgs> MessageReceived;
         #endregion
 
         #region 异常处理

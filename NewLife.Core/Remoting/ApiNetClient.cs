@@ -54,7 +54,7 @@ namespace NewLife.Remoting
         public Boolean Open()
         {
             var ct = Client;
-            ct.MessageReceived += Client_Received;
+            ct.Received += Client_Received;
             ct.Log = Log;
             ct.Opened += Client_Opened;
 
@@ -68,7 +68,7 @@ namespace NewLife.Remoting
             Active = false;
 
             var tc = Client;
-            tc.MessageReceived -= Client_Received;
+            tc.Received -= Client_Received;
             tc.Opened -= Client_Opened;
             tc.Close(reason);
         }
@@ -90,16 +90,16 @@ namespace NewLife.Remoting
         /// <summary>创建消息</summary>
         /// <param name="pk"></param>
         /// <returns></returns>
-        public IMessage CreateMessage(Packet pk) { return Client?.Packet?.CreateMessage(pk) ?? new Message { Payload = pk }; }
+        public IMessage CreateMessage(Packet pk) => Client?.Packet?.CreateMessage(pk) ?? new Message { Payload = pk };
 
         /// <summary>远程调用</summary>
         /// <param name="msg"></param>
         /// <returns></returns>
-        public async Task<IMessage> SendAsync(IMessage msg) { return await Client.SendAsync(msg); }
+        public async Task<IMessage> SendAsync(IMessage msg) => await Client.SendAsync(msg);
         #endregion
 
         #region 异步接收
-        private void Client_Received(Object sender, MessageEventArgs e)
+        private void Client_Received(Object sender, ReceivedEventArgs e)
         {
             var msg = e.Message;
             if (msg.Reply) return;

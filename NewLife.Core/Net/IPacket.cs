@@ -6,6 +6,7 @@ using System.Net;
 using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Messaging;
+using NewLife.Security;
 
 namespace NewLife.Net
 {
@@ -49,7 +50,7 @@ namespace NewLife.Net
     }
 
     /// <summary>头部指明长度的封包格式</summary>
-    [DisplayName("无头部封包")]
+    [DisplayName("头部定长封包")]
     public class PacketProvider : IPacket
     {
         #region 属性
@@ -251,54 +252,54 @@ namespace NewLife.Net
         #endregion
 
 #if DEBUG
-        /// <summary>粘包测试</summary>
-        public static void Test()
-        {
-            var svr = new NetServer
-            {
-                Port = 777,
-                SessionPacket = new PacketFactory { Offset = 0, Size = 0 },
-                Log = Log.XTrace.Log,
-                //svr.LogSend = true;
-                LogReceive = true
-            };
-            svr.Received += (s, e) => (s as INetSession).Send(e.Packet);
-            svr.Start();
+        ///// <summary>粘包测试</summary>
+        //public static void Test()
+        //{
+        //    var svr = new NetServer
+        //    {
+        //        Port = 777,
+        //        SessionPacket = new PacketFactory { Offset = 0, Size = 0 },
+        //        Log = Log.XTrace.Log,
+        //        //svr.LogSend = true;
+        //        LogReceive = true
+        //    };
+        //    svr.Received += (s, e) => (s as INetSession).Send(e.Packet);
+        //    svr.Start();
 
-            // 凑齐10个带有长度的数据帧一起发出
-            var ms = new MemoryStream();
-            for (var i = 0; i < 5; i++)
-            {
-                var size = i < 4 ? Security.Rand.Next(1400) : Security.Rand.Next(2000, 30000);
-                var str = Security.Rand.NextString(size);
-                var s = str.Substring(0, Math.Min(str.Length, 16));
-                //var h = str.GetBytes().ToHex();
-                var mm = new MemoryStream();
-                mm.WriteArray(str.GetBytes());
-                var h = mm.ToArray().ToHex();
-                h = h.Substring(0, Math.Min(h.Length, 32));
-                Console.WriteLine("{0}\t{1}\t{2}", mm.ToArray().Length, s, h);
+        //    // 凑齐10个带有长度的数据帧一起发出
+        //    var ms = new MemoryStream();
+        //    for (var i = 0; i < 5; i++)
+        //    {
+        //        var size = i < 4 ? Rand.Next(1400) : Rand.Next(2000, 30000);
+        //        var str = Rand.NextString(size);
+        //        var s = str.Substring(0, Math.Min(str.Length, 16));
+        //        //var h = str.GetBytes().ToHex();
+        //        var mm = new MemoryStream();
+        //        mm.WriteArray(str.GetBytes());
+        //        var h = mm.ToArray().ToHex();
+        //        h = h.Substring(0, Math.Min(h.Length, 32));
+        //        Console.WriteLine("{0}\t{1}\t{2}", mm.ToArray().Length, s, h);
 
-                ms.WriteArray(str.GetBytes());
-            }
+        //        ms.WriteArray(str.GetBytes());
+        //    }
 
-            var client = new NetUri("tcp://127.0.0.1:777").CreateRemote();
-            //client.Remote.Address = NetHelper.MyIP();
-            //client.Remote.Address = System.Net.IPAddress.Parse("1.0.0.13");
-            client.Packet = new PacketProvider { Offset = 0, Size = 0 };
-            client.Log = Log.XTrace.Log;
-            client.LogSend = true;
-            //client.LogReceive = true;
-            //client.BufferSize = 1500;
-            client.Received += (s, e) => Log.XTrace.WriteLine("Client {0}", e.Packet.Count);
-            var rs = client.SendAsync(ms.ToArray()).Result;
-            Console.WriteLine("rs={0}", rs.Count);
+        //    var client = new NetUri("tcp://127.0.0.1:777").CreateRemote();
+        //    //client.Remote.Address = NetHelper.MyIP();
+        //    //client.Remote.Address = System.Net.IPAddress.Parse("1.0.0.13");
+        //    client.Packet = new PacketProvider { Offset = 0, Size = 0 };
+        //    client.Log = Log.XTrace.Log;
+        //    client.LogSend = true;
+        //    //client.LogReceive = true;
+        //    //client.BufferSize = 1500;
+        //    client.Received += (s, e) => Log.XTrace.WriteLine("Client {0}", e.Packet.Count);
+        //    var rs = client.SendAsync(ms.ToArray()).Result;
+        //    Console.WriteLine("rs={0}", rs.Count);
 
-            Console.ReadKey(true);
+        //    Console.ReadKey(true);
 
-            client.Close("结束");
-            svr.Dispose();
-        }
+        //    client.Close("结束");
+        //    svr.Dispose();
+        //}
 #endif
     }
 

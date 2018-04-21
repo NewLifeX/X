@@ -209,7 +209,7 @@ namespace NewLife.Net
             server.NewSession += Server_NewSession;
 
             if (SessionTimeout > 0) server.SessionTimeout = SessionTimeout;
-            if (SessionPacket != null) server.SessionPacket = SessionPacket;
+            //if (SessionPacket != null) server.SessionPacket = SessionPacket;
 
             //// 处理UDP最大并发接收
             //if (server is UdpServer udp)

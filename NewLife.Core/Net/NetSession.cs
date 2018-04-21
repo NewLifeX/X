@@ -61,7 +61,7 @@ namespace NewLife.Net
             if (ss != null)
             {
                 ss.Received += (s, e2) => OnReceive(e2);
-                ss.MessageReceived += (s, e2) => OnReceive(e2);
+                //ss.MessageReceived += (s, e2) => OnReceive(e2);
                 ss.OnDisposed += (s, e2) => Dispose();
                 ss.Error += OnError;
             }

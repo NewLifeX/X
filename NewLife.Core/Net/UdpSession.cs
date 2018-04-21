@@ -155,51 +155,58 @@ namespace NewLife.Net
             return await Server.SendAsync(pk, Remote.EndPoint, true);
         }
 
-        /// <summary>发送消息并等待响应</summary>
-        /// <param name="msg"></param>
-        /// <returns></returns>
-        public async Task<IMessage> SendAsync(IMessage msg)
-        {
-            if (Server == null) return null;
+        ///// <summary>发送消息并等待响应</summary>
+        ///// <param name="msg"></param>
+        ///// <returns></returns>
+        //public async Task<IMessage> SendAsync(IMessage msg)
+        //{
+        //    if (Server == null) return null;
 
-            var pk = msg.ToPacket();
-            var task = Server.SendAsync(pk, Remote.EndPoint, !msg.Reply);
+        //    var pk = msg.ToPacket();
+        //    var task = Server.SendAsync(pk, Remote.EndPoint, !msg.Reply);
 
-            // 如果是响应包，直接返回不等待
-            if (msg.Reply) return null;
+        //    // 如果是响应包，直接返回不等待
+        //    if (msg.Reply) return null;
 
-            return Packet.LoadMessage(await task);
-        }
+        //    return Packet.LoadMessage(await task);
+        //}
         #endregion
 
         #region 接收
-        /// <summary>接收数据。不建议使用，通过SendAsync(null)拦截收到的数据包</summary>
+        /// <summary>接收数据</summary>
         /// <returns></returns>
         public Packet Receive()
         {
             if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
-            var task = SendAsync((Packet)null);
-            if (Timeout > 0 && !task.Wait(Timeout)) return null;
+            //var task = SendAsync((Packet)null);
+            //if (Timeout > 0 && !task.Wait(Timeout)) return null;
 
-            return task.Result;
+            //return task.Result;
+
+            var ep = Remote.EndPoint as EndPoint;
+            var buf = new Byte[BufferSize];
+            var size = Server.Client.ReceiveFrom(buf, ref ep);
+
+            return new Packet(buf, 0, size);
         }
 
         public event EventHandler<ReceivedEventArgs> Received;
 
-        /// <summary>消息到达事件</summary>
-        public event EventHandler<MessageEventArgs> MessageReceived;
+        ///// <summary>消息到达事件</summary>
+        //public event EventHandler<MessageEventArgs> MessageReceived;
 
-        /// <summary>粘包处理接口</summary>
-        public IPacket Packet { get; set; }
+        /// <summary>协议实现</summary>
+        public IProtocol Protocol { get; set; }
 
         internal void OnReceive(ReceivedEventArgs e)
         {
-            var stream = e.Stream;
+            //var stream = e.Stream;
             var remote = e.UserState as IPEndPoint;
-            var pk = new Packet(e.Data);
+            //var pk = new Packet(e.Data);
+            var pk = e.Packet;
 
-            var pt = Packet;
+            var pt = Protocol;
             if (pt == null)
                 OnReceive(pk, remote);
             else
@@ -226,18 +233,18 @@ namespace NewLife.Net
 
             Received?.Invoke(this, e);
 
-            var pt = Packet;
-            if (pt != null && e.Packet != null && MessageReceived != null)
-            {
-                var msg = pt.LoadMessage(e.Packet);
-                var me = new MessageEventArgs
-                {
-                    Packet = e.Packet,
-                    UserState = e.UserState,
-                    Message = msg
-                };
-                MessageReceived(this, me);
-            }
+            //var pt = Packet;
+            //if (pt != null && e.Packet != null && MessageReceived != null)
+            //{
+            //    var msg = pt.LoadMessage(e.Packet);
+            //    var me = new MessageEventArgs
+            //    {
+            //        Packet = e.Packet,
+            //        UserState = e.UserState,
+            //        Message = msg
+            //    };
+            //    MessageReceived(this, me);
+            //}
         }
         #endregion
 

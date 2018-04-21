@@ -20,10 +20,10 @@ namespace NewLife.Net
         }
 
         /// <summary>数据长度</summary>
-        public Int32 Length { get { return Packet.Count; } }
+        public Int32 Length => Packet.Count;
 
         /// <summary>数据区对应的一个数据流实例</summary>
-        public Stream Stream { get { return Packet.GetStream(); } /*set { _Stream = value; _Data = null; }*/ }
+        public Stream Stream => Packet.GetStream();
 
         /// <summary>用户数据。比如远程地址等</summary>
         public Object UserState { get; set; }
@@ -52,10 +52,7 @@ namespace NewLife.Net
         /// <param name="separate">分隔符</param>
         /// <param name="groupSize">分组大小，为0时对每个字节应用分隔符，否则对每个分组使用</param>
         /// <returns></returns>
-        public String ToHex(Int32 maxLength = 32, String separate = "-", Int32 groupSize = 0)
-        {
-            return Packet?.ToHex(maxLength, separate, groupSize);
-        }
+        public String ToHex(Int32 maxLength = 32, String separate = "-", Int32 groupSize = 0) => Packet?.ToHex(maxLength, separate, groupSize);
         #endregion
     }
 }

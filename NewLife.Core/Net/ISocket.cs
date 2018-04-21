@@ -103,23 +103,23 @@ namespace NewLife.Net
         /// <summary>数据到达事件</summary>
         event EventHandler<ReceivedEventArgs> Received;
 
-        /// <summary>消息到达事件</summary>
-        event EventHandler<MessageEventArgs> MessageReceived;
+        ///// <summary>消息到达事件</summary>
+        //event EventHandler<MessageEventArgs> MessageReceived;
         #endregion
 
         #region 数据包处理
-        /// <summary>粘包处理接口</summary>
-        IPacket Packet { get; set; }
+        /// <summary>协议实现</summary>
+        IProtocol Protocol { get; set; }
 
         /// <summary>异步发送数据并等待响应</summary>
         /// <param name="pk"></param>
         /// <returns></returns>
         Task<Packet> SendAsync(Packet pk);
 
-        /// <summary>发送消息并等待响应</summary>
-        /// <param name="msg"></param>
-        /// <returns></returns>
-        Task<IMessage> SendAsync(IMessage msg);
+        ///// <summary>发送消息并等待响应</summary>
+        ///// <param name="msg"></param>
+        ///// <returns></returns>
+        //Task<IMessage> SendAsync(IMessage msg);
         #endregion
     }
 
@@ -234,16 +234,16 @@ namespace NewLife.Net
         #endregion
 
         #region 消息包
-        /// <summary>异步发送数据并等待响应</summary>
-        /// <param name="session">会话</param>
-        /// <param name="buffer"></param>
-        /// <returns></returns>
-        public static async Task<Byte[]> SendAsync(this ISocketRemote session, Byte[] buffer)
-        {
-            var pk = new Packet(buffer);
-            var rs = await session.SendAsync(pk);
-            return rs?.ToArray();
-        }
+        ///// <summary>异步发送数据并等待响应</summary>
+        ///// <param name="session">会话</param>
+        ///// <param name="buffer"></param>
+        ///// <returns></returns>
+        //public static async Task<Byte[]> SendAsync(this ISocketRemote session, Byte[] buffer)
+        //{
+        //    var pk = new Packet(buffer);
+        //    var rs = await session.SendAsync(pk);
+        //    return rs?.ToArray();
+        //}
         #endregion
     }
 }
