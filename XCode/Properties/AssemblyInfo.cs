@@ -39,8 +39,8 @@ using XCode;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("9.6.*")]
-[assembly: AssemblyFileVersion("9.6.2018.0326")]
+[assembly: AssemblyVersion("9.7.*")]
+[assembly: AssemblyFileVersion("9.7.2018.0421")]
 
 /*
  * XCode的重大改进
@@ -58,6 +58,8 @@ using XCode;
  * /
 
 /*
+ * v9.7.2018.0421   支持运行时修改DAL连接字符串
+ * 
  * v9.6.2018.0326   重构权限体系，支持多角色
  * 
  * v9.6.2017.0808   重构正向工程，基于映射表查找数据库字段类型到实体类型的映射

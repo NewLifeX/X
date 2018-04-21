@@ -90,7 +90,7 @@ namespace XCode.DataAccessLayer
 
         #region 属性
         /// <summary>返回数据库类型。外部DAL数据库类请使用Other</summary>
-        public virtual DatabaseType Type { get { return DatabaseType.None; } }
+        public virtual DatabaseType Type => DatabaseType.None;
 
         /// <summary>工厂</summary>
         public abstract DbProviderFactory Factory { get; }
@@ -127,6 +127,13 @@ namespace XCode.DataAccessLayer
 
                     ReleaseSession();
                 }
+
+                // 更新连接池的连接字符串
+                if (_Pool != null)
+                {
+                    _Pool.ConnectionString = connStr;
+                    _Pool.Clear();
+                }
             }
         }
 
@@ -160,7 +167,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        protected virtual String DefaultConnectionString { get { return String.Empty; } }
+        protected virtual String DefaultConnectionString => String.Empty;
 
         /// <summary>设置连接字符串时允许从中取值或修改，基类用于读取拥有者Owner，子类重写时应调用基类</summary>
         /// <param name="builder"></param>
@@ -278,7 +285,7 @@ namespace XCode.DataAccessLayer
         /// <summary>是否支持该提供者所描述的数据库</summary>
         /// <param name="providerName">提供者</param>
         /// <returns></returns>
-        public virtual Boolean Support(String providerName) { return !String.IsNullOrEmpty(providerName) && providerName.ToLower().Contains(Type.ToString().ToLower()); }
+        public virtual Boolean Support(String providerName) => !providerName.IsNullOrEmpty() && providerName.ToLower().Contains(Type.ToString().ToLower());
         #endregion
 
         #region 下载驱动
@@ -687,7 +694,7 @@ namespace XCode.DataAccessLayer
         /// <param name="field">字段</param>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        public virtual String FormatIdentity(IDataColumn field, Object value) { return null; }
+        public virtual String FormatIdentity(IDataColumn field, Object value) => null;
 
         /// <summary>格式化参数名</summary>
         /// <param name="name">名称</param>
@@ -704,13 +711,13 @@ namespace XCode.DataAccessLayer
             return ParamPrefix + name;
         }
 
-        internal protected virtual String ParamPrefix { get { return "@"; } }
+        internal protected virtual String ParamPrefix => "@";
 
         /// <summary>字符串相加</summary>
         /// <param name="left"></param>
         /// <param name="right"></param>
         /// <returns></returns>
-        public virtual String StringConcat(String left, String right) { return (!String.IsNullOrEmpty(left) ? left : "\'\'") + "+" + (!String.IsNullOrEmpty(right) ? right : "\'\'"); }
+        public virtual String StringConcat(String left, String right) => (!left.IsNullOrEmpty() ? left : "\'\'") + "+" + (!right.IsNullOrEmpty() ? right : "\'\'");
 
         /// <summary>创建参数</summary>
         /// <param name="name">名称</param>
@@ -791,10 +798,7 @@ namespace XCode.DataAccessLayer
         /// <summary>创建参数数组</summary>
         /// <param name="ps"></param>
         /// <returns></returns>
-        public IDataParameter[] CreateParameters(IDictionary<String, Object> ps)
-        {
-            return ps.Select(e => CreateParameter(e.Key, e.Value)).ToArray();
-        }
+        public IDataParameter[] CreateParameters(IDictionary<String, Object> ps) => ps.Select(e => CreateParameter(e.Key, e.Value)).ToArray();
 
         /// <summary>获取 或 设置 自动关闭。每次使用完数据库连接后，是否自动关闭连接，高频操作时设为false可提升性能。默认true</summary>
         public Boolean AutoClose { get; set; } = true;
@@ -803,10 +807,7 @@ namespace XCode.DataAccessLayer
         #region 辅助函数
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override String ToString()
-        {
-            return String.Format("[{0}] {1} {2}", ConnName, Type, ServerVersion);
-        }
+        public override String ToString() => String.Format("[{0}] {1} {2}", ConnName, Type, ServerVersion);
 
         protected static String ResolveFile(String file)
         {

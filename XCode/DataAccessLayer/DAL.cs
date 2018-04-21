@@ -201,16 +201,13 @@ namespace XCode.DataAccessLayer
         /// <param name="connName">连接名</param>
         /// <param name="connStr">连接字符串</param>
         /// <param name="provider">数据库提供者</param>
-        public static void RegisterDefault(String connName, String connStr, String provider)
-        {
-            _defs[connName] = new Tuple<String, String>(connStr, provider);
-        }
+        public static void RegisterDefault(String connName, String connStr, String provider) => _defs[connName] = new Tuple<String, String>(connStr, provider);
         #endregion
 
         #region 属性
         private String _ConnName;
         /// <summary>连接名</summary>
-        public String ConnName { get { return _ConnName; } }
+        public String ConnName => _ConnName;
 
         private Type _ProviderType;
         /// <summary>实现了IDatabase接口的数据库类型</summary>
@@ -249,6 +246,10 @@ namespace XCode.DataAccessLayer
                     _ConnStr = value;
                     _ProviderType = null;
                     _Db = null;
+                    _Tables = null;
+                    _hasCheck = 0;
+                    HasCheckTables.Clear();
+                    _Assembly = null;
 
                     AddConnStr(_ConnName, _ConnStr, null, null);
                 }
@@ -286,7 +287,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>数据库会话</summary>
-        public IDbSession Session { get { return Db.CreateSession(); } }
+        public IDbSession Session => Db.CreateSession();
         #endregion
 
         #region 连接字符串编码解码
@@ -376,10 +377,7 @@ namespace XCode.DataAccessLayer
         /// <summary>导出模型</summary>
         /// <param name="tables"></param>
         /// <returns></returns>
-        public static String Export(IEnumerable<IDataTable> tables)
-        {
-            return ModelHelper.ToXml(tables);
-        }
+        public static String Export(IEnumerable<IDataTable> tables) => ModelHelper.ToXml(tables);
 
         /// <summary>导入模型</summary>
         /// <param name="xml"></param>

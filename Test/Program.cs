@@ -56,7 +56,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test5();
+                Test5();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -187,8 +187,29 @@ namespace Test
 
         static void Test5()
         {
-            JsonConfigTest.Start();
+            //JsonConfigTest.Start();
+
+            var dal = UserX.Meta.Session.Dal;
+            var connStr = "Data Source=Membership222.db";
+            //dal.ConnStr = connStr;
+
+            var user = UserX.FindByName("admin");
+            Console.WriteLine("{0}\t{1}", user, user.RegisterTime);
+            //user.RegisterTime = new DateTime(2018, 1, 1);
+            //user.Save();
+
+            //var connStr = dal.ConnStr;
+            dal.ConnStr = connStr;
+
+            for (var i = 0; i < 1000; i++)
+            {
+                Thread.Sleep(3000);
+
+                user = UserX.FindByName("admin");
+                Console.WriteLine("{0}\t{1}", user, user.RegisterTime);
+                //user.RegisterTime = DateTime.Now;
+                //user.Save();
+            }
         }
     }
-
 }

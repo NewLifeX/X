@@ -37,18 +37,12 @@ namespace NewLife.Cube
         /// <summary>获取页面设置</summary>
         /// <param name="page"></param>
         /// <returns></returns>
-        public static Bootstrap Bootstrap(this WebViewPage page)
-        {
-            return Bootstrap(page.Context);
-        }
+        public static Bootstrap Bootstrap(this WebViewPage page) => Bootstrap(page.Context);
 
         /// <summary>获取页面设置</summary>
         /// <param name="controller"></param>
         /// <returns></returns>
-        public static Bootstrap Bootstrap(this Controller controller)
-        {
-            return Bootstrap(controller.HttpContext);
-        }
+        public static Bootstrap Bootstrap(this Controller controller) => Bootstrap(controller.HttpContext);
 
         /// <summary>获取路由Key</summary>
         /// <param name="entity"></param>
@@ -86,8 +80,7 @@ namespace NewLife.Cube
 
             return dic;
         }
-
-
+        
         internal static Boolean MakeListDataView(Type entityType, String vpath, List<FieldItem> fields)
         {
             var tmp = @"@using NewLife;
@@ -275,20 +268,11 @@ namespace NewLife.Cube
             return true;
         }
 
-        private static void BuildUser(FieldItem item, StringBuilder sb)
-        {
-            sb.AppendFormat(@"<td class=""text-right"">@provider.FindByID(entity.{0})</td>", item.Name);
-        }
+        private static void BuildUser(FieldItem item, StringBuilder sb) => sb.AppendFormat(@"<td class=""text-right"">@provider.FindByID(entity.{0})</td>", item.Name);
 
-        private static void BuildIP(FieldItem item, StringBuilder sb)
-        {
-            sb.AppendFormat(@"<td title=""@entity.{0}.IPToAddress()"">@entity.{0}</td>", item.Name);
-        }
+        private static void BuildIP(FieldItem item, StringBuilder sb) => sb.AppendFormat(@"<td title=""@entity.{0}.IPToAddress()"">@entity.{0}</td>", item.Name);
 
-        internal static Boolean MakeFormView()
-        {
-            return false;
-        }
+        internal static Boolean MakeFormView() => false;
 
         /// <summary>是否启用多选</summary>
         /// <param name="page"></param>
