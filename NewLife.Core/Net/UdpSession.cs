@@ -173,6 +173,8 @@ namespace NewLife.Net
         #endregion
 
         #region 接收
+        /// <summary>接收数据。不建议使用，通过SendAsync(null)拦截收到的数据包</summary>
+        /// <returns></returns>
         public Packet Receive()
         {
             if (Disposed) throw new ObjectDisposedException(GetType().Name);

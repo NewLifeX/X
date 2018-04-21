@@ -22,7 +22,7 @@ namespace NewLife.Remoting
         public IApiHandler Handler { get; set; }
 
         /// <summary>当前服务器所有会话</summary>
-        public IApiSession[] AllSessions { get { return Sessions.Values.ToArray().Where(e => e is IApiSession).Cast<IApiSession>().ToArray(); } }
+        public IApiSession[] AllSessions => Sessions.Values.ToArray().Where(e => e is IApiSession).Cast<IApiSession>().ToArray();
 
         public ApiNetServer()
         {
@@ -84,7 +84,7 @@ namespace NewLife.Remoting
 
         private IApiHost _Host;
         /// <summary>主机</summary>
-        IApiHost IApiSession.Host { get { return _Host; } }
+        IApiHost IApiSession.Host => _Host;
 
         /// <summary>最后活跃时间</summary>
         public DateTime LastActive { get; set; }
@@ -125,12 +125,12 @@ namespace NewLife.Remoting
         /// <summary>查找Api动作</summary>
         /// <param name="action"></param>
         /// <returns></returns>
-        public virtual ApiAction FindAction(String action) { return _Host.Manager.Find(action); }
+        public virtual ApiAction FindAction(String action) => _Host.Manager.Find(action);
 
         /// <summary>创建控制器实例</summary>
         /// <param name="api"></param>
         /// <returns></returns>
-        public virtual Object CreateController(ApiAction api) { return _Host.CreateController(this, api); }
+        public virtual Object CreateController(ApiAction api) => _Host.CreateController(this, api);
 
         protected override void OnReceive(MessageEventArgs e)
         {
@@ -147,7 +147,7 @@ namespace NewLife.Remoting
         /// <summary>创建消息</summary>
         /// <param name="pk"></param>
         /// <returns></returns>
-        public IMessage CreateMessage(Packet pk) { return Session?.Packet?.CreateMessage(pk) ?? new Message { Payload = pk }; }
+        public IMessage CreateMessage(Packet pk) => Session?.Packet?.CreateMessage(pk) ?? new Message { Payload = pk };
 
         /// <summary>远程调用</summary>
         /// <typeparam name="TResult"></typeparam>
@@ -155,12 +155,9 @@ namespace NewLife.Remoting
         /// <param name="args"></param>
         /// <param name="cookie">附加参数，位于顶级</param>
         /// <returns></returns>
-        public async Task<TResult> InvokeAsync<TResult>(String action, Object args = null, IDictionary<String, Object> cookie = null)
-        {
-            return await ApiHostHelper.InvokeAsync<TResult>(_Host, this, action, args, cookie);
-        }
+        public async Task<TResult> InvokeAsync<TResult>(String action, Object args = null, IDictionary<String, Object> cookie = null) => await ApiHostHelper.InvokeAsync<TResult>(_Host, this, action, args, cookie);
 
-        async Task<IMessage> IApiSession.SendAsync(IMessage msg) { return await Session.SendAsync(msg); }
+        async Task<IMessage> IApiSession.SendAsync(IMessage msg) => await Session.SendAsync(msg);
 
         /// <summary>获取服务提供者</summary>
         /// <param name="serviceType"></param>
