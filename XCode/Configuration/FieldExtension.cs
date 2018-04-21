@@ -308,15 +308,16 @@ namespace XCode
         /// <param name="field">字段</param>
         /// <param name="isdesc">是否降序</param>
         /// <returns></returns>
-        public static ConcatExpression Sort(this FieldItem field, Boolean isdesc) { return isdesc ? Desc(field) : Asc(field); }
+        public static ConcatExpression Sort(this FieldItem field, Boolean isdesc) => isdesc ? Desc(field) : Asc(field);
         #endregion
 
         #region 分组选择
         /// <summary>分组。有条件的分组请使用WhereExpression.GroupBy</summary>
         /// <returns></returns>
-        public static ConcatExpression GroupBy(this FieldItem field) { return field == null ? null : new ConcatExpression(String.Format("Group By {0}", field.FormatedName)); }
+        public static ConcatExpression GroupBy(this FieldItem field) => field == null ? null : new ConcatExpression(String.Format("Group By {0}", field.FormatedName));
 
         /// <summary>按照指定若干个字段分组。没有条件时使用分组请用FieldItem的GroupBy</summary>
+        /// <param name="where"></param>
         /// <param name="fields"></param>
         /// <returns>返回条件语句加上分组语句</returns>
         public static ConcatExpression GroupBy(this WhereExpression where, params FieldItem[] fields)
@@ -375,25 +376,25 @@ namespace XCode
         /// <param name="field">字段</param>
         /// <param name="newName">聚合后as的新名称，默认空，表示跟前面字段名一致</param>
         /// <returns></returns>
-        public static ConcatExpression Count(this FieldItem field, String newName = null) { return Aggregate(field, "Count", newName); }
+        public static ConcatExpression Count(this FieldItem field, String newName = null) => Aggregate(field, "Count", newName);
 
         /// <summary>求和</summary>
         /// <param name="field">字段</param>
         /// <param name="newName">聚合后as的新名称，默认空，表示跟前面字段名一致</param>
         /// <returns></returns>
-        public static ConcatExpression Sum(this FieldItem field, String newName = null) { return Aggregate(field, "Sum", newName); }
+        public static ConcatExpression Sum(this FieldItem field, String newName = null) => Aggregate(field, "Sum", newName);
 
         /// <summary>最小值</summary>
         /// <param name="field">字段</param>
         /// <param name="newName">聚合后as的新名称，默认空，表示跟前面字段名一致</param>
         /// <returns></returns>
-        public static ConcatExpression Min(this FieldItem field, String newName = null) { return Aggregate(field, "Min", newName); }
+        public static ConcatExpression Min(this FieldItem field, String newName = null) => Aggregate(field, "Min", newName);
 
         /// <summary>最大值</summary>
         /// <param name="field">字段</param>
         /// <param name="newName">聚合后as的新名称，默认空，表示跟前面字段名一致</param>
         /// <returns></returns>
-        public static ConcatExpression Max(this FieldItem field, String newName = null) { return Aggregate(field, "Max", newName); }
+        public static ConcatExpression Max(this FieldItem field, String newName = null) => Aggregate(field, "Max", newName);
         #endregion
     }
 }
