@@ -19,6 +19,7 @@ using NewLife.Collections;
 using NewLife.Common;
 using NewLife.Data;
 using NewLife.Http;
+using NewLife.Json;
 using NewLife.Log;
 using NewLife.Net;
 using NewLife.Reflection;
@@ -54,7 +55,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test1();
+                    Test5();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -163,6 +164,11 @@ namespace Test
             var ip = "223.5.5.5";
             ip = ip.IPToAddress();
             Console.WriteLine(ip);
+        }
+
+        static void Test5()
+        {
+            JsonConfigTest.Start();
         }
     }
 }
