@@ -48,6 +48,9 @@ namespace NewLife.Net
             StatSession = new Statistics();
 
             SessionTimeout = Setting.Current.SessionTimeout;
+
+            // 处理UDP最大并发接收
+            MaxAsync = Environment.ProcessorCount * 16 / 10;
         }
 
         /// <summary>使用监听口初始化</summary>

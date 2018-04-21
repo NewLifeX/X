@@ -48,7 +48,7 @@ namespace NewLife.Net
         /// <summary>是否抛出异常，默认false不抛出。Send/Receive时可能发生异常，该设置决定是直接抛出异常还是通过<see cref="Error"/>事件</summary>
         public Boolean ThrowException { get; set; }
 
-        /// <summary>最大并行数。默认CPU*1.6</summary>
+        /// <summary>最大并行接收连接数。默认CPU*1.6</summary>
         public Int32 MaxAsync { get; set; }
 
         /// <summary>启用Http，数据处理时截去请求响应头，默认false</summary>

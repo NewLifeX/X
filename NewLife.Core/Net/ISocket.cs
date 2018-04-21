@@ -182,9 +182,9 @@ namespace NewLife.Net
 
         /// <summary>异步多次发送数据</summary>
         /// <param name="session">会话</param>
-        /// <param name="pk"></param>
-        /// <param name="times"></param>
-        /// <param name="msInterval"></param>
+        /// <param name="pk">数据包</param>
+        /// <param name="times">次数</param>
+        /// <param name="msInterval">间隔</param>
         /// <returns></returns>
         public static Boolean SendMulti(this ISocketRemote session, Packet pk, Int32 times, Int32 msInterval)
         {

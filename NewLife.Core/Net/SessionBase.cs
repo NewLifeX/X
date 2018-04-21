@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Messaging;
+using NewLife.Threading;
 
 namespace NewLife.Net
 {
@@ -52,7 +53,7 @@ namespace NewLife.Net
         /// <summary>是否使用动态端口。如果Port为0则为动态端口</summary>
         public Boolean DynamicPort { get; private set; }
 
-        /// <summary>最大并行接收数。默认1</summary>
+        /// <summary>最大并行接收数。Tcp默认1，Udp默认CPU*1.6</summary>
         public Int32 MaxAsync { get; set; } = 1;
 
         /// <summary>异步处理接收到的数据，默认true。</summary>
@@ -88,6 +89,10 @@ namespace NewLife.Net
             }
             catch (Exception ex) { OnError("Dispose", ex); }
         }
+
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override String ToString() => Local + "";
         #endregion
 
         #region 打开关闭
@@ -251,7 +256,7 @@ namespace NewLife.Net
         #endregion
 
         #region 接收
-        /// <summary>接收数据</summary>
+        /// <summary>接收数据。不建议使用，通过SendAsync(null)拦截收到的数据包</summary>
         /// <returns></returns>
         public virtual Packet Receive()
         {
@@ -268,7 +273,7 @@ namespace NewLife.Net
         /// <summary>当前异步接收个数</summary>
         private Int32 _RecvCount;
 
-        /// <summary>开始监听</summary>
+        /// <summary>开始异步接收</summary>
         /// <returns>是否成功</returns>
         public virtual Boolean ReceiveAsync()
         {
@@ -276,25 +281,28 @@ namespace NewLife.Net
 
             if (!Open()) return false;
 
-            if (_RecvCount >= MaxAsync) return false;
+            var count = _RecvCount;
+            var max = MaxAsync;
+            if (count >= max) return false;
 
             // 按照最大并发创建异步委托
-            for (var i = _RecvCount; i < MaxAsync; i++)
+            for (var i = count; i < max; i++)
             {
-                if (Interlocked.Increment(ref _RecvCount) > MaxAsync)
+                if (Interlocked.Increment(ref _RecvCount) > max)
                 {
                     Interlocked.Decrement(ref _RecvCount);
                     return false;
                 }
+                count = _RecvCount;
 
                 // 加大接收缓冲区，规避SocketError.MessageSize问题
                 var buf = new Byte[BufferSize];
                 var se = new SocketAsyncEventArgs();
                 se.SetBuffer(buf, 0, buf.Length);
                 se.Completed += (s, e) => ProcessReceive(e);
-                se.UserToken = _RecvCount;
+                se.UserToken = count;
 
-                if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("创建RecvSA {0}", _RecvCount);
+                if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("创建RecvSA {0}", count);
 
                 ReceiveAsync(se, false);
             }
@@ -302,6 +310,9 @@ namespace NewLife.Net
             return true;
         }
 
+        /// <summary>释放一个事件参数</summary>
+        /// <param name="se"></param>
+        /// <param name="reason"></param>
         void ReleaseRecv(SocketAsyncEventArgs se, String reason)
         {
             var idx = (Int32)se.UserToken;
@@ -312,6 +323,10 @@ namespace NewLife.Net
             se.TryDispose();
         }
 
+        /// <summary>用一个事件参数来开始异步接收</summary>
+        /// <param name="se">事件参数</param>
+        /// <param name="io">是否在IO线程调用</param>
+        /// <returns></returns>
         Boolean ReceiveAsync(SocketAsyncEventArgs se, Boolean io)
         {
             if (Disposed)
@@ -347,7 +362,7 @@ namespace NewLife.Net
                 if (io)
                     ProcessReceive(se);
                 else
-                    Task.Factory.StartNew(() => ProcessReceive(se));
+                    ThreadPoolX.QueueUserWorkItem(() => ProcessReceive(se));
             }
 
             return true;
@@ -355,6 +370,8 @@ namespace NewLife.Net
 
         internal abstract Boolean OnReceiveAsync(SocketAsyncEventArgs se);
 
+        /// <summary>同步或异步收到数据</summary>
+        /// <param name="se"></param>
         void ProcessReceive(SocketAsyncEventArgs se)
         {
             if (!Active)
@@ -390,7 +407,7 @@ namespace NewLife.Net
                     // 拷贝走数据，参数要重复利用
                     pk = pk.Clone();
                     // 根据不信任用户原则，这里另外开线程执行用户逻辑
-                    ThreadPool.UnsafeQueueUserWorkItem(s => ProcessReceive(pk, ep), null);
+                    ThreadPoolX.QueueUserWorkItem(() => ProcessReceive(pk, ep));
                 }
                 else
                 {
@@ -560,12 +577,6 @@ namespace NewLife.Net
         {
             if (Log != null && Log.Enable) Log.Info(LogPrefix + format, args);
         }
-        #endregion
-
-        #region 辅助
-        /// <summary>已重载。</summary>
-        /// <returns></returns>
-        public override String ToString() => Local + "";
         #endregion
     }
 
