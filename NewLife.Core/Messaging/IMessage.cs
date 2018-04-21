@@ -66,7 +66,7 @@ namespace NewLife.Messaging
 
         /// <summary>把消息转为封包</summary>
         /// <returns></returns>
-        public virtual Packet ToPacket() { return Payload; }
+        public virtual Packet ToPacket() => Payload;
 
         ///// <summary>把消息写入到数据流中</summary>
         ///// <param name="stream"></param>

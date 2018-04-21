@@ -24,7 +24,7 @@ namespace NewLife.Net
         public UdpServer Server { get; set; }
 
         /// <summary>底层Socket</summary>
-        Socket ISocket.Client { get { return Server?.Client; } }
+        Socket ISocket.Client => Server?.Client;
 
         /// <summary>数据流</summary>
         public Stream Stream { get; set; }
@@ -60,7 +60,7 @@ namespace NewLife.Net
         }
 
         /// <summary>Socket服务器。当前通讯所在的Socket服务器，其实是TcpServer/UdpServer</summary>
-        ISocketServer ISocketSession.Server { get { return Server; } }
+        ISocketServer ISocketSession.Server => Server;
 
         /// <summary>是否抛出异常，默认false不抛出。Send/Receive时可能发生异常，该设置决定是直接抛出异常还是通过<see cref="Error"/>事件</summary>
         public Boolean ThrowException { get { return Server.ThrowException; } set { Server.ThrowException = value; } }
@@ -197,12 +197,13 @@ namespace NewLife.Net
             var remote = e.UserState as IPEndPoint;
             var pk = new Packet(e.Data);
 
-            if (Packet == null)
+            var pt = Packet;
+            if (pt == null)
                 OnReceive(pk, remote);
             else
             {
                 // 拆包，多个包多次调用处理程序
-                foreach (var msg in Packet.Parse(pk))
+                foreach (var msg in pt.Parse(pk))
                 {
                     OnReceive(msg, remote);
                 }
@@ -223,9 +224,10 @@ namespace NewLife.Net
 
             Received?.Invoke(this, e);
 
-            if (Packet != null && e.Packet != null && MessageReceived != null)
+            var pt = Packet;
+            if (pt != null && e.Packet != null && MessageReceived != null)
             {
-                var msg = Packet.LoadMessage(e.Packet);
+                var msg = pt.LoadMessage(e.Packet);
                 var me = new MessageEventArgs
                 {
                     Packet = e.Packet,
@@ -247,7 +249,7 @@ namespace NewLife.Net
         protected virtual void OnError(String action, Exception ex)
         {
             if (Log != null) Log.Error(LogPrefix + "{0}Error {1} {2}", action, this, ex?.Message);
-            if (Error != null) Error(this, new ExceptionEventArgs { Exception = ex });
+            Error?.Invoke(this, new ExceptionEventArgs { Exception = ex });
         }
         #endregion
 
@@ -264,9 +266,9 @@ namespace NewLife.Net
         #endregion
 
         #region ITransport接口
-        Boolean ITransport.Open() { return true; }
+        Boolean ITransport.Open() => true;
 
-        Boolean ITransport.Close() { return true; }
+        Boolean ITransport.Close() => true;
         #endregion
 
         #region 日志

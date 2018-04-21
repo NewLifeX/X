@@ -52,11 +52,7 @@ namespace NewLife.Net
 
         /// <summary>使用监听口初始化</summary>
         /// <param name="listenPort"></param>
-        public UdpServer(Int32 listenPort)
-            : this()
-        {
-            Port = listenPort;
-        }
+        public UdpServer(Int32 listenPort) : this() => Port = listenPort;
         #endregion
 
         #region 方法
@@ -116,7 +112,9 @@ namespace NewLife.Net
         /// </remarks>
         /// <param name="pk">数据包</param>
         /// <returns>是否成功</returns>
-        protected override Boolean OnSend(Packet pk)
+        protected override Boolean OnSend(Packet pk) => OnSend(pk, Remote.EndPoint);
+
+        private Boolean OnSend(Packet pk, IPEndPoint remote)
         {
             var count = pk.Total;
 
@@ -138,13 +136,13 @@ namespace NewLife.Net
                     }
                     else
                     {
-                        Client.CheckBroadcast(Remote.Address);
-                        if (Log.Enable && LogSend) WriteLog("Send {2} [{0}]: {1}", count, pk.ToHex(), Remote.EndPoint);
+                        Client.CheckBroadcast(remote.Address);
+                        if (Log.Enable && LogSend) WriteLog("Send {2} [{0}]: {1}", count, pk.ToHex(), remote);
 
                         if (pk.Next == null)
-                            sp.SendTo(pk.Data, pk.Offset, count, SocketFlags.None, Remote.EndPoint);
+                            sp.SendTo(pk.Data, pk.Offset, count, SocketFlags.None, remote);
                         else
-                            sp.SendTo(pk.ToArray(), 0, count, SocketFlags.None, Remote.EndPoint);
+                            sp.SendTo(pk.ToArray(), 0, count, SocketFlags.None, remote);
                     }
                 }
 
@@ -168,10 +166,7 @@ namespace NewLife.Net
         /// <summary>发送数据包到目的地址</summary>
         /// <param name="pk"></param>
         /// <returns></returns>
-        public override async Task<Packet> SendAsync(Packet pk)
-        {
-            return await SendAsync(pk, Remote.EndPoint, true);
-        }
+        public override async Task<Packet> SendAsync(Packet pk) => await SendAsync(pk, Remote.EndPoint, true);
 
         /// <summary>发送数据包到目的地址</summary>
         /// <param name="pk"></param>
@@ -190,24 +185,24 @@ namespace NewLife.Net
                 }
             }
 
-            if (Packet == null) Packet = new PacketProvider();
+            //if (Packet == null) Packet = new PacketProvider();
 
             var task = !wait ? null : Packet.Add(pk, remote, Timeout);
 
             // 这里先发送，基类的SendAsync注定发给Remote而不是remote
-            if (!SendByQueue(pk, remote)) return null;
+            if (!OnSend(pk, remote)) return null;
 
             if (!wait) return null;
 
             return await task;
         }
 
-        internal override Boolean OnSendAsync(SocketAsyncEventArgs se)
-        {
-            if (se.RemoteEndPoint == null) se.RemoteEndPoint = Remote.EndPoint;
+        //internal override Boolean OnSendAsync(SocketAsyncEventArgs se)
+        //{
+        //    if (se.RemoteEndPoint == null) se.RemoteEndPoint = Remote.EndPoint;
 
-            return Client.SendToAsync(se);
-        }
+        //    return Client.SendToAsync(se);
+        //}
         #endregion
 
         #region 接收
@@ -309,7 +304,7 @@ namespace NewLife.Net
 
         private SessionCollection _Sessions;
         /// <summary>会话集合。用地址端口作为标识，业务应用自己维持地址端口与业务主键的对应关系。</summary>
-        public IDictionary<String, ISocketSession> Sessions { get { return _Sessions; } }
+        public IDictionary<String, ISocketSession> Sessions => _Sessions;
 
         Int32 g_ID = 0;
         /// <summary>创建会话</summary>
@@ -388,9 +383,9 @@ namespace NewLife.Net
         #endregion
 
         #region IServer接口
-        void IServer.Start() { Open(); }
+        void IServer.Start() => Open();
 
-        void IServer.Stop(String reason) { Close(reason ?? "服务停止"); }
+        void IServer.Stop(String reason) => Close(reason ?? "服务停止");
         #endregion
 
         #region 辅助

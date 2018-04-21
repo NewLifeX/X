@@ -80,7 +80,7 @@ namespace NewLife.Net
             base.OnDispose(disposing);
 
             var reason = GetType().Name + (disposing ? "Dispose" : "GC");
-            _SendQueue?.Release(reason);
+            //_SendQueue?.Release(reason);
 
             try
             {
@@ -100,6 +100,8 @@ namespace NewLife.Net
             if (Active) return true;
 
             LogPrefix = "{0}.".F((Name + "").TrimEnd("Server", "Session", "Client"));
+
+            BufferSize = Setting.Current.BufferSize;
 
             // 估算完成时间，执行过长时提示
             using (var tc = new TimeCost("{0}.Open".F(GetType().Name), 1500))
@@ -166,7 +168,7 @@ namespace NewLife.Net
         /// <returns></returns>
         protected abstract Boolean OnClose(String reason);
 
-        Boolean ITransport.Close() { return Close("传输口关闭"); }
+        Boolean ITransport.Close() => Close("传输口关闭");
 
         /// <summary>打开后触发。</summary>
         public event EventHandler Opened;
@@ -213,39 +215,39 @@ namespace NewLife.Net
         /// <returns>是否成功</returns>
         protected abstract Boolean OnSend(Packet pk);
 
-        private SendQueue _SendQueue;
-        /// <summary>以队列发送数据包，自动拆分大包，合并小包</summary>
-        /// <param name="pk"></param>
-        /// <param name="remote"></param>
-        /// <returns></returns>
-        internal Boolean SendByQueue(Packet pk, IPEndPoint remote)
-        {
-            if (Disposed) throw new ObjectDisposedException(GetType().Name);
-            if (!Open()) return false;
+        //private SendQueue _SendQueue;
+        ///// <summary>以队列发送数据包，自动拆分大包，合并小包</summary>
+        ///// <param name="pk"></param>
+        ///// <param name="remote"></param>
+        ///// <returns></returns>
+        //internal Boolean SendByQueue(Packet pk, IPEndPoint remote)
+        //{
+        //    if (Disposed) throw new ObjectDisposedException(GetType().Name);
+        //    if (!Open()) return false;
 
-            if (_SendQueue == null) _SendQueue = new SendQueue(this);
+        //    if (_SendQueue == null) _SendQueue = new SendQueue(this);
 
-            var filter = SendFilter;
-            if (filter == null) return _SendQueue.Add(pk, remote);
+        //    var filter = SendFilter;
+        //    if (filter == null) return _SendQueue.Add(pk, remote);
 
-            var ctx = new SessionFilterContext
-            {
-                Session = this,
-                Packet = pk,
-                Remote = remote
-            };
+        //    var ctx = new SessionFilterContext
+        //    {
+        //        Session = this,
+        //        Packet = pk,
+        //        Remote = remote
+        //    };
 
-            filter.Execute(ctx);
+        //    filter.Execute(ctx);
 
-            pk = ctx.Packet;
-            remote = ctx.Remote;
+        //    pk = ctx.Packet;
+        //    remote = ctx.Remote;
 
-            if (pk == null) return false;
+        //    if (pk == null) return false;
 
-            return _SendQueue.Add(pk, remote);
-        }
+        //    return _SendQueue.Add(pk, remote);
+        //}
 
-        internal abstract Boolean OnSendAsync(SocketAsyncEventArgs se);
+        //internal abstract Boolean OnSendAsync(SocketAsyncEventArgs se);
         #endregion
 
         #region 接收
@@ -418,7 +420,7 @@ namespace NewLife.Net
                 else
                 {
                     // 拆包，多个包多次调用处理程序
-                    foreach (var msg in Packet.Parse(pk))
+                    foreach (var msg in pt.Parse(pk))
                     {
                         OnReceive(msg, remote);
                     }
@@ -447,10 +449,11 @@ namespace NewLife.Net
         /// <returns>是否已处理，已处理的数据不再向下传递</returns>
         protected virtual Boolean OnReceive(Packet pk, IPEndPoint remote)
         {
-            if (Packet == null) return false;
+            var pt = Packet;
+            if (pt == null) return false;
 
             // 同步匹配
-            return Packet.Match(pk, remote);
+            return pt.Match(pk, remote);
         }
 
         /// <summary>数据到达事件</summary>
@@ -465,9 +468,10 @@ namespace NewLife.Net
 
             Received?.Invoke(sender, e);
 
-            if (Packet != null && e.Packet != null && MessageReceived != null)
+            var pt = Packet;
+            if (pt != null && e.Packet != null && MessageReceived != null)
             {
-                var msg = Packet.LoadMessage(e.Packet);
+                var msg = pt.LoadMessage(e.Packet);
                 var me = new MessageEventArgs
                 {
                     Packet = e.Packet,
@@ -481,18 +485,18 @@ namespace NewLife.Net
 
         #region 数据包处理
         /// <summary>粘包处理接口</summary>
-        public IPacket Packet { get; set; }
+        public IPacket Packet { get; set; } = new PacketProvider();
 
         /// <summary>异步发送数据</summary>
         /// <param name="pk">要发送的数据</param>
         /// <returns></returns>
         public virtual async Task<Packet> SendAsync(Packet pk)
         {
-            if (Packet == null) Packet = new PacketProvider();
+            //if (Packet == null) Packet = new PacketProvider();
 
             var task = Packet.Add(pk, Remote.EndPoint, Timeout);
 
-            if (pk != null && !SendByQueue(pk, Remote.EndPoint)) return null;
+            if (pk != null && !Send(pk)) return null;
 
             return await task;
         }
@@ -505,16 +509,17 @@ namespace NewLife.Net
             if (msg == null) throw new ArgumentNullException(nameof(msg));
 
             var pk = msg.ToPacket();
-            if (Packet == null) Packet = new PacketProvider();
+            //if (Packet == null) Packet = new PacketProvider();
+            var pt = Packet;
 
-            var task = msg.Reply ? null : Packet.Add(pk, Remote.EndPoint, Timeout);
+            var task = msg.Reply ? null : pt.Add(pk, Remote.EndPoint, Timeout);
 
-            if (!SendByQueue(pk, Remote.EndPoint)) return null;
+            if (!Send(pk)) return null;
 
             // 如果是响应包，直接返回不等待
             if (msg.Reply) return null;
 
-            return Packet.LoadMessage(await task);
+            return pt.LoadMessage(await task);
         }
 
         /// <summary>消息到达事件</summary>
@@ -560,7 +565,7 @@ namespace NewLife.Net
         #region 辅助
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override String ToString() { return Local + ""; }
+        public override String ToString() => Local + "";
         #endregion
     }
 
