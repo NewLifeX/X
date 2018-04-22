@@ -142,6 +142,7 @@
     <Compile Include="Model\ModelExtension.cs" />
     <Compile Include="Model\ObjectContainerHelper.cs" />
     <Compile Include="Net\Handlers\DefaultHandler.cs" />
+    <Compile Include="Net\Handlers\LengthFieldHandler.cs" />
     <Compile Include="Net\Handlers\MessageHandler.cs" />
     <Compile Include="Net\Handlers\IHandler.cs" />
     <Compile Include="Net\Handlers\IHandlerContext.cs" />
