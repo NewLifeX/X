@@ -121,7 +121,7 @@ namespace NewLife.Net
 
                 // 管道
                 var pp = Pipeline;
-                pp.Open(pp.CreateContext(this));
+                pp?.Open(pp.CreateContext(this));
             }
 
             ReceiveAsync();
@@ -164,7 +164,7 @@ namespace NewLife.Net
 
                 // 管道
                 var pp = Pipeline;
-                pp.Close(pp.CreateContext(this), reason);
+                pp?.Close(pp.CreateContext(this), reason);
 
                 // 触发关闭完成的事件
                 Closed?.Invoke(this, EventArgs.Empty);

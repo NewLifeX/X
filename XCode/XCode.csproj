@@ -120,7 +120,6 @@
     <Compile Include="Model\FormatExpression.cs" />
     <Compile Include="Model\FieldExpression.cs" />
     <Compile Include="PreApplicationStartCode.cs" />
-    <Compile Include="Remoting\ApiUserSession.cs" />
     <Compile Include="Setting.cs" />
     <Compile Include="Sync\ISyncMaster.cs" />
     <Compile Include="Sync\ISyncSlave.cs" />

@@ -1,40 +1,16 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.MemoryMappedFiles;
-using System.Linq;
-using System.Net;
-using System.Net.Sockets;
-using System.Runtime;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Web;
-using NewLife;
-using NewLife.Agent;
 using NewLife.Caching;
-using NewLife.Collections;
-using NewLife.Common;
-using NewLife.Data;
-using NewLife.Http;
-using NewLife.Json;
 using NewLife.Log;
-using NewLife.Model;
 using NewLife.Net;
-using NewLife.Reflection;
-using NewLife.Remoting;
 using NewLife.Security;
-using NewLife.Serialization;
-using NewLife.Threading;
 using NewLife.Web;
-using NewLife.Yun;
-using XCode;
-using XCode.Code;
 using XCode.DataAccessLayer;
 using XCode.Membership;
-using XCode.Statistics;
 
 namespace Test
 {
@@ -187,29 +163,25 @@ namespace Test
 
         static void Test5()
         {
-            //JsonConfigTest.Start();
+            var svr = new TcpServer(777);
+            svr.Log = XTrace.Log;
+            svr.LogSend = true;
+            svr.LogReceive = true;
+            svr.Start();
 
-            var dal = UserX.Meta.Session.Dal;
-            var connStr = "Data Source=Membership222.db";
-            //dal.ConnStr = connStr;
+            var client = new NetUri("tcp://127.0.0.1:777").CreateRemote();
+            client.Log = XTrace.Log;
+            client.LogSend = true;
+            client.LogReceive = true;
+            client.Open();
 
-            var user = UserX.FindByName("admin");
-            Console.WriteLine("{0}\t{1}", user, user.RegisterTime);
-            //user.RegisterTime = new DateTime(2018, 1, 1);
-            //user.Save();
+            var buf = "Stone".GetBytes();
+            client.Send(buf);
 
-            //var connStr = dal.ConnStr;
-            dal.ConnStr = connStr;
+            //var msg = new { Name = "Stone", Age = 24 };
+            //client.SendMessage(msg);
 
-            for (var i = 0; i < 1000; i++)
-            {
-                Thread.Sleep(3000);
-
-                user = UserX.FindByName("admin");
-                Console.WriteLine("{0}\t{1}", user, user.RegisterTime);
-                //user.RegisterTime = DateTime.Now;
-                //user.Save();
-            }
+            Console.ReadKey(true);
         }
     }
 }
