@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Messaging;
 
-namespace NewLife.Net
+namespace NewLife.Net.Handlers
 {
     /// <summary>消息封包</summary>
     public class MessageCodec<T> : Handler

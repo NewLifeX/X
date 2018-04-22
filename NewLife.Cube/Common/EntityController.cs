@@ -450,7 +450,7 @@ namespace NewLife.Cube
 
         /// <summary>要导出Xml的对象</summary>
         /// <returns></returns>
-        protected virtual Object OnExportXml() { return ExportData(); }
+        protected virtual Object OnExportXml() => ExportData();
 
         /// <summary>设置附件响应方式</summary>
         /// <param name="name"></param>
@@ -471,10 +471,7 @@ namespace NewLife.Cube
         [EntityAuthorize(PermissionFlags.Insert)]
         [DisplayName("导入")]
         [HttpPost]
-        public virtual ActionResult ImportXml()
-        {
-            throw new NotImplementedException();
-        }
+        public virtual ActionResult ImportXml() => throw new NotImplementedException();
 
         /// <summary>导出Json</summary>
         /// <returns></returns>
@@ -496,17 +493,14 @@ namespace NewLife.Cube
 
         /// <summary>要导出Json的对象</summary>
         /// <returns></returns>
-        protected virtual Object OnExportJson() { return ExportData(); }
+        protected virtual Object OnExportJson() => ExportData();
 
         /// <summary>导入Json</summary>
         /// <returns></returns>
         [EntityAuthorize(PermissionFlags.Insert)]
         [DisplayName("导入")]
         [HttpPost]
-        public virtual ActionResult ImportJson()
-        {
-            throw new NotImplementedException();
-        }
+        public virtual ActionResult ImportJson() => throw new NotImplementedException();
 
         /// <summary>导出Excel</summary>
         /// <returns></returns>
@@ -781,10 +775,7 @@ namespace NewLife.Cube
         /// <summary>获取要显示的字段列表</summary>
         /// <param name="isForm">是否是表单</param>
         /// <returns></returns>
-        protected virtual IList<FieldItem> GetFields(Boolean isForm)
-        {
-            return (isForm ? FormFields : ListFields) ?? Entity<TEntity>.Meta.Fields.ToList();
-        }
+        protected virtual IList<FieldItem> GetFields(Boolean isForm) => (isForm ? FormFields : ListFields) ?? Entity<TEntity>.Meta.Fields.ToList();
         #endregion
 
         #region 权限菜单

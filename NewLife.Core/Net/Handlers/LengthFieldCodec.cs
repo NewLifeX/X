@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using NewLife.Data;
 
-namespace NewLife.Net
+namespace NewLife.Net.Handlers
 {
     /// <summary>长度字段作为头部</summary>
     public class LengthFieldCodec : MessageCodec<Packet>

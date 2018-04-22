@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Messaging;
+using NewLife.Net.Handlers;
 using NewLife.Threading;
 
 namespace NewLife.Net

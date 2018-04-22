@@ -3,7 +3,7 @@ using System.Threading;
 using NewLife.Data;
 using NewLife.Messaging;
 
-namespace NewLife.Net
+namespace NewLife.Net.Handlers
 {
     /// <summary>标准网络封包。头部4字节定长</summary>
     public class DefaultCodec : MessageCodec<IMessage>

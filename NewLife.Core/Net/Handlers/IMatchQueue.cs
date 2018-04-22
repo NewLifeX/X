@@ -10,7 +10,7 @@ using NewLife.Threading;
 using Task = System.Threading.Tasks.TaskEx;
 #endif
 
-namespace NewLife.Net
+namespace NewLife.Net.Handlers
 {
     /// <summary>消息匹配队列接口。用于把响应数据包配对到请求包</summary>
     public interface IMatchQueue

@@ -8,6 +8,7 @@ using NewLife.Caching;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Net;
+using NewLife.Net.Handlers;
 using NewLife.Security;
 using NewLife.Serialization;
 using NewLife.Web;
@@ -177,8 +178,8 @@ namespace Test
 #endif
             //client.Add<DefaultCodec>();
             client.Add(new LengthFieldCodec { Size = 4 });
-            client.Add<BinaryHandler>();
-            //client.Add<JsonHandler>();
+            //client.Add<BinaryCodec<UserY>>();
+            client.Add<JsonCodec<UserY>>();
             client.Open();
 
             //client.Send("Stone");
@@ -194,40 +195,6 @@ namespace Test
             public Int32 ID { get; set; }
             public String Name { get; set; }
             public String DisplayName { get; set; }
-        }
-        class BinaryHandler : Handler
-        {
-            public override Object Write(IHandlerContext context, Object message)
-            {
-                if (message is UserY user) return Binary.FastWrite(user);
-
-                return message;
-            }
-            public override Object Read(IHandlerContext context, Object message)
-            {
-                if (message is Packet pk) return Binary.FastRead<UserY>(pk.GetStream());
-
-                return message;
-            }
-        }
-        class JsonHandler : Handler
-        {
-            public override Object Write(IHandlerContext context, Object message)
-            {
-                if (message is UserX user) return user.ToJson();
-                return message;
-            }
-            public override Object Read(IHandlerContext context, Object message)
-            {
-                if (message is Packet pk) message = pk.ToStr();
-                if (message is String str)
-                {
-                    //XTrace.WriteLine("{0}收到：{1}", this, str);
-
-                    return str.ToJsonEntity<UserX>();
-                }
-                return message;
-            }
         }
     }
 }

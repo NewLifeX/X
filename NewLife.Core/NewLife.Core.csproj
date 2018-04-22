@@ -141,6 +141,8 @@
     <Compile Include="Model\IManageUser.cs" />
     <Compile Include="Model\ModelExtension.cs" />
     <Compile Include="Model\ObjectContainerHelper.cs" />
+    <Compile Include="Net\Handlers\JsonCodec.cs" />
+    <Compile Include="Net\Handlers\BinaryCodec.cs" />
     <Compile Include="Net\Handlers\DefaultCodec.cs" />
     <Compile Include="Net\Handlers\LengthFieldCodec.cs" />
     <Compile Include="Net\Handlers\MessageCodec.cs" />
@@ -156,7 +158,7 @@
     <Compile Include="Net\NetHelper.cs" />
     <Compile Include="Net\NetServer.cs" />
     <Compile Include="Net\NetSession.cs" />
-    <Compile Include="Net\Handlers\IPipeline.cs" />
+    <Compile Include="Net\IPipeline.cs" />
     <Compile Include="Net\ReceivedEventArgs.cs" />
     <Compile Include="Net\ITransport.cs" />
     <Compile Include="Net\NetUri.cs" />

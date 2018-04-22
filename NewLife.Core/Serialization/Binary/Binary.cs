@@ -46,12 +46,14 @@ namespace NewLife.Serialization
             IgnoreMembers = new HashSet<String>();
 
             // 遍历所有处理器实现
-            var list = new List<IBinaryHandler>();
-            list.Add(new BinaryGeneral { Host = this });
-            list.Add(new BinaryNormal { Host = this });
-            list.Add(new BinaryComposite { Host = this });
-            list.Add(new BinaryList { Host = this });
-            list.Add(new BinaryDictionary { Host = this });
+            var list = new List<IBinaryHandler>
+            {
+                new BinaryGeneral { Host = this },
+                new BinaryNormal { Host = this },
+                new BinaryComposite { Host = this },
+                new BinaryList { Host = this },
+                new BinaryDictionary { Host = this }
+            };
             // 根据优先级排序
             list.Sort();
 
@@ -132,7 +134,7 @@ namespace NewLife.Serialization
 
         /// <summary>写入字节</summary>
         /// <param name="value"></param>
-        public virtual void Write(Byte value) { Stream.WriteByte(value); }
+        public virtual void Write(Byte value) => Stream.WriteByte(value);
 
         /// <summary>将字节数组部分写入当前流，不写入数组长度。</summary>
         /// <param name="buffer">包含要写入的数据的字节数组。</param>
@@ -225,10 +227,7 @@ namespace NewLife.Serialization
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
         [DebuggerHidden]
-        public T Read<T>()
-        {
-            return (T)(Object)Read(typeof(T));
-        }
+        public T Read<T>() => (T)(Object)Read(typeof(T));
 
         /// <summary>尝试读取指定类型对象</summary>
         /// <param name="type"></param>
@@ -316,15 +315,15 @@ namespace NewLife.Serialization
         /// <summary>读取整数的字节数组，某些写入器（如二进制写入器）可能需要改变字节顺序</summary>
         /// <param name="count">数量</param>
         /// <returns></returns>
-        Byte[] ReadIntBytes(Int32 count) { return Stream.ReadBytes(count); }
+        Byte[] ReadIntBytes(Int32 count) => Stream.ReadBytes(count);
 
         /// <summary>从当前流中读取 2 字节有符号整数，并使流的当前位置提升 2 个字节。</summary>
         /// <returns></returns>
-        Int16 ReadInt16() { return BitConverter.ToInt16(ReadIntBytes(2), 0); }
+        Int16 ReadInt16() => BitConverter.ToInt16(ReadIntBytes(2), 0);
 
         /// <summary>从当前流中读取 4 字节有符号整数，并使流的当前位置提升 4 个字节。</summary>
         /// <returns></returns>
-        Int32 ReadInt32() { return BitConverter.ToInt32(ReadIntBytes(4), 0); }
+        Int32 ReadInt32() => BitConverter.ToInt32(ReadIntBytes(4), 0);
         #endregion
 
         #region 7位压缩编码整数
