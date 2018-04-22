@@ -104,6 +104,8 @@ namespace NewLife.Net
 
         public void Start()
         {
+            Pipeline = Server.Pipeline;
+
             //Server.ReceiveAsync();
             Server.Open();
 
@@ -198,6 +200,9 @@ namespace NewLife.Net
 
         /// <summary>协议实现</summary>
         public IProtocol Protocol { get; set; }
+
+        /// <summary>管道</summary>
+        public IPipeline Pipeline { get; set; }
 
         internal void OnReceive(ReceivedEventArgs e)
         {

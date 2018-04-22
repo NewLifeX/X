@@ -120,6 +120,9 @@ namespace NewLife.Net
         ///// <param name="msg"></param>
         ///// <returns></returns>
         //Task<IMessage> SendAsync(IMessage msg);
+
+        /// <summary>管道</summary>
+        IPipeline Pipeline { get; set; }
         #endregion
     }
 

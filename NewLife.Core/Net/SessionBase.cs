@@ -550,6 +550,9 @@ namespace NewLife.Net
 
         ///// <summary>消息到达事件</summary>
         //public event EventHandler<MessageEventArgs> MessageReceived;
+
+        /// <summary>管道</summary>
+        public IPipeline Pipeline { get; set; }
         #endregion
 
         #region 异常处理
