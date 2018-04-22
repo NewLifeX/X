@@ -412,7 +412,7 @@ namespace NewLife.Net
             {
                 var ep = se.RemoteEndPoint as IPEndPoint ?? Remote.EndPoint;
 
-                if (Log.Enable && LogReceive) WriteLog("Recv# [{0}]: {1}", se.BytesTransferred, se.Buffer.ToHex(se.Offset, Math.Min(se.BytesTransferred, 32)));
+                //if (Log.Enable && LogReceive) WriteLog("Recv# [{0}]: {1}", se.BytesTransferred, se.Buffer.ToHex(se.Offset, Math.Min(se.BytesTransferred, 32)));
 
                 var pk = new Packet(se.Buffer, se.Offset, se.BytesTransferred);
                 if (ProcessAsync)

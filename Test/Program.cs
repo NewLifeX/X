@@ -5,6 +5,7 @@ using System.IO;
 using System.IO.MemoryMappedFiles;
 using System.Threading;
 using NewLife.Caching;
+using NewLife.Data;
 using NewLife.Log;
 using NewLife.Net;
 using NewLife.Security;
@@ -163,16 +164,20 @@ namespace Test
 
         static void Test5()
         {
-            var svr = new TcpServer(777);
-            svr.Log = XTrace.Log;
-            svr.LogSend = true;
-            svr.LogReceive = true;
-            svr.Start();
+            //var svr = new TcpServer(777);
+            //svr.Log = XTrace.Log;
+            //svr.LogSend = true;
+            //svr.LogReceive = true;
+            //svr.Start();
 
-            var client = new NetUri("tcp://127.0.0.1:777").CreateRemote();
+            var client = new NetUri("tcp://127.0.0.1:7").CreateRemote();
+#if DEBUG
             client.Log = XTrace.Log;
             client.LogSend = true;
             client.LogReceive = true;
+#endif
+            client.Pipeline = new Pipeline();
+            client.Pipeline.AddLast(new MyHandler());
             client.Open();
 
             var buf = "Stone".GetBytes();
@@ -182,6 +187,19 @@ namespace Test
             //client.SendMessage(msg);
 
             Console.ReadKey(true);
+        }
+
+        class MyHandler : Handler
+        {
+            public override Boolean Read(IHandlerContext context, Object message)
+            {
+                if (message is Packet pk)
+                {
+                    XTrace.WriteLine("{0}收到：{1}", this, pk.ToStr());
+                }
+
+                return true;
+            }
         }
     }
 }
