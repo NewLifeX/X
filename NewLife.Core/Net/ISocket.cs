@@ -123,6 +123,11 @@ namespace NewLife.Net
 
         /// <summary>管道</summary>
         IPipeline Pipeline { get; set; }
+
+        /// <summary>发送消息</summary>
+        /// <param name="Message"></param>
+        /// <returns></returns>
+        Boolean SendMessage(Object Message);
         #endregion
     }
 

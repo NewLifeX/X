@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -553,6 +555,34 @@ namespace NewLife.Net
 
         /// <summary>管道</summary>
         public IPipeline Pipeline { get; set; }
+
+        /// <summary>发送消息</summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public virtual Boolean SendMessage(Object message)
+        {
+            var pp = Pipeline;
+            if (pp == null) throw new ArgumentNullException(nameof(Pipeline));
+
+            var ctx = pp.CreateContext(this);
+            if (!pp.Write(ctx, message)) return false;
+
+            // 发送一包数据
+            if (ctx.Result is Packet pk) return Send(pk);
+
+            // 发送一批数据包
+            if (ctx.Result is IEnumerable<Packet> pks)
+            {
+                foreach (var item in pks)
+                {
+                    if (!Send(item)) return false;
+                }
+
+                return true;
+            }
+
+            return false;
+        }
         #endregion
 
         #region 异常处理

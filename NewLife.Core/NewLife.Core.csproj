@@ -151,6 +151,7 @@
     <Compile Include="Http\HttpHelper.cs" />
     <Compile Include="Http\HttpSession.cs" />
     <Compile Include="Net\IHandler.cs" />
+    <Compile Include="Net\IHandlerContext.cs" />
     <Compile Include="Net\INetSession.cs" />
     <Compile Include="Net\IPacket.cs" />
     <Compile Include="Net\IPacketQueue.cs" />
