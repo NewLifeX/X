@@ -6,9 +6,6 @@ using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Threading;
-#if NET4
-using Task = System.Threading.Tasks.TaskEx;
-#endif
 
 namespace NewLife.Net.Handlers
 {
@@ -96,7 +93,7 @@ namespace NewLife.Net.Handlers
                     }
 
                     // 异步设置完成结果，否则可能会在当前线程恢复上层await，导致堵塞当前任务
-                    if (!qi.Source.Task.IsCompleted) Task.Run(() => qi.Source.SetResult(result));
+                    if (!qi.Source.Task.IsCompleted) Task.Factory.StartNew(() => qi.Source.SetResult(result));
 
                     return true;
                 }

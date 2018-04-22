@@ -129,23 +129,25 @@ namespace NewLife.Net
         {
             if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
-            StatSend?.Increment(pk.Count);
-            if (Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", pk.Count, pk.ToHex());
+            return Server.OnSend(pk, Remote.EndPoint);
 
-            LastTime = DateTime.Now;
+            //StatSend?.Increment(pk.Count);
+            //if (Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", pk.Count, pk.ToHex());
 
-            try
-            {
-                Server.Client.SendTo(pk.Data, pk.Offset, pk.Count, SocketFlags.None, Remote.EndPoint);
+            //LastTime = DateTime.Now;
 
-                return true;
-            }
-            catch (Exception ex)
-            {
-                OnError("Send", ex);
-                Dispose();
-                throw;
-            }
+            //try
+            //{
+            //    Server.Client.SendTo(pk.Data, pk.Offset, pk.Count, SocketFlags.None, Remote.EndPoint);
+
+            //    return true;
+            //}
+            //catch (Exception ex)
+            //{
+            //    OnError("Send", ex);
+            //    Dispose();
+            //    throw;
+            //}
         }
 
         /// <summary>管道</summary>

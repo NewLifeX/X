@@ -24,8 +24,8 @@ namespace NewLife.Net
         ///// <summary>粘包处理接口</summary>
         //IPacketFactory SessionPacket { get; set; }
 
-        /// <summary>管道</summary>
-        IPipeline Pipeline { get; set; }
+        ///// <summary>管道</summary>
+        //IPipeline Pipeline { get; set; }
 
         /// <summary>会话统计</summary>
         IStatistics StatSession { get; set; }
@@ -59,25 +59,25 @@ namespace NewLife.Net
         #endregion
 
         #region 消息包
-        /// <summary>添加处理器</summary>
-        /// <typeparam name="THandler"></typeparam>
-        /// <param name="server">会话</param>
-        public static void Add<THandler>(this ISocketServer server) where THandler : IHandler, new()
-        {
-            if (server.Pipeline == null) server.Pipeline = new Pipeline();
+        ///// <summary>添加处理器</summary>
+        ///// <typeparam name="THandler"></typeparam>
+        ///// <param name="server">会话</param>
+        //public static void Add<THandler>(this ISocketServer server) where THandler : IHandler, new()
+        //{
+        //    if (server.Pipeline == null) server.Pipeline = new Pipeline();
 
-            server.Pipeline.AddLast(new THandler());
-        }
+        //    server.Pipeline.AddLast(new THandler());
+        //}
 
-        /// <summary>添加处理器</summary>
-        /// <param name="server">会话</param>
-        /// <param name="handler">处理器</param>
-        public static void Add(this ISocketServer server, IHandler handler)
-        {
-            if (server.Pipeline == null) server.Pipeline = new Pipeline();
+        ///// <summary>添加处理器</summary>
+        ///// <param name="server">会话</param>
+        ///// <param name="handler">处理器</param>
+        //public static void Add(this ISocketServer server, IHandler handler)
+        //{
+        //    if (server.Pipeline == null) server.Pipeline = new Pipeline();
 
-            server.Pipeline.AddLast(handler);
-        }
+        //    server.Pipeline.AddLast(handler);
+        //}
         #endregion
     }
 }

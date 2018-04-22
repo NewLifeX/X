@@ -24,7 +24,11 @@ namespace NewLife.Net.Handlers
 
                 // 加入队列
                 if (context["TaskSource"] is TaskCompletionSource<Object> source)
-                    Queue.Add(context.Session, msg, 15000, source);
+                {
+                    var timeout = 5000;
+                    if (context.Session is ISocketClient client) timeout = client.Timeout;
+                    Queue.Add(context.Session, msg, timeout, source);
+                }
             }
 
             return message;
@@ -66,7 +70,6 @@ namespace NewLife.Net.Handlers
         /// <param name="pk"></param>
         /// <returns></returns>
         protected virtual T Decode(IHandlerContext context, Packet pk) => default(T);
-
 
         /// <summary>读取数据完成</summary>
         /// <param name="context">上下文</param>

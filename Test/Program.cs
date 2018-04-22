@@ -8,6 +8,7 @@ using NewLife.Caching;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Net;
+using NewLife.Net.Application;
 using NewLife.Net.Handlers;
 using NewLife.Security;
 using NewLife.Serialization;
@@ -166,28 +167,39 @@ namespace Test
 
         static async void Test5()
         {
-            //var svr = new TcpServer(777);
-            //svr.Log = XTrace.Log;
-            //svr.LogSend = true;
-            //svr.LogReceive = true;
-            //svr.Start();
-
-            var client = new NetUri("tcp://127.0.0.1:7").CreateRemote();
-#if DEBUG
-            client.Log = XTrace.Log; client.LogSend = true; client.LogReceive = true;
-#endif
-            //client.Add<DefaultCodec>();
-            client.Add(new LengthFieldCodec { Size = 4 });
-            //client.Add<BinaryCodec<UserY>>();
-            client.Add<JsonCodec<UserY>>();
-            client.Open();
-
-            //client.Send("Stone");
-            var user = new UserY { ID = 0x1234, Name = "Stone", DisplayName = "大石头" };
-            for (var i = 0; i < 3; i++)
+            Console.WriteLine("服务端1，客户端2：");
+            if (Console.ReadKey().KeyChar == '1')
             {
-                var rs = await client.SendAsync(user) as UserY;
-                XTrace.WriteLine("{0} {1}", rs.Name, rs.DisplayName);
+                var svr = new UdpServer(777);
+#if DEBUG
+                svr.Log = XTrace.Log; svr.LogSend = true; svr.LogReceive = true;
+#endif
+                //svr.Add<DefaultCodec>();
+                svr.Add(new LengthFieldCodec { Size = 4 });
+                //svr.Add<BinaryCodec<UserY>>();
+                svr.Add<JsonCodec<UserY>>();
+                svr.Add<EchoHandler>();
+                svr.Open();
+            }
+            else
+            {
+                var client = new NetUri("udp://127.0.0.1:777").CreateRemote();
+#if DEBUG
+                client.Log = XTrace.Log; client.LogSend = true; client.LogReceive = true;
+#endif
+                //client.Add<DefaultCodec>();
+                client.Add(new LengthFieldCodec { Size = 4 });
+                //client.Add<BinaryCodec<UserY>>();
+                client.Add<JsonCodec<UserY>>();
+                client.Open();
+
+                //client.Send("Stone");
+                var user = new UserY { ID = 0x1234, Name = "Stone", DisplayName = "大石头" };
+                for (var i = 0; i < 3; i++)
+                {
+                    var rs = await client.SendAsync(user) as UserY;
+                    XTrace.WriteLine("{0} {1}", rs.Name, rs.DisplayName);
+                }
             }
         }
         class UserY

@@ -117,7 +117,7 @@ namespace NewLife.Net
         /// <returns>是否成功</returns>
         protected override Boolean OnSend(Packet pk) => OnSend(pk, Remote.EndPoint);
 
-        private Boolean OnSend(Packet pk, IPEndPoint remote)
+        internal Boolean OnSend(Packet pk, IPEndPoint remote)
         {
             var count = pk.Total;
 
@@ -165,6 +165,11 @@ namespace NewLife.Net
                 return false;
             }
         }
+
+        /// <summary>发送消息并等待响应</summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public override async Task<Object> SendAsync(Object message) => await CreateSession(Remote.EndPoint).SendAsync(message);
 
         ///// <summary>发送数据包到目的地址</summary>
         ///// <param name="pk"></param>

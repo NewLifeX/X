@@ -175,21 +175,24 @@ namespace NewLife.Net
         /// <param name="message">消息</param>
         public virtual Object Read(IHandlerContext context, Object message)
         {
+            var rs = message;
             foreach (var handler in Handlers)
             {
+                // 需要下一次循环时，才使用上一次结果，避免ReadComplete得不到数据
+                message = rs;
                 if (message is Byte[] buf) message = new Packet(buf);
 
-                message = handler.Read(context, message);
-                if (message == null) return null;
+                rs = handler.Read(context, message);
+                if (rs == null) break;
             }
 
             // 读取完成
             foreach (var handler in Handlers)
             {
-                handler.ReadComplete(context, message);
+                handler.ReadComplete(context, rs);
             }
 
-            return message;
+            return rs;
         }
 
         /// <summary>写入数据，返回结果作为下一个处理器消息</summary>

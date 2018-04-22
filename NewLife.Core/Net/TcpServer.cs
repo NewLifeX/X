@@ -270,6 +270,8 @@ namespace NewLife.Net
 
                 NewSession?.Invoke(this, new SessionEventArgs { Session = session });
 
+                if (session.Pipeline == null) session.Pipeline = Pipeline;
+
                 //// 自动开始异步接收处理
                 //if (AutoReceiveAsync) 
                 session.ReceiveAsync();

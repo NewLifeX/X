@@ -33,6 +33,9 @@ namespace NewLife.Net
         /// <summary>端口</summary>
         Int32 Port { get; set; }
 
+        /// <summary>管道</summary>
+        IPipeline Pipeline { get; set; }
+
         /// <summary>是否抛出异常，默认false不抛出。Send/Receive时可能发生异常，该设置决定是直接抛出异常还是通过<see cref="Error"/>事件</summary>
         Boolean ThrowException { get; set; }
 
@@ -122,8 +125,8 @@ namespace NewLife.Net
         ///// <returns></returns>
         //Task<IMessage> SendAsync(IMessage msg);
 
-        /// <summary>管道</summary>
-        IPipeline Pipeline { get; set; }
+        ///// <summary>管道</summary>
+        //IPipeline Pipeline { get; set; }
 
         /// <summary>发送消息</summary>
         /// <param name="message">消息</param>
@@ -246,7 +249,7 @@ namespace NewLife.Net
         /// <summary>添加处理器</summary>
         /// <typeparam name="THandler"></typeparam>
         /// <param name="session">会话</param>
-        public static void Add<THandler>(this ISocketRemote session) where THandler : IHandler, new()
+        public static void Add<THandler>(this ISocket session) where THandler : IHandler, new()
         {
             if (session.Pipeline == null) session.Pipeline = new Pipeline();
 
@@ -256,7 +259,7 @@ namespace NewLife.Net
         /// <summary>添加处理器</summary>
         /// <param name="session">会话</param>
         /// <param name="handler">处理器</param>
-        public static void Add(this ISocketRemote session, IHandler handler)
+        public static void Add(this ISocket session, IHandler handler)
         {
             if (session.Pipeline == null) session.Pipeline = new Pipeline();
 
