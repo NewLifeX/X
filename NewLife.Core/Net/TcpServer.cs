@@ -56,6 +56,9 @@ namespace NewLife.Net
         ///// <summary>粘包处理接口</summary>
         //public IPacketFactory SessionPacket { get; set; }
 
+        /// <summary>管道</summary>
+        public IPipeline Pipeline { get; set; }
+
         /// <summary>会话统计</summary>
         public IStatistics StatSession { get; set; } = new Statistics();
 

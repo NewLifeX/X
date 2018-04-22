@@ -456,6 +456,8 @@ namespace NewLife.Net
                 //    }
                 //}
 
+                if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", pk.Total, pk.ToHex(32, null));
+
                 var pp = Pipeline;
                 if (pp == null)
                     OnReceive(pk, remote, null);

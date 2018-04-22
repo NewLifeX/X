@@ -7,9 +7,6 @@ namespace NewLife.Serialization
     /// <summary>Json编码解码器</summary>
     public class JsonCodec<T> : Handler
     {
-        /// <summary>使用7位编码整数。默认true使用</summary>
-        public Boolean EncodedInt { get; set; } = true;
-
         /// <summary>对象转Json</summary>
         /// <param name="context"></param>
         /// <param name="message"></param>

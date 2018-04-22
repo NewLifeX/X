@@ -241,7 +241,7 @@ namespace NewLife.Net
                 UserState = Remote.EndPoint
             };
 
-            if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", e.Length, e.ToHex(32, null));
+            //if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", e.Length, e.ToHex(32, null));
 
             RaiseReceive(this, e);
 
