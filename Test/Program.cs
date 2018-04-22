@@ -185,7 +185,7 @@ namespace Test
             var user = new UserY { ID = 0x1234, Name = "Stone", DisplayName = "大石头" };
             for (var i = 0; i < 3; i++)
             {
-                var rs = await client.SendAsync(user) as UserX;
+                var rs = await client.SendAsync(user) as UserY;
                 XTrace.WriteLine("{0} {1}", rs.Name, rs.DisplayName);
             }
         }
@@ -199,20 +199,13 @@ namespace Test
         {
             public override Object Write(IHandlerContext context, Object message)
             {
-                if (message is UserY user)
-                {
-                    var bn = new Binary();
-                    bn.Stream.Write(new Byte[4]);
-                    bn.Write(user);
-                    var buf = bn.GetBytes();
-                    var pk = new Packet(buf, 4, buf.Length - 4);
-                    return pk;
-                }
+                if (message is UserY user) return Binary.FastWrite(user);
+
                 return message;
             }
             public override Object Read(IHandlerContext context, Object message)
             {
-                if (message is Packet pk) return Binary.ReadFast<UserY>(pk.GetStream());
+                if (message is Packet pk) return Binary.FastRead<UserY>(pk.GetStream());
 
                 return message;
             }

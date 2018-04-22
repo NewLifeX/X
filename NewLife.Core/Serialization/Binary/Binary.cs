@@ -409,25 +409,28 @@ namespace NewLife.Serialization
         #region 快捷方法
         /// <summary>快速读取</summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="stream"></param>
+        /// <param name="stream">数据流</param>
+        /// <param name="encodeInt">使用7位编码整数</param>
         /// <returns></returns>
-        public static T ReadFast<T>(Stream stream)
+        public static T FastRead<T>(Stream stream, Boolean encodeInt = true)
         {
-            var bn = new Binary() { Stream = stream };
+            var bn = new Binary() { Stream = stream, EncodeInt = encodeInt };
             return bn.Read<T>();
         }
 
         /// <summary>快速写入</summary>
-        /// <param name="value"></param>
+        /// <param name="value">对象</param>
+        /// <param name="encodeInt">使用7位编码整数</param>
         /// <returns></returns>
-        public static Packet WriteFast(Object value)
+        public static Packet FastWrite(Object value, Boolean encodeInt = true)
         {
-            var bn = new Binary();
-            bn.Stream.Write(new Byte[4]);
+            // 头部预留8字节，方便加协议头
+            var bn = new Binary { EncodeInt = encodeInt };
+            bn.Stream.Seek(8, SeekOrigin.Current);
             bn.Write(value);
 
             var buf = bn.GetBytes();
-            return new Packet(buf, 4, buf.Length - 4);
+            return new Packet(buf, 8, buf.Length - 8);
         }
         #endregion
     }

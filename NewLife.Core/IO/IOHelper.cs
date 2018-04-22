@@ -840,6 +840,25 @@ namespace System
 
             return stream;
         }
+
+        /// <summary>获取压缩编码整数</summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static Byte[] GetEncodedInt(Int64 value)
+        {
+            if (_encodes == null) _encodes = new Byte[16];
+
+            var count = 0;
+            var num = (UInt64)value;
+            while (num >= 0x80)
+            {
+                _encodes[count++] = (Byte)(num | 0x80);
+                num = num >> 7;
+            }
+            _encodes[count++] = (Byte)num;
+
+            return _encodes.ReadBytes(0, count);
+        }
         #endregion
 
         #region 数据流查找

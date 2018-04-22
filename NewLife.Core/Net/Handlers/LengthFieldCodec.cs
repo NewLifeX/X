@@ -28,32 +28,52 @@ namespace NewLife.Net
         protected override Object Encode(IHandlerContext context, Packet msg)
         {
             var len = Math.Abs(Size);
-            if (len == 0) return msg;
-
+            var buf = msg.Data;
+            var idx = 0;
             var dlen = msg.Total;
-            var buf = new Byte[len];
+
+            // 修正压缩编码
+            if (len == 0) len = IOHelper.GetEncodedInt(dlen).Length;
+
+            // 尝试退格，直接利用缓冲区
+            if (msg.Offset >= len)
+            {
+                idx = msg.Offset - len;
+                msg.Set(msg.Data, msg.Offset - len, msg.Count + len);
+            }
+            // 新建数据包，形成链式结构
+            else
+            {
+                buf = new Byte[len];
+                msg = new Packet(buf) { Next = msg };
+            }
+
             switch (Size)
             {
+                case 0:
+                    var buf2 = IOHelper.GetEncodedInt(dlen);
+                    buf.Write(idx, buf2);
+                    break;
                 case 1:
-                    buf[0] = (Byte)dlen;
+                    buf[idx] = (Byte)dlen;
                     break;
                 case 2:
-                    buf.Write((UInt16)dlen, 0);
+                    buf.Write((UInt16)dlen, idx);
                     break;
                 case 4:
-                    buf.Write((UInt32)dlen, 0);
+                    buf.Write((UInt32)dlen, idx);
                     break;
                 case -2:
-                    buf.Write((UInt16)dlen, 0, false);
+                    buf.Write((UInt16)dlen, idx, false);
                     break;
                 case -4:
-                    buf.Write((UInt32)dlen, 0, false);
+                    buf.Write((UInt32)dlen, idx, false);
                     break;
                 default:
                     throw new NotSupportedException();
             }
 
-            return new Packet(buf) { Next = msg };
+            return msg;
         }
 
         /// <summary>解码</summary>
@@ -62,13 +82,19 @@ namespace NewLife.Net
         /// <returns></returns>
         protected override Packet Decode(IHandlerContext context, Packet pk)
         {
-            var len = Math.Abs(Size);
-            if (len == 0) return pk;
-
             var dlen = 0;
+            var len = Math.Abs(Size);
+            if (len == 0)
+            {
+                var ms = pk.GetStream();
+                dlen = ms.ReadEncodedInt();
+                len = (Int32)ms.Position;
+            }
+
             var buf = pk.ReadBytes(Offset, len);
             switch (Size)
             {
+                case 0: break;
                 case 1:
                     dlen = buf[0];
                     break;
