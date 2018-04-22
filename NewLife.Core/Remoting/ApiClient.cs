@@ -234,9 +234,9 @@ namespace NewLife.Remoting
         /// <summary>创建消息</summary>
         /// <param name="pk"></param>
         /// <returns></returns>
-        IMessage IApiSession.CreateMessage(Packet pk) { return Client?.CreateMessage(pk); }
+        IMessage IApiSession.CreateMessage(Packet pk) => Client?.CreateMessage(pk);
 
-        async Task<IMessage> IApiSession.SendAsync(IMessage msg) { return await Client.SendAsync(msg); }
+        async Task<IMessage> IApiSession.SendAsync(IMessage msg) => await Client.SendAsync(msg);
         #endregion
 
         #region 登录

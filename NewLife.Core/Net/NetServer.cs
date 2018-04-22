@@ -359,8 +359,8 @@ namespace NewLife.Net
         /// <summary>某个会话的数据到达。sender是ISocketSession</summary>
         public event EventHandler<ReceivedEventArgs> Received;
 
-        /// <summary>消息到达事件</summary>
-        public event EventHandler<MessageEventArgs> MessageReceived;
+        ///// <summary>消息到达事件</summary>
+        //public event EventHandler<MessageEventArgs> MessageReceived;
 
         /// <summary>接受连接时，对于Udp是收到数据时（同时触发OnReceived）。</summary>
         /// <param name="sender"></param>
@@ -396,7 +396,7 @@ namespace NewLife.Net
             if (UseSession) AddSession(ns);
 
             ns.Received += OnReceived;
-            ns.MessageReceived += OnMessageReceived;
+            //ns.MessageReceived += OnMessageReceived;
             //session.Error += OnError;
 
             // 估算完成时间，执行过长时提示
@@ -428,22 +428,22 @@ namespace NewLife.Net
         /// <param name="stream"></param>
         protected virtual void OnReceive(INetSession session, Stream stream) { }
 
-        /// <summary>收到消息时</summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void OnMessageReceived(Object sender, MessageEventArgs e)
-        {
-            var session = sender as INetSession;
+        ///// <summary>收到消息时</summary>
+        ///// <param name="sender"></param>
+        ///// <param name="e"></param>
+        //void OnMessageReceived(Object sender, MessageEventArgs e)
+        //{
+        //    var session = sender as INetSession;
 
-            OnReceive(session, e.Message);
+        //    OnReceive(session, e.Message);
 
-            MessageReceived?.Invoke(sender, e);
-        }
+        //    MessageReceived?.Invoke(sender, e);
+        //}
 
-        /// <summary>收到消息时</summary>
-        /// <param name="session"></param>
-        /// <param name="msg"></param>
-        protected virtual void OnReceive(INetSession session, IMessage msg) { }
+        ///// <summary>收到消息时</summary>
+        ///// <param name="session"></param>
+        ///// <param name="msg"></param>
+        //protected virtual void OnReceive(INetSession session, IMessage msg) { }
 
         /// <summary>错误发生/断开连接时。sender是ISocketSession</summary>
         public event EventHandler<ExceptionEventArgs> Error;

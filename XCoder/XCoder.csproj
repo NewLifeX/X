@@ -82,6 +82,13 @@
     <Compile Include="Tools\FrmSecurity.Designer.cs">
       <DependentUpon>FrmSecurity.cs</DependentUpon>
     </Compile>
+    <Compile Include="XApi\ApiConfig.cs" />
+    <Compile Include="XApi\FrmMain.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="XApi\FrmMain.designer.cs">
+      <DependentUpon>FrmMain.cs</DependentUpon>
+    </Compile>
     <Compile Include="XNet\IPPacket.cs" />
     <Compile Include="XNet\MySqlParser.cs" />
     <Compile Include="XNet\RawSocket.cs" />
@@ -173,6 +180,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Tools\FrmSecurity.resx">
       <DependentUpon>FrmSecurity.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="XApi\FrmMain.resx">
+      <DependentUpon>FrmMain.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Yun\FrmMap.resx">
       <DependentUpon>FrmMap.cs</DependentUpon>

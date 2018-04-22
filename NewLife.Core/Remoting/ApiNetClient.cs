@@ -4,6 +4,7 @@ using NewLife.Data;
 using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Net;
+using NewLife.Net.Handlers;
 using NewLife.Reflection;
 
 namespace NewLife.Remoting
@@ -40,7 +41,7 @@ namespace NewLife.Remoting
             var ct = Client = uri.CreateRemote();
 
             // 新生命标准网络封包协议
-            ct.Packet = new DefaultPacket();
+            ct.Add<DefaultCodec>();
 
             // Udp客户端默认超时时间
             //if (ct is UdpServer) (ct as UdpServer).SessionTimeout = 10 * 60;
@@ -90,19 +91,19 @@ namespace NewLife.Remoting
         /// <summary>创建消息</summary>
         /// <param name="pk"></param>
         /// <returns></returns>
-        public IMessage CreateMessage(Packet pk) => Client?.Packet?.CreateMessage(pk) ?? new Message { Payload = pk };
+        public IMessage CreateMessage(Packet pk) => new Message { Payload = pk };
 
         /// <summary>远程调用</summary>
         /// <param name="msg"></param>
         /// <returns></returns>
-        public async Task<IMessage> SendAsync(IMessage msg) => await Client.SendAsync(msg);
+        public async Task<IMessage> SendAsync(IMessage msg) => await Client.SendAsync(msg) as IMessage;
         #endregion
 
         #region 异步接收
         private void Client_Received(Object sender, ReceivedEventArgs e)
         {
-            var msg = e.Message;
-            if (msg.Reply) return;
+            var msg = e.Message as IMessage;
+            if (msg == null || msg.Reply) return;
 
             if (Provider is ApiClient ac) ac.LastActive = DateTime.Now;
 

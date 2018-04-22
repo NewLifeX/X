@@ -236,7 +236,8 @@ namespace NewLife.Net
             // 分析处理
             var e = new ReceivedEventArgs(pk)
             {
-                UserState = Remote.EndPoint
+                Message = message,
+                UserState = Remote.EndPoint,
             };
 
             //if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", e.Length, e.ToHex(32, null));

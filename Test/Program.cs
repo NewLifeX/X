@@ -10,6 +10,7 @@ using NewLife.Log;
 using NewLife.Net;
 using NewLife.Net.Application;
 using NewLife.Net.Handlers;
+using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
 using NewLife.Web;
@@ -36,7 +37,7 @@ namespace Test
                 try
                 {
 #endif
-                Test5();
+                Test4();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -138,31 +139,7 @@ namespace Test
 
         static void Test4()
         {
-            var str = "~/Sso/Login";
-            var uri2 = new Uri("Sso/Login", UriKind.Absolute);
-            //var uri = str.AsUri("http://xxx.yyy.zzz/ss/dd/ff".AsUri());
-            var uri = str.AsUri();
-            //var cfg = CacheConfig.Current;
-            //Console.WriteLine(cfg.GetOrAdd("Bill01"));
-
-            //var set = cfg.GetOrAdd("aa_test", "redis");
-            //Console.WriteLine(set);
-
-            WebClientX.SetAllowUnsafeHeaderParsing(true);
-
-            var url = "https://api.github.com/user?access_token=ccb5c1363318ee2fa1d9374e87961bdf01a4c682";
-
-            var client = new WebClientX(true, true);
-            //var buf = client.DownloadDataAsync(url).Result;
-            //var ms = new MemoryStream(buf);
-            //var ms2 = ms.DecompressGZip();
-            //buf = ms2.ReadBytes();
-            var html = client.GetHtml(url);
-            Console.WriteLine(html);
-
-            var ip = "223.5.5.5";
-            ip = ip.IPToAddress();
-            Console.WriteLine(ip);
+            ApiTest.Main();
         }
 
         static async void Test5()

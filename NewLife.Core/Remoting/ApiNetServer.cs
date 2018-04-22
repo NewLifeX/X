@@ -6,6 +6,7 @@ using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Messaging;
 using NewLife.Net;
+using NewLife.Net.Handlers;
 using NewLife.Reflection;
 
 namespace NewLife.Remoting
@@ -44,7 +45,7 @@ namespace NewLife.Remoting
             //LogReceive = true;
 #endif
             // 新生命标准网络封包协议
-            SessionPacket = new DefaultPacketFactory();
+            Add<DefaultCodec>();
 
             return true;
         }
@@ -132,13 +133,13 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public virtual Object CreateController(ApiAction api) => _Host.CreateController(this, api);
 
-        protected override void OnReceive(MessageEventArgs e)
+        protected override void OnReceive(ReceivedEventArgs e)
         {
             LastActive = DateTime.Now;
 
             // Api解码消息得到Action和参数
-            var msg = e.Message;
-            if (msg.Reply) return;
+            var msg = e.Message as IMessage;
+            if (msg == null || msg.Reply) return;
 
             var rs = _Host.Process(this, msg);
             if (rs != null) Session?.SendAsync(rs);
@@ -147,7 +148,7 @@ namespace NewLife.Remoting
         /// <summary>创建消息</summary>
         /// <param name="pk"></param>
         /// <returns></returns>
-        public IMessage CreateMessage(Packet pk) => Session?.Packet?.CreateMessage(pk) ?? new Message { Payload = pk };
+        public IMessage CreateMessage(Packet pk) => new Message { Payload = pk };
 
         /// <summary>远程调用</summary>
         /// <typeparam name="TResult"></typeparam>
@@ -157,7 +158,7 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public async Task<TResult> InvokeAsync<TResult>(String action, Object args = null, IDictionary<String, Object> cookie = null) => await ApiHostHelper.InvokeAsync<TResult>(_Host, this, action, args, cookie);
 
-        async Task<IMessage> IApiSession.SendAsync(IMessage msg) => await Session.SendAsync(msg);
+        async Task<IMessage> IApiSession.SendAsync(IMessage msg) => await Session.SendAsync(msg) as IMessage;
 
         /// <summary>获取服务提供者</summary>
         /// <param name="serviceType"></param>

@@ -170,11 +170,6 @@ namespace NewLife.Net
             var remote = e.UserState as IPEndPoint;
             var pk = e.Packet;
 
-            var ea = new ReceivedEventArgs(pk)
-            {
-                UserState = remote,
-            };
-
             var pp = Pipeline;
             if (pp != null)
             {
@@ -184,7 +179,7 @@ namespace NewLife.Net
                 var msg = pp.Read(ctx, pk);
                 if (msg == null) return;
 
-                ea.Message = msg;
+                e.Message = msg;
             }
 
             LastTime = DateTime.Now;
@@ -192,7 +187,7 @@ namespace NewLife.Net
 
             //if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", e.Length, e.ToHex(32, null));
 
-            if (ea != null) Received?.Invoke(this, ea);
+            if (e != null) Received?.Invoke(this, e);
         }
         #endregion
 

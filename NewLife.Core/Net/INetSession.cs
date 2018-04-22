@@ -60,8 +60,8 @@ namespace NewLife.Net
         /// <summary>数据到达事件</summary>
         event EventHandler<ReceivedEventArgs> Received;
 
-        /// <summary>消息到达事件</summary>
-        event EventHandler<MessageEventArgs> MessageReceived;
+        ///// <summary>消息到达事件</summary>
+        //event EventHandler<MessageEventArgs> MessageReceived;
         #endregion
     }
 
