@@ -9,6 +9,7 @@ using NewLife.Data;
 using NewLife.Log;
 using NewLife.Net;
 using NewLife.Security;
+using NewLife.Serialization;
 using NewLife.Web;
 using XCode.DataAccessLayer;
 using XCode.Membership;
@@ -172,32 +173,32 @@ namespace Test
 
             var client = new NetUri("tcp://127.0.0.1:7").CreateRemote();
 #if DEBUG
-            client.Log = XTrace.Log;
-            client.LogSend = true;
-            client.LogReceive = true;
+            client.Log = XTrace.Log; client.LogSend = true; client.LogReceive = true;
 #endif
-            client.Pipeline = new Pipeline();
-            client.Pipeline.AddLast(new MyHandler());
+            client.Add<MyHandler>();
             client.Open();
 
-            var buf = "Stone".GetBytes();
-            client.Send(buf);
-
-            //var msg = new { Name = "Stone", Age = 24 };
-            //client.SendMessage(msg);
-
-            Console.ReadKey(true);
+            //client.Send("Stone");
+            var user = new UserX { Name = "Stone", DisplayName = "大石头" };
+            client.SendMessage(user);
         }
-
         class MyHandler : Handler
         {
+            public override Boolean Write(IHandlerContext context, Object message)
+            {
+                if (message is UserX user) context.Result = user.ToJson().GetBytes();
+                return true;
+            }
             public override Boolean Read(IHandlerContext context, Object message)
             {
                 if (message is Packet pk)
                 {
                     XTrace.WriteLine("{0}收到：{1}", this, pk.ToStr());
-                }
 
+                    var user = pk.ToStr().ToJsonEntity<UserX>();
+                    XTrace.WriteLine("{0} {1}", user.Name, user.DisplayName);
+                    context.Result = user;
+                }
                 return true;
             }
         }

@@ -242,6 +242,16 @@ namespace NewLife.Net
         #endregion
 
         #region 消息包
+        /// <summary>添加处理器/summary>
+        /// <typeparam name="THandler"></typeparam>
+        /// <param name="session">会话</param>
+        public static void Add<THandler>(this ISocketRemote session) where THandler : IHandler, new()
+        {
+            if (session.Pipeline == null) session.Pipeline = new Pipeline();
+
+            session.Pipeline.AddLast(new THandler());
+        }
+
         ///// <summary>异步发送数据并等待响应</summary>
         ///// <param name="session">会话</param>
         ///// <param name="buffer"></param>

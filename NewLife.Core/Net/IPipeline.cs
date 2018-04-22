@@ -165,6 +165,9 @@ namespace NewLife.Net
             foreach (var handler in Handlers)
             {
                 if (!handler.Read(context, message)) return false;
+
+                // 本次结果作为下一次处理对象
+                if (context.Result != null) message = context.Result;
             }
 
             return true;
@@ -180,6 +183,9 @@ namespace NewLife.Net
             {
                 var handler = Handlers[i];
                 if (!handler.Write(context, message)) return false;
+
+                // 本次结果作为下一次处理对象
+                if (context.Result != null) message = context.Result;
             }
 
             return true;
@@ -194,6 +200,7 @@ namespace NewLife.Net
             if (!Write(ctx, message)) return false;
 
             // 发送一包数据
+            if (ctx.Result is Byte[] buf) return session.Send(buf);
             if (ctx.Result is Packet pk) return session.Send(pk);
 
             // 发送一批数据包
