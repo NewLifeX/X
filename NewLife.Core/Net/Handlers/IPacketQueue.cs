@@ -20,14 +20,14 @@ namespace NewLife.Net
         /// <param name="request">请求的数据</param>
         /// <param name="remote">远程</param>
         /// <param name="msTimeout">超时取消时间</param>
-        Task<Object> Add(Object owner, Object request, Int32 msTimeout);
+        Task<Object> Add(Object owner, Object request, Int32 msTimeout, TaskCompletionSource<Object> source);
 
         /// <summary>检查请求队列是否有匹配该响应的请求</summary>
         /// <param name="owner">拥有者</param>
         /// <param name="response">响应的数据</param>
         /// <param name="remote">远程</param>
         /// <returns></returns>
-        Boolean Match(Object owner, Object response, Func<Object, Object, Boolean> callback);
+        Boolean Match(Object owner, Object response, Object result, Func<Object, Object, Boolean> callback);
     }
 
     /// <summary>接收队列。子类可重载以自定义请求响应匹配逻辑</summary>
@@ -41,16 +41,17 @@ namespace NewLife.Net
         /// <param name="request">请求的数据</param>
         /// <param name="remote">远程</param>
         /// <param name="msTimeout">超时取消时间</param>
-        public virtual Task<Object> Add(Object owner, Object request, Int32 msTimeout)
+        public virtual Task<Object> Add(Object owner, Object request, Int32 msTimeout, TaskCompletionSource<Object> source)
         {
             var now = DateTime.Now;
 
+            if (source == null) source = new TaskCompletionSource<Object>();
             var qi = new Item
             {
                 Owner = owner,
                 Request = request,
                 EndTime = now.AddMilliseconds(msTimeout),
-                Source = new TaskCompletionSource<Object>()
+                Source = source,
             };
 
             // 加锁处理，更安全
@@ -73,10 +74,10 @@ namespace NewLife.Net
 
         /// <summary>检查请求队列是否有匹配该响应的请求</summary>
         /// <param name="owner">拥有者</param>
-        /// <param name="response">响应的数据</param>
-        /// <param name="remote">远程</param>
+        /// <param name="response">响应消息</param>
+        /// <param name="result">结果</param>
         /// <returns></returns>
-        public virtual Boolean Match(Object owner, Object response, Func<Object, Object, Boolean> callback)
+        public virtual Boolean Match(Object owner, Object response, Object result, Func<Object, Object, Boolean> callback)
         {
             var qs = Items;
             if (qs.Count == 0) return false;
@@ -93,7 +94,7 @@ namespace NewLife.Net
                     }
 
                     // 异步设置完成结果，否则可能会在当前线程恢复上层await，导致堵塞当前任务
-                    if (!qi.Source.Task.IsCompleted) Task.Run(() => qi.Source.SetResult(response));
+                    if (!qi.Source.Task.IsCompleted) Task.Run(() => qi.Source.SetResult(result));
 
                     return true;
                 }

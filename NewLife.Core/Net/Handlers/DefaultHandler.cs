@@ -16,7 +16,10 @@ namespace NewLife.Net
         /// <returns></returns>
         public override Object Write(IHandlerContext context, Object message)
         {
-            if (message is Packet pk) message = new DefaultMessage { Payload = pk, Sequence = (Byte)Interlocked.Increment(ref _gid) };
+            if (message is Packet pk)
+            {
+                message = new DefaultMessage { Payload = pk, Sequence = (Byte)Interlocked.Increment(ref _gid) };
+            }
 
             return base.Write(context, message);
         }

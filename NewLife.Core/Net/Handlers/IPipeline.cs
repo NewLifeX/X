@@ -62,6 +62,11 @@ namespace NewLife.Net
         /// <param name="message">消息</param>
         Boolean FireWrite(ISocketRemote session, Object message);
 
+        /// <summary>写入数据</summary>
+        /// <param name="session">远程会话</param>
+        /// <param name="message">消息</param>
+        Task<Object> FireWriteAndWait(ISocketRemote session, Object message);
+
         /// <summary>打开连接</summary>
         /// <param name="context">上下文</param>
         Boolean Open(IHandlerContext context);
@@ -78,9 +83,9 @@ namespace NewLife.Net
         #endregion
 
         #region 扩展
-        Task<Object> AddQueue(ISocketRemote session, Object message);
+        //Task<Object> AddQueue(ISocketRemote session, Object message);
 
-        Boolean Match(ISocketRemote session, Object message, Func<Object, Object, Boolean> callback);
+        //Boolean Match(ISocketRemote session, Object message, Func<Object, Object, Boolean> callback);
         #endregion
     }
 
@@ -210,8 +215,29 @@ namespace NewLife.Net
         public virtual Boolean FireWrite(ISocketRemote session, Object message)
         {
             var ctx = CreateContext(session);
+            return OnFireWrite(ctx, message);
+        }
+
+        /// <summary>写入数据</summary>
+        /// <param name="session">远程会话</param>
+        /// <param name="message">消息</param>
+        public virtual Task<Object> FireWriteAndWait(ISocketRemote session, Object message)
+        {
+            var ctx = CreateContext(session);
+            var source = new TaskCompletionSource<Object>();
+            ctx["TaskSource"] = source;
+
+            if (!OnFireWrite(ctx, message)) return Task.FromResult((Object)null);
+
+            return source.Task;
+        }
+
+        private Boolean OnFireWrite(IHandlerContext ctx, Object message)
+        {
             message = Write(ctx, message);
             if (message == null) return false;
+
+            var session = ctx.Session;
 
             // 发送一包数据
             if (message is Byte[] buf) return session.Send(buf);
@@ -273,19 +299,19 @@ namespace NewLife.Net
         #endregion
 
         #region 扩展
-        public IPacketQueue Queue { get; set; }
+        //public IPacketQueue Queue { get; set; }
 
-        public virtual Task<Object> AddQueue(ISocketRemote session, Object message)
-        {
-            if (Queue == null) Queue = new DefaultPacketQueue();
+        //public virtual Task<Object> AddQueue(ISocketRemote session, Object message)
+        //{
+        //    if (Queue == null) Queue = new DefaultPacketQueue();
 
-            return Queue.Add(session, message, 15000);
-        }
+        //    return Queue.Add(session, message, 15000);
+        //}
 
-        public virtual Boolean Match(ISocketRemote session, Object message, Func<Object, Object, Boolean> callback)
-        {
-            return Queue.Match(session, message, callback);
-        }
+        //public virtual Boolean Match(ISocketRemote session, Object message, Func<Object, Object, Boolean> callback)
+        //{
+        //    return Queue.Match(session, message, callback);
+        //}
         #endregion
 
         #region 枚举器

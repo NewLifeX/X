@@ -548,22 +548,6 @@ namespace NewLife.Net
         //    return await task;
         //}
 
-        /// <summary>发送消息并等待响应</summary>
-        /// <param name="message"></param>
-        /// <returns></returns>
-        public virtual async Task<Object> SendAsync(Object message)
-        {
-            if (message == null) throw new ArgumentNullException(nameof(message));
-
-            // 加入队列
-            var pp = Pipeline;
-            var task = pp.AddQueue(this, message);
-
-            if (!pp.FireWrite(this, message)) return null;
-
-            return await task;
-        }
-
         ///// <summary>消息到达事件</summary>
         //public event EventHandler<MessageEventArgs> MessageReceived;
 
@@ -574,6 +558,11 @@ namespace NewLife.Net
         /// <param name="message"></param>
         /// <returns></returns>
         public virtual Boolean SendMessage(Object message) => Pipeline.FireWrite(this, message);
+
+        /// <summary>发送消息并等待响应</summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public virtual async Task<Object> SendAsync(Object message) => await Pipeline.FireWriteAndWait(this, message);
         #endregion
 
         #region 异常处理

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Messaging;
 
@@ -7,6 +8,8 @@ namespace NewLife.Net
     /// <summary>消息封包</summary>
     public class MessageHandler<T> : Handler
     {
+        public IPacketQueue Queue { get; set; } = new DefaultPacketQueue();
+
         /// <summary>写入数据</summary>
         /// <param name="context"></param>
         /// <param name="message"></param>
@@ -17,6 +20,10 @@ namespace NewLife.Net
             {
                 context["Message"] = msg;
                 message = Encode(context, msg);
+
+                // 加入队列
+                if (context["TaskSource"] is TaskCompletionSource<Object> source)
+                    Queue.Add(context.Session, msg, 15000, source);
             }
 
             return message;
@@ -68,8 +75,7 @@ namespace NewLife.Net
             if (context["Message"] is IMessage msg)
             {
                 // 匹配
-                /*if (msg2.Reply)*/
-                context.Pipeline.Match(context.Session, msg, IsMatch);
+                if (msg.Reply) Queue.Match(context.Session, msg, message, IsMatch);
             }
         }
 

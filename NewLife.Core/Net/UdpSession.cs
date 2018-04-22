@@ -148,37 +148,18 @@ namespace NewLife.Net
             }
         }
 
-        /// <summary>异步发送数据并等待响应</summary>
+        /// <summary>管道</summary>
+        public IPipeline Pipeline { get; set; }
+
+        /// <summary>发送消息</summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public async Task<Object> SendAsync(Object message)
-        {
-            if (Server == null) return null;
+        public virtual Boolean SendMessage(Object message) => Pipeline.FireWrite(this, message);
 
-            // 加入队列
-            var pp = Pipeline;
-            var task = pp.AddQueue(this, message);
-
-            if (!pp.FireWrite(this, message)) return null;
-
-            return await task;
-        }
-
-        ///// <summary>发送消息并等待响应</summary>
-        ///// <param name="msg"></param>
-        ///// <returns></returns>
-        //public async Task<IMessage> SendAsync(IMessage msg)
-        //{
-        //    if (Server == null) return null;
-
-        //    var pk = msg.ToPacket();
-        //    var task = Server.SendAsync(pk, Remote.EndPoint, !msg.Reply);
-
-        //    // 如果是响应包，直接返回不等待
-        //    if (msg.Reply) return null;
-
-        //    return Packet.LoadMessage(await task);
-        //}
+        /// <summary>发送消息并等待响应</summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public virtual async Task<Object> SendAsync(Object message) => await Pipeline.FireWriteAndWait(this, message);
         #endregion
 
         #region 接收
@@ -207,14 +188,6 @@ namespace NewLife.Net
 
         ///// <summary>协议实现</summary>
         //public IProtocol Protocol { get; set; }
-
-        /// <summary>管道</summary>
-        public IPipeline Pipeline { get; set; }
-
-        /// <summary>发送消息</summary>
-        /// <param name="message"></param>
-        /// <returns></returns>
-        public virtual Boolean SendMessage(Object message) => Pipeline.FireWrite(this, message);
 
         internal void OnReceive(ReceivedEventArgs e)
         {
