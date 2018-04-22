@@ -6,7 +6,7 @@ using NewLife.Messaging;
 namespace NewLife.Net
 {
     /// <summary>标准网络封包。头部4字节定长</summary>
-    public class DefaultHandler : MessageHandler<IMessage>
+    public class DefaultCodec : MessageCodec<IMessage>
     {
         private Int32 _gid;
 

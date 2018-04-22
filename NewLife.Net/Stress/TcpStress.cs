@@ -4,7 +4,6 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using NewLife.Log;
-using NewLife.Security;
 using NewLife.Threading;
 
 namespace NewLife.Net.Stress

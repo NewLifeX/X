@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using NewLife.Data;
 using NewLife.Log;
 using NewLife.Reflection;
 
@@ -403,6 +404,31 @@ namespace NewLife.Serialization
             Stream = new TraceStream(stream) { Encoding = Encoding, IsLittleEndian = IsLittleEndian };
         }
 #endif
+        #endregion
+
+        #region 快捷方法
+        /// <summary>快速读取</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="stream"></param>
+        /// <returns></returns>
+        public static T ReadFast<T>(Stream stream)
+        {
+            var bn = new Binary() { Stream = stream };
+            return bn.Read<T>();
+        }
+
+        /// <summary>快速写入</summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static Packet WriteFast(Object value)
+        {
+            var bn = new Binary();
+            bn.Stream.Write(new Byte[4]);
+            bn.Write(value);
+
+            var buf = bn.GetBytes();
+            return new Packet(buf, 4, buf.Length - 4);
+        }
         #endregion
     }
 }

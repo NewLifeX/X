@@ -6,9 +6,10 @@ using NewLife.Messaging;
 namespace NewLife.Net
 {
     /// <summary>消息封包</summary>
-    public class MessageHandler<T> : Handler
+    public class MessageCodec<T> : Handler
     {
-        public IPacketQueue Queue { get; set; } = new DefaultPacketQueue();
+        /// <summary>消息队列。用于匹配请求响应包</summary>
+        public IMatchQueue Queue { get; set; } = new DefaultMatchQueue();
 
         /// <summary>写入数据</summary>
         /// <param name="context"></param>
@@ -72,10 +73,16 @@ namespace NewLife.Net
         /// <param name="message">最终消息</param>
         public override void ReadComplete(IHandlerContext context, Object message)
         {
-            if (context["Message"] is IMessage msg)
+            var msg = context["Message"];
+            if (msg is IMessage msg2)
             {
                 // 匹配
-                if (msg.Reply) Queue.Match(context.Session, msg, message, IsMatch);
+                if (msg2.Reply) Queue.Match(context.Session, msg2, message, IsMatch);
+            }
+            else if (msg != null)
+            {
+                // 其它消息不考虑响应
+                Queue.Match(context.Session, msg, message, IsMatch);
             }
         }
 

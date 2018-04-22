@@ -1,19 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using NewLife.Data;
 
-namespace NewLife.Net.Handlers
+namespace NewLife.Net
 {
     /// <summary>长度字段作为头部</summary>
-    public class LengthFieldHandler : MessageHandler<Packet>
+    public class LengthFieldCodec : MessageCodec<Packet>
     {
         #region 属性
-        /// <summary>长度所在位置，默认-1表示没有头部</summary>
-        public Int32 Offset { get; set; } = -1;
+        /// <summary>长度所在位置</summary>
+        public Int32 Offset { get; set; }
 
         /// <summary>长度占据字节数，1/2/4个字节，0表示压缩编码整数，默认2</summary>
         public Int32 Size { get; set; } = 2;
@@ -33,23 +30,24 @@ namespace NewLife.Net.Handlers
             var len = Math.Abs(Size);
             if (len == 0) return msg;
 
+            var dlen = msg.Total;
             var buf = new Byte[len];
             switch (Size)
             {
                 case 1:
-                    buf[0] = (Byte)len;
+                    buf[0] = (Byte)dlen;
                     break;
                 case 2:
-                    buf.Write((UInt16)len, 0);
+                    buf.Write((UInt16)dlen, 0);
                     break;
                 case 4:
-                    buf.Write((UInt32)len, 0);
+                    buf.Write((UInt32)dlen, 0);
                     break;
                 case -2:
-                    buf.Write((UInt16)len, 0, false);
+                    buf.Write((UInt16)dlen, 0, false);
                     break;
                 case -4:
-                    buf.Write((UInt32)len, 0, false);
+                    buf.Write((UInt32)dlen, 0, false);
                     break;
                 default:
                     throw new NotSupportedException();

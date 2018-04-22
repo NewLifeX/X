@@ -175,24 +175,31 @@ namespace Test
 #if DEBUG
             client.Log = XTrace.Log; client.LogSend = true; client.LogReceive = true;
 #endif
-            client.Add<DefaultHandler>();
+            //client.Add<DefaultCodec>();
+            client.Add(new LengthFieldCodec { Size = 4 });
             client.Add<BinaryHandler>();
             //client.Add<JsonHandler>();
             client.Open();
 
             //client.Send("Stone");
-            var user = new UserX { ID = 0x1234, Name = "Stone", DisplayName = "大石头" };
+            var user = new UserY { ID = 0x1234, Name = "Stone", DisplayName = "大石头" };
             for (var i = 0; i < 3; i++)
             {
                 var rs = await client.SendAsync(user) as UserX;
                 XTrace.WriteLine("{0} {1}", rs.Name, rs.DisplayName);
             }
         }
+        class UserY
+        {
+            public Int32 ID { get; set; }
+            public String Name { get; set; }
+            public String DisplayName { get; set; }
+        }
         class BinaryHandler : Handler
         {
             public override Object Write(IHandlerContext context, Object message)
             {
-                if (message is UserX user)
+                if (message is UserY user)
                 {
                     var bn = new Binary();
                     bn.Stream.Write(new Byte[4]);
@@ -205,11 +212,8 @@ namespace Test
             }
             public override Object Read(IHandlerContext context, Object message)
             {
-                if (message is Packet pk)
-                {
-                    var bn = new Binary { Stream = pk.GetStream() };
-                    return bn.Read<UserX>();
-                }
+                if (message is Packet pk) return Binary.ReadFast<UserY>(pk.GetStream());
+
                 return message;
             }
         }
