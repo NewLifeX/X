@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using NewLife.Data;
 
 namespace NewLife.Net
@@ -74,6 +75,12 @@ namespace NewLife.Net
         /// <param name="context">上下文</param>
         /// <param name="exception">异常</param>
         Boolean Error(IHandlerContext context, Exception exception);
+        #endregion
+
+        #region 扩展
+        Task<Object> AddQueue(Object message);
+
+        Boolean Match(Object message);
         #endregion
     }
 
@@ -164,6 +171,8 @@ namespace NewLife.Net
         {
             foreach (var handler in Handlers)
             {
+                if (message is Byte[] buf) message = new Packet(buf);
+
                 message = handler.Read(context, message);
                 if (message == null) return null;
             }
@@ -179,6 +188,9 @@ namespace NewLife.Net
             // 出站逆序
             for (var i = Handlers.Count - 1; i >= 0; i--)
             {
+                //if (message is String str) message = new Packet(str.GetBytes());
+                if (message is Byte[] buf) message = new Packet(buf);
+
                 message = Handlers[i].Write(context, message);
                 if (message == null) return null;
             }
@@ -227,7 +239,6 @@ namespace NewLife.Net
             return true;
         }
 
-
         /// <summary>关闭连接</summary>
         /// <param name="context">上下文</param>
         /// <param name="reason">原因</param>
@@ -241,7 +252,6 @@ namespace NewLife.Net
             return true;
         }
 
-
         /// <summary>发生错误</summary>
         /// <param name="context">上下文</param>
         /// <param name="exception">异常</param>
@@ -252,6 +262,18 @@ namespace NewLife.Net
                 if (!handler.Error(context, exception)) return false;
             }
 
+            return true;
+        }
+        #endregion
+
+        #region 扩展
+        public virtual Task<Object> AddQueue(Object message)
+        {
+            return Task.FromResult(new Object());
+        }
+
+        public virtual Boolean Match(Object message)
+        {
             return true;
         }
         #endregion

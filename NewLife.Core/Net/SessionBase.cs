@@ -548,26 +548,21 @@ namespace NewLife.Net
         //    return await task;
         //}
 
-        ///// <summary>发送消息并等待响应</summary>
-        ///// <param name="msg"></param>
-        ///// <returns></returns>
-        //public virtual async Task<IMessage> SendAsync(IMessage msg)
-        //{
-        //    if (msg == null) throw new ArgumentNullException(nameof(msg));
+        /// <summary>发送消息并等待响应</summary>
+        /// <param name="msg"></param>
+        /// <returns></returns>
+        public virtual async Task<Object> SendAsync(Object msg)
+        {
+            if (msg == null) throw new ArgumentNullException(nameof(msg));
 
-        //    var pk = msg.ToPacket();
-        //    //if (Packet == null) Packet = new PacketProvider();
-        //    var pt = Packet;
+            // 加入队列
+            var pp = Pipeline;
+            var task = pp.AddQueue(msg);
 
-        //    var task = msg.Reply ? null : pt.Add(pk, Remote.EndPoint, Timeout);
+            if (!pp.FireWrite(this, msg)) return null;
 
-        //    if (!Send(pk)) return null;
-
-        //    // 如果是响应包，直接返回不等待
-        //    if (msg.Reply) return null;
-
-        //    return pt.LoadMessage(await task);
-        //}
+            return await task;
+        }
 
         ///// <summary>消息到达事件</summary>
         //public event EventHandler<MessageEventArgs> MessageReceived;

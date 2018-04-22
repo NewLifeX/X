@@ -141,6 +141,8 @@
     <Compile Include="Model\IManageUser.cs" />
     <Compile Include="Model\ModelExtension.cs" />
     <Compile Include="Model\ObjectContainerHelper.cs" />
+    <Compile Include="Net\Handlers\DefaultHandler.cs" />
+    <Compile Include="Net\Handlers\MessageHandler.cs" />
     <Compile Include="Net\IHandler.cs" />
     <Compile Include="Net\IHandlerContext.cs" />
     <Compile Include="Net\INetSession.cs" />

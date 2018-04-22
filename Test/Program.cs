@@ -175,13 +175,14 @@ namespace Test
 #if DEBUG
             client.Log = XTrace.Log; client.LogSend = true; client.LogReceive = true;
 #endif
+            client.Add<DefaultHandler>();
             client.Add<BinaryHandler>();
             //client.Add<JsonHandler>();
             client.Open();
 
             //client.Send("Stone");
             var user = new UserX { Name = "Stone", DisplayName = "大石头" };
-            client.SendMessage(user);
+            for (var i = 0; i < 3; i++) client.SendMessage(user);
         }
         class BinaryHandler : Handler
         {
