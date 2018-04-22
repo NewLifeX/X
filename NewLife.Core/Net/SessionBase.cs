@@ -190,9 +190,6 @@ namespace NewLife.Net
         #endregion
 
         #region 发送
-        /// <summary>发送过滤器</summary>
-        public IFilter SendFilter { get; set; }
-
         /// <summary>发送数据</summary>
         /// <remarks>
         /// 目标地址由<seealso cref="Remote"/>决定
@@ -204,18 +201,6 @@ namespace NewLife.Net
             if (Disposed) throw new ObjectDisposedException(GetType().Name);
             if (!Open()) return false;
 
-            if (SendFilter == null) return OnSend(pk);
-
-            var ctx = new SessionFilterContext
-            {
-                Session = this,
-                Packet = pk
-            };
-            SendFilter.Execute(ctx);
-            pk = ctx.Packet;
-
-            if (pk == null) return false;
-
             return OnSend(pk);
         }
 
@@ -226,40 +211,6 @@ namespace NewLife.Net
         /// <param name="pk">数据包</param>
         /// <returns>是否成功</returns>
         protected abstract Boolean OnSend(Packet pk);
-
-        //private SendQueue _SendQueue;
-        ///// <summary>以队列发送数据包，自动拆分大包，合并小包</summary>
-        ///// <param name="pk"></param>
-        ///// <param name="remote"></param>
-        ///// <returns></returns>
-        //internal Boolean SendByQueue(Packet pk, IPEndPoint remote)
-        //{
-        //    if (Disposed) throw new ObjectDisposedException(GetType().Name);
-        //    if (!Open()) return false;
-
-        //    if (_SendQueue == null) _SendQueue = new SendQueue(this);
-
-        //    var filter = SendFilter;
-        //    if (filter == null) return _SendQueue.Add(pk, remote);
-
-        //    var ctx = new SessionFilterContext
-        //    {
-        //        Session = this,
-        //        Packet = pk,
-        //        Remote = remote
-        //    };
-
-        //    filter.Execute(ctx);
-
-        //    pk = ctx.Packet;
-        //    remote = ctx.Remote;
-
-        //    if (pk == null) return false;
-
-        //    return _SendQueue.Add(pk, remote);
-        //}
-
-        //internal abstract Boolean OnSendAsync(SocketAsyncEventArgs se);
         #endregion
 
         #region 接收
@@ -270,11 +221,6 @@ namespace NewLife.Net
             if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
             if (!Open()) return null;
-
-            //var task = SendAsync((Packet)null);
-            //if (Timeout > 0 && !task.Wait(Timeout)) return null;
-
-            //return task.Result;
 
             var buf = new Byte[BufferSize];
             var size = Client.Receive(buf);
@@ -469,16 +415,7 @@ namespace NewLife.Net
         /// <param name="remote">远程</param>
         /// <param name="message">消息</param>
         /// <returns>是否已处理，已处理的数据不再向下传递</returns>
-        protected virtual Boolean OnReceive(Packet pk, IPEndPoint remote, Object message)
-        {
-            //var pt = Protocol;
-            //if (pt == null) return false;
-
-            //// 同步匹配
-            //return pt.Match(pk, remote);
-
-            return false;
-        }
+        protected virtual Boolean OnReceive(Packet pk, IPEndPoint remote, Object message) => false;
 
         /// <summary>数据到达事件</summary>
         public event EventHandler<ReceivedEventArgs> Received;
@@ -491,19 +428,6 @@ namespace NewLife.Net
             LastTime = DateTime.Now;
 
             Received?.Invoke(sender, e);
-
-            //var pt = Packet;
-            //if (pt != null && e.Packet != null && MessageReceived != null)
-            //{
-            //    var msg = pt.LoadMessage(e.Packet);
-            //    var me = new MessageEventArgs
-            //    {
-            //        Packet = e.Packet,
-            //        UserState = e.UserState,
-            //        Message = msg
-            //    };
-            //    MessageReceived(sender, me);
-            //}
         }
 
         /// <summary>收到异常时如何处理。默认关闭会话</summary>
@@ -542,6 +466,9 @@ namespace NewLife.Net
         /// <param name="ex">异常</param>
         internal protected virtual void OnError(String action, Exception ex)
         {
+            var pp = Pipeline;
+            if (pp != null) pp.Error(pp.CreateContext(this), ex);
+
             if (Log != null) Log.Error("{0}{1}Error {2} {3}", LogPrefix, action, this, ex?.Message);
             Error?.Invoke(this, new ExceptionEventArgs { Action = action, Exception = ex });
         }
