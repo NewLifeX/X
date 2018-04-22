@@ -175,27 +175,55 @@ namespace Test
 #if DEBUG
             client.Log = XTrace.Log; client.LogSend = true; client.LogReceive = true;
 #endif
-            client.Add<MyHandler>();
+            client.Add<BinaryHandler>();
+            //client.Add<JsonHandler>();
             client.Open();
 
             //client.Send("Stone");
             var user = new UserX { Name = "Stone", DisplayName = "大石头" };
             client.SendMessage(user);
         }
-        class MyHandler : Handler
+        class BinaryHandler : Handler
         {
             public override Object Write(IHandlerContext context, Object message)
             {
-                if (message is UserX user) return user.ToJson().GetBytes();
+                if (message is UserX user)
+                {
+                    var bn = new Binary();
+                    bn.Write(user);
+                    return bn.GetBytes();
+                }
                 return message;
             }
             public override Object Read(IHandlerContext context, Object message)
             {
                 if (message is Packet pk)
                 {
-                    XTrace.WriteLine("{0}收到：{1}", this, pk.ToStr());
+                    var bn = new Binary();
+                    bn.Stream = pk.GetStream();
 
-                    var user = pk.ToStr().ToJsonEntity<UserX>();
+                    var user = bn.Read<UserX>();
+                    XTrace.WriteLine("{0} {1}", user.Name, user.DisplayName);
+                    return user;
+                }
+                return message;
+            }
+        }
+        class JsonHandler : Handler
+        {
+            public override Object Write(IHandlerContext context, Object message)
+            {
+                if (message is UserX user) return user.ToJson();
+                return message;
+            }
+            public override Object Read(IHandlerContext context, Object message)
+            {
+                if (message is Packet pk) message = pk.ToStr();
+                if (message is String str)
+                {
+                    XTrace.WriteLine("{0}收到：{1}", this, str);
+
+                    var user = str.ToJsonEntity<UserX>();
                     XTrace.WriteLine("{0} {1}", user.Name, user.DisplayName);
                     return user;
                 }

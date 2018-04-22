@@ -93,22 +93,22 @@ namespace System
         /// <summary>是否Any地址，同时处理IPv4和IPv6</summary>
         /// <param name="address"></param>
         /// <returns></returns>
-        public static Boolean IsAny(this IPAddress address) { return IPAddress.Any.Equals(address) || IPAddress.IPv6Any.Equals(address); }
+        public static Boolean IsAny(this IPAddress address) => IPAddress.Any.Equals(address) || IPAddress.IPv6Any.Equals(address);
 
         /// <summary>是否Any结点</summary>
         /// <param name="endpoint"></param>
         /// <returns></returns>
-        public static Boolean IsAny(this EndPoint endpoint) { return (endpoint as IPEndPoint).Address.IsAny() || (endpoint as IPEndPoint).Port == 0; }
+        public static Boolean IsAny(this EndPoint endpoint) => (endpoint as IPEndPoint).Address.IsAny() || (endpoint as IPEndPoint).Port == 0;
 
         /// <summary>是否IPv4地址</summary>
         /// <param name="address"></param>
         /// <returns></returns>
-        public static Boolean IsIPv4(this IPAddress address) { return address.AddressFamily == AddressFamily.InterNetwork; }
+        public static Boolean IsIPv4(this IPAddress address) => address.AddressFamily == AddressFamily.InterNetwork;
 
         /// <summary>是否本地地址</summary>
         /// <param name="address"></param>
         /// <returns></returns>
-        public static Boolean IsLocal(this IPAddress address) { return IPAddress.IsLoopback(address) || GetIPsWithCache().Any(ip => ip.Equals(address)); }
+        public static Boolean IsLocal(this IPAddress address) => IPAddress.IsLoopback(address) || GetIPsWithCache().Any(ip => ip.Equals(address));
 
         /// <summary>获取相对于指定远程地址的本地地址</summary>
         /// <param name="address"></param>
@@ -177,10 +177,7 @@ namespace System
         /// <summary>检查该协议的地址端口是否已经呗使用</summary>
         /// <param name="uri"></param>
         /// <returns></returns>
-        public static Boolean CheckPort(this NetUri uri)
-        {
-            return CheckPort(uri.Address, uri.Type, uri.Port);
-        }
+        public static Boolean CheckPort(this NetUri uri) => CheckPort(uri.Address, uri.Type, uri.Port);
         #endregion
 
         #region 本机信息
@@ -347,17 +344,11 @@ namespace System
 
         /// <summary>获取本地第一个IPv4地址</summary>
         /// <returns></returns>
-        public static IPAddress MyIP()
-        {
-            return GetIPsWithCache().FirstOrDefault(ip => ip.IsIPv4() && !IPAddress.IsLoopback(ip) && ip.GetAddressBytes()[0] != 169);
-        }
+        public static IPAddress MyIP() => GetIPsWithCache().FirstOrDefault(ip => ip.IsIPv4() && !IPAddress.IsLoopback(ip) && ip.GetAddressBytes()[0] != 169);
 
         /// <summary>获取本地第一个IPv6地址</summary>
         /// <returns></returns>
-        public static IPAddress MyIPv6()
-        {
-            return GetIPsWithCache().FirstOrDefault(ip => !ip.IsIPv4() && !IPAddress.IsLoopback(ip));
-        }
+        public static IPAddress MyIPv6() => GetIPsWithCache().FirstOrDefault(ip => !ip.IsIPv4() && !IPAddress.IsLoopback(ip));
         #endregion
 
         #region 设置适配器信息
@@ -499,7 +490,7 @@ namespace System
         #endregion
 
         #region IP地理位置
-        static IpProvider _IpProvider;
+        static IPProvider _IpProvider;
         /// <summary>获取IP地址的物理地址位置</summary>
         /// <param name="addr"></param>
         /// <returns></returns>
@@ -512,7 +503,7 @@ namespace System
             else if (addr.IsLocal())
                 return "本机地址";
 
-            if (_IpProvider == null) _IpProvider = ObjectContainer.Current.AutoRegister<IpProvider, IpProviderDefault>().Resolve<IpProvider>();
+            if (_IpProvider == null) _IpProvider = ObjectContainer.Current.AutoRegister<IPProvider, IpProviderDefault>().Resolve<IPProvider>();
 
             return _IpProvider.GetAddress(addr);
         }
@@ -541,7 +532,7 @@ namespace System
         }
 
         /// <summary>IP地址提供者接口</summary>
-        public interface IpProvider
+        public interface IPProvider
         {
             /// <summary>获取IP地址的物理地址位置</summary>
             /// <param name="addr"></param>
@@ -549,7 +540,7 @@ namespace System
             String GetAddress(IPAddress addr);
         }
 
-        class IpProviderDefault : IpProvider
+        class IpProviderDefault : IPProvider
         {
             public String GetAddress(IPAddress addr)
             {
@@ -733,15 +724,9 @@ namespace System
         //    return http;
         //}
 
-        internal static Socket CreateTcp(Boolean ipv4 = true)
-        {
-            return new Socket(ipv4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6, SocketType.Stream, ProtocolType.Tcp);
-        }
+        internal static Socket CreateTcp(Boolean ipv4 = true) => new Socket(ipv4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6, SocketType.Stream, ProtocolType.Tcp);
 
-        internal static Socket CreateUdp(Boolean ipv4 = true)
-        {
-            return new Socket(ipv4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
-        }
+        internal static Socket CreateUdp(Boolean ipv4 = true) => new Socket(ipv4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
         #endregion
     }
 }

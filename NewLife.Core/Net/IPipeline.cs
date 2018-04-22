@@ -198,6 +198,7 @@ namespace NewLife.Net
             // 发送一包数据
             if (message is Byte[] buf) return session.Send(buf);
             if (message is Packet pk) return session.Send(pk);
+            if (message is String str) return session.Send(str.GetBytes());
 
             // 发送一批数据包
             if (message is IEnumerable<Packet> pks)
@@ -210,7 +211,7 @@ namespace NewLife.Net
                 return true;
             }
 
-            throw new XException("需要有处理器对消息[{0}]编码返回Byte[]/Packet/IEnumerable<Packet>", message?.GetType()?.FullName);
+            throw new XException("无法识别消息[{0}]，可能缺少编码处理器", message?.GetType()?.FullName);
             //return false;
         }
 

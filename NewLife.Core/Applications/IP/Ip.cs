@@ -135,7 +135,7 @@ namespace NewLife.IP
         }
     }
 
-    class MyIpProvider : NetHelper.IpProvider
+    class MyIpProvider : NetHelper.IPProvider
     {
         public String GetAddress(IPAddress addr)
         {

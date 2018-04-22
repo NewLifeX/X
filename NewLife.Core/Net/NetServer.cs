@@ -82,7 +82,7 @@ namespace NewLife.Net
         }
 
         /// <summary>是否活动</summary>
-        public Boolean Active { get { return Servers.Count > 0 && Server != null && Server.Active; } }
+        public Boolean Active => Servers.Count > 0 && Server != null && Server.Active;
 
         /// <summary>会话超时时间。默认0秒，使用SocketServer默认值</summary>
         /// <remarks>
@@ -90,8 +90,8 @@ namespace NewLife.Net
         /// </remarks>
         public Int32 SessionTimeout { get; set; }
 
-        /// <summary>粘包处理接口</summary>
-        public IPacketFactory SessionPacket { get; set; }
+        ///// <summary>粘包处理接口</summary>
+        //public IPacketFactory SessionPacket { get; set; }
 
         /// <summary>使用会话集合，允许遍历会话。默认true</summary>
         public Boolean UseSession { get; set; } = true;
@@ -152,10 +152,7 @@ namespace NewLife.Net
         /// <param name="port"></param>
         /// <param name="protocolType"></param>
         public NetServer(IPAddress address, Int32 port, NetType protocolType)
-            : this(address, port)
-        {
-            Local.Type = protocolType;
-        }
+            : this(address, port) => Local.Type = protocolType;
 
         /// <summary>已重载。释放会话集合等资源</summary>
         /// <param name="disposing"></param>
@@ -454,7 +451,7 @@ namespace NewLife.Net
         #region 会话
         private ConcurrentDictionary<Int32, INetSession> _Sessions = new ConcurrentDictionary<Int32, INetSession>();
         /// <summary>会话集合。用自增的数字ID作为标识，业务应用自己维持ID与业务主键的对应关系。</summary>
-        public IDictionary<Int32, INetSession> Sessions { get { return _Sessions; } }
+        public IDictionary<Int32, INetSession> Sessions => _Sessions;
 
         private Int32 _SessionCount;
         /// <summary>会话数</summary>
@@ -652,10 +649,7 @@ namespace NewLife.Net
         /// <summary>输出错误日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
-        public virtual void WriteError(String format, params Object[] args)
-        {
-            Log.Error(LogPrefix + format, args);
-        }
+        public virtual void WriteError(String format, params Object[] args) => Log.Error(LogPrefix + format, args);
         #endregion
 
         #region 辅助

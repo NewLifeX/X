@@ -38,7 +38,7 @@ namespace NewLife.Net
         public ISocketServer Server { get; set; }
 
         /// <summary>客户端地址</summary>
-        public NetUri Remote { get { return Session?.Remote; } }
+        public NetUri Remote => Session?.Remote;
 
         /// <summary>用户会话数据</summary>
         public IDictionary<String, Object> Items { get; set; } = new NullableDictionary<String, Object>();
@@ -86,17 +86,11 @@ namespace NewLife.Net
         #region 业务核心
         /// <summary>收到客户端发来的数据，触发<seealso cref="Received"/>事件，重载者可直接处理数据</summary>
         /// <param name="e"></param>
-        protected virtual void OnReceive(ReceivedEventArgs e)
-        {
-            Received?.Invoke(this, e);
-        }
+        protected virtual void OnReceive(ReceivedEventArgs e) => Received?.Invoke(this, e);
 
         /// <summary>收到客户端发来的消息</summary>
         /// <param name="e"></param>
-        protected virtual void OnReceive(MessageEventArgs e)
-        {
-            MessageReceived?.Invoke(this, e);
-        }
+        protected virtual void OnReceive(MessageEventArgs e) => MessageReceived?.Invoke(this, e);
 
         /// <summary>数据到达事件</summary>
         public event EventHandler<ReceivedEventArgs> Received;

@@ -91,7 +91,7 @@ namespace NewLife.Net
 
         /// <summary>构造TCP服务器对象</summary>
         /// <param name="port"></param>
-        public TcpServer(Int32 port) : this() { Port = port; }
+        public TcpServer(Int32 port) : this() => Port = port;
 
         /// <summary>已重载。释放会话集合等资源</summary>
         /// <param name="disposing"></param>
@@ -277,7 +277,7 @@ namespace NewLife.Net
         #region 会话
         private SessionCollection _Sessions;
         /// <summary>会话集合。用地址端口作为标识，业务应用自己维持地址端口与业务主键的对应关系。</summary>
-        public IDictionary<String, ISocketSession> Sessions { get { return _Sessions; } }
+        public IDictionary<String, ISocketSession> Sessions => _Sessions;
 
         /// <summary>创建会话</summary>
         /// <param name="client"></param>
@@ -324,7 +324,7 @@ namespace NewLife.Net
         protected virtual void OnError(String action, Exception ex)
         {
             if (Log != null) Log.Error("{0}{1}Error {2} {3}", LogPrefix, action, this, ex?.Message);
-            if (Error != null) Error(this, new ExceptionEventArgs { Action = action, Exception = ex });
+            Error?.Invoke(this, new ExceptionEventArgs { Action = action, Exception = ex });
         }
         #endregion
 
