@@ -78,9 +78,9 @@ namespace NewLife.Net
         #endregion
 
         #region 扩展
-        Task<Object> AddQueue(Object message);
+        Task<Object> AddQueue(ISocketRemote session, Object message);
 
-        Boolean Match(Object message);
+        Boolean Match(ISocketRemote session, Object message, Func<Object, Object, Boolean> callback);
         #endregion
     }
 
@@ -177,6 +177,12 @@ namespace NewLife.Net
                 if (message == null) return null;
             }
 
+            // 读取完成
+            foreach (var handler in Handlers)
+            {
+                handler.ReadComplete(context, message);
+            }
+
             return message;
         }
 
@@ -267,14 +273,18 @@ namespace NewLife.Net
         #endregion
 
         #region 扩展
-        public virtual Task<Object> AddQueue(Object message)
+        public IPacketQueue Queue { get; set; }
+
+        public virtual Task<Object> AddQueue(ISocketRemote session, Object message)
         {
-            return Task.FromResult(new Object());
+            if (Queue == null) Queue = new DefaultPacketQueue();
+
+            return Queue.Add(session, message, 15000);
         }
 
-        public virtual Boolean Match(Object message)
+        public virtual Boolean Match(ISocketRemote session, Object message, Func<Object, Object, Boolean> callback)
         {
-            return true;
+            return Queue.Match(session, message, callback);
         }
         #endregion
 

@@ -163,7 +163,7 @@ namespace Test
             Console.WriteLine(ip);
         }
 
-        static void Test5()
+        static async void Test5()
         {
             //var svr = new TcpServer(777);
             //svr.Log = XTrace.Log;
@@ -182,7 +182,11 @@ namespace Test
 
             //client.Send("Stone");
             var user = new UserX { ID = 0x1234, Name = "Stone", DisplayName = "大石头" };
-            for (var i = 0; i < 3; i++) client.SendMessage(user);
+            for (var i = 0; i < 3; i++)
+            {
+                var rs = await client.SendAsync(user) as UserX;
+                XTrace.WriteLine("{0} {1}", rs.Name, rs.DisplayName);
+            }
         }
         class BinaryHandler : Handler
         {
@@ -203,12 +207,8 @@ namespace Test
             {
                 if (message is Packet pk)
                 {
-                    var bn = new Binary();
-                    bn.Stream = pk.GetStream();
-
-                    var user = bn.Read<UserX>();
-                    XTrace.WriteLine("{0} {1}", user.Name, user.DisplayName);
-                    return user;
+                    var bn = new Binary { Stream = pk.GetStream() };
+                    return bn.Read<UserX>();
                 }
                 return message;
             }
@@ -225,11 +225,9 @@ namespace Test
                 if (message is Packet pk) message = pk.ToStr();
                 if (message is String str)
                 {
-                    XTrace.WriteLine("{0}收到：{1}", this, str);
+                    //XTrace.WriteLine("{0}收到：{1}", this, str);
 
-                    var user = str.ToJsonEntity<UserX>();
-                    XTrace.WriteLine("{0} {1}", user.Name, user.DisplayName);
-                    return user;
+                    return str.ToJsonEntity<UserX>();
                 }
                 return message;
             }

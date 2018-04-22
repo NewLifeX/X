@@ -148,15 +148,21 @@ namespace NewLife.Net
             }
         }
 
-        ///// <summary>异步发送数据并等待响应</summary>
-        ///// <param name="pk"></param>
-        ///// <returns></returns>
-        //public async Task<Packet> SendAsync(Packet pk)
-        //{
-        //    if (Server == null) return null;
+        /// <summary>异步发送数据并等待响应</summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public async Task<Object> SendAsync(Object message)
+        {
+            if (Server == null) return null;
 
-        //    return await Server.SendAsync(pk, Remote.EndPoint, true);
-        //}
+            // 加入队列
+            var pp = Pipeline;
+            var task = pp.AddQueue(this, message);
+
+            if (!pp.FireWrite(this, message)) return null;
+
+            return await task;
+        }
 
         ///// <summary>发送消息并等待响应</summary>
         ///// <param name="msg"></param>

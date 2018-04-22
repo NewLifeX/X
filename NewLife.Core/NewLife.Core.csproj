@@ -143,9 +143,10 @@
     <Compile Include="Model\ObjectContainerHelper.cs" />
     <Compile Include="Net\Handlers\DefaultHandler.cs" />
     <Compile Include="Net\Handlers\MessageHandler.cs" />
-    <Compile Include="Net\IHandler.cs" />
-    <Compile Include="Net\IHandlerContext.cs" />
+    <Compile Include="Net\Handlers\IHandler.cs" />
+    <Compile Include="Net\Handlers\IHandlerContext.cs" />
     <Compile Include="Net\INetSession.cs" />
+    <Compile Include="Net\Handlers\IPacketQueue.cs" />
     <Compile Include="Net\ISocket.cs" />
     <Compile Include="Net\ISocketServer.cs" />
     <Compile Include="Net\ISocketClient.cs" />
@@ -154,7 +155,7 @@
     <Compile Include="Net\NetHelper.cs" />
     <Compile Include="Net\NetServer.cs" />
     <Compile Include="Net\NetSession.cs" />
-    <Compile Include="Net\IPipeline.cs" />
+    <Compile Include="Net\Handlers\IPipeline.cs" />
     <Compile Include="Net\ReceivedEventArgs.cs" />
     <Compile Include="Net\ITransport.cs" />
     <Compile Include="Net\NetUri.cs" />

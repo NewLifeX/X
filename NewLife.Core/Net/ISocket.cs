@@ -111,10 +111,10 @@ namespace NewLife.Net
         ///// <summary>协议实现</summary>
         //IProtocol Protocol { get; set; }
 
-        ///// <summary>异步发送数据并等待响应</summary>
-        ///// <param name="pk"></param>
-        ///// <returns></returns>
-        //Task<Packet> SendAsync(Packet pk);
+        /// <summary>异步发送数据并等待响应</summary>
+        /// <param name="message">消息</param>
+        /// <returns></returns>
+        Task<Object> SendAsync(Object message);
 
         ///// <summary>发送消息并等待响应</summary>
         ///// <param name="msg"></param>
@@ -125,9 +125,9 @@ namespace NewLife.Net
         IPipeline Pipeline { get; set; }
 
         /// <summary>发送消息</summary>
-        /// <param name="Message"></param>
+        /// <param name="message">消息</param>
         /// <returns></returns>
-        Boolean SendMessage(Object Message);
+        Boolean SendMessage(Object message);
         #endregion
     }
 

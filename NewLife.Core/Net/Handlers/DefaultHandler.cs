@@ -17,26 +17,6 @@ namespace NewLife.Net
         public override Object Write(IHandlerContext context, Object message)
         {
             if (message is Packet pk) message = new DefaultMessage { Payload = pk, Sequence = (Byte)Interlocked.Increment(ref _gid) };
-            //if (message is IMessage msg)
-            //{
-            //    //var len = pk.Count;
-
-            //    //// 增加4字节头部
-            //    //if (pk.Offset >= 4)
-            //    //    pk.Set(pk.Data, pk.Offset - 4, pk.Count + 4);
-            //    //else
-            //    //    pk = new Packet(new Byte[4]) { Next = pk };
-
-            //    //// 序列号
-            //    //var seq = Interlocked.Increment(ref _gid);
-            //    //pk[1] = (Byte)seq;
-
-            //    //// 长度
-            //    //pk[2] = (Byte)(len >> 8);
-            //    //pk[3] = (Byte)(len & 0xFF);
-
-            //    message = msg.ToPacket();
-            //}
 
             return base.Write(context, message);
         }
@@ -51,6 +31,17 @@ namespace NewLife.Net
             if (!msg.Read(pk)) return null;
 
             return msg;
+        }
+
+        /// <summary>是否匹配响应</summary>
+        /// <param name="request"></param>
+        /// <param name="response"></param>
+        /// <returns></returns>
+        protected override Boolean IsMatch(Object request, Object response)
+        {
+            return request is DefaultMessage req &&
+                response is DefaultMessage res &&
+                req.Sequence == res.Sequence;
         }
     }
 }

@@ -549,17 +549,17 @@ namespace NewLife.Net
         //}
 
         /// <summary>发送消息并等待响应</summary>
-        /// <param name="msg"></param>
+        /// <param name="message"></param>
         /// <returns></returns>
-        public virtual async Task<Object> SendAsync(Object msg)
+        public virtual async Task<Object> SendAsync(Object message)
         {
-            if (msg == null) throw new ArgumentNullException(nameof(msg));
+            if (message == null) throw new ArgumentNullException(nameof(message));
 
             // 加入队列
             var pp = Pipeline;
-            var task = pp.AddQueue(msg);
+            var task = pp.AddQueue(this, message);
 
-            if (!pp.FireWrite(this, msg)) return null;
+            if (!pp.FireWrite(this, message)) return null;
 
             return await task;
         }

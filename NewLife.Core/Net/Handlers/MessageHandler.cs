@@ -58,5 +58,25 @@ namespace NewLife.Net
         /// <param name="pk"></param>
         /// <returns></returns>
         protected virtual T Decode(IHandlerContext context, Packet pk) => default(T);
+
+
+        /// <summary>读取数据完成</summary>
+        /// <param name="context">上下文</param>
+        /// <param name="message">最终消息</param>
+        public override void ReadComplete(IHandlerContext context, Object message)
+        {
+            if (context["Message"] is IMessage msg)
+            {
+                // 匹配
+                /*if (msg2.Reply)*/
+                context.Pipeline.Match(context.Session, msg, IsMatch);
+            }
+        }
+
+        /// <summary>是否匹配响应</summary>
+        /// <param name="request"></param>
+        /// <param name="response"></param>
+        /// <returns></returns>
+        protected virtual Boolean IsMatch(Object request, Object response) => true;
     }
 }

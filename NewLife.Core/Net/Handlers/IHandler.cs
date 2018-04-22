@@ -10,6 +10,11 @@ namespace NewLife.Net
         /// <param name="message">消息</param>
         Object Read(IHandlerContext context, Object message);
 
+        /// <summary>读取数据完成</summary>
+        /// <param name="context">上下文</param>
+        /// <param name="message">最终消息</param>
+        void ReadComplete(IHandlerContext context, Object message);
+
         /// <summary>写入数据，返回结果作为下一个处理器消息</summary>
         /// <param name="context">上下文</param>
         /// <param name="message">消息</param>
@@ -37,6 +42,11 @@ namespace NewLife.Net
         /// <param name="context">上下文</param>
         /// <param name="message">消息</param>
         public virtual Object Read(IHandlerContext context, Object message) => message;
+
+        /// <summary>读取数据完成</summary>
+        /// <param name="context">上下文</param>
+        /// <param name="message">最终消息</param>
+        public virtual void ReadComplete(IHandlerContext context, Object message) { }
 
         /// <summary>写入数据，返回结果作为下一个处理器消息</summary>
         /// <param name="context">上下文</param>
