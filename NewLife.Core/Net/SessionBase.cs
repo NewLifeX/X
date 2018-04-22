@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -444,20 +443,9 @@ namespace NewLife.Net
         {
             try
             {
-                //var pt = Protocol;
-                //if (pt == null)
-                //    OnReceive(pk, remote);
-                //else
-                //{
-                //    // 拆包，多个包多次调用处理程序
-                //    foreach (var msg in pt.Parse(pk))
-                //    {
-                //        OnReceive(msg, remote);
-                //    }
-                //}
-
                 if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", pk.Total, pk.ToHex(32, null));
 
+                // UDP使用UdpSession里面的管道
                 var pp = Pipeline;
                 if (pp == null || Local.IsUdp)
                     OnReceive(pk, remote, null);
@@ -531,28 +519,6 @@ namespace NewLife.Net
         #endregion
 
         #region 数据包处理
-        ///// <summary>协议实现</summary>
-        //public IProtocol Protocol { get; set; }
-
-        ///// <summary>异步发送数据</summary>
-        ///// <param name="pk">要发送的数据</param>
-        ///// <returns></returns>
-        //public virtual async Task<Packet> SendAsync(Packet pk)
-        //{
-        //    //if (Packet == null) Packet = new PacketProvider();
-        //    var pt = Protocol;
-        //    if (pt == null) throw new ArgumentNullException(nameof(Protocol));
-
-        //    var task = pt.Add(pk, Remote.EndPoint, Timeout);
-
-        //    if (pk != null && !Send(pk)) return null;
-
-        //    return await task;
-        //}
-
-        ///// <summary>消息到达事件</summary>
-        //public event EventHandler<MessageEventArgs> MessageReceived;
-
         /// <summary>管道</summary>
         public IPipeline Pipeline { get; set; }
 

@@ -166,51 +166,10 @@ namespace NewLife.Net
             }
         }
 
-        /// <summary>发送消息并等待响应</summary>
+        /// <summary>发送消息并等待响应。必须调用会话的发送，否则配对会失败</summary>
         /// <param name="message"></param>
         /// <returns></returns>
         public override async Task<Object> SendAsync(Object message) => await CreateSession(Remote.EndPoint).SendAsync(message);
-
-        ///// <summary>发送数据包到目的地址</summary>
-        ///// <param name="pk"></param>
-        ///// <returns></returns>
-        //public override async Task<Packet> SendAsync(Packet pk) => await SendAsync(pk, Remote.EndPoint, true);
-
-        ///// <summary>发送数据包到目的地址</summary>
-        ///// <param name="pk"></param>
-        ///// <param name="remote"></param>
-        ///// <param name="wait"></param>
-        ///// <returns></returns>
-        //internal async Task<Packet> SendAsync(Packet pk, IPEndPoint remote, Boolean wait)
-        //{
-        //    if (pk.Count > 0)
-        //    {
-        //        if (remote != null && remote.Address == IPAddress.Broadcast && !Client.EnableBroadcast)
-        //        {
-        //            Client.EnableBroadcast = true;
-        //            // 广播匹配任意响应
-        //            remote = null;
-        //        }
-        //    }
-
-        //    //if (Packet == null) Packet = new PacketProvider();
-
-        //    var task = !wait ? null : Protocol.Add(pk, remote, Timeout);
-
-        //    // 这里先发送，基类的SendAsync注定发给Remote而不是remote
-        //    if (!OnSend(pk, remote)) return null;
-
-        //    if (!wait) return null;
-
-        //    return await task;
-        //}
-
-        //internal override Boolean OnSendAsync(SocketAsyncEventArgs se)
-        //{
-        //    if (se.RemoteEndPoint == null) se.RemoteEndPoint = Remote.EndPoint;
-
-        //    return Client.SendToAsync(se);
-        //}
         #endregion
 
         #region 接收
