@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Text;
 using NewLife.Model;
-using NewLife.Net.Handlers;
 
 namespace NewLife.Net
 {
@@ -12,20 +11,11 @@ namespace NewLife.Net
         /// <summary>是否活动</summary>
         Boolean Active { get; }
 
-        ///// <summary>基础Socket对象</summary>
-        //Socket Server { get; set; }
-
         /// <summary>会话超时时间。默认20*60秒</summary>
         /// <remarks>
         /// 对于每一个会话连接，如果超过该时间仍然没有收到任何数据，则断开会话连接。
         /// </remarks>
         Int32 SessionTimeout { get; set; }
-
-        ///// <summary>粘包处理接口</summary>
-        //IPacketFactory SessionPacket { get; set; }
-
-        ///// <summary>管道</summary>
-        //IPipeline Pipeline { get; set; }
 
         /// <summary>会话统计</summary>
         IStatistics StatSession { get; set; }
@@ -56,28 +46,6 @@ namespace NewLife.Net
 
             return sb.ToString();
         }
-        #endregion
-
-        #region 消息包
-        ///// <summary>添加处理器</summary>
-        ///// <typeparam name="THandler"></typeparam>
-        ///// <param name="server">会话</param>
-        //public static void Add<THandler>(this ISocketServer server) where THandler : IHandler, new()
-        //{
-        //    if (server.Pipeline == null) server.Pipeline = new Pipeline();
-
-        //    server.Pipeline.AddLast(new THandler());
-        //}
-
-        ///// <summary>添加处理器</summary>
-        ///// <param name="server">会话</param>
-        ///// <param name="handler">处理器</param>
-        //public static void Add(this ISocketServer server, IHandler handler)
-        //{
-        //    if (server.Pipeline == null) server.Pipeline = new Pipeline();
-
-        //    server.Pipeline.AddLast(handler);
-        //}
         #endregion
     }
 }

@@ -32,9 +32,6 @@ namespace NewLife.Net
 
         /// <summary>会话统计</summary>
         public IStatistics StatSession { get; set; }
-
-        ///// <summary>粘包处理接口</summary>
-        //public IPacketFactory SessionPacket { get; set; }
         #endregion
 
         #region 构造

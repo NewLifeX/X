@@ -129,13 +129,10 @@ namespace NewLife.Net
             return this;
         }
 
-        ///// <summary>异步发送并等待响应</summary>
-        ///// <param name="pk"></param>
-        ///// <returns></returns>
-        //public virtual async Task<Packet> SendAsync(Packet pk)
-        //{
-        //    return await Session.SendAsync(pk);
-        //}
+        /// <summary>异步发送并等待响应</summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public virtual async Task<Object> SendAsync(Object message) => await Session.SendAsync(message);
         #endregion
 
         #region 异常处理

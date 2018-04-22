@@ -170,7 +170,7 @@ namespace Test
             Console.WriteLine("服务端1，客户端2：");
             if (Console.ReadKey().KeyChar == '1')
             {
-                var svr = new UdpServer(777);
+                var svr = new NetServer(777);
 #if DEBUG
                 svr.Log = XTrace.Log; svr.LogSend = true; svr.LogReceive = true;
 #endif
@@ -179,11 +179,11 @@ namespace Test
                 //svr.Add<BinaryCodec<UserY>>();
                 svr.Add<JsonCodec<UserY>>();
                 svr.Add<EchoHandler>();
-                svr.Open();
+                svr.Start();
             }
             else
             {
-                var client = new NetUri("udp://127.0.0.1:777").CreateRemote();
+                var client = new NetUri("tcp://127.0.0.1:777").CreateRemote();
 #if DEBUG
                 client.Log = XTrace.Log; client.LogSend = true; client.LogReceive = true;
 #endif

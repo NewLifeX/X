@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Log;
-using NewLife.Messaging;
 using NewLife.Net.Handlers;
 using NewLife.Threading;
 
@@ -106,27 +105,13 @@ namespace NewLife.Net
 
         /// <summary>数据到达事件</summary>
         event EventHandler<ReceivedEventArgs> Received;
-
-        ///// <summary>消息到达事件</summary>
-        //event EventHandler<MessageEventArgs> MessageReceived;
         #endregion
 
-        #region 数据包处理
-        ///// <summary>协议实现</summary>
-        //IProtocol Protocol { get; set; }
-
+        #region 消息包
         /// <summary>异步发送数据并等待响应</summary>
         /// <param name="message">消息</param>
         /// <returns></returns>
         Task<Object> SendAsync(Object message);
-
-        ///// <summary>发送消息并等待响应</summary>
-        ///// <param name="msg"></param>
-        ///// <returns></returns>
-        //Task<IMessage> SendAsync(IMessage msg);
-
-        ///// <summary>管道</summary>
-        //IPipeline Pipeline { get; set; }
 
         /// <summary>发送消息</summary>
         /// <param name="message">消息</param>

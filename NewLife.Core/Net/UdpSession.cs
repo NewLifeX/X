@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
@@ -7,7 +6,6 @@ using System.Net.Sockets;
 using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Log;
-using NewLife.Messaging;
 
 namespace NewLife.Net
 {
@@ -59,6 +57,9 @@ namespace NewLife.Net
                     Server.Client.ReceiveTimeout = _timeout;
             }
         }
+
+        /// <summary>管道</summary>
+        public IPipeline Pipeline { get; set; }
 
         /// <summary>Socket服务器。当前通讯所在的Socket服务器，其实是TcpServer/UdpServer</summary>
         ISocketServer ISocketSession.Server => Server;
@@ -130,28 +131,7 @@ namespace NewLife.Net
             if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
             return Server.OnSend(pk, Remote.EndPoint);
-
-            //StatSend?.Increment(pk.Count);
-            //if (Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", pk.Count, pk.ToHex());
-
-            //LastTime = DateTime.Now;
-
-            //try
-            //{
-            //    Server.Client.SendTo(pk.Data, pk.Offset, pk.Count, SocketFlags.None, Remote.EndPoint);
-
-            //    return true;
-            //}
-            //catch (Exception ex)
-            //{
-            //    OnError("Send", ex);
-            //    Dispose();
-            //    throw;
-            //}
         }
-
-        /// <summary>管道</summary>
-        public IPipeline Pipeline { get; set; }
 
         /// <summary>发送消息</summary>
         /// <param name="message"></param>
@@ -185,30 +165,10 @@ namespace NewLife.Net
 
         public event EventHandler<ReceivedEventArgs> Received;
 
-        ///// <summary>消息到达事件</summary>
-        //public event EventHandler<MessageEventArgs> MessageReceived;
-
-        ///// <summary>协议实现</summary>
-        //public IProtocol Protocol { get; set; }
-
         internal void OnReceive(ReceivedEventArgs e)
         {
-            //var stream = e.Stream;
             var remote = e.UserState as IPEndPoint;
-            //var pk = new Packet(e.Data);
             var pk = e.Packet;
-
-            //var pt = Protocol;
-            //if (pt == null)
-            //    OnReceive(pk, remote);
-            //else
-            //{
-            //    // 拆包，多个包多次调用处理程序
-            //    foreach (var msg in pt.Parse(pk))
-            //    {
-            //        OnReceive(msg, remote);
-            //    }
-            //}
 
             var ea = new ReceivedEventArgs(pk)
             {
@@ -226,14 +186,6 @@ namespace NewLife.Net
 
                 ea.Message = msg;
             }
-            //}
-
-            //private void OnReceive(Packet pk, IPEndPoint remote)
-            //{
-            //    var e = new ReceivedEventArgs(pk)
-            //    {
-            //        UserState = remote
-            //    };
 
             LastTime = DateTime.Now;
             //if (StatReceive != null) StatReceive.Increment(e.Length);
@@ -241,19 +193,6 @@ namespace NewLife.Net
             //if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", e.Length, e.ToHex(32, null));
 
             if (ea != null) Received?.Invoke(this, ea);
-
-            //var pt = Packet;
-            //if (pt != null && e.Packet != null && MessageReceived != null)
-            //{
-            //    var msg = pt.LoadMessage(e.Packet);
-            //    var me = new MessageEventArgs
-            //    {
-            //        Packet = e.Packet,
-            //        UserState = e.UserState,
-            //        Message = msg
-            //    };
-            //    MessageReceived(this, me);
-            //}
         }
         #endregion
 

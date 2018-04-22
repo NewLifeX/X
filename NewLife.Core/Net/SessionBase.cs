@@ -496,11 +496,4 @@ namespace NewLife.Net
         }
         #endregion
     }
-
-    class SessionFilterContext : FilterContext
-    {
-        public SessionBase Session { get; set; }
-
-        public IPEndPoint Remote { get; set; }
-    }
 }

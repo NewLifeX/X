@@ -270,8 +270,6 @@ namespace NewLife.Net
 
                 NewSession?.Invoke(this, new SessionEventArgs { Session = session });
 
-                if (session.Pipeline == null) session.Pipeline = Pipeline;
-
                 //// 自动开始异步接收处理
                 //if (AutoReceiveAsync) 
                 session.ReceiveAsync();
@@ -298,8 +296,8 @@ namespace NewLife.Net
             session.LogReceive = LogReceive;
             session.StatSend.Parent = StatSend;
             session.StatReceive.Parent = StatReceive;
-            //session.Packet = SessionPacket?.Create();
             session.ProcessAsync = ProcessAsync;
+            session.Pipeline = Pipeline;
 
             return session;
         }

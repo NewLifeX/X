@@ -186,8 +186,6 @@ namespace NewLife.Net
 
             return true;
         }
-
-        //internal override Boolean OnSendAsync(SocketAsyncEventArgs se) { return Client.SendAsync(se); }
         #endregion
 
         #region 接收

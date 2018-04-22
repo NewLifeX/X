@@ -12,6 +12,7 @@ using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Model;
+using NewLife.Net.Handlers;
 #if !NET4
 using TaskEx = System.Threading.Tasks.Task;
 #endif
@@ -90,8 +91,8 @@ namespace NewLife.Net
         /// </remarks>
         public Int32 SessionTimeout { get; set; }
 
-        ///// <summary>粘包处理接口</summary>
-        //public IPacketFactory SessionPacket { get; set; }
+        /// <summary>管道</summary>
+        public IPipeline Pipeline { get; set; }
 
         /// <summary>使用会话集合，允许遍历会话。默认true</summary>
         public Boolean UseSession { get; set; } = true;
@@ -126,9 +127,6 @@ namespace NewLife.Net
         {
             Name = GetType().Name.TrimEnd("Server");
 
-            //SessionTimeout = 30;
-            //AddressFamily = AddressFamily.Unknown;
-
             Servers = new List<ISocketServer>();
 
             StatSession = new Statistics();
@@ -139,20 +137,24 @@ namespace NewLife.Net
         }
 
         /// <summary>通过指定监听地址和端口实例化一个网络服务器</summary>
+        /// <param name="port"></param>
+        public NetServer(Int32 port) : this(IPAddress.Any, port) { }
+
+        /// <summary>通过指定监听地址和端口实例化一个网络服务器</summary>
         /// <param name="address"></param>
         /// <param name="port"></param>
-        public NetServer(IPAddress address, Int32 port)
-        {
-            Local.Address = address;
-            Port = port;
-        }
+        public NetServer(IPAddress address, Int32 port) : this(address, port, NetType.Unknown) { }
 
         /// <summary>通过指定监听地址和端口，还有协议，实例化一个网络服务器，默认支持Tcp协议和Udp协议</summary>
         /// <param name="address"></param>
         /// <param name="port"></param>
         /// <param name="protocolType"></param>
-        public NetServer(IPAddress address, Int32 port, NetType protocolType)
-            : this(address, port) => Local.Type = protocolType;
+        public NetServer(IPAddress address, Int32 port, NetType protocolType) : this()
+        {
+            Local.Address = address;
+            Port = port;
+            Local.Type = protocolType;
+        }
 
         /// <summary>已重载。释放会话集合等资源</summary>
         /// <param name="disposing"></param>
@@ -206,16 +208,7 @@ namespace NewLife.Net
             server.NewSession += Server_NewSession;
 
             if (SessionTimeout > 0) server.SessionTimeout = SessionTimeout;
-            //if (SessionPacket != null) server.SessionPacket = SessionPacket;
-
-            //// 处理UDP最大并发接收
-            //if (server is UdpServer udp)
-            //{
-            //    udp.MaxAsync = Environment.ProcessorCount * 16 / 10;
-            //    // Udp服务器不能关闭自己，但是要关闭会话
-            //    // Udp客户端一般不关闭自己
-            //    //udp.EnableReset = true;
-            //}
+            if (Pipeline != null) server.Pipeline = Pipeline;
 
             server.StatSession.Parent = StatSession;
             server.StatSend.Parent = StatSend;
@@ -261,6 +254,24 @@ namespace NewLife.Net
                     AttachServer(item);
                 }
             }
+        }
+
+        /// <summary>添加处理器</summary>
+        /// <typeparam name="THandler"></typeparam>
+        public void Add<THandler>() where THandler : IHandler, new()
+        {
+            if (Pipeline == null) Pipeline = new Pipeline();
+
+            Pipeline.AddLast(new THandler());
+        }
+
+        /// <summary>添加处理器</summary>
+        /// <param name="handler">处理器</param>
+        public void Add(IHandler handler)
+        {
+            if (Pipeline == null) Pipeline = new Pipeline();
+
+            Pipeline.AddLast(handler);
         }
         #endregion
 
