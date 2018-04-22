@@ -108,13 +108,13 @@ namespace NewLife.Net
         #endregion
 
         #region 数据包处理
-        /// <summary>协议实现</summary>
-        IProtocol Protocol { get; set; }
+        ///// <summary>协议实现</summary>
+        //IProtocol Protocol { get; set; }
 
-        /// <summary>异步发送数据并等待响应</summary>
-        /// <param name="pk"></param>
-        /// <returns></returns>
-        Task<Packet> SendAsync(Packet pk);
+        ///// <summary>异步发送数据并等待响应</summary>
+        ///// <param name="pk"></param>
+        ///// <returns></returns>
+        //Task<Packet> SendAsync(Packet pk);
 
         ///// <summary>发送消息并等待响应</summary>
         ///// <param name="msg"></param>

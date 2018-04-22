@@ -458,26 +458,13 @@ namespace NewLife.Net
 
                 var pp = Pipeline;
                 if (pp == null)
-                    OnReceive(pk, remote);
+                    OnReceive(pk, remote, null);
                 else
                 {
                     var ctx = pp.CreateContext(this);
                     ctx[nameof(remote)] = remote;
 
-                    if (pp.Read(ctx, pk))
-                    {
-                        // 一包数据
-                        if (ctx.Result is Packet pk2)
-                            OnReceive(pk2, remote);
-                        // 一批数据包
-                        else if (ctx.Result is IEnumerable<Packet> pks)
-                        {
-                            foreach (var item in pks)
-                            {
-                                OnReceive(item, remote);
-                            }
-                        }
-                    }
+                    if (pp.Read(ctx, pk)) OnReceive(pk, remote, ctx.Result);
                 }
             }
             catch (Exception ex)
@@ -487,10 +474,11 @@ namespace NewLife.Net
         }
 
         /// <summary>处理收到的数据。默认匹配同步接收委托</summary>
-        /// <param name="pk"></param>
-        /// <param name="remote"></param>
+        /// <param name="pk">数据包</param>
+        /// <param name="remote">远程</param>
+        /// <param name="message">消息</param>
         /// <returns>是否已处理，已处理的数据不再向下传递</returns>
-        protected virtual Boolean OnReceive(Packet pk, IPEndPoint remote)
+        protected virtual Boolean OnReceive(Packet pk, IPEndPoint remote, Object message)
         {
             //var pt = Protocol;
             //if (pt == null) return false;
@@ -498,7 +486,7 @@ namespace NewLife.Net
             //// 同步匹配
             //return pt.Match(pk, remote);
 
-            return true;
+            return false;
         }
 
         /// <summary>数据到达事件</summary>
@@ -540,24 +528,24 @@ namespace NewLife.Net
         #endregion
 
         #region 数据包处理
-        /// <summary>协议实现</summary>
-        public IProtocol Protocol { get; set; }
+        ///// <summary>协议实现</summary>
+        //public IProtocol Protocol { get; set; }
 
-        /// <summary>异步发送数据</summary>
-        /// <param name="pk">要发送的数据</param>
-        /// <returns></returns>
-        public virtual async Task<Packet> SendAsync(Packet pk)
-        {
-            //if (Packet == null) Packet = new PacketProvider();
-            var pt = Protocol;
-            if (pt == null) throw new ArgumentNullException(nameof(Protocol));
+        ///// <summary>异步发送数据</summary>
+        ///// <param name="pk">要发送的数据</param>
+        ///// <returns></returns>
+        //public virtual async Task<Packet> SendAsync(Packet pk)
+        //{
+        //    //if (Packet == null) Packet = new PacketProvider();
+        //    var pt = Protocol;
+        //    if (pt == null) throw new ArgumentNullException(nameof(Protocol));
 
-            var task = pt.Add(pk, Remote.EndPoint, Timeout);
+        //    var task = pt.Add(pk, Remote.EndPoint, Timeout);
 
-            if (pk != null && !Send(pk)) return null;
+        //    if (pk != null && !Send(pk)) return null;
 
-            return await task;
-        }
+        //    return await task;
+        //}
 
         ///// <summary>发送消息并等待响应</summary>
         ///// <param name="msg"></param>

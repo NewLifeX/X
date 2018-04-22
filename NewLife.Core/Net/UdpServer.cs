@@ -171,34 +171,34 @@ namespace NewLife.Net
         ///// <returns></returns>
         //public override async Task<Packet> SendAsync(Packet pk) => await SendAsync(pk, Remote.EndPoint, true);
 
-        /// <summary>发送数据包到目的地址</summary>
-        /// <param name="pk"></param>
-        /// <param name="remote"></param>
-        /// <param name="wait"></param>
-        /// <returns></returns>
-        internal async Task<Packet> SendAsync(Packet pk, IPEndPoint remote, Boolean wait)
-        {
-            if (pk.Count > 0)
-            {
-                if (remote != null && remote.Address == IPAddress.Broadcast && !Client.EnableBroadcast)
-                {
-                    Client.EnableBroadcast = true;
-                    // 广播匹配任意响应
-                    remote = null;
-                }
-            }
+        ///// <summary>发送数据包到目的地址</summary>
+        ///// <param name="pk"></param>
+        ///// <param name="remote"></param>
+        ///// <param name="wait"></param>
+        ///// <returns></returns>
+        //internal async Task<Packet> SendAsync(Packet pk, IPEndPoint remote, Boolean wait)
+        //{
+        //    if (pk.Count > 0)
+        //    {
+        //        if (remote != null && remote.Address == IPAddress.Broadcast && !Client.EnableBroadcast)
+        //        {
+        //            Client.EnableBroadcast = true;
+        //            // 广播匹配任意响应
+        //            remote = null;
+        //        }
+        //    }
 
-            //if (Packet == null) Packet = new PacketProvider();
+        //    //if (Packet == null) Packet = new PacketProvider();
 
-            var task = !wait ? null : Protocol.Add(pk, remote, Timeout);
+        //    var task = !wait ? null : Protocol.Add(pk, remote, Timeout);
 
-            // 这里先发送，基类的SendAsync注定发给Remote而不是remote
-            if (!OnSend(pk, remote)) return null;
+        //    // 这里先发送，基类的SendAsync注定发给Remote而不是remote
+        //    if (!OnSend(pk, remote)) return null;
 
-            if (!wait) return null;
+        //    if (!wait) return null;
 
-            return await task;
-        }
+        //    return await task;
+        //}
 
         //internal override Boolean OnSendAsync(SocketAsyncEventArgs se)
         //{
@@ -212,7 +212,8 @@ namespace NewLife.Net
         /// <summary>处理收到的数据</summary>
         /// <param name="pk"></param>
         /// <param name="remote"></param>
-        protected override Boolean OnReceive(Packet pk, IPEndPoint remote)
+        /// <param name="message">消息</param>
+        protected override Boolean OnReceive(Packet pk, IPEndPoint remote, Object message)
         {
             // 过滤自己广播的环回数据。放在这里，兼容UdpSession
             if (!Loopback && remote.Port == Port)
@@ -237,7 +238,7 @@ namespace NewLife.Net
             LastRemote = remote;
 
             StatReceive?.Increment(pk.Count);
-            if (base.OnReceive(pk, remote)) return true;
+            if (base.OnReceive(pk, remote, message)) return true;
 
             // 分析处理
             var e = new ReceivedEventArgs(pk)

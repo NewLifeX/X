@@ -148,15 +148,15 @@ namespace NewLife.Net
             }
         }
 
-        /// <summary>异步发送数据并等待响应</summary>
-        /// <param name="pk"></param>
-        /// <returns></returns>
-        public async Task<Packet> SendAsync(Packet pk)
-        {
-            if (Server == null) return null;
+        ///// <summary>异步发送数据并等待响应</summary>
+        ///// <param name="pk"></param>
+        ///// <returns></returns>
+        //public async Task<Packet> SendAsync(Packet pk)
+        //{
+        //    if (Server == null) return null;
 
-            return await Server.SendAsync(pk, Remote.EndPoint, true);
-        }
+        //    return await Server.SendAsync(pk, Remote.EndPoint, true);
+        //}
 
         ///// <summary>发送消息并等待响应</summary>
         ///// <param name="msg"></param>
@@ -199,8 +199,8 @@ namespace NewLife.Net
         ///// <summary>消息到达事件</summary>
         //public event EventHandler<MessageEventArgs> MessageReceived;
 
-        /// <summary>协议实现</summary>
-        public IProtocol Protocol { get; set; }
+        ///// <summary>协议实现</summary>
+        //public IProtocol Protocol { get; set; }
 
         /// <summary>管道</summary>
         public IPipeline Pipeline { get; set; }
@@ -229,44 +229,36 @@ namespace NewLife.Net
             //    }
             //}
 
+            var ea = new ReceivedEventArgs(pk)
+            {
+                UserState = remote,
+            };
+
             var pp = Pipeline;
-            if (pp == null)
-                OnReceive(pk, remote);
-            else
+            if (pp != null)
             {
                 var ctx = pp.CreateContext(this);
                 ctx[nameof(remote)] = remote;
 
-                if (pp.Read(ctx, pk))
-                {
-                    // 一包数据
-                    if (ctx.Result is Packet pk2)
-                        OnReceive(pk2, remote);
-                    // 一批数据包
-                    else if (ctx.Result is IEnumerable<Packet> pks)
-                    {
-                        foreach (var item in pks)
-                        {
-                            OnReceive(item, remote);
-                        }
-                    }
-                }
-            }
-        }
+                if (!pp.Read(ctx, pk)) return;
 
-        private void OnReceive(Packet pk, IPEndPoint remote)
-        {
-            var e = new ReceivedEventArgs(pk)
-            {
-                UserState = remote
-            };
+                ea.Message = ctx.Result;
+            }
+            //}
+
+            //private void OnReceive(Packet pk, IPEndPoint remote)
+            //{
+            //    var e = new ReceivedEventArgs(pk)
+            //    {
+            //        UserState = remote
+            //    };
 
             LastTime = DateTime.Now;
             //if (StatReceive != null) StatReceive.Increment(e.Length);
 
             if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", e.Length, e.ToHex(32, null));
 
-            Received?.Invoke(this, e);
+            if (ea != null) Received?.Invoke(this, ea);
 
             //var pt = Packet;
             //if (pt != null && e.Packet != null && MessageReceived != null)

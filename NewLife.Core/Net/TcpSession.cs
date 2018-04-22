@@ -222,7 +222,8 @@ namespace NewLife.Net
         /// <summary>处理收到的数据</summary>
         /// <param name="pk"></param>
         /// <param name="remote"></param>
-        protected override Boolean OnReceive(Packet pk, IPEndPoint remote)
+        /// <param name="message">消息</param>
+        protected override Boolean OnReceive(Packet pk, IPEndPoint remote, Object message)
         {
             if (pk == null || pk.Count == 0 && !MatchEmpty) return true;
 
@@ -232,7 +233,7 @@ namespace NewLife.Net
 #endif
 
             StatReceive?.Increment(pk.Count);
-            if (base.OnReceive(pk, remote)) return true;
+            if (base.OnReceive(pk, remote, message)) return true;
 
             // 分析处理
             var e = new ReceivedEventArgs(pk)
