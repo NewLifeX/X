@@ -72,29 +72,31 @@ namespace NewLife.Messaging
         /// <returns></returns>
         public override Packet ToPacket()
         {
-            var buf = new Byte[4];
+            //var buf = new Byte[4];
+
+            // 增加4字节头部
+            var pk = Payload;
+            if (pk.Offset >= 4)
+                pk = new Packet(pk.Data, pk.Offset - 4, pk.Count + 4);
+            else
+                pk = new Packet(new Byte[4]) { Next = pk };
 
             // 标记位
             var b = Flag;
             if (Reply) b |= 0x80;
             //if (Error) b |= 0x40;
-            buf[0] = b;
+            pk[0] = b;
 
             // 序列号
-            buf[1] = Sequence;
+            pk[1] = Sequence;
 
             // 2字节长度，小端字节序
             var len = 0;
             if (Payload != null) len = Payload.Count;
-            buf[2] = (Byte)(len & 0xFF);
-            buf[3] = (Byte)(len >> 8);
+            pk[2] = (Byte)(len & 0xFF);
+            pk[3] = (Byte)(len >> 8);
 
-            var rs = new Packet(buf)
-            {
-                Next = Payload
-            };
-
-            return rs;
+            return pk;
         }
         #endregion
     }

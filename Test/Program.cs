@@ -181,7 +181,7 @@ namespace Test
             client.Open();
 
             //client.Send("Stone");
-            var user = new UserX { Name = "Stone", DisplayName = "大石头" };
+            var user = new UserX { ID = 0x1234, Name = "Stone", DisplayName = "大石头" };
             for (var i = 0; i < 3; i++) client.SendMessage(user);
         }
         class BinaryHandler : Handler
@@ -191,8 +191,11 @@ namespace Test
                 if (message is UserX user)
                 {
                     var bn = new Binary();
+                    bn.Stream.Write(new Byte[4]);
                     bn.Write(user);
-                    return bn.GetBytes();
+                    var buf = bn.GetBytes();
+                    var pk = new Packet(buf, 4, buf.Length - 4);
+                    return pk;
                 }
                 return message;
             }
