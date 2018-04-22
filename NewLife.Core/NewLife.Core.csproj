@@ -141,8 +141,8 @@
     <Compile Include="Model\IManageUser.cs" />
     <Compile Include="Model\ModelExtension.cs" />
     <Compile Include="Model\ObjectContainerHelper.cs" />
-    <Compile Include="Net\Handlers\JsonCodec.cs" />
-    <Compile Include="Net\Handlers\BinaryCodec.cs" />
+    <Compile Include="Serialization\JsonCodec.cs" />
+    <Compile Include="Serialization\BinaryCodec.cs" />
     <Compile Include="Net\Handlers\DefaultCodec.cs" />
     <Compile Include="Net\Handlers\LengthFieldCodec.cs" />
     <Compile Include="Net\Handlers\MessageCodec.cs" />
