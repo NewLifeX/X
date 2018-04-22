@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using NewLife.Collections;
+using NewLife.Data;
 
 namespace NewLife.Net
 {
@@ -24,8 +25,11 @@ namespace NewLife.Net
         /// <returns></returns>
         Object this[String key] { get; set; }
 
-        /// <summary>执行结果</summary>
-        Object Result { get; set; }
+        ///// <summary>数据包</summary>
+        //Packet Packet { get; set; }
+
+        ///// <summary>执行结果</summary>
+        //Object Message { get; set; }
     }
 
     /// <summary>处理器上下文</summary>
@@ -46,8 +50,8 @@ namespace NewLife.Net
         /// <returns></returns>
         public Object this[String key] { get => Items[key]; set => Items[key] = value; }
 
-        /// <summary>执行结果</summary>
-        public Object Result { get; set; }
+        ///// <summary>执行结果</summary>
+        //public Object Message { get; set; }
         #endregion
     }
 }

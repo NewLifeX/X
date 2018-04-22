@@ -240,9 +240,10 @@ namespace NewLife.Net
                 var ctx = pp.CreateContext(this);
                 ctx[nameof(remote)] = remote;
 
-                if (!pp.Read(ctx, pk)) return;
+                var msg = pp.Read(ctx, pk);
+                if (msg == null) return;
 
-                ea.Message = ctx.Result;
+                ea.Message = msg;
             }
             //}
 

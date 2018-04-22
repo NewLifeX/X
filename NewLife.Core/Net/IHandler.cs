@@ -5,15 +5,15 @@ namespace NewLife.Net
     /// <summary>处理器</summary>
     public interface IHandler
     {
-        /// <summary>读取数据</summary>
+        /// <summary>读取数据，返回结果作为下一个处理器消息</summary>
         /// <param name="context">上下文</param>
         /// <param name="message">消息</param>
-        Boolean Read(IHandlerContext context, Object message);
+        Object Read(IHandlerContext context, Object message);
 
-        /// <summary>写入数据</summary>
+        /// <summary>写入数据，返回结果作为下一个处理器消息</summary>
         /// <param name="context">上下文</param>
         /// <param name="message">消息</param>
-        Boolean Write(IHandlerContext context, Object message);
+        Object Write(IHandlerContext context, Object message);
 
         /// <summary>打开连接</summary>
         /// <param name="context">上下文</param>
@@ -33,15 +33,15 @@ namespace NewLife.Net
     /// <summary>处理器</summary>
     public class Handler : IHandler
     {
-        /// <summary>读取数据</summary>
+        /// <summary>读取数据，返回结果作为下一个处理器消息</summary>
         /// <param name="context">上下文</param>
         /// <param name="message">消息</param>
-        public virtual Boolean Read(IHandlerContext context, Object message) => true;
+        public virtual Object Read(IHandlerContext context, Object message) => message;
 
-        /// <summary>写入数据</summary>
+        /// <summary>写入数据，返回结果作为下一个处理器消息</summary>
         /// <param name="context">上下文</param>
         /// <param name="message">消息</param>
-        public virtual Boolean Write(IHandlerContext context, Object message) => true;
+        public virtual Object Write(IHandlerContext context, Object message) => message;
 
         /// <summary>打开连接</summary>
         /// <param name="context">上下文</param>

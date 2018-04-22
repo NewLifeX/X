@@ -46,15 +46,15 @@ namespace NewLife.Net
         #endregion
 
         #region 执行逻辑
-        /// <summary>读取数据</summary>
+        /// <summary>读取数据，返回结果作为下一个处理器消息</summary>
         /// <param name="context">上下文</param>
         /// <param name="message">消息</param>
-        Boolean Read(IHandlerContext context, Object message);
+        Object Read(IHandlerContext context, Object message);
 
-        /// <summary>写入数据</summary>
+        /// <summary>写入数据，返回结果作为下一个处理器消息</summary>
         /// <param name="context">上下文</param>
         /// <param name="message">消息</param>
-        Boolean Write(IHandlerContext context, Object message);
+        Object Write(IHandlerContext context, Object message);
 
         /// <summary>写入数据</summary>
         /// <param name="session">远程会话</param>
@@ -157,38 +157,33 @@ namespace NewLife.Net
         #endregion
 
         #region 执行逻辑
-        /// <summary>读取数据</summary>
+        /// <summary>读取数据，返回结果作为下一个处理器消息</summary>
         /// <param name="context">上下文</param>
         /// <param name="message">消息</param>
-        public virtual Boolean Read(IHandlerContext context, Object message)
+        public virtual Object Read(IHandlerContext context, Object message)
         {
             foreach (var handler in Handlers)
             {
-                if (!handler.Read(context, message)) return false;
-
-                // 本次结果作为下一次处理对象
-                if (context.Result != null) message = context.Result;
+                message = handler.Read(context, message);
+                if (message == null) return null;
             }
 
-            return true;
+            return message;
         }
 
-        /// <summary>写入数据</summary>
+        /// <summary>写入数据，返回结果作为下一个处理器消息</summary>
         /// <param name="context">上下文</param>
         /// <param name="message">消息</param>
-        public virtual Boolean Write(IHandlerContext context, Object message)
+        public virtual Object Write(IHandlerContext context, Object message)
         {
             // 出站逆序
             for (var i = Handlers.Count - 1; i >= 0; i--)
             {
-                var handler = Handlers[i];
-                if (!handler.Write(context, message)) return false;
-
-                // 本次结果作为下一次处理对象
-                if (context.Result != null) message = context.Result;
+                message = Handlers[i].Write(context, message);
+                if (message == null) return null;
             }
 
-            return true;
+            return message;
         }
 
         /// <summary>写入数据</summary>
@@ -197,14 +192,15 @@ namespace NewLife.Net
         public virtual Boolean FireWrite(ISocketRemote session, Object message)
         {
             var ctx = CreateContext(session);
-            if (!Write(ctx, message)) return false;
+            message = Write(ctx, message);
+            if (message == null) return false;
 
             // 发送一包数据
-            if (ctx.Result is Byte[] buf) return session.Send(buf);
-            if (ctx.Result is Packet pk) return session.Send(pk);
+            if (message is Byte[] buf) return session.Send(buf);
+            if (message is Packet pk) return session.Send(pk);
 
             // 发送一批数据包
-            if (ctx.Result is IEnumerable<Packet> pks)
+            if (message is IEnumerable<Packet> pks)
             {
                 foreach (var item in pks)
                 {
@@ -214,7 +210,8 @@ namespace NewLife.Net
                 return true;
             }
 
-            return false;
+            throw new XException("需要有处理器对消息[{0}]编码返回Byte[]/Packet/IEnumerable<Packet>", message?.GetType()?.FullName);
+            //return false;
         }
 
         /// <summary>打开连接</summary>

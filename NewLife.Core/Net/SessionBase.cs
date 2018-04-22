@@ -464,7 +464,8 @@ namespace NewLife.Net
                     var ctx = pp.CreateContext(this);
                     ctx[nameof(remote)] = remote;
 
-                    if (pp.Read(ctx, pk)) OnReceive(pk, remote, ctx.Result);
+                    var msg = pp.Read(ctx, pk);
+                    if (msg != null) OnReceive(pk, remote, msg);
                 }
             }
             catch (Exception ex)

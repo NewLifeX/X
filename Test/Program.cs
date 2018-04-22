@@ -184,12 +184,12 @@ namespace Test
         }
         class MyHandler : Handler
         {
-            public override Boolean Write(IHandlerContext context, Object message)
+            public override Object Write(IHandlerContext context, Object message)
             {
-                if (message is UserX user) context.Result = user.ToJson().GetBytes();
-                return true;
+                if (message is UserX user) return user.ToJson().GetBytes();
+                return message;
             }
-            public override Boolean Read(IHandlerContext context, Object message)
+            public override Object Read(IHandlerContext context, Object message)
             {
                 if (message is Packet pk)
                 {
@@ -197,9 +197,9 @@ namespace Test
 
                     var user = pk.ToStr().ToJsonEntity<UserX>();
                     XTrace.WriteLine("{0} {1}", user.Name, user.DisplayName);
-                    context.Result = user;
+                    return user;
                 }
-                return true;
+                return message;
             }
         }
     }
