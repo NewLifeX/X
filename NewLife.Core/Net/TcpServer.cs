@@ -4,7 +4,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using NewLife.Http;
 using NewLife.Log;
 
 namespace NewLife.Net
@@ -285,7 +284,8 @@ namespace NewLife.Net
         /// <returns></returns>
         protected virtual TcpSession CreateSession(Socket client)
         {
-            var session = EnableHttp ? new HttpSession(this, client) : new TcpSession(this, client);
+            //var session = EnableHttp ? new HttpSession(this, client) : new TcpSession(this, client);
+            var session = new TcpSession(this, client);
             // 服务端不支持掉线重连
             session.AutoReconnect = 0;
             session.Log = Log;

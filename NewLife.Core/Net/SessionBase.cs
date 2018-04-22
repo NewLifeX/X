@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Log;
-using NewLife.Messaging;
 using NewLife.Threading;
 
 namespace NewLife.Net
@@ -120,6 +118,10 @@ namespace NewLife.Net
                 if (!Active) return false;
 
                 if (Timeout > 0) Client.ReceiveTimeout = Timeout;
+
+                // 管道
+                var pp = Pipeline;
+                pp.Open(pp.CreateContext(this));
             }
 
             ReceiveAsync();
@@ -159,6 +161,10 @@ namespace NewLife.Net
                 if (OnClose(reason ?? (GetType().Name + "Close"))) Active = false;
 
                 _RecvCount = 0;
+
+                // 管道
+                var pp = Pipeline;
+                pp.Close(pp.CreateContext(this), reason);
 
                 // 触发关闭完成的事件
                 Closed?.Invoke(this, EventArgs.Empty);
@@ -438,15 +444,39 @@ namespace NewLife.Net
         {
             try
             {
-                var pt = Protocol;
-                if (pt == null)
+                //var pt = Protocol;
+                //if (pt == null)
+                //    OnReceive(pk, remote);
+                //else
+                //{
+                //    // 拆包，多个包多次调用处理程序
+                //    foreach (var msg in pt.Parse(pk))
+                //    {
+                //        OnReceive(msg, remote);
+                //    }
+                //}
+
+                var pp = Pipeline;
+                if (pp == null)
                     OnReceive(pk, remote);
                 else
                 {
-                    // 拆包，多个包多次调用处理程序
-                    foreach (var msg in pt.Parse(pk))
+                    var ctx = pp.CreateContext(this);
+                    ctx[nameof(remote)] = remote;
+
+                    if (pp.Read(ctx, pk))
                     {
-                        OnReceive(msg, remote);
+                        // 一包数据
+                        if (ctx.Result is Packet pk2)
+                            OnReceive(pk2, remote);
+                        // 一批数据包
+                        else if (ctx.Result is IEnumerable<Packet> pks)
+                        {
+                            foreach (var item in pks)
+                            {
+                                OnReceive(item, remote);
+                            }
+                        }
                     }
                 }
             }
@@ -456,30 +486,19 @@ namespace NewLife.Net
             }
         }
 
-        /// <summary>收到异常时如何处理。默认关闭会话</summary>
-        /// <param name="se"></param>
-        /// <returns>是否当作异常处理并结束会话</returns>
-        internal virtual Boolean OnReceiveError(SocketAsyncEventArgs se)
-        {
-            //if (se.SocketError == SocketError.ConnectionReset) Dispose();
-            if (se.SocketError == SocketError.ConnectionReset) Close("ReceiveAsync " + se.SocketError);
-
-            return true;
-        }
-
         /// <summary>处理收到的数据。默认匹配同步接收委托</summary>
         /// <param name="pk"></param>
         /// <param name="remote"></param>
         /// <returns>是否已处理，已处理的数据不再向下传递</returns>
         protected virtual Boolean OnReceive(Packet pk, IPEndPoint remote)
         {
-            var pt = Protocol;
-            if (pt == null) return false;
+            //var pt = Protocol;
+            //if (pt == null) return false;
 
-            // 同步匹配
-            return pt.Match(pk, remote);
+            //// 同步匹配
+            //return pt.Match(pk, remote);
 
-            //return true;
+            return true;
         }
 
         /// <summary>数据到达事件</summary>
@@ -506,6 +525,17 @@ namespace NewLife.Net
             //    };
             //    MessageReceived(sender, me);
             //}
+        }
+
+        /// <summary>收到异常时如何处理。默认关闭会话</summary>
+        /// <param name="se"></param>
+        /// <returns>是否当作异常处理并结束会话</returns>
+        internal virtual Boolean OnReceiveError(SocketAsyncEventArgs se)
+        {
+            //if (se.SocketError == SocketError.ConnectionReset) Dispose();
+            if (se.SocketError == SocketError.ConnectionReset) Close("ReceiveAsync " + se.SocketError);
+
+            return true;
         }
         #endregion
 
@@ -559,30 +589,7 @@ namespace NewLife.Net
         /// <summary>发送消息</summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public virtual Boolean SendMessage(Object message)
-        {
-            var pp = Pipeline;
-            if (pp == null) throw new ArgumentNullException(nameof(Pipeline));
-
-            var ctx = pp.CreateContext(this);
-            if (!pp.Write(ctx, message)) return false;
-
-            // 发送一包数据
-            if (ctx.Result is Packet pk) return Send(pk);
-
-            // 发送一批数据包
-            if (ctx.Result is IEnumerable<Packet> pks)
-            {
-                foreach (var item in pks)
-                {
-                    if (!Send(item)) return false;
-                }
-
-                return true;
-            }
-
-            return false;
-        }
+        public virtual Boolean SendMessage(Object message) => Pipeline.FireWrite(this, message);
         #endregion
 
         #region 异常处理

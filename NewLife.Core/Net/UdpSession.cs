@@ -208,30 +208,7 @@ namespace NewLife.Net
         /// <summary>发送消息</summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public virtual Boolean SendMessage(Object message)
-        {
-            var pp = Pipeline;
-            if (pp == null) throw new ArgumentNullException(nameof(Pipeline));
-
-            var ctx = pp.CreateContext(this);
-            if (!pp.Write(ctx, message)) return false;
-
-            // 发送一包数据
-            if (ctx.Result is Packet pk) return Send(pk);
-
-            // 发送一批数据包
-            if (ctx.Result is IEnumerable<Packet> pks)
-            {
-                foreach (var item in pks)
-                {
-                    if (!Send(item)) return false;
-                }
-
-                return true;
-            }
-
-            return false;
-        }
+        public virtual Boolean SendMessage(Object message) => Pipeline.FireWrite(this, message);
 
         internal void OnReceive(ReceivedEventArgs e)
         {
@@ -240,15 +217,39 @@ namespace NewLife.Net
             //var pk = new Packet(e.Data);
             var pk = e.Packet;
 
-            var pt = Protocol;
-            if (pt == null)
+            //var pt = Protocol;
+            //if (pt == null)
+            //    OnReceive(pk, remote);
+            //else
+            //{
+            //    // 拆包，多个包多次调用处理程序
+            //    foreach (var msg in pt.Parse(pk))
+            //    {
+            //        OnReceive(msg, remote);
+            //    }
+            //}
+
+            var pp = Pipeline;
+            if (pp == null)
                 OnReceive(pk, remote);
             else
             {
-                // 拆包，多个包多次调用处理程序
-                foreach (var msg in pt.Parse(pk))
+                var ctx = pp.CreateContext(this);
+                ctx[nameof(remote)] = remote;
+
+                if (pp.Read(ctx, pk))
                 {
-                    OnReceive(msg, remote);
+                    // 一包数据
+                    if (ctx.Result is Packet pk2)
+                        OnReceive(pk2, remote);
+                    // 一批数据包
+                    else if (ctx.Result is IEnumerable<Packet> pks)
+                    {
+                        foreach (var item in pks)
+                        {
+                            OnReceive(item, remote);
+                        }
+                    }
                 }
             }
         }

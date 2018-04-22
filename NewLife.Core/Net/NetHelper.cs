@@ -8,7 +8,6 @@ using System.Runtime.InteropServices;
 using NewLife.Collections;
 using NewLife.Model;
 using NewLife.Net;
-using NewLife.Http;
 #if !__MOBILE__ && !__CORE__
 using Microsoft.Win32;
 using System.Management;
@@ -672,8 +671,8 @@ namespace System
                     return new TcpSession { Local = local };
                 case NetType.Udp:
                     return new UdpServer { Local = local };
-                case NetType.Http:
-                    return new HttpClient { Local = local };
+                //case NetType.Http:
+                //    return new HttpClient { Local = local };
                 default:
                     throw new NotSupportedException("不支持{0}协议".F(local.Type));
             }
@@ -692,47 +691,47 @@ namespace System
                     return new TcpSession { Remote = remote };
                 case NetType.Udp:
                     return new UdpServer { Remote = remote };
-                case NetType.Http:
-                    var http = new HttpClient { Remote = remote };
-                    //http.IsSSL = remote.Protocol.EqualIgnoreCase("https");
-                    return http;
-                case NetType.WebSocket:
-                    var ws = new HttpClient { Remote = remote };
-                    //ws.IsSSL = remote.Protocol.EqualIgnoreCase("https");
-                    ws.IsWebSocket = true;
-                    return ws;
+                //case NetType.Http:
+                //    var http = new HttpClient { Remote = remote };
+                //    //http.IsSSL = remote.Protocol.EqualIgnoreCase("https");
+                //    return http;
+                //case NetType.WebSocket:
+                //    var ws = new HttpClient { Remote = remote };
+                //    //ws.IsSSL = remote.Protocol.EqualIgnoreCase("https");
+                //    ws.IsWebSocket = true;
+                //    return ws;
                 default:
                     throw new NotSupportedException("不支持{0}协议".F(remote.Type));
             }
         }
 
-        /// <summary>根据远程网络标识创建客户端</summary>
-        /// <param name="uri"></param>
-        /// <returns></returns>
-        public static ISocketClient CreateRemote(this Uri uri)
-        {
-            var http = new HttpClient();
-            http.Request.Url = uri ?? throw new ArgumentNullException(nameof(uri));
-            http.Remote = new NetUri(uri + "");
+        ///// <summary>根据远程网络标识创建客户端</summary>
+        ///// <param name="uri"></param>
+        ///// <returns></returns>
+        //public static ISocketClient CreateRemote(this Uri uri)
+        //{
+        //    var http = new HttpClient();
+        //    http.Request.Url = uri ?? throw new ArgumentNullException(nameof(uri));
+        //    http.Remote = new NetUri(uri + "");
 
-            switch (uri.Scheme.ToLower())
-            {
-                case "https":
-                    http.IsSSL = true;
-                    break;
-                case "wss":
-                    http.IsWebSocket = true;
-                    http.IsSSL = true;
-                    break;
-                case "ws":
-                    http.IsWebSocket = true;
-                    break;
-                default:
-                    break;
-            }
+        //    switch (uri.Scheme.ToLower())
+        //    {
+        //        case "https":
+        //            http.IsSSL = true;
+        //            break;
+        //        case "wss":
+        //            http.IsWebSocket = true;
+        //            http.IsSSL = true;
+        //            break;
+        //        case "ws":
+        //            http.IsWebSocket = true;
+        //            break;
+        //        default:
+        //            break;
+        //    }
 
-            return http;
-        }
+        //    return http;
+        //}
 
         internal static Socket CreateTcp(Boolean ipv4 = true)
         {

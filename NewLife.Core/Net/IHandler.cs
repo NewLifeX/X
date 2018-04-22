@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using NewLife.Collections;
 
 namespace NewLife.Net
 {
@@ -19,8 +17,7 @@ namespace NewLife.Net
 
         /// <summary>打开连接</summary>
         /// <param name="context">上下文</param>
-        /// <param name="reason">原因</param>
-        Boolean Open(IHandlerContext context, String reason);
+        Boolean Open(IHandlerContext context);
 
         /// <summary>关闭连接</summary>
         /// <param name="context">上下文</param>
@@ -48,8 +45,7 @@ namespace NewLife.Net
 
         /// <summary>打开连接</summary>
         /// <param name="context">上下文</param>
-        /// <param name="reason">原因</param>
-        public virtual Boolean Open(IHandlerContext context, String reason) => true;
+        public virtual Boolean Open(IHandlerContext context) => true;
 
         /// <summary>关闭连接</summary>
         /// <param name="context">上下文</param>

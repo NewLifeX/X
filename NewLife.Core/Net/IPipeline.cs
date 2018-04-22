@@ -46,16 +46,24 @@ namespace NewLife.Net
         #endregion
 
         #region 执行逻辑
+        /// <summary>读取数据</summary>
+        /// <param name="context">上下文</param>
+        /// <param name="message">消息</param>
         Boolean Read(IHandlerContext context, Object message);
 
+        /// <summary>写入数据</summary>
+        /// <param name="context">上下文</param>
+        /// <param name="message">消息</param>
         Boolean Write(IHandlerContext context, Object message);
 
+        /// <summary>写入数据</summary>
+        /// <param name="session">远程会话</param>
+        /// <param name="message">消息</param>
         Boolean FireWrite(ISocketRemote session, Object message);
 
         /// <summary>打开连接</summary>
         /// <param name="context">上下文</param>
-        /// <param name="reason">原因</param>
-        Boolean Open(IHandlerContext context, String reason);
+        Boolean Open(IHandlerContext context);
 
         /// <summary>关闭连接</summary>
         /// <param name="context">上下文</param>
@@ -149,6 +157,9 @@ namespace NewLife.Net
         #endregion
 
         #region 执行逻辑
+        /// <summary>读取数据</summary>
+        /// <param name="context">上下文</param>
+        /// <param name="message">消息</param>
         public virtual Boolean Read(IHandlerContext context, Object message)
         {
             foreach (var handler in Handlers)
@@ -159,6 +170,9 @@ namespace NewLife.Net
             return true;
         }
 
+        /// <summary>写入数据</summary>
+        /// <param name="context">上下文</param>
+        /// <param name="message">消息</param>
         public virtual Boolean Write(IHandlerContext context, Object message)
         {
             // 出站逆序
@@ -171,6 +185,9 @@ namespace NewLife.Net
             return true;
         }
 
+        /// <summary>写入数据</summary>
+        /// <param name="session">远程会话</param>
+        /// <param name="message">消息</param>
         public virtual Boolean FireWrite(ISocketRemote session, Object message)
         {
             var ctx = CreateContext(session);
@@ -195,12 +212,11 @@ namespace NewLife.Net
 
         /// <summary>打开连接</summary>
         /// <param name="context">上下文</param>
-        /// <param name="reason">原因</param>
-        public virtual Boolean Open(IHandlerContext context, String reason)
+        public virtual Boolean Open(IHandlerContext context)
         {
             foreach (var handler in Handlers)
             {
-                if (!handler.Open(context, reason)) return false;
+                if (!handler.Open(context)) return false;
             }
 
             return true;
