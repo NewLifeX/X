@@ -51,45 +51,29 @@ namespace NewLife.Remoting
 
             var enc = host.Encoder;
             var data = enc.Encode(action, args);
-            //var data = enc.Encode(new { action, args }.ToDictionary().Merge(cookie));
 
             var msg = session.CreateMessage(data);
+            //var msg = new ApiMessage { Action = action, Args = args };
 
             var rs = await session.SendAsync(msg);
             if (rs == null) return default(TResult);
 
             // 特殊返回类型
-            if (typeof(TResult) == typeof(Packet)) return (TResult)(Object)rs.Payload;
+            var rtype = typeof(TResult);
+            if (rtype == typeof(IMessage)) return (TResult)rs;
+            if (rtype == typeof(Packet)) return (TResult)(Object)rs.Payload;
 
-            var dic = enc.Decode(rs.Payload);
-            if (typeof(TResult) == typeof(IDictionary<String, Object>)) return (TResult)(Object)dic;
+            var am = enc.Decode(rs);
+            if (rtype == typeof(ApiMessage)) return (TResult)(Object)am;
 
-            //return enc.Decode<TResult>(dic);
-            var code = 0;
-            //enc.TryGet(dic, out code, out result);
-            dic.TryGetValue("code", out var cod);
-
-            // 参数可能不存在
-            dic.TryGetValue("result", out var result);
-            code = cod.ToInt();
+            var code = am.Code;
+            var result = am.Result;
 
             // 是否成功
-            if (code != 0)
-            {
-                var aex = new ApiException(code, result + "");
-                // 支持自定义错误
-                if (result is IDictionary<String, Object> errdata)
-                {
-                    foreach (var item in errdata)
-                    {
-                        aex.Data[item.Key] = item.Value;
-                    }
-                }
-                throw aex;
-            }
+            if (code != 0) throw new ApiException(code, result + "");
 
             if (result == null) return default(TResult);
-            if (typeof(TResult) == typeof(Object)) return (TResult)result;
+            if (result is TResult || rtype == typeof(Object)) return (TResult)result;
 
             // 返回
             return enc.Convert<TResult>(result);

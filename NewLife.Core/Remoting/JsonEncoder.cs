@@ -4,12 +4,13 @@ using System.Text;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
+using NewLife.Messaging;
 using NewLife.Serialization;
 
 namespace NewLife.Remoting
 {
     /// <summary>Json编码器</summary>
-    public class JsonEncoder : EncoderBase
+    public class JsonEncoder : EncoderBase, IEncoder
     {
         /// <summary>编码</summary>
         public Encoding Encoding { get; set; } = Encoding.UTF8;
@@ -18,7 +19,7 @@ namespace NewLife.Remoting
         /// <param name="action"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        public override Byte[] Encode(String action, Object args)
+        public Packet Encode(String action, Object args)
         {
             var obj = new { action, args };
             var json = obj.ToJson();
@@ -33,7 +34,7 @@ namespace NewLife.Remoting
         /// <param name="code"></param>
         /// <param name="result"></param>
         /// <returns></returns>
-        public override Byte[] Encode(String action, Int32 code, Object result)
+        public Packet Encode(String action, Int32 code, Object result)
         {
             // 不支持序列化异常
             if (result is Exception ex) result = ex.GetTrue()?.Message;
@@ -49,7 +50,7 @@ namespace NewLife.Remoting
         /// <summary>解码成为字典</summary>
         /// <param name="pk"></param>
         /// <returns></returns>
-        public override IDictionary<String, Object> Decode(Packet pk)
+        public IDictionary<String, Object> Decode(Packet pk)
         {
             if (pk.Count <= 2) return new NullableDictionary<String, Object>();
 
@@ -72,10 +73,28 @@ namespace NewLife.Remoting
             }
         }
 
+        /// <summary>解码消息</summary>
+        /// <param name="msg"></param>
+        /// <returns></returns>
+        public ApiMessage Decode(IMessage msg)
+        {
+            var dic = Decode(msg.Payload);
+            if (!msg.Reply)
+                return new ApiMessage { Action = dic["action"] + "", Args = dic["args"] };
+            else
+                return new ApiMessage { Action = dic["action"] + "", Code = dic["code"].ToInt(), Result = dic["result"] };
+        }
+
+        /// <summary>转换为对象</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public T Convert<T>(Object obj) => (T)Convert(obj, typeof(T));
+
         /// <summary>转换为目标类型</summary>
         /// <param name="obj"></param>
         /// <param name="targetType"></param>
         /// <returns></returns>
-        public override Object Convert(Object obj, Type targetType) => JsonHelper.Default.Convert(obj, targetType);
+        public Object Convert(Object obj, Type targetType) => JsonHelper.Default.Convert(obj, targetType);
     }
 }

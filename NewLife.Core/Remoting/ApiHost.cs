@@ -74,18 +74,18 @@ namespace NewLife.Remoting
         {
             if (msg.Reply) return null;
 
-            var pk = msg.Payload;
+            //var pk = msg.Payload;
             // 如果外部事件未处理，再交给处理器
-            pk = ProcessHandler(session, pk);
+            var rs = ProcessHandler(session, msg);
 
             // 封装响应消息
-            var rs = msg.CreateReply();
-            rs.Payload = pk;
+            //var rs = msg.CreateReply();
+            //rs.Payload = pk;
 
             return rs;
         }
 
-        private Packet ProcessHandler(IApiSession session, Packet pk)
+        private IMessage ProcessHandler(IApiSession session, IMessage msg)
         {
             var enc = Encoder;
 
@@ -95,19 +95,23 @@ namespace NewLife.Remoting
             //var seq = -1;
             try
             {
-                // 这里会导致二次解码，因为解码以后才知道是不是请求
-                var dic = enc.Decode(pk);
+                //// 这里会导致二次解码，因为解码以后才知道是不是请求
+                //var dic = enc.Decode(pk);
 
-                // 请求响应，由code决定
-                if (dic.ContainsKey("code")) return null;
+                //// 请求响应，由code决定
+                //if (dic.ContainsKey("code")) return null;
 
-                //if (!enc.TryGet(dic, out action, out args)) return null;
-                if (!dic.TryGetValue("action", out var obj)) return null;
+                ////if (!enc.TryGet(dic, out action, out args)) return null;
+                //if (!dic.TryGetValue("action", out var obj)) return null;
 
-                // 参数可能不存在
-                dic.TryGetValue("args", out var args);
+                //// 参数可能不存在
+                //dic.TryGetValue("args", out var args);
 
-                action = obj + "";
+                //action = obj + "";
+
+                var cmd = enc.Decode(msg);
+                action = cmd.Action;
+                var args = cmd.Args;
 
                 //// 针对Http前端Json，可能带有序列号
                 //if (dic.TryGetValue("seq", out obj)) seq = obj.ToInt();
@@ -140,7 +144,12 @@ namespace NewLife.Remoting
             //if (seq >= 0) return enc.Encode(new { action, code, result, seq });
 
             //return enc.Encode(new { action, code, result });
-            return enc.Encode(action, code, result);
+            //return enc.Encode(action, code, result);
+
+            var rs = msg.CreateReply();
+            rs.Payload = enc.Encode(action, code, result);
+
+            return rs;
         }
         #endregion
 
