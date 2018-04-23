@@ -41,9 +41,6 @@ namespace NewLife.Remoting
 
         /// <summary>所有服务器所有会话，包含自己</summary>
         IApiSession[] IApiSession.AllSessions => new IApiSession[] { this };
-
-        /// <summary>附加参数，每次请求都携带</summary>
-        public IDictionary<String, Object> Cookie { get; set; } = new NullableDictionary<String, Object>();
         #endregion
 
         #region 构造
@@ -148,9 +145,8 @@ namespace NewLife.Remoting
         /// <typeparam name="TResult"></typeparam>
         /// <param name="action"></param>
         /// <param name="args"></param>
-        /// <param name="cookie">附加参数，位于顶级</param>
         /// <returns></returns>
-        public virtual async Task<TResult> InvokeAsync<TResult>(String action, Object args = null, IDictionary<String, Object> cookie = null)
+        public virtual async Task<TResult> InvokeAsync<TResult>(String action, Object args = null)
         {
             var ss = Client;
             if (ss == null) return default(TResult);
@@ -159,14 +155,14 @@ namespace NewLife.Remoting
 
             try
             {
-                return await ApiHostHelper.InvokeAsync<TResult>(this, this, act, args, cookie ?? Cookie);
+                return await ApiHostHelper.InvokeAsync<TResult>(this, this, act, args);
             }
             catch (ApiException ex)
             {
                 // 重新登录后再次调用
                 if (ex.Code == 401)
                 {
-                    return await ApiHostHelper.InvokeAsync<TResult>(this, this, act, args, cookie ?? Cookie);
+                    return await ApiHostHelper.InvokeAsync<TResult>(this, this, act, args);
                 }
 
                 throw;

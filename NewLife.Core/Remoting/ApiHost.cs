@@ -140,7 +140,7 @@ namespace NewLife.Remoting
             //if (seq >= 0) return enc.Encode(new { action, code, result, seq });
 
             //return enc.Encode(new { action, code, result });
-            return enc.Encode(action, code, result, null);
+            return enc.Encode(action, code, result);
         }
         #endregion
 

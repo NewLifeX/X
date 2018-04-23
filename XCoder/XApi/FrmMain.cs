@@ -283,7 +283,6 @@ namespace XApi
             }
         }
 
-        Byte _Seq = 0;
         private async void btnSend_Click(Object sender, EventArgs e)
         {
             var str = txtSend.Text;
@@ -316,44 +315,18 @@ namespace XApi
 
             if (_Client != null)
             {
-                var uri = new NetUri(cbAddr.Text);
-                var cookie = new Dictionary<String, Object>();
-                if (uri.Type == NetType.Http || uri.Type == NetType.WebSocket) cookie["seq"] = ++_Seq;
-
                 if (ths <= 1)
                 {
                     try
                     {
-                        await _Client.InvokeAsync<Object>(act, args, cookie);
+                        await _Client.InvokeAsync<Object>(act, args);
                     }
                     catch (ApiException ex)
                     {
                         BizLog.Info(ex.Message);
                     }
                 }
-                //else
-                //{
-                //    Parallel.For(0, ths, n =>
-                //    {
-                //        var client = _Client.Remote.CreateRemote();
-                //        client.StatSend = _Client.StatSend;
-                //        client.StatReceive = _Client.StatReceive;
-                //        client.SendMulti(pk, count, sleep);
-                //    });
-                //}
             }
-            //else if (_Server != null)
-            //{
-            //    Task.Run(async () =>
-            //    {
-            //        for (Int32 i = 0; i < count; i++)
-            //        {
-            //            var cs = await _Server.SendAllAsync(buf);
-            //            XTrace.WriteLine("已向[{0}]个客户端发送[{1}]数据", cs, buf.Length);
-            //            if (sleep > 0) await Task.Delay(sleep);
-            //        }
-            //    });
-            //}
         }
         #endregion
 

@@ -14,28 +14,13 @@ namespace NewLife.Remoting
         /// <summary>编码</summary>
         public Encoding Encoding { get; set; } = Encoding.UTF8;
 
-        ///// <summary>编码对象</summary>
-        ///// <param name="obj"></param>
-        ///// <returns></returns>
-        //public override Byte[] Encode(Object obj)
-        //{
-        //    var json = obj.ToJson();
-
-        //    WriteLog("=>{0}", json);
-
-        //    return json.GetBytes(Encoding);
-        //}
-
         /// <summary>编码请求</summary>
         /// <param name="action"></param>
         /// <param name="args"></param>
-        /// <param name="cookie">附加参数，位于顶级</param>
         /// <returns></returns>
-        public override Byte[] Encode(String action, Object args, IDictionary<String, Object> cookie)
+        public override Byte[] Encode(String action, Object args)
         {
-            Object obj = new { action, args };
-            if (cookie != null) obj = obj.ToDictionary().Merge(cookie);
-
+            var obj = new { action, args };
             var json = obj.ToJson();
 
             WriteLog("=>{0}", json);
@@ -47,16 +32,13 @@ namespace NewLife.Remoting
         /// <param name="action"></param>
         /// <param name="code"></param>
         /// <param name="result"></param>
-        /// <param name="cookie">附加参数，位于顶级</param>
         /// <returns></returns>
-        public override Byte[] Encode(String action, Int32 code, Object result, IDictionary<String, Object> cookie)
+        public override Byte[] Encode(String action, Int32 code, Object result)
         {
             // 不支持序列化异常
             if (result is Exception ex) result = ex.GetTrue()?.Message;
 
-            Object obj = new { action, code, result };
-            if (cookie != null) obj = obj.ToDictionary().Merge(cookie);
-
+            var obj = new { action, code, result };
             var json = obj.ToJson();
 
             WriteLog("=>{0}", json);

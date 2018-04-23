@@ -45,14 +45,13 @@ namespace NewLife.Remoting
         /// <param name="session"></param>
         /// <param name="action"></param>
         /// <param name="args"></param>
-        /// <param name="cookie">附加参数，位于顶级</param>
         /// <returns></returns>
-        public static async Task<TResult> InvokeAsync<TResult>(IApiHost host, IApiSession session, String action, Object args, IDictionary<String, Object> cookie)
+        public static async Task<TResult> InvokeAsync<TResult>(IApiHost host, IApiSession session, String action, Object args)
         {
             if (session == null) return default(TResult);
 
             var enc = host.Encoder;
-            var data = enc.Encode(action, args, cookie);
+            var data = enc.Encode(action, args);
             //var data = enc.Encode(new { action, args }.ToDictionary().Merge(cookie));
 
             var msg = session.CreateMessage(data);

@@ -81,9 +81,6 @@ namespace NewLife.Remoting
         /// <summary>最后活跃时间</summary>
         public DateTime LastActive { get; set; }
 
-        /// <summary>附加参数，每次请求都携带</summary>
-        public IDictionary<String, Object> Cookie { get; set; } = new NullableDictionary<String, Object>();
-
         /// <summary>所有服务器所有会话，包含自己</summary>
         public virtual IApiSession[] AllSessions
         {
@@ -134,9 +131,8 @@ namespace NewLife.Remoting
         /// <typeparam name="TResult"></typeparam>
         /// <param name="action"></param>
         /// <param name="args"></param>
-        /// <param name="cookie">附加参数，位于顶级</param>
         /// <returns></returns>
-        public async Task<TResult> InvokeAsync<TResult>(String action, Object args = null, IDictionary<String, Object> cookie = null) => await ApiHostHelper.InvokeAsync<TResult>(_Host, this, action, args, cookie);
+        public async Task<TResult> InvokeAsync<TResult>(String action, Object args = null) => await ApiHostHelper.InvokeAsync<TResult>(_Host, this, action, args);
 
         async Task<IMessage> IApiSession.SendAsync(IMessage msg) => await Session.SendAsync(msg) as IMessage;
 

@@ -8,25 +8,18 @@ namespace NewLife.Remoting
     /// <summary>编码器</summary>
     public interface IEncoder
     {
-        ///// <summary>编码对象</summary>
-        ///// <param name="obj"></param>
-        ///// <returns></returns>
-        //Byte[] Encode(Object obj);
-
         /// <summary>编码请求</summary>
         /// <param name="action"></param>
         /// <param name="args"></param>
-        /// <param name="cookie">附加参数，位于顶级</param>
         /// <returns></returns>
-        Byte[] Encode(String action, Object args, IDictionary<String, Object> cookie);
+        Byte[] Encode(String action, Object args);
 
         /// <summary>编码响应</summary>
         /// <param name="action"></param>
         /// <param name="code"></param>
         /// <param name="result"></param>
-        /// <param name="cookie">附加参数，位于顶级</param>
         /// <returns></returns>
-        Byte[] Encode(String action, Int32 code, Object result, IDictionary<String, Object> cookie);
+        Byte[] Encode(String action, Int32 code, Object result);
 
         /// <summary>解码成为字典</summary>
         /// <param name="pk">数据包</param>
@@ -66,25 +59,18 @@ namespace NewLife.Remoting
     /// <summary>编码器基类</summary>
     public abstract class EncoderBase : IEncoder
     {
-        ///// <summary>编码对象</summary>
-        ///// <param name="obj"></param>
-        ///// <returns></returns>
-        //public abstract Byte[] Encode(Object obj);
-
         /// <summary>编码请求</summary>
         /// <param name="action"></param>
         /// <param name="args"></param>
-        /// <param name="cookie">附加参数，位于顶级</param>
         /// <returns></returns>
-        public abstract Byte[] Encode(String action, Object args, IDictionary<String, Object> cookie);
+        public abstract Byte[] Encode(String action, Object args);
 
         /// <summary>编码响应</summary>
         /// <param name="action"></param>
         /// <param name="code"></param>
         /// <param name="result"></param>
-        /// <param name="cookie">附加参数，位于顶级</param>
         /// <returns></returns>
-        public abstract Byte[] Encode(String action, Int32 code, Object result, IDictionary<String, Object> cookie);
+        public abstract Byte[] Encode(String action, Int32 code, Object result);
 
         /// <summary>解码成为字典</summary>
         /// <param name="pk"></param>

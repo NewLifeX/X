@@ -9,12 +9,6 @@ namespace NewLife.Remoting
     /// <summary>Api会话</summary>
     public interface IApiSession : IServiceProvider
     {
-        ///// <summary>用户对象。一般用于共享用户信息对象</summary>
-        //Object UserState { get; set; }
-
-        ///// <summary>用户状态会话</summary>
-        //IUserSession UserSession { get; set; }
-
         /// <summary>主机</summary>
         IApiHost Host { get; }
 
@@ -23,9 +17,6 @@ namespace NewLife.Remoting
 
         /// <summary>所有服务器所有会话，包含自己</summary>
         IApiSession[] AllSessions { get; }
-
-        /// <summary>附加参数，每次请求都携带</summary>
-        IDictionary<String, Object> Cookie { get; set; }
 
         /// <summary>获取/设置 用户会话数据</summary>
         /// <param name="key"></param>
@@ -56,8 +47,7 @@ namespace NewLife.Remoting
         /// <typeparam name="TResult"></typeparam>
         /// <param name="action"></param>
         /// <param name="args"></param>
-        /// <param name="cookie">附加参数，位于顶级</param>
         /// <returns></returns>
-        Task<TResult> InvokeAsync<TResult>(String action, Object args = null, IDictionary<String, Object> cookie = null);
+        Task<TResult> InvokeAsync<TResult>(String action, Object args = null);
     }
 }
