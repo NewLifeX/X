@@ -111,9 +111,7 @@ namespace NewLife.Net.Stress
 
             try
             {
-                var wt = 0;
-                var cpt = 0;
-                ThreadPool.GetAvailableThreads(out wt, out cpt);
+                ThreadPool.GetAvailableThreads(out var wt, out var cpt);
                 var threads = Process.GetCurrentProcess().Threads.Count;
 
                 var color = Console.ForegroundColor;

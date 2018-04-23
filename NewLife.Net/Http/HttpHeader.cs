@@ -298,8 +298,7 @@ namespace NewLife.Net.Http
             {
                 get
                 {
-                    String v = null;
-                    return TryGetValue(key, out v) ? v : null;
+                    return TryGetValue(key, out var v) ? v : null;
                 }
                 set
                 {

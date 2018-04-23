@@ -67,8 +67,7 @@ namespace NewLife.Net.Stun
 
         StunAttribute GetAtt(AttributeType type, Boolean create = false)
         {
-            StunAttribute att = null;
-            if (Atts.TryGetValue(type, out att)) return att;
+            if (Atts.TryGetValue(type, out var att)) return att;
 
             if (!create) return null;
 

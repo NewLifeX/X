@@ -102,8 +102,8 @@
     </Compile>
     <Compile Include="MQTT\MqttMessage.cs" />
     <Compile Include="MQTT\MqttType.cs" />
-    <Compile Include="MQTT\QualityOfService.cs" />
     <Compile Include="Http\HttpHeader.cs" />
+    <Compile Include="MQTT\QualityOfService.cs" />
     <Compile Include="NTP\NTPClient.cs" />
     <Compile Include="Application\TimeServer.cs" />
     <Compile Include="IO\FileClient.cs" />

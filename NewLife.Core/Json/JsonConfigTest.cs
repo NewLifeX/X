@@ -57,7 +57,7 @@ namespace NewLife.Json
             }
 
             Console.WriteLine("测试-忽略属性");
-            string height = File.ReadAllText(cur.ConfigFile);
+            String height = File.ReadAllText(cur.ConfigFile);
             if (height.Contains("Height"))
             {
                 Console.WriteLine("失败-忽略属性");

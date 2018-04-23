@@ -43,8 +43,7 @@ namespace NewLife.Net.P2P
             if (ss[0] == "reg")
             {
                 var name = ss[1];
-                INetSession ns = null;
-                if (!Clients.TryGetValue(name, out ns))
+                if (!Clients.TryGetValue(name, out var ns))
                 {
                     // 集合里面没有，认为是发起邀请方，做好记录
                     ns = new NetSession();
@@ -86,8 +85,7 @@ namespace NewLife.Net.P2P
             }
             else if (ss[0] == "invite")
             {
-                INetSession ns = null;
-                if (Clients.TryGetValue(ss[1], out ns))
+                if (Clients.TryGetValue(ss[1], out var ns))
                 {
                     session.Send("invite:" + remoteEP, null);
 

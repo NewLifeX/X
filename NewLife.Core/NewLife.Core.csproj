@@ -103,6 +103,9 @@
     <Compile Include="Data\GeoPoint.cs" />
     <Compile Include="Data\IFilter.cs" />
     <Compile Include="Data\Packet.cs" />
+    <Compile Include="Exceptions\CodecException.cs" />
+    <Compile Include="Exceptions\DecoderException.cs" />
+    <Compile Include="Exceptions\EncoderException.cs" />
     <Compile Include="Extension\BitHelper.cs" />
     <Compile Include="Extension\ConcurrentDictionaryExtensions.cs" />
     <Compile Include="Extension\ListExtension.cs" />

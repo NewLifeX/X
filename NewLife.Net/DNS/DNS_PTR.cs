@@ -28,8 +28,7 @@ namespace NewLife.Net.DNS
                 Array.Reverse(ss);
                 name = String.Join(".", ss);
 
-                IPAddress addr;
-                if (!IPAddress.TryParse(name, out addr)) return null;
+                if (!IPAddress.TryParse(name, out var addr)) return null;
                 return addr;
             }
             set
