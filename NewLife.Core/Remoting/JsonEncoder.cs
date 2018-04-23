@@ -56,12 +56,6 @@ namespace NewLife.Remoting
         /// <param name="obj"></param>
         /// <param name="targetType"></param>
         /// <returns></returns>
-        public override Object Convert(Object obj, Type targetType)
-        {
-            //var reader = new JsonReader();
-
-            //return reader.ToObject(obj, targetType);
-            return JsonHelper.Default.Convert(obj, targetType);
-        }
+        public override Object Convert(Object obj, Type targetType) => JsonHelper.Default.Convert(obj, targetType);
     }
 }

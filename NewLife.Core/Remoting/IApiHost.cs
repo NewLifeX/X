@@ -36,19 +36,6 @@ namespace NewLife.Remoting
         void WriteLog(String format, params Object[] args);
     }
 
-    ///// <summary>消息事件参数</summary>
-    //public class ApiMessageEventArgs : EventArgs
-    //{
-    //    /// <summary>会话</summary>
-    //    public IApiSession Session { get; internal set; }
-
-    //    /// <summary>负载数据</summary>
-    //    public IMessage Message { get; internal set; }
-
-    //    /// <summary>是否已处理</summary>
-    //    public Boolean Handled { get; set; }
-    //}
-
     /// <summary>Api主机助手</summary>
     public static class ApiHostHelper
     {
@@ -65,8 +52,8 @@ namespace NewLife.Remoting
             if (session == null) return default(TResult);
 
             var enc = host.Encoder;
-            //var data = enc.Encode(action, args, cookie);
-            var data = enc.Encode(new { action, args }.ToDictionary().Merge(cookie));
+            var data = enc.Encode(action, args, cookie);
+            //var data = enc.Encode(new { action, args }.ToDictionary().Merge(cookie));
 
             var msg = session.CreateMessage(data);
 

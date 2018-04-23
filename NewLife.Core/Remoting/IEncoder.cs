@@ -8,10 +8,10 @@ namespace NewLife.Remoting
     /// <summary>编码器</summary>
     public interface IEncoder
     {
-        /// <summary>编码对象</summary>
-        /// <param name="obj"></param>
-        /// <returns></returns>
-        Byte[] Encode(Object obj);
+        ///// <summary>编码对象</summary>
+        ///// <param name="obj"></param>
+        ///// <returns></returns>
+        //Byte[] Encode(Object obj);
 
         /// <summary>编码请求</summary>
         /// <param name="action"></param>
@@ -21,11 +21,12 @@ namespace NewLife.Remoting
         Byte[] Encode(String action, Object args, IDictionary<String, Object> cookie);
 
         /// <summary>编码响应</summary>
+        /// <param name="action"></param>
         /// <param name="code"></param>
         /// <param name="result"></param>
         /// <param name="cookie">附加参数，位于顶级</param>
         /// <returns></returns>
-        Byte[] Encode(Int32 code, Object result, IDictionary<String, Object> cookie);
+        Byte[] Encode(String action, Int32 code, Object result, IDictionary<String, Object> cookie);
 
         /// <summary>解码成为字典</summary>
         /// <param name="pk">数据包</param>
@@ -82,16 +83,17 @@ namespace NewLife.Remoting
         }
 
         /// <summary>编码响应</summary>
+        /// <param name="action"></param>
         /// <param name="code"></param>
         /// <param name="result"></param>
         /// <param name="cookie">附加参数，位于顶级</param>
         /// <returns></returns>
-        public virtual Byte[] Encode(Int32 code, Object result, IDictionary<String, Object> cookie)
+        public virtual Byte[] Encode(String action, Int32 code, Object result, IDictionary<String, Object> cookie)
         {
             // 不支持序列化异常
             if (result is Exception ex) result = ex.GetTrue()?.Message;
 
-            var obj = new { code, result };
+            var obj = new { action, code, result };
             return Encode(obj.ToDictionary().Merge(cookie));
         }
 
@@ -146,10 +148,7 @@ namespace NewLife.Remoting
         /// <typeparam name="T"></typeparam>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public virtual T Convert<T>(Object obj)
-        {
-            return (T)Convert(obj, typeof(T));
-        }
+        public virtual T Convert<T>(Object obj) => (T)Convert(obj, typeof(T));
 
         /// <summary>转换为目标类型</summary>
         /// <param name="obj"></param>

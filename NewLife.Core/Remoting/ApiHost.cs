@@ -92,7 +92,7 @@ namespace NewLife.Remoting
             var action = "";
             Object result = null;
             var code = 0;
-            var seq = -1;
+            //var seq = -1;
             try
             {
                 // 这里会导致二次解码，因为解码以后才知道是不是请求
@@ -109,8 +109,8 @@ namespace NewLife.Remoting
 
                 action = obj + "";
 
-                // 针对Http前端Json，可能带有序列号
-                if (dic.TryGetValue("seq", out obj)) seq = obj.ToInt();
+                //// 针对Http前端Json，可能带有序列号
+                //if (dic.TryGetValue("seq", out obj)) seq = obj.ToInt();
 
                 result = Handler.Execute(session, action, args as IDictionary<String, Object>);
             }
@@ -137,9 +137,10 @@ namespace NewLife.Remoting
             // 编码响应数据包
             //return enc.Encode(code, result);
 
-            if (seq >= 0) return enc.Encode(new { action, code, result, seq });
+            //if (seq >= 0) return enc.Encode(new { action, code, result, seq });
 
-            return enc.Encode(new { action, code, result });
+            //return enc.Encode(new { action, code, result });
+            return enc.Encode(action, code, result, null);
         }
         #endregion
 

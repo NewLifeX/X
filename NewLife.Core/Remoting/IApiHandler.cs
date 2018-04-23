@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Threading;
 using NewLife.Collections;
@@ -55,16 +54,6 @@ namespace NewLife.Remoting
             var svr = session.GetService<IApiServer>();
             var enc = svr?.Encoder ?? Host.Encoder;
 
-            //// 全局过滤器、控制器特性、Action特性
-            //var fs = api.ActionFilters;
-            //// 控制器实现了过滤器接口
-            //if (controller is IActionFilter)
-            //{
-            //    var list = fs.ToList();
-            //    list.Add(controller as IActionFilter);
-            //    fs = list.ToArray();
-            //}
-
             // 不允许参数字典为空
             if (args == null)
                 args = new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
@@ -109,15 +98,6 @@ namespace NewLife.Remoting
                 // 过滤得到内层异常
                 ex = ex.GetTrue();
 
-                //var efs = api.ExceptionFilters;
-                //// 控制器实现了异常过滤器接口
-                //if (controller is IExceptionFilter)
-                //{
-                //    var list = efs.ToList();
-                //    list.Add(controller as IExceptionFilter);
-                //    efs = list.ToArray();
-                //}
-
                 // 执行异常过滤器
                 if (controller is IExceptionFilter filter)
                 {
@@ -148,43 +128,6 @@ namespace NewLife.Remoting
 
             return rs;
         }
-
-        //protected virtual void OnExecuting(ActionExecutingContext ctx, IActionFilter[] fs)
-        //{
-        //    foreach (var filter in fs)
-        //    {
-        //        filter.OnActionExecuting(ctx);
-        //    }
-        //}
-
-        //protected virtual Object OnExecuted(ControllerContext ctx, ExceptionContext etx, IActionFilter[] fs, Object rs)
-        //{
-        //    if (fs.Length == 0) return rs;
-
-        //    // 倒序
-        //    fs = fs.Reverse().ToArray();
-
-        //    var atx = new ActionExecutedContext(etx ?? ctx) { Result = rs };
-        //    foreach (var filter in fs)
-        //    {
-        //        filter.OnActionExecuted(atx);
-        //    }
-        //    return atx.Result;
-        //}
-
-        //protected virtual ExceptionContext OnException(ControllerContext ctx, Exception ex, IExceptionFilter filter, Object rs)
-        //{
-        //    //if (fs.Length == 0) return null;
-
-        //    var etx = new ExceptionContext(ctx) { Exception = ex, Result = rs };
-
-        //    //foreach (var filter in fs)
-        //    //{
-        //    filter.OnException(etx);
-        //    //}
-
-        //    return etx;
-        //}
 
         private IDictionary<String, Object> GetParams(MethodInfo method, IDictionary<String, Object> args, IEncoder encoder)
         {
