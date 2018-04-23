@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
@@ -23,8 +22,8 @@ namespace NewLife.Remoting
         /// <summary>处理器</summary>
         public IApiHandler Handler { get; set; }
 
-        /// <summary>过滤器</summary>
-        public IList<IFilter> Filters { get; } = new List<IFilter>();
+        ///// <summary>过滤器</summary>
+        //public IList<IFilter> Filters { get; } = new List<IFilter>();
 
         /// <summary>用户会话数据</summary>
         public IDictionary<String, Object> Items { get; set; } = new NullableDictionary<String, Object>();

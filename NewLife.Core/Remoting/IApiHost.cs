@@ -21,8 +21,8 @@ namespace NewLife.Remoting
         /// <summary>处理器</summary>
         IApiHandler Handler { get; set; }
 
-        /// <summary>过滤器</summary>
-        IList<IFilter> Filters { get; }
+        ///// <summary>过滤器</summary>
+        //IList<IFilter> Filters { get; }
 
         /// <summary>接口动作管理器</summary>
         IApiManager Manager { get; }
