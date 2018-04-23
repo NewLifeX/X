@@ -16,8 +16,8 @@ namespace NewLife.Net
         /// <summary>服务端</summary>
         public ISocketServer Server { get; private set; }
 
-        /// <summary>清理周期。单位毫秒，默认1000毫秒。</summary>
-        public Int32 ClearPeriod { get; set; }
+        /// <summary>清理周期。单位毫秒，默认10秒。</summary>
+        public Int32 ClearPeriod { get; set; } = 10;
 
         /// <summary>清理会话计时器</summary>
         private TimerX clearTimer;
@@ -27,9 +27,9 @@ namespace NewLife.Net
         public SessionCollection(ISocketServer server)
         {
             Server = server;
-            ClearPeriod = 1000;
 
-            clearTimer = new TimerX(RemoveNotAlive, null, ClearPeriod, ClearPeriod) { Async = true };
+            var p = ClearPeriod * 1000;
+            clearTimer = new TimerX(RemoveNotAlive, null, p, p) { Async = true };
         }
 
         protected override void OnDispose(Boolean disposing)
@@ -139,24 +139,24 @@ namespace NewLife.Net
         #endregion
 
         #region 成员
-        public void Clear() { _dic.Clear(); }
+        public void Clear() => _dic.Clear();
 
-        public Int32 Count { get { return _dic.Count; } }
+        public Int32 Count => _dic.Count;
 
-        public Boolean IsReadOnly { get { return (_dic as IDictionary<Int32, ISocketSession>).IsReadOnly; } }
+        public Boolean IsReadOnly => (_dic as IDictionary<Int32, ISocketSession>).IsReadOnly;
 
-        public IEnumerator<ISocketSession> GetEnumerator() { return _dic.Values.GetEnumerator() as IEnumerator<ISocketSession>; }
+        public IEnumerator<ISocketSession> GetEnumerator() => _dic.Values.GetEnumerator() as IEnumerator<ISocketSession>;
 
-        IEnumerator IEnumerable.GetEnumerator() { return _dic.GetEnumerator(); }
+        IEnumerator IEnumerable.GetEnumerator() => _dic.GetEnumerator();
         #endregion
 
         #region IDictionary<String,ISocketSession> 成员
 
-        void IDictionary<String, ISocketSession>.Add(String key, ISocketSession value) { Add(value); }
+        void IDictionary<String, ISocketSession>.Add(String key, ISocketSession value) => Add(value);
 
-        Boolean IDictionary<String, ISocketSession>.ContainsKey(String key) { return _dic.ContainsKey(key); }
+        Boolean IDictionary<String, ISocketSession>.ContainsKey(String key) => _dic.ContainsKey(key);
 
-        ICollection<String> IDictionary<String, ISocketSession>.Keys { get { return _dic.Keys; } }
+        ICollection<String> IDictionary<String, ISocketSession>.Keys => _dic.Keys;
 
         Boolean IDictionary<String, ISocketSession>.Remove(String key)
         {
@@ -168,9 +168,9 @@ namespace NewLife.Net
             return _dic.Remove(key);
         }
 
-        Boolean IDictionary<String, ISocketSession>.TryGetValue(String key, out ISocketSession value) { return _dic.TryGetValue(key, out value); }
+        Boolean IDictionary<String, ISocketSession>.TryGetValue(String key, out ISocketSession value) => _dic.TryGetValue(key, out value);
 
-        ICollection<ISocketSession> IDictionary<String, ISocketSession>.Values { get { return _dic.Values; } }
+        ICollection<ISocketSession> IDictionary<String, ISocketSession>.Values => _dic.Values;
 
         ISocketSession IDictionary<String, ISocketSession>.this[String key] { get { return _dic[key]; } set { _dic[key] = value; } }
 
@@ -178,24 +178,18 @@ namespace NewLife.Net
 
         #region ICollection<KeyValuePair<String,ISocketSession>> 成员
 
-        void ICollection<KeyValuePair<String, ISocketSession>>.Add(KeyValuePair<String, ISocketSession> item)
-        {
-            throw new XException("不支持！请使用Add(ISocketSession session)方法！");
-        }
+        void ICollection<KeyValuePair<String, ISocketSession>>.Add(KeyValuePair<String, ISocketSession> item) => throw new XException("不支持！请使用Add(ISocketSession session)方法！");
 
-        Boolean ICollection<KeyValuePair<String, ISocketSession>>.Contains(KeyValuePair<String, ISocketSession> item) { throw new NotImplementedException(); }
+        Boolean ICollection<KeyValuePair<String, ISocketSession>>.Contains(KeyValuePair<String, ISocketSession> item) => throw new NotImplementedException();
 
-        void ICollection<KeyValuePair<String, ISocketSession>>.CopyTo(KeyValuePair<String, ISocketSession>[] array, Int32 arrayIndex) { throw new NotImplementedException(); }
+        void ICollection<KeyValuePair<String, ISocketSession>>.CopyTo(KeyValuePair<String, ISocketSession>[] array, Int32 arrayIndex) => throw new NotImplementedException();
 
-        Boolean ICollection<KeyValuePair<String, ISocketSession>>.Remove(KeyValuePair<String, ISocketSession> item) { throw new XException("不支持！请直接销毁会话对象！"); }
+        Boolean ICollection<KeyValuePair<String, ISocketSession>>.Remove(KeyValuePair<String, ISocketSession> item) => throw new XException("不支持！请直接销毁会话对象！");
 
         #endregion
 
         #region IEnumerable<KeyValuePair<String,ISocketSession>> 成员
-        IEnumerator<KeyValuePair<String, ISocketSession>> IEnumerable<KeyValuePair<String, ISocketSession>>.GetEnumerator()
-        {
-            throw new NotImplementedException();
-        }
+        IEnumerator<KeyValuePair<String, ISocketSession>> IEnumerable<KeyValuePair<String, ISocketSession>>.GetEnumerator() => throw new NotImplementedException();
         #endregion
     }
 }

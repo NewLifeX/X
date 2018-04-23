@@ -28,7 +28,7 @@ namespace NewLife.Net
         /// <summary>端口</summary>
         public Int32 Port { get { return Local.Port; } set { Local.Port = value; } }
 
-        /// <summary>会话超时时间。默认30秒</summary>
+        /// <summary>会话超时时间</summary>
         /// <remarks>
         /// 对于每一个会话连接，如果超过该时间仍然没有收到任何数据，则断开会话连接。
         /// </remarks>
@@ -76,18 +76,9 @@ namespace NewLife.Net
             Name = GetType().Name;
 
             Local = new NetUri(NetType.Tcp, IPAddress.Any, 0);
-            //SessionTimeout = 30;
-            //AutoReceiveAsync = true;
-            //ProcessAsync = true;
-
             SessionTimeout = Setting.Current.SessionTimeout;
-
             MaxAsync = Environment.ProcessorCount * 16 / 10;
-
             _Sessions = new SessionCollection(this);
-            //StatSession = new Statistics();
-            //StatSend = new Statistics();
-            //StatReceive = new Statistics();
 
             Log = Logger.Null;
         }

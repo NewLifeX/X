@@ -18,7 +18,7 @@ namespace NewLife.Net
     public class UdpServer : SessionBase, ISocketServer
     {
         #region 属性
-        /// <summary>会话超时时间。默认30秒</summary>
+        /// <summary>会话超时时间</summary>
         /// <remarks>
         /// 对于每一个会话连接，如果超过该时间仍然没有收到任何数据，则断开会话连接。
         /// </remarks>
@@ -43,7 +43,6 @@ namespace NewLife.Net
             _Sessions = new SessionCollection(this);
 
             StatSession = new Statistics();
-
             SessionTimeout = Setting.Current.SessionTimeout;
 
             // 处理UDP最大并发接收
