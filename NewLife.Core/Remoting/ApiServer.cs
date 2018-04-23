@@ -48,17 +48,11 @@ namespace NewLife.Remoting
 
         /// <summary>使用指定端口实例化网络服务应用接口提供者</summary>
         /// <param name="port"></param>
-        public ApiServer(Int32 port) : this()
-        {
-            Add(port);
-        }
+        public ApiServer(Int32 port) : this() => Add(port);
 
         /// <summary>实例化</summary>
         /// <param name="uri"></param>
-        public ApiServer(NetUri uri) : this()
-        {
-            Add(uri);
-        }
+        public ApiServer(NetUri uri) : this() => Add(uri);
 
         /// <summary>销毁时停止服务</summary>
         /// <param name="disposing"></param>
@@ -73,17 +67,13 @@ namespace NewLife.Remoting
         #region 启动停止
         /// <summary>添加服务器</summary>
         /// <param name="port"></param>
-        public IApiServer Add(Int32 port)
-        {
-            return Add(new NetUri(NetType.Unknown, "", port));
-        }
+        public IApiServer Add(Int32 port) => Add(new NetUri(NetType.Unknown, "", port));
 
         /// <summary>添加服务器</summary>
         /// <param name="uri"></param>
         public IApiServer Add(NetUri uri)
         {
-            Type type;
-            if (!Providers.TryGetValue(uri.Type + "", out type)) return null;
+            if (!Providers.TryGetValue(uri.Type + "", out var type)) return null;
 
             var svr = type.CreateInstance() as IApiServer;
             if (svr != null)
@@ -104,8 +94,7 @@ namespace NewLife.Remoting
         public IApiServer Add(String config)
         {
             var protocol = config.Substring(null, "://");
-            Type type;
-            if (!Providers.TryGetValue(protocol, out type)) return null;
+            if (!Providers.TryGetValue(protocol, out var type)) return null;
 
             var svr = type.CreateInstance() as IApiServer;
             if (svr != null)
@@ -131,8 +120,8 @@ namespace NewLife.Remoting
 
             Encoder.Log = EncoderLog;
 
-            // 设置过滤器
-            SetFilter();
+            //// 设置过滤器
+            //SetFilter();
 
             Log.Info("启动{0}，共有服务器{1}个", GetType().Name, Servers.Count);
             Log.Info("编码：{0}", Encoder);
@@ -169,13 +158,13 @@ namespace NewLife.Remoting
         #endregion
 
         #region 加密&压缩
-        /// <summary>获取通信密钥的委托</summary>
-        /// <returns></returns>
-        protected override Func<FilterContext, Byte[]> GetKeyFunc()
-        {
-            // 从Session里面拿Key
-            return ApiSession.GetKey;
-        }
+        ///// <summary>获取通信密钥的委托</summary>
+        ///// <returns></returns>
+        //protected override Func<FilterContext, Byte[]> GetKeyFunc()
+        //{
+        //    // 从Session里面拿Key
+        //    return ApiSession.GetKey;
+        //}
         #endregion
 
         #region 服务提供者

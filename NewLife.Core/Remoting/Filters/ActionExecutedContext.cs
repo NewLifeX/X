@@ -2,7 +2,7 @@
 
 namespace NewLife.Remoting
 {
-    /// <summary>提供 <see cref="ActionFilterAttribute"/> 类的 ActionExecuted 方法的上下文。</summary>
+    /// <summary>提供 ActionExecuted 方法的上下文。</summary>
     public class ActionExecutedContext : ControllerContext
     {
         /// <summary>获取或设置一个值，该值指示此 <see cref="ActionExecutedContext"/> 对象已被取消。</summary>

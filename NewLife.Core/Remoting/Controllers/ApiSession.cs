@@ -35,17 +35,17 @@ namespace NewLife.Remoting
         #endregion
 
         #region 主要方法
-        /// <summary>为加解密过滤器提供会话密钥</summary>
-        /// <param name="context"></param>
-        /// <returns></returns>
-        internal static Byte[] GetKey(FilterContext context)
-        {
-            var ctx = context as ApiFilterContext;
-            var ss = ctx?.Session?.UserSession as ApiSession;
-            if (ss == null) return null;
+        ///// <summary>为加解密过滤器提供会话密钥</summary>
+        ///// <param name="context"></param>
+        ///// <returns></returns>
+        //internal static Byte[] GetKey(FilterContext context)
+        //{
+        //    var ctx = context as ApiFilterContext;
+        //    var ss = ctx?.Session?.UserSession as ApiSession;
+        //    if (ss == null) return null;
 
-            return ss.Key;
-        }
+        //    return ss.Key;
+        //}
         #endregion
 
         #region 异常处理
@@ -169,10 +169,7 @@ namespace NewLife.Remoting
         /// <param name="args"></param>
         /// <param name="cookie">附加参数，位于顶级</param>
         /// <returns></returns>
-        public virtual async Task<TResult> InvokeAsync<TResult>(String action, Object args = null, IDictionary<String, Object> cookie = null)
-        {
-            return await Session.InvokeAsync<TResult>(action, args, cookie);
-        }
+        public virtual async Task<TResult> InvokeAsync<TResult>(String action, Object args = null, IDictionary<String, Object> cookie = null) => await Session.InvokeAsync<TResult>(action, args, cookie);
         #endregion
 
         #region 辅助

@@ -35,7 +35,7 @@ namespace NewLife.Remoting
         public IApiClient Client { get; set; }
 
         /// <summary>主机</summary>
-        IApiHost IApiSession.Host { get { return this; } }
+        IApiHost IApiSession.Host => this;
 
         /// <summary>动作前缀。自动在每个没有/的动作名之前加上</summary>
         public String ActionPrefix { get; set; }
@@ -50,7 +50,7 @@ namespace NewLife.Remoting
         public DateTime LastActive { get; set; }
 
         /// <summary>所有服务器所有会话，包含自己</summary>
-        IApiSession[] IApiSession.AllSessions { get { return new IApiSession[] { this }; } }
+        IApiSession[] IApiSession.AllSessions => new IApiSession[] { this };
 
         /// <summary>附加参数，每次请求都携带</summary>
         public IDictionary<String, Object> Cookie { get; set; } = new NullableDictionary<String, Object>();
@@ -69,10 +69,7 @@ namespace NewLife.Remoting
         }
 
         /// <summary>实例化应用接口客户端</summary>
-        public ApiClient(String uri) : this()
-        {
-            SetRemote(uri);
-        }
+        public ApiClient(String uri) : this() => SetRemote(uri);
 
         /// <summary>销毁</summary>
         /// <param name="disposing"></param>
@@ -98,8 +95,8 @@ namespace NewLife.Remoting
 
             Encoder.Log = EncoderLog;
 
-            // 设置过滤器
-            SetFilter();
+            //// 设置过滤器
+            //SetFilter();
 
             ct.Provider = this;
             ct.Log = Log;
@@ -153,9 +150,8 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public Boolean SetRemote(String uri)
         {
-            Type type;
             var nu = new NetUri(uri);
-            if (!Providers.TryGetValue(nu.Type + "", out type)) return false;
+            if (!Providers.TryGetValue(nu.Type + "", out var type)) return false;
 
             WriteLog("{0} SetRemote {1}", type.Name, nu);
 
@@ -177,12 +173,12 @@ namespace NewLife.Remoting
         /// <summary>查找Api动作</summary>
         /// <param name="action"></param>
         /// <returns></returns>
-        public virtual ApiAction FindAction(String action) { return Manager.Find(action); }
+        public virtual ApiAction FindAction(String action) => Manager.Find(action);
 
         /// <summary>创建控制器实例</summary>
         /// <param name="api"></param>
         /// <returns></returns>
-        public virtual Object CreateController(ApiAction api) { return this.CreateController(this, api); }
+        public virtual Object CreateController(ApiAction api) => this.CreateController(this, api);
         #endregion
 
         #region 远程调用
@@ -299,15 +295,15 @@ namespace NewLife.Remoting
             else
                 WriteLog("登录成功！");
 
-            // 从响应中解析通信密钥
-            if (Encrypted)
-            {
-                //var dic = rs.ToDictionary();
-                //!!! 使用密码解密通信密钥
-                Key = (dic["Key"] + "").ToHex().RC4(Password.GetBytes());
+            //// 从响应中解析通信密钥
+            //if (Encrypted)
+            //{
+            //    //var dic = rs.ToDictionary();
+            //    //!!! 使用密码解密通信密钥
+            //    Key = (dic["Key"] + "").ToHex().RC4(Password.GetBytes());
 
-                WriteLog("密匙:{0}", Key.ToHex());
-            }
+            //    WriteLog("密匙:{0}", Key.ToHex());
+            //}
 
             Logined = true;
 
@@ -335,10 +331,7 @@ namespace NewLife.Remoting
         /// <summary>执行登录，可继承修改登录动作</summary>
         /// <param name="args"></param>
         /// <returns></returns>
-        protected virtual async Task<Object> OnLogin(Object args)
-        {
-            return await InvokeAsync<Object>("Login", args);
-        }
+        protected virtual async Task<Object> OnLogin(Object args) => await InvokeAsync<Object>("Login", args);
         #endregion
 
         #region 心跳
@@ -360,8 +353,7 @@ namespace NewLife.Remoting
             dic = rs.ToDictionary();
 
             // 加权计算延迟
-            Object obj;
-            if (dic.TryGetValue("Time", out obj))
+            if (dic.TryGetValue("Time", out var obj))
             {
                 var ts = DateTime.Now - obj.ToDateTime();
                 var ms = (Int32)ts.TotalMilliseconds;
@@ -412,9 +404,9 @@ namespace NewLife.Remoting
         /// <summary>加密通信指令中负载数据的密匙</summary>
         public Byte[] Key { get; set; }
 
-        /// <summary>获取通信密钥的委托</summary>
-        /// <returns></returns>
-        protected override Func<FilterContext, Byte[]> GetKeyFunc() { return ctx => Key; }
+        ///// <summary>获取通信密钥的委托</summary>
+        ///// <returns></returns>
+        //protected override Func<FilterContext, Byte[]> GetKeyFunc() => ctx => Key;
         #endregion
 
         #region 服务提供者

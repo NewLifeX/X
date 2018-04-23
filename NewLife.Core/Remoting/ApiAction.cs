@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 using NewLife.Reflection;
 
@@ -24,11 +22,11 @@ namespace NewLife.Remoting
         /// <remarks>如果指定控制器对象，则每次调用前不再实例化对象</remarks>
         public Object Controller { get; set; }
 
-        /// <summary>动作过滤器</summary>
-        public IActionFilter[] ActionFilters { get; }
+        ///// <summary>动作过滤器</summary>
+        //public IActionFilter[] ActionFilters { get; }
 
-        /// <summary>异常过滤器</summary>
-        public IExceptionFilter[] ExceptionFilters { get; }
+        ///// <summary>异常过滤器</summary>
+        //public IExceptionFilter[] ExceptionFilters { get; }
 
         /// <summary>实例化</summary>
         public ApiAction(MethodInfo method, Type type)
@@ -40,45 +38,45 @@ namespace NewLife.Remoting
             Type = type;
             Method = method;
 
-            ActionFilters = GetAllFilters(method);
-            ExceptionFilters = GetAllExceptionFilters(method);
+            //ActionFilters = GetAllFilters(method);
+            //ExceptionFilters = GetAllExceptionFilters(method);
         }
 
-        private IActionFilter[] GetAllFilters(MethodInfo method)
-        {
-            if (method == null) throw new ArgumentNullException(nameof(method));
+        //private IActionFilter[] GetAllFilters(MethodInfo method)
+        //{
+        //    if (method == null) throw new ArgumentNullException(nameof(method));
 
-            var fs = new List<IActionFilter>();
-            var atts = method.GetCustomAttributes<ActionFilterAttribute>(true);
-            if (atts != null) fs.AddRange(atts);
-            atts = method.DeclaringType.GetCustomAttributes<ActionFilterAttribute>(true);
-            if (atts != null) fs.AddRange(atts);
+        //    var fs = new List<IActionFilter>();
+        //    var atts = method.GetCustomAttributes<ActionFilterAttribute>(true);
+        //    if (atts != null) fs.AddRange(atts);
+        //    atts = method.DeclaringType.GetCustomAttributes<ActionFilterAttribute>(true);
+        //    if (atts != null) fs.AddRange(atts);
 
-            fs.AddRange(GlobalFilters.ActionFilters);
+        //    fs.AddRange(GlobalFilters.ActionFilters);
 
-            // 排序
-            var arr = fs.OrderBy(e => (e as FilterAttribute)?.Order ?? 0).ToArray();
+        //    // 排序
+        //    var arr = fs.OrderBy(e => (e as FilterAttribute)?.Order ?? 0).ToArray();
 
-            return arr;
-        }
+        //    return arr;
+        //}
 
-        private IExceptionFilter[] GetAllExceptionFilters(MethodInfo method)
-        {
-            if (method == null) throw new ArgumentNullException(nameof(method));
+        //private IExceptionFilter[] GetAllExceptionFilters(MethodInfo method)
+        //{
+        //    if (method == null) throw new ArgumentNullException(nameof(method));
 
-            var fs = new List<IExceptionFilter>();
-            var atts = method.GetCustomAttributes<HandleErrorAttribute>(true);
-            if (atts != null) fs.AddRange(atts);
-            atts = method.DeclaringType.GetCustomAttributes<HandleErrorAttribute>(true);
-            if (atts != null) fs.AddRange(atts);
+        //    var fs = new List<IExceptionFilter>();
+        //    var atts = method.GetCustomAttributes<HandleErrorAttribute>(true);
+        //    if (atts != null) fs.AddRange(atts);
+        //    atts = method.DeclaringType.GetCustomAttributes<HandleErrorAttribute>(true);
+        //    if (atts != null) fs.AddRange(atts);
 
-            fs.AddRange(GlobalFilters.ExceptionFilters);
+        //    fs.AddRange(GlobalFilters.ExceptionFilters);
 
-            // 排序
-            var arr = fs.OrderBy(e => (e as FilterAttribute)?.Order ?? 0).ToArray();
+        //    // 排序
+        //    var arr = fs.OrderBy(e => (e as FilterAttribute)?.Order ?? 0).ToArray();
 
-            return arr;
-        }
+        //    return arr;
+        //}
 
         /// <summary>获取名称</summary>
         /// <param name="type"></param>

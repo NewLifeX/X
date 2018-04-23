@@ -30,11 +30,11 @@ namespace NewLife.Remoting
         ///// <summary>是否默认匿名访问</summary>
         //Boolean Anonymous { get; set; }
 
-        /// <summary>是否加密</summary>
-        Boolean Encrypted { get; set; }
+        ///// <summary>是否加密</summary>
+        //Boolean Encrypted { get; set; }
 
-        /// <summary>是否压缩</summary>
-        Boolean Compressed { get; set; }
+        ///// <summary>是否压缩</summary>
+        //Boolean Compressed { get; set; }
 
         /// <summary>收到请求</summary>
         event EventHandler<ApiMessageEventArgs> Received;
@@ -88,14 +88,14 @@ namespace NewLife.Remoting
 
             var msg = session.CreateMessage(data);
 
-            // 过滤器
-            host.ExecuteFilter(session, msg, true);
+            //// 过滤器
+            //host.ExecuteFilter(session, msg, true);
 
             var rs = await session.SendAsync(msg);
             if (rs == null) return default(TResult);
 
-            // 过滤器
-            host.ExecuteFilter(session, rs, false);
+            //// 过滤器
+            //host.ExecuteFilter(session, rs, false);
 
             // 特殊返回类型
             if (typeof(TResult) == typeof(Packet)) return (TResult)(Object)rs.Payload;
@@ -105,13 +105,11 @@ namespace NewLife.Remoting
 
             //return enc.Decode<TResult>(dic);
             var code = 0;
-            Object result = null;
             //enc.TryGet(dic, out code, out result);
-            Object cod = null;
-            dic.TryGetValue("code", out cod);
+            dic.TryGetValue("code", out var cod);
 
             // 参数可能不存在
-            dic.TryGetValue("result", out result);
+            dic.TryGetValue("result", out var result);
             code = cod.ToInt();
 
             // 是否成功
@@ -136,26 +134,26 @@ namespace NewLife.Remoting
             return enc.Convert<TResult>(result);
         }
 
-        /// <summary>执行过滤器</summary>
-        /// <param name="host"></param>
-        /// <param name="session"></param>
-        /// <param name="msg"></param>
-        /// <param name="issend"></param>
-        internal static void ExecuteFilter(this IApiHost host, IApiSession session, IMessage msg, Boolean issend)
-        {
-            var fs = host.Filters;
-            if (fs.Count == 0) return;
+        ///// <summary>执行过滤器</summary>
+        ///// <param name="host"></param>
+        ///// <param name="session"></param>
+        ///// <param name="msg"></param>
+        ///// <param name="issend"></param>
+        //internal static void ExecuteFilter(this IApiHost host, IApiSession session, IMessage msg, Boolean issend)
+        //{
+        //    var fs = host.Filters;
+        //    if (fs.Count == 0) return;
 
-            // 接收时需要倒序
-            if (!issend) fs = fs.Reverse().ToList();
+        //    // 接收时需要倒序
+        //    if (!issend) fs = fs.Reverse().ToList();
 
-            var ctx = new ApiFilterContext { Session = session, Packet = msg.Payload, Message = msg, IsSend = issend };
-            foreach (var item in fs)
-            {
-                item.Execute(ctx);
-            }
-            msg.Payload = ctx.Packet;
-        }
+        //    var ctx = new ApiFilterContext { Session = session, Packet = msg.Payload, Message = msg, IsSend = issend };
+        //    foreach (var item in fs)
+        //    {
+        //        item.Execute(ctx);
+        //    }
+        //    msg.Payload = ctx.Packet;
+        //}
 
         /// <summary>创建控制器实例</summary>
         /// <param name="host"></param>

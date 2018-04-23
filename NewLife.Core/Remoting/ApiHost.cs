@@ -41,26 +41,17 @@ namespace NewLife.Remoting
 
         /// <summary>注册服务提供类。该类的所有公开方法将直接暴露</summary>
         /// <typeparam name="TService"></typeparam>
-        public void Register<TService>() where TService : class, new()
-        {
-            Manager.Register<TService>();
-        }
+        public void Register<TService>() where TService : class, new() => Manager.Register<TService>();
 
         /// <summary>注册服务</summary>
         /// <param name="controller">控制器对象</param>
         /// <param name="method">动作名称。为空时遍历控制器所有公有成员方法</param>
-        public void Register(Object controller, String method)
-        {
-            Manager.Register(controller, method);
-        }
+        public void Register(Object controller, String method) => Manager.Register(controller, method);
 
         /// <summary>注册服务</summary>
         /// <param name="type">控制器类型</param>
         /// <param name="method">动作名称。为空时遍历控制器所有公有成员方法</param>
-        public void Register(Type type, String method)
-        {
-            Manager.Register(type, method);
-        }
+        public void Register(Type type, String method) => Manager.Register(type, method);
 
         /// <summary>显示可用服务</summary>
         protected void ShowService()
@@ -79,43 +70,43 @@ namespace NewLife.Remoting
         #endregion
 
         #region 加密&压缩
-        /// <summary>是否加密</summary>
-        public Boolean Encrypted { get; set; } = true;
+        ///// <summary>是否加密</summary>
+        //public Boolean Encrypted { get; set; } = true;
 
-        /// <summary>是否压缩</summary>
-        public Boolean Compressed { get; set; } = true;
+        ///// <summary>是否压缩</summary>
+        //public Boolean Compressed { get; set; } = true;
 
-        /// <summary>设置过滤器</summary>
-        protected virtual void SetFilter()
-        {
-            // 压缩（>=64 Byte）
-            if (Compressed)
-            {
-                var def = new DeflateFilter
-                {
-                    MinSize = 256
-                };
-                Filters.Add(def);
+        ///// <summary>设置过滤器</summary>
+        //protected virtual void SetFilter()
+        //{
+        //    // 压缩（>=64 Byte）
+        //    if (Compressed)
+        //    {
+        //        var def = new DeflateFilter
+        //        {
+        //            MinSize = 256
+        //        };
+        //        Filters.Add(def);
 
-                WriteLog("压缩：{0} MinSize={1}", def, def.MinSize);
-            }
+        //        WriteLog("压缩：{0} MinSize={1}", def, def.MinSize);
+        //    }
 
-            // 加密
-            if (Encrypted)
-            {
-                var rc4 = new RC4Filter
-                {
-                    GetKey = GetKeyFunc()
-                };
-                Filters.Add(rc4);
+        //    // 加密
+        //    if (Encrypted)
+        //    {
+        //        var rc4 = new RC4Filter
+        //        {
+        //            GetKey = GetKeyFunc()
+        //        };
+        //        Filters.Add(rc4);
 
-                WriteLog("加密：{0}", rc4);
-            }
-        }
+        //        WriteLog("加密：{0}", rc4);
+        //    }
+        //}
 
-        /// <summary>获取通信密钥的委托</summary>
-        /// <returns></returns>
-        protected abstract Func<FilterContext, Byte[]> GetKeyFunc();
+        ///// <summary>获取通信密钥的委托</summary>
+        ///// <returns></returns>
+        //protected abstract Func<FilterContext, Byte[]> GetKeyFunc();
         #endregion
 
         #region 请求处理
@@ -130,13 +121,13 @@ namespace NewLife.Remoting
         {
             if (msg.Reply) return null;
 
-            // 过滤器
-            this.ExecuteFilter(session, msg, false);
+            //// 过滤器
+            //this.ExecuteFilter(session, msg, false);
 
             var rs = OnReceive(session, msg);
 
-            // 过滤器
-            this.ExecuteFilter(session, rs, true);
+            //// 过滤器
+            //this.ExecuteFilter(session, rs, true);
 
             return rs;
         }
@@ -187,13 +178,11 @@ namespace NewLife.Remoting
                 // 请求响应，由code决定
                 if (dic.ContainsKey("code")) return null;
 
-                Object args = null;
                 //if (!enc.TryGet(dic, out action, out args)) return null;
-                Object obj = null;
-                if (!dic.TryGetValue("action", out obj)) return null;
+                if (!dic.TryGetValue("action", out var obj)) return null;
 
                 // 参数可能不存在
-                dic.TryGetValue("args", out args);
+                dic.TryGetValue("args", out var args);
 
                 action = obj + "";
 
@@ -262,14 +251,11 @@ namespace NewLife.Remoting
         /// <summary>写日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
-        public void WriteLog(String format, params Object[] args)
-        {
-            Log?.Info(Name + " " + format, args);
-        }
+        public void WriteLog(String format, params Object[] args) => Log?.Info(Name + " " + format, args);
 
         /// <summary>已重载。返回具有本类特征的字符串</summary>
         /// <returns>String</returns>
-        public override String ToString() { return Name; }
+        public override String ToString() => Name;
         #endregion
     }
 }

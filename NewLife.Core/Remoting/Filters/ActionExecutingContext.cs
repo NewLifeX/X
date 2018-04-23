@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace NewLife.Remoting
 {
-    /// <summary>提供 <see cref="ActionFilterAttribute"/> 类的 ActionExecuting 方法的上下文。</summary>
+    /// <summary>提供 ActionExecuting 方法的上下文。</summary>
     public class ActionExecutingContext : ControllerContext
     {
         /// <summary>获取或设置操作方法参数。</summary>

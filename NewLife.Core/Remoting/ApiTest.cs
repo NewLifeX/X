@@ -28,8 +28,6 @@ namespace NewLife.Remoting
             svr.Log = XTrace.Log;
             svr.EncoderLog = XTrace.Log;
             //svr.Encoder = new JsonEncoder();
-            //GlobalFilters.Add(new FFAttribute { Name = "全局" });
-            //GlobalFilters.Add(new FEAttribute { Name = "全局" });
             svr.Register<ApiSession>();
             svr.Register<HelloController>();
 
@@ -84,15 +82,11 @@ namespace NewLife.Remoting
             Console.ReadKey();
         }
 
-        //[FF(Name = "类")]
-        //[FE(Name = "类")]
         [Api(null)]
         private class HelloController : IApi
         {
             public IApiSession Session { get; set; }
 
-            //[FF(Name = "方法")]
-            //[FE(Name = "方法")]
             [Api("Say")]
             public String Say(String msg)
             {
@@ -119,43 +113,6 @@ namespace NewLife.Remoting
                 var ctx = ControllerContext.Current;
 
                 return "全局执行：{0}({1})".F(ctx.Action.Name, ctx.Parameters.Select(e => e.Key).Join(", "));
-            }
-        }
-
-        class FFAttribute : ActionFilterAttribute
-        {
-            public String Name { get; set; }
-
-            public override void OnActionExecuting(ActionExecutingContext filterContext)
-            {
-                XTrace.WriteLine("{0} Executing", Name);
-
-                base.OnActionExecuting(filterContext);
-            }
-
-            public override void OnActionExecuted(ActionExecutedContext filterContext)
-            {
-                XTrace.WriteLine("{0} Executed", Name);
-
-                base.OnActionExecuted(filterContext);
-            }
-        }
-
-        class FEAttribute : HandleErrorAttribute
-        {
-            public String Name { get; set; }
-
-            public override void OnException(ExceptionContext filterContext)
-            {
-                XTrace.WriteLine("{0} Exception", Name);
-
-                base.OnException(filterContext);
-
-                if (Name == "方法")
-                {
-                    filterContext.Result = filterContext.Exception?.GetTrue()?.Message + " 异常已处理";
-                    //filterContext.ExceptionHandled = true;
-                }
             }
         }
     }

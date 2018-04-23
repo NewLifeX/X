@@ -2,7 +2,7 @@
 
 namespace NewLife.Remoting
 {
-    /// <summary>提供使用 <see cref="HandleErrorAttribute"/> 类的上下文。</summary>
+    /// <summary>提供异常上下文。</summary>
     public class ExceptionContext : ControllerContext
     {
         /// <summary>获取或设置异常对象。</summary>
