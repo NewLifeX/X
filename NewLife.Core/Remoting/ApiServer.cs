@@ -28,9 +28,6 @@ namespace NewLife.Remoting
         /// <summary>是否正在工作</summary>
         public Boolean Active { get; private set; }
 
-        /// <summary>是否默认匿名访问</summary>
-        public Boolean Anonymous { get; set; }
-
         /// <summary>服务器集合</summary>
         public IList<IApiServer> Servers { get; } = new List<IApiServer>();
         #endregion
@@ -121,7 +118,7 @@ namespace NewLife.Remoting
 
             Log.Info("启动{0}，共有服务器{1}个", GetType().Name, Servers.Count);
             Log.Info("编码：{0}", Encoder);
-            Log.Info("处理：{0}", Handler);
+            //Log.Info("处理：{0}", Handler);
 
             foreach (var item in Servers)
             {

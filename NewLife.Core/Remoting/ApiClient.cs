@@ -6,7 +6,6 @@ using NewLife.Data;
 using NewLife.Messaging;
 using NewLife.Net;
 using NewLife.Reflection;
-using NewLife.Threading;
 
 namespace NewLife.Remoting
 {
@@ -37,15 +36,6 @@ namespace NewLife.Remoting
         /// <summary>主机</summary>
         IApiHost IApiSession.Host => this;
 
-        /// <summary>动作前缀。自动在每个没有/的动作名之前加上</summary>
-        public String ActionPrefix { get; set; }
-
-        /// <summary>用户对象。一般用于共享用户信息对象</summary>
-        public Object UserState { get; set; }
-
-        ///// <summary>用户状态会话</summary>
-        //IUserSession IApiSession.UserSession { get; set; }
-
         /// <summary>最后活跃时间</summary>
         public DateTime LastActive { get; set; }
 
@@ -62,8 +52,6 @@ namespace NewLife.Remoting
         {
             var type = GetType();
             Name = type.GetDisplayName() ?? type.Name.TrimEnd("Client");
-
-            //(this as IApiSession).UserSession = this;
 
             Register(new ApiController { Host = this }, null);
         }
@@ -97,15 +85,11 @@ namespace NewLife.Remoting
 
             ct.Provider = this;
             ct.Log = Log;
-            //ct.Opened += Client_Opened;
 
             // 打开网络连接
             if (!ct.Open()) return false;
 
             ShowService();
-
-            //// 打开连接后马上就可以登录
-            //Timer = new TimerX(OnTimer, this, 0, 30000);
 
             return Active = true;
         }
@@ -117,27 +101,11 @@ namespace NewLife.Remoting
         {
             if (!Active) return;
 
-            //Timer.TryDispose();
-
             var ct = Client;
-            if (ct != null)
-            {
-                //ct.Opened -= Client_Opened;
-                ct.Close(reason ?? (GetType().Name + "Close"));
-            }
+            if (ct != null) ct.Close(reason ?? (GetType().Name + "Close"));
 
             Active = false;
         }
-
-        ///// <summary>打开后触发。</summary>
-        //public event EventHandler Opened;
-
-        //private void Client_Opened(Object sender, EventArgs e)
-        //{
-        //    //Logined = false;
-
-        //    Opened?.Invoke(this, e);
-        //}
 
         /// <summary>设置远程地址</summary>
         /// <param name="uri"></param>
@@ -188,7 +156,6 @@ namespace NewLife.Remoting
             if (ss == null) return default(TResult);
 
             var act = action;
-            if (!ActionPrefix.IsNullOrEmpty() && !act.Contains("/")) act = ActionPrefix.EnsureEnd("/") + act;
 
             try
             {

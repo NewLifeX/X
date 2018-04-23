@@ -16,12 +16,9 @@ namespace NewLife.Remoting
         public String[] All()
         {
             var list = new List<String>();
-            //var sb = new StringBuilder();
             foreach (var item in Host.Manager.Services)
             {
                 var act = item.Value;
-
-                //if (sb.Length > 0) sb.Append("#");
 
                 var mi = act.Method;
 

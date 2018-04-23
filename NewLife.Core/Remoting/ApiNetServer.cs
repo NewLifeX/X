@@ -40,10 +40,7 @@ namespace NewLife.Remoting
             Local = new NetUri(config);
             // 如果主机为空，监听所有端口
             if (Local.Host.IsNullOrEmpty() || Local.Host == "*") AddressFamily = System.Net.Sockets.AddressFamily.Unspecified;
-#if DEBUG
-            //LogSend = true;
-            //LogReceive = true;
-#endif
+
             // 新生命标准网络封包协议
             Add(new StandardCodec { UserPacket = false });
 
@@ -77,12 +74,6 @@ namespace NewLife.Remoting
 
     class ApiNetSession : NetSession<ApiNetServer>, IApiSession
     {
-        /// <summary>用户对象。一般用于共享用户信息对象</summary>
-        public Object UserState { get; set; }
-
-        ///// <summary>用户状态会话</summary>
-        //IUserSession IApiSession.UserSession { get; set; }
-
         private IApiHost _Host;
         /// <summary>主机</summary>
         IApiHost IApiSession.Host => _Host;
@@ -104,22 +95,11 @@ namespace NewLife.Remoting
             }
         }
 
-        ///// <summary>销毁</summary>
-        ///// <param name="disposing"></param>
-        //protected override void OnDispose(Boolean disposing)
-        //{
-        //    base.OnDispose(disposing);
-
-        //    var ss = (this as IApiSession).UserSession;
-        //    ss.TryDispose();
-        //}
-
         /// <summary>开始会话处理</summary>
         public override void Start()
         {
             base.Start();
 
-            //_Host = this.GetService<IApiHost>();
             _Host = Host.Provider as ApiServer;
         }
 
