@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -21,20 +20,8 @@ namespace NewLife.Remoting
         /// <summary>处理器</summary>
         IApiHandler Handler { get; set; }
 
-        ///// <summary>过滤器</summary>
-        //IList<IFilter> Filters { get; }
-
         /// <summary>接口动作管理器</summary>
         IApiManager Manager { get; }
-
-        ///// <summary>是否默认匿名访问</summary>
-        //Boolean Anonymous { get; set; }
-
-        ///// <summary>是否加密</summary>
-        //Boolean Encrypted { get; set; }
-
-        ///// <summary>是否压缩</summary>
-        //Boolean Compressed { get; set; }
 
         /// <summary>收到请求</summary>
         event EventHandler<ApiMessageEventArgs> Received;
@@ -88,14 +75,8 @@ namespace NewLife.Remoting
 
             var msg = session.CreateMessage(data);
 
-            //// 过滤器
-            //host.ExecuteFilter(session, msg, true);
-
             var rs = await session.SendAsync(msg);
             if (rs == null) return default(TResult);
-
-            //// 过滤器
-            //host.ExecuteFilter(session, rs, false);
 
             // 特殊返回类型
             if (typeof(TResult) == typeof(Packet)) return (TResult)(Object)rs.Payload;
@@ -134,27 +115,6 @@ namespace NewLife.Remoting
             return enc.Convert<TResult>(result);
         }
 
-        ///// <summary>执行过滤器</summary>
-        ///// <param name="host"></param>
-        ///// <param name="session"></param>
-        ///// <param name="msg"></param>
-        ///// <param name="issend"></param>
-        //internal static void ExecuteFilter(this IApiHost host, IApiSession session, IMessage msg, Boolean issend)
-        //{
-        //    var fs = host.Filters;
-        //    if (fs.Count == 0) return;
-
-        //    // 接收时需要倒序
-        //    if (!issend) fs = fs.Reverse().ToList();
-
-        //    var ctx = new ApiFilterContext { Session = session, Packet = msg.Payload, Message = msg, IsSend = issend };
-        //    foreach (var item in fs)
-        //    {
-        //        item.Execute(ctx);
-        //    }
-        //    msg.Payload = ctx.Packet;
-        //}
-
         /// <summary>创建控制器实例</summary>
         /// <param name="host"></param>
         /// <param name="session"></param>
@@ -165,29 +125,29 @@ namespace NewLife.Remoting
             var controller = api.Controller;
             if (controller != null) return controller;
 
-            var att = api.Type?.GetCustomAttribute<ApiAttribute>(true);
-            if (att != null && att.IsReusable)
-            {
-                var ts = session["Controller"] as IDictionary<Type, Object>;
-                if (ts == null)
-                {
-                    session["Controller"] = ts = new NullableDictionary<Type, Object>();
+            //var att = api.Type?.GetCustomAttribute<ApiAttribute>(true);
+            //if (att != null && att.IsReusable)
+            //{
+            //    var ts = session["Controller"] as IDictionary<Type, Object>;
+            //    if (ts == null)
+            //    {
+            //        session["Controller"] = ts = new NullableDictionary<Type, Object>();
 
-                    // 析构时销毁所有从属控制器
-                    if (session is IDisposable2 sd) sd.OnDisposed += (s, e) =>
-                      {
-                          foreach (var item in ts)
-                          {
-                              item.Value.TryDispose();
-                          }
-                      };
-                }
+            //        // 析构时销毁所有从属控制器
+            //        if (session is IDisposable2 sd) sd.OnDisposed += (s, e) =>
+            //          {
+            //              foreach (var item in ts)
+            //              {
+            //                  item.Value.TryDispose();
+            //              }
+            //          };
+            //    }
 
-                controller = ts[api.Type];
-                if (controller == null) controller = ts[api.Type] = api.Type.CreateInstance();
+            //    controller = ts[api.Type];
+            //    if (controller == null) controller = ts[api.Type] = api.Type.CreateInstance();
 
-                return controller;
-            }
+            //    return controller;
+            //}
 
             controller = api.Type.CreateInstance();
 

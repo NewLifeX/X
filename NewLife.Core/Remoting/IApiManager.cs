@@ -65,10 +65,7 @@ namespace NewLife.Remoting
 
         /// <summary>注册服务提供类。该类的所有公开方法将直接暴露</summary>
         /// <typeparam name="TService"></typeparam>
-        public void Register<TService>() where TService : class, new()
-        {
-            RegisterAll(null, typeof(TService));
-        }
+        public void Register<TService>() where TService : class, new() => RegisterAll(null, typeof(TService));
 
         /// <summary>注册服务</summary>
         /// <param name="controller">控制器对象</param>

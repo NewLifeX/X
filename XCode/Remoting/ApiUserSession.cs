@@ -134,20 +134,20 @@ namespace XCode.Remoting
             user.SaveLogin(ns);
         }
 
-        /// <summary>生成密钥，默认密码加密密钥，可继承修改</summary>
-        /// <returns></returns>
-        protected override Byte[] GenerateKey(String user)
-        {
-            // 随机密钥
-            var key = Key = Rand.NextBytes(8);
+        ///// <summary>生成密钥，默认密码加密密钥，可继承修改</summary>
+        ///// <returns></returns>
+        //protected override Byte[] GenerateKey(String user)
+        //{
+        //    // 随机密钥
+        //    var key = Key = Rand.NextBytes(8);
 
-            WriteLog("生成密钥 {0}", key.ToHex());
+        //    WriteLog("生成密钥 {0}", key.ToHex());
 
-            var tp = Current?.Password;
-            if (!tp.IsNullOrEmpty()) key = key.RC4(tp.GetBytes());
+        //    var tp = Current?.Password;
+        //    if (!tp.IsNullOrEmpty()) key = key.RC4(tp.GetBytes());
 
-            return key;
-        }
+        //    return key;
+        //}
 
         /// <summary>查找用户并登录，找不到用户是返回空，登录失败则抛出异常</summary>
         /// <param name="user"></param>

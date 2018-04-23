@@ -8,15 +8,15 @@ using NewLife.Security;
 namespace NewLife.Remoting
 {
     /// <summary>Api会话</summary>
-    [Api(null, true)]
+    [Api(null)]
     public class ApiSession : DisposeBase, IApi, IUserSession
     {
         #region 属性
         /// <summary>会话</summary>
         public IApiSession Session { get; set; }
 
-        /// <summary>通信密钥</summary>
-        protected Byte[] Key { get; set; }
+        ///// <summary>通信密钥</summary>
+        //protected Byte[] Key { get; set; }
 
         /// <summary>是否已登录</summary>
         public Boolean Logined { get; set; }
@@ -95,8 +95,8 @@ namespace NewLife.Remoting
             if (Session.UserState == null) Session.UserState = rs;
             Logined = true;
 
-            // 生成密钥
-            if (!dic.ContainsKey("Key")) dic["Key"] = GenerateKey(user).ToHex();
+            //// 生成密钥
+            //if (!dic.ContainsKey("Key")) dic["Key"] = GenerateKey(user).ToHex();
 
             return dic;
         }
@@ -112,20 +112,20 @@ namespace NewLife.Remoting
             return new { Name = user };
         }
 
-        /// <summary>生成密钥，默认密码加密密钥，可继承修改</summary>
-        /// <returns></returns>
-        protected virtual Byte[] GenerateKey(String user)
-        {
-            // 随机密钥
-            var key = Key = Rand.NextBytes(8);
+        ///// <summary>生成密钥，默认密码加密密钥，可继承修改</summary>
+        ///// <returns></returns>
+        //protected virtual Byte[] GenerateKey(String user)
+        //{
+        //    // 随机密钥
+        //    var key = Key = Rand.NextBytes(8);
 
-            WriteLog("生成密钥 {0}", key.ToHex());
+        //    WriteLog("生成密钥 {0}", key.ToHex());
 
-            var tp = user;
-            if (!tp.IsNullOrEmpty()) key = key.RC4(tp.GetBytes());
+        //    var tp = user;
+        //    if (!tp.IsNullOrEmpty()) key = key.RC4(tp.GetBytes());
 
-            return key;
-        }
+        //    return key;
+        //}
 
         /// <summary>注销</summary>
         /// <returns></returns>
@@ -155,21 +155,21 @@ namespace NewLife.Remoting
         }
         #endregion
 
-        #region 远程调用
-        /// <summary>远程调用</summary>
-        /// <example>
-        /// <code>
-        /// client.InvokeAsync("GetDeviceCount");
-        /// var rs = client.InvokeAsync("GetDeviceInfo", 2, 5, 9);
-        /// var di = rs.Result[0].Value;
-        /// </code>
-        /// </example>
-        /// <param name="action"></param>
-        /// <param name="args"></param>
-        /// <param name="cookie">附加参数，位于顶级</param>
-        /// <returns></returns>
-        public virtual async Task<TResult> InvokeAsync<TResult>(String action, Object args = null, IDictionary<String, Object> cookie = null) => await Session.InvokeAsync<TResult>(action, args, cookie);
-        #endregion
+        //#region 远程调用
+        ///// <summary>远程调用</summary>
+        ///// <example>
+        ///// <code>
+        ///// client.InvokeAsync("GetDeviceCount");
+        ///// var rs = client.InvokeAsync("GetDeviceInfo", 2, 5, 9);
+        ///// var di = rs.Result[0].Value;
+        ///// </code>
+        ///// </example>
+        ///// <param name="action"></param>
+        ///// <param name="args"></param>
+        ///// <param name="cookie">附加参数，位于顶级</param>
+        ///// <returns></returns>
+        //public virtual async Task<TResult> InvokeAsync<TResult>(String action, Object args = null, IDictionary<String, Object> cookie = null) => await Session.InvokeAsync<TResult>(action, args, cookie);
+        //#endregion
 
         #region 辅助
         private String _prefix;
