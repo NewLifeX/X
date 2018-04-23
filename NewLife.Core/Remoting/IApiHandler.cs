@@ -40,15 +40,15 @@ namespace NewLife.Remoting
 
             if (controller is IApi) (controller as IApi).Session = session;
 
-            // 服务端需要检查登录授权
-            if (Host is ApiServer svrHost && !svrHost.Anonymous)
-            {
-                if (controller.GetType().GetCustomAttribute<AllowAnonymousAttribute>() == null &&
-                    api.Method.GetCustomAttribute<AllowAnonymousAttribute>() == null)
-                {
-                    if (session.UserSession == null || !session.UserSession.Logined) throw new ApiException(401, "未登录！");
-                }
-            }
+            //// 服务端需要检查登录授权
+            //if (Host is ApiServer svrHost && !svrHost.Anonymous)
+            //{
+            //    if (controller.GetType().GetCustomAttribute<AllowAnonymousAttribute>() == null &&
+            //        api.Method.GetCustomAttribute<AllowAnonymousAttribute>() == null)
+            //    {
+            //        if (session.UserSession == null || !session.UserSession.Logined) throw new ApiException(401, "未登录！");
+            //    }
+            //}
 
             // 服务设置优先于全局主机
             var svr = session.GetService<IApiServer>();

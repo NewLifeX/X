@@ -12,8 +12,8 @@ namespace NewLife.Remoting
         /// <summary>用户对象。一般用于共享用户信息对象</summary>
         Object UserState { get; set; }
 
-        /// <summary>用户状态会话</summary>
-        IUserSession UserSession { get; set; }
+        ///// <summary>用户状态会话</summary>
+        //IUserSession UserSession { get; set; }
 
         /// <summary>主机</summary>
         IApiHost Host { get; }

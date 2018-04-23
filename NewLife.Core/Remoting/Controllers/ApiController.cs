@@ -5,7 +5,7 @@ using System.Text;
 namespace NewLife.Remoting
 {
     /// <summary>API控制器</summary>
-    [AllowAnonymous]
+    //[AllowAnonymous]
     public class ApiController
     {
         /// <summary>主机</summary>

@@ -146,16 +146,18 @@ namespace XApi
                     client.Log = cfg.ShowLog ? log : Logger.Null;
                     client.EncoderLog = cfg.ShowEncoderLog ? log : Logger.Null;
 
-                    // 连接成功后拉取Api列表
-                    client.Opened += (s, e) =>
-                    {
-                        GetApiAll();
-                        //client.UserName = cfg.UserName;
-                        //client.Password = cfg.Password;
-                    };
+                    //// 连接成功后拉取Api列表
+                    //client.Opened += (s, e) =>
+                    //{
+                    //    GetApiAll();
+                    //    //client.UserName = cfg.UserName;
+                    //    //client.Password = cfg.Password;
+                    //};
 
                     _Client = client;
                     client.Open();
+                    // 连接成功后拉取Api列表
+                    GetApiAll();
 
                     "已连接服务器".SpeechTip();
 

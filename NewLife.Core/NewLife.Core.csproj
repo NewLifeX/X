@@ -151,7 +151,6 @@
     <Compile Include="Model\IManageUser.cs" />
     <Compile Include="Model\ModelExtension.cs" />
     <Compile Include="Model\ObjectContainerHelper.cs" />
-    <Compile Include="Remoting\AllowAnonymousAttribute.cs" />
     <Compile Include="Remoting\ApiAction.cs" />
     <Compile Include="Remoting\ApiAttribute.cs" />
     <Compile Include="Remoting\ApiClient.cs" />
@@ -164,7 +163,6 @@
     <Compile Include="Remoting\ApiServer.cs" />
     <Compile Include="Remoting\ApiTest.cs" />
     <Compile Include="Remoting\Controllers\ApiController.cs" />
-    <Compile Include="Remoting\Controllers\ApiSession.cs" />
     <Compile Include="Remoting\Filters\ActionExecutedContext.cs" />
     <Compile Include="Remoting\Filters\ActionExecutingContext.cs" />
     <Compile Include="Remoting\Filters\ControllerContext.cs" />
@@ -179,7 +177,6 @@
     <Compile Include="Remoting\IApiServer.cs" />
     <Compile Include="Remoting\IApiSession.cs" />
     <Compile Include="Remoting\IEncoder.cs" />
-    <Compile Include="Remoting\IUserSession.cs" />
     <Compile Include="Remoting\JsonEncoder.cs" />
     <Compile Include="Serialization\JsonCodec.cs" />
     <Compile Include="Serialization\BinaryCodec.cs" />

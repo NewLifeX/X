@@ -80,8 +80,8 @@ namespace NewLife.Remoting
         /// <summary>用户对象。一般用于共享用户信息对象</summary>
         public Object UserState { get; set; }
 
-        /// <summary>用户状态会话</summary>
-        IUserSession IApiSession.UserSession { get; set; }
+        ///// <summary>用户状态会话</summary>
+        //IUserSession IApiSession.UserSession { get; set; }
 
         private IApiHost _Host;
         /// <summary>主机</summary>
@@ -104,15 +104,15 @@ namespace NewLife.Remoting
             }
         }
 
-        /// <summary>销毁</summary>
-        /// <param name="disposing"></param>
-        protected override void OnDispose(Boolean disposing)
-        {
-            base.OnDispose(disposing);
+        ///// <summary>销毁</summary>
+        ///// <param name="disposing"></param>
+        //protected override void OnDispose(Boolean disposing)
+        //{
+        //    base.OnDispose(disposing);
 
-            var ss = (this as IApiSession).UserSession;
-            ss.TryDispose();
-        }
+        //    var ss = (this as IApiSession).UserSession;
+        //    ss.TryDispose();
+        //}
 
         /// <summary>开始会话处理</summary>
         public override void Start()
