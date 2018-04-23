@@ -23,16 +23,16 @@ namespace NewLife.Remoting
 
         private static void TestServer()
         {
-            var svr = new ApiServer(3344);
-            svr.Add("http://*:888/");
-            svr.Log = XTrace.Log;
-            svr.EncoderLog = XTrace.Log;
-            //svr.Encoder = new JsonEncoder();
+            var svr = new ApiServer(3344)
+            {
+                Log = XTrace.Log,
+                EncoderLog = XTrace.Log
+            };
             svr.Register<HelloController>();
 
-            var ns = svr.Servers[0] as NetServer;
-            ns.LogSend = true;
-            ns.LogReceive = true;
+            //var ns = svr.Server as NetServer;
+            //ns.LogSend = true;
+            //ns.LogReceive = true;
 
             svr.Start();
 
@@ -41,34 +41,43 @@ namespace NewLife.Remoting
 
         private static async void TestClient()
         {
-            var client = new ApiClient("tcp://127.0.0.1:3344");
-            //var client = new ApiClient("udp://127.0.0.1:3344");
-            //var client = new ApiClient("http://127.0.0.1:888");
-            //var client = new ApiClient("ws://127.0.0.1:888");
-            client.Log = XTrace.Log;
-            client.EncoderLog = XTrace.Log;
-            //client.Encoder = new JsonEncoder();
+            var client = new ApiClient("tcp://127.0.0.1:3344")
+            {
+                Log = XTrace.Log,
+                EncoderLog = XTrace.Log
+            };
 
-            var sc = client.Client;
-            sc.LogSend = true;
-            sc.LogReceive = true;
+            //var sc = client.Client;
+            //sc.LogSend = true;
+            //sc.LogReceive = true;
 
             client.Open();
 
             var msg = "NewLifeX";
-            var rs = await client.InvokeAsync<String>("Hello/Say", new { msg });
+            Console.WriteLine();
+            var rs = await client.InvokeAsync<String>("Say", new { msg });
             XTrace.WriteLine(rs);
 
+            Console.WriteLine();
+            rs = await client.InvokeAsync<String>("Hello/Eat", new { msg });
+            XTrace.WriteLine(rs);
+
+            Console.WriteLine();
+            rs = await client.InvokeAsync<String>("Sleep", new { msg });
+            XTrace.WriteLine(rs);
+
+            Console.WriteLine();
             try
             {
                 msg = "报错";
-                rs = await client.InvokeAsync<String>("Hello/Say", new { msg });
+                rs = await client.InvokeAsync<String>("Say", new { msg });
             }
             catch (ApiException ex)
             {
                 XTrace.WriteLine("服务端发生 {0} 错误：{1}", ex.Code, ex.Message);
             }
 
+            Console.WriteLine();
             var apis = await client.InvokeAsync<String[]>("Api/All");
             Console.WriteLine(apis.Join(Environment.NewLine));
 

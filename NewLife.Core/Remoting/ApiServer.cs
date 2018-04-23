@@ -9,27 +9,12 @@ namespace NewLife.Remoting
     /// <summary>应用接口服务器</summary>
     public class ApiServer : ApiHost, IServer
     {
-        #region 静态
-        /// <summary>协议到提供者类的映射</summary>
-        public static IDictionary<String, Type> Providers { get; } = new Dictionary<String, Type>(StringComparer.OrdinalIgnoreCase);
-
-        static ApiServer()
-        {
-            var ps = Providers;
-            ps.Add(NetType.Tcp + "", typeof(ApiNetServer));
-            ps.Add(NetType.Udp + "", typeof(ApiNetServer));
-            ps.Add(NetType.Unknown + "", typeof(ApiNetServer));
-            ps.Add(NetType.Http + "", typeof(ApiHttpServer));
-            ps.Add("ws", typeof(ApiHttpServer));
-        }
-        #endregion
-
         #region 属性
         /// <summary>是否正在工作</summary>
         public Boolean Active { get; private set; }
 
-        /// <summary>服务器集合</summary>
-        public IList<IApiServer> Servers { get; } = new List<IApiServer>();
+        /// <summary>服务器</summary>
+        public IApiServer Server { get; set; }
         #endregion
 
         #region 构造
@@ -44,11 +29,11 @@ namespace NewLife.Remoting
 
         /// <summary>使用指定端口实例化网络服务应用接口提供者</summary>
         /// <param name="port"></param>
-        public ApiServer(Int32 port) : this() => Add(port);
+        public ApiServer(Int32 port) : this() => Listen(port);
 
         /// <summary>实例化</summary>
         /// <param name="uri"></param>
-        public ApiServer(NetUri uri) : this() => Add(uri);
+        public ApiServer(NetUri uri) : this() => Listen(uri);
 
         /// <summary>销毁时停止服务</summary>
         /// <param name="disposing"></param>
@@ -63,15 +48,13 @@ namespace NewLife.Remoting
         #region 启动停止
         /// <summary>添加服务器</summary>
         /// <param name="port"></param>
-        public IApiServer Add(Int32 port) => Add(new NetUri(NetType.Unknown, "", port));
+        public IApiServer Listen(Int32 port) => Listen(new NetUri(NetType.Unknown, "", port));
 
         /// <summary>添加服务器</summary>
         /// <param name="uri"></param>
-        public IApiServer Add(NetUri uri)
+        public IApiServer Listen(NetUri uri)
         {
-            if (!Providers.TryGetValue(uri.Type + "", out var type)) return null;
-
-            var svr = type.CreateInstance() as IApiServer;
+            var svr = new ApiNetServer();
             if (svr != null)
             {
                 svr.Provider = this;
@@ -80,28 +63,7 @@ namespace NewLife.Remoting
                 if (!svr.Init(uri.ToString())) return null;
             }
 
-            Servers.Add(svr);
-
-            return svr;
-        }
-
-        /// <summary>添加服务器</summary>
-        /// <param name="config"></param>
-        public IApiServer Add(String config)
-        {
-            var protocol = config.Substring(null, "://");
-            if (!Providers.TryGetValue(protocol, out var type)) return null;
-
-            var svr = type.CreateInstance() as IApiServer;
-            if (svr != null)
-            {
-                svr.Provider = this;
-                svr.Log = Log;
-
-                if (!svr.Init(config)) return null;
-            }
-
-            Servers.Add(svr);
+            Server = svr;
 
             return svr;
         }
@@ -116,18 +78,16 @@ namespace NewLife.Remoting
 
             Encoder.Log = EncoderLog;
 
-            Log.Info("启动{0}，共有服务器{1}个", GetType().Name, Servers.Count);
+            Log.Info("启动{0}，服务器 {1}", GetType().Name, Server);
             Log.Info("编码：{0}", Encoder);
             //Log.Info("处理：{0}", Handler);
 
-            foreach (var item in Servers)
-            {
-                if (item.Handler == null) item.Handler = Handler;
-                if (item.Encoder == null) item.Encoder = Encoder;
-                item.Provider = this;
-                item.Log = Log;
-                item.Start();
-            }
+            var svr = Server;
+            if (svr.Handler == null) svr.Handler = Handler;
+            if (svr.Encoder == null) svr.Encoder = Encoder;
+            svr.Provider = this;
+            svr.Log = Log;
+            svr.Start();
 
             ShowService();
 
@@ -141,10 +101,7 @@ namespace NewLife.Remoting
             if (!Active) return;
 
             Log.Info("停止{0} {1}", GetType().Name, reason);
-            foreach (var item in Servers)
-            {
-                item.Stop(reason ?? (GetType().Name + "Stop"));
-            }
+            Server.Stop(reason ?? (GetType().Name + "Stop"));
 
             Active = false;
         }
@@ -159,7 +116,7 @@ namespace NewLife.Remoting
             // 服务类是否当前类的基类
             if (GetType().As(serviceType)) return this;
 
-            if (serviceType == typeof(IServer)) return this;
+            //if (serviceType == typeof(IServer)) return this;
 
             return base.GetService(serviceType);
         }

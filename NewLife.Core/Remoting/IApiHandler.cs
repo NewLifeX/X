@@ -38,17 +38,7 @@ namespace NewLife.Remoting
             var controller = session.CreateController(api);
             if (controller == null) throw new ApiException(403, "无法创建名为[{0}]的服务！".F(api.Name));
 
-            if (controller is IApi) (controller as IApi).Session = session;
-
-            //// 服务端需要检查登录授权
-            //if (Host is ApiServer svrHost && !svrHost.Anonymous)
-            //{
-            //    if (controller.GetType().GetCustomAttribute<AllowAnonymousAttribute>() == null &&
-            //        api.Method.GetCustomAttribute<AllowAnonymousAttribute>() == null)
-            //    {
-            //        if (session.UserSession == null || !session.UserSession.Logined) throw new ApiException(401, "未登录！");
-            //    }
-            //}
+            if (controller is IApi capi) capi.Session = session;
 
             // 服务设置优先于全局主机
             var svr = session.GetService<IApiServer>();
@@ -82,7 +72,6 @@ namespace NewLife.Remoting
                 ControllerContext.Current = actx;
 
                 // 执行动作前的过滤器
-                //OnExecuting(actx, fs);
                 if (controller is IActionFilter filter)
                 {
                     filter.OnActionExecuting(actx);
@@ -103,20 +92,21 @@ namespace NewLife.Remoting
                 {
                     etx = new ExceptionContext(ctx) { Exception = ex, Result = rs };
                     filter.OnException(etx);
-                    rs = etx.Result;
+                    rs = etx.Result ?? etx.Exception ?? ex;
                 }
+                else
+                    rs = ex;
 
                 Host.WriteLog("执行{0}出错！{1}", action, ex.Message);
 
                 // 如果异常没有被拦截，继续向外抛出
-                if (!etx.ExceptionHandled) throw;
+                if (etx != null && !etx.ExceptionHandled) throw;
 
-                return rs = etx.Result;
+                return rs;
             }
             finally
             {
                 // 执行动作后的过滤器
-                //rs = OnExecuted(ctx, etx, fs, rs);
                 if (controller is IActionFilter filter)
                 {
                     var atx = new ActionExecutedContext(etx ?? ctx) { Result = rs };

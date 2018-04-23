@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Messaging;
 using NewLife.Net;
@@ -29,7 +28,6 @@ namespace NewLife.Remoting
         {
             Name = "Api";
             UseSession = true;
-            //SessionTimeout = 10 * 60;
         }
 
         /// <summary>初始化</summary>
@@ -82,15 +80,7 @@ namespace NewLife.Remoting
         public DateTime LastActive { get; set; }
 
         /// <summary>所有服务器所有会话，包含自己</summary>
-        public virtual IApiSession[] AllSessions
-        {
-            get
-            {
-                // 需要收集所有服务器的所有会话
-                var svr = _Host as ApiServer;
-                return svr.Servers.SelectMany(e => e.AllSessions).ToArray();
-            }
-        }
+        public virtual IApiSession[] AllSessions => (_Host as ApiServer).Server.AllSessions;
 
         /// <summary>开始会话处理</summary>
         public override void Start()

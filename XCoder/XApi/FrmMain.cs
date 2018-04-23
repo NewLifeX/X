@@ -235,7 +235,7 @@ namespace XApi
             if (_Client != null)
                 msg = _Client.Client?.GetStat();
             else if (_Server != null)
-                msg = (_Server.Servers[0] as NetServer)?.GetStat();
+                msg = (_Server.Server as NetServer)?.GetStat();
 
             if (!msg.IsNullOrEmpty() && msg != _lastStat)
             {
