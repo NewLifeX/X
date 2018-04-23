@@ -66,21 +66,17 @@ namespace NewLife.Remoting
     /// <summary>编码器基类</summary>
     public abstract class EncoderBase : IEncoder
     {
-        /// <summary>编码对象</summary>
-        /// <param name="obj"></param>
-        /// <returns></returns>
-        public abstract Byte[] Encode(Object obj);
+        ///// <summary>编码对象</summary>
+        ///// <param name="obj"></param>
+        ///// <returns></returns>
+        //public abstract Byte[] Encode(Object obj);
 
         /// <summary>编码请求</summary>
         /// <param name="action"></param>
         /// <param name="args"></param>
         /// <param name="cookie">附加参数，位于顶级</param>
         /// <returns></returns>
-        public virtual Byte[] Encode(String action, Object args, IDictionary<String, Object> cookie)
-        {
-            var obj = new { action, args };
-            return Encode(obj.ToDictionary().Merge(cookie));
-        }
+        public abstract Byte[] Encode(String action, Object args, IDictionary<String, Object> cookie);
 
         /// <summary>编码响应</summary>
         /// <param name="action"></param>
@@ -88,14 +84,7 @@ namespace NewLife.Remoting
         /// <param name="result"></param>
         /// <param name="cookie">附加参数，位于顶级</param>
         /// <returns></returns>
-        public virtual Byte[] Encode(String action, Int32 code, Object result, IDictionary<String, Object> cookie)
-        {
-            // 不支持序列化异常
-            if (result is Exception ex) result = ex.GetTrue()?.Message;
-
-            var obj = new { action, code, result };
-            return Encode(obj.ToDictionary().Merge(cookie));
-        }
+        public abstract Byte[] Encode(String action, Int32 code, Object result, IDictionary<String, Object> cookie);
 
         /// <summary>解码成为字典</summary>
         /// <param name="pk"></param>
@@ -163,10 +152,7 @@ namespace NewLife.Remoting
         /// <summary>写日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
-        public virtual void WriteLog(String format, params Object[] args)
-        {
-            Log.Info(format, args);
-        }
+        public virtual void WriteLog(String format, params Object[] args) => Log.Info(format, args);
         #endregion
     }
 }

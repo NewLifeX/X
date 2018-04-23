@@ -41,7 +41,7 @@ namespace NewLife.Remoting
             var ct = Client = uri.CreateRemote();
 
             // 新生命标准网络封包协议
-            ct.Add<DefaultCodec>();
+            ct.Add(new StandardCodec { UserPacket = false });
 
             // Udp客户端默认超时时间
             //if (ct is UdpServer) (ct as UdpServer).SessionTimeout = 10 * 60;
@@ -91,7 +91,7 @@ namespace NewLife.Remoting
         /// <summary>创建消息</summary>
         /// <param name="pk"></param>
         /// <returns></returns>
-        public IMessage CreateMessage(Packet pk) => new Message { Payload = pk };
+        public IMessage CreateMessage(Packet pk) => new DefaultMessage { Payload = pk };
 
         /// <summary>远程调用</summary>
         /// <param name="msg"></param>

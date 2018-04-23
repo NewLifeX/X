@@ -6,7 +6,7 @@ using NewLife.Messaging;
 namespace NewLife.Net.Handlers
 {
     /// <summary>标准网络封包。头部4字节定长</summary>
-    public class DefaultCodec : MessageCodec<IMessage>
+    public class StandardCodec : MessageCodec<IMessage>
     {
         private Int32 _gid;
 
@@ -16,7 +16,7 @@ namespace NewLife.Net.Handlers
         /// <returns></returns>
         public override Object Write(IHandlerContext context, Object message)
         {
-            if (message is Packet pk)
+            if (UserPacket && message is Packet pk)
             {
                 message = new DefaultMessage { Payload = pk, Sequence = (Byte)Interlocked.Increment(ref _gid) };
             }

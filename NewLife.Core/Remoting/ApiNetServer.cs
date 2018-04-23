@@ -45,7 +45,7 @@ namespace NewLife.Remoting
             //LogReceive = true;
 #endif
             // 新生命标准网络封包协议
-            Add<DefaultCodec>();
+            Add(new StandardCodec { UserPacket = false });
 
             return true;
         }

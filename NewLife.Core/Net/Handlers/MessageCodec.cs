@@ -11,6 +11,9 @@ namespace NewLife.Net.Handlers
         /// <summary>消息队列。用于匹配请求响应包</summary>
         public IMatchQueue Queue { get; set; } = new DefaultMatchQueue();
 
+        /// <summary>使用数据包，写入时数据包转消息，读取时消息自动解包返回数据负载。默认true</summary>
+        public Boolean UserPacket { get; set; } = true;
+
         /// <summary>写入数据</summary>
         /// <param name="context"></param>
         /// <param name="message"></param>
@@ -23,7 +26,7 @@ namespace NewLife.Net.Handlers
                 message = Encode(context, msg);
 
                 // 加入队列
-                if (context["TaskSource"] is TaskCompletionSource<Object> source)
+                if (message != null && context["TaskSource"] is TaskCompletionSource<Object> source)
                 {
                     var timeout = 5000;
                     if (context.Session is ISocketClient client) timeout = client.Timeout;
@@ -56,7 +59,7 @@ namespace NewLife.Net.Handlers
                 var msg = Decode(context, pk);
                 context["Message"] = msg;
 
-                if (msg is IMessage msg2)
+                if (UserPacket && msg is IMessage msg2)
                     message = msg2.Payload;
                 else
                     message = msg;

@@ -183,7 +183,7 @@
     <Compile Include="Remoting\JsonEncoder.cs" />
     <Compile Include="Serialization\JsonCodec.cs" />
     <Compile Include="Serialization\BinaryCodec.cs" />
-    <Compile Include="Net\Handlers\DefaultCodec.cs" />
+    <Compile Include="Net\Handlers\StandardCodec.cs" />
     <Compile Include="Net\Handlers\LengthFieldCodec.cs" />
     <Compile Include="Net\Handlers\MessageCodec.cs" />
     <Compile Include="Net\Handlers\IHandler.cs" />
