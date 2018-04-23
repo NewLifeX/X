@@ -28,7 +28,6 @@ namespace NewLife.Remoting
             svr.Log = XTrace.Log;
             svr.EncoderLog = XTrace.Log;
             //svr.Encoder = new JsonEncoder();
-            //svr.Register<ApiSession>();
             svr.Register<HelloController>();
 
             var ns = svr.Servers[0] as NetServer;
@@ -49,17 +48,12 @@ namespace NewLife.Remoting
             client.Log = XTrace.Log;
             client.EncoderLog = XTrace.Log;
             //client.Encoder = new JsonEncoder();
-            //client.UserName = "Stone";
-            //client.Password = "Stone";
 
-            var sc = client.Client.GetService<ISocketClient>();
+            var sc = client.Client;
             sc.LogSend = true;
             sc.LogReceive = true;
 
             client.Open();
-
-            //var logined = await client.LoginAsync();
-            //XTrace.WriteLine(logined + "");
 
             var msg = "NewLifeX";
             var rs = await client.InvokeAsync<String>("Hello/Say", new { msg });

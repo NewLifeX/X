@@ -156,9 +156,7 @@
     <Compile Include="Remoting\ApiClient.cs" />
     <Compile Include="Remoting\ApiException.cs" />
     <Compile Include="Remoting\ApiHost.cs" />
-    <Compile Include="Remoting\ApiHttpClient.cs" />
     <Compile Include="Remoting\ApiHttpServer.cs" />
-    <Compile Include="Remoting\ApiNetClient.cs" />
     <Compile Include="Remoting\ApiNetServer.cs" />
     <Compile Include="Remoting\ApiServer.cs" />
     <Compile Include="Remoting\ApiTest.cs" />
@@ -170,7 +168,6 @@
     <Compile Include="Remoting\Filters\IActionFilter.cs" />
     <Compile Include="Remoting\Filters\IExceptionFilter.cs" />
     <Compile Include="Remoting\IApi.cs" />
-    <Compile Include="Remoting\IApiClient.cs" />
     <Compile Include="Remoting\IApiHandler.cs" />
     <Compile Include="Remoting\IApiHost.cs" />
     <Compile Include="Remoting\IApiManager.cs" />

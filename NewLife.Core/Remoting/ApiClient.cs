@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Messaging;
 using NewLife.Net;
+using NewLife.Net.Handlers;
 using NewLife.Reflection;
 
 namespace NewLife.Remoting
@@ -12,26 +11,12 @@ namespace NewLife.Remoting
     /// <summary>应用接口客户端</summary>
     public class ApiClient : ApiHost, IApiSession/*, IUserSession*/
     {
-        #region 静态
-        /// <summary>协议到提供者类的映射</summary>
-        public static IDictionary<String, Type> Providers { get; } = new Dictionary<String, Type>(StringComparer.OrdinalIgnoreCase);
-
-        static ApiClient()
-        {
-            var ps = Providers;
-            ps.Add("tcp", typeof(ApiNetClient));
-            ps.Add("udp", typeof(ApiNetClient));
-            ps.Add("http", typeof(ApiHttpClient));
-            ps.Add("ws", typeof(ApiHttpClient));
-        }
-        #endregion
-
         #region 属性
         /// <summary>是否已打开</summary>
         public Boolean Active { get; set; }
 
         /// <summary>通信客户端</summary>
-        public IApiClient Client { get; set; }
+        public ISocketClient Client { get; set; }
 
         /// <summary>主机</summary>
         IApiHost IApiSession.Host => this;
@@ -80,7 +65,6 @@ namespace NewLife.Remoting
 
             Encoder.Log = EncoderLog;
 
-            ct.Provider = this;
             ct.Log = Log;
 
             // 打开网络连接
@@ -110,21 +94,12 @@ namespace NewLife.Remoting
         public Boolean SetRemote(String uri)
         {
             var nu = new NetUri(uri);
-            if (!Providers.TryGetValue(nu.Type + "", out var type)) return false;
 
-            WriteLog("{0} SetRemote {1}", type.Name, nu);
+            WriteLog("SetRemote {0}", nu);
 
-            if (type.CreateInstance() is IApiClient ac)
-            {
-                ac.Provider = this;
-                ac.Log = Log;
-
-                if (ac.Init(uri))
-                {
-                    Client.TryDispose();
-                    Client = ac;
-                }
-            }
+            var ct = Client = nu.CreateRemote();
+            ct.Log = Log;
+            ct.Add(new StandardCodec { UserPacket = false });
 
             return true;
         }
@@ -177,9 +152,9 @@ namespace NewLife.Remoting
         /// <summary>创建消息</summary>
         /// <param name="pk"></param>
         /// <returns></returns>
-        IMessage IApiSession.CreateMessage(Packet pk) => Client?.CreateMessage(pk);
+        IMessage IApiSession.CreateMessage(Packet pk) => new DefaultMessage { Payload = pk };
 
-        async Task<IMessage> IApiSession.SendAsync(IMessage msg) => await Client.SendAsync(msg);
+        async Task<IMessage> IApiSession.SendAsync(IMessage msg) => await Client.SendAsync(msg) as IMessage;
         #endregion
 
         #region 服务提供者
@@ -191,7 +166,7 @@ namespace NewLife.Remoting
             // 服务类是否当前类的基类
             if (GetType().As(serviceType)) return this;
 
-            if (serviceType == typeof(IApiClient)) return Client;
+            //if (serviceType == typeof(IApiClient)) return Client;
 
             return base.GetService(serviceType);
         }

@@ -233,7 +233,7 @@ namespace XApi
 
             var msg = "";
             if (_Client != null)
-                msg = _Client.Client.GetService<ISocketClient>()?.GetStat();
+                msg = _Client.Client?.GetStat();
             else if (_Server != null)
                 msg = (_Server.Servers[0] as NetServer)?.GetStat();
 
