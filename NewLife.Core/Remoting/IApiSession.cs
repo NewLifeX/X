@@ -6,7 +6,7 @@ using NewLife.Messaging;
 namespace NewLife.Remoting
 {
     /// <summary>Api会话</summary>
-    public interface IApiSession : IServiceProvider
+    public interface IApiSession
     {
         /// <summary>主机</summary>
         IApiHost Host { get; }

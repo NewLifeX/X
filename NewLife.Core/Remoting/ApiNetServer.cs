@@ -6,14 +6,13 @@ using NewLife.Data;
 using NewLife.Messaging;
 using NewLife.Net;
 using NewLife.Net.Handlers;
-using NewLife.Reflection;
 
 namespace NewLife.Remoting
 {
     class ApiNetServer : NetServer<ApiNetSession>, IApiServer
     {
-        /// <summary>服务提供者</summary>
-        public IServiceProvider Provider { get; set; }
+        /// <summary>主机</summary>
+        public IApiHost Host { get; set; }
 
         /// <summary>编码器</summary>
         public IEncoder Encoder { get; set; }
@@ -53,21 +52,6 @@ namespace NewLife.Remoting
 
             base.OnStart();
         }
-
-        /// <summary>获取服务提供者</summary>
-        /// <param name="serviceType"></param>
-        /// <returns></returns>
-        public virtual Object GetService(Type serviceType)
-        {
-            // 服务类是否当前类的基类
-            if (GetType().As(serviceType)) return this;
-
-            if (serviceType == typeof(ApiServer)) return Provider;
-            if (serviceType == typeof(IEncoder) && Encoder != null) return Encoder;
-            if (serviceType == typeof(IApiHandler) && Handler != null) return Handler;
-
-            return Provider?.GetService(serviceType);
-        }
     }
 
     class ApiNetSession : NetSession<ApiNetServer>, IApiSession
@@ -87,7 +71,7 @@ namespace NewLife.Remoting
         {
             base.Start();
 
-            _Host = Host.Provider as ApiServer;
+            _Host = Host.Host;
         }
 
         /// <summary>查找Api动作</summary>
@@ -125,19 +109,5 @@ namespace NewLife.Remoting
         public async Task<TResult> InvokeAsync<TResult>(String action, Object args = null) => await ApiHostHelper.InvokeAsync<TResult>(_Host, this, action, args);
 
         async Task<IMessage> IApiSession.SendAsync(IMessage msg) => await Session.SendAsync(msg) as IMessage;
-
-        /// <summary>获取服务提供者</summary>
-        /// <param name="serviceType"></param>
-        /// <returns></returns>
-        public Object GetService(Type serviceType)
-        {
-            // 服务类是否当前类的基类
-            if (GetType().As(serviceType)) return this;
-
-            if (serviceType == typeof(IApiSession)) return this;
-            if (serviceType == typeof(IApiServer)) return Host;
-
-            return Host?.GetService(serviceType);
-        }
     }
 }

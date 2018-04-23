@@ -40,9 +40,7 @@ namespace NewLife.Remoting
 
             if (controller is IApi capi) capi.Session = session;
 
-            // 服务设置优先于全局主机
-            var svr = session.GetService<IApiServer>();
-            var enc = svr?.Encoder ?? Host.Encoder;
+            var enc = Host.Encoder;
 
             // 不允许参数字典为空
             if (args == null)

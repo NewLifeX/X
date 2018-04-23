@@ -10,7 +10,7 @@ using NewLife.Reflection;
 namespace NewLife.Remoting
 {
     /// <summary>Api主机</summary>
-    public abstract class ApiHost : DisposeBase, IApiHost, IServiceProvider
+    public abstract class ApiHost : DisposeBase, IApiHost
     {
         #region 属性
         /// <summary>名称</summary>
@@ -141,27 +141,6 @@ namespace NewLife.Remoting
 
             //return enc.Encode(new { action, code, result });
             return enc.Encode(action, code, result);
-        }
-        #endregion
-
-        #region 服务提供者
-        /// <summary>服务提供者</summary>
-        public IServiceProvider Provider { get; set; }
-
-        /// <summary>获取服务提供者</summary>
-        /// <param name="serviceType"></param>
-        /// <returns></returns>
-        public virtual Object GetService(Type serviceType)
-        {
-            // 服务类是否当前类的基类
-            if (GetType().As(serviceType)) return this;
-
-            if (serviceType == typeof(IApiHost)) return this;
-            if (serviceType == typeof(IApiManager)) return Manager;
-            if (serviceType == typeof(IEncoder) && Encoder != null) return Encoder;
-            if (serviceType == typeof(IApiHandler) && Handler != null) return Handler;
-
-            return Provider?.GetService(serviceType);
         }
         #endregion
 

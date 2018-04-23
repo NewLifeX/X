@@ -55,13 +55,7 @@ namespace NewLife.Remoting
         public IApiServer Listen(NetUri uri)
         {
             var svr = new ApiNetServer();
-            if (svr != null)
-            {
-                svr.Provider = this;
-                svr.Log = Log;
-
-                if (!svr.Init(uri.ToString())) return null;
-            }
+            if (!svr.Init(uri.ToString())) return null;
 
             Server = svr;
 
@@ -85,7 +79,7 @@ namespace NewLife.Remoting
             var svr = Server;
             if (svr.Handler == null) svr.Handler = Handler;
             if (svr.Encoder == null) svr.Encoder = Encoder;
-            svr.Provider = this;
+            svr.Host = this;
             svr.Log = Log;
             svr.Start();
 
@@ -104,21 +98,6 @@ namespace NewLife.Remoting
             Server.Stop(reason ?? (GetType().Name + "Stop"));
 
             Active = false;
-        }
-        #endregion
-
-        #region 服务提供者
-        /// <summary>获取服务提供者</summary>
-        /// <param name="serviceType"></param>
-        /// <returns></returns>
-        public override Object GetService(Type serviceType)
-        {
-            // 服务类是否当前类的基类
-            if (GetType().As(serviceType)) return this;
-
-            //if (serviceType == typeof(IServer)) return this;
-
-            return base.GetService(serviceType);
         }
         #endregion
     }

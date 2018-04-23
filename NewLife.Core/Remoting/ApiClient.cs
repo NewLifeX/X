@@ -9,7 +9,7 @@ using NewLife.Reflection;
 namespace NewLife.Remoting
 {
     /// <summary>应用接口客户端</summary>
-    public class ApiClient : ApiHost, IApiSession/*, IUserSession*/
+    public class ApiClient : ApiHost, IApiSession
     {
         #region 属性
         /// <summary>是否已打开</summary>
@@ -155,21 +155,6 @@ namespace NewLife.Remoting
         IMessage IApiSession.CreateMessage(Packet pk) => new DefaultMessage { Payload = pk };
 
         async Task<IMessage> IApiSession.SendAsync(IMessage msg) => await Client.SendAsync(msg) as IMessage;
-        #endregion
-
-        #region 服务提供者
-        /// <summary>获取服务提供者</summary>
-        /// <param name="serviceType"></param>
-        /// <returns></returns>
-        public override Object GetService(Type serviceType)
-        {
-            // 服务类是否当前类的基类
-            if (GetType().As(serviceType)) return this;
-
-            //if (serviceType == typeof(IApiClient)) return Client;
-
-            return base.GetService(serviceType);
-        }
         #endregion
     }
 }

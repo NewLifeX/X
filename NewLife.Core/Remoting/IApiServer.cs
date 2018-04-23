@@ -4,10 +4,10 @@ using NewLife.Log;
 namespace NewLife.Remoting
 {
     /// <summary>应用接口服务器接口</summary>
-    public interface IApiServer: IServiceProvider
+    public interface IApiServer
     {
-        /// <summary>服务提供者</summary>
-        IServiceProvider Provider { get; set; }
+        /// <summary>主机</summary>
+        IApiHost Host { get; set; }
 
         /// <summary>编码器</summary>
         IEncoder Encoder { get; set; }
