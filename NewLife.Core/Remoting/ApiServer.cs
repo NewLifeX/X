@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using NewLife.Data;
 using NewLife.Model;
 using NewLife.Net;
 using NewLife.Reflection;
@@ -120,9 +119,6 @@ namespace NewLife.Remoting
 
             Encoder.Log = EncoderLog;
 
-            //// 设置过滤器
-            //SetFilter();
-
             Log.Info("启动{0}，共有服务器{1}个", GetType().Name, Servers.Count);
             Log.Info("编码：{0}", Encoder);
             Log.Info("处理：{0}", Handler);
@@ -155,16 +151,6 @@ namespace NewLife.Remoting
 
             Active = false;
         }
-        #endregion
-
-        #region 加密&压缩
-        ///// <summary>获取通信密钥的委托</summary>
-        ///// <returns></returns>
-        //protected override Func<FilterContext, Byte[]> GetKeyFunc()
-        //{
-        //    // 从Session里面拿Key
-        //    return ApiSession.GetKey;
-        //}
         #endregion
 
         #region 服务提供者

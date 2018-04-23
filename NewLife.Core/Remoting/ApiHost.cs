@@ -22,9 +22,6 @@ namespace NewLife.Remoting
         /// <summary>处理器</summary>
         public IApiHandler Handler { get; set; }
 
-        ///// <summary>过滤器</summary>
-        //public IList<IFilter> Filters { get; } = new List<IFilter>();
-
         /// <summary>用户会话数据</summary>
         public IDictionary<String, Object> Items { get; set; } = new NullableDictionary<String, Object>();
 
@@ -68,50 +65,7 @@ namespace NewLife.Remoting
         }
         #endregion
 
-        #region 加密&压缩
-        ///// <summary>是否加密</summary>
-        //public Boolean Encrypted { get; set; } = true;
-
-        ///// <summary>是否压缩</summary>
-        //public Boolean Compressed { get; set; } = true;
-
-        ///// <summary>设置过滤器</summary>
-        //protected virtual void SetFilter()
-        //{
-        //    // 压缩（>=64 Byte）
-        //    if (Compressed)
-        //    {
-        //        var def = new DeflateFilter
-        //        {
-        //            MinSize = 256
-        //        };
-        //        Filters.Add(def);
-
-        //        WriteLog("压缩：{0} MinSize={1}", def, def.MinSize);
-        //    }
-
-        //    // 加密
-        //    if (Encrypted)
-        //    {
-        //        var rc4 = new RC4Filter
-        //        {
-        //            GetKey = GetKeyFunc()
-        //        };
-        //        Filters.Add(rc4);
-
-        //        WriteLog("加密：{0}", rc4);
-        //    }
-        //}
-
-        ///// <summary>获取通信密钥的委托</summary>
-        ///// <returns></returns>
-        //protected abstract Func<FilterContext, Byte[]> GetKeyFunc();
-        #endregion
-
         #region 请求处理
-        /// <summary>收到请求</summary>
-        public event EventHandler<ApiMessageEventArgs> Received;
-
         /// <summary>处理消息</summary>
         /// <param name="session"></param>
         /// <param name="msg"></param>
@@ -119,36 +73,6 @@ namespace NewLife.Remoting
         IMessage IApiHost.Process(IApiSession session, IMessage msg)
         {
             if (msg.Reply) return null;
-
-            //// 过滤器
-            //this.ExecuteFilter(session, msg, false);
-
-            var rs = OnReceive(session, msg);
-
-            //// 过滤器
-            //this.ExecuteFilter(session, rs, true);
-
-            return rs;
-        }
-
-        /// <summary>处理请求消息。重载、事件、控制器 共三种消息处理方式</summary>
-        /// <param name="session"></param>
-        /// <param name="msg"></param>
-        /// <returns></returns>
-        protected virtual IMessage OnReceive(IApiSession session, IMessage msg)
-        {
-            // 优先调用外部事件
-            if (Received != null)
-            {
-                var e = new ApiMessageEventArgs
-                {
-                    Session = session,
-                    Message = msg
-                };
-                Received(this, e);
-
-                if (e.Handled) return e.Message;
-            }
 
             var pk = msg.Payload;
             // 如果外部事件未处理，再交给处理器

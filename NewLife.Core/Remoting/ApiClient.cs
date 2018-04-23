@@ -120,7 +120,6 @@ namespace NewLife.Remoting
         {
             if (!Active) return;
 
-            Key = null;
             Timer.TryDispose();
 
             var ct = Client;
@@ -138,8 +137,6 @@ namespace NewLife.Remoting
 
         private void Client_Opened(Object sender, EventArgs e)
         {
-            // 每次打开连接，先清空通信密钥
-            Key = null;
             Logined = false;
 
             Opened?.Invoke(this, e);
@@ -278,9 +275,6 @@ namespace NewLife.Remoting
         {
             var args = OnPreLogin();
 
-            // 登录前清空密钥
-            if (Logined) Key = null;
-
             var rs = await OnLogin(args);
 
             // 注册成功则保存
@@ -294,16 +288,6 @@ namespace NewLife.Remoting
             }
             else
                 WriteLog("登录成功！");
-
-            //// 从响应中解析通信密钥
-            //if (Encrypted)
-            //{
-            //    //var dic = rs.ToDictionary();
-            //    //!!! 使用密码解密通信密钥
-            //    Key = (dic["Key"] + "").ToHex().RC4(Password.GetBytes());
-
-            //    WriteLog("密匙:{0}", Key.ToHex());
-            //}
 
             Logined = true;
 
@@ -398,15 +382,6 @@ namespace NewLife.Remoting
             catch (ApiException ex) { Log.Error(ex.Message); }
             catch (Exception ex) { Log.Error(ex.ToString()); }
         }
-        #endregion
-
-        #region 加密&压缩
-        /// <summary>加密通信指令中负载数据的密匙</summary>
-        public Byte[] Key { get; set; }
-
-        ///// <summary>获取通信密钥的委托</summary>
-        ///// <returns></returns>
-        //protected override Func<FilterContext, Byte[]> GetKeyFunc() => ctx => Key;
         #endregion
 
         #region 服务提供者

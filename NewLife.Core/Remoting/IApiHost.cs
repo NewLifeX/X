@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
-using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Messaging;
@@ -23,9 +21,6 @@ namespace NewLife.Remoting
         /// <summary>接口动作管理器</summary>
         IApiManager Manager { get; }
 
-        /// <summary>收到请求</summary>
-        event EventHandler<ApiMessageEventArgs> Received;
-
         /// <summary>处理消息</summary>
         /// <param name="session"></param>
         /// <param name="msg"></param>
@@ -41,18 +36,18 @@ namespace NewLife.Remoting
         void WriteLog(String format, params Object[] args);
     }
 
-    /// <summary>消息事件参数</summary>
-    public class ApiMessageEventArgs : EventArgs
-    {
-        /// <summary>会话</summary>
-        public IApiSession Session { get; internal set; }
+    ///// <summary>消息事件参数</summary>
+    //public class ApiMessageEventArgs : EventArgs
+    //{
+    //    /// <summary>会话</summary>
+    //    public IApiSession Session { get; internal set; }
 
-        /// <summary>负载数据</summary>
-        public IMessage Message { get; internal set; }
+    //    /// <summary>负载数据</summary>
+    //    public IMessage Message { get; internal set; }
 
-        /// <summary>是否已处理</summary>
-        public Boolean Handled { get; set; }
-    }
+    //    /// <summary>是否已处理</summary>
+    //    public Boolean Handled { get; set; }
+    //}
 
     /// <summary>Api主机助手</summary>
     public static class ApiHostHelper
@@ -124,30 +119,6 @@ namespace NewLife.Remoting
         {
             var controller = api.Controller;
             if (controller != null) return controller;
-
-            //var att = api.Type?.GetCustomAttribute<ApiAttribute>(true);
-            //if (att != null && att.IsReusable)
-            //{
-            //    var ts = session["Controller"] as IDictionary<Type, Object>;
-            //    if (ts == null)
-            //    {
-            //        session["Controller"] = ts = new NullableDictionary<Type, Object>();
-
-            //        // 析构时销毁所有从属控制器
-            //        if (session is IDisposable2 sd) sd.OnDisposed += (s, e) =>
-            //          {
-            //              foreach (var item in ts)
-            //              {
-            //                  item.Value.TryDispose();
-            //              }
-            //          };
-            //    }
-
-            //    controller = ts[api.Type];
-            //    if (controller == null) controller = ts[api.Type] = api.Type.CreateInstance();
-
-            //    return controller;
-            //}
 
             controller = api.Type.CreateInstance();
 
