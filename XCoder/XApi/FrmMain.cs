@@ -25,8 +25,6 @@ namespace XApi
         ILog BizLog;
 
         #region 窗体
-        static FrmMain() { }
-
         public FrmMain()
         {
             InitializeComponent();
@@ -86,8 +84,7 @@ namespace XApi
             mi显示统计信息.Checked = cfg.ShowStat;
 
             cbMode.SelectedItem = cfg.Mode;
-            txtUser.Text = cfg.UserName;
-            txtPass.Text = cfg.Password;
+            numPort.Value = cfg.Port;
 
             txtSend.Text = cfg.SendContent;
             numMutilSend.Value = cfg.SendTimes;
@@ -104,8 +101,7 @@ namespace XApi
             cfg.ShowStat = mi显示统计信息.Checked;
 
             cfg.Mode = cbMode.SelectedItem + "";
-            cfg.UserName = txtUser.Text;
-            cfg.Password = txtPass.Text;
+            cfg.Port = (Int32)numPort.Value;
 
             cfg.SendContent = txtSend.Text;
             cfg.SendTimes = (Int32)numMutilSend.Value;
@@ -146,14 +142,6 @@ namespace XApi
                     client.Log = cfg.ShowLog ? log : Logger.Null;
                     client.EncoderLog = cfg.ShowEncoderLog ? log : Logger.Null;
 
-                    //// 连接成功后拉取Api列表
-                    //client.Opened += (s, e) =>
-                    //{
-                    //    GetApiAll();
-                    //    //client.UserName = cfg.UserName;
-                    //    //client.Password = cfg.Password;
-                    //};
-
                     _Client = client;
                     client.Open();
                     // 连接成功后拉取Api列表
@@ -166,7 +154,6 @@ namespace XApi
                     return;
             }
 
-            pnlInfo.Enabled = true;
             pnlSetting.Enabled = false;
             btnConnect.Text = "关闭";
 
@@ -220,7 +207,6 @@ namespace XApi
                 _timer = null;
             }
 
-            pnlInfo.Enabled = false;
             pnlSetting.Enabled = true;
             btnConnect.Text = "打开";
         }
@@ -296,7 +282,7 @@ namespace XApi
             // 多次发送
             var count = (Int32)numMutilSend.Value;
             var sleep = (Int32)numSleep.Value;
-            var ths = (Int32)numThreads.Value;
+            //var ths = (Int32)numThreads.Value;
             if (count <= 0) count = 1;
             if (sleep <= 0) sleep = 1;
 
@@ -315,17 +301,23 @@ namespace XApi
 
             if (_Client != null)
             {
-                if (ths <= 1)
+                var ts = new List<Task>();
+                for (var i = 0; i < count; i++)
                 {
-                    try
+                    ts.Add(Task.Run(async () =>
                     {
-                        await _Client.InvokeAsync<Object>(act, args);
-                    }
-                    catch (ApiException ex)
-                    {
-                        BizLog.Info(ex.Message);
-                    }
+                        try
+                        {
+                            await _Client.InvokeAsync<Object>(act, args);
+                        }
+                        catch (ApiException ex)
+                        {
+                            BizLog.Info(ex.Message);
+                        }
+                    }));
                 }
+
+                await Task.WhenAll(ts);
             }
         }
         #endregion
@@ -373,11 +365,6 @@ namespace XApi
                 {
                     case "String":
                         val = "";
-                        switch (ss[1].ToLower())
-                        {
-                            case "user": val = set.UserName; break;
-                            case "pass": val = set.Password; break;
-                        }
                         break;
                     case "Int32":
                         val = 0;

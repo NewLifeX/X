@@ -143,9 +143,9 @@ namespace NewLife.Remoting
                 throw;
             }
             // 截断任务取消异常，避免过长
-            catch (TaskCanceledException)
+            catch (TaskCanceledException ex)
             {
-                throw new TaskCanceledException(action + "超时取消");
+                throw new TaskCanceledException(action + "超时取消", ex);
             }
         }
 

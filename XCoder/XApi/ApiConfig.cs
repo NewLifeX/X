@@ -1,7 +1,5 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Text;
-using System.Xml.Serialization;
 using NewLife.Xml;
 
 namespace XApi
@@ -10,17 +8,21 @@ namespace XApi
     [XmlConfigFile("Config\\Api.config")]
     public class ApiConfig : XmlConfig<ApiConfig>
     {
+        /// <summary>端口</summary>
+        [Description("端口")]
+        public Int32 Port { get; set; } = 777;
+
         /// <summary>地址</summary>
         [Description("地址")]
         public String Address { get; set; } = "";
 
-        /// <summary>用户名</summary>
-        [Description("用户名")]
-        public String UserName { get; set; } = "test";
+        ///// <summary>用户名</summary>
+        //[Description("用户名")]
+        //public String UserName { get; set; } = "test";
 
-        /// <summary>密码</summary>
-        [Description("密码")]
-        public String Password { get; set; } = "test";
+        ///// <summary>密码</summary>
+        //[Description("密码")]
+        //public String Password { get; set; } = "test";
 
         /// <summary>模式</summary>
         [Description("模式")]
