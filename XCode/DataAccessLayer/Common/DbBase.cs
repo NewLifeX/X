@@ -60,6 +60,8 @@ namespace XCode.DataAccessLayer
                 catch (Exception ex) { XTrace.WriteException(ex); }
                 _metadata = null;
             }
+
+            _Pool.TryDispose();
         }
 
         /// <summary>释放所有会话</summary>
@@ -70,7 +72,7 @@ namespace XCode.DataAccessLayer
             {
                 foreach (var item in ss)
                 {
-                    item.TryDispose();
+                    item.Value.TryDispose();
                 }
                 ss.Clear();
             }

@@ -7,6 +7,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using NewLife;
 using NewLife.Log;
 using NewLife.Reflection;
 using XCode.Code;
@@ -32,20 +33,21 @@ namespace XCode.DataAccessLayer
         {
             _ConnName = connName;
 
-            //if (!ConnStrs.ContainsKey(connName)) throw new XCodeException("请在使用数据库前设置[" + connName + "]连接字符串");
-            if (!ConnStrs.ContainsKey(connName)) OnResolve?.Invoke(this, new ResolveEventArgs(connName));
-            if (!ConnStrs.ContainsKey(connName) && _defs.TryGetValue(connName, out var kv))
+            var css = ConnStrs;
+            //if (!css.ContainsKey(connName)) throw new XCodeException("请在使用数据库前设置[" + connName + "]连接字符串");
+            if (!css.ContainsKey(connName)) OnResolve?.Invoke(this, new ResolveEventArgs(connName));
+            if (!css.ContainsKey(connName) && _defs.TryGetValue(connName, out var kv))
             {
                 AddConnStr(connName, kv.Item1, null, kv.Item2);
             }
-            if (!ConnStrs.ContainsKey(connName))
+            if (!css.ContainsKey(connName))
             {
                 var connstr = "Data Source=" + Setting.Current.SQLiteDbPath.CombinePath(connName + ".db;Migration=On");
                 WriteLog("自动为[{0}]设置SQLite连接字符串：{1}", connName, connstr);
                 AddConnStr(connName, connstr, null, "SQLite");
             }
 
-            _ConnStr = ConnStrs[connName];
+            _ConnStr = css[connName];
             if (_ConnStr.IsNullOrEmpty()) throw new XCodeException("请在使用数据库前设置[" + connName + "]连接字符串");
 
             //Queue = new EntityQueue(this);
@@ -73,6 +75,20 @@ namespace XCode.DataAccessLayer
             }
 
             return dal;
+        }
+
+        private void Reset()
+        {
+            _Db.TryDispose();
+
+            _ProviderType = null;
+            _Db = null;
+            _Tables = null;
+            _hasCheck = 0;
+            HasCheckTables.Clear();
+            _Assembly = null;
+
+            GC.Collect();
         }
 
         private static Dictionary<String, String> _connStrs;
@@ -110,7 +126,7 @@ namespace XCode.DataAccessLayer
                             cs.Add(name, set.ConnectionString);
                             _connTypes.Add(name, type);
                         }
-                    }           
+                    }
                     _connStrs = cs;
 #else
                     var file = "web.config".GetFullPath();
@@ -180,16 +196,30 @@ namespace XCode.DataAccessLayer
         /// <param name="provider">数据库提供者，如果没有指定数据库类型，则有提供者判断使用哪一种内置类型</param>
         public static void AddConnStr(String connName, String connStr, Type type, String provider)
         {
-            if (String.IsNullOrEmpty(connName)) throw new ArgumentNullException("connName");
+            if (connName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(connName));
+            if (connStr.IsNullOrEmpty()) return;
+
             //2016.01.04 @宁波-小董，加锁解决大量分表分库多线程带来的提供者无法识别错误
             lock (_connTypes)
             {
+                if (!ConnStrs.TryGetValue(connName, out var oldConnStr)) oldConnStr = null;
+
                 if (type == null) type = DbFactory.GetProviderType(connStr, provider);
 
                 // 允许后来者覆盖前面设置过了的
                 //var set = new ConnectionStringSettings(connName, connStr, provider);
                 ConnStrs[connName] = connStr;
                 _connTypes[connName] = type ?? throw new XCodeException("无法识别{0}的提供者{1}！", connName, provider);
+
+                // 如果连接字符串改变，则重置所有
+                if (!oldConnStr.IsNullOrEmpty() && !oldConnStr.EqualIgnoreCase(connStr))
+                {
+                    WriteLog("[{0}]的连接字符串改变，准备重置！", connName);
+
+                    var dal = Create(connName);
+                    dal._ConnStr = connStr;
+                    dal.Reset();
+                }
             }
         }
 
@@ -239,21 +269,20 @@ namespace XCode.DataAccessLayer
         public String ConnStr
         {
             get { return _ConnStr; }
-            set
-            {
-                if (_ConnStr != value)
-                {
-                    _ConnStr = value;
-                    _ProviderType = null;
-                    _Db = null;
-                    _Tables = null;
-                    _hasCheck = 0;
-                    HasCheckTables.Clear();
-                    _Assembly = null;
+            //set
+            //{
+            //    if (_ConnStr != value)
+            //    {
+            //        if (!value.IsNullOrEmpty()) AddConnStr(_ConnName, value, null, null);
 
-                    AddConnStr(_ConnName, _ConnStr, null, null);
-                }
-            }
+            //        _ProviderType = null;
+            //        _Db = null;
+            //        _Tables = null;
+            //        _hasCheck = 0;
+            //        HasCheckTables.Clear();
+            //        _Assembly = null;
+            //    }
+            //}
         }
 
         private IDatabase _Db;
@@ -270,15 +299,11 @@ namespace XCode.DataAccessLayer
                     var type = ProviderType;
                     if (type == null) throw new XCodeException("无法识别{0}的数据提供者！", _ConnName);
 
-                    //_Db = type.CreateInstance() as IDatabase;
-                    //if (!String.IsNullOrEmpty(ConnName)) _Db.ConnName = ConnName;
-                    //if (!String.IsNullOrEmpty(ConnStr)) _Db.ConnectionString = DecodeConnStr(ConnStr);
                     //!!! 重量级更新：经常出现链接字符串为127/master的连接错误，非常有可能是因为这里线程冲突，A线程创建了实例但未来得及赋值连接字符串，就被B线程使用了
                     var db = type.CreateInstance() as IDatabase;
                     if (!_ConnName.IsNullOrEmpty()) db.ConnName = _ConnName;
                     if (!ConnStr.IsNullOrEmpty()) db.ConnectionString = DecodeConnStr(ConnStr);
 
-                    //Interlocked.CompareExchange<IDatabase>(ref _Db, db, null);
                     _Db = db;
 
                     return _Db;
