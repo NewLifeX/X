@@ -51,9 +51,6 @@ namespace NewLife.Remoting
             var enc = host.Encoder;
             var msg = enc.Encode(action, args);
 
-            //var msg = session.CreateMessage(data);
-            //var msg = new ApiMessage { Action = action, Args = args };
-
             var rs = await session.SendAsync(msg);
             if (rs == null) return default(TResult);
 
@@ -63,12 +60,6 @@ namespace NewLife.Remoting
             if (rtype == typeof(Packet)) return (TResult)(Object)rs.Payload;
 
             if (!enc.TryGetResponse(rs, out var code, out var result)) throw new InvalidOperationException();
-
-            //var am = enc.Decode(rs);
-            //if (rtype == typeof(ApiMessage)) return (TResult)(Object)am;
-
-            //var code = am.Code;
-            //var result = am.Result;
 
             // 是否成功
             if (code != 0) throw new ApiException(code, result + "");

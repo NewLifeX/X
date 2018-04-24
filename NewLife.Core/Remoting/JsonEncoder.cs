@@ -78,18 +78,6 @@ namespace NewLife.Remoting
             }
         }
 
-        ///// <summary>解码消息</summary>
-        ///// <param name="msg"></param>
-        ///// <returns></returns>
-        //public ApiMessage Decode(IMessage msg)
-        //{
-        //    var dic = Decode(msg.Payload);
-        //    if (!msg.Reply)
-        //        return new ApiMessage { Action = dic["action"] + "", Args = dic["args"] };
-        //    else
-        //        return new ApiMessage { Action = dic["action"] + "", Code = dic["code"].ToInt(), Result = dic["result"] };
-        //}
-
         /// <summary>解码请求</summary>
         /// <param name="msg"></param>
         /// <param name="action"></param>
@@ -118,15 +106,12 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public Boolean TryGetResponse(IMessage msg, out Int32 code, out Object result)
         {
-            //action = null;
             code = 0;
             result = null;
 
             if (!msg.Reply) return false;
 
             var dic = Decode(msg.Payload);
-            //action = dic["action"] as String;
-            //if (action.IsNullOrEmpty()) return false;
 
             code = dic["code"].ToInt();
             result = dic["result"];
