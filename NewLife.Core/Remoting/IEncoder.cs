@@ -13,7 +13,7 @@ namespace NewLife.Remoting
         /// <param name="action"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        Packet Encode(String action, Object args);
+        IMessage Encode(String action, Object args);
 
         /// <summary>编码响应</summary>
         /// <param name="action"></param>
@@ -22,29 +22,29 @@ namespace NewLife.Remoting
         /// <returns></returns>
         Packet Encode(String action, Int32 code, Object result);
 
-        /// <summary>解码成为字典</summary>
-        /// <param name="pk">数据包</param>
-        /// <returns></returns>
-        IDictionary<String, Object> Decode(Packet pk);
+        ///// <summary>解码成为字典</summary>
+        ///// <param name="pk">数据包</param>
+        ///// <returns></returns>
+        //IDictionary<String, Object> Decode(Packet pk);
 
-        /// <summary>解码消息</summary>
+        ///// <summary>解码消息</summary>
+        ///// <param name="msg"></param>
+        ///// <returns></returns>
+        //ApiMessage Decode(IMessage msg);
+
+        /// <summary>解码请求</summary>
         /// <param name="msg"></param>
+        /// <param name="action"></param>
+        /// <param name="args"></param>
         /// <returns></returns>
-        ApiMessage Decode(IMessage msg);
+        Boolean TryGetRequest(IMessage msg, out String action, out IDictionary<String, Object> args);
 
-        ///// <summary>解码请求</summary>
-        ///// <param name="dic"></param>
-        ///// <param name="action"></param>
-        ///// <param name="args"></param>
-        ///// <returns></returns>
-        //Boolean TryGet(IDictionary<String, Object> dic, out String action, out Object args);
-
-        ///// <summary>解码响应</summary>
-        ///// <param name="dic"></param>
-        ///// <param name="code"></param>
-        ///// <param name="result"></param>
-        ///// <returns></returns>
-        //Boolean TryGet(IDictionary<String, Object> dic, out Int32 code, out Object result);
+        /// <summary>解码响应</summary>
+        /// <param name="msg"></param>
+        /// <param name="code"></param>
+        /// <param name="result"></param>
+        /// <returns></returns>
+        Boolean TryGetResponse(IMessage msg, out Int32 code, out Object result);
 
         /// <summary>转换为对象</summary>
         /// <typeparam name="T"></typeparam>

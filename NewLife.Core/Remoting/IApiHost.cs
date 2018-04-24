@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Log;
@@ -50,9 +49,9 @@ namespace NewLife.Remoting
             if (session == null) return default(TResult);
 
             var enc = host.Encoder;
-            var data = enc.Encode(action, args);
+            var msg = enc.Encode(action, args);
 
-            var msg = session.CreateMessage(data);
+            //var msg = session.CreateMessage(data);
             //var msg = new ApiMessage { Action = action, Args = args };
 
             var rs = await session.SendAsync(msg);
@@ -63,11 +62,13 @@ namespace NewLife.Remoting
             if (rtype == typeof(IMessage)) return (TResult)rs;
             if (rtype == typeof(Packet)) return (TResult)(Object)rs.Payload;
 
-            var am = enc.Decode(rs);
-            if (rtype == typeof(ApiMessage)) return (TResult)(Object)am;
+            if (!enc.TryGetResponse(rs, out var code, out var result)) throw new InvalidOperationException();
 
-            var code = am.Code;
-            var result = am.Result;
+            //var am = enc.Decode(rs);
+            //if (rtype == typeof(ApiMessage)) return (TResult)(Object)am;
+
+            //var code = am.Code;
+            //var result = am.Result;
 
             // 是否成功
             if (code != 0) throw new ApiException(code, result + "");

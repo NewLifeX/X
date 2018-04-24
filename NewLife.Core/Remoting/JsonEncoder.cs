@@ -19,14 +19,19 @@ namespace NewLife.Remoting
         /// <param name="action"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        public Packet Encode(String action, Object args)
+        public IMessage Encode(String action, Object args)
         {
             var obj = new { action, args };
             var json = obj.ToJson();
 
             WriteLog("=>{0}", json);
 
-            return json.GetBytes(Encoding);
+            var msg = new DefaultMessage
+            {
+                Payload = json.GetBytes(Encoding)
+            };
+
+            return msg;
         }
 
         /// <summary>编码响应</summary>
@@ -73,16 +78,60 @@ namespace NewLife.Remoting
             }
         }
 
-        /// <summary>解码消息</summary>
+        ///// <summary>解码消息</summary>
+        ///// <param name="msg"></param>
+        ///// <returns></returns>
+        //public ApiMessage Decode(IMessage msg)
+        //{
+        //    var dic = Decode(msg.Payload);
+        //    if (!msg.Reply)
+        //        return new ApiMessage { Action = dic["action"] + "", Args = dic["args"] };
+        //    else
+        //        return new ApiMessage { Action = dic["action"] + "", Code = dic["code"].ToInt(), Result = dic["result"] };
+        //}
+
+        /// <summary>解码请求</summary>
         /// <param name="msg"></param>
+        /// <param name="action"></param>
+        /// <param name="args"></param>
         /// <returns></returns>
-        public ApiMessage Decode(IMessage msg)
+        public Boolean TryGetRequest(IMessage msg, out String action, out IDictionary<String, Object> args)
         {
+            action = null;
+            args = null;
+
+            if (msg.Reply) return false;
+
             var dic = Decode(msg.Payload);
-            if (!msg.Reply)
-                return new ApiMessage { Action = dic["action"] + "", Args = dic["args"] };
-            else
-                return new ApiMessage { Action = dic["action"] + "", Code = dic["code"].ToInt(), Result = dic["result"] };
+            action = dic["action"] as String;
+            if (action.IsNullOrEmpty()) return false;
+
+            args = dic["args"] as IDictionary<String, Object>;
+
+            return true;
+        }
+
+        /// <summary>解码响应</summary>
+        /// <param name="msg"></param>
+        /// <param name="code"></param>
+        /// <param name="result"></param>
+        /// <returns></returns>
+        public Boolean TryGetResponse(IMessage msg, out Int32 code, out Object result)
+        {
+            //action = null;
+            code = 0;
+            result = null;
+
+            if (!msg.Reply) return false;
+
+            var dic = Decode(msg.Payload);
+            //action = dic["action"] as String;
+            //if (action.IsNullOrEmpty()) return false;
+
+            code = dic["code"].ToInt();
+            result = dic["result"];
+
+            return true;
         }
 
         /// <summary>转换为对象</summary>

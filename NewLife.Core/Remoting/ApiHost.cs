@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using NewLife.Collections;
-using NewLife.Data;
 using NewLife.Log;
 using NewLife.Messaging;
-using NewLife.Reflection;
 
 namespace NewLife.Remoting
 {
@@ -101,7 +99,7 @@ namespace NewLife.Remoting
                 //// 请求响应，由code决定
                 //if (dic.ContainsKey("code")) return null;
 
-                ////if (!enc.TryGet(dic, out action, out args)) return null;
+                if (!enc.TryGetRequest(msg, out action, out var args)) return null;
                 //if (!dic.TryGetValue("action", out var obj)) return null;
 
                 //// 参数可能不存在
@@ -109,9 +107,9 @@ namespace NewLife.Remoting
 
                 //action = obj + "";
 
-                var cmd = enc.Decode(msg);
-                action = cmd.Action;
-                var args = cmd.Args;
+                //var cmd = enc.Decode(msg);
+                //action = cmd.Action;
+                //var args = cmd.Args;
 
                 //// 针对Http前端Json，可能带有序列号
                 //if (dic.TryGetValue("seq", out obj)) seq = obj.ToInt();
