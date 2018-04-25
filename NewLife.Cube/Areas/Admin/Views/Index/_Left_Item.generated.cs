@@ -61,7 +61,7 @@ namespace ASP
     var fact = ObjectContainer.Current.Resolve<IMenuFactory>();
 
     var item = Model as IMenu;
-    var childs = fact.GetMySubMenus(item.ID).Where(m => m.Visible);
+    var childs = fact.GetMySubMenus(item.ID, user).Where(m => m.Visible);
     var url = item.Url.IsNullOrEmpty() ? "" : Url.Content(item.Url);
 
             
@@ -117,14 +117,14 @@ WriteLiteral("\r\n        </a>\r\n");
             #line hidden
 WriteLiteral("        <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 580), Tuple.Create("\"", 591)
+WriteAttribute("href", Tuple.Create(" href=\"", 586), Tuple.Create("\"", 597)
             
             #line 22 "..\..\Areas\Admin\Views\Index\_Left_Item.cshtml"
-, Tuple.Create(Tuple.Create("", 587), Tuple.Create<System.Object, System.Int32>(url
+, Tuple.Create(Tuple.Create("", 593), Tuple.Create<System.Object, System.Int32>(url
             
             #line default
             #line hidden
-, 587), false)
+, 593), false)
 );
 
 WriteLiteral(" target=\"main\"");

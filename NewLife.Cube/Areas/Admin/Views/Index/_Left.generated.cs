@@ -58,7 +58,7 @@ namespace ASP
     var Menus = fact.Root.Childs;
     if (user != null && user.Role != null)
     {
-        Menus = fact.GetMySubMenus(fact.Root.ID);
+        Menus = fact.GetMySubMenus(fact.Root.ID, user);
     }
 
     // 如果顶级只有一层，并且至少有三级目录，则提升一级
@@ -86,7 +86,7 @@ WriteLiteral(">\r\n");
             #line 20 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
      foreach (IMenu menu in Menus.Where(m => m.Visible))
     {
-        var childs = fact.GetMySubMenus(menu.ID).Where(m => m.Visible);
+        var childs = fact.GetMySubMenus(menu.ID, user).Where(m => m.Visible);
         if (_idx >= icos.Length) { _idx = 0; }
 
             
@@ -109,16 +109,16 @@ WriteLiteral(" class=\"dropdown-toggle\"");
 
 WriteLiteral(">\r\n                <i");
 
-WriteAttribute("class", Tuple.Create(" class=\"", 995), Tuple.Create("\"", 1029)
-, Tuple.Create(Tuple.Create("", 1003), Tuple.Create("menu-icon", 1003), true)
-, Tuple.Create(Tuple.Create(" ", 1012), Tuple.Create("fa", 1013), true)
+WriteAttribute("class", Tuple.Create(" class=\"", 1007), Tuple.Create("\"", 1041)
+, Tuple.Create(Tuple.Create("", 1015), Tuple.Create("menu-icon", 1015), true)
+, Tuple.Create(Tuple.Create(" ", 1024), Tuple.Create("fa", 1025), true)
             
             #line 26 "..\..\Areas\Admin\Views\Index\_Left.cshtml"
-, Tuple.Create(Tuple.Create(" ", 1015), Tuple.Create<System.Object, System.Int32>(icos[_idx++]
+, Tuple.Create(Tuple.Create(" ", 1027), Tuple.Create<System.Object, System.Int32>(icos[_idx++]
             
             #line default
             #line hidden
-, 1016), false)
+, 1028), false)
 );
 
 WriteLiteral("></i>\r\n                <span");

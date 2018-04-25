@@ -6,7 +6,7 @@
     var fact = ObjectContainer.Current.Resolve<IMenuFactory>();
 
     var item = Model as IMenu;
-    var childs = fact.GetMySubMenus(item.ID).Where(m => m.Visible);
+    var childs = fact.GetMySubMenus(item.ID, user).Where(m => m.Visible);
     var url = item.Url.IsNullOrEmpty() ? "" : Url.Content(item.Url);
 }
 <li>

@@ -1,36 +1,21 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.MemoryMappedFiles;
-using System.Linq;
-using System.Net;
-using System.Net.Sockets;
-using System.Runtime;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Web;
-using NewLife;
-using NewLife.Agent;
 using NewLife.Caching;
-using NewLife.Collections;
 using NewLife.Data;
-using NewLife.Http;
 using NewLife.Log;
 using NewLife.Net;
-using NewLife.Reflection;
+using NewLife.Net.Application;
+using NewLife.Net.Handlers;
 using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
-using NewLife.Threading;
 using NewLife.Web;
-using NewLife.Yun;
-using XCode;
 using XCode.DataAccessLayer;
 using XCode.Membership;
-using XCode.Statistics;
 
 namespace Test
 {
@@ -52,7 +37,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test1();
+                Test4();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -74,25 +59,31 @@ namespace Test
         private static Int32 ths = 0;
         static void Test1()
         {
-            var set = XCode.Setting.Current;
-            set.Migration = Migration.ReadOnly;
-            Console.WriteLine("Setting: {0}", set.Migration);
+            //var orc = ObjectContainer.Current.ResolveInstance<IDatabase>(DatabaseType.Oracle);
+            var db = DbFactory.Create(DatabaseType.Oracle);
+            var sql = "select * from table where date>1234 ";
+            var sb = new SelectBuilder();
+            sb.Parse(sql);
 
-            DAL.AddConnStr("orc", "data source=xxx", null, "Oracle");
-            var dal = DAL.Create("orc");
-            Console.WriteLine("Oracle: {0}", dal.Db.Migration);
+            Console.WriteLine(db.PageSplit(sb, 0, 20));
+            Console.WriteLine(db.PageSplit(sb, 20, 0));
+            Console.WriteLine(db.PageSplit(sb, 20, 30));
 
-            DAL.AddConnStr("orc2", "data source=xxx;Migration=full", null, "Oracle");
-            dal = DAL.Create("orc2");
-            Console.WriteLine("Oracle2: {0}", dal.Db.Migration);
+            sql = "select * from table where date>1234 order by cc";
+            sb = new SelectBuilder();
+            sb.Parse(sql);
 
-            DAL.AddConnStr("mysql", "data source=xxx;", null, "mysql");
-            dal = DAL.Create("mysql");
-            Console.WriteLine("MySql: {0}", dal.Db.Migration);
+            Console.WriteLine(db.PageSplit(sb, 0, 20));
+            Console.WriteLine(db.PageSplit(sb, 20, 0));
+            Console.WriteLine(db.PageSplit(sb, 20, 30));
 
-            DAL.AddConnStr("mysql2", "data source=xxx;Migration=on", null, "mysql");
-            dal = DAL.Create("mysql2");
-            Console.WriteLine("MySql2: {0}", dal.Db.Migration);
+            //EntityBuilder.Build("DataCockpit.xml");
+
+            //Role.Meta.Session.Dal.Db.Readonly = true;
+            //Role.GetOrAdd("sss");
+
+            var ip = NetHelper.MyIP();
+            Console.WriteLine(ip);
         }
 
         static void Test2()
@@ -129,7 +120,7 @@ namespace Test
 
             Console.WriteLine("入队：");
             var ps = new List<String>();
-            for (int i = 0; i < 5; i++)
+            for (var i = 0; i < 5; i++)
             {
                 var str = Rand.NextString(6);
                 ps.Add(str);
@@ -148,31 +139,51 @@ namespace Test
 
         static void Test4()
         {
-            var str = "~/Sso/Login";
-            var uri2 = new Uri("Sso/Login", UriKind.Absolute);
-            //var uri = str.AsUri("http://xxx.yyy.zzz/ss/dd/ff".AsUri());
-            var uri = str.AsUri();
-            //var cfg = CacheConfig.Current;
-            //Console.WriteLine(cfg.GetOrAdd("Bill01"));
+            ApiTest.Main();
+        }
 
-            //var set = cfg.GetOrAdd("aa_test", "redis");
-            //Console.WriteLine(set);
+        static async void Test5()
+        {
+            Console.WriteLine("服务端1，客户端2：");
+            if (Console.ReadKey().KeyChar == '1')
+            {
+                var svr = new NetServer(777);
+#if DEBUG
+                svr.Log = XTrace.Log; svr.LogSend = true; svr.LogReceive = true;
+#endif
+                //svr.Add<DefaultCodec>();
+                svr.Add(new LengthFieldCodec { Size = 4 });
+                //svr.Add<BinaryCodec<UserY>>();
+                svr.Add<JsonCodec<UserY>>();
+                svr.Add<EchoHandler>();
+                svr.Start();
+            }
+            else
+            {
+                var client = new NetUri("tcp://127.0.0.1:777").CreateRemote();
+#if DEBUG
+                client.Log = XTrace.Log; client.LogSend = true; client.LogReceive = true;
+#endif
+                //client.Add<DefaultCodec>();
+                client.Add(new LengthFieldCodec { Size = 4 });
+                //client.Add<BinaryCodec<UserY>>();
+                client.Add<JsonCodec<UserY>>();
+                client.Open();
 
-            WebClientX.SetAllowUnsafeHeaderParsing(true);
-
-            var url = "https://api.github.com/user?access_token=ccb5c1363318ee2fa1d9374e87961bdf01a4c682";
-
-            var client = new WebClientX(true, true);
-            //var buf = client.DownloadDataAsync(url).Result;
-            //var ms = new MemoryStream(buf);
-            //var ms2 = ms.DecompressGZip();
-            //buf = ms2.ReadBytes();
-            var html = client.GetHtml(url);
-            Console.WriteLine(html);
-
-            var ip = "223.5.5.5";
-            ip = ip.IPToAddress();
-            Console.WriteLine(ip);
+                //client.Send("Stone");
+                var user = new UserY { ID = 0x1234, Name = "Stone", DisplayName = "大石头" };
+                for (var i = 0; i < 3; i++)
+                {
+                    var rs = await client.SendAsync(user) as UserY;
+                    XTrace.WriteLine("{0} {1}", rs.Name, rs.DisplayName);
+                }
+            }
+        }
+        class UserY
+        {
+            public Int32 ID { get; set; }
+            public String Name { get; set; }
+            public String DisplayName { get; set; }
         }
     }
 }

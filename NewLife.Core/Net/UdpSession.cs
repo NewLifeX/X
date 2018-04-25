@@ -6,7 +6,6 @@ using System.Net.Sockets;
 using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Log;
-using NewLife.Messaging;
 
 namespace NewLife.Net
 {
@@ -24,7 +23,7 @@ namespace NewLife.Net
         public UdpServer Server { get; set; }
 
         /// <summary>底层Socket</summary>
-        Socket ISocket.Client { get { return Server?.Client; } }
+        Socket ISocket.Client => Server?.Client;
 
         /// <summary>数据流</summary>
         public Stream Stream { get; set; }
@@ -59,8 +58,11 @@ namespace NewLife.Net
             }
         }
 
+        /// <summary>管道</summary>
+        public IPipeline Pipeline { get; set; }
+
         /// <summary>Socket服务器。当前通讯所在的Socket服务器，其实是TcpServer/UdpServer</summary>
-        ISocketServer ISocketSession.Server { get { return Server; } }
+        ISocketServer ISocketSession.Server => Server;
 
         /// <summary>是否抛出异常，默认false不抛出。Send/Receive时可能发生异常，该设置决定是直接抛出异常还是通过<see cref="Error"/>事件</summary>
         public Boolean ThrowException { get { return Server.ThrowException; } set { Server.ThrowException = value; } }
@@ -104,6 +106,8 @@ namespace NewLife.Net
 
         public void Start()
         {
+            Pipeline = Server.Pipeline;
+
             //Server.ReceiveAsync();
             Server.Open();
 
@@ -126,114 +130,64 @@ namespace NewLife.Net
         {
             if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
-            StatSend?.Increment(pk.Count);
-            if (Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", pk.Count, pk.ToHex());
-
-            LastTime = DateTime.Now;
-
-            try
-            {
-                Server.Client.SendTo(pk.Data, pk.Offset, pk.Count, SocketFlags.None, Remote.EndPoint);
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                OnError("Send", ex);
-                Dispose();
-                throw;
-            }
+            return Server.OnSend(pk, Remote.EndPoint);
         }
 
-        /// <summary>异步发送数据并等待响应</summary>
-        /// <param name="pk"></param>
+        /// <summary>发送消息</summary>
+        /// <param name="message"></param>
         /// <returns></returns>
-        public async Task<Packet> SendAsync(Packet pk)
-        {
-            if (Server == null) return null;
-
-            return await Server.SendAsync(pk, Remote.EndPoint, true);
-        }
+        public virtual Boolean SendMessage(Object message) => Pipeline.FireWrite(this, message);
 
         /// <summary>发送消息并等待响应</summary>
-        /// <param name="msg"></param>
+        /// <param name="message"></param>
         /// <returns></returns>
-        public async Task<IMessage> SendAsync(IMessage msg)
-        {
-            if (Server == null) return null;
-
-            var pk = msg.ToPacket();
-            var task = Server.SendAsync(pk, Remote.EndPoint, !msg.Reply);
-
-            // 如果是响应包，直接返回不等待
-            if (msg.Reply) return null;
-
-            return Packet.LoadMessage(await task);
-        }
+        public virtual async Task<Object> SendAsync(Object message) => await Pipeline.FireWriteAndWait(this, message);
         #endregion
 
         #region 接收
+        /// <summary>接收数据</summary>
+        /// <returns></returns>
         public Packet Receive()
         {
             if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
-            var task = SendAsync((Packet)null);
-            if (Timeout > 0 && !task.Wait(Timeout)) return null;
+            //var task = SendAsync((Packet)null);
+            //if (Timeout > 0 && !task.Wait(Timeout)) return null;
 
-            return task.Result;
+            //return task.Result;
+
+            var ep = Remote.EndPoint as EndPoint;
+            var buf = new Byte[BufferSize];
+            var size = Server.Client.ReceiveFrom(buf, ref ep);
+
+            return new Packet(buf, 0, size);
         }
 
         public event EventHandler<ReceivedEventArgs> Received;
 
-        /// <summary>消息到达事件</summary>
-        public event EventHandler<MessageEventArgs> MessageReceived;
-
-        /// <summary>粘包处理接口</summary>
-        public IPacket Packet { get; set; }
-
         internal void OnReceive(ReceivedEventArgs e)
         {
-            var stream = e.Stream;
             var remote = e.UserState as IPEndPoint;
-            var pk = new Packet(e.Data);
+            var pk = e.Packet;
 
-            if (Packet == null)
-                OnReceive(pk, remote);
-            else
+            var pp = Pipeline;
+            if (pp != null)
             {
-                // 拆包，多个包多次调用处理程序
-                foreach (var msg in Packet.Parse(pk))
-                {
-                    OnReceive(msg, remote);
-                }
+                var ctx = pp.CreateContext(this);
+                ctx[nameof(remote)] = remote;
+
+                var msg = pp.Read(ctx, pk);
+                if (msg == null) return;
+
+                e.Message = msg;
             }
-        }
-
-        private void OnReceive(Packet pk, IPEndPoint remote)
-        {
-            var e = new ReceivedEventArgs(pk)
-            {
-                UserState = remote
-            };
 
             LastTime = DateTime.Now;
             //if (StatReceive != null) StatReceive.Increment(e.Length);
 
-            if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", e.Length, e.ToHex(32, null));
+            //if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", e.Length, e.ToHex(32, null));
 
-            Received?.Invoke(this, e);
-
-            if (Packet != null && e.Packet != null && MessageReceived != null)
-            {
-                var msg = Packet.LoadMessage(e.Packet);
-                var me = new MessageEventArgs
-                {
-                    Packet = e.Packet,
-                    UserState = e.UserState,
-                    Message = msg
-                };
-                MessageReceived(this, me);
-            }
+            if (e != null) Received?.Invoke(this, e);
         }
         #endregion
 
@@ -247,7 +201,7 @@ namespace NewLife.Net
         protected virtual void OnError(String action, Exception ex)
         {
             if (Log != null) Log.Error(LogPrefix + "{0}Error {1} {2}", action, this, ex?.Message);
-            if (Error != null) Error(this, new ExceptionEventArgs { Exception = ex });
+            Error?.Invoke(this, new ExceptionEventArgs { Exception = ex });
         }
         #endregion
 
@@ -264,9 +218,9 @@ namespace NewLife.Net
         #endregion
 
         #region ITransport接口
-        Boolean ITransport.Open() { return true; }
+        Boolean ITransport.Open() => true;
 
-        Boolean ITransport.Close() { return true; }
+        Boolean ITransport.Close() => true;
         #endregion
 
         #region 日志

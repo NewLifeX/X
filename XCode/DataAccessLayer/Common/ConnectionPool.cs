@@ -75,16 +75,12 @@ namespace XCode.DataAccessLayer
         {
             try
             {
+                //// 如果连接字符串变了，则关闭
+                //if (value.ConnectionString != ConnectionString) value.Close();
+
                 return value.State == ConnectionState.Open;
             }
             catch { return false; }
         }
-
-        ///// <summary>销毁时关闭连接</summary>
-        ///// <param name="value"></param>
-        //protected override void OnDestroy(DbConnection value)
-        //{
-        //    value?.Close();
-        //}
     }
 }

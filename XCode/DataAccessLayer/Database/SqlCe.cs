@@ -57,7 +57,7 @@ namespace XCode.DataAccessLayer
         /// <summary>SqlCe版本,默认4.0</summary>
         public SQLCEVersion SqlCeVer { get; set; } = SQLCEVersion.SQLCE40;
 
-        protected override void OnSetConnectionString(XDbConnectionStringBuilder builder)
+        protected override void OnSetConnectionString(ConnectionStringBuilder builder)
         {
             base.OnSetConnectionString(builder);
 

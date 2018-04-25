@@ -36,19 +36,20 @@ namespace XCode.DataAccessLayer
         const String CharSet = "CharSet";
         const String AllowZeroDatetime = "Allow Zero Datetime";
         const String MaxPoolSize = "MaxPoolSize";
-        protected override void OnSetConnectionString(XDbConnectionStringBuilder builder)
+        protected override void OnSetConnectionString(ConnectionStringBuilder builder)
         {
             base.OnSetConnectionString(builder);
 
-            if (builder.ContainsKey(Server_Key) && (builder[Server_Key] == "." || builder[Server_Key] == "localhost"))
+            var key = builder[Server_Key];
+            if (key.EqualIgnoreCase(".", "localhost"))
             {
                 //builder[Server_Key] = "127.0.0.1";
                 builder[Server_Key] = IPAddress.Loopback.ToString();
             }
-            if (!builder.ContainsKey(CharSet)) builder[CharSet] = "utf8";
+            builder.TryAdd(CharSet, "utf8");
             //if (!builder.ContainsKey(AllowZeroDatetime)) builder[AllowZeroDatetime] = "True";
             // 默认最大连接数1000
-            if (!builder.ContainsKey(MaxPoolSize)) builder[MaxPoolSize] = "1000";
+            builder.TryAdd(MaxPoolSize, "1000");
         }
         #endregion
 
@@ -83,16 +84,13 @@ namespace XCode.DataAccessLayer
             // 从第一行开始，不需要分页
             if (startRowIndex <= 0)
             {
-                if (maximumRows < 1)
-                    return sql;
-                else
-                    return String.Format("{0} limit {1}", sql, maximumRows);
+                if (maximumRows < 1) return sql;
+
+                return "{0} limit {1}".F(sql, maximumRows);
             }
-            if (maximumRows < 1)
-                throw new NotSupportedException("不支持取第几条数据之后的所有数据！");
-            else
-                sql = String.Format("{0} limit {1}, {2}", sql, startRowIndex, maximumRows);
-            return sql;
+            if (maximumRows < 1) throw new NotSupportedException("不支持取第几条数据之后的所有数据！");
+
+            return "{0} limit {1}, {2}".F(sql, startRowIndex, maximumRows);
         }
 
         /// <summary>构造分页SQL</summary>
@@ -110,12 +108,12 @@ namespace XCode.DataAccessLayer
             // 从第一行开始，不需要分页
             if (startRowIndex <= 0)
             {
-                if (maximumRows > 0) builder.Limit += String.Format(" limit {0}", maximumRows);
+                if (maximumRows > 0) builder.Limit += " limit {0}".F(maximumRows);
                 return builder;
             }
             if (maximumRows < 1) throw new NotSupportedException("不支持取第几条数据之后的所有数据！");
 
-            builder.Limit += String.Format(" limit {0}, {1}", startRowIndex, maximumRows);
+            builder.Limit += " limit {0}, {1}".F(startRowIndex, maximumRows);
             return builder;
         }
         #endregion
@@ -168,9 +166,9 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>长文本长度</summary>
-        public override Int32 LongTextLength { get { return 255; } }
+        public override Int32 LongTextLength => 4000;
 
-        internal protected override String ParamPrefix { get { return "?"; } }
+        internal protected override String ParamPrefix => "?";
 
         /// <summary>创建参数</summary>
         /// <param name="name">名称</param>

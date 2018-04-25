@@ -117,7 +117,7 @@ namespace XCode.Configuration
         {
             get
             {
-                Type type = Table.EntityType;
+                var type = Table.EntityType;
                 if (type.IsInterface) return null;
 
                 return EntityFactory.CreateOperate(type);
@@ -208,7 +208,7 @@ namespace XCode.Configuration
 
             if (field == null) return;
 
-            IDataColumn dc = field;
+            var dc = field;
             if (dc == null) return;
 
             dc.ColumnName = ColumnName;

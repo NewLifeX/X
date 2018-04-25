@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Linq;
 using System.Text;
 using System.Web;
+using NewLife.Log;
 using NewLife.Model;
 using NewLife.Reflection;
 
@@ -75,6 +77,36 @@ namespace XCode.Membership
         public Boolean Enable { get; set; } = true;
         #endregion
 
+        #region 日志转换
+        /// <summary>转为标准日志接口</summary>
+        /// <param name="category">日志分类</param>
+        /// <returns></returns>
+        public NewLife.Log.ILog AsLog(String category) => new DbLog { Provider = this, Category = category };
+
+        class DbLog : Logger
+        {
+            public LogProvider Provider { get; set; }
+            public String Category { get; set; }
+
+            protected override void OnWrite(LogLevel level, String format, params Object[] args)
+            {
+                var msg = format.F(args);
+                var act = "";
+                var p = msg.IndexOf(' ');
+                if (p > 0)
+                {
+                    act = msg.Substring(0, p).Trim();
+                    msg = msg.Substring(p + 1).Trim();
+                }
+
+                // 从参数里提取用户对象
+                var user = args.FirstOrDefault(e => e is IManageUser) as IManageUser;
+
+                Provider.WriteLog(Category, act, msg, user?.ID ?? 0, user + "");
+            }
+        }
+        #endregion
+
         #region 静态属性
         static LogProvider()
         {
@@ -114,12 +146,9 @@ namespace XCode.Membership
         public override void WriteLog(String category, String action, String remark, Int32 userid = 0, String name = null, String ip = null)
         {
             if (!Enable) return;
-
-            if (category == null) throw new ArgumentNullException("category");
-
             var factory = EntityFactory.CreateOperate(typeof(TLog));
             var log = factory.Create() as ILog;
-            log.Category = category;
+            log.Category = category ?? throw new ArgumentNullException(nameof(category));
             log.Action = action;
 
             // 加上关联编号
@@ -137,12 +166,12 @@ namespace XCode.Membership
             if (log.CreateUserID == 0 || name.IsNullOrEmpty())
             {
                 // 当前登录用户
+                var prv = Provider2 ?? ManageProvider.Provider;
 #if !__CORE__
-                var user = Provider2?.Current ?? HttpContext.Current?.User?.Identity as IManageUser;
+                var user = prv?.Current ?? HttpContext.Current?.User?.Identity as IManageUser;
 #else
-                var user = Provider2?.Current;
+                var user = prv?.Current;
 #endif
-                if (user == null && Provider2 == null) user = ManageProvider.Provider?.Current;
                 if (user != null)
                 {
                     if (log.CreateUserID == 0) log.CreateUserID = user.ID;

@@ -532,6 +532,8 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static TFunc As<TFunc>(this MethodInfo method, Object target = null)
         {
+            if (method == null) return default(TFunc);
+
             if (target == null)
                 return (TFunc)(Object)Delegate.CreateDelegate(typeof(TFunc), method, true);
             else

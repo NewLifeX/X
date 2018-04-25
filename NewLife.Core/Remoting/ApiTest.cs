@@ -23,19 +23,16 @@ namespace NewLife.Remoting
 
         private static void TestServer()
         {
-            var svr = new ApiServer(3344);
-            svr.Add("http://*:888/");
-            svr.Log = XTrace.Log;
-            svr.EncoderLog = XTrace.Log;
-            //svr.Encoder = new JsonEncoder();
-            //GlobalFilters.Add(new FFAttribute { Name = "全局" });
-            //GlobalFilters.Add(new FEAttribute { Name = "全局" });
-            svr.Register<ApiSession>();
+            var svr = new ApiServer(3344)
+            {
+                Log = XTrace.Log,
+                EncoderLog = XTrace.Log
+            };
             svr.Register<HelloController>();
 
-            var ns = svr.Servers[0] as NetServer;
-            ns.LogSend = true;
-            ns.LogReceive = true;
+            //var ns = svr.Server as NetServer;
+            //ns.LogSend = true;
+            //ns.LogReceive = true;
 
             svr.Start();
 
@@ -44,39 +41,43 @@ namespace NewLife.Remoting
 
         private static async void TestClient()
         {
-            var client = new ApiClient("tcp://127.0.0.1:3344");
-            //var client = new ApiClient("udp://127.0.0.1:3344");
-            //var client = new ApiClient("http://127.0.0.1:888");
-            //var client = new ApiClient("ws://127.0.0.1:888");
-            client.Log = XTrace.Log;
-            client.EncoderLog = XTrace.Log;
-            //client.Encoder = new JsonEncoder();
-            client.UserName = "Stone";
-            client.Password = "Stone";
+            var client = new ApiClient("tcp://127.0.0.1:3344")
+            {
+                Log = XTrace.Log,
+                EncoderLog = XTrace.Log
+            };
 
-            var sc = client.Client.GetService<ISocketClient>();
-            sc.LogSend = true;
-            sc.LogReceive = true;
+            //var sc = client.Client;
+            //sc.LogSend = true;
+            //sc.LogReceive = true;
 
             client.Open();
 
-            var logined = await client.LoginAsync();
-            XTrace.WriteLine(logined + "");
-
             var msg = "NewLifeX";
-            var rs = await client.InvokeAsync<String>("Hello/Say", new { msg });
+            Console.WriteLine();
+            var rs = await client.InvokeAsync<String>("Say", new { msg });
             XTrace.WriteLine(rs);
 
+            Console.WriteLine();
+            rs = await client.InvokeAsync<String>("Hello/Eat", new { msg });
+            XTrace.WriteLine(rs);
+
+            Console.WriteLine();
+            rs = await client.InvokeAsync<String>("Sleep", new { msg });
+            XTrace.WriteLine(rs);
+
+            Console.WriteLine();
             try
             {
                 msg = "报错";
-                rs = await client.InvokeAsync<String>("Hello/Say", new { msg });
+                rs = await client.InvokeAsync<String>("Say", new { msg });
             }
             catch (ApiException ex)
             {
                 XTrace.WriteLine("服务端发生 {0} 错误：{1}", ex.Code, ex.Message);
             }
 
+            Console.WriteLine();
             var apis = await client.InvokeAsync<String[]>("Api/All");
             Console.WriteLine(apis.Join(Environment.NewLine));
 
@@ -84,15 +85,11 @@ namespace NewLife.Remoting
             Console.ReadKey();
         }
 
-        //[FF(Name = "类")]
-        //[FE(Name = "类")]
         [Api(null)]
         private class HelloController : IApi
         {
             public IApiSession Session { get; set; }
 
-            //[FF(Name = "方法")]
-            //[FE(Name = "方法")]
             [Api("Say")]
             public String Say(String msg)
             {
@@ -119,43 +116,6 @@ namespace NewLife.Remoting
                 var ctx = ControllerContext.Current;
 
                 return "全局执行：{0}({1})".F(ctx.Action.Name, ctx.Parameters.Select(e => e.Key).Join(", "));
-            }
-        }
-
-        class FFAttribute : ActionFilterAttribute
-        {
-            public String Name { get; set; }
-
-            public override void OnActionExecuting(ActionExecutingContext filterContext)
-            {
-                XTrace.WriteLine("{0} Executing", Name);
-
-                base.OnActionExecuting(filterContext);
-            }
-
-            public override void OnActionExecuted(ActionExecutedContext filterContext)
-            {
-                XTrace.WriteLine("{0} Executed", Name);
-
-                base.OnActionExecuted(filterContext);
-            }
-        }
-
-        class FEAttribute : HandleErrorAttribute
-        {
-            public String Name { get; set; }
-
-            public override void OnException(ExceptionContext filterContext)
-            {
-                XTrace.WriteLine("{0} Exception", Name);
-
-                base.OnException(filterContext);
-
-                if (Name == "方法")
-                {
-                    filterContext.Result = filterContext.Exception?.GetTrue()?.Message + " 异常已处理";
-                    //filterContext.ExceptionHandled = true;
-                }
             }
         }
     }

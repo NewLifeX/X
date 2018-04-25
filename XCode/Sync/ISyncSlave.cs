@@ -179,7 +179,7 @@ namespace XCode.Sync
             if (list == null || list.Count < 1) return null;
 
             var rs = new ISyncSlaveEntity[list.Count];
-            for (Int32 i = 0; i < list.Count; i++)
+            for (var i = 0; i < list.Count; i++)
             {
                 rs[i] = list[i] as ISyncSlaveEntity;
             }

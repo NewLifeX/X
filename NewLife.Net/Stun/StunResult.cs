@@ -22,7 +22,7 @@ namespace NewLife.Net.Stun
         /// <returns></returns>
         public override System.String ToString()
         {
-            return string.Format("{0} {1}", Type, Public);
+            return System.String.Format("{0} {1}", Type, Public);
         }
     }
 }

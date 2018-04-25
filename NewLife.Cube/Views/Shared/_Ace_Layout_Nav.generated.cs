@@ -45,7 +45,8 @@ namespace ASP
             
             #line 1 "..\..\Views\Shared\_Ace_Layout_Nav.cshtml"
   
-    var menu = ManageProvider.Menu.Current;
+    //var menu = ManageProvider.Menu.Current;
+    var menu = ViewBag.Menu as IMenu;
 
             
             #line default
@@ -57,13 +58,13 @@ WriteLiteral(" class=\"ace-icon fa fa-home home-icon\"");
 WriteLiteral("></i>\r\n");
 
             
-            #line 6 "..\..\Views\Shared\_Ace_Layout_Nav.cshtml"
+            #line 7 "..\..\Views\Shared\_Ace_Layout_Nav.cshtml"
     
             
             #line default
             #line hidden
             
-            #line 6 "..\..\Views\Shared\_Ace_Layout_Nav.cshtml"
+            #line 7 "..\..\Views\Shared\_Ace_Layout_Nav.cshtml"
      if (menu != null)
     {
         foreach (IMenu item in (menu as IEntityTree).AllParents)
@@ -76,20 +77,20 @@ WriteLiteral("></i>\r\n");
             #line hidden
 WriteLiteral("                <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 281), Tuple.Create("\"", 332)
+WriteAttribute("href", Tuple.Create(" href=\"", 322), Tuple.Create("\"", 373)
             
-            #line 12 "..\..\Views\Shared\_Ace_Layout_Nav.cshtml"
-, Tuple.Create(Tuple.Create("", 288), Tuple.Create<System.Object, System.Int32>(item.Url!=null? Url.Content(item.Url):"#"
+            #line 13 "..\..\Views\Shared\_Ace_Layout_Nav.cshtml"
+, Tuple.Create(Tuple.Create("", 329), Tuple.Create<System.Object, System.Int32>(item.Url!=null? Url.Content(item.Url):"#"
             
             #line default
             #line hidden
-, 288), false)
+, 329), false)
 );
 
 WriteLiteral(">");
 
             
-            #line 12 "..\..\Views\Shared\_Ace_Layout_Nav.cshtml"
+            #line 13 "..\..\Views\Shared\_Ace_Layout_Nav.cshtml"
                                                                   Write(item.DisplayName);
 
             
@@ -98,7 +99,7 @@ WriteLiteral(">");
 WriteLiteral("</a>\r\n");
 
             
-            #line 13 "..\..\Views\Shared\_Ace_Layout_Nav.cshtml"
+            #line 14 "..\..\Views\Shared\_Ace_Layout_Nav.cshtml"
 
             }
         }
@@ -109,20 +110,20 @@ WriteLiteral("</a>\r\n");
             #line hidden
 WriteLiteral("</li>\r\n\r\n<li>\r\n    <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 413), Tuple.Create("\"", 440)
+WriteAttribute("href", Tuple.Create(" href=\"", 454), Tuple.Create("\"", 481)
             
-            #line 20 "..\..\Views\Shared\_Ace_Layout_Nav.cshtml"
-, Tuple.Create(Tuple.Create("", 420), Tuple.Create<System.Object, System.Int32>(Url.Action("Index")
+            #line 21 "..\..\Views\Shared\_Ace_Layout_Nav.cshtml"
+, Tuple.Create(Tuple.Create("", 461), Tuple.Create<System.Object, System.Int32>(Url.Action("Index")
             
             #line default
             #line hidden
-, 420), false)
+, 461), false)
 );
 
 WriteLiteral(">");
 
             
-            #line 20 "..\..\Views\Shared\_Ace_Layout_Nav.cshtml"
+            #line 21 "..\..\Views\Shared\_Ace_Layout_Nav.cshtml"
                                Write(menu != null ? menu.DisplayName : ViewBag.Title);
 
             

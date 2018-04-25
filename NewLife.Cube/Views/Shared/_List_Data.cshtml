@@ -3,7 +3,6 @@
 @using XCode;
 @using XCode.Configuration;
 @{
-    var user = ViewBag.User as IUser ?? User.Identity as IUser;
     var fact = ViewBag.Factory as IEntityOperate;
     var page = ViewBag.Page as Pager;
     var fields = ViewBag.Fields as IList<FieldItem>;
@@ -32,7 +31,7 @@
                     <th class="text-center" title="@item.Description"><a href="@Html.Raw(sortUrl)">@item.DisplayName</a></th>
                 }
             }
-            @if (user.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
+            @if (this.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
             {
                 <th class="text-center" style="min-width:100px;">操作</th>
             }
@@ -50,7 +49,7 @@
                 {
                     @Html.Partial("_List_Data_Item", new Pair(entity, item))
                 }
-                @if (user.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
+                @if (this.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
                 {
                     <td class="text-center">
                         @Html.Partial("_List_Data_Action", (Object)entity)

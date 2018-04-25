@@ -8,11 +8,9 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Web;
 using NewLife;
 using NewLife.Log;
 using NewLife.Reflection;
-using NewLife.Threading;
 using NewLife.Web;
 
 namespace XCode.DataAccessLayer
@@ -28,7 +26,7 @@ namespace XCode.DataAccessLayer
         static DbBase()
         {
 #if !__CORE__
-            var root = Runtime.IsWeb ? HttpRuntime.BinDirectory : AppDomain.CurrentDomain.BaseDirectory;
+            var root = Runtime.IsWeb ? System.Web.HttpRuntime.BinDirectory : AppDomain.CurrentDomain.BaseDirectory;
 #else
             var root = AppDomain.CurrentDomain.BaseDirectory;
 #endif
@@ -59,9 +57,11 @@ namespace XCode.DataAccessLayer
                 {
                     _metadata.Dispose();
                 }
-                catch { }
+                catch (Exception ex) { XTrace.WriteException(ex); }
                 _metadata = null;
             }
+
+            _Pool.TryDispose();
         }
 
         /// <summary>释放所有会话</summary>
@@ -72,7 +72,7 @@ namespace XCode.DataAccessLayer
             {
                 foreach (var item in ss)
                 {
-                    item.TryDispose();
+                    item.Value.TryDispose();
                 }
                 ss.Clear();
             }
@@ -92,7 +92,7 @@ namespace XCode.DataAccessLayer
 
         #region 属性
         /// <summary>返回数据库类型。外部DAL数据库类请使用Other</summary>
-        public virtual DatabaseType Type { get { return DatabaseType.None; } }
+        public virtual DatabaseType Type => DatabaseType.None;
 
         /// <summary>工厂</summary>
         public abstract DbProviderFactory Factory { get; }
@@ -114,10 +114,7 @@ namespace XCode.DataAccessLayer
 #if DEBUG
                 XTrace.WriteLine("{0} 设定 {1}", ConnName, value);
 #endif
-                var builder = new XDbConnectionStringBuilder
-                {
-                    ConnectionString = value
-                };
+                var builder = new ConnectionStringBuilder(value);
 
                 OnSetConnectionString(builder);
 
@@ -131,6 +128,13 @@ namespace XCode.DataAccessLayer
                     _ConnectionString = connStr;
 
                     ReleaseSession();
+                }
+
+                // 更新连接池的连接字符串
+                if (_Pool != null)
+                {
+                    _Pool.ConnectionString = connStr;
+                    _Pool.Clear();
                 }
             }
         }
@@ -165,16 +169,17 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        protected virtual String DefaultConnectionString { get { return String.Empty; } }
+        protected virtual String DefaultConnectionString => String.Empty;
 
         /// <summary>设置连接字符串时允许从中取值或修改，基类用于读取拥有者Owner，子类重写时应调用基类</summary>
         /// <param name="builder"></param>
-        protected virtual void OnSetConnectionString(XDbConnectionStringBuilder builder)
+        protected virtual void OnSetConnectionString(ConnectionStringBuilder builder)
         {
-            if (builder.TryGetAndRemove(_.Owner, out var value) && !String.IsNullOrEmpty(value)) Owner = value;
-            if (builder.TryGetAndRemove(_.ShowSQL, out value) && !String.IsNullOrEmpty(value)) ShowSQL = value.ToBoolean();
-            if (builder.TryGetAndRemove(_.UserParameter, out value) && !String.IsNullOrEmpty(value)) UserParameter = value.ToBoolean();
-            if (builder.TryGetAndRemove(_.Migration, out value) && !String.IsNullOrEmpty(value)) Migration = (Migration)Enum.Parse(typeof(Migration), value, true);
+            if (builder.TryGetAndRemove(nameof(Owner), out var value) && !value.IsNullOrEmpty()) Owner = value;
+            if (builder.TryGetAndRemove(nameof(ShowSQL), out value) && !value.IsNullOrEmpty()) ShowSQL = value.ToBoolean();
+            if (builder.TryGetAndRemove(nameof(UserParameter), out value) && !value.IsNullOrEmpty()) UserParameter = value.ToBoolean();
+            if (builder.TryGetAndRemove(nameof(Migration), out value) && !value.IsNullOrEmpty()) Migration = (Migration)Enum.Parse(typeof(Migration), value, true);
+            if (builder.TryGetAndRemove(nameof(TablePrefix), out value) && !value.IsNullOrEmpty()) TablePrefix = value;
         }
 
         /// <summary>拥有者</summary>
@@ -213,6 +218,12 @@ namespace XCode.DataAccessLayer
 
         /// <summary>跟踪SQL执行时间，大于该阀值将输出日志</summary>
         public Int32 TraceSQLTime { get; set; } = Setting.Current.TraceSQLTime;
+
+        /// <summary>本连接数据只读。需求不够强劲，暂不支持在连接字符串中设置</summary>
+        public Boolean Readonly { get; set; }
+
+        /// <summary>表前缀。所有在该连接上的表名都自动增加该前缀</summary>
+        public String TablePrefix { get; set; }
         #endregion
 
         #region 方法
@@ -276,7 +287,7 @@ namespace XCode.DataAccessLayer
         /// <summary>是否支持该提供者所描述的数据库</summary>
         /// <param name="providerName">提供者</param>
         /// <returns></returns>
-        public virtual Boolean Support(String providerName) { return !String.IsNullOrEmpty(providerName) && providerName.ToLower().Contains(Type.ToString().ToLower()); }
+        public virtual Boolean Support(String providerName) => !providerName.IsNullOrEmpty() && providerName.ToLower().Contains(Type.ToString().ToLower());
         #endregion
 
         #region 下载驱动
@@ -294,11 +305,16 @@ namespace XCode.DataAccessLayer
             // 有些数据库驱动不区分x86/x64，并且逐步以Fx4为主，所以来一个默认
             linkName += ";" + name;
 
+#if __CORE__
+            linkName = "st_" + name;
+#endif
+
             var type = PluginHelper.LoadPlugin(className, null, assemblyFile, linkName);
 
             // 反射实现获取数据库工厂
             var file = assemblyFile;
-            file = NewLife.Setting.Current.GetPluginPath().CombinePath(file);
+            var plugin = NewLife.Setting.Current.GetPluginPath();
+            file = plugin.CombinePath(file);
 
             // 如果还没有，就写异常
             if (type == null && !File.Exists(file)) throw new FileNotFoundException("缺少文件" + file + "！", file);
@@ -535,12 +551,12 @@ namespace XCode.DataAccessLayer
 
         #region 数据库特性
         /// <summary>长文本长度</summary>
-        public virtual Int32 LongTextLength { get { return 4000; } }
+        public virtual Int32 LongTextLength => 4000;
 
         /// <summary>
         /// 保留字字符串，其实可以在首次使用时动态从Schema中加载
         /// </summary>
-        protected virtual String ReservedWordsStr { get { return null; } }
+        protected virtual String ReservedWordsStr => null;
 
         private Dictionary<String, Boolean> _ReservedWords = null;
         /// <summary>
@@ -570,7 +586,7 @@ namespace XCode.DataAccessLayer
         /// </summary>
         /// <param name="word"></param>
         /// <returns></returns>
-        internal Boolean IsReservedWord(String word) { return !String.IsNullOrEmpty(word) && ReservedWords.ContainsKey(word); }
+        internal Boolean IsReservedWord(String word) => !String.IsNullOrEmpty(word) && ReservedWords.ContainsKey(word);
 
         /// <summary>格式化时间为SQL字符串</summary>
         /// <remarks>
@@ -579,12 +595,12 @@ namespace XCode.DataAccessLayer
         /// </remarks>
         /// <param name="dateTime">时间值</param>
         /// <returns></returns>
-        public virtual String FormatDateTime(DateTime dateTime) { return "'" + dateTime.ToFullString() + "'"; }
+        public virtual String FormatDateTime(DateTime dateTime) => "'" + dateTime.ToFullString() + "'";
 
         /// <summary>格式化关键字</summary>
         /// <param name="keyWord">表名</param>
         /// <returns></returns>
-        public virtual String FormatKeyWord(String keyWord) { return keyWord; }
+        public virtual String FormatKeyWord(String keyWord) => keyWord;
 
         /// <summary>格式化名称，如果是关键字，则格式化后返回，否则原样返回</summary>
         /// <param name="name">名称</param>
@@ -680,7 +696,7 @@ namespace XCode.DataAccessLayer
         /// <param name="field">字段</param>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        public virtual String FormatIdentity(IDataColumn field, Object value) { return null; }
+        public virtual String FormatIdentity(IDataColumn field, Object value) => null;
 
         /// <summary>格式化参数名</summary>
         /// <param name="name">名称</param>
@@ -697,13 +713,13 @@ namespace XCode.DataAccessLayer
             return ParamPrefix + name;
         }
 
-        internal protected virtual String ParamPrefix { get { return "@"; } }
+        internal protected virtual String ParamPrefix => "@";
 
         /// <summary>字符串相加</summary>
         /// <param name="left"></param>
         /// <param name="right"></param>
         /// <returns></returns>
-        public virtual String StringConcat(String left, String right) { return (!String.IsNullOrEmpty(left) ? left : "\'\'") + "+" + (!String.IsNullOrEmpty(right) ? right : "\'\'"); }
+        public virtual String StringConcat(String left, String right) => (!left.IsNullOrEmpty() ? left : "\'\'") + "+" + (!right.IsNullOrEmpty() ? right : "\'\'");
 
         /// <summary>创建参数</summary>
         /// <param name="name">名称</param>
@@ -784,10 +800,7 @@ namespace XCode.DataAccessLayer
         /// <summary>创建参数数组</summary>
         /// <param name="ps"></param>
         /// <returns></returns>
-        public IDataParameter[] CreateParameters(IDictionary<String, Object> ps)
-        {
-            return ps.Select(e => CreateParameter(e.Key, e.Value)).ToArray();
-        }
+        public IDataParameter[] CreateParameters(IDictionary<String, Object> ps) => ps.Select(e => CreateParameter(e.Key, e.Value)).ToArray();
 
         /// <summary>获取 或 设置 自动关闭。每次使用完数据库连接后，是否自动关闭连接，高频操作时设为false可提升性能。默认true</summary>
         public Boolean AutoClose { get; set; } = true;
@@ -796,10 +809,7 @@ namespace XCode.DataAccessLayer
         #region 辅助函数
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override String ToString()
-        {
-            return String.Format("[{0}] {1} {2}", ConnName, Type, ServerVersion);
-        }
+        public override String ToString() => String.Format("[{0}] {1} {2}", ConnName, Type, ServerVersion);
 
         protected static String ResolveFile(String file)
         {

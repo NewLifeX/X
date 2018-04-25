@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Collections;
@@ -37,15 +38,7 @@ namespace NewLife.Caching
                 server = dic.ContainsKey("server") ? dic["server"] : "";
             }
 
-            var name = "{0}_{1}".F(server, db);
-            var set = CacheConfig.Current.GetOrAdd(name);
-            if (set.Provider.IsNullOrEmpty())
-            {
-                set.Provider = "Redis";
-                set.Value = $"Server={server};Password={pass};Db={db}";
-            }
-
-            return Create(set) as Redis;
+            return new Redis { Server = server, Password = pass, Db = db };
         }
         #endregion
 
@@ -58,14 +51,16 @@ namespace NewLife.Caching
 
         /// <summary>目标数据库。默认0</summary>
         public Int32 Db { get; set; }
+
+        /// <summary>出错重试次数。如果出现协议解析错误，可以重试的次数，默认0</summary>
+        public Int32 Retry { get; set; }
         #endregion
 
         #region 构造
         /// <summary>初始化</summary>
-        /// <param name="set"></param>
-        protected override void Init(CacheSetting set)
+        /// <param name="config"></param>
+        public override void Init(String config)
         {
-            var config = set?.Value;
             if (config.IsNullOrEmpty()) return;
 
             var dic = config.SplitAsDictionary("=", ";");
@@ -181,7 +176,18 @@ namespace NewLife.Caching
         {
             using (var pi = Pool.AcquireItem())
             {
-                return func(pi.Value);
+                var i = 0;
+                do
+                {
+                    try
+                    {
+                        return func(pi.Value);
+                    }
+                    catch (InvalidDataException)
+                    {
+                        if (i++ >= Retry) throw;
+                    }
+                } while (true);
             }
         }
         #endregion
@@ -248,7 +254,7 @@ namespace NewLife.Caching
         /// <param name="key">键</param>
         public override Boolean ContainsKey(String key)
         {
-            return Execute(rds => rds.Execute<String>("EXISTS", key) == "OK");
+            return Execute(rds => rds.Execute<Int32>("EXISTS", key) > 0);
         }
 
         /// <summary>设置缓存项有效期</summary>

@@ -15,26 +15,36 @@ namespace NewLife.Cube
         /// <param name="ctx"></param>
         public override void OnException(ExceptionContext ctx)
         {
-            // 判断控制器是否在管辖范围之内，不拦截其它控制器的异常信息
-            if (!ctx.ExceptionHandled && AreaRegistrationBase.Contains(ctx.Controller))
-            {
-                //XTrace.WriteException(ctx.Exception);
-                var ex = ctx.Exception?.GetTrue();
-                if (ex != null)
-                {
-                    // 避免反复出现缺少文件
-                    if (ex is HttpException hex && (UInt32)hex.ErrorCode == 0x80004005)
-                    {
-                        var url = HttpContext.Current.Request.RawUrl + "";
-                        if (!NotFoundFiles.Contains(url))
-                            NotFoundFiles.Add(url);
-                        else
-                            ex = null;
-                    }
+            if (ctx.ExceptionHandled) return;
 
-                    if (ex != null) XTrace.WriteException(ex);
+            //XTrace.WriteException(ctx.Exception);
+            var ex = ctx.Exception?.GetTrue();
+            if (ex != null)
+            {
+                // 避免反复出现缺少文件
+                if (ex is HttpException hex && (UInt32)hex.ErrorCode == 0x80004005)
+                {
+                    var url = HttpContext.Current.Request.RawUrl + "";
+                    if (!NotFoundFiles.Contains(url))
+                        NotFoundFiles.Add(url);
+                    else
+                        ex = null;
                 }
 
+                // 拦截没有权限
+                if (ex is NoPermissionException nex)
+                {
+                    ctx.Result = ctx.Controller.NoPermission(nex);
+                    ctx.ExceptionHandled = true;
+                }
+
+                if (ex != null) XTrace.WriteException(ex);
+            }
+            if (ctx.ExceptionHandled) return;
+
+            // 判断控制器是否在管辖范围之内，不拦截其它控制器的异常信息
+            if (Setting.Current.CatchAllException || AreaRegistrationBase.Contains(ctx.Controller))
+            {
                 ctx.ExceptionHandled = true;
 
                 if (ctx.RequestContext.HttpContext.Request.IsAjaxRequest())

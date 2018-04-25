@@ -1,4 +1,5 @@
-﻿@using System.ComponentModel;
+﻿@model Object
+@using System.ComponentModel;
 @using System.Reflection;
 @using NewLife.Reflection;
 @{
@@ -8,9 +9,12 @@
     var pis = ViewBag.Properties as IEnumerable<PropertyInfo>;
 }
 <div class="row">
+    @Html.Partial("_Object_Nav", Model)
+</div>
+<div class="row">
     <div class="col-md-12">
         <div class="form-horizontal">
-            @using (Html.BeginForm())
+            @using (Html.BeginForm("Update", null))
             {
                 @Html.AntiForgeryToken()
                 @Html.ValidationSummary(true)
@@ -34,11 +38,14 @@
                         <span class="hidden-xs col-md-5">&nbsp; @des</span>
                     </div>
                 }
-                <div class="clearfix form-actions col-sm-12 col-md-12">
-                    <label class="control-label col-xs-4 col-sm-5 col-md-5"></label>
-                    <button type="submit" class="btn btn-success"><i class="glyphicon glyphicon-save"></i><strong>保存</strong></button>
-                    <button type="button" class="btn btn-danger" onclick="history.go(-1);"><i class="glyphicon glyphicon-remove"></i><strong>取消</strong></button>
-                </div>
+                if (this.Has(PermissionFlags.Update))
+                {
+                    <div class="clearfix form-actions col-sm-12 col-md-12">
+                        <label class="control-label col-xs-4 col-sm-5 col-md-5"></label>
+                        <button type="submit" class="btn btn-success"><i class="glyphicon glyphicon-save"></i><strong>保存</strong></button>
+                        <button type="button" class="btn btn-danger" onclick="history.go(-1);"><i class="glyphicon glyphicon-remove"></i><strong>取消</strong></button>
+                    </div>
+                }
             }
         </div>
     </div>

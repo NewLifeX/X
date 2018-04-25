@@ -10,6 +10,8 @@ using NewLife.Common;
 using NewLife.Reflection;
 using XCode.Membership;
 using XCode;
+using System.Web.Hosting;
+using System.IO;
 
 namespace NewLife.Cube.Admin.Controllers
 {
@@ -27,10 +29,13 @@ namespace NewLife.Cube.Admin.Controllers
 
         /// <summary>首页</summary>
         /// <returns></returns>
-        [EntityAuthorize(PermissionFlags.Detail)]
-        //[AllowAnonymous]
+        //[EntityAuthorize(PermissionFlags.Detail)]
+        [AllowAnonymous]
         public ActionResult Index()
         {
+            var user = ManageProvider.Provider.TryLogin();
+            if (user == null) return RedirectToAction("Login", "User", new { r = Request.Url.PathAndQuery });
+
             ViewBag.User = ManageProvider.User;
             ViewBag.Config = SysConfig.Current;
 
@@ -47,14 +52,14 @@ namespace NewLife.Cube.Admin.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [DisplayName("服务器信息")]
-        [EntityAuthorize(PermissionFlags.Detail, ResourceName = "Main")]
+        [EntityAuthorize(PermissionFlags.Detail)]
         public ActionResult Main(String id)
         {
-            if (id == "Restart")
-            {
-                HttpRuntime.UnloadAppDomain();
-                id = null;
-            }
+            //if (id == "Restart")
+            //{
+            //    HttpRuntime.UnloadAppDomain();
+            //    id = null;
+            //}
 
             ViewBag.Act = id;
             //ViewBag.User = ManageProvider.User;
@@ -71,7 +76,6 @@ namespace NewLife.Cube.Admin.Controllers
             catch { }
 
             ViewBag.WebServerName = name;
-
             ViewBag.MyAsms = AssemblyX.GetMyAssemblies().OrderBy(e => e.Name).OrderByDescending(e => e.Compile).ToArray();
 
             var Asms = AssemblyX.GetAssemblies(null).ToArray();
@@ -88,6 +92,34 @@ namespace NewLife.Cube.Admin.Controllers
                 case "servervar": return View("ServerVar");
                 default: return View();
             }
+        }
+
+        /// <summary>重启</summary>
+        /// <returns></returns>
+        [DisplayName("重启")]
+        [EntityAuthorize((PermissionFlags)16)]
+        public ActionResult Restart()
+        {
+            //System.Web.HttpContext.Current.User = null;
+            //try
+            //{
+            //    Process.GetCurrentProcess().Kill();
+            //}
+            //catch { }
+            //try
+            {
+                //AppDomain.Unload(AppDomain.CurrentDomain);
+                //HttpContext.User = null;
+                //HttpRuntime.UnloadAppDomain();
+                //HostingEnvironment.InitiateShutdown();
+                //ApplicationManager.GetApplicationManager().ShutdownAll();
+                // 通过修改web.config时间来重启站点，稳定可靠
+                var wc = "web.config".GetFullPath();
+                System.IO.File.SetLastWriteTime(wc, DateTime.Now);
+            }
+            //catch { }
+
+            return RedirectToAction(nameof(Main));
         }
 
         /// <summary>菜单不可见</summary>

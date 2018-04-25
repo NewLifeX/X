@@ -25,8 +25,6 @@ namespace XApi
         ILog BizLog;
 
         #region 窗体
-        static FrmMain() { }
-
         public FrmMain()
         {
             InitializeComponent();
@@ -86,8 +84,7 @@ namespace XApi
             mi显示统计信息.Checked = cfg.ShowStat;
 
             cbMode.SelectedItem = cfg.Mode;
-            txtUser.Text = cfg.UserName;
-            txtPass.Text = cfg.Password;
+            numPort.Value = cfg.Port;
 
             txtSend.Text = cfg.SendContent;
             numMutilSend.Value = cfg.SendTimes;
@@ -104,8 +101,7 @@ namespace XApi
             cfg.ShowStat = mi显示统计信息.Checked;
 
             cfg.Mode = cbMode.SelectedItem + "";
-            cfg.UserName = txtUser.Text;
-            cfg.Password = txtPass.Text;
+            cfg.Port = (Int32)numPort.Value;
 
             cfg.SendContent = txtSend.Text;
             cfg.SendTimes = (Int32)numMutilSend.Value;
@@ -146,16 +142,10 @@ namespace XApi
                     client.Log = cfg.ShowLog ? log : Logger.Null;
                     client.EncoderLog = cfg.ShowEncoderLog ? log : Logger.Null;
 
-                    // 连接成功后拉取Api列表
-                    client.Opened += (s, e) =>
-                    {
-                        GetApiAll();
-                        //client.UserName = cfg.UserName;
-                        //client.Password = cfg.Password;
-                    };
-
                     _Client = client;
                     client.Open();
+                    // 连接成功后拉取Api列表
+                    GetApiAll();
 
                     "已连接服务器".SpeechTip();
 
@@ -164,7 +154,6 @@ namespace XApi
                     return;
             }
 
-            pnlInfo.Enabled = true;
             pnlSetting.Enabled = false;
             btnConnect.Text = "关闭";
 
@@ -218,7 +207,6 @@ namespace XApi
                 _timer = null;
             }
 
-            pnlInfo.Enabled = false;
             pnlSetting.Enabled = true;
             btnConnect.Text = "打开";
         }
@@ -231,9 +219,9 @@ namespace XApi
 
             var msg = "";
             if (_Client != null)
-                msg = _Client.Client.GetService<ISocketClient>()?.GetStat();
+                msg = _Client.Client?.GetStat();
             else if (_Server != null)
-                msg = (_Server.Servers[0] as NetServer)?.GetStat();
+                msg = (_Server.Server as NetServer)?.GetStat();
 
             if (!msg.IsNullOrEmpty() && msg != _lastStat)
             {
@@ -281,7 +269,6 @@ namespace XApi
             }
         }
 
-        Byte _Seq = 0;
         private async void btnSend_Click(Object sender, EventArgs e)
         {
             var str = txtSend.Text;
@@ -295,7 +282,7 @@ namespace XApi
             // 多次发送
             var count = (Int32)numMutilSend.Value;
             var sleep = (Int32)numSleep.Value;
-            var ths = (Int32)numThreads.Value;
+            //var ths = (Int32)numThreads.Value;
             if (count <= 0) count = 1;
             if (sleep <= 0) sleep = 1;
 
@@ -314,44 +301,24 @@ namespace XApi
 
             if (_Client != null)
             {
-                var uri = new NetUri(cbAddr.Text);
-                var cookie = new Dictionary<String, Object>();
-                if (uri.Type == NetType.Http || uri.Type == NetType.WebSocket) cookie["seq"] = ++_Seq;
-
-                if (ths <= 1)
+                var ts = new List<Task>();
+                for (var i = 0; i < count; i++)
                 {
-                    try
+                    ts.Add(Task.Run(async () =>
                     {
-                        await _Client.InvokeAsync<Object>(act, args, cookie);
-                    }
-                    catch (ApiException ex)
-                    {
-                        BizLog.Info(ex.Message);
-                    }
+                        try
+                        {
+                            await _Client.InvokeAsync<Object>(act, args);
+                        }
+                        catch (ApiException ex)
+                        {
+                            BizLog.Info(ex.Message);
+                        }
+                    }));
                 }
-                //else
-                //{
-                //    Parallel.For(0, ths, n =>
-                //    {
-                //        var client = _Client.Remote.CreateRemote();
-                //        client.StatSend = _Client.StatSend;
-                //        client.StatReceive = _Client.StatReceive;
-                //        client.SendMulti(pk, count, sleep);
-                //    });
-                //}
+
+                await Task.WhenAll(ts);
             }
-            //else if (_Server != null)
-            //{
-            //    Task.Run(async () =>
-            //    {
-            //        for (Int32 i = 0; i < count; i++)
-            //        {
-            //            var cs = await _Server.SendAllAsync(buf);
-            //            XTrace.WriteLine("已向[{0}]个客户端发送[{1}]数据", cs, buf.Length);
-            //            if (sleep > 0) await Task.Delay(sleep);
-            //        }
-            //    });
-            //}
         }
         #endregion
 
@@ -398,11 +365,6 @@ namespace XApi
                 {
                     case "String":
                         val = "";
-                        switch (ss[1].ToLower())
-                        {
-                            case "user": val = set.UserName; break;
-                            case "pass": val = set.Password; break;
-                        }
                         break;
                     case "Int32":
                         val = 0;

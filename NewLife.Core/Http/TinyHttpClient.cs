@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Collections;
 using NewLife.Data;
+using NewLife.Log;
 using NewLife.Net;
 
 namespace NewLife.Http
@@ -64,7 +65,7 @@ namespace NewLife.Http
                 ns = tc?.GetStream();
                 active = tc != null && tc.Connected && ns != null && ns.CanWrite && ns.CanRead;
             }
-            catch { }
+            catch (Exception ex) { XTrace.WriteException(ex); }
 
             // 如果连接不可用，则重新建立连接
             if (!active)

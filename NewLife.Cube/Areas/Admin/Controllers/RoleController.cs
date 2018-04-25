@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Web.Mvc;
+using NewLife.Web;
 using XCode;
 using XCode.Membership;
 
@@ -32,6 +33,23 @@ namespace NewLife.Cube.Admin.Controllers
             base.OnActionExecuting(filterContext);
         }
 
+        /// <summary>搜索数据集</summary>
+        /// <param name="p"></param>
+        /// <returns></returns>
+        protected override IEnumerable<Role> Search(Pager p)
+        {
+            var id = p["id"].ToInt(-1);
+            if (id > 0)
+            {
+                var list = new List<Role>();
+                var entity = Role.FindByID(id);
+                if (entity != null) list.Add(entity);
+                return list;
+            }
+
+            return Role.Search(p["dtStart"].ToDateTime(), p["dtEnd"].ToDateTime(), p["Q"], p);
+        }
+
         /// <summary>保存</summary>
         /// <param name="entity"></param>
         /// <returns></returns>
@@ -54,7 +72,7 @@ namespace NewLife.Cube.Admin.Controllers
                     var any = false;
                     foreach (var pf in item.Permissions)
                     {
-                        var has2 = GetBool("pf" + item.ID + "_" + ((Int32)pf.Key));
+                        var has2 = GetBool("pf" + item.ID + "_" + pf.Key);
 
                         if (has2)
                             entity.Set(item.ID, (PermissionFlags)pf.Key);
@@ -74,11 +92,16 @@ namespace NewLife.Cube.Admin.Controllers
 
             return base.Edit(entity);
         }
+
+        /// <summary>打印</summary>
+        /// <returns></returns>
         [DisplayName("打印")]
+        [EntityAuthorize((PermissionFlags)16)]
         public ActionResult Print()
         {
             return View();
         }
+
         Boolean GetBool(String name)
         {
             var v = Request[name];

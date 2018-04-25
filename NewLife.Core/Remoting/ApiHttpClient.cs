@@ -1,4 +1,5 @@
 ﻿using System;
+using NewLife.Http;
 using NewLife.Net;
 
 namespace NewLife.Remoting
@@ -9,15 +10,13 @@ namespace NewLife.Remoting
         {
             if (config is NetUri uri)
                 Client = uri.CreateRemote();
-            else if (config is Uri)
-                Client = ((Uri)config).CreateRemote();
-            else if (config is String)
-                Client = new Uri(config + "").CreateRemote();
+            //else if (config is Uri)
+            //    Client = ((Uri)config).CreateRemote();
+            //else if (config is String)
+            //    Client = new Uri(config + "").CreateRemote();
 
             // Http封包协议
-            //Client.Packet = new HttpPacket();
-            //Client.Packet = new PacketProvider { Offset = -1 };
-            //Client.Packet = null;
+            Client.Add<HttpCodec>();
 
             // 网络非法断开时，自动恢复
             Client.OnDisposed += (s, e) => { if (Active) { Init(config); Open(); } };

@@ -50,6 +50,7 @@
     <Compile Include="..\NewLife.Core\Common\IdentityCard.cs" Link="Common\IdentityCard.cs" />
     <Compile Include="..\NewLife.Core\Common\PinYin.cs" Link="Common\PinYin.cs" />
     <Compile Include="..\NewLife.Core\Common\Runtime.cs" Link="Common\Runtime.cs" />
+    <Compile Include="..\NewLife.Core\Common\SysConfig.cs" Link="Common\SysConfig.cs" />
     <Compile Include="..\NewLife.Core\Common\Utility.cs" Link="Common\Utility.cs" />
     <Compile Include="..\NewLife.Core\Compression\SevenZip.cs" Link="Compression\SevenZip.cs" />
     <Compile Include="..\NewLife.Core\Compression\ZipConstants.cs" Link="Compression\ZipConstants.cs" />
@@ -98,6 +99,7 @@
     <Compile Include="..\NewLife.Core\Messaging\IMessage.cs" Link="Messaging\IMessage.cs" />
     <Compile Include="..\NewLife.Core\Messaging\MessageBase.cs" Link="Messaging\MessageBase.cs" />
     <Compile Include="..\NewLife.Core\Messaging\MessageEventArgs.cs" Link="Messaging\MessageEventArgs.cs" />
+    <Compile Include="..\NewLife.Core\Model\IAuthUser.cs" Link="Model\IAuthUser.cs" />
     <Compile Include="..\NewLife.Core\Model\IFactory.cs" Link="Model\IFactory.cs" />
     <Compile Include="..\NewLife.Core\Model\IHistory.cs" Link="Model\IHistory.cs" />
     <Compile Include="..\NewLife.Core\Model\IManageUser.cs" Link="Model\IManageUser.cs" />
@@ -263,7 +265,6 @@
     <Folder Include="Serialization\Interface\" />
     <Folder Include="Serialization\Json\" />
     <Folder Include="Serialization\Xml\" />
-    <Folder Include="Stub\" />
     <Folder Include="Threading\" />
     <Folder Include="Web\Modules\" />
     <Folder Include="Web\OAuth\" />
@@ -278,6 +279,12 @@
     <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
     <PackageReference Include="System.Net.NetworkInformation" Version="4.3.0" />
     <PackageReference Include="System.Threading.Thread" Version="4.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Web.Extensions">
+      <HintPath>..\..\..\..\..\..\..\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.Web.Extensions.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

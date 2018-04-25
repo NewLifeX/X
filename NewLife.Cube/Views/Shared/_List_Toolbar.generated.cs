@@ -62,7 +62,6 @@ namespace ASP
   
     var fact = ViewBag.Factory as IEntityOperate;
     var page = ViewBag.Page as Pager ?? new Pager();
-    var user = ViewBag.User as IUser ?? (User == null ? null : User.Identity as IUser);
 
     var act = ViewBag.Action as String;
     if (act.IsNullOrEmpty()) { act = Url.Action("Index"); }
@@ -82,14 +81,14 @@ WriteLiteral(" class=\"form-inline\"");
 
 WriteLiteral(">\r\n        <form");
 
-WriteAttribute("action", Tuple.Create(" action=\"", 485), Tuple.Create("\"", 528)
+WriteAttribute("action", Tuple.Create(" action=\"", 396), Tuple.Create("\"", 439)
             
-            #line 16 "..\..\Views\Shared\_List_Toolbar.cshtml"
-, Tuple.Create(Tuple.Create("", 494), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetFormAction(act))
+            #line 15 "..\..\Views\Shared\_List_Toolbar.cshtml"
+, Tuple.Create(Tuple.Create("", 405), Tuple.Create<System.Object, System.Int32>(Html.Raw(page.GetFormAction(act))
             
             #line default
             #line hidden
-, 494), false)
+, 405), false)
 );
 
 WriteLiteral(" method=\"post\"");
@@ -99,29 +98,30 @@ WriteLiteral(" role=\"form\"");
 WriteLiteral(">\r\n");
 
             
-            #line 17 "..\..\Views\Shared\_List_Toolbar.cshtml"
+            #line 16 "..\..\Views\Shared\_List_Toolbar.cshtml"
             
             
             #line default
             #line hidden
             
-            #line 17 "..\..\Views\Shared\_List_Toolbar.cshtml"
-             if (user.Has(PermissionFlags.Insert))
+            #line 16 "..\..\Views\Shared\_List_Toolbar.cshtml"
+             if (this.Has(PermissionFlags.Insert))
             {
+                var rv = page.GetRouteValue();
                 
             
             #line default
             #line hidden
             
             #line 19 "..\..\Views\Shared\_List_Toolbar.cshtml"
-           Write(Html.ActionLink("添加" + ViewContext.Controller.GetType().GetDisplayName(), "Add", null, new { @class = "btn btn-success btn-sm" }));
+           Write(Html.ActionLink("添加" + ViewContext.Controller.GetType().GetDisplayName(), "Add", rv, new { @class = "btn btn-success btn-sm" }.ToDictionary()));
 
             
             #line default
             #line hidden
             
             #line 19 "..\..\Views\Shared\_List_Toolbar.cshtml"
-                                                                                                                                                  
+                                                                                                                                                               
             }
 
             

@@ -18,7 +18,7 @@ namespace NewLife.Net
 
         internal ISocketServer _Server;
         /// <summary>Socket服务器。当前通讯所在的Socket服务器，其实是TcpServer/UdpServer。该属性决定本会话是客户端会话还是服务的会话</summary>
-        ISocketServer ISocketSession.Server { get { return _Server; } }
+        ISocketServer ISocketSession.Server => _Server;
 
         /// <summary>自动重连次数，默认3。发生异常断开连接时，自动重连服务端。</summary>
         public Int32 AutoReconnect { get; set; } = 3;
@@ -38,16 +38,11 @@ namespace NewLife.Net
 
         /// <summary>使用监听口初始化</summary>
         /// <param name="listenPort"></param>
-        public TcpSession(Int32 listenPort)
-            : this()
-        {
-            Port = listenPort;
-        }
+        public TcpSession(Int32 listenPort) : this() => Port = listenPort;
 
         /// <summary>用TCP客户端初始化</summary>
         /// <param name="client"></param>
-        public TcpSession(Socket client)
-            : this()
+        public TcpSession(Socket client) : this()
         {
             if (client == null) return;
 
@@ -116,7 +111,7 @@ namespace NewLife.Net
             var client = Client;
             if (client != null)
             {
-               
+
                 WriteLog("Close {0} {1}", reason, this);
 
                 // 提前关闭这个标识，否则Close时可能触发自动重连机制
@@ -132,13 +127,13 @@ namespace NewLife.Net
                 }
                 catch (Exception ex)
                 {
- 					Client = null;
+                    Client = null;
                     if (!ex.IsDisposed()) OnError("Close", ex);
                     if (ThrowException) throw;
 
                     return false;
                 }
-				 Client = null;
+                Client = null;
             }
 
             return true;
@@ -191,8 +186,6 @@ namespace NewLife.Net
 
             return true;
         }
-
-        internal override Boolean OnSendAsync(SocketAsyncEventArgs se) { return Client.SendAsync(se); }
         #endregion
 
         #region 接收
@@ -227,7 +220,8 @@ namespace NewLife.Net
         /// <summary>处理收到的数据</summary>
         /// <param name="pk"></param>
         /// <param name="remote"></param>
-        protected override Boolean OnReceive(Packet pk, IPEndPoint remote)
+        /// <param name="message">消息</param>
+        protected override Boolean OnReceive(Packet pk, IPEndPoint remote, Object message)
         {
             if (pk == null || pk.Count == 0 && !MatchEmpty) return true;
 
@@ -237,15 +231,16 @@ namespace NewLife.Net
 #endif
 
             StatReceive?.Increment(pk.Count);
-            if (base.OnReceive(pk, remote)) return true;
+            if (base.OnReceive(pk, remote, message)) return true;
 
             // 分析处理
             var e = new ReceivedEventArgs(pk)
             {
-                UserState = Remote.EndPoint
+                Message = message,
+                UserState = Remote.EndPoint,
             };
 
-            if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", e.Length, e.ToHex(32, null));
+            //if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", e.Length, e.ToHex(32, null));
 
             RaiseReceive(this, e);
 

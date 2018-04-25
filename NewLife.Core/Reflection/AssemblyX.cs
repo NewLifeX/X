@@ -131,7 +131,7 @@ namespace NewLife.Reflection
 
         static AssemblyX()
         {
-#if !__MOBILE__ && !__CORE__
+#if !__MOBILE__
             AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += (sender, args) =>
             {
                 var flag = XTrace.Debug && XTrace.Log.Level == LogLevel.Debug;

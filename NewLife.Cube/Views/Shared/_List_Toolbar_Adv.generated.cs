@@ -126,7 +126,7 @@ WriteLiteral("\r\n");
             #line hidden
             
             #line 27 "..\..\Views\Shared\_List_Toolbar_Adv.cshtml"
-         if (user.Has(PermissionFlags.Delete))
+         if (this.Has(PermissionFlags.Delete))
         {
 
             

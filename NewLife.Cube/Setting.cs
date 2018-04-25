@@ -47,6 +47,14 @@ namespace NewLife.Cube
         [Description("自动注册。第三方登录后，如果本地未登录，自动注册新用户")]
         public Boolean AutoRegister { get; set; } = true;
 
+        /// <summary>强行绑定用户。根据OAuth登录返回用户名强项绑定本地同名用户，而不需要增加提供者前缀</summary>
+        [Description("强行绑定用户。根据OAuth登录返回用户名强项绑定本地同名用户，而不需要增加提供者前缀")]
+        public Boolean ForceBindUser { get; set; }
+
+        /// <summary>会话超时。单点登录后会话超时时间，该时间内可借助Cookie登录，默认0s</summary>
+        [Description("会话超时。单点登录后会话超时时间，该时间内可借助Cookie登录，默认0s")]
+        public Int32 SessionTimeout { get; set; } = 0;
+
         /// <summary>登录提示。留空表示不显示登录提示信息</summary>
         [Description("登录提示。留空表示不显示登录提示信息")]
         public String LoginTip { get; set; }
@@ -62,6 +70,10 @@ namespace NewLife.Cube
         /// <summary>访问统计。统计页面访问量</summary>
         [Description("访问统计。统计页面访问量")]
         public Boolean WebStatistics { get; set; } = true;
+
+        /// <summary>捕获所有异常。默认false只捕获魔方区域异常</summary>
+        [Description("捕获所有异常。默认false只捕获魔方区域异常")]
+        public Boolean CatchAllException { get; set; }
 
         /// <summary>表单组样式。大中小屏幕分别3/2/1列</summary>
         [Description("表单组样式。大中小屏幕分别3/2/1列")]

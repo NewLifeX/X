@@ -90,12 +90,20 @@ namespace XCode.Membership
         public String Avatar { get { return _Avatar; } set { if (OnPropertyChanging(__.Avatar, value)) { _Avatar = value; OnPropertyChanged(__.Avatar); } } }
 
         private Int32 _RoleID;
-        /// <summary>角色</summary>
+        /// <summary>角色。主要角色</summary>
         [DisplayName("角色")]
-        [Description("角色")]
+        [Description("角色。主要角色")]
         [DataObjectField(false, false, false, 0)]
-        [BindColumn("RoleID", "角色", "int")]
+        [BindColumn("RoleID", "角色。主要角色", "int")]
         public Int32 RoleID { get { return _RoleID; } set { if (OnPropertyChanging(__.RoleID, value)) { _RoleID = value; OnPropertyChanged(__.RoleID); } } }
+
+        private String _RoleIDs;
+        /// <summary>角色组。次要角色集合</summary>
+        [DisplayName("角色组")]
+        [Description("角色组。次要角色集合")]
+        [DataObjectField(false, false, true, 200)]
+        [BindColumn("RoleIDs", "角色组。次要角色集合", "nvarchar(200)")]
+        public String RoleIDs { get { return _RoleIDs; } set { if (OnPropertyChanging(__.RoleIDs, value)) { _RoleIDs = value; OnPropertyChanged(__.RoleIDs); } } }
 
         private Boolean _Online;
         /// <summary>在线</summary>
@@ -174,6 +182,7 @@ namespace XCode.Membership
                     case __.Code : return _Code;
                     case __.Avatar : return _Avatar;
                     case __.RoleID : return _RoleID;
+                    case __.RoleIDs : return _RoleIDs;
                     case __.Online : return _Online;
                     case __.Enable : return _Enable;
                     case __.Logins : return _Logins;
@@ -198,6 +207,7 @@ namespace XCode.Membership
                     case __.Code : _Code = Convert.ToString(value); break;
                     case __.Avatar : _Avatar = Convert.ToString(value); break;
                     case __.RoleID : _RoleID = Convert.ToInt32(value); break;
+                    case __.RoleIDs : _RoleIDs = Convert.ToString(value); break;
                     case __.Online : _Online = Convert.ToBoolean(value); break;
                     case __.Enable : _Enable = Convert.ToBoolean(value); break;
                     case __.Logins : _Logins = Convert.ToInt32(value); break;
@@ -242,8 +252,11 @@ namespace XCode.Membership
             /// <summary>头像</summary>
             public static readonly Field Avatar = FindByName(__.Avatar);
 
-            /// <summary>角色</summary>
+            /// <summary>角色。主要角色</summary>
             public static readonly Field RoleID = FindByName(__.RoleID);
+
+            /// <summary>角色组。次要角色集合</summary>
+            public static readonly Field RoleIDs = FindByName(__.RoleIDs);
 
             /// <summary>在线</summary>
             public static readonly Field Online = FindByName(__.Online);
@@ -299,8 +312,11 @@ namespace XCode.Membership
             /// <summary>头像</summary>
             public const String Avatar = "Avatar";
 
-            /// <summary>角色</summary>
+            /// <summary>角色。主要角色</summary>
             public const String RoleID = "RoleID";
+
+            /// <summary>角色组。次要角色集合</summary>
+            public const String RoleIDs = "RoleIDs";
 
             /// <summary>在线</summary>
             public const String Online = "Online";
@@ -357,8 +373,11 @@ namespace XCode.Membership
         /// <summary>头像</summary>
         String Avatar { get; set; }
 
-        /// <summary>角色</summary>
+        /// <summary>角色。主要角色</summary>
         Int32 RoleID { get; set; }
+
+        /// <summary>角色组。次要角色集合</summary>
+        String RoleIDs { get; set; }
 
         /// <summary>在线</summary>
         Boolean Online { get; set; }

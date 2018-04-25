@@ -93,8 +93,8 @@ namespace NewLife.Net
             }
         }
 
-        /// <summary>粘包处理接口</summary>
-        public IPacket Packet { get; set; }
+        ///// <summary>粘包处理接口</summary>
+        //public IPacket Packet { get; set; }
 
         /// <summary>字节超时。数据包间隔，默认20ms</summary>
         public Int32 ByteTimeout { get; set; } = 20;
@@ -192,9 +192,11 @@ namespace NewLife.Net
         {
             if (!Open()) return null;
 
-            if (Packet == null) Packet = new PacketProvider();
+            //if (Packet == null) Packet = new PacketProvider();
 
-            var task = Packet.Add(pk, null, Timeout);
+            //var task = Packet.Add(pk, null, Timeout);
+
+            _Source = new TaskCompletionSource<Packet>();
 
             if (pk != null)
             {
@@ -204,7 +206,7 @@ namespace NewLife.Net
                 Serial.Write(pk.Data, pk.Offset, pk.Count);
             }
 
-            return await task;
+            return await _Source.Task;
         }
 
         /// <summary>接收数据</summary>
@@ -270,16 +272,16 @@ namespace NewLife.Net
         {
             try
             {
-                if (Packet == null)
-                    OnReceive(pk);
-                else
-                {
-                    // 拆包，多个包多次调用处理程序
-                    foreach (var msg in Packet.Parse(pk))
-                    {
-                        OnReceive(msg);
-                    }
-                }
+                //if (Packet == null)
+                OnReceive(pk);
+                //else
+                //{
+                //    // 拆包，多个包多次调用处理程序
+                //    foreach (var msg in Packet.Parse(pk))
+                //    {
+                //        OnReceive(msg);
+                //    }
+                //}
             }
             catch (Exception ex)
             {
@@ -287,12 +289,20 @@ namespace NewLife.Net
             }
         }
 
+        private TaskCompletionSource<Packet> _Source;
         /// <summary>处理收到的数据。默认匹配同步接收委托</summary>
         /// <param name="pk"></param>
         internal virtual void OnReceive(Packet pk)
         {
-            // 同步匹配
-            if (Packet != null && Packet.Match(pk, null)) return;
+            //// 同步匹配
+            //if (Packet != null && Packet.Match(pk, null)) return;
+
+            if (_Source != null)
+            {
+                _Source.SetResult(pk);
+                _Source = null;
+                return;
+            }
 
             // 触发事件
             Received?.Invoke(this, new ReceivedEventArgs(pk));

@@ -840,6 +840,25 @@ namespace System
 
             return stream;
         }
+
+        /// <summary>获取压缩编码整数</summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static Byte[] GetEncodedInt(Int64 value)
+        {
+            if (_encodes == null) _encodes = new Byte[16];
+
+            var count = 0;
+            var num = (UInt64)value;
+            while (num >= 0x80)
+            {
+                _encodes[count++] = (Byte)(num | 0x80);
+                num = num >> 7;
+            }
+            _encodes[count++] = (Byte)num;
+
+            return _encodes.ReadBytes(0, count);
+        }
         #endregion
 
         #region 数据流查找
@@ -898,7 +917,7 @@ namespace System
         /// <param name="offset">偏移</param>
         /// <param name="length">查找长度</param>
         /// <returns></returns>
-        public static Int64 IndexOf(this Byte[] source, Byte[] buffer, Int64 offset = 0, Int64 length = -1) { return IndexOf(source, 0, 0, buffer, offset, length); }
+        public static Int64 IndexOf(this Byte[] source, Byte[] buffer, Int64 offset = 0, Int64 length = -1) => IndexOf(source, 0, 0, buffer, offset, length);
 
         /// <summary>在字节数组中查找另一个字节数组的位置，不存在则返回-1</summary>
         /// <param name="source">字节数组</param>
@@ -941,7 +960,7 @@ namespace System
         /// <param name="source"></param>
         /// <param name="buffer">缓冲区</param>
         /// <returns></returns>
-        public static Int32 CompareTo(this Byte[] source, Byte[] buffer) { return CompareTo(source, 0, 0, buffer, 0, 0); }
+        public static Int32 CompareTo(this Byte[] source, Byte[] buffer) => CompareTo(source, 0, 0, buffer, 0, 0);
 
         /// <summary>比较两个字节数组大小。相等返回0，不等则返回不等的位置，如果位置为0，则返回1。</summary>
         /// <param name="source"></param>

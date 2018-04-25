@@ -138,12 +138,12 @@ namespace NewLife.Net.Sdp
             }
             retVal.Append("\r\n");
             // i (media title)
-            if (!string.IsNullOrEmpty(Information))
+            if (!String.IsNullOrEmpty(Information))
             {
                 retVal.Append("i=" + Information + "\r\n");
             }
             // b (bandwidth information)
-            if (!string.IsNullOrEmpty(Bandwidth))
+            if (!String.IsNullOrEmpty(Bandwidth))
             {
                 retVal.Append("b=" + Bandwidth + "\r\n");
             }

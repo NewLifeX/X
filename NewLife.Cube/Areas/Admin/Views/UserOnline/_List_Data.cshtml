@@ -10,7 +10,7 @@
 @{
     var fact = ViewBag.Factory as IEntityOperate;
     var page = ViewBag.Page as Pager;
-    var fields = ViewBag.Fields as IReadOnlyList<FieldItem>;
+    var fields = ViewBag.Fields as IList<FieldItem>;
     var enableSelect = this.EnableSelect();
 }
 <table class="table table-bordered table-hover table-striped table-condensed">
@@ -29,7 +29,7 @@
             <th class="text-center"><a href="@Html.Raw(page.GetSortUrl("CreateAddress"))">物理地址</a></th>
             <th class="text-center"><a href="@Html.Raw(page.GetSortUrl("CreateTime"))">创建时间</a></th>
             <th class="text-center"><a href="@Html.Raw(page.GetSortUrl("UpdateTime"))">修改时间</a></th>
-            @if (ManageProvider.User.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
+            @if (this.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
             {
                 <th class="text-center">操作</th>
             }
@@ -52,7 +52,7 @@
                 <td>@entity.CreateAddress</td>
                 <td>@entity.CreateTime.ToFullString("")</td>
                 <td>@entity.UpdateTime.ToFullString("")</td>
-                @if (ManageProvider.User.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
+                @if (this.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
                 {
                     <td class="text-center">
                         @Html.Partial("_List_Data_Action", (Object)entity)

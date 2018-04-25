@@ -24,7 +24,7 @@
         @*<li>
                 <a href="@Url.Action("ImportJson")">导入Json</a>
             </li>*@
-        @if (user.Has(PermissionFlags.Delete))
+        @if (this.Has(PermissionFlags.Delete))
         {
             <li class="divider"></li>
             <li>

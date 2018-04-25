@@ -15,10 +15,7 @@ namespace XCode.DataAccessLayer
         /// <summary>根据数据库类型创建提供者</summary>
         /// <param name="dbType"></param>
         /// <returns></returns>
-        public static IDatabase Create(DatabaseType dbType)
-        {
-            return XCodeService.Container.ResolveInstance<IDatabase>(dbType);
-        }
+        public static IDatabase Create(DatabaseType dbType) => XCodeService.Container.ResolveInstance<IDatabase>(dbType);
         #endregion
 
         #region 静态构造

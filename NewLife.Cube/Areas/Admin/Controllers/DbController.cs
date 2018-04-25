@@ -15,7 +15,7 @@ using Task = System.Threading.Tasks.TaskEx;
 namespace NewLife.Cube.Admin.Controllers
 {
     /// <summary>数据库管理</summary>
-    [DisplayName("数据库管理")]
+    [DisplayName("数据库")]
     [EntityAuthorize(PermissionFlags.Detail)]
     public class DbController : ControllerBaseX
     {

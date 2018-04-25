@@ -13,9 +13,6 @@ namespace NewLife.Cube.Controllers
             ViewBag.Message = "主页面";
 
             return View();
-            //return View("../Home/Index");
-            //Response.Redirect("~/Admin");
-            //return new EmptyResult();
         }
     }
 }

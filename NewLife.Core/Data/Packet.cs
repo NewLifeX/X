@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace NewLife.Data
 {
-    /// <summary>封包</summary>
+    /// <summary>数据包</summary>
     public class Packet
     {
         #region 属性
@@ -30,7 +30,21 @@ namespace NewLife.Data
         /// <param name="data"></param>
         /// <param name="offset"></param>
         /// <param name="count"></param>
-        public Packet(Byte[] data, Int32 offset = 0, Int32 count = -1) { Set(data, offset, count); }
+        public Packet(Byte[] data, Int32 offset = 0, Int32 count = -1) => Set(data, offset, count);
+
+        /// <summary>根据数组段实例化</summary>
+        /// <param name="seg"></param>
+        public Packet(ArraySegment<Byte> seg) => Set(seg.Array, seg.Offset, seg.Count);
+
+        // 下面代码需要.Net 4.6支持
+        //public Packet(MemoryStream stream)
+        //{
+        //    // 尝试抠了内部存储区，下面代码需要.Net 4.6支持
+        //    if (stream.TryGetBuffer(out var seg))
+        //        Set(seg.Array, seg.Offset, seg.Count);
+        //    else
+        //        Set(stream.ToArray());
+        //}
         #endregion
 
         #region 索引
@@ -208,6 +222,15 @@ namespace NewLife.Data
             //return ToArray().ReadBytes(offset, count);
         }
 
+        /// <summary>返回数据段</summary>
+        /// <returns></returns>
+        public ArraySegment<Byte> ToSegment()
+        {
+            if (Next == null) return new ArraySegment<Byte>(Data, Offset, Count);
+
+            return new ArraySegment<Byte>(ToArray());
+        }
+
         /// <summary>获取封包的数据流形式</summary>
         /// <returns></returns>
         public virtual Stream GetStream()
@@ -299,10 +322,12 @@ namespace NewLife.Data
         /// <summary>重载类型转换，字节数组直接转为Packet对象</summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static implicit operator Packet(Byte[] value)
-        {
-            return new Packet(value);
-        }
+        public static implicit operator Packet(Byte[] value) => new Packet(value);
+
+        /// <summary>重载类型转换，一维数组直接转为Packet对象</summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static implicit operator Packet(ArraySegment<Byte> value) => new Packet(value);
 
         /// <summary>已重载</summary>
         /// <returns></returns>

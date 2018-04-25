@@ -154,6 +154,12 @@ namespace XCode.DataAccessLayer
 
         /// <summary>获取 或 设置 自动关闭。每次使用完数据库连接后，是否自动关闭连接，高频操作时设为false可提升性能。默认true</summary>
         Boolean AutoClose { get; set; }
+
+        /// <summary>本连接数据只读。需求不够强劲，暂不支持在连接字符串中设置</summary>
+        Boolean Readonly { get; set; }
+
+        /// <summary>表前缀。所有在该连接上的表名都自动增加该前缀</summary>
+        String TablePrefix { get; set; }
         #endregion
     }
 }

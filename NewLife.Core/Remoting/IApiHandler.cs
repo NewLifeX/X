@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Threading;
 using NewLife.Collections;
@@ -39,31 +38,9 @@ namespace NewLife.Remoting
             var controller = session.CreateController(api);
             if (controller == null) throw new ApiException(403, "无法创建名为[{0}]的服务！".F(api.Name));
 
-            if (controller is IApi) (controller as IApi).Session = session;
+            if (controller is IApi capi) capi.Session = session;
 
-            // 服务端需要检查登录授权
-            if (Host is ApiServer svrHost && !svrHost.Anonymous)
-            {
-                if (controller.GetType().GetCustomAttribute<AllowAnonymousAttribute>() == null &&
-                    api.Method.GetCustomAttribute<AllowAnonymousAttribute>() == null)
-                {
-                    if (session.UserSession == null || !session.UserSession.Logined) throw new ApiException(401, "未登录！");
-                }
-            }
-
-            // 服务设置优先于全局主机
-            var svr = session.GetService<IApiServer>();
-            var enc = svr?.Encoder ?? Host.Encoder;
-
-            // 全局过滤器、控制器特性、Action特性
-            var fs = api.ActionFilters;
-            // 控制器实现了过滤器接口
-            if (controller is IActionFilter)
-            {
-                var list = fs.ToList();
-                list.Add(controller as IActionFilter);
-                fs = list.ToArray();
-            }
+            var enc = Host.Encoder;
 
             // 不允许参数字典为空
             if (args == null)
@@ -93,8 +70,11 @@ namespace NewLife.Remoting
                 ControllerContext.Current = actx;
 
                 // 执行动作前的过滤器
-                OnExecuting(actx, fs);
-                rs = actx.Result;
+                if (controller is IActionFilter filter)
+                {
+                    filter.OnActionExecuting(actx);
+                    rs = actx.Result;
+                }
 
                 // 执行动作
                 if (rs == null) rs = controller.InvokeWithParams(api.Method, ps as IDictionary);
@@ -105,70 +85,36 @@ namespace NewLife.Remoting
                 // 过滤得到内层异常
                 ex = ex.GetTrue();
 
-                var efs = api.ExceptionFilters;
-                // 控制器实现了异常过滤器接口
-                if (controller is IExceptionFilter)
-                {
-                    var list = efs.ToList();
-                    list.Add(controller as IExceptionFilter);
-                    efs = list.ToArray();
-                }
-
                 // 执行异常过滤器
-                etx = OnException(ctx, ex, efs, rs);
+                if (controller is IExceptionFilter filter)
+                {
+                    etx = new ExceptionContext(ctx) { Exception = ex, Result = rs };
+                    filter.OnException(etx);
+                    rs = etx.Result ?? etx.Exception ?? ex;
+                }
+                else
+                    rs = ex;
 
                 Host.WriteLog("执行{0}出错！{1}", action, ex.Message);
 
                 // 如果异常没有被拦截，继续向外抛出
-                if (!etx.ExceptionHandled) throw;
+                if (etx != null && !etx.ExceptionHandled) throw;
 
-                return rs = etx.Result;
+                return rs;
             }
             finally
             {
                 // 执行动作后的过滤器
-                rs = OnExecuted(ctx, etx, fs, rs);
+                if (controller is IActionFilter filter)
+                {
+                    var atx = new ActionExecutedContext(etx ?? ctx) { Result = rs };
+                    filter.OnActionExecuted(atx);
+                    rs = atx.Result;
+                }
                 ControllerContext.Current = null;
             }
 
             return rs;
-        }
-
-        protected virtual void OnExecuting(ActionExecutingContext ctx, IActionFilter[] fs)
-        {
-            foreach (var filter in fs)
-            {
-                filter.OnActionExecuting(ctx);
-            }
-        }
-
-        protected virtual Object OnExecuted(ControllerContext ctx, ExceptionContext etx, IActionFilter[] fs, Object rs)
-        {
-            if (fs.Length == 0) return rs;
-
-            // 倒序
-            fs = fs.Reverse().ToArray();
-
-            var atx = new ActionExecutedContext(etx ?? ctx) { Result = rs };
-            foreach (var filter in fs)
-            {
-                filter.OnActionExecuted(atx);
-            }
-            return atx.Result;
-        }
-
-        protected virtual ExceptionContext OnException(ControllerContext ctx, Exception ex, IExceptionFilter[] fs, Object rs)
-        {
-            //if (fs.Length == 0) return null;
-
-            var etx = new ExceptionContext(ctx) { Exception = ex, Result = rs };
-
-            foreach (var filter in fs)
-            {
-                filter.OnException(etx);
-            }
-
-            return etx;
         }
 
         private IDictionary<String, Object> GetParams(MethodInfo method, IDictionary<String, Object> args, IEncoder encoder)

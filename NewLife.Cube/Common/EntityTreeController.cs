@@ -69,19 +69,19 @@ namespace NewLife.Cube
             return View("ListTree", list);
         }
 
-        /// <summary>要导出Xml的对象</summary>
-        /// <returns></returns>
-        protected override Object OnExportXml()
-        {
-            return EntityTree<TEntity>.Root.Childs;
-        }
+        ///// <summary>要导出Xml的对象</summary>
+        ///// <returns></returns>
+        //protected override Object OnExportXml()
+        //{
+        //    return EntityTree<TEntity>.Root.Childs;
+        //}
 
-        /// <summary>要导出Json的对象</summary>
-        /// <returns></returns>
-        protected override Object OnExportJson()
-        {
-            return EntityTree<TEntity>.Root.Childs;
-        }
+        ///// <summary>要导出Json的对象</summary>
+        ///// <returns></returns>
+        //protected override Object OnExportJson()
+        //{
+        //    return EntityTree<TEntity>.Root.Childs;
+        //}
 
         /// <summary>上升</summary>
         /// <param name="id"></param>

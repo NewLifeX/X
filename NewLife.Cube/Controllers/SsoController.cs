@@ -1,13 +1,11 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Web.Mvc;
 using NewLife.Cube.Entity;
 using NewLife.Cube.Web;
 using NewLife.Log;
 using NewLife.Model;
-using NewLife.Reflection;
 using NewLife.Web;
 using XCode.Membership;
 
@@ -54,13 +52,33 @@ namespace NewLife.Cube.Controllers
 
             Provider = ObjectContainer.Current.ResolveInstance<SsoProvider>();
 
-            OAuthServer.Instance.Log = XTrace.Log;
+            //OAuthServer.Instance.Log = XTrace.Log;
+            OAuthServer.Instance.Log = LogProvider.Provider.AsLog("OAuth");
         }
 
         /// <summary>首页</summary>
         /// <returns></returns>
         [AllowAnonymous]
-        public virtual ActionResult Index() => View("Index");
+        public virtual ActionResult Index() => Redirect("~/");
+
+        /// <summary>发生错误时</summary>
+        /// <param name="filterContext"></param>
+        protected override void OnException(ExceptionContext filterContext)
+        {
+            if (!filterContext.ExceptionHandled)
+            {
+                var vr = new ViewResult
+                {
+                    ViewName = "CubeError"
+                };
+                vr.ViewBag.Context = filterContext;
+
+                filterContext.Result = vr;
+                filterContext.ExceptionHandled = true;
+            }
+
+            base.OnException(filterContext);
+        }
 
         #region 单点登录客户端
         /// <summary>第三方登录</summary>
@@ -138,15 +156,66 @@ namespace NewLife.Cube.Controllers
                 if (!client.UserUrl.IsNullOrEmpty()) client.GetUserInfo();
 
                 var url = prov.OnLogin(client, HttpContext);
-                if (!returnUrl.IsNullOrEmpty()) return Redirect(returnUrl);
+
+                // 标记登录提供商
+                Session["Cube_Sso"] = client.Name;
+                Session["Cube_Sso_Client"] = client;
+
+                if (!returnUrl.IsNullOrEmpty()) url = returnUrl;
 
                 return Redirect(url);
             }
             catch (Exception ex)
             {
-                XTrace.WriteException(ex);
-                throw;
+                XTrace.WriteException(ex.GetTrue());
+                //throw;
+
+                return RedirectToAction("Login", new { name = client.Name, r = returnUrl, state = "refresh" });
             }
+        }
+
+        /// <summary>注销登录</summary>
+        /// <remarks>
+        /// 子系统引导用户跳转到这里注销登录。
+        /// </remarks>
+        /// <returns></returns>
+        [AllowAnonymous]
+        public virtual ActionResult Logout()
+        {
+            // 先读Session，待会会清空
+            var client = Session["Cube_Sso_Client"] as OAuthClient;
+
+            var prv = Provider;
+            prv?.Logout();
+
+            var url = "";
+
+            // 准备跳转到验证中心
+            if (client != null)
+            {
+                if (!client.LogoutUrl.IsNullOrEmpty())
+                {
+                    // 准备返回地址
+                    url = Request["r"];
+                    if (url.IsNullOrEmpty()) url = prv.SuccessUrl;
+
+                    var state = Request["state"];
+                    if (!state.IsNullOrEmpty())
+                        state = client.Name + "_" + state;
+                    else
+                        state = client.Name;
+
+                    // 跳转到验证中心注销地址
+                    url = client.Logout(url, state, Request.GetRawUrl());
+
+                    return Redirect(url);
+                }
+            }
+
+            url = Provider?.GetReturnUrl(Request, false);
+            if (url.IsNullOrEmpty()) url = "~/";
+
+            return Redirect(url);
         }
 
         /// <summary>绑定</summary>
@@ -288,7 +357,7 @@ namespace NewLife.Cube.Controllers
             }
             catch (Exception ex)
             {
-                XTrace.WriteLine($"Access_Token {client_id} {client_secret} {code}");
+                XTrace.WriteLine($"Access_Token client_id={client_id} client_secret={client_secret} code={code}");
                 XTrace.WriteException(ex);
                 return Json(new { error = ex.GetTrue().Message }, JsonRequestBehavior.AllowGet);
             }
@@ -302,39 +371,33 @@ namespace NewLife.Cube.Controllers
         {
             if (access_token.IsNullOrEmpty()) throw new ArgumentNullException(nameof(access_token));
 
+            var sso = OAuthServer.Instance;
+            IManageUser user = null;
+
+            var msg = "";
             try
             {
-                var sso = OAuthServer.Instance;
-                var username = sso.Decode(access_token);
+                //var username = sso.Decode(access_token);
 
-                var user = Provider?.Provider?.FindByName(username);
-                if (user == null) throw new Exception("用户不存在 " + username);
+                user = Provider?.GetUser(sso, access_token);
+                //if (user == null) throw new Exception("用户不存在 " + username);
+                if (user == null) throw new Exception("用户不存在");
 
                 var rs = Provider.GetUserInfo(sso, access_token, user);
                 return Json(rs, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
+                msg = ex.GetTrue().Message;
+
                 XTrace.WriteLine($"UserInfo {access_token}");
                 XTrace.WriteException(ex);
                 return Json(new { error = ex.GetTrue().Message }, JsonRequestBehavior.AllowGet);
             }
-        }
-
-        /// <summary>4，注销登录</summary>
-        /// <remarks>
-        /// 子系统引导用户跳转到这里注销登录。
-        /// </remarks>
-        /// <returns></returns>
-        [AllowAnonymous]
-        public virtual ActionResult Logout()
-        {
-            Provider?.Logout();
-
-            var url = Provider?.GetReturnUrl(Request, false);
-            if (url.IsNullOrEmpty()) url = "~/";
-
-            return Redirect(url);
+            finally
+            {
+                sso.WriteLog("UserInfo {0} access_token={1} msg={2}", user, access_token, msg);
+            }
         }
         #endregion
 

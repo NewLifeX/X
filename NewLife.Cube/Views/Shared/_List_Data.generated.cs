@@ -66,7 +66,6 @@ namespace ASP
             
             #line 5 "..\..\Views\Shared\_List_Data.cshtml"
   
-    var user = ViewBag.User as IUser ?? User.Identity as IUser;
     var fact = ViewBag.Factory as IEntityOperate;
     var page = ViewBag.Page as Pager;
     var fields = ViewBag.Fields as IList<FieldItem>;
@@ -87,13 +86,13 @@ WriteLiteral(" class=\"table table-bordered table-hover table-striped table-cond
 WriteLiteral(">\r\n    <thead>\r\n        <tr>\r\n");
 
             
-            #line 19 "..\..\Views\Shared\_List_Data.cshtml"
+            #line 18 "..\..\Views\Shared\_List_Data.cshtml"
             
             
             #line default
             #line hidden
             
-            #line 19 "..\..\Views\Shared\_List_Data.cshtml"
+            #line 18 "..\..\Views\Shared\_List_Data.cshtml"
              if (enableSelect)
             {
 
@@ -117,7 +116,7 @@ WriteLiteral(" title=\"全选\"");
 WriteLiteral(" /></th>\r\n");
 
             
-            #line 22 "..\..\Views\Shared\_List_Data.cshtml"
+            #line 21 "..\..\Views\Shared\_List_Data.cshtml"
             }
 
             
@@ -126,7 +125,7 @@ WriteLiteral(" /></th>\r\n");
 WriteLiteral("            ");
 
             
-            #line 23 "..\..\Views\Shared\_List_Data.cshtml"
+            #line 22 "..\..\Views\Shared\_List_Data.cshtml"
              foreach (var item in fields)
             {
                 var sortUrl = item.OriField != null ? page.GetSortUrl(item.OriField.Name) : page.GetSortUrl(item.Name);
@@ -142,32 +141,32 @@ WriteLiteral(" class=\"text-center\"");
 
 WriteLiteral(" style=\"min-width:134px;\"");
 
-WriteAttribute("title", Tuple.Create(" title=\"", 1181), Tuple.Create("\"", 1206)
+WriteAttribute("title", Tuple.Create(" title=\"", 1116), Tuple.Create("\"", 1141)
             
-            #line 28 "..\..\Views\Shared\_List_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 1189), Tuple.Create<System.Object, System.Int32>(item.Description
+            #line 27 "..\..\Views\Shared\_List_Data.cshtml"
+, Tuple.Create(Tuple.Create("", 1124), Tuple.Create<System.Object, System.Int32>(item.Description
             
             #line default
             #line hidden
-, 1189), false)
+, 1124), false)
 );
 
 WriteLiteral("><a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1210), Tuple.Create("\"", 1235)
+WriteAttribute("href", Tuple.Create(" href=\"", 1145), Tuple.Create("\"", 1170)
             
-            #line 28 "..\..\Views\Shared\_List_Data.cshtml"
-                        , Tuple.Create(Tuple.Create("", 1217), Tuple.Create<System.Object, System.Int32>(Html.Raw(sortUrl)
+            #line 27 "..\..\Views\Shared\_List_Data.cshtml"
+                        , Tuple.Create(Tuple.Create("", 1152), Tuple.Create<System.Object, System.Int32>(Html.Raw(sortUrl)
             
             #line default
             #line hidden
-, 1217), false)
+, 1152), false)
 );
 
 WriteLiteral(">");
 
             
-            #line 28 "..\..\Views\Shared\_List_Data.cshtml"
+            #line 27 "..\..\Views\Shared\_List_Data.cshtml"
                                                                                                                        Write(item.DisplayName);
 
             
@@ -176,7 +175,7 @@ WriteLiteral(">");
 WriteLiteral("</a></th>\r\n");
 
             
-            #line 29 "..\..\Views\Shared\_List_Data.cshtml"
+            #line 28 "..\..\Views\Shared\_List_Data.cshtml"
                 }
                 else
                 {
@@ -188,32 +187,32 @@ WriteLiteral("                    <th");
 
 WriteLiteral(" class=\"text-center\"");
 
-WriteAttribute("title", Tuple.Create(" title=\"", 1368), Tuple.Create("\"", 1393)
+WriteAttribute("title", Tuple.Create(" title=\"", 1303), Tuple.Create("\"", 1328)
             
-            #line 32 "..\..\Views\Shared\_List_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 1376), Tuple.Create<System.Object, System.Int32>(item.Description
+            #line 31 "..\..\Views\Shared\_List_Data.cshtml"
+, Tuple.Create(Tuple.Create("", 1311), Tuple.Create<System.Object, System.Int32>(item.Description
             
             #line default
             #line hidden
-, 1376), false)
+, 1311), false)
 );
 
 WriteLiteral("><a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1397), Tuple.Create("\"", 1422)
+WriteAttribute("href", Tuple.Create(" href=\"", 1332), Tuple.Create("\"", 1357)
             
-            #line 32 "..\..\Views\Shared\_List_Data.cshtml"
-, Tuple.Create(Tuple.Create("", 1404), Tuple.Create<System.Object, System.Int32>(Html.Raw(sortUrl)
+            #line 31 "..\..\Views\Shared\_List_Data.cshtml"
+, Tuple.Create(Tuple.Create("", 1339), Tuple.Create<System.Object, System.Int32>(Html.Raw(sortUrl)
             
             #line default
             #line hidden
-, 1404), false)
+, 1339), false)
 );
 
 WriteLiteral(">");
 
             
-            #line 32 "..\..\Views\Shared\_List_Data.cshtml"
+            #line 31 "..\..\Views\Shared\_List_Data.cshtml"
                                                                                               Write(item.DisplayName);
 
             
@@ -222,7 +221,7 @@ WriteLiteral(">");
 WriteLiteral("</a></th>\r\n");
 
             
-            #line 33 "..\..\Views\Shared\_List_Data.cshtml"
+            #line 32 "..\..\Views\Shared\_List_Data.cshtml"
                 }
             }
 
@@ -232,8 +231,8 @@ WriteLiteral("</a></th>\r\n");
 WriteLiteral("            ");
 
             
-            #line 35 "..\..\Views\Shared\_List_Data.cshtml"
-             if (user.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
+            #line 34 "..\..\Views\Shared\_List_Data.cshtml"
+             if (this.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
             {
 
             
@@ -248,7 +247,7 @@ WriteLiteral(" style=\"min-width:100px;\"");
 WriteLiteral(">操作</th>\r\n");
 
             
-            #line 38 "..\..\Views\Shared\_List_Data.cshtml"
+            #line 37 "..\..\Views\Shared\_List_Data.cshtml"
             }
 
             
@@ -257,13 +256,13 @@ WriteLiteral(">操作</th>\r\n");
 WriteLiteral("        </tr>\r\n    </thead>\r\n    <tbody>\r\n");
 
             
-            #line 42 "..\..\Views\Shared\_List_Data.cshtml"
+            #line 41 "..\..\Views\Shared\_List_Data.cshtml"
         
             
             #line default
             #line hidden
             
-            #line 42 "..\..\Views\Shared\_List_Data.cshtml"
+            #line 41 "..\..\Views\Shared\_List_Data.cshtml"
          foreach (var entity in Model)
         {
 
@@ -273,13 +272,13 @@ WriteLiteral("        </tr>\r\n    </thead>\r\n    <tbody>\r\n");
 WriteLiteral("            <tr>\r\n");
 
             
-            #line 45 "..\..\Views\Shared\_List_Data.cshtml"
+            #line 44 "..\..\Views\Shared\_List_Data.cshtml"
                 
             
             #line default
             #line hidden
             
-            #line 45 "..\..\Views\Shared\_List_Data.cshtml"
+            #line 44 "..\..\Views\Shared\_List_Data.cshtml"
                  if (enableSelect)
                 {
 
@@ -296,20 +295,20 @@ WriteLiteral(" type=\"checkbox\"");
 
 WriteLiteral(" name=\"keys\"");
 
-WriteAttribute("value", Tuple.Create(" value=\"", 1934), Tuple.Create("\"", 1958)
+WriteAttribute("value", Tuple.Create(" value=\"", 1845), Tuple.Create("\"", 1869)
             
-            #line 47 "..\..\Views\Shared\_List_Data.cshtml"
-      , Tuple.Create(Tuple.Create("", 1942), Tuple.Create<System.Object, System.Int32>(entity[fk.Name]
+            #line 46 "..\..\Views\Shared\_List_Data.cshtml"
+      , Tuple.Create(Tuple.Create("", 1853), Tuple.Create<System.Object, System.Int32>(entity[fk.Name]
             
             #line default
             #line hidden
-, 1942), false)
+, 1853), false)
 );
 
 WriteLiteral(" /></td>\r\n");
 
             
-            #line 48 "..\..\Views\Shared\_List_Data.cshtml"
+            #line 47 "..\..\Views\Shared\_List_Data.cshtml"
                 }
 
             
@@ -318,7 +317,7 @@ WriteLiteral(" /></td>\r\n");
 WriteLiteral("                ");
 
             
-            #line 49 "..\..\Views\Shared\_List_Data.cshtml"
+            #line 48 "..\..\Views\Shared\_List_Data.cshtml"
                  foreach (var item in fields)
                 {
                     
@@ -326,14 +325,14 @@ WriteLiteral("                ");
             #line default
             #line hidden
             
-            #line 51 "..\..\Views\Shared\_List_Data.cshtml"
+            #line 50 "..\..\Views\Shared\_List_Data.cshtml"
                Write(Html.Partial("_List_Data_Item", new Pair(entity, item)));
 
             
             #line default
             #line hidden
             
-            #line 51 "..\..\Views\Shared\_List_Data.cshtml"
+            #line 50 "..\..\Views\Shared\_List_Data.cshtml"
                                                                             
                 }
 
@@ -343,8 +342,8 @@ WriteLiteral("                ");
 WriteLiteral("                ");
 
             
-            #line 53 "..\..\Views\Shared\_List_Data.cshtml"
-                 if (user.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
+            #line 52 "..\..\Views\Shared\_List_Data.cshtml"
+                 if (this.Has(PermissionFlags.Detail, PermissionFlags.Update, PermissionFlags.Delete))
                 {
 
             
@@ -359,7 +358,7 @@ WriteLiteral(">\r\n");
 WriteLiteral("                        ");
 
             
-            #line 56 "..\..\Views\Shared\_List_Data.cshtml"
+            #line 55 "..\..\Views\Shared\_List_Data.cshtml"
                    Write(Html.Partial("_List_Data_Action", (Object)entity));
 
             
@@ -368,7 +367,7 @@ WriteLiteral("                        ");
 WriteLiteral("\r\n                    </td>\r\n");
 
             
-            #line 58 "..\..\Views\Shared\_List_Data.cshtml"
+            #line 57 "..\..\Views\Shared\_List_Data.cshtml"
                 }
 
             
@@ -377,7 +376,7 @@ WriteLiteral("\r\n                    </td>\r\n");
 WriteLiteral("            </tr>\r\n");
 
             
-            #line 60 "..\..\Views\Shared\_List_Data.cshtml"
+            #line 59 "..\..\Views\Shared\_List_Data.cshtml"
         }
 
             

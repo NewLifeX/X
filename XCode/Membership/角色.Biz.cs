@@ -55,7 +55,7 @@ namespace XCode.Membership
         static Role()
         {
             // 用于引发基类的静态构造函数
-            TEntity entity = new TEntity();
+            var entity = new TEntity();
 
             Meta.Modules.Add<UserModule>();
             Meta.Modules.Add<TimeModule>();
@@ -90,9 +90,9 @@ namespace XCode.Membership
                 if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}角色数据……", typeof(TEntity).Name);
 
                 Add("管理员", true, "默认拥有全部最高权限，由系统工程师使用，安装配置整个系统");
-                Add("高级用户", true, "业务管理人员，可以管理业务模块，可以分配授权用户等级");
-                Add("普通用户", true, "普通业务人员，可以使用系统常规业务模块功能");
-                Add("游客", true, "新注册用户默认属于游客组");
+                Add("高级用户", false, "业务管理人员，可以管理业务模块，可以分配授权用户等级");
+                Add("普通用户", false, "普通业务人员，可以使用系统常规业务模块功能");
+                Add("游客", false, "新注册用户默认属于游客组");
 
                 if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}角色数据！", typeof(TEntity).Name);
             }
@@ -112,16 +112,10 @@ namespace XCode.Membership
             var ids = menus.Select(e => (Int32)e["ID"]).ToArray();
             foreach (var role in list)
             {
-                if (!role.CheckValid(ids))
-                {
-                    XTrace.WriteLine("删除[{0}]中的无效资源权限！", role);
-                    //role.Save();
-                }
+                if (!role.CheckValid(ids)) XTrace.WriteLine("删除[{0}]中的无效资源权限！", role);
             }
 
             // 所有角色都有权进入管理平台，否则无法使用后台
-            //var menu = eopMenu.EntityType.GetValue("Root", false) as IMenu;
-            //menu = menu.Childs.FirstOrDefault(e => e.Name.EqualIgnoreCase("Admin"));
             var menu = menus.FirstOrDefault(e => e.Name == "Admin");
             if (menu != null)
             {
@@ -138,10 +132,10 @@ namespace XCode.Membership
 
             // 如果没有任何角色拥有权限管理的权限，那是很悲催的事情
             var count = 0;
-            //var nes = eopMenu.EntityType.GetValue("Necessaries", false) as Int32[];
             foreach (var item in menus)
             {
-                if (item.Visible && !list.Any(e => e.Has(item.ID, PermissionFlags.Detail)))
+                //if (item.Visible && !list.Any(e => e.Has(item.ID, PermissionFlags.Detail)))
+                if (!list.Any(e => e.Has(item.ID, PermissionFlags.Detail)))
                 {
                     count++;
                     sys.Set(item.ID, PermissionFlags.All);
@@ -335,20 +329,21 @@ namespace XCode.Membership
         {
             if (resids == null || resids.Length == 0) return true;
 
-            var count = Permissions.Count;
+            var ps = Permissions;
+            var count = ps.Count;
 
             var list = new List<Int32>();
-            foreach (var item in Permissions)
+            foreach (var item in ps)
             {
                 if (!resids.Contains(item.Key)) list.Add(item.Key);
             }
             // 删除无效项
             foreach (var item in list)
             {
-                Permissions.Remove(item);
+                ps.Remove(item);
             }
 
-            return count == Permissions.Count;
+            return count == ps.Count;
         }
 
         void LoadPermission()
@@ -398,9 +393,19 @@ namespace XCode.Membership
         /// <summary>根据名称查找角色，若不存在则创建</summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        IRole IRole.FindOrCreateByName(String name)
+        public static IRole GetOrAdd(String name)
         {
-            if (String.IsNullOrEmpty(name)) return null;
+            if (name.IsNullOrEmpty()) return null;
+
+            return Add(name, false);
+        }
+
+        /// <summary>根据名称查找角色，若不存在则创建</summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        IRole IRole.GetOrAdd(String name)
+        {
+            if (name.IsNullOrEmpty()) return null;
 
             return Add(name, false);
         }
@@ -416,10 +421,12 @@ namespace XCode.Membership
             var entity = Find(__.Name, name);
             if (entity != null) return entity;
 
-            entity = new TEntity();
-            entity.Name = name;
-            entity.IsSystem = issys;
-            entity.Remark = remark;
+            entity = new TEntity
+            {
+                Name = name,
+                IsSystem = issys,
+                Remark = remark
+            };
             entity.Save();
 
             return entity;
@@ -464,7 +471,7 @@ namespace XCode.Membership
         /// <summary>根据名称查找角色，若不存在则创建</summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        IRole FindOrCreateByName(String name);
+        IRole GetOrAdd(String name);
 
         /// <summary>保存</summary>
         /// <returns></returns>

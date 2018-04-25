@@ -5,7 +5,6 @@ using System.Web;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Reflection;
-using NewLife.Security;
 using NewLife.Serialization;
 
 namespace NewLife.Web
@@ -19,6 +18,9 @@ namespace NewLife.Web
 
         /// <summary>验证服务器地址</summary>
         public String Server { get; set; }
+
+        /// <summary>令牌服务地址。可以不同于验证地址的内网直达地址</summary>
+        public String AccessServer { get; set; }
 
         /// <summary>应用Key</summary>
         public String Key { get; set; }
@@ -145,6 +147,7 @@ namespace NewLife.Web
         {
             Name = mi.Name;
             if (!mi.Server.IsNullOrEmpty()) Server = mi.Server;
+            if (!mi.AccessServer.IsNullOrEmpty()) AccessServer = mi.AccessServer;
             if (!mi.AppID.IsNullOrEmpty()) Key = mi.AppID;
             if (!mi.Secret.IsNullOrEmpty()) Secret = mi.Secret;
             if (!mi.Scope.IsNullOrEmpty()) Scope = mi.Scope;
@@ -212,7 +215,11 @@ namespace NewLife.Web
                 if (UserUrl.IsNullOrEmpty() && dic.ContainsKey("scope"))
                 {
                     var ss = dic["scope"].Trim().Split(",");
-                    if (ss.Contains("UserInfo")) UserUrl = "userinfo?access_token={token}";
+                    if (ss.Contains("UserInfo"))
+                    {
+                        UserUrl = "userinfo?access_token={token}";
+                        LogoutUrl = "logout?client_id={key}&redirect_uri={redirect}&state={state}";
+                    }
                 }
 
                 OnGetInfo(dic);
@@ -321,13 +328,48 @@ namespace NewLife.Web
         }
         #endregion
 
+        #region 5-注销
+        /// <summary>注销地址</summary>
+        public String LogoutUrl { get; set; }
+
+        /// <summary>注销</summary>
+        /// <param name="redirect">完成后调整的目标地址</param>
+        /// <param name="state">用户状态数据</param>
+        /// <param name="baseUri">相对地址的基地址</param>
+        /// <returns></returns>
+        public virtual String Logout(String redirect = null, String state = null, Uri baseUri = null)
+        {
+            var url = LogoutUrl;
+            if (url.IsNullOrEmpty()) throw new ArgumentNullException(nameof(LogoutUrl), "未设置注销地址");
+
+#if !__CORE__
+            // 如果是相对路径，自动加上前缀。需要考虑反向代理的可能，不能直接使用Request.Url
+            redirect = redirect.AsUri(baseUri) + "";
+#endif
+            _redirect = redirect;
+            _state = state;
+
+            url = GetUrl(url);
+            WriteLog("Logout {0}", url);
+
+            return url;
+        }
+        #endregion
+
         #region 辅助
         /// <summary>替换地址模版参数</summary>
         /// <param name="url"></param>
         /// <returns></returns>
         protected virtual String GetUrl(String url)
         {
-            if (!url.StartsWithIgnoreCase("http")) url = Server.EnsureEnd("/") + url.TrimStart('/');
+            if (!url.StartsWithIgnoreCase("http"))
+            {
+                // 授权以外的连接，使用令牌服务地址
+                if (!AccessServer.IsNullOrEmpty() && !url.StartsWithIgnoreCase("auth"))
+                    url = AccessServer.EnsureEnd("/") + url.TrimStart('/');
+                else
+                    url = Server.EnsureEnd("/") + url.TrimStart('/');
+            }
 
             url = url
                .Replace("{key}", Key)
@@ -401,6 +443,9 @@ namespace NewLife.Web
             if (dic.TryGetValue("nick_name", out str)) NickName = str.Trim();
 
             if (dic.TryGetValue("Avatar", out str)) Avatar = str.Trim();
+
+            // 获取用户信息出错时抛出异常
+            if (dic.TryGetValue("error", out str)) throw new InvalidOperationException(str);
         }
         #endregion
 

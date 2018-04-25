@@ -45,14 +45,21 @@ namespace ASP
             
             #line 2 "..\..\Views\Shared\CubeError.cshtml"
   
-    Layout = "_Ace_Layout.cshtml";
+    //Layout = "_Ace_Layout.cshtml";
+    Layout = "_Layout.cshtml";
+    //Layout = NewLife.Cube.Setting.Current.Layout;
     ViewBag.Title = "处理你的请求时出错";
 
+    var error = "没有捕捉到异常信息";
     var context = ViewBag.Context as ExceptionContext;
-    var error = context.Exception.Message;
-    if (NewLife.Log.XTrace.Debug)
+    if (context != null && context.Exception != null)
     {
-        error = context.Exception.ToString();
+        // 由于nginx的配置导致出现奇葩错误
+        error = context.Exception.Message;
+        if (NewLife.Log.XTrace.Debug)
+        {
+            error = context.Exception.ToString();
+        }
     }
     error = error.Replace("--->", "--->" + Environment.NewLine);
 
@@ -76,7 +83,7 @@ WriteLiteral(" role=\"alert\"");
 WriteLiteral(">");
 
             
-            #line 17 "..\..\Views\Shared\CubeError.cshtml"
+            #line 24 "..\..\Views\Shared\CubeError.cshtml"
                                                     Write(error);
 
             

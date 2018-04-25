@@ -95,10 +95,8 @@ namespace NewLife.Net.P2P
                 var ss = str.Split(":");
                 if (ss == null || ss.Length < 2) return;
 
-                IPAddress address = null;
-                if (!IPAddress.TryParse(ss[0], out address)) return;
-                var port = 0;
-                if (!Int32.TryParse(ss[1], out port)) return;
+                if (!IPAddress.TryParse(ss[0], out var address)) return;
+                if (!Int32.TryParse(ss[1], out var port)) return;
                 var ep = new IPEndPoint(address, port);
                 ParterAddress = ep;
 
@@ -184,10 +182,8 @@ namespace NewLife.Net.P2P
             var ss = e.Stream.ToStr().Split(":");
             if (ss == null || ss.Length < 2) return;
 
-            IPAddress address = null;
-            if (!IPAddress.TryParse(ss[0], out address)) return;
-            var port = 0;
-            if (!Int32.TryParse(ss[1], out port)) return;
+            if (!IPAddress.TryParse(ss[0], out var address)) return;
+            if (!Int32.TryParse(ss[1], out var port)) return;
             var ep = new IPEndPoint(address, port);
             ParterAddress = ep;
 

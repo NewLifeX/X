@@ -82,8 +82,14 @@
     <Compile Include="Tools\FrmSecurity.Designer.cs">
       <DependentUpon>FrmSecurity.cs</DependentUpon>
     </Compile>
+    <Compile Include="XApi\ApiConfig.cs" />
+    <Compile Include="XApi\FrmMain.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="XApi\FrmMain.designer.cs">
+      <DependentUpon>FrmMain.cs</DependentUpon>
+    </Compile>
     <Compile Include="XNet\IPPacket.cs" />
-    <Compile Include="XNet\MySqlParser.cs" />
     <Compile Include="XNet\RawSocket.cs" />
     <Compile Include="XNet\TcpPacket.cs" />
     <Compile Include="Yun\FrmMap.cs">
@@ -146,20 +152,6 @@
       <DependentUpon>FrmMain.cs</DependentUpon>
     </Compile>
     <Compile Include="XICO\IconFile.cs" />
-    <Compile Include="XApi\FrmMain.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="XApi\FrmMain.designer.cs">
-      <DependentUpon>FrmMain.cs</DependentUpon>
-    </Compile>
-    <Compile Include="XApi\ApiConfig.cs" />
-    <Compile Include="XMessage\FrmMain.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="XMessage\FrmMain.designer.cs">
-      <DependentUpon>FrmMain.cs</DependentUpon>
-    </Compile>
-    <Compile Include="XMessage\MessageConfig.cs" />
     <Compile Include="XNet\NetConfig.cs" />
     <Compile Include="XNet\WorkModes.cs" />
     <Compile Include="XRegex\FileResource.cs" />
@@ -187,6 +179,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Tools\FrmSecurity.resx">
       <DependentUpon>FrmSecurity.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="XApi\FrmMain.resx">
+      <DependentUpon>FrmMain.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Yun\FrmMap.resx">
       <DependentUpon>FrmMap.cs</DependentUpon>
@@ -368,12 +363,6 @@
       <DependentUpon>FrmMain.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="XICO\FrmMain.resx">
-      <DependentUpon>FrmMain.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="XApi\FrmMain.resx">
-      <DependentUpon>FrmMain.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="XMessage\FrmMain.resx">
       <DependentUpon>FrmMain.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="XRegex\FrmMain.resx">

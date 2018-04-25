@@ -257,8 +257,10 @@ namespace NewLife.Web
         {
             if (url.IsNullOrEmpty()) return null;
 
+#if !__CORE__
             // 虚拟路径
             if (url.StartsWith("~/")) url = HttpRuntime.AppDomainAppVirtualPath.EnsureEnd("/") + url.Substring(2);
+#endif
 
             // 绝对路径
             if (!url.StartsWith("/")) return new Uri(url);
@@ -285,8 +287,10 @@ namespace NewLife.Web
                 var ruri = new Uri(returnUrl);
                 if (ruri.Scheme.EqualIgnoreCase(uri.Scheme) && ruri.Host.EqualIgnoreCase(uri.Host)) returnUrl = ruri.PathAndQuery;
             }
+#if !__CORE__
             else if (returnUrl.StartsWith("~/"))
                 returnUrl = HttpRuntime.AppDomainAppVirtualPath.EnsureEnd("/") + returnUrl.Substring(2);
+#endif
 
             var url = uri + "";
             if (url.Contains("?"))
@@ -316,8 +320,10 @@ namespace NewLife.Web
                 var ruri = new Uri(returnUrl);
                 if (ruri.Scheme.EqualIgnoreCase(uri.Scheme) && ruri.Host.EqualIgnoreCase(uri.Host)) returnUrl = ruri.PathAndQuery;
             }
+#if !__CORE__
             else if (returnUrl.StartsWith("~/"))
                 returnUrl = HttpRuntime.AppDomainAppVirtualPath.EnsureEnd("/") + returnUrl.Substring(2);
+#endif
 
             if (url.Contains("?"))
                 url += "&";

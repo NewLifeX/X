@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using NewLife.Cube.Entity;
@@ -57,6 +58,7 @@ namespace NewLife.Cube.Web
         public virtual String GetReturnUrl(HttpRequestBase request, Boolean referr)
         {
             var url = request["r"];
+            if (url.IsNullOrEmpty()) url = request["redirect_uri"];
             if (url.IsNullOrEmpty() && referr) url = request.UrlReferrer + "";
             if (!url.IsNullOrEmpty() && url.StartsWithIgnoreCase("http"))
             {
@@ -76,6 +78,8 @@ namespace NewLife.Cube.Web
         public virtual String GetRedirect(HttpRequestBase request, String returnUrl = null)
         {
             if (returnUrl.IsNullOrEmpty()) returnUrl = request["r"];
+            // 过滤环回重定向
+            if (!returnUrl.IsNullOrEmpty() && returnUrl.StartsWithIgnoreCase("/Sso/Login")) returnUrl = null;
 
             var uri = RedirectUrl.AsUri(request.GetRawUrl()) + "";
 
@@ -84,9 +88,9 @@ namespace NewLife.Cube.Web
 
         /// <summary>登录成功</summary>
         /// <param name="client">OAuth客户端</param>
-        /// <param name="service">服务提供者。可用于获取HttpContext成员</param>
+        /// <param name="context">服务提供者。可用于获取HttpContext成员</param>
         /// <returns></returns>
-        public virtual String OnLogin(OAuthClient client, IServiceProvider service)
+        public virtual String OnLogin(OAuthClient client, IServiceProvider context)
         {
             var openid = client.OpenID;
             if (openid.IsNullOrEmpty()) openid = client.UserName;
@@ -99,11 +103,12 @@ namespace NewLife.Cube.Web
 
             // 强行绑定，把第三方账号强行绑定到当前已登录账号
             var forceBind = false;
-            var req = service.GetService<HttpRequest>();
+            var req = context.GetService<HttpRequest>();
             if (req != null) forceBind = req["sso_action"].EqualIgnoreCase("bind");
 
-            // 检查绑定
-            var user = Provider.FindByID(uc.UserID);
+            // 检查绑定，新用户的uc.UserID为0
+            var prv = Provider;
+            var user = prv.FindByID(uc.UserID);
             if (forceBind || user == null || !uc.Enable) user = OnBind(uc, client);
 
             // 填充昵称等数据
@@ -121,7 +126,14 @@ namespace NewLife.Cube.Web
             if (!user.Enable) throw new InvalidOperationException("用户已禁用！");
 
             // 登录成功，保存当前用户
-            Provider.Current = user;
+            //prv.Current = user;
+            prv.SetCurrent(user, context);
+            // 单点登录不要保存Cookie，让它在Session过期时请求认证中心
+            //prv.SaveCookie(user);
+            var set = Setting.Current;
+            if (set.SessionTimeout > 0) prv.SaveCookie(user, TimeSpan.FromSeconds(set.SessionTimeout), context);
+
+            LogProvider.Provider.WriteLog(user.GetType(), client.Name, "单点登录", user.ID, user + "", req.UserHostAddress);
 
             return SuccessUrl;
         }
@@ -150,7 +162,11 @@ namespace NewLife.Cube.Web
                 if (rid <= 0)
                 {
                     // 0使用认证中心角色，-1强制使用
-                    if (user2.RoleID <= 0 || rid < 0) user2.RoleID = GetRole(dic);
+                    if (user2.RoleID <= 0 || rid < 0)
+                    {
+                        user2.RoleID = GetRole(dic, rid <= -1);
+                        user2.RoleIDs = GetRoles(client.Items, rid <= -1).Join();
+                    }
                 }
 
                 // 头像
@@ -177,10 +193,11 @@ namespace NewLife.Cube.Web
 
                 // 先找用户名，如果存在，就加上提供者前缀，直接覆盖
                 var name = client.UserName;
+                if (name.IsNullOrEmpty()) name = client.NickName;
                 if (!name.IsNullOrEmpty())
                 {
                     user = prv.FindByName(name);
-                    if (user != null)
+                    if (user != null && !set.ForceBindUser)
                     {
                         name = client.Name + "_" + name;
                         user = prv.FindByName(name);
@@ -205,10 +222,11 @@ namespace NewLife.Cube.Web
                     // 新注册用户采用魔方默认角色
                     var rid = set.DefaultRole;
                     //if (rid == 0 && client.Items.TryGetValue("roleid", out var roleid)) rid = roleid.ToInt();
-                    if (rid <= 0) rid = GetRole(client.Items);
+                    //if (rid <= 0) rid = GetRole(client.Items, rid < -1);
 
                     // 注册用户，随机密码
                     user = prv.Register(name, Rand.NextString(16), rid, true);
+                    //if (user is UserX user2) user2.RoleIDs = GetRoles(client.Items, rid < -2).Join();
                 }
             }
 
@@ -220,10 +238,7 @@ namespace NewLife.Cube.Web
 
         /// <summary>注销</summary>
         /// <returns></returns>
-        public virtual void Logout()
-        {
-            Provider.Current = null;
-        }
+        public virtual void Logout() => Provider.Logout();
         #endregion
 
         #region 服务端
@@ -246,6 +261,21 @@ namespace NewLife.Cube.Web
         /// <summary>获取用户信息</summary>
         /// <param name="sso"></param>
         /// <param name="token"></param>
+        /// <returns></returns>
+        public virtual IManageUser GetUser(OAuthServer sso, String token)
+        {
+            var username = sso.Decode(token);
+
+            var user = Provider?.FindByName(username);
+            // 两级单点登录可能因缓存造成查不到用户
+            if (user == null) user = UserX.Find(UserX._.Name == username);
+
+            return user;
+        }
+
+        /// <summary>获取用户信息</summary>
+        /// <param name="sso"></param>
+        /// <param name="token"></param>
         /// <param name="user"></param>
         /// <returns></returns>
         public virtual Object GetUserInfo(OAuthServer sso, String token, IManageUser user)
@@ -262,6 +292,8 @@ namespace NewLife.Cube.Web
                     code = user2.Code,
                     roleid = user2.RoleID,
                     rolename = user2.RoleName,
+                    roleids = user2.RoleIDs,
+                    rolenames = user2.Roles.Skip(1).Join(",", e => e + ""),
                     avatar = user2.Avatar,
                 };
             else
@@ -298,7 +330,7 @@ namespace NewLife.Cube.Web
             try
             {
                 var wc = new WebClientX(true, true);
-                Task.Run(() => wc.DownloadFileAsync(url, av)).Wait(5000);
+                Task.Factory.StartNew(() => wc.DownloadFileAsync(url, av)).Wait(5000);
 
                 //// 更新头像
                 //user.SetValue("Avatar", "/Sso/Avatar/" + user.ID);
@@ -313,18 +345,54 @@ namespace NewLife.Cube.Web
             return false;
         }
 
-        private Int32 GetRole(IDictionary<String, String> dic)
+        private Int32 GetRole(IDictionary<String, String> dic, Boolean create)
         {
             // 先找RoleName，再找RoleID
-            if (dic.TryGetValue("RoleName", out var name))
+            if (dic.TryGetValue("RoleName", out var name) && !name.IsNullOrEmpty())
             {
                 var r = Role.FindByName(name);
                 if (r != null) return r.ID;
+
+                if (create)
+                {
+                    r = new Role { Name = name };
+                    r.Insert();
+                    return r.ID;
+                }
             }
 
-            if (dic.TryGetValue("RoleID", out var rid)) return rid.ToInt();
+            //// 判断角色有效
+            //if (dic.TryGetValue("RoleID", out var rid) && Role.FindByID(rid.ToInt()) != null) return rid.ToInt();
 
             return 0;
+        }
+
+        private Int32[] GetRoles(IDictionary<String, String> dic, Boolean create)
+        {
+            if (dic.TryGetValue("RoleNames", out var roleNames))
+            {
+                var names = roleNames.Split(",");
+                var rs = new List<Int32>();
+                foreach (var item in names)
+                {
+                    var r = Role.FindByName(item);
+                    if (r != null)
+                        rs.Add(r.ID);
+                    else if (create)
+                    {
+                        r = new Role { Name = item };
+                        r.Insert();
+                        rs.Add(r.ID);
+                    }
+                }
+
+                if (rs.Count > 0) return rs.ToArray();
+            }
+
+            //// 判断角色有效
+            //if (dic.TryGetValue("RoleIDs", out var rids)) return rids.SplitAsInt().Where(e => Role.FindByID(e) != null).ToArray();
+
+            return new Int32[0];
         }
         #endregion
     }

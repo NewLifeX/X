@@ -173,14 +173,23 @@
     <Compile Include="..\NewLife.Cube\Areas\Admin\Views\User\_Form_Action.generated.cs">
       <Link>Areas\Admin\Views\User\_Form_Action.generated.cs</Link>
     </Compile>
+    <Compile Include="..\NewLife.Cube\Areas\Admin\Views\User\_List_Data.generated.cs">
+      <Link>Areas\Admin\Views\User\_List_Data.generated.cs</Link>
+    </Compile>
     <Compile Include="..\NewLife.Cube\Areas\Admin\Views\User\_List_Search.generated.cs">
       <Link>Areas\Admin\Views\User\_List_Search.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Areas\Admin\Views\User\_List_Toolbar_Batch.generated.cs">
+      <Link>Areas\Admin\Views\User\_List_Toolbar_Batch.generated.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Cube\Areas\Admin\Views\User\_Login_Forgot.generated.cs">
       <Link>Areas\Admin\Views\User\_Login_Forgot.generated.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Cube\Areas\Admin\Views\User\_Login_Login.generated.cs">
       <Link>Areas\Admin\Views\User\_Login_Login.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Areas\Admin\Views\User\_Login_Login3.generated.cs">
+      <Link>Areas\Admin\Views\User\_Login_Login3.generated.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Cube\Areas\Admin\Views\User\_Login_Register.generated.cs">
       <Link>Areas\Admin\Views\User\_Login_Register.generated.cs</Link>
@@ -230,6 +239,9 @@
     <Compile Include="..\NewLife.Cube\Common\MvcHandleErrorAttribute.cs">
       <Link>Common\MvcHandleErrorAttribute.cs</Link>
     </Compile>
+    <Compile Include="..\NewLife.Cube\Common\NoPermissionException.cs">
+      <Link>Common\NoPermissionException.cs</Link>
+    </Compile>
     <Compile Include="..\NewLife.Cube\Common\ObjectController.cs">
       <Link>Common\ObjectController.cs</Link>
     </Compile>
@@ -245,11 +257,20 @@
     <Compile Include="..\NewLife.Cube\Controllers\HomeController.cs">
       <Link>Controllers\HomeController.cs</Link>
     </Compile>
+    <Compile Include="..\NewLife.Cube\Controllers\SsoController.cs">
+      <Link>Controllers\SsoController.cs</Link>
+    </Compile>
     <Compile Include="..\NewLife.Cube\Entity\XCoder.cs">
       <Link>Entity\XCoder.cs</Link>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>XCoder.tt</DependentUpon>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Entity\用户令牌.Biz.cs">
+      <Link>Entity\用户令牌.Biz.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Entity\用户令牌.cs">
+      <Link>Entity\用户令牌.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Cube\Entity\用户链接.Biz.cs">
       <Link>Entity\用户链接.Biz.cs</Link>
@@ -391,6 +412,12 @@
     </Compile>
     <Compile Include="..\NewLife.Cube\Views\_ViewStart.generated.cs">
       <Link>Views\_ViewStart.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Web\OAuthHelper.cs">
+      <Link>Web\OAuthHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Web\SsoProvider.cs">
+      <Link>Web\SsoProvider.cs</Link>
     </Compile>
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -553,6 +580,15 @@
     </Content>
     <Content Include="..\NewLife.Cube\Views\_ViewStart.cshtml">
       <Link>Views\_ViewStart.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Areas\Admin\Views\User\_List_Data.cshtml">
+      <Link>Areas\Admin\Views\User\_List_Data.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Areas\Admin\Views\User\_List_Toolbar_Batch.cshtml">
+      <Link>Areas\Admin\Views\User\_List_Toolbar_Batch.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Areas\Admin\Views\User\_Login_Login3.cshtml">
+      <Link>Areas\Admin\Views\User\_Login_Login3.cshtml</Link>
     </Content>
     <None Include="Global.asax" />
     <None Include="Areas\Admin\Views\Web.config" />

@@ -66,7 +66,7 @@ WriteLiteral("></i>\r\n    </div>\r\n    <!-- 登录-->\r\n");
             #line hidden
             
             #line 9 "..\..\Areas\Admin\Views\User\_Login_Register.cshtml"
-     using (Html.BeginForm("Register", "User", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "cube-login" }))
+     using (Html.BeginForm("Register", "User", new { r = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "cube-login" }))
     {
         
             

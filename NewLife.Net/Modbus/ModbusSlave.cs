@@ -107,7 +107,7 @@ namespace NewLife.Net.Modbus
         {
 #if DEBUG
             var str = "Request :";
-            for (Int32 i = 0; i < buf.Length; i++)
+            for (var i = 0; i < buf.Length; i++)
             {
                 str += " " + buf[i].ToString("X2");
             }
@@ -128,7 +128,7 @@ namespace NewLife.Net.Modbus
 
 #if DEBUG
             str = "Response:";
-            for (Int32 i = 0; i < buf.Length; i++)
+            for (var i = 0; i < buf.Length; i++)
             {
                 str += " " + buf[i].ToString("X2");
             }

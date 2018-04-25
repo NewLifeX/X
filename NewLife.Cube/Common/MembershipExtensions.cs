@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
+using System.Web.Mvc;
 using XCode.Membership;
 
 namespace NewLife.Cube
@@ -13,6 +11,7 @@ namespace NewLife.Cube
         /// <param name="user">指定用户</param>
         /// <param name="flags">是否拥有多个权限中的任意一个，或的关系。如果需要表示与的关系，可以传入一个多权限位合并</param>
         /// <returns></returns>
+        [Obsolete]
         public static Boolean Has(this IUser user, params PermissionFlags[] flags)
         {
             if (user == null || user.Role == null) return false;
@@ -43,6 +42,7 @@ namespace NewLife.Cube
         /// <param name="respath"></param>
         /// <param name="flags">是否拥有多个权限中的任意一个，或的关系。如果需要表示与的关系，可以传入一个多权限位合并</param>
         /// <returns></returns>
+        [Obsolete]
         public static Boolean Has(this IUser user, String respath, params PermissionFlags[] flags)
         {
             if (user == null || user.Role == null) return false;
@@ -65,6 +65,23 @@ namespace NewLife.Cube
                 }
             }
             return false;
+        }
+
+        /// <summary>用户只有拥有当前菜单的指定权限</summary>
+        /// <param name="page">页面</param>
+        /// <param name="flags">是否拥有多个权限中的任意一个，或的关系。如果需要表示与的关系，可以传入一个多权限位合并</param>
+        /// <returns></returns>
+        public static Boolean Has(this WebViewPage page, params PermissionFlags[] flags)
+        {
+            // 没有用户时无权
+            var user = page.ViewBag.User as IUser ?? page.User.Identity as IUser;
+            if (user == null) return false;
+
+            // 没有菜单时不做权限控制
+            var menu = page.ViewBag.Menu as IMenu;
+            if (menu == null) return true;
+
+            return user.Has(menu, flags);
         }
     }
 }

@@ -126,24 +126,24 @@ namespace XCode
         #endregion
 
         #region 分组
-        /// <summary>按照指定若干个字段分组。没有条件时使用分组请用FieldItem的GroupBy</summary>
-        /// <param name="names"></param>
-        /// <returns>返回条件语句加上分组语句</returns>
-        public String GroupBy(params String[] names)
-        {
-            var where = GetString(null);
+        ///// <summary>按照指定若干个字段分组。没有条件时使用分组请用FieldItem的GroupBy</summary>
+        ///// <param name="names"></param>
+        ///// <returns>返回条件语句加上分组语句</returns>
+        //public String GroupBy(params String[] names)
+        //{
+        //    var where = GetString(null);
 
-            var sb = new StringBuilder();
-            foreach (var item in names)
-            {
-                sb.Separate(",").Append(item);
-            }
+        //    var sb = new StringBuilder();
+        //    foreach (var item in names)
+        //    {
+        //        sb.Separate(",").Append(item);
+        //    }
 
-            if (where.IsNullOrWhiteSpace())
-                return "Group By {0}".F(sb.ToString());
-            else
-                return "{1} Group By {0}".F(sb.ToString(), where);
-        }
+        //    if (where.IsNullOrWhiteSpace())
+        //        return "Group By {0}".F(sb.ToString());
+        //    else
+        //        return "{1} Group By {0}".F(sb.ToString(), where);
+        //}
         #endregion
     }
 }

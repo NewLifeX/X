@@ -41,6 +41,14 @@ namespace XCode.Membership
         [BindColumn("DisplayName", "显示名", "")]
         public String DisplayName { get { return _DisplayName; } set { if (OnPropertyChanging(__.DisplayName, value)) { _DisplayName = value; OnPropertyChanged(__.DisplayName); } } }
 
+        private String _FullName;
+        /// <summary>全名</summary>
+        [DisplayName("全名")]
+        [Description("全名")]
+        [DataObjectField(false, false, true, 200)]
+        [BindColumn("FullName", "全名", "")]
+        public String FullName { get { return _FullName; } set { if (OnPropertyChanging(__.FullName, value)) { _FullName = value; OnPropertyChanged(__.FullName); } } }
+
         private Int32 _ParentID;
         /// <summary>父编号</summary>
         [DisplayName("父编号")]
@@ -119,6 +127,7 @@ namespace XCode.Membership
                     case __.ID : return _ID;
                     case __.Name : return _Name;
                     case __.DisplayName : return _DisplayName;
+                    case __.FullName : return _FullName;
                     case __.ParentID : return _ParentID;
                     case __.Url : return _Url;
                     case __.Sort : return _Sort;
@@ -137,6 +146,7 @@ namespace XCode.Membership
                     case __.ID : _ID = Convert.ToInt32(value); break;
                     case __.Name : _Name = Convert.ToString(value); break;
                     case __.DisplayName : _DisplayName = Convert.ToString(value); break;
+                    case __.FullName : _FullName = Convert.ToString(value); break;
                     case __.ParentID : _ParentID = Convert.ToInt32(value); break;
                     case __.Url : _Url = Convert.ToString(value); break;
                     case __.Sort : _Sort = Convert.ToInt32(value); break;
@@ -163,6 +173,9 @@ namespace XCode.Membership
 
             /// <summary>显示名</summary>
             public static readonly Field DisplayName = FindByName(__.DisplayName);
+
+            /// <summary>全名</summary>
+            public static readonly Field FullName = FindByName(__.FullName);
 
             /// <summary>父编号</summary>
             public static readonly Field ParentID = FindByName(__.ParentID);
@@ -203,6 +216,9 @@ namespace XCode.Membership
             /// <summary>显示名</summary>
             public const String DisplayName = "DisplayName";
 
+            /// <summary>全名</summary>
+            public const String FullName = "FullName";
+
             /// <summary>父编号</summary>
             public const String ParentID = "ParentID";
 
@@ -242,6 +258,9 @@ namespace XCode.Membership
 
         /// <summary>显示名</summary>
         String DisplayName { get; set; }
+
+        /// <summary>全名</summary>
+        String FullName { get; set; }
 
         /// <summary>父编号</summary>
         Int32 ParentID { get; set; }

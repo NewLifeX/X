@@ -19,7 +19,8 @@ namespace NewLife.Cube.Admin
 
             // 自动检查并添加菜单
             XTrace.WriteLine("初始化权限管理体系");
-            var user = ManageProvider.User;
+            //var user = ManageProvider.User;
+            ManageProvider.Provider.GetService<IUser>();
         }
     }
 }

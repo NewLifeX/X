@@ -12,6 +12,7 @@ using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Model;
+using NewLife.Net.Handlers;
 #if !NET4
 using TaskEx = System.Threading.Tasks.Task;
 #endif
@@ -82,7 +83,7 @@ namespace NewLife.Net
         }
 
         /// <summary>是否活动</summary>
-        public Boolean Active { get { return Servers.Count > 0 && Server != null && Server.Active; } }
+        public Boolean Active => Servers.Count > 0 && Server != null && Server.Active;
 
         /// <summary>会话超时时间。默认0秒，使用SocketServer默认值</summary>
         /// <remarks>
@@ -90,8 +91,8 @@ namespace NewLife.Net
         /// </remarks>
         public Int32 SessionTimeout { get; set; }
 
-        /// <summary>粘包处理接口</summary>
-        public IPacketFactory SessionPacket { get; set; }
+        /// <summary>管道</summary>
+        public IPipeline Pipeline { get; set; }
 
         /// <summary>使用会话集合，允许遍历会话。默认true</summary>
         public Boolean UseSession { get; set; } = true;
@@ -126,9 +127,6 @@ namespace NewLife.Net
         {
             Name = GetType().Name.TrimEnd("Server");
 
-            //SessionTimeout = 30;
-            //AddressFamily = AddressFamily.Unknown;
-
             Servers = new List<ISocketServer>();
 
             StatSession = new Statistics();
@@ -139,21 +137,22 @@ namespace NewLife.Net
         }
 
         /// <summary>通过指定监听地址和端口实例化一个网络服务器</summary>
+        /// <param name="port"></param>
+        public NetServer(Int32 port) : this(IPAddress.Any, port) { }
+
+        /// <summary>通过指定监听地址和端口实例化一个网络服务器</summary>
         /// <param name="address"></param>
         /// <param name="port"></param>
-        public NetServer(IPAddress address, Int32 port)
-        {
-            Local.Address = address;
-            Port = port;
-        }
+        public NetServer(IPAddress address, Int32 port) : this(address, port, NetType.Unknown) { }
 
         /// <summary>通过指定监听地址和端口，还有协议，实例化一个网络服务器，默认支持Tcp协议和Udp协议</summary>
         /// <param name="address"></param>
         /// <param name="port"></param>
         /// <param name="protocolType"></param>
-        public NetServer(IPAddress address, Int32 port, NetType protocolType)
-            : this(address, port)
+        public NetServer(IPAddress address, Int32 port, NetType protocolType) : this()
         {
+            Local.Address = address;
+            Port = port;
             Local.Type = protocolType;
         }
 
@@ -209,16 +208,7 @@ namespace NewLife.Net
             server.NewSession += Server_NewSession;
 
             if (SessionTimeout > 0) server.SessionTimeout = SessionTimeout;
-            if (SessionPacket != null) server.SessionPacket = SessionPacket;
-
-            // 处理UDP最大并发接收
-            if (server is UdpServer udp)
-            {
-                udp.MaxAsync = Environment.ProcessorCount * 16 / 10;
-                // Udp服务器不能关闭自己，但是要关闭会话
-                // Udp客户端一般不关闭自己
-                //udp.EnableReset = true;
-            }
+            if (Pipeline != null) server.Pipeline = Pipeline;
 
             server.StatSession.Parent = StatSession;
             server.StatSend.Parent = StatSend;
@@ -264,6 +254,24 @@ namespace NewLife.Net
                     AttachServer(item);
                 }
             }
+        }
+
+        /// <summary>添加处理器</summary>
+        /// <typeparam name="THandler"></typeparam>
+        public void Add<THandler>() where THandler : IHandler, new()
+        {
+            if (Pipeline == null) Pipeline = new Pipeline();
+
+            Pipeline.AddLast(new THandler());
+        }
+
+        /// <summary>添加处理器</summary>
+        /// <param name="handler">处理器</param>
+        public void Add(IHandler handler)
+        {
+            if (Pipeline == null) Pipeline = new Pipeline();
+
+            Pipeline.AddLast(handler);
         }
         #endregion
 
@@ -351,8 +359,8 @@ namespace NewLife.Net
         /// <summary>某个会话的数据到达。sender是ISocketSession</summary>
         public event EventHandler<ReceivedEventArgs> Received;
 
-        /// <summary>消息到达事件</summary>
-        public event EventHandler<MessageEventArgs> MessageReceived;
+        ///// <summary>消息到达事件</summary>
+        //public event EventHandler<MessageEventArgs> MessageReceived;
 
         /// <summary>接受连接时，对于Udp是收到数据时（同时触发OnReceived）。</summary>
         /// <param name="sender"></param>
@@ -388,7 +396,7 @@ namespace NewLife.Net
             if (UseSession) AddSession(ns);
 
             ns.Received += OnReceived;
-            ns.MessageReceived += OnMessageReceived;
+            //ns.MessageReceived += OnMessageReceived;
             //session.Error += OnError;
 
             // 估算完成时间，执行过长时提示
@@ -420,22 +428,22 @@ namespace NewLife.Net
         /// <param name="stream"></param>
         protected virtual void OnReceive(INetSession session, Stream stream) { }
 
-        /// <summary>收到消息时</summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void OnMessageReceived(Object sender, MessageEventArgs e)
-        {
-            var session = sender as INetSession;
+        ///// <summary>收到消息时</summary>
+        ///// <param name="sender"></param>
+        ///// <param name="e"></param>
+        //void OnMessageReceived(Object sender, MessageEventArgs e)
+        //{
+        //    var session = sender as INetSession;
 
-            OnReceive(session, e.Message);
+        //    OnReceive(session, e.Message);
 
-            MessageReceived?.Invoke(sender, e);
-        }
+        //    MessageReceived?.Invoke(sender, e);
+        //}
 
-        /// <summary>收到消息时</summary>
-        /// <param name="session"></param>
-        /// <param name="msg"></param>
-        protected virtual void OnReceive(INetSession session, IMessage msg) { }
+        ///// <summary>收到消息时</summary>
+        ///// <param name="session"></param>
+        ///// <param name="msg"></param>
+        //protected virtual void OnReceive(INetSession session, IMessage msg) { }
 
         /// <summary>错误发生/断开连接时。sender是ISocketSession</summary>
         public event EventHandler<ExceptionEventArgs> Error;
@@ -454,7 +462,7 @@ namespace NewLife.Net
         #region 会话
         private ConcurrentDictionary<Int32, INetSession> _Sessions = new ConcurrentDictionary<Int32, INetSession>();
         /// <summary>会话集合。用自增的数字ID作为标识，业务应用自己维持ID与业务主键的对应关系。</summary>
-        public IDictionary<Int32, INetSession> Sessions { get { return _Sessions; } }
+        public IDictionary<Int32, INetSession> Sessions => _Sessions;
 
         private Int32 _SessionCount;
         /// <summary>会话数</summary>
@@ -652,10 +660,7 @@ namespace NewLife.Net
         /// <summary>输出错误日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
-        public virtual void WriteError(String format, params Object[] args)
-        {
-            Log.Error(LogPrefix + format, args);
-        }
+        public virtual void WriteError(String format, params Object[] args) => Log.Error(LogPrefix + format, args);
         #endregion
 
         #region 辅助

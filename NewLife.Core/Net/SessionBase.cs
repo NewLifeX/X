@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Log;
-using NewLife.Messaging;
+using NewLife.Threading;
 
 namespace NewLife.Net
 {
@@ -52,7 +52,7 @@ namespace NewLife.Net
         /// <summary>是否使用动态端口。如果Port为0则为动态端口</summary>
         public Boolean DynamicPort { get; private set; }
 
-        /// <summary>最大并行接收数。默认1</summary>
+        /// <summary>最大并行接收数。Tcp默认1，Udp默认CPU*1.6</summary>
         public Int32 MaxAsync { get; set; } = 1;
 
         /// <summary>异步处理接收到的数据，默认true。</summary>
@@ -80,7 +80,7 @@ namespace NewLife.Net
             base.OnDispose(disposing);
 
             var reason = GetType().Name + (disposing ? "Dispose" : "GC");
-            _SendQueue?.Release(reason);
+            //_SendQueue?.Release(reason);
 
             try
             {
@@ -88,6 +88,10 @@ namespace NewLife.Net
             }
             catch (Exception ex) { OnError("Dispose", ex); }
         }
+
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override String ToString() => Local + "";
         #endregion
 
         #region 打开关闭
@@ -101,6 +105,8 @@ namespace NewLife.Net
 
             LogPrefix = "{0}.".F((Name + "").TrimEnd("Server", "Session", "Client"));
 
+            BufferSize = Setting.Current.BufferSize;
+
             // 估算完成时间，执行过长时提示
             using (var tc = new TimeCost("{0}.Open".F(GetType().Name), 1500))
             {
@@ -111,6 +117,10 @@ namespace NewLife.Net
                 if (!Active) return false;
 
                 if (Timeout > 0) Client.ReceiveTimeout = Timeout;
+
+                // 管道
+                var pp = Pipeline;
+                pp?.Open(pp.CreateContext(this));
             }
 
             ReceiveAsync();
@@ -151,6 +161,10 @@ namespace NewLife.Net
 
                 _RecvCount = 0;
 
+                // 管道
+                var pp = Pipeline;
+                pp?.Close(pp.CreateContext(this), reason);
+
                 // 触发关闭完成的事件
                 Closed?.Invoke(this, EventArgs.Empty);
             }
@@ -166,7 +180,7 @@ namespace NewLife.Net
         /// <returns></returns>
         protected abstract Boolean OnClose(String reason);
 
-        Boolean ITransport.Close() { return Close("传输口关闭"); }
+        Boolean ITransport.Close() => Close("传输口关闭");
 
         /// <summary>打开后触发。</summary>
         public event EventHandler Opened;
@@ -176,9 +190,6 @@ namespace NewLife.Net
         #endregion
 
         #region 发送
-        /// <summary>发送过滤器</summary>
-        public IFilter SendFilter { get; set; }
-
         /// <summary>发送数据</summary>
         /// <remarks>
         /// 目标地址由<seealso cref="Remote"/>决定
@@ -190,18 +201,6 @@ namespace NewLife.Net
             if (Disposed) throw new ObjectDisposedException(GetType().Name);
             if (!Open()) return false;
 
-            if (SendFilter == null) return OnSend(pk);
-
-            var ctx = new SessionFilterContext
-            {
-                Session = this,
-                Packet = pk
-            };
-            SendFilter.Execute(ctx);
-            pk = ctx.Packet;
-
-            if (pk == null) return false;
-
             return OnSend(pk);
         }
 
@@ -212,40 +211,6 @@ namespace NewLife.Net
         /// <param name="pk">数据包</param>
         /// <returns>是否成功</returns>
         protected abstract Boolean OnSend(Packet pk);
-
-        private SendQueue _SendQueue;
-        /// <summary>以队列发送数据包，自动拆分大包，合并小包</summary>
-        /// <param name="pk"></param>
-        /// <param name="remote"></param>
-        /// <returns></returns>
-        internal Boolean SendByQueue(Packet pk, IPEndPoint remote)
-        {
-            if (Disposed) throw new ObjectDisposedException(GetType().Name);
-            if (!Open()) return false;
-
-            if (_SendQueue == null) _SendQueue = new SendQueue(this);
-
-            var filter = SendFilter;
-            if (filter == null) return _SendQueue.Add(pk, remote);
-
-            var ctx = new SessionFilterContext
-            {
-                Session = this,
-                Packet = pk,
-                Remote = remote
-            };
-
-            filter.Execute(ctx);
-
-            pk = ctx.Packet;
-            remote = ctx.Remote;
-
-            if (pk == null) return false;
-
-            return _SendQueue.Add(pk, remote);
-        }
-
-        internal abstract Boolean OnSendAsync(SocketAsyncEventArgs se);
         #endregion
 
         #region 接收
@@ -257,16 +222,16 @@ namespace NewLife.Net
 
             if (!Open()) return null;
 
-            var task = SendAsync((Packet)null);
-            if (Timeout > 0 && !task.Wait(Timeout)) return null;
+            var buf = new Byte[BufferSize];
+            var size = Client.Receive(buf);
 
-            return task.Result;
+            return new Packet(buf, 0, size);
         }
 
         /// <summary>当前异步接收个数</summary>
         private Int32 _RecvCount;
 
-        /// <summary>开始监听</summary>
+        /// <summary>开始异步接收</summary>
         /// <returns>是否成功</returns>
         public virtual Boolean ReceiveAsync()
         {
@@ -274,25 +239,28 @@ namespace NewLife.Net
 
             if (!Open()) return false;
 
-            if (_RecvCount >= MaxAsync) return false;
+            var count = _RecvCount;
+            var max = MaxAsync;
+            if (count >= max) return false;
 
             // 按照最大并发创建异步委托
-            for (var i = _RecvCount; i < MaxAsync; i++)
+            for (var i = count; i < max; i++)
             {
-                if (Interlocked.Increment(ref _RecvCount) > MaxAsync)
+                if (Interlocked.Increment(ref _RecvCount) > max)
                 {
                     Interlocked.Decrement(ref _RecvCount);
                     return false;
                 }
+                count = _RecvCount;
 
                 // 加大接收缓冲区，规避SocketError.MessageSize问题
                 var buf = new Byte[BufferSize];
                 var se = new SocketAsyncEventArgs();
                 se.SetBuffer(buf, 0, buf.Length);
                 se.Completed += (s, e) => ProcessReceive(e);
-                se.UserToken = _RecvCount;
+                se.UserToken = count;
 
-                if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("创建RecvSA {0}", _RecvCount);
+                if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("创建RecvSA {0}", count);
 
                 ReceiveAsync(se, false);
             }
@@ -300,6 +268,9 @@ namespace NewLife.Net
             return true;
         }
 
+        /// <summary>释放一个事件参数</summary>
+        /// <param name="se"></param>
+        /// <param name="reason"></param>
         void ReleaseRecv(SocketAsyncEventArgs se, String reason)
         {
             var idx = (Int32)se.UserToken;
@@ -310,6 +281,10 @@ namespace NewLife.Net
             se.TryDispose();
         }
 
+        /// <summary>用一个事件参数来开始异步接收</summary>
+        /// <param name="se">事件参数</param>
+        /// <param name="io">是否在IO线程调用</param>
+        /// <returns></returns>
         Boolean ReceiveAsync(SocketAsyncEventArgs se, Boolean io)
         {
             if (Disposed)
@@ -345,7 +320,7 @@ namespace NewLife.Net
                 if (io)
                     ProcessReceive(se);
                 else
-                    Task.Factory.StartNew(() => ProcessReceive(se));
+                    ThreadPoolX.QueueUserWorkItem(() => ProcessReceive(se));
             }
 
             return true;
@@ -353,6 +328,8 @@ namespace NewLife.Net
 
         internal abstract Boolean OnReceiveAsync(SocketAsyncEventArgs se);
 
+        /// <summary>同步或异步收到数据</summary>
+        /// <param name="se"></param>
         void ProcessReceive(SocketAsyncEventArgs se)
         {
             if (!Active)
@@ -380,7 +357,7 @@ namespace NewLife.Net
             {
                 var ep = se.RemoteEndPoint as IPEndPoint ?? Remote.EndPoint;
 
-                if (Log.Enable && LogReceive) WriteLog("Recv# [{0}]: {1}", se.BytesTransferred, se.Buffer.ToHex(se.Offset, Math.Min(se.BytesTransferred, 32)));
+                //if (Log.Enable && LogReceive) WriteLog("Recv# [{0}]: {1}", se.BytesTransferred, se.Buffer.ToHex(se.Offset, Math.Min(se.BytesTransferred, 32)));
 
                 var pk = new Packet(se.Buffer, se.Offset, se.BytesTransferred);
                 if (ProcessAsync)
@@ -388,7 +365,7 @@ namespace NewLife.Net
                     // 拷贝走数据，参数要重复利用
                     pk = pk.Clone();
                     // 根据不信任用户原则，这里另外开线程执行用户逻辑
-                    ThreadPool.UnsafeQueueUserWorkItem(s => ProcessReceive(pk, ep), null);
+                    ThreadPoolX.QueueUserWorkItem(() => ProcessReceive(pk, ep));
                 }
                 else
                 {
@@ -412,16 +389,19 @@ namespace NewLife.Net
         {
             try
             {
-                var pt = Packet;
-                if (pt == null)
-                    OnReceive(pk, remote);
+                if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", pk.Total, pk.ToHex(32, null));
+
+                // UDP使用UdpSession里面的管道
+                var pp = Pipeline;
+                if (pp == null || Local.IsUdp)
+                    OnReceive(pk, remote, null);
                 else
                 {
-                    // 拆包，多个包多次调用处理程序
-                    foreach (var msg in Packet.Parse(pk))
-                    {
-                        OnReceive(msg, remote);
-                    }
+                    var ctx = pp.CreateContext(this);
+                    ctx[nameof(remote)] = remote;
+
+                    var msg = pp.Read(ctx, pk);
+                    if (msg != null) OnReceive(pk, remote, msg);
                 }
             }
             catch (Exception ex)
@@ -430,28 +410,12 @@ namespace NewLife.Net
             }
         }
 
-        /// <summary>收到异常时如何处理。默认关闭会话</summary>
-        /// <param name="se"></param>
-        /// <returns>是否当作异常处理并结束会话</returns>
-        internal virtual Boolean OnReceiveError(SocketAsyncEventArgs se)
-        {
-            //if (se.SocketError == SocketError.ConnectionReset) Dispose();
-            if (se.SocketError == SocketError.ConnectionReset) Close("ReceiveAsync " + se.SocketError);
-
-            return true;
-        }
-
         /// <summary>处理收到的数据。默认匹配同步接收委托</summary>
-        /// <param name="pk"></param>
-        /// <param name="remote"></param>
+        /// <param name="pk">数据包</param>
+        /// <param name="remote">远程</param>
+        /// <param name="message">消息</param>
         /// <returns>是否已处理，已处理的数据不再向下传递</returns>
-        protected virtual Boolean OnReceive(Packet pk, IPEndPoint remote)
-        {
-            if (Packet == null) return false;
-
-            // 同步匹配
-            return Packet.Match(pk, remote);
-        }
+        protected virtual Boolean OnReceive(Packet pk, IPEndPoint remote, Object message) => false;
 
         /// <summary>数据到达事件</summary>
         public event EventHandler<ReceivedEventArgs> Received;
@@ -464,61 +428,33 @@ namespace NewLife.Net
             LastTime = DateTime.Now;
 
             Received?.Invoke(sender, e);
+        }
 
-            if (Packet != null && e.Packet != null && MessageReceived != null)
-            {
-                var msg = Packet.LoadMessage(e.Packet);
-                var me = new MessageEventArgs
-                {
-                    Packet = e.Packet,
-                    UserState = e.UserState,
-                    Message = msg
-                };
-                MessageReceived(sender, me);
-            }
+        /// <summary>收到异常时如何处理。默认关闭会话</summary>
+        /// <param name="se"></param>
+        /// <returns>是否当作异常处理并结束会话</returns>
+        internal virtual Boolean OnReceiveError(SocketAsyncEventArgs se)
+        {
+            //if (se.SocketError == SocketError.ConnectionReset) Dispose();
+            if (se.SocketError == SocketError.ConnectionReset) Close("ReceiveAsync " + se.SocketError);
+
+            return true;
         }
         #endregion
 
         #region 数据包处理
-        /// <summary>粘包处理接口</summary>
-        public IPacket Packet { get; set; }
+        /// <summary>管道</summary>
+        public IPipeline Pipeline { get; set; }
 
-        /// <summary>异步发送数据</summary>
-        /// <param name="pk">要发送的数据</param>
+        /// <summary>发送消息</summary>
+        /// <param name="message"></param>
         /// <returns></returns>
-        public virtual async Task<Packet> SendAsync(Packet pk)
-        {
-            if (Packet == null) Packet = new PacketProvider();
-
-            var task = Packet.Add(pk, Remote.EndPoint, Timeout);
-
-            if (pk != null && !SendByQueue(pk, Remote.EndPoint)) return null;
-
-            return await task;
-        }
+        public virtual Boolean SendMessage(Object message) => Pipeline.FireWrite(this, message);
 
         /// <summary>发送消息并等待响应</summary>
-        /// <param name="msg"></param>
+        /// <param name="message"></param>
         /// <returns></returns>
-        public virtual async Task<IMessage> SendAsync(IMessage msg)
-        {
-            if (msg == null) throw new ArgumentNullException(nameof(msg));
-
-            var pk = msg.ToPacket();
-            if (Packet == null) Packet = new PacketProvider();
-
-            var task = msg.Reply ? null : Packet.Add(pk, Remote.EndPoint, Timeout);
-
-            if (!SendByQueue(pk, Remote.EndPoint)) return null;
-
-            // 如果是响应包，直接返回不等待
-            if (msg.Reply) return null;
-
-            return Packet.LoadMessage(await task);
-        }
-
-        /// <summary>消息到达事件</summary>
-        public event EventHandler<MessageEventArgs> MessageReceived;
+        public virtual async Task<Object> SendAsync(Object message) => await Pipeline.FireWriteAndWait(this, message);
         #endregion
 
         #region 异常处理
@@ -530,6 +466,9 @@ namespace NewLife.Net
         /// <param name="ex">异常</param>
         internal protected virtual void OnError(String action, Exception ex)
         {
+            var pp = Pipeline;
+            if (pp != null) pp.Error(pp.CreateContext(this), ex);
+
             if (Log != null) Log.Error("{0}{1}Error {2} {3}", LogPrefix, action, this, ex?.Message);
             Error?.Invoke(this, new ExceptionEventArgs { Action = action, Exception = ex });
         }
@@ -556,18 +495,5 @@ namespace NewLife.Net
             if (Log != null && Log.Enable) Log.Info(LogPrefix + format, args);
         }
         #endregion
-
-        #region 辅助
-        /// <summary>已重载。</summary>
-        /// <returns></returns>
-        public override String ToString() { return Local + ""; }
-        #endregion
-    }
-
-    class SessionFilterContext : FilterContext
-    {
-        public SessionBase Session { get; set; }
-
-        public IPEndPoint Remote { get; set; }
     }
 }

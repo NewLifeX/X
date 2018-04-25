@@ -3,7 +3,12 @@
 @{
     var user = ViewBag.User as IUser ?? User.Identity as IUser;
     var uid = 0;
-    if (user != null) { uid = user.ID; }
+    var roleNames = "";
+    if (user != null)
+    {
+        uid = user.ID;
+        roleNames = user.Roles == null ? "" : user.Roles.Join();
+    }
     var cfg = ViewBag.Config as SysConfig;
     var name = cfg == null ? "" : cfg.DisplayName;
 }
@@ -25,7 +30,7 @@
         <!-- /section:basics/sidebar.mobile.toggle -->
         <div class="pull-left">
             <!-- #section:basics/navbar.layout.brand -->
-            <a href="#" class="navbar-brand">
+            <a href="@ViewBag.Main" class="navbar-brand" target="main">
                 <small>
                     @name
                 </small>
@@ -44,7 +49,7 @@
                         }
                         <span class="user-info">
                             @*<small>欢迎，</small>*@
-                            @user @*[@User["RoleName"]]*@
+                            @user <br /> [@roleNames]
                         </span>
 
                         <i class="ace-icon fa fa-caret-down"></i>
@@ -58,15 +63,15 @@
                             </a>
                         </li>
 
-                        @if (user.Has("Admin/Sys", PermissionFlags.Detail))
-                        {
-                            <li>
-                                <a href="~/Admin/Sys" target="main">
-                                    <i class="ace-icon fa fa-cog"></i>
-                                    设置
-                                </a>
-                            </li>
-                        }
+                        @*@if (user.Has("Admin/Sys", PermissionFlags.Detail))
+                            {
+                                <li>
+                                    <a href="~/Admin/Sys" target="main">
+                                        <i class="ace-icon fa fa-cog"></i>
+                                        设置
+                                    </a>
+                                </li>
+                            }*@
 
                         <li>
                             <a href="~/Admin/User/Info/@uid" target="main">

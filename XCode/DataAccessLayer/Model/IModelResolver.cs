@@ -9,6 +9,11 @@ namespace XCode.DataAccessLayer
     public interface IModelResolver
     {
         #region 名称处理
+        /// <summary>获取别名。过滤特殊符号，过滤_之类的前缀。</summary>
+        /// <param name="name">名称</param>
+        /// <returns></returns>
+        String GetName(String name);
+
         /// <summary>根据字段名等信息计算索引的名称</summary>
         /// <param name="di"></param>
         /// <returns></returns>
@@ -41,7 +46,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual String GetName(String name)
         {
-            if (String.IsNullOrEmpty(name)) return name;
+            if (name.IsNullOrEmpty()) return name;
 
             name = name.Replace("$", null);
             name = name.Replace("(", null);
@@ -54,7 +59,7 @@ namespace XCode.DataAccessLayer
             name = name.Replace("\\", "_");
 
             // 全大写或全小写名字，格式化为驼峰格式  包含下划线的表名和字段名生成类时自动去掉下划线
-            if (name.Contains ("_"))//(  name == name.ToUpper() || name == name.ToLower()))//
+            if (name.Contains("_"))//(  name == name.ToUpper() || name == name.ToLower()))//
             {
                 var ns = name.Split("_");
                 var sb = new StringBuilder();
@@ -70,6 +75,10 @@ namespace XCode.DataAccessLayer
                     }
                 }
                 name = sb.ToString();
+            }
+            else if (name != "ID" && (name == name.ToUpper() || name == name.ToLower()))
+            {
+                name = name.Substring(0, 1).ToUpper() + name.Substring(1).ToLower();
             }
 
             return name;

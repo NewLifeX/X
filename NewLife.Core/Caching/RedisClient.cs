@@ -55,7 +55,8 @@ namespace NewLife.Caching
                     var tc = Client;
                     if (tc != null && tc.Connected && tc.GetStream() != null) Quit();
                 }
-                catch { }
+                catch (ObjectDisposedException) { }
+                catch (Exception ex) { XTrace.WriteException(ex); }
             }
 
             Client.TryDispose();
@@ -78,7 +79,8 @@ namespace NewLife.Caching
                 ns = tc?.GetStream();
                 active = ns != null && tc.Connected && ns != null && ns.CanWrite && ns.CanRead;
             }
-            catch { }
+            catch (ObjectDisposedException) { }
+            catch (Exception ex) { XTrace.WriteException(ex); }
 
             // 如果连接不可用，则重新建立连接
             if (!active)
@@ -255,7 +257,7 @@ namespace NewLife.Caching
 
             // 结果集数量
             var p = pk.IndexOf(NewLine);
-            if (p <= 0) throw new Exception("无法解析响应 {0} [{1}]".F(header, pk.Count));
+            if (p <= 0) throw new InvalidDataException("无法解析响应 {0} [{1}]".F(header, pk.Count));
 
             var n = pk.Sub(1, p - 1).ToStr().ToInt();
 

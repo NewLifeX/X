@@ -52,7 +52,6 @@ namespace ASP
   
     var entity = Model as IEntity;
     var isNew = entity.IsNullKey;
-    var user = ViewBag.User as IUser ?? User.Identity as IUser;
 
             
             #line default
@@ -60,8 +59,8 @@ namespace ASP
 WriteLiteral("\r\n");
 
             
-            #line 7 "..\..\Views\Shared\_Form_Action.cshtml"
- if (user.Has(PermissionFlags.Insert, PermissionFlags.Update))
+            #line 6 "..\..\Views\Shared\_Form_Action.cshtml"
+ if (this.Has(PermissionFlags.Insert, PermissionFlags.Update))
 {
 
             
@@ -83,22 +82,22 @@ WriteLiteral(" class=\"btn btn-success btn-sm\"");
 
 WriteLiteral("><i");
 
-WriteAttribute("class", Tuple.Create(" class=\"", 434), Tuple.Create("\"", 488)
-, Tuple.Create(Tuple.Create("", 442), Tuple.Create("glyphicon", 442), true)
-, Tuple.Create(Tuple.Create(" ", 451), Tuple.Create("glyphicon-", 452), true)
+WriteAttribute("class", Tuple.Create(" class=\"", 369), Tuple.Create("\"", 423)
+, Tuple.Create(Tuple.Create("", 377), Tuple.Create("glyphicon", 377), true)
+, Tuple.Create(Tuple.Create(" ", 386), Tuple.Create("glyphicon-", 387), true)
             
-            #line 11 "..\..\Views\Shared\_Form_Action.cshtml"
-             , Tuple.Create(Tuple.Create("", 462), Tuple.Create<System.Object, System.Int32>(isNew ? "plus" : "save"
+            #line 10 "..\..\Views\Shared\_Form_Action.cshtml"
+             , Tuple.Create(Tuple.Create("", 397), Tuple.Create<System.Object, System.Int32>(isNew ? "plus" : "save"
             
             #line default
             #line hidden
-, 462), false)
+, 397), false)
 );
 
 WriteLiteral("></i><strong>");
 
             
-            #line 11 "..\..\Views\Shared\_Form_Action.cshtml"
+            #line 10 "..\..\Views\Shared\_Form_Action.cshtml"
                                                                                                                                Write(isNew ? "新增" : "保存");
 
             
@@ -119,7 +118,7 @@ WriteLiteral(" class=\"glyphicon glyphicon-remove\"");
 WriteLiteral("></i><strong>取消</strong></button>\r\n    </div>\r\n");
 
             
-            #line 14 "..\..\Views\Shared\_Form_Action.cshtml"
+            #line 13 "..\..\Views\Shared\_Form_Action.cshtml"
 }
             
             #line default

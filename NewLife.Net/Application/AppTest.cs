@@ -273,9 +273,7 @@ namespace NewLife.Net.Application
             {
                 try
                 {
-                    var wt = 0;
-                    var cpt = 0;
-                    ThreadPool.GetAvailableThreads(out wt, out cpt);
+                    ThreadPool.GetAvailableThreads(out var wt, out var cpt);
                     var threads = Process.GetCurrentProcess().Threads.Count;
 
                     var color = Console.ForegroundColor;

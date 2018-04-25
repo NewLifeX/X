@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data;
 using NewLife;
+using NewLife.Log;
 using XCode.DataAccessLayer;
 
 namespace XCode
@@ -46,7 +47,7 @@ namespace XCode
                 // 回滚时忽略异常
                 if (hasStart && !hasFinish) Entity<TEntity>.Meta.Session.Rollback();
             }
-            catch { }
+            catch (Exception ex) { XTrace.WriteException(ex); }
 
             hasFinish = true;
         }
@@ -112,7 +113,7 @@ namespace XCode
                 {
                     Rollback();
                 }
-                catch { }
+                catch (Exception ex) { XTrace.WriteException(ex); }
             }
         }
         #endregion

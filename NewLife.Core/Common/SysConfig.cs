@@ -34,21 +34,21 @@ namespace NewLife.Common
         [DisplayName("公司")]
         public String Company { get; set; } = "";
 
-        /// <summary>地址</summary>
-        [DisplayName("地址")]
-        public String Address { get; set; } = "";
+        ///// <summary>地址</summary>
+        //[DisplayName("地址")]
+        //public String Address { get; set; } = "";
 
-        /// <summary>电话</summary>
-        [DisplayName("电话")]
-        public String Tel { get; set; } = "";
+        ///// <summary>电话</summary>
+        //[DisplayName("电话")]
+        //public String Tel { get; set; } = "";
 
-        /// <summary>传真</summary>
-        [DisplayName("传真")]
-        public String Fax { get; set; } = "";
+        ///// <summary>传真</summary>
+        //[DisplayName("传真")]
+        //public String Fax { get; set; } = "";
 
-        /// <summary>电子邮件</summary>
-        [DisplayName("电子邮件")]
-        public String EMail { get; set; } = "";
+        ///// <summary>电子邮件</summary>
+        //[DisplayName("电子邮件")]
+        //public String EMail { get; set; } = "";
 
         /// <summary>开发者模式</summary>
         [DisplayName("开发者模式")]
@@ -77,23 +77,29 @@ namespace NewLife.Common
 
             Name = asmx?.Name ?? "NewLife.Cube";
             Version = asmx?.Version ?? "0.1";
-            DisplayName = (asmx?.Title ?? asmx?.Name) ?? "新生命魔方平台";
+            DisplayName = (asmx?.Title ?? asmx?.Name) ?? "魔方平台";
             Company = asmx?.Company ?? "新生命开发团队";
-            Address = "新生命开发团队";
+            //Address = "新生命开发团队";
 
-            if (String.IsNullOrEmpty(DisplayName)) DisplayName = "系统设置";
+            if (DisplayName.IsNullOrEmpty()) DisplayName = "系统设置";
         }
 
         /// <summary>系统主程序集</summary>
-        private static AssemblyX SysAssembly
+        public static AssemblyX SysAssembly
         {
             get
             {
                 try
                 {
-                    return AssemblyX.GetMyAssemblies()
-                        .Where(e => e.Title == null || !(e.Title.Contains("新生命") && (e.Title.Contains("库") || e.Title.Contains("框架") || e.Title.Contains("SQLite"))))
-                        .OrderByDescending(e => e.Compile).FirstOrDefault();
+                    var list = AssemblyX.GetMyAssemblies();
+                    //if (list.Count > 1) list = list.Where(e => e.Title.IsNullOrEmpty() || !(e.Title.Contains("新生命") && (e.Title.Contains("库") || e.Title.Contains("框架") || e.Title.Contains("SQLite")))).ToList();
+
+                    // 最后编译那一个
+                    list = list.OrderByDescending(e => e.Compile)
+                        .ThenByDescending(e => e.Name.EndsWithIgnoreCase(".Web"))
+                        .ToList();
+
+                    return list.FirstOrDefault();
                 }
                 catch { return null; }
             }

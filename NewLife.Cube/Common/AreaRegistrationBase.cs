@@ -84,6 +84,7 @@ namespace NewLife.Cube
 
             //var routes = RouteTable.Routes;
             //routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
+            //routes.MapMvcAttributeRoutes();
 
             //routes.MapRoute(
             //    name: "Virtual",
@@ -178,6 +179,41 @@ namespace NewLife.Cube
             XTrace.WriteLine("开始注册权限管理区域[{0}]，控制器命名空间[{1}]", AreaName, ns);
 
             // 注册本区域默认路由
+
+            // Json输出，需要配置web.config
+            //context.MapRoute(
+            //    AreaName + "_Data",
+            //    AreaName + "/{controller}.json/",
+            //    new { controller = "Index", action = "Index", id = UrlParameter.Optional, output = "json" },
+            //    new[] { ns }
+            //);
+            // Json输出，不需要配置web.config
+            //context.MapRoute(
+            //    AreaName + "_Json",
+            //    AreaName + "/{controller}Json/{action}/{id}",
+            //    new { controller = "Index", action = "Export", id = UrlParameter.Optional, output = "json" },
+            //    new[] { ns }
+            //);
+            //context.MapRoute(
+            //    AreaName + "_Detail",
+            //    AreaName + "/{controller}/{id}",
+            //    new { controller = "Index", action = "Detail" },
+            //    new[] { ns }
+            //);
+            //context.MapRoute(
+            //    AreaName + "_Detail_Json",
+            //    AreaName + "/{controller}/{id}/Json",
+            //    new { controller = "Index", action = "Detail", output = "json" },
+            //    new { id = @"\d+" },
+            //    new[] { ns }
+            //);
+            //context.MapRoute(
+            //    AreaName + "_Json",
+            //    AreaName + "/{controller}/Json",
+            //    new { controller = "Index", action = "Index", output = "json" },
+            //    new[] { ns }
+            //);
+            // 本区域默认配置
             context.MapRoute(
                 AreaName,
                 AreaName + "/{controller}/{action}/{id}",
@@ -224,6 +260,7 @@ namespace NewLife.Cube
             }
         }
 
+        private static ICollection<String> _areas;
         /// <summary>判断控制器是否归属于魔方管辖</summary>
         /// <param name="controller"></param>
         /// <returns></returns>
@@ -233,9 +270,12 @@ namespace NewLife.Cube
             var ns = controller.GetType().Namespace;
             if (!ns.EndsWith(".Controllers")) return false;
 
+            if (_areas == null) _areas = new HashSet<String>(Areas.Select(e => e.Namespace));
+
             // 该控制器父级命名空间必须有对应的区域注册类，才会拦截其异常
             ns = ns.TrimEnd(".Controllers");
-            return Areas.Any(e => e.Namespace == ns);
+            //return Areas.Any(e => e.Namespace == ns);
+            return _areas.Contains(ns);
         }
     }
 }

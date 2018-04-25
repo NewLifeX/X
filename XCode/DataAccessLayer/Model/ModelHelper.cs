@@ -387,6 +387,16 @@ namespace XCode.DataAccessLayer
             {
                 var dc = value as IDataColumn;
                 if (dc.Identity) dc.Nullable = false;
+
+                // 优化字段名
+                //dc.Fix();
+                if (dc.Name.IsNullOrEmpty())
+                    dc.Name = ModelResolver.Current.GetName(dc.ColumnName);
+                else if (dc.ColumnName.IsNullOrEmpty() || dc.ColumnName == dc.Name)
+                {
+                    dc.ColumnName = dc.Name;
+                    dc.Name = ModelResolver.Current.GetName(dc.ColumnName);
+                }
             }
             //reader.Skip();
 

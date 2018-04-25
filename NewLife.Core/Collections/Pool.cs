@@ -18,11 +18,11 @@ namespace NewLife.Collections
 
         private Int32 _FreeCount;
         /// <summary>空闲个数</summary>
-        public Int32 FreeCount { get => _FreeCount; }
+        public Int32 FreeCount => _FreeCount;
 
         private Int32 _BusyCount;
         /// <summary>繁忙个数</summary>
-        public Int32 BusyCount { get => _BusyCount; }
+        public Int32 BusyCount => _BusyCount;
 
         /// <summary>最大个数。默认100</summary>
         public Int32 Max { get; set; } = 100;
@@ -255,6 +255,17 @@ namespace NewLife.Collections
             //WriteLog("Release Free={0} Busy={1}", FreeCount, BusyCount);
 #endif
         }
+
+        /// <summary>清空已有对象</summary>
+        public virtual void Clear()
+        {
+            _busy.Clear();
+            _BusyCount = 0;
+
+            _free.Clear();
+            while (!_free2.IsEmpty && _free2.TryDequeue(out var rs)) ;
+            _FreeCount = 0;
+        }
         #endregion
 
         #region 重载
@@ -276,7 +287,7 @@ namespace NewLife.Collections
 
         /// <summary>申请时，返回是否有效。无效资源将会被抛弃并重新申请</summary>
         /// <param name="value"></param>
-        protected virtual Boolean OnAcquire(T value) { return true; }
+        protected virtual Boolean OnAcquire(T value) => true;
 
         /// <summary>释放时，返回是否有效。无效资源将会被抛弃，不再加入空闲队列</summary>
         /// <param name="value"></param>
@@ -290,7 +301,7 @@ namespace NewLife.Collections
 
         /// <summary>销毁时触发</summary>
         /// <param name="value"></param>
-        protected virtual void OnDestroy(T value) { value.TryDispose(); }
+        protected virtual void OnDestroy(T value) => value.TryDispose();
         #endregion
 
         #region 定期清理
@@ -365,11 +376,11 @@ namespace NewLife.Collections
         #region 统计
         private Int32 _Total;
         /// <summary>总请求数</summary>
-        public Int32 Total { get => _Total; }
+        public Int32 Total => _Total;
 
         private Int32 _Success;
         /// <summary>成功数</summary>
-        public Int32 Success { get => _Success; }
+        public Int32 Success => _Success;
 
         /// <summary>平均耗时。单位ms</summary>
         private Double Cost;

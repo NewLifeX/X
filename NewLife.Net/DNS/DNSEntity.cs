@@ -202,8 +202,7 @@ namespace NewLife.Net.DNS
         /// <returns></returns>
         public static DNSRecord CreateRecord(DNSQueryType qt)
         {
-            Type type = null;
-            if (!entitytypes.TryGetValue(qt, out type) || type == null) return null;
+            if (!entitytypes.TryGetValue(qt, out var type) || type == null) return null;
 
             return type.CreateInstance() as DNSRecord;
         }

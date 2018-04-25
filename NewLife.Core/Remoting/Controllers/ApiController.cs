@@ -5,7 +5,7 @@ using System.Text;
 namespace NewLife.Remoting
 {
     /// <summary>API控制器</summary>
-    [AllowAnonymous]
+    //[AllowAnonymous]
     public class ApiController
     {
         /// <summary>主机</summary>
@@ -16,12 +16,9 @@ namespace NewLife.Remoting
         public String[] All()
         {
             var list = new List<String>();
-            //var sb = new StringBuilder();
             foreach (var item in Host.Manager.Services)
             {
                 var act = item.Value;
-
-                //if (sb.Length > 0) sb.Append("#");
 
                 var mi = act.Method;
 

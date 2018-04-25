@@ -49,7 +49,7 @@ namespace XCode
                 return true;
             if ((object)other == (object)null)
                 return false;
-            ActionDelegatedEventHandler<TEvent> otherDelegate = other as ActionDelegatedEventHandler<TEvent>;
+            var otherDelegate = other as ActionDelegatedEventHandler<TEvent>;
             if ((object)otherDelegate == (object)null)
                 return false;
             // 使用Delegate.Equals方法判定两个委托是否是代理的同一方法。

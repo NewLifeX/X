@@ -4,7 +4,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using NewLife.Http;
 using NewLife.Log;
 
 namespace NewLife.Net
@@ -29,7 +28,7 @@ namespace NewLife.Net
         /// <summary>端口</summary>
         public Int32 Port { get { return Local.Port; } set { Local.Port = value; } }
 
-        /// <summary>会话超时时间。默认30秒</summary>
+        /// <summary>会话超时时间</summary>
         /// <remarks>
         /// 对于每一个会话连接，如果超过该时间仍然没有收到任何数据，则断开会话连接。
         /// </remarks>
@@ -48,14 +47,17 @@ namespace NewLife.Net
         /// <summary>是否抛出异常，默认false不抛出。Send/Receive时可能发生异常，该设置决定是直接抛出异常还是通过<see cref="Error"/>事件</summary>
         public Boolean ThrowException { get; set; }
 
-        /// <summary>最大并行数。默认CPU*1.6</summary>
+        /// <summary>最大并行接收连接数。默认CPU*1.6</summary>
         public Int32 MaxAsync { get; set; }
 
         /// <summary>启用Http，数据处理时截去请求响应头，默认false</summary>
         public Boolean EnableHttp { get; set; }
 
-        /// <summary>粘包处理接口</summary>
-        public IPacketFactory SessionPacket { get; set; }
+        ///// <summary>粘包处理接口</summary>
+        //public IPacketFactory SessionPacket { get; set; }
+
+        /// <summary>管道</summary>
+        public IPipeline Pipeline { get; set; }
 
         /// <summary>会话统计</summary>
         public IStatistics StatSession { get; set; } = new Statistics();
@@ -74,25 +76,16 @@ namespace NewLife.Net
             Name = GetType().Name;
 
             Local = new NetUri(NetType.Tcp, IPAddress.Any, 0);
-            //SessionTimeout = 30;
-            //AutoReceiveAsync = true;
-            //ProcessAsync = true;
-
             SessionTimeout = Setting.Current.SessionTimeout;
-
             MaxAsync = Environment.ProcessorCount * 16 / 10;
-
             _Sessions = new SessionCollection(this);
-            //StatSession = new Statistics();
-            //StatSend = new Statistics();
-            //StatReceive = new Statistics();
 
             Log = Logger.Null;
         }
 
         /// <summary>构造TCP服务器对象</summary>
         /// <param name="port"></param>
-        public TcpServer(Int32 port) : this() { Port = port; }
+        public TcpServer(Int32 port) : this() => Port = port;
 
         /// <summary>已重载。释放会话集合等资源</summary>
         /// <param name="disposing"></param>
@@ -278,14 +271,15 @@ namespace NewLife.Net
         #region 会话
         private SessionCollection _Sessions;
         /// <summary>会话集合。用地址端口作为标识，业务应用自己维持地址端口与业务主键的对应关系。</summary>
-        public IDictionary<String, ISocketSession> Sessions { get { return _Sessions; } }
+        public IDictionary<String, ISocketSession> Sessions => _Sessions;
 
         /// <summary>创建会话</summary>
         /// <param name="client"></param>
         /// <returns></returns>
         protected virtual TcpSession CreateSession(Socket client)
         {
-            var session = EnableHttp ? new HttpSession(this, client) : new TcpSession(this, client);
+            //var session = EnableHttp ? new HttpSession(this, client) : new TcpSession(this, client);
+            var session = new TcpSession(this, client);
             // 服务端不支持掉线重连
             session.AutoReconnect = 0;
             session.Log = Log;
@@ -293,8 +287,8 @@ namespace NewLife.Net
             session.LogReceive = LogReceive;
             session.StatSend.Parent = StatSend;
             session.StatReceive.Parent = StatReceive;
-            session.Packet = SessionPacket?.Create();
             session.ProcessAsync = ProcessAsync;
+            session.Pipeline = Pipeline;
 
             return session;
         }
@@ -324,7 +318,7 @@ namespace NewLife.Net
         protected virtual void OnError(String action, Exception ex)
         {
             if (Log != null) Log.Error("{0}{1}Error {2} {3}", LogPrefix, action, this, ex?.Message);
-            if (Error != null) Error(this, new ExceptionEventArgs { Action = action, Exception = ex });
+            Error?.Invoke(this, new ExceptionEventArgs { Action = action, Exception = ex });
         }
         #endregion
 

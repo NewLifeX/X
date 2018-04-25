@@ -95,13 +95,23 @@ namespace XCode.Membership
                         Dirtys.Remove(__.Password);
                 }
             }
+
+            // 重新整理角色
+            var ids = GetRoleIDs();
+            if (ids.Length > 0)
+            {
+                RoleID = ids[0];
+                var str = ids.Skip(1).Join();
+                if (!str.IsNullOrEmpty()) str = "," + str + ",";
+                RoleIDs = str;
+            }
         }
 
         /// <summary>删除用户</summary>
         /// <returns></returns>
         protected override Int32 OnDelete()
         {
-            if (Meta.Count <= 1) throw new Exception("必须保留至少一个可用账号！");
+            if (Meta.Count <= 1 && FindCount() <= 1) throw new Exception("必须保留至少一个可用账号！");
 
             return base.OnDelete();
         }
@@ -109,6 +119,7 @@ namespace XCode.Membership
 
         #region 扩展属性
         /// <summary>当前登录用户</summary>
+        [Obsolete]
         public static TEntity Current
         {
             get
@@ -120,19 +131,20 @@ namespace XCode.Membership
                 var ms = HttpContext.Current.Items;
 
                 // 从Session中获取
-                if (ss[key] is TEntity entity) return entity;
+                return ss[key] as TEntity;
+                //if (ss[key] is TEntity entity) return entity;
 
-                // 设置一个陷阱，避免重复计算Cookie
-                if (ms[key] != null) return null;
+                //// 设置一个陷阱，避免重复计算Cookie
+                //if (ms[key] != null) return null;
 
-                // 从Cookie中获取
-                entity = GetCookie(key);
-                if (entity != null)
-                    ss[key] = entity;
-                else
-                    ms[key] = "1";
+                //// 从Cookie中获取
+                //entity = GetCookie(key);
+                //if (entity != null)
+                //    ss[key] = entity;
+                //else
+                //    ms[key] = "1";
 
-                return entity;
+                //return entity;
 #else
                 return null;
 #endif
@@ -147,8 +159,7 @@ namespace XCode.Membership
                 // 特殊处理注销
                 if (value == null)
                 {
-                    var entity = Current;
-                    if (entity != null) WriteLog("注销", entity.Name);
+                    if (ss[key] is TEntity entity) WriteLog("注销", entity.Name);
 
                     // 修改Session
                     ss.Remove(key);
@@ -159,8 +170,8 @@ namespace XCode.Membership
                     ss[key] = value;
                 }
 
-                // 修改Cookie
-                SetCookie(key, value);
+                //// 修改Cookie
+                //SetCookie(key, value);
 #else
                 // 特殊处理注销
                 if (value == null)
@@ -173,12 +184,14 @@ namespace XCode.Membership
         }
 
         /// <summary>友好名字</summary>
-        public virtual String FriendName { get { return String.IsNullOrEmpty(DisplayName) ? Name : DisplayName; } }
+        [XmlIgnore, ScriptIgnore]
+        public virtual String FriendName => String.IsNullOrEmpty(DisplayName) ? Name : DisplayName;
 
         /// <summary>物理地址</summary>
         [DisplayName("物理地址")]
         //[BindRelation(__.LastLoginIP)]
-        public String LastLoginAddress { get { return LastLoginIP.IPToAddress(); } }
+        [XmlIgnore, ScriptIgnore]
+        public String LastLoginAddress => LastLoginIP.IPToAddress();
         #endregion
 
         #region 扩展查询
@@ -274,7 +287,7 @@ namespace XCode.Membership
         public static IList<TEntity> Search(String key, Int32 roleId, Boolean? isEnable, DateTime start, DateTime end, Pager p)
         {
             var exp = _.LastLogin.Between(start, end);
-            if (roleId >= 0) exp &= _.RoleID == roleId;
+            if (roleId > 0) exp &= _.RoleID == roleId | _.RoleIDs.Contains("," + roleId + ",");
             if (isEnable != null) exp &= _.Enable == isEnable;
 
             // 先精确查询，再模糊
@@ -320,7 +333,7 @@ namespace XCode.Membership
 
         /// <summary>已重载。显示友好名字</summary>
         /// <returns></returns>
-        public override String ToString() { return FriendName; }
+        public override String ToString() => FriendName;
         #endregion
 
         #region 业务
@@ -338,11 +351,11 @@ namespace XCode.Membership
             {
                 var user = Login(username, password, 1);
 #if !__CORE__
-                if (rememberme && user != null)
-                {
-                    var cookie = HttpContext.Current.Response.Cookies["Admin"];
-                    if (cookie != null) cookie.Expires = DateTime.Now.Date.AddYears(1);
-                }
+                //if (rememberme && user != null)
+                //{
+                //    var cookie = HttpContext.Current.Response.Cookies["Admin"];
+                //    if (cookie != null) cookie.Expires = DateTime.Now.Date.AddYears(1);
+                //}
 #endif
                 return user;
             }
@@ -408,7 +421,7 @@ namespace XCode.Membership
                 user.Password = password;
             }
 
-            Current = user;
+            //Current = user;
 
             user.SaveLoginInfo();
 
@@ -437,35 +450,41 @@ namespace XCode.Membership
         /// <summary>注销</summary>
         public virtual void Logout()
         {
-            var user = Current;
+            //var user = Current;
+            var user = this;
             if (user != null)
             {
                 user.Online = false;
                 user.SaveAsync();
             }
 
-            Current = null;
+            //Current = null;
             //Thread.CurrentPrincipal = null;
         }
 
         /// <summary>注册用户。第一注册用户自动抢管理员</summary>
         public virtual void Register()
         {
-            //!!! 第一个用户注册时，如果只有一个默认admin账号，则自动抢管理员
-            if (Meta.Count < 3 && FindCount() <= 1)
+            using (var tran = Meta.CreateTrans())
             {
-                var list = FindAll();
-                if (list.Count == 0 || list.Count == 1 && list[0].DisableAdmin())
+                //!!! 第一个用户注册时，如果只有一个默认admin账号，则自动抢管理员
+                if (Meta.Count < 3 && FindCount() <= 1)
                 {
-                    RoleID = 1;
-                    Enable = true;
+                    var list = FindAll();
+                    if (list.Count == 0 || list.Count == 1 && list[0].DisableAdmin())
+                    {
+                        RoleID = 1;
+                        Enable = true;
+                    }
                 }
+
+                RegisterTime = DateTime.Now;
+                RegisterIP = WebHelper.UserHost;
+
+                Insert();
+
+                tran.Commit();
             }
-
-            RegisterTime = DateTime.Now;
-            RegisterIP = WebHelper.UserHost;
-
-            Insert();
         }
 
         /// <summary>禁用默认管理员</summary>
@@ -484,94 +503,126 @@ namespace XCode.Membership
         }
 
 #if !__CORE__
-        static Boolean _isInGetCookie;
-        static TEntity GetCookie(String key)
-        {
-            if (_isInGetCookie) return null;
+        //static Boolean _isInGetCookie;
+        //static TEntity GetCookie(String key)
+        //{
+        //    if (_isInGetCookie) return null;
 
-            var cookie = HttpContext.Current.Request.Cookies[key];
-            if (cookie == null) return null;
+        //    var cookie = HttpContext.Current.Request.Cookies[key];
+        //    if (cookie == null) return null;
 
-            var user = HttpUtility.UrlDecode(cookie["u"]);
-            var pass = cookie["p"];
-            if (String.IsNullOrEmpty(user) || String.IsNullOrEmpty(pass)) return null;
+        //    var user = HttpUtility.UrlDecode(cookie["u"]);
+        //    var pass = cookie["p"];
+        //    if (String.IsNullOrEmpty(user) || String.IsNullOrEmpty(pass)) return null;
 
-            _isInGetCookie = true;
-            try
-            {
-                return Login(user, pass, -1);
-            }
-            catch (DbException ex)
-            {
-                XTrace.WriteLine("{0}登录失败！{1}", user, ex);
-                return null;
-            }
-            catch (Exception ex)
-            {
-                WriteLog("登录", user + "登录失败！" + ex.Message);
-                return null;
-            }
-            finally { _isInGetCookie = false; }
-        }
+        //    _isInGetCookie = true;
+        //    try
+        //    {
+        //        return Login(user, pass, -1);
+        //    }
+        //    catch (DbException ex)
+        //    {
+        //        XTrace.WriteLine("{0}登录失败！{1}", user, ex);
+        //        return null;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        WriteLog("登录", user + "登录失败！" + ex.Message);
+        //        return null;
+        //    }
+        //    finally { _isInGetCookie = false; }
+        //}
 
-        static void SetCookie(String key, TEntity entity)
-        {
-            var context = HttpContext.Current;
-            var res = context?.Response;
-            if (res == null) return;
+        //static void SetCookie(String key, TEntity entity)
+        //{
+        //    var context = HttpContext.Current;
+        //    var res = context?.Response;
+        //    if (res == null) return;
 
-            var reqcookie = context.Request.Cookies[key];
-            if (entity != null)
-            {
-                var user = HttpUtility.UrlEncode(entity.Name);
-                var pass = !String.IsNullOrEmpty(entity.Password) ? entity.Password.MD5() : null;
-                if (reqcookie == null || user != reqcookie["u"] || pass != reqcookie["p"])
-                {
-                    // 只有需要写入Cookie时才设置，否则会清空原来的非会话Cookie
-                    var cookie = res.Cookies[key];
-                    cookie["u"] = user;
-                    cookie["p"] = pass;
-                }
-            }
-            else
-            {
-                var cookie = res.Cookies[key];
-                cookie.Value = null;
-                cookie.Expires = DateTime.Now.AddYears(-1);
-                //HttpContext.Current.Response.Cookies.Remove(key);
-            }
-        }
+        //    var reqcookie = context.Request.Cookies[key];
+        //    if (entity != null)
+        //    {
+        //        var user = HttpUtility.UrlEncode(entity.Name);
+        //        var pass = !String.IsNullOrEmpty(entity.Password) ? entity.Password.MD5() : null;
+        //        if (reqcookie == null || user != reqcookie["u"] || pass != reqcookie["p"])
+        //        {
+        //            // 只有需要写入Cookie时才设置，否则会清空原来的非会话Cookie
+        //            var cookie = res.Cookies[key];
+        //            cookie["u"] = user;
+        //            cookie["p"] = pass;
+        //        }
+        //    }
+        //    else
+        //    {
+        //        var cookie = res.Cookies[key];
+        //        cookie.Value = null;
+        //        cookie.Expires = DateTime.Now.AddYears(-1);
+        //        //HttpContext.Current.Response.Cookies.Remove(key);
+        //    }
+        //}
 #endif
         #endregion
 
-        #region 权限日志
+        #region 权限
         /// <summary>角色</summary>
         /// <remarks>扩展属性不缓存空对象，一般来说，每个管理员都有对应的角色，如果没有，可能是在初始化</remarks>
         [XmlIgnore, ScriptIgnore]
-        public virtual IRole Role
+        public virtual IRole Role => Extends.Get(nameof(Role), k => ManageProvider.Get<IRole>()?.FindByID(RoleID));
+
+        /// <summary>角色集合</summary>
+        [XmlIgnore, ScriptIgnore]
+        public virtual IRole[] Roles => Extends.Get(nameof(Roles), k => GetRoleIDs().Select(e => ManageProvider.Get<IRole>()?.FindByID(e)).Where(e => e != null).ToArray());
+
+        /// <summary>获取角色列表。主角色在前，其它角色升序在后</summary>
+        /// <returns></returns>
+        public virtual Int32[] GetRoleIDs()
         {
-            get
-            {
-                if (RoleID <= 0) return null;
+            var ids = RoleIDs.SplitAsInt().OrderBy(e => e).ToList();
+            if (RoleID > 0) ids.Insert(0, RoleID);
 
-                //var role = ManageProvider.Get<IRole>();
-
-                //return role.FindByID(RoleID);
-
-                return Extends.Get(nameof(Role), k => ManageProvider.Get<IRole>()?.FindByID(RoleID));
-            }
+            return ids.Distinct().ToArray();
         }
 
         /// <summary>角色名</summary>
         [DisplayName("角色")]
         [Map(__.RoleID, typeof(RoleMapProvider))]
-        public virtual String RoleName { get { return Role?.Name; } }
+        [XmlIgnore, ScriptIgnore]
+        public virtual String RoleName => Role + "";
+
+        /// <summary>用户是否拥有当前菜单的指定权限</summary>
+        /// <param name="menu">指定菜单</param>
+        /// <param name="flags">是否拥有多个权限中的任意一个，或的关系。如果需要表示与的关系，可以传入一个多权限位合并</param>
+        /// <returns></returns>
+        public Boolean Has(IMenu menu, params PermissionFlags[] flags)
+        {
+            if (menu == null) throw new ArgumentNullException(nameof(menu));
+
+            // 角色集合
+            var rs = Roles;
+
+            // 如果没有指定权限子项，则指判断是否拥有资源
+            if (flags == null || flags.Length == 0) return rs.Any(r => r.Has(menu.ID));
+
+            foreach (var item in flags)
+            {
+                // 如果判断None，则直接返回
+                if (item == PermissionFlags.None) return true;
+
+                // 菜单必须拥有这些权限位才行
+                if (menu.Permissions.ContainsKey((Int32)item))
+                {
+                    //// 如果判断None，则直接返回
+                    //if (item == PermissionFlags.None) return true;
+
+                    if (rs.Any(r => r.Has(menu.ID, item))) return true;
+                }
+            }
+
+            return false;
+        }
         #endregion
 
         #region IManageUser 成员
-        ///// <summary>编号</summary>
-        //Object IManageUser.Uid { get { return ID; } }
-
         /// <summary>昵称</summary>
         String IManageUser.NickName { get => DisplayName; set => DisplayName = value; }
 
@@ -580,9 +631,6 @@ namespace XCode.Membership
         String IIdentity.AuthenticationType => "XCode";
 
         Boolean IIdentity.IsAuthenticated => true;
-
-        ///// <summary>是否管理员</summary>
-        //Boolean IManageUser.IsAdmin { get { return RoleName == "管理员" || RoleName == "超级管理员"; } set { } }
         #endregion
     }
 
@@ -604,14 +652,22 @@ namespace XCode.Membership
         /// <summary>角色</summary>
         IRole Role { get; }
 
+        /// <summary>角色集合</summary>
+        IRole[] Roles { get; }
+
         /// <summary>角色名</summary>
         String RoleName { get; }
+
+        /// <summary>用户是否拥有当前菜单的指定权限</summary>
+        /// <param name="menu">指定菜单</param>
+        /// <param name="flags">是否拥有多个权限中的任意一个，或的关系。如果需要表示与的关系，可以传入一个多权限位合并</param>
+        /// <returns></returns>
+        Boolean Has(IMenu menu, params PermissionFlags[] flags);
 
         /// <summary>注销</summary>
         void Logout();
 
         /// <summary>保存</summary>
-        /// <returns></returns>
         Int32 Save();
     }
 }

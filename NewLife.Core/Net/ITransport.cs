@@ -21,10 +21,10 @@ namespace NewLife.Net
         /// <param name="pk">数据包</param>
         Boolean Send(Packet pk);
 
-        /// <summary>异步发送数据并等待响应</summary>
-        /// <param name="pk">数据包</param>
-        /// <returns></returns>
-        Task<Packet> SendAsync(Packet pk);
+        ///// <summary>异步发送数据并等待响应</summary>
+        ///// <param name="pk">数据包</param>
+        ///// <returns></returns>
+        //Task<Packet> SendAsync(Packet pk);
 
         /// <summary>读取数据</summary>
         /// <returns></returns>

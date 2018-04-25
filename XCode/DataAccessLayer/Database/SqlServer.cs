@@ -73,14 +73,14 @@ namespace XCode.DataAccessLayer
         public String DataPath { get; set; }
 
         const String Application_Name = "Application Name";
-        protected override void OnSetConnectionString(XDbConnectionStringBuilder builder)
+        protected override void OnSetConnectionString(ConnectionStringBuilder builder)
         {
             // 获取数据目录，用于反向工程创建数据库
-            if (builder.TryGetAndRemove("DataPath", out var str) && !String.IsNullOrEmpty(str)) DataPath = str;
+            if (builder.TryGetAndRemove("DataPath", out var str) && !str.IsNullOrEmpty()) DataPath = str;
 
             base.OnSetConnectionString(builder);
 
-            if (!builder.ContainsKey(Application_Name))
+            if (builder[Application_Name] == null)
             {
 #if !__CORE__
                 var name = Runtime.IsWeb ? System.Web.Hosting.HostingEnvironment.SiteName : AppDomain.CurrentDomain.FriendlyName;
@@ -298,12 +298,12 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>长文本长度</summary>
-        public override Int32 LongTextLength { get { return 4000; } }
+        public override Int32 LongTextLength => 4000;
 
         /// <summary>格式化时间为SQL字符串</summary>
         /// <param name="dateTime">时间值</param>
         /// <returns></returns>
-        public override String FormatDateTime(DateTime dateTime) { return "{ts'" + dateTime.ToFullString() + "'}"; }
+        public override String FormatDateTime(DateTime dateTime) => "{ts'" + dateTime.ToFullString() + "'}";
 
         /// <summary>格式化名称，如果是关键字，则格式化后返回，否则原样返回</summary>
         /// <param name="name">名称</param>
@@ -451,7 +451,7 @@ namespace XCode.DataAccessLayer
                 var sql = "select b.name n, a.value v from sys.extended_properties a inner join sysobjects b on a.major_id=b.id and a.minor_id=0 and a.name = 'MS_Description'";
                 DescriptionTable = session.Query(sql).Tables[0];
             }
-            catch { }
+            catch (Exception ex) { XTrace.WriteException(ex); }
             //session.ShowSQL = old;
 
             var dt = GetSchema(_.Tables, null);
@@ -463,7 +463,7 @@ namespace XCode.DataAccessLayer
                 AllFields = session.Query(SchemaSql).Tables[0];
                 AllIndexes = session.Query(IndexSql).Tables[0];
             }
-            catch { }
+            catch (Exception ex) { XTrace.WriteException(ex); }
             //session.ShowSQL = old;
             #endregion
 
@@ -743,8 +743,11 @@ namespace XCode.DataAccessLayer
 
             var count = 0;
             var session = Database.CreateSession();
-            try { count = session.Execute(sb.ToString()); }
-            catch { }
+            try
+            {
+                count = session.Execute(sb.ToString());
+            }
+            catch (Exception ex) { XTrace.WriteException(ex); }
             return session.Execute(String.Format("Drop Database {0}", FormatName(databaseName))) > 0;
         }
 

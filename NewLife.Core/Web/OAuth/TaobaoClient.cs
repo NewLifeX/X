@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace NewLife.Web.OAuth
 {
-    /// <summary>身份验证提供者</summary>
+    /// <summary>淘宝身份验证提供者</summary>
     public class TaobaoClient : OAuthClient
     {
         /// <summary>实例化</summary>
@@ -14,6 +14,7 @@ namespace NewLife.Web.OAuth
             AuthUrl = url + "authorize?response_type={response_type}&client_id={key}&redirect_uri={redirect}&state={state}&scope={scope}";
             AccessUrl = url + "token?grant_type=authorization_code&client_id={key}&client_secret={secret}&code={code}&state={state}&redirect_uri={redirect}";
             //UserUrl = "https://openapi.baidu.com/rest/2.0/passport/users/getLoggedInUser?access_token={token}";
+            LogoutUrl = url + "logoff?client_id={key}&view=web";
         }
 
         /// <summary>从响应数据中获取信息</summary>

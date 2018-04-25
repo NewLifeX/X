@@ -33,10 +33,12 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("6.6.*")]
-[assembly: AssemblyFileVersion("6.6.2018.0211")]
+[assembly: AssemblyVersion("6.7.*")]
+[assembly: AssemblyFileVersion("6.7.2018.0421")]
 
 /*
+ * v6.7.2018.0421   网络库废除发送队列SendQueue
+ * 
  * v6.6.2018.0211   增加OAuth客户端服务端，支持QQ、百度、GitHub、淘宝等
  * 
  * v6.5.2017.1015   服务代理Agent增加任务调度器

@@ -96,8 +96,8 @@ namespace XCode
         /// <returns></returns>
         public static EntitySession<TEntity> Create(String connName, String tableName)
         {
-            if (String.IsNullOrEmpty(connName)) throw new ArgumentNullException("connName");
-            if (String.IsNullOrEmpty(tableName)) throw new ArgumentNullException("tableName");
+            if (connName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(connName));
+            if (tableName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(tableName));
 
             // 字符串连接有较大性能损耗
             var key = connName + "###" + tableName;
@@ -106,16 +106,16 @@ namespace XCode
         #endregion
 
         #region 主要属性
-        private Type ThisType { get { return typeof(TEntity); } }
+        private Type ThisType => typeof(TEntity);
 
         /// <summary>表信息</summary>
-        TableItem Table { get { return TableItem.Create(ThisType); } }
+        TableItem Table => TableItem.Create(ThisType);
 
-        IEntityOperate Operate { get { return EntityFactory.CreateOperate(ThisType); } }
+        IEntityOperate Operate => EntityFactory.CreateOperate(ThisType);
 
         private DAL _Dal;
         /// <summary>数据操作层</summary>
-        public DAL Dal { get { return _Dal ?? (_Dal = DAL.Create(ConnName)); } }
+        public DAL Dal => _Dal ?? (_Dal = DAL.Create(ConnName));
 
         private String _FormatedTableName;
         /// <summary>已格式化的表名，带有中括号等</summary>
@@ -125,18 +125,21 @@ namespace XCode
             {
                 if (_FormatedTableName.IsNullOrEmpty())
                 {
-                    var str = Dal.Db.FormatName(TableName);
-                    var conn = ConnName;
-                    if (conn != null && DAL.ConnStrs.ContainsKey(conn))
+                    var str = TableName;
+
+                    // 检查自动表前缀
+                    var dal = DAL.Create(ConnName);
+                    var pf = dal.Db.TablePrefix;
+                    if (!pf.IsNullOrEmpty() && !str.StartsWithIgnoreCase(pf)) str = pf + str;
+
+                    str = Dal.Db.FormatName(str);
+
+                    // 特殊处理Oracle数据库，在表名前加上方案名（用户名）
+                    if (!str.Contains("."))
                     {
-                        // 特殊处理Oracle数据库，在表名前加上方案名（用户名）
-                        var dal = DAL.Create(conn);
-                        if (dal != null && !str.Contains("."))
-                        {
-                            // 角色名作为点前缀来约束表名，支持所有数据库
-                            var owner = dal.Db.Owner;
-                            if (!owner.IsNullOrEmpty()) str = Dal.Db.FormatName(owner) + "." + str;
-                        }
+                        // 角色名作为点前缀来约束表名，支持所有数据库
+                        var owner = dal.Db.Owner;
+                        if (!owner.IsNullOrEmpty()) str = Dal.Db.FormatName(owner) + "." + str;
                     }
 
                     _FormatedTableName = str;
@@ -153,10 +156,13 @@ namespace XCode
             {
                 if (_Default != null) return _Default;
 
-                if (ConnName == Table.ConnName && TableName == Table.TableName)
+                var cname = Table.ConnName;
+                var tname = Table.TableName;
+
+                if (ConnName == cname && TableName == tname)
                     _Default = this;
                 else
-                    _Default = Create(Table.ConnName, Table.TableName);
+                    _Default = Create(cname, tname);
 
                 return _Default;
             }
@@ -208,7 +214,7 @@ namespace XCode
                 {
                     CheckModel();
                 }
-                catch { }
+                catch (Exception ex) { XTrace.WriteException(ex); }
 
                 //var init = Setting.Current.InitData;
                 var init = this == Default;
@@ -545,7 +551,7 @@ namespace XCode
             // 100w数据时，没有预热Select Count需要3000ms，预热后需要500ms
             if (count < 500000)
             {
-                if (count <= 0) count = Dal.Session.QueryCountFast(TableName);
+                if (count <= 0) count = Dal.Session.QueryCountFast(FormatedTableName);
 
                 // 查真实记录数，修正FastCount不够准确的情况
                 if (count < 10000000)
@@ -561,7 +567,7 @@ namespace XCode
             else
             {
                 // 异步查询弥补不足，千万数据以内
-                if (count < 10000000) count = Dal.Session.QueryCountFast(TableName);
+                if (count < 10000000) count = Dal.Session.QueryCountFast(FormatedTableName);
             }
 
             return count;
@@ -578,11 +584,11 @@ namespace XCode
             //_Count = -1L;
         }
 
-        String CacheKey { get { return String.Format("{0}_{1}_{2}", ConnName, TableName, ThisType.Name); } }
+        String CacheKey => $"{ConnName}_{TableName}_{ThisType.Name}";
         #endregion
 
         #region 数据库操作
-        void InitData() { WaitForInitData(); }
+        void InitData() => WaitForInitData();
 
         /// <summary>执行SQL查询，返回记录集</summary>
         /// <param name="builder">SQL语句</param>
@@ -596,17 +602,6 @@ namespace XCode
             return Dal.Select(builder, startRowIndex, maximumRows);
         }
 
-        /// <summary>查询</summary>
-        /// <param name="sql">SQL语句</param>
-        /// <returns>结果记录集</returns>
-        [Obsolete("请优先考虑使用SelectBuilder参数做查询！")]
-        public virtual DataSet Query(String sql)
-        {
-            InitData();
-
-            return Dal.Select(sql);
-        }
-
         /// <summary>查询记录数</summary>
         /// <param name="builder">查询生成器</param>
         /// <returns>记录数</returns>
@@ -615,20 +610,6 @@ namespace XCode
             InitData();
 
             return Dal.SelectCount(builder);
-        }
-
-        /// <summary>根据条件把普通查询SQL格式化为分页SQL。</summary>
-        /// <remarks>
-        /// 因为需要继承重写的原因，在数据类中并不方便缓存分页SQL。
-        /// 所以在这里做缓存。
-        /// </remarks>
-        /// <param name="builder">查询生成器</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <returns>分页SQL</returns>
-        public virtual SelectBuilder PageSplit(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows)
-        {
-            return Dal.PageSplit(builder, startRowIndex, maximumRows);
         }
 
         /// <summary>执行</summary>
@@ -699,15 +680,15 @@ namespace XCode
         /// <returns></returns>
         public Int32 Truncate()
         {
-            var rs = Dal.Session.Truncate(TableName);
+            var rs = Dal.Session.Truncate(FormatedTableName);
 
             // 干掉所有缓存
             _cache?.Clear("Truncate");
             _singleCache?.Clear("Truncate");
             LongCount = 0;
 
-            // 重新初始化
-            hasCheckInitData = false;
+            //// 重新初始化
+            //hasCheckInitData = false;
 
             return rs;
         }
@@ -769,31 +750,14 @@ namespace XCode
         #endregion
 
         #region 参数化
-        ///// <summary>创建参数</summary>
-        ///// <param name="fi"></param>
-        ///// <param name="value"></param>
-        ///// <returns></returns>
-        //public virtual IDataParameter CreateParameter(FieldItem fi, Object value)
-        //{
-        //    var name = fi.ColumnName;
-        //    if (name.IsNullOrEmpty()) name = fi.Name;
-
-        //    var dp = Dal.Db.CreateParameter(name, value, fi.Type);
-
-        //    var dbp = dp as DbParameter;
-        //    if (dbp != null) dbp.IsNullable = fi.IsNullable;
-
-        //    return dp;
-        //}
-
         /// <summary>格式化参数名</summary>
         /// <param name="name">名称</param>
         /// <returns></returns>
-        public virtual String FormatParameterName(String name) { return Dal.Db.FormatParameterName(name); }
+        public virtual String FormatParameterName(String name) => Dal.Db.FormatParameterName(name);
         #endregion
 
         #region 实体操作
-        private IEntityPersistence Persistence { get { return XCodeService.Container.ResolveInstance<IEntityPersistence>(); } }
+        private IEntityPersistence Persistence => XCodeService.Container.ResolveInstance<IEntityPersistence>();
 
         /// <summary>把该对象持久化到数据库，添加/更新实体缓存和单对象缓存，增加总计数</summary>
         /// <param name="entity">实体对象</param>
