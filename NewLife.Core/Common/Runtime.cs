@@ -347,8 +347,12 @@ namespace NewLife
 
         private static void Refresh()
         {
-            if (Mono) return;
-
+            if (Mono)
+            {
+                _PhysicalMemory = 0;
+                _AvailableMemory = 0;
+                return;
+            }
             //var ci = new ComputerInfo();
             //_PhysicalMemory = (Int32)(ci.TotalPhysicalMemory / 1024 / 1024);
             //_VirtualMemory = (Int32)(ci.TotalVirtualMemory / 1024 / 1024);
