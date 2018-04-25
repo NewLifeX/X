@@ -80,7 +80,7 @@ namespace NewLife.Remoting
             if (svr.Handler == null) svr.Handler = Handler;
             if (svr.Encoder == null) svr.Encoder = Encoder;
             svr.Host = this;
-            svr.Log = Log;
+            //svr.Log = Log;
             svr.Start();
 
             ShowService();

@@ -65,7 +65,7 @@ namespace NewLife.Remoting
 
             Encoder.Log = EncoderLog;
 
-            ct.Log = Log;
+            //ct.Log = Log;
 
             // 打开网络连接
             if (!ct.Open()) return false;
