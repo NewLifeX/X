@@ -265,7 +265,7 @@ namespace XCode.Membership
         /// <summary>根据用户编号查找</summary>
         /// <param name="userid"></param>
         /// <returns></returns>
-        public override IManageUser FindByID(Object userid) => User<TUser>.FindByID((Int32)userid);
+        public override IManageUser FindByID(Object userid) => User<TUser>.FindByID((userid + "").ToInt(-1));
 
         /// <summary>根据用户帐号查找</summary>
         /// <param name="name"></param>
