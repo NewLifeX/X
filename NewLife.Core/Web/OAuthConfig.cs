@@ -38,9 +38,9 @@ namespace NewLife.Web
                     new OAuthItem { Name = "QQ" },
                     new OAuthItem { Name = "Weixin" },
                     new OAuthItem { Name = "Baidu" },
-                    //new OAuthItem { Name = "Weibo" },
-                    //new OAuthItem { Name = "Taobao" },
-                    //new OAuthItem { Name = "Alipay" },
+                    new OAuthItem { Name = "Weibo" },
+                    new OAuthItem { Name = "Taobao" },
+                    new OAuthItem { Name = "Alipay" },
                     new OAuthItem { Name = "Github" }
                 };
 

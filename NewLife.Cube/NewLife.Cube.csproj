@@ -613,6 +613,13 @@
     <None Include="Content\jweui\lib\weui.css" />
     <None Include="Content\jweui\lib\weui.min.css" />
     <None Include="Content\jweui\lib\zepto.js" />
+    <Content Include="Content\images\logo\alipay.png" />
+    <Content Include="Content\images\logo\Baidu.png" />
+    <Content Include="Content\images\logo\github.png" />
+    <Content Include="Content\images\logo\qq.png" />
+    <Content Include="Content\images\logo\Taobao.png" />
+    <Content Include="Content\images\logo\Weibo.png" />
+    <Content Include="Content\images\logo\Weixin.png" />
     <Content Include="Entity\XCoder.log">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
