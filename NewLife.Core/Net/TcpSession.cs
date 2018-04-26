@@ -198,7 +198,9 @@ namespace NewLife.Net
         }
 
         private Int32 _empty;
-        internal override void ProcessReceive(Packet pk, IPEndPoint remote)
+        /// <param name="pk">数据包</param>
+        /// <param name="remote">远程</param>
+        internal protected override Boolean BeginProcess(Packet pk, IPEndPoint remote)
         {
             if (pk.Count == 0)
             {
@@ -208,40 +210,25 @@ namespace NewLife.Net
                     Close("收到空数据");
                     Dispose();
 
-                    return;
+                    return false;
                 }
             }
             else
                 _empty = 0;
 
-            base.ProcessReceive(pk, remote);
+            StatReceive?.Increment(pk.Count);
+
+            return true;
         }
 
         /// <summary>处理收到的数据</summary>
-        /// <param name="pk"></param>
-        /// <param name="remote"></param>
-        /// <param name="message">消息</param>
-        protected override Boolean OnReceive(Packet pk, IPEndPoint remote, Object message)
+        /// <param name="e">接收事件参数</param>
+        protected override Boolean OnReceive(ReceivedEventArgs e)
         {
+            var pk = e.Packet;
             if (pk == null || pk.Count == 0 && !MatchEmpty) return true;
 
-#if !__MOBILE__
-            // 更新全局远程IP地址
-            NewLife.Web.WebHelper.UserHost = Remote.EndPoint?.Address + "";
-#endif
-
-            StatReceive?.Increment(pk.Count);
-            if (base.OnReceive(pk, remote, message)) return true;
-
             // 分析处理
-            var e = new ReceivedEventArgs(pk)
-            {
-                Message = message,
-                UserState = Remote.EndPoint,
-            };
-
-            //if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", e.Length, e.ToHex(32, null));
-
             RaiseReceive(this, e);
 
             return true;

@@ -169,11 +169,9 @@ namespace NewLife.Net
         #endregion
 
         #region 接收
-        /// <summary>处理收到的数据</summary>
-        /// <param name="pk"></param>
-        /// <param name="remote"></param>
-        /// <param name="message">消息</param>
-        protected override Boolean OnReceive(Packet pk, IPEndPoint remote, Object message)
+        /// <param name="pk">数据包</param>
+        /// <param name="remote">远程</param>
+        internal protected override Boolean BeginProcess(Packet pk, IPEndPoint remote)
         {
             // 过滤自己广播的环回数据。放在这里，兼容UdpSession
             if (!Loopback && remote.Port == Port)
@@ -191,20 +189,18 @@ namespace NewLife.Net
                 }
             }
 
-#if !__MOBILE__
-            // 更新全局远程IP地址
-            NewLife.Web.WebHelper.UserHost = remote?.Address + "";
-#endif
             LastRemote = remote;
 
             StatReceive?.Increment(pk.Count);
-            if (base.OnReceive(pk, remote, message)) return true;
 
-            // 分析处理
-            var e = new ReceivedEventArgs(pk)
-            {
-                UserState = remote
-            };
+            return true;
+        }
+
+        /// <summary>处理收到的数据</summary>
+        /// <param name="e">接收事件参数</param>
+        protected override Boolean OnReceive(ReceivedEventArgs e)
+        {
+            var remote = e.UserState as IPEndPoint;
 
             // 为该连接单独创建一个会话，方便直接通信
             var session = CreateSession(remote);

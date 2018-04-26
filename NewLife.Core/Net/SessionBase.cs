@@ -385,23 +385,32 @@ namespace NewLife.Net
         /// <summary>接收预处理，粘包拆包</summary>
         /// <param name="pk"></param>
         /// <param name="remote"></param>
-        internal virtual void ProcessReceive(Packet pk, IPEndPoint remote)
+        private void ProcessReceive(Packet pk, IPEndPoint remote)
         {
             try
             {
+                if (!BeginProcess(pk, remote)) return;
+
                 if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", pk.Total, pk.ToHex(32, null));
+
+                if (Local.IsTcp) remote = Remote.EndPoint;
+                var e = new ReceivedEventArgs(pk) { UserState = remote };
 
                 // UDP使用UdpSession里面的管道
                 var pp = Pipeline;
                 if (pp == null || Local.IsUdp)
-                    OnReceive(pk, remote, null);
+                    OnReceive(e);
                 else
                 {
                     var ctx = pp.CreateContext(this);
                     ctx[nameof(remote)] = remote;
 
                     var msg = pp.Read(ctx, pk);
-                    if (msg != null) OnReceive(pk, remote, msg);
+                    if (msg != null)
+                    {
+                        e.Message = msg;
+                        OnReceive(e);
+                    }
                 }
             }
             catch (Exception ex)
@@ -410,19 +419,21 @@ namespace NewLife.Net
             }
         }
 
-        /// <summary>处理收到的数据。默认匹配同步接收委托</summary>
         /// <param name="pk">数据包</param>
         /// <param name="remote">远程</param>
-        /// <param name="message">消息</param>
+        internal protected abstract Boolean BeginProcess(Packet pk, IPEndPoint remote);
+
+        /// <summary>处理收到的数据。默认匹配同步接收委托</summary>
+        /// <param name="e">接收事件参数</param>
         /// <returns>是否已处理，已处理的数据不再向下传递</returns>
-        protected virtual Boolean OnReceive(Packet pk, IPEndPoint remote, Object message) => false;
+        protected abstract Boolean OnReceive(ReceivedEventArgs e);
 
         /// <summary>数据到达事件</summary>
         public event EventHandler<ReceivedEventArgs> Received;
 
         /// <summary>触发数据到达事件</summary>
         /// <param name="sender"></param>
-        /// <param name="e"></param>
+        /// <param name="e">接收事件参数</param>
         protected virtual void RaiseReceive(Object sender, ReceivedEventArgs e)
         {
             LastTime = DateTime.Now;

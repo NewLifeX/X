@@ -119,6 +119,7 @@ namespace XApi
             _Server = null;
             _Client = null;
 
+            var port = (Int32)numPort.Value;
             var uri = new NetUri(cbAddr.Text);
 
             var cfg = ApiConfig.Current;
@@ -127,7 +128,7 @@ namespace XApi
             switch (cbMode.Text)
             {
                 case "服务端":
-                    var svr = new ApiServer(uri);
+                    var svr = new ApiServer(port);
                     svr.Log = cfg.ShowLog ? log : Logger.Null;
                     svr.EncoderLog = cfg.ShowEncoderLog ? log : Logger.Null;
 
