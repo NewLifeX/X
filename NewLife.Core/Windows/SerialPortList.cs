@@ -90,7 +90,7 @@ namespace NewLife.Windows
 
             //cbEncoding.DataSource = new String[] { Encoding.UTF8.WebName, Encoding.ASCII.WebName, Encoding.UTF8.WebName };
             // 添加编码子菜单
-            var encs = new Encoding[] { Encoding.UTF8, Encoding.ASCII, Encoding.UTF8, Encoding.Unicode, Encoding.BigEndianUnicode, Encoding.UTF32 };
+            var encs = new Encoding[] { Encoding.UTF8, Encoding.ASCII, Encoding.UTF7, Encoding.Unicode, Encoding.BigEndianUnicode, Encoding.UTF32 };
             var list = new List<Encoding>(encs);
             // 暂时不用这么多编码
             //list.AddRange(Encoding.GetEncodings().Select(e => e.GetEncoding()).Where(e => !encs.Contains(e)));
@@ -114,6 +114,9 @@ namespace NewLife.Windows
             miHex不换行.Checked = !cfg.HexNewLine;
             miHex自动换行.Checked = cfg.HexNewLine;
             miHEX编码发送.Checked = cfg.HexSend;
+            miDTR.Checked = cfg.DtrEnable;
+            miRTS.Checked = cfg.RtsEnable;
+            miBreak.Checked = cfg.BreakState;
         }
 
         /// <summary>保存配置信息</summary>

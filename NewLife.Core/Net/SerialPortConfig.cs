@@ -62,5 +62,14 @@ namespace NewLife.Net
         /// <summary>扩展数据</summary>
         [Description("扩展数据")]
         public String Extend { get; set; } = "";
+        /// <summary>DtrEnable</summary>
+        [Description("DtrEnable")]
+        public bool DtrEnable { get; set; } = false;
+        /// <summary>RtsEnable</summary>
+        [Description("RtsEnable")]
+        public bool RtsEnable { get; set; } = false;
+        /// <summary>BreakState</summary>
+        [Description("BreakState")]
+        public bool BreakState { get; set; } = false;
     }
 }
