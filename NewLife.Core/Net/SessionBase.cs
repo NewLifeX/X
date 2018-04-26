@@ -394,9 +394,9 @@ namespace NewLife.Net
                 if (Local.IsTcp) remote = Remote.EndPoint;
                 var e = new ReceivedEventArgs(pk) { Remote = remote };
 
-                // UDP使用UdpSession里面的管道
+                // 不管Tcp/Udp，都在这使用管道
                 var pp = Pipeline;
-                if (pp == null || Local.IsUdp)
+                if (pp == null )
                     OnReceive(e);
                 else
                 {
