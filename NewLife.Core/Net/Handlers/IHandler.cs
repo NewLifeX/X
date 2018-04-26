@@ -53,7 +53,7 @@ namespace NewLife.Net.Handlers
         /// <summary>读取数据，返回结果作为下一个处理器消息</summary>
         /// <param name="context">上下文</param>
         /// <param name="message">消息</param>
-        public virtual Object Read(IHandlerContext context, Object message) => Next?.Read(context, message);
+        public virtual Object Read(IHandlerContext context, Object message) => Next == null ? message : Next.Read(context, message);
 
         ///// <summary>读取数据完成</summary>
         ///// <param name="context">上下文</param>
@@ -63,7 +63,7 @@ namespace NewLife.Net.Handlers
         /// <summary>写入数据，返回结果作为下一个处理器消息</summary>
         /// <param name="context">上下文</param>
         /// <param name="message">消息</param>
-        public virtual Object Write(IHandlerContext context, Object message) => Prev?.Write(context, message);
+        public virtual Object Write(IHandlerContext context, Object message) => Prev == null ? message : Prev.Write(context, message);
 
         /// <summary>打开连接</summary>
         /// <param name="context">上下文</param>

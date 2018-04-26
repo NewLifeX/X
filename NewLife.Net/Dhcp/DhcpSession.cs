@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using NewLife.Net.Sockets;
 
@@ -17,14 +18,17 @@ namespace NewLife.Net.Dhcp
             dhcp.Read(e.Stream, null);
 
             var kind = dhcp.Kind;
-            WriteLog("收到：{0} {1}", kind, e.UserState);
+            WriteLog("收到：{0} {1}", kind, e.Remote);
             var ds = (this as INetSession).Host as DhcpServer;
 
-            var dme = new DhcpMessageEventArgs();
-            dme.Request = dhcp;
-            dme.UserState = e.UserState;
+            var dme = new DhcpMessageEventArgs
+            {
+                Request = dhcp,
+                Remote = e.Remote,
+                UserState = e.UserState
+            };
 
-            if (OnMessage != null) OnMessage(this, dme);
+            OnMessage?.Invoke(this, dme);
 
             ds.RaiseMessage(this, dme);
 
@@ -44,16 +48,16 @@ namespace NewLife.Net.Dhcp
     /// <summary>消息事件参数</summary>
     public class DhcpMessageEventArgs : EventArgs
     {
-        private DhcpEntity _Request;
         /// <summary>收到的消息</summary>
-        public DhcpEntity Request { get { return _Request; } set { _Request = value; } }
+        public DhcpEntity Request { get; set; }
 
-        private DhcpEntity _Response;
         /// <summary>响应消息</summary>
-        public DhcpEntity Response { get { return _Response; } set { _Response = value; } }
+        public DhcpEntity Response { get; set; }
 
-        private Object _UserState;
+        /// <summary>远程地址</summary>
+        public IPEndPoint Remote { get; set; }
+
         /// <summary>用户对象</summary>
-        public Object UserState { get { return _UserState; } set { _UserState = value; } }
+        public Object UserState { get; set; }
     }
 }

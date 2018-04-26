@@ -94,13 +94,13 @@ namespace NewLife.Net.Dhcp
             switch (kind)
             {
                 case DhcpMessageType.Offer:
-                    OnOffer(dhcp, e.UserState);
+                    OnOffer(dhcp, e.Remote);
                     break;
                 case DhcpMessageType.Ack:
-                    OnAck(dhcp, e.UserState);
+                    OnAck(dhcp, e.Remote);
                     break;
                 case DhcpMessageType.Nak:
-                    OnNak(dhcp, e.UserState);
+                    OnNak(dhcp, e.Remote);
                     break;
                 default:
                     WriteLog("未知消息：\r\n{0}", dhcp);
@@ -148,8 +148,10 @@ namespace NewLife.Net.Dhcp
         /// <summary>广播发现</summary>
         public void SendDiscover()
         {
-            var dhcp = new DhcpEntity();
-            dhcp.Kind = DhcpMessageType.Discover;
+            var dhcp = new DhcpEntity
+            {
+                Kind = DhcpMessageType.Discover
+            };
 
             Send(dhcp);
         }
@@ -179,8 +181,10 @@ namespace NewLife.Net.Dhcp
         /// <summary>发送请求</summary>
         public void SendRequest()
         {
-            var dhcp = new DhcpEntity();
-            dhcp.Kind = DhcpMessageType.Request;
+            var dhcp = new DhcpEntity
+            {
+                Kind = DhcpMessageType.Request
+            };
 
             Send(dhcp);
         }
@@ -217,20 +221,13 @@ namespace NewLife.Net.Dhcp
                 WriteLog("拒绝原因：{0}", opt.ToStr());
             }
         }
-        #endregion
-
-        #region 日志
-        private ILog _Log = Logger.Null;
         /// <summary>日志</summary>
-        public ILog Log { get { return _Log; } set { _Log = value; } }
+        public ILog Log { get; set; } = Logger.Null;
 
         /// <summary>写日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
-        public void WriteLog(String format, params Object[] args)
-        {
-            Log.Info(format, args);
-        }
+        public void WriteLog(String format, params Object[] args) => Log.Info(format, args);
         #endregion
     }
 }

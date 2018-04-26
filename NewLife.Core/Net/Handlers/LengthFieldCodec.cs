@@ -17,8 +17,6 @@ namespace NewLife.Net.Handlers
 
         /// <summary>过期时间，超过该时间后按废弃数据处理，默认500ms</summary>
         public Int32 Expire { get; set; } = 500;
-
-        private DateTime _last;
         #endregion
 
         /// <summary>编码</summary>
@@ -80,177 +78,63 @@ namespace NewLife.Net.Handlers
         /// <param name="context"></param>
         /// <param name="pk"></param>
         /// <returns></returns>
-        protected override Packet Decode(IHandlerContext context, Packet pk)
+        protected override IList<Packet> Decode(IHandlerContext context, Packet pk)
         {
-            var dlen = 0;
-            var len = Math.Abs(Size);
-            if (len == 0)
-            {
-                var ms = pk.GetStream();
-                dlen = ms.ReadEncodedInt();
-                len = (Int32)ms.Position;
-            }
+            //var rs = new List<Packet>();
 
-            var buf = pk.ReadBytes(Offset, len);
-            switch (Size)
-            {
-                case 0: break;
-                case 1:
-                    dlen = buf[0];
-                    break;
-                case 2:
-                    dlen = buf.ToUInt16();
-                    break;
-                case 4:
-                    dlen = (Int32)buf.ToUInt32();
-                    break;
-                case -2:
-                    dlen = buf.ToUInt16(0, false);
-                    break;
-                case -4:
-                    dlen = (Int32)buf.ToUInt32(0, false);
-                    break;
-                default:
-                    throw new NotSupportedException();
-            }
+            //var total = pk.Total;
+            //while (total > 0)
+            //{
+            //    var dlen = 0;
+            //    var len = Math.Abs(Size);
+            //    if (len == 0)
+            //    {
+            //        var ms = pk.GetStream();
+            //        dlen = ms.ReadEncodedInt();
+            //        len = (Int32)ms.Position;
+            //    }
 
-            //!!! 还需要考虑粘包问题
-            if (len + dlen > pk.Total) throw new Exception("数据不足！");
+            //    var buf = pk.ReadBytes(Offset, len);
+            //    switch (Size)
+            //    {
+            //        case 0: break;
+            //        case 1:
+            //            dlen = buf[0];
+            //            break;
+            //        case 2:
+            //            dlen = buf.ToUInt16();
+            //            break;
+            //        case 4:
+            //            dlen = (Int32)buf.ToUInt32();
+            //            break;
+            //        case -2:
+            //            dlen = buf.ToUInt16(0, false);
+            //            break;
+            //        case -4:
+            //            dlen = (Int32)buf.ToUInt32(0, false);
+            //            break;
+            //        default:
+            //            throw new NotSupportedException();
+            //    }
 
-            return new Packet(pk.Data, pk.Offset + len, dlen);
-        }
+            //    //!!! 还需要考虑粘包问题
+            //    if (len + dlen > total) throw new Exception("数据不足！");
 
-        #region 粘包处理
-        /// <summary>内部缓存</summary>
-        private MemoryStream _ms;
+            //    //rs.Add(new Packet(pk.Data, pk.Offset + len, dlen));
+            //    var pk2 = pk.Sub(0, Offset + len + dlen);
+            //    rs.Add(pk2);
 
-        /// <summary>分析数据流，得到一帧数据</summary>
-        /// <param name="pk"></param>
-        /// <returns></returns>
-        public virtual Packet[] Parse(Packet pk)
-        {
-            if (Offset < 0) return new Packet[] { pk };
-
-            var nodata = _ms == null || _ms.Position < 0 || _ms.Position >= _ms.Length;
-
-            var list = new List<Packet>();
-            // 内部缓存没有数据，直接判断输入数据流是否刚好一帧数据，快速处理，绝大多数是这种场景
-            if (nodata)
-            {
-                if (pk == null) return list.ToArray();
-
-                //var ms = pk.GetStream();
-                var idx = 0;
-                while (idx < pk.Count)
-                {
-                    var pk2 = new Packet(pk.Data, pk.Offset + idx, pk.Count - idx);
-                    var len = GetLength(pk2.GetStream());
-                    if (len <= 0 || len > pk2.Count) break;
-
-                    pk2 = new Packet(pk.Data, pk.Offset + idx, len);
-                    list.Add(pk2);
-                    idx += len;
-                }
-                // 如果没有剩余，可以返回
-                if (idx == pk.Count) return list.ToArray();
-
-                // 剩下的
-                pk = new Packet(pk.Data, pk.Offset + idx, pk.Count - idx);
-            }
+            //    pk.Set(pk.Data, pk.Offset + pk2.Count, pk.Count - pk2.Count);
+            //    total -= pk2.Count;
+            //}
 
             if (_ms == null) _ms = new MemoryStream();
 
-            // 加锁，避免多线程冲突
-            lock (_ms)
-            {
-                if (pk != null)
-                {
-                    // 超过该时间后按废弃数据处理
-                    var now = DateTime.Now;
-                    if (_last.AddMilliseconds(Expire) < now)
-                    {
-                        _ms.SetLength(0);
-                        _ms.Position = 0;
-                    }
-                    _last = now;
-
-                    // 拷贝数据到最后面
-                    var p = _ms.Position;
-                    _ms.Position = _ms.Length;
-                    //_ms.Write(pk.Data, pk.Offset, pk.Count);
-                    pk.WriteTo(_ms);
-                    _ms.Position = p;
-                }
-
-                while (_ms.Position < _ms.Length)
-                {
-                    var len = GetLength(_ms);
-                    if (len <= 0) break;
-
-                    var pk2 = new Packet(_ms.ReadBytes(len));
-                    list.Add(pk2);
-                }
-
-                return list.ToArray();
-            }
+            return Parse(pk, _ms, ref _last, Offset, Size, Expire);
         }
 
-        /// <summary>从数据流中获取整帧数据长度</summary>
-        /// <param name="stream"></param>
-        /// <returns>数据帧长度（包含头部长度位）</returns>
-        protected virtual Int32 GetLength(Stream stream)
-        {
-            if (Offset < 0) return (Int32)(stream.Length - stream.Position);
-
-            var p = stream.Position;
-            // 数据不够，连长度都读取不了
-            if (p + Offset >= stream.Length) return 0;
-
-            // 移动到长度所在位置
-            if (Offset > 0) stream.Seek(Offset, SeekOrigin.Current);
-
-            // 读取大小
-            var len = 0;
-            switch (Size)
-            {
-                case 0:
-                    len = stream.ReadEncodedInt();
-                    break;
-                case 1:
-                    len = stream.ReadByte();
-                    break;
-                case 2:
-                    len = stream.ReadBytes(2).ToInt();
-                    break;
-                case 4:
-                    len = (Int32)stream.ReadBytes(4).ToUInt32();
-                    break;
-                case -2:
-                    len = stream.ReadBytes(2).ToUInt16(0, false);
-                    break;
-                case -4:
-                    len = (Int32)stream.ReadBytes(4).ToUInt32(0, false);
-                    break;
-                default:
-                    throw new NotSupportedException();
-            }
-
-            // 判断后续数据是否足够
-            if (stream.Position + len > stream.Length)
-            {
-                // 长度不足，恢复位置
-                stream.Position = p;
-                return 0;
-            }
-
-            // 数据长度加上头部长度
-            len += (Int32)(stream.Position - p);
-
-            // 恢复位置
-            stream.Position = p;
-
-            return len;
-        }
-        #endregion
+        /// <summary>内部缓存</summary>
+        private MemoryStream _ms;
+        private DateTime _last;
     }
 }

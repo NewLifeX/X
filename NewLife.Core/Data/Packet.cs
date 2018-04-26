@@ -22,7 +22,7 @@ namespace NewLife.Data
         public Packet Next { get; set; }
 
         /// <summary>总长度</summary>
-        public Int32 Total { get { return Count + (Next != null ? Next.Total : 0); } }
+        public Int32 Total => Count + (Next != null ? Next.Total : 0);
         #endregion
 
         #region 构造

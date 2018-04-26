@@ -61,11 +61,7 @@ namespace NewLife.Net.UPnP
 
         private SortedList<String, InternetGatewayDevice> _Gateways;
         /// <summary>网关设备</summary>
-        public SortedList<String, InternetGatewayDevice> Gateways
-        {
-            get { return _Gateways ?? (_Gateways = new SortedList<String, InternetGatewayDevice>()); }
-            //set { _Gateways = value; }
-        }
+        public SortedList<String, InternetGatewayDevice> Gateways => _Gateways ?? (_Gateways = new SortedList<String, InternetGatewayDevice>());
         #endregion
 
         #region 构造
@@ -136,7 +132,7 @@ namespace NewLife.Net.UPnP
 
             //var udp = e as UdpReceivedEventArgs;
 
-            var remote = e.UserState as IPEndPoint;
+            var remote = e.Remote;
             var address = remote.Address;
             WriteLog("发现UPnP设备：{0}", remote);
 
@@ -191,7 +187,7 @@ namespace NewLife.Net.UPnP
             }
             //}
 
-            if (OnNewDevice != null) OnNewDevice(this, new EventArgs<InternetGatewayDevice, Boolean>(device, isCache));
+            OnNewDevice?.Invoke(this, new EventArgs<InternetGatewayDevice, Boolean>(device, isCache));
         }
 
         /// <summary>发现新设备时触发。参数（设备，是否来自缓存）</summary>
@@ -231,7 +227,7 @@ namespace NewLife.Net.UPnP
 
         #region 辅助函数
         /// <summary>是否缓存网关。缓存网关可以加速UPnP的发现过程</summary>
-        public static Boolean CacheGateway { get { return Config.GetConfig<Boolean>("NewLife.Net.UPnP.CacheGateway"); } }
+        public static Boolean CacheGateway => Config.GetConfig<Boolean>("NewLife.Net.UPnP.CacheGateway");
         #endregion
     }
 }

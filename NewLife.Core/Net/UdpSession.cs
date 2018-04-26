@@ -167,28 +167,14 @@ namespace NewLife.Net
 
         internal void OnReceive(ReceivedEventArgs e)
         {
-            var remote = e.UserState as IPEndPoint;
-            var pk = e.Packet;
-
-            var pp = Pipeline;
-            if (pp != null)
-            {
-                var ctx = pp.CreateContext(this);
-                ctx[nameof(remote)] = remote;
-
-                var msg = pp.Read(ctx, pk);
-                if (msg == null) return;
-
-                e.Message = msg;
-            }
-
             LastTime = DateTime.Now;
-            //if (StatReceive != null) StatReceive.Increment(e.Length);
-
-            //if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", e.Length, e.ToHex(32, null));
 
             if (e != null) Received?.Invoke(this, e);
         }
+
+        /// <summary>处理数据帧</summary>
+        /// <param name="data">数据帧</param>
+        public virtual void Receive(IData data) => OnReceive(data as ReceivedEventArgs);
         #endregion
 
         #region 异常处理

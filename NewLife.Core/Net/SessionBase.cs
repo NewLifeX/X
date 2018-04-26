@@ -392,23 +392,24 @@ namespace NewLife.Net
                 if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", pk.Total, pk.ToHex(32, null));
 
                 if (Local.IsTcp) remote = Remote.EndPoint;
-                var e = new ReceivedEventArgs(pk) { UserState = remote };
+                var e = new ReceivedEventArgs(pk) { Remote = remote };
 
-                // UDP使用UdpSession里面的管道
+                // 不管Tcp/Udp，都在这使用管道
                 var pp = Pipeline;
-                if (pp == null || Local.IsUdp)
+                if (pp == null)
                     OnReceive(e);
                 else
                 {
                     var ctx = pp.CreateContext(this);
-                    ctx[nameof(remote)] = remote;
+                    ctx.Data = e;
+                    //ctx.Finish = (c, v) =>
+                    //{
+                    //    var e2 = new ReceivedEventArgs(c.Data) { Message = v };
+                    //    OnReceive(e2);
+                    //};
 
-                    var msg = pp.Read(ctx, pk);
-                    if (msg != null)
-                    {
-                        e.Message = msg;
-                        OnReceive(e);
-                    }
+                    // 进入管道处理，如果有一个或多个结果通过Finish来处理
+                    pp.Read(ctx, pk);
                 }
             }
             catch (Exception ex)
@@ -464,6 +465,10 @@ namespace NewLife.Net
         /// <param name="message"></param>
         /// <returns></returns>
         public virtual async Task<Object> SendAsync(Object message) => await Pipeline.FireWriteAndWait(this, message);
+
+        /// <summary>处理数据帧</summary>
+        /// <param name="data">数据帧</param>
+        public virtual void Receive(IData data) => OnReceive(data as ReceivedEventArgs);
         #endregion
 
         #region 异常处理
