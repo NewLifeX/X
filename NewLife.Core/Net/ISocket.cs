@@ -117,6 +117,10 @@ namespace NewLife.Net
         /// <param name="message">消息</param>
         /// <returns></returns>
         Boolean SendMessage(Object message);
+
+        /// <summary>处理数据帧</summary>
+        /// <param name="data">数据帧</param>
+        void Receive(IData data);
         #endregion
     }
 

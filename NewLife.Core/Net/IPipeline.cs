@@ -59,7 +59,7 @@ namespace NewLife.Net
         /// <summary>读取数据，返回结果作为下一个处理器消息</summary>
         /// <param name="context">上下文</param>
         /// <param name="message">消息</param>
-        Object Read(IHandlerContext context, Object message);
+        void Read(IHandlerContext context, Object message);
 
         /// <summary>写入数据，返回结果作为下一个处理器消息</summary>
         /// <param name="context">上下文</param>
@@ -102,12 +102,6 @@ namespace NewLife.Net
     public class Pipeline : IPipeline
     {
         #region 属性
-        ///// <summary>服务提供者</summary>
-        //public IServiceProvider Service { get; set; }
-
-        ///// <summary>处理器集合</summary>
-        //public IList<IHandler> Handlers { get; } = new List<IHandler>();
-
         /// <summary>头部处理器</summary>
         public IHandler Head { get; set; }
 
@@ -214,28 +208,19 @@ namespace NewLife.Net
         /// <summary>读取数据，返回结果作为下一个处理器消息</summary>
         /// <param name="context">上下文</param>
         /// <param name="message">消息</param>
-        public virtual Object Read(IHandlerContext context, Object message)
+        public virtual void Read(IHandlerContext context, Object message)
         {
-            //var rs = message;
-            //foreach (var handler in Handlers)
-            //{
-            //    // 需要下一次循环时，才使用上一次结果，避免ReadComplete得不到数据
-            //    message = rs;
-            //    if (message is Byte[] buf) message = new Packet(buf);
+            var rs = Head?.Read(context, message);
+            if (rs != null)
+            {
+                //context.Finish?.Invoke(rs);
 
-            //    rs = handler.Read(context, message);
-            //    if (rs == null) break;
-            //}
-
-            //// 读取完成
-            //foreach (var handler in Handlers)
-            //{
-            //    handler.ReadComplete(context, rs);
-            //}
-
-            //return rs;
-
-            return Head?.Read(context, message);
+                // 处理消息
+                //var data = context.Data ?? new ReceivedEventArgs();
+                //data.Message = rs;
+                //context.Session.Receive(data);
+                context.FireRead(rs);
+            }
         }
 
         /// <summary>写入数据，返回结果作为下一个处理器消息</summary>
@@ -243,18 +228,7 @@ namespace NewLife.Net
         /// <param name="message">消息</param>
         public virtual Object Write(IHandlerContext context, Object message)
         {
-            //// 出站逆序
-            //for (var i = Handlers.Count - 1; i >= 0; i--)
-            //{
-            //    //if (message is String str) message = new Packet(str.GetBytes());
-            //    if (message is Byte[] buf) message = new Packet(buf);
-
-            //    message = Handlers[i].Write(context, message);
-            //    if (message == null) return null;
-            //}
-
-            //return message;
-
+            // 出站逆序
             return Tail?.Write(context, message);
         }
 

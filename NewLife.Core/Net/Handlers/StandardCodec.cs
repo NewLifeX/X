@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Threading;
 using NewLife.Data;
 using NewLife.Messaging;
@@ -28,13 +31,23 @@ namespace NewLife.Net.Handlers
         /// <param name="context"></param>
         /// <param name="pk"></param>
         /// <returns></returns>
-        protected override IMessage Decode(IHandlerContext context, Packet pk)
+        protected override IList<IMessage> Decode(IHandlerContext context, Packet pk)
         {
-            var msg = new DefaultMessage();
-            if (!msg.Read(pk)) return null;
+            if (_ms == null) _ms = new MemoryStream();
 
-            return msg;
+            var pks = Parse(pk, _ms, ref _last, 2, 2, 500);
+            return pks.Select(e =>
+            {
+                var msg = new DefaultMessage();
+                if (!msg.Read(pk)) return null;
+
+                return msg as IMessage;
+            }).ToList();
         }
+
+        /// <summary>内部缓存</summary>
+        private MemoryStream _ms;
+        private DateTime _last;
 
         /// <summary>是否匹配响应</summary>
         /// <param name="request"></param>

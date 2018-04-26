@@ -7,18 +7,14 @@ using NewLife.Data;
 namespace NewLife.Net
 {
     /// <summary>收到数据时的事件参数</summary>
-    public class ReceivedEventArgs : EventArgs
+    public class ReceivedEventArgs : EventArgs, IData
     {
         #region 属性
         /// <summary>数据包</summary>
         public Packet Packet { get; set; }
 
         /// <summary>数据</summary>
-        public Byte[] Data
-        {
-            get { return Packet.ToArray(); }
-            set { Packet.Set(value); }
-        }
+        public Byte[] Data { get => Packet.ToArray(); set => Packet.Set(value); }
 
         /// <summary>数据长度</summary>
         public Int32 Length => Packet.Count;
@@ -43,6 +39,16 @@ namespace NewLife.Net
         /// <summary>使用字节数组实例化一个数据事件参数</summary>
         /// <param name="pk"></param>
         public ReceivedEventArgs(Packet pk) => Packet = pk;
+
+        /// <summary>使用数据帧实例化</summary>
+        /// <param name="data"></param>
+        public ReceivedEventArgs(IData data)
+        {
+            Packet = data.Packet;
+            Remote = data.Remote;
+            Message = data.Remote;
+            UserState = data.UserState;
+        }
         #endregion
 
         #region 方法

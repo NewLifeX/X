@@ -101,6 +101,7 @@
     <Compile Include="Data\GeoArea.cs" />
     <Compile Include="Data\GeoAddress.cs" />
     <Compile Include="Data\GeoPoint.cs" />
+    <Compile Include="Data\IData.cs" />
     <Compile Include="Data\IFilter.cs" />
     <Compile Include="Data\Packet.cs" />
     <Compile Include="Exceptions\CodecException.cs" />

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using NewLife.Collections;
+using NewLife.Data;
 
 namespace NewLife.Net.Handlers
 {
@@ -20,6 +22,16 @@ namespace NewLife.Net.Handlers
         /// <param name="key"></param>
         /// <returns></returns>
         Object this[String key] { get; set; }
+
+        /// <summary>数据帧</summary>
+        IData Data { get; set; }
+
+        ///// <summary>处理完成后的回调</summary>
+        //Action<IHandlerContext, Object> Finish { get; set; }
+
+        /// <summary>处理收到消息</summary>
+        /// <param name="message"></param>
+        void FireRead(Object message);
     }
 
     /// <summary>处理器上下文</summary>
@@ -39,6 +51,21 @@ namespace NewLife.Net.Handlers
         /// <param name="key"></param>
         /// <returns></returns>
         public Object this[String key] { get => Items[key]; set => Items[key] = value; }
+
+        /// <summary>数据帧</summary>
+        public IData Data { get; set; }
+
+        ///// <summary>处理完成后的回调</summary>
+        //public Action<IHandlerContext, Object> Finish { get; set; }
+
+        /// <summary>处理收到消息</summary>
+        /// <param name="message"></param>
+        public void FireRead(Object message)
+        {
+            var data = Data ?? new ReceivedEventArgs();
+            data.Message = message;
+            Session.Receive(data);
+        }
         #endregion
     }
 }

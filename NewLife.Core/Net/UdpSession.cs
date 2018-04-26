@@ -171,6 +171,10 @@ namespace NewLife.Net
 
             if (e != null) Received?.Invoke(this, e);
         }
+
+        /// <summary>处理数据帧</summary>
+        /// <param name="data">数据帧</param>
+        public virtual void Receive(IData data) => OnReceive(data as ReceivedEventArgs);
         #endregion
 
         #region 异常处理
