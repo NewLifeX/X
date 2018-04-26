@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Net;
 using System.Text;
 using NewLife.Data;
 
@@ -25,10 +26,13 @@ namespace NewLife.Net
         /// <summary>数据区对应的一个数据流实例</summary>
         public Stream Stream => Packet.GetStream();
 
+        /// <summary>远程地址</summary>
+        public IPEndPoint Remote { get; set; }
+
         /// <summary>解码后的消息</summary>
         public Object Message { get; set; }
 
-        /// <summary>用户数据。比如远程地址等</summary>
+        /// <summary>用户数据</summary>
         public Object UserState { get; set; }
         #endregion
 

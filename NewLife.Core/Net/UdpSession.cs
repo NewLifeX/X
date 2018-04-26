@@ -167,7 +167,7 @@ namespace NewLife.Net
 
         internal void OnReceive(ReceivedEventArgs e)
         {
-            var remote = e.UserState as IPEndPoint;
+            var remote = e.Remote;
             var pk = e.Packet;
 
             var pp = Pipeline;

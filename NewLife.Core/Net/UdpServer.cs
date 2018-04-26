@@ -200,7 +200,7 @@ namespace NewLife.Net
         /// <param name="e">接收事件参数</param>
         protected override Boolean OnReceive(ReceivedEventArgs e)
         {
-            var remote = e.UserState as IPEndPoint;
+            var remote = e.Remote;
 
             // 为该连接单独创建一个会话，方便直接通信
             var session = CreateSession(remote);

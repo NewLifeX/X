@@ -392,7 +392,7 @@ namespace NewLife.Net
                 if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", pk.Total, pk.ToHex(32, null));
 
                 if (Local.IsTcp) remote = Remote.EndPoint;
-                var e = new ReceivedEventArgs(pk) { UserState = remote };
+                var e = new ReceivedEventArgs(pk) { Remote = remote };
 
                 // UDP使用UdpSession里面的管道
                 var pp = Pipeline;
