@@ -342,7 +342,6 @@ namespace NewLife.Net
             if (se.SocketError != SocketError.Success)
             {
                 // 未被关闭Socket时，可以继续使用
-                //if (!se.IsNotClosed())
                 if (OnReceiveError(se))
                 {
                     var ex = se.GetException();
@@ -356,8 +355,6 @@ namespace NewLife.Net
             else
             {
                 var ep = se.RemoteEndPoint as IPEndPoint ?? Remote.EndPoint;
-
-                //if (Log.Enable && LogReceive) WriteLog("Recv# [{0}]: {1}", se.BytesTransferred, se.Buffer.ToHex(se.Offset, Math.Min(se.BytesTransferred, 32)));
 
                 var pk = new Packet(se.Buffer, se.Offset, se.BytesTransferred);
                 if (ProcessAsync)
@@ -389,7 +386,8 @@ namespace NewLife.Net
         {
             try
             {
-                if (!BeginProcess(pk, remote)) return;
+                LastTime = DateTime.Now;
+                if (!OnPreReceive(pk, remote)) return;
 
                 if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", pk.Total, pk.ToHex(32, null));
 
@@ -421,7 +419,7 @@ namespace NewLife.Net
 
         /// <param name="pk">数据包</param>
         /// <param name="remote">远程</param>
-        internal protected abstract Boolean BeginProcess(Packet pk, IPEndPoint remote);
+        internal protected abstract Boolean OnPreReceive(Packet pk, IPEndPoint remote);
 
         /// <summary>处理收到的数据。默认匹配同步接收委托</summary>
         /// <param name="e">接收事件参数</param>

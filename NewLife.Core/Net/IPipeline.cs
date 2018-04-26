@@ -10,36 +10,44 @@ namespace NewLife.Net
     /// <summary>管道。进站顺序，出站逆序</summary>
     public interface IPipeline : IEnumerable<IHandler>
     {
+        #region 属性
         ///// <summary>服务提供者</summary>
         //IServiceProvider Service { get; }
+
+        /// <summary>头部处理器</summary>
+        IHandler Head { get; }
+
+        /// <summary>尾部处理器</summary>
+        IHandler Tail { get; }
+        #endregion
 
         #region 基础方法
         /// <summary>添加处理器到开头</summary>
         /// <param name="handler">处理器</param>
         /// <returns></returns>
-        IPipeline AddFirst(IHandler handler);
+        void AddFirst(IHandler handler);
 
         /// <summary>添加处理器到末尾</summary>
         /// <param name="handler">处理器</param>
         /// <returns></returns>
-        IPipeline AddLast(IHandler handler);
+        void AddLast(IHandler handler);
 
         /// <summary>添加处理器到指定名称之前</summary>
         /// <param name="baseHandler">基准处理器</param>
         /// <param name="handler">处理器</param>
         /// <returns></returns>
-        IPipeline AddBefore(IHandler baseHandler, IHandler handler);
+        void AddBefore(IHandler baseHandler, IHandler handler);
 
         /// <summary>添加处理器到指定名称之后</summary>
         /// <param name="baseHandler">基准处理器</param>
         /// <param name="handler">处理器</param>
         /// <returns></returns>
-        IPipeline AddAfter(IHandler baseHandler, IHandler handler);
+        void AddAfter(IHandler baseHandler, IHandler handler);
 
         /// <summary>删除处理器</summary>
         /// <param name="handler">处理器</param>
         /// <returns></returns>
-        IPipeline Remove(IHandler handler);
+        void Remove(IHandler handler);
 
         /// <summary>创建上下文</summary>
         /// <param name="session">远程会话</param>
@@ -97,8 +105,14 @@ namespace NewLife.Net
         ///// <summary>服务提供者</summary>
         //public IServiceProvider Service { get; set; }
 
-        /// <summary>处理器集合</summary>
-        public IList<IHandler> Handlers { get; } = new List<IHandler>();
+        ///// <summary>处理器集合</summary>
+        //public IList<IHandler> Handlers { get; } = new List<IHandler>();
+
+        /// <summary>头部处理器</summary>
+        public IHandler Head { get; set; }
+
+        /// <summary>尾部处理器</summary>
+        public IHandler Tail { get; set; }
         #endregion
 
         #region 构造
@@ -108,50 +122,77 @@ namespace NewLife.Net
         /// <summary>添加处理器到开头</summary>
         /// <param name="handler">处理器</param>
         /// <returns></returns>
-        public virtual IPipeline AddFirst(IHandler handler)
+        public virtual void AddFirst(IHandler handler)
         {
-            Handlers.Insert(0, handler);
-            return this;
+            if (Head == null)
+            {
+                handler.Next = null;
+                handler.Prev = null;
+                Head = handler;
+                Tail = handler;
+            }
+            else
+                AddBefore(Head, handler);
         }
 
         /// <summary>添加处理器到末尾</summary>
         /// <param name="handler">处理器</param>
         /// <returns></returns>
-        public virtual IPipeline AddLast(IHandler handler)
+        public virtual void AddLast(IHandler handler)
         {
-            Handlers.Add(handler);
-            return this;
+            if (Tail == null)
+            {
+                handler.Next = null;
+                handler.Prev = null;
+                Head = handler;
+                Tail = handler;
+            }
+            else
+                AddAfter(Tail, handler);
         }
 
         /// <summary>添加处理器到指定名称之前</summary>
         /// <param name="baseHandler">基准处理器</param>
         /// <param name="handler">处理器</param>
         /// <returns></returns>
-        public virtual IPipeline AddBefore(IHandler baseHandler, IHandler handler)
+        public virtual void AddBefore(IHandler baseHandler, IHandler handler)
         {
-            var idx = Handlers.IndexOf(baseHandler);
-            if (idx > 0) Handlers.Insert(idx, handler);
-            return this;
+            handler.Next = baseHandler;
+            handler.Prev = baseHandler.Prev;
+            if (baseHandler.Prev != null) baseHandler.Prev.Next = handler;
+            baseHandler.Prev = handler;
+
+            if (baseHandler == Head) Head = handler;
         }
 
         /// <summary>添加处理器到指定名称之后</summary>
         /// <param name="baseHandler">基准处理器</param>
         /// <param name="handler">处理器</param>
         /// <returns></returns>
-        public virtual IPipeline AddAfter(IHandler baseHandler, IHandler handler)
+        public virtual void AddAfter(IHandler baseHandler, IHandler handler)
         {
-            var idx = Handlers.IndexOf(baseHandler);
-            if (idx > 0) Handlers.Insert(idx + 1, handler);
-            return this;
+            handler.Next = baseHandler.Next;
+            handler.Prev = baseHandler;
+            if (baseHandler.Next != null) baseHandler.Next.Prev = handler;
+            baseHandler.Next = handler;
+
+            if (baseHandler == Tail) Tail = handler;
         }
 
         /// <summary>删除处理器</summary>
         /// <param name="handler">处理器</param>
         /// <returns></returns>
-        public virtual IPipeline Remove(IHandler handler)
+        public virtual void Remove(IHandler handler)
         {
-            Handlers.Remove(handler);
-            return this;
+            if (handler.Prev != null)
+                handler.Prev.Next = handler.Next;
+            else
+                Head = handler.Next;
+
+            if (handler.Next != null)
+                handler.Next.Prev = handler.Prev;
+            else
+                Tail = handler.Prev;
         }
 
         /// <summary>创建上下文</summary>
@@ -175,24 +216,26 @@ namespace NewLife.Net
         /// <param name="message">消息</param>
         public virtual Object Read(IHandlerContext context, Object message)
         {
-            var rs = message;
-            foreach (var handler in Handlers)
-            {
-                // 需要下一次循环时，才使用上一次结果，避免ReadComplete得不到数据
-                message = rs;
-                if (message is Byte[] buf) message = new Packet(buf);
+            //var rs = message;
+            //foreach (var handler in Handlers)
+            //{
+            //    // 需要下一次循环时，才使用上一次结果，避免ReadComplete得不到数据
+            //    message = rs;
+            //    if (message is Byte[] buf) message = new Packet(buf);
 
-                rs = handler.Read(context, message);
-                if (rs == null) break;
-            }
+            //    rs = handler.Read(context, message);
+            //    if (rs == null) break;
+            //}
 
-            // 读取完成
-            foreach (var handler in Handlers)
-            {
-                handler.ReadComplete(context, rs);
-            }
+            //// 读取完成
+            //foreach (var handler in Handlers)
+            //{
+            //    handler.ReadComplete(context, rs);
+            //}
 
-            return rs;
+            //return rs;
+
+            return Head?.Read(context, message);
         }
 
         /// <summary>写入数据，返回结果作为下一个处理器消息</summary>
@@ -200,17 +243,19 @@ namespace NewLife.Net
         /// <param name="message">消息</param>
         public virtual Object Write(IHandlerContext context, Object message)
         {
-            // 出站逆序
-            for (var i = Handlers.Count - 1; i >= 0; i--)
-            {
-                //if (message is String str) message = new Packet(str.GetBytes());
-                if (message is Byte[] buf) message = new Packet(buf);
+            //// 出站逆序
+            //for (var i = Handlers.Count - 1; i >= 0; i--)
+            //{
+            //    //if (message is String str) message = new Packet(str.GetBytes());
+            //    if (message is Byte[] buf) message = new Packet(buf);
 
-                message = Handlers[i].Write(context, message);
-                if (message == null) return null;
-            }
+            //    message = Handlers[i].Write(context, message);
+            //    if (message == null) return null;
+            //}
 
-            return message;
+            //return message;
+
+            return Tail?.Write(context, message);
         }
 
         /// <summary>写入数据</summary>
@@ -267,12 +312,9 @@ namespace NewLife.Net
         /// <param name="context">上下文</param>
         public virtual Boolean Open(IHandlerContext context)
         {
-            foreach (var handler in Handlers)
-            {
-                if (!handler.Open(context)) return false;
-            }
+            if (Head == null) return true;
 
-            return true;
+            return Head.Open(context);
         }
 
         /// <summary>关闭连接</summary>
@@ -280,12 +322,9 @@ namespace NewLife.Net
         /// <param name="reason">原因</param>
         public virtual Boolean Close(IHandlerContext context, String reason)
         {
-            foreach (var handler in Handlers)
-            {
-                if (!handler.Close(context, reason)) return false;
-            }
+            if (Head == null) return true;
 
-            return true;
+            return Head.Close(context, reason);
         }
 
         /// <summary>发生错误</summary>
@@ -293,12 +332,9 @@ namespace NewLife.Net
         /// <param name="exception">异常</param>
         public virtual Boolean Error(IHandlerContext context, Exception exception)
         {
-            foreach (var handler in Handlers)
-            {
-                if (!handler.Error(context, exception)) return false;
-            }
+            if (Head == null) return true;
 
-            return true;
+            return Head.Error(context, exception);
         }
         #endregion
 
@@ -321,7 +357,13 @@ namespace NewLife.Net
         #region 枚举器
         /// <summary>枚举器</summary>
         /// <returns></returns>
-        public IEnumerator<IHandler> GetEnumerator() => Handlers.GetEnumerator();
+        public IEnumerator<IHandler> GetEnumerator()
+        {
+            for (var h = Head; h != null; h = h.Next)
+            {
+                yield return h;
+            }
+        }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         #endregion

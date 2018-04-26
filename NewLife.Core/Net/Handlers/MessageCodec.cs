@@ -66,6 +66,20 @@ namespace NewLife.Net.Handlers
                     message = msg2.Payload;
                 else
                     message = msg;
+
+                // 后续处理器
+                message = Next?.Read(context, message);
+
+                if (msg is IMessage msg3)
+                {
+                    // 匹配
+                    if (msg3.Reply) Queue.Match(context.Session, msg3, message, IsMatch);
+                }
+                else if (msg != null)
+                {
+                    // 其它消息不考虑响应
+                    Queue.Match(context.Session, msg, message, IsMatch);
+                }
             }
 
             return message;
@@ -77,23 +91,23 @@ namespace NewLife.Net.Handlers
         /// <returns></returns>
         protected virtual T Decode(IHandlerContext context, Packet pk) => default(T);
 
-        /// <summary>读取数据完成</summary>
-        /// <param name="context">上下文</param>
-        /// <param name="message">最终消息</param>
-        public override void ReadComplete(IHandlerContext context, Object message)
-        {
-            var msg = context["Message"];
-            if (msg is IMessage msg2)
-            {
-                // 匹配
-                if (msg2.Reply) Queue.Match(context.Session, msg2, message, IsMatch);
-            }
-            else if (msg != null)
-            {
-                // 其它消息不考虑响应
-                Queue.Match(context.Session, msg, message, IsMatch);
-            }
-        }
+        ///// <summary>读取数据完成</summary>
+        ///// <param name="context">上下文</param>
+        ///// <param name="message">最终消息</param>
+        //public override void ReadComplete(IHandlerContext context, Object message)
+        //{
+        //    var msg = context["Message"];
+        //    if (msg is IMessage msg2)
+        //    {
+        //        // 匹配
+        //        if (msg2.Reply) Queue.Match(context.Session, msg2, message, IsMatch);
+        //    }
+        //    else if (msg != null)
+        //    {
+        //        // 其它消息不考虑响应
+        //        Queue.Match(context.Session, msg, message, IsMatch);
+        //    }
+        //}
 
         /// <summary>是否匹配响应</summary>
         /// <param name="request"></param>

@@ -171,7 +171,7 @@ namespace NewLife.Net
         #region 接收
         /// <param name="pk">数据包</param>
         /// <param name="remote">远程</param>
-        internal protected override Boolean BeginProcess(Packet pk, IPEndPoint remote)
+        internal protected override Boolean OnPreReceive(Packet pk, IPEndPoint remote)
         {
             // 过滤自己广播的环回数据。放在这里，兼容UdpSession
             if (!Loopback && remote.Port == Port)

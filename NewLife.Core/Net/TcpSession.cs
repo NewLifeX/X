@@ -200,7 +200,7 @@ namespace NewLife.Net
         private Int32 _empty;
         /// <param name="pk">数据包</param>
         /// <param name="remote">远程</param>
-        internal protected override Boolean BeginProcess(Packet pk, IPEndPoint remote)
+        internal protected override Boolean OnPreReceive(Packet pk, IPEndPoint remote)
         {
             if (pk.Count == 0)
             {

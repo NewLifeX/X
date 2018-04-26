@@ -29,11 +29,11 @@ namespace NewLife.Remoting
 
         /// <summary>使用指定端口实例化网络服务应用接口提供者</summary>
         /// <param name="port"></param>
-        public ApiServer(Int32 port) : this() => Listen(port);
+        public ApiServer(Int32 port) : this() => Use(port);
 
         /// <summary>实例化</summary>
         /// <param name="uri"></param>
-        public ApiServer(NetUri uri) : this() => Listen(uri);
+        public ApiServer(NetUri uri) : this() => Use(uri);
 
         /// <summary>销毁时停止服务</summary>
         /// <param name="disposing"></param>
@@ -48,11 +48,11 @@ namespace NewLife.Remoting
         #region 启动停止
         /// <summary>添加服务器</summary>
         /// <param name="port"></param>
-        public IApiServer Listen(Int32 port) => Listen(new NetUri(NetType.Unknown, "", port));
+        public IApiServer Use(Int32 port) => Use(new NetUri(NetType.Unknown, "", port));
 
         /// <summary>添加服务器</summary>
         /// <param name="uri"></param>
-        public IApiServer Listen(NetUri uri)
+        public IApiServer Use(NetUri uri)
         {
             var svr = new ApiNetServer();
             if (!svr.Init(uri.ToString())) return null;
