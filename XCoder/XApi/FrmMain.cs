@@ -288,12 +288,13 @@ namespace XApi
             // 多次发送
             var count = (Int32)numMutilSend.Value;
             var sleep = (Int32)numSleep.Value;
-            //var ths = (Int32)numThreads.Value;
+            var ths = (Int32)numThreads.Value;
             if (count <= 0) count = 1;
             if (sleep <= 0) sleep = 1;
 
             SaveConfig();
 
+            var uri = new NetUri(cbAddr.Text);
             var cfg = ApiConfig.Current;
 
             // 处理换行
@@ -305,26 +306,40 @@ namespace XApi
             // 构造消息
             var args = new JsonParser(str).Decode();
 
-            if (_Client != null)
-            {
-                var ts = new List<Task>();
-                for (var i = 0; i < count; i++)
-                {
-                    ts.Add(Task.Run(async () =>
-                    {
-                        try
-                        {
-                            await _Client.InvokeAsync<Object>(act, args);
-                        }
-                        catch (ApiException ex)
-                        {
-                            BizLog.Info(ex.Message);
-                        }
-                    }));
-                }
+            if (_Client == null) return;
 
-                await Task.WhenAll(ts);
+            var list = new List<ApiClient> { _Client };
+            for (var i = 0; i < ths - 1; i++)
+            {
+                var client = new ApiClient(uri + "");
+                list.Add(client);
             }
+            //Parallel.ForEach(list, k => OnSend(k, act, args, count));
+            var ts = list.Select(k => OnSend(k, act, args, count)).ToList();
+
+            await Task.WhenAll(ts);
+        }
+
+        private async Task OnSend(ApiClient client, String act, Object args, Int32 count)
+        {
+            client.Open();
+            var ts = new List<Task>();
+            for (var i = 0; i < count; i++)
+            {
+                ts.Add(Task.Run(async () =>
+                {
+                    try
+                    {
+                        await client.InvokeAsync<Object>(act, args);
+                    }
+                    catch (ApiException ex)
+                    {
+                        BizLog.Info(ex.Message);
+                    }
+                }));
+            }
+
+            await Task.WhenAll(ts);
         }
         #endregion
 
