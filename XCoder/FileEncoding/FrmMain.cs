@@ -13,6 +13,9 @@ namespace XCoder.FileEncoding
         public FrmMain()
         {
             InitializeComponent();
+
+            // 动态调节宽度高度，兼容高DPI
+            this.FixDpi();
         }
 
         private void FrmEncodeReplace_Load(Object sender, EventArgs e)

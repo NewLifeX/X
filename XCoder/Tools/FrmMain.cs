@@ -1,13 +1,7 @@
-﻿using NewLife;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
+using NewLife;
 
 namespace XCoder.Tools
 {
@@ -17,7 +11,11 @@ namespace XCoder.Tools
         public FrmMain()
         {
             InitializeComponent();
+
+            // 动态调节宽度高度，兼容高DPI
+            this.FixDpi();
         }
+
         private void FrmMain_Load(Object sender, EventArgs e)
         {
             var frm = new FrmGPS();

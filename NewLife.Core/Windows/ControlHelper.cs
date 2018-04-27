@@ -1,7 +1,9 @@
 ﻿using System.Drawing;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using NewLife.Log;
+using NewLife.Reflection;
 using NewLife.Threading;
 
 namespace System.Windows.Forms
@@ -517,6 +519,37 @@ namespace System.Windows.Forms
         {
             var r = new Regex(reg, RegexOptions.Compiled);
             return Colour(rtb, r, start, colors);
+        }
+        #endregion
+
+        #region DPI修复
+        /// <summary>当前Dpi</summary>
+        public static Int32 Dpi { get; set; }
+
+        /// <summary>修正ListView的Dpi</summary>
+        /// <param name="lv"></param>
+        public static void FixDpi(this ListView lv)
+        {
+            if (Dpi == 0) Dpi = (Int32)lv.CreateGraphics().DpiX;
+
+            foreach (ColumnHeader item in lv.Columns)
+            {
+                item.Width *= Dpi / 96;
+            }
+        }
+
+        /// <summary>修正窗体的Dpi</summary>
+        /// <param name="frm"></param>
+        public static void FixDpi(this Form frm)
+        {
+            // 只要重新设置一次字体，就可以适配高Dpi，不晓得为啥
+            frm.Font = new Font("宋体", 9F, FontStyle.Regular, GraphicsUnit.Point, 134);
+
+            foreach (var fi in frm.GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic))
+            {
+                if (fi.FieldType == typeof(ListView) && frm.GetValue(fi) is ListView lv)
+                    lv.FixDpi();
+            }
         }
         #endregion
     }
