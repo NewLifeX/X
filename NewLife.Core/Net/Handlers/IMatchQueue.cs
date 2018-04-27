@@ -91,7 +91,7 @@ namespace NewLife.Net.Handlers
                     }
 
                     // 异步设置完成结果，否则可能会在当前线程恢复上层await，导致堵塞当前任务
-                    if (!qi.Source.Task.IsCompleted) Task.Factory.StartNew(() => qi.Source.SetResult(result));
+                    if (!qi.Source.Task.IsCompleted) Task.Factory.StartNew(() => qi.Source.TrySetResult(result));
 
                     return true;
                 }
@@ -137,7 +137,7 @@ namespace NewLife.Net.Handlers
                             var msg = qi.Request as Messaging.DefaultMessage;
                             Log.XTrace.WriteLine("超时丢失消息 Seq={0}", msg.Sequence);
 #endif
-                            qi.Source.SetCanceled();
+                            qi.Source.TrySetCanceled();
                         }
                     }
                 }
