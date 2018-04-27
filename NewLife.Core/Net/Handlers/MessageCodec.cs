@@ -76,17 +76,17 @@ namespace NewLife.Net.Handlers
                     message = msg;
 
                 // 后续处理器，得到最终结果，匹配请求队列
-                var rs = Next?.Read(context, message);
+                var rs = base.Read(context, message);
 
-                if (rs is IMessage msg3)
+                if (msg is IMessage msg3)
                 {
                     // 匹配
-                    if (msg3.Reply) Queue.Match(context.Session, msg3, message, IsMatch);
+                    if (msg3.Reply) Queue.Match(context.Session, msg, rs, IsMatch);
                 }
                 else if (rs != null)
                 {
                     // 其它消息不考虑响应
-                    Queue.Match(context.Session, rs, message, IsMatch);
+                    Queue.Match(context.Session, msg, rs, IsMatch);
                 }
 
                 // 匹配输入回调，让上层事件收到分包信息
