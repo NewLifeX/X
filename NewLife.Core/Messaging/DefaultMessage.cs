@@ -99,5 +99,11 @@ namespace NewLife.Messaging
             return pk;
         }
         #endregion
+
+        #region 辅助
+        /// <summary>消息摘要</summary>
+        /// <returns></returns>
+        public override String ToString() => $"{Flag:X2} Seq={Sequence} {Payload}";
+        #endregion
     }
 }

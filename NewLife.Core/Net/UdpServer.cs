@@ -191,8 +191,6 @@ namespace NewLife.Net
 
             LastRemote = remote;
 
-            StatReceive?.Increment(pk.Count);
-
             return true;
         }
 
@@ -200,6 +198,8 @@ namespace NewLife.Net
         /// <param name="e">接收事件参数</param>
         protected override Boolean OnReceive(ReceivedEventArgs e)
         {
+            StatReceive?.Increment(e.Packet.Count);
+
             var remote = e.Remote;
 
             // 为该连接单独创建一个会话，方便直接通信

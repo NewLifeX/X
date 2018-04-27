@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using NewLife.Data;
 using NewLife.Log;
 using NewLife.Threading;
 
@@ -100,7 +98,7 @@ namespace NewLife.Net.Handlers
             }
 
             //if (Setting.Current.Debug)
-            //    XTrace.WriteLine("PacketQueue.CheckMatch 失败 [{0}] remote={1} Items={2}", response.Count, remote, arr.Length);
+            XTrace.WriteLine("MatchQueue.Check 失败 [{0}] result={1} Items={2}", response, result, arr.Length);
 
             return false;
         }
@@ -133,7 +131,14 @@ namespace NewLife.Net.Handlers
                     {
                         qs.Remove(qi);
 
-                        if (!qi.Source.Task.IsCompleted) qi.Source.SetCanceled();
+                        if (!qi.Source.Task.IsCompleted)
+                        {
+#if DEBUG
+                            var msg = qi.Request as Messaging.DefaultMessage;
+                            Log.XTrace.WriteLine("超时丢失消息 Seq={0}", msg.Sequence);
+#endif
+                            qi.Source.SetCanceled();
+                        }
                     }
                 }
             }

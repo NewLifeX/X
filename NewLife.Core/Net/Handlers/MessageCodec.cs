@@ -32,12 +32,7 @@ namespace NewLife.Net.Handlers
                 if (message == null) return null;
 
                 // 加入队列
-                if (message != null && context["TaskSource"] is TaskCompletionSource<Object> source)
-                {
-                    var timeout = Timeout;
-                    //if (context.Session is ISocketClient client) timeout = client.Timeout;
-                    Queue.Add(context.Session, msg, timeout, source);
-                }
+                AddToQueue(context, msg);
             }
 
             return base.Write(context, message);
@@ -52,6 +47,20 @@ namespace NewLife.Net.Handlers
             if (msg is IMessage msg2) return msg2.ToPacket();
 
             return null;
+        }
+
+        /// <summary>加入队列</summary>
+        /// <param name="context"></param>
+        /// <param name="msg"></param>
+        /// <returns></returns>
+        protected virtual void AddToQueue(IHandlerContext context, T msg)
+        {
+            if (msg != null && context["TaskSource"] is TaskCompletionSource<Object> source)
+            {
+                var timeout = Timeout;
+                //if (context.Session is ISocketClient client) timeout = client.Timeout;
+                Queue.Add(context.Session, msg, timeout, source);
+            }
         }
 
         /// <summary>读取数据</summary>
@@ -135,7 +144,7 @@ namespace NewLife.Net.Handlers
         /// <param name="size">长度字段大小</param>
         /// <param name="expire">缓存有效期</param>
         /// <returns></returns>
-        protected virtual IList<Packet> Parse(Packet pk, MemoryStream _ms, ref DateTime _last, Int32 offset = 0, Int32 size = 2, Int32 expire = 500)
+        protected virtual IList<Packet> Parse(Packet pk, MemoryStream _ms, ref DateTime _last, Int32 offset = 0, Int32 size = 2, Int32 expire = 5000)
         {
             if (offset < 0) return new Packet[] { pk };
 

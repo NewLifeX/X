@@ -216,8 +216,6 @@ namespace NewLife.Net
             else
                 _empty = 0;
 
-            StatReceive?.Increment(pk.Count);
-
             return true;
         }
 
@@ -227,6 +225,8 @@ namespace NewLife.Net
         {
             var pk = e.Packet;
             if (pk == null || pk.Count == 0 && !MatchEmpty) return true;
+
+            StatReceive?.Increment(pk.Count);
 
             // 分析处理
             RaiseReceive(this, e);

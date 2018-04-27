@@ -24,7 +24,20 @@ namespace NewLife.Net.Handlers
             else if (message is DefaultMessage msg && !msg.Reply && msg.Sequence == 0)
                 msg.Sequence = (Byte)Interlocked.Increment(ref _gid);
 
+#if DEBUG
+            //Log.XTrace.WriteLine("Write {0}", message);
+#endif
+
             return base.Write(context, message);
+        }
+
+        /// <summary>加入队列</summary>
+        /// <param name="context"></param>
+        /// <param name="msg"></param>
+        /// <returns></returns>
+        protected override void AddToQueue(IHandlerContext context, IMessage msg)
+        {
+            if (!msg.Reply) base.AddToQueue(context, msg);
         }
 
         /// <summary>解码</summary>
@@ -35,11 +48,15 @@ namespace NewLife.Net.Handlers
         {
             if (_ms == null) _ms = new MemoryStream();
 
-            var pks = Parse(pk, _ms, ref _last, 2, 2, 500);
+            var pks = Parse(pk, _ms, ref _last, 2, 2);
             return pks.Select(e =>
             {
                 var msg = new DefaultMessage();
-                if (!msg.Read(pk)) return null;
+                if (!msg.Read(e)) return null;
+
+#if DEBUG
+                //Log.XTrace.WriteLine("Decode {0} Seq={1}", msg.Payload, msg.Sequence);
+#endif
 
                 return msg as IMessage;
             }).ToList();
