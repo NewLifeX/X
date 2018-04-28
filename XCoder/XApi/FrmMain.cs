@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using NewLife.Log;
@@ -53,6 +54,9 @@ namespace XApi
             var cfg = ApiConfig.Current;
             //cbMode.SelectedItem = cbMode.Items[0] + "";
             cbMode.SelectedItem = cfg.Mode;
+            var flag = (cfg.Mode == "服务端");
+            numPort.Enabled = flag;
+            cbAddr.Enabled = !flag;
 
             // 加载保存的颜色
             UIConfig.Apply(txtReceive);
@@ -121,6 +125,7 @@ namespace XApi
         {
             _Server = null;
             _Client = null;
+            _Invoke = 0;
 
             var port = (Int32)numPort.Value;
             var uri = new NetUri(cbAddr.Text);
@@ -217,6 +222,7 @@ namespace XApi
 
         TimerX _timer;
         String _lastStat;
+        Int32 _Invoke;
         void ShowStat(Object state)
         {
             if (!ApiConfig.Current.ShowStat) return;
@@ -226,6 +232,8 @@ namespace XApi
                 msg = _Client.Client?.GetStat();
             else if (_Server != null)
                 msg = (_Server.Server as NetServer)?.GetStat();
+
+            if (_Invoke > 0) msg += $" Invoke={_Invoke}";
 
             if (!msg.IsNullOrEmpty() && msg != _lastStat)
             {
@@ -329,6 +337,7 @@ namespace XApi
                     try
                     {
                         await client.InvokeAsync<Object>(act, args);
+                        Interlocked.Increment(ref _Invoke);
                     }
                     catch (ApiException ex)
                     {
@@ -395,6 +404,14 @@ namespace XApi
             }
 
             txtSend.Text = ps.ToJson();
+        }
+
+        private void cbMode_SelectedIndexChanged(Object sender, EventArgs e)
+        {
+            var mode = cbMode.SelectedItem + "";
+            var flag = mode == "服务端";
+            numPort.Enabled = flag;
+            cbAddr.Enabled = !flag;
         }
     }
 }
