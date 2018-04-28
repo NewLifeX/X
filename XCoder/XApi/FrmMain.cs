@@ -53,11 +53,6 @@ namespace XApi
             var cfg = ApiConfig.Current;
             //cbMode.SelectedItem = cbMode.Items[0] + "";
             cbMode.SelectedItem = cfg.Mode;
-            if (!cfg.Address.IsNullOrEmpty())
-            {
-                //cbAddr.DropDownStyle = ComboBoxStyle.DropDownList;
-                cbAddr.DataSource = cfg.Address.Split(";");
-            }
 
             // 加载保存的颜色
             UIConfig.Apply(txtReceive);
@@ -90,6 +85,8 @@ namespace XApi
 
             cbMode.SelectedItem = cfg.Mode;
             numPort.Value = cfg.Port;
+            // 历史地址列表
+            if (!cfg.Address.IsNullOrEmpty()) cbAddr.DataSource = cfg.Address.Split(";");
 
             txtSend.Text = cfg.SendContent;
             numMutilSend.Value = cfg.SendTimes;
@@ -107,6 +104,7 @@ namespace XApi
 
             cfg.Mode = cbMode.SelectedItem + "";
             cfg.Port = (Int32)numPort.Value;
+            cfg.AddAddress(cbAddr.Text);
 
             cfg.SendContent = txtSend.Text;
             cfg.SendTimes = (Int32)numMutilSend.Value;

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.IO.Ports;
+using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
 using NewLife.Xml;
@@ -11,6 +12,7 @@ namespace XNet
     [XmlConfigFile("Config\\Net.config")]
     public class NetConfig : XmlConfig<NetConfig>
     {
+        #region 属性
         /// <summary>模式</summary>
         [Description("模式")]
         public Int32 Mode { get; set; } = 1;
@@ -86,9 +88,21 @@ namespace XNet
         /// <summary>日志着色</summary>
         [Description("日志着色")]
         public Boolean ColorLog { get; set; } = true;
+        #endregion
 
+        #region 方法
         public NetConfig()
         {
         }
+
+        public void AddAddress(String addr)
+        {
+            var addrs = (Address + "").Split(";").Distinct().ToList();
+            addrs.Insert(0, addr);
+            addrs = addrs.Distinct().ToList();
+            while (addrs.Count > 10) addrs.RemoveAt(addrs.Count - 1);
+            Address = addrs.Join(";");
+        }
+        #endregion
     }
 }

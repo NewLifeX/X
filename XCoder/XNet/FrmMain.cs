@@ -148,11 +148,7 @@ namespace XNet
             cfg.ColorLog = mi日志着色.Checked;
 
             cfg.Local = cbLocal.Text;
-
-            var addrs = (cfg.Address + "").Split(";").Distinct().ToList();
-            if (!addrs.Contains(cbRemote.Text)) addrs.Insert(0, cbRemote.Text);
-            while (addrs.Count > 10) addrs.RemoveAt(addrs.Count - 1);
-            cfg.Address = addrs.Join(";");
+            cfg.AddAddress(cbRemote.Text);
 
             cfg.Port = (Int32)numPort.Value;
 
