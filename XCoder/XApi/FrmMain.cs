@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Threading;
@@ -125,7 +126,6 @@ namespace XApi
         {
             _Server = null;
             _Client = null;
-            _Invoke = 0;
 
             var port = (Int32)numPort.Value;
             var uri = new NetUri(cbAddr.Text);
@@ -222,7 +222,6 @@ namespace XApi
 
         TimerX _timer;
         String _lastStat;
-        Int32 _Invoke;
         void ShowStat(Object state)
         {
             if (!ApiConfig.Current.ShowStat) return;
@@ -233,7 +232,16 @@ namespace XApi
             else if (_Server != null)
                 msg = (_Server.Server as NetServer)?.GetStat();
 
-            if (_Invoke > 0) msg += $" Invoke={_Invoke}";
+            if (_Invoke > 0)
+            {
+                var ms = (Double)_Cost / _Invoke;
+                if (ms > 1)
+                    msg += $" Invoke={_Invoke} {ms:n0}ms";
+                else
+                    msg += $" Invoke={_Invoke} {ms:n3}ms";
+
+                if (_TotalCost > 0) msg += $" Speed={_Invoke * 1000d / _TotalCost:n0}tps";
+            }
 
             if (!msg.IsNullOrEmpty() && msg != _lastStat)
             {
@@ -314,6 +322,10 @@ namespace XApi
 
             if (_Client == null) return;
 
+            _Invoke = 0;
+            _Cost = 0;
+            _TotalCost = 0;
+
             var list = new List<ApiClient> { _Client };
             for (var i = 0; i < ths - 1; i++)
             {
@@ -321,11 +333,17 @@ namespace XApi
                 list.Add(client);
             }
             //Parallel.ForEach(list, k => OnSend(k, act, args, count));
+            var sw = Stopwatch.StartNew();
             var ts = list.Select(k => OnSend(k, act, args, count)).ToList();
 
             await Task.WhenAll(ts);
+            sw.Stop();
+            _TotalCost = sw.Elapsed.TotalMilliseconds;
         }
 
+        Int64 _Invoke;
+        Int64 _Cost;
+        Double _TotalCost;
         private async Task OnSend(ApiClient client, String act, Object args, Int32 count)
         {
             client.Open();
@@ -336,8 +354,12 @@ namespace XApi
                 {
                     try
                     {
+                        var sw = Stopwatch.StartNew();
                         await client.InvokeAsync<Object>(act, args);
+                        sw.Stop();
+
                         Interlocked.Increment(ref _Invoke);
+                        Interlocked.Add(ref _Cost, sw.ElapsedMilliseconds);
                     }
                     catch (ApiException ex)
                     {

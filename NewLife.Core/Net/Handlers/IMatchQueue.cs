@@ -61,7 +61,7 @@ namespace NewLife.Net.Handlers
             {
                 lock (this)
                 {
-                    if (_Timer == null) _Timer = new TimerX(Check, null, 1000, 1000, "Match");
+                    if (_Timer == null) _Timer = new TimerX(Check, null, 1000, 1000, "Match") { Async = true };
                 }
             }
 

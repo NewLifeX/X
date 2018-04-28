@@ -55,9 +55,9 @@ namespace NewLife.Net
         /// <summary>最大并行接收数。Tcp默认1，Udp默认CPU*1.6</summary>
         public Int32 MaxAsync { get; set; } = 1;
 
-        /// <summary>异步处理接收到的数据，默认true。</summary>
+        /// <summary>异步处理接收到的数据，Tcp默认false，Udp默认true。</summary>
         /// <remarks>异步处理有可能造成数据包乱序，特别是Tcp。true利于提升网络吞吐量。false避免拷贝，提升处理速度</remarks>
-        public Boolean ProcessAsync { get; set; } = true;
+        public Boolean ProcessAsync { get; set; }
 
         /// <summary>缓冲区大小。默认8k</summary>
         public Int32 BufferSize { get; set; }
