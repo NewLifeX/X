@@ -11,10 +11,13 @@ namespace NewLife.Remoting
         /// <summary>主机</summary>
         public IApiHost Host { get; set; }
 
+        private String[] _all;
         /// <summary>获取所有接口</summary>
         /// <returns></returns>
         public String[] All()
         {
+            if (_all != null) return _all;
+
             var list = new List<String>();
             foreach (var item in Host.Manager.Services)
             {
@@ -41,7 +44,7 @@ namespace NewLife.Remoting
                 list.Add(sb.ToString());
             }
 
-            return list.ToArray();
+            return _all = list.ToArray();
         }
     }
 }
