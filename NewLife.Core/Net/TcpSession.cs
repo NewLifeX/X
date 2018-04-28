@@ -141,6 +141,7 @@ namespace NewLife.Net
         #endregion
 
         #region 发送
+        private Int32 _bsize;
         /// <summary>发送数据</summary>
         /// <remarks>
         /// 目标地址由<seealso cref="SessionBase.Remote"/>决定
@@ -156,8 +157,9 @@ namespace NewLife.Net
 
             try
             {
-                // 修改发送缓冲区
-                if (Client.SendBufferSize < count) Client.SendBufferSize = count;
+                // 修改发送缓冲区，读取SendBufferSize耗时很大
+                if (_bsize == 0) _bsize = Client.SendBufferSize;
+                if (_bsize < count) _bsize = Client.SendBufferSize = count;
 
                 if (count == 0)
                     Client.Send(new Byte[0]);
