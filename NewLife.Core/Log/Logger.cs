@@ -68,10 +68,8 @@ namespace NewLife.Log
             if (args != null && args.Length > 0)
             {
                 // 特殊处理异常
-                if (args.Length == 1 && args[0] is Exception && (String.IsNullOrEmpty(format) || format == "{0}"))
-                {
-                    return "" + args[0];
-                }
+                if (args.Length == 1 && args[0] is Exception ex && (format.IsNullOrEmpty() || format == "{0}"))
+                    return ex.GetMessage();
 
                 for (var i = 0; i < args.Length; i++)
                 {

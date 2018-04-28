@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Globalization;
+using System.Linq;
 using System.Reflection;
 
 namespace System
@@ -80,7 +81,12 @@ namespace System
         /// <summary>获取内部真实异常</summary>
         /// <param name="ex"></param>
         /// <returns></returns>
-        public static Exception GetTrue(this Exception ex) { return Convert.GetTrue(ex); }
+        public static Exception GetTrue(this Exception ex) => Convert.GetTrue(ex);
+
+        /// <summary>获取异常消息</summary>
+        /// <param name="ex">异常</param>
+        /// <returns></returns>
+        public static String GetMessage(this Exception ex) => Convert.GetMessage(ex);
         #endregion
     }
 
@@ -394,7 +400,26 @@ namespace System
             if (ex is TypeInitializationException)
                 return GetTrue((ex as TypeInitializationException).InnerException);
 
-            return ex;
+            return ex.GetBaseException() ?? ex;
+        }
+
+        /// <summary>获取异常消息</summary>
+        /// <param name="ex">异常</param>
+        /// <returns></returns>
+        public virtual String GetMessage(Exception ex)
+        {
+            var msg = ex + "";
+            if (msg.IsNullOrEmpty()) return null;
+
+            var ss = msg.Split(Environment.NewLine);
+            var ns = ss.Where(e =>
+            !e.StartsWith("---") &&
+            !e.Contains("System.Runtime.ExceptionServices") &&
+            !e.Contains("System.Runtime.CompilerServices"));
+
+            msg = ns.Join(Environment.NewLine);
+
+            return msg;
         }
     }
 }
