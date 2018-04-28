@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using NewLife.Log;
+using NewLife.Threading;
 
 namespace NewLife.Net
 {
@@ -21,11 +22,11 @@ namespace NewLife.Net
 
         private Int32 _Total;
         /// <summary>总数</summary>
-        public Int32 Total { get { return _Total; } }
+        public Int32 Total => _Total;
 
         private Int32 _Times;
         /// <summary>次数</summary>
-        public Int32 Times { get { return _Times; } }
+        public Int32 Times => _Times;
 
         /// <summary>最大速度</summary>
         public Int32 Max { get; private set; }
@@ -37,7 +38,7 @@ namespace NewLife.Net
             {
                 if (_PeriodTimes <= 0 || _Cur <= DateTime.MinValue) return 0;
 
-                var ts = DateTime.Now - _Cur;
+                var ts = TimerX.Now - _Cur;
                 //if (ts.TotalSeconds < 1 || ts.TotalSeconds > Period) return 0;
                 // 即使超过周期，也继续计算速度，保持平滑
                 if (ts.TotalSeconds < 1) return 0;
@@ -75,7 +76,7 @@ namespace NewLife.Net
             Interlocked.Increment(ref _Times);
 
             // 更新首次和最后一次时间
-            var now = DateTime.Now;
+            var now = TimerX.Now;
             Last = now;
             if (First <= DateTime.MinValue) First = now;
 
