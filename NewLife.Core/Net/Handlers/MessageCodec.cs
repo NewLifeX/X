@@ -85,6 +85,12 @@ namespace NewLife.Net.Handlers
                 else
                     message = msg;
 
+                if (msg is IMessage msg4)
+                {
+                    pk = msg4.Payload;
+                    if (pk[0] != '{') throw new Exception("非法封包");
+                }
+
                 // 后续处理器，得到最终结果，匹配请求队列
                 var rs = base.Read(context, message);
 
@@ -139,16 +145,16 @@ namespace NewLife.Net.Handlers
         #region 粘包处理
         /// <summary>分析数据流，得到一帧数据</summary>
         /// <param name="pk">待分析数据包</param>
-        /// <param name="_ms">缓存数据流</param>
-        /// <param name="_last">最后一次取得数据包时间。用于清理过期缓存</param>
+        /// <param name="parameter">参数</param>
         /// <param name="offset">长度字段位置</param>
         /// <param name="size">长度字段大小</param>
         /// <param name="expire">缓存有效期</param>
         /// <returns></returns>
-        protected virtual IList<Packet> Parse(Packet pk, MemoryStream _ms, ref DateTime _last, Int32 offset = 0, Int32 size = 2, Int32 expire = 5000)
+        protected virtual IList<Packet> Parse(Packet pk, MessageCodecParameter parameter, Int32 offset = 0, Int32 size = 2, Int32 expire = 5000)
         {
             if (offset < 0) return new Packet[] { pk };
 
+            var _ms = parameter.Stream;
             var nodata = _ms == null || _ms.Position < 0 || _ms.Position >= _ms.Length;
 
             var list = new List<Packet>();
@@ -176,7 +182,7 @@ namespace NewLife.Net.Handlers
                 pk = new Packet(pk.Data, pk.Offset + idx, pk.Count - idx);
             }
 
-            if (_ms == null) _ms = new MemoryStream();
+            if (_ms == null) parameter.Stream = _ms = new MemoryStream();
 
             // 加锁，避免多线程冲突
             lock (_ms)
@@ -185,12 +191,12 @@ namespace NewLife.Net.Handlers
                 {
                     // 超过该时间后按废弃数据处理
                     var now = TimerX.Now;
-                    if (_last.AddMilliseconds(expire) < now)
+                    if (_ms.Length > 0 && parameter.Last.AddMilliseconds(expire) < now)
                     {
                         _ms.SetLength(0);
                         _ms.Position = 0;
                     }
-                    _last = now;
+                    parameter.Last = now;
 
                     // 拷贝数据到最后面
                     var p = _ms.Position;
@@ -207,6 +213,13 @@ namespace NewLife.Net.Handlers
 
                     var pk2 = new Packet(_ms.ReadBytes(len));
                     list.Add(pk2);
+                }
+
+                // 如果读完了数据，需要重置缓冲区
+                if (_ms.Position >= _ms.Length)
+                {
+                    _ms.SetLength(0);
+                    _ms.Position = 0;
                 }
 
                 return list;
@@ -272,5 +285,15 @@ namespace NewLife.Net.Handlers
             return len;
         }
         #endregion
+    }
+
+    /// <summary>消息编码参数</summary>
+    public class MessageCodecParameter
+    {
+        /// <summary>缓存流</summary>
+        public MemoryStream Stream;
+
+        /// <summary>最后一次接收</summary>
+        public DateTime Last;
     }
 }

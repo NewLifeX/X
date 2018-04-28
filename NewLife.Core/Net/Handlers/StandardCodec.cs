@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using NewLife.Data;
@@ -46,25 +45,28 @@ namespace NewLife.Net.Handlers
         /// <returns></returns>
         protected override IList<IMessage> Decode(IHandlerContext context, Packet pk)
         {
-            if (_ms == null) _ms = new MemoryStream();
+            var ss = context.Session;
+            var mcp = ss["StandardCodec"] as MessageCodecParameter;
+            if (mcp == null) ss["StandardCodec"] = mcp = new MessageCodecParameter();
 
-            var pks = Parse(pk, _ms, ref _last, 2, 2);
-            return pks.Select(e =>
+            var pks = Parse(pk, mcp, 2, 2);
+            var list = pks.Select(e =>
             {
                 var msg = new DefaultMessage();
                 if (!msg.Read(e)) return null;
 
 #if DEBUG
                 //Log.XTrace.WriteLine("Decode {0} Seq={1}", msg.Payload, msg.Sequence);
+                if (msg.Payload[0] != '{') Log.XTrace.WriteLine(msg.Payload.ToStr());
 #endif
 
                 return msg as IMessage;
             }).ToList();
-        }
 
-        /// <summary>内部缓存</summary>
-        private MemoryStream _ms;
-        private DateTime _last;
+            if (pks.Count != list.Count) Log.XTrace.WriteLine($"{pks.Count}=>{list.Count}");
+
+            return list;
+        }
 
         /// <summary>是否匹配响应</summary>
         /// <param name="request"></param>

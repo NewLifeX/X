@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using NewLife.Data;
 
 namespace NewLife.Net.Handlers
@@ -80,61 +79,15 @@ namespace NewLife.Net.Handlers
         /// <returns></returns>
         protected override IList<Packet> Decode(IHandlerContext context, Packet pk)
         {
-            //var rs = new List<Packet>();
+            var ss = context.Session;
+            var mcp = ss["StandardCodec"] as MessageCodecParameter;
+            if (mcp == null) ss["StandardCodec"] = mcp = new MessageCodecParameter();
 
-            //var total = pk.Total;
-            //while (total > 0)
-            //{
-            //    var dlen = 0;
-            //    var len = Math.Abs(Size);
-            //    if (len == 0)
-            //    {
-            //        var ms = pk.GetStream();
-            //        dlen = ms.ReadEncodedInt();
-            //        len = (Int32)ms.Position;
-            //    }
-
-            //    var buf = pk.ReadBytes(Offset, len);
-            //    switch (Size)
-            //    {
-            //        case 0: break;
-            //        case 1:
-            //            dlen = buf[0];
-            //            break;
-            //        case 2:
-            //            dlen = buf.ToUInt16();
-            //            break;
-            //        case 4:
-            //            dlen = (Int32)buf.ToUInt32();
-            //            break;
-            //        case -2:
-            //            dlen = buf.ToUInt16(0, false);
-            //            break;
-            //        case -4:
-            //            dlen = (Int32)buf.ToUInt32(0, false);
-            //            break;
-            //        default:
-            //            throw new NotSupportedException();
-            //    }
-
-            //    //!!! 还需要考虑粘包问题
-            //    if (len + dlen > total) throw new Exception("数据不足！");
-
-            //    //rs.Add(new Packet(pk.Data, pk.Offset + len, dlen));
-            //    var pk2 = pk.Sub(0, Offset + len + dlen);
-            //    rs.Add(pk2);
-
-            //    pk.Set(pk.Data, pk.Offset + pk2.Count, pk.Count - pk2.Count);
-            //    total -= pk2.Count;
-            //}
-
-            if (_ms == null) _ms = new MemoryStream();
-
-            return Parse(pk, _ms, ref _last, Offset, Size, Expire);
+            return Parse(pk, mcp, Offset, Size, Expire);
         }
 
-        /// <summary>内部缓存</summary>
-        private MemoryStream _ms;
-        private DateTime _last;
+        ///// <summary>内部缓存</summary>
+        //private MemoryStream _ms;
+        //private DateTime _last;
     }
 }

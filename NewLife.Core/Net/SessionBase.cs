@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Threading;
@@ -481,6 +483,16 @@ namespace NewLife.Net
             if (Log != null) Log.Error("{0}{1}Error {2} {3}", LogPrefix, action, this, ex?.Message);
             Error?.Invoke(this, new ExceptionEventArgs { Action = action, Exception = ex });
         }
+        #endregion
+
+        #region 扩展接口
+        /// <summary>数据项</summary>
+        public IDictionary<String, Object> Items { get; } = new NullableDictionary<String, Object>();
+
+        /// <summary>设置 或 获取 数据项</summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public Object this[String key] { get => Items[key]; set => Items[key] = value; }
         #endregion
 
         #region 日志

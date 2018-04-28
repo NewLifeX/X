@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
+using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 
@@ -207,6 +209,16 @@ namespace NewLife.Net
         Boolean ITransport.Open() => true;
 
         Boolean ITransport.Close() => true;
+        #endregion
+
+        #region 扩展接口
+        /// <summary>数据项</summary>
+        public IDictionary<String, Object> Items { get; } = new NullableDictionary<String, Object>();
+
+        /// <summary>设置 或 获取 数据项</summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public Object this[String key] { get => Items[key]; set => Items[key] = value; }
         #endregion
 
         #region 日志
