@@ -44,7 +44,7 @@ namespace NewLife.Net
         public IStatistics StatReceive { get; set; } = new Statistics();
 
         /// <summary>通信开始时间</summary>
-        public DateTime StartTime { get; private set; } = DateTime.Now;
+        public DateTime StartTime { get; private set; } = TimerX.Now;
 
         /// <summary>最后一次通信时间，主要表示活跃时间，包括收发</summary>
         public DateTime LastTime { get; internal protected set; }
@@ -386,7 +386,7 @@ namespace NewLife.Net
         {
             try
             {
-                LastTime = DateTime.Now;
+                LastTime = TimerX.Now;
                 if (!OnPreReceive(pk, remote)) return;
 
                 if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", pk.Total, pk.ToHex(32, null));
@@ -433,12 +433,7 @@ namespace NewLife.Net
         /// <summary>触发数据到达事件</summary>
         /// <param name="sender"></param>
         /// <param name="e">接收事件参数</param>
-        protected virtual void RaiseReceive(Object sender, ReceivedEventArgs e)
-        {
-            LastTime = DateTime.Now;
-
-            Received?.Invoke(sender, e);
-        }
+        protected virtual void RaiseReceive(Object sender, ReceivedEventArgs e) => Received?.Invoke(sender, e);
 
         /// <summary>收到异常时如何处理。默认关闭会话</summary>
         /// <param name="se"></param>

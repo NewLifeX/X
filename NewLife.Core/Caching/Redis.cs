@@ -83,10 +83,7 @@ namespace NewLife.Caching
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override String ToString()
-        {
-            return $"{Name} Server={Server} Db={Db}";
-        }
+        public override String ToString() => $"{Name} Server={Server} Db={Db}";
         #endregion
 
         #region 子库
@@ -238,32 +235,20 @@ namespace NewLife.Caching
 
         /// <summary>获取单体</summary>
         /// <param name="key">键</param>
-        public override T Get<T>(String key)
-        {
-            return Execute(rds => rds.Get<T>(key));
-        }
+        public override T Get<T>(String key) => Execute(rds => rds.Get<T>(key));
 
         /// <summary>批量移除缓存项</summary>
         /// <param name="keys">键集合</param>
-        public override Int32 Remove(params String[] keys)
-        {
-            return Execute(rds => rds.Execute<Int32>("DEL", keys));
-        }
+        public override Int32 Remove(params String[] keys) => Execute(rds => rds.Execute<Int32>("DEL", keys));
 
         /// <summary>是否存在</summary>
         /// <param name="key">键</param>
-        public override Boolean ContainsKey(String key)
-        {
-            return Execute(rds => rds.Execute<Int32>("EXISTS", key) > 0);
-        }
+        public override Boolean ContainsKey(String key) => Execute(rds => rds.Execute<Int32>("EXISTS", key) > 0);
 
         /// <summary>设置缓存项有效期</summary>
         /// <param name="key">键</param>
         /// <param name="expire">过期时间</param>
-        public override Boolean SetExpire(String key, TimeSpan expire)
-        {
-            return Execute(rds => rds.Execute<String>("EXPIRE", key, (Int32)expire.TotalSeconds) == "1");
-        }
+        public override Boolean SetExpire(String key, TimeSpan expire) => Execute(rds => rds.Execute<String>("EXPIRE", key, (Int32)expire.TotalSeconds) == "1");
 
         /// <summary>获取缓存项有效期</summary>
         /// <param name="key">键</param>
@@ -280,10 +265,7 @@ namespace NewLife.Caching
         /// <typeparam name="T"></typeparam>
         /// <param name="keys"></param>
         /// <returns></returns>
-        public override IDictionary<String, T> GetAll<T>(IEnumerable<String> keys)
-        {
-            return Execute(rds => rds.GetAll<T>(keys));
-        }
+        public override IDictionary<String, T> GetAll<T>(IEnumerable<String> keys) => Execute(rds => rds.GetAll<T>(keys));
 
         /// <summary>批量设置缓存项</summary>
         /// <typeparam name="T"></typeparam>
@@ -300,10 +282,7 @@ namespace NewLife.Caching
         /// <typeparam name="T"></typeparam>
         /// <param name="key"></param>
         /// <returns></returns>
-        public override IProducerConsumer<T> GetQueue<T>(String key)
-        {
-            return new RedisQueue<T>(this, key);
-        }
+        public override IProducerConsumer<T> GetQueue<T>(String key) => new RedisQueue<T>(this, key);
         #endregion
 
         #region 高级操作
@@ -313,20 +292,14 @@ namespace NewLife.Caching
         /// <param name="value">值</param>
         /// <param name="expire">过期时间，秒。小于0时采用默认缓存时间<seealso cref="Cache.Expire"/></param>
         /// <returns></returns>
-        public override Boolean Add<T>(String key, T value, Int32 expire = -1)
-        {
-            return Execute(rds => rds.Execute<Int32>("SETNX", key, value) == 1);
-        }
+        public override Boolean Add<T>(String key, T value, Int32 expire = -1) => Execute(rds => rds.Execute<Int32>("SETNX", key, value) == 1);
 
         /// <summary>设置新值并获取旧值，原子操作</summary>
         /// <typeparam name="T">值类型</typeparam>
         /// <param name="key">键</param>
         /// <param name="value">值</param>
         /// <returns></returns>
-        public override T Replace<T>(String key, T value)
-        {
-            return Execute(rds => rds.Execute<T>("GETSET", key, value));
-        }
+        public override T Replace<T>(String key, T value) => Execute(rds => rds.Execute<T>("GETSET", key, value));
 
         /// <summary>累加，原子操作</summary>
         /// <param name="key">键</param>
@@ -344,10 +317,7 @@ namespace NewLife.Caching
         /// <param name="key">键</param>
         /// <param name="value">变化量</param>
         /// <returns></returns>
-        public override Double Increment(String key, Double value)
-        {
-            return Execute(rds => rds.Execute<Double>("INCRBYFLOAT", key, value));
-        }
+        public override Double Increment(String key, Double value) => Execute(rds => rds.Execute<Double>("INCRBYFLOAT", key, value));
 
         /// <summary>递减，原子操作</summary>
         /// <param name="key">键</param>
@@ -472,10 +442,7 @@ namespace NewLife.Caching
         /// <summary>写日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
-        public void WriteLog(String format, params Object[] args)
-        {
-            Log?.Info(format, args);
-        }
+        public void WriteLog(String format, params Object[] args) => Log?.Info(format, args);
         #endregion
     }
 

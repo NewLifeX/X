@@ -112,10 +112,7 @@ namespace NewLife.Threading
         }
 
         /// <summary>销毁定时器</summary>
-        public void Dispose()
-        {
-            Scheduler?.Remove(this);
-        }
+        public void Dispose() => Scheduler?.Remove(this);
         #endregion
 
         #region 方法
@@ -167,10 +164,7 @@ namespace NewLife.Threading
             }
         }
 
-        private static void CopyNow(Object state)
-        {
-            _Now = DateTime.Now;
-        }
+        private static void CopyNow(Object state) => _Now = DateTime.Now;
         #endregion
 
         #region 辅助

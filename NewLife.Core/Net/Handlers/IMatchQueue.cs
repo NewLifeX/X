@@ -39,7 +39,7 @@ namespace NewLife.Net.Handlers
         /// <param name="source">任务源</param>
         public virtual Task<Object> Add(Object owner, Object request, Int32 msTimeout, TaskCompletionSource<Object> source)
         {
-            var now = DateTime.Now;
+            var now = TimerX.Now;
 
             if (source == null) source = new TaskCompletionSource<Object>();
             var qi = new Item
@@ -122,7 +122,7 @@ namespace NewLife.Net.Handlers
             {
                 if (qs.Count == 0) return;
 
-                var now = DateTime.Now;
+                var now = TimerX.Now;
                 // 加锁复制以后再遍历，避免线程冲突
                 foreach (var qi in qs.ToArray())
                 {

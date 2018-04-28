@@ -156,7 +156,7 @@ namespace NewLife.Json
                 // 频繁调用File.Exists的性能损耗巨大
                 if (cf.IsNullOrEmpty()) return false;
 
-                var now =DateTime.Now;
+                var now = TimerX.Now;
                 if (_.ReloadTime > 0 && expire < now)
                 {
                     var fi = new FileInfo(cf);
@@ -186,8 +186,8 @@ namespace NewLife.Json
                     lastWrite = fi.LastWriteTime;
                 }
                 else
-                    lastWrite = DateTime.Now;
-                expire = DateTime.Now.AddMilliseconds(_.ReloadTime);
+                    lastWrite = TimerX.Now;
+                expire = TimerX.Now.AddMilliseconds(_.ReloadTime);
             }
         }
 
@@ -223,7 +223,7 @@ namespace NewLife.Json
                 var data = File.ReadAllBytes(filename);
                 var config = this as TConfig;
 
-               
+
                 //var json = new Serialization.Json
                 //{
                 //    Stream = new MemoryStream(data),
@@ -309,7 +309,7 @@ namespace NewLife.Json
         }
 
         /// <summary>保存到配置文件中去</summary>
-        public virtual void Save() { Save(null); }
+        public virtual void Save() => Save(null);
 
         private TimerX _Timer;
         /// <summary>异步保存</summary>

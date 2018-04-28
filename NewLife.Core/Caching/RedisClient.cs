@@ -330,10 +330,7 @@ namespace NewLife.Caching
         /// <param name="cmd"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        public virtual Object Execute(String cmd, params Object[] args)
-        {
-            return SendCommand(cmd, args.Select(e => ToBytes(e)).ToArray());
-        }
+        public virtual Object Execute(String cmd, params Object[] args) => SendCommand(cmd, args.Select(e => ToBytes(e)).ToArray());
 
         /// <summary>执行命令。返回基本类型、对象、对象数组</summary>
         /// <param name="cmd"></param>
@@ -374,21 +371,21 @@ namespace NewLife.Caching
 
         /// <summary>心跳</summary>
         /// <returns></returns>
-        public Boolean Ping() { return Execute<String>("PING") == "PONG"; }
+        public Boolean Ping() => Execute<String>("PING") == "PONG";
 
         /// <summary>选择Db</summary>
         /// <param name="db"></param>
         /// <returns></returns>
-        public Boolean Select(Int32 db) { return Execute<String>("SELECT", db + "") == "OK"; }
+        public Boolean Select(Int32 db) => Execute<String>("SELECT", db + "") == "OK";
 
         /// <summary>验证密码</summary>
         /// <param name="password"></param>
         /// <returns></returns>
-        public Boolean Auth(String password) { return Execute<String>("AUTH", password) == "OK"; }
+        public Boolean Auth(String password) => Execute<String>("AUTH", password) == "OK";
 
         /// <summary>退出</summary>
         /// <returns></returns>
-        public Boolean Quit() { return Execute<String>("QUIT") == "OK"; }
+        public Boolean Quit() => Execute<String>("QUIT") == "OK";
 
         /// <summary>获取信息</summary>
         /// <returns></returns>
@@ -421,10 +418,7 @@ namespace NewLife.Caching
         /// <typeparam name="T"></typeparam>
         /// <param name="key"></param>
         /// <returns></returns>
-        public T Get<T>(String key)
-        {
-            return Execute<T>("GET", key);
-        }
+        public T Get<T>(String key) => Execute<T>("GET", key);
 
         /// <summary>批量设置</summary>
         /// <typeparam name="T"></typeparam>
@@ -502,7 +496,7 @@ namespace NewLife.Caching
         /// <typeparam name="T"></typeparam>
         /// <param name="pk"></param>
         /// <returns></returns>
-        protected T FromBytes<T>(Packet pk) { return (T)FromBytes(pk, typeof(T)); }
+        protected T FromBytes<T>(Packet pk) => (T)FromBytes(pk, typeof(T));
 
         private static ConcurrentDictionary<String, Byte[]> _cache0 = new ConcurrentDictionary<String, Byte[]>();
         private static ConcurrentDictionary<String, Byte[]> _cache1 = new ConcurrentDictionary<String, Byte[]>();
@@ -530,10 +524,7 @@ namespace NewLife.Caching
         /// <summary>写日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
-        public void WriteLog(String format, params Object[] args)
-        {
-            Log?.Info(format, args);
-        }
+        public void WriteLog(String format, params Object[] args) => Log?.Info(format, args);
         #endregion
     }
 }

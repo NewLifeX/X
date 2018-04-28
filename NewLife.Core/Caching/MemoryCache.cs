@@ -153,7 +153,7 @@ namespace NewLife.Caching
         {
             if (!_cache.TryGetValue(key, out var item) || item == null) return false;
 
-            item.ExpiredTime = DateTime.Now.Add(expire);
+            item.ExpiredTime = TimerX.Now.Add(expire);
 
             return true;
         }
@@ -165,7 +165,7 @@ namespace NewLife.Caching
         {
             if (!_cache.TryGetValue(key, out var item) || item == null) return TimeSpan.Zero;
 
-            return item.ExpiredTime - DateTime.Now;
+            return item.ExpiredTime - TimerX.Now;
         }
         #endregion
 
@@ -390,7 +390,7 @@ namespace NewLife.Caching
         void RemoveNotAlive(Object state)
         {
             // 这里先计算，性能很重要
-            var now = DateTime.Now;
+            var now = TimerX.Now;
             var list = new List<String>();
             foreach (var item in _cache)
             {

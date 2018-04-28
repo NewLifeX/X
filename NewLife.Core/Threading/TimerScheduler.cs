@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using NewLife.Log;
 
@@ -11,7 +10,7 @@ namespace NewLife.Threading
     public class TimerScheduler
     {
         #region 静态
-        private TimerScheduler(String name) { Name = name; }
+        private TimerScheduler(String name) => Name = name;
 
         private static Dictionary<String, TimerScheduler> _cache = new Dictionary<String, TimerScheduler>();
 
@@ -280,7 +279,7 @@ namespace NewLife.Threading
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override String ToString() { return Name; }
+        public override String ToString() => Name;
 
         #region 设置
         /// <summary>是否开启调试，输出更多信息</summary>

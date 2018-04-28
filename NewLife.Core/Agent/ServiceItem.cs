@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Threading;
 using NewLife.Log;
+using NewLife.Threading;
 
 namespace NewLife.Agent
 {
@@ -115,7 +116,7 @@ namespace NewLife.Agent
             while (true)
             {
                 var isContinute = false;
-                LastActive = DateTime.Now;
+                LastActive = TimerX.Now;
 
                 var sw = Stopwatch.StartNew();
                 try
@@ -143,7 +144,7 @@ namespace NewLife.Agent
                     WriteLine(ex?.GetTrue() + "");
                 }
                 sw.Stop();
-                LastActive = DateTime.Now;
+                LastActive = TimerX.Now;
 
                 if (set.Debug && set.WaitForExit > 0 && sw.ElapsedMilliseconds > set.WaitForExit) WriteLine("工作任务耗时较长 {0:n0}ms > {1:n0}ms，需要调整业务缩小耗时，以确保任务得到可靠保护", sw.ElapsedMilliseconds, set.WaitForExit);
 
@@ -189,7 +190,7 @@ namespace NewLife.Agent
             var max = Setting.Current.MaxActive;
             if (max <= 0) return;
 
-            var ts = DateTime.Now - LastActive;
+            var ts = TimerX.Now - LastActive;
             if (ts.TotalSeconds > max)
             {
                 WriteLine("{0}已经{1:n0}秒没有活动了，准备重新启动！", Name, ts.TotalSeconds);

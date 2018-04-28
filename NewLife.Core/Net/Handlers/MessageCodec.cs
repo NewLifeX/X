@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Messaging;
+using NewLife.Threading;
 
 namespace NewLife.Net.Handlers
 {
@@ -183,7 +184,7 @@ namespace NewLife.Net.Handlers
                 if (pk != null)
                 {
                     // 超过该时间后按废弃数据处理
-                    var now = DateTime.Now;
+                    var now = TimerX.Now;
                     if (_last.AddMilliseconds(expire) < now)
                     {
                         _ms.SetLength(0);
