@@ -48,5 +48,21 @@ namespace NewLife.Remoting
 
             return _all = list.ToArray();
         }
+
+        /// <summary>获取指定种类的环境信息</summary>
+        /// <param name="kind"></param>
+        /// <returns></returns>
+        public String Info(String kind)
+        {
+            switch ((kind + "").ToLower())
+            {
+                case "machine": return Environment.MachineName;
+                case "user": return Environment.UserName;
+                case "ip": return NetHelper.MyIP() + "";
+                case "time": return DateTime.Now.ToFullString();
+                default:
+                    return DateTime.Now.ToFullString();
+            }
+        }
     }
 }

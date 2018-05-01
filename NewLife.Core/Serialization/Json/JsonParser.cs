@@ -134,6 +134,7 @@ namespace NewLife.Serialization
 
                 case Token.String:
                     var str = ParseString();
+                    if (str.IsNullOrEmpty()) return str;
 
                     // 有可能是字符串或时间日期
                     if (str[0] == '/' && str[str.Length - 1] == '/' && str.StartsWithIgnoreCase("/Date(") && str.EndsWithIgnoreCase(")/"))
