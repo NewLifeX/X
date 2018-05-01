@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using NewLife.Data;
-using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Threading;
 
@@ -16,8 +14,8 @@ namespace NewLife.Net.Handlers
         /// <summary>消息队列。用于匹配请求响应包</summary>
         public IMatchQueue Queue { get; set; } = new DefaultMatchQueue();
 
-        /// <summary>调用超时时间。默认15000ms</summary>
-        public Int32 Timeout { get; set; } = 15000;
+        /// <summary>调用超时时间。默认30000ms</summary>
+        public Int32 Timeout { get; set; } = 30000;
 
         /// <summary>使用数据包，写入时数据包转消息，读取时消息自动解包返回数据负载。默认true</summary>
         public Boolean UserPacket { get; set; } = true;
