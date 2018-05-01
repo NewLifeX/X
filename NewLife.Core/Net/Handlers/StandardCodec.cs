@@ -23,10 +23,6 @@ namespace NewLife.Net.Handlers
             else if (message is DefaultMessage msg && !msg.Reply && msg.Sequence == 0)
                 msg.Sequence = (Byte)Interlocked.Increment(ref _gid);
 
-#if DEBUG
-            //Log.XTrace.WriteLine("Write {0}", message);
-#endif
-
             return base.Write(context, message);
         }
 
@@ -57,8 +53,6 @@ namespace NewLife.Net.Handlers
 
                 return msg as IMessage;
             }).ToList();
-
-            //if (pks.Count != list.Count) Log.XTrace.WriteLine($"{pks.Count}=>{list.Count}");
 
             return list;
         }

@@ -111,20 +111,10 @@ namespace NewLife.Remoting
 
             if (!msg.Reply) return false;
 
-            try
-            {
-                var dic = Decode(msg.Payload);
+            var dic = Decode(msg.Payload);
 
-                code = dic["code"].ToInt();
-                result = dic["result"];
-            }
-            catch (Exception ex)
-            {
-                //XTrace.WriteException(ex);
-                //XTrace.WriteLine("{0} {1}", msg, msg.Payload.ToStr());
-
-                throw;
-            }
+            code = dic["code"].ToInt();
+            result = dic["result"];
 
             return true;
         }

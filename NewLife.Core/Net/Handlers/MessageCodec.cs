@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Messaging;
-using NewLife.Serialization;
 using NewLife.Threading;
 
 namespace NewLife.Net.Handlers
@@ -120,24 +119,6 @@ namespace NewLife.Net.Handlers
         /// <returns></returns>
         protected virtual IList<T> Decode(IHandlerContext context, Packet pk) => null;
 
-        ///// <summary>读取数据完成</summary>
-        ///// <param name="context">上下文</param>
-        ///// <param name="message">最终消息</param>
-        //public override void ReadComplete(IHandlerContext context, Object message)
-        //{
-        //    var msg = context["Message"];
-        //    if (msg is IMessage msg2)
-        //    {
-        //        // 匹配
-        //        if (msg2.Reply) Queue.Match(context.Session, msg2, message, IsMatch);
-        //    }
-        //    else if (msg != null)
-        //    {
-        //        // 其它消息不考虑响应
-        //        Queue.Match(context.Session, msg, message, IsMatch);
-        //    }
-        //}
-
         /// <summary>是否匹配响应</summary>
         /// <param name="request"></param>
         /// <param name="response"></param>
@@ -165,7 +146,6 @@ namespace NewLife.Net.Handlers
             {
                 if (pk == null) return list.ToArray();
 
-                //var ms = pk.GetStream();
                 var idx = 0;
                 while (idx < pk.Count)
                 {
@@ -180,8 +160,6 @@ namespace NewLife.Net.Handlers
                 // 如果没有剩余，可以返回
                 if (idx == pk.Count) return list.ToArray();
 
-                XTrace.WriteLine("解包{0} 剩下 {1} 字节", pk, pk.Count - idx);
-
                 // 剩下的
                 pk = new Packet(pk.Data, pk.Offset + idx, pk.Count - idx);
             }
@@ -191,13 +169,10 @@ namespace NewLife.Net.Handlers
             // 加锁，避免多线程冲突
             lock (_ms)
             {
-                if (_ms.Length > _ms.Position) XTrace.WriteLine("前面剩下 {0} 字节，准备合并 {1}", _ms.Length - _ms.Position, pk);
-
                 // 超过该时间后按废弃数据处理
                 var now = TimerX.Now;
                 if (_ms.Length > _ms.Position && codec.Last.AddMilliseconds(expire) < now)
                 {
-                    XTrace.WriteLine("超时抛弃数据[{0}]字节，{1}+{2}<{3}", _ms.Length, codec.Last, expire, now);
                     _ms.SetLength(0);
                     _ms.Position = 0;
                 }
@@ -208,7 +183,6 @@ namespace NewLife.Net.Handlers
                 {
                     var p = _ms.Position;
                     _ms.Position = _ms.Length;
-                    //_ms.Write(pk.Data, pk.Offset, pk.Count);
                     pk.WriteTo(_ms);
                     _ms.Position = p;
                 }
@@ -221,9 +195,6 @@ namespace NewLife.Net.Handlers
 
                     var pk2 = new Packet(_ms.ReadBytes(len));
                     list.Add(pk2);
-
-                    Debug.Assert(pk2.Count == 65);
-                    Debug.Assert(pk2[4] == '{');
                 }
 
                 // 如果读完了数据，需要重置缓冲区
@@ -232,7 +203,6 @@ namespace NewLife.Net.Handlers
                     _ms.SetLength(0);
                     _ms.Position = 0;
                 }
-                XTrace.WriteLine("解包{0} 得到 {1} 个消息", pk, list.Count);
 
                 return list;
             }
