@@ -9,17 +9,8 @@ namespace NewLife.Serialization
     /// <summary>复合对象处理器</summary>
     public class BinaryComposite : BinaryHandlerBase
     {
-        ///// <summary>要忽略的成员</summary>
-        //public ICollection<String> IgnoreMembers { get; set; }
-
         /// <summary>实例化</summary>
-        public BinaryComposite()
-        {
-            Priority = 100;
-
-            //IgnoreMembers = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
-            //IgnoreMembers = new HashSet<String>();
-        }
+        public BinaryComposite() => Priority = 100;
 
         /// <summary>写入对象</summary>
         /// <param name="value">目标对象</param>

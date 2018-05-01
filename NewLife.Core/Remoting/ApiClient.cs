@@ -60,7 +60,8 @@ namespace NewLife.Remoting
             var ct = Client;
             if (ct == null) throw new ArgumentNullException(nameof(Client), "未指定通信客户端");
 
-            if (Encoder == null) Encoder = new JsonEncoder();
+            //if (Encoder == null) Encoder = new JsonEncoder();
+            if (Encoder == null) Encoder = new BinaryEncoder();
             if (Handler == null) Handler = new ApiHandler { Host = this };
 
             Encoder.Log = EncoderLog;
