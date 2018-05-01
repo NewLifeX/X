@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,7 +31,7 @@ namespace NewLife.Net.Handlers
     /// <summary>消息匹配队列。子类可重载以自定义请求响应匹配逻辑</summary>
     public class DefaultMatchQueue : IMatchQueue
     {
-        private LinkList<Item> Items = new LinkList<Item>();
+        private ConcurrentQueue<Item> Items = new ConcurrentQueue<Item>();
         private TimerX _Timer;
 
         /// <summary>加入请求队列</summary>
@@ -52,11 +53,7 @@ namespace NewLife.Net.Handlers
             };
 
             // 加锁处理，更安全
-            var qs = Items;
-            //lock (qs)
-            //{
-            qs.Add(qi);
-            //}
+            Items.Enqueue(qi);
 
             if (_Timer == null)
             {
@@ -66,7 +63,7 @@ namespace NewLife.Net.Handlers
                 }
             }
 
-            return qi.Source.Task;
+            return source.Task;
         }
 
         /// <summary>检查请求队列是否有匹配该响应的请求</summary>
@@ -78,22 +75,20 @@ namespace NewLife.Net.Handlers
         public virtual Boolean Match(Object owner, Object response, Object result, Func<Object, Object, Boolean> callback)
         {
             var qs = Items;
-            if (qs.Count == 0) return false;
+            if (qs.IsEmpty) return false;
 
-            // 加锁复制以后再遍历，避免线程冲突
-            //var arr = qs.ToArray();
+            // 直接遍历，队列不会很长
             foreach (var qi in qs)
             {
-                if (qi.Owner == owner && callback(qi.Request, response))
+                var src = qi.Source;
+                if (src != null && qi.Owner == owner && callback(qi.Request, response))
                 {
-                    //lock (qs)
-                    //{
-                    qs.Remove(qi);
-                    //}
+                    // 标记为已处理
+                    qi.Source = null;
 
                     // 异步设置完成结果，否则可能会在当前线程恢复上层await，导致堵塞当前任务
                     //if (!qi.Source.Task.IsCompleted) Task.Factory.StartNew(() => qi.Source.TrySetResult(result));
-                    if (!qi.Source.Task.IsCompleted) qi.Source.TrySetResult(result);
+                    if (!src.Task.IsCompleted) src.TrySetResult(result);
 
                     return true;
                 }
@@ -105,49 +100,41 @@ namespace NewLife.Net.Handlers
             return false;
         }
 
-        private Int32 _Checking = 0;
         /// <summary>定时检查发送队列，超时未收到响应则重发</summary>
         /// <param name="state"></param>
         void Check(Object state)
         {
             var qs = Items;
-            if (qs.Count == 0)
+            if (qs.IsEmpty)
             {
                 _Timer.TryDispose();
                 _Timer = null;
                 return;
             }
 
-            if (Interlocked.CompareExchange(ref _Checking, 1, 0) != 0) return;
-
-            try
+            var now = TimerX.Now;
+            // 直接遍历，队列不会很长
+            foreach (var qi in qs)
             {
-                if (qs.Count == 0) return;
-
-                var now = TimerX.Now;
-                // 加锁复制以后再遍历，避免线程冲突
-                foreach (var qi in qs)
+                // 过期取消
+                var src = qi.Source;
+                if (src != null && qi.EndTime <= now)
                 {
-                    // 过期取消
-                    if (qi.EndTime <= now)
-                    {
-                        qs.Remove(qi);
+                    qi.Source = null;
 
-                        if (!qi.Source.Task.IsCompleted)
-                        {
+                    if (!src.Task.IsCompleted)
+                    {
 #if DEBUG
-                            var msg = qi.Request as Messaging.DefaultMessage;
-                            Log.XTrace.WriteLine("超时丢失消息 Seq={0}", msg.Sequence);
+                        var msg = qi.Request as Messaging.DefaultMessage;
+                        Log.XTrace.WriteLine("超时丢失消息 Seq={0}", msg.Sequence);
 #endif
-                            qi.Source.TrySetCanceled();
-                        }
+                        src.TrySetCanceled();
                     }
                 }
             }
-            finally
-            {
-                Interlocked.CompareExchange(ref _Checking, 0, 1);
-            }
+
+            // 清理无效项
+            while (qs.TryPeek(out var qm) && qm.Source == null && qs.TryDequeue(out qm)) ;
         }
 
         class Item

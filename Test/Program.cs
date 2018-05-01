@@ -139,7 +139,7 @@ namespace Test
 
         static void Test4()
         {
-            ApiTest.Main();
+            //ApiTest.Main();
         }
 
         static async void Test5()
