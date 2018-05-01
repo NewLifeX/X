@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
@@ -7,65 +7,65 @@ using NewLife.Collections;
 namespace NewLife.Serialization
 {
 
-    /// <summary>Json·ÖÎöÆ÷</summary>
+    /// <summary>Jsonåˆ†æå™¨</summary>
     public class JsonParser
     {
-        #region ÄÚ²¿
-        /// <summary>±êÊ¶·û</summary>
+        #region å†…éƒ¨
+        /// <summary>æ ‡è¯†ç¬¦</summary>
         enum Token
         {
             None = -1,
 
-            /// <summary>×ó´óÀ¨ºÅ</summary>
+            /// <summary>å·¦å¤§æ‹¬å·</summary>
             Curly_Open,
 
-            /// <summary>ÓÒ´óÀ¨ºÅ</summary>
+            /// <summary>å³å¤§æ‹¬å·</summary>
             Curly_Close,
 
-            /// <summary>×ó·½À¨ºÅ</summary>
+            /// <summary>å·¦æ–¹æ‹¬å·</summary>
             Squared_Open,
 
-            /// <summary>ÓÒ·½À¨ºÅ</summary>
+            /// <summary>å³æ–¹æ‹¬å·</summary>
             Squared_Close,
 
-            /// <summary>Ã°ºÅ</summary>
+            /// <summary>å†’å·</summary>
             Colon,
 
-            /// <summary>¶ººÅ</summary>
+            /// <summary>é€—å·</summary>
             Comma,
 
-            /// <summary>×Ö·û´®</summary>
+            /// <summary>å­—ç¬¦ä¸²</summary>
             String,
 
-            /// <summary>Êı×Ö</summary>
+            /// <summary>æ•°å­—</summary>
             Number,
 
-            /// <summary>²¼¶ûÕæ</summary>
+            /// <summary>å¸ƒå°”çœŸ</summary>
             True,
 
-            /// <summary>²¼¶ûÕæ</summary>
+            /// <summary>å¸ƒå°”çœŸ</summary>
             False,
 
-            /// <summary>¿ÕÖµ</summary>
+            /// <summary>ç©ºå€¼</summary>
             Null
         }
         #endregion
 
-        #region ÊôĞÔ
+        #region å±æ€§
         readonly String _json;
         readonly StringBuilder _builder = new StringBuilder();
         Token _Ahead = Token.None;
         Int32 index;
         #endregion
 
-        /// <summary>ÊµÀı»¯</summary>
+        /// <summary>å®ä¾‹åŒ–</summary>
         /// <param name="json"></param>
         public JsonParser(String json)
         {
             _json = json;
         }
 
-        /// <summary>½âÂë</summary>
+        /// <summary>è§£ç </summary>
         /// <returns></returns>
         public Object Decode() { return ParseValue(); }
 
@@ -90,13 +90,13 @@ namespace NewLife.Serialization
 
                     default:
                         {
-                            // Ãû³Æ
+                            // åç§°
                             var name = ParseName();
 
                             // :
-                            if (NextToken() != Token.Colon) throw new XException("ÔÚ {0} ĞèÒªÃ°ºÅ");
+                            if (NextToken() != Token.Colon) throw new XException("åœ¨ {0} éœ€è¦å†’å·");
 
-                            // Öµ
+                            // å€¼
                             dic[name] = ParseValue();
                         }
                         break;
@@ -137,11 +137,15 @@ namespace NewLife.Serialization
 
                 case Token.String:
                     var str = ParseString();
-                    // ÓĞ¿ÉÄÜÊÇ×Ö·û´®»òÊ±¼äÈÕÆÚ
-                    var str2 = str.Substring("/Date(", ")/");
-                    if (str2.IsNullOrEmpty()) return str;
 
-                    return new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToInt64(str2));
+                    // æœ‰å¯èƒ½æ˜¯å­—ç¬¦ä¸²æˆ–æ—¶é—´æ—¥æœŸ
+                    if (str[0] == '/' && str[str.Length - 1] == '/' && str.StartsWithIgnoreCase("/Date(") && str.EndsWithIgnoreCase(")/"))
+                    {
+                        str = str.Substring(6, str.Length - 6 - 2);
+                        return new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToInt64(str));
+                    }
+
+                    return str;
 
                 case Token.Curly_Open:
                     return ParseObject();
@@ -162,7 +166,7 @@ namespace NewLife.Serialization
                     return null;
             }
 
-            throw new XException("ÔÚ {0} µÄ±êÊ¶·ûÎŞ·¨Ê¶±ğ", index);
+            throw new XException("åœ¨ {0} çš„æ ‡è¯†ç¬¦æ— æ³•è¯†åˆ«", index);
         }
 
         private String ParseName()
@@ -190,7 +194,7 @@ namespace NewLife.Serialization
                 }
                 else if (c == ':')
                 {
-                    // Èç¹ûÊÇÃ»ÓĞË«ÒıºÅµÄÃû×Ö£¬ÔòÍË»ØÒ»¸ö×Ö·û
+                    // å¦‚æœæ˜¯æ²¡æœ‰åŒå¼•å·çš„åå­—ï¼Œåˆ™é€€å›ä¸€ä¸ªå­—ç¬¦
                     index--;
 
                     if (runIndex != -1)
@@ -257,7 +261,7 @@ namespace NewLife.Serialization
                             var remainingLength = _json.Length - index;
                             if (remainingLength < 4) break;
 
-                            // ·ÖÎö32Î»Ê®Áù½øÖÆÊı×Ö
+                            // åˆ†æ32ä½åå…­è¿›åˆ¶æ•°å­—
                             var codePoint = ParseUnicode(_json[index], _json[index + 1], _json[index + 2], _json[index + 3]);
                             _builder.Append((Char)codePoint);
 
@@ -267,7 +271,7 @@ namespace NewLife.Serialization
                 }
             }
 
-            throw new Exception("ÒÑµ½´ï×Ö·û´®½áÎ²");
+            throw new Exception("å·²åˆ°è¾¾å­—ç¬¦ä¸²ç»“å°¾");
         }
 
         private String ParseString()
@@ -348,7 +352,7 @@ namespace NewLife.Serialization
                             var remainingLength = _json.Length - index;
                             if (remainingLength < 4) break;
 
-                            // ·ÖÎö32Î»Ê®Áù½øÖÆÊı×Ö
+                            // åˆ†æ32ä½åå…­è¿›åˆ¶æ•°å­—
                             var codePoint = ParseUnicode(_json[index], _json[index + 1], _json[index + 2], _json[index + 3]);
                             _builder.Append((Char)codePoint);
 
@@ -358,7 +362,7 @@ namespace NewLife.Serialization
                 }
             }
 
-            throw new Exception("ÒÑµ½´ï×Ö·û´®½áÎ²");
+            throw new Exception("å·²åˆ°è¾¾å­—ç¬¦ä¸²ç»“å°¾");
         }
 
         private UInt32 ParseSingleChar(Char c1, UInt32 multipliyer)
@@ -407,7 +411,7 @@ namespace NewLife.Serialization
         {
             SkipToken();
 
-            // ĞèÒª»Ø¹ö1¸öÎ»ÖÃ£¬ÒòÎªµÚÒ»¸öÊı×ÖÒ²ÊÇToekn£¬¿ÉÄÜ±»Ìø¹ıÁË
+            // éœ€è¦å›æ»š1ä¸ªä½ç½®ï¼Œå› ä¸ºç¬¬ä¸€ä¸ªæ•°å­—ä¹Ÿæ˜¯Toeknï¼Œå¯èƒ½è¢«è·³è¿‡äº†
             var startIndex = index - 1;
             var dec = false;
             do
@@ -443,7 +447,7 @@ namespace NewLife.Serialization
             return _Ahead = NextTokenCore();
         }
 
-        /// <summary>¶ÁÈ¡Ò»¸öToken</summary>
+        /// <summary>è¯»å–ä¸€ä¸ªToken</summary>
         private void SkipToken()
         {
             _Ahead = Token.None;
@@ -462,7 +466,7 @@ namespace NewLife.Serialization
         {
             Char ch;
 
-            // Ìø¹ı¿Õ°×·û
+            // è·³è¿‡ç©ºç™½ç¬¦
             do
             {
                 ch = _json[index];
@@ -472,7 +476,7 @@ namespace NewLife.Serialization
 
             } while (++index < _json.Length);
 
-            if (index == _json.Length) throw new Exception("ÒÑµ½´ï×Ö·û´®½áÎ²");
+            if (index == _json.Length) throw new Exception("å·²åˆ°è¾¾å­—ç¬¦ä¸²ç»“å°¾");
 
             ch = _json[index];
 
@@ -550,10 +554,10 @@ namespace NewLife.Serialization
                     }
                     break;
 
-                // Ä¬ÈÏÊÇÃ»ÓĞË«ÒıºÅµÄkey
+                // é»˜è®¤æ˜¯æ²¡æœ‰åŒå¼•å·çš„key
                 default: index--; return Token.String;
             }
-            throw new XException("ÎŞ·¨ÔÚ {0} ÕÒµ½Token", --index);
+            throw new XException("æ— æ³•åœ¨ {0} æ‰¾åˆ°Token", --index);
         }
 
         static Int64 CreateLong(out Int64 num, String s, Int32 index, Int32 count)
