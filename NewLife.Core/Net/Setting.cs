@@ -20,9 +20,9 @@ namespace NewLife.Net
         [Description("会话超时时间。默认20*60秒")]
         public Int32 SessionTimeout { get; set; } = 20 * 60;
 
-        /// <summary>缓冲区大小。默认8k</summary>
-        [Description("缓冲区大小。默认8k")]
-        public Int32 BufferSize { get; set; } = 8 * 1024;
+        /// <summary>缓冲区大小。默认64k</summary>
+        [Description("缓冲区大小。默认64k")]
+        public Int32 BufferSize { get; set; } = 64 * 1024;
         #endregion
 
         #region 方法

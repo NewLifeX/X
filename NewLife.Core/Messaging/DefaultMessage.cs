@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using NewLife.Data;
 using NewLife.Reflection;
 
@@ -72,7 +73,9 @@ namespace NewLife.Messaging
         /// <returns></returns>
         public override Packet ToPacket()
         {
-            //var buf = new Byte[4];
+            var len = 0;
+            if (Payload != null) len = Payload.Count;
+            if (len > 0xFFFF) throw new InvalidDataException("标准消息最大只支持64k负载");
 
             // 增加4字节头部
             var pk = Payload;
@@ -91,8 +94,6 @@ namespace NewLife.Messaging
             pk[1] = Sequence;
 
             // 2字节长度，小端字节序
-            var len = 0;
-            if (Payload != null) len = Payload.Count;
             pk[2] = (Byte)(len & 0xFF);
             pk[3] = (Byte)(len >> 8);
 
