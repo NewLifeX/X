@@ -54,6 +54,14 @@ namespace XApi
         [Description("显示编码日志")]
         public Boolean ShowEncoderLog { get; set; } = true;
 
+        /// <summary>显示发送数据</summary>
+        [Description("显示发送数据")]
+        public Boolean ShowSend { get; set; }
+
+        /// <summary>显示接收数据</summary>
+        [Description("显示接收数据")]
+        public Boolean ShowReceive { get; set; }
+
         /// <summary>显示统计信息</summary>
         [Description("显示统计信息")]
         public Boolean ShowStat { get; set; } = true;

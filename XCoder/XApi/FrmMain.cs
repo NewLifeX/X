@@ -86,6 +86,8 @@ namespace XApi
             var cfg = ApiConfig.Current;
             mi显示应用日志.Checked = cfg.ShowLog;
             mi显示编码日志.Checked = cfg.ShowEncoderLog;
+            mi显示发送数据.Checked = cfg.ShowSend;
+            mi显示接收数据.Checked = cfg.ShowReceive;
             mi显示统计信息.Checked = cfg.ShowStat;
 
             cbMode.SelectedItem = cfg.Mode;
@@ -105,6 +107,8 @@ namespace XApi
             var cfg = ApiConfig.Current;
             cfg.ShowLog = mi显示应用日志.Checked;
             cfg.ShowEncoderLog = mi显示编码日志.Checked;
+            cfg.ShowSend = mi显示发送数据.Checked;
+            cfg.ShowReceive = mi显示接收数据.Checked;
             cfg.ShowStat = mi显示统计信息.Checked;
 
             cfg.Mode = cbMode.SelectedItem + "";
@@ -136,9 +140,19 @@ namespace XApi
             switch (cbMode.Text)
             {
                 case "服务端":
-                    var svr = new ApiServer(port);
-                    svr.Log = cfg.ShowLog ? log : Logger.Null;
-                    svr.EncoderLog = cfg.ShowEncoderLog ? log : Logger.Null;
+                    var svr = new ApiServer(port)
+                    {
+                        Log = cfg.ShowLog ? log : Logger.Null,
+                        EncoderLog = cfg.ShowEncoderLog ? log : Logger.Null
+                    };
+
+                    if (cfg.ShowSend || cfg.ShowReceive)
+                    {
+                        var ns = svr.Server as NetServer;
+                        ns.Log = log;
+                        ns.LogSend = cfg.ShowSend;
+                        ns.LogReceive = cfg.ShowReceive;
+                    }
 
                     svr.Start();
 
@@ -147,9 +161,19 @@ namespace XApi
                     _Server = svr;
                     break;
                 case "客户端":
-                    var client = new ApiClient(uri + "");
-                    client.Log = cfg.ShowLog ? log : Logger.Null;
-                    client.EncoderLog = cfg.ShowEncoderLog ? log : Logger.Null;
+                    var client = new ApiClient(uri + "")
+                    {
+                        Log = cfg.ShowLog ? log : Logger.Null,
+                        EncoderLog = cfg.ShowEncoderLog ? log : Logger.Null
+                    };
+
+                    if (cfg.ShowSend || cfg.ShowReceive)
+                    {
+                        var ct = client.Client;
+                        ct.Log = log;
+                        ct.LogSend = cfg.ShowSend;
+                        ct.LogReceive = cfg.ShowReceive;
+                    }
 
                     _Client = client;
                     client.Open();
@@ -326,10 +350,16 @@ namespace XApi
             _Cost = 0;
             _TotalCost = 0;
 
+            var ct = _Client.Client;
             var list = new List<ApiClient> { _Client };
             for (var i = 0; i < ths - 1; i++)
             {
                 var client = new ApiClient(uri + "");
+                var ct2 = client.Client;
+                ct2.Log = ct.Log;
+                ct2.LogSend = ct.LogSend;
+                ct2.LogReceive = ct.LogReceive;
+
                 list.Add(client);
             }
             //Parallel.ForEach(list, k => OnSend(k, act, args, count));
