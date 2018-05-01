@@ -93,7 +93,7 @@ namespace NewLife.Remoting
             if (msg == null || msg.Reply) return;
 
             var rs = _Host.Process(this, msg);
-            if (rs != null) Session?.SendAsync(rs);
+            if (rs != null) Session?.SendMessage(rs);
         }
 
         /// <summary>创建消息</summary>
