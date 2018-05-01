@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using NewLife.Data;
+using NewLife.Log;
 using NewLife.Messaging;
+using NewLife.Serialization;
 using NewLife.Threading;
 
 namespace NewLife.Net.Handlers
@@ -85,19 +88,18 @@ namespace NewLife.Net.Handlers
                 else
                     message = msg;
 
-                if (msg is IMessage msg4)
-                {
-                    pk = msg4.Payload;
-                    if (pk[0] != '{') throw new Exception("非法封包");
-                }
-
                 // 后续处理器，得到最终结果，匹配请求队列
                 var rs = base.Read(context, message);
 
                 if (msg is IMessage msg3)
                 {
                     // 匹配
-                    if (msg3.Reply) Queue.Match(context.Session, msg, rs, IsMatch);
+                    if (msg3.Reply)
+                    {
+                        //!!! 处理结果的Packet需要拷贝一份，否交给另一个线程使用会有冲突
+                        if (rs is IMessage msg4 && msg4.Payload == msg3.Payload) msg4.Payload = msg4.Payload.Clone();
+                        Queue.Match(context.Session, msg, rs, IsMatch);
+                    }
                 }
                 else if (rs != null)
                 {
@@ -145,16 +147,16 @@ namespace NewLife.Net.Handlers
         #region 粘包处理
         /// <summary>分析数据流，得到一帧数据</summary>
         /// <param name="pk">待分析数据包</param>
-        /// <param name="parameter">参数</param>
+        /// <param name="codec">参数</param>
         /// <param name="offset">长度字段位置</param>
         /// <param name="size">长度字段大小</param>
         /// <param name="expire">缓存有效期</param>
         /// <returns></returns>
-        protected virtual IList<Packet> Parse(Packet pk, MessageCodecParameter parameter, Int32 offset = 0, Int32 size = 2, Int32 expire = 5000)
+        protected virtual IList<Packet> Parse(Packet pk, CodecItem codec, Int32 offset = 0, Int32 size = 2, Int32 expire = 5000)
         {
             if (offset < 0) return new Packet[] { pk };
 
-            var _ms = parameter.Stream;
+            var _ms = codec.Stream;
             var nodata = _ms == null || _ms.Position < 0 || _ms.Position >= _ms.Length;
 
             var list = new List<Packet>();
@@ -178,27 +180,32 @@ namespace NewLife.Net.Handlers
                 // 如果没有剩余，可以返回
                 if (idx == pk.Count) return list.ToArray();
 
+                XTrace.WriteLine("解包{0} 剩下 {1} 字节", pk, pk.Count - idx);
+
                 // 剩下的
                 pk = new Packet(pk.Data, pk.Offset + idx, pk.Count - idx);
             }
 
-            if (_ms == null) parameter.Stream = _ms = new MemoryStream();
+            if (_ms == null) codec.Stream = _ms = new MemoryStream();
 
             // 加锁，避免多线程冲突
             lock (_ms)
             {
-                if (pk != null)
-                {
-                    // 超过该时间后按废弃数据处理
-                    var now = TimerX.Now;
-                    if (_ms.Length > 0 && parameter.Last.AddMilliseconds(expire) < now)
-                    {
-                        _ms.SetLength(0);
-                        _ms.Position = 0;
-                    }
-                    parameter.Last = now;
+                if (_ms.Length > _ms.Position) XTrace.WriteLine("前面剩下 {0} 字节，准备合并 {1}", _ms.Length - _ms.Position, pk);
 
-                    // 拷贝数据到最后面
+                // 超过该时间后按废弃数据处理
+                var now = TimerX.Now;
+                if (_ms.Length > _ms.Position && codec.Last.AddMilliseconds(expire) < now)
+                {
+                    XTrace.WriteLine("超时抛弃数据[{0}]字节，{1}+{2}<{3}", _ms.Length, codec.Last, expire, now);
+                    _ms.SetLength(0);
+                    _ms.Position = 0;
+                }
+                codec.Last = now;
+
+                // 合并数据到最后面
+                if (pk != null && pk.Total > 0)
+                {
                     var p = _ms.Position;
                     _ms.Position = _ms.Length;
                     //_ms.Write(pk.Data, pk.Offset, pk.Count);
@@ -206,6 +213,7 @@ namespace NewLife.Net.Handlers
                     _ms.Position = p;
                 }
 
+                // 尝试解包
                 while (_ms.Position < _ms.Length)
                 {
                     var len = GetLength(_ms, offset, size);
@@ -213,6 +221,9 @@ namespace NewLife.Net.Handlers
 
                     var pk2 = new Packet(_ms.ReadBytes(len));
                     list.Add(pk2);
+
+                    Debug.Assert(pk2.Count == 65);
+                    Debug.Assert(pk2[4] == '{');
                 }
 
                 // 如果读完了数据，需要重置缓冲区
@@ -221,6 +232,7 @@ namespace NewLife.Net.Handlers
                     _ms.SetLength(0);
                     _ms.Position = 0;
                 }
+                XTrace.WriteLine("解包{0} 得到 {1} 个消息", pk, list.Count);
 
                 return list;
             }
@@ -288,7 +300,7 @@ namespace NewLife.Net.Handlers
     }
 
     /// <summary>消息编码参数</summary>
-    public class MessageCodecParameter
+    public class CodecItem
     {
         /// <summary>缓存流</summary>
         public MemoryStream Stream;

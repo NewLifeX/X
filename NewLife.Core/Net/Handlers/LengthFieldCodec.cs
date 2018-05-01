@@ -80,8 +80,8 @@ namespace NewLife.Net.Handlers
         protected override IList<Packet> Decode(IHandlerContext context, Packet pk)
         {
             var ss = context.Session;
-            var mcp = ss["StandardCodec"] as MessageCodecParameter;
-            if (mcp == null) ss["StandardCodec"] = mcp = new MessageCodecParameter();
+            var mcp = ss["CodecItem"] as CodecItem;
+            if (mcp == null) ss["CodecItem"] = mcp = new CodecItem();
 
             return Parse(pk, mcp, Offset, Size, Expire);
         }

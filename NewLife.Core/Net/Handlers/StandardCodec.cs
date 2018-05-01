@@ -46,8 +46,8 @@ namespace NewLife.Net.Handlers
         protected override IList<IMessage> Decode(IHandlerContext context, Packet pk)
         {
             var ss = context.Session;
-            var mcp = ss["StandardCodec"] as MessageCodecParameter;
-            if (mcp == null) ss["StandardCodec"] = mcp = new MessageCodecParameter();
+            var mcp = ss["CodecItem"] as CodecItem;
+            if (mcp == null) ss["CodecItem"] = mcp = new CodecItem();
 
             var pks = Parse(pk, mcp, 2, 2);
             var list = pks.Select(e =>
@@ -55,15 +55,10 @@ namespace NewLife.Net.Handlers
                 var msg = new DefaultMessage();
                 if (!msg.Read(e)) return null;
 
-#if DEBUG
-                //Log.XTrace.WriteLine("Decode {0} Seq={1}", msg.Payload, msg.Sequence);
-                if (msg.Payload[0] != '{') Log.XTrace.WriteLine(msg.Payload.ToStr());
-#endif
-
                 return msg as IMessage;
             }).ToList();
 
-            if (pks.Count != list.Count) Log.XTrace.WriteLine($"{pks.Count}=>{list.Count}");
+            //if (pks.Count != list.Count) Log.XTrace.WriteLine($"{pks.Count}=>{list.Count}");
 
             return list;
         }

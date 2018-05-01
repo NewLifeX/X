@@ -176,6 +176,8 @@
     <Compile Include="Remoting\IApiSession.cs" />
     <Compile Include="Remoting\IEncoder.cs" />
     <Compile Include="Remoting\JsonEncoder.cs" />
+    <Compile Include="Serialization\BinaryCodec2.cs" />
+    <Compile Include="Serialization\JsonCodec2.cs" />
     <Compile Include="Serialization\JsonCodec.cs" />
     <Compile Include="Serialization\BinaryCodec.cs" />
     <Compile Include="Net\Handlers\StandardCodec.cs" />

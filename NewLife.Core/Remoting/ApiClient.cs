@@ -4,7 +4,7 @@ using NewLife.Data;
 using NewLife.Messaging;
 using NewLife.Net;
 using NewLife.Net.Handlers;
-using NewLife.Reflection;
+using NewLife.Serialization;
 
 namespace NewLife.Remoting
 {
@@ -100,6 +100,7 @@ namespace NewLife.Remoting
             var ct = Client = nu.CreateRemote();
             ct.Log = Log;
             ct.Add(new StandardCodec { UserPacket = false });
+            //ct.Add<JsonCodec2>();
 
             return true;
         }

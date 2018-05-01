@@ -121,7 +121,7 @@ namespace NewLife.Remoting
             catch (Exception ex)
             {
                 //XTrace.WriteException(ex);
-                XTrace.WriteLine("{0} {1}", msg, msg.Payload.ToStr());
+                //XTrace.WriteLine("{0} {1}", msg, msg.Payload.ToStr());
 
                 throw;
             }
