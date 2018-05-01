@@ -69,6 +69,8 @@ namespace NewLife.Serialization
             else if (obj is DateTime)
                 WriteDateTime((DateTime)obj);
 
+            else if (obj is IDictionary<String, Object> sdic)
+                WriteStringDictionary(sdic);
             else if (obj is IDictionary && obj.GetType().IsGenericType && obj.GetType().GetGenericArguments()[0] == typeof(String))
                 WriteStringDictionary((IDictionary)obj);
             else if (obj is System.Dynamic.ExpandoObject)
