@@ -217,13 +217,7 @@ namespace NewLife.Net
                 // 直接在IO线程调用业务逻辑
                 try
                 {
-                    // 估算完成时间，执行过长时提示
-                    using (var tc = new TimeCost("{0}.OnAccept".F(GetType().Name), 200))
-                    {
-                        tc.Log = Log;
-
-                        OnAccept(se.AcceptSocket);
-                    }
+                    OnAccept(se.AcceptSocket);
                 }
                 catch (Exception ex)
                 {
@@ -246,7 +240,7 @@ namespace NewLife.Net
         {
             var session = CreateSession(client);
 
-            // 设置心跳时间
+            // 设置心跳时间，默认10秒
             client.SetTcpKeepAlive(true);
 
             if (_Sessions.Add(session))

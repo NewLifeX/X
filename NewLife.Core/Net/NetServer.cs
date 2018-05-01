@@ -396,17 +396,9 @@ namespace NewLife.Net
             if (UseSession) AddSession(ns);
 
             ns.Received += OnReceived;
-            //ns.MessageReceived += OnMessageReceived;
-            //session.Error += OnError;
 
-            // 估算完成时间，执行过长时提示
-            using (var tc = new TimeCost("NetServer.OnNewSession", 500))
-            {
-                tc.Log = Log;
-
-                // 开始会话处理
-                ns.Start();
-            }
+            // 开始会话处理
+            ns.Start();
 
             return ns;
         }
@@ -427,23 +419,6 @@ namespace NewLife.Net
         /// <param name="session"></param>
         /// <param name="stream"></param>
         protected virtual void OnReceive(INetSession session, Stream stream) { }
-
-        ///// <summary>收到消息时</summary>
-        ///// <param name="sender"></param>
-        ///// <param name="e"></param>
-        //void OnMessageReceived(Object sender, MessageEventArgs e)
-        //{
-        //    var session = sender as INetSession;
-
-        //    OnReceive(session, e.Message);
-
-        //    MessageReceived?.Invoke(sender, e);
-        //}
-
-        ///// <summary>收到消息时</summary>
-        ///// <param name="session"></param>
-        ///// <param name="msg"></param>
-        //protected virtual void OnReceive(INetSession session, IMessage msg) { }
 
         /// <summary>错误发生/断开连接时。sender是ISocketSession</summary>
         public event EventHandler<ExceptionEventArgs> Error;
@@ -475,19 +450,13 @@ namespace NewLife.Net
         /// <param name="session"></param>
         protected virtual void AddSession(INetSession session)
         {
-            // 估算完成时间，锁争夺过大时提示
-            using (var tc = new TimeCost("NetServer.AddSession", 100))
+            if (session.Host == null) session.Host = this;
+            session.OnDisposed += (s, e) =>
             {
-                tc.Log = Log;
-
-                if (session.Host == null) session.Host = this;
-                session.OnDisposed += (s, e) =>
-                {
-                    var id = (s as INetSession).ID;
-                    if (id > 0) _Sessions.Remove(id);
-                };
-                _Sessions.TryAdd(session.ID, session);
-            }
+                var id = (s as INetSession).ID;
+                if (id > 0) _Sessions.Remove(id);
+            };
+            _Sessions.TryAdd(session.ID, session);
         }
 
         /// <summary>创建会话</summary>
@@ -510,18 +479,8 @@ namespace NewLife.Net
         {
             if (sessionid == 0) return null;
 
-            // 估算完成时间，锁争夺过大时提示
-            using (var tc = new TimeCost("NetServer.GetSession", 100))
-            {
-                tc.Log = Log;
-
-                //var dic = Sessions;
-                //lock (dic)
-                //{
-                if (!Sessions.TryGetValue(sessionid, out var ns)) return null;
-                return ns;
-                //}
-            }
+            if (!Sessions.TryGetValue(sessionid, out var ns)) return null;
+            return ns;
         }
         #endregion
 

@@ -70,7 +70,7 @@ namespace NewLife.Net
         public SessionBase()
         {
             Name = GetType().Name;
-            LogPrefix = "{0}.".F((Name + "").TrimEnd("Server", "Session", "Client"));
+            LogPrefix = Name.TrimEnd("Server", "Session", "Client") + ".";
 
             BufferSize = Setting.Current.BufferSize;
         }
@@ -110,7 +110,7 @@ namespace NewLife.Net
             BufferSize = Setting.Current.BufferSize;
 
             // 估算完成时间，执行过长时提示
-            using (var tc = new TimeCost("{0}.Open".F(GetType().Name), 1500))
+            using (var tc = new TimeCost(GetType().Name + ".Open", 1500))
             {
                 tc.Log = Log;
 
@@ -154,22 +154,16 @@ namespace NewLife.Net
         {
             if (!Active) return true;
 
-            // 估算完成时间，执行过长时提示
-            using (var tc = new TimeCost("{0}.Close".F(GetType().Name), 500))
-            {
-                tc.Log = Log;
+            if (OnClose(reason ?? (GetType().Name + "Close"))) Active = false;
 
-                if (OnClose(reason ?? (GetType().Name + "Close"))) Active = false;
+            _RecvCount = 0;
 
-                _RecvCount = 0;
+            // 管道
+            var pp = Pipeline;
+            pp?.Close(pp.CreateContext(this), reason);
 
-                // 管道
-                var pp = Pipeline;
-                pp?.Close(pp.CreateContext(this), reason);
-
-                // 触发关闭完成的事件
-                Closed?.Invoke(this, EventArgs.Empty);
-            }
+            // 触发关闭完成的事件
+            Closed?.Invoke(this, EventArgs.Empty);
 
             // 如果是动态端口，需要清零端口
             if (DynamicPort) Port = 0;

@@ -48,17 +48,11 @@ namespace NewLife.Net
         /// <returns>返回添加新会话是否成功</returns>
         public Boolean Add(ISocketSession session)
         {
-            // 估算完成时间，执行过长时提示
-            using (var tc = new TimeCost("{0}.Add".F(GetType().Name), 100))
-            {
-                tc.Log = Server.Log;
+            var key = session.Remote.EndPoint + "";
+            if (_dic.ContainsKey(key)) return false;
 
-                var key = session.Remote.EndPoint + "";
-                if (_dic.ContainsKey(key)) return false;
-
-                session.OnDisposed += (s, e) => { _dic.Remove((s as ISocketSession).Remote.EndPoint + ""); };
-                _dic.TryAdd(key, session);
-            }
+            session.OnDisposed += (s, e) => { _dic.Remove((s as ISocketSession).Remote.EndPoint + ""); };
+            _dic.TryAdd(key, session);
 
             return true;
         }
@@ -68,15 +62,9 @@ namespace NewLife.Net
         /// <returns></returns>
         public ISocketSession Get(String key)
         {
-            // 估算完成时间，执行过长时提示
-            using (var tc = new TimeCost("{0}.Get".F(GetType().Name), 100))
-            {
-                tc.Log = Server.Log;
+            if (!_dic.TryGetValue(key, out var session)) return null;
 
-                if (!_dic.TryGetValue(key, out var session)) return null;
-
-                return session;
-            }
+            return session;
         }
 
         /// <summary>关闭所有</summary>
