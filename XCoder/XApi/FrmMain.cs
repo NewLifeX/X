@@ -342,7 +342,8 @@ namespace XApi
             act = act.Substring(" ", "(");
 
             // 构造消息
-            var args = new JsonParser(str).Decode();
+            var args = new JsonParser(str).Decode() as IDictionary<String, Object>;
+            if (args == null || args.Count == 0) args = null;
 
             if (_Client == null) return;
 
