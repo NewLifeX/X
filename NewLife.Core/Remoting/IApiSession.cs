@@ -42,6 +42,11 @@ namespace NewLife.Remoting
         /// <returns></returns>
         Task<IMessage> SendAsync(IMessage msg);
 
+        /// <summary>发送消息。低级接口，由框架使用</summary>
+        /// <param name="msg"></param>
+        /// <returns></returns>
+        Boolean Send(IMessage msg);
+
         /// <summary>远程调用</summary>
         /// <typeparam name="TResult"></typeparam>
         /// <param name="action"></param>

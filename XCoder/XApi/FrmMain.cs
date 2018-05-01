@@ -378,7 +378,28 @@ namespace XApi
         {
             client.Open();
 
-            if (sleep <= 10)
+            // 间隔1开启同步发送不等待
+            if (sleep == 1)
+            {
+                var sw = Stopwatch.StartNew();
+                for (var i = 0; i < count; i++)
+                {
+                    try
+                    {
+                        client.Invoke(act, args);
+
+                        Interlocked.Increment(ref _Invoke);
+                    }
+                    catch (ApiException ex)
+                    {
+                        BizLog.Info(ex.Message);
+                    }
+                }
+                sw.Stop();
+                Interlocked.Add(ref _Cost, sw.ElapsedMilliseconds);
+            }
+            // 间隔2~10多任务异步发送
+            else if (sleep <= 10)
             {
                 var ts = new List<Task>();
                 for (var i = 0; i < count; i++)
@@ -403,6 +424,7 @@ namespace XApi
 
                 await Task.WhenAll(ts);
             }
+            // 间隔>10单任务异步发送
             else
             {
                 for (var i = 0; i < count; i++)

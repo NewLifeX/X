@@ -71,6 +71,22 @@ namespace NewLife.Remoting
             return enc.Convert<TResult>(result);
         }
 
+        /// <summary>调用</summary>
+        /// <param name="host"></param>
+        /// <param name="session"></param>
+        /// <param name="action"></param>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        public static Boolean Invoke(IApiHost host, IApiSession session, String action, Object args)
+        {
+            if (session == null) return false;
+
+            var enc = host.Encoder;
+            var msg = enc.Encode(action, args);
+
+            return session.Send(msg);
+        }
+
         /// <summary>创建控制器实例</summary>
         /// <param name="host"></param>
         /// <param name="session"></param>

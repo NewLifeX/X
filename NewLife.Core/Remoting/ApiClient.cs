@@ -117,7 +117,7 @@ namespace NewLife.Remoting
         #endregion
 
         #region 远程调用
-        /// <summary>调用</summary>
+        /// <summary>异步调用，等待返回结果</summary>
         /// <typeparam name="TResult"></typeparam>
         /// <param name="action"></param>
         /// <param name="args"></param>
@@ -150,12 +150,27 @@ namespace NewLife.Remoting
             }
         }
 
+        /// <summary>同步调用，不等待返回</summary>
+        /// <param name="action"></param>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        public virtual Boolean Invoke(String action, Object args = null)
+        {
+            var ss = Client;
+            if (ss == null) return false;
+
+            var act = action;
+
+            return ApiHostHelper.Invoke(this, this, act, args);
+        }
+
         /// <summary>创建消息</summary>
         /// <param name="pk"></param>
         /// <returns></returns>
         IMessage IApiSession.CreateMessage(Packet pk) => new DefaultMessage { Payload = pk };
 
         Task<IMessage> IApiSession.SendAsync(IMessage msg) => Client.SendAsync(msg).ContinueWith(t => t.Result as IMessage);
+        Boolean IApiSession.Send(IMessage msg) => Client.SendMessage(msg);
         #endregion
     }
 }
