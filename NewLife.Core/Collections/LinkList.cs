@@ -17,15 +17,15 @@ namespace NewLife.Collections
         #region 属性
         private Node _Head;
         /// <summary>头部</summary>
-        protected Node Head { get => _Head; }
+        protected Node Head => _Head;
 
         private Node _Tail;
         /// <summary>尾部</summary>
-        protected Node Tail { get => _Tail; }
+        protected Node Tail => _Tail;
 
         private Int32 _Count;
         /// <summary>元素个数</summary>
-        public Int32 Count { get => _Count; }
+        public Int32 Count => _Count;
 
         Boolean ICollection<T>.IsReadOnly => false;
         #endregion
@@ -198,66 +198,7 @@ namespace NewLife.Collections
 
             /// <summary>实例化一个双链表节点</summary>
             /// <param name="value"></param>
-            public Node(T value) { Value = value; }
-            #endregion
-
-            #region 方法
-            ///// <summary>在指定节点之后插入</summary>
-            ///// <param name="after"></param>
-            //public void InsertAfter(ref Node after)
-            //{
-            //    if (after == null) throw new ArgumentNullException(nameof(after));
-
-            //    //Prev = after;
-            //    //Next = after.Next;
-
-            //    //after.Next = this;
-            //    //if (Next != null) Next.Prev = this;
-
-            //    // 原子操作里面，把上一个节点的Next换成当前的下一个节点
-            //    while (true)
-            //    {
-            //        // 可能别的线程已经清空
-            //        var node = after;
-            //        if (node == null) return;
-
-            //        // 尝试替换
-            //        if (Interlocked.CompareExchange(ref node.Next, this, this) == this) break;
-            //    }
-            //}
-
-            ///// <summary>在指定节点之前插入</summary>
-            ///// <param name="before"></param>
-            //public void InsertBefore(Node before)
-            //{
-            //    Next = before ?? throw new ArgumentNullException(nameof(before));
-            //    Prev = before.Prev;
-
-            //    before.Prev = this;
-            //    if (Prev != null) Prev.Next = this;
-            //}
-
-            ///// <summary>移除节点</summary>
-            //public Boolean Remove()
-            //{
-            //    /*
-            //     * 原子操作的存在，别的线程删除当前节点时永远不会成功
-            //     */
-
-            //    var p = Prev;
-            //    var n = Next;
-
-            //    // 原子操作里面，把上一个节点的Next换成当前的下一个节点
-            //    if (p != null) Interlocked.CompareExchange(ref p.Next, n, this);
-
-            //    // 原子操作里面，把下一个节点的Prev换成当前的上一个节点
-            //    if (n != null) Interlocked.CompareExchange(ref n.Prev, p, this);
-
-            //    Prev = null;
-            //    Next = null;
-
-            //    return true;
-            //}
+            public Node(T value) => Value = value;
             #endregion
         }
         #endregion

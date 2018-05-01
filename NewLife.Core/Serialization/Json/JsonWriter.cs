@@ -15,7 +15,7 @@ namespace NewLife.Serialization
         /// <summary>使用UTC时间</summary>
         public Boolean UseUTCDateTime { get; set; }
 
-        /// <summary>使用消息名称</summary>
+        /// <summary>使用小写名称</summary>
         public Boolean LowerCaseName { get; set; }
 
         /// <summary>写入空值</summary>
@@ -146,39 +146,18 @@ namespace NewLife.Serialization
             //var ms = (Int64)(DateTime.Now - new DateTime(1970, 1, 1)).TotalMilliseconds;
             //_Builder.AppendFormat("\"\\/Date({0})\\/\"", ms);
             _Builder.AppendFormat("\"{0}\"", dateTime.ToFullString());
-
-            //_Builder.Append('\"');
-            //_Builder.Append(dt.Year.ToString("0000", NumberFormatInfo.InvariantInfo));
-            //_Builder.Append('-');
-            //_Builder.Append(dt.Month.ToString("00", NumberFormatInfo.InvariantInfo));
-            //_Builder.Append('-');
-            //_Builder.Append(dt.Day.ToString("00", NumberFormatInfo.InvariantInfo));
-            //if (UseUTCDateTime)
-            //    _Builder.Append('T');
-            //else
-            //    _Builder.Append(' ');
-            //_Builder.Append(dt.Hour.ToString("00", NumberFormatInfo.InvariantInfo));
-            //_Builder.Append(':');
-            //_Builder.Append(dt.Minute.ToString("00", NumberFormatInfo.InvariantInfo));
-            //_Builder.Append(':');
-            //_Builder.Append(dt.Second.ToString("00", NumberFormatInfo.InvariantInfo));
-            //if (UseUTCDateTime) _Builder.Append('Z');
-
-            //_Builder.Append('\"');
         }
 
         Int32 _depth = 0;
         private Dictionary<Object, Int32> _cirobj = new Dictionary<Object, Int32>();
         private void WriteObject(Object obj)
         {
-            var i = 0;
-            if (!_cirobj.TryGetValue(obj, out i)) _cirobj.Add(obj, _cirobj.Count + 1);
+            if (!_cirobj.TryGetValue(obj, out var i)) _cirobj.Add(obj, _cirobj.Count + 1);
 
             _Builder.Append('{');
             _depth++;
             if (_depth > 5) throw new Exception("超过了序列化最大深度 " + 5);
 
-            //var map = new Dictionary<String, String>();
             var t = obj.GetType();
 
             var first = true;

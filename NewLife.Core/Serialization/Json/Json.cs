@@ -29,10 +29,12 @@ namespace NewLife.Serialization
             //_builder = new StringBuilder();
 
             // 遍历所有处理器实现
-            var list = new List<IJsonHandler>();
-            list.Add(new JsonGeneral { Host = this });
-            list.Add(new JsonComposite { Host = this });
-            list.Add(new JsonArray { Host = this });
+            var list = new List<IJsonHandler>
+            {
+                new JsonGeneral { Host = this },
+                new JsonComposite { Host = this },
+                new JsonArray { Host = this }
+            };
             //list.Add(new JsonDictionary { Host = this });
             // 根据优先级排序
             list.Sort();
@@ -157,10 +159,7 @@ namespace NewLife.Serialization
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
         [DebuggerHidden]
-        public T Read<T>()
-        {
-            return (T)(Object)Read(typeof(T));
-        }
+        public T Read<T>() => (T)(Object)Read(typeof(T));
 
         /// <summary>尝试读取指定类型对象</summary>
         /// <param name="type"></param>
@@ -181,10 +180,7 @@ namespace NewLife.Serialization
         /// <summary>读取</summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public virtual Boolean Read(String value)
-        {
-            return true;
-        }
+        public virtual Boolean Read(String value) => true;
 
         /// <summary>读取字节</summary>
         /// <returns></returns>

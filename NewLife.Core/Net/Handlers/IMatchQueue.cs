@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Threading;
 
@@ -29,7 +30,7 @@ namespace NewLife.Net.Handlers
     /// <summary>消息匹配队列。子类可重载以自定义请求响应匹配逻辑</summary>
     public class DefaultMatchQueue : IMatchQueue
     {
-        private LinkedList<Item> Items = new LinkedList<Item>();
+        private LinkList<Item> Items = new LinkList<Item>();
         private TimerX _Timer;
 
         /// <summary>加入请求队列</summary>
@@ -52,10 +53,10 @@ namespace NewLife.Net.Handlers
 
             // 加锁处理，更安全
             var qs = Items;
-            lock (qs)
-            {
-                qs.AddLast(qi);
-            }
+            //lock (qs)
+            //{
+            qs.Add(qi);
+            //}
 
             if (_Timer == null)
             {
@@ -80,25 +81,26 @@ namespace NewLife.Net.Handlers
             if (qs.Count == 0) return false;
 
             // 加锁复制以后再遍历，避免线程冲突
-            var arr = qs.ToArray();
-            foreach (var qi in arr)
+            //var arr = qs.ToArray();
+            foreach (var qi in qs)
             {
                 if (qi.Owner == owner && callback(qi.Request, response))
                 {
-                    lock (qs)
-                    {
-                        qs.Remove(qi);
-                    }
+                    //lock (qs)
+                    //{
+                    qs.Remove(qi);
+                    //}
 
                     // 异步设置完成结果，否则可能会在当前线程恢复上层await，导致堵塞当前任务
-                    if (!qi.Source.Task.IsCompleted) Task.Factory.StartNew(() => qi.Source.TrySetResult(result));
+                    //if (!qi.Source.Task.IsCompleted) Task.Factory.StartNew(() => qi.Source.TrySetResult(result));
+                    if (!qi.Source.Task.IsCompleted) qi.Source.TrySetResult(result);
 
                     return true;
                 }
             }
 
             //if (Setting.Current.Debug)
-            XTrace.WriteLine("MatchQueue.Check 失败 [{0}] result={1} Items={2}", response, result, arr.Length);
+            XTrace.WriteLine("MatchQueue.Check 失败 [{0}] result={1} Items={2}", response, result, qs.Count);
 
             return false;
         }
@@ -124,7 +126,7 @@ namespace NewLife.Net.Handlers
 
                 var now = TimerX.Now;
                 // 加锁复制以后再遍历，避免线程冲突
-                foreach (var qi in qs.ToArray())
+                foreach (var qi in qs)
                 {
                     // 过期取消
                     if (qi.EndTime <= now)

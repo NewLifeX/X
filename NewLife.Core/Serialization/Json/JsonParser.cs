@@ -60,14 +60,11 @@ namespace NewLife.Serialization
 
         /// <summary>实例化</summary>
         /// <param name="json"></param>
-        public JsonParser(String json)
-        {
-            _json = json;
-        }
+        public JsonParser(String json) => _json = json;
 
         /// <summary>解码</summary>
         /// <returns></returns>
-        public Object Decode() { return ParseValue(); }
+        public Object Decode() => ParseValue();
 
         private Dictionary<String, Object> ParseObject()
         {
@@ -448,10 +445,7 @@ namespace NewLife.Serialization
         }
 
         /// <summary>读取一个Token</summary>
-        private void SkipToken()
-        {
-            _Ahead = Token.None;
-        }
+        private void SkipToken() => _Ahead = Token.None;
 
         private Token NextToken()
         {

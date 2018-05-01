@@ -155,7 +155,7 @@ namespace NewLife.Remoting
         /// <returns></returns>
         IMessage IApiSession.CreateMessage(Packet pk) => new DefaultMessage { Payload = pk };
 
-        async Task<IMessage> IApiSession.SendAsync(IMessage msg) => await Client.SendAsync(msg) as IMessage;
+        Task<IMessage> IApiSession.SendAsync(IMessage msg) => Client.SendAsync(msg).ContinueWith(t => t.Result as IMessage);
         #endregion
     }
 }

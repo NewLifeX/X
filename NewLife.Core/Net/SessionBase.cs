@@ -461,7 +461,7 @@ namespace NewLife.Net
         /// <summary>发送消息并等待响应</summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public virtual async Task<Object> SendAsync(Object message) => await Pipeline.FireWriteAndWait(this, message);
+        public virtual Task<Object> SendAsync(Object message) => Pipeline.FireWriteAndWait(this, message);
 
         /// <summary>处理数据帧</summary>
         /// <param name="data">数据帧</param>
