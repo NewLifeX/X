@@ -30,7 +30,6 @@ namespace NewLife.Net.Handlers
         {
             if (message is T msg)
             {
-                context["Message"] = msg;
                 message = Encode(context, msg);
                 if (message == null) return null;
 
@@ -80,8 +79,6 @@ namespace NewLife.Net.Handlers
 
             foreach (var msg in list)
             {
-                context["Message"] = msg;
-
                 if (UserPacket && msg is IMessage msg2)
                     message = msg2.Payload;
                 else

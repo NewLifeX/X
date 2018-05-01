@@ -14,12 +14,7 @@ namespace NewLife.Reflection
         /// <summary>当前反射提供者</summary>
         public static IReflect Provider { get; set; }
 
-        static Reflect()
-        {
-            Provider = new DefaultReflect();
-            // 如果需要使用快速反射，启用下面这一行
-            //Provider = new EmitReflect();
-        }
+        static Reflect() => Provider = new DefaultReflect();// 如果需要使用快速反射，启用下面这一行//Provider = new EmitReflect();
         #endregion
 
         #region 反射获取
@@ -106,20 +101,14 @@ namespace NewLife.Reflection
         /// <param name="type"></param>
         /// <param name="baseFirst"></param>
         /// <returns></returns>
-        public static IList<FieldInfo> GetFields(this Type type, Boolean baseFirst)
-        {
-            return Provider.GetFields(type, baseFirst);
-        }
+        public static IList<FieldInfo> GetFields(this Type type, Boolean baseFirst) => Provider.GetFields(type, baseFirst);
 
         /// <summary>获取用于序列化的属性</summary>
         /// <remarks>过滤<seealso cref="T:XmlIgnoreAttribute"/>特性的属性和索引器</remarks>
         /// <param name="type"></param>
         /// <param name="baseFirst"></param>
         /// <returns></returns>
-        public static IList<PropertyInfo> GetProperties(this Type type, Boolean baseFirst)
-        {
-            return Provider.GetProperties(type, baseFirst);
-        }
+        public static IList<PropertyInfo> GetProperties(this Type type, Boolean baseFirst) => Provider.GetProperties(type, baseFirst);
         #endregion
 
         #region 反射调用
@@ -317,32 +306,26 @@ namespace NewLife.Reflection
         /// <param name="src">源对象</param>
         /// <param name="deep">递归深度拷贝，直接拷贝成员值而不是引用</param>
         /// <param name="excludes">要忽略的成员</param>
-        public static void Copy(this Object target, Object src, Boolean deep = false, params String[] excludes)
-        {
-            Provider.Copy(target, src, deep, excludes);
-        }
+        public static void Copy(this Object target, Object src, Boolean deep = false, params String[] excludes) => Provider.Copy(target, src, deep, excludes);
 
         /// <summary>从源字典拷贝数据到目标对象</summary>
         /// <param name="target">目标对象</param>
         /// <param name="dic">源字典</param>
         /// <param name="deep">递归深度拷贝，直接拷贝成员值而不是引用</param>
-        public static void Copy(this Object target, IDictionary<String, Object> dic, Boolean deep = false)
-        {
-            Provider.Copy(target, dic, deep);
-        }
+        public static void Copy(this Object target, IDictionary<String, Object> dic, Boolean deep = false) => Provider.Copy(target, dic, deep);
         #endregion
 
         #region 类型辅助
         /// <summary>获取一个类型的元素类型</summary>
         /// <param name="type">类型</param>
         /// <returns></returns>
-        public static Type GetElementTypeEx(this Type type) { return Provider.GetElementType(type); }
+        public static Type GetElementTypeEx(this Type type) => Provider.GetElementType(type);
 
         /// <summary>类型转换</summary>
         /// <param name="value">数值</param>
         /// <param name="conversionType"></param>
         /// <returns></returns>
-        public static Object ChangeType(this Object value, Type conversionType) { return Provider.ChangeType(value, conversionType); }
+        public static Object ChangeType(this Object value, Type conversionType) => Provider.ChangeType(value, conversionType);
 
         /// <summary>类型转换</summary>
         /// <typeparam name="TResult"></typeparam>
@@ -359,7 +342,7 @@ namespace NewLife.Reflection
         /// <param name="type">指定类型</param>
         /// <param name="isfull">是否全名，包含命名空间</param>
         /// <returns></returns>
-        public static String GetName(this Type type, Boolean isfull = false) { return Provider.GetName(type, isfull); }
+        public static String GetName(this Type type, Boolean isfull = false) => Provider.GetName(type, isfull);
 
         /// <summary>从参数数组中获取类型数组</summary>
         /// <param name="args"></param>
@@ -405,10 +388,7 @@ namespace NewLife.Reflection
         /// <summary>获取类型代码</summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public static TypeCode GetTypeCode(this Type type)
-        {
-            return Type.GetTypeCode(type);
-        }
+        public static TypeCode GetTypeCode(this Type type) => Type.GetTypeCode(type);
 
         /// <summary>是否整数</summary>
         /// <param name="type"></param>
@@ -434,18 +414,12 @@ namespace NewLife.Reflection
         /// <summary>是否泛型列表</summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public static Boolean IsList(this Type type)
-        {
-            return type != null && type.IsGenericType && type.As(typeof(IList<>));
-        }
+        public static Boolean IsList(this Type type) => type != null && type.IsGenericType && type.As(typeof(IList<>));
 
         /// <summary>是否泛型字典</summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public static Boolean IsDictionary(this Type type)
-        {
-            return type != null && type.IsGenericType && type.As(typeof(IDictionary<,>));
-        }
+        public static Boolean IsDictionary(this Type type) => type != null && type.IsGenericType && type.As(typeof(IDictionary<,>));
 
         ///// <summary>是否能够转为指定基类</summary>
         ///// <typeparam name="T"></typeparam>
@@ -462,37 +436,25 @@ namespace NewLife.Reflection
         /// <param name="type"></param>
         /// <param name="baseType"></param>
         /// <returns></returns>
-        public static Boolean As(this Type type, Type baseType)
-        {
-            return Provider.As(type, baseType);
-        }
+        public static Boolean As(this Type type, Type baseType) => Provider.As(type, baseType);
 
         /// <summary>是否能够转为指定基类</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="type"></param>
         /// <returns></returns>
-        public static Boolean As<T>(this Type type)
-        {
-            return Provider.As(type, typeof(T));
-        }
+        public static Boolean As<T>(this Type type) => Provider.As(type, typeof(T));
 
         /// <summary>在指定程序集中查找指定基类的子类</summary>
         /// <param name="asm">指定程序集</param>
         /// <param name="baseType">基类或接口</param>
         /// <returns></returns>
-        public static IEnumerable<Type> GetSubclasses(this Assembly asm, Type baseType)
-        {
-            return Provider.GetSubclasses(asm, baseType);
-        }
+        public static IEnumerable<Type> GetSubclasses(this Assembly asm, Type baseType) => Provider.GetSubclasses(asm, baseType);
 
         /// <summary>在所有程序集中查找指定基类或接口的子类实现</summary>
         /// <param name="baseType">基类或接口</param>
         /// <param name="isLoadAssembly">是否加载为加载程序集</param>
         /// <returns></returns>
-        public static IEnumerable<Type> GetAllSubclasses(this Type baseType, Boolean isLoadAssembly = false)
-        {
-            return Provider.GetAllSubclasses(baseType, isLoadAssembly);
-        }
+        public static IEnumerable<Type> GetAllSubclasses(this Type baseType, Boolean isLoadAssembly = false) => Provider.GetAllSubclasses(baseType, isLoadAssembly);
         #endregion
 
         #region 辅助方法

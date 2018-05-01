@@ -180,10 +180,7 @@ namespace NewLife.Reflection
         /// <param name="typeName">类型名</param>
         /// <param name="isLoadAssembly">是否从未加载程序集中获取类型。使用仅反射的方法检查目标类型，如果存在，则进行常规加载</param>
         /// <returns></returns>
-        public virtual Type GetType(String typeName, Boolean isLoadAssembly)
-        {
-            return AssemblyX.GetType(typeName, isLoadAssembly);
-        }
+        public virtual Type GetType(String typeName, Boolean isLoadAssembly) => AssemblyX.GetType(typeName, isLoadAssembly);
 
         static BindingFlags bf = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance;
         static BindingFlags bfic = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.IgnoreCase;
@@ -421,10 +418,7 @@ namespace NewLife.Reflection
         /// <param name="method">方法</param>
         /// <param name="parameters">方法参数</param>
         /// <returns></returns>
-        public virtual Object Invoke(Object target, MethodBase method, params Object[] parameters)
-        {
-            return method.Invoke(target, parameters);
-        }
+        public virtual Object Invoke(Object target, MethodBase method, params Object[] parameters) => method.Invoke(target, parameters);
 
         /// <summary>反射调用指定对象的方法</summary>
         /// <param name="target">要调用其方法的对象，如果要调用静态方法，则target是类型</param>
@@ -452,37 +446,25 @@ namespace NewLife.Reflection
         /// <param name="target">目标对象</param>
         /// <param name="property">属性</param>
         /// <returns></returns>
-        public virtual Object GetValue(Object target, PropertyInfo property)
-        {
-            return property.GetValue(target, null);
-        }
+        public virtual Object GetValue(Object target, PropertyInfo property) => property.GetValue(target, null);
 
         /// <summary>获取目标对象的字段值</summary>
         /// <param name="target">目标对象</param>
         /// <param name="field">字段</param>
         /// <returns></returns>
-        public virtual Object GetValue(Object target, FieldInfo field)
-        {
-            return field.GetValue(target);
-        }
+        public virtual Object GetValue(Object target, FieldInfo field) => field.GetValue(target);
 
         /// <summary>设置目标对象的属性值</summary>
         /// <param name="target">目标对象</param>
         /// <param name="property">属性</param>
         /// <param name="value">数值</param>
-        public virtual void SetValue(Object target, PropertyInfo property, Object value)
-        {
-            property.SetValue(target, value.ChangeType(property.PropertyType), null);
-        }
+        public virtual void SetValue(Object target, PropertyInfo property, Object value) => property.SetValue(target, value.ChangeType(property.PropertyType), null);
 
         /// <summary>设置目标对象的字段值</summary>
         /// <param name="target">目标对象</param>
         /// <param name="field">字段</param>
         /// <param name="value">数值</param>
-        public virtual void SetValue(Object target, FieldInfo field, Object value)
-        {
-            field.SetValue(target, value.ChangeType(field.FieldType));
-        }
+        public virtual void SetValue(Object target, FieldInfo field, Object value) => field.SetValue(target, value.ChangeType(field.FieldType));
         #endregion
 
         #region 对象拷贝
@@ -667,7 +649,7 @@ namespace NewLife.Reflection
         /// <param name="type">指定类型</param>
         /// <param name="isfull">是否全名，包含命名空间</param>
         /// <returns></returns>
-        public virtual String GetName(Type type, Boolean isfull) { return isfull ? type.FullName : type.Name; }
+        public virtual String GetName(Type type, Boolean isfull) => isfull ? type.FullName : type.Name;
         #endregion
 
         #region 插件
