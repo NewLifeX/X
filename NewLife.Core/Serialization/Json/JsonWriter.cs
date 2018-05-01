@@ -77,9 +77,8 @@ namespace NewLife.Serialization
                 WriteStringDictionary((IDictionary<String, Object>)obj);
             else if (obj is IDictionary)
                 WriteDictionary((IDictionary)obj);
-            else if (obj is Byte[])
+            else if (obj is Byte[] buf)
             {
-                var buf = (Byte[])obj;
                 WriteStringFast(Convert.ToBase64String(buf, 0, buf.Length, Base64FormattingOptions.None));
             }
 

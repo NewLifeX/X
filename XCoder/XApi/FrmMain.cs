@@ -364,7 +364,7 @@ namespace XApi
             }
             //Parallel.ForEach(list, k => OnSend(k, act, args, count));
             var sw = Stopwatch.StartNew();
-            var ts = list.Select(k => OnSend(k, act, args, count)).ToList();
+            var ts = list.Select(k => OnSend(k, act, args, count, sleep)).ToList();
 
             await Task.WhenAll(ts);
             sw.Stop();
@@ -374,13 +374,38 @@ namespace XApi
         Int64 _Invoke;
         Int64 _Cost;
         Double _TotalCost;
-        private async Task OnSend(ApiClient client, String act, Object args, Int32 count)
+        private async Task OnSend(ApiClient client, String act, Object args, Int32 count, Int32 sleep)
         {
             client.Open();
-            var ts = new List<Task>();
-            for (var i = 0; i < count; i++)
+
+            if (sleep <= 10)
             {
-                ts.Add(Task.Run(async () =>
+                var ts = new List<Task>();
+                for (var i = 0; i < count; i++)
+                {
+                    ts.Add(Task.Run(async () =>
+                    {
+                        try
+                        {
+                            var sw = Stopwatch.StartNew();
+                            await client.InvokeAsync<Object>(act, args);
+                            sw.Stop();
+
+                            Interlocked.Increment(ref _Invoke);
+                            Interlocked.Add(ref _Cost, sw.ElapsedMilliseconds);
+                        }
+                        catch (ApiException ex)
+                        {
+                            BizLog.Info(ex.Message);
+                        }
+                    }));
+                }
+
+                await Task.WhenAll(ts);
+            }
+            else
+            {
+                for (var i = 0; i < count; i++)
                 {
                     try
                     {
@@ -395,10 +420,10 @@ namespace XApi
                     {
                         BizLog.Info(ex.Message);
                     }
-                }));
-            }
 
-            await Task.WhenAll(ts);
+                    await Task.Delay(sleep);
+                }
+            }
         }
         #endregion
 
