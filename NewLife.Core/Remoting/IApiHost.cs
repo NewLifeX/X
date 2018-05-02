@@ -116,32 +116,5 @@ namespace NewLife.Remoting
 
             return controller;
         }
-
-        //public static Packet Encode(String action, Packet data)
-        //{
-        //    var ms = new MemoryStream();
-        //    ms.Seek(4, SeekOrigin.Begin);
-        //    var writer = new BinaryWriter(ms);
-        //    writer.Write(action);
-
-        //    if (data != null) data.WriteTo(ms);
-
-        //    return new Packet(ms.GetBuffer(), 4, (Int32)ms.Length - 4);
-        //}
-
-        //public static Boolean Decode(IMessage msg, out String action, out Packet data)
-        //{
-        //    action = null;
-        //    data = null;
-
-        //    var ms = msg.Payload.GetStream();
-        //    var reader = new BinaryReader(ms);
-        //    action = reader.ReadString();
-        //    if (action.IsNullOrEmpty()) return false;
-
-        //    if (ms.Length > ms.Position) data = ms.ReadPacket();
-
-        //    return true;
-        //}
     }
 }

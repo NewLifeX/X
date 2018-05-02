@@ -109,7 +109,7 @@ namespace NewLife.Remoting
                 }
             }
 
-            if (value == null) WriteLog("{0}=>", action);
+            if (value == null) WriteLog("{0}<=", action);
 
             return true;
         }
