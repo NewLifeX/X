@@ -190,23 +190,16 @@ namespace NewLife.Net
                 Tail = handler.Prev;
         }
 
-        private static ThreadLocal<IHandlerContext> _contextFactory = new ThreadLocal<IHandlerContext>(() => new HandlerContext());
         /// <summary>创建上下文</summary>
         /// <param name="session">远程会话</param>
         /// <returns></returns>
         public virtual IHandlerContext CreateContext(ISocketRemote session)
         {
-            //var context = new HandlerContext
-            //{
-            //    Pipeline = this,
-            //    Session = session
-            //};
-
-            var context = _contextFactory.Value;
-            context.Pipeline = this;
-            context.Session = session;
-            context.Items.Clear();
-            context.Data = null;
+            var context = new HandlerContext
+            {
+                Pipeline = this,
+                Session = session
+            };
 
             return context;
         }

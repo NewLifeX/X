@@ -156,7 +156,7 @@ namespace XApi
 
                     svr.Start();
 
-                    "正在监听{0}".F(uri.Port).SpeechTip();
+                    "正在监听{0}".F(port).SpeechTip();
 
                     _Server = svr;
                     break;

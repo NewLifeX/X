@@ -388,6 +388,7 @@ namespace NewLife.Net
                 if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", pk.Total, pk.ToHex(32, null));
 
                 if (Local.IsTcp) remote = Remote.EndPoint;
+
                 var e = new ReceivedEventArgs(pk) { Remote = remote };
 
                 // 不管Tcp/Udp，都在这使用管道
@@ -398,11 +399,6 @@ namespace NewLife.Net
                 {
                     var ctx = pp.CreateContext(this);
                     ctx.Data = e;
-                    //ctx.Finish = (c, v) =>
-                    //{
-                    //    var e2 = new ReceivedEventArgs(c.Data) { Message = v };
-                    //    OnReceive(e2);
-                    //};
 
                     // 进入管道处理，如果有一个或多个结果通过Finish来处理
                     pp.Read(ctx, pk);
