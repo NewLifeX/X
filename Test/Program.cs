@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.MemoryMappedFiles;
 using System.Threading;
+using System.Threading.Tasks;
 using NewLife.Caching;
 using NewLife.Data;
 using NewLife.Log;
@@ -140,6 +141,66 @@ namespace Test
         static void Test4()
         {
             //ApiTest.Main();
+
+            //var ccdc = new CounterCreationDataCollection();
+            //var ccd = new CounterCreationData
+            //{
+            //    CounterName = "示例",
+            //    CounterType = PerformanceCounterType.NumberOfItems32
+            //};
+            //ccdc.Add(ccd);
+
+            //PerformanceCounterCategory.Create("新生命", "新生命项目性能测试示例", PerformanceCounterCategoryType.MultiInstance, ccdc);
+
+            Task.Run(() => Test6());
+
+            //var pcc = new PerformanceCounterCategory(".NET CLR Memory");
+            var p = Process.GetCurrentProcess();
+            //var instance2 = GetInstanceName(".NET CLR Memory", "Process ID", p);
+            //var pc = new PerformanceCounter(".NET CLR Memory", "% Time in GC", instance2);
+            var pc = new PerformanceCounter("新生命", "示例", p.Id + "");
+            //Console.WriteLine(pc);
+            for (var i = 0; i < 1000; i++)
+            {
+                Console.Title = $"GC={pc.RawValue:n0}";
+                Thread.Sleep(1000);
+            }
+        }
+
+        static void Test6()
+        {
+            // 初始化计数器实例
+            var counter1 = new PerformanceCounter
+            {
+                CategoryName = "新生命",
+                CounterName = "示例",
+                InstanceName = Process.GetCurrentProcess().Id + "",
+                InstanceLifetime = PerformanceCounterInstanceLifetime.Process,
+                ReadOnly = false,
+                RawValue = 0
+            };
+
+            var rnd = new Random();
+            while (true)
+            {
+                //counter1.IncrementBy(rnd.Next(100));
+                counter1.RawValue = rnd.Next(100);
+
+                Thread.Sleep(1000);
+            }
+        }
+
+        static String GetInstanceName(String categoryName, String counterName, Process p)
+        {
+            var processcounter = new PerformanceCounterCategory(categoryName);
+            var instances = processcounter.GetInstanceNames();
+            foreach (var instance in instances)
+            {
+                var counter = new PerformanceCounter(categoryName, counterName, instance);
+                if (counter.NextValue() == p.Id) return instance;
+            }
+
+            return null;
         }
 
         static async void Test5()
