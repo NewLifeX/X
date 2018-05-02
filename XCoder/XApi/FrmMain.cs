@@ -258,7 +258,7 @@ namespace XApi
 
             if (_Invoke > 0)
             {
-                var ms = (Double)_Cost / _Invoke;
+                var ms = (Double)_Cost / _Invoke / 1000;
                 if (ms > 1)
                     msg += $" Invoke={_Invoke} {ms:n0}ms";
                 else
@@ -387,9 +387,9 @@ namespace XApi
                 {
                     try
                     {
-                        client.Invoke(act, args);
-
                         Interlocked.Increment(ref _Invoke);
+
+                        client.Invoke(act, args);
                     }
                     catch (ApiException ex)
                     {
@@ -397,7 +397,7 @@ namespace XApi
                     }
                 }
                 sw.Stop();
-                Interlocked.Add(ref _Cost, sw.ElapsedMilliseconds);
+                Interlocked.Add(ref _Cost, (Int64)(sw.Elapsed.TotalMilliseconds * 1000));
             }
             // 间隔2~10多任务异步发送
             else if (sleep <= 10)
@@ -414,7 +414,7 @@ namespace XApi
                             sw.Stop();
 
                             Interlocked.Increment(ref _Invoke);
-                            Interlocked.Add(ref _Cost, sw.ElapsedMilliseconds);
+                            Interlocked.Add(ref _Cost, (Int64)(sw.Elapsed.TotalMilliseconds * 1000));
                         }
                         catch (ApiException ex)
                         {
@@ -437,7 +437,7 @@ namespace XApi
                         sw.Stop();
 
                         Interlocked.Increment(ref _Invoke);
-                        Interlocked.Add(ref _Cost, sw.ElapsedMilliseconds);
+                        Interlocked.Add(ref _Cost, (Int64)(sw.Elapsed.TotalMilliseconds * 1000));
                     }
                     catch (ApiException ex)
                     {
