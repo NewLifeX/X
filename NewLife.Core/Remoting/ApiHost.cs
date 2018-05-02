@@ -84,7 +84,7 @@ namespace NewLife.Remoting
             var code = 0;
             try
             {
-                if (!enc.TryGetRequest(msg, out action, out var args)) return null;
+                if (!enc.Decode(msg, out action, out var args)) return null;
 
                 result = Handler.Execute(session, action, args);
             }

@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Reflection;
+using NewLife.Serialization;
 
 namespace NewLife.Remoting
 {
@@ -49,7 +52,11 @@ namespace NewLife.Remoting
             if (session == null) return default(TResult);
 
             var enc = host.Encoder;
-            var msg = enc.Encode(action, args);
+            //var msg = enc.Encode(action, args);
+            var msg = new DefaultMessage
+            {
+                Payload = enc.Encode(action, 0, args)
+            };
 
             var rs = await session.SendAsync(msg);
             if (rs == null) return default(TResult);
@@ -59,10 +66,14 @@ namespace NewLife.Remoting
             if (rtype == typeof(IMessage)) return (TResult)rs;
             if (rtype == typeof(Packet)) return (TResult)(Object)rs.Payload;
 
-            if (!enc.TryGetResponse(rs, out var code, out var result)) throw new InvalidOperationException();
+            if (!enc.Decode(rs, out var act, out var result)) throw new InvalidOperationException();
 
             // 是否成功
-            if (code != 0) throw new ApiException(code, result + "");
+            if (result is IDictionary<String, Object> dic)
+            {
+                var code = dic["code"].ToInt();
+                if (code != 0) throw new ApiException(code, dic["error"] + "");
+            }
 
             if (result == null) return default(TResult);
             if (result is TResult || rtype == typeof(Object)) return (TResult)result;
@@ -82,7 +93,11 @@ namespace NewLife.Remoting
             if (session == null) return false;
 
             var enc = host.Encoder;
-            var msg = enc.Encode(action, args);
+            //var msg = enc.Encode(action, args);
+            var msg = new DefaultMessage
+            {
+                Payload = enc.Encode(action, 0, args)
+            };
 
             return session.Send(msg);
         }
@@ -101,5 +116,32 @@ namespace NewLife.Remoting
 
             return controller;
         }
+
+        //public static Packet Encode(String action, Packet data)
+        //{
+        //    var ms = new MemoryStream();
+        //    ms.Seek(4, SeekOrigin.Begin);
+        //    var writer = new BinaryWriter(ms);
+        //    writer.Write(action);
+
+        //    if (data != null) data.WriteTo(ms);
+
+        //    return new Packet(ms.GetBuffer(), 4, (Int32)ms.Length - 4);
+        //}
+
+        //public static Boolean Decode(IMessage msg, out String action, out Packet data)
+        //{
+        //    action = null;
+        //    data = null;
+
+        //    var ms = msg.Payload.GetStream();
+        //    var reader = new BinaryReader(ms);
+        //    action = reader.ReadString();
+        //    if (action.IsNullOrEmpty()) return false;
+
+        //    if (ms.Length > ms.Position) data = ms.ReadPacket();
+
+        //    return true;
+        //}
     }
 }

@@ -52,10 +52,7 @@ namespace NewLife.Serialization
         /// <param name="value"></param>
         /// <param name="indented">是否缩进</param>
         /// <returns></returns>
-        public static String ToJson(this Object value, Boolean indented = false)
-        {
-            return Default.Write(value, indented);
-        }
+        public static String ToJson(this Object value, Boolean indented = false) => Default.Write(value, indented);
 
         /// <summary>从Json字符串中读取对象</summary>
         /// <param name="json"></param>
@@ -272,13 +269,9 @@ class MyContractResolver : Newtonsoft.Json.Serialization.DefaultContractResolver
 
     class FastJson : IJsonHost
     {
-
         #region IJsonHost 成员
 
-        public String Write(Object value, Boolean indented = false)
-        {
-            return new JsonWriter().ToJson(value, indented);
-        }
+        public String Write(Object value, Boolean indented = false) => new JsonWriter().ToJson(value, indented);
 
         public Object Read(String json, Type type)
         {

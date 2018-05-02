@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using NewLife.Collections;
 using NewLife.Data;
@@ -15,41 +16,45 @@ namespace NewLife.Remoting
         /// <summary>编码</summary>
         public Encoding Encoding { get; set; } = Encoding.UTF8;
 
-        /// <summary>编码请求</summary>
-        /// <param name="action"></param>
-        /// <param name="args"></param>
-        /// <returns></returns>
-        public IMessage Encode(String action, Object args)
+        private Packet Encode2(String action, Object args)
         {
-            var obj = new { action, args };
-            var json = obj.ToJson();
+            var ms = new MemoryStream();
+            ms.Seek(4, SeekOrigin.Begin);
+            var writer = new BinaryWriter(ms);
+            writer.Write(action);
 
-            WriteLog("=>{0}", json);
-
-            var msg = new DefaultMessage
+            var str = Log.Enable ? action + "=>" : null;
+            if (args != null)
             {
-                Payload = json.GetBytes(Encoding)
-            };
+                var json = args.ToJson();
+                if (Log.Enable) str += json;
 
-            return msg;
+                writer.Write(json);
+            }
+
+            var pk = new Packet(ms.GetBuffer(), 4, (Int32)ms.Length - 4);
+
+            //WriteLog("=>{0}", pk.ToStr());
+            if (Log.Enable) WriteLog(str);
+
+            return pk;
         }
 
-        /// <summary>编码响应</summary>
+        /// <summary>编码</summary>
         /// <param name="action"></param>
         /// <param name="code"></param>
-        /// <param name="result"></param>
+        /// <param name="value"></param>
         /// <returns></returns>
-        public Packet Encode(String action, Int32 code, Object result)
+        protected override Packet OnEncode(String action, Int32 code, Object value)
         {
             // 不支持序列化异常
-            if (result is Exception ex) result = ex.GetTrue()?.Message;
+            if (value is Exception ex) value = ex.GetTrue()?.Message;
+            if (value is String err) value = new { Code = code, Error = err };
 
-            var obj = new { action, code, result };
-            var json = obj.ToJson();
+            var json = value.ToJson();
+            WriteLog("{0}=>{1}", action, json);
 
-            WriteLog("=>{0}", json);
-
-            return json.GetBytes(Encoding);
+            return json.GetBytes();
         }
 
         /// <summary>解码成为字典</summary>
@@ -78,45 +83,12 @@ namespace NewLife.Remoting
             }
         }
 
-        /// <summary>解码请求</summary>
-        /// <param name="msg"></param>
-        /// <param name="action"></param>
-        /// <param name="args"></param>
-        /// <returns></returns>
-        public Boolean TryGetRequest(IMessage msg, out String action, out IDictionary<String, Object> args)
+        protected override Object OnDecode(String action, Packet data)
         {
-            action = null;
-            args = null;
+            var json = data.ToStr();
+            WriteLog("{0}<={1}", action, json);
 
-            if (msg.Reply) return false;
-
-            var dic = Decode(msg.Payload);
-            action = dic["action"] as String;
-            if (action.IsNullOrEmpty()) return false;
-
-            args = dic["args"] as IDictionary<String, Object>;
-
-            return true;
-        }
-
-        /// <summary>解码响应</summary>
-        /// <param name="msg"></param>
-        /// <param name="code"></param>
-        /// <param name="result"></param>
-        /// <returns></returns>
-        public Boolean TryGetResponse(IMessage msg, out Int32 code, out Object result)
-        {
-            code = 0;
-            result = null;
-
-            if (!msg.Reply) return false;
-
-            var dic = Decode(msg.Payload);
-
-            code = dic["code"].ToInt();
-            result = dic["result"];
-
-            return true;
+            return new JsonParser(json).Decode();
         }
 
         /// <summary>转换为对象</summary>

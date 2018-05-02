@@ -16,7 +16,7 @@ namespace NewLife.Remoting
         /// <param name="action"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        Object Execute(IApiSession session, String action, IDictionary<String, Object> args);
+        Object Execute(IApiSession session, String action, Object args);
     }
 
     class ApiHandler : IApiHandler
@@ -29,7 +29,7 @@ namespace NewLife.Remoting
         /// <param name="action"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        public Object Execute(IApiSession session, String action, IDictionary<String, Object> args)
+        public Object Execute(IApiSession session, String action, Object args)
         {
             var api = session.FindAction(action);
             if (api == null) throw new ApiException(404, "无法找到名为[{0}]的服务！".F(action));
@@ -43,13 +43,13 @@ namespace NewLife.Remoting
             var enc = Host.Encoder;
 
             // 不允许参数字典为空
-            if (args == null)
-                args = new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
+            if (args is IDictionary<String, Object> dic)
+                dic = dic.ToNullable(StringComparer.OrdinalIgnoreCase);
             else
-                args = args.ToNullable(StringComparer.OrdinalIgnoreCase);
+                dic = new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
 
             // 准备好参数
-            var ps = GetParams(api.Method, args, enc);
+            var ps = GetParams(api.Method, dic, enc);
 
             // 上下文
             var ctx = new ControllerContext
@@ -58,7 +58,8 @@ namespace NewLife.Remoting
                 Action = api,
                 ActionName = action,
                 Session = session,
-                Parameters = args
+                Request = args,
+                Parameters = dic,
             };
 
             Object rs = null;
@@ -77,7 +78,11 @@ namespace NewLife.Remoting
                 }
 
                 // 执行动作
-                if (rs == null) rs = controller.InvokeWithParams(api.Method, ps as IDictionary);
+                if (rs == null)
+                {
+                    // 特殊处理参数和返回类型都是Packet的服务
+                    rs = controller.InvokeWithParams(api.Method, ps as IDictionary);
+                }
             }
             catch (ThreadAbortException) { throw; }
             catch (Exception ex)

@@ -233,7 +233,7 @@ namespace NewLife.Data
 
         /// <summary>获取封包的数据流形式</summary>
         /// <returns></returns>
-        public virtual Stream GetStream()
+        public virtual MemoryStream GetStream()
         {
             if (Next == null) return new MemoryStream(Data, Offset, Count, false);
 

@@ -18,6 +18,9 @@ namespace NewLife.Remoting
         /// <summary>会话</summary>
         public IApiSession Session { get; set; }
 
+        /// <summary>请求</summary>
+        public Object Request { get; set; }
+
         /// <summary>请求参数</summary>
         public IDictionary<String, Object> Parameters { get; set; }
 
@@ -32,6 +35,7 @@ namespace NewLife.Remoting
             Action = context.Action;
             ActionName = context.ActionName;
             Session = context.Session;
+            Request = context.Request;
             Parameters = context.Parameters;
         }
 

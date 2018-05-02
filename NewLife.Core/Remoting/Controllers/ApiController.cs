@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using NewLife.Data;
 
 namespace NewLife.Remoting
 {
@@ -64,5 +65,18 @@ namespace NewLife.Remoting
                     return DateTime.Now.ToFullString();
             }
         }
+
+#if DEBUG
+        /// <summary>上传文件</summary>
+        /// <param name="fileName"></param>
+        /// <param name="fileData"></param>
+        /// <returns></returns>
+        public Packet Upload(String fileName, Packet fileData)
+        {
+            Log.XTrace.WriteLine("上传文件[{0}]，共{1:n0}字节", fileName, fileData.Total);
+
+            return fileData;
+        }
+#endif
     }
 }

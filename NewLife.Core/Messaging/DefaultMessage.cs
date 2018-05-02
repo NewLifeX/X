@@ -74,13 +74,13 @@ namespace NewLife.Messaging
         public override Packet ToPacket()
         {
             var len = 0;
-            if (Payload != null) len = Payload.Count;
+            if (Payload != null) len = Payload.Total;
             if (len > 0xFFFF) throw new InvalidDataException("标准消息最大只支持64k负载");
 
             // 增加4字节头部
             var pk = Payload;
             if (pk.Offset >= 4)
-                pk = new Packet(pk.Data, pk.Offset - 4, pk.Count + 4);
+                pk = new Packet(pk.Data, pk.Offset - 4, pk.Count + 4) { Next = pk.Next };
             else
                 pk = new Packet(new Byte[4]) { Next = pk };
 
