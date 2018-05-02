@@ -4,7 +4,6 @@ using NewLife.Data;
 using NewLife.Messaging;
 using NewLife.Net;
 using NewLife.Net.Handlers;
-using NewLife.Serialization;
 
 namespace NewLife.Remoting
 {
@@ -60,8 +59,8 @@ namespace NewLife.Remoting
             var ct = Client;
             if (ct == null) throw new ArgumentNullException(nameof(Client), "未指定通信客户端");
 
-            //if (Encoder == null) Encoder = new JsonEncoder();
-            if (Encoder == null) Encoder = new BinaryEncoder();
+            if (Encoder == null) Encoder = new JsonEncoder();
+            //if (Encoder == null) Encoder = new BinaryEncoder();
             if (Handler == null) Handler = new ApiHandler { Host = this };
 
             Encoder.Log = EncoderLog;

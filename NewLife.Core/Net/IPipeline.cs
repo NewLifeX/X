@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Net.Handlers;
@@ -189,16 +190,23 @@ namespace NewLife.Net
                 Tail = handler.Prev;
         }
 
+        private static ThreadLocal<IHandlerContext> _contextFactory = new ThreadLocal<IHandlerContext>(() => new HandlerContext());
         /// <summary>创建上下文</summary>
         /// <param name="session">远程会话</param>
         /// <returns></returns>
         public virtual IHandlerContext CreateContext(ISocketRemote session)
         {
-            var context = new HandlerContext
-            {
-                Pipeline = this,
-                Session = session
-            };
+            //var context = new HandlerContext
+            //{
+            //    Pipeline = this,
+            //    Session = session
+            //};
+
+            var context = _contextFactory.Value;
+            context.Pipeline = this;
+            context.Session = session;
+            context.Items.Clear();
+            context.Data = null;
 
             return context;
         }
@@ -310,22 +318,6 @@ namespace NewLife.Net
 
             return Head.Error(context, exception);
         }
-        #endregion
-
-        #region 扩展
-        //public IPacketQueue Queue { get; set; }
-
-        //public virtual Task<Object> AddQueue(ISocketRemote session, Object message)
-        //{
-        //    if (Queue == null) Queue = new DefaultPacketQueue();
-
-        //    return Queue.Add(session, message, 15000);
-        //}
-
-        //public virtual Boolean Match(ISocketRemote session, Object message, Func<Object, Object, Boolean> callback)
-        //{
-        //    return Queue.Match(session, message, callback);
-        //}
         #endregion
 
         #region 枚举器
