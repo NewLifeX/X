@@ -50,6 +50,7 @@ namespace NewLife.Remoting
             return _all = list.ToArray();
         }
 
+#if DEBUG
         /// <summary>获取指定种类的环境信息</summary>
         /// <param name="kind"></param>
         /// <returns></returns>
@@ -62,11 +63,10 @@ namespace NewLife.Remoting
                 case "ip": return NetHelper.MyIP() + "";
                 case "time": return DateTime.Now.ToFullString();
                 default:
-                    return DateTime.Now.ToFullString();
+                    throw new ApiException(505, "不支持类型" + kind);
             }
         }
 
-#if DEBUG
         /// <summary>上传文件</summary>
         /// <param name="fileName"></param>
         /// <param name="fileData"></param>

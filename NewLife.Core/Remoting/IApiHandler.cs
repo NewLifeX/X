@@ -103,7 +103,7 @@ namespace NewLife.Remoting
                 Host.WriteLog("执行{0}出错！{1}", action, ex.Message);
 
                 // 如果异常没有被拦截，继续向外抛出
-                if (etx != null && !etx.ExceptionHandled) throw;
+                if (etx == null || !etx.ExceptionHandled) throw;
 
                 return rs;
             }
