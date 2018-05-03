@@ -162,12 +162,8 @@
     <Compile Include="Remoting\ApiServer.cs" />
     <Compile Include="Remoting\ApiTest.cs" />
     <Compile Include="Remoting\Controllers\ApiController.cs" />
-    <Compile Include="Remoting\Filters\ActionExecutedContext.cs" />
-    <Compile Include="Remoting\Filters\ActionExecutingContext.cs" />
     <Compile Include="Remoting\Filters\ControllerContext.cs" />
-    <Compile Include="Remoting\Filters\ExceptionContext.cs" />
     <Compile Include="Remoting\Filters\IActionFilter.cs" />
-    <Compile Include="Remoting\Filters\IExceptionFilter.cs" />
     <Compile Include="Remoting\IApi.cs" />
     <Compile Include="Remoting\IApiHandler.cs" />
     <Compile Include="Remoting\IApiHost.cs" />

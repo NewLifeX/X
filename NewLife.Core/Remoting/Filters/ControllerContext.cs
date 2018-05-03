@@ -24,6 +24,18 @@ namespace NewLife.Remoting
         /// <summary>请求参数</summary>
         public IDictionary<String, Object> Parameters { get; set; }
 
+        /// <summary>获取或设置操作方法参数。</summary>
+        public virtual IDictionary<String, Object> ActionParameters { get; set; }
+
+        /// <summary>获取或设置由操作方法返回的结果。</summary>
+        public Object Result { get; set; }
+
+        /// <summary>获取或设置在操作方法的执行过程中发生的异常（如果有）。</summary>
+        public virtual Exception Exception { get; set; }
+
+        /// <summary>获取或设置一个值，该值指示是否处理异常。</summary>
+        public Boolean ExceptionHandled { get; set; }
+
         /// <summary>实例化</summary>
         public ControllerContext() { }
 

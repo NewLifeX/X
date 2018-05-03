@@ -8,10 +8,10 @@ namespace NewLife.Remoting
     {
         /// <summary>在执行操作方法之前调用。</summary>
         /// <param name="filterContext"></param>
-        void OnActionExecuting(ActionExecutingContext filterContext);
+        void OnActionExecuting(ControllerContext filterContext);
 
         /// <summary>在执行操作方法后调用。</summary>
         /// <param name="filterContext"></param>
-        void OnActionExecuted(ActionExecutedContext filterContext);
+        void OnActionExecuted(ControllerContext filterContext);
     }
 }
