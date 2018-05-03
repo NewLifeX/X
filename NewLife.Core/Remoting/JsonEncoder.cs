@@ -12,22 +12,22 @@ namespace NewLife.Remoting
     /// <summary>Json编码器</summary>
     public class JsonEncoder : EncoderBase, IEncoder
     {
-        /// <summary>编码</summary>
-        public Encoding Encoding { get; set; } = Encoding.UTF8;
+        ///// <summary>编码</summary>
+        //public Encoding Encoding { get; set; } = Encoding.UTF8;
 
         /// <summary>编码</summary>
         /// <param name="action"></param>
         /// <param name="code"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        protected override Packet OnEncode(String action, Int32 code, Object value)
+        public Packet Encode(String action, Int32 code, Object value)
         {
-            if (code > 0)
-            {
-                // 不支持序列化异常
-                if (value is Exception ex) value = ex.GetTrue()?.Message;
-                if (value is String err) value = new { Code = code, Error = err };
-            }
+            //if (code > 0)
+            //{
+            // 不支持序列化异常
+            if (value is Exception ex) value = ex.GetTrue()?.Message;
+            //    if (value is String err) value = new { Code = code, Error = err };
+            //}
 
             var json = value.ToJson();
             WriteLog("{0}=>{1}", action, json);
@@ -39,7 +39,7 @@ namespace NewLife.Remoting
         /// <param name="action"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        protected override Object OnDecode(String action, Packet data)
+        public Object Decode(String action, Packet data)
         {
             var json = data.ToStr();
             WriteLog("{0}<={1}", action, json);

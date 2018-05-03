@@ -52,12 +52,13 @@ namespace NewLife.Remoting
         {
             if (session == null) return default(TResult);
 
+            // 编码请求
             var enc = host.Encoder;
-            //var msg = enc.Encode(action, args);
-            var msg = new DefaultMessage
-            {
-                Payload = enc.Encode(action, 0, args),
-            };
+            var pk = enc.Encode(action, 0, args);
+            pk = Encode(action, 0, pk);
+
+            // 构造消息
+            var msg = new DefaultMessage { Payload = pk, };
             if (flag > 0) msg.Flag = flag;
 
             var rs = await session.SendAsync(msg);
@@ -68,17 +69,16 @@ namespace NewLife.Remoting
             if (rtype == typeof(IMessage)) return (TResult)rs;
             if (rtype == typeof(Packet)) return (TResult)(Object)rs.Payload;
 
-            if (!enc.Decode(rs, out var act, out var result)) throw new InvalidOperationException();
+            if (!Decode(rs, out var act, out var code, out var data)) throw new InvalidOperationException();
 
             // 是否成功
-            if (result is IDictionary<String, Object> dic)
-            {
-                var code = dic["code"].ToInt();
-                if (code != 0) throw new ApiException(code, dic["error"] + "");
-            }
+            if (code != 0) throw new ApiException(code, data.ToStr());
 
-            if (result == null) return default(TResult);
-            if (result is TResult || rtype == typeof(Object)) return (TResult)result;
+            if (data == null) return default(TResult);
+            if (typeof(TResult) == typeof(Packet)) return (TResult)(Object)data;
+
+            var result = enc.Decode(action, data);
+            if (result is TResult || rtype == typeof(Object)) return (TResult)(Object)result;
 
             // 返回
             return enc.Convert<TResult>(result);
@@ -95,12 +95,16 @@ namespace NewLife.Remoting
         {
             if (session == null) return false;
 
+            // 编码请求
             var enc = host.Encoder;
-            //var msg = enc.Encode(action, args);
+            var pk = enc.Encode(action, 0, args);
+            pk = Encode(action, 0, pk);
+
+            // 构造消息
             var msg = new DefaultMessage
             {
                 OneWay = true,
-                Payload = enc.Encode(action, 0, args),
+                Payload = pk,
             };
             if (flag > 0) msg.Flag = flag;
 
@@ -121,5 +125,67 @@ namespace NewLife.Remoting
 
             return controller;
         }
+
+        #region 编码/解码
+        /// <summary>编码 请求/响应</summary>
+        /// <param name="action"></param>
+        /// <param name="code"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static Packet Encode(String action, Int32 code, Packet value)
+        {
+            var ms = new MemoryStream();
+            ms.Seek(4, SeekOrigin.Begin);
+
+            // 请求：action + args
+            // 响应：code + action + result
+            var writer = new BinaryWriter(ms);
+            if (code != 0) writer.Write(code);
+            writer.Write(action);
+
+            // 参数或结果
+            var pk2 = value as Packet;
+            var len = pk2.Total;
+
+            // 不管有没有附加数据，都会写入长度
+            ms.WriteEncodedInt(len);
+
+            var pk = new Packet(ms.GetBuffer(), 4, (Int32)ms.Length - 4);
+            if (pk2 != null) pk.Next = pk2;
+
+            return pk;
+        }
+
+        /// <summary>解码 请求/响应</summary>
+        /// <param name="msg">消息</param>
+        /// <param name="action">服务动作</param>
+        /// <param name="code">错误码</param>
+        /// <param name="value">参数或结果</param>
+        /// <returns></returns>
+        public static Boolean Decode(IMessage msg, out String action, out Int32 code, out Packet value)
+        {
+            action = null;
+            code = 0;
+            value = null;
+
+            // 请求：action + args
+            // 响应：code + action + result
+            var ms = msg.Payload.GetStream();
+            var reader = new BinaryReader(ms);
+
+            if (msg.Reply && msg is DefaultMessage dm && dm.Error) code = reader.ReadInt32();
+            action = reader.ReadString();
+            if (action.IsNullOrEmpty()) return false;
+
+            // 参数或结果
+            if (ms.Length > ms.Position)
+            {
+                var len = ms.ReadEncodedInt();
+                if (len > 0) value = msg.Payload.Sub((Int32)ms.Position, len);
+            }
+
+            return true;
+        }
+        #endregion
     }
 }

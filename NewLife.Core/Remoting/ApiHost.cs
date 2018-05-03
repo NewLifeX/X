@@ -84,7 +84,7 @@ namespace NewLife.Remoting
             var code = 0;
             try
             {
-                if (!enc.Decode(msg, out action, out var args)) return null;
+                if (!ApiHostHelper.Decode(msg, out action, out _, out var args)) return null;
 
                 result = Handler.Execute(session, action, args);
             }
@@ -109,8 +109,12 @@ namespace NewLife.Remoting
             if (msg is DefaultMessage dm && dm.OneWay) return null;
 
             // 编码响应数据包
+            var pk = enc.Encode(action, code, result);
+            pk = ApiHostHelper.Encode(action, code, pk);
+
+            // 构造响应消息
             var rs = msg.CreateReply();
-            rs.Payload = enc.Encode(action, code, result);
+            rs.Payload = pk;
             if (code > 0 && rs is DefaultMessage dm2) dm2.Error = true;
 
             return rs;
