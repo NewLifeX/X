@@ -119,10 +119,11 @@ namespace NewLife.Remoting
         #region 远程调用
         /// <summary>异步调用，等待返回结果</summary>
         /// <typeparam name="TResult"></typeparam>
-        /// <param name="action"></param>
-        /// <param name="args"></param>
+        /// <param name="action">服务操作</param>
+        /// <param name="args">参数</param>
+        /// <param name="flag">标识</param>
         /// <returns></returns>
-        public virtual async Task<TResult> InvokeAsync<TResult>(String action, Object args = null)
+        public virtual async Task<TResult> InvokeAsync<TResult>(String action, Object args = null, Byte flag = 0)
         {
             var ss = Client;
             if (ss == null) return default(TResult);
@@ -131,14 +132,14 @@ namespace NewLife.Remoting
 
             try
             {
-                return await ApiHostHelper.InvokeAsync<TResult>(this, this, act, args);
+                return await ApiHostHelper.InvokeAsync<TResult>(this, this, act, args, flag);
             }
             catch (ApiException ex)
             {
                 // 重新登录后再次调用
                 if (ex.Code == 401)
                 {
-                    return await ApiHostHelper.InvokeAsync<TResult>(this, this, act, args);
+                    return await ApiHostHelper.InvokeAsync<TResult>(this, this, act, args, flag);
                 }
 
                 throw;
@@ -151,17 +152,18 @@ namespace NewLife.Remoting
         }
 
         /// <summary>同步调用，不等待返回</summary>
-        /// <param name="action"></param>
-        /// <param name="args"></param>
+        /// <param name="action">服务操作</param>
+        /// <param name="args">参数</param>
+        /// <param name="flag">标识</param>
         /// <returns></returns>
-        public virtual Boolean Invoke(String action, Object args = null)
+        public virtual Boolean Invoke(String action, Object args = null, Byte flag = 0)
         {
             var ss = Client;
             if (ss == null) return false;
 
             var act = action;
 
-            return ApiHostHelper.Invoke(this, this, act, args);
+            return ApiHostHelper.Invoke(this, this, act, args, flag);
         }
 
         /// <summary>创建消息</summary>

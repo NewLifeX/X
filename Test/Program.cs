@@ -57,7 +57,7 @@ namespace Test
             }
         }
 
-        private static Int32 ths = 0;
+        //private static Int32 ths = 0;
         static void Test1()
         {
             //var orc = ObjectContainer.Current.ResolveInstance<IDatabase>(DatabaseType.Oracle);
@@ -141,6 +141,11 @@ namespace Test
         static void Test4()
         {
             //ApiTest.Main();
+
+            var client = new ApiClient("tcp://127.0.0.1:7788");
+            client.Log = XTrace.Log;
+            client.Open();
+            client.Invoke("Api/Info", "abcd", 3);
 
             //var ccdc = new CounterCreationDataCollection();
             //var ccd = new CounterCreationData

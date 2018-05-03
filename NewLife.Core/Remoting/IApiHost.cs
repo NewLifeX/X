@@ -44,10 +44,11 @@ namespace NewLife.Remoting
         /// <typeparam name="TResult"></typeparam>
         /// <param name="host"></param>
         /// <param name="session"></param>
-        /// <param name="action"></param>
-        /// <param name="args"></param>
+        /// <param name="action">服务操作</param>
+        /// <param name="args">参数</param>
+        /// <param name="flag">标识</param>
         /// <returns></returns>
-        public static async Task<TResult> InvokeAsync<TResult>(IApiHost host, IApiSession session, String action, Object args)
+        public static async Task<TResult> InvokeAsync<TResult>(IApiHost host, IApiSession session, String action, Object args, Byte flag)
         {
             if (session == null) return default(TResult);
 
@@ -57,6 +58,7 @@ namespace NewLife.Remoting
             {
                 Payload = enc.Encode(action, 0, args),
             };
+            if (flag > 0) msg.Flag = flag;
 
             var rs = await session.SendAsync(msg);
             if (rs == null) return default(TResult);
@@ -85,10 +87,11 @@ namespace NewLife.Remoting
         /// <summary>调用</summary>
         /// <param name="host"></param>
         /// <param name="session"></param>
-        /// <param name="action"></param>
-        /// <param name="args"></param>
+        /// <param name="action">服务操作</param>
+        /// <param name="args">参数</param>
+        /// <param name="flag">标识</param>
         /// <returns></returns>
-        public static Boolean Invoke(IApiHost host, IApiSession session, String action, Object args)
+        public static Boolean Invoke(IApiHost host, IApiSession session, String action, Object args, Byte flag = 0)
         {
             if (session == null) return false;
 
@@ -99,6 +102,7 @@ namespace NewLife.Remoting
                 OneWay = true,
                 Payload = enc.Encode(action, 0, args),
             };
+            if (flag > 0) msg.Flag = flag;
 
             return session.Send(msg);
         }

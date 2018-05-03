@@ -36,11 +36,11 @@ namespace NewLife.Serialization
     public static class JsonHelper
     {
         /// <summary>默认实现</summary>
-        public static IJsonHost Default { get; set; }
+        public static IJsonHost Default { get; set; } = new FastJson();
 
         static JsonHelper()
         {
-            Default = new FastJson();
+            //Default = new FastJson();
 
             //if (JsonNet.Support())
             //    Default = new JsonNet();
@@ -188,10 +188,7 @@ namespace NewLife.Serialization
             return new JavaScriptSerializer().Deserialize(json, type);
         }
 
-        public Object Convert(Object obj, Type targetType)
-        {
-            return new JavaScriptSerializer().ConvertToType(obj, targetType);
-        }
+        public Object Convert(Object obj, Type targetType) => new JavaScriptSerializer().ConvertToType(obj, targetType);
         #endregion
     }
 
@@ -239,7 +236,7 @@ class MyContractResolver : Newtonsoft.Json.Serialization.DefaultContractResolver
 
         /// <summary>是否支持</summary>
         /// <returns></returns>
-        public static Boolean Support() { return _Convert != null; }
+        public static Boolean Support() => _Convert != null;
 
         #region IJsonHost 成员
         public String Write(Object value, Boolean indented)
@@ -254,15 +251,9 @@ class MyContractResolver : Newtonsoft.Json.Serialization.DefaultContractResolver
                 return (String)_Convert.Invoke("SerializeObject", value, Enum.ToObject(_Formatting, 1), _Set);
         }
 
-        public Object Read(String json, Type type)
-        {
-            return _Convert.Invoke("DeserializeObject", json, type);
-        }
+        public Object Read(String json, Type type) => _Convert.Invoke("DeserializeObject", json, type);
 
-        public Object Convert(Object obj, Type targetType)
-        {
-            return new JsonReader().ToObject(obj, targetType, null);
-        }
+        public Object Convert(Object obj, Type targetType) => new JsonReader().ToObject(obj, targetType, null);
         #endregion
     }
 #endif
@@ -273,15 +264,9 @@ class MyContractResolver : Newtonsoft.Json.Serialization.DefaultContractResolver
 
         public String Write(Object value, Boolean indented = false) => new JsonWriter().ToJson(value, indented);
 
-        public Object Read(String json, Type type)
-        {
-            return new JsonReader().Read(json, type);
-        }
+        public Object Read(String json, Type type) => new JsonReader().Read(json, type);
 
-        public Object Convert(Object obj, Type targetType)
-        {
-            return new JsonReader().ToObject(obj, targetType, null);
-        }
+        public Object Convert(Object obj, Type targetType) => new JsonReader().ToObject(obj, targetType, null);
         #endregion
     }
 }
