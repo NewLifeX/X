@@ -22,8 +22,11 @@ namespace NewLife.Messaging
         /// <summary>标记位</summary>
         public Byte Flag { get; set; } = 1;
 
-        ///// <summary>是否有错</summary>
-        //public Boolean Error { get; set; }
+        /// <summary>是否有错</summary>
+        public Boolean Error { get; set; }
+
+        /// <summary>是否单向，仅请求无需响应</summary>
+        public Boolean OneWay { get; set; }
 
         /// <summary>序列号，匹配请求和响应</summary>
         public Byte Sequence { get; set; }
@@ -55,9 +58,19 @@ namespace NewLife.Messaging
             var size = 4;
             var buf = pk.ReadBytes(0, size);
 
-            Flag = buf[0];
-            if ((Flag & 0x80) == 0x80) Reply = true;
+            Flag = (Byte)(buf[0] & 0b0011_1111);
+            //if ((Flag & 0x80) == 0x80) Reply = true;
             //if ((Flag & 0x40) == 0x40) Error = true;
+            var mode = buf[0] >> 6;
+            switch (mode)
+            {
+                case 0: Reply = false; break;
+                case 1: OneWay = true; break;
+                case 2: Reply = true; break;
+                case 3: Reply = true; Error = true; break;
+                default:
+                    break;
+            }
 
             Sequence = buf[1];
 
@@ -85,10 +98,10 @@ namespace NewLife.Messaging
                 pk = new Packet(new Byte[4]) { Next = pk };
 
             // 标记位
-            var b = Flag;
+            var b = Flag & 0b0011_1111;
             if (Reply) b |= 0x80;
-            //if (Error) b |= 0x40;
-            pk[0] = b;
+            if (Error || OneWay) b |= 0x40;
+            pk[0] = (Byte)b;
 
             // 序列号
             pk[1] = Sequence;

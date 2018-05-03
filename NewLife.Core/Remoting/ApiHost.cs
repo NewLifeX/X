@@ -105,9 +105,13 @@ namespace NewLife.Remoting
                 }
             }
 
+            // 单向请求无需响应
+            if (msg is DefaultMessage dm && dm.OneWay) return null;
+
             // 编码响应数据包
             var rs = msg.CreateReply();
             rs.Payload = enc.Encode(action, code, result);
+            if (code > 0 && rs is DefaultMessage dm2) dm2.Error = true;
 
             return rs;
         }

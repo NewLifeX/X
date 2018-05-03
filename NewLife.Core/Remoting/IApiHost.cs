@@ -55,7 +55,7 @@ namespace NewLife.Remoting
             //var msg = enc.Encode(action, args);
             var msg = new DefaultMessage
             {
-                Payload = enc.Encode(action, 0, args)
+                Payload = enc.Encode(action, 0, args),
             };
 
             var rs = await session.SendAsync(msg);
@@ -96,7 +96,8 @@ namespace NewLife.Remoting
             //var msg = enc.Encode(action, args);
             var msg = new DefaultMessage
             {
-                Payload = enc.Encode(action, 0, args)
+                OneWay = true,
+                Payload = enc.Encode(action, 0, args),
             };
 
             return session.Send(msg);
