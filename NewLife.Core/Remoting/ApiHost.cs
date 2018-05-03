@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using NewLife.Collections;
+using NewLife.Data;
 using NewLife.Log;
 using NewLife.Messaging;
 
@@ -108,8 +109,9 @@ namespace NewLife.Remoting
             // 单向请求无需响应
             if (msg is DefaultMessage dm && dm.OneWay) return null;
 
-            // 编码响应数据包
-            var pk = enc.Encode(action, code, result);
+            // 编码响应数据包，二进制优先
+            var pk = result as Packet;
+            if (pk == null) pk = enc.Encode(action, code, result);
             pk = ApiHostHelper.Encode(action, code, pk);
 
             // 构造响应消息

@@ -54,8 +54,7 @@ namespace NewLife.Remoting
 
             // 编码请求
             var enc = host.Encoder;
-            var pk = enc.Encode(action, 0, args);
-            pk = Encode(action, 0, pk);
+            var pk = EncodeArgs(enc, action, args);
 
             // 构造消息
             var msg = new DefaultMessage { Payload = pk, };
@@ -77,6 +76,7 @@ namespace NewLife.Remoting
             if (data == null) return default(TResult);
             if (typeof(TResult) == typeof(Packet)) return (TResult)(Object)data;
 
+            // 解码结果
             var result = enc.Decode(action, data);
             if (result is TResult || rtype == typeof(Object)) return (TResult)(Object)result;
 
@@ -96,9 +96,7 @@ namespace NewLife.Remoting
             if (session == null) return false;
 
             // 编码请求
-            var enc = host.Encoder;
-            var pk = enc.Encode(action, 0, args);
-            pk = Encode(action, 0, pk);
+            var pk = EncodeArgs(host.Encoder, action, args);
 
             // 构造消息
             var msg = new DefaultMessage
@@ -145,13 +143,26 @@ namespace NewLife.Remoting
 
             // 参数或结果
             var pk2 = value as Packet;
-            var len = pk2.Total;
+            if (pk2 != null)
+            {
+                var len = pk2.Total;
 
-            // 不管有没有附加数据，都会写入长度
-            ms.WriteEncodedInt(len);
+                // 不管有没有附加数据，都会写入长度
+                ms.WriteEncodedInt(len);
+            }
 
             var pk = new Packet(ms.GetBuffer(), 4, (Int32)ms.Length - 4);
             if (pk2 != null) pk.Next = pk2;
+
+            return pk;
+        }
+
+        private static Packet EncodeArgs(IEncoder enc, String action, Object args)
+        {
+            // 二进制优先
+            var pk = args as Packet;
+            if (pk == null) pk = enc.Encode(action, 0, args);
+            pk = Encode(action, 0, pk);
 
             return pk;
         }

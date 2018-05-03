@@ -67,15 +67,16 @@ namespace NewLife.Remoting
             }
         }
 
-        /// <summary>上传文件</summary>
-        /// <param name="fileName"></param>
-        /// <param name="fileData"></param>
+        /// <summary>加密数据</summary>
+        /// <param name="data"></param>
         /// <returns></returns>
-        public Packet Upload(String fileName, Packet fileData)
+        public Packet Encrypt(Packet data)
         {
-            Log.XTrace.WriteLine("上传文件[{0}]，共{1:n0}字节", fileName, fileData.Total);
+            Log.XTrace.WriteLine("加密数据{0:n0}字节", data.Total);
 
-            return fileData;
+            var buf = Security.RC4.Encrypt(data.ToArray(), "NewLife".GetBytes());
+
+            return buf;
         }
 #endif
     }

@@ -20,28 +20,27 @@ namespace NewLife.Reflection
     public class AssemblyX
     {
         #region 属性
-        private Assembly _Asm;
         /// <summary>程序集</summary>
-        public Assembly Asm { get { return _Asm; } }
+        public Assembly Asm { get; }
 
         [NonSerialized]
         private List<String> hasLoaded = new List<String>();
 
         private String _Name;
         /// <summary>名称</summary>
-        public String Name { get { return _Name ?? (_Name = "" + Asm.GetName().Name); } }
+        public String Name => _Name ?? (_Name = "" + Asm.GetName().Name);
 
         private String _Version;
         /// <summary>程序集版本</summary>
-        public String Version { get { return _Version ?? (_Version = "" + Asm.GetName().Version); } }
+        public String Version => _Version ?? (_Version = "" + Asm.GetName().Version);
 
         private String _Title;
         /// <summary>程序集标题</summary>
-        public String Title { get { return _Title ?? (_Title = "" + Asm.GetCustomAttributeValue<AssemblyTitleAttribute, String>()); } }
+        public String Title => _Title ?? (_Title = "" + Asm.GetCustomAttributeValue<AssemblyTitleAttribute, String>());
 
         private String _FileVersion;
         /// <summary>文件版本</summary>
-        public String FileVersion { get { return _FileVersion ?? (_FileVersion = "" + Asm.GetCustomAttributeValue<AssemblyFileVersionAttribute, String>()); } }
+        public String FileVersion => _FileVersion ?? (_FileVersion = "" + Asm.GetCustomAttributeValue<AssemblyFileVersionAttribute, String>());
 
         private DateTime _Compile;
         /// <summary>编译时间</summary>
@@ -91,11 +90,11 @@ namespace NewLife.Reflection
 
         private String _Company;
         /// <summary>公司名称</summary>
-        public String Company { get { return _Company ?? (_Company = "" + Asm.GetCustomAttributeValue<AssemblyCompanyAttribute, String>()); } }
+        public String Company => _Company ?? (_Company = "" + Asm.GetCustomAttributeValue<AssemblyCompanyAttribute, String>());
 
         private String _Description;
         /// <summary>说明</summary>
-        public String Description { get { return _Description ?? (_Description = "" + Asm.GetCustomAttributeValue<AssemblyDescriptionAttribute, String>()); } }
+        public String Description => _Description ?? (_Description = "" + Asm.GetCustomAttributeValue<AssemblyDescriptionAttribute, String>());
 
         /// <summary>获取包含清单的已加载文件的路径或 UNC 位置。</summary>
         public String Location
@@ -116,7 +115,7 @@ namespace NewLife.Reflection
         #endregion
 
         #region 构造
-        private AssemblyX(Assembly asm) { _Asm = asm; }
+        private AssemblyX(Assembly asm) => Asm = asm;
 
         private static ConcurrentDictionary<Assembly, AssemblyX> cache = new ConcurrentDictionary<Assembly, AssemblyX>();
         /// <summary>创建程序集辅助对象</summary>

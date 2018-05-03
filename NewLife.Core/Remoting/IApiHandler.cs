@@ -62,8 +62,10 @@ namespace NewLife.Remoting
             if (!fast)
             {
                 // 不允许参数字典为空
-                var dic = enc.Decode(action, args) as IDictionary<String, Object>;
-                dic = dic.ToNullable(StringComparer.OrdinalIgnoreCase);
+                var dic = args == null || args.Total == 0 ?
+                    new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase) :
+                    enc.Decode(action, args) as IDictionary<String, Object>;
+                //dic = dic.ToNullable(StringComparer.OrdinalIgnoreCase);
                 ctx.Parameters = dic;
 
                 // 准备好参数

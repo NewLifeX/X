@@ -22,12 +22,10 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public Packet Encode(String action, Int32 code, Object value)
         {
-            //if (code > 0)
-            //{
+            if (value == null) return null;
+
             // 不支持序列化异常
             if (value is Exception ex) value = ex.GetTrue()?.Message;
-            //    if (value is String err) value = new { Code = code, Error = err };
-            //}
 
             var json = value.ToJson();
             WriteLog("{0}=>{1}", action, json);
