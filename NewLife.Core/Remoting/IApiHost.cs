@@ -41,16 +41,16 @@ namespace NewLife.Remoting
     public static class ApiHostHelper
     {
         /// <summary>调用</summary>
-        /// <typeparam name="TResult"></typeparam>
         /// <param name="host"></param>
         /// <param name="session"></param>
+        /// <param name="resultType">结果类型</param>
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
         /// <param name="flag">标识</param>
         /// <returns></returns>
-        public static async Task<TResult> InvokeAsync<TResult>(IApiHost host, IApiSession session, String action, Object args, Byte flag)
+        public static async Task<Object> InvokeAsync(IApiHost host, IApiSession session, Type resultType, String action, Object args, Byte flag)
         {
-            if (session == null) return default(TResult);
+            if (session == null) return null;
 
             // 编码请求
             var enc = host.Encoder;
@@ -61,27 +61,26 @@ namespace NewLife.Remoting
             if (flag > 0) msg.Flag = flag;
 
             var rs = await session.SendAsync(msg);
-            if (rs == null) return default(TResult);
+            if (rs == null) return null;
 
             // 特殊返回类型
-            var rtype = typeof(TResult);
-            if (rtype == typeof(IMessage)) return (TResult)rs;
-            if (rtype == typeof(Packet)) return (TResult)(Object)rs.Payload;
+            if (resultType == typeof(IMessage)) return rs;
+            //if (resultType == typeof(Packet)) return rs.Payload;
 
             if (!Decode(rs, out var act, out var code, out var data)) throw new InvalidOperationException();
 
             // 是否成功
             if (code != 0) throw new ApiException(code, data.ToStr());
 
-            if (data == null) return default(TResult);
-            if (typeof(TResult) == typeof(Packet)) return (TResult)(Object)data;
+            if (data == null) return null;
+            if (resultType == typeof(Packet)) return data;
 
             // 解码结果
             var result = enc.Decode(action, data);
-            if (result is TResult || rtype == typeof(Object)) return (TResult)(Object)result;
+            if (resultType == typeof(Object)) return result;
 
             // 返回
-            return enc.Convert<TResult>(result);
+            return enc.Convert(result, resultType);
         }
 
         /// <summary>调用</summary>

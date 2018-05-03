@@ -118,28 +118,28 @@ namespace NewLife.Remoting
 
         #region 远程调用
         /// <summary>异步调用，等待返回结果</summary>
-        /// <typeparam name="TResult"></typeparam>
+        /// <param name="resultType">返回类型</param>
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
         /// <param name="flag">标识</param>
         /// <returns></returns>
-        public virtual async Task<TResult> InvokeAsync<TResult>(String action, Object args = null, Byte flag = 0)
+        public virtual async Task<Object> InvokeAsync(Type resultType, String action, Object args = null, Byte flag = 0)
         {
             var ss = Client;
-            if (ss == null) return default(TResult);
+            if (ss == null) return null;
 
             var act = action;
 
             try
             {
-                return await ApiHostHelper.InvokeAsync<TResult>(this, this, act, args, flag);
+                return await ApiHostHelper.InvokeAsync(this, this, resultType, act, args, flag);
             }
             catch (ApiException ex)
             {
                 // 重新登录后再次调用
                 if (ex.Code == 401)
                 {
-                    return await ApiHostHelper.InvokeAsync<TResult>(this, this, act, args, flag);
+                    return await ApiHostHelper.InvokeAsync(this, this, resultType, act, args, flag);
                 }
 
                 throw;
@@ -149,6 +149,18 @@ namespace NewLife.Remoting
             {
                 throw new TaskCanceledException(action + "超时取消", ex);
             }
+        }
+
+        /// <summary>异步调用，等待返回结果</summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="action">服务操作</param>
+        /// <param name="args">参数</param>
+        /// <param name="flag">标识</param>
+        /// <returns></returns>
+        public virtual async Task<TResult> InvokeAsync<TResult>(String action, Object args = null, Byte flag = 0)
+        {
+            var rs = await InvokeAsync(typeof(TResult), action, args, flag);
+            return (TResult)rs;
         }
 
         /// <summary>同步调用，不等待返回</summary>

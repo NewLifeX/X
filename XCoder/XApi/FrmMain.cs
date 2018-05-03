@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using NewLife.Data;
 using NewLife.Log;
 using NewLife.Net;
 using NewLife.Reflection;
@@ -339,11 +340,24 @@ namespace XApi
             str = str.Replace("\n", "\r\n");
 
             var act = cbAction.SelectedItem + "";
-            act = act.Substring(" ", "(");
+            var action = act.Substring(" ", "(");
 
-            // 构造消息
-            var args = new JsonParser(str).Decode() as IDictionary<String, Object>;
-            if (args == null || args.Count == 0) args = null;
+            var rtype = act.Substring(null, " ").GetTypeEx();
+            if (rtype == null) rtype = typeof(Object);
+            var ps = act.Substring("(", ")").Split(",");
+
+            // 构造消息，二进制优先
+            Object args = null;
+            if (ps.Length == 1 && ps[0].StartsWith("Packet "))
+            {
+                args = new Packet(str.GetBytes());
+            }
+            else
+            {
+                var dic = new JsonParser(str).Decode() as IDictionary<String, Object>;
+                if (dic == null || dic.Count == 0) dic = null;
+                args = dic;
+            }
 
             if (_Client == null) return;
 
@@ -365,7 +379,7 @@ namespace XApi
             }
             //Parallel.ForEach(list, k => OnSend(k, act, args, count));
             var sw = Stopwatch.StartNew();
-            var ts = list.Select(k => OnSend(k, act, args, count, sleep)).ToList();
+            var ts = list.Select(k => OnSend(k, rtype, action, args, count, sleep)).ToList();
 
             await Task.WhenAll(ts);
             sw.Stop();
@@ -375,7 +389,7 @@ namespace XApi
         Int64 _Invoke;
         Int64 _Cost;
         Double _TotalCost;
-        private async Task OnSend(ApiClient client, String act, Object args, Int32 count, Int32 sleep)
+        private async Task OnSend(ApiClient client, Type rtype, String act, Object args, Int32 count, Int32 sleep)
         {
             client.Open();
 
@@ -410,7 +424,7 @@ namespace XApi
                         try
                         {
                             var sw = Stopwatch.StartNew();
-                            await client.InvokeAsync<Object>(act, args);
+                            await client.InvokeAsync(rtype, act, args);
                             sw.Stop();
 
                             Interlocked.Increment(ref _Invoke);
@@ -433,7 +447,7 @@ namespace XApi
                     try
                     {
                         var sw = Stopwatch.StartNew();
-                        await client.InvokeAsync<Object>(act, args);
+                        await client.InvokeAsync(rtype, act, args);
                         sw.Stop();
 
                         Interlocked.Increment(ref _Invoke);
