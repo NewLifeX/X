@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
 using NewLife.Collections;
+using NewLife.Data;
 using NewLife.Reflection;
 
 namespace NewLife.Remoting
@@ -16,7 +17,7 @@ namespace NewLife.Remoting
         /// <param name="action"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        Object Execute(IApiSession session, String action, Object args);
+        Object Execute(IApiSession session, String action, Packet args);
     }
 
     class ApiHandler : IApiHandler
@@ -29,7 +30,7 @@ namespace NewLife.Remoting
         /// <param name="action"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        public Object Execute(IApiSession session, String action, Object args)
+        public Object Execute(IApiSession session, String action, Packet args)
         {
             var api = session.FindAction(action);
             if (api == null) throw new ApiException(404, "无法找到名为[{0}]的服务！".F(action));
@@ -41,15 +42,7 @@ namespace NewLife.Remoting
             if (controller is IApi capi) capi.Session = session;
 
             var enc = Host.Encoder;
-
-            // 不允许参数字典为空
-            if (args is IDictionary<String, Object> dic)
-                dic = dic.ToNullable(StringComparer.OrdinalIgnoreCase);
-            else
-                dic = new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
-
-            // 准备好参数
-            var ps = GetParams(api.Method, dic, enc);
+            IDictionary<String, Object> ps = null;
 
             // 上下文
             var ctx = new ControllerContext
@@ -59,68 +52,101 @@ namespace NewLife.Remoting
                 ActionName = action,
                 Session = session,
                 Request = args,
-                Parameters = dic,
+                //Parameters = dic,
             };
+            // 当前上下文
+            ControllerContext.Current = ctx;
+
+            // 如果服务只有一个二进制参数，则走快速通道
+            var fast = api.IsPacketParameter && api.IsPacketReturn;
+            if (!fast)
+            {
+                // 不允许参数字典为空
+                var dic = enc.Decode(action, args) as IDictionary<String, Object>;
+                dic = dic.ToNullable(StringComparer.OrdinalIgnoreCase);
+                ctx.Parameters = dic;
+
+                // 准备好参数
+                ps = GetParams(api.Method, dic, enc);
+            }
 
             Object rs = null;
-            ExceptionContext etx = null;
+            //ExceptionContext etx = null;
             try
             {
-                // 当前上下文
-                var actx = new ActionExecutingContext(ctx) { ActionParameters = ps };
-                ControllerContext.Current = actx;
+                //// 当前上下文
+                //var actx = new ActionExecutingContext(ctx) { ActionParameters = ps };
+                //ControllerContext.Current = actx;
 
                 // 执行动作前的过滤器
                 if (controller is IActionFilter filter)
                 {
-                    filter.OnActionExecuting(actx);
-                    rs = actx.Result;
+                    filter.OnActionExecuting(ctx);
+                    rs = ctx.Result;
                 }
 
                 // 执行动作
                 if (rs == null)
                 {
-                    // 特殊处理参数和返回类型都是Packet的服务
-                    rs = controller.InvokeWithParams(api.Method, ps as IDictionary);
+                    if (fast)
+                    {
+                        var func = api.Method.As<Func<Packet, Packet>>(controller);
+                        rs = func(args);
+                    }
+                    else
+                    {
+                        // 特殊处理参数和返回类型都是Packet的服务
+                        rs = controller.InvokeWithParams(api.Method, ps as IDictionary);
+                    }
                 }
             }
             catch (ThreadAbortException) { throw; }
             catch (Exception ex)
             {
-                // 过滤得到内层异常
-                ex = ex.GetTrue();
-
-                // 执行异常过滤器
-                if (controller is IExceptionFilter filter)
-                {
-                    etx = new ExceptionContext(ctx) { Exception = ex, Result = rs };
-                    filter.OnException(etx);
-                    rs = etx.Result ?? etx.Exception ?? ex;
-                }
-                else
-                    rs = ex;
-
-                Host.WriteLog("执行{0}出错！{1}", action, ex.Message);
-
-                // 如果异常没有被拦截，继续向外抛出
-                if (etx == null || !etx.ExceptionHandled) throw;
-
-                return rs;
+                //rs = OnException(ctx, ex);
+                ctx.Exception = ex.GetTrue();
             }
             finally
             {
                 // 执行动作后的过滤器
                 if (controller is IActionFilter filter)
                 {
-                    var atx = new ActionExecutedContext(etx ?? ctx) { Result = rs };
-                    filter.OnActionExecuted(atx);
-                    rs = atx.Result;
+                    //var atx = new ActionExecutedContext(etx ?? ctx) { Result = rs };
+                    filter.OnActionExecuted(ctx);
+                    rs = ctx.Result;
                 }
                 ControllerContext.Current = null;
+
+                if (ctx.Exception != null && !ctx.ExceptionHandled) throw ctx.Exception;
             }
+
+            // 二进制优先通道
+            if (api.IsPacketReturn && rs is Packet pk) return pk;
 
             return rs;
         }
+
+        //private Object OnException(ControllerContext ctx, Exception ex)
+        //{
+        //    // 过滤得到内层异常
+        //    ex = ex.GetTrue();
+
+        //    // 执行异常过滤器
+        //    if (ctx.Controller is IExceptionFilter filter)
+        //    {
+        //        var etx = new ExceptionContext(ctx) { Exception = ex };
+        //        filter.OnException(etx);
+        //        var rs = etx.Result ?? etx.Exception ?? ex;
+
+        //        // 如果异常没有被拦截，继续向外抛出
+        //        if (etx.ExceptionHandled) return rs;
+        //    }
+
+        //    Host.WriteLog("执行{0}出错！{1}", ctx.ActionName, ex.Message);
+
+        //    // 如果异常没有被拦截，继续向外抛出
+        //    throw ex;
+        //}
 
         private IDictionary<String, Object> GetParams(MethodInfo method, IDictionary<String, Object> args, IEncoder encoder)
         {
