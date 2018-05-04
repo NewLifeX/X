@@ -39,7 +39,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test4();
+                Test6();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -218,38 +218,24 @@ namespace Test
 
         static void Test6()
         {
-            // 初始化计数器实例
-            var counter1 = new PerformanceCounter
-            {
-                CategoryName = "新生命",
-                CounterName = "示例",
-                InstanceName = Process.GetCurrentProcess().Id + "",
-                InstanceLifetime = PerformanceCounterInstanceLifetime.Process,
-                ReadOnly = false,
-                RawValue = 0
-            };
+            var pf = new PerfCounter();
 
-            var rnd = new Random();
-            while (true)
+            Task.Factory.StartNew(() =>
             {
-                //counter1.IncrementBy(rnd.Next(100));
-                counter1.RawValue = rnd.Next(100);
+                for (var i = 0; i < 10000; i++)
+                {
+                    var n = Rand.Next(1500);
+                    pf.Increment(n);
 
+                    Thread.Sleep(Rand.Next(100, 3000));
+                }
+            });
+
+            for (var i = 0; i < 1000; i++)
+            {
+                Console.WriteLine(pf + "");
                 Thread.Sleep(1000);
             }
-        }
-
-        static String GetInstanceName(String categoryName, String counterName, Process p)
-        {
-            var processcounter = new PerformanceCounterCategory(categoryName);
-            var instances = processcounter.GetInstanceNames();
-            foreach (var instance in instances)
-            {
-                var counter = new PerformanceCounter(categoryName, counterName, instance);
-                if (counter.NextValue() == p.Id) return instance;
-            }
-
-            return null;
         }
 
         static async void Test5()
