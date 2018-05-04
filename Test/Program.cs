@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using NewLife.Caching;
 using NewLife.Data;
 using NewLife.Log;
+using NewLife.Messaging;
 using NewLife.Net;
 using NewLife.Net.Application;
 using NewLife.Net.Handlers;
@@ -142,10 +143,22 @@ namespace Test
         {
             //ApiTest.Main();
 
-            var client = new ApiClient("tcp://127.0.0.1:7788");
-            client.Log = XTrace.Log;
-            client.Open();
-            client.Invoke("Api/Info", "abcd", 3);
+            var buf = Rand.NextBytes(100 * 1024);
+            var msg = new DefaultMessage { Payload = new Packet(buf) };
+            var pk = msg.ToPacket();
+            Console.WriteLine(pk);
+
+            buf = pk.ToArray();
+            Console.WriteLine(buf.ToHex("-", 8, 32));
+
+            var msg2 = new DefaultMessage();
+            msg2.Read(buf);
+            Console.WriteLine(msg2);
+
+            //var client = new ApiClient("tcp://127.0.0.1:7788");
+            //client.Log = XTrace.Log;
+            //client.Open();
+            //client.Invoke("Api/Info", "abcd", 3);
 
             //var ccdc = new CounterCreationDataCollection();
             //var ccd = new CounterCreationData

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using NewLife.Data;
@@ -45,7 +46,7 @@ namespace NewLife.Net.Handlers
             var mcp = ss["CodecItem"] as CodecItem;
             if (mcp == null) ss["CodecItem"] = mcp = new CodecItem();
 
-            var pks = Parse(pk, mcp, 2, 2);
+            var pks = Parse(pk, mcp, DefaultMessage.GetLength);
             var list = pks.Select(e =>
             {
                 var msg = new DefaultMessage();

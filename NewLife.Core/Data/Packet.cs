@@ -331,7 +331,7 @@ namespace NewLife.Data
 
         /// <summary>已重载</summary>
         /// <returns></returns>
-        public override String ToString() => $"[{Data.Length}]({Offset}, {Count})";
+        public override String ToString() => $"[{Data.Length}]({Offset}, {Count})" + (Next == null ? "" : $"<{Total}>");
         #endregion
     }
 }

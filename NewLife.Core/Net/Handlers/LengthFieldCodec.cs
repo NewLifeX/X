@@ -83,7 +83,7 @@ namespace NewLife.Net.Handlers
             var mcp = ss["CodecItem"] as CodecItem;
             if (mcp == null) ss["CodecItem"] = mcp = new CodecItem();
 
-            return Parse(pk, mcp, Offset, Size, Expire);
+            return Parse(pk, mcp, ms => GetLength(ms, Offset, Size), Expire);
         }
 
         ///// <summary>内部缓存</summary>
