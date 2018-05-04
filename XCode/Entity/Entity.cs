@@ -10,6 +10,7 @@ using NewLife.Data;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Serialization;
+using NewLife.Threading;
 using NewLife.Xml;
 using XCode.Common;
 using XCode.Configuration;
@@ -101,34 +102,27 @@ namespace XCode
             if (sc.Using)
             {
                 // 查询列表异步加入对象缓存
-                ThreadPool.UnsafeQueueUserWorkItem(s =>
+                ThreadPoolX.QueueUserWorkItem(() =>
                 {
-                    try
+                    foreach (var item in list.ToArray())
                     {
-                        foreach (var item in list.ToArray())
-                        {
-                            sc.Add(item);
-                        }
+                        sc.Add(item);
                     }
-                    catch (Exception ex)
-                    {
-                        XTrace.WriteException(ex);
-                    }
-                }, null);
+                });
             }
 
             return list;
         }
 
-        private static IDataRowEntityAccessor DreAccessor { get { return XCodeService.CreateDataRowEntityAccessor(typeof(TEntity)); } }
+        private static IDataRowEntityAccessor DreAccessor => XCodeService.CreateDataRowEntityAccessor(typeof(TEntity));
         #endregion
 
         #region 操作
-        private static IEntityPersistence Persistence { get { return XCodeService.Container.ResolveInstance<IEntityPersistence>(); } }
+        private static IEntityPersistence Persistence => XCodeService.Container.ResolveInstance<IEntityPersistence>();
 
         /// <summary>插入数据，<see cref="Valid"/>后，在事务中调用<see cref="OnInsert"/>。</summary>
         /// <returns></returns>
-        public override Int32 Insert() { return DoAction(OnInsert, true); }
+        public override Int32 Insert() => DoAction(OnInsert, true);
 
         /// <summary>把该对象持久化到数据库，添加/更新实体缓存。</summary>
         /// <returns></returns>
@@ -143,11 +137,11 @@ namespace XCode
 
         /// <summary>更新数据，<see cref="Valid"/>后，在事务中调用<see cref="OnUpdate"/>。</summary>
         /// <returns></returns>
-        public override Int32 Update() { return DoAction(OnUpdate, false); }
+        public override Int32 Update() => DoAction(OnUpdate, false);
 
         /// <summary>更新数据库，同时更新实体缓存</summary>
         /// <returns></returns>
-        protected virtual Int32 OnUpdate() { return Meta.Session.Update(this); }
+        protected virtual Int32 OnUpdate() => Meta.Session.Update(this);
 
         /// <summary>删除数据，通过在事务中调用OnDelete实现。</summary>
         /// <remarks>
@@ -156,11 +150,11 @@ namespace XCode
         /// 如果需要避开该机制，请清空脏数据。
         /// </remarks>
         /// <returns></returns>
-        public override Int32 Delete() { return DoAction(OnDelete, null); }
+        public override Int32 Delete() => DoAction(OnDelete, null);
 
         /// <summary>从数据库中删除该对象，同时从实体缓存中删除</summary>
         /// <returns></returns>
-        protected virtual Int32 OnDelete() { return Meta.Session.Delete(this); }
+        protected virtual Int32 OnDelete() => Meta.Session.Delete(this);
 
         Int32 DoAction(Func<Int32> func, Boolean? isnew)
         {
@@ -299,11 +293,11 @@ namespace XCode
         /// <summary>根据指定键检查数据，返回数据是否已存在</summary>
         /// <param name="names"></param>
         /// <returns></returns>
-        public virtual Boolean Exist(params String[] names) { return Exist(true, names); }
+        public virtual Boolean Exist(params String[] names) => Exist(true, names);
 
         /// <summary>根据指定键检查数据是否已存在，若已存在，抛出ArgumentOutOfRangeException异常</summary>
         /// <param name="names"></param>
-        public virtual void CheckExist(params String[] names) { CheckExist(true, names); }
+        public virtual void CheckExist(params String[] names) => CheckExist(true, names);
 
         /// <summary>根据指定键检查数据是否已存在，若已存在，抛出ArgumentOutOfRangeException异常</summary>
         /// <param name="isNew">是否新数据</param>
@@ -400,7 +394,7 @@ namespace XCode
         /// <param name="name">属性名称</param>
         /// <param name="value">属性值</param>
         /// <returns></returns>
-        public static TEntity Find(String name, Object value) { return Find(new String[] { name }, new Object[] { value }); }
+        public static TEntity Find(String name, Object value) => Find(new String[] { name }, new Object[] { value });
 
         /// <summary>根据属性列表以及对应的值列表，查找单个实体</summary>
         /// <param name="names">属性名称集合</param>
@@ -577,13 +571,13 @@ namespace XCode
         #region 静态查询
         /// <summary>获取所有数据。获取大量数据时会非常慢，慎用。没有数据时返回空集合而不是null</summary>
         /// <returns>实体数组</returns>
-        public static IList<TEntity> FindAll() { return FindAll("", null, null, 0, 0); }
+        public static IList<TEntity> FindAll() => FindAll("", null, null, 0, 0);
 
         /// <summary>根据名称获取数据集。没有数据时返回空集合而不是null</summary>
         /// <param name="name"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static IList<TEntity> FindAll(String name, Object value) { return FindAll(new String[] { name }, new Object[] { value }); }
+        public static IList<TEntity> FindAll(String name, Object value) => FindAll(new String[] { name }, new Object[] { value });
 
         /// <summary>根据属性列表以及对应的值列表，查找单个实体</summary>
         /// <param name="names">属性名称集合</param>
@@ -774,7 +768,7 @@ namespace XCode
         #region 缓存查询
         /// <summary>查找所有缓存。没有数据时返回空集合而不是null</summary>
         /// <returns></returns>
-        public static IList<TEntity> FindAllWithCache() { return Meta.Session.Cache.Entities; }
+        public static IList<TEntity> FindAllWithCache() => Meta.Session.Cache.Entities;
         #endregion
 
         #region 取总记录数
@@ -893,11 +887,8 @@ namespace XCode
         /// <param name="key"></param>
         /// <param name="page">分页排序参数，同时返回满足条件的总记录数</param>
         /// <returns></returns>
-        [Obsolete("=>Search(DateTime start, DateTime end, String key, PageParameter param)")]
-        public static IList<TEntity> Search(String key, PageParameter page)
-        {
-            return FindAll(SearchWhereByKeys(key), page);
-        }
+        //[Obsolete("=>Search(DateTime start, DateTime end, String key, PageParameter param)")]
+        public static IList<TEntity> Search(String key, PageParameter page) => FindAll(SearchWhereByKeys(key), page);
 
         /// <summary>同时查询满足条件的记录集和记录总数。没有数据时返回空集合而不是null</summary>
         /// <param name="start">开始时间</param>
@@ -977,34 +968,30 @@ namespace XCode
         /// <summary>把一个实体对象持久化到数据库</summary>
         /// <param name="obj">实体对象</param>
         /// <returns>返回受影响的行数</returns>
+        [Obsolete("=>entity.Insert()")]
         [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public static Int32 Insert(TEntity obj) { return obj.Insert(); }
+        public static Int32 Insert(TEntity obj) => obj.Insert();
 
         /// <summary>把一个实体对象持久化到数据库</summary>
         /// <param name="names">更新属性列表</param>
         /// <param name="values">更新值列表</param>
         /// <returns>返回受影响的行数</returns>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public static Int32 Insert(String[] names, Object[] values)
-        {
-            return Persistence.Insert(Meta.Factory, names, values);
-        }
+        public static Int32 Insert(String[] names, Object[] values) => Persistence.Insert(Meta.Factory, names, values);
 
         /// <summary>把一个实体对象更新到数据库</summary>
         /// <param name="obj">实体对象</param>
         /// <returns>返回受影响的行数</returns>
+        [Obsolete("=>entity.Update()")]
         [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public static Int32 Update(TEntity obj) { return obj.Update(); }
+        public static Int32 Update(TEntity obj) => obj.Update();
 
         /// <summary>更新一批实体数据</summary>
         /// <param name="setClause">要更新的项和数据</param>
         /// <param name="whereClause">指定要更新的实体</param>
         /// <returns></returns>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public static Int32 Update(String setClause, String whereClause)
-        {
-            return Persistence.Update(Meta.Factory, setClause, whereClause);
-        }
+        public static Int32 Update(String setClause, String whereClause) => Persistence.Update(Meta.Factory, setClause, whereClause);
 
         /// <summary>更新一批实体数据</summary>
         /// <param name="setNames">更新属性列表</param>
@@ -1013,10 +1000,7 @@ namespace XCode
         /// <param name="whereValues">条件值列表</param>
         /// <returns>返回受影响的行数</returns>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public static Int32 Update(String[] setNames, Object[] setValues, String[] whereNames, Object[] whereValues)
-        {
-            return Persistence.Update(Meta.Factory, setNames, setValues, whereNames, whereValues);
-        }
+        public static Int32 Update(String[] setNames, Object[] setValues, String[] whereNames, Object[] whereValues) => Persistence.Update(Meta.Factory, setNames, setValues, whereNames, whereValues);
 
         /// <summary>
         /// 从数据库中删除指定实体对象。
@@ -1024,33 +1008,29 @@ namespace XCode
         /// </summary>
         /// <param name="obj">实体对象</param>
         /// <returns>返回受影响的行数，可用于判断被删除了多少行，从而知道操作是否成功</returns>
+        [Obsolete("=>entity.Delete()")]
         [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public static Int32 Delete(TEntity obj) { return obj.Delete(); }
+        public static Int32 Delete(TEntity obj) => obj.Delete();
 
         /// <summary>从数据库中删除指定条件的实体对象。</summary>
         /// <param name="whereClause">限制条件</param>
         /// <returns></returns>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public static Int32 Delete(String whereClause)
-        {
-            return Persistence.Delete(Meta.Factory, whereClause);
-        }
+        public static Int32 Delete(String whereClause) => Persistence.Delete(Meta.Factory, whereClause);
 
         /// <summary>从数据库中删除指定属性列表和值列表所限定的实体对象。</summary>
         /// <param name="names">属性列表</param>
         /// <param name="values">值列表</param>
         /// <returns></returns>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public static Int32 Delete(String[] names, Object[] values)
-        {
-            return Persistence.Delete(Meta.Factory, names, values);
-        }
+        public static Int32 Delete(String[] names, Object[] values) => Persistence.Delete(Meta.Factory, names, values);
 
         /// <summary>把一个实体对象更新到数据库</summary>
         /// <param name="obj">实体对象</param>
         /// <returns>返回受影响的行数</returns>
+        [Obsolete("=>entity.Save()")]
         [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public static Int32 Save(TEntity obj) { return obj.Save(); }
+        public static Int32 Save(TEntity obj) => obj.Save();
         #endregion
 
         #region 构造SQL语句
@@ -1213,7 +1193,7 @@ namespace XCode
         [Obsolete("请使用 xml.ToXmlEntity<TEntity>()")]
         public static TEntity FromXml(String xml)
         {
-            if (!String.IsNullOrEmpty(xml)) xml = xml.Trim();
+            if (!xml.IsNullOrEmpty()) xml = xml.Trim();
 
             return xml.ToXmlEntity<TEntity>();
         }
@@ -1222,16 +1202,13 @@ namespace XCode
         /// <param name="json"></param>
         /// <returns></returns>
         [Obsolete("请使用 json.ToJsonEntity<TEntity>()")]
-        public static TEntity FromJson(String json)
-        {
-            return json.ToJsonEntity<TEntity>();
-        }
+        public static TEntity FromJson(String json) => json.ToJsonEntity<TEntity>();
         #endregion
 
         #region 克隆
         /// <summary>创建当前对象的克隆对象，仅拷贝基本字段</summary>
         /// <returns></returns>
-        public override Object Clone() { return CloneEntity(); }
+        public override Object Clone() => CloneEntity();
 
         /// <summary>克隆实体。创建当前对象的克隆对象，仅拷贝基本字段</summary>
         /// <param name="setDirty">是否设置脏数据。默认不设置</param>
@@ -1255,7 +1232,7 @@ namespace XCode
         /// <summary>克隆实体</summary>
         /// <param name="setDirty"></param>
         /// <returns></returns>
-        internal protected override IEntity CloneEntityInternal(Boolean setDirty = true) { return CloneEntity(setDirty); }
+        internal protected override IEntity CloneEntityInternal(Boolean setDirty = true) => CloneEntity(setDirty);
         #endregion
 
         #region 其它
