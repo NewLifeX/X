@@ -39,7 +39,7 @@ namespace Test
                 try
                 {
 #endif
-                Test4();
+                    Test4();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -147,13 +147,32 @@ namespace Test
             var v = Rand.NextBytes(32);
             Console.WriteLine(v.ToBase64());
 
-            var ch = new DbCache();
+            ICache ch = new DbCache();
             ch.Set(key, v);
             v = ch.Get<Byte[]>(key);
             Console.WriteLine(v.ToBase64());
             ch.Remove(key);
 
-            ch.Bench(true);
+            Console.Clear();
+
+            Console.Write("选择要测试的缓存：1，MemoryCache；2，DbCache ");
+            if (Console.ReadKey().KeyChar == '2')
+            {
+
+            }
+            else
+            {
+                ch = new MemoryCache();
+            }
+
+            var mode = false;
+            Console.WriteLine();
+            Console.Write("选择测试模式：1，顺序；2，随机 ");
+            if (Console.ReadKey().KeyChar != '1') mode = true;
+
+            Console.Clear();
+
+            ch.Bench(mode);
 
             //var buf = Rand.NextBytes(100 * 1024);
             //var msg = new DefaultMessage { Payload = new Packet(buf) };
