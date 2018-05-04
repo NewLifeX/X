@@ -89,12 +89,12 @@ namespace NewLife.Collections
         /// <summary>重写索引器。取值时如果没有该项则返回默认值；赋值时如果已存在该项则覆盖，否则添加。</summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public TValue this[TKey key] { get => Get(key); set => Set(key, value); }
+        public TValue this[TKey key] { get => GetOrAdd(key); set => Set(key, value); }
 
         /// <summary>获取 GetOrAdd</summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public virtual TValue Get(TKey key)
+        public virtual TValue GetOrAdd(TKey key)
         {
             var func = FindMethod;
 
@@ -128,6 +128,16 @@ namespace NewLife.Collections
             }
 
             return default(TValue);
+        }
+
+        /// <summary>获取 GetOrAdd</summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public virtual TValue Get(TKey key)
+        {
+            if (!_cache.TryGetValue(key, out var item)) return default(TValue);
+
+            return item.Value;
         }
 
         /// <summary>设置 AddOrUpdate</summary>

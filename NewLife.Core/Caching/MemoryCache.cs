@@ -19,7 +19,6 @@ namespace NewLife.Caching
         /// <summary>实例化一个内存字典缓存</summary>
         public MemoryCache()
         {
-            //_cache = new ConcurrentDictionary<String, CacheItem>(StringComparer.OrdinalIgnoreCase);
             _cache = new ConcurrentDictionary<String, CacheItem>();
             Name = "Memory";
 
@@ -178,6 +177,8 @@ namespace NewLife.Caching
         /// <returns></returns>
         public override Boolean Add<T>(String key, T value, Int32 expire = -1)
         {
+            if (expire < 0) expire = Expire;
+
             CacheItem ci = null;
             do
             {
