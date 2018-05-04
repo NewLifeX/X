@@ -1344,5 +1344,38 @@ namespace XCode
             }
         }
         #endregion
+
+        #region 高并发
+        /// <summary>获取 或 新增 对象，常用于统计等高并发更新的情况，一般配合SaveAsync</summary>
+        /// <typeparam name="TKey"></typeparam>
+        /// <param name="key">业务主键</param>
+        /// <param name="find">查找函数</param>
+        /// <param name="create">创建对象</param>
+        /// <returns></returns>
+        protected static TEntity GetOrAdd<TKey>(TKey key, Func<TKey, Boolean, TEntity> find, Func<TKey, TEntity> create)
+        {
+            if (key == null) return null;
+
+            var entity = find(key, true);
+            // 查不到时新建
+            if (entity == null)
+            {
+                entity = create != null ? create(key) : new TEntity();
+
+                // 插入失败时，再次查询
+                try
+                {
+                    entity.Insert();
+                }
+                catch (Exception ex)
+                {
+                    entity = find(key, false);
+                    if (entity == null) throw ex.GetTrue();
+                }
+            }
+
+            return entity;
+        }
+        #endregion
     }
 }
