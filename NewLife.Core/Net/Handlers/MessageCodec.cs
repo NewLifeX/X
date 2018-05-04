@@ -186,10 +186,11 @@ namespace NewLife.Net.Handlers
                 while (_ms.Position < _ms.Length)
                 {
                     var p = _ms.Position;
-                    //var len = GetLength(_ms, offset, size);
                     var len = getLength(_ms);
                     _ms.Position = p;
-                    if (len <= 0) break;
+
+                    // 资源不足一包
+                    if (len <= 0 || p + len > _ms.Length) break;
 
                     var pk2 = new Packet(_ms.ReadBytes(len));
                     list.Add(pk2);
