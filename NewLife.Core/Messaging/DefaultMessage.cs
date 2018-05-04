@@ -149,10 +149,10 @@ namespace NewLife.Messaging
 
             // 小于64k，直接返回
             var len = ms.ReadBytes(2).ToUInt16();
-            if (len < 0xFFFF) return len;
+            if (len < 0xFFFF) return 4 + len;
 
             // 超过64k的超大数据包，再来4个字节
-            return ms.ReadBytes(4).ToInt();
+            return 8 + ms.ReadBytes(4).ToInt();
         }
 
         /// <summary>消息摘要</summary>
