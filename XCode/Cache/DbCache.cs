@@ -12,6 +12,9 @@ using XCode.Extension;
 namespace NewLife.Caching
 {
     /// <summary>数据库缓存。利用数据表来缓存信息</summary>
+    /// <remarks>
+    /// 构建一个操作队列，新增、更新、删除等操作全部排队单线程执行，以改进性能
+    /// </remarks>
     public class DbCache : NewLife.Caching.Cache
     {
         #region 属性
