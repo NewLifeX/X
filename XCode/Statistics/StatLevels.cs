@@ -29,5 +29,9 @@ namespace XCode.Statistics
         /// <summary>分钟</summary>
         [Description("分钟")]
         Minute = 5,
+
+        /// <summary>季度</summary>
+        [Description("季度")]
+        Quarter = 11,
     }
 }
