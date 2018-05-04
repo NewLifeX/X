@@ -30,7 +30,7 @@ namespace XCode
         public Int32 Period { get; set; } = 1000;
 
         /// <summary>最大个数，超过该个数时，进入队列将产生堵塞。默认10000</summary>
-        public Int32 MaxEntity { get; set; } = 10_000;
+        public Int32 MaxEntity { get; set; } = 100_000;
 
         /// <summary>保存速度，每秒保存多少个实体</summary>
         public Int32 Speed { get; private set; }
@@ -131,7 +131,7 @@ namespace XCode
             var useTrans = dal.DbType == DatabaseType.SQLite;
 
             var speed = Speed;
-            if (Debug || list.Count > 10000)
+            if (Debug || list.Count > 100_000)
             {
                 var cost = speed == 0 ? 0 : list.Count * 1000 / speed;
                 XTrace.WriteLine($"实体队列[{ss.TableName}/{ss.ConnName}]\t保存 {list.Count:n0}\t预测耗时 {cost:n0}ms");

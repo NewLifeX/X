@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using XCode;
@@ -33,22 +33,6 @@ namespace XCode.Extension
         [BindColumn("Value", "键值", "")]
         public String Value { get { return _Value; } set { if (OnPropertyChanging(__.Value, value)) { _Value = value; OnPropertyChanged(__.Value); } } }
 
-        private Int32 _Visits;
-        /// <summary>访问次数</summary>
-        [DisplayName("访问次数")]
-        [Description("访问次数")]
-        [DataObjectField(false, false, false, 0)]
-        [BindColumn("Visits", "访问次数", "")]
-        public Int32 Visits { get { return _Visits; } set { if (OnPropertyChanging(__.Visits, value)) { _Visits = value; OnPropertyChanged(__.Visits); } } }
-
-        private DateTime _LastVisit;
-        /// <summary>最后访问</summary>
-        [DisplayName("最后访问")]
-        [Description("最后访问")]
-        [DataObjectField(false, false, true, 0)]
-        [BindColumn("LastVisit", "最后访问", "")]
-        public DateTime LastVisit { get { return _LastVisit; } set { if (OnPropertyChanging(__.LastVisit, value)) { _LastVisit = value; OnPropertyChanged(__.LastVisit); } } }
-
         private DateTime _CreateTime;
         /// <summary>创建时间</summary>
         [DisplayName("创建时间")]
@@ -78,8 +62,6 @@ namespace XCode.Extension
                 {
                     case __.Name : return _Name;
                     case __.Value : return _Value;
-                    case __.Visits : return _Visits;
-                    case __.LastVisit : return _LastVisit;
                     case __.CreateTime : return _CreateTime;
                     case __.ExpiredTime : return _ExpiredTime;
                     default: return base[name];
@@ -91,8 +73,6 @@ namespace XCode.Extension
                 {
                     case __.Name : _Name = Convert.ToString(value); break;
                     case __.Value : _Value = Convert.ToString(value); break;
-                    case __.Visits : _Visits = Convert.ToInt32(value); break;
-                    case __.LastVisit : _LastVisit = Convert.ToDateTime(value); break;
                     case __.CreateTime : _CreateTime = Convert.ToDateTime(value); break;
                     case __.ExpiredTime : _ExpiredTime = Convert.ToDateTime(value); break;
                     default: base[name] = value; break;
@@ -110,12 +90,6 @@ namespace XCode.Extension
 
             /// <summary>键值</summary>
             public static readonly Field Value = FindByName(__.Value);
-
-            /// <summary>访问次数</summary>
-            public static readonly Field Visits = FindByName(__.Visits);
-
-            /// <summary>最后访问</summary>
-            public static readonly Field LastVisit = FindByName(__.LastVisit);
 
             /// <summary>创建时间</summary>
             public static readonly Field CreateTime = FindByName(__.CreateTime);
@@ -135,12 +109,6 @@ namespace XCode.Extension
             /// <summary>键值</summary>
             public const String Value = "Value";
 
-            /// <summary>访问次数</summary>
-            public const String Visits = "Visits";
-
-            /// <summary>最后访问</summary>
-            public const String LastVisit = "LastVisit";
-
             /// <summary>创建时间</summary>
             public const String CreateTime = "CreateTime";
 
@@ -159,12 +127,6 @@ namespace XCode.Extension
 
         /// <summary>键值</summary>
         String Value { get; set; }
-
-        /// <summary>访问次数</summary>
-        Int32 Visits { get; set; }
-
-        /// <summary>最后访问</summary>
-        DateTime LastVisit { get; set; }
 
         /// <summary>创建时间</summary>
         DateTime CreateTime { get; set; }

@@ -9,12 +9,6 @@ namespace XCode.Extension
         #region 对象操作
         static MyDbCache()
         {
-            // 累加字段
-            Meta.Factory.AdditionalFields.Add(__.Visits);
-
-            // 过滤器 UserModule、TimeModule、IPModule
-            //Meta.Modules.Add<TimeModule>();
-
             // 单对象缓存
             var sc = Meta.SingleCache;
             sc.FindSlaveKeyMethod = k => Find(__.Name, k);

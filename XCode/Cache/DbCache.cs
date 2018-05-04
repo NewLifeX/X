@@ -96,14 +96,7 @@ namespace NewLife.Caching
 
             if (_cache.FindMethod == null) _cache.FindMethod = k => Factory.Find(KeyField == key) as IDbCache;
 
-            var e = _cache[key];
-            if (e != null)
-            {
-                e.Visits++;
-                e.LastVisit = TimerX.Now;
-            }
-
-            return e;
+            return _cache[key];
         }
         #endregion
 
@@ -283,12 +276,6 @@ namespace NewLife.Caching
 
         /// <summary>键值</summary>
         String Value { get; set; }
-
-        /// <summary>访问次数</summary>
-        Int32 Visits { get; set; }
-
-        /// <summary>最后访问</summary>
-        DateTime LastVisit { get; set; }
 
         /// <summary>创建时间</summary>
         DateTime CreateTime { get; set; }

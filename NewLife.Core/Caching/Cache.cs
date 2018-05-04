@@ -323,8 +323,8 @@ namespace NewLife.Caching
             XTrace.WriteLine($"测试 {times:n0} 项，{threads,3:n0} 线程");
 
             var key = "Bench_";
-            Set(key, Rand.NextBytes(32));
-            var v = Get<Byte[]>(key);
+            Set(key, Rand.NextString(32));
+            var v = Get<String>(key);
             Remove(key);
 
             // 赋值测试
@@ -344,7 +344,7 @@ namespace NewLife.Caching
         /// <param name="rand">随机读写</param>
         protected virtual void BenchGet(String key, Int64 times, Int32 threads, Boolean rand)
         {
-            var v = Get<Byte[]>(key);
+            var v = Get<String>(key);
 
             var sw = Stopwatch.StartNew();
             if (rand)
@@ -353,7 +353,7 @@ namespace NewLife.Caching
                 {
                     for (var i = k; i < times; i += threads)
                     {
-                        var val = Get<Byte[]>(key + i);
+                        var val = Get<String>(key + i);
                     }
                 });
             }
@@ -365,7 +365,7 @@ namespace NewLife.Caching
                     var count = times / threads;
                     for (var i = 0; i < count; i++)
                     {
-                        var val = Get<Byte[]>(mykey);
+                        var val = Get<String>(mykey);
                     }
                 });
             }
@@ -389,7 +389,7 @@ namespace NewLife.Caching
             {
                 Parallel.For(0, threads, k =>
                 {
-                    var val = Rand.NextBytes(32);
+                    var val = Rand.NextString(32);
                     for (var i = k; i < times; i += threads)
                     {
                         Set(key + i, val);
@@ -401,7 +401,7 @@ namespace NewLife.Caching
                 Parallel.For(0, threads, k =>
                 {
                     var mykey = key + k;
-                    var val = Rand.NextBytes(32);
+                    var val = Rand.NextString(32);
                     var count = times / threads;
                     for (var i = 0; i < count; i++)
                     {
