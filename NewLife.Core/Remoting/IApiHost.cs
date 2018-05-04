@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Log;
@@ -28,6 +29,12 @@ namespace NewLife.Remoting
         /// <returns></returns>
         IMessage Process(IApiSession session, IMessage msg);
 
+        /// <summary>发送统计</summary>
+        PerfCounter StatSend { get; set; }
+
+        /// <summary>接收统计</summary>
+        PerfCounter StatReceive { get; set; }
+
         /// <summary>日志</summary>
         ILog Log { get; set; }
 
@@ -51,6 +58,8 @@ namespace NewLife.Remoting
         public static async Task<Object> InvokeAsync(IApiHost host, IApiSession session, Type resultType, String action, Object args, Byte flag)
         {
             if (session == null) return null;
+
+            host.StatSend?.Increment();
 
             // 编码请求
             var enc = host.Encoder;
@@ -93,6 +102,8 @@ namespace NewLife.Remoting
         public static Boolean Invoke(IApiHost host, IApiSession session, String action, Object args, Byte flag = 0)
         {
             if (session == null) return false;
+
+            host.StatSend?.Increment();
 
             // 编码请求
             var pk = EncodeArgs(host.Encoder, action, args);
@@ -197,6 +208,22 @@ namespace NewLife.Remoting
             }
 
             return true;
+        }
+        #endregion
+
+        #region 统计
+        /// <summary>获取统计信息</summary>
+        /// <param name="host"></param>
+        /// <returns></returns>
+        public static String GetStat(this IApiHost host)
+        {
+            if (host == null) return null;
+
+            var sb = new StringBuilder();
+            if (host.StatSend.Value > 0) sb.AppendFormat("请求：{0} ", host.StatSend);
+            if (host.StatReceive.Value > 0) sb.AppendFormat("处理：{0} ", host.StatReceive);
+
+            return sb.ToString();
         }
         #endregion
     }

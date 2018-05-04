@@ -202,7 +202,7 @@ namespace XApi
 
             cfg.Save();
 
-            _timer = new TimerX(ShowStat, null, 5000, 5000);
+            _timer = new TimerX(ShowStat, null, 5000, 5000) { Async = true };
         }
 
         async void GetApiAll()
@@ -253,9 +253,9 @@ namespace XApi
 
             var msg = "";
             if (_Client != null)
-                msg = _Client.Client?.GetStat();
+                msg = _Client.GetStat();
             else if (_Server != null)
-                msg = (_Server.Server as NetServer)?.GetStat();
+                msg = _Server.GetStat();
 
             if (_Invoke > 0)
             {
@@ -376,6 +376,9 @@ namespace XApi
                 ct2.LogReceive = ct.LogReceive;
                 ct2.StatSend = ct.StatSend;
                 ct2.StatReceive = ct.StatReceive;
+
+                client.StatSend = _Client.StatSend;
+                client.StatReceive = _Client.StatReceive;
 
                 list.Add(client);
             }

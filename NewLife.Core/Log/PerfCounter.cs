@@ -58,8 +58,8 @@ namespace NewLife.Log
         /// <summary>采样间隔，默认1000毫秒</summary>
         public Int32 Interval { get; set; } = 1000;
 
-        /// <summary>持续采样时间，默认30秒</summary>
-        public Int32 Duration { get; set; } = 30;
+        /// <summary>持续采样时间，默认60秒</summary>
+        public Int32 Duration { get; set; } = 60;
 
         /// <summary>最大速度</summary>
         public Int32 Max => _queue.Max();
@@ -70,7 +70,7 @@ namespace NewLife.Log
         /// <summary>当前速度</summary>
         public Int32 Speed { get; private set; }
 
-        private Int32[] _queue = new Int32[30];
+        private Int32[] _queue = new Int32[0];
         private Int32 _queueIndex;
 
         private TimerX _Timer;
