@@ -1,16 +1,11 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using NewLife;
 using NewLife.Log;
 using NewLife.Threading;
-#if !NET4
-using TaskEx = System.Threading.Tasks.Task;
-#endif
 
 namespace XCode.Cache
 {
@@ -180,7 +175,7 @@ namespace XCode.Cache
             public DateTime ExpireTime { get; set; }
 
             /// <summary>是否已经过期</summary>
-            public Boolean Expired { get { return ExpireTime <= TimerX.Now; } }
+            public Boolean Expired => ExpireTime <= TimerX.Now;
 
             public void SetEntity(TEntity entity, Int32 expire)
             {
@@ -349,7 +344,7 @@ namespace XCode.Cache
         /// <summary>根据从键获取实体数据</summary>
         /// <param name="slaveKey"></param>
         /// <returns></returns>
-        public TEntity GetItemWithSlaveKey(String slaveKey) { return GetItem(SlaveEntities, slaveKey); }
+        public TEntity GetItemWithSlaveKey(String slaveKey) => GetItem(SlaveEntities, slaveKey);
 
         private void UpdateData(Object state)
         {
@@ -379,12 +374,12 @@ namespace XCode.Cache
         /// <summary>是否包含指定键</summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public Boolean ContainsKey(TKey key) { return Entities.ContainsKey(key); }
+        public Boolean ContainsKey(TKey key) => Entities.ContainsKey(key);
 
         /// <summary>是否包含指定从键</summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public Boolean ContainsSlaveKey(String key) { return SlaveEntities.ContainsKey(key); }
+        public Boolean ContainsSlaveKey(String key) => SlaveEntities.ContainsKey(key);
 
         /// <summary>向单对象缓存添加项</summary>
         /// <param name="key"></param>
@@ -445,21 +440,21 @@ namespace XCode.Cache
         /// <summary>获取数据</summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        IEntity ISingleEntityCache.this[Object key] { get { return this[(TKey)key]; } }
+        IEntity ISingleEntityCache.this[Object key] => this[(TKey)key];
 
         /// <summary>根据从键获取实体数据</summary>
         /// <param name="slaveKey"></param>
         /// <returns></returns>
-        IEntity ISingleEntityCache.GetItemWithSlaveKey(String slaveKey) { return GetItemWithSlaveKey(slaveKey); }
+        IEntity ISingleEntityCache.GetItemWithSlaveKey(String slaveKey) => GetItemWithSlaveKey(slaveKey);
 
         /// <summary>是否包含指定主键</summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        Boolean ISingleEntityCache.ContainsKey(Object key) { return ContainsKey((TKey)key); }
+        Boolean ISingleEntityCache.ContainsKey(Object key) => ContainsKey((TKey)key);
 
         /// <summary>移除指定项</summary>
         /// <param name="entity"></param>
-        void ISingleEntityCache.Remove(IEntity entity) { Remove(entity as TEntity); }
+        void ISingleEntityCache.Remove(IEntity entity) => Remove(entity as TEntity);
 
         /// <summary>向单对象缓存添加项</summary>
         /// <param name="value">实体对象</param>
@@ -494,10 +489,7 @@ namespace XCode.Cache
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override String ToString()
-        {
-            return "SingleEntityCache<{0}, {1}>[{2}]".F(typeof(TKey).Name, typeof(TEntity).Name, Entities.Count);
-        }
+        public override String ToString() => "SingleEntityCache<{0}, {1}>[{2}]".F(typeof(TKey).Name, typeof(TEntity).Name, Entities.Count);
         #endregion
     }
 }

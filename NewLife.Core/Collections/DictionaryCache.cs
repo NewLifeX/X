@@ -5,9 +5,6 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Threading;
-#if NET4
-using Task = System.Threading.Tasks.TaskEx;
-#endif
 
 namespace NewLife.Collections
 {
@@ -24,6 +21,9 @@ namespace NewLife.Collections
         /// <summary>定时清理时间，默认0秒，表示不清理过期项</summary>
         public Int32 Period { get; set; }
 
+        /// <summary>是否允许缓存控制，避免缓存穿透。默认false</summary>
+        public Boolean AllowNull { get; set; }
+
         /// <summary>查找数据的方法</summary>
         public Func<TKey, TValue> FindMethod { get; set; }
 
@@ -32,17 +32,11 @@ namespace NewLife.Collections
 
         #region 构造
         /// <summary>实例化一个字典缓存</summary>
-        public DictionaryCache()
-        {
-            _cache = new ConcurrentDictionary<TKey, CacheItem>();
-        }
+        public DictionaryCache() => _cache = new ConcurrentDictionary<TKey, CacheItem>();
 
         /// <summary>实例化一个字典缓存</summary>
         /// <param name="comparer"></param>
-        public DictionaryCache(IEqualityComparer<TKey> comparer)
-        {
-            _cache = new ConcurrentDictionary<TKey, CacheItem>(comparer);
-        }
+        public DictionaryCache(IEqualityComparer<TKey> comparer) => _cache = new ConcurrentDictionary<TKey, CacheItem>(comparer);
 
         /// <summary>实例化一个字典缓存</summary>
         /// <param name="findMethod"></param>
@@ -81,7 +75,7 @@ namespace NewLife.Collections
             public DateTime ExpiredTime { get; set; }
 
             /// <summary>是否过期</summary>
-            public Boolean Expired { get { return ExpiredTime <= TimerX.Now; } }
+            public Boolean Expired => ExpiredTime <= TimerX.Now;
 
             public CacheItem(TValue value, Int32 seconds)
             {
@@ -110,7 +104,7 @@ namespace NewLife.Collections
                 if (Expire > 0 && func != null && item.Expired)
                 {
                     // 超时异步更新
-                    Task.Run(() =>
+                    Task.Factory.StartNew(() =>
                     {
                         item.Value = func(key);
                         item.ExpiredTime = TimerX.Now.AddSeconds(Expire);
@@ -125,7 +119,7 @@ namespace NewLife.Collections
             {
                 // 查数据，避免缓存穿透
                 var value = func(key);
-                if (value != null)
+                if (value != null || AllowNull)
                 {
                     // 如果没有添加成功，则返回旧值
                     if (!TryAdd(key, value, false, out var rs)) return rs;
@@ -202,8 +196,7 @@ namespace NewLife.Collections
                 if (func != null)
                 {
                     value = func(key);
-
-                    if (!Equals(value, default(TValue)))
+                    if (value != null || AllowNull)
                     {
                         items[key] = new CacheItem(value, exp);
 
@@ -232,12 +225,12 @@ namespace NewLife.Collections
         #region 辅助
         private Int32 _count;
         /// <summary>缓存项</summary>
-        public Int32 Count { get { return _count; } }
+        public Int32 Count => _count;
 
         /// <summary>是否包含指定键</summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public Boolean ContainsKey(TKey key) { return _cache.ContainsKey(key); }
+        public Boolean ContainsKey(TKey key) => _cache.ContainsKey(key);
 
         /// <summary>赋值到目标缓存</summary>
         /// <param name="cache"></param>
