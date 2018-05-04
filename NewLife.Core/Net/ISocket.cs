@@ -43,10 +43,10 @@ namespace NewLife.Net
         Boolean ProcessAsync { get; set; }
 
         /// <summary>发送统计</summary>
-        IStatistics StatSend { get; set; }
+        PerfCounter StatSend { get; set; }
 
         /// <summary>接收统计</summary>
-        IStatistics StatReceive { get; set; }
+        PerfCounter StatReceive { get; set; }
 
         /// <summary>日志提供者</summary>
         ILog Log { get; set; }
@@ -136,8 +136,8 @@ namespace NewLife.Net
             if (socket == null) return null;
 
             var sb = new StringBuilder();
-            if (socket.StatSend.Total > 0) sb.AppendFormat("发送：{0} ", socket.StatSend);
-            if (socket.StatReceive.Total > 0) sb.AppendFormat("接收：{0} ", socket.StatReceive);
+            if (socket.StatSend.Value > 0) sb.AppendFormat("发送：{0} ", socket.StatSend);
+            if (socket.StatReceive.Value > 0) sb.AppendFormat("接收：{0} ", socket.StatReceive);
 
             return sb.ToString();
         }

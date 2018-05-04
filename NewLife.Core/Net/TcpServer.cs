@@ -60,13 +60,13 @@ namespace NewLife.Net
         public IPipeline Pipeline { get; set; }
 
         /// <summary>会话统计</summary>
-        public IStatistics StatSession { get; set; } = new Statistics();
+        public PerfCounter StatSession { get; set; }
 
         /// <summary>发送统计</summary>
-        public IStatistics StatSend { get; set; } = new Statistics();
+        public PerfCounter StatSend { get; set; }
 
         /// <summary>接收统计</summary>
-        public IStatistics StatReceive { get; set; } = new Statistics();
+        public PerfCounter StatReceive { get; set; }
         #endregion
 
         #region 构造
@@ -104,6 +104,11 @@ namespace NewLife.Net
             if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
             if (Active || Disposed) return;
+
+            // 统计
+            if (StatSession == null) StatSession = new PerfCounter();
+            if (StatSend == null) StatSend = new PerfCounter();
+            if (StatReceive == null) StatReceive = new PerfCounter();
 
             // 开始监听
             //if (Server == null) Server = new TcpListener(Local.EndPoint);
@@ -251,7 +256,7 @@ namespace NewLife.Net
                 //WriteLog("{0}新会话 {1}", this, client.Client.RemoteEndPoint);
                 session.WriteLog("New {0}", session.Remote.EndPoint);
 
-                if (StatSession != null) StatSession.Increment(1);
+                StatSession?.Increment(1);
 
                 NewSession?.Invoke(this, new SessionEventArgs { Session = session });
 
@@ -279,8 +284,8 @@ namespace NewLife.Net
             session.Log = Log;
             session.LogSend = LogSend;
             session.LogReceive = LogReceive;
-            session.StatSend.Parent = StatSend;
-            session.StatReceive.Parent = StatReceive;
+            session.StatSend = StatSend;
+            session.StatReceive = StatReceive;
             session.ProcessAsync = ProcessAsync;
             session.Pipeline = Pipeline;
 

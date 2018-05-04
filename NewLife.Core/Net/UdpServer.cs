@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Data;
+using NewLife.Log;
 using NewLife.Model;
 
 namespace NewLife.Net
@@ -31,7 +32,7 @@ namespace NewLife.Net
         public Boolean Loopback { get; set; }
 
         /// <summary>会话统计</summary>
-        public IStatistics StatSession { get; set; }
+        public PerfCounter StatSession { get; set; }
         #endregion
 
         #region 构造
@@ -42,7 +43,7 @@ namespace NewLife.Net
             Remote.Type = NetType.Udp;
             _Sessions = new SessionCollection(this);
 
-            StatSession = new Statistics();
+            //StatSession = new PerfCounter();
             SessionTimeout = Setting.Current.SessionTimeout;
 
             // 处理UDP最大并发接收
@@ -67,6 +68,8 @@ namespace NewLife.Net
                 {
                     Local.Address = Local.Address.GetRightAny(Remote.Address.AddressFamily);
                 }
+
+                if (StatSession == null) StatSession = new PerfCounter();
 
                 Client = NetHelper.CreateUdp(Local.EndPoint.Address.IsIPv4());
                 Client.Bind(Local.EndPoint);
@@ -319,7 +322,7 @@ namespace NewLife.Net
                     us.ID = Interlocked.Increment(ref g_ID);
                     us.Start();
 
-                    if (StatSession != null) StatSession.Increment(1);
+                    StatSession?.Increment(1);
 
                     // 触发新会话事件
                     NewSession?.Invoke(this, new SessionEventArgs { Session = session });

@@ -374,6 +374,8 @@ namespace XApi
                 ct2.Log = ct.Log;
                 ct2.LogSend = ct.LogSend;
                 ct2.LogReceive = ct.LogReceive;
+                ct2.StatSend = ct.StatSend;
+                ct2.StatReceive = ct.StatReceive;
 
                 list.Add(client);
             }

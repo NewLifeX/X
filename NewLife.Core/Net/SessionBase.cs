@@ -40,10 +40,10 @@ namespace NewLife.Net
         public Boolean ThrowException { get; set; }
 
         /// <summary>发送数据包统计信息</summary>
-        public IStatistics StatSend { get; set; } = new Statistics();
+        public PerfCounter StatSend { get; set; }
 
         /// <summary>接收数据包统计信息</summary>
-        public IStatistics StatReceive { get; set; } = new Statistics();
+        public PerfCounter StatReceive { get; set; }
 
         /// <summary>通信开始时间</summary>
         public DateTime StartTime { get; private set; } = TimerX.Now;
@@ -124,6 +124,10 @@ namespace NewLife.Net
                 var pp = Pipeline;
                 pp?.Open(pp.CreateContext(this));
             }
+
+            // 统计
+            if (StatSend == null) StatSend = new PerfCounter();
+            if (StatReceive == null) StatReceive = new PerfCounter();
 
             ReceiveAsync();
 

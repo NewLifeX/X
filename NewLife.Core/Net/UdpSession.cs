@@ -73,11 +73,11 @@ namespace NewLife.Net
         /// <remarks>异步处理有可能造成数据包乱序，特别是Tcp。false避免拷贝，提升处理速度</remarks>
         public Boolean ProcessAsync { get { return Server.ProcessAsync; } set { Server.ProcessAsync = value; } }
 
-        /// <summary>发送数据包统计信息，默认关闭，通过<see cref="IStatistics.Enable"/>打开。</summary>
-        public IStatistics StatSend { get; set; }
+        /// <summary>发送数据包统计信息</summary>
+        public PerfCounter StatSend { get; set; }
 
-        /// <summary>接收数据包统计信息，默认关闭，通过<see cref="IStatistics.Enable"/>打开。</summary>
-        public IStatistics StatReceive { get; set; }
+        /// <summary>接收数据包统计信息</summary>
+        public PerfCounter StatReceive { get; set; }
 
         /// <summary>通信开始时间</summary>
         public DateTime StartTime { get; private set; }
