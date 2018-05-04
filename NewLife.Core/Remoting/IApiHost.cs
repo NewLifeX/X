@@ -147,7 +147,8 @@ namespace NewLife.Remoting
                 var len = pk2.Total;
 
                 // 不管有没有附加数据，都会写入长度
-                ms.WriteEncodedInt(len);
+                //ms.WriteEncodedInt(len);
+                writer.Write(len);
             }
 
             var pk = new Packet(ms.GetBuffer(), 4, (Int32)ms.Length - 4);
@@ -190,7 +191,8 @@ namespace NewLife.Remoting
             // 参数或结果
             if (ms.Length > ms.Position)
             {
-                var len = ms.ReadEncodedInt();
+                //var len = ms.ReadEncodedInt();
+                var len = reader.ReadInt32();
                 if (len > 0) value = msg.Payload.Sub((Int32)ms.Position, len);
             }
 

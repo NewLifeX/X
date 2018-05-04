@@ -72,7 +72,7 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public Packet Encrypt(Packet data)
         {
-            Log.XTrace.WriteLine("加密数据{0:n0}字节", data.Total);
+            //Log.XTrace.WriteLine("加密数据{0:n0}字节", data.Total);
 
             var buf = Security.RC4.Encrypt(data.ToArray(), "NewLife".GetBytes());
 
