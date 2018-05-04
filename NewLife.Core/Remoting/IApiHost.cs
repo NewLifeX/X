@@ -132,7 +132,7 @@ namespace NewLife.Remoting
         public static Packet Encode(String action, Int32 code, Packet value)
         {
             var ms = new MemoryStream();
-            ms.Seek(4, SeekOrigin.Begin);
+            ms.Seek(8, SeekOrigin.Begin);
 
             // 请求：action + args
             // 响应：action + code + result
@@ -151,7 +151,7 @@ namespace NewLife.Remoting
                 writer.Write(len);
             }
 
-            var pk = new Packet(ms.GetBuffer(), 4, (Int32)ms.Length - 4);
+            var pk = new Packet(ms.GetBuffer(), 8, (Int32)ms.Length - 8);
             if (pk2 != null) pk.Next = pk2;
 
             return pk;
