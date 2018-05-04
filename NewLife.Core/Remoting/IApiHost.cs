@@ -135,10 +135,10 @@ namespace NewLife.Remoting
             ms.Seek(4, SeekOrigin.Begin);
 
             // 请求：action + args
-            // 响应：code + action + result
+            // 响应：action + code + result
             var writer = new BinaryWriter(ms);
-            if (code != 0) writer.Write(code);
             writer.Write(action);
+            if (code != 0) writer.Write(code);
 
             // 参数或结果
             var pk2 = value as Packet;
@@ -180,12 +180,12 @@ namespace NewLife.Remoting
             value = null;
 
             // 请求：action + args
-            // 响应：code + action + result
+            // 响应：action + code + result
             var ms = msg.Payload.GetStream();
             var reader = new BinaryReader(ms);
 
-            if (msg.Reply && msg is DefaultMessage dm && dm.Error) code = reader.ReadInt32();
             action = reader.ReadString();
+            if (msg.Reply && msg is DefaultMessage dm && dm.Error) code = reader.ReadInt32();
             if (action.IsNullOrEmpty()) return false;
 
             // 参数或结果
