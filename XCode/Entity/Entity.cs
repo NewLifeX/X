@@ -1352,15 +1352,21 @@ namespace XCode
         /// <param name="find">查找函数</param>
         /// <param name="create">创建对象</param>
         /// <returns></returns>
-        protected static TEntity GetOrAdd<TKey>(TKey key, Func<TKey, Boolean, TEntity> find, Func<TKey, TEntity> create)
+        protected static TEntity GetOrAdd<TKey>(TKey key, Func<TKey, Boolean, TEntity> find = null, Func<TKey, TEntity> create = null)
         {
             if (key == null) return null;
 
-            var entity = find(key, true);
+            var entity = find != null ? find(key, true) : FindByKey(key);
             // 查不到时新建
             if (entity == null)
             {
-                entity = create != null ? create(key) : new TEntity();
+                if (create != null)
+                    entity = create(key);
+                else
+                {
+                    entity = new TEntity();
+                    entity[Meta.Factory.Unique.Name] = key;
+                }
 
                 // 插入失败时，再次查询
                 try
@@ -1369,7 +1375,7 @@ namespace XCode
                 }
                 catch (Exception ex)
                 {
-                    entity = find(key, false);
+                    entity = find != null ? find(key, false) : FindByKey(key);
                     if (entity == null) throw ex.GetTrue();
                 }
             }

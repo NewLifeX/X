@@ -166,9 +166,35 @@ namespace XCode
             /// <summary>返回总记录数</summary>
             /// <param name="where">条件，不带Where</param>
             /// <returns>总行数</returns>
-            public virtual Int64 FindCount(Expression where)
+            public virtual Int64 FindCount(Expression where) => Entity<TEntity>.FindCount(where);
+            #endregion
+
+            #region 高并发
+            /// <summary>获取 或 新增 对象，常用于统计等高并发更新的情况，一般配合SaveAsync</summary>
+            /// <typeparam name="TKey"></typeparam>
+            /// <param name="key">业务主键</param>
+            /// <param name="find">查找函数</param>
+            /// <param name="create">创建对象</param>
+            /// <returns></returns>
+            public virtual IEntity GetOrAdd<TKey>(TKey key, Func<TKey, Boolean, IEntity> find = null, Func<TKey, IEntity> create = null)
             {
-                return Entity<TEntity>.FindCount(where);
+                if (find != null)
+                {
+                    if (create != null)
+                        return Entity<TEntity>.GetOrAdd(key, (k, b) => find(k, b) as TEntity, k => create(k) as TEntity);
+                    else
+                        return Entity<TEntity>.GetOrAdd(key, (k, b) => find(k, b) as TEntity, null);
+                }
+                else
+                {
+                    if (create != null)
+                        return Entity<TEntity>.GetOrAdd(key, null, k => create(k) as TEntity);
+                    else
+                        return Entity<TEntity>.GetOrAdd(key, null, null);
+                }
+                //return Entity<TEntity>.GetOrAdd(key,
+                //    (k, b) => find?.Invoke(k, b) as TEntity,
+                //    k => create?.Invoke(k) as TEntity);
             }
             #endregion
 

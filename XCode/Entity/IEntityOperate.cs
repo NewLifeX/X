@@ -149,6 +149,16 @@ namespace XCode
         Int64 FindCount(Expression where);
         #endregion
 
+        #region 高并发
+        /// <summary>获取 或 新增 对象，常用于统计等高并发更新的情况，一般配合SaveAsync</summary>
+        /// <typeparam name="TKey"></typeparam>
+        /// <param name="key">业务主键</param>
+        /// <param name="find">查找函数</param>
+        /// <param name="create">创建对象</param>
+        /// <returns></returns>
+        IEntity GetOrAdd<TKey>(TKey key, Func<TKey, Boolean, IEntity> find = null, Func<TKey, IEntity> create = null);
+        #endregion
+
         #region 事务
         /// <summary>开始事务</summary>
         /// <returns></returns>

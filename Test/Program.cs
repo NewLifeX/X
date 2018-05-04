@@ -143,17 +143,29 @@ namespace Test
         {
             //ApiTest.Main();
 
-            var buf = Rand.NextBytes(100 * 1024);
-            var msg = new DefaultMessage { Payload = new Packet(buf) };
-            var pk = msg.ToPacket();
-            Console.WriteLine(pk);
+            var key = "xxx";
+            var v = Rand.NextBytes(32);
+            Console.WriteLine(v.ToBase64());
 
-            buf = pk.ToArray();
-            Console.WriteLine(buf.ToHex("-", 8, 32));
+            var ch = new DbCache();
+            ch.Set(key, v);
+            v = ch.Get<Byte[]>(key);
+            Console.WriteLine(v.ToBase64());
+            ch.Remove(key);
 
-            var msg2 = new DefaultMessage();
-            msg2.Read(buf);
-            Console.WriteLine(msg2);
+            ch.Bench(true);
+
+            //var buf = Rand.NextBytes(100 * 1024);
+            //var msg = new DefaultMessage { Payload = new Packet(buf) };
+            //var pk = msg.ToPacket();
+            //Console.WriteLine(pk);
+
+            //buf = pk.ToArray();
+            //Console.WriteLine(buf.ToHex("-", 8, 32));
+
+            //var msg2 = new DefaultMessage();
+            //msg2.Read(buf);
+            //Console.WriteLine(msg2);
 
             //var client = new ApiClient("tcp://127.0.0.1:7788");
             //client.Log = XTrace.Log;
@@ -170,19 +182,19 @@ namespace Test
 
             //PerformanceCounterCategory.Create("新生命", "新生命项目性能测试示例", PerformanceCounterCategoryType.MultiInstance, ccdc);
 
-            Task.Run(() => Test6());
+            //Task.Run(() => Test6());
 
-            //var pcc = new PerformanceCounterCategory(".NET CLR Memory");
-            var p = Process.GetCurrentProcess();
-            //var instance2 = GetInstanceName(".NET CLR Memory", "Process ID", p);
-            //var pc = new PerformanceCounter(".NET CLR Memory", "% Time in GC", instance2);
-            var pc = new PerformanceCounter("新生命", "示例", p.Id + "");
-            //Console.WriteLine(pc);
-            for (var i = 0; i < 1000; i++)
-            {
-                Console.Title = $"GC={pc.RawValue:n0}";
-                Thread.Sleep(1000);
-            }
+            ////var pcc = new PerformanceCounterCategory(".NET CLR Memory");
+            //var p = Process.GetCurrentProcess();
+            ////var instance2 = GetInstanceName(".NET CLR Memory", "Process ID", p);
+            ////var pc = new PerformanceCounter(".NET CLR Memory", "% Time in GC", instance2);
+            //var pc = new PerformanceCounter("新生命", "示例", p.Id + "");
+            ////Console.WriteLine(pc);
+            //for (var i = 0; i < 1000; i++)
+            //{
+            //    Console.Title = $"GC={pc.RawValue:n0}";
+            //    Thread.Sleep(1000);
+            //}
         }
 
         static void Test6()
