@@ -62,14 +62,16 @@ namespace NewLife.Log
         public Int32 Duration { get; set; } = 30;
 
         /// <summary>最大速度</summary>
-        public Int32 Max { get; private set; }
+        public Int32 Max => _queue.Max();
+
+        /// <summary>平均速度</summary>
+        public Int32 Average => (Int32)_queue.Average();
 
         /// <summary>当前速度</summary>
         public Int32 Speed { get; private set; }
 
-        private Int32[] _queue;
+        private Int32[] _queue = new Int32[30];
         private Int32 _queueIndex;
-        private Int32 _queueCount;
 
         private TimerX _Timer;
         private Stopwatch _sw;
@@ -79,13 +81,8 @@ namespace NewLife.Log
             // 计算采样次数
             var times = Duration * 1000 / Interval;
 
-            if (_queue == null) _queue = new Int32[times];
-
-            //var ti = new Item
-            //{
-            //    Value = Value,
-            //    Ticks = Stopwatch.GetTimestamp()
-            //};
+            var arr = _queue;
+            if (arr == null || arr.Length != times) _queue = arr = new Int32[times];
 
             var val = Value;
 
@@ -104,23 +101,10 @@ namespace NewLife.Log
             Speed = sp;
 
             // 进入队列
-            var len = _queue.Length;
+            var len = arr.Length;
             if (_queueIndex >= len) _queueIndex = 0;
-            _queue[_queueIndex++] = sp;
-            if (_queueCount < len)
-                _queueCount++;
-            else
-                _queueCount = len;
-
-            // 最大速度
-            Max = _queue.Max();
+            arr[_queueIndex++] = sp;
         }
-
-        //class Item
-        //{
-        //    public Int64 Ticks;
-        //    public Int32 Value;
-        //}
         #endregion
 
         #region 辅助

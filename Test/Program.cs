@@ -227,7 +227,7 @@ namespace Test
                     var n = Rand.Next(1500);
                     pf.Increment(n);
 
-                    Thread.Sleep(Rand.Next(100, 3000));
+                    Thread.Sleep(Rand.Next(10, 300));
                 }
             });
 
