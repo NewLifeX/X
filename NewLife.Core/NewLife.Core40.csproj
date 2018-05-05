@@ -256,7 +256,6 @@
     <Compile Include="Serialization\Json\JsonGeneral.cs" />
     <Compile Include="Serialization\Json\JsonArray.cs" />
     <Compile Include="Serialization\Json\IJson.cs" />
-    <Compile Include="Serialization\Json\JsonIgnoreAttribute.cs" />
     <Compile Include="Serialization\Json\JsonParser.cs" />
     <Compile Include="Serialization\Json\JsonReader.cs" />
     <Compile Include="Serialization\Json\JsonTest.cs" />

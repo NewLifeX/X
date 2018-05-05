@@ -34,13 +34,11 @@
     <Compile Include="..\NewLife.Core\Applications\IP\Zip.cs" Link="Applications\IP\Zip.cs" />
     <Compile Include="..\NewLife.Core\Caching\Cache.cs" Link="Caching\Cache.cs" />
     <Compile Include="..\NewLife.Core\Caching\CacheLock.cs" Link="Caching\CacheLock.cs" />
-    <Compile Include="..\NewLife.Core\Caching\CacheSetting.cs" Link="Caching\CacheSetting.cs" />
     <Compile Include="..\NewLife.Core\Caching\ICache.cs" Link="Caching\ICache.cs" />
     <Compile Include="..\NewLife.Core\Caching\IProducerConsumer.cs" Link="Caching\IProducerConsumer.cs" />
     <Compile Include="..\NewLife.Core\Caching\MemoryCache.cs" Link="Caching\MemoryCache.cs" />
     <Compile Include="..\NewLife.Core\Caching\Redis.cs" Link="Caching\Redis.cs" />
     <Compile Include="..\NewLife.Core\Caching\RedisClient.cs" Link="Caching\RedisClient.cs" />
-    <Compile Include="..\NewLife.Core\Caching\RedisLock.cs" Link="Caching\RedisLock.cs" />
     <Compile Include="..\NewLife.Core\Collections\CollectionHelper.cs" Link="Collections\CollectionHelper.cs" />
     <Compile Include="..\NewLife.Core\Collections\ConcurrentHashSet.cs" Link="Collections\ConcurrentHashSet.cs" />
     <Compile Include="..\NewLife.Core\Collections\DictionaryCache.cs" Link="Collections\DictionaryCache.cs" />
@@ -58,6 +56,11 @@
     <Compile Include="..\NewLife.Core\Compression\ZipException.cs" Link="Compression\ZipException.cs" />
     <Compile Include="..\NewLife.Core\Compression\ZipFile.cs" Link="Compression\ZipFile.cs" />
     <Compile Include="..\NewLife.Core\Data\BinaryTree.cs" Link="Data\BinaryTree.cs" />
+    <Compile Include="..\NewLife.Core\Data\GeoAddress.cs" Link="Data\GeoAddress.cs" />
+    <Compile Include="..\NewLife.Core\Data\GeoArea.cs" Link="Data\GeoArea.cs" />
+    <Compile Include="..\NewLife.Core\Data\GeoPoint.cs" Link="Data\GeoPoint.cs" />
+    <Compile Include="..\NewLife.Core\Data\IData.cs" Link="Data\IData.cs" />
+    <Compile Include="..\NewLife.Core\Data\IExtend.cs" Link="Data\IExtend.cs" />
     <Compile Include="..\NewLife.Core\Data\IFilter.cs" Link="Data\IFilter.cs" />
     <Compile Include="..\NewLife.Core\Data\Packet.cs" Link="Data\Packet.cs" />
     <Compile Include="..\NewLife.Core\Data\PageParameter.cs" Link="Data\PageParameter.cs" />
@@ -72,12 +75,10 @@
     <Compile Include="..\NewLife.Core\Extension\SpeakProvider.cs" Link="Extension\SpeakProvider.cs" />
     <Compile Include="..\NewLife.Core\Extension\StringHelper.cs" Link="Extension\StringHelper.cs" />
     <Compile Include="..\NewLife.Core\Http\HttpBase.cs" Link="Http\HttpBase.cs" />
-    <Compile Include="..\NewLife.Core\Http\HttpClient.cs" Link="Http\HttpClient.cs" />
     <Compile Include="..\NewLife.Core\Http\HttpHelper.cs" Link="Http\HttpHelper.cs" />
     <Compile Include="..\NewLife.Core\Http\HttpRequest.cs" Link="Http\HttpRequest.cs" />
     <Compile Include="..\NewLife.Core\Http\HttpResponse.cs" Link="Http\HttpResponse.cs" />
     <Compile Include="..\NewLife.Core\Http\HttpServer.cs" Link="Http\HttpServer.cs" />
-    <Compile Include="..\NewLife.Core\Http\HttpSession.cs" Link="Http\HttpSession.cs" />
     <Compile Include="..\NewLife.Core\Http\TinyHttpClient.cs" Link="Http\TinyHttpClient.cs" />
     <Compile Include="..\NewLife.Core\IO\EncodingHelper.cs" Link="IO\EncodingHelper.cs" />
     <Compile Include="..\NewLife.Core\IO\IOHelper.cs" Link="IO\IOHelper.cs" />
@@ -90,6 +91,7 @@
     <Compile Include="..\NewLife.Core\Log\Logger.cs" Link="Log\Logger.cs" />
     <Compile Include="..\NewLife.Core\Log\LogLevel.cs" Link="Log\LogLevel.cs" />
     <Compile Include="..\NewLife.Core\Log\NetworkLog.cs" Link="Log\NetworkLog.cs" />
+    <Compile Include="..\NewLife.Core\Log\PerfCounter.cs" Link="Log\PerfCounter.cs" />
     <Compile Include="..\NewLife.Core\Log\TextFileLog.cs" Link="Log\TextFileLog.cs" />
     <Compile Include="..\NewLife.Core\Log\TimeCost.cs" Link="Log\TimeCost.cs" />
     <Compile Include="..\NewLife.Core\Log\TraceStream.cs" Link="Log\TraceStream.cs" />
@@ -110,15 +112,18 @@
     <Compile Include="..\NewLife.Core\Model\ModelExtension.cs" Link="Model\ModelExtension.cs" />
     <Compile Include="..\NewLife.Core\Model\ObjectContainer.cs" Link="Model\ObjectContainer.cs" />
     <Compile Include="..\NewLife.Core\Model\ObjectContainerHelper.cs" Link="Model\ObjectContainerHelper.cs" />
-    <Compile Include="..\NewLife.Core\Net\DefaultPacket.cs" Link="Net\DefaultPacket.cs" />
+    <Compile Include="..\NewLife.Core\Net\Handlers\IHandler.cs" Link="Net\Handlers\IHandler.cs" />
+    <Compile Include="..\NewLife.Core\Net\Handlers\IHandlerContext.cs" Link="Net\Handlers\IHandlerContext.cs" />
+    <Compile Include="..\NewLife.Core\Net\Handlers\IMatchQueue.cs" Link="Net\Handlers\IMatchQueue.cs" />
+    <Compile Include="..\NewLife.Core\Net\Handlers\LengthFieldCodec.cs" Link="Net\Handlers\LengthFieldCodec.cs" />
+    <Compile Include="..\NewLife.Core\Net\Handlers\MessageCodec.cs" Link="Net\Handlers\MessageCodec.cs" />
+    <Compile Include="..\NewLife.Core\Net\Handlers\StandardCodec.cs" Link="Net\Handlers\StandardCodec.cs" />
     <Compile Include="..\NewLife.Core\Net\INetSession.cs" Link="Net\INetSession.cs" />
-    <Compile Include="..\NewLife.Core\Net\IPacket.cs" Link="Net\IPacket.cs" />
-    <Compile Include="..\NewLife.Core\Net\IPacketQueue.cs" Link="Net\IPacketQueue.cs" />
+    <Compile Include="..\NewLife.Core\Net\IPipeline.cs" Link="Net\IPipeline.cs" />
     <Compile Include="..\NewLife.Core\Net\ISocket.cs" Link="Net\ISocket.cs" />
     <Compile Include="..\NewLife.Core\Net\ISocketClient.cs" Link="Net\ISocketClient.cs" />
     <Compile Include="..\NewLife.Core\Net\ISocketServer.cs" Link="Net\ISocketServer.cs" />
     <Compile Include="..\NewLife.Core\Net\ISocketSession.cs" Link="Net\ISocketSession.cs" />
-    <Compile Include="..\NewLife.Core\Net\IStatistics.cs" Link="Net\IStatistics.cs" />
     <Compile Include="..\NewLife.Core\Net\ITransport.cs" Link="Net\ITransport.cs" />
     <Compile Include="..\NewLife.Core\Net\NetException.cs" Link="Net\NetException.cs" />
     <Compile Include="..\NewLife.Core\Net\NetHelper.cs" Link="Net\NetHelper.cs" />
@@ -126,60 +131,39 @@
     <Compile Include="..\NewLife.Core\Net\NetSession.cs" Link="Net\NetSession.cs" />
     <Compile Include="..\NewLife.Core\Net\NetUri.cs" Link="Net\NetUri.cs" />
     <Compile Include="..\NewLife.Core\Net\ReceivedEventArgs.cs" Link="Net\ReceivedEventArgs.cs" />
-    <Compile Include="..\NewLife.Core\Net\SendQueue.cs" Link="Net\SendQueue.cs" />
     <Compile Include="..\NewLife.Core\Net\SessionBase.cs" Link="Net\SessionBase.cs" />
     <Compile Include="..\NewLife.Core\Net\SessionCollection.cs" Link="Net\SessionCollection.cs" />
     <Compile Include="..\NewLife.Core\Net\Setting.cs" Link="Net\Setting.cs" />
     <Compile Include="..\NewLife.Core\Net\SocketHelper.cs" Link="Net\SocketHelper.cs" />
-    <Compile Include="..\NewLife.Core\Net\Statistics.cs" Link="Net\Statistics.cs" />
     <Compile Include="..\NewLife.Core\Net\TcpServer.cs" Link="Net\TcpServer.cs" />
     <Compile Include="..\NewLife.Core\Net\TcpSession.cs" Link="Net\TcpSession.cs" />
     <Compile Include="..\NewLife.Core\Net\UdpServer.cs" Link="Net\UdpServer.cs" />
     <Compile Include="..\NewLife.Core\Net\UdpSession.cs" Link="Net\UdpSession.cs" />
     <Compile Include="..\NewLife.Core\Net\Upgrade.cs" Link="Net\Upgrade.cs" />
-    <Compile Include="..\NewLife.Core\Net\WebSocketSession.cs" Link="Net\WebSocketSession.cs" />
     <Compile Include="..\NewLife.Core\Reflection\AssemblyX.cs" Link="Reflection\AssemblyX.cs" />
     <Compile Include="..\NewLife.Core\Reflection\AttributeX.cs" Link="Reflection\AttributeX.cs" />
     <Compile Include="..\NewLife.Core\Reflection\IIndexAccessor.cs" Link="Reflection\IIndexAccessor.cs" />
     <Compile Include="..\NewLife.Core\Reflection\IReflect.cs" Link="Reflection\IReflect.cs" />
     <Compile Include="..\NewLife.Core\Reflection\OrcasNamer.cs" Link="Reflection\OrcasNamer.cs" />
     <Compile Include="..\NewLife.Core\Reflection\Reflect.cs" Link="Reflection\Reflect.cs" />
-    <Compile Include="..\NewLife.Core\Remoting\AllowAnonymousAttribute.cs" Link="Remoting\AllowAnonymousAttribute.cs" />
     <Compile Include="..\NewLife.Core\Remoting\ApiAction.cs" Link="Remoting\ApiAction.cs" />
     <Compile Include="..\NewLife.Core\Remoting\ApiAttribute.cs" Link="Remoting\ApiAttribute.cs" />
     <Compile Include="..\NewLife.Core\Remoting\ApiClient.cs" Link="Remoting\ApiClient.cs" />
     <Compile Include="..\NewLife.Core\Remoting\ApiException.cs" Link="Remoting\ApiException.cs" />
     <Compile Include="..\NewLife.Core\Remoting\ApiHost.cs" Link="Remoting\ApiHost.cs" />
-    <Compile Include="..\NewLife.Core\Remoting\ApiHttpClient.cs" Link="Remoting\ApiHttpClient.cs" />
-    <Compile Include="..\NewLife.Core\Remoting\ApiHttpServer.cs" Link="Remoting\ApiHttpServer.cs" />
-    <Compile Include="..\NewLife.Core\Remoting\ApiNetClient.cs" Link="Remoting\ApiNetClient.cs" />
     <Compile Include="..\NewLife.Core\Remoting\ApiNetServer.cs" Link="Remoting\ApiNetServer.cs" />
     <Compile Include="..\NewLife.Core\Remoting\ApiServer.cs" Link="Remoting\ApiServer.cs" />
     <Compile Include="..\NewLife.Core\Remoting\ApiTest.cs" Link="Remoting\ApiTest.cs" />
     <Compile Include="..\NewLife.Core\Remoting\Controllers\ApiController.cs" Link="Remoting\Controllers\ApiController.cs" />
-    <Compile Include="..\NewLife.Core\Remoting\Controllers\ApiSession.cs" Link="Remoting\Controllers\ApiSession.cs" />
-    <Compile Include="..\NewLife.Core\Remoting\Filters\ActionExecutedContext.cs" Link="Remoting\Filters\ActionExecutedContext.cs" />
-    <Compile Include="..\NewLife.Core\Remoting\Filters\ActionExecutingContext.cs" Link="Remoting\Filters\ActionExecutingContext.cs" />
-    <Compile Include="..\NewLife.Core\Remoting\Filters\ActionFilterAttribute.cs" Link="Remoting\Filters\ActionFilterAttribute.cs" />
-    <Compile Include="..\NewLife.Core\Remoting\Filters\ApiFilterContext.cs" Link="Remoting\Filters\ApiFilterContext.cs" />
     <Compile Include="..\NewLife.Core\Remoting\Filters\ControllerContext.cs" Link="Remoting\Filters\ControllerContext.cs" />
-    <Compile Include="..\NewLife.Core\Remoting\Filters\DeflateFilter.cs" Link="Remoting\Filters\DeflateFilter.cs" />
-    <Compile Include="..\NewLife.Core\Remoting\Filters\ExceptionContext.cs" Link="Remoting\Filters\ExceptionContext.cs" />
-    <Compile Include="..\NewLife.Core\Remoting\Filters\FilterAttribute.cs" Link="Remoting\Filters\FilterAttribute.cs" />
-    <Compile Include="..\NewLife.Core\Remoting\Filters\GlobalFilters.cs" Link="Remoting\Filters\GlobalFilters.cs" />
-    <Compile Include="..\NewLife.Core\Remoting\Filters\HandleErrorAttribute.cs" Link="Remoting\Filters\HandleErrorAttribute.cs" />
     <Compile Include="..\NewLife.Core\Remoting\Filters\IActionFilter.cs" Link="Remoting\Filters\IActionFilter.cs" />
-    <Compile Include="..\NewLife.Core\Remoting\Filters\IExceptionFilter.cs" Link="Remoting\Filters\IExceptionFilter.cs" />
-    <Compile Include="..\NewLife.Core\Remoting\Filters\RC4Filter.cs" Link="Remoting\Filters\RC4Filter.cs" />
     <Compile Include="..\NewLife.Core\Remoting\IApi.cs" Link="Remoting\IApi.cs" />
-    <Compile Include="..\NewLife.Core\Remoting\IApiClient.cs" Link="Remoting\IApiClient.cs" />
     <Compile Include="..\NewLife.Core\Remoting\IApiHandler.cs" Link="Remoting\IApiHandler.cs" />
     <Compile Include="..\NewLife.Core\Remoting\IApiHost.cs" Link="Remoting\IApiHost.cs" />
     <Compile Include="..\NewLife.Core\Remoting\IApiManager.cs" Link="Remoting\IApiManager.cs" />
     <Compile Include="..\NewLife.Core\Remoting\IApiServer.cs" Link="Remoting\IApiServer.cs" />
     <Compile Include="..\NewLife.Core\Remoting\IApiSession.cs" Link="Remoting\IApiSession.cs" />
     <Compile Include="..\NewLife.Core\Remoting\IEncoder.cs" Link="Remoting\IEncoder.cs" />
-    <Compile Include="..\NewLife.Core\Remoting\IUserSession.cs" Link="Remoting\IUserSession.cs" />
     <Compile Include="..\NewLife.Core\Remoting\JsonEncoder.cs" Link="Remoting\JsonEncoder.cs" />
     <Compile Include="..\NewLife.Core\Security\Crc16.cs" Link="Security\Crc16.cs" />
     <Compile Include="..\NewLife.Core\Security\Crc32.cs" Link="Security\Crc32.cs" />
@@ -187,6 +171,8 @@
     <Compile Include="..\NewLife.Core\Security\Rand.cs" Link="Security\Rand.cs" />
     <Compile Include="..\NewLife.Core\Security\RC4.cs" Link="Security\RC4.cs" />
     <Compile Include="..\NewLife.Core\Security\SecurityHelper.cs" Link="Security\SecurityHelper.cs" />
+    <Compile Include="..\NewLife.Core\Serialization\BinaryCodec.cs" Link="Serialization\BinaryCodec.cs" />
+    <Compile Include="..\NewLife.Core\Serialization\BinaryCodec2.cs" Link="Serialization\BinaryCodec2.cs" />
     <Compile Include="..\NewLife.Core\Serialization\Binary\Binary.cs" Link="Serialization\Binary\Binary.cs" />
     <Compile Include="..\NewLife.Core\Serialization\Binary\BinaryComposite.cs" Link="Serialization\Binary\BinaryComposite.cs" />
     <Compile Include="..\NewLife.Core\Serialization\Binary\BinaryDictionary.cs" Link="Serialization\Binary\BinaryDictionary.cs" />
@@ -200,6 +186,8 @@
     <Compile Include="..\NewLife.Core\Serialization\Interface\IAccessor.cs" Link="Serialization\Interface\IAccessor.cs" />
     <Compile Include="..\NewLife.Core\Serialization\Interface\IFormatterX.cs" Link="Serialization\Interface\IFormatterX.cs" />
     <Compile Include="..\NewLife.Core\Serialization\Interface\IMemberAccessor.cs" Link="Serialization\Interface\IMemberAccessor.cs" />
+    <Compile Include="..\NewLife.Core\Serialization\JsonCodec.cs" Link="Serialization\JsonCodec.cs" />
+    <Compile Include="..\NewLife.Core\Serialization\JsonCodec2.cs" Link="Serialization\JsonCodec2.cs" />
     <Compile Include="..\NewLife.Core\Serialization\Json\IJson.cs" Link="Serialization\Json\IJson.cs" />
     <Compile Include="..\NewLife.Core\Serialization\Json\IJsonHost.cs" Link="Serialization\Json\IJsonHost.cs" />
     <Compile Include="..\NewLife.Core\Serialization\Json\Json.cs" Link="Serialization\Json\Json.cs" />
@@ -255,7 +243,7 @@
     <Folder Include="Log\" />
     <Folder Include="Messaging\" />
     <Folder Include="Model\" />
-    <Folder Include="Net\" />
+    <Folder Include="Net\Handlers\" />
     <Folder Include="Remoting\" />
     <Folder Include="Remoting\Controllers\" />
     <Folder Include="Remoting\Filters\" />

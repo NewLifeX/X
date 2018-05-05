@@ -5,8 +5,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
+using System.Web.Script.Serialization;
 using System.Xml.Serialization;
-using NewLife.Serialization;
 
 namespace NewLife.Reflection
 {
@@ -377,7 +377,7 @@ namespace NewLife.Reflection
             {
                 if (pi.GetIndexParameters().Length > 0) continue;
                 if (pi.GetCustomAttribute<XmlIgnoreAttribute>() != null) continue;
-                if (pi.GetCustomAttribute<JsonIgnoreAttribute>() != null) continue;
+                if (pi.GetCustomAttribute<ScriptIgnoreAttribute>() != null) continue;
 
                 if (!set.Contains(pi.Name))
                 {
