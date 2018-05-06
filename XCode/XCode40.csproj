@@ -88,11 +88,6 @@
     <Compile Include="Cache\FieldCache.cs" />
     <Compile Include="Extension\数据缓存.Biz.cs" />
     <Compile Include="Extension\数据缓存.cs" />
-    <Compile Include="Extension\生成实体类.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>生成实体类.tt</DependentUpon>
-    </Compile>
     <Compile Include="Membership\LogEntity.cs" />
     <Compile Include="Membership\IManageProvider.cs" />
     <Compile Include="Membership\MenuProvider.cs" />
