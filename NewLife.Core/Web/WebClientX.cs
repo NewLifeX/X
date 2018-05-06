@@ -176,9 +176,17 @@ namespace NewLife.Web
                         break;
                 }
 
-                var buf = rs.GetResponseStream().ReadBytes();
+                var ms = new MemoryStream();
+                var ns = rs.GetResponseStream();
 
-                return buf;
+                ns.CopyTo(ms);
+                while (rs.ContentLength > 0 && ms.Length < rs.ContentLength)
+                {
+                    Thread.Sleep(10);
+                    ns.CopyTo(ms);
+                }
+
+                return ms.ToArray();
             }
         }
 
