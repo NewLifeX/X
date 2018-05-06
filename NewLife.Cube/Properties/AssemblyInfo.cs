@@ -10,7 +10,7 @@ using NewLife.Cube;
 [assembly: AssemblyTitle("魔方平台")]
 [assembly: AssemblyDescription("Mvc权限管理后台，支持模版视图重载覆盖")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyProduct("NewLife.Admin")]
+[assembly: AssemblyProduct("NewLife.Cube")]
 [assembly: AssemblyCompany("新生命开发团队")]
 [assembly: AssemblyCopyright("©2002-2018 新生命开发团队 http://git.newlifex.com/NewLife/X/Tree/master/NewLife.Cube")]
 [assembly: AssemblyTrademark("四叶草")]

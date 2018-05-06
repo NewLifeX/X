@@ -317,6 +317,9 @@
     <Compile Include="..\NewLife.Cube\Precompiled\ViewPathProvider.cs">
       <Link>Precompiled\ViewPathProvider.cs</Link>
     </Compile>
+    <Compile Include="..\NewLife.Cube\Properties\AssemblyInfo.cs">
+      <Link>Properties\AssemblyInfo.cs</Link>
+    </Compile>
     <Compile Include="..\NewLife.Cube\Setting.cs">
       <Link>Setting.cs</Link>
     </Compile>
@@ -422,7 +425,6 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\NewLife.Cube\Areas\Admin\Views\Db\Index.cshtml">

@@ -5,6 +5,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Net.Handlers;
+#if !NET4
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 namespace NewLife.Net
 {
@@ -251,7 +254,7 @@ namespace NewLife.Net
             var source = new TaskCompletionSource<Object>();
             ctx["TaskSource"] = source;
 
-            if (!OnFireWrite(ctx, message)) return Task.FromResult((Object)null);
+            if (!OnFireWrite(ctx, message)) return TaskEx.FromResult((Object)null);
 
             return source.Task;
         }

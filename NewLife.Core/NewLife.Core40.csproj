@@ -110,7 +110,6 @@
     <Compile Include="Http\HttpRequest.cs" />
     <Compile Include="Http\HttpResponse.cs" />
     <Compile Include="Http\HttpServer.cs" />
-    <Compile Include="Http\TinyHttpClient.cs" />
     <Compile Include="IO\EncodingHelper.cs" />
     <Compile Include="IO\PathHelper.cs" />
     <Compile Include="Json\JsonConfig.cs" />

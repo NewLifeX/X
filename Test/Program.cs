@@ -6,18 +6,13 @@ using System.IO.MemoryMappedFiles;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Caching;
-using NewLife.Data;
 using NewLife.Log;
-using NewLife.Messaging;
 using NewLife.Net;
 using NewLife.Net.Application;
 using NewLife.Net.Handlers;
-using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
-using NewLife.Web;
 using XCode.DataAccessLayer;
-using XCode.Membership;
 
 namespace Test
 {
