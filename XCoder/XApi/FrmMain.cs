@@ -16,6 +16,9 @@ using NewLife.Serialization;
 using NewLife.Threading;
 using NewLife.Windows;
 using XCoder;
+#if !NET4
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 namespace XApi
 {
@@ -386,7 +389,7 @@ namespace XApi
             var sw = Stopwatch.StartNew();
             var ts = list.Select(k => OnSend(k, rtype, action, args, count, sleep)).ToList();
 
-            await Task.WhenAll(ts);
+            await TaskEx.WhenAll(ts);
             sw.Stop();
             _TotalCost = sw.Elapsed.TotalMilliseconds;
         }
@@ -424,7 +427,7 @@ namespace XApi
                 var ts = new List<Task>();
                 for (var i = 0; i < count; i++)
                 {
-                    ts.Add(Task.Run(async () =>
+                    ts.Add(TaskEx.Run(async () =>
                     {
                         try
                         {
@@ -442,7 +445,7 @@ namespace XApi
                     }));
                 }
 
-                await Task.WhenAll(ts);
+                await TaskEx.WhenAll(ts);
             }
             // 间隔>10单任务异步发送
             else
@@ -463,7 +466,7 @@ namespace XApi
                         BizLog.Info(ex.Message);
                     }
 
-                    await Task.Delay(sleep);
+                    await TaskEx.Delay(sleep);
                 }
             }
         }
