@@ -32,7 +32,7 @@ namespace NewLife.Net
         public Boolean Loopback { get; set; }
 
         /// <summary>会话统计</summary>
-        public PerfCounter StatSession { get; set; }
+        public ICounter StatSession { get; set; }
         #endregion
 
         #region 构造

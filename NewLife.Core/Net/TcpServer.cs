@@ -60,13 +60,13 @@ namespace NewLife.Net
         public IPipeline Pipeline { get; set; }
 
         /// <summary>会话统计</summary>
-        public PerfCounter StatSession { get; set; }
+        public ICounter StatSession { get; set; }
 
         /// <summary>发送统计</summary>
-        public PerfCounter StatSend { get; set; }
+        public ICounter StatSend { get; set; }
 
         /// <summary>接收统计</summary>
-        public PerfCounter StatReceive { get; set; }
+        public ICounter StatReceive { get; set; }
         #endregion
 
         #region 构造
@@ -245,8 +245,8 @@ namespace NewLife.Net
         {
             var session = CreateSession(client);
 
-            // 设置心跳时间，默认10秒
-            client.SetTcpKeepAlive(true);
+            //// 设置心跳时间，默认10秒
+            //client.SetTcpKeepAlive(true);
 
             if (_Sessions.Add(session))
             {

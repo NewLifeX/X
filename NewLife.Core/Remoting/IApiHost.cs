@@ -30,10 +30,10 @@ namespace NewLife.Remoting
         IMessage Process(IApiSession session, IMessage msg);
 
         /// <summary>发送统计</summary>
-        PerfCounter StatSend { get; set; }
+        ICounter StatSend { get; set; }
 
         /// <summary>接收统计</summary>
-        PerfCounter StatReceive { get; set; }
+        ICounter StatReceive { get; set; }
 
         /// <summary>日志</summary>
         ILog Log { get; set; }
@@ -197,7 +197,7 @@ namespace NewLife.Remoting
 
             action = reader.ReadString();
             if (msg.Reply && msg is DefaultMessage dm && dm.Error) code = reader.ReadInt32();
-            if (action.IsNullOrEmpty()) return false;
+            if (action.IsNullOrEmpty()) throw new Exception("解码错误，无法找到服务名！");
 
             // 参数或结果
             if (ms.Length > ms.Position)
