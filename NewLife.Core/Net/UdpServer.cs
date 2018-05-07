@@ -174,29 +174,34 @@ namespace NewLife.Net
         #endregion
 
         #region 接收
+        /// <summary>预处理</summary>
         /// <param name="pk">数据包</param>
-        /// <param name="remote">远程</param>
-        internal protected override Boolean OnPreReceive(Packet pk, IPEndPoint remote)
+        /// <param name="remote">远程地址</param>
+        /// <returns>将要处理该数据包的会话</returns>
+        internal protected override ISocketSession OnPreReceive(Packet pk, IPEndPoint remote)
         {
             // 过滤自己广播的环回数据。放在这里，兼容UdpSession
             if (!Loopback && remote.Port == Port)
             {
                 if (!Local.Address.IsAny())
                 {
-                    if (remote.Address.Equals(Local.Address)) return false;
+                    if (remote.Address.Equals(Local.Address)) return null;
                 }
                 else
                 {
                     foreach (var item in NetHelper.GetIPsWithCache())
                     {
-                        if (remote.Address.Equals(item)) return false;
+                        if (remote.Address.Equals(item)) return null;
                     }
                 }
             }
 
             LastRemote = remote;
 
-            return true;
+            // 为该连接单独创建一个会话，方便直接通信
+            var session = CreateSession(remote);
+
+            return session;
         }
 
         /// <summary>处理收到的数据</summary>

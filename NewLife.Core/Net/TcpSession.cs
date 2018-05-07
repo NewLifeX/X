@@ -200,9 +200,11 @@ namespace NewLife.Net
         }
 
         private Int32 _empty;
+        /// <summary>预处理</summary>
         /// <param name="pk">数据包</param>
-        /// <param name="remote">远程</param>
-        internal protected override Boolean OnPreReceive(Packet pk, IPEndPoint remote)
+        /// <param name="remote">远程地址</param>
+        /// <returns>将要处理该数据包的会话</returns>
+        internal protected override ISocketSession OnPreReceive(Packet pk, IPEndPoint remote)
         {
             if (pk.Count == 0)
             {
@@ -212,13 +214,13 @@ namespace NewLife.Net
                     Close("收到空数据");
                     Dispose();
 
-                    return false;
+                    return null;
                 }
             }
             else
                 _empty = 0;
 
-            return true;
+            return this;
         }
 
         /// <summary>处理收到的数据</summary>
