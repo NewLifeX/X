@@ -87,6 +87,7 @@
     <Compile Include="..\NewLife.Core\Log\CodeTimer.cs" Link="Log\CodeTimer.cs" />
     <Compile Include="..\NewLife.Core\Log\CompositeLog.cs" Link="Log\CompositeLog.cs" />
     <Compile Include="..\NewLife.Core\Log\ConsoleLog.cs" Link="Log\ConsoleLog.cs" />
+    <Compile Include="..\NewLife.Core\Log\ICounter.cs" Link="Log\ICounter.cs" />
     <Compile Include="..\NewLife.Core\Log\ILog.cs" Link="Log\ILog.cs" />
     <Compile Include="..\NewLife.Core\Log\Logger.cs" Link="Log\Logger.cs" />
     <Compile Include="..\NewLife.Core\Log\LogLevel.cs" Link="Log\LogLevel.cs" />
