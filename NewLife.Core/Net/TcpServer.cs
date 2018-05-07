@@ -245,8 +245,8 @@ namespace NewLife.Net
         {
             var session = CreateSession(client);
 
-            // 设置心跳时间，默认10秒
-            client.SetTcpKeepAlive(true);
+            //// 设置心跳时间，默认10秒
+            //client.SetTcpKeepAlive(true);
 
             if (_Sessions.Add(session))
             {
