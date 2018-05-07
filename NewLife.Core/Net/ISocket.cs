@@ -43,10 +43,10 @@ namespace NewLife.Net
         Boolean ProcessAsync { get; set; }
 
         /// <summary>发送统计</summary>
-        PerfCounter StatSend { get; set; }
+        ICounter StatSend { get; set; }
 
         /// <summary>接收统计</summary>
-        PerfCounter StatReceive { get; set; }
+        ICounter StatReceive { get; set; }
 
         /// <summary>日志提供者</summary>
         ILog Log { get; set; }

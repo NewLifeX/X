@@ -74,10 +74,10 @@ namespace NewLife.Net
         public Boolean ProcessAsync { get { return Server.ProcessAsync; } set { Server.ProcessAsync = value; } }
 
         /// <summary>发送数据包统计信息</summary>
-        public PerfCounter StatSend { get; set; }
+        public ICounter StatSend { get; set; }
 
         /// <summary>接收数据包统计信息</summary>
-        public PerfCounter StatReceive { get; set; }
+        public ICounter StatReceive { get; set; }
 
         /// <summary>通信开始时间</summary>
         public DateTime StartTime { get; private set; }

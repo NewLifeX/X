@@ -7,7 +7,7 @@ using NewLife.Threading;
 namespace NewLife.Log
 {
     /// <summary>性能计数器</summary>
-    public class PerfCounter : DisposeBase
+    public class PerfCounter : DisposeBase, ICounter
     {
         #region 属性
         /// <summary>是否启用。默认true</summary>
@@ -70,7 +70,7 @@ namespace NewLife.Log
         /// <summary>当前速度</summary>
         public Int32 Speed { get; private set; }
 
-        private Int32[] _queue = new Int32[0];
+        private Int32[] _queue = new Int32[60];
         private Int32 _queueIndex;
 
         private TimerX _Timer;

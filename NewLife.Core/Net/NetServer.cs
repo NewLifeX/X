@@ -98,13 +98,13 @@ namespace NewLife.Net
         public Boolean UseSession { get; set; } = true;
 
         /// <summary>会话统计</summary>
-        public PerfCounter StatSession { get; set; }
+        public ICounter StatSession { get; set; }
 
         /// <summary>发送统计</summary>
-        public PerfCounter StatSend { get; set; }
+        public ICounter StatSend { get; set; }
 
         /// <summary>接收统计</summary>
-        public PerfCounter StatReceive { get; set; }
+        public ICounter StatReceive { get; set; }
 
         /// <summary>是否输出发送日志。默认false</summary>
         public Boolean LogSend { get; set; }

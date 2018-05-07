@@ -123,6 +123,7 @@
     <Compile Include="Log\ActionLog.cs" />
     <Compile Include="Log\CompositeLog.cs" />
     <Compile Include="Log\ConsoleLog.cs" />
+    <Compile Include="Log\ICounter.cs" />
     <Compile Include="Log\ILog.cs" />
     <Compile Include="Log\Logger.cs" />
     <Compile Include="Log\LogLevel.cs" />

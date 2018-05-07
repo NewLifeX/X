@@ -19,7 +19,7 @@ namespace NewLife.Net
         Int32 SessionTimeout { get; set; }
 
         /// <summary>会话统计</summary>
-        PerfCounter StatSession { get; set; }
+        ICounter StatSession { get; set; }
 
         /// <summary>会话集合。用地址端口作为标识，业务应用自己维持地址端口与业务主键的对应关系。</summary>
         IDictionary<String, ISocketSession> Sessions { get; }
