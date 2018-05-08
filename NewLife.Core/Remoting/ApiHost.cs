@@ -118,8 +118,7 @@ namespace NewLife.Remoting
             if (msg is DefaultMessage dm && dm.OneWay) return null;
 
             // 编码响应数据包，二进制优先
-            var pk = result as Packet;
-            if (pk == null) pk = enc.Encode(action, code, result);
+            if (!(result is Packet pk)) pk = enc.Encode(action, code, result);
             pk = ApiHostHelper.Encode(action, code, pk);
 
             // 构造响应消息

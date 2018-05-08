@@ -344,6 +344,7 @@ namespace XApi
 
             var act = cbAction.SelectedItem + "";
             var action = act.Substring(" ", "(");
+            if (action.IsNullOrEmpty()) return;
 
             var rtype = act.Substring(null, " ").GetTypeEx();
             if (rtype == null) rtype = typeof(Object);
@@ -494,8 +495,7 @@ namespace XApi
 
         private void cbAction_SelectedIndexChanged(Object sender, EventArgs e)
         {
-            var cb = sender as ComboBox;
-            if (cb == null) return;
+            if (!(sender is ComboBox cb)) return;
 
             var txt = cb.SelectedItem + "";
             if (txt.IsNullOrEmpty()) return;
