@@ -22,59 +22,59 @@ namespace System
         /// <param name="value">待转换对象</param>
         /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
         /// <returns></returns>
-        public static Int32 ToInt(this Object value, Int32 defaultValue = 0) { return Convert.ToInt(value, defaultValue); }
+        public static Int32 ToInt(this Object value, Int32 defaultValue = 0) => Convert.ToInt(value, defaultValue);
 
         /// <summary>转为长整数，转换失败时返回默认值。支持字符串、全角、字节数组（小端）</summary>
         /// <remarks></remarks>
         /// <param name="value">待转换对象</param>
         /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
         /// <returns></returns>
-        public static Int64 ToLong(this Object value, Int64 defaultValue = 0) { return Convert.ToLong(value, defaultValue); }
+        public static Int64 ToLong(this Object value, Int64 defaultValue = 0) => Convert.ToLong(value, defaultValue);
 
         /// <summary>转为浮点数，转换失败时返回默认值。支持字符串、全角、字节数组（小端）</summary>
         /// <remarks>Single可以先转为最常用的Double后再二次处理</remarks>
         /// <param name="value">待转换对象</param>
         /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
         /// <returns></returns>
-        public static Double ToDouble(this Object value, Double defaultValue = 0) { return Convert.ToDouble(value, defaultValue); }
+        public static Double ToDouble(this Object value, Double defaultValue = 0) => Convert.ToDouble(value, defaultValue);
 
         /// <summary>转为布尔型，转换失败时返回默认值。支持大小写True/False、0和非零</summary>
         /// <param name="value">待转换对象</param>
         /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
         /// <returns></returns>
-        public static Boolean ToBoolean(this Object value, Boolean defaultValue = false) { return Convert.ToBoolean(value, defaultValue); }
+        public static Boolean ToBoolean(this Object value, Boolean defaultValue = false) => Convert.ToBoolean(value, defaultValue);
 
         /// <summary>转为时间日期，转换失败时返回最小时间</summary>
         /// <param name="value">待转换对象</param>
         /// <returns></returns>
-        public static DateTime ToDateTime(this Object value) { return Convert.ToDateTime(value, DateTime.MinValue); }
+        public static DateTime ToDateTime(this Object value) => Convert.ToDateTime(value, DateTime.MinValue);
 
         /// <summary>转为时间日期，转换失败时返回默认值</summary>
         /// <remarks><see cref="DateTime.MinValue"/>不是常量无法做默认值</remarks>
         /// <param name="value">待转换对象</param>
         /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
         /// <returns></returns>
-        public static DateTime ToDateTime(this Object value, DateTime defaultValue) { return Convert.ToDateTime(value, defaultValue); }
+        public static DateTime ToDateTime(this Object value, DateTime defaultValue) => Convert.ToDateTime(value, defaultValue);
 
         /// <summary>时间日期转为yyyy-MM-dd HH:mm:ss完整字符串</summary>
         /// <remarks>最常用的时间日期格式，可以无视各平台以及系统自定义的时间格式</remarks>
         /// <param name="value">待转换对象</param>
         /// <returns></returns>
-        public static String ToFullString(this DateTime value) { return Convert.ToFullString(value); }
+        public static String ToFullString(this DateTime value) => Convert.ToFullString(value);
 
         /// <summary>时间日期转为yyyy-MM-dd HH:mm:ss完整字符串，支持指定最小时间的字符串</summary>
         /// <remarks>最常用的时间日期格式，可以无视各平台以及系统自定义的时间格式</remarks>
         /// <param name="value">待转换对象</param>
         /// <param name="emptyValue">字符串空值时（DateTime.MinValue）显示的字符串，null表示原样显示最小时间，String.Empty表示不显示</param>
         /// <returns></returns>
-        public static String ToFullString(this DateTime value, String emptyValue = null) { return Convert.ToFullString(value, emptyValue); }
+        public static String ToFullString(this DateTime value, String emptyValue = null) => Convert.ToFullString(value, emptyValue);
 
         /// <summary>时间日期转为指定格式字符串</summary>
         /// <param name="value">待转换对象</param>
         /// <param name="format">格式化字符串</param>
         /// <param name="emptyValue">字符串空值时显示的字符串，null表示原样显示最小时间，String.Empty表示不显示</param>
         /// <returns></returns>
-        public static String ToString(this DateTime value, String format, String emptyValue) { return Convert.ToString(value, format, emptyValue); }
+        public static String ToString(this DateTime value, String format, String emptyValue) => Convert.ToString(value, format, emptyValue);
         #endregion
 
         #region 异常处理
@@ -420,6 +420,35 @@ namespace System
             msg = ns.Join(Environment.NewLine);
 
             return msg;
+        }
+
+        /// <summary>字节单位字符串</summary>
+        /// <param name="value">数值</param>
+        /// <param name="format">格式化字符串</param>
+        /// <returns></returns>
+        public virtual String ToGMK(Int64 value, String format = null)
+        {
+            if (value < 1024) return "{0:n0}".F(value);
+
+            if (format.IsNullOrEmpty()) format = "{0:n0}";
+
+            var val = value / 1024d;
+            if (val < 1024) return format.F(val) + "K";
+
+            val /= 1024;
+            if (val < 1024) return format.F(val) + "M";
+
+            val /= 1024;
+            if (val < 1024) return format.F(val) + "G";
+
+            val /= 1024;
+            if (val < 1024) return format.F(val) + "T";
+
+            val /= 1024;
+            if (val < 1024) return format.F(val) + "P";
+
+            val /= 1024;
+            return format.F(val) + "E";
         }
     }
 }
