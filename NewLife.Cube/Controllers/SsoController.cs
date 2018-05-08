@@ -170,7 +170,10 @@ namespace NewLife.Cube.Controllers
                 XTrace.WriteException(ex.GetTrue());
                 //throw;
 
-                return RedirectToAction("Login", new { name = client.Name, r = returnUrl, state = "refresh" });
+                if (!state.EqualIgnoreCase("refresh")) return RedirectToAction("Login", new { name = client.Name, r = returnUrl, state = "refresh" });
+
+                var inf = new HandleErrorInfo(ex, "Sso", nameof(LoginInfo));
+                return View("CubeError", inf);
             }
         }
 
