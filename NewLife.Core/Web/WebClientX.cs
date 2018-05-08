@@ -13,11 +13,9 @@ using NewLife.Log;
 using NewLife.Net;
 using NewLife.Serialization;
 #if NET4
-using HttpClientX = NewLife.Http.HttpClient;
 #else
 using System.Net.Http;
 using System.Net.Http.Headers;
-using HttpClientX = System.Net.Http.HttpClient;
 using TaskEx = System.Threading.Tasks.Task;
 #endif
 
@@ -59,17 +57,6 @@ namespace NewLife.Web
 
         /// <summary>网页代理</summary>
         public IWebProxy Proxy { get; set; }
-
-#if NET4
-#else
-        /// <summary>请求</summary>
-        public HttpRequestHeaders Request { get; private set; }
-
-        /// <summary>响应</summary>
-        public HttpResponseMessage Response { get; private set; }
-#endif
-
-        private HttpClientX _client;
         #endregion
 
         #region 构造
@@ -118,48 +105,35 @@ namespace NewLife.Web
         {
             base.OnDispose(disposing);
 
+#if !NET4
             _client.TryDispose();
+#endif
         }
         #endregion
 
         #region 核心方法
 #if NET4
+        /// <summary>请求</summary>
+        public HttpWebRequest Request { get; private set; }
+
+        /// <summary>响应</summary>
+        public HttpWebResponse Response { get; private set; }
+
         /// <summary>创建客户端会话</summary>
         /// <param name="uri"></param>
         /// <returns></returns>
-        protected virtual HttpClientX Create(Uri uri)
+        protected virtual HttpWebRequest Create(String uri)
         {
-            var http = uri.CreateRemote() as HttpClientX;
-            http.Log = Log;
-
-            var req = http.Request;
+            var req = WebRequest.Create(uri) as HttpWebRequest;
             req.UserAgent = UserAgent;
 
-            if (AutomaticDecompression != DecompressionMethods.None) req.Compressed = true;
+            if (AutomaticDecompression != DecompressionMethods.None) req.AutomaticDecompression = AutomaticDecompression;
 
-            if (!String.IsNullOrEmpty(Accept)) req.Headers[HttpRequestHeader.Accept + ""] = Accept;
-            if (!String.IsNullOrEmpty(AcceptLanguage)) req.Headers[HttpRequestHeader.AcceptLanguage + ""] = AcceptLanguage;
-            if (!String.IsNullOrEmpty(Referer)) req.Headers[HttpRequestHeader.Referer + ""] = Referer;
+            if (!Accept.IsNullOrEmpty()) req.Accept = Accept;
+            if (!AcceptLanguage.IsNullOrEmpty()) req.Headers[HttpRequestHeader.AcceptLanguage + ""] = AcceptLanguage;
+            if (!Referer.IsNullOrEmpty()) req.Referer = Referer;
 
-            return http;
-        }
-
-        private HttpClientX Check(String address)
-        {
-            var uri = new Uri(address);
-
-            if (_client == null)
-                _client = Create(uri);
-            // 远程主机不同，需要重新建立
-            else if (_client.Remote + "" != uri + "")
-            {
-                _client.Dispose();
-                _client = Create(uri);
-            }
-
-            //_client.Url = new Uri(address);
-
-            return _client;
+            return req;
         }
 
         /// <summary>下载数据</summary>
@@ -172,18 +146,14 @@ namespace NewLife.Web
             if (time <= 0) time = 3000;
             while (true)
             {
-                var http = Check(address);
+                var http = Create(address);
                 http.Timeout = time;
-                http.Request.Method = data == null || data.Length == 0 ? "GET" : "POST";
+                http.Method = data == null || data.Length == 0 ? "GET" : "POST";
 
                 Log.Info("WebClientX.SendAsync {0}", address);
 
                 // 发送请求
-                var pk = await http.SendAsync(data);
-                //if (!task.Wait(time)) return null;
-
-                var buf = pk?.ToArray();
-                var rs = http.Response;
+                var rs = (await Task.Factory.FromAsync(http.BeginGetResponse, http.EndGetResponse, null)) as HttpWebResponse;
 
                 // 修改引用地址
                 Referer = address;
@@ -206,43 +176,29 @@ namespace NewLife.Web
                         break;
                 }
 
-                // 解压缩
-                if (buf != null)
+                var ms = new MemoryStream();
+                var ns = rs.GetResponseStream();
+
+                ns.CopyTo(ms);
+                while (rs.ContentLength > 0 && ms.Length < rs.ContentLength)
                 {
-                    var enc = rs.Headers[HttpResponseHeader.ContentEncoding + ""] + "";
-                    if (enc.EqualIgnoreCase("gzip"))
-                    {
-                        var ms = new MemoryStream(buf);
-                        var ms2 = ms.DecompressGZip();
-                        ms2.Position = 0;
-                        buf = ms2.ReadBytes();
-                    }
-                    else if (enc.EqualIgnoreCase("deflate"))
-                    {
-                        buf = buf.Decompress();
-                    }
+                    Thread.Sleep(10);
+                    ns.CopyTo(ms);
                 }
 
-                return buf;
+                return ms.ToArray();
             }
         }
 
         /// <summary>下载数据</summary>
         /// <param name="address"></param>
         /// <returns></returns>
-        public virtual async Task<Byte[]> DownloadDataAsync(String address)
-        {
-            return await SendAsync(address);
-        }
+        public virtual async Task<Byte[]> DownloadDataAsync(String address) => await SendAsync(address);
 
         /// <summary>下载字符串</summary>
         /// <param name="address"></param>
         /// <returns></returns>
-        public virtual async Task<String> DownloadStringAsync(String address)
-        {
-            var rs = await SendAsync(address);
-            return rs.ToStr(Encoding);
-        }
+        public virtual async Task<String> DownloadStringAsync(String address) => (await SendAsync(address)).ToStr(Encoding);
 
         /// <summary>下载文件</summary>
         /// <param name="address"></param>
@@ -257,9 +213,17 @@ namespace NewLife.Web
             }
         }
 #else
+        private HttpClient _client;
+
+        /// <summary>请求</summary>
+        public HttpRequestHeaders Request { get; private set; }
+
+        /// <summary>响应</summary>
+        public HttpResponseMessage Response { get; private set; }
+
         /// <summary>创建客户端会话</summary>
         /// <returns></returns>
-        public virtual HttpClientX EnsureCreate()
+        public virtual HttpClient EnsureCreate()
         {
             var http = _client;
             if (http == null)
@@ -280,7 +244,7 @@ namespace NewLife.Web
                 }
                 if (AutomaticDecompression != DecompressionMethods.None) handler.AutomaticDecompression = AutomaticDecompression;
 
-                http = new HttpClientX(handler);
+                http = new HttpClient(handler);
 
                 _client = http;
                 Request = http.DefaultRequestHeaders;
@@ -654,7 +618,7 @@ namespace NewLife.Web
         }
 
         /// <summary>从本地获取Cookie并设置到Http请求头</summary>
-        private void GetCookie(HttpClientX http)
+        private void GetCookie(HttpClient http)
         {
             var req = http.DefaultRequestHeaders;
             if (req == null) return;

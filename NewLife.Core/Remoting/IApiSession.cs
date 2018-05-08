@@ -49,9 +49,10 @@ namespace NewLife.Remoting
 
         /// <summary>远程调用</summary>
         /// <typeparam name="TResult"></typeparam>
-        /// <param name="action"></param>
-        /// <param name="args"></param>
+        /// <param name="action">服务操作</param>
+        /// <param name="args">参数</param>
+        /// <param name="flag">标识</param>
         /// <returns></returns>
-        Task<TResult> InvokeAsync<TResult>(String action, Object args = null);
+        Task<TResult> InvokeAsync<TResult>(String action, Object args = null, Byte flag = 0);
     }
 }

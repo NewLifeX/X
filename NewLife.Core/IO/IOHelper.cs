@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Text;
 using NewLife;
+using NewLife.Data;
 using NewLife.Reflection;
 
 namespace System
@@ -290,6 +291,16 @@ namespace System
 
             return des.ReadBytes(len);
         }
+
+        ///// <summary>读取数据包，先读取压缩整数表示的长度</summary>
+        ///// <param name="ms"></param>
+        ///// <returns></returns>
+        //public static Packet ReadPacket(this MemoryStream ms)
+        //{
+        //    var len = ms.ReadEncodedInt();
+
+        //    return new Packet(ms.GetBuffer(), (Int32)ms.Position, len);
+        //}
 
         private static DateTime _dt1970 = new DateTime(1970, 1, 1);
         /// <summary>写入Unix格式时间，1970年以来秒数</summary>

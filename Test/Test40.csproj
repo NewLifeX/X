@@ -67,6 +67,10 @@
       <Project>{5813c22e-eeb3-4dee-a45c-bb218041193a}</Project>
       <Name>NewLife.Core40</Name>
     </ProjectReference>
+    <ProjectReference Include="..\NewLife.Net\NewLife.Net40.csproj">
+      <Project>{5A8EF50C-3394-4C1E-99F0-33EFE8691CB0}</Project>
+      <Name>NewLife.Net40</Name>
+    </ProjectReference>
     <ProjectReference Include="..\XCode\XCode40.csproj">
       <Project>{b49aba5a-c5da-45f4-87f1-b435ec51d710}</Project>
       <Name>XCode40</Name>

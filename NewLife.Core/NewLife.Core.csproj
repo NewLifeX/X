@@ -83,7 +83,6 @@
     <Compile Include="Collections\CollectionHelper.cs" />
     <Compile Include="Collections\ConcurrentHashSet.cs" />
     <Compile Include="Collections\DictionaryCache.cs" />
-    <Compile Include="Collections\LinkList.cs" />
     <Compile Include="Collections\NullableDictionary.cs" />
     <Compile Include="Collections\Pool.cs" />
     <Compile Include="Common\CombGuid.cs" />
@@ -105,9 +104,6 @@
     <Compile Include="Data\IExtend.cs" />
     <Compile Include="Data\IFilter.cs" />
     <Compile Include="Data\Packet.cs" />
-    <Compile Include="Exceptions\CodecException.cs" />
-    <Compile Include="Exceptions\DecoderException.cs" />
-    <Compile Include="Exceptions\EncoderException.cs" />
     <Compile Include="Extension\BitHelper.cs" />
     <Compile Include="Extension\ConcurrentDictionaryExtensions.cs" />
     <Compile Include="Extension\ListExtension.cs" />
@@ -127,10 +123,12 @@
     <Compile Include="Log\ActionLog.cs" />
     <Compile Include="Log\CompositeLog.cs" />
     <Compile Include="Log\ConsoleLog.cs" />
+    <Compile Include="Log\ICounter.cs" />
     <Compile Include="Log\ILog.cs" />
     <Compile Include="Log\Logger.cs" />
     <Compile Include="Log\LogLevel.cs" />
     <Compile Include="Log\NetworkLog.cs" />
+    <Compile Include="Log\PerfCounter.cs" />
     <Compile Include="Log\TextControlLog.cs" />
     <Compile Include="Log\TimeCost.cs" />
     <Compile Include="Expressions\IndexInfo.cs" />
@@ -162,12 +160,8 @@
     <Compile Include="Remoting\ApiServer.cs" />
     <Compile Include="Remoting\ApiTest.cs" />
     <Compile Include="Remoting\Controllers\ApiController.cs" />
-    <Compile Include="Remoting\Filters\ActionExecutedContext.cs" />
-    <Compile Include="Remoting\Filters\ActionExecutingContext.cs" />
     <Compile Include="Remoting\Filters\ControllerContext.cs" />
-    <Compile Include="Remoting\Filters\ExceptionContext.cs" />
     <Compile Include="Remoting\Filters\IActionFilter.cs" />
-    <Compile Include="Remoting\Filters\IExceptionFilter.cs" />
     <Compile Include="Remoting\IApi.cs" />
     <Compile Include="Remoting\IApiHandler.cs" />
     <Compile Include="Remoting\IApiHost.cs" />
@@ -175,7 +169,6 @@
     <Compile Include="Remoting\IApiServer.cs" />
     <Compile Include="Remoting\IApiSession.cs" />
     <Compile Include="Remoting\IEncoder.cs" />
-    <Compile Include="Remoting\BinaryEncoder.cs" />
     <Compile Include="Remoting\JsonEncoder.cs" />
     <Compile Include="Serialization\BinaryCodec2.cs" />
     <Compile Include="Serialization\JsonCodec2.cs" />
@@ -191,7 +184,6 @@
     <Compile Include="Net\ISocket.cs" />
     <Compile Include="Net\ISocketServer.cs" />
     <Compile Include="Net\ISocketClient.cs" />
-    <Compile Include="Net\IStatistics.cs" />
     <Compile Include="Net\NetException.cs" />
     <Compile Include="Net\NetHelper.cs" />
     <Compile Include="Net\NetServer.cs" />
@@ -203,7 +195,6 @@
     <Compile Include="Net\SerialTransport.cs" />
     <Compile Include="Net\Setting.cs" />
     <Compile Include="Net\SocketHelper.cs" />
-    <Compile Include="Net\Statistics.cs" />
     <Compile Include="Net\TcpSession.cs" />
     <Compile Include="Net\TcpServer.cs" />
     <Compile Include="Net\SessionCollection.cs" />
@@ -269,7 +260,6 @@
     <Compile Include="Serialization\Json\JsonGeneral.cs" />
     <Compile Include="Serialization\Json\JsonArray.cs" />
     <Compile Include="Serialization\Json\IJson.cs" />
-    <Compile Include="Serialization\Json\JsonIgnoreAttribute.cs" />
     <Compile Include="Serialization\Json\JsonParser.cs" />
     <Compile Include="Serialization\Json\JsonReader.cs" />
     <Compile Include="Serialization\Json\JsonTest.cs" />

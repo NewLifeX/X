@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Tables Version="9.7.6698.29648" NameSpace="XCode.Extension" ConnName="Ext" Output="" BaseClass="Entity">
+  <Table Name="MyDbCache" Description="数据缓存" ConnName="DbCache">
+    <Columns>
+      <Column Name="Name" DataType="String" PrimaryKey="True" Master="True" Nullable="False" Description="名称" />
+      <Column Name="Value" DataType="String" Length="2000" Description="键值" />
+      <Column Name="CreateTime" DataType="DateTime" Description="创建时间" />
+      <Column Name="ExpiredTime" DataType="DateTime" Description="过期时间" />
+    </Columns>
+    <Indexes>
+      <Index Name="IU_TableCache_Name" Columns="Name" Unique="True" PrimaryKey="True" />
+      <Index Columns="ExpiredTime" />
+    </Indexes>
+  </Table>
+</Tables>

@@ -133,6 +133,7 @@ namespace XCode.DataAccessLayer
                     var type = _Factory.CreateConnection().GetType();
                     type.Invoke("ClearAllPools");
                 }
+                catch (ObjectDisposedException) { }
                 catch (Exception ex) { XTrace.WriteException(ex); }
             }
         }

@@ -4,7 +4,6 @@ using NewLife.Data;
 using NewLife.Messaging;
 using NewLife.Net;
 using NewLife.Net.Handlers;
-using NewLife.Serialization;
 
 namespace NewLife.Remoting
 {
@@ -60,8 +59,8 @@ namespace NewLife.Remoting
             var ct = Client;
             if (ct == null) throw new ArgumentNullException(nameof(Client), "未指定通信客户端");
 
-            //if (Encoder == null) Encoder = new JsonEncoder();
-            if (Encoder == null) Encoder = new BinaryEncoder();
+            if (Encoder == null) Encoder = new JsonEncoder();
+            //if (Encoder == null) Encoder = new BinaryEncoder();
             if (Handler == null) Handler = new ApiHandler { Host = this };
 
             Encoder.Log = EncoderLog;
@@ -119,27 +118,28 @@ namespace NewLife.Remoting
 
         #region 远程调用
         /// <summary>异步调用，等待返回结果</summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="action"></param>
-        /// <param name="args"></param>
+        /// <param name="resultType">返回类型</param>
+        /// <param name="action">服务操作</param>
+        /// <param name="args">参数</param>
+        /// <param name="flag">标识</param>
         /// <returns></returns>
-        public virtual async Task<TResult> InvokeAsync<TResult>(String action, Object args = null)
+        public virtual async Task<Object> InvokeAsync(Type resultType, String action, Object args = null, Byte flag = 0)
         {
             var ss = Client;
-            if (ss == null) return default(TResult);
+            if (ss == null) return null;
 
             var act = action;
 
             try
             {
-                return await ApiHostHelper.InvokeAsync<TResult>(this, this, act, args);
+                return await ApiHostHelper.InvokeAsync(this, this, resultType, act, args, flag);
             }
             catch (ApiException ex)
             {
                 // 重新登录后再次调用
                 if (ex.Code == 401)
                 {
-                    return await ApiHostHelper.InvokeAsync<TResult>(this, this, act, args);
+                    return await ApiHostHelper.InvokeAsync(this, this, resultType, act, args, flag);
                 }
 
                 throw;
@@ -151,18 +151,31 @@ namespace NewLife.Remoting
             }
         }
 
-        /// <summary>同步调用，不等待返回</summary>
-        /// <param name="action"></param>
-        /// <param name="args"></param>
+        /// <summary>异步调用，等待返回结果</summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="action">服务操作</param>
+        /// <param name="args">参数</param>
+        /// <param name="flag">标识</param>
         /// <returns></returns>
-        public virtual Boolean Invoke(String action, Object args = null)
+        public virtual async Task<TResult> InvokeAsync<TResult>(String action, Object args = null, Byte flag = 0)
+        {
+            var rs = await InvokeAsync(typeof(TResult), action, args, flag);
+            return (TResult)rs;
+        }
+
+        /// <summary>同步调用，不等待返回</summary>
+        /// <param name="action">服务操作</param>
+        /// <param name="args">参数</param>
+        /// <param name="flag">标识</param>
+        /// <returns></returns>
+        public virtual Boolean Invoke(String action, Object args = null, Byte flag = 0)
         {
             var ss = Client;
             if (ss == null) return false;
 
             var act = action;
 
-            return ApiHostHelper.Invoke(this, this, act, args);
+            return ApiHostHelper.Invoke(this, this, act, args, flag);
         }
 
         /// <summary>创建消息</summary>

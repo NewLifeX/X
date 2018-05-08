@@ -55,6 +55,7 @@
     <Compile Include="Attributes\MapAttribute.cs" />
     <Compile Include="Attributes\BindTableAttribute.cs" />
     <Compile Include="Cache\DataCache.cs" />
+    <Compile Include="Cache\DbCache.cs" />
     <Compile Include="Code\ClassBuilder.cs" />
     <Compile Include="Code\EntityBuilder.cs" />
     <Compile Include="Common\DataSimulation.cs" />
@@ -85,6 +86,8 @@
     <Compile Include="Events\SqlRunEventHandler.cs" />
     <Compile Include="Exceptions\EntityException.cs" />
     <Compile Include="Cache\FieldCache.cs" />
+    <Compile Include="Extension\数据缓存.Biz.cs" />
+    <Compile Include="Extension\数据缓存.cs" />
     <Compile Include="Membership\LogEntity.cs" />
     <Compile Include="Membership\IManageProvider.cs" />
     <Compile Include="Membership\MenuProvider.cs" />
@@ -111,7 +114,6 @@
     <Compile Include="Model\FormatExpression.cs" />
     <Compile Include="Model\FieldExpression.cs" />
     <Compile Include="PreApplicationStartCode.cs" />
-    <Compile Include="Remoting\ApiUserSession.cs" />
     <Compile Include="Setting.cs" />
     <Compile Include="Statistics\IStat.cs" />
     <Compile Include="Statistics\StatHelper.cs" />
@@ -221,6 +223,11 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Extension\Ext.xml" />
+    <Content Include="Extension\生成实体类.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>生成实体类.cs</LastGenOutput>
+    </Content>
     <Content Include="生成实体类.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>生成实体类.cs</LastGenOutput>

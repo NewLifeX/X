@@ -37,6 +37,8 @@
             this.toolStripMenuItem3 = new System.Windows.Forms.ToolStripSeparator();
             this.mi显示应用日志 = new System.Windows.Forms.ToolStripMenuItem();
             this.mi显示编码日志 = new System.Windows.Forms.ToolStripMenuItem();
+            this.mi显示发送数据 = new System.Windows.Forms.ToolStripMenuItem();
+            this.mi显示接收数据 = new System.Windows.Forms.ToolStripMenuItem();
             this.mi显示统计信息 = new System.Windows.Forms.ToolStripMenuItem();
             this.menuSend = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.mi清空2 = new System.Windows.Forms.ToolStripMenuItem();
@@ -62,8 +64,6 @@
             this.label7 = new System.Windows.Forms.Label();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.label3 = new System.Windows.Forms.Label();
-            this.mi显示发送数据 = new System.Windows.Forms.ToolStripMenuItem();
-            this.mi显示接收数据 = new System.Windows.Forms.ToolStripMenuItem();
             this.gbReceive.SuspendLayout();
             this.menuReceive.SuspendLayout();
             this.menuSend.SuspendLayout();
@@ -82,9 +82,9 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.gbReceive.Controls.Add(this.txtReceive);
             this.gbReceive.Location = new System.Drawing.Point(14, 117);
-            this.gbReceive.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.gbReceive.Margin = new System.Windows.Forms.Padding(4);
             this.gbReceive.Name = "gbReceive";
-            this.gbReceive.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.gbReceive.Padding = new System.Windows.Forms.Padding(4);
             this.gbReceive.Size = new System.Drawing.Size(978, 298);
             this.gbReceive.TabIndex = 4;
             this.gbReceive.TabStop = false;
@@ -96,7 +96,7 @@
             this.txtReceive.Dock = System.Windows.Forms.DockStyle.Fill;
             this.txtReceive.HideSelection = false;
             this.txtReceive.Location = new System.Drawing.Point(4, 25);
-            this.txtReceive.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.txtReceive.Margin = new System.Windows.Forms.Padding(4);
             this.txtReceive.Name = "txtReceive";
             this.txtReceive.Size = new System.Drawing.Size(970, 269);
             this.txtReceive.TabIndex = 1;
@@ -115,45 +115,59 @@
             this.mi显示接收数据,
             this.mi显示统计信息});
             this.menuReceive.Name = "menuSend";
-            this.menuReceive.Size = new System.Drawing.Size(241, 239);
+            this.menuReceive.Size = new System.Drawing.Size(189, 206);
             // 
             // toolStripMenuItem1
             // 
             this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-            this.toolStripMenuItem1.Size = new System.Drawing.Size(240, 28);
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(188, 28);
             this.toolStripMenuItem1.Text = "清空";
             this.toolStripMenuItem1.Click += new System.EventHandler(this.mi清空_Click);
             // 
             // mi日志着色
             // 
             this.mi日志着色.Name = "mi日志着色";
-            this.mi日志着色.Size = new System.Drawing.Size(240, 28);
+            this.mi日志着色.Size = new System.Drawing.Size(188, 28);
             this.mi日志着色.Text = "日志着色";
             this.mi日志着色.Click += new System.EventHandler(this.miCheck_Click);
             // 
             // toolStripMenuItem3
             // 
             this.toolStripMenuItem3.Name = "toolStripMenuItem3";
-            this.toolStripMenuItem3.Size = new System.Drawing.Size(237, 6);
+            this.toolStripMenuItem3.Size = new System.Drawing.Size(185, 6);
             // 
             // mi显示应用日志
             // 
             this.mi显示应用日志.Name = "mi显示应用日志";
-            this.mi显示应用日志.Size = new System.Drawing.Size(240, 28);
+            this.mi显示应用日志.Size = new System.Drawing.Size(188, 28);
             this.mi显示应用日志.Text = "显示应用日志";
             this.mi显示应用日志.Click += new System.EventHandler(this.miCheck_Click);
             // 
             // mi显示编码日志
             // 
             this.mi显示编码日志.Name = "mi显示编码日志";
-            this.mi显示编码日志.Size = new System.Drawing.Size(240, 28);
+            this.mi显示编码日志.Size = new System.Drawing.Size(188, 28);
             this.mi显示编码日志.Text = "显示编码日志";
             this.mi显示编码日志.Click += new System.EventHandler(this.miCheck_Click);
+            // 
+            // mi显示发送数据
+            // 
+            this.mi显示发送数据.Name = "mi显示发送数据";
+            this.mi显示发送数据.Size = new System.Drawing.Size(188, 28);
+            this.mi显示发送数据.Text = "显示发送数据";
+            this.mi显示发送数据.Click += new System.EventHandler(this.miCheck_Click);
+            // 
+            // mi显示接收数据
+            // 
+            this.mi显示接收数据.Name = "mi显示接收数据";
+            this.mi显示接收数据.Size = new System.Drawing.Size(188, 28);
+            this.mi显示接收数据.Text = "显示接收数据";
+            this.mi显示接收数据.Click += new System.EventHandler(this.miCheck_Click);
             // 
             // mi显示统计信息
             // 
             this.mi显示统计信息.Name = "mi显示统计信息";
-            this.mi显示统计信息.Size = new System.Drawing.Size(240, 28);
+            this.mi显示统计信息.Size = new System.Drawing.Size(188, 28);
             this.mi显示统计信息.Text = "显示统计信息";
             this.mi显示统计信息.Click += new System.EventHandler(this.miCheck_Click);
             // 
@@ -176,7 +190,7 @@
             // 
             this.btnConnect.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btnConnect.Location = new System.Drawing.Point(748, 12);
-            this.btnConnect.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.btnConnect.Margin = new System.Windows.Forms.Padding(4);
             this.btnConnect.Name = "btnConnect";
             this.btnConnect.Size = new System.Drawing.Size(100, 44);
             this.btnConnect.TabIndex = 3;
@@ -218,7 +232,7 @@
             "服务端",
             "客户端"});
             this.cbMode.Location = new System.Drawing.Point(72, 11);
-            this.cbMode.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.cbMode.Margin = new System.Windows.Forms.Padding(4);
             this.cbMode.Name = "cbMode";
             this.cbMode.Size = new System.Drawing.Size(138, 26);
             this.cbMode.TabIndex = 9;
@@ -230,7 +244,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.cbAddr.FormattingEnabled = true;
             this.cbAddr.Location = new System.Drawing.Point(444, 11);
-            this.cbAddr.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.cbAddr.Margin = new System.Windows.Forms.Padding(4);
             this.cbAddr.Name = "cbAddr";
             this.cbAddr.Size = new System.Drawing.Size(247, 26);
             this.cbAddr.TabIndex = 10;
@@ -244,7 +258,7 @@
             this.pnlSetting.Controls.Add(this.lbAddr);
             this.pnlSetting.Controls.Add(this.cbMode);
             this.pnlSetting.Location = new System.Drawing.Point(14, 12);
-            this.pnlSetting.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.pnlSetting.Margin = new System.Windows.Forms.Padding(4);
             this.pnlSetting.Name = "pnlSetting";
             this.pnlSetting.Size = new System.Drawing.Size(708, 46);
             this.pnlSetting.TabIndex = 13;
@@ -252,7 +266,7 @@
             // numPort
             // 
             this.numPort.Location = new System.Drawing.Point(270, 10);
-            this.numPort.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.numPort.Margin = new System.Windows.Forms.Padding(4);
             this.numPort.Maximum = new decimal(new int[] {
             65535,
             0,
@@ -290,7 +304,7 @@
             this.cbAction.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cbAction.FormattingEnabled = true;
             this.cbAction.Location = new System.Drawing.Point(76, 71);
-            this.cbAction.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.cbAction.Margin = new System.Windows.Forms.Padding(4);
             this.cbAction.Name = "cbAction";
             this.cbAction.Size = new System.Drawing.Size(470, 26);
             this.cbAction.TabIndex = 12;
@@ -309,9 +323,9 @@
             this.gbSend.Controls.Add(this.label2);
             this.gbSend.Controls.Add(this.label7);
             this.gbSend.Location = new System.Drawing.Point(14, 424);
-            this.gbSend.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.gbSend.Margin = new System.Windows.Forms.Padding(4);
             this.gbSend.Name = "gbSend";
-            this.gbSend.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.gbSend.Padding = new System.Windows.Forms.Padding(4);
             this.gbSend.Size = new System.Drawing.Size(978, 126);
             this.gbSend.TabIndex = 15;
             this.gbSend.TabStop = false;
@@ -321,7 +335,7 @@
             // 
             this.numThreads.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.numThreads.Location = new System.Drawing.Point(890, 33);
-            this.numThreads.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.numThreads.Margin = new System.Windows.Forms.Padding(4);
             this.numThreads.Maximum = new decimal(new int[] {
             100000,
             0,
@@ -346,15 +360,15 @@
             // numSleep
             // 
             this.numSleep.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.numSleep.Location = new System.Drawing.Point(807, 81);
-            this.numSleep.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.numSleep.Location = new System.Drawing.Point(776, 81);
+            this.numSleep.Margin = new System.Windows.Forms.Padding(4);
             this.numSleep.Maximum = new decimal(new int[] {
             1000000,
             0,
             0,
             0});
             this.numSleep.Name = "numSleep";
-            this.numSleep.Size = new System.Drawing.Size(78, 28);
+            this.numSleep.Size = new System.Drawing.Size(109, 28);
             this.numSleep.TabIndex = 16;
             this.numSleep.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.numSleep.Value = new decimal(new int[] {
@@ -371,9 +385,9 @@
             this.txtSend.ContextMenuStrip = this.menuSend;
             this.txtSend.HideSelection = false;
             this.txtSend.Location = new System.Drawing.Point(0, 28);
-            this.txtSend.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.txtSend.Margin = new System.Windows.Forms.Padding(4);
             this.txtSend.Name = "txtSend";
-            this.txtSend.Size = new System.Drawing.Size(744, 86);
+            this.txtSend.Size = new System.Drawing.Size(721, 86);
             this.txtSend.TabIndex = 2;
             this.txtSend.Text = "";
             // 
@@ -381,7 +395,7 @@
             // 
             this.btnSend.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.btnSend.Location = new System.Drawing.Point(894, 74);
-            this.btnSend.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.btnSend.Margin = new System.Windows.Forms.Padding(4);
             this.btnSend.Name = "btnSend";
             this.btnSend.Size = new System.Drawing.Size(75, 45);
             this.btnSend.TabIndex = 1;
@@ -392,10 +406,10 @@
             // numMutilSend
             // 
             this.numMutilSend.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.numMutilSend.Location = new System.Drawing.Point(807, 33);
-            this.numMutilSend.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.numMutilSend.Location = new System.Drawing.Point(776, 33);
+            this.numMutilSend.Margin = new System.Windows.Forms.Padding(4);
             this.numMutilSend.Maximum = new decimal(new int[] {
-            10000,
+            1000000,
             0,
             0,
             0});
@@ -405,7 +419,7 @@
             0,
             0});
             this.numMutilSend.Name = "numMutilSend";
-            this.numMutilSend.Size = new System.Drawing.Size(78, 28);
+            this.numMutilSend.Size = new System.Drawing.Size(109, 28);
             this.numMutilSend.TabIndex = 14;
             this.numMutilSend.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.numMutilSend.Value = new decimal(new int[] {
@@ -418,7 +432,7 @@
             // 
             this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(754, 87);
+            this.label2.Location = new System.Drawing.Point(729, 87);
             this.label2.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(62, 18);
@@ -429,7 +443,7 @@
             // 
             this.label7.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(754, 39);
+            this.label7.Location = new System.Drawing.Point(729, 39);
             this.label7.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(62, 18);
@@ -446,20 +460,6 @@
             this.label3.TabIndex = 16;
             this.label3.Text = "服务：";
             // 
-            // mi显示发送数据
-            // 
-            this.mi显示发送数据.Name = "mi显示发送数据";
-            this.mi显示发送数据.Size = new System.Drawing.Size(240, 28);
-            this.mi显示发送数据.Text = "显示发送数据";
-            this.mi显示发送数据.Click += new System.EventHandler(this.miCheck_Click);
-            // 
-            // mi显示接收数据
-            // 
-            this.mi显示接收数据.Name = "mi显示接收数据";
-            this.mi显示接收数据.Size = new System.Drawing.Size(240, 28);
-            this.mi显示接收数据.Text = "显示接收数据";
-            this.mi显示接收数据.Click += new System.EventHandler(this.miCheck_Click);
-            // 
             // FrmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 18F);
@@ -471,7 +471,7 @@
             this.Controls.Add(this.pnlSetting);
             this.Controls.Add(this.btnConnect);
             this.Controls.Add(this.gbReceive);
-            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "FrmMain";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Api调试";

@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Net.Handlers;
+#if !NET4
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 namespace NewLife.Net
 {
@@ -250,7 +254,7 @@ namespace NewLife.Net
             var source = new TaskCompletionSource<Object>();
             ctx["TaskSource"] = source;
 
-            if (!OnFireWrite(ctx, message)) return Task.FromResult((Object)null);
+            if (!OnFireWrite(ctx, message)) return TaskEx.FromResult((Object)null);
 
             return source.Task;
         }
@@ -310,22 +314,6 @@ namespace NewLife.Net
 
             return Head.Error(context, exception);
         }
-        #endregion
-
-        #region 扩展
-        //public IPacketQueue Queue { get; set; }
-
-        //public virtual Task<Object> AddQueue(ISocketRemote session, Object message)
-        //{
-        //    if (Queue == null) Queue = new DefaultPacketQueue();
-
-        //    return Queue.Add(session, message, 15000);
-        //}
-
-        //public virtual Boolean Match(ISocketRemote session, Object message, Func<Object, Object, Boolean> callback)
-        //{
-        //    return Queue.Match(session, message, callback);
-        //}
         #endregion
 
         #region 枚举器

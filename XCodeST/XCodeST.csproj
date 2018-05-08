@@ -25,6 +25,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Remoting\**" />
+    <EmbeddedResource Remove="Remoting\**" />
+    <None Remove="Remoting\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Include="..\XCode\Attributes\BindColumnAttribute.cs" Link="Attributes\BindColumnAttribute.cs" />
     <Compile Include="..\XCode\Attributes\BindIndexAttribute.cs" Link="Attributes\BindIndexAttribute.cs" />
     <Compile Include="..\XCode\Attributes\BindTableAttribute.cs" Link="Attributes\BindTableAttribute.cs" />
@@ -33,6 +39,7 @@
     <Compile Include="..\XCode\Attributes\ModelSortMode.cs" Link="Attributes\ModelSortMode.cs" />
     <Compile Include="..\XCode\Cache\CacheBase.cs" Link="Cache\CacheBase.cs" />
     <Compile Include="..\XCode\Cache\DataCache.cs" Link="Cache\DataCache.cs" />
+    <Compile Include="..\XCode\Cache\DbCache.cs" Link="Cache\DbCache.cs" />
     <Compile Include="..\XCode\Cache\EntityCache.cs" Link="Cache\EntityCache.cs" />
     <Compile Include="..\XCode\Cache\FieldCache.cs" Link="Cache\FieldCache.cs" />
     <Compile Include="..\XCode\Cache\IEntityCache.cs" Link="Cache\IEntityCache.cs" />
@@ -105,6 +112,8 @@
     <Compile Include="..\XCode\Exceptions\XDbMetaDataException.cs" Link="Exceptions\XDbMetaDataException.cs" />
     <Compile Include="..\XCode\Exceptions\XDbSessionException.cs" Link="Exceptions\XDbSessionException.cs" />
     <Compile Include="..\XCode\Exceptions\XSqlException.cs" Link="Exceptions\XSqlException.cs" />
+    <Compile Include="..\XCode\Extension\数据缓存.Biz.cs" Link="Extension\数据缓存.Biz.cs" />
+    <Compile Include="..\XCode\Extension\数据缓存.cs" Link="Extension\数据缓存.cs" />
     <Compile Include="..\XCode\Membership\IManageProvider.cs" Link="Membership\IManageProvider.cs" />
     <Compile Include="..\XCode\Membership\LogEntity.cs" Link="Membership\LogEntity.cs" />
     <Compile Include="..\XCode\Membership\LogProvider.cs" Link="Membership\LogProvider.cs" />
@@ -126,7 +135,6 @@
     <Compile Include="..\XCode\Model\OrderExpression.cs" Link="Model\OrderExpression.cs" />
     <Compile Include="..\XCode\Model\WhereExpression.cs" Link="Model\WhereExpression.cs" />
     <Compile Include="..\XCode\Model\XCodeService.cs" Link="Model\XCodeService.cs" />
-    <Compile Include="..\XCode\Remoting\ApiUserSession.cs" Link="Remoting\ApiUserSession.cs" />
     <Compile Include="..\XCode\Setting.cs" Link="Setting.cs" />
     <Compile Include="..\XCode\Sharding\分片.Biz.cs" Link="Sharding\分片.Biz.cs" />
     <Compile Include="..\XCode\Sharding\分片.cs" Link="Sharding\分片.cs" />
@@ -145,6 +153,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="..\XCode\Extension\Ext.xml" Link="Extension\Ext.xml" />
     <Content Include="..\XCode\Membership\Member.xml" Link="Membership\Member.xml" />
     <Content Include="..\XCode\Sharding\Shard.xml" Link="Sharding\Shard.xml" />
   </ItemGroup>
@@ -163,14 +172,17 @@
     <Folder Include="Exceptions\" />
     <Folder Include="Membership\" />
     <Folder Include="Model\" />
-    <Folder Include="Remoting\" />
     <Folder Include="Sharding\" />
     <Folder Include="Transform\" />
     <Folder Include="Tree\" />
     <Folder Include="Web\" />
+    <Folder Include="Extension\" />
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="..\XCode\Extension\生成实体类.tt" Link="Extension\生成实体类.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
     <None Include="..\XCode\Membership\生成实体类.tt" Link="Membership\生成实体类.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
     </None>

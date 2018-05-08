@@ -116,11 +116,20 @@
     <Compile Include="..\NewLife.Cube\Areas\Admin\Controllers\SysController.cs">
       <Link>Areas\Admin\Controllers\SysController.cs</Link>
     </Compile>
+    <Compile Include="..\NewLife.Cube\Areas\Admin\Controllers\UserConnectController.cs">
+      <Link>Areas\Admin\Controllers\UserConnectController.cs</Link>
+    </Compile>
     <Compile Include="..\NewLife.Cube\Areas\Admin\Controllers\UserController.cs">
       <Link>Areas\Admin\Controllers\UserController.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Cube\Areas\Admin\Controllers\UserOnlineController.cs">
       <Link>Areas\Admin\Controllers\UserOnlineController.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Areas\Admin\Controllers\UserTokenController.cs">
+      <Link>Areas\Admin\Controllers\UserTokenController.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Areas\Admin\Controllers\VisitStatController.cs">
+      <Link>Areas\Admin\Controllers\VisitStatController.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Cube\Areas\Admin\Controllers\XCodeController.cs">
       <Link>Areas\Admin\Controllers\XCodeController.cs</Link>
@@ -140,11 +149,26 @@
     <Compile Include="..\NewLife.Cube\Areas\Admin\Views\File\Index.generated.cs">
       <Link>Areas\Admin\Views\File\Index.generated.cs</Link>
     </Compile>
+    <Compile Include="..\NewLife.Cube\Areas\Admin\Views\Index\Assembly.generated.cs">
+      <Link>Areas\Admin\Views\Index\Assembly.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Areas\Admin\Views\Index\Cache.generated.cs">
+      <Link>Areas\Admin\Views\Index\Cache.generated.cs</Link>
+    </Compile>
     <Compile Include="..\NewLife.Cube\Areas\Admin\Views\Index\Index.generated.cs">
       <Link>Areas\Admin\Views\Index\Index.generated.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Cube\Areas\Admin\Views\Index\Main.generated.cs">
       <Link>Areas\Admin\Views\Index\Main.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Areas\Admin\Views\Index\ProcessModules.generated.cs">
+      <Link>Areas\Admin\Views\Index\ProcessModules.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Areas\Admin\Views\Index\ServerVar.generated.cs">
+      <Link>Areas\Admin\Views\Index\ServerVar.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Areas\Admin\Views\Index\Session.generated.cs">
+      <Link>Areas\Admin\Views\Index\Session.generated.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Cube\Areas\Admin\Views\Index\_Left.generated.cs">
       <Link>Areas\Admin\Views\Index\_Left.generated.cs</Link>
@@ -155,14 +179,32 @@
     <Compile Include="..\NewLife.Cube\Areas\Admin\Views\Index\_Navbar.generated.cs">
       <Link>Areas\Admin\Views\Index\_Navbar.generated.cs</Link>
     </Compile>
+    <Compile Include="..\NewLife.Cube\Areas\Admin\Views\Log\_List_Data.generated.cs">
+      <Link>Areas\Admin\Views\Log\_List_Data.generated.cs</Link>
+    </Compile>
     <Compile Include="..\NewLife.Cube\Areas\Admin\Views\Log\_List_Search.generated.cs">
       <Link>Areas\Admin\Views\Log\_List_Search.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Areas\Admin\Views\Menu\_ListTree_Data.generated.cs">
+      <Link>Areas\Admin\Views\Menu\_ListTree_Data.generated.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Cube\Areas\Admin\Views\Role\SetPermission.generated.cs">
       <Link>Areas\Admin\Views\Role\SetPermission.generated.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Cube\Areas\Admin\Views\Role\_Form_Group.generated.cs">
       <Link>Areas\Admin\Views\Role\_Form_Group.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Areas\Admin\Views\Role\_List_Data.generated.cs">
+      <Link>Areas\Admin\Views\Role\_List_Data.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Areas\Admin\Views\Shared\_Object_Nav.generated.cs">
+      <Link>Areas\Admin\Views\Shared\_Object_Nav.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Areas\Admin\Views\UserOnline\_List_Data.generated.cs">
+      <Link>Areas\Admin\Views\UserOnline\_List_Data.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Areas\Admin\Views\UserToken\_List_Data.generated.cs">
+      <Link>Areas\Admin\Views\UserToken\_List_Data.generated.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Cube\Areas\Admin\Views\User\Info.generated.cs">
       <Link>Areas\Admin\Views\User\Info.generated.cs</Link>
@@ -193,6 +235,12 @@
     </Compile>
     <Compile Include="..\NewLife.Cube\Areas\Admin\Views\User\_Login_Register.generated.cs">
       <Link>Areas\Admin\Views\User\_Login_Register.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Areas\Admin\Views\VisitStat\_List_Data.generated.cs">
+      <Link>Areas\Admin\Views\VisitStat\_List_Data.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Areas\Admin\Views\VisitStat\_List_Search.generated.cs">
+      <Link>Areas\Admin\Views\VisitStat\_List_Search.generated.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Cube\Areas\Admin\Views\_ViewStart.generated.cs">
       <Link>Areas\Admin\Views\_ViewStart.generated.cs</Link>
@@ -317,6 +365,9 @@
     <Compile Include="..\NewLife.Cube\Precompiled\ViewPathProvider.cs">
       <Link>Precompiled\ViewPathProvider.cs</Link>
     </Compile>
+    <Compile Include="..\NewLife.Cube\Properties\AssemblyInfo.cs">
+      <Link>Properties\AssemblyInfo.cs</Link>
+    </Compile>
     <Compile Include="..\NewLife.Cube\Setting.cs">
       <Link>Setting.cs</Link>
     </Compile>
@@ -389,6 +440,9 @@
     <Compile Include="..\NewLife.Cube\Views\Shared\_List_Data_Item.generated.cs">
       <Link>Views\Shared\_List_Data_Item.generated.cs</Link>
     </Compile>
+    <Compile Include="..\NewLife.Cube\Views\Shared\_List_Data_Item_First.generated.cs">
+      <Link>Views\Shared\_List_Data_Item_First.generated.cs</Link>
+    </Compile>
     <Compile Include="..\NewLife.Cube\Views\Shared\_List_Pager.generated.cs">
       <Link>Views\Shared\_List_Pager.generated.cs</Link>
     </Compile>
@@ -404,11 +458,17 @@
     <Compile Include="..\NewLife.Cube\Views\Shared\_List_Toolbar_Adv.generated.cs">
       <Link>Views\Shared\_List_Toolbar_Adv.generated.cs</Link>
     </Compile>
+    <Compile Include="..\NewLife.Cube\Views\Shared\_List_Toolbar_Batch.generated.cs">
+      <Link>Views\Shared\_List_Toolbar_Batch.generated.cs</Link>
+    </Compile>
     <Compile Include="..\NewLife.Cube\Views\Shared\_List_Toolbar_Search.generated.cs">
       <Link>Views\Shared\_List_Toolbar_Search.generated.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Cube\Views\Shared\_LoginPartial.generated.cs">
       <Link>Views\Shared\_LoginPartial.generated.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Cube\Views\Shared\_Object_Nav.generated.cs">
+      <Link>Views\Shared\_Object_Nav.generated.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Cube\Views\_ViewStart.generated.cs">
       <Link>Views\_ViewStart.generated.cs</Link>
@@ -422,7 +482,6 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\NewLife.Cube\Areas\Admin\Views\Db\Index.cshtml">
@@ -589,6 +648,54 @@
     </Content>
     <Content Include="..\NewLife.Cube\Areas\Admin\Views\User\_Login_Login3.cshtml">
       <Link>Areas\Admin\Views\User\_Login_Login3.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Areas\Admin\Views\Index\Assembly.cshtml">
+      <Link>Areas\Admin\Views\Index\Assembly.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Areas\Admin\Views\Index\Cache.cshtml">
+      <Link>Areas\Admin\Views\Index\Cache.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Areas\Admin\Views\Index\ProcessModules.cshtml">
+      <Link>Areas\Admin\Views\Index\ProcessModules.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Areas\Admin\Views\Index\ServerVar.cshtml">
+      <Link>Areas\Admin\Views\Index\ServerVar.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Areas\Admin\Views\Index\Session.cshtml">
+      <Link>Areas\Admin\Views\Index\Session.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Areas\Admin\Views\Log\_List_Data.cshtml">
+      <Link>Areas\Admin\Views\Log\_List_Data.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Areas\Admin\Views\Menu\_ListTree_Data.cshtml">
+      <Link>Areas\Admin\Views\Menu\_ListTree_Data.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Areas\Admin\Views\Role\_List_Data.cshtml">
+      <Link>Areas\Admin\Views\Role\_List_Data.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Areas\Admin\Views\Shared\_Object_Nav.cshtml">
+      <Link>Areas\Admin\Views\Shared\_Object_Nav.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Areas\Admin\Views\UserOnline\_List_Data.cshtml">
+      <Link>Areas\Admin\Views\UserOnline\_List_Data.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Areas\Admin\Views\UserToken\_List_Data.cshtml">
+      <Link>Areas\Admin\Views\UserToken\_List_Data.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Areas\Admin\Views\VisitStat\_List_Data.cshtml">
+      <Link>Areas\Admin\Views\VisitStat\_List_Data.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Areas\Admin\Views\VisitStat\_List_Search.cshtml">
+      <Link>Areas\Admin\Views\VisitStat\_List_Search.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Views\Shared\_List_Data_Item_First.cshtml">
+      <Link>Views\Shared\_List_Data_Item_First.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Views\Shared\_List_Toolbar_Batch.cshtml">
+      <Link>Views\Shared\_List_Toolbar_Batch.cshtml</Link>
+    </Content>
+    <Content Include="..\NewLife.Cube\Views\Shared\_Object_Nav.cshtml">
+      <Link>Views\Shared\_Object_Nav.cshtml</Link>
     </Content>
     <None Include="Global.asax" />
     <None Include="Areas\Admin\Views\Web.config" />

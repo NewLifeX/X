@@ -225,7 +225,17 @@ namespace NewLife.Cube
             //routes.RouteExistingFiles = true;
 
             // 自动检查并添加菜单
-            TaskEx.Run(() => ScanController());
+            TaskEx.Run(() =>
+            {
+                try
+                {
+                    ScanController();
+                }
+                catch (Exception ex)
+                {
+                    XTrace.WriteException(ex);
+                }
+            });
         }
 
         /// <summary>自动扫描控制器，并添加到菜单</summary>

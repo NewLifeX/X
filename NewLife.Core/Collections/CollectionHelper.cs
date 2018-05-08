@@ -137,7 +137,7 @@ namespace System.Collections.Generic
         {
             if (collection == null) return null;
 
-            if (collection is NullableDictionary<TKey, TValue>) return collection as NullableDictionary<TKey, TValue>;
+            if (collection is NullableDictionary<TKey, TValue> dic && (comparer != null || dic.Comparer == comparer)) return collection as NullableDictionary<TKey, TValue>;
 
             return new NullableDictionary<TKey, TValue>(collection, comparer);
         }

@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using NewLife.Data;
 using NewLife.Reflection;
 
 namespace NewLife.Remoting
@@ -10,17 +11,23 @@ namespace NewLife.Remoting
     public class ApiAction
     {
         /// <summary>动作名称</summary>
-        public String Name { get; set; }
+        public String Name { get; }
 
         /// <summary>动作所在类型</summary>
-        public Type Type { get; set; }
+        public Type Type { get; }
 
         /// <summary>方法</summary>
-        public MethodInfo Method { get; set; }
+        public MethodInfo Method { get; }
 
         /// <summary>控制器对象</summary>
         /// <remarks>如果指定控制器对象，则每次调用前不再实例化对象</remarks>
         public Object Controller { get; set; }
+
+        /// <summary>是否二进制参数</summary>
+        public Boolean IsPacketParameter { get; }
+
+        /// <summary>是否二进制返回</summary>
+        public Boolean IsPacketReturn { get; }
 
         /// <summary>实例化</summary>
         public ApiAction(MethodInfo method, Type type)
@@ -31,6 +38,11 @@ namespace NewLife.Remoting
             // 必须同时记录类型和方法，因为有些方法位于继承的不同层次，那样会导致实例化的对象不一致
             Type = type;
             Method = method;
+
+            var ps = method.GetParameters();
+            if (ps != null && ps.Length == 1 && ps[0].ParameterType == typeof(Packet)) IsPacketParameter = true;
+
+            if (method.ReturnType == typeof(Packet)) IsPacketReturn = true;
         }
 
         /// <summary>获取名称</summary>

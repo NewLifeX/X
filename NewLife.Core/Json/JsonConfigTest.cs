@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using NewLife.Serialization;
+using System.Xml.Serialization;
 
 #if DEBUG
 namespace NewLife.Json
@@ -51,7 +47,7 @@ namespace NewLife.Json
             {
                 Console.WriteLine("成功-修改保存");
             }
-            else if(cur.Title.Equals("测试标题"))
+            else if (cur.Title.Equals("测试标题"))
             {
                 Console.WriteLine("失败-修改保存");
             }
@@ -82,9 +78,8 @@ namespace NewLife.Json
 
         /// <summary>高度</summary>
         [Description("高度")]
-        [JsonIgnore]
+        [XmlIgnore]
         public Int32 Height { get; set; } = 520;
     }
 }
 #endif
-

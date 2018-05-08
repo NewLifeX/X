@@ -189,10 +189,7 @@ namespace XCode.Membership
         /// <summary>查找指定菜单的子菜单</summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public static List<TEntity> FindAllByParentID(Int32 id)
-        {
-            return Meta.Cache.FindAll(e => e.ParentID == id).OrderByDescending(e => e.Sort).ThenBy(e => e.ID).ToList();
-        }
+        public static List<TEntity> FindAllByParentID(Int32 id) => Meta.Cache.FindAll(e => e.ParentID == id).OrderByDescending(e => e.Sort).ThenBy(e => e.ID).ToList();
 
         /// <summary>取得当前角色的子菜单，有权限、可显示、排序</summary>
         /// <param name="filters"></param>
@@ -280,10 +277,7 @@ namespace XCode.Membership
         /// <summary>写日志</summary>
         /// <param name="action">操作</param>
         /// <param name="remark">备注</param>
-        public static void WriteLog(String action, String remark)
-        {
-            LogProvider.Provider.WriteLog(typeof(TEntity), action, remark);
-        }
+        public static void WriteLog(String action, String remark) => LogProvider.Provider.WriteLog(typeof(TEntity), action, remark);
         #endregion
 
         #region 辅助

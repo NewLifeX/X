@@ -86,7 +86,9 @@ namespace XCode.DataAccessLayer
             _Tables = null;
             _hasCheck = 0;
             HasCheckTables.Clear();
+#if !__CORE__
             _Assembly = null;
+#endif
 
             GC.Collect();
         }

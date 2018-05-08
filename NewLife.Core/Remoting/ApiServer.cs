@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using NewLife.Model;
 using NewLife.Net;
-using NewLife.Reflection;
 
 namespace NewLife.Remoting
 {
@@ -67,8 +65,8 @@ namespace NewLife.Remoting
         {
             if (Active) return;
 
-            //if (Encoder == null) Encoder = new JsonEncoder();
-            if (Encoder == null) Encoder = new BinaryEncoder();
+            if (Encoder == null) Encoder = new JsonEncoder();
+            //if (Encoder == null) Encoder = new BinaryEncoder();
             if (Handler == null) Handler = new ApiHandler { Host = this };
 
             Encoder.Log = EncoderLog;

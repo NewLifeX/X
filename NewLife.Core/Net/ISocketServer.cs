@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using NewLife.Log;
 using NewLife.Model;
 
 namespace NewLife.Net
@@ -18,7 +19,7 @@ namespace NewLife.Net
         Int32 SessionTimeout { get; set; }
 
         /// <summary>会话统计</summary>
-        IStatistics StatSession { get; set; }
+        ICounter StatSession { get; set; }
 
         /// <summary>会话集合。用地址端口作为标识，业务应用自己维持地址端口与业务主键的对应关系。</summary>
         IDictionary<String, ISocketSession> Sessions { get; }
@@ -40,9 +41,9 @@ namespace NewLife.Net
 
             var sb = new StringBuilder();
             //sb.AppendFormat("在线：{0:n0}/{1:n0} ", socket.SessionCount, socket.MaxSessionCount);
-            if (socket.StatSend.Total > 0) sb.AppendFormat("发送：{0} ", socket.StatSend);
-            if (socket.StatReceive.Total > 0) sb.AppendFormat("接收：{0} ", socket.StatReceive);
-            if (socket.StatSession.Total > 0) sb.AppendFormat("会话：{0} ", socket.StatSession);
+            if (socket.StatSend.Value > 0) sb.AppendFormat("发送：{0} ", socket.StatSend);
+            if (socket.StatReceive.Value > 0) sb.AppendFormat("接收：{0} ", socket.StatReceive);
+            if (socket.StatSession.Value > 0) sb.AppendFormat("会话：{0} ", socket.StatSession);
 
             return sb.ToString();
         }

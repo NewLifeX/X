@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Data;
+using NewLife.Log;
 using NewLife.Model;
 
 namespace NewLife.Net
@@ -31,7 +32,7 @@ namespace NewLife.Net
         public Boolean Loopback { get; set; }
 
         /// <summary>会话统计</summary>
-        public IStatistics StatSession { get; set; }
+        public ICounter StatSession { get; set; }
         #endregion
 
         #region 构造
@@ -42,7 +43,7 @@ namespace NewLife.Net
             Remote.Type = NetType.Udp;
             _Sessions = new SessionCollection(this);
 
-            StatSession = new Statistics();
+            //StatSession = new PerfCounter();
             SessionTimeout = Setting.Current.SessionTimeout;
 
             // 处理UDP最大并发接收
@@ -67,6 +68,8 @@ namespace NewLife.Net
                 {
                     Local.Address = Local.Address.GetRightAny(Remote.Address.AddressFamily);
                 }
+
+                if (StatSession == null) StatSession = new PerfCounter();
 
                 Client = NetHelper.CreateUdp(Local.EndPoint.Address.IsIPv4());
                 Client.Bind(Local.EndPoint);
@@ -171,29 +174,34 @@ namespace NewLife.Net
         #endregion
 
         #region 接收
+        /// <summary>预处理</summary>
         /// <param name="pk">数据包</param>
-        /// <param name="remote">远程</param>
-        internal protected override Boolean OnPreReceive(Packet pk, IPEndPoint remote)
+        /// <param name="remote">远程地址</param>
+        /// <returns>将要处理该数据包的会话</returns>
+        internal protected override ISocketSession OnPreReceive(Packet pk, IPEndPoint remote)
         {
             // 过滤自己广播的环回数据。放在这里，兼容UdpSession
             if (!Loopback && remote.Port == Port)
             {
                 if (!Local.Address.IsAny())
                 {
-                    if (remote.Address.Equals(Local.Address)) return false;
+                    if (remote.Address.Equals(Local.Address)) return null;
                 }
                 else
                 {
                     foreach (var item in NetHelper.GetIPsWithCache())
                     {
-                        if (remote.Address.Equals(item)) return false;
+                        if (remote.Address.Equals(item)) return null;
                     }
                 }
             }
 
             LastRemote = remote;
 
-            return true;
+            // 为该连接单独创建一个会话，方便直接通信
+            var session = CreateSession(remote);
+
+            return session;
         }
 
         /// <summary>处理收到的数据</summary>
@@ -319,7 +327,7 @@ namespace NewLife.Net
                     us.ID = Interlocked.Increment(ref g_ID);
                     us.Start();
 
-                    if (StatSession != null) StatSession.Increment(1);
+                    StatSession?.Increment(1);
 
                     // 触发新会话事件
                     NewSession?.Invoke(this, new SessionEventArgs { Session = session });

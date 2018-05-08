@@ -14,63 +14,6 @@ namespace NewLife.Caching
         #region 静态默认实现
         /// <summary>默认缓存</summary>
         public static ICache Default { get; set; } = new MemoryCache();
-
-        static Cache()
-        {
-            //// 查找一个外部缓存提供者来作为默认缓存
-            //Default = ObjectContainer.Current.AutoRegister<ICache, MemoryCache>().ResolveInstance<ICache>();
-
-            //var ioc = ObjectContainer.Current;
-            //// 遍历所有程序集，自动加载
-            //foreach (var item in typeof(ICache).GetAllSubclasses(true))
-            //{
-            //    // 实例化一次，让这个类有机会执行类型构造函数，可以获取旧的类型实现
-            //    if (item.CreateInstance() is ICache ic)
-            //    {
-            //        var id = ic.Name;
-            //        if (id.IsNullOrEmpty()) id = item.Name.TrimEnd("Cache");
-
-            //        /*if (XTrace.Debug)*/
-            //        XTrace.WriteLine("发现缓存实现 [{0}] = {1}", id, item.FullName);
-
-            //        ioc.Register<ICache>(ic, id);
-            //    }
-            //}
-        }
-
-        //private static ConcurrentDictionary<String, ICache> _cache = new ConcurrentDictionary<String, ICache>();
-        ///// <summary>创建缓存实例</summary>
-        ///// <param name="set">配置项</param>
-        ///// <returns></returns>
-        //public static ICache Create(CacheSetting set)
-        //{
-        //    return _cache.GetOrAdd(set.Name, k =>
-        //    {
-        //        var id = set.Provider;
-
-        //        var type = ObjectContainer.Current.ResolveType<ICache>(id);
-        //        if (type == null) throw new ArgumentNullException(nameof(type), "找不到名为[{0}]的缓存实现[{1}]".F(set.Name, id));
-
-        //        var ic = type.CreateInstance() as ICache;
-        //        if (ic is Cache ic2) ic2.Init(set);
-
-        //        return ic;
-        //    });
-        //}
-
-        ///// <summary>创建缓存实例</summary>
-        ///// <param name="name">名字。memory、redis://127.0.0.1:6379?Db=6</param>
-        ///// <returns></returns>
-        //public static ICache Create(String name)
-        //{
-        //    if (name == null) name = "";
-
-        //    // 尝试直接获取，避免多次调用CacheConfig.GetOrAdd影响应性能
-        //    if (_cache.TryGetValue(name, out var ic)) return ic;
-
-        //    var item = CacheConfig.Current.GetOrAdd(name);
-        //    return Create(item);
-        //}
         #endregion
 
         #region 属性
@@ -94,10 +37,7 @@ namespace NewLife.Caching
 
         #region 构造
         /// <summary>构造函数</summary>
-        public Cache()
-        {
-            Name = GetType().Name.TrimEnd("Cache");
-        }
+        public Cache() => Name = GetType().Name.TrimEnd("Cache");
         #endregion
 
         #region 基础操作
@@ -122,7 +62,7 @@ namespace NewLife.Caching
         /// <param name="value">值</param>
         /// <param name="expire">过期时间</param>
         /// <returns></returns>
-        public virtual Boolean Set<T>(String key, T value, TimeSpan expire) { return Set(key, value, (Int32)expire.TotalSeconds); }
+        public virtual Boolean Set<T>(String key, T value, TimeSpan expire) => Set(key, value, (Int32)expire.TotalSeconds);
 
         /// <summary>获取缓存项</summary>
         /// <param name="key">键</param>
@@ -177,19 +117,19 @@ namespace NewLife.Caching
         /// <typeparam name="T">元素类型</typeparam>
         /// <param name="key">键</param>
         /// <returns></returns>
-        public virtual IList<T> GetList<T>(String key) { throw new NotSupportedException(); }
+        public virtual IList<T> GetList<T>(String key) => throw new NotSupportedException();
 
         /// <summary>获取哈希</summary>
         /// <typeparam name="T">元素类型</typeparam>
         /// <param name="key">键</param>
         /// <returns></returns>
-        public virtual IDictionary<String, T> GetDictionary<T>(String key) { throw new NotSupportedException(); }
+        public virtual IDictionary<String, T> GetDictionary<T>(String key) => throw new NotSupportedException();
 
         /// <summary>获取队列</summary>
         /// <typeparam name="T">元素类型</typeparam>
         /// <param name="key">键</param>
         /// <returns></returns>
-        public virtual IProducerConsumer<T> GetQueue<T>(String key) { throw new NotSupportedException(); }
+        public virtual IProducerConsumer<T> GetQueue<T>(String key) => throw new NotSupportedException();
         #endregion
 
         #region 高级操作
@@ -199,7 +139,7 @@ namespace NewLife.Caching
         /// <param name="value">值</param>
         /// <param name="expire">过期时间，秒。小于0时采用默认缓存时间<seealso cref="Cache.Expire"/></param>
         /// <returns></returns>
-        public virtual Boolean Add<T>(String key, T value, Int32 expire = -1) { return Set(key, value, expire); }
+        public virtual Boolean Add<T>(String key, T value, Int32 expire = -1) => Set(key, value, expire);
 
         /// <summary>设置新值并获取旧值，原子操作</summary>
         /// <typeparam name="T">值类型</typeparam>
@@ -383,8 +323,8 @@ namespace NewLife.Caching
             XTrace.WriteLine($"测试 {times:n0} 项，{threads,3:n0} 线程");
 
             var key = "Bench_";
-            Set(key, Rand.NextBytes(32));
-            var v = Get<Byte[]>(key);
+            Set(key, Rand.NextString(32));
+            var v = Get<String>(key);
             Remove(key);
 
             // 赋值测试
@@ -404,7 +344,7 @@ namespace NewLife.Caching
         /// <param name="rand">随机读写</param>
         protected virtual void BenchGet(String key, Int64 times, Int32 threads, Boolean rand)
         {
-            var v = Get<Byte[]>(key);
+            var v = Get<String>(key);
 
             var sw = Stopwatch.StartNew();
             if (rand)
@@ -413,7 +353,7 @@ namespace NewLife.Caching
                 {
                     for (var i = k; i < times; i += threads)
                     {
-                        var val = Get<Byte[]>(key + i);
+                        var val = Get<String>(key + i);
                     }
                 });
             }
@@ -425,7 +365,7 @@ namespace NewLife.Caching
                     var count = times / threads;
                     for (var i = 0; i < count; i++)
                     {
-                        var val = Get<Byte[]>(mykey);
+                        var val = Get<String>(mykey);
                     }
                 });
             }
@@ -449,7 +389,7 @@ namespace NewLife.Caching
             {
                 Parallel.For(0, threads, k =>
                 {
-                    var val = Rand.NextBytes(32);
+                    var val = Rand.NextString(32);
                     for (var i = k; i < times; i += threads)
                     {
                         Set(key + i, val);
@@ -461,7 +401,7 @@ namespace NewLife.Caching
                 Parallel.For(0, threads, k =>
                 {
                     var mykey = key + k;
-                    var val = Rand.NextBytes(32);
+                    var val = Rand.NextString(32);
                     var count = times / threads;
                     for (var i = 0; i < count; i++)
                     {
@@ -517,7 +457,7 @@ namespace NewLife.Caching
         #region 辅助
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override String ToString() { return Name; }
+        public override String ToString() => Name;
         #endregion
     }
 }

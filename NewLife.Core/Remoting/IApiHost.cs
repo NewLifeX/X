@@ -1,9 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Reflection;
+using NewLife.Serialization;
 
 namespace NewLife.Remoting
 {
@@ -25,6 +29,12 @@ namespace NewLife.Remoting
         /// <returns></returns>
         IMessage Process(IApiSession session, IMessage msg);
 
+        /// <summary>发送统计</summary>
+        ICounter StatSend { get; set; }
+
+        /// <summary>接收统计</summary>
+        ICounter StatReceive { get; set; }
+
         /// <summary>日志</summary>
         ILog Log { get; set; }
 
@@ -38,51 +48,73 @@ namespace NewLife.Remoting
     public static class ApiHostHelper
     {
         /// <summary>调用</summary>
-        /// <typeparam name="TResult"></typeparam>
         /// <param name="host"></param>
         /// <param name="session"></param>
-        /// <param name="action"></param>
-        /// <param name="args"></param>
+        /// <param name="resultType">结果类型</param>
+        /// <param name="action">服务操作</param>
+        /// <param name="args">参数</param>
+        /// <param name="flag">标识</param>
         /// <returns></returns>
-        public static async Task<TResult> InvokeAsync<TResult>(IApiHost host, IApiSession session, String action, Object args)
+        public static async Task<Object> InvokeAsync(IApiHost host, IApiSession session, Type resultType, String action, Object args, Byte flag)
         {
-            if (session == null) return default(TResult);
+            if (session == null) return null;
 
+            host.StatSend?.Increment();
+
+            // 编码请求
             var enc = host.Encoder;
-            var msg = enc.Encode(action, args);
+            var pk = EncodeArgs(enc, action, args);
+
+            // 构造消息
+            var msg = new DefaultMessage { Payload = pk, };
+            if (flag > 0) msg.Flag = flag;
 
             var rs = await session.SendAsync(msg);
-            if (rs == null) return default(TResult);
+            if (rs == null) return null;
 
             // 特殊返回类型
-            var rtype = typeof(TResult);
-            if (rtype == typeof(IMessage)) return (TResult)rs;
-            if (rtype == typeof(Packet)) return (TResult)(Object)rs.Payload;
+            if (resultType == typeof(IMessage)) return rs;
+            //if (resultType == typeof(Packet)) return rs.Payload;
 
-            if (!enc.TryGetResponse(rs, out var code, out var result)) throw new InvalidOperationException();
+            if (!Decode(rs, out var act, out var code, out var data)) throw new InvalidOperationException();
 
             // 是否成功
-            if (code != 0) throw new ApiException(code, result + "");
+            if (code != 0) throw new ApiException(code, data.ToStr());
 
-            if (result == null) return default(TResult);
-            if (result is TResult || rtype == typeof(Object)) return (TResult)result;
+            if (data == null) return null;
+            if (resultType == typeof(Packet)) return data;
+
+            // 解码结果
+            var result = enc.Decode(action, data);
+            if (resultType == typeof(Object)) return result;
 
             // 返回
-            return enc.Convert<TResult>(result);
+            return enc.Convert(result, resultType);
         }
 
         /// <summary>调用</summary>
         /// <param name="host"></param>
         /// <param name="session"></param>
-        /// <param name="action"></param>
-        /// <param name="args"></param>
+        /// <param name="action">服务操作</param>
+        /// <param name="args">参数</param>
+        /// <param name="flag">标识</param>
         /// <returns></returns>
-        public static Boolean Invoke(IApiHost host, IApiSession session, String action, Object args)
+        public static Boolean Invoke(IApiHost host, IApiSession session, String action, Object args, Byte flag = 0)
         {
             if (session == null) return false;
 
-            var enc = host.Encoder;
-            var msg = enc.Encode(action, args);
+            host.StatSend?.Increment();
+
+            // 编码请求
+            var pk = EncodeArgs(host.Encoder, action, args);
+
+            // 构造消息
+            var msg = new DefaultMessage
+            {
+                OneWay = true,
+                Payload = pk,
+            };
+            if (flag > 0) msg.Flag = flag;
 
             return session.Send(msg);
         }
@@ -101,5 +133,98 @@ namespace NewLife.Remoting
 
             return controller;
         }
+
+        #region 编码/解码
+        /// <summary>编码 请求/响应</summary>
+        /// <param name="action"></param>
+        /// <param name="code"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static Packet Encode(String action, Int32 code, Packet value)
+        {
+            var ms = new MemoryStream();
+            ms.Seek(8, SeekOrigin.Begin);
+
+            // 请求：action + args
+            // 响应：action + code + result
+            var writer = new BinaryWriter(ms);
+            writer.Write(action);
+            if (code != 0) writer.Write(code);
+
+            // 参数或结果
+            var pk2 = value as Packet;
+            if (pk2 != null)
+            {
+                var len = pk2.Total;
+
+                // 不管有没有附加数据，都会写入长度
+                //ms.WriteEncodedInt(len);
+                writer.Write(len);
+            }
+
+            var pk = new Packet(ms.GetBuffer(), 8, (Int32)ms.Length - 8);
+            if (pk2 != null) pk.Next = pk2;
+
+            return pk;
+        }
+
+        private static Packet EncodeArgs(IEncoder enc, String action, Object args)
+        {
+            // 二进制优先
+            var pk = args as Packet;
+            if (pk == null) pk = enc.Encode(action, 0, args);
+            pk = Encode(action, 0, pk);
+
+            return pk;
+        }
+
+        /// <summary>解码 请求/响应</summary>
+        /// <param name="msg">消息</param>
+        /// <param name="action">服务动作</param>
+        /// <param name="code">错误码</param>
+        /// <param name="value">参数或结果</param>
+        /// <returns></returns>
+        public static Boolean Decode(IMessage msg, out String action, out Int32 code, out Packet value)
+        {
+            action = null;
+            code = 0;
+            value = null;
+
+            // 请求：action + args
+            // 响应：action + code + result
+            var ms = msg.Payload.GetStream();
+            var reader = new BinaryReader(ms);
+
+            action = reader.ReadString();
+            if (msg.Reply && msg is DefaultMessage dm && dm.Error) code = reader.ReadInt32();
+            if (action.IsNullOrEmpty()) throw new Exception("解码错误，无法找到服务名！");
+
+            // 参数或结果
+            if (ms.Length > ms.Position)
+            {
+                //var len = ms.ReadEncodedInt();
+                var len = reader.ReadInt32();
+                if (len > 0) value = msg.Payload.Sub((Int32)ms.Position, len);
+            }
+
+            return true;
+        }
+        #endregion
+
+        #region 统计
+        /// <summary>获取统计信息</summary>
+        /// <param name="host"></param>
+        /// <returns></returns>
+        public static String GetStat(this IApiHost host)
+        {
+            if (host == null) return null;
+
+            var sb = new StringBuilder();
+            if (host.StatSend.Value > 0) sb.AppendFormat("请求：{0} ", host.StatSend);
+            if (host.StatReceive.Value > 0) sb.AppendFormat("处理：{0} ", host.StatReceive);
+
+            return sb.ToString();
+        }
+        #endregion
     }
 }

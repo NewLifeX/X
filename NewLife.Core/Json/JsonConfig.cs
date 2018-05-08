@@ -3,15 +3,11 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Xml;
+using System.Web.Script.Serialization;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Serialization;
 using NewLife.Threading;
-#if NET4
-using Task = System.Threading.Tasks.TaskEx;
-#endif
 
 namespace NewLife.Json
 {
@@ -135,18 +131,18 @@ namespace NewLife.Json
 
         #region 属性
         /// <summary>配置文件</summary>
-        [JsonIgnore]
+        [ScriptIgnore]
         public String ConfigFile { get; set; }
 
         /// <summary>最后写入时间</summary>
-        [JsonIgnore]
+        [ScriptIgnore]
         private DateTime lastWrite;
         /// <summary>过期时间。如果在这个时间之后再次访问，将检查文件修改时间</summary>
-        [JsonIgnore]
+        [ScriptIgnore]
         private DateTime expire;
 
         /// <summary>是否已更新。通过文件写入时间判断</summary>
-        [JsonIgnore]
+        [ScriptIgnore]
         protected Boolean IsUpdated
         {
             get
@@ -192,7 +188,7 @@ namespace NewLife.Json
         }
 
         /// <summary>是否新的配置文件</summary>
-        [JsonIgnore]
+        [ScriptIgnore]
         public Boolean IsNew { get; set; }
         #endregion
 
@@ -337,6 +333,7 @@ namespace NewLife.Json
 
             Interlocked.Add(ref _commits, -old);
         }
+
         /// <summary>新创建配置文件时执行</summary>
         protected virtual void OnNew() { }
 

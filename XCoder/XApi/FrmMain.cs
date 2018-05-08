@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using NewLife.Data;
 using NewLife.Log;
 using NewLife.Net;
 using NewLife.Reflection;
@@ -15,6 +16,9 @@ using NewLife.Serialization;
 using NewLife.Threading;
 using NewLife.Windows;
 using XCoder;
+#if !NET4
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 namespace XApi
 {
@@ -156,7 +160,7 @@ namespace XApi
 
                     svr.Start();
 
-                    "正在监听{0}".F(uri.Port).SpeechTip();
+                    "正在监听{0}".F(port).SpeechTip();
 
                     _Server = svr;
                     break;
@@ -201,7 +205,7 @@ namespace XApi
 
             cfg.Save();
 
-            _timer = new TimerX(ShowStat, null, 5000, 5000);
+            _timer = new TimerX(ShowStat, null, 5000, 5000) { Async = true };
         }
 
         async void GetApiAll()
@@ -252,13 +256,13 @@ namespace XApi
 
             var msg = "";
             if (_Client != null)
-                msg = _Client.Client?.GetStat();
+                msg = _Client.GetStat();
             else if (_Server != null)
-                msg = (_Server.Server as NetServer)?.GetStat();
+                msg = _Server.GetStat();
 
             if (_Invoke > 0)
             {
-                var ms = (Double)_Cost / _Invoke;
+                var ms = (Double)_Cost / _Invoke / 1000;
                 if (ms > 1)
                     msg += $" Invoke={_Invoke} {ms:n0}ms";
                 else
@@ -339,11 +343,24 @@ namespace XApi
             str = str.Replace("\n", "\r\n");
 
             var act = cbAction.SelectedItem + "";
-            act = act.Substring(" ", "(");
+            var action = act.Substring(" ", "(");
 
-            // 构造消息
-            var args = new JsonParser(str).Decode() as IDictionary<String, Object>;
-            if (args == null || args.Count == 0) args = null;
+            var rtype = act.Substring(null, " ").GetTypeEx();
+            if (rtype == null) rtype = typeof(Object);
+            var ps = act.Substring("(", ")").Split(",");
+
+            // 构造消息，二进制优先
+            Object args = null;
+            if (ps.Length == 1 && ps[0].StartsWith("Packet "))
+            {
+                args = new Packet(str.GetBytes());
+            }
+            else
+            {
+                var dic = new JsonParser(str).Decode() as IDictionary<String, Object>;
+                if (dic == null || dic.Count == 0) dic = null;
+                args = dic;
+            }
 
             if (_Client == null) return;
 
@@ -360,14 +377,19 @@ namespace XApi
                 ct2.Log = ct.Log;
                 ct2.LogSend = ct.LogSend;
                 ct2.LogReceive = ct.LogReceive;
+                ct2.StatSend = ct.StatSend;
+                ct2.StatReceive = ct.StatReceive;
+
+                client.StatSend = _Client.StatSend;
+                client.StatReceive = _Client.StatReceive;
 
                 list.Add(client);
             }
             //Parallel.ForEach(list, k => OnSend(k, act, args, count));
             var sw = Stopwatch.StartNew();
-            var ts = list.Select(k => OnSend(k, act, args, count, sleep)).ToList();
+            var ts = list.Select(k => OnSend(k, rtype, action, args, count, sleep)).ToList();
 
-            await Task.WhenAll(ts);
+            await TaskEx.WhenAll(ts);
             sw.Stop();
             _TotalCost = sw.Elapsed.TotalMilliseconds;
         }
@@ -375,7 +397,7 @@ namespace XApi
         Int64 _Invoke;
         Int64 _Cost;
         Double _TotalCost;
-        private async Task OnSend(ApiClient client, String act, Object args, Int32 count, Int32 sleep)
+        private async Task OnSend(ApiClient client, Type rtype, String act, Object args, Int32 count, Int32 sleep)
         {
             client.Open();
 
@@ -387,9 +409,9 @@ namespace XApi
                 {
                     try
                     {
-                        client.Invoke(act, args);
-
                         Interlocked.Increment(ref _Invoke);
+
+                        client.Invoke(act, args);
                     }
                     catch (ApiException ex)
                     {
@@ -397,7 +419,7 @@ namespace XApi
                     }
                 }
                 sw.Stop();
-                Interlocked.Add(ref _Cost, sw.ElapsedMilliseconds);
+                Interlocked.Add(ref _Cost, (Int64)(sw.Elapsed.TotalMilliseconds * 1000));
             }
             // 间隔2~10多任务异步发送
             else if (sleep <= 10)
@@ -405,16 +427,16 @@ namespace XApi
                 var ts = new List<Task>();
                 for (var i = 0; i < count; i++)
                 {
-                    ts.Add(Task.Run(async () =>
+                    ts.Add(TaskEx.Run(async () =>
                     {
                         try
                         {
                             var sw = Stopwatch.StartNew();
-                            await client.InvokeAsync<Object>(act, args);
+                            await client.InvokeAsync(rtype, act, args);
                             sw.Stop();
 
                             Interlocked.Increment(ref _Invoke);
-                            Interlocked.Add(ref _Cost, sw.ElapsedMilliseconds);
+                            Interlocked.Add(ref _Cost, (Int64)(sw.Elapsed.TotalMilliseconds * 1000));
                         }
                         catch (ApiException ex)
                         {
@@ -423,7 +445,7 @@ namespace XApi
                     }));
                 }
 
-                await Task.WhenAll(ts);
+                await TaskEx.WhenAll(ts);
             }
             // 间隔>10单任务异步发送
             else
@@ -433,18 +455,18 @@ namespace XApi
                     try
                     {
                         var sw = Stopwatch.StartNew();
-                        await client.InvokeAsync<Object>(act, args);
+                        await client.InvokeAsync(rtype, act, args);
                         sw.Stop();
 
                         Interlocked.Increment(ref _Invoke);
-                        Interlocked.Add(ref _Cost, sw.ElapsedMilliseconds);
+                        Interlocked.Add(ref _Cost, (Int64)(sw.Elapsed.TotalMilliseconds * 1000));
                     }
                     catch (ApiException ex)
                     {
                         BizLog.Info(ex.Message);
                     }
 
-                    await Task.Delay(sleep);
+                    await TaskEx.Delay(sleep);
                 }
             }
         }

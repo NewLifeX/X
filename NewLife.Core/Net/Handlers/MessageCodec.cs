@@ -124,13 +124,12 @@ namespace NewLife.Net.Handlers
         /// <summary>分析数据流，得到一帧数据</summary>
         /// <param name="pk">待分析数据包</param>
         /// <param name="codec">参数</param>
-        /// <param name="offset">长度字段位置</param>
-        /// <param name="size">长度字段大小</param>
+        /// <param name="getLength">获取长度</param>
         /// <param name="expire">缓存有效期</param>
         /// <returns></returns>
-        protected virtual IList<Packet> Parse(Packet pk, CodecItem codec, Int32 offset = 0, Int32 size = 2, Int32 expire = 5000)
+        protected virtual IList<Packet> Parse(Packet pk, CodecItem codec, Func<Stream, Int32> getLength, Int32 expire = 5000)
         {
-            if (offset < 0) return new Packet[] { pk };
+            //if (offset < 0) return new Packet[] { pk };
 
             var _ms = codec.Stream;
             var nodata = _ms == null || _ms.Position < 0 || _ms.Position >= _ms.Length;
@@ -145,7 +144,8 @@ namespace NewLife.Net.Handlers
                 while (idx < pk.Count)
                 {
                     var pk2 = new Packet(pk.Data, pk.Offset + idx, pk.Count - idx);
-                    var len = GetLength(pk2.GetStream(), offset, size);
+                    //var len = GetLength(pk2.GetStream(), offset, size);
+                    var len = getLength(pk2.GetStream());
                     if (len <= 0 || len > pk2.Count) break;
 
                     pk2 = new Packet(pk.Data, pk.Offset + idx, len);
@@ -185,8 +185,12 @@ namespace NewLife.Net.Handlers
                 // 尝试解包
                 while (_ms.Position < _ms.Length)
                 {
-                    var len = GetLength(_ms, offset, size);
-                    if (len <= 0) break;
+                    var p = _ms.Position;
+                    var len = getLength(_ms);
+                    _ms.Position = p;
+
+                    // 资源不足一包
+                    if (len <= 0 || p + len > _ms.Length) break;
 
                     var pk2 = new Packet(_ms.ReadBytes(len));
                     list.Add(pk2);

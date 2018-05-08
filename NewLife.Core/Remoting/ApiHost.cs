@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using NewLife.Collections;
+using NewLife.Data;
 using NewLife.Log;
 using NewLife.Messaging;
 
@@ -19,6 +20,12 @@ namespace NewLife.Remoting
 
         /// <summary>处理器</summary>
         public IApiHandler Handler { get; set; }
+
+        /// <summary>发送数据包统计信息</summary>
+        public ICounter StatSend { get; set; } = new PerfCounter();
+
+        /// <summary>接收数据包统计信息</summary>
+        public ICounter StatReceive { get; set; } = new PerfCounter();
 
         /// <summary>用户会话数据</summary>
         public IDictionary<String, Object> Items { get; set; } = new NullableDictionary<String, Object>();
@@ -72,6 +79,8 @@ namespace NewLife.Remoting
         {
             if (msg.Reply) return null;
 
+            StatReceive?.Increment();
+
             return OnProcess(session, msg);
         }
 
@@ -84,7 +93,7 @@ namespace NewLife.Remoting
             var code = 0;
             try
             {
-                if (!enc.TryGetRequest(msg, out action, out var args)) return null;
+                if (!ApiHostHelper.Decode(msg, out action, out _, out var args)) return null;
 
                 result = Handler.Execute(session, action, args);
             }
@@ -105,9 +114,18 @@ namespace NewLife.Remoting
                 }
             }
 
-            // 编码响应数据包
+            // 单向请求无需响应
+            if (msg is DefaultMessage dm && dm.OneWay) return null;
+
+            // 编码响应数据包，二进制优先
+            var pk = result as Packet;
+            if (pk == null) pk = enc.Encode(action, code, result);
+            pk = ApiHostHelper.Encode(action, code, pk);
+
+            // 构造响应消息
             var rs = msg.CreateReply();
-            rs.Payload = enc.Encode(action, code, result);
+            rs.Payload = pk;
+            if (code > 0 && rs is DefaultMessage dm2) dm2.Error = true;
 
             return rs;
         }

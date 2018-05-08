@@ -257,6 +257,13 @@ namespace NewLife.Reflection
         [DebuggerHidden]
         public static Object GetValue(this Object target, MemberInfo member)
         {
+            // 有可能跟普通的 PropertyInfo.GetValue(Object target) 搞混了
+            if (member == null)
+            {
+                member = target as MemberInfo;
+                target = null;
+            }
+
             if (member is PropertyInfo)
                 return Provider.GetValue(target, member as PropertyInfo);
             else if (member is FieldInfo)
