@@ -52,7 +52,6 @@ namespace NewLife.Remoting
                 ActionName = action,
                 Session = session,
                 Request = args,
-                //Parameters = dic,
             };
             // 当前上下文
             ControllerContext.Current = ctx;
@@ -65,7 +64,6 @@ namespace NewLife.Remoting
                 var dic = args == null || args.Total == 0 ?
                     new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase) :
                     enc.Decode(action, args) as IDictionary<String, Object>;
-                //dic = dic.ToNullable(StringComparer.OrdinalIgnoreCase);
                 ctx.Parameters = dic;
 
                 // 准备好参数
@@ -73,13 +71,8 @@ namespace NewLife.Remoting
             }
 
             Object rs = null;
-            //ExceptionContext etx = null;
             try
             {
-                //// 当前上下文
-                //var actx = new ActionExecutingContext(ctx) { ActionParameters = ps };
-                //ControllerContext.Current = actx;
-
                 // 执行动作前的过滤器
                 if (controller is IActionFilter filter)
                 {
@@ -113,7 +106,6 @@ namespace NewLife.Remoting
                 // 执行动作后的过滤器
                 if (controller is IActionFilter filter)
                 {
-                    //var atx = new ActionExecutedContext(etx ?? ctx) { Result = rs };
                     filter.OnActionExecuted(ctx);
                     rs = ctx.Result;
                 }
@@ -127,28 +119,6 @@ namespace NewLife.Remoting
 
             return rs;
         }
-
-        //private Object OnException(ControllerContext ctx, Exception ex)
-        //{
-        //    // 过滤得到内层异常
-        //    ex = ex.GetTrue();
-
-        //    // 执行异常过滤器
-        //    if (ctx.Controller is IExceptionFilter filter)
-        //    {
-        //        var etx = new ExceptionContext(ctx) { Exception = ex };
-        //        filter.OnException(etx);
-        //        var rs = etx.Result ?? etx.Exception ?? ex;
-
-        //        // 如果异常没有被拦截，继续向外抛出
-        //        if (etx.ExceptionHandled) return rs;
-        //    }
-
-        //    Host.WriteLog("执行{0}出错！{1}", ctx.ActionName, ex.Message);
-
-        //    // 如果异常没有被拦截，继续向外抛出
-        //    throw ex;
-        //}
 
         private IDictionary<String, Object> GetParams(MethodInfo method, IDictionary<String, Object> args, IEncoder encoder)
         {

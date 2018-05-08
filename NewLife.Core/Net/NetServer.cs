@@ -577,9 +577,9 @@ namespace NewLife.Net
         {
             var sb = new StringBuilder();
             if (MaxSessionCount > 0) sb.AppendFormat("在线：{0:n0}/{1:n0} ", SessionCount, MaxSessionCount);
-            if (StatSend.Value > 0) sb.AppendFormat("发送：{0} ", StatSend);
-            if (StatReceive.Value > 0) sb.AppendFormat("接收：{0} ", StatReceive);
-            if (StatSession.Value > 0) sb.AppendFormat("会话：{0} ", StatSession);
+            if (StatSend.Value > 0) sb.AppendFormat("发送：{0} ", SocketRemoteHelper.GetNetwork(StatSend));
+            if (StatReceive.Value > 0) sb.AppendFormat("接收：{0} ", SocketRemoteHelper.GetNetwork(StatReceive));
+            //if (StatSession.Value > 0) sb.AppendFormat("会话：{0} ", StatSession);
 
             return sb.ToString();
         }

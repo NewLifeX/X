@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Messaging;
+using NewLife.Net;
 using NewLife.Reflection;
 using NewLife.Serialization;
 
@@ -221,6 +222,11 @@ namespace NewLife.Remoting
             var sb = new StringBuilder();
             if (host.StatSend.Value > 0) sb.AppendFormat("请求：{0} ", host.StatSend);
             if (host.StatReceive.Value > 0) sb.AppendFormat("处理：{0} ", host.StatReceive);
+
+            if (host is ApiServer svr && svr.Server is NetServer ns)
+                sb.Append(ns.GetStat());
+            else if (host is ApiClient ac && ac.Client != null)
+                sb.Append(ac.Client.GetStat());
 
             return sb.ToString();
         }

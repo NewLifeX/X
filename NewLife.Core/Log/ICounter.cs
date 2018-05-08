@@ -6,10 +6,10 @@ namespace NewLife.Log
     public interface ICounter
     {
         /// <summary>数值</summary>
-        Int32 Value { get; }
+        Int64 Value { get; }
 
         /// <summary>增加</summary>
         /// <param name="amount"></param>
-        void Increment(Int32 amount = 1);
+        void Increment(Int64 amount = 1);
     }
 }
