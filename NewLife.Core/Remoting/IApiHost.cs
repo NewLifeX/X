@@ -171,8 +171,7 @@ namespace NewLife.Remoting
         private static Packet EncodeArgs(IEncoder enc, String action, Object args)
         {
             // 二进制优先
-            var pk = args as Packet;
-            if (pk == null) pk = enc.Encode(action, 0, args);
+            if (!(args is Packet pk)) pk = enc.Encode(action, 0, args);
             pk = Encode(action, 0, pk);
 
             return pk;

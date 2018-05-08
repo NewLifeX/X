@@ -138,21 +138,20 @@ namespace NewLife.Messaging
 
         #region 辅助
         /// <summary>获取数据包长度</summary>
-        /// <param name="ms"></param>
+        /// <param name="pk"></param>
         /// <returns></returns>
-        public static Int32 GetLength(Stream ms)
+        public static Int32 GetLength(Packet pk)
         {
-            var remain = ms.Length - ms.Position;
-            if (remain < 4) return 0;
-
-            ms.Seek(2, SeekOrigin.Current);
+            if (pk.Total < 4) return 0;
 
             // 小于64k，直接返回
-            var len = ms.ReadBytes(2).ToUInt16();
+            var len = pk.Data.ToUInt16(pk.Offset + 2);
             if (len < 0xFFFF) return 4 + len;
 
             // 超过64k的超大数据包，再来4个字节
-            return 8 + ms.ReadBytes(4).ToInt();
+            if (pk.Total < 8) return 0;
+
+            return 8 + (Int32)pk.Data.ToUInt32(pk.Offset + 2 + 2);
         }
 
         /// <summary>消息摘要</summary>
