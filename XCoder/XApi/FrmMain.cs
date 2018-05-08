@@ -158,6 +158,7 @@ namespace XApi
                         ns.LogReceive = cfg.ShowReceive;
                     }
 
+                    svr.Register<MyApiController>();
                     svr.Start();
 
                     "正在监听{0}".F(port).SpeechTip();
