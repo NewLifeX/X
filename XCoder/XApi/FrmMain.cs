@@ -432,12 +432,12 @@ namespace XApi
                     {
                         try
                         {
-                            var sw = Stopwatch.StartNew();
+                            //var sw = Stopwatch.StartNew();
                             await client.InvokeAsync(rtype, act, args);
-                            sw.Stop();
+                            //sw.Stop();
 
                             Interlocked.Increment(ref _Invoke);
-                            Interlocked.Add(ref _Cost, (Int64)(sw.Elapsed.TotalMilliseconds * 1000));
+                            //Interlocked.Add(ref _Cost, (Int64)(sw.Elapsed.TotalMilliseconds * 1000));
                         }
                         catch (ApiException ex)
                         {
