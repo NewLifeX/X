@@ -118,6 +118,7 @@
     <Compile Include="Tools\FrmSecurity.Designer.cs">
       <DependentUpon>FrmSecurity.cs</DependentUpon>
     </Compile>
+    <Compile Include="XApi\MyApiController.cs" />
     <Compile Include="XCom\FrmMain.cs">
       <SubType>Form</SubType>
     </Compile>
