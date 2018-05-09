@@ -50,7 +50,7 @@ namespace ASP
     //Layout = NewLife.Cube.Setting.Current.Layout;
     ViewBag.Title = "处理你的请求时出错";
 
-    var ex = Model.Exception;
+    var ex = Model == null ? null : Model.Exception;
 
     var error = "没有捕捉到异常信息";
     var context = ViewBag.Context as ExceptionContext;
