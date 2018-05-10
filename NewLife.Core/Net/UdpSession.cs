@@ -114,6 +114,10 @@ namespace NewLife.Net
             Server.Open();
 
             WriteLog("New {0}", Remote.EndPoint);
+
+            // 管道
+            var pp = Pipeline;
+            pp?.Open(pp.CreateContext(this));
         }
 
         protected override void OnDispose(Boolean disposing)
@@ -121,6 +125,10 @@ namespace NewLife.Net
             base.OnDispose(disposing);
 
             WriteLog("Close {0}", Remote.EndPoint);
+
+            // 管道
+            var pp = Pipeline;
+            pp?.Close(pp.CreateContext(this), disposing ? "Dispose" : "GC");
 
             // 释放对服务对象的引用，如果没有其它引用，服务对象将会被回收
             Server = null;

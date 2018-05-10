@@ -120,9 +120,12 @@ namespace NewLife.Net
 
                 if (Timeout > 0) Client.ReceiveTimeout = Timeout;
 
-                // 管道
-                var pp = Pipeline;
-                pp?.Open(pp.CreateContext(this));
+                if (!Local.IsUdp)
+                {
+                    // 管道
+                    var pp = Pipeline;
+                    pp?.Open(pp.CreateContext(this));
+                }
             }
 
             // 统计
@@ -158,13 +161,13 @@ namespace NewLife.Net
         {
             if (!Active) return true;
 
-            if (OnClose(reason ?? (GetType().Name + "Close"))) Active = false;
-
-            _RecvCount = 0;
-
             // 管道
             var pp = Pipeline;
             pp?.Close(pp.CreateContext(this), reason);
+
+            if (OnClose(reason ?? (GetType().Name + "Close"))) Active = false;
+
+            _RecvCount = 0;
 
             // 触发关闭完成的事件
             Closed?.Invoke(this, EventArgs.Empty);

@@ -62,6 +62,15 @@ namespace NewLife.Net
         #endregion
 
         #region 方法
+        internal void Start()
+        {
+            // 管道
+            var pp = Pipeline;
+            pp?.Open(pp.CreateContext(this));
+
+            ReceiveAsync();
+        }
+
         /// <summary>打开</summary>
         protected override Boolean OnOpen()
         {
