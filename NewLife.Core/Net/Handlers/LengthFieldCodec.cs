@@ -85,9 +85,5 @@ namespace NewLife.Net.Handlers
 
             return Parse(pk, mcp, ms => GetLength(ms, Offset, Size), Expire);
         }
-
-        ///// <summary>内部缓存</summary>
-        //private MemoryStream _ms;
-        //private DateTime _last;
     }
 }

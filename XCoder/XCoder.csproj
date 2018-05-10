@@ -83,6 +83,7 @@
       <DependentUpon>FrmSecurity.cs</DependentUpon>
     </Compile>
     <Compile Include="XApi\ApiConfig.cs" />
+    <Compile Include="XApi\MyApiController.cs" />
     <Compile Include="XApi\FrmMain.cs">
       <SubType>Form</SubType>
     </Compile>

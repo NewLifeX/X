@@ -149,18 +149,22 @@ namespace XCode.DataAccessLayer
             {
                 if (maximumRows <= 0) return builder;
 
-                // 如果带有排序，需要生成完整语句
-                if (builder.OrderBy.IsNullOrEmpty()) return builder.AsChild("T0", false).AppendWhereAnd("rownum<={0}", maximumRows);
-
-                //if (maximumRows < 1) return builder.AsChild("XCode_T0", false).AppendWhereAnd("rownum>={0}", startRowIndex + 1);
+                //// 如果带有排序，需要生成完整语句
+                //if (builder.OrderBy.IsNullOrEmpty())
+                return builder.AsChild("T0", false).AppendWhereAnd("rownum<={0}", maximumRows);
             }
+            else if (maximumRows < 1)
+                throw new NotSupportedException();
 
-            builder = builder.AsChild("T0", false);
-            //builder.AppendWhereAnd("rownum<={0}", startRowIndex + maximumRows);
+            builder = builder.AsChild("T0", false).AppendWhereAnd("rownum<={0}", startRowIndex + maximumRows);
             builder.Column = "T0.*, rownum as rowNumber";
-            builder = builder.AsChild("T1", false);
-            builder.AppendWhereAnd("rowNumber>{0}", startRowIndex);
-            if (maximumRows > 0) builder.AppendWhereAnd("rowNumber<={0}", startRowIndex + maximumRows);
+            builder = builder.AsChild("T1", false).AppendWhereAnd("rowNumber>{0}", startRowIndex);
+
+            //builder = builder.AsChild("T0", false);
+            //builder.Column = "T0.*, rownum as rowNumber";
+            //builder = builder.AsChild("T1", false);
+            //builder.AppendWhereAnd("rowNumber>{0}", startRowIndex);
+            //if (maximumRows > 0) builder.AppendWhereAnd("rowNumber<={0}", startRowIndex + maximumRows);
 
             return builder;
         }
