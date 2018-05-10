@@ -37,7 +37,7 @@ namespace XCoder
                 return;
             }
 
-            if (!Runtime.Mono) new TimerX(s => Runtime.ReleaseMemory(), null, 5000, 10000);
+            if (!Runtime.Mono) new TimerX(s => Runtime.ReleaseMemory(), null, 60000, 60000) { Async = true };
 
             if (XConfig.Current.IsNew) "学无先后达者为师，欢迎使用新生命码神工具！".SpeechTip();
 

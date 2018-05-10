@@ -40,10 +40,10 @@ namespace NewLife.Net
         public Boolean ThrowException { get; set; }
 
         /// <summary>发送数据包统计信息</summary>
-        public PerfCounter StatSend { get; set; }
+        public ICounter StatSend { get; set; }
 
         /// <summary>接收数据包统计信息</summary>
-        public PerfCounter StatReceive { get; set; }
+        public ICounter StatReceive { get; set; }
 
         /// <summary>通信开始时间</summary>
         public DateTime StartTime { get; private set; } = TimerX.Now;
@@ -120,9 +120,12 @@ namespace NewLife.Net
 
                 if (Timeout > 0) Client.ReceiveTimeout = Timeout;
 
-                // 管道
-                var pp = Pipeline;
-                pp?.Open(pp.CreateContext(this));
+                if (!Local.IsUdp)
+                {
+                    // 管道
+                    var pp = Pipeline;
+                    pp?.Open(pp.CreateContext(this));
+                }
             }
 
             // 统计
@@ -158,13 +161,13 @@ namespace NewLife.Net
         {
             if (!Active) return true;
 
-            if (OnClose(reason ?? (GetType().Name + "Close"))) Active = false;
-
-            _RecvCount = 0;
-
             // 管道
             var pp = Pipeline;
             pp?.Close(pp.CreateContext(this), reason);
+
+            if (OnClose(reason ?? (GetType().Name + "Close"))) Active = false;
+
+            _RecvCount = 0;
 
             // 触发关闭完成的事件
             Closed?.Invoke(this, EventArgs.Empty);
@@ -387,7 +390,10 @@ namespace NewLife.Net
             try
             {
                 LastTime = TimerX.Now;
-                if (!OnPreReceive(pk, remote)) return;
+
+                // 预处理，得到将要处理该数据包的会话
+                var ss = OnPreReceive(pk, remote);
+                if (ss == null) return;
 
                 if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", pk.Total, pk.ToHex(32, null));
 
@@ -401,7 +407,7 @@ namespace NewLife.Net
                     OnReceive(e);
                 else
                 {
-                    var ctx = pp.CreateContext(this);
+                    var ctx = pp.CreateContext(ss);
                     ctx.Data = e;
 
                     // 进入管道处理，如果有一个或多个结果通过Finish来处理
@@ -414,9 +420,11 @@ namespace NewLife.Net
             }
         }
 
+        /// <summary>预处理</summary>
         /// <param name="pk">数据包</param>
-        /// <param name="remote">远程</param>
-        internal protected abstract Boolean OnPreReceive(Packet pk, IPEndPoint remote);
+        /// <param name="remote">远程地址</param>
+        /// <returns>将要处理该数据包的会话</returns>
+        internal protected abstract ISocketSession OnPreReceive(Packet pk, IPEndPoint remote);
 
         /// <summary>处理收到的数据。默认匹配同步接收委托</summary>
         /// <param name="e">接收事件参数</param>

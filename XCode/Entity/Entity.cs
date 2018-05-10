@@ -1057,8 +1057,24 @@ namespace XCode
                 Where = where
             };
 
-            // 使用默认选择列
-            if (builder.Column.IsNullOrEmpty()) builder.Column = Meta.Factory.Selects;
+            // chenqi [2018-5-7] 
+            // 处理Select列
+            // SQL Server数据库特殊处理：由于T-SQL查询列为*号，order by未使用索引字段，将导致索引不会被命中。
+            if (Meta.Session.Dal.DbType == DatabaseType.SqlServer)
+            {
+                if (builder.Column.IsNullOrEmpty() || builder.Column.Equals("*"))
+                {
+                    var fields = Meta.Factory.Selects;
+                    if (fields.IsNullOrWhiteSpace())
+                        fields = Meta.Factory.FieldNames.Select(Meta.FormatName).Join(",");
+                    builder.Column = fields;
+                }
+            }
+            else
+            {
+                if (builder.Column.IsNullOrEmpty())
+                    builder.Column = Meta.Factory.Selects;
+            }
 
             // XCode对于默认排序的规则：自增主键降序，其它情况默认
             // 返回所有记录
@@ -1092,7 +1108,13 @@ namespace XCode
                 if (builder.OrderBy.IsNullOrEmpty())
                 {
                     var pks = Meta.Table.PrimaryKeys;
-                    if (pks != null && pks.Length > 0) builder.Key = Meta.FormatName(pks[0].ColumnName);
+                    if (pks != null && pks.Length > 0)
+                    {
+                        builder.Key = Meta.FormatName(pks[0].ColumnName);
+
+                        //chenqi [2017-5-7] 非自增列 + order为空时，指定order by 主键
+                        builder.OrderBy = builder.Key;
+                    }
                 }
             }
             return builder;

@@ -2,6 +2,7 @@
 
 #### 新生命开发团队  
 网站：http://www.NewLifeX.com  
+博客：https://nnhy.cnblogs.com  
 QQ群：1600800  
 
 ## 项目源码位置

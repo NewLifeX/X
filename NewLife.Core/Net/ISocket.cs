@@ -43,10 +43,10 @@ namespace NewLife.Net
         Boolean ProcessAsync { get; set; }
 
         /// <summary>发送统计</summary>
-        PerfCounter StatSend { get; set; }
+        ICounter StatSend { get; set; }
 
         /// <summary>接收统计</summary>
-        PerfCounter StatReceive { get; set; }
+        ICounter StatReceive { get; set; }
 
         /// <summary>日志提供者</summary>
         ILog Log { get; set; }
@@ -136,10 +136,17 @@ namespace NewLife.Net
             if (socket == null) return null;
 
             var sb = new StringBuilder();
-            if (socket.StatSend.Value > 0) sb.AppendFormat("发送：{0} ", socket.StatSend);
-            if (socket.StatReceive.Value > 0) sb.AppendFormat("接收：{0} ", socket.StatReceive);
+            if (socket.StatSend.Value > 0) sb.AppendFormat("发送：{0} ", GetNetwork(socket.StatSend));
+            if (socket.StatReceive.Value > 0) sb.AppendFormat("接收：{0} ", GetNetwork(socket.StatReceive));
 
             return sb.ToString();
+        }
+
+        internal static String GetNetwork(ICounter counter)
+        {
+            if (!(counter is PerfCounter pf)) return null;
+
+            return "{0:n0}/{1}/{2}".F(pf.Times, Utility.Convert.ToGMK(pf.Max, "{0:n1}"), Utility.Convert.ToGMK(pf.Speed, "{0:n1}"));
         }
         #endregion
 

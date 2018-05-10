@@ -77,7 +77,7 @@ namespace NewLife.Cube.Entity
         /// <summary>访问令牌</summary>
         [DisplayName("访问令牌")]
         [Description("访问令牌")]
-        [DataObjectField(false, false, true, 50)]
+        [DataObjectField(false, false, true, 500)]
         [BindColumn("AccessToken", "访问令牌", "")]
         public String AccessToken { get { return _AccessToken; } set { if (OnPropertyChanging(__.AccessToken, value)) { _AccessToken = value; OnPropertyChanged(__.AccessToken); } } }
 
@@ -85,7 +85,7 @@ namespace NewLife.Cube.Entity
         /// <summary>刷新令牌</summary>
         [DisplayName("刷新令牌")]
         [Description("刷新令牌")]
-        [DataObjectField(false, false, true, 50)]
+        [DataObjectField(false, false, true, 500)]
         [BindColumn("RefreshToken", "刷新令牌", "")]
         public String RefreshToken { get { return _RefreshToken; } set { if (OnPropertyChanging(__.RefreshToken, value)) { _RefreshToken = value; OnPropertyChanged(__.RefreshToken); } } }
 

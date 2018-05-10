@@ -22,10 +22,10 @@ namespace NewLife.Remoting
         public IApiHandler Handler { get; set; }
 
         /// <summary>发送数据包统计信息</summary>
-        public PerfCounter StatSend { get; set; } = new PerfCounter();
+        public ICounter StatSend { get; set; } = new PerfCounter();
 
         /// <summary>接收数据包统计信息</summary>
-        public PerfCounter StatReceive { get; set; } = new PerfCounter();
+        public ICounter StatReceive { get; set; } = new PerfCounter();
 
         /// <summary>用户会话数据</summary>
         public IDictionary<String, Object> Items { get; set; } = new NullableDictionary<String, Object>();
@@ -118,8 +118,7 @@ namespace NewLife.Remoting
             if (msg is DefaultMessage dm && dm.OneWay) return null;
 
             // 编码响应数据包，二进制优先
-            var pk = result as Packet;
-            if (pk == null) pk = enc.Encode(action, code, result);
+            if (!(result is Packet pk)) pk = enc.Encode(action, code, result);
             pk = ApiHostHelper.Encode(action, code, pk);
 
             // 构造响应消息

@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
-using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Threading;
 
@@ -87,15 +84,15 @@ namespace NewLife.Net.Handlers
                     qi.Source = null;
 
                     // 异步设置完成结果，否则可能会在当前线程恢复上层await，导致堵塞当前任务
-                    //if (!qi.Source.Task.IsCompleted) Task.Factory.StartNew(() => qi.Source.TrySetResult(result));
-                    if (!src.Task.IsCompleted) src.TrySetResult(result);
+                    if (!src.Task.IsCompleted) Task.Factory.StartNew(() => src.TrySetResult(result));
+                    //if (!src.Task.IsCompleted) src.TrySetResult(result);
 
                     return true;
                 }
             }
 
-            //if (Setting.Current.Debug)
-            XTrace.WriteLine("MatchQueue.Check 失败 [{0}] result={1} Items={2}", response, result, qs.Count);
+            if (Setting.Current.Debug)
+                XTrace.WriteLine("MatchQueue.Check 失败 [{0}] result={1} Items={2}", response, result, qs.Count);
 
             return false;
         }
@@ -128,7 +125,8 @@ namespace NewLife.Net.Handlers
                         var msg = qi.Request as Messaging.DefaultMessage;
                         Log.XTrace.WriteLine("超时丢失消息 Seq={0}", msg.Sequence);
 #endif
-                        src.TrySetCanceled();
+                        //src.TrySetCanceled();
+                        Task.Factory.StartNew(() => src.TrySetCanceled());
                     }
                 }
             }

@@ -47,11 +47,15 @@ namespace NewLife.Cube
             {
                 ctx.ExceptionHandled = true;
 
+                var ctrl = "";
+                var act = "";
+                if (ctx.RouteData.Values.ContainsKey("controller")) ctrl = ctx.RouteData.Values["controller"] + "";
+                if (ctx.RouteData.Values.ContainsKey("action")) act = ctx.RouteData.Values["action"] + "";
+
                 if (ctx.RequestContext.HttpContext.Request.IsAjaxRequest())
                 {
-                    var act = "操作";
-                    if (ctx.RouteData.Values.ContainsKey("action")) act = "[{0}]".F(ctx.RouteData.Values["action"]);
-                    ctx.Result = ControllerHelper.JsonTips("{0}失败！{1}".F(act, ex.Message));
+                    if (act.IsNullOrEmpty()) act = "操作";
+                    ctx.Result = ControllerHelper.JsonTips("[{0}]失败！{1}".F(act, ex.Message));
                 }
                 else
                 {
@@ -60,6 +64,9 @@ namespace NewLife.Cube
                         ViewName = "CubeError"
                     };
                     vr.ViewBag.Context = ctx;
+
+                    var vd = vr.ViewData = ctx.Controller.ViewData;
+                    vd.Model = new HandleErrorInfo(ex, ctrl, act);
 
                     ctx.Result = vr;
                 }

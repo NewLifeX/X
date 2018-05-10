@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Messaging;
+using NewLife.Net;
 using NewLife.Reflection;
 using NewLife.Serialization;
 
@@ -30,10 +31,10 @@ namespace NewLife.Remoting
         IMessage Process(IApiSession session, IMessage msg);
 
         /// <summary>发送统计</summary>
-        PerfCounter StatSend { get; set; }
+        ICounter StatSend { get; set; }
 
         /// <summary>接收统计</summary>
-        PerfCounter StatReceive { get; set; }
+        ICounter StatReceive { get; set; }
 
         /// <summary>日志</summary>
         ILog Log { get; set; }
@@ -171,8 +172,7 @@ namespace NewLife.Remoting
         private static Packet EncodeArgs(IEncoder enc, String action, Object args)
         {
             // 二进制优先
-            var pk = args as Packet;
-            if (pk == null) pk = enc.Encode(action, 0, args);
+            if (!(args is Packet pk)) pk = enc.Encode(action, 0, args);
             pk = Encode(action, 0, pk);
 
             return pk;
@@ -197,7 +197,7 @@ namespace NewLife.Remoting
 
             action = reader.ReadString();
             if (msg.Reply && msg is DefaultMessage dm && dm.Error) code = reader.ReadInt32();
-            if (action.IsNullOrEmpty()) return false;
+            if (action.IsNullOrEmpty()) throw new Exception("解码错误，无法找到服务名！");
 
             // 参数或结果
             if (ms.Length > ms.Position)
@@ -222,6 +222,11 @@ namespace NewLife.Remoting
             var sb = new StringBuilder();
             if (host.StatSend.Value > 0) sb.AppendFormat("请求：{0} ", host.StatSend);
             if (host.StatReceive.Value > 0) sb.AppendFormat("处理：{0} ", host.StatReceive);
+
+            if (host is ApiServer svr && svr.Server is NetServer ns)
+                sb.Append(ns.GetStat());
+            else if (host is ApiClient ac && ac.Client != null)
+                sb.Append(ac.Client.GetStat());
 
             return sb.ToString();
         }

@@ -36,33 +36,51 @@ namespace NewLife.Data
         /// <param name="seg"></param>
         public Packet(ArraySegment<Byte> seg) => Set(seg.Array, seg.Offset, seg.Count);
 
-        // 下面代码需要.Net 4.6支持
-        //public Packet(MemoryStream stream)
-        //{
-        //    // 尝试抠了内部存储区，下面代码需要.Net 4.6支持
-        //    if (stream.TryGetBuffer(out var seg))
-        //        Set(seg.Array, seg.Offset, seg.Count);
-        //    else
-        //        Set(stream.ToArray());
-        //}
+        /// <summary>从可扩展内存流实例化</summary>
+        /// <param name="stream"></param>
+        public Packet(Stream stream)
+        {
+            // 下面代码需要.Net 4.6支持
+
+            //// 尝试抠了内部存储区，下面代码需要.Net 4.6支持
+            //if (stream.TryGetBuffer(out var seg))
+            //    Set(seg.Array, seg.Offset, seg.Count);
+            //else
+            //    Set(stream.ToArray());
+
+            if (stream is MemoryStream ms)
+            {
+                try
+                {
+#if NET46
+                    // 尝试抠了内部存储区，下面代码需要.Net 4.6支持
+                    if (stream.TryGetBuffer(out var seg))
+                        Set(seg.Array, seg.Offset, seg.Count);
+                    else
+#endif
+                    Set(ms.GetBuffer(), (Int32)ms.Position, (Int32)(ms.Length - ms.Position));
+
+                    return;
+                }
+                catch (UnauthorizedAccessException) { }
+            }
+
+            Set(stream.ToArray());
+        }
         #endregion
 
         #region 索引
         /// <summary>获取/设置 指定位置的字节</summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        public Byte this[Int32 index]
-        {
-            get { return Data[Offset + index]; }
-            set { Data[Offset + index] = value; }
-        }
+        public Byte this[Int32 index] { get { return Data[Offset + index]; } set { Data[Offset + index] = value; } }
         #endregion
 
         #region 方法
         /// <summary>设置新的数据区</summary>
-        /// <param name="data"></param>
-        /// <param name="offset"></param>
-        /// <param name="count"></param>
+        /// <param name="data">数据区</param>
+        /// <param name="offset">偏移</param>
+        /// <param name="count">字节个数</param>
         public virtual void Set(Byte[] data, Int32 offset = 0, Int32 count = -1)
         {
             Data = data;
@@ -81,9 +99,20 @@ namespace NewLife.Data
             }
         }
 
-        /// <summary>截取</summary>
-        /// <param name="offset"></param>
-        /// <param name="count"></param>
+        /// <summary>设置新的数据区间</summary>
+        /// <param name="offset">相对偏移</param>
+        /// <param name="count">字节个数</param>
+        public virtual void Set(Int32 offset, Int32 count = -1)
+        {
+            Offset += offset;
+
+            if (count < 0) count = Data.Length - Offset;
+            Count = count;
+        }
+
+        /// <summary>截取子数据区</summary>
+        /// <param name="offset">相对偏移</param>
+        /// <param name="count">字节个数</param>
         /// <returns></returns>
         public Packet Sub(Int32 offset, Int32 count = -1)
         {
@@ -235,7 +264,8 @@ namespace NewLife.Data
         /// <returns></returns>
         public virtual MemoryStream GetStream()
         {
-            if (Next == null) return new MemoryStream(Data, Offset, Count, false);
+            //if (Next == null) return new MemoryStream(Data, Offset, Count, false);
+            if (Next == null) return new MemoryStream(Data, Offset, Count, false, true);
 
             var ms = new MemoryStream();
             WriteTo(ms);

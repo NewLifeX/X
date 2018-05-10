@@ -158,6 +158,7 @@ namespace XApi
                         ns.LogReceive = cfg.ShowReceive;
                     }
 
+                    svr.Register<MyApiController>();
                     svr.Start();
 
                     "正在监听{0}".F(port).SpeechTip();
@@ -344,6 +345,7 @@ namespace XApi
 
             var act = cbAction.SelectedItem + "";
             var action = act.Substring(" ", "(");
+            if (action.IsNullOrEmpty()) return;
 
             var rtype = act.Substring(null, " ").GetTypeEx();
             if (rtype == null) rtype = typeof(Object);
@@ -431,12 +433,12 @@ namespace XApi
                     {
                         try
                         {
-                            var sw = Stopwatch.StartNew();
+                            //var sw = Stopwatch.StartNew();
                             await client.InvokeAsync(rtype, act, args);
-                            sw.Stop();
+                            //sw.Stop();
 
                             Interlocked.Increment(ref _Invoke);
-                            Interlocked.Add(ref _Cost, (Int64)(sw.Elapsed.TotalMilliseconds * 1000));
+                            //Interlocked.Add(ref _Cost, (Int64)(sw.Elapsed.TotalMilliseconds * 1000));
                         }
                         catch (ApiException ex)
                         {
@@ -494,8 +496,7 @@ namespace XApi
 
         private void cbAction_SelectedIndexChanged(Object sender, EventArgs e)
         {
-            var cb = sender as ComboBox;
-            if (cb == null) return;
+            if (!(sender is ComboBox cb)) return;
 
             var txt = cb.SelectedItem + "";
             if (txt.IsNullOrEmpty()) return;

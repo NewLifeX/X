@@ -7,19 +7,19 @@ using NewLife.Threading;
 namespace NewLife.Log
 {
     /// <summary>性能计数器</summary>
-    public class PerfCounter : DisposeBase
+    public class PerfCounter : DisposeBase, ICounter
     {
         #region 属性
         /// <summary>是否启用。默认true</summary>
         public Boolean Enable { get; set; } = true;
 
-        private Int32 _Value;
+        private Int64 _Value;
         /// <summary>数值</summary>
-        public Int32 Value => _Value;
+        public Int64 Value => _Value;
 
-        private Int32 _Times;
+        private Int64 _Times;
         /// <summary>次数</summary>
-        public Int32 Times => _Times;
+        public Int64 Times => _Times;
         #endregion
 
         #region 构造
@@ -36,7 +36,7 @@ namespace NewLife.Log
         #region 核心方法
         /// <summary>增加</summary>
         /// <param name="amount"></param>
-        public void Increment(Int32 amount = 1)
+        public void Increment(Int64 amount = 1)
         {
             if (!Enable) return;
 
@@ -62,32 +62,32 @@ namespace NewLife.Log
         public Int32 Duration { get; set; } = 60;
 
         /// <summary>最大速度</summary>
-        public Int32 Max => _queue.Max();
+        public Int64 Max => _queue.Max();
 
         /// <summary>平均速度</summary>
-        public Int32 Average => (Int32)_queue.Average();
+        public Int64 Average => (Int64)_queue.Average();
 
         /// <summary>当前速度</summary>
-        public Int32 Speed { get; private set; }
+        public Int64 Speed { get; private set; }
 
-        private Int32[] _queue = new Int32[0];
+        private Int64[] _queue = new Int64[60];
         private Int32 _queueIndex;
 
         private TimerX _Timer;
         private Stopwatch _sw;
-        private Int32 _Last;
+        private Int64 _Last;
         private void DoWork(Object state)
         {
             // 计算采样次数
             var times = Duration * 1000 / Interval;
 
             var arr = _queue;
-            if (arr == null || arr.Length != times) _queue = arr = new Int32[times];
+            if (arr == null || arr.Length != times) _queue = arr = new Int64[times];
 
             var val = Value;
 
             // 计算速度
-            var sp = 0;
+            var sp = 0L;
             if (_sw == null)
                 _sw = Stopwatch.StartNew();
             else
@@ -95,7 +95,7 @@ namespace NewLife.Log
                 var ms = _sw.Elapsed.TotalMilliseconds;
                 _sw.Restart();
 
-                sp = (Int32)((val - _Last) * 1000 / ms);
+                sp = (Int64)((val - _Last) * 1000 / ms);
             }
             _Last = val;
             Speed = sp;

@@ -50,16 +50,22 @@ namespace ASP
     //Layout = NewLife.Cube.Setting.Current.Layout;
     ViewBag.Title = "处理你的请求时出错";
 
+    var ex = Model == null ? null : Model.Exception;
+
     var error = "没有捕捉到异常信息";
     var context = ViewBag.Context as ExceptionContext;
     if (context != null && context.Exception != null)
     {
         // 由于nginx的配置导致出现奇葩错误
-        error = context.Exception.Message;
-        if (NewLife.Log.XTrace.Debug)
-        {
-            error = context.Exception.ToString();
-        }
+        ex = context.Exception;
+    }
+    if (NewLife.Cube.Setting.Current.Debug)
+    {
+        error = ex.ToString();
+    }
+    else
+    {
+        error = ex.GetTrue().Message;
     }
     error = error.Replace("--->", "--->" + Environment.NewLine);
 
@@ -83,7 +89,7 @@ WriteLiteral(" role=\"alert\"");
 WriteLiteral(">");
 
             
-            #line 24 "..\..\Views\Shared\CubeError.cshtml"
+            #line 30 "..\..\Views\Shared\CubeError.cshtml"
                                                     Write(error);
 
             
