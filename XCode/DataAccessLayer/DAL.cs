@@ -165,13 +165,15 @@ namespace XCode.DataAccessLayer
                     {
                         // 读取配置文件
 
-                        var css2 = new ConfigurationBuilder().AddJsonFile(settings).Build().GetSection("AppSettings")
-                                   .GetSection("connectionStrings");
+                        var css2 = new ConfigurationBuilder().AddJsonFile(settings).Build().GetSection("connectionStrings");
+//                        var css2 = new ConfigurationBuilder()
+//.Add(new JsonConfigurationSource { Path = "appsettings.json", ReloadOnChange = true })
+//.Build().GetSection("connectionStrings");
                         if (css2 != null)
                         {
                             foreach (var item in css2.GetChildren())
                             {
-                                var name = item["name"];
+                                var name = item.Path.Substring(item.Path.IndexOf(":") + 1);
                                 var constr = item["connectionString"];
                                 var provider = item["providerName"];
 
