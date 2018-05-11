@@ -68,7 +68,8 @@ namespace NewLife.Net
             var pp = Pipeline;
             pp?.Open(pp.CreateContext(this));
 
-            ReceiveAsync();
+            if (ProcessAsync)
+                ReceiveAsync();
         }
 
         /// <summary>打开</summary>
