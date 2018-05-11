@@ -132,7 +132,8 @@ namespace NewLife.Net
             if (StatSend == null) StatSend = new PerfCounter();
             if (StatReceive == null) StatReceive = new PerfCounter();
 
-            ReceiveAsync();
+            if (ProcessAsync)
+                ReceiveAsync();
 
             // 触发打开完成的事件
             Opened?.Invoke(this, EventArgs.Empty);
@@ -226,6 +227,7 @@ namespace NewLife.Net
             if (!Open()) return null;
 
             var buf = new Byte[BufferSize];
+            XTrace.WriteLine(Client.Connected.ToString());
             var size = Client.Receive(buf);
 
             return new Packet(buf, 0, size);
