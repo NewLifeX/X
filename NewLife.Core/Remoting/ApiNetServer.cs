@@ -109,7 +109,7 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public async Task<TResult> InvokeAsync<TResult>(String action, Object args = null, Byte flag = 0) => (TResult)await ApiHostHelper.InvokeAsync(_Host, this, typeof(TResult), action, args, flag);
 
-        async Task<IMessage> IApiSession.SendAsync(IMessage msg) => await Session.SendAsync(msg) as IMessage;
+        async Task<IMessage> IApiSession.SendAsync(IMessage msg) => await Session.SendMessageAsync(msg) as IMessage;
         Boolean IApiSession.Send(IMessage msg) => Session.SendMessage(msg);
     }
 }

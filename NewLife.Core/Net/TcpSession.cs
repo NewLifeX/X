@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using NewLife.Data;
+using NewLife.Threading;
 
 namespace NewLife.Net
 {
@@ -193,7 +194,7 @@ namespace NewLife.Net
                 return false;
             }
 
-            LastTime = DateTime.Now;
+            LastTime = TimerX.Now;
 
             return true;
         }

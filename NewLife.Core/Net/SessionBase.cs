@@ -193,7 +193,7 @@ namespace NewLife.Net
         #endregion
 
         #region 发送
-        /// <summary>发送数据</summary>
+        /// <summary>直接发送数据包 Byte[]/Packet</summary>
         /// <remarks>
         /// 目标地址由<seealso cref="Remote"/>决定
         /// </remarks>
@@ -451,23 +451,23 @@ namespace NewLife.Net
         }
         #endregion
 
-        #region 数据包处理
-        /// <summary>管道</summary>
+        #region 消息处理
+        /// <summary>消息管道。收发消息都经过管道处理器</summary>
         public IPipeline Pipeline { get; set; }
 
-        /// <summary>发送消息</summary>
+        /// <summary>通过管道发送消息</summary>
         /// <param name="message"></param>
         /// <returns></returns>
         public virtual Boolean SendMessage(Object message) => Pipeline.FireWrite(this, message);
 
-        /// <summary>发送消息并等待响应</summary>
+        /// <summary>通过管道发送消息并等待响应</summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public virtual Task<Object> SendAsync(Object message) => Pipeline.FireWriteAndWait(this, message);
+        public virtual Task<Object> SendMessageAsync(Object message) => Pipeline.FireWriteAndWait(this, message);
 
         /// <summary>处理数据帧</summary>
         /// <param name="data">数据帧</param>
-        public virtual void Receive(IData data) => OnReceive(data as ReceivedEventArgs);
+        void ISocketRemote.Receive(IData data) => OnReceive(data as ReceivedEventArgs);
         #endregion
 
         #region 异常处理

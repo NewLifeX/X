@@ -132,7 +132,7 @@ namespace NewLife.Net
         /// <summary>异步发送并等待响应</summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public virtual async Task<Object> SendAsync(Object message) => await Session.SendAsync(message);
+        public virtual async Task<Object> SendAsync(Object message) => await Session.SendMessageAsync(message);
         #endregion
 
         #region 异常处理

@@ -111,7 +111,7 @@ namespace NewLife.Net
         /// <summary>异步发送数据并等待响应</summary>
         /// <param name="message">消息</param>
         /// <returns></returns>
-        Task<Object> SendAsync(Object message);
+        Task<Object> SendMessageAsync(Object message);
 
         /// <summary>发送消息</summary>
         /// <param name="message">消息</param>
