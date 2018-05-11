@@ -9,7 +9,7 @@ namespace NewLife.Data
     {
         #region 核心属性
         private String _Sort;
-        /// <summary>获取 或 设置 排序字段</summary>
+        /// <summary>获取 或 设置 排序字段，前台接收，便于做安全性校验</summary>
         [XmlIgnore, ScriptIgnore]
         public virtual String Sort
         {
@@ -68,17 +68,21 @@ namespace NewLife.Data
             }
         }
 
-        /// <summary>获取 组合起来的排序字句</summary>
+        private String _OrderBy;
+        /// <summary>获取 或 设置 组合起来的排序字句。如果没有设置则取Sort+Desc，后台设置，不经过安全性校验</summary>
         public virtual String OrderBy
         {
             get
             {
-                var sort = Sort;
-                if (sort.IsNullOrWhiteSpace()) return null;
-                if (Desc) sort += " Desc";
+                if (!_OrderBy.IsNullOrEmpty()) return _OrderBy;
 
-                return sort;
+                var str = Sort;
+                if (str.IsNullOrWhiteSpace()) return null;
+                if (Desc) str += " Desc";
+
+                return str;
             }
+            set { _OrderBy = value; Sort = value; }
         }
 
         /// <summary>获取 或 设置 开始行</summary>
@@ -108,6 +112,7 @@ namespace NewLife.Data
         {
             if (pm == null) return this;
 
+            OrderBy = pm.OrderBy;
             Sort = pm.Sort;
             Desc = pm.Desc;
             PageIndex = pm.PageIndex;
