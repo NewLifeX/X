@@ -253,7 +253,7 @@ namespace NewLife.Cube.Admin.Controllers
         [EntityAuthorize(PermissionFlags.Update)]
         public ActionResult ClearPassword(Int32 id)
         {
-            if (ManageProvider.User.RoleName != "管理员") throw new Exception("非法操作！");
+            if (ManageProvider.User.RoleName != "管理员") throw new Exception("清除密码操作需要管理员权限，非法操作！");
 
             // 前面表单可能已经清空密码
             var user = UserX.FindByID(id);
