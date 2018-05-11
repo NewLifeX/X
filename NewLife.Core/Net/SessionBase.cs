@@ -54,7 +54,7 @@ namespace NewLife.Net
         /// <summary>是否使用动态端口。如果Port为0则为动态端口</summary>
         public Boolean DynamicPort { get; private set; }
 
-        /// <summary>最大并行接收数。Tcp默认1，Udp默认CPU*1.6</summary>
+        /// <summary>最大并行接收数。Tcp默认1，Udp默认CPU*1.6，0关闭异步接收使用同步接收</summary>
         public Int32 MaxAsync { get; set; } = 1;
 
         /// <summary>异步处理接收到的数据，Tcp默认false，Udp默认true。</summary>
@@ -132,8 +132,7 @@ namespace NewLife.Net
             if (StatSend == null) StatSend = new PerfCounter();
             if (StatReceive == null) StatReceive = new PerfCounter();
 
-            if (ProcessAsync)
-                ReceiveAsync();
+            ReceiveAsync();
 
             // 触发打开完成的事件
             Opened?.Invoke(this, EventArgs.Empty);
@@ -227,7 +226,6 @@ namespace NewLife.Net
             if (!Open()) return null;
 
             var buf = new Byte[BufferSize];
-            XTrace.WriteLine(Client.Connected.ToString());
             var size = Client.Receive(buf);
 
             return new Packet(buf, 0, size);
