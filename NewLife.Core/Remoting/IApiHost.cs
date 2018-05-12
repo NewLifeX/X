@@ -159,7 +159,6 @@ namespace NewLife.Remoting
                 var len = pk2.Total;
 
                 // 不管有没有附加数据，都会写入长度
-                //ms.WriteEncodedInt(len);
                 writer.Write(len);
             }
 
@@ -172,7 +171,13 @@ namespace NewLife.Remoting
         private static Packet EncodeArgs(IEncoder enc, String action, Object args)
         {
             // 二进制优先
-            if (!(args is Packet pk)) pk = enc.Encode(action, 0, args);
+            if (args is Packet pk)
+            {
+            }
+            else if (args is Byte[] buf)
+                pk = new Packet(buf);
+            else
+                pk = enc.Encode(action, 0, args);
             pk = Encode(action, 0, pk);
 
             return pk;
@@ -202,7 +207,6 @@ namespace NewLife.Remoting
             // 参数或结果
             if (ms.Length > ms.Position)
             {
-                //var len = ms.ReadEncodedInt();
                 var len = reader.ReadInt32();
                 if (len > 0) value = msg.Payload.Sub((Int32)ms.Position, len);
             }

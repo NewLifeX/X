@@ -250,19 +250,16 @@ namespace NewLife.Net
 
             if (_Sessions.Add(session))
             {
-                //session.ID = g_ID++;
                 // 会话改为原子操作，避免多线程冲突
                 session.ID = Interlocked.Increment(ref g_ID);
-                //WriteLog("{0}新会话 {1}", this, client.Client.RemoteEndPoint);
                 session.WriteLog("New {0}", session.Remote.EndPoint);
 
                 StatSession?.Increment(1);
 
                 NewSession?.Invoke(this, new SessionEventArgs { Session = session });
 
-                //// 自动开始异步接收处理
-                //if (AutoReceiveAsync) 
-                session.ReceiveAsync();
+                // 自动开始异步接收处理
+                session.Start();
             }
         }
         #endregion

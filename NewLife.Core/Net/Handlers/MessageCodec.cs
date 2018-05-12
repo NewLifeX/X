@@ -147,7 +147,7 @@ namespace NewLife.Net.Handlers
                     if (len <= 0 || len > pk2.Count) break;
 
                     //pk2.Set(pk.Data, pk.Offset + idx, len);
-                    pk2.Set(0, len);
+                    pk2.SetSub(0, len);
                     list.Add(pk2);
                     idx += len;
                 }
@@ -194,7 +194,7 @@ namespace NewLife.Net.Handlers
 
                     // 解包成功
                     //pk2.Set(pk2.Data, pk2.Offset, len);
-                    pk2.Set(0, len);
+                    pk2.SetSub(0, len);
                     list.Add(pk2);
 
                     _ms.Seek(len, SeekOrigin.Current);

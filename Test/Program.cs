@@ -265,7 +265,7 @@ namespace Test
                 var user = new UserY { ID = 0x1234, Name = "Stone", DisplayName = "大石头" };
                 for (var i = 0; i < 3; i++)
                 {
-                    var rs = await client.SendAsync(user) as UserY;
+                    var rs = await client.SendMessageAsync(user) as UserY;
                     XTrace.WriteLine("{0} {1}", rs.Name, rs.DisplayName);
                 }
             }
