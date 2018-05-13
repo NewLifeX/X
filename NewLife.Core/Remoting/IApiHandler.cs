@@ -68,6 +68,7 @@ namespace NewLife.Remoting
 
                 // 准备好参数
                 ps = GetParams(api.Method, dic, enc);
+                ctx.ActionParameters = ps;
             }
 
             Object rs = null;
@@ -93,6 +94,7 @@ namespace NewLife.Remoting
                         // 特殊处理参数和返回类型都是Packet的服务
                         rs = controller.InvokeWithParams(api.Method, ps as IDictionary);
                     }
+                    ctx.Result = rs;
                 }
             }
             catch (ThreadAbortException) { throw; }
