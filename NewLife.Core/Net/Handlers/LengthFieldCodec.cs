@@ -83,7 +83,16 @@ namespace NewLife.Net.Handlers
             var mcp = ss["CodecItem"] as CodecItem;
             if (mcp == null) ss["CodecItem"] = mcp = new CodecItem();
 
-            return Parse(pk, mcp, ms => GetLength(ms, Offset, Size), Expire);
+            var pks = Parse(pk, mcp, ms => GetLength(ms, Offset, Size), Expire);
+
+            // 跳过头部长度
+            var len = Offset + Math.Abs(Size);
+            foreach (var item in pks)
+            {
+                item.SetSub(len, item.Count - len);
+            }
+
+            return pks;
         }
     }
 }

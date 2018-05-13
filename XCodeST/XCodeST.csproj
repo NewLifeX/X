@@ -1,15 +1,15 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>XCode</AssemblyName>
     <RootNamespace>XCode</RootNamespace>
-    <AssemblyTitle>新生命X组件核心库</AssemblyTitle>
+    <AssemblyTitle>大数据中间件</AssemblyTitle>
     <Description>分布式大数据中间件</Description>
     <Company>新生命开发团队</Company>
-    <Copyright>©2002-2017 新生命开发团队 http://www.NewLifeX.com</Copyright>
-    <FileVersion>9.6.2017.0808</FileVersion>
-    <AssemblyVersion>9.6.2017.0808</AssemblyVersion>
+    <Copyright>©2002-2018 新生命开发团队 http://www.NewLifeX.com</Copyright>
+    <FileVersion>9.7.2018.0512</FileVersion>
+    <AssemblyVersion>9.7.2018.0512</AssemblyVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -19,7 +19,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <OutputPath>..\..\Bin\netstandard2.0\</OutputPath>
+    <OutputPath>..\..\Bin\</OutputPath>
     <DocumentationFile>..\..\Bin\netstandard2.0\XCode.xml</DocumentationFile>
     <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0;__CORE__</DefineConstants>
   </PropertyGroup>

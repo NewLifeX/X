@@ -54,7 +54,7 @@ namespace NewLife.Net
         /// <summary>是否使用动态端口。如果Port为0则为动态端口</summary>
         public Boolean DynamicPort { get; private set; }
 
-        /// <summary>最大并行接收数。Tcp默认1，Udp默认CPU*1.6</summary>
+        /// <summary>最大并行接收数。Tcp默认1，Udp默认CPU*1.6，0关闭异步接收使用同步接收</summary>
         public Int32 MaxAsync { get; set; } = 1;
 
         /// <summary>异步处理接收到的数据，Tcp默认false，Udp默认true。</summary>
@@ -120,9 +120,12 @@ namespace NewLife.Net
 
                 if (Timeout > 0) Client.ReceiveTimeout = Timeout;
 
-                // 管道
-                var pp = Pipeline;
-                pp?.Open(pp.CreateContext(this));
+                if (!Local.IsUdp)
+                {
+                    // 管道
+                    var pp = Pipeline;
+                    pp?.Open(pp.CreateContext(this));
+                }
             }
 
             // 统计
@@ -158,13 +161,13 @@ namespace NewLife.Net
         {
             if (!Active) return true;
 
-            if (OnClose(reason ?? (GetType().Name + "Close"))) Active = false;
-
-            _RecvCount = 0;
-
             // 管道
             var pp = Pipeline;
             pp?.Close(pp.CreateContext(this), reason);
+
+            if (OnClose(reason ?? (GetType().Name + "Close"))) Active = false;
+
+            _RecvCount = 0;
 
             // 触发关闭完成的事件
             Closed?.Invoke(this, EventArgs.Empty);
@@ -190,7 +193,7 @@ namespace NewLife.Net
         #endregion
 
         #region 发送
-        /// <summary>发送数据</summary>
+        /// <summary>直接发送数据包 Byte[]/Packet</summary>
         /// <remarks>
         /// 目标地址由<seealso cref="Remote"/>决定
         /// </remarks>
@@ -448,23 +451,23 @@ namespace NewLife.Net
         }
         #endregion
 
-        #region 数据包处理
-        /// <summary>管道</summary>
+        #region 消息处理
+        /// <summary>消息管道。收发消息都经过管道处理器</summary>
         public IPipeline Pipeline { get; set; }
 
-        /// <summary>发送消息</summary>
+        /// <summary>通过管道发送消息</summary>
         /// <param name="message"></param>
         /// <returns></returns>
         public virtual Boolean SendMessage(Object message) => Pipeline.FireWrite(this, message);
 
-        /// <summary>发送消息并等待响应</summary>
+        /// <summary>通过管道发送消息并等待响应</summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public virtual Task<Object> SendAsync(Object message) => Pipeline.FireWriteAndWait(this, message);
+        public virtual Task<Object> SendMessageAsync(Object message) => Pipeline.FireWriteAndWait(this, message);
 
         /// <summary>处理数据帧</summary>
         /// <param name="data">数据帧</param>
-        public virtual void Receive(IData data) => OnReceive(data as ReceivedEventArgs);
+        void ISocketRemote.Receive(IData data) => OnReceive(data as ReceivedEventArgs);
         #endregion
 
         #region 异常处理

@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using NewLife.Data;
+using NewLife.Threading;
 
 namespace NewLife.Net
 {
@@ -62,6 +63,15 @@ namespace NewLife.Net
         #endregion
 
         #region 方法
+        internal void Start()
+        {
+            // 管道
+            var pp = Pipeline;
+            pp?.Open(pp.CreateContext(this));
+
+            ReceiveAsync();
+        }
+
         /// <summary>打开</summary>
         protected override Boolean OnOpen()
         {
@@ -184,7 +194,7 @@ namespace NewLife.Net
                 return false;
             }
 
-            LastTime = DateTime.Now;
+            LastTime = TimerX.Now;
 
             return true;
         }

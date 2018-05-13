@@ -7,9 +7,10 @@
     <AssemblyTitle>新生命X组件核心库</AssemblyTitle>
     <Description>日常开发中的各种基础功能</Description>
     <Company>新生命开发团队</Company>
-    <Copyright>©2002-2017 新生命开发团队 http://www.NewLifeX.com</Copyright>
-    <FileVersion>6.4.2017.0719</FileVersion>
-    <AssemblyVersion>6.4.2017.0719</AssemblyVersion>
+    <Copyright>©2002-2018 新生命开发团队 http://www.NewLifeX.com</Copyright>
+    <FileVersion>7.0.2018.0512</FileVersion>
+    <AssemblyVersion>7.0.2018.0512</AssemblyVersion>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -260,14 +261,6 @@
     <Folder Include="Xml\" />
     <Folder Include="Http\" />
     <Folder Include="Caching\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="System.Collections.Specialized" Version="4.3.0" />
-    <PackageReference Include="System.Diagnostics.Process" Version="4.3.0" />
-    <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
-    <PackageReference Include="System.Net.NetworkInformation" Version="4.3.0" />
-    <PackageReference Include="System.Threading.Thread" Version="4.3.0" />
   </ItemGroup>
 
 </Project>
