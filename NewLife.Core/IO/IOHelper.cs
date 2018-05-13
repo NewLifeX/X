@@ -544,8 +544,8 @@ namespace System
 
             // 可能数据流前面有编码字节序列，需要先去掉
             var idx = 0;
-            var preamble = encoding.GetPreamble();
-            if (preamble != null && preamble.Length > 0 && buf.Length >= preamble.Length)
+            var preamble = encoding?.GetPreamble();
+            if (preamble != null && preamble.Length > 0 && buf.Length >= offset + preamble.Length)
             {
                 if (buf.ReadBytes(offset, preamble.Length).StartsWith(preamble)) idx = preamble.Length;
             }
