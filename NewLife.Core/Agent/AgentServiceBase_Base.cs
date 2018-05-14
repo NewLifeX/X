@@ -26,12 +26,6 @@ namespace NewLife.Agent
         /// <summary>初始化</summary>
         public AgentServiceBase()
         {
-            // 指定默认服务名
-            if (String.IsNullOrEmpty(ServiceName)) ServiceName = GetType().Name;
-
-            DisplayName = ServiceName;
-            Description = ServiceName + "服务";
-
             CanStop = true;
             CanShutdown = true;
             CanPauseAndContinue = true;
