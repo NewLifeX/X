@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using NewLife.Reflection;
 using XCode.Configuration;
 
 namespace XCode
@@ -15,6 +16,9 @@ namespace XCode
 
         /// <summary>格式化字符串</summary>
         public String Format { get; set; }
+
+        /// <summary>操作数</summary>
+        public Object Value { get; set; }
         #endregion
 
         #region 构造
@@ -22,11 +26,11 @@ namespace XCode
         /// <param name="field"></param>
         /// <param name="format"></param>
         /// <param name="value"></param>
-        public FormatExpression(FieldItem field, String format, String value) : base(value)
+        public FormatExpression(FieldItem field, String format, Object value)
         {
             Field = field;
             Format = format;
-            //Text = value;
+            Value = value;
         }
         #endregion
 
@@ -37,24 +41,27 @@ namespace XCode
         /// <returns></returns>
         public override void GetString(StringBuilder builder, IDictionary<String, Object> ps)
         {
-            if (Field == null || Format.IsNullOrWhiteSpace()) return;
+            var fi = Field;
+            if (fi == null || Format.IsNullOrWhiteSpace()) return;
 
             if (ps == null)
             {
-                builder.AppendFormat(Format, Field.FormatedName, Text);
+                builder.AppendFormat(Format, fi.FormatedName, Value);
                 return;
             }
 
             // 参数化处理
-            var name = Field.Name;
+            var name = fi.Name;
             var i = 2;
-            while (ps.ContainsKey(name)) name = Field.Name + i++;
+            while (ps.ContainsKey(name)) name = fi.Name + i++;
 
             // 数值留给字典
-            ps[name] = Text;
+            var type = fi.Type;
+            if (type.IsEnum) type = typeof(Int32);
+            ps[name] = Value.ChangeType(type);
 
-            var op = Field.Factory;
-            builder.AppendFormat(Format, Field.FormatedName, op.Session.FormatParameterName(name));
+            var op = fi.Factory;
+            builder.AppendFormat(Format, fi.FormatedName, op.Session.FormatParameterName(name));
         }
         #endregion
     }

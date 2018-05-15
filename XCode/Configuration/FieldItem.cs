@@ -238,7 +238,7 @@ namespace XCode.Configuration
         /// <param name="format"></param>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        internal Expression CreateFormat(String format, String value) => new FormatExpression(this, format, value);
+        internal Expression CreateFormat(String format, Object value) => new FormatExpression(this, format, value);
 
         internal static Expression CreateField(FieldItem field, String action, Object value) => field == null ? new Expression() : new FieldExpression(field, action, value);
         #endregion
@@ -254,7 +254,7 @@ namespace XCode.Configuration
         /// <returns></returns>
         public Expression NotEqual(Object value) => CreateField(this, "<>", value);
 
-        Expression CreateLike(String value) => CreateFormat("{0} Like {1}", Factory.FormatValue(this, value));
+        Expression CreateLike(String value) => CreateFormat("{0} Like {1}", value);
 
         /// <summary>以某个字符串开始,{0}%操作</summary>
         /// <remarks>空参数不参与表达式操作，不生成该部分SQL拼接</remarks>
@@ -287,6 +287,17 @@ namespace XCode.Configuration
             if (value == null || value + "" == "") return new Expression();
 
             return CreateLike("%{0}%".F(value));
+        }
+
+        /// <summary>包含某个字符串，%{0}%操作</summary>
+        /// <remarks>空参数不参与表达式操作，不生成该部分SQL拼接</remarks>
+        /// <param name="value">数值</param>
+        /// <returns></returns>
+        public Expression NotContains(String value)
+        {
+            if (value == null || value + "" == "") return new Expression();
+
+            return CreateFormat("{0} Not Like {1}", value);
         }
 
         /// <summary>In操作</summary>
