@@ -157,7 +157,7 @@ namespace XCode
     public abstract class EntityModule : IEntityModule
     {
         #region IEntityModule 成员
-        private Dictionary<Type, Boolean> _Inited = new Dictionary<Type, Boolean>();
+        private readonly Dictionary<Type, Boolean> _Inited = new Dictionary<Type, Boolean>();
         /// <summary>为指定实体类初始化模块，返回是否支持</summary>
         /// <param name="entityType"></param>
         /// <returns></returns>
