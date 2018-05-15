@@ -56,7 +56,7 @@ namespace XCode.DataAccessLayer
     partial class DbMetaData
     {
         #region 属性
-        private String ConnName { get { return Database.ConnName; } }
+        private String ConnName => Database.ConnName;
         #endregion
 
         #region 反向工程
@@ -499,10 +499,7 @@ namespace XCode.DataAccessLayer
             return sb.ToString();
         }
 
-        protected virtual String RenameTable(String tableName, String tempTableName)
-        {
-            return String.Format("Alter Table {0} Rename To {1}", tableName, tempTableName);
-        }
+        protected virtual String RenameTable(String tableName, String tempTableName) => String.Format("Alter Table {0} Rename To {1}", tableName, tempTableName);
 
         /// <summary>
         /// 获取架构语句，该执行的已经执行。
@@ -764,22 +761,11 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据定义语句
-        public virtual String CreateDatabaseSQL(String dbname, String file)
-        {
-            return String.Format("Create Database {0}", FormatName(dbname));
-        }
+        public virtual String CreateDatabaseSQL(String dbname, String file) => String.Format("Create Database {0}", FormatName(dbname));
 
-        public virtual String DropDatabaseSQL(String dbname)
-        {
-            return String.Format("Drop Database {0}", FormatName(dbname));
-        }
+        public virtual String DropDatabaseSQL(String dbname) => String.Format("Drop Database {0}", FormatName(dbname));
 
-        public virtual String DatabaseExistSQL(String dbname)
-        {
-            //throw new NotSupportedException("该功能未实现！");
-            //return String.Empty;
-            return null;
-        }
+        public virtual String DatabaseExistSQL(String dbname) => null;
 
         public virtual String CreateTableSQL(IDataTable table)
         {
@@ -801,27 +787,27 @@ namespace XCode.DataAccessLayer
             return sb.ToString();
         }
 
-        String DropTableSQL(IDataTable table) { return DropTableSQL(table.TableName); }
+        String DropTableSQL(IDataTable table) => DropTableSQL(table.TableName);
 
-        public virtual String DropTableSQL(String tableName) { return String.Format("Drop Table {0}", FormatName(tableName)); }
+        public virtual String DropTableSQL(String tableName) => String.Format("Drop Table {0}", FormatName(tableName));
 
-        String TableExistSQL(IDataTable table) { return TableExistSQL(table.TableName); }
+        String TableExistSQL(IDataTable table) => TableExistSQL(table.TableName);
 
-        public virtual String TableExistSQL(String tableName) { throw new NotSupportedException("该功能未实现！"); }
+        public virtual String TableExistSQL(String tableName) => throw new NotSupportedException("该功能未实现！");
 
-        public virtual String AddTableDescriptionSQL(IDataTable table) { return null; }
+        public virtual String AddTableDescriptionSQL(IDataTable table) => null;
 
-        public virtual String DropTableDescriptionSQL(IDataTable table) { return null; }
+        public virtual String DropTableDescriptionSQL(IDataTable table) => null;
 
-        public virtual String AddColumnSQL(IDataColumn field) { return String.Format("Alter Table {0} Add {1}", FormatName(field.Table.TableName), FieldClause(field, true)); }
+        public virtual String AddColumnSQL(IDataColumn field) => String.Format("Alter Table {0} Add {1}", FormatName(field.Table.TableName), FieldClause(field, true));
 
-        public virtual String AlterColumnSQL(IDataColumn field, IDataColumn oldfield) { return String.Format("Alter Table {0} Alter Column {1}", FormatName(field.Table.TableName), FieldClause(field, false)); }
+        public virtual String AlterColumnSQL(IDataColumn field, IDataColumn oldfield) => String.Format("Alter Table {0} Alter Column {1}", FormatName(field.Table.TableName), FieldClause(field, false));
 
-        public virtual String DropColumnSQL(IDataColumn field) { return String.Format("Alter Table {0} Drop Column {1}", FormatName(field.Table.TableName), field.ColumnName); }
+        public virtual String DropColumnSQL(IDataColumn field) => String.Format("Alter Table {0} Drop Column {1}", FormatName(field.Table.TableName), field.ColumnName);
 
-        public virtual String AddColumnDescriptionSQL(IDataColumn field) { return null; }
+        public virtual String AddColumnDescriptionSQL(IDataColumn field) => null;
 
-        public virtual String DropColumnDescriptionSQL(IDataColumn field) { return null; }
+        public virtual String DropColumnDescriptionSQL(IDataColumn field) => null;
 
         public virtual String CreateIndexSQL(IDataIndex index)
         {
@@ -843,18 +829,15 @@ namespace XCode.DataAccessLayer
             return sb.ToString();
         }
 
-        public virtual String DropIndexSQL(IDataIndex index)
-        {
-            return String.Format("Drop Index {0} On {1}", FormatName(index.Name), FormatName(index.Table.TableName));
-        }
+        public virtual String DropIndexSQL(IDataIndex index) => String.Format("Drop Index {0} On {1}", FormatName(index.Name), FormatName(index.Table.TableName));
 
-        public virtual String CompactDatabaseSQL() { return null; }
+        public virtual String CompactDatabaseSQL() => null;
         #endregion
 
         #region 操作
-        protected virtual String Backup(String dbname, String bakfile, Boolean compressed) { throw new NotImplementedException(); }
+        protected virtual String Backup(String dbname, String bakfile, Boolean compressed) => throw new NotImplementedException();
 
-        public virtual String CompactDatabase() { throw new NotImplementedException(); }
+        public virtual String CompactDatabase() => throw new NotImplementedException();
         #endregion
     }
 }

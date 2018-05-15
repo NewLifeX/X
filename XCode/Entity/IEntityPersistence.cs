@@ -277,10 +277,7 @@ namespace XCode
         /// <param name="names">属性列表</param>
         /// <param name="values">值列表</param>
         /// <returns></returns>
-        public virtual Int32 Delete(IEntityOperate factory, String[] names, Object[] values)
-        {
-            return Delete(factory, Join(factory, names, values, "And"));
-        }
+        public virtual Int32 Delete(IEntityOperate factory, String[] names, Object[] values) => Delete(factory, Join(factory, names, values, "And"));
 
         private static String Join(IEntityOperate factory, String[] names, Object[] values, String split)
         {
@@ -512,7 +509,7 @@ namespace XCode
                 var dps = new List<IDataParameter>();
                 foreach (var item in ps)
                 {
-                    var dp = db.CreateParameter(item.Key, item.Value, op.Table.FindByName(item.Key)?.Type);
+                    var dp = db.CreateParameter(item.Key, item.Value, op.Table.FindByName(item.Key)?.Field);
 
                     dps.Add(dp);
                 }
@@ -533,13 +530,11 @@ namespace XCode
             // 虽然是大字段，但数据量不大时不用参数
             if (fi.Type == typeof(String))
             {
-                var str = value as String;
-                return str != null && str.Length > 4000;
+                return value is String str && str.Length > 4000;
             }
             else if (fi.Type == typeof(Byte[]))
             {
-                var str = value as Byte[];
-                return str != null && str.Length > 4000;
+                return value is Byte[] str && str.Length > 4000;
             }
 
             return false;
@@ -584,7 +579,7 @@ namespace XCode
 
         static IDataParameter CreateParameter(StringBuilder sb, IEntityOperate op, FieldItem fi, Object value)
         {
-            var dp = op.Session.Dal.Db.CreateParameter(fi.ColumnName ?? fi.Name, value, fi.Type);
+            var dp = op.Session.Dal.Db.CreateParameter(fi.ColumnName ?? fi.Name, value, fi.Field);
 
             if (sb != null) sb.Append(dp.ParameterName);
 
@@ -675,7 +670,7 @@ namespace XCode
         /// <summary>获取主键条件</summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        public virtual WhereExpression GetPrimaryCondition(IEntity entity) { return DefaultCondition(entity); }
+        public virtual WhereExpression GetPrimaryCondition(IEntity entity) => DefaultCondition(entity);
 
         /// <summary>
         /// 默认条件。

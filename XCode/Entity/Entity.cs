@@ -867,10 +867,7 @@ namespace XCode
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体集</returns>
         [Obsolete("=>Search(DateTime start, DateTime end, String key, PageParameter param)")]
-        public static IList<TEntity> Search(String key, String order, Int64 startRowIndex, Int64 maximumRows)
-        {
-            return FindAll(SearchWhereByKeys(key, null), order, null, startRowIndex, maximumRows);
-        }
+        public static IList<TEntity> Search(String key, String order, Int64 startRowIndex, Int64 maximumRows) => FindAll(SearchWhereByKeys(key, null), order, null, startRowIndex, maximumRows);
 
         /// <summary>查询满足条件的记录总数，分页和排序无效，带参数是因为ObjectDataSource要求它跟Search统一</summary>
         /// <param name="key">关键字</param>
@@ -879,10 +876,7 @@ namespace XCode
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>记录数</returns>
         [Obsolete("=>Search(DateTime start, DateTime end, String key, PageParameter param)")]
-        public static Int32 SearchCount(String key, String order, Int64 startRowIndex, Int64 maximumRows)
-        {
-            return (Int32)FindCount(SearchWhereByKeys(key, null), null, null, 0, 0);
-        }
+        public static Int32 SearchCount(String key, String order, Int64 startRowIndex, Int64 maximumRows) => (Int32)FindCount(SearchWhereByKeys(key, null), null, null, 0, 0);
 
         /// <summary>同时查询满足条件的记录集和记录总数。没有数据时返回空集合而不是null</summary>
         /// <param name="key"></param>

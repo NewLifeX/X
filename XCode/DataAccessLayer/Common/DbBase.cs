@@ -729,11 +729,12 @@ namespace XCode.DataAccessLayer
         /// <summary>创建参数</summary>
         /// <param name="name">名称</param>
         /// <param name="value">值</param>
-        /// <param name="type">类型</param>
+        /// <param name="field">字段</param>
         /// <returns></returns>
-        public virtual IDataParameter CreateParameter(String name, Object value, Type type = null)
+        public virtual IDataParameter CreateParameter(String name, Object value, IDataColumn field = null)
         {
-            if (value == null && type == null) throw new ArgumentNullException(nameof(type));
+            var type = field?.DataType;
+            if (value == null && type == null) throw new ArgumentNullException(nameof(field));
 
             var dp = Factory.CreateParameter();
             dp.ParameterName = FormatParameterName(name);

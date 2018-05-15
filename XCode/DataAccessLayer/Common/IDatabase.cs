@@ -143,9 +143,9 @@ namespace XCode.DataAccessLayer
         /// <summary>创建参数</summary>
         /// <param name="name">名称</param>
         /// <param name="value">值</param>
-        /// <param name="type">类型</param>
+        /// <param name="field">字段</param>
         /// <returns></returns>
-        IDataParameter CreateParameter(String name, Object value, Type type = null);
+        IDataParameter CreateParameter(String name, Object value, IDataColumn field = null);
 
         /// <summary>创建参数数组</summary>
         /// <param name="ps"></param>
