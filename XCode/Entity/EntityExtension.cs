@@ -146,7 +146,7 @@ namespace XCode
 
             foreach (var item in fact.Fields)
             {
-                dps.Add(db.CreateParameter(item.ColumnName ?? item.Name, entity[item.Name], item.Type));
+                dps.Add(db.CreateParameter(item.ColumnName ?? item.Name, entity[item.Name], item.Field));
             }
 
             return dps.ToArray();
@@ -167,7 +167,7 @@ namespace XCode
             foreach (var item in fact.Fields)
             {
                 var vs = list.Select(e => e[item.Name]).ToArray();
-                dps.Add(db.CreateParameter(item.ColumnName ?? item.Name, vs, item.Type));
+                dps.Add(db.CreateParameter(item.ColumnName ?? item.Name, vs, item.Field));
             }
 
             return dps.ToArray();

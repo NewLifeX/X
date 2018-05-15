@@ -440,7 +440,7 @@ namespace XCode
         static TEntity FindUnique(Expression where)
         {
             var session = Meta.Session;
-            var ps = session.Dal.Db.UserParameter ? new Dictionary<String, Object>() : null;
+            var ps = session.Dal.Db.UseParameter ? new Dictionary<String, Object>() : null;
             var wh = where?.GetString(ps);
 
             var builder = new SelectBuilder
@@ -639,7 +639,8 @@ namespace XCode
             if (startRowIndex > 500000 && (count = session.LongCount) > 1000000)
             {
                 // 计算本次查询的结果行数
-                if (!String.IsNullOrEmpty(where?.GetString(null))) count = FindCount(where, order, selects, startRowIndex, maximumRows);
+                var wh = where?.GetString(null);
+                if (!wh.IsNullOrEmpty()) count = FindCount(where, order, selects, startRowIndex, maximumRows);
                 // 游标在中间偏后
                 if (startRowIndex * 2 > count)
                 {
@@ -697,7 +698,7 @@ namespace XCode
                     #endregion
 
                     // 没有排序的实在不适合这种办法，因为没办法倒序
-                    if (!String.IsNullOrEmpty(order2))
+                    if (!order2.IsNullOrEmpty())
                     {
                         // 最大可用行数改为实际最大可用行数
                         var max = (Int32)Math.Min(maximumRows, count - startRowIndex);
@@ -812,7 +813,7 @@ namespace XCode
         public static Int64 FindCount(Expression where, String order = null, String selects = null, Int64 startRowIndex = 0, Int64 maximumRows = 0)
         {
             var session = Meta.Session;
-            var ps = session.Dal.Db.UserParameter ? new Dictionary<String, Object>() : null;
+            var ps = session.Dal.Db.UseParameter ? new Dictionary<String, Object>() : null;
             var wh = where?.GetString(ps);
 
             //// 如果总记录数超过10万，为了提高性能，返回快速查找且带有缓存的总记录数
@@ -866,10 +867,7 @@ namespace XCode
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体集</returns>
         [Obsolete("=>Search(DateTime start, DateTime end, String key, PageParameter param)")]
-        public static IList<TEntity> Search(String key, String order, Int64 startRowIndex, Int64 maximumRows)
-        {
-            return FindAll(SearchWhereByKeys(key, null), order, null, startRowIndex, maximumRows);
-        }
+        public static IList<TEntity> Search(String key, String order, Int64 startRowIndex, Int64 maximumRows) => FindAll(SearchWhereByKeys(key, null), order, null, startRowIndex, maximumRows);
 
         /// <summary>查询满足条件的记录总数，分页和排序无效，带参数是因为ObjectDataSource要求它跟Search统一</summary>
         /// <param name="key">关键字</param>
@@ -878,10 +876,7 @@ namespace XCode
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>记录数</returns>
         [Obsolete("=>Search(DateTime start, DateTime end, String key, PageParameter param)")]
-        public static Int32 SearchCount(String key, String order, Int64 startRowIndex, Int64 maximumRows)
-        {
-            return (Int32)FindCount(SearchWhereByKeys(key, null), null, null, 0, 0);
-        }
+        public static Int32 SearchCount(String key, String order, Int64 startRowIndex, Int64 maximumRows) => (Int32)FindCount(SearchWhereByKeys(key, null), null, null, 0, 0);
 
         /// <summary>同时查询满足条件的记录集和记录总数。没有数据时返回空集合而不是null</summary>
         /// <param name="key"></param>
@@ -1037,7 +1032,7 @@ namespace XCode
         static SelectBuilder CreateBuilder(Expression where, String order, String selects, Int64 startRowIndex, Int64 maximumRows, Boolean needOrderByID = true)
         {
             var session = Meta.Session;
-            var ps = session.Dal.Db.UserParameter ? new Dictionary<String, Object>() : null;
+            var ps = session.Dal.Db.UseParameter ? new Dictionary<String, Object>() : null;
             var wh = where?.GetString(ps);
             var builder = CreateBuilder(wh, order, selects, startRowIndex, maximumRows, needOrderByID);
 
@@ -1127,7 +1122,9 @@ namespace XCode
             {
                 foreach (var item in ps)
                 {
-                    var dp = Meta.Session.Dal.Db.CreateParameter(item.Key, item.Value, Meta.Table.FindByName(item.Key)?.Type);
+                    //var dp = Meta.Session.Dal.Db.CreateParameter(item.Key, item.Value, Meta.Table.FindByName(item.Key)?.Type);
+                    // 不能传递类型，因为参数名可能已经改变
+                    var dp = Meta.Session.Dal.Db.CreateParameter(item.Key, item.Value);
 
                     builder.Parameters.Add(dp);
                 }

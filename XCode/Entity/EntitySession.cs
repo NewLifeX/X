@@ -176,7 +176,7 @@ namespace XCode
         /// <summary>记录已进行数据初始化</summary>
         Boolean hasCheckInitData = false;
         Int32 initThread = 0;
-        Object _wait_lock = new Object();
+        readonly Object _wait_lock = new Object();
 
         /// <summary>检查并初始化数据。参数等待时间为0表示不等待</summary>
         /// <param name="ms">等待时间，-1表示不限，0表示不等待</param>
@@ -312,7 +312,7 @@ namespace XCode
             }
         }
 
-        private Boolean IsGenerated { get { return ThisType.GetCustomAttribute<CompilerGeneratedAttribute>(true) != null; } }
+        private Boolean IsGenerated => ThisType.GetCustomAttribute<CompilerGeneratedAttribute>(true) != null;
         Boolean _hasCheckModel = false;
         readonly Object _checkLock = new Object();
         /// <summary>检查模型。依据反向工程设置、是否首次使用检查、是否已常规检查等</summary>
@@ -440,11 +440,11 @@ namespace XCode
             }
         }
 
-        IEntityCache IEntitySession.Cache { get { return Cache; } }
-        ISingleEntityCache IEntitySession.SingleCache { get { return SingleCache; } }
+        IEntityCache IEntitySession.Cache => Cache;
+        ISingleEntityCache IEntitySession.SingleCache => SingleCache;
 
         /// <summary>总记录数，小于1000时是精确的，大于1000时缓存10秒</summary>
-        public Int32 Count { get { return (Int32)LongCount; } }
+        public Int32 Count => (Int32)LongCount;
 
         private DateTime _NextCount;
         /// <summary>总记录数较小时，使用静态字段，较大时增加使用Cache</summary>
@@ -736,17 +736,11 @@ namespace XCode
 
         /// <summary>提交事务</summary>
         /// <returns>剩下的事务计数</returns>
-        public virtual Int32 Commit()
-        {
-            return Dal.Commit();
-        }
+        public virtual Int32 Commit() => Dal.Commit();
 
         /// <summary>回滚事务，忽略异常</summary>
         /// <returns>剩下的事务计数</returns>
-        public virtual Int32 Rollback()
-        {
-            return Dal.Rollback();
-        }
+        public virtual Int32 Rollback() => Dal.Rollback();
         #endregion
 
         #region 参数化

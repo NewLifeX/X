@@ -42,8 +42,8 @@ namespace XCode
         #endregion
 
         #region 方法
-        private Type _Type;
-        private String _Key;
+        private readonly Type _Type;
+        private readonly String _Key;
 
         private MapProvider GetProvider(Type type, String key)
         {

@@ -40,7 +40,7 @@ namespace XCode.Transform
         #endregion
 
         #region 索引器
-        private IDictionary<String, Object> _Items = new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
+        private readonly IDictionary<String, Object> _Items = new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
         /// <summary>用户数据</summary>
         /// <param name="item"></param>
         /// <returns></returns>

@@ -80,11 +80,11 @@ namespace XCode.DataAccessLayer
         #region 方法
         /// <summary>创建数据库会话</summary>
         /// <returns></returns>
-        protected override IDbSession OnCreateSession() { return new OracleSession(this); }
+        protected override IDbSession OnCreateSession() => new OracleSession(this);
 
         /// <summary>创建元数据对象</summary>
         /// <returns></returns>
-        protected override IMetaData OnCreateMetaData() { return new OracleMeta(); }
+        protected override IMetaData OnCreateMetaData() => new OracleMeta();
 
         public override Boolean Support(String providerName)
         {
@@ -174,7 +174,7 @@ namespace XCode.DataAccessLayer
         /// <summary>已重载。格式化时间</summary>
         /// <param name="dateTime"></param>
         /// <returns></returns>
-        public override String FormatDateTime(DateTime dateTime) { return "To_Date('" + dateTime.ToFullString() + "', 'YYYY-MM-DD HH24:MI:SS')"; }
+        public override String FormatDateTime(DateTime dateTime) => "To_Date('" + dateTime.ToFullString() + "', 'YYYY-MM-DD HH24:MI:SS')";
 
         public override String FormatValue(IDataColumn field, Object value)
         {
@@ -198,26 +198,24 @@ namespace XCode.DataAccessLayer
         /// <param name="field">字段</param>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        public override String FormatIdentity(IDataColumn field, Object value)
-        {
-            return String.Format("SEQ_{0}.nextval", field.Table.TableName);
-        }
+        public override String FormatIdentity(IDataColumn field, Object value) => String.Format("SEQ_{0}.nextval", field.Table.TableName);
 
-        internal protected override String ParamPrefix { get { return ":"; } }
+        internal protected override String ParamPrefix => ":";
 
         /// <summary>字符串相加</summary>
         /// <param name="left"></param>
         /// <param name="right"></param>
         /// <returns></returns>
-        public override String StringConcat(String left, String right) { return (!String.IsNullOrEmpty(left) ? left : "\'\'") + "||" + (!String.IsNullOrEmpty(right) ? right : "\'\'"); }
+        public override String StringConcat(String left, String right) => (!String.IsNullOrEmpty(left) ? left : "\'\'") + "||" + (!String.IsNullOrEmpty(right) ? right : "\'\'");
 
         /// <summary>创建参数</summary>
         /// <param name="name">名称</param>
         /// <param name="value">值</param>
-        /// <param name="type">类型</param>
+        /// <param name="field">字段</param>
         /// <returns></returns>
-        public override IDataParameter CreateParameter(String name, Object value, Type type = null)
+        public override IDataParameter CreateParameter(String name, Object value, IDataColumn field = null)
         {
+            var type = field?.DataType;
             if (type == null)
             {
                 type = value?.GetType();
@@ -235,7 +233,7 @@ namespace XCode.DataAccessLayer
                 type = typeof(Int32);
             }
 
-            var dp = base.CreateParameter(name, value, type);
+            var dp = base.CreateParameter(name, value, field);
 
             // 修正时间映射
             if (type == typeof(DateTime)) dp.DbType = DbType.Date;
@@ -424,10 +422,7 @@ namespace XCode.DataAccessLayer
     /// <summary>Oracle元数据</summary>
     class OracleMeta : RemoteDbMetaData
     {
-        public OracleMeta()
-        {
-            Types = _DataTypes;
-        }
+        public OracleMeta() => Types = _DataTypes;
 
         /// <summary>拥有者</summary>
         public String Owner
@@ -442,7 +437,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>用户名</summary>
-        public String UserID { get { return (Database as Oracle).User.ToUpper(); } }
+        public String UserID => (Database as Oracle).User.ToUpper();
 
         /// <summary>取得所有表构架</summary>
         /// <returns></returns>
@@ -805,10 +800,7 @@ namespace XCode.DataAccessLayer
             return base.SetSchema(schema, values);
         }
 
-        public override String DatabaseExistSQL(String dbname)
-        {
-            return String.Empty;
-        }
+        public override String DatabaseExistSQL(String dbname) => String.Empty;
 
         protected override String GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
         {

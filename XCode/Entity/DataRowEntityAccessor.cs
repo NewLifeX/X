@@ -81,8 +81,8 @@ namespace XCode
         #endregion
 
         #region 方法
-        static String[] TrueString = new String[] { "true", "y", "yes", "1" };
-        static String[] FalseString = new String[] { "false", "n", "no", "0" };
+        static readonly String[] TrueString = new String[] { "true", "y", "yes", "1" };
+        static readonly String[] FalseString = new String[] { "false", "n", "no", "0" };
 
         private void SetValue(IEntity entity, String name, Type type, Object value)
         {

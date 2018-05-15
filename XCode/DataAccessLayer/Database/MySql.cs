@@ -49,18 +49,18 @@ namespace XCode.DataAccessLayer
             builder.TryAdd(CharSet, "utf8");
             //if (!builder.ContainsKey(AllowZeroDatetime)) builder[AllowZeroDatetime] = "True";
             // 默认最大连接数1000
-            builder.TryAdd(MaxPoolSize, "1000");
+            if (builder["Pooling"].ToBoolean()) builder.TryAdd(MaxPoolSize, "1000");
         }
         #endregion
 
         #region 方法
         /// <summary>创建数据库会话</summary>
         /// <returns></returns>
-        protected override IDbSession OnCreateSession() { return new MySqlSession(this); }
+        protected override IDbSession OnCreateSession() => new MySqlSession(this);
 
         /// <summary>创建元数据对象</summary>
         /// <returns></returns>
-        protected override IMetaData OnCreateMetaData() { return new MySqlMetaData(); }
+        protected override IMetaData OnCreateMetaData() => new MySqlMetaData();
 
         public override Boolean Support(String providerName)
         {
@@ -134,7 +134,7 @@ namespace XCode.DataAccessLayer
         public override String FormatKeyWord(String keyWord)
         {
             //if (String.IsNullOrEmpty(keyWord)) throw new ArgumentNullException("keyWord");
-            if (String.IsNullOrEmpty(keyWord)) return keyWord;
+            if (keyWord.IsNullOrEmpty()) return keyWord;
 
             if (keyWord.StartsWith("`") && keyWord.EndsWith("`")) return keyWord;
 
@@ -159,7 +159,11 @@ namespace XCode.DataAccessLayer
             }
             else if (code == TypeCode.Boolean)
             {
-                return Convert.ToBoolean(value) ? "'Y'" : "'N'";
+                var v = value.ToBoolean();
+                if (field.Table != null && EnumTables.Contains(field.Table.TableName))
+                    return v ? "'Y'" : "'N'";
+                else
+                    return v ? "1" : "0";
             }
 
             return base.FormatValue(field, value);
@@ -173,29 +177,47 @@ namespace XCode.DataAccessLayer
         /// <summary>创建参数</summary>
         /// <param name="name">名称</param>
         /// <param name="value">值</param>
-        /// <param name="type">类型</param>
+        /// <param name="field">字段</param>
         /// <returns></returns>
-        public override IDataParameter CreateParameter(String name, Object value, Type type = null)
+        public override IDataParameter CreateParameter(String name, Object value, IDataColumn field = null)
         {
-            var dp = base.CreateParameter(name, value, type);
+            var dp = base.CreateParameter(name, value, field);
 
+            var type = field?.DataType;
             if (type == null) type = value?.GetType();
+
+            // MySql的枚举要用 DbType.String
             if (type == typeof(Boolean))
             {
-                dp.Value = value.ToBoolean() ? 'Y' : 'N';
+                var v = value.ToBoolean();
+                if (field?.Table != null && EnumTables.Contains(field.Table.TableName))
+                {
+                    dp.DbType = DbType.String;
+                    dp.Value = value.ToBoolean() ? 'Y' : 'N';
+                }
+                else
+                {
+                    dp.DbType = DbType.Int16;
+                    dp.Value = v ? 1 : 0;
+                }
             }
 
             return dp;
         }
 
         /// <summary>系统数据库名</summary>
-        public override String SystemDatabaseName { get { return "mysql"; } }
+        public override String SystemDatabaseName => "mysql";
 
         /// <summary>字符串相加</summary>
         /// <param name="left"></param>
         /// <param name="right"></param>
         /// <returns></returns>
-        public override String StringConcat(String left, String right) { return String.Format("concat({0},{1})", (!String.IsNullOrEmpty(left) ? left : "\'\'"), (!String.IsNullOrEmpty(right) ? right : "\'\'")); }
+        public override String StringConcat(String left, String right) => String.Format("concat({0},{1})", (!String.IsNullOrEmpty(left) ? left : "\'\'"), (!String.IsNullOrEmpty(right) ? right : "\'\'"));
+        #endregion
+
+        #region 跨版本兼容
+        /// <summary>采用枚举来表示布尔型的数据表。由正向工程赋值</summary>
+        public ICollection<String> EnumTables { get; } = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
         #endregion
     }
 
@@ -237,9 +259,26 @@ namespace XCode.DataAccessLayer
     /// <summary>MySql元数据</summary>
     class MySqlMetaData : RemoteDbMetaData
     {
-        public MySqlMetaData()
+        public MySqlMetaData() => Types = _DataTypes;
+
+        protected override List<IDataTable> OnGetTables(String[] names)
         {
-            Types = _DataTypes;
+            var tables = base.OnGetTables(names);
+            if (tables == null || tables.Count == 0) return tables;
+
+            // 找到使用枚举作为布尔型的旧表
+            var es = (Database as MySql).EnumTables;
+            foreach (var table in tables)
+            {
+                if (!es.Contains(table.TableName)
+                    && table.Columns.Any(c => c.DataType == typeof(Boolean)
+                    && c.RawType.EqualIgnoreCase("enum('N','Y')", "enum('Y','N')")))
+                {
+                    es.Add(table.TableName);
+                }
+            }
+
+            return tables;
         }
 
         protected override void FixTable(IDataTable table, DataRow dr, IDictionary<String, DataTable> data)
@@ -274,25 +313,17 @@ namespace XCode.DataAccessLayer
             if (field.RawType == "enum('N','Y')" || field.RawType == "enum('Y','N')")
             {
                 field.DataType = typeof(Boolean);
-                //// 处理默认值
-                //if (!String.IsNullOrEmpty(field.Default))
-                //{
-                //    if (field.Default == "Y")
-                //        field.Default = "true";
-                //    else if (field.Default == "N")
-                //        field.Default = "false";
-                //}
                 return;
             }
             base.FixField(field, dr);
         }
 
-        protected override String GetFieldType(IDataColumn field)
-        {
-            if (field.DataType == typeof(Boolean)) return "enum('N','Y')";
+        //protected override String GetFieldType(IDataColumn field)
+        //{
+        //    if (field.DataType == typeof(Boolean)) return "enum('N','Y')";
 
-            return base.GetFieldType(field);
-        }
+        //    return base.GetFieldType(field);
+        //}
 
         public override String FieldClause(IDataColumn field, Boolean onlyDefine)
         {
@@ -329,7 +360,8 @@ namespace XCode.DataAccessLayer
             { typeof(Double), new String[] { "DOUBLE" } },
             { typeof(Decimal), new String[] { "DECIMAL" } },
             { typeof(DateTime), new String[] { "DATETIME", "DATE", "TIMESTAMP", "TIME" } },
-            { typeof(String), new String[] { "NVARCHAR({0})", "TEXT", "CHAR({0})", "NCHAR({0})", "VARCHAR({0})", "SET", "ENUM", "TINYTEXT", "TEXT", "MEDIUMTEXT", "LONGTEXT" } }
+            { typeof(String), new String[] { "NVARCHAR({0})", "TEXT", "CHAR({0})", "NCHAR({0})", "VARCHAR({0})", "SET", "ENUM", "TINYTEXT", "TEXT", "MEDIUMTEXT", "LONGTEXT" } },
+            { typeof(Boolean), new String[] { "TINYINT" } },
         };
 
         #region 架构定义
@@ -339,10 +371,7 @@ namespace XCode.DataAccessLayer
             return dt != null && dt.Rows != null && dt.Rows.Count > 0;
         }
 
-        public override String DropDatabaseSQL(String dbname)
-        {
-            return String.Format("Drop Database If Exists {0}", FormatName(dbname));
-        }
+        public override String DropDatabaseSQL(String dbname) => String.Format("Drop Database If Exists {0}", FormatName(dbname));
 
         public override String CreateTableSQL(IDataTable table)
         {
@@ -389,10 +418,7 @@ namespace XCode.DataAccessLayer
             return String.Format("Alter Table {0} Comment '{1}'", FormatName(table.TableName), table.Description);
         }
 
-        public override String AlterColumnSQL(IDataColumn field, IDataColumn oldfield)
-        {
-            return String.Format("Alter Table {0} Modify Column {1}", FormatName(field.Table.TableName), FieldClause(field, false));
-        }
+        public override String AlterColumnSQL(IDataColumn field, IDataColumn oldfield) => String.Format("Alter Table {0} Modify Column {1}", FormatName(field.Table.TableName), FieldClause(field, false));
 
         public override String AddColumnDescriptionSQL(IDataColumn field)
         {

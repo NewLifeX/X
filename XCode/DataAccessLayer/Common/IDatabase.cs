@@ -55,7 +55,7 @@ namespace XCode.DataAccessLayer
         Boolean ShowSQL { get; set; }
 
         /// <summary>参数化添删改查。默认关闭</summary>
-        Boolean UserParameter { get; set; }
+        Boolean UseParameter { get; set; }
 
         /// <summary>反向工程。Off 关闭；ReadOnly 只读不执行；On 打开，新建；Full 完全，修改删除</summary>
         Migration Migration { get; set; }
@@ -143,9 +143,9 @@ namespace XCode.DataAccessLayer
         /// <summary>创建参数</summary>
         /// <param name="name">名称</param>
         /// <param name="value">值</param>
-        /// <param name="type">类型</param>
+        /// <param name="field">字段</param>
         /// <returns></returns>
-        IDataParameter CreateParameter(String name, Object value, Type type = null);
+        IDataParameter CreateParameter(String name, Object value, IDataColumn field = null);
 
         /// <summary>创建参数数组</summary>
         /// <param name="ps"></param>

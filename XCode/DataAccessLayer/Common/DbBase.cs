@@ -177,9 +177,14 @@ namespace XCode.DataAccessLayer
         {
             if (builder.TryGetAndRemove(nameof(Owner), out var value) && !value.IsNullOrEmpty()) Owner = value;
             if (builder.TryGetAndRemove(nameof(ShowSQL), out value) && !value.IsNullOrEmpty()) ShowSQL = value.ToBoolean();
-            if (builder.TryGetAndRemove(nameof(UserParameter), out value) && !value.IsNullOrEmpty()) UserParameter = value.ToBoolean();
+
+            // 参数化，需要兼容写错了一年的UserParameter
+            if (builder.TryGetAndRemove(nameof(UseParameter), out value) && !value.IsNullOrEmpty()) UseParameter = value.ToBoolean();
+            if (builder.TryGetAndRemove("UserParameter", out value) && !value.IsNullOrEmpty()) UseParameter = value.ToBoolean();
+
             if (builder.TryGetAndRemove(nameof(Migration), out value) && !value.IsNullOrEmpty()) Migration = (Migration)Enum.Parse(typeof(Migration), value, true);
             if (builder.TryGetAndRemove(nameof(TablePrefix), out value) && !value.IsNullOrEmpty()) TablePrefix = value;
+            if (builder.TryGetAndRemove(nameof(Readonly), out value) && !value.IsNullOrEmpty()) Readonly = value.ToBoolean();
         }
 
         /// <summary>拥有者</summary>
@@ -228,7 +233,7 @@ namespace XCode.DataAccessLayer
 
         #region 方法
         /// <summary>保证数据库在每一个线程都有唯一的一个实例</summary>
-        private ConcurrentDictionary<Int32, IDbSession> _sessions = new ConcurrentDictionary<Int32, IDbSession>();
+        private readonly ConcurrentDictionary<Int32, IDbSession> _sessions = new ConcurrentDictionary<Int32, IDbSession>();
 
         /// <summary>创建数据库会话，数据库在每一个线程都有唯一的一个实例</summary>
         /// <returns></returns>
@@ -724,11 +729,12 @@ namespace XCode.DataAccessLayer
         /// <summary>创建参数</summary>
         /// <param name="name">名称</param>
         /// <param name="value">值</param>
-        /// <param name="type">类型</param>
+        /// <param name="field">字段</param>
         /// <returns></returns>
-        public virtual IDataParameter CreateParameter(String name, Object value, Type type = null)
+        public virtual IDataParameter CreateParameter(String name, Object value, IDataColumn field = null)
         {
-            if (value == null && type == null) throw new ArgumentNullException(nameof(type));
+            var type = field?.DataType;
+            if (value == null && type == null) throw new ArgumentNullException(nameof(field));
 
             var dp = Factory.CreateParameter();
             dp.ParameterName = FormatParameterName(name);
@@ -846,7 +852,7 @@ namespace XCode.DataAccessLayer
 
         #region 参数化
         /// <summary>参数化添删改查。默认关闭</summary>
-        public Boolean UserParameter { get; set; } = Setting.Current.UserParameter;
+        public Boolean UseParameter { get; set; } = Setting.Current.UseParameter;
         #endregion
     }
 }

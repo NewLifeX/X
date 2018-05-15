@@ -54,10 +54,10 @@ namespace XCode.DataAccessLayer
         public IDatabase Database { get; }
 
         /// <summary>返回数据库类型。外部DAL数据库类请使用Other</summary>
-        private DatabaseType DbType { get { return Database.Type; } }
+        private DatabaseType DbType => Database.Type;
 
         /// <summary>工厂</summary>
-        private DbProviderFactory Factory { get { return Database.Factory; } }
+        private DbProviderFactory Factory => Database.Factory;
 
         /// <summary>链接字符串，会话单独保存，允许修改，修改不会影响数据库中的连接字符串</summary>
         public String ConnectionString { get; set; }
@@ -350,10 +350,7 @@ namespace XCode.DataAccessLayer
         /// <summary>执行SQL查询，返回总记录数</summary>
         /// <param name="builder">查询生成器</param>
         /// <returns>总记录数</returns>
-        public virtual Int64 QueryCount(SelectBuilder builder)
-        {
-            return ExecuteScalar<Int64>(builder.SelectCount().ToString(), CommandType.Text, builder.Parameters.ToArray());
-        }
+        public virtual Int64 QueryCount(SelectBuilder builder) => ExecuteScalar<Int64>(builder.SelectCount().ToString(), CommandType.Text, builder.Parameters.ToArray());
 
         /// <summary>快速查询单表记录数，稍有偏差</summary>
         /// <param name="tableName"></param>
@@ -829,11 +826,8 @@ namespace XCode.DataAccessLayer
                         else
                             sv = String.Format("[{0}]0x{1}", bv.Length, BitConverter.ToString(bv));
                     }
-                    else if (v is String)
-                    {
-                        sv = v as String;
-                        if (sv.Length > 32) sv = String.Format("[{0}]{1}...", sv.Length, sv.Substring(0, 8));
-                    }
+                    else if (v is String str && str.Length > 64)
+                        sv = String.Format("[{0}]{1}...", str.Length, str.Substring(0, 64));
                     else
                         sv = "{0}".F(v);
                     sb.AppendFormat("{0}={1}", ps[i].ParameterName, sv);
