@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using NewLife.Reflection;
 using XCode.Configuration;
+using XCode.DataAccessLayer;
 
 namespace XCode
 {
@@ -44,24 +46,61 @@ namespace XCode
             var fi = Field;
             if (fi == null || Format.IsNullOrWhiteSpace()) return;
 
+            // 非参数化
             if (ps == null)
             {
                 builder.AppendFormat(Format, fi.FormatedName, Value);
                 return;
             }
 
-            // 参数化处理
-            var name = fi.Name;
-            var i = 2;
-            while (ps.ContainsKey(name)) name = fi.Name + i++;
-
-            // 数值留给字典
             var type = fi.Type;
             if (type.IsEnum) type = typeof(Int32);
-            ps[name] = Value.ChangeType(type);
 
-            var op = fi.Factory;
-            builder.AppendFormat(Format, fi.FormatedName, op.Session.FormatParameterName(name));
+            // 特殊处理In操作
+            if (Format.Contains(" In("))
+            {
+                // String/SelectBuilder 不走参数化
+                if (Value is String || Value is SelectBuilder)
+                {
+                    builder.AppendFormat(Format, fi.FormatedName, Value);
+                    return;
+                }
+
+                // 序列需要多参数
+                if (Value is IEnumerable ems)
+                {
+                    var k = 1;
+                    var pns = new List<String>();
+                    foreach (var item in ems)
+                    {
+                        var name = fi.Name + k;
+                        var i = 2;
+                        while (ps.ContainsKey(name)) name = fi.Name + k + i++;
+                        k++;
+
+                        ps[name] = item.ChangeType(type);
+
+                        var op = fi.Factory;
+                        pns.Add(op.Session.FormatParameterName(name));
+                    }
+                    builder.AppendFormat(Format, fi.FormatedName, pns.Join());
+
+                    return;
+                }
+            }
+
+            {
+                // 参数化处理
+                var name = fi.Name;
+                var i = 2;
+                while (ps.ContainsKey(name)) name = fi.Name + i++;
+
+                // 数值留给字典
+                ps[name] = Value.ChangeType(type);
+
+                var op = fi.Factory;
+                builder.AppendFormat(Format, fi.FormatedName, op.Session.FormatParameterName(name));
+            }
         }
         #endregion
     }

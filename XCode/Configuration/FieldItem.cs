@@ -314,7 +314,7 @@ namespace XCode.Configuration
             var name = op.FormatName(ColumnName);
 
             var vs = new List<Object>();
-            var list = new List<String>();
+            var list = new List<Object>();
             foreach (var item in value)
             {
                 // 避免重复项
@@ -322,8 +322,8 @@ namespace XCode.Configuration
                 vs.Add(item);
 
                 // 格式化数值
-                var str = op.FormatValue(this, item);
-                list.Add(str);
+                //var str = op.FormatValue(this, item);
+                list.Add(item);
             }
             if (list.Count <= 0) return new Expression();
 
@@ -340,7 +340,7 @@ namespace XCode.Configuration
             // 如果In操作且只有一项，修改为等于
             if (list.Count == 1) return CreateField(this, flag ? "=" : "<>", vs[0]);
 
-            return CreateFormat(flag ? "{0} In({1})" : "{0} Not In({1})", list.Join(","));
+            return CreateFormat(flag ? "{0} In({1})" : "{0} Not In({1})", list);
         }
 
         /// <summary>NotIn操作</summary>
@@ -368,7 +368,7 @@ namespace XCode.Configuration
         {
             if (child == null) return new Expression();
 
-            return CreateFormat("{0} Not In ({1})", child);
+            return CreateFormat("{0} Not In({1})", child);
         }
 
         /// <summary>In操作。直接使用字符串可能有注入风险</summary>
