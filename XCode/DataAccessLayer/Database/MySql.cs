@@ -277,25 +277,17 @@ namespace XCode.DataAccessLayer
             if (field.RawType == "enum('N','Y')" || field.RawType == "enum('Y','N')")
             {
                 field.DataType = typeof(Boolean);
-                //// 处理默认值
-                //if (!String.IsNullOrEmpty(field.Default))
-                //{
-                //    if (field.Default == "Y")
-                //        field.Default = "true";
-                //    else if (field.Default == "N")
-                //        field.Default = "false";
-                //}
                 return;
             }
             base.FixField(field, dr);
         }
 
-        protected override String GetFieldType(IDataColumn field)
-        {
-            if (field.DataType == typeof(Boolean)) return "enum('N','Y')";
+        //protected override String GetFieldType(IDataColumn field)
+        //{
+        //    if (field.DataType == typeof(Boolean)) return "enum('N','Y')";
 
-            return base.GetFieldType(field);
-        }
+        //    return base.GetFieldType(field);
+        //}
 
         public override String FieldClause(IDataColumn field, Boolean onlyDefine)
         {
@@ -332,7 +324,8 @@ namespace XCode.DataAccessLayer
             { typeof(Double), new String[] { "DOUBLE" } },
             { typeof(Decimal), new String[] { "DECIMAL" } },
             { typeof(DateTime), new String[] { "DATETIME", "DATE", "TIMESTAMP", "TIME" } },
-            { typeof(String), new String[] { "NVARCHAR({0})", "TEXT", "CHAR({0})", "NCHAR({0})", "VARCHAR({0})", "SET", "ENUM", "TINYTEXT", "TEXT", "MEDIUMTEXT", "LONGTEXT" } }
+            { typeof(String), new String[] { "NVARCHAR({0})", "TEXT", "CHAR({0})", "NCHAR({0})", "VARCHAR({0})", "SET", "ENUM", "TINYTEXT", "TEXT", "MEDIUMTEXT", "LONGTEXT" } },
+            { typeof(Boolean), new String[] { "TINYINT" } },
         };
 
         #region 架构定义

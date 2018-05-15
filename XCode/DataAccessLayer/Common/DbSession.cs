@@ -829,11 +829,8 @@ namespace XCode.DataAccessLayer
                         else
                             sv = String.Format("[{0}]0x{1}", bv.Length, BitConverter.ToString(bv));
                     }
-                    else if (v is String)
-                    {
-                        sv = v as String;
-                        if (sv.Length > 32) sv = String.Format("[{0}]{1}...", sv.Length, sv.Substring(0, 8));
-                    }
+                    else if (v is String str && str.Length > 64)
+                        sv = String.Format("[{0}]{1}...", str.Length, str.Substring(0, 64));
                     else
                         sv = "{0}".F(v);
                     sb.AppendFormat("{0}={1}", ps[i].ParameterName, sv);
