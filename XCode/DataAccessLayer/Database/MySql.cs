@@ -180,8 +180,11 @@ namespace XCode.DataAccessLayer
             var dp = base.CreateParameter(name, value, type);
 
             if (type == null) type = value?.GetType();
+
+            // MySql的枚举要用 DbType.String
             if (type == typeof(Boolean))
             {
+                dp.DbType = DbType.String;
                 dp.Value = value.ToBoolean() ? 'Y' : 'N';
             }
 
