@@ -206,11 +206,11 @@ namespace XCode.DataAccessLayer
 
         /// <summary>提交事务</summary>
         /// <returns>剩下的事务计数</returns>
-        public Int32 Commit() { return Session.Commit(); }
+        public Int32 Commit() => Session.Commit();
 
         /// <summary>回滚事务，忽略异常</summary>
         /// <returns>剩下的事务计数</returns>
-        public Int32 Rollback() { return Session.Rollback(); }
+        public Int32 Rollback() => Session.Rollback();
         #endregion
 
         //#region 队列
