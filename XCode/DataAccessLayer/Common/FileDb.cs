@@ -33,13 +33,13 @@ namespace XCode.DataAccessLayer
             var file = builder[_.DataSource];
             file = OnResolveFile(file);
             builder[_.DataSource] = file;
-            FileName = file;
+            DatabaseName = file;
         }
 
-        protected virtual String OnResolveFile(String file) { return ResolveFile(file); }
+        protected virtual String OnResolveFile(String file) => ResolveFile(file);
 
-        /// <summary>文件</summary>
-        public String FileName { get; set; }
+        ///// <summary>文件</summary>
+        //public String FileName { get; set; }
         #endregion
     }
 
@@ -48,16 +48,7 @@ namespace XCode.DataAccessLayer
     {
         #region 属性
         /// <summary>文件</summary>
-        public String FileName
-        {
-            get
-            {
-                //return Database is FileDbBase ? (Database as FileDbBase).FileName : null;
-                // 减少一步类型转换
-                var filedb = Database as FileDbBase;
-                return filedb?.FileName;
-            }
-        }
+        public String FileName => (Database as FileDbBase)?.DatabaseName;
         #endregion
 
         #region 构造函数
@@ -105,7 +96,7 @@ namespace XCode.DataAccessLayer
     {
         #region 属性
         /// <summary>文件</summary>
-        public String FileName { get { return (Database as FileDbBase).FileName; } }
+        public String FileName => (Database as FileDbBase).DatabaseName;
         #endregion
 
         #region 数据定义

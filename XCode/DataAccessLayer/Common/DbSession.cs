@@ -63,7 +63,7 @@ namespace XCode.DataAccessLayer
         public String ConnectionString { get; set; }
 
         /// <summary>数据连接对象。</summary>
-        public DbConnection Conn { get; private set; }
+        public DbConnection Conn { get; protected set; }
 
         /// <summary>查询次数</summary>
         public Int32 QueryTimes { get; set; }
@@ -147,23 +147,23 @@ namespace XCode.DataAccessLayer
             if (enable == null || enable.Value) AutoClose();
         }
 
-        private String _DatabaseName;
-        /// <summary>数据库名</summary>
-        public String DatabaseName
-        {
-            get
-            {
-                if (_DatabaseName == null)
-                {
-                    using (var pi = Database.Pool.AcquireItem())
-                    {
-                        _DatabaseName = pi.Value.Database;
-                    }
-                }
+        //private String _DatabaseName;
+        ///// <summary>数据库名</summary>
+        //public String DatabaseName
+        //{
+        //    get
+        //    {
+        //        if (_DatabaseName == null)
+        //        {
+        //            using (var pi = Database.Pool.AcquireItem())
+        //            {
+        //                _DatabaseName = pi.Value.Database;
+        //            }
+        //        }
 
-                return _DatabaseName;
-            }
-        }
+        //        return _DatabaseName;
+        //    }
+        //}
 
         /// <summary>当异常发生时触发。关闭数据库连接，或者返还连接到连接池。</summary>
         /// <param name="ex"></param>
@@ -671,8 +671,6 @@ namespace XCode.DataAccessLayer
         {
             Expire = 10,
             Period = 10 * 60,
-            //// 不能异步。否则，修改表结构后，第一次获取会是旧的
-            //Asynchronous = false
         };
 
         /// <summary>返回数据源的架构信息。缓存10分钟</summary>
@@ -685,91 +683,66 @@ namespace XCode.DataAccessLayer
             var key = "" + collectionName;
             if (restrictionValues != null && restrictionValues.Length > 0) key += "_" + String.Join("_", restrictionValues);
 
-            //return _schCache.GetItem(key, k => GetSchemaInternal(k, collectionName, restrictionValues));
             var dt = _schCache[key];
-            if (dt == null) _schCache[key] = dt = GetSchemaInternal(key, collectionName, restrictionValues);
+            if (dt == null)
+            {
+                if (Conn != null)
+                    dt = GetSchemaInternal(Conn, key, collectionName, restrictionValues);
+                else
+                {
+                    using (var pi = Database.Pool.AcquireItem())
+                    {
+                        dt = GetSchemaInternal(pi.Value, key, collectionName, restrictionValues);
+                    }
+                }
+
+                _schCache[key] = dt;
+            }
 
             return dt;
         }
 
-        DataTable GetSchemaInternal(String key, String collectionName, String[] restrictionValues)
+        DataTable GetSchemaInternal(DbConnection conn, String key, String collectionName, String[] restrictionValues)
         {
             QueryTimes++;
-            //// 如果启用了事务保护，这里要新开一个连接，否则MSSQL里面报错，SQLite不报错，其它数据库未测试
-            //var isTrans = Transaction != null;
 
-            //DbConnection conn = null;
-            //if (isTrans)
-            //{
-            //    conn = Factory.CreateConnection();
-            //    CheckConnStr();
-            //    conn.ConnectionString = ConnectionString;
-            //    conn.Open();
-            //}
-            //else
-            //{
-            //    if (!Opened) Open();
-            //    conn = Conn;
-            //}
+            DataTable dt = null;
 
-            //// 连接未打开
-            //if (conn.State == ConnectionState.Closed) return null;
+            var sw = Stopwatch.StartNew();
 
-            using (var pi = Database.Pool.AcquireItem())
+            if (restrictionValues == null || restrictionValues.Length < 1)
             {
-                var conn = pi.Value;
-                //try
-                //{
-                DataTable dt = null;
-
-                var sw = Stopwatch.StartNew();
-
-                if (restrictionValues == null || restrictionValues.Length < 1)
+                if (String.IsNullOrEmpty(collectionName))
                 {
-                    if (String.IsNullOrEmpty(collectionName))
-                    {
-                        WriteSQL("[" + Database.ConnName + "]GetSchema");
-                        dt = conn.GetSchema();
-                    }
-                    else
-                    {
-                        WriteSQL("[" + Database.ConnName + "]GetSchema(\"" + collectionName + "\")");
-                        dt = conn.GetSchema(collectionName);
-                    }
+                    WriteSQL("[" + Database.ConnName + "]GetSchema");
+                    dt = conn.GetSchema();
                 }
                 else
                 {
-                    var sb = new StringBuilder();
-                    foreach (var item in restrictionValues)
-                    {
-                        sb.Append(", ");
-                        if (item == null)
-                            sb.Append("null");
-                        else
-                            sb.AppendFormat("\"{0}\"", item);
-                    }
-                    WriteSQL("[" + Database.ConnName + "]GetSchema(\"" + collectionName + "\"" + sb + ")");
-                    dt = conn.GetSchema(collectionName, restrictionValues);
+                    WriteSQL("[" + Database.ConnName + "]GetSchema(\"" + collectionName + "\")");
+                    dt = conn.GetSchema(collectionName);
                 }
-
-                sw.Stop();
-                // 耗时超过多少秒输出错误日志
-                if (sw.ElapsedMilliseconds > 1000) DAL.WriteLog("GetSchema耗时 {0:n0}ms", sw.ElapsedMilliseconds);
-
-                return dt;
-                //}
-                //catch (DbException ex)
-                //{
-                //    throw new XDbSessionException(this, "取得所有表构架出错！", ex);
-                //}
-                //finally
-                //{
-                //    if (isTrans)
-                //        conn.Close();
-                //    else
-                //        AutoClose();
-                //}
             }
+            else
+            {
+                var sb = new StringBuilder();
+                foreach (var item in restrictionValues)
+                {
+                    sb.Append(", ");
+                    if (item == null)
+                        sb.Append("null");
+                    else
+                        sb.AppendFormat("\"{0}\"", item);
+                }
+                WriteSQL("[" + Database.ConnName + "]GetSchema(\"" + collectionName + "\"" + sb + ")");
+                dt = conn.GetSchema(collectionName, restrictionValues);
+            }
+
+            sw.Stop();
+            // 耗时超过多少秒输出错误日志
+            if (sw.ElapsedMilliseconds > 1000) DAL.WriteLog("GetSchema耗时 {0:n0}ms", sw.ElapsedMilliseconds);
+
+            return dt;
         }
         #endregion
 

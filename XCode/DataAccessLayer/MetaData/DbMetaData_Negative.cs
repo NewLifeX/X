@@ -711,13 +711,28 @@ namespace XCode.DataAccessLayer
 
             // 分隔符是分号加换行，如果不想被拆开执行（比如有事务），可以在分号和换行之间加一个空格
             var ss = sql.Split(";" + Environment.NewLine);
-            if (ss == null || ss.Length < 1) return session.Execute(sql);
+            if (ss == null || ss.Length < 1) return Execute(session, sql);
 
             foreach (var item in ss)
             {
-                session.Execute(item);
+                Execute(session, item);
             }
             return 0;
+        }
+
+        protected virtual Int32 Execute(IDbSession session, String sql)
+        {
+            var conn = session.Conn;
+            if (conn == null) return session.Execute(sql);
+
+            (session as DbSession).WriteSQL(sql);
+            using (var cmd = Database.Factory.CreateCommand())
+            {
+                cmd.Connection = conn;
+                cmd.CommandText = sql;
+
+                return cmd.ExecuteNonQuery();
+            }
         }
 
         /// <summary>字段片段</summary>

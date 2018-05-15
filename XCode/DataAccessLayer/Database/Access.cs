@@ -74,9 +74,10 @@ namespace XCode.DataAccessLayer
             base.OnSetConnectionString(builder);
 
             // 特别处理一下Excel
-            if (!String.IsNullOrEmpty(FileName))
+            var fn = DatabaseName;
+            if (!fn.IsNullOrEmpty())
             {
-                var ext = Path.GetExtension(FileName);
+                var ext = Path.GetExtension(fn);
                 if (ext.EqualIgnoreCase(".xls")) builder.TryAdd("Extended Properties", "Excel 8.0");
             }
         }

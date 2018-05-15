@@ -47,7 +47,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>是否内存数据库</summary>
-        public Boolean IsMemoryDatabase { get { return FileName.EqualIgnoreCase(MemoryDatabase); } }
+        public Boolean IsMemoryDatabase => DatabaseName.EqualIgnoreCase(MemoryDatabase);
 
         /// <summary>自动收缩数据库</summary>
         /// <remarks>
@@ -507,7 +507,7 @@ namespace XCode.DataAccessLayer
         /// <param name="compressed"></param>
         protected override String Backup(String dbname, String bakfile, Boolean compressed)
         {
-            var dbfile = (Database as SQLite).FileName;
+            var dbfile = FileName;
 
             // 备份文件
             var bf = bakfile;

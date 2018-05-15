@@ -185,10 +185,18 @@ namespace XCode.DataAccessLayer
             if (builder.TryGetAndRemove(nameof(Migration), out value) && !value.IsNullOrEmpty()) Migration = (Migration)Enum.Parse(typeof(Migration), value, true);
             if (builder.TryGetAndRemove(nameof(TablePrefix), out value) && !value.IsNullOrEmpty()) TablePrefix = value;
             if (builder.TryGetAndRemove(nameof(Readonly), out value) && !value.IsNullOrEmpty()) Readonly = value.ToBoolean();
+
+            // 数据库名称
+            var db = builder["Database"];
+            if (db.IsNullOrEmpty()) db = builder["Initial Catalog"];
+            DatabaseName = db;
         }
 
         /// <summary>拥有者</summary>
         public virtual String Owner { get; set; }
+
+        /// <summary>数据库名</summary>
+        public String DatabaseName { get; set; }
 
         internal protected String _ServerVersion;
         /// <summary>数据库服务器版本</summary>

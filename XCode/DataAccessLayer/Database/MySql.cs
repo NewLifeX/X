@@ -236,7 +236,7 @@ namespace XCode.DataAccessLayer
         {
             tableName = tableName.Trim().Trim('`', '`').Trim();
 
-            var db = DatabaseName;
+            var db = Database.DatabaseName;
             var sql = String.Format("select table_rows from information_schema.tables where table_schema='{1}' and table_name='{0}'", tableName, db);
             return ExecuteScalar<Int64>(sql);
         }

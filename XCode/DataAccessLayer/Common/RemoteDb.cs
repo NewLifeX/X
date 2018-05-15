@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Data;
-using System.Threading;
 
 namespace XCode.DataAccessLayer
 {
@@ -9,9 +8,8 @@ namespace XCode.DataAccessLayer
     {
         #region 属性
         /// <summary>系统数据库名</summary>
-        public virtual String SystemDatabaseName { get { return "master"; } }
+        public virtual String SystemDatabaseName => "master";
 
-        //private String _ServerVersion;
         /// <summary>数据库服务器版本</summary>
         public override String ServerVersion
         {
@@ -22,18 +20,7 @@ namespace XCode.DataAccessLayer
                 _ServerVersion = String.Empty;
 
                 var session = CreateSession() as RemoteDbSession;
-                ver = _ServerVersion = session.ProcessWithSystem(s =>
-                {
-                    if (!session.Opened) session.Open();
-                    try
-                    {
-                        return session.Conn.ServerVersion;
-                    }
-                    finally
-                    {
-                        session.AutoClose();
-                    }
-                }) as String;
+                ver = _ServerVersion = session.ProcessWithSystem(s => session.Conn.ServerVersion) as String;
 
                 return ver;
             }
@@ -100,16 +87,7 @@ namespace XCode.DataAccessLayer
     {
         #region 属性
         /// <summary>系统数据库名</summary>
-        public String SystemDatabaseName
-        {
-            get
-            {
-                //return Database is RemoteDb ? (Database as RemoteDb).SystemDatabaseName : null;
-                // 减少一步类型转换
-                var remotedb = Database as RemoteDb;
-                return remotedb?.SystemDatabaseName;
-            }
-        }
+        public String SystemDatabaseName => (Database as RemoteDb)?.SystemDatabaseName;
         #endregion
 
         #region 构造函数
@@ -136,19 +114,31 @@ namespace XCode.DataAccessLayer
         #region 系统权限处理
         public Object ProcessWithSystem(Func<IDbSession, Object> callback)
         {
-            var dbname = DatabaseName;
+            var dbname = Database.DatabaseName;
             var sysdbname = SystemDatabaseName;
 
             // 如果指定了数据库名，并且不是master，则切换到master
             if (!dbname.IsNullOrEmpty() && !dbname.EqualIgnoreCase(sysdbname))
             {
+                WriteLog("切换到系统库[{0}]", sysdbname);
                 using (var conn = Database.Factory.CreateConnection())
                 {
-                    conn.ConnectionString = ConnectionString;
+                    try
+                    {
+                        conn.ConnectionString = ConnectionString;
 
-                    OpenDatabase(conn, sysdbname);
+                        OpenDatabase(conn, sysdbname);
 
-                    return callback(this);
+                        Conn = conn;
+
+                        return callback(this);
+                    }
+                    finally
+                    {
+                        Conn = null;
+
+                        WriteLog("退出系统库[{0}]，回到[{1}]", sysdbname, dbname);
+                    }
                 }
             }
             else
@@ -187,15 +177,13 @@ namespace XCode.DataAccessLayer
     abstract class RemoteDbMetaData : DbMetaData
     {
         #region 属性
-        /// <summary>系统数据库名</summary>
-        public String SystemDatabaseName { get { return (Database as RemoteDb)?.SystemDatabaseName; } }
         #endregion
 
         #region 架构定义
         public override Object SetSchema(DDLSchema schema, params Object[] values)
         {
             var session = Database.CreateSession();
-            var databaseName = session.DatabaseName;
+            var databaseName = Database.DatabaseName;
 
             if (values != null && values.Length > 0 && values[0] is String && values[0] + "" != "") databaseName = values[0] + "";  //ahuang 2014.06.12  类型强制转string的bug
 
@@ -232,15 +220,9 @@ namespace XCode.DataAccessLayer
             return session.QueryCount(GetSchemaSQL(DDLSchema.DatabaseExist, new Object[] { databaseName })) > 0;
         }
 
-        protected virtual Boolean DropDatabase(String databaseName)
-        {
-            return (Boolean)base.SetSchema(DDLSchema.DropDatabase, new Object[] { databaseName });
-        }
+        protected virtual Boolean DropDatabase(String databaseName) => (Boolean)base.SetSchema(DDLSchema.DropDatabase, new Object[] { databaseName });
 
-        Object ProcessWithSystem(Func<IDbSession, Object> callback)
-        {
-            return (Database.CreateSession() as RemoteDbSession).ProcessWithSystem(callback);
-        }
+        Object ProcessWithSystem(Func<IDbSession, Object> callback) => (Database.CreateSession() as RemoteDbSession).ProcessWithSystem(callback);
         #endregion
     }
 }

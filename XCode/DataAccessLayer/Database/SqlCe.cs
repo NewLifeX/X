@@ -63,11 +63,12 @@ namespace XCode.DataAccessLayer
 
             SqlCeVer = SQLCEVersion.SQLCE40;
 
-            if (!String.IsNullOrEmpty(FileName) && File.Exists(FileName))
+            var fn = DatabaseName;
+            if (!fn.IsNullOrEmpty() && File.Exists(fn))
             {
                 try
                 {
-                    SqlCeVer = SqlCeHelper.DetermineVersion(FileName);
+                    SqlCeVer = SqlCeHelper.DetermineVersion(fn);
                 }
                 catch (Exception ex)
                 {
