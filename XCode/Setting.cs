@@ -34,7 +34,7 @@ namespace XCode
 
         /// <summary>参数化添删改查。默认关闭</summary>
         [Description("参数化添删改查。默认关闭")]
-        public Boolean UserParameter { get; set; }
+        public Boolean UseParameter { get; set; }
 
         /// <summary>SQLite数据库默认目录。没有设置连接字符串的连接默认创建SQLite连接，数据库放在该目录</summary>
         [Description("SQLite默认目录。没有设置连接字符串的连接默认创建SQLite连接，数据库放在该目录")]

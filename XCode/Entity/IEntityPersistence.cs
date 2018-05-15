@@ -349,7 +349,7 @@ namespace XCode
         static String InsertSQL(IEntity entity, ref IDataParameter[] parameters)
         {
             var op = EntityFactory.CreateOperate(entity.GetType());
-            var up = op.Session.Dal.Db.UserParameter;
+            var up = op.Session.Dal.Db.UseParameter;
 
             /*
             * 插入数据原则：
@@ -456,7 +456,7 @@ namespace XCode
             var dfs = (entity as EntityBase).Addition.Get();
 
             var op = EntityFactory.CreateOperate(entity.GetType());
-            var up = op.Session.Dal.Db.UserParameter;
+            var up = op.Session.Dal.Db.UseParameter;
 
             var sb = new StringBuilder();
             var dps = new List<IDataParameter>();
@@ -498,7 +498,7 @@ namespace XCode
         static String DeleteSQL(IEntity entity, ref IDataParameter[] parameters)
         {
             var op = EntityFactory.CreateOperate(entity.GetType());
-            var up = op.Session.Dal.Db.UserParameter;
+            var up = op.Session.Dal.Db.UseParameter;
 
             // 标识列作为删除关键字
             var exp = DefaultCondition(entity);

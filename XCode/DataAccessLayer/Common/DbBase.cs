@@ -177,7 +177,11 @@ namespace XCode.DataAccessLayer
         {
             if (builder.TryGetAndRemove(nameof(Owner), out var value) && !value.IsNullOrEmpty()) Owner = value;
             if (builder.TryGetAndRemove(nameof(ShowSQL), out value) && !value.IsNullOrEmpty()) ShowSQL = value.ToBoolean();
-            if (builder.TryGetAndRemove(nameof(UserParameter), out value) && !value.IsNullOrEmpty()) UserParameter = value.ToBoolean();
+
+            // 参数化，需要兼容写错了一年的UserParameter
+            if (builder.TryGetAndRemove(nameof(UseParameter), out value) && !value.IsNullOrEmpty()) UseParameter = value.ToBoolean();
+            if (builder.TryGetAndRemove("UserParameter", out value) && !value.IsNullOrEmpty()) UseParameter = value.ToBoolean();
+
             if (builder.TryGetAndRemove(nameof(Migration), out value) && !value.IsNullOrEmpty()) Migration = (Migration)Enum.Parse(typeof(Migration), value, true);
             if (builder.TryGetAndRemove(nameof(TablePrefix), out value) && !value.IsNullOrEmpty()) TablePrefix = value;
         }
@@ -846,7 +850,7 @@ namespace XCode.DataAccessLayer
 
         #region 参数化
         /// <summary>参数化添删改查。默认关闭</summary>
-        public Boolean UserParameter { get; set; } = Setting.Current.UserParameter;
+        public Boolean UseParameter { get; set; } = Setting.Current.UseParameter;
         #endregion
     }
 }

@@ -440,7 +440,7 @@ namespace XCode
         static TEntity FindUnique(Expression where)
         {
             var session = Meta.Session;
-            var ps = session.Dal.Db.UserParameter ? new Dictionary<String, Object>() : null;
+            var ps = session.Dal.Db.UseParameter ? new Dictionary<String, Object>() : null;
             var wh = where?.GetString(ps);
 
             var builder = new SelectBuilder
@@ -812,7 +812,7 @@ namespace XCode
         public static Int64 FindCount(Expression where, String order = null, String selects = null, Int64 startRowIndex = 0, Int64 maximumRows = 0)
         {
             var session = Meta.Session;
-            var ps = session.Dal.Db.UserParameter ? new Dictionary<String, Object>() : null;
+            var ps = session.Dal.Db.UseParameter ? new Dictionary<String, Object>() : null;
             var wh = where?.GetString(ps);
 
             //// 如果总记录数超过10万，为了提高性能，返回快速查找且带有缓存的总记录数
@@ -1037,7 +1037,7 @@ namespace XCode
         static SelectBuilder CreateBuilder(Expression where, String order, String selects, Int64 startRowIndex, Int64 maximumRows, Boolean needOrderByID = true)
         {
             var session = Meta.Session;
-            var ps = session.Dal.Db.UserParameter ? new Dictionary<String, Object>() : null;
+            var ps = session.Dal.Db.UseParameter ? new Dictionary<String, Object>() : null;
             var wh = where?.GetString(ps);
             var builder = CreateBuilder(wh, order, selects, startRowIndex, maximumRows, needOrderByID);
 
