@@ -502,10 +502,9 @@ namespace XCode
 
             // 标识列作为删除关键字
             var exp = DefaultCondition(entity);
-            var ps = new Dictionary<String, Object>();
-            if (!up) ps = null;
+            var ps = !up ? null : new Dictionary<String, Object>();
             var sql = exp?.GetString(ps);
-            if (String.IsNullOrEmpty(sql)) return null;
+            if (sql.IsNullOrEmpty()) return null;
 
             if (ps != null && ps.Count > 0)
             {

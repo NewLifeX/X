@@ -49,7 +49,7 @@ namespace XCode
         /// <summary>类型转换</summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public static implicit operator String(OrderExpression obj) { return obj?.GetString(null); }
+        public static implicit operator String(OrderExpression obj) => obj?.GetString(null);
         #endregion
 
         #region 重载运算符

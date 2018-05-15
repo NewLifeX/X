@@ -639,7 +639,8 @@ namespace XCode
             if (startRowIndex > 500000 && (count = session.LongCount) > 1000000)
             {
                 // 计算本次查询的结果行数
-                if (!String.IsNullOrEmpty(where?.GetString(null))) count = FindCount(where, order, selects, startRowIndex, maximumRows);
+                var wh = where?.GetString(null);
+                if (!wh.IsNullOrEmpty()) count = FindCount(where, order, selects, startRowIndex, maximumRows);
                 // 游标在中间偏后
                 if (startRowIndex * 2 > count)
                 {
@@ -697,7 +698,7 @@ namespace XCode
                     #endregion
 
                     // 没有排序的实在不适合这种办法，因为没办法倒序
-                    if (!String.IsNullOrEmpty(order2))
+                    if (!order2.IsNullOrEmpty())
                     {
                         // 最大可用行数改为实际最大可用行数
                         var max = (Int32)Math.Min(maximumRows, count - startRowIndex);
@@ -1127,7 +1128,9 @@ namespace XCode
             {
                 foreach (var item in ps)
                 {
-                    var dp = Meta.Session.Dal.Db.CreateParameter(item.Key, item.Value, Meta.Table.FindByName(item.Key)?.Type);
+                    //var dp = Meta.Session.Dal.Db.CreateParameter(item.Key, item.Value, Meta.Table.FindByName(item.Key)?.Type);
+                    // 不能传递类型，因为参数名可能已经改变
+                    var dp = Meta.Session.Dal.Db.CreateParameter(item.Key, item.Value);
 
                     builder.Parameters.Add(dp);
                 }
