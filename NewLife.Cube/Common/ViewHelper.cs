@@ -6,6 +6,7 @@ using System.Text;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
+using NewLife.Reflection;
 using NewLife.Web;
 using XCode;
 using XCode.Configuration;
@@ -274,7 +275,149 @@ namespace NewLife.Cube
 
         internal static Boolean MakeFormView(Type entityType, String vpath, List<FieldItem> fields)
         {
-            return false;
+            var tmp = @"@using NewLife;
+@using XCode;
+@using XCode.Configuration;
+@{
+    var entity = Model;
+    var fields = ViewBag.Fields as IList<FieldItem>;
+    var isNew = (entity as IEntity).IsNullKey;
+}
+@foreach (var item in fields)
+{
+    if (!item.IsIdentity)
+    {
+        <div class=""@cls"">
+            @Html.Partial(""_Form_Item"", new Pair(entity, item))
+        </div>
+    }
+}
+@Html.Partial(""_Form_Footer"", entity)
+@if (this.Has(PermissionFlags.Insert, PermissionFlags.Update))
+{
+    <div class=""clearfix form-actions col-sm-12 col-md-12"">
+        <label class=""control-label col-xs-4 col-sm-5 col-md-5""></label>
+        <button type=""submit"" class=""btn btn-success btn-sm""><i class=""glyphicon glyphicon-@(isNew ? ""plus"" : ""save"")""></i><strong>@(isNew ? ""新增"" : ""保存"")</strong></button>
+        <button type=""button"" class=""btn btn-danger btn-sm"" onclick=""history.go(-1);""><i class=""glyphicon glyphicon-remove""></i><strong>取消</strong></button>
+    </div>
+}";
+
+            var sb = new StringBuilder();
+            var fact = EntityFactory.CreateOperate(entityType);
+
+            sb.AppendLine($"@model {entityType.FullName}");
+
+            var str = tmp.Substring(null, "@foreach");
+            sb.Append(str);
+
+            var set = Setting.Current;
+            var cls = set.FormGroupClass;
+            if (cls.IsNullOrEmpty()) cls = "form-group col-xs-12 col-sm-6 col-lg-4";
+
+            var ident = new String(' ', 4 * 1);
+            foreach (var item in fields)
+            {
+                if (item.IsIdentity) continue;
+
+                sb.AppendLine($"<div class=\"{cls}\">");
+                BuildFormItem(item, sb, fact);
+                sb.AppendLine("</div>");
+            }
+
+            var p = tmp.IndexOf(@"@Html.Partial(""_Form_Footer""");
+            sb.Append(tmp.Substring(p));
+
+            File.WriteAllText(vpath.GetFullPath().EnsureDirectory(true), sb.ToString(), Encoding.UTF8);
+
+            return true;
+        }
+
+        private static void BuildFormItem(FieldItem field, StringBuilder sb, IEntityOperate fact)
+        {
+            var des = field.Description.TrimStart(field.DisplayName).TrimStart(",", ".", "，", "。");
+
+            var err = 0;
+
+            var total = 12;
+            var label = 3;
+            var span = 4;
+            if (err == 0 && des.IsNullOrEmpty())
+            {
+                span = 0;
+            }
+            else if (field.Type == typeof(Boolean) || field.Type.IsEnum)
+            {
+                span += 1;
+            }
+            var input = total - label - span;
+            var ident = new String(' ', 4 * 1);
+
+            sb.AppendLine($"    <label class=\"control-label col-xs-{label} col-sm-{label}\">{field.DisplayName}</label>");
+            sb.AppendLine($"    <div class=\"input-group col-xs-{total - label} col-sm-{input}\">");
+
+            // 优先处理映射。因为映射可能是字符串
+            var map = field.Map;
+            if (map?.Provider != null)
+            {
+                var field2 = field?.OriField ?? field;
+                sb.AppendLine($"        @Html.ForDropDownList(\"{field2.Name}\", {fact.EntityType.Name}.Meta.AllFields.First(e=>e.Name==\"{field.Name}\").Map.Provider.GetDataSource(), @entity.{map.Name})");
+            }
+            else if (field.ReadOnly)
+                sb.AppendLine($"        <label class=\"form-control\">@entity.{field.Name}</label>");
+            else if (field.Type == typeof(String))
+                BuildStringItem(field, sb);
+            else if (fact.EntityType.As<IEntityTree>())
+                sb.AppendLine($"");
+            else
+                sb.AppendLine($"        @Html.ForEditor({fact.EntityType.Name}._.{field.Name}, entity)");
+
+            sb.AppendLine(@"    </div>");
+
+            if (!des.IsNullOrEmpty()) sb.AppendLine($"    <span class=\"hidden-xs col-sm-{span}\"><span class=\"middle\">{des}</span></span>");
+        }
+
+        private static void BuildStringItem(FieldItem field, StringBuilder sb)
+        {
+            var cls = "form-control";
+            var type = "text";
+            var name = field.Name;
+
+            // 首先输出图标
+            var ico = "";
+
+            var txt = "";
+            if (name.EqualIgnoreCase("Pass", "Password"))
+            {
+                type = "password";
+            }
+            else if (name.EqualIgnoreCase("Phone", "Mobile"))
+            {
+                type = "tel";
+                ico = "phone";
+            }
+            else if (name.EqualIgnoreCase("email", "mail"))
+            {
+                type = "email";
+                ico = "envelope";
+            }
+            else if (name.EndsWithIgnoreCase("url"))
+            {
+                type = "url";
+                ico = "home";
+            }
+            else if (field.Length < 0 || field.Length > 300)
+            {
+                txt = $"<textarea class=\"{cls}\" cols=\"20\" id=\"{name}\" name=\"{name}\" rows=\"3\">@entity.{name}</textarea>";
+            }
+
+            if (txt.IsNullOrEmpty()) txt = $"<input class=\"{cls}\" id=\"{name}\" name=\"{name}\" type=\"{type}\" value=\"@entity.{name}\" />";
+
+            if (!ico.IsNullOrEmpty())
+            {
+                txt = $"<div class=\"input-group\"><span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-{ico}\"></i></span>{txt}</div>";
+            }
+
+            sb.AppendLine($"        {txt}");
         }
 
         /// <summary>是否启用多选</summary>
@@ -311,6 +454,19 @@ namespace NewLife.Cube
             if (File.Exists(av)) return "/Sso/Avatar/" + user.ID;
 
             return user.Avatar;
+        }
+
+        private static Boolean? _IsDevelop;
+        /// <summary>当前是否开发环境。判断csproj文件</summary>
+        /// <returns></returns>
+        public static Boolean IsDevelop()
+        {
+            if (_IsDevelop != null) return _IsDevelop.Value;
+
+            var fis = ".".AsDirectory().GetFiles("*.csproj", SearchOption.TopDirectoryOnly);
+            _IsDevelop = fis != null && fis.Length > 0;
+
+            return _IsDevelop.Value;
         }
     }
 

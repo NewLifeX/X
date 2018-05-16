@@ -62,12 +62,7 @@ namespace ASP
             #line 4 "..\..\Views\Shared\_Form_Body.cshtml"
   
     var entity = Model as IEntity;
-    var fact = ViewBag.Factory as IEntityOperate;
     var fields = ViewBag.Fields as IList<FieldItem>;
-
-    var set = NewLife.Cube.Setting.Current;
-    var cls = set.FormGroupClass;
-    if (cls.IsNullOrEmpty()) { cls = "form-group col-xs-12 col-sm-6 col-lg-4"; }
 
             
             #line default
@@ -75,7 +70,7 @@ namespace ASP
 WriteLiteral("\r\n");
 
             
-            #line 13 "..\..\Views\Shared\_Form_Body.cshtml"
+            #line 8 "..\..\Views\Shared\_Form_Body.cshtml"
  foreach (var item in fields)
 {
     if (!item.IsIdentity)
@@ -85,14 +80,14 @@ WriteLiteral("\r\n");
             #line default
             #line hidden
             
-            #line 17 "..\..\Views\Shared\_Form_Body.cshtml"
+            #line 12 "..\..\Views\Shared\_Form_Body.cshtml"
    Write(Html.Partial("_Form_Group", new Pair(entity, item)));
 
             
             #line default
             #line hidden
             
-            #line 17 "..\..\Views\Shared\_Form_Body.cshtml"
+            #line 12 "..\..\Views\Shared\_Form_Body.cshtml"
                                                             
     }
 }
@@ -101,7 +96,7 @@ WriteLiteral("\r\n");
             #line default
             #line hidden
             
-            #line 20 "..\..\Views\Shared\_Form_Body.cshtml"
+            #line 15 "..\..\Views\Shared\_Form_Body.cshtml"
 Write(Html.Partial("_Form_Footer", entity));
 
             
@@ -110,7 +105,7 @@ Write(Html.Partial("_Form_Footer", entity));
 WriteLiteral("\r\n");
 
             
-            #line 21 "..\..\Views\Shared\_Form_Body.cshtml"
+            #line 16 "..\..\Views\Shared\_Form_Body.cshtml"
 Write(Html.Partial("_Form_Action", entity));
 
             

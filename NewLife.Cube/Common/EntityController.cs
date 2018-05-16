@@ -712,7 +712,7 @@ namespace NewLife.Cube
 
             var rs = ViewHelper.MakeFormView(typeof(TEntity), vpath, FormFields);
 
-            Js.Alert("生成列表模版 {0} 成功！".F(vpath));
+            Js.Alert("生成表单模版 {0} 成功！".F(vpath));
 
             return Index();
         }

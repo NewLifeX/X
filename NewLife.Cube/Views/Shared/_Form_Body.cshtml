@@ -3,12 +3,7 @@
 @using XCode.Configuration;
 @{
     var entity = Model as IEntity;
-    var fact = ViewBag.Factory as IEntityOperate;
     var fields = ViewBag.Fields as IList<FieldItem>;
-
-    var set = NewLife.Cube.Setting.Current;
-    var cls = set.FormGroupClass;
-    if (cls.IsNullOrEmpty()) { cls = "form-group col-xs-12 col-sm-6 col-lg-4"; }
 }
 @foreach (var item in fields)
 {
