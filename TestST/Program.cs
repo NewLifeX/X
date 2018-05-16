@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using Microsoft.Extensions.Configuration;
 using NewLife.Log;
 using NewLife.Net;
@@ -15,7 +16,7 @@ namespace TestST
 
             var sw = Stopwatch.StartNew();
 
-            Test3();
+            Test1();
 
             sw.Stop();
             Console.WriteLine("OK! {0:n0}ms", sw.ElapsedMilliseconds);
@@ -26,6 +27,7 @@ namespace TestST
         static void Test1()
         {
             XTrace.WriteLine("学无先后达者为师！");
+            Console.WriteLine(".".GetFullPath());
 
             var svr = new NetServer();
             svr.Port = 8080;

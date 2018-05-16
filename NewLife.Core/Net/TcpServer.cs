@@ -122,8 +122,10 @@ namespace NewLife.Net
             Client.Bind(Local.EndPoint);
             Client.Listen(Int32.MaxValue);
 
+#if !__CORE__
             Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
             Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.DontLinger, true);
+#endif
 
             Active = true;
 

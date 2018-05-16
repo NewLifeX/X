@@ -59,7 +59,7 @@ namespace System.IO
             {
                 //if (!Path.IsPathRooted(path))
                 //!!! 注意：不能直接依赖于Path.IsPathRooted判断，/和\开头的路径虽然是绝对路径，但是它们不是驱动器级别的绝对路径
-                if (path[0] == sep || path[0] == sep2 || !Path.IsPathRooted(path))
+                if (/*path[0] == sep ||*/ path[0] == sep2 || !Path.IsPathRooted(path))
                 {
                     path = path.TrimStart('~');
 
