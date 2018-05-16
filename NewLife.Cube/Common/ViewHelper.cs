@@ -366,10 +366,51 @@ namespace NewLife.Cube
                 sb.AppendLine($"        <label class=\"form-control\">@entity.{field.Name}</label>");
             else if (field.Type == typeof(String))
                 BuildStringItem(field, sb);
-            else if (fact.EntityType.As<IEntityTree>())
-                sb.AppendLine($"");
+            else if (fact.EntityType.As<IEntityTree>() && fact.EntityType.GetValue("Setting") is IEntityTreeSetting set && set?.Parent == field.Name)
+                sb.AppendLine($"        @Html.ForTreeEditor({fact.EntityType.Name}._.{field.Name}, entity)");
             else
-                sb.AppendLine($"        @Html.ForEditor({fact.EntityType.Name}._.{field.Name}, entity)");
+            {
+                switch (field.Type.GetTypeCode())
+                {
+                    case TypeCode.Boolean:
+                        sb.AppendLine($"        @Html.CheckBox(\"{field.Name}\", @entity.{field.Name}, new {{ @class = \"chkSwitch\" }})");
+                        break;
+                    case TypeCode.DateTime:
+                        //sb.AppendLine($"        @Html.ForDateTime(\"{field.Name}\", @entity.{field.Name})");
+                        sb.AppendLine($"        <span class=\"input-group-addon\"><i class=\"fa fa-calendar\"></i></span>");
+                        sb.AppendLine($"        @Html.TextBox(\"{field.Name}\", @entity.{field.Name}.ToFullString(\"\"), new {{ @class = \"form-control date form_datetime\" }})");
+                        break;
+                    case TypeCode.Decimal:
+                        //sb.AppendLine($"        @Html.ForDecimal(\"{field.Name}\", @entity.{field.Name})");
+                        sb.AppendLine($"        <span class=\"input-group-addon\"><i class=\"fa fa-yen\"></i></span>");
+                        sb.AppendLine($"        @Html.TextBox(\"{field.Name}\", @entity.{field.Name}, new {{ @class = \"form-control\" }})");
+                        break;
+                    case TypeCode.Single:
+                    case TypeCode.Double:
+                        //sb.AppendLine($"        @Html.ForDouble(\"{field.Name}\", @entity.{field.Name})");
+                        sb.AppendLine($"        @Html.TextBox(\"{field.Name}\", @entity.{field.Name}, new {{ @class = \"form-control\" }})");
+                        break;
+                    case TypeCode.Byte:
+                    case TypeCode.SByte:
+                    case TypeCode.Int16:
+                    case TypeCode.Int32:
+                    case TypeCode.Int64:
+                    case TypeCode.UInt16:
+                    case TypeCode.UInt32:
+                    case TypeCode.UInt64:
+                        if (field.Type.IsEnum)
+                            sb.AppendLine($"        @Html.ForEnum(\"{field.Name}\", @entity.{field.Name})");
+                        else
+                            sb.AppendLine($"        @Html.TextBox(\"{field.Name}\", @entity.{field.Name}, new {{ @class = \"form-control\", role=\"number\" }})");
+                        break;
+                    case TypeCode.String:
+                        BuildStringItem(field, sb);
+                        break;
+                    default:
+                        sb.AppendLine($"        @Html.ForEditor({fact.EntityType.Name}._.{field.Name}, entity)");
+                        break;
+                }
+            }
 
             sb.AppendLine(@"    </div>");
 
