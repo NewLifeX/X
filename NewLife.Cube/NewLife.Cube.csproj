@@ -336,6 +336,16 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Index.cshtml</DependentUpon>
     </Compile>
+    <Compile Include="Views\Shared\_Form_Body.generated.cs">
+      <DependentUpon>_Form_Body.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\Shared\_Form_Group.generated.cs">
+      <DependentUpon>_Form_Group.cshtml</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
     <Compile Include="Views\Shared\_Object_Nav.generated.cs">
       <DependentUpon>_Object_Nav.cshtml</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -395,11 +405,6 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>_Form_Footer.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Shared\_Form_Group.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>_Form_Group.cshtml</DependentUpon>
     </Compile>
     <Compile Include="Views\Shared\_Form_Header.generated.cs">
       <AutoGen>True</AutoGen>
@@ -779,9 +784,17 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Index.generated.cs</LastGenOutput>
     </None>
+    <Content Include="Views\Shared\_Form_Group.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>_Form_Group.generated.cs</LastGenOutput>
+    </Content>
     <Content Include="Views\Shared\_Object_Nav.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_Object_Nav.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\Shared\_Form_Body.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>_Form_Body.generated.cs</LastGenOutput>
     </Content>
     <None Include="Views\Shared\_StatLevel.cshtml">
       <Generator>RazorGenerator</Generator>
@@ -860,10 +873,6 @@
     <None Include="Views\Shared\_Form_Header.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_Form_Header.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Views\Shared\_Form_Group.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_Form_Group.generated.cs</LastGenOutput>
     </None>
     <None Include="Views\Shared\_Layout.cshtml">
       <Generator>RazorGenerator</Generator>

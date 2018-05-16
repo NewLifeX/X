@@ -1,18 +1,21 @@
-﻿@if (ViewBag.StatusMessage != null)
+﻿@{ 
+    var msg = ViewBag.StatusMessage as String;
+}
+@if (!msg.IsNullOrEmpty())
 {
     //if (ViewData.ModelState.Values.Any(st => st.Errors.Count > 0))
     if (ViewBag.RowsAffected <= 0)
     {
         <div class="alert alert-danger alert-dismissible text-center" role="alert">
             <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <strong>@ViewBag.StatusMessage</strong>
+            <strong>@msg</strong>
         </div>
     }
     else
     {
         <div class="alert alert-success alert-dismissible text-center" role="alert">
             <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <strong>@ViewBag.StatusMessage</strong>
+            <strong>@msg</strong>
         </div>
     }
 }

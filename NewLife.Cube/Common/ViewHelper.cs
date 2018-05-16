@@ -80,8 +80,8 @@ namespace NewLife.Cube
 
             return dic;
         }
-        
-        internal static Boolean MakeListDataView(Type entityType, String vpath, List<FieldItem> fields)
+
+        internal static Boolean MakeListView(Type entityType, String vpath, List<FieldItem> fields)
         {
             var tmp = @"@using NewLife;
 @using NewLife.Web;
@@ -272,7 +272,10 @@ namespace NewLife.Cube
 
         private static void BuildIP(FieldItem item, StringBuilder sb) => sb.AppendFormat(@"<td title=""@entity.{0}.IPToAddress()"">@entity.{0}</td>", item.Name);
 
-        internal static Boolean MakeFormView() => false;
+        internal static Boolean MakeFormView(Type entityType, String vpath, List<FieldItem> fields)
+        {
+            return false;
+        }
 
         /// <summary>是否启用多选</summary>
         /// <param name="page"></param>
