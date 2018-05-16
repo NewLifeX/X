@@ -49,7 +49,8 @@ namespace XCode
             // 非参数化
             if (ps == null)
             {
-                builder.AppendFormat(Format, fi.FormatedName, Value);
+                var op = fi.Factory;
+                builder.AppendFormat(Format, fi.FormatedName, op.FormatValue(fi, Value));
                 return;
             }
 
