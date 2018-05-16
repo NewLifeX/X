@@ -219,7 +219,7 @@ namespace XCode
             /// <summary>格式化关键字</summary>
             /// <param name="name">名称</param>
             /// <returns></returns>
-            public virtual String FormatName(String name) { return Meta.FormatName(name); }
+            public virtual String FormatName(String name) => Meta.FormatName(name);
 
             /// <summary>
             /// 取得一个值的Sql值。
@@ -228,13 +228,13 @@ namespace XCode
             /// <param name="name">字段</param>
             /// <param name="value">对象</param>
             /// <returns>Sql值的字符串形式</returns>
-            public virtual String FormatValue(String name, Object value) { return Meta.FormatValue(name, value); }
+            public virtual String FormatValue(String name, Object value) => Meta.FormatValue(name, value);
 
             /// <summary>格式化数据为SQL数据</summary>
             /// <param name="field">字段</param>
             /// <param name="value">数值</param>
             /// <returns></returns>
-            public virtual String FormatValue(FieldItem field, Object value) { return Meta.FormatValue(field, value); }
+            public virtual String FormatValue(FieldItem field, Object value) => Meta.FormatValue(field, value);
             #endregion
 
             #region 一些设置

@@ -50,7 +50,15 @@ namespace XCode
             if (ps == null)
             {
                 var op = fi.Factory;
-                builder.AppendFormat(Format, fi.FormatedName, op.FormatValue(fi, Value));
+                var val = "";
+                if (Value is String || Value is SelectBuilder)
+                    val = "'" + Value + "'";
+                else if (Value is IList<Object> ems)
+                    val = ems.Join(",", e => op.FormatValue(fi, e));
+                else
+                    val = op.FormatValue(fi, Value);
+
+                builder.AppendFormat(Format, fi.FormatedName, val);
                 return;
             }
 
@@ -63,7 +71,7 @@ namespace XCode
                 // String/SelectBuilder 不走参数化
                 if (Value is String || Value is SelectBuilder)
                 {
-                    builder.AppendFormat(Format, fi.FormatedName, Value);
+                    builder.AppendFormat(Format, fi.FormatedName, "'" + Value + "'");
                     return;
                 }
 
