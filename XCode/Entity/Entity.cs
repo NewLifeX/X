@@ -1122,9 +1122,9 @@ namespace XCode
             {
                 foreach (var item in ps)
                 {
-                    //var dp = Meta.Session.Dal.Db.CreateParameter(item.Key, item.Value, Meta.Table.FindByName(item.Key)?.Type);
-                    // 不能传递类型，因为参数名可能已经改变
-                    var dp = Meta.Session.Dal.Db.CreateParameter(item.Key, item.Value);
+                    var dp = Meta.Session.Dal.Db.CreateParameter(item.Key, item.Value, Meta.Table.FindByName(item.Key)?.Field);
+                    //// 不能传递类型，因为参数名可能已经改变
+                    //var dp = Meta.Session.Dal.Db.CreateParameter(item.Key, item.Value);
 
                     builder.Parameters.Add(dp);
                 }
