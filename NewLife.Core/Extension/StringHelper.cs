@@ -112,7 +112,7 @@ namespace System
             return list.ToArray();
         }
 
-        /// <summary>拆分字符串成为名值字典。逗号分号分组，等号分隔</summary>
+        /// <summary>拆分字符串成为不区分大小写的可空名值字典。逗号分号分组，等号分隔</summary>
         /// <param name="value">字符串</param>
         /// <param name="nameValueSeparator">名值分隔符，默认等于号</param>
         /// <param name="separators">分组分隔符，默认逗号分号</param>
