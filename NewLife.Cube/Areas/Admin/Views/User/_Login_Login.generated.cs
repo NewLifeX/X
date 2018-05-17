@@ -27,6 +27,12 @@ namespace ASP
     using System.Web.UI;
     using System.Web.WebPages;
     using NewLife;
+    
+    #line 1 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
+    using NewLife.Common;
+    
+    #line default
+    #line hidden
     using NewLife.Cube;
     using NewLife.Reflection;
     using NewLife.Web;
@@ -43,7 +49,7 @@ namespace ASP
         public override void Execute()
         {
             
-            #line 1 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
+            #line 2 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
   
     var set = NewLife.Cube.Setting.Current;
 
@@ -64,16 +70,20 @@ WriteLiteral(">\r\n        <i");
 
 WriteLiteral(" class=\"glyphicon glyphicon-cloud login-logo center-block\"");
 
-WriteLiteral("></i>\r\n    </div>\r\n    <!-- 登录-->\r\n");
+WriteLiteral(" style=\"display: inline-block;\"");
+
+WriteLiteral("></i>\r\n        ");
+
+WriteLiteral("\r\n    </div>\r\n    <!-- 登录-->\r\n");
 
             
-            #line 10 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
+            #line 12 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
     
             
             #line default
             #line hidden
             
-            #line 10 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
+            #line 12 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
      using (Html.BeginForm("Login", "User", new { r = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "cube-login" }))
     {
         
@@ -81,14 +91,14 @@ WriteLiteral("></i>\r\n    </div>\r\n    <!-- 登录-->\r\n");
             #line default
             #line hidden
             
-            #line 12 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
+            #line 14 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
    Write(Html.ValidationSummary());
 
             
             #line default
             #line hidden
             
-            #line 12 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
+            #line 14 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
                                  
 
             
@@ -98,7 +108,16 @@ WriteLiteral("        <span");
 
 WriteLiteral(" class=\"heading text-primary\"");
 
-WriteLiteral(">用户登录</span>\r\n");
+WriteLiteral(">");
+
+            
+            #line 15 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
+                                      Write(SysConfig.Current.DisplayName);
+
+            
+            #line default
+            #line hidden
+WriteLiteral(" 登录</span>\r\n");
 
 WriteLiteral("        <div");
 
@@ -114,7 +133,7 @@ WriteLiteral(" id=\"username\"");
 
 WriteLiteral(" name=\"username\"");
 
-WriteLiteral(" placeholder=\"用户名或电子邮件\"");
+WriteLiteral(" placeholder=\"用户名 / 邮箱\"");
 
 WriteLiteral(">\r\n            <i");
 
@@ -136,7 +155,7 @@ WriteLiteral(" id=\"password\"");
 
 WriteLiteral(" name=\"password\"");
 
-WriteLiteral(" placeholder=\"密　码\"");
+WriteLiteral(" placeholder=\"密码\"");
 
 WriteLiteral(">\r\n            <i");
 
@@ -168,11 +187,81 @@ WriteLiteral(" />\r\n                <label");
 
 WriteLiteral(" for=\"remember\"");
 
-WriteLiteral("></label>\r\n            </div>\r\n            <span");
+WriteLiteral("></label>\r\n            </div>\r\n            <label");
 
 WriteLiteral(" class=\"text text-primary\"");
 
-WriteLiteral(">记住我</span>\r\n            <button");
+WriteLiteral(" for=\"remember\"");
+
+WriteLiteral(">记住我</label>\r\n");
+
+            
+            #line 31 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
+            
+            
+            #line default
+            #line hidden
+            
+            #line 31 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
+             if (set.AllowRegister)
+            {
+                
+            
+            #line default
+            #line hidden
+            
+            #line 34 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
+                                                                         
+                
+            
+            #line default
+            #line hidden
+            
+            #line 41 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
+                       
+
+                if (set.AllowRegister)
+                {
+
+            
+            #line default
+            #line hidden
+WriteLiteral("                    <div");
+
+WriteLiteral(" style=\"display: inline-block; margin-top: 5px;\"");
+
+WriteLiteral(">\r\n                        ");
+
+WriteLiteral("\r\n                        <a");
+
+WriteLiteral(" href=\"#Register\"");
+
+WriteLiteral(" data-toggle=\"tab\"");
+
+WriteLiteral(" style=\"margin-left: auto; margin-right: auto;position: static; font-size: 15px; " +
+"margin-top: 5px;\"");
+
+WriteLiteral(">\r\n                            ");
+
+WriteLiteral("\r\n                            <span>我要注册</span>\r\n                        </a>\r\n  " +
+"                  </div>\r\n");
+
+            
+            #line 52 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
+                }
+                
+            
+            #line default
+            #line hidden
+            
+            #line 54 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
+                            
+            }
+
+            
+            #line default
+            #line hidden
+WriteLiteral("            <button");
 
 WriteLiteral(" type=\"submit\"");
 
@@ -181,83 +270,23 @@ WriteLiteral(" class=\"btn btn-default\"");
 WriteLiteral(">登录</button>\r\n        </div>\r\n");
 
             
-            #line 31 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
+            #line 58 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
 
     }
 
             
             #line default
             #line hidden
-WriteLiteral("    ");
-
-            
-            #line 33 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
-     if (set.AllowRegister)
-    {
-
-            
-            #line default
-            #line hidden
-WriteLiteral("        <div");
-
-WriteLiteral(" class=\"toolbar clearfix text-center\"");
-
-WriteLiteral(">\r\n            <div");
-
-WriteLiteral(" class=\"row\"");
-
-WriteLiteral(" style=\"padding-top:30px;\"");
-
-WriteLiteral(">\r\n                ");
-
 WriteLiteral("\r\n");
 
             
-            #line 44 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
-                
+            #line 61 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
+    
             
             #line default
             #line hidden
             
-            #line 44 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
-                 if (set.AllowRegister)
-                {
-
-            
-            #line default
-            #line hidden
-WriteLiteral("                    <a");
-
-WriteLiteral(" href=\"#Register\"");
-
-WriteLiteral(" data-toggle=\"tab\"");
-
-WriteLiteral(">\r\n                        <i");
-
-WriteLiteral(" class=\"glyphicon glyphicon-menu-right\"");
-
-WriteLiteral("></i>\r\n                        我要注册\r\n                    </a>\r\n");
-
-            
-            #line 50 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
-                }
-
-            
-            #line default
-            #line hidden
-WriteLiteral("            </div>\r\n        </div>\r\n");
-
-            
-            #line 53 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
-    }
-
-            
-            #line default
-            #line hidden
-WriteLiteral("    ");
-
-            
-            #line 54 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
+            #line 61 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
      if (!set.LoginTip.IsNullOrEmpty())
     {
 
@@ -275,7 +304,7 @@ WriteLiteral(" class=\"ace-icon fa fa-coffee green\"");
 WriteLiteral("></i>\r\n\r\n        </h4>\r\n");
 
             
-            #line 60 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
+            #line 67 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
 
 
             
@@ -288,7 +317,7 @@ WriteLiteral(" class=\"space-6\"");
 WriteLiteral("></div>\r\n");
 
             
-            #line 62 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
+            #line 69 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
 
 
             
@@ -325,7 +354,7 @@ WriteLiteral(">&times;</span></button>\r\n");
 WriteLiteral("                ");
 
             
-            #line 66 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
+            #line 73 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
            Write(Html.Raw(set.LoginTip));
 
             
@@ -334,7 +363,7 @@ WriteLiteral("                ");
 WriteLiteral("\r\n            </div>\r\n        </nav>\r\n");
 
             
-            #line 69 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
+            #line 76 "..\..\Areas\Admin\Views\User\_Login_Login.cshtml"
     }
 
             

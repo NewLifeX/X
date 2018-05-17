@@ -7,32 +7,37 @@
 }
 @if (ms.Count > 0 && set.AutoRegister)
 {
-    <div class="toolbar clearfix text-center">
+    <div class="text-center">
+        <div class="ui horizontal divider">
+            <span style="font-size: 22px;">
+                第三方登录
+            </span>
+        </div>
         <div class="row" style="padding:0px 0 0 0; display: inline-block;">
-            @*<div class="form-group col-sm-12">*@
-                <span style="font-size: 22px;vertical-align: 24px; margin-right: 5px;">
-                    第三方登录
-                </span>
-            @*</div>*@
+            @foreach (var mi in ms)
+            {
+                var nickName = "";
+                if (!dic.TryGetValue(mi.Name, out nickName)) { nickName = mi.Name; }
 
-            @*<div class="form-group col-sm-12">*@
-                @foreach (var mi in ms)
-                {
-                    var nickName = "";
-                    if (!dic.TryGetValue(mi.Name, out nickName)) { nickName = mi.Name; }
+                var url = "Sso/Login?name=" + mi.Name;
+                if (!returnUrl.IsNullOrEmpty()) { url += "&r=" + HttpUtility.UrlEncode(returnUrl); }
 
-                    var url = "Sso/Login?name=" + mi.Name;
-                    if (!returnUrl.IsNullOrEmpty()) { url += "&r=" + HttpUtility.UrlEncode(returnUrl); }
+                url = HttpRuntime.AppDomainAppVirtualPath + url;
+                var ico = "/Content/images/logo/{0}.png".F(mi.Name);
+                var ico2 = ico.TrimStart("/").GetFullPath();
 
-                    url = HttpRuntime.AppDomainAppVirtualPath + url;
-
-                    <a href="@url" title="@nickName" style="height: 64px; width: 64px; display: inline-block; margin-left: 5px; 
-                    background: url(/Content/images/logo/@(mi.Name).png) no-repeat; -ms-background-size: 64px 64px; background-size: 64px 64px;">
-                        @*<i class="glyphicon glyphicon-menu-right"></i>*@
-                        @*@nickName*@
-                    </a>
-                }
-            @*</div>*@
+                <a href="@url">
+                    @if (File.Exists(ico2))
+                    {
+                        <text><img src="@ico" title="@nickName" /></text>
+                    }
+                    else
+                    {
+                        <i class="glyphicon glyphicon-menu-right"></i>
+                        <text>@nickName</text>
+                    }
+                </a>
+            }
         </div>
     </div>
 }

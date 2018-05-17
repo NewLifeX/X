@@ -6,19 +6,19 @@
     <!-- Logo-->
     <div class="row text-center">
         <i class="glyphicon glyphicon-cloud login-logo center-block" style="display: inline-block;"></i>
-        <span style="display: inline-block;vertical-align: 56px;margin-left: 10px;font-size: 24px;">@SysConfig.Current.DisplayName</span>
+        @*<span style="display: inline-block;vertical-align: 56px;margin-left: 10px;font-size: 24px;">@SysConfig.Current.DisplayName</span>*@
     </div>
     <!-- 登录-->
     @using (Html.BeginForm("Login", "User", new { r = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "cube-login" }))
     {
         @Html.ValidationSummary()
-        <span class="heading text-primary">用户登录</span>
+        <span class="heading text-primary">@SysConfig.Current.DisplayName 登录</span>
         <div class="form-group">
-            <input type="text" class="form-control" id="username" name="username" placeholder="用户名或电子邮件">
+            <input type="text" class="form-control" id="username" name="username" placeholder="用户名 / 邮箱">
             <i class="glyphicon glyphicon-user"></i>
         </div>
         <div class="form-group">
-            <input type="password" class="form-control" id="password" name="password" placeholder="密　码">
+            <input type="password" class="form-control" id="password" name="password" placeholder="密码">
             <i class="glyphicon glyphicon-lock"></i>
             @*<a href="#Forgot" data-toggle="tab" class="glyphicon glyphicon-question-sign"></a>*@
         </div>
@@ -43,7 +43,7 @@
                 if (set.AllowRegister)
                 {
                     <div style="display: inline-block; margin-top: 5px;">
-                        <span style="margin-left: auto; margin-right: auto; margin-top: 5px;">没有账号？</span>
+                        @*<span style="margin-left: auto; margin-right: auto; margin-top: 5px;">没有账号？</span>*@
                         <a href="#Register" data-toggle="tab" style="margin-left: auto; margin-right: auto;position: static; font-size: 15px; margin-top: 5px;">
                             @*<i class="glyphicon glyphicon-menu-right"></i>*@
                             <span>我要注册</span>
