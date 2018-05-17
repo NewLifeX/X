@@ -517,10 +517,10 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_ListTree_Data.generated.cs</LastGenOutput>
     </None>
-    <Content Include="Areas\Admin\Views\Shared\_Object_Nav.cshtml">
+    <None Include="Areas\Admin\Views\Shared\_Object_Nav.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_Object_Nav.generated.cs</LastGenOutput>
-    </Content>
+    </None>
     <None Include="Areas\Admin\Views\UserOnline\_List_Data.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_List_Data.generated.cs</LastGenOutput>
@@ -632,15 +632,15 @@
     </Content>
     <None Include="index.html" />
     <None Include="Content\bootstrap\js\bootstrap.js" />
-    <Content Include="Entity\Cube.xml">
+    <None Include="Entity\Cube.xml">
       <SubType>Designer</SubType>
-    </Content>
-    <Content Include="Entity\XCoder.tt">
+    </None>
+    <None Include="Entity\XCoder.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>XCoder.log</LastGenOutput>
-    </Content>
-    <Content Include="Scripts\ApiClient.js" />
-    <Content Include="Scripts\WebSocketX.js" />
+    </None>
+    <None Include="Scripts\ApiClient.js" />
+    <None Include="Scripts\WebSocketX.js" />
     <None Include="Areas\Admin\Views\File\Index.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Index.generated.cs</LastGenOutput>
@@ -784,18 +784,18 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Index.generated.cs</LastGenOutput>
     </None>
-    <Content Include="Views\Shared\_Form_Group.cshtml">
+    <None Include="Views\Shared\_Form_Group.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_Form_Group.generated.cs</LastGenOutput>
-    </Content>
-    <Content Include="Views\Shared\_Object_Nav.cshtml">
+    </None>
+    <None Include="Views\Shared\_Object_Nav.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_Object_Nav.generated.cs</LastGenOutput>
-    </Content>
-    <Content Include="Views\Shared\_Form_Body.cshtml">
+    </None>
+    <None Include="Views\Shared\_Form_Body.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_Form_Body.generated.cs</LastGenOutput>
-    </Content>
+    </None>
     <None Include="Views\Shared\_StatLevel.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_StatLevel.generated.cs</LastGenOutput>
