@@ -228,10 +228,7 @@
         <div class="row">
             <div class="col-md-6 col-md-offset-3">
                 <div class="tab-content">
-                    @if (NewLife.Cube.Setting.Current.AllowLogin)
-                    {
-                        @Html.Partial("_Login_Login")@*登录页*@
-                    }
+                    @Html.Partial("_Login_Login")@*登录页*@
                     @Html.Partial("_Login_Forgot")@*找回密码页*@
                     @Html.Partial("_Login_Register")@*注册页*@
                     @Html.Partial("_Login_Login3")@*第三方登录*@

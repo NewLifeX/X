@@ -234,45 +234,21 @@ WriteLiteral(" class=\"tab-content\"");
 
 WriteLiteral(">\r\n");
 
-            
-            #line 231 "..\..\Areas\Admin\Views\User\Login.cshtml"
-                    
-            
-            #line default
-            #line hidden
-            
-            #line 231 "..\..\Areas\Admin\Views\User\Login.cshtml"
-                     if (NewLife.Cube.Setting.Current.AllowLogin)
-                    {
-                        
-            
-            #line default
-            #line hidden
-            
-            #line 233 "..\..\Areas\Admin\Views\User\Login.cshtml"
-                   Write(Html.Partial("_Login_Login"));
-
-            
-            #line default
-            #line hidden
-            
-            #line 233 "..\..\Areas\Admin\Views\User\Login.cshtml"
-                                                     
-            
-            #line default
-            #line hidden
-            
-            #line 233 "..\..\Areas\Admin\Views\User\Login.cshtml"
-                                                            
-                    }
-
-            
-            #line default
-            #line hidden
 WriteLiteral("                    ");
 
             
-            #line 235 "..\..\Areas\Admin\Views\User\Login.cshtml"
+            #line 231 "..\..\Areas\Admin\Views\User\Login.cshtml"
+               Write(Html.Partial("_Login_Login"));
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\r\n");
+
+WriteLiteral("                    ");
+
+            
+            #line 232 "..\..\Areas\Admin\Views\User\Login.cshtml"
                Write(Html.Partial("_Login_Forgot"));
 
             
@@ -283,7 +259,7 @@ WriteLiteral("\r\n");
 WriteLiteral("                    ");
 
             
-            #line 236 "..\..\Areas\Admin\Views\User\Login.cshtml"
+            #line 233 "..\..\Areas\Admin\Views\User\Login.cshtml"
                Write(Html.Partial("_Login_Register"));
 
             
@@ -294,7 +270,7 @@ WriteLiteral("\r\n");
 WriteLiteral("                    ");
 
             
-            #line 237 "..\..\Areas\Admin\Views\User\Login.cshtml"
+            #line 234 "..\..\Areas\Admin\Views\User\Login.cshtml"
                Write(Html.Partial("_Login_Login3"));
 
             
@@ -303,16 +279,16 @@ WriteLiteral("                    ");
 WriteLiteral("\r\n                </div>\r\n            </div>\r\n        </div>\r\n    </div>\r\n    <!-" +
 "- JQuery作为一等公民，页面内部随时可能使用 -->\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 8707), Tuple.Create("\"", 8745)
-, Tuple.Create(Tuple.Create("", 8713), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery-2.1.3.min.js")
-, 8713), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 8590), Tuple.Create("\"", 8628)
+, Tuple.Create(Tuple.Create("", 8596), Tuple.Create<System.Object, System.Int32>(Href("~/Content/js/jquery-2.1.3.min.js")
+, 8596), false)
 );
 
 WriteLiteral("></script>\r\n    <script");
 
-WriteAttribute("src", Tuple.Create(" src=\"", 8769), Tuple.Create("\"", 8814)
-, Tuple.Create(Tuple.Create("", 8775), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/js/bootstrap.min.js")
-, 8775), false)
+WriteAttribute("src", Tuple.Create(" src=\"", 8652), Tuple.Create("\"", 8697)
+, Tuple.Create(Tuple.Create("", 8658), Tuple.Create<System.Object, System.Int32>(Href("~/Content/bootstrap/js/bootstrap.min.js")
+, 8658), false)
 );
 
 WriteLiteral(@"></script>
