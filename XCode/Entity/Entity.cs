@@ -1061,7 +1061,9 @@ namespace XCode
                 {
                     var fields = Meta.Factory.Selects;
                     if (fields.IsNullOrWhiteSpace())
-                        fields = Meta.Factory.FieldNames.Select(Meta.FormatName).Join(",");
+                        //fields = Meta.Factory.FieldNames.Select(Meta.FormatName).Join(",");
+                        //不能直接通过获取FieldNames的方式拼接查询字段，如果列名和实际的属性名称存在差异的情况下会导致查询错误 By Xiyunfei
+                        fields = Meta.Factory.Fields.Select(e => Meta.FormatName(e.ColumnName)).Join(",");
                     builder.Column = fields;
                 }
             }
