@@ -240,9 +240,7 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>
-    <Content Include="tools\install.ps1">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <Content Include="tools\install.ps1" />
     <None Include="Membership\生成实体类.log">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
