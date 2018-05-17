@@ -8,14 +8,14 @@
 @if (ms.Count > 0 && set.AutoRegister)
 {
     <div class="toolbar clearfix text-center">
-        <div class="row" style="padding:30px 0 0 45px;">
-            <div class="form-group col-sm-12">
-                <span style="float: left;">
+        <div class="row" style="padding:0px 0 0 0; display: inline-block;">
+            @*<div class="form-group col-sm-12">*@
+                <span style="font-size: 22px;vertical-align: 24px; margin-right: 5px;">
                     第三方登录
                 </span>
-            </div>
+            @*</div>*@
 
-            <div class="form-group col-sm-12">
+            @*<div class="form-group col-sm-12">*@
                 @foreach (var mi in ms)
                 {
                     var nickName = "";
@@ -26,13 +26,13 @@
 
                     url = HttpRuntime.AppDomainAppVirtualPath + url;
 
-                    <a href="@url" title="@nickName" style="height: 32px; width: 32px; display: inline-block; margin-right: 5px; 
-                    float: left; background-image: url(/Content/images/logo/@(mi.Name).png)">
+                    <a href="@url" title="@nickName" style="height: 64px; width: 64px; display: inline-block; margin-left: 5px; 
+                    background: url(/Content/images/logo/@(mi.Name).png) no-repeat; -ms-background-size: 64px 64px; background-size: 64px 64px;">
                         @*<i class="glyphicon glyphicon-menu-right"></i>*@
                         @*@nickName*@
                     </a>
                 }
-            </div>
+            @*</div>*@
         </div>
     </div>
 }
