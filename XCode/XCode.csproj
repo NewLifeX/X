@@ -231,9 +231,9 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>生成实体类.log</LastGenOutput>
     </Content>
-    <Content Include="生成实体类.tt">
+    <Content Include="ModelsGenerator.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>生成实体类.log</LastGenOutput>
+      <LastGenOutput>ModelsGenerator.log</LastGenOutput>
     </Content>
     <None Include="Extension\生成实体类.log">
       <DependentUpon>生成实体类.tt</DependentUpon>
@@ -257,6 +257,11 @@
       <LastGenOutput>生成实体类.log</LastGenOutput>
     </Content>
     <Content Include="Sync\同步机制.txt" />
+    <None Include="ModelsGenerator.log">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ModelsGenerator.tt</DependentUpon>
+    </None>
     <None Include="说明.txt" />
   </ItemGroup>
   <ItemGroup />
