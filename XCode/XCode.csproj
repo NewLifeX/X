@@ -227,20 +227,20 @@
     <None Include="Extension\Ext.xml">
       <SubType>Designer</SubType>
     </None>
-    <Content Include="Extension\生成实体类.tt">
+    <None Include="Extension\生成实体类.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>生成实体类.log</LastGenOutput>
+    </None>
+    <Content Include="Model.xml">
+      <SubType>Designer</SubType>
     </Content>
-    <Content Include="ModelsGenerator.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>ModelsGenerator.log</LastGenOutput>
-    </Content>
+    <Content Include="Build.tt" />
     <None Include="Extension\生成实体类.log">
       <DependentUpon>生成实体类.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>
-    <Content Include="tools\install.ps1" />
+    <None Include="tools\install.ps1" />
     <None Include="Membership\生成实体类.log">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -250,16 +250,11 @@
     <None Include="Membership\Member.xml">
       <SubType>Designer</SubType>
     </None>
-    <Content Include="Membership\生成实体类.tt">
+    <None Include="Membership\生成实体类.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>生成实体类.log</LastGenOutput>
-    </Content>
-    <Content Include="Sync\同步机制.txt" />
-    <None Include="ModelsGenerator.log">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>ModelsGenerator.tt</DependentUpon>
     </None>
+    <Content Include="Sync\同步机制.txt" />
     <None Include="说明.txt" />
   </ItemGroup>
   <ItemGroup />

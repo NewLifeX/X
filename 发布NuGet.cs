@@ -123,7 +123,7 @@ namespace NewLife.Reflection
 
             //var pack = "pack {0} -IncludeReferencedProjects -Build -Prop Configuration={1} -Exclude **\\*.txt;**\\*.png;content\\*.xml";
             // *\\*.*干掉下级的所有文件
-            var pack = "pack {0} -IncludeReferencedProjects -Exclude **\\*.txt;**\\*.png;*.jpg;*.xml;*\\*.*";
+            var pack = "pack {0} -IncludeReferencedProjects -Exclude **\\*.txt;**\\*.png;*.jpg";
             Console.WriteLine("打包：{0}", proj);
             //"cmd".Run("/c del *.nupkg /f/q");
 			foreach(var item in ".".AsDirectory().GetAllFiles("*.nupkg"))
@@ -146,7 +146,7 @@ namespace NewLife.Reflection
         {
 			if (!name.IsNullOrEmpty()) exts = exts.Split(";").Select(e=>name + "." + e).Join(";");
             var fs = src.AsDirectory().GetAllFiles(exts).ToList();
-            XTrace.WriteLine("目录：{0} 文件：{1}", src.AsDirectory().FullName, fs.Count);
+            //XTrace.WriteLine("目录：{0} 文件：{1}", src.AsDirectory().FullName, fs.Count);
             if(fs.Count == 0) return;
             
             var dgs = cfg.Metadata?.DependencySets;
