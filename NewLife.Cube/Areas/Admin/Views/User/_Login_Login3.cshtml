@@ -8,36 +8,51 @@
 @if (ms.Count > 0 && set.AutoRegister)
 {
     <div class="text-center">
-        <div class="ui horizontal divider">
+        @*<div class="ui horizontal divider">
             <span style="font-size: 22px;">
                 第三方登录
             </span>
+        </div>*@
+        <div class="form-group col-sm-12">
+            <p style="font-size: 22px; position: relative; display: inline-block;">
+                <span style="height: 1px; position: absolute; background-color: #928f8f; width: 180%; top: 50%; left:110%;"></span>
+                第三方登录
+                <span style="height: 1px; position: absolute; background-color: #928f8f; width: 180%; top: 50%; right:110%;"></span>
+            </p>
         </div>
-        <div class="row" style="padding:0px 0 0 0; display: inline-block;">
-            @foreach (var mi in ms)
-            {
-                var nickName = "";
-                if (!dic.TryGetValue(mi.Name, out nickName)) { nickName = mi.Name; }
-
-                var url = "Sso/Login?name=" + mi.Name;
-                if (!returnUrl.IsNullOrEmpty()) { url += "&r=" + HttpUtility.UrlEncode(returnUrl); }
-
-                url = HttpRuntime.AppDomainAppVirtualPath + url;
-                var ico = "/Content/images/logo/{0}.png".F(mi.Name);
-                var ico2 = ico.TrimStart("/").GetFullPath();
-
-                <a href="@url">
-                    @if (File.Exists(ico2))
+        <div class="row" style="padding: 0 0 0 0;">
+            <div class="form-group col-sm-12">
+                @foreach (var mi in ms)
+                {
+                    var nickName = "";
+                    if (!dic.TryGetValue(mi.Name, out nickName))
                     {
-                        <text><img src="@ico" title="@nickName" /></text>
+                        nickName = mi.Name;
                     }
-                    else
+
+                    var url = "Sso/Login?name=" + mi.Name;
+                    if (!returnUrl.IsNullOrEmpty())
                     {
-                        <i class="glyphicon glyphicon-menu-right"></i>
-                        <text>@nickName</text>
+                        url += "&r=" + HttpUtility.UrlEncode(returnUrl);
                     }
-                </a>
-            }
+
+                    url = HttpRuntime.AppDomainAppVirtualPath + url;
+                    var ico = "/Content/images/logo/{0}.png".F(mi.Name);
+                    var ico2 = ico.TrimStart("/").GetFullPath();
+
+                    <a href="@url">
+                        @if (File.Exists(ico2))
+                        {
+                            <text><img src="@ico" title="@nickName" /></text>
+                        }
+                        else
+                        {
+                            <i class="glyphicon glyphicon-menu-right"></i>
+                            <text>@nickName</text>
+                        }
+                    </a>
+                }
+            </div>
         </div>
     </div>
 }
