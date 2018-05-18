@@ -361,6 +361,8 @@ namespace NewLife.Caching
 
             if (rs is Packet[] pks)
             {
+                if (typeof(TResult) == typeof(Packet[])) return (TResult)rs;
+
                 var elmType = type.GetElementTypeEx();
                 var arr = Array.CreateInstance(elmType, pks.Length);
                 for (var i = 0; i < pks.Length; i++)
