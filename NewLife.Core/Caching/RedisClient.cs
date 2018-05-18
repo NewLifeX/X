@@ -114,7 +114,7 @@ namespace NewLife.Caching
         /// <param name="cmd"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        protected virtual Object SendCommand(String cmd, params Byte[][] args)
+        protected virtual Object SendCommand(String cmd, params Packet[] args)
         {
             var isQuit = cmd == "QUIT";
 
@@ -153,51 +153,55 @@ namespace NewLife.Caching
             }
             else
             {
-                var ms = new MemoryStream(buf);
-                ms.SetLength(0);
-                ms.Position = 0;
+                //var ms = new MemoryStream(buf);
+                //ms.SetLength(0);
+                //ms.Position = 0;
+                var ms = ns;
 
                 //var str = "*{2}\r\n${0}\r\n{1}\r\n".F(cmd.Length, cmd, 1 + args.Length);
                 ms.Write(GetHeaderBytes(cmd, args.Length));
 
                 foreach (var item in args)
                 {
-                    var len = 1 + item.Length.ToString().GetBytes().Length + NewLine.Length * 2 + item.Length;
-                    // 防止写入内容过长导致的缓冲区长度不足的问题
-                    if (ms.Position + len > ms.Length)
-                    {
-                        var ms2 = new MemoryStream();
-                        ms.WriteTo(ms2);
-                        ms = ms2;
-                    }
+                    var size = item.Total;
+                    var sizes = size.ToString().GetBytes();
+                    var len = 1 + sizes.Length + NewLine.Length * 2 + size;
+                    //// 防止写入内容过长导致的缓冲区长度不足的问题
+                    //if (ms.Position + len > ms.Length)
+                    //{
+                    //    var ms2 = new MemoryStream();
+                    //    ms.WriteTo(ms2);
+                    //    ms = ms2;
+                    //}
 
                     if (log != null)
                     {
-                        if (item.Length <= 32)
+                        if (size <= 32)
                             log.AppendFormat(" {0}", item.ToStr());
                         else
-                            log.AppendFormat(" [{0}]", item.Length);
+                            log.AppendFormat(" [{0}]", size);
                     }
 
                     //str = "${0}\r\n".F(item.Length);
                     //ms.Write(str.GetBytes());
                     ms.WriteByte((Byte)'$');
-                    ms.Write(item.Length.ToString().GetBytes());
+                    ms.Write(sizes);
                     ms.Write(NewLine);
-                    ms.Write(item);
+                    //ms.Write(item);
+                    item.WriteTo(ms);
                     ms.Write(NewLine);
 
-                    if (ms.Length > 1400)
-                    {
-                        ms.WriteTo(ns);
-                        //重置memoryStream的长度
-                        ms = new MemoryStream(buf);
-                        // 从头开始
-                        ms.SetLength(0);
-                        ms.Position = 0;
-                    }
+                    //if (ms.Length > 1400)
+                    //{
+                    //    ms.WriteTo(ns);
+                    //    //重置memoryStream的长度
+                    //    ms = new MemoryStream(buf);
+                    //    // 从头开始
+                    //    ms.SetLength(0);
+                    //    ms.Position = 0;
+                    //}
                 }
-                if (ms.Length > 0) ms.WriteTo(ns);
+                //if (ms.Length > 0) ms.WriteTo(ns);
             }
             if (log != null) WriteLog(log.ToString());
 
@@ -426,7 +430,7 @@ namespace NewLife.Caching
         /// <returns></returns>
         public Boolean SetAll<T>(IDictionary<String, T> values)
         {
-            var ps = new List<Byte[]>();
+            var ps = new List<Packet>();
             foreach (var item in values)
             {
                 ps.Add(item.Key.GetBytes());
@@ -461,13 +465,14 @@ namespace NewLife.Caching
         /// <summary>数值转字节数组</summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        protected virtual Byte[] ToBytes(Object value)
+        protected virtual Packet ToBytes(Object value)
         {
             if (value == null) return new Byte[0];
 
-            var type = value.GetType();
-            if (type == typeof(Byte[])) return (Byte[])value;
+            if (value is Packet pk) return pk;
+            if (value is Byte[] buf) return buf;
 
+            var type = value.GetType();
             switch (type.GetTypeCode())
             {
                 case TypeCode.Object: return value.ToJson().GetBytes();
