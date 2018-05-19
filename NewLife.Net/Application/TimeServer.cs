@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Net;
-using NewLife.Net.Sockets;
 
 namespace NewLife.Net.Application
 {
@@ -16,22 +14,15 @@ namespace NewLife.Net.Application
             Name = "Time服务";
         }
 
-        static readonly DateTime STARTTIME = new DateTime(1970, 1, 1);
-
         /// <summary>已重载。</summary>
         /// <param name="session"></param>
         protected override INetSession OnNewSession(ISocketSession session)
         {
             WriteLog("Time {0}", session.Remote);
 
-            var ts = DateTime.Now - STARTTIME;
-            var s = (Int32)ts.TotalSeconds;
-            // 因为要发往网络，这里调整网络字节序
-            s = IPAddress.HostToNetworkOrder(s);
-            var buffer = BitConverter.GetBytes(s);
-            //Send(e.Socket, buffer, 0, buffer.Length, e.RemoteEndPoint);
-            //session.Send(buffer, 0, buffer.Length, e.RemoteEndPoint);
-            session.Send(buffer);
+            var s = DateTime.Now.ToInt();
+            var buf = s.GetBytes(false);
+            session.Send(buf);
 
             return null;
         }

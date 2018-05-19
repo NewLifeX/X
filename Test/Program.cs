@@ -225,19 +225,33 @@ namespace Test
             var ts = dt - dt2;
             Console.WriteLine(ts);
 
+            Console.WriteLine();
             var sec = dt.ToInt();
             Console.WriteLine(sec);
             dt = sec.ToDateTime();
             Console.WriteLine("{0} {1}", dt, dt.Kind);
 
+            Console.WriteLine();
             var sec2 = dt2.ToInt();
             Console.WriteLine(sec2);
             dt2 = sec2.ToDateTime();
             Console.WriteLine("{0} {1}", dt2, dt2.Kind);
 
+            Console.WriteLine();
             dt2 = dt2.ToUniversalTime();
             Console.WriteLine("{0} {1}", dt2, dt2.Kind);
             Console.WriteLine(dt2.ToFullString());
+
+            Console.WriteLine();
+            dt2 = dt2.ToUniversalTime();
+            Console.WriteLine("{0} {1}", dt2, dt2.Kind);
+            Console.WriteLine(dt2.ToFullString());
+
+            Console.WriteLine();
+            dt = new DateTime(2018, 2, 3);
+            Console.WriteLine(dt.Kind);
+            dt = dt.ToLocalTime();
+            Console.WriteLine("{0} {1}", dt, dt.Kind);
 
             //var pf = new PerfCounter();
 

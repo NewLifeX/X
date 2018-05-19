@@ -410,7 +410,7 @@ namespace XCode.Membership
             if (user.IsNullOrEmpty() || pass.IsNullOrEmpty() || exp <= 0) return null;
 
             // 判断有效期
-            var expire = new DateTime(1970, 1, 1).AddSeconds(exp);
+            var expire = exp.ToDateTime();
             if (expire < DateTime.Now) return null;
 
             var u = provider.FindByName(user);
@@ -465,7 +465,7 @@ namespace XCode.Membership
                     {
                         var exp = DateTime.Now.Add(expire);
                         cookie.Expires = exp;
-                        cookie["e"] = (Int32)((exp - new DateTime(1970, 1, 1)).TotalSeconds) + "";
+                        cookie["e"] = exp.ToInt() + "";
                     }
                 }
             }

@@ -17,7 +17,7 @@ namespace System
         /// <remarks>重载默认提供者<seealso cref="DefaultConvert"/>并赋值给<see cref="Convert"/>可改变所有类型转换的行为</remarks>
         public static DefaultConvert Convert { get; set; } = new DefaultConvert();
 
-        /// <summary>转为整数，转换失败时返回默认值。支持字符串、全角、字节数组（小端）</summary>
+        /// <summary>转为整数，转换失败时返回默认值。支持字符串、全角、字节数组（小端）、UTC时间（Unix秒）</summary>
         /// <remarks>Int16/UInt32/Int64等，可以先转为最常用的Int32后再二次处理</remarks>
         /// <param name="value">待转换对象</param>
         /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
@@ -44,7 +44,7 @@ namespace System
         /// <returns></returns>
         public static Boolean ToBoolean(this Object value, Boolean defaultValue = false) => Convert.ToBoolean(value, defaultValue);
 
-        /// <summary>转为时间日期，转换失败时返回最小时间</summary>
+        /// <summary>转为时间日期，转换失败时返回最小时间。支持字符串、整数（Unix秒）</summary>
         /// <param name="value">待转换对象</param>
         /// <returns></returns>
         public static DateTime ToDateTime(this Object value) => Convert.ToDateTime(value, DateTime.MinValue);
@@ -96,7 +96,7 @@ namespace System
     {
         private static DateTime _dt1970 = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
-        /// <summary>转为整数</summary>
+        /// <summary>转为整数，转换失败时返回默认值。支持字符串、全角、字节数组（小端）、UTC时间（Unix秒）</summary>
         /// <param name="value">待转换对象</param>
         /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
         /// <returns></returns>
@@ -259,7 +259,7 @@ namespace System
             catch { return defaultValue; }
         }
 
-        /// <summary>转为时间日期</summary>
+        /// <summary>转为时间日期，转换失败时返回最小时间。支持字符串、整数（Unix秒）</summary>
         /// <param name="value">待转换对象</param>
         /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
         /// <returns></returns>
@@ -282,7 +282,13 @@ namespace System
             }
             // 特殊处理整数，Unix秒，UTC绝对时间差，转为当前时间便于使用。
             if (value is Int32 k) return _dt1970.AddSeconds(k).ToLocalTime();
-            if (value is Int64 m) return _dt1970.AddSeconds(m).ToLocalTime();
+            if (value is Int64 m)
+            {
+                if (m > 100 * 365 * 24 * 3600L)
+                    return _dt1970.AddMilliseconds(m).ToLocalTime();
+                else
+                    return _dt1970.AddSeconds(m).ToLocalTime();
+            }
 
             try
             {

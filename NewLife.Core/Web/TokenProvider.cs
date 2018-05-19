@@ -51,8 +51,7 @@ namespace NewLife.Web
             if (expire.Year < 2000) throw new ArgumentOutOfRangeException(nameof(expire));
             if (Key.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Key));
 
-            var dt = new DateTime(1970, 1, 1);
-            var secs = (Int32)(expire - dt).TotalSeconds;
+            var secs = expire.ToInt();
 
             // 拼接数据并签名
             var data = (user + "," + secs).GetBytes();
@@ -87,7 +86,7 @@ namespace NewLife.Web
 
             var user = str.Substring(0, p);
             var secs = str.Substring(p + 1).ToInt();
-            expire = new DateTime(1970, 1, 1).AddSeconds(secs);
+            expire = secs.ToDateTime();
 
             return user;
         }
