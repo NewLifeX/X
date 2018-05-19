@@ -70,7 +70,15 @@ namespace XCode.Membership
                 sb.Separate(",").Append("{0}={1}".F(fi.Name, v));
             }
 
-            WriteLog(entity.GetType(), action, sb.ToString());
+            var userid = 0;
+            var name = "";
+            if (entity is IManageUser user)
+            {
+                userid = user.ID;
+                name = user + "";
+            }
+
+            WriteLog(entity.GetType(), action, sb.ToString(), userid, name);
         }
 
         /// <summary>是否使用日志</summary>
