@@ -2,7 +2,6 @@
 using NewLife.Caching;
 using NewLife.Model;
 using NewLife.Security;
-using NewLife.Serialization;
 
 namespace NewLife.Web
 {
@@ -78,7 +77,7 @@ namespace NewLife.Web
         {
             var k = "Model:" + key;
             var model = Cache.Get<Model>(k);
-            if (model == null) throw new ArgumentOutOfRangeException(nameof(key));
+            if (model == null) throw new ArgumentOutOfRangeException(nameof(key), "操作超时，请重试！");
 
             Cache.Remove(k);
 

@@ -231,7 +231,6 @@ namespace NewLife.Cube.Controllers
             var user = prov.Current;
             if (user == null) throw new Exception("未登录！");
 
-            //return Login(id, Request.UrlReferrer + "");
             var client = prov.GetClient(id);
             var redirect = prov.GetRedirect(Request, Request.UrlReferrer + "");
             // 附加绑定动作
@@ -352,7 +351,6 @@ namespace NewLife.Cube.Controllers
             var sso = OAuthServer.Instance;
             try
             {
-                //var token = sso.GetToken(code);
                 var rs = Provider.GetAccessToken(sso, code);
 
                 // 返回UserInfo告知客户端可以请求用户信息
@@ -380,10 +378,7 @@ namespace NewLife.Cube.Controllers
             var msg = "";
             try
             {
-                //var username = sso.Decode(access_token);
-
                 user = Provider?.GetUser(sso, access_token);
-                //if (user == null) throw new Exception("用户不存在 " + username);
                 if (user == null) throw new Exception("用户不存在");
 
                 var rs = Provider.GetUserInfo(sso, access_token, user);

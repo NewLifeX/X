@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Web;
+using NewLife.Security;
 using NewLife.Xml;
 
 namespace NewLife.Cube
@@ -90,18 +91,21 @@ namespace NewLife.Cube
         /// <summary>头像目录。设定后下载远程头像到本地</summary>
         [Description("头像目录。设定后下载远程头像到本地")]
         public String AvatarPath { get; set; } = "..\\Avatars";
+
+        ///// <summary>安全密钥。用于加密Cookie等通信内容</summary>
+        //[Description("安全密钥。用于加密Cookie等通信内容")]
+        //public String SecurityKey { get; set; }
         #endregion
 
         #region 方法
         /// <summary>实例化</summary>
-        public Setting()
-        {
-        }
+        public Setting() { }
 
         /// <summary>加载时触发</summary>
         protected override void OnLoaded()
         {
             if (StartPage.IsNullOrEmpty()) StartPage = HttpRuntime.AppDomainAppVirtualPath.EnsureEnd("/") + "Admin/Index/Main";
+            //if (SecurityKey.IsNullOrEmpty()) SecurityKey = Rand.NextString(16);
 
             base.OnLoaded();
         }
