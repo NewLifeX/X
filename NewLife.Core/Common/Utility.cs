@@ -94,6 +94,8 @@ namespace System
     [EditorBrowsable(EditorBrowsableState.Advanced)]
     public class DefaultConvert
     {
+        private static DateTime _dt1970 = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
         /// <summary>转为整数</summary>
         /// <param name="value">待转换对象</param>
         /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
@@ -113,7 +115,15 @@ namespace System
                 if (Int32.TryParse(str, out var n)) return n;
                 return defaultValue;
             }
-            else if (value is Byte[] buf)
+
+            // 特殊处理时间，转Unix秒
+            if (value is DateTime dt)
+            {
+                // 先转UTC时间再相减，以得到绝对时间差
+                return (Int32)(dt.ToUniversalTime() - _dt1970).TotalSeconds;
+            }
+
+            if (value is Byte[] buf)
             {
                 if (buf == null || buf.Length < 1) return defaultValue;
 
@@ -258,6 +268,7 @@ namespace System
             if (value == null || value == DBNull.Value) return defaultValue;
 
             // 特殊处理字符串，也是最常见的
+
             if (value is String str)
             {
                 str = ToDBC(str).Trim();
@@ -269,6 +280,9 @@ namespace System
                 if (DateTime.TryParse(str, out n)) return n;
                 return defaultValue;
             }
+            // 特殊处理整数，Unix秒，UTC绝对时间差，转为当前时间便于使用。
+            if (value is Int32 k) return _dt1970.AddSeconds(k).ToLocalTime();
+            if (value is Int64 m) return _dt1970.AddSeconds(m).ToLocalTime();
 
             try
             {

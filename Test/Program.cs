@@ -213,24 +213,50 @@ namespace Test
 
         static void Test6()
         {
-            var pf = new PerfCounter();
+            var dt = DateTime.Now;
 
-            Task.Factory.StartNew(() =>
-            {
-                for (var i = 0; i < 10000; i++)
-                {
-                    var n = Rand.Next(1500);
-                    pf.Increment(n);
+            Console.WriteLine("{0} {1}", dt, dt.Kind);
+            Console.WriteLine(dt.ToFullString());
 
-                    Thread.Sleep(Rand.Next(10, 300));
-                }
-            });
+            var dt2 = dt.ToUniversalTime();
+            Console.WriteLine("{0} {1}", dt2, dt2.Kind);
+            Console.WriteLine(dt2.ToFullString());
 
-            for (var i = 0; i < 1000; i++)
-            {
-                Console.WriteLine(pf + "");
-                Thread.Sleep(1000);
-            }
+            var ts = dt - dt2;
+            Console.WriteLine(ts);
+
+            var sec = dt.ToInt();
+            Console.WriteLine(sec);
+            dt = sec.ToDateTime();
+            Console.WriteLine("{0} {1}", dt, dt.Kind);
+
+            var sec2 = dt2.ToInt();
+            Console.WriteLine(sec2);
+            dt2 = sec2.ToDateTime();
+            Console.WriteLine("{0} {1}", dt2, dt2.Kind);
+
+            dt2 = dt2.ToUniversalTime();
+            Console.WriteLine("{0} {1}", dt2, dt2.Kind);
+            Console.WriteLine(dt2.ToFullString());
+
+            //var pf = new PerfCounter();
+
+            //Task.Factory.StartNew(() =>
+            //{
+            //    for (var i = 0; i < 10000; i++)
+            //    {
+            //        var n = Rand.Next(1500);
+            //        pf.Increment(n);
+
+            //        Thread.Sleep(Rand.Next(10, 300));
+            //    }
+            //});
+
+            //for (var i = 0; i < 1000; i++)
+            //{
+            //    Console.WriteLine(pf + "");
+            //    Thread.Sleep(1000);
+            //}
         }
 
         static async void Test5()
