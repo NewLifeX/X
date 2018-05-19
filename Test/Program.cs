@@ -3,12 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.MemoryMappedFiles;
-using System.Threading;
-using System.Threading.Tasks;
 using NewLife.Caching;
 using NewLife.Log;
 using NewLife.Net;
-using NewLife.Net.Application;
 using NewLife.Net.Handlers;
 using NewLife.Security;
 using NewLife.Serialization;
@@ -271,50 +268,6 @@ namespace Test
             //    Console.WriteLine(pf + "");
             //    Thread.Sleep(1000);
             //}
-        }
-
-        static async void Test5()
-        {
-            Console.WriteLine("服务端1，客户端2：");
-            if (Console.ReadKey().KeyChar == '1')
-            {
-                var svr = new NetServer(777);
-#if DEBUG
-                svr.Log = XTrace.Log; svr.LogSend = true; svr.LogReceive = true;
-#endif
-                //svr.Add<DefaultCodec>();
-                svr.Add(new LengthFieldCodec { Size = 4 });
-                //svr.Add<BinaryCodec<UserY>>();
-                svr.Add<JsonCodec<UserY>>();
-                svr.Add<EchoHandler>();
-                svr.Start();
-            }
-            else
-            {
-                var client = new NetUri("tcp://127.0.0.1:777").CreateRemote();
-#if DEBUG
-                client.Log = XTrace.Log; client.LogSend = true; client.LogReceive = true;
-#endif
-                //client.Add<DefaultCodec>();
-                client.Add(new LengthFieldCodec { Size = 4 });
-                //client.Add<BinaryCodec<UserY>>();
-                client.Add<JsonCodec<UserY>>();
-                client.Open();
-
-                //client.Send("Stone");
-                var user = new UserY { ID = 0x1234, Name = "Stone", DisplayName = "大石头" };
-                for (var i = 0; i < 3; i++)
-                {
-                    var rs = await client.SendMessageAsync(user) as UserY;
-                    XTrace.WriteLine("{0} {1}", rs.Name, rs.DisplayName);
-                }
-            }
-        }
-        class UserY
-        {
-            public Int32 ID { get; set; }
-            public String Name { get; set; }
-            public String DisplayName { get; set; }
         }
     }
 }
