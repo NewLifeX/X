@@ -138,7 +138,7 @@ namespace NewLife.Threading
         /// <returns></returns>
         public static TimerX Delay(WaitCallback callback, Int32 ms)
         {
-            var timer = new TimerX(callback, null, ms, 0);
+            var timer = new TimerX(callback, null, ms, 0) { Async = true };
             return timer;
         }
 

@@ -31,7 +31,7 @@ namespace Test
                 try
                 {
 #endif
-                Test6();
+                    Test4();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -139,22 +139,28 @@ namespace Test
             var v = Rand.NextBytes(32);
             Console.WriteLine(v.ToBase64());
 
-            ICache ch = new DbCache();
-            ch.Set(key, v);
-            v = ch.Get<Byte[]>(key);
-            Console.WriteLine(v.ToBase64());
-            ch.Remove(key);
+            ICache ch = null;
+            //ICache ch = new DbCache();
+            //ch.Set(key, v);
+            //v = ch.Get<Byte[]>(key);
+            //Console.WriteLine(v.ToBase64());
+            //ch.Remove(key);
 
             Console.Clear();
 
-            Console.Write("选择要测试的缓存：1，MemoryCache；2，DbCache ");
-            if (Console.ReadKey().KeyChar == '2')
+            Console.Write("选择要测试的缓存：1，MemoryCache；2，DbCache；3，Redis ");
+            var select = Console.ReadKey().KeyChar;
+            switch (select)
             {
-
-            }
-            else
-            {
-                ch = new MemoryCache();
+                case '1':
+                    ch = new MemoryCache();
+                    break;
+                case '2':
+                    ch = new DbCache();
+                    break;
+                case '3':
+                    ch = Redis.Create("127.0.0.1", 9);
+                    break;
             }
 
             var mode = false;
@@ -165,109 +171,12 @@ namespace Test
             Console.Clear();
 
             ch.Bench(mode);
-
-            //var buf = Rand.NextBytes(100 * 1024);
-            //var msg = new DefaultMessage { Payload = new Packet(buf) };
-            //var pk = msg.ToPacket();
-            //Console.WriteLine(pk);
-
-            //buf = pk.ToArray();
-            //Console.WriteLine(buf.ToHex("-", 8, 32));
-
-            //var msg2 = new DefaultMessage();
-            //msg2.Read(buf);
-            //Console.WriteLine(msg2);
-
-            //var client = new ApiClient("tcp://127.0.0.1:7788");
-            //client.Log = XTrace.Log;
-            //client.Open();
-            //client.Invoke("Api/Info", "abcd", 3);
-
-            //var ccdc = new CounterCreationDataCollection();
-            //var ccd = new CounterCreationData
-            //{
-            //    CounterName = "示例",
-            //    CounterType = PerformanceCounterType.NumberOfItems32
-            //};
-            //ccdc.Add(ccd);
-
-            //PerformanceCounterCategory.Create("新生命", "新生命项目性能测试示例", PerformanceCounterCategoryType.MultiInstance, ccdc);
-
-            //Task.Run(() => Test6());
-
-            ////var pcc = new PerformanceCounterCategory(".NET CLR Memory");
-            //var p = Process.GetCurrentProcess();
-            ////var instance2 = GetInstanceName(".NET CLR Memory", "Process ID", p);
-            ////var pc = new PerformanceCounter(".NET CLR Memory", "% Time in GC", instance2);
-            //var pc = new PerformanceCounter("新生命", "示例", p.Id + "");
-            ////Console.WriteLine(pc);
-            //for (var i = 0; i < 1000; i++)
-            //{
-            //    Console.Title = $"GC={pc.RawValue:n0}";
-            //    Thread.Sleep(1000);
-            //}
         }
 
         static void Test6()
         {
-            var dt = DateTime.Now;
-
-            Console.WriteLine("{0} {1}", dt, dt.Kind);
-            Console.WriteLine(dt.ToFullString());
-
-            var dt2 = dt.ToUniversalTime();
-            Console.WriteLine("{0} {1}", dt2, dt2.Kind);
-            Console.WriteLine(dt2.ToFullString());
-
-            var ts = dt - dt2;
-            Console.WriteLine(ts);
-
-            Console.WriteLine();
-            var sec = dt.ToInt();
-            Console.WriteLine(sec);
-            dt = sec.ToDateTime();
-            Console.WriteLine("{0} {1}", dt, dt.Kind);
-
-            Console.WriteLine();
-            var sec2 = dt2.ToInt();
-            Console.WriteLine(sec2);
-            dt2 = sec2.ToDateTime();
-            Console.WriteLine("{0} {1}", dt2, dt2.Kind);
-
-            Console.WriteLine();
-            dt2 = dt2.ToUniversalTime();
-            Console.WriteLine("{0} {1}", dt2, dt2.Kind);
-            Console.WriteLine(dt2.ToFullString());
-
-            Console.WriteLine();
-            dt2 = dt2.ToUniversalTime();
-            Console.WriteLine("{0} {1}", dt2, dt2.Kind);
-            Console.WriteLine(dt2.ToFullString());
-
-            Console.WriteLine();
-            dt = new DateTime(2018, 2, 3);
-            Console.WriteLine(dt.Kind);
-            dt = dt.ToLocalTime();
-            Console.WriteLine("{0} {1}", dt, dt.Kind);
-
-            //var pf = new PerfCounter();
-
-            //Task.Factory.StartNew(() =>
-            //{
-            //    for (var i = 0; i < 10000; i++)
-            //    {
-            //        var n = Rand.Next(1500);
-            //        pf.Increment(n);
-
-            //        Thread.Sleep(Rand.Next(10, 300));
-            //    }
-            //});
-
-            //for (var i = 0; i < 1000; i++)
-            //{
-            //    Console.WriteLine(pf + "");
-            //    Thread.Sleep(1000);
-            //}
+            var rds = Redis.Create("127.0.0.1", 3);
+            rds.Bench();
         }
     }
 }
