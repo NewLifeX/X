@@ -114,7 +114,7 @@ namespace NewLife.Caching
         /// <param name="cmd"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        protected virtual Object SendCommand(String cmd, params Byte[][] args)
+        protected virtual Object SendCommand(String cmd, params Packet[] args)
         {
             var isQuit = cmd == "QUIT";
 
@@ -162,7 +162,9 @@ namespace NewLife.Caching
 
                 foreach (var item in args)
                 {
-                    var len = 1 + item.Length.ToString().GetBytes().Length + NewLine.Length * 2 + item.Length;
+                    var size = item.Total;
+                    var sizes = size.ToString().GetBytes();
+                    var len = 1 + sizes.Length + NewLine.Length * 2 + size;
                     // 防止写入内容过长导致的缓冲区长度不足的问题
                     if (ms.Position + len > ms.Length)
                     {
@@ -173,18 +175,19 @@ namespace NewLife.Caching
 
                     if (log != null)
                     {
-                        if (item.Length <= 32)
+                        if (size <= 32)
                             log.AppendFormat(" {0}", item.ToStr());
                         else
-                            log.AppendFormat(" [{0}]", item.Length);
+                            log.AppendFormat(" [{0}]", size);
                     }
 
                     //str = "${0}\r\n".F(item.Length);
                     //ms.Write(str.GetBytes());
                     ms.WriteByte((Byte)'$');
-                    ms.Write(item.Length.ToString().GetBytes());
+                    ms.Write(sizes);
                     ms.Write(NewLine);
-                    ms.Write(item);
+                    //ms.Write(item);
+                    item.WriteTo(ms);
                     ms.Write(NewLine);
 
                     if (ms.Length > 1400)
@@ -428,7 +431,7 @@ namespace NewLife.Caching
         /// <returns></returns>
         public Boolean SetAll<T>(IDictionary<String, T> values)
         {
-            var ps = new List<Byte[]>();
+            var ps = new List<Packet>();
             foreach (var item in values)
             {
                 ps.Add(item.Key.GetBytes());
@@ -463,13 +466,14 @@ namespace NewLife.Caching
         /// <summary>数值转字节数组</summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        protected virtual Byte[] ToBytes(Object value)
+        protected virtual Packet ToBytes(Object value)
         {
             if (value == null) return new Byte[0];
 
-            var type = value.GetType();
-            if (type == typeof(Byte[])) return (Byte[])value;
+            if (value is Packet pk) return pk;
+            if (value is Byte[] buf) return buf;
 
+            var type = value.GetType();
             switch (type.GetTypeCode())
             {
                 case TypeCode.Object: return value.ToJson().GetBytes();
