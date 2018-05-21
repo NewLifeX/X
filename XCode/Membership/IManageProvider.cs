@@ -496,6 +496,7 @@ namespace XCode.Membership
 #endif
         }
 
+#if !__CORE__
         class CookieModel
         {
             #region 属性
@@ -540,6 +541,7 @@ namespace XCode.Membership
             }
             #endregion
         }
+#endif
         #endregion
     }
 }
