@@ -17,7 +17,7 @@ namespace System
         /// <remarks>重载默认提供者<seealso cref="DefaultConvert"/>并赋值给<see cref="Convert"/>可改变所有类型转换的行为</remarks>
         public static DefaultConvert Convert { get; set; } = new DefaultConvert();
 
-        /// <summary>转为整数，转换失败时返回默认值。支持字符串、全角、字节数组（小端）、UTC时间（Unix秒）</summary>
+        /// <summary>转为整数，转换失败时返回默认值。支持字符串、全角、字节数组（小端）、时间（Unix秒）</summary>
         /// <remarks>Int16/UInt32/Int64等，可以先转为最常用的Int32后再二次处理</remarks>
         /// <param name="value">待转换对象</param>
         /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
@@ -94,9 +94,9 @@ namespace System
     [EditorBrowsable(EditorBrowsableState.Advanced)]
     public class DefaultConvert
     {
-        private static DateTime _dt1970 = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        private static DateTime _dt1970 = new DateTime(1970, 1, 1);
 
-        /// <summary>转为整数，转换失败时返回默认值。支持字符串、全角、字节数组（小端）、UTC时间（Unix秒）</summary>
+        /// <summary>转为整数，转换失败时返回默认值。支持字符串、全角、字节数组（小端）、时间（Unix秒）</summary>
         /// <param name="value">待转换对象</param>
         /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
         /// <returns></returns>
@@ -119,8 +119,9 @@ namespace System
             // 特殊处理时间，转Unix秒
             if (value is DateTime dt)
             {
-                // 先转UTC时间再相减，以得到绝对时间差
-                return (Int32)(dt.ToUniversalTime() - _dt1970).TotalSeconds;
+                //// 先转UTC时间再相减，以得到绝对时间差
+                //return (Int32)(dt.ToUniversalTime() - _dt1970).TotalSeconds;
+                return (Int32)(dt - _dt1970).TotalSeconds;
             }
 
             if (value is Byte[] buf)
@@ -280,14 +281,14 @@ namespace System
                 if (DateTime.TryParse(str, out n)) return n;
                 return defaultValue;
             }
-            // 特殊处理整数，Unix秒，UTC绝对时间差，转为当前时间便于使用。
-            if (value is Int32 k) return _dt1970.AddSeconds(k).ToLocalTime();
+            // 特殊处理整数，Unix秒，绝对时间差，不考虑UTC时间和本地时间。
+            if (value is Int32 k) return _dt1970.AddSeconds(k);
             if (value is Int64 m)
             {
                 if (m > 100 * 365 * 24 * 3600L)
-                    return _dt1970.AddMilliseconds(m).ToLocalTime();
+                    return _dt1970.AddMilliseconds(m);
                 else
-                    return _dt1970.AddSeconds(m).ToLocalTime();
+                    return _dt1970.AddSeconds(m);
             }
 
             try

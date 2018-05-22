@@ -301,7 +301,7 @@ namespace System
         //    return new Packet(ms.GetBuffer(), (Int32)ms.Position, len);
         //}
 
-        /// <summary>写入Unix格式时间，1970年以来秒数</summary>
+        /// <summary>写入Unix格式时间，1970年以来秒数，绝对时间，非UTC</summary>
         /// <param name="stream"></param>
         /// <param name="dt"></param>
         /// <returns></returns>
@@ -313,7 +313,7 @@ namespace System
             return stream;
         }
 
-        /// <summary>读取Unix格式时间，1970年以来秒数</summary>
+        /// <summary>读取Unix格式时间，1970年以来秒数，绝对时间，非UTC</summary>
         /// <param name="stream"></param>
         /// <returns></returns>
         public static DateTime ReadDateTime(this Stream stream)
