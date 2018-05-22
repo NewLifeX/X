@@ -150,7 +150,7 @@ namespace NewLife.Remoting
         /// <summary>写日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
-        public virtual void WriteLog(String format, params Object[] args) => Log.Info(format, args);
+        public virtual void WriteLog(String format, params Object[] args) => Log?.Info(format, args);
         #endregion
     }
 }
