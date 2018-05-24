@@ -166,9 +166,10 @@ namespace NewLife.Caching
                     var sizes = size.ToString().GetBytes();
                     var len = 1 + sizes.Length + NewLine.Length * 2 + size;
                     // 防止写入内容过长导致的缓冲区长度不足的问题
-                    if (ms.Position + len > ms.Length)
+                    if (ms.Position + len >= ms.Capacity)
                     {
-                        var ms2 = new MemoryStream();
+                        // 两倍扩容
+                        var ms2 = new MemoryStream(ms.Capacity * 2);
                         ms.WriteTo(ms2);
                         ms = ms2;
                     }
