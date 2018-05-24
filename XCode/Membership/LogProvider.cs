@@ -116,10 +116,7 @@ namespace XCode.Membership
         #endregion
 
         #region 静态属性
-        static LogProvider()
-        {
-            ObjectContainer.Current.AutoRegister<LogProvider, DefaultLogProvider>();
-        }
+        static LogProvider() => ObjectContainer.Current.AutoRegister<LogProvider, DefaultLogProvider>();
 
         private static LogProvider _Provider;
         /// <summary>当前成员提供者</summary>

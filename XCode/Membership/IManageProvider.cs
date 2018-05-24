@@ -349,8 +349,7 @@ namespace XCode.Membership
             var user = provider.GetCurrent(context);
             if (user == null) return;
 
-            var id = user as IIdentity;
-            if (id == null || ctx.User?.Identity == id) return;
+            if (!(user is IIdentity id) || ctx.User?.Identity == id) return;
 
             // 角色列表
             var roles = new List<String>();

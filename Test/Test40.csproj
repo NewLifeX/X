@@ -5,13 +5,14 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{6740B4CD-B2F6-49DF-BDA0-7DC17144C666}</ProjectGuid>
+    <ProjectGuid>{0CFB8FB7-7D90-43D1-B67A-C7912DAD0F9B}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Test</RootNamespace>
     <AssemblyName>Test</AssemblyName>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <BaseIntermediateOutputPath>obj4\</BaseIntermediateOutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -64,11 +65,11 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NewLife.Core\NewLife.Core40.csproj">
-      <Project>{5813c22e-eeb3-4dee-a45c-bb218041193a}</Project>
+      <Project>{8363fb2d-12ab-430e-89b0-b576c149c16d}</Project>
       <Name>NewLife.Core40</Name>
     </ProjectReference>
     <ProjectReference Include="..\XCode\XCode40.csproj">
-      <Project>{b49aba5a-c5da-45f4-87f1-b435ec51d710}</Project>
+      <Project>{660733a3-04a3-451b-a6ef-5d7c89e1ab31}</Project>
       <Name>XCode40</Name>
     </ProjectReference>
   </ItemGroup>
