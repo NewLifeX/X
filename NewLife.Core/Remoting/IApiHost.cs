@@ -154,7 +154,7 @@ namespace NewLife.Remoting
 
             // 参数或结果
             var pk2 = value as Packet;
-            if (pk2 != null)
+            if (pk2 != null && pk2.Data != null)
             {
                 var len = pk2.Total;
 
@@ -163,7 +163,7 @@ namespace NewLife.Remoting
             }
 
             var pk = new Packet(ms.GetBuffer(), 8, (Int32)ms.Length - 8);
-            if (pk2 != null) pk.Next = pk2;
+            if (pk2 != null && pk2.Data != null) pk.Next = pk2;
 
             return pk;
         }

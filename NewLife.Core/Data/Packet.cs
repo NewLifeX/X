@@ -234,7 +234,7 @@ namespace NewLife.Data
                 // 当前包不够用
                 if (len < offset)
                     offset -= len;
-                else
+                else if (cur.Data != null)
                 {
                     len -= offset;
                     if (len > count) len = count;
@@ -353,7 +353,7 @@ namespace NewLife.Data
         /// <summary>重载类型转换，字节数组直接转为Packet对象</summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static implicit operator Packet(Byte[] value) => new Packet(value);
+        public static implicit operator Packet(Byte[] value) => value == null ? null : new Packet(value);
 
         /// <summary>重载类型转换，一维数组直接转为Packet对象</summary>
         /// <param name="value"></param>
