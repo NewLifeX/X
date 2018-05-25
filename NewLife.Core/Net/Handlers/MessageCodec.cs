@@ -142,7 +142,7 @@ namespace NewLife.Net.Handlers
                 while (idx < pk.Total)
                 {
                     //var pk2 = new Packet(pk.Data, pk.Offset + idx, pk.Total - idx);
-                    var pk2 = pk.Sub(idx);
+                    var pk2 = pk.Slice(idx);
                     var len = getLength(pk2);
                     if (len <= 0 || len > pk2.Count) break;
 
@@ -156,7 +156,7 @@ namespace NewLife.Net.Handlers
 
                 // 剩下的
                 //pk = new Packet(pk.Data, pk.Offset + idx, pk.Total - idx);
-                pk = pk.Sub(idx);
+                pk = pk.Slice(idx);
             }
 
             if (_ms == null) codec.Stream = _ms = new MemoryStream();

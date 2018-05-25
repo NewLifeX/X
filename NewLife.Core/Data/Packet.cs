@@ -115,7 +115,7 @@ namespace NewLife.Data
         /// <param name="offset">相对偏移</param>
         /// <param name="count">字节个数</param>
         /// <returns></returns>
-        public Packet Sub(Int32 offset, Int32 count = -1)
+        public Packet Slice(Int32 offset, Int32 count = -1)
         {
             var start = Offset + offset;
             var remain = Count - offset;
@@ -131,7 +131,7 @@ namespace NewLife.Data
             else
             {
                 // 如果当前段用完，则取下一段
-                if (remain <= 0) return Next.Sub(offset - Count, count);
+                if (remain <= 0) return Next.Slice(offset - Count, count);
 
                 // 当前包用一截，剩下的全部
                 if (count < 0) return new Packet(Data, start, remain) { Next = Next };
@@ -140,7 +140,7 @@ namespace NewLife.Data
                 if (count <= remain) return new Packet(Data, start, count);
 
                 // 当前包用一截，剩下的再截取
-                return new Packet(Data, start, remain) { Next = Next.Sub(0, count - remain) };
+                return new Packet(Data, start, remain) { Next = Next.Slice(0, count - remain) };
             }
         }
 

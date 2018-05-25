@@ -208,7 +208,7 @@ namespace NewLife.Remoting
             if (ms.Length > ms.Position)
             {
                 var len = reader.ReadInt32();
-                if (len > 0) value = msg.Payload.Sub((Int32)ms.Position, len);
+                if (len > 0) value = msg.Payload.Slice((Int32)ms.Position, len);
             }
 
             return true;
