@@ -319,15 +319,20 @@ namespace NewLife.Data
 
         /// <summary>以字符串表示</summary>
         /// <param name="encoding">字符串编码，默认URF-8</param>
+        /// <param name="offset"></param>
+        /// <param name="count"></param>
         /// <returns></returns>
-        public String ToStr(Encoding encoding = null)
+        public String ToStr(Encoding encoding = null, Int32 offset = 0, Int32 count = -1)
         {
             if (Data == null) return null;
             //if (Count == 0) return String.Empty;
 
-            if (Next == null) return Data.ToStr(encoding ?? Encoding.UTF8, Offset, Count);
+            if (encoding == null) encoding = Encoding.UTF8;
+            if (count < 0) count = Total - offset;
 
-            return ToArray().ToStr(encoding ?? Encoding.UTF8);
+            if (Next == null) return Data.ToStr(encoding, Offset + offset, count);
+
+            return ReadBytes(offset, count).ToStr(encoding);
         }
 
         /// <summary>以十六进制编码表示</summary>
