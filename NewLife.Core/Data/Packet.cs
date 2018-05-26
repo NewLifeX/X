@@ -99,17 +99,17 @@ namespace NewLife.Data
             }
         }
 
-        /// <summary>设置子数据区</summary>
-        /// <param name="offset">相对偏移</param>
-        /// <param name="count">字节个数</param>
-        public virtual void SetSub(Int32 offset, Int32 count = -1)
-        {
-            Offset += offset;
+        ///// <summary>设置子数据区</summary>
+        ///// <param name="offset">相对偏移</param>
+        ///// <param name="count">字节个数</param>
+        //public virtual void SetSub(Int32 offset, Int32 count = -1)
+        //{
+        //    Offset += offset;
 
-            if (count < 0) count = Count - offset;
-            if (count < 0) count = Data.Length - Offset;
-            Count = count;
-        }
+        //    if (count < 0) count = Count - offset;
+        //    if (count < 0) count = Data.Length - Offset;
+        //    Count = count;
+        //}
 
         /// <summary>截取子数据区</summary>
         /// <param name="offset">相对偏移</param>
