@@ -230,7 +230,13 @@ namespace XCode.DataAccessLayer
                 else
                     value = value.ToBoolean() ? 1 : 0;
 
-                type = typeof(Int32);
+                //type = typeof(Int32);
+                var dp2 = Factory.CreateParameter();
+                dp2.ParameterName = FormatParameterName(name);
+                dp2.Direction = ParameterDirection.Input;
+                dp2.DbType = DbType.Int32;
+                dp2.Value = value;
+                return dp2;
             }
 
             var dp = base.CreateParameter(name, value, field);
