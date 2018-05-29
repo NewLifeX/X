@@ -80,7 +80,7 @@ namespace NewLife.Security
             return this;
         }
 
-        /// <summary>添加字节数组进行校验</summary>
+        /// <summary>添加字节数组进行校验  CRC16-CCITT x16+x12+x5+1 1021  ISO HDLC, ITU X.25, V.34/V.41/V.42, PPP-FCS</summary>
         /// <param name = "buffer">
         /// The buffer which contains the data
         /// </param>
@@ -112,7 +112,7 @@ namespace NewLife.Security
             return this;
         }
 
-        /// <summary>添加数据流进行校验</summary>
+        /// <summary>添加数据流进行校验  CRC-16 x16+x15+x2+1 8005 IBM SDLC</summary>
         /// <param name="stream"></param>
         /// <param name="count">数量</param>
         public Crc16 Update(Stream stream, Int64 count = -1)
