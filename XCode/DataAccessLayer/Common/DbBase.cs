@@ -186,6 +186,10 @@ namespace XCode.DataAccessLayer
             if (builder.TryGetAndRemove(nameof(TablePrefix), out value) && !value.IsNullOrEmpty()) TablePrefix = value;
             if (builder.TryGetAndRemove(nameof(Readonly), out value) && !value.IsNullOrEmpty()) Readonly = value.ToBoolean();
 
+            // 连接字符串去掉provider，可能有些数据库不支持这个属性
+            if (builder.TryGetAndRemove("provider", out value) && !value.IsNullOrEmpty()){}
+
+
             // 数据库名称
             var db = builder["Database"];
             if (db.IsNullOrEmpty()) db = builder["Initial Catalog"];
