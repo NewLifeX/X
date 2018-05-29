@@ -73,10 +73,27 @@ namespace XCode.DataAccessLayer
         public static Type GetProviderType(String connStr, String provider)
         {
             var ioc = XCodeService.Container;
+
+            var iDatabases = ioc.ResolveAll(typeof(IDatabase));
+
+            // 尝试从连接字符串获取优先提供者
+            if (!connStr.IsNullOrWhiteSpace())
+            {
+                var dic = connStr.SplitAsDictionary("=", ";");
+                var finstProvider = dic["provider"];
+                if (finstProvider!=null)
+                {
+                    foreach (var item in iDatabases)
+                    {
+                        if (item.Instance is IDatabase db && db.Support(finstProvider)) return item.Type;
+                    }
+                }
+            }
+
             if (!provider.IsNullOrEmpty())
             {
                 var n = 0;
-                foreach (var item in ioc.ResolveAll(typeof(IDatabase)))
+                foreach (var item in iDatabases)
                 {
                     n++;
                     if ("" + item.Identity == "") continue;
