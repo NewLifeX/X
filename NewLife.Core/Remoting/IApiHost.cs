@@ -70,8 +70,16 @@ namespace NewLife.Remoting
             var msg = new DefaultMessage { Payload = pk, };
             if (flag > 0) msg.Flag = flag;
 
-            var rs = await session.SendAsync(msg);
-            if (rs == null) return null;
+            IMessage rs = null;
+            try
+            {
+                rs = await session.SendAsync(msg);
+                if (rs == null) return null;
+            }
+            catch (TaskCanceledException ex)
+            {
+                throw new TimeoutException($"请求[{action}]超时！", ex);
+            }
 
             // 特殊返回类型
             if (resultType == typeof(IMessage)) return rs;

@@ -115,7 +115,7 @@ namespace NewLife.Web
         {
             var k = "Code:" + code;
             var model = Cache.Get<Model>(k);
-            if (model == null) throw new ArgumentOutOfRangeException(nameof(code));
+            if (model == null) throw new ArgumentOutOfRangeException(nameof(code), "Code已过期！");
 
             if (Log != null) WriteLog("Token appid={0} code={1} token={2} {3}", model.AppID, code, model.Token, model.User);
 

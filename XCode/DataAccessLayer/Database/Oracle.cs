@@ -226,7 +226,7 @@ namespace XCode.DataAccessLayer
             if (type == typeof(Boolean))
             {
                 if (value is IEnumerable<Object> list)
-                    value = (value as IEnumerable<Object>).Select(e => e.ToBoolean() ? 1 : 0).ToArray();
+                    value = list.Select(e => e.ToBoolean() ? 1 : 0).ToArray();
                 else
                     value = value.ToBoolean() ? 1 : 0;
 

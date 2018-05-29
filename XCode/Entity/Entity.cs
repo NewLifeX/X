@@ -1373,7 +1373,7 @@ namespace XCode
         /// <param name="find">查找函数</param>
         /// <param name="create">创建对象</param>
         /// <returns></returns>
-        protected static TEntity GetOrAdd<TKey>(TKey key, Func<TKey, Boolean, TEntity> find = null, Func<TKey, TEntity> create = null)
+        public static TEntity GetOrAdd<TKey>(TKey key, Func<TKey, Boolean, TEntity> find = null, Func<TKey, TEntity> create = null)
         {
             if (key == null) return null;
 
@@ -1386,7 +1386,7 @@ namespace XCode
                 else
                 {
                     entity = new TEntity();
-                    entity[Meta.Factory.Unique.Name] = key;
+                    entity.SetItem(Meta.Factory.Unique.Name, key);
                 }
 
                 // 插入失败时，再次查询
