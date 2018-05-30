@@ -602,6 +602,16 @@ namespace XCode
             return Dal.Select(builder, startRowIndex, maximumRows);
         }
 
+        /// <summary>执行SQL查询，返回记录集</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <returns></returns>
+        public virtual DataSet Query(String sql)
+        {
+            InitData();
+
+            return Dal.Select(sql);
+        }
+
         /// <summary>查询记录数</summary>
         /// <param name="builder">查询生成器</param>
         /// <returns>记录数</returns>
@@ -610,6 +620,16 @@ namespace XCode
             InitData();
 
             return Dal.SelectCount(builder);
+        }
+
+        /// <summary>查询记录数</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <returns></returns>
+        public virtual Int32 QueryCount(String sql)
+        {
+            InitData();
+
+            return Dal.SelectCount(sql);
         }
 
         /// <summary>执行</summary>

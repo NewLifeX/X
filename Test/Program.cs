@@ -10,6 +10,7 @@ using NewLife.Net.Handlers;
 using NewLife.Security;
 using NewLife.Serialization;
 using XCode.DataAccessLayer;
+using XCode.Membership;
 
 namespace Test
 {
@@ -31,7 +32,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test6();
+                    Test7();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -191,6 +192,22 @@ namespace Test
             ts = dt - _dt1970;
             n = (Int32)ts.TotalSeconds;
             Console.WriteLine(n);
+        }
+
+        static void Test7()
+        {
+            //new UserOnline()
+            //{
+            //    Name = "Test",
+            //}.Save();
+            var list = UserOnline.FindAll("select * from UserOnline");
+            var count = UserOnline.FindCount("select * from UserOnline");
+            Console.WriteLine(list.Count + "  " + count);
+
+            var dataset = UserOnline.Meta.Session.Query("select * from UserOnline");
+
+            //var n = UserX.Meta.Count;
+            //Console.WriteLine(n);
         }
     }
 }
