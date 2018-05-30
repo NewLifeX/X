@@ -160,8 +160,8 @@ namespace XCode
         {
             if (Meta.Table.DataTable.InsertOnly)
             {
-                if (isnew == null) throw new XCodeException("只写的日志型数据禁止删除！");
-                if (!isnew.Value) throw new XCodeException("只写的日志型数据禁止修改！");
+                if (isnew == null) throw new XCodeException($"只写的日志型数据[{Meta.ThisType.FullName}]禁止删除！");
+                if (!isnew.Value) throw new XCodeException($"只写的日志型数据[{Meta.ThisType.FullName}]禁止修改！");
             }
 
             //using (var trans = new EntityTransaction<TEntity>())
