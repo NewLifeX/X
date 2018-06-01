@@ -69,6 +69,17 @@ namespace XCode.DataAccessLayer
             return (Int32)Session.QueryCount(sb);
         }
 
+        /// <summary>执行SQL查询，返回总记录数</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <returns></returns>
+        public Int32 SelectCount(String sql)
+        {
+            CheckBeforeUseDatabase();
+
+            Interlocked.Increment(ref _QueryTimes);
+            return (Int32)Session.QueryCount(sql);
+        }
+
         /// <summary>执行SQL语句，返回受影响的行数</summary>
         /// <param name="sql">SQL语句</param>
         /// <returns></returns>

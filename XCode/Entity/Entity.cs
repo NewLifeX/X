@@ -764,6 +764,16 @@ namespace XCode
             else
                 return FindAll(where, orderby, selects, (page.PageIndex - 1) * page.PageSize, page.PageSize);
         }
+
+        /// <summary>执行SQl获取数据集</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <returns>实体集</returns>
+        public static IList<TEntity> FindAll(String sql)
+        {
+            var session = Meta.Session;
+
+            return LoadData(session.Query(sql));
+        }
         #endregion
 
         #region 缓存查询
@@ -832,6 +842,15 @@ namespace XCode
             if (!builder.GroupBy.IsNullOrEmpty()) builder.Column = selects;
 
             return session.QueryCount(builder);
+        }
+
+        /// <summary>执行SQL返回总记录数</summary>
+        /// <returns>总行数</returns>
+        public static Int32 FindCount(String sql)
+        {
+            var session = Meta.Session;
+
+            return session.QueryCount(sql);
         }
         #endregion
 

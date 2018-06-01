@@ -76,6 +76,15 @@ namespace NewLife.Remoting
                 rs = await session.SendAsync(msg);
                 if (rs == null) return null;
             }
+            catch (AggregateException aggex)
+            {
+                var ex = aggex.GetTrue();
+                if (ex is TaskCanceledException)
+                {
+                    throw new TimeoutException($"请求[{action}]超时！", ex);
+                }
+                throw aggex;
+            }
             catch (TaskCanceledException ex)
             {
                 throw new TimeoutException($"请求[{action}]超时！", ex);

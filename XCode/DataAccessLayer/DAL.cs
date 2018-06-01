@@ -160,7 +160,9 @@ namespace XCode.DataAccessLayer
                         }
                     }
 
-                    var settings = "appsettings.json".GetFullPath();
+                    //var settings = "appsettings.json".GetFullPath();
+                    //根据当前程序执行目录而不是当前dll/exe所在目录来获取appsettings.json文件，避免将appsettings.json的操作改成复制到输出目录
+                    var settings = Directory.GetCurrentDirectory() + "/appsettings.json";
                     if (File.Exists(settings))
                     {
                         // 读取配置文件
