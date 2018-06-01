@@ -6,6 +6,16 @@ using NewLife.Threading;
 
 namespace NewLife.Log
 {
+    ///// <summary>性能计数类型</summary>
+    //public enum PerfType
+    //{
+    //    /// <summary>值的速度</summary>
+    //    ValueSpeed = 1,
+
+    //    /// <summary>次数的速度</summary>
+    //    TimesSpeed = 2,
+    //}
+
     /// <summary>性能计数器</summary>
     public class PerfCounter : DisposeBase, ICounter
     {
