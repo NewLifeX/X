@@ -187,7 +187,7 @@ namespace XCode.DataAccessLayer
             if (builder.TryGetAndRemove(nameof(Readonly), out value) && !value.IsNullOrEmpty()) Readonly = value.ToBoolean();
 
             // 连接字符串去掉provider，可能有些数据库不支持这个属性
-            if (builder.TryGetAndRemove("provider", out value) && !value.IsNullOrEmpty()){}
+            if (builder.TryGetAndRemove("provider", out value) && !value.IsNullOrEmpty()) { }
 
 
             // 数据库名称
@@ -598,12 +598,10 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        /// <summary>
-        /// 是否保留字
-        /// </summary>
+        /// <summary>是否保留字</summary>
         /// <param name="word"></param>
         /// <returns></returns>
-        internal Boolean IsReservedWord(String word) => !String.IsNullOrEmpty(word) && ReservedWords.ContainsKey(word);
+        internal Boolean IsReservedWord(String word) => !word.IsNullOrEmpty() && ReservedWords.ContainsKey(word);
 
         /// <summary>格式化时间为SQL字符串</summary>
         /// <remarks>
@@ -624,7 +622,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual String FormatName(String name)
         {
-            if (String.IsNullOrEmpty(name)) return name;
+            if (name.IsNullOrEmpty()) return name;
 
             // 优先使用内置关键字
             var rws = ReservedWords;
@@ -720,12 +718,10 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual String FormatParameterName(String name)
         {
-            if (String.IsNullOrEmpty(name)) return name;
+            if (name.IsNullOrEmpty()) return name;
 
-            //DbMetaData md = CreateMetaData() as DbMetaData;
-            //if (md != null) name = md.ParamPrefix + name;
-
-            //return name;
+            // 如果参数名是关键字，统一加前缀
+            if (IsReservedWord(name)) name = "_" + name;
 
             return ParamPrefix + name;
         }
