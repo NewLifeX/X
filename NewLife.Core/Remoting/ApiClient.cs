@@ -25,6 +25,9 @@ namespace NewLife.Remoting
 
         /// <summary>所有服务器所有会话，包含自己</summary>
         IApiSession[] IApiSession.AllSessions => new IApiSession[] { this };
+
+        /// <summary>调用超时时间。默认30_000ms</summary>
+        public Int32 Timeout { get; set; } = 30_000;
         #endregion
 
         #region 构造
@@ -99,8 +102,7 @@ namespace NewLife.Remoting
 
             var ct = Client = nu.CreateRemote();
             ct.Log = Log;
-            ct.Add(new StandardCodec { UserPacket = false });
-            //ct.Add<JsonCodec2>();
+            ct.Add(new StandardCodec { Timeout = Timeout, UserPacket = false });
 
             return true;
         }
