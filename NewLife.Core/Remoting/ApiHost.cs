@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using NewLife.Collections;
 using NewLife.Data;
@@ -79,9 +80,20 @@ namespace NewLife.Remoting
         {
             if (msg.Reply) return null;
 
-            StatReceive?.Increment();
-
-            return OnProcess(session, msg);
+            //StatReceive?.Increment();
+            var sw = StatReceive == null ? null : Stopwatch.StartNew();
+            try
+            {
+                return OnProcess(session, msg);
+            }
+            finally
+            {
+                if (sw != null)
+                {
+                    sw.Stop();
+                    StatReceive?.Increment(sw.ElapsedMilliseconds);
+                }
+            }
         }
 
         private IMessage OnProcess(IApiSession session, IMessage msg)

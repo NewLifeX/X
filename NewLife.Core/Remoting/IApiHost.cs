@@ -60,6 +60,7 @@ namespace NewLife.Remoting
         {
             if (session == null) return null;
 
+            // 性能计数器，次数、TPS、平均耗时
             host.StatSend?.Increment();
 
             // 编码请求
@@ -241,8 +242,10 @@ namespace NewLife.Remoting
             if (host == null) return null;
 
             var sb = new StringBuilder();
-            if (host.StatSend.Value > 0) sb.AppendFormat("请求：{0} ", host.StatSend);
-            if (host.StatReceive.Value > 0) sb.AppendFormat("处理：{0} ", host.StatReceive);
+            var pf1 = host.StatSend;
+            var pf2 = host.StatReceive;
+            if (pf1 != null && pf1.Value > 0) sb.AppendFormat("请求：{0} ", pf1);
+            if (pf2 != null && pf2.Value > 0) sb.AppendFormat("处理：{0} ", pf2);
 
             if (host is ApiServer svr && svr.Server is NetServer ns)
                 sb.Append(ns.GetStat());

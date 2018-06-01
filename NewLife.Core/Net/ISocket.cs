@@ -146,7 +146,7 @@ namespace NewLife.Net
         {
             if (!(counter is PerfCounter pf)) return null;
 
-            return "{0:n0}/{1}/{2}".F(pf.Times, Utility.Convert.ToGMK(pf.Max, "{0:n1}"), Utility.Convert.ToGMK(pf.Speed, "{0:n1}"));
+            return "{0:n0}/{1}/{2}".F(pf.Times, Utility.Convert.ToGMK(pf.Max, "{0:n1}"), Utility.Convert.ToGMK(pf.Current, "{0:n1}"));
         }
         #endregion
 
