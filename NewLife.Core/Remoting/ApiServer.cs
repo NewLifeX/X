@@ -46,7 +46,7 @@ namespace NewLife.Remoting
         #region 启动停止
         /// <summary>添加服务器</summary>
         /// <param name="port"></param>
-        public IApiServer Use(Int32 port) => Use(new NetUri(NetType.Unknown, "", port));
+        public IApiServer Use(Int32 port) => Use(new NetUri(NetType.Unknown, "*", port));
 
         /// <summary>添加服务器</summary>
         /// <param name="uri"></param>
@@ -79,7 +79,7 @@ namespace NewLife.Remoting
             if (svr.Handler == null) svr.Handler = Handler;
             if (svr.Encoder == null) svr.Encoder = Encoder;
             svr.Host = this;
-            //svr.Log = Log;
+            svr.Log = Log;
             svr.Start();
 
             ShowService();
