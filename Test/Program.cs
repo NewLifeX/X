@@ -7,6 +7,7 @@ using NewLife.Caching;
 using NewLife.Log;
 using NewLife.Net;
 using NewLife.Net.Handlers;
+using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
 using XCode.DataAccessLayer;
@@ -32,7 +33,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test7();
+                    Test5();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -172,6 +173,15 @@ namespace Test
             Console.Clear();
 
             ch.Bench(mode);
+        }
+
+        static void Test5()
+        {
+            var svr = new ApiServer(3344);
+            svr.Log = XTrace.Log;
+            svr.Start();
+
+            Console.ReadKey(true);
         }
 
         static void Test6()

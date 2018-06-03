@@ -81,7 +81,8 @@ namespace NewLife.Remoting
             if (msg.Reply) return null;
 
             //StatReceive?.Increment();
-            var sw = StatReceive == null ? null : Stopwatch.StartNew();
+            var st = StatReceive;
+            var sw = st == null ? null : Stopwatch.StartNew();
             try
             {
                 return OnProcess(session, msg);
@@ -91,7 +92,7 @@ namespace NewLife.Remoting
                 if (sw != null)
                 {
                     sw.Stop();
-                    StatReceive?.Increment(sw.ElapsedMilliseconds);
+                    StatReceive?.Increment(1, sw.ElapsedMilliseconds);
                 }
             }
         }

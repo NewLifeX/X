@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -61,7 +62,8 @@ namespace NewLife.Remoting
             if (session == null) return null;
 
             // 性能计数器，次数、TPS、平均耗时
-            host.StatSend?.Increment();
+            //host.StatSend?.Increment();
+            var st = host.StatSend;
 
             // 编码请求
             var enc = host.Encoder;
@@ -71,6 +73,7 @@ namespace NewLife.Remoting
             var msg = new DefaultMessage { Payload = pk, };
             if (flag > 0) msg.Flag = flag;
 
+            var sw = st == null ? null : Stopwatch.StartNew();
             IMessage rs = null;
             try
             {
@@ -89,6 +92,14 @@ namespace NewLife.Remoting
             catch (TaskCanceledException ex)
             {
                 throw new TimeoutException($"请求[{action}]超时！", ex);
+            }
+            finally
+            {
+                if (sw != null)
+                {
+                    sw.Stop();
+                    st?.Increment(1, sw.ElapsedMilliseconds);
+                }
             }
 
             // 特殊返回类型
@@ -122,7 +133,9 @@ namespace NewLife.Remoting
         {
             if (session == null) return false;
 
-            host.StatSend?.Increment();
+            // 性能计数器，次数、TPS、平均耗时
+            //host.StatSend?.Increment();
+            var st = host.StatSend;
 
             // 编码请求
             var pk = EncodeArgs(host.Encoder, action, args);
@@ -135,7 +148,19 @@ namespace NewLife.Remoting
             };
             if (flag > 0) msg.Flag = flag;
 
-            return session.Send(msg);
+            var sw = st == null ? null : Stopwatch.StartNew();
+            try
+            {
+                return session.Send(msg);
+            }
+            finally
+            {
+                if (sw != null)
+                {
+                    sw.Stop();
+                    st?.Increment(1, sw.ElapsedMilliseconds);
+                }
+            }
         }
 
         /// <summary>创建控制器实例</summary>
