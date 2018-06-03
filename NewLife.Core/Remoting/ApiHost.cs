@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using NewLife.Collections;
 using NewLife.Data;
@@ -82,18 +81,16 @@ namespace NewLife.Remoting
 
             //StatReceive?.Increment();
             var st = StatReceive;
-            var sw = st == null ? null : Stopwatch.StartNew();
+            //var sw = st == null ? 0 : Stopwatch.GetTimestamp();
+            var sw = st.StartCount();
             try
             {
                 return OnProcess(session, msg);
             }
             finally
             {
-                if (sw != null)
-                {
-                    sw.Stop();
-                    StatReceive?.Increment(1, sw.ElapsedMilliseconds);
-                }
+                //if (st != null) st.Increment(1, (Stopwatch.GetTimestamp() - sw) / 10);
+                st.StopCount(sw);
             }
         }
 

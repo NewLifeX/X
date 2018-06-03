@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.MemoryMappedFiles;
+using System.Threading;
 using NewLife.Caching;
 using NewLife.Log;
 using NewLife.Net;
@@ -181,7 +182,12 @@ namespace Test
             svr.Log = XTrace.Log;
             svr.Start();
 
-            Console.ReadKey(true);
+            //Console.ReadKey(true);
+            while (true)
+            {
+                Thread.Sleep(500);
+                Console.Title = svr.GetStat();
+            }
         }
 
         static void Test6()

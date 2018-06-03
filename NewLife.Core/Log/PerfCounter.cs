@@ -6,28 +6,12 @@ using NewLife.Threading;
 
 namespace NewLife.Log
 {
-    ///// <summary>性能计数类型</summary>
-    //public enum PerfType
-    //{
-    //    /// <summary>值的速度</summary>
-    //    ValueSpeed = 1,
-
-    //    /// <summary>次数的速度</summary>
-    //    TimesSpeed = 2,
-
-    //    /// <summary>平均计时器，用于计算平均耗时</summary>
-    //    AverageTimer = 3,
-    //}
-
     /// <summary>性能计数器。次数、TPS、平均耗时</summary>
     public class PerfCounter : DisposeBase, ICounter
     {
         #region 属性
         /// <summary>是否启用。默认true</summary>
         public Boolean Enable { get; set; } = true;
-
-        ///// <summary>性能类型</summary>
-        //public PerfType Type { get; set; }
 
         private Int64 _Value;
         /// <summary>数值</summary>
@@ -37,7 +21,7 @@ namespace NewLife.Log
         /// <summary>次数</summary>
         public Int64 Times => _Times;
 
-        /// <summary>耗时，单位ms</summary>
+        /// <summary>耗时，单位us</summary>
         private Int64 _TotalCost;
         #endregion
 
@@ -55,15 +39,15 @@ namespace NewLife.Log
         #region 核心方法
         /// <summary>增加</summary>
         /// <param name="value">增加的数量</param>
-        /// <param name="msCost">耗时，单位ms</param>
-        public void Increment(Int64 value, Int64 msCost)
+        /// <param name="usCost">耗时，单位us</param>
+        public void Increment(Int64 value, Int64 usCost)
         {
             if (!Enable) return;
 
             // 累加总次数和总数值
             Interlocked.Add(ref _Value, value);
             Interlocked.Increment(ref _Times);
-            if (msCost > 0) Interlocked.Add(ref _TotalCost, msCost);
+            if (usCost > 0) Interlocked.Add(ref _TotalCost, usCost);
 
             if (_Timer == null)
             {
@@ -88,10 +72,10 @@ namespace NewLife.Log
         /// <summary>最大速度</summary>
         public Int64 MaxSpeed => _quSpeed.Max();
 
-        /// <summary>最后一个采样周期的平均耗时，单位ms</summary>
+        /// <summary>最后一个采样周期的平均耗时，单位us</summary>
         public Int64 Cost { get; private set; }
 
-        /// <summary>持续采样时间内的最大平均耗时，单位ms</summary>
+        /// <summary>持续采样时间内的最大平均耗时，单位us</summary>
         public Int64 MaxCost => _quCost.Max();
 
         private Int64[] _quSpeed = new Int64[60];
@@ -114,7 +98,7 @@ namespace NewLife.Log
             if (_quSpeed.Length != len) _quSpeed = new Int64[len];
             if (_quCost.Length != len) _quCost = new Int64[len];
 
-            // 计算速度和耗时
+            // 计算速度
             var sp = 0L;
             var cc = 0L;
             if (_sw == null)
@@ -124,15 +108,16 @@ namespace NewLife.Log
                 var ms = _sw.Elapsed.TotalMilliseconds;
                 _sw.Restart();
 
-                //var last = (_queueIndex < 0 || _queueIndex >= _quSpeed.Length) ? 0 : _quSpeed[_queueIndex];
                 sp = (Int64)((Value - _LastValue) * 1000 / ms);
-
-                // 本周期内的总耗时除以总次数，得到本周期平均耗时
-                var ts = Times - _LastTimes;
-                cc = ts == 0 ? Cost : ((_TotalCost - _LastCost) / ts);
             }
 
             _LastValue = Value;
+
+            // 计算本周期平均耗时
+            // 本周期内的总耗时除以总次数，得到本周期平均耗时
+            var ts = Times - _LastTimes;
+            cc = ts == 0 ? Cost : ((_TotalCost - _LastCost) / ts);
+
             _LastTimes = Times;
             _LastCost = _TotalCost;
 
@@ -140,7 +125,6 @@ namespace NewLife.Log
             Cost = cc;
 
             // 进入队列
-            //var len = _quSpeed.Length;
             _queueIndex++;
             if (_queueIndex < 0 || _queueIndex >= len) _queueIndex = 0;
             _quSpeed[_queueIndex] = sp;
@@ -149,35 +133,16 @@ namespace NewLife.Log
         #endregion
 
         #region 辅助
-        //private Stopwatch _sw;
-        ////private Int64 _Last;
-        //private Int64 GetSpeed(Int64 val)
-        //{
-        //    // 计算速度
-        //    var sp = 0L;
-        //    if (_sw == null)
-        //        _sw = Stopwatch.StartNew();
-        //    else
-        //    {
-        //        var ms = _sw.Elapsed.TotalMilliseconds;
-        //        _sw.Restart();
-
-        //        var last = (_queueIndex < 0 || _queueIndex >= _quSpeed.Length) ? 0 : _quSpeed[_queueIndex];
-        //        sp = (Int64)((val - last) * 1000 / ms);
-        //    }
-        //    //_Last = val;
-
-        //    return sp;
-        //}
-
         /// <summary>已重载。输出统计信息</summary>
         /// <returns></returns>
         public override String ToString()
         {
+            if (Cost >= 1000)
+                return "{0:n0}/{1:n0}/{2:n0}tps/{3:n0}/{4:n0}ms".F(Times, MaxSpeed, Speed, MaxCost / 1000, Cost / 1000);
             if (Cost > 0)
-                return "{0:n0}/{1:n0}/{2:n0}/{3:n0}/{4:n0}".F(Times, MaxSpeed, Speed, MaxCost, Cost);
+                return "{0:n0}/{1:n0}/{2:n0}tps/{3:n0}/{4:n0}us".F(Times, MaxSpeed, Speed, MaxCost, Cost);
             else
-                return "{0:n0}/{1:n0}/{2:n0}".F(Times, MaxSpeed, Speed);
+                return "{0:n0}/{1:n0}/{2:n0}tps".F(Times, MaxSpeed, Speed);
         }
         #endregion
     }
