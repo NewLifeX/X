@@ -1,5 +1,9 @@
 新生命团队基础框架X组件，包括`网络、数据库、安全、多线程、反射、序列化、模版引擎、服务代理、远程过程调用`等模块，包括`Mvc后台魔方、码神工具、消息队列`等子系统，支持`Mono/Android/iOS/NetStandard`。
 
+### netstandard 2.0 支持情况  
+NewLife.Core 支持！  
+XCode 支持 SqlServer、MySql、SQLite  
+
 #### 新生命开发团队  
 网站：http://www.NewLifeX.com  
 博客：https://nnhy.cnblogs.com  
