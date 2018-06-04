@@ -249,20 +249,20 @@ namespace NewLife.Net
             return true;
         }
 
-        /// <summary>收到异常时如何处理。默认关闭会话</summary>
-        /// <param name="se"></param>
-        /// <returns>是否当作异常处理并结束会话</returns>
-        internal override Boolean OnReceiveError(SocketAsyncEventArgs se)
-        {
-            // 不要销毁对象，仅标记状态，便于下次需要使用时重新打开连接
-            if (se.SocketError == SocketError.ConnectionReset)
-            {
-                //Close("ReceiveAsync " + se.SocketError);
-                Active = false;
-            }
+        ///// <summary>收到异常时如何处理。默认关闭会话</summary>
+        ///// <param name="se"></param>
+        ///// <returns>是否当作异常处理并结束会话</returns>
+        //internal override Boolean OnReceiveError(SocketAsyncEventArgs se)
+        //{
+        //    // 不要销毁对象，仅标记状态，便于下次需要使用时重新打开连接
+        //    if (se.SocketError == SocketError.ConnectionReset)
+        //    {
+        //        Close("ReceiveAsync " + se.SocketError);
+        //        //Active = false;
+        //    }
 
-            return true;
-        }
+        //    return true;
+        //}
         #endregion
 
         #region 自动重连

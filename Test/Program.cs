@@ -178,15 +178,27 @@ namespace Test
 
         static void Test5()
         {
-            var svr = new ApiServer(3344);
-            svr.Log = XTrace.Log;
-            svr.Start();
+            //var svr = new ApiServer(3344);
+            //svr.Log = XTrace.Log;
+            //svr.Start();
 
-            //Console.ReadKey(true);
+            ////Console.ReadKey(true);
+            //while (true)
+            //{
+            //    Thread.Sleep(500);
+            //    Console.Title = svr.GetStat();
+            //}
+
+            var client = new ApiClient("tcp://127.0.0.1:7788");
+            client.Log = XTrace.Log;
+            client.EncoderLog = client.Log;
+            client.Client.Log = client.Log;
+            client.Open();
+
             while (true)
             {
-                Thread.Sleep(500);
-                Console.Title = svr.GetStat();
+                client.InvokeAsync<String[]>("Api/All").Wait();
+                Thread.Sleep(3000);
             }
         }
 
