@@ -200,7 +200,7 @@ namespace XCode
             Speed = ms == 0 ? 0 : (Int32)(list.Count * 1000 / ms);
             if (Debug || list.Count > 10000)
             {
-                XTrace.WriteLine($"实体队列[{ss.TableName}/{ss.ConnName}]\t耗时 {ms:n0}ms\t速度 {speed:n0}tps\t周期 {p:n0}ms");
+                XTrace.WriteLine($"实体队列[{ss.TableName}/{ss.ConnName}]\t保存 {list.Count:n0}\t耗时 {ms:n0}ms\t速度 {speed:n0}tps\t周期 {p:n0}ms");
             }
 
             //if (Completed != null)

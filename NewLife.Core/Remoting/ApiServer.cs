@@ -2,6 +2,7 @@
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Net;
+using NewLife.Threading;
 
 namespace NewLife.Remoting
 {
@@ -40,6 +41,8 @@ namespace NewLife.Remoting
         {
             base.OnDispose(disposing);
 
+            _Timer.TryDispose();
+
             Stop(GetType().Name + (disposing ? "Dispose" : "GC"));
         }
         #endregion
@@ -69,8 +72,8 @@ namespace NewLife.Remoting
             if (Encoder == null) Encoder = new JsonEncoder();
             //if (Encoder == null) Encoder = new BinaryEncoder();
             if (Handler == null) Handler = new ApiHandler { Host = this };
-            if (StatSend == null) StatSend = new PerfCounter();
-            if (StatReceive == null) StatReceive = new PerfCounter();
+            if (StatInvoke == null) StatInvoke = new PerfCounter();
+            if (StatProcess == null) StatProcess = new PerfCounter();
 
             Encoder.Log = EncoderLog;
 
@@ -87,6 +90,9 @@ namespace NewLife.Remoting
 
             ShowService();
 
+            var ms = StatPeriod * 1000;
+            if (ms > 0) _Timer = new TimerX(DoWork, null, ms, ms) { Async = true };
+
             Active = true;
         }
 
@@ -100,6 +106,23 @@ namespace NewLife.Remoting
             Server.Stop(reason ?? (GetType().Name + "Stop"));
 
             Active = false;
+        }
+        #endregion
+
+        #region 统计
+        private TimerX _Timer;
+        private String _Last;
+
+        /// <summary>显示统计信息的周期。默认600秒，0表示不显示统计信息</summary>
+        public Int32 StatPeriod { get; set; } = 600;
+
+        private void DoWork(Object state)
+        {
+            var msg = this.GetStat();
+            if (msg == _Last) return;
+            _Last = msg;
+
+            WriteLog(msg);
         }
         #endregion
     }

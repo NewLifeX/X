@@ -29,10 +29,10 @@ namespace NewLife.Remoting
         IMessage Process(IApiSession session, IMessage msg);
 
         /// <summary>发送统计</summary>
-        ICounter StatSend { get; set; }
+        ICounter StatInvoke { get; set; }
 
         /// <summary>接收统计</summary>
-        ICounter StatReceive { get; set; }
+        ICounter StatProcess { get; set; }
 
         /// <summary>日志</summary>
         ILog Log { get; set; }
@@ -60,7 +60,7 @@ namespace NewLife.Remoting
 
             // 性能计数器，次数、TPS、平均耗时
             //host.StatSend?.Increment();
-            var st = host.StatSend;
+            var st = host.StatInvoke;
             var sw = st.StartCount();
 
             // 编码请求
@@ -128,7 +128,7 @@ namespace NewLife.Remoting
 
             // 性能计数器，次数、TPS、平均耗时
             //host.StatSend?.Increment();
-            var st = host.StatSend;
+            var st = host.StatInvoke;
 
             // 编码请求
             var pk = EncodeArgs(host.Encoder, action, args);
@@ -256,15 +256,20 @@ namespace NewLife.Remoting
             if (host == null) return null;
 
             var sb = new StringBuilder();
-            var pf1 = host.StatSend;
-            var pf2 = host.StatReceive;
+            var pf1 = host.StatInvoke;
+            var pf2 = host.StatProcess;
             if (pf1 != null && pf1.Value > 0) sb.AppendFormat("请求：{0} ", pf1);
             if (pf2 != null && pf2.Value > 0) sb.AppendFormat("处理：{0} ", pf2);
 
             if (host is ApiServer svr && svr.Server is NetServer ns)
                 sb.Append(ns.GetStat());
-            //else if (host is ApiClient ac && ac.Client != null)
-            //    sb.Append(ac.Client.GetStat());
+            else if (host is ApiClient ac)
+            {
+                var st1 = ac.StatSend;
+                var st2 = ac.StatReceive;
+                if (st1 != null && st1.Value > 0) sb.AppendFormat("发送：{0} ", st1);
+                if (st2 != null && st2.Value > 0) sb.AppendFormat("接收：{0} ", st2);
+            }
 
             return sb.ToString();
         }

@@ -8,6 +8,7 @@ using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Net;
 using NewLife.Net.Handlers;
+using NewLife.Threading;
 
 namespace NewLife.Remoting
 {
@@ -35,6 +36,12 @@ namespace NewLife.Remoting
 
         /// <summary>调用超时时间。默认30_000ms</summary>
         public Int32 Timeout { get; set; } = 30_000;
+
+        /// <summary>发送数据包统计信息</summary>
+        public ICounter StatSend { get; set; }
+
+        /// <summary>接收数据包统计信息</summary>
+        public ICounter StatReceive { get; set; }
         #endregion
 
         #region 构造
@@ -59,6 +66,8 @@ namespace NewLife.Remoting
         {
             base.OnDispose(disposing);
 
+            _Timer.TryDispose();
+
             Close(Name + (disposing ? "Dispose" : "GC"));
         }
         #endregion
@@ -74,17 +83,19 @@ namespace NewLife.Remoting
 
             if (Pool == null) Pool = new MyPool { Host = this };
 
+            if (Encoder == null) Encoder = new JsonEncoder();
+            //if (Encoder == null) Encoder = new BinaryEncoder();
+            if (Handler == null) Handler = new ApiHandler { Host = this };
+            if (StatInvoke == null) StatInvoke = new PerfCounter();
+            if (StatProcess == null) StatProcess = new PerfCounter();
+            if (StatSend == null) StatSend = new PerfCounter();
+            if (StatReceive == null) StatReceive = new PerfCounter();
+
+            Encoder.Log = EncoderLog;
+
             using (var pi = Pool.AcquireItem())
             {
                 var ct = pi.Value;
-
-                if (Encoder == null) Encoder = new JsonEncoder();
-                //if (Encoder == null) Encoder = new BinaryEncoder();
-                if (Handler == null) Handler = new ApiHandler { Host = this };
-                if (StatSend == null) StatSend = new PerfCounter();
-                if (StatReceive == null) StatReceive = new PerfCounter();
-
-                Encoder.Log = EncoderLog;
 
                 //ct.Log = Log;
 
@@ -93,6 +104,9 @@ namespace NewLife.Remoting
             }
 
             ShowService();
+
+            var ms = StatPeriod * 1000;
+            if (ms > 0) _Timer = new TimerX(DoWork, null, ms, ms) { Async = true };
 
             return Active = true;
         }
@@ -270,17 +284,6 @@ namespace NewLife.Remoting
             protected override ISocketClient Create() => Host.OnCreate();
         }
 
-        ///// <summary>使用队列实现最简单的连接池</summary>
-        //private ConcurrentQueue<ISocketClient> _Queue = new ConcurrentQueue<ISocketClient>();
-
-        //private ISocketClient Acquire()
-        //{
-        //    var q = _Queue;
-        //    while (q.TryDequeue(out var client) && !client.Disposed) return client;
-
-        //    return OnCreate();
-        //}
-
         /// <summary>Round-Robin 负载均衡</summary>
         private Int32 _index = -1;
 
@@ -304,6 +307,8 @@ namespace NewLife.Remoting
                     var client = new NetUri(svr).CreateRemote();
                     client.Timeout = Timeout;
                     if (Log != null) client.Log = Log;
+                    client.StatSend = StatSend;
+                    client.StatReceive = StatReceive;
 
                     client.Add(new StandardCodec { Timeout = Timeout, UserPacket = false });
                     client.Open();
@@ -318,11 +323,23 @@ namespace NewLife.Remoting
 
             throw last;
         }
+        #endregion
 
-        //private void Release(ISocketClient client)
-        //{
-        //    if (client != null && !client.Disposed) _Queue.Enqueue(client);
-        //}
+        #region 统计
+        private TimerX _Timer;
+        private String _Last;
+
+        /// <summary>显示统计信息的周期。默认600秒，0表示不显示统计信息</summary>
+        public Int32 StatPeriod { get; set; } = 600;
+
+        private void DoWork(Object state)
+        {
+            var msg = this.GetStat();
+            if (msg == _Last) return;
+            _Last = msg;
+
+            WriteLog(msg);
+        }
         #endregion
     }
 }

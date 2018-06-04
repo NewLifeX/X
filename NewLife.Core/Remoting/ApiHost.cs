@@ -22,10 +22,10 @@ namespace NewLife.Remoting
         public IApiHandler Handler { get; set; }
 
         /// <summary>发送数据包统计信息</summary>
-        public ICounter StatSend { get; set; }
+        public ICounter StatInvoke { get; set; }
 
         /// <summary>接收数据包统计信息</summary>
-        public ICounter StatReceive { get; set; }
+        public ICounter StatProcess { get; set; }
 
         /// <summary>用户会话数据</summary>
         public IDictionary<String, Object> Items { get; set; } = new NullableDictionary<String, Object>();
@@ -80,7 +80,7 @@ namespace NewLife.Remoting
             if (msg.Reply) return null;
 
             //StatReceive?.Increment();
-            var st = StatReceive;
+            var st = StatProcess;
             //var sw = st == null ? 0 : Stopwatch.GetTimestamp();
             var sw = st.StartCount();
             try
