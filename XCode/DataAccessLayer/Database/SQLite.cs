@@ -98,6 +98,8 @@ namespace XCode.DataAccessLayer
                 // 自动清理数据
                 if (builder.TryGetAndRemove("autoVacuum", out var vac)) AutoVacuum = vac.ToBoolean();
             }
+            else
+                SupportSchema = false;
 
             // 默认超时时间
             //if (!builder.ContainsKey("Default Timeout")) builder["Default Timeout"] = 5 + "";

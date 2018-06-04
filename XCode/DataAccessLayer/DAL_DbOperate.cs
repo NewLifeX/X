@@ -58,6 +58,23 @@ namespace XCode.DataAccessLayer
             return Session.Query(builder.ToString(), CommandType.Text, builder.Parameters.ToArray());
         }
 
+        /// <summary>执行SQL查询，返回记录集</summary>
+        /// <param name="builder">SQL语句</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
+        /// <param name="convert">转换器</param>
+        /// <returns></returns>
+        public T Query<T>(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows, Func<IDataReader, T> convert)
+        {
+            builder = PageSplit(builder, startRowIndex, maximumRows);
+            if (builder == null) return default(T);
+
+            CheckBeforeUseDatabase();
+
+            Interlocked.Increment(ref _QueryTimes);
+            return Session.Query(builder.ToString(), CommandType.Text, builder.Parameters.ToArray(), convert);
+        }
+
         /// <summary>执行SQL查询，返回总记录数</summary>
         /// <param name="sb">查询生成器</param>
         /// <returns></returns>

@@ -818,6 +818,9 @@ namespace XCode.DataAccessLayer
 
         /// <summary>获取 或 设置 自动关闭。每次使用完数据库连接后，是否自动关闭连接，高频操作时设为false可提升性能。默认true</summary>
         public Boolean AutoClose { get; set; } = true;
+
+        /// <summary>是否支持Schema。默认true</summary>
+        public Boolean SupportSchema { get; set; } = true;
         #endregion
 
         #region 辅助函数

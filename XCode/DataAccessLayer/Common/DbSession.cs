@@ -324,6 +324,49 @@ namespace XCode.DataAccessLayer
             }
         }
 
+        /// <summary>执行SQL查询，返回记录集</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <param name="convert">转换器</param>
+        /// <returns>记录集</returns>
+        public virtual T Query<T>(String sql, CommandType type, IDataParameter[] ps, Func<IDataReader, T> convert)
+        {
+            using (var cmd = OnCreateCommand(sql, type, ps))
+            {
+                Transaction?.Check(cmd, false);
+
+                QueryTimes++;
+                WriteSQL(cmd);
+
+                using (var pi = Database.Pool.AcquireItem())
+                {
+                    try
+                    {
+                        //if (!Opened) Open();
+                        if (cmd.Connection == null) cmd.Connection = pi.Value;
+
+                        BeginTrace();
+                        using (var dr = cmd.ExecuteReader())
+                        {
+                            return convert(dr);
+                        }
+                    }
+                    catch (DbException ex)
+                    {
+                        // 数据库异常最好销毁连接
+                        cmd.Connection.TryDispose();
+
+                        throw OnException(ex, cmd);
+                    }
+                    finally
+                    {
+                        EndTrace(cmd);
+                    }
+                }
+            }
+        }
+
         private static Regex reg_QueryCount = new Regex(@"^\s*select\s+\*\s+from\s+([\w\W]+)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         /// <summary>执行SQL查询，返回总记录数</summary>
         /// <param name="sql">SQL语句</param>
