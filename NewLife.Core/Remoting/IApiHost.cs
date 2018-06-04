@@ -263,8 +263,8 @@ namespace NewLife.Remoting
 
             if (host is ApiServer svr && svr.Server is NetServer ns)
                 sb.Append(ns.GetStat());
-            else if (host is ApiClient ac && ac.Client != null)
-                sb.Append(ac.Client.GetStat());
+            //else if (host is ApiClient ac && ac.Client != null)
+            //    sb.Append(ac.Client.GetStat());
 
             return sb.ToString();
         }

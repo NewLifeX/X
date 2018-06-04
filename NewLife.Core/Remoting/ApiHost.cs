@@ -22,10 +22,10 @@ namespace NewLife.Remoting
         public IApiHandler Handler { get; set; }
 
         /// <summary>发送数据包统计信息</summary>
-        public ICounter StatSend { get; set; } = new PerfCounter();
+        public ICounter StatSend { get; set; }
 
         /// <summary>接收数据包统计信息</summary>
-        public ICounter StatReceive { get; set; } = new PerfCounter();
+        public ICounter StatReceive { get; set; }
 
         /// <summary>用户会话数据</summary>
         public IDictionary<String, Object> Items { get; set; } = new NullableDictionary<String, Object>();

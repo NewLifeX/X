@@ -189,10 +189,9 @@ namespace Test
             //    Console.Title = svr.GetStat();
             //}
 
-            var client = new ApiClient("tcp://127.0.0.1:7788");
+            var client = new ApiClient("tcp://127.0.0.1:7788,udp://127.0.0.1:7788,tcp://127.0.0.1:7788");
             client.Log = XTrace.Log;
             client.EncoderLog = client.Log;
-            client.Client.Log = client.Log;
             client.Open();
 
             while (true)

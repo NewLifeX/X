@@ -1,4 +1,5 @@
 ﻿using System;
+using NewLife.Log;
 using NewLife.Model;
 using NewLife.Net;
 
@@ -68,6 +69,8 @@ namespace NewLife.Remoting
             if (Encoder == null) Encoder = new JsonEncoder();
             //if (Encoder == null) Encoder = new BinaryEncoder();
             if (Handler == null) Handler = new ApiHandler { Host = this };
+            if (StatSend == null) StatSend = new PerfCounter();
+            if (StatReceive == null) StatReceive = new PerfCounter();
 
             Encoder.Log = EncoderLog;
 
