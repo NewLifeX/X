@@ -161,16 +161,22 @@ namespace XCode.DataAccessLayer
                     }
 
                     //var settings = "appsettings.json".GetFullPath();
+                    //if (File.Exists(settings))
+
                     //根据当前程序执行目录而不是当前dll/exe所在目录来获取appsettings.json文件，避免将appsettings.json的操作改成复制到输出目录
-                    var settings = Directory.GetCurrentDirectory() + "/appsettings.json";
-                    if (File.Exists(settings))
+                    var css2 = new ConfigurationBuilder()
+                        .SetBasePath(Directory.GetCurrentDirectory())
+                        .AddJsonFile("appsettings.json", true, true)
+                        .AddJsonFile("appsettings.Development.json", true, true)
+                        .Build()
+                        .GetSection("connectionStrings");
                     {
                         // 读取配置文件
 
-                        var css2 = new ConfigurationBuilder().AddJsonFile(settings).Build().GetSection("connectionStrings");
-//                        var css2 = new ConfigurationBuilder()
-//.Add(new JsonConfigurationSource { Path = "appsettings.json", ReloadOnChange = true })
-//.Build().GetSection("connectionStrings");
+                        //var css2 = new ConfigurationBuilder().AddJsonFile(settings).Build().GetSection("connectionStrings");
+                        //                        var css2 = new ConfigurationBuilder()
+                        //.Add(new JsonConfigurationSource { Path = "appsettings.json", ReloadOnChange = true })
+                        //.Build().GetSection("connectionStrings");
                         if (css2 != null)
                         {
                             foreach (var item in css2.GetChildren())
