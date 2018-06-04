@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Configuration;
 using NewLife.Log;
 using NewLife.Net;
 using XCode.DataAccessLayer;
+using XCode.Membership;
 
 namespace TestST
 {
@@ -16,7 +18,7 @@ namespace TestST
 
             var sw = Stopwatch.StartNew();
 
-            Test1();
+            Test3();
 
             sw.Stop();
             Console.WriteLine("OK! {0:n0}ms", sw.ElapsedMilliseconds);
@@ -64,14 +66,18 @@ namespace TestST
             //}
 
             //var fact = MySqlClientFactory.Instance;
+            var fact = SqliteFactory.Instance;
 
             //var dal = DAL.Create("Sqlite");
-            DAL.AddConnStr("Membership", "Server=.;Port=3306;Database=world;Uid=root;Pwd=root", null, "MySql");
+            //DAL.AddConnStr("Membership", "Server=.;Port=3306;Database=world;Uid=root;Pwd=root", null, "MySql");
             var dal = DAL.Create("Membership");
             Console.WriteLine(dal.Db.ConnectionString);
 
-            var ds = dal.Select("select * from city");
-            Console.WriteLine(ds.Tables[0].Rows.Count);
+            //var ds = dal.Select("select * from city");
+            //Console.WriteLine(ds.Tables[0].Rows.Count);
+
+            var user = UserX.FindByName("admin");
+            Console.WriteLine(user);
 
             //var n = UserX.Meta.Count;
             //Console.WriteLine(n);

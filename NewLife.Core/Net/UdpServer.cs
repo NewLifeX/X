@@ -122,7 +122,7 @@ namespace NewLife.Net
         {
             var count = pk.Total;
 
-            StatSend?.Increment(count);
+            StatSend?.Increment(count, 0);
 
             try
             {
@@ -208,7 +208,7 @@ namespace NewLife.Net
         /// <param name="e">接收事件参数</param>
         protected override Boolean OnReceive(ReceivedEventArgs e)
         {
-            StatReceive?.Increment(e.Packet.Count);
+            StatReceive?.Increment(e.Packet.Count, 0);
 
             var remote = e.Remote;
 
@@ -272,7 +272,7 @@ namespace NewLife.Net
         /// <summary>新会话时触发</summary>
         public event EventHandler<SessionEventArgs> NewSession;
 
-        private SessionCollection _Sessions;
+        private readonly SessionCollection _Sessions;
         /// <summary>会话集合。用地址端口作为标识，业务应用自己维持地址端口与业务主键的对应关系。</summary>
         public IDictionary<String, ISocketSession> Sessions => _Sessions;
 
@@ -327,7 +327,7 @@ namespace NewLife.Net
                     us.ID = Interlocked.Increment(ref g_ID);
                     us.Start();
 
-                    StatSession?.Increment(1);
+                    StatSession?.Increment(1, 0);
 
                     // 触发新会话事件
                     NewSession?.Invoke(this, new SessionEventArgs { Session = session });

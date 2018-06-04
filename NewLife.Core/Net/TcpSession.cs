@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -162,7 +163,7 @@ namespace NewLife.Net
         {
             var count = pk.Total;
 
-            StatSend?.Increment(count);
+            StatSend?.Increment(count, 0);
             if (Log != null && Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, pk.ToHex());
 
             try
@@ -240,13 +241,28 @@ namespace NewLife.Net
             var pk = e.Packet;
             if (pk == null || pk.Count == 0 && !MatchEmpty) return true;
 
-            StatReceive?.Increment(pk.Count);
+            StatReceive?.Increment(pk.Count, 0);
 
             // 分析处理
             RaiseReceive(this, e);
 
             return true;
         }
+
+        ///// <summary>收到异常时如何处理。默认关闭会话</summary>
+        ///// <param name="se"></param>
+        ///// <returns>是否当作异常处理并结束会话</returns>
+        //internal override Boolean OnReceiveError(SocketAsyncEventArgs se)
+        //{
+        //    // 不要销毁对象，仅标记状态，便于下次需要使用时重新打开连接
+        //    if (se.SocketError == SocketError.ConnectionReset)
+        //    {
+        //        Close("ReceiveAsync " + se.SocketError);
+        //        //Active = false;
+        //    }
+
+        //    return true;
+        //}
         #endregion
 
         #region 自动重连

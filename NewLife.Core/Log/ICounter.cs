@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace NewLife.Log
 {
@@ -8,8 +9,38 @@ namespace NewLife.Log
         /// <summary>数值</summary>
         Int64 Value { get; }
 
+        /// <summary>次数</summary>
+        Int64 Times { get; }
+
+        /// <summary>速度</summary>
+        Int64 Speed { get; }
+
+        /// <summary>平均耗时，单位us</summary>
+        Int64 Cost { get; }
+
         /// <summary>增加</summary>
-        /// <param name="amount"></param>
-        void Increment(Int64 amount = 1);
+        /// <param name="value">增加的数量</param>
+        /// <param name="usCost">耗时，单位us</param>
+        void Increment(Int64 value, Int64 usCost);
+    }
+
+    /// <summary>计数器助手</summary>
+    public static class CounterHelper
+    {
+        /// <summary>开始计时</summary>
+        /// <param name="counter"></param>
+        /// <returns></returns>
+        public static Int64 StartCount(this ICounter counter) => counter == null ? 0 : Stopwatch.GetTimestamp();
+
+        /// <summary>结束计时</summary>
+        /// <param name="counter"></param>
+        /// <param name="startTicks"></param>
+        public static void StopCount(this ICounter counter, Int64 startTicks)
+        {
+            if (counter == null) return;
+
+            var ticks = Stopwatch.GetTimestamp() - startTicks;
+            counter.Increment(1, ticks / 10);
+        }
     }
 }

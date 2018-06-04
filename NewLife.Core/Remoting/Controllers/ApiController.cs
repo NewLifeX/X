@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using NewLife.Data;
+using NewLife.Net;
 
 namespace NewLife.Remoting
 {
@@ -48,6 +49,24 @@ namespace NewLife.Remoting
             }
 
             return _all = list.ToArray();
+        }
+
+        /// <summary>服务器信息，用户健康检测</summary>
+        /// <returns></returns>
+        public Object Info()
+        {
+            var ctx = ControllerContext.Current;
+            var ns = ctx.Session as INetSession;
+
+            var rs = new
+            {
+                Environment.MachineName,
+                Environment.UserName,
+                Time = DateTime.Now,
+                LocalIP = NetHelper.MyIP() + "",
+                RemoteIP = ns.Remote.EndPoint + "",
+            };
+            return rs;
         }
 
 #if DEBUG

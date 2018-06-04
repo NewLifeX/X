@@ -1,6 +1,8 @@
 ﻿using System;
+using NewLife.Log;
 using NewLife.Model;
 using NewLife.Net;
+using NewLife.Threading;
 
 namespace NewLife.Remoting
 {
@@ -39,6 +41,8 @@ namespace NewLife.Remoting
         {
             base.OnDispose(disposing);
 
+            _Timer.TryDispose();
+
             Stop(GetType().Name + (disposing ? "Dispose" : "GC"));
         }
         #endregion
@@ -46,7 +50,7 @@ namespace NewLife.Remoting
         #region 启动停止
         /// <summary>添加服务器</summary>
         /// <param name="port"></param>
-        public IApiServer Use(Int32 port) => Use(new NetUri(NetType.Unknown, "", port));
+        public IApiServer Use(Int32 port) => Use(new NetUri(NetType.Unknown, "*", port));
 
         /// <summary>添加服务器</summary>
         /// <param name="uri"></param>
@@ -68,6 +72,8 @@ namespace NewLife.Remoting
             if (Encoder == null) Encoder = new JsonEncoder();
             //if (Encoder == null) Encoder = new BinaryEncoder();
             if (Handler == null) Handler = new ApiHandler { Host = this };
+            if (StatInvoke == null) StatInvoke = new PerfCounter();
+            if (StatProcess == null) StatProcess = new PerfCounter();
 
             Encoder.Log = EncoderLog;
 
@@ -79,10 +85,13 @@ namespace NewLife.Remoting
             if (svr.Handler == null) svr.Handler = Handler;
             if (svr.Encoder == null) svr.Encoder = Encoder;
             svr.Host = this;
-            //svr.Log = Log;
+            svr.Log = Log;
             svr.Start();
 
             ShowService();
+
+            var ms = StatPeriod * 1000;
+            if (ms > 0) _Timer = new TimerX(DoWork, null, ms, ms) { Async = true };
 
             Active = true;
         }
@@ -97,6 +106,23 @@ namespace NewLife.Remoting
             Server.Stop(reason ?? (GetType().Name + "Stop"));
 
             Active = false;
+        }
+        #endregion
+
+        #region 统计
+        private TimerX _Timer;
+        private String _Last;
+
+        /// <summary>显示统计信息的周期。默认600秒，0表示不显示统计信息</summary>
+        public Int32 StatPeriod { get; set; } = 600;
+
+        private void DoWork(Object state)
+        {
+            var msg = this.GetStat();
+            if (msg == _Last) return;
+            _Last = msg;
+
+            WriteLog(msg);
         }
         #endregion
     }

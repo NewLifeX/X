@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,7 +7,6 @@ using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Net;
 using NewLife.Reflection;
-using NewLife.Serialization;
 
 namespace NewLife.Remoting
 {
@@ -31,10 +29,10 @@ namespace NewLife.Remoting
         IMessage Process(IApiSession session, IMessage msg);
 
         /// <summary>发送统计</summary>
-        ICounter StatSend { get; set; }
+        ICounter StatInvoke { get; set; }
 
         /// <summary>接收统计</summary>
-        ICounter StatReceive { get; set; }
+        ICounter StatProcess { get; set; }
 
         /// <summary>日志</summary>
         ILog Log { get; set; }
@@ -60,7 +58,10 @@ namespace NewLife.Remoting
         {
             if (session == null) return null;
 
-            host.StatSend?.Increment();
+            // 性能计数器，次数、TPS、平均耗时
+            //host.StatSend?.Increment();
+            var st = host.StatInvoke;
+            var sw = st.StartCount();
 
             // 编码请求
             var enc = host.Encoder;
@@ -88,6 +89,10 @@ namespace NewLife.Remoting
             catch (TaskCanceledException ex)
             {
                 throw new TimeoutException($"请求[{action}]超时！", ex);
+            }
+            finally
+            {
+                st.StopCount(sw);
             }
 
             // 特殊返回类型
@@ -121,7 +126,9 @@ namespace NewLife.Remoting
         {
             if (session == null) return false;
 
-            host.StatSend?.Increment();
+            // 性能计数器，次数、TPS、平均耗时
+            //host.StatSend?.Increment();
+            var st = host.StatInvoke;
 
             // 编码请求
             var pk = EncodeArgs(host.Encoder, action, args);
@@ -134,7 +141,15 @@ namespace NewLife.Remoting
             };
             if (flag > 0) msg.Flag = flag;
 
-            return session.Send(msg);
+            var sw = st.StartCount();
+            try
+            {
+                return session.Send(msg);
+            }
+            finally
+            {
+                st.StopCount(sw);
+            }
         }
 
         /// <summary>创建控制器实例</summary>
@@ -241,13 +256,20 @@ namespace NewLife.Remoting
             if (host == null) return null;
 
             var sb = new StringBuilder();
-            if (host.StatSend.Value > 0) sb.AppendFormat("请求：{0} ", host.StatSend);
-            if (host.StatReceive.Value > 0) sb.AppendFormat("处理：{0} ", host.StatReceive);
+            var pf1 = host.StatInvoke;
+            var pf2 = host.StatProcess;
+            if (pf1 != null && pf1.Value > 0) sb.AppendFormat("请求：{0} ", pf1);
+            if (pf2 != null && pf2.Value > 0) sb.AppendFormat("处理：{0} ", pf2);
 
             if (host is ApiServer svr && svr.Server is NetServer ns)
                 sb.Append(ns.GetStat());
-            else if (host is ApiClient ac && ac.Client != null)
-                sb.Append(ac.Client.GetStat());
+            else if (host is ApiClient ac)
+            {
+                var st1 = ac.StatSend;
+                var st2 = ac.StatReceive;
+                if (st1 != null && st1.Value > 0) sb.AppendFormat("发送：{0} ", st1);
+                if (st2 != null && st2.Value > 0) sb.AppendFormat("接收：{0} ", st2);
+            }
 
             return sb.ToString();
         }

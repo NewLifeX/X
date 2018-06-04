@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.MemoryMappedFiles;
+using System.Threading;
 using NewLife.Caching;
 using NewLife.Log;
 using NewLife.Net;
 using NewLife.Net.Handlers;
+using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
 using XCode.DataAccessLayer;
@@ -32,7 +34,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test7();
+                    Test5();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -172,6 +174,33 @@ namespace Test
             Console.Clear();
 
             ch.Bench(mode);
+        }
+
+        static void Test5()
+        {
+            var svr = new ApiServer(3344);
+            svr.Log = XTrace.Log;
+            svr.StatPeriod = 5;
+            svr.Start();
+
+            Console.ReadKey(true);
+            //while (true)
+            //{
+            //    Thread.Sleep(500);
+            //    Console.Title = svr.GetStat();
+            //}
+
+            //var client = new ApiClient("tcp://127.0.0.1:7788,udp://127.0.0.1:7788,tcp://127.0.0.1:7788");
+            //client.Log = XTrace.Log;
+            //client.EncoderLog = client.Log;
+            //client.StatPeriod = 5;
+            //client.Open();
+
+            //while (true)
+            //{
+            //    client.InvokeAsync<String[]>("Api/All").Wait();
+            //    Thread.Sleep(3000);
+            //}
         }
 
         static void Test6()

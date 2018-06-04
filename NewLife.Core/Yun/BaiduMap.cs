@@ -23,6 +23,7 @@ namespace NewLife.Yun
             AppKey = "C73357a276668f8b0563d3f936475007";
             KeyName = "ak";
             //CoordType = "wgs84ll";
+            CoordType = "bd09ll";
         }
         #endregion
 
@@ -172,7 +173,7 @@ namespace NewLife.Yun
 
             if (type <= 0) type = 13;
             var coord = CoordType;
-            if (coord.Length > 6) coord = coord.TrimEnd("ll");
+            if (!coord.IsNullOrEmpty() && coord.Length > 6) coord = coord.TrimEnd("ll");
             var url = _distanceUrl.F(origin.Latitude, origin.Longitude, destination.Latitude, destination.Longitude, type, coord);
 
             var list = await InvokeAsync<IList<Object>>(url, "result");

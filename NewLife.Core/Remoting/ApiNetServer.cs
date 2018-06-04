@@ -23,6 +23,9 @@ namespace NewLife.Remoting
         /// <summary>当前服务器所有会话</summary>
         public IApiSession[] AllSessions => Sessions.Values.ToArray().Where(e => e is IApiSession).Cast<IApiSession>().ToArray();
 
+        /// <summary>调用超时时间。默认30_000ms</summary>
+        public Int32 Timeout { get; set; } = 30_000;
+
         public ApiNetServer()
         {
             Name = "Api";
@@ -39,7 +42,7 @@ namespace NewLife.Remoting
             if (Local.Host.IsNullOrEmpty() || Local.Host == "*") AddressFamily = System.Net.Sockets.AddressFamily.Unspecified;
 
             // 新生命标准网络封包协议
-            Add(new StandardCodec { UserPacket = false });
+            Add(new StandardCodec { Timeout = Timeout, UserPacket = false });
 
             return true;
         }

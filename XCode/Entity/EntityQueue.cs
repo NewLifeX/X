@@ -30,7 +30,7 @@ namespace XCode
         public Int32 Period { get; set; } = 1000;
 
         /// <summary>最大个数，超过该个数时，进入队列将产生堵塞。默认10000</summary>
-        public Int32 MaxEntity { get; set; } = 100_000;
+        public Int32 MaxEntity { get; set; } = 10_000;
 
         /// <summary>保存速度，每秒保存多少个实体</summary>
         public Int32 Speed { get; private set; }
@@ -200,7 +200,7 @@ namespace XCode
             Speed = ms == 0 ? 0 : (Int32)(list.Count * 1000 / ms);
             if (Debug || list.Count > 10000)
             {
-                XTrace.WriteLine($"实体队列[{ss.TableName}/{ss.ConnName}]\t耗时 {ms:n0}ms\t速度 {speed:n0}tps\t周期 {p:n0}ms");
+                XTrace.WriteLine($"实体队列[{ss.TableName}/{ss.ConnName}]\t保存 {list.Count:n0}\t耗时 {ms:n0}ms\t速度 {speed:n0}tps\t周期 {p:n0}ms");
             }
 
             //if (Completed != null)

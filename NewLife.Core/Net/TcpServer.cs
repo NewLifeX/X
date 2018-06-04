@@ -256,7 +256,7 @@ namespace NewLife.Net
                 session.ID = Interlocked.Increment(ref g_ID);
                 session.WriteLog("New {0}", session.Remote.EndPoint);
 
-                StatSession?.Increment(1);
+                StatSession?.Increment(1, 0);
 
                 NewSession?.Invoke(this, new SessionEventArgs { Session = session });
 
