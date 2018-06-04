@@ -148,6 +148,8 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public virtual async Task<Object> InvokeAsync(Type resultType, String action, Object args = null, Byte flag = 0)
         {
+            Open();
+
             var act = action;
 
             try
@@ -190,6 +192,8 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public virtual Boolean Invoke(String action, Object args = null, Byte flag = 0)
         {
+            if (!Open()) return false;
+
             var act = action;
 
             return ApiHostHelper.Invoke(this, this, act, args, flag);
