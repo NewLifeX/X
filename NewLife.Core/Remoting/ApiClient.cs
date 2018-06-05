@@ -42,6 +42,8 @@ namespace NewLife.Remoting
 
         /// <summary>接收数据包统计信息</summary>
         public ICounter StatReceive { get; set; }
+
+        private readonly Object Root = new Object();
         #endregion
 
         #region 构造
@@ -77,38 +79,42 @@ namespace NewLife.Remoting
         public virtual Boolean Open()
         {
             if (Active) return true;
-
-            var ss = Servers;
-            if (ss == null || ss.Count == 0) throw new ArgumentNullException(nameof(Servers), "未指定服务端地址");
-
-            if (Pool == null) Pool = new MyPool { Host = this };
-
-            if (Encoder == null) Encoder = new JsonEncoder();
-            //if (Encoder == null) Encoder = new BinaryEncoder();
-            if (Handler == null) Handler = new ApiHandler { Host = this };
-            if (StatInvoke == null) StatInvoke = new PerfCounter();
-            if (StatProcess == null) StatProcess = new PerfCounter();
-            if (StatSend == null) StatSend = new PerfCounter();
-            if (StatReceive == null) StatReceive = new PerfCounter();
-
-            Encoder.Log = EncoderLog;
-
-            using (var pi = Pool.AcquireItem())
+            lock (Root)
             {
-                var ct = pi.Value;
+                if (Active) return true;
 
-                //ct.Log = Log;
+                var ss = Servers;
+                if (ss == null || ss.Count == 0) throw new ArgumentNullException(nameof(Servers), "未指定服务端地址");
 
-                // 打开网络连接
-                if (!ct.Open()) return false;
+                if (Pool == null) Pool = new MyPool { Host = this };
+
+                if (Encoder == null) Encoder = new JsonEncoder();
+                //if (Encoder == null) Encoder = new BinaryEncoder();
+                if (Handler == null) Handler = new ApiHandler { Host = this };
+                if (StatInvoke == null) StatInvoke = new PerfCounter();
+                if (StatProcess == null) StatProcess = new PerfCounter();
+                if (StatSend == null) StatSend = new PerfCounter();
+                if (StatReceive == null) StatReceive = new PerfCounter();
+
+                Encoder.Log = EncoderLog;
+
+                using (var pi = Pool.AcquireItem())
+                {
+                    var ct = pi.Value;
+
+                    //ct.Log = Log;
+
+                    // 打开网络连接
+                    if (!ct.Open()) return false;
+                }
+
+                ShowService();
+
+                var ms = StatPeriod * 1000;
+                if (ms > 0) _Timer = new TimerX(DoWork, null, ms, ms) { Async = true };
+
+                return Active = true;
             }
-
-            ShowService();
-
-            var ms = StatPeriod * 1000;
-            if (ms > 0) _Timer = new TimerX(DoWork, null, ms, ms) { Async = true };
-
-            return Active = true;
         }
 
         /// <summary>关闭</summary>
