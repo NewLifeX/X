@@ -50,6 +50,8 @@ namespace NewLife.Net
             MaxAsync = Environment.ProcessorCount * 16 / 10;
 
             ProcessAsync = true;
+
+            if (Setting.Current.Debug) Log = XTrace.Log;
         }
 
         /// <summary>使用监听口初始化</summary>

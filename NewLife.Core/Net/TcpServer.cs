@@ -80,7 +80,7 @@ namespace NewLife.Net
             MaxAsync = Environment.ProcessorCount * 16 / 10;
             _Sessions = new SessionCollection(this);
 
-            Log = Logger.Null;
+            if (Setting.Current.Debug) Log = XTrace.Log;
         }
 
         /// <summary>构造TCP服务器对象</summary>

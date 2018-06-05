@@ -132,22 +132,6 @@ namespace NewLife.Remoting
             Active = false;
         }
 
-        ///// <summary>设置远程地址</summary>
-        ///// <param name="uri"></param>
-        ///// <returns></returns>
-        //public Boolean SetRemote(String uri)
-        //{
-        //    var nu = new NetUri(uri);
-
-        //    WriteLog("SetRemote {0}", nu);
-
-        //    var ct = Client = nu.CreateRemote();
-        //    ct.Log = Log;
-        //    ct.Add(new StandardCodec { Timeout = Timeout, UserPacket = false });
-
-        //    return true;
-        //}
-
         /// <summary>查找Api动作</summary>
         /// <param name="action"></param>
         /// <returns></returns>
@@ -312,7 +296,7 @@ namespace NewLife.Remoting
                 {
                     var client = new NetUri(svr).CreateRemote();
                     client.Timeout = Timeout;
-                    if (Log != null) client.Log = Log;
+                    //if (Log != null) client.Log = Log;
                     client.StatSend = StatSend;
                     client.StatReceive = StatReceive;
 
