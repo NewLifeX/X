@@ -334,7 +334,11 @@ namespace XCode.DataAccessLayer
             file = plugin.CombinePath(file);
 
             // 如果还没有，就写异常
-            if (type == null && !File.Exists(file)) throw new FileNotFoundException("缺少文件" + file + "！", file);
+            if (type == null)
+            {
+                if (assemblyFile.IsNullOrEmpty()) return null;
+                if (!File.Exists(file)) throw new FileNotFoundException("缺少文件" + file + "！", file);
+            }
 
             if (type == null)
             {

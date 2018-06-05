@@ -34,7 +34,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test5();
+                    Test6();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -205,22 +205,7 @@ namespace Test
 
         static void Test6()
         {
-            var _dt1970 = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-            var dt = DateTime.Now;
-
-            var ts = dt - _dt1970;
-            var n = (Int32)ts.TotalSeconds;
-            Console.WriteLine(n);
-
-            _dt1970 = new DateTime(1970, 1, 1, 0, 0, 0);
-            ts = dt - _dt1970;
-            n = (Int32)ts.TotalSeconds;
-            Console.WriteLine(n);
-
-            _dt1970 = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Local);
-            ts = dt - _dt1970;
-            n = (Int32)ts.TotalSeconds;
-            Console.WriteLine(n);
+            var list = UserX.FindAll();
         }
 
         static void Test7()
