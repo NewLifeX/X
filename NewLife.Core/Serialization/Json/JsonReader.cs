@@ -307,15 +307,11 @@ namespace NewLife.Serialization
         private DateTime CreateDateTime(Object value)
         {
             if (value is DateTime) return (DateTime)value;
-
             if (value is Int64 || value is Int32)
             {
-                var num = Convert.ToInt64(value);
-                var dt = new DateTime(1970, 1, 1);
-                if (num > 100 * 365 * 24 * 3600L)
-                    return dt.AddMilliseconds(num);
-                else
-                    return dt.AddSeconds(num);
+                var dt = value.ToDateTime();
+                if (UseUTCDateTime) dt = dt.ToUniversalTime();
+                return dt;
             }
 
             var str = (String)value;

@@ -5,13 +5,14 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{B49ABA5A-C5DA-45F4-87F1-B435EC51D710}</ProjectGuid>
+    <ProjectGuid>{660733A3-04A3-451B-A6EF-5D7C89E1AB31}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>XCode</RootNamespace>
     <AssemblyName>XCode</AssemblyName>
     <SignAssembly>false</SignAssembly>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <BaseIntermediateOutputPath>obj4\</BaseIntermediateOutputPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
@@ -244,13 +245,13 @@
     <None Include="说明.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NewLife.Core\NewLife.Core40.csproj">
-      <Project>{5813c22e-eeb3-4dee-a45c-bb218041193a}</Project>
-      <Name>NewLife.Core40</Name>
-    </ProjectReference>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
-    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+    <ProjectReference Include="..\NewLife.Core\NewLife.Core40.csproj">
+      <Project>{8363fb2d-12ab-430e-89b0-b576c149c16d}</Project>
+      <Name>NewLife.Core40</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

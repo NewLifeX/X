@@ -70,7 +70,15 @@ namespace XCode.Membership
                 sb.Separate(",").Append("{0}={1}".F(fi.Name, v));
             }
 
-            WriteLog(entity.GetType(), action, sb.ToString());
+            var userid = 0;
+            var name = "";
+            if (entity is IManageUser user)
+            {
+                userid = user.ID;
+                name = user + "";
+            }
+
+            WriteLog(entity.GetType(), action, sb.ToString(), userid, name);
         }
 
         /// <summary>是否使用日志</summary>
@@ -108,10 +116,7 @@ namespace XCode.Membership
         #endregion
 
         #region 静态属性
-        static LogProvider()
-        {
-            ObjectContainer.Current.AutoRegister<LogProvider, DefaultLogProvider>();
-        }
+        static LogProvider() => ObjectContainer.Current.AutoRegister<LogProvider, DefaultLogProvider>();
 
         private static LogProvider _Provider;
         /// <summary>当前成员提供者</summary>

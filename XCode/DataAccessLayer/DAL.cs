@@ -160,15 +160,23 @@ namespace XCode.DataAccessLayer
                         }
                     }
 
-                    var settings = "appsettings.json".GetFullPath();
-                    if (File.Exists(settings))
+                    //var settings = "appsettings.json".GetFullPath();
+                    //if (File.Exists(settings))
+
+                    //根据当前程序执行目录而不是当前dll/exe所在目录来获取appsettings.json文件，避免将appsettings.json的操作改成复制到输出目录
+                    var css2 = new ConfigurationBuilder()
+                        .SetBasePath(Directory.GetCurrentDirectory())
+                        .AddJsonFile("appsettings.json", true, true)
+                        .AddJsonFile("appsettings.Development.json", true, true)
+                        .Build()
+                        .GetSection("connectionStrings");
                     {
                         // 读取配置文件
 
-                        var css2 = new ConfigurationBuilder().AddJsonFile(settings).Build().GetSection("connectionStrings");
-//                        var css2 = new ConfigurationBuilder()
-//.Add(new JsonConfigurationSource { Path = "appsettings.json", ReloadOnChange = true })
-//.Build().GetSection("connectionStrings");
+                        //var css2 = new ConfigurationBuilder().AddJsonFile(settings).Build().GetSection("connectionStrings");
+                        //                        var css2 = new ConfigurationBuilder()
+                        //.Add(new JsonConfigurationSource { Path = "appsettings.json", ReloadOnChange = true })
+                        //.Build().GetSection("connectionStrings");
                         if (css2 != null)
                         {
                             foreach (var item in css2.GetChildren())
@@ -388,6 +396,8 @@ namespace XCode.DataAccessLayer
 
         private List<IDataTable> GetTables()
         {
+            if (Db is DbBase db2 && !db2.SupportSchema) return new List<IDataTable>();
+
             CheckBeforeUseDatabase();
             return Db.CreateMetaData().GetTables();
         }
@@ -523,6 +533,8 @@ namespace XCode.DataAccessLayer
         /// <param name="tables"></param>
         public void SetTables(params IDataTable[] tables)
         {
+            if (Db is DbBase db2 && !db2.SupportSchema) return;
+
             // 构建DataTable时也要注意表前缀，避免反向工程用错
             var pf = Db.TablePrefix;
             if (!pf.IsNullOrEmpty())

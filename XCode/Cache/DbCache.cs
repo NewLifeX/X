@@ -84,7 +84,7 @@ namespace NewLife.Caching
             if (clearTimer == null)
             {
                 var period = 60;
-                clearTimer = new TimerX(RemoveNotAlive, null, period * 1000, period * 1000);
+                clearTimer = new TimerX(RemoveNotAlive, null, period * 1000, period * 1000) { Async = true };
             }
         }
 
@@ -254,21 +254,21 @@ namespace NewLife.Caching
         }
         #endregion
 
-        //#region 性能测试
-        ///// <summary>使用指定线程测试指定次数</summary>
-        ///// <param name="times">次数</param>
-        ///// <param name="threads">线程</param>
-        ///// <param name="rand">随机读写</param>
-        //public override void BenchOne(Int64 times, Int32 threads, Boolean rand)
-        //{
-        //    if (rand)
-        //        times *= 100;
-        //    else
-        //        times *= 1000;
+        #region 性能测试
+        /// <summary>使用指定线程测试指定次数</summary>
+        /// <param name="times">次数</param>
+        /// <param name="threads">线程</param>
+        /// <param name="rand">随机读写</param>
+        public override void BenchOne(Int64 times, Int32 threads, Boolean rand)
+        {
+            if (rand)
+                times *= 1;
+            else
+                times *= 1000;
 
-        //    base.BenchOne(times, threads, rand);
-        //}
-        //#endregion
+            base.BenchOne(times, threads, rand);
+        }
+        #endregion
     }
 
     /// <summary>数据缓存接口</summary>

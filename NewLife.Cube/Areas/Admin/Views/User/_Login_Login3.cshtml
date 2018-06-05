@@ -7,29 +7,49 @@
 }
 @if (ms.Count > 0 && set.AutoRegister)
 {
-    <div class="toolbar clearfix text-center">
-        <div class="row" style="padding:30px 0 0 45px;">
-            <div class="form-group col-sm-12">
-                <span style="float: left;">
-                    第三方登录
-                </span>
-            </div>
-
+    <div class="text-center">
+        @*<div class="ui horizontal divider">
+            <span style="font-size: 22px;">
+                第三方登录
+            </span>
+        </div>*@
+        <div class="col-sm-12">
+            <p style="font-size: 22px; position: relative; display: inline-block;width: 100%">
+                <span style="height: 1px; position: absolute; background-color: #928f8f; width: 28%; top: 50%; left:65%;"></span>
+                第三方登录
+                <span style="height: 1px; position: absolute; background-color: #928f8f; width: 28%; top: 50%; right:65%;"></span>
+            </p>
+        </div>
+        <div class="row" style="padding: 0 0 0 0;">
             <div class="form-group col-sm-12">
                 @foreach (var mi in ms)
                 {
                     var nickName = "";
-                    if (!dic.TryGetValue(mi.Name, out nickName)) { nickName = mi.Name; }
+                    if (!dic.TryGetValue(mi.Name, out nickName))
+                    {
+                        nickName = mi.Name;
+                    }
 
                     var url = "Sso/Login?name=" + mi.Name;
-                    if (!returnUrl.IsNullOrEmpty()) { url += "&r=" + HttpUtility.UrlEncode(returnUrl); }
+                    if (!returnUrl.IsNullOrEmpty())
+                    {
+                        url += "&r=" + HttpUtility.UrlEncode(returnUrl);
+                    }
 
                     url = HttpRuntime.AppDomainAppVirtualPath + url;
+                    var ico = "/Content/images/logo/{0}.png".F(mi.Name);
+                    var ico2 = ico.TrimStart("/").GetFullPath();
 
-                    <a href="@url" title="@nickName" style="height: 32px; width: 32px; display: inline-block; margin-right: 5px; 
-                    float: left; background-image: url(/Content/images/logo/@(mi.Name).png)">
-                        @*<i class="glyphicon glyphicon-menu-right"></i>*@
-                        @*@nickName*@
+                    <a href="@url">
+                        @if (File.Exists(ico2))
+                        {
+                            <text><img src="@ico" title="@nickName" /></text>
+                        }
+                        else
+                        {
+                            <i class="glyphicon glyphicon-menu-right"></i>
+                            <text>@nickName</text>
+                        }
                     </a>
                 }
             </div>

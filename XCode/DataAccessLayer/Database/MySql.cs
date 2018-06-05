@@ -236,7 +236,7 @@ namespace XCode.DataAccessLayer
         {
             tableName = tableName.Trim().Trim('`', '`').Trim();
 
-            var db = DatabaseName;
+            var db = Database.DatabaseName;
             var sql = String.Format("select table_rows from information_schema.tables where table_schema='{1}' and table_name='{0}'", tableName, db);
             return ExecuteScalar<Int64>(sql);
         }
@@ -270,11 +270,16 @@ namespace XCode.DataAccessLayer
             var es = (Database as MySql).EnumTables;
             foreach (var table in tables)
             {
-                if (!es.Contains(table.TableName)
-                    && table.Columns.Any(c => c.DataType == typeof(Boolean)
-                    && c.RawType.EqualIgnoreCase("enum('N','Y')", "enum('Y','N')")))
+                if (!es.Contains(table.TableName))
                 {
-                    es.Add(table.TableName);
+                    var dc = table.Columns.FirstOrDefault(c => c.DataType == typeof(Boolean)
+                      && c.RawType.EqualIgnoreCase("enum('N','Y')", "enum('Y','N')"));
+                    if (dc != null)
+                    {
+                        es.Add(table.TableName);
+
+                        WriteLog("发现MySql中旧格式的布尔型字段 {0} {1}", table.TableName, dc);
+                    }
                 }
             }
 

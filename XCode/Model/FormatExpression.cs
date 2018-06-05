@@ -49,7 +49,18 @@ namespace XCode
             // 非参数化
             if (ps == null)
             {
-                builder.AppendFormat(Format, fi.FormatedName, Value);
+                var op = fi.Factory;
+                var val = "";
+                if (Value is String)
+                    val = "'" + Value + "'";
+                else if (Value is SelectBuilder sb)
+                    val = sb;
+                else if (Value is IList<Object> ems)
+                    val = ems.Join(",", e => op.FormatValue(fi, e));
+                else
+                    val = op.FormatValue(fi, Value);
+
+                builder.AppendFormat(Format, fi.FormatedName, val);
                 return;
             }
 
@@ -60,7 +71,12 @@ namespace XCode
             if (Format.Contains(" In("))
             {
                 // String/SelectBuilder 不走参数化
-                if (Value is String || Value is SelectBuilder)
+                if (Value is String)
+                {
+                    builder.AppendFormat(Format, fi.FormatedName, "'" + Value + "'");
+                    return;
+                }
+                if (Value is SelectBuilder)
                 {
                     builder.AppendFormat(Format, fi.FormatedName, Value);
                     return;

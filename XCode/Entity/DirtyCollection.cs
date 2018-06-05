@@ -16,11 +16,8 @@ namespace XCode
         {
             get
             {
-                //if (ContainsKey(item) && base[item])
-                //    return true;
-                //else
-                //    return false;
-                return ContainsKey(item) && base[item];
+                //return ContainsKey(item) && base[item];
+                return TryGetValue(item, out var flag) && flag;
             }
             set
             {

@@ -692,7 +692,7 @@ namespace NewLife.Cube
             // 视图路径，Areas/区域/Views/控制器/_List_Data.cshtml
             var vpath = "Areas/{0}/Views/{1}/_List_Data.cshtml".F(RouteData.DataTokens["area"], GetType().Name.TrimEnd("Controller"));
 
-            var rs = ViewHelper.MakeListDataView(typeof(TEntity), vpath, ListFields);
+            var rs = ViewHelper.MakeListView(typeof(TEntity), vpath, ListFields);
 
             Js.Alert("生成列表模版 {0} 成功！".F(vpath));
 
@@ -707,12 +707,12 @@ namespace NewLife.Cube
         {
             if (!SysConfig.Current.Develop) throw new InvalidOperationException("仅支持开发模式下使用！");
 
-            // 视图路径，Areas/区域/Views/控制器/_List_Data.cshtml
-            var vpath = "Areas/{0}/Views/{1}/_List_Data.cshtml".F(RouteData.DataTokens["area"], GetType().Name.TrimEnd("Controller"));
+            // 视图路径，Areas/区域/Views/控制器/_Form_Body.cshtml
+            var vpath = "Areas/{0}/Views/{1}/_Form_Body.cshtml".F(RouteData.DataTokens["area"], GetType().Name.TrimEnd("Controller"));
 
-            var rs = ViewHelper.MakeListDataView(typeof(TEntity), vpath, FormFields);
+            var rs = ViewHelper.MakeFormView(typeof(TEntity), vpath, FormFields);
 
-            Js.Alert("生成列表模版 {0} 成功！".F(vpath));
+            Js.Alert("生成表单模版 {0} 成功！".F(vpath));
 
             return Index();
         }

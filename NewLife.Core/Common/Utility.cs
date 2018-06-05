@@ -17,7 +17,7 @@ namespace System
         /// <remarks>重载默认提供者<seealso cref="DefaultConvert"/>并赋值给<see cref="Convert"/>可改变所有类型转换的行为</remarks>
         public static DefaultConvert Convert { get; set; } = new DefaultConvert();
 
-        /// <summary>转为整数，转换失败时返回默认值。支持字符串、全角、字节数组（小端）</summary>
+        /// <summary>转为整数，转换失败时返回默认值。支持字符串、全角、字节数组（小端）、时间（Unix秒）</summary>
         /// <remarks>Int16/UInt32/Int64等，可以先转为最常用的Int32后再二次处理</remarks>
         /// <param name="value">待转换对象</param>
         /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
@@ -44,7 +44,7 @@ namespace System
         /// <returns></returns>
         public static Boolean ToBoolean(this Object value, Boolean defaultValue = false) => Convert.ToBoolean(value, defaultValue);
 
-        /// <summary>转为时间日期，转换失败时返回最小时间</summary>
+        /// <summary>转为时间日期，转换失败时返回最小时间。支持字符串、整数（Unix秒）</summary>
         /// <param name="value">待转换对象</param>
         /// <returns></returns>
         public static DateTime ToDateTime(this Object value) => Convert.ToDateTime(value, DateTime.MinValue);
@@ -94,7 +94,9 @@ namespace System
     [EditorBrowsable(EditorBrowsableState.Advanced)]
     public class DefaultConvert
     {
-        /// <summary>转为整数</summary>
+        private static DateTime _dt1970 = new DateTime(1970, 1, 1);
+
+        /// <summary>转为整数，转换失败时返回默认值。支持字符串、全角、字节数组（小端）、时间（Unix秒）</summary>
         /// <param name="value">待转换对象</param>
         /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
         /// <returns></returns>
@@ -113,7 +115,16 @@ namespace System
                 if (Int32.TryParse(str, out var n)) return n;
                 return defaultValue;
             }
-            else if (value is Byte[] buf)
+
+            // 特殊处理时间，转Unix秒
+            if (value is DateTime dt)
+            {
+                //// 先转UTC时间再相减，以得到绝对时间差
+                //return (Int32)(dt.ToUniversalTime() - _dt1970).TotalSeconds;
+                return (Int32)(dt - _dt1970).TotalSeconds;
+            }
+
+            if (value is Byte[] buf)
             {
                 if (buf == null || buf.Length < 1) return defaultValue;
 
@@ -249,7 +260,7 @@ namespace System
             catch { return defaultValue; }
         }
 
-        /// <summary>转为时间日期</summary>
+        /// <summary>转为时间日期，转换失败时返回最小时间。支持字符串、整数（Unix秒）</summary>
         /// <param name="value">待转换对象</param>
         /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
         /// <returns></returns>
@@ -258,6 +269,7 @@ namespace System
             if (value == null || value == DBNull.Value) return defaultValue;
 
             // 特殊处理字符串，也是最常见的
+
             if (value is String str)
             {
                 str = ToDBC(str).Trim();
@@ -268,6 +280,15 @@ namespace System
                 if (str.Contains("/") && DateTime.TryParseExact(str, "yyyy/M/d", null, DateTimeStyles.None, out n)) return n;
                 if (DateTime.TryParse(str, out n)) return n;
                 return defaultValue;
+            }
+            // 特殊处理整数，Unix秒，绝对时间差，不考虑UTC时间和本地时间。
+            if (value is Int32 k) return _dt1970.AddSeconds(k);
+            if (value is Int64 m)
+            {
+                if (m > 100 * 365 * 24 * 3600L)
+                    return _dt1970.AddMilliseconds(m);
+                else
+                    return _dt1970.AddSeconds(m);
             }
 
             try

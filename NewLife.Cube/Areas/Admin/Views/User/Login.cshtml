@@ -20,24 +20,206 @@
     <link href="~/Content/Cube.css" rel="stylesheet" />
     <!-- 仅用于过渡期兼容-->
     <style>
-        .login-logo { width: 130px; font-size: 130px; color: #4CA6FF; margin-top: 50px; }
-        .cube-login { background: #fff; padding-bottom: 40px; border-radius: 15px; text-align: center; }
-        .cube-login .heading { display: block; font-size: 24px; font-weight: 700; padding: 5px 0; margin-bottom: 20px; }
-        .cube-login .form-group { padding: 0 40px; margin: 0 0 25px 0; position: relative; display: block; }
-        .cube-login .form-control { border-radius: 20px; box-shadow: none; padding: 0 20px 0 45px; height: 40px; transition: all 0.3s ease 0s; }
-        .cube-login .form-control:focus { background: #e0e0e0; box-shadow: none; outline: 0 none; }
-        .cube-login .form-group i { position: absolute; top: 12px; left: 60px; font-size: 17px; color: #c8c8c8; transition: all 0.5s ease 0s; }
-        .cube-login .form-group a { position: absolute; top: 12px; right: 0px; font-size: 17px; color: #c8c8c8; transition: all 0.5s ease 0s; color: #4CA6FF; }
-        .cube-login .form-control:focus + i { color: #00b4ef; }
-        .cube-login .fa-question-circle { display: inline-block; position: absolute; top: 12px; right: 60px; font-size: 20px; color: #808080; transition: all 0.5s ease 0s; }
-        .cube-login .fa-question-circle:hover { color: #000; }
-        .cube-login .main-checkbox { float: left; width: 20px; height: 20px; background: #11a3fc; border-radius: 50%; position: relative; margin: 5px 0 0 5px; border: 1px solid #11a3fc; }
-        .cube-login .main-checkbox label { width: 20px; height: 20px; position: absolute; top: 0; left: 0; cursor: pointer; }
-        .cube-login .main-checkbox label:after { content: ""; width: 10px; height: 5px; position: absolute; top: 5px; left: 4px; border: 3px solid #fff; border-top: none; border-right: none; background: transparent; opacity: 0; -webkit-transform: rotate(-45deg); transform: rotate(-45deg); }
-        .cube-login .main-checkbox input[type=checkbox] { visibility: hidden; }
-        .cube-login .main-checkbox input[type=checkbox]:checked + label:after { opacity: 1; }
-        .cube-login .text { float: left; margin-left: 7px; line-height: 20px; padding-top: 5px; text-transform: capitalize; }
-        .cube-login .btn { float: right; font-size: 14px; color: #fff; background: #00b4ef; border-radius: 30px; padding: 8px 50px; border: none; text-transform: capitalize; transition: all 0.5s ease 0s; }
+        .login-logo {
+            width: 130px;
+            font-size: 130px;
+            color: #4CA6FF;
+            margin-top: 50px;
+        }
+
+        .cube-login {
+            background: #fff;
+            padding-bottom: 40px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+            .cube-login .heading {
+                display: block;
+                font-size: 24px;
+                font-weight: 700;
+                padding: 5px 0;
+                margin-bottom: 20px;
+            }
+
+            .cube-login .form-group {
+                padding: 0 40px;
+                margin: 0 0 25px 0;
+                position: relative;
+                display: block;
+            }
+
+            .cube-login .form-control {
+                border-radius: 20px;
+                box-shadow: none;
+                padding: 0 20px 0 45px;
+                height: 40px;
+                transition: all 0.3s ease 0s;
+            }
+
+                .cube-login .form-control:focus {
+                    background: #e0e0e0;
+                    box-shadow: none;
+                    outline: 0 none;
+                }
+
+            .cube-login .form-group i {
+                position: absolute;
+                top: 12px;
+                left: 60px;
+                font-size: 17px;
+                color: #c8c8c8;
+                transition: all 0.5s ease 0s;
+            }
+
+            .cube-login .form-group a {
+                position: absolute;
+                top: 12px;
+                right: 0px;
+                font-size: 17px;
+                color: #c8c8c8;
+                transition: all 0.5s ease 0s;
+                color: #4CA6FF;
+            }
+
+            .cube-login .form-control:focus + i {
+                color: #00b4ef;
+            }
+
+            .cube-login .fa-question-circle {
+                display: inline-block;
+                position: absolute;
+                top: 12px;
+                right: 60px;
+                font-size: 20px;
+                color: #808080;
+                transition: all 0.5s ease 0s;
+            }
+
+                .cube-login .fa-question-circle:hover {
+                    color: #000;
+                }
+
+            .cube-login .main-checkbox {
+                float: left;
+                width: 20px;
+                height: 20px;
+                background: #11a3fc;
+                border-radius: 50%;
+                position: relative;
+                margin: 5px 0 0 5px;
+                border: 1px solid #11a3fc;
+            }
+
+                .cube-login .main-checkbox label {
+                    width: 20px;
+                    height: 20px;
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    cursor: pointer;
+                }
+
+                    .cube-login .main-checkbox label:after {
+                        content: "";
+                        width: 10px;
+                        height: 5px;
+                        position: absolute;
+                        top: 5px;
+                        left: 4px;
+                        border: 3px solid #fff;
+                        border-top: none;
+                        border-right: none;
+                        background: transparent;
+                        opacity: 0;
+                        -webkit-transform: rotate(-45deg);
+                        transform: rotate(-45deg);
+                    }
+
+                .cube-login .main-checkbox input[type=checkbox] {
+                    visibility: hidden;
+                }
+
+                    .cube-login .main-checkbox input[type=checkbox]:checked + label:after {
+                        opacity: 1;
+                    }
+
+            .cube-login .text {
+                float: left;
+                margin-left: 7px;
+                line-height: 20px;
+                padding-top: 5px;
+                text-transform: capitalize;
+            }
+
+            .cube-login .btn {
+                float: right;
+                font-size: 14px;
+                color: #fff;
+                background: #00b4ef;
+                border-radius: 30px;
+                padding: 8px 50px;
+                border: none;
+                text-transform: capitalize;
+                transition: all 0.5s ease 0s;
+            }
+
+        .ui.divider {
+            margin: 1rem 0rem;
+            line-height: 1;
+            height: 0em;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: rgba(0, 0, 0, 0.85);
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: rgba(0, 0, 0, 0)
+        }
+
+        .ui.horizontal.divider {
+            display: table;
+            white-space: nowrap;
+            height: auto;
+            line-height: 1;
+            text-align: center
+        }
+
+            .ui.horizontal.divider:before,
+            .ui.horizontal.divider:after {
+                content: '';
+                display: table-cell;
+                position: relative;
+                top: 50%;
+                width: 50%;
+                background-repeat: no-repeat
+            }
+
+            .ui.horizontal.divider:before {
+                background-position: right 1em top 50%;
+            }
+
+            .ui.horizontal.divider:after {
+                background-position: left 1em top 50%
+            }
+
+        .ui.divider > .icon {
+            margin: 0rem;
+            font-size: 1rem;
+            height: 1em;
+            vertical-align: middle
+        }
+
+        .ui.divider {
+            font-size: 1rem
+        }
+
+        .ui.horizontal.divider:before,
+        .ui.horizontal.divider:after {
+            background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABaAAAAACCAYAAACuTHuKAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyFpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNS1jMDE0IDc5LjE1MTQ4MSwgMjAxMy8wMy8xMy0xMjowOToxNSAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIChXaW5kb3dzKSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDo1OThBRDY4OUNDMTYxMUU0OUE3NUVGOEJDMzMzMjE2NyIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDo1OThBRDY4QUNDMTYxMUU0OUE3NUVGOEJDMzMzMjE2NyI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOjU5OEFENjg3Q0MxNjExRTQ5QTc1RUY4QkMzMzMyMTY3IiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjU5OEFENjg4Q0MxNjExRTQ5QTc1RUY4QkMzMzMyMTY3Ii8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+VU513gAAADVJREFUeNrs0DENACAQBDBIWLGBJQby/mUcJn5sJXQmOQMAAAAAAJqt+2prAAAAAACg2xdgANk6BEVuJgyMAAAAAElFTkSuQmCC");
+        }
     </style>
 </head>
 <body>
@@ -46,13 +228,10 @@
         <div class="row">
             <div class="col-md-6 col-md-offset-3">
                 <div class="tab-content">
-                    @if (NewLife.Cube.Setting.Current.AllowLogin)
-                    {
-                    @Html.Partial("_Login_Login")
-                    }
-                    @Html.Partial("_Login_Forgot")
-                    @Html.Partial("_Login_Register")
-                    @Html.Partial("_Login_Login3")
+                    @Html.Partial("_Login_Login")@*登录页*@
+                    @Html.Partial("_Login_Forgot")@*找回密码页*@
+                    @Html.Partial("_Login_Register")@*注册页*@
+                    @Html.Partial("_Login_Login3")@*第三方登录*@
                 </div>
             </div>
         </div>

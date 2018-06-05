@@ -1,62 +1,62 @@
-param($installPath, $toolsPath, $package, $project)
+ï»¿param($installPath, $toolsPath, $package, $project)
 
 
 try
 {
-    # ËùÓĞ°ü´æ·ÅµØÖ·
+    # æ‰€æœ‰åŒ…å­˜æ”¾åœ°å€
     $allPakPath = Split-Path -Parent $installPath
     $allPakPath = $allPakPath + "/"
 
-    # °üÎÄ¼ş¼ĞÃû
+    # åŒ…æ–‡ä»¶å¤¹å
     $corePName = "NewLife.Core"
     $xcodePName = "NewLife.XCode"    
 
-    #»ñÈ¡°æ±¾ºÅ
+    #è·å–ç‰ˆæœ¬å·
     
-        # nuget°üÅäÖÃ
+        # nugetåŒ…é…ç½®
         $packageCfg = $project.ProjectItems.Item("packages.config")
 
-        # nuget°üÅäÖÃÎÄ¼şÃû 
+        # nugetåŒ…é…ç½®æ–‡ä»¶å 
         $packageCfgPath = $packageCfg.Properties("FullPath").Value
 
-        # ¶ÁÈ¡½Úµã
+        # è¯»å–èŠ‚ç‚¹
         $xmlDoc = New-Object "System.Xml.XmlDocument"  
         $xmlDoc.Load($packageCfgPath)
         $coreNode = $xmlDoc.SelectSingleNode("/packages/package[@id='NewLife.Core']")
         $xcodeNode = $xmlDoc.SelectSingleNode("/packages/package[@id='NewLife.XCode']")
 
-        # °æ±¾ºÅ
+        # ç‰ˆæœ¬å·
         $coreV = $coreNode.version
         $xcodeV = $xcodeNode.version
     
     
-    # °üÄÚÂ·¾¶
+    # åŒ…å†…è·¯å¾„
     $pPath = "lib/net40/";
 
-      # ÎÄ¼şÃû
+      # æ–‡ä»¶å
     $coreDllName = "NewLife.Core.dll"
     $xcodeDllName = "XCode.dll" 
 
-    # Ô´µØÖ·
+    # æºåœ°å€
     $coreSrc = $allPakPath + $corePName + "." + $coreV + "/" + $pPath + $coreDllName
     $xcodeSrc = $allPakPath + $xcodePName + "." + $xcodeV + "/" + $pPath + $xcodeDllName
 
-    # Ä¿±êÎÄ¼ş¼Ğ
+    # ç›®æ ‡æ–‡ä»¶å¤¹
     $tarDir = "DLL"
     if(!( Test-Path $tarDir ))
     {
         mkdir $tarDir
     }
 
-    #Ä¿±êµØÖ·
+    #ç›®æ ‡åœ°å€
     $coreTar = $tarDir + "/" + $coreDllName
     $xcodeTar = $tarDir + "/" + $xcodeDllName
 
-    #¸´ÖÆÎÄ¼ş
+    #å¤åˆ¶æ–‡ä»¶
     Copy-Item $coreSrc $coreTar
     Copy-Item $xcodeSrc $xcodeTar
 }
 catch
 {
-    "¸´ÖÆdllÎÄ¼ş³ö´í£¬ÇëÊÖ¶¯¸´ÖÆxcode.dll¡¢newlife.core.dllµ½ÏîÄ¿Ä¿Â¼DLLÎÄ¼ş¼Ğ" | Out-File debug.txt
+    "å¤åˆ¶dllæ–‡ä»¶å‡ºé”™ï¼Œè¯·æ‰‹åŠ¨å¤åˆ¶xcode.dllã€newlife.core.dllåˆ°é¡¹ç›®ç›®å½•DLLæ–‡ä»¶å¤¹" | Out-File debug.txt
 }

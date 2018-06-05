@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using NewLife.Reflection;
+using System.Data.Common;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 
@@ -15,6 +14,11 @@ namespace XCode
         /// <param name="dt">数据表</param>
         /// <returns>实体数组</returns>
         IList<T> LoadData<T>(DataTable dt) where T : Entity<T>, new();
+
+        /// <summary>加载数据表。无数据时返回空集合而不是null。</summary>
+        /// <param name="dr">数据读取器</param>
+        /// <returns>实体数组</returns>
+        IList<T> LoadData<T>(IDataReader dr) where T : Entity<T>, new();
     }
 
     /// <summary>在数据行和实体类之间映射数据接口的提供者</summary>
@@ -31,10 +35,7 @@ namespace XCode
         /// <summary>创建实体类的数据行访问器</summary>
         /// <param name="entityType"></param>
         /// <returns></returns>
-        public IDataRowEntityAccessor CreateDataRowEntityAccessor(Type entityType)
-        {
-            return new DataRowEntityAccessor();
-        }
+        public IDataRowEntityAccessor CreateDataRowEntityAccessor(Type entityType) => new DataRowEntityAccessor();
     }
 
     class DataRowEntityAccessor : IDataRowEntityAccessor
@@ -65,6 +66,47 @@ namespace XCode
 
             // 遍历每一行数据，填充成为实体
             foreach (DataRow dr in dt.Rows)
+            {
+                // 由实体操作者创建实体对象，因为实体操作者可能更换
+                var entity = Entity<T>.Meta.Factory.Create() as T;
+                foreach (var item in ps)
+                    SetValue(entity, item.Value.Name, item.Value.Type, dr[item.Key]);
+
+                foreach (var item in exts)
+                    SetValue(entity, item.Value, null, dr[item.Key]);
+
+                list.Add(entity);
+            }
+            return list;
+        }
+
+        /// <summary>加载数据表。无数据时返回空集合而不是null。</summary>
+        /// <param name="dr">数据读取器</param>
+        /// <returns>实体数组</returns>
+        public IList<T> LoadData<T>(IDataReader dr) where T : Entity<T>, new()
+        {
+            // 准备好实体列表
+            var list = new List<T>();
+            if (dr == null) return list;
+
+            var dr2 = dr as DbDataReader;
+
+            // 对应数据表中字段的实体字段
+            var ps = new Dictionary<Int32, FieldItem>();
+            // 数据表中找不到对应的实体字段的数据字段
+            var exts = new Dictionary<Int32, String>();
+            var ti = Entity<T>.Meta.Table;
+            for (var i = 0; i < dr2.FieldCount; i++)
+            {
+                var name = dr2.GetName(i);
+                if (ti.FindByName(name) is FieldItem fi)
+                    ps.Add(i, fi);
+                else
+                    exts.Add(i, name);
+            }
+
+            // 遍历每一行数据，填充成为实体
+            while(dr.Read())
             {
                 // 由实体操作者创建实体对象，因为实体操作者可能更换
                 var entity = Entity<T>.Meta.Factory.Create() as T;

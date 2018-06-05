@@ -234,40 +234,43 @@ WriteLiteral(">清空数据表</a>\r\n                </li>\r\n");
             
             #line 45 "..\..\Views\Shared\_List_Toolbar_Adv.cshtml"
             }
+            if (ViewHelper.IsDevelop())
+            {
 
             
             #line default
             #line hidden
-WriteLiteral("            <li>\r\n                <a");
+WriteLiteral("                <li>\r\n                    <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1735), Tuple.Create("\"", 1765)
+WriteAttribute("href", Tuple.Create(" href=\"", 1799), Tuple.Create("\"", 1829)
             
-            #line 47 "..\..\Views\Shared\_List_Toolbar_Adv.cshtml"
-, Tuple.Create(Tuple.Create("", 1742), Tuple.Create<System.Object, System.Int32>(Url.Action("MakeList")
+            #line 49 "..\..\Views\Shared\_List_Toolbar_Adv.cshtml"
+, Tuple.Create(Tuple.Create("", 1806), Tuple.Create<System.Object, System.Int32>(Url.Action("MakeList")
             
             #line default
             #line hidden
-, 1742), false)
+, 1806), false)
 );
 
-WriteLiteral(">生成列表</a>\r\n            </li>\r\n");
+WriteLiteral(">生成列表</a>\r\n                </li>\r\n");
 
-WriteLiteral("            <li>\r\n                <a");
+WriteLiteral("                <li>\r\n                    <a");
 
-WriteAttribute("href", Tuple.Create(" href=\"", 1832), Tuple.Create("\"", 1862)
-            
-            #line 50 "..\..\Views\Shared\_List_Toolbar_Adv.cshtml"
-, Tuple.Create(Tuple.Create("", 1839), Tuple.Create<System.Object, System.Int32>(Url.Action("MakeForm")
-            
-            #line default
-            #line hidden
-, 1839), false)
-);
-
-WriteLiteral(">生成表单</a>\r\n            </li>\r\n");
-
+WriteAttribute("href", Tuple.Create(" href=\"", 1908), Tuple.Create("\"", 1938)
             
             #line 52 "..\..\Views\Shared\_List_Toolbar_Adv.cshtml"
+, Tuple.Create(Tuple.Create("", 1915), Tuple.Create<System.Object, System.Int32>(Url.Action("MakeForm")
+            
+            #line default
+            #line hidden
+, 1915), false)
+);
+
+WriteLiteral(">生成表单</a>\r\n                </li>\r\n");
+
+            
+            #line 54 "..\..\Views\Shared\_List_Toolbar_Adv.cshtml"
+            }
         }
 
             

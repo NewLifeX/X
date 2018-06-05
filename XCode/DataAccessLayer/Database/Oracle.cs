@@ -194,11 +194,11 @@ namespace XCode.DataAccessLayer
             return base.FormatValue(field, value);
         }
 
-        /// <summary>格式化标识列，返回插入数据时所用的表达式，如果字段本身支持自增，则返回空</summary>
-        /// <param name="field">字段</param>
-        /// <param name="value">数值</param>
-        /// <returns></returns>
-        public override String FormatIdentity(IDataColumn field, Object value) => String.Format("SEQ_{0}.nextval", field.Table.TableName);
+        ///// <summary>格式化标识列，返回插入数据时所用的表达式，如果字段本身支持自增，则返回空</summary>
+        ///// <param name="field">字段</param>
+        ///// <param name="value">数值</param>
+        ///// <returns></returns>
+        //public override String FormatIdentity(IDataColumn field, Object value) => String.Format("SEQ_{0}.nextval", field.Table.TableName);
 
         internal protected override String ParamPrefix => ":";
 
@@ -226,11 +226,17 @@ namespace XCode.DataAccessLayer
             if (type == typeof(Boolean))
             {
                 if (value is IEnumerable<Object> list)
-                    value = (value as IEnumerable<Object>).Select(e => e.ToBoolean() ? 1 : 0).ToArray();
+                    value = list.Select(e => e.ToBoolean() ? 1 : 0).ToArray();
                 else
                     value = value.ToBoolean() ? 1 : 0;
 
-                type = typeof(Int32);
+                //type = typeof(Int32);
+                var dp2 = Factory.CreateParameter();
+                dp2.ParameterName = FormatParameterName(name);
+                dp2.Direction = ParameterDirection.Input;
+                dp2.DbType = DbType.Int32;
+                dp2.Value = value;
+                return dp2;
             }
 
             var dp = base.CreateParameter(name, value, field);
@@ -562,34 +568,34 @@ namespace XCode.DataAccessLayer
 
             if (table?.Columns == null || table.Columns.Count == 0) return;
 
-            // 检查该表是否有序列
-            if (CheckSeqExists("SEQ_{0}".F(table.TableName), data))
-            {
-                // 不好判断自增列表，只能硬编码
-                var dc = table.GetColumn("ID");
-                if (dc == null) dc = table.Columns.FirstOrDefault(e => e.PrimaryKey && e.DataType.IsInt());
-                if (dc != null && dc.DataType.IsInt()) dc.Identity = true;
-            }
+            //// 检查该表是否有序列
+            //if (CheckSeqExists("SEQ_{0}".F(table.TableName), data))
+            //{
+            //    // 不好判断自增列表，只能硬编码
+            //    var dc = table.GetColumn("ID");
+            //    if (dc == null) dc = table.Columns.FirstOrDefault(e => e.PrimaryKey && e.DataType.IsInt());
+            //    if (dc != null && dc.DataType.IsInt()) dc.Identity = true;
+            //}
         }
 
-        /// <summary>序列</summary>
-        /// <summary>检查序列是否存在</summary>
-        /// <param name="name">名称</param>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        Boolean CheckSeqExists(String name, IDictionary<String, DataTable> data)
-        {
-            // 序列名一定不是关键字，全部大写
-            name = name.ToUpper();
+        ///// <summary>序列</summary>
+        ///// <summary>检查序列是否存在</summary>
+        ///// <param name="name">名称</param>
+        ///// <param name="data"></param>
+        ///// <returns></returns>
+        //Boolean CheckSeqExists(String name, IDictionary<String, DataTable> data)
+        //{
+        //    // 序列名一定不是关键字，全部大写
+        //    name = name.ToUpper();
 
-            var dt = data?["Sequences"];
-            if (dt?.Rows == null) dt = Database.CreateSession().Query("Select * From ALL_SEQUENCES Where SEQUENCE_OWNER='{0}' And SEQUENCE_NAME='{1}'".F(Owner, name)).Tables[0];
-            if (dt?.Rows == null || dt.Rows.Count < 1) return false;
+        //    var dt = data?["Sequences"];
+        //    if (dt?.Rows == null) dt = Database.CreateSession().Query("Select * From ALL_SEQUENCES Where SEQUENCE_OWNER='{0}' And SEQUENCE_NAME='{1}'".F(Owner, name)).Tables[0];
+        //    if (dt?.Rows == null || dt.Rows.Count < 1) return false;
 
-            var where = String.Format("SEQUENCE_NAME='{0}'", name);
-            var drs = dt.Select(where);
-            return drs != null && drs.Length > 0;
-        }
+        //    var where = String.Format("SEQUENCE_NAME='{0}'", name);
+        //    var drs = dt.Select(where);
+        //    return drs != null && drs.Length > 0;
+        //}
 
         String GetTableComment(String name, IDictionary<String, DataTable> data)
         {
@@ -855,50 +861,50 @@ namespace XCode.DataAccessLayer
             }
 
             var sql = sb.ToString();
-            if (String.IsNullOrEmpty(sql)) return sql;
+            if (sql.IsNullOrEmpty()) return sql;
 
-            // 有些表没有自增字段
-            var id = table.Columns.FirstOrDefault(e => e.Identity);
-            if (id != null)
-            {
-                // 如果序列已存在，需要先删除
-                if (CheckSeqExists("SEQ_{0}".F(table.TableName), null)) sb.AppendFormat(";\r\nDrop Sequence SEQ_{0}", table.TableName);
+            //// 有些表没有自增字段
+            //var id = table.Columns.FirstOrDefault(e => e.Identity);
+            //if (id != null)
+            //{
+            //    // 如果序列已存在，需要先删除
+            //    if (CheckSeqExists("SEQ_{0}".F(table.TableName), null)) sb.AppendFormat(";\r\nDrop Sequence SEQ_{0}", table.TableName);
 
-                // 感谢@晴天（412684802）和@老徐（gregorius 279504479），这里的最小值开始必须是0，插入的时候有++i的效果，才会得到从1开始的编号
-                // @大石头 在PLSQL里面，创建序列从1开始时，nextval得到从1开始，而ADO.Net这里从1开始时，nextval只会得到2
-                //sb.AppendFormat(";\r\nCreate Sequence SEQ_{0} Minvalue 0 Maxvalue 9999999999 Start With 0 Increment By 1 Cache 20", table.TableName);
+            //    // 感谢@晴天（412684802）和@老徐（gregorius 279504479），这里的最小值开始必须是0，插入的时候有++i的效果，才会得到从1开始的编号
+            //    // @大石头 在PLSQL里面，创建序列从1开始时，nextval得到从1开始，而ADO.Net这里从1开始时，nextval只会得到2
+            //    //sb.AppendFormat(";\r\nCreate Sequence SEQ_{0} Minvalue 0 Maxvalue 9999999999 Start With 0 Increment By 1 Cache 20", table.TableName);
 
-                /*
-                 * Oracle从 11.2.0.1 版本开始，提供了一个“延迟段创建”特性：
-                 * 当我们创建了新的表(table)和序列(sequence)，在插入(insert)语句时，序列会跳过第一个值(1)。
-                 * 所以结果是插入的序列值从 2(序列的第二个值) 开始， 而不是 1开始。
-                 * 
-                 * 更改数据库的“延迟段创建”特性为false（需要有相应的权限）
-                 * ALTER SYSTEM SET deferred_segment_creation=FALSE; 
-                 * 
-                 * 第二种解决办法
-                 * 创建表时让seqment立即执行，如： 
-                 * CREATE TABLE tbl_test(
-                 *   test_id NUMBER PRIMARY KEY, 
-                 *   test_name VARCHAR2(20)
-                 * )
-                 * SEGMENT CREATION IMMEDIATE;
-                 */
-                sb.AppendFormat(";\r\nCreate Sequence SEQ_{0} Minvalue 1 Maxvalue 9999999999 Start With 1 Increment By 1", table.TableName);
-            }
+            //    /*
+            //     * Oracle从 11.2.0.1 版本开始，提供了一个“延迟段创建”特性：
+            //     * 当我们创建了新的表(table)和序列(sequence)，在插入(insert)语句时，序列会跳过第一个值(1)。
+            //     * 所以结果是插入的序列值从 2(序列的第二个值) 开始， 而不是 1开始。
+            //     * 
+            //     * 更改数据库的“延迟段创建”特性为false（需要有相应的权限）
+            //     * ALTER SYSTEM SET deferred_segment_creation=FALSE; 
+            //     * 
+            //     * 第二种解决办法
+            //     * 创建表时让seqment立即执行，如： 
+            //     * CREATE TABLE tbl_test(
+            //     *   test_id NUMBER PRIMARY KEY, 
+            //     *   test_name VARCHAR2(20)
+            //     * )
+            //     * SEGMENT CREATION IMMEDIATE;
+            //     */
+            //    sb.AppendFormat(";\r\nCreate Sequence SEQ_{0} Minvalue 1 Maxvalue 9999999999 Start With 1 Increment By 1", table.TableName);
+            //}
 
             // 去掉分号后的空格，Oracle不支持同时执行多个语句
             return sb.ToString();
         }
 
-        public override String DropTableSQL(String tableName)
-        {
-            var sql = base.DropTableSQL(tableName);
-            if (String.IsNullOrEmpty(sql)) return sql;
+        //public override String DropTableSQL(String tableName)
+        //{
+        //    var sql = base.DropTableSQL(tableName);
+        //    if (String.IsNullOrEmpty(sql)) return sql;
 
-            var sqlSeq = String.Format("Drop Sequence SEQ_{0}", tableName);
-            return sql + "; " + Environment.NewLine + sqlSeq;
-        }
+        //    var sqlSeq = String.Format("Drop Sequence SEQ_{0}", tableName);
+        //    return sql + "; " + Environment.NewLine + sqlSeq;
+        //}
 
         public override String AddColumnSQL(IDataColumn field)
         {

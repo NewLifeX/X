@@ -61,28 +61,22 @@
     <Reference Include="System.Core" />
     <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Web.Helpers, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.AspNet.WebPages.3.2.3\lib\net45\System.Web.Helpers.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\packages\Microsoft.AspNet.WebPages.3.2.6\lib\net45\System.Web.Helpers.dll</HintPath>
     </Reference>
-    <Reference Include="System.Web.Mvc, Version=5.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.AspNet.Mvc.5.2.3\lib\net45\System.Web.Mvc.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="System.Web.Mvc, Version=5.2.6.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.Mvc.5.2.6\lib\net45\System.Web.Mvc.dll</HintPath>
     </Reference>
     <Reference Include="System.Web.Razor, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.AspNet.Razor.3.2.3\lib\net45\System.Web.Razor.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\packages\Microsoft.AspNet.Razor.3.2.6\lib\net45\System.Web.Razor.dll</HintPath>
     </Reference>
     <Reference Include="System.Web.WebPages, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.AspNet.WebPages.3.2.3\lib\net45\System.Web.WebPages.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\packages\Microsoft.AspNet.WebPages.3.2.6\lib\net45\System.Web.WebPages.dll</HintPath>
     </Reference>
     <Reference Include="System.Web.WebPages.Deployment, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.AspNet.WebPages.3.2.3\lib\net45\System.Web.WebPages.Deployment.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\packages\Microsoft.AspNet.WebPages.3.2.6\lib\net45\System.Web.WebPages.Deployment.dll</HintPath>
     </Reference>
     <Reference Include="System.Web.WebPages.Razor, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.AspNet.WebPages.3.2.3\lib\net45\System.Web.WebPages.Razor.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\packages\Microsoft.AspNet.WebPages.3.2.6\lib\net45\System.Web.WebPages.Razor.dll</HintPath>
     </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Web" />
@@ -336,6 +330,16 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Index.cshtml</DependentUpon>
     </Compile>
+    <Compile Include="Views\Shared\_Form_Body.generated.cs">
+      <DependentUpon>_Form_Body.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\Shared\_Form_Group.generated.cs">
+      <DependentUpon>_Form_Group.cshtml</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
     <Compile Include="Views\Shared\_Object_Nav.generated.cs">
       <DependentUpon>_Object_Nav.cshtml</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -395,11 +399,6 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>_Form_Footer.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Shared\_Form_Group.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>_Form_Group.cshtml</DependentUpon>
     </Compile>
     <Compile Include="Views\Shared\_Form_Header.generated.cs">
       <AutoGen>True</AutoGen>
@@ -512,10 +511,10 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_ListTree_Data.generated.cs</LastGenOutput>
     </None>
-    <Content Include="Areas\Admin\Views\Shared\_Object_Nav.cshtml">
+    <None Include="Areas\Admin\Views\Shared\_Object_Nav.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_Object_Nav.generated.cs</LastGenOutput>
-    </Content>
+    </None>
     <None Include="Areas\Admin\Views\UserOnline\_List_Data.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_List_Data.generated.cs</LastGenOutput>
@@ -627,15 +626,15 @@
     </Content>
     <None Include="index.html" />
     <None Include="Content\bootstrap\js\bootstrap.js" />
-    <Content Include="Entity\Cube.xml">
+    <None Include="Entity\Cube.xml">
       <SubType>Designer</SubType>
-    </Content>
-    <Content Include="Entity\XCoder.tt">
+    </None>
+    <None Include="Entity\XCoder.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>XCoder.log</LastGenOutput>
-    </Content>
-    <Content Include="Scripts\ApiClient.js" />
-    <Content Include="Scripts\WebSocketX.js" />
+    </None>
+    <None Include="Scripts\ApiClient.js" />
+    <None Include="Scripts\WebSocketX.js" />
     <None Include="Areas\Admin\Views\File\Index.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Index.generated.cs</LastGenOutput>
@@ -779,10 +778,18 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Index.generated.cs</LastGenOutput>
     </None>
-    <Content Include="Views\Shared\_Object_Nav.cshtml">
+    <None Include="Views\Shared\_Form_Group.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>_Form_Group.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\Shared\_Object_Nav.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_Object_Nav.generated.cs</LastGenOutput>
-    </Content>
+    </None>
+    <None Include="Views\Shared\_Form_Body.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>_Form_Body.generated.cs</LastGenOutput>
+    </None>
     <None Include="Views\Shared\_StatLevel.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_StatLevel.generated.cs</LastGenOutput>
@@ -860,10 +867,6 @@
     <None Include="Views\Shared\_Form_Header.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_Form_Header.generated.cs</LastGenOutput>
-    </None>
-    <None Include="Views\Shared\_Form_Group.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_Form_Group.generated.cs</LastGenOutput>
     </None>
     <None Include="Views\Shared\_Layout.cshtml">
       <Generator>RazorGenerator</Generator>

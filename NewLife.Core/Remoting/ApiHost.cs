@@ -22,10 +22,10 @@ namespace NewLife.Remoting
         public IApiHandler Handler { get; set; }
 
         /// <summary>发送数据包统计信息</summary>
-        public ICounter StatSend { get; set; } = new PerfCounter();
+        public ICounter StatInvoke { get; set; }
 
         /// <summary>接收数据包统计信息</summary>
-        public ICounter StatReceive { get; set; } = new PerfCounter();
+        public ICounter StatProcess { get; set; }
 
         /// <summary>用户会话数据</summary>
         public IDictionary<String, Object> Items { get; set; } = new NullableDictionary<String, Object>();
@@ -79,9 +79,19 @@ namespace NewLife.Remoting
         {
             if (msg.Reply) return null;
 
-            StatReceive?.Increment();
-
-            return OnProcess(session, msg);
+            //StatReceive?.Increment();
+            var st = StatProcess;
+            //var sw = st == null ? 0 : Stopwatch.GetTimestamp();
+            var sw = st.StartCount();
+            try
+            {
+                return OnProcess(session, msg);
+            }
+            finally
+            {
+                //if (st != null) st.Increment(1, (Stopwatch.GetTimestamp() - sw) / 10);
+                st.StopCount(sw);
+            }
         }
 
         private IMessage OnProcess(IApiSession session, IMessage msg)

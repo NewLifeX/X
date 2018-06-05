@@ -271,10 +271,7 @@ namespace XCode.Membership
         /// <param name="isEnable"></param>
         /// <param name="p"></param>
         /// <returns></returns>
-        public static IList<TEntity> Search(String key, Int32 roleId, Boolean? isEnable, Pager p)
-        {
-            return Search(key, roleId, isEnable, DateTime.MinValue, DateTime.MinValue, p);
-        }
+        public static IList<TEntity> Search(String key, Int32 roleId, Boolean? isEnable, Pager p) => Search(key, roleId, isEnable, DateTime.MinValue, DateTime.MinValue, p);
 
         /// <summary>高级查询</summary>
         /// <param name="key"></param>

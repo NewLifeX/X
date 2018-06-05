@@ -14,8 +14,8 @@ namespace NewLife.Net.Handlers
         /// <summary>消息队列。用于匹配请求响应包</summary>
         public IMatchQueue Queue { get; set; } = new DefaultMatchQueue();
 
-        /// <summary>调用超时时间。默认30000ms</summary>
-        public Int32 Timeout { get; set; } = 30000;
+        /// <summary>调用超时时间。默认30_000ms</summary>
+        public Int32 Timeout { get; set; } = 30_000;
 
         /// <summary>使用数据包，写入时数据包转消息，读取时消息自动解包返回数据负载。默认true</summary>
         public Boolean UserPacket { get; set; } = true;
@@ -142,12 +142,12 @@ namespace NewLife.Net.Handlers
                 while (idx < pk.Total)
                 {
                     //var pk2 = new Packet(pk.Data, pk.Offset + idx, pk.Total - idx);
-                    var pk2 = pk.Sub(idx);
+                    var pk2 = pk.Slice(idx);
                     var len = getLength(pk2);
                     if (len <= 0 || len > pk2.Count) break;
 
-                    //pk2.Set(pk.Data, pk.Offset + idx, len);
-                    pk2.SetSub(0, len);
+                    pk2.Set(pk2.Data, pk2.Offset, len);
+                    //pk2.SetSub(0, len);
                     list.Add(pk2);
                     idx += len;
                 }
@@ -156,7 +156,7 @@ namespace NewLife.Net.Handlers
 
                 // 剩下的
                 //pk = new Packet(pk.Data, pk.Offset + idx, pk.Total - idx);
-                pk = pk.Sub(idx);
+                pk = pk.Slice(idx);
             }
 
             if (_ms == null) codec.Stream = _ms = new MemoryStream();
@@ -193,8 +193,8 @@ namespace NewLife.Net.Handlers
                     if (len <= 0 || len > pk2.Total) break;
 
                     // 解包成功
-                    //pk2.Set(pk2.Data, pk2.Offset, len);
-                    pk2.SetSub(0, len);
+                    pk2.Set(pk2.Data, pk2.Offset, len);
+                    //pk2.SetSub(0, len);
                     list.Add(pk2);
 
                     _ms.Seek(len, SeekOrigin.Current);

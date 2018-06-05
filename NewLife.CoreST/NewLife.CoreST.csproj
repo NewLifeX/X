@@ -10,7 +10,7 @@
     <Copyright>©2002-2018 新生命开发团队 http://www.NewLifeX.com</Copyright>
     <FileVersion>7.0.2018.0512</FileVersion>
     <AssemblyVersion>7.0.2018.0512</AssemblyVersion>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

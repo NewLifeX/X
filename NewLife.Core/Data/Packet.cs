@@ -99,23 +99,23 @@ namespace NewLife.Data
             }
         }
 
-        /// <summary>设置子数据区</summary>
-        /// <param name="offset">相对偏移</param>
-        /// <param name="count">字节个数</param>
-        public virtual void SetSub(Int32 offset, Int32 count = -1)
-        {
-            Offset += offset;
+        ///// <summary>设置子数据区</summary>
+        ///// <param name="offset">相对偏移</param>
+        ///// <param name="count">字节个数</param>
+        //public virtual void SetSub(Int32 offset, Int32 count = -1)
+        //{
+        //    Offset += offset;
 
-            if (count < 0) count = Count - offset;
-            if (count < 0) count = Data.Length - Offset;
-            Count = count;
-        }
+        //    if (count < 0) count = Count - offset;
+        //    if (count < 0) count = Data.Length - Offset;
+        //    Count = count;
+        //}
 
         /// <summary>截取子数据区</summary>
         /// <param name="offset">相对偏移</param>
         /// <param name="count">字节个数</param>
         /// <returns></returns>
-        public Packet Sub(Int32 offset, Int32 count = -1)
+        public Packet Slice(Int32 offset, Int32 count = -1)
         {
             var start = Offset + offset;
             var remain = Count - offset;
@@ -131,7 +131,7 @@ namespace NewLife.Data
             else
             {
                 // 如果当前段用完，则取下一段
-                if (remain <= 0) return Next.Sub(offset - Count, count);
+                if (remain <= 0) return Next.Slice(offset - Count, count);
 
                 // 当前包用一截，剩下的全部
                 if (count < 0) return new Packet(Data, start, remain) { Next = Next };
@@ -140,7 +140,7 @@ namespace NewLife.Data
                 if (count <= remain) return new Packet(Data, start, count);
 
                 // 当前包用一截，剩下的再截取
-                return new Packet(Data, start, remain) { Next = Next.Sub(0, count - remain) };
+                return new Packet(Data, start, remain) { Next = Next.Slice(0, count - remain) };
             }
         }
 
@@ -234,7 +234,7 @@ namespace NewLife.Data
                 // 当前包不够用
                 if (len < offset)
                     offset -= len;
-                else
+                else if (cur.Data != null)
                 {
                     len -= offset;
                     if (len > count) len = count;
@@ -319,15 +319,20 @@ namespace NewLife.Data
 
         /// <summary>以字符串表示</summary>
         /// <param name="encoding">字符串编码，默认URF-8</param>
+        /// <param name="offset"></param>
+        /// <param name="count"></param>
         /// <returns></returns>
-        public String ToStr(Encoding encoding = null)
+        public String ToStr(Encoding encoding = null, Int32 offset = 0, Int32 count = -1)
         {
             if (Data == null) return null;
             //if (Count == 0) return String.Empty;
 
-            if (Next == null) return Data.ToStr(encoding ?? Encoding.UTF8, Offset, Count);
+            if (encoding == null) encoding = Encoding.UTF8;
+            if (count < 0) count = Total - offset;
 
-            return ToArray().ToStr(encoding ?? Encoding.UTF8);
+            if (Next == null) return Data.ToStr(encoding, Offset + offset, count);
+
+            return ReadBytes(offset, count).ToStr(encoding);
         }
 
         /// <summary>以十六进制编码表示</summary>
@@ -353,7 +358,7 @@ namespace NewLife.Data
         /// <summary>重载类型转换，字节数组直接转为Packet对象</summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static implicit operator Packet(Byte[] value) => new Packet(value);
+        public static implicit operator Packet(Byte[] value) => value == null ? null : new Packet(value);
 
         /// <summary>重载类型转换，一维数组直接转为Packet对象</summary>
         /// <param name="value"></param>

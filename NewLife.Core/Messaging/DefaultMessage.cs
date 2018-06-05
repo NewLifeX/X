@@ -80,9 +80,10 @@ namespace NewLife.Messaging
             // 支持超过64k的超大包
             if (len == 0xFFFF)
             {
-                if (pk.Count < 8) throw new ArgumentOutOfRangeException(nameof(pk), "数据包头部长度不足8字节");
+                size += 4;
+                if (pk.Count < size) throw new ArgumentOutOfRangeException(nameof(pk), "数据包头部长度不足8字节");
 
-                len = pk.ReadBytes(size, 4).ToInt();
+                len = pk.ReadBytes(size - 4, 4).ToInt();
                 if (size + len > pk.Count) throw new ArgumentOutOfRangeException(nameof(pk), "数据包长度{0}不足{1}字节".F(pk.Count, size + len));
             }
 

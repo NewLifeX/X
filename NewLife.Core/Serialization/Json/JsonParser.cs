@@ -140,7 +140,7 @@ namespace NewLife.Serialization
                     if (str[0] == '/' && str[str.Length - 1] == '/' && str.StartsWithIgnoreCase("/Date(") && str.EndsWithIgnoreCase(")/"))
                     {
                         str = str.Substring(6, str.Length - 6 - 2);
-                        return new DateTime(1970, 1, 1).AddMilliseconds(Convert.ToInt64(str));
+                        return str.ToLong().ToDateTime();
                     }
 
                     return str;

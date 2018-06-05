@@ -114,7 +114,7 @@ namespace NewLife.Caching
         /// <param name="cmd"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        protected virtual Object SendCommand(String cmd, params Byte[][] args)
+        protected virtual Object SendCommand(String cmd, params Packet[] args)
         {
             var isQuit = cmd == "QUIT";
 
@@ -162,29 +162,33 @@ namespace NewLife.Caching
 
                 foreach (var item in args)
                 {
-                    var len = 1 + item.Length.ToString().GetBytes().Length + NewLine.Length * 2 + item.Length;
+                    var size = item.Total;
+                    var sizes = size.ToString().GetBytes();
+                    var len = 1 + sizes.Length + NewLine.Length * 2 + size;
                     // 防止写入内容过长导致的缓冲区长度不足的问题
-                    if (ms.Position + len > ms.Length)
+                    if (ms.Position + len >= ms.Capacity)
                     {
-                        var ms2 = new MemoryStream();
+                        // 两倍扩容
+                        var ms2 = new MemoryStream(ms.Capacity * 2);
                         ms.WriteTo(ms2);
                         ms = ms2;
                     }
 
                     if (log != null)
                     {
-                        if (item.Length <= 32)
+                        if (size <= 32)
                             log.AppendFormat(" {0}", item.ToStr());
                         else
-                            log.AppendFormat(" [{0}]", item.Length);
+                            log.AppendFormat(" [{0}]", size);
                     }
 
                     //str = "${0}\r\n".F(item.Length);
                     //ms.Write(str.GetBytes());
                     ms.WriteByte((Byte)'$');
-                    ms.Write(item.Length.ToString().GetBytes());
+                    ms.Write(sizes);
                     ms.Write(NewLine);
-                    ms.Write(item);
+                    //ms.Write(item);
+                    item.WriteTo(ms);
                     ms.Write(NewLine);
 
                     if (ms.Length > 1400)
@@ -224,7 +228,7 @@ namespace NewLife.Caching
             if (header == '$') return ReadBlock(rs, ns);
             if (header == '*') return ReadBlocks(rs, ns);
 
-            var pk = rs.Sub(1);
+            var pk = rs.Slice(1);
 
             var str2 = pk.ToStr().Trim();
             if (log != null) WriteLog("=> {0}", str2);
@@ -259,10 +263,10 @@ namespace NewLife.Caching
             var p = pk.IndexOf(NewLine);
             if (p <= 0) throw new InvalidDataException("无法解析响应 {0} [{1}]".F(header, pk.Count));
 
-            var n = pk.Sub(1, p - 1).ToStr().ToInt();
+            var n = pk.Slice(1, p - 1).ToStr().ToInt();
 
-            pk = pk.Sub(p + 2);
-            if (Log != null && Log != Logger.Null) WriteLog("=> *{0} [{1}] {2}", n, pk.Count, pk.Sub(0, 32).ToStr().Replace(Environment.NewLine, "\\r\\n"));
+            pk = pk.Slice(p + 2);
+            if (Log != null && Log != Logger.Null) WriteLog("=> *{0} [{1}] {2}", n, pk.Count, pk.Slice(0, 32).ToStr().Replace(Environment.NewLine, "\\r\\n"));
 
             var arr = new Packet[n];
             for (var i = 0; i < n; i++)
@@ -271,7 +275,7 @@ namespace NewLife.Caching
                 arr[i] = rs;
 
                 // 下一块，在前一块末尾加 \r\n
-                pk = pk.Sub(rs.Offset + rs.Count + 2 - pk.Offset);
+                pk = pk.Slice(rs.Offset + rs.Count + 2 - pk.Offset);
             }
 
             return arr;
@@ -285,10 +289,10 @@ namespace NewLife.Caching
             if (p <= 0) throw new InvalidDataException("无法解析响应 [{0}] [{1}]={2}".F((Byte)header, pk.Count, pk.ToHex(32, "-")));
 
             // 解析长度
-            var len = pk.Sub(1, p - 1).ToStr().ToInt();
+            var len = pk.Slice(1, p - 1).ToStr().ToInt();
 
             // 出错或没有内容
-            if (len <= 0) return pk.Sub(p, 0);
+            if (len <= 0) return pk.Slice(p, 0);
 
             // 数据不足时，继续从网络流读取
             var dlen = pk.Total - (p + 2);
@@ -319,7 +323,7 @@ namespace NewLife.Caching
             }
 
             // 解析内容，跳过长度后的\r\n
-            pk = pk.Sub(p + 2, len);
+            pk = pk.Slice(p + 2, len);
 
             return pk;
         }
@@ -357,6 +361,8 @@ namespace NewLife.Caching
 
             if (rs is Packet[] pks)
             {
+                if (typeof(TResult) == typeof(Packet[])) return (TResult)rs;
+
                 var elmType = type.GetElementTypeEx();
                 var arr = Array.CreateInstance(elmType, pks.Length);
                 for (var i = 0; i < pks.Length; i++)
@@ -426,7 +432,7 @@ namespace NewLife.Caching
         /// <returns></returns>
         public Boolean SetAll<T>(IDictionary<String, T> values)
         {
-            var ps = new List<Byte[]>();
+            var ps = new List<Packet>();
             foreach (var item in values)
             {
                 ps.Add(item.Key.GetBytes());
@@ -461,13 +467,14 @@ namespace NewLife.Caching
         /// <summary>数值转字节数组</summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        protected virtual Byte[] ToBytes(Object value)
+        protected virtual Packet ToBytes(Object value)
         {
             if (value == null) return new Byte[0];
 
-            var type = value.GetType();
-            if (type == typeof(Byte[])) return (Byte[])value;
+            if (value is Packet pk) return pk;
+            if (value is Byte[] buf) return buf;
 
+            var type = value.GetType();
             switch (type.GetTypeCode())
             {
                 case TypeCode.Object: return value.ToJson().GetBytes();

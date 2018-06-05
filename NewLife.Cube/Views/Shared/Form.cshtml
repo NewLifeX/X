@@ -4,19 +4,10 @@
 @{
     Layout = NewLife.Cube.Setting.Current.Layout;
 
-    var fact = ViewBag.Factory as IEntityOperate;
-    var fields = ViewBag.Fields as IList<FieldItem>;
     var entity = Model as IEntity;
     var isNew = entity.IsNullKey;
 
-    //var hasUser = fields.Any(f => f.Name.EqualIgnoreCase("CreateUserID", "UpdateUserID"));
-    //if (hasUser && ViewData["Provider"] == null) { ViewData["Provider"] = ManageProvider.Provider; }
-
     var rv = entity.GetRouteKey();
-
-    //if (fields.Any(f => f.Name.EqualIgnoreCase("CreateUserID"))) { fields = fields.Where(f => !f.Name.EqualIgnoreCase("CreateTime")).ToList(); }
-    //if (fields.Any(f => f.Name.EqualIgnoreCase("UpdateUserID"))) { fields = fields.Where(f => !f.Name.EqualIgnoreCase("UpdateTime")).ToList(); }
-    //fields = fields.Where(f => !f.Name.EqualIgnoreCase("CreateUserID", "UpdateUserID", "CreateIP", "CreateIP")).ToList();
 }
 
 <div class="form-horizontal">
@@ -35,15 +26,6 @@
                 }
             }
         </ul>
-        foreach (var item in fields)
-        {
-            @*2017-08-25 siery 修改判断主键为自增类型才隐藏。主要解决非自增主键新增时候无法显示问题。旧版本可以重载Views/Shared/Form.cshtml解决*@
-            if (!item.IsIdentity)
-            {
-                @Html.Partial("_Form_Group", new Pair(Model, item))
-            }
-        }
-        @Html.Partial("_Form_Footer", entity)
-        @Html.Partial("_Form_Action", entity)
+        @Html.Partial("_Form_Body", entity)
     }
 </div>

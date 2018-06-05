@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // 特性集控制。更改这些特性值可修改
 // 与程序集关联的信息。
 [assembly: AssemblyTitle("组件核心库")]
-[assembly: AssemblyDescription("日常开发中的各种基础功能")]
+[assembly: AssemblyDescription("日志、网络、RPC、序列化、缓存、WindowsService")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyProduct("NewLife.Core")]
 [assembly: AssemblyCompany("新生命开发团队")]
-[assembly: AssemblyCopyright("©2002-2018 新生命开发团队 http://git.newlifex.com/NewLife/X")]
+[assembly: AssemblyCopyright("©2002-2018 新生命开发团队 https://github.com/NewLifeX/X")]
 [assembly: AssemblyTrademark("四叶草")]
 [assembly: AssemblyCulture("")]
 

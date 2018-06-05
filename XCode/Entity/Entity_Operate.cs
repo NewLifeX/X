@@ -75,12 +75,12 @@ namespace XCode
             /// <summary>创建一个实体对象</summary>
             /// <param name="forEdit">是否为了编辑而创建，如果是，可以再次做一些相关的初始化工作</param>
             /// <returns></returns>
-            public virtual IEntity Create(Boolean forEdit = false) { return (Default as TEntity).CreateInstance(forEdit) as TEntity; }
+            public virtual IEntity Create(Boolean forEdit = false) => (Default as TEntity).CreateInstance(forEdit) as TEntity;
 
             /// <summary>加载记录集</summary>
             /// <param name="ds">记录集</param>
             /// <returns>实体数组</returns>
-            public virtual IList<IEntity> LoadData(DataSet ds) { return Entity<TEntity>.LoadData(ds).Cast<IEntity>().ToList(); }
+            public virtual IList<IEntity> LoadData(DataSet ds) => Entity<TEntity>.LoadData(ds).Cast<IEntity>().ToList();
             #endregion
 
             #region 查找单个实体
@@ -219,7 +219,7 @@ namespace XCode
             /// <summary>格式化关键字</summary>
             /// <param name="name">名称</param>
             /// <returns></returns>
-            public virtual String FormatName(String name) { return Meta.FormatName(name); }
+            public virtual String FormatName(String name) => Meta.FormatName(name);
 
             /// <summary>
             /// 取得一个值的Sql值。
@@ -228,13 +228,13 @@ namespace XCode
             /// <param name="name">字段</param>
             /// <param name="value">对象</param>
             /// <returns>Sql值的字符串形式</returns>
-            public virtual String FormatValue(String name, Object value) { return Meta.FormatValue(name, value); }
+            public virtual String FormatValue(String name, Object value) => Meta.FormatValue(name, value);
 
             /// <summary>格式化数据为SQL数据</summary>
             /// <param name="field">字段</param>
             /// <param name="value">数值</param>
             /// <returns></returns>
-            public virtual String FormatValue(FieldItem field, Object value) { return Meta.FormatValue(field, value); }
+            public virtual String FormatValue(FieldItem field, Object value) => Meta.FormatValue(field, value);
             #endregion
 
             #region 一些设置

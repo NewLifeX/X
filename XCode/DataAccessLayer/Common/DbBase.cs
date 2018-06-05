@@ -185,10 +185,22 @@ namespace XCode.DataAccessLayer
             if (builder.TryGetAndRemove(nameof(Migration), out value) && !value.IsNullOrEmpty()) Migration = (Migration)Enum.Parse(typeof(Migration), value, true);
             if (builder.TryGetAndRemove(nameof(TablePrefix), out value) && !value.IsNullOrEmpty()) TablePrefix = value;
             if (builder.TryGetAndRemove(nameof(Readonly), out value) && !value.IsNullOrEmpty()) Readonly = value.ToBoolean();
+
+            // 连接字符串去掉provider，可能有些数据库不支持这个属性
+            if (builder.TryGetAndRemove("provider", out value) && !value.IsNullOrEmpty()) { }
+
+
+            // 数据库名称
+            var db = builder["Database"];
+            if (db.IsNullOrEmpty()) db = builder["Initial Catalog"];
+            DatabaseName = db;
         }
 
         /// <summary>拥有者</summary>
         public virtual String Owner { get; set; }
+
+        /// <summary>数据库名</summary>
+        public String DatabaseName { get; set; }
 
         internal protected String _ServerVersion;
         /// <summary>数据库服务器版本</summary>
@@ -322,7 +334,11 @@ namespace XCode.DataAccessLayer
             file = plugin.CombinePath(file);
 
             // 如果还没有，就写异常
-            if (type == null && !File.Exists(file)) throw new FileNotFoundException("缺少文件" + file + "！", file);
+            if (type == null)
+            {
+                if (assemblyFile.IsNullOrEmpty()) return null;
+                if (!File.Exists(file)) throw new FileNotFoundException("缺少文件" + file + "！", file);
+            }
 
             if (type == null)
             {
@@ -586,12 +602,10 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        /// <summary>
-        /// 是否保留字
-        /// </summary>
+        /// <summary>是否保留字</summary>
         /// <param name="word"></param>
         /// <returns></returns>
-        internal Boolean IsReservedWord(String word) => !String.IsNullOrEmpty(word) && ReservedWords.ContainsKey(word);
+        internal Boolean IsReservedWord(String word) => !word.IsNullOrEmpty() && ReservedWords.ContainsKey(word);
 
         /// <summary>格式化时间为SQL字符串</summary>
         /// <remarks>
@@ -612,7 +626,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual String FormatName(String name)
         {
-            if (String.IsNullOrEmpty(name)) return name;
+            if (name.IsNullOrEmpty()) return name;
 
             // 优先使用内置关键字
             var rws = ReservedWords;
@@ -708,12 +722,10 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual String FormatParameterName(String name)
         {
-            if (String.IsNullOrEmpty(name)) return name;
+            if (name.IsNullOrEmpty()) return name;
 
-            //DbMetaData md = CreateMetaData() as DbMetaData;
-            //if (md != null) name = md.ParamPrefix + name;
-
-            //return name;
+            // 如果参数名是关键字，统一加前缀
+            if (IsReservedWord(name)) name = "x_" + name;
 
             return ParamPrefix + name;
         }
@@ -810,6 +822,9 @@ namespace XCode.DataAccessLayer
 
         /// <summary>获取 或 设置 自动关闭。每次使用完数据库连接后，是否自动关闭连接，高频操作时设为false可提升性能。默认true</summary>
         public Boolean AutoClose { get; set; } = true;
+
+        /// <summary>是否支持Schema。默认true</summary>
+        public Boolean SupportSchema { get; set; } = true;
         #endregion
 
         #region 辅助函数

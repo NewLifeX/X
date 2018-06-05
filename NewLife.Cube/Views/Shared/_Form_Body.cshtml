@@ -1,0 +1,16 @@
+﻿@using NewLife;
+@using XCode;
+@using XCode.Configuration;
+@{
+    var entity = Model as IEntity;
+    var fields = ViewBag.Fields as IList<FieldItem>;
+}
+@foreach (var item in fields)
+{
+    if (!item.IsIdentity)
+    {
+        @Html.Partial("_Form_Group", new Pair(entity, item))
+    }
+}
+@Html.Partial("_Form_Footer", entity)
+@Html.Partial("_Form_Action", entity)

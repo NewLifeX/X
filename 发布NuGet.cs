@@ -113,6 +113,8 @@ namespace NewLife.Reflection
                 AddFile(cfg, name, "dll;xml;pdb;exe", @"..\..\Bin2", @"lib\net20");
                 AddFile(cfg, name, "dll;xml;pdb;exe", @"..\..\Bin4", @"lib\net40");
                 AddFile(cfg, name, "dll;xml;pdb;exe", @"..\..\Bin\netstandard2.0", @"lib\netstandard2.0");
+
+                if (name == "XCode") AddFile(cfg, null, "*.ps1", @"tools", @"tools");
             }
 
 			ms = new MemoryStream();
@@ -121,7 +123,7 @@ namespace NewLife.Reflection
 
             //var pack = "pack {0} -IncludeReferencedProjects -Build -Prop Configuration={1} -Exclude **\\*.txt;**\\*.png;content\\*.xml";
             // *\\*.*干掉下级的所有文件
-            var pack = "pack {0} -IncludeReferencedProjects -Exclude **\\*.txt;**\\*.png;*.jpg;*.xml;*\\*.*";
+            var pack = "pack {0} -IncludeReferencedProjects -Exclude **\\*.txt;**\\*.png;*.jpg";
             Console.WriteLine("打包：{0}", proj);
             //"cmd".Run("/c del *.nupkg /f/q");
 			foreach(var item in ".".AsDirectory().GetAllFiles("*.nupkg"))
@@ -142,9 +144,9 @@ namespace NewLife.Reflection
         //static ManifestDependency _md;
         static void AddFile(Manifest cfg, String name, String exts, String src, String target)
         {
-			exts = exts.Split(";").Select(e=>name + "." + e).Join(";");
+			if (!name.IsNullOrEmpty()) exts = exts.Split(";").Select(e=>name + "." + e).Join(";");
             var fs = src.AsDirectory().GetAllFiles(exts).ToList();
-            //XTrace.WriteLine("目录：{0} 文件：{1}", src, fs.Count);
+            //XTrace.WriteLine("目录：{0} 文件：{1}", src.AsDirectory().FullName, fs.Count);
             if(fs.Count == 0) return;
             
             var dgs = cfg.Metadata?.DependencySets;

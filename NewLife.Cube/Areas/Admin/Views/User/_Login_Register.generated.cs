@@ -27,6 +27,12 @@ namespace ASP
     using System.Web.UI;
     using System.Web.WebPages;
     using NewLife;
+    
+    #line 1 "..\..\Areas\Admin\Views\User\_Login_Register.cshtml"
+    using NewLife.Common;
+    
+    #line default
+    #line hidden
     using NewLife.Cube;
     using NewLife.Reflection;
     using NewLife.Web;
@@ -56,16 +62,20 @@ WriteLiteral(">\r\n        <i");
 
 WriteLiteral(" class=\"glyphicon glyphicon-cloud login-logo center-block\"");
 
-WriteLiteral("></i>\r\n    </div>\r\n    <!-- 登录-->\r\n");
+WriteLiteral(" style=\"display: inline-block;\"");
+
+WriteLiteral("></i>\r\n        ");
+
+WriteLiteral("\r\n    </div>\r\n    <!-- 登录-->\r\n");
 
             
-            #line 9 "..\..\Areas\Admin\Views\User\_Login_Register.cshtml"
+            #line 11 "..\..\Areas\Admin\Views\User\_Login_Register.cshtml"
     
             
             #line default
             #line hidden
             
-            #line 9 "..\..\Areas\Admin\Views\User\_Login_Register.cshtml"
+            #line 11 "..\..\Areas\Admin\Views\User\_Login_Register.cshtml"
      using (Html.BeginForm("Register", "User", new { r = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "cube-login" }))
     {
         
@@ -73,14 +83,14 @@ WriteLiteral("></i>\r\n    </div>\r\n    <!-- 登录-->\r\n");
             #line default
             #line hidden
             
-            #line 11 "..\..\Areas\Admin\Views\User\_Login_Register.cshtml"
+            #line 13 "..\..\Areas\Admin\Views\User\_Login_Register.cshtml"
    Write(Html.ValidationSummary());
 
             
             #line default
             #line hidden
             
-            #line 11 "..\..\Areas\Admin\Views\User\_Login_Register.cshtml"
+            #line 13 "..\..\Areas\Admin\Views\User\_Login_Register.cshtml"
                                  
 
             
@@ -90,7 +100,16 @@ WriteLiteral("        <span");
 
 WriteLiteral(" class=\"heading text-primary\"");
 
-WriteLiteral(">新用户注册</span>\r\n");
+WriteLiteral(">");
+
+            
+            #line 14 "..\..\Areas\Admin\Views\User\_Login_Register.cshtml"
+                                      Write(SysConfig.Current.DisplayName);
+
+            
+            #line default
+            #line hidden
+WriteLiteral(" 注册</span>\r\n");
 
 WriteLiteral("        <div");
 
@@ -184,7 +203,27 @@ WriteLiteral("        <div");
 
 WriteLiteral(" class=\"form-group text-center\"");
 
-WriteLiteral(">\r\n            <button");
+WriteLiteral(">\r\n            <div");
+
+WriteLiteral(" style=\"display: inline-block; margin-top: 5px;\"");
+
+WriteLiteral(">\r\n                <span");
+
+WriteLiteral(" style=\"margin-left: auto; margin-right: auto; margin-top: 5px;\"");
+
+WriteLiteral(">已有账号？</span>\r\n                <a");
+
+WriteLiteral(" href=\"#Login\"");
+
+WriteLiteral(" data-toggle=\"tab\"");
+
+WriteLiteral(" style=\"margin-left: auto; margin-right: auto;position: static; font-size: 15px; " +
+"margin-top: 5px;\"");
+
+WriteLiteral(">\r\n                    ");
+
+WriteLiteral("\r\n                    <span>回到登录</span>\r\n                </a>\r\n            </div>" +
+"\r\n            <button");
 
 WriteLiteral(" type=\"submit\"");
 
@@ -193,39 +232,16 @@ WriteLiteral(" class=\"btn btn-default text-center\"");
 WriteLiteral(">注册</button>\r\n        </div>\r\n");
 
             
-            #line 32 "..\..\Areas\Admin\Views\User\_Login_Register.cshtml"
+            #line 41 "..\..\Areas\Admin\Views\User\_Login_Register.cshtml"
 
     }
 
             
             #line default
             #line hidden
-WriteLiteral("    <div");
+WriteLiteral("    ");
 
-WriteLiteral(" class=\"toolbar clearfix text-center\"");
-
-WriteLiteral(">\r\n        <div");
-
-WriteLiteral(" class=\"row\"");
-
-WriteLiteral(" style=\"padding-top:30px;\"");
-
-WriteLiteral(">\r\n            <div");
-
-WriteLiteral(" class=\"toolbar center\"");
-
-WriteLiteral(">\r\n                <a");
-
-WriteLiteral(" href=\"#Login\"");
-
-WriteLiteral(" data-toggle=\"tab\"");
-
-WriteLiteral(">\r\n                    回到登录\r\n                    <i");
-
-WriteLiteral(" class=\"ace-icon fa fa-arrow-right\"");
-
-WriteLiteral("></i>\r\n                </a>\r\n            </div>\r\n        </div>\r\n    </div>\r\n</di" +
-"v>");
+WriteLiteral("\r\n</div>");
 
         }
     }

@@ -6,6 +6,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Collections;
+using NewLife.Data;
 using NewLife.Log;
 using NewLife.Net;
 using NewLife.Security;
@@ -178,7 +179,11 @@ namespace NewLife.Caching
                 {
                     try
                     {
-                        return func(pi.Value);
+                        var rs = func(pi.Value);
+                        // 如果返回Packet，需要在离开对象池之前拷贝，否则可能出现冲突
+                        if ((Object)rs is Packet pk) return (T)(Object)pk.Clone();
+
+                        return rs;
                     }
                     catch (InvalidDataException)
                     {

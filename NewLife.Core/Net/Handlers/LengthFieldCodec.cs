@@ -89,7 +89,8 @@ namespace NewLife.Net.Handlers
             var len = Offset + Math.Abs(Size);
             foreach (var item in pks)
             {
-                item.SetSub(len, item.Count - len);
+                item.Set(item.Data, item.Offset + len, item.Count - len);
+                //item.SetSub(len, item.Count - len);
             }
 
             return pks;

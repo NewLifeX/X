@@ -90,6 +90,26 @@ namespace XCode
             if (dt == null) return new List<TEntity>();
 
             var list = DreAccessor.LoadData<TEntity>(dt);
+            OnLoadData(list);
+
+            return list;
+        }
+
+        /// <summary>加载数据表。无数据时返回空集合而不是null。</summary>
+        /// <param name="dr">数据读取器</param>
+        /// <returns>实体数组</returns>
+        public static IList<TEntity> LoadData(IDataReader dr)
+        {
+            if (dr == null) return new List<TEntity>();
+
+            var list = DreAccessor.LoadData<TEntity>(dr);
+            OnLoadData(list);
+
+            return list;
+        }
+
+        private static void OnLoadData(IList<TEntity> list)
+        {
             // 设置默认累加字段
             EntityAddition.SetField(list.Cast<IEntity>().ToList());
             foreach (var entity in list)
@@ -110,8 +130,6 @@ namespace XCode
                     }
                 });
             }
-
-            return list;
         }
 
         private static IDataRowEntityAccessor DreAccessor => XCodeService.CreateDataRowEntityAccessor(typeof(TEntity));
@@ -160,8 +178,8 @@ namespace XCode
         {
             if (Meta.Table.DataTable.InsertOnly)
             {
-                if (isnew == null) throw new XCodeException("只写的日志型数据禁止删除！");
-                if (!isnew.Value) throw new XCodeException("只写的日志型数据禁止修改！");
+                if (isnew == null) throw new XCodeException($"只写的日志型数据[{Meta.ThisType.FullName}]禁止删除！");
+                if (!isnew.Value) throw new XCodeException($"只写的日志型数据[{Meta.ThisType.FullName}]禁止修改！");
             }
 
             //using (var trans = new EntityTransaction<TEntity>())
@@ -456,7 +474,8 @@ namespace XCode
             // 提取参数
             builder = FixParam(builder, ps);
 
-            var list = LoadData(session.Query(builder, 0, 0));
+            //var list = LoadData(session.Query(builder, 0, 0));
+            var list = session.Query(builder, 0, 0, LoadData);
             if (list == null || list.Count < 1) return null;
 
             if (list.Count > 1 && DAL.Debug)
@@ -611,7 +630,8 @@ namespace XCode
             var session = Meta.Session;
 
             var builder = CreateBuilder(where, order, selects, startRowIndex, maximumRows);
-            return LoadData(session.Query(builder, startRowIndex, maximumRows));
+            //return LoadData(session.Query(builder, startRowIndex, maximumRows));
+            return session.Query(builder, startRowIndex, maximumRows, LoadData);
         }
 
         /// <summary>最标准的查询数据。没有数据时返回空集合而不是null</summary>
@@ -707,7 +727,8 @@ namespace XCode
                         var start = (Int32)(count - (startRowIndex + maximumRows));
 
                         var builder2 = CreateBuilder(where, order2, selects, start, max);
-                        var list = LoadData(session.Query(builder2, start, max));
+                        //var list = LoadData(session.Query(builder2, start, max));
+                        var list = session.Query(builder2, start, max, LoadData);
                         if (list == null || list.Count < 1) return list;
                         // 因为这样取得的数据是倒过来的，所以这里需要再倒一次
                         list.Reverse();
@@ -718,7 +739,7 @@ namespace XCode
             #endregion
 
             var builder = CreateBuilder(where, order, selects, startRowIndex, maximumRows);
-            return LoadData(session.Query(builder, startRowIndex, maximumRows));
+            return session.Query(builder, startRowIndex, maximumRows, LoadData);
         }
 
         /// <summary>同时查询满足条件的记录集和记录总数。没有数据时返回空集合而不是null</summary>
@@ -763,6 +784,16 @@ namespace XCode
                 return FindAll(where, orderby, selects, page.StartRow, page.PageSize);
             else
                 return FindAll(where, orderby, selects, (page.PageIndex - 1) * page.PageSize, page.PageSize);
+        }
+
+        /// <summary>执行SQl获取数据集</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <returns>实体集</returns>
+        public static IList<TEntity> FindAll(String sql)
+        {
+            var session = Meta.Session;
+
+            return LoadData(session.Query(sql));
         }
         #endregion
 
@@ -832,6 +863,15 @@ namespace XCode
             if (!builder.GroupBy.IsNullOrEmpty()) builder.Column = selects;
 
             return session.QueryCount(builder);
+        }
+
+        /// <summary>执行SQL返回总记录数</summary>
+        /// <returns>总行数</returns>
+        public static Int32 FindCount(String sql)
+        {
+            var session = Meta.Session;
+
+            return session.QueryCount(sql);
         }
         #endregion
 
@@ -1061,7 +1101,9 @@ namespace XCode
                 {
                     var fields = Meta.Factory.Selects;
                     if (fields.IsNullOrWhiteSpace())
-                        fields = Meta.Factory.FieldNames.Select(Meta.FormatName).Join(",");
+                        //fields = Meta.Factory.FieldNames.Select(Meta.FormatName).Join(",");
+                        //不能直接通过获取FieldNames的方式拼接查询字段，如果列名和实际的属性名称存在差异的情况下会导致查询错误 By Xiyunfei
+                        fields = Meta.Factory.Fields.Select(e => Meta.FormatName(e.ColumnName)).Join(",");
                     builder.Column = fields;
                 }
             }
@@ -1122,9 +1164,9 @@ namespace XCode
             {
                 foreach (var item in ps)
                 {
-                    //var dp = Meta.Session.Dal.Db.CreateParameter(item.Key, item.Value, Meta.Table.FindByName(item.Key)?.Type);
-                    // 不能传递类型，因为参数名可能已经改变
-                    var dp = Meta.Session.Dal.Db.CreateParameter(item.Key, item.Value);
+                    var dp = Meta.Session.Dal.Db.CreateParameter(item.Key, item.Value, Meta.Table.FindByName(item.Key)?.Field);
+                    //// 不能传递类型，因为参数名可能已经改变
+                    //var dp = Meta.Session.Dal.Db.CreateParameter(item.Key, item.Value);
 
                     builder.Parameters.Add(dp);
                 }
@@ -1371,7 +1413,7 @@ namespace XCode
         /// <param name="find">查找函数</param>
         /// <param name="create">创建对象</param>
         /// <returns></returns>
-        protected static TEntity GetOrAdd<TKey>(TKey key, Func<TKey, Boolean, TEntity> find = null, Func<TKey, TEntity> create = null)
+        public static TEntity GetOrAdd<TKey>(TKey key, Func<TKey, Boolean, TEntity> find = null, Func<TKey, TEntity> create = null)
         {
             if (key == null) return null;
 
@@ -1384,7 +1426,7 @@ namespace XCode
                 else
                 {
                     entity = new TEntity();
-                    entity[Meta.Factory.Unique.Name] = key;
+                    entity.SetItem(Meta.Factory.Unique.Name, key);
                 }
 
                 // 插入失败时，再次查询

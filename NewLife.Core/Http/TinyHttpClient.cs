@@ -13,7 +13,7 @@ using NewLife.Net;
 
 namespace NewLife.Http
 {
-    /// <summary>迷你Http客户端</summary>
+    /// <summary>迷你Http客户端。不支持https和302跳转</summary>
     public class TinyHttpClient : DisposeBase
     {
         #region 属性
@@ -31,6 +31,9 @@ namespace NewLife.Http
 
         /// <summary>状态码</summary>
         public Int32 StatusCode { get; set; }
+
+        /// <summary>超时时间。默认15000ms</summary>
+        public Int32 Timeout { get; set; } = 15000;
 
         /// <summary>头部集合</summary>
         public IDictionary<String, String> Headers { get; set; } = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
@@ -72,7 +75,11 @@ namespace NewLife.Http
             {
                 tc.TryDispose();
                 tc = new TcpClient();
+#if NET4
+                tc.Connect(remote.Address, remote.Port);
+#else
                 await tc.ConnectAsync(remote.Address, remote.Port);
+#endif
 
                 Client = tc;
                 ns = tc.GetStream();
@@ -82,12 +89,16 @@ namespace NewLife.Http
             //await ns.WriteAsync(data, 0, data.Length);
             if (request != null) await request.CopyToAsync(ns);
 
-            var source = new CancellationTokenSource(15000);
+#if NET4
+            var count = ns.Read(response.Data, response.Offset, response.Count);
+#else
+            var source = new CancellationTokenSource(Timeout);
 
             // 接收
             var count = await ns.ReadAsync(response.Data, response.Offset, response.Count, source.Token);
+#endif
 
-            return response.Sub(0, count);
+            return response.Slice(0, count);
         }
 
         /// <summary>异步发出请求，并接收响应</summary>
@@ -156,8 +167,8 @@ namespace NewLife.Http
             return req;
         }
 
-        private static Byte[] NewLine4 = new[] { (Byte)'\r', (Byte)'\n', (Byte)'\r', (Byte)'\n' };
-        private static Byte[] NewLine3 = new[] { (Byte)'\r', (Byte)'\n', (Byte)'\n' };
+        private static readonly Byte[] NewLine4 = new[] { (Byte)'\r', (Byte)'\n', (Byte)'\r', (Byte)'\n' };
+        private static readonly Byte[] NewLine3 = new[] { (Byte)'\r', (Byte)'\n', (Byte)'\n' };
         /// <summary>解析响应</summary>
         /// <param name="rs"></param>
         /// <returns></returns>
@@ -168,7 +179,7 @@ namespace NewLife.Http
             if (p < 0) p = rs.IndexOf(NewLine3);
             if (p < 0) return null;
 
-            var str = rs.ReadBytes(0, p).ToStr();
+            var str = rs.ToStr(Encoding.ASCII, 0, p);
             var lines = str.Split("\r\n");
 
             // HTTP/1.1 502 Bad Gateway
@@ -201,10 +212,10 @@ namespace NewLife.Http
 
             if (hs.TryGetValue("Connection", out str) && str.EqualIgnoreCase("Close")) Client.TryDispose();
 
-            return rs.Sub(p + 4, len);
+            return rs.Slice(p + 4, len);
         }
 
-        private static Byte[] NewLine = new[] { (Byte)'\r', (Byte)'\n' };
+        private static readonly Byte[] NewLine = new[] { (Byte)'\r', (Byte)'\n' };
         private Packet ParseChunk(Packet rs)
         {
             // chunk编码
@@ -214,7 +225,7 @@ namespace NewLife.Http
             if (p <= 0) return rs;
 
             // 第一段长度
-            var str = rs.Sub(0, p).ToStr();
+            var str = rs.Slice(0, p).ToStr();
             //if (str.Length % 2 != 0) str = "0" + str;
             //var len = (Int32)str.ToHex().ToUInt32(0, false);
             //Int32.TryParse(str, NumberStyles.HexNumber, null, out var len);
@@ -222,7 +233,7 @@ namespace NewLife.Http
 
             if (ContentLength < 0) ContentLength = len;
 
-            var pk = rs.Sub(p + 2, len);
+            var pk = rs.Slice(p + 2, len);
 
             // 暂时不支持多段编码
 

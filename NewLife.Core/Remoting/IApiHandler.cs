@@ -116,8 +116,8 @@ namespace NewLife.Remoting
                 if (ctx.Exception != null && !ctx.ExceptionHandled) throw ctx.Exception;
             }
 
-            // 二进制优先通道
-            if (api.IsPacketReturn && rs is Packet pk) return pk;
+            //// 二进制优先通道
+            //if (api.IsPacketReturn && rs is Packet pk) return pk;
 
             return rs;
         }

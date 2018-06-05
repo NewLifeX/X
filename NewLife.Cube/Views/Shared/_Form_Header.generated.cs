@@ -44,7 +44,17 @@ namespace ASP
         {
             
             #line 1 "..\..\Views\Shared\_Form_Header.cshtml"
- if (ViewBag.StatusMessage != null)
+   
+    var msg = ViewBag.StatusMessage as String;
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\r\n");
+
+            
+            #line 4 "..\..\Views\Shared\_Form_Header.cshtml"
+ if (!msg.IsNullOrEmpty())
 {
     //if (ViewData.ModelState.Values.Any(st => st.Errors.Count > 0))
     if (ViewBag.RowsAffected <= 0)
@@ -76,8 +86,8 @@ WriteLiteral(" aria-hidden=\"true\"");
 WriteLiteral(">&times;</span></button>\r\n            <strong>");
 
             
-            #line 8 "..\..\Views\Shared\_Form_Header.cshtml"
-               Write(ViewBag.StatusMessage);
+            #line 11 "..\..\Views\Shared\_Form_Header.cshtml"
+               Write(msg);
 
             
             #line default
@@ -85,7 +95,7 @@ WriteLiteral(">&times;</span></button>\r\n            <strong>");
 WriteLiteral("</strong>\r\n        </div>\r\n");
 
             
-            #line 10 "..\..\Views\Shared\_Form_Header.cshtml"
+            #line 13 "..\..\Views\Shared\_Form_Header.cshtml"
     }
     else
     {
@@ -116,8 +126,8 @@ WriteLiteral(" aria-hidden=\"true\"");
 WriteLiteral(">&times;</span></button>\r\n            <strong>");
 
             
-            #line 15 "..\..\Views\Shared\_Form_Header.cshtml"
-               Write(ViewBag.StatusMessage);
+            #line 18 "..\..\Views\Shared\_Form_Header.cshtml"
+               Write(msg);
 
             
             #line default
@@ -125,7 +135,7 @@ WriteLiteral(">&times;</span></button>\r\n            <strong>");
 WriteLiteral("</strong>\r\n        </div>\r\n");
 
             
-            #line 17 "..\..\Views\Shared\_Form_Header.cshtml"
+            #line 20 "..\..\Views\Shared\_Form_Header.cshtml"
     }
 }
             

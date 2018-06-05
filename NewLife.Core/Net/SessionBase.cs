@@ -395,7 +395,7 @@ namespace NewLife.Net
                 var ss = OnPreReceive(pk, remote);
                 if (ss == null) return;
 
-                if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", pk.Total, pk.ToHex(32, null));
+                if (LogReceive && Log != null && Log.Enable) WriteLog("Recv [{0}]: {1}", pk.Total, pk.ToHex(32, null));
 
                 if (Local.IsTcp) remote = Remote.EndPoint;
 

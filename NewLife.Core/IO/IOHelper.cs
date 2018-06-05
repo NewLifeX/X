@@ -4,7 +4,6 @@ using System.IO;
 using System.IO.Compression;
 using System.Text;
 using NewLife;
-using NewLife.Data;
 using NewLife.Reflection;
 
 namespace System
@@ -302,40 +301,28 @@ namespace System
         //    return new Packet(ms.GetBuffer(), (Int32)ms.Position, len);
         //}
 
-        private static DateTime _dt1970 = new DateTime(1970, 1, 1);
-        /// <summary>写入Unix格式时间，1970年以来秒数</summary>
+        /// <summary>写入Unix格式时间，1970年以来秒数，绝对时间，非UTC</summary>
         /// <param name="stream"></param>
         /// <param name="dt"></param>
-        /// <param name="baseYear"></param>
         /// <returns></returns>
-        public static Stream WriteDateTime(this Stream stream, DateTime dt, Int32 baseYear = 1970)
+        public static Stream WriteDateTime(this Stream stream, DateTime dt)
         {
-            var seconds = 0;
-            if (dt.Year >= baseYear)
-            {
-                var bdt = baseYear == 1970 ? _dt1970 : new DateTime(baseYear, 1, 1);
-                seconds = (Int32)(dt - bdt).TotalSeconds;
-            }
-
+            var seconds = dt.ToInt();
             stream.Write(seconds.GetBytes());
 
             return stream;
         }
 
-        /// <summary>读取Unix格式时间，1970年以来秒数</summary>
+        /// <summary>读取Unix格式时间，1970年以来秒数，绝对时间，非UTC</summary>
         /// <param name="stream"></param>
-        /// <param name="baseYear"></param>
         /// <returns></returns>
-        public static DateTime ReadDateTime(this Stream stream, Int32 baseYear = 1970)
+        public static DateTime ReadDateTime(this Stream stream)
         {
-            var bdt = baseYear == 1970 ? _dt1970 : new DateTime(baseYear, 1, 1);
-
             var buf = new Byte[4];
             stream.Read(buf, 0, 4);
             var seconds = (Int32)buf.ToUInt32();
-            if (seconds <= 0) return bdt;
 
-            return bdt.AddSeconds(seconds);
+            return seconds.ToDateTime();
         }
 
         /// <summary>复制数组</summary>
