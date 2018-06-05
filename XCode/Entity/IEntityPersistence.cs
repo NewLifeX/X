@@ -421,8 +421,8 @@ namespace XCode
             String idv = null;
             if (op.AllowInsertIdentity)
                 idv = "" + value;
-            else
-                idv = DAL.Create(op.ConnName).Db.FormatIdentity(fi.Field, value);
+            //else
+            //    idv = DAL.Create(op.ConnName).Db.FormatIdentity(fi.Field, value);
             //if (String.IsNullOrEmpty(idv)) continue;
             // 允许返回String.Empty作为插入空
             if (idv == null) return true;
