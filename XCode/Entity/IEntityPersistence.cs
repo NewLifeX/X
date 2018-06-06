@@ -156,7 +156,7 @@ namespace XCode
         {
             var ds = entity.Dirtys;
             // 没有脏数据，不需要更新
-            if (ds.Count == 0) return 0;
+            if (!ds.Any()) return 0;
 
             IDataParameter[] dps = null;
             var sql = "";

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using NewLife.Log;
 using NewLife.Threading;
 
@@ -70,7 +71,7 @@ namespace NewLife.Net
         /// <summary>关闭所有</summary>
         public void CloseAll()
         {
-            if (_dic.IsEmpty) return;
+            if (!_dic.Any()) return;
 
             foreach (var item in _dic.ToValueArray())
             {
@@ -81,7 +82,7 @@ namespace NewLife.Net
         /// <summary>移除不活动的会话</summary>
         void RemoveNotAlive(Object state)
         {
-            if (_dic.IsEmpty) return;
+            if (!_dic.Any()) return;
 
             var timeout = 30;
             if (Server != null) timeout = Server.SessionTimeout;

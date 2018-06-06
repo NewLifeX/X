@@ -20,46 +20,32 @@ namespace NewLife.Collections
         }
 
         /// <summary>是否空集合</summary>
-        public Boolean IsEmpty { get { return _dic.IsEmpty; } }
+        public Boolean IsEmpty => _dic.IsEmpty;
 
         /// <summary>元素个数</summary>
-        public Int32 Count { get { return _dic.Count; } }
+        public Int32 Count => _dic.Count;
 
         /// <summary>是否包含元素</summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        public Boolean Contain(T item) { return _dic.ContainsKey(item); }
+        public Boolean Contain(T item) => _dic.ContainsKey(item);
 
         /// <summary>尝试添加</summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        public Boolean TryAdd(T item) { return _dic.TryAdd(item, 0); }
+        public Boolean TryAdd(T item) => _dic.TryAdd(item, 0);
 
         /// <summary>尝试删除</summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        public Boolean TryRemove(T item)
-        {
-            Byte b = 0;
-            return _dic.TryRemove(item, out b);
-        }
+        public Boolean TryRemove(T item) => _dic.TryRemove(item, out var b);
 
         #region IEnumerable<T> 成员
-
-        IEnumerator<T> IEnumerable<T>.GetEnumerator()
-        {
-            return _dic.Keys.GetEnumerator();
-        }
-
+        IEnumerator<T> IEnumerable<T>.GetEnumerator() => _dic.Keys.GetEnumerator();
         #endregion
 
         #region IEnumerable 成员
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return _dic.Keys.GetEnumerator();
-        }
-
+        IEnumerator IEnumerable.GetEnumerator() => _dic.Keys.GetEnumerator();
         #endregion
     }
 }

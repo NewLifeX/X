@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using NewLife;
 using NewLife.Log;
@@ -86,12 +87,14 @@ namespace XCode
 
             // 检查是否有延迟保存
             var ds = DelayEntities;
-            if (!ds.IsEmpty)
+            if (ds.Any())
             {
                 var now = TimerX.Now;
                 foreach (var item in ds)
                 {
                     if (item.Value < now) list.Add(item.Key);
+
+                    n++;
                 }
                 // 从列表删除过期
                 foreach (var item in list)
@@ -99,12 +102,12 @@ namespace XCode
                     ds.Remove(item);
                 }
 
-                n += ds.Count;
+                //n += ds.Count;
             }
 
             // 检查是否有近实时保存
             var es = Entities;
-            if (!es.IsEmpty)
+            if (es.Any())
             {
                 // 为了速度，不拷贝，直接创建一个新的集合
                 Entities = new ConcurrentDictionary<IEntity, IEntity>();
@@ -117,9 +120,9 @@ namespace XCode
 
             if (list.Count > 0)
             {
-                Process(list);
-
                 _count -= list.Count;
+
+                Process(list);
             }
         }
 
@@ -202,15 +205,6 @@ namespace XCode
             {
                 XTrace.WriteLine($"实体队列[{ss.TableName}/{ss.ConnName}]\t保存 {list.Count:n0}\t耗时 {ms:n0}ms\t速度 {speed:n0}tps\t周期 {p:n0}ms");
             }
-
-            //if (Completed != null)
-            //{
-            //    var k = 0;
-            //    foreach (var item in list)
-            //    {
-            //        Completed(this, new EventArgs<IEntity, Int32>(item, rs[k++]));
-            //    }
-            //}
 
             // 马上再来一次，以便于连续处理数据
             _Timer.SetNext(-1);

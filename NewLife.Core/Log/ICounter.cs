@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using NewLife.Reflection;
 
 namespace NewLife.Log
 {
@@ -27,6 +28,8 @@ namespace NewLife.Log
     /// <summary>计数器助手</summary>
     public static class CounterHelper
     {
+        private static readonly Double tickFrequency = (Double)typeof(Stopwatch).GetValue("tickFrequency");
+
         /// <summary>开始计时</summary>
         /// <param name="counter"></param>
         /// <returns></returns>
@@ -40,7 +43,7 @@ namespace NewLife.Log
             if (counter == null) return;
 
             var ticks = Stopwatch.GetTimestamp() - startTicks;
-            counter.Increment(1, ticks / 10);
+            counter.Increment(1, (Int64)(ticks * tickFrequency / 10));
         }
     }
 }

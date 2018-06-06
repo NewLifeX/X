@@ -63,7 +63,7 @@ namespace XCode.Membership
         /// <param name="isNew"></param>
         protected override Boolean OnValid(IEntity entity, Boolean isNew)
         {
-            if (!isNew && entity.Dirtys.Count == 0) return true;
+            if (!isNew && !entity.Dirtys.Any()) return true;
 
             var fs = GetFieldNames(entity.GetType());
 
@@ -121,7 +121,7 @@ namespace XCode.Membership
         /// <param name="isNew"></param>
         protected override Boolean OnValid(IEntity entity, Boolean isNew)
         {
-            if (!isNew && entity.Dirtys.Count == 0) return true;
+            if (!isNew && !entity.Dirtys.Any()) return true;
 
             var fs = GetFieldNames(entity.GetType());
 
@@ -167,7 +167,7 @@ namespace XCode.Membership
         /// <param name="isNew"></param>
         protected override Boolean OnValid(IEntity entity, Boolean isNew)
         {
-            if (!isNew && entity.Dirtys.Count == 0) return true;
+            if (!isNew && !entity.Dirtys.Any()) return true;
 
             var ip = WebHelper.UserHost;
             if (!ip.IsNullOrEmpty())

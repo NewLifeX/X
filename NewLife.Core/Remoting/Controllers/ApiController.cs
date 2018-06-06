@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using NewLife.Data;
 using NewLife.Net;
 
@@ -64,7 +65,7 @@ namespace NewLife.Remoting
                 Environment.UserName,
                 Time = DateTime.Now,
                 LocalIP = NetHelper.MyIP() + "",
-                RemoteIP = ns.Remote.EndPoint + "",
+                Remote = ns.Remote.EndPoint + "",
             };
             return rs;
         }

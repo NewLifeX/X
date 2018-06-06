@@ -52,7 +52,7 @@ namespace NewLife.Caching
             if (clearTimer == null)
             {
                 var period = 60;
-                clearTimer = new TimerX(RemoveNotAlive, null, period * 1000, period * 1000);
+                clearTimer = new TimerX(RemoveNotAlive, null, period * 1000, period * 1000) { Async = true };
             }
         }
 

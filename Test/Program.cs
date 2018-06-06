@@ -8,6 +8,7 @@ using NewLife.Caching;
 using NewLife.Log;
 using NewLife.Net;
 using NewLife.Net.Handlers;
+using NewLife.Reflection;
 using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
@@ -178,12 +179,25 @@ namespace Test
 
         static void Test5()
         {
+            var sw = Stopwatch.StartNew();
+            Thread.Sleep(3000);
+            sw.Stop();
+            Console.WriteLine("ElapsedTicks=\t{0:n0}", sw.ElapsedTicks);
+            Console.WriteLine("Milliseconds=\t{0:n0}", sw.ElapsedMilliseconds);
+            Console.WriteLine("比率=\t{0:n0}", sw.ElapsedTicks / sw.ElapsedMilliseconds);
+
+            var tickFrequency = sw.GetType().GetValue("tickFrequency");
+            var Frequency = (Int64)sw.GetType().GetValue("Frequency");
+            Console.WriteLine("tickFrequency=\t{0:n0}", tickFrequency);
+            Console.WriteLine("Frequency=\t{0:n0}", Frequency);
+
             var svr = new ApiServer(3344);
             svr.Log = XTrace.Log;
             svr.StatPeriod = 5;
             svr.Start();
 
             Console.ReadKey(true);
+
             //while (true)
             //{
             //    Thread.Sleep(500);

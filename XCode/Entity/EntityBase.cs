@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using NewLife.Reflection;
@@ -172,7 +173,7 @@ namespace XCode
         }
 
         /// <summary>脏属性。存储哪些属性的数据被修改过了。</summary>
-        IDictionary<String, Boolean> IEntity.Dirtys { get { return Dirtys; } }
+        IDictionary<String, Boolean> IEntity.Dirtys => Dirtys;
 
         /// <summary>设置所有数据的脏属性</summary>
         /// <param name="isDirty">改变脏属性的属性个数</param>
@@ -180,7 +181,7 @@ namespace XCode
         protected virtual Int32 SetDirty(Boolean isDirty)
         {
             var ds = _Dirtys;
-            if (ds == null || ds.IsEmpty) return 0;
+            if (ds == null || !ds.Any()) return 0;
 
             var count = 0;
             foreach (var item in ds.Keys)
