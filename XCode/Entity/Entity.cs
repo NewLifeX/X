@@ -1393,15 +1393,17 @@ namespace XCode
         {
             get
             {
-                var ds = Dirtys;
-                if (ds == null || ds.Count < 1) return false;
+                //var ds = Dirtys;
+                //if (ds == null || ds.Count < 1) return false;
 
-                foreach (var item in Meta.FieldNames)
-                {
-                    if (ds.TryGetValue(item, out var flag) && flag) return true;
-                }
+                //foreach (var item in Meta.FieldNames)
+                //{
+                //    if (ds.TryGetValue(item, out var flag) && flag) return true;
+                //}
 
-                return false;
+                //return false;
+
+                return !(Dirtys as DirtyCollection).IsEmpty;
             }
         }
         #endregion

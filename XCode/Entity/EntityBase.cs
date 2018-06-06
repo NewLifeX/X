@@ -172,7 +172,7 @@ namespace XCode
         }
 
         /// <summary>脏属性。存储哪些属性的数据被修改过了。</summary>
-        IDictionary<String, Boolean> IEntity.Dirtys { get { return Dirtys; } }
+        IDictionary<String, Boolean> IEntity.Dirtys => Dirtys;
 
         /// <summary>设置所有数据的脏属性</summary>
         /// <param name="isDirty">改变脏属性的属性个数</param>
