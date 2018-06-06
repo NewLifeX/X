@@ -120,9 +120,9 @@ namespace XCode
 
             if (list.Count > 0)
             {
-                Process(list);
-
                 _count -= list.Count;
+
+                Process(list);
             }
         }
 
@@ -205,15 +205,6 @@ namespace XCode
             {
                 XTrace.WriteLine($"实体队列[{ss.TableName}/{ss.ConnName}]\t保存 {list.Count:n0}\t耗时 {ms:n0}ms\t速度 {speed:n0}tps\t周期 {p:n0}ms");
             }
-
-            //if (Completed != null)
-            //{
-            //    var k = 0;
-            //    foreach (var item in list)
-            //    {
-            //        Completed(this, new EventArgs<IEntity, Int32>(item, rs[k++]));
-            //    }
-            //}
 
             // 马上再来一次，以便于连续处理数据
             _Timer.SetNext(-1);
