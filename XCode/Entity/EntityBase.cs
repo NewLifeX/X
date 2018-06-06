@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using NewLife.Reflection;
@@ -180,7 +181,7 @@ namespace XCode
         protected virtual Int32 SetDirty(Boolean isDirty)
         {
             var ds = _Dirtys;
-            if (ds == null || ds.IsEmpty) return 0;
+            if (ds == null || !ds.Any()) return 0;
 
             var count = 0;
             foreach (var item in ds.Keys)

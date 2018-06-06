@@ -1389,23 +1389,7 @@ namespace XCode
         }
 
         /// <summary>是否有脏数据。决定是否可以Update</summary>
-        protected Boolean HasDirty
-        {
-            get
-            {
-                //var ds = Dirtys;
-                //if (ds == null || ds.Count < 1) return false;
-
-                //foreach (var item in Meta.FieldNames)
-                //{
-                //    if (ds.TryGetValue(item, out var flag) && flag) return true;
-                //}
-
-                //return false;
-
-                return !(Dirtys as DirtyCollection).IsEmpty;
-            }
-        }
+        protected Boolean HasDirty => Dirtys.Any();
         #endregion
 
         #region 高并发

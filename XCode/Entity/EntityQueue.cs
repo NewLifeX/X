@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using NewLife;
 using NewLife.Log;
@@ -86,12 +87,14 @@ namespace XCode
 
             // 检查是否有延迟保存
             var ds = DelayEntities;
-            if (!ds.IsEmpty)
+            if (ds.Any())
             {
                 var now = TimerX.Now;
                 foreach (var item in ds)
                 {
                     if (item.Value < now) list.Add(item.Key);
+
+                    n++;
                 }
                 // 从列表删除过期
                 foreach (var item in list)
@@ -99,12 +102,12 @@ namespace XCode
                     ds.Remove(item);
                 }
 
-                n += ds.Count;
+                //n += ds.Count;
             }
 
             // 检查是否有近实时保存
             var es = Entities;
-            if (!es.IsEmpty)
+            if (es.Any())
             {
                 // 为了速度，不拷贝，直接创建一个新的集合
                 Entities = new ConcurrentDictionary<IEntity, IEntity>();

@@ -263,7 +263,7 @@ namespace NewLife.Collections
             _BusyCount = 0;
 
             _free.Clear();
-            while (!_free2.IsEmpty && _free2.TryDequeue(out var rs)) ;
+            while (_free2.TryDequeue(out var rs)) ;
             _FreeCount = 0;
         }
         #endregion
