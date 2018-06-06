@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using NewLife.Log;
 using XCode.Membership;
 
@@ -260,7 +261,7 @@ namespace XCode.Transform
             var st = Stat;
             if (isNew)
                 target.Insert();
-            else if (target.Dirtys.Count > 0)
+            else if (target.Dirtys.Any())
             {
                 target.Update();
                 st.Changes++;
