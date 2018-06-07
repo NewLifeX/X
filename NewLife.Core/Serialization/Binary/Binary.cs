@@ -112,7 +112,7 @@ namespace NewLife.Serialization
         /// <param name="value">目标对象</param>
         /// <param name="type">类型</param>
         /// <returns></returns>
-        [DebuggerHidden]
+        //[DebuggerHidden]
         public virtual Boolean Write(Object value, Type type = null)
         {
             if (type == null)
@@ -213,7 +213,7 @@ namespace NewLife.Serialization
         /// <summary>读取指定类型对象</summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        [DebuggerHidden]
+        //[DebuggerHidden]
         public virtual Object Read(Type type)
         {
             //var value = type.CreateInstance();
@@ -226,14 +226,14 @@ namespace NewLife.Serialization
         /// <summary>读取指定类型对象</summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        [DebuggerHidden]
+        //[DebuggerHidden]
         public T Read<T>() => (T)(Object)Read(typeof(T));
 
         /// <summary>尝试读取指定类型对象</summary>
         /// <param name="type"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        [DebuggerHidden]
+        //[DebuggerHidden]
         public virtual Boolean TryRead(Type type, ref Object value)
         {
             if (Hosts.Count == 0) WriteLog("BinaryRead {0} {1}", type.Name, value);

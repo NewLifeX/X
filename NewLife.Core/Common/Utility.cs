@@ -119,6 +119,8 @@ namespace System
             // 特殊处理时间，转Unix秒
             if (value is DateTime dt)
             {
+                if (dt == DateTime.MinValue) return 0;
+
                 //// 先转UTC时间再相减，以得到绝对时间差
                 //return (Int32)(dt.ToUniversalTime() - _dt1970).TotalSeconds;
                 return (Int32)(dt - _dt1970).TotalSeconds;
@@ -282,7 +284,7 @@ namespace System
                 return defaultValue;
             }
             // 特殊处理整数，Unix秒，绝对时间差，不考虑UTC时间和本地时间。
-            if (value is Int32 k) return _dt1970.AddSeconds(k);
+            if (value is Int32 k) return k == 0 ? DateTime.MinValue : _dt1970.AddSeconds(k);
             if (value is Int64 m)
             {
                 if (m > 100 * 365 * 24 * 3600L)
