@@ -14,6 +14,7 @@ using NewLife.Security;
 using NewLife.Serialization;
 using XCode.DataAccessLayer;
 using XCode.Membership;
+using XCode.Service;
 
 namespace Test
 {
@@ -179,36 +180,35 @@ namespace Test
 
         static void Test5()
         {
-            var sw = Stopwatch.StartNew();
-            Thread.Sleep(3000);
-            sw.Stop();
-            Console.WriteLine("ElapsedTicks=\t{0:n0}", sw.ElapsedTicks);
-            Console.WriteLine("Milliseconds=\t{0:n0}", sw.ElapsedMilliseconds);
-            Console.WriteLine("比率=\t{0:n0}", sw.ElapsedTicks / sw.ElapsedMilliseconds);
+            var n = UserX.Meta.Count;
 
-            var tickFrequency = sw.GetType().GetValue("tickFrequency");
-            var Frequency = (Int64)sw.GetType().GetValue("Frequency");
-            Console.WriteLine("tickFrequency=\t{0:n0}", tickFrequency);
-            Console.WriteLine("Frequency=\t{0:n0}", Frequency);
-
-            var svr = new ApiServer(3344);
+            var svr = new DbServer();
             svr.Log = XTrace.Log;
             svr.StatPeriod = 5;
             svr.Start();
 
-            Console.ReadKey(true);
+            var client = new DbClient();
+            client.Log = XTrace.Log;
+            client.EncoderLog = client.Log;
+            client.StatPeriod = 5;
 
-            //while (true)
-            //{
-            //    Thread.Sleep(500);
-            //    Console.Title = svr.GetStat();
-            //}
+            client.Servers.Add("tcp://127.0.0.1:3305");
+            client.Open();
 
-            //var client = new ApiClient("tcp://127.0.0.1:7788,udp://127.0.0.1:7788,tcp://127.0.0.1:7788");
-            //client.Log = XTrace.Log;
-            //client.EncoderLog = client.Log;
-            //client.StatPeriod = 5;
-            //client.Open();
+            var db = "Membership";
+            var ds = client.QueryAsync(db, "Select * from User").Result;
+            Console.WriteLine(ds);
+
+            var count = client.QueryCountAsync(db, "User").Result;
+            Console.WriteLine("count={0}", count);
+
+            var ps = new Dictionary<String, Object>
+            {
+                { "Logins", 3 },
+                { "id", 1 }
+            };
+            var rs = client.ExecuteAsync(db, "update user set Logins=Logins+@Logins where id=@id", ps);
+            Console.WriteLine("Execute={0}", rs);
 
             //while (true)
             //{

@@ -19,7 +19,7 @@ namespace XCode.Service
         /// <param name="sql">语句</param>
         /// <param name="ps">参数集合</param>
         /// <returns></returns>
-        public async Task<DbSet> QueryAsync(String db, String sql, IDictionary<String, Object> ps)
+        public async Task<DbSet> QueryAsync(String db, String sql, IDictionary<String, Object> ps = null)
         {
             var arg = Encode(db, sql, ps);
 
@@ -38,7 +38,7 @@ namespace XCode.Service
         /// <param name="table">数据表</param>
         /// <param name="ps">参数集合</param>
         /// <returns></returns>
-        public async Task<Int64> QueryCountAsync(String db, String table, IDictionary<String, Object> ps)
+        public async Task<Int64> QueryCountAsync(String db, String table, IDictionary<String, Object> ps = null)
         {
             var arg = Encode(db, table, ps);
 
@@ -50,7 +50,7 @@ namespace XCode.Service
         /// <param name="sql">语句</param>
         /// <param name="ps">参数集合</param>
         /// <returns></returns>
-        public async Task<Int64> ExecuteAsync(String db, String sql, IDictionary<String, Object> ps)
+        public async Task<Int64> ExecuteAsync(String db, String sql, IDictionary<String, Object> ps = null)
         {
             var arg = Encode(db, sql, ps);
 

@@ -16,6 +16,9 @@ namespace XCode.Service
     [Api("Db")]
     public class DbController
     {
+        /// <summary>查询数据</summary>
+        /// <param name="pk"></param>
+        /// <returns></returns>
         [Api(nameof(Query))]
         public Packet Query(Packet pk)
         {
@@ -35,6 +38,9 @@ namespace XCode.Service
             return rs?.ToPacket();
         }
 
+        /// <summary>查询数据表总记录数</summary>
+        /// <param name="pk"></param>
+        /// <returns></returns>
         [Api(nameof(QueryCount))]
         public Int64 QueryCount(Packet pk)
         {
@@ -45,6 +51,9 @@ namespace XCode.Service
             return dal.Session.QueryCountFast(table);
         }
 
+        /// <summary>执行语句</summary>
+        /// <param name="pk"></param>
+        /// <returns></returns>
         [Api(nameof(Execute))]
         public Int64 Execute(Packet pk)
         {

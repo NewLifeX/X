@@ -14,6 +14,8 @@ namespace XCode.Service
         public DbServer()
         {
             Port = 3305;
+
+            Register(new DbController(), null);
         }
     }
 }
