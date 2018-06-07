@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
-using NewLife.Data;
 using NewLife.Reflection;
 using NewLife.Serialization;
 
-namespace XCode.Service
+namespace NewLife.Data
 {
     /// <summary>数据集</summary>
     public class DbSet
