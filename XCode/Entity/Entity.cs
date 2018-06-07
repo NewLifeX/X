@@ -96,6 +96,19 @@ namespace XCode
         }
 
         /// <summary>加载数据表。无数据时返回空集合而不是null。</summary>
+        /// <param name="ds">数据表</param>
+        /// <returns>实体数组</returns>
+        public static IList<TEntity> LoadData(DbSet ds)
+        {
+            if (ds == null) return new List<TEntity>();
+
+            var list = DreAccessor.LoadData<TEntity>(ds);
+            OnLoadData(list);
+
+            return list;
+        }
+
+        /// <summary>加载数据表。无数据时返回空集合而不是null。</summary>
         /// <param name="dr">数据读取器</param>
         /// <returns>实体数组</returns>
         public static IList<TEntity> LoadData(IDataReader dr)
@@ -474,8 +487,8 @@ namespace XCode
             // 提取参数
             builder = FixParam(builder, ps);
 
-            //var list = LoadData(session.Query(builder, 0, 0));
-            var list = session.Query(builder, 0, 0, LoadData);
+            var list = LoadData(session.Query(builder, 0, 0));
+            //var list = session.Query(builder, 0, 0, LoadData);
             if (list == null || list.Count < 1) return null;
 
             if (list.Count > 1 && DAL.Debug)
@@ -630,8 +643,8 @@ namespace XCode
             var session = Meta.Session;
 
             var builder = CreateBuilder(where, order, selects, startRowIndex, maximumRows);
-            //return LoadData(session.Query(builder, startRowIndex, maximumRows));
-            return session.Query(builder, startRowIndex, maximumRows, LoadData);
+            return LoadData(session.Query(builder, startRowIndex, maximumRows));
+            //return session.Query(builder, startRowIndex, maximumRows, LoadData);
         }
 
         /// <summary>最标准的查询数据。没有数据时返回空集合而不是null</summary>
@@ -727,8 +740,8 @@ namespace XCode
                         var start = (Int32)(count - (startRowIndex + maximumRows));
 
                         var builder2 = CreateBuilder(where, order2, selects, start, max);
-                        //var list = LoadData(session.Query(builder2, start, max));
-                        var list = session.Query(builder2, start, max, LoadData);
+                        var list = LoadData(session.Query(builder2, start, max));
+                        //var list = session.Query(builder2, start, max, LoadData);
                         if (list == null || list.Count < 1) return list;
                         // 因为这样取得的数据是倒过来的，所以这里需要再倒一次
                         list.Reverse();
@@ -739,7 +752,8 @@ namespace XCode
             #endregion
 
             var builder = CreateBuilder(where, order, selects, startRowIndex, maximumRows);
-            return session.Query(builder, startRowIndex, maximumRows, LoadData);
+            return LoadData(session.Query(builder, startRowIndex, maximumRows));
+            //return session.Query(builder, startRowIndex, maximumRows, LoadData);
         }
 
         /// <summary>同时查询满足条件的记录集和记录总数。没有数据时返回空集合而不是null</summary>

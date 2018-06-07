@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
+using NewLife.Data;
 using XCode.Service;
 
 namespace XCode.DataAccessLayer
@@ -155,18 +156,13 @@ namespace XCode.DataAccessLayer
         #region 重载
         /// <summary>执行SQL查询，返回记录集</summary>
         /// <param name="sql">SQL语句</param>
-        /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
-        /// <param name="convert">转换器</param>
-        /// <returns>记录集</returns>
-        public override T Query<T>(String sql, CommandType type, IDataParameter[] ps, Func<IDataReader, T> convert)
+        /// <returns></returns>
+        public override DbSet Query(String sql, IDictionary<String, Object> ps)
         {
             var client = (Database as Network).GetClient();
-            var dps = ps?.ToDictionary(e => e.ParameterName, e => e.Value);
 
-            var ds = client.QueryAsync(sql, dps).Result;
-
-            return (T)(Object)ds;
+            return client.QueryAsync(sql, ps).Result;
         }
 
         /// <summary>快速查询单表记录数，稍有偏差</summary>

@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Threading.Tasks;
 using NewLife;
+using NewLife.Data;
 
 namespace XCode.DataAccessLayer
 {
@@ -93,6 +95,12 @@ namespace XCode.DataAccessLayer
         /// <param name="cmd">DbCommand</param>
         /// <returns>记录集</returns>
         DataSet Query(DbCommand cmd);
+
+        /// <summary>执行SQL查询，返回记录集</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns></returns>
+        DbSet Query(String sql, IDictionary<String, Object> ps);
 
         /// <summary>执行SQL查询，返回记录集</summary>
         /// <param name="sql">SQL语句</param>

@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Web;
 using NewLife;
 using NewLife.Collections;
+using NewLife.Data;
 using NewLife.Log;
 using NewLife.Reflection;
 using XCode.Exceptions;
@@ -320,6 +321,51 @@ namespace XCode.DataAccessLayer
 
                     //AutoClose();
                     //cmd.Parameters.Clear();
+                }
+            }
+        }
+
+        /// <summary>执行SQL查询，返回记录集</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns></returns>
+        public virtual DbSet Query(String sql, IDictionary<String, Object> ps)
+        {
+            var dps = ps == null ? null : Database.CreateParameters(ps);
+            using (var cmd = OnCreateCommand(sql, CommandType.Text, dps))
+            {
+                Transaction?.Check(cmd, false);
+
+                QueryTimes++;
+                WriteSQL(cmd);
+
+                using (var pi = Database.Pool.AcquireItem())
+                {
+                    try
+                    {
+                        if (cmd.Connection == null) cmd.Connection = pi.Value;
+
+                        BeginTrace();
+
+                        using (var dr = cmd.ExecuteReader())
+                        {
+                            var ds = new DbSet();
+                            ds.Read(dr);
+
+                            return ds;
+                        }
+                    }
+                    catch (DbException ex)
+                    {
+                        // 数据库异常最好销毁连接
+                        cmd.Connection.TryDispose();
+
+                        throw OnException(ex, cmd);
+                    }
+                    finally
+                    {
+                        EndTrace(cmd);
+                    }
                 }
             }
         }

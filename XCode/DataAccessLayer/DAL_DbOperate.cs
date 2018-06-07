@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using System.Threading;
+using NewLife.Data;
 
 namespace XCode.DataAccessLayer
 {
@@ -58,6 +60,34 @@ namespace XCode.DataAccessLayer
 
             Interlocked.Increment(ref _QueryTimes);
             return Session.Query(builder.ToString(), CommandType.Text, builder.Parameters.ToArray());
+        }
+
+        /// <summary>执行SQL查询，返回记录集</summary>
+        /// <param name="builder">SQL语句</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
+        /// <returns></returns>
+        public DbSet Query(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows)
+        {
+            builder = PageSplit(builder, startRowIndex, maximumRows);
+            if (builder == null) return null;
+
+            CheckBeforeUseDatabase();
+
+            Interlocked.Increment(ref _QueryTimes);
+            return Session.Query(builder.ToString(), builder.Parameters.ToDictionary(e => e.ParameterName, e => e.Value));
+        }
+
+        /// <summary>执行SQL查询，返回记录集</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns></returns>
+        public DbSet Query(String sql, IDictionary<String, Object> ps = null)
+        {
+            CheckBeforeUseDatabase();
+
+            Interlocked.Increment(ref _QueryTimes);
+            return Session.Query(sql, ps);
         }
 
         /// <summary>执行SQL查询，返回记录集</summary>

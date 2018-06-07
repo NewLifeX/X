@@ -174,7 +174,7 @@ namespace XCode.DataAccessLayer
 
         #region 扩展属性
         /// <summary>选择列，为空时为*</summary>
-        public String ColumnOrDefault { get { return String.IsNullOrEmpty(Column) ? "*" : Column; } }
+        public String ColumnOrDefault => Column.IsNullOrEmpty() ? "*" : Column;
 
         /// <summary>选择列，去除聚合，为空时为*</summary>
         public String ColumnNoAggregate
