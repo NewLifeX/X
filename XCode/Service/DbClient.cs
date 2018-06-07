@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using NewLife.Data;
+using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Remoting;
 using NewLife.Security;
@@ -16,6 +17,14 @@ namespace XCode.Service
     public class DbClient : ApiClient
     {
         #region 方法
+        /// <summary>实例化</summary>
+        public DbClient()
+        {
+#if DEBUG
+            Log = XTrace.Log;
+            EncoderLog = XTrace.Log;
+#endif
+        }
         #endregion
 
         #region 核心方法
@@ -44,7 +53,10 @@ namespace XCode.Service
             var cookie = Rand.NextString(16);
             var pass2 = cookie.GetBytes().RC4(pass.GetBytes()).ToBase64();
 
-            return await InvokeAsync<IDictionary<String, Object>>("Db/Login", new { db, user, pass = pass2, cookie });
+            var rs = await InvokeAsync<IDictionary<String, Object>>("Db/Login", new { db, user, pass = pass2, cookie });
+            if (Setting.Current.Debug) XTrace.WriteLine("登录{0}成功！{1}", Servers.FirstOrDefault(), rs.ToJson());
+
+            return rs;
         }
 
         /// <summary>异步查询</summary>

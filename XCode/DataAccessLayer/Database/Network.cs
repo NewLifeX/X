@@ -165,6 +165,17 @@ namespace XCode.DataAccessLayer
             return client.QueryAsync(sql, ps).Result;
         }
 
+        /// <summary>执行SQL查询，返回总记录数</summary>
+        /// <param name="builder">查询生成器</param>
+        /// <returns>总记录数</returns>
+        public override Int64 QueryCount(SelectBuilder builder)
+        {
+            var ds = Query(builder.SelectCount().ToString(), builder.Parameters.ToDictionary(e => e.ParameterName, e => e.Value));
+            if (ds == null || ds.Rows == null || ds.Rows.Count == 0) return -1;
+
+            return ds.Rows[0][0].ToLong();
+        }
+
         /// <summary>快速查询单表记录数，稍有偏差</summary>
         /// <param name="tableName"></param>
         /// <returns></returns>

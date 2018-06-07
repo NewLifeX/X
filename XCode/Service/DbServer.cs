@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using NewLife.Log;
 using NewLife.Remoting;
 
 namespace XCode.Service
@@ -16,6 +17,11 @@ namespace XCode.Service
             Port = 3305;
 
             Register(new DbController(), null);
+
+#if DEBUG
+            Log = XTrace.Log;
+            EncoderLog = XTrace.Log;
+#endif
         }
     }
 }

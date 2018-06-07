@@ -182,22 +182,41 @@ namespace Test
 
         static void Test5()
         {
-            var n = UserX.Meta.Count;
+            //Console.WriteLine("1，服务端；2，客户端");
+            //if (Console.ReadKey().KeyChar == '1')
+            //{
+            //    var n = UserOnline.Meta.Count;
 
-            var svr = new DbServer();
-            svr.Log = XTrace.Log;
-            svr.StatPeriod = 5;
-            svr.Start();
-
-            Task.Run(() =>
+            //    var svr = new DbServer();
+            //    svr.Log = XTrace.Log;
+            //    svr.StatPeriod = 5;
+            //    svr.Start();
+            //}
+            //else
             {
-                DAL.AddConnStr("net", "Server=tcp://admin:newlife@127.0.0.1:3305/Membership", null, "network");
+                DAL.AddConnStr("net", "Server=tcp://admin:newlife@127.0.0.1:3305/Log;ShowSQL=true", null, "network");
                 var dal = DAL.Create("net");
 
-                UserX.Meta.ConnName = "net";
-                var r = UserX.FindAll().FirstOrDefault();
-                Console.WriteLine(r);
-            });
+                UserOnline.Meta.ConnName = "net";
+
+                var count = UserOnline.Meta.Count;
+                Console.WriteLine("count={0}", count);
+
+                var entity = new UserOnline();
+                entity.Name = "新生命";
+                entity.OnlineTime = 12345;
+                entity.Insert();
+
+                Console.WriteLine("id={0}", entity.ID);
+
+                var log = UserOnline.FindByKey(entity.ID);
+                Console.WriteLine("user={0}", log);
+
+                log.Page = Rand.NextString(8);
+                log.Update();
+
+                log.Delete();
+            }
 
             //var client = new DbClient();
             //client.Log = XTrace.Log;
