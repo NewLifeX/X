@@ -52,6 +52,8 @@ namespace NewLife.Serialization
         {
             if (type == null && target != null) type = target.GetType();
 
+            if (jobj.GetType().As(type)) return jobj;
+
             // Json对象是字典，目标类型可以是字典或复杂对象
             if (jobj is IDictionary<String, Object> vdic)
             {

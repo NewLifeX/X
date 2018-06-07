@@ -36,7 +36,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test5();
+                Test5();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -196,10 +196,13 @@ namespace Test
             client.Open();
 
             var db = "Membership";
-            var ds = client.QueryAsync(db, "Select * from User").Result;
+            var rs = client.LoginAsync(db, "admin", "newlife").Result;
+            Console.WriteLine((DatabaseType)rs["DbType"].ToInt());
+
+            var ds = client.QueryAsync("Select * from User").Result;
             Console.WriteLine(ds);
 
-            var count = client.QueryCountAsync(db, "User").Result;
+            var count = client.QueryCountAsync("User").Result;
             Console.WriteLine("count={0}", count);
 
             var ps = new Dictionary<String, Object>
@@ -207,8 +210,8 @@ namespace Test
                 { "Logins", 3 },
                 { "id", 1 }
             };
-            var rs = client.ExecuteAsync(db, "update user set Logins=Logins+@Logins where id=@id", ps).Result;
-            Console.WriteLine("Execute={0}", rs);
+            var es = client.ExecuteAsync("update user set Logins=Logins+@Logins where id=@id", ps).Result;
+            Console.WriteLine("Execute={0}", es);
 
             //while (true)
             //{

@@ -16,15 +16,38 @@ namespace XCode.Service
     [Api("Db")]
     public class DbController
     {
+        /// <summary>数据操作层</summary>
+        public DAL Dal { get => ControllerContext.Current.Session["Dal"] as DAL; set => ControllerContext.Current.Session["Dal"] = value; }
+
+        /// <summary>登录</summary>
+        /// <param name="db"></param>
+        /// <param name="user"></param>
+        /// <param name="pass"></param>
+        /// <param name="cookie"></param>
+        /// <returns></returns>
+        [Api(nameof(Login))]
+        public Object Login(String db, String user, String pass, String cookie)
+        {
+            var dal = DAL.Create(db);
+            Dal = dal;
+
+            return new
+            {
+                Db = db,
+                dal.DbType,
+                User = user,
+            };
+        }
+
         /// <summary>查询数据</summary>
         /// <param name="pk"></param>
         /// <returns></returns>
         [Api(nameof(Query))]
         public Packet Query(Packet pk)
         {
-            if (!Decode(pk, out var db, out var sql, out var ps)) return null;
+            if (!Decode(pk, out var sql, out var ps)) return null;
 
-            var dal = DAL.Create(db);
+            var dal = Dal;
             var dps = ps == null ? null : dal.Db.CreateParameters(ps);
 
             var rs = dal.Query(sql, dr =>
@@ -44,11 +67,9 @@ namespace XCode.Service
         [Api(nameof(QueryCount))]
         public Int64 QueryCount(Packet pk)
         {
-            if (!Decode(pk, out var db, out var table, out _)) return -1;
+            if (!Decode(pk, out var table, out _)) return -1;
 
-            var dal = DAL.Create(db);
-
-            return dal.Session.QueryCountFast(table);
+            return Dal.Session.QueryCountFast(table);
         }
 
         /// <summary>执行语句</summary>
@@ -57,9 +78,9 @@ namespace XCode.Service
         [Api(nameof(Execute))]
         public Int64 Execute(Packet pk)
         {
-            if (!Decode(pk, out var db, out var sql, out var ps)) return -1;
+            if (!Decode(pk, out var sql, out var ps)) return -1;
 
-            var dal = DAL.Create(db);
+            var dal = Dal;
             var dps = ps == null ? null : dal.Db.CreateParameters(ps);
 
             var rs = 0L;
@@ -72,9 +93,8 @@ namespace XCode.Service
         }
 
         #region 辅助
-        private Boolean Decode(Packet pk, out String db, out String sql, out IDictionary<String, Object> ps)
+        private Boolean Decode(Packet pk, out String sql, out IDictionary<String, Object> ps)
         {
-            db = null;
             sql = null;
             ps = null;
 
@@ -82,7 +102,6 @@ namespace XCode.Service
 
             var ms = pk.GetStream();
             var bn = new Binary { EncodeInt = true, Stream = ms };
-            db = bn.Read<String>();
             sql = bn.Read<String>();
 
             // 如果还有数据，就是参数
