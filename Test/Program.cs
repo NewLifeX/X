@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.MemoryMappedFiles;
+using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using NewLife.Caching;
 using NewLife.Log;
 using NewLife.Net;
@@ -187,37 +189,41 @@ namespace Test
             svr.StatPeriod = 5;
             svr.Start();
 
-            var client = new DbClient();
-            client.Log = XTrace.Log;
-            client.EncoderLog = client.Log;
-            client.StatPeriod = 5;
-
-            client.Servers.Add("tcp://127.0.0.1:3305");
-            client.Open();
-
-            var db = "Membership";
-            var rs = client.LoginAsync(db, "admin", "newlife").Result;
-            Console.WriteLine((DatabaseType)rs["DbType"].ToInt());
-
-            var ds = client.QueryAsync("Select * from User").Result;
-            Console.WriteLine(ds);
-
-            var count = client.QueryCountAsync("User").Result;
-            Console.WriteLine("count={0}", count);
-
-            var ps = new Dictionary<String, Object>
+            Task.Run(() =>
             {
-                { "Logins", 3 },
-                { "id", 1 }
-            };
-            var es = client.ExecuteAsync("update user set Logins=Logins+@Logins where id=@id", ps).Result;
-            Console.WriteLine("Execute={0}", es);
+                DAL.AddConnStr("net", "Server=tcp://admin:newlife@127.0.0.1:3305/Membership", null, "network");
+                var dal = DAL.Create("net");
 
-            //while (true)
+                UserX.Meta.ConnName = "net";
+                var r = UserX.FindAll().FirstOrDefault();
+                Console.WriteLine(r);
+            });
+
+            //var client = new DbClient();
+            //client.Log = XTrace.Log;
+            //client.EncoderLog = client.Log;
+            //client.StatPeriod = 5;
+
+            //client.Servers.Add("tcp://127.0.0.1:3305");
+            //client.Open();
+
+            //var db = "Membership";
+            //var rs = client.LoginAsync(db, "admin", "newlife").Result;
+            //Console.WriteLine((DatabaseType)rs["DbType"].ToInt());
+
+            //var ds = client.QueryAsync("Select * from User").Result;
+            //Console.WriteLine(ds);
+
+            //var count = client.QueryCountAsync("User").Result;
+            //Console.WriteLine("count={0}", count);
+
+            //var ps = new Dictionary<String, Object>
             //{
-            //    client.InvokeAsync<String[]>("Api/All").Wait();
-            //    Thread.Sleep(3000);
-            //}
+            //    { "Logins", 3 },
+            //    { "id", 1 }
+            //};
+            //var es = client.ExecuteAsync("update user set Logins=Logins+@Logins where id=@id", ps).Result;
+            //Console.WriteLine("Execute={0}", es);
         }
 
         static void Test6()

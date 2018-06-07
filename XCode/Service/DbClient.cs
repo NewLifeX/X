@@ -15,12 +15,31 @@ namespace XCode.Service
     /// <summary>数据客户端</summary>
     public class DbClient : ApiClient
     {
+        #region 方法
+        #endregion
+
+        #region 核心方法
+        /// <summary>异步连接</summary>
+        /// <param name="uri"></param>
+        /// <returns></returns>
+        public async Task<IDictionary<String, Object>> LoginAsync(Uri uri)
+        {
+            Servers.Add("{2}://{0}:{1}".F(uri.Host, uri.Port, uri.Scheme));
+
+            var db = uri.PathAndQuery.Split("/").FirstOrDefault();
+            var us = uri.UserInfo.Split(":");
+            var user = us.Length > 0 ? us[0] : null;
+            var pass = us.Length > 1 ? us[1] : null;
+
+            return await LoginAsync(db, user, pass);
+        }
+
         /// <summary>异步登录</summary>
         /// <param name="db">要访问的数据库</param>
         /// <param name="user">用户名</param>
         /// <param name="pass">密码</param>
         /// <returns></returns>
-        public async Task<IDictionary<String,Object>> LoginAsync(String db, String user, String pass)
+        public async Task<IDictionary<String, Object>> LoginAsync(String db, String user, String pass)
         {
             var cookie = Rand.NextString(16);
             var pass2 = cookie.GetBytes().RC4(pass.GetBytes()).ToBase64();
@@ -47,14 +66,13 @@ namespace XCode.Service
 
         /// <summary>异步查数据表总记录数</summary>
         /// <remarks>借助索引快速查询，但略有偏差</remarks>
-        /// <param name="table">数据表</param>
-        /// <param name="ps">参数集合</param>
+        /// <param name="tableName">数据表</param>
         /// <returns></returns>
-        public async Task<Int64> QueryCountAsync(String table, IDictionary<String, Object> ps = null)
+        public async Task<Int64> QueryCountAsync(String tableName)
         {
-            var arg = Encode(table, ps);
+            //var arg = Encode(tableName, null);
 
-            return await InvokeAsync<Int64>("Db/QueryCount", arg);
+            return await InvokeAsync<Int64>("Db/QueryCount", new { tableName });
         }
 
         /// <summary>异步执行</summary>
@@ -67,6 +85,7 @@ namespace XCode.Service
 
             return await InvokeAsync<Int64>("Db/Execute", arg);
         }
+        #endregion
 
         #region 辅助
         private Packet Encode(String sql, IDictionary<String, Object> ps)

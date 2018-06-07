@@ -62,14 +62,14 @@ namespace XCode.Service
         }
 
         /// <summary>查询数据表总记录数</summary>
-        /// <param name="pk"></param>
+        /// <param name="tableName"></param>
         /// <returns></returns>
         [Api(nameof(QueryCount))]
-        public Int64 QueryCount(Packet pk)
+        public Int64 QueryCount(String tableName)
         {
-            if (!Decode(pk, out var table, out _)) return -1;
+            //if (!Decode(pk, out var table, out _)) return -1;
 
-            return Dal.Session.QueryCountFast(table);
+            return Dal.Session.QueryCountFast(tableName);
         }
 
         /// <summary>执行语句</summary>

@@ -64,6 +64,7 @@
     <Compile Include="DataAccessLayer\Common\DataResult.cs" />
     <Compile Include="DataAccessLayer\Common\ITransaction.cs" />
     <Compile Include="DataAccessLayer\Database\Access.cs" />
+    <Compile Include="DataAccessLayer\Database\Network.cs" />
     <Compile Include="DataAccessLayer\Database\SqlCe.cs" />
     <Compile Include="DataAccessLayer\Model\IModelResolver.cs">
       <SubType>Code</SubType>
