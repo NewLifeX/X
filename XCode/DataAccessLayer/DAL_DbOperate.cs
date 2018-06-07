@@ -27,7 +27,9 @@ namespace XCode.DataAccessLayer
         /// <returns>分页SQL</returns>
         public SelectBuilder PageSplit(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows)
         {
-            //2016年7月2日 HUIYUE 取消分页SQL缓存，此部分缓存提升性能不多，但有可能会造成分页数据不准确，感觉得不偿失
+            if (startRowIndex <= 0 && maximumRows <= 0) return builder;
+
+            // 2016年7月2日 HUIYUE 取消分页SQL缓存，此部分缓存提升性能不多，但有可能会造成分页数据不准确，感觉得不偿失
             return Db.PageSplit(builder, startRowIndex, maximumRows);
         }
 
@@ -75,6 +77,19 @@ namespace XCode.DataAccessLayer
             return Session.Query(builder.ToString(), CommandType.Text, builder.Parameters.ToArray(), convert);
         }
 
+        /// <summary>执行SQL查询，返回记录集</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="convert">转换器</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns></returns>
+        public T Query<T>(String sql, Func<IDataReader, T> convert, params IDataParameter[] ps)
+        {
+            CheckBeforeUseDatabase();
+
+            Interlocked.Increment(ref _QueryTimes);
+            return Session.Query(sql, CommandType.Text, ps, convert);
+        }
+
         /// <summary>执行SQL查询，返回总记录数</summary>
         /// <param name="sb">查询生成器</param>
         /// <returns></returns>
@@ -88,13 +103,15 @@ namespace XCode.DataAccessLayer
 
         /// <summary>执行SQL查询，返回总记录数</summary>
         /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
         /// <returns></returns>
-        public Int32 SelectCount(String sql)
+        public Int32 SelectCount(String sql, CommandType type, params IDataParameter[] ps)
         {
             CheckBeforeUseDatabase();
 
             Interlocked.Increment(ref _QueryTimes);
-            return (Int32)Session.QueryCount(sql);
+            return (Int32)Session.QueryCount(sql, type, ps);
         }
 
         /// <summary>执行SQL语句，返回受影响的行数</summary>

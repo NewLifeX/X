@@ -109,6 +109,11 @@
     <Compile Include="Membership\角色.cs" />
     <Compile Include="Membership\访问统计.Biz.cs" />
     <Compile Include="Membership\访问统计.cs" />
+    <Compile Include="Service\DbClient.cs" />
+    <Compile Include="Service\DbParam.cs" />
+    <Compile Include="Service\DbServer.cs" />
+    <Compile Include="Service\DbController.cs" />
+    <Compile Include="Service\DbSet.cs" />
     <Compile Include="Statistics\IStat.cs" />
     <Compile Include="Statistics\StatHelper.cs" />
     <Compile Include="Statistics\StatLevels.cs" />

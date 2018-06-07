@@ -644,7 +644,7 @@ namespace XCode
         {
             InitData();
 
-            return Dal.SelectCount(sql);
+            return Dal.SelectCount(sql, CommandType.Text, null);
         }
 
         /// <summary>执行</summary>
