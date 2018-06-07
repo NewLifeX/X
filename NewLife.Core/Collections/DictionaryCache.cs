@@ -270,7 +270,7 @@ namespace NewLife.Collections
             {
                 lock (this)
                 {
-                    if (_timer == null) _timer = new TimerX(RemoveNotAlive, null, period * 1000, period * 1000);
+                    if (_timer == null) _timer = new TimerX(RemoveNotAlive, null, period * 1000, period * 1000) { Async = true };
                 }
             }
         }
