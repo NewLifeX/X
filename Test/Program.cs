@@ -207,7 +207,7 @@ namespace Test
                 { "Logins", 3 },
                 { "id", 1 }
             };
-            var rs = client.ExecuteAsync(db, "update user set Logins=Logins+@Logins where id=@id", ps);
+            var rs = client.ExecuteAsync(db, "update user set Logins=Logins+@Logins where id=@id", ps).Result;
             Console.WriteLine("Execute={0}", rs);
 
             //while (true)
