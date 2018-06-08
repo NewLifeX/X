@@ -14,7 +14,7 @@ namespace XCode.Service
 {
     /// <summary>数据服务</summary>
     [Api("Db")]
-    public class DbController
+    public class DbController : IActionFilter
     {
         /// <summary>数据操作层</summary>
         public DAL Dal { get => ControllerContext.Current.Session["Dal"] as DAL; set => ControllerContext.Current.Session["Dal"] = value; }
@@ -26,16 +26,14 @@ namespace XCode.Service
         /// <param name="cookie"></param>
         /// <returns></returns>
         [Api(nameof(Login))]
-        public Object Login(String db, String user, String pass, String cookie)
+        public LoginInfo Login(String db, String user, String pass, String cookie)
         {
             var dal = DAL.Create(db);
             Dal = dal;
 
-            return new
+            return new LoginInfo
             {
-                Db = db,
-                dal.DbType,
-                User = user,
+                DbType = dal.DbType,
             };
         }
 
@@ -126,6 +124,14 @@ namespace XCode.Service
 
             return true;
         }
+
+        public void OnActionExecuting(ControllerContext filterContext)
+        {
+            var dal = Dal;
+            if (dal == null && filterContext.ActionName != "Db/Login") throw new ApiException(401, "未登录！");
+        }
+
+        public void OnActionExecuted(ControllerContext filterContext) { }
         #endregion
     }
 }
