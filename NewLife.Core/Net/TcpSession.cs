@@ -105,9 +105,9 @@ namespace NewLife.Net
             catch (Exception ex)
             {
                 if (!Disposed && !ex.IsDisposed()) OnError("Connect", ex);
-                if (ThrowException) throw;
+                /*if (ThrowException)*/ throw;
 
-                return false;
+                //return false;
             }
 
             _Reconnect = 0;
