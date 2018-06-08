@@ -118,7 +118,7 @@ namespace XCode
                     SetValue(entity, item.Value.Name, item.Value.Type, dr[item.Key]);
 
                 foreach (var item in exts)
-                    SetValue(entity, item.Value, null, dr[item.Key]);
+                    SetValue(entity, item.Value, ds.Types[item.Key], dr[item.Key]);
 
                 list.Add(entity);
             }
@@ -151,7 +151,7 @@ namespace XCode
             }
 
             // 遍历每一行数据，填充成为实体
-            while(dr.Read())
+            while (dr.Read())
             {
                 // 由实体操作者创建实体对象，因为实体操作者可能更换
                 var entity = Entity<T>.Meta.Factory.Create() as T;
@@ -180,7 +180,7 @@ namespace XCode
                 oldValue = entity[name];
             else
             {
-                type = value.GetType();
+                type = value?.GetType();
                 // 如果扩展数据里面有该字段也读取旧值
                 if (entity.Extends.ContainsKey(name)) oldValue = entity.Extends[name];
             }
