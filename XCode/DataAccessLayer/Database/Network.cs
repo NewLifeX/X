@@ -65,13 +65,15 @@ namespace XCode.DataAccessLayer
                     if (_Client == null)
                     {
                         var builder = new ConnectionStringBuilder(ConnectionString);
-                        var uri = new Uri(builder["Server"]);
+                        var uri = builder["Server"];
 
-                        var tc = new DbClient();
-                        var rs = tc.LoginAsync(uri).Result;
+                        var tc = new DbClient(uri);
+                        //var rs = tc.LoginAsync().Result;
+                        tc.Open();
+                        var rs = tc.Info;
 
-                        _ServerVersion = rs["Version"] + "";
-                        RawType = (DatabaseType)rs["DbType"].ToInt();
+                        _ServerVersion = rs.Version;
+                        RawType = rs.DbType;
 
                         Server = DbFactory.GetDefault(RawType);
 

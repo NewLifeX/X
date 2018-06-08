@@ -114,6 +114,7 @@
     <Compile Include="Service\DbParam.cs" />
     <Compile Include="Service\DbServer.cs" />
     <Compile Include="Service\DbController.cs" />
+    <Compile Include="Service\LoginInfo.cs" />
     <Compile Include="Statistics\IStat.cs" />
     <Compile Include="Statistics\StatHelper.cs" />
     <Compile Include="Statistics\StatLevels.cs" />

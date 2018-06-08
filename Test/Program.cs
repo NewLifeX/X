@@ -38,7 +38,7 @@ namespace Test
                 try
                 {
 #endif
-                Test5();
+                    Test5();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -182,19 +182,23 @@ namespace Test
 
         static void Test5()
         {
-            //Console.WriteLine("1，服务端；2，客户端");
-            //if (Console.ReadKey().KeyChar == '1')
-            //{
-            //    var n = UserOnline.Meta.Count;
+            var set = XCode.Setting.Current;
+            set.Debug = true;
+            set.ShowSQL = true;
 
-            //    var svr = new DbServer();
-            //    svr.Log = XTrace.Log;
-            //    svr.StatPeriod = 5;
-            //    svr.Start();
-            //}
-            //else
+            Console.WriteLine("1，服务端；2，客户端");
+            if (Console.ReadKey().KeyChar == '1')
             {
-                DAL.AddConnStr("net", "Server=tcp://admin:newlife@127.0.0.1:3305/Log;ShowSQL=true", null, "network");
+                var n = UserOnline.Meta.Count;
+
+                var svr = new DbServer();
+                svr.Log = XTrace.Log;
+                svr.StatPeriod = 5;
+                svr.Start();
+            }
+            else
+            {
+                DAL.AddConnStr("net", "Server=tcp://admin:newlife@127.0.0.1:3305/Log", null, "network");
                 var dal = DAL.Create("net");
 
                 UserOnline.Meta.ConnName = "net";
@@ -209,13 +213,23 @@ namespace Test
 
                 Console.WriteLine("id={0}", entity.ID);
 
-                var log = UserOnline.FindByKey(entity.ID);
-                Console.WriteLine("user={0}", log);
+                var entity2 = UserOnline.FindByKey(entity.ID);
+                Console.WriteLine("user={0}", entity2);
 
-                log.Page = Rand.NextString(8);
-                log.Update();
+                entity2.Page = Rand.NextString(8);
+                entity2.Update();
 
-                log.Delete();
+                entity2.Delete();
+
+                for (var i = 0; i < 100; i++)
+                {
+                    entity2 = new UserOnline();
+                    entity2.Name = Rand.NextString(8);
+                    entity2.Page = Rand.NextString(8);
+                    entity2.Insert();
+
+                    Thread.Sleep(5000);
+                }
             }
 
             //var client = new DbClient();

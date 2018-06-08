@@ -34,6 +34,7 @@ namespace XCode.Service
             return new LoginInfo
             {
                 DbType = dal.DbType,
+                Version = dal.Db.ServerVersion,
             };
         }
 

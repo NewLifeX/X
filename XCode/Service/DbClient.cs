@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Log;
+using NewLife.Net;
 using NewLife.Reflection;
 using NewLife.Remoting;
 using NewLife.Security;
@@ -16,6 +17,20 @@ namespace XCode.Service
     /// <summary>数据客户端</summary>
     public class DbClient : ApiClient
     {
+        #region 属性
+        /// <summary>数据库连接</summary>
+        public String Db { get; set; }
+
+        /// <summary>用户名</summary>
+        public String UserName { get; set; }
+
+        /// <summary>密码</summary>
+        public String Password { get; set; }
+
+        /// <summary>最后一次登录成功后的消息</summary>
+        public LoginInfo Info { get; private set; }
+        #endregion
+
         #region 方法
         /// <summary>实例化</summary>
         public DbClient()
@@ -25,39 +40,60 @@ namespace XCode.Service
             EncoderLog = XTrace.Log;
 #endif
         }
+
+        /// <summary>实例化</summary>
+        /// <param name="uri"></param>
+        public DbClient(String uri)
+        {
+            if (!uri.IsNullOrEmpty())
+            {
+                var u = new Uri(uri);
+
+                Servers.Add("{2}://{0}:{1}".F(u.Host, u.Port, u.Scheme));
+
+                Db = u.PathAndQuery.Split("/").FirstOrDefault();
+                var us = u.UserInfo.Split(":");
+                UserName = us.Length > 0 ? us[0] : null;
+                Password = us.Length > 1 ? us[1] : null;
+            }
+        }
+        #endregion
+
+        #region 登录
+        /// <summary>连接后自动登录</summary>
+        /// <param name="client">客户端</param>
+        protected override Object OnLogin(ISocketClient client)
+        {
+            var cookie = Rand.NextString(16);
+            var pass2 = cookie.GetBytes().RC4(Password.GetBytes()).ToBase64();
+
+            var rs = InvokeWithClientAsync<LoginInfo>(client, "Db/Login", new { Db, UserName, pass = pass2, cookie }).Result;
+            if (Setting.Current.Debug) XTrace.WriteLine("登录{0}成功！{1}", Servers.FirstOrDefault(), rs.ToJson());
+
+            return Info = rs;
+        }
         #endregion
 
         #region 核心方法
-        /// <summary>异步连接</summary>
-        /// <param name="uri"></param>
-        /// <returns></returns>
-        public async Task<IDictionary<String, Object>> LoginAsync(Uri uri)
-        {
-            Servers.Add("{2}://{0}:{1}".F(uri.Host, uri.Port, uri.Scheme));
+        ///// <summary>异步连接</summary>
+        ///// <returns></returns>
+        //public async Task<LoginInfo> LoginAsync() => await LoginAsync(Db, UserName, Password);
 
-            var db = uri.PathAndQuery.Split("/").FirstOrDefault();
-            var us = uri.UserInfo.Split(":");
-            var user = us.Length > 0 ? us[0] : null;
-            var pass = us.Length > 1 ? us[1] : null;
+        ///// <summary>异步登录</summary>
+        ///// <param name="db">要访问的数据库</param>
+        ///// <param name="user">用户名</param>
+        ///// <param name="pass">密码</param>
+        ///// <returns></returns>
+        //protected async Task<LoginInfo> LoginAsync(String db, String user, String pass)
+        //{
+        //    var cookie = Rand.NextString(16);
+        //    var pass2 = cookie.GetBytes().RC4(pass.GetBytes()).ToBase64();
 
-            return await LoginAsync(db, user, pass);
-        }
+        //    var rs = await InvokeAsync<LoginInfo>("Db/Login", new { db, user, pass = pass2, cookie });
+        //    if (Setting.Current.Debug) XTrace.WriteLine("登录{0}成功！{1}", Servers.FirstOrDefault(), rs.ToJson());
 
-        /// <summary>异步登录</summary>
-        /// <param name="db">要访问的数据库</param>
-        /// <param name="user">用户名</param>
-        /// <param name="pass">密码</param>
-        /// <returns></returns>
-        public async Task<IDictionary<String, Object>> LoginAsync(String db, String user, String pass)
-        {
-            var cookie = Rand.NextString(16);
-            var pass2 = cookie.GetBytes().RC4(pass.GetBytes()).ToBase64();
-
-            var rs = await InvokeAsync<IDictionary<String, Object>>("Db/Login", new { db, user, pass = pass2, cookie });
-            if (Setting.Current.Debug) XTrace.WriteLine("登录{0}成功！{1}", Servers.FirstOrDefault(), rs.ToJson());
-
-            return rs;
-        }
+        //    return rs;
+        //}
 
         /// <summary>异步查询</summary>
         /// <param name="sql">语句</param>
