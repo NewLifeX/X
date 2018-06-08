@@ -54,7 +54,7 @@ namespace NewLife.Remoting
         /// <param name="args">参数</param>
         /// <param name="flag">标识</param>
         /// <returns></returns>
-        public static async Task<Object> InvokeAsync(IApiHost host, IApiSession session, Type resultType, String action, Object args, Byte flag)
+        public static async Task<Object> InvokeAsync(IApiHost host, Object session, Type resultType, String action, Object args, Byte flag)
         {
             if (session == null) return null;
 
@@ -74,7 +74,13 @@ namespace NewLife.Remoting
             IMessage rs = null;
             try
             {
-                rs = await session.SendAsync(msg);
+                if (session is IApiSession ss)
+                    rs = await ss.SendAsync(msg);
+                else if (session is ISocketRemote client)
+                    rs = (await client.SendMessageAsync(msg)) as IMessage;
+                else
+                    throw new InvalidOperationException();
+                //rs = await session.SendAsync(msg);
                 if (rs == null) return null;
             }
             catch (AggregateException aggex)
@@ -122,7 +128,7 @@ namespace NewLife.Remoting
         /// <param name="args">参数</param>
         /// <param name="flag">标识</param>
         /// <returns></returns>
-        public static Boolean Invoke(IApiHost host, IApiSession session, String action, Object args, Byte flag = 0)
+        public static Boolean Invoke(IApiHost host, Object session, String action, Object args, Byte flag = 0)
         {
             if (session == null) return false;
 
@@ -144,7 +150,12 @@ namespace NewLife.Remoting
             var sw = st.StartCount();
             try
             {
-                return session.Send(msg);
+                if (session is IApiSession ss)
+                    return ss.Send(msg);
+                else if (session is ISocketRemote client)
+                    return client.SendMessage(msg);
+                else
+                    throw new InvalidOperationException();
             }
             finally
             {

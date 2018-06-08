@@ -128,7 +128,7 @@ namespace NewLife.Remoting
         private void DoWork(Object state)
         {
             var msg = this.GetStat();
-            if (msg == _Last) return;
+            if (msg.IsNullOrEmpty() || msg == _Last) return;
             _Last = msg;
 
             WriteLog(msg);

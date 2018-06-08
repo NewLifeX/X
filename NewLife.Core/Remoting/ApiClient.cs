@@ -185,7 +185,10 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public virtual async Task<TResult> InvokeAsync<TResult>(String action, Object args = null, Byte flag = 0)
         {
+            // 发送失败时，返回空
             var rs = await InvokeAsync(typeof(TResult), action, args, flag);
+            if (rs == null) return default(TResult);
+
             return (TResult)rs;
         }
 
@@ -203,6 +206,20 @@ namespace NewLife.Remoting
             return ApiHostHelper.Invoke(this, this, act, args, flag);
         }
 
+        /// <summary>指定客户端的异步调用，等待返回结果</summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="client">客户端</param>
+        /// <param name="action">服务操作</param>
+        /// <param name="args">参数</param>
+        /// <param name="flag">标识</param>
+        /// <returns></returns>
+        protected virtual async Task<TResult> InvokeWithClientAsync<TResult>(ISocketClient client, String action, Object args = null, Byte flag = 0)
+        {
+            var act = action;
+
+            return (TResult)await ApiHostHelper.InvokeAsync(this, client, typeof(TResult), act, args, flag);
+        }
+
         /// <summary>创建消息</summary>
         /// <param name="pk"></param>
         /// <returns></returns>
@@ -214,9 +231,10 @@ namespace NewLife.Remoting
             var count = Servers.Count;
             for (var i = 0; i < count; i++)
             {
-                var client = Pool.Acquire();
+                ISocketClient client = null;
                 try
                 {
+                    client = Pool.Acquire();
                     return (await client.SendMessageAsync(msg)) as IMessage;
                 }
                 catch (ApiException) { throw; }
@@ -227,7 +245,7 @@ namespace NewLife.Remoting
                 }
                 finally
                 {
-                    Pool.Release(client);
+                    if (client != null) Pool.Release(client);
                 }
             }
 
@@ -254,6 +272,21 @@ namespace NewLife.Remoting
 
             throw last;
         }
+        #endregion
+
+        #region 事件
+        /// <summary>新会话。客户端每次连接或断线重连后，可用InvokeWithClientAsync做登录</summary>
+        /// <param name="session">会话</param>
+        /// <param name="state">状态。客户端ISocketClient</param>
+        public override void OnNewSession(IApiSession session, Object state)
+        {
+            var client = state as ISocketClient;
+            OnLogin(client);
+        }
+
+        /// <summary>连接后自动登录</summary>
+        /// <param name="client">客户端</param>
+        protected virtual Object OnLogin(ISocketClient client) => null;
         #endregion
 
         #region 连接池
@@ -294,13 +327,7 @@ namespace NewLife.Remoting
                 var svr = ss[k];
                 try
                 {
-                    var client = new NetUri(svr).CreateRemote();
-                    client.Timeout = Timeout;
-                    //if (Log != null) client.Log = Log;
-                    client.StatSend = StatSend;
-                    client.StatReceive = StatReceive;
-
-                    client.Add(new StandardCodec { Timeout = Timeout, UserPacket = false });
+                    var client = OnCreate(svr);
                     client.Open();
 
                     return client;
@@ -312,6 +339,23 @@ namespace NewLife.Remoting
             }
 
             throw last;
+        }
+
+        /// <summary>创建客户端之后，打开连接之前</summary>
+        /// <param name="svr"></param>
+        protected virtual ISocketClient OnCreate(String svr)
+        {
+            var client = new NetUri(svr).CreateRemote();
+            client.Timeout = Timeout;
+            //if (Log != null) client.Log = Log;
+            client.StatSend = StatSend;
+            client.StatReceive = StatReceive;
+
+            client.Add(new StandardCodec { Timeout = Timeout, UserPacket = false });
+
+            client.Opened += (s, e) => OnNewSession(this, s);
+
+            return client;
         }
         #endregion
 
@@ -325,7 +369,7 @@ namespace NewLife.Remoting
         private void DoWork(Object state)
         {
             var msg = this.GetStat();
-            if (msg == _Last) return;
+            if (msg.IsNullOrEmpty() || msg == _Last) return;
             _Last = msg;
 
             WriteLog(msg);

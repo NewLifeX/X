@@ -5,11 +5,12 @@ using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Messaging;
+using NewLife.Net;
 
 namespace NewLife.Remoting
 {
     /// <summary>Api主机</summary>
-    public abstract class ApiHost : DisposeBase, IApiHost
+    public abstract class ApiHost : DisposeBase, IApiHost, IExtend
     {
         #region 属性
         /// <summary>名称</summary>
@@ -138,6 +139,13 @@ namespace NewLife.Remoting
 
             return rs;
         }
+        #endregion
+
+        #region 事件
+        /// <summary>新会话。服务端收到新连接，客户端每次连接或断线重连后，可用于做登录</summary>
+        /// <param name="session">会话</param>
+        /// <param name="state">状态。客户端ISocketClient</param>
+        public virtual void OnNewSession(IApiSession session, Object state) { }
         #endregion
 
         #region 日志
