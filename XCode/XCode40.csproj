@@ -65,6 +65,7 @@
     <Compile Include="DataAccessLayer\Common\DataResult.cs" />
     <Compile Include="DataAccessLayer\Common\ITransaction.cs" />
     <Compile Include="DataAccessLayer\Database\Access.cs" />
+    <Compile Include="DataAccessLayer\Database\Network.cs" />
     <Compile Include="DataAccessLayer\Database\SqlCe.cs" />
     <Compile Include="DataAccessLayer\Model\IModelResolver.cs">
       <SubType>Code</SubType>
@@ -115,6 +116,11 @@
     <Compile Include="Model\FormatExpression.cs" />
     <Compile Include="Model\FieldExpression.cs" />
     <Compile Include="PreApplicationStartCode.cs" />
+    <Compile Include="Service\DbClient.cs" />
+    <Compile Include="Service\DbController.cs" />
+    <Compile Include="Service\DbParam.cs" />
+    <Compile Include="Service\DbServer.cs" />
+    <Compile Include="Service\LoginInfo.cs" />
     <Compile Include="Setting.cs" />
     <Compile Include="Statistics\IStat.cs" />
     <Compile Include="Statistics\StatHelper.cs" />
