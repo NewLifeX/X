@@ -102,7 +102,7 @@ namespace XCode.DataAccessLayer
             var tid = Thread.CurrentThread.ManagedThreadId;
             if (ThreadID != tid) DAL.WriteLog("本会话由线程{0}创建，当前线程{1}非法使用该会话！", ThreadID, tid);
 
-            if (Conn == null) Conn = Database.Pool.Acquire();
+            if (Conn == null) Conn = Database.Pool.Get();
         }
 
         /// <summary>关闭</summary>
@@ -116,7 +116,7 @@ namespace XCode.DataAccessLayer
             if (conn != null)
             {
                 Conn = null;
-                Database.Pool.Release(conn);
+                Database.Pool.Return(conn);
             }
         }
 
@@ -295,12 +295,11 @@ namespace XCode.DataAccessLayer
             WriteSQL(cmd);
 
             using (var da = Factory.CreateDataAdapter())
-            using (var pi = Database.Pool.AcquireItem())
             {
+                var conn = Database.Pool.Get();
                 try
                 {
-                    //if (!Opened) Open();
-                    if (cmd.Connection == null) cmd.Connection = pi.Value;
+                    if (cmd.Connection == null) cmd.Connection = conn;
                     da.SelectCommand = cmd;
 
                     var ds = new DataSet();
@@ -317,10 +316,8 @@ namespace XCode.DataAccessLayer
                 }
                 finally
                 {
+                    Database.Pool.Return(conn);
                     EndTrace(cmd);
-
-                    //AutoClose();
-                    //cmd.Parameters.Clear();
                 }
             }
         }
@@ -339,33 +336,32 @@ namespace XCode.DataAccessLayer
                 QueryTimes++;
                 WriteSQL(cmd);
 
-                using (var pi = Database.Pool.AcquireItem())
+                var conn = Database.Pool.Get();
+                try
                 {
-                    try
+                    if (cmd.Connection == null) cmd.Connection = conn;
+
+                    BeginTrace();
+
+                    using (var dr = cmd.ExecuteReader())
                     {
-                        if (cmd.Connection == null) cmd.Connection = pi.Value;
+                        var ds = new DbSet();
+                        ds.Read(dr);
 
-                        BeginTrace();
-
-                        using (var dr = cmd.ExecuteReader())
-                        {
-                            var ds = new DbSet();
-                            ds.Read(dr);
-
-                            return ds;
-                        }
+                        return ds;
                     }
-                    catch (DbException ex)
-                    {
-                        // 数据库异常最好销毁连接
-                        cmd.Connection.TryDispose();
+                }
+                catch (DbException ex)
+                {
+                    // 数据库异常最好销毁连接
+                    cmd.Connection.TryDispose();
 
-                        throw OnException(ex, cmd);
-                    }
-                    finally
-                    {
-                        EndTrace(cmd);
-                    }
+                    throw OnException(ex, cmd);
+                }
+                finally
+                {
+                    Database.Pool.Return(conn);
+                    EndTrace(cmd);
                 }
             }
         }
@@ -385,30 +381,29 @@ namespace XCode.DataAccessLayer
                 QueryTimes++;
                 WriteSQL(cmd);
 
-                using (var pi = Database.Pool.AcquireItem())
+                var conn = Database.Pool.Get();
+                try
                 {
-                    try
-                    {
-                        //if (!Opened) Open();
-                        if (cmd.Connection == null) cmd.Connection = pi.Value;
+                    //if (!Opened) Open();
+                    if (cmd.Connection == null) cmd.Connection = conn;
 
-                        BeginTrace();
-                        using (var dr = cmd.ExecuteReader())
-                        {
-                            return convert(dr);
-                        }
-                    }
-                    catch (DbException ex)
+                    BeginTrace();
+                    using (var dr = cmd.ExecuteReader())
                     {
-                        // 数据库异常最好销毁连接
-                        cmd.Connection.TryDispose();
+                        return convert(dr);
+                    }
+                }
+                catch (DbException ex)
+                {
+                    // 数据库异常最好销毁连接
+                    cmd.Connection.TryDispose();
 
-                        throw OnException(ex, cmd);
-                    }
-                    finally
-                    {
-                        EndTrace(cmd);
-                    }
+                    throw OnException(ex, cmd);
+                }
+                finally
+                {
+                    Database.Pool.Return(conn);
+                    EndTrace(cmd);
                 }
             }
         }
@@ -469,27 +464,22 @@ namespace XCode.DataAccessLayer
             ExecuteTimes++;
             WriteSQL(cmd);
 
-            using (var pi = Database.Pool.AcquireItem())
+            var conn = Database.Pool.Get();
+            try
             {
-                try
-                {
-                    //if (!Opened) Open();
-                    if (cmd.Connection == null) cmd.Connection = pi.Value;
+                if (cmd.Connection == null) cmd.Connection = conn;
 
-                    BeginTrace();
-                    return cmd.ExecuteNonQuery();
-                }
-                catch (DbException ex)
-                {
-                    throw OnException(ex, cmd);
-                }
-                finally
-                {
-                    EndTrace(cmd);
-
-                    //AutoClose();
-                    //cmd.Parameters.Clear();
-                }
+                BeginTrace();
+                return cmd.ExecuteNonQuery();
+            }
+            catch (DbException ex)
+            {
+                throw OnException(ex, cmd);
+            }
+            finally
+            {
+                Database.Pool.Return(conn);
+                EndTrace(cmd);
             }
         }
 
@@ -530,30 +520,29 @@ namespace XCode.DataAccessLayer
             QueryTimes++;
             WriteSQL(cmd);
 
-            using (var pi = Database.Pool.AcquireItem())
+            var conn = Database.Pool.Get();
+            try
             {
-                try
-                {
-                    if (cmd.Connection == null) cmd.Connection = pi.Value;
+                if (cmd.Connection == null) cmd.Connection = conn;
 
-                    BeginTrace();
-                    var rs = cmd.ExecuteScalar();
-                    if (rs == null || rs == DBNull.Value) return default(T);
-                    if (rs is T) return (T)rs;
+                BeginTrace();
+                var rs = cmd.ExecuteScalar();
+                if (rs == null || rs == DBNull.Value) return default(T);
+                if (rs is T) return (T)rs;
 
-                    return (T)Reflect.ChangeType(rs, typeof(T));
-                }
-                catch (DbException ex)
-                {
-                    throw OnException(ex, cmd);
-                }
-                finally
-                {
-                    EndTrace(cmd);
+                return (T)Reflect.ChangeType(rs, typeof(T));
+            }
+            catch (DbException ex)
+            {
+                throw OnException(ex, cmd);
+            }
+            finally
+            {
+                Database.Pool.Return(conn);
+                EndTrace(cmd);
 
-                    //AutoClose();
-                    cmd.Parameters.Clear();
-                }
+                //AutoClose();
+                cmd.Parameters.Clear();
             }
         }
 
@@ -620,28 +609,23 @@ namespace XCode.DataAccessLayer
             QueryTimes++;
             WriteSQL(cmd);
 
-            using (var pi = Database.Pool.AcquireItem())
+            var conn = Database.Pool.Get();
+            try
             {
-                try
-                {
-                    //if (!Opened) await OpenAsync();
-                    if (cmd.Connection == null) cmd.Connection = pi.Value;
+                if (cmd.Connection == null) cmd.Connection = conn;
 
-                    BeginTrace();
+                BeginTrace();
 
-                    return await cmd.ExecuteReaderAsync();
-                }
-                catch (DbException ex)
-                {
-                    throw OnException(ex, cmd);
-                }
-                finally
-                {
-                    EndTrace(cmd);
-
-                    //AutoClose();
-                    //cmd.Parameters.Clear();
-                }
+                return await cmd.ExecuteReaderAsync();
+            }
+            catch (DbException ex)
+            {
+                throw OnException(ex, cmd);
+            }
+            finally
+            {
+                Database.Pool.Return(conn);
+                EndTrace(cmd);
             }
         }
 
@@ -690,27 +674,22 @@ namespace XCode.DataAccessLayer
             ExecuteTimes++;
             WriteSQL(cmd);
 
-            using (var pi = Database.Pool.AcquireItem())
+            var conn = Database.Pool.Get();
+            try
             {
-                try
-                {
-                    //if (!Opened) await OpenAsync();
-                    if (cmd.Connection == null) cmd.Connection = pi.Value;
+                if (cmd.Connection == null) cmd.Connection = conn;
 
-                    BeginTrace();
-                    return await cmd.ExecuteNonQueryAsync();
-                }
-                catch (DbException ex)
-                {
-                    throw OnException(ex, cmd);
-                }
-                finally
-                {
-                    EndTrace(cmd);
-
-                    //AutoClose();
-                    //cmd.Parameters.Clear();
-                }
+                BeginTrace();
+                return await cmd.ExecuteNonQueryAsync();
+            }
+            catch (DbException ex)
+            {
+                throw OnException(ex, cmd);
+            }
+            finally
+            {
+                Database.Pool.Return(conn);
+                EndTrace(cmd);
             }
         }
 
@@ -736,9 +715,6 @@ namespace XCode.DataAccessLayer
             finally
             {
                 EndTrace(cmd);
-
-                //AutoClose();
-                //cmd.Parameters.Clear();
             }
         }
 #endif
@@ -779,9 +755,14 @@ namespace XCode.DataAccessLayer
                     dt = GetSchemaInternal(Conn, key, collectionName, restrictionValues);
                 else
                 {
-                    using (var pi = Database.Pool.AcquireItem())
+                    var conn = Database.Pool.Get();
+                    try
                     {
-                        dt = GetSchemaInternal(pi.Value, key, collectionName, restrictionValues);
+                        dt = GetSchemaInternal(conn, key, collectionName, restrictionValues);
+                    }
+                    finally
+                    {
+                        Database.Pool.Return(conn);
                     }
                 }
 

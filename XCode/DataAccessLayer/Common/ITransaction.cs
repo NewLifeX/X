@@ -96,7 +96,7 @@ namespace XCode.DataAccessLayer
             Count = 1;
 
             // 打开事务后，由事务管理连接
-            Conn = _Session.Database.Pool.Acquire();
+            Conn = _Session.Database.Pool.Get();
         }
         #endregion
 
@@ -172,7 +172,7 @@ namespace XCode.DataAccessLayer
                     Completed?.Invoke(this, new TransactionEventArgs(true, Executes));
 
                     // 把连接归还给对象池
-                    _Session.Database.Pool.Release(Conn);
+                    _Session.Database.Pool.Return(Conn);
                 }
             }
 
@@ -203,7 +203,7 @@ namespace XCode.DataAccessLayer
                     Completed?.Invoke(this, new TransactionEventArgs(false, Executes));
 
                     // 把连接归还给对象池
-                    _Session.Database.Pool.Release(Conn);
+                    _Session.Database.Pool.Return(Conn);
                 }
             }
 

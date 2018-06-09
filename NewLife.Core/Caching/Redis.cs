@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Collections;
@@ -172,14 +173,15 @@ namespace NewLife.Caching
         /// <returns></returns>
         public virtual T Execute<T>(Func<RedisClient, T> func)
         {
-            using (var pi = Pool.AcquireItem())
+            var client = Pool.Get();
+            try
             {
                 var i = 0;
                 do
                 {
                     try
                     {
-                        var rs = func(pi.Value);
+                        var rs = func(client);
                         // 如果返回Packet，需要在离开对象池之前拷贝，否则可能出现冲突
                         if ((Object)rs is Packet pk) return (T)(Object)pk.Clone();
 
@@ -191,6 +193,10 @@ namespace NewLife.Caching
                     }
                 } while (true);
             }
+            finally
+            {
+                Pool.Return(client);
+            }
         }
         #endregion
 
@@ -200,9 +206,14 @@ namespace NewLife.Caching
         {
             get
             {
-                using (var pi = Pool.AcquireItem())
+                var client = Pool.Get();
+                try
                 {
-                    return pi.Value.Execute<Int32>("DBSIZE");
+                    return client.Execute<Int32>("DBSIZE");
+                }
+                finally
+                {
+                    Pool.Return(client);
                 }
             }
         }
@@ -214,15 +225,15 @@ namespace NewLife.Caching
             {
                 if (Count > 10000) throw new InvalidOperationException("数量过大时，禁止获取所有键");
 
-                using (var pi = Pool.AcquireItem())
+                var client = Pool.Get();
+                try
                 {
-                    var rs = pi.Value.Execute<String>("KEYS", "*");
-                    var ss = rs.Split(Environment.NewLine);
-
-                    var list = new List<String>();
-                    list.AddRange(ss);
-
-                    return list;
+                    var rs = client.Execute<String>("KEYS", "*");
+                    return rs.Split(Environment.NewLine).ToList();
+                }
+                finally
+                {
+                    Pool.Return(client);
                 }
             }
         }
@@ -373,7 +384,7 @@ namespace NewLife.Caching
             //rds.Bench();
             //return;
 
-            var rc = rds.Pool.Acquire();
+            var rc = rds.Pool.Get();
 
             var f = rc.Select(4);
             //Console.WriteLine(f);

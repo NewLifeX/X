@@ -98,14 +98,15 @@ namespace NewLife.Remoting
 
                 Encoder.Log = EncoderLog;
 
-                using (var pi = Pool.AcquireItem())
+                var ct = Pool.Get();
+                try
                 {
-                    var ct = pi.Value;
-
-                    //ct.Log = Log;
-
                     // 打开网络连接
                     if (!ct.Open()) return false;
+                }
+                finally
+                {
+                    Pool.Return(ct);
                 }
 
                 ShowService();
@@ -234,7 +235,7 @@ namespace NewLife.Remoting
                 ISocketClient client = null;
                 try
                 {
-                    client = Pool.Acquire();
+                    client = Pool.Get();
                     return (await client.SendMessageAsync(msg)) as IMessage;
                 }
                 catch (ApiException) { throw; }
@@ -245,7 +246,7 @@ namespace NewLife.Remoting
                 }
                 finally
                 {
-                    if (client != null) Pool.Release(client);
+                    if (client != null) Pool.Return(client);
                 }
             }
 
@@ -258,7 +259,7 @@ namespace NewLife.Remoting
             var count = Servers.Count;
             for (var i = 0; i < count; i++)
             {
-                var client = Pool.Acquire();
+                var client = Pool.Get();
                 try
                 {
                     return client.SendMessage(msg);
@@ -266,7 +267,7 @@ namespace NewLife.Remoting
                 catch (Exception ex) { last = ex; }
                 finally
                 {
-                    Pool.Release(client);
+                    Pool.Return(client);
                 }
             }
 

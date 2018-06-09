@@ -666,9 +666,14 @@ namespace NewLife.Web
         /// <returns></returns>
         public static async Task<String> GetStringAsync(String address)
         {
-            using (var pi = Pool.AcquireItem())
+            var client = Pool.Get();
+            try
             {
-                return await pi.Value.DownloadStringAsync(address);
+                return await client.DownloadStringAsync(address);
+            }
+            finally
+            {
+                Pool.Return(client);
             }
         }
 

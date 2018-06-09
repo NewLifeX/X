@@ -213,9 +213,14 @@ namespace XCode.DataAccessLayer
 
                 _ServerVersion = String.Empty;
 
-                using (var pi = Pool.AcquireItem())
+                var conn = Pool.Get();
+                try
                 {
-                    return _ServerVersion = pi.Value.ServerVersion;
+                    return _ServerVersion = conn.ServerVersion;
+                }
+                finally
+                {
+                    Pool.Return(conn);
                 }
             }
         }

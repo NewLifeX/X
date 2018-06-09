@@ -106,7 +106,7 @@ namespace NewLife.Collections
         /// <summary>申请</summary>
         /// <param name="msTimeout">池满时等待的最大超时时间。超时后仍无法得到资源将抛出异常</param>
         /// <returns></returns>
-        public T Acquire(Int32 msTimeout = 0)
+        public T Get(Int32 msTimeout = 0)
         {
             var pi = OnAcquire(msTimeout);
             if (pi == null) return default(T);
@@ -117,7 +117,7 @@ namespace NewLife.Collections
         /// <summary>申请资源包装项，Dispose时自动归还到池中</summary>
         /// <param name="msTimeout">池满时等待的最大超时时间。超时后仍无法得到资源将抛出异常</param>
         /// <returns></returns>
-        public PoolItem<T> AcquireItem(Int32 msTimeout = 0)
+        public PoolItem<T> GetItem(Int32 msTimeout = 0)
         {
             var pi = OnAcquire(msTimeout);
             if (pi == null) return null;
@@ -213,7 +213,7 @@ namespace NewLife.Collections
 
         /// <summary>释放</summary>
         /// <param name="value"></param>
-        public void Release(T value)
+        public void Return(T value)
         {
             if (value == null) return;
 
@@ -430,7 +430,7 @@ namespace NewLife.Collections
         {
             base.OnDispose(disposing);
 
-            Pool.Release(Value);
+            Pool.Return(Value);
         }
         #endregion
     }
