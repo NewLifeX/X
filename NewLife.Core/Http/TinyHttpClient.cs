@@ -263,13 +263,18 @@ namespace NewLife.Http
         /// <returns></returns>
         public async Task<Byte[]> SendAsync(String url, Byte[] data)
         {
-            using (var pi = _Pool.AcquireItem())
+            var client = _Pool.Get();
+            try
             {
                 // 发出请求
-                var rs = await SendAsync(url, data, pi.Value);
+                var rs = await SendAsync(url, data, client);
                 if (rs == null || rs.Count == 0) return null;
 
                 return rs.ToArray();
+            }
+            finally
+            {
+                _Pool.Return(client);
             }
         }
 
@@ -278,13 +283,18 @@ namespace NewLife.Http
         /// <returns></returns>
         public async Task<String> GetAsync(String url)
         {
-            using (var pi = _Pool.AcquireItem())
+            var client = _Pool.Get();
+            try
             {
                 // 发出请求
-                var rs = await SendAsync(url, null, pi.Value);
+                var rs = await SendAsync(url, null, client);
                 if (rs == null || rs.Count == 0) return null;
 
                 return rs?.ToStr();
+            }
+            finally
+            {
+                _Pool.Return(client);
             }
         }
         #endregion
