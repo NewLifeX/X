@@ -1,23 +1,43 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net40;net45;netstandard2.0</TargetFrameworks>
-    <AssemblyName>XCode</AssemblyName>
-    <RootNamespace>XCode</RootNamespace>
+    <!--nuget包设置start-->
+    <!--Nuget包ID-->
+    <PackageId>Newlife.XCode</PackageId>
+    <!--Nuget包版本-->
+    <PackageVersion>9.8.2018.0609</PackageVersion>
+    <Authors>新生命开发团队</Authors>
+    <!--Nuget包名称-->
     <Title>大数据中间件</Title>
     <Description>分布式大数据中间件</Description>
-    <Authors>新生命开发团队</Authors>
-    <Company>新生命开发团队</Company>
     <Copyright>©2002-2018 新生命开发团队 http://www.NewLifeX.com</Copyright>
-    <Trademark>四叶草</Trademark>    
-    <Version>9.8.2018.0605</Version>    
-    <FileVersion>9.8.*</FileVersion>
-      <License>http://www.newlifex.com/</License>
-    <ProjectUrl>https://github.com/NewLifeX</ProjectUrl>
-    <Tags>新生命团队,X组件,Newlife,XCode</Tags>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageLicenseUrl>http://www.newlifex.com/</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/NewLifeX</PackageProjectUrl>
+    <PackageIconUrl>http://www.NewLifeX.com/favicon.ico</PackageIconUrl>
+    <PackageTags>新生命团队;X组件;Newlife;XCode</PackageTags>
+    <PackageReleaseNotes>https://github.com/NewLifeX</PackageReleaseNotes>
+    <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <!--包含符号-->
+    <IncludeSymbols>true</IncludeSymbols>
+    <!--包含源码-->
+    <IncludeSource>true</IncludeSource>
+    <!--文件版本-->
+    <FileVersion>9.8.2018.0609</FileVersion>
+    <!--文件名-->
+    <AssemblyName>XCode</AssemblyName>
+    <!--文件显示名-->
+    <AssemblyTitle>大数据中间件</AssemblyTitle>
+    <RootNamespace>XCode</RootNamespace>
+    <Company>新生命开发团队</Company>
+    <Trademark>四叶草</Trademark>
+    <!--nuget包设置end-->
+
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <OutputPath>..\..\Bin\</OutputPath>
     <DefineConstants>TRACE;DEBUG</DefineConstants>
-    <IncludeSymbols>true</IncludeSymbols>
+
     <!-- https://docs.microsoft.com/zh-cn/nuget/reference/msbuild-targets#pack-target -->
   </PropertyGroup>
 
@@ -116,8 +136,8 @@
     <Content Include="Model.xml" />
     <Content Include="tools\install.ps1" />
   </ItemGroup>
-  
-    <ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Properties\" />
   </ItemGroup>
 
