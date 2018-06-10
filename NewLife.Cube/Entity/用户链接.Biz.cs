@@ -157,7 +157,12 @@ namespace NewLife.Cube.Entity
             uc.RefreshToken = client.RefreshToken;
             uc.Expire = client.Expire;
 
-            if (client.Items != null) uc.Remark = client.Items.ToJson();
+            if (client.Items != null)
+            {
+                if (client.Items.ContainsKey("mood_message")) client.Items["mood_message"] = "";
+
+                uc.Remark = client.Items.ToJson();
+            }
         }
         #endregion
     }
