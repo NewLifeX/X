@@ -24,7 +24,8 @@ namespace XCode.DataAccessLayer
                 {
                     lock (typeof(MySql))
                     {
-                        if (_Factory == null) _Factory = GetProviderFactory("MySql.Data.dll", "MySql.Data.MySqlClient.MySqlClientFactory");
+                        _Factory = GetProviderFactory("NewLife.MySql.dll", "NewLife.MySql.MySqlClientFactory") ??
+                                   GetProviderFactory("MySql.Data.dll", "MySql.Data.MySqlClient.MySqlClientFactory");
                     }
                 }
 
