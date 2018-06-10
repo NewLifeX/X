@@ -121,7 +121,16 @@ namespace NewLife.Cube.Web
                 user3.LastLoginIP = WebHelper.UserHost;
                 user3.Save();
             }
-            uc.Save();
+
+            try
+            {
+                uc.Save();
+            }
+            catch (Exception ex)
+            {
+                //为了防止某些特殊数据导致的无法正常登录，把所有异常记录到日志当中。忽略错误
+                XTrace.WriteException(ex);
+            }
 
             if (!user.Enable) throw new InvalidOperationException("用户已禁用！");
 
