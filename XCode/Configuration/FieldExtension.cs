@@ -16,7 +16,7 @@ namespace XCode
         /// <returns></returns>
         public static Expression Between(this FieldItem fi, DateTime start, DateTime end)
         {
-            if (fi.Type != typeof(String)) throw new NotSupportedException($"[{nameof(Between)}]函数仅支持时间日期字段！");
+            if (fi.Type != typeof(DateTime)) throw new NotSupportedException($"[{nameof(Between)}]函数仅支持时间日期字段！");
 
             var exp = new WhereExpression();
             if (fi == null) return exp;
