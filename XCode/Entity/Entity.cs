@@ -786,7 +786,7 @@ namespace XCode
             if (!page.Sort.IsNullOrEmpty())
             {
                 var st = Meta.Table.FindByName(page.Sort);
-                page.Sort = st?.ColumnName;
+                page.Sort = st?.FormatedName;
                 orderby = page.OrderBy;
 
                 //!!! 恢复排序字段，否则属性名和字段名不一致时前台无法降序
