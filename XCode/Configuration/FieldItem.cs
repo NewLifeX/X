@@ -262,6 +262,8 @@ namespace XCode.Configuration
         /// <returns></returns>
         public Expression StartsWith(String value)
         {
+            if (Type != typeof(String)) throw new NotSupportedException($"[{nameof(StartsWith)}]函数仅支持字符串字段！");
+
             if (value == null || value + "" == "") return new Expression();
 
             return CreateLike("{0}%".F(value));
@@ -273,6 +275,8 @@ namespace XCode.Configuration
         /// <returns></returns>
         public Expression EndsWith(String value)
         {
+            if (Type != typeof(String)) throw new NotSupportedException($"[{nameof(EndsWith)}]函数仅支持字符串字段！");
+
             if (value == null || value + "" == "") return new Expression();
 
             return CreateLike("%{0}".F(value));
@@ -284,6 +288,8 @@ namespace XCode.Configuration
         /// <returns></returns>
         public Expression Contains(String value)
         {
+            if (Type != typeof(String)) throw new NotSupportedException($"[{nameof(Contains)}]函数仅支持字符串字段！");
+
             if (value == null || value + "" == "") return new Expression();
 
             return CreateLike("%{0}%".F(value));
@@ -295,6 +301,8 @@ namespace XCode.Configuration
         /// <returns></returns>
         public Expression NotContains(String value)
         {
+            if (Type != typeof(String)) throw new NotSupportedException($"[{nameof(NotContains)}]函数仅支持字符串字段！");
+
             if (value == null || value + "" == "") return new Expression();
 
             return CreateFormat("{0} Not Like {1}", value);
@@ -405,17 +413,29 @@ namespace XCode.Configuration
         #region 复杂运算
         /// <summary>IsNullOrEmpty操作，用于空或者0长度字符串</summary>
         /// <returns></returns>
-        public Expression IsNullOrEmpty() => IsNull() | Equal("");
+        public Expression IsNullOrEmpty()
+        {
+            if (Type != typeof(String)) throw new NotSupportedException($"[{nameof(IsNullOrEmpty)}]函数仅支持字符串字段！");
+
+            return IsNull() | Equal("");
+        }
 
         /// <summary>NotIsNullOrEmpty操作</summary>
         /// <returns></returns>
-        public Expression NotIsNullOrEmpty() => NotIsNull() & NotEqual("");
+        public Expression NotIsNullOrEmpty()
+        {
+            if (Type != typeof(String)) throw new NotSupportedException($"[{nameof(NotIsNullOrEmpty)}]函数仅支持字符串字段！");
+
+            return NotIsNull() & NotEqual("");
+        }
 
         /// <summary>是否True或者False/Null，参数决定两组之一</summary>
         /// <param name="flag"></param>
         /// <returns></returns>
         public Expression IsTrue(Boolean? flag)
         {
+            if (Type != typeof(Boolean)) throw new NotSupportedException($"[{nameof(IsTrue)}]函数仅支持布尔型字段！");
+
             if (flag == null) return null;
 
             var f = flag.Value;
@@ -432,6 +452,8 @@ namespace XCode.Configuration
         /// <returns></returns>
         public Expression IsFalse(Boolean? flag)
         {
+            if (Type != typeof(Boolean)) throw new NotSupportedException($"[{nameof(IsFalse)}]函数仅支持布尔型字段！");
+
             if (flag == null) return null;
 
             var f = flag.Value;
