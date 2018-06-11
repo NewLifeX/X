@@ -5,7 +5,8 @@
     <!--Nuget包ID-->
     <PackageId>Newlife.XCode</PackageId>
     <!--Nuget包版本-->
-    <PackageVersion>9.8.2018.0609</PackageVersion>
+    <PackageVersion>9.8.2018.0610</PackageVersion>
+    <!--<Version>$(AssemblyVersion)</Version>-->    
     <Authors>新生命开发团队</Authors>
     <!--Nuget包名称-->
     <Title>大数据中间件</Title>
@@ -24,7 +25,12 @@
     <!--包含源码-->
     <IncludeSource>true</IncludeSource>
     <!--文件版本-->
-    <FileVersion>9.8.2018.0609</FileVersion>
+    <FileVersion>9.8.2018.0610</FileVersion>
+    <!--内部版本-->
+    <AssemblyVersion>9.8.*</AssemblyVersion>
+    <!--产品版本-->
+    <InformationalVersion>9.8.2018.0610</InformationalVersion>
+
     <!--文件名-->
     <AssemblyName>XCode</AssemblyName>
     <!--文件显示名-->
@@ -33,7 +39,7 @@
     <Company>新生命开发团队</Company>
     <Trademark>四叶草</Trademark>
     <!--nuget包设置end-->
-
+    <Deterministic>False</Deterministic>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <OutputPath>..\..\Bin\</OutputPath>
     <DefineConstants>TRACE;DEBUG</DefineConstants>

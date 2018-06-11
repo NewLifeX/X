@@ -27,13 +27,16 @@
     <Trademark>四叶草</Trademark>
     <!--nuget包设置end-->
     <!--文件版本-->
-    <FileVersion>7.0.2018.0609</FileVersion>
+    <FileVersion>7.2.2018.0609</FileVersion>
+    <!--内部版本-->
+    <AssemblyVersion>7.2.*</AssemblyVersion>
     <!--文件名-->
     <AssemblyName>NewLife.Core</AssemblyName>
     <!--文件显示名-->
     <AssemblyTitle>组件核心库</AssemblyTitle>
     <RootNamespace>NewLife</RootNamespace>
     <!--构建的时候是否生成包-->
+    <Deterministic>False</Deterministic>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <OutputPath>..\..\Bin\</OutputPath>
     <DefineConstants>TRACE;DEBUG</DefineConstants>
