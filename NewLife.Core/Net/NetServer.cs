@@ -579,13 +579,13 @@ namespace NewLife.Net
         /// <returns></returns>
         public String GetStat()
         {
-            var sb = new StringBuilder();
+            var sb = Pool.StringBuilder.Get();
             if (MaxSessionCount > 0) sb.AppendFormat("在线：{0:n0}/{1:n0} ", SessionCount, MaxSessionCount);
             if (StatSend.Value > 0) sb.AppendFormat("发送：{0} ", StatSend);
             if (StatReceive.Value > 0) sb.AppendFormat("接收：{0} ", StatReceive);
             //if (StatSession.Value > 0) sb.AppendFormat("会话：{0} ", StatSession);
 
-            return sb.ToString();
+            return sb.Put(true);
         }
         #endregion
 
@@ -636,13 +636,13 @@ namespace NewLife.Net
 
             if (servers.Count == 1) return Name + " " + servers[0].ToString();
 
-            var sb = new StringBuilder();
+            var sb = Pool.StringBuilder.Get();
             foreach (var item in servers)
             {
                 if (sb.Length > 0) sb.Append(" ");
                 sb.Append(item);
             }
-            return Name + " " + sb.ToString();
+            return Name + " " + sb.Put(true);
         }
         #endregion
     }

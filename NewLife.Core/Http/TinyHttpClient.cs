@@ -145,7 +145,7 @@ namespace NewLife.Http
 
             var method = data != null && data.Length > 0 ? "POST" : "GET";
 
-            var header = new StringBuilder();
+            var header = Pool.StringBuilder.Get();
             header.AppendLine($"{method} {uri.PathAndQuery} HTTP/1.1");
             header.AppendLine($"Host: {uri.Host}");
 
@@ -159,7 +159,7 @@ namespace NewLife.Http
 
             header.AppendLine();
 
-            var req = new Packet(header.ToString().GetBytes());
+            var req = new Packet(header.Put(true).GetBytes());
 
             // 请求主体数据
             if (data != null && data.Length > 0) req.Next = new Packet(data);

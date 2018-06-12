@@ -71,7 +71,7 @@ namespace NewLife.Collections
         /// <summary>归还</summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public Boolean Return(T value)
+        public virtual Boolean Return(T value)
         {
             // 最热的一个对象在外层，便于快速存取
             if (_current == null && Interlocked.CompareExchange(ref _current, value, null) == null) return true;
@@ -89,7 +89,7 @@ namespace NewLife.Collections
 
         /// <summary>清空</summary>
         /// <returns></returns>
-        public Int32 Clear()
+        public virtual Int32 Clear()
         {
             var count = 0;
 

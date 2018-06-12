@@ -2,6 +2,7 @@
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Messaging;
@@ -266,7 +267,7 @@ namespace NewLife.Remoting
         {
             if (host == null) return null;
 
-            var sb = new StringBuilder();
+            var sb = Pool.StringBuilder.Get();
             var pf1 = host.StatInvoke;
             var pf2 = host.StatProcess;
             if (pf1 != null && pf1.Value > 0) sb.AppendFormat("请求：{0} ", pf1);
@@ -282,7 +283,7 @@ namespace NewLife.Remoting
                 if (st2 != null && st2.Value > 0) sb.AppendFormat("接收：{0} ", st2);
             }
 
-            return sb.ToString();
+            return sb.Put(true);
         }
         #endregion
     }

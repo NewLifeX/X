@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using NewLife;
+using NewLife.Collections;
 using NewLife.Log;
 
 namespace XCode.DataAccessLayer
@@ -223,23 +224,25 @@ namespace XCode.DataAccessLayer
         {
             var builder = new SelectBuilder();
             builder.Parse(sql);
-            var sb = new StringBuilder();
+
+            var sb = NewLife.Collections.Pool.StringBuilder.Get();
             sb.Append("Select ");
             sb.Append(builder.ColumnOrDefault);
             sb.Append(" From ");
             sb.Append(builder.Table);
             if (!String.IsNullOrEmpty(builder.Where))
             {
-                sb.Append(" Where  type='p' and " + builder.Where);
+                sb.Append(" Where type='p' and " + builder.Where);
             }
             else
             {
-                sb.Append(" Where  type='p' ");
+                sb.Append(" Where type='p' ");
             }
             if (!String.IsNullOrEmpty(builder.GroupBy)) sb.Append(" Group By " + builder.GroupBy);
             if (!String.IsNullOrEmpty(builder.Having)) sb.Append(" Having " + builder.Having);
             if (!String.IsNullOrEmpty(builder.OrderBy)) sb.Append(" Order By " + builder.OrderBy);
-            return sb.ToString();
+
+            return sb.Put(true);
         }
 
         public override SelectBuilder PageSplit(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows)

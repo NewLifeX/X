@@ -853,7 +853,7 @@ namespace XCode.DataAccessLayer
             var ps = cmd.Parameters;
             if (ps != null && ps.Count > 0)
             {
-                var sb = new StringBuilder(64);
+                var sb = Pool.StringBuilder.Get();
                 sb.Append(sql);
                 sb.Append(" [");
                 for (var i = 0; i < ps.Count; i++)
@@ -876,7 +876,7 @@ namespace XCode.DataAccessLayer
                     sb.AppendFormat("{0}={1}", ps[i].ParameterName, sv);
                 }
                 sb.Append("]");
-                sql = sb.ToString();
+                sql = sb.Put(true);
             }
 
             return sql;

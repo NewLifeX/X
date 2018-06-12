@@ -300,7 +300,7 @@ namespace XCode
             {
                 foreach (var di in table.Indexes)
                 {
-                    var sb = new StringBuilder();
+                    var sb = Pool.StringBuilder.Get();
                     sb.AppendFormat("IX_{0}", TableName);
                     foreach (var item in di.Columns)
                     {
@@ -308,7 +308,7 @@ namespace XCode
                         sb.Append(item);
                     }
 
-                    di.Name = sb.ToString();
+                    di.Name = sb.Put(true);
                 }
             }
         }

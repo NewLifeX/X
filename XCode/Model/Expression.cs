@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
+using NewLife.Collections;
 
 namespace XCode
 {
@@ -30,10 +31,10 @@ namespace XCode
         /// <returns></returns>
         public String GetString(IDictionary<String, Object> ps)
         {
-            var sb = new StringBuilder();
+            var sb = Pool.StringBuilder.Get();
             GetString(sb, ps);
 
-            return sb.ToString();
+            return sb.Put(true);
         }
 
         /// <summary>获取字符串</summary>

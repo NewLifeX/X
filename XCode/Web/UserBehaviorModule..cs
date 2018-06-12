@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.UI;
+using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Web;
@@ -90,7 +91,7 @@ namespace XCode.Web
 
         String GetMessage(HttpContext ctx, HttpRequest req, String title)
         {
-            var sb = new StringBuilder(256);
+            var sb = Pool.StringBuilder.Get();
 
             if (!title.IsNullOrEmpty()) sb.Append(title + " ");
             sb.AppendFormat("{0} {1}", req.HttpMethod, req.RawUrl);
@@ -101,7 +102,7 @@ namespace XCode.Web
             var ts = DateTime.Now - ctx.Timestamp;
             sb.AppendFormat(" {0:n0}ms", ts.TotalMilliseconds);
 
-            return sb.ToString();
+            return sb.Put(true);
         }
 
         String GetTitle(HttpContext ctx, HttpRequest req)

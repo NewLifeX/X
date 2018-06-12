@@ -6,6 +6,7 @@ using System.Text;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using NewLife;
+using NewLife.Collections;
 
 namespace XCode
 {
@@ -470,7 +471,7 @@ namespace XCode
 
             var namekey = Setting.Name;
 
-            var sb = new StringBuilder();
+            var sb = Pool.StringBuilder.Get();
             foreach (var item in list)
             {
                 sb.Separate(separator);
@@ -484,7 +485,7 @@ namespace XCode
                         sb.Append(item[namekey]);
                 }
             }
-            return sb.ToString();
+            return sb.Put(true);
         }
 
         /// <summary>删除子级到本级的关系。导出数据前可以先删除关系，以减少导出的大小</summary>

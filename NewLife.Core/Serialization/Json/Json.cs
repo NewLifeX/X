@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using NewLife.Collections;
 using NewLife.Reflection;
 
 namespace NewLife.Serialization
@@ -112,10 +113,10 @@ namespace NewLife.Serialization
             //    if (item.Write(value, type)) return true;
             //}
 
-            var sb = new StringBuilder();
+            var sb = Pool.StringBuilder.Get();
             Write(sb, value);
 
-            Stream.Write(sb.ToString().GetBytes());
+            Stream.Write(sb.Put(true).GetBytes());
 
             return false;
         }

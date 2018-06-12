@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Reflection;
@@ -337,7 +338,7 @@ namespace XCode
         {
             if (Exist(isNew, names))
             {
-                var sb = new StringBuilder();
+                var sb = Pool.StringBuilder.Get();
                 String name = null;
                 for (var i = 0; i < names.Length; i++)
                 {
@@ -354,7 +355,7 @@ namespace XCode
                 if (String.IsNullOrEmpty(name)) name = typeof(TEntity).Name;
                 sb.AppendFormat(" 的{0}已存在！", name);
 
-                throw new ArgumentOutOfRangeException(String.Join(",", names), this[names[0]], sb.ToString());
+                throw new ArgumentOutOfRangeException(String.Join(",", names), this[names[0]], sb.Put(true));
             }
         }
 
@@ -694,7 +695,7 @@ namespace XCode
                             order2 = order2.Replace(match.Value, match.Value.Replace(",", "★"));
                         }
                         var ss = order2.Split(',');
-                        var sb = new StringBuilder();
+                        var sb = Pool.StringBuilder.Get();
                         foreach (var item in ss)
                         {
                             var fn = item;
@@ -726,7 +727,7 @@ namespace XCode
                             sb.AppendFormat("{0} {1}", fn, od);
                         }
 
-                        order2 = sb.ToString().Replace("★", ",");
+                        order2 = sb.Put(true).Replace("★", ",");
                     }
                     #endregion
 
@@ -1343,16 +1344,18 @@ namespace XCode
                     var columns = table.GetColumns(di.Columns);
 
                     // [v1,v2,...vn]
-                    var sb = new StringBuilder();
+                    var sb = Pool.StringBuilder.Get();
                     foreach (var dc in columns)
                     {
                         if (sb.Length > 0) sb.Append(",");
                         if (Meta.FieldNames.Contains(dc.Name)) sb.Append(this[dc.Name]);
                     }
+
+                    var vs = sb.Put(true);
                     if (columns.Length > 1)
-                        return String.Format("[{0}]", sb.ToString());
+                        return String.Format("[{0}]", vs);
                     else
-                        return sb.ToString();
+                        return vs;
                 }
             }
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using NewLife.Collections;
 
 namespace NewLife.Http
 {
@@ -98,7 +99,7 @@ namespace NewLife.Http
             }
 
             // 构建头部
-            var sb = new StringBuilder();
+            var sb = Pool.StringBuilder.Get();
             sb.AppendFormat("{0} {1} HTTP/1.1\r\n", Method, uri.PathAndQuery);
             sb.AppendFormat("Host:{0}\r\n", host);
 
@@ -121,7 +122,7 @@ namespace NewLife.Http
 
             sb.AppendLine();
 
-            return sb.ToString();
+            return sb.Put(true);
         }
     }
 }

@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using NewLife.Collections;
 
 namespace XCode.DataAccessLayer
 {
@@ -185,7 +186,7 @@ namespace XCode.DataAccessLayer
 
                 // 分解重构，把聚合函数干掉
                 var ss = Column.Split(",");
-                var sb = new StringBuilder();
+                var sb = Pool.StringBuilder.Get();
                 foreach (var item in ss)
                 {
                     if (sb.Length > 0) sb.Append(", ");
@@ -207,7 +208,7 @@ namespace XCode.DataAccessLayer
                         sb.Append(item);
                 }
 
-                return sb.ToString();
+                return sb.Put(true);
             }
         }
 
@@ -260,7 +261,7 @@ $";
         /// <returns></returns>
         public override String ToString()
         {
-            var sb = new StringBuilder();
+            var sb = Pool.StringBuilder.Get();
             sb.Append("Select ");
             sb.Append(ColumnOrDefault);
             sb.Append(" From ");
@@ -271,7 +272,7 @@ $";
             if (!OrderBy.IsNullOrEmpty()) sb.Append(" Order By " + OrderBy);
             if (!Limit.IsNullOrEmpty()) sb.Append(Limit.EnsureStart(" "));
 
-            return sb.ToString();
+            return sb.Put(true);
         }
 
         /// <summary>获取记录数的语句</summary>
@@ -445,7 +446,7 @@ $";
 
             if (keys.Length == 1) return isdescs != null && isdescs.Length > 0 && isdescs[0] ? keys[0] + " Desc" : keys[0];
 
-            var sb = new StringBuilder();
+            var sb = Pool.StringBuilder.Get();
             for (var i = 0; i < keys.Length; i++)
             {
                 if (sb.Length > 0) sb.Append(", ");
@@ -453,7 +454,7 @@ $";
                 sb.Append(keys[i]);
                 if (isdescs != null && isdescs.Length > i && isdescs[i]) sb.Append(" Desc");
             }
-            return sb.ToString();
+            return sb.Put(true);
         }
 
         internal SelectBuilder Top(Int64 top, String keyColumn = null)

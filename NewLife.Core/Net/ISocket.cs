@@ -3,6 +3,7 @@ using System.IO;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Net.Handlers;
@@ -139,19 +140,12 @@ namespace NewLife.Net
             var st2 = socket.StatReceive;
             if (st1 == null && st2 == null) return null;
 
-            var sb = new StringBuilder();
+            var sb = Pool.StringBuilder.Get();
             if (st1 != null && st1.Value > 0) sb.AppendFormat("发送：{0} ", st1);
             if (st2 != null && st2.Value > 0) sb.AppendFormat("接收：{0} ", st2);
 
-            return sb.ToString();
+            return sb.Put(true);
         }
-
-        //internal static String GetNetwork(ICounter counter)
-        //{
-        //    if (!(counter is PerfCounter pf)) return null;
-
-        //    return "{0:n0}/{1}/{2}".F(pf.Times, Utility.Convert.ToGMK(pf.MaxSpeed, "{0:n1}"), Utility.Convert.ToGMK(pf.Speed, "{0:n1}"));
-        //}
         #endregion
 
         #region 发送

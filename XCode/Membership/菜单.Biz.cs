@@ -10,6 +10,7 @@ using NewLife;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Reflection;
+using NewLife.Collections;
 #if NET4
 using System.Threading.Tasks;
 #else
@@ -262,14 +263,14 @@ namespace XCode.Membership
                 return;
             }
 
-            var sb = new StringBuilder();
+            var sb = Pool.StringBuilder.Get();
             // 根据资源按照从小到大排序一下
             foreach (var item in Permissions.OrderBy(e => e.Key))
             {
                 if (sb.Length > 0) sb.Append(",");
                 sb.AppendFormat("{0}#{1}", item.Key, item.Value);
             }
-            SetItem(__.Permission, sb.ToString());
+            SetItem(__.Permission, sb.Put(true));
         }
         #endregion
 

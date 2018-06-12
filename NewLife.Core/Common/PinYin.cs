@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using NewLife.Reflection;
+using NewLife.Collections;
 #if !__CORE__
 using NewLife.Log;
 using NewLife.Web;
@@ -134,9 +135,9 @@ namespace NewLife.Common
         /// <returns></returns>
         public static String GetFirst(String str)
         {
-            if (String.IsNullOrEmpty(str)) return String.Empty;
+            if (str.IsNullOrEmpty()) return String.Empty;
 
-            var sb = new StringBuilder(str.Length + 1);
+            var sb = Pool.StringBuilder.Get();
             var chs = str.ToCharArray();
 
             for (var i = 0; i < chs.Length; i++)
@@ -144,7 +145,7 @@ namespace NewLife.Common
                 sb.Append(GetFirst(chs[i]));
             }
 
-            return sb.ToString();
+            return sb.Put(true);
         }
 
         /// <summary>取拼音第一个字段</summary>
@@ -152,12 +153,13 @@ namespace NewLife.Common
         /// <returns></returns>
         public static String GetFirstOne(String str)
         {
-            if (String.IsNullOrEmpty(str)) return String.Empty;
+            if (str.IsNullOrEmpty()) return String.Empty;
 
-            var sb = new StringBuilder(str.Length + 1);
+            var sb = Pool.StringBuilder.Get();
             var chs = str.ToCharArray();
             if (chs.Length > 0) sb.Append(GetFirst(chs[0]));
-            return sb.ToString();
+
+            return sb.Put(true);
         }
         private static Encoding gb2312;
         /// <summary>获取单字拼音</summary>
@@ -237,9 +239,9 @@ namespace NewLife.Common
         /// <returns>转换后的拼音(全拼)字符串</returns>
         public static String Get(String str)
         {
-            if (String.IsNullOrEmpty(str)) return String.Empty;
+            if (str.IsNullOrEmpty()) return String.Empty;
 
-            var sb = new StringBuilder(str.Length * 10);
+            var sb = Pool.StringBuilder.Get();
             var chs = str.ToCharArray();
 
             for (var j = 0; j < chs.Length; j++)
@@ -247,7 +249,7 @@ namespace NewLife.Common
                 sb.Append(Get(chs[j]));
             }
 
-            return sb.ToString();
+            return sb.Put(true);
         }
 
 #if !__CORE__

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Security.Cryptography;
 using System.Text;
+using NewLife.Collections;
 
 namespace NewLife.Security
 {
@@ -69,7 +70,7 @@ namespace NewLife.Security
         /// <returns></returns>
         public static String NextString(Int32 length, Boolean symbol = false)
         {
-            var sb = new StringBuilder();
+            var sb = Pool.StringBuilder.Get();
             for (var i = 0; i < length; i++)
             {
                 var ch = ' ';
@@ -88,7 +89,7 @@ namespace NewLife.Security
                 sb.Append(ch);
             }
 
-            return sb.ToString();
+            return sb.Put(true);
         }
     }
 }

@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
+using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Net;
@@ -142,7 +143,7 @@ namespace NewLife.Caching
             // *<number of arguments>\r\n$<number of bytes of argument 1>\r\n<argument data>\r\n
             // *1\r\n$4\r\nINFO\r\n
 
-            var log = Log == null || Log == Logger.Null ? null : new StringBuilder();
+            var log = Log == null || Log == Logger.Null ? null : Pool.StringBuilder.Get();
             log?.Append(cmd);
 
             // 区分有参数和无参数
@@ -203,7 +204,7 @@ namespace NewLife.Caching
                 }
                 if (ms.Length > 0) ms.WriteTo(ns);
             }
-            if (log != null) WriteLog(log.ToString());
+            if (log != null) WriteLog(log.Put(true));
 
             // 接收
             count = ns.Read(buf, 0, buf.Length);
