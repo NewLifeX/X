@@ -409,7 +409,7 @@ namespace System
             // 如果要读完数据，又不支持定位，则采用内存流搬运
             if (!stream.CanSeek)
             {
-                var ms = new MemoryStream();
+                var ms = Pool.MemoryStream.Get();
                 while (true)
                 {
                     var buf = new Byte[1024];
@@ -420,7 +420,7 @@ namespace System
                     if (count < buf.Length) break;
                 }
 
-                return ms.ToArray();
+                return ms.Put(true);
             }
             else
             {

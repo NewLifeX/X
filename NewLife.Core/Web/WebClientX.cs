@@ -176,7 +176,7 @@ namespace NewLife.Web
                         break;
                 }
 
-                var ms = new MemoryStream();
+                var ms = NewLife.Collections.Pool.MemoryStream.Get();
                 var ns = rs.GetResponseStream();
 
                 ns.CopyTo(ms);
@@ -186,7 +186,7 @@ namespace NewLife.Web
                     ns.CopyTo(ms);
                 }
 
-                return ms.ToArray();
+                return ms.Put(true);
             }
         }
 

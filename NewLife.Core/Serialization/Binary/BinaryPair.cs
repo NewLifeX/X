@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Xml.Serialization;
+using NewLife.Collections;
 using NewLife.Reflection;
 
 namespace NewLife.Serialization
@@ -86,14 +87,14 @@ namespace NewLife.Serialization
             else
             {
                 // 准备好名值对再一起写入。为了得到数据长度，需要提前计算好数据长度，所以需要临时切换数据流
-                var ms = new MemoryStream();
+                var ms = Pool.MemoryStream.Get();
                 var old = host.Stream;
                 host.Stream = ms;
                 var rs = host.Write(value, type);
                 host.Stream = old;
 
                 if (!rs) return false;
-                buf = ms.ToArray();
+                buf = ms.Put(true);
             }
 
             WriteLog("    WritePair {0}\t= {1}", name, value);

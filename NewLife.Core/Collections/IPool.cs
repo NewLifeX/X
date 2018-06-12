@@ -33,10 +33,6 @@ namespace NewLife.Collections
         /// <summary>字符串构建器池</summary>
         public static IPool<StringBuilder> StringBuilder { get; set; } = new StringBuilderPool();
 
-        ///// <summary>借助一个字符串构建器</summary>
-        ///// <returns></returns>
-        //public static StringBuilder GetStringBuilder() => Pool.StringBuilder.Get();
-
         /// <summary>归还一个字符串构建器到对象池</summary>
         /// <param name="sb"></param>
         /// <param name="requireResult">是否需要返回结果</param>
@@ -98,7 +94,7 @@ namespace NewLife.Collections
             return buf;
         }
 
-        /// <summary>内存流构建器池</summary>
+        /// <summary>内存流池</summary>
         public class MemoryStreamPool : Pool<MemoryStream>
         {
             /// <summary>初始容量</summary>

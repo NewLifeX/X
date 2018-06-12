@@ -2,6 +2,7 @@
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using NewLife.Collections;
 
 namespace NewLife.Data
 {
@@ -203,10 +204,10 @@ namespace NewLife.Data
             if (Next == null) Data.ReadBytes(Offset, Count);
 
             // 链式包输出
-            var ms = new MemoryStream();
+            var ms = Pool.MemoryStream.Get();
             WriteTo(ms);
 
-            return ms.ToArray();
+            return ms.Put(true);
         }
 
         /// <summary>从封包中读取指定数据</summary>
@@ -224,7 +225,7 @@ namespace NewLife.Data
 
             // 链式包输出
             if (count < 0) count = Total - offset;
-            var ms = new MemoryStream();
+            var ms = Pool.MemoryStream.Get();
 
             // 遍历
             var cur = this;
@@ -246,7 +247,7 @@ namespace NewLife.Data
 
                 cur = cur.Next;
             }
-            return ms.ToArray();
+            return ms.Put(true);
 
             //// 以上算法太复杂，直接来
             //return ToArray().ReadBytes(offset, count);
