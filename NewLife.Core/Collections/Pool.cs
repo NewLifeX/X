@@ -68,8 +68,8 @@ namespace NewLife.Collections
 
             _timer.TryDispose();
 
-            while (_free.TryPop(out var pi)) OnDestroy(pi.Value);
-            while (_free2.TryDequeue(out var pi)) OnDestroy(pi.Value);
+            while (_free.TryPop(out var pi)) pi.Value.TryDispose();
+            while (_free2.TryDequeue(out var pi)) pi.Value.TryDispose();
             _busy.Clear();
         }
 
@@ -102,70 +102,38 @@ namespace NewLife.Collections
         #region 主方法
         /// <summary>借出</summary>
         /// <returns></returns>
-        public T Get()
-        {
-            var pi = OnAcquire();
-            if (pi == null) return default(T);
-
-            return pi.Value;
-        }
-
-        /// <summary>申请资源包装项，Dispose时自动归还到池中</summary>
-        /// <returns></returns>
-        public PoolItem<T> GetItem()
-        {
-            var pi = OnAcquire();
-            if (pi == null) return null;
-
-            return new PoolItem<T>(this, pi.Value);
-        }
-
-        /// <summary>申请</summary>
-        /// <returns></returns>
-        private Item OnAcquire()
+        public virtual T Get()
         {
             var sw = Log == null || Log == Logger.Null ? null : Stopwatch.StartNew();
             Interlocked.Increment(ref _Total);
 
-            Item pi = null;
-            var flag = false;
-            while (true)
+            // 从空闲集合借一个
+            if (_free.TryPop(out var pi) || _free2.TryDequeue(out pi))
             {
-                flag = false;
-                // 从空闲集合借一个
-                if (_free.TryPop(out pi) || _free2.TryDequeue(out pi))
-                {
-                    Interlocked.Decrement(ref _FreeCount);
-                    flag = true;
-                }
-                else
-                {
-                    // 超出最大值后，抛出异常
-                    var count = BusyCount;
-                    if (count >= Max)
-                    {
-                        var msg = $"申请失败，已有 {count:n0} 达到或超过最大值 {Max:n0}";
-
-                        WriteLog("Acquire Max " + msg);
-
-                        throw new Exception(Name + " " + msg);
-                    }
-
-                    // 借不到，增加
-                    pi = new Item
-                    {
-                        Value = Create(),
-                    };
-
-                    if (count == 0) Init();
-                    WriteLog("Acquire Create Free={0} Busy={1}", FreeCount, count + 1);
-                }
-
-                // 抛弃无效资源
-                if (OnAcquire(pi.Value)) break;
+                Interlocked.Decrement(ref _FreeCount);
             }
+            else
+            {
+                // 超出最大值后，抛出异常
+                var count = BusyCount;
+                if (count >= Max)
+                {
+                    var msg = $"申请失败，已有 {count:n0} 达到或超过最大值 {Max:n0}";
 
-            if (flag) Interlocked.Increment(ref _Success);
+                    WriteLog("Acquire Max " + msg);
+
+                    throw new Exception(Name + " " + msg);
+                }
+
+                // 借不到，增加
+                pi = new Item
+                {
+                    Value = OnCreate(),
+                };
+
+                if (count == 0) Init();
+                WriteLog("Acquire Create Free={0} Busy={1}", FreeCount, count + 1);
+            }
 
             // 最后时间
             pi.LastTime = TimerX.Now;
@@ -175,6 +143,7 @@ namespace NewLife.Collections
 
             Interlocked.Increment(ref _BusyCount);
 
+            Interlocked.Increment(ref _Success);
             if (sw != null)
             {
                 sw.Stop();
@@ -186,27 +155,29 @@ namespace NewLife.Collections
                     Cost = (Cost * 3 + ms) / 4;
             }
 
-            return pi;
+            return pi.Value;
         }
+
+        /// <summary>申请资源包装项，Dispose时自动归还到池中</summary>
+        /// <returns></returns>
+        public PoolItem<T> GetItem() => new PoolItem<T>(this, Get());
 
         /// <summary>归还</summary>
         /// <param name="value"></param>
-        public void Return(T value)
+        public virtual Boolean Return(T value)
         {
-            if (value == null) return;
+            if (value == null) return false;
+
+            var db = value as DisposeBase;
+            if (db != null && db.Disposed) return false;
 
             // 从繁忙队列找到并移除缓存项
             if (!_busy.TryRemove(value, out var pi))
             {
                 WriteLog("Release Error");
 
-                return;
+                return false;
             }
-
-            Interlocked.Decrement(ref _BusyCount);
-
-            // 抛弃无效资源
-            if (!OnRelease(pi.Value)) return;
 
             var min = Min;
 
@@ -223,54 +194,30 @@ namespace NewLife.Collections
 
             // 启动定期清理的定时器
             StartTimer();
+
+            return true;
         }
 
         /// <summary>清空已有对象</summary>
-        public virtual void Clear()
+        public virtual Int32 Clear()
         {
+            var count = _FreeCount + _BusyCount;
+
             _busy.Clear();
             _BusyCount = 0;
 
             _free.Clear();
             while (_free2.TryDequeue(out var rs)) ;
             _FreeCount = 0;
+
+            return count;
         }
         #endregion
 
         #region 重载
-        /// <summary>创建实例时触发。外部可用于自定义创建对象</summary>
-        public event EventHandler<EventArgs<T>> OnCreate;
-
         /// <summary>创建实例</summary>
         /// <returns></returns>
-        protected virtual T Create()
-        {
-            if (OnCreate != null)
-            {
-                var e = new EventArgs<T>(default(T));
-                OnCreate(this, e);
-                if (e.Arg != null) return e.Arg;
-            }
-            return typeof(T).CreateInstance() as T;
-        }
-
-        /// <summary>申请时，返回是否有效。无效资源将会被抛弃并重新申请</summary>
-        /// <param name="value"></param>
-        protected virtual Boolean OnAcquire(T value) => true;
-
-        /// <summary>释放时，返回是否有效。无效资源将会被抛弃，不再加入空闲队列</summary>
-        /// <param name="value"></param>
-        protected virtual Boolean OnRelease(T value)
-        {
-            var db = value as DisposeBase;
-            if (db != null && db.Disposed) return false;
-
-            return true;
-        }
-
-        /// <summary>销毁时触发</summary>
-        /// <param name="value"></param>
-        protected virtual void OnDestroy(T value) => value.TryDispose();
+        protected virtual T OnCreate() => typeof(T).CreateInstance() as T;
         #endregion
 
         #region 定期清理
@@ -305,7 +252,7 @@ namespace NewLife.Collections
                     // 取出来销毁
                     if (_free2.TryDequeue(out pi))
                     {
-                        OnDestroy(pi.Value);
+                        pi.Value.TryDispose();
 
                         count++;
                         Interlocked.Decrement(ref _FreeCount);
@@ -322,7 +269,7 @@ namespace NewLife.Collections
                     // 取出来销毁
                     if (_free.TryPop(out pi))
                     {
-                        OnDestroy(pi.Value);
+                        pi.Value.TryDispose();
 
                         count++;
                         Interlocked.Decrement(ref _FreeCount);

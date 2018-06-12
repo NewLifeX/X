@@ -679,7 +679,7 @@ namespace NewLife.Web
 
         class WebClientPool : Pool<WebClientX>
         {
-            protected override WebClientX Create()
+            protected override WebClientX OnCreate()
             {
                 return new WebClientX();
             }

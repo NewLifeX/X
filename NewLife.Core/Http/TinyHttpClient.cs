@@ -244,7 +244,7 @@ namespace NewLife.Http
         #region 缓冲池
         class MyPool : Pool<Byte[]>
         {
-            protected override Byte[] Create() => new Byte[64 * 1024];
+            protected override Byte[] OnCreate() => new Byte[64 * 1024];
         }
 
         private static MyPool _Pool = new MyPool

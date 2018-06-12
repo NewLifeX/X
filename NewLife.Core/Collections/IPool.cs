@@ -6,15 +6,15 @@ namespace NewLife.Collections
     /// <typeparam name="T"></typeparam>
     public interface IPool<T> where T : class
     {
-        /// <summary>借出</summary>
+        /// <summary>获取</summary>
         /// <returns></returns>
         T Get();
 
         /// <summary>归还</summary>
         /// <param name="value"></param>
-        void Return(T value);
+        Boolean Return(T value);
 
-        /// <summary>清空已有对象</summary>
-        void Clear();
+        /// <summary>清空</summary>
+        Int32 Clear();
     }
 }

@@ -305,7 +305,7 @@ namespace NewLife.Remoting
                 Max = 100000;
             }
 
-            protected override ISocketClient Create() => Host.OnCreate();
+            protected override ISocketClient OnCreate() => Host.OnCreate();
         }
 
         /// <summary>Round-Robin 负载均衡</summary>

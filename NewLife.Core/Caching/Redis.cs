@@ -116,7 +116,7 @@ namespace NewLife.Caching
         {
             public Redis Instance { get; set; }
 
-            protected override RedisClient Create()
+            protected override RedisClient OnCreate()
             {
                 var rds = Instance;
                 var svr = rds.Server;
