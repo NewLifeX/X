@@ -292,9 +292,9 @@ namespace NewLife.Remoting
 
         #region 连接池
         /// <summary>连接池</summary>
-        public Pool<ISocketClient> Pool { get; private set; }
+        public IPool<ISocketClient> Pool { get; private set; }
 
-        class MyPool : Pool<ISocketClient>
+        class MyPool : ObjectPool<ISocketClient>
         {
             public ApiClient Host { get; set; }
 

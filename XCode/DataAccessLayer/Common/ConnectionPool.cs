@@ -13,7 +13,7 @@ namespace XCode.DataAccessLayer
     /// 3，空闲时间10s
     /// 4，完全空闲时间60s
     /// </remarks>
-    public class ConnectionPool : Pool<DbConnection>
+    public class ConnectionPool : ObjectPool<DbConnection>
     {
         #region 属性
         /// <summary>工厂</summary>

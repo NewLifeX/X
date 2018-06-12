@@ -249,10 +249,7 @@ namespace NewLife.Http
 
         private static MyPool _Pool = new MyPool
         {
-            Max = 1000,
-            Min = 2,
-            IdleTime = 10,
-            AllIdleTime = 60,
+            Max = 1024,
         };
         #endregion
 

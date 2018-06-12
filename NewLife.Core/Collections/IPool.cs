@@ -6,6 +6,9 @@ namespace NewLife.Collections
     /// <typeparam name="T"></typeparam>
     public interface IPool<T> where T : class
     {
+        /// <summary>对象池大小</summary>
+        Int32 Max { get; set; }
+
         /// <summary>获取</summary>
         /// <returns></returns>
         T Get();

@@ -640,7 +640,7 @@ namespace NewLife.Web
         private static Object SyncRoot = new Object();
         private static WebClientPool _Pool;
         /// <summary>默认连接池</summary>
-        public static Pool<WebClientX> Pool
+        public static IPool<WebClientX> Pool
         {
             get
             {
@@ -677,12 +677,9 @@ namespace NewLife.Web
             }
         }
 
-        class WebClientPool : Pool<WebClientX>
+        class WebClientPool : ObjectPool<WebClientX>
         {
-            protected override WebClientX OnCreate()
-            {
-                return new WebClientX();
-            }
+            protected override WebClientX OnCreate() => new WebClientX();
         }
         #endregion
 

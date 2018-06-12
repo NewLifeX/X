@@ -112,7 +112,7 @@ namespace NewLife.Caching
         #endregion
 
         #region 客户端池
-        class MyPool : Pool<RedisClient>
+        class MyPool : ObjectPool<RedisClient>
         {
             public Redis Instance { get; set; }
 
@@ -142,7 +142,7 @@ namespace NewLife.Caching
 
         private MyPool _Pool;
         /// <summary>连接池</summary>
-        public Pool<RedisClient> Pool
+        public IPool<RedisClient> Pool
         {
             get
             {
@@ -379,7 +379,7 @@ namespace NewLife.Caching
             var rds = Redis.Create("127.0.0.1:6379", 4);
             rds.Password = "";
             rds.Log = XTrace.Log;
-            rds.Pool.Log = XTrace.Log;
+            (rds.Pool as ObjectPool<RedisClient>).Log = XTrace.Log;
 
             //rds.Bench();
             //return;
