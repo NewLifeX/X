@@ -35,9 +35,10 @@
     <!--文件显示名-->
     <AssemblyTitle>组件核心库</AssemblyTitle>
     <RootNamespace>NewLife</RootNamespace>
+    <!--是否确定版本，false以支持*-->
+    <Deterministic>false</Deterministic>
     <!--构建的时候是否生成包-->
-    <Deterministic>False</Deterministic>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <OutputPath>..\..\Bin\</OutputPath>
     <DefineConstants>TRACE;DEBUG</DefineConstants>
  

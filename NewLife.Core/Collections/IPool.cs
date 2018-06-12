@@ -7,9 +7,8 @@ namespace NewLife.Collections
     public interface IPool<T> where T : class
     {
         /// <summary>借出</summary>
-        /// <param name="msTimeout">池满时等待的最大超时时间。超时后仍无法得到资源将抛出异常</param>
         /// <returns></returns>
-        T Get(Int32 msTimeout = 0);
+        T Get();
 
         /// <summary>归还</summary>
         /// <param name="value"></param>

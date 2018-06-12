@@ -36,9 +36,6 @@ namespace NewLife.Collections
         /// <summary>完全空闲清理时间。最小个数之下的资源超过空闲时间时被清理，默认0s永不清理</summary>
         public Int32 AllIdleTime { get; set; } = 0;
 
-        /// <summary>申请等待时间。池满时等待的时间，默认1000ms</summary>
-        public Int32 WaitTime { get; set; } = 1000;
-
         /// <summary>基础空闲集合。只保存最小个数，最热部分</summary>
         private ConcurrentStack<Item> _free = new ConcurrentStack<Item>();
 
@@ -48,7 +45,7 @@ namespace NewLife.Collections
         /// <summary>借出去的放在这</summary>
         private ConcurrentDictionary<T, Item> _busy = new ConcurrentDictionary<T, Item>();
 
-        private Object SyncRoot = new Object();
+        private readonly Object SyncRoot = new Object();
         #endregion
 
         #region 构造
@@ -86,7 +83,7 @@ namespace NewLife.Collections
                 if (_inited) return;
                 _inited = true;
 
-                WriteLog($"Init {typeof(T).FullName} Min={Min} Max={Max} IdleTime={IdleTime}s AllIdleTime={AllIdleTime}s WaitTime={WaitTime}ms");
+                WriteLog($"Init {typeof(T).FullName} Min={Min} Max={Max} IdleTime={IdleTime}s AllIdleTime={AllIdleTime}s");
             }
         }
         #endregion
@@ -104,37 +101,31 @@ namespace NewLife.Collections
 
         #region 主方法
         /// <summary>借出</summary>
-        /// <param name="msTimeout">池满时等待的最大超时时间。超时后仍无法得到资源将抛出异常</param>
         /// <returns></returns>
-        public T Get(Int32 msTimeout = 0)
+        public T Get()
         {
-            var pi = OnAcquire(msTimeout);
+            var pi = OnAcquire();
             if (pi == null) return default(T);
 
             return pi.Value;
         }
 
         /// <summary>申请资源包装项，Dispose时自动归还到池中</summary>
-        /// <param name="msTimeout">池满时等待的最大超时时间。超时后仍无法得到资源将抛出异常</param>
         /// <returns></returns>
-        public PoolItem<T> GetItem(Int32 msTimeout = 0)
+        public PoolItem<T> GetItem()
         {
-            var pi = OnAcquire(msTimeout);
+            var pi = OnAcquire();
             if (pi == null) return null;
 
             return new PoolItem<T>(this, pi.Value);
         }
 
         /// <summary>申请</summary>
-        /// <param name="msTimeout">池满时等待的最大超时时间。超时后仍无法得到资源将抛出异常</param>
         /// <returns></returns>
-        private Item OnAcquire(Int32 msTimeout = 0)
+        private Item OnAcquire()
         {
             var sw = Log == null || Log == Logger.Null ? null : Stopwatch.StartNew();
             Interlocked.Increment(ref _Total);
-
-            if (msTimeout <= 0) msTimeout = WaitTime;
-            var end = TimerX.Now.AddMilliseconds(msTimeout);
 
             Item pi = null;
             var flag = false;
@@ -144,24 +135,15 @@ namespace NewLife.Collections
                 // 从空闲集合借一个
                 if (_free.TryPop(out pi) || _free2.TryDequeue(out pi))
                 {
-                    //FreeCount = _free.Count + _free2.Count;
                     Interlocked.Decrement(ref _FreeCount);
                     flag = true;
                 }
                 else
                 {
                     // 超出最大值后，抛出异常
-                    //var count = _busy.Count;
                     var count = BusyCount;
                     if (count >= Max)
                     {
-                        // 如果超时时间未到，等一会重试
-                        if (msTimeout > 0 && TimerX.Now < end)
-                        {
-                            Thread.Sleep(10);
-                            continue;
-                        }
-
                         var msg = $"申请失败，已有 {count:n0} 达到或超过最大值 {Max:n0}";
 
                         WriteLog("Acquire Max " + msg);
@@ -191,12 +173,8 @@ namespace NewLife.Collections
             // 加入繁忙集合
             _busy.TryAdd(pi.Value, pi);
 
-            //BusyCount = _busy.Count;
             Interlocked.Increment(ref _BusyCount);
 
-#if DEBUG
-            //WriteLog("Acquire Free={0} Busy={1}", FreeCount, BusyCount);
-#endif
             if (sw != null)
             {
                 sw.Stop();
@@ -225,15 +203,11 @@ namespace NewLife.Collections
                 return;
             }
 
-            //BusyCount = _busy.Count;
             Interlocked.Decrement(ref _BusyCount);
 
             // 抛弃无效资源
             if (!OnRelease(pi.Value)) return;
 
-            //// 确保空闲队列个数最少是CPU个数
-            //var min = Environment.ProcessorCount;
-            //if (min < Min) min = Min;
             var min = Min;
 
             // 如果空闲数不足最小值，则返回到基础空闲集合
@@ -245,15 +219,10 @@ namespace NewLife.Collections
             // 最后时间
             pi.LastTime = TimerX.Now;
 
-            //FreeCount = _free.Count + _free2.Count;
             Interlocked.Increment(ref _FreeCount);
 
             // 启动定期清理的定时器
             StartTimer();
-
-#if DEBUG
-            //WriteLog("Release Free={0} Busy={1}", FreeCount, BusyCount);
-#endif
         }
 
         /// <summary>清空已有对象</summary>
@@ -314,7 +283,7 @@ namespace NewLife.Collections
             {
                 if (_timer != null) return;
 
-                _timer = new TimerX(Work, null, 5000, 5000);
+                _timer = new TimerX(Work, null, 5000, 5000) { Async = true };
             }
         }
 
@@ -363,9 +332,6 @@ namespace NewLife.Collections
 
             if (count > 0)
             {
-                //_FreeCount = _free.Count + _free2.Count;
-                //_BusyCount = _busy.Count;
-
                 var p = Total == 0 ? 0 : (Double)Success / Total;
 
                 WriteLog("Release Free={0} Busy={1} 清除过期资源 {2:n0} 项。总请求 {3:n0} 次，命中 {4:p2}，平均 {5:n2}us", FreeCount, BusyCount, count, Total, p, Cost * 1000);

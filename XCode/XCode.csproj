@@ -39,8 +39,8 @@
     <Company>新生命开发团队</Company>
     <Trademark>四叶草</Trademark>
     <!--nuget包设置end-->
-    <Deterministic>False</Deterministic>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Deterministic>false</Deterministic>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <OutputPath>..\..\Bin\</OutputPath>
     <DefineConstants>TRACE;DEBUG</DefineConstants>
 
