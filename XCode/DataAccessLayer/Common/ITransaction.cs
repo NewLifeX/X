@@ -172,7 +172,7 @@ namespace XCode.DataAccessLayer
                     Completed?.Invoke(this, new TransactionEventArgs(true, Executes));
 
                     // 把连接归还给对象池
-                    _Session.Database.Pool.Return(Conn);
+                    _Session.Database.Pool.Put(Conn);
                 }
             }
 
@@ -203,7 +203,7 @@ namespace XCode.DataAccessLayer
                     Completed?.Invoke(this, new TransactionEventArgs(false, Executes));
 
                     // 把连接归还给对象池
-                    _Session.Database.Pool.Return(Conn);
+                    _Session.Database.Pool.Put(Conn);
                 }
             }
 

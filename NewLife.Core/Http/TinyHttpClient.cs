@@ -271,7 +271,7 @@ namespace NewLife.Http
             }
             finally
             {
-                _Pool.Return(client);
+                _Pool.Put(client);
             }
         }
 
@@ -291,7 +291,7 @@ namespace NewLife.Http
             }
             finally
             {
-                _Pool.Return(client);
+                _Pool.Put(client);
             }
         }
         #endregion

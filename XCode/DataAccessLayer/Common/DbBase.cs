@@ -220,7 +220,7 @@ namespace XCode.DataAccessLayer
                 }
                 finally
                 {
-                    Pool.Return(conn);
+                    Pool.Put(conn);
                 }
             }
         }

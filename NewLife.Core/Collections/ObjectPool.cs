@@ -164,7 +164,7 @@ namespace NewLife.Collections
 
         /// <summary>归还</summary>
         /// <param name="value"></param>
-        public virtual Boolean Return(T value)
+        public virtual Boolean Put(T value)
         {
             if (value == null) return false;
 
@@ -343,7 +343,7 @@ namespace NewLife.Collections
         {
             base.OnDispose(disposing);
 
-            Pool.Return(Value);
+            Pool.Put(Value);
         }
         #endregion
     }

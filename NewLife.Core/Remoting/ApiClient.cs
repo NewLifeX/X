@@ -106,7 +106,7 @@ namespace NewLife.Remoting
                 }
                 finally
                 {
-                    Pool.Return(ct);
+                    Pool.Put(ct);
                 }
 
                 ShowService();
@@ -246,7 +246,7 @@ namespace NewLife.Remoting
                 }
                 finally
                 {
-                    if (client != null) Pool.Return(client);
+                    if (client != null) Pool.Put(client);
                 }
             }
 
@@ -267,7 +267,7 @@ namespace NewLife.Remoting
                 catch (Exception ex) { last = ex; }
                 finally
                 {
-                    Pool.Return(client);
+                    Pool.Put(client);
                 }
             }
 

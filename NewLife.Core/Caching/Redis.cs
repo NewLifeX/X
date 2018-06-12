@@ -195,7 +195,7 @@ namespace NewLife.Caching
             }
             finally
             {
-                Pool.Return(client);
+                Pool.Put(client);
             }
         }
         #endregion
@@ -213,7 +213,7 @@ namespace NewLife.Caching
                 }
                 finally
                 {
-                    Pool.Return(client);
+                    Pool.Put(client);
                 }
             }
         }
@@ -233,7 +233,7 @@ namespace NewLife.Caching
                 }
                 finally
                 {
-                    Pool.Return(client);
+                    Pool.Put(client);
                 }
             }
         }

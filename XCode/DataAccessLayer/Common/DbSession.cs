@@ -116,7 +116,7 @@ namespace XCode.DataAccessLayer
             if (conn != null)
             {
                 Conn = null;
-                Database.Pool.Return(conn);
+                Database.Pool.Put(conn);
             }
         }
 
@@ -316,7 +316,7 @@ namespace XCode.DataAccessLayer
                 }
                 finally
                 {
-                    Database.Pool.Return(conn);
+                    Database.Pool.Put(conn);
                     EndTrace(cmd);
                 }
             }
@@ -360,7 +360,7 @@ namespace XCode.DataAccessLayer
                 }
                 finally
                 {
-                    Database.Pool.Return(conn);
+                    Database.Pool.Put(conn);
                     EndTrace(cmd);
                 }
             }
@@ -402,7 +402,7 @@ namespace XCode.DataAccessLayer
                 }
                 finally
                 {
-                    Database.Pool.Return(conn);
+                    Database.Pool.Put(conn);
                     EndTrace(cmd);
                 }
             }
@@ -478,7 +478,7 @@ namespace XCode.DataAccessLayer
             }
             finally
             {
-                Database.Pool.Return(conn);
+                Database.Pool.Put(conn);
                 EndTrace(cmd);
             }
         }
@@ -538,7 +538,7 @@ namespace XCode.DataAccessLayer
             }
             finally
             {
-                Database.Pool.Return(conn);
+                Database.Pool.Put(conn);
                 EndTrace(cmd);
 
                 //AutoClose();
@@ -624,7 +624,7 @@ namespace XCode.DataAccessLayer
             }
             finally
             {
-                Database.Pool.Return(conn);
+                Database.Pool.Put(conn);
                 EndTrace(cmd);
             }
         }
@@ -688,7 +688,7 @@ namespace XCode.DataAccessLayer
             }
             finally
             {
-                Database.Pool.Return(conn);
+                Database.Pool.Put(conn);
                 EndTrace(cmd);
             }
         }
@@ -762,7 +762,7 @@ namespace XCode.DataAccessLayer
                     }
                     finally
                     {
-                        Database.Pool.Return(conn);
+                        Database.Pool.Put(conn);
                     }
                 }
 

@@ -555,7 +555,7 @@ namespace XCode.DataAccessLayer
                 }
                 finally
                 {
-                    Database.Pool.Return(conn2);
+                    Database.Pool.Put(conn2);
                 }
             }
 

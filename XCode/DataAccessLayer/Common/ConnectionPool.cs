@@ -74,14 +74,14 @@ namespace XCode.DataAccessLayer
 
         /// <summary>释放时，返回是否有效。无效对象将会被抛弃</summary>
         /// <param name="value"></param>
-        public override Boolean Return(DbConnection value)
+        public override Boolean Put(DbConnection value)
         {
             try
             {
                 //// 如果连接字符串变了，则关闭
                 //if (value.ConnectionString != ConnectionString) value.Close();
 
-                return value.State == ConnectionState.Open && base.Return(value);
+                return value.State == ConnectionState.Open && base.Put(value);
             }
             catch { return false; }
         }

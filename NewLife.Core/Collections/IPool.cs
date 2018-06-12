@@ -17,7 +17,7 @@ namespace NewLife.Collections
 
         /// <summary>归还</summary>
         /// <param name="value"></param>
-        Boolean Return(T value);
+        Boolean Put(T value);
 
         /// <summary>清空</summary>
         Int32 Clear();
@@ -47,7 +47,7 @@ namespace NewLife.Collections
 
             var str = requireResult ? sb.ToString() : null;
 
-            Pool.StringBuilder.Return(sb);
+            Pool.StringBuilder.Put(sb);
 
             return str;
         }
@@ -68,7 +68,7 @@ namespace NewLife.Collections
             /// <summary>归还</summary>
             /// <param name="value"></param>
             /// <returns></returns>
-            public override Boolean Return(StringBuilder value)
+            public override Boolean Put(StringBuilder value)
             {
                 if (value.Capacity > MaximumCapacity) return false;
 
@@ -93,7 +93,7 @@ namespace NewLife.Collections
 
             var buf = requireResult ? ms.ToArray() : null;
 
-            Pool.MemoryStream.Return(ms);
+            Pool.MemoryStream.Put(ms);
 
             return buf;
         }
@@ -114,7 +114,7 @@ namespace NewLife.Collections
             /// <summary>归还</summary>
             /// <param name="value"></param>
             /// <returns></returns>
-            public override Boolean Return(MemoryStream value)
+            public override Boolean Put(MemoryStream value)
             {
                 if (value.Capacity > MaximumCapacity) return false;
 

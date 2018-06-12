@@ -673,7 +673,7 @@ namespace NewLife.Web
             }
             finally
             {
-                Pool.Return(client);
+                Pool.Put(client);
             }
         }
 

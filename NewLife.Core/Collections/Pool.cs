@@ -71,7 +71,7 @@ namespace NewLife.Collections
         /// <summary>归还</summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public virtual Boolean Return(T value)
+        public virtual Boolean Put(T value)
         {
             // 最热的一个对象在外层，便于快速存取
             if (_current == null && Interlocked.CompareExchange(ref _current, value, null) == null) return true;
