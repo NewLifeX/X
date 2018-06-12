@@ -10,7 +10,7 @@ namespace NewLife.Collections
 {
     /// <summary>资源池。主要用于数据库连接池和网络连接池</summary>
     /// <typeparam name="T"></typeparam>
-    public class Pool<T> : DisposeBase where T : class
+    public class Pool<T> : DisposeBase, IPool<T> where T : class
     {
         #region 属性
         /// <summary>名称</summary>
@@ -103,7 +103,7 @@ namespace NewLife.Collections
         #endregion
 
         #region 主方法
-        /// <summary>申请</summary>
+        /// <summary>借出</summary>
         /// <param name="msTimeout">池满时等待的最大超时时间。超时后仍无法得到资源将抛出异常</param>
         /// <returns></returns>
         public T Get(Int32 msTimeout = 0)
@@ -211,7 +211,7 @@ namespace NewLife.Collections
             return pi;
         }
 
-        /// <summary>释放</summary>
+        /// <summary>归还</summary>
         /// <param name="value"></param>
         public void Return(T value)
         {
