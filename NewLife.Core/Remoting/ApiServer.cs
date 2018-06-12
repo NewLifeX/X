@@ -63,6 +63,21 @@ namespace NewLife.Remoting
             return svr;
         }
 
+        /// <summary>确保已创建服务器对象</summary>
+        /// <returns></returns>
+        public IApiServer EnsureCreate()
+        {
+            var svr = Server;
+            if (svr != null) return svr;
+
+            if (Port <= 0) throw new ArgumentNullException(nameof(Server), "未指定服务器Server，且未指定端口Port！");
+
+            svr = new ApiNetServer();
+            svr.Init(new NetUri(NetType.Unknown, "*", Port) + "");
+
+            return Server = svr;
+        }
+
         /// <summary>开始服务</summary>
         public virtual void Start()
         {
@@ -80,16 +95,7 @@ namespace NewLife.Remoting
             Log.Info("编码：{0}", Encoder);
             //Log.Info("处理：{0}", Handler);
 
-            var svr = Server;
-            if (svr == null)
-            {
-                if (Port <= 0) throw new ArgumentNullException(nameof(Server), "未指定服务器Server，且未指定端口Port！");
-
-                svr = new ApiNetServer();
-                svr.Init(new NetUri(NetType.Unknown, "*", Port) + "");
-
-                Server = svr;
-            }
+            var svr = EnsureCreate();
 
             if (svr.Handler == null) svr.Handler = Handler;
             if (svr.Encoder == null) svr.Encoder = Encoder;
