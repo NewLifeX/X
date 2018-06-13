@@ -142,7 +142,6 @@ namespace NewLife.Collections
             _busy.TryAdd(pi.Value, pi);
 
             Interlocked.Increment(ref _BusyCount);
-
             Interlocked.Increment(ref _Success);
             if (sw != null)
             {
@@ -178,6 +177,8 @@ namespace NewLife.Collections
 
                 return false;
             }
+
+            Interlocked.Decrement(ref _BusyCount);
 
             var min = Min;
 
