@@ -30,7 +30,11 @@ namespace NewLife.Net
             Server = server;
 
             var p = ClearPeriod * 1000;
-            clearTimer = new TimerX(RemoveNotAlive, null, p, p) { Async = true };
+            clearTimer = new TimerX(RemoveNotAlive, null, p, p)
+            {
+                Async = true,
+                CanExecute = () => _dic.Any(),
+            };
         }
 
         protected override void OnDispose(Boolean disposing)
