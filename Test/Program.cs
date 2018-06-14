@@ -14,6 +14,7 @@ using NewLife.Reflection;
 using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
+using NewLife.Threading;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 using XCode.Service;
@@ -38,7 +39,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test5();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -60,31 +61,34 @@ namespace Test
         //private static Int32 ths = 0;
         static void Test1()
         {
-            //var orc = ObjectContainer.Current.ResolveInstance<IDatabase>(DatabaseType.Oracle);
-            var db = DbFactory.Create(DatabaseType.Oracle);
-            var sql = "select * from table where date>1234 ";
-            var sb = new SelectBuilder();
-            sb.Parse(sql);
+            XTrace.WriteLine("线程池分配测试");
 
-            Console.WriteLine(db.PageSplit(sb, 0, 20));
-            Console.WriteLine(db.PageSplit(sb, 20, 0));
-            Console.WriteLine(db.PageSplit(sb, 20, 30));
+            ThreadPool.GetMinThreads(out var min, out var min2);
+            ThreadPool.GetMaxThreads(out var max, out var max2);
+            ThreadPool.GetAvailableThreads(out var ths, out var ths2);
+            XTrace.WriteLine("({0}, {1}) ({2}, {3}) ({4}, {5})", min, min2, max, max2, ths, ths2);
 
-            sql = "select * from table where date>1234 order by cc";
-            sb = new SelectBuilder();
-            sb.Parse(sql);
+            var cpu = Environment.ProcessorCount;
+            cpu += 5;
+            for (var i = 0; i < cpu; i++)
+            {
+                var idx = i;
+                ThreadPoolX.QueueUserWorkItem(() =>
+                {
+                    XTrace.WriteLine("Item {0} Start", idx);
+                    Thread.Sleep(5000);
+                    XTrace.WriteLine("Item {0} End", idx);
+                });
+            }
 
-            Console.WriteLine(db.PageSplit(sb, 0, 20));
-            Console.WriteLine(db.PageSplit(sb, 20, 0));
-            Console.WriteLine(db.PageSplit(sb, 20, 30));
+            Thread.Sleep(2000);
+            ThreadPool.GetAvailableThreads(out ths, out ths2);
+            XTrace.WriteLine("({0}, {1}) ({2}, {3}) ({4}, {5})", min, min2, max, max2, ths, ths2);
 
-            //EntityBuilder.Build("DataCockpit.xml");
+            Thread.Sleep(7000);
 
-            //Role.Meta.Session.Dal.Db.Readonly = true;
-            //Role.GetOrAdd("sss");
-
-            var ip = NetHelper.MyIP();
-            Console.WriteLine(ip);
+            ThreadPool.GetAvailableThreads(out ths, out ths2);
+            XTrace.WriteLine("({0}, {1}) ({2}, {3}) ({4}, {5})", min, min2, max, max2, ths, ths2);
         }
 
         static void Test2()
