@@ -49,42 +49,48 @@
 
   <!--项目属性start-->
   <PropertyGroup Condition="'$(Configuration)|$(Platform)|$(TargetFramework)' == 'Debug|AnyCPU|net45'">
-    <OutputPath>..\..\Bin\</OutputPath>
     <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <OutputPath>..\..\Bin\</OutputPath>
     <DocumentationFile>..\..\Bin\net45\XCode.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)|$(TargetFramework)' == 'Release|AnyCPU|net45'">
-    <OutputPath>..\..\Bin\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <OutputPath>..\..\Bin\</OutputPath>
     <DocumentationFile>..\..\Bin\net45\XCode.xml</DocumentationFile>
-    <WarningLevel>2</WarningLevel>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)|$(TargetFramework)'=='Debug|AnyCPU|netstandard2.0'">
+    <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0;__CORE__</DefineConstants>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
     <OutputPath>..\..\Bin\</OutputPath>
     <DocumentationFile>..\..\Bin\netstandard2.0\XCode.xml</DocumentationFile>
-    <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0;__CORE__</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)|$(TargetFramework)'=='Release|AnyCPU|netstandard2.0'">
+    <DefineConstants>TRACE;RELEASE;NETSTANDARD2_0;__CORE__</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
     <OutputPath>..\..\Bin\</OutputPath>
     <DocumentationFile>..\..\Bin\netstandard2.0\XCode.xml</DocumentationFile>
-    <DefineConstants>TRACE;RELEASE;NETSTANDARD2_0;__CORE__</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)|$(TargetFramework)' == 'Debug|AnyCPU|net40'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>..\..\Bin\</OutputPath>
     <DefineConstants>TRACE;DEBUG;NET4</DefineConstants>
-    <DocumentationFile>..\..\Bin\net40\XCode.xml</DocumentationFile>
+    <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
+    <OutputPath>..\..\Bin\</OutputPath>
+    <DocumentationFile>..\..\Bin\net40\XCode.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)|$(TargetFramework)' == 'Release|AnyCPU|net40'">
-    <OutputPath>..\..\Bin\</OutputPath>
     <DefineConstants>TRACE;NET4</DefineConstants>
-    <DocumentationFile>..\..\Bin\net40\XCode.xml</DocumentationFile>
     <Optimize>true</Optimize>
-    <WarningLevel>2</WarningLevel>
     <DebugType>pdbonly</DebugType>
+    <OutputPath>..\..\Bin\</OutputPath>
+    <DocumentationFile>..\..\Bin\net40\XCode.xml</DocumentationFile>
   </PropertyGroup>
   <!--项目属性end-->
 

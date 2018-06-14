@@ -48,24 +48,23 @@
   <!--项目属性start-->
   <PropertyGroup Condition="'$(Configuration)|$(Platform)|$(TargetFramework)' == 'Debug|AnyCPU|net45'">
     <!--<PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">-->
-    <!--<DebugSymbols>true</DebugSymbols>-->
-    <OutputPath>..\..\Bin\</OutputPath>
     <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <OutputPath>..\..\Bin\</OutputPath>
     <!--<AllowUnsafeBlocks>false</AllowUnsafeBlocks>-->
     <DocumentationFile>..\..\Bin\net45\NewLife.Core.xml</DocumentationFile>
-    <!--<DebugType>full</DebugType>-->
     <!--<PlatformTarget>AnyCPU</PlatformTarget>-->
     <!--<ErrorReport>prompt</ErrorReport>-->
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)|$(TargetFramework)' == 'Release|AnyCPU|net45'">
-
     <!--<PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">-->
-    <OutputPath>..\..\Bin\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <OutputPath>..\..\Bin\</OutputPath>
     <!--<AllowUnsafeBlocks>false</AllowUnsafeBlocks>-->
     <DocumentationFile>..\..\Bin\net45\NewLife.Core.xml</DocumentationFile>
-    <!--<Optimize>true</Optimize>-->
-    <!--<DebugType>pdbonly</DebugType>-->
     <!--<PlatformTarget>AnyCPU</PlatformTarget>-->
     <!--<ErrorReport>prompt</ErrorReport>-->
     <!--<TargetFrameworkVersion>v4.5</TargetFrameworkVersion>-->
@@ -73,19 +72,24 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)|$(TargetFramework)'=='Debug|AnyCPU|netstandard2.0'">
     <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0;__CORE__</DefineConstants>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
     <OutputPath>..\..\Bin</OutputPath>
     <DocumentationFile>..\..\Bin\netstandard2.0\NewLife.Core.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)|$(TargetFramework)'=='Release|AnyCPU|netstandard2.0'">
     <DefineConstants>TRACE;RELEASE;NETSTANDARD2_0;__CORE__</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
     <OutputPath>..\..\Bin</OutputPath>
     <DocumentationFile>..\..\Bin\netstandard2.0\NewLife.Core.xml</DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)|$(TargetFramework)' == 'Debug|AnyCPU|net40'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>..\..\Bin\</OutputPath>
     <DefineConstants>TRACE;DEBUG;NET4</DefineConstants>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <OutputPath>..\..\Bin\</OutputPath>
     <!--<AllowUnsafeBlocks>false</AllowUnsafeBlocks>-->
     <DocumentationFile>..\..\Bin\net40\NewLife.Core.xml</DocumentationFile>
     <!--<DebugType>full</DebugType>
@@ -93,8 +97,10 @@
     <ErrorReport>prompt</ErrorReport>-->
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)|$(TargetFramework)' == 'Release|AnyCPU|net40'">
-    <OutputPath>..\..\Bin\</OutputPath>
     <DefineConstants>TRACE;NET4</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <OutputPath>..\..\Bin\</OutputPath>
     <!--<AllowUnsafeBlocks>false</AllowUnsafeBlocks>-->
     <DocumentationFile>..\..\Bin\net40\NewLife.Core.xml</DocumentationFile>
     <!--<Optimize>true</Optimize>
