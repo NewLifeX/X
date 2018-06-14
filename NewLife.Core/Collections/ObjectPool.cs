@@ -231,7 +231,7 @@ namespace NewLife.Collections
             {
                 if (_timer != null) return;
 
-                _timer = new TimerX(Work, null, 5000, 5000) { Async = true };
+                _timer = new TimerX(Work, null, 5000, 5000);
             }
         }
 

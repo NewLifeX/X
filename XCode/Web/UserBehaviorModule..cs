@@ -9,6 +9,7 @@ using System.Web.UI;
 using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Model;
+using NewLife.Threading;
 using NewLife.Web;
 using XCode.Membership;
 #if !NET4
@@ -69,7 +70,7 @@ namespace XCode.Web
             var title = GetTitle(ctx, req);
             var msg = GetMessage(ctx, req, title);
 
-            TaskEx.Run(() =>
+            ThreadPoolX.QueueUserWorkItem(() =>
             {
                 try
                 {

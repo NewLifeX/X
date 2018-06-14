@@ -381,14 +381,7 @@ namespace XCode
                     if (dal.Db.Migration > Migration.ReadOnly || def != this)
                         CheckTable();
                     else
-                        ThreadPool.UnsafeQueueUserWorkItem(s =>
-                        {
-                            try { CheckTable(); }
-                            catch (Exception ex)
-                            {
-                                XTrace.WriteException(ex);
-                            }
-                        }, null);
+                        ThreadPoolX.QueueUserWorkItem(CheckTable);
                 }
 
                 _hasCheckModel = true;

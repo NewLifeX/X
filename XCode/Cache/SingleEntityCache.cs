@@ -279,7 +279,7 @@ namespace XCode.Cache
             item.VisitTime = TimerX.Now;
 
             // 异步更新缓存
-            if (item.Expired) ThreadPool.UnsafeQueueUserWorkItem(UpdateData, item);
+            if (item.Expired) ThreadPoolX.QueueUserWorkItem(UpdateData, item);
 
             return item.Entity;
         }

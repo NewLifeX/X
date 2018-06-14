@@ -68,6 +68,7 @@ namespace Test
             ThreadPool.GetAvailableThreads(out var ths, out var ths2);
             XTrace.WriteLine("({0}, {1}) ({2}, {3}) ({4}, {5})", min, min2, max, max2, ths, ths2);
 
+            ThreadPoolX.Instance.Pool.Log = XTrace.Log;
             var cpu = Environment.ProcessorCount;
             cpu += 5;
             for (var i = 0; i < cpu; i++)
@@ -76,19 +77,36 @@ namespace Test
                 ThreadPoolX.QueueUserWorkItem(() =>
                 {
                     XTrace.WriteLine("Item {0} Start", idx);
-                    Thread.Sleep(5000);
+                    Thread.Sleep(Rand.Next(100, 5000));
                     XTrace.WriteLine("Item {0} End", idx);
                 });
             }
 
-            Thread.Sleep(2000);
+            Thread.Sleep(3000);
             ThreadPool.GetAvailableThreads(out ths, out ths2);
             XTrace.WriteLine("({0}, {1}) ({2}, {3}) ({4}, {5})", min, min2, max, max2, ths, ths2);
 
-            Thread.Sleep(7000);
+            for (var i = 0; i < cpu; i++)
+            {
+                var idx = i;
+                ThreadPoolX.QueueUserWorkItem(() =>
+                {
+                    XTrace.WriteLine("Item {0} Start", idx);
+                    Thread.Sleep(Rand.Next(100, 5000));
+                    XTrace.WriteLine("Item {0} End", idx);
+                });
+            }
+            //Thread.Sleep(7000);
 
-            ThreadPool.GetAvailableThreads(out ths, out ths2);
-            XTrace.WriteLine("({0}, {1}) ({2}, {3}) ({4}, {5})", min, min2, max, max2, ths, ths2);
+            //ThreadPool.GetAvailableThreads(out ths, out ths2);
+            //XTrace.WriteLine("({0}, {1}) ({2}, {3}) ({4}, {5})", min, min2, max, max2, ths, ths2);
+
+            //var p = ThreadPoolX.Instance.Pool;
+            //for (var i = 0; i < 150; i++)
+            //{
+            //    Console.WriteLine("ThreadPoolX FreeCount={0} BusyCount={1}", p.FreeCount, p.BusyCount);
+            //    Thread.Sleep(1000);
+            //}
         }
 
         static void Test2()

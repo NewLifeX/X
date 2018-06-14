@@ -36,11 +36,11 @@ namespace NewLife.Threading
         /// <param name="callback"></param>
         /// <param name="state"></param>
         [DebuggerHidden]
-        public static void QueueUserWorkItem(WaitCallback callback, Object state)
+        public static void QueueUserWorkItem<T>(Action<T> callback, T state)
         {
             if (callback == null) return;
 
-            Instance.QueueWorkItem(callback, state);
+            Instance.QueueWorkItem(() => callback(state));
         }
         #endregion
 
@@ -93,17 +93,6 @@ namespace NewLife.Threading
             var ti = Pool.Get();
             ti.Execute(callback);
         }
-
-        /// <summary>把委托放入线程池执行</summary>
-        /// <param name="callback"></param>
-        /// <param name="state"></param>
-        public void QueueWorkItem(WaitCallback callback, Object state)
-        {
-            if (callback == null) return;
-
-            var ti = Pool.Get();
-            ti.Execute(callback, state);
-        }
         #endregion
     }
 
@@ -147,7 +136,9 @@ namespace NewLife.Threading
         #endregion
 
         #region 方法
-        private void Init()
+        /// <summary>执行委托</summary>
+        /// <param name="callback"></param>
+        public void Execute(Action callback)
         {
             var th = Thread;
             if (th == null)
@@ -163,35 +154,13 @@ namespace NewLife.Threading
                 Active = true;
                 th.Start();
             }
-        }
-
-        /// <summary>执行委托</summary>
-        /// <param name="callback"></param>
-        public void Execute(Action callback)
-        {
-            Init();
 
             _callback = callback;
 
             waitForTimer.Set();
         }
 
-        /// <summary>执行委托</summary>
-        /// <param name="callback"></param>
-        /// <param name="state"></param>
-        public void Execute(WaitCallback callback, Object state)
-        {
-            Init();
-
-            _callback2 = callback;
-            _state = state;
-
-            waitForTimer.Set();
-        }
-
         private Action _callback;
-        private WaitCallback _callback2;
-        private Object _state;
         private AutoResetEvent waitForTimer;
         private void Work()
         {
@@ -199,10 +168,7 @@ namespace NewLife.Threading
             {
                 try
                 {
-                    if (_callback != null)
-                        _callback();
-                    else if (_callback2 != null)
-                        _callback2(_state);
+                    _callback?.Invoke();
                 }
                 catch (ThreadAbortException) { break; }
                 catch (ThreadInterruptedException) { break; }
@@ -212,12 +178,11 @@ namespace NewLife.Threading
                 }
 
                 _callback = null;
-                _callback2 = null;
-                _state = null;
 
                 // 回到线程池里
                 Host.Pool.Put(this);
 
+                waitForTimer.Reset();
                 waitForTimer.WaitOne();
             }
         }

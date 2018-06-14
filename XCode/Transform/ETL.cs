@@ -261,21 +261,17 @@ namespace XCode.Transform
                 cur = _currentTask;
             }
 
-            ThreadPool.UnsafeQueueUserWorkItem(s =>
+            ThreadPoolX.QueueUserWorkItem(s =>
             {
                 try
                 {
-                    ProcessList(ctx);
-                }
-                catch (Exception ex)
-                {
-                    XTrace.WriteException(ex);
+                    ProcessList(s);
                 }
                 finally
                 {
                     Interlocked.Decrement(ref _currentTask);
                 }
-            }, null);
+            }, ctx);
         }
 
         /// <summary>批量处理数据列表，可重载打开事务保护</summary>
