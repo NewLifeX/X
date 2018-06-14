@@ -32,25 +32,34 @@ namespace XCode.DataAccessLayer
         private DAL(String connName)
         {
             _ConnName = connName;
+        }
 
-            var css = ConnStrs;
-            //if (!css.ContainsKey(connName)) throw new XCodeException("请在使用数据库前设置[" + connName + "]连接字符串");
-            if (!css.ContainsKey(connName)) OnResolve?.Invoke(this, new ResolveEventArgs(connName));
-            if (!css.ContainsKey(connName) && _defs.TryGetValue(connName, out var kv))
+        private Boolean _inited;
+        private void Init()
+        {
+            if (_inited) return;
+            lock (this)
             {
-                AddConnStr(connName, kv.Item1, null, kv.Item2);
-            }
-            if (!css.ContainsKey(connName))
-            {
-                var connstr = "Data Source=" + Setting.Current.SQLiteDbPath.CombinePath(connName + ".db;Migration=On");
-                WriteLog("自动为[{0}]设置SQLite连接字符串：{1}", connName, connstr);
-                AddConnStr(connName, connstr, null, "SQLite");
-            }
+                if (_inited) return;
 
-            _ConnStr = css[connName];
-            if (_ConnStr.IsNullOrEmpty()) throw new XCodeException("请在使用数据库前设置[" + connName + "]连接字符串");
+                var connName = _ConnName;
+                var css = ConnStrs;
+                //if (!css.ContainsKey(connName)) throw new XCodeException("请在使用数据库前设置[" + connName + "]连接字符串");
+                if (!css.ContainsKey(connName)) OnResolve?.Invoke(this, new ResolveEventArgs(connName));
+                if (!css.ContainsKey(connName) && _defs.TryGetValue(connName, out var kv))
+                {
+                    AddConnStr(connName, kv.Item1, null, kv.Item2);
+                }
+                if (!css.ContainsKey(connName))
+                {
+                    var connstr = "Data Source=" + Setting.Current.SQLiteDbPath.CombinePath(connName + ".db;Migration=On");
+                    WriteLog("自动为[{0}]设置SQLite连接字符串：{1}", connName, connstr);
+                    AddConnStr(connName, connstr, null, "SQLite");
+                }
 
-            //Queue = new EntityQueue(this);
+                _ConnStr = css[connName];
+                if (_ConnStr.IsNullOrEmpty()) throw new XCodeException("请在使用数据库前设置[" + connName + "]连接字符串");
+            }
         }
         #endregion
 
@@ -64,15 +73,21 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(connName)) throw new ArgumentNullException(nameof(connName));
 
             // 如果需要修改一个DAL的连接字符串，不应该修改这里，而是修改DAL实例的ConnStr属性
-            if (_dals.TryGetValue(connName, out var dal)) return dal;
-            lock (_dals)
+            if (!_dals.TryGetValue(connName, out var dal))
             {
-                if (_dals.TryGetValue(connName, out dal)) return dal;
-
-                dal = new DAL(connName);
-                // 不用connName，因为可能在创建过程中自动识别了ConnName
-                _dals.Add(dal.ConnName, dal);
+                lock (_dals)
+                {
+                    if (!_dals.TryGetValue(connName, out dal))
+                    {
+                        dal = new DAL(connName);
+                        // 不用connName，因为可能在创建过程中自动识别了ConnName
+                        _dals.Add(dal.ConnName, dal);
+                    }
+                }
             }
+
+            // 创建完成对象后，初始化时单独锁这个对象，避免整体加锁
+            dal.Init();
 
             return dal;
         }
