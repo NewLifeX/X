@@ -173,7 +173,7 @@ namespace NewLife.Collections
             // 从繁忙队列找到并移除缓存项
             if (!_busy.TryRemove(value, out var pi))
             {
-                WriteLog("Release Error");
+                WriteLog("Put Error");
 
                 return false;
             }
@@ -183,7 +183,7 @@ namespace NewLife.Collections
             var min = Min;
 
             // 如果空闲数不足最小值，则返回到基础空闲集合
-            if (_FreeCount < min)
+            if (_FreeCount < min || _free.Count < min)
                 _free.Push(pi);
             else
                 _free2.Enqueue(pi);
