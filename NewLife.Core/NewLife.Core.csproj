@@ -5,7 +5,7 @@
     <!--Nuget包ID-->
     <PackageId>NewLife.Core</PackageId>
     <!--Nuget包版本-->
-    <PackageVersion>7.2.2018.0609</PackageVersion>
+    <PackageVersion>7.3.2018.0614</PackageVersion>
     <Authors>新生命开发团队</Authors>
     <!--Nuget包名称-->
     <Title>组件核心库</Title>
@@ -27,9 +27,9 @@
     <Trademark>四叶草</Trademark>
     <!--nuget包设置end-->
     <!--文件版本-->
-    <FileVersion>7.2.2018.0609</FileVersion>
+    <FileVersion>7.3.2018.0614</FileVersion>
     <!--内部版本-->
-    <AssemblyVersion>7.2.*</AssemblyVersion>
+    <AssemblyVersion>7.3.*</AssemblyVersion>
     <!--文件名-->
     <AssemblyName>NewLife.Core</AssemblyName>
     <!--文件显示名-->
