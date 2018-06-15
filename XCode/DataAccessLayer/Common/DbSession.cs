@@ -326,10 +326,10 @@ namespace XCode.DataAccessLayer
         /// <param name="sql">SQL语句</param>
         /// <param name="ps">命令参数</param>
         /// <returns></returns>
-        public virtual DbSet Query(String sql, IDictionary<String, Object> ps)
+        public virtual DbSet Query(String sql, IDataParameter[] ps)
         {
-            var dps = ps == null ? null : Database.CreateParameters(ps);
-            using (var cmd = OnCreateCommand(sql, CommandType.Text, dps))
+            //var dps = ps == null ? null : Database.CreateParameters(ps);
+            using (var cmd = OnCreateCommand(sql, CommandType.Text, ps))
             {
                 Transaction?.Check(cmd, false);
 
@@ -366,47 +366,47 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        /// <summary>执行SQL查询，返回记录集</summary>
-        /// <param name="sql">SQL语句</param>
-        /// <param name="type">命令类型，默认SQL文本</param>
-        /// <param name="ps">命令参数</param>
-        /// <param name="convert">转换器</param>
-        /// <returns>记录集</returns>
-        public virtual T Query<T>(String sql, CommandType type, IDataParameter[] ps, Func<IDataReader, T> convert)
-        {
-            using (var cmd = OnCreateCommand(sql, type, ps))
-            {
-                Transaction?.Check(cmd, false);
+        ///// <summary>执行SQL查询，返回记录集</summary>
+        ///// <param name="sql">SQL语句</param>
+        ///// <param name="type">命令类型，默认SQL文本</param>
+        ///// <param name="ps">命令参数</param>
+        ///// <param name="convert">转换器</param>
+        ///// <returns>记录集</returns>
+        //public virtual T Query<T>(String sql, CommandType type, IDataParameter[] ps, Func<IDataReader, T> convert)
+        //{
+        //    using (var cmd = OnCreateCommand(sql, type, ps))
+        //    {
+        //        Transaction?.Check(cmd, false);
 
-                QueryTimes++;
-                WriteSQL(cmd);
+        //        QueryTimes++;
+        //        WriteSQL(cmd);
 
-                var conn = Database.Pool.Get();
-                try
-                {
-                    //if (!Opened) Open();
-                    if (cmd.Connection == null) cmd.Connection = conn;
+        //        var conn = Database.Pool.Get();
+        //        try
+        //        {
+        //            //if (!Opened) Open();
+        //            if (cmd.Connection == null) cmd.Connection = conn;
 
-                    BeginTrace();
-                    using (var dr = cmd.ExecuteReader())
-                    {
-                        return convert(dr);
-                    }
-                }
-                catch (DbException ex)
-                {
-                    // 数据库异常最好销毁连接
-                    cmd.Connection.TryDispose();
+        //            BeginTrace();
+        //            using (var dr = cmd.ExecuteReader())
+        //            {
+        //                return convert(dr);
+        //            }
+        //        }
+        //        catch (DbException ex)
+        //        {
+        //            // 数据库异常最好销毁连接
+        //            cmd.Connection.TryDispose();
 
-                    throw OnException(ex, cmd);
-                }
-                finally
-                {
-                    Database.Pool.Put(conn);
-                    EndTrace(cmd);
-                }
-            }
-        }
+        //            throw OnException(ex, cmd);
+        //        }
+        //        finally
+        //        {
+        //            Database.Pool.Put(conn);
+        //            EndTrace(cmd);
+        //        }
+        //    }
+        //}
 
         private static Regex reg_QueryCount = new Regex(@"^\s*select\s+\*\s+from\s+([\w\W]+)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         /// <summary>执行SQL查询，返回总记录数</summary>

@@ -537,11 +537,11 @@ namespace XCode
                     Table = FormatedTableName,
                     OrderBy = Table.Identity.Desc()
                 };
-                //var ds = Dal.Select(builder, 0, 1);
-                //if (ds.Tables[0].Rows.Count > 0)
-                //    count = Convert.ToInt64(ds.Tables[0].Rows[0][Table.Identity.ColumnName]);
-                var rs = Dal.Query(builder, 0, 0, dr => dr.Read() ? dr[0].ToInt() : -1);
-                if (rs > 0) count = rs;
+                var ds = Dal.Query(builder, 0, 1);
+                if (ds.Columns.Length > 0 && ds.Rows.Count > 0)
+                    count = Convert.ToInt64(ds.Rows[0][0]);
+                //var rs = Dal.Query(builder, 0, 0, dr => dr.Read() ? dr[0].ToInt() : -1);
+                //if (rs > 0) count = rs;
             }
 
             // 100w数据时，没有预热Select Count需要3000ms，预热后需要500ms

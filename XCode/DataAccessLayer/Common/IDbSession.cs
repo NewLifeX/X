@@ -100,15 +100,15 @@ namespace XCode.DataAccessLayer
         /// <param name="sql">SQL语句</param>
         /// <param name="ps">命令参数</param>
         /// <returns></returns>
-        DbSet Query(String sql, IDictionary<String, Object> ps);
+        DbSet Query(String sql, IDataParameter[] ps);
 
-        /// <summary>执行SQL查询，返回记录集</summary>
-        /// <param name="sql">SQL语句</param>
-        /// <param name="type">命令类型，默认SQL文本</param>
-        /// <param name="ps">命令参数</param>
-        /// <param name="convert">转换器</param>
-        /// <returns>记录集</returns>
-        T Query<T>(String sql, CommandType type, IDataParameter[] ps, Func<IDataReader, T> convert);
+        ///// <summary>执行SQL查询，返回记录集</summary>
+        ///// <param name="sql">SQL语句</param>
+        ///// <param name="type">命令类型，默认SQL文本</param>
+        ///// <param name="ps">命令参数</param>
+        ///// <param name="convert">转换器</param>
+        ///// <returns>记录集</returns>
+        //T Query<T>(String sql, CommandType type, IDataParameter[] ps, Func<IDataReader, T> convert);
 
         /// <summary>执行SQL查询，返回总记录数</summary>
         /// <param name="sql">SQL语句</param>

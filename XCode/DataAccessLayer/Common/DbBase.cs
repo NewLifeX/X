@@ -755,7 +755,7 @@ namespace XCode.DataAccessLayer
                     // 参数可能是数组
                     if (type != null && type != typeof(Byte[]) && type.IsArray) type = type.GetElementTypeEx();
                 }
-                else if (value != null)
+                else
                     value = value.ChangeType(type);
 
                 // 写入数据类型

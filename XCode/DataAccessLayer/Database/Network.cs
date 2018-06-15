@@ -160,11 +160,12 @@ namespace XCode.DataAccessLayer
         /// <param name="sql">SQL语句</param>
         /// <param name="ps">命令参数</param>
         /// <returns></returns>
-        public override DbSet Query(String sql, IDictionary<String, Object> ps)
+        public override DbSet Query(String sql, IDataParameter[] ps)
         {
             var client = (Database as Network).GetClient();
 
-            return client.QueryAsync(sql, ps).Result;
+            var dps = ps?.ToDictionary(e => e.ParameterName, e => e.Value);
+            return client.QueryAsync(sql, dps).Result;
         }
 
         /// <summary>执行SQL查询，返回总记录数</summary>
@@ -172,7 +173,7 @@ namespace XCode.DataAccessLayer
         /// <returns>总记录数</returns>
         public override Int64 QueryCount(SelectBuilder builder)
         {
-            var ds = Query(builder.SelectCount().ToString(), builder.Parameters.ToDictionary(e => e.ParameterName, e => e.Value));
+            var ds = Query(builder.SelectCount().ToString(), builder.Parameters.ToArray());
             if (ds == null || ds.Rows == null || ds.Rows.Count == 0) return -1;
 
             return ds.Rows[0][0].ToLong();

@@ -47,15 +47,8 @@ namespace XCode.Service
             if (!Decode(pk, out var sql, out var ps)) return null;
 
             var dal = Dal;
-            var dps = ps == null ? null : dal.Db.CreateParameters(ps);
 
-            var rs = dal.Query(sql, dr =>
-            {
-                var ds = new DbSet();
-                ds.Read(dr);
-
-                return ds;
-            }, dps);
+            var rs = dal.Query(sql, ps);
 
             return rs?.ToPacket();
         }
