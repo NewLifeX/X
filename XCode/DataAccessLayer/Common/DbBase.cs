@@ -755,9 +755,9 @@ namespace XCode.DataAccessLayer
                     // 参数可能是数组
                     if (type != null && type != typeof(Byte[]) && type.IsArray) type = type.GetElementTypeEx();
                 }
+                else if (value != null)
+                    value = value.ChangeType(type);
 
-                //if (dp.DbType == DbType.AnsiString)
-                //{
                 // 写入数据类型
                 switch (type.GetTypeCode())
                 {
@@ -798,7 +798,6 @@ namespace XCode.DataAccessLayer
                         break;
                     default:
                         break;
-                        //}
                 }
                 dp.Value = value;
             }
