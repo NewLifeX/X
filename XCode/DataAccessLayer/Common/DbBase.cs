@@ -100,7 +100,7 @@ namespace XCode.DataAccessLayer
         /// <summary>连接名</summary>
         public String ConnName { get; set; }
 
-        private String _ConnectionString;
+        protected internal String _ConnectionString;
         /// <summary>链接字符串</summary>
         public virtual String ConnectionString
         {
@@ -213,19 +213,14 @@ namespace XCode.DataAccessLayer
 
                 _ServerVersion = String.Empty;
 
-                //var session = CreateSession();
-                //if (!session.Opened) session.Open();
-                //try
-                //{
-                //    ver = _ServerVersion = session.Conn.ServerVersion;
-
-                //    return ver;
-                //}
-                //finally { session.AutoClose(); }
-
-                using (var pi = Pool.AcquireItem())
+                var conn = Pool.Get();
+                try
                 {
-                    return _ServerVersion = pi.Value.ServerVersion;
+                    return _ServerVersion = conn.ServerVersion;
+                }
+                finally
+                {
+                    Pool.Put(conn);
                 }
             }
         }
@@ -760,9 +755,9 @@ namespace XCode.DataAccessLayer
                     // 参数可能是数组
                     if (type != null && type != typeof(Byte[]) && type.IsArray) type = type.GetElementTypeEx();
                 }
+                else
+                    value = value.ChangeType(type);
 
-                //if (dp.DbType == DbType.AnsiString)
-                //{
                 // 写入数据类型
                 switch (type.GetTypeCode())
                 {
@@ -803,7 +798,6 @@ namespace XCode.DataAccessLayer
                         break;
                     default:
                         break;
-                        //}
                 }
                 dp.Value = value;
             }
@@ -818,7 +812,7 @@ namespace XCode.DataAccessLayer
         /// <summary>创建参数数组</summary>
         /// <param name="ps"></param>
         /// <returns></returns>
-        public IDataParameter[] CreateParameters(IDictionary<String, Object> ps) => ps.Select(e => CreateParameter(e.Key, e.Value)).ToArray();
+        public virtual IDataParameter[] CreateParameters(IDictionary<String, Object> ps) => ps.Select(e => CreateParameter(e.Key, e.Value)).ToArray();
 
         /// <summary>获取 或 设置 自动关闭。每次使用完数据库连接后，是否自动关闭连接，高频操作时设为false可提升性能。默认true</summary>
         public Boolean AutoClose { get; set; } = true;

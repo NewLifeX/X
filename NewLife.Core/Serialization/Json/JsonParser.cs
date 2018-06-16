@@ -53,7 +53,7 @@ namespace NewLife.Serialization
 
         #region 属性
         readonly String _json;
-        readonly StringBuilder _builder = new StringBuilder();
+        //readonly StringBuilder _builder = new StringBuilder();
         Token _Ahead = Token.None;
         Int32 index;
         #endregion
@@ -171,7 +171,8 @@ namespace NewLife.Serialization
         {
             SkipToken(); // "
 
-            _builder.Length = 0;
+            //_builder.Length = 0;
+            var sb = Pool.StringBuilder.Get();
 
             var runIndex = -1;
 
@@ -183,12 +184,11 @@ namespace NewLife.Serialization
                 {
                     if (runIndex != -1)
                     {
-                        if (_builder.Length == 0)
-                            return _json.Substring(runIndex, index - runIndex - 1);
+                        if (sb.Length == 0) return _json.Substring(runIndex, index - runIndex - 1);
 
-                        _builder.Append(_json, runIndex, index - runIndex - 1);
+                        sb.Append(_json, runIndex, index - runIndex - 1);
                     }
-                    return _builder.ToString();
+                    return sb.Put(true);
                 }
                 else if (c == ':')
                 {
@@ -197,12 +197,11 @@ namespace NewLife.Serialization
 
                     if (runIndex != -1)
                     {
-                        if (_builder.Length == 0)
-                            return _json.Substring(runIndex, index + 1 - runIndex - 1);
+                        if (sb.Length == 0) return _json.Substring(runIndex, index + 1 - runIndex - 1);
 
-                        _builder.Append(_json, runIndex, index + 1 - runIndex - 1);
+                        sb.Append(_json, runIndex, index + 1 - runIndex - 1);
                     }
-                    return _builder.ToString();
+                    return sb.Put(true);
                 }
 
                 if (c != '\\')
@@ -216,44 +215,20 @@ namespace NewLife.Serialization
 
                 if (runIndex != -1)
                 {
-                    _builder.Append(_json, runIndex, index - runIndex - 1);
+                    sb.Append(_json, runIndex, index - runIndex - 1);
                     runIndex = -1;
                 }
 
                 switch (_json[index++])
                 {
-                    case '"':
-                        _builder.Append('"');
-                        break;
-
-                    case '\\':
-                        _builder.Append('\\');
-                        break;
-
-                    case '/':
-                        _builder.Append('/');
-                        break;
-
-                    case 'b':
-                        _builder.Append('\b');
-                        break;
-
-                    case 'f':
-                        _builder.Append('\f');
-                        break;
-
-                    case 'n':
-                        _builder.Append('\n');
-                        break;
-
-                    case 'r':
-                        _builder.Append('\r');
-                        break;
-
-                    case 't':
-                        _builder.Append('\t');
-                        break;
-
+                    case '"': sb.Append('"'); break;
+                    case '\\': sb.Append('\\'); break;
+                    case '/': sb.Append('/'); break;
+                    case 'b': sb.Append('\b'); break;
+                    case 'f': sb.Append('\f'); break;
+                    case 'n': sb.Append('\n'); break;
+                    case 'r': sb.Append('\r'); break;
+                    case 't': sb.Append('\t'); break;
                     case 'u':
                         {
                             var remainingLength = _json.Length - index;
@@ -261,7 +236,7 @@ namespace NewLife.Serialization
 
                             // 分析32位十六进制数字
                             var codePoint = ParseUnicode(_json[index], _json[index + 1], _json[index + 2], _json[index + 3]);
-                            _builder.Append((Char)codePoint);
+                            sb.Append((Char)codePoint);
 
                             index += 4;
                         }
@@ -276,7 +251,8 @@ namespace NewLife.Serialization
         {
             SkipToken(); // "
 
-            _builder.Length = 0;
+            //_builder.Length = 0;
+            var sb = Pool.StringBuilder.Get();
 
             var runIndex = -1;
 
@@ -288,12 +264,11 @@ namespace NewLife.Serialization
                 {
                     if (runIndex != -1)
                     {
-                        if (_builder.Length == 0)
-                            return _json.Substring(runIndex, index - runIndex - 1);
+                        if (sb.Length == 0) return _json.Substring(runIndex, index - runIndex - 1);
 
-                        _builder.Append(_json, runIndex, index - runIndex - 1);
+                        sb.Append(_json, runIndex, index - runIndex - 1);
                     }
-                    return _builder.ToString();
+                    return sb.Put(true);
                 }
 
                 if (c != '\\')
@@ -307,44 +282,20 @@ namespace NewLife.Serialization
 
                 if (runIndex != -1)
                 {
-                    _builder.Append(_json, runIndex, index - runIndex - 1);
+                    sb.Append(_json, runIndex, index - runIndex - 1);
                     runIndex = -1;
                 }
 
                 switch (_json[index++])
                 {
-                    case '"':
-                        _builder.Append('"');
-                        break;
-
-                    case '\\':
-                        _builder.Append('\\');
-                        break;
-
-                    case '/':
-                        _builder.Append('/');
-                        break;
-
-                    case 'b':
-                        _builder.Append('\b');
-                        break;
-
-                    case 'f':
-                        _builder.Append('\f');
-                        break;
-
-                    case 'n':
-                        _builder.Append('\n');
-                        break;
-
-                    case 'r':
-                        _builder.Append('\r');
-                        break;
-
-                    case 't':
-                        _builder.Append('\t');
-                        break;
-
+                    case '"': sb.Append('"'); break;
+                    case '\\': sb.Append('\\'); break;
+                    case '/': sb.Append('/'); break;
+                    case 'b': sb.Append('\b'); break;
+                    case 'f': sb.Append('\f'); break;
+                    case 'n': sb.Append('\n'); break;
+                    case 'r': sb.Append('\r'); break;
+                    case 't': sb.Append('\t'); break;
                     case 'u':
                         {
                             var remainingLength = _json.Length - index;
@@ -352,7 +303,7 @@ namespace NewLife.Serialization
 
                             // 分析32位十六进制数字
                             var codePoint = ParseUnicode(_json[index], _json[index + 1], _json[index + 2], _json[index + 3]);
-                            _builder.Append((Char)codePoint);
+                            sb.Append((Char)codePoint);
 
                             index += 4;
                         }

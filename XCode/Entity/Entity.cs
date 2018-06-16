@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Reflection;
@@ -90,6 +91,19 @@ namespace XCode
             if (dt == null) return new List<TEntity>();
 
             var list = DreAccessor.LoadData<TEntity>(dt);
+            OnLoadData(list);
+
+            return list;
+        }
+
+        /// <summary>加载数据表。无数据时返回空集合而不是null。</summary>
+        /// <param name="ds">数据表</param>
+        /// <returns>实体数组</returns>
+        public static IList<TEntity> LoadData(DbSet ds)
+        {
+            if (ds == null) return new List<TEntity>();
+
+            var list = DreAccessor.LoadData<TEntity>(ds);
             OnLoadData(list);
 
             return list;
@@ -324,7 +338,7 @@ namespace XCode
         {
             if (Exist(isNew, names))
             {
-                var sb = new StringBuilder();
+                var sb = Pool.StringBuilder.Get();
                 String name = null;
                 for (var i = 0; i < names.Length; i++)
                 {
@@ -341,7 +355,7 @@ namespace XCode
                 if (String.IsNullOrEmpty(name)) name = typeof(TEntity).Name;
                 sb.AppendFormat(" 的{0}已存在！", name);
 
-                throw new ArgumentOutOfRangeException(String.Join(",", names), this[names[0]], sb.ToString());
+                throw new ArgumentOutOfRangeException(String.Join(",", names), this[names[0]], sb.Put(true));
             }
         }
 
@@ -474,8 +488,8 @@ namespace XCode
             // 提取参数
             builder = FixParam(builder, ps);
 
-            //var list = LoadData(session.Query(builder, 0, 0));
-            var list = session.Query(builder, 0, 0, LoadData);
+            var list = LoadData(session.Query(builder, 0, 0));
+            //var list = session.Query(builder, 0, 0, LoadData);
             if (list == null || list.Count < 1) return null;
 
             if (list.Count > 1 && DAL.Debug)
@@ -630,8 +644,8 @@ namespace XCode
             var session = Meta.Session;
 
             var builder = CreateBuilder(where, order, selects, startRowIndex, maximumRows);
-            //return LoadData(session.Query(builder, startRowIndex, maximumRows));
-            return session.Query(builder, startRowIndex, maximumRows, LoadData);
+            return LoadData(session.Query(builder, startRowIndex, maximumRows));
+            //return session.Query(builder, startRowIndex, maximumRows, LoadData);
         }
 
         /// <summary>最标准的查询数据。没有数据时返回空集合而不是null</summary>
@@ -681,7 +695,7 @@ namespace XCode
                             order2 = order2.Replace(match.Value, match.Value.Replace(",", "★"));
                         }
                         var ss = order2.Split(',');
-                        var sb = new StringBuilder();
+                        var sb = Pool.StringBuilder.Get();
                         foreach (var item in ss)
                         {
                             var fn = item;
@@ -713,7 +727,7 @@ namespace XCode
                             sb.AppendFormat("{0} {1}", fn, od);
                         }
 
-                        order2 = sb.ToString().Replace("★", ",");
+                        order2 = sb.Put(true).Replace("★", ",");
                     }
                     #endregion
 
@@ -727,8 +741,8 @@ namespace XCode
                         var start = (Int32)(count - (startRowIndex + maximumRows));
 
                         var builder2 = CreateBuilder(where, order2, selects, start, max);
-                        //var list = LoadData(session.Query(builder2, start, max));
-                        var list = session.Query(builder2, start, max, LoadData);
+                        var list = LoadData(session.Query(builder2, start, max));
+                        //var list = session.Query(builder2, start, max, LoadData);
                         if (list == null || list.Count < 1) return list;
                         // 因为这样取得的数据是倒过来的，所以这里需要再倒一次
                         list.Reverse();
@@ -739,7 +753,8 @@ namespace XCode
             #endregion
 
             var builder = CreateBuilder(where, order, selects, startRowIndex, maximumRows);
-            return session.Query(builder, startRowIndex, maximumRows, LoadData);
+            return LoadData(session.Query(builder, startRowIndex, maximumRows));
+            //return session.Query(builder, startRowIndex, maximumRows, LoadData);
         }
 
         /// <summary>同时查询满足条件的记录集和记录总数。没有数据时返回空集合而不是null</summary>
@@ -772,7 +787,7 @@ namespace XCode
             if (!page.Sort.IsNullOrEmpty())
             {
                 var st = Meta.Table.FindByName(page.Sort);
-                page.Sort = st?.ColumnName;
+                page.Sort = st?.FormatedName;
                 orderby = page.OrderBy;
 
                 //!!! 恢复排序字段，否则属性名和字段名不一致时前台无法降序
@@ -1329,16 +1344,18 @@ namespace XCode
                     var columns = table.GetColumns(di.Columns);
 
                     // [v1,v2,...vn]
-                    var sb = new StringBuilder();
+                    var sb = Pool.StringBuilder.Get();
                     foreach (var dc in columns)
                     {
                         if (sb.Length > 0) sb.Append(",");
                         if (Meta.FieldNames.Contains(dc.Name)) sb.Append(this[dc.Name]);
                     }
+
+                    var vs = sb.Put(true);
                     if (columns.Length > 1)
-                        return String.Format("[{0}]", sb.ToString());
+                        return String.Format("[{0}]", vs);
                     else
-                        return sb.ToString();
+                        return vs;
                 }
             }
 

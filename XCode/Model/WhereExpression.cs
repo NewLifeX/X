@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using NewLife.Collections;
 
 namespace XCode
 {
@@ -67,7 +68,7 @@ namespace XCode
             GetString(builder, ps, Left);
 
             // 右侧表达式
-            var sb = new StringBuilder();
+            var sb = Pool.StringBuilder.Get();
             GetString(sb, ps, Right);
 
             // 中间运算符
@@ -82,7 +83,7 @@ namespace XCode
                 }
             }
 
-            builder.Append(sb);
+            builder.Append(sb.Put(true));
         }
 
         private void GetString(StringBuilder builder, IDictionary<String, Object> ps, Expression exp)

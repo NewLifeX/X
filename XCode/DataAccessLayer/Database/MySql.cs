@@ -24,7 +24,11 @@ namespace XCode.DataAccessLayer
                 {
                     lock (typeof(MySql))
                     {
-                        if (_Factory == null) _Factory = GetProviderFactory("MySql.Data.dll", "MySql.Data.MySqlClient.MySqlClientFactory");
+                        //_Factory = GetProviderFactory("NewLife.MySql.dll", "NewLife.MySql.MySqlClientFactory") ??
+                        //           GetProviderFactory("MySql.Data.dll", "MySql.Data.MySqlClient.MySqlClientFactory");
+                        // MewLife.MySql 在开发过程中，数据驱动下载站点没有它的包，暂时不支持下载
+                        _Factory = GetProviderFactory(null, "NewLife.MySql.MySqlClientFactory") ??
+                                  GetProviderFactory("MySql.Data.dll", "MySql.Data.MySqlClient.MySqlClientFactory");
                     }
                 }
 

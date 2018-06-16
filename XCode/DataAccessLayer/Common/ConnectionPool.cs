@@ -13,7 +13,7 @@ namespace XCode.DataAccessLayer
     /// 3，空闲时间10s
     /// 4，完全空闲时间60s
     /// </remarks>
-    public class ConnectionPool : Pool<DbConnection>
+    public class ConnectionPool : ObjectPool<DbConnection>
     {
         #region 属性
         /// <summary>工厂</summary>
@@ -38,7 +38,7 @@ namespace XCode.DataAccessLayer
 
         /// <summary>创建时连接数据库</summary>
         /// <returns></returns>
-        protected override DbConnection Create()
+        protected override DbConnection OnCreate()
         {
             var conn = Factory.CreateConnection();
             conn.ConnectionString = ConnectionString;
@@ -57,28 +57,31 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>申请时检查是否打开</summary>
-        /// <param name="value"></param>
-        protected override Boolean OnAcquire(DbConnection value)
+        public override DbConnection Get()
         {
-            try
+            while (true)
             {
-                if (value.State == ConnectionState.Closed) value.Open();
+                try
+                {
+                    var value = base.Get();
+                    if (value.State == ConnectionState.Closed) value.Open();
 
-                return true;
+                    return value;
+                }
+                catch { }
             }
-            catch { return false; }
         }
 
         /// <summary>释放时，返回是否有效。无效对象将会被抛弃</summary>
         /// <param name="value"></param>
-        protected override Boolean OnRelease(DbConnection value)
+        public override Boolean Put(DbConnection value)
         {
             try
             {
                 //// 如果连接字符串变了，则关闭
                 //if (value.ConnectionString != ConnectionString) value.Close();
 
-                return value.State == ConnectionState.Open;
+                return value.State == ConnectionState.Open && base.Put(value);
             }
             catch { return false; }
         }

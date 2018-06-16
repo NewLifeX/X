@@ -21,7 +21,7 @@ namespace NewLife.Remoting
         public IApiHandler Handler { get; set; }
 
         /// <summary>当前服务器所有会话</summary>
-        public IApiSession[] AllSessions => Sessions.Values.ToArray().Where(e => e is IApiSession).Cast<IApiSession>().ToArray();
+        public IApiSession[] AllSessions => Sessions.ToValueArray().Where(e => e is IApiSession).Cast<IApiSession>().ToArray();
 
         /// <summary>调用超时时间。默认30_000ms</summary>
         public Int32 Timeout { get; set; } = 30_000;
@@ -75,6 +75,8 @@ namespace NewLife.Remoting
             base.Start();
 
             _Host = Host.Host;
+
+            if (_Host is ApiHost host) host.OnNewSession(this, null);
         }
 
         /// <summary>查找Api动作</summary>

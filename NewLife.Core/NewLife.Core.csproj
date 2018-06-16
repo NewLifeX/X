@@ -1,51 +1,140 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{5813C22E-EEB3-4DEE-A45C-BB218041193A}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NewLife</RootNamespace>
+    <TargetFrameworks>net40;net45;netstandard2.0</TargetFrameworks>
+    <!--nuget包设置start-->
+    <!--Nuget包ID-->
+    <PackageId>NewLife.Core</PackageId>
+    <!--Nuget包版本-->
+    <PackageVersion>7.3.2018.0614</PackageVersion>
+    <Authors>新生命开发团队</Authors>
+    <!--Nuget包名称-->
+    <Title>组件核心库</Title>
+    <Description>日志、网络、RPC、序列化、缓存、WindowsService、日常开发中的各种基础功能</Description>
+    <Copyright>©2002-2018 新生命开发团队 http://www.NewLifeX.com</Copyright>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageLicenseUrl>http://www.newlifex.com/</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/NewLifeX</PackageProjectUrl>
+    <PackageIconUrl>http://www.NewLifeX.com/favicon.ico</PackageIconUrl>
+    <PackageTags>新生命团队;X组件;Newlife;NewLife.Core</PackageTags>
+    <PackageReleaseNotes>https://github.com/NewLifeX</PackageReleaseNotes>
+    <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <!--包含符号-->
+    <IncludeSymbols>true</IncludeSymbols>
+    <!--包含源码-->
+    <IncludeSource>true</IncludeSource>
+    <Company>新生命开发团队</Company>
+    <Trademark>四叶草</Trademark>
+    <!--nuget包设置end-->
+    <!--文件版本-->
+    <FileVersion>7.3.2018.0614</FileVersion>
+    <!--内部版本-->
+    <AssemblyVersion>7.3.*</AssemblyVersion>
+    <!--文件名-->
     <AssemblyName>NewLife.Core</AssemblyName>
-    <FileAlignment>512</FileAlignment>
-    <BuildPackage>true</BuildPackage>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <DebugSymbols>true</DebugSymbols>
+    <!--文件显示名-->
+    <AssemblyTitle>组件核心库</AssemblyTitle>
+    <RootNamespace>NewLife</RootNamespace>
+    <!--是否确定版本，false以支持*-->
+    <Deterministic>false</Deterministic>
+    <!--构建的时候是否生成包-->
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <OutputPath>..\..\Bin\</OutputPath>
     <DefineConstants>TRACE;DEBUG</DefineConstants>
-    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
-    <DocumentationFile>..\..\Bin\NewLife.Core.XML</DocumentationFile>
-    <DebugType>full</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+ 
+    <!-- https://docs.microsoft.com/zh-cn/nuget/reference/msbuild-targets#pack-target -->
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+
+  <!--项目属性start-->
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)|$(TargetFramework)' == 'Debug|AnyCPU|net45'">
+    <!--<PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">-->
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
     <OutputPath>..\..\Bin\</OutputPath>
+    <!--<AllowUnsafeBlocks>false</AllowUnsafeBlocks>-->
+    <DocumentationFile>..\..\Bin\net45\NewLife.Core.xml</DocumentationFile>
+    <!--<PlatformTarget>AnyCPU</PlatformTarget>-->
+    <!--<ErrorReport>prompt</ErrorReport>-->
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)|$(TargetFramework)' == 'Release|AnyCPU|net45'">
+    <!--<PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">-->
     <DefineConstants>TRACE</DefineConstants>
-    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
-    <DocumentationFile>..\..\Bin\NewLife.Core.XML</DocumentationFile>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <OutputPath>..\..\Bin\</OutputPath>
+    <!--<AllowUnsafeBlocks>false</AllowUnsafeBlocks>-->
+    <DocumentationFile>..\..\Bin\net45\NewLife.Core.xml</DocumentationFile>
+    <!--<PlatformTarget>AnyCPU</PlatformTarget>-->
+    <!--<ErrorReport>prompt</ErrorReport>-->
+    <!--<TargetFrameworkVersion>v4.5</TargetFrameworkVersion>-->
   </PropertyGroup>
-  <ItemGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)|$(TargetFramework)'=='Debug|AnyCPU|netstandard2.0'">
+    <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0;__CORE__</DefineConstants>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <OutputPath>..\..\Bin</OutputPath>
+    <DocumentationFile>..\..\Bin\netstandard2.0\NewLife.Core.xml</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)|$(TargetFramework)'=='Release|AnyCPU|netstandard2.0'">
+    <DefineConstants>TRACE;RELEASE;NETSTANDARD2_0;__CORE__</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <OutputPath>..\..\Bin</OutputPath>
+    <DocumentationFile>..\..\Bin\netstandard2.0\NewLife.Core.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)|$(TargetFramework)' == 'Debug|AnyCPU|net40'">
+    <DefineConstants>TRACE;DEBUG;NET4</DefineConstants>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <OutputPath>..\..\Bin\</OutputPath>
+    <!--<AllowUnsafeBlocks>false</AllowUnsafeBlocks>-->
+    <DocumentationFile>..\..\Bin\net40\NewLife.Core.xml</DocumentationFile>
+    <!--<DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>-->
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)|$(TargetFramework)' == 'Release|AnyCPU|net40'">
+    <DefineConstants>TRACE;NET4</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <OutputPath>..\..\Bin\</OutputPath>
+    <!--<AllowUnsafeBlocks>false</AllowUnsafeBlocks>-->
+    <DocumentationFile>..\..\Bin\net40\NewLife.Core.xml</DocumentationFile>
+    <!--<Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>-->
+  </PropertyGroup>
+  <!--项目属性end-->
+
+
+  <!--包引用start-->
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net45' Or '$(TargetFramework)' == 'netstandard2.0' ">
+    <PackageReference Include="System.Collections.Concurrent" Version="4.3.0" />
+    <PackageReference Include="System.Diagnostics.Debug" Version="4.3.0" />
+    <PackageReference Include="System.Linq" Version="4.3.0" />
+    <PackageReference Include="System.Reflection" Version="4.3.0" />
+    <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net45'">
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Management" />
     <Reference Include="System.Net.Http" />
+    <Reference Include="System.Speech" />
+    <Reference Include="System.Security" />
+
     <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Extensions" />
@@ -53,294 +142,190 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Agent\AgentService.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="Agent\AgentServiceBase.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="Agent\AgentServiceBase_Base.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="Agent\IAgentService.cs" />
-    <Compile Include="Agent\IJob.cs" />
-    <Compile Include="Agent\JobContext.cs" />
-    <Compile Include="Agent\JobSchedule.cs" />
-    <Compile Include="Agent\ServiceControl.cs" />
-    <Compile Include="Agent\ServiceHelper.cs" />
-    <Compile Include="Agent\ServiceItem.cs" />
-    <Compile Include="Agent\Setting.cs" />
-    <Compile Include="Applications\IP\Ip.cs" />
-    <Compile Include="Applications\IP\Zip.cs" />
-    <Compile Include="Caching\Cache.cs" />
-    <Compile Include="Caching\ICache.cs" />
-    <Compile Include="Caching\IProducerConsumer.cs" />
-    <Compile Include="Caching\MemoryCache.cs" />
-    <Compile Include="Caching\Redis.cs" />
-    <Compile Include="Caching\RedisClient.cs" />
-    <Compile Include="Caching\CacheLock.cs" />
-    <Compile Include="Collections\CollectionHelper.cs" />
-    <Compile Include="Collections\ConcurrentHashSet.cs" />
-    <Compile Include="Collections\DictionaryCache.cs" />
-    <Compile Include="Collections\NullableDictionary.cs" />
-    <Compile Include="Collections\Pool.cs" />
-    <Compile Include="Common\CombGuid.cs" />
-    <Compile Include="Common\PinYin.cs" />
-    <Compile Include="Common\Runtime.cs" />
-    <Compile Include="Common\SysConfig.cs" />
-    <Compile Include="Common\Utility.cs" />
-    <Compile Include="Compression\SevenZip.cs" />
-    <Compile Include="Compression\ZipException.cs" />
-    <Compile Include="Compression\ZipConstants.cs" />
-    <Compile Include="Compression\ZipEntry.cs" />
-    <Compile Include="Compression\ZipFile.cs" />
-    <Compile Include="Configuration\CombConfig.cs" />
-    <Compile Include="Data\BinaryTree.cs" />
-    <Compile Include="Data\GeoArea.cs" />
-    <Compile Include="Data\GeoAddress.cs" />
-    <Compile Include="Data\GeoPoint.cs" />
-    <Compile Include="Data\IData.cs" />
-    <Compile Include="Data\IExtend.cs" />
-    <Compile Include="Data\IFilter.cs" />
-    <Compile Include="Data\Packet.cs" />
-    <Compile Include="Extension\BitHelper.cs" />
-    <Compile Include="Extension\ConcurrentDictionaryExtensions.cs" />
-    <Compile Include="Extension\ListExtension.cs" />
-    <Compile Include="Extension\SpeakProvider.cs" />
-    <Compile Include="Http\HttpBase.cs" />
-    <Compile Include="Http\HttpCodec.cs" />
-    <Compile Include="Http\HttpHelper.cs" />
-    <Compile Include="Http\HttpRequest.cs" />
-    <Compile Include="Http\HttpResponse.cs" />
-    <Compile Include="Http\HttpServer.cs" />
-    <Compile Include="Http\TinyHttpClient.cs" />
-    <Compile Include="IO\EncodingHelper.cs" />
-    <Compile Include="IO\PathHelper.cs" />
-    <Compile Include="Json\JsonConfig.cs" />
-    <Compile Include="Json\JsonConfigFileAttribute.cs" />
-    <Compile Include="Json\JsonConfigTest.cs" />
-    <Compile Include="Log\ActionLog.cs" />
-    <Compile Include="Log\CompositeLog.cs" />
-    <Compile Include="Log\ConsoleLog.cs" />
-    <Compile Include="Log\ICounter.cs" />
-    <Compile Include="Log\ILog.cs" />
-    <Compile Include="Log\Logger.cs" />
-    <Compile Include="Log\LogLevel.cs" />
-    <Compile Include="Log\NetworkLog.cs" />
-    <Compile Include="Log\PerfCounter.cs" />
-    <Compile Include="Log\TextControlLog.cs" />
-    <Compile Include="Log\TimeCost.cs" />
-    <Compile Include="Expressions\IndexInfo.cs" />
-    <Compile Include="Expressions\UnionExpresion.cs" />
-    <Compile Include="Expressions\MathExpression.cs" />
-    <Compile Include="Expressions\RpnExpression.cs" />
-    <Compile Include="Messaging\DefaultMessage.cs" />
-    <Compile Include="Messaging\IMessage.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Messaging\MessageBase.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Messaging\MessageEventArgs.cs" />
-    <Compile Include="Model\IFactory.cs" />
-    <Compile Include="Model\IHistory.cs" />
-    <Compile Include="Model\IAuthUser.cs" />
-    <Compile Include="Model\IOnline.cs" />
-    <Compile Include="Model\IPlugin.cs" />
-    <Compile Include="Model\IManageUser.cs" />
-    <Compile Include="Model\ModelExtension.cs" />
-    <Compile Include="Model\ObjectContainerHelper.cs" />
-    <Compile Include="Remoting\ApiAction.cs" />
-    <Compile Include="Remoting\ApiAttribute.cs" />
-    <Compile Include="Remoting\ApiClient.cs" />
-    <Compile Include="Remoting\ApiException.cs" />
-    <Compile Include="Remoting\ApiHost.cs" />
-    <Compile Include="Remoting\ApiNetServer.cs" />
-    <Compile Include="Remoting\ApiServer.cs" />
-    <Compile Include="Remoting\ApiTest.cs" />
-    <Compile Include="Remoting\Controllers\ApiController.cs" />
-    <Compile Include="Remoting\Filters\ControllerContext.cs" />
-    <Compile Include="Remoting\Filters\IActionFilter.cs" />
-    <Compile Include="Remoting\IApi.cs" />
-    <Compile Include="Remoting\IApiHandler.cs" />
-    <Compile Include="Remoting\IApiHost.cs" />
-    <Compile Include="Remoting\IApiManager.cs" />
-    <Compile Include="Remoting\IApiServer.cs" />
-    <Compile Include="Remoting\IApiSession.cs" />
-    <Compile Include="Remoting\IEncoder.cs" />
-    <Compile Include="Remoting\JsonEncoder.cs" />
-    <Compile Include="Serialization\BinaryCodec2.cs" />
-    <Compile Include="Serialization\JsonCodec2.cs" />
-    <Compile Include="Serialization\JsonCodec.cs" />
-    <Compile Include="Serialization\BinaryCodec.cs" />
-    <Compile Include="Net\Handlers\StandardCodec.cs" />
-    <Compile Include="Net\Handlers\LengthFieldCodec.cs" />
-    <Compile Include="Net\Handlers\MessageCodec.cs" />
-    <Compile Include="Net\Handlers\IHandler.cs" />
-    <Compile Include="Net\Handlers\IHandlerContext.cs" />
-    <Compile Include="Net\INetSession.cs" />
-    <Compile Include="Net\Handlers\IMatchQueue.cs" />
-    <Compile Include="Net\ISocket.cs" />
-    <Compile Include="Net\ISocketServer.cs" />
-    <Compile Include="Net\ISocketClient.cs" />
-    <Compile Include="Net\NetException.cs" />
-    <Compile Include="Net\NetHelper.cs" />
-    <Compile Include="Net\NetServer.cs" />
-    <Compile Include="Net\NetSession.cs" />
-    <Compile Include="Net\IPipeline.cs" />
-    <Compile Include="Net\ReceivedEventArgs.cs" />
-    <Compile Include="Net\ITransport.cs" />
-    <Compile Include="Net\NetUri.cs" />
-    <Compile Include="Net\SerialTransport.cs" />
-    <Compile Include="Net\Setting.cs" />
-    <Compile Include="Net\SocketHelper.cs" />
-    <Compile Include="Net\TcpSession.cs" />
-    <Compile Include="Net\TcpServer.cs" />
-    <Compile Include="Net\SessionCollection.cs" />
-    <Compile Include="Net\UdpServer.cs" />
-    <Compile Include="Net\UdpSession.cs" />
-    <Compile Include="Net\Upgrade.cs" />
-    <Compile Include="Net\SessionBase.cs" />
-    <Compile Include="Net\ISocketSession.cs" />
-    <Compile Include="Extension\EnumHelper.cs" />
-    <Compile Include="Extension\StringHelper.cs" />
-    <Compile Include="Configuration\Config.cs" />
-    <Compile Include="Common\DisposeBase.cs" />
-    <Compile Include="Event\WeakAction.cs" />
-    <Compile Include="Exceptions\XException.cs" />
-    <Compile Include="IO\FileSource.cs" />
-    <Compile Include="IO\IOHelper.cs" />
-    <Compile Include="Log\TraceStream.cs" />
-    <Compile Include="Log\TextFileLog.cs" />
-    <Compile Include="Model\IObjectContainer.cs" />
-    <Compile Include="Model\ObjectContainer.cs" />
-    <Compile Include="Model\IServer.cs" />
-    <Compile Include="Reflection\DynamicInternal.cs" />
-    <Compile Include="Reflection\DynamicXml.cs" />
-    <Compile Include="Reflection\IReflect.cs" />
-    <Compile Include="Reflection\PEImage.cs" />
-    <Compile Include="Reflection\Reflect.cs" />
-    <Compile Include="Reflection\OrcasNamer.cs" />
-    <Compile Include="Reflection\ScriptEngine.cs" />
-    <Compile Include="Security\Certificate.cs" />
-    <Compile Include="Security\Crc16.cs" />
-    <Compile Include="Security\DSAHelper.cs" />
-    <Compile Include="Security\Rand.cs" />
-    <Compile Include="Security\RC4.cs" />
-    <Compile Include="Security\RSAHelper.cs" />
-    <Compile Include="Security\SecurityHelper.cs" />
-    <Compile Include="Serialization\Binary\BinaryDictionary.cs" />
-    <Compile Include="Serialization\Binary\BinaryNormal.cs" />
-    <Compile Include="Serialization\Binary\BinaryList.cs" />
-    <Compile Include="Serialization\Binary\Binary.cs" />
-    <Compile Include="Serialization\Binary\BinaryComposite.cs" />
-    <Compile Include="Serialization\Binary\BinaryPair.cs" />
-    <Compile Include="Serialization\Binary\BitSizeAttribute.cs" />
-    <Compile Include="Serialization\Binary\FieldSizeAttribute.cs" />
-    <Compile Include="Serialization\Binary\BinaryGeneral.cs" />
-    <Compile Include="Serialization\Binary\IBinary.cs" />
-    <Compile Include="Serialization\Binary\BinaryUnknown.cs" />
-    <Compile Include="Serialization\Binary\BinaryFont.cs" />
-    <Compile Include="Serialization\Binary\BinaryColor.cs" />
-    <Compile Include="Serialization\Binary\BinaryTest.cs" />
-    <Compile Include="Serialization\Interface\IMemberAccessor.cs" />
-    <Compile Include="Serialization\Interface\IAccessor.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Serialization\Interface\IFormatterX.cs" />
-    <Compile Include="Log\CodeTimer.cs" />
-    <Compile Include="Reflection\AssemblyX.cs" />
-    <Compile Include="Reflection\AttributeX.cs" />
-    <Compile Include="Reflection\EmitHelper.cs" />
-    <Compile Include="Serialization\Json\IJsonHost.cs" />
-    <Compile Include="Serialization\Json\Json.cs" />
-    <Compile Include="Serialization\Json\JsonComposite.cs" />
-    <Compile Include="Serialization\Json\JsonDictionary.cs" />
-    <Compile Include="Serialization\Json\JsonGeneral.cs" />
-    <Compile Include="Serialization\Json\JsonArray.cs" />
-    <Compile Include="Serialization\Json\IJson.cs" />
-    <Compile Include="Serialization\Json\JsonParser.cs" />
-    <Compile Include="Serialization\Json\JsonReader.cs" />
-    <Compile Include="Serialization\Json\JsonTest.cs" />
-    <Compile Include="Serialization\Json\JsonWriter.cs" />
-    <Compile Include="Serialization\Protocol.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Serialization\Xml\XmlList.cs" />
-    <Compile Include="Serialization\Xml\XmlComposite.cs" />
-    <Compile Include="Serialization\Xml\XmlGeneral.cs" />
-    <Compile Include="Serialization\Xml\IXml.cs" />
-    <Compile Include="Serialization\Xml\Xml.cs" />
-    <Compile Include="Setting.cs" />
-    <Compile Include="Event\EventArgs.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Reflection\IIndexAccessor.cs" />
-    <Compile Include="Security\Crc32.cs" />
-    <Compile Include="Common\IdentityCard.cs" />
-    <Compile Include="Threading\TaskHelper.cs" />
-    <Compile Include="Threading\ThreadPoolX.cs" />
-    <Compile Include="Threading\TimerX.cs" />
-    <Compile Include="Threading\TimerScheduler.cs" />
-    <Compile Include="Web\OAuth\GithubClient.cs" />
-    <Compile Include="Web\OAuth\TaobaoClient.cs" />
-    <Compile Include="Web\OAuth\WeixinClient.cs" />
-    <Compile Include="Web\OAuth\BaiduClient.cs" />
-    <Compile Include="Web\OAuth\QQClient.cs" />
-    <Compile Include="Web\OAuthServer.cs" />
-    <Compile Include="Web\OAuthConfig.cs" />
-    <Compile Include="Web\TokenProvider.cs" />
-    <Compile Include="Yun\AMap.cs" />
-    <Compile Include="Yun\BaiduMap.cs" />
-    <Compile Include="Web\Js.cs" />
-    <Compile Include="Web\Link.cs" />
-    <Compile Include="Web\Modules\ErrorModule.cs" />
-    <Compile Include="Web\Modules\CompressionModule.cs" />
-    <Compile Include="Log\WriteLogEventArgs.cs" />
-    <Compile Include="Log\XTrace.cs" />
-    <Compile Include="Web\Modules\RunTimeModule.cs" />
-    <Compile Include="Data\PageParameter.cs" />
-    <Compile Include="Web\OAuthClient.cs" />
-    <Compile Include="Web\Pager.cs" />
-    <Compile Include="Web\PluginHelper.cs" />
-    <Compile Include="Web\WebClientX.cs" />
-    <Compile Include="Web\WebDownload.cs" />
-    <Compile Include="Web\WebHelper.cs" />
-    <Compile Include="Net\SerialPortConfig.cs" />
-    <Compile Include="Windows\ControlHelper.cs" />
-    <Compile Include="Yun\Driving.cs" />
-    <Compile Include="Yun\Map.cs" />
-    <EmbeddedResource Include="Windows\MySpeech.cs" />
-    <Compile Include="Windows\SerialPortList.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="Windows\SerialPortList.designer.cs">
-      <DependentUpon>SerialPortList.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Windows\SpeechRecognition.cs" />
-    <Compile Include="Xml\SerializableDictionary.cs" />
-    <Compile Include="Xml\XmlConfig.cs" />
-    <Compile Include="Xml\XmlConfigFileAttribute.cs" />
-    <Compile Include="Xml\XmlHelper.cs" />
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="System.Collections.Specialized" Version="4.3.0" />
+    <PackageReference Include="System.Diagnostics.Process" Version="4.3.0" />
+    <PackageReference Include="System.Drawing.Common">
+      <Version>4.5.0</Version>
+    </PackageReference>
+    <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
+    <PackageReference Include="System.Net.NetworkInformation" Version="4.3.0" />
+    <PackageReference Include="System.Security.Cryptography.Algorithms">
+      <Version>4.3.1</Version>
+    </PackageReference>
+    <PackageReference Include="System.Threading.Thread" Version="4.3.0" />
   </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Windows\SerialPortList.resx">
-      <DependentUpon>SerialPortList.cs</DependentUpon>
-    </EmbeddedResource>
-    <Compile Include="Extension\EndPointExtensions.cs" />
-    <None Include="Remoting\ApiClient.cd" />
-    <None Include="Remoting\ApiServer.cd" />
-    <None Include="X组件.txt" />
-    <Content Include="说明.txt" />
-    <None Include="UpdateInfo.txt" />
+  <ItemGroup Condition="'$(TargetFramework)' == 'net40'">
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Runtime.Caching" />
+    <Reference Include="System.ServiceProcess" />
+    <Reference Include="System.Speech" />
+
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
   </ItemGroup>
-  <ItemGroup />
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+  <!--包引用end-->
+
+
+  <!--排除文件start-->
+  <!--全局排除的文件-->
+  <ItemGroup>
+    <Compile Remove="Agent\Interactive.cs" />
+    <Compile Remove="Caching\CacheSetting.cs" />
+    <Compile Remove="Caching\RedisLock.cs" />
+    <Compile Remove="Collections\LinkList.cs" />
+    <Compile Remove="Collections\LinkNode.cs" />
+    <Compile Remove="Collections\ListBase.cs" />
+    <Compile Remove="Collections\SingleListNode.cs" />
+    <Compile Remove="Common\HardInfo.cs" />
+    <Compile Remove="Exceptions\CodecException.cs" />
+    <Compile Remove="Exceptions\DecoderException.cs" />
+    <Compile Remove="Exceptions\EncoderException.cs" />
+    <Compile Remove="Http\HttpClient.cs" />
+    <Compile Remove="Http\HttpSession.cs" />
+    <Compile Remove="Net\DefaultPacket.cs" />
+    <Compile Remove="Net\IPacket.cs" />
+    <Compile Remove="Net\IProtocol.cs" />
+    <Compile Remove="Net\IStatistics.cs" />
+    <Compile Remove="Security\AsnKeyBuilder.cs" />
+    <Compile Remove="Security\AsnKeyParser.cs" />
+    <Compile Remove="Security\BerDecodeError.cs" />
+    <Compile Remove="Security\BigInteger.cs" />
+    <Compile Remove="Serialization\Json\JsonIgnoreAttribute.cs" />
+    <Compile Remove="Web\Css.cs" />
+    <Compile Remove="Xml\XmlEntity.cs" />
+    <None Remove="Net\Readme.md" />
+    <Compile Remove="Net\SendQueue.cs" />
+    <Compile Remove="Net\Statistics.cs" />
+    <Compile Remove="Net\WebSocketSession.cs" />
+    <Compile Remove="Properties\AssemblyInfo.cs" />
+    <Compile Remove="Reflection\ApiHook.cs" />
+    <Compile Remove="Reflection\AsmX86.cs" />
+    <Compile Remove="Reflection\EmitReflect.cs" />
+    <Compile Remove="Reflection\Func.cs" />
+    <Compile Remove="Reflection\IL\**" />
+    <Compile Remove="Reflection\快速反射\**" />
+    <EmbeddedResource Remove="Reflection\IL\**" />
+    <EmbeddedResource Remove="Reflection\快速反射\**" />
+    <None Remove="Reflection\IL\**" />
+    <None Remove="Reflection\快速反射\**" />
+    <Compile Remove="Remoting\BinaryEncoder.cs" />
+    <Compile Remove="Remoting\Filters\ActionExecutedContext.cs" />
+    <Compile Remove="Remoting\Filters\ActionExecutingContext.cs" />
+    <Compile Remove="Remoting\Filters\ActionFilterAttribute.cs" />
+    <Compile Remove="Remoting\Filters\ApiFilterContext.cs" />
+    <Compile Remove="Remoting\Filters\DeflateFilter.cs" />
+    <Compile Remove="Remoting\Filters\ExceptionContext.cs" />
+    <Compile Remove="Remoting\Filters\FilterAttribute.cs" />
+    <Compile Remove="Remoting\Filters\GlobalFilters.cs" />
+    <Compile Remove="Remoting\Filters\HandleErrorAttribute.cs" />
+    <Compile Remove="Remoting\Filters\IExceptionFilter.cs" />
+    <Compile Remove="Remoting\Filters\RC4Filter.cs" />
+    <Compile Remove="Remoting\AllowAnonymousAttribute.cs" />
+    <Compile Remove="Remoting\ApiHttpClient.cs" />
+    <Compile Remove="Remoting\ApiHttpServer.cs" />
+    <Compile Remove="Remoting\ApiNetClient.cs" />
+    <Compile Remove="Remoting\Controllers\ApiSession.cs" />
+    <Compile Remove="Remoting\IApiClient.cs" />
+    <Compile Remove="Remoting\IUserSession.cs" />
+    <Compile Remove="Serialization\Json\JsonAtomStringReader.cs" />
+    <Compile Remove="Serialization\Json\SimpleJsonUtil.cs" />
+    <Compile Remove="Web\ControlHelper.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net45'">
+    <Compile Remove="Stub\ScriptIgnoreAttribute.cs" />
+    <Compile Remove="Threading\AsyncMethodBuilderCore.cs" />
+    <Compile Remove="Threading\AsyncMethodTaskCache.cs" />
+    <Compile Remove="Threading\AsyncServices.cs" />
+    <Compile Remove="Threading\AsyncTaskMethodBuilder.cs" />
+    <Compile Remove="Threading\AsyncVoidMethodBuilder.cs" />
+    <Compile Remove="Threading\AwaitExtensions.cs" />
+    <Compile Remove="Threading\ConfiguredTaskAwaitable.cs" />
+    <Compile Remove="Threading\ExecutionContextLightup.cs" />
+    <Compile Remove="Threading\IAsyncMethodBuilder.cs" />
+    <Compile Remove="Threading\IAsyncStateMachine.cs" />
+    <Compile Remove="Threading\ICriticalNotifyCompletion.cs" />
+    <Compile Remove="Threading\INotifyCompletion.cs" />
+    <Compile Remove="Threading\Lightup.cs" />
+    <Compile Remove="Threading\LightupServices.cs" />
+    <Compile Remove="Threading\LightupType.cs" />
+    <Compile Remove="Threading\TaskAwaiter.cs" />
+    <Compile Remove="Threading\TaskEx.cs" />
+    <Compile Remove="Threading\TimerManager.cs" />
+    <Compile Remove="Threading\VoidTaskResult.cs" />
+    <Compile Remove="Threading\YieldAwaitable.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <Compile Remove="Agent\**" />
+    <Compile Remove="Common\CombGuid.cs" />
+    <Compile Remove="Configuration\CombConfig.cs" />
+    <Compile Remove="Configuration\Config.cs" />
+    <Compile Remove="Expressions\IndexInfo.cs" />
+    <Compile Remove="Expressions\MathExpression.cs" />
+    <Compile Remove="Expressions\RpnExpression.cs" />
+    <Compile Remove="Expressions\UnionExpresion.cs" />
+    <Compile Remove="Http\HttpCodec.cs" />
+    <Compile Remove="IO\FileSource.cs" />
+    <Compile Remove="Log\TextControlLog.cs" />
+    <Compile Remove="Net\SerialPortConfig.cs" />
+    <Compile Remove="Net\SerialTransport.cs" />
+    <Compile Remove="Reflection\DynamicInternal.cs" />
+    <Compile Remove="Reflection\DynamicXml.cs" />
+    <Compile Remove="Reflection\EmitHelper.cs" />
+    <Compile Remove="Reflection\PEImage.cs" />
+    <Compile Remove="Reflection\ScriptEngine.cs" />
+    <Compile Remove="Threading\AsyncMethodBuilderCore.cs" />
+    <Compile Remove="Threading\AsyncMethodTaskCache.cs" />
+    <Compile Remove="Threading\AsyncServices.cs" />
+    <Compile Remove="Threading\AsyncTaskMethodBuilder.cs" />
+    <Compile Remove="Threading\AsyncVoidMethodBuilder.cs" />
+    <Compile Remove="Threading\AwaitExtensions.cs" />
+    <Compile Remove="Threading\ConfiguredTaskAwaitable.cs" />
+    <Compile Remove="Threading\ExecutionContextLightup.cs" />
+    <Compile Remove="Threading\IAsyncMethodBuilder.cs" />
+    <Compile Remove="Threading\IAsyncStateMachine.cs" />
+    <Compile Remove="Threading\ICriticalNotifyCompletion.cs" />
+    <Compile Remove="Threading\INotifyCompletion.cs" />
+    <Compile Remove="Threading\Lightup.cs" />
+    <Compile Remove="Threading\LightupServices.cs" />
+    <Compile Remove="Threading\LightupType.cs" />
+    <Compile Remove="Threading\TaskAwaiter.cs" />
+    <Compile Remove="Threading\TaskEx.cs" />
+    <Compile Remove="Threading\TimerManager.cs" />
+    <Compile Remove="Threading\VoidTaskResult.cs" />
+    <Compile Remove="Threading\YieldAwaitable.cs" />
+    <Compile Remove="Web\Js.cs" />
+    <Compile Remove="Web\Modules\ErrorModule.cs" />
+    <Compile Remove="Web\Modules\CompressionModule.cs" />
+    <Compile Remove="Web\Modules\RunTimeModule.cs" />
+    <Compile Remove="Web\WebDownload.cs" />
+    <Compile Remove="Windows\ControlHelper.cs" />
+    <Compile Remove="Windows\MySpeech.cs" />
+    <Compile Remove="Windows\SerialPortList.cs" />
+    <Compile Remove="Windows\SerialPortList.designer.cs" />
+    <Compile Remove="Windows\SpeechRecognition.cs" />
+    <EmbeddedResource Remove="Windows\SerialPortList.resx" />
+    <Compile Remove="Yun\AMap.cs" />
+    <Compile Remove="Yun\BaiduMap.cs" />
+    <Compile Remove="Yun\Driving.cs" />
+    <Compile Remove="Yun\Map.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net40'">
+    <Compile Remove="Stub\ScriptIgnoreAttribute.cs" />
+  </ItemGroup>
+  <!--排除文件end-->
+
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+
+  <!--<Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />-->
 </Project>

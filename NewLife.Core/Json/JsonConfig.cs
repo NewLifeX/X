@@ -315,7 +315,11 @@ namespace NewLife.Json
             {
                 lock (this)
                 {
-                    if (_Timer == null) _Timer = new TimerX(DoSave, null, 1000, 5000) { Async = true };
+                    if (_Timer == null) _Timer = new TimerX(DoSave, null, 1000, 5000)
+                    {
+                        Async = true,
+                        CanExecute = () => _commits > 0,
+                    };
                 }
             }
 

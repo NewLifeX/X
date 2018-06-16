@@ -31,6 +31,7 @@ namespace XCode.DataAccessLayer
                 .Reg<Access>()
                 .Reg<SqlCe>()
 #endif
+                .Reg<Network>()
                 .Reg<SQLite>(String.Empty);
             // SQLite作为默认实现
         }
@@ -63,6 +64,11 @@ namespace XCode.DataAccessLayer
             if (dbType == null) return null;
             return defaultDbs2.GetOrAdd(dbType, dt => (IDatabase)dt.CreateInstance());
         }
+
+        /// <summary>根据类型获取默认提供者</summary>
+        /// <param name="dbType"></param>
+        /// <returns></returns>
+        public static IDatabase GetDefault(DatabaseType dbType) => XCodeService.Container.ResolveInstance<IDatabase>(dbType);
         #endregion
 
         #region 方法

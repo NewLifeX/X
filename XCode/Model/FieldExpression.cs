@@ -43,6 +43,7 @@ namespace XCode
 
             var op = Field.Factory;
 
+            // 右值是字段
             if (Value is FieldItem fi)
             {
                 builder.AppendFormat("{0}{1}{2}", Field.FormatedName, Action, op.FormatName(fi.ColumnName));

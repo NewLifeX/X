@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Web;
 using NewLife;
 using NewLife.Collections;
+using NewLife.Data;
 using NewLife.Log;
 using NewLife.Reflection;
 using XCode.Exceptions;
@@ -101,7 +102,7 @@ namespace XCode.DataAccessLayer
             var tid = Thread.CurrentThread.ManagedThreadId;
             if (ThreadID != tid) DAL.WriteLog("本会话由线程{0}创建，当前线程{1}非法使用该会话！", ThreadID, tid);
 
-            if (Conn == null) Conn = Database.Pool.Acquire();
+            if (Conn == null) Conn = Database.Pool.Get();
         }
 
         /// <summary>关闭</summary>
@@ -115,7 +116,7 @@ namespace XCode.DataAccessLayer
             if (conn != null)
             {
                 Conn = null;
-                Database.Pool.Release(conn);
+                Database.Pool.Put(conn);
             }
         }
 
@@ -294,12 +295,11 @@ namespace XCode.DataAccessLayer
             WriteSQL(cmd);
 
             using (var da = Factory.CreateDataAdapter())
-            using (var pi = Database.Pool.AcquireItem())
             {
+                var conn = Database.Pool.Get();
                 try
                 {
-                    //if (!Opened) Open();
-                    if (cmd.Connection == null) cmd.Connection = pi.Value;
+                    if (cmd.Connection == null) cmd.Connection = conn;
                     da.SelectCommand = cmd;
 
                     var ds = new DataSet();
@@ -316,56 +316,97 @@ namespace XCode.DataAccessLayer
                 }
                 finally
                 {
+                    Database.Pool.Put(conn);
                     EndTrace(cmd);
-
-                    //AutoClose();
-                    //cmd.Parameters.Clear();
                 }
             }
         }
 
         /// <summary>执行SQL查询，返回记录集</summary>
         /// <param name="sql">SQL语句</param>
-        /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
-        /// <param name="convert">转换器</param>
-        /// <returns>记录集</returns>
-        public virtual T Query<T>(String sql, CommandType type, IDataParameter[] ps, Func<IDataReader, T> convert)
+        /// <returns></returns>
+        public virtual DbSet Query(String sql, IDataParameter[] ps)
         {
-            using (var cmd = OnCreateCommand(sql, type, ps))
+            //var dps = ps == null ? null : Database.CreateParameters(ps);
+            using (var cmd = OnCreateCommand(sql, CommandType.Text, ps))
             {
                 Transaction?.Check(cmd, false);
 
                 QueryTimes++;
                 WriteSQL(cmd);
 
-                using (var pi = Database.Pool.AcquireItem())
+                var conn = Database.Pool.Get();
+                try
                 {
-                    try
-                    {
-                        //if (!Opened) Open();
-                        if (cmd.Connection == null) cmd.Connection = pi.Value;
+                    if (cmd.Connection == null) cmd.Connection = conn;
 
-                        BeginTrace();
-                        using (var dr = cmd.ExecuteReader())
-                        {
-                            return convert(dr);
-                        }
-                    }
-                    catch (DbException ex)
-                    {
-                        // 数据库异常最好销毁连接
-                        cmd.Connection.TryDispose();
+                    BeginTrace();
 
-                        throw OnException(ex, cmd);
-                    }
-                    finally
+                    using (var dr = cmd.ExecuteReader())
                     {
-                        EndTrace(cmd);
+                        var ds = new DbSet();
+                        ds.Read(dr);
+
+                        return ds;
                     }
+                }
+                catch (DbException ex)
+                {
+                    // 数据库异常最好销毁连接
+                    cmd.Connection.TryDispose();
+
+                    throw OnException(ex, cmd);
+                }
+                finally
+                {
+                    Database.Pool.Put(conn);
+                    EndTrace(cmd);
                 }
             }
         }
+
+        ///// <summary>执行SQL查询，返回记录集</summary>
+        ///// <param name="sql">SQL语句</param>
+        ///// <param name="type">命令类型，默认SQL文本</param>
+        ///// <param name="ps">命令参数</param>
+        ///// <param name="convert">转换器</param>
+        ///// <returns>记录集</returns>
+        //public virtual T Query<T>(String sql, CommandType type, IDataParameter[] ps, Func<IDataReader, T> convert)
+        //{
+        //    using (var cmd = OnCreateCommand(sql, type, ps))
+        //    {
+        //        Transaction?.Check(cmd, false);
+
+        //        QueryTimes++;
+        //        WriteSQL(cmd);
+
+        //        var conn = Database.Pool.Get();
+        //        try
+        //        {
+        //            //if (!Opened) Open();
+        //            if (cmd.Connection == null) cmd.Connection = conn;
+
+        //            BeginTrace();
+        //            using (var dr = cmd.ExecuteReader())
+        //            {
+        //                return convert(dr);
+        //            }
+        //        }
+        //        catch (DbException ex)
+        //        {
+        //            // 数据库异常最好销毁连接
+        //            cmd.Connection.TryDispose();
+
+        //            throw OnException(ex, cmd);
+        //        }
+        //        finally
+        //        {
+        //            Database.Pool.Put(conn);
+        //            EndTrace(cmd);
+        //        }
+        //    }
+        //}
 
         private static Regex reg_QueryCount = new Regex(@"^\s*select\s+\*\s+from\s+([\w\W]+)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         /// <summary>执行SQL查询，返回总记录数</summary>
@@ -423,27 +464,22 @@ namespace XCode.DataAccessLayer
             ExecuteTimes++;
             WriteSQL(cmd);
 
-            using (var pi = Database.Pool.AcquireItem())
+            var conn = Database.Pool.Get();
+            try
             {
-                try
-                {
-                    //if (!Opened) Open();
-                    if (cmd.Connection == null) cmd.Connection = pi.Value;
+                if (cmd.Connection == null) cmd.Connection = conn;
 
-                    BeginTrace();
-                    return cmd.ExecuteNonQuery();
-                }
-                catch (DbException ex)
-                {
-                    throw OnException(ex, cmd);
-                }
-                finally
-                {
-                    EndTrace(cmd);
-
-                    //AutoClose();
-                    //cmd.Parameters.Clear();
-                }
+                BeginTrace();
+                return cmd.ExecuteNonQuery();
+            }
+            catch (DbException ex)
+            {
+                throw OnException(ex, cmd);
+            }
+            finally
+            {
+                Database.Pool.Put(conn);
+                EndTrace(cmd);
             }
         }
 
@@ -484,30 +520,29 @@ namespace XCode.DataAccessLayer
             QueryTimes++;
             WriteSQL(cmd);
 
-            using (var pi = Database.Pool.AcquireItem())
+            var conn = Database.Pool.Get();
+            try
             {
-                try
-                {
-                    if (cmd.Connection == null) cmd.Connection = pi.Value;
+                if (cmd.Connection == null) cmd.Connection = conn;
 
-                    BeginTrace();
-                    var rs = cmd.ExecuteScalar();
-                    if (rs == null || rs == DBNull.Value) return default(T);
-                    if (rs is T) return (T)rs;
+                BeginTrace();
+                var rs = cmd.ExecuteScalar();
+                if (rs == null || rs == DBNull.Value) return default(T);
+                if (rs is T) return (T)rs;
 
-                    return (T)Reflect.ChangeType(rs, typeof(T));
-                }
-                catch (DbException ex)
-                {
-                    throw OnException(ex, cmd);
-                }
-                finally
-                {
-                    EndTrace(cmd);
+                return (T)Reflect.ChangeType(rs, typeof(T));
+            }
+            catch (DbException ex)
+            {
+                throw OnException(ex, cmd);
+            }
+            finally
+            {
+                Database.Pool.Put(conn);
+                EndTrace(cmd);
 
-                    //AutoClose();
-                    cmd.Parameters.Clear();
-                }
+                //AutoClose();
+                cmd.Parameters.Clear();
             }
         }
 
@@ -574,28 +609,23 @@ namespace XCode.DataAccessLayer
             QueryTimes++;
             WriteSQL(cmd);
 
-            using (var pi = Database.Pool.AcquireItem())
+            var conn = Database.Pool.Get();
+            try
             {
-                try
-                {
-                    //if (!Opened) await OpenAsync();
-                    if (cmd.Connection == null) cmd.Connection = pi.Value;
+                if (cmd.Connection == null) cmd.Connection = conn;
 
-                    BeginTrace();
+                BeginTrace();
 
-                    return await cmd.ExecuteReaderAsync();
-                }
-                catch (DbException ex)
-                {
-                    throw OnException(ex, cmd);
-                }
-                finally
-                {
-                    EndTrace(cmd);
-
-                    //AutoClose();
-                    //cmd.Parameters.Clear();
-                }
+                return await cmd.ExecuteReaderAsync();
+            }
+            catch (DbException ex)
+            {
+                throw OnException(ex, cmd);
+            }
+            finally
+            {
+                Database.Pool.Put(conn);
+                EndTrace(cmd);
             }
         }
 
@@ -644,27 +674,22 @@ namespace XCode.DataAccessLayer
             ExecuteTimes++;
             WriteSQL(cmd);
 
-            using (var pi = Database.Pool.AcquireItem())
+            var conn = Database.Pool.Get();
+            try
             {
-                try
-                {
-                    //if (!Opened) await OpenAsync();
-                    if (cmd.Connection == null) cmd.Connection = pi.Value;
+                if (cmd.Connection == null) cmd.Connection = conn;
 
-                    BeginTrace();
-                    return await cmd.ExecuteNonQueryAsync();
-                }
-                catch (DbException ex)
-                {
-                    throw OnException(ex, cmd);
-                }
-                finally
-                {
-                    EndTrace(cmd);
-
-                    //AutoClose();
-                    //cmd.Parameters.Clear();
-                }
+                BeginTrace();
+                return await cmd.ExecuteNonQueryAsync();
+            }
+            catch (DbException ex)
+            {
+                throw OnException(ex, cmd);
+            }
+            finally
+            {
+                Database.Pool.Put(conn);
+                EndTrace(cmd);
             }
         }
 
@@ -690,9 +715,6 @@ namespace XCode.DataAccessLayer
             finally
             {
                 EndTrace(cmd);
-
-                //AutoClose();
-                //cmd.Parameters.Clear();
             }
         }
 #endif
@@ -733,9 +755,14 @@ namespace XCode.DataAccessLayer
                     dt = GetSchemaInternal(Conn, key, collectionName, restrictionValues);
                 else
                 {
-                    using (var pi = Database.Pool.AcquireItem())
+                    var conn = Database.Pool.Get();
+                    try
                     {
-                        dt = GetSchemaInternal(pi.Value, key, collectionName, restrictionValues);
+                        dt = GetSchemaInternal(conn, key, collectionName, restrictionValues);
+                    }
+                    finally
+                    {
+                        Database.Pool.Put(conn);
                     }
                 }
 
@@ -826,7 +853,7 @@ namespace XCode.DataAccessLayer
             var ps = cmd.Parameters;
             if (ps != null && ps.Count > 0)
             {
-                var sb = new StringBuilder(64);
+                var sb = Pool.StringBuilder.Get();
                 sb.Append(sql);
                 sb.Append(" [");
                 for (var i = 0; i < ps.Count; i++)
@@ -849,7 +876,7 @@ namespace XCode.DataAccessLayer
                     sb.AppendFormat("{0}={1}", ps[i].ParameterName, sv);
                 }
                 sb.Append("]");
-                sql = sb.ToString();
+                sql = sb.Put(true);
             }
 
             return sql;

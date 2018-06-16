@@ -16,6 +16,8 @@ namespace XCode
         /// <returns></returns>
         public static Expression Between(this FieldItem fi, DateTime start, DateTime end)
         {
+            if (fi.Type != typeof(DateTime)) throw new NotSupportedException($"[{nameof(Between)}]函数仅支持时间日期字段！");
+
             var exp = new WhereExpression();
             if (fi == null) return exp;
 
@@ -249,6 +251,8 @@ namespace XCode
         /// <returns></returns>
         public static Expression ContainsAll(this FieldItem field, String keys)
         {
+            if (field.Type != typeof(String)) throw new NotSupportedException($"[{nameof(ContainsAll)}]函数仅支持字符串字段！");
+
             var exp = new WhereExpression();
             if (String.IsNullOrEmpty(keys)) return exp;
 
@@ -268,6 +272,8 @@ namespace XCode
         /// <returns></returns>
         public static Expression ContainsAny(this FieldItem field, String keys)
         {
+            if (field.Type != typeof(String)) throw new NotSupportedException($"[{nameof(ContainsAny)}]函数仅支持字符串字段！");
+
             var exp = new WhereExpression();
             if (String.IsNullOrEmpty(keys)) return exp;
 

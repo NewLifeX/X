@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Web;
 using NewLife;
 using NewLife.Collections;
+using NewLife.Data;
 using NewLife.Log;
 using NewLife.Threading;
 using XCode.Cache;
@@ -299,7 +300,7 @@ namespace XCode
             {
                 foreach (var di in table.Indexes)
                 {
-                    var sb = new StringBuilder();
+                    var sb = Pool.StringBuilder.Get();
                     sb.AppendFormat("IX_{0}", TableName);
                     foreach (var item in di.Columns)
                     {
@@ -307,7 +308,7 @@ namespace XCode
                         sb.Append(item);
                     }
 
-                    di.Name = sb.ToString();
+                    di.Name = sb.Put(true);
                 }
             }
         }
@@ -380,14 +381,7 @@ namespace XCode
                     if (dal.Db.Migration > Migration.ReadOnly || def != this)
                         CheckTable();
                     else
-                        ThreadPool.UnsafeQueueUserWorkItem(s =>
-                        {
-                            try { CheckTable(); }
-                            catch (Exception ex)
-                            {
-                                XTrace.WriteException(ex);
-                            }
-                        }, null);
+                        ThreadPoolX.QueueUserWorkItem(CheckTable);
                 }
 
                 _hasCheckModel = true;
@@ -543,11 +537,11 @@ namespace XCode
                     Table = FormatedTableName,
                     OrderBy = Table.Identity.Desc()
                 };
-                //var ds = Dal.Select(builder, 0, 1);
-                //if (ds.Tables[0].Rows.Count > 0)
-                //    count = Convert.ToInt64(ds.Tables[0].Rows[0][Table.Identity.ColumnName]);
-                var rs = Dal.Query(builder, 0, 0, dr => dr.Read() ? dr[0].ToInt() : -1);
-                if (rs > 0) count = rs;
+                var ds = Dal.Query(builder, 0, 1);
+                if (ds.Columns.Length > 0 && ds.Rows.Count > 0)
+                    count = Convert.ToInt64(ds.Rows[0][0]);
+                //var rs = Dal.Query(builder, 0, 0, dr => dr.Read() ? dr[0].ToInt() : -1);
+                //if (rs > 0) count = rs;
             }
 
             // 100w数据时，没有预热Select Count需要3000ms，预热后需要500ms
@@ -592,39 +586,39 @@ namespace XCode
         #region 数据库操作
         void InitData() => WaitForInitData();
 
+        ///// <summary>执行SQL查询，返回记录集</summary>
+        ///// <param name="builder">SQL语句</param>
+        ///// <param name="startRowIndex">开始行，0表示第一行</param>
+        ///// <param name="maximumRows">最大返回行数，0表示所有行</param>
+        ///// <param name="convert">转换器</param>
+        ///// <returns></returns>
+        //public virtual T Query<T>(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows, Func<IDataReader, T> convert)
+        //{
+        //    InitData();
+
+        //    return Dal.Query(builder, startRowIndex, maximumRows, convert);
+        //}
+
         /// <summary>执行SQL查询，返回记录集</summary>
         /// <param name="builder">SQL语句</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <param name="convert">转换器</param>
         /// <returns></returns>
-        public virtual T Query<T>(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows, Func<IDataReader, T> convert)
+        public virtual DbSet Query(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows)
         {
             InitData();
 
-            return Dal.Query(builder, startRowIndex, maximumRows, convert);
-        }
-
-        /// <summary>执行SQL查询，返回记录集</summary>
-        /// <param name="builder">SQL语句</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <returns></returns>
-        public virtual DataSet Query(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows)
-        {
-            InitData();
-
-            return Dal.Select(builder, startRowIndex, maximumRows);
+            return Dal.Query(builder, startRowIndex, maximumRows);
         }
 
         /// <summary>执行SQL查询，返回记录集</summary>
         /// <param name="sql">SQL语句</param>
         /// <returns></returns>
-        public virtual DataSet Query(String sql)
+        public virtual DbSet Query(String sql)
         {
             InitData();
 
-            return Dal.Select(sql);
+            return Dal.Query(sql);
         }
 
         /// <summary>查询记录数</summary>
@@ -644,7 +638,7 @@ namespace XCode
         {
             InitData();
 
-            return Dal.SelectCount(sql);
+            return Dal.SelectCount(sql, CommandType.Text, null);
         }
 
         /// <summary>执行</summary>

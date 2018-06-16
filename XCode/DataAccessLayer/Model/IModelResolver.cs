@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Text;
+using NewLife.Collections;
 using XCode.Model;
 
 namespace XCode.DataAccessLayer
@@ -62,7 +63,7 @@ namespace XCode.DataAccessLayer
             if (name.Contains("_"))//(  name == name.ToUpper() || name == name.ToLower()))//
             {
                 var ns = name.Split("_");
-                var sb = new StringBuilder();
+                var sb = Pool.StringBuilder.Get();
                 foreach (var item in ns)
                 {
                     if (item.EqualIgnoreCase("ID"))
@@ -74,7 +75,7 @@ namespace XCode.DataAccessLayer
                         sb.Append(item.Substring(1).ToLower());
                     }
                 }
-                name = sb.ToString();
+                name = sb.Put(true);
             }
             else if (name != "ID" && (name == name.ToUpper() || name == name.ToLower()))
             {
@@ -91,7 +92,7 @@ namespace XCode.DataAccessLayer
         {
             if (di.Columns == null || di.Columns.Length < 1) return null;
 
-            var sb = new StringBuilder();
+            var sb = Pool.StringBuilder.Get();
             if (di.PrimaryKey)
                 sb.Append("PK");
             else if (di.Unique)
@@ -109,7 +110,7 @@ namespace XCode.DataAccessLayer
                 sb.Append("_");
                 sb.Append(di.Columns[i]);
             }
-            return sb.ToString();
+            return sb.Put(true);
         }
 
         /// <summary>获取显示名，如果描述不存在，则使用名称，否则使用描述前面部分，句号（中英文皆可）、换行分隔</summary>

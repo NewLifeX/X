@@ -541,18 +541,22 @@ namespace XCode.DataAccessLayer
             // 删除已有文件
             if (File.Exists(bf)) File.Delete(bf);
 
-            //using (var session = Database.CreateSession())
-            using (var pi = Database.Pool.AcquireItem())
             using (var conn = Database.Factory.CreateConnection())
             {
-                //session.Open();
+                var conn2 = Database.Pool.Get();
+                try
+                {
+                    conn.ConnectionString = "Data Source={0}".F(bf);
+                    conn.Open();
 
-                conn.ConnectionString = "Data Source={0}".F(bf);
-                conn.Open();
-
-                //var method = conn.GetType().GetMethodEx("BackupDatabase");
-                // 借助BackupDatabase函数可以实现任意两个SQLite之间倒数据，包括内存数据库
-                pi.Value.Invoke("BackupDatabase", conn, "main", "main", -1, null, 0);
+                    //var method = conn.GetType().GetMethodEx("BackupDatabase");
+                    // 借助BackupDatabase函数可以实现任意两个SQLite之间倒数据，包括内存数据库
+                    conn2.Invoke("BackupDatabase", conn, "main", "main", -1, null, 0);
+                }
+                finally
+                {
+                    Database.Pool.Put(conn2);
+                }
             }
 
             // 压缩

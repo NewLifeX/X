@@ -176,7 +176,7 @@ namespace NewLife.Web
                         break;
                 }
 
-                var ms = new MemoryStream();
+                var ms = NewLife.Collections.Pool.MemoryStream.Get();
                 var ns = rs.GetResponseStream();
 
                 ns.CopyTo(ms);
@@ -186,7 +186,7 @@ namespace NewLife.Web
                     ns.CopyTo(ms);
                 }
 
-                return ms.ToArray();
+                return ms.Put(true);
             }
         }
 
@@ -640,7 +640,7 @@ namespace NewLife.Web
         private static Object SyncRoot = new Object();
         private static WebClientPool _Pool;
         /// <summary>默认连接池</summary>
-        public static Pool<WebClientX> Pool
+        public static IPool<WebClientX> Pool
         {
             get
             {
@@ -666,18 +666,20 @@ namespace NewLife.Web
         /// <returns></returns>
         public static async Task<String> GetStringAsync(String address)
         {
-            using (var pi = Pool.AcquireItem())
+            var client = Pool.Get();
+            try
             {
-                return await pi.Value.DownloadStringAsync(address);
+                return await client.DownloadStringAsync(address);
+            }
+            finally
+            {
+                Pool.Put(client);
             }
         }
 
-        class WebClientPool : Pool<WebClientX>
+        class WebClientPool : ObjectPool<WebClientX>
         {
-            protected override WebClientX Create()
-            {
-                return new WebClientX();
-            }
+            protected override WebClientX OnCreate() => new WebClientX();
         }
         #endregion
 

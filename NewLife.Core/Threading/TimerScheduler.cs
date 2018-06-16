@@ -157,14 +157,20 @@ namespace NewLife.Threading
                     {
                         if (!timer.Calling && CheckTime(timer, now))
                         {
-                            // 必须在主线程设置状态，否则可能异步线程还没来得及设置开始状态，主线程又开始了新的一轮调度
-                            timer.Calling = true;
-                            if (!timer.Async)
-                                Execute(timer);
-                            else
-                                //Task.Factory.StartNew(() => ProcessItem(timer));
-                                // 不需要上下文流动
-                                ThreadPool.UnsafeQueueUserWorkItem(Execute, timer);
+                            // 是否能够执行
+                            if (timer.CanExecute == null || timer.CanExecute())
+                            {
+                                // 必须在主线程设置状态，否则可能异步线程还没来得及设置开始状态，主线程又开始了新的一轮调度
+                                timer.Calling = true;
+                                if (!timer.Async)
+                                    Execute(timer);
+                                else
+                                    //Task.Factory.StartNew(() => ProcessItem(timer));
+                                    // 不需要上下文流动
+                                    //ThreadPool.UnsafeQueueUserWorkItem(Execute, timer);
+                                    // 内部线程池，让异步任务有公平竞争CPU的机会
+                                    ThreadPoolX.QueueUserWorkItem(Execute, timer);
+                            }
                         }
                     }
                 }

@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.MemoryMappedFiles;
+using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using NewLife.Caching;
 using NewLife.Log;
 using NewLife.Net;
@@ -12,8 +14,10 @@ using NewLife.Reflection;
 using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
+using NewLife.Threading;
 using XCode.DataAccessLayer;
 using XCode.Membership;
+using XCode.Service;
 
 namespace Test
 {
@@ -35,7 +39,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test5();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -57,31 +61,52 @@ namespace Test
         //private static Int32 ths = 0;
         static void Test1()
         {
-            //var orc = ObjectContainer.Current.ResolveInstance<IDatabase>(DatabaseType.Oracle);
-            var db = DbFactory.Create(DatabaseType.Oracle);
-            var sql = "select * from table where date>1234 ";
-            var sb = new SelectBuilder();
-            sb.Parse(sql);
+            XTrace.WriteLine("线程池分配测试");
 
-            Console.WriteLine(db.PageSplit(sb, 0, 20));
-            Console.WriteLine(db.PageSplit(sb, 20, 0));
-            Console.WriteLine(db.PageSplit(sb, 20, 30));
+            ThreadPool.GetMinThreads(out var min, out var min2);
+            ThreadPool.GetMaxThreads(out var max, out var max2);
+            ThreadPool.GetAvailableThreads(out var ths, out var ths2);
+            XTrace.WriteLine("({0}, {1}) ({2}, {3}) ({4}, {5})", min, min2, max, max2, ths, ths2);
 
-            sql = "select * from table where date>1234 order by cc";
-            sb = new SelectBuilder();
-            sb.Parse(sql);
+            //ThreadPoolX.Instance.Pool.Log = XTrace.Log;
+            var cpu = Environment.ProcessorCount;
+            cpu += 5;
+            for (var i = 0; i < cpu; i++)
+            {
+                var idx = i;
+                ThreadPoolX.QueueUserWorkItem(() =>
+                {
+                    XTrace.WriteLine("Item {0} Start", idx);
+                    Thread.Sleep(Rand.Next(100, 5000));
+                    XTrace.WriteLine("Item {0} End", idx);
+                });
+            }
 
-            Console.WriteLine(db.PageSplit(sb, 0, 20));
-            Console.WriteLine(db.PageSplit(sb, 20, 0));
-            Console.WriteLine(db.PageSplit(sb, 20, 30));
+            Thread.Sleep(3000);
+            ThreadPool.GetAvailableThreads(out ths, out ths2);
+            XTrace.WriteLine("({0}, {1}) ({2}, {3}) ({4}, {5})", min, min2, max, max2, ths, ths2);
 
-            //EntityBuilder.Build("DataCockpit.xml");
+            for (var i = 0; i < cpu; i++)
+            {
+                var idx = i;
+                ThreadPoolX.QueueUserWorkItem(() =>
+                {
+                    XTrace.WriteLine("Item {0} Start", idx);
+                    Thread.Sleep(Rand.Next(100, 5000));
+                    XTrace.WriteLine("Item {0} End", idx);
+                });
+            }
+            //Thread.Sleep(7000);
 
-            //Role.Meta.Session.Dal.Db.Readonly = true;
-            //Role.GetOrAdd("sss");
+            //ThreadPool.GetAvailableThreads(out ths, out ths2);
+            //XTrace.WriteLine("({0}, {1}) ({2}, {3}) ({4}, {5})", min, min2, max, max2, ths, ths2);
 
-            var ip = NetHelper.MyIP();
-            Console.WriteLine(ip);
+            //var p = ThreadPoolX.Instance.Pool;
+            //for (var i = 0; i < 150; i++)
+            //{
+            //    Console.WriteLine("ThreadPoolX FreeCount={0} BusyCount={1}", p.FreeCount, p.BusyCount);
+            //    Thread.Sleep(1000);
+            //}
         }
 
         static void Test2()
@@ -179,42 +204,81 @@ namespace Test
 
         static void Test5()
         {
-            var sw = Stopwatch.StartNew();
-            Thread.Sleep(3000);
-            sw.Stop();
-            Console.WriteLine("ElapsedTicks=\t{0:n0}", sw.ElapsedTicks);
-            Console.WriteLine("Milliseconds=\t{0:n0}", sw.ElapsedMilliseconds);
-            Console.WriteLine("比率=\t{0:n0}", sw.ElapsedTicks / sw.ElapsedMilliseconds);
+            var set = XCode.Setting.Current;
+            set.Debug = true;
+            set.ShowSQL = true;
 
-            var tickFrequency = sw.GetType().GetValue("tickFrequency");
-            var Frequency = (Int64)sw.GetType().GetValue("Frequency");
-            Console.WriteLine("tickFrequency=\t{0:n0}", tickFrequency);
-            Console.WriteLine("Frequency=\t{0:n0}", Frequency);
+            Console.WriteLine("1，服务端；2，客户端");
+            if (Console.ReadKey().KeyChar == '1')
+            {
+                var n = UserOnline.Meta.Count;
 
-            var svr = new ApiServer(3344);
-            svr.Log = XTrace.Log;
-            svr.StatPeriod = 5;
-            svr.Start();
+                var svr = new DbServer();
+                svr.Log = XTrace.Log;
+                svr.StatPeriod = 5;
+                svr.Start();
+            }
+            else
+            {
+                DAL.AddConnStr("net", "Server=tcp://admin:newlife@127.0.0.1:3305/Log", null, "network");
+                var dal = DAL.Create("net");
 
-            Console.ReadKey(true);
+                UserOnline.Meta.ConnName = "net";
 
-            //while (true)
-            //{
-            //    Thread.Sleep(500);
-            //    Console.Title = svr.GetStat();
-            //}
+                var count = UserOnline.Meta.Count;
+                Console.WriteLine("count={0}", count);
 
-            //var client = new ApiClient("tcp://127.0.0.1:7788,udp://127.0.0.1:7788,tcp://127.0.0.1:7788");
+                var entity = new UserOnline();
+                entity.Name = "新生命";
+                entity.OnlineTime = 12345;
+                entity.Insert();
+
+                Console.WriteLine("id={0}", entity.ID);
+
+                var entity2 = UserOnline.FindByKey(entity.ID);
+                Console.WriteLine("user={0}", entity2);
+
+                entity2.Page = Rand.NextString(8);
+                entity2.Update();
+
+                entity2.Delete();
+
+                for (var i = 0; i < 100; i++)
+                {
+                    entity2 = new UserOnline();
+                    entity2.Name = Rand.NextString(8);
+                    entity2.Page = Rand.NextString(8);
+                    entity2.Insert();
+
+                    Thread.Sleep(5000);
+                }
+            }
+
+            //var client = new DbClient();
             //client.Log = XTrace.Log;
             //client.EncoderLog = client.Log;
             //client.StatPeriod = 5;
+
+            //client.Servers.Add("tcp://127.0.0.1:3305");
             //client.Open();
 
-            //while (true)
+            //var db = "Membership";
+            //var rs = client.LoginAsync(db, "admin", "newlife").Result;
+            //Console.WriteLine((DatabaseType)rs["DbType"].ToInt());
+
+            //var ds = client.QueryAsync("Select * from User").Result;
+            //Console.WriteLine(ds);
+
+            //var count = client.QueryCountAsync("User").Result;
+            //Console.WriteLine("count={0}", count);
+
+            //var ps = new Dictionary<String, Object>
             //{
-            //    client.InvokeAsync<String[]>("Api/All").Wait();
-            //    Thread.Sleep(3000);
-            //}
+            //    { "Logins", 3 },
+            //    { "id", 1 }
+            //};
+            //var es = client.ExecuteAsync("update user set Logins=Logins+@Logins where id=@id", ps).Result;
+            //Console.WriteLine("Execute={0}", es);
         }
 
         static void Test6()

@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 using System.Security;
 #if !__MOBILE__ && !__CORE__
 using System.Web;
-using Microsoft.VisualBasic.Devices;
+
 #endif
 
 namespace NewLife

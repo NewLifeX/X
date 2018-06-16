@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Text;
 using NewLife;
+using NewLife.Collections;
 using NewLife.Reflection;
 
 namespace System
@@ -408,7 +409,7 @@ namespace System
             // 如果要读完数据，又不支持定位，则采用内存流搬运
             if (!stream.CanSeek)
             {
-                var ms = new MemoryStream();
+                var ms = Pool.MemoryStream.Get();
                 while (true)
                 {
                     var buf = new Byte[1024];
@@ -419,7 +420,7 @@ namespace System
                     if (count < buf.Length) break;
                 }
 
-                return ms.ToArray();
+                return ms.Put(true);
             }
             else
             {
@@ -1173,7 +1174,7 @@ namespace System
                 // 扣除间隔
                 if (!String.IsNullOrEmpty(separate)) len -= g * separate.Length;
             }
-            var sb = new StringBuilder(len);
+            var sb = Pool.StringBuilder.Get();
             for (var i = 0; i < count; i++)
             {
                 if (sb.Length > 0)
@@ -1189,7 +1190,7 @@ namespace System
                 sb.Append(GetHexValue(b % 0x10));
             }
 
-            return sb.ToString();
+            return sb.Put(true);
         }
 
         private static Char GetHexValue(Int32 i)

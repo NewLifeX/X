@@ -5,6 +5,7 @@ using System.Text;
 using System.Web.Script.Serialization;
 #endif
 using System.Xml.Serialization;
+using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Reflection;
 
@@ -81,7 +82,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public static String Format(String json)
         {
-            var sb = new StringBuilder();
+            var sb = Pool.StringBuilder.Get();
 
             var escaping = false;
             var inQuotes = false;
@@ -143,7 +144,7 @@ namespace NewLife.Serialization
                 }
             }
 
-            return sb.ToString();
+            return sb.Put(true);
         }
 
         /// <summary>Json类型对象转换实体类</summary>

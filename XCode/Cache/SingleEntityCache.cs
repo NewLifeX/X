@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using NewLife;
+using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Threading;
 
@@ -229,14 +230,14 @@ namespace XCode.Cache
         {
             if (Total > 0)
             {
-                var sb = new StringBuilder();
+                var sb = Pool.StringBuilder.Get();
                 var name = "<{0}>({1:n0})".F(typeof(TEntity).Name, Entities.Count);
                 sb.AppendFormat("对象缓存{0,-20}", name);
                 sb.AppendFormat("总次数{0,11:n0}", Total);
                 if (Success > 0) sb.AppendFormat("，命中{0,11:n0}（{1,6:P02}）", Success, (Double)Success / Total);
                 sb.AppendFormat("\t[{0}]", typeof(TEntity).FullName);
 
-                XTrace.WriteLine(sb.ToString());
+                XTrace.WriteLine(sb.Put(true));
             }
         }
         #endregion
@@ -278,7 +279,7 @@ namespace XCode.Cache
             item.VisitTime = TimerX.Now;
 
             // 异步更新缓存
-            if (item.Expired) ThreadPool.UnsafeQueueUserWorkItem(UpdateData, item);
+            if (item.Expired) ThreadPoolX.QueueUserWorkItem(UpdateData, item);
 
             return item.Entity;
         }

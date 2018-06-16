@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Collections;
@@ -111,11 +112,11 @@ namespace NewLife.Caching
         #endregion
 
         #region 客户端池
-        class MyPool : Pool<RedisClient>
+        class MyPool : ObjectPool<RedisClient>
         {
             public Redis Instance { get; set; }
 
-            protected override RedisClient Create()
+            protected override RedisClient OnCreate()
             {
                 var rds = Instance;
                 var svr = rds.Server;
@@ -141,7 +142,7 @@ namespace NewLife.Caching
 
         private MyPool _Pool;
         /// <summary>连接池</summary>
-        public Pool<RedisClient> Pool
+        public IPool<RedisClient> Pool
         {
             get
             {
@@ -172,14 +173,15 @@ namespace NewLife.Caching
         /// <returns></returns>
         public virtual T Execute<T>(Func<RedisClient, T> func)
         {
-            using (var pi = Pool.AcquireItem())
+            var client = Pool.Get();
+            try
             {
                 var i = 0;
                 do
                 {
                     try
                     {
-                        var rs = func(pi.Value);
+                        var rs = func(client);
                         // 如果返回Packet，需要在离开对象池之前拷贝，否则可能出现冲突
                         if ((Object)rs is Packet pk) return (T)(Object)pk.Clone();
 
@@ -191,6 +193,10 @@ namespace NewLife.Caching
                     }
                 } while (true);
             }
+            finally
+            {
+                Pool.Put(client);
+            }
         }
         #endregion
 
@@ -200,9 +206,14 @@ namespace NewLife.Caching
         {
             get
             {
-                using (var pi = Pool.AcquireItem())
+                var client = Pool.Get();
+                try
                 {
-                    return pi.Value.Execute<Int32>("DBSIZE");
+                    return client.Execute<Int32>("DBSIZE");
+                }
+                finally
+                {
+                    Pool.Put(client);
                 }
             }
         }
@@ -214,15 +225,15 @@ namespace NewLife.Caching
             {
                 if (Count > 10000) throw new InvalidOperationException("数量过大时，禁止获取所有键");
 
-                using (var pi = Pool.AcquireItem())
+                var client = Pool.Get();
+                try
                 {
-                    var rs = pi.Value.Execute<String>("KEYS", "*");
-                    var ss = rs.Split(Environment.NewLine);
-
-                    var list = new List<String>();
-                    list.AddRange(ss);
-
-                    return list;
+                    var rs = client.Execute<String>("KEYS", "*");
+                    return rs.Split(Environment.NewLine).ToList();
+                }
+                finally
+                {
+                    Pool.Put(client);
                 }
             }
         }
@@ -368,12 +379,12 @@ namespace NewLife.Caching
             var rds = Redis.Create("127.0.0.1:6379", 4);
             rds.Password = "";
             rds.Log = XTrace.Log;
-            rds.Pool.Log = XTrace.Log;
+            (rds.Pool as ObjectPool<RedisClient>).Log = XTrace.Log;
 
             //rds.Bench();
             //return;
 
-            var rc = rds.Pool.Acquire();
+            var rc = rds.Pool.Get();
 
             var f = rc.Select(4);
             //Console.WriteLine(f);

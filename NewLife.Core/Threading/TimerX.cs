@@ -47,6 +47,9 @@ namespace NewLife.Threading
 
         /// <summary>平均耗时。毫秒</summary>
         public Int32 Cost { get; internal set; }
+
+        /// <summary>判断任务是否执行的委托。一般跟异步配合使用，避免频繁从线程池借出线程</summary>
+        public Func<Boolean> CanExecute { get; set; }
         #endregion
 
         #region 静态
@@ -136,11 +139,7 @@ namespace NewLife.Threading
         /// <param name="callback"></param>
         /// <param name="ms"></param>
         /// <returns></returns>
-        public static TimerX Delay(WaitCallback callback, Int32 ms)
-        {
-            var timer = new TimerX(callback, null, ms, 0) { Async = true };
-            return timer;
-        }
+        public static TimerX Delay(WaitCallback callback, Int32 ms) => new TimerX(callback, null, ms, 0) { Async = true };
 
         private static TimerX _NowTimer;
         private static DateTime _Now;

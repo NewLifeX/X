@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Web;
+using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Model;
 
@@ -68,7 +69,7 @@ namespace NewLife.Web
 
             if (!NeedProcess(Request, ex)) return;
 
-            var sb = new StringBuilder();
+            var sb = Pool.StringBuilder.Get();
             if (ex != null) sb.AppendLine(ex.ToString());
             if (!String.IsNullOrEmpty(Request.UserHostAddress))
                 sb.AppendFormat("来源：{0}\r\n", Request.UserHostAddress);
@@ -92,7 +93,7 @@ namespace NewLife.Web
             //var eip = ObjectContainer.Current.AutoRegister(typeof(IErrorInfoProvider)).Resolve<IErrorInfoProvider>();
             if (eip != null) eip.AddInfo(ex, sb);
 
-            XTrace.WriteLine(sb.ToString());
+            XTrace.WriteLine(sb.Put(true));
 
             //OnErrorComplete();
         }

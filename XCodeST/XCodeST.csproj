@@ -66,6 +66,7 @@
     <Compile Include="..\XCode\DataAccessLayer\DAL_DbOperate.cs" Link="DataAccessLayer\DAL_DbOperate.cs" />
     <Compile Include="..\XCode\DataAccessLayer\DAL_Setting.cs" Link="DataAccessLayer\DAL_Setting.cs" />
     <Compile Include="..\XCode\DataAccessLayer\Database\MySql.cs" Link="DataAccessLayer\Database\MySql.cs" />
+    <Compile Include="..\XCode\DataAccessLayer\Database\Network.cs" Link="DataAccessLayer\Database\Network.cs" />
     <Compile Include="..\XCode\DataAccessLayer\Database\Oracle.cs" Link="DataAccessLayer\Database\Oracle.cs" />
     <Compile Include="..\XCode\DataAccessLayer\Database\PostgreSQL.cs" Link="DataAccessLayer\Database\PostgreSQL.cs" />
     <Compile Include="..\XCode\DataAccessLayer\Database\SQLite.cs" Link="DataAccessLayer\Database\SQLite.cs" />
@@ -135,6 +136,11 @@
     <Compile Include="..\XCode\Model\OrderExpression.cs" Link="Model\OrderExpression.cs" />
     <Compile Include="..\XCode\Model\WhereExpression.cs" Link="Model\WhereExpression.cs" />
     <Compile Include="..\XCode\Model\XCodeService.cs" Link="Model\XCodeService.cs" />
+    <Compile Include="..\XCode\Service\DbClient.cs" Link="Service\DbClient.cs" />
+    <Compile Include="..\XCode\Service\DbController.cs" Link="Service\DbController.cs" />
+    <Compile Include="..\XCode\Service\DbParam.cs" Link="Service\DbParam.cs" />
+    <Compile Include="..\XCode\Service\DbServer.cs" Link="Service\DbServer.cs" />
+    <Compile Include="..\XCode\Service\LoginInfo.cs" Link="Service\LoginInfo.cs" />
     <Compile Include="..\XCode\Setting.cs" Link="Setting.cs" />
     <Compile Include="..\XCode\Sharding\分片.Biz.cs" Link="Sharding\分片.Biz.cs" />
     <Compile Include="..\XCode\Sharding\分片.cs" Link="Sharding\分片.cs" />
@@ -177,6 +183,7 @@
     <Folder Include="Tree\" />
     <Folder Include="Web\" />
     <Folder Include="Extension\" />
+    <Folder Include="Service\" />
   </ItemGroup>
 
   <ItemGroup>
