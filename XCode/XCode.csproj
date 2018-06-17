@@ -95,8 +95,6 @@
   <!--项目属性end-->
 
   <!--包引用start-->
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net45' Or '$(TargetFramework)' == 'netstandard2.0' ">
-  </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net45'">
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />

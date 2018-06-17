@@ -43,7 +43,9 @@
     <Compile Include="..\NewLife.Core\Collections\CollectionHelper.cs" Link="Collections\CollectionHelper.cs" />
     <Compile Include="..\NewLife.Core\Collections\ConcurrentHashSet.cs" Link="Collections\ConcurrentHashSet.cs" />
     <Compile Include="..\NewLife.Core\Collections\DictionaryCache.cs" Link="Collections\DictionaryCache.cs" />
+    <Compile Include="..\NewLife.Core\Collections\IPool.cs" Link="Collections\IPool.cs" />
     <Compile Include="..\NewLife.Core\Collections\NullableDictionary.cs" Link="Collections\NullableDictionary.cs" />
+    <Compile Include="..\NewLife.Core\Collections\ObjectPool.cs" Link="Collections\ObjectPool.cs" />
     <Compile Include="..\NewLife.Core\Collections\Pool.cs" Link="Collections\Pool.cs" />
     <Compile Include="..\NewLife.Core\Common\DisposeBase.cs" Link="Common\DisposeBase.cs" />
     <Compile Include="..\NewLife.Core\Common\IdentityCard.cs" Link="Common\IdentityCard.cs" />
