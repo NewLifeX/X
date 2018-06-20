@@ -95,8 +95,8 @@ namespace NewLife.Reflection
             cfg.Metadata.Repository = rep;*/
             
             // 清空依赖
-            var dgs = cfg.Metadata?.DependencySets;
-            dgs?.Clear();
+            var dgs = cfg.Metadata.DependencySets;
+            if (dgs != null) dgs.Clear();
             //var dgs = cfg.Metadata.DependencyGroups;
             //dps.RemoveAll(e => e.Id == "SampleDependency");
 
@@ -149,7 +149,7 @@ namespace NewLife.Reflection
             //XTrace.WriteLine("目录：{0} 文件：{1}", src.AsDirectory().FullName, fs.Count);
             if(fs.Count == 0) return;
             
-            var dgs = cfg.Metadata?.DependencySets;
+            var dgs = cfg.Metadata.DependencySets;
             var dg = new ManifestDependencySet();
             switch(target.Substring(@"\"))
             {
@@ -172,7 +172,7 @@ namespace NewLife.Reflection
                 dg.Dependencies.Add(md);
             }*/
 
-            if(!dg.TargetFramework.IsNullOrEmpty()) dgs.Add(dg);
+            if(dgs !=null && !dg.TargetFramework.IsNullOrEmpty()) dgs.Add(dg);
 
             XTrace.WriteLine("目录：{0} 框架：{1} 文件：{2}", src, dg.TargetFramework, fs.Count);
 
