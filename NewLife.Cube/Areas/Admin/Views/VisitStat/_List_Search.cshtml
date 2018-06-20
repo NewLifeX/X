@@ -1,8 +1,0 @@
-﻿@using XCode.Statistics;
-@{
-    var page = ViewBag.Page as Pager;
-}
-<div class="form-group">
-    @Html.ForDropDownList("p", VisitStat.FindAllPageName(), page["p"], "全部页面", true)
-</div>
-@Html.Partial("_StatLevel", new[] { StatLevels.All, StatLevels.Year, StatLevels.Month, StatLevels.Day })
