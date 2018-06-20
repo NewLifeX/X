@@ -119,12 +119,16 @@ namespace XCode.Service
             return true;
         }
 
+        /// <summary>执行前</summary>
+        /// <param name="filterContext"></param>
         public void OnActionExecuting(ControllerContext filterContext)
         {
             var dal = Dal;
             if (dal == null && filterContext.ActionName != "Db/Login") throw new ApiException(401, "未登录！");
         }
 
+        /// <summary>执行后</summary>
+        /// <param name="filterContext"></param>
         public void OnActionExecuted(ControllerContext filterContext) { }
         #endregion
     }

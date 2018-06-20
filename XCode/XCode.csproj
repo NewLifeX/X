@@ -1,101 +1,37 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <PropertyGroup>
-    <TargetFrameworks>net40;net45;netstandard2.0</TargetFrameworks>
-    <!--nuget包设置start-->
-    <!--Nuget包ID-->
-    <PackageId>Newlife.XCode</PackageId>
-    <!--Nuget包版本-->
-    <PackageVersion>9.8.2018.0610</PackageVersion>
-    <!--<Version>$(AssemblyVersion)</Version>-->    
-    <Authors>新生命开发团队</Authors>
-    <!--Nuget包名称-->
-    <Title>大数据中间件</Title>
-    <Description>分布式大数据中间件</Description>
-    <Copyright>©2002-2018 新生命开发团队 http://www.NewLifeX.com</Copyright>
-    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageLicenseUrl>http://www.newlifex.com/</PackageLicenseUrl>
-    <PackageProjectUrl>https://github.com/NewLifeX</PackageProjectUrl>
-    <PackageIconUrl>http://www.NewLifeX.com/favicon.ico</PackageIconUrl>
-    <PackageTags>新生命团队;X组件;Newlife;XCode</PackageTags>
-    <PackageReleaseNotes>https://github.com/NewLifeX</PackageReleaseNotes>
-    <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <!--包含符号-->
-    <IncludeSymbols>true</IncludeSymbols>
-    <!--包含源码-->
-    <IncludeSource>true</IncludeSource>
-    <!--文件版本-->
-    <FileVersion>9.8.2018.0610</FileVersion>
-    <!--内部版本-->
-    <AssemblyVersion>9.8.*</AssemblyVersion>
-    <!--产品版本-->
-    <InformationalVersion>9.8.2018.0610</InformationalVersion>
-
-    <!--文件名-->
-    <AssemblyName>XCode</AssemblyName>
-    <!--文件显示名-->
-    <AssemblyTitle>大数据中间件</AssemblyTitle>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{B49ABA5A-C5DA-45F4-87F1-B435EC51D710}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>XCode</RootNamespace>
-    <Company>新生命开发团队</Company>
-    <Trademark>四叶草</Trademark>
-    <!--nuget包设置end-->
-    <Deterministic>false</Deterministic>
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <OutputPath>..\..\Bin\</OutputPath>
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
-
-    <!-- https://docs.microsoft.com/zh-cn/nuget/reference/msbuild-targets#pack-target -->
+    <AssemblyName>XCode</AssemblyName>
+    <SignAssembly>false</SignAssembly>
   </PropertyGroup>
-
-  <!--项目属性start-->
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)|$(TargetFramework)' == 'Debug|AnyCPU|net45'">
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
     <OutputPath>..\..\Bin\</OutputPath>
-    <DocumentationFile>..\..\Bin\net45\XCode.xml</DocumentationFile>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <DocumentationFile>..\..\Bin\XCode.XML</DocumentationFile>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)|$(TargetFramework)' == 'Release|AnyCPU|net45'">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <OutputPath>..\..\Bin\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
+    <DocumentationFile>..\..\Bin\XCode.XML</DocumentationFile>
     <Optimize>true</Optimize>
+    <WarningLevel>2</WarningLevel>
     <DebugType>pdbonly</DebugType>
-    <OutputPath>..\..\Bin\</OutputPath>
-    <DocumentationFile>..\..\Bin\net45\XCode.xml</DocumentationFile>
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)|$(TargetFramework)'=='Debug|AnyCPU|netstandard2.0'">
-    <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0;__CORE__</DefineConstants>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <OutputPath>..\..\Bin\</OutputPath>
-    <DocumentationFile>..\..\Bin\netstandard2.0\XCode.xml</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)|$(TargetFramework)'=='Release|AnyCPU|netstandard2.0'">
-    <DefineConstants>TRACE;RELEASE;NETSTANDARD2_0;__CORE__</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <OutputPath>..\..\Bin\</OutputPath>
-    <DocumentationFile>..\..\Bin\netstandard2.0\XCode.xml</DocumentationFile>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)|$(TargetFramework)' == 'Debug|AnyCPU|net40'">
-    <DefineConstants>TRACE;DEBUG;NET4</DefineConstants>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <OutputPath>..\..\Bin\</OutputPath>
-    <DocumentationFile>..\..\Bin\net40\XCode.xml</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)|$(TargetFramework)' == 'Release|AnyCPU|net40'">
-    <DefineConstants>TRACE;NET4</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <OutputPath>..\..\Bin\</OutputPath>
-    <DocumentationFile>..\..\Bin\net40\XCode.xml</DocumentationFile>
-  </PropertyGroup>
-  <!--项目属性end-->
-
-  <!--包引用start-->
-  <ItemGroup Condition="'$(TargetFramework)' == 'net45'">
+  <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
     <Reference Include="System.configuration" />
@@ -107,112 +43,240 @@
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.XML" />
   </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.0.2" />
-    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.0.2" />
-    <PackageReference Include="Microsoft.AspNetCore.Session" Version="2.0.2" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Xml" Version="2.0.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.0.0" />
-    <PackageReference Include="System.Data.Common" Version="4.3.0" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net40'">
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System" />
-    <Reference Include="System.configuration" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Management" />
-    <Reference Include="System.Security" />
-    <Reference Include="System.Web" />
-    <Reference Include="System.Web.Extensions" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.XML" />
-  </ItemGroup>
-  <!--包引用end-->
-
   <ItemGroup>
     <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj">
+      <Project>{5813c22e-eeb3-4dee-a45c-bb218041193a}</Project>
       <Name>NewLife.Core</Name>
     </ProjectReference>
   </ItemGroup>
-
   <ItemGroup>
-    <Content Include="Build.tt">
+    <Compile Include="Attributes\BindColumnAttribute.cs" />
+    <Compile Include="Attributes\BindIndexAttribute.cs" />
+    <Compile Include="Attributes\MapAttribute.cs" />
+    <Compile Include="Attributes\BindTableAttribute.cs" />
+    <Compile Include="Cache\DataCache.cs" />
+    <Compile Include="Cache\DbCache.cs" />
+    <Compile Include="Code\ClassBuilder.cs" />
+    <Compile Include="Code\EntityBuilder.cs" />
+    <Compile Include="Common\DataSimulation.cs" />
+    <Compile Include="Configuration\FieldExtension.cs" />
+    <Compile Include="DataAccessLayer\Common\ConnectionPool.cs" />
+    <Compile Include="DataAccessLayer\Common\DataResult.cs" />
+    <Compile Include="DataAccessLayer\Common\ITransaction.cs" />
+    <Compile Include="DataAccessLayer\Database\Access.cs" />
+    <Compile Include="DataAccessLayer\Database\Network.cs" />
+    <Compile Include="DataAccessLayer\Database\SqlCe.cs" />
+    <Compile Include="DataAccessLayer\Model\IModelResolver.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DataAccessLayer\MSPageSplit.cs" />
+    <Compile Include="Entity\EntityExtend.cs" />
+    <Compile Include="Entity\EntityExtension.cs" />
+    <Compile Include="Entity\EntityQueue.cs" />
+    <Compile Include="Entity\EntitySplit.cs" />
+    <Compile Include="Entity\IEntityAddition.cs" />
+    <Compile Include="Entity\EntitySession.cs" />
+    <Compile Include="Entity\IEntityModule.cs" />
+    <Compile Include="Entity\IEntitySession.cs" />
+    <Compile Include="Events\ActionDelegatedEventHandler.cs" />
+    <Compile Include="Events\EventBus.cs" />
+    <Compile Include="Events\HandlesAsynchronouslyAttribute.cs" />
+    <Compile Include="Events\IEvent.cs" />
+    <Compile Include="Events\IEventHandler.cs" />
+    <Compile Include="Events\SQLRunEvent.cs" />
+    <Compile Include="Events\SqlRunEventHandler.cs" />
+    <Compile Include="Exceptions\EntityException.cs" />
+    <Compile Include="Cache\FieldCache.cs" />
+    <Compile Include="Extension\数据缓存.Biz.cs" />
+    <Compile Include="Extension\数据缓存.cs" />
+    <Compile Include="Membership\LogEntity.cs" />
+    <Compile Include="Membership\IManageProvider.cs" />
+    <Compile Include="Membership\MenuProvider.cs" />
+    <Compile Include="Membership\LogProvider.cs" />
+    <Compile Include="Membership\UserTimeEntity.cs" />
+    <Compile Include="Membership\日志.cs" />
+    <Compile Include="Membership\日志.Biz.cs">
+    </Compile>
+    <Compile Include="Membership\用户.Biz.cs">
+    </Compile>
+    <Compile Include="Membership\用户.cs" />
+    <Compile Include="Membership\用户在线.Biz.cs" />
+    <Compile Include="Membership\用户在线.cs" />
+    <Compile Include="Membership\菜单.Biz.cs">
+    </Compile>
+    <Compile Include="Membership\菜单.cs" />
+    <Compile Include="Membership\角色.Biz.cs">
+    </Compile>
+    <Compile Include="Membership\角色.cs" />
+    <Compile Include="Membership\访问统计.Biz.cs" />
+    <Compile Include="Membership\访问统计.cs" />
+    <Compile Include="Service\DbClient.cs" />
+    <Compile Include="Service\DbParam.cs" />
+    <Compile Include="Service\DbServer.cs" />
+    <Compile Include="Service\DbController.cs" />
+    <Compile Include="Service\LoginInfo.cs" />
+    <Compile Include="Statistics\IStat.cs" />
+    <Compile Include="Statistics\StatHelper.cs" />
+    <Compile Include="Statistics\StatLevels.cs" />
+    <Compile Include="Statistics\StatModel.cs" />
+    <Compile Include="Model\ConcatExpression.cs" />
+    <Compile Include="Model\Expression.cs" />
+    <Compile Include="Model\FormatExpression.cs" />
+    <Compile Include="Model\FieldExpression.cs" />
+    <Compile Include="PreApplicationStartCode.cs" />
+    <Compile Include="Setting.cs" />
+    <Compile Include="Sync\ISyncMaster.cs" />
+    <Compile Include="Sync\ISyncSlave.cs" />
+    <Compile Include="Sync\SyncManager.cs" />
+    <Compile Include="Attributes\ModelCheckModeAttribute.cs" />
+    <Compile Include="Attributes\ModelSortMode.cs" />
+    <Compile Include="Cache\IEntityCache.cs" />
+    <Compile Include="Code\EntityAssembly.cs" />
+    <Compile Include="Common\Helper.cs" />
+    <Compile Include="Configuration\TableItem.cs" />
+    <Compile Include="DataAccessLayer\Common\DatabaseType.cs" />
+    <Compile Include="DataAccessLayer\Common\FileDb.cs">
+    </Compile>
+    <Compile Include="DataAccessLayer\Common\RemoteDb.cs">
+    </Compile>
+    <Compile Include="DataAccessLayer\DAL_DbOperate.cs">
+    </Compile>
+    <Compile Include="DataAccessLayer\DAL_Setting.cs">
+    </Compile>
+    <Compile Include="DataAccessLayer\Database\PostgreSQL.cs" />
+    <Compile Include="DataAccessLayer\Common\DbBase.cs" />
+    <Compile Include="DataAccessLayer\Common\DbFactory.cs" />
+    <Compile Include="DataAccessLayer\Common\IDatabase.cs" />
+    <Compile Include="DataAccessLayer\MetaData\DbMetaData_Negative.cs">
+    </Compile>
+    <Compile Include="DataAccessLayer\MetaData\DbMetaData_Positive.cs">
+    </Compile>
+    <Compile Include="DataAccessLayer\Model\ModelHelper.cs" />
+    <Compile Include="DataAccessLayer\Model\IDataColumn.cs" />
+    <Compile Include="DataAccessLayer\Model\IDataIndex.cs" />
+    <Compile Include="DataAccessLayer\Model\IDataTable.cs" />
+    <Compile Include="DataAccessLayer\MetaData\DbMetaData.cs" />
+    <Compile Include="DataAccessLayer\MetaData\IMetaData.cs" />
+    <Compile Include="DataAccessLayer\Model\SerializableDataMember.cs" />
+    <Compile Include="DataAccessLayer\XDbConnectionStringBuilder.cs" />
+    <Compile Include="DataAccessLayer\Model\XIndex.cs" />
+    <Compile Include="Entity\DataRowEntityAccessor.cs" />
+    <Compile Include="Entity\EntityBase_Interface.cs">
+    </Compile>
+    <Compile Include="Entity\EntityTransaction.cs" />
+    <Compile Include="Entity\IEntityPersistence.cs" />
+    <Compile Include="Exceptions\XDbException.cs" />
+    <Compile Include="Exceptions\XCodeException.cs" />
+    <Compile Include="Exceptions\XDbMetaDataException.cs" />
+    <Compile Include="Exceptions\XDbSessionException.cs" />
+    <Compile Include="Exceptions\XSqlException.cs" />
+    <Compile Include="Configuration\FieldItem.cs" />
+    <Compile Include="DataAccessLayer\DAL.cs" />
+    <Compile Include="DataAccessLayer\Common\DbSession.cs" />
+    <Compile Include="DataAccessLayer\Common\IDbSession.cs" />
+    <Compile Include="DataAccessLayer\Database\MySql.cs" />
+    <Compile Include="DataAccessLayer\Database\Oracle.cs" />
+    <Compile Include="DataAccessLayer\SelectBuilder.cs" />
+    <Compile Include="DataAccessLayer\Database\SQLite.cs" />
+    <Compile Include="DataAccessLayer\Database\SqlServer.cs" />
+    <Compile Include="DataAccessLayer\MetaData\DDLSchema.cs" />
+    <Compile Include="DataAccessLayer\Model\XField.cs" />
+    <Compile Include="DataAccessLayer\Model\XTable.cs" />
+    <Compile Include="Cache\CacheBase.cs" />
+    <Compile Include="Entity\DirtyCollection.cs" />
+    <Compile Include="Entity\Entity.cs" />
+    <Compile Include="Entity\EntityBase.cs" />
+    <Compile Include="Cache\EntityCache.cs" />
+    <Compile Include="Entity\EntityFactory.cs" />
+    <Compile Include="Entity\Entity_Meta.cs">
+    </Compile>
+    <Compile Include="Entity\Entity_Operate.cs">
+    </Compile>
+    <Compile Include="Entity\IEntity.cs" />
+    <Compile Include="Entity\IEntityOperate.cs" />
+    <Compile Include="Cache\SingleEntityCache.cs" />
+    <Compile Include="Model\OrderExpression.cs" />
+    <Compile Include="Model\WhereExpression.cs" />
+    <Compile Include="Model\XCodeService.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Transform\DataContext.cs" />
+    <Compile Include="Transform\IETLModule.cs" />
+    <Compile Include="Transform\Sync.cs" />
+    <Compile Include="Transform\IETLStat.cs" />
+    <Compile Include="Transform\IExtracter.cs" />
+    <Compile Include="Transform\IdentityExtracter.cs" />
+    <Compile Include="Transform\TimeSpanExtracter.cs" />
+    <Compile Include="Transform\TimeExtracter.cs" />
+    <Compile Include="Transform\ExtractSetting.cs" />
+    <Compile Include="Transform\ETL.cs" />
+    <Compile Include="Web\EntityGrid.cs" />
+    <Compile Include="Web\UserBehaviorModule..cs" />
+    <None Include="Cache\readme.md" />
+    <Compile Include="Transform\EntityTransform.cs" />
+    <Compile Include="Tree\IEntityTreeSettting.cs" />
+    <Compile Include="Web\DbRunTimeModule.cs" />
+    <Compile Include="Tree\EntityTree.cs" />
+    <Compile Include="Tree\IEntityTree.cs" />
+    <None Include="DataAccessLayer\Model\数据模型.cd" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="DataAccessLayer\DAL结构.cd">
+      <DependentUpon>DAL.cs</DependentUpon>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Extension\Ext.xml">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Extension\生成实体类.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>生成实体类.log</LastGenOutput>
+    </None>
+    <Content Include="Model.xml">
+      <SubType>Designer</SubType>
     </Content>
-    <Content Include="Model.xml" />
-    <Content Include="tools\install.ps1" />
+    <Content Include="Build.tt" />
+    <None Include="Extension\生成实体类.log">
+      <DependentUpon>生成实体类.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </None>
+    <None Include="tools\install.ps1" />
+    <None Include="Membership\生成实体类.log">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>生成实体类.tt</DependentUpon>
+    </None>
+    <None Include="UpdateInfo.txt" />
+    <None Include="Membership\Member.xml">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Membership\生成实体类.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>生成实体类.log</LastGenOutput>
+    </None>
+    <Content Include="Sync\同步机制.txt" />
+    <None Include="说明.txt" />
   </ItemGroup>
-
+  <ItemGroup />
   <ItemGroup>
-    <Folder Include="Properties\" />
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
-
-  <!--排除文件start-->
-  <!--全局排除的文件-->
-  <ItemGroup>
-    <Compile Remove="DataAccessLayer\Database\Distributed.cs" />
-    <Compile Remove="DataAccessLayer\Database\Firebird.cs" />
-    <Compile Remove="Entity\EntityList.cs" />
-    <Compile Remove="Entity\EntityListView.cs" />
-    <Compile Remove="Entity\IEntityList.cs" />
-    <Compile Remove="Properties\AssemblyInfo.cs" />
-    <Compile Remove="Remoting\ApiUserSession.cs" />
-    <Compile Remove="Transform\DataTransform.cs" />
-    <Compile Remove="发布NuGet.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Remove="*.log" />
-    <None Remove="Build.tt" />
-    <None Remove="DataAccessLayer\Database\Database.mdb" />
-    <None Remove="Model.xml" />
-    <None Remove="tools\install.ps1" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net45'">
-    <Compile Remove="Sharding\**" />
-    <EmbeddedResource Remove="Sharding\**" />
-    <None Remove="Sharding\**" />
-    <Compile Remove="Stub\**" />
-    <EmbeddedResource Remove="Stub\**" />
-    <None Remove="Stub\**" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <Compile Remove="Code\EntityAssembly.cs" />
-    <Compile Remove="DataAccessLayer\Database\Access.cs" />
-    <Compile Remove="DataAccessLayer\Database\SqlCe.cs" />
-    <Compile Remove="DataAccessLayer\MSPageSplit.cs" />
-    <Compile Remove="Events\**" />
-    <Compile Remove="Membership\MenuProvider.cs" />
-    <Compile Remove="Membership\访问统计.Biz.cs" />
-    <Compile Remove="Membership\访问统计.cs" />
-    <Compile Remove="PreApplicationStartCode.cs" />
-
-    <Compile Remove="Statistics\**" />
-    <EmbeddedResource Remove="Statistics\**" />
-    <None Remove="Statistics\**" />
-    <Compile Remove="Sync\**" />
-    <EmbeddedResource Remove="Sync\**" />
-    <None Remove="Sync\**" />
-    <Compile Remove="Transform\IdentityExtracter.cs" />
-    <Compile Remove="Transform\TimeSpanExtracter.cs" />
-    <Compile Remove="Web\**" />
-    <EmbeddedResource Remove="Web\**" />
-    <None Remove="Web\**" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'net40'">
-    <Compile Remove="Sharding\**" />
-    <EmbeddedResource Remove="Sharding\**" />
-    <None Remove="Sharding\**" />
-    <Compile Remove="Stub\**" />
-    <EmbeddedResource Remove="Stub\**" />
-    <None Remove="Stub\**" />
-    <Compile Remove="Transform\IdentityExtracter.cs" />
-    <Compile Remove="Transform\TimeSpanExtracter.cs" />
-
-  </ItemGroup>
-  <!--排除文件end-->
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
 </Project>

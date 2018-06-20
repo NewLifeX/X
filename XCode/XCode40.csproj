@@ -230,12 +230,12 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Build.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>Build.cs</LastGenOutput>
+    </Content>
     <Content Include="Extension\Ext.xml" />
     <Content Include="Extension\生成实体类.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>生成实体类.cs</LastGenOutput>
-    </Content>
-    <Content Include="生成实体类.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>生成实体类.cs</LastGenOutput>
     </Content>
