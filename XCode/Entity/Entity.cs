@@ -884,6 +884,8 @@ namespace XCode
         /// <returns>总行数</returns>
         public static Int32 FindCount(String sql)
         {
+            if (!sql.ToLower().Contains("select"))                return FindCount(sql, null, null, 0, 0);
+
             var session = Meta.Session;
 
             return session.QueryCount(sql);
