@@ -1,16 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>NewLife.Core</AssemblyName>
     <RootNamespace>NewLife.Core</RootNamespace>
     <AssemblyTitle>新生命X组件核心库</AssemblyTitle>
-    <Description>日常开发中的各种基础功能</Description>
+    <Description>日志、网络、RPC、序列化、缓存、Windows服务、线程池</Description>
     <Company>新生命开发团队</Company>
-    <Copyright>©2002-2018 新生命开发团队 http://www.NewLifeX.com</Copyright>
-    <FileVersion>7.0.2018.0512</FileVersion>
-    <AssemblyVersion>7.0.2018.0512</AssemblyVersion>
+    <Copyright>©2002-2018 新生命开发团队</Copyright>
+    <FileVersion>7.3.2018.0614</FileVersion>
+    <AssemblyVersion>7.3.*</AssemblyVersion>
+    <!--是否确定版本，false以支持*-->
+    <Deterministic>false</Deterministic>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <Version>7.3.2018.0614</Version>
+    <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

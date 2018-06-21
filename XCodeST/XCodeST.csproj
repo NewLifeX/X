@@ -8,8 +8,13 @@
     <Description>分布式大数据中间件</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2018 新生命开发团队 http://www.NewLifeX.com</Copyright>
-    <FileVersion>9.7.2018.0512</FileVersion>
-    <AssemblyVersion>9.7.2018.0512</AssemblyVersion>
+    <FileVersion>9.8.2018.0605</FileVersion>
+    <AssemblyVersion>9.8.*</AssemblyVersion>
+    <!--是否确定版本，false以支持*-->
+    <Deterministic>false</Deterministic>
+    <Version>9.8.2018.0605</Version>
+    <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
