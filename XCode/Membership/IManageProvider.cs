@@ -187,10 +187,12 @@ namespace XCode.Membership
         {
             Current = null;
 
+#if !__CORE__
             // 注销时销毁所有Session
             var context = HttpContext.Current;
             var ss = context?.Session;
             ss?.Clear();
+#endif
 
             // 销毁Cookie
             this.SaveCookie(null, TimeSpan.FromDays(-1));
@@ -217,10 +219,10 @@ namespace XCode.Membership
             var container = XCodeService.Container;
             return container.Resolve(serviceType);
         }
-        #endregion
+#endregion
 
 #if !__CORE__
-        #region IErrorInfoProvider 成员
+#region IErrorInfoProvider 成员
         void IErrorInfoProvider.AddInfo(Exception ex, StringBuilder builder)
         {
             var user = Current;
@@ -233,10 +235,10 @@ namespace XCode.Membership
                     builder.AppendFormat("登录：{0}\r\n", user.Name);
             }
         }
-        #endregion
+#endregion
 #endif
 
-        #region 实体类扩展
+#region 实体类扩展
         /// <summary>根据实体类接口获取实体工厂</summary>
         /// <typeparam name="TIEntity"></typeparam>
         /// <returns></returns>
@@ -256,7 +258,7 @@ namespace XCode.Membership
 
             return (T)eop.Default;
         }
-        #endregion
+#endregion
     }
 
     /// <summary>基于User实体类的管理提供者</summary>
@@ -339,11 +341,9 @@ namespace XCode.Membership
         /// <param name="context">Http上下文，兼容NetCore</param>
         public static void SetPrincipal(this IManageProvider provider, IServiceProvider context = null)
         {
-#if __CORE__
-            var ctx = context as Microsoft.AspNetCore.Http.HttpContext;
-#else
+#if !__CORE__
+            //var ctx = context as Microsoft.AspNetCore.Http.HttpContext;
             var ctx = context as HttpContext ?? HttpContext.Current;
-#endif
             if (ctx == null) return;
 
             var user = provider.GetCurrent(context);
@@ -358,6 +358,7 @@ namespace XCode.Membership
             var up = new GenericPrincipal(id, roles.ToArray());
             ctx.User = up;
             Thread.CurrentPrincipal = up;
+#endif
         }
 
         /// <summary>尝试登录。如果Session未登录则借助Cookie</summary>
@@ -380,7 +381,7 @@ namespace XCode.Membership
             return user;
         }
 
-        #region Cookie
+#region Cookie
         private static String GetCookieKey(IManageProvider provider)
         {
             var key = (provider as ManageProvider)?.CookieKey;
@@ -498,15 +499,15 @@ namespace XCode.Membership
 #if !__CORE__
         class CookieModel
         {
-            #region 属性
+#region 属性
             public String UserName { get; set; }
             public String Password { get; set; }
             public DateTime Time { get; set; }
             public DateTime Expire { get; set; }
             public String Sign { get; set; }
-            #endregion
+#endregion
 
-            #region 方法
+#region 方法
             public Boolean Read(HttpCookie cookie, String key)
             {
                 UserName = cookie["u"];
@@ -538,9 +539,9 @@ namespace XCode.Membership
 
                 cookie["s"] = Sign;
             }
-            #endregion
+#endregion
         }
 #endif
-        #endregion
+#endregion
     }
 }
