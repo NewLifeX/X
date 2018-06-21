@@ -1,19 +1,16 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
 using NewLife;
 using NewLife.Log;
 using NewLife.Reflection;
 using XCode.Code;
-#if __CORE__
-using Microsoft.Extensions.Configuration;
-#endif
 
 namespace XCode.DataAccessLayer
 {
@@ -122,95 +119,41 @@ namespace XCode.DataAccessLayer
                 lock (_connTypes)
                 {
                     if (_connStrs != null) return _connStrs;
+
                     var cs = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
 
-#if !__CORE__
-                    // 读取配置文件
-                    var css = ConfigurationManager.ConnectionStrings;
-                    if (css != null && css.Count > 0)
-                    {
-                        foreach (ConnectionStringSettings set in css)
-                        {
-                            var name = set.Name;
-                            var connstr = set.ConnectionString;
-                            var provider = set.ProviderName;
-                            if (connstr.IsNullOrWhiteSpace()) continue;
-                            if (name.EqualIgnoreCase("LocalSqlServer", "LocalMySqlServer")) continue;
-
-                            var type = DbFactory.GetProviderType(connstr, provider);
-                            if (type == null) XTrace.WriteLine("无法识别{0}的提供者{1}！", name, provider);
-
-                            cs.Add(name, set.ConnectionString);
-                            _connTypes.Add(name, type);
-                        }
-                    }
-                    _connStrs = cs;
-#else
                     var file = "web.config".GetFullPath();
-                    if (!File.Exists(file)) file = "{0}.exe.config".F(AppDomain.CurrentDomain.FriendlyName).GetFullPath();
-                    if (!File.Exists(file)) file = "{0}.dll.config".F(AppDomain.CurrentDomain.FriendlyName).GetFullPath();
+                    var fname = AppDomain.CurrentDomain.FriendlyName;
+                    if (!File.Exists(file)) file = "{0}.config".F(fname).GetFullPath();
+                    if (!File.Exists(file)) file = "{0}.exe.config".F(fname).GetFullPath();
+                    if (!File.Exists(file)) file = "{0}.dll.config".F(fname).GetFullPath();
 
                     if (File.Exists(file))
                     {
                         // 读取配置文件
-                        var css = new ConfigurationBuilder()
-                            .AddXmlFile(file)
-                            .Build().GetSection("connectionStrings")?.GetSection("add");
-                        if (css != null)
+                        var doc = new XmlDocument();
+                        doc.Load(file);
+                        var nodes = doc.SelectNodes("/configuration/connectionStrings/add");
+                        if (nodes != null)
                         {
-                            foreach (var item in css.GetChildren())
+                            foreach (XmlNode item in nodes)
                             {
-                                var name = item["name"];
-                                var constr = item["connectionString"];
-                                var provider = item["providerName"];
-                                if (constr.IsNullOrWhiteSpace()) continue;
+                                var name = item.Attributes["name"]?.Value;
+                                var connstr = item.Attributes["connectionString"]?.Value;
+                                var provider = item.Attributes["providerName"]?.Value;
+
+                                if (name.IsNullOrEmpty() || connstr.IsNullOrWhiteSpace()) continue;
                                 if (name.EqualIgnoreCase("LocalSqlServer", "LocalMySqlServer")) continue;
 
-                                var type = DbFactory.GetProviderType(constr, provider);
+                                var type = DbFactory.GetProviderType(connstr, provider);
                                 if (type == null) XTrace.WriteLine("无法识别{0}的提供者{1}！", name, provider);
 
-                                cs.Add(name, constr);
+                                cs.Add(name, connstr);
                                 _connTypes.Add(name, type);
                             }
-                        }
-                    }
-
-                    //var settings = "appsettings.json".GetFullPath();
-                    //if (File.Exists(settings))
-
-                    //根据当前程序执行目录而不是当前dll/exe所在目录来获取appsettings.json文件，避免将appsettings.json的操作改成复制到输出目录
-                    var css2 = new ConfigurationBuilder()
-                        .SetBasePath(Directory.GetCurrentDirectory())
-                        .AddJsonFile("appsettings.json", true, true)
-                        .AddJsonFile("appsettings.Development.json", true, true)
-                        .Build()
-                        .GetSection("connectionStrings");
-                    {
-                        // 读取配置文件
-
-                        //var css2 = new ConfigurationBuilder().AddJsonFile(settings).Build().GetSection("connectionStrings");
-                        //                        var css2 = new ConfigurationBuilder()
-                        //.Add(new JsonConfigurationSource { Path = "appsettings.json", ReloadOnChange = true })
-                        //.Build().GetSection("connectionStrings");
-                        if (css2 != null)
-                        {
-                            foreach (var item in css2.GetChildren())
-                            {
-                                var name = item.Path.Substring(item.Path.IndexOf(":") + 1);
-                                var constr = item["connectionString"];
-                                var provider = item["providerName"];
-
-                                var type = DbFactory.GetProviderType(constr, provider);
-                                if (type == null) XTrace.WriteLine("无法识别{0}的提供者{1}！", name, provider);
-
-                                cs.Add(name, constr);
-                                _connTypes.Add(name, type);
-                            }
-
                         }
                     }
                     _connStrs = cs;
-#endif
                 }
                 return _connStrs;
             }

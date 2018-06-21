@@ -6,6 +6,7 @@ using System.IO.MemoryMappedFiles;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
 using NewLife.Caching;
 using NewLife.Log;
 using NewLife.Net;
@@ -39,7 +40,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test1();
+                    Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -111,20 +112,20 @@ namespace Test
 
         static void Test2()
         {
-            using (var mmf = MemoryMappedFile.CreateFromFile("mmf.db", FileMode.OpenOrCreate, "mmf", 1 << 10))
+            var file = "web.config".GetFullPath();
+            if (!File.Exists(file)) file = "{0}.config".F(AppDomain.CurrentDomain.FriendlyName).GetFullPath();
+
+            // 读取配置文件
+            var doc = new XmlDocument();
+            doc.Load(file);
+            var nodes = doc.SelectNodes("/configuration/connectionStrings/add");
+            foreach (XmlNode item in nodes)
             {
-                var ms = mmf.CreateViewStream(8, 64);
-                var str = ms.ReadArray().ToStr();
-                XTrace.WriteLine(str);
+                var name = item.Attributes["name"]?.Value;
+                var connstr = item.Attributes["connectionString"]?.Value;
+                var provider = item.Attributes["providerName"]?.Value;
 
-                str = "学无先后达者为师 " + DateTime.Now;
-                ms.Position = 0;
-                ms.WriteArray(str.GetBytes());
-                //ms.Flush();
-
-                //ms.Position = 0;
-                //str = ms.ReadArray().ToStr();
-                //Console.WriteLine(str);
+                Console.WriteLine($"name={name} connstr={connstr} provider={provider}");
             }
         }
 

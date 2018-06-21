@@ -18,7 +18,7 @@ namespace TestST
 
             var sw = Stopwatch.StartNew();
 
-            Test3();
+            Test2();
 
             sw.Stop();
             Console.WriteLine("OK! {0:n0}ms", sw.ElapsedMilliseconds);
@@ -49,12 +49,10 @@ namespace TestST
 
         static void Test2()
         {
-            var css = new ConfigurationBuilder()
-                .AddXmlFile("TestST.dll.config")
-                .Build().GetSection("connectionStrings").GetSection("add");
-            foreach (var item in css.GetChildren())
+            var cs = DAL.ConnStrs;
+            foreach (var item in cs)
             {
-                Console.WriteLine("{0} {1} {2} {3}", item.Key, item["name"], item["connectionString"], item["providerName"]);
+                Console.WriteLine("{0}={1}", item.Key, item.Value);
             }
         }
 
