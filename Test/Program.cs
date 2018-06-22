@@ -40,7 +40,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test2();
+                    Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -132,33 +132,8 @@ namespace Test
         //private static TimerX _timer;
         static void Test3()
         {
-            var rds = Redis.Create(null, 0);
-            rds.Log = XTrace.Log;
-            //rds.Set("123", 456);
-            //rds.Set("abc", "def");
-            //var rs = rds.Remove("123", "abc");
-            //Console.WriteLine(rs);
-
-            var queue = rds.GetQueue<String>("q");
-            //var queue = Cache.Default.GetQueue<String>("q");
-
-            Console.WriteLine("入队：");
-            var ps = new List<String>();
-            for (var i = 0; i < 5; i++)
-            {
-                var str = Rand.NextString(6);
-                ps.Add(str);
-                Console.WriteLine(str);
-            }
-            queue.Add(ps);
-
-            Console.WriteLine();
-            Console.WriteLine("出队：");
-            var bs = queue.Take(5);
-            foreach (var item in bs)
-            {
-                Console.WriteLine(item);
-            }
+            var list = Role.FindAllWithCache();
+            Console.WriteLine(list.Count);
         }
 
         static void Test4()
