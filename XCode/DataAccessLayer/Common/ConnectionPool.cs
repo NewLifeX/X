@@ -40,7 +40,16 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected override DbConnection OnCreate()
         {
-            var conn = Factory.CreateConnection();
+            var conn = Factory?.CreateConnection();
+            if (conn == null)
+            {
+                var msg = $"连接创建失败！请检查驱动是否正常";
+
+                WriteLog("CreateConnection failure " + msg);
+
+                throw new Exception(Name + " " + msg);
+            }
+
             conn.ConnectionString = ConnectionString;
 
             try
@@ -59,8 +68,14 @@ namespace XCode.DataAccessLayer
         /// <summary>申请时检查是否打开</summary>
         public override DbConnection Get()
         {
+            var count = -1;
             while (true)
             {
+                if (++count > 10) 
+                {
+                    throw new Exception($"获取DbConnection失败，次数已达{count}");
+                }
+
                 try
                 {
                     var value = base.Get();
