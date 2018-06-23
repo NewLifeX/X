@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Configuration;
 using NewLife.Log;
@@ -18,7 +19,7 @@ namespace TestST
 
             var sw = Stopwatch.StartNew();
 
-            Test2();
+            Test3();
 
             sw.Stop();
             Console.WriteLine("OK! {0:n0}ms", sw.ElapsedMilliseconds);
@@ -64,21 +65,33 @@ namespace TestST
             //}
 
             //var fact = MySqlClientFactory.Instance;
-            var fact = SqliteFactory.Instance;
+            //var fact = SqliteFactory.Instance;
 
             //var dal = DAL.Create("Sqlite");
             //DAL.AddConnStr("Membership", "Server=.;Port=3306;Database=world;Uid=root;Pwd=root", null, "MySql");
-            var dal = DAL.Create("Membership");
-            Console.WriteLine(dal.Db.ConnectionString);
+            //var dal = DAL.Create("Membership");
+            //Console.WriteLine(dal.Db.ConnectionString);
 
             //var ds = dal.Select("select * from city");
             //Console.WriteLine(ds.Tables[0].Rows.Count);
 
             var user = UserX.FindByName("admin");
-            Console.WriteLine(user);
+            Console.WriteLine("Name："+user.DisplayName);
+            Console.WriteLine("修改DisplayName：" + user.DisplayName);
+            user.DisplayName = "微信表情符😃666";
+            user.Save();
+            user = UserX.Find(UserX._.Name == "admin");
+            Console.WriteLine("修改后的DisplayName：" + user.DisplayName);
+
+
 
             //var n = UserX.Meta.Count;
             //Console.WriteLine(n);
+        }
+
+        static  void Test4()
+        {
+            
         }
     }
 }
