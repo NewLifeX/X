@@ -10,6 +10,7 @@ using System.Xml;
 using NewLife;
 using NewLife.Log;
 using NewLife.Reflection;
+using NewLife.Serialization;
 using XCode.Code;
 
 namespace XCode.DataAccessLayer
@@ -124,6 +125,7 @@ namespace XCode.DataAccessLayer
 
                     var file = "web.config".GetFullPath();
                     var fname = AppDomain.CurrentDomain.FriendlyName;
+                    if (!File.Exists(file)) file = "app.config".GetFullPath();
                     if (!File.Exists(file)) file = "{0}.config".F(fname).GetFullPath();
                     if (!File.Exists(file)) file = "{0}.exe.config".F(fname).GetFullPath();
                     if (!File.Exists(file)) file = "{0}.dll.config".F(fname).GetFullPath();
@@ -141,18 +143,44 @@ namespace XCode.DataAccessLayer
                                 var name = item.Attributes["name"]?.Value;
                                 var connstr = item.Attributes["connectionString"]?.Value;
                                 var provider = item.Attributes["providerName"]?.Value;
-
                                 if (name.IsNullOrEmpty() || connstr.IsNullOrWhiteSpace()) continue;
-                                if (name.EqualIgnoreCase("LocalSqlServer", "LocalMySqlServer")) continue;
 
                                 var type = DbFactory.GetProviderType(connstr, provider);
                                 if (type == null) XTrace.WriteLine("无法识别{0}的提供者{1}！", name, provider);
 
-                                cs.Add(name, connstr);
-                                _connTypes.Add(name, type);
+                                cs[name] = connstr;
+                                _connTypes[name] = type;
                             }
                         }
                     }
+
+                    // 联合使用 appsettings.json
+                    file = "appsettings.json".GetFullPath();
+                    if (File.Exists(file))
+                    {
+                        var dic = new JsonParser(File.ReadAllText(file)).Decode() as IDictionary<String, Object>;
+                        dic = dic?["ConnectionStrings"] as IDictionary<String, Object>;
+                        if (dic != null && dic.Count > 0)
+                        {
+                            foreach (var item in dic)
+                            {
+                                var name = item.Key;
+                                var ds = item.Value as IDictionary<String, Object>;
+                                if (name.IsNullOrEmpty() || ds == null) continue;
+
+                                var connstr = ds["connectionString"] + "";
+                                var provider = ds["providerName"] + "";
+                                if (connstr.IsNullOrWhiteSpace()) continue;
+
+                                var type = DbFactory.GetProviderType(connstr, provider);
+                                if (type == null) XTrace.WriteLine("无法识别{0}的提供者{1}！", name, provider);
+
+                                cs[name] = connstr;
+                                _connTypes[name] = type;
+                            }
+                        }
+                    }
+
                     _connStrs = cs;
                 }
                 return _connStrs;
