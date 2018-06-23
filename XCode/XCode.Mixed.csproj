@@ -165,7 +165,10 @@
     <Compile Remove="发布NuGet.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Remove="Stub\**" />
+    <EmbeddedResource Remove="Stub\**" />
     <None Remove="*.log" />
+    <None Remove="Stub\**" />
     <None Remove="Build.tt" />
     <None Remove="DataAccessLayer\Database\Database.mdb" />
     <None Remove="Model.xml" />
@@ -176,9 +179,6 @@
     <Compile Remove="Sharding\**" />
     <EmbeddedResource Remove="Sharding\**" />
     <None Remove="Sharding\**" />
-    <Compile Remove="Stub\**" />
-    <EmbeddedResource Remove="Stub\**" />
-    <None Remove="Stub\**" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <Compile Remove="Code\EntityAssembly.cs" />
@@ -207,9 +207,6 @@
     <Compile Remove="Sharding\**" />
     <EmbeddedResource Remove="Sharding\**" />
     <None Remove="Sharding\**" />
-    <Compile Remove="Stub\**" />
-    <EmbeddedResource Remove="Stub\**" />
-    <None Remove="Stub\**" />
     <Compile Remove="Transform\IdentityExtracter.cs" />
     <Compile Remove="Transform\TimeSpanExtracter.cs" />
 
