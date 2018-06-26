@@ -6,6 +6,7 @@ using System.IO.MemoryMappedFiles;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
 using NewLife.Caching;
 using NewLife.Log;
 using NewLife.Net;
@@ -39,7 +40,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test1();
+                    Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -111,53 +112,28 @@ namespace Test
 
         static void Test2()
         {
-            using (var mmf = MemoryMappedFile.CreateFromFile("mmf.db", FileMode.OpenOrCreate, "mmf", 1 << 10))
+            var file = "web.config".GetFullPath();
+            if (!File.Exists(file)) file = "{0}.config".F(AppDomain.CurrentDomain.FriendlyName).GetFullPath();
+
+            // 读取配置文件
+            var doc = new XmlDocument();
+            doc.Load(file);
+            var nodes = doc.SelectNodes("/configuration/connectionStrings/add");
+            foreach (XmlNode item in nodes)
             {
-                var ms = mmf.CreateViewStream(8, 64);
-                var str = ms.ReadArray().ToStr();
-                XTrace.WriteLine(str);
+                var name = item.Attributes["name"]?.Value;
+                var connstr = item.Attributes["connectionString"]?.Value;
+                var provider = item.Attributes["providerName"]?.Value;
 
-                str = "学无先后达者为师 " + DateTime.Now;
-                ms.Position = 0;
-                ms.WriteArray(str.GetBytes());
-                //ms.Flush();
-
-                //ms.Position = 0;
-                //str = ms.ReadArray().ToStr();
-                //Console.WriteLine(str);
+                Console.WriteLine($"name={name} connstr={connstr} provider={provider}");
             }
         }
 
         //private static TimerX _timer;
         static void Test3()
         {
-            var rds = Redis.Create(null, 0);
-            rds.Log = XTrace.Log;
-            //rds.Set("123", 456);
-            //rds.Set("abc", "def");
-            //var rs = rds.Remove("123", "abc");
-            //Console.WriteLine(rs);
-
-            var queue = rds.GetQueue<String>("q");
-            //var queue = Cache.Default.GetQueue<String>("q");
-
-            Console.WriteLine("入队：");
-            var ps = new List<String>();
-            for (var i = 0; i < 5; i++)
-            {
-                var str = Rand.NextString(6);
-                ps.Add(str);
-                Console.WriteLine(str);
-            }
-            queue.Add(ps);
-
-            Console.WriteLine();
-            Console.WriteLine("出队：");
-            var bs = queue.Take(5);
-            foreach (var item in bs)
-            {
-                Console.WriteLine(item);
-            }
+            var list = Role.FindAllWithCache();
+            Console.WriteLine(list.Count);
         }
 
         static void Test4()

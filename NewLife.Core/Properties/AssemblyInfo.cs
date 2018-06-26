@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // 特性集控制。更改这些特性值可修改
 // 与程序集关联的信息。
 [assembly: AssemblyTitle("组件核心库")]
-[assembly: AssemblyDescription("日志、网络、RPC、序列化、缓存、WindowsService")]
+[assembly: AssemblyDescription("日志、网络、RPC、序列化、缓存、Windows服务、线程池")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyProduct("NewLife.Core")]
 [assembly: AssemblyCompany("新生命开发团队")]
@@ -32,11 +32,12 @@ using System.Runtime.InteropServices;
 //
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
-// [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("7.0.*")]
-[assembly: AssemblyFileVersion("7.0.2018.0506")]
+[assembly: AssemblyVersion("7.3.*")]
+[assembly: AssemblyFileVersion("7.3.2018.0614")]
 
 /*
+ * v7.3.2018.0614   重构高性能资源池，减少GC压力，增加线程池，让异步任务得到平等竞争CPU的机会
+ * 
  * v7.0.2018.0506   重构第四代网络库，改进RPC框架
  * 
  * v6.7.2018.0421   网络库废除发送队列SendQueue

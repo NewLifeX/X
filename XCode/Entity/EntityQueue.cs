@@ -51,6 +51,7 @@ namespace XCode
         {
             Session = session;
             _Timer = new TimerX(Work, null, Period, Period, "EQ") { Async = true };
+            _Timer.CanExecute = () => DelayEntities.Any() || Entities.Any();
         }
         #endregion
 

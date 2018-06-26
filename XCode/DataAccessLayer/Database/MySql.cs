@@ -380,6 +380,11 @@ namespace XCode.DataAccessLayer
             return dt != null && dt.Rows != null && dt.Rows.Count > 0;
         }
 
+        public override String CreateDatabaseSQL(String dbname, String file)
+        {
+            return base.CreateDatabaseSQL(dbname, file)+ " DEFAULT CHARACTER SET utf8mb4";
+        }
+
         public override String DropDatabaseSQL(String dbname) => String.Format("Drop Database If Exists {0}", FormatName(dbname));
 
         public override String CreateTableSQL(IDataTable table)
@@ -416,6 +421,11 @@ namespace XCode.DataAccessLayer
             }
             sb.AppendLine();
             sb.Append(")");
+
+            // 引擎和编码
+            //sb.Append(" ENGINE=InnoDB");
+            sb.Append(" DEFAULT CHARSET=utf8mb4");
+            sb.Append(";");
 
             return sb.ToString();
         }

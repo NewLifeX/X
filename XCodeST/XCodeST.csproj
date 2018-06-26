@@ -4,30 +4,42 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>XCode</AssemblyName>
     <RootNamespace>XCode</RootNamespace>
-    <AssemblyTitle>大数据中间件</AssemblyTitle>
-    <Description>分布式大数据中间件</Description>
+    <AssemblyTitle>数据中间件</AssemblyTitle>
+    <Description>数据中间件、MySQL、SQLite、SqlServer、Oracle</Description>
     <Company>新生命开发团队</Company>
-    <Copyright>©2002-2018 新生命开发团队 http://www.NewLifeX.com</Copyright>
-    <FileVersion>9.7.2018.0512</FileVersion>
-    <AssemblyVersion>9.7.2018.0512</AssemblyVersion>
+    <Copyright>©2002-2018 新生命开发团队</Copyright>
+    <FileVersion>9.8.2018.0605</FileVersion>
+    <AssemblyVersion>9.8.*</AssemblyVersion>
+    <!--是否确定版本，false以支持*-->
+    <Deterministic>false</Deterministic>
+    <Version>9.8.2018.0605</Version>
+    <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DefineConstants>TRACE;RELEASE;NETSTANDARD2_0;__CORE__</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
     <OutputPath>..\..\Bin\</OutputPath>
     <DocumentationFile>..\..\Bin\netstandard2.0\XCode.xml</DocumentationFile>
-    <DefineConstants>TRACE;RELEASE;NETSTANDARD2_0;__CORE__</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0;__CORE__</DefineConstants>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
     <OutputPath>..\..\Bin\</OutputPath>
     <DocumentationFile>..\..\Bin\netstandard2.0\XCode.xml</DocumentationFile>
-    <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0;__CORE__</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Remove="Remoting\**" />
+    <Compile Remove="Stub\**" />
     <EmbeddedResource Remove="Remoting\**" />
+    <EmbeddedResource Remove="Stub\**" />
     <None Remove="Remoting\**" />
+    <None Remove="Stub\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -199,13 +211,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.0.2" />
-    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.0.2" />
-    <PackageReference Include="Microsoft.AspNetCore.Session" Version="2.0.2" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Xml" Version="2.0.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.0.0" />
     <PackageReference Include="System.Data.Common" Version="4.3.0" />
   </ItemGroup>
 

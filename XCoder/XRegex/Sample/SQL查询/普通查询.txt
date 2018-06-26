@@ -1,6 +1,0 @@
-﻿Select Top 5 CategoryID, Count(*) as ProductCount 
-From Product as XCode_Temp_1
-Where IsDelete=0
-Group By CategoryID
-Having Count(*)>10
-Order By Count(*) Desc

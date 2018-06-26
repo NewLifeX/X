@@ -880,14 +880,17 @@ namespace XCode
             return session.QueryCount(builder);
         }
 
-        /// <summary>执行SQL返回总记录数</summary>
-        /// <returns>总行数</returns>
-        public static Int32 FindCount(String sql)
-        {
-            var session = Meta.Session;
+        ///// <summary>执行SQL返回总记录数</summary>
+        ///// <returns>总行数</returns>
+        //public static Int32 FindCount(String sql)
+        //{
+        //    if (!sql.ToLower().Contains("select"))
+        //        return FindCount(sql, null, null, 0, 0);
 
-            return session.QueryCount(sql);
-        }
+        //    var session = Meta.Session;
+
+        //    return session.QueryCount(sql);
+        //}
         #endregion
 
         #region 获取查询SQL

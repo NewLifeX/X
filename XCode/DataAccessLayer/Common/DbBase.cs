@@ -319,6 +319,10 @@ namespace XCode.DataAccessLayer
 
 #if __CORE__
             linkName = "st_" + name;
+            if (!name.IsNullOrEmpty())
+            {
+                className = className + "," + name;//指定完全类型名可获取项目中添加了引用的类型，否则dll文件需要放在根目录
+            }
 #endif
 
             var type = PluginHelper.LoadPlugin(className, null, assemblyFile, linkName);
@@ -354,7 +358,7 @@ namespace XCode.DataAccessLayer
             if (type == null) return null;
 
             var asm = type.Assembly;
-            if (DAL.Debug) DAL.WriteLog("{2}驱动{0} 版本v{1}", asm.Location, asm.GetName().Version, className.TrimEnd("Client", "Factory"));
+            if (DAL.Debug) DAL.WriteLog("{2}驱动{0} 版本v{1}", asm.Location, asm.GetName().Version, name ?? className.TrimEnd("Client", "Factory"));
 
             var field = type.GetFieldEx("Instance");
             if (field == null) return Activator.CreateInstance(type) as DbProviderFactory;

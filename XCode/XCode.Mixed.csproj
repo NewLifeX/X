@@ -1,0 +1,215 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net40;net45;netstandard2.0</TargetFrameworks>
+    <!--nuget包设置start-->
+    <!--Nuget包ID-->
+    <PackageId>Newlife.XCode</PackageId>
+    <!--Nuget包版本-->
+    <PackageVersion>9.8.2018.0610</PackageVersion>
+    <!--<Version>$(AssemblyVersion)</Version>-->    
+    <Authors>新生命开发团队</Authors>
+    <!--Nuget包名称-->
+    <Title>大数据中间件</Title>
+    <Description>分布式大数据中间件</Description>
+    <Copyright>©2002-2018 新生命开发团队 http://www.NewLifeX.com</Copyright>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageLicenseUrl>http://www.newlifex.com/</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/NewLifeX</PackageProjectUrl>
+    <PackageIconUrl>http://www.NewLifeX.com/favicon.ico</PackageIconUrl>
+    <PackageTags>新生命团队;X组件;Newlife;XCode</PackageTags>
+    <PackageReleaseNotes>https://github.com/NewLifeX</PackageReleaseNotes>
+    <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <!--包含符号-->
+    <IncludeSymbols>true</IncludeSymbols>
+    <!--包含源码-->
+    <IncludeSource>true</IncludeSource>
+    <!--文件版本-->
+    <FileVersion>9.8.2018.0610</FileVersion>
+    <!--内部版本-->
+    <AssemblyVersion>9.8.*</AssemblyVersion>
+    <!--产品版本-->
+    <InformationalVersion>9.8.2018.0610</InformationalVersion>
+
+    <!--文件名-->
+    <AssemblyName>XCode</AssemblyName>
+    <!--文件显示名-->
+    <AssemblyTitle>大数据中间件</AssemblyTitle>
+    <RootNamespace>XCode</RootNamespace>
+    <Company>新生命开发团队</Company>
+    <Trademark>四叶草</Trademark>
+    <!--nuget包设置end-->
+    <Deterministic>false</Deterministic>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <OutputPath>..\..\Bin\</OutputPath>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+
+    <!-- https://docs.microsoft.com/zh-cn/nuget/reference/msbuild-targets#pack-target -->
+  </PropertyGroup>
+
+  <!--项目属性start-->
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)|$(TargetFramework)' == 'Debug|AnyCPU|net45'">
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <OutputPath>..\..\Bin\</OutputPath>
+    <DocumentationFile>..\..\Bin\net45\XCode.xml</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)|$(TargetFramework)' == 'Release|AnyCPU|net45'">
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <OutputPath>..\..\Bin\</OutputPath>
+    <DocumentationFile>..\..\Bin\net45\XCode.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)|$(TargetFramework)'=='Debug|AnyCPU|netstandard2.0'">
+    <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0;__CORE__</DefineConstants>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <OutputPath>..\..\Bin\</OutputPath>
+    <DocumentationFile>..\..\Bin\netstandard2.0\XCode.xml</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)|$(TargetFramework)'=='Release|AnyCPU|netstandard2.0'">
+    <DefineConstants>TRACE;RELEASE;NETSTANDARD2_0;__CORE__</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <OutputPath>..\..\Bin\</OutputPath>
+    <DocumentationFile>..\..\Bin\netstandard2.0\XCode.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)|$(TargetFramework)' == 'Debug|AnyCPU|net40'">
+    <DefineConstants>TRACE;DEBUG;NET4</DefineConstants>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <OutputPath>..\..\Bin\</OutputPath>
+    <DocumentationFile>..\..\Bin\net40\XCode.xml</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)|$(TargetFramework)' == 'Release|AnyCPU|net40'">
+    <DefineConstants>TRACE;NET4</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <OutputPath>..\..\Bin\</OutputPath>
+    <DocumentationFile>..\..\Bin\net40\XCode.xml</DocumentationFile>
+  </PropertyGroup>
+  <!--项目属性end-->
+
+  <!--包引用start-->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net45'">
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System" />
+    <Reference Include="System.configuration" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.XML" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.0.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.0.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Session" Version="2.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Xml" Version="2.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.0.0" />
+    <PackageReference Include="System.Data.Common" Version="4.3.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net40'">
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System" />
+    <Reference Include="System.configuration" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.XML" />
+  </ItemGroup>
+  <!--包引用end-->
+
+  <ItemGroup>
+    <ProjectReference Include="..\NewLife.Core\NewLife.Core.Mixed.csproj">
+      <Name>NewLife.Core</Name>
+    </ProjectReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Build.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </Content>
+    <Content Include="Model.xml" />
+    <Content Include="tools\install.ps1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+
+  <!--排除文件start-->
+  <!--全局排除的文件-->
+  <ItemGroup>
+    <Compile Remove="DataAccessLayer\Database\Distributed.cs" />
+    <Compile Remove="DataAccessLayer\Database\Firebird.cs" />
+    <Compile Remove="Entity\EntityList.cs" />
+    <Compile Remove="Entity\EntityListView.cs" />
+    <Compile Remove="Entity\IEntityList.cs" />
+    <Compile Remove="Properties\AssemblyInfo.cs" />
+    <Compile Remove="Remoting\ApiUserSession.cs" />
+    <Compile Remove="Transform\DataTransform.cs" />
+    <Compile Remove="发布NuGet.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Stub\**" />
+    <EmbeddedResource Remove="Stub\**" />
+    <None Remove="*.log" />
+    <None Remove="Stub\**" />
+    <None Remove="Build.tt" />
+    <None Remove="DataAccessLayer\Database\Database.mdb" />
+    <None Remove="Model.xml" />
+    <None Remove="tools\install.ps1" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net45'">
+    <Compile Remove="Sharding\**" />
+    <EmbeddedResource Remove="Sharding\**" />
+    <None Remove="Sharding\**" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <Compile Remove="Code\EntityAssembly.cs" />
+    <Compile Remove="DataAccessLayer\Database\Access.cs" />
+    <Compile Remove="DataAccessLayer\Database\SqlCe.cs" />
+    <Compile Remove="DataAccessLayer\MSPageSplit.cs" />
+    <Compile Remove="Events\**" />
+    <Compile Remove="Membership\MenuProvider.cs" />
+    <Compile Remove="Membership\访问统计.Biz.cs" />
+    <Compile Remove="Membership\访问统计.cs" />
+    <Compile Remove="PreApplicationStartCode.cs" />
+
+    <Compile Remove="Statistics\**" />
+    <EmbeddedResource Remove="Statistics\**" />
+    <None Remove="Statistics\**" />
+    <Compile Remove="Sync\**" />
+    <EmbeddedResource Remove="Sync\**" />
+    <None Remove="Sync\**" />
+    <Compile Remove="Transform\IdentityExtracter.cs" />
+    <Compile Remove="Transform\TimeSpanExtracter.cs" />
+    <Compile Remove="Web\**" />
+    <EmbeddedResource Remove="Web\**" />
+    <None Remove="Web\**" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net40'">
+    <Compile Remove="Sharding\**" />
+    <EmbeddedResource Remove="Sharding\**" />
+    <None Remove="Sharding\**" />
+    <Compile Remove="Transform\IdentityExtracter.cs" />
+    <Compile Remove="Transform\TimeSpanExtracter.cs" />
+
+  </ItemGroup>
+  <!--排除文件end-->
+</Project>

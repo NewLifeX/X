@@ -8,12 +8,12 @@ using XCode;
 // 有关程序集的常规信息通过下列属性集
 // 控制。更改这些属性值可修改
 // 与程序集关联的信息。
-[assembly: AssemblyTitle("大数据中间件")]
-[assembly: AssemblyDescription("分布式大数据中间件")]
+[assembly: AssemblyTitle("数据中间件")]
+[assembly: AssemblyDescription("数据中间件、MySQL、SQLite、SqlServer、Oracle")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyProduct("XCode")]
 [assembly: AssemblyCompany("新生命开发团队")]
-[assembly: AssemblyCopyright("©2002-2018 新生命开发团队 http://www.NewLifeX.com")]
+[assembly: AssemblyCopyright("©2002-2018 新生命开发团队")]
 [assembly: AssemblyTrademark("四叶草")]
 [assembly: AssemblyCulture("")]
 

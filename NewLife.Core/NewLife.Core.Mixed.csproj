@@ -1,0 +1,331 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net40;net45;netstandard2.0</TargetFrameworks>
+    <!--nuget包设置start-->
+    <!--Nuget包ID-->
+    <PackageId>NewLife.Core</PackageId>
+    <!--Nuget包版本-->
+    <PackageVersion>7.3.2018.0614</PackageVersion>
+    <Authors>新生命开发团队</Authors>
+    <!--Nuget包名称-->
+    <Title>组件核心库</Title>
+    <Description>日志、网络、RPC、序列化、缓存、WindowsService、日常开发中的各种基础功能</Description>
+    <Copyright>©2002-2018 新生命开发团队 http://www.NewLifeX.com</Copyright>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageLicenseUrl>http://www.newlifex.com/</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/NewLifeX</PackageProjectUrl>
+    <PackageIconUrl>http://www.NewLifeX.com/favicon.ico</PackageIconUrl>
+    <PackageTags>新生命团队;X组件;Newlife;NewLife.Core</PackageTags>
+    <PackageReleaseNotes>https://github.com/NewLifeX</PackageReleaseNotes>
+    <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <!--包含符号-->
+    <IncludeSymbols>true</IncludeSymbols>
+    <!--包含源码-->
+    <IncludeSource>true</IncludeSource>
+    <Company>新生命开发团队</Company>
+    <Trademark>四叶草</Trademark>
+    <!--nuget包设置end-->
+    <!--文件版本-->
+    <FileVersion>7.3.2018.0614</FileVersion>
+    <!--内部版本-->
+    <AssemblyVersion>7.3.*</AssemblyVersion>
+    <!--文件名-->
+    <AssemblyName>NewLife.Core</AssemblyName>
+    <!--文件显示名-->
+    <AssemblyTitle>组件核心库</AssemblyTitle>
+    <RootNamespace>NewLife</RootNamespace>
+    <!--是否确定版本，false以支持*-->
+    <Deterministic>false</Deterministic>
+    <!--构建的时候是否生成包-->
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <OutputPath>..\..\Bin\</OutputPath>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+ 
+    <!-- https://docs.microsoft.com/zh-cn/nuget/reference/msbuild-targets#pack-target -->
+  </PropertyGroup>
+
+  <!--项目属性start-->
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)|$(TargetFramework)' == 'Debug|AnyCPU|net45'">
+    <!--<PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">-->
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <OutputPath>..\..\Bin\</OutputPath>
+    <!--<AllowUnsafeBlocks>false</AllowUnsafeBlocks>-->
+    <DocumentationFile>..\..\Bin\net45\NewLife.Core.xml</DocumentationFile>
+    <!--<PlatformTarget>AnyCPU</PlatformTarget>-->
+    <!--<ErrorReport>prompt</ErrorReport>-->
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)|$(TargetFramework)' == 'Release|AnyCPU|net45'">
+    <!--<PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">-->
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <OutputPath>..\..\Bin\</OutputPath>
+    <!--<AllowUnsafeBlocks>false</AllowUnsafeBlocks>-->
+    <DocumentationFile>..\..\Bin\net45\NewLife.Core.xml</DocumentationFile>
+    <!--<PlatformTarget>AnyCPU</PlatformTarget>-->
+    <!--<ErrorReport>prompt</ErrorReport>-->
+    <!--<TargetFrameworkVersion>v4.5</TargetFrameworkVersion>-->
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)|$(TargetFramework)'=='Debug|AnyCPU|netstandard2.0'">
+    <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0;__CORE__</DefineConstants>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <OutputPath>..\..\Bin</OutputPath>
+    <DocumentationFile>..\..\Bin\netstandard2.0\NewLife.Core.xml</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)|$(TargetFramework)'=='Release|AnyCPU|netstandard2.0'">
+    <DefineConstants>TRACE;RELEASE;NETSTANDARD2_0;__CORE__</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <OutputPath>..\..\Bin</OutputPath>
+    <DocumentationFile>..\..\Bin\netstandard2.0\NewLife.Core.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)|$(TargetFramework)' == 'Debug|AnyCPU|net40'">
+    <DefineConstants>TRACE;DEBUG;NET4</DefineConstants>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <OutputPath>..\..\Bin\</OutputPath>
+    <!--<AllowUnsafeBlocks>false</AllowUnsafeBlocks>-->
+    <DocumentationFile>..\..\Bin\net40\NewLife.Core.xml</DocumentationFile>
+    <!--<DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>-->
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)|$(TargetFramework)' == 'Release|AnyCPU|net40'">
+    <DefineConstants>TRACE;NET4</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <OutputPath>..\..\Bin\</OutputPath>
+    <!--<AllowUnsafeBlocks>false</AllowUnsafeBlocks>-->
+    <DocumentationFile>..\..\Bin\net40\NewLife.Core.xml</DocumentationFile>
+    <!--<Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>-->
+  </PropertyGroup>
+  <!--项目属性end-->
+
+
+  <!--包引用start-->
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0' ">
+    <PackageReference Include="System.Collections.Concurrent" Version="4.3.0" />
+    <PackageReference Include="System.Diagnostics.Debug" Version="4.3.0" />
+    <PackageReference Include="System.Linq" Version="4.3.0" />
+    <PackageReference Include="System.Reflection" Version="4.3.0" />
+    <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net45'">
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.VisualBasic" />
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Speech" />
+    <Reference Include="System.Security" />
+
+    <Reference Include="System.ServiceProcess" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="System.Collections.Specialized" Version="4.3.0" />
+    <PackageReference Include="System.Diagnostics.Process" Version="4.3.0" />
+    <PackageReference Include="System.Drawing.Common">
+      <Version>4.5.0</Version>
+    </PackageReference>
+    <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
+    <PackageReference Include="System.Net.NetworkInformation" Version="4.3.0" />
+    <PackageReference Include="System.Security.Cryptography.Algorithms">
+      <Version>4.3.1</Version>
+    </PackageReference>
+    <PackageReference Include="System.Threading.Thread" Version="4.3.0" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net40'">
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Runtime.Caching" />
+    <Reference Include="System.ServiceProcess" />
+    <Reference Include="System.Speech" />
+
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+  </ItemGroup>
+  <!--包引用end-->
+
+
+  <!--排除文件start-->
+  <!--全局排除的文件-->
+  <ItemGroup>
+    <Compile Remove="Agent\Interactive.cs" />
+    <Compile Remove="Caching\CacheSetting.cs" />
+    <Compile Remove="Caching\RedisLock.cs" />
+    <Compile Remove="Collections\LinkList.cs" />
+    <Compile Remove="Collections\LinkNode.cs" />
+    <Compile Remove="Collections\ListBase.cs" />
+    <Compile Remove="Collections\SingleListNode.cs" />
+    <Compile Remove="Common\HardInfo.cs" />
+    <Compile Remove="Exceptions\CodecException.cs" />
+    <Compile Remove="Exceptions\DecoderException.cs" />
+    <Compile Remove="Exceptions\EncoderException.cs" />
+    <Compile Remove="Http\HttpClient.cs" />
+    <Compile Remove="Http\HttpSession.cs" />
+    <Compile Remove="Net\DefaultPacket.cs" />
+    <Compile Remove="Net\IPacket.cs" />
+    <Compile Remove="Net\IProtocol.cs" />
+    <Compile Remove="Net\IStatistics.cs" />
+    <Compile Remove="Security\AsnKeyBuilder.cs" />
+    <Compile Remove="Security\AsnKeyParser.cs" />
+    <Compile Remove="Security\BerDecodeError.cs" />
+    <Compile Remove="Security\BigInteger.cs" />
+    <Compile Remove="Serialization\Json\JsonIgnoreAttribute.cs" />
+    <Compile Remove="Web\Css.cs" />
+    <Compile Remove="Xml\XmlEntity.cs" />
+    <None Remove="Net\Readme.md" />
+    <Compile Remove="Net\SendQueue.cs" />
+    <Compile Remove="Net\Statistics.cs" />
+    <Compile Remove="Net\WebSocketSession.cs" />
+    <Compile Remove="Properties\AssemblyInfo.cs" />
+    <Compile Remove="Reflection\ApiHook.cs" />
+    <Compile Remove="Reflection\AsmX86.cs" />
+    <Compile Remove="Reflection\EmitReflect.cs" />
+    <Compile Remove="Reflection\Func.cs" />
+    <Compile Remove="Reflection\IL\**" />
+    <Compile Remove="Reflection\快速反射\**" />
+    <EmbeddedResource Remove="Reflection\IL\**" />
+    <EmbeddedResource Remove="Reflection\快速反射\**" />
+    <None Remove="Reflection\IL\**" />
+    <None Remove="Reflection\快速反射\**" />
+    <Compile Remove="Remoting\BinaryEncoder.cs" />
+    <Compile Remove="Remoting\Filters\ActionExecutedContext.cs" />
+    <Compile Remove="Remoting\Filters\ActionExecutingContext.cs" />
+    <Compile Remove="Remoting\Filters\ActionFilterAttribute.cs" />
+    <Compile Remove="Remoting\Filters\ApiFilterContext.cs" />
+    <Compile Remove="Remoting\Filters\DeflateFilter.cs" />
+    <Compile Remove="Remoting\Filters\ExceptionContext.cs" />
+    <Compile Remove="Remoting\Filters\FilterAttribute.cs" />
+    <Compile Remove="Remoting\Filters\GlobalFilters.cs" />
+    <Compile Remove="Remoting\Filters\HandleErrorAttribute.cs" />
+    <Compile Remove="Remoting\Filters\IExceptionFilter.cs" />
+    <Compile Remove="Remoting\Filters\RC4Filter.cs" />
+    <Compile Remove="Remoting\AllowAnonymousAttribute.cs" />
+    <Compile Remove="Remoting\ApiHttpClient.cs" />
+    <Compile Remove="Remoting\ApiHttpServer.cs" />
+    <Compile Remove="Remoting\ApiNetClient.cs" />
+    <Compile Remove="Remoting\Controllers\ApiSession.cs" />
+    <Compile Remove="Remoting\IApiClient.cs" />
+    <Compile Remove="Remoting\IUserSession.cs" />
+    <Compile Remove="Serialization\Json\JsonAtomStringReader.cs" />
+    <Compile Remove="Serialization\Json\SimpleJsonUtil.cs" />
+    <Compile Remove="Web\ControlHelper.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net45'">
+    <Compile Remove="Stub\ScriptIgnoreAttribute.cs" />
+    <Compile Remove="Threading\AsyncMethodBuilderCore.cs" />
+    <Compile Remove="Threading\AsyncMethodTaskCache.cs" />
+    <Compile Remove="Threading\AsyncServices.cs" />
+    <Compile Remove="Threading\AsyncTaskMethodBuilder.cs" />
+    <Compile Remove="Threading\AsyncVoidMethodBuilder.cs" />
+    <Compile Remove="Threading\AwaitExtensions.cs" />
+    <Compile Remove="Threading\ConfiguredTaskAwaitable.cs" />
+    <Compile Remove="Threading\ExecutionContextLightup.cs" />
+    <Compile Remove="Threading\IAsyncMethodBuilder.cs" />
+    <Compile Remove="Threading\IAsyncStateMachine.cs" />
+    <Compile Remove="Threading\ICriticalNotifyCompletion.cs" />
+    <Compile Remove="Threading\INotifyCompletion.cs" />
+    <Compile Remove="Threading\Lightup.cs" />
+    <Compile Remove="Threading\LightupServices.cs" />
+    <Compile Remove="Threading\LightupType.cs" />
+    <Compile Remove="Threading\TaskAwaiter.cs" />
+    <Compile Remove="Threading\TaskEx.cs" />
+    <Compile Remove="Threading\TimerManager.cs" />
+    <Compile Remove="Threading\VoidTaskResult.cs" />
+    <Compile Remove="Threading\YieldAwaitable.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <Compile Remove="Agent\**" />
+    <Compile Remove="Common\CombGuid.cs" />
+    <Compile Remove="Configuration\CombConfig.cs" />
+    <Compile Remove="Configuration\Config.cs" />
+    <Compile Remove="Expressions\IndexInfo.cs" />
+    <Compile Remove="Expressions\MathExpression.cs" />
+    <Compile Remove="Expressions\RpnExpression.cs" />
+    <Compile Remove="Expressions\UnionExpresion.cs" />
+    <Compile Remove="Http\HttpCodec.cs" />
+    <Compile Remove="IO\FileSource.cs" />
+    <Compile Remove="Log\TextControlLog.cs" />
+    <Compile Remove="Net\SerialPortConfig.cs" />
+    <Compile Remove="Net\SerialTransport.cs" />
+    <Compile Remove="Reflection\DynamicInternal.cs" />
+    <Compile Remove="Reflection\DynamicXml.cs" />
+    <Compile Remove="Reflection\EmitHelper.cs" />
+    <Compile Remove="Reflection\PEImage.cs" />
+    <Compile Remove="Reflection\ScriptEngine.cs" />
+    <Compile Remove="Threading\AsyncMethodBuilderCore.cs" />
+    <Compile Remove="Threading\AsyncMethodTaskCache.cs" />
+    <Compile Remove="Threading\AsyncServices.cs" />
+    <Compile Remove="Threading\AsyncTaskMethodBuilder.cs" />
+    <Compile Remove="Threading\AsyncVoidMethodBuilder.cs" />
+    <Compile Remove="Threading\AwaitExtensions.cs" />
+    <Compile Remove="Threading\ConfiguredTaskAwaitable.cs" />
+    <Compile Remove="Threading\ExecutionContextLightup.cs" />
+    <Compile Remove="Threading\IAsyncMethodBuilder.cs" />
+    <Compile Remove="Threading\IAsyncStateMachine.cs" />
+    <Compile Remove="Threading\ICriticalNotifyCompletion.cs" />
+    <Compile Remove="Threading\INotifyCompletion.cs" />
+    <Compile Remove="Threading\Lightup.cs" />
+    <Compile Remove="Threading\LightupServices.cs" />
+    <Compile Remove="Threading\LightupType.cs" />
+    <Compile Remove="Threading\TaskAwaiter.cs" />
+    <Compile Remove="Threading\TaskEx.cs" />
+    <Compile Remove="Threading\TimerManager.cs" />
+    <Compile Remove="Threading\VoidTaskResult.cs" />
+    <Compile Remove="Threading\YieldAwaitable.cs" />
+    <Compile Remove="Web\Js.cs" />
+    <Compile Remove="Web\Modules\ErrorModule.cs" />
+    <Compile Remove="Web\Modules\CompressionModule.cs" />
+    <Compile Remove="Web\Modules\RunTimeModule.cs" />
+    <Compile Remove="Web\WebDownload.cs" />
+    <Compile Remove="Windows\ControlHelper.cs" />
+    <Compile Remove="Windows\MySpeech.cs" />
+    <Compile Remove="Windows\SerialPortList.cs" />
+    <Compile Remove="Windows\SerialPortList.designer.cs" />
+    <Compile Remove="Windows\SpeechRecognition.cs" />
+    <EmbeddedResource Remove="Windows\SerialPortList.resx" />
+    <Compile Remove="Yun\AMap.cs" />
+    <Compile Remove="Yun\BaiduMap.cs" />
+    <Compile Remove="Yun\Driving.cs" />
+    <Compile Remove="Yun\Map.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net40'">
+    <Compile Remove="Stub\ScriptIgnoreAttribute.cs" />
+  </ItemGroup>
+  <!--排除文件end-->
+
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+
+  <!--<Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />-->
+</Project>
