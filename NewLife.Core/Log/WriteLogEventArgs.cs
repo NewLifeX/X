@@ -106,7 +106,7 @@ namespace NewLife.Log
         /// <returns></returns>
         public override String ToString()
         {
-            if (Exception != null) Message += Exception.ToString();
+            if (Exception != null) Message += Exception.GetMessage();
 
             var name = ThreadName;
             if (name.IsNullOrEmpty()) name = TaskID >= 0 ? TaskID + "" : "-";
