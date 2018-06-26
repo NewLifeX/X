@@ -27,10 +27,7 @@ namespace XCode.DataAccessLayer
         #region 创建函数
         /// <summary>构造函数</summary>
         /// <param name="connName">配置名</param>
-        private DAL(String connName)
-        {
-            _ConnName = connName;
-        }
+        private DAL(String connName) => ConnName = connName;
 
         private Boolean _inited;
         private void Init()
@@ -40,7 +37,7 @@ namespace XCode.DataAccessLayer
             {
                 if (_inited) return;
 
-                var connName = _ConnName;
+                var connName = ConnName;
                 var css = ConnStrs;
                 //if (!css.ContainsKey(connName)) throw new XCodeException("请在使用数据库前设置[" + connName + "]连接字符串");
                 if (!css.ContainsKey(connName)) OnResolve?.Invoke(this, new ResolveEventArgs(connName));
@@ -55,8 +52,10 @@ namespace XCode.DataAccessLayer
                     AddConnStr(connName, connstr, null, "SQLite");
                 }
 
-                _ConnStr = css[connName];
-                if (_ConnStr.IsNullOrEmpty()) throw new XCodeException("请在使用数据库前设置[" + connName + "]连接字符串");
+                ConnStr = css[connName];
+                if (ConnStr.IsNullOrEmpty()) throw new XCodeException("请在使用数据库前设置[" + connName + "]连接字符串");
+
+                _inited = true;
             }
         }
         #endregion
@@ -216,7 +215,7 @@ namespace XCode.DataAccessLayer
                     WriteLog("[{0}]的连接字符串改变，准备重置！", connName);
 
                     var dal = Create(connName);
-                    dal._ConnStr = connStr;
+                    dal.ConnStr = connStr;
                     dal.Reset();
                 }
             }
@@ -231,12 +230,9 @@ namespace XCode.DataAccessLayer
         /// <param name="connStr">连接字符串</param>
         /// <param name="provider">数据库提供者</param>
         public static void RegisterDefault(String connName, String connStr, String provider) => _defs[connName] = new Tuple<String, String>(connStr, provider);
-        #endregion
-
-        #region 属性
-        private String _ConnName;
+       
         /// <summary>连接名</summary>
-        public String ConnName => _ConnName;
+        public String ConnName { get; }
 
         private Type _ProviderType;
         /// <summary>实现了IDatabase接口的数据库类型</summary>
@@ -244,7 +240,7 @@ namespace XCode.DataAccessLayer
         {
             get
             {
-                if (_ProviderType == null && _connTypes.ContainsKey(_ConnName)) _ProviderType = _connTypes[_ConnName];
+                if (_ProviderType == null && _connTypes.ContainsKey(ConnName)) _ProviderType = _connTypes[ConnName];
                 return _ProviderType;
             }
         }
@@ -260,29 +256,11 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        private String _ConnStr;
         /// <summary>连接字符串</summary>
         /// <remarks>
         /// 修改连接字符串将会清空<see cref="Db"/>
         /// </remarks>
-        public String ConnStr
-        {
-            get { return _ConnStr; }
-            //set
-            //{
-            //    if (_ConnStr != value)
-            //    {
-            //        if (!value.IsNullOrEmpty()) AddConnStr(_ConnName, value, null, null);
-
-            //        _ProviderType = null;
-            //        _Db = null;
-            //        _Tables = null;
-            //        _hasCheck = 0;
-            //        HasCheckTables.Clear();
-            //        _Assembly = null;
-            //    }
-            //}
-        }
+        public String ConnStr { get; private set; }
 
         private IDatabase _Db;
         /// <summary>数据库。所有数据库操作在此统一管理，强烈建议不要直接使用该属性，在不同版本中IDatabase可能有较大改变</summary>
@@ -296,11 +274,11 @@ namespace XCode.DataAccessLayer
                     if (_Db != null) return _Db;
 
                     var type = ProviderType;
-                    if (type == null) throw new XCodeException("无法识别{0}的数据提供者！", _ConnName);
+                    if (type == null) throw new XCodeException("无法识别{0}的数据提供者！", ConnName);
 
                     //!!! 重量级更新：经常出现链接字符串为127/master的连接错误，非常有可能是因为这里线程冲突，A线程创建了实例但未来得及赋值连接字符串，就被B线程使用了
                     var db = type.CreateInstance() as IDatabase;
-                    if (!_ConnName.IsNullOrEmpty()) db.ConnName = _ConnName;
+                    if (!ConnName.IsNullOrEmpty()) db.ConnName = ConnName;
                     if (!ConnStr.IsNullOrEmpty()) db.ConnectionString = DecodeConnStr(ConnStr);
 
                     _Db = db;
@@ -481,7 +459,7 @@ namespace XCode.DataAccessLayer
         /// <summary>检查数据表架构，不受反向工程启用开关限制，仅检查未经过常规检查的表</summary>
         public void CheckTables()
         {
-            var name = _ConnName;
+            var name = ConnName;
             WriteLog("开始检查连接[{0}/{1}]的数据库架构……", name, DbType);
 
             var sw = Stopwatch.StartNew();
@@ -544,7 +522,7 @@ namespace XCode.DataAccessLayer
         {
             get
             {
-                return _Assembly ?? (_Assembly = EntityAssembly.CreateWithCache(_ConnName, Tables));
+                return _Assembly ?? (_Assembly = EntityAssembly.CreateWithCache(ConnName, Tables));
             }
             set { _Assembly = value; }
         }
