@@ -62,6 +62,9 @@ namespace NewLife.Log
         /// <summary>销毁</summary>
         public void Dispose()
         {
+            // 销毁前把队列日志输出
+            if (_Logs != null && !_Logs.IsEmpty) WriteFile(null);
+
             var writer = LogWriter;
             if (writer != null)
             {
@@ -176,7 +179,6 @@ namespace NewLife.Log
         private readonly TimerX _Timer;
         private ConcurrentQueue<String> _Logs = new ConcurrentQueue<String>();
         private DateTime _NextClose;
-        //private DateTime _Today;
 
         /// <summary>写文件</summary>
         /// <param name="state"></param>
@@ -190,7 +192,6 @@ namespace NewLife.Log
             {
                 writer.TryDispose();
                 writer = null;
-                //_Today = now.Date;
             }
 
             if (_Logs.IsEmpty)
