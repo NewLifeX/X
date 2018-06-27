@@ -62,9 +62,10 @@ namespace NewLife.Log
         /// <summary>销毁</summary>
         public void Dispose()
         {
-            if (LogWriter != null)
+            var writer = LogWriter;
+            if (writer != null)
             {
-                LogWriter.Dispose();
+                writer.TryDispose();
                 LogWriter = null;
             }
         }
@@ -102,6 +103,7 @@ namespace NewLife.Log
 
         #region 内部方法
         private StreamWriter LogWriter;
+        private String CurrentLogFile;
 
         /// <summary>初始化日志记录文件</summary>
         private StreamWriter InitLog()
@@ -125,7 +127,7 @@ namespace NewLife.Log
 
             if (writer == null)
             {
-                logfile = Path.Combine(path, FileFormat.F(DateTime.Now));
+                logfile = Path.Combine(path, FileFormat.F(TimerX.Now));
                 var ext = Path.GetExtension(logfile);
                 var i = 0;
                 while (i < 10)
@@ -147,6 +149,7 @@ namespace NewLife.Log
                             logfile = logfile.Replace(ext, "_0" + ext);
                     }
                 }
+                CurrentLogFile = logfile;
             }
             if (writer == null) throw new XException("无法写入日志！");
 
@@ -173,20 +176,30 @@ namespace NewLife.Log
         private readonly TimerX _Timer;
         private ConcurrentQueue<String> _Logs = new ConcurrentQueue<String>();
         private DateTime _NextClose;
+        //private DateTime _Today;
 
         /// <summary>写文件</summary>
         /// <param name="state"></param>
         protected virtual void WriteFile(Object state)
         {
             var writer = LogWriter;
+
+            var now = TimerX.Now;
+            var logfile = Path.Combine(LogPath, FileFormat.F(now));
+            if (logfile != CurrentLogFile)
+            {
+                writer.TryDispose();
+                writer = null;
+                //_Today = now.Date;
+            }
+
             if (_Logs.IsEmpty)
             {
                 // 连续5秒没日志，就关闭
-                var now = TimerX.Now;
                 if (_NextClose < now)
                 {
-                    LogWriter = null;
                     writer.TryDispose();
+                    writer = null;
 
                     _NextClose = now.AddSeconds(5);
                 }
