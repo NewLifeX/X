@@ -112,10 +112,7 @@ namespace NewLife.Threading
 
         #region 构造
         /// <summary>实例化</summary>
-        public ThreadItem(ThreadPoolX host)
-        {
-            Host = host ?? throw new ArgumentNullException(nameof(host));
-        }
+        public ThreadItem(ThreadPoolX host) => Host = host ?? throw new ArgumentNullException(nameof(host));
 
         /// <summary>销毁</summary>
         /// <param name="disposing"></param>

@@ -358,8 +358,7 @@ namespace NewLife.Web
         /// <param name="data"></param>
         public virtual async Task<String> UploadJsonAsync(String address, Object data)
         {
-            var str = data as String;
-            if (str == null) str = data.ToJson();
+            if (!(data is String str)) str = data.ToJson();
 
             var ctx = new StringContent(str, Encoding, "application/json");
 
@@ -373,10 +372,7 @@ namespace NewLife.Web
         /// <summary>获取指定地址的Html，自动处理文本编码</summary>
         /// <param name="url"></param>
         /// <returns></returns>
-        public String GetHtml(String url)
-        {
-            return TaskEx.Run(() => DownloadStringAsync(url)).Result;
-        }
+        public String GetHtml(String url) => TaskEx.Run(() => DownloadStringAsync(url)).Result;
 
         /// <summary>获取指定地址的Html，分析所有超链接</summary>
         /// <param name="url"></param>
@@ -637,7 +633,7 @@ namespace NewLife.Web
         #endregion
 
         #region 连接池
-        private static Object SyncRoot = new Object();
+        private static readonly Object SyncRoot = new Object();
         private static WebClientPool _Pool;
         /// <summary>默认连接池</summary>
         public static IPool<WebClientX> Pool

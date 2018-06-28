@@ -145,7 +145,7 @@ namespace XCode.Cache
             // 控制只有一个线程能更新
             if (Interlocked.CompareExchange(ref _updating, 1, 0) != 0) return;
 
-            ThreadPoolX.QueueUserWorkItem(() => UpdateCache(reason));
+            ThreadPoolX.QueueUserWorkItem(UpdateCache, reason);
         }
 
         void UpdateCache(String reason)

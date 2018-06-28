@@ -2,12 +2,7 @@
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using NewLife.Collections;
-using NewLife.Threading;
-#if !NET4
-using TaskEx = System.Threading.Tasks.Task;
-#endif
+using System.Threading;
 
 namespace XCode
 {
@@ -54,10 +49,7 @@ namespace XCode
         #region 构造
         /// <summary>实例化实体模块集合</summary>
         /// <param name="entityType"></param>
-        public EntityModules(Type entityType)
-        {
-            EntityType = entityType;
-        }
+        public EntityModules(Type entityType) => EntityType = entityType;
         #endregion
 
         #region 方法
@@ -67,16 +59,13 @@ namespace XCode
         public virtual void Add(IEntityModule module)
         {
             // 异步添加实体模块，避免死锁。实体类一般在静态构造函数里面添加模块，如果这里同步初始化会非常危险
-            ThreadPoolX.QueueUserWorkItem(AddAsync, module);
+            ThreadPool.QueueUserWorkItem(s => AddAsync(module));
         }
 
         /// <summary>添加实体模块</summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public virtual void Add<T>() where T : IEntityModule, new()
-        {
-            Add(new T());
-        }
+        public virtual void Add<T>() where T : IEntityModule, new() => Add(new T());
 
         private void AddAsync(IEntityModule module)
         {
@@ -150,7 +139,7 @@ namespace XCode
         #endregion
 
         #region IEnumerable 成员
-        IEnumerator IEnumerable.GetEnumerator() { return Modules.GetEnumerator(); }
+        IEnumerator IEnumerable.GetEnumerator() => Modules.GetEnumerator();
         #endregion
     }
 
@@ -177,7 +166,7 @@ namespace XCode
         /// <summary>为指定实体类初始化模块，返回是否支持</summary>
         /// <param name="entityType"></param>
         /// <returns></returns>
-        protected virtual Boolean OnInit(Type entityType) { return true; }
+        protected virtual Boolean OnInit(Type entityType) => true;
 
         /// <summary>创建实体对象</summary>
         /// <param name="entity"></param>
@@ -204,7 +193,7 @@ namespace XCode
         /// <param name="entity"></param>
         /// <param name="isNew"></param>
         /// <returns></returns>
-        protected virtual Boolean OnValid(IEntity entity, Boolean isNew) { return true; }
+        protected virtual Boolean OnValid(IEntity entity, Boolean isNew) => true;
 
         /// <summary>删除实体对象</summary>
         /// <param name="entity"></param>
@@ -218,7 +207,7 @@ namespace XCode
         /// <summary>删除实体对象</summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        protected virtual Boolean OnDelete(IEntity entity) { return true; }
+        protected virtual Boolean OnDelete(IEntity entity) => true;
         #endregion
 
         #region 辅助

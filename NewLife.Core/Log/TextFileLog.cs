@@ -170,7 +170,7 @@ namespace NewLife.Log
         #endregion
 
         #region 异步写日志
-        private TimerX _Timer;
+        private readonly TimerX _Timer;
         private ConcurrentQueue<String> _Logs = new ConcurrentQueue<String>();
         private DateTime _NextClose;
 

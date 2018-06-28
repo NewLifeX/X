@@ -48,7 +48,7 @@ namespace NewLife.Json
                     XTrace.WriteLine("{0}的配置文件{1}有更新，重新加载配置！", typeof(TConfig), config.ConfigFile);
 
                     // 异步更新
-                    ThreadPoolX.QueueUserWorkItem(() => config.Load(dcf));
+                    ThreadPool.QueueUserWorkItem(s => config.Load(dcf));
 
                     return config;
                 }

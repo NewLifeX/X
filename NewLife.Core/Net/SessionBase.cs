@@ -323,7 +323,7 @@ namespace NewLife.Net
                 if (io)
                     ProcessReceive(se);
                 else
-                    ThreadPoolX.QueueUserWorkItem(() => ProcessReceive(se));
+                    ThreadPoolX.QueueUserWorkItem(ProcessReceive, se);
             }
 
             return true;
