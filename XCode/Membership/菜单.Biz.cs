@@ -12,11 +12,6 @@ using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Collections;
 using NewLife.Threading;
-#if NET4
-using System.Threading.Tasks;
-#else
-using TaskEx = System.Threading.Tasks.Task;
-#endif
 
 namespace XCode.Membership
 {

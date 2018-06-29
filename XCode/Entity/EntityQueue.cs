@@ -50,8 +50,6 @@ namespace XCode
         public EntityQueue(IEntitySession session)
         {
             Session = session;
-            _Timer = new TimerX(Work, null, Period, Period, "EQ") { Async = true };
-            _Timer.CanExecute = () => DelayEntities.Any() || Entities.Any();
         }
         #endregion
 
@@ -62,6 +60,19 @@ namespace XCode
         /// <returns>返回是否添加成功，实体对象已存在于队列中则返回false</returns>
         public Boolean Add(IEntity entity, Int32 msDelay)
         {
+            // 首次使用时初始化定时器
+            if (_Timer == null)
+            {
+                lock (this)
+                {
+                    if (_Timer == null)
+                    {
+                        _Timer = new TimerX(Work, null, Period, Period, "EQ") { Async = true };
+                        _Timer.CanExecute = () => DelayEntities.Any() || Entities.Any();
+                    }
+                }
+            }
+
             var rs = false;
             if (msDelay <= 0)
                 rs = Entities.TryAdd(entity, entity);
