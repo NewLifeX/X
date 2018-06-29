@@ -9,7 +9,8 @@ namespace NewLife.Web
     public class OAuthServer
     {
         #region 属性
-        private ICache Cache { get; } = NewLife.Caching.Cache.Default;
+        /// <summary>缓存</summary>
+        public ICache Cache { get; set; } = NewLife.Caching.Cache.Default;
 
         /// <summary>令牌提供者</summary>
         public TokenProvider TokenProvider { get; set; } = new TokenProvider();

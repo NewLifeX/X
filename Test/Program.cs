@@ -134,17 +134,25 @@ namespace Test
             //var list = Role.FindAllWithCache();
             //Console.WriteLine(list.Count);
 
-            var log = TextFileLog.Create(".", "{0:yyyy_MM_dd_HHmm}.log");
+            //var log = TextFileLog.Create(".", "{0:yyyy_MM_dd_HHmm}.log");
 
-            //ThreadPoolX.Instance.Pool.Log = XTrace.Log;
+            ////ThreadPoolX.Instance.Pool.Log = XTrace.Log;
 
-            for (int i = 0; i < 10000; i++)
+            //for (int i = 0; i < 10000; i++)
+            //{
+            //    //XTrace.WriteLine("T{0:n0}", i);
+            //    log.Info("T {0:n0}", i);
+
+            //    var n = Rand.Next(300, 3000);
+            //    Thread.Sleep(n);
+            //}
+
+            Log.Meta.Session.Dal.Db.ShowSQL = true;
+            for (var i = 0; i < 1000; i++)
             {
-                //XTrace.WriteLine("T{0:n0}", i);
-                log.Info("T {0:n0}", i);
+                LogProvider.Provider.WriteLog("aa", "bb", "cc");
 
-                var n = Rand.Next(300, 3000);
-                Thread.Sleep(n);
+                Thread.Sleep(1000);
             }
         }
 
