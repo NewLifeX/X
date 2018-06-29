@@ -51,6 +51,11 @@ namespace XCode.Membership
             // 不过这不是理由，同一个线程遇到同一个锁不会堵塞
             // 发生死锁的可能性是这里引发EnsureInit，而另一个线程提前引发EnsureInit拿到锁
             Meta.Factory.AdditionalFields.Add(__.Logins);
+
+            // 单对象缓存
+            var sc = Meta.SingleCache;
+            sc.FindSlaveKeyMethod = k => Find(__.Name, k);
+            sc.GetSlaveKeyMethod = e => e.Name;
         }
 
         /// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>
@@ -202,13 +207,10 @@ namespace XCode.Membership
         {
             if (id <= 0) return null;
 
-            if (Meta.Count >= 1000)
-                return Find(__.ID, id);
-            else // 实体缓存
-                return Meta.Cache.Find(e => e.ID == id);
+            if (Meta.Count < 1000) return Meta.Cache.Find(e => e.ID == id);
 
             // 实体缓存
-            //return Meta.SingleCache[id];
+            return Meta.SingleCache[id];
         }
 
         /// <summary>根据名称查找</summary>
@@ -218,10 +220,10 @@ namespace XCode.Membership
         {
             if (name.IsNullOrEmpty()) return null;
 
-            if (Meta.Count >= 1000)
-                return Find(__.Name, name);
-            else // 实体缓存
-                return Meta.Cache.Find(e => e.Name.EqualIgnoreCase(name));
+            if (Meta.Count < 1000) return Meta.Cache.Find(e => e.Name.EqualIgnoreCase(name));
+
+            // 单对象缓存
+            return Meta.SingleCache.GetItemWithSlaveKey(name) as TEntity;
         }
 
         /// <summary>根据邮箱地址查找</summary>
