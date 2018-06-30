@@ -306,64 +306,74 @@ namespace XCode.DataAccessLayer
         /// <summary>获取提供者工厂</summary>
         /// <param name="assemblyFile"></param>
         /// <param name="className"></param>
+        /// <param name="ignoreError"></param>
         /// <returns></returns>
-        protected static DbProviderFactory GetProviderFactory(String assemblyFile, String className)
+        public static DbProviderFactory GetProviderFactory(String assemblyFile, String className, Boolean ignoreError = false)
         {
-            var name = Path.GetFileNameWithoutExtension(assemblyFile);
-            var linkName = name;
-            if (Runtime.Is64BitProcess) linkName += "64";
-            var ver = Environment.Version;
-            if (ver.Major >= 4) linkName += "Fx" + ver.Major + ver.Minor;
-            // 有些数据库驱动不区分x86/x64，并且逐步以Fx4为主，所以来一个默认
-            linkName += ";" + name;
+            try
+            {
+                var name = Path.GetFileNameWithoutExtension(assemblyFile);
+                var linkName = name;
+                if (Runtime.Is64BitProcess) linkName += "64";
+                var ver = Environment.Version;
+                if (ver.Major >= 4) linkName += "Fx" + ver.Major + ver.Minor;
+                // 有些数据库驱动不区分x86/x64，并且逐步以Fx4为主，所以来一个默认
+                linkName += ";" + name;
 
 #if __CORE__
-            linkName = "st_" + name;
-            if (!name.IsNullOrEmpty())
-            {
-                className = className + "," + name;//指定完全类型名可获取项目中添加了引用的类型，否则dll文件需要放在根目录
-            }
+                linkName = "st_" + name;
+                if (!name.IsNullOrEmpty())
+                {
+                    className = className + "," + name;//指定完全类型名可获取项目中添加了引用的类型，否则dll文件需要放在根目录
+                }
 #endif
 
-            var type = PluginHelper.LoadPlugin(className, null, assemblyFile, linkName);
+                var type = PluginHelper.LoadPlugin(className, null, assemblyFile, linkName);
 
-            // 反射实现获取数据库工厂
-            var file = assemblyFile;
-            var plugin = NewLife.Setting.Current.GetPluginPath();
-            file = plugin.CombinePath(file);
-
-            // 如果还没有，就写异常
-            if (type == null)
-            {
-                if (assemblyFile.IsNullOrEmpty()) return null;
-                if (!File.Exists(file)) throw new FileNotFoundException("缺少文件" + file + "！", file);
-            }
-
-            if (type == null)
-            {
-                XTrace.WriteLine("驱动文件{0}无效或不适用于当前环境，准备删除后重新下载！", assemblyFile);
-
-                try
-                {
-                    File.Delete(file);
-                }
-                catch (UnauthorizedAccessException) { }
-                catch (Exception ex) { XTrace.Log.Error(ex.ToString()); }
-
-                type = PluginHelper.LoadPlugin(className, null, file, linkName);
+                // 反射实现获取数据库工厂
+                var file = assemblyFile;
+                var plugin = NewLife.Setting.Current.GetPluginPath();
+                file = plugin.CombinePath(file);
 
                 // 如果还没有，就写异常
-                if (!File.Exists(file)) throw new FileNotFoundException("缺少文件" + file + "！", file);
+                if (type == null)
+                {
+                    if (assemblyFile.IsNullOrEmpty()) return null;
+                    if (!File.Exists(file)) throw new FileNotFoundException("缺少文件" + file + "！", file);
+                }
+
+                if (type == null)
+                {
+                    XTrace.WriteLine("驱动文件{0}无效或不适用于当前环境，准备删除后重新下载！", assemblyFile);
+
+                    try
+                    {
+                        File.Delete(file);
+                    }
+                    catch (UnauthorizedAccessException) { }
+                    catch (Exception ex) { XTrace.Log.Error(ex.ToString()); }
+
+                    type = PluginHelper.LoadPlugin(className, null, file, linkName);
+
+                    // 如果还没有，就写异常
+                    if (!File.Exists(file)) throw new FileNotFoundException("缺少文件" + file + "！", file);
+                }
+                if (type == null) return null;
+
+                var asm = type.Assembly;
+                if (DAL.Debug) DAL.WriteLog("{2}驱动{0} 版本v{1}", asm.Location, asm.GetName().Version, name ?? className.TrimEnd("Client", "Factory"));
+
+                var field = type.GetFieldEx("Instance");
+                if (field == null) return Activator.CreateInstance(type) as DbProviderFactory;
+
+                return Reflect.GetValue(null, field) as DbProviderFactory;
             }
-            if (type == null) return null;
+            catch
+            {
+                if (ignoreError) return null;
 
-            var asm = type.Assembly;
-            if (DAL.Debug) DAL.WriteLog("{2}驱动{0} 版本v{1}", asm.Location, asm.GetName().Version, name ?? className.TrimEnd("Client", "Factory"));
-
-            var field = type.GetFieldEx("Instance");
-            if (field == null) return Activator.CreateInstance(type) as DbProviderFactory;
-
-            return Reflect.GetValue(null, field) as DbProviderFactory;
+                throw;
+            }
         }
 
         [DllImport("kernel32.dll")]

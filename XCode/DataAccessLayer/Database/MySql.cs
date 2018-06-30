@@ -27,7 +27,7 @@ namespace XCode.DataAccessLayer
                         //_Factory = GetProviderFactory("NewLife.MySql.dll", "NewLife.MySql.MySqlClientFactory") ??
                         //           GetProviderFactory("MySql.Data.dll", "MySql.Data.MySqlClient.MySqlClientFactory");
                         // MewLife.MySql 在开发过程中，数据驱动下载站点没有它的包，暂时不支持下载
-                        _Factory = GetProviderFactory(null, "NewLife.MySql.MySqlClientFactory") ??
+                        _Factory = GetProviderFactory(null, "NewLife.MySql.MySqlClientFactory", true) ??
                                   GetProviderFactory("MySql.Data.dll", "MySql.Data.MySqlClient.MySqlClientFactory");
                     }
                 }
@@ -382,7 +382,7 @@ namespace XCode.DataAccessLayer
 
         public override String CreateDatabaseSQL(String dbname, String file)
         {
-            return base.CreateDatabaseSQL(dbname, file)+ " DEFAULT CHARACTER SET utf8mb4";
+            return base.CreateDatabaseSQL(dbname, file) + " DEFAULT CHARACTER SET utf8mb4";
         }
 
         public override String DropDatabaseSQL(String dbname) => String.Format("Drop Database If Exists {0}", FormatName(dbname));

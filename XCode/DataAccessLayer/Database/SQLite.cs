@@ -35,7 +35,11 @@ namespace XCode.DataAccessLayer
                                 _Factory = GetProviderFactory("Mono.Data.Sqlite.dll", "Mono.Data.Sqlite.SqliteFactory");
                             else
                             {
-                                _Factory = GetProviderFactory(null, "Microsoft.Data.Sqlite.SqliteFactory");
+#if __CORE__
+                                _Factory = GetProviderFactory("Microsoft.Data.Sqlite.dll", "Microsoft.Data.Sqlite.SqliteFactory", true);
+#else
+                                //_Factory = GetProviderFactory(null, "Microsoft.Data.Sqlite.SqliteFactory");
+#endif
                                 if (_Factory == null) _Factory = GetProviderFactory("System.Data.SQLite.dll", "System.Data.SQLite.SQLiteFactory");
                             }
                         }
