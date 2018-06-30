@@ -33,7 +33,7 @@ using System.Runtime.InteropServices;
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("7.3.*")]
-[assembly: AssemblyFileVersion("7.3.2018.0614")]
+[assembly: AssemblyFileVersion("7.3.2018.0630")]
 
 /*
  * v7.3.2018.0614   重构高性能资源池，减少GC压力，增加线程池，让异步任务得到平等竞争CPU的机会
