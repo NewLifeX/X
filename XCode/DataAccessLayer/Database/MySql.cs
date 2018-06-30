@@ -40,6 +40,7 @@ namespace XCode.DataAccessLayer
         const String CharSet = "CharSet";
         const String AllowZeroDatetime = "Allow Zero Datetime";
         const String MaxPoolSize = "MaxPoolSize";
+        const String Sslmode = "Sslmode";
         protected override void OnSetConnectionString(ConnectionStringBuilder builder)
         {
             base.OnSetConnectionString(builder);
@@ -54,6 +55,9 @@ namespace XCode.DataAccessLayer
             //if (!builder.ContainsKey(AllowZeroDatetime)) builder[AllowZeroDatetime] = "True";
             // 默认最大连接数1000
             if (builder["Pooling"].ToBoolean()) builder.TryAdd(MaxPoolSize, "1000");
+
+            //如未设置Sslmode，默认为none
+            if (builder["Sslmode"] == null) builder.TryAdd(Sslmode, "none");
         }
         #endregion
 
