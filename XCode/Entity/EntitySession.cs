@@ -219,7 +219,7 @@ namespace XCode
                 if (DAL.Debug) DAL.WriteLog("等待初始化{0}数据{1:n0}ms失败 initThread={2}", ThisType.Name, ms, initThread);
                 return false;
             }
-            initThread = tid;
+            //initThread = tid;
             try
             {
                 // 已初始化
@@ -231,37 +231,43 @@ namespace XCode
                 else
                     name = String.Format("{0}#{1}@{2}", ThisType.Name, TableName, ConnName);
 
-                // 如果该实体类是首次使用检查模型，则在这个时候检查
-                try
+                var task = Task.Factory.StartNew(() =>
                 {
-                    CheckModel();
-                }
-                catch (Exception ex) { XTrace.WriteException(ex); }
+                    initThread = Thread.CurrentThread.ManagedThreadId;
 
-                //var init = Setting.Current.InitData;
-                var init = this == Default;
-                if (init)
-                {
-                    BeginTrans();
+                    // 如果该实体类是首次使用检查模型，则在这个时候检查
                     try
                     {
-                        if (Operate.Default is EntityBase entity)
-                        {
-                            entity.InitData();
-                            //// 异步执行初始化，只等一会，避免死锁
-                            //var task = TaskEx.Run(() => entity.InitData());
-                            //if (!task.Wait(ms) && DAL.Debug) DAL.WriteLog("{0}未能在{1:n0}ms内完成数据初始化 Task={2}", ThisType.Name, ms, task.Id);
-                        }
-
-                        Commit();
+                        CheckModel();
                     }
-                    catch (Exception ex)
+                    catch (Exception ex) { XTrace.WriteException(ex); }
+
+                    //var init = Setting.Current.InitData;
+                    var init = this == Default;
+                    if (init)
                     {
-                        if (XTrace.Debug) XTrace.WriteLine("初始化数据出错！" + ex.ToString());
+                        BeginTrans();
+                        try
+                        {
+                            if (Operate.Default is EntityBase entity)
+                            {
+                                entity.InitData();
+                                //// 异步执行初始化，只等一会，避免死锁
+                                //var task = TaskEx.Run(() => entity.InitData());
+                                //if (!task.Wait(ms) && DAL.Debug) DAL.WriteLog("{0}未能在{1:n0}ms内完成数据初始化 Task={2}", ThisType.Name, ms, task.Id);
+                            }
 
-                        Rollback();
+                            Commit();
+                        }
+                        catch (Exception ex)
+                        {
+                            if (XTrace.Debug) XTrace.WriteLine("初始化数据出错！" + ex.ToString());
+
+                            Rollback();
+                        }
                     }
-                }
+                });
+                task.Wait(3_000);
 
                 return true;
             }
@@ -519,7 +525,8 @@ namespace XCode
                 _NextCount = now.AddSeconds(60);
 
                 // 先拿到记录数再初始化，因为初始化时会用到记录数，同时也避免了死循环
-                WaitForInitData();
+                //WaitForInitData();
+                InitData();
 
                 return m;
             }
