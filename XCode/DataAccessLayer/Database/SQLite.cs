@@ -621,7 +621,7 @@ namespace XCode.DataAccessLayer
             return String.Format("Drop Index {0}", FormatName(index.Name));
         }
 
-        protected override String CheckColumnsChange(IDataTable entitytable, IDataTable dbtable, Migration mode)
+        protected override String CheckColumnsChange(IDataTable entitytable, IDataTable dbtable, Boolean onlySql, Boolean noDelete)
         {
             foreach (var item in entitytable.Columns)
             {
@@ -638,27 +638,30 @@ namespace XCode.DataAccessLayer
             }
 
             // 把onlySql设为true，让基类只产生语句而不执行
-            var sql = base.CheckColumnsChange(entitytable, dbtable, Migration.ReadOnly);
-            if (String.IsNullOrEmpty(sql)) return sql;
+            var sql = base.CheckColumnsChange(entitytable, dbtable, true, false);
+            if (sql.IsNullOrEmpty()) return sql;
 
             // 只有修改字段、删除字段需要重建表
             if (!sql.Contains("Alter Column") && !sql.Contains("Drop Column"))
             {
-                if (mode > Migration.ReadOnly) Database.CreateSession().Execute(sql);
-                return sql;
+                if (onlySql) return sql;
+
+                Database.CreateSession().Execute(sql);
+
+                return null;
             }
 
             var sql2 = sql;
 
             sql = ReBuildTable(entitytable, dbtable);
-            if (sql.IsNullOrEmpty() || mode == Migration.ReadOnly) return sql;
+            if (sql.IsNullOrEmpty() || onlySql) return sql;
 
             // 输出日志，说明重建表的理由
             WriteLog("SQLite需要重建表，因无法执行：{0}", sql2);
 
             var flag = true;
             // 如果设定不允许删
-            if (mode < Migration.Full)
+            if (noDelete)
             {
                 // 看看有没有数据库里面有而实体库里没有的
                 foreach (var item in dbtable.Columns)
@@ -671,9 +674,11 @@ namespace XCode.DataAccessLayer
                     }
                 }
             }
-            if (flag) Database.CreateSession().Execute(sql);
+            if (!flag) return sql;
 
-            return sql;
+            Database.CreateSession().Execute(sql);
+
+            return null;
         }
         #endregion
 
