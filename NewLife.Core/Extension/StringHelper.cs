@@ -117,6 +117,7 @@ namespace System
         /// <param name="nameValueSeparator">名值分隔符，默认等于号</param>
         /// <param name="separators">分组分隔符，默认逗号分号</param>
         /// <returns></returns>
+        [Obsolete]
         public static IDictionary<String, String> SplitAsDictionary(this String value, String nameValueSeparator = "=", params String[] separators)
         {
             var dic = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
@@ -136,6 +137,44 @@ namespace System
 
                 var key = item.Substring(0, p).Trim();
                 dic[key] = item.Substring(p + nameValueSeparator.Length).Trim();
+            }
+
+            return dic;
+        }
+
+        /// <summary>拆分字符串成为不区分大小写的可空名值字典。逗号分组，等号分隔</summary>
+        /// <param name="value">字符串</param>
+        /// <param name="nameValueSeparator">名值分隔符，默认等于号</param>
+        /// <param name="separator">分组分隔符，默认分号</param>
+        /// <param name="trimQuotation">去掉括号</param>
+        /// <returns></returns>
+        public static IDictionary<String, String> SplitAsDictionary(this String value, String nameValueSeparator = "=", String separator = ";", Boolean trimQuotation = false)
+        {
+            var dic = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+            if (value.IsNullOrWhiteSpace()) return dic;
+
+            if (nameValueSeparator.IsNullOrEmpty()) nameValueSeparator = "=";
+            //if (separator == null || separator.Length < 1) separator = new String[] { ",", ";" };
+
+            var ss = value.Split(new[] { separator }, StringSplitOptions.RemoveEmptyEntries);
+            if (ss == null || ss.Length < 1) return null;
+
+            foreach (var item in ss)
+            {
+                var p = item.IndexOf(nameValueSeparator);
+                if (p <= 0) continue;
+
+                var key = item.Substring(0, p).Trim();
+                var val = item.Substring(p + nameValueSeparator.Length).Trim();
+
+                // 处理单引号双引号
+                if (trimQuotation)
+                {
+                    if (val[0] == '\'' && val[val.Length - 1] == '\'') val = val.Trim('\'');
+                    if (val[0] == '"' && val[val.Length - 1] == '"') val = val.Trim('"');
+                }
+
+                dic[key] = val;
             }
 
             return dic;
@@ -163,7 +202,7 @@ namespace System
         /// <param name="separator">组合分隔符，默认逗号</param>
         /// <param name="func">把对象转为字符串的委托</param>
         /// <returns></returns>
-        public static String Join<T>(this IEnumerable<T> value, String separator = ",", Func<T, String> func = null)
+        public static String Join<T>(this IEnumerable<T> value, String separator = ",", Func<T, Object> func = null)
         {
             var sb = Pool.StringBuilder.Get();
             if (value != null)

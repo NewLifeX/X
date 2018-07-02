@@ -85,13 +85,12 @@ namespace XCode.DataAccessLayer
             // 尝试从连接字符串获取优先提供者
             if (!connStr.IsNullOrWhiteSpace())
             {
-                var dic = connStr.SplitAsDictionary("=", ";");
-                var finstProvider = dic["provider"];
-                if (finstProvider!=null)
+                var builder = new ConnectionStringBuilder(connStr);
+                if (builder.TryGetValue("provider", out var prv))
                 {
                     foreach (var item in iDatabases)
                     {
-                        if (item.Instance is IDatabase db && db.Support(finstProvider)) return item.Type;
+                        if (item.Instance is IDatabase db && db.Support(prv)) return item.Type;
                     }
                 }
             }

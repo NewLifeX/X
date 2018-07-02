@@ -57,7 +57,7 @@ namespace XCode.DataAccessLayer
             if (builder["Pooling"].ToBoolean()) builder.TryAdd(MaxPoolSize, "1000");
 
             //如未设置Sslmode，默认为none
-            if (builder["Sslmode"] == null) builder.TryAdd(Sslmode, "none");
+            if (builder[Sslmode] == null) builder.TryAdd(Sslmode, "none");
         }
         #endregion
 
