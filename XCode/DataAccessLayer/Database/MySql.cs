@@ -371,7 +371,7 @@ namespace XCode.DataAccessLayer
             //{ typeof(UInt64), new String[] { "BIT", "BIGINT UNSIGNED" } },
             { typeof(Single), new String[] { "FLOAT" } },
             { typeof(Double), new String[] { "DOUBLE" } },
-            { typeof(Decimal), new String[] { "DECIMAL" } },
+            { typeof(Decimal), new String[] { "DECIMAL({0}, {1})" } },
             { typeof(DateTime), new String[] { "DATETIME", "DATE", "TIMESTAMP", "TIME" } },
             { typeof(String), new String[] { "NVARCHAR({0})", "TEXT", "CHAR({0})", "NCHAR({0})", "VARCHAR({0})", "SET", "ENUM", "TINYTEXT", "TEXT", "MEDIUMTEXT", "LONGTEXT" } },
             { typeof(Boolean), new String[] { "TINYINT" } },

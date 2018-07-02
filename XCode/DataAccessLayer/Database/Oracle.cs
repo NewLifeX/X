@@ -782,7 +782,7 @@ namespace XCode.DataAccessLayer
             { typeof(Int64), new String[] { "NUMBER(20,0)" } },
             { typeof(Single), new String[] { "BINARY_FLOAT" } },
             { typeof(Double), new String[] { "BINARY_DOUBLE" } },
-            { typeof(Decimal), new String[] { "NUMBER", "FLOAT({0})" } },
+            { typeof(Decimal), new String[] { "NUMBER({0}, {1})", "FLOAT({0})" } },
             { typeof(DateTime), new String[] { "DATE", "TIMESTAMP({0})", "TIMESTAMP({0} WITH LOCAL TIME ZONE)", "TIMESTAMP({0} WITH TIME ZONE)" } },
             { typeof(String), new String[] { "VARCHAR2({0})", "NVARCHAR2({0})", "LONG", "CHAR({0})", "CLOB", "NCHAR({0})", "NCLOB", "XMLTYPE", "ROWID" } }
         };

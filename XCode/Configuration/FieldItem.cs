@@ -217,15 +217,15 @@ namespace XCode.Configuration
             if (col != null)
             {
                 dc.RawType = col.RawType;
-                //dc.Precision = col.Precision;
-                //dc.Scale = col.Scale;
+                dc.Precision = col.Precision;
+                dc.Scale = col.Scale;
             }
 
-            //// 特别处理，兼容旧版本
-            //if (dc.DataType == typeof(Decimal))
-            //{
-            //    if (dc.Precision == 0) dc.Precision = 18;
-            //}
+            // 特别处理，兼容旧版本
+            if (dc.DataType == typeof(Decimal))
+            {
+                if (dc.Precision == 0) dc.Precision = 18;
+            }
 
             dc.Length = Length;
             dc.Identity = IsIdentity;
