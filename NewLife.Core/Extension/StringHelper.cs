@@ -202,6 +202,26 @@ namespace System
         /// <param name="separator">组合分隔符，默认逗号</param>
         /// <param name="func">把对象转为字符串的委托</param>
         /// <returns></returns>
+        [Obsolete]
+        public static String Join<T>(this IEnumerable<T> value, String separator, Func<T, String> func)
+        {
+            var sb = Pool.StringBuilder.Get();
+            if (value != null)
+            {
+                if (func == null) func = obj => "{0}".F(obj);
+                foreach (var item in value)
+                {
+                    sb.Separate(separator).Append(func(item));
+                }
+            }
+            return sb.Put(true);
+        }
+
+        /// <summary>把一个列表组合成为一个字符串，默认逗号分隔</summary>
+        /// <param name="value"></param>
+        /// <param name="separator">组合分隔符，默认逗号</param>
+        /// <param name="func">把对象转为字符串的委托</param>
+        /// <returns></returns>
         public static String Join<T>(this IEnumerable<T> value, String separator = ",", Func<T, Object> func = null)
         {
             var sb = Pool.StringBuilder.Get();
