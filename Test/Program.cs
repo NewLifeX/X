@@ -148,6 +148,8 @@ namespace Test
             //}
 
             Log.Meta.Session.Dal.Db.ShowSQL = true;
+            Console.WriteLine(Log.Meta.Session.Dal.Db.ServerVersion);
+
             for (var i = 0; i < 1000; i++)
             {
                 LogProvider.Provider.WriteLog("aa", "bb", "cc");

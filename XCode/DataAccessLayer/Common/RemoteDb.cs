@@ -20,7 +20,18 @@ namespace XCode.DataAccessLayer
                 _ServerVersion = String.Empty;
 
                 var session = CreateSession() as RemoteDbSession;
-                ver = _ServerVersion = session.ProcessWithSystem(s => session.Conn.ServerVersion) as String;
+                ver = _ServerVersion = session.ProcessWithSystem(s =>
+                {
+                    var conn = Pool.Get();
+                    try
+                    {
+                        return conn.ServerVersion;
+                    }
+                    finally
+                    {
+                        Pool.Put(conn);
+                    }
+                }) as String;
 
                 return ver;
             }

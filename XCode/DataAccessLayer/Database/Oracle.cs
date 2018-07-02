@@ -849,16 +849,16 @@ namespace XCode.DataAccessLayer
             sb.AppendLine();
             sb.Append(")");
 
-            // 处理延迟段执行
-            if (Database is Oracle db)
-            {
-                var vs = db.ServerVersion.SplitAsInt(".");
-                if (vs.Length >= 4)
-                {
-                    var ver = new Version(vs[0], vs[1], vs[2], vs[3]);
-                    if (ver >= new Version(11, 2, 0, 1)) sb.Append(" SEGMENT CREATION IMMEDIATE");
-                }
-            }
+            //// 处理延迟段执行
+            //if (Database is Oracle db)
+            //{
+            //    var vs = db.ServerVersion.SplitAsInt(".");
+            //    if (vs.Length >= 4)
+            //    {
+            //        var ver = new Version(vs[0], vs[1], vs[2], vs[3]);
+            //        if (ver >= new Version(11, 2, 0, 1)) sb.Append(" SEGMENT CREATION IMMEDIATE");
+            //    }
+            //}
 
             var sql = sb.ToString();
             if (sql.IsNullOrEmpty()) return sql;
