@@ -1,9 +1,9 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 #if !__CORE__
 using System.Runtime.ConstrainedExecution;
-using System.Runtime.InteropServices;
 #endif
 using System.Security;
 #if !__MOBILE__ && !__CORE__
@@ -74,6 +74,23 @@ namespace NewLife
         }
         #endregion
 
+#if __CORE__
+
+        #region Linux
+        private static Boolean? _Linux;
+        /// <summary>是否Linux环境</summary>
+        public static Boolean Linux => RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+        #endregion
+
+        #region OSX
+        private static Boolean? _OSX;
+        /// <summary>是否OSX环境</summary>
+        public static Boolean OSX => RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
+        #endregion
+
+#endif
+
+
         #region 64位系统
         /// <summary>确定当前操作系统是否为 64 位操作系统。</summary>
         /// <returns>如果操作系统为 64 位操作系统，则为 true；否则为 false。</returns>
@@ -115,6 +132,19 @@ namespace NewLife
             }
         }
 #elif __CORE__
+        private static String _OSName;
+        /// <summary>操作系统</summary>
+        public static String OSName
+        {
+            get
+            {
+                if (_OSName != null) return _OSName;
+
+                _OSName = Environment.OSVersion + "";
+
+                return _OSName;
+            }
+        }
 #else
         private static String _OSName;
         /// <summary>操作系统</summary>
@@ -129,7 +159,7 @@ namespace NewLife
                 var is64 = Is64BitOperatingSystem;
                 var sys = "";
 
-                #region Win32
+        #region Win32
                 if (os.Platform == PlatformID.Win32Windows)
                 {
                     // 非NT系统
@@ -153,7 +183,7 @@ namespace NewLife
                     }
                     sys = "Windows " + sys;
                 }
-                #endregion
+        #endregion
                 else if (os.Platform == PlatformID.Win32NT)
                 {
                     sys = GetNTName(vs);
