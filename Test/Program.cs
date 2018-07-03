@@ -40,7 +40,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test3();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -69,7 +69,7 @@ namespace Test
             ThreadPool.GetAvailableThreads(out var ths, out var ths2);
             XTrace.WriteLine("({0}, {1}) ({2}, {3}) ({4}, {5})", min, min2, max, max2, ths, ths2);
 
-            //ThreadPoolX.Instance.Pool.Log = XTrace.Log;
+            ThreadPoolX.Instance.Pool.Log = XTrace.Log;
             var cpu = Environment.ProcessorCount;
             cpu += 5;
             for (var i = 0; i < cpu; i++)
@@ -87,6 +87,7 @@ namespace Test
             ThreadPool.GetAvailableThreads(out ths, out ths2);
             XTrace.WriteLine("({0}, {1}) ({2}, {3}) ({4}, {5})", min, min2, max, max2, ths, ths2);
 
+            cpu *= 3;
             for (var i = 0; i < cpu; i++)
             {
                 var idx = i;
