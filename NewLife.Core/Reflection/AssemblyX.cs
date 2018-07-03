@@ -622,7 +622,17 @@ namespace NewLife.Reflection
                 var asm = ReflectionOnlyLoadFrom(item, ver);
                 if (asm == null) continue;
 #else
-                var asm = Assembly.LoadFrom(item);
+
+                var asm = (Assembly)null;
+                try
+                {
+                    asm = Assembly.LoadFrom(item);
+                }
+                catch (Exception e)
+                {
+                    XTrace.WriteLine(e.ToString());
+                }
+
                 if (asm == null) continue;
 #endif
 
