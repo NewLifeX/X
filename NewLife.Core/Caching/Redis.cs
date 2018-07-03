@@ -35,7 +35,7 @@ namespace NewLife.Caching
             //适配多种配置连接字符
             else if (server.Contains(";") && pass.IsNullOrEmpty())
             {
-                var dic = server.SplitAsDictionary("=", ";");
+                var dic = server.SplitAsDictionary("=", ";", true);
                 pass = dic.ContainsKey("password") ? dic["password"] : "";
                 server = dic.ContainsKey("server") ? dic["server"] : "";
             }
@@ -65,7 +65,7 @@ namespace NewLife.Caching
         {
             if (config.IsNullOrEmpty()) return;
 
-            var dic = config.SplitAsDictionary("=", ";");
+            var dic = config.SplitAsDictionary("=", ";", true);
             if (dic.Count > 0)
             {
                 Server = dic["Server"];

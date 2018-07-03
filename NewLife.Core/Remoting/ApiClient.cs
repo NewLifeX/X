@@ -294,6 +294,9 @@ namespace NewLife.Remoting
         /// <summary>连接池</summary>
         public IPool<ISocketClient> Pool { get; private set; }
 
+        /// <summary>创建回调</summary>
+        public Action<ISocketClient> CreateCallback { get; set; }
+
         class MyPool : ObjectPool<ISocketClient>
         {
             public ApiClient Host { get; set; }
@@ -329,6 +332,7 @@ namespace NewLife.Remoting
                 try
                 {
                     var client = OnCreate(svr);
+                    CreateCallback?.Invoke(client);
                     client.Open();
 
                     return client;

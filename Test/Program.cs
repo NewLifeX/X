@@ -40,7 +40,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test3();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -69,7 +69,7 @@ namespace Test
             ThreadPool.GetAvailableThreads(out var ths, out var ths2);
             XTrace.WriteLine("({0}, {1}) ({2}, {3}) ({4}, {5})", min, min2, max, max2, ths, ths2);
 
-            //ThreadPoolX.Instance.Pool.Log = XTrace.Log;
+            ThreadPoolX.Instance.Pool.Log = XTrace.Log;
             var cpu = Environment.ProcessorCount;
             cpu += 5;
             for (var i = 0; i < cpu; i++)
@@ -87,6 +87,7 @@ namespace Test
             ThreadPool.GetAvailableThreads(out ths, out ths2);
             XTrace.WriteLine("({0}, {1}) ({2}, {3}) ({4}, {5})", min, min2, max, max2, ths, ths2);
 
+            cpu *= 3;
             for (var i = 0; i < cpu; i++)
             {
                 var idx = i;
@@ -131,29 +132,13 @@ namespace Test
 
         static void Test3()
         {
-            //var list = Role.FindAllWithCache();
-            //Console.WriteLine(list.Count);
+            var svr = new ApiServer(3344);
+            svr.Log = XTrace.Log;
+            svr.EncoderLog = XTrace.Log;
+            svr.StatPeriod = 5;
+            svr.Start();
 
-            //var log = TextFileLog.Create(".", "{0:yyyy_MM_dd_HHmm}.log");
-
-            ////ThreadPoolX.Instance.Pool.Log = XTrace.Log;
-
-            //for (int i = 0; i < 10000; i++)
-            //{
-            //    //XTrace.WriteLine("T{0:n0}", i);
-            //    log.Info("T {0:n0}", i);
-
-            //    var n = Rand.Next(300, 3000);
-            //    Thread.Sleep(n);
-            //}
-
-            Log.Meta.Session.Dal.Db.ShowSQL = true;
-            for (var i = 0; i < 1000; i++)
-            {
-                LogProvider.Provider.WriteLog("aa", "bb", "cc");
-
-                Thread.Sleep(1000);
-            }
+            Console.ReadKey(true);
         }
 
         static void Test4()

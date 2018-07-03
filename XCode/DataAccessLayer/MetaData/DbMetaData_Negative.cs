@@ -169,7 +169,8 @@ namespace XCode.DataAccessLayer
             }
             else
             {
-                var sql = CheckColumnsChange(entitytable, dbtable, mode);
+                var noDelete = mode < Migration.Full;
+                var sql = CheckColumnsChange(entitytable, dbtable, onlySql, noDelete);
                 if (!String.IsNullOrEmpty(sql)) sql += ";";
                 sql += CheckTableDescriptionAndIndex(entitytable, dbtable, mode);
                 if (!sql.IsNullOrEmpty()) WriteLog("只检查不对数据库进行操作,请手工使用以下语句修改表：" + Environment.NewLine + sql);
@@ -179,12 +180,13 @@ namespace XCode.DataAccessLayer
         /// <summary>检查字段改变。某些数据库（如SQLite）没有添删改字段的DDL语法，可重载该方法，使用重建表方法ReBuildTable</summary>
         /// <param name="entitytable"></param>
         /// <param name="dbtable"></param>
-        /// <param name="mode"></param>
+        /// <param name="onlySql"></param>
+        /// <param name="noDelete"></param>
         /// <returns></returns>
-        protected virtual String CheckColumnsChange(IDataTable entitytable, IDataTable dbtable, Migration mode)
+        protected virtual String CheckColumnsChange(IDataTable entitytable, IDataTable dbtable, Boolean onlySql, Boolean noDelete)
         {
-            var onlySql = mode <= Migration.ReadOnly;
-            var noDelete = mode < Migration.Full;
+            //var onlySql = mode <= Migration.ReadOnly;
+            //var noDelete = mode < Migration.Full;
 
             var sb = new StringBuilder();
             var etdic = entitytable.Columns.ToDictionary(e => e.ColumnName.ToLower(), e => e, StringComparer.OrdinalIgnoreCase);
@@ -225,8 +227,8 @@ namespace XCode.DataAccessLayer
                 var item = dbtable.Columns[i];
                 if (!etdic.ContainsKey(item.ColumnName.ToLower()))
                 {
-                    if (!String.IsNullOrEmpty(item.Description)) PerformSchema(sb, noDelete, DDLSchema.DropColumnDescription, item);
-                    PerformSchema(sbDelete, noDelete, DDLSchema.DropColumn, item);
+                    if (!String.IsNullOrEmpty(item.Description)) PerformSchema(sb, onlySql || noDelete, DDLSchema.DropColumnDescription, item);
+                    PerformSchema(sbDelete, onlySql || noDelete, DDLSchema.DropColumn, item);
                 }
             }
             if (sbDelete.Length > 0)
@@ -342,6 +344,8 @@ namespace XCode.DataAccessLayer
                 }
             }
             #endregion
+
+            if (!onlySql) return null;
 
             return sb.ToString();
         }
