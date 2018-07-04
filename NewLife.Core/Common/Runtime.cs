@@ -74,22 +74,30 @@ namespace NewLife
         }
         #endregion
 
-#if __CORE__
 
         #region Linux
         private static Boolean? _Linux;
         /// <summary>是否Linux环境</summary>
-        public static Boolean Linux => RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+        public static Boolean Linux =>
+#if __CORE__
+    RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+#else
+            false;
+#endif
+
         #endregion
 
         #region OSX
         private static Boolean? _OSX;
         /// <summary>是否OSX环境</summary>
-        public static Boolean OSX => RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
-        #endregion
-
+        public static Boolean OSX =>
+#if __CORE__
+    RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
+#else
+            false;
 #endif
 
+        #endregion
 
         #region 64位系统
         /// <summary>确定当前操作系统是否为 64 位操作系统。</summary>
