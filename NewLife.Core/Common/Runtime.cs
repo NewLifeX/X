@@ -32,6 +32,12 @@ namespace NewLife
 #if __MOBILE__ || __CORE__
                 _IsConsole = false;
 #else
+                if (Mono)
+                {
+                    _IsConsole = true;
+                    return _IsConsole.Value;
+                }
+
                 var ip = Win32Native.GetStdHandle(-11);
                 if (ip == IntPtr.Zero || ip == INVALID_HANDLE_VALUE)
                     _IsConsole = false;
@@ -73,8 +79,7 @@ namespace NewLife
             }
         }
         #endregion
-
-
+        
         #region Linux
         private static Boolean? _Linux;
         /// <summary>是否Linux环境</summary>
