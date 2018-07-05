@@ -202,7 +202,7 @@ namespace System
         /// <param name="separator">组合分隔符，默认逗号</param>
         /// <param name="func">把对象转为字符串的委托</param>
         /// <returns></returns>
-        [Obsolete]
+        //[Obsolete]
         public static String Join<T>(this IEnumerable<T> value, String separator, Func<T, String> func)
         {
             var sb = Pool.StringBuilder.Get();

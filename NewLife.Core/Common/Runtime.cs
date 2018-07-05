@@ -66,7 +66,7 @@ namespace NewLife
 #endif
         #endregion
 
-        #region Mono
+        #region 系统特性
         private static Boolean? _Mono;
         /// <summary>是否Mono环境</summary>
         public static Boolean Mono
@@ -78,30 +78,20 @@ namespace NewLife
                 return _Mono.Value;
             }
         }
-        #endregion
         
-        #region Linux
-        private static Boolean? _Linux;
         /// <summary>是否Linux环境</summary>
-        public static Boolean Linux =>
 #if __CORE__
-    RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+        public static Boolean Linux => RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
 #else
-            false;
+        public static Boolean Linux => false;
 #endif
 
-        #endregion
-
-        #region OSX
-        private static Boolean? _OSX;
         /// <summary>是否OSX环境</summary>
-        public static Boolean OSX =>
 #if __CORE__
-    RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
+        public static Boolean OSX => RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
 #else
-            false;
+        public static Boolean OSX => false;
 #endif
-
         #endregion
 
         #region 64位系统
