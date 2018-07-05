@@ -319,8 +319,9 @@ namespace NewLife.Remoting
         protected virtual ISocketClient OnCreate()
         {
             // 遍历所有服务，找到可用服务端
-            var ss = Servers.ToArray();
-            if (ss.Length == 0) throw new InvalidOperationException("没有设置服务端地址Servers");
+            var svrs = Servers;
+            if (svrs == null || svrs.Count == 0) throw new InvalidOperationException("没有设置服务端地址Servers");
+            var ss = svrs.ToArray();
 
             var idx = Interlocked.Increment(ref _index);
             Exception last = null;
