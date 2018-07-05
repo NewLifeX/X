@@ -320,7 +320,7 @@ namespace NewLife.Net
                         if (elm != item && elm.Port == 0) elm.Port = Port;
                     }
                 }
-                if (item.Port <= 0) WriteLog("开始监听 {0}", item);
+                /*if (item.Port <= 0)*/ WriteLog("开始监听 {0}", item);
             }
         }
 

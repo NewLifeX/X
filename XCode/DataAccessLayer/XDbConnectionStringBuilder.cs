@@ -18,7 +18,7 @@ namespace XCode.DataAccessLayer
 
         #region 构造
         /// <summary>实例化</summary>
-        public ConnectionStringBuilder(String connStr) => _dic = connStr.SplitAsDictionary("=", ";");
+        public ConnectionStringBuilder(String connStr) => _dic = connStr.SplitAsDictionary("=", ";", true);
         #endregion
 
         #region 连接字符串
@@ -27,6 +27,12 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 方法
+        /// <summary>获取连接字符串中的项</summary>
+        /// <param name="key"></param>
+        /// <param name="value">数值</param>
+        /// <returns></returns>
+        public Boolean TryGetValue(String key, out String value) => _dic.TryGetValue(key, out value);
+
         /// <summary>获取并删除连接字符串中的项</summary>
         /// <param name="key"></param>
         /// <param name="value">数值</param>

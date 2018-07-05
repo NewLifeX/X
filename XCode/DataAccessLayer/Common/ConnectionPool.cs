@@ -2,6 +2,7 @@
 using System.Data;
 using System.Data.Common;
 using NewLife.Collections;
+using NewLife.Log;
 
 namespace XCode.DataAccessLayer
 {
@@ -83,7 +84,10 @@ namespace XCode.DataAccessLayer
 
                     return value;
                 }
-                catch { }
+                catch (Exception e)
+                {
+                    XTrace.WriteLine($"处理DbConnection时出错：{e}");
+                }
             }
         }
 

@@ -40,7 +40,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test3();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -59,55 +59,53 @@ namespace Test
             }
         }
 
-        //private static Int32 ths = 0;
+        private static Int32 _count = 0;
         static void Test1()
         {
-            XTrace.WriteLine("线程池分配测试");
-
-            ThreadPool.GetMinThreads(out var min, out var min2);
-            ThreadPool.GetMaxThreads(out var max, out var max2);
-            ThreadPool.GetAvailableThreads(out var ths, out var ths2);
-            XTrace.WriteLine("({0}, {1}) ({2}, {3}) ({4}, {5})", min, min2, max, max2, ths, ths2);
-
-            //ThreadPoolX.Instance.Pool.Log = XTrace.Log;
-            var cpu = Environment.ProcessorCount;
-            cpu += 5;
-            for (var i = 0; i < cpu; i++)
-            {
-                var idx = i;
-                ThreadPoolX.QueueUserWorkItem(() =>
-                {
-                    XTrace.WriteLine("Item {0} Start", idx);
-                    Thread.Sleep(Rand.Next(100, 5000));
-                    XTrace.WriteLine("Item {0} End", idx);
-                });
-            }
-
-            Thread.Sleep(3000);
-            ThreadPool.GetAvailableThreads(out ths, out ths2);
-            XTrace.WriteLine("({0}, {1}) ({2}, {3}) ({4}, {5})", min, min2, max, max2, ths, ths2);
-
-            for (var i = 0; i < cpu; i++)
-            {
-                var idx = i;
-                ThreadPoolX.QueueUserWorkItem(() =>
-                {
-                    XTrace.WriteLine("Item {0} Start", idx);
-                    Thread.Sleep(Rand.Next(100, 5000));
-                    XTrace.WriteLine("Item {0} End", idx);
-                });
-            }
-            //Thread.Sleep(7000);
-
-            //ThreadPool.GetAvailableThreads(out ths, out ths2);
-            //XTrace.WriteLine("({0}, {1}) ({2}, {3}) ({4}, {5})", min, min2, max, max2, ths, ths2);
-
-            //var p = ThreadPoolX.Instance.Pool;
-            //for (var i = 0; i < 150; i++)
+            //for (var i = 0; i < 10000; i++)
             //{
-            //    Console.WriteLine("ThreadPoolX FreeCount={0} BusyCount={1}", p.FreeCount, p.BusyCount);
-            //    Thread.Sleep(1000);
+            //    var tt = new TimerTest();
+            //    //Thread.Sleep(10);
             //}
+            Parallel.For(0, 10000, async k =>
+            {
+                var tt = new TimerTest();
+                //await Task.Delay(5000);
+            });
+
+            for (var i = 0; i < 100; i++)
+            {
+                Console.WriteLine("_count={0}", _count);
+                Thread.Sleep(1000);
+
+                if (i == 5) GC.Collect();
+            }
+        }
+
+        static void Test1_1()
+        {
+
+        }
+
+        class TimerTest
+        {
+            private TimerX _timer;
+            public TimerTest()
+            {
+                _timer = new TimerX(Work, null, 1000, 1000);
+                Interlocked.Increment(ref _count);
+            }
+
+            ~TimerTest()
+            {
+                Interlocked.Decrement(ref _count);
+            }
+
+            private Byte[] _buf;
+            public void Work(Object state)
+            {
+                _buf = Rand.NextBytes(64 * 1024);
+            }
         }
 
         static void Test2()
@@ -131,18 +129,13 @@ namespace Test
 
         static void Test3()
         {
-            //var list = Role.FindAllWithCache();
-            //Console.WriteLine(list.Count);
+            var svr = new ApiServer(3344);
+            svr.Log = XTrace.Log;
+            svr.EncoderLog = XTrace.Log;
+            svr.StatPeriod = 5;
+            svr.Start();
 
-            ThreadPoolX.Instance.Pool.Log = XTrace.Log;
-
-            for (int i = 0; i < 10000; i++)
-            {
-                XTrace.WriteLine("T{0:n0}", i);
-
-                var n = Rand.Next(300, 3000);
-                Thread.Sleep(n);
-            }
+            Console.ReadKey(true);
         }
 
         static void Test4()

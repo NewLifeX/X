@@ -129,23 +129,44 @@ namespace XCode
                     var str = TableName;
 
                     // 检查自动表前缀
-                    var dal = DAL.Create(ConnName);
-                    var pf = dal.Db.TablePrefix;
+                    var db = Dal.Db;
+                    var pf = db.TablePrefix;
                     if (!pf.IsNullOrEmpty() && !str.StartsWithIgnoreCase(pf)) str = pf + str;
 
-                    str = Dal.Db.FormatName(str);
+                    str = db.FormatName(str);
 
                     // 特殊处理Oracle数据库，在表名前加上方案名（用户名）
                     if (!str.Contains("."))
                     {
                         // 角色名作为点前缀来约束表名，支持所有数据库
-                        var owner = dal.Db.Owner;
+                        var owner = db.Owner;
                         if (!owner.IsNullOrEmpty()) str = Dal.Db.FormatName(owner) + "." + str;
                     }
 
                     _FormatedTableName = str;
                 }
                 return _FormatedTableName;
+            }
+        }
+
+        private String _TableNameWithPrefix;
+        /// <summary>带前缀的表名</summary>
+        public virtual String TableNameWithPrefix
+        {
+            get
+            {
+                if (_TableNameWithPrefix.IsNullOrEmpty())
+                {
+                    var str = TableName;
+
+                    // 检查自动表前缀
+                    var db = Dal.Db;
+                    var pf = db.TablePrefix;
+                    if (!pf.IsNullOrEmpty() && !str.StartsWithIgnoreCase(pf)) str = pf + str;
+
+                    _TableNameWithPrefix = str;
+                }
+                return _TableNameWithPrefix;
             }
         }
 
@@ -198,7 +219,7 @@ namespace XCode
                 if (DAL.Debug) DAL.WriteLog("等待初始化{0}数据{1:n0}ms失败 initThread={2}", ThisType.Name, ms, initThread);
                 return false;
             }
-            initThread = tid;
+            //initThread = tid;
             try
             {
                 // 已初始化
@@ -210,37 +231,43 @@ namespace XCode
                 else
                     name = String.Format("{0}#{1}@{2}", ThisType.Name, TableName, ConnName);
 
-                // 如果该实体类是首次使用检查模型，则在这个时候检查
-                try
+                var task = Task.Factory.StartNew(() =>
                 {
-                    CheckModel();
-                }
-                catch (Exception ex) { XTrace.WriteException(ex); }
+                    initThread = Thread.CurrentThread.ManagedThreadId;
 
-                //var init = Setting.Current.InitData;
-                var init = this == Default;
-                if (init)
-                {
-                    BeginTrans();
+                    // 如果该实体类是首次使用检查模型，则在这个时候检查
                     try
                     {
-                        if (Operate.Default is EntityBase entity)
-                        {
-                            entity.InitData();
-                            //// 异步执行初始化，只等一会，避免死锁
-                            //var task = TaskEx.Run(() => entity.InitData());
-                            //if (!task.Wait(ms) && DAL.Debug) DAL.WriteLog("{0}未能在{1:n0}ms内完成数据初始化 Task={2}", ThisType.Name, ms, task.Id);
-                        }
-
-                        Commit();
+                        CheckModel();
                     }
-                    catch (Exception ex)
+                    catch (Exception ex) { XTrace.WriteException(ex); }
+
+                    //var init = Setting.Current.InitData;
+                    var init = this == Default;
+                    if (init)
                     {
-                        if (XTrace.Debug) XTrace.WriteLine("初始化数据出错！" + ex.ToString());
+                        BeginTrans();
+                        try
+                        {
+                            if (Operate.Default is EntityBase entity)
+                            {
+                                entity.InitData();
+                                //// 异步执行初始化，只等一会，避免死锁
+                                //var task = TaskEx.Run(() => entity.InitData());
+                                //if (!task.Wait(ms) && DAL.Debug) DAL.WriteLog("{0}未能在{1:n0}ms内完成数据初始化 Task={2}", ThisType.Name, ms, task.Id);
+                            }
 
-                        Rollback();
+                            Commit();
+                        }
+                        catch (Exception ex)
+                        {
+                            if (XTrace.Debug) XTrace.WriteLine("初始化数据出错！" + ex.ToString());
+
+                            Rollback();
+                        }
                     }
-                }
+                });
+                task.Wait(3_000);
 
                 return true;
             }
@@ -498,7 +525,8 @@ namespace XCode
                 _NextCount = now.AddSeconds(60);
 
                 // 先拿到记录数再初始化，因为初始化时会用到记录数，同时也避免了死循环
-                WaitForInitData();
+                //WaitForInitData();
+                InitData();
 
                 return m;
             }
@@ -547,7 +575,7 @@ namespace XCode
             // 100w数据时，没有预热Select Count需要3000ms，预热后需要500ms
             if (count < 500000)
             {
-                if (count <= 0) count = Dal.Session.QueryCountFast(FormatedTableName);
+                if (count <= 0) count = Dal.Session.QueryCountFast(TableNameWithPrefix);
 
                 // 查真实记录数，修正FastCount不够准确的情况
                 if (count < 10000000)
@@ -563,7 +591,7 @@ namespace XCode
             else
             {
                 // 异步查询弥补不足，千万数据以内
-                if (count < 10000000) count = Dal.Session.QueryCountFast(FormatedTableName);
+                if (count < 10000000) count = Dal.Session.QueryCountFast(TableNameWithPrefix);
             }
 
             return count;
@@ -709,7 +737,7 @@ namespace XCode
         /// <returns></returns>
         public Int32 Truncate()
         {
-            var rs = Dal.Session.Truncate(FormatedTableName);
+            var rs = Dal.Session.Truncate(TableNameWithPrefix);
 
             // 干掉所有缓存
             _cache?.Clear("Truncate");

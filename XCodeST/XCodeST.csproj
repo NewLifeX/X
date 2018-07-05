@@ -8,7 +8,7 @@
     <Description>数据中间件、MySQL、SQLite、SqlServer、Oracle</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2018 新生命开发团队</Copyright>
-    <FileVersion>9.8.2018.0605</FileVersion>
+    <FileVersion>9.8.2018.0630</FileVersion>
     <AssemblyVersion>9.8.*</AssemblyVersion>
     <!--是否确定版本，false以支持*-->
     <Deterministic>false</Deterministic>

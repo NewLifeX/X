@@ -28,7 +28,13 @@ namespace NewLife.Log
     /// <summary>计数器助手</summary>
     public static class CounterHelper
     {
-        private static readonly Double tickFrequency = (Double)typeof(Stopwatch).GetValue("tickFrequency");
+        private static readonly Double tickFrequency;
+        static CounterHelper()
+        {
+            var type = typeof(Stopwatch);
+            var fi = type.GetFieldEx("tickFrequency") ?? type.GetFieldEx("s_tickFrequency");
+            if (fi != null) tickFrequency = (Double)fi.GetValue(null);
+        }
 
         /// <summary>开始计时</summary>
         /// <param name="counter"></param>

@@ -294,6 +294,9 @@ namespace NewLife.Remoting
         /// <summary>连接池</summary>
         public IPool<ISocketClient> Pool { get; private set; }
 
+        /// <summary>创建回调</summary>
+        public Action<ISocketClient> CreateCallback { get; set; }
+
         class MyPool : ObjectPool<ISocketClient>
         {
             public ApiClient Host { get; set; }
@@ -316,8 +319,9 @@ namespace NewLife.Remoting
         protected virtual ISocketClient OnCreate()
         {
             // 遍历所有服务，找到可用服务端
-            var ss = Servers.ToArray();
-            if (ss.Length == 0) throw new InvalidOperationException("没有设置服务端地址Servers");
+            var svrs = Servers;
+            if (svrs == null || svrs.Count == 0) throw new InvalidOperationException("没有设置服务端地址Servers");
+            var ss = svrs.ToArray();
 
             var idx = Interlocked.Increment(ref _index);
             Exception last = null;
@@ -329,6 +333,7 @@ namespace NewLife.Remoting
                 try
                 {
                     var client = OnCreate(svr);
+                    CreateCallback?.Invoke(client);
                     client.Open();
 
                     return client;

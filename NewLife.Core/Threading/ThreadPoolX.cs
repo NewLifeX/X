@@ -100,6 +100,9 @@ namespace NewLife.Threading
     public class ThreadItem : DisposeBase
     {
         #region 属性
+        /// <summary>编号</summary>
+        public Int32 ID { get; private set; }
+
         /// <summary>线程</summary>
         public Thread Thread { get; private set; }
 
@@ -112,7 +115,22 @@ namespace NewLife.Threading
 
         #region 构造
         /// <summary>实例化</summary>
-        public ThreadItem(ThreadPoolX host) => Host = host ?? throw new ArgumentNullException(nameof(host));
+        public ThreadItem(ThreadPoolX host)
+        {
+            Host = host ?? throw new ArgumentNullException(nameof(host));
+
+            var th = Thread = new Thread(Work)
+            {
+                Name = "P",
+                IsBackground = true,
+                //Priority = ThreadPriority.AboveNormal,
+            };
+            waitForTimer = new AutoResetEvent(false);
+            ID = th.ManagedThreadId;
+
+            Active = true;
+            th.Start();
+        }
 
         /// <summary>销毁</summary>
         /// <param name="disposing"></param>
@@ -130,6 +148,10 @@ namespace NewLife.Threading
             }
             catch { }
         }
+
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override String ToString() => "P" + ID;
         #endregion
 
         #region 方法
@@ -137,28 +159,15 @@ namespace NewLife.Threading
         /// <param name="callback"></param>
         public void Execute(Action callback)
         {
-            var th = Thread;
-            if (th == null)
-            {
-                th = Thread = new Thread(Work)
-                {
-                    Name = "P",
-                    IsBackground = true,
-                    //Priority = ThreadPriority.AboveNormal,
-                };
-                waitForTimer = new AutoResetEvent(false);
-
-                Active = true;
-                th.Start();
-            }
-
             _callback = callback;
+            _state = 1;
 
             waitForTimer.Set();
         }
 
         private Action _callback;
         private AutoResetEvent waitForTimer;
+        private Int32 _state;
         private void Work()
         {
             while (Active)
@@ -177,11 +186,15 @@ namespace NewLife.Threading
                 _callback = null;
 
                 // 回到线程池里
-                Host.Pool.Put(this);
+                if (Interlocked.CompareExchange(ref _state, 0, 1) == 1 && !Host.Pool.Put(this)) break;
 
-                waitForTimer.Reset();
+                // 不能重置，如果外面先Set，这里再WaitOne，同样得到信号
+                //waitForTimer.Reset();
                 waitForTimer.WaitOne();
             }
+
+            // 销毁
+            Dispose();
         }
         #endregion
     }

@@ -77,7 +77,7 @@ namespace XCode.DataAccessLayer
                 }
                 name = sb.Put(true);
             }
-            else if (name != "ID" && (name == name.ToUpper() || name == name.ToLower()))
+            else if (name != "ID" && name.Length > 2 && (name == name.ToUpper() || name == name.ToLower()))
             {
                 name = name.Substring(0, 1).ToUpper() + name.Substring(1).ToLower();
             }
@@ -146,7 +146,17 @@ namespace XCode.DataAccessLayer
         /// <param name="table"></param>
         public virtual IDataTable Fix(IDataTable table)
         {
+            // 去除表名两端的空格
+            if (!table.TableName.IsNullOrEmpty()) table.TableName = table.TableName.Trim();
             if (table.Name.IsNullOrEmpty()) table.Name = GetName(table.TableName);
+            if (!table.Name.IsNullOrEmpty()) table.Name = table.Name.Trim();
+
+            // 去除字段名两端的空格
+            foreach (var item in table.Columns)
+            {
+                if (!item.Name.IsNullOrEmpty()) item.Name = item.Name.Trim();
+                if (!item.ColumnName.IsNullOrEmpty()) item.ColumnName = item.ColumnName.Trim();
+            }
 
             // 最后修复主键
             if (table.PrimaryKeys.Length < 1)
