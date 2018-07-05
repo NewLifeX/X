@@ -236,9 +236,17 @@ namespace NewLife.Threading
 
             try
             {
+                // 弱引用判断
+                var tc = timer.Callback;
+                if (tc == null || !tc.IsAlive)
+                {
+                    timer.Dispose();
+                    return;
+                }
+
                 //timer.Calling = true;
 
-                timer.Callback(timer.State ?? timer);
+                tc.Invoke(timer.State ?? timer);
             }
             catch (ThreadAbortException) { throw; }
             catch (ThreadInterruptedException) { throw; }
