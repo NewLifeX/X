@@ -106,8 +106,8 @@ namespace NewLife.Caching
             return ns;
         }
 
-        /// <summary>收发缓冲区。不支持收发超过64k的大包</summary>
-        private Byte[] _Buffer;
+        ///// <summary>收发缓冲区。不支持收发超过64k的大包</summary>
+        //private Byte[] _Buffer;
 
         private static Byte[] NewLine = new[] { (Byte)'\r', (Byte)'\n' };
 
@@ -122,9 +122,10 @@ namespace NewLife.Caching
             var ns = GetStream(!isQuit);
             if (ns == null) return null;
 
-            // 收发共用的缓冲区
-            var buf = _Buffer;
-            if (buf == null) _Buffer = buf = new Byte[64 * 1024];
+            //// 收发共用的缓冲区
+            //var buf = _Buffer;
+            //if (buf == null) _Buffer = buf = new Byte[64 * 1024];
+            var buf = new Byte[64 * 1024];
 
             // 干掉历史残留数据
             var count = 0;
@@ -195,7 +196,7 @@ namespace NewLife.Caching
                     if (ms.Length > 1400)
                     {
                         ms.WriteTo(ns);
-                        //重置memoryStream的长度
+                        // 重置memoryStream的长度
                         ms = new MemoryStream(buf);
                         // 从头开始
                         ms.SetLength(0);
