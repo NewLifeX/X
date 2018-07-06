@@ -236,6 +236,10 @@
     <Compile Include="..\NewLife.Core\Xml\XmlConfig.cs" Link="Xml\XmlConfig.cs" />
     <Compile Include="..\NewLife.Core\Xml\XmlConfigFileAttribute.cs" Link="Xml\XmlConfigFileAttribute.cs" />
     <Compile Include="..\NewLife.Core\Xml\XmlHelper.cs" Link="Xml\XmlHelper.cs" />
+    <Compile Include="..\NewLife.Core\Yun\AMap.cs" Link="Yun\AMap.cs" />
+    <Compile Include="..\NewLife.Core\Yun\BaiduMap.cs" Link="Yun\BaiduMap.cs" />
+    <Compile Include="..\NewLife.Core\Yun\Driving.cs" Link="Yun\Driving.cs" />
+    <Compile Include="..\NewLife.Core\Yun\Map.cs" Link="Yun\Map.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -268,6 +272,7 @@
     <Folder Include="Xml\" />
     <Folder Include="Http\" />
     <Folder Include="Caching\" />
+    <Folder Include="Yun\" />
   </ItemGroup>
 
 </Project>
