@@ -10,6 +10,17 @@ namespace NewLife.Threading
     public class ThreadPoolX : DisposeBase
     {
         #region 全局线程池助手
+        static ThreadPoolX()
+        {
+            // 在这个同步异步大量混合使用的时代，需要更多的初始线程来屏蔽各种对TPL的不合理使用
+            ThreadPool.GetMinThreads(out var wt, out var pt);
+            if (wt < 256) ThreadPool.SetMinThreads(256, 256);
+        }
+
+        /// <summary>初始化线程池
+        /// </summary>
+        public static void Init() { }
+
         /// <summary>带异常处理的线程池任务调度，不允许异常抛出，以免造成应用程序退出</summary>
         /// <param name="callback"></param>
         [DebuggerHidden]
@@ -17,19 +28,19 @@ namespace NewLife.Threading
         {
             if (callback == null) return;
 
-            //ThreadPool.UnsafeQueueUserWorkItem(s =>
-            //{
-            //    try
-            //    {
-            //        callback();
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        XTrace.WriteException(ex);
-            //    }
-            //}, null);
+            ThreadPool.UnsafeQueueUserWorkItem(s =>
+            {
+                try
+                {
+                    callback();
+                }
+                catch (Exception ex)
+                {
+                    XTrace.WriteException(ex);
+                }
+            }, null);
 
-            Instance.QueueWorkItem(callback);
+            //Instance.QueueWorkItem(callback);
         }
 
         /// <summary>带异常处理的线程池任务调度，不允许异常抛出，以免造成应用程序退出</summary>
@@ -40,19 +51,45 @@ namespace NewLife.Threading
         {
             if (callback == null) return;
 
-            Instance.QueueWorkItem(() => callback(state));
+            ThreadPool.UnsafeQueueUserWorkItem(s =>
+            {
+                try
+                {
+                    callback(state);
+                }
+                catch (Exception ex)
+                {
+                    XTrace.WriteException(ex);
+                }
+            }, null);
+
+            //Instance.QueueWorkItem(() => callback(state));
         }
         #endregion
 
         #region 静态实例
+        private static ThreadPoolX _Instance;
         /// <summary>静态实例</summary>
-        public static ThreadPoolX Instance { get; } = new ThreadPoolX();
+        public static ThreadPoolX Instance
+        {
+            get
+            {
+                if (_Instance == null)
+                {
+                    lock (typeof(ThreadPoolX))
+                    {
+                        if (_Instance == null) _Instance = new ThreadPoolX();
+                    }
+                }
+
+                return _Instance;
+            }
+        }
         #endregion
 
         #region 属性
         /// <summary>内部池</summary>
         public ObjectPool<ThreadItem> Pool { get; }
-
         #endregion
 
         #region 构造
