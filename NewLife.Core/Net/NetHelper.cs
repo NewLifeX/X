@@ -285,7 +285,11 @@ namespace System
                     var gw = item.GatewayAddresses.Count;
                     foreach (var elm in item.UnicastAddresses)
                     {
-                        if (elm.DuplicateAddressDetectionState != DuplicateAddressDetectionState.Preferred) continue;
+                        try
+                        {
+                            if (elm.DuplicateAddressDetectionState != DuplicateAddressDetectionState.Preferred) continue;
+                        }
+                        catch { }
 
                         dic.Add(elm, gw);
                     }
@@ -293,8 +297,9 @@ namespace System
             }
 
             // 带网关的接口地址很重要，优先返回
+            // Linux下不支持PrefixOrigin
             var ips = dic.OrderByDescending(e => e.Value)
-                .ThenByDescending(e => e.Key.PrefixOrigin == PrefixOrigin.Dhcp || e.Key.PrefixOrigin == PrefixOrigin.Manual)
+                //.ThenByDescending(e => e.Key.PrefixOrigin == PrefixOrigin.Dhcp || e.Key.PrefixOrigin == PrefixOrigin.Manual)
                 .Select(e => e.Key.Address).ToList();
 
             return ips;

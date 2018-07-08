@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Net.NetworkInformation;
 using System.Reflection;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Configuration;
 using NewLife.Log;
 using NewLife.Net;
 using NewLife.Remoting;
+using NewLife.Serialization;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 
@@ -60,6 +62,34 @@ namespace TestST
 
         static void Test3()
         {
+            foreach (var item in NetworkInterface.GetAllNetworkInterfaces())
+            {
+                Console.WriteLine("[{1}]<{3}> {0} {2}", item.Name, item.NetworkInterfaceType, item.GetPhysicalAddress(), item.GetIPProperties().GatewayAddresses.Count);
+                //if (item.OperationalStatus != OperationalStatus.Up) continue;
+
+                var ip = item.GetIPProperties();
+                if (ip != null && ip.UnicastAddresses.Count > 0)
+                {
+                    var gw = ip.GatewayAddresses.Count;
+                    foreach (var elm in ip.UnicastAddresses)
+                    {
+                        var pf = "";
+                        try
+                        {
+                            pf = elm.PrefixOrigin + "";
+                        }
+                        catch { }
+                        Console.WriteLine("\t[{0}] {1}", pf, elm.Address);
+                    }
+                }
+            }
+
+            Console.WriteLine();
+            Console.WriteLine(NetHelper.MyIP());
+
+            var ctrl = new ApiController();
+            Console.WriteLine(ctrl.Info().ToJson());
+
             var svr = new ApiServer(3344);
             svr.Log = XTrace.Log;
             svr.EncoderLog = XTrace.Log;
@@ -69,9 +99,9 @@ namespace TestST
             Console.ReadKey(true);
         }
 
-        static  void Test4()
+        static void Test4()
         {
-            
+
         }
     }
 }
