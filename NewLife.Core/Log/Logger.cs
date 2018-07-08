@@ -165,7 +165,7 @@ namespace NewLife.Log
             }
             var sb = new StringBuilder();
             sb.AppendFormat("#Software: {0}\r\n", name);
-            sb.AppendFormat("#ProcessID: {0}{1}\r\n", process.Id, Runtime.Is64BitProcess ? " x64" : "");
+            sb.AppendFormat("#ProcessID: {0}{1}\r\n", process.Id, Environment.Is64BitProcess ? " x64" : "");
             sb.AppendFormat("#AppDomain: {0}\r\n", AppDomain.CurrentDomain.FriendlyName);
 
             var fileName = String.Empty;

@@ -85,31 +85,6 @@ namespace NewLife
 #endif
         #endregion
 
-        #region 64位系统
-        /// <summary>确定当前操作系统是否为 64 位操作系统。</summary>
-        /// <returns>如果操作系统为 64 位操作系统，则为 true；否则为 false。</returns>
-        public static Boolean Is64BitOperatingSystem
-        {
-            [SecuritySafeCritical]
-            get
-            {
-                if (Is64BitProcess) return true;
-
-#if __MOBILE__ || NET4
-                return Environment.Is64BitOperatingSystem;
-#elif  __CORE__
-                return Is64BitProcess;
-#else
-                return Win32Native.DoesWin32MethodExist("kernel32.dll", "IsWow64Process") && Win32Native.IsWow64Process(Win32Native.GetCurrentProcess(), out var flag) && flag;
-#endif
-            }
-        }
-
-        /// <summary>确定当前进程是否为 64 位进程。</summary>
-        /// <returns>如果进程为 64 位进程，则为 true；否则为 false。</returns>
-        public static Boolean Is64BitProcess { get { return IntPtr.Size == 8; } }
-        #endregion
-
         #region 内存设置
 #if __MOBILE__
 #elif __CORE__
@@ -199,27 +174,6 @@ namespace NewLife
     {
         [DllImport("kernel32.dll", SetLastError = true)]
         internal static extern IntPtr GetStdHandle(Int32 nStdHandle);
-
-        [SecurityCritical]
-        internal static Boolean DoesWin32MethodExist(String moduleName, String methodName)
-        {
-            var moduleHandle = GetModuleHandle(moduleName);
-            if (moduleHandle == IntPtr.Zero) return false;
-            return GetProcAddress(moduleHandle, methodName) != IntPtr.Zero;
-        }
-
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail), DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        private static extern IntPtr GetModuleHandle(String moduleName);
-
-        [DllImport("kernel32.dll", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
-        private static extern IntPtr GetProcAddress(IntPtr hModule, String methodName);
-
-        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        internal static extern IntPtr GetCurrentProcess();
-
-        [return: MarshalAs(UnmanagedType.Bool)]
-        [DllImport("kernel32.dll", SetLastError = true)]
-        internal static extern Boolean IsWow64Process([In] IntPtr hSourceProcessHandle, [MarshalAs(UnmanagedType.Bool)] out Boolean isWow64);
 
         [DllImport("kernel32.dll")]
         internal static extern Boolean SetProcessWorkingSetSize(IntPtr proc, Int32 min, Int32 max);

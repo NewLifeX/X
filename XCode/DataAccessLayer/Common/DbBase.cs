@@ -32,7 +32,7 @@ namespace XCode.DataAccessLayer
 #endif
 
             // 根据进程版本，设定x86或者x64为DLL目录
-            var dir = root.CombinePath(!Runtime.Is64BitProcess ? "x86" : "x64");
+            var dir = root.CombinePath(!Environment.Is64BitProcess ? "x86" : "x64");
             //if (Directory.Exists(dir)) SetDllDirectory(dir);
             // 不要判断是否存在，因为可能目录还不存在，一会下载驱动后将创建目录
 #if __CORE__
@@ -43,7 +43,7 @@ namespace XCode.DataAccessLayer
 
 
             root = NewLife.Setting.Current.GetPluginPath();
-            dir = root.CombinePath(!Runtime.Is64BitProcess ? "x86" : "x64");
+            dir = root.CombinePath(!Environment.Is64BitProcess ? "x86" : "x64");
 #if __CORE__
             if (!Runtime.Mono && !Runtime.Linux) SetDllDirectory(dir);
 #else
@@ -323,7 +323,7 @@ namespace XCode.DataAccessLayer
             {
                 var name = Path.GetFileNameWithoutExtension(assemblyFile);
                 var linkName = name;
-                if (Runtime.Is64BitProcess) linkName += "64";
+                if (Environment.Is64BitProcess) linkName += "64";
                 var ver = Environment.Version;
                 if (ver.Major >= 4) linkName += "Fx" + ver.Major + ver.Minor;
                 // 有些数据库驱动不区分x86/x64，并且逐步以Fx4为主，所以来一个默认
