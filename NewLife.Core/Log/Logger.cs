@@ -177,7 +177,7 @@ namespace NewLife.Log
             }
             catch { }
 #endif
-            if (fileName.IsNullOrEmpty() || !fileName.EndsWithIgnoreCase("dotnet.exe"))
+            if (fileName.IsNullOrEmpty() || !fileName.EndsWithIgnoreCase("dotnet", "dotnet.exe"))
             {
                 try
                 {
@@ -187,7 +187,6 @@ namespace NewLife.Log
             }
             if (!fileName.IsNullOrEmpty()) sb.AppendFormat("#FileName: {0}\r\n", fileName);
 
-#if !__CORE__
             // 应用域目录
             var baseDir = AppDomain.CurrentDomain.BaseDirectory;
             sb.AppendFormat("#BaseDirectory: {0}\r\n", baseDir);
@@ -195,7 +194,7 @@ namespace NewLife.Log
             // 当前目录。如果由别的进程启动，默认的当前目录就是父级进程的当前目录
             var curDir = System.Environment.CurrentDirectory;
             //if (!curDir.EqualIC(baseDir) && !(curDir + "\\").EqualIC(baseDir))
-            if (!baseDir.EqualIgnoreCase(curDir, curDir + "\\"))
+            if (!baseDir.EqualIgnoreCase(curDir, curDir + "\\", curDir + "/"))
                 sb.AppendFormat("#CurrentDirectory: {0}\r\n", curDir);
 
             // 命令行不为空，也不是文件名时，才输出
@@ -203,7 +202,6 @@ namespace NewLife.Log
             var line = System.Environment.CommandLine;
             if (!line.IsNullOrEmpty())
                 sb.AppendFormat("#CommandLine: {0}\r\n", line);
-#endif
 
             var apptype = "";
 #if __MOBILE__
@@ -226,10 +224,7 @@ namespace NewLife.Log
 #endif
 
             sb.AppendFormat("#ApplicationType: {0}\r\n", apptype);
-
-#if !__CORE__
-            sb.AppendFormat("#CLR: {0}, {1}\r\n", System.Environment.Version, ver);
-#endif
+            sb.AppendFormat("#CLR: {0}, {1}\r\n", Environment.Version, ver);
 
 #if __MOBILE__
 #if __ANDROID__
@@ -240,8 +235,8 @@ namespace NewLife.Log
             sb.AppendFormat("#OS: {0}, {1}/{2}\r\n", "Mobile", "", "");
 #endif
 #else
+            sb.AppendFormat("#OS: {0}, {1}/{2}\r\n", Environment.MachineName, Environment.UserName, Environment.OSVersion);
 #if !__CORE__
-            sb.AppendFormat("#OS: {0}, {3}, {1}/{2}\r\n", Runtime.OSName, Environment.UserName, Environment.MachineName, Environment.OSVersion);
             sb.AppendFormat("#Memory: {0:n0}M/{1:n0}M\r\n", Runtime.AvailableMemory, Runtime.PhysicalMemory);
 #endif
 #endif
