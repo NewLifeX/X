@@ -236,9 +236,6 @@ namespace NewLife.Log
 #endif
 #else
             sb.AppendFormat("#OS: {0}, {1}/{2}\r\n", Environment.MachineName, Environment.UserName, Environment.OSVersion);
-#if !__CORE__
-            sb.AppendFormat("#Memory: {0:n0}M/{1:n0}M\r\n", Runtime.AvailableMemory, Runtime.PhysicalMemory);
-#endif
 #endif
             sb.AppendFormat("#CPU: {0}\r\n", System.Environment.ProcessorCount);
 
