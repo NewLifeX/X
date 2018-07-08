@@ -1,15 +1,5 @@
 ﻿using System;
-using System.ComponentModel;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
-#if !__CORE__
-using System.Runtime.ConstrainedExecution;
-#endif
-using System.Security;
-#if !__MOBILE__ && !__CORE__
-using System.Web;
-
-#endif
 
 namespace NewLife
 {
@@ -17,10 +7,6 @@ namespace NewLife
     public static class Runtime
     {
         #region 控制台
-#if !__MOBILE__ && !__CORE__
-        static readonly IntPtr INVALID_HANDLE_VALUE = new IntPtr(-1);
-#endif
-
         private static Boolean? _IsConsole;
         /// <summary>是否控制台。用于判断是否可以执行一些控制台操作。</summary>
         public static Boolean IsConsole
@@ -29,27 +15,15 @@ namespace NewLife
             {
                 if (_IsConsole != null) return _IsConsole.Value;
 
-#if __MOBILE__ || __CORE__
-                _IsConsole = true;
-#else
-                if (Mono)
+                try
                 {
+                    var flag = Console.CursorVisible;
                     _IsConsole = true;
-                    return _IsConsole.Value;
                 }
-
-                var ip = Win32Native.GetStdHandle(-11);
-                if (ip == IntPtr.Zero || ip == INVALID_HANDLE_VALUE)
-                    _IsConsole = false;
-                else
+                catch
                 {
-                    ip = Win32Native.GetStdHandle(-10);
-                    if (ip == IntPtr.Zero || ip == INVALID_HANDLE_VALUE)
-                        _IsConsole = false;
-                    else
-                        _IsConsole = true;
+                    _IsConsole = false;
                 }
-#endif
 
                 return _IsConsole.Value;
             }
@@ -59,10 +33,10 @@ namespace NewLife
         #region Web环境
 #if __MOBILE__ || __CORE__
         /// <summary>是否Web环境</summary>
-        public static Boolean IsWeb { get { return false; } }
+        public static Boolean IsWeb => false;
 #else
         /// <summary>是否Web环境</summary>
-        public static Boolean IsWeb => !String.IsNullOrEmpty(HttpRuntime.AppDomainAppId);
+        public static Boolean IsWeb => !String.IsNullOrEmpty(System.Web.HttpRuntime.AppDomainAppId);
 #endif
         #endregion
 
@@ -85,14 +59,4 @@ namespace NewLife
 #endif
         #endregion
     }
-
-#if __MOBILE__
-#elif __CORE__
-#else
-    class Win32Native
-    {
-        [DllImport("kernel32.dll", SetLastError = true)]
-        internal static extern IntPtr GetStdHandle(Int32 nStdHandle);
-    }
-#endif
 }

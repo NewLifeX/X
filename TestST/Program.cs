@@ -63,43 +63,21 @@ namespace TestST
 
         static void Test3()
         {
-            foreach (var pi in typeof(Environment).GetProperties())
+            var os = "";
+            var fr = "/etc/os-release";
+            if (File.Exists(fr))
             {
-                var val = pi.GetValue(null);
-                Console.WriteLine("{0}:\t{1}", pi.Name, val);
-            }
+                var dic = File.ReadAllText(fr).SplitAsDictionary("=", "\n", true);
+                os = dic["PRETTY_NAME"];
+                XTrace.WriteLine(os);
 
-            Console.WriteLine();
-            var p = Process.GetCurrentProcess();
-            foreach (var pi in p.GetType().GetProperties())
-            {
-                try
+                Console.WriteLine();
+                foreach (var item in dic)
                 {
-                    var val = pi.GetValue(p);
-                    Console.WriteLine("{0}:\t{1}", pi.Name, val);
+                    Console.WriteLine("{0}\t={1}", item.Key, item.Value);
                 }
-                catch { }
             }
 
-            //Console.WriteLine();
-            XTrace.WriteLine(NetHelper.MyIP() + "");
-
-            Console.WriteLine(RuntimeInformation.FrameworkDescription);
-            Console.WriteLine(RuntimeInformation.OSArchitecture);
-            Console.WriteLine(RuntimeInformation.OSDescription);
-            Console.WriteLine(RuntimeInformation.ProcessArchitecture);
-            Console.WriteLine(RuntimeEnvironment.GetSystemVersion());
-
-            //var ctrl = new ApiController();
-            //Console.WriteLine(ctrl.Info().ToJson());
-
-            //var svr = new ApiServer(3344);
-            //svr.Log = XTrace.Log;
-            //svr.EncoderLog = XTrace.Log;
-            //svr.StatPeriod = 5;
-            //svr.Start();
-
-            //Console.ReadKey(true);
         }
 
         static void Test4()

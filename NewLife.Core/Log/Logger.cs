@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Reflection;
 using System.Text;
 #if __ANDROID__
@@ -235,7 +236,24 @@ namespace NewLife.Log
             sb.AppendFormat("#OS: {0}, {1}/{2}\r\n", "Mobile", "", "");
 #endif
 #else
-            sb.AppendFormat("#OS: {0}, {1}/{2}\r\n", Environment.MachineName, Environment.UserName, Environment.OSVersion);
+            var os = Environment.OSVersion + "";
+            if (Runtime.Linux)
+            {
+                // 特别识别Linux发行版
+                var fr = "/etc/redhat-release";
+                var dr = "/etc/debian-release";
+                if (File.Exists(fr))
+                    os = File.ReadAllText(fr).Trim();
+                else if (File.Exists(dr))
+                    os = File.ReadAllText(dr).Trim();
+                else
+                {
+                    var sr = "/etc/os-release";
+                    if (File.Exists(sr)) os = File.ReadAllText(sr).SplitAsDictionary("=", "\n", true)["PRETTY_NAME"].Trim();
+                }
+            }
+
+            sb.AppendFormat("#OS: {0}, {1}/{2}\r\n", os, Environment.MachineName, Environment.UserName);
 #endif
             sb.AppendFormat("#CPU: {0}\r\n", System.Environment.ProcessorCount);
 
