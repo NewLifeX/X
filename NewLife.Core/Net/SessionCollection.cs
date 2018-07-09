@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using NewLife.Log;
 using NewLife.Threading;
 
@@ -29,7 +30,11 @@ namespace NewLife.Net
             Server = server;
 
             var p = ClearPeriod * 1000;
-            clearTimer = new TimerX(RemoveNotAlive, null, p, p) { Async = true };
+            clearTimer = new TimerX(RemoveNotAlive, null, p, p)
+            {
+                Async = true,
+                CanExecute = () => _dic.Any(),
+            };
         }
 
         protected override void OnDispose(Boolean disposing)
@@ -70,7 +75,7 @@ namespace NewLife.Net
         /// <summary>关闭所有</summary>
         public void CloseAll()
         {
-            if (_dic.IsEmpty) return;
+            if (!_dic.Any()) return;
 
             foreach (var item in _dic.ToValueArray())
             {
@@ -81,7 +86,7 @@ namespace NewLife.Net
         /// <summary>移除不活动的会话</summary>
         void RemoveNotAlive(Object state)
         {
-            if (_dic.IsEmpty) return;
+            if (!_dic.Any()) return;
 
             var timeout = 30;
             if (Server != null) timeout = Server.SessionTimeout;

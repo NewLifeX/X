@@ -31,6 +31,7 @@ namespace XCode.DataAccessLayer
                 .Reg<Access>()
                 .Reg<SqlCe>()
 #endif
+                .Reg<Network>()
                 .Reg<SQLite>(String.Empty);
             // SQLite作为默认实现
         }
@@ -63,6 +64,11 @@ namespace XCode.DataAccessLayer
             if (dbType == null) return null;
             return defaultDbs2.GetOrAdd(dbType, dt => (IDatabase)dt.CreateInstance());
         }
+
+        /// <summary>根据类型获取默认提供者</summary>
+        /// <param name="dbType"></param>
+        /// <returns></returns>
+        public static IDatabase GetDefault(DatabaseType dbType) => XCodeService.Container.ResolveInstance<IDatabase>(dbType);
         #endregion
 
         #region 方法
@@ -73,10 +79,26 @@ namespace XCode.DataAccessLayer
         public static Type GetProviderType(String connStr, String provider)
         {
             var ioc = XCodeService.Container;
+
+            var iDatabases = ioc.ResolveAll(typeof(IDatabase));
+
+            // 尝试从连接字符串获取优先提供者
+            if (!connStr.IsNullOrWhiteSpace())
+            {
+                var builder = new ConnectionStringBuilder(connStr);
+                if (builder.TryGetValue("provider", out var prv))
+                {
+                    foreach (var item in iDatabases)
+                    {
+                        if (item.Instance is IDatabase db && db.Support(prv)) return item.Type;
+                    }
+                }
+            }
+
             if (!provider.IsNullOrEmpty())
             {
                 var n = 0;
-                foreach (var item in ioc.ResolveAll(typeof(IDatabase)))
+                foreach (var item in iDatabases)
                 {
                     n++;
                     if ("" + item.Identity == "") continue;

@@ -145,7 +145,7 @@ namespace NewLife.Http
 
             var method = data != null && data.Length > 0 ? "POST" : "GET";
 
-            var header = new StringBuilder();
+            var header = Pool.StringBuilder.Get();
             header.AppendLine($"{method} {uri.PathAndQuery} HTTP/1.1");
             header.AppendLine($"Host: {uri.Host}");
 
@@ -159,7 +159,7 @@ namespace NewLife.Http
 
             header.AppendLine();
 
-            var req = new Packet(header.ToString().GetBytes());
+            var req = new Packet(header.Put(true).GetBytes());
 
             // 请求主体数据
             if (data != null && data.Length > 0) req.Next = new Packet(data);
@@ -244,15 +244,12 @@ namespace NewLife.Http
         #region 缓冲池
         class MyPool : Pool<Byte[]>
         {
-            protected override Byte[] Create() => new Byte[64 * 1024];
+            protected override Byte[] OnCreate() => new Byte[64 * 1024];
         }
 
         private static MyPool _Pool = new MyPool
         {
-            Max = 1000,
-            Min = 2,
-            IdleTime = 10,
-            AllIdleTime = 60,
+            Max = 1024,
         };
         #endregion
 
@@ -263,13 +260,18 @@ namespace NewLife.Http
         /// <returns></returns>
         public async Task<Byte[]> SendAsync(String url, Byte[] data)
         {
-            using (var pi = _Pool.AcquireItem())
+            var client = _Pool.Get();
+            try
             {
                 // 发出请求
-                var rs = await SendAsync(url, data, pi.Value);
+                var rs = await SendAsync(url, data, client);
                 if (rs == null || rs.Count == 0) return null;
 
                 return rs.ToArray();
+            }
+            finally
+            {
+                _Pool.Put(client);
             }
         }
 
@@ -278,13 +280,18 @@ namespace NewLife.Http
         /// <returns></returns>
         public async Task<String> GetAsync(String url)
         {
-            using (var pi = _Pool.AcquireItem())
+            var client = _Pool.Get();
+            try
             {
                 // 发出请求
-                var rs = await SendAsync(url, null, pi.Value);
+                var rs = await SendAsync(url, null, client);
                 if (rs == null || rs.Count == 0) return null;
 
                 return rs?.ToStr();
+            }
+            finally
+            {
+                _Pool.Put(client);
             }
         }
         #endregion

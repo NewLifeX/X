@@ -5,11 +5,12 @@ using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Messaging;
+using NewLife.Net;
 
 namespace NewLife.Remoting
 {
     /// <summary>Api主机</summary>
-    public abstract class ApiHost : DisposeBase, IApiHost
+    public abstract class ApiHost : DisposeBase, IApiHost, IExtend
     {
         #region 属性
         /// <summary>名称</summary>
@@ -22,10 +23,10 @@ namespace NewLife.Remoting
         public IApiHandler Handler { get; set; }
 
         /// <summary>发送数据包统计信息</summary>
-        public ICounter StatSend { get; set; } = new PerfCounter();
+        public ICounter StatInvoke { get; set; }
 
         /// <summary>接收数据包统计信息</summary>
-        public ICounter StatReceive { get; set; } = new PerfCounter();
+        public ICounter StatProcess { get; set; }
 
         /// <summary>用户会话数据</summary>
         public IDictionary<String, Object> Items { get; set; } = new NullableDictionary<String, Object>();
@@ -79,9 +80,19 @@ namespace NewLife.Remoting
         {
             if (msg.Reply) return null;
 
-            StatReceive?.Increment();
-
-            return OnProcess(session, msg);
+            //StatReceive?.Increment();
+            var st = StatProcess;
+            //var sw = st == null ? 0 : Stopwatch.GetTimestamp();
+            var sw = st.StartCount();
+            try
+            {
+                return OnProcess(session, msg);
+            }
+            finally
+            {
+                //if (st != null) st.Increment(1, (Stopwatch.GetTimestamp() - sw) / 10);
+                st.StopCount(sw);
+            }
         }
 
         private IMessage OnProcess(IApiSession session, IMessage msg)
@@ -128,6 +139,13 @@ namespace NewLife.Remoting
 
             return rs;
         }
+        #endregion
+
+        #region 事件
+        /// <summary>新会话。服务端收到新连接，客户端每次连接或断线重连后，可用于做登录</summary>
+        /// <param name="session">会话</param>
+        /// <param name="state">状态。客户端ISocketClient</param>
+        public virtual void OnNewSession(IApiSession session, Object state) { }
         #endregion
 
         #region 日志

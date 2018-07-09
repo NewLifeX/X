@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Threading;
 
@@ -144,7 +145,7 @@ namespace XCode.Cache
             // 控制只有一个线程能更新
             if (Interlocked.CompareExchange(ref _updating, 1, 0) != 0) return;
 
-            ThreadPoolX.QueueUserWorkItem(() => UpdateCache(reason));
+            ThreadPoolX.QueueUserWorkItem(UpdateCache, reason);
         }
 
         void UpdateCache(String reason)
@@ -245,7 +246,7 @@ namespace XCode.Cache
         {
             if (Total > 0)
             {
-                var sb = new StringBuilder();
+                var sb = Pool.StringBuilder.Get();
                 var type = GetType();
                 var name = "{2}<{0}>({1:n0})".F(typeof(TEntity).Name, Entities.Count, type.GetDisplayName() ?? type.Name);
                 sb.AppendFormat("{0,-24}", name);
@@ -253,7 +254,7 @@ namespace XCode.Cache
                 if (Success > 0) sb.AppendFormat("，命中{0,11:n0}（{1,6:P02}）", Success, (Double)Success / Total);
                 sb.AppendFormat("\t[{0}]", typeof(TEntity).FullName);
 
-                XTrace.WriteLine(sb.ToString());
+                XTrace.WriteLine(sb.Put(true));
             }
         }
         #endregion

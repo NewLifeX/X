@@ -3,13 +3,9 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Xml.Serialization;
 using NewLife.Log;
 using NewLife.Threading;
-#if NET4
-using Task = System.Threading.Tasks.TaskEx;
-#endif
 
 namespace NewLife.Xml
 {
@@ -50,7 +46,7 @@ namespace NewLife.Xml
                     XTrace.WriteLine("{0}的配置文件{1}有更新，重新加载配置！", typeof(TConfig), config.ConfigFile);
 
                     // 异步更新
-                    ThreadPoolX.QueueUserWorkItem(() => config.Load(dcf));
+                    ThreadPool.QueueUserWorkItem(s => config.Load(dcf));
 
                     return config;
                 }
@@ -313,7 +309,11 @@ namespace NewLife.Xml
             {
                 lock (this)
                 {
-                    if (_Timer == null) _Timer = new TimerX(DoSave, null, 1000, 5000) { Async = true };
+                    if (_Timer == null) _Timer = new TimerX(DoSave, null, 1000, 5000)
+                    {
+                        Async = true,
+                        CanExecute = () => _commits > 0,
+                    };
                 }
             }
 

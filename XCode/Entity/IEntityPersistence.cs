@@ -5,6 +5,7 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Text;
+using NewLife.Collections;
 using NewLife.Reflection;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
@@ -156,7 +157,7 @@ namespace XCode
         {
             var ds = entity.Dirtys;
             // 没有脏数据，不需要更新
-            if (ds.Count == 0) return 0;
+            if (!ds.Any()) return 0;
 
             IDataParameter[] dps = null;
             var sql = "";
@@ -215,8 +216,8 @@ namespace XCode
             var fs = new Dictionary<String, FieldItem>(StringComparer.OrdinalIgnoreCase);
             foreach (var fi in factory.Fields)
                 fs.Add(fi.Name, fi);
-            var sbn = new StringBuilder();
-            var sbv = new StringBuilder();
+            var sbn = Pool.StringBuilder.Get();
+            var sbv = Pool.StringBuilder.Get();
             for (var i = 0; i < names.Length; i++)
             {
                 if (!fs.ContainsKey(names[i])) throw new ArgumentException("类[" + factory.EntityType.FullName + "]中不存在[" + names[i] + "]属性");
@@ -230,7 +231,9 @@ namespace XCode
                 //sbv.Append(SqlDataFormat(values[i], fs[names[i]]));
                 sbv.Append(factory.FormatValue(names[i], values[i]));
             }
-            return factory.Session.Execute(String.Format("Insert Into {2}({0}) values({1})", sbn.ToString(), sbv.ToString(), factory.FormatedTableName));
+            var sn = sbn.Put(true);
+            var sv = sbv.Put(true);
+            return factory.Session.Execute(String.Format("Insert Into {2}({0}) values({1})", sn, sv, factory.FormatedTableName));
         }
 
         /// <summary>更新一批实体数据</summary>
@@ -285,8 +288,7 @@ namespace XCode
             foreach (var fi in factory.Fields)
                 fs.Add(fi.Name, fi);
 
-            var sb = new StringBuilder();
-            var sbv = new StringBuilder();
+            var sb = Pool.StringBuilder.Get();
             for (var i = 0; i < names.Length; i++)
             {
                 if (!fs.ContainsKey(names[i])) throw new ArgumentException("类[" + factory.EntityType.FullName + "]中不存在[" + names[i] + "]属性");
@@ -297,7 +299,7 @@ namespace XCode
                 sb.Append(factory.FormatValue(names[i], values[i]));
             }
 
-            return sb.ToString();
+            return sb.Put(true);
         }
         #endregion
 
@@ -364,8 +366,8 @@ namespace XCode
             StringBuilder sbValues = null;
             if (!up || !op.Session.Items.TryGetValue(key, out var oql))
             {
-                sbNames = new StringBuilder();
-                sbValues = new StringBuilder();
+                sbNames = Pool.StringBuilder.Get();
+                sbValues = Pool.StringBuilder.Get();
             }
             else
                 sql = oql + "";
@@ -399,13 +401,15 @@ namespace XCode
                     sbValues.Append(op.FormatValue(fi, value));
             }
 
-            if (sbNames != null && sbNames.Length <= 0) return null;
+            var ns = sbNames.Put(true);
+            var vs = sbValues.Put(true);
+            if (ns.IsNullOrEmpty() && sql.IsNullOrEmpty()) return null;
 
             if (dps.Count > 0) parameters = dps.ToArray();
 
-            if (sbNames != null)
+            if (!ns.IsNullOrEmpty())
             {
-                sql = String.Format("Insert Into {0}({1}) Values({2})", op.FormatedTableName, sbNames, sbValues);
+                sql = String.Format("Insert Into {0}({1}) Values({2})", op.FormatedTableName, ns, vs);
                 // 缓存参数化时的SQL语句
                 if (up) op.Session.Items[key] = sql;
             }
@@ -421,8 +425,8 @@ namespace XCode
             String idv = null;
             if (op.AllowInsertIdentity)
                 idv = "" + value;
-            else
-                idv = DAL.Create(op.ConnName).Db.FormatIdentity(fi.Field, value);
+            //else
+            //    idv = DAL.Create(op.ConnName).Db.FormatIdentity(fi.Field, value);
             //if (String.IsNullOrEmpty(idv)) continue;
             // 允许返回String.Empty作为插入空
             if (idv == null) return true;
@@ -455,7 +459,7 @@ namespace XCode
             var op = EntityFactory.CreateOperate(entity.GetType());
             var up = op.Session.Dal.Db.UseParameter;
 
-            var sb = new StringBuilder();
+            var sb = Pool.StringBuilder.Get();
             var dps = new List<IDataParameter>();
             // 只读列没有更新操作
             foreach (var fi in op.Fields)
@@ -486,10 +490,11 @@ namespace XCode
             // 重置累加数据
             (entity as EntityBase).Addition.Reset(dfs);
 
-            if (sb.Length <= 0) return null;
+            var str = sb.Put(true);
+            if (str.IsNullOrEmpty()) return null;
 
             if (dps.Count > 0) parameters = dps.ToArray();
-            return String.Format("Update {0} Set {1} Where {2}", op.FormatedTableName, sb, def);
+            return String.Format("Update {0} Set {1} Where {2}", op.FormatedTableName, str, def);
         }
 
         static String DeleteSQL(IEntity entity, ref IDataParameter[] parameters)
@@ -702,7 +707,7 @@ namespace XCode
                 ps = op.Table.Fields;
             }
 
-            //var sb = new StringBuilder();
+            //var sb = Pool.StringBuilder.Get();
             foreach (var item in ps)
             {
                 //if (sb.Length > 0) sb.Append(" And ");

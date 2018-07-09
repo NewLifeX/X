@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Text;
 using NewLife;
+using NewLife.Collections;
 using NewLife.Reflection;
 
 namespace System
@@ -348,8 +349,8 @@ namespace System
         /// <param name="src">源数组</param>
         /// <param name="srcOffset">源数组偏移</param>
         /// <param name="count">数量</param>
-        /// <returns></returns>
-        public static Byte[] Write(this Byte[] dst, Int32 dstOffset, Byte[] src, Int32 srcOffset = 0, Int32 count = -1)
+        /// <returns>返回实际写入的字节个数</returns>
+        public static Int32 Write(this Byte[] dst, Int32 dstOffset, Byte[] src, Int32 srcOffset = 0, Int32 count = -1)
         {
             if (count <= 0) count = src.Length - srcOffset;
             if (dstOffset + count > dst.Length) count = dst.Length - dstOffset;
@@ -359,7 +360,7 @@ namespace System
 #else
             Buffer.BlockCopy(src, srcOffset, dst, dstOffset, count);
 #endif
-            return dst;
+            return count;
         }
 
         /// <summary>合并两个数组</summary>
@@ -408,7 +409,7 @@ namespace System
             // 如果要读完数据，又不支持定位，则采用内存流搬运
             if (!stream.CanSeek)
             {
-                var ms = new MemoryStream();
+                var ms = Pool.MemoryStream.Get();
                 while (true)
                 {
                     var buf = new Byte[1024];
@@ -419,7 +420,7 @@ namespace System
                     if (count < buf.Length) break;
                 }
 
-                return ms.ToArray();
+                return ms.Put(true);
             }
             else
             {
@@ -1173,7 +1174,7 @@ namespace System
                 // 扣除间隔
                 if (!String.IsNullOrEmpty(separate)) len -= g * separate.Length;
             }
-            var sb = new StringBuilder(len);
+            var sb = Pool.StringBuilder.Get();
             for (var i = 0; i < count; i++)
             {
                 if (sb.Length > 0)
@@ -1189,7 +1190,7 @@ namespace System
                 sb.Append(GetHexValue(b % 0x10));
             }
 
-            return sb.ToString();
+            return sb.Put(true);
         }
 
         private static Char GetHexValue(Int32 i)

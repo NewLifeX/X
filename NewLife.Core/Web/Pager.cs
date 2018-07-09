@@ -5,6 +5,7 @@ using System.Text;
 using System.Web;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
+using NewLife.Collections;
 using NewLife.Data;
 
 namespace NewLife.Web
@@ -205,7 +206,7 @@ namespace NewLife.Web
             var forms = new HashSet<String>(req.Form.AllKeys, StringComparer.OrdinalIgnoreCase);
             var excludes = new HashSet<String>(new[] { _.Sort, _.Desc, _.PageIndex, _.PageSize }, StringComparer.OrdinalIgnoreCase);
 
-            var url = new StringBuilder();
+            var url = Pool.StringBuilder.Get();
             foreach (var item in query.AllKeys)
             {
                 // 只要查询字符串，不要表单
@@ -224,7 +225,7 @@ namespace NewLife.Web
             if (url.Length == 0) return action;
             if (!action.Contains('?')) action += '?';
 
-            return action + url.ToString();
+            return action + url.Put(true);
         }
 #endif
         #endregion

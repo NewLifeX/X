@@ -2,6 +2,7 @@
 using System.Data;
 using System.Data.Common;
 using NewLife.Collections;
+using NewLife.Log;
 
 namespace XCode.DataAccessLayer
 {
@@ -13,7 +14,7 @@ namespace XCode.DataAccessLayer
     /// 3，空闲时间10s
     /// 4，完全空闲时间60s
     /// </remarks>
-    public class ConnectionPool : Pool<DbConnection>
+    public class ConnectionPool : ObjectPool<DbConnection>
     {
         #region 属性
         /// <summary>工厂</summary>
@@ -38,9 +39,18 @@ namespace XCode.DataAccessLayer
 
         /// <summary>创建时连接数据库</summary>
         /// <returns></returns>
-        protected override DbConnection Create()
+        protected override DbConnection OnCreate()
         {
-            var conn = Factory.CreateConnection();
+            var conn = Factory?.CreateConnection();
+            if (conn == null)
+            {
+                var msg = $"连接创建失败！请检查驱动是否正常";
+
+                WriteLog("CreateConnection failure " + msg);
+
+                throw new Exception(Name + " " + msg);
+            }
+
             conn.ConnectionString = ConnectionString;
 
             try
@@ -57,28 +67,40 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>申请时检查是否打开</summary>
-        /// <param name="value"></param>
-        protected override Boolean OnAcquire(DbConnection value)
+        public override DbConnection Get()
         {
-            try
+            var count = -1;
+            while (true)
             {
-                if (value.State == ConnectionState.Closed) value.Open();
+                if (++count > 10) 
+                {
+                    throw new Exception($"获取DbConnection失败，次数已达{count}");
+                }
 
-                return true;
+                try
+                {
+                    var value = base.Get();
+                    if (value.State == ConnectionState.Closed) value.Open();
+
+                    return value;
+                }
+                catch (Exception e)
+                {
+                    XTrace.WriteLine($"处理DbConnection时出错：{e}");
+                }
             }
-            catch { return false; }
         }
 
         /// <summary>释放时，返回是否有效。无效对象将会被抛弃</summary>
         /// <param name="value"></param>
-        protected override Boolean OnRelease(DbConnection value)
+        public override Boolean Put(DbConnection value)
         {
             try
             {
                 //// 如果连接字符串变了，则关闭
                 //if (value.ConnectionString != ConnectionString) value.Close();
 
-                return value.State == ConnectionState.Open;
+                return value.State == ConnectionState.Open && base.Put(value);
             }
             catch { return false; }
         }

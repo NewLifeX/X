@@ -1,6 +1,8 @@
 ﻿using System;
+using NewLife.Log;
 using NewLife.Model;
 using NewLife.Net;
+using NewLife.Threading;
 
 namespace NewLife.Remoting
 {
@@ -10,6 +12,9 @@ namespace NewLife.Remoting
         #region 属性
         /// <summary>是否正在工作</summary>
         public Boolean Active { get; private set; }
+
+        /// <summary>端口</summary>
+        public Int32 Port { get; set; }
 
         /// <summary>服务器</summary>
         public IApiServer Server { get; set; }
@@ -27,7 +32,7 @@ namespace NewLife.Remoting
 
         /// <summary>使用指定端口实例化网络服务应用接口提供者</summary>
         /// <param name="port"></param>
-        public ApiServer(Int32 port) : this() => Use(port);
+        public ApiServer(Int32 port) : this() => Port = port;
 
         /// <summary>实例化</summary>
         /// <param name="uri"></param>
@@ -39,15 +44,13 @@ namespace NewLife.Remoting
         {
             base.OnDispose(disposing);
 
+            _Timer.TryDispose();
+
             Stop(GetType().Name + (disposing ? "Dispose" : "GC"));
         }
         #endregion
 
         #region 启动停止
-        /// <summary>添加服务器</summary>
-        /// <param name="port"></param>
-        public IApiServer Use(Int32 port) => Use(new NetUri(NetType.Unknown, "", port));
-
         /// <summary>添加服务器</summary>
         /// <param name="uri"></param>
         public IApiServer Use(NetUri uri)
@@ -60,6 +63,21 @@ namespace NewLife.Remoting
             return svr;
         }
 
+        /// <summary>确保已创建服务器对象</summary>
+        /// <returns></returns>
+        public IApiServer EnsureCreate()
+        {
+            var svr = Server;
+            if (svr != null) return svr;
+
+            if (Port <= 0) throw new ArgumentNullException(nameof(Server), "未指定服务器Server，且未指定端口Port！");
+
+            svr = new ApiNetServer();
+            svr.Init(new NetUri(NetType.Unknown, "*", Port) + "");
+
+            return Server = svr;
+        }
+
         /// <summary>开始服务</summary>
         public virtual void Start()
         {
@@ -68,6 +86,8 @@ namespace NewLife.Remoting
             if (Encoder == null) Encoder = new JsonEncoder();
             //if (Encoder == null) Encoder = new BinaryEncoder();
             if (Handler == null) Handler = new ApiHandler { Host = this };
+            if (StatInvoke == null) StatInvoke = new PerfCounter();
+            if (StatProcess == null) StatProcess = new PerfCounter();
 
             Encoder.Log = EncoderLog;
 
@@ -75,14 +95,18 @@ namespace NewLife.Remoting
             Log.Info("编码：{0}", Encoder);
             //Log.Info("处理：{0}", Handler);
 
-            var svr = Server;
+            var svr = EnsureCreate();
+
             if (svr.Handler == null) svr.Handler = Handler;
             if (svr.Encoder == null) svr.Encoder = Encoder;
             svr.Host = this;
-            //svr.Log = Log;
+            svr.Log = Log;
             svr.Start();
 
             ShowService();
+
+            var ms = StatPeriod * 1000;
+            if (ms > 0) _Timer = new TimerX(DoWork, null, ms, ms) { Async = true };
 
             Active = true;
         }
@@ -97,6 +121,23 @@ namespace NewLife.Remoting
             Server.Stop(reason ?? (GetType().Name + "Stop"));
 
             Active = false;
+        }
+        #endregion
+
+        #region 统计
+        private TimerX _Timer;
+        private String _Last;
+
+        /// <summary>显示统计信息的周期。默认600秒，0表示不显示统计信息</summary>
+        public Int32 StatPeriod { get; set; } = 600;
+
+        private void DoWork(Object state)
+        {
+            var msg = this.GetStat();
+            if (msg.IsNullOrEmpty() || msg == _Last) return;
+            _Last = msg;
+
+            WriteLog(msg);
         }
         #endregion
     }

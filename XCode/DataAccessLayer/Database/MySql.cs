@@ -24,7 +24,11 @@ namespace XCode.DataAccessLayer
                 {
                     lock (typeof(MySql))
                     {
-                        if (_Factory == null) _Factory = GetProviderFactory("MySql.Data.dll", "MySql.Data.MySqlClient.MySqlClientFactory");
+                        //_Factory = GetProviderFactory("NewLife.MySql.dll", "NewLife.MySql.MySqlClientFactory") ??
+                        //           GetProviderFactory("MySql.Data.dll", "MySql.Data.MySqlClient.MySqlClientFactory");
+                        // MewLife.MySql 在开发过程中，数据驱动下载站点没有它的包，暂时不支持下载
+                        _Factory = GetProviderFactory(null, "NewLife.MySql.MySqlClientFactory", true) ??
+                                  GetProviderFactory("MySql.Data.dll", "MySql.Data.MySqlClient.MySqlClientFactory");
                     }
                 }
 
@@ -36,6 +40,7 @@ namespace XCode.DataAccessLayer
         const String CharSet = "CharSet";
         const String AllowZeroDatetime = "Allow Zero Datetime";
         const String MaxPoolSize = "MaxPoolSize";
+        const String Sslmode = "Sslmode";
         protected override void OnSetConnectionString(ConnectionStringBuilder builder)
         {
             base.OnSetConnectionString(builder);
@@ -50,6 +55,9 @@ namespace XCode.DataAccessLayer
             //if (!builder.ContainsKey(AllowZeroDatetime)) builder[AllowZeroDatetime] = "True";
             // 默认最大连接数1000
             if (builder["Pooling"].ToBoolean()) builder.TryAdd(MaxPoolSize, "1000");
+
+            //如未设置Sslmode，默认为none
+            if (builder[Sslmode] == null) builder.TryAdd(Sslmode, "none");
         }
         #endregion
 
@@ -363,7 +371,7 @@ namespace XCode.DataAccessLayer
             //{ typeof(UInt64), new String[] { "BIT", "BIGINT UNSIGNED" } },
             { typeof(Single), new String[] { "FLOAT" } },
             { typeof(Double), new String[] { "DOUBLE" } },
-            { typeof(Decimal), new String[] { "DECIMAL" } },
+            { typeof(Decimal), new String[] { "DECIMAL({0}, {1})" } },
             { typeof(DateTime), new String[] { "DATETIME", "DATE", "TIMESTAMP", "TIME" } },
             { typeof(String), new String[] { "NVARCHAR({0})", "TEXT", "CHAR({0})", "NCHAR({0})", "VARCHAR({0})", "SET", "ENUM", "TINYTEXT", "TEXT", "MEDIUMTEXT", "LONGTEXT" } },
             { typeof(Boolean), new String[] { "TINYINT" } },
@@ -374,6 +382,11 @@ namespace XCode.DataAccessLayer
         {
             var dt = GetSchema(_.Databases, new String[] { databaseName });
             return dt != null && dt.Rows != null && dt.Rows.Count > 0;
+        }
+
+        public override String CreateDatabaseSQL(String dbname, String file)
+        {
+            return base.CreateDatabaseSQL(dbname, file) + " DEFAULT CHARACTER SET utf8mb4";
         }
 
         public override String DropDatabaseSQL(String dbname) => String.Format("Drop Database If Exists {0}", FormatName(dbname));
@@ -412,6 +425,11 @@ namespace XCode.DataAccessLayer
             }
             sb.AppendLine();
             sb.Append(")");
+
+            // 引擎和编码
+            //sb.Append(" ENGINE=InnoDB");
+            sb.Append(" DEFAULT CHARSET=utf8mb4");
+            sb.Append(";");
 
             return sb.ToString();
         }

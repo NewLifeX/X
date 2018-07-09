@@ -66,22 +66,28 @@ namespace XCode.Cache
             file.EnsureDirectory(true);
             var js = data.ToJson(true);
 
-            File.WriteAllText(file, js, Encoding.UTF8);
+            try
+            {
+                File.WriteAllText(file, js, Encoding.UTF8);
+            }
+            catch (IOException) { }
         }
 
-        private TimerX _task;
+        private TimerX _timer;
         /// <summary>异步保存</summary>
         public void SaveAsync()
         {
-            if (_task == null)
+            if (_timer == null)
             {
-                _task = TimerX.Delay(s =>
-                {
-                    Save(_File.GetFullPath(), this);
+                _timer = new TimerX(s => Save(_File.GetFullPath(), s as DataCache), this, 100, 10 * 60 * 1000) { Async = true };
+                //_timer = TimerX.Delay(s =>
+                //{
+                //    Save(_File.GetFullPath(), this);
 
-                    _task = null;
-                }, 3000);
+                //    _timer = null;
+                //}, 3000);
             }
+            _timer.SetNext(100);
         }
         #endregion
 

@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
+using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Net;
@@ -105,8 +106,8 @@ namespace NewLife.Caching
             return ns;
         }
 
-        /// <summary>收发缓冲区。不支持收发超过64k的大包</summary>
-        private Byte[] _Buffer;
+        ///// <summary>收发缓冲区。不支持收发超过64k的大包</summary>
+        //private Byte[] _Buffer;
 
         private static Byte[] NewLine = new[] { (Byte)'\r', (Byte)'\n' };
 
@@ -121,9 +122,10 @@ namespace NewLife.Caching
             var ns = GetStream(!isQuit);
             if (ns == null) return null;
 
-            // 收发共用的缓冲区
-            var buf = _Buffer;
-            if (buf == null) _Buffer = buf = new Byte[64 * 1024];
+            //// 收发共用的缓冲区
+            //var buf = _Buffer;
+            //if (buf == null) _Buffer = buf = new Byte[64 * 1024];
+            var buf = new Byte[64 * 1024];
 
             // 干掉历史残留数据
             var count = 0;
@@ -142,7 +144,7 @@ namespace NewLife.Caching
             // *<number of arguments>\r\n$<number of bytes of argument 1>\r\n<argument data>\r\n
             // *1\r\n$4\r\nINFO\r\n
 
-            var log = Log == null || Log == Logger.Null ? null : new StringBuilder();
+            var log = Log == null || Log == Logger.Null ? null : Pool.StringBuilder.Get();
             log?.Append(cmd);
 
             // 区分有参数和无参数
@@ -194,7 +196,7 @@ namespace NewLife.Caching
                     if (ms.Length > 1400)
                     {
                         ms.WriteTo(ns);
-                        //重置memoryStream的长度
+                        // 重置memoryStream的长度
                         ms = new MemoryStream(buf);
                         // 从头开始
                         ms.SetLength(0);
@@ -203,7 +205,7 @@ namespace NewLife.Caching
                 }
                 if (ms.Length > 0) ms.WriteTo(ns);
             }
-            if (log != null) WriteLog(log.ToString());
+            if (log != null) WriteLog(log.Put(true));
 
             // 接收
             count = ns.Read(buf, 0, buf.Length);

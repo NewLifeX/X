@@ -28,8 +28,8 @@ namespace NewLife.Net
         /// <summary>底层Socket</summary>
         Socket ISocket.Client => Server?.Client;
 
-        /// <summary>数据流</summary>
-        public Stream Stream { get; set; }
+        ///// <summary>数据流</summary>
+        //public Stream Stream { get; set; }
 
         private NetUri _Local;
         /// <summary>本地地址</summary>
@@ -94,7 +94,7 @@ namespace NewLife.Net
         public UdpSession(UdpServer server, IPEndPoint remote)
         {
             Name = server.Name;
-            Stream = new MemoryStream();
+            //Stream = new MemoryStream();
             StartTime = DateTime.Now;
 
             Server = server;

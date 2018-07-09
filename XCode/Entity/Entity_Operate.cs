@@ -75,12 +75,12 @@ namespace XCode
             /// <summary>创建一个实体对象</summary>
             /// <param name="forEdit">是否为了编辑而创建，如果是，可以再次做一些相关的初始化工作</param>
             /// <returns></returns>
-            public virtual IEntity Create(Boolean forEdit = false) { return (Default as TEntity).CreateInstance(forEdit) as TEntity; }
+            public virtual IEntity Create(Boolean forEdit = false) => (Default as TEntity).CreateInstance(forEdit) as TEntity;
 
             /// <summary>加载记录集</summary>
             /// <param name="ds">记录集</param>
             /// <returns>实体数组</returns>
-            public virtual IList<IEntity> LoadData(DataSet ds) { return Entity<TEntity>.LoadData(ds).Cast<IEntity>().ToList(); }
+            public virtual IList<IEntity> LoadData(DataSet ds) => Entity<TEntity>.LoadData(ds).Cast<IEntity>().ToList();
             #endregion
 
             #region 查找单个实体

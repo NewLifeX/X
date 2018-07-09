@@ -44,7 +44,7 @@ namespace NewLife.Http
             }
 
             // 构建头部
-            var sb = new StringBuilder();
+            var sb = Pool.StringBuilder.Get();
             sb.AppendFormat("{0} {1} HTTP/1.1\r\n", method, uri.PathAndQuery);
             sb.AppendFormat("Host:{0}\r\n", host);
 
@@ -63,7 +63,7 @@ namespace NewLife.Http
             sb.AppendLine();
 
             //return sb.ToString();
-            var rs = new Packet(sb.ToString().GetBytes())
+            var rs = new Packet(sb.Put(true).GetBytes())
             {
                 Next = pk
             };
@@ -78,7 +78,7 @@ namespace NewLife.Http
         public static Packet MakeResponse(HttpStatusCode code, IDictionary<String, Object> headers, Packet pk)
         {
             // 构建头部
-            var sb = new StringBuilder();
+            var sb = Pool.StringBuilder.Get();
             sb.AppendFormat("HTTP/1.1 {0} {1}\r\n", (Int32)code, code);
 
             // 内容长度
@@ -92,7 +92,7 @@ namespace NewLife.Http
             sb.AppendLine();
 
             //return sb.ToString();
-            var rs = new Packet(sb.ToString().GetBytes())
+            var rs = new Packet(sb.Put(true).GetBytes())
             {
                 Next = pk
             };

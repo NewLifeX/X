@@ -3,13 +3,22 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.MemoryMappedFiles;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Xml;
 using NewLife.Caching;
 using NewLife.Log;
 using NewLife.Net;
 using NewLife.Net.Handlers;
+using NewLife.Reflection;
+using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
+using NewLife.Threading;
 using XCode.DataAccessLayer;
+using XCode.Membership;
+using XCode.Service;
 
 namespace Test
 {
@@ -31,7 +40,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test6();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -50,85 +59,83 @@ namespace Test
             }
         }
 
-        //private static Int32 ths = 0;
+        private static Int32 _count = 0;
         static void Test1()
         {
-            //var orc = ObjectContainer.Current.ResolveInstance<IDatabase>(DatabaseType.Oracle);
-            var db = DbFactory.Create(DatabaseType.Oracle);
-            var sql = "select * from table where date>1234 ";
-            var sb = new SelectBuilder();
-            sb.Parse(sql);
+            //for (var i = 0; i < 10000; i++)
+            //{
+            //    var tt = new TimerTest();
+            //    //Thread.Sleep(10);
+            //}
+            Parallel.For(0, 10000, async k =>
+            {
+                var tt = new TimerTest();
+                //await Task.Delay(5000);
+            });
 
-            Console.WriteLine(db.PageSplit(sb, 0, 20));
-            Console.WriteLine(db.PageSplit(sb, 20, 0));
-            Console.WriteLine(db.PageSplit(sb, 20, 30));
+            for (var i = 0; i < 100; i++)
+            {
+                Console.WriteLine("_count={0}", _count);
+                Thread.Sleep(1000);
 
-            sql = "select * from table where date>1234 order by cc";
-            sb = new SelectBuilder();
-            sb.Parse(sql);
+                if (i == 5) GC.Collect();
+            }
+        }
 
-            Console.WriteLine(db.PageSplit(sb, 0, 20));
-            Console.WriteLine(db.PageSplit(sb, 20, 0));
-            Console.WriteLine(db.PageSplit(sb, 20, 30));
+        static void Test1_1()
+        {
 
-            //EntityBuilder.Build("DataCockpit.xml");
+        }
 
-            //Role.Meta.Session.Dal.Db.Readonly = true;
-            //Role.GetOrAdd("sss");
+        class TimerTest
+        {
+            private TimerX _timer;
+            public TimerTest()
+            {
+                _timer = new TimerX(Work, null, 1000, 1000);
+                Interlocked.Increment(ref _count);
+            }
 
-            var ip = NetHelper.MyIP();
-            Console.WriteLine(ip);
+            ~TimerTest()
+            {
+                Interlocked.Decrement(ref _count);
+            }
+
+            private Byte[] _buf;
+            public void Work(Object state)
+            {
+                _buf = Rand.NextBytes(64 * 1024);
+            }
         }
 
         static void Test2()
         {
-            using (var mmf = MemoryMappedFile.CreateFromFile("mmf.db", FileMode.OpenOrCreate, "mmf", 1 << 10))
+            var file = "web.config".GetFullPath();
+            if (!File.Exists(file)) file = "{0}.config".F(AppDomain.CurrentDomain.FriendlyName).GetFullPath();
+
+            // 读取配置文件
+            var doc = new XmlDocument();
+            doc.Load(file);
+            var nodes = doc.SelectNodes("/configuration/connectionStrings/add");
+            foreach (XmlNode item in nodes)
             {
-                var ms = mmf.CreateViewStream(8, 64);
-                var str = ms.ReadArray().ToStr();
-                XTrace.WriteLine(str);
+                var name = item.Attributes["name"]?.Value;
+                var connstr = item.Attributes["connectionString"]?.Value;
+                var provider = item.Attributes["providerName"]?.Value;
 
-                str = "学无先后达者为师 " + DateTime.Now;
-                ms.Position = 0;
-                ms.WriteArray(str.GetBytes());
-                //ms.Flush();
-
-                //ms.Position = 0;
-                //str = ms.ReadArray().ToStr();
-                //Console.WriteLine(str);
+                Console.WriteLine($"name={name} connstr={connstr} provider={provider}");
             }
         }
 
-        //private static TimerX _timer;
         static void Test3()
         {
-            var rds = Redis.Create(null, 0);
-            rds.Log = XTrace.Log;
-            //rds.Set("123", 456);
-            //rds.Set("abc", "def");
-            //var rs = rds.Remove("123", "abc");
-            //Console.WriteLine(rs);
+            var svr = new ApiServer(3344);
+            svr.Log = XTrace.Log;
+            svr.EncoderLog = XTrace.Log;
+            svr.StatPeriod = 5;
+            svr.Start();
 
-            var queue = rds.GetQueue<String>("q");
-            //var queue = Cache.Default.GetQueue<String>("q");
-
-            Console.WriteLine("入队：");
-            var ps = new List<String>();
-            for (var i = 0; i < 5; i++)
-            {
-                var str = Rand.NextString(6);
-                ps.Add(str);
-                Console.WriteLine(str);
-            }
-            queue.Add(ps);
-
-            Console.WriteLine();
-            Console.WriteLine("出队：");
-            var bs = queue.Take(5);
-            foreach (var item in bs)
-            {
-                Console.WriteLine(item);
-            }
+            Console.ReadKey(true);
         }
 
         static void Test4()
@@ -173,24 +180,104 @@ namespace Test
             ch.Bench(mode);
         }
 
+        static void Test5()
+        {
+            var set = XCode.Setting.Current;
+            set.Debug = true;
+            set.ShowSQL = true;
+
+            Console.WriteLine("1，服务端；2，客户端");
+            if (Console.ReadKey().KeyChar == '1')
+            {
+                var n = UserOnline.Meta.Count;
+
+                var svr = new DbServer();
+                svr.Log = XTrace.Log;
+                svr.StatPeriod = 5;
+                svr.Start();
+            }
+            else
+            {
+                DAL.AddConnStr("net", "Server=tcp://admin:newlife@127.0.0.1:3305/Log", null, "network");
+                var dal = DAL.Create("net");
+
+                UserOnline.Meta.ConnName = "net";
+
+                var count = UserOnline.Meta.Count;
+                Console.WriteLine("count={0}", count);
+
+                var entity = new UserOnline();
+                entity.Name = "新生命";
+                entity.OnlineTime = 12345;
+                entity.Insert();
+
+                Console.WriteLine("id={0}", entity.ID);
+
+                var entity2 = UserOnline.FindByKey(entity.ID);
+                Console.WriteLine("user={0}", entity2);
+
+                entity2.Page = Rand.NextString(8);
+                entity2.Update();
+
+                entity2.Delete();
+
+                for (var i = 0; i < 100; i++)
+                {
+                    entity2 = new UserOnline();
+                    entity2.Name = Rand.NextString(8);
+                    entity2.Page = Rand.NextString(8);
+                    entity2.Insert();
+
+                    Thread.Sleep(5000);
+                }
+            }
+
+            //var client = new DbClient();
+            //client.Log = XTrace.Log;
+            //client.EncoderLog = client.Log;
+            //client.StatPeriod = 5;
+
+            //client.Servers.Add("tcp://127.0.0.1:3305");
+            //client.Open();
+
+            //var db = "Membership";
+            //var rs = client.LoginAsync(db, "admin", "newlife").Result;
+            //Console.WriteLine((DatabaseType)rs["DbType"].ToInt());
+
+            //var ds = client.QueryAsync("Select * from User").Result;
+            //Console.WriteLine(ds);
+
+            //var count = client.QueryCountAsync("User").Result;
+            //Console.WriteLine("count={0}", count);
+
+            //var ps = new Dictionary<String, Object>
+            //{
+            //    { "Logins", 3 },
+            //    { "id", 1 }
+            //};
+            //var es = client.ExecuteAsync("update user set Logins=Logins+@Logins where id=@id", ps).Result;
+            //Console.WriteLine("Execute={0}", es);
+        }
+
         static void Test6()
         {
-            var _dt1970 = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-            var dt = DateTime.Now;
+            var list = UserX.FindAll();
+        }
 
-            var ts = dt - _dt1970;
-            var n = (Int32)ts.TotalSeconds;
-            Console.WriteLine(n);
+        static void Test7()
+        {
+            //new UserOnline()
+            //{
+            //    Name = "Test",
+            //}.Save();
+            var list = UserOnline.FindAll("select * from UserOnline");
+            var count = UserOnline.FindCount("select * from UserOnline");
+            Console.WriteLine(list.Count + "  " + count);
 
-            _dt1970 = new DateTime(1970, 1, 1, 0, 0, 0);
-            ts = dt - _dt1970;
-            n = (Int32)ts.TotalSeconds;
-            Console.WriteLine(n);
+            var dataset = UserOnline.Meta.Session.Query("select * from UserOnline");
 
-            _dt1970 = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Local);
-            ts = dt - _dt1970;
-            n = (Int32)ts.TotalSeconds;
-            Console.WriteLine(n);
+            //var n = UserX.Meta.Count;
+            //Console.WriteLine(n);
         }
     }
 }

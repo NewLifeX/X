@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using NewLife;
+using NewLife.Collections;
 using NewLife.Log;
 
 namespace XCode.DataAccessLayer
@@ -223,23 +224,25 @@ namespace XCode.DataAccessLayer
         {
             var builder = new SelectBuilder();
             builder.Parse(sql);
-            var sb = new StringBuilder();
+
+            var sb = NewLife.Collections.Pool.StringBuilder.Get();
             sb.Append("Select ");
             sb.Append(builder.ColumnOrDefault);
             sb.Append(" From ");
             sb.Append(builder.Table);
             if (!String.IsNullOrEmpty(builder.Where))
             {
-                sb.Append(" Where  type='p' and " + builder.Where);
+                sb.Append(" Where type='p' and " + builder.Where);
             }
             else
             {
-                sb.Append(" Where  type='p' ");
+                sb.Append(" Where type='p' ");
             }
             if (!String.IsNullOrEmpty(builder.GroupBy)) sb.Append(" Group By " + builder.GroupBy);
             if (!String.IsNullOrEmpty(builder.Having)) sb.Append(" Having " + builder.Having);
             if (!String.IsNullOrEmpty(builder.OrderBy)) sb.Append(" Order By " + builder.OrderBy);
-            return sb.ToString();
+
+            return sb.Put(true);
         }
 
         public override SelectBuilder PageSplit(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows)
@@ -500,8 +503,8 @@ namespace XCode.DataAccessLayer
                 field.PrimaryKey = GetDataRowValue<Boolean>(dr2, "主键");
                 //field.NumOfByte = GetDataRowValue<Int32>(dr2, "占用字节数");
                 field.Description = GetDataRowValue<String>(dr2, "字段说明");
-                //field.Precision = GetDataRowValue<Int32>(dr2, "精度");
-                //field.Scale = GetDataRowValue<Int32>(dr2, "小数位数");
+                field.Precision = GetDataRowValue<Int32>(dr2, "精度");
+                field.Scale = GetDataRowValue<Int32>(dr2, "小数位数");
             }
         }
 
@@ -552,14 +555,14 @@ namespace XCode.DataAccessLayer
                 //    field.RawType = field.RawType.Replace("char(-1)", "char(" + (Int32.MaxValue / 2) + ")");
             }
 
-            ////chenqi 2017-3-28
-            ////增加处理decimal类型精度和小数位数处理
-            ////此处只针对Sql server进行处理
-            ////严格来说，应该修改的地方是
-            //if (!String.IsNullOrEmpty(field.RawType) && field.RawType.Contains("decimal"))
-            //{
-            //    field.RawType = $"decimal({field.Precision},{field.Scale})";
-            //}
+            //chenqi 2017-3-28
+            //增加处理decimal类型精度和小数位数处理
+            //此处只针对Sql server进行处理
+            //严格来说，应该修改的地方是
+            if (!field.RawType.IsNullOrEmpty() && field.RawType.StartsWithIgnoreCase("decimal"))
+            {
+                field.RawType = $"decimal({field.Precision},{field.Scale})";
+            }
 
             return base.FieldClause(field, onlyDefine);
         }

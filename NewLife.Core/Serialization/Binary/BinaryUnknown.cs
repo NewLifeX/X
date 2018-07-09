@@ -2,6 +2,7 @@
 using System.IO;
 using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
+using NewLife.Collections;
 
 namespace NewLife.Serialization
 {
@@ -33,11 +34,12 @@ namespace NewLife.Serialization
             // 调用.Net的二进制序列化来解决剩下的事情
             var bf = new BinaryFormatter();
 
-            var ms = new MemoryStream();
+            var ms = Pool.MemoryStream.Get();
             bf.Serialize(ms, value);
 
             Host.WriteSize((Int32)ms.Length);
             ms.CopyTo(Host.Stream);
+            ms.Put();
 
             return true;
         }

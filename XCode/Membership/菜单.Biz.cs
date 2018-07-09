@@ -10,11 +10,8 @@ using NewLife;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Reflection;
-#if NET4
-using System.Threading.Tasks;
-#else
-using TaskEx = System.Threading.Tasks.Task;
-#endif
+using NewLife.Collections;
+using NewLife.Threading;
 
 namespace XCode.Membership
 {
@@ -262,14 +259,14 @@ namespace XCode.Membership
                 return;
             }
 
-            var sb = new StringBuilder();
+            var sb = Pool.StringBuilder.Get();
             // 根据资源按照从小到大排序一下
             foreach (var item in Permissions.OrderBy(e => e.Key))
             {
                 if (sb.Length > 0) sb.Append(",");
                 sb.AppendFormat("{0}#{1}", item.Key, item.Value);
             }
-            SetItem(__.Permission, sb.ToString());
+            SetItem(__.Permission, sb.Put(true));
         }
         #endregion
 
@@ -510,7 +507,7 @@ namespace XCode.Membership
                 // 如果新增了菜单，需要检查权限
                 if (list.Count > 0)
                 {
-                    TaskEx.Run(() =>
+                    ThreadPoolX.QueueUserWorkItem(() =>
                     {
                         XTrace.WriteLine("新增了菜单，需要检查权限");
                         var eop = ManageProvider.GetFactory<IRole>();

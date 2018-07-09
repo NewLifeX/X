@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Reflection;
@@ -90,6 +91,39 @@ namespace XCode
             if (dt == null) return new List<TEntity>();
 
             var list = DreAccessor.LoadData<TEntity>(dt);
+            OnLoadData(list);
+
+            return list;
+        }
+
+        /// <summary>加载数据表。无数据时返回空集合而不是null。</summary>
+        /// <param name="ds">数据表</param>
+        /// <returns>实体数组</returns>
+        public static IList<TEntity> LoadData(DbSet ds)
+        {
+            if (ds == null) return new List<TEntity>();
+
+            var list = DreAccessor.LoadData<TEntity>(ds);
+            OnLoadData(list);
+
+            return list;
+        }
+
+        /// <summary>加载数据表。无数据时返回空集合而不是null。</summary>
+        /// <param name="dr">数据读取器</param>
+        /// <returns>实体数组</returns>
+        public static IList<TEntity> LoadData(IDataReader dr)
+        {
+            if (dr == null) return new List<TEntity>();
+
+            var list = DreAccessor.LoadData<TEntity>(dr);
+            OnLoadData(list);
+
+            return list;
+        }
+
+        private static void OnLoadData(IList<TEntity> list)
+        {
             // 设置默认累加字段
             EntityAddition.SetField(list.Cast<IEntity>().ToList());
             foreach (var entity in list)
@@ -110,8 +144,6 @@ namespace XCode
                     }
                 });
             }
-
-            return list;
         }
 
         private static IDataRowEntityAccessor DreAccessor => XCodeService.CreateDataRowEntityAccessor(typeof(TEntity));
@@ -160,8 +192,8 @@ namespace XCode
         {
             if (Meta.Table.DataTable.InsertOnly)
             {
-                if (isnew == null) throw new XCodeException("只写的日志型数据禁止删除！");
-                if (!isnew.Value) throw new XCodeException("只写的日志型数据禁止修改！");
+                if (isnew == null) throw new XCodeException($"只写的日志型数据[{Meta.ThisType.FullName}]禁止删除！");
+                if (!isnew.Value) throw new XCodeException($"只写的日志型数据[{Meta.ThisType.FullName}]禁止修改！");
             }
 
             //using (var trans = new EntityTransaction<TEntity>())
@@ -306,7 +338,7 @@ namespace XCode
         {
             if (Exist(isNew, names))
             {
-                var sb = new StringBuilder();
+                var sb = Pool.StringBuilder.Get();
                 String name = null;
                 for (var i = 0; i < names.Length; i++)
                 {
@@ -323,7 +355,7 @@ namespace XCode
                 if (String.IsNullOrEmpty(name)) name = typeof(TEntity).Name;
                 sb.AppendFormat(" 的{0}已存在！", name);
 
-                throw new ArgumentOutOfRangeException(String.Join(",", names), this[names[0]], sb.ToString());
+                throw new ArgumentOutOfRangeException(String.Join(",", names), this[names[0]], sb.Put(true));
             }
         }
 
@@ -457,6 +489,7 @@ namespace XCode
             builder = FixParam(builder, ps);
 
             var list = LoadData(session.Query(builder, 0, 0));
+            //var list = session.Query(builder, 0, 0, LoadData);
             if (list == null || list.Count < 1) return null;
 
             if (list.Count > 1 && DAL.Debug)
@@ -612,6 +645,7 @@ namespace XCode
 
             var builder = CreateBuilder(where, order, selects, startRowIndex, maximumRows);
             return LoadData(session.Query(builder, startRowIndex, maximumRows));
+            //return session.Query(builder, startRowIndex, maximumRows, LoadData);
         }
 
         /// <summary>最标准的查询数据。没有数据时返回空集合而不是null</summary>
@@ -661,7 +695,7 @@ namespace XCode
                             order2 = order2.Replace(match.Value, match.Value.Replace(",", "★"));
                         }
                         var ss = order2.Split(',');
-                        var sb = new StringBuilder();
+                        var sb = Pool.StringBuilder.Get();
                         foreach (var item in ss)
                         {
                             var fn = item;
@@ -693,7 +727,7 @@ namespace XCode
                             sb.AppendFormat("{0} {1}", fn, od);
                         }
 
-                        order2 = sb.ToString().Replace("★", ",");
+                        order2 = sb.Put(true).Replace("★", ",");
                     }
                     #endregion
 
@@ -708,6 +742,7 @@ namespace XCode
 
                         var builder2 = CreateBuilder(where, order2, selects, start, max);
                         var list = LoadData(session.Query(builder2, start, max));
+                        //var list = session.Query(builder2, start, max, LoadData);
                         if (list == null || list.Count < 1) return list;
                         // 因为这样取得的数据是倒过来的，所以这里需要再倒一次
                         list.Reverse();
@@ -719,6 +754,7 @@ namespace XCode
 
             var builder = CreateBuilder(where, order, selects, startRowIndex, maximumRows);
             return LoadData(session.Query(builder, startRowIndex, maximumRows));
+            //return session.Query(builder, startRowIndex, maximumRows, LoadData);
         }
 
         /// <summary>同时查询满足条件的记录集和记录总数。没有数据时返回空集合而不是null</summary>
@@ -751,7 +787,7 @@ namespace XCode
             if (!page.Sort.IsNullOrEmpty())
             {
                 var st = Meta.Table.FindByName(page.Sort);
-                page.Sort = st?.ColumnName;
+                page.Sort = st?.FormatedName;
                 orderby = page.OrderBy;
 
                 //!!! 恢复排序字段，否则属性名和字段名不一致时前台无法降序
@@ -763,6 +799,16 @@ namespace XCode
                 return FindAll(where, orderby, selects, page.StartRow, page.PageSize);
             else
                 return FindAll(where, orderby, selects, (page.PageIndex - 1) * page.PageSize, page.PageSize);
+        }
+
+        /// <summary>执行SQl获取数据集</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <returns>实体集</returns>
+        public static IList<TEntity> FindAll(String sql)
+        {
+            var session = Meta.Session;
+
+            return LoadData(session.Query(sql));
         }
         #endregion
 
@@ -833,6 +879,18 @@ namespace XCode
 
             return session.QueryCount(builder);
         }
+
+        ///// <summary>执行SQL返回总记录数</summary>
+        ///// <returns>总行数</returns>
+        //public static Int32 FindCount(String sql)
+        //{
+        //    if (!sql.ToLower().Contains("select"))
+        //        return FindCount(sql, null, null, 0, 0);
+
+        //    var session = Meta.Session;
+
+        //    return session.QueryCount(sql);
+        //}
         #endregion
 
         #region 获取查询SQL
@@ -1289,16 +1347,18 @@ namespace XCode
                     var columns = table.GetColumns(di.Columns);
 
                     // [v1,v2,...vn]
-                    var sb = new StringBuilder();
+                    var sb = Pool.StringBuilder.Get();
                     foreach (var dc in columns)
                     {
                         if (sb.Length > 0) sb.Append(",");
                         if (Meta.FieldNames.Contains(dc.Name)) sb.Append(this[dc.Name]);
                     }
+
+                    var vs = sb.Put(true);
                     if (columns.Length > 1)
-                        return String.Format("[{0}]", sb.ToString());
+                        return String.Format("[{0}]", vs);
                     else
-                        return sb.ToString();
+                        return vs;
                 }
             }
 
@@ -1349,21 +1409,7 @@ namespace XCode
         }
 
         /// <summary>是否有脏数据。决定是否可以Update</summary>
-        protected Boolean HasDirty
-        {
-            get
-            {
-                var ds = Dirtys;
-                if (ds == null || ds.Count < 1) return false;
-
-                foreach (var item in Meta.FieldNames)
-                {
-                    if (ds.TryGetValue(item, out var flag) && flag) return true;
-                }
-
-                return false;
-            }
-        }
+        protected Boolean HasDirty => Dirtys.Any();
         #endregion
 
         #region 高并发
@@ -1373,7 +1419,7 @@ namespace XCode
         /// <param name="find">查找函数</param>
         /// <param name="create">创建对象</param>
         /// <returns></returns>
-        protected static TEntity GetOrAdd<TKey>(TKey key, Func<TKey, Boolean, TEntity> find = null, Func<TKey, TEntity> create = null)
+        public static TEntity GetOrAdd<TKey>(TKey key, Func<TKey, Boolean, TEntity> find = null, Func<TKey, TEntity> create = null)
         {
             if (key == null) return null;
 
@@ -1386,7 +1432,7 @@ namespace XCode
                 else
                 {
                     entity = new TEntity();
-                    entity[Meta.Factory.Unique.Name] = key;
+                    entity.SetItem(Meta.Factory.Unique.Name, key);
                 }
 
                 // 插入失败时，再次查询

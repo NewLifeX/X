@@ -80,7 +80,7 @@ namespace NewLife.Net
             MaxAsync = Environment.ProcessorCount * 16 / 10;
             _Sessions = new SessionCollection(this);
 
-            Log = Logger.Null;
+            if (Setting.Current.Debug) Log = XTrace.Log;
         }
 
         /// <summary>构造TCP服务器对象</summary>
@@ -256,7 +256,7 @@ namespace NewLife.Net
                 session.ID = Interlocked.Increment(ref g_ID);
                 session.WriteLog("New {0}", session.Remote.EndPoint);
 
-                StatSession?.Increment(1);
+                StatSession?.Increment(1, 0);
 
                 NewSession?.Invoke(this, new SessionEventArgs { Session = session });
 

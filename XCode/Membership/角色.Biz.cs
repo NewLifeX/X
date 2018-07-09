@@ -6,6 +6,7 @@ using System.Text;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using NewLife;
+using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Reflection;
 
@@ -370,7 +371,7 @@ namespace XCode.Membership
                 return;
             }
 
-            var sb = new StringBuilder();
+            var sb = Pool.StringBuilder.Get();
             // 根据资源按照从小到大排序一下
             foreach (var item in Permissions.OrderBy(e => e.Key))
             {
@@ -381,7 +382,7 @@ namespace XCode.Membership
                 if (sb.Length > 0) sb.Append(",");
                 sb.AppendFormat("{0}#{1}", item.Key, (Int32)item.Value);
             }
-            SetItem(__.Permission, sb.ToString());
+            SetItem(__.Permission, sb.Put(true));
         }
 
         /// <summary>当前角色拥有的资源</summary>

@@ -23,6 +23,8 @@ namespace NewLife.Agent
         #region 构造
         static AgentServiceBase()
         {
+            XTrace.UseConsole();
+
             if (_Instance == null) _Instance = new TService();
         }
 
@@ -126,7 +128,6 @@ namespace NewLife.Agent
                 Console.Title = service.DisplayName;
 
                 #region 命令行
-                XTrace.UseConsole();
                 service.Log = XTrace.Log;
 
                 // 输出状态

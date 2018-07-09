@@ -83,7 +83,9 @@
     <Compile Include="Collections\CollectionHelper.cs" />
     <Compile Include="Collections\ConcurrentHashSet.cs" />
     <Compile Include="Collections\DictionaryCache.cs" />
+    <Compile Include="Collections\IPool.cs" />
     <Compile Include="Collections\NullableDictionary.cs" />
+    <Compile Include="Collections\ObjectPool.cs" />
     <Compile Include="Collections\Pool.cs" />
     <Compile Include="Common\CombGuid.cs" />
     <Compile Include="Common\PinYin.cs" />
@@ -97,6 +99,7 @@
     <Compile Include="Compression\ZipFile.cs" />
     <Compile Include="Configuration\CombConfig.cs" />
     <Compile Include="Data\BinaryTree.cs" />
+    <Compile Include="Data\DbSet.cs" />
     <Compile Include="Data\GeoArea.cs" />
     <Compile Include="Data\GeoAddress.cs" />
     <Compile Include="Data\GeoPoint.cs" />

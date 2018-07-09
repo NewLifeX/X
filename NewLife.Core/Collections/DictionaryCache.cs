@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Threading;
@@ -269,7 +270,7 @@ namespace NewLife.Collections
             {
                 lock (this)
                 {
-                    if (_timer == null) _timer = new TimerX(RemoveNotAlive, null, period * 1000, period * 1000);
+                    if (_timer == null) _timer = new TimerX(RemoveNotAlive, null, period * 1000, period * 1000) { Async = true };
                 }
             }
         }
@@ -284,7 +285,7 @@ namespace NewLife.Collections
         void RemoveNotAlive(Object state)
         {
             var dic = _cache;
-            if (_count == 0 && dic.IsEmpty)
+            if (_count == 0 && !dic.Any())
             {
                 // 缓存数小于0时关闭定时器
                 StopTimer();

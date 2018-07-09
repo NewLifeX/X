@@ -446,7 +446,7 @@ namespace NewLife.Serialization
         #region 字符串
         /// <summary>从当前流中读取下一个字符，并根据所使用的 Encoding 和从流中读取的特定字符，提升流的当前位置。</summary>
         /// <returns></returns>
-        public virtual Char ReadChar() { return Convert.ToChar(ReadByte()); }
+        public virtual Char ReadChar() => Convert.ToChar(ReadByte());
 
         /// <summary>从当前流中读取一个字符串。字符串有长度前缀，一次 7 位地被编码为整数。</summary>
         /// <returns></returns>
@@ -454,8 +454,8 @@ namespace NewLife.Serialization
         {
             // 先读长度
             var n = Host.ReadSize();
-            if (n < 0) return null;
-            if (n == 0) return String.Empty;
+            if (n <= 0) return null;
+            //if (n == 0) return String.Empty;
 
             var buffer = ReadBytes(n);
 

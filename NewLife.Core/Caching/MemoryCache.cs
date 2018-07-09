@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using NewLife.Reflection;
 using NewLife.Threading;
@@ -52,7 +53,11 @@ namespace NewLife.Caching
             if (clearTimer == null)
             {
                 var period = 60;
-                clearTimer = new TimerX(RemoveNotAlive, null, period * 1000, period * 1000);
+                clearTimer = new TimerX(RemoveNotAlive, null, period * 1000, period * 1000)
+                {
+                    Async = true,
+                    CanExecute = () => _cache.Any(),
+                };
             }
         }
 

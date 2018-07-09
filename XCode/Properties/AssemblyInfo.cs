@@ -8,12 +8,12 @@ using XCode;
 // 有关程序集的常规信息通过下列属性集
 // 控制。更改这些属性值可修改
 // 与程序集关联的信息。
-[assembly: AssemblyTitle("大数据中间件")]
-[assembly: AssemblyDescription("分布式大数据中间件")]
+[assembly: AssemblyTitle("数据中间件")]
+[assembly: AssemblyDescription("数据中间件、MySQL、SQLite、SqlServer、Oracle")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyProduct("XCode")]
 [assembly: AssemblyCompany("新生命开发团队")]
-[assembly: AssemblyCopyright("©2002-2018 新生命开发团队 http://www.NewLifeX.com")]
+[assembly: AssemblyCopyright("©2002-2018 新生命开发团队")]
 [assembly: AssemblyTrademark("四叶草")]
 [assembly: AssemblyCulture("")]
 
@@ -39,8 +39,8 @@ using XCode;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("9.7.*")]
-[assembly: AssemblyFileVersion("9.7.2018.0421")]
+[assembly: AssemblyVersion("9.8.*")]
+[assembly: AssemblyFileVersion("9.8.2018.0630")]
 
 /*
  * XCode的重大改进
@@ -58,6 +58,8 @@ using XCode;
  * /
 
 /*
+ * v9.8.2018.0605   由DataReader直接映射实体列表，以支持netstandard的MySql和SQLite，且提升性能
+ * 
  * v9.7.2018.0421   支持运行时修改DAL连接字符串
  * 
  * v9.6.2018.0326   重构权限体系，支持多角色

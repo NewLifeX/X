@@ -1,0 +1,40 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2024
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Others", "Others", "{32891F65-FBA1-42B2-918E-61F3A9623F2A}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		.gitignore = .gitignore
+		Readme.MD = Readme.MD
+		XCode\Readme.MD = XCode\Readme.MD
+		发布NuGet.cs = 发布NuGet.cs
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NewLife.Core.Mixed", "NewLife.Core\NewLife.Core.Mixed.csproj", "{023DA3B9-5AD1-4389-943B-7CAB22BF107C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XCode.Mixed", "XCode\XCode.Mixed.csproj", "{59AC453C-22E4-43E0-82C8-84E0763DA6A7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{023DA3B9-5AD1-4389-943B-7CAB22BF107C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{023DA3B9-5AD1-4389-943B-7CAB22BF107C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{023DA3B9-5AD1-4389-943B-7CAB22BF107C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{023DA3B9-5AD1-4389-943B-7CAB22BF107C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{59AC453C-22E4-43E0-82C8-84E0763DA6A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{59AC453C-22E4-43E0-82C8-84E0763DA6A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{59AC453C-22E4-43E0-82C8-84E0763DA6A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{59AC453C-22E4-43E0-82C8-84E0763DA6A7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6AEA440B-0D90-4F6E-BA9A-D42B27A78D7B}
+	EndGlobalSection
+EndGlobal

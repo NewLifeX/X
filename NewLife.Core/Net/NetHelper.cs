@@ -150,6 +150,8 @@ namespace System
         /// <returns></returns>
         public static Boolean CheckPort(this IPAddress address, NetType protocol, Int32 port)
         {
+            if (NewLife.Runtime.Mono) return false;
+
             var gp = IPGlobalProperties.GetIPGlobalProperties();
 
             IPEndPoint[] eps = null;

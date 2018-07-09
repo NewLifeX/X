@@ -35,11 +35,20 @@ namespace XCode.DataAccessLayer
             var dir = root.CombinePath(!Runtime.Is64BitProcess ? "x86" : "x64");
             //if (Directory.Exists(dir)) SetDllDirectory(dir);
             // 不要判断是否存在，因为可能目录还不存在，一会下载驱动后将创建目录
+#if __CORE__
+            if (!Runtime.Mono && !Runtime.Linux) SetDllDirectory(dir);
+#else
             if (!Runtime.Mono) SetDllDirectory(dir);
+#endif
+
 
             root = NewLife.Setting.Current.GetPluginPath();
             dir = root.CombinePath(!Runtime.Is64BitProcess ? "x86" : "x64");
+#if __CORE__
+            if (!Runtime.Mono && !Runtime.Linux) SetDllDirectory(dir);
+#else
             if (!Runtime.Mono) SetDllDirectory(dir);
+#endif
         }
 
         /// <summary>销毁资源时，回滚未提交事务，并关闭数据库连接</summary>
@@ -100,7 +109,7 @@ namespace XCode.DataAccessLayer
         /// <summary>连接名</summary>
         public String ConnName { get; set; }
 
-        private String _ConnectionString;
+        protected internal String _ConnectionString;
         /// <summary>链接字符串</summary>
         public virtual String ConnectionString
         {
@@ -186,6 +195,10 @@ namespace XCode.DataAccessLayer
             if (builder.TryGetAndRemove(nameof(TablePrefix), out value) && !value.IsNullOrEmpty()) TablePrefix = value;
             if (builder.TryGetAndRemove(nameof(Readonly), out value) && !value.IsNullOrEmpty()) Readonly = value.ToBoolean();
 
+            // 连接字符串去掉provider，可能有些数据库不支持这个属性
+            if (builder.TryGetAndRemove("provider", out value) && !value.IsNullOrEmpty()) { }
+
+
             // 数据库名称
             var db = builder["Database"];
             if (db.IsNullOrEmpty()) db = builder["Initial Catalog"];
@@ -209,19 +222,14 @@ namespace XCode.DataAccessLayer
 
                 _ServerVersion = String.Empty;
 
-                //var session = CreateSession();
-                //if (!session.Opened) session.Open();
-                //try
-                //{
-                //    ver = _ServerVersion = session.Conn.ServerVersion;
-
-                //    return ver;
-                //}
-                //finally { session.AutoClose(); }
-
-                using (var pi = Pool.AcquireItem())
+                var conn = Pool.Get();
+                try
                 {
-                    return _ServerVersion = pi.Value.ServerVersion;
+                    return _ServerVersion = conn.ServerVersion;
+                }
+                finally
+                {
+                    Pool.Put(conn);
                 }
             }
         }
@@ -307,56 +315,74 @@ namespace XCode.DataAccessLayer
         /// <summary>获取提供者工厂</summary>
         /// <param name="assemblyFile"></param>
         /// <param name="className"></param>
+        /// <param name="ignoreError"></param>
         /// <returns></returns>
-        protected static DbProviderFactory GetProviderFactory(String assemblyFile, String className)
+        public static DbProviderFactory GetProviderFactory(String assemblyFile, String className, Boolean ignoreError = false)
         {
-            var name = Path.GetFileNameWithoutExtension(assemblyFile);
-            var linkName = name;
-            if (Runtime.Is64BitProcess) linkName += "64";
-            var ver = Environment.Version;
-            if (ver.Major >= 4) linkName += "Fx" + ver.Major + ver.Minor;
-            // 有些数据库驱动不区分x86/x64，并且逐步以Fx4为主，所以来一个默认
-            linkName += ";" + name;
+            try
+            {
+                var name = Path.GetFileNameWithoutExtension(assemblyFile);
+                var linkName = name;
+                if (Runtime.Is64BitProcess) linkName += "64";
+                var ver = Environment.Version;
+                if (ver.Major >= 4) linkName += "Fx" + ver.Major + ver.Minor;
+                // 有些数据库驱动不区分x86/x64，并且逐步以Fx4为主，所以来一个默认
+                linkName += ";" + name;
 
 #if __CORE__
-            linkName = "st_" + name;
+                linkName = "st_" + name;
+                if (!name.IsNullOrEmpty())
+                {
+                    className = className + "," + name;//指定完全类型名可获取项目中添加了引用的类型，否则dll文件需要放在根目录
+                }
 #endif
 
-            var type = PluginHelper.LoadPlugin(className, null, assemblyFile, linkName);
+                var type = PluginHelper.LoadPlugin(className, null, assemblyFile, linkName);
 
-            // 反射实现获取数据库工厂
-            var file = assemblyFile;
-            var plugin = NewLife.Setting.Current.GetPluginPath();
-            file = plugin.CombinePath(file);
-
-            // 如果还没有，就写异常
-            if (type == null && !File.Exists(file)) throw new FileNotFoundException("缺少文件" + file + "！", file);
-
-            if (type == null)
-            {
-                XTrace.WriteLine("驱动文件{0}无效或不适用于当前环境，准备删除后重新下载！", assemblyFile);
-
-                try
-                {
-                    File.Delete(file);
-                }
-                catch (UnauthorizedAccessException) { }
-                catch (Exception ex) { XTrace.Log.Error(ex.ToString()); }
-
-                type = PluginHelper.LoadPlugin(className, null, file, linkName);
+                // 反射实现获取数据库工厂
+                var file = assemblyFile;
+                var plugin = NewLife.Setting.Current.GetPluginPath();
+                file = plugin.CombinePath(file);
 
                 // 如果还没有，就写异常
-                if (!File.Exists(file)) throw new FileNotFoundException("缺少文件" + file + "！", file);
+                if (type == null)
+                {
+                    if (assemblyFile.IsNullOrEmpty()) return null;
+                    if (!File.Exists(file)) throw new FileNotFoundException("缺少文件" + file + "！", file);
+                }
+
+                if (type == null)
+                {
+                    XTrace.WriteLine("驱动文件{0}无效或不适用于当前环境，准备删除后重新下载！", assemblyFile);
+
+                    try
+                    {
+                        File.Delete(file);
+                    }
+                    catch (UnauthorizedAccessException) { }
+                    catch (Exception ex) { XTrace.Log.Error(ex.ToString()); }
+
+                    type = PluginHelper.LoadPlugin(className, null, file, linkName);
+
+                    // 如果还没有，就写异常
+                    if (!File.Exists(file)) throw new FileNotFoundException("缺少文件" + file + "！", file);
+                }
+                if (type == null) return null;
+
+                var asm = type.Assembly;
+                if (DAL.Debug) DAL.WriteLog("{2}驱动{0} 版本v{1}", asm.Location, asm.GetName().Version, name ?? className.TrimEnd("Client", "Factory"));
+
+                var field = type.GetFieldEx("Instance");
+                if (field == null) return Activator.CreateInstance(type) as DbProviderFactory;
+
+                return Reflect.GetValue(null, field) as DbProviderFactory;
             }
-            if (type == null) return null;
+            catch
+            {
+                if (ignoreError) return null;
 
-            var asm = type.Assembly;
-            if (DAL.Debug) DAL.WriteLog("{2}驱动{0} 版本v{1}", asm.Location, asm.GetName().Version, className.TrimEnd("Client", "Factory"));
-
-            var field = type.GetFieldEx("Instance");
-            if (field == null) return Activator.CreateInstance(type) as DbProviderFactory;
-
-            return Reflect.GetValue(null, field) as DbProviderFactory;
+                throw;
+            }
         }
 
         [DllImport("kernel32.dll")]
@@ -594,12 +620,10 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        /// <summary>
-        /// 是否保留字
-        /// </summary>
+        /// <summary>是否保留字</summary>
         /// <param name="word"></param>
         /// <returns></returns>
-        internal Boolean IsReservedWord(String word) => !String.IsNullOrEmpty(word) && ReservedWords.ContainsKey(word);
+        internal Boolean IsReservedWord(String word) => !word.IsNullOrEmpty() && ReservedWords.ContainsKey(word);
 
         /// <summary>格式化时间为SQL字符串</summary>
         /// <remarks>
@@ -620,7 +644,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual String FormatName(String name)
         {
-            if (String.IsNullOrEmpty(name)) return name;
+            if (name.IsNullOrEmpty()) return name;
 
             // 优先使用内置关键字
             var rws = ReservedWords;
@@ -716,12 +740,10 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual String FormatParameterName(String name)
         {
-            if (String.IsNullOrEmpty(name)) return name;
+            if (name.IsNullOrEmpty()) return name;
 
-            //DbMetaData md = CreateMetaData() as DbMetaData;
-            //if (md != null) name = md.ParamPrefix + name;
-
-            //return name;
+            // 如果参数名是关键字，统一加前缀
+            if (IsReservedWord(name)) name = "x_" + name;
 
             return ParamPrefix + name;
         }
@@ -756,9 +778,9 @@ namespace XCode.DataAccessLayer
                     // 参数可能是数组
                     if (type != null && type != typeof(Byte[]) && type.IsArray) type = type.GetElementTypeEx();
                 }
+                else
+                    value = value.ChangeType(type);
 
-                //if (dp.DbType == DbType.AnsiString)
-                //{
                 // 写入数据类型
                 switch (type.GetTypeCode())
                 {
@@ -799,7 +821,6 @@ namespace XCode.DataAccessLayer
                         break;
                     default:
                         break;
-                        //}
                 }
                 dp.Value = value;
             }
@@ -814,10 +835,13 @@ namespace XCode.DataAccessLayer
         /// <summary>创建参数数组</summary>
         /// <param name="ps"></param>
         /// <returns></returns>
-        public IDataParameter[] CreateParameters(IDictionary<String, Object> ps) => ps.Select(e => CreateParameter(e.Key, e.Value)).ToArray();
+        public virtual IDataParameter[] CreateParameters(IDictionary<String, Object> ps) => ps.Select(e => CreateParameter(e.Key, e.Value)).ToArray();
 
         /// <summary>获取 或 设置 自动关闭。每次使用完数据库连接后，是否自动关闭连接，高频操作时设为false可提升性能。默认true</summary>
         public Boolean AutoClose { get; set; } = true;
+
+        /// <summary>是否支持Schema。默认true</summary>
+        public Boolean SupportSchema { get; set; } = true;
         #endregion
 
         #region 辅助函数

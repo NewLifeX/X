@@ -124,14 +124,10 @@ namespace System
             if (pass != null && pass.Length > 0)
             {
                 var keySize = sa.KeySize / 8;
-                if (pass.Length != keySize) pass = new Byte[keySize].Write(0, pass);
-
-                sa.Key = pass;
+                sa.Key = Pad(pass, keySize);
 
                 var ivSize = sa.IV.Length;
-                if (pass.Length != ivSize) pass = new Byte[ivSize].Write(0, pass);
-
-                sa.IV = pass;
+                sa.IV = Pad(pass, ivSize);
 
                 sa.Mode = mode;
                 sa.Padding = padding;
@@ -190,14 +186,10 @@ namespace System
             if (pass != null && pass.Length > 0)
             {
                 var keySize = sa.KeySize / 8;
-                if (pass.Length != keySize) pass = new Byte[keySize].Write(0, pass);
-
-                sa.Key = pass;
+                sa.Key = Pad(pass, keySize);
 
                 var ivSize = sa.IV.Length;
-                if (pass.Length != ivSize) pass = new Byte[ivSize].Write(0, pass);
-
-                sa.IV = pass;
+                sa.IV = Pad(pass, ivSize);
 
                 sa.Mode = mode;
                 sa.Padding = padding;
@@ -207,6 +199,16 @@ namespace System
             {
                 return stream.ReadBytes();
             }
+        }
+
+        private static Byte[] Pad(Byte[] buf, Int32 length)
+        {
+            if (buf.Length == length) return buf;
+
+            var buf2 = new Byte[length];
+            buf2.Write(0, buf);
+
+            return buf2;
         }
         #endregion
 

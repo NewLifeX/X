@@ -22,7 +22,7 @@ namespace NewLife.Threading
         public TimerScheduler Scheduler { get; private set; }
 
         /// <summary>获取/设置 回调</summary>
-        public WaitCallback Callback { get; set; }
+        public WeakAction<Object> Callback { get; set; }
 
         /// <summary>获取/设置 用户数据</summary>
         public Object State { get; set; }
@@ -47,6 +47,9 @@ namespace NewLife.Threading
 
         /// <summary>平均耗时。毫秒</summary>
         public Int32 Cost { get; internal set; }
+
+        /// <summary>判断任务是否执行的委托。一般跟异步配合使用，避免频繁从线程池借出线程</summary>
+        public Func<Boolean> CanExecute { get; set; }
         #endregion
 
         #region 静态
@@ -68,7 +71,7 @@ namespace NewLife.Threading
             if (dueTime < 0) throw new ArgumentOutOfRangeException(nameof(dueTime));
             //if (period < 0) throw new ArgumentOutOfRangeException("period");
 
-            Callback = callback ?? throw new ArgumentNullException(nameof(callback));
+            Callback = new WeakAction<Object>(callback) ?? throw new ArgumentNullException(nameof(callback));
             State = state;
             Period = period;
 
@@ -89,7 +92,7 @@ namespace NewLife.Threading
             if (startTime <= DateTime.MinValue) throw new ArgumentOutOfRangeException(nameof(startTime));
             //if (period < 0) throw new ArgumentOutOfRangeException("period");
 
-            Callback = callback ?? throw new ArgumentNullException(nameof(callback));
+            Callback = new WeakAction<Object>(callback) ?? throw new ArgumentNullException(nameof(callback));
             State = state;
             Period = period;
             Absolutely = true;
@@ -136,11 +139,7 @@ namespace NewLife.Threading
         /// <param name="callback"></param>
         /// <param name="ms"></param>
         /// <returns></returns>
-        public static TimerX Delay(WaitCallback callback, Int32 ms)
-        {
-            var timer = new TimerX(callback, null, ms, 0) { Async = true };
-            return timer;
-        }
+        public static TimerX Delay(WaitCallback callback, Int32 ms) => new TimerX(callback, null, ms, 0) { Async = true };
 
         private static TimerX _NowTimer;
         private static DateTime _Now;
@@ -170,24 +169,7 @@ namespace NewLife.Threading
         #region 辅助
         /// <summary>已重载</summary>
         /// <returns></returns>
-        public override String ToString()
-        {
-            if (Callback == null) return base.ToString();
-
-            var mi = Callback.Method;
-            var sb = new StringBuilder();
-            if (mi.DeclaringType != null)
-            {
-                sb.Append(mi.DeclaringType.Name);
-                sb.Append(".");
-            }
-            sb.Append(mi.Name);
-            sb.Append(" ");
-
-            sb.Append(State);
-
-            return sb.ToString();
-        }
+        public override String ToString() => Callback + "";
         #endregion
     }
 }

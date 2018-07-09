@@ -40,6 +40,9 @@ namespace NewLife.Net.Handlers
         {
             var now = TimerX.Now;
 
+            // 控制超时时间，默认5秒
+            if (msTimeout <= 10 || msTimeout >= 60_000) msTimeout = 5_000;
+
             if (source == null) source = new TaskCompletionSource<Object>();
             var qi = new Item
             {
@@ -56,7 +59,14 @@ namespace NewLife.Net.Handlers
             {
                 lock (this)
                 {
-                    if (_Timer == null) _Timer = new TimerX(Check, null, 1000, 1000, "Match") { Async = true };
+                    if (_Timer == null)
+                    {
+                        _Timer = new TimerX(Check, null, 1000, 1000, "Match")
+                        {
+                            Async = true,
+                            CanExecute = () => !Items.IsEmpty
+                        };
+                    }
                 }
             }
 
@@ -102,12 +112,7 @@ namespace NewLife.Net.Handlers
         void Check(Object state)
         {
             var qs = Items;
-            if (qs.IsEmpty)
-            {
-                _Timer.TryDispose();
-                _Timer = null;
-                return;
-            }
+            if (qs.IsEmpty) return;
 
             var now = TimerX.Now;
             // 直接遍历，队列不会很长

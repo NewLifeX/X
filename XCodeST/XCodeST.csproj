@@ -4,30 +4,42 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>XCode</AssemblyName>
     <RootNamespace>XCode</RootNamespace>
-    <AssemblyTitle>大数据中间件</AssemblyTitle>
-    <Description>分布式大数据中间件</Description>
+    <AssemblyTitle>数据中间件</AssemblyTitle>
+    <Description>数据中间件、MySQL、SQLite、SqlServer、Oracle</Description>
     <Company>新生命开发团队</Company>
-    <Copyright>©2002-2018 新生命开发团队 http://www.NewLifeX.com</Copyright>
-    <FileVersion>9.7.2018.0512</FileVersion>
-    <AssemblyVersion>9.7.2018.0512</AssemblyVersion>
+    <Copyright>©2002-2018 新生命开发团队</Copyright>
+    <FileVersion>9.8.2018.0630</FileVersion>
+    <AssemblyVersion>9.8.*</AssemblyVersion>
+    <!--是否确定版本，false以支持*-->
+    <Deterministic>false</Deterministic>
+    <Version>9.8.2018.0605</Version>
+    <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DefineConstants>TRACE;RELEASE;NETSTANDARD2_0;__CORE__</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
     <OutputPath>..\..\Bin\</OutputPath>
     <DocumentationFile>..\..\Bin\netstandard2.0\XCode.xml</DocumentationFile>
-    <DefineConstants>TRACE;RELEASE;NETSTANDARD2_0;__CORE__</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0;__CORE__</DefineConstants>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
     <OutputPath>..\..\Bin\</OutputPath>
     <DocumentationFile>..\..\Bin\netstandard2.0\XCode.xml</DocumentationFile>
-    <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0;__CORE__</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Remove="Remoting\**" />
+    <Compile Remove="Stub\**" />
     <EmbeddedResource Remove="Remoting\**" />
+    <EmbeddedResource Remove="Stub\**" />
     <None Remove="Remoting\**" />
+    <None Remove="Stub\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -66,6 +78,7 @@
     <Compile Include="..\XCode\DataAccessLayer\DAL_DbOperate.cs" Link="DataAccessLayer\DAL_DbOperate.cs" />
     <Compile Include="..\XCode\DataAccessLayer\DAL_Setting.cs" Link="DataAccessLayer\DAL_Setting.cs" />
     <Compile Include="..\XCode\DataAccessLayer\Database\MySql.cs" Link="DataAccessLayer\Database\MySql.cs" />
+    <Compile Include="..\XCode\DataAccessLayer\Database\Network.cs" Link="DataAccessLayer\Database\Network.cs" />
     <Compile Include="..\XCode\DataAccessLayer\Database\Oracle.cs" Link="DataAccessLayer\Database\Oracle.cs" />
     <Compile Include="..\XCode\DataAccessLayer\Database\PostgreSQL.cs" Link="DataAccessLayer\Database\PostgreSQL.cs" />
     <Compile Include="..\XCode\DataAccessLayer\Database\SQLite.cs" Link="DataAccessLayer\Database\SQLite.cs" />
@@ -135,6 +148,11 @@
     <Compile Include="..\XCode\Model\OrderExpression.cs" Link="Model\OrderExpression.cs" />
     <Compile Include="..\XCode\Model\WhereExpression.cs" Link="Model\WhereExpression.cs" />
     <Compile Include="..\XCode\Model\XCodeService.cs" Link="Model\XCodeService.cs" />
+    <Compile Include="..\XCode\Service\DbClient.cs" Link="Service\DbClient.cs" />
+    <Compile Include="..\XCode\Service\DbController.cs" Link="Service\DbController.cs" />
+    <Compile Include="..\XCode\Service\DbParam.cs" Link="Service\DbParam.cs" />
+    <Compile Include="..\XCode\Service\DbServer.cs" Link="Service\DbServer.cs" />
+    <Compile Include="..\XCode\Service\LoginInfo.cs" Link="Service\LoginInfo.cs" />
     <Compile Include="..\XCode\Setting.cs" Link="Setting.cs" />
     <Compile Include="..\XCode\Sharding\分片.Biz.cs" Link="Sharding\分片.Biz.cs" />
     <Compile Include="..\XCode\Sharding\分片.cs" Link="Sharding\分片.cs" />
@@ -177,6 +195,7 @@
     <Folder Include="Tree\" />
     <Folder Include="Web\" />
     <Folder Include="Extension\" />
+    <Folder Include="Service\" />
   </ItemGroup>
 
   <ItemGroup>
@@ -192,13 +211,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.0.2" />
-    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.0.2" />
-    <PackageReference Include="Microsoft.AspNetCore.Session" Version="2.0.2" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Xml" Version="2.0.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.0.0" />
     <PackageReference Include="System.Data.Common" Version="4.3.0" />
   </ItemGroup>
 

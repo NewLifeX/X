@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 #endif
 using NewLife.Reflection;
+using NewLife.Threading;
 
 namespace NewLife.Log
 {
@@ -76,6 +77,8 @@ namespace NewLife.Log
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 #endif
             TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
+
+            ThreadPoolX.Init();
         }
 
 #if __MOBILE__

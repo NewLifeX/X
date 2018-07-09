@@ -157,14 +157,25 @@ namespace NewLife.Threading
                     {
                         if (!timer.Calling && CheckTime(timer, now))
                         {
-                            // 必须在主线程设置状态，否则可能异步线程还没来得及设置开始状态，主线程又开始了新的一轮调度
-                            timer.Calling = true;
-                            if (!timer.Async)
-                                Execute(timer);
+                            // 是否能够执行
+                            if (timer.CanExecute == null || timer.CanExecute())
+                            {
+                                // 必须在主线程设置状态，否则可能异步线程还没来得及设置开始状态，主线程又开始了新的一轮调度
+                                timer.Calling = true;
+                                if (!timer.Async)
+                                    Execute(timer);
+                                else
+                                    //Task.Factory.StartNew(() => ProcessItem(timer));
+                                    // 不需要上下文流动
+                                    ThreadPool.UnsafeQueueUserWorkItem(Execute, timer);
+                                // 内部线程池，让异步任务有公平竞争CPU的机会
+                                //ThreadPoolX.QueueUserWorkItem(Execute, timer);
+                            }
+                            // 即使不能执行，也要设置下一次的时间
                             else
-                                //Task.Factory.StartNew(() => ProcessItem(timer));
-                                // 不需要上下文流动
-                                ThreadPool.UnsafeQueueUserWorkItem(Execute, timer);
+                            {
+                                OnFinish(timer);
+                            }
                         }
                     }
                 }
@@ -225,9 +236,17 @@ namespace NewLife.Threading
 
             try
             {
+                // 弱引用判断
+                var tc = timer.Callback;
+                if (tc == null || !tc.IsAlive)
+                {
+                    timer.Dispose();
+                    return;
+                }
+
                 //timer.Calling = true;
 
-                timer.Callback(timer.State ?? timer);
+                tc.Invoke(timer.State ?? timer);
             }
             catch (ThreadAbortException) { throw; }
             catch (ThreadInterruptedException) { throw; }
@@ -245,27 +264,10 @@ namespace NewLife.Threading
 
                 if (d > MaxCost && !timer.Async) XTrace.WriteLine("任务 {0} 耗时过长 {1:n0}ms，建议使用异步任务Async=true", timer, d);
 
-                // 再次读取周期，因为任何函数可能会修改
-                var p = timer.Period;
-
                 timer.Timers++;
-
-                // 如果内部设置了下一次时间，则不再递加周期
-                if (!timer.hasSetNext)
-                {
-                    if (timer.Absolutely)
-                        timer.NextTime = timer.NextTime.AddMilliseconds(p);
-                    else
-                        timer.NextTime = DateTime.Now.AddMilliseconds(p);
-                }
+                OnFinish(timer);
 
                 timer.Calling = false;
-
-                // 清理一次性定时器
-                if (p <= 0)
-                    timer.Dispose();
-                else if (p < period)
-                    period = p;
 
                 TimerX.Current = null;
 
@@ -275,6 +277,27 @@ namespace NewLife.Threading
                 // 调度线程可能在等待，需要唤醒
                 Wake();
             }
+        }
+
+        private void OnFinish(TimerX timer)
+        {
+            // 再次读取周期，因为任何函数可能会修改
+            var p = timer.Period;
+
+            // 如果内部设置了下一次时间，则不再递加周期
+            if (!timer.hasSetNext)
+            {
+                if (timer.Absolutely)
+                    timer.NextTime = timer.NextTime.AddMilliseconds(p);
+                else
+                    timer.NextTime = DateTime.Now.AddMilliseconds(p);
+            }
+
+            // 清理一次性定时器
+            if (p <= 0)
+                timer.Dispose();
+            else if (p < period)
+                period = p;
         }
 
         /// <summary>已重载。</summary>

@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Web;
 using NewLife;
 using NewLife.Collections;
+using NewLife.Data;
 using NewLife.Log;
 using NewLife.Threading;
 using XCode.Cache;
@@ -128,23 +129,44 @@ namespace XCode
                     var str = TableName;
 
                     // 检查自动表前缀
-                    var dal = DAL.Create(ConnName);
-                    var pf = dal.Db.TablePrefix;
+                    var db = Dal.Db;
+                    var pf = db.TablePrefix;
                     if (!pf.IsNullOrEmpty() && !str.StartsWithIgnoreCase(pf)) str = pf + str;
 
-                    str = Dal.Db.FormatName(str);
+                    str = db.FormatName(str);
 
                     // 特殊处理Oracle数据库，在表名前加上方案名（用户名）
                     if (!str.Contains("."))
                     {
                         // 角色名作为点前缀来约束表名，支持所有数据库
-                        var owner = dal.Db.Owner;
+                        var owner = db.Owner;
                         if (!owner.IsNullOrEmpty()) str = Dal.Db.FormatName(owner) + "." + str;
                     }
 
                     _FormatedTableName = str;
                 }
                 return _FormatedTableName;
+            }
+        }
+
+        private String _TableNameWithPrefix;
+        /// <summary>带前缀的表名</summary>
+        public virtual String TableNameWithPrefix
+        {
+            get
+            {
+                if (_TableNameWithPrefix.IsNullOrEmpty())
+                {
+                    var str = TableName;
+
+                    // 检查自动表前缀
+                    var db = Dal.Db;
+                    var pf = db.TablePrefix;
+                    if (!pf.IsNullOrEmpty() && !str.StartsWithIgnoreCase(pf)) str = pf + str;
+
+                    _TableNameWithPrefix = str;
+                }
+                return _TableNameWithPrefix;
             }
         }
 
@@ -197,7 +219,7 @@ namespace XCode
                 if (DAL.Debug) DAL.WriteLog("等待初始化{0}数据{1:n0}ms失败 initThread={2}", ThisType.Name, ms, initThread);
                 return false;
             }
-            initThread = tid;
+            //initThread = tid;
             try
             {
                 // 已初始化
@@ -209,37 +231,43 @@ namespace XCode
                 else
                     name = String.Format("{0}#{1}@{2}", ThisType.Name, TableName, ConnName);
 
-                // 如果该实体类是首次使用检查模型，则在这个时候检查
-                try
+                var task = Task.Factory.StartNew(() =>
                 {
-                    CheckModel();
-                }
-                catch (Exception ex) { XTrace.WriteException(ex); }
+                    initThread = Thread.CurrentThread.ManagedThreadId;
 
-                //var init = Setting.Current.InitData;
-                var init = this == Default;
-                if (init)
-                {
-                    BeginTrans();
+                    // 如果该实体类是首次使用检查模型，则在这个时候检查
                     try
                     {
-                        if (Operate.Default is EntityBase entity)
-                        {
-                            entity.InitData();
-                            //// 异步执行初始化，只等一会，避免死锁
-                            //var task = TaskEx.Run(() => entity.InitData());
-                            //if (!task.Wait(ms) && DAL.Debug) DAL.WriteLog("{0}未能在{1:n0}ms内完成数据初始化 Task={2}", ThisType.Name, ms, task.Id);
-                        }
-
-                        Commit();
+                        CheckModel();
                     }
-                    catch (Exception ex)
+                    catch (Exception ex) { XTrace.WriteException(ex); }
+
+                    //var init = Setting.Current.InitData;
+                    var init = this == Default;
+                    if (init)
                     {
-                        if (XTrace.Debug) XTrace.WriteLine("初始化数据出错！" + ex.ToString());
+                        BeginTrans();
+                        try
+                        {
+                            if (Operate.Default is EntityBase entity)
+                            {
+                                entity.InitData();
+                                //// 异步执行初始化，只等一会，避免死锁
+                                //var task = TaskEx.Run(() => entity.InitData());
+                                //if (!task.Wait(ms) && DAL.Debug) DAL.WriteLog("{0}未能在{1:n0}ms内完成数据初始化 Task={2}", ThisType.Name, ms, task.Id);
+                            }
 
-                        Rollback();
+                            Commit();
+                        }
+                        catch (Exception ex)
+                        {
+                            if (XTrace.Debug) XTrace.WriteLine("初始化数据出错！" + ex.ToString());
+
+                            Rollback();
+                        }
                     }
-                }
+                });
+                task.Wait(3_000);
 
                 return true;
             }
@@ -299,7 +327,7 @@ namespace XCode
             {
                 foreach (var di in table.Indexes)
                 {
-                    var sb = new StringBuilder();
+                    var sb = Pool.StringBuilder.Get();
                     sb.AppendFormat("IX_{0}", TableName);
                     foreach (var item in di.Columns)
                     {
@@ -307,7 +335,7 @@ namespace XCode
                         sb.Append(item);
                     }
 
-                    di.Name = sb.ToString();
+                    di.Name = sb.Put(true);
                 }
             }
         }
@@ -380,14 +408,7 @@ namespace XCode
                     if (dal.Db.Migration > Migration.ReadOnly || def != this)
                         CheckTable();
                     else
-                        ThreadPool.UnsafeQueueUserWorkItem(s =>
-                        {
-                            try { CheckTable(); }
-                            catch (Exception ex)
-                            {
-                                XTrace.WriteException(ex);
-                            }
-                        }, null);
+                        ThreadPoolX.QueueUserWorkItem(CheckTable);
                 }
 
                 _hasCheckModel = true;
@@ -504,7 +525,8 @@ namespace XCode
                 _NextCount = now.AddSeconds(60);
 
                 // 先拿到记录数再初始化，因为初始化时会用到记录数，同时也避免了死循环
-                WaitForInitData();
+                //WaitForInitData();
+                InitData();
 
                 return m;
             }
@@ -543,15 +565,17 @@ namespace XCode
                     Table = FormatedTableName,
                     OrderBy = Table.Identity.Desc()
                 };
-                var ds = Dal.Select(builder, 0, 1);
-                if (ds.Tables[0].Rows.Count > 0)
-                    count = Convert.ToInt64(ds.Tables[0].Rows[0][Table.Identity.ColumnName]);
+                var ds = Dal.Query(builder, 0, 1);
+                if (ds.Columns.Length > 0 && ds.Rows.Count > 0)
+                    count = Convert.ToInt64(ds.Rows[0][0]);
+                //var rs = Dal.Query(builder, 0, 0, dr => dr.Read() ? dr[0].ToInt() : -1);
+                //if (rs > 0) count = rs;
             }
 
             // 100w数据时，没有预热Select Count需要3000ms，预热后需要500ms
             if (count < 500000)
             {
-                if (count <= 0) count = Dal.Session.QueryCountFast(FormatedTableName);
+                if (count <= 0) count = Dal.Session.QueryCountFast(TableNameWithPrefix);
 
                 // 查真实记录数，修正FastCount不够准确的情况
                 if (count < 10000000)
@@ -567,7 +591,7 @@ namespace XCode
             else
             {
                 // 异步查询弥补不足，千万数据以内
-                if (count < 10000000) count = Dal.Session.QueryCountFast(FormatedTableName);
+                if (count < 10000000) count = Dal.Session.QueryCountFast(TableNameWithPrefix);
             }
 
             return count;
@@ -590,16 +614,39 @@ namespace XCode
         #region 数据库操作
         void InitData() => WaitForInitData();
 
+        ///// <summary>执行SQL查询，返回记录集</summary>
+        ///// <param name="builder">SQL语句</param>
+        ///// <param name="startRowIndex">开始行，0表示第一行</param>
+        ///// <param name="maximumRows">最大返回行数，0表示所有行</param>
+        ///// <param name="convert">转换器</param>
+        ///// <returns></returns>
+        //public virtual T Query<T>(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows, Func<IDataReader, T> convert)
+        //{
+        //    InitData();
+
+        //    return Dal.Query(builder, startRowIndex, maximumRows, convert);
+        //}
+
         /// <summary>执行SQL查询，返回记录集</summary>
         /// <param name="builder">SQL语句</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns></returns>
-        public virtual DataSet Query(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows)
+        public virtual DbSet Query(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows)
         {
             InitData();
 
-            return Dal.Select(builder, startRowIndex, maximumRows);
+            return Dal.Query(builder, startRowIndex, maximumRows);
+        }
+
+        /// <summary>执行SQL查询，返回记录集</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <returns></returns>
+        public virtual DbSet Query(String sql)
+        {
+            InitData();
+
+            return Dal.Query(sql);
         }
 
         /// <summary>查询记录数</summary>
@@ -610,6 +657,16 @@ namespace XCode
             InitData();
 
             return Dal.SelectCount(builder);
+        }
+
+        /// <summary>查询记录数</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <returns></returns>
+        public virtual Int32 QueryCount(String sql)
+        {
+            InitData();
+
+            return Dal.SelectCount(sql, CommandType.Text, null);
         }
 
         /// <summary>执行</summary>
@@ -680,7 +737,7 @@ namespace XCode
         /// <returns></returns>
         public Int32 Truncate()
         {
-            var rs = Dal.Session.Truncate(FormatedTableName);
+            var rs = Dal.Session.Truncate(TableNameWithPrefix);
 
             // 干掉所有缓存
             _cache?.Clear("Truncate");

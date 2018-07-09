@@ -32,15 +32,10 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
-    <Reference Include="System.configuration" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Management" />
-    <Reference Include="System.Security" />
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Extensions" />
-    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)|$(Platform)' == 'Net4Debug|AnyCPU'">
@@ -65,6 +60,7 @@
     <Compile Include="DataAccessLayer\Common\DataResult.cs" />
     <Compile Include="DataAccessLayer\Common\ITransaction.cs" />
     <Compile Include="DataAccessLayer\Database\Access.cs" />
+    <Compile Include="DataAccessLayer\Database\Network.cs" />
     <Compile Include="DataAccessLayer\Database\SqlCe.cs" />
     <Compile Include="DataAccessLayer\Model\IModelResolver.cs">
       <SubType>Code</SubType>
@@ -115,6 +111,11 @@
     <Compile Include="Model\FormatExpression.cs" />
     <Compile Include="Model\FieldExpression.cs" />
     <Compile Include="PreApplicationStartCode.cs" />
+    <Compile Include="Service\DbClient.cs" />
+    <Compile Include="Service\DbController.cs" />
+    <Compile Include="Service\DbParam.cs" />
+    <Compile Include="Service\DbServer.cs" />
+    <Compile Include="Service\LoginInfo.cs" />
     <Compile Include="Setting.cs" />
     <Compile Include="Statistics\IStat.cs" />
     <Compile Include="Statistics\StatHelper.cs" />
@@ -224,12 +225,12 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Build.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>Build.cs</LastGenOutput>
+    </Content>
     <Content Include="Extension\Ext.xml" />
     <Content Include="Extension\生成实体类.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>生成实体类.cs</LastGenOutput>
-    </Content>
-    <Content Include="生成实体类.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>生成实体类.cs</LastGenOutput>
     </Content>

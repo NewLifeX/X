@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Model;
 
@@ -39,13 +40,13 @@ namespace NewLife.Net
         {
             if (socket == null) return null;
 
-            var sb = new StringBuilder();
+            var sb = Pool.StringBuilder.Get();
             //sb.AppendFormat("在线：{0:n0}/{1:n0} ", socket.SessionCount, socket.MaxSessionCount);
             if (socket.StatSend.Value > 0) sb.AppendFormat("发送：{0} ", socket.StatSend);
-            if (socket.StatReceive.Value > 0) sb.AppendFormat("接收：{0} ", SocketRemoteHelper.GetNetwork(socket.StatReceive));
-            if (socket.StatSession.Value > 0) sb.AppendFormat("会话：{0} ", SocketRemoteHelper.GetNetwork(socket.StatSession));
+            if (socket.StatReceive.Value > 0) sb.AppendFormat("接收：{0} ", socket.StatReceive);
+            if (socket.StatSession.Value > 0) sb.AppendFormat("会话：{0} ", socket.StatSession);
 
-            return sb.ToString();
+            return sb.Put(true);
         }
         #endregion
     }

@@ -1,16 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>NewLife.Core</AssemblyName>
     <RootNamespace>NewLife.Core</RootNamespace>
     <AssemblyTitle>新生命X组件核心库</AssemblyTitle>
-    <Description>日常开发中的各种基础功能</Description>
+    <Description>日志、网络、RPC、序列化、缓存、Windows服务、线程池</Description>
     <Company>新生命开发团队</Company>
-    <Copyright>©2002-2018 新生命开发团队 http://www.NewLifeX.com</Copyright>
-    <FileVersion>7.0.2018.0512</FileVersion>
-    <AssemblyVersion>7.0.2018.0512</AssemblyVersion>
+    <Copyright>©2002-2018 新生命开发团队</Copyright>
+    <FileVersion>7.3.2018.0630</FileVersion>
+    <AssemblyVersion>7.3.*</AssemblyVersion>
+    <!--是否确定版本，false以支持*-->
+    <Deterministic>false</Deterministic>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <Version>7.3.2018.0614</Version>
+    <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -43,7 +47,9 @@
     <Compile Include="..\NewLife.Core\Collections\CollectionHelper.cs" Link="Collections\CollectionHelper.cs" />
     <Compile Include="..\NewLife.Core\Collections\ConcurrentHashSet.cs" Link="Collections\ConcurrentHashSet.cs" />
     <Compile Include="..\NewLife.Core\Collections\DictionaryCache.cs" Link="Collections\DictionaryCache.cs" />
+    <Compile Include="..\NewLife.Core\Collections\IPool.cs" Link="Collections\IPool.cs" />
     <Compile Include="..\NewLife.Core\Collections\NullableDictionary.cs" Link="Collections\NullableDictionary.cs" />
+    <Compile Include="..\NewLife.Core\Collections\ObjectPool.cs" Link="Collections\ObjectPool.cs" />
     <Compile Include="..\NewLife.Core\Collections\Pool.cs" Link="Collections\Pool.cs" />
     <Compile Include="..\NewLife.Core\Common\DisposeBase.cs" Link="Common\DisposeBase.cs" />
     <Compile Include="..\NewLife.Core\Common\IdentityCard.cs" Link="Common\IdentityCard.cs" />
@@ -57,6 +63,7 @@
     <Compile Include="..\NewLife.Core\Compression\ZipException.cs" Link="Compression\ZipException.cs" />
     <Compile Include="..\NewLife.Core\Compression\ZipFile.cs" Link="Compression\ZipFile.cs" />
     <Compile Include="..\NewLife.Core\Data\BinaryTree.cs" Link="Data\BinaryTree.cs" />
+    <Compile Include="..\NewLife.Core\Data\DbSet.cs" Link="Data\DbSet.cs" />
     <Compile Include="..\NewLife.Core\Data\GeoAddress.cs" Link="Data\GeoAddress.cs" />
     <Compile Include="..\NewLife.Core\Data\GeoArea.cs" Link="Data\GeoArea.cs" />
     <Compile Include="..\NewLife.Core\Data\GeoPoint.cs" Link="Data\GeoPoint.cs" />
@@ -229,6 +236,10 @@
     <Compile Include="..\NewLife.Core\Xml\XmlConfig.cs" Link="Xml\XmlConfig.cs" />
     <Compile Include="..\NewLife.Core\Xml\XmlConfigFileAttribute.cs" Link="Xml\XmlConfigFileAttribute.cs" />
     <Compile Include="..\NewLife.Core\Xml\XmlHelper.cs" Link="Xml\XmlHelper.cs" />
+    <Compile Include="..\NewLife.Core\Yun\AMap.cs" Link="Yun\AMap.cs" />
+    <Compile Include="..\NewLife.Core\Yun\BaiduMap.cs" Link="Yun\BaiduMap.cs" />
+    <Compile Include="..\NewLife.Core\Yun\Driving.cs" Link="Yun\Driving.cs" />
+    <Compile Include="..\NewLife.Core\Yun\Map.cs" Link="Yun\Map.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -261,6 +272,7 @@
     <Folder Include="Xml\" />
     <Folder Include="Http\" />
     <Folder Include="Caching\" />
+    <Folder Include="Yun\" />
   </ItemGroup>
 
 </Project>
