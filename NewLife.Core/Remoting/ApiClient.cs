@@ -20,10 +20,7 @@ namespace NewLife.Remoting
         public Boolean Active { get; set; }
 
         /// <summary>服务端地址集合。负载均衡</summary>
-        public List<String> Servers { get; set; } = new List<String>();
-
-        ///// <summary>通信客户端</summary>
-        //public ISocketClient Client { get; set; }
+        public String[] Servers { get; set; }
 
         /// <summary>主机</summary>
         IApiHost IApiSession.Host => this;
@@ -59,7 +56,7 @@ namespace NewLife.Remoting
         /// <summary>实例化应用接口客户端</summary>
         public ApiClient(String uri) : this()
         {
-            if (!uri.IsNullOrEmpty()) Servers.AddRange(uri.Split(","));
+            if (!uri.IsNullOrEmpty()) Servers = uri.Split(",");
         }
 
         /// <summary>销毁</summary>
@@ -84,7 +81,7 @@ namespace NewLife.Remoting
                 if (Active) return true;
 
                 var ss = Servers;
-                if (ss == null || ss.Count == 0) throw new ArgumentNullException(nameof(Servers), "未指定服务端地址");
+                if (ss == null || ss.Length == 0) throw new ArgumentNullException(nameof(Servers), "未指定服务端地址");
 
                 if (Pool == null) Pool = new MyPool { Host = this };
 
@@ -229,7 +226,7 @@ namespace NewLife.Remoting
         async Task<IMessage> IApiSession.SendAsync(IMessage msg)
         {
             Exception last = null;
-            var count = Servers.Count;
+            var count = Servers.Length;
             for (var i = 0; i < count; i++)
             {
                 ISocketClient client = null;
@@ -256,7 +253,7 @@ namespace NewLife.Remoting
         Boolean IApiSession.Send(IMessage msg)
         {
             Exception last = null;
-            var count = Servers.Count;
+            var count = Servers.Length;
             for (var i = 0; i < count; i++)
             {
                 var client = Pool.Get();
@@ -320,16 +317,15 @@ namespace NewLife.Remoting
         {
             // 遍历所有服务，找到可用服务端
             var svrs = Servers;
-            if (svrs == null || svrs.Count == 0) throw new InvalidOperationException("没有设置服务端地址Servers");
-            var ss = svrs.ToArray();
+            if (svrs == null || svrs.Length == 0) throw new InvalidOperationException("没有设置服务端地址Servers");
 
             var idx = Interlocked.Increment(ref _index);
             Exception last = null;
-            for (var i = 0; i < ss.Length; i++)
+            for (var i = 0; i < svrs.Length; i++)
             {
                 // Round-Robin 负载均衡
-                var k = (idx + i) % ss.Length;
-                var svr = ss[k];
+                var k = (idx + i) % svrs.Length;
+                var svr = svrs[k];
                 try
                 {
                     var client = OnCreate(svr);

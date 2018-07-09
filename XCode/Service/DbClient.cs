@@ -49,7 +49,7 @@ namespace XCode.Service
             {
                 var u = new Uri(uri);
 
-                Servers.Add("{2}://{0}:{1}".F(u.Host, u.Port, u.Scheme));
+                Servers = new[] { "{2}://{0}:{1}".F(u.Host, u.Port, u.Scheme) };
 
                 Db = u.PathAndQuery.Split("/").FirstOrDefault();
                 var us = u.UserInfo.Split(":");
