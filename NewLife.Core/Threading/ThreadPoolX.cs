@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using NewLife.Collections;
 using NewLife.Log;
 
@@ -129,6 +130,55 @@ namespace NewLife.Threading
 
             var ti = Pool.Get();
             ti.Execute(callback);
+        }
+
+        /// <summary>在线程池中异步执行任务</summary>
+        /// <param name="function"></param>
+        /// <returns></returns>
+        public Task QueueTask(Action function)
+        {
+            if (function == null) return null;
+
+            return QueueTask<Object>(token => { function(); return null; }, CancellationToken.None);
+        }
+
+        /// <summary>在线程池中异步执行任务</summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="function"></param>
+        /// <returns></returns>
+        public Task<TResult> QueueTask<TResult>(Func<TResult> function)
+        {
+            if (function == null) return null;
+
+            return QueueTask(token => function(), CancellationToken.None);
+        }
+
+        /// <summary>在线程池中异步执行任务</summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="function"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public Task<TResult> QueueTask<TResult>(Func<CancellationToken, TResult> function, CancellationToken cancellationToken)
+        {
+            if (function == null) return null;
+
+            var source = new TaskCompletionSource<TResult>();
+
+            var ti = Pool.Get();
+            ti.Execute(() =>
+            {
+                try
+                {
+                    var rs = function(cancellationToken);
+                    source.SetResult(rs);
+                }
+                catch (Exception ex)
+                {
+                    source.SetException(ex);
+                }
+            });
+
+            return source.Task;
         }
         #endregion
     }
