@@ -26,7 +26,7 @@ QQ群：1600800
 + **[服务代理]** Windows服务、守护、监控
 + **[远程过程调用RPC]** Tcp/Udp/Http/Json、身份验证、数据加密
 
-[网络库]:Net/Readme.md "支持企业应用服务十万级并发"
+[网络库]:tree/master/NewLife.Core/Net
 [安全]:Security/Readme.md
 [多线程]:Threading/Readme.md
 [反射]:Reflection/Readme.md
