@@ -61,11 +61,11 @@ namespace XCode
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         protected virtual TEntity CreateInstance(Boolean forEdit = false)
         {
-            //return new TEntity();
+            var entity = new TEntity();
             // new TEntity会被编译为Activator.CreateInstance<TEntity>()，还不如Activator.CreateInstance()呢
             // Activator.CreateInstance()有缓存功能，而泛型的那个没有
             //return Activator.CreateInstance(typeof(TEntity)) as TEntity;
-            var entity = typeof(TEntity).CreateInstance() as TEntity;
+            //var entity = typeof(TEntity).CreateInstance() as TEntity;
             Meta._Modules.Create(entity, forEdit);
 
             return entity;
