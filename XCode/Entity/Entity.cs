@@ -1212,16 +1212,16 @@ namespace XCode
         {
             get
             {
-                // 匹配字段
-                if (Meta.FieldNames.Contains(name))
-                {
-                    var field = GetType().GetFieldEx("_" + name, true);
-                    if (field != null) return this.GetValue(field);
-                }
+                //// 匹配字段
+                //if (Meta.FieldNames.Contains(name))
+                //{
+                //    var field = GetType().GetFieldEx("_" + name, true);
+                //    if (field != null) return this.GetValue(field);
+                //}
 
-                // 尝试匹配属性
-                var property = GetType().GetPropertyEx(name, true);
-                if (property != null && property.CanRead) return this.GetValue(property);
+                //// 尝试匹配属性
+                //var property = GetType().GetPropertyEx(name, true);
+                //if (property != null && property.CanRead) return this.GetValue(property);
 
                 // 检查动态增加的字段，返回默认值
                 var f = Meta.Table.FindByName(name) as FieldItem;
@@ -1242,24 +1242,24 @@ namespace XCode
             }
             set
             {
-                //匹配字段
-                if (Meta.FieldNames.Contains(name))
-                {
-                    var field = GetType().GetFieldEx("_" + name, true);
-                    if (field != null)
-                    {
-                        this.SetValue(field, value);
-                        return;
-                    }
-                }
+                ////匹配字段
+                //if (Meta.FieldNames.Contains(name))
+                //{
+                //    var field = GetType().GetFieldEx("_" + name, true);
+                //    if (field != null)
+                //    {
+                //        this.SetValue(field, value);
+                //        return;
+                //    }
+                //}
 
-                //尝试匹配属性
-                var property = GetType().GetPropertyEx(name, true);
-                if (property != null && property.CanWrite)
-                {
-                    this.SetValue(property, value);
-                    return;
-                }
+                ////尝试匹配属性
+                //var property = GetType().GetPropertyEx(name, true);
+                //if (property != null && property.CanWrite)
+                //{
+                //    this.SetValue(property, value);
+                //    return;
+                //}
 
                 // 检查动态增加的字段，返回默认值
                 if (Meta.Table.FindByName(name) is FieldItem f && f.IsDynamic) value = value.ChangeType(f.Type);
