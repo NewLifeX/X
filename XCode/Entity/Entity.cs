@@ -138,9 +138,13 @@ namespace XCode
                 // 查询列表异步加入对象缓存
                 ThreadPoolX.QueueUserWorkItem(() =>
                 {
-                    foreach (var item in list.ToArray())
+                    //foreach (var item in list.ToArray())
+                    //{
+                    //    sc.Add(item);
+                    //}
+                    for (var i = 0; i < list.Count; i++)
                     {
-                        sc.Add(item);
+                        sc.Add(list[i]);
                     }
                 });
             }
