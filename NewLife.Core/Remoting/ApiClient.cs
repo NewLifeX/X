@@ -95,16 +95,17 @@ namespace NewLife.Remoting
 
                 Encoder.Log = EncoderLog;
 
-                var ct = Pool.Get();
-                try
-                {
-                    // 打开网络连接
-                    if (!ct.Open()) return false;
-                }
-                finally
-                {
-                    Pool.Put(ct);
-                }
+                // 不要阻塞打开，各个线程从池里借出连接来使用
+                //var ct = Pool.Get();
+                //try
+                //{
+                //    // 打开网络连接
+                //    if (!ct.Open()) return false;
+                //}
+                //finally
+                //{
+                //    Pool.Put(ct);
+                //}
 
                 ShowService();
 
@@ -240,6 +241,7 @@ namespace NewLife.Remoting
                 {
                     last = ex;
                     client.TryDispose();
+                    client = null;
                 }
                 finally
                 {
@@ -261,10 +263,16 @@ namespace NewLife.Remoting
                 {
                     return client.SendMessage(msg);
                 }
-                catch (Exception ex) { last = ex; }
+                catch (ApiException) { throw; }
+                catch (Exception ex)
+                {
+                    last = ex;
+                    client.TryDispose();
+                    client = null;
+                }
                 finally
                 {
-                    Pool.Put(client);
+                    if (client != null) Pool.Put(client);
                 }
             }
 
