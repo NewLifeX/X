@@ -17,6 +17,9 @@ namespace NewLife.Data
         /// <summary>数据列类型</summary>
         public Type[] Types { get; set; }
 
+        ///// <summary>数据列原始类型</summary>
+        //public String[] TypeNames { get; set; }
+
         /// <summary>数据行</summary>
         public IList<Object[]> Rows { get; set; }
         #endregion
@@ -32,12 +35,12 @@ namespace NewLife.Data
             var count = dr.FieldCount;
 
             // 字段
-            var cs = new String[count];
-            var ts = new Type[count];
+            var cs = Columns ?? new String[count];
+            var ts = Types ?? new Type[count];
             for (var i = 0; i < count; i++)
             {
-                cs[i] = dr.GetName(i);
-                ts[i] = dr.GetFieldType(i);
+                if (cs[i] == null) cs[i] = dr.GetName(i);
+                if (ts[i] == null) ts[i] = dr.GetFieldType(i);
             }
             Columns = cs;
             Types = ts;
@@ -160,6 +163,53 @@ namespace NewLife.Data
 
             ms.Position = 8;
             return new Packet(ms);
+        }
+        #endregion
+
+        #region 获取
+        /// <summary>读取指定行的字段值</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="row"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public T Get<T>(Int32 row, String name)
+        {
+            if (!TryGet<T>(row, name, out var value)) return default(T);
+
+            return value;
+        }
+
+        /// <summary>尝试读取指定行的字段值</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="row"></param>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public Boolean TryGet<T>(Int32 row, String name, out T value)
+        {
+            value = default(T);
+
+            if (row < 0 || row >= Rows.Count || name.IsNullOrEmpty()) return false;
+
+            var col = GetColumn(name);
+            if (col < 0) return false;
+
+            value = Rows[row][col].ChangeType<T>();
+
+            return true;
+        }
+
+        /// <summary>根据名称找字段序号</summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public Int32 GetColumn(String name)
+        {
+            for (var i = 0; i < Columns.Length; i++)
+            {
+                if (Columns[i].EqualIgnoreCase(name)) return i;
+            }
+
+            return -1;
         }
         #endregion
 

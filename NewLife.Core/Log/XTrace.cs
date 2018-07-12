@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 #endif
 using NewLife.Reflection;
+using NewLife.Threading;
 
 namespace NewLife.Log
 {
@@ -76,6 +77,8 @@ namespace NewLife.Log
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 #endif
             TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
+
+            ThreadPoolX.Init();
         }
 
 #if __MOBILE__
@@ -292,94 +295,6 @@ namespace NewLife.Log
 
         /// <summary>临时目录</summary>
         public static String TempPath { get; set; } = Setting.Current.TempPath;
-        #endregion
-
-        #region Dump
-#if __MOBILE__
-#elif __CORE__
-#else
-        /// <summary>写当前线程的MiniDump</summary>
-        /// <param name="dumpFile">如果不指定，则自动写入日志目录</param>
-        public static void WriteMiniDump(String dumpFile)
-        {
-            if (String.IsNullOrEmpty(dumpFile))
-            {
-                dumpFile = String.Format("{0:yyyyMMdd_HHmmss}.dmp", DateTime.Now);
-                if (!String.IsNullOrEmpty(LogPath)) dumpFile = Path.Combine(LogPath, dumpFile);
-            }
-
-            MiniDump.TryDump(dumpFile, MiniDump.MiniDumpType.WithFullMemory);
-        }
-
-        /// <summary>
-        /// 该类要使用在windows 5.1 以后的版本，如果你的windows很旧，就把Windbg里面的dll拷贝过来，一般都没有问题。
-        /// DbgHelp.dll 是windows自带的 dll文件 。
-        /// </summary>
-        static class MiniDump
-        {
-            [DllImport("DbgHelp.dll")]
-            private static extern Boolean MiniDumpWriteDump(IntPtr hProcess, Int32 processId, IntPtr fileHandle, MiniDumpType dumpType, ref MinidumpExceptionInfo excepInfo, IntPtr userInfo, IntPtr extInfo);
-
-            /// <summary>MINIDUMP_EXCEPTION_INFORMATION</summary>
-            struct MinidumpExceptionInfo
-            {
-                public UInt32 ThreadId;
-                public IntPtr ExceptionPointers;
-                public UInt32 ClientPointers;
-            }
-
-            [DllImport("kernel32.dll")]
-            private static extern UInt32 GetCurrentThreadId();
-
-            public static Boolean TryDump(String dmpPath, MiniDumpType dmpType)
-            {
-                //使用文件流来创健 .dmp文件
-                using (var stream = new FileStream(dmpPath, FileMode.Create))
-                {
-                    //取得进程信息
-                    var process = Process.GetCurrentProcess();
-
-                    // MINIDUMP_EXCEPTION_INFORMATION 信息的初始化
-                    var mei = new MinidumpExceptionInfo
-                    {
-                        ThreadId = GetCurrentThreadId(),
-                        ExceptionPointers = Marshal.GetExceptionPointers(),
-                        ClientPointers = 1
-                    };
-
-                    //这里调用的Win32 API
-                    var fileHandle = stream.SafeFileHandle.DangerousGetHandle();
-                    var res = MiniDumpWriteDump(process.Handle, process.Id, fileHandle, dmpType, ref mei, IntPtr.Zero, IntPtr.Zero);
-
-                    //清空 stream
-                    stream.Flush();
-                    stream.Close();
-
-                    return res;
-                }
-            }
-
-            public enum MiniDumpType
-            {
-                None = 0x00010000,
-                Normal = 0x00000000,
-                WithDataSegs = 0x00000001,
-                WithFullMemory = 0x00000002,
-                WithHandleData = 0x00000004,
-                FilterMemory = 0x00000008,
-                ScanMemory = 0x00000010,
-                WithUnloadedModules = 0x00000020,
-                WithIndirectlyReferencedMemory = 0x00000040,
-                FilterModulePaths = 0x00000080,
-                WithProcessThreadData = 0x00000100,
-                WithPrivateReadWriteMemory = 0x00000200,
-                WithoutOptionalData = 0x00000400,
-                WithFullMemoryInfo = 0x00000800,
-                WithThreadInfo = 0x00001000,
-                WithCodeSegs = 0x00002000
-            }
-        }
-#endif
         #endregion
 
         #region 调用栈

@@ -214,6 +214,7 @@
     <Compile Include="..\NewLife.Core\Serialization\Xml\XmlGeneral.cs" Link="Serialization\Xml\XmlGeneral.cs" />
     <Compile Include="..\NewLife.Core\Serialization\Xml\XmlList.cs" Link="Serialization\Xml\XmlList.cs" />
     <Compile Include="..\NewLife.Core\Setting.cs" Link="Setting.cs" />
+    <Compile Include="..\NewLife.Core\Threading\TaskEx.cs" Link="Threading\TaskEx.cs" />
     <Compile Include="..\NewLife.Core\Threading\TaskHelper.cs" Link="Threading\TaskHelper.cs" />
     <Compile Include="..\NewLife.Core\Threading\ThreadPoolX.cs" Link="Threading\ThreadPoolX.cs" />
     <Compile Include="..\NewLife.Core\Threading\TimerScheduler.cs" Link="Threading\TimerScheduler.cs" />
@@ -236,6 +237,10 @@
     <Compile Include="..\NewLife.Core\Xml\XmlConfig.cs" Link="Xml\XmlConfig.cs" />
     <Compile Include="..\NewLife.Core\Xml\XmlConfigFileAttribute.cs" Link="Xml\XmlConfigFileAttribute.cs" />
     <Compile Include="..\NewLife.Core\Xml\XmlHelper.cs" Link="Xml\XmlHelper.cs" />
+    <Compile Include="..\NewLife.Core\Yun\AMap.cs" Link="Yun\AMap.cs" />
+    <Compile Include="..\NewLife.Core\Yun\BaiduMap.cs" Link="Yun\BaiduMap.cs" />
+    <Compile Include="..\NewLife.Core\Yun\Driving.cs" Link="Yun\Driving.cs" />
+    <Compile Include="..\NewLife.Core\Yun\Map.cs" Link="Yun\Map.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -268,6 +273,7 @@
     <Folder Include="Xml\" />
     <Folder Include="Http\" />
     <Folder Include="Caching\" />
+    <Folder Include="Yun\" />
   </ItemGroup>
 
 </Project>

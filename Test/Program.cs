@@ -62,50 +62,36 @@ namespace Test
         private static Int32 _count = 0;
         static void Test1()
         {
-            //for (var i = 0; i < 10000; i++)
-            //{
-            //    var tt = new TimerTest();
-            //    //Thread.Sleep(10);
-            //}
-            Parallel.For(0, 10000, async k =>
+            var cpu = Environment.ProcessorCount;
+
+            var ts = new List<Task>();
+            for (var i = 0; i < 15; i++)
             {
-                var tt = new TimerTest();
-                //await Task.Delay(5000);
-            });
-
-            for (var i = 0; i < 100; i++)
-            {
-                Console.WriteLine("_count={0}", _count);
-                Thread.Sleep(1000);
-
-                if (i == 5) GC.Collect();
-            }
-        }
-
-        static void Test1_1()
-        {
-
-        }
-
-        class TimerTest
-        {
-            private TimerX _timer;
-            public TimerTest()
-            {
-                _timer = new TimerX(Work, null, 1000, 1000);
-                Interlocked.Increment(ref _count);
+                var t = TaskEx.Run(() =>
+                {
+                    XTrace.WriteLine("begin");
+                    Thread.Sleep(2000);
+                    XTrace.WriteLine("end");
+                });
+                ts.Add(t);
             }
 
-            ~TimerTest()
+            Task.WaitAll(ts.ToArray());
+
+            Console.WriteLine();
+            ts.Clear();
+            for (var i = 0; i < 15; i++)
             {
-                Interlocked.Decrement(ref _count);
+                //var t = Task.Run(() =>
+                //{
+                //    XTrace.WriteLine("begin");
+                //    Thread.Sleep(2000);
+                //    XTrace.WriteLine("end");
+                //});
+                //ts.Add(t);
             }
 
-            private Byte[] _buf;
-            public void Work(Object state)
-            {
-                _buf = Rand.NextBytes(64 * 1024);
-            }
+            Task.WaitAll(ts.ToArray());
         }
 
         static void Test2()

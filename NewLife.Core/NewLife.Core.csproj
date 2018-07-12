@@ -281,6 +281,7 @@
     <Compile Include="Reflection\IIndexAccessor.cs" />
     <Compile Include="Security\Crc32.cs" />
     <Compile Include="Common\IdentityCard.cs" />
+    <Compile Include="Threading\TaskEx.cs" />
     <Compile Include="Threading\TaskHelper.cs" />
     <Compile Include="Threading\ThreadPoolX.cs" />
     <Compile Include="Threading\TimerX.cs" />

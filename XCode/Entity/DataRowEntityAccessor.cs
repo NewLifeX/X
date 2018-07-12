@@ -66,7 +66,7 @@ namespace XCode
                 //var fi = Entity<T>.Meta.Fields.FirstOrDefault(e => e.ColumnName.EqualIgnoreCase(item.ColumnName));
                 if (ti.FindByName(item.ColumnName) is FieldItem fi)
                     ps.Add(item, fi);
-                else
+                else if (!item.ColumnName.EqualIgnoreCase(IgnoreFields))
                     exts.Add(item, item.ColumnName);
             }
 
@@ -105,7 +105,7 @@ namespace XCode
                 var item = ds.Columns[i];
                 if (ti.FindByName(item) is FieldItem fi)
                     ps.Add(i, fi);
-                else
+                else if (!item.EqualIgnoreCase(IgnoreFields))
                     exts.Add(i, item);
             }
 
@@ -146,7 +146,7 @@ namespace XCode
                 var name = dr2.GetName(i);
                 if (ti.FindByName(name) is FieldItem fi)
                     ps.Add(i, fi);
-                else
+                else if (!name.EqualIgnoreCase(IgnoreFields))
                     exts.Add(i, name);
             }
 
@@ -170,6 +170,7 @@ namespace XCode
         #region 方法
         static readonly String[] TrueString = new String[] { "true", "y", "yes", "1" };
         static readonly String[] FalseString = new String[] { "false", "n", "no", "0" };
+        static readonly String[] IgnoreFields = new[] { "rowNumber" };
 
         private void SetValue(IEntity entity, String name, Type type, Object value)
         {

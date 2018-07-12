@@ -1,4 +1,4 @@
-新生命团队基础框架X组件，包括`网络、数据库、安全、多线程、反射、序列化、模版引擎、服务代理、远程过程调用`等模块，包括`Mvc后台魔方、码神工具、消息队列`等子系统，支持`Mono/Android/iOS/NetStandard`。
+新生命团队基础框架X组件，包括`网络、数据库、安全、多线程、反射、序列化、RPC、Windows服务`等模块，支持`.Net Framework/.netstandard/Mono`。
 
 ### netstandard 2.0 支持情况  
 NewLife.Core 支持！  
@@ -66,3 +66,21 @@ iOS版核心库，共用代码，供Xamarin iOS开发使用
 
 ### 消息队列 NewLife.MQ
 发布与订阅  
+
+## 新生命团队netcore服务器免费开放计划
+为了便于大家学习测试netcore，我们计划提供1~3台公网Linux服务器（CentOS/Ubuntu），1vCPU+1G内存+100Mbps，为期1年，每周重置系统修改一次密码。  
+对使用者要求如下：  
+1，不干坏事。由Q群1600800监督管理  
+2，向源码库贡献源码或star，https://github.com/NewLifeX  
+3，博客分享学习经验  
+
+我们希望同学们不仅可以部署测试netcore应用，还可以在一台真实公网服务器上学习如何安装配置环境，观察应用系统运行指标，如何诊断系统异常等。  
+
+开放服务器暂定由Q群1600800监督管理，每周修改一次密码并重置系统，如有用户报告异常，核实后马上重置。  
+修改后的密码会在Q群1600800和源码库https://github.com/NewLifeX/X/blob/master/Readme.MD公布。  
+
+服务器已准备就绪！第一期账号如下：  
+SSH地址：`centos.newlifex.com`  
+账号密码：`root / nx@1250407685`  
+
+感谢笑笑同学近半年来给大家带来的netcore知识，以他账号作为第一个密码，实至名归！  
