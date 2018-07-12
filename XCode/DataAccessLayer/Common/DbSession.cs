@@ -328,6 +328,7 @@ namespace XCode.DataAccessLayer
                     using (var dr = cmd.ExecuteReader())
                     {
                         var ds = new DbSet();
+                        OnFill(ds, dr);
                         ds.Read(dr);
 
                         return ds;
@@ -347,6 +348,8 @@ namespace XCode.DataAccessLayer
                 }
             }
         }
+
+        protected virtual void OnFill(DbSet ds, DbDataReader dr) { }
 
         private static Regex reg_QueryCount = new Regex(@"^\s*select\s+\*\s+from\s+([\w\W]+)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         /// <summary>执行SQL查询，返回总记录数</summary>
@@ -565,6 +568,7 @@ namespace XCode.DataAccessLayer
                     using (var dr = await cmd.ExecuteReaderAsync())
                     {
                         var ds = new DbSet();
+                        OnFill(ds, dr);
                         ds.Read(dr);
 
                         return ds;
