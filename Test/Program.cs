@@ -82,13 +82,13 @@ namespace Test
             ts.Clear();
             for (var i = 0; i < 15; i++)
             {
-                var t = Task.Run(() =>
-                {
-                    XTrace.WriteLine("begin");
-                    Thread.Sleep(2000);
-                    XTrace.WriteLine("end");
-                });
-                ts.Add(t);
+                //var t = Task.Run(() =>
+                //{
+                //    XTrace.WriteLine("begin");
+                //    Thread.Sleep(2000);
+                //    XTrace.WriteLine("end");
+                //});
+                //ts.Add(t);
             }
 
             Task.WaitAll(ts.ToArray());

@@ -729,11 +729,11 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        /// <summary>格式化标识列，返回插入数据时所用的表达式，如果字段本身支持自增，则返回空</summary>
-        /// <param name="field">字段</param>
-        /// <param name="value">数值</param>
-        /// <returns></returns>
-        public virtual String FormatIdentity(IDataColumn field, Object value) => null;
+        ///// <summary>格式化标识列，返回插入数据时所用的表达式，如果字段本身支持自增，则返回空</summary>
+        ///// <param name="field">字段</param>
+        ///// <param name="value">数值</param>
+        ///// <returns></returns>
+        //public virtual String FormatIdentity(IDataColumn field, Object value) => null;
 
         /// <summary>格式化参数名</summary>
         /// <param name="name">名称</param>
