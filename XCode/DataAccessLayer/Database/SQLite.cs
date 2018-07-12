@@ -152,11 +152,11 @@ namespace XCode.DataAccessLayer
         #region 方法
         /// <summary>创建数据库会话</summary>
         /// <returns></returns>
-        protected override IDbSession OnCreateSession() { return new SQLiteSession(this); }
+        protected override IDbSession OnCreateSession() => new SQLiteSession(this);
 
         /// <summary>创建元数据对象</summary>
         /// <returns></returns>
-        protected override IMetaData OnCreateMetaData() { return new SQLiteMetaData(); }
+        protected override IMetaData OnCreateMetaData() => new SQLiteMetaData();
         #endregion
 
         #region 分页
@@ -243,16 +243,7 @@ namespace XCode.DataAccessLayer
         /// <param name="left"></param>
         /// <param name="right"></param>
         /// <returns></returns>
-        public override String StringConcat(String left, String right) { return (!String.IsNullOrEmpty(left) ? left : "\'\'") + "||" + (!String.IsNullOrEmpty(right) ? right : "\'\'"); }
-
-        private Boolean _inited;
-        public Boolean CheckInit()
-        {
-            if (_inited) return false;
-            _inited = true;
-
-            return true;
-        }
+        public override String StringConcat(String left, String right) => (!left.IsNullOrEmpty() ? left : "\'\'") + "||" + (!right.IsNullOrEmpty() ? right : "\'\'");
         #endregion
     }
 
@@ -260,33 +251,10 @@ namespace XCode.DataAccessLayer
     internal class SQLiteSession : FileDbSession
     {
         #region 构造函数
-        public SQLiteSession(IDatabase db) : base(db)
-        {
-            //DelayClose = 10000;
-        }
+        public SQLiteSession(IDatabase db) : base(db) { }
         #endregion
 
         #region 方法
-        //public override void Open()
-        //{
-        //    try
-        //    {
-        //        base.Open();
-
-        //        //if ((Database as SQLite).CheckInit())
-        //        //{
-        //        //    Execute("PRAGMA temp_store=memory");
-        //        //    //ss.Execute("PRAGMA temp_store_directory='{0}'".F(".".GetFullPath()));
-        //        //}
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        if (!ex.Message.Contains(" malformed")) throw;
-
-        //        throw new XCodeException("数据库文件损坏 {0}".F((Database as SQLite).FileName), ex);
-        //    }
-        //}
-
         protected override void CreateDatabase()
         {
             // 内存数据库不需要创建
@@ -299,47 +267,9 @@ namespace XCode.DataAccessLayer
             // 将使用那块“空白”空间，打开自动清理后，删除数据后，会自动清理“空白”空间
             if ((Database as SQLite).AutoVacuum) Execute("PRAGMA auto_vacuum = 1");
         }
-
-        ///// <summary>不关闭连接</summary>
-        //public override void AutoClose()
-        //{
-        //    //base.AutoClose();
-        //}
         #endregion
 
         #region 基本方法 查询/执行
-        //delegate Int32 SFunc(IntPtr db, byte[] strSql, IntPtr pvCallback, IntPtr pvParam, ref IntPtr errMsg);
-        //static SFunc sqlite3_exec;
-
-        ///// <summary>执行DbCommand，返回受影响的行数</summary>
-        ///// <param name="cmd">DbCommand</param>
-        ///// <returns></returns>
-        //public override Int32 Execute(DbCommand cmd)
-        //{
-        //    if (cmd.CommandType == CommandType.Text && cmd.Parameters.Count == 0)
-        //    {
-        //        if (sqlite3_exec == null)
-        //        {
-        //            var type = Database.Factory.GetType().Assembly.GetType("System.Data.SQLite.UnsafeNativeMethods");
-        //            var mi = type.GetMethodEx("sqlite3_exec");
-        //            sqlite3_exec = Delegate.CreateDelegate(typeof(SFunc), mi) as SFunc;
-        //        }
-
-        //        if (sqlite3_exec != null)
-        //        {
-        //            var _sql = Conn.GetValue("_sql");
-        //            var db = (IntPtr)_sql.GetValue("_sql").GetValue("handle");
-
-        //            var ptr = IntPtr.Zero;
-        //            var rs = sqlite3_exec(db, cmd.CommandText.GetBytes(), IntPtr.Zero, IntPtr.Zero, ref ptr);
-
-        //            return 1;
-        //        }
-        //    }
-
-        //    return base.Execute(cmd);
-        //}
-
         /// <summary>执行插入语句并返回新增行的自动编号</summary>
         /// <param name="sql">SQL语句</param>
         /// <param name="type">命令类型，默认SQL文本</param>
@@ -350,16 +280,6 @@ namespace XCode.DataAccessLayer
             sql += ";Select last_insert_rowid() newid";
             return base.InsertAndGetIdentity(sql, type, ps);
         }
-        #endregion
-
-        #region 事务
-        //public override Int32 Commit()
-        //{
-        //    lock (Database)
-        //    {
-        //        return base.Commit();
-        //    }
-        //}
         #endregion
 
         #region 高级
@@ -390,10 +310,7 @@ namespace XCode.DataAccessLayer
     /// <summary>SQLite元数据</summary>
     class SQLiteMetaData : FileDbMetaData
     {
-        public SQLiteMetaData()
-        {
-            Types = _DataTypes;
-        }
+        public SQLiteMetaData() => Types = _DataTypes;
 
         #region 数据类型
         protected override List<KeyValuePair<Type, Type>> FieldTypeMaps
@@ -433,10 +350,7 @@ namespace XCode.DataAccessLayer
         protected override List<IDataTable> OnGetTables(String[] names)
         {
             // 特殊处理内存数据库
-            if ((Database as SQLite).IsMemoryDatabase)
-            {
-                return memoryTables.Where(t => names.Contains(t.TableName)).ToList();
-            }
+            if ((Database as SQLite).IsMemoryDatabase) return memoryTables.Where(t => names.Contains(t.TableName)).ToList();
 
             var dt = GetSchema(_.Tables, null);
             if (dt?.Rows == null || dt.Rows.Count < 1) return null;
@@ -616,10 +530,7 @@ namespace XCode.DataAccessLayer
         /// <summary>删除索引方法</summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        public override String DropIndexSQL(IDataIndex index)
-        {
-            return String.Format("Drop Index {0}", FormatName(index.Name));
-        }
+        public override String DropIndexSQL(IDataIndex index) => $"Drop Index {FormatName(index.Name)}";
 
         protected override String CheckColumnsChange(IDataTable entitytable, IDataTable dbtable, Boolean onlySql, Boolean noDelete)
         {
@@ -687,13 +598,13 @@ namespace XCode.DataAccessLayer
         /// <remarks>返回Empty，告诉反向工程，该数据库类型不支持该功能，请不要输出日志</remarks>
         /// <param name="table"></param>
         /// <returns></returns>
-        public override String AddTableDescriptionSQL(IDataTable table) { return String.Empty; }
+        public override String AddTableDescriptionSQL(IDataTable table) => String.Empty;
 
-        public override String DropTableDescriptionSQL(IDataTable table) { return String.Empty; }
+        public override String DropTableDescriptionSQL(IDataTable table) => String.Empty;
 
-        public override String AddColumnDescriptionSQL(IDataColumn field) { return String.Empty; }
+        public override String AddColumnDescriptionSQL(IDataColumn field) => String.Empty;
 
-        public override String DropColumnDescriptionSQL(IDataColumn field) { return String.Empty; }
+        public override String DropColumnDescriptionSQL(IDataColumn field) => String.Empty;
         #endregion
 
         #region 反向工程
@@ -714,7 +625,7 @@ namespace XCode.DataAccessLayer
             base.CheckTable(entitytable, dbtable, mode);
         }
 
-        public override String CompactDatabaseSQL() { return "VACUUM"; }
+        public override String CompactDatabaseSQL() => "VACUUM";
         #endregion
     }
 }
