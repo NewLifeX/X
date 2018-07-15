@@ -431,8 +431,6 @@ namespace XCode.DataAccessLayer
 
                     // SQLite的字段长度、精度等，都是由类型决定，固定值
 
-                    //FixField(field, dr);
-
                     // 如果数据库里面是integer或者autoincrement，识别类型是Int64，又是自增，则改为Int32，保持与大多数数据库的兼容
                     if (field.Identity && field.DataType == typeof(Int64) && field.RawType.EqualIgnoreCase("integer", "autoincrement"))
                     {
@@ -474,22 +472,6 @@ namespace XCode.DataAccessLayer
 
             return list;
         }
-
-        //protected override void FixField(IDataColumn field, DataRow dr)
-        //{
-        //    base.FixField(field, dr);
-
-        //    // 如果数据库里面是integer或者autoincrement，识别类型是Int64，又是自增，则改为Int32，保持与大多数数据库的兼容
-        //    if (field.Identity && field.DataType == typeof(Int64) && field.RawType.EqualIgnoreCase("integer", "autoincrement"))
-        //    {
-        //        field.DataType = typeof(Int32);
-        //    }
-
-        //    if (field.DataType == null)
-        //    {
-        //        if (field.RawType.EqualIgnoreCase("varchar2", "nvarchar2")) field.DataType = typeof(String);
-        //    }
-        //}
 
         protected override String GetFieldType(IDataColumn field)
         {
@@ -599,7 +581,7 @@ namespace XCode.DataAccessLayer
 
                 var fi = bf.AsFile();
                 fi.Compress(zipfile);
-                WriteLog("压缩后大小：{0:n0}字节", fi.Length);
+                WriteLog("压缩后大小：{0:n0}字节，{1}", zipfile.AsFile().Length, zipfile);
 
                 // 删除未备份
                 File.Delete(bf);
