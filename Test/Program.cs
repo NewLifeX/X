@@ -40,7 +40,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test1();
+                    Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -82,13 +82,13 @@ namespace Test
             ts.Clear();
             for (var i = 0; i < 15; i++)
             {
-                var t = Task.Run(() =>
-                {
-                    XTrace.WriteLine("begin");
-                    Thread.Sleep(2000);
-                    XTrace.WriteLine("end");
-                });
-                ts.Add(t);
+                //var t = Task.Run(() =>
+                //{
+                //    XTrace.WriteLine("begin");
+                //    Thread.Sleep(2000);
+                //    XTrace.WriteLine("end");
+                //});
+                //ts.Add(t);
             }
 
             Task.WaitAll(ts.ToArray());
@@ -96,21 +96,8 @@ namespace Test
 
         static void Test2()
         {
-            var file = "web.config".GetFullPath();
-            if (!File.Exists(file)) file = "{0}.config".F(AppDomain.CurrentDomain.FriendlyName).GetFullPath();
-
-            // 读取配置文件
-            var doc = new XmlDocument();
-            doc.Load(file);
-            var nodes = doc.SelectNodes("/configuration/connectionStrings/add");
-            foreach (XmlNode item in nodes)
-            {
-                var name = item.Attributes["name"]?.Value;
-                var connstr = item.Attributes["connectionString"]?.Value;
-                var provider = item.Attributes["providerName"]?.Value;
-
-                Console.WriteLine($"name={name} connstr={connstr} provider={provider}");
-            }
+            var list = Role.FindAll();
+            Console.WriteLine(list.Count);
         }
 
         static void Test3()

@@ -23,7 +23,7 @@ namespace TestST
 
             var sw = Stopwatch.StartNew();
 
-            Test3();
+            Test4();
 
             sw.Stop();
             Console.WriteLine("OK! {0:n0}ms", sw.ElapsedMilliseconds);
@@ -82,7 +82,8 @@ namespace TestST
 
         static void Test4()
         {
-
+            var list = Role.FindAll();
+            Console.WriteLine(list.Count);
         }
     }
 }

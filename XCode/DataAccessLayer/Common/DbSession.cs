@@ -148,24 +148,6 @@ namespace XCode.DataAccessLayer
             if (enable == null || enable.Value) AutoClose();
         }
 
-        //private String _DatabaseName;
-        ///// <summary>数据库名</summary>
-        //public String DatabaseName
-        //{
-        //    get
-        //    {
-        //        if (_DatabaseName == null)
-        //        {
-        //            using (var pi = Database.Pool.AcquireItem())
-        //            {
-        //                _DatabaseName = pi.Value.Database;
-        //            }
-        //        }
-
-        //        return _DatabaseName;
-        //    }
-        //}
-
         /// <summary>当异常发生时触发。关闭数据库连接，或者返还连接到连接池。</summary>
         /// <param name="ex"></param>
         /// <returns></returns>
@@ -346,6 +328,7 @@ namespace XCode.DataAccessLayer
                     using (var dr = cmd.ExecuteReader())
                     {
                         var ds = new DbSet();
+                        OnFill(ds, dr);
                         ds.Read(dr);
 
                         return ds;
@@ -366,47 +349,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        ///// <summary>执行SQL查询，返回记录集</summary>
-        ///// <param name="sql">SQL语句</param>
-        ///// <param name="type">命令类型，默认SQL文本</param>
-        ///// <param name="ps">命令参数</param>
-        ///// <param name="convert">转换器</param>
-        ///// <returns>记录集</returns>
-        //public virtual T Query<T>(String sql, CommandType type, IDataParameter[] ps, Func<IDataReader, T> convert)
-        //{
-        //    using (var cmd = OnCreateCommand(sql, type, ps))
-        //    {
-        //        Transaction?.Check(cmd, false);
-
-        //        QueryTimes++;
-        //        WriteSQL(cmd);
-
-        //        var conn = Database.Pool.Get();
-        //        try
-        //        {
-        //            //if (!Opened) Open();
-        //            if (cmd.Connection == null) cmd.Connection = conn;
-
-        //            BeginTrace();
-        //            using (var dr = cmd.ExecuteReader())
-        //            {
-        //                return convert(dr);
-        //            }
-        //        }
-        //        catch (DbException ex)
-        //        {
-        //            // 数据库异常最好销毁连接
-        //            cmd.Connection.TryDispose();
-
-        //            throw OnException(ex, cmd);
-        //        }
-        //        finally
-        //        {
-        //            Database.Pool.Put(conn);
-        //            EndTrace(cmd);
-        //        }
-        //    }
-        //}
+        protected virtual void OnFill(DbSet ds, DbDataReader dr) { }
 
         private static Regex reg_QueryCount = new Regex(@"^\s*select\s+\*\s+from\s+([\w\W]+)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         /// <summary>执行SQL查询，返回总记录数</summary>
@@ -602,69 +545,48 @@ namespace XCode.DataAccessLayer
         //    await conn.OpenAsync();
         //}
 
-        public virtual async Task<DbDataReader> ExecuteReaderAsync(DbCommand cmd)
-        {
-            Transaction?.Check(cmd, false);
-
-            QueryTimes++;
-            WriteSQL(cmd);
-
-            var conn = Database.Pool.Get();
-            try
-            {
-                if (cmd.Connection == null) cmd.Connection = conn;
-
-                BeginTrace();
-
-                return await cmd.ExecuteReaderAsync();
-            }
-            catch (DbException ex)
-            {
-                throw OnException(ex, cmd);
-            }
-            finally
-            {
-                Database.Pool.Put(conn);
-                EndTrace(cmd);
-            }
-        }
-
         /// <summary>执行SQL查询，返回记录集</summary>
         /// <param name="sql">SQL语句</param>
-        /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
         /// <returns></returns>
-        public virtual async Task<DataResult> QueryAsync(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
+        public virtual async Task<DbSet> QueryAsync(String sql, params IDataParameter[] ps)
         {
-            var ds = new DataResult
+            using (var cmd = OnCreateCommand(sql, CommandType.Text, ps))
             {
-                Rows = new List<Object[]>()
-            };
+                Transaction?.Check(cmd, false);
 
-            using (var cmd = OnCreateCommand(sql, type, ps))
-            {
-                var reader = await ExecuteReaderAsync(cmd);
+                QueryTimes++;
+                WriteSQL(cmd);
 
-                var fieldCount = reader.FieldCount;
-
-                ds.Names = new String[fieldCount];
-                ds.Types = new Type[fieldCount];
-                for (var i = 0; i < fieldCount; i++)
+                var conn = Database.Pool.Get();
+                try
                 {
-                    ds.Names[i] = reader.GetName(i);
-                    ds.Types[i] = reader.GetFieldType(i);
+                    if (cmd.Connection == null) cmd.Connection = conn;
+
+                    BeginTrace();
+
+                    using (var dr = await cmd.ExecuteReaderAsync())
+                    {
+                        var ds = new DbSet();
+                        OnFill(ds, dr);
+                        ds.Read(dr);
+
+                        return ds;
+                    }
                 }
-
-                while (await reader.ReadAsync())
+                catch (DbException ex)
                 {
-                    var row = new Object[fieldCount];
-                    reader.GetValues(row);
+                    // 数据库异常最好销毁连接
+                    cmd.Connection.TryDispose();
 
-                    ds.Rows.Add(row);
+                    throw OnException(ex, cmd);
+                }
+                finally
+                {
+                    Database.Pool.Put(conn);
+                    EndTrace(cmd);
                 }
             }
-
-            return ds;
         }
 
         public virtual async Task<Int32> ExecuteNonQueryAsync(DbCommand cmd)
