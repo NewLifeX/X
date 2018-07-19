@@ -300,37 +300,37 @@ namespace XCode.DataAccessLayer
             var db = Database.DatabaseName;
 
             var sql = $"SHOW TABLE STATUS FROM `{db}`";
-            var dts = ss.Query(sql, null);
-            if (dts.Rows.Count == 0) return null;
+            var dt = ss.Query(sql, null);
+            if (dt.Rows.Count == 0) return null;
 
             var list = new List<IDataTable>();
             var hs = new HashSet<String>(names ?? new String[0], StringComparer.OrdinalIgnoreCase);
 
             // 所有表
-            for (var dr = 0; dr < dts.Rows.Count; dr++)
+            foreach (var dr in dt)
             {
-                var name = dts.Get<String>(dr, "Name");
+                var name = dr["Name"] + "";
                 if (hs.Count > 0 && !hs.Contains(name)) continue;
 
                 var table = DAL.CreateTable();
                 table.TableName = name;
-                table.Description = dts.Get<String>(dr, "Comment");
+                table.Description = dr["Comment"] + "";
 
                 #region 字段
                 sql = $"SHOW FULL COLUMNS FROM `{db}`.`{table.Name}`";
                 var dcs = ss.Query(sql, null);
-                for (var dc = 0; dc < dcs.Rows.Count; dc++)
+                foreach (var dc in dcs)
                 {
                     var field = table.CreateColumn();
 
-                    field.ColumnName = dcs.Get<String>(dc, "Field");
-                    field.RawType = dcs.Get<String>(dc, "Type");
+                    field.ColumnName = dc["Field"] + "";
+                    field.RawType = dc["Type"] + "";
                     field.DataType = GetDataType(field.RawType);
-                    field.Description = dcs.Get<String>(dc, "Comment");
+                    field.Description = dc["Comment"] + "";
 
-                    if (dcs.Get<String>(dc, "Extra") == "auto_increment") field.Identity = true;
-                    if (dcs.Get<String>(dc, "Key") == "PRI") field.PrimaryKey = true;
-                    if (dcs.Get<String>(dc, "Null") == "YES") field.Nullable = true;
+                    if (dc["Extra"] + "" == "auto_increment") field.Identity = true;
+                    if (dc["Key"] + "" == "PRI") field.PrimaryKey = true;
+                    if (dc["Null"] + "" == "YES") field.Nullable = true;
 
                     field.Length = field.RawType.Substring("(", ")").ToInt();
 
@@ -348,15 +348,15 @@ namespace XCode.DataAccessLayer
 
                 #region 索引
                 sql = $"SHOW INDEX FROM `{db}`.`{table.Name}`";
-                var dis2 = ss.Query(sql, null);
-                for (var i = 0; i < dis2.Rows.Count; i++)
+                var dis = ss.Query(sql, null);
+                foreach (var dr2 in dis)
                 {
-                    var dname = dis2.Get<String>(i, "Key_name");
+                    var dname = dr2["Key_name"] + "";
                     var di = table.Indexes.FirstOrDefault(e => e.Name == dname) ?? table.CreateIndex();
                     di.Name = dname;
-                    di.Unique = dis2.Get<Int32>(i, "Non_unique") == 0;
+                    di.Unique = dr2.Get<Int32>("Non_unique") == 0;
 
-                    var cname = dis2.Get<String>(i, "Column_name");
+                    var cname = dr2.Get<String>("Column_name");
                     var cs = new List<String>();
                     if (di.Columns != null && di.Columns.Length > 0) cs.AddRange(di.Columns);
                     cs.Add(cname);
