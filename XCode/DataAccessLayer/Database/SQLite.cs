@@ -439,7 +439,7 @@ namespace XCode.DataAccessLayer
 
                     if (field.DataType == null)
                     {
-                        if (field.RawType.EqualIgnoreCase("varchar2", "nvarchar2")) field.DataType = typeof(String);
+                        if (field.RawType.StartsWithIgnoreCase("varchar2", "nvarchar2")) field.DataType = typeof(String);
                     }
 
                     table.Columns.Add(field);

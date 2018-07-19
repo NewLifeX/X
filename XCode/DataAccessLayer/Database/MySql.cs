@@ -296,60 +296,140 @@ namespace XCode.DataAccessLayer
         #region 架构
         protected override List<IDataTable> OnGetTables(String[] names)
         {
-            var tables = base.OnGetTables(names);
-            if (tables == null || tables.Count == 0) return tables;
+            var ss = Database.CreateSession();
+            var db = Database.DatabaseName;
 
-            // 找到使用枚举作为布尔型的旧表
-            var es = (Database as MySql).EnumTables;
-            foreach (var table in tables)
+            var sql = $"SHOW TABLE STATUS FROM `{db}`";
+            var dts = ss.Query(sql, null);
+            if (dts.Rows.Count == 0) return null;
+
+            var list = new List<IDataTable>();
+            var hs = new HashSet<String>(names ?? new String[0], StringComparer.OrdinalIgnoreCase);
+
+            // 所有表
+            for (var dr = 0; dr < dts.Rows.Count; dr++)
             {
-                if (!es.Contains(table.TableName))
+                var name = dts.Get<String>(dr, "Name");
+                if (hs.Count > 0 && !hs.Contains(name)) continue;
+
+                var table = DAL.CreateTable();
+                table.TableName = name;
+                table.Description = dts.Get<String>(dr, "Comment");
+
+                #region 字段
+                sql = $"SHOW FULL COLUMNS FROM `{db}`.`{table.Name}`";
+                var dcs = ss.Query(sql, null);
+                for (var dc = 0; dc < dcs.Rows.Count; dc++)
                 {
-                    var dc = table.Columns.FirstOrDefault(c => c.DataType == typeof(Boolean)
-                      && c.RawType.EqualIgnoreCase("enum('N','Y')", "enum('Y','N')"));
-                    if (dc != null)
+                    var field = table.CreateColumn();
+
+                    field.ColumnName = dcs.Get<String>(dc, "Field");
+                    field.RawType = dcs.Get<String>(dc, "Type");
+                    field.DataType = GetDataType(field.RawType);
+                    field.Description = dcs.Get<String>(dc, "Comment");
+
+                    if (dcs.Get<String>(dc, "Extra") == "auto_increment") field.Identity = true;
+                    if (dcs.Get<String>(dc, "Key") == "PRI") field.PrimaryKey = true;
+                    if (dcs.Get<String>(dc, "Null") == "YES") field.Nullable = true;
+
+                    field.Length = field.RawType.Substring("(", ")").ToInt();
+
+                    if (field.DataType == null)
                     {
-                        es.Add(table.TableName);
-
-                        WriteLog("发现MySql中旧格式的布尔型字段 {0} {1}", table.TableName, dc);
+                        if (field.RawType.StartsWithIgnoreCase("varchar", "nvarchar")) field.DataType = typeof(String);
                     }
+
+                    // MySql中没有布尔型，这里处理YN枚举作为布尔型
+                    if (field.RawType == "enum('N','Y')" || field.RawType == "enum('Y','N')") field.DataType = typeof(Boolean);
+
+                    table.Columns.Add(field);
                 }
+                #endregion
+
+                #region 索引
+                sql = $"SHOW INDEX FROM `{db}`.`{table.Name}`";
+                var dis2 = ss.Query(sql, null);
+                for (var i = 0; i < dis2.Rows.Count; i++)
+                {
+                    var dname = dis2.Get<String>(i, "Key_name");
+                    var di = table.Indexes.FirstOrDefault(e => e.Name == dname) ?? table.CreateIndex();
+                    di.Name = dname;
+                    di.Unique = dis2.Get<Int32>(i, "Non_unique") == 0;
+
+                    var cname = dis2.Get<String>(i, "Column_name");
+                    var cs = new List<String>();
+                    if (di.Columns != null && di.Columns.Length > 0) cs.AddRange(di.Columns);
+                    cs.Add(cname);
+                    di.Columns = cs.ToArray();
+
+                    table.Indexes.Add(di);
+                }
+                #endregion
+
+                //FixTable(table, dr, data);
+
+                // 修正关系数据
+                table.Fix();
+
+                list.Add(table);
             }
 
-            return tables;
+            return list;
+
+            //var tables = base.OnGetTables(names);
+            //if (tables == null || tables.Count == 0) return tables;
+
+            //// 找到使用枚举作为布尔型的旧表
+            //var es = (Database as MySql).EnumTables;
+            //foreach (var table in tables)
+            //{
+            //    if (!es.Contains(table.TableName))
+            //    {
+            //        var dc = table.Columns.FirstOrDefault(c => c.DataType == typeof(Boolean)
+            //          && c.RawType.EqualIgnoreCase("enum('N','Y')", "enum('Y','N')"));
+            //        if (dc != null)
+            //        {
+            //            es.Add(table.TableName);
+
+            //            WriteLog("发现MySql中旧格式的布尔型字段 {0} {1}", table.TableName, dc);
+            //        }
+            //    }
+            //}
+
+            //return tables;
         }
 
-        protected override void FixTable(IDataTable table, DataRow dr, IDictionary<String, DataTable> data)
-        {
-            // 注释
-            if (TryGetDataRowValue(dr, "TABLE_COMMENT", out String comment)) table.Description = comment;
+        //protected override void FixTable(IDataTable table, DataRow dr, IDictionary<String, DataTable> data)
+        //{
+        //    // 注释
+        //    if (TryGetDataRowValue(dr, "TABLE_COMMENT", out String comment)) table.Description = comment;
 
-            base.FixTable(table, dr, data);
-        }
+        //    base.FixTable(table, dr, data);
+        //}
 
-        protected override void FixField(IDataColumn field, DataRow dr)
-        {
-            // 修正原始类型
-            if (TryGetDataRowValue(dr, "COLUMN_TYPE", out String rawType)) field.RawType = rawType;
+        //protected override void FixField(IDataColumn field, DataRow dr)
+        //{
+        //    // 修正原始类型
+        //    if (TryGetDataRowValue(dr, "COLUMN_TYPE", out String rawType)) field.RawType = rawType;
 
-            // 修正自增字段
-            if (TryGetDataRowValue(dr, "EXTRA", out String extra) && extra == "auto_increment") field.Identity = true;
+        //    // 修正自增字段
+        //    if (TryGetDataRowValue(dr, "EXTRA", out String extra) && extra == "auto_increment") field.Identity = true;
 
-            // 修正主键
-            if (TryGetDataRowValue(dr, "COLUMN_KEY", out String key)) field.PrimaryKey = key == "PRI";
+        //    // 修正主键
+        //    if (TryGetDataRowValue(dr, "COLUMN_KEY", out String key)) field.PrimaryKey = key == "PRI";
 
-            // 注释
-            if (TryGetDataRowValue(dr, "COLUMN_COMMENT", out String comment)) field.Description = comment;
+        //    // 注释
+        //    if (TryGetDataRowValue(dr, "COLUMN_COMMENT", out String comment)) field.Description = comment;
 
-            // 布尔类型
-            // MySql中没有布尔型，这里处理YN枚举作为布尔型
-            if (field.RawType == "enum('N','Y')" || field.RawType == "enum('Y','N')")
-            {
-                field.DataType = typeof(Boolean);
-                return;
-            }
-            base.FixField(field, dr);
-        }
+        //    // 布尔类型
+        //    // MySql中没有布尔型，这里处理YN枚举作为布尔型
+        //    if (field.RawType == "enum('N','Y')" || field.RawType == "enum('Y','N')")
+        //    {
+        //        field.DataType = typeof(Boolean);
+        //        return;
+        //    }
+        //    base.FixField(field, dr);
+        //}
 
         public override String FieldClause(IDataColumn field, Boolean onlyDefine)
         {
