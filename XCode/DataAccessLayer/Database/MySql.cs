@@ -5,6 +5,7 @@ using System.Data.Common;
 using System.Linq;
 using System.Net;
 using System.Text;
+using NewLife.Collections;
 
 namespace XCode.DataAccessLayer
 {
@@ -56,7 +57,7 @@ namespace XCode.DataAccessLayer
             // 默认最大连接数1000
             if (builder["Pooling"].ToBoolean()) builder.TryAdd(MaxPoolSize, "1000");
 
-            //如未设置Sslmode，默认为none
+            // 如未设置Sslmode，默认为none
             if (builder[Sslmode] == null) builder.TryAdd(Sslmode, "none");
         }
         #endregion
@@ -146,7 +147,7 @@ namespace XCode.DataAccessLayer
 
             if (keyWord.StartsWith("`") && keyWord.EndsWith("`")) return keyWord;
 
-            return String.Format("`{0}`", keyWord);
+            return $"`{keyWord}`";
         }
 
         /// <summary>格式化数据为SQL数据</summary>
@@ -245,7 +246,7 @@ namespace XCode.DataAccessLayer
             tableName = tableName.Trim().Trim('`', '`').Trim();
 
             var db = Database.DatabaseName;
-            var sql = String.Format("select table_rows from information_schema.tables where table_schema='{1}' and table_name='{0}'", tableName, db);
+            var sql = $"select table_rows from information_schema.tables where table_schema='{db}' and table_name='{tableName}'";
             return ExecuteScalar<Int64>(sql);
         }
         #endregion
@@ -269,6 +270,30 @@ namespace XCode.DataAccessLayer
     {
         public MySqlMetaData() => Types = _DataTypes;
 
+        #region 数据类型
+        /// <summary>数据类型映射</summary>
+        private static Dictionary<Type, String[]> _DataTypes = new Dictionary<Type, String[]>
+        {
+            { typeof(Byte[]), new String[] { "BLOB", "TINYBLOB", "MEDIUMBLOB", "LONGBLOB", "binary({0})", "varbinary({0})" } },
+            //{ typeof(TimeSpan), new String[] { "TIME" } },
+            //{ typeof(SByte), new String[] { "TINYINT" } },
+            { typeof(Byte), new String[] { "TINYINT", "TINYINT UNSIGNED" } },
+            { typeof(Int16), new String[] { "SMALLINT", "SMALLINT UNSIGNED" } },
+            //{ typeof(UInt16), new String[] { "SMALLINT UNSIGNED" } },
+            { typeof(Int32), new String[] { "INT", "YEAR", "MEDIUMINT", "MEDIUMINT UNSIGNED", "INT UNSIGNED" } },
+            //{ typeof(UInt32), new String[] { "MEDIUMINT UNSIGNED", "INT UNSIGNED" } },
+            { typeof(Int64), new String[] { "BIGINT", "BIT", "BIGINT UNSIGNED" } },
+            //{ typeof(UInt64), new String[] { "BIT", "BIGINT UNSIGNED" } },
+            { typeof(Single), new String[] { "FLOAT" } },
+            { typeof(Double), new String[] { "DOUBLE" } },
+            { typeof(Decimal), new String[] { "DECIMAL({0}, {1})" } },
+            { typeof(DateTime), new String[] { "DATETIME", "DATE", "TIMESTAMP", "TIME" } },
+            { typeof(String), new String[] { "NVARCHAR({0})", "TEXT", "CHAR({0})", "NCHAR({0})", "VARCHAR({0})", "SET", "ENUM", "TINYTEXT", "TEXT", "MEDIUMTEXT", "LONGTEXT" } },
+            { typeof(Boolean), new String[] { "TINYINT" } },
+        };
+        #endregion
+
+        #region 架构
         protected override List<IDataTable> OnGetTables(String[] names)
         {
             var tables = base.OnGetTables(names);
@@ -302,11 +327,6 @@ namespace XCode.DataAccessLayer
             base.FixTable(table, dr, data);
         }
 
-        //protected override Boolean IsColumnChanged(IDataColumn entityColumn, IDataColumn dbColumn, IDatabase entityDb)
-        //{
-        //    return base.IsColumnChanged(entityColumn, dbColumn, entityDb);
-        //}
-
         protected override void FixField(IDataColumn field, DataRow dr)
         {
             // 修正原始类型
@@ -331,18 +351,11 @@ namespace XCode.DataAccessLayer
             base.FixField(field, dr);
         }
 
-        //protected override String GetFieldType(IDataColumn field)
-        //{
-        //    if (field.DataType == typeof(Boolean)) return "enum('N','Y')";
-
-        //    return base.GetFieldType(field);
-        //}
-
         public override String FieldClause(IDataColumn field, Boolean onlyDefine)
         {
             var sql = base.FieldClause(field, onlyDefine);
             // 加上注释
-            if (!String.IsNullOrEmpty(field.Description)) sql = String.Format("{0} COMMENT '{1}'", sql, field.Description);
+            if (!String.IsNullOrEmpty(field.Description)) sql = $"{sql} COMMENT '{field.Description}'";
             return sql;
         }
 
@@ -355,47 +368,25 @@ namespace XCode.DataAccessLayer
 
             return str;
         }
+        #endregion
 
-        /// <summary>数据类型映射</summary>
-        private static Dictionary<Type, String[]> _DataTypes = new Dictionary<Type, String[]>
-        {
-            { typeof(Byte[]), new String[] { "BLOB", "TINYBLOB", "MEDIUMBLOB", "LONGBLOB", "binary({0})", "varbinary({0})" } },
-            //{ typeof(TimeSpan), new String[] { "TIME" } },
-            //{ typeof(SByte), new String[] { "TINYINT" } },
-            { typeof(Byte), new String[] { "TINYINT", "TINYINT UNSIGNED" } },
-            { typeof(Int16), new String[] { "SMALLINT", "SMALLINT UNSIGNED" } },
-            //{ typeof(UInt16), new String[] { "SMALLINT UNSIGNED" } },
-            { typeof(Int32), new String[] { "INT", "YEAR", "MEDIUMINT", "MEDIUMINT UNSIGNED", "INT UNSIGNED" } },
-            //{ typeof(UInt32), new String[] { "MEDIUMINT UNSIGNED", "INT UNSIGNED" } },
-            { typeof(Int64), new String[] { "BIGINT", "BIT", "BIGINT UNSIGNED" } },
-            //{ typeof(UInt64), new String[] { "BIT", "BIGINT UNSIGNED" } },
-            { typeof(Single), new String[] { "FLOAT" } },
-            { typeof(Double), new String[] { "DOUBLE" } },
-            { typeof(Decimal), new String[] { "DECIMAL({0}, {1})" } },
-            { typeof(DateTime), new String[] { "DATETIME", "DATE", "TIMESTAMP", "TIME" } },
-            { typeof(String), new String[] { "NVARCHAR({0})", "TEXT", "CHAR({0})", "NCHAR({0})", "VARCHAR({0})", "SET", "ENUM", "TINYTEXT", "TEXT", "MEDIUMTEXT", "LONGTEXT" } },
-            { typeof(Boolean), new String[] { "TINYINT" } },
-        };
-
-        #region 架构定义
+        #region 反向工程
         protected override Boolean DatabaseExist(String databaseName)
         {
             var dt = GetSchema(_.Databases, new String[] { databaseName });
             return dt != null && dt.Rows != null && dt.Rows.Count > 0;
         }
 
-        public override String CreateDatabaseSQL(String dbname, String file)
-        {
-            return base.CreateDatabaseSQL(dbname, file) + " DEFAULT CHARACTER SET utf8mb4";
-        }
+        public override String CreateDatabaseSQL(String dbname, String file) => base.CreateDatabaseSQL(dbname, file) + " DEFAULT CHARACTER SET utf8mb4";
 
-        public override String DropDatabaseSQL(String dbname) => String.Format("Drop Database If Exists {0}", FormatName(dbname));
+        public override String DropDatabaseSQL(String dbname) => $"Drop Database If Exists {FormatName(dbname)}";
 
         public override String CreateTableSQL(IDataTable table)
         {
             var fs = new List<IDataColumn>(table.Columns);
 
-            var sb = new StringBuilder(32 + fs.Count * 20);
+            //var sb = new StringBuilder(32 + fs.Count * 20);
+            var sb = Pool.StringBuilder.Get();
             var pks = new List<String>();
 
             sb.AppendFormat("Create Table If Not Exists {0}(", FormatName(table.TableName));
@@ -431,26 +422,22 @@ namespace XCode.DataAccessLayer
             sb.Append(" DEFAULT CHARSET=utf8mb4");
             sb.Append(";");
 
-            return sb.ToString();
+            return sb.Put(true);
         }
 
         public override String AddTableDescriptionSQL(IDataTable table)
         {
             if (String.IsNullOrEmpty(table.Description)) return null;
 
-            return String.Format("Alter Table {0} Comment '{1}'", FormatName(table.TableName), table.Description);
+            return $"Alter Table {FormatName(table.TableName)} Comment '{table.Description}'";
         }
 
-        public override String AlterColumnSQL(IDataColumn field, IDataColumn oldfield) => String.Format("Alter Table {0} Modify Column {1}", FormatName(field.Table.TableName), FieldClause(field, false));
+        public override String AlterColumnSQL(IDataColumn field, IDataColumn oldfield) => $"Alter Table {FormatName(field.Table.TableName)} Modify Column {FieldClause(field, false)}";
 
         public override String AddColumnDescriptionSQL(IDataColumn field)
         {
             // 返回String.Empty表示已经在别的SQL中处理
             return String.Empty;
-
-            //if (String.IsNullOrEmpty(field.Description)) return null;
-
-            //return String.Format("Alter Table {0} Modify {1} Comment '{2}'", FormatKeyWord(field.Table.Name), FormatKeyWord(field.Name), field.Description);
         }
         #endregion
     }
