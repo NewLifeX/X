@@ -271,7 +271,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 基本方法 查询/执行
-        protected override void OnFill(DbSet ds, DbDataReader dr)
+        protected override void OnFill(DbTable ds, DbDataReader dr)
         {
             var count = dr.FieldCount;
             var md = Database.CreateMetaData() as DbMetaData;

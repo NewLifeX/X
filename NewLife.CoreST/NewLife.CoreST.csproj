@@ -63,7 +63,8 @@
     <Compile Include="..\NewLife.Core\Compression\ZipException.cs" Link="Compression\ZipException.cs" />
     <Compile Include="..\NewLife.Core\Compression\ZipFile.cs" Link="Compression\ZipFile.cs" />
     <Compile Include="..\NewLife.Core\Data\BinaryTree.cs" Link="Data\BinaryTree.cs" />
-    <Compile Include="..\NewLife.Core\Data\DbSet.cs" Link="Data\DbSet.cs" />
+    <Compile Include="..\NewLife.Core\Data\DbRow.cs" Link="Data\DbRow.cs" />
+    <Compile Include="..\NewLife.Core\Data\DbTable.cs" Link="Data\DbTable.cs" />
     <Compile Include="..\NewLife.Core\Data\GeoAddress.cs" Link="Data\GeoAddress.cs" />
     <Compile Include="..\NewLife.Core\Data\GeoArea.cs" Link="Data\GeoArea.cs" />
     <Compile Include="..\NewLife.Core\Data\GeoPoint.cs" Link="Data\GeoPoint.cs" />

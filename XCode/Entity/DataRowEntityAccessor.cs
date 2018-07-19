@@ -19,7 +19,7 @@ namespace XCode
         /// <summary>加载数据表。无数据时返回空集合而不是null。</summary>
         /// <param name="ds">数据表</param>
         /// <returns>实体数组</returns>
-        IList<T> LoadData<T>(DbSet ds) where T : Entity<T>, new();
+        IList<T> LoadData<T>(DbTable ds) where T : Entity<T>, new();
 
         /// <summary>加载数据表。无数据时返回空集合而不是null。</summary>
         /// <param name="dr">数据读取器</param>
@@ -89,7 +89,7 @@ namespace XCode
         /// <summary>加载数据表。无数据时返回空集合而不是null。</summary>
         /// <param name="ds">数据表</param>
         /// <returns>实体数组</returns>
-        public IList<T> LoadData<T>(DbSet ds) where T : Entity<T>, new()
+        public IList<T> LoadData<T>(DbTable ds) where T : Entity<T>, new()
         {
             // 准备好实体列表
             var list = new List<T>();

@@ -99,7 +99,8 @@
     <Compile Include="Compression\ZipFile.cs" />
     <Compile Include="Configuration\CombConfig.cs" />
     <Compile Include="Data\BinaryTree.cs" />
-    <Compile Include="Data\DbSet.cs" />
+    <Compile Include="Data\DbRow.cs" />
+    <Compile Include="Data\DbTable.cs" />
     <Compile Include="Data\GeoArea.cs" />
     <Compile Include="Data\GeoAddress.cs" />
     <Compile Include="Data\GeoPoint.cs" />

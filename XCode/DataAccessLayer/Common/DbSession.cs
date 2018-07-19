@@ -308,7 +308,7 @@ namespace XCode.DataAccessLayer
         /// <param name="sql">SQL语句</param>
         /// <param name="ps">命令参数</param>
         /// <returns></returns>
-        public virtual DbSet Query(String sql, IDataParameter[] ps)
+        public virtual DbTable Query(String sql, IDataParameter[] ps)
         {
             //var dps = ps == null ? null : Database.CreateParameters(ps);
             using (var cmd = OnCreateCommand(sql, CommandType.Text, ps))
@@ -327,7 +327,7 @@ namespace XCode.DataAccessLayer
 
                     using (var dr = cmd.ExecuteReader())
                     {
-                        var ds = new DbSet();
+                        var ds = new DbTable();
                         OnFill(ds, dr);
                         ds.Read(dr);
 
@@ -349,7 +349,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        protected virtual void OnFill(DbSet ds, DbDataReader dr) { }
+        protected virtual void OnFill(DbTable ds, DbDataReader dr) { }
 
         private static Regex reg_QueryCount = new Regex(@"^\s*select\s+\*\s+from\s+([\w\W]+)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         /// <summary>执行SQL查询，返回总记录数</summary>
@@ -549,7 +549,7 @@ namespace XCode.DataAccessLayer
         /// <param name="sql">SQL语句</param>
         /// <param name="ps">命令参数</param>
         /// <returns></returns>
-        public virtual async Task<DbSet> QueryAsync(String sql, params IDataParameter[] ps)
+        public virtual async Task<DbTable> QueryAsync(String sql, params IDataParameter[] ps)
         {
             using (var cmd = OnCreateCommand(sql, CommandType.Text, ps))
             {
@@ -567,7 +567,7 @@ namespace XCode.DataAccessLayer
 
                     using (var dr = await cmd.ExecuteReaderAsync())
                     {
-                        var ds = new DbSet();
+                        var ds = new DbTable();
                         OnFill(ds, dr);
                         ds.Read(dr);
 

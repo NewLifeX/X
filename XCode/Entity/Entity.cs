@@ -99,7 +99,7 @@ namespace XCode
         /// <summary>加载数据表。无数据时返回空集合而不是null。</summary>
         /// <param name="ds">数据表</param>
         /// <returns>实体数组</returns>
-        public static IList<TEntity> LoadData(DbSet ds)
+        public static IList<TEntity> LoadData(DbTable ds)
         {
             if (ds == null) return new List<TEntity>();
 
