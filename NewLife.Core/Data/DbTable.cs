@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
@@ -8,7 +9,7 @@ using NewLife.Serialization;
 namespace NewLife.Data
 {
     /// <summary>数据表</summary>
-    public class DbTable
+    public class DbTable : IEnumerable<DbRow>
     {
         #region 属性
         /// <summary>数据列</summary>
@@ -285,6 +286,52 @@ namespace NewLife.Data
             }
 
             return _Defs[tc];
+        }
+        #endregion
+
+        #region 枚举
+        /// <summary>获取枚举</summary>
+        /// <returns></returns>
+        public IEnumerator<DbRow> GetEnumerator() => new DbEnumerator(this);
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        class DbEnumerator : IEnumerator<DbRow>
+        {
+            public DbTable Table { get; }
+
+            public DbEnumerator(DbTable table) => Table = table;
+
+            private Int32 _row = -1;
+            public DbRow Current { get; set; }
+
+            Object IEnumerator.Current => Current;
+
+            public Boolean MoveNext()
+            {
+                var rs = Table?.Rows;
+                if (rs == null || rs.Count == 0) return false;
+
+                _row++;
+
+                if (_row < 0 || _row >= rs.Count) return false;
+
+                var dr = Current;
+                if (dr == null)
+                    Current = new DbRow(Table, _row);
+                else
+                    dr.Index = _row;
+
+                return true;
+            }
+
+            public void Reset()
+            {
+                Current = null;
+                _row = -1;
+            }
+
+            public void Dispose() { }
         }
         #endregion
     }
