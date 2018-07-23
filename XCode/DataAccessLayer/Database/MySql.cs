@@ -310,14 +310,14 @@ namespace XCode.DataAccessLayer
             foreach (var dr in dt)
             {
                 var name = dr["Name"] + "";
-                if (hs.Count > 0 && !hs.Contains(name)) continue;
+                if (name.IsNullOrEmpty() || hs.Count > 0 && !hs.Contains(name)) continue;
 
                 var table = DAL.CreateTable();
                 table.TableName = name;
                 table.Description = dr["Comment"] + "";
 
                 #region 字段
-                sql = $"SHOW FULL COLUMNS FROM `{db}`.`{table.Name}`";
+                sql = $"SHOW FULL COLUMNS FROM `{db}`.`{name}`";
                 var dcs = ss.Query(sql, null);
                 foreach (var dc in dcs)
                 {
@@ -347,7 +347,7 @@ namespace XCode.DataAccessLayer
                 #endregion
 
                 #region 索引
-                sql = $"SHOW INDEX FROM `{db}`.`{table.Name}`";
+                sql = $"SHOW INDEX FROM `{db}`.`{name}`";
                 var dis = ss.Query(sql, null);
                 foreach (var dr2 in dis)
                 {
