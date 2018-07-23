@@ -374,29 +374,27 @@ namespace XCode.DataAccessLayer
                 list.Add(table);
             }
 
-            return list;
-
             //var tables = base.OnGetTables(names);
             //if (tables == null || tables.Count == 0) return tables;
 
-            //// 找到使用枚举作为布尔型的旧表
-            //var es = (Database as MySql).EnumTables;
-            //foreach (var table in tables)
-            //{
-            //    if (!es.Contains(table.TableName))
-            //    {
-            //        var dc = table.Columns.FirstOrDefault(c => c.DataType == typeof(Boolean)
-            //          && c.RawType.EqualIgnoreCase("enum('N','Y')", "enum('Y','N')"));
-            //        if (dc != null)
-            //        {
-            //            es.Add(table.TableName);
+            // 找到使用枚举作为布尔型的旧表
+            var es = (Database as MySql).EnumTables;
+            foreach (var table in list)
+            {
+                if (!es.Contains(table.TableName))
+                {
+                    var dc = table.Columns.FirstOrDefault(c => c.DataType == typeof(Boolean)
+                      && c.RawType.EqualIgnoreCase("enum('N','Y')", "enum('Y','N')"));
+                    if (dc != null)
+                    {
+                        es.Add(table.TableName);
 
-            //            WriteLog("发现MySql中旧格式的布尔型字段 {0} {1}", table.TableName, dc);
-            //        }
-            //    }
-            //}
+                        WriteLog("发现MySql中旧格式的布尔型字段 {0} {1}", table.TableName, dc);
+                    }
+                }
+            }
 
-            //return tables;
+            return list;
         }
 
         //protected override void FixTable(IDataTable table, DataRow dr, IDictionary<String, DataTable> data)
