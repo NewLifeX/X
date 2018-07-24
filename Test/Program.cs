@@ -106,32 +106,37 @@ namespace Test
             Console.WriteLine("插入数据 {0:n0} 行", count);
             //var dic = new Dictionary<Int32, CacheItem<String>>();
             //var dic = new ConcurrentDictionary<Int32, CacheItem<String>>();
-            var dic = new DictionaryCache<Int32, CacheItem<String>> { Expire = 60, Period = 10 };
+            //var dic = new DictionaryCache<Int32, CacheItem<String>> { Expire = 60, Period = 10 };
+            var ch = MemoryCache.Default as MemoryCache;
+            ch.Period = 10;
+            ch.Expire = 60;
             var sw = Stopwatch.StartNew();
             for (var i = 0; i < count; i++)
             {
-                var val = new CacheItem<String>(Rand.NextString(8), 3);
-                dic[i] = val;
+                //var val = new CacheItem<String>(Rand.NextString(8), 3);
+                //dic[i] = val;
+                ch.Set(i + "", Rand.NextString(8));
             }
             sw.Stop();
             Console.WriteLine("插入完成，{0}", sw.Elapsed);
 
-            sw.Restart();
-            var list = new List<Int32>();
-            foreach (var item in dic)
-            {
-                if (item.Value.Expired) list.Add(item.Key);
-            }
-            sw.Stop();
-            Console.WriteLine("遍历完成，{0}", sw.Elapsed);
+            //sw.Restart();
+            //var list = new List<Int32>();
+            //foreach (var item in dic)
+            //{
+            //    if (item.Value.Expired) list.Add(item.Key);
+            //}
+            //sw.Stop();
+            //Console.WriteLine("遍历完成，{0}", sw.Elapsed);
 
             Thread.Sleep(5000);
 
             // 随机访问1000个
-            for (var i = 0; i < 1000; i++)
+            for (var i = 0; i < 12345; i++)
             {
                 var key = Rand.Next(count);
-                var val = dic[key];
+                //var val = dic[key];
+                var val = ch.Get<String>(key + "");
             }
 
             Thread.Sleep(-1);
