@@ -74,12 +74,12 @@ namespace NewLife.Caching
             CacheItem ci = null;
             do
             {
-                if (_cache.TryGetValue(key, out var item)) return (T)item.Value;
+                if (_cache.TryGetValue(key, out var item)) return (T)item.Visit();
 
                 if (ci == null) ci = new CacheItem(value, expire);
             } while (!_cache.TryAdd(key, ci));
 
-            return (T)ci.Value;
+            return (T)ci.Visit();
         }
         #endregion
 
@@ -115,8 +115,7 @@ namespace NewLife.Caching
             {
                 if (_cache.TryGetValue(key, out var item))
                 {
-                    item.Value = value;
-                    item.SetExpire(expire);
+                    item.Set(value, expire);
                     return true;
                 }
 
@@ -133,7 +132,7 @@ namespace NewLife.Caching
         {
             if (!_cache.TryGetValue(key, out var item) || item == null) return default(T);
 
-            return (T)item.Value;
+            return (T)item.Visit();
         }
 
         /// <summary>批量移除缓存项</summary>
@@ -210,7 +209,7 @@ namespace NewLife.Caching
                 if (_cache.TryGetValue(key, out var item))
                 {
                     var rs = item.Value;
-                    item.Value = value;
+                    item.Set(value, expire);
                     return (T)rs;
                 }
 
@@ -269,7 +268,7 @@ namespace NewLife.Caching
         public override IList<T> GetList<T>(String key)
         {
             var item = _cache.GetOrAdd(key, k => new CacheItem(new List<T>(), Expire));
-            return item.Value as IList<T>;
+            return item.Visit() as IList<T>;
         }
 
         /// <summary>获取哈希</summary>
@@ -279,7 +278,7 @@ namespace NewLife.Caching
         public override IDictionary<String, T> GetDictionary<T>(String key)
         {
             var item = _cache.GetOrAdd(key, k => new CacheItem(new ConcurrentDictionary<String, T>(), Expire));
-            return item.Value as IDictionary<String, T>;
+            return item.Visit() as IDictionary<String, T>;
         }
 
         /// <summary>获取队列</summary>
@@ -288,8 +287,8 @@ namespace NewLife.Caching
         /// <returns></returns>
         public override IProducerConsumer<T> GetQueue<T>(String key)
         {
-            var item = _cache.GetOrAdd(key, k => new CacheItem(new ConcurrentQueue<T>(), Expire));
-            return item.Value as IProducerConsumer<T>;
+            var item = _cache.GetOrAdd(key, k => new CacheItem(new MemoryQueue<T>(new ConcurrentQueue<T>()), Expire));
+            return item.Visit() as IProducerConsumer<T>;
         }
         #endregion
 
@@ -307,13 +306,34 @@ namespace NewLife.Caching
             /// <summary>是否过期</summary>
             public Boolean Expired => ExpiredTime <= TimerX.Now;
 
+            /// <summary>访问时间</summary>
+            public DateTime VisitTime { get; private set; }
+
             /// <summary>构造缓存项</summary>
             /// <param name="value"></param>
             /// <param name="expire"></param>
-            public CacheItem(Object value, Int32 expire)
+            public CacheItem(Object value, Int32 expire) => Set(value, expire);
+
+            /// <summary>设置数值和过期时间</summary>
+            /// <param name="value"></param>
+            /// <param name="expire"></param>
+            public void Set(Object value, Int32 expire)
             {
                 Value = value;
-                SetExpire(expire);
+
+                var now = VisitTime = TimerX.Now;
+                if (expire <= 0)
+                    ExpiredTime = DateTime.MaxValue;
+                else
+                    ExpiredTime = now.AddSeconds(expire);
+            }
+
+            /// <summary>更新访问时间并返回数值</summary>
+            /// <returns></returns>
+            public Object Visit()
+            {
+                VisitTime = TimerX.Now;
+                return Value;
             }
 
             /// <summary>设置过期时间</summary>
@@ -353,6 +373,8 @@ namespace NewLife.Caching
                     }
                 } while (Interlocked.CompareExchange(ref _Value, newValue, oldValue) != oldValue);
 
+                Visit();
+
                 return newValue;
             }
 
@@ -382,6 +404,8 @@ namespace NewLife.Caching
                             throw new NotSupportedException("不支持类型[{0}]的递减".F(value.GetType().FullName));
                     }
                 } while (Interlocked.CompareExchange(ref _Value, newValue, oldValue) != oldValue);
+
+                Visit();
 
                 return newValue;
             }
