@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using NewLife.Caching;
+using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Net;
 using NewLife.Net.Handlers;
@@ -41,7 +42,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test2();
+                Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -101,10 +102,11 @@ namespace Test
             //Console.WriteLine(list.Count);
 
             // 往字典里面插入100万数据，计算遍历时间
-            var count = 10_000_000;
+            var count = 1_000_000;
             Console.WriteLine("插入数据 {0:n0} 行", count);
             //var dic = new Dictionary<Int32, CacheItem<String>>();
-            var dic = new ConcurrentDictionary<Int32, CacheItem<String>>();
+            //var dic = new ConcurrentDictionary<Int32, CacheItem<String>>();
+            var dic = new DictionaryCache<Int32, CacheItem<String>> { Expire = 60, Period = 10 };
             var sw = Stopwatch.StartNew();
             for (var i = 0; i < count; i++)
             {
@@ -122,6 +124,17 @@ namespace Test
             }
             sw.Stop();
             Console.WriteLine("遍历完成，{0}", sw.Elapsed);
+
+            Thread.Sleep(5000);
+
+            // 随机访问1000个
+            for (var i = 0; i < 1000; i++)
+            {
+                var key = Rand.Next(count);
+                var val = dic[key];
+            }
+
+            Thread.Sleep(-1);
         }
         class CacheItem<TValue>
         {
