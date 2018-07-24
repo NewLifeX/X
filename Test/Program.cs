@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -96,8 +97,48 @@ namespace Test
 
         static void Test2()
         {
-            var list = Role.FindAll();
-            Console.WriteLine(list.Count);
+            //var list = Role.FindAll();
+            //Console.WriteLine(list.Count);
+
+            // 往字典里面插入100万数据，计算遍历时间
+            var count = 10_000_000;
+            Console.WriteLine("插入数据 {0:n0} 行", count);
+            //var dic = new Dictionary<Int32, CacheItem<String>>();
+            var dic = new ConcurrentDictionary<Int32, CacheItem<String>>();
+            var sw = Stopwatch.StartNew();
+            for (var i = 0; i < count; i++)
+            {
+                var val = new CacheItem<String>(Rand.NextString(8), 3);
+                dic[i] = val;
+            }
+            sw.Stop();
+            Console.WriteLine("插入完成，{0}", sw.Elapsed);
+
+            sw.Restart();
+            var list = new List<Int32>();
+            foreach (var item in dic)
+            {
+                if (item.Value.Expired) list.Add(item.Key);
+            }
+            sw.Stop();
+            Console.WriteLine("遍历完成，{0}", sw.Elapsed);
+        }
+        class CacheItem<TValue>
+        {
+            /// <summary>数值</summary>
+            public TValue Value { get; set; }
+
+            /// <summary>过期时间</summary>
+            public DateTime ExpiredTime { get; set; }
+
+            /// <summary>是否过期</summary>
+            public Boolean Expired => ExpiredTime <= TimerX.Now;
+
+            public CacheItem(TValue value, Int32 seconds)
+            {
+                Value = value;
+                if (seconds > 0) ExpiredTime = TimerX.Now.AddSeconds(seconds);
+            }
         }
 
         static void Test3()
