@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.ServiceProcess;
-using NewLife.Configuration;
 using NewLife.Log;
 
 namespace NewLife.Agent
@@ -20,12 +19,6 @@ namespace NewLife.Agent
         {
             get
             {
-                //String filename= AppDomain.CurrentDomain.FriendlyName.Replace(".vshost.", ".");
-                //if (filename.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)) return filename;
-
-                //filename = Assembly.GetExecutingAssembly().Location;
-                //return filename;
-                //String filename = Assembly.GetEntryAssembly().Location;
                 var p = Process.GetCurrentProcess();
                 var filename = p.MainModule.FileName;
                 filename = Path.GetFileName(filename);
@@ -121,16 +114,10 @@ namespace NewLife.Agent
 
         #region 服务操作辅助函数
         /// <summary>是否已安装</summary>
-        public static Boolean? IsInstalled(this IAgentService service)
-        {
-            return IsServiceInstalled(service.ServiceName);
-        }
+        public static Boolean? IsInstalled(this IAgentService service) => IsServiceInstalled(service.ServiceName);
 
         /// <summary>是否已启动</summary>
-        public static Boolean? IsRunning(this IAgentService service)
-        {
-            return IsServiceRunning(service.ServiceName);
-        }
+        public static Boolean? IsRunning(this IAgentService service) => IsServiceRunning(service.ServiceName);
 
         /// <summary>取得服务</summary>
         /// <param name="name"></param>
@@ -166,7 +153,7 @@ namespace NewLife.Agent
                 catch { return false; }
             }
             catch { return null; }
-            finally { if (control != null)control.Dispose(); }
+            finally { if (control != null) control.Dispose(); }
         }
 
         /// <summary>是否已启动</summary>
@@ -190,7 +177,7 @@ namespace NewLife.Agent
                 return null;
             }
             catch { return null; }
-            finally { if (control != null)control.Dispose(); }
+            finally { if (control != null) control.Dispose(); }
         }
         #endregion
 
@@ -242,18 +229,7 @@ namespace NewLife.Agent
         /// <summary>写日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
-        public static void WriteLine(String format, params Object[] args)
-        {
-            var set = Setting.Current;
-            if (set.Debug) XTrace.WriteLine(format, args);
-        }
-
-        ///// <summary>写日志</summary>
-        ///// <param name="msg"></param>
-        //public static void WriteLine(String msg)
-        //{
-        //    if (XTrace.Debug) XTrace.WriteLine(msg);
-        //}
+        public static void WriteLine(String format, params Object[] args) => XTrace.WriteLine(format, args);
         #endregion
     }
 }
