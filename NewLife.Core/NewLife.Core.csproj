@@ -271,6 +271,7 @@
     <Compile Include="Serialization\Protocol.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Serialization\SerialHelper.cs" />
     <Compile Include="Serialization\Xml\XmlList.cs" />
     <Compile Include="Serialization\Xml\XmlComposite.cs" />
     <Compile Include="Serialization\Xml\XmlGeneral.cs" />

@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using NewLife.Caching;
 using NewLife.Collections;
+using NewLife.Common;
 using NewLife.Log;
 using NewLife.Net;
 using NewLife.Net.Handlers;
@@ -18,6 +19,7 @@ using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
 using NewLife.Threading;
+using NewLife.Xml;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 using XCode.Service;
@@ -98,49 +100,15 @@ namespace Test
 
         static void Test2()
         {
-            //var list = Role.FindAll();
-            //Console.WriteLine(list.Count);
+            var cfg = SysConfig.Current;
+            var js = cfg.ToJson(true);
+            Console.WriteLine(js);
 
-            // 往字典里面插入100万数据，计算遍历时间
-            var count = 1_000_000;
-            Console.WriteLine("插入数据 {0:n0} 行", count);
-            //var dic = new Dictionary<Int32, CacheItem<String>>();
-            //var dic = new ConcurrentDictionary<Int32, CacheItem<String>>();
-            //var dic = new DictionaryCache<Int32, CacheItem<String>> { Expire = 60, Period = 10 };
-            var ch = MemoryCache.Default as MemoryCache;
-            ch.Period = 10;
-            ch.Expire = 60;
-            var sw = Stopwatch.StartNew();
-            for (var i = 0; i < count; i++)
-            {
-                //var val = new CacheItem<String>(Rand.NextString(8), 3);
-                //dic[i] = val;
-                ch.Set(i + "", Rand.NextString(8));
-            }
-            sw.Stop();
-            Console.WriteLine("插入完成，{0}", sw.Elapsed);
-
-            //sw.Restart();
-            //var list = new List<Int32>();
-            //foreach (var item in dic)
-            //{
-            //    if (item.Value.Expired) list.Add(item.Key);
-            //}
-            //sw.Stop();
-            //Console.WriteLine("遍历完成，{0}", sw.Elapsed);
-
-            Thread.Sleep(5000);
-
-            // 随机访问1000个
-            for (var i = 0; i < 12345; i++)
-            {
-                var key = Rand.Next(count);
-                //var val = dic[key];
-                var val = ch.Get<String>(key + "");
-            }
-
-            Thread.Sleep(-1);
+            var cfg2 = js.ToJsonEntity<SysConfig>();
+            var xml = cfg2.ToXml();
+            Console.WriteLine(xml);
         }
+
         class CacheItem<TValue>
         {
             /// <summary>数值</summary>

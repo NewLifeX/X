@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Linq;
+using System.Xml.Serialization;
 using NewLife.Reflection;
 using NewLife.Xml;
 
@@ -23,6 +24,7 @@ namespace NewLife.Common
 
         /// <summary>系统版本</summary>
         [DisplayName("系统版本")]
+        [XmlElement("ver")]
         public String Version { get; set; } = "";
 
         /// <summary>显示名称</summary>
