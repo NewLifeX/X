@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -8,6 +9,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using NewLife.Caching;
+using NewLife.Collections;
+using NewLife.Common;
 using NewLife.Log;
 using NewLife.Net;
 using NewLife.Net.Handlers;
@@ -16,6 +19,7 @@ using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
 using NewLife.Threading;
+using NewLife.Xml;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 using XCode.Service;
@@ -40,7 +44,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test1();
+                Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -96,20 +100,30 @@ namespace Test
 
         static void Test2()
         {
-            var file = "web.config".GetFullPath();
-            if (!File.Exists(file)) file = "{0}.config".F(AppDomain.CurrentDomain.FriendlyName).GetFullPath();
+            var cfg = SysConfig.Current;
+            var js = cfg.ToJson(true);
+            Console.WriteLine(js);
 
-            // 读取配置文件
-            var doc = new XmlDocument();
-            doc.Load(file);
-            var nodes = doc.SelectNodes("/configuration/connectionStrings/add");
-            foreach (XmlNode item in nodes)
+            var cfg2 = js.ToJsonEntity<SysConfig>();
+            var xml = cfg2.ToXml();
+            Console.WriteLine(xml);
+        }
+
+        class CacheItem<TValue>
+        {
+            /// <summary>数值</summary>
+            public TValue Value { get; set; }
+
+            /// <summary>过期时间</summary>
+            public DateTime ExpiredTime { get; set; }
+
+            /// <summary>是否过期</summary>
+            public Boolean Expired => ExpiredTime <= TimerX.Now;
+
+            public CacheItem(TValue value, Int32 seconds)
             {
-                var name = item.Attributes["name"]?.Value;
-                var connstr = item.Attributes["connectionString"]?.Value;
-                var provider = item.Attributes["providerName"]?.Value;
-
-                Console.WriteLine($"name={name} connstr={connstr} provider={provider}");
+                Value = value;
+                if (seconds > 0) ExpiredTime = TimerX.Now.AddSeconds(seconds);
             }
         }
 

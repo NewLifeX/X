@@ -271,7 +271,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 基本方法 查询/执行
-        protected override void OnFill(DbSet ds, DbDataReader dr)
+        protected override void OnFill(DbTable ds, DbDataReader dr)
         {
             var count = dr.FieldCount;
             var md = Database.CreateMetaData() as DbMetaData;
@@ -399,40 +399,37 @@ namespace XCode.DataAccessLayer
                 var table = DAL.CreateTable();
                 table.TableName = name;
 
-                var sqls = dts.Get<String>(dr, "sql").Split("\n").Select(e => e.Trim()).ToList();
+                sql = dts.Get<String>(dr, "sql");
+                var sqls = sql.Split("\r\n").ToList();
 
                 #region 字段
-                var dcs = ss.Query($"select * from {Database.FormatName(name)} limit 0,1", null);
-                for (var i = 0; i < dcs.Columns.Length; i++)
+                //var dcs = ss.Query($"select * from {Database.FormatName(name)} limit 0,1", null);
+                //for (var i = 0; i < dcs.Columns.Length; i++)
+                foreach (var line in sqls)
                 {
+                    if (line.IsNullOrEmpty() || line[0] != '\t') continue;
+
+                    var fs = line.Trim().Split(" ");
                     var field = table.CreateColumn();
 
-                    field.ColumnName = dcs.Columns[i];
+                    field.ColumnName = fs[0].TrimStart('[').TrimEnd(']');
                     //field.DataType = dcs.Types[i];
                     //field.RawType = dcs.TypeNames[i];
 
-                    // 在建表SQL中找到那一行
-                    var fc = sqls.FirstOrDefault(line => line.StartsWithIgnoreCase(field.ColumnName + " "));
-                    if (!fc.IsNullOrEmpty())
-                    {
-                        if (fc.Contains("AUTOINCREMENT")) field.Identity = true;
-                        if (fc.Contains("Primary Key")) field.PrimaryKey = true;
+                    if (line.Contains("AUTOINCREMENT")) field.Identity = true;
+                    if (line.Contains("Primary Key")) field.PrimaryKey = true;
 
-                        if (fc.Contains("NOT NULL"))
-                            field.Nullable = false;
-                        else if (fc.Contains(" NULL "))
-                            field.Nullable = true;
+                    if (line.Contains("NOT NULL"))
+                        field.Nullable = false;
+                    else if (line.Contains(" NULL "))
+                        field.Nullable = true;
 
-                        var fs = fc.Split(" ");
-                        field.RawType = fs[1];
-                        field.Length = field.RawType.Substring("(", ")").ToInt();
+                    field.RawType = fs[1];
+                    field.Length = field.RawType.Substring("(", ")").ToInt();
 
-                        field.DataType = GetDataType(field.RawType);
-                    }
+                    field.DataType = GetDataType(field.RawType);
 
                     // SQLite的字段长度、精度等，都是由类型决定，固定值
-
-                    //FixField(field, dr);
 
                     // 如果数据库里面是integer或者autoincrement，识别类型是Int64，又是自增，则改为Int32，保持与大多数数据库的兼容
                     if (field.Identity && field.DataType == typeof(Int64) && field.RawType.EqualIgnoreCase("integer", "autoincrement"))
@@ -442,7 +439,7 @@ namespace XCode.DataAccessLayer
 
                     if (field.DataType == null)
                     {
-                        if (field.RawType.EqualIgnoreCase("varchar2", "nvarchar2")) field.DataType = typeof(String);
+                        if (field.RawType.StartsWithIgnoreCase("varchar2", "nvarchar2")) field.DataType = typeof(String);
                     }
 
                     table.Columns.Add(field);
@@ -456,10 +453,10 @@ namespace XCode.DataAccessLayer
                     var di = table.CreateIndex();
                     di.Name = dis2.Get<String>(i, "name");
 
-                    var line = dis2.Get<String>(i, "sql");
-                    if (line.Contains(" UNIQUE ")) di.Unique = true;
+                    sql = dis2.Get<String>(i, "sql");
+                    if (sql.Contains(" UNIQUE ")) di.Unique = true;
 
-                    di.Columns = line.Substring("(", ")").Split(",").Select(e => e.Trim()).ToArray();
+                    di.Columns = sql.Substring("(", ")").Split(",").Select(e => e.Trim()).ToArray();
 
                     table.Indexes.Add(di);
                 }
@@ -475,22 +472,6 @@ namespace XCode.DataAccessLayer
 
             return list;
         }
-
-        //protected override void FixField(IDataColumn field, DataRow dr)
-        //{
-        //    base.FixField(field, dr);
-
-        //    // 如果数据库里面是integer或者autoincrement，识别类型是Int64，又是自增，则改为Int32，保持与大多数数据库的兼容
-        //    if (field.Identity && field.DataType == typeof(Int64) && field.RawType.EqualIgnoreCase("integer", "autoincrement"))
-        //    {
-        //        field.DataType = typeof(Int32);
-        //    }
-
-        //    if (field.DataType == null)
-        //    {
-        //        if (field.RawType.EqualIgnoreCase("varchar2", "nvarchar2")) field.DataType = typeof(String);
-        //    }
-        //}
 
         protected override String GetFieldType(IDataColumn field)
         {
@@ -600,7 +581,7 @@ namespace XCode.DataAccessLayer
 
                 var fi = bf.AsFile();
                 fi.Compress(zipfile);
-                WriteLog("压缩后大小：{0:n0}字节", fi.Length);
+                WriteLog("压缩后大小：{0:n0}字节，{1}", zipfile.AsFile().Length, zipfile);
 
                 // 删除未备份
                 File.Delete(bf);

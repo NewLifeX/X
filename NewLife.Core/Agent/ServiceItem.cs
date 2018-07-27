@@ -141,7 +141,7 @@ namespace NewLife.Agent
                 catch (Exception ex)
                 {
                     // 确保拦截了所有的异常，保证服务稳定运行
-                    WriteLine(ex?.GetTrue() + "");
+                    WriteLine(ex?.GetTrue().GetMessage());
                 }
                 sw.Stop();
                 LastActive = TimerX.Now;
@@ -207,11 +207,7 @@ namespace NewLife.Agent
         /// <summary>写日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
-        public static void WriteLine(String format, params Object[] args)
-        {
-            var set = Setting.Current;
-            if (set.Debug) XTrace.WriteLine(format, args);
-        }
+        public static void WriteLine(String format, params Object[] args) => XTrace.WriteLine(format, args);
         #endregion
     }
 }

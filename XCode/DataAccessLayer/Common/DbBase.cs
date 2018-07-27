@@ -835,7 +835,7 @@ namespace XCode.DataAccessLayer
         /// <summary>创建参数数组</summary>
         /// <param name="ps"></param>
         /// <returns></returns>
-        public virtual IDataParameter[] CreateParameters(IDictionary<String, Object> ps) => ps.Select(e => CreateParameter(e.Key, e.Value)).ToArray();
+        public virtual IDataParameter[] CreateParameters(IDictionary<String, Object> ps) => ps?.Select(e => CreateParameter(e.Key, e.Value)).ToArray();
 
         /// <summary>获取 或 设置 自动关闭。每次使用完数据库连接后，是否自动关闭连接，高频操作时设为false可提升性能。默认true</summary>
         public Boolean AutoClose { get; set; } = true;

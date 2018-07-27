@@ -160,7 +160,7 @@ namespace XCode.DataAccessLayer
         /// <param name="sql">SQL语句</param>
         /// <param name="ps">命令参数</param>
         /// <returns></returns>
-        public override DbSet Query(String sql, IDataParameter[] ps)
+        public override DbTable Query(String sql, IDataParameter[] ps)
         {
             var client = (Database as Network).GetClient();
 

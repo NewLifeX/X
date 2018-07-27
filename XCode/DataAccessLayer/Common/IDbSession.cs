@@ -97,7 +97,7 @@ namespace XCode.DataAccessLayer
         /// <param name="sql">SQL语句</param>
         /// <param name="ps">命令参数</param>
         /// <returns></returns>
-        DbSet Query(String sql, IDataParameter[] ps);
+        DbTable Query(String sql, IDataParameter[] ps);
 
         /// <summary>执行SQL查询，返回总记录数</summary>
         /// <param name="sql">SQL语句</param>
@@ -166,7 +166,7 @@ namespace XCode.DataAccessLayer
         /// <param name="sql">SQL语句</param>
         /// <param name="ps">命令参数</param>
         /// <returns></returns>
-        Task<DbSet> QueryAsync(String sql, params IDataParameter[] ps);
+        Task<DbTable> QueryAsync(String sql, params IDataParameter[] ps);
 #endif
         #endregion
 

@@ -159,7 +159,7 @@ namespace XCode.DataAccessLayer
             return default(T);
         }
 
-        protected static DbSet Select(DbSet ds, String name, Object value)
+        protected static DbTable Select(DbTable ds, String name, Object value)
         {
             var list = new List<Object[]>();
             var col = ds.GetColumn(name);
@@ -172,7 +172,7 @@ namespace XCode.DataAccessLayer
                 }
             }
 
-            var ds2 = new DbSet
+            var ds2 = new DbTable
             {
                 Columns = ds.Columns,
                 Types = ds.Types,

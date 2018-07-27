@@ -97,7 +97,8 @@
     <Compile Include="Compression\ZipFile.cs" />
     <Compile Include="Configuration\CombConfig.cs" />
     <Compile Include="Data\BinaryTree.cs" />
-    <Compile Include="Data\DbSet.cs" />
+    <Compile Include="Data\DbRow.cs" />
+    <Compile Include="Data\DbTable.cs" />
     <Compile Include="Data\GeoAddress.cs" />
     <Compile Include="Data\GeoArea.cs" />
     <Compile Include="Data\GeoPoint.cs" />
@@ -268,6 +269,7 @@
     <Compile Include="Serialization\Protocol.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Serialization\SerialHelper.cs" />
     <Compile Include="Serialization\Xml\XmlList.cs" />
     <Compile Include="Serialization\Xml\XmlComposite.cs" />
     <Compile Include="Serialization\Xml\XmlGeneral.cs" />
