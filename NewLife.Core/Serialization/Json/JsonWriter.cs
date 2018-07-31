@@ -168,7 +168,7 @@ namespace NewLife.Serialization
                     if (!first) _Builder.Append(',');
                     first = false;
 
-                    var name = pi.Name;
+                    var name = SerialHelper.GetName(pi);
                     if (LowerCaseName) name = name.ToLower();
                     WritePair(name, value);
                 }

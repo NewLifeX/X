@@ -115,7 +115,7 @@ namespace XCode.Cache
             foreach (var item in es)
             {
                 var ci = item.Value;
-                if (ci.VisitTime < exp)
+                if (ci.VisitTime <= exp)
                     list.Add(ci);
                 else if (slist != null)
                 {
