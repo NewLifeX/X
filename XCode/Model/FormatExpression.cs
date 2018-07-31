@@ -55,6 +55,12 @@ namespace XCode
                     val = sb;
                 else if (Value is IList<Object> ems)
                     val = ems.Join(",", e => op.FormatValue(fi, e));
+                else if (Value is String)
+                {
+                    var list = (Value + "").Split(",");
+
+                    val = list.Length > 1 ? list.Join(",", e => op.FormatValue(fi, e)) : op.FormatValue(fi, Value);
+                }
                 else
                     val = op.FormatValue(fi, Value);
 

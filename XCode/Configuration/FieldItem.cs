@@ -360,17 +360,12 @@ namespace XCode.Configuration
         /// <summary>In操作。直接使用字符串可能有注入风险</summary>
         /// <remarks>空参数不参与表达式操作，不生成该部分SQL拼接</remarks>
         /// <param name="child">逗号分割的数据。可能有注入风险</param>
-        /// <param name="splitStr"></param>
         /// <returns></returns>
-        public Expression In(String child, String splitStr = ",")
+        public Expression In(String child)
         {
             if (child == null) return new Expression();
 
-            var list = child.Split(splitStr);
-            if (list.Count() > 1)
-                return _In(list, true);
-            else
-                return CreateFormat("{0} In({1})", child);
+            return CreateFormat("{0} In({1})", child);
         }
 
         /// <summary>NotIn操作。直接使用字符串可能有注入风险</summary>
