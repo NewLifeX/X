@@ -360,8 +360,9 @@ namespace XCode.Configuration
         /// <summary>In操作。直接使用字符串可能有注入风险</summary>
         /// <remarks>空参数不参与表达式操作，不生成该部分SQL拼接</remarks>
         /// <param name="child">逗号分割的数据。可能有注入风险</param>
+        /// <param name="splitStr"></param>
         /// <returns></returns>
-        public Expression In(String child, char splitStr = ',')
+        public Expression In(String child, String splitStr = ",")
         {
             if (child == null) return new Expression();
 
