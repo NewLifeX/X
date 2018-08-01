@@ -5,6 +5,7 @@ using System.Text;
 using NewLife.Reflection;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
+using System.Linq;
 
 namespace XCode
 {
@@ -57,9 +58,9 @@ namespace XCode
                     val = ems.Join(",", e => op.FormatValue(fi, e));
                 else if (Value is String)
                 {
-                    var list = (Value + "").Split(",");
-
-                    val = list.Length > 1 ? list.Join(",", e => op.FormatValue(fi, e)) : op.FormatValue(fi, Value);
+                    var list = (Value + "").Split(",").ToList();
+                    list.RemoveAll(e => (e + "").Trim().IsNullOrEmpty() || e.Contains("%")); //处理类似 in("xxx,xxx,xxx"),和 like "%,xxxx,%" 这两种情况下无法正常格式化查询字符串
+                    val = list.Count > 1 ? list.Join(",", e => op.FormatValue(fi, e)) : op.FormatValue(fi, Value);
                 }
                 else
                     val = op.FormatValue(fi, Value);
