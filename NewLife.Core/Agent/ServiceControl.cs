@@ -122,10 +122,6 @@ namespace NewLife.Agent
 
         /// <summary>写日志</summary>
         /// <param name="msg"></param>
-        public static void WriteLine(String msg)
-        {
-            var set = Setting.Current;
-            if (set.Debug) XTrace.WriteLine(msg);
-        }
+        public static void WriteLine(String msg) => XTrace.WriteLine(msg);
     }
 }

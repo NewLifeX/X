@@ -241,7 +241,8 @@ namespace System
             // 特殊处理字符串，也是最常见的
             if (value is String str)
             {
-                str = ToDBC(str).Trim();
+                //str = ToDBC(str).Trim();
+                str = str.Trim();
                 if (str.IsNullOrEmpty()) return defaultValue;
 
                 if (Boolean.TryParse(str, out var b)) return b;
@@ -250,6 +251,7 @@ namespace System
                 if (String.Equals(str, Boolean.FalseString, StringComparison.OrdinalIgnoreCase)) return false;
 
                 // 特殊处理用数字0和1表示布尔型
+                str = ToDBC(str);
                 if (Int32.TryParse(str, out var n)) return n > 0;
 
                 return defaultValue;
@@ -274,7 +276,8 @@ namespace System
 
             if (value is String str)
             {
-                str = ToDBC(str).Trim();
+                //str = ToDBC(str).Trim();
+                str = str.Trim();
                 if (str.IsNullOrEmpty()) return defaultValue;
 
                 if (DateTime.TryParse(str, out var n)) return n;

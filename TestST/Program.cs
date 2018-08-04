@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Net.NetworkInformation;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Configuration;
 using NewLife.Log;
 using NewLife.Net;
 using NewLife.Remoting;
+using NewLife.Serialization;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 
@@ -20,7 +23,7 @@ namespace TestST
 
             var sw = Stopwatch.StartNew();
 
-            Test3();
+            Test4();
 
             sw.Stop();
             Console.WriteLine("OK! {0:n0}ms", sw.ElapsedMilliseconds);
@@ -60,18 +63,27 @@ namespace TestST
 
         static void Test3()
         {
-            var svr = new ApiServer(3344);
-            svr.Log = XTrace.Log;
-            svr.EncoderLog = XTrace.Log;
-            svr.StatPeriod = 5;
-            svr.Start();
+            var os = "";
+            var fr = "/etc/os-release";
+            if (File.Exists(fr))
+            {
+                var dic = File.ReadAllText(fr).SplitAsDictionary("=", "\n", true);
+                os = dic["PRETTY_NAME"];
+                XTrace.WriteLine(os);
 
-            Console.ReadKey(true);
+                Console.WriteLine();
+                foreach (var item in dic)
+                {
+                    Console.WriteLine("{0}\t={1}", item.Key, item.Value);
+                }
+            }
+
         }
 
-        static  void Test4()
+        static void Test4()
         {
-            
+            var list = Role.FindAll();
+            Console.WriteLine(list.Count);
         }
     }
 }

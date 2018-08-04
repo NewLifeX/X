@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -8,6 +9,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using NewLife.Caching;
+using NewLife.Collections;
+using NewLife.Common;
 using NewLife.Log;
 using NewLife.Net;
 using NewLife.Net.Handlers;
@@ -16,6 +19,7 @@ using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
 using NewLife.Threading;
+using NewLife.Xml;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 using XCode.Service;
@@ -40,7 +44,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test1();
+                Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -62,68 +66,64 @@ namespace Test
         private static Int32 _count = 0;
         static void Test1()
         {
-            //for (var i = 0; i < 10000; i++)
-            //{
-            //    var tt = new TimerTest();
-            //    //Thread.Sleep(10);
-            //}
-            Parallel.For(0, 10000, async k =>
+            var cpu = Environment.ProcessorCount;
+
+            var ts = new List<Task>();
+            for (var i = 0; i < 15; i++)
             {
-                var tt = new TimerTest();
-                //await Task.Delay(5000);
-            });
-
-            for (var i = 0; i < 100; i++)
-            {
-                Console.WriteLine("_count={0}", _count);
-                Thread.Sleep(1000);
-
-                if (i == 5) GC.Collect();
-            }
-        }
-
-        static void Test1_1()
-        {
-
-        }
-
-        class TimerTest
-        {
-            private TimerX _timer;
-            public TimerTest()
-            {
-                _timer = new TimerX(Work, null, 1000, 1000);
-                Interlocked.Increment(ref _count);
+                var t = TaskEx.Run(() =>
+                {
+                    XTrace.WriteLine("begin");
+                    Thread.Sleep(2000);
+                    XTrace.WriteLine("end");
+                });
+                ts.Add(t);
             }
 
-            ~TimerTest()
+            Task.WaitAll(ts.ToArray());
+
+            Console.WriteLine();
+            ts.Clear();
+            for (var i = 0; i < 15; i++)
             {
-                Interlocked.Decrement(ref _count);
+                //var t = Task.Run(() =>
+                //{
+                //    XTrace.WriteLine("begin");
+                //    Thread.Sleep(2000);
+                //    XTrace.WriteLine("end");
+                //});
+                //ts.Add(t);
             }
 
-            private Byte[] _buf;
-            public void Work(Object state)
-            {
-                _buf = Rand.NextBytes(64 * 1024);
-            }
+            Task.WaitAll(ts.ToArray());
         }
 
         static void Test2()
         {
-            var file = "web.config".GetFullPath();
-            if (!File.Exists(file)) file = "{0}.config".F(AppDomain.CurrentDomain.FriendlyName).GetFullPath();
+            var cfg = SysConfig.Current;
+            var js = cfg.ToJson(true);
+            Console.WriteLine(js);
 
-            // 读取配置文件
-            var doc = new XmlDocument();
-            doc.Load(file);
-            var nodes = doc.SelectNodes("/configuration/connectionStrings/add");
-            foreach (XmlNode item in nodes)
+            var cfg2 = js.ToJsonEntity<SysConfig>();
+            var xml = cfg2.ToXml();
+            Console.WriteLine(xml);
+        }
+
+        class CacheItem<TValue>
+        {
+            /// <summary>数值</summary>
+            public TValue Value { get; set; }
+
+            /// <summary>过期时间</summary>
+            public DateTime ExpiredTime { get; set; }
+
+            /// <summary>是否过期</summary>
+            public Boolean Expired => ExpiredTime <= TimerX.Now;
+
+            public CacheItem(TValue value, Int32 seconds)
             {
-                var name = item.Attributes["name"]?.Value;
-                var connstr = item.Attributes["connectionString"]?.Value;
-                var provider = item.Attributes["providerName"]?.Value;
-
-                Console.WriteLine($"name={name} connstr={connstr} provider={provider}");
+                Value = value;
+                if (seconds > 0) ExpiredTime = TimerX.Now.AddSeconds(seconds);
             }
         }
 

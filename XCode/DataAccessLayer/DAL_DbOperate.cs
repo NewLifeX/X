@@ -67,7 +67,7 @@ namespace XCode.DataAccessLayer
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns></returns>
-        public DbSet Query(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows)
+        public DbTable Query(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows)
         {
             builder = PageSplit(builder, startRowIndex, maximumRows);
             if (builder == null) return null;
@@ -82,7 +82,7 @@ namespace XCode.DataAccessLayer
         /// <param name="sql">SQL语句</param>
         /// <param name="ps">命令参数</param>
         /// <returns></returns>
-        public DbSet Query(String sql, IDictionary<String, Object> ps = null)
+        public DbTable Query(String sql, IDictionary<String, Object> ps = null)
         {
             CheckBeforeUseDatabase();
 

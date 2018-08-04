@@ -184,7 +184,7 @@ namespace NewLife.Serialization
             }
 
             // 遍历所有可用于序列化的属性
-            var props = type.GetProperties(true).ToDictionary(e => e.Name, e => e);
+            var props = type.GetProperties(true).ToDictionary(e => SerialHelper.GetName(e), e => e);
             foreach (var item in dic)
             {
                 var v = item.Value;
