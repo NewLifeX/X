@@ -26,13 +26,13 @@ QQ群：1600800
 + **[服务代理]** Windows服务、守护、监控
 + **[远程过程调用RPC]** Tcp/Udp/Http/Json、身份验证、数据加密
 
-[网络库]:tree/master/NewLife.Core/Net
-[安全]:Security/Readme.md
-[多线程]:Threading/Readme.md
-[反射]:Reflection/Readme.md
-[序列化]:Serialization/Readme.md
-[服务代理]:Agent/Readme.md
-[远程过程调用RPC]:Remoting/Readme.md
+[网络库]:https://github.com/NewLifeX/X/tree/master/NewLife.Core/Net "支持企业应用服务十万级并发"
+[安全]:https://github.com/NewLifeX/X/tree/master/NewLife.Core/Security
+[多线程]:https://github.com/NewLifeX/X/tree/master/NewLife.Core/Threading
+[反射]:https://github.com/NewLifeX/X/tree/master/NewLife.Core/Reflection
+[序列化]:https://github.com/NewLifeX/X/tree/master/NewLife.Core/Serialization
+[服务代理]:https://github.com/NewLifeX/X/tree/master/NewLife.Core/Agent
+[远程过程调用RPC]:https://github.com/NewLifeX/X/tree/master/NewLife.Core/Remoting
 
 ### Android库 NewLife.Android
 Android版核心库，共用代码，供Xamarin Android开发使用
