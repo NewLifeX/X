@@ -5,6 +5,7 @@ using System.Data.Common;
 using System.Linq;
 using System.Text;
 using NewLife.Collections;
+using NewLife.Data;
 using NewLife.Reflection;
 using XCode.Common;
 using XCode.Exceptions;
@@ -432,34 +433,29 @@ namespace XCode.DataAccessLayer
             return null;
         }
 
-        /// <summary>获取数据类型字符串</summary>
+        /// <summary>获取数据类型</summary>
+        /// <param name="rawType"></param>
         /// <returns></returns>
-        public String GetDataTypes()
+        public virtual Type GetDataType(String rawType)
         {
-            var dt = GetSchema(DbMetaDataCollectionNames.DataTypes, null);
-            var rows = dt.Select("", "DataType Asc, IsBestMatch Desc");
-            var dic = new Dictionary<String, List<String>>();
-            foreach (var dr in rows)
+            if (rawType.Contains("(")) rawType = rawType.Substring(null, "(");
+            var rawType2 = rawType + "(";
+
+            foreach (var item in Types)
             {
-                var tname = (dr["DataType"] + "").TrimStart("System.");
-                if (!dic.TryGetValue(tname, out var list)) dic[tname] = list = new List<String>();
-                var v = dr["CreateFormat"] + "";
-                if (v.IsNullOrEmpty()) v = dr["TypeName"] + "";
-                list.Add(v);
+                String dbtype = null;
+                if (rawType.EqualIgnoreCase(item.Value))
+                {
+                    dbtype = item.Value[0];
+                }
+                else
+                {
+                    dbtype = item.Value.FirstOrDefault(e => e.StartsWithIgnoreCase(rawType2));
+                }
+                if (!dbtype.IsNullOrEmpty()) return item.Key;
             }
 
-            dic = dic.OrderBy(e => (Int32)e.Key.GetTypeEx().GetTypeCode()).ToDictionary(e => e.Key, e => e.Value);
-
-            var sb = new StringBuilder();
-            foreach (var item in dic)
-            {
-                if (sb.Length > 0) sb.AppendLine(",");
-
-                sb.Append(new String(' ', 12));
-                sb.AppendFormat("{{ typeof({0}), new String[] {{ {1} }} }}", item.Key, item.Value.Select(e => "\"" + e + "\"").Join(", "));
-            }
-
-            return Environment.NewLine + sb.ToString();
+            return null;
         }
         #endregion
     }

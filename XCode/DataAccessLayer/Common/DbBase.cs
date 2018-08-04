@@ -32,7 +32,7 @@ namespace XCode.DataAccessLayer
 #endif
 
             // 根据进程版本，设定x86或者x64为DLL目录
-            var dir = root.CombinePath(!Runtime.Is64BitProcess ? "x86" : "x64");
+            var dir = root.CombinePath(!Environment.Is64BitProcess ? "x86" : "x64");
             //if (Directory.Exists(dir)) SetDllDirectory(dir);
             // 不要判断是否存在，因为可能目录还不存在，一会下载驱动后将创建目录
 #if __CORE__
@@ -43,7 +43,7 @@ namespace XCode.DataAccessLayer
 
 
             root = NewLife.Setting.Current.GetPluginPath();
-            dir = root.CombinePath(!Runtime.Is64BitProcess ? "x86" : "x64");
+            dir = root.CombinePath(!Environment.Is64BitProcess ? "x86" : "x64");
 #if __CORE__
             if (!Runtime.Mono && !Runtime.Linux) SetDllDirectory(dir);
 #else
@@ -323,7 +323,7 @@ namespace XCode.DataAccessLayer
             {
                 var name = Path.GetFileNameWithoutExtension(assemblyFile);
                 var linkName = name;
-                if (Runtime.Is64BitProcess) linkName += "64";
+                if (Environment.Is64BitProcess) linkName += "64";
                 var ver = Environment.Version;
                 if (ver.Major >= 4) linkName += "Fx" + ver.Major + ver.Minor;
                 // 有些数据库驱动不区分x86/x64，并且逐步以Fx4为主，所以来一个默认
@@ -729,11 +729,11 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        /// <summary>格式化标识列，返回插入数据时所用的表达式，如果字段本身支持自增，则返回空</summary>
-        /// <param name="field">字段</param>
-        /// <param name="value">数值</param>
-        /// <returns></returns>
-        public virtual String FormatIdentity(IDataColumn field, Object value) => null;
+        ///// <summary>格式化标识列，返回插入数据时所用的表达式，如果字段本身支持自增，则返回空</summary>
+        ///// <param name="field">字段</param>
+        ///// <param name="value">数值</param>
+        ///// <returns></returns>
+        //public virtual String FormatIdentity(IDataColumn field, Object value) => null;
 
         /// <summary>格式化参数名</summary>
         /// <param name="name">名称</param>
@@ -835,7 +835,7 @@ namespace XCode.DataAccessLayer
         /// <summary>创建参数数组</summary>
         /// <param name="ps"></param>
         /// <returns></returns>
-        public virtual IDataParameter[] CreateParameters(IDictionary<String, Object> ps) => ps.Select(e => CreateParameter(e.Key, e.Value)).ToArray();
+        public virtual IDataParameter[] CreateParameters(IDictionary<String, Object> ps) => ps?.Select(e => CreateParameter(e.Key, e.Value)).ToArray();
 
         /// <summary>获取 或 设置 自动关闭。每次使用完数据库连接后，是否自动关闭连接，高频操作时设为false可提升性能。默认true</summary>
         public Boolean AutoClose { get; set; } = true;

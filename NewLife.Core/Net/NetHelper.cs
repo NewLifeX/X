@@ -6,13 +6,13 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using NewLife.Collections;
+using NewLife.Log;
 using NewLife.Model;
 using NewLife.Net;
 #if !__MOBILE__ && !__CORE__
 using Microsoft.Win32;
 using System.Management;
 using System.Security.AccessControl;
-using NewLife.Log;
 #endif
 
 namespace System
@@ -152,25 +152,33 @@ namespace System
         {
             if (NewLife.Runtime.Mono) return false;
 
-            var gp = IPGlobalProperties.GetIPGlobalProperties();
-
-            IPEndPoint[] eps = null;
-            switch (protocol)
+            try
             {
-                case NetType.Tcp:
-                    eps = gp.GetActiveTcpListeners();
-                    break;
-                case NetType.Udp:
-                    eps = gp.GetActiveUdpListeners();
-                    break;
-                default:
-                    return false;
+                // 某些情况下检查端口占用会抛出异常，原因未知
+                var gp = IPGlobalProperties.GetIPGlobalProperties();
+
+                IPEndPoint[] eps = null;
+                switch (protocol)
+                {
+                    case NetType.Tcp:
+                        eps = gp.GetActiveTcpListeners();
+                        break;
+                    case NetType.Udp:
+                        eps = gp.GetActiveUdpListeners();
+                        break;
+                    default:
+                        return false;
+                }
+
+                foreach (var item in eps)
+                {
+                    // 先比较端口，性能更好
+                    if (item.Port == port && item.Address.Equals(address)) return true;
+                }
             }
-
-            foreach (var item in eps)
+            catch (Exception ex)
             {
-                // 先比较端口，性能更好
-                if (item.Port == port && item.Address.Equals(address)) return true;
+                XTrace.WriteException(ex);
             }
 
             return false;
@@ -285,7 +293,11 @@ namespace System
                     var gw = item.GatewayAddresses.Count;
                     foreach (var elm in item.UnicastAddresses)
                     {
-                        if (elm.DuplicateAddressDetectionState != DuplicateAddressDetectionState.Preferred) continue;
+                        try
+                        {
+                            if (elm.DuplicateAddressDetectionState != DuplicateAddressDetectionState.Preferred) continue;
+                        }
+                        catch { }
 
                         dic.Add(elm, gw);
                     }
@@ -293,8 +305,9 @@ namespace System
             }
 
             // 带网关的接口地址很重要，优先返回
+            // Linux下不支持PrefixOrigin
             var ips = dic.OrderByDescending(e => e.Value)
-                .ThenByDescending(e => e.Key.PrefixOrigin == PrefixOrigin.Dhcp || e.Key.PrefixOrigin == PrefixOrigin.Manual)
+                //.ThenByDescending(e => e.Key.PrefixOrigin == PrefixOrigin.Dhcp || e.Key.PrefixOrigin == PrefixOrigin.Manual)
                 .Select(e => e.Key.Address).ToList();
 
             return ips;

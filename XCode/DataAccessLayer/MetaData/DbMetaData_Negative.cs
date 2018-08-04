@@ -780,9 +780,9 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据定义语句
-        public virtual String CreateDatabaseSQL(String dbname, String file) => String.Format("Create Database {0}", FormatName(dbname));
+        public virtual String CreateDatabaseSQL(String dbname, String file) => $"Create Database {FormatName(dbname)}";
 
-        public virtual String DropDatabaseSQL(String dbname) => String.Format("Drop Database {0}", FormatName(dbname));
+        public virtual String DropDatabaseSQL(String dbname) => $"Drop Database {FormatName(dbname)}";
 
         public virtual String DatabaseExistSQL(String dbname) => null;
 
@@ -808,7 +808,7 @@ namespace XCode.DataAccessLayer
 
         String DropTableSQL(IDataTable table) => DropTableSQL(table.TableName);
 
-        public virtual String DropTableSQL(String tableName) => String.Format("Drop Table {0}", FormatName(tableName));
+        public virtual String DropTableSQL(String tableName) => $"Drop Table {FormatName(tableName)}";
 
         String TableExistSQL(IDataTable table) => TableExistSQL(table.TableName);
 
@@ -818,11 +818,11 @@ namespace XCode.DataAccessLayer
 
         public virtual String DropTableDescriptionSQL(IDataTable table) => null;
 
-        public virtual String AddColumnSQL(IDataColumn field) => String.Format("Alter Table {0} Add {1}", FormatName(field.Table.TableName), FieldClause(field, true));
+        public virtual String AddColumnSQL(IDataColumn field) => $"Alter Table {FormatName(field.Table.TableName)} Add {FieldClause(field, true)}";
 
-        public virtual String AlterColumnSQL(IDataColumn field, IDataColumn oldfield) => String.Format("Alter Table {0} Alter Column {1}", FormatName(field.Table.TableName), FieldClause(field, false));
+        public virtual String AlterColumnSQL(IDataColumn field, IDataColumn oldfield) => $"Alter Table {FormatName(field.Table.TableName)} Alter Column {FieldClause(field, false)}";
 
-        public virtual String DropColumnSQL(IDataColumn field) => String.Format("Alter Table {0} Drop Column {1}", FormatName(field.Table.TableName), field.ColumnName);
+        public virtual String DropColumnSQL(IDataColumn field) => $"Alter Table {FormatName(field.Table.TableName)} Drop Column {field.ColumnName}";
 
         public virtual String AddColumnDescriptionSQL(IDataColumn field) => null;
 
@@ -848,7 +848,7 @@ namespace XCode.DataAccessLayer
             return sb.ToString();
         }
 
-        public virtual String DropIndexSQL(IDataIndex index) => String.Format("Drop Index {0} On {1}", FormatName(index.Name), FormatName(index.Table.TableName));
+        public virtual String DropIndexSQL(IDataIndex index) => $"Drop Index {FormatName(index.Name)} On {FormatName(index.Table.TableName)}";
 
         public virtual String CompactDatabaseSQL() => null;
         #endregion

@@ -19,7 +19,7 @@ namespace XCode
         /// <summary>加载数据表。无数据时返回空集合而不是null。</summary>
         /// <param name="ds">数据表</param>
         /// <returns>实体数组</returns>
-        IList<T> LoadData<T>(DbSet ds) where T : Entity<T>, new();
+        IList<T> LoadData<T>(DbTable ds) where T : Entity<T>, new();
 
         /// <summary>加载数据表。无数据时返回空集合而不是null。</summary>
         /// <param name="dr">数据读取器</param>
@@ -66,7 +66,7 @@ namespace XCode
                 //var fi = Entity<T>.Meta.Fields.FirstOrDefault(e => e.ColumnName.EqualIgnoreCase(item.ColumnName));
                 if (ti.FindByName(item.ColumnName) is FieldItem fi)
                     ps.Add(item, fi);
-                else
+                else if (!item.ColumnName.EqualIgnoreCase(IgnoreFields))
                     exts.Add(item, item.ColumnName);
             }
 
@@ -89,7 +89,7 @@ namespace XCode
         /// <summary>加载数据表。无数据时返回空集合而不是null。</summary>
         /// <param name="ds">数据表</param>
         /// <returns>实体数组</returns>
-        public IList<T> LoadData<T>(DbSet ds) where T : Entity<T>, new()
+        public IList<T> LoadData<T>(DbTable ds) where T : Entity<T>, new()
         {
             // 准备好实体列表
             var list = new List<T>();
@@ -105,7 +105,7 @@ namespace XCode
                 var item = ds.Columns[i];
                 if (ti.FindByName(item) is FieldItem fi)
                     ps.Add(i, fi);
-                else
+                else if (!item.EqualIgnoreCase(IgnoreFields))
                     exts.Add(i, item);
             }
 
@@ -146,7 +146,7 @@ namespace XCode
                 var name = dr2.GetName(i);
                 if (ti.FindByName(name) is FieldItem fi)
                     ps.Add(i, fi);
-                else
+                else if (!name.EqualIgnoreCase(IgnoreFields))
                     exts.Add(i, name);
             }
 
@@ -170,6 +170,7 @@ namespace XCode
         #region 方法
         static readonly String[] TrueString = new String[] { "true", "y", "yes", "1" };
         static readonly String[] FalseString = new String[] { "false", "n", "no", "0" };
+        static readonly String[] IgnoreFields = new[] { "rowNumber" };
 
         private void SetValue(IEntity entity, String name, Type type, Object value)
         {

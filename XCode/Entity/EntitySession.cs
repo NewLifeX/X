@@ -632,7 +632,7 @@ namespace XCode
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns></returns>
-        public virtual DbSet Query(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows)
+        public virtual DbTable Query(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows)
         {
             InitData();
 
@@ -642,7 +642,7 @@ namespace XCode
         /// <summary>执行SQL查询，返回记录集</summary>
         /// <param name="sql">SQL语句</param>
         /// <returns></returns>
-        public virtual DbSet Query(String sql)
+        public virtual DbTable Query(String sql)
         {
             InitData();
 

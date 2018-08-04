@@ -168,7 +168,7 @@ namespace System
                 var val = item.Substring(p + nameValueSeparator.Length).Trim();
 
                 // 处理单引号双引号
-                if (trimQuotation)
+                if (trimQuotation && !val.IsNullOrEmpty())
                 {
                     if (val[0] == '\'' && val[val.Length - 1] == '\'') val = val.Trim('\'');
                     if (val[0] == '"' && val[val.Length - 1] == '"') val = val.Trim('"');

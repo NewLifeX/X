@@ -57,7 +57,7 @@ namespace NewLife.Remoting
         public Object Info()
         {
             var ctx = ControllerContext.Current;
-            var ns = ctx.Session as INetSession;
+            var ns = ctx?.Session as INetSession;
 
             var rs = new
             {
@@ -65,7 +65,7 @@ namespace NewLife.Remoting
                 Environment.UserName,
                 Time = DateTime.Now,
                 LocalIP = NetHelper.MyIP() + "",
-                Remote = ns.Remote.EndPoint + "",
+                Remote = ns?.Remote?.EndPoint + "",
             };
             return rs;
         }
