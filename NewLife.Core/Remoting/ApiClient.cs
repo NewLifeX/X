@@ -88,10 +88,10 @@ namespace NewLife.Remoting
                 if (Encoder == null) Encoder = new JsonEncoder();
                 //if (Encoder == null) Encoder = new BinaryEncoder();
                 if (Handler == null) Handler = new ApiHandler { Host = this };
-                if (StatInvoke == null) StatInvoke = new PerfCounter();
-                if (StatProcess == null) StatProcess = new PerfCounter();
-                if (StatSend == null) StatSend = new PerfCounter();
-                if (StatReceive == null) StatReceive = new PerfCounter();
+                //if (StatInvoke == null) StatInvoke = new PerfCounter();
+                //if (StatProcess == null) StatProcess = new PerfCounter();
+                //if (StatSend == null) StatSend = new PerfCounter();
+                //if (StatReceive == null) StatReceive = new PerfCounter();
 
                 Encoder.Log = EncoderLog;
 
@@ -110,7 +110,15 @@ namespace NewLife.Remoting
                 ShowService();
 
                 var ms = StatPeriod * 1000;
-                if (ms > 0) _Timer = new TimerX(DoWork, null, ms, ms) { Async = true };
+                if (ms > 0)
+                {
+                    if (StatInvoke == null) StatInvoke = new PerfCounter();
+                    if (StatProcess == null) StatProcess = new PerfCounter();
+                    if (StatSend == null) StatSend = new PerfCounter();
+                    if (StatReceive == null) StatReceive = new PerfCounter();
+
+                    _Timer = new TimerX(DoWork, null, ms, ms) { Async = true };
+                }
 
                 return Active = true;
             }
