@@ -2,11 +2,9 @@
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Collections;
-using NewLife.Data;
 using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Net;
-using NewLife.Net.Handlers;
 using NewLife.Threading;
 
 namespace NewLife.Remoting
@@ -30,8 +28,8 @@ namespace NewLife.Remoting
         /// <summary>所有服务器所有会话，包含自己</summary>
         IApiSession[] IApiSession.AllSessions => new IApiSession[] { this };
 
-        /// <summary>调用超时时间。默认30_000ms</summary>
-        public Int32 Timeout { get; set; } = 30_000;
+        ///// <summary>调用超时时间。默认30_000ms</summary>
+        //public Int32 Timeout { get; set; } = 30_000;
 
         /// <summary>发送数据包统计信息</summary>
         public ICounter StatSend { get; set; }
@@ -226,10 +224,10 @@ namespace NewLife.Remoting
             return (TResult)await ApiHostHelper.InvokeAsync(this, client, typeof(TResult), act, args, flag);
         }
 
-        /// <summary>创建消息</summary>
-        /// <param name="pk"></param>
-        /// <returns></returns>
-        IMessage IApiSession.CreateMessage(Packet pk) => new DefaultMessage { Payload = pk };
+        ///// <summary>创建消息</summary>
+        ///// <param name="pk"></param>
+        ///// <returns></returns>
+        //IMessage IApiSession.CreateMessage(Packet pk) => new DefaultMessage { Payload = pk };
 
         async Task<IMessage> IApiSession.SendAsync(IMessage msg)
         {
@@ -368,7 +366,8 @@ namespace NewLife.Remoting
             client.StatSend = StatSend;
             client.StatReceive = StatReceive;
 
-            client.Add(new StandardCodec { Timeout = Timeout, UserPacket = false });
+            //client.Add(new StandardCodec { Timeout = Timeout, UserPacket = false });
+            client.Add(GetMessageCodec());
 
             client.Opened += (s, e) => OnNewSession(this, s);
             client.Received += Client_Received;

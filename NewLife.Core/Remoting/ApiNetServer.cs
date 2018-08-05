@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using NewLife.Data;
 using NewLife.Messaging;
 using NewLife.Net;
-using NewLife.Net.Handlers;
 
 namespace NewLife.Remoting
 {
@@ -42,7 +40,8 @@ namespace NewLife.Remoting
             if (Local.Host.IsNullOrEmpty() || Local.Host == "*") AddressFamily = System.Net.Sockets.AddressFamily.Unspecified;
 
             // 新生命标准网络封包协议
-            Add(new StandardCodec { Timeout = Timeout, UserPacket = false });
+            //Add(new StandardCodec { Timeout = Timeout, UserPacket = false });
+            Add(Host.GetMessageCodec());
 
             return true;
         }
@@ -101,10 +100,10 @@ namespace NewLife.Remoting
             if (rs != null) Session?.SendMessage(rs);
         }
 
-        /// <summary>创建消息</summary>
-        /// <param name="pk"></param>
-        /// <returns></returns>
-        public IMessage CreateMessage(Packet pk) => new Message { Payload = pk };
+        ///// <summary>创建消息</summary>
+        ///// <param name="pk"></param>
+        ///// <returns></returns>
+        //public IMessage CreateMessage(Packet pk) => new Message { Payload = pk };
 
         /// <summary>远程调用</summary>
         /// <typeparam name="TResult"></typeparam>
