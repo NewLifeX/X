@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Collections;
@@ -372,8 +371,23 @@ namespace NewLife.Remoting
             client.Add(new StandardCodec { Timeout = Timeout, UserPacket = false });
 
             client.Opened += (s, e) => OnNewSession(this, s);
+            client.Received += Client_Received;
 
             return client;
+        }
+
+        private void Client_Received(Object sender, ReceivedEventArgs e)
+        {
+            LastActive = DateTime.Now;
+
+            // Api解码消息得到Action和参数
+            var msg = e.Message as IMessage;
+            if (msg == null || msg.Reply) return;
+
+            var ss = sender as ISocketRemote;
+            var host = this as IApiHost;
+            var rs = host.Process(this, msg);
+            if (rs != null) ss?.SendMessage(rs);
         }
         #endregion
 
