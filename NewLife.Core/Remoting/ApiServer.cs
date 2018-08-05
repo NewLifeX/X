@@ -97,8 +97,8 @@ namespace NewLife.Remoting
 
             var svr = EnsureCreate();
 
-            if (svr.Handler == null) svr.Handler = Handler;
-            if (svr.Encoder == null) svr.Encoder = Encoder;
+            //if (svr.Handler == null) svr.Handler = Handler;
+            //if (svr.Encoder == null) svr.Encoder = Encoder;
             svr.Host = this;
             svr.Log = Log;
             svr.Start();

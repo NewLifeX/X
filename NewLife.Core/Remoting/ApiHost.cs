@@ -5,7 +5,6 @@ using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Messaging;
-using NewLife.Net;
 
 namespace NewLife.Remoting
 {
@@ -106,7 +105,7 @@ namespace NewLife.Remoting
             {
                 if (!ApiHostHelper.Decode(msg, out action, out _, out var args)) return null;
 
-                result = Handler.Execute(session, action, args);
+                result = OnProcess(session, action, args);
             }
             catch (Exception ex)
             {
@@ -139,6 +138,13 @@ namespace NewLife.Remoting
 
             return rs;
         }
+
+        /// <summary>执行</summary>
+        /// <param name="session"></param>
+        /// <param name="action"></param>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        protected virtual Object OnProcess(IApiSession session, String action, Packet args) => Handler.Execute(session, action, args);
         #endregion
 
         #region 事件

@@ -14,11 +14,11 @@ namespace NewLife.Remoting
         /// <summary>主机</summary>
         public IApiHost Host { get; set; }
 
-        /// <summary>编码器</summary>
-        public IEncoder Encoder { get; set; }
+        ///// <summary>编码器</summary>
+        //public IEncoder Encoder { get; set; }
 
-        /// <summary>处理器</summary>
-        public IApiHandler Handler { get; set; }
+        ///// <summary>处理器</summary>
+        //public IApiHandler Handler { get; set; }
 
         /// <summary>当前服务器所有会话</summary>
         public IApiSession[] AllSessions => Sessions.ToValueArray().Where(e => e is IApiSession).Cast<IApiSession>().ToArray();
@@ -47,14 +47,14 @@ namespace NewLife.Remoting
             return true;
         }
 
-        /// <summary>启动中</summary>
-        protected override void OnStart()
-        {
-            //if (Encoder == null) Encoder = new JsonEncoder();
-            if (Encoder == null) throw new ArgumentNullException(nameof(Encoder), "未指定编码器");
+        ///// <summary>启动中</summary>
+        //protected override void OnStart()
+        //{
+        //    //if (Encoder == null) Encoder = new JsonEncoder();
+        //    if (Encoder == null) throw new ArgumentNullException(nameof(Encoder), "未指定编码器");
 
-            base.OnStart();
-        }
+        //    base.OnStart();
+        //}
     }
 
     class ApiNetSession : NetSession<ApiNetServer>, IApiSession
