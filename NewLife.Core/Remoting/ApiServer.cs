@@ -73,6 +73,7 @@ namespace NewLife.Remoting
             if (Port <= 0) throw new ArgumentNullException(nameof(Server), "未指定服务器Server，且未指定端口Port！");
 
             svr = new ApiNetServer();
+            svr.Host = this;
             svr.Init(new NetUri(NetType.Unknown, "*", Port) + "");
 
             return Server = svr;
