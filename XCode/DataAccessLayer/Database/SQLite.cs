@@ -454,6 +454,8 @@ namespace XCode.DataAccessLayer
                     di.Name = dis2.Get<String>(i, "name");
 
                     sql = dis2.Get<String>(i, "sql");
+                    if (sql.IsNullOrEmpty()) continue;
+
                     if (sql.Contains(" UNIQUE ")) di.Unique = true;
 
                     di.Columns = sql.Substring("(", ")").Split(",").Select(e => e.Trim()).ToArray();
