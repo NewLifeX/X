@@ -53,10 +53,13 @@ namespace XCode.Membership
             }
 
             // 处理过长的备注
-            if (!String.IsNullOrEmpty(Remark) && Remark.Length > 500)
+            if (!Remark.IsNullOrEmpty() && Remark.Length > 500)
             {
                 Remark = Remark.Substring(0, 500);
             }
+
+            // 时间
+            if (isNew && CreateTime.Year < 2000 && !Dirtys[__.CreateTime]) CreateTime = DateTime.Now;
         }
 
         /// <summary></summary>

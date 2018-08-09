@@ -101,7 +101,10 @@ namespace Test
 
         static void Test2()
         {
-            DAL.AddConnStr("Log", "Data Source=tcp://127.0.0.1/ORCL;User Id=scott;Password=tiger;UseParameter=true", null, "Oracle");
+            //DAL.AddConnStr("Log", "Data Source=tcp://127.0.0.1/ORCL;User Id=scott;Password=tiger;UseParameter=true", null, "Oracle");
+            DAL.AddConnStr("Log", "Server=.;Port=3306;Database=Log;Uid=root;Pwd=root;", null, "MySql");
+
+            var gs = Log.FindAll(null, null, null, 0, 10);
 
             //LogProvider.Provider.WriteLog("test", "新增", "学无先后达者为师");
             var list = new List<Log>();
@@ -111,7 +114,8 @@ namespace Test
                 {
                     Category = "test",
                     Action = "测试",
-                    Remark = "内容" + i
+                    Remark = "内容" + i,
+                    //CreateTime = DateTime.Now
                 };
                 list.Add(log);
             }

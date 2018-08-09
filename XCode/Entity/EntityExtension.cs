@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using NewLife;
+using NewLife.Collections;
 using NewLife.Model;
 using NewLife.Reflection;
 using XCode.Configuration;
@@ -186,16 +187,19 @@ namespace XCode
             var entity = list.FirstOrDefault(e => e != null);
             if (entity == null) return 0;
 
-            var fact = EntityFactory.CreateOperate(entity.GetType());
+            var fact = entity.GetType().AsFactory();
             var db = fact.Session.Dal.Db;
 
             // Oracle参数化批量插入
-            if (db.UseParameter && db.Type == DatabaseType.Oracle) return BatchInsert(list, fact);
+            if (db.UseParameter && db.Type == DatabaseType.Oracle) return OracleBatchInsert(list, fact);
+
+            // MySql批量插入
+            if (db.Type == DatabaseType.MySql) return MySqlBatchInsert(list, fact);
 
             return DoAction(list, useTransition, e => e.Insert());
         }
 
-        private static Int32 BatchInsert<T>(IEnumerable<T> list, IEntityOperate fact) where T : IEntity
+        private static Int32 OracleBatchInsert<T>(IEnumerable<T> list, IEntityOperate fact) where T : IEntity
         {
             var db = fact.Session.Dal.Db;
             var ps = ObjectContainer.Current.ResolveInstance<IEntityPersistence>();
@@ -210,6 +214,8 @@ namespace XCode
                 var vs = new List<Object>();
                 foreach (var entity in list)
                 {
+                    (entity as EntityBase).Valid(true);
+
                     vs.Add(entity[fi.Name]);
                 }
                 var dp = db.CreateParameter(fi.Name, vs.ToArray(), fi.Field);
@@ -218,6 +224,55 @@ namespace XCode
             }
 
             return fact.Session.Execute(sql, CommandType.Text, dps.ToArray());
+        }
+
+        private static Int32 MySqlBatchInsert<T>(IEnumerable<T> list, IEntityOperate fact) where T : IEntity
+        {
+            var db = fact.Session.Dal.Db;
+
+            var sbNames = Pool.StringBuilder.Get();
+            foreach (var fi in fact.Fields)
+            {
+                // 标识列不需要插入，别的类型都需要
+                if (fi.IsIdentity && !fact.AllowInsertIdentity) continue;
+
+                sbNames.Separate(", ").Append(fact.FormatName(fi.ColumnName));
+            }
+
+            var sbValues = Pool.StringBuilder.Get();
+            foreach (var entity in list)
+            {
+                (entity as EntityBase).Valid(true);
+
+                sbValues.Append("(");
+                var first = true;
+                foreach (var fi in fact.Fields)
+                {
+                    // 标识列不需要插入，别的类型都需要
+                    if (fi.IsIdentity && !fact.AllowInsertIdentity) continue;
+
+                    if (!first) sbValues.Append(",");
+                    first = false;
+
+                    var value = entity[fi.Name];
+                    //// 1，有脏数据的字段一定要参与同时对于实体有值的也应该参与（针对通过置空主键的方式另存）
+                    //if (value == null && !entity.Dirtys[fi.Name])
+                    //{
+                    //    // 2，没有脏数据，允许空的字段不参与
+                    //    // 4，没有脏数据，不允许空，没有默认值的参与，需要智能识别并添加相应字段的默认数据
+                    //    if (!fi.IsNullable) value = FormatParamValue(fi, null, op);
+                    //}
+                    sbValues.Append(fact.FormatValue(fi, value));
+                }
+                sbValues.Append("),");
+            }
+
+            var ns = sbNames.Put(true);
+            var vs = sbValues.Put(true).TrimEnd(",");
+
+            var sql = $"Insert Into {fact.FormatedTableName}({ns}) Values{vs}";
+
+            return fact.Session.Execute(sql);
         }
 
         /// <summary>把整个集合更新到数据库</summary>
