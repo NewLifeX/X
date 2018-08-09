@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using NewLife.Data;
 using NewLife.Messaging;
 using NewLife.Net;
-using NewLife.Net.Handlers;
 
 namespace NewLife.Remoting
 {
@@ -14,11 +12,11 @@ namespace NewLife.Remoting
         /// <summary>主机</summary>
         public IApiHost Host { get; set; }
 
-        /// <summary>编码器</summary>
-        public IEncoder Encoder { get; set; }
+        ///// <summary>编码器</summary>
+        //public IEncoder Encoder { get; set; }
 
-        /// <summary>处理器</summary>
-        public IApiHandler Handler { get; set; }
+        ///// <summary>处理器</summary>
+        //public IApiHandler Handler { get; set; }
 
         /// <summary>当前服务器所有会话</summary>
         public IApiSession[] AllSessions => Sessions.ToValueArray().Where(e => e is IApiSession).Cast<IApiSession>().ToArray();
@@ -42,19 +40,20 @@ namespace NewLife.Remoting
             if (Local.Host.IsNullOrEmpty() || Local.Host == "*") AddressFamily = System.Net.Sockets.AddressFamily.Unspecified;
 
             // 新生命标准网络封包协议
-            Add(new StandardCodec { Timeout = Timeout, UserPacket = false });
+            //Add(new StandardCodec { Timeout = Timeout, UserPacket = false });
+            Add(Host.GetMessageCodec());
 
             return true;
         }
 
-        /// <summary>启动中</summary>
-        protected override void OnStart()
-        {
-            //if (Encoder == null) Encoder = new JsonEncoder();
-            if (Encoder == null) throw new ArgumentNullException(nameof(Encoder), "未指定编码器");
+        ///// <summary>启动中</summary>
+        //protected override void OnStart()
+        //{
+        //    //if (Encoder == null) Encoder = new JsonEncoder();
+        //    if (Encoder == null) throw new ArgumentNullException(nameof(Encoder), "未指定编码器");
 
-            base.OnStart();
-        }
+        //    base.OnStart();
+        //}
     }
 
     class ApiNetSession : NetSession<ApiNetServer>, IApiSession
@@ -101,10 +100,10 @@ namespace NewLife.Remoting
             if (rs != null) Session?.SendMessage(rs);
         }
 
-        /// <summary>创建消息</summary>
-        /// <param name="pk"></param>
-        /// <returns></returns>
-        public IMessage CreateMessage(Packet pk) => new Message { Payload = pk };
+        ///// <summary>创建消息</summary>
+        ///// <param name="pk"></param>
+        ///// <returns></returns>
+        //public IMessage CreateMessage(Packet pk) => new Message { Payload = pk };
 
         /// <summary>远程调用</summary>
         /// <typeparam name="TResult"></typeparam>

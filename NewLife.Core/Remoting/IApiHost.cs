@@ -1,12 +1,12 @@
 ﻿using System;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Net;
+using NewLife.Net.Handlers;
 using NewLife.Reflection;
 
 namespace NewLife.Remoting
@@ -22,6 +22,10 @@ namespace NewLife.Remoting
 
         /// <summary>接口动作管理器</summary>
         IApiManager Manager { get; }
+
+        /// <summary>获取消息编码器。重载以指定不同的封包协议</summary>
+        /// <returns></returns>
+        IHandler GetMessageCodec();
 
         /// <summary>处理消息</summary>
         /// <param name="session"></param>

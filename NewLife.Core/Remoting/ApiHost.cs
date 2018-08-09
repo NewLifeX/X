@@ -5,7 +5,7 @@ using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Messaging;
-using NewLife.Net;
+using NewLife.Net.Handlers;
 
 namespace NewLife.Remoting
 {
@@ -21,6 +21,9 @@ namespace NewLife.Remoting
 
         /// <summary>处理器</summary>
         public IApiHandler Handler { get; set; }
+
+        /// <summary>调用超时时间。默认30_000ms</summary>
+        public Int32 Timeout { get; set; } = 30_000;
 
         /// <summary>发送数据包统计信息</summary>
         public ICounter StatInvoke { get; set; }
@@ -71,6 +74,12 @@ namespace NewLife.Remoting
         }
         #endregion
 
+        #region 方法
+        /// <summary>获取消息编码器。重载以指定不同的封包协议</summary>
+        /// <returns></returns>
+        public virtual IHandler GetMessageCodec() => new StandardCodec { Timeout = Timeout, UserPacket = false };
+        #endregion
+
         #region 请求处理
         /// <summary>处理消息</summary>
         /// <param name="session"></param>
@@ -106,7 +115,7 @@ namespace NewLife.Remoting
             {
                 if (!ApiHostHelper.Decode(msg, out action, out _, out var args)) return null;
 
-                result = Handler.Execute(session, action, args);
+                result = OnProcess(session, action, args);
             }
             catch (Exception ex)
             {
@@ -139,6 +148,13 @@ namespace NewLife.Remoting
 
             return rs;
         }
+
+        /// <summary>执行</summary>
+        /// <param name="session"></param>
+        /// <param name="action"></param>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        protected virtual Object OnProcess(IApiSession session, String action, Packet args) => Handler.Execute(session, action, args);
         #endregion
 
         #region 事件

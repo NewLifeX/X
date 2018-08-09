@@ -366,16 +366,11 @@ namespace XCode.DataAccessLayer
                 }
                 #endregion
 
-                //FixTable(table, dr, data);
-
                 // 修正关系数据
                 table.Fix();
 
                 list.Add(table);
             }
-
-            //var tables = base.OnGetTables(names);
-            //if (tables == null || tables.Count == 0) return tables;
 
             // 找到使用枚举作为布尔型的旧表
             var es = (Database as MySql).EnumTables;
@@ -396,38 +391,6 @@ namespace XCode.DataAccessLayer
 
             return list;
         }
-
-        //protected override void FixTable(IDataTable table, DataRow dr, IDictionary<String, DataTable> data)
-        //{
-        //    // 注释
-        //    if (TryGetDataRowValue(dr, "TABLE_COMMENT", out String comment)) table.Description = comment;
-
-        //    base.FixTable(table, dr, data);
-        //}
-
-        //protected override void FixField(IDataColumn field, DataRow dr)
-        //{
-        //    // 修正原始类型
-        //    if (TryGetDataRowValue(dr, "COLUMN_TYPE", out String rawType)) field.RawType = rawType;
-
-        //    // 修正自增字段
-        //    if (TryGetDataRowValue(dr, "EXTRA", out String extra) && extra == "auto_increment") field.Identity = true;
-
-        //    // 修正主键
-        //    if (TryGetDataRowValue(dr, "COLUMN_KEY", out String key)) field.PrimaryKey = key == "PRI";
-
-        //    // 注释
-        //    if (TryGetDataRowValue(dr, "COLUMN_COMMENT", out String comment)) field.Description = comment;
-
-        //    // 布尔类型
-        //    // MySql中没有布尔型，这里处理YN枚举作为布尔型
-        //    if (field.RawType == "enum('N','Y')" || field.RawType == "enum('Y','N')")
-        //    {
-        //        field.DataType = typeof(Boolean);
-        //        return;
-        //    }
-        //    base.FixField(field, dr);
-        //}
 
         public override String FieldClause(IDataColumn field, Boolean onlyDefine)
         {

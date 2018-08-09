@@ -73,6 +73,7 @@ namespace NewLife.Remoting
             if (Port <= 0) throw new ArgumentNullException(nameof(Server), "未指定服务器Server，且未指定端口Port！");
 
             svr = new ApiNetServer();
+            svr.Host = this;
             svr.Init(new NetUri(NetType.Unknown, "*", Port) + "");
 
             return Server = svr;
@@ -86,8 +87,8 @@ namespace NewLife.Remoting
             if (Encoder == null) Encoder = new JsonEncoder();
             //if (Encoder == null) Encoder = new BinaryEncoder();
             if (Handler == null) Handler = new ApiHandler { Host = this };
-            if (StatInvoke == null) StatInvoke = new PerfCounter();
-            if (StatProcess == null) StatProcess = new PerfCounter();
+            //if (StatInvoke == null) StatInvoke = new PerfCounter();
+            //if (StatProcess == null) StatProcess = new PerfCounter();
 
             Encoder.Log = EncoderLog;
 
@@ -97,8 +98,8 @@ namespace NewLife.Remoting
 
             var svr = EnsureCreate();
 
-            if (svr.Handler == null) svr.Handler = Handler;
-            if (svr.Encoder == null) svr.Encoder = Encoder;
+            //if (svr.Handler == null) svr.Handler = Handler;
+            //if (svr.Encoder == null) svr.Encoder = Encoder;
             svr.Host = this;
             svr.Log = Log;
             svr.Start();
@@ -106,7 +107,13 @@ namespace NewLife.Remoting
             ShowService();
 
             var ms = StatPeriod * 1000;
-            if (ms > 0) _Timer = new TimerX(DoWork, null, ms, ms) { Async = true };
+            if (ms > 0)
+            {
+                if (StatInvoke == null) StatInvoke = new PerfCounter();
+                if (StatProcess == null) StatProcess = new PerfCounter();
+
+                _Timer = new TimerX(DoWork, null, ms, ms) { Async = true };
+            }
 
             Active = true;
         }
