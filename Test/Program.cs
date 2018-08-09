@@ -20,6 +20,7 @@ using NewLife.Security;
 using NewLife.Serialization;
 using NewLife.Threading;
 using NewLife.Xml;
+using XCode;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 using XCode.Service;
@@ -100,13 +101,21 @@ namespace Test
 
         static void Test2()
         {
-            var cfg = SysConfig.Current;
-            var js = cfg.ToJson(true);
-            Console.WriteLine(js);
+            DAL.AddConnStr("Log", "Data Source=tcp://127.0.0.1/ORCL;User Id=scott;Password=tiger;UseParameter=true", null, "Oracle");
 
-            var cfg2 = js.ToJsonEntity<SysConfig>();
-            var xml = cfg2.ToXml();
-            Console.WriteLine(xml);
+            //LogProvider.Provider.WriteLog("test", "新增", "学无先后达者为师");
+            var list = new List<Log>();
+            for (var i = 0; i < 10; i++)
+            {
+                var log = new Log
+                {
+                    Category = "test",
+                    Action = "测试",
+                    Remark = "内容" + i
+                };
+                list.Add(log);
+            }
+            list.Insert(true);
         }
 
         class CacheItem<TValue>

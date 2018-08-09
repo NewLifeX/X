@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using NewLife;
+using NewLife.Model;
 using NewLife.Reflection;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
@@ -181,7 +182,42 @@ namespace XCode
         /// <returns></returns>
         public static Int32 Insert<T>(this IEnumerable<T> list, Boolean? useTransition = null) where T : IEntity
         {
+            // 避免列表内实体对象为空
+            var entity = list.FirstOrDefault(e => e != null);
+            if (entity == null) return 0;
+
+            var fact = EntityFactory.CreateOperate(entity.GetType());
+            var db = fact.Session.Dal.Db;
+
+            // Oracle参数化批量插入
+            if (db.UseParameter && db.Type == DatabaseType.Oracle) return BatchInsert(list, fact);
+
             return DoAction(list, useTransition, e => e.Insert());
+        }
+
+        private static Int32 BatchInsert<T>(IEnumerable<T> list, IEntityOperate fact) where T : IEntity
+        {
+            var db = fact.Session.Dal.Db;
+            var ps = ObjectContainer.Current.ResolveInstance<IEntityPersistence>();
+
+            var sql = ps.InsertSQL(fact);
+            var dps = new List<IDataParameter>();
+            foreach (var fi in fact.Fields)
+            {
+                // 标识列不需要插入，别的类型都需要
+                if (fi.IsIdentity && !fact.AllowInsertIdentity) continue;
+
+                var vs = new List<Object>();
+                foreach (var entity in list)
+                {
+                    vs.Add(entity[fi.Name]);
+                }
+                var dp = db.CreateParameter(fi.Name, vs.ToArray(), fi.Field);
+
+                dps.Add(dp);
+            }
+
+            return fact.Session.Execute(sql, CommandType.Text, dps.ToArray());
         }
 
         /// <summary>把整个集合更新到数据库</summary>
