@@ -256,6 +256,8 @@ namespace NewLife.Remoting
                 }
             }
 
+            if (ShowError) WriteLog("请求[{0}]错误！{1}", client, last?.GetTrue());
+
             throw last;
         }
 

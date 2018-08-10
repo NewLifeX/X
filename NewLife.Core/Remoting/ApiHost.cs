@@ -121,6 +121,8 @@ namespace NewLife.Remoting
             {
                 ex = ex.GetTrue();
 
+                if (ShowError) WriteLog("{0}", ex);
+           
                 // 支持自定义错误
                 if (ex is ApiException aex)
                 {
@@ -170,6 +172,9 @@ namespace NewLife.Remoting
 
         /// <summary>编码器日志</summary>
         public ILog EncoderLog { get; set; } = Logger.Null;
+
+        /// <summary>显示调用和处理错误。默认false</summary>
+        public Boolean ShowError { get; set; }
 
         /// <summary>写日志</summary>
         /// <param name="format"></param>
