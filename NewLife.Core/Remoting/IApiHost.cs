@@ -113,7 +113,7 @@ namespace NewLife.Remoting
             if (!Decode(rs, out var act, out var code, out var data)) throw new InvalidOperationException();
 
             // 是否成功
-            if (code != 0) throw new ApiException(code, data.ToStr());
+            if (code != 0) throw new ApiException(code, $"远程[{session}]错误！ {data.ToStr()}");
 
             if (data == null) return null;
             if (resultType == typeof(Packet)) return data;
