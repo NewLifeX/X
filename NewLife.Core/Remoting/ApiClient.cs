@@ -229,17 +229,19 @@ namespace NewLife.Remoting
         ///// <returns></returns>
         //IMessage IApiSession.CreateMessage(Packet pk) => new DefaultMessage { Payload = pk };
 
-        async Task<IMessage> IApiSession.SendAsync(IMessage msg)
+        async Task<Tuple<IMessage, Object>> IApiSession.SendAsync(IMessage msg)
         {
             Exception last = null;
+            ISocketClient client = null;
+
             var count = Servers.Length;
             for (var i = 0; i < count; i++)
             {
-                ISocketClient client = null;
                 try
                 {
                     client = Pool.Get();
-                    return (await client.SendMessageAsync(msg)) as IMessage;
+                    var rs = (await client.SendMessageAsync(msg)) as IMessage;
+                    return new Tuple<IMessage, Object>(rs, client);
                 }
                 catch (ApiException) { throw; }
                 catch (Exception ex)

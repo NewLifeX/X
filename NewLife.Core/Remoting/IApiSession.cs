@@ -40,7 +40,7 @@ namespace NewLife.Remoting
         /// <summary>发送消息。低级接口，由框架使用</summary>
         /// <param name="msg"></param>
         /// <returns></returns>
-        Task<IMessage> SendAsync(IMessage msg);
+        Task<Tuple<IMessage, Object>> SendAsync(IMessage msg);
 
         /// <summary>发送消息。低级接口，由框架使用</summary>
         /// <param name="msg"></param>
