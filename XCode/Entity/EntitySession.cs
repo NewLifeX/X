@@ -246,7 +246,7 @@ namespace XCode
                     var init = this == Default;
                     if (init)
                     {
-                        BeginTrans();
+                        //BeginTrans();
                         try
                         {
                             if (Operate.Default is EntityBase entity)
@@ -257,13 +257,13 @@ namespace XCode
                                 //if (!task.Wait(ms) && DAL.Debug) DAL.WriteLog("{0}未能在{1:n0}ms内完成数据初始化 Task={2}", ThisType.Name, ms, task.Id);
                             }
 
-                            Commit();
+                            //Commit();
                         }
                         catch (Exception ex)
                         {
                             if (XTrace.Debug) XTrace.WriteLine("初始化数据出错！" + ex.ToString());
 
-                            Rollback();
+                            //Rollback();
                         }
                     }
                 });
