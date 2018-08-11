@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data;
+using System.Data.Common;
 
 namespace XCode.DataAccessLayer
 {
@@ -19,19 +20,20 @@ namespace XCode.DataAccessLayer
                 if (ver != null) return ver;
                 _ServerVersion = String.Empty;
 
-                var session = CreateSession() as RemoteDbSession;
-                ver = _ServerVersion = session.ProcessWithSystem(s =>
-                {
-                    var conn = Pool.Get();
-                    try
-                    {
-                        return conn.ServerVersion;
-                    }
-                    finally
-                    {
-                        Pool.Put(conn);
-                    }
-                }) as String;
+                //var session = CreateSession() as RemoteDbSession;
+                //ver = _ServerVersion = session.ProcessWithSystem(s =>
+                //{
+                //    var conn = Pool.Get();
+                //    try
+                //    {
+                //        return conn.ServerVersion;
+                //    }
+                //    finally
+                //    {
+                //        Pool.Put(conn);
+                //    }
+                //}) as String;
+                ver = _ServerVersion = Pool.Execute(conn => conn.ServerVersion);
 
                 return ver;
             }
@@ -106,24 +108,24 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 架构
-        public override DataTable GetSchema(String collectionName, String[] restrictionValues)
+        public override DataTable GetSchema(DbConnection conn, String collectionName, String[] restrictionValues)
         {
             try
             {
-                return base.GetSchema(collectionName, restrictionValues);
+                return base.GetSchema(conn, collectionName, restrictionValues);
             }
             catch (Exception ex)
             {
                 DAL.WriteLog("[3]GetSchema({0})异常重试！{1},连接字符串 {2}", collectionName, ex.Message, ConnectionString, Database.ConnName);
 
                 // 如果没有数据库，登录会失败，需要切换到系统数据库再试试
-                return ProcessWithSystem(s => base.GetSchema(collectionName, restrictionValues)) as DataTable;
+                return ProcessWithSystem((s, c) => base.GetSchema(c, collectionName, restrictionValues)) as DataTable;
             }
         }
         #endregion
 
         #region 系统权限处理
-        public Object ProcessWithSystem(Func<IDbSession, Object> callback)
+        public Object ProcessWithSystem(Func<IDbSession, DbConnection, Object> callback)
         {
             var dbname = Database.DatabaseName;
             var sysdbname = SystemDatabaseName;
@@ -140,13 +142,13 @@ namespace XCode.DataAccessLayer
 
                         OpenDatabase(conn, sysdbname);
 
-                        Conn = conn;
+                        //Conn = conn;
 
-                        return callback(this);
+                        return callback(this, conn);
                     }
                     finally
                     {
-                        Conn = null;
+                        //Conn = null;
 
                         if (DAL.Debug) WriteLog("退出系统库[{0}]，回到[{1}]", sysdbname, dbname);
                     }
@@ -154,7 +156,7 @@ namespace XCode.DataAccessLayer
             }
             else
             {
-                return callback(this);
+                return callback(this, null);
             }
         }
 
@@ -233,7 +235,7 @@ namespace XCode.DataAccessLayer
 
         protected virtual Boolean DropDatabase(String databaseName) => (Boolean)base.SetSchema(DDLSchema.DropDatabase, new Object[] { databaseName });
 
-        Object ProcessWithSystem(Func<IDbSession, Object> callback) => (Database.CreateSession() as RemoteDbSession).ProcessWithSystem(callback);
+        Object ProcessWithSystem(Func<IDbSession, Object> callback) => (Database.CreateSession() as RemoteDbSession).ProcessWithSystem((s, c) => callback(s));
         #endregion
     }
 }

@@ -159,8 +159,8 @@ namespace XCode
             if (useTrans) dal.BeginTransaction();
             try
             {
-                // 禁用自动关闭连接
-                dal.Session.SetAutoClose(false);
+                //// 禁用自动关闭连接
+                //dal.Session.SetAutoClose(false);
 
                 foreach (var item in list)
                 {
@@ -188,7 +188,7 @@ namespace XCode
             finally
             {
                 sw.Stop();
-                dal.Session.SetAutoClose(null);
+                //dal.Session.SetAutoClose(null);
             }
 
             // 根据繁忙程度动态调节

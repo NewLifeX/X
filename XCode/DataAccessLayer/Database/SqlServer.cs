@@ -37,7 +37,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>是否SQL2012及以上</summary>
-        public Boolean IsSQL2012 { get { return Version.Major > 11; } }
+        public Boolean IsSQL2012 => Version.Major > 11;
 
         private Version _Version;
         /// <summary>是否SQL2005及以上</summary>
@@ -96,11 +96,11 @@ namespace XCode.DataAccessLayer
         #region 方法
         /// <summary>创建数据库会话</summary>
         /// <returns></returns>
-        protected override IDbSession OnCreateSession() { return new SqlServerSession(this); }
+        protected override IDbSession OnCreateSession() => new SqlServerSession(this);
 
         /// <summary>创建元数据对象</summary>
         /// <returns></returns>
-        protected override IMetaData OnCreateMetaData() { return new SqlServerMetaData(); }
+        protected override IMetaData OnCreateMetaData() => new SqlServerMetaData();
 
         public override Boolean Support(String providerName)
         {
@@ -333,7 +333,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>系统数据库名</summary>
-        public override String SystemDatabaseName { get { return "master"; } }
+        public override String SystemDatabaseName => "master";
 
         public override String FormatValue(IDataColumn field, Object value)
         {
@@ -430,7 +430,7 @@ namespace XCode.DataAccessLayer
         ///// <summary>是否SQL2005</summary>
         //public Boolean IsSQL2005 { get { return (Database as SqlServer).IsSQL2005; } }
 
-        public Version Version { get { return (Database as SqlServer).Version; } }
+        public Version Version => (Database as SqlServer).Version;
 
         ///// <summary>0级类型</summary>
         //public String Level0type { get { return IsSQL2005 ? "SCHEMA" : "USER"; } }
@@ -708,10 +708,7 @@ namespace XCode.DataAccessLayer
             return sb.ToString();
         }
 
-        public override String DatabaseExistSQL(String dbname)
-        {
-            return String.Format("SELECT * FROM sysdatabases WHERE name = N'{0}'", dbname);
-        }
+        public override String DatabaseExistSQL(String dbname) => $"SELECT * FROM sysdatabases WHERE name = N'{dbname}'";
 
         /// <summary>使用数据架构确定数据库是否存在，因为使用系统视图可能没有权限</summary>
         /// <param name="dbname"></param>

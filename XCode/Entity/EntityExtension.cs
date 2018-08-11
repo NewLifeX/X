@@ -325,30 +325,30 @@ namespace XCode
             if (useTransition == null) useTransition = fact.Session.Dal.DbType == DatabaseType.SQLite;
 
             // 禁用自动关闭连接，提升批操作性能
-            var ss = fact.Session.Dal.Session;
-            ss.SetAutoClose(false);
+            //var ss = fact.Session.Dal.Session;
+            //ss.SetAutoClose(false);
 
             var count = 0;
-            try
+            //try
+            //{
+            if (useTransition != null && useTransition.Value)
             {
-                if (useTransition != null && useTransition.Value)
-                {
-                    using (var trans = fact.CreateTrans())
-                    {
-                        count = DoAction(list, func, count);
-
-                        trans.Commit();
-                    }
-                }
-                else
+                using (var trans = fact.CreateTrans())
                 {
                     count = DoAction(list, func, count);
+
+                    trans.Commit();
                 }
             }
-            finally
+            else
             {
-                ss.SetAutoClose(null);
+                count = DoAction(list, func, count);
             }
+            //}
+            //finally
+            //{
+            //    ss.SetAutoClose(null);
+            //}
 
             return count;
         }

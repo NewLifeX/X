@@ -726,17 +726,18 @@ namespace XCode.DataAccessLayer
 
         protected virtual Int32 Execute(IDbSession session, String sql)
         {
-            var conn = session.Conn;
-            if (conn == null) return session.Execute(sql);
+            return session.Execute(sql);
+            //var conn = session.Conn;
+            //if (conn == null) return session.Execute(sql);
 
-            (session as DbSession).WriteSQL(sql);
-            using (var cmd = Database.Factory.CreateCommand())
-            {
-                cmd.Connection = conn;
-                cmd.CommandText = sql;
+            //(session as DbSession).WriteSQL(sql);
+            //using (var cmd = Database.Factory.CreateCommand())
+            //{
+            //    cmd.Connection = conn;
+            //    cmd.CommandText = sql;
 
-                return cmd.ExecuteNonQuery();
-            }
+            //    return cmd.ExecuteNonQuery();
+            //}
         }
 
         /// <summary>字段片段</summary>
