@@ -323,16 +323,56 @@ namespace XCode
             }
             return count;
         }
+        #endregion
 
-        public static Int32 InsertOrUpdate<T>(this IEnumerable<T> list) where T : IEntity
+        #region 批量更新
+        /// <summary>批量插入</summary>
+        /// <typeparam name="T">实体类型</typeparam>
+        /// <param name="columns">要插入的字段，默认所有字段</param>
+        /// <param name="list">实体列表</param>
+        /// <returns></returns>
+        public static Int32 BatchInsert<T>(this IEnumerable<T> list, IDataColumn[] columns = null) where T : IEntity
         {
             var entity = list.First();
             var fact = entity.GetType().AsFactory();
-            var columns = fact.Fields.Select(e => e.Field).ToArray();
-            var updates = entity.Dirtys.Select(e => fact.Table.FindByName(e.Key)?.Field).Where(e => null != e).ToArray();
-            var adds = fact.AdditionalFields.Select(e => fact.Table.FindByName(e)?.Field).Where(e => null != e).ToArray();
+            if (columns == null) columns = fact.Fields.Select(e => e.Field).ToArray();
 
-            return fact.Session.Dal.Session.InsertOrUpdate(columns, updates, adds, list.Cast<IIndexAccessor>());
+            return fact.Session.Dal.Session.BatchInsert(columns, list.Cast<IIndexAccessor>());
+        }
+
+        /// <summary>批量插入或更新</summary>
+        /// <typeparam name="T">实体类型</typeparam>
+        /// <param name="list">实体列表</param>
+        /// <param name="columns">要插入的字段，默认所有字段</param>
+        /// <param name="updateColumns">主键已存在时，要更新的字段</param>
+        /// <param name="addColumns">主键已存在时，要累加更新的字段</param>
+        /// <returns></returns>
+        public static Int32 InsertOrUpdate<T>(this IEnumerable<T> list, IDataColumn[] columns = null, ICollection<String> updateColumns = null, ICollection<String> addColumns = null) where T : IEntity
+        {
+            var entity = list.First();
+            var fact = entity.GetType().AsFactory();
+            if (columns == null) columns = fact.Fields.Select(e => e.Field).ToArray();
+            if (updateColumns == null) updateColumns = entity.Dirtys.Keys;
+            if (addColumns == null) addColumns = fact.AdditionalFields;
+
+            return fact.Session.Dal.Session.InsertOrUpdate(columns, updateColumns, addColumns, list.Cast<IIndexAccessor>());
+        }
+
+        /// <summary>批量插入或更新</summary>
+        /// <typeparam name="T">实体类型</typeparam>
+        /// <param name="entity">实体对象</param>
+        /// <param name="columns">要插入的字段，默认所有字段</param>
+        /// <param name="updateColumns">主键已存在时，要更新的字段</param>
+        /// <param name="addColumns">主键已存在时，要累加更新的字段</param>
+        /// <returns></returns>
+        public static Int32 InsertOrUpdate<T>(this T entity, IDataColumn[] columns = null, ICollection<String> updateColumns = null, ICollection<String> addColumns = null) where T : IEntity
+        {
+            var fact = entity.GetType().AsFactory();
+            if (columns == null) columns = fact.Fields.Select(e => e.Field).ToArray();
+            if (updateColumns == null) updateColumns = entity.Dirtys.Keys;
+            if (addColumns == null) addColumns = fact.AdditionalFields;
+
+            return fact.Session.Dal.Session.InsertOrUpdate(columns, updateColumns, addColumns, new[] { entity as IIndexAccessor });
         }
         #endregion
     }

@@ -276,7 +276,7 @@ namespace XCode.DataAccessLayer
         updatetime=values(updatetime);
          */
 
-        private String GetBatchSql(IDataTable table, IDataColumn[] columns, IDataColumn[] updateColumns, IDataColumn[] addColumns, IEnumerable<IIndexAccessor> data)
+        private String GetBatchSql(IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> data)
         {
             var sb = Pool.StringBuilder.Get();
             var db = Database;
@@ -319,20 +319,20 @@ namespace XCode.DataAccessLayer
                 sb.Append(" On Duplicate Key Update ");
                 if (updateColumns != null)
                 {
-                    foreach (var dc in updateColumns)
+                    foreach (var dc in columns)
                     {
-                        if (addColumns != null && addColumns.Any(e => dc.Name == e.Name)) continue;
-
-                        sb.AppendFormat("{0}=Values({0}),", db.FormatName(dc.ColumnName));
+                        if (updateColumns.Contains(dc.Name) && (addColumns == null || !addColumns.Contains(dc.Name)))
+                            sb.AppendFormat("{0}=Values({0}),", db.FormatName(dc.ColumnName));
                     }
                     sb.Length--;
                 }
                 if (addColumns != null)
                 {
                     sb.Append(",");
-                    foreach (var dc in addColumns)
+                    foreach (var dc in columns)
                     {
-                        sb.AppendFormat("{0}={0}+Values({0}),", db.FormatName(dc.ColumnName));
+                        if (addColumns.Contains(dc.Name))
+                            sb.AppendFormat("{0}={0}+Values({0}),", db.FormatName(dc.ColumnName));
                     }
                     sb.Length--;
                 }
@@ -341,12 +341,18 @@ namespace XCode.DataAccessLayer
             return sb.Put(true);
         }
 
-        public override Int32 BatchInsert(IDataTable table, IEnumerable<IIndexAccessor> data) => throw new NotSupportedException();
-
-        public override Int32 InsertOrUpdate(IDataColumn[] columns, IDataColumn[] updateColumns, IDataColumn[] addColumns, IEnumerable<IIndexAccessor> data)
+        public override Int32 BatchInsert(IDataColumn[] columns, IEnumerable<IIndexAccessor> list)
         {
             var table = columns.FirstOrDefault().Table;
-            var sql = GetBatchSql(table, columns, updateColumns, addColumns, data);
+            var sql = GetBatchSql(table, columns, null, null, list);
+
+            return ExecuteScalar<Int32>(sql);
+        }
+
+        public override Int32 InsertOrUpdate(IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list)
+        {
+            var table = columns.FirstOrDefault().Table;
+            var sql = GetBatchSql(table, columns, updateColumns, addColumns, list);
 
             return ExecuteScalar<Int32>(sql);
         }

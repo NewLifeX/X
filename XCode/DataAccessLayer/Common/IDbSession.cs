@@ -153,7 +153,19 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 批量操作
-        Int32 InsertOrUpdate(IDataColumn[] columns, IDataColumn[] updateColumns, IDataColumn[] addColumns, IEnumerable<IIndexAccessor> data);
+        /// <summary>批量插入</summary>
+        /// <param name="columns">要插入的字段，默认所有字段</param>
+        /// <param name="list">实体列表</param>
+        /// <returns></returns>
+        Int32 BatchInsert(IDataColumn[] columns, IEnumerable<IIndexAccessor> list);
+
+        /// <summary>批量插入或更新</summary>
+        /// <param name="columns">要插入的字段，默认所有字段</param>
+        /// <param name="updateColumns">主键已存在时，要更新的字段</param>
+        /// <param name="addColumns">主键已存在时，要累加更新的字段</param>
+        /// <param name="list">实体列表</param>
+        /// <returns></returns>
+        Int32 InsertOrUpdate(IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list);
         #endregion
 
         #region 异步操作
