@@ -526,7 +526,7 @@ namespace XCode.DataAccessLayer
         /// <param name="dbname"></param>
         /// <param name="bakfile"></param>
         /// <param name="compressed"></param>
-        protected override String Backup(String dbname, String bakfile, Boolean compressed)
+        public override String Backup(String dbname, String bakfile, Boolean compressed)
         {
             var dbfile = FileName;
 
@@ -722,7 +722,7 @@ namespace XCode.DataAccessLayer
             base.CheckTable(entitytable, dbtable, mode);
         }
 
-        public override String CompactDatabaseSQL() => "VACUUM";
+        public override Int32 CompactDatabase() => Database.CreateSession().Execute("VACUUM");
         #endregion
     }
 }

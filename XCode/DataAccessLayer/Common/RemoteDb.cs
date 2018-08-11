@@ -202,8 +202,8 @@ namespace XCode.DataAccessLayer
 
             switch (schema)
             {
-                case DDLSchema.TableExist:
-                    return session.QueryCount(GetSchemaSQL(schema, values)) > 0;
+                //case DDLSchema.TableExist:
+                //    return session.QueryCount(GetSchemaSQL(schema, values)) > 0;
 
                 case DDLSchema.DatabaseExist:
                     //return ProcessWithSystem(s => DatabaseExist(databaseName));
@@ -233,9 +233,9 @@ namespace XCode.DataAccessLayer
 
                     return 0;
 
-                case DDLSchema.DropDatabase:
-                    //return ProcessWithSystem(s => DropDatabase(databaseName));
-                    return DropDatabase(databaseName);
+                //case DDLSchema.DropDatabase:
+                //    //return ProcessWithSystem(s => DropDatabase(databaseName));
+                //    return DropDatabase(databaseName);
 
                 default:
                     break;
@@ -249,7 +249,7 @@ namespace XCode.DataAccessLayer
             return session.QueryCount(GetSchemaSQL(DDLSchema.DatabaseExist, new Object[] { databaseName })) > 0;
         }
 
-        protected virtual Boolean DropDatabase(String databaseName) => (Boolean)base.SetSchema(DDLSchema.DropDatabase, new Object[] { databaseName });
+        //protected virtual Boolean DropDatabase(String databaseName) => (Boolean)base.SetSchema(DDLSchema.DropDatabase, new Object[] { databaseName });
 
         //Object ProcessWithSystem(Func<IDbSession, Object> callback) => (Database.CreateSession() as RemoteDbSession).ProcessWithSystem((s, c) => callback(s));
         #endregion

@@ -719,45 +719,39 @@ namespace XCode.DataAccessLayer
             return dt != null && dt.Rows != null && dt.Rows.Count > 0;
         }
 
-        protected override Boolean DropDatabase(String databaseName)
-        {
-            //return base.DropDatabase(databaseName);
+        //protected override Boolean DropDatabase(String databaseName)
+        //{
+        //    //return base.DropDatabase(databaseName);
 
-            // SQL语句片段，断开该数据库所有链接
-            var sb = new StringBuilder();
-            sb.AppendLine("use master");
-            sb.AppendLine(";");
-            sb.AppendLine("declare   @spid   varchar(20),@dbname   varchar(20)");
-            sb.AppendLine("declare   #spid   cursor   for");
-            sb.AppendFormat("select   spid=cast(spid   as   varchar(20))   from   master..sysprocesses   where   dbid=db_id('{0}')", databaseName);
-            sb.AppendLine();
-            sb.AppendLine("open   #spid");
-            sb.AppendLine("fetch   next   from   #spid   into   @spid");
-            sb.AppendLine("while   @@fetch_status=0");
-            sb.AppendLine("begin");
-            sb.AppendLine("exec('kill   '+@spid)");
-            sb.AppendLine("fetch   next   from   #spid   into   @spid");
-            sb.AppendLine("end");
-            sb.AppendLine("close   #spid");
-            sb.AppendLine("deallocate   #spid");
+        //    // SQL语句片段，断开该数据库所有链接
+        //    var sb = new StringBuilder();
+        //    sb.AppendLine("use master");
+        //    sb.AppendLine(";");
+        //    sb.AppendLine("declare   @spid   varchar(20),@dbname   varchar(20)");
+        //    sb.AppendLine("declare   #spid   cursor   for");
+        //    sb.AppendFormat("select   spid=cast(spid   as   varchar(20))   from   master..sysprocesses   where   dbid=db_id('{0}')", databaseName);
+        //    sb.AppendLine();
+        //    sb.AppendLine("open   #spid");
+        //    sb.AppendLine("fetch   next   from   #spid   into   @spid");
+        //    sb.AppendLine("while   @@fetch_status=0");
+        //    sb.AppendLine("begin");
+        //    sb.AppendLine("exec('kill   '+@spid)");
+        //    sb.AppendLine("fetch   next   from   #spid   into   @spid");
+        //    sb.AppendLine("end");
+        //    sb.AppendLine("close   #spid");
+        //    sb.AppendLine("deallocate   #spid");
 
-            var count = 0;
-            var session = Database.CreateSession();
-            try
-            {
-                count = session.Execute(sb.ToString());
-            }
-            catch (Exception ex) { XTrace.WriteException(ex); }
-            return session.Execute(String.Format("Drop Database {0}", FormatName(databaseName))) > 0;
-        }
+        //    var count = 0;
+        //    var session = Database.CreateSession();
+        //    try
+        //    {
+        //        count = session.Execute(sb.ToString());
+        //    }
+        //    catch (Exception ex) { XTrace.WriteException(ex); }
+        //    return session.Execute(String.Format("Drop Database {0}", FormatName(databaseName))) > 0;
+        //}
 
-        public override String TableExistSQL(String tableName)
-        {
-            //if (IsSQL2005)
-            return String.Format("select * from sysobjects where xtype='U' and name='{0}'", tableName);
-            //else
-            //    return String.Format("SELECT * FROM sysobjects WHERE id = OBJECT_ID(N'[dbo].{0}') AND OBJECTPROPERTY(id, N'IsUserTable') = 1", FormatName(tableName));
-        }
+        public override String TableExistSQL(IDataTable table) => $"select * from sysobjects where xtype='U' and name='{table.TableName}'";
 
         /// <summary>使用数据架构确定数据表是否存在，因为使用系统视图可能没有权限</summary>
         /// <param name="table"></param>
