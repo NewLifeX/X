@@ -5,6 +5,7 @@ using System.Data.Common;
 using System.Linq;
 using System.Net;
 using NewLife.Collections;
+using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
 {
@@ -260,6 +261,91 @@ namespace XCode.DataAccessLayer
         {
             sql += ";Select LAST_INSERT_ID()";
             return base.InsertAndGetIdentity(sql, type, ps);
+        }
+        #endregion
+
+        #region 批量操作
+        /*
+        insert into stat (siteid,statdate,`count`,cost,createtime,updatetime) values 
+        (1,'2018-08-11 09:34:00',1,123,now(),now()),
+        (2,'2018-08-11 09:34:00',1,456,now(),now()),
+        (3,'2018-08-11 09:34:00',1,789,now(),now()),
+        (2,'2018-08-11 09:34:00',1,456,now(),now())
+        on duplicate key update 
+        `count`=`count`+values(`count`),cost=cost+values(cost),
+        updatetime=values(updatetime);
+         */
+
+        private String GetBatchSql(IDataTable table, IDataColumn[] columns, IDataColumn[] updateColumns, IDataColumn[] addColumns, IEnumerable<IIndexAccessor> data)
+        {
+            var sb = Pool.StringBuilder.Get();
+            var db = Database;
+
+            // 字段列表
+            var tname = db.FormatName(table.TableName);
+            if (columns == null) columns = table.Columns.ToArray();
+            sb.AppendFormat("Insert Into {0}(", tname);
+            foreach (var dc in columns)
+            {
+                if (dc.Identity) continue;
+
+                sb.Append(db.FormatName(dc.ColumnName));
+                sb.Append(",");
+            }
+            sb.Length--;
+            sb.Append(")");
+
+            // 值列表
+            sb.Append(" Values");
+            foreach (var entity in data)
+            {
+                sb.Append("(");
+                foreach (var dc in columns)
+                {
+                    if (dc.Identity) continue;
+
+                    var value = entity[dc.Name];
+                    sb.Append(db.FormatValue(dc, value));
+                    sb.Append(",");
+                }
+                sb.Length--;
+                sb.Append("),");
+            }
+            sb.Length--;
+
+            // 重复键执行update
+            if (updateColumns != null || addColumns != null)
+            {
+                sb.Append(" On Duplicate Key Update ");
+                if (updateColumns != null)
+                {
+                    foreach (var dc in updateColumns)
+                    {
+                        sb.AppendFormat("{0}=Values({0}),", db.FormatName(dc.ColumnName));
+                    }
+                    sb.Length--;
+                }
+                if (addColumns != null)
+                {
+                    foreach (var dc in addColumns)
+                    {
+                        sb.AppendFormat("{0}={0}+Values({0}),", db.FormatName(dc.ColumnName));
+                    }
+                    sb.Length--;
+                }
+            }
+
+            return sb.Put(true);
+        }
+
+        public override Int32 BatchInsert(IDataTable table, IEnumerable<IIndexAccessor> data) => throw new NotSupportedException();
+
+        public override Int32 InsertOrUpdate(IDataColumn[] columns, IDataColumn[] updateColumns, IDataColumn[] addColumns, IEnumerable<IIndexAccessor> data)
+        {
+            var table = columns.FirstOrDefault().Table;
+            var sql = GetBatchSql(table, columns, updateColumns, addColumns, data);
+
+            return ExecuteScalar<Int32>(sql);
         }
         #endregion
     }

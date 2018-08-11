@@ -5,6 +5,7 @@ using System.Data.Common;
 using System.Threading.Tasks;
 using NewLife;
 using NewLife.Data;
+using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
 {
@@ -149,6 +150,10 @@ namespace XCode.DataAccessLayer
         /// <param name="ps">命令参数</param>
         /// <returns></returns>
         DbCommand CreateCommand(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps);
+        #endregion
+
+        #region 批量操作
+        Int32 InsertOrUpdate(IDataColumn[] columns, IDataColumn[] updateColumns, IDataColumn[] addColumns, IEnumerable<IIndexAccessor> data);
         #endregion
 
         #region 异步操作

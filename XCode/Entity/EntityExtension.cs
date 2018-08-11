@@ -228,51 +228,49 @@ namespace XCode
 
         private static Int32 MySqlBatchInsert<T>(IEnumerable<T> list, IEntityOperate fact) where T : IEntity
         {
-            var db = fact.Session.Dal.Db;
+            var entity = list.First();
+            //var columns = entity.Dirtys.Select(e => fact.Table.FindByName(e.Key)?.Field).Where(e => null != e).ToArray();
+            var columns = fact.Fields.Select(e => e.Field).ToArray();
 
-            var sbNames = Pool.StringBuilder.Get();
-            foreach (var fi in fact.Fields)
-            {
-                // 标识列不需要插入，别的类型都需要
-                if (fi.IsIdentity && !fact.AllowInsertIdentity) continue;
+            return fact.Session.Dal.Session.InsertOrUpdate(columns, null, null, list.Cast<IIndexAccessor>());
 
-                sbNames.Separate(", ").Append(fact.FormatName(fi.ColumnName));
-            }
+            //var db = fact.Session.Dal.Db;
 
-            var sbValues = Pool.StringBuilder.Get();
-            foreach (var entity in list)
-            {
-                (entity as EntityBase).Valid(true);
+            //var sbNames = Pool.StringBuilder.Get();
+            //foreach (var fi in fact.Fields)
+            //{
+            //    // 标识列不需要插入，别的类型都需要
+            //    if (fi.IsIdentity && !fact.AllowInsertIdentity) continue;
 
-                sbValues.Append("(");
-                var first = true;
-                foreach (var fi in fact.Fields)
-                {
-                    // 标识列不需要插入，别的类型都需要
-                    if (fi.IsIdentity && !fact.AllowInsertIdentity) continue;
+            //    sbNames.Separate(", ").Append(fact.FormatName(fi.ColumnName));
+            //}
 
-                    if (!first) sbValues.Append(",");
-                    first = false;
+            //var sbValues = Pool.StringBuilder.Get();
+            //foreach (var entity in list)
+            //{
+            //    (entity as EntityBase).Valid(true);
 
-                    var value = entity[fi.Name];
-                    //// 1，有脏数据的字段一定要参与同时对于实体有值的也应该参与（针对通过置空主键的方式另存）
-                    //if (value == null && !entity.Dirtys[fi.Name])
-                    //{
-                    //    // 2，没有脏数据，允许空的字段不参与
-                    //    // 4，没有脏数据，不允许空，没有默认值的参与，需要智能识别并添加相应字段的默认数据
-                    //    if (!fi.IsNullable) value = FormatParamValue(fi, null, op);
-                    //}
-                    sbValues.Append(fact.FormatValue(fi, value));
-                }
-                sbValues.Append("),");
-            }
+            //    sbValues.Append("(");
+            //    var first = true;
+            //    foreach (var fi in fact.Fields)
+            //    {
+            //        if (fi.IsIdentity && !fact.AllowInsertIdentity) continue;
 
-            var ns = sbNames.Put(true);
-            var vs = sbValues.Put(true).TrimEnd(",");
+            //        if (!first) sbValues.Append(",");
+            //        first = false;
 
-            var sql = $"Insert Into {fact.FormatedTableName}({ns}) Values{vs}";
+            //        var value = entity[fi.Name];
+            //        sbValues.Append(fact.FormatValue(fi, value));
+            //    }
+            //    sbValues.Append("),");
+            //}
 
-            return fact.Session.Execute(sql);
+            //var ns = sbNames.Put(true);
+            //var vs = sbValues.Put(true).TrimEnd(",");
+
+            //var sql = $"Insert Into {fact.FormatedTableName}({ns}) Values{vs}";
+
+            //return fact.Session.Execute(sql);
         }
 
         /// <summary>把整个集合更新到数据库</summary>

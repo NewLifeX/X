@@ -538,6 +538,12 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
+        #region 批量操作
+        public virtual Int32 BatchInsert(IDataTable table, IEnumerable<IIndexAccessor> data) => throw new NotSupportedException();
+
+        public virtual Int32 InsertOrUpdate(IDataColumn[] columns, IDataColumn[] updateColumns, IDataColumn[] addColumns, IEnumerable<IIndexAccessor> data) => throw new NotSupportedException();
+        #endregion
+
         #region 异步操作
 #if !NET4
         ///// <summary>异步打开</summary>
