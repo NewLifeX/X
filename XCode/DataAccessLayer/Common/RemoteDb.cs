@@ -206,20 +206,36 @@ namespace XCode.DataAccessLayer
                     return session.QueryCount(GetSchemaSQL(schema, values)) > 0;
 
                 case DDLSchema.DatabaseExist:
-                    return ProcessWithSystem(s => DatabaseExist(databaseName));
+                    //return ProcessWithSystem(s => DatabaseExist(databaseName));
+                    return DatabaseExist(databaseName);
 
                 case DDLSchema.CreateDatabase:
                     values = new Object[] { databaseName, values == null || values.Length < 2 ? null : values[1] };
 
-                    var obj = ProcessWithSystem(s => base.SetSchema(schema, values));
+                    //return ProcessWithSystem(s => base.SetSchema(schema, values));
+                    var sql = base.GetSchemaSQL(schema, values);
+                    if (sql.IsNullOrEmpty()) return null;
 
-                    //// 创建数据库后，需要等待它初始化
-                    //Thread.Sleep(5000);
+                    if (session is RemoteDbSession ss)
+                    {
+                        ss.WriteSQL(sql);
+                        return ss.ProcessWithSystem((s, c) =>
+                        {
+                            using (var cmd = Database.Factory.CreateCommand())
+                            {
+                                cmd.Connection = c;
+                                cmd.CommandText = sql;
 
-                    return obj;
+                                return cmd.ExecuteNonQuery();
+                            }
+                        });
+                    }
+
+                    return 0;
 
                 case DDLSchema.DropDatabase:
-                    return ProcessWithSystem(s => DropDatabase(databaseName));
+                    //return ProcessWithSystem(s => DropDatabase(databaseName));
+                    return DropDatabase(databaseName);
 
                 default:
                     break;
@@ -235,7 +251,7 @@ namespace XCode.DataAccessLayer
 
         protected virtual Boolean DropDatabase(String databaseName) => (Boolean)base.SetSchema(DDLSchema.DropDatabase, new Object[] { databaseName });
 
-        Object ProcessWithSystem(Func<IDbSession, Object> callback) => (Database.CreateSession() as RemoteDbSession).ProcessWithSystem((s, c) => callback(s));
+        //Object ProcessWithSystem(Func<IDbSession, Object> callback) => (Database.CreateSession() as RemoteDbSession).ProcessWithSystem((s, c) => callback(s));
         #endregion
     }
 }

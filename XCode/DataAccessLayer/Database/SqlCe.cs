@@ -191,6 +191,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>返回数据源的架构信息</summary>
+        /// <param name="conn">连接</param>
         /// <param name="collectionName">指定要返回的架构的名称。</param>
         /// <param name="restrictionValues">为请求的架构指定一组限制值。</param>
         /// <returns></returns>

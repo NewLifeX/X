@@ -130,6 +130,8 @@ namespace XCode.DataAccessLayer
 
             // 此时事务可能为空
             var tr = Tran;
+            if (cmd.Connection != null && cmd.Connection != Conn) return tr;
+
             cmd.Transaction = tr;
             cmd.Connection = Conn;
 

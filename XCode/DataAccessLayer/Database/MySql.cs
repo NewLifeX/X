@@ -4,7 +4,6 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Net;
-using System.Text;
 using NewLife.Collections;
 
 namespace XCode.DataAccessLayer

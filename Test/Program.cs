@@ -102,9 +102,11 @@ namespace Test
         static void Test2()
         {
             //DAL.AddConnStr("Log", "Data Source=tcp://127.0.0.1/ORCL;User Id=scott;Password=tiger;UseParameter=true", null, "Oracle");
-            DAL.AddConnStr("Log", "Server=.;Port=3306;Database=Log;Uid=root;Pwd=root;", null, "MySql");
+            DAL.AddConnStr("Log", "Server=ds6.ztbi.vip;Port=3306;Database=Log;Uid=test;Pwd=Pass@word;", null, "MySql");
 
             var gs = Log.FindAll(null, null, null, 0, 10);
+            var count = Log.FindCount();
+            Console.WriteLine("Count={0}", count);
 
             //LogProvider.Provider.WriteLog("test", "新增", "学无先后达者为师");
             var list = new List<Log>();
@@ -120,6 +122,9 @@ namespace Test
                 list.Add(log);
             }
             list.Insert(true);
+
+            count = Log.FindCount();
+            Console.WriteLine("Count={0}", count);
         }
 
         class CacheItem<TValue>
