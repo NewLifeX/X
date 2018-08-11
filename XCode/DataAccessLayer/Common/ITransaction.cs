@@ -164,7 +164,7 @@ namespace XCode.DataAccessLayer
             if (n <= 0) throw new ArgumentOutOfRangeException(nameof(Count), $"事务[{ID}]不能重新开始");
 
             //Count++;
-            if (n == 0)
+            if (n == 1)
             {
                 // 打开事务后，由事务管理连接
                 Conn = _Session.Database.Pool.Get();

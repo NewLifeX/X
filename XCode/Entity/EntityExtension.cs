@@ -233,44 +233,6 @@ namespace XCode
             var columns = fact.Fields.Select(e => e.Field).ToArray();
 
             return fact.Session.Dal.Session.InsertOrUpdate(columns, null, null, list.Cast<IIndexAccessor>());
-
-            //var db = fact.Session.Dal.Db;
-
-            //var sbNames = Pool.StringBuilder.Get();
-            //foreach (var fi in fact.Fields)
-            //{
-            //    // 标识列不需要插入，别的类型都需要
-            //    if (fi.IsIdentity && !fact.AllowInsertIdentity) continue;
-
-            //    sbNames.Separate(", ").Append(fact.FormatName(fi.ColumnName));
-            //}
-
-            //var sbValues = Pool.StringBuilder.Get();
-            //foreach (var entity in list)
-            //{
-            //    (entity as EntityBase).Valid(true);
-
-            //    sbValues.Append("(");
-            //    var first = true;
-            //    foreach (var fi in fact.Fields)
-            //    {
-            //        if (fi.IsIdentity && !fact.AllowInsertIdentity) continue;
-
-            //        if (!first) sbValues.Append(",");
-            //        first = false;
-
-            //        var value = entity[fi.Name];
-            //        sbValues.Append(fact.FormatValue(fi, value));
-            //    }
-            //    sbValues.Append("),");
-            //}
-
-            //var ns = sbNames.Put(true);
-            //var vs = sbValues.Put(true).TrimEnd(",");
-
-            //var sql = $"Insert Into {fact.FormatedTableName}({ns}) Values{vs}";
-
-            //return fact.Session.Execute(sql);
         }
 
         /// <summary>把整个集合更新到数据库</summary>
@@ -360,6 +322,17 @@ namespace XCode
                 if (item != null) count += func(item);
             }
             return count;
+        }
+
+        public static Int32 InsertOrUpdate<T>(this IEnumerable<T> list) where T : IEntity
+        {
+            var entity = list.First();
+            var fact = entity.GetType().AsFactory();
+            var columns = fact.Fields.Select(e => e.Field).ToArray();
+            var updates = entity.Dirtys.Select(e => fact.Table.FindByName(e.Key)?.Field).Where(e => null != e).ToArray();
+            var adds = fact.AdditionalFields.Select(e => fact.Table.FindByName(e)?.Field).Where(e => null != e).ToArray();
+
+            return fact.Session.Dal.Session.InsertOrUpdate(columns, updates, adds, list.Cast<IIndexAccessor>());
         }
         #endregion
     }

@@ -321,12 +321,15 @@ namespace XCode.DataAccessLayer
                 {
                     foreach (var dc in updateColumns)
                     {
+                        if (addColumns != null && addColumns.Any(e => dc.Name == e.Name)) continue;
+
                         sb.AppendFormat("{0}=Values({0}),", db.FormatName(dc.ColumnName));
                     }
                     sb.Length--;
                 }
                 if (addColumns != null)
                 {
+                    sb.Append(",");
                     foreach (var dc in addColumns)
                     {
                         sb.AppendFormat("{0}={0}+Values({0}),", db.FormatName(dc.ColumnName));
