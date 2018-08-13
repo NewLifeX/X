@@ -1212,12 +1212,12 @@ namespace XCode
         {
             get
             {
-                //// 匹配字段
-                //if (Meta.FieldNames.Contains(name))
-                //{
-                //    var field = GetType().GetFieldEx("_" + name, true);
-                //    if (field != null) return this.GetValue(field);
-                //}
+                // 扩展属性
+                if (Meta.Table.ExtendFieldNames.Contains(name))
+                {
+                    var pi = GetType().GetPropertyEx(name, true);
+                    if (pi != null) return this.GetValue(pi);
+                }
 
                 //// 尝试匹配属性
                 //var property = GetType().GetPropertyEx(name, true);
@@ -1242,16 +1242,16 @@ namespace XCode
             }
             set
             {
-                ////匹配字段
-                //if (Meta.FieldNames.Contains(name))
-                //{
-                //    var field = GetType().GetFieldEx("_" + name, true);
-                //    if (field != null)
-                //    {
-                //        this.SetValue(field, value);
-                //        return;
-                //    }
-                //}
+                // 扩展属性
+                if (Meta.Table.ExtendFieldNames.Contains(name))
+                {
+                    var pi = GetType().GetPropertyEx(name, true);
+                    if (pi != null)
+                    {
+                        this.SetValue(pi, value);
+                        return;
+                    }
+                }
 
                 ////尝试匹配属性
                 //var property = GetType().GetPropertyEx(name, true);
