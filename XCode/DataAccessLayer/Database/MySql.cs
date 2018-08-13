@@ -349,7 +349,7 @@ namespace XCode.DataAccessLayer
             var table = columns.FirstOrDefault().Table;
             var sql = GetBatchSql(table, columns, null, null, list);
 
-            return ExecuteScalar<Int32>(sql);
+            return Execute(sql);
         }
 
         public override Int32 InsertOrUpdate(IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list)
@@ -357,7 +357,7 @@ namespace XCode.DataAccessLayer
             var table = columns.FirstOrDefault().Table;
             var sql = GetBatchSql(table, columns, updateColumns, addColumns, list);
 
-            return ExecuteScalar<Int32>(sql);
+            return Execute(sql);
         }
         #endregion
     }
