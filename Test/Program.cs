@@ -134,7 +134,7 @@ namespace Test
                 };
                 list.Add(entity);
                 //entity.SaveAsync();
-                entity.Save();
+                entity.InsertOrUpdate();
             }
             //list.Save();
 
