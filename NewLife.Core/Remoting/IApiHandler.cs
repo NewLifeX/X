@@ -100,24 +100,39 @@ namespace NewLife.Remoting
                     }
                     ctx.Result = rs;
                 }
+
+                // 执行动作后的过滤器
+                if (controller is IActionFilter filter2)
+                {
+                    filter2.OnActionExecuted(ctx);
+                    rs = ctx.Result;
+                }
             }
             catch (ThreadAbortException) { throw; }
             catch (Exception ex)
             {
                 //rs = OnException(ctx, ex);
                 ctx.Exception = ex.GetTrue();
-            }
-            finally
-            {
+
                 // 执行动作后的过滤器
                 if (controller is IActionFilter filter)
                 {
                     filter.OnActionExecuted(ctx);
                     rs = ctx.Result;
                 }
+                if (ctx.Exception != null && !ctx.ExceptionHandled) throw;
+            }
+            finally
+            {
+                //// 执行动作后的过滤器
+                //if (controller is IActionFilter filter)
+                //{
+                //    filter.OnActionExecuted(ctx);
+                //    rs = ctx.Result;
+                //}
                 ControllerContext.Current = null;
 
-                if (ctx.Exception != null && !ctx.ExceptionHandled) throw ctx.Exception;
+                //if (ctx.Exception != null && !ctx.ExceptionHandled) throw ctx.Exception;
             }
 
             //// 二进制优先通道
