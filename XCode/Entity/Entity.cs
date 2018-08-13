@@ -204,6 +204,10 @@ namespace XCode
         /// <returns></returns>
         public override Int32 Save()
         {
+            // Oracle/MySql批量插入
+            var db = Meta.Session.Dal;
+            if (db.DbType == DatabaseType.MySql || db.DbType == DatabaseType.Oracle) return this.InsertOrUpdate();
+
             // 优先使用自增字段判断
             var fi = Meta.Table.Identity;
             if (fi != null) return Convert.ToInt64(this[fi.Name]) > 0 ? Update() : Insert();
