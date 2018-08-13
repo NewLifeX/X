@@ -826,6 +826,9 @@ namespace XCode.DataAccessLayer
                 sql = sb.Put(true);
             }
 
+            // 阶段超长字符串
+            if (sql.Length > 512) sql = sql.Substring(0, 256) + "..." + sql.Substring(sql.Length - 256);
+
             return sql;
         }
 
