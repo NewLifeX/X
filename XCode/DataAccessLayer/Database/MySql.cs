@@ -287,7 +287,7 @@ namespace XCode.DataAccessLayer
             sb.AppendFormat("Insert Into {0}(", tname);
             foreach (var dc in columns)
             {
-                if (dc.Identity) continue;
+                if (dc.Identity || dc.PrimaryKey) continue;
 
                 sb.Append(db.FormatName(dc.ColumnName));
                 sb.Append(",");
@@ -302,7 +302,7 @@ namespace XCode.DataAccessLayer
                 sb.Append("(");
                 foreach (var dc in columns)
                 {
-                    if (dc.Identity) continue;
+                    if (dc.Identity || dc.PrimaryKey) continue;
 
                     var value = entity[dc.Name];
                     sb.Append(db.FormatValue(dc, value));
@@ -321,6 +321,8 @@ namespace XCode.DataAccessLayer
                 {
                     foreach (var dc in columns)
                     {
+                        if (dc.Identity || dc.PrimaryKey) continue;
+
                         if (updateColumns.Contains(dc.Name) && (addColumns == null || !addColumns.Contains(dc.Name)))
                             sb.AppendFormat("{0}=Values({0}),", db.FormatName(dc.ColumnName));
                     }
@@ -331,6 +333,8 @@ namespace XCode.DataAccessLayer
                     sb.Append(",");
                     foreach (var dc in columns)
                     {
+                        if (dc.Identity || dc.PrimaryKey) continue;
+
                         if (addColumns.Contains(dc.Name))
                             sb.AppendFormat("{0}={0}+Values({0}),", db.FormatName(dc.ColumnName));
                     }
@@ -341,7 +345,7 @@ namespace XCode.DataAccessLayer
             return sb.Put(true);
         }
 
-        public override Int32 BatchInsert(IDataColumn[] columns, IEnumerable<IIndexAccessor> list)
+        public override Int32 Insert(IDataColumn[] columns, IEnumerable<IIndexAccessor> list)
         {
             var table = columns.FirstOrDefault().Table;
             var sql = GetBatchSql(table, columns, null, null, list);

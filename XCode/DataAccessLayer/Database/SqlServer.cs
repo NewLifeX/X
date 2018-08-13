@@ -419,7 +419,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 批量操作
-        public override Int32 BatchInsert(IDataColumn[] columns, IEnumerable<IIndexAccessor> list) => throw new NotSupportedException();
+        public override Int32 Insert(IDataColumn[] columns, IEnumerable<IIndexAccessor> list) => throw new NotSupportedException();
 
         public override Int32 InsertOrUpdate(IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list) => throw new NotSupportedException();
         #endregion

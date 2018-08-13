@@ -157,7 +157,7 @@ namespace XCode.DataAccessLayer
         /// <param name="columns">要插入的字段，默认所有字段</param>
         /// <param name="list">实体列表</param>
         /// <returns></returns>
-        Int32 BatchInsert(IDataColumn[] columns, IEnumerable<IIndexAccessor> list);
+        Int32 Insert(IDataColumn[] columns, IEnumerable<IIndexAccessor> list);
 
         /// <summary>批量插入或更新</summary>
         /// <param name="columns">要插入的字段，默认所有字段</param>

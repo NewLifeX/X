@@ -425,7 +425,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 批量操作
-        public override Int32 BatchInsert(IDataColumn[] columns, IEnumerable<IIndexAccessor> list)
+        public override Int32 Insert(IDataColumn[] columns, IEnumerable<IIndexAccessor> list)
         {
             var sql = GetInsertSql(columns, list);
             var dps = GetParameters(columns, list);
