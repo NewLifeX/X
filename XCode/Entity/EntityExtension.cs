@@ -363,7 +363,10 @@ namespace XCode
                 {
                     foreach (var elm in item.Dirtys)
                     {
-                        if (!hs.Contains(elm.Key)) hs.Add(elm.Key);
+                        // 创建时间等字段不参与Update
+                        if (elm.Key.StartsWithIgnoreCase("Create")) continue;
+
+                        if ( !hs.Contains(elm.Key)) hs.Add(elm.Key);
                     }
                 }
                 updateColumns = hs;
