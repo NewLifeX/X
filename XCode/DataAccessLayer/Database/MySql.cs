@@ -276,7 +276,7 @@ namespace XCode.DataAccessLayer
         updatetime=values(updatetime);
          */
 
-        private String GetBatchSql(IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> data)
+        private String GetBatchSql(IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list)
         {
             var sb = Pool.StringBuilder.Get();
             var db = Database;
@@ -297,7 +297,7 @@ namespace XCode.DataAccessLayer
 
             // 值列表
             sb.Append(" Values");
-            foreach (var entity in data)
+            foreach (var entity in list)
             {
                 sb.Append("(");
                 foreach (var dc in columns)

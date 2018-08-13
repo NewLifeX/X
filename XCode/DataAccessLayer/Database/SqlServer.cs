@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using NewLife;
 using NewLife.Collections;
 using NewLife.Log;
+using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
 {
@@ -415,6 +416,12 @@ namespace XCode.DataAccessLayer
             sql = "SET NOCOUNT ON;" + sql + ";Select SCOPE_IDENTITY()";
             return base.InsertAndGetIdentity(sql, type, ps);
         }
+        #endregion
+
+        #region 批量操作
+        public override Int32 BatchInsert(IDataColumn[] columns, IEnumerable<IIndexAccessor> list) => throw new NotSupportedException();
+
+        public override Int32 InsertOrUpdate(IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list) => throw new NotSupportedException();
         #endregion
     }
 

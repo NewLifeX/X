@@ -194,7 +194,7 @@ namespace XCode
             if (db.UseParameter && db.Type == DatabaseType.Oracle) return OracleBatchInsert(list, fact);
 
             // MySql批量插入
-            if (db.Type == DatabaseType.MySql) return MySqlBatchInsert(list, fact);
+            if (db.Type == DatabaseType.MySql) return BatchInsert(list);
 
             return DoAction(list, useTransition, e => e.Insert());
         }
@@ -224,15 +224,6 @@ namespace XCode
             }
 
             return fact.Session.Execute(sql, CommandType.Text, dps.ToArray());
-        }
-
-        private static Int32 MySqlBatchInsert<T>(IEnumerable<T> list, IEntityOperate fact) where T : IEntity
-        {
-            var entity = list.First();
-            //var columns = entity.Dirtys.Select(e => fact.Table.FindByName(e.Key)?.Field).Where(e => null != e).ToArray();
-            var columns = fact.Fields.Select(e => e.Field).ToArray();
-
-            return fact.Session.Dal.Session.InsertOrUpdate(columns, null, null, list.Cast<IIndexAccessor>());
         }
 
         /// <summary>把整个集合更新到数据库</summary>

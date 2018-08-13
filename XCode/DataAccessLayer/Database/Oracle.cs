@@ -423,6 +423,128 @@ namespace XCode.DataAccessLayer
             return cmd;
         }
         #endregion
+
+        #region 批量操作
+        public override Int32 BatchInsert(IDataColumn[] columns, IEnumerable<IIndexAccessor> list)
+        {
+            var sql = GetInsertSql(columns, list);
+            var dps = GetParameters(columns, list);
+
+            return Execute(sql, CommandType.Text, dps);
+        }
+
+        private String GetInsertSql(IDataColumn[] columns, IEnumerable<IIndexAccessor> list)
+        {
+            var table = columns.FirstOrDefault().Table;
+            var sb = Pool.StringBuilder.Get();
+            var db = Database;
+
+            // 字段列表
+            sb.AppendFormat("Insert Into {0}(", db.FormatName(table.TableName));
+            foreach (var dc in columns)
+            {
+                if (dc.Identity) continue;
+
+                sb.Append(db.FormatName(dc.ColumnName));
+                sb.Append(",");
+            }
+            sb.Length--;
+            sb.Append(")");
+
+            // 值列表
+            sb.Append(" Values(");
+            foreach (var dc in columns)
+            {
+                if (dc.Identity) continue;
+
+                sb.Append(db.FormatParameterName(dc.Name));
+                sb.Append(",");
+            }
+            sb.Length--;
+            sb.Append(")");
+
+            return sb.Put(true);
+        }
+
+        private IDataParameter[] GetParameters(IDataColumn[] columns, IEnumerable<IIndexAccessor> list)
+        {
+            var db = Database;
+            var dps = new List<IDataParameter>();
+            foreach (var dc in columns)
+            {
+                if (dc.Identity) continue;
+
+                var vs = new List<Object>();
+                foreach (var entity in list)
+                {
+                    vs.Add(entity[dc.Name]);
+                }
+                var dp = db.CreateParameter(dc.Name, vs.ToArray(), dc);
+
+                dps.Add(dp);
+            }
+
+            return dps.ToArray();
+        }
+
+        public override Int32 InsertOrUpdate(IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list)
+        {
+            var insert = GetInsertSql(columns, list);
+            var update = GetUpdateSql(columns, updateColumns, addColumns, list);
+
+            var sb = Pool.StringBuilder.Get();
+            sb.AppendLine("BEGIN");
+            sb.AppendLine(insert);
+            sb.AppendLine("EXCEPTION");
+            sb.AppendLine("WHEN DUP_VAL_ON_INDEX THEN");
+            sb.AppendLine(update);
+            sb.AppendLine("END;");
+            var sql = sb.Put(true);
+
+            var dps = GetParameters(columns, list);
+
+            return Execute(sql, CommandType.Text, dps);
+        }
+
+        private String GetUpdateSql(IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list)
+        {
+            var table = columns.FirstOrDefault().Table;
+            var sb = Pool.StringBuilder.Get();
+            var db = Database;
+
+            // 字段列表
+            sb.AppendFormat("Update {0} Set ", db.FormatName(table.TableName));
+            foreach (var dc in columns)
+            {
+                if (dc.Identity || dc.PrimaryKey) continue;
+
+                if (updateColumns != null && updateColumns.Contains(dc.Name))
+                {
+                    sb.AppendFormat("{0}={1}", db.FormatName(dc.ColumnName), db.FormatParameterName(dc.Name));
+                }
+                else if (addColumns != null && addColumns.Contains(dc.Name))
+                {
+                    sb.AppendFormat("{0}={0}+{1}", db.FormatName(dc.ColumnName), db.FormatParameterName(dc.Name));
+                }
+                sb.Append(",");
+            }
+            sb.Length--;
+            sb.Append(")");
+
+            // 条件
+            sb.Append(" Where ");
+            foreach (var dc in columns)
+            {
+                if (!dc.PrimaryKey) continue;
+
+                sb.AppendFormat("{0}={1}", db.FormatName(dc.ColumnName), db.FormatParameterName(dc.Name));
+                sb.Append(" And ");
+            }
+            sb.Length -= " And ".Length;
+
+            return sb.Put(true);
+        }
+        #endregion
     }
 
     /// <summary>Oracle元数据</summary>
