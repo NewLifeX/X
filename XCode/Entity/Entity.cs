@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
@@ -29,7 +27,6 @@ namespace XCode
         static Entity()
         {
             DAL.InitLog();
-            //DAL.WriteDebugLog("开始初始化实体类{0}", typeof(TEntity).Name);
 
             EntityFactory.Register(typeof(TEntity), new EntityOperate());
 
@@ -37,17 +34,6 @@ namespace XCode
             // 2，CreateOperate将会实例化一个TEntity对象，从而引发TEntity的静态构造函数，
             // 避免实际应用中，直接调用Entity的静态方法时，没有引发TEntity的静态构造函数。
             var entity = new TEntity();
-
-            ////! 大石头 2011-03-14 以下过程改为异步处理
-            ////  已确认，当实体类静态构造函数中使用了EntityFactory.CreateOperate(Type)方法时，可能出现死锁。
-            ////  因为两者都会争夺EntityFactory中的op_cache，而CreateOperate(Type)拿到op_cache后，还需要等待当前静态构造函数执行完成。
-            ////  不确定这样子是否带来后遗症
-            //ThreadPool.QueueUserWorkItem(delegate
-            //{
-            //    EntityFactory.CreateOperate(typeof(TEntity), entity);
-            //});
-
-            //DAL.WriteDebugLog("完成初始化实体类{0}", typeof(TEntity).Name);
         }
 
         /// <summary>创建实体。</summary>
@@ -136,17 +122,13 @@ namespace XCode
             if (sc.Using)
             {
                 // 查询列表异步加入对象缓存
-                ThreadPoolX.QueueUserWorkItem(() =>
+                ThreadPoolX.QueueUserWorkItem(es =>
                 {
-                    //foreach (var item in list.ToArray())
-                    //{
-                    //    sc.Add(item);
-                    //}
-                    for (var i = 0; i < list.Count; i++)
+                    for (var i = 0; i < es.Count; i++)
                     {
-                        sc.Add(list[i]);
+                        sc.Add(es[i]);
                     }
-                });
+                }, list);
             }
         }
 
@@ -200,8 +182,6 @@ namespace XCode
                 if (!isnew.Value) throw new XCodeException($"只写的日志型数据[{Meta.ThisType.FullName}]禁止修改！");
             }
 
-            //using (var trans = new EntityTransaction<TEntity>())
-            //{
             if (enableValid)
             {
                 var rt = false;
@@ -217,12 +197,7 @@ namespace XCode
                 if (!rt) return -1;
             }
 
-            var rs = func();
-
-            //trans.Commit();
-
-            return rs;
-            //}
+            return func();
         }
 
         /// <summary>保存。根据主键检查数据库中是否已存在该对象，再决定调用Insert或Update</summary>
@@ -239,8 +214,6 @@ namespace XCode
             // 来自数据库直接Update
             if (_IsFromDatabase)
             {
-                //var uq = Meta.Unique;
-                //if (uq != null && !Dirtys[uq.Name]) return Update();
                 var pks = Meta.Table.PrimaryKeys;
                 if (pks.Length > 0 && pks.All(e => !Dirtys[e.Name])) return Update();
             }

@@ -437,10 +437,10 @@ namespace XCode.DataAccessLayer
         {
             var table = columns.FirstOrDefault().Table;
             var sb = Pool.StringBuilder.Get();
-            var db = Database;
+            var db = Database as DbBase;
 
             // 字段列表
-            sb.AppendFormat("Insert Into {0}(", db.FormatName(table.TableName));
+            sb.AppendFormat("Insert Into {0}(", db.FormatTableName(table.TableName));
             foreach (var dc in columns)
             {
                 if (dc.Identity) continue;
@@ -510,10 +510,10 @@ namespace XCode.DataAccessLayer
         {
             var table = columns.FirstOrDefault().Table;
             var sb = Pool.StringBuilder.Get();
-            var db = Database;
+            var db = Database as DbBase;
 
             // 字段列表
-            sb.AppendFormat("Update {0} Set ", db.FormatName(table.TableName));
+            sb.AppendFormat("Update {0} Set ", db.FormatTableName(table.TableName));
             foreach (var dc in columns)
             {
                 if (dc.Identity || dc.PrimaryKey) continue;

@@ -246,6 +246,18 @@ namespace XCode.DataAccessLayer
 
         /// <summary>表前缀。所有在该连接上的表名都自动增加该前缀</summary>
         public String TablePrefix { get; set; }
+
+        /// <summary>格式化的表名。加上Owner和表前缀</summary>
+        /// <param name="tableName"></param>
+        /// <returns></returns>
+        public String FormatTableName(String tableName)
+        {
+            if (!TablePrefix.IsNullOrEmpty()) tableName = TablePrefix + tableName;
+            var tname = FormatName(tableName);
+            if (!Owner.IsNullOrEmpty()) tname = $"{FormatName(Owner)}.{tname}";
+
+            return tname;
+        }
         #endregion
 
         #region 方法

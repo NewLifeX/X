@@ -279,12 +279,11 @@ namespace XCode.DataAccessLayer
         private String GetBatchSql(IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list)
         {
             var sb = Pool.StringBuilder.Get();
-            var db = Database;
+            var db = Database as DbBase;
 
             // 字段列表
-            var tname = db.FormatName(table.TableName);
             if (columns == null) columns = table.Columns.ToArray();
-            sb.AppendFormat("Insert Into {0}(", tname);
+            sb.AppendFormat("Insert Into {0}(", db.FormatTableName(table.TableName));
             foreach (var dc in columns)
             {
                 if (dc.Identity || dc.PrimaryKey) continue;
