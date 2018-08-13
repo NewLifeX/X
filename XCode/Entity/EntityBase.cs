@@ -14,7 +14,7 @@ namespace XCode
     /// <summary>数据实体基类的基类</summary>
     [Serializable]
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public abstract partial class EntityBase : /*BinaryAccessor,*/ IEntity, ICloneable
+    public abstract partial class EntityBase : IEntity, ICloneable
     {
         #region 初始化数据
         /// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>
@@ -232,13 +232,7 @@ namespace XCode
         #region 主键为空
         /// <summary>主键是否为空</summary>
         [XmlIgnore, ScriptIgnore]
-        public Boolean IsNullKey { get { return Helper.IsEntityNullKey(this); } }
-
-        // JsonNet支持下面这种特殊用法
-        //public Boolean ShouldSerializeIsNullKey()
-        //{
-        //    return false;
-        //}
+        public Boolean IsNullKey => Helper.IsEntityNullKey(this);
 
         /// <summary>设置主键为空。Save将调用Insert</summary>
         void IEntity.SetNullKey()

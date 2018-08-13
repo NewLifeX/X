@@ -7,7 +7,6 @@ using System.Threading;
 using NewLife;
 using NewLife.Log;
 using NewLife.Threading;
-using XCode.DataAccessLayer;
 
 namespace XCode
 {
@@ -143,7 +142,6 @@ namespace XCode
             var list = state as ICollection<IEntity>;
             var ss = Session;
             var dal = ss.Dal;
-            var useTrans = dal.DbType == DatabaseType.SQLite;
 
             var speed = Speed;
             if (Debug || list.Count > 100_000)
@@ -152,43 +150,22 @@ namespace XCode
                 XTrace.WriteLine($"实体队列[{ss.TableName}/{ss.ConnName}]\t保存 {list.Count:n0}\t预测耗时 {cost:n0}ms");
             }
 
-            var rs = new List<Int32>();
             var sw = Stopwatch.StartNew();
 
-            // 开启事务保存
-            if (useTrans) dal.BeginTransaction();
             try
             {
-                // 禁用自动关闭连接
-                dal.Session.SetAutoClose(false);
-
-                foreach (var item in list)
-                {
-                    try
-                    {
-                        // 加入队列时已经Valid一次，这里不需要再次Valid
-                        rs.Add(item.SaveWithoutValid());
-                    }
-                    catch (Exception ex)
-                    {
-                        if (Error != null)
-                            Error(this, new EventArgs<Exception>(ex));
-                        else
-                            XTrace.WriteException(ex);
-                    }
-                }
-
-                if (useTrans) dal.Commit();
+                list.SaveWithoutValid();
             }
-            catch
+            catch (Exception ex)
             {
-                if (useTrans) dal.Rollback();
-                throw;
+                if (Error != null)
+                    Error(this, new EventArgs<Exception>(ex));
+                else
+                    XTrace.WriteException(ex);
             }
             finally
             {
                 sw.Stop();
-                dal.Session.SetAutoClose(null);
             }
 
             // 根据繁忙程度动态调节

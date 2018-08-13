@@ -52,14 +52,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 构造函数
-        protected FileDbSession(IDatabase db) : base(db) { }
-        #endregion
-
-        #region 方法
-        private static List<String> hasChecked = new List<String>();
-
-        /// <summary>已重载。打开数据库连接前创建数据库</summary>
-        public override void Open()
+        protected FileDbSession(IDatabase db) : base(db)
         {
             if (!String.IsNullOrEmpty(FileName))
             {
@@ -69,9 +62,26 @@ namespace XCode.DataAccessLayer
                     CreateDatabase();
                 }
             }
-
-            base.Open();
         }
+        #endregion
+
+        #region 方法
+        private static List<String> hasChecked = new List<String>();
+
+        ///// <summary>已重载。打开数据库连接前创建数据库</summary>
+        //public override void Open()
+        //{
+        //    if (!String.IsNullOrEmpty(FileName))
+        //    {
+        //        if (!hasChecked.Contains(FileName))
+        //        {
+        //            hasChecked.Add(FileName);
+        //            CreateDatabase();
+        //        }
+        //    }
+
+        //    base.Open();
+        //}
 
         protected virtual void CreateDatabase()
         {
@@ -112,9 +122,9 @@ namespace XCode.DataAccessLayer
                 case DDLSchema.CreateDatabase:
                     CreateDatabase();
                     return null;
-                case DDLSchema.DropDatabase:
-                    DropDatabase();
-                    return null;
+                //case DDLSchema.DropDatabase:
+                //    DropDatabase();
+                //    return null;
                 case DDLSchema.DatabaseExist:
                     return File.Exists(FileName);
                 default:

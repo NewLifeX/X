@@ -5,6 +5,7 @@ using System.Data.Common;
 using System.Threading.Tasks;
 using NewLife;
 using NewLife.Data;
+using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
 {
@@ -21,8 +22,8 @@ namespace XCode.DataAccessLayer
         /// <summary>链接字符串</summary>
         String ConnectionString { get; set; }
 
-        /// <summary>数据库链接</summary>
-        DbConnection Conn { get; }
+        ///// <summary>数据库链接</summary>
+        //DbConnection Conn { get; }
 
         /// <summary>查询次数</summary>
         Int32 QueryTimes { get; set; }
@@ -35,25 +36,25 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 打开/关闭
-        /// <summary>连接是否已经打开</summary>
-        Boolean Opened { get; }
+        ///// <summary>连接是否已经打开</summary>
+        //Boolean Opened { get; }
 
-        /// <summary>打开</summary>
-        void Open();
+        ///// <summary>打开</summary>
+        //void Open();
 
-        /// <summary>关闭</summary>
-        void Close();
+        ///// <summary>关闭</summary>
+        //void Close();
 
-        /// <summary>
-        /// 自动关闭。
-        /// 启用事务后，不关闭连接。
-        /// 在提交或回滚事务时，如果IsAutoClose为true，则会自动关闭
-        /// </summary>
-        void AutoClose();
+        ///// <summary>
+        ///// 自动关闭。
+        ///// 启用事务后，不关闭连接。
+        ///// 在提交或回滚事务时，如果IsAutoClose为true，则会自动关闭
+        ///// </summary>
+        //void AutoClose();
 
-        /// <summary>设置自动关闭。启用、禁用、继承</summary>
-        /// <param name="enable"></param>
-        void SetAutoClose(Boolean? enable);
+        ///// <summary>设置自动关闭。启用、禁用、继承</summary>
+        ///// <param name="enable"></param>
+        //void SetAutoClose(Boolean? enable);
         #endregion
 
         #region 事务
@@ -143,17 +144,28 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         T ExecuteScalar<T>(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps);
 
-        /// <summary>
-        /// 获取一个DbCommand。
-        /// 配置了连接，并关联了事务。
-        /// 连接已打开。
-        /// 使用完毕后，必须调用AutoClose方法，以使得在非事务及设置了自动关闭的情况下关闭连接
-        /// </summary>
+        /// <summary>创建DbCommand</summary>
         /// <param name="sql">SQL语句</param>
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
         /// <returns></returns>
         DbCommand CreateCommand(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps);
+        #endregion
+
+        #region 批量操作
+        /// <summary>批量插入</summary>
+        /// <param name="columns">要插入的字段，默认所有字段</param>
+        /// <param name="list">实体列表</param>
+        /// <returns></returns>
+        Int32 Insert(IDataColumn[] columns, IEnumerable<IIndexAccessor> list);
+
+        /// <summary>批量插入或更新</summary>
+        /// <param name="columns">要插入的字段，默认所有字段</param>
+        /// <param name="updateColumns">主键已存在时，要更新的字段</param>
+        /// <param name="addColumns">主键已存在时，要累加更新的字段</param>
+        /// <param name="list">实体列表</param>
+        /// <returns></returns>
+        Int32 InsertOrUpdate(IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list);
         #endregion
 
         #region 异步操作
@@ -179,10 +191,11 @@ namespace XCode.DataAccessLayer
 
         #region 构架
         /// <summary>返回数据源的架构信息</summary>
+        /// <param name="conn">连接</param>
         /// <param name="collectionName">指定要返回的架构的名称。</param>
         /// <param name="restrictionValues">为请求的架构指定一组限制值。</param>
         /// <returns></returns>
-        DataTable GetSchema(String collectionName, String[] restrictionValues);
+        DataTable GetSchema(DbConnection conn, String collectionName, String[] restrictionValues);
         #endregion
     }
 }

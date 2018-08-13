@@ -190,89 +190,10 @@ namespace XCode
             var fact = entity.GetType().AsFactory();
             var db = fact.Session.Dal.Db;
 
-            // Oracle参数化批量插入
-            if (db.UseParameter && db.Type == DatabaseType.Oracle) return OracleBatchInsert(list, fact);
-
-            // MySql批量插入
-            if (db.Type == DatabaseType.MySql) return MySqlBatchInsert(list, fact);
+            // Oracle/MySql批量插入
+            if (db.Type == DatabaseType.MySql || db.Type == DatabaseType.Oracle) return BatchInsert(list);
 
             return DoAction(list, useTransition, e => e.Insert());
-        }
-
-        private static Int32 OracleBatchInsert<T>(IEnumerable<T> list, IEntityOperate fact) where T : IEntity
-        {
-            var db = fact.Session.Dal.Db;
-            var ps = ObjectContainer.Current.ResolveInstance<IEntityPersistence>();
-
-            var sql = ps.InsertSQL(fact);
-            var dps = new List<IDataParameter>();
-            foreach (var fi in fact.Fields)
-            {
-                // 标识列不需要插入，别的类型都需要
-                if (fi.IsIdentity && !fact.AllowInsertIdentity) continue;
-
-                var vs = new List<Object>();
-                foreach (var entity in list)
-                {
-                    (entity as EntityBase).Valid(true);
-
-                    vs.Add(entity[fi.Name]);
-                }
-                var dp = db.CreateParameter(fi.Name, vs.ToArray(), fi.Field);
-
-                dps.Add(dp);
-            }
-
-            return fact.Session.Execute(sql, CommandType.Text, dps.ToArray());
-        }
-
-        private static Int32 MySqlBatchInsert<T>(IEnumerable<T> list, IEntityOperate fact) where T : IEntity
-        {
-            var db = fact.Session.Dal.Db;
-
-            var sbNames = Pool.StringBuilder.Get();
-            foreach (var fi in fact.Fields)
-            {
-                // 标识列不需要插入，别的类型都需要
-                if (fi.IsIdentity && !fact.AllowInsertIdentity) continue;
-
-                sbNames.Separate(", ").Append(fact.FormatName(fi.ColumnName));
-            }
-
-            var sbValues = Pool.StringBuilder.Get();
-            foreach (var entity in list)
-            {
-                (entity as EntityBase).Valid(true);
-
-                sbValues.Append("(");
-                var first = true;
-                foreach (var fi in fact.Fields)
-                {
-                    // 标识列不需要插入，别的类型都需要
-                    if (fi.IsIdentity && !fact.AllowInsertIdentity) continue;
-
-                    if (!first) sbValues.Append(",");
-                    first = false;
-
-                    var value = entity[fi.Name];
-                    //// 1，有脏数据的字段一定要参与同时对于实体有值的也应该参与（针对通过置空主键的方式另存）
-                    //if (value == null && !entity.Dirtys[fi.Name])
-                    //{
-                    //    // 2，没有脏数据，允许空的字段不参与
-                    //    // 4，没有脏数据，不允许空，没有默认值的参与，需要智能识别并添加相应字段的默认数据
-                    //    if (!fi.IsNullable) value = FormatParamValue(fi, null, op);
-                    //}
-                    sbValues.Append(fact.FormatValue(fi, value));
-                }
-                sbValues.Append("),");
-            }
-
-            var ns = sbNames.Put(true);
-            var vs = sbValues.Put(true).TrimEnd(",");
-
-            var sql = $"Insert Into {fact.FormatedTableName}({ns}) Values{vs}";
-
-            return fact.Session.Execute(sql);
         }
 
         /// <summary>把整个集合更新到数据库</summary>
@@ -290,6 +211,23 @@ namespace XCode
         /// <returns></returns>
         public static Int32 Save<T>(this IEnumerable<T> list, Boolean? useTransition = null) where T : IEntity
         {
+            // 避免列表内实体对象为空
+            var entity = list.FirstOrDefault(e => e != null);
+            if (entity == null) return 0;
+
+            var fact = entity.GetType().AsFactory();
+            var db = fact.Session.Dal.Db;
+
+            // Oracle/MySql批量插入
+            if (db.Type == DatabaseType.MySql || db.Type == DatabaseType.Oracle)
+            {
+                foreach (Object item in list)
+                {
+                    if (item is EntityBase entity2) entity2.Valid(entity2.IsNullKey);
+                }
+                return BatchSave(fact, list);
+            }
+
             return DoAction(list, useTransition, e => e.Save());
         }
 
@@ -299,7 +237,42 @@ namespace XCode
         /// <returns></returns>
         public static Int32 SaveWithoutValid<T>(this IEnumerable<T> list, Boolean? useTransition = null) where T : IEntity
         {
+            // 避免列表内实体对象为空
+            var entity = list.FirstOrDefault(e => e != null);
+            if (entity == null) return 0;
+
+            var fact = entity.GetType().AsFactory();
+            var db = fact.Session.Dal.Db;
+
+            // Oracle/MySql批量插入
+            if (db.Type == DatabaseType.MySql || db.Type == DatabaseType.Oracle) return BatchSave(fact, list);
+
             return DoAction(list, useTransition, e => e.SaveWithoutValid());
+        }
+
+        private static Int32 BatchSave<T>(IEntityOperate fact, IEnumerable<T> list) where T : IEntity
+        {
+            // 没有其它唯一索引，且主键为空时，走批量插入
+            var rs = 0;
+            if (!fact.Table.DataTable.Indexes.Any(di => di.Unique))
+            {
+                var adds = new List<T>();
+                var updates = new List<T>();
+                foreach (var item in list)
+                {
+                    if (item.IsNullKey)
+                        adds.Add(item);
+                    else
+                        updates.Add(item);
+                }
+                list = updates;
+
+                if (adds.Count > 0) rs += BatchInsert(adds);
+            }
+
+            if (list.Any()) rs += InsertOrUpdate(list);
+
+            return rs;
         }
 
         /// <summary>把整个集合从数据库中删除</summary>
@@ -324,30 +297,19 @@ namespace XCode
             // SQLite 批操作默认使用事务，其它数据库默认不使用事务
             if (useTransition == null) useTransition = fact.Session.Dal.DbType == DatabaseType.SQLite;
 
-            // 禁用自动关闭连接，提升批操作性能
-            var ss = fact.Session.Dal.Session;
-            ss.SetAutoClose(false);
-
             var count = 0;
-            try
+            if (useTransition != null && useTransition.Value)
             {
-                if (useTransition != null && useTransition.Value)
-                {
-                    using (var trans = fact.CreateTrans())
-                    {
-                        count = DoAction(list, func, count);
-
-                        trans.Commit();
-                    }
-                }
-                else
+                using (var trans = fact.CreateTrans())
                 {
                     count = DoAction(list, func, count);
+
+                    trans.Commit();
                 }
             }
-            finally
+            else
             {
-                ss.SetAutoClose(null);
+                count = DoAction(list, func, count);
             }
 
             return count;
@@ -362,6 +324,70 @@ namespace XCode
                 if (item != null) count += func(item);
             }
             return count;
+        }
+        #endregion
+
+        #region 批量更新
+        /// <summary>批量插入</summary>
+        /// <typeparam name="T">实体类型</typeparam>
+        /// <param name="columns">要插入的字段，默认所有字段</param>
+        /// <param name="list">实体列表</param>
+        /// <returns></returns>
+        public static Int32 BatchInsert<T>(this IEnumerable<T> list, IDataColumn[] columns = null) where T : IEntity
+        {
+            var entity = list.First();
+            var fact = entity.GetType().AsFactory();
+            if (columns == null) columns = fact.Fields.Select(e => e.Field).ToArray();
+
+            return fact.Session.Dal.Session.Insert(columns, list.Cast<IIndexAccessor>());
+        }
+
+        /// <summary>批量插入或更新</summary>
+        /// <typeparam name="T">实体类型</typeparam>
+        /// <param name="list">实体列表</param>
+        /// <param name="columns">要插入的字段，默认所有字段</param>
+        /// <param name="updateColumns">主键已存在时，要更新的字段</param>
+        /// <param name="addColumns">主键已存在时，要累加更新的字段</param>
+        /// <returns></returns>
+        public static Int32 InsertOrUpdate<T>(this IEnumerable<T> list, IDataColumn[] columns = null, ICollection<String> updateColumns = null, ICollection<String> addColumns = null) where T : IEntity
+        {
+            var entity = list.First();
+            var fact = entity.GetType().AsFactory();
+            if (columns == null) columns = fact.Fields.Select(e => e.Field).ToArray();
+            //if (updateColumns == null) updateColumns = entity.Dirtys.Keys;
+            if (updateColumns == null)
+            {
+                // 所有实体对象的脏字段作为更新字段
+                var hs = new HashSet<String>();
+                foreach (var item in list)
+                {
+                    foreach (var elm in item.Dirtys)
+                    {
+                        if (!hs.Contains(elm.Key)) hs.Add(elm.Key);
+                    }
+                }
+                updateColumns = hs;
+            }
+            if (addColumns == null) addColumns = fact.AdditionalFields;
+
+            return fact.Session.Dal.Session.InsertOrUpdate(columns, updateColumns, addColumns, list.Cast<IIndexAccessor>());
+        }
+
+        /// <summary>批量插入或更新</summary>
+        /// <typeparam name="T">实体类型</typeparam>
+        /// <param name="entity">实体对象</param>
+        /// <param name="columns">要插入的字段，默认所有字段</param>
+        /// <param name="updateColumns">主键已存在时，要更新的字段</param>
+        /// <param name="addColumns">主键已存在时，要累加更新的字段</param>
+        /// <returns></returns>
+        public static Int32 InsertOrUpdate<T>(this T entity, IDataColumn[] columns = null, ICollection<String> updateColumns = null, ICollection<String> addColumns = null) where T : IEntity
+        {
+            var fact = entity.GetType().AsFactory();
+            if (columns == null) columns = fact.Fields.Select(e => e.Field).ToArray();
+            if (updateColumns == null) updateColumns = entity.Dirtys.Keys;
+            if (addColumns == null) addColumns = fact.AdditionalFields;
+
+            return fact.Session.Dal.Session.InsertOrUpdate(columns, updateColumns, addColumns, new[] { entity as IIndexAccessor });
         }
         #endregion
     }

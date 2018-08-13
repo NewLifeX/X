@@ -25,15 +25,15 @@ namespace XCode
         #endregion
 
         #region 操作
-        /// <summary>把该对象持久化到数据库</summary>
+        /// <summary>添加</summary>
         /// <returns></returns>
         Int32 Insert();
 
-        /// <summary>更新数据库</summary>
+        /// <summary>更新</summary>
         /// <returns></returns>
         Int32 Update();
 
-        /// <summary>从数据库中删除该对象</summary>
+        /// <summary>删除</summary>
         /// <returns></returns>
         Int32 Delete();
 

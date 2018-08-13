@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using NewLife;
 using NewLife.Collections;
 using NewLife.Log;
+using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
 {
@@ -37,7 +38,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>是否SQL2012及以上</summary>
-        public Boolean IsSQL2012 { get { return Version.Major > 11; } }
+        public Boolean IsSQL2012 => Version.Major > 11;
 
         private Version _Version;
         /// <summary>是否SQL2005及以上</summary>
@@ -96,11 +97,11 @@ namespace XCode.DataAccessLayer
         #region 方法
         /// <summary>创建数据库会话</summary>
         /// <returns></returns>
-        protected override IDbSession OnCreateSession() { return new SqlServerSession(this); }
+        protected override IDbSession OnCreateSession() => new SqlServerSession(this);
 
         /// <summary>创建元数据对象</summary>
         /// <returns></returns>
-        protected override IMetaData OnCreateMetaData() { return new SqlServerMetaData(); }
+        protected override IMetaData OnCreateMetaData() => new SqlServerMetaData();
 
         public override Boolean Support(String providerName)
         {
@@ -333,7 +334,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>系统数据库名</summary>
-        public override String SystemDatabaseName { get { return "master"; } }
+        public override String SystemDatabaseName => "master";
 
         public override String FormatValue(IDataColumn field, Object value)
         {
@@ -416,6 +417,12 @@ namespace XCode.DataAccessLayer
             return base.InsertAndGetIdentity(sql, type, ps);
         }
         #endregion
+
+        #region 批量操作
+        public override Int32 Insert(IDataColumn[] columns, IEnumerable<IIndexAccessor> list) => throw new NotSupportedException();
+
+        public override Int32 InsertOrUpdate(IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list) => throw new NotSupportedException();
+        #endregion
     }
 
     /// <summary>SqlServer元数据</summary>
@@ -430,7 +437,7 @@ namespace XCode.DataAccessLayer
         ///// <summary>是否SQL2005</summary>
         //public Boolean IsSQL2005 { get { return (Database as SqlServer).IsSQL2005; } }
 
-        public Version Version { get { return (Database as SqlServer).Version; } }
+        public Version Version => (Database as SqlServer).Version;
 
         ///// <summary>0级类型</summary>
         //public String Level0type { get { return IsSQL2005 ? "SCHEMA" : "USER"; } }
@@ -708,10 +715,7 @@ namespace XCode.DataAccessLayer
             return sb.ToString();
         }
 
-        public override String DatabaseExistSQL(String dbname)
-        {
-            return String.Format("SELECT * FROM sysdatabases WHERE name = N'{0}'", dbname);
-        }
+        public override String DatabaseExistSQL(String dbname) => $"SELECT * FROM sysdatabases WHERE name = N'{dbname}'";
 
         /// <summary>使用数据架构确定数据库是否存在，因为使用系统视图可能没有权限</summary>
         /// <param name="dbname"></param>
@@ -722,45 +726,39 @@ namespace XCode.DataAccessLayer
             return dt != null && dt.Rows != null && dt.Rows.Count > 0;
         }
 
-        protected override Boolean DropDatabase(String databaseName)
-        {
-            //return base.DropDatabase(databaseName);
+        //protected override Boolean DropDatabase(String databaseName)
+        //{
+        //    //return base.DropDatabase(databaseName);
 
-            // SQL语句片段，断开该数据库所有链接
-            var sb = new StringBuilder();
-            sb.AppendLine("use master");
-            sb.AppendLine(";");
-            sb.AppendLine("declare   @spid   varchar(20),@dbname   varchar(20)");
-            sb.AppendLine("declare   #spid   cursor   for");
-            sb.AppendFormat("select   spid=cast(spid   as   varchar(20))   from   master..sysprocesses   where   dbid=db_id('{0}')", databaseName);
-            sb.AppendLine();
-            sb.AppendLine("open   #spid");
-            sb.AppendLine("fetch   next   from   #spid   into   @spid");
-            sb.AppendLine("while   @@fetch_status=0");
-            sb.AppendLine("begin");
-            sb.AppendLine("exec('kill   '+@spid)");
-            sb.AppendLine("fetch   next   from   #spid   into   @spid");
-            sb.AppendLine("end");
-            sb.AppendLine("close   #spid");
-            sb.AppendLine("deallocate   #spid");
+        //    // SQL语句片段，断开该数据库所有链接
+        //    var sb = new StringBuilder();
+        //    sb.AppendLine("use master");
+        //    sb.AppendLine(";");
+        //    sb.AppendLine("declare   @spid   varchar(20),@dbname   varchar(20)");
+        //    sb.AppendLine("declare   #spid   cursor   for");
+        //    sb.AppendFormat("select   spid=cast(spid   as   varchar(20))   from   master..sysprocesses   where   dbid=db_id('{0}')", databaseName);
+        //    sb.AppendLine();
+        //    sb.AppendLine("open   #spid");
+        //    sb.AppendLine("fetch   next   from   #spid   into   @spid");
+        //    sb.AppendLine("while   @@fetch_status=0");
+        //    sb.AppendLine("begin");
+        //    sb.AppendLine("exec('kill   '+@spid)");
+        //    sb.AppendLine("fetch   next   from   #spid   into   @spid");
+        //    sb.AppendLine("end");
+        //    sb.AppendLine("close   #spid");
+        //    sb.AppendLine("deallocate   #spid");
 
-            var count = 0;
-            var session = Database.CreateSession();
-            try
-            {
-                count = session.Execute(sb.ToString());
-            }
-            catch (Exception ex) { XTrace.WriteException(ex); }
-            return session.Execute(String.Format("Drop Database {0}", FormatName(databaseName))) > 0;
-        }
+        //    var count = 0;
+        //    var session = Database.CreateSession();
+        //    try
+        //    {
+        //        count = session.Execute(sb.ToString());
+        //    }
+        //    catch (Exception ex) { XTrace.WriteException(ex); }
+        //    return session.Execute(String.Format("Drop Database {0}", FormatName(databaseName))) > 0;
+        //}
 
-        public override String TableExistSQL(String tableName)
-        {
-            //if (IsSQL2005)
-            return String.Format("select * from sysobjects where xtype='U' and name='{0}'", tableName);
-            //else
-            //    return String.Format("SELECT * FROM sysobjects WHERE id = OBJECT_ID(N'[dbo].{0}') AND OBJECTPROPERTY(id, N'IsUserTable') = 1", FormatName(tableName));
-        }
+        public override String TableExistSQL(IDataTable table) => $"select * from sysobjects where xtype='U' and name='{table.TableName}'";
 
         /// <summary>使用数据架构确定数据表是否存在，因为使用系统视图可能没有权限</summary>
         /// <param name="table"></param>

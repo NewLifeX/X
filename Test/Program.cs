@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.MemoryMappedFiles;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -101,25 +102,46 @@ namespace Test
 
         static void Test2()
         {
+            var sb = new StringBuilder();
+            sb.Append("HelloWorld");
+            sb.Length--;
+            sb.Append("Stone");
+            Console.WriteLine(sb.ToString());
+
             //DAL.AddConnStr("Log", "Data Source=tcp://127.0.0.1/ORCL;User Id=scott;Password=tiger;UseParameter=true", null, "Oracle");
-            DAL.AddConnStr("Log", "Server=.;Port=3306;Database=Log;Uid=root;Pwd=root;", null, "MySql");
+            DAL.AddConnStr("Log", "Server=.;Port=3306;Database=times;Uid=root;Pwd=Pass@word;", null, "MySql");
+            DAL.AddConnStr("Membership", "Server=.;Port=3306;Database=times;Uid=root;Pwd=Pass@word;TablePrefix=xx_", null, "MySql");
 
-            var gs = Log.FindAll(null, null, null, 0, 10);
+            var gs = UserX.FindAll(null, null, null, 0, 10);
+            Console.WriteLine(gs.First().ToJson());
+            var count = UserX.FindCount();
+            Console.WriteLine("Count={0}", count);
 
-            //LogProvider.Provider.WriteLog("test", "新增", "学无先后达者为师");
-            var list = new List<Log>();
-            for (var i = 0; i < 10; i++)
+            LogProvider.Provider.WriteLog("test", "新增", "学无先后达者为师");
+            LogProvider.Provider.WriteLog("test", "新增", "学无先后达者为师");
+            LogProvider.Provider.WriteLog("test", "新增", "学无先后达者为师");
+
+            var list = new List<UserX>();
+            for (var i = 0; i < 4; i++)
             {
-                var log = new Log
+                var entity = new UserX
                 {
-                    Category = "test",
-                    Action = "测试",
-                    Remark = "内容" + i,
-                    //CreateTime = DateTime.Now
+                    Name = "Stone",
+                    DisplayName = "大石头",
+                    Logins = 1,
+                    LastLogin = DateTime.Now,
+                    RegisterTime = DateTime.Now
                 };
-                list.Add(log);
+                list.Add(entity);
+                //entity.SaveAsync();
+                entity.Save();
             }
-            list.Insert(true);
+            //list.Save();
+
+            count = UserX.FindCount();
+            Console.WriteLine("Count={0}", count);
+            gs = UserX.FindAll(null, null, null, 0, 10);
+            Console.WriteLine(gs.First().ToJson());
         }
 
         class CacheItem<TValue>
