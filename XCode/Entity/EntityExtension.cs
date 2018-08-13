@@ -225,7 +225,7 @@ namespace XCode
                 {
                     if (item is EntityBase entity2) entity2.Valid(entity2.IsNullKey);
                 }
-                return InsertOrUpdate(list);
+                return BatchSave(fact, list);
             }
 
             return DoAction(list, useTransition, e => e.Save());
@@ -245,9 +245,34 @@ namespace XCode
             var db = fact.Session.Dal.Db;
 
             // Oracle/MySql批量插入
-            if (db.Type == DatabaseType.MySql || db.Type == DatabaseType.Oracle) return InsertOrUpdate(list);
+            if (db.Type == DatabaseType.MySql || db.Type == DatabaseType.Oracle) return BatchSave(fact, list);
 
             return DoAction(list, useTransition, e => e.SaveWithoutValid());
+        }
+
+        private static Int32 BatchSave<T>(IEntityOperate fact, IEnumerable<T> list) where T : IEntity
+        {
+            // 没有其它唯一索引，且主键为空时，走批量插入
+            var rs = 0;
+            if (!fact.Table.DataTable.Indexes.Any(di => di.Unique))
+            {
+                var adds = new List<T>();
+                var updates = new List<T>();
+                foreach (var item in list)
+                {
+                    if (item.IsNullKey)
+                        adds.Add(item);
+                    else
+                        updates.Add(item);
+                }
+                list = updates;
+
+                if (adds.Count > 0) rs += BatchInsert(adds);
+            }
+
+            if (list.Any()) rs += InsertOrUpdate(list);
+
+            return rs;
         }
 
         /// <summary>把整个集合从数据库中删除</summary>
@@ -272,13 +297,7 @@ namespace XCode
             // SQLite 批操作默认使用事务，其它数据库默认不使用事务
             if (useTransition == null) useTransition = fact.Session.Dal.DbType == DatabaseType.SQLite;
 
-            // 禁用自动关闭连接，提升批操作性能
-            //var ss = fact.Session.Dal.Session;
-            //ss.SetAutoClose(false);
-
             var count = 0;
-            //try
-            //{
             if (useTransition != null && useTransition.Value)
             {
                 using (var trans = fact.CreateTrans())
@@ -292,11 +311,6 @@ namespace XCode
             {
                 count = DoAction(list, func, count);
             }
-            //}
-            //finally
-            //{
-            //    ss.SetAutoClose(null);
-            //}
 
             return count;
         }
