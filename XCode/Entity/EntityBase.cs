@@ -66,13 +66,7 @@ namespace XCode
         #endregion
 
         #region 获取/设置 字段值
-        /// <summary>
-        /// 获取/设置 字段值。
-        /// 一个索引，反射实现。
-        /// 派生实体类可重写该索引，以避免发射带来的性能损耗。
-        /// 基类已经实现了通用的快速访问，但是这里仍然重写，以增加控制，
-        /// 比如字段名是属性名前面加上_，并且要求是实体字段才允许这样访问，否则一律按属性处理。
-        /// </summary>
+        /// <summary>获取/设置 字段值</summary>
         /// <param name="name">字段名</param>
         /// <returns></returns>
         public abstract Object this[String name] { get; set; }
@@ -99,17 +93,17 @@ namespace XCode
             return b;
         }
 
-        /// <summary>设置脏数据项。如果某个键存在并且数据没有脏，则设置</summary>
-        /// <param name="name"></param>
-        /// <param name="value"></param>
-        /// <returns>返回是否成功设置了数据</returns>
-        public Boolean SetNoDirtyItem(String name, Object value)
-        {
-            var fact = EntityFactory.CreateOperate(GetType());
-            if (fact.FieldNames.Contains(name) && !Dirtys[name]) return SetItem(name, value);
+        ///// <summary>设置脏数据项。如果某个键存在并且数据没有脏，则设置</summary>
+        ///// <param name="name"></param>
+        ///// <param name="value"></param>
+        ///// <returns>返回是否成功设置了数据</returns>
+        //public Boolean SetNoDirtyItem(String name, Object value)
+        //{
+        //    var fact = EntityFactory.CreateOperate(GetType());
+        //    if (fact.FieldNames.Contains(name) && !Dirtys[name]) return SetItem(name, value);
 
-            return false;
-        }
+        //    return false;
+        //}
         #endregion
 
         #region 克隆
