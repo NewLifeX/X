@@ -14,6 +14,9 @@ namespace XCode
 
         /// <summary>扩展属性</summary>
         EntityExtend Extends { get; }
+
+        /// <summary>是否来自数据库。设置相同属性值时不改变脏数据</summary>
+        Boolean IsFromDatabase { get; }
         #endregion
 
         #region 空主键

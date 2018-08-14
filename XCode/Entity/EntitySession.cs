@@ -817,9 +817,7 @@ namespace XCode
         {
             var rs = Persistence.Insert(entity);
 
-            // 标记来自数据库
             var e = entity as TEntity;
-            e.MarkDb(true);
 
             // 加入实体缓存
             var ec = _cache;
@@ -853,9 +851,7 @@ namespace XCode
         {
             var rs = Persistence.Update(entity);
 
-            // 标记来自数据库
             var e = entity as TEntity;
-            e.MarkDb(true);
 
             // 更新缓存
             TEntity old = null;

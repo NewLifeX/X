@@ -23,10 +23,14 @@ namespace XCode
         #endregion
 
         #region 填充数据
-        /// <summary>填充数据完成时调用。默认设定标记<see cref="_IsFromDatabase"/></summary>
-        internal protected virtual void OnLoad() { MarkDb(true); }
+        /// <summary>填充数据完成时调用。默认设定标记<see cref="IsFromDatabase"/></summary>
+        protected virtual void OnLoad() => IsFromDatabase = true;
 
-        internal void MarkDb(Boolean flag) { _IsFromDatabase = flag; }
+        /// <summary>是否来自数据库。设置相同属性值时不改变脏数据</summary>
+        protected virtual Boolean IsFromDatabase { get; set; }
+
+        /// <summary>是否来自数据库。设置相同属性值时不改变脏数据</summary>
+        Boolean IEntity.IsFromDatabase => IsFromDatabase;
         #endregion
 
         #region 操作

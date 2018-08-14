@@ -147,6 +147,10 @@ namespace XCode
         protected virtual Int32 OnInsert()
         {
             var rs = Meta.Session.Insert(this);
+
+            // 标记来自数据库
+            IsFromDatabase = true;
+
             // 设置默认累加字段
             EntityAddition.SetField(this);
 
@@ -159,7 +163,15 @@ namespace XCode
 
         /// <summary>更新数据库，同时更新实体缓存</summary>
         /// <returns></returns>
-        protected virtual Int32 OnUpdate() => Meta.Session.Update(this);
+        protected virtual Int32 OnUpdate()
+        {
+            var rs = Meta.Session.Update(this);
+
+            // 标记来自数据库
+            IsFromDatabase = true;
+
+            return rs;
+        }
 
         /// <summary>删除数据，通过在事务中调用OnDelete实现。</summary>
         /// <remarks>
@@ -216,7 +228,7 @@ namespace XCode
             if (IsNullKey) return Insert();
 
             // 来自数据库直接Update
-            if (_IsFromDatabase)
+            if (IsFromDatabase)
             {
                 var pks = Meta.Table.PrimaryKeys;
                 if (pks.Length > 0 && pks.All(e => !Dirtys[e.Name])) return Update();
