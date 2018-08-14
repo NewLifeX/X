@@ -113,7 +113,7 @@ namespace Test
             DAL.AddConnStr("Membership", "Server=.;Port=3306;Database=times;Uid=root;Pwd=Pass@word;TablePrefix=xx_", null, "MySql");
 
             var gs = UserX.FindAll(null, null, null, 0, 10);
-            Console.WriteLine(gs.First().ToJson());
+            Console.WriteLine(gs.First().Logins);
             var count = UserX.FindCount();
             Console.WriteLine("Count={0}", count);
 
@@ -133,15 +133,19 @@ namespace Test
                     RegisterTime = DateTime.Now
                 };
                 list.Add(entity);
-                //entity.SaveAsync();
-                entity.InsertOrUpdate();
+                entity.SaveAsync();
+                //entity.InsertOrUpdate();
             }
             //list.Save();
+
+            var user = gs.First();
+            user.Logins++;
+            user.SaveAsync();
 
             count = UserX.FindCount();
             Console.WriteLine("Count={0}", count);
             gs = UserX.FindAll(null, null, null, 0, 10);
-            Console.WriteLine(gs.First().ToJson());
+            Console.WriteLine(gs.First().Logins);
         }
 
         class CacheItem<TValue>

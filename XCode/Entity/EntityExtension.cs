@@ -214,10 +214,18 @@ namespace XCode
         /// <returns></returns>
         public static Int32 Save<T>(this IEnumerable<T> list, Boolean? useTransition = null) where T : IEntity
         {
+            /*
+           * Save的几个场景：
+           * 1，Find, Update()
+           * 2，new, Insert()
+           * 3，new, InsertOrUpdate
+           */
+
             // 避免列表内实体对象为空
             var entity = list.FirstOrDefault(e => e != null);
             if (entity == null) return 0;
 
+            var rs = 0;
             if (list.Count() > 1)
             {
                 var fact = entity.GetType().AsFactory();
@@ -226,15 +234,19 @@ namespace XCode
                 // Oracle/MySql批量插入
                 if (db.Type == DatabaseType.MySql || db.Type == DatabaseType.Oracle)
                 {
-                    foreach (IEntity item in list)
+                    // 根据是否来自数据库，拆分为两组
+                    var ts = Split(list);
+                    list = ts.Item1;
+                    var es = ts.Item2;
+                    foreach (IEntity item in es)
                     {
                         if (item is EntityBase entity2) entity2.Valid(item.IsNullKey);
                     }
-                    return BatchSave(fact, list);
+                    rs += BatchSave(fact, es);
                 }
             }
 
-            return DoAction(list, useTransition, e => e.Save());
+            return rs + DoAction(list, useTransition, e => e.Save());
         }
 
         /// <summary>把整个保存更新到数据库，保存时不需要验证</summary>
@@ -247,16 +259,38 @@ namespace XCode
             var entity = list.FirstOrDefault(e => e != null);
             if (entity == null) return 0;
 
+            var rs = 0;
             if (list.Count() > 1)
             {
                 var fact = entity.GetType().AsFactory();
                 var db = fact.Session.Dal.Db;
 
                 // Oracle/MySql批量插入
-                if (db.Type == DatabaseType.MySql || db.Type == DatabaseType.Oracle) return BatchSave(fact, list);
+                if (db.Type == DatabaseType.MySql || db.Type == DatabaseType.Oracle)
+                {
+                    // 根据是否来自数据库，拆分为两组
+                    var ts = Split(list);
+                    list = ts.Item1;
+                    rs += BatchSave(fact, ts.Item2);
+                }
             }
 
-            return DoAction(list, useTransition, e => e.SaveWithoutValid());
+            return rs + DoAction(list, useTransition, e => e.SaveWithoutValid());
+        }
+
+        private static Tuple<IList<T>, IList<T>> Split<T>(IEnumerable<T> list) where T : IEntity
+        {
+            var updates = new List<T>();
+            var others = new List<T>();
+            foreach (var item in list)
+            {
+                if (item.IsFromDatabase)
+                    updates.Add(item);
+                else
+                    others.Add(item);
+            }
+
+            return new Tuple<IList<T>, IList<T>>(updates, others);
         }
 
         private static Int32 BatchSave<T>(IEntityOperate fact, IEnumerable<T> list) where T : IEntity
@@ -266,15 +300,15 @@ namespace XCode
             if (!fact.Table.DataTable.Indexes.Any(di => di.Unique))
             {
                 var adds = new List<T>();
-                var updates = new List<T>();
+                var others = new List<T>();
                 foreach (var item in list)
                 {
                     if (item.IsNullKey)
                         adds.Add(item);
                     else
-                        updates.Add(item);
+                        others.Add(item);
                 }
-                list = updates;
+                list = others;
 
                 if (adds.Count > 0) rs += BatchInsert(adds);
             }
@@ -349,20 +383,6 @@ namespace XCode
             if (columns == null) columns = fact.Fields.Select(e => e.Field).ToArray();
 
             return fact.Session.Dal.Session.Insert(columns, list.Cast<IIndexAccessor>());
-
-            //// 分批
-            //var batchSize = 5000;
-            //var rs = 0;
-            //var session = fact.Session.Dal.Session;
-            //for (var i = 0; i < list.Count();)
-            //{
-            //    var es = list.Skip(i).Take(batchSize).Cast<IIndexAccessor>().ToList();
-            //    rs += session.Insert(columns, es);
-
-            //    i += es.Count;
-            //}
-
-            //return rs;
         }
 
         /// <summary>批量插入或更新</summary>
@@ -397,20 +417,6 @@ namespace XCode
             if (addColumns == null) addColumns = fact.AdditionalFields;
 
             return fact.Session.Dal.Session.InsertOrUpdate(columns, updateColumns, addColumns, list.Cast<IIndexAccessor>());
-
-            //// 分批
-            //var batchSize = 5000;
-            //var rs = 0;
-            //var session = fact.Session.Dal.Session;
-            //for (var i = 0; i < list.Count();)
-            //{
-            //    var es = list.Skip(i).Take(batchSize).Cast<IIndexAccessor>().ToList();
-            //    rs += session.InsertOrUpdate(columns, updateColumns, addColumns, es);
-
-            //    i += es.Count;
-            //}
-
-            //return rs;
         }
 
         /// <summary>批量插入或更新</summary>
