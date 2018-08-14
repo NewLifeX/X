@@ -154,16 +154,7 @@ namespace XCode
 
             try
             {
-                // 分批保存
-                var batchSize = 5000;
-                for (var i = 0; i < list.Count;)
-                {
-                    var es = list.Skip(i).Take(batchSize).ToList();
-                    es.SaveWithoutValid();
-
-                    i += es.Count;
-                }
-                //list.SaveWithoutValid();
+                list.SaveWithoutValid();
             }
             catch (Exception ex)
             {

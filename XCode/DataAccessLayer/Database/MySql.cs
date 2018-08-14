@@ -347,17 +347,45 @@ namespace XCode.DataAccessLayer
         public override Int32 Insert(IDataColumn[] columns, IEnumerable<IIndexAccessor> list)
         {
             var table = columns.FirstOrDefault().Table;
-            var sql = GetBatchSql(table, columns, null, null, list);
+            //var sql = GetBatchSql(table, columns, null, null, list);
 
-            return Execute(sql);
+            //return Execute(sql);
+            
+            // 分批
+            var batchSize = 5000;
+            var rs = 0;
+            for (var i = 0; i < list.Count();)
+            {
+                var es = list.Skip(i).Take(batchSize).ToList();
+                var sql = GetBatchSql(table, columns, null, null, es);
+                rs += Execute(sql);
+
+                i += es.Count;
+            }
+
+            return rs;
         }
 
         public override Int32 InsertOrUpdate(IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list)
         {
             var table = columns.FirstOrDefault().Table;
-            var sql = GetBatchSql(table, columns, updateColumns, addColumns, list);
+            //var sql = GetBatchSql(table, columns, updateColumns, addColumns, list);
 
-            return Execute(sql);
+            //return Execute(sql);
+
+            // 分批
+            var batchSize = 5000;
+            var rs = 0;
+            for (var i = 0; i < list.Count();)
+            {
+                var es = list.Skip(i).Take(batchSize).ToList();
+                var sql = GetBatchSql(table, columns, updateColumns, addColumns, es);
+                rs += Execute(sql);
+
+                i += es.Count;
+            }
+
+            return rs;
         }
         #endregion
     }

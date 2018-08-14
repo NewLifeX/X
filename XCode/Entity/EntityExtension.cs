@@ -187,11 +187,14 @@ namespace XCode
             var entity = list.FirstOrDefault(e => e != null);
             if (entity == null) return 0;
 
-            var fact = entity.GetType().AsFactory();
-            var db = fact.Session.Dal.Db;
+            if (list.Count() > 1)
+            {
+                var fact = entity.GetType().AsFactory();
+                var db = fact.Session.Dal.Db;
 
-            // Oracle/MySql批量插入
-            if (db.Type == DatabaseType.MySql || db.Type == DatabaseType.Oracle) return BatchInsert(list);
+                // Oracle/MySql批量插入
+                if (db.Type == DatabaseType.MySql || db.Type == DatabaseType.Oracle) return BatchInsert(list);
+            }
 
             return DoAction(list, useTransition, e => e.Insert());
         }
@@ -215,17 +218,20 @@ namespace XCode
             var entity = list.FirstOrDefault(e => e != null);
             if (entity == null) return 0;
 
-            var fact = entity.GetType().AsFactory();
-            var db = fact.Session.Dal.Db;
-
-            // Oracle/MySql批量插入
-            if (db.Type == DatabaseType.MySql || db.Type == DatabaseType.Oracle)
+            if (list.Count() > 1)
             {
-                foreach (IEntity item in list)
+                var fact = entity.GetType().AsFactory();
+                var db = fact.Session.Dal.Db;
+
+                // Oracle/MySql批量插入
+                if (db.Type == DatabaseType.MySql || db.Type == DatabaseType.Oracle)
                 {
-                    if (item is EntityBase entity2) entity2.Valid(item.IsNullKey);
+                    foreach (IEntity item in list)
+                    {
+                        if (item is EntityBase entity2) entity2.Valid(item.IsNullKey);
+                    }
+                    return BatchSave(fact, list);
                 }
-                return BatchSave(fact, list);
             }
 
             return DoAction(list, useTransition, e => e.Save());
@@ -241,11 +247,14 @@ namespace XCode
             var entity = list.FirstOrDefault(e => e != null);
             if (entity == null) return 0;
 
-            var fact = entity.GetType().AsFactory();
-            var db = fact.Session.Dal.Db;
+            if (list.Count() > 1)
+            {
+                var fact = entity.GetType().AsFactory();
+                var db = fact.Session.Dal.Db;
 
-            // Oracle/MySql批量插入
-            if (db.Type == DatabaseType.MySql || db.Type == DatabaseType.Oracle) return BatchSave(fact, list);
+                // Oracle/MySql批量插入
+                if (db.Type == DatabaseType.MySql || db.Type == DatabaseType.Oracle) return BatchSave(fact, list);
+            }
 
             return DoAction(list, useTransition, e => e.SaveWithoutValid());
         }
@@ -340,6 +349,20 @@ namespace XCode
             if (columns == null) columns = fact.Fields.Select(e => e.Field).ToArray();
 
             return fact.Session.Dal.Session.Insert(columns, list.Cast<IIndexAccessor>());
+
+            //// 分批
+            //var batchSize = 5000;
+            //var rs = 0;
+            //var session = fact.Session.Dal.Session;
+            //for (var i = 0; i < list.Count();)
+            //{
+            //    var es = list.Skip(i).Take(batchSize).Cast<IIndexAccessor>().ToList();
+            //    rs += session.Insert(columns, es);
+
+            //    i += es.Count;
+            //}
+
+            //return rs;
         }
 
         /// <summary>批量插入或更新</summary>
@@ -366,7 +389,7 @@ namespace XCode
                         // 创建时间等字段不参与Update
                         if (elm.Key.StartsWithIgnoreCase("Create")) continue;
 
-                        if ( !hs.Contains(elm.Key)) hs.Add(elm.Key);
+                        if (!hs.Contains(elm.Key)) hs.Add(elm.Key);
                     }
                 }
                 updateColumns = hs;
@@ -374,6 +397,20 @@ namespace XCode
             if (addColumns == null) addColumns = fact.AdditionalFields;
 
             return fact.Session.Dal.Session.InsertOrUpdate(columns, updateColumns, addColumns, list.Cast<IIndexAccessor>());
+
+            //// 分批
+            //var batchSize = 5000;
+            //var rs = 0;
+            //var session = fact.Session.Dal.Session;
+            //for (var i = 0; i < list.Count();)
+            //{
+            //    var es = list.Skip(i).Take(batchSize).Cast<IIndexAccessor>().ToList();
+            //    rs += session.InsertOrUpdate(columns, updateColumns, addColumns, es);
+
+            //    i += es.Count;
+            //}
+
+            //return rs;
         }
 
         /// <summary>批量插入或更新</summary>
