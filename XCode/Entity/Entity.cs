@@ -212,14 +212,16 @@ namespace XCode
             return func();
         }
 
-        /// <summary>保存。根据主键检查数据库中是否已存在该对象，再决定调用Insert或Update</summary>
+        /// <summary>保存。Insert/Update/InsertOrUpdate</summary>
+        /// <remarks>
+        /// Save的几个场景：
+        /// 1，new, Insert()
+        /// 2，Find, Update()
+        /// 3，new, InsertOrUpdate
+        /// </remarks>
         /// <returns></returns>
         public override Int32 Save()
         {
-            //// Oracle/MySql批量插入
-            //var db = Meta.Session.Dal;
-            //if (db.DbType == DatabaseType.MySql || db.DbType == DatabaseType.Oracle) return this.InsertOrUpdate();
-
             // 优先使用自增字段判断
             var fi = Meta.Table.Identity;
             if (fi != null) return Convert.ToInt64(this[fi.Name]) > 0 ? Update() : Insert();
@@ -233,6 +235,10 @@ namespace XCode
                 var pks = Meta.Table.PrimaryKeys;
                 if (pks.Length > 0 && pks.All(e => !Dirtys[e.Name])) return Update();
             }
+
+            // Oracle/MySql批量插入
+            var db = Meta.Session.Dal;
+            if (db.DbType == DatabaseType.MySql || db.DbType == DatabaseType.Oracle) return this.InsertOrUpdate();
 
             return FindCount(Persistence.GetPrimaryCondition(this), null, null, 0, 0) > 0 ? Update() : Insert();
         }
