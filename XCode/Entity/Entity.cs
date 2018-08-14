@@ -215,26 +215,22 @@ namespace XCode
         /// <summary>保存。Insert/Update/InsertOrUpdate</summary>
         /// <remarks>
         /// Save的几个场景：
-        /// 1，new, Insert()
-        /// 2，Find, Update()
+        /// 1，Find, Update()
+        /// 2，new, Insert()
         /// 3，new, InsertOrUpdate
         /// </remarks>
         /// <returns></returns>
         public override Int32 Save()
         {
+            // 来自数据库直接Update
+            if (IsFromDatabase) return Update();
+
             // 优先使用自增字段判断
             var fi = Meta.Table.Identity;
             if (fi != null) return Convert.ToInt64(this[fi.Name]) > 0 ? Update() : Insert();
 
             // 如果唯一主键不为空，应该通过后面判断，而不是直接Update
             if (IsNullKey) return Insert();
-
-            // 来自数据库直接Update
-            if (IsFromDatabase)
-            {
-                var pks = Meta.Table.PrimaryKeys;
-                if (pks.Length > 0 && pks.All(e => !Dirtys[e.Name])) return Update();
-            }
 
             // Oracle/MySql批量插入
             var db = Meta.Session.Dal;
