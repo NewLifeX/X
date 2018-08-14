@@ -232,7 +232,10 @@ namespace XCode
         #region 主键为空
         /// <summary>主键是否为空</summary>
         [XmlIgnore, ScriptIgnore]
-        public Boolean IsNullKey => Helper.IsEntityNullKey(this);
+        Boolean IEntity.IsNullKey => Helper.IsEntityNullKey(this);
+
+        /// <summary>主键是否为空</summary>
+        protected Boolean IsNullKey => Helper.IsEntityNullKey(this);
 
         /// <summary>设置主键为空。Save将调用Insert</summary>
         void IEntity.SetNullKey()

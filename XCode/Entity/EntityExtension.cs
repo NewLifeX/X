@@ -221,9 +221,9 @@ namespace XCode
             // Oracle/MySql批量插入
             if (db.Type == DatabaseType.MySql || db.Type == DatabaseType.Oracle)
             {
-                foreach (Object item in list)
+                foreach (IEntity item in list)
                 {
-                    if (item is EntityBase entity2) entity2.Valid(entity2.IsNullKey);
+                    if (item is EntityBase entity2) entity2.Valid(item.IsNullKey);
                 }
                 return BatchSave(fact, list);
             }
