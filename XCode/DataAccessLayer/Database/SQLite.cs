@@ -448,7 +448,7 @@ namespace XCode.DataAccessLayer
 
                 #region 索引
                 var dis2 = Select(dis, "tbl_name", name);
-                for (var i = 0; i < dis2.Rows.Count; i++)
+                for (var i = 0; dis2?.Rows != null && i < dis2.Rows.Count; i++)
                 {
                     var di = table.CreateIndex();
                     di.Name = dis2.Get<String>(i, "name");
