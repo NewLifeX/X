@@ -79,6 +79,8 @@ namespace XCode
                 rs = DelayEntities.TryAdd(entity, TimerX.Now.AddMilliseconds(msDelay));
             if (!rs) return false;
 
+            Interlocked.Increment(ref _count);
+
             // 超过最大值时，堵塞一段时间，等待消费完成
             while (_count >= MaxEntity)
             {
@@ -127,11 +129,12 @@ namespace XCode
                 n += es.Count;
             }
 
-            _count = n;
+            //_count = n;
 
             if (list.Count > 0)
             {
-                _count -= list.Count;
+                //_count -= list.Count;
+                Interlocked.Add(ref _count, -list.Count);
 
                 Process(list);
             }
@@ -152,21 +155,35 @@ namespace XCode
 
             var sw = Stopwatch.StartNew();
 
-            try
+            // 分批
+            var batchSize = 5000;
+            for (var i = 0; i < list.Count();)
             {
-                list.SaveWithoutValid();
+                var batch = list.Skip(i).Take(batchSize).ToList();
+
+                try
+                {
+                    batch.SaveWithoutValid();
+                }
+                catch (Exception ex)
+                {
+                    // 保存失败，写回去
+                    foreach (var entity in list)
+                    {
+                        Entities.TryAdd(entity, entity);
+                    }
+                    Interlocked.Add(ref _count, list.Count);
+
+                    if (Error != null)
+                        Error(this, new EventArgs<Exception>(ex));
+                    else
+                        XTrace.WriteException(ex);
+                }
+
+                i += batch.Count;
             }
-            catch (Exception ex)
-            {
-                if (Error != null)
-                    Error(this, new EventArgs<Exception>(ex));
-                else
-                    XTrace.WriteException(ex);
-            }
-            finally
-            {
-                sw.Stop();
-            }
+
+            sw.Stop();
 
             // 根据繁忙程度动态调节
             // 大于1000个对象时，说明需要加快持久化间隔，缩小周期
