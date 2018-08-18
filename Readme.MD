@@ -28,11 +28,12 @@ XCode 支持 SqlServer、MySql、SQLite
 [序列化]:https://github.com/NewLifeX/X/tree/master/NewLife.Core/Serialization
 [服务代理]:https://github.com/NewLifeX/X/tree/master/NewLife.Core/Agent
 
-### 数据中间件 NewLife.XCode
+### 数据中间件 [NewLife.XCode]
 主要特点：  
 1，设计极致的缓存，超高性能  
 2，反向工程，根据实体类主动建立数据库表结构并初始化数据，支持8种数据库  
 3，无限分表分库，支持任意数据库，无需修改业务代码  
+[NewLife.XCode]:https://github.com/NewLifeX/X/tree/master/XCode
 
 ## 未来路线图
 1，魔方netcore版。需要尽快推出，其它所有组件都已经支持netcore  
