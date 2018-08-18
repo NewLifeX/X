@@ -198,7 +198,7 @@ namespace XCode.Configuration
                 if (_ExtendFieldNames != null) return _ExtendFieldNames;
 
                 var list = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
-                foreach (var item in Fields)
+                foreach (var item in AllFields)
                 {
                     if (!item.IsDataObjectField && !list.Contains(item.Name)) list.Add(item.Name);
                 }
