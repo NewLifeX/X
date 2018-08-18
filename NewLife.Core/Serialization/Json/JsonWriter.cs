@@ -9,7 +9,7 @@ using NewLife.Reflection;
 namespace NewLife.Serialization
 {
     /// <summary>Json写入器</summary>
-    internal class JsonWriter
+    public class JsonWriter
     {
         #region 属性
         /// <summary>使用UTC时间</summary>
@@ -25,12 +25,17 @@ namespace NewLife.Serialization
         #endregion
 
         #region 构造
+        /// <summary>实例化</summary>
         public JsonWriter()
         {
             UseUTCDateTime = false;
             NullValue = true;
         }
 
+        /// <summary>对象序列化为Json字符串</summary>
+        /// <param name="obj"></param>
+        /// <param name="indented"></param>
+        /// <returns></returns>
         public String ToJson(Object obj, Boolean indented = false)
         {
             WriteValue(obj);

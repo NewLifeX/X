@@ -7,7 +7,6 @@ using System.Threading;
 using NewLife;
 using NewLife.Log;
 using NewLife.Threading;
-using XCode.DataAccessLayer;
 
 namespace XCode
 {
@@ -80,6 +79,8 @@ namespace XCode
                 rs = DelayEntities.TryAdd(entity, TimerX.Now.AddMilliseconds(msDelay));
             if (!rs) return false;
 
+            Interlocked.Increment(ref _count);
+
             // 超过最大值时，堵塞一段时间，等待消费完成
             while (_count >= MaxEntity)
             {
@@ -128,11 +129,12 @@ namespace XCode
                 n += es.Count;
             }
 
-            _count = n;
+            //_count = n;
 
             if (list.Count > 0)
             {
-                _count -= list.Count;
+                //_count -= list.Count;
+                Interlocked.Add(ref _count, -list.Count);
 
                 Process(list);
             }
@@ -143,7 +145,6 @@ namespace XCode
             var list = state as ICollection<IEntity>;
             var ss = Session;
             var dal = ss.Dal;
-            var useTrans = dal.DbType == DatabaseType.SQLite;
 
             var speed = Speed;
             if (Debug || list.Count > 100_000)
@@ -152,44 +153,37 @@ namespace XCode
                 XTrace.WriteLine($"实体队列[{ss.TableName}/{ss.ConnName}]\t保存 {list.Count:n0}\t预测耗时 {cost:n0}ms");
             }
 
-            var rs = new List<Int32>();
             var sw = Stopwatch.StartNew();
 
-            // 开启事务保存
-            if (useTrans) dal.BeginTransaction();
-            try
+            // 分批
+            var batchSize = 5000;
+            for (var i = 0; i < list.Count();)
             {
-                // 禁用自动关闭连接
-                dal.Session.SetAutoClose(false);
+                var batch = list.Skip(i).Take(batchSize).ToList();
 
-                foreach (var item in list)
+                try
                 {
-                    try
+                    batch.SaveWithoutValid();
+                }
+                catch (Exception ex)
+                {
+                    // 保存失败，写回去
+                    foreach (var entity in list)
                     {
-                        // 加入队列时已经Valid一次，这里不需要再次Valid
-                        rs.Add(item.SaveWithoutValid());
+                        Entities.TryAdd(entity, entity);
                     }
-                    catch (Exception ex)
-                    {
-                        if (Error != null)
-                            Error(this, new EventArgs<Exception>(ex));
-                        else
-                            XTrace.WriteException(ex);
-                    }
+                    Interlocked.Add(ref _count, list.Count);
+
+                    if (Error != null)
+                        Error(this, new EventArgs<Exception>(ex));
+                    else
+                        XTrace.WriteException(ex);
                 }
 
-                if (useTrans) dal.Commit();
+                i += batch.Count;
             }
-            catch
-            {
-                if (useTrans) dal.Rollback();
-                throw;
-            }
-            finally
-            {
-                sw.Stop();
-                dal.Session.SetAutoClose(null);
-            }
+
+            sw.Stop();
 
             // 根据繁忙程度动态调节
             // 大于1000个对象时，说明需要加快持久化间隔，缩小周期

@@ -80,6 +80,17 @@ namespace XCode
         /// <returns>SQL字符串</returns>
         String GetSql(IEntity entity, DataObjectMethodType methodType);
         #endregion
+
+        #region 参数化
+        /// <summary>插入语句</summary>
+        /// <param name="factory"></param>
+        /// <returns></returns>
+        String InsertSQL(IEntityOperate factory);
+
+        ///// <summary>插入参数</summary>
+        ///// <param name="entity"></param>
+        //IList<IDataParameter> InsertParameters(IEntity entity);
+        #endregion
     }
 
     /// <summary>默认实体持久化</summary>
@@ -720,6 +731,54 @@ namespace XCode
             //return sb.ToString();
             return exp;
         }
+        #endregion
+
+        #region 参数化
+        /// <summary>插入语句</summary>
+        /// <param name="factory"></param>
+        /// <returns></returns>
+        public virtual String InsertSQL(IEntityOperate factory)
+        {
+            var op = factory;
+            var db = op.Session.Dal.Db;
+
+            var sbNames = Pool.StringBuilder.Get();
+            var sbValues = Pool.StringBuilder.Get();
+
+            foreach (var fi in op.Fields)
+            {
+                // 标识列不需要插入，别的类型都需要
+                if (fi.IsIdentity && !op.AllowInsertIdentity) continue;
+
+                sbNames.Separate(", ").Append(op.FormatName(fi.ColumnName));
+                sbValues.Separate(", ").Append(db.FormatParameterName(fi.Name));
+            }
+
+            var ns = sbNames.Put(true);
+            var vs = sbValues.Put(true);
+
+            return $"Insert Into {op.FormatedTableName}({ns}) Values({vs})";
+        }
+
+        ///// <summary>插入参数</summary>
+        ///// <param name="entity"></param>
+        //public virtual IList<IDataParameter> InsertParameters(IEntity entity)
+        //{
+        //    var op = entity.GetType().AsFactory();
+        //    var db = op.Session.Dal.Db;
+
+        //    var dps = new List<IDataParameter>();
+        //    foreach (var fi in op.Fields)
+        //    {
+        //        // 标识列不需要插入，别的类型都需要
+        //        if (fi.IsIdentity && !op.AllowInsertIdentity) continue;
+
+        //        var dp = db.CreateParameter(fi.Name, entity[fi.Name], fi.Field);
+        //        dps.Add(dp);
+        //    }
+
+        //    return dps;
+        //}
         #endregion
     }
 }

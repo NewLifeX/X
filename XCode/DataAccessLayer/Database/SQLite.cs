@@ -448,12 +448,14 @@ namespace XCode.DataAccessLayer
 
                 #region 索引
                 var dis2 = Select(dis, "tbl_name", name);
-                for (var i = 0; i < dis2.Rows.Count; i++)
+                for (var i = 0; dis2?.Rows != null && i < dis2.Rows.Count; i++)
                 {
                     var di = table.CreateIndex();
                     di.Name = dis2.Get<String>(i, "name");
 
                     sql = dis2.Get<String>(i, "sql");
+                    if (sql.IsNullOrEmpty()) continue;
+
                     if (sql.Contains(" UNIQUE ")) di.Unique = true;
 
                     di.Columns = sql.Substring("(", ")").Split(",").Select(e => e.Trim()).ToArray();
@@ -524,7 +526,7 @@ namespace XCode.DataAccessLayer
         /// <param name="dbname"></param>
         /// <param name="bakfile"></param>
         /// <param name="compressed"></param>
-        protected override String Backup(String dbname, String bakfile, Boolean compressed)
+        public override String Backup(String dbname, String bakfile, Boolean compressed)
         {
             var dbfile = FileName;
 
@@ -720,7 +722,7 @@ namespace XCode.DataAccessLayer
             base.CheckTable(entitytable, dbtable, mode);
         }
 
-        public override String CompactDatabaseSQL() => "VACUUM";
+        public override Int32 CompactDatabase() => Database.CreateSession().Execute("VACUUM");
         #endregion
     }
 }

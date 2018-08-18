@@ -246,7 +246,7 @@ namespace XCode
                     var init = this == Default;
                     if (init)
                     {
-                        BeginTrans();
+                        //BeginTrans();
                         try
                         {
                             if (Operate.Default is EntityBase entity)
@@ -257,13 +257,13 @@ namespace XCode
                                 //if (!task.Wait(ms) && DAL.Debug) DAL.WriteLog("{0}未能在{1:n0}ms内完成数据初始化 Task={2}", ThisType.Name, ms, task.Id);
                             }
 
-                            Commit();
+                            //Commit();
                         }
                         catch (Exception ex)
                         {
                             if (XTrace.Debug) XTrace.WriteLine("初始化数据出错！" + ex.ToString());
 
-                            Rollback();
+                            //Rollback();
                         }
                     }
                 });
@@ -817,9 +817,7 @@ namespace XCode
         {
             var rs = Persistence.Insert(entity);
 
-            // 标记来自数据库
             var e = entity as TEntity;
-            e.MarkDb(true);
 
             // 加入实体缓存
             var ec = _cache;
@@ -853,9 +851,7 @@ namespace XCode
         {
             var rs = Persistence.Update(entity);
 
-            // 标记来自数据库
             var e = entity as TEntity;
-            e.MarkDb(true);
 
             // 更新缓存
             TEntity old = null;

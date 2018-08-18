@@ -220,7 +220,7 @@ namespace XCode.Membership
         }
 
         /// <summary>加载权限字典</summary>
-        internal protected override void OnLoad()
+        protected override void OnLoad()
         {
             base.OnLoad();
 

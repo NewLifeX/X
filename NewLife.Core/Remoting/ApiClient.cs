@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Collections;
-using NewLife.Data;
 using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Net;
-using NewLife.Net.Handlers;
 using NewLife.Threading;
 
 namespace NewLife.Remoting
@@ -31,8 +28,8 @@ namespace NewLife.Remoting
         /// <summary>所有服务器所有会话，包含自己</summary>
         IApiSession[] IApiSession.AllSessions => new IApiSession[] { this };
 
-        /// <summary>调用超时时间。默认30_000ms</summary>
-        public Int32 Timeout { get; set; } = 30_000;
+        ///// <summary>调用超时时间。默认30_000ms</summary>
+        //public Int32 Timeout { get; set; } = 30_000;
 
         /// <summary>发送数据包统计信息</summary>
         public ICounter StatSend { get; set; }
@@ -88,10 +85,10 @@ namespace NewLife.Remoting
                 if (Encoder == null) Encoder = new JsonEncoder();
                 //if (Encoder == null) Encoder = new BinaryEncoder();
                 if (Handler == null) Handler = new ApiHandler { Host = this };
-                if (StatInvoke == null) StatInvoke = new PerfCounter();
-                if (StatProcess == null) StatProcess = new PerfCounter();
-                if (StatSend == null) StatSend = new PerfCounter();
-                if (StatReceive == null) StatReceive = new PerfCounter();
+                //if (StatInvoke == null) StatInvoke = new PerfCounter();
+                //if (StatProcess == null) StatProcess = new PerfCounter();
+                //if (StatSend == null) StatSend = new PerfCounter();
+                //if (StatReceive == null) StatReceive = new PerfCounter();
 
                 Encoder.Log = EncoderLog;
 
@@ -110,7 +107,15 @@ namespace NewLife.Remoting
                 ShowService();
 
                 var ms = StatPeriod * 1000;
-                if (ms > 0) _Timer = new TimerX(DoWork, null, ms, ms) { Async = true };
+                if (ms > 0)
+                {
+                    if (StatInvoke == null) StatInvoke = new PerfCounter();
+                    if (StatProcess == null) StatProcess = new PerfCounter();
+                    if (StatSend == null) StatSend = new PerfCounter();
+                    if (StatReceive == null) StatReceive = new PerfCounter();
+
+                    _Timer = new TimerX(DoWork, null, ms, ms) { Async = true };
+                }
 
                 return Active = true;
             }
@@ -219,22 +224,24 @@ namespace NewLife.Remoting
             return (TResult)await ApiHostHelper.InvokeAsync(this, client, typeof(TResult), act, args, flag);
         }
 
-        /// <summary>创建消息</summary>
-        /// <param name="pk"></param>
-        /// <returns></returns>
-        IMessage IApiSession.CreateMessage(Packet pk) => new DefaultMessage { Payload = pk };
+        ///// <summary>创建消息</summary>
+        ///// <param name="pk"></param>
+        ///// <returns></returns>
+        //IMessage IApiSession.CreateMessage(Packet pk) => new DefaultMessage { Payload = pk };
 
-        async Task<IMessage> IApiSession.SendAsync(IMessage msg)
+        async Task<Tuple<IMessage, Object>> IApiSession.SendAsync(IMessage msg)
         {
             Exception last = null;
+            ISocketClient client = null;
+
             var count = Servers.Length;
             for (var i = 0; i < count; i++)
             {
-                ISocketClient client = null;
                 try
                 {
                     client = Pool.Get();
-                    return (await client.SendMessageAsync(msg)) as IMessage;
+                    var rs = (await client.SendMessageAsync(msg)) as IMessage;
+                    return new Tuple<IMessage, Object>(rs, client);
                 }
                 catch (ApiException) { throw; }
                 catch (Exception ex)
@@ -248,6 +255,8 @@ namespace NewLife.Remoting
                     if (client != null) Pool.Put(client);
                 }
             }
+
+            if (ShowError) WriteLog("请求[{0}]错误！{1}", client, last?.GetTrue());
 
             throw last;
         }
@@ -361,11 +370,27 @@ namespace NewLife.Remoting
             client.StatSend = StatSend;
             client.StatReceive = StatReceive;
 
-            client.Add(new StandardCodec { Timeout = Timeout, UserPacket = false });
+            //client.Add(new StandardCodec { Timeout = Timeout, UserPacket = false });
+            client.Add(GetMessageCodec());
 
             client.Opened += (s, e) => OnNewSession(this, s);
+            client.Received += Client_Received;
 
             return client;
+        }
+
+        private void Client_Received(Object sender, ReceivedEventArgs e)
+        {
+            LastActive = DateTime.Now;
+
+            // Api解码消息得到Action和参数
+            var msg = e.Message as IMessage;
+            if (msg == null || msg.Reply) return;
+
+            var ss = sender as ISocketRemote;
+            var host = this as IApiHost;
+            var rs = host.Process(this, msg);
+            if (rs != null) ss?.SendMessage(rs);
         }
         #endregion
 

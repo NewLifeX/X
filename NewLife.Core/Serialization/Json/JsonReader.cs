@@ -8,12 +8,11 @@ using NewLife.Reflection;
 namespace NewLife.Serialization
 {
     /// <summary>Json读取器</summary>
-    internal class JsonReader
+    public class JsonReader
     {
         #region 属性
         /// <summary>是否使用UTC时间</summary>
         public Boolean UseUTCDateTime { get; set; }
-
         #endregion
 
         #region 构造

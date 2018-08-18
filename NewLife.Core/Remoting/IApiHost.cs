@@ -1,12 +1,12 @@
 ﻿using System;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Net;
+using NewLife.Net.Handlers;
 using NewLife.Reflection;
 
 namespace NewLife.Remoting
@@ -22,6 +22,10 @@ namespace NewLife.Remoting
 
         /// <summary>接口动作管理器</summary>
         IApiManager Manager { get; }
+
+        /// <summary>获取消息编码器。重载以指定不同的封包协议</summary>
+        /// <returns></returns>
+        IHandler GetMessageCodec();
 
         /// <summary>处理消息</summary>
         /// <param name="session"></param>
@@ -72,11 +76,16 @@ namespace NewLife.Remoting
             var msg = new DefaultMessage { Payload = pk, };
             if (flag > 0) msg.Flag = flag;
 
+            var invoker = session;
             IMessage rs = null;
             try
             {
                 if (session is IApiSession ss)
-                    rs = await ss.SendAsync(msg);
+                {
+                    var rs2 = await ss.SendAsync(msg);
+                    rs = rs2.Item1;
+                    if (rs2.Item2 != null) invoker = rs2.Item2;
+                }
                 else if (session is ISocketRemote client)
                     rs = (await client.SendMessageAsync(msg)) as IMessage;
                 else
@@ -109,7 +118,7 @@ namespace NewLife.Remoting
             if (!Decode(rs, out var act, out var code, out var data)) throw new InvalidOperationException();
 
             // 是否成功
-            if (code != 0) throw new ApiException(code, data.ToStr());
+            if (code != 0) throw new ApiException(code, $"远程[{invoker}]错误！ {data.ToStr()}");
 
             if (data == null) return null;
             if (resultType == typeof(Packet)) return data;

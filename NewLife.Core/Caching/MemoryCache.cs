@@ -311,7 +311,7 @@ namespace NewLife.Caching
         /// <returns></returns>
         public override IProducerConsumer<T> GetQueue<T>(String key)
         {
-            var item = GetOrAddItem(key, k => new MemoryQueue<T>(new ConcurrentQueue<T>()));
+            var item = GetOrAddItem(key, k => new MemoryQueue<T>());
             return item.Visit() as IProducerConsumer<T>;
         }
 
@@ -552,10 +552,15 @@ namespace NewLife.Caching
 
     /// <summary>生产者消费者</summary>
     /// <typeparam name="T"></typeparam>
-    class MemoryQueue<T> : IProducerConsumer<T>
+    public class MemoryQueue<T> : IProducerConsumer<T>
     {
         private IProducerConsumerCollection<T> _Collection;
 
+        /// <summary>实例化内存队列</summary>
+        public MemoryQueue() => _Collection = new ConcurrentQueue<T>();
+
+        /// <summary>实例化内存队列</summary>
+        /// <param name="collection"></param>
         public MemoryQueue(IProducerConsumerCollection<T> collection) => _Collection = collection;
 
         /// <summary>生产添加</summary>
