@@ -426,7 +426,7 @@ namespace XCode
         /// <param name="updateColumns">主键已存在时，要更新的字段</param>
         /// <param name="addColumns">主键已存在时，要累加更新的字段</param>
         /// <returns></returns>
-        public static Int32 InsertOrUpdate<T>(this T entity, IDataColumn[] columns = null, ICollection<String> updateColumns = null, ICollection<String> addColumns = null) where T : IEntity
+        public static Int32 InsertOrUpdate(this IEntity entity, IDataColumn[] columns = null, ICollection<String> updateColumns = null, ICollection<String> addColumns = null)
         {
             var fact = entity.GetType().AsFactory();
             if (columns == null) columns = fact.Fields.Select(e => e.Field).ToArray();
