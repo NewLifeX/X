@@ -334,6 +334,8 @@
       <DependentUpon>SerialPortList.cs</DependentUpon>
     </EmbeddedResource>
     <Compile Include="Extension\EndPointExtensions.cs" />
+    <None Include="Log\Readme.md" />
+    <None Include="Net\Readme.md" />
     <None Include="Remoting\ApiClient.cd" />
     <None Include="Remoting\ApiServer.cd" />
     <None Include="X组件.txt" />
