@@ -141,7 +141,7 @@ namespace XCode.Membership
             if (model.Level > 0 && model.Time > DateTime.MinValue) exp &= _.Time == model.GetDate(model.Level);
             if (!model.Page.IsNullOrEmpty()) exp &= _.Page == model.Page;
 
-            exp &= _.CreateTime.Between(start, end);
+            exp &= _.Time.Between(start, end);
 
             return FindAll(exp, param);
         }

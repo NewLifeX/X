@@ -773,8 +773,6 @@ namespace XCode.DataAccessLayer
         /// <param name="sql"></param>
         public void WriteSQL(String sql)
         {
-            if (!ShowSQL) return;
-
 #if !__CORE__
             // 如果页面设定有XCode_SQLList列表，则往列表写入SQL语句
             var context = HttpContext.Current;
@@ -783,6 +781,8 @@ namespace XCode.DataAccessLayer
                 if (context.Items["XCode_SQLList"] is List<String> list) list.Add(sql);
             }
 #endif
+
+            if (!ShowSQL) return;
 
             var sqlpath = Setting.Current.SQLPath;
             if (String.IsNullOrEmpty(sqlpath))
@@ -834,7 +834,17 @@ namespace XCode.DataAccessLayer
 
         public void WriteSQL(DbCommand cmd)
         {
-            if (!ShowSQL) return;
+            var flag = ShowSQL;
+#if !__CORE__
+            // 如果页面设定有XCode_SQLList列表，则往列表写入SQL语句
+            var context = HttpContext.Current;
+            if (context != null)
+            {
+                if (context.Items["XCode_SQLList"] is List<String> list) flag = true;
+            }
+#endif
+
+            if (!flag) return;
 
             //var sql = cmd.CommandText;
             //if (cmd.CommandType != CommandType.Text) sql = String.Format("[{0}]{1}", cmd.CommandType, sql);
