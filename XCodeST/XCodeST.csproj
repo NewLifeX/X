@@ -140,6 +140,8 @@
     <Compile Include="..\XCode\Membership\菜单.cs" Link="Membership\菜单.cs" />
     <Compile Include="..\XCode\Membership\角色.Biz.cs" Link="Membership\角色.Biz.cs" />
     <Compile Include="..\XCode\Membership\角色.cs" Link="Membership\角色.cs" />
+    <Compile Include="..\XCode\Membership\访问统计.Biz.cs" Link="Membership\访问统计.Biz.cs" />
+    <Compile Include="..\XCode\Membership\访问统计.cs" Link="Membership\访问统计.cs" />
     <Compile Include="..\XCode\Model\ConcatExpression.cs" Link="Model\ConcatExpression.cs" />
     <Compile Include="..\XCode\Model\Expression.cs" Link="Model\Expression.cs" />
     <Compile Include="..\XCode\Model\FieldExpression.cs" Link="Model\FieldExpression.cs" />
@@ -155,6 +157,10 @@
     <Compile Include="..\XCode\Setting.cs" Link="Setting.cs" />
     <Compile Include="..\XCode\Sharding\分片.Biz.cs" Link="Sharding\分片.Biz.cs" />
     <Compile Include="..\XCode\Sharding\分片.cs" Link="Sharding\分片.cs" />
+    <Compile Include="..\XCode\Statistics\IStat.cs" Link="Statistics\IStat.cs" />
+    <Compile Include="..\XCode\Statistics\StatHelper.cs" Link="Statistics\StatHelper.cs" />
+    <Compile Include="..\XCode\Statistics\StatLevels.cs" Link="Statistics\StatLevels.cs" />
+    <Compile Include="..\XCode\Statistics\StatModel.cs" Link="Statistics\StatModel.cs" />
     <Compile Include="..\XCode\Transform\DataContext.cs" Link="Transform\DataContext.cs" />
     <Compile Include="..\XCode\Transform\EntityTransform.cs" Link="Transform\EntityTransform.cs" />
     <Compile Include="..\XCode\Transform\ETL.cs" Link="Transform\ETL.cs" />
@@ -195,6 +201,7 @@
     <Folder Include="Web\" />
     <Folder Include="Extension\" />
     <Folder Include="Service\" />
+    <Folder Include="Statistics\" />
   </ItemGroup>
 
   <ItemGroup>
