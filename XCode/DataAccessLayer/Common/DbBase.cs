@@ -343,7 +343,7 @@ namespace XCode.DataAccessLayer
                 linkName += ";" + name;
 
 #if __CORE__
-                linkName = "st_" + name;
+                //linkName = "st_" + name;
                 if (!name.IsNullOrEmpty())
                 {
                     className = className + "," + name;//指定完全类型名可获取项目中添加了引用的类型，否则dll文件需要放在根目录

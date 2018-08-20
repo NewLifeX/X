@@ -1,15 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using System.Net.NetworkInformation;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using Microsoft.Data.Sqlite;
-using Microsoft.Extensions.Configuration;
 using NewLife.Log;
 using NewLife.Net;
-using NewLife.Remoting;
-using NewLife.Serialization;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 
