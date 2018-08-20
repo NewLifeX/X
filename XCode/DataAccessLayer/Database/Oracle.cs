@@ -3,13 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using NewLife.Collections;
-using NewLife.Net;
 using NewLife.Reflection;
 using XCode.Common;
 
@@ -31,7 +28,11 @@ namespace XCode.DataAccessLayer
                 {
                     lock (typeof(Oracle))
                     {
-                        if (_Factory == null) _Factory = GetProviderFactory("Oracle.ManagedDataAccess.dll", "Oracle.ManagedDataAccess.Client.OracleClientFactory");
+#if __CORE__
+                        _Factory = GetProviderFactory("System.Data.OracleClient.dll", "System.Data.OracleClient.OracleClientFactory");
+#else
+                        _Factory = GetProviderFactory("Oracle.ManagedDataAccess.dll", "Oracle.ManagedDataAccess.Client.OracleClientFactory");
+#endif
                     }
                 }
 
