@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using NewLife;
-using NewLife.Collections;
-using NewLife.Model;
 using NewLife.Reflection;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
@@ -190,10 +188,10 @@ namespace XCode
             if (list.Count() > 1)
             {
                 var fact = entity.GetType().AsFactory();
-                var db = fact.Session.Dal.Db;
+                var db = fact.Session.Dal;
 
                 // Oracle/MySql批量插入
-                if (db.Type == DatabaseType.MySql || db.Type == DatabaseType.Oracle) return BatchInsert(list);
+                if (db.SupportBatch) return BatchInsert(list);
             }
 
             return DoAction(list, useTransition, e => e.Insert());
@@ -229,10 +227,10 @@ namespace XCode
             if (list.Count() > 1)
             {
                 var fact = entity.GetType().AsFactory();
-                var db = fact.Session.Dal.Db;
+                var db = fact.Session.Dal;
 
                 // Oracle/MySql批量插入
-                if (db.Type == DatabaseType.MySql || db.Type == DatabaseType.Oracle)
+                if (db.SupportBatch)
                 {
                     // 根据是否来自数据库，拆分为两组
                     var ts = Split(list);
@@ -263,10 +261,10 @@ namespace XCode
             if (list.Count() > 1)
             {
                 var fact = entity.GetType().AsFactory();
-                var db = fact.Session.Dal.Db;
+                var db = fact.Session.Dal;
 
                 // Oracle/MySql批量插入
-                if (db.Type == DatabaseType.MySql || db.Type == DatabaseType.Oracle)
+                if (db.SupportBatch)
                 {
                     // 根据是否来自数据库，拆分为两组
                     var ts = Split(list);

@@ -234,7 +234,7 @@ namespace XCode
 
             // Oracle/MySql批量插入
             var db = Meta.Session.Dal;
-            if (db.DbType == DatabaseType.MySql || db.DbType == DatabaseType.Oracle) return this.InsertOrUpdate();
+            if (db.SupportBatch) return this.InsertOrUpdate();
 
             return FindCount(Persistence.GetPrimaryCondition(this), null, null, 0, 0) > 0 ? Update() : Insert();
         }
