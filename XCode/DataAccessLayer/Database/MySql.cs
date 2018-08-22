@@ -286,7 +286,7 @@ namespace XCode.DataAccessLayer
             sb.AppendFormat("Insert Into {0}(", db.FormatTableName(table.TableName));
             foreach (var dc in columns)
             {
-                if (dc.Identity || dc.PrimaryKey) continue;
+                if (dc.Identity) continue;
 
                 sb.Append(db.FormatName(dc.ColumnName));
                 sb.Append(",");
@@ -301,7 +301,7 @@ namespace XCode.DataAccessLayer
                 sb.Append("(");
                 foreach (var dc in columns)
                 {
-                    if (dc.Identity || dc.PrimaryKey) continue;
+                    if (dc.Identity) continue;
 
                     var value = entity[dc.Name];
                     sb.Append(db.FormatValue(dc, value));
@@ -350,7 +350,7 @@ namespace XCode.DataAccessLayer
             //var sql = GetBatchSql(table, columns, null, null, list);
 
             //return Execute(sql);
-            
+
             // 分批
             var batchSize = 5000;
             var rs = 0;
