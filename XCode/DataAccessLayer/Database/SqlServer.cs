@@ -419,9 +419,138 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 批量操作
-        public override Int32 Insert(IDataColumn[] columns, IEnumerable<IIndexAccessor> list) => throw new NotSupportedException();
+        public override Int32 Insert(IDataColumn[] columns, IEnumerable<IIndexAccessor> list)
+        {
+            var ps = new HashSet<String>();
+            var sql = GetInsertSql(columns, ps);
+            var dps = GetParameters(columns, ps, list);
 
-        public override Int32 InsertOrUpdate(IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list) => throw new NotSupportedException();
+            return Execute(sql, CommandType.Text, dps);
+        }
+
+        private String GetInsertSql(IDataColumn[] columns, ICollection<String> ps)
+        {
+            var table = columns.FirstOrDefault().Table;
+            var sb = Pool.StringBuilder.Get();
+            var db = Database as DbBase;
+
+            // 字段列表
+            sb.AppendFormat("Insert Into {0}(", db.FormatTableName(table.TableName));
+            foreach (var dc in columns)
+            {
+                if (dc.Identity) continue;
+
+                sb.Append(db.FormatName(dc.ColumnName));
+                sb.Append(",");
+            }
+            sb.Length--;
+            sb.Append(")");
+
+            // 值列表
+            sb.Append(" Values(");
+            foreach (var dc in columns)
+            {
+                if (dc.Identity) continue;
+
+                sb.Append(db.FormatParameterName(dc.Name));
+                sb.Append(",");
+
+                if (!ps.Contains(dc.Name)) ps.Add(dc.Name);
+            }
+            sb.Length--;
+            sb.Append(")");
+
+            return sb.Put(true);
+        }
+
+        private IDataParameter[] GetParameters(IDataColumn[] columns, ICollection<String> ps, IEnumerable<IIndexAccessor> list)
+        {
+            var db = Database;
+            var dps = new List<IDataParameter>();
+            foreach (var dc in columns)
+            {
+                if (dc.Identity) continue;
+                if (!ps.Contains(dc.Name)) continue;
+
+                var vs = new List<Object>();
+                foreach (var entity in list)
+                {
+                    vs.Add(entity[dc.Name]);
+                }
+                var dp = db.CreateParameter(dc.Name, vs.ToArray(), dc);
+
+                dps.Add(dp);
+            }
+
+            return dps.ToArray();
+        }
+
+        public override Int32 InsertOrUpdate(IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list)
+        {
+            var ps = new HashSet<String>();
+            var insert = GetInsertSql(columns, ps);
+            var update = GetUpdateSql(columns, updateColumns, addColumns, ps);
+
+            // 先更新，根据更新结果影响的条目数判断是否需要插入
+            var sb = Pool.StringBuilder.Get();
+            sb.Append(update);
+            sb.AppendLine(";");
+            sb.AppendLine("IF(@@ROWCOUNT = 0)");
+            sb.AppendLine("BEGIN");
+            sb.Append(insert);
+            sb.AppendLine(";");
+            sb.AppendLine("END;");
+            var sql = sb.Put(true);
+
+            var dps = GetParameters(columns, ps, list);
+
+            return Execute(sql, CommandType.Text, dps);
+        }
+
+        private String GetUpdateSql(IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, ICollection<String> ps)
+        {
+            var table = columns.FirstOrDefault().Table;
+            var sb = Pool.StringBuilder.Get();
+            var db = Database as DbBase;
+
+            // 字段列表
+            sb.AppendFormat("Update {0} Set ", db.FormatTableName(table.TableName));
+            foreach (var dc in columns)
+            {
+                if (dc.Identity || dc.PrimaryKey) continue;
+
+                if (updateColumns != null && updateColumns.Contains(dc.Name))
+                {
+                    sb.AppendFormat("{0}={1}", db.FormatName(dc.ColumnName), db.FormatParameterName(dc.Name));
+
+                    if (!ps.Contains(dc.Name)) ps.Add(dc.Name);
+                }
+                else if (addColumns != null && addColumns.Contains(dc.Name))
+                {
+                    sb.AppendFormat("{0}={0}+{1}", db.FormatName(dc.ColumnName), db.FormatParameterName(dc.Name));
+
+                    if (!ps.Contains(dc.Name)) ps.Add(dc.Name);
+                }
+                sb.Append(",");
+            }
+            sb.Length--;
+            sb.Append(")");
+
+            // 条件
+            sb.Append(" Where ");
+            foreach (var dc in columns)
+            {
+                if (!dc.PrimaryKey) continue;
+
+                sb.AppendFormat("{0}={1}", db.FormatName(dc.ColumnName), db.FormatParameterName(dc.Name));
+                sb.Append(" And ");
+
+                if (!ps.Contains(dc.Name)) ps.Add(dc.Name);
+            }
+            sb.Length -= " And ".Length;
+
+            return sb.Put(true);
+        }
         #endregion
     }
 
