@@ -37,8 +37,18 @@ namespace XCode.DataAccessLayer
                                 _Factory = GetProviderFactory("Mono.Data.Sqlite.dll", "Mono.Data.Sqlite.SqliteFactory");
                             else
                             {
+                                //_Factory = GetProviderFactory(null, "System.Data.SQLite.SQLiteFactory", true);
 #if __CORE__
-                                _Factory = GetProviderFactory("Microsoft.Data.Sqlite.dll", "Microsoft.Data.Sqlite.SqliteFactory", true);
+                                _Factory = GetProviderFactory(null, "System.Data.SQLite.SQLiteFactory", true);
+                                if (_Factory != null)
+                                {
+                                    // 加载子目录
+                                    var plugin = NewLife.Setting.Current.GetPluginPath();
+                                }
+                                else
+                                {
+                                    _Factory = GetProviderFactory("Microsoft.Data.Sqlite.dll", "Microsoft.Data.Sqlite.SqliteFactory", true);
+                                }
 #else
                                 //_Factory = GetProviderFactory(null, "Microsoft.Data.Sqlite.SqliteFactory");
 #endif
