@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using NewLife.Log;
 using NewLife.Net;
 using XCode.DataAccessLayer;
@@ -75,8 +77,43 @@ namespace TestST
 
         static void Test4()
         {
-            var list = Role.FindAll();
-            Console.WriteLine(list.Count);
+            //var list = Role.FindAll();
+            //Console.WriteLine(list.Count);
+
+            var gs = UserX.FindAll(null, null, null, 0, 10);
+            Console.WriteLine(gs.First().Logins);
+            var count = UserX.FindCount();
+            Console.WriteLine("Count={0}", count);
+
+            LogProvider.Provider.WriteLog("test", "新增", "学无先后达者为师");
+            LogProvider.Provider.WriteLog("test", "新增", "学无先后达者为师");
+            LogProvider.Provider.WriteLog("test", "新增", "学无先后达者为师");
+
+            var list = new List<UserX>();
+            for (var i = 0; i < 4; i++)
+            {
+                var entity = new UserX
+                {
+                    Name = "Stone",
+                    DisplayName = "大石头",
+                    Logins = 1,
+                    LastLogin = DateTime.Now,
+                    RegisterTime = DateTime.Now
+                };
+                list.Add(entity);
+                entity.SaveAsync();
+                //entity.InsertOrUpdate();
+            }
+            //list.Save();
+
+            var user = gs.First();
+            user.Logins++;
+            user.SaveAsync();
+
+            count = UserX.FindCount();
+            Console.WriteLine("Count={0}", count);
+            gs = UserX.FindAll(null, null, null, 0, 10);
+            Console.WriteLine(gs.First().Logins);
         }
     }
 }

@@ -33,7 +33,8 @@ namespace XCode.DataAccessLayer
 #endif
 
             // 根据进程版本，设定x86或者x64为DLL目录
-            var dir = root.CombinePath(!Environment.Is64BitProcess ? "x86" : "x64");
+            var dir = Environment.Is64BitProcess ? "x64" : "x86";
+            dir = root.CombinePath(dir);
             //if (Directory.Exists(dir)) SetDllDirectory(dir);
             // 不要判断是否存在，因为可能目录还不存在，一会下载驱动后将创建目录
 #if __CORE__
@@ -42,9 +43,9 @@ namespace XCode.DataAccessLayer
             if (!Runtime.Mono) SetDllDirectory(dir);
 #endif
 
-
             root = NewLife.Setting.Current.GetPluginPath();
-            dir = root.CombinePath(!Environment.Is64BitProcess ? "x86" : "x64");
+            dir = Environment.Is64BitProcess ? "x64" : "x86";
+            dir = root.CombinePath(dir);
 #if __CORE__
             if (!Runtime.Mono && !Runtime.Linux) SetDllDirectory(dir);
 #else
@@ -334,27 +335,44 @@ namespace XCode.DataAccessLayer
         {
             try
             {
+                var links = new List<String>();
                 var name = Path.GetFileNameWithoutExtension(assemblyFile);
-                var linkName = name;
-#if __CORE__
-                linkName += ".netstandard";
-#else
-                if (Environment.Is64BitProcess) linkName += "64";
-                var ver = Environment.Version;
-                if (ver.Major >= 4) linkName += "Fx" + ver.Major + ver.Minor;
-#endif
-                // 有些数据库驱动不区分x86/x64，并且逐步以Fx4为主，所以来一个默认
-                linkName += ";" + name;
-
-#if __CORE__
-                //linkName = "st_" + name;
                 if (!name.IsNullOrEmpty())
                 {
-                    className = className + "," + name;//指定完全类型名可获取项目中添加了引用的类型，否则dll文件需要放在根目录
-                }
-#endif
+                    var linkName = name;
+#if __CORE__
+                    if (Runtime.Linux)
+                    {
+                        linkName += Environment.Is64BitProcess ? ".linux-x64" : ".linux-x86";
+                        links.Add(linkName);
+                        links.Add(name + ".linux");
+                    }
+                    else
+                    {
+                        linkName += Environment.Is64BitProcess ? ".win-x64" : ".win-x86";
+                        links.Add(linkName);
+                        links.Add(name + ".win");
+                    }
 
-                var type = PluginHelper.LoadPlugin(className, null, assemblyFile, linkName);
+                    linkName = name + ".netstandard";
+#else
+                    if (Environment.Is64BitProcess) linkName += "64";
+                    var ver = Environment.Version;
+                    if (ver.Major >= 4) linkName += "Fx" + ver.Major + ver.Minor;
+#endif
+                    links.Add(linkName);
+                    // 有些数据库驱动不区分x86/x64，并且逐步以Fx4为主，所以来一个默认
+                    //linkName += ";" + name;
+                    if (links.Contains(name)) links.Add(name);
+
+#if __CORE__
+                    //linkName = "st_" + name;
+                    // 指定完全类型名可获取项目中添加了引用的类型，否则dll文件需要放在根目录
+                    className = className + "," + name;
+#endif
+                }
+
+                var type = PluginHelper.LoadPlugin(className, null, assemblyFile, links.Join(","));
 
                 // 反射实现获取数据库工厂
                 var file = assemblyFile;
@@ -379,7 +397,7 @@ namespace XCode.DataAccessLayer
                     catch (UnauthorizedAccessException) { }
                     catch (Exception ex) { XTrace.Log.Error(ex.ToString()); }
 
-                    type = PluginHelper.LoadPlugin(className, null, file, linkName);
+                    type = PluginHelper.LoadPlugin(className, null, file, links.Join(","));
 
                     // 如果还没有，就写异常
                     if (!File.Exists(file)) throw new FileNotFoundException("缺少文件" + file + "！", file);
