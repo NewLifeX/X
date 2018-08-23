@@ -167,12 +167,12 @@ namespace XCode
                 }
                 catch (Exception ex)
                 {
-                    // 保存失败，写回去
-                    foreach (var entity in list)
-                    {
-                        Entities.TryAdd(entity, entity);
-                    }
-                    Interlocked.Add(ref _count, list.Count);
+                    //// 保存失败，写回去
+                    //foreach (var entity in list)
+                    //{
+                    //    Entities.TryAdd(entity, entity);
+                    //}
+                    //Interlocked.Add(ref _count, list.Count);
 
                     if (Error != null)
                         Error(this, new EventArgs<Exception>(ex));
