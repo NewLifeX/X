@@ -68,6 +68,9 @@ namespace XCode
         #endregion
 
         #region 数据库操作
+        /// <summary>初始化数据</summary>
+        void InitData();
+
         /// <summary>执行SQL查询，返回记录集</summary>
         /// <param name="builder">SQL语句</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>

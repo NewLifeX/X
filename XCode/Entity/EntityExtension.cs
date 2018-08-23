@@ -380,6 +380,9 @@ namespace XCode
             var fact = entity.GetType().AsFactory();
             if (columns == null) columns = fact.Fields.Select(e => e.Field).ToArray();
 
+            fact.Session.InitData();
+            fact.Session.Dal.CheckDatabase();
+
             return fact.Session.Dal.Session.Insert(columns, list.Cast<IIndexAccessor>());
         }
 
@@ -414,6 +417,9 @@ namespace XCode
             }
             if (addColumns == null) addColumns = fact.AdditionalFields;
 
+            fact.Session.InitData();
+            fact.Session.Dal.CheckDatabase();
+
             return fact.Session.Dal.Session.InsertOrUpdate(columns, updateColumns, addColumns, list.Cast<IIndexAccessor>());
         }
 
@@ -430,6 +436,9 @@ namespace XCode
             if (columns == null) columns = fact.Fields.Select(e => e.Field).ToArray();
             if (updateColumns == null) updateColumns = entity.Dirtys.Keys;
             if (addColumns == null) addColumns = fact.AdditionalFields;
+
+            fact.Session.InitData();
+            fact.Session.Dal.CheckDatabase();
 
             return fact.Session.Dal.Session.InsertOrUpdate(columns, updateColumns, addColumns, new[] { entity as IIndexAccessor });
         }

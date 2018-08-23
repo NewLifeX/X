@@ -5,10 +5,8 @@ using System.Data;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
 using NewLife;
 using NewLife.Collections;
 using NewLife.Data;
@@ -612,7 +610,8 @@ namespace XCode
         #endregion
 
         #region 数据库操作
-        void InitData() => WaitForInitData();
+        /// <summary>初始化数据</summary>
+        public void InitData() => WaitForInitData();
 
         ///// <summary>执行SQL查询，返回记录集</summary>
         ///// <param name="builder">SQL语句</param>
