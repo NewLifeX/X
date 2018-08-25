@@ -318,5 +318,25 @@ namespace Test
             //var n = UserX.Meta.Count;
             //Console.WriteLine(n);
         }
+
+        static void Test8()
+        {
+            var t = new BLL.TestTable()
+            {
+                IsHide = false,
+                Title = "test abc",
+                Content = "abc",
+                Counts = 0,
+                Level = 1,
+                PageSize = 10,
+                PId = 0,
+                Price = 25.85M,
+                Rank = 999,
+                TitleColor = "#000"
+            };
+            t.Save();
+
+            Console.WriteLine($"id:{t.Id}, title:{t.Title}, price:{t.Price}, ishide:{t.IsHide}");
+        }
     }
 }
