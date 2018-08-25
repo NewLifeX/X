@@ -480,6 +480,7 @@ namespace NewLife.Caching
 
             if (value is Packet pk) return pk;
             if (value is Byte[] buf) return buf;
+            if (value is IAccessor acc) return acc.ToPacket();
 
             var type = value.GetType();
             switch (type.GetTypeCode())
@@ -498,6 +499,7 @@ namespace NewLife.Caching
         {
             if (type == typeof(Packet)) return pk;
             if (type == typeof(Byte[])) return pk.ToArray();
+            if (type.As<IAccessor>()) return type.AccessorRead(pk);
 
             var str = pk.ToStr().Trim('\"');
             if (type.GetTypeCode() == TypeCode.String) return str;

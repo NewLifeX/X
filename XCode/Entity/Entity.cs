@@ -1264,7 +1264,7 @@ namespace XCode
         #region 序列化
         Boolean IAccessor.Read(Stream stream, Object context) => OnRead(stream, context, false);
 
-        void IAccessor.Write(Stream stream, Object context) => OnWrite(stream, context, false);
+        Boolean IAccessor.Write(Stream stream, Object context) => OnWrite(stream, context, false);
 
         /// <summary>从数据流反序列化</summary>
         /// <param name="stream">数据流</param>
@@ -1293,7 +1293,7 @@ namespace XCode
         /// <param name="stream">数据流</param>
         /// <param name="context">上下文</param>
         /// <param name="extend">是否序列化扩展属性</param>
-        protected virtual void OnWrite(Stream stream, Object context, Boolean extend)
+        protected virtual Boolean OnWrite(Stream stream, Object context, Boolean extend)
         {
             var bn = context as Binary;
             if (bn == null) bn = new Binary
@@ -1305,8 +1305,10 @@ namespace XCode
             var fs = extend ? Meta.AllFields : Meta.Fields;
             foreach (var fi in fs)
             {
-                bn.Write(this[fi.Name]);
+                bn.Write(this[fi.Name], fi.Type);
             }
+
+            return true;
         }
         #endregion
 

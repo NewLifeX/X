@@ -109,7 +109,6 @@
     <Compile Include="..\NewLife.Core\Log\XTrace.cs" Link="Log\XTrace.cs" />
     <Compile Include="..\NewLife.Core\Messaging\DefaultMessage.cs" Link="Messaging\DefaultMessage.cs" />
     <Compile Include="..\NewLife.Core\Messaging\IMessage.cs" Link="Messaging\IMessage.cs" />
-    <Compile Include="..\NewLife.Core\Messaging\MessageBase.cs" Link="Messaging\MessageBase.cs" />
     <Compile Include="..\NewLife.Core\Messaging\MessageEventArgs.cs" Link="Messaging\MessageEventArgs.cs" />
     <Compile Include="..\NewLife.Core\Model\IAuthUser.cs" Link="Model\IAuthUser.cs" />
     <Compile Include="..\NewLife.Core\Model\IFactory.cs" Link="Model\IFactory.cs" />
@@ -181,6 +180,7 @@
     <Compile Include="..\NewLife.Core\Security\Rand.cs" Link="Security\Rand.cs" />
     <Compile Include="..\NewLife.Core\Security\RC4.cs" Link="Security\RC4.cs" />
     <Compile Include="..\NewLife.Core\Security\SecurityHelper.cs" Link="Security\SecurityHelper.cs" />
+    <Compile Include="..\NewLife.Core\Serialization\Accessor.cs" Link="Serialization\Accessor.cs" />
     <Compile Include="..\NewLife.Core\Serialization\BinaryCodec.cs" Link="Serialization\BinaryCodec.cs" />
     <Compile Include="..\NewLife.Core\Serialization\BinaryCodec2.cs" Link="Serialization\BinaryCodec2.cs" />
     <Compile Include="..\NewLife.Core\Serialization\Binary\Binary.cs" Link="Serialization\Binary\Binary.cs" />
@@ -208,7 +208,6 @@
     <Compile Include="..\NewLife.Core\Serialization\Json\JsonParser.cs" Link="Serialization\Json\JsonParser.cs" />
     <Compile Include="..\NewLife.Core\Serialization\Json\JsonReader.cs" Link="Serialization\Json\JsonReader.cs" />
     <Compile Include="..\NewLife.Core\Serialization\Json\JsonWriter.cs" Link="Serialization\Json\JsonWriter.cs" />
-    <Compile Include="..\NewLife.Core\Serialization\Protocol.cs" Link="Serialization\Protocol.cs" />
     <Compile Include="..\NewLife.Core\Serialization\SerialHelper.cs" Link="Serialization\SerialHelper.cs" />
     <Compile Include="..\NewLife.Core\Serialization\Xml\IXml.cs" Link="Serialization\Xml\IXml.cs" />
     <Compile Include="..\NewLife.Core\Serialization\Xml\Xml.cs" Link="Serialization\Xml\Xml.cs" />

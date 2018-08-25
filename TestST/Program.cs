@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using NewLife.Log;
 using NewLife.Net;
+using NewLife.Serialization;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 
@@ -18,7 +19,7 @@ namespace TestST
 
             var sw = Stopwatch.StartNew();
 
-            Test4();
+            Test3();
 
             sw.Stop();
             Console.WriteLine("OK! {0:n0}ms", sw.ElapsedMilliseconds);
@@ -31,8 +32,10 @@ namespace TestST
             XTrace.WriteLine("学无先后达者为师！");
             Console.WriteLine(".".GetFullPath());
 
-            var svr = new NetServer();
-            svr.Port = 8080;
+            var svr = new NetServer
+            {
+                Port = 8080
+            };
             svr.Received += Svr_Received;
             svr.Log = XTrace.Log;
             svr.SessionLog = svr.Log;
@@ -58,21 +61,26 @@ namespace TestST
 
         static void Test3()
         {
-            var os = "";
-            var fr = "/etc/os-release";
-            if (File.Exists(fr))
+            var user = new UserX
             {
-                var dic = File.ReadAllText(fr).SplitAsDictionary("=", "\n", true);
-                os = dic["PRETTY_NAME"];
-                XTrace.WriteLine(os);
+                ID = 1234,
+                Name = "Stone",
+                DisplayName = "大石头",
+                RegisterTime = DateTime.Now,
+                LastLogin = DateTime.Now,
+            };
 
-                Console.WriteLine();
-                foreach (var item in dic)
-                {
-                    Console.WriteLine("{0}\t={1}", item.Key, item.Value);
-                }
-            }
+            var js = user.ToJson(true);
+            Console.WriteLine(js);
+            Console.WriteLine("json={0}", js.GetBytes().Length);
 
+            var pk = user.ToPacket();
+            Console.WriteLine("binary={0}", pk.Total);
+            Console.WriteLine(pk.ToHex());
+
+            var user2 = pk.ToEntity<UserX>();
+            var js2 = user2.ToJson(false);
+            Console.WriteLine(js2);
         }
 
         static void Test4()
