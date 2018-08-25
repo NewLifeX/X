@@ -316,6 +316,10 @@ namespace Test
 
         static void Test8()
         {
+            var f = @"D:\X\Src\XCode\Membership\Member.xml";
+            var ts = DAL.ImportFrom(f);
+            Console.WriteLine(ts);
+
             var t = new TestTable()
             {
                 IsHide = false,

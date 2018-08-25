@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using XCode;
 using XCode.Configuration;
@@ -100,7 +99,7 @@ namespace Test
         [DisplayName("价格")]
         [Description("价格")]
         [DataObjectField(false, false, false, 0)]
-        [BindColumn("Price", "价格", "money")]
+        [BindColumn("Price", "价格", "money", Precision = 12, Scale = 2)]
         public Decimal Price { get { return _Price; } set { if (OnPropertyChanging(__.Price, value)) { _Price = value; OnPropertyChanged(__.Price); } } }
         #endregion
 
@@ -114,17 +113,17 @@ namespace Test
             {
                 switch (name)
                 {
-                    case __.Id : return _Id;
-                    case __.Title : return _Title;
-                    case __.Content : return _Content;
-                    case __.TitleColor : return _TitleColor;
-                    case __.PageSize : return _PageSize;
-                    case __.PId : return _PId;
-                    case __.Level : return _Level;
-                    case __.IsHide : return _IsHide;
-                    case __.Counts : return _Counts;
-                    case __.Rank : return _Rank;
-                    case __.Price : return _Price;
+                    case __.Id: return _Id;
+                    case __.Title: return _Title;
+                    case __.Content: return _Content;
+                    case __.TitleColor: return _TitleColor;
+                    case __.PageSize: return _PageSize;
+                    case __.PId: return _PId;
+                    case __.Level: return _Level;
+                    case __.IsHide: return _IsHide;
+                    case __.Counts: return _Counts;
+                    case __.Rank: return _Rank;
+                    case __.Price: return _Price;
                     default: return base[name];
                 }
             }
@@ -132,17 +131,17 @@ namespace Test
             {
                 switch (name)
                 {
-                    case __.Id : _Id = Convert.ToInt32(value); break;
-                    case __.Title : _Title = Convert.ToString(value); break;
-                    case __.Content : _Content = Convert.ToString(value); break;
-                    case __.TitleColor : _TitleColor = Convert.ToString(value); break;
-                    case __.PageSize : _PageSize = Convert.ToInt32(value); break;
-                    case __.PId : _PId = Convert.ToInt32(value); break;
-                    case __.Level : _Level = Convert.ToInt32(value); break;
-                    case __.IsHide : _IsHide = Convert.ToBoolean(value); break;
-                    case __.Counts : _Counts = Convert.ToInt32(value); break;
-                    case __.Rank : _Rank = Convert.ToInt32(value); break;
-                    case __.Price : _Price = Convert.ToDecimal(value); break;
+                    case __.Id: _Id = Convert.ToInt32(value); break;
+                    case __.Title: _Title = Convert.ToString(value); break;
+                    case __.Content: _Content = Convert.ToString(value); break;
+                    case __.TitleColor: _TitleColor = Convert.ToString(value); break;
+                    case __.PageSize: _PageSize = Convert.ToInt32(value); break;
+                    case __.PId: _PId = Convert.ToInt32(value); break;
+                    case __.Level: _Level = Convert.ToInt32(value); break;
+                    case __.IsHide: _IsHide = Convert.ToBoolean(value); break;
+                    case __.Counts: _Counts = Convert.ToInt32(value); break;
+                    case __.Rank: _Rank = Convert.ToInt32(value); break;
+                    case __.Price: _Price = Convert.ToDecimal(value); break;
                     default: base[name] = value; break;
                 }
             }

@@ -33,11 +33,11 @@ namespace XCode.Membership
         public String Name { get { return _Name; } set { if (OnPropertyChanging(__.Name, value)) { _Name = value; OnPropertyChanged(__.Name); } } }
 
         private Boolean _IsSystem;
-        /// <summary>系统。系统角色用于业务系统开发使用，禁止修改名称或删除</summary>
+        /// <summary>系统。用于业务系统开发使用，不受数据权限约束，禁止修改名称或删除</summary>
         [DisplayName("系统")]
-        [Description("系统。系统角色用于业务系统开发使用，禁止修改名称或删除")]
+        [Description("系统。用于业务系统开发使用，不受数据权限约束，禁止修改名称或删除")]
         [DataObjectField(false, false, false, 0)]
-        [BindColumn("IsSystem", "系统。系统角色用于业务系统开发使用，禁止修改名称或删除", "")]
+        [BindColumn("IsSystem", "系统。用于业务系统开发使用，不受数据权限约束，禁止修改名称或删除", "")]
         public Boolean IsSystem { get { return _IsSystem; } set { if (OnPropertyChanging(__.IsSystem, value)) { _IsSystem = value; OnPropertyChanged(__.IsSystem); } } }
 
         private String _Remark;
@@ -160,7 +160,7 @@ namespace XCode.Membership
             /// <summary>名称</summary>
             public static readonly Field Name = FindByName(__.Name);
 
-            /// <summary>系统。系统角色用于业务系统开发使用，禁止修改名称或删除</summary>
+            /// <summary>系统。用于业务系统开发使用，不受数据权限约束，禁止修改名称或删除</summary>
             public static readonly Field IsSystem = FindByName(__.IsSystem);
 
             /// <summary>说明</summary>
@@ -199,7 +199,7 @@ namespace XCode.Membership
             /// <summary>名称</summary>
             public const String Name = "Name";
 
-            /// <summary>系统。系统角色用于业务系统开发使用，禁止修改名称或删除</summary>
+            /// <summary>系统。用于业务系统开发使用，不受数据权限约束，禁止修改名称或删除</summary>
             public const String IsSystem = "IsSystem";
 
             /// <summary>说明</summary>
@@ -239,7 +239,7 @@ namespace XCode.Membership
         /// <summary>名称</summary>
         String Name { get; set; }
 
-        /// <summary>系统。系统角色用于业务系统开发使用，禁止修改名称或删除</summary>
+        /// <summary>系统。用于业务系统开发使用，不受数据权限约束，禁止修改名称或删除</summary>
         Boolean IsSystem { get; set; }
 
         /// <summary>说明</summary>

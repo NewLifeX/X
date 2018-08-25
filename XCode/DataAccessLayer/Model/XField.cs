@@ -71,13 +71,13 @@ namespace XCode.DataAccessLayer
         public Int32 Length { get; set; }
 
         /// <summary>精度</summary>
-        [XmlIgnore]
+        //[XmlIgnore]
         [DisplayName("精度")]
         [Description("精度")]
         public Int32 Precision { get; set; }
 
         /// <summary>位数</summary>
-        [XmlIgnore]
+        //[XmlIgnore]
         [DisplayName("位数")]
         [Description("位数")]
         public Int32 Scale { get; set; }
