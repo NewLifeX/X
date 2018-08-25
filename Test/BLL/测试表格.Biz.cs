@@ -21,7 +21,7 @@ using XCode.Configuration;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 
-namespace Test.BLL
+namespace Test
 {
     /// <summary>测试表格</summary>
     public partial class TestTable : Entity<TestTable>

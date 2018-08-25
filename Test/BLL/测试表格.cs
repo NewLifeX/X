@@ -5,7 +5,7 @@ using XCode;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 
-namespace Test.BLL
+namespace Test
 {
     /// <summary>测试表格</summary>
     [Serializable]

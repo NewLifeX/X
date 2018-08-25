@@ -1,26 +1,16 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.IO.MemoryMappedFiles;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
 using NewLife.Caching;
-using NewLife.Collections;
-using NewLife.Common;
 using NewLife.Log;
-using NewLife.Net;
-using NewLife.Net.Handlers;
-using NewLife.Reflection;
 using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
 using NewLife.Threading;
-using NewLife.Xml;
 using XCode;
 using XCode.DataAccessLayer;
 using XCode.Membership;
@@ -46,7 +36,7 @@ namespace Test
                 try
                 {
 #endif
-                Test2();
+                Test8();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -65,7 +55,7 @@ namespace Test
             }
         }
 
-        private static Int32 _count = 0;
+        private static readonly Int32 _count = 0;
         static void Test1()
         {
             var cpu = Environment.ProcessorCount;
@@ -168,10 +158,12 @@ namespace Test
 
         static void Test3()
         {
-            var svr = new ApiServer(3344);
-            svr.Log = XTrace.Log;
-            svr.EncoderLog = XTrace.Log;
-            svr.StatPeriod = 5;
+            var svr = new ApiServer(3344)
+            {
+                Log = XTrace.Log,
+                EncoderLog = XTrace.Log,
+                StatPeriod = 5
+            };
             svr.Start();
 
             Console.ReadKey(true);
@@ -179,9 +171,6 @@ namespace Test
 
         static void Test4()
         {
-            //ApiTest.Main();
-
-            var key = "xxx";
             var v = Rand.NextBytes(32);
             Console.WriteLine(v.ToBase64());
 
@@ -230,9 +219,11 @@ namespace Test
             {
                 var n = UserOnline.Meta.Count;
 
-                var svr = new DbServer();
-                svr.Log = XTrace.Log;
-                svr.StatPeriod = 5;
+                var svr = new DbServer
+                {
+                    Log = XTrace.Log,
+                    StatPeriod = 5
+                };
                 svr.Start();
             }
             else
@@ -245,9 +236,11 @@ namespace Test
                 var count = UserOnline.Meta.Count;
                 Console.WriteLine("count={0}", count);
 
-                var entity = new UserOnline();
-                entity.Name = "新生命";
-                entity.OnlineTime = 12345;
+                var entity = new UserOnline
+                {
+                    Name = "新生命",
+                    OnlineTime = 12345
+                };
                 entity.Insert();
 
                 Console.WriteLine("id={0}", entity.ID);
@@ -262,9 +255,11 @@ namespace Test
 
                 for (var i = 0; i < 100; i++)
                 {
-                    entity2 = new UserOnline();
-                    entity2.Name = Rand.NextString(8);
-                    entity2.Page = Rand.NextString(8);
+                    entity2 = new UserOnline
+                    {
+                        Name = Rand.NextString(8),
+                        Page = Rand.NextString(8)
+                    };
                     entity2.Insert();
 
                     Thread.Sleep(5000);
@@ -321,7 +316,7 @@ namespace Test
 
         static void Test8()
         {
-            var t = new BLL.TestTable()
+            var t = new TestTable()
             {
                 IsHide = false,
                 Title = "test abc",
@@ -337,6 +332,7 @@ namespace Test
             t.Save();
 
             Console.WriteLine($"id:{t.Id}, title:{t.Title}, price:{t.Price}, ishide:{t.IsHide}");
+            Console.WriteLine(t.ToJson(true));
         }
     }
 }

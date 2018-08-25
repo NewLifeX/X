@@ -3,10 +3,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
-using System.Text;
-using NewLife.Collections;
-using NewLife.Data;
-using NewLife.Reflection;
 using XCode.Common;
 using XCode.Exceptions;
 
@@ -383,7 +379,13 @@ namespace XCode.DataAccessLayer
             var typeName = ns.FirstOrDefault();
             // 大文本选第二个类型
             if (ns.Length > 1 && type == typeof(String) && (field.Length <= 0 || field.Length >= Database.LongTextLength)) typeName = ns[1];
-            if (typeName.Contains("{0}")) typeName = typeName.F(field.Length);
+            if (typeName.Contains("{0}"))
+            {
+                if (typeName.Contains("{1}"))
+                    typeName = typeName.F(field.Precision, field.Scale);
+                else
+                    typeName = typeName.F(field.Length);
+            }
 
             return typeName;
         }
