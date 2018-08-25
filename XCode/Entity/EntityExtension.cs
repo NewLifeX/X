@@ -181,6 +181,19 @@ namespace XCode
         /// <returns></returns>
         public static Int32 Insert<T>(this IEnumerable<T> list, Boolean? useTransition = null) where T : IEntity
         {
+            // 避免列表内实体对象为空
+            var entity = list.FirstOrDefault(e => e != null);
+            if (entity == null) return 0;
+
+            if (list.Count() > 1)
+            {
+                var fact = entity.GetType().AsFactory();
+                var db = fact.Session.Dal;
+
+                // Oracle/MySql批量插入
+                if (db.SupportBatch) return BatchInsert(list);
+            }
+
             return DoAction(list, useTransition, e => e.Insert());
         }
 
@@ -199,7 +212,39 @@ namespace XCode
         /// <returns></returns>
         public static Int32 Save<T>(this IEnumerable<T> list, Boolean? useTransition = null) where T : IEntity
         {
-            return DoAction(list, useTransition, e => e.Save());
+            /*
+           * Save的几个场景：
+           * 1，Find, Update()
+           * 2，new, Insert()
+           * 3，new, InsertOrUpdate
+           */
+
+            // 避免列表内实体对象为空
+            var entity = list.FirstOrDefault(e => e != null);
+            if (entity == null) return 0;
+
+            var rs = 0;
+            if (list.Count() > 1)
+            {
+                var fact = entity.GetType().AsFactory();
+                var db = fact.Session.Dal;
+
+                // Oracle/MySql批量插入
+                if (db.SupportBatch)
+                {
+                    // 根据是否来自数据库，拆分为两组
+                    var ts = Split(list);
+                    list = ts.Item1;
+                    var es = ts.Item2;
+                    foreach (IEntity item in es)
+                    {
+                        if (item is EntityBase entity2) entity2.Valid(item.IsNullKey);
+                    }
+                    rs += BatchSave(fact, es);
+                }
+            }
+
+            return rs + DoAction(list, useTransition, e => e.Save());
         }
 
         /// <summary>把整个保存更新到数据库，保存时不需要验证</summary>
@@ -208,7 +253,67 @@ namespace XCode
         /// <returns></returns>
         public static Int32 SaveWithoutValid<T>(this IEnumerable<T> list, Boolean? useTransition = null) where T : IEntity
         {
-            return DoAction(list, useTransition, e => e.SaveWithoutValid());
+            // 避免列表内实体对象为空
+            var entity = list.FirstOrDefault(e => e != null);
+            if (entity == null) return 0;
+
+            var rs = 0;
+            if (list.Count() > 1)
+            {
+                var fact = entity.GetType().AsFactory();
+                var db = fact.Session.Dal;
+
+                // Oracle/MySql批量插入
+                if (db.SupportBatch)
+                {
+                    // 根据是否来自数据库，拆分为两组
+                    var ts = Split(list);
+                    list = ts.Item1;
+                    rs += BatchSave(fact, ts.Item2);
+                }
+            }
+
+            return rs + DoAction(list, useTransition, e => e.SaveWithoutValid());
+        }
+
+        private static Tuple<IList<T>, IList<T>> Split<T>(IEnumerable<T> list) where T : IEntity
+        {
+            var updates = new List<T>();
+            var others = new List<T>();
+            foreach (var item in list)
+            {
+                if (item.IsFromDatabase)
+                    updates.Add(item);
+                else
+                    others.Add(item);
+            }
+
+            return new Tuple<IList<T>, IList<T>>(updates, others);
+        }
+
+        private static Int32 BatchSave<T>(IEntityOperate fact, IEnumerable<T> list) where T : IEntity
+        {
+            // 没有其它唯一索引，且主键为空时，走批量插入
+            var rs = 0;
+            if (!fact.Table.DataTable.Indexes.Any(di => di.Unique))
+            {
+                var adds = new List<T>();
+                var others = new List<T>();
+                foreach (var item in list)
+                {
+                    if (item.IsNullKey)
+                        adds.Add(item);
+                    else
+                        others.Add(item);
+                }
+                list = others;
+
+                if (adds.Count > 0) rs += BatchInsert(adds);
+            }
+
+            if (list.Any()) rs += InsertOrUpdate(list);
+
+            return rs;
         }
 
         /// <summary>把整个集合从数据库中删除</summary>
@@ -233,30 +338,19 @@ namespace XCode
             // SQLite 批操作默认使用事务，其它数据库默认不使用事务
             if (useTransition == null) useTransition = fact.Session.Dal.DbType == DatabaseType.SQLite;
 
-            // 禁用自动关闭连接，提升批操作性能
-            var ss = fact.Session.Dal.Session;
-            ss.SetAutoClose(false);
-
             var count = 0;
-            try
+            if (useTransition != null && useTransition.Value)
             {
-                if (useTransition != null && useTransition.Value)
-                {
-                    using (var trans = fact.CreateTrans())
-                    {
-                        count = DoAction(list, func, count);
-
-                        trans.Commit();
-                    }
-                }
-                else
+                using (var trans = fact.CreateTrans())
                 {
                     count = DoAction(list, func, count);
+
+                    trans.Commit();
                 }
             }
-            finally
+            else
             {
-                ss.SetAutoClose(null);
+                count = DoAction(list, func, count);
             }
 
             return count;
@@ -271,6 +365,82 @@ namespace XCode
                 if (item != null) count += func(item);
             }
             return count;
+        }
+        #endregion
+
+        #region 批量更新
+        /// <summary>批量插入</summary>
+        /// <typeparam name="T">实体类型</typeparam>
+        /// <param name="columns">要插入的字段，默认所有字段</param>
+        /// <param name="list">实体列表</param>
+        /// <returns></returns>
+        public static Int32 BatchInsert<T>(this IEnumerable<T> list, IDataColumn[] columns = null) where T : IEntity
+        {
+            var entity = list.First();
+            var fact = entity.GetType().AsFactory();
+            if (columns == null) columns = fact.Fields.Select(e => e.Field).ToArray();
+
+            fact.Session.InitData();
+            fact.Session.Dal.CheckDatabase();
+
+            return fact.Session.Dal.Session.Insert(columns, list.Cast<IIndexAccessor>());
+        }
+
+        /// <summary>批量插入或更新</summary>
+        /// <typeparam name="T">实体类型</typeparam>
+        /// <param name="list">实体列表</param>
+        /// <param name="columns">要插入的字段，默认所有字段</param>
+        /// <param name="updateColumns">主键已存在时，要更新的字段</param>
+        /// <param name="addColumns">主键已存在时，要累加更新的字段</param>
+        /// <returns></returns>
+        public static Int32 InsertOrUpdate<T>(this IEnumerable<T> list, IDataColumn[] columns = null, ICollection<String> updateColumns = null, ICollection<String> addColumns = null) where T : IEntity
+        {
+            var entity = list.First();
+            var fact = entity.GetType().AsFactory();
+            if (columns == null) columns = fact.Fields.Select(e => e.Field).ToArray();
+            //if (updateColumns == null) updateColumns = entity.Dirtys.Keys;
+            if (updateColumns == null)
+            {
+                // 所有实体对象的脏字段作为更新字段
+                var hs = new HashSet<String>();
+                foreach (var item in list)
+                {
+                    foreach (var elm in item.Dirtys)
+                    {
+                        // 创建时间等字段不参与Update
+                        if (elm.Key.StartsWithIgnoreCase("Create")) continue;
+
+                        if (!hs.Contains(elm.Key)) hs.Add(elm.Key);
+                    }
+                }
+                updateColumns = hs;
+            }
+            if (addColumns == null) addColumns = fact.AdditionalFields;
+
+            fact.Session.InitData();
+            fact.Session.Dal.CheckDatabase();
+
+            return fact.Session.Dal.Session.InsertOrUpdate(columns, updateColumns, addColumns, list.Cast<IIndexAccessor>());
+        }
+
+        /// <summary>批量插入或更新</summary>
+        /// <typeparam name="T">实体类型</typeparam>
+        /// <param name="entity">实体对象</param>
+        /// <param name="columns">要插入的字段，默认所有字段</param>
+        /// <param name="updateColumns">主键已存在时，要更新的字段</param>
+        /// <param name="addColumns">主键已存在时，要累加更新的字段</param>
+        /// <returns></returns>
+        public static Int32 InsertOrUpdate(this IEntity entity, IDataColumn[] columns = null, ICollection<String> updateColumns = null, ICollection<String> addColumns = null)
+        {
+            var fact = entity.GetType().AsFactory();
+            if (columns == null) columns = fact.Fields.Select(e => e.Field).ToArray();
+            if (updateColumns == null) updateColumns = entity.Dirtys.Keys;
+            if (addColumns == null) addColumns = fact.AdditionalFields;
+
+            fact.Session.InitData();
+            fact.Session.Dal.CheckDatabase();
+
+            return fact.Session.Dal.Session.InsertOrUpdate(columns, updateColumns, addColumns, new[] { entity as IIndexAccessor });
         }
         #endregion
     }

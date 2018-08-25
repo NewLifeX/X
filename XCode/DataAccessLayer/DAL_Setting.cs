@@ -50,11 +50,16 @@ namespace XCode.DataAccessLayer
         #region 辅助函数
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override String ToString() { return Db.ToString(); }
+        public override String ToString() => Db.ToString();
 
         /// <summary>建立数据表对象</summary>
         /// <returns></returns>
-        internal static IDataTable CreateTable() { return XCodeService.CreateTable(); }
+        internal static IDataTable CreateTable() => XCodeService.CreateTable();
+
+        /// <summary>是否支持批操作</summary>
+        /// <param name="db"></param>
+        /// <returns></returns>
+        public Boolean SupportBatch => DbType == DatabaseType.MySql || DbType == DatabaseType.Oracle || DbType == DatabaseType.SqlServer || DbType == DatabaseType.SQLite;
         #endregion
     }
 }

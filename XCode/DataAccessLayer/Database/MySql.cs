@@ -4,8 +4,8 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Net;
-using System.Text;
 using NewLife.Collections;
+using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
 {
@@ -133,7 +133,7 @@ namespace XCode.DataAccessLayer
             get
             {
                 return "ACCESSIBLE,ADD,ALL,ALTER,ANALYZE,AND,AS,ASC,ASENSITIVE,BEFORE,BETWEEN,BIGINT,BINARY,BLOB,BOTH,BY,CALL,CASCADE,CASE,CHANGE,CHAR,CHARACTER,CHECK,COLLATE,COLUMN,CONDITION,CONNECTION,CONSTRAINT,CONTINUE,CONTRIBUTORS,CONVERT,CREATE,CROSS,CURRENT_DATE,CURRENT_TIME,CURRENT_TIMESTAMP,CURRENT_USER,CURSOR,DATABASE,DATABASES,DAY_HOUR,DAY_MICROSECOND,DAY_MINUTE,DAY_SECOND,DEC,DECIMAL,DECLARE,DEFAULT,DELAYED,DELETE,DESC,DESCRIBE,DETERMINISTIC,DISTINCT,DISTINCTROW,DIV,DOUBLE,DROP,DUAL,EACH,ELSE,ELSEIF,ENCLOSED,ESCAPED,EXISTS,EXIT,EXPLAIN,FALSE,FETCH,FLOAT,FLOAT4,FLOAT8,FOR,FORCE,FOREIGN,FROM,FULLTEXT,GRANT,GROUP,HAVING,HIGH_PRIORITY,HOUR_MICROSECOND,HOUR_MINUTE,HOUR_SECOND,IF,IGNORE,IN,INDEX,INFILE,INNER,INOUT,INSENSITIVE,INSERT,INT,INT1,INT2,INT3,INT4,INT8,INTEGER,INTERVAL,INTO,IS,ITERATE,JOIN,KEY,KEYS,KILL,LEADING,LEAVE,LEFT,LIKE,LIMIT,LINEAR,LINES,LOAD,LOCALTIME,LOCALTIMESTAMP,LOCK,LONG,LONGBLOB,LONGTEXT,LOOP,LOW_PRIORITY,MATCH,MEDIUMBLOB,MEDIUMINT,MEDIUMTEXT,MIDDLEINT,MINUTE_MICROSECOND,MINUTE_SECOND,MOD,MODIFIES,NATURAL,NOT,NO_WRITE_TO_BINLOG,NULL,NUMERIC,ON,OPTIMIZE,OPTION,OPTIONALLY,OR,ORDER,OUT,OUTER,OUTFILE,PRECISION,PRIMARY,PROCEDURE,PURGE,RANGE,READ,READS,READ_ONLY,READ_WRITE,REAL,REFERENCES,REGEXP,RELEASE,RENAME,REPEAT,REPLACE,REQUIRE,RESTRICT,RETURN,REVOKE,RIGHT,RLIKE,SCHEMA,SCHEMAS,SECOND_MICROSECOND,SELECT,SENSITIVE,SEPARATOR,SET,SHOW,SMALLINT,SPATIAL,SPECIFIC,SQL,SQLEXCEPTION,SQLSTATE,SQLWARNING,SQL_BIG_RESULT,SQL_CALC_FOUND_ROWS,SQL_SMALL_RESULT,SSL,STARTING,STRAIGHT_JOIN,TABLE,TERMINATED,THEN,TINYBLOB,TINYINT,TINYTEXT,TO,TRAILING,TRIGGER,TRUE,UNDO,UNION,UNIQUE,UNLOCK,UNSIGNED,UPDATE,UPGRADE,USAGE,USE,USING,UTC_DATE,UTC_TIME,UTC_TIMESTAMP,VALUES,VARBINARY,VARCHAR,VARCHARACTER,VARYING,WHEN,WHERE,WHILE,WITH,WRITE,X509,XOR,YEAR_MONTH,ZEROFILL," +
-                    "LOG,User,Role";
+                    "LOG,User,Role,Admin,Rank";
             }
         }
 
@@ -263,6 +263,131 @@ namespace XCode.DataAccessLayer
             return base.InsertAndGetIdentity(sql, type, ps);
         }
         #endregion
+
+        #region 批量操作
+        /*
+        insert into stat (siteid,statdate,`count`,cost,createtime,updatetime) values 
+        (1,'2018-08-11 09:34:00',1,123,now(),now()),
+        (2,'2018-08-11 09:34:00',1,456,now(),now()),
+        (3,'2018-08-11 09:34:00',1,789,now(),now()),
+        (2,'2018-08-11 09:34:00',1,456,now(),now())
+        on duplicate key update 
+        `count`=`count`+values(`count`),cost=cost+values(cost),
+        updatetime=values(updatetime);
+         */
+
+        private String GetBatchSql(IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list)
+        {
+            var sb = Pool.StringBuilder.Get();
+            var db = Database as DbBase;
+
+            // 字段列表
+            if (columns == null) columns = table.Columns.ToArray();
+            sb.AppendFormat("Insert Into {0}(", db.FormatTableName(table.TableName));
+            foreach (var dc in columns)
+            {
+                if (dc.Identity) continue;
+
+                sb.Append(db.FormatName(dc.ColumnName));
+                sb.Append(",");
+            }
+            sb.Length--;
+            sb.Append(")");
+
+            // 值列表
+            sb.Append(" Values");
+            foreach (var entity in list)
+            {
+                sb.Append("(");
+                foreach (var dc in columns)
+                {
+                    if (dc.Identity) continue;
+
+                    var value = entity[dc.Name];
+                    sb.Append(db.FormatValue(dc, value));
+                    sb.Append(",");
+                }
+                sb.Length--;
+                sb.Append("),");
+            }
+            sb.Length--;
+
+            // 重复键执行update
+            if (updateColumns != null || addColumns != null)
+            {
+                sb.Append(" On Duplicate Key Update ");
+                if (updateColumns != null)
+                {
+                    foreach (var dc in columns)
+                    {
+                        if (dc.Identity || dc.PrimaryKey) continue;
+
+                        if (updateColumns.Contains(dc.Name) && (addColumns == null || !addColumns.Contains(dc.Name)))
+                            sb.AppendFormat("{0}=Values({0}),", db.FormatName(dc.ColumnName));
+                    }
+                    sb.Length--;
+                }
+                if (addColumns != null)
+                {
+                    sb.Append(",");
+                    foreach (var dc in columns)
+                    {
+                        if (dc.Identity || dc.PrimaryKey) continue;
+
+                        if (addColumns.Contains(dc.Name))
+                            sb.AppendFormat("{0}={0}+Values({0}),", db.FormatName(dc.ColumnName));
+                    }
+                    sb.Length--;
+                }
+            }
+
+            return sb.Put(true);
+        }
+
+        public override Int32 Insert(IDataColumn[] columns, IEnumerable<IIndexAccessor> list)
+        {
+            var table = columns.FirstOrDefault().Table;
+            //var sql = GetBatchSql(table, columns, null, null, list);
+
+            //return Execute(sql);
+
+            // 分批
+            var batchSize = 5000;
+            var rs = 0;
+            for (var i = 0; i < list.Count();)
+            {
+                var es = list.Skip(i).Take(batchSize).ToList();
+                var sql = GetBatchSql(table, columns, null, null, es);
+                rs += Execute(sql);
+
+                i += es.Count;
+            }
+
+            return rs;
+        }
+
+        public override Int32 InsertOrUpdate(IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list)
+        {
+            var table = columns.FirstOrDefault().Table;
+            //var sql = GetBatchSql(table, columns, updateColumns, addColumns, list);
+
+            //return Execute(sql);
+
+            // 分批
+            var batchSize = 5000;
+            var rs = 0;
+            for (var i = 0; i < list.Count();)
+            {
+                var es = list.Skip(i).Take(batchSize).ToList();
+                var sql = GetBatchSql(table, columns, updateColumns, addColumns, es);
+                rs += Execute(sql);
+
+                i += es.Count;
+            }
+
+            return rs;
+        }
+        #endregion
     }
 
     /// <summary>MySql元数据</summary>
@@ -271,6 +396,20 @@ namespace XCode.DataAccessLayer
         public MySqlMetaData() => Types = _DataTypes;
 
         #region 数据类型
+        protected override List<KeyValuePair<Type, Type>> FieldTypeMaps
+        {
+            get
+            {
+                if (_FieldTypeMaps == null)
+                {
+                    var list = base.FieldTypeMaps;
+                    if (!list.Any(e => e.Key == typeof(Byte) && e.Value == typeof(Boolean)))
+                        list.Add(new KeyValuePair<Type, Type>(typeof(Byte), typeof(Boolean)));
+                }
+                return base.FieldTypeMaps;
+            }
+        }
+
         /// <summary>数据类型映射</summary>
         private static Dictionary<Type, String[]> _DataTypes = new Dictionary<Type, String[]>
         {

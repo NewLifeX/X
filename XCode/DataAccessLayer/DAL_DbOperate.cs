@@ -40,7 +40,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public DataSet Select(String sql)
         {
-            CheckBeforeUseDatabase();
+            CheckDatabase();
 
             Interlocked.Increment(ref _QueryTimes);
             return Session.Query(sql);
@@ -56,7 +56,7 @@ namespace XCode.DataAccessLayer
             builder = PageSplit(builder, startRowIndex, maximumRows);
             if (builder == null) return null;
 
-            CheckBeforeUseDatabase();
+            CheckDatabase();
 
             Interlocked.Increment(ref _QueryTimes);
             return Session.Query(builder.ToString(), CommandType.Text, builder.Parameters.ToArray());
@@ -72,7 +72,7 @@ namespace XCode.DataAccessLayer
             builder = PageSplit(builder, startRowIndex, maximumRows);
             if (builder == null) return null;
 
-            CheckBeforeUseDatabase();
+            CheckDatabase();
 
             Interlocked.Increment(ref _QueryTimes);
             return Session.Query(builder.ToString(), builder.Parameters.ToArray());
@@ -84,7 +84,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public DbTable Query(String sql, IDictionary<String, Object> ps = null)
         {
-            CheckBeforeUseDatabase();
+            CheckDatabase();
 
             Interlocked.Increment(ref _QueryTimes);
 
@@ -127,7 +127,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Int32 SelectCount(SelectBuilder sb)
         {
-            CheckBeforeUseDatabase();
+            CheckDatabase();
 
             Interlocked.Increment(ref _QueryTimes);
             return (Int32)Session.QueryCount(sb);
@@ -140,7 +140,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Int32 SelectCount(String sql, CommandType type, params IDataParameter[] ps)
         {
-            CheckBeforeUseDatabase();
+            CheckDatabase();
 
             Interlocked.Increment(ref _QueryTimes);
             return (Int32)Session.QueryCount(sql, type, ps);
@@ -153,7 +153,7 @@ namespace XCode.DataAccessLayer
         {
             if (Db.Readonly) throw new InvalidOperationException($"数据连接[{ConnName}]只读，禁止执行{sql}");
 
-            CheckBeforeUseDatabase();
+            CheckDatabase();
 
             Interlocked.Increment(ref _ExecuteTimes);
 
@@ -167,7 +167,7 @@ namespace XCode.DataAccessLayer
         {
             if (Db.Readonly) throw new InvalidOperationException($"数据连接[{ConnName}]只读，禁止执行{sql}");
 
-            CheckBeforeUseDatabase();
+            CheckDatabase();
 
             Interlocked.Increment(ref _ExecuteTimes);
 
@@ -181,7 +181,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public DataSet Select(String sql, CommandType type, params IDataParameter[] ps)
         {
-            CheckBeforeUseDatabase();
+            CheckDatabase();
 
             Interlocked.Increment(ref _QueryTimes);
             return Session.Query(sql, type, ps);
@@ -194,7 +194,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Int32 Execute(String sql, CommandType type, params IDataParameter[] ps)
         {
-            CheckBeforeUseDatabase();
+            CheckDatabase();
 
             Interlocked.Increment(ref _ExecuteTimes);
 
@@ -210,7 +210,7 @@ namespace XCode.DataAccessLayer
         {
             if (Db.Readonly) throw new InvalidOperationException($"数据连接[{ConnName}]只读，禁止执行{sql}");
 
-            CheckBeforeUseDatabase();
+            CheckDatabase();
 
             Interlocked.Increment(ref _ExecuteTimes);
 
@@ -224,7 +224,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public DataSet Select(String sql, CommandType type, IDictionary<String, Object> ps)
         {
-            CheckBeforeUseDatabase();
+            CheckDatabase();
 
             Interlocked.Increment(ref _QueryTimes);
             return Session.Query(sql, type, Db.CreateParameters(ps));
@@ -239,7 +239,7 @@ namespace XCode.DataAccessLayer
         {
             if (Db.Readonly) throw new InvalidOperationException($"数据连接[{ConnName}]只读，禁止执行{sql}");
 
-            CheckBeforeUseDatabase();
+            CheckDatabase();
 
             Interlocked.Increment(ref _ExecuteTimes);
 
@@ -254,7 +254,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public T ExecuteScalar<T>(String sql, CommandType type, IDictionary<String, Object> ps)
         {
-            CheckBeforeUseDatabase();
+            CheckDatabase();
 
             Interlocked.Increment(ref _ExecuteTimes);
 
@@ -276,7 +276,7 @@ namespace XCode.DataAccessLayer
         /// <returns>剩下的事务计数</returns>
         public Int32 BeginTransaction(IsolationLevel level = IsolationLevel.ReadCommitted)
         {
-            CheckBeforeUseDatabase();
+            CheckDatabase();
 
             return Session.BeginTransaction(level);
         }

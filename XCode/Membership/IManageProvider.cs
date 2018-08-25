@@ -5,10 +5,10 @@ using System.Security.Principal;
 using System.Text;
 using System.Threading;
 using System.Web;
+using NewLife.Common;
 using NewLife.Model;
 using NewLife.Web;
 using XCode.Model;
-using NewLife.Common;
 #if !__CORE__
 using System.Web.SessionState;
 #endif
@@ -219,10 +219,10 @@ namespace XCode.Membership
             var container = XCodeService.Container;
             return container.Resolve(serviceType);
         }
-#endregion
+        #endregion
 
 #if !__CORE__
-#region IErrorInfoProvider 成员
+        #region IErrorInfoProvider 成员
         void IErrorInfoProvider.AddInfo(Exception ex, StringBuilder builder)
         {
             var user = Current;
@@ -235,10 +235,10 @@ namespace XCode.Membership
                     builder.AppendFormat("登录：{0}\r\n", user.Name);
             }
         }
-#endregion
+        #endregion
 #endif
 
-#region 实体类扩展
+        #region 实体类扩展
         /// <summary>根据实体类接口获取实体工厂</summary>
         /// <typeparam name="TIEntity"></typeparam>
         /// <returns></returns>
@@ -258,7 +258,7 @@ namespace XCode.Membership
 
             return (T)eop.Default;
         }
-#endregion
+        #endregion
     }
 
     /// <summary>基于User实体类的管理提供者</summary>
@@ -381,7 +381,7 @@ namespace XCode.Membership
             return user;
         }
 
-#region Cookie
+        #region Cookie
         private static String GetCookieKey(IManageProvider provider)
         {
             var key = (provider as ManageProvider)?.CookieKey;
@@ -466,26 +466,6 @@ namespace XCode.Membership
                     Expire = DateTime.Now.Add(expire)
                 };
                 m.Write(res.Cookies[key], SysConfig.Current.InstallTime.ToFullString());
-
-                //if (reqcookie == null || u != reqcookie["u"] || p != reqcookie["p"])
-                //{
-                //    // 只有需要写入Cookie时才设置，否则会清空原来的非会话Cookie
-                //    var cookie = res.Cookies[key];
-                //    cookie.HttpOnly = true;
-                //    cookie["u"] = u;
-                //    cookie["p"] = p;
-
-                //    // 过期时间
-                //    if (expire.TotalSeconds >= 1)
-                //    {
-                //        var dt = DateTime.Now;
-                //        cookie["t"] = dt.ToInt() + "";
-
-                //        var exp = dt.Add(expire);
-                //        cookie.Expires = exp;
-                //        cookie["e"] = exp.ToInt() + "";
-                //    }
-                //}
             }
             else
             {
@@ -499,15 +479,15 @@ namespace XCode.Membership
 #if !__CORE__
         class CookieModel
         {
-#region 属性
+        #region 属性
             public String UserName { get; set; }
             public String Password { get; set; }
             public DateTime Time { get; set; }
             public DateTime Expire { get; set; }
             public String Sign { get; set; }
-#endregion
+        #endregion
 
-#region 方法
+        #region 方法
             public Boolean Read(HttpCookie cookie, String key)
             {
                 UserName = cookie["u"];
@@ -539,9 +519,9 @@ namespace XCode.Membership
 
                 cookie["s"] = Sign;
             }
-#endregion
+        #endregion
         }
 #endif
-#endregion
+        #endregion
     }
 }

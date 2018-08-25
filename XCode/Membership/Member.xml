@@ -117,7 +117,7 @@
       <Column Name="MaxCost" DataType="Int32" Description="最大耗时。毫秒" />
       <Column Name="CreateTime" DataType="DateTime" Description="创建时间" />
       <Column Name="UpdateTime" DataType="DateTime" Description="更新时间" />
-      <Column Name="Remark" DataType="String" Length="500" Description="详细信息" />
+      <Column Name="Remark" DataType="String" Length="5000" Description="详细信息" />
     </Columns>
     <Indexes>
       <Index Columns="Page,Level,Time" Unique="True" />

@@ -1,14 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Net.NetworkInformation;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using Microsoft.Data.Sqlite;
-using Microsoft.Extensions.Configuration;
+using System.Linq;
 using NewLife.Log;
 using NewLife.Net;
-using NewLife.Remoting;
 using NewLife.Serialization;
 using XCode.DataAccessLayer;
 using XCode.Membership;
@@ -23,7 +19,7 @@ namespace TestST
 
             var sw = Stopwatch.StartNew();
 
-            Test4();
+            Test3();
 
             sw.Stop();
             Console.WriteLine("OK! {0:n0}ms", sw.ElapsedMilliseconds);
@@ -36,8 +32,10 @@ namespace TestST
             XTrace.WriteLine("学无先后达者为师！");
             Console.WriteLine(".".GetFullPath());
 
-            var svr = new NetServer();
-            svr.Port = 8080;
+            var svr = new NetServer
+            {
+                Port = 8080
+            };
             svr.Received += Svr_Received;
             svr.Log = XTrace.Log;
             svr.SessionLog = svr.Log;
@@ -63,27 +61,67 @@ namespace TestST
 
         static void Test3()
         {
-            var os = "";
-            var fr = "/etc/os-release";
-            if (File.Exists(fr))
+            var user = new UserX
             {
-                var dic = File.ReadAllText(fr).SplitAsDictionary("=", "\n", true);
-                os = dic["PRETTY_NAME"];
-                XTrace.WriteLine(os);
+                ID = 1234,
+                Name = "Stone",
+                DisplayName = "大石头",
+                RegisterTime = DateTime.Now,
+                LastLogin = DateTime.Now,
+            };
 
-                Console.WriteLine();
-                foreach (var item in dic)
-                {
-                    Console.WriteLine("{0}\t={1}", item.Key, item.Value);
-                }
-            }
+            var js = user.ToJson(true);
+            Console.WriteLine(js);
+            Console.WriteLine("json={0}", js.GetBytes().Length);
 
+            var pk = user.ToPacket();
+            Console.WriteLine("binary={0}", pk.Total);
+            Console.WriteLine(pk.ToHex());
+
+            var user2 = pk.ToEntity<UserX>();
+            var js2 = user2.ToJson(false);
+            Console.WriteLine(js2);
         }
 
         static void Test4()
         {
-            var list = Role.FindAll();
-            Console.WriteLine(list.Count);
+            //var list = Role.FindAll();
+            //Console.WriteLine(list.Count);
+
+            var gs = UserX.FindAll(null, null, null, 0, 10);
+            Console.WriteLine(gs.First().Logins);
+            var count = UserX.FindCount();
+            Console.WriteLine("Count={0}", count);
+
+            LogProvider.Provider.WriteLog("test", "新增", "学无先后达者为师");
+            LogProvider.Provider.WriteLog("test", "新增", "学无先后达者为师");
+            LogProvider.Provider.WriteLog("test", "新增", "学无先后达者为师");
+
+            var list = new List<UserX>();
+            for (var i = 0; i < 4; i++)
+            {
+                var entity = new UserX
+                {
+                    Name = "Stone",
+                    DisplayName = "大石头",
+                    Logins = 1,
+                    LastLogin = DateTime.Now,
+                    RegisterTime = DateTime.Now
+                };
+                list.Add(entity);
+                entity.SaveAsync();
+                //entity.InsertOrUpdate();
+            }
+            //list.Save();
+
+            var user = gs.First();
+            user.Logins++;
+            user.SaveAsync();
+
+            count = UserX.FindCount();
+            Console.WriteLine("Count={0}", count);
+            gs = UserX.FindAll(null, null, null, 0, 10);
+            Console.WriteLine(gs.First().Logins);
         }
     }
 }

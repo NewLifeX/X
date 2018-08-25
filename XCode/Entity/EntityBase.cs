@@ -14,7 +14,7 @@ namespace XCode
     /// <summary>数据实体基类的基类</summary>
     [Serializable]
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public abstract partial class EntityBase : /*BinaryAccessor,*/ IEntity, ICloneable
+    public abstract partial class EntityBase : IEntity, ICloneable
     {
         #region 初始化数据
         /// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>
@@ -23,10 +23,14 @@ namespace XCode
         #endregion
 
         #region 填充数据
-        /// <summary>填充数据完成时调用。默认设定标记<see cref="_IsFromDatabase"/></summary>
-        internal protected virtual void OnLoad() { MarkDb(true); }
+        /// <summary>填充数据完成时调用。默认设定标记<see cref="IsFromDatabase"/></summary>
+        protected virtual void OnLoad() => IsFromDatabase = true;
 
-        internal void MarkDb(Boolean flag) { _IsFromDatabase = flag; }
+        /// <summary>是否来自数据库。设置相同属性值时不改变脏数据</summary>
+        protected virtual Boolean IsFromDatabase { get; set; }
+
+        /// <summary>是否来自数据库。设置相同属性值时不改变脏数据</summary>
+        Boolean IEntity.IsFromDatabase => IsFromDatabase;
         #endregion
 
         #region 操作
@@ -54,16 +58,15 @@ namespace XCode
         /// <param name="msDelay">延迟保存的时间。默认0ms近实时保存</param>
         /// <returns>是否成功加入异步队列</returns>
         public abstract Boolean SaveAsync(Int32 msDelay = 0);
+
+        /// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>
+        /// <remarks>建议重写者调用基类的实现，因为基类根据数据字段的唯一索引进行数据验证。</remarks>
+        /// <param name="isNew">是否新数据</param>
+        public abstract void Valid(Boolean isNew);
         #endregion
 
         #region 获取/设置 字段值
-        /// <summary>
-        /// 获取/设置 字段值。
-        /// 一个索引，反射实现。
-        /// 派生实体类可重写该索引，以避免发射带来的性能损耗。
-        /// 基类已经实现了通用的快速访问，但是这里仍然重写，以增加控制，
-        /// 比如字段名是属性名前面加上_，并且要求是实体字段才允许这样访问，否则一律按属性处理。
-        /// </summary>
+        /// <summary>获取/设置 字段值</summary>
         /// <param name="name">字段名</param>
         /// <returns></returns>
         public abstract Object this[String name] { get; set; }
@@ -90,17 +93,17 @@ namespace XCode
             return b;
         }
 
-        /// <summary>设置脏数据项。如果某个键存在并且数据没有脏，则设置</summary>
-        /// <param name="name"></param>
-        /// <param name="value"></param>
-        /// <returns>返回是否成功设置了数据</returns>
-        public Boolean SetNoDirtyItem(String name, Object value)
-        {
-            var fact = EntityFactory.CreateOperate(GetType());
-            if (fact.FieldNames.Contains(name) && !Dirtys[name]) return SetItem(name, value);
+        ///// <summary>设置脏数据项。如果某个键存在并且数据没有脏，则设置</summary>
+        ///// <param name="name"></param>
+        ///// <param name="value"></param>
+        ///// <returns>返回是否成功设置了数据</returns>
+        //public Boolean SetNoDirtyItem(String name, Object value)
+        //{
+        //    var fact = EntityFactory.CreateOperate(GetType());
+        //    if (fact.FieldNames.Contains(name) && !Dirtys[name]) return SetItem(name, value);
 
-            return false;
-        }
+        //    return false;
+        //}
         #endregion
 
         #region 克隆
@@ -227,13 +230,10 @@ namespace XCode
         #region 主键为空
         /// <summary>主键是否为空</summary>
         [XmlIgnore, ScriptIgnore]
-        public Boolean IsNullKey { get { return Helper.IsEntityNullKey(this); } }
+        Boolean IEntity.IsNullKey => Helper.IsEntityNullKey(this);
 
-        // JsonNet支持下面这种特殊用法
-        //public Boolean ShouldSerializeIsNullKey()
-        //{
-        //    return false;
-        //}
+        /// <summary>主键是否为空</summary>
+        protected Boolean IsNullKey => Helper.IsEntityNullKey(this);
 
         /// <summary>设置主键为空。Save将调用Insert</summary>
         void IEntity.SetNullKey()

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
-using System.Text;
+using System.Threading.Tasks;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
@@ -115,16 +115,13 @@ namespace NewLife.Caching
         /// <param name="cmd"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        protected virtual Object SendCommand(String cmd, params Packet[] args)
+        protected virtual async Task<Object> SendCommand(String cmd, params Packet[] args)
         {
             var isQuit = cmd == "QUIT";
 
             var ns = GetStream(!isQuit);
             if (ns == null) return null;
 
-            //// 收发共用的缓冲区
-            //var buf = _Buffer;
-            //if (buf == null) _Buffer = buf = new Byte[64 * 1024];
             var buf = new Byte[64 * 1024];
 
             // 干掉历史残留数据
@@ -134,7 +131,7 @@ namespace NewLife.Caching
             // 验证登录
             if (!Logined && !Password.IsNullOrEmpty() && cmd != "AUTH")
             {
-                var ars = SendCommand("AUTH", Password.GetBytes());
+                var ars = await SendCommand("AUTH", Password.GetBytes());
                 if (ars as String != "OK") throw new Exception("登录失败！" + ars);
 
                 Logined = true;
@@ -195,7 +192,9 @@ namespace NewLife.Caching
 
                     if (ms.Length > 1400)
                     {
-                        ms.WriteTo(ns);
+                        //ms.WriteTo(ns);
+                        await ms.CopyToAsync(ns);
+
                         // 重置memoryStream的长度
                         ms = new MemoryStream(buf);
                         // 从头开始
@@ -203,12 +202,12 @@ namespace NewLife.Caching
                         ms.Position = 0;
                     }
                 }
-                if (ms.Length > 0) ms.WriteTo(ns);
+                if (ms.Length > 0) await ms.CopyToAsync(ns);
             }
             if (log != null) WriteLog(log.Put(true));
 
             // 接收
-            count = ns.Read(buf, 0, buf.Length);
+            count = await ns.ReadAsync(buf, 0, buf.Length);
             if (count == 0) return null;
 
             if (isQuit) Logined = false;
@@ -227,8 +226,8 @@ namespace NewLife.Caching
 
             var header = (Char)rs[0];
 
-            if (header == '$') return ReadBlock(rs, ns);
-            if (header == '*') return ReadBlocks(rs, ns);
+            if (header == '$') return await ReadBlock(rs, ns);
+            if (header == '*') return await ReadBlocks(rs, ns);
 
             var pk = rs.Slice(1);
 
@@ -242,9 +241,9 @@ namespace NewLife.Caching
             throw new InvalidDataException("无法解析响应 [{0}] [{1}]={2}".F(header, rs.Count, rs.ToHex(32, "-")));
         }
 
-        private Packet ReadBlock(Packet pk, Stream ms)
+        private async Task<Packet> ReadBlock(Packet pk, Stream ms)
         {
-            var rs = ReadPacket(pk, ms);
+            var rs = await ReadPacket(pk, ms);
 
             if (Log != null && Log != Logger.Null)
             {
@@ -257,7 +256,7 @@ namespace NewLife.Caching
             return rs;
         }
 
-        private Packet[] ReadBlocks(Packet pk, Stream ms)
+        private async Task<Packet[]> ReadBlocks(Packet pk, Stream ms)
         {
             var header = (Char)pk[0];
 
@@ -273,7 +272,7 @@ namespace NewLife.Caching
             var arr = new Packet[n];
             for (var i = 0; i < n; i++)
             {
-                var rs = ReadPacket(pk, ms);
+                var rs = await ReadPacket(pk, ms);
                 arr[i] = rs;
 
                 // 下一块，在前一块末尾加 \r\n
@@ -283,7 +282,7 @@ namespace NewLife.Caching
             return arr;
         }
 
-        private Packet ReadPacket(Packet pk, Stream ms)
+        private async Task<Packet> ReadPacket(Packet pk, Stream ms)
         {
             var header = (Char)pk[0];
 
@@ -307,13 +306,13 @@ namespace NewLife.Caching
                 // 优先使用缓冲区
                 if (cur.Offset + cur.Count + over <= cur.Data.Length)
                 {
-                    count = ms.Read(cur.Data, cur.Offset + cur.Count, over);
+                    count = await ms.ReadAsync(cur.Data, cur.Offset + cur.Count, over);
                     if (count > 0) cur.Set(cur.Data, cur.Offset, cur.Count + count);
                 }
                 else
                 {
                     var buf = new Byte[over];
-                    count = ms.Read(buf, 0, over);
+                    count = await ms.ReadAsync(buf, 0, over);
                     if (count > 0)
                     {
                         cur.Next = new Packet(buf, 0, count);
@@ -342,10 +341,16 @@ namespace NewLife.Caching
         /// <param name="cmd"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        public virtual TResult Execute<TResult>(String cmd, params Object[] args)
+        public virtual TResult Execute<TResult>(String cmd, params Object[] args) => Task.Run(() => ExecuteAsync<TResult>(cmd, args)).Result;
+
+        /// <summary>执行命令。返回基本类型、对象、对象数组</summary>
+        /// <param name="cmd"></param>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        public virtual async Task<TResult> ExecuteAsync<TResult>(String cmd, params Object[] args)
         {
             var type = typeof(TResult);
-            var rs = SendCommand(cmd, args.Select(e => ToBytes(e)).ToArray());
+            var rs = await SendCommand(cmd, args.Select(e => ToBytes(e)).ToArray());
             if (rs is String str)
             {
                 try
@@ -441,7 +446,7 @@ namespace NewLife.Caching
                 ps.Add(ToBytes(item.Value));
             }
 
-            var rs = SendCommand("MSET", ps.ToArray());
+            var rs = SendCommand("MSET", ps.ToArray()).Result;
 
             return rs as String == "OK";
         }
@@ -475,6 +480,7 @@ namespace NewLife.Caching
 
             if (value is Packet pk) return pk;
             if (value is Byte[] buf) return buf;
+            if (value is IAccessor acc) return acc.ToPacket();
 
             var type = value.GetType();
             switch (type.GetTypeCode())
@@ -493,6 +499,7 @@ namespace NewLife.Caching
         {
             if (type == typeof(Packet)) return pk;
             if (type == typeof(Byte[])) return pk.ToArray();
+            if (type.As<IAccessor>()) return type.AccessorRead(pk);
 
             var str = pk.ToStr().Trim('\"');
             if (type.GetTypeCode() == TypeCode.String) return str;

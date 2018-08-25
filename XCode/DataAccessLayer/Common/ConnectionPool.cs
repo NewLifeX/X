@@ -104,5 +104,22 @@ namespace XCode.DataAccessLayer
             }
             catch { return false; }
         }
+
+        /// <summary>借一个连接执行指定操作</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="callback"></param>
+        /// <returns></returns>
+        public T Execute<T>(Func<DbConnection, T> callback)
+        {
+            var conn = Get();
+            try
+            {
+                return callback(conn);
+            }
+            finally
+            {
+                Put(conn);
+            }
+        }
     }
 }

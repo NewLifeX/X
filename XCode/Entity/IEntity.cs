@@ -14,6 +14,9 @@ namespace XCode
 
         /// <summary>扩展属性</summary>
         EntityExtend Extends { get; }
+
+        /// <summary>是否来自数据库。设置相同属性值时不改变脏数据</summary>
+        Boolean IsFromDatabase { get; }
         #endregion
 
         #region 空主键
@@ -25,15 +28,15 @@ namespace XCode
         #endregion
 
         #region 操作
-        /// <summary>把该对象持久化到数据库</summary>
+        /// <summary>添加</summary>
         /// <returns></returns>
         Int32 Insert();
 
-        /// <summary>更新数据库</summary>
+        /// <summary>更新</summary>
         /// <returns></returns>
         Int32 Update();
 
-        /// <summary>从数据库中删除该对象</summary>
+        /// <summary>删除</summary>
         /// <returns></returns>
         Int32 Delete();
 
@@ -63,11 +66,11 @@ namespace XCode
         /// <returns>返回是否成功设置了数据</returns>
         Boolean SetItem(String name, Object value);
 
-        /// <summary>设置脏数据项。如果某个键存在并且数据没有脏，则设置</summary>
-        /// <param name="name"></param>
-        /// <param name="value"></param>
-        /// <returns>返回是否成功设置了数据</returns>
-        Boolean SetNoDirtyItem(String name, Object value);
+        ///// <summary>设置脏数据项。如果某个键存在并且数据没有脏，则设置</summary>
+        ///// <param name="name"></param>
+        ///// <param name="value"></param>
+        ///// <returns>返回是否成功设置了数据</returns>
+        //Boolean SetNoDirtyItem(String name, Object value);
 
         /// <summary>克隆实体。创建当前对象的克隆对象，仅拷贝基本字段</summary>
         /// <param name="setDirty">是否设置脏数据</param>

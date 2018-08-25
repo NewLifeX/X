@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using NewLife;
+using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Reflection;
@@ -36,8 +37,18 @@ namespace XCode.DataAccessLayer
                                 _Factory = GetProviderFactory("Mono.Data.Sqlite.dll", "Mono.Data.Sqlite.SqliteFactory");
                             else
                             {
+                                //_Factory = GetProviderFactory(null, "System.Data.SQLite.SQLiteFactory", true);
 #if __CORE__
-                                _Factory = GetProviderFactory("Microsoft.Data.Sqlite.dll", "Microsoft.Data.Sqlite.SqliteFactory", true);
+                                _Factory = GetProviderFactory(null, "System.Data.SQLite.SQLiteFactory", true);
+                                if (_Factory != null)
+                                {
+                                    // 加载子目录
+                                    var plugin = NewLife.Setting.Current.GetPluginPath();
+                                }
+                                else
+                                {
+                                    _Factory = GetProviderFactory("Microsoft.Data.Sqlite.dll", "Microsoft.Data.Sqlite.SqliteFactory", true);
+                                }
 #else
                                 //_Factory = GetProviderFactory(null, "Microsoft.Data.Sqlite.SqliteFactory");
 #endif
@@ -323,6 +334,140 @@ namespace XCode.DataAccessLayer
             return rs;
         }
         #endregion
+
+        #region 批量操作
+        /*
+        insert into stat (siteid,statdate,`count`,cost,createtime,updatetime) values 
+        (1,'2018-08-11 09:34:00',1,123,now(),now()),
+        (2,'2018-08-11 09:34:00',1,456,now(),now()),
+        (3,'2018-08-11 09:34:00',1,789,now(),now()),
+        (2,'2018-08-11 09:34:00',1,456,now(),now())
+        on duplicate key update 
+        `count`=`count`+values(`count`),cost=cost+values(cost),
+        updatetime=values(updatetime);
+         */
+
+        private String GetBatchSql(IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list)
+        {
+            var sb = Pool.StringBuilder.Get();
+            var db = Database as DbBase;
+
+            // 字段列表
+            if (columns == null) columns = table.Columns.ToArray();
+            sb.AppendFormat("Insert Into {0}(", db.FormatTableName(table.TableName));
+            foreach (var dc in columns)
+            {
+                if (dc.Identity) continue;
+
+                sb.Append(db.FormatName(dc.ColumnName));
+                sb.Append(",");
+            }
+            sb.Length--;
+            sb.Append(")");
+
+            // 值列表
+            sb.Append(" Values");
+            foreach (var entity in list)
+            {
+                sb.Append("(");
+                foreach (var dc in columns)
+                {
+                    if (dc.Identity) continue;
+
+                    var value = entity[dc.Name];
+                    sb.Append(db.FormatValue(dc, value));
+                    sb.Append(",");
+                }
+                sb.Length--;
+                sb.Append("),");
+            }
+            sb.Length--;
+
+            // 重复键执行update
+            if (updateColumns != null || addColumns != null)
+            {
+                sb.Append(" On Conflict");
+
+                // 先找唯一索引，再用主键
+                var di = table.Indexes?.FirstOrDefault(e => e.Unique);
+                if (di != null && di.Columns != null && di.Columns.Length > 0)
+                {
+                    sb.AppendFormat("({0})", di.Columns.Join(",", e => db.FormatName(e)));
+                }
+                else
+                {
+                    var pks = table.PrimaryKeys;
+                    if (pks != null && pks.Length > 0)
+                        sb.AppendFormat("({0})", pks.Join(",", e => db.FormatName(e.ColumnName)));
+                }
+
+                sb.Append(" Do Update Set ");
+                if (updateColumns != null)
+                {
+                    foreach (var dc in columns)
+                    {
+                        if (dc.Identity || dc.PrimaryKey) continue;
+
+                        if (updateColumns.Contains(dc.Name) && (addColumns == null || !addColumns.Contains(dc.Name)))
+                            sb.AppendFormat("{0}=excluded.{0},", db.FormatName(dc.ColumnName));
+                    }
+                    sb.Length--;
+                }
+                if (addColumns != null)
+                {
+                    sb.Append(",");
+                    foreach (var dc in columns)
+                    {
+                        if (dc.Identity || dc.PrimaryKey) continue;
+
+                        if (addColumns.Contains(dc.Name))
+                            sb.AppendFormat("{0}={0}+excluded.{0},", db.FormatName(dc.ColumnName));
+                    }
+                    sb.Length--;
+                }
+            }
+
+            return sb.Put(true);
+        }
+
+        public override Int32 Insert(IDataColumn[] columns, IEnumerable<IIndexAccessor> list)
+        {
+            var table = columns.FirstOrDefault().Table;
+
+            // 分批
+            var batchSize = 5000;
+            var rs = 0;
+            for (var i = 0; i < list.Count();)
+            {
+                var es = list.Skip(i).Take(batchSize).ToList();
+                var sql = GetBatchSql(table, columns, null, null, es);
+                rs += Execute(sql);
+
+                i += es.Count;
+            }
+
+            return rs;
+        }
+
+        public override Int32 InsertOrUpdate(IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list)
+        {
+            var table = columns.FirstOrDefault().Table;
+
+            // 分批
+            var batchSize = 5000;
+            var rs = 0;
+            for (var i = 0; i < list.Count();)
+            {
+                var es = list.Skip(i).Take(batchSize).ToList();
+                var sql = GetBatchSql(table, columns, updateColumns, addColumns, es);
+                rs += Execute(sql);
+
+                i += es.Count;
+            }
+
+            return rs;
+        }
+        #endregion
     }
 
     /// <summary>SQLite元数据</summary>
@@ -448,12 +593,14 @@ namespace XCode.DataAccessLayer
 
                 #region 索引
                 var dis2 = Select(dis, "tbl_name", name);
-                for (var i = 0; i < dis2.Rows.Count; i++)
+                for (var i = 0; dis2?.Rows != null && i < dis2.Rows.Count; i++)
                 {
                     var di = table.CreateIndex();
                     di.Name = dis2.Get<String>(i, "name");
 
                     sql = dis2.Get<String>(i, "sql");
+                    if (sql.IsNullOrEmpty()) continue;
+
                     if (sql.Contains(" UNIQUE ")) di.Unique = true;
 
                     di.Columns = sql.Substring("(", ")").Split(",").Select(e => e.Trim()).ToArray();
@@ -524,7 +671,7 @@ namespace XCode.DataAccessLayer
         /// <param name="dbname"></param>
         /// <param name="bakfile"></param>
         /// <param name="compressed"></param>
-        protected override String Backup(String dbname, String bakfile, Boolean compressed)
+        public override String Backup(String dbname, String bakfile, Boolean compressed)
         {
             var dbfile = FileName;
 
@@ -720,7 +867,7 @@ namespace XCode.DataAccessLayer
             base.CheckTable(entitytable, dbtable, mode);
         }
 
-        public override String CompactDatabaseSQL() => "VACUUM";
+        public override Int32 CompactDatabase() => Database.CreateSession().Execute("VACUUM");
         #endregion
     }
 }

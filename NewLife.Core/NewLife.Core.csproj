@@ -143,9 +143,6 @@
     <Compile Include="Messaging\IMessage.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Messaging\MessageBase.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Messaging\MessageEventArgs.cs" />
     <Compile Include="Model\IFactory.cs" />
     <Compile Include="Model\IHistory.cs" />
@@ -268,9 +265,7 @@
     <Compile Include="Serialization\Json\JsonReader.cs" />
     <Compile Include="Serialization\Json\JsonTest.cs" />
     <Compile Include="Serialization\Json\JsonWriter.cs" />
-    <Compile Include="Serialization\Protocol.cs">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Include="Serialization\Accessor.cs" />
     <Compile Include="Serialization\SerialHelper.cs" />
     <Compile Include="Serialization\Xml\XmlList.cs" />
     <Compile Include="Serialization\Xml\XmlComposite.cs" />
@@ -334,6 +329,8 @@
       <DependentUpon>SerialPortList.cs</DependentUpon>
     </EmbeddedResource>
     <Compile Include="Extension\EndPointExtensions.cs" />
+    <None Include="Log\Readme.md" />
+    <None Include="Net\Readme.md" />
     <None Include="Remoting\ApiClient.cd" />
     <None Include="Remoting\ApiServer.cd" />
     <None Include="X组件.txt" />

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -141,7 +141,7 @@ namespace XCode.Membership
             if (model.Level > 0 && model.Time > DateTime.MinValue) exp &= _.Time == model.GetDate(model.Level);
             if (!model.Page.IsNullOrEmpty()) exp &= _.Page == model.Page;
 
-            exp &= _.CreateTime.Between(start, end);
+            exp &= _.Time.Between(start, end);
 
             return FindAll(exp, param);
         }
@@ -172,7 +172,7 @@ namespace XCode.Membership
         {
             model = model.Clone();
 
-            if (levels == null || levels.Length == 0) levels = new[] { StatLevels.Day, StatLevels.Month, StatLevels.Year, StatLevels.All };
+            if (levels == null || levels.Length == 0) levels = new[] { StatLevels.Day, StatLevels.Month, StatLevels.Year };
 
             // 当前
             var list = model.Split(levels);
@@ -198,7 +198,10 @@ namespace XCode.Membership
             if (st == null) return null;
 
             // 历史平均
-            st.Cost = (Int32)(((Int64)st.Cost * st.Times + model.Cost) / (st.Times + 1));
+            if (st.Cost > 0)
+                st.Cost = (Int32)Math.Round(((Double)st.Cost * st.Times + model.Cost) / (st.Times + 1));
+            else
+                st.Cost = model.Cost;
             if (model.Cost > st.MaxCost) st.MaxCost = model.Cost;
 
             if (!model.Title.IsNullOrEmpty()) st.Title = model.Title;

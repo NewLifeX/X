@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
@@ -32,7 +33,8 @@ namespace XCode.DataAccessLayer
 #endif
 
             // 根据进程版本，设定x86或者x64为DLL目录
-            var dir = root.CombinePath(!Environment.Is64BitProcess ? "x86" : "x64");
+            var dir = Environment.Is64BitProcess ? "x64" : "x86";
+            dir = root.CombinePath(dir);
             //if (Directory.Exists(dir)) SetDllDirectory(dir);
             // 不要判断是否存在，因为可能目录还不存在，一会下载驱动后将创建目录
 #if __CORE__
@@ -41,9 +43,9 @@ namespace XCode.DataAccessLayer
             if (!Runtime.Mono) SetDllDirectory(dir);
 #endif
 
-
             root = NewLife.Setting.Current.GetPluginPath();
-            dir = root.CombinePath(!Environment.Is64BitProcess ? "x86" : "x64");
+            dir = Environment.Is64BitProcess ? "x64" : "x86";
+            dir = root.CombinePath(dir);
 #if __CORE__
             if (!Runtime.Mono && !Runtime.Linux) SetDllDirectory(dir);
 #else
@@ -245,6 +247,18 @@ namespace XCode.DataAccessLayer
 
         /// <summary>表前缀。所有在该连接上的表名都自动增加该前缀</summary>
         public String TablePrefix { get; set; }
+
+        /// <summary>格式化的表名。加上Owner和表前缀</summary>
+        /// <param name="tableName"></param>
+        /// <returns></returns>
+        public String FormatTableName(String tableName)
+        {
+            if (!TablePrefix.IsNullOrEmpty()) tableName = TablePrefix + tableName;
+            var tname = FormatName(tableName);
+            if (!Owner.IsNullOrEmpty()) tname = $"{FormatName(Owner)}.{tname}";
+
+            return tname;
+        }
         #endregion
 
         #region 方法
@@ -321,23 +335,44 @@ namespace XCode.DataAccessLayer
         {
             try
             {
+                var links = new List<String>();
                 var name = Path.GetFileNameWithoutExtension(assemblyFile);
-                var linkName = name;
-                if (Environment.Is64BitProcess) linkName += "64";
-                var ver = Environment.Version;
-                if (ver.Major >= 4) linkName += "Fx" + ver.Major + ver.Minor;
-                // 有些数据库驱动不区分x86/x64，并且逐步以Fx4为主，所以来一个默认
-                linkName += ";" + name;
-
-#if __CORE__
-                linkName = "st_" + name;
                 if (!name.IsNullOrEmpty())
                 {
-                    className = className + "," + name;//指定完全类型名可获取项目中添加了引用的类型，否则dll文件需要放在根目录
-                }
-#endif
+                    var linkName = name;
+#if __CORE__
+                    if (Runtime.Linux)
+                    {
+                        linkName += Environment.Is64BitProcess ? ".linux-x64" : ".linux-x86";
+                        links.Add(linkName);
+                        links.Add(name + ".linux");
+                    }
+                    else
+                    {
+                        linkName += Environment.Is64BitProcess ? ".win-x64" : ".win-x86";
+                        links.Add(linkName);
+                        links.Add(name + ".win");
+                    }
 
-                var type = PluginHelper.LoadPlugin(className, null, assemblyFile, linkName);
+                    linkName = name + ".netstandard";
+#else
+                    if (Environment.Is64BitProcess) linkName += "64";
+                    var ver = Environment.Version;
+                    if (ver.Major >= 4) linkName += "Fx" + ver.Major + ver.Minor;
+#endif
+                    links.Add(linkName);
+                    // 有些数据库驱动不区分x86/x64，并且逐步以Fx4为主，所以来一个默认
+                    //linkName += ";" + name;
+                    if (links.Contains(name)) links.Add(name);
+
+#if __CORE__
+                    //linkName = "st_" + name;
+                    // 指定完全类型名可获取项目中添加了引用的类型，否则dll文件需要放在根目录
+                    className = className + "," + name;
+#endif
+                }
+
+                var type = PluginHelper.LoadPlugin(className, null, assemblyFile, links.Join(","));
 
                 // 反射实现获取数据库工厂
                 var file = assemblyFile;
@@ -362,7 +397,7 @@ namespace XCode.DataAccessLayer
                     catch (UnauthorizedAccessException) { }
                     catch (Exception ex) { XTrace.Log.Error(ex.ToString()); }
 
-                    type = PluginHelper.LoadPlugin(className, null, file, linkName);
+                    type = PluginHelper.LoadPlugin(className, null, file, links.Join(","));
 
                     // 如果还没有，就写异常
                     if (!File.Exists(file)) throw new FileNotFoundException("缺少文件" + file + "！", file);
@@ -778,7 +813,7 @@ namespace XCode.DataAccessLayer
                     // 参数可能是数组
                     if (type != null && type != typeof(Byte[]) && type.IsArray) type = type.GetElementTypeEx();
                 }
-                else
+                else if (!(value is IList))
                     value = value.ChangeType(type);
 
                 // 写入数据类型

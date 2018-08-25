@@ -83,7 +83,7 @@ namespace XCode.DataAccessLayer
             {
                 if (!MetaDataCollections.Contains(collectionName)) return null;
             }
-            return Database.CreateSession().GetSchema(collectionName, restrictionValues);
+            return Database.CreateSession().GetSchema(null, collectionName, restrictionValues);
         }
         #endregion
 

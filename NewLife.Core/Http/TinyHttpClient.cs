@@ -54,9 +54,8 @@ namespace NewLife.Http
         /// <summary>异步请求</summary>
         /// <param name="remote"></param>
         /// <param name="request"></param>
-        /// <param name="response"></param>
         /// <returns></returns>
-        protected virtual async Task<Packet> SendDataAsync(NetUri remote, Packet request, Packet response)
+        protected virtual async Task<Packet> SendDataAsync(NetUri remote, Packet request)
         {
             var tc = Client;
             NetworkStream ns = null;
@@ -95,18 +94,18 @@ namespace NewLife.Http
             var source = new CancellationTokenSource(Timeout);
 
             // 接收
-            var count = await ns.ReadAsync(response.Data, response.Offset, response.Count, source.Token);
+            var buf = new Byte[64 * 1024];
+            var count = await ns.ReadAsync(buf, 0, buf.Length, source.Token);
 #endif
 
-            return response.Slice(0, count);
+            return new Packet(buf, 0, count);
         }
 
         /// <summary>异步发出请求，并接收响应</summary>
         /// <param name="url"></param>
         /// <param name="data"></param>
-        /// <param name="response"></param>
         /// <returns></returns>
-        protected virtual async Task<Packet> SendAsync(String url, Byte[] data, Packet response)
+        public virtual async Task<Packet> SendAsync(String url, Byte[] data)
         {
             var uri = new Uri(url);
             var remote = new NetUri(NetType.Tcp, uri.Host, uri.Port);
@@ -117,7 +116,7 @@ namespace NewLife.Http
             StatusCode = -1;
 
             // 发出请求
-            var rs = await SendDataAsync(remote, req, response);
+            var rs = await SendDataAsync(remote, req);
             if (rs == null || rs.Count == 0) return null;
 
             // 解析响应
@@ -126,7 +125,7 @@ namespace NewLife.Http
             // 头部和主体分两个包回来
             if (rs != null && rs.Count == 0 && ContentLength != 0)
             {
-                rs = await SendDataAsync(null, null, response);
+                rs = await SendDataAsync(null, null);
             }
 
             // chunk编码
@@ -241,58 +240,17 @@ namespace NewLife.Http
         }
         #endregion
 
-        #region 缓冲池
-        class MyPool : Pool<Byte[]>
-        {
-            protected override Byte[] OnCreate() => new Byte[64 * 1024];
-        }
-
-        private static MyPool _Pool = new MyPool
-        {
-            Max = 1024,
-        };
-        #endregion
-
         #region 主要方法
-        /// <summary>异步发出请求，并接收响应</summary>
-        /// <param name="url">地址</param>
-        /// <param name="data">POST数据</param>
-        /// <returns></returns>
-        public async Task<Byte[]> SendAsync(String url, Byte[] data)
-        {
-            var client = _Pool.Get();
-            try
-            {
-                // 发出请求
-                var rs = await SendAsync(url, data, client);
-                if (rs == null || rs.Count == 0) return null;
-
-                return rs.ToArray();
-            }
-            finally
-            {
-                _Pool.Put(client);
-            }
-        }
-
         /// <summary>异步获取</summary>
         /// <param name="url">地址</param>
         /// <returns></returns>
         public async Task<String> GetAsync(String url)
         {
-            var client = _Pool.Get();
-            try
-            {
-                // 发出请求
-                var rs = await SendAsync(url, null, client);
-                if (rs == null || rs.Count == 0) return null;
+            // 发出请求
+            var rs = await SendAsync(url, null);
+            if (rs == null || rs.Count == 0) return null;
 
-                return rs?.ToStr();
-            }
-            finally
-            {
-                _Pool.Put(client);
-            }
+            return rs?.ToStr();
         }
         #endregion
     }

@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using NewLife;
@@ -98,7 +97,7 @@ namespace XCode.DataAccessLayer
             _ProviderType = null;
             _Db = null;
             _Tables = null;
-            _hasCheck = 0;
+            _hasCheck = false;
             HasCheckTables.Clear();
 #if !__CORE__
             _Assembly = null;
@@ -157,7 +156,7 @@ namespace XCode.DataAccessLayer
 
                     // 联合使用 appsettings.json
                     file = "appsettings.json".GetFullPath();
-                    if (!File.Exists(file)) file = Directory.GetCurrentDirectory()+"/appsettings.json";//Asp.Net Core的Debug模式下配置文件位于项目目录而不是输出目录
+                    if (!File.Exists(file)) file = Directory.GetCurrentDirectory() + "/appsettings.json";//Asp.Net Core的Debug模式下配置文件位于项目目录而不是输出目录
                     if (File.Exists(file))
                     {
                         var dic = new JsonParser(File.ReadAllText(file)).Decode() as IDictionary<String, Object>;
@@ -232,7 +231,7 @@ namespace XCode.DataAccessLayer
         /// <param name="connStr">连接字符串</param>
         /// <param name="provider">数据库提供者</param>
         public static void RegisterDefault(String connName, String connStr, String provider) => _defs[connName] = new Tuple<String, String>(connStr, provider);
-       
+
         /// <summary>连接名</summary>
         public String ConnName { get; }
 
@@ -252,6 +251,8 @@ namespace XCode.DataAccessLayer
         {
             get
             {
+                if (_Db != null) return _Db.Type;
+
                 var db = DbFactory.GetDefault(ProviderType);
                 if (db == null) return DatabaseType.None;
                 return db.Type;
@@ -365,7 +366,7 @@ namespace XCode.DataAccessLayer
         {
             if (Db is DbBase db2 && !db2.SupportSchema) return new List<IDataTable>();
 
-            CheckBeforeUseDatabase();
+            CheckDatabase();
             return Db.CreateMetaData().GetTables();
         }
 
@@ -410,33 +411,38 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 反向工程
-        Int32 _hasCheck;
+        private Boolean _hasCheck;
         /// <summary>使用数据库之前检查表架构</summary>
         /// <remarks>不阻塞，可能第一个线程正在检查表架构，别的线程已经开始使用数据库了</remarks>
-        void CheckBeforeUseDatabase()
+        public void CheckDatabase()
         {
-            if (_hasCheck > 0 || Interlocked.CompareExchange(ref _hasCheck, 1, 0) > 0) return;
+            if (_hasCheck) return;
+            lock (this)
+            {
+                if (_hasCheck) return;
 
-            try
-            {
-                switch (Db.Migration)
+                try
                 {
-                    case Migration.Off:
-                        break;
-                    case Migration.ReadOnly:
-                        Task.Factory.StartNew(CheckTables);
-                        break;
-                    case Migration.On:
-                    case Migration.Full:
-                        CheckTables();
-                        break;
-                    default:
-                        break;
+                    switch (Db.Migration)
+                    {
+                        case Migration.Off:
+                            break;
+                        case Migration.ReadOnly:
+                            Task.Factory.StartNew(CheckTables);
+                            break;
+                        case Migration.On:
+                        case Migration.Full:
+                            CheckTables();
+                            break;
+                        default:
+                            break;
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                if (Debug) WriteLog(ex.ToString());
+                catch (Exception ex)
+                {
+                    if (Debug) WriteLog(ex.GetMessage());
+                }
+                _hasCheck = true;
             }
         }
 
