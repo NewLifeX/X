@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using NewLife.Collections;
@@ -20,7 +21,7 @@ namespace XCode
 {
     /// <summary>数据实体类基类。所有数据实体类都必须继承该类。</summary>
     [Serializable]
-    public partial class Entity<TEntity> : EntityBase where TEntity : Entity<TEntity>, new()
+    public partial class Entity<TEntity> : EntityBase, IAccessor where TEntity : Entity<TEntity>, new()
     {
         #region 构造函数
         /// <summary>静态构造</summary>
@@ -1260,23 +1261,53 @@ namespace XCode
         }
         #endregion
 
-        #region 导入导出XML/Json
-        /// <summary>导入</summary>
-        /// <param name="xml"></param>
-        /// <returns></returns>
-        [Obsolete("请使用 xml.ToXmlEntity<TEntity>()")]
-        public static TEntity FromXml(String xml)
-        {
-            if (!xml.IsNullOrEmpty()) xml = xml.Trim();
+        #region 序列化
+        Boolean IAccessor.Read(Stream stream, Object context) => OnRead(stream, context, false);
 
-            return xml.ToXmlEntity<TEntity>();
+        void IAccessor.Write(Stream stream, Object context) => OnWrite(stream, context, false);
+
+        /// <summary>从数据流反序列化</summary>
+        /// <param name="stream">数据流</param>
+        /// <param name="context">上下文</param>
+        /// <param name="extend">是否序列化扩展属性</param>
+        protected virtual Boolean OnRead(Stream stream, Object context, Boolean extend)
+        {
+            var bn = context as Binary;
+            if (bn == null) bn = new Binary
+            {
+                Stream = stream,
+                EncodeInt = true
+            };
+
+            var fs = extend ? Meta.AllFields : Meta.Fields;
+            foreach (var fi in fs)
+            {
+                // 顺序要求很高
+                this[fi.Name] = bn.Read(fi.Type);
+            }
+
+            return true;
         }
 
-        /// <summary>导入</summary>
-        /// <param name="json"></param>
-        /// <returns></returns>
-        [Obsolete("请使用 json.ToJsonEntity<TEntity>()")]
-        public static TEntity FromJson(String json) => json.ToJsonEntity<TEntity>();
+        /// <summary>二进制序列化到数据流</summary>
+        /// <param name="stream">数据流</param>
+        /// <param name="context">上下文</param>
+        /// <param name="extend">是否序列化扩展属性</param>
+        protected virtual void OnWrite(Stream stream, Object context, Boolean extend)
+        {
+            var bn = context as Binary;
+            if (bn == null) bn = new Binary
+            {
+                Stream = stream,
+                EncodeInt = true
+            };
+
+            var fs = extend ? Meta.AllFields : Meta.Fields;
+            foreach (var fi in fs)
+            {
+                bn.Write(this[fi.Name]);
+            }
+        }
         #endregion
 
         #region 克隆
