@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
-using NewLife.Messaging;
 
 namespace NewLife.Net
 {
@@ -132,7 +131,7 @@ namespace NewLife.Net
         /// <summary>异步发送并等待响应</summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public virtual async Task<Object> SendAsync(Object message) => await Session.SendMessageAsync(message);
+        public virtual Task<Object> SendAsync(Object message) => Session.SendMessageAsync(message);
         #endregion
 
         #region 异常处理

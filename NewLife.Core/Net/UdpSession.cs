@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
@@ -152,7 +151,7 @@ namespace NewLife.Net
         /// <summary>发送消息并等待响应</summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public virtual async Task<Object> SendMessageAsync(Object message) => await Pipeline.FireWriteAndWait(this, message);
+        public virtual Task<Object> SendMessageAsync(Object message) => Pipeline.FireWriteAndWait(this, message);
         #endregion
 
         #region 接收
