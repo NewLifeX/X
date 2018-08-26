@@ -363,7 +363,7 @@ namespace XCode.DataAccessLayer
                     links.Add(linkName);
                     // 有些数据库驱动不区分x86/x64，并且逐步以Fx4为主，所以来一个默认
                     //linkName += ";" + name;
-                    if (links.Contains(name)) links.Add(name);
+                    if (!links.Contains(name)) links.Add(name);
 
 #if __CORE__
                     //linkName = "st_" + name;
