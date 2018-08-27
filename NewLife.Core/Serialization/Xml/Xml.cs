@@ -34,10 +34,12 @@ namespace NewLife.Serialization
         public Xml()
         {
             // 遍历所有处理器实现
-            var list = new List<IXmlHandler>();
-            list.Add(new XmlGeneral { Host = this });
-            list.Add(new XmlList { Host = this });
-            list.Add(new XmlComposite { Host = this });
+            var list = new List<IXmlHandler>
+            {
+                new XmlGeneral { Host = this },
+                new XmlList { Host = this },
+                new XmlComposite { Host = this }
+            };
             // 根据优先级排序
             list.Sort();
 
@@ -145,7 +147,7 @@ namespace NewLife.Serialization
             }
         }
 
-        Boolean IFormatterX.Write(Object value, Type type) { return Write(value, null, type); }
+        Boolean IFormatterX.Write(Object value, Type type) => Write(value, null, type);
 
         /// <summary>写入开头</summary>
         /// <param name="type"></param>
@@ -228,10 +230,7 @@ namespace NewLife.Serialization
         /// <summary>读取指定类型对象</summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public T Read<T>()
-        {
-            return (T)Read(typeof(T));
-        }
+        public T Read<T>() => (T)Read(typeof(T));
 
         /// <summary>尝试读取指定类型对象</summary>
         /// <param name="type"></param>
@@ -326,7 +325,7 @@ namespace NewLife.Serialization
 
         /// <summary>获取字符串</summary>
         /// <returns></returns>
-        public String GetString() { return GetBytes().ToStr(Encoding); }
+        public String GetString() => GetBytes().ToStr(Encoding);
         #endregion
     }
 }

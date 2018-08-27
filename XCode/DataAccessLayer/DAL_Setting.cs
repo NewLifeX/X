@@ -8,7 +8,7 @@ namespace XCode.DataAccessLayer
 {
     partial class DAL
     {
-        static DAL() { InitLog(); }
+        static DAL() => InitLog();
 
         #region Sql日志输出
         /// <summary>是否调试</summary>
@@ -57,7 +57,6 @@ namespace XCode.DataAccessLayer
         internal static IDataTable CreateTable() => XCodeService.CreateTable();
 
         /// <summary>是否支持批操作</summary>
-        /// <param name="db"></param>
         /// <returns></returns>
         public Boolean SupportBatch => DbType == DatabaseType.MySql || DbType == DatabaseType.Oracle || DbType == DatabaseType.SqlServer || DbType == DatabaseType.SQLite;
         #endregion

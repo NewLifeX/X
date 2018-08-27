@@ -361,32 +361,7 @@ namespace XCode.DataAccessLayer
         /// <summary>执行DbCommand，返回受影响的行数</summary>
         /// <param name="cmd">DbCommand</param>
         /// <returns></returns>
-        public virtual Int32 Execute(DbCommand cmd)
-        {
-            return Execute(cmd, true, cmd2 => cmd2.ExecuteNonQuery());
-            //Transaction?.Check(cmd, true);
-
-            //ExecuteTimes++;
-            //WriteSQL(cmd);
-
-            //var conn = Database.Pool.Get();
-            //try
-            //{
-            //    if (cmd.Connection == null) cmd.Connection = conn;
-
-            //    BeginTrace();
-            //    return cmd.ExecuteNonQuery();
-            //}
-            //catch (DbException ex)
-            //{
-            //    throw OnException(ex, cmd);
-            //}
-            //finally
-            //{
-            //    Database.Pool.Put(conn);
-            //    EndTrace(cmd);
-            //}
-        }
+        public virtual Int32 Execute(DbCommand cmd) => Execute(cmd, true, cmd2 => cmd2.ExecuteNonQuery());
 
         public virtual T Execute<T>(DbCommand cmd, Boolean query, Func<DbCommand, T> callback)
         {
