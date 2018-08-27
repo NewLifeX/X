@@ -70,7 +70,7 @@ namespace NewLife.Serialization
 
             if (value == null)
             {
-                Host.Write((Byte)0);
+                Host.Write(0);
                 return true;
             }
 
@@ -134,6 +134,10 @@ namespace NewLife.Serialization
 
                 // 成员访问器优先
                 if (ac != null && TryReadAccessor(member, ref value, ref ac, ref ms)) continue;
+
+                // 数据流不足时，放弃读取目标成员，并认为整体成功
+                var hs = Host.Stream;
+                if (hs.CanSeek && hs.Position < hs.Length) break;
 
                 Object v = null;
                 v = value.GetValue(member);
