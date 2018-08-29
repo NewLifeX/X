@@ -7,8 +7,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Collections;
-using NewLife.Data;
 using NewLife.Log;
+using NewLife.Model;
 using NewLife.Net;
 using NewLife.Security;
 
@@ -18,6 +18,11 @@ namespace NewLife.Caching
     public class Redis : Cache
     {
         #region 静态
+        static Redis()
+        {
+            ObjectContainer.Current.AutoRegister<Redis, Redis>();
+        }
+
         /// <summary>创建</summary>
         /// <param name="server"></param>
         /// <param name="db"></param>
@@ -40,7 +45,13 @@ namespace NewLife.Caching
                 server = dic.ContainsKey("server") ? dic["server"] : "";
             }
 
-            return new Redis { Server = server, Password = pass, Db = db };
+            // 借助对象容器，支持外部注入Redis实现
+            var rds = ObjectContainer.Current.Resolve<Redis>();
+            rds.Server = server;
+            rds.Password = pass;
+            rds.Db = db;
+
+            return rds;
         }
         #endregion
 
