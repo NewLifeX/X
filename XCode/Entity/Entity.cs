@@ -1208,7 +1208,7 @@ namespace XCode
                 if (Meta.Table.ExtendFieldNames.Contains(name))
                 {
                     var pi = GetType().GetPropertyEx(name, true);
-                    if (pi != null) return this.GetValue(pi);
+                    if (pi?.GetMethod != null) return this.GetValue(pi);
                 }
 
                 //// 尝试匹配属性
@@ -1238,7 +1238,7 @@ namespace XCode
                 if (Meta.Table.ExtendFieldNames.Contains(name))
                 {
                     var pi = GetType().GetPropertyEx(name, true);
-                    if (pi != null)
+                    if (pi?.SetMethod != null)
                     {
                         this.SetValue(pi, value);
                         return;
