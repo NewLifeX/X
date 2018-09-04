@@ -96,6 +96,12 @@ namespace NewLife.Caching
         /// <param name="key">键</param>
         /// <returns></returns>
         IProducerConsumer<T> GetQueue<T>(String key);
+
+        /// <summary>获取Set</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        ICollection<T> GetSet<T>(String key);
         #endregion
 
         #region 高级操作

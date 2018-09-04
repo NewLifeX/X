@@ -130,6 +130,12 @@ namespace NewLife.Caching
         /// <param name="key">键</param>
         /// <returns></returns>
         public virtual IProducerConsumer<T> GetQueue<T>(String key) => throw new NotSupportedException();
+
+        /// <summary>获取Set</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public virtual ICollection<T> GetSet<T>(String key) => throw new NotSupportedException();
         #endregion
 
         #region 高级操作
