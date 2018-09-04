@@ -24,7 +24,7 @@ namespace System.Threading.Tasks
         /// <returns></returns>
         public static Task Run(Action action, CancellationToken cancellationToken)
         {
-            return TaskEx.Factory.StartNew(action, cancellationToken, 0, TaskScheduler.Default);
+            return Factory.StartNew(action, cancellationToken, 0, TaskScheduler.Default);
             //return ThreadPoolX.Instance.QueueTask(action);
         }
 
@@ -41,7 +41,7 @@ namespace System.Threading.Tasks
         /// <returns></returns>
         public static Task<TResult> Run<TResult>(Func<TResult> function, CancellationToken cancellationToken)
         {
-            return TaskEx<TResult>.Factory.StartNew(function, cancellationToken, 0, TaskScheduler.Default);
+            return Factory.StartNew(function, cancellationToken, 0, TaskScheduler.Default);
             //return ThreadPoolX.Instance.QueueTask(token => function(), cancellationToken);
         }
 

@@ -11,7 +11,6 @@ using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
 using NewLife.Threading;
-using XCode;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 using XCode.Service;
@@ -36,7 +35,7 @@ namespace Test
                 try
                 {
 #endif
-                Test8();
+                    Test6();
 #if !DEBUG
                 }
                 catch (Exception ex)

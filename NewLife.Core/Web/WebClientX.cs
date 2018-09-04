@@ -12,11 +12,12 @@ using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Net;
 using NewLife.Serialization;
+using NewLife.Threading;
 #if NET4
 #else
 using System.Net.Http;
 using System.Net.Http.Headers;
-using TaskEx = System.Threading.Tasks.Task;
+//using TaskEx = System.Threading.Tasks.Task;
 #endif
 
 namespace NewLife.Web
@@ -481,6 +482,8 @@ namespace NewLife.Web
 
             var sw = Stopwatch.StartNew();
             TaskEx.Run(() => DownloadFileAsync(link.Url, file2)).Wait();
+            //ThreadPoolX.QueueUserWorkItem(() => DownloadFileAsync(link.Url, file2).Wait());
+            //ThreadPoolX.QueueTask(() => DownloadFileAsync(link.Url, file2)).Wait();
             sw.Stop();
 
             if (File.Exists(file2))
