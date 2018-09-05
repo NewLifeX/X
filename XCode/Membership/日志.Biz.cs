@@ -107,7 +107,11 @@ namespace XCode.Membership
             if (!category.IsNullOrEmpty() && category != "全部") exp &= _.Category == category;
             if (userid >= 0) exp &= _.CreateUserID == userid;
             if (start > DateTime.MinValue) exp &= _.CreateTime >= start;
-            if (end > DateTime.MinValue) exp &= _.CreateTime < end.Date.AddDays(1);
+            if (end > DateTime.MinValue)
+            {
+                if (end == end.Date) end = end.AddDays(1);
+                exp &= _.CreateTime < end;
+            }
 
             // 先精确查询，再模糊
             if (!key.IsNullOrEmpty())
