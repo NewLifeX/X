@@ -55,6 +55,9 @@ namespace NewLife.Caching
         /// <returns></returns>
         Int32 Remove(params String[] keys);
 
+        /// <summary>清空所有缓存项</summary>
+        void Clear();
+
         /// <summary>设置缓存项有效期</summary>
         /// <param name="key">键</param>
         /// <param name="expire">过期时间</param>

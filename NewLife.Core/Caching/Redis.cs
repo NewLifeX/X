@@ -268,6 +268,9 @@ namespace NewLife.Caching
         /// <param name="keys">键集合</param>
         public override Int32 Remove(params String[] keys) => Execute(rds => rds.Execute<Int32>("DEL", keys));
 
+        /// <summary>清空所有缓存项</summary>
+        public override void Clear() => Execute(rds => rds.Execute<String>("FLUSHDB"));
+
         /// <summary>是否存在</summary>
         /// <param name="key">键</param>
         public override Boolean ContainsKey(String key) => Execute(rds => rds.Execute<Int32>("EXISTS", key) > 0);

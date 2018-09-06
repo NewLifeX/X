@@ -45,9 +45,6 @@ namespace NewLife.Caching
         #endregion
 
         #region 缓存属性
-        ///// <summary>缓存个数。高频使用时注意性能</summary>
-        //public override Int32 Count => _cache.Count;
-
         private Int32 _count;
         /// <summary>缓存项。原子计数</summary>
         public override Int32 Count => _count;
@@ -167,6 +164,9 @@ namespace NewLife.Caching
             }
             return count;
         }
+
+        /// <summary>清空所有缓存项</summary>
+        public override void Clear() => _cache.Clear();
 
         /// <summary>设置缓存项有效期</summary>
         /// <param name="key">键</param>
