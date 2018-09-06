@@ -3,13 +3,15 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading;
+using NewLife.Caching;
+using NewLife.Collections;
 using NewLife.Data;
 
 namespace XCode.DataAccessLayer
 {
     partial class DAL
     {
-        #region 统计属性
+        #region 属性
         [ThreadStatic]
         private static Int32 _QueryTimes;
         /// <summary>查询次数</summary>
@@ -42,8 +44,18 @@ namespace XCode.DataAccessLayer
         {
             CheckDatabase();
 
+            // 读缓存
+            var st = GetCache();
+            var key = sql;
+            var ds = st?.Get<DataSet>(key);
+            if (ds != null) return ds;
+
             Interlocked.Increment(ref _QueryTimes);
-            return Session.Query(sql);
+            ds = Session.Query(sql);
+
+            st?.Set(key, ds, Expire);
+
+            return ds;
         }
 
         /// <summary>执行SQL查询，返回记录集</summary>
@@ -53,13 +65,39 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public DataSet Select(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows)
         {
+            // 读缓存
+            var key = "";
+            var st = GetCache();
+            if (st != null)
+            {
+                // 构建Key
+                var sb = Pool.StringBuilder.Get();
+                sb.Append(builder.ToString());
+                foreach (var item in builder.Parameters)
+                {
+                    sb.Append("#");
+                    sb.Append(item.Value);
+                }
+                sb.AppendFormat("#{0}#{1}", startRowIndex, maximumRows);
+                key = sb.Put(true);
+
+                var ds = st.Get<DataSet>(key);
+                if (ds != null) return ds;
+            }
+
             builder = PageSplit(builder, startRowIndex, maximumRows);
             if (builder == null) return null;
 
             CheckDatabase();
 
             Interlocked.Increment(ref _QueryTimes);
-            return Session.Query(builder.ToString(), CommandType.Text, builder.Parameters.ToArray());
+            {
+                var ds = Session.Query(builder.ToString(), CommandType.Text, builder.Parameters.ToArray());
+
+                st?.Set(key, ds, Expire);
+
+                return ds;
+            }
         }
 
         /// <summary>执行SQL查询，返回记录集</summary>
@@ -69,13 +107,39 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public DbTable Query(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows)
         {
+            // 读缓存
+            var key = "";
+            var st = GetCache();
+            if (st != null)
+            {
+                // 构建Key
+                var sb = Pool.StringBuilder.Get();
+                sb.Append(builder.ToString());
+                foreach (var item in builder.Parameters)
+                {
+                    sb.Append("#");
+                    sb.Append(item.Value);
+                }
+                sb.AppendFormat("#{0}#{1}", startRowIndex, maximumRows);
+                key = sb.Put(true);
+
+                var dt = st.Get<DbTable>(key);
+                if (dt != null) return dt;
+            }
+
             builder = PageSplit(builder, startRowIndex, maximumRows);
             if (builder == null) return null;
 
             CheckDatabase();
 
             Interlocked.Increment(ref _QueryTimes);
-            return Session.Query(builder.ToString(), builder.Parameters.ToArray());
+            {
+                var dt = Session.Query(builder.ToString(), builder.Parameters.ToArray());
+
+                st?.Set(key, dt, Expire);
+
+                return dt;
+            }
         }
 
         /// <summary>执行SQL查询，返回记录集</summary>
@@ -86,41 +150,35 @@ namespace XCode.DataAccessLayer
         {
             CheckDatabase();
 
+            // 读缓存
+            var key = "";
+            var st = GetCache();
+            if (st != null)
+            {
+                // 构建Key
+                var sb = Pool.StringBuilder.Get();
+                sb.Append(sql);
+                foreach (var item in ps)
+                {
+                    sb.Append("#");
+                    sb.Append(item.Value);
+                }
+                key = sb.Put(true);
+
+                var dt = st.Get<DbTable>(key);
+                if (dt != null) return dt;
+            }
+
             Interlocked.Increment(ref _QueryTimes);
+            {
+                var dps = Db.CreateParameters(ps);
+                var dt = Session.Query(sql, dps);
 
-            var dps = Db.CreateParameters(ps);
-            return Session.Query(sql, dps);
+                st?.Set(key, dt, Expire);
+
+                return dt;
+            }
         }
-
-        ///// <summary>执行SQL查询，返回记录集</summary>
-        ///// <param name="builder">SQL语句</param>
-        ///// <param name="startRowIndex">开始行，0表示第一行</param>
-        ///// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        ///// <param name="convert">转换器</param>
-        ///// <returns></returns>
-        //public T Query<T>(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows, Func<IDataReader, T> convert)
-        //{
-        //    builder = PageSplit(builder, startRowIndex, maximumRows);
-        //    if (builder == null) return default(T);
-
-        //    CheckBeforeUseDatabase();
-
-        //    Interlocked.Increment(ref _QueryTimes);
-        //    return Session.Query(builder.ToString(), CommandType.Text, builder.Parameters.ToArray(), convert);
-        //}
-
-        ///// <summary>执行SQL查询，返回记录集</summary>
-        ///// <param name="sql">SQL语句</param>
-        ///// <param name="convert">转换器</param>
-        ///// <param name="ps">命令参数</param>
-        ///// <returns></returns>
-        //public T Query<T>(String sql, Func<IDataReader, T> convert, params IDataParameter[] ps)
-        //{
-        //    CheckBeforeUseDatabase();
-
-        //    Interlocked.Increment(ref _QueryTimes);
-        //    return Session.Query(sql, CommandType.Text, ps, convert);
-        //}
 
         /// <summary>执行SQL查询，返回总记录数</summary>
         /// <param name="sb">查询生成器</param>
@@ -129,8 +187,18 @@ namespace XCode.DataAccessLayer
         {
             CheckDatabase();
 
+            // 读缓存
+            var st = GetCache();
+            var key = sb.ToString();
+            var rs = st == null ? -1 : st.Get<Int32>(key);
+            if (rs > 0) return rs;
+
             Interlocked.Increment(ref _QueryTimes);
-            return (Int32)Session.QueryCount(sb);
+            rs = (Int32)Session.QueryCount(sb);
+
+            st?.Set(key, rs, Expire);
+
+            return rs;
         }
 
         /// <summary>执行SQL查询，返回总记录数</summary>
@@ -142,8 +210,33 @@ namespace XCode.DataAccessLayer
         {
             CheckDatabase();
 
+            // 读缓存
+            var key = "";
+            var st = GetCache();
+            if (st != null)
+            {
+                // 构建Key
+                var sb = Pool.StringBuilder.Get();
+                sb.Append(sql);
+                foreach (var item in ps)
+                {
+                    sb.Append("#");
+                    sb.Append(item.Value);
+                }
+                key = sb.Put(true);
+
+                var rs = st.Get<Int32>(key);
+                if (rs > 0) return rs;
+            }
+
             Interlocked.Increment(ref _QueryTimes);
-            return (Int32)Session.QueryCount(sql, type, ps);
+            {
+                var dt = (Int32)Session.QueryCount(sql, type, ps);
+
+                st?.Set(key, dt, Expire);
+
+                return dt;
+            }
         }
 
         /// <summary>执行SQL语句，返回受影响的行数</summary>
@@ -157,7 +250,12 @@ namespace XCode.DataAccessLayer
 
             Interlocked.Increment(ref _ExecuteTimes);
 
-            return Session.Execute(sql);
+            var rs = Session.Execute(sql);
+
+            var st = GetCache();
+            st?.Clear();
+
+            return rs;
         }
 
         /// <summary>执行插入语句并返回新增行的自动编号</summary>
@@ -171,7 +269,12 @@ namespace XCode.DataAccessLayer
 
             Interlocked.Increment(ref _ExecuteTimes);
 
-            return Session.InsertAndGetIdentity(sql);
+            var rs = Session.InsertAndGetIdentity(sql);
+
+            var st = GetCache();
+            st?.Clear();
+
+            return rs;
         }
 
         /// <summary>执行SQL查询，返回记录集</summary>
@@ -183,8 +286,33 @@ namespace XCode.DataAccessLayer
         {
             CheckDatabase();
 
+            // 读缓存
+            var key = "";
+            var st = GetCache();
+            if (st != null)
+            {
+                // 构建Key
+                var sb = Pool.StringBuilder.Get();
+                sb.Append(sql);
+                foreach (var item in ps)
+                {
+                    sb.Append("#");
+                    sb.Append(item.Value);
+                }
+                key = sb.Put(true);
+
+                var ds = st.Get<DataSet>(key);
+                if (ds != null) return ds;
+            }
+
             Interlocked.Increment(ref _QueryTimes);
-            return Session.Query(sql, type, ps);
+            {
+                var ds = Session.Query(sql, type, ps);
+
+                st?.Set(key, ds, Expire);
+
+                return ds;
+            }
         }
 
         /// <summary>执行SQL语句，返回受影响的行数</summary>
@@ -198,7 +326,12 @@ namespace XCode.DataAccessLayer
 
             Interlocked.Increment(ref _ExecuteTimes);
 
-            return Session.Execute(sql, type, ps);
+            var rs = Session.Execute(sql, type, ps);
+
+            var st = GetCache();
+            st?.Clear();
+
+            return rs;
         }
 
         /// <summary>执行插入语句并返回新增行的自动编号</summary>
@@ -214,7 +347,12 @@ namespace XCode.DataAccessLayer
 
             Interlocked.Increment(ref _ExecuteTimes);
 
-            return Session.InsertAndGetIdentity(sql, type, ps);
+            var rs = Session.InsertAndGetIdentity(sql, type, ps);
+
+            var st = GetCache();
+            st?.Clear();
+
+            return rs;
         }
 
         /// <summary>执行SQL查询，返回记录集</summary>
@@ -226,8 +364,33 @@ namespace XCode.DataAccessLayer
         {
             CheckDatabase();
 
+            // 读缓存
+            var key = "";
+            var st = GetCache();
+            if (st != null)
+            {
+                // 构建Key
+                var sb = Pool.StringBuilder.Get();
+                sb.Append(sql);
+                foreach (var item in ps)
+                {
+                    sb.Append("#");
+                    sb.Append(item.Value);
+                }
+                key = sb.Put(true);
+
+                var ds = st.Get<DataSet>(key);
+                if (ds != null) return ds;
+            }
+
             Interlocked.Increment(ref _QueryTimes);
-            return Session.Query(sql, type, Db.CreateParameters(ps));
+            {
+                var ds = Session.Query(sql, type, Db.CreateParameters(ps));
+
+                st?.Set(key, ds, Expire);
+
+                return ds;
+            }
         }
 
         /// <summary>执行SQL语句，返回受影响的行数</summary>
@@ -243,7 +406,12 @@ namespace XCode.DataAccessLayer
 
             Interlocked.Increment(ref _ExecuteTimes);
 
-            return Session.Execute(sql, type, Db.CreateParameters(ps));
+            var rs = Session.Execute(sql, type, Db.CreateParameters(ps));
+
+            var st = GetCache();
+            st?.Clear();
+
+            return rs;
         }
 
         /// <summary>执行SQL语句，返回结果中的第一行第一列</summary>
@@ -258,7 +426,12 @@ namespace XCode.DataAccessLayer
 
             Interlocked.Increment(ref _ExecuteTimes);
 
-            return Session.ExecuteScalar<T>(sql, type, Db.CreateParameters(ps));
+            var rs = Session.ExecuteScalar<T>(sql, type, Db.CreateParameters(ps));
+
+            var st = GetCache();
+            st?.Clear();
+
+            return rs;
         }
         #endregion
 
@@ -288,6 +461,31 @@ namespace XCode.DataAccessLayer
         /// <summary>回滚事务，忽略异常</summary>
         /// <returns>剩下的事务计数</returns>
         public Int32 Rollback() => Session.Rollback();
+        #endregion
+
+        #region 缓存
+        /// <summary>缓存存储</summary>
+        public ICache Store { get; set; }
+
+        /// <summary>数据层缓存。默认10秒</summary>
+        public Int32 Expire { get; set; }
+
+        private ICache GetCache()
+        {
+            var st = Store;
+            if (st != null) return st;
+
+            var exp = Expire;
+            if (exp <= 0) exp = Expire = Setting.Current.DataCacheExpire;
+            if (exp <= 0) return null;
+
+            lock (this)
+            {
+                if (Store == null) st = Store = new MemoryCache { Period = 5 };
+            }
+
+            return st;
+        }
         #endregion
 
         //#region 队列

@@ -183,6 +183,9 @@ namespace NewLife.Caching
             //return list.Delete();
         }
 
+        /// <summary>删除所有配置项</summary>
+        public override void Clear() => Factory.Session.Truncate();
+
         /// <summary>设置缓存项有效期</summary>
         /// <param name="key">键</param>
         /// <param name="expire">过期时间</param>

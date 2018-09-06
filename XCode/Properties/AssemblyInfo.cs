@@ -40,7 +40,7 @@ using XCode;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("9.9.*")]
-[assembly: AssemblyFileVersion("9.9.2018.0813")]
+[assembly: AssemblyFileVersion("9.9.2018.0907")]
 
 /*
  * XCode的重大改进
@@ -58,6 +58,8 @@ using XCode;
  * /
 
 /*
+ * v9.9.2018.0907   恢复使用数据层缓存，默认10秒，任意写入清空
+ * 
  * v9.9.2018.0813   支持批量插入和更新，MySql/Oracle
  * 
  * v9.8.2018.0605   由DataReader直接映射实体列表，以支持netstandard的MySql和SQLite，且提升性能

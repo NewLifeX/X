@@ -295,6 +295,27 @@ namespace Test
         static void Test6()
         {
             var list = UserX.FindAll();
+            if (list.Count < 10)
+            {
+                for (var i = 0; i < 10; i++)
+                {
+                    var u = new UserX
+                    {
+                        Name = Rand.NextString(8),
+                    };
+                    u.Insert();
+                }
+                list = UserX.FindAll();
+            }
+
+            var ids = list.Select(e => e.ID).ToArray();
+            for (var i = 0; i < 1000; i++)
+            {
+                var k = Rand.Next(0, ids.Length);
+                var u = UserX.FindByKey(ids[k]);
+
+                Thread.Sleep(1000);
+            }
         }
 
         static void Test7()
