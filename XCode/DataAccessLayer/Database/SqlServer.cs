@@ -421,11 +421,22 @@ namespace XCode.DataAccessLayer
         #region 批量操作
         public override Int32 Insert(IDataColumn[] columns, IEnumerable<IIndexAccessor> list)
         {
+
+#if !__CORE__
+            //重写批量插入方法
+            var ps = new HashSet<String>();
+            var sql = GetInsertSql(columns, ps);
+            var dpsList = GetParametersList(columns, ps, list);
+
+            return BatchExecute(sql, dpsList);
+#else
+            //Core仍使用原来的方法（有问题）
             var ps = new HashSet<String>();
             var sql = GetInsertSql(columns, ps);
             var dps = GetParameters(columns, ps, list);
 
             return Execute(sql, CommandType.Text, dps);
+#endif
         }
 
         private String GetInsertSql(IDataColumn[] columns, ICollection<String> ps)
@@ -502,9 +513,17 @@ namespace XCode.DataAccessLayer
             sb.AppendLine("END;");
             var sql = sb.Put(true);
 
-            var dps = GetParameters(columns, ps, list);
 
+#if !__CORE__
+            // 重写
+            var dpsList = GetParametersList(columns, ps, list, true);
+            return BatchExecute(sql, dpsList);
+#else
+            // Core仍使用原来的版本（有问题）
+            var dps = GetParameters(columns, ps, list);
             return Execute(sql, CommandType.Text, dps);
+#endif
+
         }
 
         private String GetUpdateSql(IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, ICollection<String> ps)
@@ -519,22 +538,23 @@ namespace XCode.DataAccessLayer
             {
                 if (dc.Identity || dc.PrimaryKey) continue;
 
+                // 修复当columns看存在updateColumns不存在列时构造出来的Sql语句会出现连续逗号的问题
                 if (updateColumns != null && updateColumns.Contains(dc.Name))
                 {
-                    sb.AppendFormat("{0}={1}", db.FormatName(dc.ColumnName), db.FormatParameterName(dc.Name));
+                    sb.AppendFormat("{0}={1},", db.FormatName(dc.ColumnName), db.FormatParameterName(dc.Name));
 
                     if (!ps.Contains(dc.Name)) ps.Add(dc.Name);
                 }
                 else if (addColumns != null && addColumns.Contains(dc.Name))
                 {
-                    sb.AppendFormat("{0}={0}+{1}", db.FormatName(dc.ColumnName), db.FormatParameterName(dc.Name));
+                    sb.AppendFormat("{0}={0}+{1},", db.FormatName(dc.ColumnName), db.FormatParameterName(dc.Name));
 
                     if (!ps.Contains(dc.Name)) ps.Add(dc.Name);
                 }
-                sb.Append(",");
+                //sb.Append(",");
             }
             sb.Length--;
-            sb.Append(")");
+            //sb.Append(")");
 
             // 条件
             sb.Append(" Where ");
@@ -552,6 +572,177 @@ namespace XCode.DataAccessLayer
             return sb.Put(true);
         }
         #endregion
+
+#if !__CORE__
+
+        #region 修复实现SqlServer批量操作增添方法
+
+        private int BatchExecute(String sql, List<IDataParameter[]> psList)
+        {
+            //获取连接对象
+            var conn = Database.Pool.Get();
+
+            // 准备
+            var mBatcher = new SqlBatcher();
+            mBatcher.StartBatch(conn);
+
+            // 创建并添加Command
+            foreach (var dps in psList)
+            {
+                if (dps != null)
+                {
+                    var cmd = OnCreateCommand(sql, CommandType.Text, dps);
+                    mBatcher.AddToBatch(cmd);
+                    //XTrace.WriteLine(base.GetSql(cmd));
+                }
+            }
+
+            // 执行批量操作
+            try
+            {
+                BeginTrace();
+                int ret = mBatcher.ExecuteBatch();
+                mBatcher.EndBatch();
+                return ret;
+            }
+            catch (DbException ex)
+            {
+                throw OnException(ex);
+            }
+            finally
+            {
+                if (conn != null) Database.Pool.Put(conn);
+                EndTrace(OnCreateCommand(sql, CommandType.Text));
+            }
+        }
+
+
+        private List<IDataParameter[]> GetParametersList(IDataColumn[] columns, ICollection<String> ps, IEnumerable<IIndexAccessor> list, bool isInsertOrUpdate = false)
+        {
+            var db = Database;
+            var dpsList = new List<IDataParameter[]>();
+
+            foreach (var entity in list)
+            {
+                var dps = new List<IDataParameter>();
+                foreach (var dc in columns)
+                {
+                    if (isInsertOrUpdate)
+                    {
+                        if (dc.Identity || dc.PrimaryKey)
+                        {
+                            //更新时添加主键做为查询条件
+                            dps.Add(db.CreateParameter(dc.Name, entity[dc.Name], dc));
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        if (dc.Identity) continue;
+                    }
+                    if (!ps.Contains(dc.Name)) continue;
+
+                    // 逐列创建参数对象
+                    dps.Add(db.CreateParameter(dc.Name, entity[dc.Name], dc));
+                }
+
+                dpsList.Add(dps.ToArray());
+            }
+
+            return dpsList;
+        }
+
+        /// <summary>
+        /// 批量操作帮助类
+        /// </summary>
+        class SqlBatcher
+        {
+            private System.Reflection.MethodInfo mAddToBatch;
+            private System.Reflection.MethodInfo mClearBatch;
+            private System.Reflection.MethodInfo mInitializeBatching;
+            private System.Reflection.MethodInfo mExecuteBatch;
+            private System.Data.SqlClient.SqlDataAdapter mAdapter;
+            private bool isStarted;
+
+            public SqlBatcher()
+            {
+                var type = typeof(System.Data.SqlClient.SqlDataAdapter);
+                mAddToBatch = type.GetMethod("AddToBatch", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                mClearBatch = type.GetMethod("ClearBatch", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                mInitializeBatching = type.GetMethod("InitializeBatching", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                mExecuteBatch = type.GetMethod("ExecuteBatch", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            }
+
+            /// <summary>
+            /// 获得批处理是否正在批处理状态。
+            /// </summary>
+            public bool IsStarted
+            {
+                get { return isStarted; }
+            }
+
+            /**/
+            /// <summary>
+            /// 开始批处理。
+            /// </summary>
+            /// <param name="connection">连接。</param>
+            public void StartBatch(DbConnection connection)
+            {
+                if (isStarted) return;
+                var command = new System.Data.SqlClient.SqlCommand();
+                command.Connection = (System.Data.SqlClient.SqlConnection)connection;
+                mAdapter = new System.Data.SqlClient.SqlDataAdapter();
+                mAdapter.InsertCommand = command;
+                mInitializeBatching.Invoke(mAdapter, null);
+                isStarted = true;
+            }
+
+            /// <summary>
+            /// 添加批命令。
+            /// </summary>
+            /// <param name="command">命令</param>
+            public void AddToBatch(IDbCommand command)
+            {
+                if (!isStarted) throw new InvalidOperationException();
+                mAddToBatch.Invoke(mAdapter, new object[1] { command });
+            }
+
+            /// <summary>
+            /// 执行批处理。
+            /// </summary>
+            /// <returns>影响的数据行数。</returns>
+            public int ExecuteBatch()
+            {
+                if (!isStarted) throw new InvalidOperationException();
+                return (int)mExecuteBatch.Invoke(mAdapter, null);
+            }
+
+            /// <summary>
+            /// 结束批处理。
+            /// </summary>
+            public void EndBatch()
+            {
+                if (isStarted)
+                {
+                    ClearBatch();
+                    mAdapter.Dispose();
+                    mAdapter = null;
+                    isStarted = false;
+                }
+            }
+
+            /// <summary>
+            /// 清空保存的批命令。
+            /// </summary>
+            public void ClearBatch()
+            {
+                if (!isStarted) throw new InvalidOperationException();
+                mClearBatch.Invoke(mAdapter, null);
+            }
+        }
+        #endregion
+
+#endif
     }
 
     /// <summary>SqlServer元数据</summary>
