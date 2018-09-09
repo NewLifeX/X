@@ -35,7 +35,8 @@ namespace Test
                 try
                 {
 #endif
-                    Test6();
+                //Test6();
+                Test9();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -357,6 +358,11 @@ namespace Test
 
             Console.WriteLine($"id:{t.Id}, title:{t.Title}, price:{t.Price}, ishide:{t.IsHide}");
             Console.WriteLine(t.ToJson(true));
+        }
+
+        static void Test9()
+        {
+            var user = TestTable.Test();
         }
     }
 }

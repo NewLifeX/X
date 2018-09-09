@@ -322,26 +322,45 @@ namespace XCode
         /// <returns></returns>
         public static ConcatExpression GroupBy(this FieldItem field) => field == null ? null : new ConcatExpression(String.Format("Group By {0}", field.FormatedName));
 
+        ///// <summary>按照指定若干个字段分组。没有条件时使用分组请用FieldItem的GroupBy</summary>
+        ///// <param name="where"></param>
+        ///// <param name="fields"></param>
+        ///// <returns>返回条件语句加上分组语句</returns>
+        //public static ConcatExpression GroupBy(this WhereExpression where, params FieldItem[] fields)
+        //{
+        //    var exp = new ConcatExpression();
+        //    var sb = exp.Builder;
+        //    where.GetString(sb, null);
+
+        //    if (sb.Length > 0) sb.Append(" Group By ");
+
+        //    for (var i = 0; i < fields.Length; i++)
+        //    {
+        //        if (i > 0) sb.Append(", ");
+        //        sb.Append(fields[i].FormatedName);
+        //    }
+
+        //    return exp;
+        //}
+
         /// <summary>按照指定若干个字段分组。没有条件时使用分组请用FieldItem的GroupBy</summary>
         /// <param name="where"></param>
         /// <param name="fields"></param>
-        /// <returns>返回条件语句加上分组语句</returns>
-        public static ConcatExpression GroupBy(this WhereExpression where, params FieldItem[] fields)
+        /// <returns>将需要分组的字段作为ConcatExpression类型添加到whereExpression尾部</returns>
+        public static WhereExpression GoupBy(this WhereExpression where, params FieldItem[] fields)
         {
             var exp = new ConcatExpression();
-            var sb = exp.Builder;
-            where.GetString(sb, null);
-
-            if (sb.Length > 0) sb.Append(" Group By ");
 
             for (var i = 0; i < fields.Length; i++)
             {
-                if (i > 0) sb.Append(", ");
-                sb.Append(fields[i].FormatedName);
+                if (i == 0) exp &= fields[i].GroupBy();
+
+                exp.And(fields[i]);
             }
 
-            return exp;
+            return new WhereExpression(where, Operator.Space, exp);
         }
+
 
         /// <summary>聚合</summary>
         /// <param name="field">字段</param>

@@ -110,6 +110,29 @@ namespace Test
         #endregion
 
         #region 高级查询
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public static TestTable Test()
+        {
+            TestTable.Meta.Session.Dal.Db.UseParameter = true;
+            var exp = new WhereExpression();
+
+            exp &= _.Title == "123";
+            exp &= _.Level == 2;
+            exp &= _.PId == 1;
+
+            //exp = new WhereExpression(exp, Operator.Space, _.Title.GroupBy().And(_.Level));
+
+            var exp2 = exp.GroupBy(_.PId, _.Level);
+
+
+            var x = FindAll(exp2, "", _.PId, 0, 0);
+
+            return null;
+
+        }
         #endregion
 
         #region 业务操作

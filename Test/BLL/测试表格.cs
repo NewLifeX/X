@@ -10,7 +10,7 @@ namespace Test
     [Serializable]
     [DataObject]
     [Description("测试表格")]
-    [BindTable("TestTable", Description = "测试表格", ConnName = "Log2", DbType = DatabaseType.SqlServer)]
+    [BindTable("TestTable", Description = "测试表格", ConnName = "Log2", DbType = DatabaseType.SQLite)]
     public partial class TestTable : ITestTable
     {
         #region 属性
