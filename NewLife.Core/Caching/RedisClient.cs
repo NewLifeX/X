@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
-using System.Text;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
@@ -277,7 +276,7 @@ namespace NewLife.Caching
                 arr[i] = rs;
 
                 // 下一块，在前一块末尾加 \r\n
-                pk = pk.Slice(rs.Offset + rs.Count + 2 - pk.Offset);
+                pk = pk.Slice(rs.Offset + rs.Total + 2 - pk.Offset);
             }
 
             return arr;
@@ -285,6 +284,9 @@ namespace NewLife.Caching
 
         private Packet ReadPacket(Packet pk, Stream ms)
         {
+            // 数据不足，最小1字节长度+2换行+0数据+2换行
+            if (pk.Total < 1 + 2 + 0 + 2) ReadMore(pk, ms, 1 + 2 + 0 + 2);
+
             var header = (Char)pk[0];
 
             var p = pk.IndexOf(NewLine);
@@ -303,24 +305,8 @@ namespace NewLife.Caching
             {
                 // 需要读取更多数据，加2字节的结尾换行
                 var over = len - dlen + 2;
-                var count = 0;
-                // 优先使用缓冲区
-                if (cur.Offset + cur.Count + over <= cur.Data.Length)
-                {
-                    count = ms.Read(cur.Data, cur.Offset + cur.Count, over);
-                    if (count > 0) cur.Set(cur.Data, cur.Offset, cur.Count + count);
-                }
-                else
-                {
-                    var buf = new Byte[over];
-                    count = ms.Read(buf, 0, over);
-                    if (count > 0)
-                    {
-                        cur.Next = new Packet(buf, 0, count);
-                        cur = cur.Next;
-                    }
-                }
-                //remain = pk.Total - (p + 2);
+                var count = ReadMore(cur, ms, over);
+                if (cur.Next != null) cur = cur.Next;
                 dlen += count;
             }
 
@@ -328,6 +314,31 @@ namespace NewLife.Caching
             pk = pk.Slice(p + 2, len);
 
             return pk;
+        }
+
+        private Int32 ReadMore(Packet pk, Stream ms, Int32 over)
+        {
+            var count = 0;
+            var remain = pk.Data.Length - pk.Offset - pk.Count;
+
+            // 优先使用缓冲区
+            if (over <= remain && pk.Next == null)
+            {
+                // over是最低保障值，可以酌情扩大
+                count = ms.Read(pk.Data, pk.Offset + pk.Count, remain);
+                if (count > 0) pk.Set(pk.Data, pk.Offset, pk.Count + count);
+            }
+            else
+            {
+                // over是最低保障值，可以酌情扩大
+                if (over < pk.Data.Length) over = pk.Data.Length;
+
+                var buf = new Byte[over];
+                count = ms.Read(buf, 0, over);
+                if (count > 0) pk.Append(new Packet(buf, 0, count));
+            }
+
+            return count;
         }
         #endregion
 
