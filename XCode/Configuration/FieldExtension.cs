@@ -347,7 +347,7 @@ namespace XCode
         /// <param name="where"></param>
         /// <param name="fields"></param>
         /// <returns>将需要分组的字段作为ConcatExpression类型添加到whereExpression尾部</returns>
-        public static WhereExpression GoupBy(this WhereExpression where, params FieldItem[] fields)
+        public static WhereExpression GroupBy(this WhereExpression where, params FieldItem[] fields)
         {
             var exp = new ConcatExpression();
 
@@ -360,7 +360,6 @@ namespace XCode
 
             return new WhereExpression(where, Operator.Space, exp);
         }
-
 
         /// <summary>聚合</summary>
         /// <param name="field">字段</param>
