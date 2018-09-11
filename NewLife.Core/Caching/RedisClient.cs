@@ -110,11 +110,11 @@ namespace NewLife.Caching
 
         private static Byte[] NewLine = new[] { (Byte)'\r', (Byte)'\n' };
 
-        /// <summary>异步发出请求，并接收响应</summary>
+        /// <summary>发出请求</summary>
         /// <param name="cmd"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        protected virtual Object SendCommand(String cmd, params Packet[] args)
+        protected virtual Stream SendCommand(String cmd, params Packet[] args)
         {
             var isQuit = cmd == "QUIT";
 
@@ -126,14 +126,11 @@ namespace NewLife.Caching
             //if (buf == null) _Buffer = buf = new Byte[64 * 1024];
             var buf = new Byte[64 * 1024];
 
-            // 干掉历史残留数据
-            var count = 0;
-            if (ns is NetworkStream nss && nss.DataAvailable) count = ns.Read(buf, 0, buf.Length);
-
             // 验证登录
             if (!Logined && !Password.IsNullOrEmpty() && cmd != "AUTH")
             {
-                var ars = SendCommand("AUTH", Password.GetBytes());
+                var ns2 = SendCommand("AUTH", Password.GetBytes());
+                var ars = GetResponse(ns2);
                 if (ars as String != "OK") throw new Exception("登录失败！" + ars);
 
                 Logined = true;
@@ -206,11 +203,21 @@ namespace NewLife.Caching
             }
             if (log != null) WriteLog(log.Put(true));
 
-            // 接收
-            count = ns.Read(buf, 0, buf.Length);
-            if (count == 0) return null;
-
             if (isQuit) Logined = false;
+
+            return ns;
+        }
+
+        /// <summary>接收响应</summary>
+        /// <param name="ns"></param>
+        /// <returns></returns>
+        protected virtual Object GetResponse(Stream ns)
+        {
+            var buf = new Byte[64 * 1024];
+
+            // 接收
+            var count = ns.Read(buf, 0, buf.Length);
+            if (count == 0) return null;
 
             /*
              * 响应格式
@@ -232,6 +239,8 @@ namespace NewLife.Caching
             var pk = rs.Slice(1);
 
             var str2 = pk.ToStr().Trim();
+
+            var log = Log == null || Log == Logger.Null ? null : Pool.StringBuilder.Get();
             if (log != null) WriteLog("=> {0}", str2);
 
             if (header == '+') return str2;
@@ -239,6 +248,25 @@ namespace NewLife.Caching
             if (header == ':') return str2;
 
             throw new InvalidDataException("无法解析响应 [{0}] [{1}]={2}".F(header, rs.Count, rs.ToHex(32, "-")));
+
+        }
+
+        /// <summary>重置。干掉历史残留数据</summary>
+        public void Reset()
+        {
+            var ns = GetStream(false);
+            if (ns == null) return;
+
+            // 干掉历史残留数据
+            var count = 0;
+            if (ns is NetworkStream nss && nss.DataAvailable)
+            {
+                var buf = new Byte[1024];
+                do
+                {
+                    count = ns.Read(buf, 0, buf.Length);
+                } while (count > 0);
+            }
         }
 
         private Packet ReadBlock(Packet pk, Stream ms)
@@ -356,7 +384,8 @@ namespace NewLife.Caching
         public virtual TResult Execute<TResult>(String cmd, params Object[] args)
         {
             var type = typeof(TResult);
-            var rs = SendCommand(cmd, args.Select(e => ToBytes(e)).ToArray());
+            var ns = SendCommand(cmd, args.Select(e => ToBytes(e)).ToArray());
+            var rs = GetResponse(ns);
             if (rs is String str)
             {
                 try
@@ -452,7 +481,8 @@ namespace NewLife.Caching
                 ps.Add(ToBytes(item.Value));
             }
 
-            var rs = SendCommand("MSET", ps.ToArray());
+            var ns = SendCommand("MSET", ps.ToArray());
+            var rs = GetResponse(ns);
 
             return rs as String == "OK";
         }
