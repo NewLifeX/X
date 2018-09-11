@@ -111,50 +111,33 @@ namespace NewLife.Caching
         private static Byte[] NewLine = new[] { (Byte)'\r', (Byte)'\n' };
 
         /// <summary>发出请求</summary>
+        /// <param name="ms"></param>
         /// <param name="cmd"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        protected virtual Stream SendCommand(String cmd, params Packet[] args)
+        protected virtual void GetRequest(Stream ms, String cmd, Packet[] args)
         {
-            var isQuit = cmd == "QUIT";
-
-            var ns = GetStream(!isQuit);
-            if (ns == null) return null;
-
-            //// 收发共用的缓冲区
-            //var buf = _Buffer;
-            //if (buf == null) _Buffer = buf = new Byte[64 * 1024];
-            var buf = new Byte[64 * 1024];
-
-            // 验证登录
-            if (!Logined && !Password.IsNullOrEmpty() && cmd != "AUTH")
-            {
-                var ns2 = SendCommand("AUTH", Password.GetBytes());
-                var ars = GetResponse(ns2);
-                if (ars as String != "OK") throw new Exception("登录失败！" + ars);
-
-                Logined = true;
-                LoginTime = DateTime.Now;
-            }
-
             // *<number of arguments>\r\n$<number of bytes of argument 1>\r\n<argument data>\r\n
             // *1\r\n$4\r\nINFO\r\n
 
             var log = Log == null || Log == Logger.Null ? null : Pool.StringBuilder.Get();
             log?.Append(cmd);
 
+            /*
+             * 一颗玲珑心
+             * 九天下凡尘
+             * 翩翩起菲舞
+             * 霜摧砺石开
+             */
+
             // 区分有参数和无参数
             if (args == null || args.Length == 0)
             {
                 //var str = "*1\r\n${0}\r\n{1}\r\n".F(cmd.Length, cmd);
-                ns.Write(GetHeaderBytes(cmd, 0));
+                ms.Write(GetHeaderBytes(cmd, 0));
             }
             else
             {
-                var ms = new MemoryStream(buf);
-                ms.SetLength(0);
-                ms.Position = 0;
-
                 //var str = "*{2}\r\n${0}\r\n{1}\r\n".F(cmd.Length, cmd, 1 + args.Length);
                 ms.Write(GetHeaderBytes(cmd, args.Length));
 
@@ -163,14 +146,6 @@ namespace NewLife.Caching
                     var size = item.Total;
                     var sizes = size.ToString().GetBytes();
                     var len = 1 + sizes.Length + NewLine.Length * 2 + size;
-                    // 防止写入内容过长导致的缓冲区长度不足的问题
-                    if (ms.Position + len >= ms.Capacity)
-                    {
-                        // 两倍扩容
-                        var ms2 = new MemoryStream(ms.Capacity * 2);
-                        ms.WriteTo(ms2);
-                        ms = ms2;
-                    }
 
                     if (log != null)
                     {
@@ -188,24 +163,9 @@ namespace NewLife.Caching
                     //ms.Write(item);
                     item.WriteTo(ms);
                     ms.Write(NewLine);
-
-                    if (ms.Length > 1400)
-                    {
-                        ms.WriteTo(ns);
-                        // 重置memoryStream的长度
-                        ms = new MemoryStream(buf);
-                        // 从头开始
-                        ms.SetLength(0);
-                        ms.Position = 0;
-                    }
                 }
-                if (ms.Length > 0) ms.WriteTo(ns);
             }
             if (log != null) WriteLog(log.Put(true));
-
-            if (isQuit) Logined = false;
-
-            return ns;
         }
 
         /// <summary>接收响应</summary>
@@ -248,7 +208,45 @@ namespace NewLife.Caching
             if (header == ':') return str2;
 
             throw new InvalidDataException("无法解析响应 [{0}] [{1}]={2}".F(header, rs.Count, rs.ToHex(32, "-")));
+        }
 
+        /// <summary>发出请求</summary>
+        /// <param name="cmd"></param>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        protected virtual Object ExecuteCommand(String cmd, Packet[] args)
+        {
+            var isQuit = cmd == "QUIT";
+
+            var ns = GetStream(!isQuit);
+            if (ns == null) return null;
+
+            // 验证登录
+            CheckLogin(cmd);
+
+            var ms = Pool.MemoryStream.Get();
+            GetRequest(ms, cmd, args);
+
+            if (ms.Length > 0) ms.WriteTo(ns);
+            ms.Put();
+
+            var rs = GetResponse(ns);
+
+            if (isQuit) Logined = false;
+
+            return rs;
+        }
+
+        private void CheckLogin(String cmd)
+        {
+            if (!Logined && !Password.IsNullOrEmpty() && cmd != "AUTH")
+            {
+                var ars = ExecuteCommand("AUTH", new Packet[] { Password.GetBytes() });
+                if (ars as String != "OK") throw new Exception("登录失败！" + ars);
+
+                Logined = true;
+                LoginTime = DateTime.Now;
+            }
         }
 
         /// <summary>重置。干掉历史残留数据</summary>
@@ -265,7 +263,7 @@ namespace NewLife.Caching
                 do
                 {
                     count = ns.Read(buf, 0, buf.Length);
-                } while (count > 0);
+                } while (count > 0 && nss.DataAvailable);
             }
         }
 
@@ -375,7 +373,7 @@ namespace NewLife.Caching
         /// <param name="cmd"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        public virtual Object Execute(String cmd, params Object[] args) => SendCommand(cmd, args.Select(e => ToBytes(e)).ToArray());
+        public virtual Object Execute(String cmd, params Object[] args) => ExecuteCommand(cmd, args.Select(e => ToBytes(e)).ToArray());
 
         /// <summary>执行命令。返回基本类型、对象、对象数组</summary>
         /// <param name="cmd"></param>
@@ -383,9 +381,15 @@ namespace NewLife.Caching
         /// <returns></returns>
         public virtual TResult Execute<TResult>(String cmd, params Object[] args)
         {
+            // 管道模式
+            if (_ps != null)
+            {
+                _ps.Add(new Command(cmd, args));
+                return default(TResult);
+            }
+
             var type = typeof(TResult);
-            var ns = SendCommand(cmd, args.Select(e => ToBytes(e)).ToArray());
-            var rs = GetResponse(ns);
+            var rs = Execute(cmd, args);
             if (rs is String str)
             {
                 try
@@ -417,6 +421,60 @@ namespace NewLife.Caching
             return default(TResult);
         }
 
+        private IList<Command> _ps;
+        /// <summary>开始管道模式</summary>
+        public virtual void StartPipeline()
+        {
+            if (_ps == null) _ps = new List<Command>();
+        }
+
+        /// <summary>结束管道模式</summary>
+        public virtual Object[] StopPipeline()
+        {
+            var ps = _ps;
+            if (ps == null) return null;
+
+            _ps = null;
+
+            var ns = GetStream(true);
+            if (ns == null) return null;
+
+            // 整体打包所有命令
+            var ms = Pool.MemoryStream.Get();
+            foreach (var item in ps)
+            {
+                GetRequest(ms, item.Name, item.Args.Select(e => ToBytes(e)).ToArray());
+            }
+
+            // 整体发出
+            if (ms.Length > 0) ms.WriteTo(ns);
+            ms.Put();
+
+            // 获取响应
+            var list = new List<Object>();
+            foreach (var item in ps)
+            {
+                var rs = GetResponse(ns);
+                list.Add(rs);
+            }
+
+            return list.ToArray();
+        }
+
+        class Command
+        {
+            public String Name { get; set; }
+            public Object[] Args { get; set; }
+
+            public Command(String name, Object[] args)
+            {
+                Name = name;
+                Args = args;
+            }
+        }
+        #endregion
+
+        #region 基础功能
         /// <summary>心跳</summary>
         /// <returns></returns>
         public Boolean Ping() => Execute<String>("PING") == "PONG";
@@ -481,8 +539,7 @@ namespace NewLife.Caching
                 ps.Add(ToBytes(item.Value));
             }
 
-            var ns = SendCommand("MSET", ps.ToArray());
-            var rs = GetResponse(ns);
+            var rs = ExecuteCommand("MSET", ps.ToArray());
 
             return rs as String == "OK";
         }

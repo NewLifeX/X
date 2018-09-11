@@ -97,11 +97,11 @@ namespace NewLife.Collections
         /// <summary>内存流池</summary>
         public class MemoryStreamPool : Pool<MemoryStream>
         {
-            /// <summary>初始容量。默认100个</summary>
-            public Int32 InitialCapacity { get; set; } = 100;
+            /// <summary>初始容量。默认1024个</summary>
+            public Int32 InitialCapacity { get; set; } = 1024;
 
-            /// <summary>最大容量。超过该大小时不进入池内，默认4k</summary>
-            public Int32 MaximumCapacity { get; set; } = 4 * 1024;
+            /// <summary>最大容量。超过该大小时不进入池内，默认64k</summary>
+            public Int32 MaximumCapacity { get; set; } = 64 * 1024;
 
             /// <summary>创建</summary>
             /// <returns></returns>

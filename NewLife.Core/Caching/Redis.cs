@@ -184,6 +184,10 @@ namespace NewLife.Caching
         /// <returns></returns>
         public virtual T Execute<T>(Func<RedisClient, T> func)
         {
+            // 管道模式直接执行
+            var rds = _client.Value;
+            if (rds != null) return func(rds);
+
             var client = Pool.Get();
             try
             {
@@ -192,11 +196,7 @@ namespace NewLife.Caching
                 {
                     try
                     {
-                        var rs = func(client);
-                        //// 如果返回Packet，需要在离开对象池之前拷贝，否则可能出现冲突
-                        //if ((Object)rs is Packet pk) return (T)(Object)pk.Clone();
-
-                        return rs;
+                        return func(client);
                     }
                     catch (InvalidDataException)
                     {
@@ -208,6 +208,49 @@ namespace NewLife.Caching
             {
                 Pool.Put(client);
             }
+        }
+
+        private readonly ThreadLocal<RedisClient> _client = new ThreadLocal<RedisClient>();
+        /// <summary>开始管道模式</summary>
+        public virtual void StartPipeline()
+        {
+            var rds = _client.Value;
+            if (rds == null)
+            {
+                rds = Pool.Get();
+                rds.StartPipeline();
+
+                _client.Value = rds;
+            }
+        }
+
+        /// <summary>结束管道模式</summary>
+        public virtual Object[] StopPipeline()
+        {
+            var rds = _client.Value;
+            if (rds == null) return null;
+            _client.Value = null;
+
+            try
+            {
+                var i = 0;
+                do
+                {
+                    try
+                    {
+                        return rds.StopPipeline();
+                    }
+                    catch (InvalidDataException)
+                    {
+                        if (i++ >= Retry) throw;
+                    }
+                } while (true);
+            }
+            finally
+            {
+                Pool.Put(rds);
+            }
+
         }
         #endregion
 
@@ -257,12 +300,15 @@ namespace NewLife.Caching
         {
             if (expire < 0) expire = Expire;
 
-            return Execute(rds => rds.Set(key, value, expire));
+            if (expire <= 0)
+                return Execute(rds => rds.Execute<String>("SET", key, value) == "OK");
+            else
+                return Execute(rds => rds.Execute<String>("SETEX", key, expire, value) == "OK");
         }
 
         /// <summary>获取单体</summary>
         /// <param name="key">键</param>
-        public override T Get<T>(String key) => Execute(rds => rds.Get<T>(key));
+        public override T Get<T>(String key) => Execute(rds => rds.Execute<T>("GET", key));
 
         /// <summary>批量移除缓存项</summary>
         /// <param name="keys">键集合</param>
