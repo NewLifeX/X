@@ -394,7 +394,7 @@ namespace NewLife.Caching
             {
                 try
                 {
-                    return str.ChangeType<TResult>();
+                    return rs.ChangeType<TResult>();
                 }
                 catch (Exception ex)
                 {
