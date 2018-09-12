@@ -225,7 +225,8 @@ namespace NewLife.Caching
         }
 
         /// <summary>结束管道模式</summary>
-        public virtual Object[] StopPipeline()
+        /// <param name="requireResult">要求结果。默认false</param>
+        public virtual Object[] StopPipeline(Boolean requireResult = false)
         {
             var rds = _client.Value;
             if (rds == null) return null;
@@ -238,7 +239,7 @@ namespace NewLife.Caching
                 {
                     try
                     {
-                        return rds.StopPipeline();
+                        return rds.StopPipeline(requireResult);
                     }
                     catch (InvalidDataException)
                     {

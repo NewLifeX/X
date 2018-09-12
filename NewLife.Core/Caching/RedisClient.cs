@@ -429,7 +429,8 @@ namespace NewLife.Caching
         }
 
         /// <summary>结束管道模式</summary>
-        public virtual Object[] StopPipeline()
+        /// <param name="requireResult">要求结果</param>
+        public virtual Object[] StopPipeline(Boolean requireResult)
         {
             var ps = _ps;
             if (ps == null) return null;
@@ -449,6 +450,8 @@ namespace NewLife.Caching
             // 整体发出
             if (ms.Length > 0) ms.WriteTo(ns);
             ms.Put();
+
+            if (!requireResult) return null;
 
             // 获取响应
             var list = new List<Object>();
