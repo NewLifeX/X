@@ -188,7 +188,7 @@ namespace NewLife.Caching
             var rds = _client.Value;
             if (rds != null) return func(rds);
 
-            var client = Pool.Get();
+            rds = Pool.Get();
             try
             {
                 var i = 0;
@@ -196,7 +196,7 @@ namespace NewLife.Caching
                 {
                     try
                     {
-                        return func(client);
+                        return func(rds);
                     }
                     catch (InvalidDataException)
                     {
@@ -206,7 +206,8 @@ namespace NewLife.Caching
             }
             finally
             {
-                Pool.Put(client);
+                rds.Reset();
+                Pool.Put(rds);
             }
         }
 
@@ -249,6 +250,7 @@ namespace NewLife.Caching
             }
             finally
             {
+                rds.Reset();
                 Pool.Put(rds);
             }
 
