@@ -362,7 +362,25 @@ namespace Test
 
         static void Test9()
         {
-            var user = TestTable.Test();
+            var rds = Redis.Create("127.0.0.1:6000", 3);
+            //rds.Log = XTrace.Log;
+
+            var key = "kkk";
+            //var list = rds.GetList<String>(key);
+            for (var i = 0; i < 100000; i++)
+            {
+                //list.Add(Rand.NextString(8));
+                rds.Execute(r => r.Execute("RPUSH", key, Rand.NextString(256)));
+            }
+            rds.SetExpire(key, TimeSpan.FromSeconds(120));
+
+            //var arr = list.ToArray();
+            var arr = rds.Execute(r => r.Execute<String[]>("LRANGE", key, 0, -1));
+            Console.WriteLine(arr.Length);
+            //foreach (var item in arr)
+            //{
+            //    Console.WriteLine(item);
+            //}
         }
     }
 }

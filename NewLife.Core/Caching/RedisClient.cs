@@ -314,6 +314,16 @@ namespace NewLife.Caching
             if (pk.Total < 1 + 2 + 0 + 2) ReadMore(pk, ms, 1 + 2 + 0 + 2);
 
             var header = (Char)pk[0];
+            if (header != '$')
+            {
+                // 如果一个响应包刚好结束，末尾两个字节可能不是\r\n，而是\0\0，然后\r\n出现在下一个包开头
+                var k = pk.IndexOf(new[] { (Byte)'$' });
+                if (k > 0)
+                {
+                    pk = pk.Slice(k, pk.Total - k);
+                    header = (Char)pk[0];
+                }
+            }
 
             var p = pk.IndexOf(NewLine);
             if (p <= 0) throw new InvalidDataException("无法解析响应 [{0}] [{1}]={2}".F((Byte)header, pk.Count, pk.ToHex(32, "-")));
