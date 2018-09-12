@@ -476,12 +476,21 @@ namespace XCode.DataAccessLayer
             if (st != null) return st;
 
             var exp = Expire;
-            if (exp <= 0) exp = Expire = Setting.Current.DataCacheExpire;
+            if (exp <= 0) exp = Db.DataCache;
+            if (exp <= 0) exp = Setting.Current.DataCacheExpire;
             if (exp <= 0) return null;
+
+            exp = Expire;
 
             lock (this)
             {
-                if (Store == null) st = Store = new MemoryCache { Period = 5 };
+                if (Store == null)
+                {
+                    var p = exp / 2;
+                    if (p < 5) p = 5;
+
+                    st = Store = new MemoryCache { Period = p };
+                }
             }
 
             return st;

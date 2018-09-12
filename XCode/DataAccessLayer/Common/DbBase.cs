@@ -196,6 +196,7 @@ namespace XCode.DataAccessLayer
             if (builder.TryGetAndRemove(nameof(Migration), out value) && !value.IsNullOrEmpty()) Migration = (Migration)Enum.Parse(typeof(Migration), value, true);
             if (builder.TryGetAndRemove(nameof(TablePrefix), out value) && !value.IsNullOrEmpty()) TablePrefix = value;
             if (builder.TryGetAndRemove(nameof(Readonly), out value) && !value.IsNullOrEmpty()) Readonly = value.ToBoolean();
+            if (builder.TryGetAndRemove(nameof(DataCache), out value) && !value.IsNullOrEmpty()) DataCache = value.ToInt();
 
             // 连接字符串去掉provider，可能有些数据库不支持这个属性
             if (builder.TryGetAndRemove("provider", out value) && !value.IsNullOrEmpty()) { }
@@ -244,6 +245,9 @@ namespace XCode.DataAccessLayer
 
         /// <summary>本连接数据只读。需求不够强劲，暂不支持在连接字符串中设置</summary>
         public Boolean Readonly { get; set; }
+
+        /// <summary>数据层缓存有效期。单位秒</summary>
+        public Int32 DataCache { get; set; }
 
         /// <summary>表前缀。所有在该连接上的表名都自动增加该前缀</summary>
         public String TablePrefix { get; set; }
