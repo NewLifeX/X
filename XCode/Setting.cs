@@ -48,9 +48,9 @@ namespace XCode
         [Description("命令超时。查询执行超时时间，默认0秒不限制")]
         public Int32 CommandTimeout { get; set; }
 
-        /// <summary>数据层缓存。默认10秒</summary>
-        [Description("数据层缓存。默认10秒")]
-        public Int32 DataCacheExpire { get; set; } = 10;
+        /// <summary>数据层缓存。默认0秒</summary>
+        [Description("数据层缓存。默认0秒")]
+        public Int32 DataCacheExpire { get; set; }
 
         /// <summary>实体缓存过期。整表缓存实体列表，默认10秒</summary>
         [Description("实体缓存过期。整表缓存实体列表，默认10秒")]
