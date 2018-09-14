@@ -213,6 +213,8 @@ namespace XCode.DataAccessLayer
             }
             if (maximumRows < 1) throw new NotSupportedException("不支持取第几条数据之后的所有数据！");
 
+            // 不要修改原来的查询语句
+            builder = builder.Clone();
             builder.Limit += String.Format(" limit {0}, {1}", startRowIndex, maximumRows);
             return builder;
         }
