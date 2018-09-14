@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -125,7 +124,10 @@ namespace NewLife.Collections
                 {
                     // 超时异步更新
                     if (func != null)
+                    {
+                        item.Set(item.Value, Expire);
                         Task.Factory.StartNew(() => item.Set(func(key), Expire));
+                    }
                     else
                         _cache.Remove(key);
                 }
@@ -205,8 +207,8 @@ namespace NewLife.Collections
         /// <param name="key">键</param>
         /// <param name="func">获取值的委托，该委托以键作为参数</param>
         /// <returns></returns>
-        [DebuggerHidden]
-        [Obsolete]
+        //[DebuggerHidden]
+        //[Obsolete]
         public virtual TValue GetItem(TKey key, Func<TKey, TValue> func)
         {
             var exp = Expire;
@@ -222,12 +224,22 @@ namespace NewLife.Collections
 
                 if (func != null)
                 {
-                    value = func(key);
-                    if (value != null || AllowNull)
+                    // 过期时，异步加载
+                    if (item != null)
                     {
-                        items[key] = new CacheItem(value, exp);
+                        value = item.Visit();
+                        item.Set(value, Expire);
+                        ThreadPoolX.QueueUserWorkItem(() => value = func(key));
+                    }
+                    else
+                    {
+                        value = func(key);
+                        if (value != null || AllowNull)
+                        {
+                            items[key] = new CacheItem(value, exp);
 
-                        Interlocked.Increment(ref _count);
+                            Interlocked.Increment(ref _count);
+                        }
                     }
                 }
                 StartTimer();
@@ -247,6 +259,9 @@ namespace NewLife.Collections
 
             return true;
         }
+
+        /// <summary>清空</summary>
+        public virtual void Clear() => _cache?.Clear();
         #endregion
 
         #region 辅助
