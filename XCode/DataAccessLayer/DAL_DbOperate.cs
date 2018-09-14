@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using NewLife.Caching;
 using NewLife.Collections;
 using NewLife.Data;
+using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
 {
@@ -42,20 +44,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public DataSet Select(String sql)
         {
-            CheckDatabase();
-
-            // 读缓存
-            var st = GetCache();
-            var key = sql;
-            var ds = st?.Get<DataSet>(key);
-            if (ds != null) return ds;
-
-            Interlocked.Increment(ref _QueryTimes);
-            ds = Session.Query(sql);
-
-            st?.Set(key, ds, Expire);
-
-            return ds;
+            return QueryByCache(sql, "", "", (s, k2, k3) => Session.Query(s), nameof(Select));
         }
 
         /// <summary>执行SQL查询，返回记录集</summary>
@@ -65,39 +54,11 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public DataSet Select(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows)
         {
-            // 读缓存
-            var key = "";
-            var st = GetCache();
-            if (st != null)
+            return QueryByCache(builder, startRowIndex, maximumRows, (sb, start, max) =>
             {
-                // 构建Key
-                var sb = Pool.StringBuilder.Get();
-                sb.Append(builder.ToString());
-                foreach (var item in builder.Parameters)
-                {
-                    sb.Append("#");
-                    sb.Append(item.Value);
-                }
-                sb.AppendFormat("#{0}#{1}", startRowIndex, maximumRows);
-                key = sb.Put(true);
-
-                var ds = st.Get<DataSet>(key);
-                if (ds != null) return ds;
-            }
-
-            builder = PageSplit(builder, startRowIndex, maximumRows);
-            if (builder == null) return null;
-
-            CheckDatabase();
-
-            Interlocked.Increment(ref _QueryTimes);
-            {
-                var ds = Session.Query(builder.ToString(), CommandType.Text, builder.Parameters.ToArray());
-
-                st?.Set(key, ds, Expire);
-
-                return ds;
-            }
+                sb = PageSplit(sb, start, max);
+                return Session.Query(sb.ToString(), CommandType.Text, sb.Parameters.ToArray());
+            }, nameof(Select));
         }
 
         /// <summary>执行SQL查询，返回记录集</summary>
@@ -107,39 +68,11 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public DbTable Query(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows)
         {
-            // 读缓存
-            var key = "";
-            var st = GetCache();
-            if (st != null)
+            return QueryByCache(builder, startRowIndex, maximumRows, (sb, start, max) =>
             {
-                // 构建Key
-                var sb = Pool.StringBuilder.Get();
-                sb.Append(builder.ToString());
-                foreach (var item in builder.Parameters)
-                {
-                    sb.Append("#");
-                    sb.Append(item.Value);
-                }
-                sb.AppendFormat("#{0}#{1}", startRowIndex, maximumRows);
-                key = sb.Put(true);
-
-                var dt = st.Get<DbTable>(key);
-                if (dt != null) return dt;
-            }
-
-            builder = PageSplit(builder, startRowIndex, maximumRows);
-            if (builder == null) return null;
-
-            CheckDatabase();
-
-            Interlocked.Increment(ref _QueryTimes);
-            {
-                var dt = Session.Query(builder.ToString(), builder.Parameters.ToArray());
-
-                st?.Set(key, dt, Expire);
-
-                return dt;
-            }
+                sb = PageSplit(sb, start, max);
+                return Session.Query(sb.ToString(), sb.Parameters.ToArray());
+            }, nameof(Query));
         }
 
         /// <summary>执行SQL查询，返回记录集</summary>
@@ -148,36 +81,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public DbTable Query(String sql, IDictionary<String, Object> ps = null)
         {
-            CheckDatabase();
-
-            // 读缓存
-            var key = "";
-            var st = GetCache();
-            if (st != null)
-            {
-                // 构建Key
-                var sb = Pool.StringBuilder.Get();
-                sb.Append(sql);
-                foreach (var item in ps)
-                {
-                    sb.Append("#");
-                    sb.Append(item.Value);
-                }
-                key = sb.Put(true);
-
-                var dt = st.Get<DbTable>(key);
-                if (dt != null) return dt;
-            }
-
-            Interlocked.Increment(ref _QueryTimes);
-            {
-                var dps = Db.CreateParameters(ps);
-                var dt = Session.Query(sql, dps);
-
-                st?.Set(key, dt, Expire);
-
-                return dt;
-            }
+            return QueryByCache(sql, ps, "", (s, p, k3) => Session.Query(s, Db.CreateParameters(p)), nameof(Query));
         }
 
         /// <summary>执行SQL查询，返回总记录数</summary>
@@ -185,20 +89,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Int32 SelectCount(SelectBuilder sb)
         {
-            CheckDatabase();
-
-            // 读缓存
-            var st = GetCache();
-            var key = sb.ToString();
-            var rs = st == null ? -1 : st.Get<Int32>(key);
-            if (rs > 0) return rs;
-
-            Interlocked.Increment(ref _QueryTimes);
-            rs = (Int32)Session.QueryCount(sb);
-
-            st?.Set(key, rs, Expire);
-
-            return rs;
+            return (Int32)QueryByCache(sb, "", "", (s, k2, k3) => Session.QueryCount(s), nameof(SelectCount));
         }
 
         /// <summary>执行SQL查询，返回总记录数</summary>
@@ -208,35 +99,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Int32 SelectCount(String sql, CommandType type, params IDataParameter[] ps)
         {
-            CheckDatabase();
-
-            // 读缓存
-            var key = "";
-            var st = GetCache();
-            if (st != null)
-            {
-                // 构建Key
-                var sb = Pool.StringBuilder.Get();
-                sb.Append(sql);
-                foreach (var item in ps)
-                {
-                    sb.Append("#");
-                    sb.Append(item.Value);
-                }
-                key = sb.Put(true);
-
-                var rs = st.Get<Int32>(key);
-                if (rs > 0) return rs;
-            }
-
-            Interlocked.Increment(ref _QueryTimes);
-            {
-                var dt = (Int32)Session.QueryCount(sql, type, ps);
-
-                st?.Set(key, dt, Expire);
-
-                return dt;
-            }
+            return (Int32)QueryByCache(sql, type, ps, (s, t, p) => Session.QueryCount(s, t, p), nameof(SelectCount));
         }
 
         /// <summary>执行SQL语句，返回受影响的行数</summary>
@@ -244,18 +107,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Int32 Execute(String sql)
         {
-            if (Db.Readonly) throw new InvalidOperationException($"数据连接[{ConnName}]只读，禁止执行{sql}");
-
-            CheckDatabase();
-
-            Interlocked.Increment(ref _ExecuteTimes);
-
-            var rs = Session.Execute(sql);
-
-            var st = GetCache();
-            st?.Clear();
-
-            return rs;
+            return ExecuteByCache(sql, "", "", (s, t, p) => Session.Execute(s));
         }
 
         /// <summary>执行插入语句并返回新增行的自动编号</summary>
@@ -263,18 +115,7 @@ namespace XCode.DataAccessLayer
         /// <returns>新增行的自动编号</returns>
         public Int64 InsertAndGetIdentity(String sql)
         {
-            if (Db.Readonly) throw new InvalidOperationException($"数据连接[{ConnName}]只读，禁止执行{sql}");
-
-            CheckDatabase();
-
-            Interlocked.Increment(ref _ExecuteTimes);
-
-            var rs = Session.InsertAndGetIdentity(sql);
-
-            var st = GetCache();
-            st?.Clear();
-
-            return rs;
+            return ExecuteByCache(sql, "", "", (s, t, p) => Session.InsertAndGetIdentity(s));
         }
 
         /// <summary>执行SQL查询，返回记录集</summary>
@@ -284,35 +125,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public DataSet Select(String sql, CommandType type, params IDataParameter[] ps)
         {
-            CheckDatabase();
-
-            // 读缓存
-            var key = "";
-            var st = GetCache();
-            if (st != null)
-            {
-                // 构建Key
-                var sb = Pool.StringBuilder.Get();
-                sb.Append(sql);
-                foreach (var item in ps)
-                {
-                    sb.Append("#");
-                    sb.Append(item.Value);
-                }
-                key = sb.Put(true);
-
-                var ds = st.Get<DataSet>(key);
-                if (ds != null) return ds;
-            }
-
-            Interlocked.Increment(ref _QueryTimes);
-            {
-                var ds = Session.Query(sql, type, ps);
-
-                st?.Set(key, ds, Expire);
-
-                return ds;
-            }
+            return QueryByCache(sql, type, ps, (s, t, p) => Session.Query(s, t, p), nameof(Select));
         }
 
         /// <summary>执行SQL语句，返回受影响的行数</summary>
@@ -322,16 +135,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Int32 Execute(String sql, CommandType type, params IDataParameter[] ps)
         {
-            CheckDatabase();
-
-            Interlocked.Increment(ref _ExecuteTimes);
-
-            var rs = Session.Execute(sql, type, ps);
-
-            var st = GetCache();
-            st?.Clear();
-
-            return rs;
+            return ExecuteByCache(sql, type, ps, (s, t, p) => Session.Execute(s, t, p));
         }
 
         /// <summary>执行插入语句并返回新增行的自动编号</summary>
@@ -341,18 +145,7 @@ namespace XCode.DataAccessLayer
         /// <returns>新增行的自动编号</returns>
         public Int64 InsertAndGetIdentity(String sql, CommandType type, params IDataParameter[] ps)
         {
-            if (Db.Readonly) throw new InvalidOperationException($"数据连接[{ConnName}]只读，禁止执行{sql}");
-
-            CheckDatabase();
-
-            Interlocked.Increment(ref _ExecuteTimes);
-
-            var rs = Session.InsertAndGetIdentity(sql, type, ps);
-
-            var st = GetCache();
-            st?.Clear();
-
-            return rs;
+            return ExecuteByCache(sql, type, ps, (s, t, p) => Session.InsertAndGetIdentity(s, t, p));
         }
 
         /// <summary>执行SQL查询，返回记录集</summary>
@@ -362,35 +155,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public DataSet Select(String sql, CommandType type, IDictionary<String, Object> ps)
         {
-            CheckDatabase();
-
-            // 读缓存
-            var key = "";
-            var st = GetCache();
-            if (st != null)
-            {
-                // 构建Key
-                var sb = Pool.StringBuilder.Get();
-                sb.Append(sql);
-                foreach (var item in ps)
-                {
-                    sb.Append("#");
-                    sb.Append(item.Value);
-                }
-                key = sb.Put(true);
-
-                var ds = st.Get<DataSet>(key);
-                if (ds != null) return ds;
-            }
-
-            Interlocked.Increment(ref _QueryTimes);
-            {
-                var ds = Session.Query(sql, type, Db.CreateParameters(ps));
-
-                st?.Set(key, ds, Expire);
-
-                return ds;
-            }
+            return QueryByCache(sql, type, ps, (s, t, p) => Session.Query(s, t, Db.CreateParameters(p)), nameof(Select));
         }
 
         /// <summary>执行SQL语句，返回受影响的行数</summary>
@@ -400,18 +165,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Int32 Execute(String sql, CommandType type, IDictionary<String, Object> ps)
         {
-            if (Db.Readonly) throw new InvalidOperationException($"数据连接[{ConnName}]只读，禁止执行{sql}");
-
-            CheckDatabase();
-
-            Interlocked.Increment(ref _ExecuteTimes);
-
-            var rs = Session.Execute(sql, type, Db.CreateParameters(ps));
-
-            var st = GetCache();
-            st?.Clear();
-
-            return rs;
+            return ExecuteByCache(sql, type, ps, (s, t, p) => Session.Execute(s, t, Db.CreateParameters(p)));
         }
 
         /// <summary>执行SQL语句，返回结果中的第一行第一列</summary>
@@ -422,16 +176,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public T ExecuteScalar<T>(String sql, CommandType type, IDictionary<String, Object> ps)
         {
-            CheckDatabase();
-
-            Interlocked.Increment(ref _ExecuteTimes);
-
-            var rs = Session.ExecuteScalar<T>(sql, type, Db.CreateParameters(ps));
-
-            var st = GetCache();
-            st?.Clear();
-
-            return rs;
+            return ExecuteByCache(sql, type, ps, (s, t, p) => Session.ExecuteScalar<T>(s, t, Db.CreateParameters(p)));
         }
         #endregion
 
@@ -465,35 +210,130 @@ namespace XCode.DataAccessLayer
 
         #region 缓存
         /// <summary>缓存存储</summary>
-        public ICache Store { get; set; }
+        public DictionaryCache<String, Object> Store { get; set; }
 
         /// <summary>数据层缓存。默认10秒</summary>
         public Int32 Expire { get; set; }
 
-        private ICache GetCache()
+        private DictionaryCache<String, Object> GetCache()
         {
             var st = Store;
             if (st != null) return st;
 
             var exp = Expire;
-            if (exp <= 0) exp = Db.DataCache;
-            if (exp <= 0) exp = Setting.Current.DataCacheExpire;
+            if (exp == 0) exp = Db.DataCache;
+            if (exp == 0) exp = Setting.Current.DataCacheExpire;
             if (exp <= 0) return null;
 
-            exp = Expire;
+            Expire = exp;
 
             lock (this)
             {
                 if (Store == null)
                 {
                     var p = exp / 2;
-                    if (p < 5) p = 5;
+                    if (p < 30) p = 30;
 
-                    st = Store = new MemoryCache { Period = p };
+                    st = Store = new DictionaryCache<String, Object> { Period = p, Expire = exp };
                 }
             }
 
             return st;
+        }
+
+        private TResult QueryByCache<T1, T2, T3, TResult>(T1 k1, T2 k2, T3 k3, Func<T1, T2, T3, TResult> callback, String prefix = null)
+        {
+            CheckDatabase();
+
+            // 读缓存
+            var cache = GetCache();
+            if (cache != null)
+            {
+                //var key = "";
+                //if (keyFactory != null)
+                //    key = keyFactory(k1, k2, k3);
+                //else
+                //{
+                var sb = Pool.StringBuilder.Get();
+                if (!prefix.IsNullOrEmpty())
+                {
+                    sb.Append(prefix);
+                    sb.Append("#");
+                }
+                Append(sb, k1);
+                Append(sb, k2);
+                Append(sb, k3);
+                var key = sb.Put(true);
+                //}
+
+                return cache.GetItem(key, k =>
+                {
+                    Interlocked.Increment(ref _QueryTimes);
+                    return callback(k1, k2, k3);
+                }).ChangeType<TResult>();
+            }
+
+            Interlocked.Increment(ref _QueryTimes);
+
+            return callback(k1, k2, k3);
+        }
+
+        private TResult ExecuteByCache<T1, T2, T3, TResult>(T1 k1, T2 k2, T3 k3, Func<T1, T2, T3, TResult> callback)
+        {
+            if (Db.Readonly) throw new InvalidOperationException($"数据连接[{ConnName}]只读，禁止执行{k1}");
+
+            CheckDatabase();
+
+            var rs = callback(k1, k2, k3);
+
+            var st = GetCache();
+            st?.Clear();
+
+            Interlocked.Increment(ref _ExecuteTimes);
+
+            return rs;
+        }
+
+        private static void Append(StringBuilder sb, Object value)
+        {
+            if (value == null) return;
+
+            if (value is SelectBuilder builder)
+            {
+                sb.Append(builder);
+                foreach (var item in builder.Parameters)
+                {
+                    sb.Append("#");
+                    sb.Append(item.ParameterName);
+                    sb.Append("#");
+                    sb.Append(item.Value);
+                }
+            }
+            else if (value is IDataParameter[] ps)
+            {
+                foreach (var item in ps)
+                {
+                    sb.Append("#");
+                    sb.Append(item.ParameterName);
+                    sb.Append("#");
+                    sb.Append(item.Value);
+                }
+            }
+            else if (value is IDictionary<String, Object> dic)
+            {
+                foreach (var item in dic)
+                {
+                    sb.Append("#");
+                    sb.Append(item.Key);
+                    sb.Append("#");
+                    sb.Append(item.Value);
+                }
+            }
+            else
+            {
+                sb.Append("#");
+                sb.Append(value);
+            }
         }
         #endregion
 

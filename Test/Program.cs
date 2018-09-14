@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -36,7 +37,7 @@ namespace Test
                 {
 #endif
                 //Test6();
-                Test9();
+                Test7();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -321,18 +322,45 @@ namespace Test
 
         static void Test7()
         {
-            //new UserOnline()
-            //{
-            //    Name = "Test",
-            //}.Save();
-            var list = UserOnline.FindAll("select * from UserOnline");
-            var count = UserOnline.FindCount("select * from UserOnline");
-            Console.WriteLine(list.Count + "  " + count);
+            var dal = UserX.Meta.Session.Dal;
+            dal.Db.DataCache = 3;
 
-            var dataset = UserOnline.Meta.Session.Query("select * from UserOnline");
+            var list = UserX.FindAll();
+            var u = UserX.FindByID(1);
+            var n = UserX.FindCount();
 
-            //var n = UserX.Meta.Count;
-            //Console.WriteLine(n);
+            var sql = "select * from user";
+            var ds = dal.Select(sql);
+            ds = dal.Select(sql, CommandType.Text);
+            ds = dal.Select(sql, CommandType.Text, new Dictionary<String, Object>());
+            var dt = dal.Query(sql, new Dictionary<String, Object>());
+            n = dal.SelectCount(sql, CommandType.Text);
+
+            var sb = SelectBuilder.Create("select roleid,count(*) from user group by roleid order by count(*) desc");
+            ds = dal.Select(sb, 3, 5);
+            dt = dal.Query(sb, 4, 6);
+            n = dal.SelectCount(sb);
+
+            for (var i = 0; i < 10; i++)
+            {
+                Console.WriteLine(i);
+
+                list = UserX.FindAll();
+                u = UserX.FindByKey(1);
+                n = UserX.FindCount();
+
+                ds = dal.Select(sql);
+                ds = dal.Select(sql, CommandType.Text);
+                ds = dal.Select(sql, CommandType.Text, new Dictionary<String, Object>());
+                dt = dal.Query(sql, new Dictionary<String, Object>());
+                n = dal.SelectCount(sql, CommandType.Text);
+
+                ds = dal.Select(sb, 3, 5);
+                dt = dal.Query(sb, 4, 6);
+                n = dal.SelectCount(sb);
+
+                Thread.Sleep(1000);
+            }
         }
 
         static void Test8()

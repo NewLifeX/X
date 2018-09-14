@@ -164,11 +164,12 @@ namespace XCode.DataAccessLayer
         /// <summary>当异常发生时触发。关闭数据库连接，或者返还连接到连接池。</summary>
         /// <param name="ex"></param>
         /// <param name="cmd"></param>
+        /// <param name="sql"></param>
         /// <returns></returns>
-        protected virtual XSqlException OnException(Exception ex, DbCommand cmd)
+        protected virtual XSqlException OnException(Exception ex, DbCommand cmd, String sql)
         {
             //if (Transaction == null && Opened) Close(); // 强制关闭数据库
-            var sql = GetSql(cmd);
+            if (sql.IsNullOrEmpty()) sql = GetSql(cmd);
             if (ex != null)
                 return new XSqlException(sql, this, ex);
             else
@@ -372,7 +373,7 @@ namespace XCode.DataAccessLayer
             else
                 ExecuteTimes++;
 
-            WriteSQL(cmd);
+            var text = WriteSQL(cmd);
 
             DbConnection conn = null;
             try
@@ -384,13 +385,13 @@ namespace XCode.DataAccessLayer
             }
             catch (DbException ex)
             {
-                throw OnException(ex, cmd);
+                throw OnException(ex, cmd, text);
             }
             finally
             {
                 if (conn != null) Database.Pool.Put(conn);
 
-                EndTrace(cmd);
+                EndTrace(cmd, text);
             }
         }
 
@@ -555,7 +556,7 @@ namespace XCode.DataAccessLayer
                 Transaction?.Check(cmd, false);
 
                 QueryTimes++;
-                WriteSQL(cmd);
+                var text = WriteSQL(cmd);
 
                 var conn = Database.Pool.Get();
                 try
@@ -578,12 +579,12 @@ namespace XCode.DataAccessLayer
                     // 数据库异常最好销毁连接
                     cmd.Connection.TryDispose();
 
-                    throw OnException(ex, cmd);
+                    throw OnException(ex, cmd, text);
                 }
                 finally
                 {
                     Database.Pool.Put(conn);
-                    EndTrace(cmd);
+                    EndTrace(cmd, text);
                 }
             }
         }
@@ -593,7 +594,7 @@ namespace XCode.DataAccessLayer
             Transaction?.Check(cmd, true);
 
             ExecuteTimes++;
-            WriteSQL(cmd);
+            var text = WriteSQL(cmd);
 
             var conn = Database.Pool.Get();
             try
@@ -605,12 +606,12 @@ namespace XCode.DataAccessLayer
             }
             catch (DbException ex)
             {
-                throw OnException(ex, cmd);
+                throw OnException(ex, cmd, text);
             }
             finally
             {
                 Database.Pool.Put(conn);
-                EndTrace(cmd);
+                EndTrace(cmd, text);
             }
         }
 
@@ -618,7 +619,7 @@ namespace XCode.DataAccessLayer
         {
             QueryTimes++;
 
-            WriteSQL(cmd);
+            var text = WriteSQL(cmd);
             try
             {
                 BeginTrace();
@@ -631,11 +632,11 @@ namespace XCode.DataAccessLayer
             }
             catch (DbException ex)
             {
-                throw OnException(ex, cmd);
+                throw OnException(ex, cmd, text);
             }
             finally
             {
-                EndTrace(cmd);
+                EndTrace(cmd, text);
             }
         }
 #endif
@@ -807,7 +808,7 @@ namespace XCode.DataAccessLayer
             return sql;
         }
 
-        public void WriteSQL(DbCommand cmd)
+        public String WriteSQL(DbCommand cmd)
         {
             var flag = ShowSQL;
 #if !__CORE__
@@ -819,7 +820,7 @@ namespace XCode.DataAccessLayer
             }
 #endif
 
-            if (!flag) return;
+            if (!flag) return null;
 
             //var sql = cmd.CommandText;
             //if (cmd.CommandType != CommandType.Text) sql = String.Format("[{0}]{1}", cmd.CommandType, sql);
@@ -827,6 +828,8 @@ namespace XCode.DataAccessLayer
             var sql = GetSql(cmd);
 
             WriteSQL(sql);
+
+            return sql;
         }
 
         ///// <summary>输出日志</summary>
@@ -859,7 +862,7 @@ namespace XCode.DataAccessLayer
             _swSql.Start();
         }
 
-        protected void EndTrace(DbCommand cmd)
+        protected void EndTrace(DbCommand cmd, String sql = null)
         {
             if (_swSql == null) return;
 
@@ -867,7 +870,7 @@ namespace XCode.DataAccessLayer
 
             if (_swSql.ElapsedMilliseconds < (Database as DbBase).TraceSQLTime) return;
 
-            var sql = GetSql(cmd);
+            if (sql.IsNullOrEmpty()) sql = GetSql(cmd);
 
             // 同一个SQL只需要报警一次
             if (_trace_sqls.Contains(sql)) return;
