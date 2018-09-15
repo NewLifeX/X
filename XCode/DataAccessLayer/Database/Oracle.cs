@@ -479,12 +479,15 @@ namespace XCode.DataAccessLayer
                 if (dc.Identity) continue;
                 if (!ps.Contains(dc.Name)) continue;
 
-                var vs = new List<Object>();
+                //var vs = new List<Object>();
+                var arr = Array.CreateInstance(dc.DataType, list.Count());
+                var k = 0;
                 foreach (var entity in list)
                 {
-                    vs.Add(entity[dc.Name]);
+                    //vs.Add(entity[dc.Name]);
+                    arr.SetValue(entity[dc.Name], k++);
                 }
-                var dp = db.CreateParameter(dc.Name, vs.ToArray(), dc);
+                var dp = db.CreateParameter(dc.Name, arr, dc);
 
                 dps.Add(dp);
             }
@@ -500,10 +503,10 @@ namespace XCode.DataAccessLayer
 
             var sb = Pool.StringBuilder.Get();
             sb.AppendLine("BEGIN");
-            sb.AppendLine(insert);
+            sb.AppendLine(insert + ";");
             sb.AppendLine("EXCEPTION");
             sb.AppendLine("WHEN DUP_VAL_ON_INDEX THEN");
-            sb.AppendLine(update);
+            sb.AppendLine(update + ";");
             sb.AppendLine("END;");
             var sql = sb.Put(true);
 
@@ -524,22 +527,20 @@ namespace XCode.DataAccessLayer
             {
                 if (dc.Identity || dc.PrimaryKey) continue;
 
-                if (updateColumns != null && updateColumns.Contains(dc.Name))
+                if (addColumns != null && addColumns.Contains(dc.Name))
                 {
-                    sb.AppendFormat("{0}={1}", db.FormatName(dc.ColumnName), db.FormatParameterName(dc.Name));
+                    sb.AppendFormat("{0}={0}+{1},", db.FormatName(dc.ColumnName), db.FormatParameterName(dc.Name));
 
                     if (!ps.Contains(dc.Name)) ps.Add(dc.Name);
                 }
-                else if (addColumns != null && addColumns.Contains(dc.Name))
+                else if (updateColumns != null && updateColumns.Contains(dc.Name))
                 {
-                    sb.AppendFormat("{0}={0}+{1}", db.FormatName(dc.ColumnName), db.FormatParameterName(dc.Name));
+                    sb.AppendFormat("{0}={1},", db.FormatName(dc.ColumnName), db.FormatParameterName(dc.Name));
 
                     if (!ps.Contains(dc.Name)) ps.Add(dc.Name);
                 }
-                sb.Append(",");
             }
             sb.Length--;
-            sb.Append(")");
 
             // 条件
             sb.Append(" Where ");

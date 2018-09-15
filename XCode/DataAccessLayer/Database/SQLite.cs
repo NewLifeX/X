@@ -404,17 +404,6 @@ namespace XCode.DataAccessLayer
                 }
 
                 sb.Append(" Do Update Set ");
-                if (updateColumns != null)
-                {
-                    foreach (var dc in columns)
-                    {
-                        if (dc.Identity || dc.PrimaryKey) continue;
-
-                        if (updateColumns.Contains(dc.Name) && (addColumns == null || !addColumns.Contains(dc.Name)))
-                            sb.AppendFormat("{0}=excluded.{0},", db.FormatName(dc.ColumnName));
-                    }
-                    sb.Length--;
-                }
                 if (addColumns != null)
                 {
                     sb.Append(",");
@@ -424,6 +413,17 @@ namespace XCode.DataAccessLayer
 
                         if (addColumns.Contains(dc.Name))
                             sb.AppendFormat("{0}={0}+excluded.{0},", db.FormatName(dc.ColumnName));
+                    }
+                    sb.Length--;
+                }
+                if (updateColumns != null)
+                {
+                    foreach (var dc in columns)
+                    {
+                        if (dc.Identity || dc.PrimaryKey) continue;
+
+                        if (updateColumns.Contains(dc.Name) && (addColumns == null || !addColumns.Contains(dc.Name)))
+                            sb.AppendFormat("{0}=excluded.{0},", db.FormatName(dc.ColumnName));
                     }
                     sb.Length--;
                 }
