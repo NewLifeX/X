@@ -170,23 +170,14 @@ namespace NewLife.Caching
 
         /// <summary>接收响应</summary>
         /// <param name="ns"></param>
-        /// <param name="pk"></param>
+        /// <param name="count"></param>
         /// <returns></returns>
-        protected virtual Object GetResponse(Stream ns, Packet pk)
+        protected virtual IList<Object> GetResponse(Stream ns, Int32 count)
         {
-            if (pk?.Data == null)
-            {
-                var buf = new Byte[64 * 1024];
+            //var ms = new MemoryStream(64 * 1024);
 
-                // 接收
-                var count = ns.Read(buf, 0, buf.Length);
-                if (count == 0) return null;
-
-                if (pk == null)
-                    pk = new Packet(buf, 0, count);
-                else
-                    pk.Set(buf, 0, count);
-            }
+            //// 数据不足，最小1标识+1长度+2换行+0数据
+            //if (ms.Length < 1 + 1 + 2 + 0) ReadMore(ms, ns, 1 + 1 + 2 + 0);
 
             /*
              * 响应格式
@@ -197,32 +188,46 @@ namespace NewLife.Caching
              * 5：多条回复。*开头， 例：*2\r\n$3\r\nfoo\r\n$3\r\nbar\r\n
              */
 
-            // 解析响应
-            var header = (Char)pk[0];
-            if (header == '$') return ReadBlock(pk, ns);
-            if (header == '*') return ReadBlocks(pk, ns);
+            var ms = new BufferedStream(ns);
 
-            // 字符串以换行为结束符
-            var p = pk.IndexOf(NewLine, 1);
-            if (p > 0)
+            // 多行响应
+            var list = new List<Object>();
+            //StreamReader reader = null;
+            //var reader = new StreamReader(ns, Encoding.ASCII, false, 1024);
+            for (var i = 0; i < count; i++)
             {
-                var pk2 = pk.Slice(1, p - 1);
+                // 解析响应
+                var header = (Char)ms.ReadByte();
+                //var header = (Char)reader.Read();
+                if (header == '$')
+                {
+                    list.Add(ReadBlock(null, ms));
+                }
+                else if (header == '*')
+                {
+                    list.Add(ReadBlocks(null, ms));
+                }
+                else
+                {
+                    //if (reader == null) reader = new StreamReader(ms);
 
-                // 改变原始数据偏移
-                pk.Set(pk2.Data, pk2.Offset + pk2.Total + 2, pk.Total - 1 - pk2.Total - 2);
-                pk.Next = pk2.Next;
+                    // 字符串以换行为结束符
+                    //var str = reader.ReadLine();
+                    var str = ReadLine(ms);
 
-                var str2 = pk2.ToStr().Trim();
+                    var log = Log == null || Log == Logger.Null ? null : Pool.StringBuilder.Get();
+                    if (log != null) WriteLog("=> {0}", str);
 
-                var log = Log == null || Log == Logger.Null ? null : Pool.StringBuilder.Get();
-                if (log != null) WriteLog("=> {0}", str2);
-
-                if (header == '+') return str2;
-                if (header == '-') throw new Exception(str2);
-                if (header == ':') return str2;
+                    if (header == '+' || header == ':')
+                        list.Add(str);
+                    else if (header == '-')
+                        throw new Exception(str);
+                    else
+                        throw new InvalidDataException("无法解析响应 [{0}]".F(header));
+                }
             }
 
-            throw new InvalidDataException("无法解析响应 [{0}] [{1}]={2}".F(header, pk.Count, pk.ToHex(32, "-")));
+            return list;
         }
 
         /// <summary>发出请求</summary>
@@ -245,11 +250,11 @@ namespace NewLife.Caching
             if (ms.Length > 0) ms.WriteTo(ns);
             ms.Put();
 
-            var rs = GetResponse(ns, null);
+            var rs = GetResponse(ns, 1);
 
             if (isQuit) Logined = false;
 
-            return rs;
+            return rs.FirstOrDefault();
         }
 
         private void CheckLogin(String cmd)
@@ -282,11 +287,11 @@ namespace NewLife.Caching
             }
         }
 
-        private Packet ReadBlock(Packet pk, Stream ms)
+        private Packet ReadBlock(StreamReader reader, Stream ms)
         {
-            var rs = ReadPacket(pk, ms);
+            var rs = ReadPacket(reader, ms);
 
-            if (Log != null && Log != Logger.Null)
+            if (rs != null && Log != null && Log != Logger.Null)
             {
                 if (rs.Count <= 32)
                     WriteLog("=> {0}", rs.ToStr());
@@ -297,120 +302,164 @@ namespace NewLife.Caching
             return rs;
         }
 
-        private Object[] ReadBlocks(Packet pk, Stream ms)
+        private Object[] ReadBlocks(StreamReader reader, Stream ms)
         {
-            var header = (Char)pk[0];
+            //var header = (Char)reader.ReadByte();
 
             // 结果集数量
-            var p = pk.IndexOf(NewLine);
-            if (p <= 0) throw new InvalidDataException("无法解析响应 {0} [{1}]".F(header, pk.Count));
+            //var p = reader.IndexOf(NewLine);
+            //var n = reader.ReadLine().ToInt(-1);
+            var n = ReadLine(ms).ToInt(-1);
+            //if (n < 0) throw new InvalidDataException("无法解析响应 {0} [{1}]".F(header, reader.Length));
 
-            var n = pk.Slice(1, p - 1).ToStr().ToInt();
+            //var n = ms.Slice(1, p - 1).ToStr().ToInt();
+            //var n = reader.ReadBytes(p).ToStr().ToInt();
+            //reader.Seek(2, SeekOrigin.Current);
 
-            pk = pk.Slice(p + 2);
-            if (Log != null && Log != Logger.Null) WriteLog("=> *{0} [{1}] {2}", n, pk.Count, pk.Slice(0, 32).ToStr().Replace(Environment.NewLine, "\\r\\n"));
+            //ms = ms.Slice(p + 2);
+            //if (Log != null && Log != Logger.Null)
+            //{
+            //    var buf = reader.ReadBytes(32);
+            //    reader.Seek(-buf.Length, SeekOrigin.Current);
+            //    WriteLog("=> *{0} [{1}] {2}", n, reader.Length, buf.ToStr().Replace(Environment.NewLine, "\\r\\n"));
+            //}
 
+            //var ms = reader.BaseStream;
             var arr = new Object[n];
             for (var i = 0; i < n; i++)
             {
-                // 数据不足，最小1标识+1长度+2换行+0数据
-                if (pk.Total < 1 + 1 + 2 + 0) ReadMore(pk, ms, 1 + 1 + 2 + 0);
+                //// 数据不足，最小1标识+1长度+2换行+0数据
+                //if (reader.Length < 1 + 1 + 2 + 0) ReadMore(reader, ns, 1 + 1 + 2 + 0);
 
-                var end = 0;
-                header = (Char)pk[0];
+                //var end = 0;
+                var header = (Char)ms.ReadByte();
+                //var header = (Char)reader.Read();
                 if (header == '$')
                 {
-                    var rs = ReadPacket(pk, ms);
+                    var rs = ReadPacket(reader, ms);
                     arr[i] = rs;
 
-                    end = rs.Offset + rs.Total;
+                    //end = rs.Offset + rs.Total;
                 }
                 else if (header == '*')
                 {
-                    var bs = ReadBlocks(pk, ms);
+                    var bs = ReadBlocks(reader, ms);
                     if (bs != null && bs.Length > 0)
                     {
                         var rs = bs.Last() as Packet;
-                        end = rs.Offset + rs.Total;
+                        //end = rs.Offset + rs.Total;
                     }
                     arr[i] = bs;
                 }
 
                 // 下一块，在前一块末尾加 \r\n
-                pk = pk.Slice(end + 2 - pk.Offset);
+                //ms = ms.Slice(end + 2 - ms.Offset);
+                //ms.Seek(2, SeekOrigin.Current);
+                //reader.ReadLine();
             }
 
             return arr;
         }
 
-        private Packet ReadPacket(Packet pk, Stream ms)
+        private Packet ReadPacket(StreamReader reader, Stream ms)
         {
-            // 数据不足，最小1标识+1长度+2换行+0数据
-            if (pk.Total < 1 + 1 + 2 + 0) ReadMore(pk, ms, 1 + 1 + 2 + 0);
+            //// 数据不足，最小1标识+1长度+2换行+0数据
+            //if (ms.Length < 1 + 1 + 2 + 0) ReadMore(ms, ns, 1 + 1 + 2 + 0);
 
-            var ori = pk;
-            var header = (Char)pk[0];
-            if (header != '$')
-            {
-                // 如果一个响应包刚好结束，末尾两个字节可能不是\r\n，而是\0\0，然后\r\n出现在下一个包开头
-                var k = pk.IndexOf(new[] { (Byte)'$' });
-                if (k > 0)
-                {
-                    pk = pk.Slice(k, pk.Total - k);
-                    header = (Char)pk[0];
-                }
-            }
+            //var ori = ms;
+            //var header = (Char)reader.Read();
+            //if (header != '$')
+            //{
+            //    // 如果一个响应包刚好结束，末尾两个字节可能不是\r\n，而是\0\0，然后\r\n出现在下一个包开头
+            //    var k = ms.IndexOf(new[] { (Byte)'$' });
+            //    if (k > 0)
+            //    {
+            //        ms.Seek(-1, SeekOrigin.Current);
+            //        header = (Char)ms.ReadByte();
+            //    }
+            //}
 
-            var p = pk.IndexOf(NewLine);
-            if (p <= 0) throw new InvalidDataException("无法解析响应 [{0}] [{1}]={2}".F((Byte)header, pk.Count, pk.ToHex(32, "-")));
+            //var p = ms.IndexOf(NewLine);
+            //if (p <= 0) throw new InvalidDataException("无法解析响应 [{0}]".F((Byte)header));
 
-            // 解析长度
-            var len = pk.Slice(1, p - 1).ToStr().ToInt();
+            //// 解析长度
+            //var len = ms.ReadBytes(p).ToStr().ToInt();
+            //ms.Seek(2, SeekOrigin.Current);
+            //var len = reader.ReadLine().ToInt(-1);
+            var len = ReadLine(ms).ToInt(-1);
+            //if (len < 0) throw new InvalidDataException("无法解析响应 [{0}]".F((Byte)header));
 
             // 出错或没有内容
-            if (len <= 0) return pk.Slice(p, 0);
+            if (len <= 0) return null;
 
-            // 数据不足时，继续从网络流读取
-            var dlen = pk.Total - (p + 2);
-            var cur = pk;
-            while (dlen < len)
-            {
-                // 需要读取更多数据，加2字节的结尾换行
-                var over = len - dlen + 2;
-                var count = ReadMore(cur, ms, over);
-                if (cur.Next != null) cur = cur.Next;
-                dlen += count;
-            }
+            //// 数据不足时，继续从网络流读取
+            //var dlen = (Int32)ms.Length;
 
-            // 解析内容，跳过长度后的\r\n
-            pk = pk.Slice(p + 2, len);
+            //// 需要读取更多数据，加2字节的结尾换行
+            //var over = len - dlen + 2;
+            //ReadMore(ms, ns, over);
+
+            //// 解析内容，跳过长度后的\r\n
+            //var pk = new Packet(ms.GetBuffer(), (Int32)ms.Position, len);
+            //ms.Seek(len + 2, SeekOrigin.Current);
+
+            var buf = new Byte[len + 2];
+            var count = ms.Read(buf, 0, buf.Length);
+            var pk = new Packet(buf, 0, count - 2);
 
             return pk;
         }
 
-        private Int32 ReadMore(Packet pk, Stream ms, Int32 over)
+        private void ReadMore(MemoryStream ms, Stream ns, Int32 over)
         {
-            var count = 0;
-            var remain = pk.Data.Length - pk.Offset - pk.Count;
+            var remain = ms.Capacity - ms.Length;
 
-            // 优先使用缓冲区
-            if (over <= remain && pk.Next == null)
+            // over是最低保障值，可以酌情扩大
+            if (over < remain) over = (Int32)remain;
+
+            var buf = new Byte[over];
+            var count = ns.Read(buf, 0, buf.Length);
+            if (count > 0)
             {
-                // over是最低保障值，可以酌情扩大
-                count = ms.Read(pk.Data, pk.Offset + pk.Count, remain);
-                if (count > 0) pk.Set(pk.Data, pk.Offset, pk.Count + count);
+                var p = ms.Position;
+                ms.Position = ms.Length;
+
+                ms.Write(buf, 0, count);
+
+                ms.Position = p;
             }
-            else
+        }
+
+        private String ReadLine(Stream ms)
+        {
+            //var reader = new StreamReader(ms);
+            //return reader.ReadLine();
+
+            //var p = ms.Position;
+            //var k = 0;
+
+            var sb = Pool.StringBuilder.Get();
+            while (true)
             {
-                // over是最低保障值，可以酌情扩大
-                if (over < pk.Data.Length) over = pk.Data.Length;
+                var b = ms.ReadByte();
+                if (b < 0) break;
 
-                var buf = new Byte[over];
-                count = ms.Read(buf, 0, over);
-                if (count > 0) pk.Append(new Packet(buf, 0, count));
+                if (b == '\r')
+                {
+                    var b2 = ms.ReadByte();
+                    if (b2 < 0) break;
+
+                    if (b2 == '\n') break;
+
+                    sb.Append((Char)b);
+                    sb.Append((Char)b2);
+                }
+                else
+                    sb.Append((Char)b);
             }
 
-            return count;
+            return sb.Put(true);
+            //return new Packet(ms.GetBuffer(), (Int32)p, k);
         }
         #endregion
 
@@ -523,15 +572,11 @@ namespace NewLife.Caching
 
             //if (!requireResult) return null;
 
-            // 获取响应
-            var list = new List<Object>();
-            var pk = new Packet(null, 0, 0);
-            foreach (var item in ps)
+            // 获取响应，有借不还
+            var list = GetResponse(ns, ps.Count);
+            for (var i = 0; i < list.Count; i++)
             {
-                var rs = GetResponse(ns, pk);
-                if (TryChangeType(rs, item.Type, out var target)) rs = target;
-
-                list.Add(rs);
+                if (TryChangeType(list[i], ps[i].Type, out var target)) list[i] = target;
             }
 
             return list.ToArray();

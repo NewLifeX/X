@@ -1,16 +1,13 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Net;
-using NewLife.Security;
 
 namespace NewLife.Caching
 {
@@ -149,9 +146,9 @@ namespace NewLife.Caching
                     Server = uri,
                     Password = rds.Password,
                 };
-                if (rds.Db > 0) rc.Select(rds.Db);
 
                 rc.Log = rds.Log;
+                if (rds.Db > 0) rc.Select(rds.Db);
 
                 return rc;
             }
@@ -490,88 +487,6 @@ namespace NewLife.Caching
             if (rand && batch > 10) times *= 10;
 
             base.BenchOne(times, threads, rand, batch);
-        }
-
-        /// <summary>测试</summary>
-        public static void Test()
-        {
-            //var rds = new RedisClient
-            //{
-            //    Log = XTrace.Log,
-            //    Server = new NetUri("tcp://127.0.0.1:6379"),
-            //};
-            var rds = Redis.Create("127.0.0.1:6379", 4);
-            rds.Password = "";
-            rds.Log = XTrace.Log;
-            (rds.Pool as ObjectPool<RedisClient>).Log = XTrace.Log;
-
-            //rds.Bench();
-            //return;
-
-            var rc = rds.Pool.Get();
-
-            var f = rc.Select(4);
-            //Console.WriteLine(f);
-
-            var p = rc.Ping();
-            //Console.WriteLine(p);
-
-            var vs = rds.GetAll<String>(new[] { "num", "dd", "dt" });
-            Console.WriteLine(vs);
-
-            var num = Rand.Next(10243);
-            rds.Set("num", num);
-            var num2 = rds.Get<Int16>("num");
-            //Console.WriteLine("{0} => {1}", num, num2);
-
-            var d1 = (Double)Rand.Next(10243) / 100;
-            rds.Set("dd", d1);
-            var d2 = rds.Get<Double>("dd");
-            //Console.WriteLine("{0} => {1}", d1, d2);
-
-            var dt = DateTime.Now;
-            rds.Set("dt", dt);
-            var dt2 = rds.Get<DateTime>("dt");
-            //Console.WriteLine("{0} => {1}", dt, dt2);
-
-            var v = Rand.NextString(7);
-            rds.Set("name", v);
-            v = rds.Get<String>("name");
-            //Console.WriteLine(v);
-
-            var buf1 = Rand.NextBytes(35);
-            rds.Set("bs", buf1);
-            var buf2 = rds.Get<Byte[]>("bs");
-            Console.WriteLine(buf1.ToHex());
-            Console.WriteLine(buf2.ToHex());
-
-            //var inf = rc.GetInfo();
-            //foreach (var item in inf)
-            //{
-            //    Console.WriteLine("{0}\t{1}", item.Key, item.Value);
-            //}
-
-            // 加锁测试
-            var sw = Stopwatch.StartNew();
-            Parallel.For(0, 5, k =>
-            {
-                var key = "num";
-                using (var rlock = rds.AcquireLock(key, 3000))
-                {
-                    var vnum = rds.Get<Int32>(key);
-                    vnum++;
-                    Thread.Sleep(Rand.Next(100, 1000));
-                    rds.Set(key, vnum);
-                }
-            });
-            sw.Stop();
-
-            // 加锁结果检查
-            var rnum = rds.Get<Int32>("num");
-            Console.WriteLine("加锁累加结果：{0} 匹配：{1} 耗时：{2:n0}ms", rnum, rnum == num2 + 5, sw.ElapsedMilliseconds);
-
-            //rds.Quit();
-            rds.Dispose();
         }
         #endregion
 
