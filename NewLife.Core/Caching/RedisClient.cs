@@ -460,9 +460,9 @@ namespace NewLife.Caching
             if (ms.Length > 0) ms.WriteTo(ns);
             ms.Put();
 
-            //if (!requireResult) return null;
+            if (!requireResult) return null;
 
-            // 获取响应，有借不还
+            // 获取响应
             var list = GetResponse(ns, ps.Count);
             for (var i = 0; i < list.Count; i++)
             {
