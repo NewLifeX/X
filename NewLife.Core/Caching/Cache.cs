@@ -347,6 +347,9 @@ namespace NewLife.Caching
 
             // 删除测试
             BenchRemove(key, times, threads, rand);
+
+            // 累加测试
+            BenchInc(key, times, threads, rand, batch);
         }
 
         /// <summary>读取测试</summary>
@@ -425,7 +428,7 @@ namespace NewLife.Caching
             {
                 Parallel.For(0, threads, k =>
                 {
-                    var val = Rand.NextString(32);
+                    var val = Rand.NextString(8);
                     if (batch == 0)
                     {
                         for (var i = k; i < times; i += threads)
@@ -461,7 +464,7 @@ namespace NewLife.Caching
                 Parallel.For(0, threads, k =>
                 {
                     var mykey = key + k;
-                    var val = Rand.NextString(32);
+                    var val = Rand.NextString(8);
                     var count = times / threads;
                     for (var i = 0; i < count; i++)
                     {
@@ -473,6 +476,45 @@ namespace NewLife.Caching
 
             var speed = times * 1000 / sw.ElapsedMilliseconds;
             XTrace.WriteLine($"赋值 {times:n0} 项，{threads,3:n0} 线程，耗时 {sw.ElapsedMilliseconds,7:n0}ms 速度 {speed,9:n0} ops");
+        }
+
+        /// <summary>累加测试</summary>
+        /// <param name="key">键</param>
+        /// <param name="times">次数</param>
+        /// <param name="threads">线程</param>
+        /// <param name="rand">随机读写</param>
+        /// <param name="batch">批量操作</param>
+        protected virtual void BenchInc(String key, Int64 times, Int32 threads, Boolean rand, Int32 batch)
+        {
+            var sw = Stopwatch.StartNew();
+            if (rand)
+            {
+                Parallel.For(0, threads, k =>
+                {
+                    var val = Rand.Next(100);
+                    for (var i = k; i < times; i += threads)
+                    {
+                        Increment(key + i, val);
+                    }
+                });
+            }
+            else
+            {
+                Parallel.For(0, threads, k =>
+                {
+                    var mykey = key + k;
+                    var val = Rand.Next(100);
+                    var count = times / threads;
+                    for (var i = 0; i < count; i++)
+                    {
+                        Increment(mykey, val);
+                    }
+                });
+            }
+            sw.Stop();
+
+            var speed = times * 1000 / sw.ElapsedMilliseconds;
+            XTrace.WriteLine($"累加 {times:n0} 项，{threads,3:n0} 线程，耗时 {sw.ElapsedMilliseconds,7:n0}ms 速度 {speed,9:n0} ops");
         }
 
         /// <summary>删除测试</summary>
