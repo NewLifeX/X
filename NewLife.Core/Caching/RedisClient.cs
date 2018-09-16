@@ -174,11 +174,6 @@ namespace NewLife.Caching
         /// <returns></returns>
         protected virtual IList<Object> GetResponse(Stream ns, Int32 count)
         {
-            //var ms = new MemoryStream(64 * 1024);
-
-            //// 数据不足，最小1标识+1长度+2换行+0数据
-            //if (ms.Length < 1 + 1 + 2 + 0) ReadMore(ms, ns, 1 + 1 + 2 + 0);
-
             /*
              * 响应格式
              * 1：简单字符串，非二进制安全字符串，一般是状态回复。  +开头，例：+OK\r\n 
@@ -192,27 +187,21 @@ namespace NewLife.Caching
 
             // 多行响应
             var list = new List<Object>();
-            //StreamReader reader = null;
-            //var reader = new StreamReader(ns, Encoding.ASCII, false, 1024);
             for (var i = 0; i < count; i++)
             {
                 // 解析响应
                 var header = (Char)ms.ReadByte();
-                //var header = (Char)reader.Read();
                 if (header == '$')
                 {
-                    list.Add(ReadBlock(null, ms));
+                    list.Add(ReadBlock(ms));
                 }
                 else if (header == '*')
                 {
-                    list.Add(ReadBlocks(null, ms));
+                    list.Add(ReadBlocks(ms));
                 }
                 else
                 {
-                    //if (reader == null) reader = new StreamReader(ms);
-
                     // 字符串以换行为结束符
-                    //var str = reader.ReadLine();
                     var str = ReadLine(ms);
 
                     var log = Log == null || Log == Logger.Null ? null : Pool.StringBuilder.Get();
@@ -287,9 +276,9 @@ namespace NewLife.Caching
             }
         }
 
-        private Packet ReadBlock(StreamReader reader, Stream ms)
+        private Packet ReadBlock(Stream ms)
         {
-            var rs = ReadPacket(reader, ms);
+            var rs = ReadPacket(ms);
 
             if (rs != null && Log != null && Log != Logger.Null)
             {
@@ -302,106 +291,34 @@ namespace NewLife.Caching
             return rs;
         }
 
-        private Object[] ReadBlocks(StreamReader reader, Stream ms)
+        private Object[] ReadBlocks(Stream ms)
         {
-            //var header = (Char)reader.ReadByte();
-
             // 结果集数量
-            //var p = reader.IndexOf(NewLine);
-            //var n = reader.ReadLine().ToInt(-1);
             var n = ReadLine(ms).ToInt(-1);
-            //if (n < 0) throw new InvalidDataException("无法解析响应 {0} [{1}]".F(header, reader.Length));
-
-            //var n = ms.Slice(1, p - 1).ToStr().ToInt();
-            //var n = reader.ReadBytes(p).ToStr().ToInt();
-            //reader.Seek(2, SeekOrigin.Current);
-
-            //ms = ms.Slice(p + 2);
-            //if (Log != null && Log != Logger.Null)
-            //{
-            //    var buf = reader.ReadBytes(32);
-            //    reader.Seek(-buf.Length, SeekOrigin.Current);
-            //    WriteLog("=> *{0} [{1}] {2}", n, reader.Length, buf.ToStr().Replace(Environment.NewLine, "\\r\\n"));
-            //}
+            if (n < 0) return new Object[0];
 
             //var ms = reader.BaseStream;
             var arr = new Object[n];
             for (var i = 0; i < n; i++)
             {
-                //// 数据不足，最小1标识+1长度+2换行+0数据
-                //if (reader.Length < 1 + 1 + 2 + 0) ReadMore(reader, ns, 1 + 1 + 2 + 0);
-
-                //var end = 0;
                 var header = (Char)ms.ReadByte();
-                //var header = (Char)reader.Read();
                 if (header == '$')
                 {
-                    var rs = ReadPacket(reader, ms);
-                    arr[i] = rs;
-
-                    //end = rs.Offset + rs.Total;
+                    arr[i] = ReadPacket(ms);
                 }
                 else if (header == '*')
                 {
-                    var bs = ReadBlocks(reader, ms);
-                    if (bs != null && bs.Length > 0)
-                    {
-                        var rs = bs.Last() as Packet;
-                        //end = rs.Offset + rs.Total;
-                    }
-                    arr[i] = bs;
+                    arr[i] = ReadBlocks(ms);
                 }
-
-                // 下一块，在前一块末尾加 \r\n
-                //ms = ms.Slice(end + 2 - ms.Offset);
-                //ms.Seek(2, SeekOrigin.Current);
-                //reader.ReadLine();
             }
 
             return arr;
         }
 
-        private Packet ReadPacket(StreamReader reader, Stream ms)
+        private Packet ReadPacket(Stream ms)
         {
-            //// 数据不足，最小1标识+1长度+2换行+0数据
-            //if (ms.Length < 1 + 1 + 2 + 0) ReadMore(ms, ns, 1 + 1 + 2 + 0);
-
-            //var ori = ms;
-            //var header = (Char)reader.Read();
-            //if (header != '$')
-            //{
-            //    // 如果一个响应包刚好结束，末尾两个字节可能不是\r\n，而是\0\0，然后\r\n出现在下一个包开头
-            //    var k = ms.IndexOf(new[] { (Byte)'$' });
-            //    if (k > 0)
-            //    {
-            //        ms.Seek(-1, SeekOrigin.Current);
-            //        header = (Char)ms.ReadByte();
-            //    }
-            //}
-
-            //var p = ms.IndexOf(NewLine);
-            //if (p <= 0) throw new InvalidDataException("无法解析响应 [{0}]".F((Byte)header));
-
-            //// 解析长度
-            //var len = ms.ReadBytes(p).ToStr().ToInt();
-            //ms.Seek(2, SeekOrigin.Current);
-            //var len = reader.ReadLine().ToInt(-1);
             var len = ReadLine(ms).ToInt(-1);
-            //if (len < 0) throw new InvalidDataException("无法解析响应 [{0}]".F((Byte)header));
-
-            // 出错或没有内容
             if (len <= 0) return null;
-
-            //// 数据不足时，继续从网络流读取
-            //var dlen = (Int32)ms.Length;
-
-            //// 需要读取更多数据，加2字节的结尾换行
-            //var over = len - dlen + 2;
-            //ReadMore(ms, ns, over);
-
-            //// 解析内容，跳过长度后的\r\n
-            //var pk = new Packet(ms.GetBuffer(), (Int32)ms.Position, len);
-            //ms.Seek(len + 2, SeekOrigin.Current);
 
             var buf = new Byte[len + 2];
             var count = ms.Read(buf, 0, buf.Length);
@@ -410,34 +327,8 @@ namespace NewLife.Caching
             return pk;
         }
 
-        private void ReadMore(MemoryStream ms, Stream ns, Int32 over)
-        {
-            var remain = ms.Capacity - ms.Length;
-
-            // over是最低保障值，可以酌情扩大
-            if (over < remain) over = (Int32)remain;
-
-            var buf = new Byte[over];
-            var count = ns.Read(buf, 0, buf.Length);
-            if (count > 0)
-            {
-                var p = ms.Position;
-                ms.Position = ms.Length;
-
-                ms.Write(buf, 0, count);
-
-                ms.Position = p;
-            }
-        }
-
         private String ReadLine(Stream ms)
         {
-            //var reader = new StreamReader(ms);
-            //return reader.ReadLine();
-
-            //var p = ms.Position;
-            //var k = 0;
-
             var sb = Pool.StringBuilder.Get();
             while (true)
             {
@@ -459,7 +350,6 @@ namespace NewLife.Caching
             }
 
             return sb.Put(true);
-            //return new Packet(ms.GetBuffer(), (Int32)p, k);
         }
         #endregion
 
@@ -655,14 +545,18 @@ namespace NewLife.Caching
         /// <returns></returns>
         public Boolean SetAll<T>(IDictionary<String, T> values)
         {
-            var ps = new List<Packet>();
+            //var ps = new List<Packet>();
+            var ps = new List<Object>();
             foreach (var item in values)
             {
-                ps.Add(item.Key.GetBytes());
-                ps.Add(ToBytes(item.Value));
+                //ps.Add(item.Key.GetBytes());
+                //ps.Add(ToBytes(item.Value));
+                ps.Add(item.Key);
+                ps.Add(item.Value);
             }
 
-            var rs = ExecuteCommand("MSET", ps.ToArray());
+            //var rs = ExecuteCommand("MSET", ps.ToArray());
+            var rs = Execute<String>("MSET", ps.ToArray());
 
             return rs as String == "OK";
         }
@@ -715,6 +609,8 @@ namespace NewLife.Caching
         /// <returns></returns>
         protected virtual Object FromBytes(Packet pk, Type type)
         {
+            if (pk == null) return null;
+
             if (type == typeof(Packet)) return pk;
             if (type == typeof(Byte[])) return pk.ToArray();
             if (type.As<IAccessor>()) return type.AccessorRead(pk);

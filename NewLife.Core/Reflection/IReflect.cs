@@ -653,7 +653,7 @@ namespace NewLife.Reflection
         #endregion
 
         #region 插件
-        private readonly ConcurrentDictionary<String, Boolean> _as_cache = new ConcurrentDictionary<String, Boolean>();
+        private readonly ConcurrentDictionary<Type, ConcurrentDictionary<Type, Boolean>> _as_cache = new ConcurrentDictionary<Type, ConcurrentDictionary<Type, Boolean>>();
         /// <summary>是否子类</summary>
         /// <param name="type"></param>
         /// <param name="baseType"></param>
@@ -669,10 +669,15 @@ namespace NewLife.Reflection
 
             if (baseType.IsAssignableFrom(type)) return true;
 
-
             // 缓存
-            var key = $"{type.FullName}_{baseType.FullName}";
-            if (_as_cache.TryGetValue(key, out var rs)) return rs;
+            //var key = $"{type.FullName}_{baseType.FullName}";
+            if (!_as_cache.TryGetValue(type, out var dic))
+            {
+                dic = new ConcurrentDictionary<Type, Boolean>();
+                _as_cache.TryAdd(type, dic);
+            }
+
+            if (dic.TryGetValue(baseType, out var rs)) return rs;
 
             // 接口
             if (baseType.IsInterface)
@@ -697,7 +702,7 @@ namespace NewLife.Reflection
                 }
             }
 
-            _as_cache.TryAdd(key, rs);
+            dic.TryAdd(baseType, rs);
 
             return rs;
         }
