@@ -170,14 +170,23 @@ namespace NewLife.Caching
 
         /// <summary>接收响应</summary>
         /// <param name="ns"></param>
+        /// <param name="pk"></param>
         /// <returns></returns>
-        protected virtual Object GetResponse(Stream ns)
+        protected virtual Object GetResponse(Stream ns, Packet pk)
         {
-            var buf = new Byte[64 * 1024];
+            if (pk?.Data == null)
+            {
+                var buf = new Byte[64 * 1024];
 
-            // 接收
-            var count = ns.Read(buf, 0, buf.Length);
-            if (count == 0) return null;
+                // 接收
+                var count = ns.Read(buf, 0, buf.Length);
+                if (count == 0) return null;
+
+                if (pk == null)
+                    pk = new Packet(buf, 0, count);
+                else
+                    pk.Set(buf, 0, count);
+            }
 
             /*
              * 响应格式
@@ -189,25 +198,31 @@ namespace NewLife.Caching
              */
 
             // 解析响应
-            var rs = new Packet(buf, 0, count);
+            var header = (Char)pk[0];
+            if (header == '$') return ReadBlock(pk, ns);
+            if (header == '*') return ReadBlocks(pk, ns);
 
-            var header = (Char)rs[0];
+            // 字符串以换行为结束符
+            var p = pk.IndexOf(NewLine, 1);
+            if (p > 0)
+            {
+                var pk2 = pk.Slice(1, p - 1);
 
-            if (header == '$') return ReadBlock(rs, ns);
-            if (header == '*') return ReadBlocks(rs, ns);
+                // 改变原始数据偏移
+                pk.Set(pk2.Data, pk2.Offset + pk2.Total + 2, pk.Total - 1 - pk2.Total - 2);
+                pk.Next = pk2.Next;
 
-            var pk = rs.Slice(1);
+                var str2 = pk2.ToStr().Trim();
 
-            var str2 = pk.ToStr().Trim();
+                var log = Log == null || Log == Logger.Null ? null : Pool.StringBuilder.Get();
+                if (log != null) WriteLog("=> {0}", str2);
 
-            var log = Log == null || Log == Logger.Null ? null : Pool.StringBuilder.Get();
-            if (log != null) WriteLog("=> {0}", str2);
+                if (header == '+') return str2;
+                if (header == '-') throw new Exception(str2);
+                if (header == ':') return str2;
+            }
 
-            if (header == '+') return str2;
-            if (header == '-') throw new Exception(str2);
-            if (header == ':') return str2;
-
-            throw new InvalidDataException("无法解析响应 [{0}] [{1}]={2}".F(header, rs.Count, rs.ToHex(32, "-")));
+            throw new InvalidDataException("无法解析响应 [{0}] [{1}]={2}".F(header, pk.Count, pk.ToHex(32, "-")));
         }
 
         /// <summary>发出请求</summary>
@@ -230,7 +245,7 @@ namespace NewLife.Caching
             if (ms.Length > 0) ms.WriteTo(ns);
             ms.Put();
 
-            var rs = GetResponse(ns);
+            var rs = GetResponse(ns, null);
 
             if (isQuit) Logined = false;
 
@@ -333,6 +348,7 @@ namespace NewLife.Caching
             // 数据不足，最小1标识+1长度+2换行+0数据
             if (pk.Total < 1 + 1 + 2 + 0) ReadMore(pk, ms, 1 + 1 + 2 + 0);
 
+            var ori = pk;
             var header = (Char)pk[0];
             if (header != '$')
             {
@@ -414,17 +430,31 @@ namespace NewLife.Caching
             // 管道模式
             if (_ps != null)
             {
-                _ps.Add(new Command(cmd, args));
+                _ps.Add(new Command(cmd, args, typeof(TResult)));
                 return default(TResult);
             }
 
             var type = typeof(TResult);
             var rs = Execute(cmd, args);
-            if (rs is String str)
+
+            if (TryChangeType(rs, typeof(TResult), out var target)) return (TResult)target;
+
+            return default(TResult);
+        }
+
+        /// <summary>尝试转换类型</summary>
+        /// <param name="value"></param>
+        /// <param name="type"></param>
+        /// <param name="target"></param>
+        /// <returns></returns>
+        public virtual Boolean TryChangeType(Object value, Type type, out Object target)
+        {
+            if (value is String str)
             {
                 try
                 {
-                    return rs.ChangeType<TResult>();
+                    target = value.ChangeType(type);
+                    return true;
                 }
                 catch (Exception ex)
                 {
@@ -433,12 +463,16 @@ namespace NewLife.Caching
                 }
             }
 
-            if (rs is Packet pk) return FromBytes<TResult>(pk);
-
-            if (rs is Object[] pks)
+            if (value is Packet pk)
             {
-                if (typeof(TResult) == typeof(Object[])) return (TResult)rs;
-                if (typeof(TResult) == typeof(Packet[])) return (TResult)(Object)pks.Cast<Packet>().ToArray();
+                target = FromBytes(pk, type);
+                return true;
+            }
+
+            if (value is Object[] pks)
+            {
+                if (type == typeof(Object[])) { target = value; return true; }
+                if (type == typeof(Packet[])) { target = pks.Cast<Packet>().ToArray(); return true; }
 
                 var elmType = type.GetElementTypeEx();
                 var arr = Array.CreateInstance(elmType, pks.Length);
@@ -446,10 +480,12 @@ namespace NewLife.Caching
                 {
                     arr.SetValue(FromBytes(pks[i] as Packet, elmType), i);
                 }
-                return (TResult)(Object)arr;
+                target = arr;
+                return true;
             }
 
-            return default(TResult);
+            target = null;
+            return false;
         }
 
         private IList<Command> _ps;
@@ -485,13 +521,16 @@ namespace NewLife.Caching
             if (ms.Length > 0) ms.WriteTo(ns);
             ms.Put();
 
-            if (!requireResult) return null;
+            //if (!requireResult) return null;
 
             // 获取响应
             var list = new List<Object>();
+            var pk = new Packet(null, 0, 0);
             foreach (var item in ps)
             {
-                var rs = GetResponse(ns);
+                var rs = GetResponse(ns, pk);
+                if (TryChangeType(rs, item.Type, out var target)) rs = target;
+
                 list.Add(rs);
             }
 
@@ -502,11 +541,13 @@ namespace NewLife.Caching
         {
             public String Name { get; set; }
             public Object[] Args { get; set; }
+            public Type Type { get; set; }
 
-            public Command(String name, Object[] args)
+            public Command(String name, Object[] args, Type type)
             {
                 Name = name;
                 Args = args;
+                Type = type;
             }
         }
         #endregion
