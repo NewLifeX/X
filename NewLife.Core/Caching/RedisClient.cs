@@ -432,6 +432,9 @@ namespace NewLife.Caching
         }
 
         private IList<Command> _ps;
+        /// <summary>管道命令个数</summary>
+        public Int32 PipelineCommands => _ps == null ? 0 : _ps.Count;
+
         /// <summary>开始管道模式</summary>
         public virtual void StartPipeline()
         {
