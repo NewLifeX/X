@@ -321,10 +321,17 @@ namespace NewLife.Caching
             if (len <= 0) return null;
 
             var buf = new Byte[len + 2];
-            var count = ms.Read(buf, 0, buf.Length);
-            var pk = new Packet(buf, 0, count - 2);
+            var p = 0;
+            while (true)
+            {
+                // 等待，直到读完需要的数据，避免大包丢数据
+                var count = ms.Read(buf, p, buf.Length - p);
+                if (count <= 0) break;
 
-            return pk;
+                p += count;
+            }
+
+            return new Packet(buf, 0, p - 2);
         }
 
         private String ReadLine(Stream ms)
