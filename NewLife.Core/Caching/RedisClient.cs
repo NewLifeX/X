@@ -282,7 +282,7 @@ namespace NewLife.Caching
             return rs;
         }
 
-        private Packet[] ReadBlocks(Packet pk, Stream ms)
+        private Object[] ReadBlocks(Packet pk, Stream ms)
         {
             var header = (Char)pk[0];
 
@@ -295,14 +295,34 @@ namespace NewLife.Caching
             pk = pk.Slice(p + 2);
             if (Log != null && Log != Logger.Null) WriteLog("=> *{0} [{1}] {2}", n, pk.Count, pk.Slice(0, 32).ToStr().Replace(Environment.NewLine, "\\r\\n"));
 
-            var arr = new Packet[n];
+            var arr = new Object[n];
             for (var i = 0; i < n; i++)
             {
-                var rs = ReadPacket(pk, ms);
-                arr[i] = rs;
+                // 数据不足，最小1标识+1长度+2换行+0数据
+                if (pk.Total < 1 + 1 + 2 + 0) ReadMore(pk, ms, 1 + 1 + 2 + 0);
+
+                var end = 0;
+                header = (Char)pk[0];
+                if (header == '$')
+                {
+                    var rs = ReadPacket(pk, ms);
+                    arr[i] = rs;
+
+                    end = rs.Offset + rs.Total;
+                }
+                else if (header == '*')
+                {
+                    var bs = ReadBlocks(pk, ms);
+                    if (bs != null && bs.Length > 0)
+                    {
+                        var rs = bs.Last() as Packet;
+                        end = rs.Offset + rs.Total;
+                    }
+                    arr[i] = bs;
+                }
 
                 // 下一块，在前一块末尾加 \r\n
-                pk = pk.Slice(rs.Offset + rs.Total + 2 - pk.Offset);
+                pk = pk.Slice(end + 2 - pk.Offset);
             }
 
             return arr;
@@ -310,8 +330,8 @@ namespace NewLife.Caching
 
         private Packet ReadPacket(Packet pk, Stream ms)
         {
-            // 数据不足，最小1字节长度+2换行+0数据+2换行
-            if (pk.Total < 1 + 2 + 0 + 2) ReadMore(pk, ms, 1 + 2 + 0 + 2);
+            // 数据不足，最小1标识+1长度+2换行+0数据
+            if (pk.Total < 1 + 1 + 2 + 0) ReadMore(pk, ms, 1 + 1 + 2 + 0);
 
             var header = (Char)pk[0];
             if (header != '$')
@@ -415,15 +435,16 @@ namespace NewLife.Caching
 
             if (rs is Packet pk) return FromBytes<TResult>(pk);
 
-            if (rs is Packet[] pks)
+            if (rs is Object[] pks)
             {
-                if (typeof(TResult) == typeof(Packet[])) return (TResult)rs;
+                if (typeof(TResult) == typeof(Object[])) return (TResult)rs;
+                if (typeof(TResult) == typeof(Packet[])) return (TResult)(Object)pks.Cast<Packet>().ToArray();
 
                 var elmType = type.GetElementTypeEx();
                 var arr = Array.CreateInstance(elmType, pks.Length);
                 for (var i = 0; i < pks.Length; i++)
                 {
-                    arr.SetValue(FromBytes(pks[i], elmType), i);
+                    arr.SetValue(FromBytes(pks[i] as Packet, elmType), i);
                 }
                 return (TResult)(Object)arr;
             }
@@ -567,14 +588,14 @@ namespace NewLife.Caching
         public IDictionary<String, T> GetAll<T>(IEnumerable<String> keys)
         {
             var ks = keys.ToArray();
-            var rs = Execute("MGET", ks) as Packet[];
+            var rs = Execute("MGET", ks) as Object[];
 
             var dic = new Dictionary<String, T>();
             if (rs == null) return dic;
 
             for (var i = 0; i < rs.Length; i++)
             {
-                dic[ks[i]] = FromBytes<T>(rs[i]);
+                dic[ks[i]] = FromBytes<T>(rs[i] as Packet);
             }
 
             return dic;
