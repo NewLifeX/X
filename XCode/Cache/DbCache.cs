@@ -262,14 +262,15 @@ namespace NewLife.Caching
         /// <param name="times">次数</param>
         /// <param name="threads">线程</param>
         /// <param name="rand">随机读写</param>
-        public override void BenchOne(Int64 times, Int32 threads, Boolean rand)
+        /// <param name="batch">批量操作</param>
+        public override void BenchOne(Int64 times, Int32 threads, Boolean rand, Int32 batch)
         {
             if (rand)
                 times *= 1;
             else
                 times *= 1000;
 
-            base.BenchOne(times, threads, rand);
+            base.BenchOne(times, threads, rand, batch);
         }
         #endregion
     }

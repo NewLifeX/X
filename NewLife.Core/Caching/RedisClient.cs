@@ -570,6 +570,8 @@ namespace NewLife.Caching
             var rs = Execute("MGET", ks) as Packet[];
 
             var dic = new Dictionary<String, T>();
+            if (rs == null) return dic;
+
             for (var i = 0; i < rs.Length; i++)
             {
                 dic[ks[i]] = FromBytes<T>(rs[i]);

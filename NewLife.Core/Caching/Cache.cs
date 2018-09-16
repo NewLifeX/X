@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Win32;
 using NewLife.Log;
@@ -244,6 +245,7 @@ namespace NewLife.Caching
         #region 性能测试
         /// <summary>多线程性能测试</summary>
         /// <param name="rand">随机读写</param>
+        /// <param name="batch">批量操作。默认0不分批</param>
         /// <remarks>
         /// Memory性能测试[顺序]，逻辑处理器 32 个 2,000MHz Intel(R) Xeon(R) CPU E5-2640 v2 @ 2.00GHz
         /// 
@@ -282,7 +284,7 @@ namespace NewLife.Caching
         /// 读取 320,000,000 项，256 线程，耗时   1,907ms 速度 167,802,831 ops
         /// 删除 320,000,000 项，256 线程，耗时   2,350ms 速度 136,170,212 ops
         /// </remarks>
-        public virtual void Bench(Boolean rand = false)
+        public virtual void Bench(Boolean rand = false, Int32 batch = 0)
         {
             var processor = "";
             var frequency = 0;
@@ -295,35 +297,36 @@ namespace NewLife.Caching
 #endif
 
             var cpu = Environment.ProcessorCount;
-            XTrace.WriteLine($"{Name}性能测试[{(rand ? "随机" : "顺序")}]，逻辑处理器 {cpu:n0} 个 {frequency:n0}MHz {processor}");
+            XTrace.WriteLine($"{Name}性能测试[{(rand ? "随机" : "顺序")}]，批大小[{batch}]，逻辑处理器 {cpu:n0} 个 {frequency:n0}MHz {processor}");
 
             var times = 10_000;
 
             // 单线程
-            BenchOne(times, 1, rand);
+            BenchOne(times, 1, rand, batch);
 
             // 多线程
-            if (cpu != 2) BenchOne(times * 2, 2, rand);
-            if (cpu != 4) BenchOne(times * 4, 4, rand);
-            if (cpu != 8) BenchOne(times * 8, 8, rand);
+            if (cpu != 2) BenchOne(times * 2, 2, rand, batch);
+            if (cpu != 4) BenchOne(times * 4, 4, rand, batch);
+            if (cpu != 8) BenchOne(times * 8, 8, rand, batch);
 
             // CPU个数
-            BenchOne(times * cpu, cpu, rand);
+            BenchOne(times * cpu, cpu, rand, batch);
 
             //// 1.5倍
             //var cpu2 = cpu * 3 / 2;
             //if (!(new[] { 2, 4, 8, 64, 256 }).Contains(cpu2)) BenchOne(times * cpu2, cpu2, rand);
 
             // 最大
-            if (cpu < 64) BenchOne(times * cpu, 64, rand);
-            if (cpu * 8 >= 256) BenchOne(times * cpu, cpu * 8, rand);
+            if (cpu < 64) BenchOne(times * cpu, 64, rand, batch);
+            //if (cpu * 8 >= 256) BenchOne(times * cpu, cpu * 8, rand);
         }
 
         /// <summary>使用指定线程测试指定次数</summary>
         /// <param name="times">次数</param>
         /// <param name="threads">线程</param>
         /// <param name="rand">随机读写</param>
-        public virtual void BenchOne(Int64 times, Int32 threads, Boolean rand)
+        /// <param name="batch">批量操作</param>
+        public virtual void BenchOne(Int64 times, Int32 threads, Boolean rand, Int32 batch)
         {
             if (threads <= 0) threads = Environment.ProcessorCount;
             if (times <= 0) times = threads * 1_000;
@@ -337,10 +340,10 @@ namespace NewLife.Caching
             Remove(key);
 
             // 赋值测试
-            BenchSet(key, times, threads, rand);
+            BenchSet(key, times, threads, rand, batch);
 
             // 读取测试
-            BenchGet(key, times, threads, rand);
+            BenchGet(key, times, threads, rand, batch);
 
             // 删除测试
             BenchRemove(key, times, threads, rand);
@@ -351,7 +354,8 @@ namespace NewLife.Caching
         /// <param name="times">次数</param>
         /// <param name="threads">线程</param>
         /// <param name="rand">随机读写</param>
-        protected virtual void BenchGet(String key, Int64 times, Int32 threads, Boolean rand)
+        /// <param name="batch">批量操作</param>
+        protected virtual void BenchGet(String key, Int64 times, Int32 threads, Boolean rand, Int32 batch)
         {
             var v = Get<String>(key);
 
@@ -360,9 +364,31 @@ namespace NewLife.Caching
             {
                 Parallel.For(0, threads, k =>
                 {
-                    for (var i = k; i < times; i += threads)
+                    if (batch == 0)
                     {
-                        var val = Get<String>(key + i);
+                        for (var i = k; i < times; i += threads)
+                        {
+                            var val = Get<String>(key + i);
+                        }
+                    }
+                    else
+                    {
+                        var n = 0;
+                        var keys = new String[batch];
+                        for (var i = k; i < times; i += threads)
+                        {
+                            keys[n++] = key + i;
+
+                            if (n >= batch)
+                            {
+                                var vals = GetAll<String>(keys);
+                                n = 0;
+                            }
+                        }
+                        if (n > 0)
+                        {
+                            var vals = GetAll<String>(keys.Take(n));
+                        }
                     }
                 });
             }
@@ -389,7 +415,8 @@ namespace NewLife.Caching
         /// <param name="times">次数</param>
         /// <param name="threads">线程</param>
         /// <param name="rand">随机读写</param>
-        protected virtual void BenchSet(String key, Int64 times, Int32 threads, Boolean rand)
+        /// <param name="batch">批量操作</param>
+        protected virtual void BenchSet(String key, Int64 times, Int32 threads, Boolean rand, Int32 batch)
         {
             //Set(key, Rand.NextBytes(32));
 
@@ -399,9 +426,33 @@ namespace NewLife.Caching
                 Parallel.For(0, threads, k =>
                 {
                     var val = Rand.NextString(32);
-                    for (var i = k; i < times; i += threads)
+                    if (batch == 0)
                     {
-                        Set(key + i, val);
+                        for (var i = k; i < times; i += threads)
+                        {
+                            Set(key + i, val);
+                        }
+                    }
+                    else
+                    {
+                        var n = 0;
+                        var dic = new Dictionary<String, String>();
+                        for (var i = k; i < times; i += threads)
+                        {
+                            dic[key + i] = val;
+                            n++;
+
+                            if (n >= batch)
+                            {
+                                SetAll(dic);
+                                dic.Clear();
+                                n = 0;
+                            }
+                        }
+                        if (n > 0)
+                        {
+                            SetAll(dic);
+                        }
                     }
                 });
             }

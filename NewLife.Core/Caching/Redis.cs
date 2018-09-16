@@ -442,12 +442,54 @@ namespace NewLife.Caching
 
         #region 性能测试
         /// <summary>性能测试</summary>
+        /// <remarks>
+        /// Redis性能测试[随机]，批大小[100]，逻辑处理器 40 个 2,400MHz Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz
+        /// 测试 100,000 项，  1 线程
+        /// 赋值 100,000 项，  1 线程，耗时     418ms 速度   239,234 ops
+        /// 读取 100,000 项，  1 线程，耗时     520ms 速度   192,307 ops
+        /// 删除 100,000 项，  1 线程，耗时     125ms 速度   800,000 ops
+        /// 测试 200,000 项，  2 线程
+        /// 赋值 200,000 项，  2 线程，耗时     548ms 速度   364,963 ops
+        /// 读取 200,000 项，  2 线程，耗时     549ms 速度   364,298 ops
+        /// 删除 200,000 项，  2 线程，耗时     315ms 速度   634,920 ops
+        /// 测试 400,000 项，  4 线程
+        /// 赋值 400,000 项，  4 线程，耗时     694ms 速度   576,368 ops
+        /// 读取 400,000 项，  4 线程，耗时     697ms 速度   573,888 ops
+        /// 删除 400,000 项，  4 线程，耗时     438ms 速度   913,242 ops
+        /// 测试 800,000 项，  8 线程
+        /// 赋值 800,000 项，  8 线程，耗时   1,206ms 速度   663,349 ops
+        /// 读取 800,000 项，  8 线程，耗时   1,236ms 速度   647,249 ops
+        /// 删除 800,000 项，  8 线程，耗时     791ms 速度 1,011,378 ops
+        /// 测试 4,000,000 项， 40 线程
+        /// 赋值 4,000,000 项， 40 线程，耗时   4,848ms 速度   825,082 ops
+        /// 读取 4,000,000 项， 40 线程，耗时   5,399ms 速度   740,877 ops
+        /// 删除 4,000,000 项， 40 线程，耗时   6,281ms 速度   636,841 ops
+        /// 测试 4,000,000 项， 64 线程
+        /// 赋值 4,000,000 项， 64 线程，耗时   6,806ms 速度   587,716 ops
+        /// 读取 4,000,000 项， 64 线程，耗时   5,365ms 速度   745,573 ops
+        /// 删除 4,000,000 项， 64 线程，耗时   6,716ms 速度   595,592 ops
+        /// </remarks>
         /// <param name="rand">随机读写</param>
-        public override void Bench(Boolean rand = false)
+        /// <param name="batch">批量操作</param>
+        public override void Bench(Boolean rand = true, Int32 batch = 100)
         {
             XTrace.WriteLine($"目标服务器：{Server}/{Db}");
 
-            base.Bench(rand);
+            if (AutoPipeline == 0) AutoPipeline = 100;
+
+            base.Bench(rand, batch);
+        }
+
+        /// <summary>使用指定线程测试指定次数</summary>
+        /// <param name="times">次数</param>
+        /// <param name="threads">线程</param>
+        /// <param name="rand">随机读写</param>
+        /// <param name="batch">批量操作</param>
+        public override void BenchOne(Int64 times, Int32 threads, Boolean rand, Int32 batch)
+        {
+            if (rand && batch > 10) times *= 10;
+
+            base.BenchOne(times, threads, rand, batch);
         }
 
         /// <summary>测试</summary>
