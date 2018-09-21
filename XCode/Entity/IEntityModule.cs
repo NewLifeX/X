@@ -2,7 +2,9 @@
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
+using XCode.Configuration;
 
 namespace XCode
 {
@@ -212,23 +214,23 @@ namespace XCode
 
         #region 辅助
         /// <summary>设置脏数据项。如果某个键存在并且数据没有脏，则设置</summary>
-        /// <param name="fieldNames"></param>
+        /// <param name="fields"></param>
         /// <param name="entity"></param>
         /// <param name="name"></param>
         /// <param name="value"></param>
         /// <returns>返回是否成功设置了数据</returns>
-        protected virtual Boolean SetNoDirtyItem(ICollection<String> fieldNames, IEntity entity, String name, Object value)
+        protected virtual Boolean SetNoDirtyItem(ICollection<FieldItem> fields, IEntity entity, String name, Object value)
         {
-            if (fieldNames.Contains(name) && !entity.Dirtys[name]) return entity.SetItem(name, value);
+            if (!entity.Dirtys[name] && fields.Any(e => e.Name.EqualIgnoreCase(name))) return entity.SetItem(name, value);
 
             return false;
         }
 
-        private static ConcurrentDictionary<Type, ICollection<String>> _fieldNames = new ConcurrentDictionary<Type, ICollection<String>>();
+        private static ConcurrentDictionary<Type, ICollection<FieldItem>> _fieldNames = new ConcurrentDictionary<Type, ICollection<FieldItem>>();
         /// <summary>获取实体类的字段名。带缓存</summary>
         /// <param name="entityType"></param>
         /// <returns></returns>
-        protected static ICollection<String> GetFieldNames(Type entityType)
+        protected static ICollection<FieldItem> GetFields(Type entityType)
         {
             return _fieldNames.GetOrAdd(entityType, t =>
             {
@@ -236,7 +238,7 @@ namespace XCode
                 //return fact == null ? null : fact.FieldNames;
                 if (fact == null) return null;
 
-                return new HashSet<String>(fact.FieldNames);
+                return new HashSet<FieldItem>(fact.Fields);
             });
         }
         #endregion
