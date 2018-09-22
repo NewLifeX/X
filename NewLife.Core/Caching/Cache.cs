@@ -149,7 +149,12 @@ namespace NewLife.Caching
         /// <param name="value">值</param>
         /// <param name="expire">过期时间，秒。小于0时采用默认缓存时间<seealso cref="Cache.Expire"/></param>
         /// <returns></returns>
-        public virtual Boolean Add<T>(String key, T value, Int32 expire = -1) => Set(key, value, expire);
+        public virtual Boolean Add<T>(String key, T value, Int32 expire = -1)
+        {
+            if (ContainsKey(key)) return false;
+
+            return Set(key, value, expire);
+        }
 
         /// <summary>设置新值并获取旧值，原子操作</summary>
         /// <typeparam name="T">值类型</typeparam>
