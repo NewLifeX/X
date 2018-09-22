@@ -209,27 +209,25 @@ namespace NewLife.Caching
                 }
             }
 
-            var client = Pool.Get();
-            try
+            var i = 0;
+            do
             {
-                var i = 0;
-                do
+                // 每次重试都需要重新从池里借出连接
+                var client = Pool.Get();
+                try
                 {
-                    try
-                    {
-                        return func(client);
-                    }
-                    catch (InvalidDataException)
-                    {
-                        if (i++ >= Retry) throw;
-                    }
-                } while (true);
-            }
-            finally
-            {
-                client.Reset();
-                Pool.Put(client);
-            }
+                    client.Reset();
+                    return func(client);
+                }
+                catch (InvalidDataException)
+                {
+                    if (i++ >= Retry) throw;
+                }
+                finally
+                {
+                    Pool.Put(client);
+                }
+            } while (true);
         }
 
         private readonly ThreadLocal<RedisClient> _client = new ThreadLocal<RedisClient>();
@@ -256,20 +254,10 @@ namespace NewLife.Caching
             if (rds == null) return null;
             _client.Value = null;
 
+            // 管道处理不需要重试
             try
             {
-                var i = 0;
-                do
-                {
-                    try
-                    {
-                        return rds.StopPipeline(requireResult);
-                    }
-                    catch (InvalidDataException)
-                    {
-                        if (i++ >= Retry) throw;
-                    }
-                } while (true);
+                return rds.StopPipeline(requireResult);
             }
             finally
             {
