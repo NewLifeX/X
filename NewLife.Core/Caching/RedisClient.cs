@@ -89,12 +89,22 @@ namespace NewLife.Caching
                 tc.TryDispose();
                 if (!create) return null;
 
+                var timeout = 3_000;
                 tc = new TcpClient
                 {
-                    SendTimeout = 5000,
-                    ReceiveTimeout = 5000
+                    SendTimeout = timeout,
+                    ReceiveTimeout = timeout
                 };
-                tc.Connect(Server.Address, Server.Port);
+                //tc.Connect(Server.Address, Server.Port);
+                // 采用异步来解决连接超时设置问题
+                var ar = tc.BeginConnect(Server.Address, Server.Port, null, null);
+                if (!ar.AsyncWaitHandle.WaitOne(timeout, false))
+                {
+                    tc.Close();
+                    throw new TimeoutException($"连接[{Server}][{timeout}ms]超时！");
+                }
+
+                tc.EndConnect(ar);
 
                 Client = tc;
                 ns = tc.GetStream();

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -79,7 +78,9 @@ namespace NewLife.Net
             // 服务端会话没有打开
             if (_Server != null) return false;
 
-            if (Client == null || !Client.IsBound)
+            var timeout = Timeout;
+            var sock = Client;
+            if (sock == null || !sock.IsBound)
             {
                 // 根据目标地址适配本地IPv4/IPv6
                 if (Remote != null && !Remote.Address.IsAny())
@@ -87,9 +88,14 @@ namespace NewLife.Net
                     Local.Address = Local.Address.GetRightAny(Remote.Address.AddressFamily);
                 }
 
-                Client = NetHelper.CreateTcp(Local.EndPoint.Address.IsIPv4());
-                //Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, true);
-                Client.Bind(Local.EndPoint);
+                sock = Client = NetHelper.CreateTcp(Local.EndPoint.Address.IsIPv4());
+                //sock.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, true);
+                if (timeout > 0)
+                {
+                    sock.SendTimeout = timeout;
+                    sock.ReceiveTimeout = timeout;
+                }
+                sock.Bind(Local.EndPoint);
                 CheckDynamic();
 
                 WriteLog("Open {0}", this);
@@ -100,12 +106,26 @@ namespace NewLife.Net
 
             try
             {
-                Client.Connect(Remote.EndPoint);
+                if (timeout <= 0)
+                    sock.Connect(Remote.EndPoint);
+                else
+                {
+                    // 采用异步来解决连接超时设置问题
+                    var ar = sock.BeginConnect(Remote.EndPoint, null, null);
+                    if (!ar.AsyncWaitHandle.WaitOne(timeout, false))
+                    {
+                        sock.Close();
+                        throw new TimeoutException($"连接[{Remote}][{timeout}ms]超时！");
+                    }
+
+                    sock.EndConnect(ar);
+                }
             }
             catch (Exception ex)
             {
                 if (!Disposed && !ex.IsDisposed()) OnError("Connect", ex);
-                /*if (ThrowException)*/ throw;
+                /*if (ThrowException)*/
+                throw;
 
                 //return false;
             }
