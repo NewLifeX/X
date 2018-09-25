@@ -11,7 +11,6 @@ using NewLife.Log;
 using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
-using NewLife.Threading;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 using XCode.Service;
@@ -136,24 +135,6 @@ namespace Test
             Console.WriteLine("Count={0}", count);
             gs = UserX.FindAll(null, null, null, 0, 10);
             Console.WriteLine(gs.First().Logins);
-        }
-
-        class CacheItem<TValue>
-        {
-            /// <summary>数值</summary>
-            public TValue Value { get; set; }
-
-            /// <summary>过期时间</summary>
-            public DateTime ExpiredTime { get; set; }
-
-            /// <summary>是否过期</summary>
-            public Boolean Expired => ExpiredTime <= TimerX.Now;
-
-            public CacheItem(TValue value, Int32 seconds)
-            {
-                Value = value;
-                if (seconds > 0) ExpiredTime = TimerX.Now.AddSeconds(seconds);
-            }
         }
 
         static void Test3()
@@ -295,10 +276,51 @@ namespace Test
 
         static void Test6()
         {
-            var rds = Redis.Create("127.0.0.1", 7);
+            // 缓存默认实现Cache.Default是MemoryCache，可修改
+            //var ic = Cache.Default;
+            //var ic = new MemoryCache();
 
-            //rds.AutoPipeline = 1000;
-            rds.Bench();
+            // 实例化Redis，默认端口6379可以省略，密码有两种写法
+            var ic = Redis.Create("127.0.0.1", 7);
+            //var ic = Redis.Create("pass@127.0.0.1:6379", 7);
+            //var ic = Redis.Create("server=127.0.0.1:6379;password=pass", 7);
+            ic.Log = XTrace.Log; // 调试日志。正式使用时注释
+
+            var user = new User { Name = "NewLife", CreateTime = DateTime.Now };
+            ic.Set("user", user, 3600);
+            var user2 = ic.Get<User>("user");
+            XTrace.WriteLine("Json: {0}", ic.Get<String>("user"));
+            if (ic.ContainsKey("user")) XTrace.WriteLine("存在！");
+            ic.Remove("user");
+
+            var dic = new Dictionary<String, Object>
+            {
+                ["name"] = "NewLife",
+                ["time"] = DateTime.Now,
+                ["count"] = 1234
+            };
+            ic.SetAll(dic, 120);
+
+            var vs = ic.GetAll<String>(dic.Keys);
+            XTrace.WriteLine(vs.Join(",", e => $"{e.Key}={e.Value}"));
+
+            var flag = ic.Add("count", 5678);
+            XTrace.WriteLine(flag ? "Add成功" : "Add失败");
+            var ori = ic.Replace("count", 777);
+            var count = ic.Get<Int32>("count");
+            XTrace.WriteLine("count由{0}替换为{1}", ori, count);
+
+            ic.Increment("count", 11);
+            var count2 = ic.Decrement("count", 10);
+            XTrace.WriteLine("count={0}", count2);
+
+            //ic.Bench();
+        }
+
+        class User
+        {
+            public String Name { get; set; }
+            public DateTime CreateTime { get; set; }
         }
 
         static void Test7()
