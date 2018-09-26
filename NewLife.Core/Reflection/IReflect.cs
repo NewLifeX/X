@@ -606,7 +606,7 @@ namespace NewLife.Reflection
 
                 // 字符串转为简单整型，如果长度比较小，满足32位整型要求，则先转为32位再改变类型
                 var code = Type.GetTypeCode(conversionType);
-                if (code >= TypeCode.Int16 && code <= TypeCode.UInt64 && str.Length <= 10) return Convert.ChangeType(value.ToInt(), conversionType);
+                if (code >= TypeCode.Int16 && code <= TypeCode.UInt64 && str.Length <= 10) return Convert.ChangeType(value.ToLong(), conversionType);
             }
 
             if (value != null)
