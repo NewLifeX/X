@@ -10,7 +10,6 @@ using NewLife.Caching;
 using NewLife.Log;
 using NewLife.Remoting;
 using NewLife.Security;
-using NewLife.Serialization;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 using XCode.Service;
@@ -35,7 +34,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test6();
+                    Test8();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -368,27 +367,26 @@ namespace Test
 
         static void Test8()
         {
-            var f = @"D:\X\Src\XCode\Membership\Member.xml";
-            var ts = DAL.ImportFrom(f);
-            Console.WriteLine(ts);
-
-            var t = new TestTable()
+            var user = new UserX();
+            for (var i = 0; i < 1_000_000; i++)
             {
-                IsHide = false,
-                Title = "test abc",
-                Content = "abc",
-                Counts = 0,
-                Level = 1,
-                PageSize = 10,
-                PId = 0,
-                Price = 25.85M,
-                Rank = 999,
-                TitleColor = "#000"
-            };
-            t.Save();
+                user.RoleID++;
 
-            Console.WriteLine($"id:{t.Id}, title:{t.Title}, price:{t.Price}, ishide:{t.IsHide}");
-            Console.WriteLine(t.ToJson(true));
+                if (i % 3 == 0) user.Logins++;
+            }
+
+            Console.WriteLine("总量：{0:n0} 成功：{1:n0} 成功率：{2:p2}", user.RoleID, user.Logins, (Double)user.Logins / user.RoleID);
+
+            user.RoleID = 0;
+            user.Logins = 0;
+            Parallel.For(0, 1_000_000, k =>
+            {
+                user.RoleID++;
+
+                if (k % 3 == 0) user.Logins++;
+            });
+
+            Console.WriteLine("总量：{0:n0} 成功：{1:n0} 成功率：{2:p2}", user.RoleID, user.Logins, (Double)user.Logins / user.RoleID);
         }
 
         static void Test9()
