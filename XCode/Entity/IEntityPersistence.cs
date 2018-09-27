@@ -611,8 +611,8 @@ namespace XCode
             var cur = vs[0];
             var old = vs[1];
 
-            // 如果原始值是0，不使用累加，因为可能原始数据字段是NULL，导致累加失败
-            if (Convert.ToInt64(old) == 0) return false;
+            //// 如果原始值是0，不使用累加，因为可能原始数据字段是NULL，导致累加失败
+            //if (Convert.ToInt64(old) == 0) return false;
 
             var sign = true;
             var value = old;
