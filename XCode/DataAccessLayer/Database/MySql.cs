@@ -52,7 +52,10 @@ namespace XCode.DataAccessLayer
                 //builder[Server_Key] = "127.0.0.1";
                 builder[Server_Key] = IPAddress.Loopback.ToString();
             }
-            builder.TryAdd(CharSet, "utf8");
+
+            // 默认设置为utf8mb4，支持表情符
+            builder.TryAdd(CharSet, "utf8mb4");
+
             //if (!builder.ContainsKey(AllowZeroDatetime)) builder[AllowZeroDatetime] = "True";
             // 默认最大连接数1000
             if (builder["Pooling"].ToBoolean()) builder.TryAdd(MaxPoolSize, "1000");
