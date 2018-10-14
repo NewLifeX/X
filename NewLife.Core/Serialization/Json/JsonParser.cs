@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Text;
 using NewLife.Collections;
 
 namespace NewLife.Serialization
@@ -74,7 +73,9 @@ namespace NewLife.Serialization
 
             while (true)
             {
-                switch (LookAhead())
+                var old = index;
+                var token = LookAhead();
+                switch (token)
                 {
 
                     case Token.Comma:
@@ -87,6 +88,9 @@ namespace NewLife.Serialization
 
                     default:
                         {
+                            // 如果名称是数字，需要退回去
+                            if (token == Token.Number) index = old;
+
                             // 名称
                             var name = ParseName();
 
@@ -349,7 +353,7 @@ namespace NewLife.Serialization
                 else
                 {
                     num *= 10;
-                    num += (Int32)(cc - '0');
+                    num += cc - '0';
                 }
             }
 
@@ -521,7 +525,7 @@ namespace NewLife.Serialization
                 else
                 {
                     num *= 10;
-                    num += (Int32)(cc - '0');
+                    num += cc - '0';
                 }
             }
             if (neg) num = -num;
