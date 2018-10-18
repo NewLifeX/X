@@ -2,15 +2,16 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Caching;
+using NewLife.Data;
 using NewLife.Log;
 using NewLife.Remoting;
 using NewLife.Security;
-using NewLife.Serialization;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 using XCode.Service;
@@ -392,10 +393,18 @@ namespace Test
 
         static void Test9()
         {
-            var str = "{\"brokerDatas\":[{\"brokerAddrs\":{0:\"118.190.213.25:80\",1:\"118.190.213.23:80\"},\"brokerName\":\"qd3internet - 01\",\"cluster\":\"qd3internet\"},{\"brokerAddrs\":{0:\"118.190.213.26:80\",1:\"118.190.213.24:80\"},\"brokerName\":\"qd3internet - 02\",\"cluster\":\"qd3internet\"}],\"filterServerTable\":{},\"queueDatas\":[{\"brokerName\":\"qd3internet - 02\",\"perm\":6,\"readQueueNums\":8,\"topicSynFlag\":0,\"writeQueueNums\":8},{\"brokerName\":\"qd3internet - 01\",\"perm\":6,\"readQueueNums\":8,\"topicSynFlag\":0,\"writeQueueNums\":8}]}";
-            var js = new JsonParser(str);
-            var rs = js.Decode();
-            Console.WriteLine(rs);
+            var str = @"D:\资料\1810\".AsDirectory().GetAllFiles("*.csv").FirstOrDefault()?.FullName;
+
+            var csv = new CsvFile(str);
+            var header = csv.ReadLine();
+            var data = csv.ReadAll();
+            Console.WriteLine(data);
+
+            str = Path.GetDirectoryName(str).CombinePath("test.csv");
+            var csv2 = new CsvFile(str, true);
+            csv2.WriteLine(header);
+            csv2.WriteAll(data);
+            csv2.Dispose();
         }
     }
 }
