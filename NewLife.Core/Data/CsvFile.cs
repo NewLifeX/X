@@ -19,9 +19,6 @@ namespace NewLife.Data
 
         private Stream _stream;
 
-        /// <summary>清除空白</summary>
-        public Boolean TrimBlank { get; set; }
-
         /// <summary>分隔符。默认逗号</summary>
         public Char Separator { get; set; } = ',';
         #endregion
@@ -29,7 +26,7 @@ namespace NewLife.Data
         #region 构造
         /// <summary>数据流实例化</summary>
         /// <param name="stream"></param>
-        public CsvFile(Stream stream) { _stream = stream; }
+        public CsvFile(Stream stream) => _stream = stream;
 
         /// <summary>Csv文件实例化</summary>
         /// <param name="file"></param>
