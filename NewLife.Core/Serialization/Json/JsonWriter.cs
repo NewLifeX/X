@@ -12,14 +12,17 @@ namespace NewLife.Serialization
     public class JsonWriter
     {
         #region 属性
-        /// <summary>使用UTC时间</summary>
+        /// <summary>使用UTC时间。默认false</summary>
         public Boolean UseUTCDateTime { get; set; }
 
         /// <summary>使用小写名称</summary>
-        public Boolean LowerCaseName { get; set; }
+        public Boolean LowerCase { get; set; }
 
-        /// <summary>写入空值</summary>
-        public Boolean NullValue { get; set; }
+        /// <summary>使用驼峰命名</summary>
+        public Boolean CamelCase { get; set; }
+
+        /// <summary>写入空值。默认true</summary>
+        public Boolean NullValue { get; set; } = true;
 
         private StringBuilder _Builder = new StringBuilder();
         #endregion
@@ -29,18 +32,27 @@ namespace NewLife.Serialization
         public JsonWriter()
         {
             UseUTCDateTime = false;
-            NullValue = true;
         }
+        #endregion
 
+        #region 静态转换
         /// <summary>对象序列化为Json字符串</summary>
         /// <param name="obj"></param>
-        /// <param name="indented"></param>
+        /// <param name="indented">是否缩进。默认false</param>
+        /// <param name="nullValue">是否写控制。默认true</param>
+        /// <param name="camelCase">是否驼峰命名。默认false</param>
         /// <returns></returns>
-        public String ToJson(Object obj, Boolean indented = false)
+        public static String ToJson(Object obj, Boolean indented = false, Boolean nullValue = true, Boolean camelCase = false)
         {
-            WriteValue(obj);
+            var jw = new JsonWriter
+            {
+                NullValue = nullValue,
+                CamelCase = camelCase
+            };
 
-            var json = _Builder.ToString();
+            jw.WriteValue(obj);
+
+            var json = jw._Builder.ToString();
             if (indented) json = JsonHelper.Format(json);
 
             return json;
@@ -116,7 +128,7 @@ namespace NewLife.Serialization
                     if (!first) _Builder.Append(',');
                     first = false;
 
-                    var name = LowerCaseName ? item.ToLower() : item;
+                    var name = FormatName(item);
                     WritePair(name, nvs[item]);
                 }
             }
@@ -136,8 +148,7 @@ namespace NewLife.Serialization
                     if (!first) _Builder.Append(',');
                     first = false;
 
-                    var name = (String)item.Key;
-                    if (LowerCaseName) name = name.ToLower();
+                    var name = FormatName((String)item.Key);
                     WritePair(name, item.Value);
                 }
             }
@@ -173,8 +184,7 @@ namespace NewLife.Serialization
                     if (!first) _Builder.Append(',');
                     first = false;
 
-                    var name = SerialHelper.GetName(pi);
-                    if (LowerCaseName) name = name.ToLower();
+                    var name = FormatName(SerialHelper.GetName(pi));
                     WritePair(name, value);
                 }
             }
@@ -229,8 +239,7 @@ namespace NewLife.Serialization
                     if (!first) _Builder.Append(',');
                     first = false;
 
-                    var name = (String)item.Key;
-                    if (LowerCaseName) name = name.ToLower();
+                    var name = FormatName((String)item.Key);
                     WritePair(name, item.Value);
                 }
             }
@@ -249,7 +258,7 @@ namespace NewLife.Serialization
                     if (!first) _Builder.Append(',');
                     first = false;
 
-                    var name = LowerCaseName ? item.Key.ToLower() : item.Key;
+                    var name = FormatName(item.Key);
                     WritePair(name, item.Value);
                 }
             }
@@ -322,6 +331,19 @@ namespace NewLife.Serialization
             if (idx != -1) _Builder.Append(str, idx, str.Length - idx);
 
             _Builder.Append('\"');
+        }
+
+        /// <summary>根据小写和驼峰格式化名称</summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        private String FormatName(String name)
+        {
+            if (name.IsNullOrEmpty()) return name;
+
+            if (LowerCase) return name.ToLower();
+            if (CamelCase) return name.Substring(0, 1).ToLower() + name.Substring(1);
+
+            return name;
         }
         #endregion
     }
