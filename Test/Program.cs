@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Caching;
-using NewLife.Data;
+using NewLife.IO;
 using NewLife.Log;
 using NewLife.Remoting;
 using NewLife.Security;
@@ -393,7 +393,7 @@ namespace Test
 
         static void Test9()
         {
-            var str = @"D:\资料\1810\".AsDirectory().GetAllFiles("*.csv").FirstOrDefault()?.FullName;
+            var str = @"D:\资料\1810\".AsDirectory().GetAllFiles("*.csv").LastOrDefault()?.FullName;
 
             var csv = new CsvFile(str);
             var header = csv.ReadLine();

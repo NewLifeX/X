@@ -89,6 +89,7 @@
     <Compile Include="..\NewLife.Core\Http\HttpResponse.cs" Link="Http\HttpResponse.cs" />
     <Compile Include="..\NewLife.Core\Http\HttpServer.cs" Link="Http\HttpServer.cs" />
     <Compile Include="..\NewLife.Core\Http\TinyHttpClient.cs" Link="Http\TinyHttpClient.cs" />
+    <Compile Include="..\NewLife.Core\IO\CsvFile.cs" Link="IO\CsvFile.cs" />
     <Compile Include="..\NewLife.Core\IO\EncodingHelper.cs" Link="IO\EncodingHelper.cs" />
     <Compile Include="..\NewLife.Core\IO\IOHelper.cs" Link="IO\IOHelper.cs" />
     <Compile Include="..\NewLife.Core\IO\PathHelper.cs" Link="IO\PathHelper.cs" />

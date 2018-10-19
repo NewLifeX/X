@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using NewLife.Collections;
 
-namespace NewLife.Data
+namespace NewLife.IO
 {
     /// <summary>Csv文件</summary>
     /// <remarks>
@@ -34,9 +34,9 @@ namespace NewLife.Data
         public CsvFile(String file, Boolean write = false)
         {
             if (write)
-                _stream = new FileStream(file, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+                _stream = new FileStream(file, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
             else
-                _stream = new FileStream(file, FileMode.Open, FileAccess.ReadWrite);
+                _stream = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
         }
 
         /// <summary>销毁</summary>
