@@ -69,41 +69,15 @@ namespace XCode.DataAccessLayer
         /// <summary>申请时检查是否打开</summary>
         public override DbConnection Get()
         {
-            //var count = -1;
-            //while (true)
-            //{
-            //    if (++count > 10) 
-            //    {
-            //        throw new Exception($"获取DbConnection失败，次数已达{count}");
-            //    }
-
-            //    try
-            //    {
             var value = base.Get();
             if (value.State == ConnectionState.Closed) value.Open();
 
             return value;
-            //    }
-            //    catch (Exception e)
-            //    {
-            //        XTrace.WriteLine($"处理DbConnection时出错：{e}");
-            //    }
-            //}
         }
 
         /// <summary>释放时，返回是否有效。无效对象将会被抛弃</summary>
         /// <param name="value"></param>
-        public override Boolean Put(DbConnection value)
-        {
-            try
-            {
-                //// 如果连接字符串变了，则关闭
-                //if (value.ConnectionString != ConnectionString) value.Close();
-
-                return value.State == ConnectionState.Open && base.Put(value);
-            }
-            catch { return false; }
-        }
+        protected override Boolean OnPut(DbConnection value) => value.State == ConnectionState.Open;
 
         /// <summary>借一个连接执行指定操作</summary>
         /// <typeparam name="T"></typeparam>

@@ -167,9 +167,6 @@ namespace NewLife.Collections
         {
             if (value == null) return false;
 
-            var db = value as DisposeBase;
-            if (db != null && db.Disposed) return false;
-
             // 从繁忙队列找到并移除缓存项
             if (!_busy.TryRemove(value, out var pi))
             {
@@ -179,6 +176,12 @@ namespace NewLife.Collections
             }
 
             Interlocked.Decrement(ref _BusyCount);
+
+            // 是否可用
+            if (!OnPut(value)) return false;
+
+            var db = value as DisposeBase;
+            if (db != null && db.Disposed) return false;
 
             var min = Min;
 
@@ -198,6 +201,11 @@ namespace NewLife.Collections
 
             return true;
         }
+
+        /// <summary>归还时是否可用</summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        protected virtual Boolean OnPut(T value) => true;
 
         /// <summary>清空已有对象</summary>
         public virtual Int32 Clear()
@@ -242,6 +250,24 @@ namespace NewLife.Collections
 
             // 遍历并干掉过期项
             var count = 0;
+
+            // 清理过期不还。避免有借没还
+            if (!_busy.IsEmpty)
+            {
+                var exp = TimerX.Now.AddSeconds(-AllIdleTime);
+                foreach (var item in _busy)
+                {
+                    if (item.Value.LastTime < exp)
+                    {
+                        if (_busy.TryRemove(item.Key, out var v))
+                        {
+                            v.TryDispose();
+
+                            Interlocked.Decrement(ref _BusyCount);
+                        }
+                    }
+                }
+            }
 
             // 总数小于等于最小个数时不处理
             if (IdleTime > 0 && !_free2.IsEmpty && FreeCount + BusyCount > Min)
