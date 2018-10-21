@@ -179,7 +179,7 @@ namespace System
 
                 //// 先转UTC时间再相减，以得到绝对时间差
                 //return (Int32)(dt.ToUniversalTime() - _dt1970).TotalSeconds;
-                return (Int32)(dt - _dt1970).TotalMilliseconds;
+                return (Int64)(dt - _dt1970).TotalMilliseconds;
             }
 
             if (value is Byte[] buf)

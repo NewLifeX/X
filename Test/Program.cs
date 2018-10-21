@@ -393,6 +393,9 @@ namespace Test
 
         static void Test9()
         {
+            var n = DateTime.Now.ToLong();
+            Console.WriteLine(n);
+
             var str = @"D:\资料\1810\".AsDirectory().GetAllFiles("*.csv").LastOrDefault()?.FullName;
 
             var csv = new CsvFile(str);
