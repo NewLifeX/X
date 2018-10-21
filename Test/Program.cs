@@ -2,13 +2,11 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Caching;
-using NewLife.IO;
 using NewLife.Log;
 using NewLife.Remoting;
 using NewLife.Security;
@@ -391,23 +389,40 @@ namespace Test
             Console.WriteLine("总量：{0:n0} 成功：{1:n0} 成功率：{2:p2}", user.RoleID, user.Logins, (Double)user.Logins / user.RoleID);
         }
 
-        static void Test9()
+        static async void Test9()
         {
-            var n = DateTime.Now.ToLong();
-            Console.WriteLine(n);
+            var svr = new ApiServer(3379)
+            {
+                Log = XTrace.Log
+            };
+            svr.Start();
 
-            var str = @"D:\资料\1810\".AsDirectory().GetAllFiles("*.csv").LastOrDefault()?.FullName;
+            var client = new ApiClient("tcp://127.0.0.1:3379")
+            {
+                Log = XTrace.Log
+            };
+            client.Open();
 
-            var csv = new CsvFile(str);
-            var header = csv.ReadLine();
-            var data = csv.ReadAll();
-            Console.WriteLine(data);
+            for (var i = 0; i < 10; i++)
+            {
+                XTrace.WriteLine("Invoke {0}", i);
+                var sw = Stopwatch.StartNew();
+                var rs = await client.InvokeAsync<String[]>("Api/All");
+                sw.Stop();
+                XTrace.WriteLine("{0}=> {1:n0}us", i, sw.Elapsed.TotalMilliseconds * 1000);
+                //XTrace.WriteLine(rs.Join(","));
+            }
 
-            str = Path.GetDirectoryName(str).CombinePath("test.csv");
-            var csv2 = new CsvFile(str, true);
-            csv2.WriteLine(header);
-            csv2.WriteAll(data);
-            csv2.Dispose();
+            Console.WriteLine();
+            Parallel.For(0, 10, async i =>
+            {
+                XTrace.WriteLine("Invoke {0}", i);
+                var sw = Stopwatch.StartNew();
+                var rs = await client.InvokeAsync<String[]>("Api/All");
+                sw.Stop();
+                XTrace.WriteLine("{0}=> {1:n0}us", i, sw.Elapsed.TotalMilliseconds * 1000);
+                //XTrace.WriteLine(rs.Join(","));
+            });
         }
     }
 }

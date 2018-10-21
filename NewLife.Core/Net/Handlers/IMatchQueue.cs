@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Concurrent;
+using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Log;
 using NewLife.Threading;
@@ -28,7 +28,8 @@ namespace NewLife.Net.Handlers
     /// <summary>消息匹配队列。子类可重载以自定义请求响应匹配逻辑</summary>
     public class DefaultMatchQueue : IMatchQueue
     {
-        private ConcurrentQueue<Item> Items = new ConcurrentQueue<Item>();
+        private readonly ItemWrap[] Items = new ItemWrap[256];
+        private Int32 _Count;
         private TimerX _Timer;
 
         /// <summary>加入请求队列</summary>
@@ -52,8 +53,16 @@ namespace NewLife.Net.Handlers
                 Source = source,
             };
 
-            // 加锁处理，更安全
-            Items.Enqueue(qi);
+            // 加入队列
+            var items = Items;
+            var i = 0;
+            for (i = 0; i < items.Length; ++i)
+            {
+                if (Interlocked.CompareExchange(ref items[i].Value, qi, null) == null) break;
+            }
+            if (i >= items.Length) throw new XException("匹配队列已满[{0}]", items.Length);
+
+            Interlocked.Increment(ref _Count);
 
             if (_Timer == null)
             {
@@ -64,7 +73,7 @@ namespace NewLife.Net.Handlers
                         _Timer = new TimerX(Check, null, 1000, 1000, "Match")
                         {
                             Async = true,
-                            CanExecute = () => !Items.IsEmpty
+                            CanExecute = () => _Count > 0
                         };
                     }
                 }
@@ -81,15 +90,21 @@ namespace NewLife.Net.Handlers
         /// <returns></returns>
         public virtual Boolean Match(Object owner, Object response, Object result, Func<Object, Object, Boolean> callback)
         {
-            var qs = Items;
-            if (qs.IsEmpty) return false;
+            if (_Count <= 0) return false;
 
             // 直接遍历，队列不会很长
-            foreach (var qi in qs)
+            var qs = Items;
+            for (var i = 0; i < qs.Length; i++)
             {
+                var qi = qs[i].Value;
+                if (qi == null) continue;
+
                 var src = qi.Source;
                 if (src != null && qi.Owner == owner && callback(qi.Request, response))
                 {
+                    qs[i].Value = null;
+                    Interlocked.Decrement(ref _Count);
+
                     // 标记为已处理
                     qi.Source = null;
 
@@ -102,7 +117,7 @@ namespace NewLife.Net.Handlers
             }
 
             if (Setting.Current.Debug)
-                XTrace.WriteLine("MatchQueue.Check 失败 [{0}] result={1} Items={2}", response, result, qs.Count);
+                XTrace.WriteLine("MatchQueue.Check 失败 [{0}] result={1} Items={2}", response, result, _Count);
 
             return false;
         }
@@ -111,17 +126,23 @@ namespace NewLife.Net.Handlers
         /// <param name="state"></param>
         void Check(Object state)
         {
-            var qs = Items;
-            if (qs.IsEmpty) return;
+            if (_Count <= 0) return;
 
             var now = TimerX.Now;
             // 直接遍历，队列不会很长
-            foreach (var qi in qs)
+            var qs = Items;
+            for (var i = 0; i < qs.Length; i++)
             {
+                var qi = qs[i].Value;
+                if (qi == null) continue;
+
                 // 过期取消
                 var src = qi.Source;
                 if (src != null && qi.EndTime <= now)
                 {
+                    qs[i].Value = null;
+                    Interlocked.Decrement(ref _Count);
+
                     qi.Source = null;
 
                     if (!src.Task.IsCompleted)
@@ -134,10 +155,14 @@ namespace NewLife.Net.Handlers
                         Task.Factory.StartNew(() => src.TrySetCanceled());
                     }
                 }
-            }
 
-            // 清理无效项
-            while (qs.TryPeek(out var qm) && qm.Source == null && qs.TryDequeue(out qm)) ;
+                // 清理无效项
+                if (src == null)
+                {
+                    qs[i].Value = null;
+                    Interlocked.Decrement(ref _Count);
+                }
+            }
         }
 
         class Item
@@ -146,6 +171,10 @@ namespace NewLife.Net.Handlers
             public Object Request { get; set; }
             public DateTime EndTime { get; set; }
             public TaskCompletionSource<Object> Source { get; set; }
+        }
+        struct ItemWrap
+        {
+            public Item Value;
         }
     }
 }
