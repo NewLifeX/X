@@ -68,9 +68,7 @@ namespace NewLife.Collections
 
             _timer.TryDispose();
 
-            while (_free.TryPop(out var pi)) pi.Value.TryDispose();
-            while (_free2.TryDequeue(out var pi)) pi.Value.TryDispose();
-            _busy.Clear();
+            Clear();
         }
 
         private volatile Boolean _inited;
@@ -223,19 +221,30 @@ namespace NewLife.Collections
         {
             var count = _FreeCount + _BusyCount;
 
+            //_busy.Clear();
+            //_BusyCount = 0;
+
+            //_free.Clear();
+            //while (_free2.TryDequeue(out var rs)) ;
+            //_FreeCount = 0;
+
+            while (_free.TryPop(out var pi)) OnDispose(pi.Value);
+            while (_free2.TryDequeue(out var pi)) OnDispose(pi.Value);
+            _FreeCount = 0;
+
+            foreach (var item in _busy)
+            {
+                OnDispose(item.Key);
+            }
             _busy.Clear();
             _BusyCount = 0;
-
-            _free.Clear();
-            while (_free2.TryDequeue(out var rs)) ;
-            _FreeCount = 0;
 
             return count;
         }
 
         /// <summary>销毁</summary>
         /// <param name="value"></param>
-        protected virtual void OnDispose(T value) { }
+        protected virtual void OnDispose(T value) => value.TryDispose();
         #endregion
 
         #region 重载
@@ -276,7 +285,8 @@ namespace NewLife.Collections
                     {
                         if (_busy.TryRemove(item.Key, out var v))
                         {
-                            v.TryDispose();
+                            // 业务层可能故意有借没还
+                            //v.TryDispose();
 
                             Interlocked.Decrement(ref _BusyCount);
                         }
