@@ -5,6 +5,7 @@ using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Messaging;
+using NewLife.Model;
 using NewLife.Net.Handlers;
 
 namespace NewLife.Remoting

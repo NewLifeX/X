@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Messaging;
+using NewLife.Model;
 using NewLife.Threading;
 
 namespace NewLife.Net.Handlers
@@ -59,7 +60,7 @@ namespace NewLife.Net.Handlers
             {
                 var timeout = Timeout;
                 //if (context.Session is ISocketClient client) timeout = client.Timeout;
-                Queue.Add(context.Session, msg, timeout, source);
+                Queue.Add(context.Owner, msg, timeout, source);
             }
         }
 
@@ -92,13 +93,13 @@ namespace NewLife.Net.Handlers
                     {
                         //!!! 处理结果的Packet需要拷贝一份，否交给另一个线程使用会有冲突
                         if (rs is IMessage msg4 && msg4.Payload == msg3.Payload) msg4.Payload = msg4.Payload.Clone();
-                        Queue.Match(context.Session, msg, rs, IsMatch);
+                        Queue.Match(context.Owner, msg, rs, IsMatch);
                     }
                 }
                 else if (rs != null)
                 {
                     // 其它消息不考虑响应
-                    Queue.Match(context.Session, msg, rs, IsMatch);
+                    Queue.Match(context.Owner, msg, rs, IsMatch);
                 }
 
                 // 匹配输入回调，让上层事件收到分包信息

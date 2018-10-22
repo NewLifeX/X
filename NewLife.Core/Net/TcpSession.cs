@@ -67,7 +67,7 @@ namespace NewLife.Net
         {
             // 管道
             var pp = Pipeline;
-            pp?.Open(pp.CreateContext(this));
+            pp?.Open(CreateContext(this));
 
             ReceiveAsync();
         }

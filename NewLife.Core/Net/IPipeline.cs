@@ -2,13 +2,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using NewLife.Data;
 using NewLife.Net.Handlers;
 #if !NET4
 using TaskEx = System.Threading.Tasks.Task;
 #endif
 
-namespace NewLife.Net
+namespace NewLife.Model
 {
     /// <summary>管道。进站顺序，出站逆序</summary>
     public interface IPipeline : IEnumerable<IHandler>
@@ -48,11 +47,6 @@ namespace NewLife.Net
         /// <param name="handler">处理器</param>
         /// <returns></returns>
         void Remove(IHandler handler);
-
-        /// <summary>创建上下文</summary>
-        /// <param name="session">远程会话</param>
-        /// <returns></returns>
-        IHandlerContext CreateContext(ISocketRemote session);
         #endregion
 
         #region 执行逻辑
@@ -65,16 +59,6 @@ namespace NewLife.Net
         /// <param name="context">上下文</param>
         /// <param name="message">消息</param>
         Object Write(IHandlerContext context, Object message);
-
-        /// <summary>写入数据</summary>
-        /// <param name="session">远程会话</param>
-        /// <param name="message">消息</param>
-        Boolean FireWrite(ISocketRemote session, Object message);
-
-        /// <summary>写入数据</summary>
-        /// <param name="session">远程会话</param>
-        /// <param name="message">消息</param>
-        Task<Object> FireWriteAndWait(ISocketRemote session, Object message);
 
         /// <summary>打开连接</summary>
         /// <param name="context">上下文</param>
@@ -182,20 +166,6 @@ namespace NewLife.Net
             else
                 Tail = handler.Prev;
         }
-
-        /// <summary>创建上下文</summary>
-        /// <param name="session">远程会话</param>
-        /// <returns></returns>
-        public virtual IHandlerContext CreateContext(ISocketRemote session)
-        {
-            var context = new HandlerContext
-            {
-                Pipeline = this,
-                Session = session
-            };
-
-            return context;
-        }
         #endregion
 
         #region 执行逻辑
@@ -217,33 +187,6 @@ namespace NewLife.Net
         {
             // 逆序过滤消息
             return Tail?.Write(context, message);
-        }
-
-        /// <summary>落实写入数据</summary>
-        /// <param name="session">远程会话</param>
-        /// <param name="message">消息</param>
-        public virtual Boolean FireWrite(ISocketRemote session, Object message)
-        {
-            var ctx = CreateContext(session);
-            message = Write(ctx, message);
-
-            return ctx.FireWrite(message);
-        }
-
-        /// <summary>落实写入数据</summary>
-        /// <param name="session">远程会话</param>
-        /// <param name="message">消息</param>
-        public virtual Task<Object> FireWriteAndWait(ISocketRemote session, Object message)
-        {
-            var ctx = CreateContext(session);
-            var source = new TaskCompletionSource<Object>();
-            ctx["TaskSource"] = source;
-
-            message = Write(ctx, message);
-
-            if (!ctx.FireWrite(message)) return TaskEx.FromResult((Object)null);
-
-            return source.Task;
         }
 
         /// <summary>打开连接</summary>

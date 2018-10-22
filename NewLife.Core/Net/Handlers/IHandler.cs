@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace NewLife.Net.Handlers
+namespace NewLife.Model
 {
     /// <summary>处理器</summary>
     public interface IHandler
