@@ -186,18 +186,19 @@ namespace NewLife.Net
             StatSend?.Increment(count, 0);
             if (Log != null && Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, pk.ToHex());
 
+            var sock = Client;
             try
             {
                 // 修改发送缓冲区，读取SendBufferSize耗时很大
-                if (_bsize == 0) _bsize = Client.SendBufferSize;
-                if (_bsize < count) _bsize = Client.SendBufferSize = count;
+                if (_bsize == 0) _bsize = sock.SendBufferSize;
+                if (_bsize < count) sock.SendBufferSize = _bsize = count;
 
                 if (count == 0)
-                    Client.Send(new Byte[0]);
+                    sock.Send(new Byte[0]);
                 else if (pk.Next == null)
-                    Client.Send(pk.Data, pk.Offset, count, SocketFlags.None);
+                    sock.Send(pk.Data, pk.Offset, count, SocketFlags.None);
                 else
-                    Client.Send(pk.ToArray(), 0, count, SocketFlags.None);
+                    sock.Send(pk.ToArray(), 0, count, SocketFlags.None);
             }
             catch (Exception ex)
             {
@@ -224,10 +225,10 @@ namespace NewLife.Net
         #region 接收
         internal override Boolean OnReceiveAsync(SocketAsyncEventArgs se)
         {
-            var client = Client;
-            if (client == null || !Active || Disposed) throw new ObjectDisposedException(GetType().Name);
+            var sock = Client;
+            if (sock == null || !Active || Disposed) throw new ObjectDisposedException(GetType().Name);
 
-            return client.ReceiveAsync(se);
+            return sock.ReceiveAsync(se);
         }
 
         private Int32 _empty;
@@ -268,21 +269,6 @@ namespace NewLife.Net
 
             return true;
         }
-
-        ///// <summary>收到异常时如何处理。默认关闭会话</summary>
-        ///// <param name="se"></param>
-        ///// <returns>是否当作异常处理并结束会话</returns>
-        //internal override Boolean OnReceiveError(SocketAsyncEventArgs se)
-        //{
-        //    // 不要销毁对象，仅标记状态，便于下次需要使用时重新打开连接
-        //    if (se.SocketError == SocketError.ConnectionReset)
-        //    {
-        //        Close("ReceiveAsync " + se.SocketError);
-        //        //Active = false;
-        //    }
-
-        //    return true;
-        //}
         #endregion
 
         #region 自动重连

@@ -260,7 +260,7 @@ namespace NewLife.Net
                 var buf = new Byte[BufferSize];
                 var se = new SocketAsyncEventArgs();
                 se.SetBuffer(buf, 0, buf.Length);
-                se.Completed += (s, e) => ProcessReceive(e);
+                se.Completed += (s, e) => ProcessEvent(e);
                 se.UserToken = count;
 
                 if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("创建RecvSA {0}", count);
@@ -321,9 +321,9 @@ namespace NewLife.Net
             if (!rs)
             {
                 if (io)
-                    ProcessReceive(se);
+                    ProcessEvent(se);
                 else
-                    ThreadPoolX.QueueUserWorkItem(ProcessReceive, se);
+                    ThreadPoolX.QueueUserWorkItem(ProcessEvent, se);
             }
 
             return true;
@@ -333,7 +333,7 @@ namespace NewLife.Net
 
         /// <summary>同步或异步收到数据</summary>
         /// <param name="se"></param>
-        void ProcessReceive(SocketAsyncEventArgs se)
+        void ProcessEvent(SocketAsyncEventArgs se)
         {
             if (!Active)
             {
@@ -365,6 +365,7 @@ namespace NewLife.Net
                     // 拷贝走数据，参数要重复利用
                     pk = pk.Clone();
                     // 根据不信任用户原则，这里另外开线程执行用户逻辑
+                    // 有些用户在处理数据时，又发送数据并等待响应
                     ThreadPoolX.QueueUserWorkItem(() => ProcessReceive(pk, ep));
                 }
                 else
@@ -467,7 +468,7 @@ namespace NewLife.Net
 
         /// <summary>处理数据帧</summary>
         /// <param name="data">数据帧</param>
-        void ISocketRemote.Receive(IData data) => OnReceive(data as ReceivedEventArgs);
+        void ISocketRemote.Process(IData data) => OnReceive(data as ReceivedEventArgs);
         #endregion
 
         #region 异常处理

@@ -110,21 +110,23 @@ namespace NewLife.Net
             if (StatSend == null) StatSend = new PerfCounter();
             if (StatReceive == null) StatReceive = new PerfCounter();
 
+            var sock = Client;
+
             // 开始监听
             //if (Server == null) Server = new TcpListener(Local.EndPoint);
-            if (Client == null) Client = NetHelper.CreateTcp(Local.EndPoint.Address.IsIPv4());
+            if (sock == null) Client = sock = NetHelper.CreateTcp(Local.EndPoint.Address.IsIPv4());
 
             WriteLog("Start {0}", this);
 
             // 三次握手之后，Accept之前的总连接个数，队列满之后，新连接将得到主动拒绝ConnectionRefused错误
             // 在我（大石头）的开发机器上，实际上这里的最大值只能是200，大于200跟200一个样
             //Server.Start();
-            Client.Bind(Local.EndPoint);
-            Client.Listen(Int32.MaxValue);
+            sock.Bind(Local.EndPoint);
+            sock.Listen(Int32.MaxValue);
 
 #if !__CORE__
-            Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
-            Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.DontLinger, true);
+            sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
+            sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.DontLinger, true);
 #endif
 
             Active = true;
@@ -277,16 +279,18 @@ namespace NewLife.Net
         protected virtual TcpSession CreateSession(Socket client)
         {
             //var session = EnableHttp ? new HttpSession(this, client) : new TcpSession(this, client);
-            var session = new TcpSession(this, client);
-            // 服务端不支持掉线重连
-            session.AutoReconnect = 0;
-            session.Log = Log;
-            session.LogSend = LogSend;
-            session.LogReceive = LogReceive;
-            session.StatSend = StatSend;
-            session.StatReceive = StatReceive;
-            session.ProcessAsync = ProcessAsync;
-            session.Pipeline = Pipeline;
+            var session = new TcpSession(this, client)
+            {
+                // 服务端不支持掉线重连
+                AutoReconnect = 0,
+                Log = Log,
+                LogSend = LogSend,
+                LogReceive = LogReceive,
+                StatSend = StatSend,
+                StatReceive = StatReceive,
+                ProcessAsync = ProcessAsync,
+                Pipeline = Pipeline
+            };
 
             return session;
         }

@@ -121,7 +121,7 @@ namespace NewLife.Net
 
         /// <summary>处理数据帧</summary>
         /// <param name="data">数据帧</param>
-        void Receive(IData data);
+        void Process(IData data);
         #endregion
     }
 

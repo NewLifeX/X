@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Net.Handlers;
@@ -15,9 +14,6 @@ namespace NewLife.Net
     public interface IPipeline : IEnumerable<IHandler>
     {
         #region 属性
-        ///// <summary>服务提供者</summary>
-        //IServiceProvider Service { get; }
-
         /// <summary>头部处理器</summary>
         IHandler Head { get; }
 
@@ -93,12 +89,6 @@ namespace NewLife.Net
         /// <param name="context">上下文</param>
         /// <param name="exception">异常</param>
         Boolean Error(IHandlerContext context, Exception exception);
-        #endregion
-
-        #region 扩展
-        //Task<Object> AddQueue(ISocketRemote session, Object message);
-
-        //Boolean Match(ISocketRemote session, Object message, Func<Object, Object, Boolean> callback);
         #endregion
     }
 
@@ -214,17 +204,10 @@ namespace NewLife.Net
         /// <param name="message">消息</param>
         public virtual void Read(IHandlerContext context, Object message)
         {
+            // 顺序过滤消息
             var rs = Head?.Read(context, message);
-            if (rs != null)
-            {
-                //context.Finish?.Invoke(rs);
-
-                // 处理消息
-                //var data = context.Data ?? new ReceivedEventArgs();
-                //data.Message = rs;
-                //context.Session.Receive(data);
-                context.FireRead(rs);
-            }
+            // 最后结果落实消息
+            if (rs != null) context.FireRead(rs);
         }
 
         /// <summary>写入数据，返回结果作为下一个处理器消息</summary>
@@ -232,20 +215,22 @@ namespace NewLife.Net
         /// <param name="message">消息</param>
         public virtual Object Write(IHandlerContext context, Object message)
         {
-            // 出站逆序
+            // 逆序过滤消息
             return Tail?.Write(context, message);
         }
 
-        /// <summary>写入数据</summary>
+        /// <summary>落实写入数据</summary>
         /// <param name="session">远程会话</param>
         /// <param name="message">消息</param>
         public virtual Boolean FireWrite(ISocketRemote session, Object message)
         {
             var ctx = CreateContext(session);
-            return OnFireWrite(ctx, message);
+            message = Write(ctx, message);
+
+            return ctx.FireWrite(message);
         }
 
-        /// <summary>写入数据</summary>
+        /// <summary>落实写入数据</summary>
         /// <param name="session">远程会话</param>
         /// <param name="message">消息</param>
         public virtual Task<Object> FireWriteAndWait(ISocketRemote session, Object message)
@@ -254,36 +239,11 @@ namespace NewLife.Net
             var source = new TaskCompletionSource<Object>();
             ctx["TaskSource"] = source;
 
-            if (!OnFireWrite(ctx, message)) return TaskEx.FromResult((Object)null);
+            message = Write(ctx, message);
+
+            if (!ctx.FireWrite(message)) return TaskEx.FromResult((Object)null);
 
             return source.Task;
-        }
-
-        private Boolean OnFireWrite(IHandlerContext ctx, Object message)
-        {
-            message = Write(ctx, message);
-            if (message == null) return false;
-
-            var session = ctx.Session;
-
-            // 发送一包数据
-            if (message is Byte[] buf) return session.Send(buf);
-            if (message is Packet pk) return session.Send(pk);
-            if (message is String str) return session.Send(str.GetBytes());
-
-            // 发送一批数据包
-            if (message is IEnumerable<Packet> pks)
-            {
-                foreach (var item in pks)
-                {
-                    if (!session.Send(item)) return false;
-                }
-
-                return true;
-            }
-
-            throw new XException("无法识别消息[{0}]，可能缺少编码处理器", message?.GetType()?.FullName);
-            //return false;
         }
 
         /// <summary>打开连接</summary>

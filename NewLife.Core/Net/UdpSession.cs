@@ -184,7 +184,7 @@ namespace NewLife.Net
 
         /// <summary>处理数据帧</summary>
         /// <param name="data">数据帧</param>
-        void ISocketRemote.Receive(IData data) => OnReceive(data as ReceivedEventArgs);
+        void ISocketRemote.Process(IData data) => OnReceive(data as ReceivedEventArgs);
         #endregion
 
         #region 异常处理
