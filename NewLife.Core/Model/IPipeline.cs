@@ -48,7 +48,7 @@ namespace NewLife.Model
         /// <summary>读取数据，返回结果作为下一个处理器消息</summary>
         /// <param name="context">上下文</param>
         /// <param name="message">消息</param>
-        void Read(IHandlerContext context, Object message);
+        Object Read(IHandlerContext context, Object message);
 
         /// <summary>写入数据，返回结果作为下一个处理器消息</summary>
         /// <param name="context">上下文</param>
@@ -164,54 +164,29 @@ namespace NewLife.Model
         #endregion
 
         #region 执行逻辑
-        /// <summary>读取数据，返回结果作为下一个处理器消息</summary>
+        /// <summary>读取数据，顺序过滤消息，返回结果作为下一个处理器消息</summary>
         /// <param name="context">上下文</param>
         /// <param name="message">消息</param>
-        public virtual void Read(IHandlerContext context, Object message)
-        {
-            // 顺序过滤消息
-            var rs = Head?.Read(context, message);
-            // 最后结果落实消息
-            if (rs != null) context.FireRead(rs);
-        }
+        public virtual Object Read(IHandlerContext context, Object message) => Head?.Read(context, message);
 
-        /// <summary>写入数据，返回结果作为下一个处理器消息</summary>
+        /// <summary>写入数据，逆序过滤消息，返回结果作为下一个处理器消息</summary>
         /// <param name="context">上下文</param>
         /// <param name="message">消息</param>
-        public virtual Object Write(IHandlerContext context, Object message)
-        {
-            // 逆序过滤消息
-            return Tail?.Write(context, message);
-        }
+        public virtual Object Write(IHandlerContext context, Object message) => Tail?.Write(context, message);
 
         /// <summary>打开连接</summary>
         /// <param name="context">上下文</param>
-        public virtual Boolean Open(IHandlerContext context)
-        {
-            if (Head == null) return true;
-
-            return Head.Open(context);
-        }
+        public virtual Boolean Open(IHandlerContext context) => Head == null ? true : Head.Open(context);
 
         /// <summary>关闭连接</summary>
         /// <param name="context">上下文</param>
         /// <param name="reason">原因</param>
-        public virtual Boolean Close(IHandlerContext context, String reason)
-        {
-            if (Head == null) return true;
-
-            return Head.Close(context, reason);
-        }
+        public virtual Boolean Close(IHandlerContext context, String reason) => Head == null ? true : Head.Close(context, reason);
 
         /// <summary>发生错误</summary>
         /// <param name="context">上下文</param>
         /// <param name="exception">异常</param>
-        public virtual Boolean Error(IHandlerContext context, Exception exception)
-        {
-            if (Head == null) return true;
-
-            return Head.Error(context, exception);
-        }
+        public virtual Boolean Error(IHandlerContext context, Exception exception) => Head == null ? true : Head.Error(context, exception);
         #endregion
 
         #region 枚举器

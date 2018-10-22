@@ -413,7 +413,14 @@ namespace NewLife.Net
                     ctx.Data = e;
 
                     // 进入管道处理，如果有一个或多个结果通过Finish来处理
-                    pp.Read(ctx, pk);
+                    var msg = pp.Read(ctx, pk);
+                    // 最后结果落实消息
+                    if (msg != null)
+                    {
+                        //ctx.FireRead(msg);
+                        e.Message = msg;
+                        OnReceive(e);
+                    }
                 }
             }
             catch (Exception ex)

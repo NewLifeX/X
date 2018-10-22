@@ -113,29 +113,30 @@
     <Compile Include="..\NewLife.Core\Messaging\MessageEventArgs.cs" Link="Messaging\MessageEventArgs.cs" />
     <Compile Include="..\NewLife.Core\Model\IAuthUser.cs" Link="Model\IAuthUser.cs" />
     <Compile Include="..\NewLife.Core\Model\IFactory.cs" Link="Model\IFactory.cs" />
+    <Compile Include="..\NewLife.Core\Model\IHandler.cs" Link="Model\IHandler.cs" />
+    <Compile Include="..\NewLife.Core\Model\IHandlerContext.cs" Link="Model\IHandlerContext.cs" />
     <Compile Include="..\NewLife.Core\Model\IHistory.cs" Link="Model\IHistory.cs" />
     <Compile Include="..\NewLife.Core\Model\IManageUser.cs" Link="Model\IManageUser.cs" />
     <Compile Include="..\NewLife.Core\Model\IObjectContainer.cs" Link="Model\IObjectContainer.cs" />
     <Compile Include="..\NewLife.Core\Model\IOnline.cs" Link="Model\IOnline.cs" />
+    <Compile Include="..\NewLife.Core\Model\IPipeline.cs" Link="Model\IPipeline.cs" />
     <Compile Include="..\NewLife.Core\Model\IPlugin.cs" Link="Model\IPlugin.cs" />
     <Compile Include="..\NewLife.Core\Model\IServer.cs" Link="Model\IServer.cs" />
     <Compile Include="..\NewLife.Core\Model\ModelExtension.cs" Link="Model\ModelExtension.cs" />
     <Compile Include="..\NewLife.Core\Model\ObjectContainer.cs" Link="Model\ObjectContainer.cs" />
     <Compile Include="..\NewLife.Core\Model\ObjectContainerHelper.cs" Link="Model\ObjectContainerHelper.cs" />
-    <Compile Include="..\NewLife.Core\Net\Handlers\IHandler.cs" Link="Net\Handlers\IHandler.cs" />
-    <Compile Include="..\NewLife.Core\Net\Handlers\IHandlerContext.cs" Link="Net\Handlers\IHandlerContext.cs" />
     <Compile Include="..\NewLife.Core\Net\Handlers\IMatchQueue.cs" Link="Net\Handlers\IMatchQueue.cs" />
     <Compile Include="..\NewLife.Core\Net\Handlers\LengthFieldCodec.cs" Link="Net\Handlers\LengthFieldCodec.cs" />
     <Compile Include="..\NewLife.Core\Net\Handlers\MessageCodec.cs" Link="Net\Handlers\MessageCodec.cs" />
     <Compile Include="..\NewLife.Core\Net\Handlers\StandardCodec.cs" Link="Net\Handlers\StandardCodec.cs" />
     <Compile Include="..\NewLife.Core\Net\INetSession.cs" Link="Net\INetSession.cs" />
-    <Compile Include="..\NewLife.Core\Net\IPipeline.cs" Link="Net\IPipeline.cs" />
     <Compile Include="..\NewLife.Core\Net\ISocket.cs" Link="Net\ISocket.cs" />
     <Compile Include="..\NewLife.Core\Net\ISocketClient.cs" Link="Net\ISocketClient.cs" />
     <Compile Include="..\NewLife.Core\Net\ISocketServer.cs" Link="Net\ISocketServer.cs" />
     <Compile Include="..\NewLife.Core\Net\ISocketSession.cs" Link="Net\ISocketSession.cs" />
     <Compile Include="..\NewLife.Core\Net\ITransport.cs" Link="Net\ITransport.cs" />
     <Compile Include="..\NewLife.Core\Net\NetException.cs" Link="Net\NetException.cs" />
+    <Compile Include="..\NewLife.Core\Net\NetHandlerContext.cs" Link="Net\NetHandlerContext.cs" />
     <Compile Include="..\NewLife.Core\Net\NetHelper.cs" Link="Net\NetHelper.cs" />
     <Compile Include="..\NewLife.Core\Net\NetServer.cs" Link="Net\NetServer.cs" />
     <Compile Include="..\NewLife.Core\Net\NetSession.cs" Link="Net\NetSession.cs" />
