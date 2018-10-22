@@ -265,6 +265,16 @@ namespace NewLife.Caching
                 Pool.Put(rds);
             }
         }
+
+        /// <summary>提交变更。处理某些残留在管道里的命令</summary>
+        /// <returns></returns>
+        public override Int32 Commit()
+        {
+            var rs = StopPipeline();
+            if (rs == null) return 0;
+
+            return rs.Length;
+        }
         #endregion
 
         #region 基础操作
@@ -372,11 +382,17 @@ namespace NewLife.Caching
                 var ts = TimeSpan.FromSeconds(expire);
 
                 StartPipeline();
-                foreach (var item in values)
+                try
                 {
-                    SetExpire(item.Key, ts);
+                    foreach (var item in values)
+                    {
+                        SetExpire(item.Key, ts);
+                    }
                 }
-                StopPipeline();
+                finally
+                {
+                    StopPipeline();
+                }
             }
         }
         #endregion

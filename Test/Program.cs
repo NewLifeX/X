@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Caching;
+using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Remoting;
 using NewLife.Security;
@@ -391,38 +392,45 @@ namespace Test
 
         static async void Test9()
         {
-            var svr = new ApiServer(3379)
-            {
-                Log = XTrace.Log
-            };
-            svr.Start();
+            var rds = new Redis();
+            rds.Server = "127.0.0.1";
+            if (rds.Pool is ObjectPool<RedisClient> pp) pp.Log = XTrace.Log;
+            rds.Bench();
 
-            var client = new ApiClient("tcp://127.0.0.1:3379")
-            {
-                Log = XTrace.Log
-            };
-            client.Open();
+            Console.ReadKey();
 
-            for (var i = 0; i < 10; i++)
-            {
-                XTrace.WriteLine("Invoke {0}", i);
-                var sw = Stopwatch.StartNew();
-                var rs = await client.InvokeAsync<String[]>("Api/All");
-                sw.Stop();
-                XTrace.WriteLine("{0}=> {1:n0}us", i, sw.Elapsed.TotalMilliseconds * 1000);
-                //XTrace.WriteLine(rs.Join(","));
-            }
+            //var svr = new ApiServer(3379)
+            //{
+            //    Log = XTrace.Log
+            //};
+            //svr.Start();
 
-            Console.WriteLine();
-            Parallel.For(0, 10, async i =>
-            {
-                XTrace.WriteLine("Invoke {0}", i);
-                var sw = Stopwatch.StartNew();
-                var rs = await client.InvokeAsync<String[]>("Api/All");
-                sw.Stop();
-                XTrace.WriteLine("{0}=> {1:n0}us", i, sw.Elapsed.TotalMilliseconds * 1000);
-                //XTrace.WriteLine(rs.Join(","));
-            });
+            //var client = new ApiClient("tcp://127.0.0.1:3379")
+            //{
+            //    Log = XTrace.Log
+            //};
+            //client.Open();
+
+            //for (var i = 0; i < 10; i++)
+            //{
+            //    XTrace.WriteLine("Invoke {0}", i);
+            //    var sw = Stopwatch.StartNew();
+            //    var rs = await client.InvokeAsync<String[]>("Api/All");
+            //    sw.Stop();
+            //    XTrace.WriteLine("{0}=> {1:n0}us", i, sw.Elapsed.TotalMilliseconds * 1000);
+            //    //XTrace.WriteLine(rs.Join(","));
+            //}
+
+            //Console.WriteLine();
+            //Parallel.For(0, 10, async i =>
+            //{
+            //    XTrace.WriteLine("Invoke {0}", i);
+            //    var sw = Stopwatch.StartNew();
+            //    var rs = await client.InvokeAsync<String[]>("Api/All");
+            //    sw.Stop();
+            //    XTrace.WriteLine("{0}=> {1:n0}us", i, sw.Elapsed.TotalMilliseconds * 1000);
+            //    //XTrace.WriteLine(rs.Join(","));
+            //});
         }
     }
 }
