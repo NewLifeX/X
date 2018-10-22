@@ -94,6 +94,12 @@ namespace NewLife.Caching
         {
             base.OnDispose(disposing);
 
+            try
+            {
+                Commit();
+            }
+            catch { }
+
             _Pool.TryDispose();
         }
 

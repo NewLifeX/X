@@ -397,7 +397,7 @@ namespace Test
             if (rds.Pool is ObjectPool<RedisClient> pp) pp.Log = XTrace.Log;
             rds.Bench();
 
-            Console.ReadKey();
+            //Console.ReadKey();
 
             //var svr = new ApiServer(3379)
             //{

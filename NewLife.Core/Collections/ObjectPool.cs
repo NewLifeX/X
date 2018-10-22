@@ -68,6 +68,8 @@ namespace NewLife.Collections
 
             _timer.TryDispose();
 
+            WriteLog($"Dispose {typeof(T).FullName} FreeCount={FreeCount:n0} BusyCount={BusyCount:n0} Total={Total:n0}");
+
             Clear();
         }
 
