@@ -107,33 +107,39 @@ namespace NewLife.Collections
             var sw = Log == null || Log == Logger.Null ? null : Stopwatch.StartNew();
             Interlocked.Increment(ref _Total);
 
-            // 从空闲集合借一个
-            if (_free.TryPop(out var pi) || _free2.TryDequeue(out pi))
+            Item pi = null;
+            do
             {
-                Interlocked.Decrement(ref _FreeCount);
-            }
-            else
-            {
-                // 超出最大值后，抛出异常
-                var count = BusyCount;
-                if (count >= Max)
+                // 从空闲集合借一个
+                if (_free.TryPop(out pi) || _free2.TryDequeue(out pi))
                 {
-                    var msg = $"申请失败，已有 {count:n0} 达到或超过最大值 {Max:n0}";
+                    Interlocked.Decrement(ref _FreeCount);
+                }
+                else
+                {
+                    // 超出最大值后，抛出异常
+                    var count = BusyCount;
+                    if (count >= Max)
+                    {
+                        var msg = $"申请失败，已有 {count:n0} 达到或超过最大值 {Max:n0}";
 
-                    WriteLog("Acquire Max " + msg);
+                        WriteLog("Acquire Max " + msg);
 
-                    throw new Exception(Name + " " + msg);
+                        throw new Exception(Name + " " + msg);
+                    }
+
+                    // 借不到，增加
+                    pi = new Item
+                    {
+                        Value = OnCreate(),
+                    };
+
+                    if (count == 0) Init();
+                    WriteLog("Acquire Create Free={0} Busy={1}", FreeCount, count + 1);
                 }
 
-                // 借不到，增加
-                pi = new Item
-                {
-                    Value = OnCreate(),
-                };
-
-                if (count == 0) Init();
-                WriteLog("Acquire Create Free={0} Busy={1}", FreeCount, count + 1);
-            }
+                // 借出时如果不可用，再次借取
+            } while (!OnGet(pi.Value));
 
             // 最后时间
             pi.LastTime = TimerX.Now;
@@ -156,6 +162,11 @@ namespace NewLife.Collections
 
             return pi.Value;
         }
+
+        /// <summary>借出时是否可用</summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        protected virtual Boolean OnGet(T value) => true;
 
         /// <summary>申请资源包装项，Dispose时自动归还到池中</summary>
         /// <returns></returns>
@@ -221,6 +232,10 @@ namespace NewLife.Collections
 
             return count;
         }
+
+        /// <summary>销毁</summary>
+        /// <param name="value"></param>
+        protected virtual void OnDispose(T value) { }
         #endregion
 
         #region 重载
