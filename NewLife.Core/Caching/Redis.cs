@@ -62,14 +62,17 @@ namespace NewLife.Caching
         /// <summary>目标数据库。默认0</summary>
         public Int32 Db { get; set; }
 
-        /// <summary>出错重试次数。如果出现协议解析错误，可以重试的次数，默认0</summary>
-        public Int32 Retry { get; set; }
+        /// <summary>出错重试次数。如果出现协议解析错误，可以重试的次数，默认3</summary>
+        public Int32 Retry { get; set; } = 3;
 
         /// <summary>完全管道。读取操作是否合并进入管道，默认false</summary>
         public Boolean FullPipeline { get; set; }
 
         /// <summary>自动管道。管道操作达到一定数量时，自动提交，默认0</summary>
         public Int32 AutoPipeline { get; set; }
+
+        /// <summary>性能计数器</summary>
+        public PerfCounter Counter { get; set; }
         #endregion
 
         #region 构造
@@ -215,6 +218,9 @@ namespace NewLife.Caching
                 }
             }
 
+            // 统计性能
+            var sw = Counter?.StartCount();
+
             var i = 0;
             do
             {
@@ -223,7 +229,11 @@ namespace NewLife.Caching
                 try
                 {
                     client.Reset();
-                    return func(client);
+                    var rs = func(client);
+
+                    Counter?.StopCount(sw);
+
+                    return rs;
                 }
                 catch (InvalidDataException)
                 {
