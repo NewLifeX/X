@@ -281,6 +281,7 @@ namespace NewLife.Net
             {
                 // 服务端不支持掉线重连
                 AutoReconnect = 0,
+                NoDelay = true,
                 Log = Log,
                 LogSend = LogSend,
                 LogReceive = LogReceive,
@@ -289,6 +290,9 @@ namespace NewLife.Net
                 ProcessAsync = ProcessAsync,
                 Pipeline = Pipeline
             };
+
+            // 为了降低延迟，服务端不要合并小包
+            client.NoDelay = true;
 
             return session;
         }

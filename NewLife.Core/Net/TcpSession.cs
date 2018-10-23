@@ -26,6 +26,9 @@ namespace NewLife.Net
 
         /// <summary>是否匹配空包。Http协议需要</summary>
         protected Boolean MatchEmpty { get; set; }
+
+        /// <summary>不延迟直接发送。Tcp为了合并小包而设计，客户端默认false，服务端默认true</summary>
+        public Boolean NoDelay { get; set; }
         #endregion
 
         #region 构造
@@ -90,6 +93,7 @@ namespace NewLife.Net
 
                 sock = Client = NetHelper.CreateTcp(Local.EndPoint.Address.IsIPv4());
                 //sock.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, true);
+                if (NoDelay) sock.NoDelay = true;
                 if (timeout > 0)
                 {
                     sock.SendTimeout = timeout;
@@ -97,7 +101,7 @@ namespace NewLife.Net
                 }
                 sock.Bind(Local.EndPoint);
                 CheckDynamic();
-
+                
                 WriteLog("Open {0}", this);
             }
 
