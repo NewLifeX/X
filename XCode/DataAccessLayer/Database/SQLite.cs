@@ -550,47 +550,48 @@ namespace XCode.DataAccessLayer
                 var sqls = sql.Split("\r\n").ToList();
 
                 #region 字段
-                //var dcs = ss.Query($"select * from {Database.FormatName(name)} limit 0,1", null);
-                //for (var i = 0; i < dcs.Columns.Length; i++)
-                foreach (var line in sqls)
-                {
-                    if (line.IsNullOrEmpty() || line[0] != '\t') continue;
+                GetTbFields(table);
+                ////var dcs = ss.Query($"select * from {Database.FormatName(name)} limit 0,1", null);
+                ////for (var i = 0; i < dcs.Columns.Length; i++)
+                //foreach (var line in sqls)
+                //{
+                //    if (line.IsNullOrEmpty() || line[0] != '\t') continue;
 
-                    var fs = line.Trim().Split(" ");
-                    var field = table.CreateColumn();
+                //    var fs = line.Trim().Split(" ");
+                //    var field = table.CreateColumn();
 
-                    field.ColumnName = fs[0].TrimStart('[').TrimEnd(']');
-                    //field.DataType = dcs.Types[i];
-                    //field.RawType = dcs.TypeNames[i];
+                //    field.ColumnName = fs[0].TrimStart('[').TrimEnd(']');
+                //    //field.DataType = dcs.Types[i];
+                //    //field.RawType = dcs.TypeNames[i];
 
-                    if (line.Contains("AUTOINCREMENT")) field.Identity = true;
-                    if (line.Contains("Primary Key")) field.PrimaryKey = true;
+                //    if (line.Contains("AUTOINCREMENT")) field.Identity = true;
+                //    if (line.Contains("Primary Key")) field.PrimaryKey = true;
 
-                    if (line.Contains("NOT NULL"))
-                        field.Nullable = false;
-                    else if (line.Contains(" NULL "))
-                        field.Nullable = true;
+                //    if (line.Contains("NOT NULL"))
+                //        field.Nullable = false;
+                //    else if (line.Contains(" NULL "))
+                //        field.Nullable = true;
 
-                    field.RawType = fs[1];
-                    field.Length = field.RawType.Substring("(", ")").ToInt();
+                //    field.RawType = fs[1];
+                //    field.Length = field.RawType.Substring("(", ")").ToInt();
 
-                    field.DataType = GetDataType(field.RawType);
+                //    field.DataType = GetDataType(field.RawType);
 
-                    // SQLite的字段长度、精度等，都是由类型决定，固定值
+                //    // SQLite的字段长度、精度等，都是由类型决定，固定值
 
-                    // 如果数据库里面是integer或者autoincrement，识别类型是Int64，又是自增，则改为Int32，保持与大多数数据库的兼容
-                    if (field.Identity && field.DataType == typeof(Int64) && field.RawType.EqualIgnoreCase("integer", "autoincrement"))
-                    {
-                        field.DataType = typeof(Int32);
-                    }
+                //    // 如果数据库里面是integer或者autoincrement，识别类型是Int64，又是自增，则改为Int32，保持与大多数数据库的兼容
+                //    if (field.Identity && field.DataType == typeof(Int64) && field.RawType.EqualIgnoreCase("integer", "autoincrement"))
+                //    {
+                //        field.DataType = typeof(Int32);
+                //    }
 
-                    if (field.DataType == null)
-                    {
-                        if (field.RawType.StartsWithIgnoreCase("varchar2", "nvarchar2")) field.DataType = typeof(String);
-                    }
+                //    if (field.DataType == null)
+                //    {
+                //        if (field.RawType.StartsWithIgnoreCase("varchar2", "nvarchar2")) field.DataType = typeof(String);
+                //    }
 
-                    table.Columns.Add(field);
-                }
+                //    table.Columns.Add(field);
+                //}
                 #endregion
 
                 #region 索引
@@ -620,6 +621,36 @@ namespace XCode.DataAccessLayer
             }
 
             return list;
+        }
+
+        /// <summary>
+        /// 获取表字段 zhangy 2018年10月23日 15:30:43
+        /// </summary>
+        /// <param name="table"></param>
+        public void GetTbFields(IDataTable table)
+        {
+            string sql = string.Format(" PRAGMA table_info({0})", table.TableName);
+
+            var ss = Database.CreateSession();
+            var ds = ss.Query(sql, null);
+            if (ds.Rows.Count == 0) return;
+
+            foreach (var row in ds.Rows)
+            {
+                var field = table.CreateColumn();
+                field.ColumnName = row[1].ToString().Replace(" ", "");
+                field.RawType = row[2].ToString().Replace(" ", "");//去除所有空格
+                field.Nullable = row[3].ToInt() != 1;
+                field.PrimaryKey = row[5].ToInt() == 1;
+
+                field.DataType = GetDataType(field.RawType);
+                if (field.DataType == null)
+                {
+                    if (field.RawType.StartsWithIgnoreCase("varchar2", "nvarchar2")) field.DataType = typeof(String);
+                }
+                field.Fix();
+                table.Columns.Add(field);
+            }
         }
 
         protected override String GetFieldType(IDataColumn field)
