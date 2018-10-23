@@ -55,6 +55,16 @@ namespace XCode.Statistics
                 }
             }
 
+            // 设置所有累加字段为脏数据
+            var df = Entity<TEntity>.Meta.Factory.AdditionalFields;
+            if (df != null && df.Count > 0 && st.Dirtys.Count == 0)
+            {
+                foreach (var di in df)
+                {
+                    st.Dirtys[di] = true;
+                }
+            }
+
             if (st != null) st.UpdateTime = DateTime.Now;
 
             return st;

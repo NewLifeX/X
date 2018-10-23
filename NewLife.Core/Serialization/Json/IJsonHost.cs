@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Reflection;
-using System.Text;
 #if !__MOBILE__ && !__CORE__
 using System.Web.Script.Serialization;
 #endif
@@ -173,7 +172,7 @@ namespace NewLife.Serialization
             return false;
         }
 
-        #region IJsonHost 成员
+    #region IJsonHost 成员
         public String Write(Object value, Boolean indented)
         {
             var json = new JavaScriptSerializer().Serialize(value);
@@ -190,7 +189,7 @@ namespace NewLife.Serialization
         }
 
         public Object Convert(Object obj, Type targetType) => new JavaScriptSerializer().ConvertToType(obj, targetType);
-        #endregion
+    #endregion
     }
 
     class JsonNet : IJsonHost
@@ -239,7 +238,7 @@ class MyContractResolver : Newtonsoft.Json.Serialization.DefaultContractResolver
         /// <returns></returns>
         public static Boolean Support() => _Convert != null;
 
-        #region IJsonHost 成员
+    #region IJsonHost 成员
         public String Write(Object value, Boolean indented)
         {
             // 忽略循环引用
@@ -255,7 +254,7 @@ class MyContractResolver : Newtonsoft.Json.Serialization.DefaultContractResolver
         public Object Read(String json, Type type) => _Convert.Invoke("DeserializeObject", json, type);
 
         public Object Convert(Object obj, Type targetType) => new JsonReader().ToObject(obj, targetType, null);
-        #endregion
+    #endregion
     }
 #endif
 
@@ -263,7 +262,7 @@ class MyContractResolver : Newtonsoft.Json.Serialization.DefaultContractResolver
     {
         #region IJsonHost 成员
 
-        public String Write(Object value, Boolean indented = false) => new JsonWriter().ToJson(value, indented);
+        public String Write(Object value, Boolean indented = false) => JsonWriter.ToJson(value, indented);
 
         public Object Read(String json, Type type) => new JsonReader().Read(json, type);
 

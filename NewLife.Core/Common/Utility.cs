@@ -24,7 +24,7 @@ namespace System
         /// <returns></returns>
         public static Int32 ToInt(this Object value, Int32 defaultValue = 0) => Convert.ToInt(value, defaultValue);
 
-        /// <summary>转为长整数，转换失败时返回默认值。支持字符串、全角、字节数组（小端）</summary>
+        /// <summary>转为长整数，转换失败时返回默认值。支持字符串、全角、字节数组（小端）、时间（Unix毫秒）</summary>
         /// <remarks></remarks>
         /// <param name="value">待转换对象</param>
         /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
@@ -152,7 +152,7 @@ namespace System
             catch { return defaultValue; }
         }
 
-        /// <summary>转为长整数</summary>
+        /// <summary>转为长整数。支持字符串、全角、字节数组（小端）、时间（Unix毫秒）</summary>
         /// <param name="value">待转换对象</param>
         /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
         /// <returns></returns>
@@ -170,6 +170,37 @@ namespace System
 
                 if (Int64.TryParse(str, out var n)) return n;
                 return defaultValue;
+            }
+
+            // 特殊处理时间，转Unix毫秒
+            if (value is DateTime dt)
+            {
+                if (dt == DateTime.MinValue) return 0;
+
+                //// 先转UTC时间再相减，以得到绝对时间差
+                //return (Int32)(dt.ToUniversalTime() - _dt1970).TotalSeconds;
+                return (Int64)(dt - _dt1970).TotalMilliseconds;
+            }
+
+            if (value is Byte[] buf)
+            {
+                if (buf == null || buf.Length < 1) return defaultValue;
+
+                switch (buf.Length)
+                {
+                    case 1:
+                        return buf[0];
+                    case 2:
+                        return BitConverter.ToInt16(buf, 0);
+                    case 3:
+                        return BitConverter.ToInt32(new Byte[] { buf[0], buf[1], buf[2], 0 }, 0);
+                    case 4:
+                        return BitConverter.ToInt32(buf, 0);
+                    case 8:
+                        return BitConverter.ToInt64(buf, 0);
+                    default:
+                        break;
+                }
             }
 
             //暂时不做处理  先处理异常转换

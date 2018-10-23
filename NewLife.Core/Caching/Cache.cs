@@ -234,6 +234,10 @@ namespace NewLife.Caching
         #endregion
 
         #region 事务
+        /// <summary>提交变更。部分提供者需要刷盘</summary>
+        /// <returns></returns>
+        public virtual Int32 Commit() => 0;
+
         /// <summary>申请分布式锁</summary>
         /// <param name="key"></param>
         /// <param name="msTimeout"></param>
@@ -462,6 +466,9 @@ namespace NewLife.Caching
                             SetAll(dic);
                         }
                     }
+
+                    // 提交变更
+                    Commit();
                 });
             }
             else
@@ -475,6 +482,9 @@ namespace NewLife.Caching
                     {
                         Set(mykey, val);
                     }
+
+                    // 提交变更
+                    Commit();
                 });
             }
             sw.Stop();
@@ -501,6 +511,9 @@ namespace NewLife.Caching
                     {
                         Increment(key + i, val);
                     }
+
+                    // 提交变更
+                    Commit();
                 });
             }
             else
@@ -514,6 +527,9 @@ namespace NewLife.Caching
                     {
                         Increment(mykey, val);
                     }
+
+                    // 提交变更
+                    Commit();
                 });
             }
             sw.Stop();
@@ -540,6 +556,9 @@ namespace NewLife.Caching
                     {
                         Remove(key + i);
                     }
+
+                    // 提交变更
+                    Commit();
                 });
             }
             else
@@ -552,6 +571,9 @@ namespace NewLife.Caching
                     {
                         Remove(mykey);
                     }
+
+                    // 提交变更
+                    Commit();
                 });
             }
             sw.Stop();

@@ -475,7 +475,7 @@ namespace NewLife.Caching
             if (ms.Length > 0) ms.WriteTo(ns);
             ms.Put();
 
-            if (!requireResult) return null;
+            if (!requireResult) return new Object[ps.Count];
 
             // 获取响应
             var list = GetResponse(ns, ps.Count);

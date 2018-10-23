@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
+using NewLife.Model;
 using NewLife.Threading;
 
 namespace NewLife.Net
@@ -124,7 +125,7 @@ namespace NewLife.Net
                 {
                     // 管道
                     var pp = Pipeline;
-                    pp?.Open(pp.CreateContext(this));
+                    pp?.Open(CreateContext(this));
                 }
             }
 
@@ -163,7 +164,7 @@ namespace NewLife.Net
 
             // 管道
             var pp = Pipeline;
-            pp?.Close(pp.CreateContext(this), reason);
+            pp?.Close(CreateContext(this), reason);
 
             if (OnClose(reason ?? (GetType().Name + "Close"))) Active = false;
 
@@ -260,7 +261,7 @@ namespace NewLife.Net
                 var buf = new Byte[BufferSize];
                 var se = new SocketAsyncEventArgs();
                 se.SetBuffer(buf, 0, buf.Length);
-                se.Completed += (s, e) => ProcessReceive(e);
+                se.Completed += (s, e) => ProcessEvent(e);
                 se.UserToken = count;
 
                 if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("创建RecvSA {0}", count);
@@ -321,9 +322,9 @@ namespace NewLife.Net
             if (!rs)
             {
                 if (io)
-                    ProcessReceive(se);
+                    ProcessEvent(se);
                 else
-                    ThreadPoolX.QueueUserWorkItem(ProcessReceive, se);
+                    ThreadPoolX.QueueUserWorkItem(ProcessEvent, se);
             }
 
             return true;
@@ -333,7 +334,7 @@ namespace NewLife.Net
 
         /// <summary>同步或异步收到数据</summary>
         /// <param name="se"></param>
-        void ProcessReceive(SocketAsyncEventArgs se)
+        void ProcessEvent(SocketAsyncEventArgs se)
         {
             if (!Active)
             {
@@ -365,6 +366,7 @@ namespace NewLife.Net
                     // 拷贝走数据，参数要重复利用
                     pk = pk.Clone();
                     // 根据不信任用户原则，这里另外开线程执行用户逻辑
+                    // 有些用户在处理数据时，又发送数据并等待响应
                     ThreadPoolX.QueueUserWorkItem(() => ProcessReceive(pk, ep));
                 }
                 else
@@ -407,11 +409,18 @@ namespace NewLife.Net
                     OnReceive(e);
                 else
                 {
-                    var ctx = pp.CreateContext(ss);
+                    var ctx = CreateContext(ss);
                     ctx.Data = e;
 
                     // 进入管道处理，如果有一个或多个结果通过Finish来处理
-                    pp.Read(ctx, pk);
+                    var msg = pp.Read(ctx, pk);
+                    // 最后结果落实消息
+                    if (msg != null)
+                    {
+                        //ctx.FireRead(msg);
+                        e.Message = msg;
+                        OnReceive(e);
+                    }
                 }
             }
             catch (Exception ex)
@@ -455,19 +464,55 @@ namespace NewLife.Net
         /// <summary>消息管道。收发消息都经过管道处理器</summary>
         public IPipeline Pipeline { get; set; }
 
+        /// <summary>创建上下文</summary>
+        /// <param name="session">远程会话</param>
+        /// <returns></returns>
+        internal protected virtual NetHandlerContext CreateContext(ISocketRemote session)
+        {
+            var context = new NetHandlerContext
+            {
+                Pipeline = Pipeline,
+                Session = session,
+                Owner = session,
+            };
+
+            return context;
+        }
+
         /// <summary>通过管道发送消息</summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public virtual Boolean SendMessage(Object message) => Pipeline.FireWrite(this, message);
+        public virtual Boolean SendMessage(Object message)
+        {
+            //Pipeline.FireWrite(this, message);
+
+            var ctx = CreateContext(this);
+            message = Pipeline.Write(ctx, message);
+
+            return ctx.FireWrite(message);
+        }
 
         /// <summary>通过管道发送消息并等待响应</summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public virtual Task<Object> SendMessageAsync(Object message) => Pipeline.FireWriteAndWait(this, message);
+        public virtual Task<Object> SendMessageAsync(Object message)
+        {
+            //Pipeline.FireWriteAndWait(this, message);
+
+            var ctx = CreateContext(this);
+            var source = new TaskCompletionSource<Object>();
+            ctx["TaskSource"] = source;
+
+            message = Pipeline.Write(ctx, message);
+
+            if (!ctx.FireWrite(message)) return Task.FromResult((Object)null);
+
+            return source.Task;
+        }
 
         /// <summary>处理数据帧</summary>
         /// <param name="data">数据帧</param>
-        void ISocketRemote.Receive(IData data) => OnReceive(data as ReceivedEventArgs);
+        void ISocketRemote.Process(IData data) => OnReceive(data as ReceivedEventArgs);
         #endregion
 
         #region 异常处理
@@ -480,7 +525,7 @@ namespace NewLife.Net
         internal protected virtual void OnError(String action, Exception ex)
         {
             var pp = Pipeline;
-            if (pp != null) pp.Error(pp.CreateContext(this), ex);
+            if (pp != null) pp.Error(CreateContext(this), ex);
 
             if (Log != null) Log.Error("{0}{1}Error {2} {3}", LogPrefix, action, this, ex?.Message);
             Error?.Invoke(this, new ExceptionEventArgs { Action = action, Exception = ex });

@@ -56,7 +56,7 @@ namespace NewLife.Reflection
 
             try
             {
-                using (var fs = new FileStream(file, FileMode.Open, FileAccess.Read))
+                using (var fs = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
                     return Read(fs);
                 }

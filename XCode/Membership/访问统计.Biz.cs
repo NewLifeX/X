@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Collections;
 using NewLife.Data;
@@ -205,9 +206,14 @@ namespace XCode.Membership
             if (model.Cost > st.MaxCost) st.MaxCost = model.Cost;
 
             if (!model.Title.IsNullOrEmpty()) st.Title = model.Title;
-            st.Times++;
+            //st.Times++;
+            Interlocked.Increment(ref st._Times);
 
-            if (!model.Error.IsNullOrEmpty()) st.Error++;
+            if (!model.Error.IsNullOrEmpty())
+            {
+                //st.Error++;
+                Interlocked.Increment(ref st._Error);
+            }
 
             var user = model.User;
             var ip = model.IP;
@@ -217,12 +223,14 @@ namespace XCode.Membership
                 var ss = new HashSet<String>((st.Remark + "").Split(","));
                 if (!user.IsNullOrEmpty() && !ss.Contains(user))
                 {
-                    st.Users++;
+                    //st.Users++;
+                    Interlocked.Increment(ref st._Users);
                     ss.Add(user + "");
                 }
                 if (!ip.IsNullOrEmpty() && !ss.Contains(ip))
                 {
-                    st.IPs++;
+                    //st.IPs++;
+                    Interlocked.Increment(ref st._IPs);
                     ss.Add(ip);
                 }
                 // 如果超长，砍掉前面

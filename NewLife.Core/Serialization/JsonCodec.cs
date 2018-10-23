@@ -1,5 +1,6 @@
 ﻿using System;
 using NewLife.Data;
+using NewLife.Model;
 using NewLife.Net.Handlers;
 
 namespace NewLife.Serialization

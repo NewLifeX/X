@@ -544,8 +544,14 @@ namespace XCode.Code
                     WriteLine();
                 }
 
-                WriteLine("// 累加字段");
-                WriteLine("//Meta.Factory.AdditionalFields.Add(__.Logins);");
+                // 第一个非自增非主键整型字段，生成累加字段代码
+                var dc = Table.Columns.FirstOrDefault(e => !e.Identity && !e.PrimaryKey && (e.DataType == typeof(Int32) || e.DataType == typeof(Int64)));
+                if (dc != null)
+                {
+                    WriteLine("// 累加字段");
+                    WriteLine("//var df = Meta.Factory.AdditionalFields;");
+                    WriteLine("//df.Add(__.{0});", dc.Name);
+                }
 
                 var ns = new HashSet<String>(Table.Columns.Select(e => e.Name), StringComparer.OrdinalIgnoreCase);
                 WriteLine();
@@ -561,7 +567,7 @@ namespace XCode.Code
                 var di = Table.Indexes.FirstOrDefault(e => e.Unique && e.Columns.Length == 1 && Table.GetColumn(e.Columns[0]).Master);
                 if (di != null)
                 {
-                    var dc = Table.GetColumn(di.Columns[0]);
+                    dc = Table.GetColumn(di.Columns[0]);
 
                     WriteLine();
                     WriteLine("// 单对象缓存");

@@ -152,6 +152,10 @@ namespace NewLife.Caching
         #endregion
 
         #region 事务
+        /// <summary>提交变更。部分提供者需要刷盘</summary>
+        /// <returns></returns>
+        Int32 Commit();
+
         /// <summary>申请分布式锁</summary>
         /// <param name="key">要锁定的key</param>
         /// <param name="msTimeout"></param>

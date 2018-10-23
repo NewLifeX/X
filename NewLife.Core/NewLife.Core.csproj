@@ -99,6 +99,7 @@
     <Compile Include="Compression\ZipFile.cs" />
     <Compile Include="Configuration\CombConfig.cs" />
     <Compile Include="Data\BinaryTree.cs" />
+    <Compile Include="IO\CsvFile.cs" />
     <Compile Include="Data\DbRow.cs" />
     <Compile Include="Data\DbTable.cs" />
     <Compile Include="Data\GeoArea.cs" />
@@ -152,6 +153,7 @@
     <Compile Include="Model\IManageUser.cs" />
     <Compile Include="Model\ModelExtension.cs" />
     <Compile Include="Model\ObjectContainerHelper.cs" />
+    <Compile Include="Net\NetHandlerContext.cs" />
     <Compile Include="Remoting\ApiAction.cs" />
     <Compile Include="Remoting\ApiAttribute.cs" />
     <Compile Include="Remoting\ApiClient.cs" />
@@ -178,8 +180,8 @@
     <Compile Include="Net\Handlers\StandardCodec.cs" />
     <Compile Include="Net\Handlers\LengthFieldCodec.cs" />
     <Compile Include="Net\Handlers\MessageCodec.cs" />
-    <Compile Include="Net\Handlers\IHandler.cs" />
-    <Compile Include="Net\Handlers\IHandlerContext.cs" />
+    <Compile Include="Model\IHandler.cs" />
+    <Compile Include="Model\IHandlerContext.cs" />
     <Compile Include="Net\INetSession.cs" />
     <Compile Include="Net\Handlers\IMatchQueue.cs" />
     <Compile Include="Net\ISocket.cs" />
@@ -189,7 +191,7 @@
     <Compile Include="Net\NetHelper.cs" />
     <Compile Include="Net\NetServer.cs" />
     <Compile Include="Net\NetSession.cs" />
-    <Compile Include="Net\IPipeline.cs" />
+    <Compile Include="Model\IPipeline.cs" />
     <Compile Include="Net\ReceivedEventArgs.cs" />
     <Compile Include="Net\ITransport.cs" />
     <Compile Include="Net\NetUri.cs" />

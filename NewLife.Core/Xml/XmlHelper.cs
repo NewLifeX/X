@@ -72,7 +72,7 @@ namespace NewLife.Xml
                 return;
             }
 
-            using (var stream = new FileStream(file, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+            using (var stream = new FileStream(file, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite))
             {
                 obj.ToXml(stream, encoding, attachComment);
                 // 必须通过设置文件流长度来实现截断，否则后面可能会多一截旧数据
@@ -170,7 +170,7 @@ namespace NewLife.Xml
             if (file.IsNullOrWhiteSpace()) throw new ArgumentNullException("file");
             if (!File.Exists(file)) return null;
 
-            using (var stream = new FileStream(file, FileMode.Open, FileAccess.Read))
+            using (var stream = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
                 return stream.ToXmlEntity<TEntity>(encoding);
             }

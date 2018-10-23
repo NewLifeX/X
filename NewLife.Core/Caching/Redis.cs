@@ -62,14 +62,17 @@ namespace NewLife.Caching
         /// <summary>目标数据库。默认0</summary>
         public Int32 Db { get; set; }
 
-        /// <summary>出错重试次数。如果出现协议解析错误，可以重试的次数，默认0</summary>
-        public Int32 Retry { get; set; }
+        /// <summary>出错重试次数。如果出现协议解析错误，可以重试的次数，默认3</summary>
+        public Int32 Retry { get; set; } = 3;
 
         /// <summary>完全管道。读取操作是否合并进入管道，默认false</summary>
         public Boolean FullPipeline { get; set; }
 
         /// <summary>自动管道。管道操作达到一定数量时，自动提交，默认0</summary>
         public Int32 AutoPipeline { get; set; }
+
+        /// <summary>性能计数器</summary>
+        public PerfCounter Counter { get; set; }
         #endregion
 
         #region 构造
@@ -93,6 +96,12 @@ namespace NewLife.Caching
         protected override void OnDispose(Boolean disposing)
         {
             base.OnDispose(disposing);
+
+            try
+            {
+                Commit();
+            }
+            catch { }
 
             _Pool.TryDispose();
         }
@@ -209,6 +218,9 @@ namespace NewLife.Caching
                 }
             }
 
+            // 统计性能
+            var sw = Counter?.StartCount();
+
             var i = 0;
             do
             {
@@ -217,7 +229,11 @@ namespace NewLife.Caching
                 try
                 {
                     client.Reset();
-                    return func(client);
+                    var rs = func(client);
+
+                    Counter?.StopCount(sw);
+
+                    return rs;
                 }
                 catch (InvalidDataException)
                 {
@@ -264,6 +280,16 @@ namespace NewLife.Caching
                 rds.Reset();
                 Pool.Put(rds);
             }
+        }
+
+        /// <summary>提交变更。处理某些残留在管道里的命令</summary>
+        /// <returns></returns>
+        public override Int32 Commit()
+        {
+            var rs = StopPipeline();
+            if (rs == null) return 0;
+
+            return rs.Length;
         }
         #endregion
 
@@ -372,11 +398,17 @@ namespace NewLife.Caching
                 var ts = TimeSpan.FromSeconds(expire);
 
                 StartPipeline();
-                foreach (var item in values)
+                try
                 {
-                    SetExpire(item.Key, ts);
+                    foreach (var item in values)
+                    {
+                        SetExpire(item.Key, ts);
+                    }
                 }
-                StopPipeline();
+                finally
+                {
+                    StopPipeline();
+                }
             }
         }
         #endregion

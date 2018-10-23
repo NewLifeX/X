@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using NewLife.Data;
+using NewLife.Model;
 using NewLife.Net.Handlers;
 
 namespace NewLife.Serialization

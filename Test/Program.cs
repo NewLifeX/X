@@ -7,10 +7,10 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Caching;
+using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Remoting;
 using NewLife.Security;
-using NewLife.Serialization;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 using XCode.Service;
@@ -35,7 +35,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test6();
+                    Test9();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -368,50 +368,69 @@ namespace Test
 
         static void Test8()
         {
-            var f = @"D:\X\Src\XCode\Membership\Member.xml";
-            var ts = DAL.ImportFrom(f);
-            Console.WriteLine(ts);
-
-            var t = new TestTable()
+            var user = new UserX();
+            for (var i = 0; i < 1_000_000; i++)
             {
-                IsHide = false,
-                Title = "test abc",
-                Content = "abc",
-                Counts = 0,
-                Level = 1,
-                PageSize = 10,
-                PId = 0,
-                Price = 25.85M,
-                Rank = 999,
-                TitleColor = "#000"
-            };
-            t.Save();
+                user.RoleID++;
 
-            Console.WriteLine($"id:{t.Id}, title:{t.Title}, price:{t.Price}, ishide:{t.IsHide}");
-            Console.WriteLine(t.ToJson(true));
+                if (i % 3 == 0) user.Logins++;
+            }
+
+            Console.WriteLine("总量：{0:n0} 成功：{1:n0} 成功率：{2:p2}", user.RoleID, user.Logins, (Double)user.Logins / user.RoleID);
+
+            user.RoleID = 0;
+            user.Logins = 0;
+            Parallel.For(0, 1_000_000, k =>
+            {
+                user.RoleID++;
+
+                if (k % 3 == 0) user.Logins++;
+            });
+
+            Console.WriteLine("总量：{0:n0} 成功：{1:n0} 成功率：{2:p2}", user.RoleID, user.Logins, (Double)user.Logins / user.RoleID);
         }
 
-        static void Test9()
+        static async void Test9()
         {
-            var rds = Redis.Create("127.0.0.1:6000", 3);
-            //rds.Log = XTrace.Log;
+            //var rds = new Redis();
+            //rds.Server = "127.0.0.1";
+            //if (rds.Pool is ObjectPool<RedisClient> pp) pp.Log = XTrace.Log;
+            //rds.Bench();
 
-            var key = "kkk";
-            //var list = rds.GetList<String>(key);
-            for (var i = 0; i < 100000; i++)
+            //Console.ReadKey();
+
+            var svr = new ApiServer(3379)
             {
-                //list.Add(Rand.NextString(8));
-                rds.Execute(r => r.Execute("RPUSH", key, Rand.NextString(256)));
-            }
-            rds.SetExpire(key, TimeSpan.FromSeconds(120));
+                Log = XTrace.Log
+            };
+            svr.Start();
 
-            //var arr = list.ToArray();
-            var arr = rds.Execute(r => r.Execute<String[]>("LRANGE", key, 0, -1));
-            Console.WriteLine(arr.Length);
-            //foreach (var item in arr)
-            //{
-            //    Console.WriteLine(item);
-            //}
+            var client = new ApiClient("tcp://127.0.0.1:3379")
+            {
+                Log = XTrace.Log
+            };
+            client.Open();
+
+            for (var i = 0; i < 10; i++)
+            {
+                XTrace.WriteLine("Invoke {0}", i);
+                var sw = Stopwatch.StartNew();
+                var rs = await client.InvokeAsync<String[]>("Api/All");
+                sw.Stop();
+                XTrace.WriteLine("{0}=> {1:n0}us", i, sw.Elapsed.TotalMilliseconds * 1000);
+                //XTrace.WriteLine(rs.Join(","));
+            }
+
+            Console.WriteLine();
+            Parallel.For(0, 10, async i =>
+            {
+                XTrace.WriteLine("Invoke {0}", i);
+                var sw = Stopwatch.StartNew();
+                var rs = await client.InvokeAsync<String[]>("Api/All");
+                sw.Stop();
+                XTrace.WriteLine("{0}=> {1:n0}us", i, sw.Elapsed.TotalMilliseconds * 1000);
+                //XTrace.WriteLine(rs.Join(","));
+            });
         }
     }
 }
