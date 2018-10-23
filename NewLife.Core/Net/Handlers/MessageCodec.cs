@@ -92,7 +92,7 @@ namespace NewLife.Net.Handlers
                     if (msg3.Reply)
                     {
                         //!!! 处理结果的Packet需要拷贝一份，否交给另一个线程使用会有冲突
-                        if (rs is IMessage msg4 && msg4.Payload == msg3.Payload) msg4.Payload = msg4.Payload.Clone();
+                        if (rs is IMessage msg4 && msg4.Payload != null && msg4.Payload == msg3.Payload) msg4.Payload = msg4.Payload.Clone();
                         Queue.Match(context.Owner, msg, rs, IsMatch);
                     }
                 }
@@ -223,7 +223,7 @@ namespace NewLife.Net.Handlers
 
             var p = pk.Offset;
             // 数据不够，连长度都读取不了
-            if (p + offset >= pk.Total) return 0;
+            if (offset >= pk.Total) return 0;
 
             // 读取大小
             var len = 0;
@@ -239,16 +239,16 @@ namespace NewLife.Net.Handlers
                     len = pk[offset];
                     break;
                 case 2:
-                    len = pk.Data.ToUInt16(offset);
+                    len = pk.ReadBytes(offset, 2).ToUInt16();
                     break;
                 case 4:
-                    len = (Int32)pk.Data.ToUInt32(offset);
+                    len = (Int32)pk.ReadBytes(offset, 4).ToUInt32();
                     break;
                 case -2:
-                    len = pk.Data.ToUInt16(offset, false);
+                    len = pk.ReadBytes(offset, 2).ToUInt16(0, false);
                     break;
                 case -4:
-                    len = (Int32)pk.Data.ToUInt32(offset, false);
+                    len = (Int32)pk.ReadBytes(offset, 4).ToUInt32(0, false);
                     break;
                 default:
                     throw new NotSupportedException();
