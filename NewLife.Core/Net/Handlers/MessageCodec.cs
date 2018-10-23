@@ -255,7 +255,7 @@ namespace NewLife.Net.Handlers
             }
 
             // 判断后续数据是否足够
-            if (pk.Offset + len > pk.Total) return 0;
+            if (len > pk.Total) return 0;
 
             // 数据长度加上头部长度
             len += Math.Abs(size);
