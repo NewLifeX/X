@@ -239,7 +239,8 @@ namespace NewLife.Remoting
             {
                 try
                 {
-                    client = Pool.Get();
+                    //client = Pool.Get();
+                    client = GetClient();
                     var rs = (await client.SendMessageAsync(msg)) as IMessage;
                     return new Tuple<IMessage, Object>(rs, client);
                 }
@@ -250,10 +251,10 @@ namespace NewLife.Remoting
                     client.TryDispose();
                     client = null;
                 }
-                finally
-                {
-                    if (client != null) Pool.Put(client);
-                }
+                //finally
+                //{
+                //    if (client != null) Pool.Put(client);
+                //}
             }
 
             if (ShowError) WriteLog("请求[{0}]错误！{1}", client, last?.GetTrue());
@@ -267,7 +268,8 @@ namespace NewLife.Remoting
             var count = Servers.Length;
             for (var i = 0; i < count; i++)
             {
-                var client = Pool.Get();
+                //var client = Pool.Get();
+                var client = GetClient();
                 try
                 {
                     return client.SendMessage(msg);
@@ -279,10 +281,10 @@ namespace NewLife.Remoting
                     client.TryDispose();
                     client = null;
                 }
-                finally
-                {
-                    if (client != null) Pool.Put(client);
-                }
+                //finally
+                //{
+                //    if (client != null) Pool.Put(client);
+                //}
             }
 
             throw last;
@@ -323,6 +325,14 @@ namespace NewLife.Remoting
             }
 
             protected override ISocketClient OnCreate() => Host.OnCreate();
+        }
+
+        private ISocketClient _Client;
+        protected virtual ISocketClient GetClient()
+        {
+            if (_Client != null && _Client.Active) return _Client;
+
+            return _Client = OnCreate();
         }
 
         /// <summary>Round-Robin 负载均衡</summary>
