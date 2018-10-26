@@ -59,7 +59,8 @@ namespace XCode.DataAccessLayer
         {
             base.OnDispose(disposing);
 
-            ReleaseSession();
+            //_store.Values.TryDispose();
+            _store.TryDispose();
 
             if (_metadata != null)
             {
@@ -76,7 +77,12 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>释放所有会话</summary>
-        internal void ReleaseSession() => _store.TryDispose();
+        internal void ReleaseSession()
+        {
+            //_store.Values.TryDispose();
+            _store.TryDispose();
+            _store = new ThreadLocal<IDbSession>(true);
+        }
         #endregion
 
         #region 常量
@@ -256,7 +262,7 @@ namespace XCode.DataAccessLayer
 
         #region 方法
         /// <summary>保证数据库在每一个线程都有唯一的一个实例</summary>
-        private ThreadLocal<IDbSession> _store = new ThreadLocal<IDbSession>();
+        private ThreadLocal<IDbSession> _store = new ThreadLocal<IDbSession>(true);
 
         /// <summary>创建数据库会话，数据库在每一个线程都有唯一的一个实例</summary>
         /// <returns></returns>

@@ -35,7 +35,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test9();
+                    Test7();
 #if !DEBUG
                 }
                 catch (Exception ex)
