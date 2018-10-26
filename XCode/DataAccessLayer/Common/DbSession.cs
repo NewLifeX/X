@@ -654,12 +654,6 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 架构
-        private DictionaryCache<String, DataTable> _schCache = new DictionaryCache<String, DataTable>(StringComparer.OrdinalIgnoreCase)
-        {
-            Expire = 10,
-            Period = 10 * 60,
-        };
-
         /// <summary>返回数据源的架构信息。缓存10分钟</summary>
         /// <param name="conn">连接</param>
         /// <param name="collectionName">指定要返回的架构的名称。</param>
@@ -671,13 +665,10 @@ namespace XCode.DataAccessLayer
             var key = "" + collectionName;
             if (restrictionValues != null && restrictionValues.Length > 0) key += "_" + String.Join("_", restrictionValues);
 
-            var dt = _schCache[key];
+            var db = Database as DbBase;
+            var dt = db._SchemaCache[key];
             if (dt == null)
             {
-                //if (Conn != null)
-                //    dt = GetSchemaInternal(Conn, key, collectionName, restrictionValues);
-                //else
-                //{
                 var conn2 = conn ?? Database.Pool.Get();
                 try
                 {
@@ -687,9 +678,8 @@ namespace XCode.DataAccessLayer
                 {
                     if (conn == null) Database.Pool.Put(conn2);
                 }
-                //}
 
-                _schCache[key] = dt;
+                db._SchemaCache[key] = dt;
             }
 
             return dt;

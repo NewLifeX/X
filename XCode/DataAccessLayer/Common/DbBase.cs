@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using NewLife;
+using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Web;
@@ -901,6 +902,13 @@ namespace XCode.DataAccessLayer
 
             return file;
         }
+
+        internal DictionaryCache<String, DataTable> _SchemaCache = new DictionaryCache<String, DataTable>(StringComparer.OrdinalIgnoreCase)
+        {
+            Expire = 10,
+            Period = 10 * 60,
+        };
+
         #endregion
 
         #region Sql日志输出
