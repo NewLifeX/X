@@ -328,6 +328,8 @@ namespace NewLife.Remoting
         }
 
         private ISocketClient _Client;
+        /// <summary>获取客户端</summary>
+        /// <returns></returns>
         protected virtual ISocketClient GetClient()
         {
             if (_Client != null && _Client.Active) return _Client;

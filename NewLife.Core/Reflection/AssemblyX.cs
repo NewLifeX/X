@@ -204,7 +204,7 @@ namespace NewLife.Reflection
         }
 
         /// <summary>是否系统程序集</summary>
-        public Boolean IsSystemAssembly { get { return CheckSystem(Asm); } }
+        public Boolean IsSystemAssembly => CheckSystem(Asm);
 
         private static Boolean CheckSystem(Assembly asm)
         {
@@ -222,7 +222,7 @@ namespace NewLife.Reflection
 
         #region 静态属性
         /// <summary>入口程序集</summary>
-        public static AssemblyX Entry { get { return Create(Assembly.GetEntryAssembly()); } }
+        public static AssemblyX Entry => Create(Assembly.GetEntryAssembly());
         #endregion
 
         #region 方法
@@ -296,7 +296,7 @@ namespace NewLife.Reflection
         /// <summary>查找插件</summary>
         /// <typeparam name="TPlugin"></typeparam>
         /// <returns></returns>
-        internal List<Type> FindPlugins<TPlugin>() { return FindPlugins(typeof(TPlugin)); }
+        internal List<Type> FindPlugins<TPlugin>() => FindPlugins(typeof(TPlugin));
 
         private ConcurrentDictionary<Type, List<Type>> _plugins = new ConcurrentDictionary<Type, List<Type>>();
         /// <summary>查找插件，带缓存</summary>

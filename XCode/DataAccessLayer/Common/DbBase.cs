@@ -59,7 +59,7 @@ namespace XCode.DataAccessLayer
         {
             base.OnDispose(disposing);
 
-            if (_sessions != null) ReleaseSession();
+            ReleaseSession();
 
             if (_metadata != null)
             {
@@ -76,18 +76,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>释放所有会话</summary>
-        internal void ReleaseSession()
-        {
-            var ss = _sessions;
-            if (ss != null)
-            {
-                foreach (var item in ss)
-                {
-                    item.Value.TryDispose();
-                }
-                ss.Clear();
-            }
-        }
+        internal void ReleaseSession() => _store.TryDispose();
         #endregion
 
         #region 常量
@@ -267,30 +256,22 @@ namespace XCode.DataAccessLayer
 
         #region 方法
         /// <summary>保证数据库在每一个线程都有唯一的一个实例</summary>
-        private readonly ConcurrentDictionary<Int32, IDbSession> _sessions = new ConcurrentDictionary<Int32, IDbSession>();
+        private ThreadLocal<IDbSession> _store = new ThreadLocal<IDbSession>();
 
         /// <summary>创建数据库会话，数据库在每一个线程都有唯一的一个实例</summary>
         /// <returns></returns>
         public IDbSession CreateSession()
         {
-            var ss = _sessions;
-
-            var tid = Thread.CurrentThread.ManagedThreadId;
             // 会话可能已经被销毁
-            if (ss.TryGetValue(tid, out var session) && session != null && !session.Disposed) return session;
+            var session = _store.Value;
+            if (session != null && !session.Disposed) return session;
 
             session = OnCreateSession();
 
             CheckConnStr();
             session.ConnectionString = ConnectionString;
 
-            //ss[tid] = session;
-            var sn = ss.GetOrAdd(tid, session);
-            if (sn != session)
-            {
-                session.Dispose();
-                session = sn;
-            }
+            _store.Value = session;
 
             return session;
         }
