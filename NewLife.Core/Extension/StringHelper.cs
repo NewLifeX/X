@@ -180,6 +180,46 @@ namespace System
             return dic;
         }
 
+        /// <summary>
+        /// 在.netCore需要区分该部分内容
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="nameValueSeparator"></param>
+        /// <param name="separator"></param>
+        /// <param name="trimQuotation"></param>
+        /// <returns></returns>
+        public static IDictionary<String, String> SplitAsDictionaryT(this String value, Char nameValueSeparator = '=', Char separator = ';', Boolean trimQuotation = false)
+        {
+            var dic = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+            if (value.IsNullOrWhiteSpace()) return dic;
+
+            //if (nameValueSeparator == null) nameValueSeparator = '=';
+            //if (separator == null || separator.Length < 1) separator = new String[] { ",", ";" };
+
+            var ss = value.Split(new[] { separator }, StringSplitOptions.RemoveEmptyEntries);
+            if (ss == null || ss.Length < 1) return null;
+
+            foreach (var item in ss)
+            {
+                var p = item.IndexOf(nameValueSeparator);
+                if (p <= 0) continue;
+
+                var key = item.Substring(0, p).Trim();
+                var val = item.Substring(p + 1).Trim();
+
+                // 处理单引号双引号
+                if (trimQuotation && !val.IsNullOrEmpty())
+                {
+                    if (val[0] == '\'' && val[val.Length - 1] == '\'') val = val.Trim('\'');
+                    if (val[0] == '"' && val[val.Length - 1] == '"') val = val.Trim('"');
+                }
+
+                dic[key] = val;
+            }
+
+            return dic;
+        }
+
         /// <summary>把一个列表组合成为一个字符串，默认逗号分隔</summary>
         /// <param name="value"></param>
         /// <param name="separator">组合分隔符，默认逗号</param>
