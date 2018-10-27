@@ -7,7 +7,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Caching;
-using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Remoting;
 using NewLife.Security;
@@ -35,7 +34,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test7();
+                Test7();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -325,12 +324,29 @@ namespace Test
 
         static void Test7()
         {
+            var set = XCode.Setting.Current;
+            set.Debug = true;
+
+            XCode.Cache.CacheBase.Debug = true;
+
             var dal = UserX.Meta.Session.Dal;
             dal.Db.DataCache = 3;
 
             var list = UserX.FindAll();
             var u = UserX.FindByID(1);
             var n = UserX.FindCount();
+
+            using (var tr = UserX.Meta.CreateTrans())
+            {
+                u = new UserX
+                {
+                    Name = Rand.NextString(8),
+                    DisplayName = Rand.NextString(16)
+                };
+                u.Insert();
+
+                if (Rand.Next(2) == 1) tr.Commit();
+            }
 
             var sql = "select * from user";
             var ds = dal.Select(sql);

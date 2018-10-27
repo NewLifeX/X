@@ -199,10 +199,9 @@ namespace XCode.DataAccessLayer
             try
             {
                 var tr = Transaction;
-                if (tr == null)
+                if (tr == null || tr is DisposeBase db && db.Disposed)
                 {
                     tr = new Transaction(this, level);
-                    tr.Completed += (s, e) => { Transaction = null; /*AutoClose();*/ };
 
                     Transaction = tr;
                 }
@@ -230,6 +229,10 @@ namespace XCode.DataAccessLayer
             {
                 throw OnException(ex);
             }
+            finally
+            {
+                if (tr.Count == 0) Transaction = null;
+            }
 
             return tr.Count;
         }
@@ -249,6 +252,10 @@ namespace XCode.DataAccessLayer
             catch (DbException ex)
             {
                 if (!ignoreException) throw OnException(ex);
+            }
+            finally
+            {
+                if (tr.Count == 0) Transaction = null;
             }
 
             return tr.Count;
