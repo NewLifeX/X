@@ -1,8 +1,32 @@
-新生命团队基础框架X组件，包括`日志、数据库、网络、RPC、序列化、缓存、Windows服务、多线程`等模块，支持`.Net Framework/.netstandard/Mono`。
+新生命团队基础框架X组件，包括`日志、数据库、网络、RPC、序列化、缓存、Windows服务、多线程`等模块，支持`.Net Framework/.netstandard/Mono`。  
+2002~2018，成千上万兄弟们努力的见证！  
 
-### netstandard 2.0 支持情况  
-NewLife.Core 支持！  
-XCode 支持 SqlServer、MySql、SQLite、Oracle  
+## 新生命开源项目矩阵  
+
+| 项目 | 年份 | 状态 | 框架 | 地址 | 说明 |
+| :------: | :------: | :------: | :------: | ------ | ------ |
+| NewLife.Core | 2002 | 维护中 | net40;net45;netstandard2.0 | https://github.com/NewLifeX/X | 日志、网络、RPC、序列化、缓存、Windows服务、多线程 |
+| XCode | 2005 | 维护中 | net40;net45;netstandard2.0 | https://github.com/NewLifeX/X | 数据中间件、MySQL、SQLite、SqlServer、Oracle |
+| NewLife.Cube | 2010 | 维护中 | net40;net45;netstandard2.0 | https://github.com/NewLifeX/NewLife.Cube | Web魔方，权限基础框架，集成OAuth |
+| NewLife.Net | 2005 | 维护中 | net40;net45;netstandard2.0 | https://github.com/NewLifeX/NewLife.Net | 网络库，千万级吞吐率，学习gRPC、Thrift |
+| XAgent | 2008 | 重构中 | net45;netstandard2.0 | * | 集群节点分布式计算平台，学习Hadoop |
+| Stardust | 2018 | 设计中 | net45;netstandard2.0 | * | 星尘，微服务平台，学习Dubbo |
+| XCoder | 2006 | 维护中 | net40;net45; | https://github.com/NewLifeX/XCoder | 码神工具，开发者必备 |
+| XProxy | 2005 | 维护中 | net45;netstandard2.0 | https://github.com/NewLifeX/XProxy | 产品级反向代理 |
+| XScript | 2010 | 维护中 | net40;net45; | https://github.com/NewLifeX/XScript | C#脚本引擎 |
+| XTemplate | 2008 | 维护中 | net40;net45; | https://github.com/NewLifeX/XTemplate | 模版引擎，学习TT |
+| NewLife.DNS | 2011 | 维护中 | net40;net45; | https://github.com/NewLifeX/NewLife.DNS | DNS代理服务器 |
+| NewLife.CMX | 2013 | 维护中 | net40;net45; | https://github.com/NewLifeX/NewLife.CMX | 内容管理系统 |
+| SmartOS | 2014 | 保密中 | C++11 | * | 嵌入式操作系统，面向ARM Cortex-M芯片架构 |
+| GitCandy | 2015 | 维护中 | net40;net45; | https://github.com/NewLifeX/GitCandy | Git管理系统 |
+| XLink | 2016 | 保密中 | net45;netstandard2.0 | * | 物联网云平台 |
+| NoDb | 2017 | 开发中 | net45;netstandard2.0 | * | NoSQL数据库，百万级读写性能，学习Redis+MongoDB |
+| NewLife.Redis | 2017 | 维护中 | net45;netstandard2.0 | https://github.com/NewLifeX/NewLife.Redis | Redis客户端，微秒级延迟，百亿级项目验证 |
+| NewLife.MySql | 2018 | 开发中 | net45;netstandard2.0 | * | MySql驱动 |
+| NewLife.Cache | 2018 | 维护中 | net45;netstandard2.0 | https://github.com/NewLifeX/NewLife.Cache | 自定义缓存服务器 |
+| NewLife.RocketMQ | 2018 | 维护中 | net45;netstandard2.0 | https://github.com/NewLifeX/NewLife.RocketMQ | 支持Apache RocketMQ和阿里云消息队列 |
+| NewLife.Kafka | 2019 | 设计中 | net45;netstandard2.0 | * | Kafka组件 |
+| ConfigServer | 2019 | 设计中 | net45;netstandard2.0 | * | 分布式配置中心，学习Apollo |
 
 ## 组件各组成部分
 ### 核心库 NewLife.Core
@@ -46,6 +70,7 @@ XCode 支持 SqlServer、MySql、SQLite、Oracle
 8. [x] 开源[NewLife.Redis](https://github.com/NewLifeX/NewLife.Redis)。实现更多的Redis命令，列表、哈希字典等。比较简单，可以尽快搞定  
 9. [ ] 开源NewLife.Kafka。封装Apache官方驱动，实现生产消费接口IProducerConsumer。比较简单，尽快  
 10. [x] 升级[NewLife.Cache](https://github.com/NewLifeX/NewLife.Cache)。CacheServer/CacheClient由Json协议改为二进制协议，以获取极致性能。不太难  
+11. [x] 开源[NewLife.RocketMQ](https://github.com/NewLifeX/NewLife.RocketMQ)。实现发布消息、消费消息、负载均衡，支持Apache RocketMQ和阿里云消息队列    
 
 ## 新生命团队netcore服务器免费开放计划
 为了便于大家学习测试netcore，我们计划提供1~3台公网Linux服务器（CentOS/Ubuntu），1vCPU+1G内存+100Mbps，为期1年，每周重置系统修改一次密码。  
