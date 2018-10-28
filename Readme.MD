@@ -3,7 +3,7 @@
 
 ## 新生命开源项目矩阵  
 
-| 项目 | 年份 | 状态 | NetCore | 说明 |
+| 项目 | 年份 | 状态 | .NET Core | 说明 |
 | :------: | :------: | :------: | :------: | ------ |
 | [NewLife.Core](https://github.com/NewLifeX/X) | 2002 | 维护中 | √ | 日志、网络、RPC、序列化、缓存、Windows服务、多线程 |
 | [XCode](https://github.com/NewLifeX/X) | 2005 | 维护中 | √ | 数据中间件、MySQL、SQLite、SqlServer、Oracle |
