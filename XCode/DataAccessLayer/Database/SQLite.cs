@@ -5,6 +5,7 @@ using System.Data.Common;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using NewLife;
 using NewLife.Collections;
@@ -54,6 +55,11 @@ namespace XCode.DataAccessLayer
 #endif
                                 if (_Factory == null) _Factory = GetProviderFactory("System.Data.SQLite.dll", "System.Data.SQLite.SQLiteFactory");
                             }
+
+#if !__CORE__
+                            // 设置线程安全模式
+                            if (_Factory != null) SetThreadSafe();
+#endif
                         }
                     }
                 }
@@ -171,6 +177,27 @@ namespace XCode.DataAccessLayer
         /// <summary>创建元数据对象</summary>
         /// <returns></returns>
         protected override IMetaData OnCreateMetaData() => new SQLiteMetaData();
+
+#if !__CORE__
+        private void SetThreadSafe()
+        {
+            var asm = _Factory?.GetType().Assembly;
+            if (asm == null) return;
+
+            var type = asm.GetTypes().FirstOrDefault(e => e.Name == "UnsafeNativeMethods");
+            var mi = type?.GetMethod("sqlite3_config_none", BindingFlags.Static | BindingFlags.NonPublic);
+            if (mi == null) return;
+
+            /*
+             * SQLiteConfigOpsEnum
+             * 	SQLITE_CONFIG_SINGLETHREAD = 1,
+             * 	SQLITE_CONFIG_MULTITHREAD = 2,
+             * 	SQLITE_CONFIG_SERIALIZED = 3,
+             */
+
+            mi.Invoke(this, new Object[] { 2 });
+        }
+#endif
         #endregion
 
         #region 分页

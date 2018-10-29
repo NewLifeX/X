@@ -675,6 +675,8 @@ namespace XCode.DataAccessLayer
         /// <param name="sql"></param>
         public void WriteSQL(String sql)
         {
+            if (sql.IsNullOrEmpty()) return;
+
 #if !__CORE__
             // 如果页面设定有XCode_SQLList列表，则往列表写入SQL语句
             var context = HttpContext.Current;
@@ -698,40 +700,44 @@ namespace XCode.DataAccessLayer
 
         private String GetSql(DbCommand cmd)
         {
-            var sql = cmd.CommandText;
-            var ps = cmd.Parameters;
-            if (ps != null && ps.Count > 0)
+            try
             {
-                var sb = Pool.StringBuilder.Get();
-                sb.Append(sql);
-                sb.Append(" [");
-                for (var i = 0; i < ps.Count; i++)
+                var sql = cmd.CommandText;
+                var ps = cmd.Parameters;
+                if (ps != null && ps.Count > 0)
                 {
-                    if (i > 0) sb.Append(", ");
-                    var v = ps[i].Value;
-                    var sv = "";
-                    if (v is Byte[])
+                    var sb = Pool.StringBuilder.Get();
+                    sb.Append(sql);
+                    sb.Append(" [");
+                    for (var i = 0; i < ps.Count; i++)
                     {
-                        var bv = v as Byte[];
-                        if (bv.Length > 8)
-                            sv = String.Format("[{0}]0x{1}...", bv.Length, BitConverter.ToString(bv, 0, 8));
+                        if (i > 0) sb.Append(", ");
+                        var v = ps[i].Value;
+                        var sv = "";
+                        if (v is Byte[])
+                        {
+                            var bv = v as Byte[];
+                            if (bv.Length > 8)
+                                sv = String.Format("[{0}]0x{1}...", bv.Length, BitConverter.ToString(bv, 0, 8));
+                            else
+                                sv = String.Format("[{0}]0x{1}", bv.Length, BitConverter.ToString(bv));
+                        }
+                        else if (v is String str && str.Length > 64)
+                            sv = String.Format("[{0}]{1}...", str.Length, str.Substring(0, 64));
                         else
-                            sv = String.Format("[{0}]0x{1}", bv.Length, BitConverter.ToString(bv));
+                            sv = "{0}".F(v);
+                        sb.AppendFormat("{0}={1}", ps[i].ParameterName, sv);
                     }
-                    else if (v is String str && str.Length > 64)
-                        sv = String.Format("[{0}]{1}...", str.Length, str.Substring(0, 64));
-                    else
-                        sv = "{0}".F(v);
-                    sb.AppendFormat("{0}={1}", ps[i].ParameterName, sv);
+                    sb.Append("]");
+                    sql = sb.Put(true);
                 }
-                sb.Append("]");
-                sql = sb.Put(true);
+
+                // 阶段超长字符串
+                if (sql.Length > 1024) sql = sql.Substring(0, 512) + "..." + sql.Substring(sql.Length - 512);
+
+                return sql;
             }
-
-            // 阶段超长字符串
-            if (sql.Length > 1024) sql = sql.Substring(0, 512) + "..." + sql.Substring(sql.Length - 512);
-
-            return sql;
+            catch { return null; }
         }
 
         public String WriteSQL(DbCommand cmd)
@@ -748,19 +754,12 @@ namespace XCode.DataAccessLayer
 
             if (!flag) return null;
 
-            //var sql = cmd.CommandText;
-            //if (cmd.CommandType != CommandType.Text) sql = String.Format("[{0}]{1}", cmd.CommandType, sql);
-
             var sql = GetSql(cmd);
 
             WriteSQL(sql);
 
             return sql;
         }
-
-        ///// <summary>输出日志</summary>
-        ///// <param name="msg"></param>
-        //public static void WriteLog(String msg) { DAL.WriteLog(msg); }
 
         /// <summary>输出日志</summary>
         /// <param name="format"></param>
@@ -797,6 +796,7 @@ namespace XCode.DataAccessLayer
             if (_swSql.ElapsedMilliseconds < (Database as DbBase).TraceSQLTime) return;
 
             if (sql.IsNullOrEmpty()) sql = GetSql(cmd);
+            if (sql.IsNullOrEmpty()) return;
 
             // 同一个SQL只需要报警一次
             if (_trace_sqls.Contains(sql)) return;

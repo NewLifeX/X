@@ -10,6 +10,7 @@ using NewLife.Caching;
 using NewLife.Log;
 using NewLife.Remoting;
 using NewLife.Security;
+using XCode;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 using XCode.Service;
@@ -34,7 +35,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test7();
+                Test7();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -325,16 +326,18 @@ namespace Test
         static void Test7()
         {
             var set = XCode.Setting.Current;
-            set.Debug = true;
+            //set.Debug = true;
+            set.ShowSQL = false;
 
-            XCode.Cache.CacheBase.Debug = true;
+            //XCode.Cache.CacheBase.Debug = true;
 
             var dal = UserX.Meta.Session.Dal;
             dal.Db.DataCache = 3;
 
-            var list = UserX.FindAll();
-            var u = UserX.FindByID(1);
+            var list = UserX.FindAll(null, null, null, 1, 20);
+            var u = UserX.FindByKey(1);
             var n = UserX.FindCount();
+            Console.WriteLine("总数据：{0:n0}", n);
 
             //using (var tr = UserX.Meta.CreateTrans())
             //{
@@ -347,8 +350,22 @@ namespace Test
 
             //    if (Rand.Next(2) == 1) tr.Commit();
             //}
+            Task.Run(() =>
+            {
+                var us = new List<UserX>();
+                for (var i = 0; i < 1_000_000; i++)
+                {
+                    var entity = new UserX
+                    {
+                        Name = Rand.NextString(8),
+                        DisplayName = Rand.NextString(16)
+                    };
+                    us.Add(entity);
+                }
+                us.Insert(true);
+            });
 
-            var sql = "select * from user";
+            var sql = "select * from user limit 20";
             var ds = dal.Select(sql);
             ds = dal.Select(sql, CommandType.Text);
             ds = dal.Select(sql, CommandType.Text, new Dictionary<String, Object>());
@@ -360,11 +377,12 @@ namespace Test
             dt = dal.Query(sb, 4, 6);
             n = dal.SelectCount(sb);
 
-            for (var i = 0; i < 10; i++)
+            for (var i = 0; i < 20; i++)
             {
-                Console.WriteLine(i);
+                //Console.WriteLine(i);
 
-                list = UserX.FindAll();
+                var sw = Stopwatch.StartNew();
+                list = UserX.FindAll(null, null, null, 1, 20);
                 u = UserX.FindByKey(1);
                 n = UserX.FindCount();
 
@@ -377,6 +395,9 @@ namespace Test
                 ds = dal.Select(sb, 3, 5);
                 dt = dal.Query(sb, 4, 6);
                 n = dal.SelectCount(sb);
+
+                sw.Stop();
+                XTrace.WriteLine("{0} {1:n0}us", i, sw.Elapsed.TotalMilliseconds * 1000);
 
                 Thread.Sleep(1000);
             }
