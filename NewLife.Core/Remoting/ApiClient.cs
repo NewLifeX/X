@@ -332,9 +332,15 @@ namespace NewLife.Remoting
         /// <returns></returns>
         protected virtual ISocketClient GetClient()
         {
-            if (_Client != null && _Client.Active) return _Client;
+            var tc = _Client;
+            if (tc != null && tc.Active && !tc.Disposed) return tc;
+            lock (this)
+            {
+                tc = _Client;
+                if (tc != null && tc.Active && !tc.Disposed) return tc;
 
-            return _Client = OnCreate();
+                return _Client = OnCreate();
+            }
         }
 
         /// <summary>Round-Robin 负载均衡</summary>
