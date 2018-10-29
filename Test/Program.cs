@@ -34,7 +34,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test9();
+                    Test7();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -336,17 +336,17 @@ namespace Test
             var u = UserX.FindByID(1);
             var n = UserX.FindCount();
 
-            using (var tr = UserX.Meta.CreateTrans())
-            {
-                u = new UserX
-                {
-                    Name = Rand.NextString(8),
-                    DisplayName = Rand.NextString(16)
-                };
-                u.Insert();
+            //using (var tr = UserX.Meta.CreateTrans())
+            //{
+            //    u = new UserX
+            //    {
+            //        Name = Rand.NextString(8),
+            //        DisplayName = Rand.NextString(16)
+            //    };
+            //    u.Insert();
 
-                if (Rand.Next(2) == 1) tr.Commit();
-            }
+            //    if (Rand.Next(2) == 1) tr.Commit();
+            //}
 
             var sql = "select * from user";
             var ds = dal.Select(sql);
