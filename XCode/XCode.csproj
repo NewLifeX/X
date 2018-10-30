@@ -240,6 +240,9 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>
+    <None Include="ModelSchema.xsd">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="tools\install.ps1" />
     <None Include="Membership\生成实体类.log">
       <AutoGen>True</AutoGen>
