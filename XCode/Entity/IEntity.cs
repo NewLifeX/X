@@ -6,11 +6,11 @@ using NewLife.Reflection;
 namespace XCode
 {
     /// <summary>数据实体接口</summary>
-    public interface IEntity : IIndexAccessor/*, IEnumerable<IEntityEntry>*///, IBinaryAccessor
+    public interface IEntity : IIndexAccessor
     {
         #region 属性
         /// <summary>脏属性。存储哪些属性的数据被修改过了。</summary>
-        IDictionary<String, Boolean> Dirtys { get; }
+        DirtyCollection Dirtys { get; }
 
         /// <summary>扩展属性</summary>
         EntityExtend Extends { get; }

@@ -402,9 +402,9 @@ namespace XCode
                     foreach (var elm in item.Dirtys)
                     {
                         // 创建时间等字段不参与Update
-                        if (elm.Key.StartsWithIgnoreCase("Create")) continue;
+                        if (elm.StartsWithIgnoreCase("Create")) continue;
 
-                        if (!hs.Contains(elm.Key)) hs.Add(elm.Key);
+                        if (!hs.Contains(elm)) hs.Add(elm);
                     }
                 }
                 updateColumns = hs;
@@ -427,7 +427,7 @@ namespace XCode
         {
             var fact = entity.GetType().AsFactory();
             if (columns == null) columns = fact.Fields.Select(e => e.Field).ToArray();
-            if (updateColumns == null) updateColumns = entity.Dirtys.Keys.Where(e => !e.StartsWithIgnoreCase("Create")).ToArray();
+            if (updateColumns == null) updateColumns = entity.Dirtys.Where(e => !e.StartsWithIgnoreCase("Create")).ToArray();
             if (addColumns == null) addColumns = fact.AdditionalFields;
 
             fact.Session.InitData();

@@ -114,7 +114,7 @@ namespace XCode
         /// <summary>克隆实体。创建当前对象的克隆对象，仅拷贝基本字段</summary>
         /// <param name="setDirty">是否设置脏数据</param>
         /// <returns></returns>
-        IEntity IEntity.CloneEntity(Boolean setDirty) { return CloneEntityInternal(setDirty); }
+        IEntity IEntity.CloneEntity(Boolean setDirty) => CloneEntityInternal(setDirty);
 
         /// <summary>克隆实体</summary>
         /// <param name="setDirty"></param>
@@ -166,7 +166,7 @@ namespace XCode
         private DirtyCollection _Dirtys;
         /// <summary>脏属性。存储哪些属性的数据被修改过了。</summary>
         [XmlIgnore, ScriptIgnore]
-        internal protected IDictionary<String, Boolean> Dirtys
+        protected DirtyCollection Dirtys
         {
             get
             {
@@ -176,27 +176,7 @@ namespace XCode
         }
 
         /// <summary>脏属性。存储哪些属性的数据被修改过了。</summary>
-        IDictionary<String, Boolean> IEntity.Dirtys => Dirtys;
-
-        /// <summary>设置所有数据的脏属性</summary>
-        /// <param name="isDirty">改变脏属性的属性个数</param>
-        /// <returns></returns>
-        protected virtual Int32 SetDirty(Boolean isDirty)
-        {
-            var ds = _Dirtys;
-            if (ds == null || !ds.Any()) return 0;
-
-            var count = 0;
-            foreach (var item in ds.Keys)
-            {
-                if (ds[item] != isDirty)
-                {
-                    ds[item] = isDirty;
-                    count++;
-                }
-            }
-            return count;
-        }
+        DirtyCollection IEntity.Dirtys => Dirtys;
         #endregion
 
         #region 扩展属性

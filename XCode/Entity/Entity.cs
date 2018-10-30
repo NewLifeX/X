@@ -1403,39 +1403,6 @@ namespace XCode
         #endregion
 
         #region 脏数据
-        /// <summary>设置所有数据的脏属性</summary>
-        /// <param name="isDirty">改变脏属性的属性个数</param>
-        /// <returns></returns>
-        protected override Int32 SetDirty(Boolean isDirty)
-        {
-            var ds = Dirtys;
-            if (ds == null || ds.Count < 1) return 0;
-
-            var count = 0;
-            foreach (var item in Meta.FieldNames)
-            {
-                var b = false;
-                if (isDirty)
-                {
-                    if (!ds.TryGetValue(item, out b) || !b)
-                    {
-                        ds[item] = true;
-                        count++;
-                    }
-                }
-                else
-                {
-                    if (ds == null || ds.Count < 1) break;
-                    if (ds.TryGetValue(item, out b) && b)
-                    {
-                        ds[item] = false;
-                        count++;
-                    }
-                }
-            }
-            return count;
-        }
-
         /// <summary>是否有脏数据。决定是否可以Update</summary>
         protected Boolean HasDirty => Dirtys.Any();
         #endregion

@@ -176,7 +176,7 @@ namespace XCode
             // 双锁判断脏数据
             lock (entity)
             {
-                if (ds.Count == 0) return 0;
+                if (!ds.Any()) return 0;
 
                 sql = SQL(entity, DataObjectMethodType.Update, ref dps);
                 if (sql.IsNullOrEmpty()) return 0;

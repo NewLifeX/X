@@ -97,7 +97,7 @@ namespace XCode.Membership
                     if (!pass.IsNullOrEmpty())
                         Password = pass.MD5();
                     else
-                        Dirtys.Remove(__.Password);
+                        Dirtys[__.Password] = false;
                 }
             }
 
