@@ -34,6 +34,9 @@ namespace XCode
 
         private void Add(String item)
         {
+            // 抢位置
+            var n = Interlocked.Increment(ref _length);
+
             var ms = _items;
             while (ms.Length <= _length)
             {
@@ -45,8 +48,6 @@ namespace XCode
                 ms = _items;
             }
 
-            // 抢位置
-            var n = Interlocked.Increment(ref _length);
             _items[n] = item;
 
             Interlocked.Increment(ref _size);
@@ -56,6 +57,7 @@ namespace XCode
         {
             var len = _length;
             var ms = _items;
+            if (len > ms.Length) len = ms.Length;
             for (var i = 0; i < len; i++)
             {
                 if (ms[i] == item)
@@ -71,6 +73,7 @@ namespace XCode
         {
             var len = _length;
             var ms = _items;
+            if (len > ms.Length) len = ms.Length;
             for (var i = 0; i < len; i++)
             {
                 if (ms[i] == item) return true;
@@ -84,6 +87,7 @@ namespace XCode
         {
             _length = 0;
             _size = 0;
+            Array.Clear(_items, 0, _items.Length);
         }
 
         /// <summary>个数</summary>
@@ -95,6 +99,7 @@ namespace XCode
         {
             var len = _length;
             var ms = _items;
+            if (len > ms.Length) len = ms.Length;
             for (var i = 0; i < len; i++)
             {
                 if (ms[i] != null) yield return ms[i];
