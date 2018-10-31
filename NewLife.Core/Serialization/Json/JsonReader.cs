@@ -315,6 +315,17 @@ namespace NewLife.Serialization
                 return dt;
             }
 
+            //用于解决奇葩json中时间字段使用了utc时间戳，还是用双引号包裹起来的情况。
+            if (value is String)
+            {
+                if (long.TryParse(value + "", out var result) && result > 0)
+                {
+                    var sdt = result.ToDateTime();
+                    if (UseUTCDateTime) sdt = sdt.ToUniversalTime();
+                    return sdt;
+                }
+            }
+
             var str = (String)value;
 
             var utc = false;

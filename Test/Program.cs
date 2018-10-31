@@ -35,7 +35,9 @@ namespace Test
                 try
                 {
 #endif
-                Test7();
+                //Test7();
+
+                Test10();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -468,6 +470,21 @@ namespace Test
                 XTrace.WriteLine("{0}=> {1:n0}us", i, sw.Elapsed.TotalMilliseconds * 1000);
                 //XTrace.WriteLine(rs.Join(","));
             });
+        }
+
+        static void Test10()
+        {
+            var dt1 = new DateTime(1970, 1, 1);
+            //var x = dt1.ToFileTimeUtc();
+
+            var yy=long.Parse("-1540795502468");
+
+            //var yy = "1540795502468".ToInt();
+            Console.WriteLine(yy);
+
+            var dt = 1540795502468.ToDateTime();
+            var y = dt.ToUniversalTime();
+            Console.WriteLine(dt1.ToLong());
         }
     }
 }
