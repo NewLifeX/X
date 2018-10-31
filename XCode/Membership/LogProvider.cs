@@ -54,7 +54,7 @@ namespace XCode.Membership
             var sb = Pool.StringBuilder.Get();
             foreach (var fi in fact.Fields)
             {
-                if (action == "修改" && !fi.PrimaryKey && !entity.Dirtys[fi.Name]) continue;
+                if (action == "修改" && !fi.PrimaryKey && !entity.IsDirty(fi.Name)) continue;
                 var v = entity[fi.Name];
                 // 空字符串不写日志
                 if (action == "添加" || action == "删除")

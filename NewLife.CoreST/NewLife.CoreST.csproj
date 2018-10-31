@@ -115,10 +115,8 @@
     <Compile Include="..\NewLife.Core\Model\IFactory.cs" Link="Model\IFactory.cs" />
     <Compile Include="..\NewLife.Core\Model\IHandler.cs" Link="Model\IHandler.cs" />
     <Compile Include="..\NewLife.Core\Model\IHandlerContext.cs" Link="Model\IHandlerContext.cs" />
-    <Compile Include="..\NewLife.Core\Model\IHistory.cs" Link="Model\IHistory.cs" />
     <Compile Include="..\NewLife.Core\Model\IManageUser.cs" Link="Model\IManageUser.cs" />
     <Compile Include="..\NewLife.Core\Model\IObjectContainer.cs" Link="Model\IObjectContainer.cs" />
-    <Compile Include="..\NewLife.Core\Model\IOnline.cs" Link="Model\IOnline.cs" />
     <Compile Include="..\NewLife.Core\Model\IPipeline.cs" Link="Model\IPipeline.cs" />
     <Compile Include="..\NewLife.Core\Model\IPlugin.cs" Link="Model\IPlugin.cs" />
     <Compile Include="..\NewLife.Core\Model\IServer.cs" Link="Model\IServer.cs" />

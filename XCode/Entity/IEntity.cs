@@ -6,11 +6,14 @@ using NewLife.Reflection;
 namespace XCode
 {
     /// <summary>数据实体接口</summary>
-    public interface IEntity : IIndexAccessor/*, IEnumerable<IEntityEntry>*///, IBinaryAccessor
+    public interface IEntity : IIndexAccessor
     {
         #region 属性
         /// <summary>脏属性。存储哪些属性的数据被修改过了。</summary>
-        IDictionary<String, Boolean> Dirtys { get; }
+        DirtyCollection Dirtys { get; }
+
+        /// <summary>是否有脏数据</summary>
+        Boolean HasDirty { get; }
 
         /// <summary>扩展属性</summary>
         EntityExtend Extends { get; }
@@ -25,6 +28,11 @@ namespace XCode
 
         /// <summary>设置主键为空。Save将调用Insert</summary>
         void SetNullKey();
+
+        /// <summary>指定字段是否有脏数据。被修改为不同值</summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        Boolean IsDirty(String name);
         #endregion
 
         #region 操作

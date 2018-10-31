@@ -402,9 +402,9 @@ namespace XCode
                     foreach (var elm in item.Dirtys)
                     {
                         // 创建时间等字段不参与Update
-                        if (elm.Key.StartsWithIgnoreCase("Create")) continue;
+                        if (elm.StartsWithIgnoreCase("Create")) continue;
 
-                        if (!hs.Contains(elm.Key)) hs.Add(elm.Key);
+                        if (!hs.Contains(elm)) hs.Add(elm);
                     }
                 }
                 updateColumns = hs;
@@ -427,13 +427,65 @@ namespace XCode
         {
             var fact = entity.GetType().AsFactory();
             if (columns == null) columns = fact.Fields.Select(e => e.Field).ToArray();
-            if (updateColumns == null) updateColumns = entity.Dirtys.Keys.Where(e => !e.StartsWithIgnoreCase("Create")).ToArray();
+            if (updateColumns == null) updateColumns = entity.Dirtys.Where(e => !e.StartsWithIgnoreCase("Create")).Distinct().ToArray();
             if (addColumns == null) addColumns = fact.AdditionalFields;
 
             fact.Session.InitData();
             fact.Session.Dal.CheckDatabase();
 
             return fact.Session.Dal.Session.InsertOrUpdate(columns, updateColumns, addColumns, new[] { entity as IIndexAccessor });
+        }
+        #endregion
+
+        #region 转 DataTable/DataSet
+        /// <summary>转为DataTable</summary>
+        /// <param name="list">实体列表</param>
+        /// <returns></returns>
+        public static DataTable ToDataTable<T>(this IEnumerable<T> list) where T : IEntity
+        {
+            var entity = list.FirstOrDefault();
+            if (entity == null) return null;
+
+            var fact = entity.GetType().AsFactory();
+
+            var dt = new DataTable();
+            foreach (var fi in fact.Fields)
+            {
+                var dc = new DataColumn
+                {
+                    ColumnName = fi.Name,
+                    DataType = fi.Type,
+                    Caption = fi.Description,
+                    AutoIncrement = fi.IsIdentity
+                };
+
+                // 关闭这两项，让DataTable宽松一点
+                //dc.Unique = item.PrimaryKey;
+                //dc.AllowDBNull = item.IsNullable;
+
+                dt.Columns.Add(dc);
+            }
+
+            foreach (var item in list)
+            {
+                var dr = dt.NewRow();
+                foreach (var fi in fact.Fields)
+                {
+                    dr[fi.Name] = item[fi.Name];
+                }
+                dt.Rows.Add(dr);
+            }
+
+            return dt;
+        }
+
+        /// <summary>转为DataSet</summary>
+        /// <returns></returns>
+        public static DataSet ToDataSet<T>(this IEnumerable<T> list) where T : IEntity
+        {
+            var ds = new DataSet();
+            ds.Tables.Add(ToDataTable(list));
+            return ds;
         }
         #endregion
     }
