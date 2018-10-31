@@ -33,6 +33,13 @@
     </xs:annotation>
     <xs:sequence>
       <xs:element name="Columns" type="ColumnsType"></xs:element>
+        <xs:element name="Indexes" type="IndexesType" minOccurs="0">
+            <xs:annotation>
+                <xs:documentation xml:lang="zh-cn">
+                    索引列表，并根据列名生成拓展查询方法
+                </xs:documentation>
+            </xs:annotation>
+        </xs:element>
     </xs:sequence>
     <xs:attribute name="Name" type="xs:string" use="required"></xs:attribute>
     <xs:attribute name="TableName" type="xs:string">
@@ -51,6 +58,7 @@
     </xs:attribute>
     <xs:attribute name="DbType" type="xs:string"></xs:attribute>
     <xs:attribute name="RenderGenEntity" type="xs:string"></xs:attribute>
+    <xs:attribute name="BaseType" type="xs:string"></xs:attribute>
   </xs:complexType>
 
   <xs:complexType name="ColumnsType">
@@ -76,4 +84,33 @@
     <xs:attribute name="Master" type="xs:string"></xs:attribute>
     <xs:attribute name="Nullable" type="xs:string"></xs:attribute>
   </xs:complexType>
+
+  <xs:complexType name="IndexesType">
+    <xs:sequence>
+      <xs:element name="Index" type="IndexType" maxOccurs="unbounded"></xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="IndexType">
+    <xs:attribute name="Columns" use="required">
+        <xs:annotation>
+            <xs:documentation xml:lang="zh-cn">
+                列名，英文逗号字符相隔，比如：ID,Name
+            </xs:documentation>
+        </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="Unique" type="xs:boolean">
+        <xs:annotation>
+            <xs:documentation xml:lang="zh-cn">
+                是否唯一
+            </xs:documentation>
+        </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+
+  <!--<xs:simpleType name="Boolean">
+    <xs:restriction base="xs:string">
+      <xs:enumeration ></xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>-->
 </xs:schema>
