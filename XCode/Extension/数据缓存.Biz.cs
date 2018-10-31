@@ -28,7 +28,7 @@ namespace XCode.Extension
             if (Name.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Name), "名称不能为空！");
 
             // 在新插入数据或者修改了指定字段时进行修正
-            if (isNew && !Dirtys[nameof(CreateTime)]) CreateTime = DateTime.Now;
+            if (isNew && !IsDirty(nameof(CreateTime))) CreateTime = DateTime.Now;
         }
         #endregion
 

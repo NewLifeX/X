@@ -261,7 +261,7 @@ namespace XCode.Transform
             var st = Stat;
             if (isNew)
                 target.Insert();
-            else if (target.Dirtys.Any())
+            else if (target.HasDirty)
             {
                 target.Update();
                 st.Changes++;

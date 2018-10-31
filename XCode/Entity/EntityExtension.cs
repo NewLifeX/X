@@ -427,7 +427,7 @@ namespace XCode
         {
             var fact = entity.GetType().AsFactory();
             if (columns == null) columns = fact.Fields.Select(e => e.Field).ToArray();
-            if (updateColumns == null) updateColumns = entity.Dirtys.Where(e => !e.StartsWithIgnoreCase("Create")).ToArray();
+            if (updateColumns == null) updateColumns = entity.Dirtys.Where(e => !e.StartsWithIgnoreCase("Create")).Distinct().ToArray();
             if (addColumns == null) addColumns = fact.AdditionalFields;
 
             fact.Session.InitData();

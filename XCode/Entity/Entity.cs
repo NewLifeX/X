@@ -1403,8 +1403,6 @@ namespace XCode
         #endregion
 
         #region 脏数据
-        /// <summary>是否有脏数据。决定是否可以Update</summary>
-        protected Boolean HasDirty => Dirtys.Any();
         #endregion
 
         #region 高并发

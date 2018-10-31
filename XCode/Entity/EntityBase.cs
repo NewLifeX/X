@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using NewLife.Reflection;
@@ -177,6 +175,22 @@ namespace XCode
 
         /// <summary>脏属性。存储哪些属性的数据被修改过了。</summary>
         DirtyCollection IEntity.Dirtys => Dirtys;
+
+        /// <summary>是否有脏数据。被修改为不同值</summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        protected Boolean IsDirty(String name) => _Dirtys != null && _Dirtys[name];
+
+        /// <summary>是否有脏数据。被修改为不同值</summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        Boolean IEntity.IsDirty(String name) => _Dirtys != null && _Dirtys[name];
+
+        /// <summary>是否有脏数据。决定是否可以Update</summary>
+        protected Boolean HasDirty => _Dirtys != null && _Dirtys.Count > 0;
+
+        /// <summary>是否有脏数据。决定是否可以Update</summary>
+        Boolean IEntity.HasDirty => _Dirtys != null && _Dirtys.Count > 0;
         #endregion
 
         #region 扩展属性

@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Web;
-using System.Web.Script.Serialization;
-using System.Xml.Serialization;
-using NewLife.Collections;
 using NewLife.Model;
 using NewLife.Threading;
 using NewLife.Web;
@@ -79,7 +75,7 @@ namespace XCode.Membership
         /// <param name="isNew"></param>
         protected override Boolean OnValid(IEntity entity, Boolean isNew)
         {
-            if (!isNew && !entity.Dirtys.Any()) return true;
+            if (!isNew && !entity.HasDirty) return true;
 
             var fs = GetFields(entity.GetType());
 
@@ -149,7 +145,7 @@ namespace XCode.Membership
         /// <param name="isNew"></param>
         protected override Boolean OnValid(IEntity entity, Boolean isNew)
         {
-            if (!isNew && !entity.Dirtys.Any()) return true;
+            if (!isNew && !entity.HasDirty) return true;
 
             var fs = GetFields(entity.GetType());
 
@@ -200,7 +196,7 @@ namespace XCode.Membership
         /// <param name="isNew"></param>
         protected override Boolean OnValid(IEntity entity, Boolean isNew)
         {
-            if (!isNew && !entity.Dirtys.Any()) return true;
+            if (!isNew && !entity.HasDirty) return true;
 
             var ip = WebHelper.UserHost;
             if (!ip.IsNullOrEmpty())

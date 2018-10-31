@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Web;
-using System.Web.Script.Serialization;
-using System.Xml.Serialization;
 using NewLife.Model;
 using NewLife.Web;
 using XCode.Cache;
@@ -41,7 +38,7 @@ namespace XCode.Membership
             if (isNew)
             {
                 // 自动设置当前登录用户
-                if (!Dirtys[__.UserName])
+                if (!IsDirty(__.UserName))
                 {
 #if !__CORE__
                     var user = HttpContext.Current?.User?.Identity as IManageUser;
@@ -59,22 +56,16 @@ namespace XCode.Membership
             }
 
             // 时间
-            if (isNew && CreateTime.Year < 2000 && !Dirtys[__.CreateTime]) CreateTime = DateTime.Now;
+            if (isNew && CreateTime.Year < 2000 && !IsDirty(__.CreateTime)) CreateTime = DateTime.Now;
         }
 
         /// <summary></summary>
         /// <returns></returns>
-        protected override Int32 OnUpdate()
-        {
-            throw new Exception("禁止修改日志！");
-        }
+        protected override Int32 OnUpdate() => throw new Exception("禁止修改日志！");
 
         /// <summary></summary>
         /// <returns></returns>
-        protected override Int32 OnDelete()
-        {
-            throw new Exception("禁止删除日志！");
-        }
+        protected override Int32 OnDelete() => throw new Exception("禁止删除日志！");
         #endregion
 
         #region 扩展属性
