@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
@@ -219,6 +220,8 @@ namespace XCode
                 return _Addition;
             }
         }
+
+        internal IDictionary<String, Object[]> GetAddition() => _Addition?.Get();
         #endregion
 
         #region 主键为空

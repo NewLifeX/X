@@ -464,7 +464,7 @@ namespace XCode
             if (def.Empty) return null;
 
             // 处理累加字段
-            var dfs = (entity as EntityBase).Addition.Get();
+            var dfs = (entity as EntityBase).GetAddition();
 
             var op = EntityFactory.CreateOperate(entity.GetType());
             var up = op.Session.Dal.Db.UseParameter;
@@ -498,7 +498,7 @@ namespace XCode
             }
 
             // 重置累加数据
-            (entity as EntityBase).Addition.Reset(dfs);
+            if (dfs != null && dfs.Count > 0) (entity as EntityBase).Addition.Reset(dfs);
 
             var str = sb.Put(true);
             if (str.IsNullOrEmpty()) return null;

@@ -112,7 +112,7 @@ namespace XCode
         private static void OnLoadData(IList<TEntity> list)
         {
             // 设置默认累加字段
-            EntityAddition.SetField(list.Cast<IEntity>().ToList());
+            EntityAddition.SetField(list.Cast<IEntity>());
             foreach (var entity in list)
             {
                 entity.OnLoad();

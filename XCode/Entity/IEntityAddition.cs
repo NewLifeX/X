@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace XCode
 {
@@ -87,13 +88,14 @@ namespace XCode
         #endregion
 
         #region 静态
-        public static IList<IEntity> SetField(IList<IEntity> list)
+        public static void SetField(IEnumerable<IEntity> list)
         {
-            if (list == null || list.Count < 1) return list;
+            if (list == null) return;
 
-            var entityType = list[0].GetType();
-            var factory = EntityFactory.CreateOperate(entityType);
-            var fs = factory.AdditionalFields;
+            var first = list.FirstOrDefault();
+            if (first == null) return;
+
+            var fs = first.GetType().AsFactory().AdditionalFields;
             if (fs.Count > 0)
             {
                 foreach (EntityBase entity in list)
@@ -101,16 +103,13 @@ namespace XCode
                     if (entity != null) entity.Addition.Set(fs);
                 }
             }
-
-            return list;
         }
 
         public static void SetField(EntityBase entity)
         {
             if (entity == null) return;
 
-            var factory = EntityFactory.CreateOperate(entity.GetType());
-            var fs = factory.AdditionalFields;
+            var fs = entity.GetType().AsFactory().AdditionalFields;
             if (fs.Count > 0) entity.Addition.Set(fs);
         }
         #endregion
