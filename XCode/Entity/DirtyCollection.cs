@@ -34,6 +34,8 @@ namespace XCode
 
         private void Add(String item)
         {
+            if (Contains(item)) return;
+
             // 抢位置
             var n = Interlocked.Increment(ref _length);
 
