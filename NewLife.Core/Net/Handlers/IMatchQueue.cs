@@ -41,8 +41,8 @@ namespace NewLife.Net.Handlers
         {
             var now = TimerX.Now;
 
-            // 控制超时时间，默认5秒
-            if (msTimeout <= 10 || msTimeout >= 600_000) msTimeout = 5_000;
+            // 控制超时时间，默认15秒
+            if (msTimeout <= 10 || msTimeout >= 600_000) msTimeout = 15_000;
 
             if (source == null) source = new TaskCompletionSource<Object>();
             var qi = new Item

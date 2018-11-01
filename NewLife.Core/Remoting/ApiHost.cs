@@ -23,8 +23,8 @@ namespace NewLife.Remoting
         /// <summary>处理器</summary>
         public IApiHandler Handler { get; set; }
 
-        /// <summary>调用超时时间。默认3_000ms</summary>
-        public Int32 Timeout { get; set; } = 3_000;
+        /// <summary>调用超时时间。请求发出后，等待响应的最大时间，默认15_000ms</summary>
+        public Int32 Timeout { get; set; } = 15_000;
 
         /// <summary>发送数据包统计信息</summary>
         public ICounter StatInvoke { get; set; }
