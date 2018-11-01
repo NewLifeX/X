@@ -156,6 +156,9 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public virtual async Task<Object> InvokeAsync(Type resultType, String action, Object args = null, Byte flag = 0)
         {
+            // 让上层异步到这直接返回，后续代码在另一个线程执行
+            await Task.Yield();
+
             Open();
 
             var act = action;
@@ -196,12 +199,26 @@ namespace NewLife.Remoting
             return (TResult)rs;
         }
 
-        /// <summary>同步调用，不等待返回</summary>
+        /// <summary>同步调用，阻塞等待</summary>
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
         /// <param name="flag">标识</param>
         /// <returns></returns>
-        public virtual Boolean Invoke(String action, Object args = null, Byte flag = 0)
+        public virtual TResult Invoke<TResult>(String action, Object args = null, Byte flag = 0)
+        {
+            // 发送失败时，返回空
+            var rs = InvokeAsync(typeof(TResult), action, args, flag).Result;
+            if (rs == null) return default(TResult);
+
+            return (TResult)rs;
+        }
+
+        /// <summary>单向发送。同步调用，不等待返回</summary>
+        /// <param name="action">服务操作</param>
+        /// <param name="args">参数</param>
+        /// <param name="flag">标识</param>
+        /// <returns></returns>
+        public virtual Boolean InvokeOneWay(String action, Object args = null, Byte flag = 0)
         {
             if (!Open()) return false;
 
@@ -383,7 +400,7 @@ namespace NewLife.Remoting
         protected virtual ISocketClient OnCreate(String svr)
         {
             var client = new NetUri(svr).CreateRemote();
-            client.Timeout = Timeout;
+            //client.Timeout = Timeout;
             //if (Log != null) client.Log = Log;
             client.StatSend = StatSend;
             client.StatReceive = StatReceive;
