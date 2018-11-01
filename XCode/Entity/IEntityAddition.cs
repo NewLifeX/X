@@ -37,52 +37,53 @@ namespace XCode
         #endregion
 
         #region 累加
-        [NonSerialized]
-        private ConcurrentDictionary<String, Object> _Data;
+        private String[] _Names;
+        private Object[] _Values;
 
         /// <summary>设置累加字段</summary>
         /// <param name="names">字段集合</param>
         public void Set(IEnumerable<String> names)
         {
-            // 检查集合是否为空
-            if (_Data == null) _Data = new ConcurrentDictionary<String, Object>();
-
+            var ns = new List<String>();
+            var vs = new List<Object>();
             foreach (var item in names)
             {
-                _Data.TryAdd(item, Entity[item]);
+                ns.Add(item);
+                vs.Add(Entity[item]);
             }
+
+            _Names = ns.ToArray();
+            _Values = vs.ToArray();
         }
 
         public IDictionary<String, Object[]> Get()
         {
             var dic = new Dictionary<String, Object[]>();
+            if (_Names == null) return dic;
 
-            var df = _Data;
-            if (df == null) return dic;
-
-            foreach (var item in df)
+            for (var i = 0; i < _Names.Length; i++)
             {
-                var vs = new Object[2];
-                dic[item.Key] = vs;
+                var key = _Names[i];
 
-                vs[0] = Entity[item.Key];
-                vs[1] = item.Value;
+                var vs = new Object[2];
+                dic[key] = vs;
+
+                vs[0] = Entity[key];
+                vs[1] = _Values[i];
             }
 
             return dic;
         }
 
-        public void Reset(IDictionary<String, Object[]> value)
+        public void Reset(IDictionary<String, Object[]> dfs)
         {
-            if (value == null || value.Count == 0) return;
+            if (dfs == null || dfs.Count == 0) return;
+            if (_Names == null) return;
 
-            var df = _Data;
-            if (df == null) return;
-
-            foreach (var item in df)
+            for (var i = 0; i < _Names.Length; i++)
             {
-                var vs = value[item.Key];
-                if (vs != null && vs.Length > 0) df[item.Key] = vs[0];
+                var key = _Names[i];
+                if (dfs.TryGetValue(key, out var vs) && vs != null && vs.Length > 0) _Values[i] = vs[0];
             }
         }
         #endregion
