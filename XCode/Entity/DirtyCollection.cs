@@ -40,7 +40,7 @@ namespace XCode
             var n = Interlocked.Increment(ref _length);
 
             var ms = _items;
-            while (ms.Length <= _length)
+            while (ms.Length < _length)
             {
                 // 扩容
                 var arr = new String[ms.Length * 2];
@@ -50,7 +50,7 @@ namespace XCode
                 ms = _items;
             }
 
-            _items[n] = item;
+            _items[n - 1] = item;
 
             Interlocked.Increment(ref _size);
         }

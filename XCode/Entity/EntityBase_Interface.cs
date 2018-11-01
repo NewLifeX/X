@@ -15,7 +15,8 @@ namespace XCode
         protected virtual Boolean OnPropertyChanging(String fieldName, Object newValue)
         {
             // 如果数据没有改变，不应该影响脏数据
-            if (IsFromDatabase && CheckEqual(this[fieldName], newValue)) return false;
+            //if (IsFromDatabase && CheckEqual(this[fieldName], newValue)) return false;
+            if (CheckEqual(this[fieldName], newValue)) return false;
 
             Dirtys[fieldName] = true;
             return true;
