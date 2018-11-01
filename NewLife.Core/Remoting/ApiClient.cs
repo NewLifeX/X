@@ -266,7 +266,7 @@ namespace NewLife.Remoting
                 {
                     last = ex;
                     client.TryDispose();
-                    client = null;
+                    //client = null;
                 }
                 //finally
                 //{
@@ -274,7 +274,7 @@ namespace NewLife.Remoting
                 //}
             }
 
-            if (ShowError) WriteLog("请求[{0}]错误！{1}", client, last?.GetTrue());
+            if (ShowError) WriteLog("请求[{0}]错误！Timeout=[{1}ms] {2}", client, Timeout, last?.GetMessage());
 
             throw last;
         }
