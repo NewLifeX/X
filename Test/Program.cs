@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -11,6 +12,7 @@ using NewLife.Log;
 using NewLife.Remoting;
 using NewLife.Security;
 using XCode;
+using XCode.Code;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 using XCode.Service;
@@ -37,7 +39,7 @@ namespace Test
 #endif
                 //Test7();
 
-                Test10();
+                Test11();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -485,6 +487,13 @@ namespace Test
             var dt = 1540795502468.ToDateTime();
             var y = dt.ToUniversalTime();
             Console.WriteLine(dt1.ToLong());
+        }
+
+        static void Test11()
+        {
+            var xmlFile = Path.Combine(Directory.GetCurrentDirectory(),"../X/XCode/Model.xml");
+            var output = Path.Combine(Directory.GetCurrentDirectory(), "../");
+            EntityBuilder.Build(xmlFile,output);
         }
     }
 }
