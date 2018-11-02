@@ -256,10 +256,26 @@ namespace NewLife.Remoting
             {
                 try
                 {
-                    //client = Pool.Get();
-                    client = GetClient();
-                    var rs = (await client.SendMessageAsync(msg)) as IMessage;
-                    return new Tuple<IMessage, Object>(rs, client);
+                    try
+                    {
+                        //client = Pool.Get();
+                        client = GetClient();
+                        var rs = (await client.SendMessageAsync(msg)) as IMessage;
+                        return new Tuple<IMessage, Object>(rs, client);
+                    }
+                    catch (ApiException ex)
+                    {
+                        // 重新登录
+                        if (ex.Code == 401)
+                        {
+                            OnLogin(client);
+
+                            var rs = (await client.SendMessageAsync(msg)) as IMessage;
+                            return new Tuple<IMessage, Object>(rs, client);
+                        }
+                        else
+                            throw;
+                    }
                 }
                 catch (ApiException) { throw; }
                 catch (Exception ex)
