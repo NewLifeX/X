@@ -53,15 +53,20 @@
     <xs:sequence>
       <xs:element name="Columns" type="ColumnsType"></xs:element>
       <xs:element name="Indexes" type="IndexesType" minOccurs="0">
-        <xs:element name="Indexes" type="IndexesType" minOccurs="0">
-
-          <xs:annotation>
-            <xs:documentation xml:lang="zh-cn">
-              索引列表，并根据列名生成拓展查询方法
-            </xs:documentation>
-          </xs:annotation>
-        </xs:element>
-      </xs:sequence>
+        <xs:annotation>
+          <xs:documentation xml:lang="zh-cn">
+            索引列表，并根据列名生成拓展查询方法
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <!--<xs:element name="Relations" type="IndexesType" minOccurs="0">
+            <xs:annotation>
+                <xs:documentation xml:lang="zh-cn">
+                    关系
+                </xs:documentation>
+            </xs:annotation>
+        </xs:element>-->
+    </xs:sequence>
     <xs:attribute name="Name" type="xs:string" use="required"></xs:attribute>
     <xs:attribute name="TableName" type="xs:string">
       <xs:annotation>
@@ -114,11 +119,11 @@
     <xs:attribute name="Master" type="xs:string"></xs:attribute>
     <xs:attribute name="Nullable" type="xs:boolean"></xs:attribute>
     <xs:attribute name="RawType" type="xs:boolean">
-        <xs:annotation>
-            <xs:documentation>
-                生成的数据库类型
-            </xs:documentation>
-        </xs:annotation>
+      <xs:annotation>
+        <xs:documentation>
+          生成的数据库类型
+        </xs:documentation>
+      </xs:annotation>
     </xs:attribute>
   </xs:complexType>
   <!--Column-end-->
