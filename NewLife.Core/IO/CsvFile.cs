@@ -17,7 +17,7 @@ namespace NewLife.IO
         /// <summary>文件编码</summary>
         public Encoding Encoding { get; set; } = Encoding.UTF8;
 
-        private Stream _stream;
+        private readonly Stream _stream;
 
         /// <summary>分隔符。默认逗号</summary>
         public Char Separator { get; set; } = ',';
@@ -48,9 +48,12 @@ namespace NewLife.IO
             _reader.TryDispose();
 
             _writer?.Flush();
-            _writer.TryDispose();
 
-            _stream.TryDispose();
+            if (_stream is FileStream fs)
+            {
+                _writer.TryDispose();
+                fs.TryDispose();
+            }
         }
         #endregion
 
@@ -154,7 +157,7 @@ namespace NewLife.IO
 
                 if (str.Contains("\""))
                     sb.AppendFormat("\"{0}\"", str.Replace("\"", "\"\""));
-                else if (str.Contains(Separator) || str.Contains(Environment.NewLine))
+                else if (str.Contains(Separator) || str.Contains("\r") || str.Contains("\n"))
                     sb.AppendFormat("\"{0}\"", str);
                 else
                     sb.Append(str);

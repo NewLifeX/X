@@ -105,38 +105,43 @@ namespace NewLife.Net
             if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
             if (Active) return true;
-
-            LogPrefix = "{0}.".F((Name + "").TrimEnd("Server", "Session", "Client"));
-
-            BufferSize = Setting.Current.BufferSize;
-
-            // 估算完成时间，执行过长时提示
-            using (var tc = new TimeCost(GetType().Name + ".Open", 1500))
+            lock (this)
             {
-                tc.Log = Log;
+                if (Active) return true;
 
-                _RecvCount = 0;
-                Active = OnOpen();
-                if (!Active) return false;
+                LogPrefix = "{0}.".F((Name + "").TrimEnd("Server", "Session", "Client"));
 
-                if (Timeout > 0) Client.ReceiveTimeout = Timeout;
+                BufferSize = Setting.Current.BufferSize;
 
-                if (!Local.IsUdp)
+                // 估算完成时间，执行过长时提示
+                using (var tc = new TimeCost(GetType().Name + ".Open", 1500))
                 {
-                    // 管道
-                    var pp = Pipeline;
-                    pp?.Open(CreateContext(this));
+                    tc.Log = Log;
+
+                    _RecvCount = 0;
+                    var rs = OnOpen();
+                    if (!rs) return false;
+
+                    if (Timeout > 0) Client.ReceiveTimeout = Timeout;
+
+                    if (!Local.IsUdp)
+                    {
+                        // 管道
+                        var pp = Pipeline;
+                        pp?.Open(CreateContext(this));
+                    }
                 }
+                Active = true;
+
+                // 统计
+                if (StatSend == null) StatSend = new PerfCounter();
+                if (StatReceive == null) StatReceive = new PerfCounter();
+
+                ReceiveAsync();
+
+                // 触发打开完成的事件
+                Opened?.Invoke(this, EventArgs.Empty);
             }
-
-            // 统计
-            if (StatSend == null) StatSend = new PerfCounter();
-            if (StatReceive == null) StatReceive = new PerfCounter();
-
-            ReceiveAsync();
-
-            // 触发打开完成的事件
-            Opened?.Invoke(this, EventArgs.Empty);
 
             return true;
         }
@@ -161,22 +166,29 @@ namespace NewLife.Net
         public virtual Boolean Close(String reason)
         {
             if (!Active) return true;
+            lock (this)
+            {
+                if (!Active) return true;
 
-            // 管道
-            var pp = Pipeline;
-            pp?.Close(CreateContext(this), reason);
+                // 管道
+                var pp = Pipeline;
+                pp?.Close(CreateContext(this), reason);
 
-            if (OnClose(reason ?? (GetType().Name + "Close"))) Active = false;
+                var rs = true;
+                if (OnClose(reason ?? (GetType().Name + "Close"))) rs = false;
 
-            _RecvCount = 0;
+                _RecvCount = 0;
 
-            // 触发关闭完成的事件
-            Closed?.Invoke(this, EventArgs.Empty);
+                // 触发关闭完成的事件
+                Closed?.Invoke(this, EventArgs.Empty);
 
-            // 如果是动态端口，需要清零端口
-            if (DynamicPort) Port = 0;
+                // 如果是动态端口，需要清零端口
+                if (DynamicPort) Port = 0;
 
-            return !Active;
+                Active = rs;
+
+                return !rs;
+            }
         }
 
         /// <summary>关闭</summary>
@@ -505,7 +517,11 @@ namespace NewLife.Net
 
             message = Pipeline.Write(ctx, message);
 
+#if NET4
+            if (!ctx.FireWrite(message)) return TaskEx.FromResult((Object)null);
+#else
             if (!ctx.FireWrite(message)) return Task.FromResult((Object)null);
+#endif
 
             return source.Task;
         }
@@ -513,9 +529,9 @@ namespace NewLife.Net
         /// <summary>处理数据帧</summary>
         /// <param name="data">数据帧</param>
         void ISocketRemote.Process(IData data) => OnReceive(data as ReceivedEventArgs);
-        #endregion
+#endregion
 
-        #region 异常处理
+#region 异常处理
         /// <summary>错误发生/断开连接时</summary>
         public event EventHandler<ExceptionEventArgs> Error;
 
@@ -530,9 +546,9 @@ namespace NewLife.Net
             if (Log != null) Log.Error("{0}{1}Error {2} {3}", LogPrefix, action, this, ex?.Message);
             Error?.Invoke(this, new ExceptionEventArgs { Action = action, Exception = ex });
         }
-        #endregion
+#endregion
 
-        #region 扩展接口
+#region 扩展接口
         /// <summary>数据项</summary>
         public IDictionary<String, Object> Items { get; } = new NullableDictionary<String, Object>();
 
@@ -540,9 +556,9 @@ namespace NewLife.Net
         /// <param name="key"></param>
         /// <returns></returns>
         public Object this[String key] { get => Items[key]; set => Items[key] = value; }
-        #endregion
+#endregion
 
-        #region 日志
+#region 日志
         /// <summary>日志前缀</summary>
         public virtual String LogPrefix { get; set; }
 
@@ -562,6 +578,6 @@ namespace NewLife.Net
         {
             if (Log != null && Log.Enable) Log.Info(LogPrefix + format, args);
         }
-        #endregion
+#endregion
     }
 }

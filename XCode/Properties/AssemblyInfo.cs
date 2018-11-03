@@ -9,7 +9,7 @@ using XCode;
 // 控制。更改这些属性值可修改
 // 与程序集关联的信息。
 [assembly: AssemblyTitle("数据中间件")]
-[assembly: AssemblyDescription("数据中间件、MySQL、SQLite、SqlServer、Oracle")]
+[assembly: AssemblyDescription("数据中间件，MySQL、SQLite、SqlServer、Oracle")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyProduct("XCode")]
 [assembly: AssemblyCompany("新生命开发团队")]
@@ -40,7 +40,7 @@ using XCode;
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
 [assembly: AssemblyVersion("9.9.*")]
-[assembly: AssemblyFileVersion("9.9.2018.0907")]
+[assembly: AssemblyFileVersion("9.9.2018.1103")]
 
 /*
  * XCode的重大改进
@@ -58,6 +58,8 @@ using XCode;
  * /
 
 /*
+ * v9.9.2018.1103   重构数据层查询，DbTable替代DataSet，为将来数据备份和传输打基础
+ * 
  * v9.9.2018.0907   恢复使用数据层缓存，默认10秒，任意写入清空
  * 
  * v9.9.2018.0813   支持批量插入和更新，MySql/Oracle

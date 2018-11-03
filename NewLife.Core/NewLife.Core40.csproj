@@ -116,6 +116,7 @@
     <Compile Include="Http\HttpResponse.cs" />
     <Compile Include="Http\HttpServer.cs" />
     <Compile Include="Http\TinyHttpClient.cs" />
+    <Compile Include="IO\CsvFile.cs" />
     <Compile Include="IO\EncodingHelper.cs" />
     <Compile Include="IO\PathHelper.cs" />
     <Compile Include="Json\JsonConfig.cs" />
@@ -140,31 +141,27 @@
     <Compile Include="Messaging\IMessage.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Messaging\MessageBase.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Messaging\MessageEventArgs.cs" />
     <Compile Include="Model\IAuthUser.cs" />
     <Compile Include="Model\IFactory.cs" />
-    <Compile Include="Model\IHistory.cs" />
-    <Compile Include="Model\IOnline.cs" />
+    <Compile Include="Model\IHandler.cs" />
+    <Compile Include="Model\IHandlerContext.cs" />
+    <Compile Include="Model\IPipeline.cs" />
     <Compile Include="Model\IPlugin.cs" />
     <Compile Include="Model\IManageUser.cs" />
     <Compile Include="Model\ModelExtension.cs" />
     <Compile Include="Model\ObjectContainerHelper.cs" />
     <Compile Include="Http\HttpHelper.cs" />
-    <Compile Include="Net\Handlers\IHandler.cs" />
-    <Compile Include="Net\Handlers\IHandlerContext.cs" />
     <Compile Include="Net\Handlers\IMatchQueue.cs" />
     <Compile Include="Net\Handlers\LengthFieldCodec.cs" />
     <Compile Include="Net\Handlers\MessageCodec.cs" />
     <Compile Include="Net\Handlers\StandardCodec.cs" />
     <Compile Include="Net\INetSession.cs" />
-    <Compile Include="Net\IPipeline.cs" />
     <Compile Include="Net\ISocket.cs" />
     <Compile Include="Net\ISocketServer.cs" />
     <Compile Include="Net\ISocketClient.cs" />
     <Compile Include="Net\NetException.cs" />
+    <Compile Include="Net\NetHandlerContext.cs" />
     <Compile Include="Net\NetHelper.cs" />
     <Compile Include="Net\NetServer.cs" />
     <Compile Include="Net\NetSession.cs" />
@@ -228,6 +225,7 @@
     <Compile Include="Security\RC4.cs" />
     <Compile Include="Security\RSAHelper.cs" />
     <Compile Include="Security\SecurityHelper.cs" />
+    <Compile Include="Serialization\Accessor.cs" />
     <Compile Include="Serialization\BinaryCodec.cs" />
     <Compile Include="Serialization\BinaryCodec2.cs" />
     <Compile Include="Serialization\Binary\BinaryDictionary.cs" />
@@ -266,9 +264,6 @@
     <Compile Include="Serialization\Json\JsonReader.cs" />
     <Compile Include="Serialization\Json\JsonTest.cs" />
     <Compile Include="Serialization\Json\JsonWriter.cs" />
-    <Compile Include="Serialization\Protocol.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Serialization\SerialHelper.cs" />
     <Compile Include="Serialization\Xml\XmlList.cs" />
     <Compile Include="Serialization\Xml\XmlComposite.cs" />

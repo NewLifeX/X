@@ -11,7 +11,6 @@ using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Serialization;
 using NewLife.Threading;
-using NewLife.Xml;
 using XCode.Common;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
@@ -112,7 +111,7 @@ namespace XCode
         private static void OnLoadData(IList<TEntity> list)
         {
             // 设置默认累加字段
-            EntityAddition.SetField(list.Cast<IEntity>().ToList());
+            EntityAddition.SetField(list.Cast<IEntity>());
             foreach (var entity in list)
             {
                 entity.OnLoad();
@@ -1208,7 +1207,7 @@ namespace XCode
                 if (Meta.Table.ExtendFieldNames.Contains(name))
                 {
                     var pi = GetType().GetPropertyEx(name, true);
-                    if (pi?.GetMethod != null) return this.GetValue(pi);
+                    if (pi != null && pi.CanRead) return this.GetValue(pi);
                 }
 
                 //// 尝试匹配属性
@@ -1238,7 +1237,7 @@ namespace XCode
                 if (Meta.Table.ExtendFieldNames.Contains(name))
                 {
                     var pi = GetType().GetPropertyEx(name, true);
-                    if (pi?.SetMethod != null)
+                    if (pi != null && pi.CanWrite)
                     {
                         this.SetValue(pi, value);
                         return;
@@ -1403,41 +1402,6 @@ namespace XCode
         #endregion
 
         #region 脏数据
-        /// <summary>设置所有数据的脏属性</summary>
-        /// <param name="isDirty">改变脏属性的属性个数</param>
-        /// <returns></returns>
-        protected override Int32 SetDirty(Boolean isDirty)
-        {
-            var ds = Dirtys;
-            if (ds == null || ds.Count < 1) return 0;
-
-            var count = 0;
-            foreach (var item in Meta.FieldNames)
-            {
-                var b = false;
-                if (isDirty)
-                {
-                    if (!ds.TryGetValue(item, out b) || !b)
-                    {
-                        ds[item] = true;
-                        count++;
-                    }
-                }
-                else
-                {
-                    if (ds == null || ds.Count < 1) break;
-                    if (ds.TryGetValue(item, out b) && b)
-                    {
-                        ds[item] = false;
-                        count++;
-                    }
-                }
-            }
-            return count;
-        }
-
-        /// <summary>是否有脏数据。决定是否可以Update</summary>
-        protected Boolean HasDirty => Dirtys.Any();
         #endregion
 
         #region 高并发

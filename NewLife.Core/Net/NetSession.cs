@@ -21,7 +21,7 @@ namespace NewLife.Net
     /// <remarks>
     /// 实际应用可通过重载OnReceive实现收到数据时的业务逻辑。
     /// </remarks>
-    public class NetSession : DisposeBase, INetSession
+    public class NetSession : DisposeBase, INetSession, IExtend
     {
         #region 属性
         /// <summary>编号</summary>

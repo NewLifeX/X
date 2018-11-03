@@ -156,6 +156,11 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public virtual async Task<Object> InvokeAsync(Type resultType, String action, Object args = null, Byte flag = 0)
         {
+#if !NET4
+            // 让上层异步到这直接返回，后续代码在另一个线程执行
+            await Task.Yield();
+#endif
+
             Open();
 
             var act = action;
@@ -196,12 +201,26 @@ namespace NewLife.Remoting
             return (TResult)rs;
         }
 
-        /// <summary>同步调用，不等待返回</summary>
+        /// <summary>同步调用，阻塞等待</summary>
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
         /// <param name="flag">标识</param>
         /// <returns></returns>
-        public virtual Boolean Invoke(String action, Object args = null, Byte flag = 0)
+        public virtual TResult Invoke<TResult>(String action, Object args = null, Byte flag = 0)
+        {
+            // 发送失败时，返回空
+            var rs = InvokeAsync(typeof(TResult), action, args, flag).Result;
+            if (rs == null) return default(TResult);
+
+            return (TResult)rs;
+        }
+
+        /// <summary>单向发送。同步调用，不等待返回</summary>
+        /// <param name="action">服务操作</param>
+        /// <param name="args">参数</param>
+        /// <param name="flag">标识</param>
+        /// <returns></returns>
+        public virtual Boolean InvokeOneWay(String action, Object args = null, Byte flag = 0)
         {
             if (!Open()) return false;
 
@@ -239,24 +258,41 @@ namespace NewLife.Remoting
             {
                 try
                 {
-                    client = Pool.Get();
-                    var rs = (await client.SendMessageAsync(msg)) as IMessage;
-                    return new Tuple<IMessage, Object>(rs, client);
+                    try
+                    {
+                        //client = Pool.Get();
+                        client = GetClient();
+                        var rs = (await client.SendMessageAsync(msg)) as IMessage;
+                        return new Tuple<IMessage, Object>(rs, client);
+                    }
+                    catch (ApiException ex)
+                    {
+                        // 重新登录
+                        if (ex.Code == 401)
+                        {
+                            OnLogin(client);
+
+                            var rs = (await client.SendMessageAsync(msg)) as IMessage;
+                            return new Tuple<IMessage, Object>(rs, client);
+                        }
+                        else
+                            throw;
+                    }
                 }
                 catch (ApiException) { throw; }
                 catch (Exception ex)
                 {
                     last = ex;
                     client.TryDispose();
-                    client = null;
+                    //client = null;
                 }
-                finally
-                {
-                    if (client != null) Pool.Put(client);
-                }
+                //finally
+                //{
+                //    if (client != null) Pool.Put(client);
+                //}
             }
 
-            if (ShowError) WriteLog("请求[{0}]错误！{1}", client, last?.GetTrue());
+            if (ShowError) WriteLog("请求[{0}]错误！Timeout=[{1}ms] {2}", client, Timeout, last?.GetMessage());
 
             throw last;
         }
@@ -267,7 +303,8 @@ namespace NewLife.Remoting
             var count = Servers.Length;
             for (var i = 0; i < count; i++)
             {
-                var client = Pool.Get();
+                //var client = Pool.Get();
+                var client = GetClient();
                 try
                 {
                     return client.SendMessage(msg);
@@ -279,10 +316,10 @@ namespace NewLife.Remoting
                     client.TryDispose();
                     client = null;
                 }
-                finally
-                {
-                    if (client != null) Pool.Put(client);
-                }
+                //finally
+                //{
+                //    if (client != null) Pool.Put(client);
+                //}
             }
 
             throw last;
@@ -325,6 +362,22 @@ namespace NewLife.Remoting
             protected override ISocketClient OnCreate() => Host.OnCreate();
         }
 
+        private ISocketClient _Client;
+        /// <summary>获取客户端</summary>
+        /// <returns></returns>
+        protected virtual ISocketClient GetClient()
+        {
+            var tc = _Client;
+            if (tc != null && tc.Active && !tc.Disposed) return tc;
+            lock (this)
+            {
+                tc = _Client;
+                if (tc != null && tc.Active && !tc.Disposed) return tc;
+
+                return _Client = OnCreate();
+            }
+        }
+
         /// <summary>Round-Robin 负载均衡</summary>
         private Int32 _index = -1;
 
@@ -365,7 +418,7 @@ namespace NewLife.Remoting
         protected virtual ISocketClient OnCreate(String svr)
         {
             var client = new NetUri(svr).CreateRemote();
-            client.Timeout = Timeout;
+            //client.Timeout = Timeout;
             //if (Log != null) client.Log = Log;
             client.StatSend = StatSend;
             client.StatReceive = StatReceive;

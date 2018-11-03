@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using NewLife.Data;
 using NewLife.Messaging;
 
 namespace NewLife.Remoting

@@ -87,13 +87,13 @@ namespace NewLife.Http
             //await ns.WriteAsync(data, 0, data.Length);
             if (request != null) await request.CopyToAsync(ns);
 
+            // 接收
+            var buf = new Byte[64 * 1024];
 #if NET4
-            var count = ns.Read(response.Data, response.Offset, response.Count);
+            var count = ns.Read(buf, 0, buf.Length);
 #else
             var source = new CancellationTokenSource(Timeout);
 
-            // 接收
-            var buf = new Byte[64 * 1024];
             var count = await ns.ReadAsync(buf, 0, buf.Length, source.Token);
 #endif
 

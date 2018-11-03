@@ -5,14 +5,14 @@
     <AssemblyName>XCode</AssemblyName>
     <RootNamespace>XCode</RootNamespace>
     <AssemblyTitle>数据中间件</AssemblyTitle>
-    <Description>数据中间件、MySQL、SQLite、SqlServer、Oracle</Description>
+    <Description>数据中间件，MySQL、SQLite、SqlServer、Oracle</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2018 新生命开发团队</Copyright>
-    <FileVersion>9.8.2018.0630</FileVersion>
-    <AssemblyVersion>9.8.*</AssemblyVersion>
+    <FileVersion>9.9.2018.1103</FileVersion>
+    <AssemblyVersion>9.9.*</AssemblyVersion>
     <!--是否确定版本，false以支持*-->
     <Deterministic>false</Deterministic>
-    <Version>9.8.2018.0605</Version>
+    <Version>9.9.2018.1103</Version>
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>

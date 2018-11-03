@@ -51,7 +51,7 @@ namespace NewLife.Serialization
         {
             if (type == null && target != null) type = target.GetType();
 
-            if (jobj.GetType().As(type)) return jobj;
+            if (type.IsAssignableFrom(jobj.GetType())) return jobj;
 
             // Json对象是字典，目标类型可以是字典或复杂对象
             if (jobj is IDictionary<String, Object> vdic)
@@ -313,6 +313,17 @@ namespace NewLife.Serialization
                 var dt = value.ToDateTime();
                 if (UseUTCDateTime) dt = dt.ToUniversalTime();
                 return dt;
+            }
+
+            //用于解决奇葩json中时间字段使用了utc时间戳，还是用双引号包裹起来的情况。
+            if (value is String)
+            {
+                if (long.TryParse(value + "", out var result) && result > 0)
+                {
+                    var sdt = result.ToDateTime();
+                    if (UseUTCDateTime) sdt = sdt.ToUniversalTime();
+                    return sdt;
+                }
             }
 
             var str = (String)value;

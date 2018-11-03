@@ -248,7 +248,7 @@ namespace XCode.Cache
             {
                 var sb = Pool.StringBuilder.Get();
                 var type = GetType();
-                var name = "{2}<{0}>({1:n0})".F(typeof(TEntity).Name, Entities.Count, type.GetDisplayName() ?? type.Name);
+                var name = "{2}<{0}>({1:n0})".F(typeof(TEntity).Name, _Entities.Count, type.GetDisplayName() ?? type.Name);
                 sb.AppendFormat("{0,-24}", name);
                 sb.AppendFormat("总次数{0,11:n0}", Total);
                 if (Success > 0) sb.AppendFormat("，命中{0,11:n0}（{1,6:P02}）", Success, (Double)Success / Total);

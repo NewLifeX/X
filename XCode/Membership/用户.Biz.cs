@@ -92,12 +92,12 @@ namespace XCode.Membership
             else
             {
                 // 编辑修改密码
-                if (Dirtys[__.Password])
+                if (IsDirty(__.Password))
                 {
                     if (!pass.IsNullOrEmpty())
                         Password = pass.MD5();
                     else
-                        Dirtys.Remove(__.Password);
+                        Dirtys[__.Password] = false;
                 }
             }
 

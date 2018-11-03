@@ -24,12 +24,6 @@ namespace XCode.DataAccessLayer
         /// <summary>数据库事务</summary>
         DbTransaction Tran { get; }
 
-        /// <summary>事务依赖对象</summary>
-        IList<Object> Attachs { get; }
-
-        /// <summary>事务完成事件</summary>
-        event EventHandler<TransactionEventArgs> Completed;
-
         /// <summary>获取事务</summary>
         /// <param name="cmd">命令</param>
         /// <param name="execute">是否执行增删改</param>
@@ -49,22 +43,6 @@ namespace XCode.DataAccessLayer
         ITransaction Rollback();
     }
 
-    /// <summary>事务完成事件参数</summary>
-    class TransactionEventArgs : EventArgs
-    {
-        /// <summary>事务是否成功</summary>
-        public Boolean Success { get; }
-
-        /// <summary>执行次数。其决定是否更新缓存</summary>
-        public Int32 Executes { get; }
-
-        public TransactionEventArgs(Boolean success, Int32 executes)
-        {
-            Success = success;
-            Executes = executes;
-        }
-    }
-
     class Transaction : DisposeBase, ITransaction
     {
         #region 属性
@@ -76,11 +54,6 @@ namespace XCode.DataAccessLayer
 
         /// <summary>执行次数。其决定是否更新缓存</summary>
         public Int32 Executes { get; set; }
-
-        /// <summary>事务依赖对象</summary>
-        public IList<Object> Attachs { get; } = new List<Object>();
-
-        public event EventHandler<TransactionEventArgs> Completed;
 
         private static Int32 _gid;
         /// <summary>事务唯一编号</summary>
@@ -97,10 +70,9 @@ namespace XCode.DataAccessLayer
         {
             _Session = session;
             Level = level;
-            //_Count = 1;
-
-            //// 打开事务后，由事务管理连接
-            //Conn = _Session.Database.Pool.Get();
+#if DEBUG
+            Log = XTrace.Log;
+#endif
         }
 
         protected override void OnDispose(Boolean disposing)
@@ -110,9 +82,12 @@ namespace XCode.DataAccessLayer
             if (Count > 0)
             {
                 _Count = 1;
-                Completed = null;
                 Rollback();
             }
+
+            Tran = null;
+            _Session = null;
+            Conn = null;
         }
         #endregion
 
@@ -142,15 +117,12 @@ namespace XCode.DataAccessLayer
 
             if (tr != null) return tr;
 
-            //var ss = _Session;
-            //if (!ss.Opened) ss.Open();
-
             tr = Tran = Conn.BeginTransaction(Level);
             cmd.Transaction = tr;
             cmd.Connection = Conn;
 
             Level = tr.IsolationLevel;
-            ID = ++_gid;
+            ID = Interlocked.Increment(ref _gid);
             Log.Debug("Tran.Begin {0} {1}", ID, Level);
 
             return tr;
@@ -163,7 +135,6 @@ namespace XCode.DataAccessLayer
             var n = Interlocked.Increment(ref _Count);
             if (n <= 0) throw new ArgumentOutOfRangeException(nameof(Count), $"事务[{ID}]不能重新开始");
 
-            //Count++;
             if (n == 1)
             {
                 // 打开事务后，由事务管理连接
@@ -177,8 +148,6 @@ namespace XCode.DataAccessLayer
         {
             var n = Interlocked.Decrement(ref _Count);
             if (n <= -1) throw new ArgumentOutOfRangeException(nameof(Count), $"事务[{ID}]未开始或已结束");
-
-            //Count--;
 
             if (n == 0)
             {
@@ -195,7 +164,6 @@ namespace XCode.DataAccessLayer
                 finally
                 {
                     Tran = null;
-                    Completed?.Invoke(this, new TransactionEventArgs(true, Executes));
 
                     // 把连接归还给对象池
                     _Session.Database.Pool.Put(Conn);
@@ -210,8 +178,6 @@ namespace XCode.DataAccessLayer
         {
             var n = Interlocked.Decrement(ref _Count);
             if (n <= -1) throw new ArgumentOutOfRangeException(nameof(Count), $"事务[{ID}]未开始或已结束");
-
-            //Count--;
 
             if (n == 0)
             {
@@ -228,7 +194,6 @@ namespace XCode.DataAccessLayer
                 finally
                 {
                     Tran = null;
-                    Completed?.Invoke(this, new TransactionEventArgs(false, Executes));
 
                     // 把连接归还给对象池
                     _Session.Database.Pool.Put(Conn);

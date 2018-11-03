@@ -57,7 +57,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public static T ToEntity<T>(this Packet pk, Object context = null) where T : IAccessor, new()
         {
-            if (!typeof(T).As<IAccessor>()) return default(T);
+            //if (!typeof(T).As<IAccessor>()) return default(T);
 
             var obj = new T();
             obj.Read(pk.GetStream(), context);

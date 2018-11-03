@@ -150,7 +150,7 @@ namespace XCode
             if (fi != null)
             {
                 // 判断是否设置了数据
-                if (!entity.Dirtys[fi.Name])
+                if (!entity.IsDirty(fi.Name))
                 {
                     // 如果没有设置，这里给它设置
                     if (fi.Type == typeof(Guid))
@@ -166,9 +166,8 @@ namespace XCode
         /// <returns></returns>
         public virtual Int32 Update(IEntity entity)
         {
-            var ds = entity.Dirtys;
             // 没有脏数据，不需要更新
-            if (!ds.Any()) return 0;
+            if (!entity.HasDirty) return 0;
 
             IDataParameter[] dps = null;
             var sql = "";
@@ -176,13 +175,13 @@ namespace XCode
             // 双锁判断脏数据
             lock (entity)
             {
-                if (ds.Count == 0) return 0;
+                if (!entity.HasDirty) return 0;
 
                 sql = SQL(entity, DataObjectMethodType.Update, ref dps);
                 if (sql.IsNullOrEmpty()) return 0;
 
                 //清除脏数据，避免重复提交
-                ds.Clear();
+                entity.Dirtys.Clear();
             }
 
             var op = EntityFactory.CreateOperate(entity.GetType());
@@ -392,7 +391,7 @@ namespace XCode
                 if (sbNames != null && CheckIdentity(fi, value, op, sbNames, sbValues)) continue;
 
                 // 1，有脏数据的字段一定要参与同时对于实体有值的也应该参与（针对通过置空主键的方式另存）
-                if (!up && value == null && !entity.Dirtys[fi.Name])
+                if (!up && value == null && !entity.IsDirty(fi.Name))
                 {
                     // 2，没有脏数据，允许空的字段不参与
                     if (fi.IsNullable) continue;
@@ -465,7 +464,7 @@ namespace XCode
             if (def.Empty) return null;
 
             // 处理累加字段
-            var dfs = (entity as EntityBase).Addition.Get();
+            var dfs = (entity as EntityBase).GetAddition();
 
             var op = EntityFactory.CreateOperate(entity.GetType());
             var up = op.Session.Dal.Db.UseParameter;
@@ -478,7 +477,7 @@ namespace XCode
                 if (fi.IsIdentity) continue;
 
                 //脏数据判断
-                if (!entity.Dirtys[fi.Name]) continue;
+                if (!entity.IsDirty(fi.Name)) continue;
 
                 var value = entity[fi.Name];
 
@@ -499,7 +498,7 @@ namespace XCode
             }
 
             // 重置累加数据
-            (entity as EntityBase).Addition.Reset(dfs);
+            if (dfs != null && dfs.Count > 0) (entity as EntityBase).Addition.Reset(dfs);
 
             var str = sb.Put(true);
             if (str.IsNullOrEmpty()) return null;

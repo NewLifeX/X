@@ -166,7 +166,11 @@ namespace NewLife.Net
 
             message = Pipeline.Write(ctx, message);
 
+#if NET4
+            if (!ctx.FireWrite(message)) return TaskEx.FromResult((Object)null);
+#else
             if (!ctx.FireWrite(message)) return Task.FromResult((Object)null);
+#endif
 
             return source.Task;
         }
