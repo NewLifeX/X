@@ -3,7 +3,6 @@
 2002~2018，成千上万兄弟们努力的见证！
 
 国内文档中心：[http://doc.newlifex.com/](http://doc.newlifex.com/)
-
 国外文档中心：[https://newlifex.github.io/XDoc/](https://newlifex.github.io/XDoc/)
 
 ## 新生命开源项目矩阵
@@ -11,7 +10,7 @@
 | 项目 | 年份 | 状态 | .NET Core | 说明 |
 | :------: | :------: | :------: | :------: | ------ |
 | [NewLife.Core](https://github.com/NewLifeX/X) | 2002 | 维护中 | √ | 日志、网络、RPC、序列化、缓存、Windows服务、多线程 |
-| [XCode](https://github.com/NewLifeX/X) | 2005 | 维护中 | √ | 数据中间件、MySQL、SQLite、SqlServer、Oracle |
+| [XCode](https://github.com/NewLifeX/X) | 2005 | 维护中 | √ | 数据中间件，MySQL、SQLite、SqlServer、Oracle |
 | [NewLife.Cube](https://github.com/NewLifeX/NewLife.Cube) | 2010 | 维护中 | √ | Web魔方，权限基础框架，集成OAuth |
 | [NewLife.Net](https://github.com/NewLifeX/NewLife.Net) | 2005 | 维护中 | √ | 网络库，千万级吞吐率，学习gRPC、Thrift |
 | XAgent | 2008 | 重构中 | √ | 集群节点分布式计算平台，学习Hadoop |
@@ -32,6 +31,8 @@
 | [NewLife.RocketMQ](https://github.com/NewLifeX/NewLife.RocketMQ) | 2018 | 维护中 | √ | 支持Apache RocketMQ和阿里云消息队列 |
 | NewLife.Kafka | 2019 | 设计中 | √ | Kafka组件 |
 | ConfigServer | 2019 | 设计中 | √ | 分布式配置中心，学习Apollo |
+| [X组件 .NET2.0](https://github.com/NewLifeX/X_NET20) | 2002 | 存档中 | .NET2.0 | 日志、网络、RPC、序列化、缓存、Windows服务、多线程 |
+| [X组件 .NET4.0](https://github.com/NewLifeX/X_NET40) | 2002 | 存档中 | .NET4.0 | 日志、网络、RPC、序列化、缓存、Windows服务、多线程 |
 
 ## 组件各组成部分
 ### 核心库 NewLife.Core
