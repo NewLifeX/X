@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using NewLife.Data;
-using NewLife.Net;
+using NewLife.Model;
 
-namespace NewLife.Model
+namespace NewLife.Net
 {
     /// <summary>网络处理器上下文</summary>
     public class NetHandlerContext : HandlerContext
