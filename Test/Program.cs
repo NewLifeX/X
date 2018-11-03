@@ -23,8 +23,6 @@ namespace Test
     {
         private static void Main(String[] args)
         {
-            //Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.BelowNormal;
-
             //XTrace.Log = new NetworkLog();
             XTrace.UseConsole();
 #if DEBUG
@@ -37,9 +35,7 @@ namespace Test
                 try
                 {
 #endif
-                //Test7();
-
-                Test11();
+                    Test7();
 #if !DEBUG
                 }
                 catch (Exception ex)

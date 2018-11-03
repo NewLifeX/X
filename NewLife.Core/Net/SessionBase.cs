@@ -517,7 +517,11 @@ namespace NewLife.Net
 
             message = Pipeline.Write(ctx, message);
 
+#if NET4
+            if (!ctx.FireWrite(message)) return TaskEx.FromResult((Object)null);
+#else
             if (!ctx.FireWrite(message)) return Task.FromResult((Object)null);
+#endif
 
             return source.Task;
         }
@@ -525,9 +529,9 @@ namespace NewLife.Net
         /// <summary>处理数据帧</summary>
         /// <param name="data">数据帧</param>
         void ISocketRemote.Process(IData data) => OnReceive(data as ReceivedEventArgs);
-        #endregion
+#endregion
 
-        #region 异常处理
+#region 异常处理
         /// <summary>错误发生/断开连接时</summary>
         public event EventHandler<ExceptionEventArgs> Error;
 
@@ -542,9 +546,9 @@ namespace NewLife.Net
             if (Log != null) Log.Error("{0}{1}Error {2} {3}", LogPrefix, action, this, ex?.Message);
             Error?.Invoke(this, new ExceptionEventArgs { Action = action, Exception = ex });
         }
-        #endregion
+#endregion
 
-        #region 扩展接口
+#region 扩展接口
         /// <summary>数据项</summary>
         public IDictionary<String, Object> Items { get; } = new NullableDictionary<String, Object>();
 
@@ -552,9 +556,9 @@ namespace NewLife.Net
         /// <param name="key"></param>
         /// <returns></returns>
         public Object this[String key] { get => Items[key]; set => Items[key] = value; }
-        #endregion
+#endregion
 
-        #region 日志
+#region 日志
         /// <summary>日志前缀</summary>
         public virtual String LogPrefix { get; set; }
 
@@ -574,6 +578,6 @@ namespace NewLife.Net
         {
             if (Log != null && Log.Enable) Log.Info(LogPrefix + format, args);
         }
-        #endregion
+#endregion
     }
 }

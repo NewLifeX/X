@@ -11,7 +11,6 @@ using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Serialization;
 using NewLife.Threading;
-using NewLife.Xml;
 using XCode.Common;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
@@ -1208,7 +1207,7 @@ namespace XCode
                 if (Meta.Table.ExtendFieldNames.Contains(name))
                 {
                     var pi = GetType().GetPropertyEx(name, true);
-                    if (pi?.GetMethod != null) return this.GetValue(pi);
+                    if (pi != null && pi.CanRead) return this.GetValue(pi);
                 }
 
                 //// 尝试匹配属性
@@ -1238,7 +1237,7 @@ namespace XCode
                 if (Meta.Table.ExtendFieldNames.Contains(name))
                 {
                     var pi = GetType().GetPropertyEx(name, true);
-                    if (pi?.SetMethod != null)
+                    if (pi != null && pi.CanWrite)
                     {
                         this.SetValue(pi, value);
                         return;

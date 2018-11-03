@@ -7,12 +7,12 @@
     <Description>日志、网络、RPC、序列化、缓存、Windows服务、线程池</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2018 新生命开发团队</Copyright>
-    <FileVersion>7.3.2018.0630</FileVersion>
-    <AssemblyVersion>7.3.*</AssemblyVersion>
+    <FileVersion>7.4.2018.1103</FileVersion>
+    <AssemblyVersion>7.4.*</AssemblyVersion>
     <!--是否确定版本，false以支持*-->
     <Deterministic>false</Deterministic>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <Version>7.3.2018.0614</Version>
+    <Version>7.4.2018.1103</Version>
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>

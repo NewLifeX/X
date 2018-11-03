@@ -82,7 +82,7 @@ namespace XCode.DataAccessLayer
         {
             //_store.Values.TryDispose();
             _store.TryDispose();
-            _store = new ThreadLocal<IDbSession>(true);
+            _store = new ThreadLocal<IDbSession>();
         }
         #endregion
 
@@ -263,7 +263,7 @@ namespace XCode.DataAccessLayer
 
         #region 方法
         /// <summary>保证数据库在每一个线程都有唯一的一个实例</summary>
-        private ThreadLocal<IDbSession> _store = new ThreadLocal<IDbSession>(true);
+        private ThreadLocal<IDbSession> _store = new ThreadLocal<IDbSession>();
 
         /// <summary>创建数据库会话，数据库在每一个线程都有唯一的一个实例</summary>
         /// <returns></returns>
