@@ -686,9 +686,9 @@ namespace XCode
 
         private void DataChange(String reason)
         {
-            var tr = GetTran();
-            // 实体添删改时，有修改缓存，数据变更事件里不需要再次清空
-            if (tr == null || tr.Count == 0) ClearCache(reason);
+            //var tr = GetTran();
+            //// 实体添删改时，有修改缓存，数据变更事件里不需要再次清空
+            //if (tr == null || tr.Count == 0) ClearCache(reason);
 
             _OnDataChange?.Invoke(ThisType);
         }

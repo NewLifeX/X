@@ -348,52 +348,59 @@ namespace NewLife.Net
         /// <param name="se"></param>
         void ProcessEvent(SocketAsyncEventArgs se)
         {
-            if (!Active)
+            try
             {
-                ReleaseRecv(se, "!Active " + se.SocketError);
-                return;
-            }
-
-            // 判断成功失败
-            if (se.SocketError != SocketError.Success)
-            {
-                // 未被关闭Socket时，可以继续使用
-                if (OnReceiveError(se))
+                if (!Active)
                 {
-                    var ex = se.GetException();
-                    if (ex != null) OnError("ReceiveAsync", ex);
-
-                    ReleaseRecv(se, "SocketError " + se.SocketError);
-
+                    ReleaseRecv(se, "!Active " + se.SocketError);
                     return;
                 }
-            }
-            else
-            {
-                var ep = se.RemoteEndPoint as IPEndPoint ?? Remote.EndPoint;
 
-                var pk = new Packet(se.Buffer, se.Offset, se.BytesTransferred);
-                if (ProcessAsync)
+                // 判断成功失败
+                if (se.SocketError != SocketError.Success)
                 {
-                    // 拷贝走数据，参数要重复利用
-                    pk = pk.Clone();
-                    // 根据不信任用户原则，这里另外开线程执行用户逻辑
-                    // 有些用户在处理数据时，又发送数据并等待响应
-                    ThreadPoolX.QueueUserWorkItem(() => ProcessReceive(pk, ep));
+                    // 未被关闭Socket时，可以继续使用
+                    if (OnReceiveError(se))
+                    {
+                        var ex = se.GetException();
+                        if (ex != null) OnError("ReceiveAsync", ex);
+
+                        ReleaseRecv(se, "SocketError " + se.SocketError);
+
+                        return;
+                    }
                 }
                 else
                 {
-                    // 同步执行，直接使用数据，不需要拷贝
-                    // 直接在IO线程调用业务逻辑
-                    ProcessReceive(pk, ep);
-                }
-            }
+                    var ep = se.RemoteEndPoint as IPEndPoint ?? Remote.EndPoint;
 
-            // 开始新的监听
-            if (Active && !Disposed)
-                ReceiveAsync(se, true);
-            else
-                ReleaseRecv(se, "!Active || Disposed");
+                    var pk = new Packet(se.Buffer, se.Offset, se.BytesTransferred);
+                    if (ProcessAsync)
+                    {
+                        // 拷贝走数据，参数要重复利用
+                        pk = pk.Clone();
+                        // 根据不信任用户原则，这里另外开线程执行用户逻辑
+                        // 有些用户在处理数据时，又发送数据并等待响应
+                        ThreadPoolX.QueueUserWorkItem(() => ProcessReceive(pk, ep));
+                    }
+                    else
+                    {
+                        // 同步执行，直接使用数据，不需要拷贝
+                        // 直接在IO线程调用业务逻辑
+                        ProcessReceive(pk, ep);
+                    }
+                }
+
+                // 开始新的监听
+                if (Active && !Disposed)
+                    ReceiveAsync(se, true);
+                else
+                    ReleaseRecv(se, "!Active || Disposed");
+            }
+            catch (Exception ex)
+            {
+                XTrace.WriteException(ex);
+            }
         }
 
         /// <summary>接收预处理，粘包拆包</summary>
@@ -529,9 +536,9 @@ namespace NewLife.Net
         /// <summary>处理数据帧</summary>
         /// <param name="data">数据帧</param>
         void ISocketRemote.Process(IData data) => OnReceive(data as ReceivedEventArgs);
-#endregion
+        #endregion
 
-#region 异常处理
+        #region 异常处理
         /// <summary>错误发生/断开连接时</summary>
         public event EventHandler<ExceptionEventArgs> Error;
 
@@ -546,9 +553,9 @@ namespace NewLife.Net
             if (Log != null) Log.Error("{0}{1}Error {2} {3}", LogPrefix, action, this, ex?.Message);
             Error?.Invoke(this, new ExceptionEventArgs { Action = action, Exception = ex });
         }
-#endregion
+        #endregion
 
-#region 扩展接口
+        #region 扩展接口
         /// <summary>数据项</summary>
         public IDictionary<String, Object> Items { get; } = new NullableDictionary<String, Object>();
 
@@ -556,9 +563,9 @@ namespace NewLife.Net
         /// <param name="key"></param>
         /// <returns></returns>
         public Object this[String key] { get => Items[key]; set => Items[key] = value; }
-#endregion
+        #endregion
 
-#region 日志
+        #region 日志
         /// <summary>日志前缀</summary>
         public virtual String LogPrefix { get; set; }
 
@@ -578,6 +585,6 @@ namespace NewLife.Net
         {
             if (Log != null && Log.Enable) Log.Info(LogPrefix + format, args);
         }
-#endregion
+        #endregion
     }
 }
