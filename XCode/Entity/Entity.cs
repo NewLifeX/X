@@ -118,6 +118,7 @@ namespace XCode
             }
 
             // 如果正在使用单对象缓存，则批量进入
+            //!!! 特别注意，如果列表查询指定了列名，可能会导致实体错误覆盖单对象缓存
             var sc = Meta.SingleCache;
             if (sc.Using)
             {
