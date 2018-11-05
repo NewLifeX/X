@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Net;
@@ -80,7 +79,7 @@ namespace NewLife.Remoting
                 var ss = Servers;
                 if (ss == null || ss.Length == 0) throw new ArgumentNullException(nameof(Servers), "未指定服务端地址");
 
-                if (Pool == null) Pool = new MyPool { Host = this };
+                //if (Pool == null) Pool = new MyPool { Host = this };
 
                 if (Encoder == null) Encoder = new JsonEncoder();
                 //if (Encoder == null) Encoder = new BinaryEncoder();
@@ -128,10 +127,10 @@ namespace NewLife.Remoting
         {
             if (!Active) return;
 
-            //var ct = Client;
-            //if (ct != null) ct.Close(reason ?? (GetType().Name + "Close"));
-            Pool.TryDispose();
-            Pool = null;
+            var ct = GetClient(false);
+            if (ct != null) ct.Close(reason ?? (GetType().Name + "Close"));
+            //Pool.TryDispose();
+            //Pool = null;
 
             Active = false;
         }
@@ -174,6 +173,9 @@ namespace NewLife.Remoting
                 // 重新登录后再次调用
                 if (ex.Code == 401)
                 {
+                    var client = GetClient(true);
+                    OnLogin(client);
+
                     return await ApiHostHelper.InvokeAsync(this, this, resultType, act, args, flag);
                 }
 
@@ -243,11 +245,6 @@ namespace NewLife.Remoting
             return (TResult)await ApiHostHelper.InvokeAsync(this, client, typeof(TResult), act, args, flag);
         }
 
-        ///// <summary>创建消息</summary>
-        ///// <param name="pk"></param>
-        ///// <returns></returns>
-        //IMessage IApiSession.CreateMessage(Packet pk) => new DefaultMessage { Payload = pk };
-
         async Task<Tuple<IMessage, Object>> IApiSession.SendAsync(IMessage msg)
         {
             Exception last = null;
@@ -258,38 +255,15 @@ namespace NewLife.Remoting
             {
                 try
                 {
-                    try
-                    {
-                        //client = Pool.Get();
-                        client = GetClient();
-                        var rs = (await client.SendMessageAsync(msg)) as IMessage;
-                        return new Tuple<IMessage, Object>(rs, client);
-                    }
-                    catch (ApiException ex)
-                    {
-                        // 重新登录
-                        if (ex.Code == 401)
-                        {
-                            OnLogin(client);
-
-                            var rs = (await client.SendMessageAsync(msg)) as IMessage;
-                            return new Tuple<IMessage, Object>(rs, client);
-                        }
-                        else
-                            throw;
-                    }
+                    client = GetClient(true);
+                    var rs = (await client.SendMessageAsync(msg)) as IMessage;
+                    return new Tuple<IMessage, Object>(rs, client);
                 }
-                catch (ApiException) { throw; }
                 catch (Exception ex)
                 {
                     last = ex;
                     client.TryDispose();
-                    //client = null;
                 }
-                //finally
-                //{
-                //    if (client != null) Pool.Put(client);
-                //}
             }
 
             if (ShowError) WriteLog("请求[{0}]错误！Timeout=[{1}ms] {2}", client, Timeout, last?.GetMessage());
@@ -300,26 +274,21 @@ namespace NewLife.Remoting
         Boolean IApiSession.Send(IMessage msg)
         {
             Exception last = null;
+            ISocketClient client = null;
+
             var count = Servers.Length;
             for (var i = 0; i < count; i++)
             {
-                //var client = Pool.Get();
-                var client = GetClient();
                 try
                 {
+                    client = GetClient(true);
                     return client.SendMessage(msg);
                 }
-                catch (ApiException) { throw; }
                 catch (Exception ex)
                 {
                     last = ex;
                     client.TryDispose();
-                    client = null;
                 }
-                //finally
-                //{
-                //    if (client != null) Pool.Put(client);
-                //}
             }
 
             throw last;
@@ -342,32 +311,35 @@ namespace NewLife.Remoting
         #endregion
 
         #region 连接池
-        /// <summary>连接池</summary>
-        public IPool<ISocketClient> Pool { get; private set; }
+        ///// <summary>连接池</summary>
+        //public IPool<ISocketClient> Pool { get; private set; }
 
         /// <summary>创建回调</summary>
         public Action<ISocketClient> CreateCallback { get; set; }
 
-        class MyPool : ObjectPool<ISocketClient>
-        {
-            public ApiClient Host { get; set; }
+        //class MyPool : ObjectPool<ISocketClient>
+        //{
+        //    public ApiClient Host { get; set; }
 
-            public MyPool()
-            {
-                // 最小值为0，连接池不再使用栈，只使用队列
-                Min = 0;
-                Max = 100000;
-            }
+        //    public MyPool()
+        //    {
+        //        // 最小值为0，连接池不再使用栈，只使用队列
+        //        Min = 0;
+        //        Max = 100000;
+        //    }
 
-            protected override ISocketClient OnCreate() => Host.OnCreate();
-        }
+        //    protected override ISocketClient OnCreate() => Host.OnCreate();
+        //}
 
         private ISocketClient _Client;
         /// <summary>获取客户端</summary>
+        /// <param name="create">是否创建</param>
         /// <returns></returns>
-        protected virtual ISocketClient GetClient()
+        protected virtual ISocketClient GetClient(Boolean create)
         {
             var tc = _Client;
+            if (!create) return tc;
+
             if (tc != null && tc.Active && !tc.Disposed) return tc;
             lock (this)
             {

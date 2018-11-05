@@ -11,7 +11,6 @@ using System.Runtime.InteropServices;
 #else
 using System.Web;
 #endif
-using NewLife.Collections;
 using NewLife.Log;
 
 namespace NewLife.Reflection
@@ -630,7 +629,7 @@ namespace NewLife.Reflection
                 {
                     asm = Assembly.LoadFrom(item);
                 }
-                catch (BadImageFormatException ex)
+                catch (BadImageFormatException)
                 {
                     _BakImages.Add(item);
                     //XTrace.WriteLine(ex.ToString());
