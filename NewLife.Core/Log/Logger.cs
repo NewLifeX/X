@@ -1,8 +1,8 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Runtime;
 using System.Text;
 #if __ANDROID__
 using Android.OS;     
@@ -256,6 +256,7 @@ namespace NewLife.Log
             sb.AppendFormat("#OS: {0}, {1}/{2}\r\n", os, Environment.MachineName, Environment.UserName);
 #endif
             sb.AppendFormat("#CPU: {0}\r\n", System.Environment.ProcessorCount);
+            sb.AppendFormat("#GC: IsServerGC={0}, LatencyMode={1}\r\n", GCSettings.IsServerGC, GCSettings.LatencyMode);
 
             sb.AppendFormat("#Date: {0:yyyy-MM-dd}\r\n", DateTime.Now);
             sb.AppendFormat("#字段: 时间 线程ID 线程池Y网页W普通N 线程名 消息内容\r\n");
