@@ -116,7 +116,10 @@ namespace XCode
             {
                 entity.OnLoad();
             }
+        }
 
+        private static void LoadSingleCache(IEnumerable<TEntity> list)
+        {
             // 如果正在使用单对象缓存，则批量进入
             //!!! 特别注意，如果列表查询指定了列名，可能会导致实体错误覆盖单对象缓存
             var sc = Meta.SingleCache;
@@ -125,9 +128,9 @@ namespace XCode
                 // 查询列表异步加入对象缓存
                 ThreadPoolX.QueueUserWorkItem(es =>
                 {
-                    for (var i = 0; i < es.Count; i++)
+                    foreach (var entity in es)
                     {
-                        sc.Add(es[i]);
+                        sc.Add(entity);
                     }
                 }, list);
             }
@@ -488,6 +491,9 @@ namespace XCode
             //var list = session.Query(builder, 0, 0, LoadData);
             if (list == null || list.Count < 1) return null;
 
+            // 如果正在使用单对象缓存，则批量进入
+            LoadSingleCache(list);
+
             if (list.Count > 1 && DAL.Debug)
             {
                 DAL.WriteLog("调用FindUnique(\"{0}\")不合理，只有返回唯一记录的查询条件才允许调用！", wh);
@@ -640,8 +646,12 @@ namespace XCode
             var session = Meta.Session;
 
             var builder = CreateBuilder(where, order, selects, startRowIndex, maximumRows);
-            return LoadData(session.Query(builder, startRowIndex, maximumRows));
-            //return session.Query(builder, startRowIndex, maximumRows, LoadData);
+            var list = LoadData(session.Query(builder, startRowIndex, maximumRows));
+
+            // 如果正在使用单对象缓存，则批量进入
+            if (selects.IsNullOrEmpty() || selects == "*") LoadSingleCache(list);
+
+            return list;
         }
 
         /// <summary>最标准的查询数据。没有数据时返回空集合而不是null</summary>
@@ -732,14 +742,16 @@ namespace XCode
                     {
                         // 最大可用行数改为实际最大可用行数
                         var max = (Int32)Math.Min(maximumRows, count - startRowIndex);
-                        //if (max <= 0) return null;
                         if (max <= 0) return new List<TEntity>();
-                        var start = (Int32)(count - (startRowIndex + maximumRows));
 
+                        var start = (Int32)(count - (startRowIndex + maximumRows));
                         var builder2 = CreateBuilder(where, order2, selects, start, max);
                         var list = LoadData(session.Query(builder2, start, max));
-                        //var list = session.Query(builder2, start, max, LoadData);
                         if (list == null || list.Count < 1) return list;
+
+                        // 如果正在使用单对象缓存，则批量进入
+                        if (selects.IsNullOrEmpty() || selects == "*") LoadSingleCache(list);
+
                         // 因为这样取得的数据是倒过来的，所以这里需要再倒一次
                         list.Reverse();
                         return list;
@@ -749,8 +761,12 @@ namespace XCode
             #endregion
 
             var builder = CreateBuilder(where, order, selects, startRowIndex, maximumRows);
-            return LoadData(session.Query(builder, startRowIndex, maximumRows));
-            //return session.Query(builder, startRowIndex, maximumRows, LoadData);
+            var list2 = LoadData(session.Query(builder, startRowIndex, maximumRows));
+
+            // 如果正在使用单对象缓存，则批量进入
+            if (selects.IsNullOrEmpty() || selects == "*") LoadSingleCache(list2);
+
+            return list2;
         }
 
         /// <summary>同时查询满足条件的记录集和记录总数。没有数据时返回空集合而不是null</summary>
