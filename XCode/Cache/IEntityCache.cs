@@ -33,7 +33,7 @@ namespace XCode.Cache
         Int32 MaxEntity { get; set; }
 
         /// <summary>是否在使用缓存</summary>
-        Boolean Using { get; }
+        Boolean Using { get; set; }
 
         /// <summary>获取数据</summary>
         /// <param name="key"></param>

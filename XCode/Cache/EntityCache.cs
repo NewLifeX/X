@@ -37,7 +37,7 @@ namespace XCode.Cache
         public Boolean WaitFirst { get; set; } = true;
 
         /// <summary>是否在使用缓存，在不触发缓存动作的情况下检查是否有使用缓存</summary>
-        internal Boolean Using { get; private set; }
+        internal Boolean Using { get; set; }
         #endregion
 
         #region 构造

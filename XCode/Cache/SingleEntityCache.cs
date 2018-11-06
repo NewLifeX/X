@@ -26,7 +26,7 @@ namespace XCode.Cache
         public Int32 MaxEntity { get; set; } = 10000;
 
         /// <summary>是否在使用缓存</summary>
-        public Boolean Using { get; private set; }
+        public Boolean Using { get; set; }
         #endregion
 
         #region 主键
