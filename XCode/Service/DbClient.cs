@@ -62,12 +62,12 @@ namespace XCode.Service
         #region 登录
         /// <summary>连接后自动登录</summary>
         /// <param name="client">客户端</param>
-        protected override Object OnLogin(ISocketClient client)
+        protected override async Task<Object> OnLoginAsync(ISocketClient client)
         {
             var cookie = Rand.NextString(16);
             var pass2 = cookie.GetBytes().RC4(Password.GetBytes()).ToBase64();
 
-            var rs = InvokeWithClientAsync<LoginInfo>(client, "Db/Login", new { Db, UserName, pass = pass2, cookie }).Result;
+            var rs = await InvokeWithClientAsync<LoginInfo>(client, "Db/Login", new { Db, UserName, pass = pass2, cookie });
             if (Setting.Current.Debug) XTrace.WriteLine("登录{0}成功！{1}", Servers.FirstOrDefault(), rs.ToJson());
 
             return Info = rs;

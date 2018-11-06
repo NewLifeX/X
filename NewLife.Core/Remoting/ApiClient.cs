@@ -174,7 +174,7 @@ namespace NewLife.Remoting
                 if (ex.Code == 401)
                 {
                     var client = GetClient(true);
-                    OnLogin(client);
+                    await OnLoginAsync(client);
 
                     return await ApiHostHelper.InvokeAsync(this, this, resultType, act, args, flag);
                 }
@@ -302,12 +302,12 @@ namespace NewLife.Remoting
         public override void OnNewSession(IApiSession session, Object state)
         {
             var client = state as ISocketClient;
-            OnLogin(client);
+            OnLoginAsync(client).Wait();
         }
 
         /// <summary>连接后自动登录</summary>
         /// <param name="client">客户端</param>
-        protected virtual Object OnLogin(ISocketClient client) => null;
+        protected virtual Task<Object> OnLoginAsync(ISocketClient client) => null;
         #endregion
 
         #region 连接池
