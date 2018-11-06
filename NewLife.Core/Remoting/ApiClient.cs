@@ -302,7 +302,7 @@ namespace NewLife.Remoting
         public override void OnNewSession(IApiSession session, Object state)
         {
             var client = state as ISocketClient;
-            OnLoginAsync(client).Wait();
+            OnLoginAsync(client)?.Wait();
         }
 
         /// <summary>连接后自动登录</summary>
