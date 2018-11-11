@@ -233,9 +233,10 @@ namespace XCode
                     var ts = Split(list);
                     list = ts.Item1;
                     var es = ts.Item2;
-                    foreach (IEntity item in es)
+                    foreach (IEntity item in es.ToArray())
                     {
                         if (item is EntityBase entity2) entity2.Valid(item.IsNullKey);
+                        if (!fact.Modules.Valid(item, item.IsNullKey)) es.Remove((T)item);
                     }
                     rs += BatchSave(fact, es);
                 }
