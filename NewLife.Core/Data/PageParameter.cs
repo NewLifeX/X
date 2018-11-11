@@ -112,7 +112,7 @@ namespace NewLife.Data
         {
             if (pm == null) return this;
 
-            OrderBy = pm.OrderBy;
+            _OrderBy = pm._OrderBy;
             Sort = pm.Sort;
             Desc = pm.Desc;
             PageIndex = pm.PageIndex;

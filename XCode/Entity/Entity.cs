@@ -799,6 +799,7 @@ namespace XCode
             if (!page.Sort.IsNullOrEmpty())
             {
                 var st = Meta.Table.FindByName(page.Sort);
+                page.OrderBy = null;
                 page.Sort = st?.FormatedName;
                 orderby = page.OrderBy;
 
