@@ -221,7 +221,7 @@ namespace XCode
             if (entity == null) return 0;
 
             var rs = 0;
-            if (list.Count() > 1)
+            if (list.Any())
             {
                 var fact = entity.GetType().AsFactory();
                 var db = fact.Session.Dal;
@@ -255,7 +255,7 @@ namespace XCode
             if (entity == null) return 0;
 
             var rs = 0;
-            if (list.Count() > 1)
+            if (list.Any())
             {
                 var fact = entity.GetType().AsFactory();
                 var db = fact.Session.Dal;
