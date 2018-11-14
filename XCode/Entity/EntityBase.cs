@@ -196,7 +196,7 @@ namespace XCode
 
         #region 扩展属性
         [NonSerialized]
-        private EntityExtend _Extends;
+        internal EntityExtend _Extends;
         /// <summary>扩展属性</summary>
         //[NonSerialized]
         [XmlIgnore, ScriptIgnore]

@@ -37,19 +37,25 @@ namespace XCode
 
             // 不能使用并行字段，那会造成内存暴涨，因为大多数实体对象没有或者只有很少扩展数据
             var dic = _cache;
-            if (dic == null) dic = _cache = new Dictionary<String, CacheItem>(StringComparer.OrdinalIgnoreCase);
+            if (dic == null)
+            {
+                if (func == null) return default(T);
+
+                dic = _cache = new Dictionary<String, CacheItem>(StringComparer.OrdinalIgnoreCase);
+            }
 
             CacheItem ci = null;
             try
             {
                 // 比较小几率出现多线程问题
-                if (dic.TryGetValue(key, out ci) && !ci.Expired) return (T)ci.Value;
+                if (dic.TryGetValue(key, out ci) && (func == null || !ci.Expired)) return (T)ci.Value;
             }
             catch (Exception ex) { XTrace.WriteException(ex); }
 
             lock (dic)
             {
-                if (dic.TryGetValue(key, out ci) && !ci.Expired) return (T)ci.Value;
+                // 只有指定func时才使用过期
+                if (dic.TryGetValue(key, out ci) && (func == null || !ci.Expired)) return (T)ci.Value;
 
                 if (func == null) return default(T);
 
@@ -81,18 +87,22 @@ namespace XCode
 
             if (dic == null) dic = _cache = new Dictionary<String, CacheItem>(StringComparer.OrdinalIgnoreCase);
 
+            // 只有指定func时才使用过期
+            //var exp = Expire;
+            var exp = 24 * 3600;
+
             lock (dic)
             {
                 // 不存在则添加
                 if (!dic.TryGetValue(key, out var ci))
                 {
-                    dic[key] = new CacheItem(value, Expire);
+                    dic[key] = new CacheItem(value, exp);
                 }
                 // 更新
                 else
                 {
                     ci.Value = value;
-                    ci.ExpiredTime = TimerX.Now.AddSeconds(Expire);
+                    ci.ExpiredTime = TimerX.Now.AddSeconds(exp);
                 }
             }
 
@@ -102,7 +112,7 @@ namespace XCode
         /// <summary>是否已存在</summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public Boolean ContainsKey(String key) { return _cache != null && _cache.ContainsKey(key); }
+        public Boolean ContainsKey(String key) => _cache != null && _cache.ContainsKey(key);
 
         /// <summary>赋值到目标缓存</summary>
         /// <param name="target"></param>
