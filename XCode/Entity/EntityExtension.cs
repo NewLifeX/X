@@ -191,7 +191,16 @@ namespace XCode
                 var db = fact.Session.Dal;
 
                 // Oracle/MySql批量插入
-                if (db.SupportBatch) return BatchInsert(list);
+                if (db.SupportBatch)
+                {
+                    if (!(list is IList<T> es)) es = list.ToList();
+                    foreach (IEntity item in es.ToArray())
+                    {
+                        if (item is EntityBase entity2) entity2.Valid(item.IsNullKey);
+                        if (!fact.Modules.Valid(item, item.IsNullKey)) es.Remove((T)item);
+                    }
+                    return BatchInsert(list);
+                }
             }
 
             return DoAction(list, useTransition, e => e.Insert());
