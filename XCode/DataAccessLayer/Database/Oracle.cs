@@ -508,11 +508,17 @@ namespace XCode.DataAccessLayer
             sb.AppendLine("BEGIN");
             sb.AppendLine(insert + ";");
             sb.AppendLine("EXCEPTION");
-            // 可能没有更新
+            // 没有更新时，直接返回，可用于批量插入且其中部分有冲突需要忽略的场景
             if (!update.IsNullOrEmpty())
             {
                 sb.AppendLine("WHEN DUP_VAL_ON_INDEX THEN");
                 sb.AppendLine(update + ";");
+            }
+            else
+            {
+                //sb.AppendLine("WHEN OTHERS THEN");
+                sb.AppendLine("WHEN DUP_VAL_ON_INDEX THEN");
+                sb.AppendLine("RETURN;");
             }
             sb.AppendLine("END;");
 
