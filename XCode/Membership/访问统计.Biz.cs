@@ -1,6 +1,7 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Collections;
 using NewLife.Data;
@@ -141,7 +142,7 @@ namespace XCode.Membership
             if (model.Level > 0 && model.Time > DateTime.MinValue) exp &= _.Time == model.GetDate(model.Level);
             if (!model.Page.IsNullOrEmpty()) exp &= _.Page == model.Page;
 
-            exp &= _.CreateTime.Between(start, end);
+            exp &= _.Time.Between(start, end);
 
             return FindAll(exp, param);
         }
@@ -172,7 +173,7 @@ namespace XCode.Membership
         {
             model = model.Clone();
 
-            if (levels == null || levels.Length == 0) levels = new[] { StatLevels.Day, StatLevels.Month, StatLevels.Year, StatLevels.All };
+            if (levels == null || levels.Length == 0) levels = new[] { StatLevels.Day, StatLevels.Month, StatLevels.Year };
 
             // 当前
             var list = model.Split(levels);
@@ -198,13 +199,21 @@ namespace XCode.Membership
             if (st == null) return null;
 
             // 历史平均
-            st.Cost = (Int32)(((Int64)st.Cost * st.Times + model.Cost) / (st.Times + 1));
+            if (st.Cost > 0)
+                st.Cost = (Int32)Math.Round(((Double)st.Cost * st.Times + model.Cost) / (st.Times + 1));
+            else
+                st.Cost = model.Cost;
             if (model.Cost > st.MaxCost) st.MaxCost = model.Cost;
 
             if (!model.Title.IsNullOrEmpty()) st.Title = model.Title;
-            st.Times++;
+            //st.Times++;
+            Interlocked.Increment(ref st._Times);
 
-            if (!model.Error.IsNullOrEmpty()) st.Error++;
+            if (!model.Error.IsNullOrEmpty())
+            {
+                //st.Error++;
+                Interlocked.Increment(ref st._Error);
+            }
 
             var user = model.User;
             var ip = model.IP;
@@ -214,12 +223,14 @@ namespace XCode.Membership
                 var ss = new HashSet<String>((st.Remark + "").Split(","));
                 if (!user.IsNullOrEmpty() && !ss.Contains(user))
                 {
-                    st.Users++;
+                    //st.Users++;
+                    Interlocked.Increment(ref st._Users);
                     ss.Add(user + "");
                 }
                 if (!ip.IsNullOrEmpty() && !ss.Contains(ip))
                 {
-                    st.IPs++;
+                    //st.IPs++;
+                    Interlocked.Increment(ref st._IPs);
                     ss.Add(ip);
                 }
                 // 如果超长，砍掉前面

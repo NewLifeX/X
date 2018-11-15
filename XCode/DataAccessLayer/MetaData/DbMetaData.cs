@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using NewLife;
+using NewLife.Data;
 using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
@@ -82,7 +83,7 @@ namespace XCode.DataAccessLayer
             {
                 if (!MetaDataCollections.Contains(collectionName)) return null;
             }
-            return Database.CreateSession().GetSchema(collectionName, restrictionValues);
+            return Database.CreateSession().GetSchema(null, collectionName, restrictionValues);
         }
         #endregion
 
@@ -158,14 +159,33 @@ namespace XCode.DataAccessLayer
             return default(T);
         }
 
+        protected static DbTable Select(DbTable ds, String name, Object value)
+        {
+            var list = new List<Object[]>();
+            var col = ds.GetColumn(name);
+            if (col >= 0)
+            {
+                for (var i = 0; i < ds.Rows.Count; i++)
+                {
+                    var dr = ds.Rows[i];
+                    if (Equals(dr[col], value)) list.Add(dr);
+                }
+            }
+
+            var ds2 = new DbTable
+            {
+                Columns = ds.Columns,
+                Types = ds.Types,
+                Rows = list
+            };
+
+            return ds2;
+        }
+
         /// <summary>格式化关键字</summary>
         /// <param name="name">名称</param>
         /// <returns></returns>
-        protected String FormatName(String name)
-        {
-            //return Database.FormatKeyWord(keyWord);
-            return Database.FormatName(name);
-        }
+        protected String FormatName(String name) => Database.FormatName(name);
         #endregion
 
         #region 日志输出

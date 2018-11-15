@@ -44,11 +44,11 @@ namespace NewLife.Log
         /// <summary>结束计时</summary>
         /// <param name="counter"></param>
         /// <param name="startTicks"></param>
-        public static void StopCount(this ICounter counter, Int64 startTicks)
+        public static void StopCount(this ICounter counter, Int64? startTicks)
         {
-            if (counter == null) return;
+            if (counter == null || startTicks == null) return;
 
-            var ticks = Stopwatch.GetTimestamp() - startTicks;
+            var ticks = Stopwatch.GetTimestamp() - startTicks.Value;
             counter.Increment(1, (Int64)(ticks * tickFrequency / 10));
         }
     }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using NewLife.Log;
 
 namespace XCode.Statistics
@@ -52,6 +53,16 @@ namespace XCode.Statistics
 
                         return null;
                     }
+                }
+            }
+
+            // 设置所有累加字段为脏数据
+            var df = Entity<TEntity>.Meta.Factory.AdditionalFields;
+            if (df != null && df.Count > 0 && st is IEntity st2 && !st2.HasDirty)
+            {
+                foreach (var di in df)
+                {
+                    st2.Dirtys[di] = true;
                 }
             }
 

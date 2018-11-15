@@ -56,7 +56,7 @@ namespace NewLife.Reflection
 
             try
             {
-                using (var fs = new FileStream(file, FileMode.Open, FileAccess.Read))
+                using (var fs = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
                     return Read(fs);
                 }
@@ -366,9 +366,9 @@ namespace NewLife.Reflection
                 //var x64 = pe.ExecutableKind.Has(PortableExecutableKinds.Required32Bit);
                 //var x64 = pe.Machine == ImageFileMachine.AMD64;
                 var x64 = pe.Machine == ImageFileMachine.AMD64;
-                if (Runtime.Is64BitProcess ^ x64)
+                if (Environment.Is64BitProcess ^ x64)
                 {
-                    if (debug) XTrace.WriteLine("程序集 {0} 的代码特性是 {1}，而当前进程是 {2} 进程", file, pe.Machine, Runtime.Is64BitProcess ? "64位" : "32位");
+                    if (debug) XTrace.WriteLine("程序集 {0} 的代码特性是 {1}，而当前进程是 {2} 进程", file, pe.Machine, Environment.Is64BitProcess ? "64位" : "32位");
 
                     return false;
                 }

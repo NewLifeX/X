@@ -49,7 +49,7 @@ namespace XCode.Service
             {
                 var u = new Uri(uri);
 
-                Servers.Add("{2}://{0}:{1}".F(u.Host, u.Port, u.Scheme));
+                Servers = new[] { "{2}://{0}:{1}".F(u.Host, u.Port, u.Scheme) };
 
                 Db = u.PathAndQuery.Split("/").FirstOrDefault();
                 var us = u.UserInfo.Split(":");
@@ -99,14 +99,14 @@ namespace XCode.Service
         /// <param name="sql">语句</param>
         /// <param name="ps">参数集合</param>
         /// <returns></returns>
-        public async Task<DbSet> QueryAsync(String sql, IDictionary<String, Object> ps = null)
+        public async Task<DbTable> QueryAsync(String sql, IDictionary<String, Object> ps = null)
         {
             var arg = Encode(sql, ps);
 
             var rs = await InvokeAsync<Packet>("Db/Query", arg);
             //if (rs == null || rs.Total == 0) return null;
 
-            var ds = new DbSet();
+            var ds = new DbTable();
             ds.Read(rs);
 
             return ds;

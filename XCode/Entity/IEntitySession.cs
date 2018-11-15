@@ -68,12 +68,15 @@ namespace XCode
         #endregion
 
         #region 数据库操作
+        /// <summary>初始化数据</summary>
+        void InitData();
+
         /// <summary>执行SQL查询，返回记录集</summary>
         /// <param name="builder">SQL语句</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns></returns>
-        DbSet Query(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows);
+        DbTable Query(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows);
 
         /// <summary>查询记录数</summary>
         /// <param name="builder">查询生成器</param>

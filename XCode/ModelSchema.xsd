@@ -1,0 +1,190 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="ModelSchema"
+    targetNamespace="http://www.newlifex.com/ModelSchema.xsd"
+    elementFormDefault="qualified"
+    xmlns="http://www.newlifex.com/ModelSchema.xsd"
+    xmlns:mstns="http://www.newlifex.com/ModelSchema.xsd"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+>
+  <xs:annotation>
+    <xs:documentation xml:lang="zh-cn">
+      新生命模型XML架构说明
+    </xs:documentation>
+  </xs:annotation>
+
+  <xs:element name="Tables" type="TablesType"></xs:element>
+
+  <xs:complexType name="TablesType">
+    <xs:sequence>
+      <xs:element name="Table" type="TableType" maxOccurs="unbounded" ></xs:element>
+    </xs:sequence>
+    <xs:attribute name="Version" type="xs:string"></xs:attribute>
+    <xs:attribute name="NameSpace" type="xs:string"></xs:attribute>
+    <xs:attribute name="ConnName" type="xs:string"></xs:attribute>
+    <xs:attribute name="Output" type="xs:string"></xs:attribute>
+    <xs:attribute name="BaseClass" type="xs:string"></xs:attribute>
+    <xs:attribute name="DbType" type="DbTypeType"></xs:attribute>
+  </xs:complexType>
+
+  <xs:simpleType name="DbTypeType">
+    <xs:annotation>
+      <xs:documentation>
+        数据库类型，生成数据库表的是时候会针对数据库类型做处理
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Access" ></xs:enumeration>
+      <xs:enumeration value="Mysql" ></xs:enumeration>
+      <xs:enumeration value="Oracle" ></xs:enumeration>
+      <xs:enumeration value="PostgreSQL" ></xs:enumeration>
+      <xs:enumeration value="SqlCe" ></xs:enumeration>
+      <xs:enumeration value="SQLite" ></xs:enumeration>
+      <xs:enumeration value="SqlServer" ></xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!--Table-start-->
+  <xs:complexType name="TableType">
+    <xs:annotation>
+      <xs:documentation xml:lang="zh-cn">
+        一个Table对应一个数据库表
+      </xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="Columns" type="ColumnsType"></xs:element>
+      <xs:element name="Indexes" type="IndexesType" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="zh-cn">
+            索引列表，并根据列名生成拓展查询方法
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <!--<xs:element name="Relations" type="IndexesType" minOccurs="0">
+            <xs:annotation>
+                <xs:documentation xml:lang="zh-cn">
+                    关系
+                </xs:documentation>
+            </xs:annotation>
+        </xs:element>-->
+    </xs:sequence>
+    <xs:attribute name="Name" type="xs:string" use="required"></xs:attribute>
+    <xs:attribute name="TableName" type="xs:string">
+      <xs:annotation>
+        <xs:documentation xml:lang="zh-cn">
+          数据库表名，为空则默认为Name
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="Description" type="xs:string">
+      <xs:annotation>
+        <xs:documentation xml:lang="zh-cn">
+          表描述
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="DbType" type="DbTypeType"></xs:attribute>
+    <xs:attribute name="RenderGenEntity" type="xs:string"></xs:attribute>
+    <xs:attribute name="BaseType" type="xs:string"></xs:attribute>
+    <xs:attribute name="ConnName" type="xs:string"></xs:attribute>
+  </xs:complexType>
+  <!--Table-end-->
+
+  <xs:complexType name="ColumnsType">
+    <xs:sequence>
+      <xs:element name="Column" type="ColumnType" maxOccurs="unbounded"></xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!--Column-start-->
+  <xs:complexType name="ColumnType">
+    <xs:attribute name="Name" type="xs:string"></xs:attribute>
+    <xs:attribute name="DataType" type="DataTypeType">
+      <xs:annotation>
+        <xs:documentation xml:lang="zh-cn">
+          数据类型
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="Identity" type="xs:boolean"></xs:attribute>
+    <xs:attribute name="PrimaryKey" type="xs:boolean"></xs:attribute>
+    <xs:attribute name="Description" type="xs:string"></xs:attribute>
+    <xs:attribute name="Type" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>
+          生成枚举，值就是枚举名称
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="Length" type="xs:string"></xs:attribute>
+    <xs:attribute name="Master" type="xs:string"></xs:attribute>
+    <xs:attribute name="Nullable" type="xs:boolean"></xs:attribute>
+    <xs:attribute name="RawType" type="xs:boolean">
+      <xs:annotation>
+        <xs:documentation>
+          生成的数据库类型
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+  <!--Column-end-->
+
+  <!--DataType-syart-->
+  <xs:simpleType name="DataTypeType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="String" ></xs:enumeration>
+      <xs:enumeration value="Int32" ></xs:enumeration>
+      <xs:enumeration value="Int64" ></xs:enumeration>
+      <xs:enumeration value="DateTime" ></xs:enumeration>
+      <xs:enumeration value="Boolean" ></xs:enumeration>
+      <xs:enumeration value="SByte" ></xs:enumeration>
+      <xs:enumeration value="Decimal" ></xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  <!--DataType-end-->
+
+  <xs:complexType name="IndexesType">
+    <xs:sequence>
+      <xs:element name="Index" type="IndexType" maxOccurs="unbounded"></xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+
+  <!--Index-start-->
+  <xs:complexType name="IndexType">
+    <xs:annotation>
+      <xs:documentation xml:lang="zh-cn">
+        索引，同时生成对应的拓展查询方法
+      </xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="Name">
+      <xs:annotation>
+        <xs:documentation xml:lang="zh-cn">
+          索引名
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="Columns" use="required">
+      <xs:annotation>
+        <xs:documentation xml:lang="zh-cn">
+          列名，英文逗号字符相隔，比如：ID,Name
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="Unique" type="xs:boolean">
+      <xs:annotation>
+        <xs:documentation xml:lang="zh-cn">
+          是否唯一
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="UniPrimaryKeyque" type="xs:boolean">
+      <xs:annotation>
+        <xs:documentation xml:lang="zh-cn">
+          是否主键
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+  <!--Index-end-->
+
+</xs:schema>

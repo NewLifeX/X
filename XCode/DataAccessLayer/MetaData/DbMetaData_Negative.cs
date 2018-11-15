@@ -630,22 +630,22 @@ namespace XCode.DataAccessLayer
             {
                 case DDLSchema.CreateDatabase:
                     return CreateDatabaseSQL((String)values[0], (String)values[1]);
-                case DDLSchema.DropDatabase:
-                    return DropDatabaseSQL((String)values[0]);
+                //case DDLSchema.DropDatabase:
+                //    return DropDatabaseSQL((String)values[0]);
                 case DDLSchema.DatabaseExist:
                     return DatabaseExistSQL(values == null || values.Length < 1 ? null : (String)values[0]);
                 case DDLSchema.CreateTable:
                     return CreateTableSQL((IDataTable)values[0]);
-                case DDLSchema.DropTable:
-                    if (values[0] is IDataTable)
-                        return DropTableSQL((IDataTable)values[0]);
-                    else
-                        return DropTableSQL(values[0].ToString());
-                case DDLSchema.TableExist:
-                    if (values[0] is IDataTable)
-                        return TableExistSQL((IDataTable)values[0]);
-                    else
-                        return TableExistSQL(values[0].ToString());
+                //case DDLSchema.DropTable:
+                //    if (values[0] is IDataTable)
+                //        return DropTableSQL((IDataTable)values[0]);
+                //    else
+                //        return DropTableSQL(values[0].ToString());
+                //case DDLSchema.TableExist:
+                //    if (values[0] is IDataTable)
+                //        return TableExistSQL((IDataTable)values[0]);
+                //    else
+                //        return TableExistSQL(values[0].ToString());
                 case DDLSchema.AddTableDescription:
                     return AddTableDescriptionSQL((IDataTable)values[0]);
                 case DDLSchema.DropTableDescription:
@@ -664,8 +664,8 @@ namespace XCode.DataAccessLayer
                     return CreateIndexSQL((IDataIndex)values[0]);
                 case DDLSchema.DropIndex:
                     return DropIndexSQL((IDataIndex)values[0]);
-                case DDLSchema.CompactDatabase:
-                    return CompactDatabaseSQL();
+                //case DDLSchema.CompactDatabase:
+                //    return CompactDatabaseSQL();
                 default:
                     break;
             }
@@ -680,63 +680,48 @@ namespace XCode.DataAccessLayer
         public virtual Object SetSchema(DDLSchema schema, params Object[] values)
         {
             //Object obj = null;
-            switch (schema)
-            {
-                case DDLSchema.CreateTable:
-                    //if (MetaDataCollections.Contains(_.Databases))
-                    //{
+            //switch (schema)
+            //{
+            //    case DDLSchema.CreateTable:
+            //        //if (MetaDataCollections.Contains(_.Databases))
+            //        //{
 
-                    //}
-                    break;
-                case DDLSchema.TableExist:
-                    {
-                        String name;
-                        if (values[0] is IDataTable)
-                            name = (values[0] as IDataTable).TableName;
-                        else
-                            name = values[0].ToString();
+            //        //}
+            //        break;
+            //    case DDLSchema.TableExist:
+            //        {
+            //            String name;
+            //            if (values[0] is IDataTable)
+            //                name = (values[0] as IDataTable).TableName;
+            //            else
+            //                name = values[0].ToString();
 
-                        var dt = GetSchema(_.Tables, new String[] { null, null, name, "TABLE" });
-                        if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return false;
-                        return true;
-                    }
-                case DDLSchema.BackupDatabase:
-                    return Backup((String)values[0], (String)values[1], (Boolean)values[2]);
-                default:
-                    break;
-            }
+            //            var dt = GetSchema(_.Tables, new String[] { null, null, name, "TABLE" });
+            //            if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return false;
+            //            return true;
+            //        }
+            //    case DDLSchema.BackupDatabase:
+            //        return Backup((String)values[0], (String)values[1], (Boolean)values[2]);
+            //    default:
+            //        break;
+            //}
 
             var sql = GetSchemaSQL(schema, values);
             if (String.IsNullOrEmpty(sql)) return null;
 
             var session = Database.CreateSession();
 
-            if (schema == DDLSchema.TableExist || schema == DDLSchema.DatabaseExist) return session.QueryCount(sql) > 0;
+            if (/*schema == DDLSchema.TableExist ||*/ schema == DDLSchema.DatabaseExist) return session.QueryCount(sql) > 0;
 
             // 分隔符是分号加换行，如果不想被拆开执行（比如有事务），可以在分号和换行之间加一个空格
             var ss = sql.Split(";" + Environment.NewLine);
-            if (ss == null || ss.Length < 1) return Execute(session, sql);
+            if (ss == null || ss.Length < 1) return session.Execute(sql);
 
             foreach (var item in ss)
             {
-                Execute(session, item);
+                session.Execute(item);
             }
             return 0;
-        }
-
-        protected virtual Int32 Execute(IDbSession session, String sql)
-        {
-            var conn = session.Conn;
-            if (conn == null) return session.Execute(sql);
-
-            (session as DbSession).WriteSQL(sql);
-            using (var cmd = Database.Factory.CreateCommand())
-            {
-                cmd.Connection = conn;
-                cmd.CommandText = sql;
-
-                return cmd.ExecuteNonQuery();
-            }
         }
 
         /// <summary>字段片段</summary>
@@ -780,9 +765,9 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据定义语句
-        public virtual String CreateDatabaseSQL(String dbname, String file) => String.Format("Create Database {0}", FormatName(dbname));
+        public virtual String CreateDatabaseSQL(String dbname, String file) => $"Create Database {FormatName(dbname)}";
 
-        public virtual String DropDatabaseSQL(String dbname) => String.Format("Drop Database {0}", FormatName(dbname));
+        public virtual String DropDatabaseSQL(String dbname) => $"Drop Database {FormatName(dbname)}";
 
         public virtual String DatabaseExistSQL(String dbname) => null;
 
@@ -806,23 +791,19 @@ namespace XCode.DataAccessLayer
             return sb.ToString();
         }
 
-        String DropTableSQL(IDataTable table) => DropTableSQL(table.TableName);
+        public virtual String DropTableSQL(IDataTable table) => $"Drop Table {FormatName(table.TableName)}";
 
-        public virtual String DropTableSQL(String tableName) => String.Format("Drop Table {0}", FormatName(tableName));
-
-        String TableExistSQL(IDataTable table) => TableExistSQL(table.TableName);
-
-        public virtual String TableExistSQL(String tableName) => throw new NotSupportedException("该功能未实现！");
+        public virtual String TableExistSQL(IDataTable table) => throw new NotSupportedException("该功能未实现！");
 
         public virtual String AddTableDescriptionSQL(IDataTable table) => null;
 
         public virtual String DropTableDescriptionSQL(IDataTable table) => null;
 
-        public virtual String AddColumnSQL(IDataColumn field) => String.Format("Alter Table {0} Add {1}", FormatName(field.Table.TableName), FieldClause(field, true));
+        public virtual String AddColumnSQL(IDataColumn field) => $"Alter Table {FormatName(field.Table.TableName)} Add {FieldClause(field, true)}";
 
-        public virtual String AlterColumnSQL(IDataColumn field, IDataColumn oldfield) => String.Format("Alter Table {0} Alter Column {1}", FormatName(field.Table.TableName), FieldClause(field, false));
+        public virtual String AlterColumnSQL(IDataColumn field, IDataColumn oldfield) => $"Alter Table {FormatName(field.Table.TableName)} Alter Column {FieldClause(field, false)}";
 
-        public virtual String DropColumnSQL(IDataColumn field) => String.Format("Alter Table {0} Drop Column {1}", FormatName(field.Table.TableName), field.ColumnName);
+        public virtual String DropColumnSQL(IDataColumn field) => $"Alter Table {FormatName(field.Table.TableName)} Drop Column {field.ColumnName}";
 
         public virtual String AddColumnDescriptionSQL(IDataColumn field) => null;
 
@@ -848,15 +829,15 @@ namespace XCode.DataAccessLayer
             return sb.ToString();
         }
 
-        public virtual String DropIndexSQL(IDataIndex index) => String.Format("Drop Index {0} On {1}", FormatName(index.Name), FormatName(index.Table.TableName));
+        public virtual String DropIndexSQL(IDataIndex index) => $"Drop Index {FormatName(index.Name)} On {FormatName(index.Table.TableName)}";
 
-        public virtual String CompactDatabaseSQL() => null;
+        //public virtual String CompactDatabaseSQL() => null;
         #endregion
 
         #region 操作
-        protected virtual String Backup(String dbname, String bakfile, Boolean compressed) => throw new NotImplementedException();
+        public virtual String Backup(String dbname, String bakfile, Boolean compressed) => throw new NotImplementedException();
 
-        public virtual String CompactDatabase() => throw new NotImplementedException();
+        public virtual Int32 CompactDatabase() => throw new NotImplementedException();
         #endregion
     }
 }

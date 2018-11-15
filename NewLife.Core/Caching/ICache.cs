@@ -55,6 +55,9 @@ namespace NewLife.Caching
         /// <returns></returns>
         Int32 Remove(params String[] keys);
 
+        /// <summary>清空所有缓存项</summary>
+        void Clear();
+
         /// <summary>设置缓存项有效期</summary>
         /// <param name="key">键</param>
         /// <param name="expire">过期时间</param>
@@ -96,6 +99,12 @@ namespace NewLife.Caching
         /// <param name="key">键</param>
         /// <returns></returns>
         IProducerConsumer<T> GetQueue<T>(String key);
+
+        /// <summary>获取Set</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        ICollection<T> GetSet<T>(String key);
         #endregion
 
         #region 高级操作
@@ -143,6 +152,10 @@ namespace NewLife.Caching
         #endregion
 
         #region 事务
+        /// <summary>提交变更。部分提供者需要刷盘</summary>
+        /// <returns></returns>
+        Int32 Commit();
+
         /// <summary>申请分布式锁</summary>
         /// <param name="key">要锁定的key</param>
         /// <param name="msTimeout"></param>
@@ -153,7 +166,8 @@ namespace NewLife.Caching
         #region 性能测试
         /// <summary>多线程性能测试</summary>
         /// <param name="rand">随机读写</param>
-        void Bench(Boolean rand = false);
+        /// <param name="batch">批量操作。默认0不分批</param>
+        void Bench(Boolean rand = false, Int32 batch = 0);
         #endregion
     }
 }

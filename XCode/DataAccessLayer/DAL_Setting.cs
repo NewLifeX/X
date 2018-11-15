@@ -8,7 +8,7 @@ namespace XCode.DataAccessLayer
 {
     partial class DAL
     {
-        static DAL() { InitLog(); }
+        static DAL() => InitLog();
 
         #region Sql日志输出
         /// <summary>是否调试</summary>
@@ -50,11 +50,15 @@ namespace XCode.DataAccessLayer
         #region 辅助函数
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override String ToString() { return Db.ToString(); }
+        public override String ToString() => Db.ToString();
 
         /// <summary>建立数据表对象</summary>
         /// <returns></returns>
-        internal static IDataTable CreateTable() { return XCodeService.CreateTable(); }
+        internal static IDataTable CreateTable() => XCodeService.CreateTable();
+
+        /// <summary>是否支持批操作</summary>
+        /// <returns></returns>
+        public Boolean SupportBatch => DbType == DatabaseType.MySql || DbType == DatabaseType.Oracle || DbType == DatabaseType.SqlServer || DbType == DatabaseType.SQLite;
         #endregion
     }
 }

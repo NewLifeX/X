@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Collections;
-using NewLife.Data;
 using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Net;
-using NewLife.Net.Handlers;
 using NewLife.Threading;
 
 namespace NewLife.Remoting
@@ -20,10 +17,7 @@ namespace NewLife.Remoting
         public Boolean Active { get; set; }
 
         /// <summary>服务端地址集合。负载均衡</summary>
-        public List<String> Servers { get; set; } = new List<String>();
-
-        ///// <summary>通信客户端</summary>
-        //public ISocketClient Client { get; set; }
+        public String[] Servers { get; set; }
 
         /// <summary>主机</summary>
         IApiHost IApiSession.Host => this;
@@ -34,8 +28,8 @@ namespace NewLife.Remoting
         /// <summary>所有服务器所有会话，包含自己</summary>
         IApiSession[] IApiSession.AllSessions => new IApiSession[] { this };
 
-        /// <summary>调用超时时间。默认30_000ms</summary>
-        public Int32 Timeout { get; set; } = 30_000;
+        ///// <summary>调用超时时间。默认30_000ms</summary>
+        //public Int32 Timeout { get; set; } = 30_000;
 
         /// <summary>发送数据包统计信息</summary>
         public ICounter StatSend { get; set; }
@@ -59,7 +53,7 @@ namespace NewLife.Remoting
         /// <summary>实例化应用接口客户端</summary>
         public ApiClient(String uri) : this()
         {
-            if (!uri.IsNullOrEmpty()) Servers.AddRange(uri.Split(","));
+            if (!uri.IsNullOrEmpty()) Servers = uri.Split(",");
         }
 
         /// <summary>销毁</summary>
@@ -84,35 +78,44 @@ namespace NewLife.Remoting
                 if (Active) return true;
 
                 var ss = Servers;
-                if (ss == null || ss.Count == 0) throw new ArgumentNullException(nameof(Servers), "未指定服务端地址");
+                if (ss == null || ss.Length == 0) throw new ArgumentNullException(nameof(Servers), "未指定服务端地址");
 
                 if (Pool == null) Pool = new MyPool { Host = this };
 
                 if (Encoder == null) Encoder = new JsonEncoder();
                 //if (Encoder == null) Encoder = new BinaryEncoder();
                 if (Handler == null) Handler = new ApiHandler { Host = this };
-                if (StatInvoke == null) StatInvoke = new PerfCounter();
-                if (StatProcess == null) StatProcess = new PerfCounter();
-                if (StatSend == null) StatSend = new PerfCounter();
-                if (StatReceive == null) StatReceive = new PerfCounter();
+                //if (StatInvoke == null) StatInvoke = new PerfCounter();
+                //if (StatProcess == null) StatProcess = new PerfCounter();
+                //if (StatSend == null) StatSend = new PerfCounter();
+                //if (StatReceive == null) StatReceive = new PerfCounter();
 
                 Encoder.Log = EncoderLog;
 
-                var ct = Pool.Get();
-                try
-                {
-                    // 打开网络连接
-                    if (!ct.Open()) return false;
-                }
-                finally
-                {
-                    Pool.Put(ct);
-                }
+                // 不要阻塞打开，各个线程从池里借出连接来使用
+                //var ct = Pool.Get();
+                //try
+                //{
+                //    // 打开网络连接
+                //    if (!ct.Open()) return false;
+                //}
+                //finally
+                //{
+                //    Pool.Put(ct);
+                //}
 
                 ShowService();
 
                 var ms = StatPeriod * 1000;
-                if (ms > 0) _Timer = new TimerX(DoWork, null, ms, ms) { Async = true };
+                if (ms > 0)
+                {
+                    if (StatInvoke == null) StatInvoke = new PerfCounter();
+                    if (StatProcess == null) StatProcess = new PerfCounter();
+                    if (StatSend == null) StatSend = new PerfCounter();
+                    if (StatReceive == null) StatReceive = new PerfCounter();
+
+                    _Timer = new TimerX(DoWork, null, ms, ms) { Async = true };
+                }
 
                 return Active = true;
             }
@@ -153,6 +156,11 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public virtual async Task<Object> InvokeAsync(Type resultType, String action, Object args = null, Byte flag = 0)
         {
+#if !NET4
+            // 让上层异步到这直接返回，后续代码在另一个线程执行
+            await Task.Yield();
+#endif
+
             Open();
 
             var act = action;
@@ -193,12 +201,26 @@ namespace NewLife.Remoting
             return (TResult)rs;
         }
 
-        /// <summary>同步调用，不等待返回</summary>
+        /// <summary>同步调用，阻塞等待</summary>
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
         /// <param name="flag">标识</param>
         /// <returns></returns>
-        public virtual Boolean Invoke(String action, Object args = null, Byte flag = 0)
+        public virtual TResult Invoke<TResult>(String action, Object args = null, Byte flag = 0)
+        {
+            // 发送失败时，返回空
+            var rs = InvokeAsync(typeof(TResult), action, args, flag).Result;
+            if (rs == null) return default(TResult);
+
+            return (TResult)rs;
+        }
+
+        /// <summary>单向发送。同步调用，不等待返回</summary>
+        /// <param name="action">服务操作</param>
+        /// <param name="args">参数</param>
+        /// <param name="flag">标识</param>
+        /// <returns></returns>
+        public virtual Boolean InvokeOneWay(String action, Object args = null, Byte flag = 0)
         {
             if (!Open()) return false;
 
@@ -221,34 +243,56 @@ namespace NewLife.Remoting
             return (TResult)await ApiHostHelper.InvokeAsync(this, client, typeof(TResult), act, args, flag);
         }
 
-        /// <summary>创建消息</summary>
-        /// <param name="pk"></param>
-        /// <returns></returns>
-        IMessage IApiSession.CreateMessage(Packet pk) => new DefaultMessage { Payload = pk };
+        ///// <summary>创建消息</summary>
+        ///// <param name="pk"></param>
+        ///// <returns></returns>
+        //IMessage IApiSession.CreateMessage(Packet pk) => new DefaultMessage { Payload = pk };
 
-        async Task<IMessage> IApiSession.SendAsync(IMessage msg)
+        async Task<Tuple<IMessage, Object>> IApiSession.SendAsync(IMessage msg)
         {
             Exception last = null;
-            var count = Servers.Count;
+            ISocketClient client = null;
+
+            var count = Servers.Length;
             for (var i = 0; i < count; i++)
             {
-                ISocketClient client = null;
                 try
                 {
-                    client = Pool.Get();
-                    return (await client.SendMessageAsync(msg)) as IMessage;
+                    try
+                    {
+                        //client = Pool.Get();
+                        client = GetClient();
+                        var rs = (await client.SendMessageAsync(msg)) as IMessage;
+                        return new Tuple<IMessage, Object>(rs, client);
+                    }
+                    catch (ApiException ex)
+                    {
+                        // 重新登录
+                        if (ex.Code == 401)
+                        {
+                            OnLogin(client);
+
+                            var rs = (await client.SendMessageAsync(msg)) as IMessage;
+                            return new Tuple<IMessage, Object>(rs, client);
+                        }
+                        else
+                            throw;
+                    }
                 }
                 catch (ApiException) { throw; }
                 catch (Exception ex)
                 {
                     last = ex;
                     client.TryDispose();
+                    //client = null;
                 }
-                finally
-                {
-                    if (client != null) Pool.Put(client);
-                }
+                //finally
+                //{
+                //    if (client != null) Pool.Put(client);
+                //}
             }
+
+            if (ShowError) WriteLog("请求[{0}]错误！Timeout=[{1}ms] {2}", client, Timeout, last?.GetMessage());
 
             throw last;
         }
@@ -256,19 +300,26 @@ namespace NewLife.Remoting
         Boolean IApiSession.Send(IMessage msg)
         {
             Exception last = null;
-            var count = Servers.Count;
+            var count = Servers.Length;
             for (var i = 0; i < count; i++)
             {
-                var client = Pool.Get();
+                //var client = Pool.Get();
+                var client = GetClient();
                 try
                 {
                     return client.SendMessage(msg);
                 }
-                catch (Exception ex) { last = ex; }
-                finally
+                catch (ApiException) { throw; }
+                catch (Exception ex)
                 {
-                    Pool.Put(client);
+                    last = ex;
+                    client.TryDispose();
+                    client = null;
                 }
+                //finally
+                //{
+                //    if (client != null) Pool.Put(client);
+                //}
             }
 
             throw last;
@@ -311,6 +362,22 @@ namespace NewLife.Remoting
             protected override ISocketClient OnCreate() => Host.OnCreate();
         }
 
+        private ISocketClient _Client;
+        /// <summary>获取客户端</summary>
+        /// <returns></returns>
+        protected virtual ISocketClient GetClient()
+        {
+            var tc = _Client;
+            if (tc != null && tc.Active && !tc.Disposed) return tc;
+            lock (this)
+            {
+                tc = _Client;
+                if (tc != null && tc.Active && !tc.Disposed) return tc;
+
+                return _Client = OnCreate();
+            }
+        }
+
         /// <summary>Round-Robin 负载均衡</summary>
         private Int32 _index = -1;
 
@@ -320,16 +387,15 @@ namespace NewLife.Remoting
         {
             // 遍历所有服务，找到可用服务端
             var svrs = Servers;
-            if (svrs == null || svrs.Count == 0) throw new InvalidOperationException("没有设置服务端地址Servers");
-            var ss = svrs.ToArray();
+            if (svrs == null || svrs.Length == 0) throw new InvalidOperationException("没有设置服务端地址Servers");
 
             var idx = Interlocked.Increment(ref _index);
             Exception last = null;
-            for (var i = 0; i < ss.Length; i++)
+            for (var i = 0; i < svrs.Length; i++)
             {
                 // Round-Robin 负载均衡
-                var k = (idx + i) % ss.Length;
-                var svr = ss[k];
+                var k = (idx + i) % svrs.Length;
+                var svr = svrs[k];
                 try
                 {
                     var client = OnCreate(svr);
@@ -352,16 +418,32 @@ namespace NewLife.Remoting
         protected virtual ISocketClient OnCreate(String svr)
         {
             var client = new NetUri(svr).CreateRemote();
-            client.Timeout = Timeout;
+            //client.Timeout = Timeout;
             //if (Log != null) client.Log = Log;
             client.StatSend = StatSend;
             client.StatReceive = StatReceive;
 
-            client.Add(new StandardCodec { Timeout = Timeout, UserPacket = false });
+            //client.Add(new StandardCodec { Timeout = Timeout, UserPacket = false });
+            client.Add(GetMessageCodec());
 
             client.Opened += (s, e) => OnNewSession(this, s);
+            client.Received += Client_Received;
 
             return client;
+        }
+
+        private void Client_Received(Object sender, ReceivedEventArgs e)
+        {
+            LastActive = DateTime.Now;
+
+            // Api解码消息得到Action和参数
+            var msg = e.Message as IMessage;
+            if (msg == null || msg.Reply) return;
+
+            var ss = sender as ISocketRemote;
+            var host = this as IApiHost;
+            var rs = host.Process(this, msg);
+            if (rs != null) ss?.SendMessage(rs);
         }
         #endregion
 

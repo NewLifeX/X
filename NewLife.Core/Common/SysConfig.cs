@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Linq;
+using System.Xml.Serialization;
 using NewLife.Reflection;
 using NewLife.Xml;
 
@@ -33,22 +34,6 @@ namespace NewLife.Common
         /// <summary>公司</summary>
         [DisplayName("公司")]
         public String Company { get; set; } = "";
-
-        ///// <summary>地址</summary>
-        //[DisplayName("地址")]
-        //public String Address { get; set; } = "";
-
-        ///// <summary>电话</summary>
-        //[DisplayName("电话")]
-        //public String Tel { get; set; } = "";
-
-        ///// <summary>传真</summary>
-        //[DisplayName("传真")]
-        //public String Fax { get; set; } = "";
-
-        ///// <summary>电子邮件</summary>
-        //[DisplayName("电子邮件")]
-        //public String EMail { get; set; } = "";
 
         /// <summary>开发者模式</summary>
         [DisplayName("开发者模式")]

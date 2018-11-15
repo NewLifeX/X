@@ -2,13 +2,15 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Threading;
+using NewLife;
 using NewLife.Collections;
 using NewLife.Log;
 
 namespace XCode.DataAccessLayer
 {
     /// <summary>事务对象</summary>
-    interface ITransaction
+    interface ITransaction : IDisposable
     {
         /// <summary>事务隔离级别</summary>
         IsolationLevel Level { get; }
@@ -21,12 +23,6 @@ namespace XCode.DataAccessLayer
 
         /// <summary>数据库事务</summary>
         DbTransaction Tran { get; }
-
-        /// <summary>事务依赖对象</summary>
-        IList<Object> Attachs { get; }
-
-        /// <summary>事务完成事件</summary>
-        event EventHandler<TransactionEventArgs> Completed;
 
         /// <summary>获取事务</summary>
         /// <param name="cmd">命令</param>
@@ -47,36 +43,17 @@ namespace XCode.DataAccessLayer
         ITransaction Rollback();
     }
 
-    /// <summary>事务完成事件参数</summary>
-    class TransactionEventArgs : EventArgs
-    {
-        /// <summary>事务是否成功</summary>
-        public Boolean Success { get; }
-
-        /// <summary>执行次数。其决定是否更新缓存</summary>
-        public Int32 Executes { get; }
-
-        public TransactionEventArgs(Boolean success, Int32 executes)
-        {
-            Success = success;
-            Executes = executes;
-        }
-    }
-
-    class Transaction : ITransaction
+    class Transaction : DisposeBase, ITransaction
     {
         #region 属性
         public IsolationLevel Level { get; private set; }
 
-        public Int32 Count { get; set; }
+        private Int32 _Count;
+        /// <summary>事务嵌套层数</summary>
+        public Int32 Count => _Count;
 
         /// <summary>执行次数。其决定是否更新缓存</summary>
         public Int32 Executes { get; set; }
-
-        /// <summary>事务依赖对象</summary>
-        public IList<Object> Attachs { get; } = new List<Object>();
-
-        public event EventHandler<TransactionEventArgs> Completed;
 
         private static Int32 _gid;
         /// <summary>事务唯一编号</summary>
@@ -93,19 +70,32 @@ namespace XCode.DataAccessLayer
         {
             _Session = session;
             Level = level;
-            Count = 1;
+#if DEBUG
+            Log = XTrace.Log;
+#endif
+        }
 
-            // 打开事务后，由事务管理连接
-            Conn = _Session.Database.Pool.Get();
+        protected override void OnDispose(Boolean disposing)
+        {
+            base.OnDispose(disposing);
+
+            if (Count > 0)
+            {
+                _Count = 1;
+                Rollback();
+            }
+
+            Tran = null;
+            _Session = null;
+            Conn = null;
         }
         #endregion
 
         #region 延迟打开事务
-        private DbTransaction _Tran;
         /// <summary>数据库事务。首次使用打开事务</summary>
-        public DbTransaction Tran { get { return _Tran; } }
+        public DbTransaction Tran { get; private set; }
 
-        /// <summary>获取事务</summary>
+        /// <summary>给命令设置事务和连接</summary>
         /// <param name="cmd">命令</param>
         /// <param name="execute">是否执行增删改</param>
         /// <returns></returns>
@@ -113,50 +103,55 @@ namespace XCode.DataAccessLayer
         {
             if (cmd.Transaction != null) return cmd.Transaction;
 
-            cmd.Transaction = _Tran;
-            if (cmd.Connection == null) cmd.Connection = Conn;
+            // 此时事务可能为空
+            var tr = Tran;
+            if (cmd.Connection != null && cmd.Connection != Conn) return tr;
+
+            cmd.Transaction = tr;
+            cmd.Connection = Conn;
 
             // 不要为查询打开事务
-            if (!execute) return _Tran;
+            if (!execute) return tr;
 
             Executes++;
 
-            if (_Tran != null) return _Tran;
+            if (tr != null) return tr;
 
-            //var ss = _Session;
-            //if (!ss.Opened) ss.Open();
+            tr = Tran = Conn.BeginTransaction(Level);
+            cmd.Transaction = tr;
+            cmd.Connection = Conn;
 
-            _Tran = Conn.BeginTransaction(Level);
-            cmd.Transaction = _Tran;
-            if (cmd.Connection == null) cmd.Connection = Conn;
-
-            Level = _Tran.IsolationLevel;
-            ID = ++_gid;
+            Level = tr.IsolationLevel;
+            ID = Interlocked.Increment(ref _gid);
             Log.Debug("Tran.Begin {0} {1}", ID, Level);
 
-            return _Tran;
+            return tr;
         }
         #endregion
 
         #region 方法
         public ITransaction Begin()
         {
-            if (Count <= 0) throw new ArgumentOutOfRangeException(nameof(Count), $"事务[{ID}]不能重新开始");
+            var n = Interlocked.Increment(ref _Count);
+            if (n <= 0) throw new ArgumentOutOfRangeException(nameof(Count), $"事务[{ID}]不能重新开始");
 
-            Count++;
+            if (n == 1)
+            {
+                // 打开事务后，由事务管理连接
+                Conn = _Session.Database.Pool.Get();
+            }
 
             return this;
         }
 
         public ITransaction Commit()
         {
-            if (Count <= 0) throw new ArgumentOutOfRangeException(nameof(Count), $"事务[{ID}]未开始或已结束");
+            var n = Interlocked.Decrement(ref _Count);
+            if (n <= -1) throw new ArgumentOutOfRangeException(nameof(Count), $"事务[{ID}]未开始或已结束");
 
-            Count--;
-
-            if (Count == 0)
+            if (n == 0)
             {
-                var tr = _Tran;
+                var tr = Tran;
                 try
                 {
                     if (tr != null)
@@ -168,11 +163,11 @@ namespace XCode.DataAccessLayer
                 }
                 finally
                 {
-                    _Tran = null;
-                    Completed?.Invoke(this, new TransactionEventArgs(true, Executes));
+                    Tran = null;
 
                     // 把连接归还给对象池
                     _Session.Database.Pool.Put(Conn);
+                    Conn = null;
                 }
             }
 
@@ -181,13 +176,12 @@ namespace XCode.DataAccessLayer
 
         public ITransaction Rollback()
         {
-            if (Count <= 0) throw new ArgumentOutOfRangeException(nameof(Count), $"事务[{ID}]未开始或已结束");
+            var n = Interlocked.Decrement(ref _Count);
+            if (n <= -1) throw new ArgumentOutOfRangeException(nameof(Count), $"事务[{ID}]未开始或已结束");
 
-            Count--;
-
-            if (Count == 0)
+            if (n == 0)
             {
-                var tr = _Tran;
+                var tr = Tran;
                 try
                 {
                     if (tr != null)
@@ -199,11 +193,11 @@ namespace XCode.DataAccessLayer
                 }
                 finally
                 {
-                    _Tran = null;
-                    Completed?.Invoke(this, new TransactionEventArgs(false, Executes));
+                    Tran = null;
 
                     // 把连接归还给对象池
                     _Session.Database.Pool.Put(Conn);
+                    Conn = null;
                 }
             }
 

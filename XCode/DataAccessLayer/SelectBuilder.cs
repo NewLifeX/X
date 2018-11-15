@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using NewLife.Caching;
 using NewLife.Collections;
 
 namespace XCode.DataAccessLayer
@@ -253,6 +254,30 @@ $";
             }
 
             return false;
+        }
+
+        /// <summary>缓存存储</summary>
+        public static ICache Store { get; set; } = NewLife.Caching.Cache.Default;
+
+        /// <summary>根据SQL创建，带缓存</summary>
+        /// <remarks>
+        /// 对于非常复杂的查询语句，正则平衡的处理器消耗很大
+        /// </remarks>
+        /// <param name="sql"></param>
+        /// <returns></returns>
+        public static SelectBuilder Create(String sql)
+        {
+            var key = $"SelectBuilder#{sql}";
+
+            var sb = Store.Get<SelectBuilder>(key);
+            if (sb != null) return sb;
+
+            sb = new SelectBuilder();
+            sb.Parse(sql);
+
+            Store.Set(key, sb, 10 * 60);
+
+            return sb;
         }
         #endregion
 

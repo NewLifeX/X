@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data;
+using System.Data.Common;
 
 namespace XCode.DataAccessLayer
 {
@@ -19,19 +20,20 @@ namespace XCode.DataAccessLayer
                 if (ver != null) return ver;
                 _ServerVersion = String.Empty;
 
-                var session = CreateSession() as RemoteDbSession;
-                ver = _ServerVersion = session.ProcessWithSystem(s =>
-                {
-                    var conn = Pool.Get();
-                    try
-                    {
-                        return conn.ServerVersion;
-                    }
-                    finally
-                    {
-                        Pool.Put(conn);
-                    }
-                }) as String;
+                //var session = CreateSession() as RemoteDbSession;
+                //ver = _ServerVersion = session.ProcessWithSystem(s =>
+                //{
+                //    var conn = Pool.Get();
+                //    try
+                //    {
+                //        return conn.ServerVersion;
+                //    }
+                //    finally
+                //    {
+                //        Pool.Put(conn);
+                //    }
+                //}) as String;
+                ver = _ServerVersion = Pool.Execute(conn => conn.ServerVersion);
 
                 return ver;
             }
@@ -106,24 +108,24 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 架构
-        public override DataTable GetSchema(String collectionName, String[] restrictionValues)
+        public override DataTable GetSchema(DbConnection conn, String collectionName, String[] restrictionValues)
         {
             try
             {
-                return base.GetSchema(collectionName, restrictionValues);
+                return base.GetSchema(conn, collectionName, restrictionValues);
             }
             catch (Exception ex)
             {
                 DAL.WriteLog("[3]GetSchema({0})异常重试！{1},连接字符串 {2}", collectionName, ex.Message, ConnectionString, Database.ConnName);
 
                 // 如果没有数据库，登录会失败，需要切换到系统数据库再试试
-                return ProcessWithSystem(s => base.GetSchema(collectionName, restrictionValues)) as DataTable;
+                return ProcessWithSystem((s, c) => base.GetSchema(c, collectionName, restrictionValues)) as DataTable;
             }
         }
         #endregion
 
         #region 系统权限处理
-        public Object ProcessWithSystem(Func<IDbSession, Object> callback)
+        public Object ProcessWithSystem(Func<IDbSession, DbConnection, Object> callback)
         {
             var dbname = Database.DatabaseName;
             var sysdbname = SystemDatabaseName;
@@ -131,7 +133,7 @@ namespace XCode.DataAccessLayer
             // 如果指定了数据库名，并且不是master，则切换到master
             if (!dbname.IsNullOrEmpty() && !dbname.EqualIgnoreCase(sysdbname))
             {
-                WriteLog("切换到系统库[{0}]", sysdbname);
+                if (DAL.Debug) WriteLog("切换到系统库[{0}]", sysdbname);
                 using (var conn = Database.Factory.CreateConnection())
                 {
                     try
@@ -140,21 +142,21 @@ namespace XCode.DataAccessLayer
 
                         OpenDatabase(conn, sysdbname);
 
-                        Conn = conn;
+                        //Conn = conn;
 
-                        return callback(this);
+                        return callback(this, conn);
                     }
                     finally
                     {
-                        Conn = null;
+                        //Conn = null;
 
-                        WriteLog("退出系统库[{0}]，回到[{1}]", sysdbname, dbname);
+                        if (DAL.Debug) WriteLog("退出系统库[{0}]，回到[{1}]", sysdbname, dbname);
                     }
                 }
             }
             else
             {
-                return callback(this);
+                return callback(this, null);
             }
         }
 
@@ -200,24 +202,40 @@ namespace XCode.DataAccessLayer
 
             switch (schema)
             {
-                case DDLSchema.TableExist:
-                    return session.QueryCount(GetSchemaSQL(schema, values)) > 0;
+                //case DDLSchema.TableExist:
+                //    return session.QueryCount(GetSchemaSQL(schema, values)) > 0;
 
                 case DDLSchema.DatabaseExist:
-                    return ProcessWithSystem(s => DatabaseExist(databaseName));
+                    //return ProcessWithSystem(s => DatabaseExist(databaseName));
+                    return DatabaseExist(databaseName);
 
                 case DDLSchema.CreateDatabase:
                     values = new Object[] { databaseName, values == null || values.Length < 2 ? null : values[1] };
 
-                    var obj = ProcessWithSystem(s => base.SetSchema(schema, values));
+                    //return ProcessWithSystem(s => base.SetSchema(schema, values));
+                    var sql = base.GetSchemaSQL(schema, values);
+                    if (sql.IsNullOrEmpty()) return null;
 
-                    //// 创建数据库后，需要等待它初始化
-                    //Thread.Sleep(5000);
+                    if (session is RemoteDbSession ss)
+                    {
+                        ss.WriteSQL(sql);
+                        return ss.ProcessWithSystem((s, c) =>
+                        {
+                            using (var cmd = Database.Factory.CreateCommand())
+                            {
+                                cmd.Connection = c;
+                                cmd.CommandText = sql;
 
-                    return obj;
+                                return cmd.ExecuteNonQuery();
+                            }
+                        });
+                    }
 
-                case DDLSchema.DropDatabase:
-                    return ProcessWithSystem(s => DropDatabase(databaseName));
+                    return 0;
+
+                //case DDLSchema.DropDatabase:
+                //    //return ProcessWithSystem(s => DropDatabase(databaseName));
+                //    return DropDatabase(databaseName);
 
                 default:
                     break;
@@ -231,9 +249,9 @@ namespace XCode.DataAccessLayer
             return session.QueryCount(GetSchemaSQL(DDLSchema.DatabaseExist, new Object[] { databaseName })) > 0;
         }
 
-        protected virtual Boolean DropDatabase(String databaseName) => (Boolean)base.SetSchema(DDLSchema.DropDatabase, new Object[] { databaseName });
+        //protected virtual Boolean DropDatabase(String databaseName) => (Boolean)base.SetSchema(DDLSchema.DropDatabase, new Object[] { databaseName });
 
-        Object ProcessWithSystem(Func<IDbSession, Object> callback) => (Database.CreateSession() as RemoteDbSession).ProcessWithSystem(callback);
+        //Object ProcessWithSystem(Func<IDbSession, Object> callback) => (Database.CreateSession() as RemoteDbSession).ProcessWithSystem((s, c) => callback(s));
         #endregion
     }
 }

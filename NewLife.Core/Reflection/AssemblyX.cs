@@ -133,13 +133,13 @@ namespace NewLife.Reflection
 #if !__MOBILE__
             AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += (sender, args) =>
             {
-                var flag = XTrace.Debug && XTrace.Log.Level == LogLevel.Debug;
+                var flag = XTrace.Debug && XTrace.Log.Level <= LogLevel.Debug;
                 if (flag) XTrace.WriteLine("[{0}]请求只反射加载[{1}]", args.RequestingAssembly?.FullName, args.Name);
                 return Assembly.ReflectionOnlyLoad(args.Name);
             };
             AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
             {
-                var flag = XTrace.Debug && XTrace.Log.Level == LogLevel.Debug;
+                var flag = XTrace.Debug && XTrace.Log.Level <= LogLevel.Debug;
                 if (flag) XTrace.WriteLine("[{0}]请求加载[{1}]", args.RequestingAssembly?.FullName, args.Name);
                 return OnResolve(args.Name);
             };
@@ -204,7 +204,7 @@ namespace NewLife.Reflection
         }
 
         /// <summary>是否系统程序集</summary>
-        public Boolean IsSystemAssembly { get { return CheckSystem(Asm); } }
+        public Boolean IsSystemAssembly => CheckSystem(Asm);
 
         private static Boolean CheckSystem(Assembly asm)
         {
@@ -222,7 +222,7 @@ namespace NewLife.Reflection
 
         #region 静态属性
         /// <summary>入口程序集</summary>
-        public static AssemblyX Entry { get { return Create(Assembly.GetEntryAssembly()); } }
+        public static AssemblyX Entry => Create(Assembly.GetEntryAssembly());
         #endregion
 
         #region 方法
@@ -296,7 +296,7 @@ namespace NewLife.Reflection
         /// <summary>查找插件</summary>
         /// <typeparam name="TPlugin"></typeparam>
         /// <returns></returns>
-        internal List<Type> FindPlugins<TPlugin>() { return FindPlugins(typeof(TPlugin)); }
+        internal List<Type> FindPlugins<TPlugin>() => FindPlugins(typeof(TPlugin));
 
         private ConcurrentDictionary<Type, List<Type>> _plugins = new ConcurrentDictionary<Type, List<Type>>();
         /// <summary>查找插件，带缓存</summary>
@@ -592,6 +592,7 @@ namespace NewLife.Reflection
             }
         }
 
+        private static ICollection<String> _BakImages = new List<String>();
         /// <summary>只反射加载指定路径的所有程序集</summary>
         /// <param name="path"></param>
         /// <returns></returns>
@@ -614,6 +615,7 @@ namespace NewLife.Reflection
             {
                 // 仅尝试加载dll和exe，不加载vshost文件
                 if (!item.EndsWithIgnoreCase(".dll", ".exe") || item.EndsWithIgnoreCase(".vshost.exe")) continue;
+                if (_BakImages.Contains(item)) continue;
 
                 if (loadeds.Any(e => e.Location.EqualIgnoreCase(item)) ||
                     loadeds2.Any(e => e.Location.EqualIgnoreCase(item))) continue;
@@ -628,9 +630,10 @@ namespace NewLife.Reflection
                 {
                     asm = Assembly.LoadFrom(item);
                 }
-                catch (Exception e)
+                catch (BadImageFormatException ex)
                 {
-                    XTrace.WriteLine(e.ToString());
+                    _BakImages.Add(item);
+                    //XTrace.WriteLine(ex.ToString());
                 }
 
                 if (asm == null) continue;

@@ -48,16 +48,20 @@ namespace XCode
         [Description("命令超时。查询执行超时时间，默认0秒不限制")]
         public Int32 CommandTimeout { get; set; }
 
-        /// <summary>实体缓存过期。默认10秒</summary>
-        [Description("实体缓存过期。默认10秒")]
+        /// <summary>数据层缓存。默认0秒</summary>
+        [Description("数据层缓存。默认0秒")]
+        public Int32 DataCacheExpire { get; set; }
+
+        /// <summary>实体缓存过期。整表缓存实体列表，默认10秒</summary>
+        [Description("实体缓存过期。整表缓存实体列表，默认10秒")]
         public Int32 EntityCacheExpire { get; set; } = 10;
 
-        /// <summary>单对象缓存过期。默认10秒</summary>
-        [Description("单对象缓存过期。默认10秒")]
+        /// <summary>单对象缓存过期。按主键缓存实体，默认10秒</summary>
+        [Description("单对象缓存过期。按主键缓存实体，默认10秒")]
         public Int32 SingleCacheExpire { get; set; } = 10;
 
-        /// <summary>扩展属性过期。默认10秒</summary>
-        [Description("扩展属性过期。默认10秒")]
+        /// <summary>扩展属性过期。扩展属性Extends缓存，默认10秒</summary>
+        [Description("扩展属性过期。扩展属性Extends缓存，默认10秒")]
         public Int32 ExtendExpire { get; set; } = 10;
 
         /// <summary>反向工程。Off 关闭；ReadOnly 只读不执行；On 打开，仅新建；Full 完全，修改删除</summary>

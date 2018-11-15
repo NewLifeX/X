@@ -63,7 +63,8 @@ namespace NewLife.Net
         /// <summary>打开</summary>
         protected override Boolean OnOpen()
         {
-            if (Client == null || !Client.IsBound)
+            var sock = Client;
+            if (sock == null || !sock.IsBound)
             {
                 // 根据目标地址适配本地IPv4/IPv6
                 if (Remote != null && !Remote.Address.IsAny())
@@ -73,8 +74,8 @@ namespace NewLife.Net
 
                 if (StatSession == null) StatSession = new PerfCounter();
 
-                Client = NetHelper.CreateUdp(Local.EndPoint.Address.IsIPv4());
-                Client.Bind(Local.EndPoint);
+                Client = sock = NetHelper.CreateUdp(Local.EndPoint.Address.IsIPv4());
+                sock.Bind(Local.EndPoint);
                 CheckDynamic();
 
                 WriteLog("Open {0}", this);
@@ -86,17 +87,17 @@ namespace NewLife.Net
         /// <summary>关闭</summary>
         protected override Boolean OnClose(String reason)
         {
-            if (Client != null)
+            var sock = Client;
+            if (sock != null)
             {
                 WriteLog("Close {0} {1}", reason, this);
 
-                var udp = Client;
                 Client = null;
                 try
                 {
                     CloseAllSession();
 
-                    udp.Shutdown();
+                    sock.Shutdown();
                 }
                 catch (Exception ex)
                 {
@@ -128,27 +129,27 @@ namespace NewLife.Net
 
             try
             {
-                var sp = Client;
-                lock (sp)
+                var sock = Client;
+                lock (sock)
                 {
-                    if (Client.Connected)
+                    if (sock.Connected)
                     {
                         if (Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, pk.ToHex());
 
                         if (pk.Next == null)
-                            sp.Send(pk.Data, pk.Offset, count, SocketFlags.None);
+                            sock.Send(pk.Data, pk.Offset, count, SocketFlags.None);
                         else
-                            sp.Send(pk.ToArray(), 0, count, SocketFlags.None);
+                            sock.Send(pk.ToArray(), 0, count, SocketFlags.None);
                     }
                     else
                     {
-                        Client.CheckBroadcast(remote.Address);
+                        sock.CheckBroadcast(remote.Address);
                         if (Log.Enable && LogSend) WriteLog("Send {2} [{0}]: {1}", count, pk.ToHex(), remote);
 
                         if (pk.Next == null)
-                            sp.SendTo(pk.Data, pk.Offset, count, SocketFlags.None, remote);
+                            sock.SendTo(pk.Data, pk.Offset, count, SocketFlags.None, remote);
                         else
-                            sp.SendTo(pk.ToArray(), 0, count, SocketFlags.None, remote);
+                            sock.SendTo(pk.ToArray(), 0, count, SocketFlags.None, remote);
                     }
                 }
 
@@ -172,7 +173,7 @@ namespace NewLife.Net
         /// <summary>发送消息并等待响应。必须调用会话的发送，否则配对会失败</summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public override async Task<Object> SendMessageAsync(Object message) => await CreateSession(Remote.EndPoint).SendMessageAsync(message);
+        public override Task<Object> SendMessageAsync(Object message) => CreateSession(Remote.EndPoint).SendMessageAsync(message);
         #endregion
 
         #region 接收

@@ -99,7 +99,9 @@
     <Compile Include="Compression\ZipFile.cs" />
     <Compile Include="Configuration\CombConfig.cs" />
     <Compile Include="Data\BinaryTree.cs" />
-    <Compile Include="Data\DbSet.cs" />
+    <Compile Include="IO\CsvFile.cs" />
+    <Compile Include="Data\DbRow.cs" />
+    <Compile Include="Data\DbTable.cs" />
     <Compile Include="Data\GeoArea.cs" />
     <Compile Include="Data\GeoAddress.cs" />
     <Compile Include="Data\GeoPoint.cs" />
@@ -142,18 +144,14 @@
     <Compile Include="Messaging\IMessage.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Messaging\MessageBase.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Messaging\MessageEventArgs.cs" />
     <Compile Include="Model\IFactory.cs" />
-    <Compile Include="Model\IHistory.cs" />
     <Compile Include="Model\IAuthUser.cs" />
-    <Compile Include="Model\IOnline.cs" />
     <Compile Include="Model\IPlugin.cs" />
     <Compile Include="Model\IManageUser.cs" />
     <Compile Include="Model\ModelExtension.cs" />
     <Compile Include="Model\ObjectContainerHelper.cs" />
+    <Compile Include="Net\NetHandlerContext.cs" />
     <Compile Include="Remoting\ApiAction.cs" />
     <Compile Include="Remoting\ApiAttribute.cs" />
     <Compile Include="Remoting\ApiClient.cs" />
@@ -180,8 +178,8 @@
     <Compile Include="Net\Handlers\StandardCodec.cs" />
     <Compile Include="Net\Handlers\LengthFieldCodec.cs" />
     <Compile Include="Net\Handlers\MessageCodec.cs" />
-    <Compile Include="Net\Handlers\IHandler.cs" />
-    <Compile Include="Net\Handlers\IHandlerContext.cs" />
+    <Compile Include="Model\IHandler.cs" />
+    <Compile Include="Model\IHandlerContext.cs" />
     <Compile Include="Net\INetSession.cs" />
     <Compile Include="Net\Handlers\IMatchQueue.cs" />
     <Compile Include="Net\ISocket.cs" />
@@ -191,7 +189,7 @@
     <Compile Include="Net\NetHelper.cs" />
     <Compile Include="Net\NetServer.cs" />
     <Compile Include="Net\NetSession.cs" />
-    <Compile Include="Net\IPipeline.cs" />
+    <Compile Include="Model\IPipeline.cs" />
     <Compile Include="Net\ReceivedEventArgs.cs" />
     <Compile Include="Net\ITransport.cs" />
     <Compile Include="Net\NetUri.cs" />
@@ -239,7 +237,6 @@
     <Compile Include="Serialization\Binary\Binary.cs" />
     <Compile Include="Serialization\Binary\BinaryComposite.cs" />
     <Compile Include="Serialization\Binary\BinaryPair.cs" />
-    <Compile Include="Serialization\Binary\BitSizeAttribute.cs" />
     <Compile Include="Serialization\Binary\FieldSizeAttribute.cs" />
     <Compile Include="Serialization\Binary\BinaryGeneral.cs" />
     <Compile Include="Serialization\Binary\IBinary.cs" />
@@ -267,9 +264,8 @@
     <Compile Include="Serialization\Json\JsonReader.cs" />
     <Compile Include="Serialization\Json\JsonTest.cs" />
     <Compile Include="Serialization\Json\JsonWriter.cs" />
-    <Compile Include="Serialization\Protocol.cs">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Include="Serialization\Accessor.cs" />
+    <Compile Include="Serialization\SerialHelper.cs" />
     <Compile Include="Serialization\Xml\XmlList.cs" />
     <Compile Include="Serialization\Xml\XmlComposite.cs" />
     <Compile Include="Serialization\Xml\XmlGeneral.cs" />
@@ -281,6 +277,7 @@
     <Compile Include="Reflection\IIndexAccessor.cs" />
     <Compile Include="Security\Crc32.cs" />
     <Compile Include="Common\IdentityCard.cs" />
+    <Compile Include="Threading\TaskEx.cs" />
     <Compile Include="Threading\TaskHelper.cs" />
     <Compile Include="Threading\ThreadPoolX.cs" />
     <Compile Include="Threading\TimerX.cs" />
@@ -331,6 +328,9 @@
       <DependentUpon>SerialPortList.cs</DependentUpon>
     </EmbeddedResource>
     <Compile Include="Extension\EndPointExtensions.cs" />
+    <None Include="Caching\Readme.MD" />
+    <None Include="Log\Readme.md" />
+    <None Include="Net\Readme.md" />
     <None Include="Remoting\ApiClient.cd" />
     <None Include="Remoting\ApiServer.cd" />
     <None Include="X组件.txt" />

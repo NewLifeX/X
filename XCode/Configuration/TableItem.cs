@@ -188,6 +188,26 @@ namespace XCode.Configuration
             }
         }
 
+        private ICollection<String> _ExtendFieldNames;
+        /// <summary>扩展属性集合，不区分大小写的哈希表存储，外部不要修改元素数据</summary>
+        [XmlIgnore]
+        public ICollection<String> ExtendFieldNames
+        {
+            get
+            {
+                if (_ExtendFieldNames != null) return _ExtendFieldNames;
+
+                var list = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
+                foreach (var item in AllFields)
+                {
+                    if (!item.IsDataObjectField && !list.Contains(item.Name)) list.Add(item.Name);
+                }
+                _ExtendFieldNames = list;
+
+                return _ExtendFieldNames;
+            }
+        }
+
         /// <summary>数据表架构</summary>
         [XmlIgnore]
         public IDataTable DataTable { get; private set; }

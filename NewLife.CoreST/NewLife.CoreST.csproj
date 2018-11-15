@@ -7,12 +7,12 @@
     <Description>日志、网络、RPC、序列化、缓存、Windows服务、线程池</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2018 新生命开发团队</Copyright>
-    <FileVersion>7.3.2018.0630</FileVersion>
-    <AssemblyVersion>7.3.*</AssemblyVersion>
+    <FileVersion>7.4.2018.1103</FileVersion>
+    <AssemblyVersion>7.4.*</AssemblyVersion>
     <!--是否确定版本，false以支持*-->
     <Deterministic>false</Deterministic>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <Version>7.3.2018.0614</Version>
+    <Version>7.4.2018.1103</Version>
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
@@ -63,7 +63,8 @@
     <Compile Include="..\NewLife.Core\Compression\ZipException.cs" Link="Compression\ZipException.cs" />
     <Compile Include="..\NewLife.Core\Compression\ZipFile.cs" Link="Compression\ZipFile.cs" />
     <Compile Include="..\NewLife.Core\Data\BinaryTree.cs" Link="Data\BinaryTree.cs" />
-    <Compile Include="..\NewLife.Core\Data\DbSet.cs" Link="Data\DbSet.cs" />
+    <Compile Include="..\NewLife.Core\Data\DbRow.cs" Link="Data\DbRow.cs" />
+    <Compile Include="..\NewLife.Core\Data\DbTable.cs" Link="Data\DbTable.cs" />
     <Compile Include="..\NewLife.Core\Data\GeoAddress.cs" Link="Data\GeoAddress.cs" />
     <Compile Include="..\NewLife.Core\Data\GeoArea.cs" Link="Data\GeoArea.cs" />
     <Compile Include="..\NewLife.Core\Data\GeoPoint.cs" Link="Data\GeoPoint.cs" />
@@ -88,6 +89,7 @@
     <Compile Include="..\NewLife.Core\Http\HttpResponse.cs" Link="Http\HttpResponse.cs" />
     <Compile Include="..\NewLife.Core\Http\HttpServer.cs" Link="Http\HttpServer.cs" />
     <Compile Include="..\NewLife.Core\Http\TinyHttpClient.cs" Link="Http\TinyHttpClient.cs" />
+    <Compile Include="..\NewLife.Core\IO\CsvFile.cs" Link="IO\CsvFile.cs" />
     <Compile Include="..\NewLife.Core\IO\EncodingHelper.cs" Link="IO\EncodingHelper.cs" />
     <Compile Include="..\NewLife.Core\IO\IOHelper.cs" Link="IO\IOHelper.cs" />
     <Compile Include="..\NewLife.Core\IO\PathHelper.cs" Link="IO\PathHelper.cs" />
@@ -108,33 +110,31 @@
     <Compile Include="..\NewLife.Core\Log\XTrace.cs" Link="Log\XTrace.cs" />
     <Compile Include="..\NewLife.Core\Messaging\DefaultMessage.cs" Link="Messaging\DefaultMessage.cs" />
     <Compile Include="..\NewLife.Core\Messaging\IMessage.cs" Link="Messaging\IMessage.cs" />
-    <Compile Include="..\NewLife.Core\Messaging\MessageBase.cs" Link="Messaging\MessageBase.cs" />
     <Compile Include="..\NewLife.Core\Messaging\MessageEventArgs.cs" Link="Messaging\MessageEventArgs.cs" />
     <Compile Include="..\NewLife.Core\Model\IAuthUser.cs" Link="Model\IAuthUser.cs" />
     <Compile Include="..\NewLife.Core\Model\IFactory.cs" Link="Model\IFactory.cs" />
-    <Compile Include="..\NewLife.Core\Model\IHistory.cs" Link="Model\IHistory.cs" />
+    <Compile Include="..\NewLife.Core\Model\IHandler.cs" Link="Model\IHandler.cs" />
+    <Compile Include="..\NewLife.Core\Model\IHandlerContext.cs" Link="Model\IHandlerContext.cs" />
     <Compile Include="..\NewLife.Core\Model\IManageUser.cs" Link="Model\IManageUser.cs" />
     <Compile Include="..\NewLife.Core\Model\IObjectContainer.cs" Link="Model\IObjectContainer.cs" />
-    <Compile Include="..\NewLife.Core\Model\IOnline.cs" Link="Model\IOnline.cs" />
+    <Compile Include="..\NewLife.Core\Model\IPipeline.cs" Link="Model\IPipeline.cs" />
     <Compile Include="..\NewLife.Core\Model\IPlugin.cs" Link="Model\IPlugin.cs" />
     <Compile Include="..\NewLife.Core\Model\IServer.cs" Link="Model\IServer.cs" />
     <Compile Include="..\NewLife.Core\Model\ModelExtension.cs" Link="Model\ModelExtension.cs" />
     <Compile Include="..\NewLife.Core\Model\ObjectContainer.cs" Link="Model\ObjectContainer.cs" />
     <Compile Include="..\NewLife.Core\Model\ObjectContainerHelper.cs" Link="Model\ObjectContainerHelper.cs" />
-    <Compile Include="..\NewLife.Core\Net\Handlers\IHandler.cs" Link="Net\Handlers\IHandler.cs" />
-    <Compile Include="..\NewLife.Core\Net\Handlers\IHandlerContext.cs" Link="Net\Handlers\IHandlerContext.cs" />
     <Compile Include="..\NewLife.Core\Net\Handlers\IMatchQueue.cs" Link="Net\Handlers\IMatchQueue.cs" />
     <Compile Include="..\NewLife.Core\Net\Handlers\LengthFieldCodec.cs" Link="Net\Handlers\LengthFieldCodec.cs" />
     <Compile Include="..\NewLife.Core\Net\Handlers\MessageCodec.cs" Link="Net\Handlers\MessageCodec.cs" />
     <Compile Include="..\NewLife.Core\Net\Handlers\StandardCodec.cs" Link="Net\Handlers\StandardCodec.cs" />
     <Compile Include="..\NewLife.Core\Net\INetSession.cs" Link="Net\INetSession.cs" />
-    <Compile Include="..\NewLife.Core\Net\IPipeline.cs" Link="Net\IPipeline.cs" />
     <Compile Include="..\NewLife.Core\Net\ISocket.cs" Link="Net\ISocket.cs" />
     <Compile Include="..\NewLife.Core\Net\ISocketClient.cs" Link="Net\ISocketClient.cs" />
     <Compile Include="..\NewLife.Core\Net\ISocketServer.cs" Link="Net\ISocketServer.cs" />
     <Compile Include="..\NewLife.Core\Net\ISocketSession.cs" Link="Net\ISocketSession.cs" />
     <Compile Include="..\NewLife.Core\Net\ITransport.cs" Link="Net\ITransport.cs" />
     <Compile Include="..\NewLife.Core\Net\NetException.cs" Link="Net\NetException.cs" />
+    <Compile Include="..\NewLife.Core\Net\NetHandlerContext.cs" Link="Net\NetHandlerContext.cs" />
     <Compile Include="..\NewLife.Core\Net\NetHelper.cs" Link="Net\NetHelper.cs" />
     <Compile Include="..\NewLife.Core\Net\NetServer.cs" Link="Net\NetServer.cs" />
     <Compile Include="..\NewLife.Core\Net\NetSession.cs" Link="Net\NetSession.cs" />
@@ -180,6 +180,7 @@
     <Compile Include="..\NewLife.Core\Security\Rand.cs" Link="Security\Rand.cs" />
     <Compile Include="..\NewLife.Core\Security\RC4.cs" Link="Security\RC4.cs" />
     <Compile Include="..\NewLife.Core\Security\SecurityHelper.cs" Link="Security\SecurityHelper.cs" />
+    <Compile Include="..\NewLife.Core\Serialization\Accessor.cs" Link="Serialization\Accessor.cs" />
     <Compile Include="..\NewLife.Core\Serialization\BinaryCodec.cs" Link="Serialization\BinaryCodec.cs" />
     <Compile Include="..\NewLife.Core\Serialization\BinaryCodec2.cs" Link="Serialization\BinaryCodec2.cs" />
     <Compile Include="..\NewLife.Core\Serialization\Binary\Binary.cs" Link="Serialization\Binary\Binary.cs" />
@@ -207,13 +208,14 @@
     <Compile Include="..\NewLife.Core\Serialization\Json\JsonParser.cs" Link="Serialization\Json\JsonParser.cs" />
     <Compile Include="..\NewLife.Core\Serialization\Json\JsonReader.cs" Link="Serialization\Json\JsonReader.cs" />
     <Compile Include="..\NewLife.Core\Serialization\Json\JsonWriter.cs" Link="Serialization\Json\JsonWriter.cs" />
-    <Compile Include="..\NewLife.Core\Serialization\Protocol.cs" Link="Serialization\Protocol.cs" />
+    <Compile Include="..\NewLife.Core\Serialization\SerialHelper.cs" Link="Serialization\SerialHelper.cs" />
     <Compile Include="..\NewLife.Core\Serialization\Xml\IXml.cs" Link="Serialization\Xml\IXml.cs" />
     <Compile Include="..\NewLife.Core\Serialization\Xml\Xml.cs" Link="Serialization\Xml\Xml.cs" />
     <Compile Include="..\NewLife.Core\Serialization\Xml\XmlComposite.cs" Link="Serialization\Xml\XmlComposite.cs" />
     <Compile Include="..\NewLife.Core\Serialization\Xml\XmlGeneral.cs" Link="Serialization\Xml\XmlGeneral.cs" />
     <Compile Include="..\NewLife.Core\Serialization\Xml\XmlList.cs" Link="Serialization\Xml\XmlList.cs" />
     <Compile Include="..\NewLife.Core\Setting.cs" Link="Setting.cs" />
+    <Compile Include="..\NewLife.Core\Threading\TaskEx.cs" Link="Threading\TaskEx.cs" />
     <Compile Include="..\NewLife.Core\Threading\TaskHelper.cs" Link="Threading\TaskHelper.cs" />
     <Compile Include="..\NewLife.Core\Threading\ThreadPoolX.cs" Link="Threading\ThreadPoolX.cs" />
     <Compile Include="..\NewLife.Core\Threading\TimerScheduler.cs" Link="Threading\TimerScheduler.cs" />

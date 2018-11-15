@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Web;
-using System.Web.Script.Serialization;
-using System.Xml.Serialization;
-using NewLife.Collections;
 using NewLife.Model;
 using NewLife.Threading;
 using NewLife.Web;
+using XCode.Configuration;
 
 namespace XCode.Membership
 {
@@ -21,10 +18,16 @@ namespace XCode.Membership
         public class __
         {
             /// <summary>创建人</summary>
-            public static String CreateUserID = "CreateUserID";
+            public static String CreateUserID = nameof(CreateUserID);
+
+            /// <summary>创建人</summary>
+            public static String CreateUser = nameof(CreateUser);
 
             /// <summary>更新人</summary>
-            public static String UpdateUserID = "UpdateUserID";
+            public static String UpdateUserID = nameof(UpdateUserID);
+
+            /// <summary>更新人</summary>
+            public static String UpdateUser = nameof(UpdateUser);
         }
         #endregion
 
@@ -51,9 +54,18 @@ namespace XCode.Membership
         /// <returns></returns>
         protected override Boolean OnInit(Type entityType)
         {
-            var fs = GetFieldNames(entityType);
-            if (fs.Contains(__.CreateUserID)) return true;
-            if (fs.Contains(__.UpdateUserID)) return true;
+            var fs = GetFields(entityType);
+            foreach (var fi in fs)
+            {
+                if (fi.Type == typeof(Int32) || fi.Type == typeof(Int64))
+                {
+                    if (fi.Name.EqualIgnoreCase(__.CreateUserID, __.UpdateUserID)) return true;
+                }
+                else if (fi.Type == typeof(String))
+                {
+                    if (fi.Name.EqualIgnoreCase(__.CreateUser, __.UpdateUser)) return true;
+                }
+            }
 
             return false;
         }
@@ -63,9 +75,9 @@ namespace XCode.Membership
         /// <param name="isNew"></param>
         protected override Boolean OnValid(IEntity entity, Boolean isNew)
         {
-            if (!isNew && !entity.Dirtys.Any()) return true;
+            if (!isNew && !entity.HasDirty) return true;
 
-            var fs = GetFieldNames(entity.GetType());
+            var fs = GetFields(entity.GetType());
 
             // 当前登录用户
             var prv = Provider ?? ManageProvider.Provider;
@@ -76,13 +88,20 @@ namespace XCode.Membership
 #endif
             if (user != null)
             {
-                if (isNew) SetNoDirtyItem(fs, entity, __.CreateUserID, user.ID);
+                if (isNew)
+                {
+                    SetNoDirtyItem(fs, entity, __.CreateUserID, user.ID);
+                    SetNoDirtyItem(fs, entity, __.CreateUser, user + "");
+                }
+
                 SetNoDirtyItem(fs, entity, __.UpdateUserID, user.ID);
+                SetNoDirtyItem(fs, entity, __.UpdateUser, user + "");
             }
             else
             {
                 // 在没有当前登录用户的场合，把更新者清零
                 SetNoDirtyItem(fs, entity, __.UpdateUserID, 0);
+                SetNoDirtyItem(fs, entity, __.UpdateUser, "");
             }
 
             return true;
@@ -97,10 +116,10 @@ namespace XCode.Membership
         public class __
         {
             /// <summary>创建时间</summary>
-            public static String CreateTime = "CreateTime";
+            public static String CreateTime = nameof(CreateTime);
 
             /// <summary>更新时间</summary>
-            public static String UpdateTime = "UpdateTime";
+            public static String UpdateTime = nameof(UpdateTime);
         }
         #endregion
 
@@ -109,9 +128,14 @@ namespace XCode.Membership
         /// <returns></returns>
         protected override Boolean OnInit(Type entityType)
         {
-            var fs = GetFieldNames(entityType);
-            if (fs.Contains(__.CreateTime)) return true;
-            if (fs.Contains(__.UpdateTime)) return true;
+            var fs = GetFields(entityType);
+            foreach (var fi in fs)
+            {
+                if (fi.Type == typeof(DateTime))
+                {
+                    if (fi.Name.EqualIgnoreCase(__.CreateTime, __.UpdateTime)) return true;
+                }
+            }
 
             return false;
         }
@@ -121,9 +145,9 @@ namespace XCode.Membership
         /// <param name="isNew"></param>
         protected override Boolean OnValid(IEntity entity, Boolean isNew)
         {
-            if (!isNew && !entity.Dirtys.Any()) return true;
+            if (!isNew && !entity.HasDirty) return true;
 
-            var fs = GetFieldNames(entity.GetType());
+            var fs = GetFields(entity.GetType());
 
             if (isNew) SetNoDirtyItem(fs, entity, __.CreateTime, TimerX.Now);
 
@@ -142,10 +166,10 @@ namespace XCode.Membership
         public class __
         {
             /// <summary>创建人</summary>
-            public static String CreateIP = "CreateIP";
+            public static String CreateIP = nameof(CreateIP);
 
             /// <summary>更新人</summary>
-            public static String UpdateIP = "UpdateIP";
+            public static String UpdateIP = nameof(UpdateIP);
         }
         #endregion
 
@@ -154,9 +178,14 @@ namespace XCode.Membership
         /// <returns></returns>
         protected override Boolean OnInit(Type entityType)
         {
-            var fs = GetFieldNames(entityType);
-            if (fs.Contains(__.CreateIP)) return true;
-            if (fs.Contains(__.UpdateIP)) return true;
+            var fs = GetFields(entityType);
+            foreach (var fi in fs)
+            {
+                if (fi.Type == typeof(String))
+                {
+                    if (fi.Name.EqualIgnoreCase(__.CreateIP, __.UpdateIP)) return true;
+                }
+            }
 
             var fs2 = GetIPFieldNames(entityType);
             return fs2 != null && fs2.Count > 0;
@@ -167,7 +196,7 @@ namespace XCode.Membership
         /// <param name="isNew"></param>
         protected override Boolean OnValid(IEntity entity, Boolean isNew)
         {
-            if (!isNew && !entity.Dirtys.Any()) return true;
+            if (!isNew && !entity.HasDirty) return true;
 
             var ip = WebHelper.UserHost;
             if (!ip.IsNullOrEmpty())
@@ -176,7 +205,7 @@ namespace XCode.Membership
                 if (ip.Contains("://")) ip = ip.Substring("://", null);
                 if (ip.Contains(":") && !ip.Contains("::")) ip = ip.Substring(null, ":");
 
-                var fs = GetFieldNames(entity.GetType());
+                var fs = GetFields(entity.GetType());
 
                 if (isNew)
                 {
@@ -199,18 +228,18 @@ namespace XCode.Membership
             return true;
         }
 
-        private static ConcurrentDictionary<Type, ICollection<String>> _ipFieldNames = new ConcurrentDictionary<Type, ICollection<String>>();
+        private static ConcurrentDictionary<Type, ICollection<FieldItem>> _ipFieldNames = new ConcurrentDictionary<Type, ICollection<FieldItem>>();
         /// <summary>获取实体类的字段名。带缓存</summary>
         /// <param name="entityType"></param>
         /// <returns></returns>
-        protected static ICollection<String> GetIPFieldNames(Type entityType)
+        protected static ICollection<FieldItem> GetIPFieldNames(Type entityType)
         {
             return _ipFieldNames.GetOrAdd(entityType, t =>
             {
-                var fs = GetFieldNames(t);
+                var fs = GetFields(t);
                 if (fs == null || fs.Count == 0) return null;
 
-                return new HashSet<String>(fs.Where(e => e.EndsWith("IP")));
+                return new HashSet<FieldItem>(fs.Where(e => e.Name.EndsWith("IP")));
             });
         }
     }

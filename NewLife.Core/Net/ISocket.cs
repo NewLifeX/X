@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
-using NewLife.Net.Handlers;
+using NewLife.Model;
 using NewLife.Threading;
 
 namespace NewLife.Net
@@ -121,7 +121,7 @@ namespace NewLife.Net
 
         /// <summary>处理数据帧</summary>
         /// <param name="data">数据帧</param>
-        void Receive(IData data);
+        void Process(IData data);
         #endregion
     }
 
@@ -259,17 +259,6 @@ namespace NewLife.Net
 
             session.Pipeline.AddLast(handler);
         }
-
-        ///// <summary>异步发送数据并等待响应</summary>
-        ///// <param name="session">会话</param>
-        ///// <param name="buffer"></param>
-        ///// <returns></returns>
-        //public static async Task<Byte[]> SendAsync(this ISocketRemote session, Byte[] buffer)
-        //{
-        //    var pk = new Packet(buffer);
-        //    var rs = await session.SendAsync(pk);
-        //    return rs?.ToArray();
-        //}
         #endregion
     }
 }

@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,7 +13,7 @@ namespace NewLife.Collections
     /// <remarks>常用匿名函数或者Lambda表达式作为委托。</remarks>
     /// <typeparam name="TKey">键类型</typeparam>
     /// <typeparam name="TValue">值类型</typeparam>
-    public class DictionaryCache<TKey, TValue> : DisposeBase
+    public class DictionaryCache<TKey, TValue> : DisposeBase, IEnumerable<KeyValuePair<TKey, TValue>>
     {
         #region 属性
         /// <summary>过期时间。单位是秒，默认0秒，表示永不过期</summary>
@@ -21,6 +21,9 @@ namespace NewLife.Collections
 
         /// <summary>定时清理时间，默认0秒，表示不清理过期项</summary>
         public Int32 Period { get; set; }
+
+        /// <summary>容量。容量超标时，采用LRU机制删除，默认10_000</summary>
+        public Int32 Capacity { get; set; } = 10_000;
 
         /// <summary>是否允许缓存控制，避免缓存穿透。默认false</summary>
         public Boolean AllowNull { get; set; }
@@ -70,18 +73,33 @@ namespace NewLife.Collections
         class CacheItem
         {
             /// <summary>数值</summary>
-            public TValue Value { get; set; }
+            public TValue Value { get; private set; }
 
             /// <summary>过期时间</summary>
-            public DateTime ExpiredTime { get; set; }
+            public DateTime ExpiredTime { get; private set; }
 
             /// <summary>是否过期</summary>
             public Boolean Expired => ExpiredTime <= TimerX.Now;
 
-            public CacheItem(TValue value, Int32 seconds)
+            /// <summary>访问时间</summary>
+            public DateTime VisitTime { get; private set; }
+
+            public CacheItem(TValue value, Int32 seconds) => Set(value, seconds);
+
+            public void Set(TValue value, Int32 seconds)
             {
                 Value = value;
-                if (seconds > 0) ExpiredTime = TimerX.Now.AddSeconds(seconds);
+
+                var now = VisitTime = TimerX.Now;
+                if (seconds > 0) ExpiredTime = now.AddSeconds(seconds);
+            }
+
+            /// <summary>更新访问时间并返回数值</summary>
+            /// <returns></returns>
+            public TValue Visit()
+            {
+                VisitTime = TimerX.Now;
+                return Value;
             }
         }
         #endregion
@@ -102,17 +120,19 @@ namespace NewLife.Collections
             if (_cache.TryGetValue(key, out var item))
             {
                 // 找到后判断过期
-                if (Expire > 0 && func != null && item.Expired)
+                if (Expire > 0 && item.Expired)
                 {
                     // 超时异步更新
-                    Task.Factory.StartNew(() =>
+                    if (func != null)
                     {
-                        item.Value = func(key);
-                        item.ExpiredTime = TimerX.Now.AddSeconds(Expire);
-                    });
+                        item.Set(item.Value, Expire);
+                        Task.Factory.StartNew(() => item.Set(func(key), Expire));
+                    }
+                    else
+                        _cache.Remove(key);
                 }
 
-                return item.Value;
+                return item.Visit();
             }
 
             // 找不到，则查找数据并加入缓存
@@ -138,7 +158,7 @@ namespace NewLife.Collections
         {
             if (!_cache.TryGetValue(key, out var item)) return default(TValue);
 
-            return item.Value;
+            return item.Visit();
         }
 
         /// <summary>设置 AddOrUpdate</summary>
@@ -166,11 +186,8 @@ namespace NewLife.Collections
                 if (_cache.TryGetValue(key, out var item))
                 {
                     resultingValue = item.Value;
-                    if (updateIfExists)
-                    {
-                        item.Value = value;
-                        item.ExpiredTime = TimerX.Now.AddSeconds(Expire);
-                    }
+                    if (updateIfExists) item.Set(value, Expire);
+
                     return false;
                 }
 
@@ -190,28 +207,39 @@ namespace NewLife.Collections
         /// <param name="key">键</param>
         /// <param name="func">获取值的委托，该委托以键作为参数</param>
         /// <returns></returns>
-        [DebuggerHidden]
+        //[DebuggerHidden]
+        //[Obsolete]
         public virtual TValue GetItem(TKey key, Func<TKey, TValue> func)
         {
             var exp = Expire;
             var items = _cache;
-            if (items.TryGetValue(key, out var item) && (exp <= 0 || !item.Expired)) return item.Value;
+            if (items.TryGetValue(key, out var item) && (exp <= 0 || !item.Expired)) return item.Visit();
 
             // 提前计算，避免因为不同的Key错误锁定了主键
             var value = default(TValue);
 
             lock (items)
             {
-                if (items.TryGetValue(key, out item) && (exp <= 0 || !item.Expired)) return item.Value;
+                if (items.TryGetValue(key, out item) && (exp <= 0 || !item.Expired)) return item.Visit();
 
                 if (func != null)
                 {
-                    value = func(key);
-                    if (value != null || AllowNull)
+                    // 过期时，异步加载
+                    if (item != null)
                     {
-                        items[key] = new CacheItem(value, exp);
+                        value = item.Visit();
+                        item.Set(value, Expire);
+                        ThreadPoolX.QueueUserWorkItem(() => value = func(key));
+                    }
+                    else
+                    {
+                        value = func(key);
+                        if (value != null || AllowNull)
+                        {
+                            items[key] = new CacheItem(value, exp);
 
-                        Interlocked.Increment(ref _count);
+                            Interlocked.Increment(ref _count);
+                        }
                     }
                 }
                 StartTimer();
@@ -231,11 +259,14 @@ namespace NewLife.Collections
 
             return true;
         }
+
+        /// <summary>清空</summary>
+        public virtual void Clear() => _cache?.Clear();
         #endregion
 
         #region 辅助
         private Int32 _count;
-        /// <summary>缓存项</summary>
+        /// <summary>缓存项。原子计数</summary>
         public Int32 Count => _count;
 
         /// <summary>是否包含指定键</summary>
@@ -251,7 +282,7 @@ namespace NewLife.Collections
 
             foreach (var item in _cache)
             {
-                cache[item.Key] = item.Value.Value;
+                cache[item.Key] = item.Value.Visit();
             }
         }
         #endregion
@@ -305,15 +336,53 @@ namespace NewLife.Collections
                     k++;
             }
 
+            // 计算容量
+            var dt = now.AddSeconds(-Expire);
+            var k2 = 0;
+            while (Capacity > 0 && k > Capacity)
+            {
+                // 选定一个截止时间，最后一次访问在这之前的项逐出
+                // 以10%的步进来选时间
+                dt = dt.AddSeconds(Expire / 10);
+                if (dt >= now) break;
+
+                foreach (var item in dic)
+                {
+                    var t = item.Value.VisitTime;
+                    if (t < dt)
+                    {
+                        ds.Add(item.Key);
+                        k--;
+                        k2++;
+                    }
+                }
+            }
+#if DEBUG
+            if (k2 > 0) NewLife.Log.XTrace.WriteLine("字典缓存[{0:n0}]超过容量[{1:n0}]，逐出[{2:n0}]个", _count, Capacity, k2);
+#endif
+
             foreach (var item in ds)
             {
                 dic.Remove(item);
-                //if (dic.Remove(item)) Interlocked.Decrement(ref _count);
             }
 
             // 修正
             _count = k;
         }
+        #endregion
+
+        #region 枚举
+        /// <summary>枚举</summary>
+        /// <returns></returns>
+        public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
+        {
+            foreach (var item in _cache)
+            {
+                yield return new KeyValuePair<TKey, TValue>(item.Key, item.Value.Visit());
+            }
+        }
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         #endregion
     }
 }

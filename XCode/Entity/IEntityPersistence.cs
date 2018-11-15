@@ -80,6 +80,17 @@ namespace XCode
         /// <returns>SQL字符串</returns>
         String GetSql(IEntity entity, DataObjectMethodType methodType);
         #endregion
+
+        #region 参数化
+        /// <summary>插入语句</summary>
+        /// <param name="factory"></param>
+        /// <returns></returns>
+        String InsertSQL(IEntityOperate factory);
+
+        ///// <summary>插入参数</summary>
+        ///// <param name="entity"></param>
+        //IList<IDataParameter> InsertParameters(IEntity entity);
+        #endregion
     }
 
     /// <summary>默认实体持久化</summary>
@@ -139,7 +150,7 @@ namespace XCode
             if (fi != null)
             {
                 // 判断是否设置了数据
-                if (!entity.Dirtys[fi.Name])
+                if (!entity.IsDirty(fi.Name))
                 {
                     // 如果没有设置，这里给它设置
                     if (fi.Type == typeof(Guid))
@@ -155,9 +166,8 @@ namespace XCode
         /// <returns></returns>
         public virtual Int32 Update(IEntity entity)
         {
-            var ds = entity.Dirtys;
             // 没有脏数据，不需要更新
-            if (!ds.Any()) return 0;
+            if (!entity.HasDirty) return 0;
 
             IDataParameter[] dps = null;
             var sql = "";
@@ -165,13 +175,13 @@ namespace XCode
             // 双锁判断脏数据
             lock (entity)
             {
-                if (ds.Count == 0) return 0;
+                if (!entity.HasDirty) return 0;
 
                 sql = SQL(entity, DataObjectMethodType.Update, ref dps);
                 if (sql.IsNullOrEmpty()) return 0;
 
                 //清除脏数据，避免重复提交
-                ds.Clear();
+                entity.Dirtys.Clear();
             }
 
             var op = EntityFactory.CreateOperate(entity.GetType());
@@ -381,7 +391,7 @@ namespace XCode
                 if (sbNames != null && CheckIdentity(fi, value, op, sbNames, sbValues)) continue;
 
                 // 1，有脏数据的字段一定要参与同时对于实体有值的也应该参与（针对通过置空主键的方式另存）
-                if (!up && value == null && !entity.Dirtys[fi.Name])
+                if (!up && value == null && !entity.IsDirty(fi.Name))
                 {
                     // 2，没有脏数据，允许空的字段不参与
                     if (fi.IsNullable) continue;
@@ -454,7 +464,7 @@ namespace XCode
             if (def.Empty) return null;
 
             // 处理累加字段
-            var dfs = (entity as EntityBase).Addition.Get();
+            var dfs = (entity as EntityBase).GetAddition();
 
             var op = EntityFactory.CreateOperate(entity.GetType());
             var up = op.Session.Dal.Db.UseParameter;
@@ -467,7 +477,7 @@ namespace XCode
                 if (fi.IsIdentity) continue;
 
                 //脏数据判断
-                if (!entity.Dirtys[fi.Name]) continue;
+                if (!entity.IsDirty(fi.Name)) continue;
 
                 var value = entity[fi.Name];
 
@@ -488,7 +498,7 @@ namespace XCode
             }
 
             // 重置累加数据
-            (entity as EntityBase).Addition.Reset(dfs);
+            if (dfs != null && dfs.Count > 0) (entity as EntityBase).Addition.Reset(dfs);
 
             var str = sb.Put(true);
             if (str.IsNullOrEmpty()) return null;
@@ -600,8 +610,8 @@ namespace XCode
             var cur = vs[0];
             var old = vs[1];
 
-            // 如果原始值是0，不使用累加，因为可能原始数据字段是NULL，导致累加失败
-            if (Convert.ToInt64(old) == 0) return false;
+            //// 如果原始值是0，不使用累加，因为可能原始数据字段是NULL，导致累加失败
+            //if (Convert.ToInt64(old) == 0) return false;
 
             var sign = true;
             var value = old;
@@ -720,6 +730,54 @@ namespace XCode
             //return sb.ToString();
             return exp;
         }
+        #endregion
+
+        #region 参数化
+        /// <summary>插入语句</summary>
+        /// <param name="factory"></param>
+        /// <returns></returns>
+        public virtual String InsertSQL(IEntityOperate factory)
+        {
+            var op = factory;
+            var db = op.Session.Dal.Db;
+
+            var sbNames = Pool.StringBuilder.Get();
+            var sbValues = Pool.StringBuilder.Get();
+
+            foreach (var fi in op.Fields)
+            {
+                // 标识列不需要插入，别的类型都需要
+                if (fi.IsIdentity && !op.AllowInsertIdentity) continue;
+
+                sbNames.Separate(", ").Append(op.FormatName(fi.ColumnName));
+                sbValues.Separate(", ").Append(db.FormatParameterName(fi.Name));
+            }
+
+            var ns = sbNames.Put(true);
+            var vs = sbValues.Put(true);
+
+            return $"Insert Into {op.FormatedTableName}({ns}) Values({vs})";
+        }
+
+        ///// <summary>插入参数</summary>
+        ///// <param name="entity"></param>
+        //public virtual IList<IDataParameter> InsertParameters(IEntity entity)
+        //{
+        //    var op = entity.GetType().AsFactory();
+        //    var db = op.Session.Dal.Db;
+
+        //    var dps = new List<IDataParameter>();
+        //    foreach (var fi in op.Fields)
+        //    {
+        //        // 标识列不需要插入，别的类型都需要
+        //        if (fi.IsIdentity && !op.AllowInsertIdentity) continue;
+
+        //        var dp = db.CreateParameter(fi.Name, entity[fi.Name], fi.Field);
+        //        dps.Add(dp);
+        //    }
+
+        //    return dps;
+        //}
         #endregion
     }
 }

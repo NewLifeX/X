@@ -8,10 +8,6 @@ namespace XCode
     public partial class EntityBase : ICustomTypeDescriptor, IEditableObject
     {
         #region INotifyPropertyChanged接口
-        /// <summary>如果实体来自数据库，在给数据属性赋相同值时，不改变脏数据，其它情况均改变脏数据</summary>
-        [NonSerialized]
-        protected Boolean _IsFromDatabase;
-
         /// <summary>属性改变。重载时记得调用基类的该方法，以设置脏数据属性，否则数据将无法Update到数据库。</summary>
         /// <param name="fieldName">字段名</param>
         /// <param name="newValue">新属性值</param>
@@ -19,7 +15,8 @@ namespace XCode
         protected virtual Boolean OnPropertyChanging(String fieldName, Object newValue)
         {
             // 如果数据没有改变，不应该影响脏数据
-            if (_IsFromDatabase && CheckEqual(this[fieldName], newValue)) return false;
+            //if (IsFromDatabase && CheckEqual(this[fieldName], newValue)) return false;
+            if (CheckEqual(this[fieldName], newValue)) return false;
 
             Dirtys[fieldName] = true;
             return true;

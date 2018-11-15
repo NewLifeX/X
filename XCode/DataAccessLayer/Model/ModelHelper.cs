@@ -8,7 +8,6 @@ using System.Reflection;
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
-using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Reflection;
 
@@ -141,14 +140,29 @@ namespace XCode.DataAccessLayer
 
             var writer = XmlWriter.Create(ms, settings);
             writer.WriteStartDocument();
-            writer.WriteStartElement("Tables");
+
+            var hasAttr = atts != null && atts.Count > 0;
+            // 如果含有命名空间则添加
+            if (hasAttr && atts.TryGetValue("xmlns", out var xmlns)) { writer.WriteStartElement("Tables", xmlns); }
+            else writer.WriteStartElement("Tables");
+
             // 写入版本
             writer.WriteAttributeString("Version", Assembly.GetExecutingAssembly().GetName().Version.ToString());
-            if (atts != null && atts.Count > 0)
+            if (hasAttr)
             {
                 foreach (var item in atts)
                 {
-                    if (!item.Key.EqualIgnoreCase("Version")) writer.WriteAttributeString(item.Key, item.Value);
+                    // 处理命名空间
+                    if (item.Key.EqualIgnoreCase("xmlns")) continue;
+                    if (item.Key.Contains(':'))
+                    {
+                        var keys = item.Key.Split(':');
+                        if (keys.Length != 2) continue;
+                        var frefix = keys[0];
+                        var localName = keys[1];
+                        writer.WriteAttributeString(frefix, localName, null, item.Value);
+                    }
+                    else if (!item.Key.EqualIgnoreCase("Version")) writer.WriteAttributeString(item.Key, item.Value);
                     //if (!String.IsNullOrEmpty(item.Value)) writer.WriteElementString(item.Key, item.Value);
                     //writer.WriteElementString(item.Key, item.Value);
                 }
@@ -521,7 +535,7 @@ namespace XCode.DataAccessLayer
                 {
                     foreach (var item in column.Properties)
                     {
-                        if (!item.Key.EqualIgnoreCase("DisplayName", "Precision", "Scale", "NumOfByte")) writer.WriteAttributeString(item.Key, item.Value);
+                        if (!item.Key.EqualIgnoreCase("DisplayName", "NumOfByte")) writer.WriteAttributeString(item.Key, item.Value);
                     }
                 }
             }

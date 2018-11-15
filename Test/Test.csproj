@@ -57,6 +57,8 @@
     <Compile Include="..\NewLife.Core\Windows\MySpeech.cs">
       <Link>MySpeech.cs</Link>
     </Compile>
+    <Compile Include="BLL\测试表格.Biz.cs" />
+    <Compile Include="BLL\测试表格.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

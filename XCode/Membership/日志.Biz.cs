@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Web;
-using System.Web.Script.Serialization;
-using System.Xml.Serialization;
 using NewLife.Model;
 using NewLife.Web;
 using XCode.Cache;
@@ -41,7 +38,7 @@ namespace XCode.Membership
             if (isNew)
             {
                 // 自动设置当前登录用户
-                if (!Dirtys[__.UserName])
+                if (!IsDirty(__.UserName))
                 {
 #if !__CORE__
                     var user = HttpContext.Current?.User?.Identity as IManageUser;
@@ -53,25 +50,22 @@ namespace XCode.Membership
             }
 
             // 处理过长的备注
-            if (!String.IsNullOrEmpty(Remark) && Remark.Length > 500)
+            if (!Remark.IsNullOrEmpty() && Remark.Length > 500)
             {
                 Remark = Remark.Substring(0, 500);
             }
+
+            // 时间
+            if (isNew && CreateTime.Year < 2000 && !IsDirty(__.CreateTime)) CreateTime = DateTime.Now;
         }
 
         /// <summary></summary>
         /// <returns></returns>
-        protected override Int32 OnUpdate()
-        {
-            throw new Exception("禁止修改日志！");
-        }
+        protected override Int32 OnUpdate() => throw new Exception("禁止修改日志！");
 
         /// <summary></summary>
         /// <returns></returns>
-        protected override Int32 OnDelete()
-        {
-            throw new Exception("禁止删除日志！");
-        }
+        protected override Int32 OnDelete() => throw new Exception("禁止删除日志！");
         #endregion
 
         #region 扩展属性
@@ -104,7 +98,11 @@ namespace XCode.Membership
             if (!category.IsNullOrEmpty() && category != "全部") exp &= _.Category == category;
             if (userid >= 0) exp &= _.CreateUserID == userid;
             if (start > DateTime.MinValue) exp &= _.CreateTime >= start;
-            if (end > DateTime.MinValue) exp &= _.CreateTime < end.Date.AddDays(1);
+            if (end > DateTime.MinValue)
+            {
+                if (end == end.Date) end = end.AddDays(1);
+                exp &= _.CreateTime < end;
+            }
 
             // 先精确查询，再模糊
             if (!key.IsNullOrEmpty())

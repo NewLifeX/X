@@ -5,8 +5,11 @@ using System.Data.Common;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using NewLife;
+using NewLife.Collections;
+using NewLife.Data;
 using NewLife.Log;
 using NewLife.Reflection;
 
@@ -35,13 +38,28 @@ namespace XCode.DataAccessLayer
                                 _Factory = GetProviderFactory("Mono.Data.Sqlite.dll", "Mono.Data.Sqlite.SqliteFactory");
                             else
                             {
+                                //_Factory = GetProviderFactory(null, "System.Data.SQLite.SQLiteFactory", true);
 #if __CORE__
-                                _Factory = GetProviderFactory("Microsoft.Data.Sqlite.dll", "Microsoft.Data.Sqlite.SqliteFactory", true);
+                                _Factory = GetProviderFactory(null, "System.Data.SQLite.SQLiteFactory", true);
+                                if (_Factory != null)
+                                {
+                                    // 加载子目录
+                                    var plugin = NewLife.Setting.Current.GetPluginPath();
+                                }
+                                else
+                                {
+                                    _Factory = GetProviderFactory("Microsoft.Data.Sqlite.dll", "Microsoft.Data.Sqlite.SqliteFactory", true);
+                                }
 #else
                                 //_Factory = GetProviderFactory(null, "Microsoft.Data.Sqlite.SqliteFactory");
 #endif
                                 if (_Factory == null) _Factory = GetProviderFactory("System.Data.SQLite.dll", "System.Data.SQLite.SQLiteFactory");
                             }
+
+#if !__CORE__
+                            // 设置线程安全模式
+                            if (_Factory != null) SetThreadSafe();
+#endif
                         }
                     }
                 }
@@ -83,27 +101,29 @@ namespace XCode.DataAccessLayer
                 //if (!builder.ContainsKey("count_changes")) builder["count_changes"] = "1";
 
                 // 优化SQLite，如果原始字符串里面没有这些参数，就设置这些参数
-                builder.TryAdd("Pooling", "true");
+                //builder.TryAdd("Pooling", "true");
                 //if (!builder.ContainsKey("Cache Size")) builder["Cache Size"] = "5000";
                 builder.TryAdd("Cache Size", (512 * 1024 * 1024 / -1024) + "");
                 // 加大Page Size会导致磁盘IO大大加大，性能反而有所下降
                 //if (!builder.ContainsKey("Page Size")) builder["Page Size"] = "32768";
                 // 这两个设置可以让SQLite拥有数十倍的极限性能，但同时又加大了风险，如果系统遭遇突然断电，数据库会出错，而导致系统无法自动恢复
-                builder.TryAdd("Synchronous", "Off");
+                if (!Readonly) builder.TryAdd("Synchronous", "Off");
                 // Journal Mode的内存设置太激进了，容易出事，关闭
                 //if (!builder.ContainsKey("Journal Mode")) builder["Journal Mode"] = "Memory";
                 // 数据库中一种高效的日志算法，对于非内存数据库而言，磁盘I/O操作是数据库效率的一大瓶颈。
                 // 在相同的数据量下，采用WAL日志的数据库系统在事务提交时，磁盘写操作只有传统的回滚日志的一半左右，大大提高了数据库磁盘I/O操作的效率，从而提高了数据库的性能。
-                builder.TryAdd("Journal Mode", "WAL");
+                if (!Readonly) builder.TryAdd("Journal Mode", "WAL");
                 // 绝大多数情况下，都是小型应用，发生数据损坏的几率微乎其微，而多出来的问题让人觉得很烦，所以还是采用内存设置
                 // 将来可以增加自动恢复数据的功能
                 //if (!builder.ContainsKey("Journal Mode")) builder["Journal Mode"] = "Memory";
 
+                if (Readonly) builder.TryAdd("Read Only", "true");
+
                 // 自动清理数据
                 if (builder.TryGetAndRemove("autoVacuum", out var vac)) AutoVacuum = vac.ToBoolean();
             }
-            else
-                SupportSchema = false;
+            //else
+            //    SupportSchema = false;
 
             // 默认超时时间
             //if (!builder.ContainsKey("Default Timeout")) builder["Default Timeout"] = 5 + "";
@@ -152,11 +172,32 @@ namespace XCode.DataAccessLayer
         #region 方法
         /// <summary>创建数据库会话</summary>
         /// <returns></returns>
-        protected override IDbSession OnCreateSession() { return new SQLiteSession(this); }
+        protected override IDbSession OnCreateSession() => new SQLiteSession(this);
 
         /// <summary>创建元数据对象</summary>
         /// <returns></returns>
-        protected override IMetaData OnCreateMetaData() { return new SQLiteMetaData(); }
+        protected override IMetaData OnCreateMetaData() => new SQLiteMetaData();
+
+#if !__CORE__
+        private void SetThreadSafe()
+        {
+            var asm = _Factory?.GetType().Assembly;
+            if (asm == null) return;
+
+            var type = asm.GetTypes().FirstOrDefault(e => e.Name == "UnsafeNativeMethods");
+            var mi = type?.GetMethod("sqlite3_config_none", BindingFlags.Static | BindingFlags.NonPublic);
+            if (mi == null) return;
+
+            /*
+             * SQLiteConfigOpsEnum
+             * 	SQLITE_CONFIG_SINGLETHREAD = 1,
+             * 	SQLITE_CONFIG_MULTITHREAD = 2,
+             * 	SQLITE_CONFIG_SERIALIZED = 3,
+             */
+
+            mi.Invoke(this, new Object[] { 2 });
+        }
+#endif
         #endregion
 
         #region 分页
@@ -201,6 +242,8 @@ namespace XCode.DataAccessLayer
             }
             if (maximumRows < 1) throw new NotSupportedException("不支持取第几条数据之后的所有数据！");
 
+            // 不要修改原来的查询语句
+            builder = builder.Clone();
             builder.Limit += String.Format(" limit {0}, {1}", startRowIndex, maximumRows);
             return builder;
         }
@@ -243,16 +286,7 @@ namespace XCode.DataAccessLayer
         /// <param name="left"></param>
         /// <param name="right"></param>
         /// <returns></returns>
-        public override String StringConcat(String left, String right) { return (!String.IsNullOrEmpty(left) ? left : "\'\'") + "||" + (!String.IsNullOrEmpty(right) ? right : "\'\'"); }
-
-        private Boolean _inited;
-        public Boolean CheckInit()
-        {
-            if (_inited) return false;
-            _inited = true;
-
-            return true;
-        }
+        public override String StringConcat(String left, String right) => (!left.IsNullOrEmpty() ? left : "\'\'") + "||" + (!right.IsNullOrEmpty() ? right : "\'\'");
         #endregion
     }
 
@@ -260,33 +294,10 @@ namespace XCode.DataAccessLayer
     internal class SQLiteSession : FileDbSession
     {
         #region 构造函数
-        public SQLiteSession(IDatabase db) : base(db)
-        {
-            //DelayClose = 10000;
-        }
+        public SQLiteSession(IDatabase db) : base(db) { }
         #endregion
 
         #region 方法
-        //public override void Open()
-        //{
-        //    try
-        //    {
-        //        base.Open();
-
-        //        //if ((Database as SQLite).CheckInit())
-        //        //{
-        //        //    Execute("PRAGMA temp_store=memory");
-        //        //    //ss.Execute("PRAGMA temp_store_directory='{0}'".F(".".GetFullPath()));
-        //        //}
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        if (!ex.Message.Contains(" malformed")) throw;
-
-        //        throw new XCodeException("数据库文件损坏 {0}".F((Database as SQLite).FileName), ex);
-        //    }
-        //}
-
         protected override void CreateDatabase()
         {
             // 内存数据库不需要创建
@@ -299,46 +310,25 @@ namespace XCode.DataAccessLayer
             // 将使用那块“空白”空间，打开自动清理后，删除数据后，会自动清理“空白”空间
             if ((Database as SQLite).AutoVacuum) Execute("PRAGMA auto_vacuum = 1");
         }
-
-        ///// <summary>不关闭连接</summary>
-        //public override void AutoClose()
-        //{
-        //    //base.AutoClose();
-        //}
         #endregion
 
         #region 基本方法 查询/执行
-        //delegate Int32 SFunc(IntPtr db, byte[] strSql, IntPtr pvCallback, IntPtr pvParam, ref IntPtr errMsg);
-        //static SFunc sqlite3_exec;
+        protected override void OnFill(DbTable ds, DbDataReader dr)
+        {
+            var count = dr.FieldCount;
+            var md = Database.CreateMetaData() as DbMetaData;
 
-        ///// <summary>执行DbCommand，返回受影响的行数</summary>
-        ///// <param name="cmd">DbCommand</param>
-        ///// <returns></returns>
-        //public override Int32 Execute(DbCommand cmd)
-        //{
-        //    if (cmd.CommandType == CommandType.Text && cmd.Parameters.Count == 0)
-        //    {
-        //        if (sqlite3_exec == null)
-        //        {
-        //            var type = Database.Factory.GetType().Assembly.GetType("System.Data.SQLite.UnsafeNativeMethods");
-        //            var mi = type.GetMethodEx("sqlite3_exec");
-        //            sqlite3_exec = Delegate.CreateDelegate(typeof(SFunc), mi) as SFunc;
-        //        }
-
-        //        if (sqlite3_exec != null)
-        //        {
-        //            var _sql = Conn.GetValue("_sql");
-        //            var db = (IntPtr)_sql.GetValue("_sql").GetValue("handle");
-
-        //            var ptr = IntPtr.Zero;
-        //            var rs = sqlite3_exec(db, cmd.CommandText.GetBytes(), IntPtr.Zero, IntPtr.Zero, ref ptr);
-
-        //            return 1;
-        //        }
-        //    }
-
-        //    return base.Execute(cmd);
-        //}
+            // 字段
+            var ts = new Type[count];
+            var tns = new String[count];
+            for (var i = 0; i < count; i++)
+            {
+                tns[i] = dr.GetDataTypeName(i);
+                ts[i] = md.GetDataType(tns[i]);
+            }
+            ds.Types = ts;
+            //ds.TypeNames = tns;
+        }
 
         /// <summary>执行插入语句并返回新增行的自动编号</summary>
         /// <param name="sql">SQL语句</param>
@@ -350,16 +340,6 @@ namespace XCode.DataAccessLayer
             sql += ";Select last_insert_rowid() newid";
             return base.InsertAndGetIdentity(sql, type, ps);
         }
-        #endregion
-
-        #region 事务
-        //public override Int32 Commit()
-        //{
-        //    lock (Database)
-        //    {
-        //        return base.Commit();
-        //    }
-        //}
         #endregion
 
         #region 高级
@@ -385,15 +365,146 @@ namespace XCode.DataAccessLayer
             return rs;
         }
         #endregion
+
+        #region 批量操作
+        /*
+        insert into stat (siteid,statdate,`count`,cost,createtime,updatetime) values 
+        (1,'2018-08-11 09:34:00',1,123,now(),now()),
+        (2,'2018-08-11 09:34:00',1,456,now(),now()),
+        (3,'2018-08-11 09:34:00',1,789,now(),now()),
+        (2,'2018-08-11 09:34:00',1,456,now(),now())
+        on duplicate key update 
+        `count`=`count`+values(`count`),cost=cost+values(cost),
+        updatetime=values(updatetime);
+         */
+
+        private String GetBatchSql(IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list)
+        {
+            var sb = Pool.StringBuilder.Get();
+            var db = Database as DbBase;
+
+            // 字段列表
+            if (columns == null) columns = table.Columns.ToArray();
+            sb.AppendFormat("Insert Into {0}(", db.FormatTableName(table.TableName));
+            foreach (var dc in columns)
+            {
+                if (dc.Identity) continue;
+
+                sb.Append(db.FormatName(dc.ColumnName));
+                sb.Append(",");
+            }
+            sb.Length--;
+            sb.Append(")");
+
+            // 值列表
+            sb.Append(" Values");
+            foreach (var entity in list)
+            {
+                sb.Append("(");
+                foreach (var dc in columns)
+                {
+                    if (dc.Identity) continue;
+
+                    var value = entity[dc.Name];
+                    sb.Append(db.FormatValue(dc, value));
+                    sb.Append(",");
+                }
+                sb.Length--;
+                sb.Append("),");
+            }
+            sb.Length--;
+
+            // 重复键执行update
+            if (updateColumns != null || addColumns != null)
+            {
+                sb.Append(" On Conflict");
+
+                // 先找唯一索引，再用主键
+                var di = table.Indexes?.FirstOrDefault(e => e.Unique);
+                if (di != null && di.Columns != null && di.Columns.Length > 0)
+                {
+                    sb.AppendFormat("({0})", di.Columns.Join(",", e => db.FormatName(e)));
+                }
+                else
+                {
+                    var pks = table.PrimaryKeys;
+                    if (pks != null && pks.Length > 0)
+                        sb.AppendFormat("({0})", pks.Join(",", e => db.FormatName(e.ColumnName)));
+                }
+
+                sb.Append(" Do Update Set ");
+                if (updateColumns != null)
+                {
+                    foreach (var dc in columns)
+                    {
+                        if (dc.Identity || dc.PrimaryKey) continue;
+
+                        if (updateColumns.Contains(dc.Name) && (addColumns == null || !addColumns.Contains(dc.Name)))
+                            sb.AppendFormat("{0}=excluded.{0},", db.FormatName(dc.ColumnName));
+                    }
+                    sb.Length--;
+                }
+                if (addColumns != null)
+                {
+                    sb.Append(",");
+                    foreach (var dc in columns)
+                    {
+                        if (dc.Identity || dc.PrimaryKey) continue;
+
+                        if (addColumns.Contains(dc.Name))
+                            sb.AppendFormat("{0}={0}+excluded.{0},", db.FormatName(dc.ColumnName));
+                    }
+                    sb.Length--;
+                }
+            }
+
+            return sb.Put(true);
+        }
+
+        public override Int32 Insert(IDataColumn[] columns, IEnumerable<IIndexAccessor> list)
+        {
+            var table = columns.FirstOrDefault().Table;
+
+            // 分批
+            var batchSize = 5000;
+            var rs = 0;
+            for (var i = 0; i < list.Count();)
+            {
+                var es = list.Skip(i).Take(batchSize).ToList();
+                var sql = GetBatchSql(table, columns, null, null, es);
+                rs += Execute(sql);
+
+                i += es.Count;
+            }
+
+            return rs;
+        }
+
+        public override Int32 InsertOrUpdate(IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list)
+        {
+            var table = columns.FirstOrDefault().Table;
+
+            // 分批
+            var batchSize = 5000;
+            var rs = 0;
+            for (var i = 0; i < list.Count();)
+            {
+                var es = list.Skip(i).Take(batchSize).ToList();
+                var sql = GetBatchSql(table, columns, updateColumns, addColumns, es);
+                rs += Execute(sql);
+
+                i += es.Count;
+            }
+
+            return rs;
+        }
+        #endregion
     }
 
     /// <summary>SQLite元数据</summary>
     class SQLiteMetaData : FileDbMetaData
     {
-        public SQLiteMetaData()
-        {
-            Types = _DataTypes;
-        }
+        public SQLiteMetaData() => Types = _DataTypes;
 
         #region 数据类型
         protected override List<KeyValuePair<Type, Type>> FieldTypeMaps
@@ -433,35 +544,111 @@ namespace XCode.DataAccessLayer
         protected override List<IDataTable> OnGetTables(String[] names)
         {
             // 特殊处理内存数据库
-            if ((Database as SQLite).IsMemoryDatabase)
+            if ((Database as SQLite).IsMemoryDatabase) return memoryTables.Where(t => names.Contains(t.TableName)).ToList();
+
+            //var dt = GetSchema(_.Tables, null);
+            //if (dt?.Rows == null || dt.Rows.Count < 1) return null;
+
+            //// 默认列出所有字段
+            //var rows = dt.Select("TABLE_TYPE='table'");
+            //if (rows == null || rows.Length < 1) return null;
+
+            //return GetTables(rows, names);
+
+            var ss = Database.CreateSession();
+
+            var sql = "select * from sqlite_master";
+            var ds = ss.Query(sql, null);
+            if (ds.Rows.Count == 0) return null;
+
+            var list = new List<IDataTable>();
+            var hs = new HashSet<String>(names ?? new String[0], StringComparer.OrdinalIgnoreCase);
+
+            var dts = Select(ds, "type", "table");
+            var dis = Select(ds, "type", "index");
+
+            for (var dr = 0; dr < dts.Rows.Count; dr++)
             {
-                return memoryTables.Where(t => names.Contains(t.TableName)).ToList();
+                var name = dts.Get<String>(dr, "tbl_name");
+                if (hs.Count > 0 && !hs.Contains(name)) continue;
+
+                var table = DAL.CreateTable();
+                table.TableName = name;
+
+                sql = dts.Get<String>(dr, "sql");
+                var sqls = sql.Split("\r\n").ToList();
+
+                #region 字段
+                //var dcs = ss.Query($"select * from {Database.FormatName(name)} limit 0,1", null);
+                //for (var i = 0; i < dcs.Columns.Length; i++)
+                foreach (var line in sqls)
+                {
+                    if (line.IsNullOrEmpty() || line[0] != '\t') continue;
+
+                    var fs = line.Trim().Split(" ");
+                    var field = table.CreateColumn();
+
+                    field.ColumnName = fs[0].TrimStart('[').TrimEnd(']');
+                    //field.DataType = dcs.Types[i];
+                    //field.RawType = dcs.TypeNames[i];
+
+                    if (line.Contains("AUTOINCREMENT")) field.Identity = true;
+                    if (line.Contains("Primary Key")) field.PrimaryKey = true;
+
+                    if (line.Contains("NOT NULL"))
+                        field.Nullable = false;
+                    else if (line.Contains(" NULL "))
+                        field.Nullable = true;
+
+                    field.RawType = fs[1];
+                    field.Length = field.RawType.Substring("(", ")").ToInt();
+
+                    field.DataType = GetDataType(field.RawType);
+
+                    // SQLite的字段长度、精度等，都是由类型决定，固定值
+
+                    // 如果数据库里面是integer或者autoincrement，识别类型是Int64，又是自增，则改为Int32，保持与大多数数据库的兼容
+                    if (field.Identity && field.DataType == typeof(Int64) && field.RawType.EqualIgnoreCase("integer", "autoincrement"))
+                    {
+                        field.DataType = typeof(Int32);
+                    }
+
+                    if (field.DataType == null)
+                    {
+                        if (field.RawType.StartsWithIgnoreCase("varchar2", "nvarchar2")) field.DataType = typeof(String);
+                    }
+
+                    table.Columns.Add(field);
+                }
+                #endregion
+
+                #region 索引
+                var dis2 = Select(dis, "tbl_name", name);
+                for (var i = 0; dis2?.Rows != null && i < dis2.Rows.Count; i++)
+                {
+                    var di = table.CreateIndex();
+                    di.Name = dis2.Get<String>(i, "name");
+
+                    sql = dis2.Get<String>(i, "sql");
+                    if (sql.IsNullOrEmpty()) continue;
+
+                    if (sql.Contains(" UNIQUE ")) di.Unique = true;
+
+                    di.Columns = sql.Substring("(", ")").Split(",").Select(e => e.Trim()).ToArray();
+
+                    table.Indexes.Add(di);
+                }
+                #endregion
+
+                //FixTable(table, dr, data);
+
+                // 修正关系数据
+                table.Fix();
+
+                list.Add(table);
             }
 
-            var dt = GetSchema(_.Tables, null);
-            if (dt?.Rows == null || dt.Rows.Count < 1) return null;
-
-            // 默认列出所有字段
-            var rows = dt.Select("TABLE_TYPE='table'");
-            if (rows == null || rows.Length < 1) return null;
-
-            return GetTables(rows, names);
-        }
-
-        protected override void FixField(IDataColumn field, DataRow dr)
-        {
-            base.FixField(field, dr);
-
-            // 如果数据库里面是integer或者autoincrement，识别类型是Int64，又是自增，则改为Int32，保持与大多数数据库的兼容
-            if (field.Identity && field.DataType == typeof(Int64) && field.RawType.EqualIgnoreCase("integer", "autoincrement"))
-            {
-                field.DataType = typeof(Int32);
-            }
-
-            if (field.DataType == null)
-            {
-                if (field.RawType.EqualIgnoreCase("varchar2", "nvarchar2")) field.DataType = typeof(String);
-            }
+            return list;
         }
 
         protected override String GetFieldType(IDataColumn field)
@@ -515,7 +702,7 @@ namespace XCode.DataAccessLayer
         /// <param name="dbname"></param>
         /// <param name="bakfile"></param>
         /// <param name="compressed"></param>
-        protected override String Backup(String dbname, String bakfile, Boolean compressed)
+        public override String Backup(String dbname, String bakfile, Boolean compressed)
         {
             var dbfile = FileName;
 
@@ -572,7 +759,7 @@ namespace XCode.DataAccessLayer
 
                 var fi = bf.AsFile();
                 fi.Compress(zipfile);
-                WriteLog("压缩后大小：{0:n0}字节", fi.Length);
+                WriteLog("压缩后大小：{0:n0}字节，{1}", zipfile.AsFile().Length, zipfile);
 
                 // 删除未备份
                 File.Delete(bf);
@@ -616,10 +803,7 @@ namespace XCode.DataAccessLayer
         /// <summary>删除索引方法</summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        public override String DropIndexSQL(IDataIndex index)
-        {
-            return String.Format("Drop Index {0}", FormatName(index.Name));
-        }
+        public override String DropIndexSQL(IDataIndex index) => $"Drop Index {FormatName(index.Name)}";
 
         protected override String CheckColumnsChange(IDataTable entitytable, IDataTable dbtable, Boolean onlySql, Boolean noDelete)
         {
@@ -687,13 +871,13 @@ namespace XCode.DataAccessLayer
         /// <remarks>返回Empty，告诉反向工程，该数据库类型不支持该功能，请不要输出日志</remarks>
         /// <param name="table"></param>
         /// <returns></returns>
-        public override String AddTableDescriptionSQL(IDataTable table) { return String.Empty; }
+        public override String AddTableDescriptionSQL(IDataTable table) => String.Empty;
 
-        public override String DropTableDescriptionSQL(IDataTable table) { return String.Empty; }
+        public override String DropTableDescriptionSQL(IDataTable table) => String.Empty;
 
-        public override String AddColumnDescriptionSQL(IDataColumn field) { return String.Empty; }
+        public override String AddColumnDescriptionSQL(IDataColumn field) => String.Empty;
 
-        public override String DropColumnDescriptionSQL(IDataColumn field) { return String.Empty; }
+        public override String DropColumnDescriptionSQL(IDataColumn field) => String.Empty;
         #endregion
 
         #region 反向工程
@@ -714,7 +898,7 @@ namespace XCode.DataAccessLayer
             base.CheckTable(entitytable, dbtable, mode);
         }
 
-        public override String CompactDatabaseSQL() { return "VACUUM"; }
+        public override Int32 CompactDatabase() => Database.CreateSession().Execute("VACUUM");
         #endregion
     }
 }

@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
+using NewLife.Model;
 using NewLife.Threading;
 
 namespace NewLife.Net
@@ -118,7 +118,7 @@ namespace NewLife.Net
 
             // 管道
             var pp = Pipeline;
-            pp?.Open(pp.CreateContext(this));
+            pp?.Open(Server.CreateContext(this));
         }
 
         protected override void OnDispose(Boolean disposing)
@@ -129,7 +129,7 @@ namespace NewLife.Net
 
             // 管道
             var pp = Pipeline;
-            pp?.Close(pp.CreateContext(this), disposing ? "Dispose" : "GC");
+            pp?.Close(Server.CreateContext(this), disposing ? "Dispose" : "GC");
 
             // 释放对服务对象的引用，如果没有其它引用，服务对象将会被回收
             Server = null;
@@ -147,12 +147,34 @@ namespace NewLife.Net
         /// <summary>发送消息</summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public virtual Boolean SendMessage(Object message) => Pipeline.FireWrite(this, message);
+        public virtual Boolean SendMessage(Object message)
+        {
+            var ctx = Server.CreateContext(this);
+            message = Pipeline.Write(ctx, message);
+
+            return ctx.FireWrite(message);
+        }
 
         /// <summary>发送消息并等待响应</summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public virtual async Task<Object> SendMessageAsync(Object message) => await Pipeline.FireWriteAndWait(this, message);
+        public virtual Task<Object> SendMessageAsync(Object message)
+        {
+            var ctx = Server.CreateContext(this);
+            var source = new TaskCompletionSource<Object>();
+            ctx["TaskSource"] = source;
+
+            message = Pipeline.Write(ctx, message);
+
+#if NET4
+            if (!ctx.FireWrite(message)) return TaskEx.FromResult((Object)null);
+#else
+            if (!ctx.FireWrite(message)) return Task.FromResult((Object)null);
+#endif
+
+            return source.Task;
+        }
+
         #endregion
 
         #region 接收
@@ -185,7 +207,7 @@ namespace NewLife.Net
 
         /// <summary>处理数据帧</summary>
         /// <param name="data">数据帧</param>
-        void ISocketRemote.Receive(IData data) => OnReceive(data as ReceivedEventArgs);
+        void ISocketRemote.Process(IData data) => OnReceive(data as ReceivedEventArgs);
         #endregion
 
         #region 异常处理

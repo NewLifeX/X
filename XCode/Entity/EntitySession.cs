@@ -5,10 +5,8 @@ using System.Data;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
 using NewLife;
 using NewLife.Collections;
 using NewLife.Data;
@@ -19,7 +17,6 @@ using XCode.Configuration;
 using XCode.DataAccessLayer;
 using XCode.Model;
 #if !NET4
-using TaskEx = System.Threading.Tasks.Task;
 #endif
 
 /*
@@ -246,7 +243,7 @@ namespace XCode
                     var init = this == Default;
                     if (init)
                     {
-                        BeginTrans();
+                        //BeginTrans();
                         try
                         {
                             if (Operate.Default is EntityBase entity)
@@ -257,13 +254,13 @@ namespace XCode
                                 //if (!task.Wait(ms) && DAL.Debug) DAL.WriteLog("{0}未能在{1:n0}ms内完成数据初始化 Task={2}", ThisType.Name, ms, task.Id);
                             }
 
-                            Commit();
+                            //Commit();
                         }
                         catch (Exception ex)
                         {
                             if (XTrace.Debug) XTrace.WriteLine("初始化数据出错！" + ex.ToString());
 
-                            Rollback();
+                            //Rollback();
                         }
                     }
                 });
@@ -605,34 +602,24 @@ namespace XCode
 
             _singleCache?.Clear(reason);
 
+            // Count提供的是非精确数据，避免频繁更新
             //_Count = -1L;
+            //_NextCount = DateTime.MinValue;
         }
 
         String CacheKey => $"{ConnName}_{TableName}_{ThisType.Name}";
         #endregion
 
         #region 数据库操作
-        void InitData() => WaitForInitData();
-
-        ///// <summary>执行SQL查询，返回记录集</summary>
-        ///// <param name="builder">SQL语句</param>
-        ///// <param name="startRowIndex">开始行，0表示第一行</param>
-        ///// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        ///// <param name="convert">转换器</param>
-        ///// <returns></returns>
-        //public virtual T Query<T>(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows, Func<IDataReader, T> convert)
-        //{
-        //    InitData();
-
-        //    return Dal.Query(builder, startRowIndex, maximumRows, convert);
-        //}
+        /// <summary>初始化数据</summary>
+        public void InitData() => WaitForInitData();
 
         /// <summary>执行SQL查询，返回记录集</summary>
         /// <param name="builder">SQL语句</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns></returns>
-        public virtual DbSet Query(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows)
+        public virtual DbTable Query(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows)
         {
             InitData();
 
@@ -642,7 +629,7 @@ namespace XCode
         /// <summary>执行SQL查询，返回记录集</summary>
         /// <param name="sql">SQL语句</param>
         /// <returns></returns>
-        public virtual DbSet Query(String sql)
+        public virtual DbTable Query(String sql)
         {
             InitData();
 
@@ -700,15 +687,8 @@ namespace XCode
         private void DataChange(String reason)
         {
             var tr = GetTran();
-            if (tr != null)
-            {
-                // 附加当前对象
-                if (!tr.Attachs.Contains(this)) tr.Attachs.Add(this);
-                return;
-            }
-
             // 实体添删改时，有修改缓存，数据变更事件里不需要再次清空
-            //ClearCache(reason);
+            if (tr == null || tr.Count == 0) ClearCache(reason);
 
             _OnDataChange?.Invoke(ThisType);
         }
@@ -773,31 +753,30 @@ namespace XCode
 
             var count = Dal.BeginTransaction();
 
-            var tr = GetTran();
-            tr.Completed += (s, e) =>
-            {
-                var tr2 = s as ITransaction;
-                // 通过附加对象确保提交事务时每个实体会话仅清空一次缓存
-                if (e.Executes > 0 && tr2.Attachs.Contains(this))
-                {
-                    tr2.Attachs.Remove(this);
-                    if (e.Success)
-                        DataChange($"修改数据{e.Executes}次后提交事务");
-                    else
-                        DataChange($"修改数据{e.Executes}次后回滚事务");
-                }
-            };
-
             return count;
         }
 
         /// <summary>提交事务</summary>
         /// <returns>剩下的事务计数</returns>
-        public virtual Int32 Commit() => Dal.Commit();
+        public virtual Int32 Commit()
+        {
+            var rs = Dal.Commit();
+
+            if (rs == 0) DataChange("Commit");
+
+            return rs;
+        }
 
         /// <summary>回滚事务，忽略异常</summary>
         /// <returns>剩下的事务计数</returns>
-        public virtual Int32 Rollback() => Dal.Rollback();
+        public virtual Int32 Rollback()
+        {
+            var rs = Dal.Rollback();
+
+            if (rs == 0) DataChange($"Rollback");
+
+            return rs;
+        }
         #endregion
 
         #region 参数化
@@ -817,31 +796,14 @@ namespace XCode
         {
             var rs = Persistence.Insert(entity);
 
-            // 标记来自数据库
             var e = entity as TEntity;
-            e.MarkDb(true);
 
             // 加入实体缓存
             var ec = _cache;
             if (ec != null) ec.Add(e);
 
-            // 加入单对象缓存
-            _singleCache?.Add(e);
-
             // 增加计数
             if (_Count >= 0) Interlocked.Increment(ref _Count);
-
-            // 事务回滚时执行逆向操作
-            var tr = GetTran();
-            if (tr != null) tr.Completed += (s, se) =>
-            {
-                if (!se.Success && se.Executes > 0)
-                {
-                    if (ec != null) ec.Remove(e);
-                    _singleCache?.Remove(e);
-                    if (_Count >= 0) Interlocked.Decrement(ref _Count);
-                }
-            };
 
             return rs;
         }
@@ -853,35 +815,15 @@ namespace XCode
         {
             var rs = Persistence.Update(entity);
 
-            // 标记来自数据库
             var e = entity as TEntity;
-            e.MarkDb(true);
 
             // 更新缓存
             TEntity old = null;
             var ec = _cache;
             if (ec != null) old = ec.Update(e);
 
-            // 自动加入单对象缓存
-            _singleCache?.Add(e);
-
-            // 事务回滚时执行逆向操作
-            var tr = GetTran();
-            if (tr != null) tr.Completed += (s, se) =>
-            {
-                if (!se.Success && se.Executes > 0)
-                {
-                    // 如果存在替换，则换回来；
-                    //!!! 如果先后是同一个对象，那就没有办法回滚回去了
-                    if (ec != null && old != e)
-                    {
-                        ec.Remove(e);
-                        if (old != null) ec.Add(old);
-                    }
-                    // 干掉缓存项，让它重新获取
-                    _singleCache?.Remove(e);
-                }
-            };
+            // 干掉缓存项，让它重新获取
+            _singleCache?.Remove(e);
 
             return rs;
         }
@@ -905,18 +847,6 @@ namespace XCode
 
             // 减少计数
             if (_Count > 0) Interlocked.Decrement(ref _Count);
-
-            // 事务回滚时执行逆向操作
-            var tr = GetTran();
-            if (tr != null) tr.Completed += (s, se) =>
-            {
-                if (!se.Success && se.Executes > 0)
-                {
-                    if (ec != null && old != null) ec.Add(old);
-                    _singleCache?.Add(entity);
-                    Interlocked.Increment(ref _Count);
-                }
-            };
 
             return rs;
         }

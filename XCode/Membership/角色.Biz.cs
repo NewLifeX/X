@@ -9,6 +9,7 @@ using NewLife;
 using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Reflection;
+using NewLife.Threading;
 
 namespace XCode.Membership
 {
@@ -98,7 +99,9 @@ namespace XCode.Membership
                 if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}角色数据！", typeof(TEntity).Name);
             }
 
-            CheckRole();
+            //CheckRole();
+            // 当前处于事务之中，下面使用Menu会触发异步检查架构，SQLite单线程机制可能会造成死锁
+            ThreadPoolX.QueueUserWorkItem(CheckRole);
         }
 
         /// <summary>初始化时执行必要的权限检查，以防万一管理员无法操作</summary>
@@ -217,7 +220,7 @@ namespace XCode.Membership
         }
 
         /// <summary>加载权限字典</summary>
-        internal protected override void OnLoad()
+        protected override void OnLoad()
         {
             base.OnLoad();
 

@@ -9,11 +9,11 @@ namespace NewLife.Remoting
         /// <summary>主机</summary>
         IApiHost Host { get; set; }
 
-        /// <summary>编码器</summary>
-        IEncoder Encoder { get; set; }
+        ///// <summary>编码器</summary>
+        //IEncoder Encoder { get; set; }
 
-        /// <summary>处理器</summary>
-        IApiHandler Handler { get; set; }
+        ///// <summary>处理器</summary>
+        //IApiHandler Handler { get; set; }
 
         /// <summary>当前服务器所有会话</summary>
         IApiSession[] AllSessions { get; }

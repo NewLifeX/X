@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using NewLife.Data;
 using NewLife.Messaging;
 
 namespace NewLife.Remoting
@@ -32,15 +31,15 @@ namespace NewLife.Remoting
         /// <returns></returns>
         Object CreateController(ApiAction api);
 
-        /// <summary>创建消息。低级接口，由框架使用</summary>
-        /// <param name="pk"></param>
-        /// <returns></returns>
-        IMessage CreateMessage(Packet pk);
+        ///// <summary>创建消息。低级接口，由框架使用</summary>
+        ///// <param name="pk"></param>
+        ///// <returns></returns>
+        //IMessage CreateMessage(Packet pk);
 
         /// <summary>发送消息。低级接口，由框架使用</summary>
         /// <param name="msg"></param>
         /// <returns></returns>
-        Task<IMessage> SendAsync(IMessage msg);
+        Task<Tuple<IMessage, Object>> SendAsync(IMessage msg);
 
         /// <summary>发送消息。低级接口，由框架使用</summary>
         /// <param name="msg"></param>

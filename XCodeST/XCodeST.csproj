@@ -5,14 +5,14 @@
     <AssemblyName>XCode</AssemblyName>
     <RootNamespace>XCode</RootNamespace>
     <AssemblyTitle>数据中间件</AssemblyTitle>
-    <Description>数据中间件、MySQL、SQLite、SqlServer、Oracle</Description>
+    <Description>数据中间件，MySQL、SQLite、SqlServer、Oracle</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2018 新生命开发团队</Copyright>
-    <FileVersion>9.8.2018.0630</FileVersion>
-    <AssemblyVersion>9.8.*</AssemblyVersion>
+    <FileVersion>9.9.2018.1103</FileVersion>
+    <AssemblyVersion>9.9.*</AssemblyVersion>
     <!--是否确定版本，false以支持*-->
     <Deterministic>false</Deterministic>
-    <Version>9.8.2018.0605</Version>
+    <Version>9.9.2018.1103</Version>
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
@@ -65,7 +65,6 @@
     <Compile Include="..\XCode\Configuration\TableItem.cs" Link="Configuration\TableItem.cs" />
     <Compile Include="..\XCode\DataAccessLayer\Common\ConnectionPool.cs" Link="DataAccessLayer\Common\ConnectionPool.cs" />
     <Compile Include="..\XCode\DataAccessLayer\Common\DatabaseType.cs" Link="DataAccessLayer\Common\DatabaseType.cs" />
-    <Compile Include="..\XCode\DataAccessLayer\Common\DataResult.cs" Link="DataAccessLayer\Common\DataResult.cs" />
     <Compile Include="..\XCode\DataAccessLayer\Common\DbBase.cs" Link="DataAccessLayer\Common\DbBase.cs" />
     <Compile Include="..\XCode\DataAccessLayer\Common\DbFactory.cs" Link="DataAccessLayer\Common\DbFactory.cs" />
     <Compile Include="..\XCode\DataAccessLayer\Common\DbSession.cs" Link="DataAccessLayer\Common\DbSession.cs" />
@@ -141,6 +140,8 @@
     <Compile Include="..\XCode\Membership\菜单.cs" Link="Membership\菜单.cs" />
     <Compile Include="..\XCode\Membership\角色.Biz.cs" Link="Membership\角色.Biz.cs" />
     <Compile Include="..\XCode\Membership\角色.cs" Link="Membership\角色.cs" />
+    <Compile Include="..\XCode\Membership\访问统计.Biz.cs" Link="Membership\访问统计.Biz.cs" />
+    <Compile Include="..\XCode\Membership\访问统计.cs" Link="Membership\访问统计.cs" />
     <Compile Include="..\XCode\Model\ConcatExpression.cs" Link="Model\ConcatExpression.cs" />
     <Compile Include="..\XCode\Model\Expression.cs" Link="Model\Expression.cs" />
     <Compile Include="..\XCode\Model\FieldExpression.cs" Link="Model\FieldExpression.cs" />
@@ -156,6 +157,10 @@
     <Compile Include="..\XCode\Setting.cs" Link="Setting.cs" />
     <Compile Include="..\XCode\Sharding\分片.Biz.cs" Link="Sharding\分片.Biz.cs" />
     <Compile Include="..\XCode\Sharding\分片.cs" Link="Sharding\分片.cs" />
+    <Compile Include="..\XCode\Statistics\IStat.cs" Link="Statistics\IStat.cs" />
+    <Compile Include="..\XCode\Statistics\StatHelper.cs" Link="Statistics\StatHelper.cs" />
+    <Compile Include="..\XCode\Statistics\StatLevels.cs" Link="Statistics\StatLevels.cs" />
+    <Compile Include="..\XCode\Statistics\StatModel.cs" Link="Statistics\StatModel.cs" />
     <Compile Include="..\XCode\Transform\DataContext.cs" Link="Transform\DataContext.cs" />
     <Compile Include="..\XCode\Transform\EntityTransform.cs" Link="Transform\EntityTransform.cs" />
     <Compile Include="..\XCode\Transform\ETL.cs" Link="Transform\ETL.cs" />
@@ -196,6 +201,7 @@
     <Folder Include="Web\" />
     <Folder Include="Extension\" />
     <Folder Include="Service\" />
+    <Folder Include="Statistics\" />
   </ItemGroup>
 
   <ItemGroup>

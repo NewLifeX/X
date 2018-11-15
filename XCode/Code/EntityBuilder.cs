@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -338,7 +337,12 @@ namespace XCode.Code
             }
 
             WriteLine("[DataObjectField({0}, {1}, {2}, {3})]", dc.PrimaryKey.ToString().ToLower(), dc.Identity.ToString().ToLower(), dc.Nullable.ToString().ToLower(), dc.Length);
-            WriteLine("[BindColumn(\"{0}\", \"{1}\", \"{2}\"{3})]", dc.ColumnName, dc.Description, dc.RawType, dc.Master ? ", Master = true" : "");
+
+            // 支持生成带精度的特性
+            if (dc.Precision > 0 || dc.Scale > 0)
+                WriteLine("[BindColumn(\"{0}\", \"{1}\", \"{2}\", Precision = {3}, Scale = {4})]", dc.ColumnName, dc.Description, dc.RawType, dc.Precision, dc.Scale);
+            else
+                WriteLine("[BindColumn(\"{0}\", \"{1}\", \"{2}\"{3})]", dc.ColumnName, dc.Description, dc.RawType, dc.Master ? ", Master = true" : "");
 
             if (Interface)
                 WriteLine("{0} {1} {{ get; set; }}", type, dc.Name);
@@ -540,8 +544,14 @@ namespace XCode.Code
                     WriteLine();
                 }
 
-                WriteLine("// 累加字段");
-                WriteLine("//Meta.Factory.AdditionalFields.Add(__.Logins);");
+                // 第一个非自增非主键整型字段，生成累加字段代码
+                var dc = Table.Columns.FirstOrDefault(e => !e.Identity && !e.PrimaryKey && (e.DataType == typeof(Int32) || e.DataType == typeof(Int64)));
+                if (dc != null)
+                {
+                    WriteLine("// 累加字段");
+                    WriteLine("//var df = Meta.Factory.AdditionalFields;");
+                    WriteLine("//df.Add(__.{0});", dc.Name);
+                }
 
                 var ns = new HashSet<String>(Table.Columns.Select(e => e.Name), StringComparer.OrdinalIgnoreCase);
                 WriteLine();
@@ -557,7 +567,7 @@ namespace XCode.Code
                 var di = Table.Indexes.FirstOrDefault(e => e.Unique && e.Columns.Length == 1 && Table.GetColumn(e.Columns[0]).Master);
                 if (di != null)
                 {
-                    var dc = Table.GetColumn(di.Columns[0]);
+                    dc = Table.GetColumn(di.Columns[0]);
 
                     WriteLine();
                     WriteLine("// 单对象缓存");

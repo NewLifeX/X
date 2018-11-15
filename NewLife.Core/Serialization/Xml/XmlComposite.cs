@@ -43,10 +43,11 @@ namespace NewLife.Serialization
                     var mtype = GetMemberType(member);
                     Host.Member = member;
 
+                    var name = SerialHelper.GetName(member);
                     var v = value.GetValue(member);
                     WriteLog("    {0}.{1} {2}", type.Name, member.Name, v);
 
-                    if (!Host.Write(v, member.Name, mtype)) return false;
+                    if (!Host.Write(v, name, mtype)) return false;
                 }
             }
             finally
@@ -86,7 +87,7 @@ namespace NewLife.Serialization
 
             var ms = GetMembers(type);
             WriteLog("XmlRead {0} 成员{1}个", type.Name, ms.Count);
-            var dic = ms.ToDictionary(e => e.Name, e => e);
+            var dic = ms.ToDictionary(e => SerialHelper.GetName(e), e => e);
 
             if (value == null) value = type.CreateInstance();
 

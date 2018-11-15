@@ -2,17 +2,15 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Serialization;
 using NewLife.Threading;
-using NewLife.Xml;
 using XCode.Common;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
@@ -22,14 +20,13 @@ namespace XCode
 {
     /// <summary>数据实体类基类。所有数据实体类都必须继承该类。</summary>
     [Serializable]
-    public partial class Entity<TEntity> : EntityBase where TEntity : Entity<TEntity>, new()
+    public partial class Entity<TEntity> : EntityBase, IAccessor where TEntity : Entity<TEntity>, new()
     {
         #region 构造函数
         /// <summary>静态构造</summary>
         static Entity()
         {
             DAL.InitLog();
-            //DAL.WriteDebugLog("开始初始化实体类{0}", typeof(TEntity).Name);
 
             EntityFactory.Register(typeof(TEntity), new EntityOperate());
 
@@ -37,17 +34,6 @@ namespace XCode
             // 2，CreateOperate将会实例化一个TEntity对象，从而引发TEntity的静态构造函数，
             // 避免实际应用中，直接调用Entity的静态方法时，没有引发TEntity的静态构造函数。
             var entity = new TEntity();
-
-            ////! 大石头 2011-03-14 以下过程改为异步处理
-            ////  已确认，当实体类静态构造函数中使用了EntityFactory.CreateOperate(Type)方法时，可能出现死锁。
-            ////  因为两者都会争夺EntityFactory中的op_cache，而CreateOperate(Type)拿到op_cache后，还需要等待当前静态构造函数执行完成。
-            ////  不确定这样子是否带来后遗症
-            //ThreadPool.QueueUserWorkItem(delegate
-            //{
-            //    EntityFactory.CreateOperate(typeof(TEntity), entity);
-            //});
-
-            //DAL.WriteDebugLog("完成初始化实体类{0}", typeof(TEntity).Name);
         }
 
         /// <summary>创建实体。</summary>
@@ -61,11 +47,11 @@ namespace XCode
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         protected virtual TEntity CreateInstance(Boolean forEdit = false)
         {
-            //return new TEntity();
+            var entity = new TEntity();
             // new TEntity会被编译为Activator.CreateInstance<TEntity>()，还不如Activator.CreateInstance()呢
             // Activator.CreateInstance()有缓存功能，而泛型的那个没有
             //return Activator.CreateInstance(typeof(TEntity)) as TEntity;
-            var entity = typeof(TEntity).CreateInstance() as TEntity;
+            //var entity = typeof(TEntity).CreateInstance() as TEntity;
             Meta._Modules.Create(entity, forEdit);
 
             return entity;
@@ -99,7 +85,7 @@ namespace XCode
         /// <summary>加载数据表。无数据时返回空集合而不是null。</summary>
         /// <param name="ds">数据表</param>
         /// <returns>实体数组</returns>
-        public static IList<TEntity> LoadData(DbSet ds)
+        public static IList<TEntity> LoadData(DbTable ds)
         {
             if (ds == null) return new List<TEntity>();
 
@@ -125,7 +111,7 @@ namespace XCode
         private static void OnLoadData(IList<TEntity> list)
         {
             // 设置默认累加字段
-            EntityAddition.SetField(list.Cast<IEntity>().ToList());
+            EntityAddition.SetField(list.Cast<IEntity>());
             foreach (var entity in list)
             {
                 entity.OnLoad();
@@ -136,13 +122,13 @@ namespace XCode
             if (sc.Using)
             {
                 // 查询列表异步加入对象缓存
-                ThreadPoolX.QueueUserWorkItem(() =>
+                ThreadPoolX.QueueUserWorkItem(es =>
                 {
-                    foreach (var item in list.ToArray())
+                    for (var i = 0; i < es.Count; i++)
                     {
-                        sc.Add(item);
+                        sc.Add(es[i]);
                     }
-                });
+                }, list);
             }
         }
 
@@ -161,6 +147,10 @@ namespace XCode
         protected virtual Int32 OnInsert()
         {
             var rs = Meta.Session.Insert(this);
+
+            // 标记来自数据库
+            IsFromDatabase = true;
+
             // 设置默认累加字段
             EntityAddition.SetField(this);
 
@@ -173,7 +163,15 @@ namespace XCode
 
         /// <summary>更新数据库，同时更新实体缓存</summary>
         /// <returns></returns>
-        protected virtual Int32 OnUpdate() => Meta.Session.Update(this);
+        protected virtual Int32 OnUpdate()
+        {
+            var rs = Meta.Session.Update(this);
+
+            // 标记来自数据库
+            IsFromDatabase = true;
+
+            return rs;
+        }
 
         /// <summary>删除数据，通过在事务中调用OnDelete实现。</summary>
         /// <remarks>
@@ -196,8 +194,6 @@ namespace XCode
                 if (!isnew.Value) throw new XCodeException($"只写的日志型数据[{Meta.ThisType.FullName}]禁止修改！");
             }
 
-            //using (var trans = new EntityTransaction<TEntity>())
-            //{
             if (enableValid)
             {
                 var rt = false;
@@ -213,18 +209,22 @@ namespace XCode
                 if (!rt) return -1;
             }
 
-            var rs = func();
-
-            //trans.Commit();
-
-            return rs;
-            //}
+            return func();
         }
 
-        /// <summary>保存。根据主键检查数据库中是否已存在该对象，再决定调用Insert或Update</summary>
+        /// <summary>保存。Insert/Update/InsertOrUpdate</summary>
+        /// <remarks>
+        /// Save的几个场景：
+        /// 1，Find, Update()
+        /// 2，new, Insert()
+        /// 3，new, InsertOrUpdate
+        /// </remarks>
         /// <returns></returns>
         public override Int32 Save()
         {
+            // 来自数据库直接Update
+            if (IsFromDatabase) return Update();
+
             // 优先使用自增字段判断
             var fi = Meta.Table.Identity;
             if (fi != null) return Convert.ToInt64(this[fi.Name]) > 0 ? Update() : Insert();
@@ -232,14 +232,9 @@ namespace XCode
             // 如果唯一主键不为空，应该通过后面判断，而不是直接Update
             if (IsNullKey) return Insert();
 
-            // 来自数据库直接Update
-            if (_IsFromDatabase)
-            {
-                //var uq = Meta.Unique;
-                //if (uq != null && !Dirtys[uq.Name]) return Update();
-                var pks = Meta.Table.PrimaryKeys;
-                if (pks.Length > 0 && pks.All(e => !Dirtys[e.Name])) return Update();
-            }
+            // Oracle/MySql批量插入
+            var db = Meta.Session.Dal;
+            if (db.SupportBatch) return this.InsertOrUpdate();
 
             return FindCount(Persistence.GetPrimaryCondition(this), null, null, 0, 0) > 0 ? Update() : Insert();
         }
@@ -289,7 +284,7 @@ namespace XCode
         /// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>
         /// <remarks>建议重写者调用基类的实现，因为基类根据数据字段的唯一索引进行数据验证。</remarks>
         /// <param name="isNew">是否新数据</param>
-        public virtual void Valid(Boolean isNew)
+        public override void Valid(Boolean isNew)
         {
             //// 实体来自数据库时，不要对唯一索引进行校验
             //if (_IsFromDatabase) return;
@@ -1208,16 +1203,16 @@ namespace XCode
         {
             get
             {
-                // 匹配字段
-                if (Meta.FieldNames.Contains(name))
+                // 扩展属性
+                if (Meta.Table.ExtendFieldNames.Contains(name))
                 {
-                    var field = GetType().GetFieldEx("_" + name, true);
-                    if (field != null) return this.GetValue(field);
+                    var pi = GetType().GetPropertyEx(name, true);
+                    if (pi != null && pi.CanRead) return this.GetValue(pi);
                 }
 
-                // 尝试匹配属性
-                var property = GetType().GetPropertyEx(name, true);
-                if (property != null && property.CanRead) return this.GetValue(property);
+                //// 尝试匹配属性
+                //var property = GetType().GetPropertyEx(name, true);
+                //if (property != null && property.CanRead) return this.GetValue(property);
 
                 // 检查动态增加的字段，返回默认值
                 var f = Meta.Table.FindByName(name) as FieldItem;
@@ -1238,24 +1233,24 @@ namespace XCode
             }
             set
             {
-                //匹配字段
-                if (Meta.FieldNames.Contains(name))
+                // 扩展属性
+                if (Meta.Table.ExtendFieldNames.Contains(name))
                 {
-                    var field = GetType().GetFieldEx("_" + name, true);
-                    if (field != null)
+                    var pi = GetType().GetPropertyEx(name, true);
+                    if (pi != null && pi.CanWrite)
                     {
-                        this.SetValue(field, value);
+                        this.SetValue(pi, value);
                         return;
                     }
                 }
 
-                //尝试匹配属性
-                var property = GetType().GetPropertyEx(name, true);
-                if (property != null && property.CanWrite)
-                {
-                    this.SetValue(property, value);
-                    return;
-                }
+                ////尝试匹配属性
+                //var property = GetType().GetPropertyEx(name, true);
+                //if (property != null && property.CanWrite)
+                //{
+                //    this.SetValue(property, value);
+                //    return;
+                //}
 
                 // 检查动态增加的字段，返回默认值
                 if (Meta.Table.FindByName(name) is FieldItem f && f.IsDynamic) value = value.ChangeType(f.Type);
@@ -1265,23 +1260,55 @@ namespace XCode
         }
         #endregion
 
-        #region 导入导出XML/Json
-        /// <summary>导入</summary>
-        /// <param name="xml"></param>
-        /// <returns></returns>
-        [Obsolete("请使用 xml.ToXmlEntity<TEntity>()")]
-        public static TEntity FromXml(String xml)
-        {
-            if (!xml.IsNullOrEmpty()) xml = xml.Trim();
+        #region 序列化
+        Boolean IAccessor.Read(Stream stream, Object context) => OnRead(stream, context, false);
 
-            return xml.ToXmlEntity<TEntity>();
+        Boolean IAccessor.Write(Stream stream, Object context) => OnWrite(stream, context, false);
+
+        /// <summary>从数据流反序列化</summary>
+        /// <param name="stream">数据流</param>
+        /// <param name="context">上下文</param>
+        /// <param name="extend">是否序列化扩展属性</param>
+        protected virtual Boolean OnRead(Stream stream, Object context, Boolean extend)
+        {
+            var bn = context as Binary;
+            if (bn == null) bn = new Binary
+            {
+                Stream = stream,
+                EncodeInt = true
+            };
+
+            var fs = extend ? Meta.AllFields : Meta.Fields;
+            foreach (var fi in fs)
+            {
+                // 顺序要求很高
+                this[fi.Name] = bn.Read(fi.Type);
+            }
+
+            return true;
         }
 
-        /// <summary>导入</summary>
-        /// <param name="json"></param>
-        /// <returns></returns>
-        [Obsolete("请使用 json.ToJsonEntity<TEntity>()")]
-        public static TEntity FromJson(String json) => json.ToJsonEntity<TEntity>();
+        /// <summary>二进制序列化到数据流</summary>
+        /// <param name="stream">数据流</param>
+        /// <param name="context">上下文</param>
+        /// <param name="extend">是否序列化扩展属性</param>
+        protected virtual Boolean OnWrite(Stream stream, Object context, Boolean extend)
+        {
+            var bn = context as Binary;
+            if (bn == null) bn = new Binary
+            {
+                Stream = stream,
+                EncodeInt = true
+            };
+
+            var fs = extend ? Meta.AllFields : Meta.Fields;
+            foreach (var fi in fs)
+            {
+                bn.Write(this[fi.Name], fi.Type);
+            }
+
+            return true;
+        }
         #endregion
 
         #region 克隆
@@ -1375,41 +1402,6 @@ namespace XCode
         #endregion
 
         #region 脏数据
-        /// <summary>设置所有数据的脏属性</summary>
-        /// <param name="isDirty">改变脏属性的属性个数</param>
-        /// <returns></returns>
-        protected override Int32 SetDirty(Boolean isDirty)
-        {
-            var ds = Dirtys;
-            if (ds == null || ds.Count < 1) return 0;
-
-            var count = 0;
-            foreach (var item in Meta.FieldNames)
-            {
-                var b = false;
-                if (isDirty)
-                {
-                    if (!ds.TryGetValue(item, out b) || !b)
-                    {
-                        ds[item] = true;
-                        count++;
-                    }
-                }
-                else
-                {
-                    if (ds == null || ds.Count < 1) break;
-                    if (ds.TryGetValue(item, out b) && b)
-                    {
-                        ds[item] = false;
-                        count++;
-                    }
-                }
-            }
-            return count;
-        }
-
-        /// <summary>是否有脏数据。决定是否可以Update</summary>
-        protected Boolean HasDirty => Dirtys.Any();
         #endregion
 
         #region 高并发

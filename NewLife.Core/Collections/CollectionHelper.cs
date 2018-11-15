@@ -18,11 +18,11 @@ namespace System.Collections.Generic
         {
             if (collection == null) return null;
 
-            var count = collection.Count;
-            if (count == 0) return new T[0];
+            //var count = collection.Count;
+            //if (count == 0) return new T[0];
             lock (collection)
             {
-                count = collection.Count;
+                var count = collection.Count;
                 if (count == 0) return new T[0];
 
                 var arr = new T[count - index];

@@ -224,7 +224,8 @@ namespace XCode.Configuration
             // 特别处理，兼容旧版本
             if (dc.DataType == typeof(Decimal))
             {
-                if (dc.Precision == 0) dc.Precision = 18;
+                if (dc.Precision == 0) dc.Precision = 19;
+                if (dc.Scale == 0) dc.Scale = 4;
             }
 
             dc.Length = Length;

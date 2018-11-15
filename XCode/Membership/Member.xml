@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Tables Version="9.6.6663.16294" NameSpace="XCode.Membership" ConnName="Membership" Output="" BaseClass="Entity">
+<Tables Version="9.9.6811.41588" NameSpace="XCode.Membership" ConnName="Membership" Output="" BaseClass="Entity">
   <Table Name="User" Description="用户" DbType="SqlServer" RenderGenEntity="true">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
@@ -117,7 +117,7 @@
       <Column Name="MaxCost" DataType="Int32" Description="最大耗时。毫秒" />
       <Column Name="CreateTime" DataType="DateTime" Description="创建时间" />
       <Column Name="UpdateTime" DataType="DateTime" Description="更新时间" />
-      <Column Name="Remark" DataType="String" Length="500" Description="详细信息" />
+      <Column Name="Remark" DataType="String" Length="5000" Description="详细信息" />
     </Columns>
     <Indexes>
       <Index Columns="Page,Level,Time" Unique="True" />

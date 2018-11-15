@@ -182,8 +182,8 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public virtual Type GetType(String typeName, Boolean isLoadAssembly) => AssemblyX.GetType(typeName, isLoadAssembly);
 
-        static BindingFlags bf = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance;
-        static BindingFlags bfic = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.IgnoreCase;
+        static readonly BindingFlags bf = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance;
+        static readonly BindingFlags bfic = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.IgnoreCase;
 
         /// <summary>获取方法</summary>
         /// <remarks>用于具有多个签名的同名方法的场合，不确定是否存在性能问题，不建议普通场合使用</remarks>
@@ -606,7 +606,7 @@ namespace NewLife.Reflection
 
                 // 字符串转为简单整型，如果长度比较小，满足32位整型要求，则先转为32位再改变类型
                 var code = Type.GetTypeCode(conversionType);
-                if (code >= TypeCode.Int16 && code <= TypeCode.UInt64 && str.Length <= 10) return Convert.ChangeType(value.ToInt(), conversionType);
+                if (code >= TypeCode.Int16 && code <= TypeCode.UInt64 && str.Length <= 10) return Convert.ChangeType(value.ToLong(), conversionType);
             }
 
             if (value != null)
@@ -653,6 +653,7 @@ namespace NewLife.Reflection
         #endregion
 
         #region 插件
+        //private readonly ConcurrentDictionary<Type, ConcurrentDictionary<Type, Boolean>> _as_cache = new ConcurrentDictionary<Type, ConcurrentDictionary<Type, Boolean>>();
         /// <summary>是否子类</summary>
         /// <param name="type"></param>
         /// <param name="baseType"></param>
@@ -668,28 +669,43 @@ namespace NewLife.Reflection
 
             if (baseType.IsAssignableFrom(type)) return true;
 
+            // 缓存
+            //var key = $"{type.FullName}_{baseType.FullName}";
+            //if (!_as_cache.TryGetValue(type, out var dic))
+            //{
+            //    dic = new ConcurrentDictionary<Type, Boolean>();
+            //    _as_cache.TryAdd(type, dic);
+            //}
+
+            //if (dic.TryGetValue(baseType, out var rs)) return rs;
+            var rs = false;
+
             // 接口
             if (baseType.IsInterface)
             {
-                if (type.GetInterface(baseType.FullName) != null) return true;
-                if (type.GetInterfaces().Any(e => e.IsGenericType && baseType.IsGenericTypeDefinition ? e.GetGenericTypeDefinition() == baseType : e == baseType)) return true;
+                if (type.GetInterface(baseType.FullName) != null)
+                    rs = true;
+                else if (type.GetInterfaces().Any(e => e.IsGenericType && baseType.IsGenericTypeDefinition ? e.GetGenericTypeDefinition() == baseType : e == baseType))
+                    rs = true;
             }
 
             // 判断是否子类时，支持只反射加载的程序集
-            if (type.Assembly.ReflectionOnly)
+            if (!rs && type.Assembly.ReflectionOnly)
             {
                 // 反射加载时，需要特殊处理接口
                 //if (baseType.IsInterface && type.GetInterface(baseType.Name) != null) return true;
-                while (type != typeof(Object))
+                while (!rs && type != typeof(Object))
                 {
                     if (type.FullName == baseType.FullName &&
                         type.AssemblyQualifiedName == baseType.AssemblyQualifiedName)
-                        return true;
+                        rs = true;
                     type = type.BaseType;
                 }
             }
 
-            return false;
+            //dic.TryAdd(baseType, rs);
+
+            return rs;
         }
 
         /// <summary>在指定程序集中查找指定基类的子类</summary>

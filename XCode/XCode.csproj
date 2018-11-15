@@ -56,7 +56,6 @@
     <Compile Include="Common\DataSimulation.cs" />
     <Compile Include="Configuration\FieldExtension.cs" />
     <Compile Include="DataAccessLayer\Common\ConnectionPool.cs" />
-    <Compile Include="DataAccessLayer\Common\DataResult.cs" />
     <Compile Include="DataAccessLayer\Common\ITransaction.cs" />
     <Compile Include="DataAccessLayer\Database\Access.cs" />
     <Compile Include="DataAccessLayer\Database\Network.cs" />
@@ -240,6 +239,9 @@
       <DependentUpon>生成实体类.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
+    </None>
+    <None Include="ModelSchema.xsd">
+      <SubType>Designer</SubType>
     </None>
     <None Include="tools\install.ps1" />
     <None Include="Membership\生成实体类.log">

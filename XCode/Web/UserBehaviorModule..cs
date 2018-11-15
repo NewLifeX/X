@@ -67,6 +67,11 @@ namespace XCode.Web
             var ip = WebHelper.UserHost;
 
             var page = GetPage(req);
+
+            // 过滤后缀
+            var ext = Path.GetExtension(page);
+            if (!ext.IsNullOrEmpty() && ExcludeSuffixes.Contains(ext)) return;
+
             var title = GetTitle(ctx, req);
             var msg = GetMessage(ctx, req, title);
 
@@ -145,10 +150,6 @@ namespace XCode.Web
         void SaveBehavior(IManageUser user, String ip, String page, String msg)
         {
             if (page.IsNullOrEmpty()) return;
-
-            // 过滤后缀
-            var ext = Path.GetExtension(page);
-            if (!ext.IsNullOrEmpty() && ExcludeSuffixes.Contains(ext)) return;
 
             LogProvider.Provider?.WriteLog("访问", "记录", msg, user?.ID ?? 0, user + "", ip);
         }

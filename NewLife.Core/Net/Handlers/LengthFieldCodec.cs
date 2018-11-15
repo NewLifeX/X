@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using NewLife.Data;
+using NewLife.Model;
 
 namespace NewLife.Net.Handlers
 {
@@ -79,7 +80,7 @@ namespace NewLife.Net.Handlers
         /// <returns></returns>
         protected override IList<Packet> Decode(IHandlerContext context, Packet pk)
         {
-            var ss = context.Session;
+            var ss = context.Owner as IExtend;
             var mcp = ss["CodecItem"] as CodecItem;
             if (mcp == null) ss["CodecItem"] = mcp = new CodecItem();
 

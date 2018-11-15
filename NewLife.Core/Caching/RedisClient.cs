@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
-using System.Text;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
@@ -56,8 +55,7 @@ namespace NewLife.Caching
                     var tc = Client;
                     if (tc != null && tc.Connected && tc.GetStream() != null) Quit();
                 }
-                catch (ObjectDisposedException) { }
-                catch (Exception ex) { XTrace.WriteException(ex); }
+                catch { }
             }
 
             Client.TryDispose();
@@ -80,8 +78,7 @@ namespace NewLife.Caching
                 ns = tc?.GetStream();
                 active = ns != null && tc.Connected && ns != null && ns.CanWrite && ns.CanRead;
             }
-            catch (ObjectDisposedException) { }
-            catch (Exception ex) { XTrace.WriteException(ex); }
+            catch { }
 
             // 如果连接不可用，则重新建立连接
             if (!active)
@@ -92,12 +89,22 @@ namespace NewLife.Caching
                 tc.TryDispose();
                 if (!create) return null;
 
+                var timeout = 3_000;
                 tc = new TcpClient
                 {
-                    SendTimeout = 5000,
-                    ReceiveTimeout = 5000
+                    SendTimeout = timeout,
+                    ReceiveTimeout = timeout
                 };
-                tc.Connect(Server.Address, Server.Port);
+                //tc.Connect(Server.Address, Server.Port);
+                // 采用异步来解决连接超时设置问题
+                var ar = tc.BeginConnect(Server.Address, Server.Port, null, null);
+                if (!ar.AsyncWaitHandle.WaitOne(timeout, false))
+                {
+                    tc.Close();
+                    throw new TimeoutException($"连接[{Server}][{timeout}ms]超时！");
+                }
+
+                tc.EndConnect(ar);
 
                 Client = tc;
                 ns = tc.GetStream();
@@ -111,54 +118,34 @@ namespace NewLife.Caching
 
         private static Byte[] NewLine = new[] { (Byte)'\r', (Byte)'\n' };
 
-        /// <summary>异步发出请求，并接收响应</summary>
+        /// <summary>发出请求</summary>
+        /// <param name="ms"></param>
         /// <param name="cmd"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        protected virtual Object SendCommand(String cmd, params Packet[] args)
+        protected virtual void GetRequest(Stream ms, String cmd, Packet[] args)
         {
-            var isQuit = cmd == "QUIT";
-
-            var ns = GetStream(!isQuit);
-            if (ns == null) return null;
-
-            //// 收发共用的缓冲区
-            //var buf = _Buffer;
-            //if (buf == null) _Buffer = buf = new Byte[64 * 1024];
-            var buf = new Byte[64 * 1024];
-
-            // 干掉历史残留数据
-            var count = 0;
-            if (ns is NetworkStream nss && nss.DataAvailable) count = ns.Read(buf, 0, buf.Length);
-
-            // 验证登录
-            if (!Logined && !Password.IsNullOrEmpty() && cmd != "AUTH")
-            {
-                var ars = SendCommand("AUTH", Password.GetBytes());
-                if (ars as String != "OK") throw new Exception("登录失败！" + ars);
-
-                Logined = true;
-                LoginTime = DateTime.Now;
-            }
-
             // *<number of arguments>\r\n$<number of bytes of argument 1>\r\n<argument data>\r\n
             // *1\r\n$4\r\nINFO\r\n
 
             var log = Log == null || Log == Logger.Null ? null : Pool.StringBuilder.Get();
             log?.Append(cmd);
 
+            /*
+             * 一颗玲珑心
+             * 九天下凡尘
+             * 翩翩起菲舞
+             * 霜摧砺石开
+             */
+
             // 区分有参数和无参数
             if (args == null || args.Length == 0)
             {
                 //var str = "*1\r\n${0}\r\n{1}\r\n".F(cmd.Length, cmd);
-                ns.Write(GetHeaderBytes(cmd, 0));
+                ms.Write(GetHeaderBytes(cmd, 0));
             }
             else
             {
-                var ms = new MemoryStream(buf);
-                ms.SetLength(0);
-                ms.Position = 0;
-
                 //var str = "*{2}\r\n${0}\r\n{1}\r\n".F(cmd.Length, cmd, 1 + args.Length);
                 ms.Write(GetHeaderBytes(cmd, args.Length));
 
@@ -167,14 +154,6 @@ namespace NewLife.Caching
                     var size = item.Total;
                     var sizes = size.ToString().GetBytes();
                     var len = 1 + sizes.Length + NewLine.Length * 2 + size;
-                    // 防止写入内容过长导致的缓冲区长度不足的问题
-                    if (ms.Position + len >= ms.Capacity)
-                    {
-                        // 两倍扩容
-                        var ms2 = new MemoryStream(ms.Capacity * 2);
-                        ms.WriteTo(ms2);
-                        ms = ms2;
-                    }
 
                     if (log != null)
                     {
@@ -192,27 +171,17 @@ namespace NewLife.Caching
                     //ms.Write(item);
                     item.WriteTo(ms);
                     ms.Write(NewLine);
-
-                    if (ms.Length > 1400)
-                    {
-                        ms.WriteTo(ns);
-                        // 重置memoryStream的长度
-                        ms = new MemoryStream(buf);
-                        // 从头开始
-                        ms.SetLength(0);
-                        ms.Position = 0;
-                    }
                 }
-                if (ms.Length > 0) ms.WriteTo(ns);
             }
             if (log != null) WriteLog(log.Put(true));
+        }
 
-            // 接收
-            count = ns.Read(buf, 0, buf.Length);
-            if (count == 0) return null;
-
-            if (isQuit) Logined = false;
-
+        /// <summary>接收响应</summary>
+        /// <param name="ns"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        protected virtual IList<Object> GetResponse(Stream ns, Int32 count)
+        {
             /*
              * 响应格式
              * 1：简单字符串，非二进制安全字符串，一般是状态回复。  +开头，例：+OK\r\n 
@@ -222,31 +191,104 @@ namespace NewLife.Caching
              * 5：多条回复。*开头， 例：*2\r\n$3\r\nfoo\r\n$3\r\nbar\r\n
              */
 
-            // 解析响应
-            var rs = new Packet(buf, 0, count);
+            var ms = new BufferedStream(ns);
 
-            var header = (Char)rs[0];
+            // 多行响应
+            var list = new List<Object>();
+            for (var i = 0; i < count; i++)
+            {
+                // 解析响应
+                var header = (Char)ms.ReadByte();
+                if (header == '$')
+                {
+                    list.Add(ReadBlock(ms));
+                }
+                else if (header == '*')
+                {
+                    list.Add(ReadBlocks(ms));
+                }
+                else
+                {
+                    // 字符串以换行为结束符
+                    var str = ReadLine(ms);
 
-            if (header == '$') return ReadBlock(rs, ns);
-            if (header == '*') return ReadBlocks(rs, ns);
+                    var log = Log == null || Log == Logger.Null ? null : Pool.StringBuilder.Get();
+                    if (log != null) WriteLog("=> {0}", str);
 
-            var pk = rs.Slice(1);
+                    if (header == '+' || header == ':')
+                        list.Add(str);
+                    else if (header == '-')
+                        throw new Exception(str);
+                    else
+                        throw new InvalidDataException("无法解析响应 [{0}]".F(header));
+                }
+            }
 
-            var str2 = pk.ToStr().Trim();
-            if (log != null) WriteLog("=> {0}", str2);
-
-            if (header == '+') return str2;
-            if (header == '-') throw new Exception(str2);
-            if (header == ':') return str2;
-
-            throw new InvalidDataException("无法解析响应 [{0}] [{1}]={2}".F(header, rs.Count, rs.ToHex(32, "-")));
+            return list;
         }
 
-        private Packet ReadBlock(Packet pk, Stream ms)
+        /// <summary>发出请求</summary>
+        /// <param name="cmd"></param>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        protected virtual Object ExecuteCommand(String cmd, Packet[] args)
         {
-            var rs = ReadPacket(pk, ms);
+            var isQuit = cmd == "QUIT";
 
-            if (Log != null && Log != Logger.Null)
+            var ns = GetStream(!isQuit);
+            if (ns == null) return null;
+
+            // 验证登录
+            CheckLogin(cmd);
+
+            var ms = Pool.MemoryStream.Get();
+            GetRequest(ms, cmd, args);
+
+            if (ms.Length > 0) ms.WriteTo(ns);
+            ms.Put();
+
+            var rs = GetResponse(ns, 1);
+
+            if (isQuit) Logined = false;
+
+            return rs.FirstOrDefault();
+        }
+
+        private void CheckLogin(String cmd)
+        {
+            if (!Logined && !Password.IsNullOrEmpty() && cmd != "AUTH")
+            {
+                var ars = ExecuteCommand("AUTH", new Packet[] { Password.GetBytes() });
+                if (ars as String != "OK") throw new Exception("登录失败！" + ars);
+
+                Logined = true;
+                LoginTime = DateTime.Now;
+            }
+        }
+
+        /// <summary>重置。干掉历史残留数据</summary>
+        public void Reset()
+        {
+            var ns = GetStream(false);
+            if (ns == null) return;
+
+            // 干掉历史残留数据
+            var count = 0;
+            if (ns is NetworkStream nss && nss.DataAvailable)
+            {
+                var buf = new Byte[1024];
+                do
+                {
+                    count = ns.Read(buf, 0, buf.Length);
+                } while (count > 0 && nss.DataAvailable);
+            }
+        }
+
+        private Packet ReadBlock(Stream ms)
+        {
+            var rs = ReadPacket(ms);
+
+            if (rs != null && Log != null && Log != Logger.Null)
             {
                 if (rs.Count <= 32)
                     WriteLog("=> {0}", rs.ToStr());
@@ -257,77 +299,72 @@ namespace NewLife.Caching
             return rs;
         }
 
-        private Packet[] ReadBlocks(Packet pk, Stream ms)
+        private Object[] ReadBlocks(Stream ms)
         {
-            var header = (Char)pk[0];
-
             // 结果集数量
-            var p = pk.IndexOf(NewLine);
-            if (p <= 0) throw new InvalidDataException("无法解析响应 {0} [{1}]".F(header, pk.Count));
+            var n = ReadLine(ms).ToInt(-1);
+            if (n < 0) return new Object[0];
 
-            var n = pk.Slice(1, p - 1).ToStr().ToInt();
-
-            pk = pk.Slice(p + 2);
-            if (Log != null && Log != Logger.Null) WriteLog("=> *{0} [{1}] {2}", n, pk.Count, pk.Slice(0, 32).ToStr().Replace(Environment.NewLine, "\\r\\n"));
-
-            var arr = new Packet[n];
+            //var ms = reader.BaseStream;
+            var arr = new Object[n];
             for (var i = 0; i < n; i++)
             {
-                var rs = ReadPacket(pk, ms);
-                arr[i] = rs;
-
-                // 下一块，在前一块末尾加 \r\n
-                pk = pk.Slice(rs.Offset + rs.Count + 2 - pk.Offset);
+                var header = (Char)ms.ReadByte();
+                if (header == '$')
+                {
+                    arr[i] = ReadPacket(ms);
+                }
+                else if (header == '*')
+                {
+                    arr[i] = ReadBlocks(ms);
+                }
             }
 
             return arr;
         }
 
-        private Packet ReadPacket(Packet pk, Stream ms)
+        private Packet ReadPacket(Stream ms)
         {
-            var header = (Char)pk[0];
+            var len = ReadLine(ms).ToInt(-1);
+            if (len <= 0) return null;
 
-            var p = pk.IndexOf(NewLine);
-            if (p <= 0) throw new InvalidDataException("无法解析响应 [{0}] [{1}]={2}".F((Byte)header, pk.Count, pk.ToHex(32, "-")));
-
-            // 解析长度
-            var len = pk.Slice(1, p - 1).ToStr().ToInt();
-
-            // 出错或没有内容
-            if (len <= 0) return pk.Slice(p, 0);
-
-            // 数据不足时，继续从网络流读取
-            var dlen = pk.Total - (p + 2);
-            var cur = pk;
-            while (dlen < len)
+            var buf = new Byte[len + 2];
+            var p = 0;
+            while (true)
             {
-                // 需要读取更多数据，加2字节的结尾换行
-                var over = len - dlen + 2;
-                var count = 0;
-                // 优先使用缓冲区
-                if (cur.Offset + cur.Count + over <= cur.Data.Length)
-                {
-                    count = ms.Read(cur.Data, cur.Offset + cur.Count, over);
-                    if (count > 0) cur.Set(cur.Data, cur.Offset, cur.Count + count);
-                }
-                else
-                {
-                    var buf = new Byte[over];
-                    count = ms.Read(buf, 0, over);
-                    if (count > 0)
-                    {
-                        cur.Next = new Packet(buf, 0, count);
-                        cur = cur.Next;
-                    }
-                }
-                //remain = pk.Total - (p + 2);
-                dlen += count;
+                // 等待，直到读完需要的数据，避免大包丢数据
+                var count = ms.Read(buf, p, buf.Length - p);
+                if (count <= 0) break;
+
+                p += count;
             }
 
-            // 解析内容，跳过长度后的\r\n
-            pk = pk.Slice(p + 2, len);
+            return new Packet(buf, 0, p - 2);
+        }
 
-            return pk;
+        private String ReadLine(Stream ms)
+        {
+            var sb = Pool.StringBuilder.Get();
+            while (true)
+            {
+                var b = ms.ReadByte();
+                if (b < 0) break;
+
+                if (b == '\r')
+                {
+                    var b2 = ms.ReadByte();
+                    if (b2 < 0) break;
+
+                    if (b2 == '\n') break;
+
+                    sb.Append((Char)b);
+                    sb.Append((Char)b2);
+                }
+                else
+                    sb.Append((Char)b);
+            }
+
+            return sb.Put(true);
         }
         #endregion
 
@@ -336,7 +373,7 @@ namespace NewLife.Caching
         /// <param name="cmd"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        public virtual Object Execute(String cmd, params Object[] args) => SendCommand(cmd, args.Select(e => ToBytes(e)).ToArray());
+        public virtual Object Execute(String cmd, params Object[] args) => ExecuteCommand(cmd, args.Select(e => ToBytes(e)).ToArray());
 
         /// <summary>执行命令。返回基本类型、对象、对象数组</summary>
         /// <param name="cmd"></param>
@@ -344,13 +381,34 @@ namespace NewLife.Caching
         /// <returns></returns>
         public virtual TResult Execute<TResult>(String cmd, params Object[] args)
         {
+            // 管道模式
+            if (_ps != null)
+            {
+                _ps.Add(new Command(cmd, args, typeof(TResult)));
+                return default(TResult);
+            }
+
             var type = typeof(TResult);
-            var rs = SendCommand(cmd, args.Select(e => ToBytes(e)).ToArray());
-            if (rs is String str)
+            var rs = Execute(cmd, args);
+
+            if (TryChangeType(rs, typeof(TResult), out var target)) return (TResult)target;
+
+            return default(TResult);
+        }
+
+        /// <summary>尝试转换类型</summary>
+        /// <param name="value"></param>
+        /// <param name="type"></param>
+        /// <param name="target"></param>
+        /// <returns></returns>
+        public virtual Boolean TryChangeType(Object value, Type type, out Object target)
+        {
+            if (value is String str)
             {
                 try
                 {
-                    return str.ChangeType<TResult>();
+                    target = value.ChangeType(type);
+                    return true;
                 }
                 catch (Exception ex)
                 {
@@ -359,24 +417,92 @@ namespace NewLife.Caching
                 }
             }
 
-            if (rs is Packet pk) return FromBytes<TResult>(pk);
-
-            if (rs is Packet[] pks)
+            if (value is Packet pk)
             {
-                if (typeof(TResult) == typeof(Packet[])) return (TResult)rs;
+                target = FromBytes(pk, type);
+                return true;
+            }
+
+            if (value is Object[] pks)
+            {
+                if (type == typeof(Object[])) { target = value; return true; }
+                if (type == typeof(Packet[])) { target = pks.Cast<Packet>().ToArray(); return true; }
 
                 var elmType = type.GetElementTypeEx();
                 var arr = Array.CreateInstance(elmType, pks.Length);
                 for (var i = 0; i < pks.Length; i++)
                 {
-                    arr.SetValue(FromBytes(pks[i], elmType), i);
+                    arr.SetValue(FromBytes(pks[i] as Packet, elmType), i);
                 }
-                return (TResult)(Object)arr;
+                target = arr;
+                return true;
             }
 
-            return default(TResult);
+            target = null;
+            return false;
         }
 
+        private IList<Command> _ps;
+        /// <summary>管道命令个数</summary>
+        public Int32 PipelineCommands => _ps == null ? 0 : _ps.Count;
+
+        /// <summary>开始管道模式</summary>
+        public virtual void StartPipeline()
+        {
+            if (_ps == null) _ps = new List<Command>();
+        }
+
+        /// <summary>结束管道模式</summary>
+        /// <param name="requireResult">要求结果</param>
+        public virtual Object[] StopPipeline(Boolean requireResult)
+        {
+            var ps = _ps;
+            if (ps == null) return null;
+
+            _ps = null;
+
+            var ns = GetStream(true);
+            if (ns == null) return null;
+
+            // 整体打包所有命令
+            var ms = Pool.MemoryStream.Get();
+            foreach (var item in ps)
+            {
+                GetRequest(ms, item.Name, item.Args.Select(e => ToBytes(e)).ToArray());
+            }
+
+            // 整体发出
+            if (ms.Length > 0) ms.WriteTo(ns);
+            ms.Put();
+
+            if (!requireResult) return new Object[ps.Count];
+
+            // 获取响应
+            var list = GetResponse(ns, ps.Count);
+            for (var i = 0; i < list.Count; i++)
+            {
+                if (TryChangeType(list[i], ps[i].Type, out var target)) list[i] = target;
+            }
+
+            return list.ToArray();
+        }
+
+        class Command
+        {
+            public String Name { get; set; }
+            public Object[] Args { get; set; }
+            public Type Type { get; set; }
+
+            public Command(String name, Object[] args, Type type)
+            {
+                Name = name;
+                Args = args;
+                Type = type;
+            }
+        }
+        #endregion
+
+        #region 基础功能
         /// <summary>心跳</summary>
         /// <returns></returns>
         public Boolean Ping() => Execute<String>("PING") == "PONG";
@@ -434,14 +560,18 @@ namespace NewLife.Caching
         /// <returns></returns>
         public Boolean SetAll<T>(IDictionary<String, T> values)
         {
-            var ps = new List<Packet>();
+            //var ps = new List<Packet>();
+            var ps = new List<Object>();
             foreach (var item in values)
             {
-                ps.Add(item.Key.GetBytes());
-                ps.Add(ToBytes(item.Value));
+                //ps.Add(item.Key.GetBytes());
+                //ps.Add(ToBytes(item.Value));
+                ps.Add(item.Key);
+                ps.Add(item.Value);
             }
 
-            var rs = SendCommand("MSET", ps.ToArray());
+            //var rs = ExecuteCommand("MSET", ps.ToArray());
+            var rs = Execute<String>("MSET", ps.ToArray());
 
             return rs as String == "OK";
         }
@@ -453,12 +583,14 @@ namespace NewLife.Caching
         public IDictionary<String, T> GetAll<T>(IEnumerable<String> keys)
         {
             var ks = keys.ToArray();
-            var rs = Execute("MGET", ks) as Packet[];
+            var rs = Execute("MGET", ks) as Object[];
 
             var dic = new Dictionary<String, T>();
+            if (rs == null) return dic;
+
             for (var i = 0; i < rs.Length; i++)
             {
-                dic[ks[i]] = FromBytes<T>(rs[i]);
+                dic[ks[i]] = FromBytes<T>(rs[i] as Packet);
             }
 
             return dic;
@@ -475,6 +607,7 @@ namespace NewLife.Caching
 
             if (value is Packet pk) return pk;
             if (value is Byte[] buf) return buf;
+            if (value is IAccessor acc) return acc.ToPacket();
 
             var type = value.GetType();
             switch (type.GetTypeCode())
@@ -491,8 +624,11 @@ namespace NewLife.Caching
         /// <returns></returns>
         protected virtual Object FromBytes(Packet pk, Type type)
         {
+            if (pk == null) return null;
+
             if (type == typeof(Packet)) return pk;
             if (type == typeof(Byte[])) return pk.ToArray();
+            if (type.As<IAccessor>()) return type.AccessorRead(pk);
 
             var str = pk.ToStr().Trim('\"');
             if (type.GetTypeCode() == TypeCode.String) return str;

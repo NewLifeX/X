@@ -183,6 +183,9 @@ namespace NewLife.Caching
             //return list.Delete();
         }
 
+        /// <summary>删除所有配置项</summary>
+        public override void Clear() => Factory.Session.Truncate();
+
         /// <summary>设置缓存项有效期</summary>
         /// <param name="key">键</param>
         /// <param name="expire">过期时间</param>
@@ -259,14 +262,15 @@ namespace NewLife.Caching
         /// <param name="times">次数</param>
         /// <param name="threads">线程</param>
         /// <param name="rand">随机读写</param>
-        public override void BenchOne(Int64 times, Int32 threads, Boolean rand)
+        /// <param name="batch">批量操作</param>
+        public override void BenchOne(Int64 times, Int32 threads, Boolean rand, Int32 batch)
         {
             if (rand)
                 times *= 1;
             else
                 times *= 1000;
 
-            base.BenchOne(times, threads, rand);
+            base.BenchOne(times, threads, rand, batch);
         }
         #endregion
     }

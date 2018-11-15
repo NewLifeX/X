@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace NewLife.Net.Handlers
+namespace NewLife.Model
 {
     /// <summary>处理器</summary>
     public interface IHandler
@@ -15,11 +15,6 @@ namespace NewLife.Net.Handlers
         /// <param name="context">上下文</param>
         /// <param name="message">消息</param>
         Object Read(IHandlerContext context, Object message);
-
-        ///// <summary>读取数据完成</summary>
-        ///// <param name="context">上下文</param>
-        ///// <param name="message">最终消息</param>
-        //Object ReadComplete(IHandlerContext context, Object message);
 
         /// <summary>写入数据，返回结果作为下一个处理器消息</summary>
         /// <param name="context">上下文</param>
@@ -42,7 +37,7 @@ namespace NewLife.Net.Handlers
     }
 
     /// <summary>处理器</summary>
-    public class Handler : IHandler
+    public abstract class Handler : IHandler
     {
         /// <summary>上一个处理器</summary>
         public IHandler Prev { get; set; }
@@ -54,11 +49,6 @@ namespace NewLife.Net.Handlers
         /// <param name="context">上下文</param>
         /// <param name="message">消息</param>
         public virtual Object Read(IHandlerContext context, Object message) => Next == null ? message : Next.Read(context, message);
-
-        ///// <summary>读取数据完成</summary>
-        ///// <param name="context">上下文</param>
-        ///// <param name="message">最终消息</param>
-        //public virtual Object ReadComplete(IHandlerContext context, Object message) => Next?.ReadComplete(context, message);
 
         /// <summary>写入数据，返回结果作为下一个处理器消息</summary>
         /// <param name="context">上下文</param>

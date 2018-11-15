@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using NewLife.Data;
@@ -125,6 +124,12 @@ namespace NewLife.Serialization
                 if (Hosts.Count == 0) WriteLog("BinaryWrite {0} {1}", type.Name, value);
             }
 
+            // 优先 IAccessor 接口
+            if (value is IAccessor acc)
+            {
+                if (acc.Write(Stream, this)) return true;
+            }
+
             foreach (var item in Handlers)
             {
                 if (item.Write(value, type)) return true;
@@ -227,7 +232,7 @@ namespace NewLife.Serialization
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
         //[DebuggerHidden]
-        public T Read<T>() => (T)(Object)Read(typeof(T));
+        public T Read<T>() => (T)Read(typeof(T));
 
         /// <summary>尝试读取指定类型对象</summary>
         /// <param name="type"></param>
@@ -237,6 +242,20 @@ namespace NewLife.Serialization
         public virtual Boolean TryRead(Type type, ref Object value)
         {
             if (Hosts.Count == 0) WriteLog("BinaryRead {0} {1}", type.Name, value);
+
+            // 优先 IAccessor 接口
+            if (value is IAccessor acc)
+            {
+                if (acc.Read(Stream, this)) return true;
+            }
+            if (value == null && type.As<IAccessor>())
+            {
+                value = type.CreateInstance();
+                if (value is IAccessor acc2)
+                {
+                    if (acc2.Read(Stream, this)) return true;
+                }
+            }
 
             foreach (var item in Handlers)
             {
@@ -358,7 +377,7 @@ namespace NewLife.Serialization
             {
                 b = ReadByte();
                 // 必须转为Int32，否则可能溢出
-                rs += (Int32)((b & 0x7f) << n);
+                rs += (b & 0x7f) << n;
                 if ((b & 0x80) == 0) break;
 
                 n += 7;
