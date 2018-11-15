@@ -229,6 +229,8 @@ namespace XCode.DataAccessLayer
             {
                 if (value is IEnumerable<Object> list)
                     value = list.Select(e => e.ToBoolean() ? 1 : 0).ToArray();
+                else if (value is IEnumerable<Boolean> list2)
+                    value = list2.Select(e => e.ToBoolean() ? 1 : 0).ToArray();
                 else
                     value = value.ToBoolean() ? 1 : 0;
 
@@ -506,9 +508,14 @@ namespace XCode.DataAccessLayer
             sb.AppendLine("BEGIN");
             sb.AppendLine(insert + ";");
             sb.AppendLine("EXCEPTION");
-            sb.AppendLine("WHEN DUP_VAL_ON_INDEX THEN");
-            sb.AppendLine(update + ";");
+            // 可能没有更新
+            if (!update.IsNullOrEmpty())
+            {
+                sb.AppendLine("WHEN DUP_VAL_ON_INDEX THEN");
+                sb.AppendLine(update + ";");
+            }
             sb.AppendLine("END;");
+
             var sql = sb.Put(true);
 
             var dps = GetParameters(columns, ps, list);
@@ -518,6 +525,9 @@ namespace XCode.DataAccessLayer
 
         private String GetUpdateSql(IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, ICollection<String> ps)
         {
+            if ((updateColumns == null || updateColumns.Count == 0)
+                && (addColumns == null || addColumns.Count == 0)) return null;
+
             var table = columns.FirstOrDefault().Table;
             var sb = Pool.StringBuilder.Get();
             var db = Database as DbBase;
