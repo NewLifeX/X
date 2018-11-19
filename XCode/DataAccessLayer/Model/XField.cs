@@ -158,10 +158,7 @@ namespace XCode.DataAccessLayer
         #region ICloneable 成员
         /// <summary>克隆</summary>
         /// <returns></returns>
-        Object ICloneable.Clone()
-        {
-            return Clone(Table);
-        }
+        Object ICloneable.Clone() => Clone(Table);
 
         /// <summary>克隆</summary>
         /// <param name="table"></param>

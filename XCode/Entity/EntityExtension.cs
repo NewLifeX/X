@@ -191,7 +191,16 @@ namespace XCode
                 var db = fact.Session.Dal;
 
                 // Oracle/MySql批量插入
-                if (db.SupportBatch) return BatchInsert(list);
+                if (db.SupportBatch)
+                {
+                    if (!(list is IList<T> es)) es = list.ToList();
+                    foreach (IEntity item in es.ToArray())
+                    {
+                        if (item is EntityBase entity2) entity2.Valid(item.IsNullKey);
+                        if (!fact.Modules.Valid(item, item.IsNullKey)) es.Remove((T)item);
+                    }
+                    return BatchInsert(list);
+                }
             }
 
             return DoAction(list, useTransition, e => e.Insert());
@@ -221,7 +230,7 @@ namespace XCode
             if (entity == null) return 0;
 
             var rs = 0;
-            if (list.Count() > 1)
+            if (list.Any())
             {
                 var fact = entity.GetType().AsFactory();
                 var db = fact.Session.Dal;
@@ -233,9 +242,10 @@ namespace XCode
                     var ts = Split(list);
                     list = ts.Item1;
                     var es = ts.Item2;
-                    foreach (IEntity item in es)
+                    foreach (IEntity item in es.ToArray())
                     {
                         if (item is EntityBase entity2) entity2.Valid(item.IsNullKey);
+                        if (!fact.Modules.Valid(item, item.IsNullKey)) es.Remove((T)item);
                     }
                     rs += BatchSave(fact, es);
                 }
@@ -255,7 +265,7 @@ namespace XCode
             if (entity == null) return 0;
 
             var rs = 0;
-            if (list.Count() > 1)
+            if (list.Any())
             {
                 var fact = entity.GetType().AsFactory();
                 var db = fact.Session.Dal;
@@ -365,30 +375,35 @@ namespace XCode
         #region 批量更新
         /// <summary>批量插入</summary>
         /// <typeparam name="T">实体类型</typeparam>
-        /// <param name="columns">要插入的字段，默认所有字段</param>
         /// <param name="list">实体列表</param>
+        /// <param name="columns">要插入的字段，默认所有字段</param>
         /// <returns></returns>
         public static Int32 BatchInsert<T>(this IEnumerable<T> list, IDataColumn[] columns = null) where T : IEntity
         {
+            if (list == null || !list.Any()) return 0;
+
             var entity = list.First();
             var fact = entity.GetType().AsFactory();
             if (columns == null) columns = fact.Fields.Select(e => e.Field).ToArray();
 
-            fact.Session.InitData();
-            fact.Session.Dal.CheckDatabase();
+            var session = fact.Session;
+            session.InitData();
+            session.Dal.CheckDatabase();
 
-            return fact.Session.Dal.Session.Insert(columns, list.Cast<IIndexAccessor>());
+            return session.Dal.Session.Insert(session.TableName, columns, list.Cast<IIndexAccessor>());
         }
 
-        /// <summary>批量插入或更新</summary>
+        /// <summary>批量更新</summary>
         /// <typeparam name="T">实体类型</typeparam>
         /// <param name="list">实体列表</param>
-        /// <param name="columns">要插入的字段，默认所有字段</param>
-        /// <param name="updateColumns">主键已存在时，要更新的字段</param>
-        /// <param name="addColumns">主键已存在时，要累加更新的字段</param>
+        /// <param name="columns">要更新的字段，默认所有字段</param>
+        /// <param name="updateColumns">要更新的字段，默认脏数据</param>
+        /// <param name="addColumns">要累加更新的字段，默认累加</param>
         /// <returns></returns>
-        public static Int32 InsertOrUpdate<T>(this IEnumerable<T> list, IDataColumn[] columns = null, ICollection<String> updateColumns = null, ICollection<String> addColumns = null) where T : IEntity
+        public static Int32 BatchUpdate<T>(this IEnumerable<T> list, IDataColumn[] columns = null, ICollection<String> updateColumns = null, ICollection<String> addColumns = null) where T : IEntity
         {
+            if (list == null || !list.Any()) return 0;
+
             var entity = list.First();
             var fact = entity.GetType().AsFactory();
             if (columns == null) columns = fact.Fields.Select(e => e.Field).ToArray();
@@ -411,10 +426,51 @@ namespace XCode
             }
             if (addColumns == null) addColumns = fact.AdditionalFields;
 
-            fact.Session.InitData();
-            fact.Session.Dal.CheckDatabase();
+            var session = fact.Session;
+            session.InitData();
+            session.Dal.CheckDatabase();
 
-            return fact.Session.Dal.Session.InsertOrUpdate(columns, updateColumns, addColumns, list.Cast<IIndexAccessor>());
+            return fact.Session.Dal.Session.Update(session.TableName, columns, updateColumns, addColumns, list.Cast<IIndexAccessor>());
+        }
+
+        /// <summary>批量插入或更新</summary>
+        /// <typeparam name="T">实体类型</typeparam>
+        /// <param name="list">实体列表</param>
+        /// <param name="columns">要插入的字段，默认所有字段</param>
+        /// <param name="updateColumns">要更新的字段，默认脏数据</param>
+        /// <param name="addColumns">要累加更新的字段，默认累加</param>
+        /// <returns></returns>
+        public static Int32 InsertOrUpdate<T>(this IEnumerable<T> list, IDataColumn[] columns = null, ICollection<String> updateColumns = null, ICollection<String> addColumns = null) where T : IEntity
+        {
+            if (list == null || !list.Any()) return 0;
+
+            var entity = list.First();
+            var fact = entity.GetType().AsFactory();
+            if (columns == null) columns = fact.Fields.Select(e => e.Field).ToArray();
+            //if (updateColumns == null) updateColumns = entity.Dirtys.Keys;
+            if (updateColumns == null)
+            {
+                // 所有实体对象的脏字段作为更新字段
+                var hs = new HashSet<String>();
+                foreach (var item in list)
+                {
+                    foreach (var elm in item.Dirtys)
+                    {
+                        // 创建时间等字段不参与Update
+                        if (elm.StartsWithIgnoreCase("Create")) continue;
+
+                        if (!hs.Contains(elm)) hs.Add(elm);
+                    }
+                }
+                updateColumns = hs;
+            }
+            if (addColumns == null) addColumns = fact.AdditionalFields;
+
+            var session = fact.Session;
+            session.InitData();
+            session.Dal.CheckDatabase();
+
+            return session.Dal.Session.InsertOrUpdate(session.TableName, columns, updateColumns, addColumns, list.Cast<IIndexAccessor>());
         }
 
         /// <summary>批量插入或更新</summary>
@@ -430,10 +486,11 @@ namespace XCode
             if (updateColumns == null) updateColumns = entity.Dirtys.Where(e => !e.StartsWithIgnoreCase("Create")).Distinct().ToArray();
             if (addColumns == null) addColumns = fact.AdditionalFields;
 
-            fact.Session.InitData();
-            fact.Session.Dal.CheckDatabase();
+            var session = fact.Session;
+            session.InitData();
+            session.Dal.CheckDatabase();
 
-            return fact.Session.Dal.Session.InsertOrUpdate(columns, updateColumns, addColumns, new[] { entity as IIndexAccessor });
+            return fact.Session.Dal.Session.InsertOrUpdate(session.TableName, columns, updateColumns, addColumns, new[] { entity as IIndexAccessor });
         }
         #endregion
 

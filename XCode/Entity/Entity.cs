@@ -799,6 +799,7 @@ namespace XCode
             if (!page.Sort.IsNullOrEmpty())
             {
                 var st = Meta.Table.FindByName(page.Sort);
+                page.OrderBy = null;
                 page.Sort = st?.FormatedName;
                 orderby = page.OrderBy;
 
@@ -1227,10 +1228,6 @@ namespace XCode
                     if (pi != null && pi.CanRead) return this.GetValue(pi);
                 }
 
-                //// 尝试匹配属性
-                //var property = GetType().GetPropertyEx(name, true);
-                //if (property != null && property.CanRead) return this.GetValue(property);
-
                 // 检查动态增加的字段，返回默认值
                 var f = Meta.Table.FindByName(name) as FieldItem;
 
@@ -1241,10 +1238,9 @@ namespace XCode
                     return obj;
                 }
 
-                if (f != null && f.IsDynamic)
-                {
-                    return f.Type.CreateInstance();
-                }
+                if (f != null && f.IsDynamic) return f.Type.CreateInstance();
+
+                if (_Extends != null) return Extends[name];
 
                 return null;
             }
@@ -1260,14 +1256,6 @@ namespace XCode
                         return;
                     }
                 }
-
-                ////尝试匹配属性
-                //var property = GetType().GetPropertyEx(name, true);
-                //if (property != null && property.CanWrite)
-                //{
-                //    this.SetValue(property, value);
-                //    return;
-                //}
 
                 // 检查动态增加的字段，返回默认值
                 if (Meta.Table.FindByName(name) is FieldItem f && f.IsDynamic) value = value.ChangeType(f.Type);

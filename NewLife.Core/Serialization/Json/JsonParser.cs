@@ -95,7 +95,16 @@ namespace NewLife.Serialization
                             var name = ParseName();
 
                             // :
-                            if (NextToken() != Token.Colon) throw new XException("在 {0} 需要冒号");
+                            if (NextToken() != Token.Colon)
+                            {
+                                // "//"开头的是注释，跳过
+                                if (name.TrimStart().StartsWith("//"))
+                                {
+                                    break;
+                                }
+
+                                throw new XException("在 {0} 后需要冒号", name);
+                            }
 
                             // 值
                             dic[name] = ParseValue();
