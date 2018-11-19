@@ -588,7 +588,7 @@ namespace NewLife.Caching
             var dic = new Dictionary<String, T>();
             if (rs == null) return dic;
 
-            for (var i = 0; i < rs.Length; i++)
+            for (var i = 0; i < ks.Length && i < rs.Length; i++)
             {
                 dic[ks[i]] = FromBytes<T>(rs[i] as Packet);
             }
