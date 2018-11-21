@@ -234,11 +234,18 @@ namespace XCode
             if (fi != null) return Convert.ToInt64(this[fi.Name]) > 0 ? Update() : Insert();
 
             // 如果唯一主键不为空，应该通过后面判断，而不是直接Update
-            if (IsNullKey) return Insert();
+            var isnew = IsNullKey;
+            if (isnew) return Insert();
 
             // Oracle/MySql批量插入
             var db = Meta.Session.Dal;
-            if (db.SupportBatch) return this.InsertOrUpdate();
+            if (db.SupportBatch)
+            {
+                Valid(isnew);
+                if (!Meta.Modules.Valid(this, isnew)) return -1;
+
+                return this.InsertOrUpdate();
+            }
 
             return FindCount(Persistence.GetPrimaryCondition(this), null, null, 0, 0) > 0 ? Update() : Insert();
         }
