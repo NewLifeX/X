@@ -393,7 +393,12 @@ namespace XCode
             return session.Dal.Session.Insert(session.TableName, columns, list.Cast<IIndexAccessor>());
         }
 
-        /// <summary>批量更新</summary>
+        /// <summary>
+        /// 批量更新
+        /// 注意类似：XCode.Exceptions.XSqlException: ORA-00933: SQL 命令未正确结束
+        /// [SQL:Update tablen_Name Set FieldName=:FieldName W [:FieldName=System.Int32[]]][DB:AAA/Oracle]
+        /// 建议是优先检查表是否存在主键，如果由于没有主键导致，及时通过try...cache 依旧无法正常保存。
+        /// </summary>
         /// <typeparam name="T">实体类型</typeparam>
         /// <param name="list">实体列表</param>
         /// <param name="columns">要更新的字段，默认所有字段</param>
