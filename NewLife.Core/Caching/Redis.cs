@@ -393,7 +393,7 @@ namespace NewLife.Caching
             if (expire < 0) expire = Expire;
 
             // 优化少量读取
-            if (values.Count == 1)
+            if (values.Count <= 2)
             {
                 foreach (var item in values)
                 {
