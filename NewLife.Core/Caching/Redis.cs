@@ -388,7 +388,19 @@ namespace NewLife.Caching
         /// <param name="expire">过期时间，秒。小于0时采用默认缓存时间<seealso cref="Cache.Expire"/></param>
         public override void SetAll<T>(IDictionary<String, T> values, Int32 expire = -1)
         {
+            if (values == null || values.Count == 0) return;
+
             if (expire < 0) expire = Expire;
+
+            // 优化少量读取
+            if (values.Count == 1)
+            {
+                foreach (var item in values)
+                {
+                    Set(item.Key, item.Value, expire);
+                }
+                return;
+            }
 
             Execute(rds => rds.SetAll(values), true);
 
