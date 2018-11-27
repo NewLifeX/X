@@ -233,6 +233,11 @@ namespace XCode
             var fi = Meta.Table.Identity;
             if (fi != null) return Convert.ToInt64(this[fi.Name]) > 0 ? Update() : Insert();
 
+            /*
+             * 慈母手中线，游子身上衣。
+             * 淳淳教诲时，草木尽芬芳。
+             */
+
             // 如果唯一主键不为空，应该通过后面判断，而不是直接Update
             var isnew = IsNullKey;
             if (isnew) return Insert();
@@ -526,7 +531,12 @@ namespace XCode
         /// <returns></returns>
         public static TEntity Find(Expression where)
         {
-            var list = FindAll(where, null, null, 0, 1);
+            var max = 1;
+
+            // 优待主键查询
+            if (where is FieldExpression fe && fe.Field != null && fe.Field.PrimaryKey) max = 0;
+
+            var list = FindAll(where, null, null, 0, max);
             return list.Count < 1 ? null : list[0];
         }
 
