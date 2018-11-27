@@ -11,6 +11,7 @@ using NewLife.Caching;
 using NewLife.Log;
 using NewLife.Remoting;
 using NewLife.Security;
+using NewLife.Serialization;
 using XCode;
 using XCode.Code;
 using XCode.DataAccessLayer;
@@ -35,7 +36,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test7();
+                    Test8();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -405,26 +406,16 @@ namespace Test
 
         static void Test8()
         {
-            var user = new UserX();
-            for (var i = 0; i < 1_000_000; i++)
-            {
-                user.RoleID++;
+            var obj = new { ID = 1234, Time = DateTime.Now, Time2 = DateTime.Today, Time3 = DateTime.MinValue, Time4 = DateTime.UtcNow };
+            var json = obj.ToJson(true);
+            Console.WriteLine(json);
 
-                if (i % 3 == 0) user.Logins++;
+            var dic = new JsonParser(json).Decode().ToDictionary();
+            Console.WriteLine(dic);
+            foreach (var item in dic)
+            {
+                Console.WriteLine("{0}\t={1}", item.Key, item.Value);
             }
-
-            Console.WriteLine("总量：{0:n0} 成功：{1:n0} 成功率：{2:p2}", user.RoleID, user.Logins, (Double)user.Logins / user.RoleID);
-
-            user.RoleID = 0;
-            user.Logins = 0;
-            Parallel.For(0, 1_000_000, k =>
-            {
-                user.RoleID++;
-
-                if (k % 3 == 0) user.Logins++;
-            });
-
-            Console.WriteLine("总量：{0:n0} 成功：{1:n0} 成功率：{2:p2}", user.RoleID, user.Logins, (Double)user.Logins / user.RoleID);
         }
 
         static async void Test9()
@@ -475,7 +466,7 @@ namespace Test
             var dt1 = new DateTime(1970, 1, 1);
             //var x = dt1.ToFileTimeUtc();
 
-            var yy=long.Parse("-1540795502468");
+            var yy = Int64.Parse("-1540795502468");
 
             //var yy = "1540795502468".ToInt();
             Console.WriteLine(yy);
@@ -487,9 +478,9 @@ namespace Test
 
         static void Test11()
         {
-            var xmlFile = Path.Combine(Directory.GetCurrentDirectory(),"../X/XCode/Model.xml");
+            var xmlFile = Path.Combine(Directory.GetCurrentDirectory(), "../X/XCode/Model.xml");
             var output = Path.Combine(Directory.GetCurrentDirectory(), "../");
-            EntityBuilder.Build(xmlFile,output);
+            EntityBuilder.Build(xmlFile, output);
         }
     }
 }

@@ -161,7 +161,14 @@ namespace NewLife.Serialization
             if (UseUTCDateTime) dt = dateTime.ToUniversalTime();
 
             // 纯日期缩短长度
-            var str = (dt.Hour == 0 && dt.Minute == 0 && dt.Second == 0) ? dt.ToString("yyyy-MM-dd") : dt.ToFullString();
+            var str = "";
+            if (dt.Year > 1000)
+            {
+                if (dt.Hour == 0 && dt.Minute == 0 && dt.Second == 0)
+                    str = dt.ToString("yyyy-MM-dd");
+                else
+                    str = dt.ToFullString();
+            }
 
             _Builder.AppendFormat("\"{0}\"", str);
         }
