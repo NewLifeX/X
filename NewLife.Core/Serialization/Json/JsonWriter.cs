@@ -160,7 +160,10 @@ namespace NewLife.Serialization
             var dt = dateTime;
             if (UseUTCDateTime) dt = dateTime.ToUniversalTime();
 
-            _Builder.AppendFormat("\"{0}\"", dateTime.ToFullString());
+            // 纯日期缩短长度
+            var str = (dt.Hour == 0 && dt.Minute == 0 && dt.Second == 0) ? dt.ToString("yyyy-MM-dd") : dt.ToFullString();
+
+            _Builder.AppendFormat("\"{0}\"", str);
         }
 
         Int32 _depth = 0;
