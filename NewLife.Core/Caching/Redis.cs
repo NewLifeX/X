@@ -161,6 +161,14 @@ namespace NewLife.Caching
 
                 return rc;
             }
+
+            protected override Boolean OnGet(RedisClient value)
+            {
+                // 借出时清空残留
+                value?.Reset();
+
+                return base.OnGet(value);
+            }
         }
 
         private MyPool _Pool;
@@ -277,6 +285,9 @@ namespace NewLife.Caching
             }
             finally
             {
+                // 如果不需要结果，则暂停一会，有效清理残留
+                if (!requireResult) Thread.Sleep(1);
+
                 rds.Reset();
                 Pool.Put(rds);
             }
