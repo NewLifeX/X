@@ -174,9 +174,14 @@ namespace XCode.DataAccessLayer
 
         #region 数据库特性
         /// <summary>已重载。格式化时间</summary>
-        /// <param name="dateTime"></param>
+        /// <param name="dt"></param>
         /// <returns></returns>
-        public override String FormatDateTime(DateTime dateTime) => "To_Date('" + dateTime.ToFullString() + "', 'YYYY-MM-DD HH24:MI:SS')";
+        public override String FormatDateTime(DateTime dt)
+        {
+            if (dt.Hour == 0 && dt.Minute == 0 && dt.Second == 0) return "To_Date('{0:yyyy-MM-dd}', 'YYYY-MM-DD')".F(dt);
+
+            return "To_Date('{0:yyyy-MM-dd HH:mm:ss}', 'YYYY-MM-DD HH24:MI:SS')".F(dt);
+        }
 
         public override String FormatValue(IDataColumn field, Object value)
         {
