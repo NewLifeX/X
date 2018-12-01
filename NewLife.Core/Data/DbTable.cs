@@ -300,42 +300,41 @@ namespace NewLife.Data
         #region 枚举
         /// <summary>获取枚举</summary>
         /// <returns></returns>
-        public IEnumerator<DbRow> GetEnumerator() => new DbEnumerator(this);
+        public IEnumerator<DbRow> GetEnumerator() => new DbEnumerator { Table = this };
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        class DbEnumerator : IEnumerator<DbRow>
+        struct DbEnumerator : IEnumerator<DbRow>
         {
-            public DbTable Table { get; }
+            public DbTable Table { get; set; }
 
-            public DbEnumerator(DbTable table) => Table = table;
+            private Int32 _row;
+            private DbRow _Current;
+            public DbRow Current => _Current;
 
-            private Int32 _row = -1;
-            public DbRow Current { get; set; }
-
-            Object IEnumerator.Current => Current;
+            Object IEnumerator.Current => _Current;
 
             public Boolean MoveNext()
             {
                 var rs = Table?.Rows;
                 if (rs == null || rs.Count == 0) return false;
 
+                if (_row < 0 || _row >= rs.Count)
+                {
+                    _Current = default(DbRow);
+                    return false;
+                }
+
+                _Current = new DbRow(Table, _row);
+
                 _row++;
-
-                if (_row < 0 || _row >= rs.Count) return false;
-
-                var dr = Current;
-                if (dr == null)
-                    Current = new DbRow(Table, _row);
-                else
-                    dr.Index = _row;
 
                 return true;
             }
 
             public void Reset()
             {
-                Current = null;
+                _Current = default(DbRow);
                 _row = -1;
             }
 
