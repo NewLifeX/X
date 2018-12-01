@@ -411,7 +411,8 @@ namespace Test
 
             dal.Backup(dt.TableName);
 
-            File.Delete("member2.db");
+            //File.Delete("member2.db");
+            DAL.AddConnStr("member2", "Server=.;Port=3306;Database=member2;Uid=root;Pwd=root;", null, "MySql");
             var dal2 = DAL.Create("member2");
             dal2.Restore("role.table", dt);
 
