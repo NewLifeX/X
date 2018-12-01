@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -8,6 +10,7 @@ using NewLife.Caching;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Reflection;
+using NewLife.Serialization;
 
 namespace XCode.DataAccessLayer
 {
@@ -327,6 +330,108 @@ namespace XCode.DataAccessLayer
             {
                 sb.Append("#");
                 sb.Append(value);
+            }
+        }
+        #endregion
+
+        #region 备份
+        /// <summary>备份单表数据</summary>
+        /// <remarks>
+        /// 最大支持21亿行
+        /// </remarks>
+        /// <param name="table">数据表</param>
+        /// <param name="stream">目标数据流</param>
+        /// <param name="progress">进度回调，参数为已处理行数和当前页表</param>
+        /// <returns></returns>
+        public Int32 Backup(String table, Stream stream, Action<Int32, DbTable> progress = null)
+        {
+            // 二进制读写器
+            var bn = new Binary
+            {
+                EncodeInt = true,
+                Stream = stream,
+            };
+
+            // 原始位置和行数位置
+            var pOri = stream.Position;
+            var pCount = 0L;
+
+            var sb = new SelectBuilder
+            {
+                Table = Db.FormatTableName(table)
+            };
+
+            var row = 0;
+            var pageSize = 5000;
+            var total = 0;
+            var sw = Stopwatch.StartNew();
+            while (true)
+            {
+                // 分页
+                var sb2 = PageSplit(sb, row, pageSize);
+
+                // 查询数据
+                var dt = Session.Query(sb2.ToString(), null);
+                if (dt == null) break;
+
+                // 写头部结构。没有数据时可以备份结构
+                if (row == 0)
+                {
+                    dt.WriteHeader(bn);
+
+                    // 数据行数，占位
+                    pCount = stream.Position;
+                    bn.Write(0.GetBytes(), 0, 4);
+                }
+
+                var rs = dt.Rows;
+                if (rs == null || rs.Count == 0) break;
+
+                WriteLog("备份[{0}/{1}]数据 {2:n0} + {3:n0}", table, ConnName, row, rs.Count);
+
+                // 写入数据
+                dt.WriteData(bn);
+
+                // 进度报告
+                progress?.Invoke(row, dt);
+
+                // 下一页
+                total += rs.Count;
+                if (rs.Count < pageSize) break;
+                row += pageSize;
+            }
+
+            if (total > 0)
+            {
+                // 更新行数
+                var p = stream.Position;
+                stream.Position = pCount;
+                bn.Write(total.GetBytes(), 0, 4);
+                stream.Position = p;
+            }
+
+            sw.Stop();
+            var ms = sw.Elapsed.TotalMilliseconds;
+            WriteLog("备份[{0}/{1}]完成，共[{2:n0}]行，耗时{3:n0}ms，速度{4:n0}tps", table, ConnName, total, ms, total * 1000 / ms);
+
+            // 返回总行数
+            return total;
+        }
+
+        /// <summary>备份单表数据到文件</summary>
+        /// <param name="table"></param>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        public Int32 Backup(String table, String file)
+        {
+            var file2 = file.GetFullPath();
+            file2.EnsureDirectory(true);
+
+            WriteLog("备份[{0}/{1}]到文件 {2}", table, ConnName, file);
+
+            using (var fs = new FileStream(file2, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite))
+            {
+                return Backup(table, fs);
             }
         }
         #endregion

@@ -120,6 +120,11 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         String FormatName(String name);
 
+        /// <summary>格式化表名，考虑表前缀和Owner</summary>
+        /// <param name="tableName">名称</param>
+        /// <returns></returns>
+        String FormatTableName(String tableName);
+
         /// <summary>格式化数据为SQL数据</summary>
         /// <param name="field">字段</param>
         /// <param name="value">数值</param>

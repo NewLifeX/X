@@ -11,7 +11,6 @@ using NewLife.Caching;
 using NewLife.Log;
 using NewLife.Remoting;
 using NewLife.Security;
-using NewLife.Serialization;
 using XCode;
 using XCode.Code;
 using XCode.DataAccessLayer;
@@ -406,16 +405,8 @@ namespace Test
 
         static void Test8()
         {
-            var obj = new { ID = 1234, Time = DateTime.Now, Time2 = DateTime.Today, Time3 = DateTime.MinValue, Time4 = DateTime.UtcNow };
-            var json = obj.ToJson(true);
-            Console.WriteLine(json);
-
-            var dic = new JsonParser(json).Decode().ToDictionary();
-            Console.WriteLine(dic);
-            foreach (var item in dic)
-            {
-                Console.WriteLine("{0}\t={1}", item.Key, item.Value);
-            }
+            var dal = Role.Meta.Session.Dal;
+            dal.Backup("Role", "role.bak");
         }
 
         static async void Test9()

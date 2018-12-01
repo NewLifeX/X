@@ -64,13 +64,13 @@ namespace NewLife.Data
         private const Byte _Ver = 1;
 
         /// <summary>从数据流读取</summary>
-        /// <param name="ms"></param>
-        public void Read(Stream ms)
+        /// <param name="stream"></param>
+        public void Read(Stream stream)
         {
             var bn = new Binary
             {
                 EncodeInt = true,
-                Stream = ms,
+                Stream = stream,
             };
 
             // 头部，版本和压缩标记
@@ -106,18 +106,33 @@ namespace NewLife.Data
         }
 
         /// <summary>写入数据流</summary>
-        /// <param name="ms"></param>
-        public void Write(Stream ms)
+        /// <param name="stream"></param>
+        public void Write(Stream stream)
         {
-            var cs = Columns;
-            var ts = Types;
-            var rs = Rows;
-
             var bn = new Binary
             {
                 EncodeInt = true,
-                Stream = ms,
+                Stream = stream,
             };
+
+            // 写入头部
+            WriteHeader(bn);
+
+            // 写入数据体
+            var rs = Rows;
+            if (rs != null && rs.Count > 0)
+            {
+                bn.Write(rs.Count.GetBytes(), 0, 4);
+                WriteData(bn);
+            }
+        }
+
+        /// <summary>写入头部到数据流</summary>
+        /// <param name="bn"></param>
+        public void WriteHeader(Binary bn)
+        {
+            var cs = Columns;
+            var ts = Types;
 
             // 头部，版本和压缩标记
             bn.Write(_Ver);
@@ -125,15 +140,22 @@ namespace NewLife.Data
 
             // 写入头部
             var count = cs.Length;
-            bn.Write(count);
+            bn.Write(count.GetBytes(), 0, 4);
             for (var i = 0; i < count; i++)
             {
                 bn.Write(cs[i]);
                 bn.Write((Byte)ts[i].GetTypeCode());
             }
+        }
+
+        /// <summary>写入数据部分到数据流</summary>
+        /// <param name="bn"></param>
+        public void WriteData(Binary bn)
+        {
+            var ts = Types;
+            var rs = Rows;
 
             // 写入数据
-            bn.Write(rs.Count);
             foreach (var row in rs)
             {
                 for (var i = 0; i < row.Length; i++)

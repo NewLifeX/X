@@ -27,22 +27,22 @@ namespace XCode
             public virtual IEntity Default { get { return _Default ?? (_Default = new TEntity()); } set { _Default = value; } }
 
             /// <summary>数据表元数据</summary>
-            public virtual TableItem Table { get { return Meta.Table; } }
+            public virtual TableItem Table => Meta.Table;
 
             /// <summary>所有数据属性</summary>
-            public virtual FieldItem[] AllFields { get { return Meta.AllFields; } }
+            public virtual FieldItem[] AllFields => Meta.AllFields;
 
             /// <summary>所有绑定到数据表的属性</summary>
-            public virtual FieldItem[] Fields { get { return Meta.Fields; } }
+            public virtual FieldItem[] Fields => Meta.Fields;
 
             /// <summary>字段名集合，不区分大小写的哈希表存储，外部不要修改元素数据</summary>
-            public virtual ICollection<String> FieldNames { get { return Meta.FieldNames; } }
+            public virtual ICollection<String> FieldNames => Meta.FieldNames;
 
             /// <summary>唯一键，返回第一个标识列或者唯一的主键</summary>
-            public virtual FieldItem Unique { get { return Meta.Unique; } }
+            public virtual FieldItem Unique => Meta.Unique;
 
             /// <summary>主字段。主字段作为业务主要字段，代表当前数据行意义</summary>
-            public virtual FieldItem Master { get { return Meta.Master; } }
+            public virtual FieldItem Master => Meta.Master;
 
             /// <summary>连接名</summary>
             public virtual String ConnName { get { return Meta.ConnName; } set { Meta.ConnName = value; } }
@@ -51,16 +51,16 @@ namespace XCode
             public virtual String TableName { get { return Meta.TableName; } set { Meta.TableName = value; } }
 
             /// <summary>已格式化的表名，带有中括号等</summary>
-            public virtual String FormatedTableName { get { return Session.FormatedTableName; } }
+            public virtual String FormatedTableName => Session.FormatedTableName;
 
             /// <summary>实体缓存</summary>
-            public virtual IEntityCache Cache { get { return Session.Cache; } }
+            public virtual IEntityCache Cache => Session.Cache;
 
             /// <summary>单对象实体缓存</summary>
-            public virtual ISingleEntityCache SingleCache { get { return Session.SingleCache; } }
+            public virtual ISingleEntityCache SingleCache => Session.SingleCache;
 
             /// <summary>总记录数</summary>
-            public virtual Int32 Count { get { return Session.Count; } }
+            public virtual Int32 Count => Session.Count;
             #endregion
 
             #region 构造
