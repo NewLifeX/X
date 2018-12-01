@@ -7,7 +7,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using NewLife;
 using NewLife.Caching;
 using NewLife.Log;
 using NewLife.Remoting;
@@ -409,14 +408,15 @@ namespace Test
             var dal = Role.Meta.Session.Dal;
             var dt = Role.Meta.Table.DataTable;
 
-            dal.Backup(dt.TableName);
+            //dal.Backup(dt.TableName);
 
             //File.Delete("member2.db");
             DAL.AddConnStr("member2", "Server=.;Port=3306;Database=member2;Uid=root;Pwd=root;", null, "MySql");
             var dal2 = DAL.Create("member2");
-            dal2.Restore("role.table", dt);
+            //dal2.Restore("role.table", dt);
 
-            //dal.BackupAll(null, "backup");
+            dal.BackupAll(null, "backup", true);
+            dal2.RestoreAll("backup");
         }
 
         static async void Test9()

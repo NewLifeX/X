@@ -438,14 +438,30 @@ namespace XCode.DataAccessLayer
         /// <summary>备份一批表到指定目录</summary>
         /// <param name="tables"></param>
         /// <param name="dir"></param>
+        /// <param name="backupSchema">备份架构</param>
         /// <returns></returns>
-        public IDictionary<String, Int32> BackupAll(String[] tables, String dir)
+        public IDictionary<String, Int32> BackupAll(String[] tables, String dir, Boolean backupSchema = false)
         {
             var dic = new Dictionary<String, Int32>();
 
-            if (tables == null) tables = Tables?.Select(e => e.TableName).ToArray();
+            IList<IDataTable> tbls = null;
+            if (tables == null)
+            {
+                tbls = Tables;
+                tables = tbls.Select(e => e.TableName).ToArray();
+            }
             if (tables != null && tables.Length > 0)
             {
+                // 备份架构
+                if (backupSchema)
+                {
+                    if (tbls == null) tbls = Tables;
+                    var bs = tables.Select(e => tbls.FirstOrDefault(t => e.EqualIgnoreCase(t.Name, t.TableName))).Where(e => e != null).ToArray();
+
+                    var xml = Export(bs);
+                    File.WriteAllText(dir.CombinePath(ConnName + ".xml"), xml);
+                }
+
                 foreach (var item in tables)
                 {
                     dic[item] = Backup(item, dir.CombinePath(item + ".table"));
@@ -552,7 +568,7 @@ namespace XCode.DataAccessLayer
         /// <param name="dir"></param>
         /// <param name="tables"></param>
         /// <returns></returns>
-        public IDictionary<String, Int32> RestoreAll(String dir, IDataTable[] tables)
+        public IDictionary<String, Int32> RestoreAll(String dir, IDataTable[] tables = null)
         {
             var dic = new Dictionary<String, Int32>();
             if (dir.IsNullOrEmpty() || !Directory.Exists(dir)) return dic;
