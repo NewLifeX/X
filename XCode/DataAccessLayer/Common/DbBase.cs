@@ -682,7 +682,7 @@ namespace XCode.DataAccessLayer
         {
             // 检查自动表前缀
             var pf = TablePrefix;
-            if (!pf.IsNullOrEmpty() ) tableName = pf + tableName;
+            if (!pf.IsNullOrEmpty()) tableName = pf + tableName;
 
             tableName = FormatName(tableName);
 
@@ -730,9 +730,9 @@ namespace XCode.DataAccessLayer
                 if (value == null) return isNullable ? "null" : "''";
                 var dt = Convert.ToDateTime(value);
 
-                if (dt <= DateTime.MinValue || dt >= DateTime.MaxValue) return isNullable ? "null" : "''";
+                //if (dt <= DateTime.MinValue || dt >= DateTime.MaxValue) return isNullable ? "null" : "''";
 
-                if ((dt == DateTime.MinValue) && isNullable) return "null";
+                if (isNullable && (dt <= DateTime.MinValue || dt >= DateTime.MaxValue)) return "null";
 
                 return FormatDateTime(dt);
             }
