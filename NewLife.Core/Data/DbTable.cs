@@ -94,7 +94,7 @@ namespace NewLife.Data
             var flag = bn.Read<Byte>();
 
             // 写入头部
-            var count = bn.ReadBytes(4).ToInt();
+            var count = bn.Read<Int32>();
             var cs = new String[count];
             var ts = new Type[count];
             for (var i = 0; i < count; i++)
@@ -163,16 +163,15 @@ namespace NewLife.Data
                 Stream = stream,
             };
 
+            // 写入数据体
+            var rs = Rows;
+            Total = rs == null ? 0 : rs.Count;
+
             // 写入头部
             WriteHeader(bn);
 
-            // 写入数据体
-            var rs = Rows;
-            if (rs != null && rs.Count > 0)
-            {
-                bn.Write(rs.Count.GetBytes(), 0, 4);
-                WriteData(bn);
-            }
+            // 写入数据行
+            WriteData(bn);
         }
 
         /// <summary>写入头部到数据流</summary>
@@ -188,12 +187,15 @@ namespace NewLife.Data
 
             // 写入头部
             var count = cs.Length;
-            bn.Write(count.GetBytes(), 0, 4);
+            bn.Write(count);
             for (var i = 0; i < count; i++)
             {
                 bn.Write(cs[i]);
                 bn.Write((Byte)ts[i].GetTypeCode());
             }
+
+            // 数据行数
+            bn.Write(Total.GetBytes(), 0, 4);
         }
 
         /// <summary>写入数据部分到数据流</summary>

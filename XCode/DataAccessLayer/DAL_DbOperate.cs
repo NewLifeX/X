@@ -379,8 +379,7 @@ namespace XCode.DataAccessLayer
                     dt.WriteHeader(bn);
 
                     // 数据行数，占位
-                    pCount = stream.Position;
-                    bn.Write(0.GetBytes(), 0, 4);
+                    pCount = stream.Position - 4;
                 }
 
                 var rs = dt.Rows;
@@ -411,7 +410,7 @@ namespace XCode.DataAccessLayer
 
             sw.Stop();
             var ms = sw.Elapsed.TotalMilliseconds;
-            WriteLog("备份[{0}/{1}]完成，共[{2:n0}]行，耗时{3:n0}ms，速度{4:n0}tps", table, ConnName, total, ms, total * 1000 / ms);
+            WriteLog("备份[{0}/{1}]完成，共[{2:n0}]行，耗时{3:n0}ms，速度{4:n0}tps，大小{5:n0}字节", table, ConnName, total, ms, total * 1000 / ms, stream.Position - pOri);
 
             // 返回总行数
             return total;
@@ -458,6 +457,11 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 恢复
+        /// <summary>从数据流恢复数据</summary>
+        /// <param name="stream">数据流</param>
+        /// <param name="table">数据表</param>
+        /// <param name="progress">进度回调，参数为已处理行数和当前页表</param>
+        /// <returns></returns>
         public Int32 Restore(Stream stream, IDataTable table, Action<Int32, DbTable> progress = null)
         {
             // 二进制读写器
@@ -470,6 +474,7 @@ namespace XCode.DataAccessLayer
             // 原始位置和行数位置
             var pOri = stream.Position;
 
+            var sw = Stopwatch.StartNew();
             var dt = new DbTable();
             dt.ReadHeader(bn);
 
@@ -480,11 +485,10 @@ namespace XCode.DataAccessLayer
             var row = 0;
             var pageSize = 5000;
             var total = 0;
-            var sw = Stopwatch.StartNew();
             while (true)
             {
                 // 读取数据
-                var count = dt.ReadData(bn, pageSize);
+                var count = dt.ReadData(bn, Math.Min(dt.Total - row, pageSize));
 
                 var rs = dt.Rows;
                 if (rs == null || rs.Count == 0) break;
@@ -516,24 +520,65 @@ namespace XCode.DataAccessLayer
             return total;
         }
 
+        /// <summary>从文件恢复数据</summary>
+        /// <param name="file"></param>
+        /// <param name="table"></param>
+        /// <returns></returns>
         public Int32 Restore(String file, IDataTable table = null)
         {
+            if (file.IsNullOrEmpty() || !File.Exists(file)) return 0;
+
             if (table == null)
             {
                 var name = Path.GetFileNameWithoutExtension(file);
                 table = Tables.FirstOrDefault(e => name.EqualIgnoreCase(e.Name, e.TableName));
             }
+            else
+                SetTables(table);
             if (table == null) return 0;
 
             var file2 = file.GetFullPath();
             file2.EnsureDirectory(true);
 
-            WriteLog("恢复[{2}]到[{0}/{1}]", file, table, ConnName);
+            WriteLog("恢复[{2}]到[{0}/{1}]", table, ConnName, file);
 
             using (var fs = new FileStream(file2, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
                 return Restore(fs, table);
             }
+        }
+
+        /// <summary>从指定目录恢复一批数据到目标库</summary>
+        /// <param name="dir"></param>
+        /// <param name="tables"></param>
+        /// <returns></returns>
+        public IDictionary<String, Int32> RestoreAll(String dir, IDataTable[] tables)
+        {
+            var dic = new Dictionary<String, Int32>();
+            if (dir.IsNullOrEmpty() || !Directory.Exists(dir)) return dic;
+
+            if (tables == null)
+            {
+                //tables = Tables.ToArray();
+                var tbls = Tables;
+                var ts = new List<IDataTable>();
+                foreach (var item in dir.AsDirectory().GetFiles("*.table"))
+                {
+                    var name = Path.GetFileNameWithoutExtension(item.Name);
+                    var tb = tbls.FirstOrDefault(e => name.EqualIgnoreCase(e.Name, e.TableName));
+                    if (tb != null) ts.Add(tb);
+                }
+                tables = ts.ToArray();
+            }
+            if (tables != null && tables.Length > 0)
+            {
+                foreach (var item in tables)
+                {
+                    dic[item.Name] = Restore(dir.CombinePath(item + ".table"), item);
+                }
+            }
+
+            return dic;
         }
         #endregion
     }
