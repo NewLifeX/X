@@ -20,6 +20,9 @@ namespace NewLife.Data
 
         /// <summary>数据行</summary>
         public IList<Object[]> Rows { get; set; }
+
+        /// <summary>总函数</summary>
+        public Int32 Total { get; set; }
         #endregion
 
         #region 构造
@@ -57,10 +60,12 @@ namespace NewLife.Data
                 rs.Add(row);
             }
             Rows = rs;
+
+            Total = rs.Count;
         }
         #endregion
 
-        #region 二进制读写
+        #region 二进制读取
         private const Byte _Ver = 1;
 
         /// <summary>从数据流读取</summary>
@@ -73,12 +78,23 @@ namespace NewLife.Data
                 Stream = stream,
             };
 
+            // 读取头部
+            ReadHeader(bn);
+
+            // 读取全部数据
+            ReadData(bn, Total);
+        }
+
+        /// <summary>读取头部</summary>
+        /// <param name="bn"></param>
+        public void ReadHeader(Binary bn)
+        {
             // 头部，版本和压缩标记
             var ver = bn.Read<Byte>();
             var flag = bn.Read<Byte>();
 
             // 写入头部
-            var count = bn.Read<Int32>();
+            var count = bn.ReadBytes(4).ToInt();
             var cs = new String[count];
             var ts = new Type[count];
             for (var i = 0; i < count; i++)
@@ -90,21 +106,53 @@ namespace NewLife.Data
             Columns = cs;
             Types = ts;
 
-            // 写入数据
-            var count2 = bn.Read<Int32>();
-            var rs = new List<Object[]>(count2);
-            for (var k = 0; k < count2; k++)
+            Total = bn.ReadBytes(4).ToInt();
+        }
+
+        /// <summary>读取数据</summary>
+        /// <param name="bn"></param>
+        /// <param name="rows"></param>
+        /// <returns></returns>
+        public Int32 ReadData(Binary bn, Int32 rows)
+        {
+            if (rows <= 0) return 0;
+
+            var ts = Types;
+            var count = ts.Length;
+
+            var total = 0;
+            var rs = new List<Object[]>(rows);
+            for (var k = 0; k < rows; k++)
             {
+                if (bn.Stream.Position >= bn.Stream.Length) break;
+
                 var row = new Object[count];
                 for (var i = 0; i < count; i++)
                 {
                     row[i] = bn.Read(ts[i]);
                 }
                 rs.Add(row);
+                total++;
             }
             Rows = rs;
+
+            return total;
         }
 
+        /// <summary>读取</summary>
+        /// <param name="pk"></param>
+        /// <returns></returns>
+        public Boolean Read(Packet pk)
+        {
+            if (pk == null || pk.Total == 0) return false;
+
+            Read(pk.GetStream());
+
+            return true;
+        }
+        #endregion
+
+        #region 二进制写入
         /// <summary>写入数据流</summary>
         /// <param name="stream"></param>
         public void Write(Stream stream)
@@ -163,18 +211,6 @@ namespace NewLife.Data
                     bn.Write(row[i], ts[i]);
                 }
             }
-        }
-
-        /// <summary>读取</summary>
-        /// <param name="pk"></param>
-        /// <returns></returns>
-        public Boolean Read(Packet pk)
-        {
-            if (pk == null || pk.Total == 0) return false;
-
-            Read(pk.GetStream());
-
-            return true;
         }
 
         /// <summary>转数据包</summary>

@@ -6,7 +6,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using NewLife.Caching;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Reflection;
@@ -429,7 +428,7 @@ namespace XCode.DataAccessLayer
             var file2 = file.GetFullPath();
             file2.EnsureDirectory(true);
 
-            WriteLog("备份[{0}/{1}]到文件 {2}", table, ConnName, file);
+            WriteLog("备份[{0}/{1}]到文件 {2}", table, ConnName, file2);
 
             using (var fs = new FileStream(file2, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite))
             {
@@ -455,6 +454,86 @@ namespace XCode.DataAccessLayer
             }
 
             return dic;
+        }
+        #endregion
+
+        #region 恢复
+        public Int32 Restore(Stream stream, IDataTable table, Action<Int32, DbTable> progress = null)
+        {
+            // 二进制读写器
+            var bn = new Binary
+            {
+                EncodeInt = true,
+                Stream = stream,
+            };
+
+            // 原始位置和行数位置
+            var pOri = stream.Position;
+
+            var dt = new DbTable();
+            dt.ReadHeader(bn);
+
+            // 匹配要写入的列
+            var tableName = Db.FormatTableName(table.TableName);
+            var columns = table.GetColumns(dt.Columns);
+
+            var row = 0;
+            var pageSize = 5000;
+            var total = 0;
+            var sw = Stopwatch.StartNew();
+            while (true)
+            {
+                // 读取数据
+                var count = dt.ReadData(bn, pageSize);
+
+                var rs = dt.Rows;
+                if (rs == null || rs.Count == 0) break;
+
+                WriteLog("恢复[{0}/{1}]数据 {2:n0} + {3:n0}", table, ConnName, row, rs.Count);
+
+                // 批量写入数据库
+                var ds = new List<IIndexAccessor>();
+                foreach (var item in dt)
+                {
+                    ds.Add(item);
+                }
+                Session.Insert(tableName, columns, ds);
+
+                // 进度报告
+                progress?.Invoke(row, dt);
+
+                // 下一页
+                total += count;
+                if (count < pageSize) break;
+                row += pageSize;
+            }
+
+            sw.Stop();
+            var ms = sw.Elapsed.TotalMilliseconds;
+            WriteLog("恢复[{0}/{1}]完成，共[{2:n0}]行，耗时{3:n0}ms，速度{4:n0}tps", table, ConnName, total, ms, total * 1000 / ms);
+
+            // 返回总行数
+            return total;
+        }
+
+        public Int32 Restore(String file, IDataTable table = null)
+        {
+            if (table == null)
+            {
+                var name = Path.GetFileNameWithoutExtension(file);
+                table = Tables.FirstOrDefault(e => name.EqualIgnoreCase(e.Name, e.TableName));
+            }
+            if (table == null) return 0;
+
+            var file2 = file.GetFullPath();
+            file2.EnsureDirectory(true);
+
+            WriteLog("恢复[{2}]到[{0}/{1}]", file, table, ConnName);
+
+            using (var fs = new FileStream(file2, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            {
+                return Restore(fs, table);
+            }
         }
         #endregion
     }

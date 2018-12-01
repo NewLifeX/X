@@ -406,9 +406,15 @@ namespace Test
         static void Test8()
         {
             var dal = Role.Meta.Session.Dal;
-            //dal.Backup("Role", "role.bak");
+            var dt = Role.Meta.Table.DataTable;
 
-            dal.BackupAll(null, "backup");
+            dal.Backup(dt.TableName);
+
+            var dal2 = DAL.Create("member2");
+            dal2.SetTables(dt);
+            dal2.Restore("role.table", dt);
+
+            //dal.BackupAll(null, "backup");
         }
 
         static async void Test9()
