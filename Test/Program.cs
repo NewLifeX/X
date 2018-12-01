@@ -406,7 +406,9 @@ namespace Test
         static void Test8()
         {
             var dal = Role.Meta.Session.Dal;
-            dal.Backup("Role", "role.bak");
+            //dal.Backup("Role", "role.bak");
+
+            dal.BackupAll(null, "backup");
         }
 
         static async void Test9()

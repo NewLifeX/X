@@ -422,8 +422,10 @@ namespace XCode.DataAccessLayer
         /// <param name="table"></param>
         /// <param name="file"></param>
         /// <returns></returns>
-        public Int32 Backup(String table, String file)
+        public Int32 Backup(String table, String file = null)
         {
+            if (file.IsNullOrEmpty()) file = table + ".table";
+
             var file2 = file.GetFullPath();
             file2.EnsureDirectory(true);
 
@@ -433,6 +435,26 @@ namespace XCode.DataAccessLayer
             {
                 return Backup(table, fs);
             }
+        }
+
+        /// <summary>备份一批表到指定目录</summary>
+        /// <param name="tables"></param>
+        /// <param name="dir"></param>
+        /// <returns></returns>
+        public IDictionary<String, Int32> BackupAll(String[] tables, String dir)
+        {
+            var dic = new Dictionary<String, Int32>();
+
+            if (tables == null) tables = Tables?.Select(e => e.TableName).ToArray();
+            if (tables != null && tables.Length > 0)
+            {
+                foreach (var item in tables)
+                {
+                    dic[item] = Backup(item, dir.CombinePath(item + ".table"));
+                }
+            }
+
+            return dic;
         }
         #endregion
     }
