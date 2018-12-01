@@ -156,7 +156,7 @@ namespace XCode
             var sw = Stopwatch.StartNew();
 
             // 分批
-            var batchSize = 5000;
+            var batchSize = 10_000;
             for (var i = 0; i < list.Count();)
             {
                 var batch = list.Skip(i).Take(batchSize).ToList();

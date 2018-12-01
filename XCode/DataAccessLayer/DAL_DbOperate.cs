@@ -361,7 +361,7 @@ namespace XCode.DataAccessLayer
             };
 
             var row = 0;
-            var pageSize = 5000;
+            var pageSize = 10_000;
             var total = 0;
             var sw = Stopwatch.StartNew();
             while (true)
@@ -500,7 +500,7 @@ namespace XCode.DataAccessLayer
             var columns = table.GetColumns(dt.Columns);
 
             var row = 0;
-            var pageSize = 5000;
+            var pageSize = 10_000;
             var total = 0;
             while (true)
             {
