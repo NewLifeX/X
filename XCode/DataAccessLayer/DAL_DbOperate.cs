@@ -459,6 +459,7 @@ namespace XCode.DataAccessLayer
                     var bs = tables.Select(e => tbls.FirstOrDefault(t => e.EqualIgnoreCase(t.Name, t.TableName))).Where(e => e != null).ToArray();
 
                     var xml = Export(bs);
+                    dir.EnsureDirectory(false);
                     File.WriteAllText(dir.CombinePath(ConnName + ".xml"), xml);
                 }
 

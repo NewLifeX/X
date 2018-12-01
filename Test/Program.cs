@@ -416,7 +416,7 @@ namespace Test
             var dal2 = DAL.Create("member2");
             //dal2.Restore("role.table", dt);
 
-            //dal.BackupAll(null, "backup", true);
+            dal.BackupAll(null, "backup", true);
             dal2.RestoreAll("backup");
         }
 
