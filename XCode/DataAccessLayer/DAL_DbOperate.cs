@@ -249,11 +249,6 @@ namespace XCode.DataAccessLayer
             var cache = GetCache();
             if (cache != null)
             {
-                //var key = "";
-                //if (keyFactory != null)
-                //    key = keyFactory(k1, k2, k3);
-                //else
-                //{
                 var sb = Pool.StringBuilder.Get();
                 if (!prefix.IsNullOrEmpty())
                 {
@@ -264,7 +259,6 @@ namespace XCode.DataAccessLayer
                 Append(sb, k2);
                 Append(sb, k3);
                 var key = sb.Put(true);
-                //}
 
                 return cache.GetItem(key, k =>
                 {
@@ -336,10 +330,5 @@ namespace XCode.DataAccessLayer
             }
         }
         #endregion
-
-        //#region 队列
-        ///// <summary>实体队列</summary>
-        //public EntityQueue Queue { get; private set; }
-        //#endregion
     }
 }

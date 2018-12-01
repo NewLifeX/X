@@ -18,9 +18,6 @@ namespace NewLife.Data
         /// <summary>数据列类型</summary>
         public Type[] Types { get; set; }
 
-        ///// <summary>数据列原始类型</summary>
-        //public String[] TypeNames { get; set; }
-
         /// <summary>数据行</summary>
         public IList<Object[]> Rows { get; set; }
         #endregion
@@ -28,7 +25,7 @@ namespace NewLife.Data
         #region 构造
         #endregion
 
-        #region 方法
+        #region 从数据库读取
         /// <summary>读取数据</summary>
         /// <param name="dr"></param>
         public void Read(IDataReader dr)
@@ -36,8 +33,8 @@ namespace NewLife.Data
             var count = dr.FieldCount;
 
             // 字段
-            var cs = Columns ?? new String[count];
-            var ts = Types ?? new Type[count];
+            var cs = new String[count];
+            var ts = new Type[count];
             for (var i = 0; i < count; i++)
             {
                 if (cs[i] == null) cs[i] = dr.GetName(i);
@@ -54,14 +51,16 @@ namespace NewLife.Data
                 for (var i = 0; i < count; i++)
                 {
                     var val = dr[i];
-                    if (val == DBNull.Value) val = GetDefault(Types[i].GetTypeCode());
+                    if (val == DBNull.Value) val = GetDefault(ts[i].GetTypeCode());
                     row[i] = val;
                 }
                 rs.Add(row);
             }
             Rows = rs;
         }
+        #endregion
 
+        #region 二进制读写
         private const Byte _Ver = 1;
 
         /// <summary>从数据流读取</summary>
@@ -80,34 +79,39 @@ namespace NewLife.Data
 
             // 写入头部
             var count = bn.Read<Int32>();
-            Columns = new String[count];
-            Types = new Type[count];
+            var cs = new String[count];
+            var ts = new Type[count];
             for (var i = 0; i < count; i++)
             {
-                Columns[i] = bn.Read<String>();
+                cs[i] = bn.Read<String>();
                 var tc = (TypeCode)bn.Read<Byte>();
-                Types[i] = tc.ToString().GetTypeEx(false);
+                ts[i] = tc.ToString().GetTypeEx(false);
             }
+            Columns = cs;
+            Types = ts;
 
             // 写入数据
             var count2 = bn.Read<Int32>();
-            Rows = new List<Object[]>(count2);
+            var rs = new List<Object[]>(count2);
             for (var k = 0; k < count2; k++)
             {
                 var row = new Object[count];
                 for (var i = 0; i < count; i++)
                 {
-                    row[i] = bn.Read(Types[i]);
+                    row[i] = bn.Read(ts[i]);
                 }
-                Rows.Add(row);
+                rs.Add(row);
             }
+            Rows = rs;
         }
 
         /// <summary>写入数据流</summary>
         /// <param name="ms"></param>
         public void Write(Stream ms)
         {
-            var count = Columns.Length;
+            var cs = Columns;
+            var ts = Types;
+            var rs = Rows;
 
             var bn = new Binary
             {
@@ -117,24 +121,24 @@ namespace NewLife.Data
 
             // 头部，版本和压缩标记
             bn.Write(_Ver);
-            bn.Write((Byte)0);
+            bn.Write(0);
 
             // 写入头部
+            var count = cs.Length;
             bn.Write(count);
             for (var i = 0; i < count; i++)
             {
-                bn.Write(Columns[i]);
-                bn.Write((Byte)Types[i].GetTypeCode());
+                bn.Write(cs[i]);
+                bn.Write((Byte)ts[i].GetTypeCode());
             }
 
             // 写入数据
-            count = Rows.Count;
-            bn.Write(count);
-            foreach (var row in Rows)
+            bn.Write(rs.Count);
+            foreach (var row in rs)
             {
                 for (var i = 0; i < row.Length; i++)
                 {
-                    bn.Write(row[i], Types[i]);
+                    bn.Write(row[i], ts[i]);
                 }
             }
         }
@@ -189,13 +193,14 @@ namespace NewLife.Data
         public Boolean TryGet<T>(Int32 row, String name, out T value)
         {
             value = default(T);
+            var rs = Rows;
 
-            if (row < 0 || row >= Rows.Count || name.IsNullOrEmpty()) return false;
+            if (row < 0 || row >= rs.Count || name.IsNullOrEmpty()) return false;
 
             var col = GetColumn(name);
             if (col < 0) return false;
 
-            value = Rows[row][col].ChangeType<T>();
+            value = rs[row][col].ChangeType<T>();
 
             return true;
         }
@@ -205,9 +210,12 @@ namespace NewLife.Data
         /// <returns></returns>
         public Int32 GetColumn(String name)
         {
-            for (var i = 0; i < Columns.Length; i++)
+            var cs = Columns;
+            if (cs == null) return -1;
+
+            for (var i = 0; i < cs.Length; i++)
             {
-                if (Columns[i].EqualIgnoreCase(name)) return i;
+                if (cs[i].EqualIgnoreCase(name)) return i;
             }
 
             return -1;
@@ -249,7 +257,7 @@ namespace NewLife.Data
                             val = (UInt16)0;
                             break;
                         case TypeCode.Int32:
-                            val = (Int32)0;
+                            val = 0;
                             break;
                         case TypeCode.UInt32:
                             val = (UInt32)0;
