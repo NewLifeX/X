@@ -440,7 +440,7 @@ namespace XCode.DataAccessLayer
         /// <param name="dir"></param>
         /// <param name="backupSchema">备份架构</param>
         /// <returns></returns>
-        public IDictionary<String, Int32> BackupAll(String[] tables, String dir, Boolean backupSchema = false)
+        public IDictionary<String, Int32> BackupAll(String[] tables, String dir, Boolean backupSchema = true)
         {
             var dic = new Dictionary<String, Int32>();
 
@@ -575,8 +575,8 @@ namespace XCode.DataAccessLayer
 
             if (tables == null)
             {
-                //tables = Tables.ToArray();
-                var tbls = Tables;
+                var schm = dir.AsDirectory().GetAllFiles("*.xml").FirstOrDefault();
+                var tbls = schm != null ? ImportFrom(schm.FullName) : Tables;
                 var ts = new List<IDataTable>();
                 foreach (var item in dir.AsDirectory().GetFiles("*.table"))
                 {
@@ -590,7 +590,7 @@ namespace XCode.DataAccessLayer
             {
                 foreach (var item in tables)
                 {
-                    dic[item.Name] = Restore(dir.CombinePath(item + ".table"), item);
+                    dic[item.Name] = Restore(dir.CombinePath(item.Name + ".table"), item);
                 }
             }
 
