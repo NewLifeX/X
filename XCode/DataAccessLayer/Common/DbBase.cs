@@ -732,7 +732,7 @@ namespace XCode.DataAccessLayer
 
                 //if (dt <= DateTime.MinValue || dt >= DateTime.MaxValue) return isNullable ? "null" : "''";
 
-                if (isNullable && (dt <= DateTime.MinValue || dt >= DateTime.MaxValue)) return "null";
+                //if (isNullable && (dt <= DateTime.MinValue || dt >= DateTime.MaxValue)) return "null";
 
                 return FormatDateTime(dt);
             }

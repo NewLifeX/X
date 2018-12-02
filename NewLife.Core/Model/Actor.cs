@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
+using NewLife.Log;
 
 namespace NewLife.Model
 {
@@ -31,6 +32,9 @@ namespace NewLife.Model
         /// <summary>名称</summary>
         public String Name { get; set; }
 
+        /// <summary>是否启用</summary>
+        public Boolean Active { get; private set; }
+
         /// <summary>受限容量。最大可堆积的消息数</summary>
         public Int32 BoundedCapacity { get; set; } = Int32.MaxValue;
 
@@ -38,6 +42,7 @@ namespace NewLife.Model
         protected BlockingCollection<ActorContext> MailBox { get; set; }
 
         private Task _task;
+        private Exception _error;
         #endregion
 
         #region 构造
@@ -56,6 +61,8 @@ namespace NewLife.Model
         /// </remarks>
         public virtual Task Start()
         {
+            if (Active) return _task;
+
             if (MailBox == null) MailBox = new BlockingCollection<ActorContext>(BoundedCapacity);
 
             // 启动异步
@@ -71,11 +78,21 @@ namespace NewLife.Model
                 }
             }
 
+            Active = true;
+
             return _task;
         }
 
-        /// <summary>通知停止处理</summary>
-        public virtual void Stop() => MailBox.CompleteAdding();
+        /// <summary>通知停止添加消息，并等待处理完成</summary>
+        public virtual Boolean Stop(Int32 msTimeout = 0)
+        {
+            MailBox.CompleteAdding();
+
+            if (_error != null) throw _error;
+            if (msTimeout == 0 || _task == null) return true;
+
+            return _task.Wait(msTimeout);
+        }
 
         /// <summary>添加消息，驱动内部处理</summary>
         /// <param name="message">消息</param>
@@ -83,6 +100,13 @@ namespace NewLife.Model
         /// <returns>返回待处理消息数</returns>
         public virtual Int32 Tell(Object message, IActor sender = null)
         {
+            if (!Active)
+            {
+                if (_error != null) throw _error;
+
+                throw new ObjectDisposedException(nameof(Actor));
+            }
+
 #if DEBUG
             Log.XTrace.WriteLine("[{0}]=>[{1}]：{2}", sender, this, message);
 #endif
@@ -96,15 +120,25 @@ namespace NewLife.Model
         /// <summary>循环消费消息</summary>
         protected virtual void Loop()
         {
-            var box = MailBox;
-            while (!box.IsCompleted)
+            try
             {
-                var ctx = box.Take();
+                var box = MailBox;
+                while (!box.IsCompleted)
+                {
+                    var ctx = box.Take();
 #if DEBUG
                 Log.XTrace.WriteLine("[{0}]<=[{1}]：{2}", this, ctx.Sender, ctx.Message);
 #endif
-                Receive(ctx);
+                    Receive(ctx);
+                }
             }
+            catch (Exception ex)
+            {
+                _error = ex;
+                //XTrace.WriteException(ex);
+            }
+
+            Active = false;
         }
 
         /// <summary>处理消息</summary>

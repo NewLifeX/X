@@ -32,7 +32,7 @@ namespace XCode.DataAccessLayer
                 BoundedCapacity = 4,
             };
 
-            var task = writeFile.Start();
+            writeFile.Start();
 
             var sb = new SelectBuilder
             {
@@ -51,21 +51,24 @@ namespace XCode.DataAccessLayer
                 // 查询数据
                 var dt = Session.Query(sb2.ToString(), null);
                 if (dt == null) break;
+                var count = dt.Rows.Count;
+
+                WriteLog("备份[{0}/{1}]数据 {2:n0} + {3:n0}", table, ConnName, row, count);
+
+                // 进度报告
+                progress?.Invoke(row, dt);
 
                 // 消费数据
                 writeFile.Tell(dt);
 
-                progress?.Invoke(row, dt);
-
                 // 下一页
-                total += dt.Rows.Count;
-                if (dt.Rows.Count < pageSize) break;
+                total += count;
+                if (count < pageSize) break;
                 row += pageSize;
             }
 
-            // 等待写入完成
-            writeFile.Stop();
-            task.Wait();
+            // 通知写入完成
+            writeFile.Stop(-1);
 
             sw.Stop();
             var ms = sw.Elapsed.TotalMilliseconds;
@@ -202,6 +205,18 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Int32 Restore(Stream stream, IDataTable table, Action<Int32, DbTable> progress = null)
         {
+            var writeDb = new WriteDbActor
+            {
+                Table = table,
+                Dal = this,
+
+                // 最多同时堆积数页
+                BoundedCapacity = 4,
+            };
+
+            var sw = Stopwatch.StartNew();
+            writeDb.Start();
+
             // 二进制读写器
             var bn = new Binary
             {
@@ -209,16 +224,8 @@ namespace XCode.DataAccessLayer
                 Stream = stream,
             };
 
-            // 原始位置和行数位置
-            var pOri = stream.Position;
-
-            var sw = Stopwatch.StartNew();
             var dt = new DbTable();
             dt.ReadHeader(bn);
-
-            // 匹配要写入的列
-            var tableName = Db.FormatTableName(table.TableName);
-            var columns = table.GetColumns(dt.Columns);
 
             var row = 0;
             var pageSize = 10_000;
@@ -231,18 +238,13 @@ namespace XCode.DataAccessLayer
                 var rs = dt.Rows;
                 if (rs == null || rs.Count == 0) break;
 
-                WriteLog("恢复[{0}/{1}]数据 {2:n0} + {3:n0}", table, ConnName, row, rs.Count);
-
-                // 批量写入数据库
-                var ds = new List<IIndexAccessor>();
-                foreach (var item in dt)
-                {
-                    ds.Add(item);
-                }
-                Session.Insert(tableName, columns, ds);
+                WriteLog("恢复[{0}/{1}]数据 {2:n0} + {3:n0}", table.Name, ConnName, row, rs.Count);
 
                 // 进度报告
                 progress?.Invoke(row, dt);
+
+                // 批量写入数据库
+                writeDb.Tell(dt);
 
                 // 下一页
                 total += count;
@@ -250,9 +252,12 @@ namespace XCode.DataAccessLayer
                 row += pageSize;
             }
 
+            // 通知写入完成
+            writeDb.Stop(-1);
+
             sw.Stop();
             var ms = sw.Elapsed.TotalMilliseconds;
-            WriteLog("恢复[{0}/{1}]完成，共[{2:n0}]行，耗时{3:n0}ms，速度{4:n0}tps", table, ConnName, total, ms, total * 1000 / ms);
+            WriteLog("恢复[{0}/{1}]完成，共[{2:n0}]行，耗时{3:n0}ms，速度{4:n0}tps", table.Name, ConnName, total, ms, total * 1000 / ms);
 
             // 返回总行数
             return total;
@@ -317,6 +322,35 @@ namespace XCode.DataAccessLayer
             }
 
             return dic;
+        }
+
+        class WriteDbActor : Actor
+        {
+            public DAL Dal { get; set; }
+            public IDataTable Table { get; set; }
+
+            private String _TableName;
+            private IDataColumn[] _Columns;
+
+            protected override void Receive(ActorContext context)
+            {
+                if (!(context.Message is DbTable dt)) return;
+
+                // 匹配要写入的列
+                if (_TableName == null)
+                {
+                    _TableName = Dal.Db.FormatTableName(Table.TableName);
+                    _Columns = Table.GetColumns(dt.Columns);
+                }
+
+                // 批量插入
+                var ds = new List<IIndexAccessor>();
+                foreach (var item in dt)
+                {
+                    ds.Add(item);
+                }
+                Dal.Session.Insert(_TableName, _Columns, ds);
+            }
         }
         #endregion
     }
