@@ -12,7 +12,12 @@ namespace NewLife.Model
         /// <summary>名称</summary>
         public String Name { get; set; }
 
-        private BlockingCollection<T> _queue;
+        /// <summary>受限容量。最大可堆积的消息数</summary>
+        public Int32 BoundedCapacity { get; set; } = Int32.MaxValue;
+
+        /// <summary>存放消息的邮箱</summary>
+        protected BlockingCollection<T> MailBox { get; set; }
+
         private Task _task;
         #endregion
 
@@ -30,13 +35,12 @@ namespace NewLife.Model
 
         #region 方法
         /// <summary>通知开始处理</summary>
-        /// <param name="boundedCapacity">受限容量。最大可堆积的消息数</param>
         /// <remarks>
         /// 添加消息时自动触发
         /// </remarks>
-        public virtual void Start(Int32 boundedCapacity = Int32.MaxValue)
+        public virtual Task Start()
         {
-            if (_queue == null) _queue = new BlockingCollection<T>(boundedCapacity);
+            if (MailBox == null) MailBox = new BlockingCollection<T>(BoundedCapacity);
 
             // 启动异步
             if (_task == null)
@@ -46,22 +50,14 @@ namespace NewLife.Model
                     if (_task == null) _task = Task.Run(() => Act());
                 }
             }
+
+            return _task;
         }
 
         /// <summary>通知停止处理</summary>
         public virtual void Stop()
         {
-            _queue.CompleteAdding();
-        }
-
-        /// <summary>等待任务完成</summary>
-        /// <param name="msTimeout"></param>
-        /// <returns></returns>
-        public virtual Boolean Wait(Int32 msTimeout = -1)
-        {
-            if (_task == null) return true;
-
-            return _task.Wait(TimeSpan.FromMilliseconds(msTimeout));
+            MailBox.CompleteAdding();
         }
 
         /// <summary>添加消息，驱动内部处理</summary>
@@ -72,24 +68,20 @@ namespace NewLife.Model
             Log.XTrace.WriteLine("向[{0}]发布消息：{1}", this, message);
 #endif
 
-            _queue.Add(message);
-
-            //Start();
+            MailBox.Add(message);
         }
 
         /// <summary>循环消费消息</summary>
         protected virtual void Act()
         {
-            while (!_queue.IsCompleted)
+            var box = MailBox;
+            while (!box.IsCompleted)
             {
-                //var msg = _queue.Take();
-                if (_queue.TryTake(out var msg, 1_000))
-                {
+                var msg = box.Take();
 #if DEBUG
-                    Log.XTrace.WriteLine("[{0}]收到消息：{1}", this, msg);
+                Log.XTrace.WriteLine("[{0}]收到消息：{1}", this, msg);
 #endif
-                    OnAct(msg);
-                }
+                OnAct(msg);
             }
         }
 

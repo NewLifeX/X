@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Model;
 using NewLife.Reflection;
@@ -25,17 +26,13 @@ namespace XCode.DataAccessLayer
         {
             var writeFile = new WriteFileActor
             {
-                Dal = this,
-                Table = table,
                 Stream = stream,
-                Progress = progress,
+
+                // 最多同时堆积数页
+                BoundedCapacity = 4,
             };
 
-            // 最多同时堆积数页
-            writeFile.Start(4);
-
-            // 原始位置和行数位置
-            var pOri = stream.Position;
+            var task = writeFile.Start();
 
             var sb = new SelectBuilder
             {
@@ -58,6 +55,8 @@ namespace XCode.DataAccessLayer
                 // 消费数据
                 writeFile.Add(new Tuple<Int32, DbTable>(row, dt));
 
+                progress?.Invoke(row, dt);
+
                 // 下一页
                 total += dt.Rows.Count;
                 if (dt.Rows.Count < pageSize) break;
@@ -66,11 +65,11 @@ namespace XCode.DataAccessLayer
 
             // 等待写入完成
             writeFile.Stop();
-            writeFile.Wait();
+            task.Wait();
 
             sw.Stop();
             var ms = sw.Elapsed.TotalMilliseconds;
-            WriteLog("备份[{0}/{1}]完成，共[{2:n0}]行，耗时{3:n0}ms，速度{4:n0}tps，大小{5:n0}字节", table, ConnName, total, ms, total * 1000 / ms, stream.Position - pOri);
+            WriteLog("备份[{0}/{1}]完成，共[{2:n0}]行，耗时{3:n0}ms，速度{4:n0}tps", table, ConnName, total, ms, total * 1000 / ms);
 
             // 返回总行数
             return total;
@@ -134,16 +133,13 @@ namespace XCode.DataAccessLayer
 
         class WriteFileActor : Actor<Tuple<Int32, DbTable>>
         {
-            public DAL Dal { get; set; }
-            public String Table { get; set; }
             public Stream Stream { get; set; }
-            public Action<Int32, DbTable> Progress { get; set; }
 
             private Binary _Binary;
             private Int64 _CountPosition;
             private Int32 _Total;
 
-            public override void Start(Int32 boundedCapacity)
+            public override Task Start()
             {
                 // 二进制读写器
                 _Binary = new Binary
@@ -152,9 +148,9 @@ namespace XCode.DataAccessLayer
                     Stream = Stream,
                 };
 
-                base.Start(boundedCapacity);
+                return base.Start();
             }
-            
+
             protected override void Act()
             {
                 base.Act();
@@ -191,12 +187,8 @@ namespace XCode.DataAccessLayer
                 var rs = dt.Rows;
                 if (rs == null || rs.Count == 0) return;
 
-                WriteLog("备份[{0}/{1}]数据 {2:n0} + {3:n0}", Table, Dal.ConnName, row, rs.Count);
-
                 // 写入文件
                 dt.WriteData(bn);
-
-                Progress?.Invoke(row, dt);
 
                 _Total += rs.Count;
             }
