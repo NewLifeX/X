@@ -15,10 +15,10 @@ namespace XCode
         {
             #region 主要属性
             /// <summary>实体类型</summary>
-            public virtual Type EntityType { get { return typeof(TEntity); } }
+            public virtual Type EntityType => typeof(TEntity);
 
             /// <summary>实体会话</summary>
-            public virtual IEntitySession Session { get { return Meta.Session; } }
+            public virtual IEntitySession Session => Meta.Session;
             #endregion
 
             #region 属性
@@ -88,28 +88,28 @@ namespace XCode
             /// <param name="name">名称</param>
             /// <param name="value">数值</param>
             /// <returns></returns>
-            public virtual IEntity Find(String name, Object value) { return Entity<TEntity>.Find(name, value); }
+            public virtual IEntity Find(String name, Object value) => Entity<TEntity>.Find(name, value);
 
             /// <summary>根据条件查找单个实体</summary>
             /// <param name="where"></param>
             /// <returns></returns>
-            public virtual IEntity Find(Expression where) { return Entity<TEntity>.Find(where); }
+            public virtual IEntity Find(Expression where) => Entity<TEntity>.Find(where);
 
             /// <summary>根据主键查找单个实体</summary>
             /// <param name="key"></param>
             /// <returns></returns>
-            public virtual IEntity FindByKey(Object key) { return Entity<TEntity>.FindByKey(key); }
+            public virtual IEntity FindByKey(Object key) => Entity<TEntity>.FindByKey(key);
 
             /// <summary>根据主键查询一个实体对象用于表单编辑</summary>
             /// <param name="key"></param>
             /// <returns></returns>
-            public virtual IEntity FindByKeyForEdit(Object key) { return Entity<TEntity>.FindByKeyForEdit(key); }
+            public virtual IEntity FindByKeyForEdit(Object key) => Entity<TEntity>.FindByKeyForEdit(key);
             #endregion
 
             #region 静态查询
             /// <summary>获取所有实体对象。获取大量数据时会非常慢，慎用</summary>
             /// <returns>实体数组</returns>
-            public virtual IList<IEntity> FindAll() { return Entity<TEntity>.FindAll().Cast<IEntity>().ToList(); }
+            public virtual IList<IEntity> FindAll() => Entity<TEntity>.FindAll().Cast<IEntity>().ToList();
 
             /// <summary>查询并返回实体对象集合。
             /// 表名以及所有字段名，请使用类名以及字段对应的属性名，方法内转换为表名和列名
@@ -143,13 +143,13 @@ namespace XCode
             #region 缓存查询
             /// <summary>查找所有缓存</summary>
             /// <returns></returns>
-            public virtual IList<IEntity> FindAllWithCache() { return Entity<TEntity>.FindAllWithCache().Cast<IEntity>().ToList(); }
+            public virtual IList<IEntity> FindAllWithCache() => Entity<TEntity>.FindAllWithCache().Cast<IEntity>().ToList();
             #endregion
 
             #region 取总记录数
             /// <summary>返回总记录数</summary>
             /// <returns></returns>
-            public virtual Int64 FindCount() { return Entity<TEntity>.FindCount(); }
+            public virtual Int64 FindCount() => Entity<TEntity>.FindCount();
 
             /// <summary>返回总记录数</summary>
             /// <param name="where">条件，不带Where</param>
@@ -201,18 +201,18 @@ namespace XCode
             #region 事务
             /// <summary>开始事务</summary>
             /// <returns></returns>
-            public virtual Int32 BeginTransaction() { return Session.BeginTrans(); }
+            public virtual Int32 BeginTransaction() => Session.BeginTrans();
 
             /// <summary>提交事务</summary>
             /// <returns></returns>
-            public virtual Int32 Commit() { return Session.Commit(); }
+            public virtual Int32 Commit() => Session.Commit();
 
             /// <summary>回滚事务</summary>
             /// <returns></returns>
-            public virtual Int32 Rollback() { return Session.Rollback(); }
+            public virtual Int32 Rollback() => Session.Rollback();
 
             /// <summary>创建事务</summary>
-            public virtual EntityTransaction CreateTrans() { return new EntityTransaction<TEntity>(); }
+            public virtual EntityTransaction CreateTrans() => new EntityTransaction<TEntity>();
             #endregion
 
             #region 辅助方法

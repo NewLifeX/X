@@ -46,10 +46,7 @@ namespace XCode
 
         #region 构造
         /// <summary>实例化实体队列</summary>
-        public EntityQueue(IEntitySession session)
-        {
-            Session = session;
-        }
+        public EntityQueue(IEntitySession session) => Session = session;
         #endregion
 
         #region 方法

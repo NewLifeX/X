@@ -32,10 +32,7 @@ namespace NewLife.Model
 
         #region 构造
         /// <summary>实例化</summary>
-        public Actor()
-        {
-            Name = GetType().Name.TrimEnd("Actor");
-        }
+        public Actor() => Name = GetType().Name.TrimEnd("Actor");
 
         /// <summary>已重载。显示名称</summary>
         /// <returns></returns>
@@ -64,10 +61,7 @@ namespace NewLife.Model
         }
 
         /// <summary>通知停止处理</summary>
-        public virtual void Stop()
-        {
-            MailBox.CompleteAdding();
-        }
+        public virtual void Stop() => MailBox.CompleteAdding();
 
         /// <summary>添加消息，驱动内部处理</summary>
         /// <param name="message">消息</param>

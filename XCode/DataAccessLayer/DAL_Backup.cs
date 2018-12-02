@@ -53,7 +53,7 @@ namespace XCode.DataAccessLayer
                 if (dt == null) break;
 
                 // 消费数据
-                writeFile.Add(new Tuple<Int32, DbTable>(row, dt));
+                writeFile.Add(dt);
 
                 progress?.Invoke(row, dt);
 
@@ -171,13 +171,11 @@ namespace XCode.DataAccessLayer
 
             protected override void OnAct(ActorContext context)
             {
-                var msg = context.Message as Tuple<Int32, DbTable>;
-                var row = msg.Item1;
-                var dt = msg.Item2;
+                var dt = context.Message as DbTable;
                 var bn = _Binary;
 
                 // 写头部结构。没有数据时可以备份结构
-                if (row == 0)
+                if (_Total == 0)
                 {
                     dt.WriteHeader(bn);
 
