@@ -5,8 +5,7 @@ using System.Threading.Tasks;
 namespace NewLife.Model
 {
     /// <summary>无锁并行编程模型</summary>
-    /// <typeparam name="T"></typeparam>
-    public abstract class Actor<T>
+    public abstract class Actor
     {
         #region 属性
         /// <summary>名称</summary>
@@ -16,7 +15,7 @@ namespace NewLife.Model
         public Int32 BoundedCapacity { get; set; } = Int32.MaxValue;
 
         /// <summary>存放消息的邮箱</summary>
-        protected BlockingCollection<T> MailBox { get; set; }
+        protected BlockingCollection<Object> MailBox { get; set; }
 
         private Task _task;
         #endregion
@@ -40,7 +39,7 @@ namespace NewLife.Model
         /// </remarks>
         public virtual Task Start()
         {
-            if (MailBox == null) MailBox = new BlockingCollection<T>(BoundedCapacity);
+            if (MailBox == null) MailBox = new BlockingCollection<Object>(BoundedCapacity);
 
             // 启动异步
             if (_task == null)
@@ -61,14 +60,17 @@ namespace NewLife.Model
         }
 
         /// <summary>添加消息，驱动内部处理</summary>
-        /// <param name="message"></param>
-        public virtual void Add(T message)
+        /// <param name="message">消息</param>
+        public virtual Int32 Add(Object message)
         {
 #if DEBUG
             Log.XTrace.WriteLine("向[{0}]发布消息：{1}", this, message);
 #endif
 
-            MailBox.Add(message);
+            var box = MailBox;
+            box.Add(message);
+
+            return box.Count;
         }
 
         /// <summary>循环消费消息</summary>
@@ -87,7 +89,7 @@ namespace NewLife.Model
 
         /// <summary>处理消息</summary>
         /// <param name="message"></param>
-        protected abstract void OnAct(T message);
+        protected abstract void OnAct(Object message);
         #endregion
     }
 }

@@ -131,7 +131,7 @@ namespace XCode.DataAccessLayer
             return dic;
         }
 
-        class WriteFileActor : Actor<Tuple<Int32, DbTable>>
+        class WriteFileActor : Actor
         {
             public Stream Stream { get; set; }
 
@@ -169,10 +169,11 @@ namespace XCode.DataAccessLayer
                 }
             }
 
-            protected override void OnAct(Tuple<Int32, DbTable> message)
+            protected override void OnAct(Object message)
             {
-                var row = message.Item1;
-                var dt = message.Item2;
+                var msg = message as Tuple<Int32, DbTable>;
+                var row = msg.Item1;
+                var dt = msg.Item2;
                 var bn = _Binary;
 
                 // 写头部结构。没有数据时可以备份结构
