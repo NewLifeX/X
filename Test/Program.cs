@@ -405,19 +405,19 @@ namespace Test
 
         static void Test8()
         {
-            var dal = Role.Meta.Session.Dal;
-            var dt = Role.Meta.Table.DataTable;
+            var dal = UserX.Meta.Session.Dal;
+            var dt = UserX.Meta.Table.DataTable;
             dal.Db.ShowSQL = false;
 
-            //dal.Backup(dt.TableName);
+            dal.Backup(dt.TableName);
 
-            //File.Delete("member2.db");
-            DAL.AddConnStr("member2", "Server=.;Port=3306;Database=member2;Uid=root;Pwd=root;", null, "MySql");
-            var dal2 = DAL.Create("member2");
-            //dal2.Restore("role.table", dt);
+            ////File.Delete("member2.db");
+            //DAL.AddConnStr("member2", "Server=.;Port=3306;Database=member2;Uid=root;Pwd=root;", null, "MySql");
+            //var dal2 = DAL.Create("member2");
+            ////dal2.Restore("role.table", dt);
 
-            dal.BackupAll(null, "backup", true);
-            dal2.RestoreAll("backup");
+            //dal.BackupAll(null, "backup", true);
+            //dal2.RestoreAll("backup");
         }
 
         static async void Test9()
