@@ -4,6 +4,16 @@ using System.Threading.Tasks;
 
 namespace NewLife.Model
 {
+    /// <summary>Actor上下文</summary>
+    public class ActorContext
+    {
+        /// <summary>发送者</summary>
+        public Actor Sender { get; set; }
+
+        /// <summary>消息</summary>
+        public Object Message { get; set; }
+    }
+
     /// <summary>无锁并行编程模型</summary>
     public abstract class Actor
     {
@@ -15,7 +25,7 @@ namespace NewLife.Model
         public Int32 BoundedCapacity { get; set; } = Int32.MaxValue;
 
         /// <summary>存放消息的邮箱</summary>
-        protected BlockingCollection<Object> MailBox { get; set; }
+        protected BlockingCollection<ActorContext> MailBox { get; set; }
 
         private Task _task;
         #endregion
@@ -39,7 +49,7 @@ namespace NewLife.Model
         /// </remarks>
         public virtual Task Start()
         {
-            if (MailBox == null) MailBox = new BlockingCollection<Object>(BoundedCapacity);
+            if (MailBox == null) MailBox = new BlockingCollection<ActorContext>(BoundedCapacity);
 
             // 启动异步
             if (_task == null)
@@ -61,14 +71,15 @@ namespace NewLife.Model
 
         /// <summary>添加消息，驱动内部处理</summary>
         /// <param name="message">消息</param>
-        public virtual Int32 Add(Object message)
+        /// <param name="sender">发送者</param>
+        public virtual Int32 Add(Object message, Actor sender = null)
         {
 #if DEBUG
-            Log.XTrace.WriteLine("向[{0}]发布消息：{1}", this, message);
+            Log.XTrace.WriteLine("[{0}]=>[{1}]：{2}", sender, this, message);
 #endif
 
             var box = MailBox;
-            box.Add(message);
+            box.Add(new ActorContext { Sender = sender, Message = message });
 
             return box.Count;
         }
@@ -79,17 +90,17 @@ namespace NewLife.Model
             var box = MailBox;
             while (!box.IsCompleted)
             {
-                var msg = box.Take();
+                var ctx = box.Take();
 #if DEBUG
-                Log.XTrace.WriteLine("[{0}]收到消息：{1}", this, msg);
+                Log.XTrace.WriteLine("[{0}]<=[{1}]：{2}", this, ctx.Sender, ctx.Message);
 #endif
-                OnAct(msg);
+                OnAct(ctx);
             }
         }
 
         /// <summary>处理消息</summary>
-        /// <param name="message"></param>
-        protected abstract void OnAct(Object message);
+        /// <param name="context">上下文</param>
+        protected abstract void OnAct(ActorContext context);
         #endregion
     }
 }

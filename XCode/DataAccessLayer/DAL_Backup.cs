@@ -169,9 +169,9 @@ namespace XCode.DataAccessLayer
                 }
             }
 
-            protected override void OnAct(Object message)
+            protected override void OnAct(ActorContext context)
             {
-                var msg = message as Tuple<Int32, DbTable>;
+                var msg = context.Message as Tuple<Int32, DbTable>;
                 var row = msg.Item1;
                 var dt = msg.Item2;
                 var bn = _Binary;
