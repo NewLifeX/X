@@ -243,8 +243,8 @@ namespace XCode.DataAccessLayer
                 // 进度报告
                 progress?.Invoke(row, dt);
 
-                // 批量写入数据库
-                writeDb.Tell(dt);
+                // 批量写入数据库。克隆对象，避免被修改
+                writeDb.Tell(dt.Clone());
 
                 // 下一页
                 total += count;

@@ -127,7 +127,7 @@ namespace NewLife.Model
                 {
                     var ctx = box.Take();
 #if DEBUG
-                Log.XTrace.WriteLine("[{0}]<=[{1}]：{2}", this, ctx.Sender, ctx.Message);
+                    Log.XTrace.WriteLine("[{0}]<=[{1}]：{2}", this, ctx.Sender, ctx.Message);
 #endif
                     Receive(ctx);
                 }
@@ -135,7 +135,7 @@ namespace NewLife.Model
             catch (Exception ex)
             {
                 _error = ex;
-                //XTrace.WriteException(ex);
+                XTrace.WriteException(ex);
             }
 
             Active = false;

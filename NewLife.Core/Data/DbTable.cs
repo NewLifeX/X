@@ -9,7 +9,7 @@ using NewLife.Serialization;
 namespace NewLife.Data
 {
     /// <summary>数据表</summary>
-    public class DbTable : IEnumerable<DbRow>
+    public class DbTable : IEnumerable<DbRow>, ICloneable
     {
         #region 属性
         /// <summary>数据列</summary>
@@ -354,6 +354,23 @@ namespace NewLife.Data
             }
 
             return _Defs[tc];
+        }
+
+        Object ICloneable.Clone() => Clone();
+
+        /// <summary>克隆</summary>
+        /// <returns></returns>
+        public DbTable Clone()
+        {
+            var dt = new DbTable
+            {
+                Columns = Columns,
+                Types = Types,
+                Rows = Rows,
+                Total = Total
+            };
+
+            return dt;
         }
         #endregion
 
