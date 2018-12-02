@@ -74,6 +74,7 @@
     <Compile Include="..\XCode\DataAccessLayer\Common\ITransaction.cs" Link="DataAccessLayer\Common\ITransaction.cs" />
     <Compile Include="..\XCode\DataAccessLayer\Common\RemoteDb.cs" Link="DataAccessLayer\Common\RemoteDb.cs" />
     <Compile Include="..\XCode\DataAccessLayer\DAL.cs" Link="DataAccessLayer\DAL.cs" />
+    <Compile Include="..\XCode\DataAccessLayer\DAL_Backup.cs" Link="DataAccessLayer\DAL_Backup.cs" />
     <Compile Include="..\XCode\DataAccessLayer\DAL_DbOperate.cs" Link="DataAccessLayer\DAL_DbOperate.cs" />
     <Compile Include="..\XCode\DataAccessLayer\DAL_Setting.cs" Link="DataAccessLayer\DAL_Setting.cs" />
     <Compile Include="..\XCode\DataAccessLayer\Database\MySql.cs" Link="DataAccessLayer\Database\MySql.cs" />

@@ -53,7 +53,7 @@ namespace XCode.DataAccessLayer
                 if (dt == null) break;
 
                 // 消费数据
-                writeFile.Add(dt);
+                writeFile.Tell(dt);
 
                 progress?.Invoke(row, dt);
 
@@ -151,9 +151,9 @@ namespace XCode.DataAccessLayer
                 return base.Start();
             }
 
-            protected override void Act()
+            protected override void Loop()
             {
-                base.Act();
+                base.Loop();
 
                 var total = _Total;
                 if (total > 0)
@@ -169,7 +169,7 @@ namespace XCode.DataAccessLayer
                 }
             }
 
-            protected override void OnAct(ActorContext context)
+            protected override void Receive(ActorContext context)
             {
                 var dt = context.Message as DbTable;
                 var bn = _Binary;
