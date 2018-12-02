@@ -23,31 +23,19 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Int32 Backup(String table, Stream stream, Action<Int32, DbTable> progress = null)
         {
-            //var readDb = new ReadDbActor
-            //{
-            //    Dal = this,
-            //    Table = table,
-            //};
-
             var writeFile = new WriteFileActor
             {
-                //ReadDb = readDb,
                 Dal = this,
+                Table = table,
                 Stream = stream,
                 Progress = progress,
             };
-            //readDb.WriteFile = writeFile;
 
             // 最多同时堆积数页
             writeFile.Start(4);
 
-            //// 从0行开始处理
-            //readDb.Start();
-            //readDb.Add(0);
-
             // 原始位置和行数位置
             var pOri = stream.Position;
-            var pCount = 0L;
 
             var sb = new SelectBuilder
             {
@@ -144,92 +132,52 @@ namespace XCode.DataAccessLayer
             return dic;
         }
 
-        //class ReadDbActor : Actor<Int32>
-        //{
-        //    public WriteFileActor WriteFile { get; set; }
-        //    public DAL Dal { get; set; }
-        //    public String Table { get; set; }
-        //    public Int32 PageSize { get; set; } = 10_000;
-
-        //    protected override void OnAct(Int32 message)
-        //    {
-        //        var sb = new SelectBuilder
-        //        {
-        //            Table = Dal.Db.FormatTableName(Table)
-        //        };
-        //        var row = message;
-        //        var sb2 = Dal.PageSplit(sb, row, PageSize);
-
-        //        // 查询数据
-        //        var dt = Dal.Session.Query(sb2.ToString(), null);
-        //        if (dt == null)
-        //        {
-        //            WriteFile.Stop();
-        //            return;
-        //        }
-
-        //        // 通知处理
-        //        WriteFile.Add(new Tuple<Int32, DbTable>(row, dt));
-        //    }
-        //}
-
         class WriteFileActor : Actor<Tuple<Int32, DbTable>>
         {
-            //public ReadDbActor ReadDb { get; set; }
             public DAL Dal { get; set; }
             public String Table { get; set; }
             public Stream Stream { get; set; }
-            public Binary Binary { get; set; }
             public Action<Int32, DbTable> Progress { get; set; }
-            public Int64 OriginPosition { get; set; }
-            public Int64 CountPosition { get; set; }
-            public Int32 Total { get; set; }
-            //public Stopwatch Watch { get; set; }
+
+            private Binary _Binary;
+            private Int64 _CountPosition;
+            private Int32 _Total;
 
             public override void Start(Int32 boundedCapacity)
             {
-                //Watch = Stopwatch.StartNew();
-
                 // 二进制读写器
-                Binary = new Binary
+                _Binary = new Binary
                 {
                     EncodeInt = true,
                     Stream = Stream,
                 };
 
-                OriginPosition = Stream.Position;
-
                 base.Start(boundedCapacity);
             }
-
-            public override void Stop()
+            
+            protected override void Act()
             {
-                base.Stop();
+                base.Act();
 
-                var bn = Binary;
-                var stream = bn.Stream;
-
-                var total = Total;
+                var total = _Total;
                 if (total > 0)
                 {
+                    var bn = _Binary;
+                    var stream = bn.Stream;
+
                     // 更新行数
                     var p = stream.Position;
-                    stream.Position = CountPosition;
+                    stream.Position = _CountPosition;
                     bn.Write(total.GetBytes(), 0, 4);
                     stream.Position = p;
                 }
-
-                //Watch.Stop();
-                //var ms = Watch.Elapsed.TotalMilliseconds;
-                //DAL.WriteLog("备份[{0}/{1}]完成，共[{2:n0}]行，耗时{3:n0}ms，速度{4:n0}tps，大小{5:n0}字节", ReadDb.Table, Dal.ConnName, total, ms, total * 1000 / ms, stream.Position - OriginPosition);
             }
 
             protected override void OnAct(Tuple<Int32, DbTable> message)
             {
                 var row = message.Item1;
                 var dt = message.Item2;
-                var bn = Binary;
-                //var db = ReadDb;
+                var bn = _Binary;
 
                 // 写头部结构。没有数据时可以备份结构
                 if (row == 0)
@@ -237,7 +185,7 @@ namespace XCode.DataAccessLayer
                     dt.WriteHeader(bn);
 
                     // 数据行数，占位
-                    CountPosition = bn.Stream.Position - 4;
+                    _CountPosition = bn.Stream.Position - 4;
                 }
 
                 var rs = dt.Rows;
@@ -250,10 +198,7 @@ namespace XCode.DataAccessLayer
 
                 Progress?.Invoke(row, dt);
 
-                //row += db.PageSize;
-
-                //// 再读一页
-                //db.Add(row);
+                _Total += rs.Count;
             }
         }
         #endregion
