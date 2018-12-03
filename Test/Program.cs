@@ -410,7 +410,7 @@ namespace Test
 
             var dal = UserX.Meta.Session.Dal;
             var dt = UserX.Meta.Table.DataTable;
-            //dal.Db.ShowSQL = false;
+            dal.Db.ShowSQL = false;
 
             var page = new PageParameter
             {

@@ -89,7 +89,10 @@ namespace NewLife.Data
         /// <param name="bn"></param>
         public void ReadHeader(Binary bn)
         {
-            // 头部，版本和压缩标记
+            // 头部，幻数、版本和压缩标记
+            var magic = bn.ReadBytes(14).ToStr();
+            if (magic.Trim() != "NewLifeDbTable") throw new InvalidDataException();
+
             var ver = bn.Read<Byte>();
             var flag = bn.Read<Byte>();
 
@@ -181,7 +184,8 @@ namespace NewLife.Data
             var cs = Columns;
             var ts = Types;
 
-            // 头部，版本和压缩标记
+            // 头部，幻数、版本和压缩标记
+            bn.Write("NewLifeDbTable".GetBytes(), 0, 14);
             bn.Write(_Ver);
             bn.Write(0);
 
