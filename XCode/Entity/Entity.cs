@@ -802,13 +802,29 @@ namespace XCode
                 var rows = 0L;
 
                 // 如果总记录数超过10万，为了提高性能，返回快速查找且带有缓存的总记录数
-                if ((where == null || where is WhereExpression wh && wh.Empty) && session.LongCount > 100000)
+                if ((where == null || where is WhereExpression wh && wh.Empty) && session.LongCount > 100_000)
                     rows = session.LongCount;
                 else
                     rows = FindCount(where, null, selects, 0, 0);
                 if (rows <= 0) return new List<TEntity>();
 
                 page.TotalCount = rows;
+            }
+
+            // 统计数据。100万以上数据要求带where才支持统计
+            if (page.RetrieveState && page.State == null && (Meta.Session.LongCount < 1_000_000 || where != null))
+            {
+                // 找到所有数字字段，进行求和统计
+                var numbers = Meta.Fields.Where(e => e.Type.IsInt() && !e.IsIdentity).ToList();
+                if (numbers.Count > 0)
+                {
+                    var concat = new ConcatExpression();
+                    foreach (var item in numbers)
+                    {
+                        concat &= item.Sum();
+                    }
+                    page.State = FindAll(where, null, concat).FirstOrDefault();
+                }
             }
 
             // 验证排序字段，避免非法

@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Caching;
+using NewLife.Data;
 using NewLife.Log;
 using NewLife.Remoting;
 using NewLife.Security;
@@ -35,7 +36,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test8();
+                Test8();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -405,9 +406,20 @@ namespace Test
 
         static void Test8()
         {
+            XCode.Setting.Current.Debug = false;
+
             var dal = UserX.Meta.Session.Dal;
             var dt = UserX.Meta.Table.DataTable;
-            dal.Db.ShowSQL = false;
+            //dal.Db.ShowSQL = false;
+
+            var page = new PageParameter
+            {
+                RetrieveTotalCount = true,
+                RetrieveState = true,
+                PageIndex = 1,
+                PageSize = 20
+            };
+            var list = UserX.FindAll(UserX._.ID < 10000, page);
 
             dal.Backup(dt.TableName);
 

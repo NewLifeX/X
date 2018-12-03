@@ -90,9 +90,17 @@ namespace NewLife.Data
         [XmlIgnore, ScriptIgnore]
         public virtual Int64 StartRow { get; set; } = -1;
 
-        /// <summary>获取 或 设置 是否获取总记录数</summary>
+        /// <summary>获取 或 设置 是否获取总记录数，默认false</summary>
         [XmlIgnore, ScriptIgnore]
         public Boolean RetrieveTotalCount { get; set; }
+
+        /// <summary>获取 或 设置 状态。用于传递统计等数据</summary>
+        [XmlIgnore, ScriptIgnore]
+        public virtual Object State { get; set; }
+
+        /// <summary>获取 或 设置 是否获取统计，默认false</summary>
+        [XmlIgnore, ScriptIgnore]
+        public Boolean RetrieveState { get; set; }
         #endregion
 
         #region 构造函数
@@ -120,16 +128,16 @@ namespace NewLife.Data
             StartRow = pm.StartRow;
 
             TotalCount = pm.TotalCount;
+            RetrieveTotalCount = pm.RetrieveTotalCount;
+            State = pm.State;
+            RetrieveState = pm.RetrieveState;
 
             return this;
         }
 
         /// <summary>获取表示分页参数唯一性的键值，可用作缓存键</summary>
         /// <returns></returns>
-        public virtual String GetKey()
-        {
-            return "{0}-{1}-{2}".F(PageIndex, PageCount, OrderBy);
-        }
+        public virtual String GetKey() => "{0}-{1}-{2}".F(PageIndex, PageCount, OrderBy);
         #endregion
     }
 }

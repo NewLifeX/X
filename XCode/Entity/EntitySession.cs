@@ -443,7 +443,14 @@ namespace XCode
         ISingleEntityCache IEntitySession.SingleCache => SingleCache;
 
         /// <summary>总记录数，小于1000时是精确的，大于1000时缓存10秒</summary>
-        public Int32 Count => (Int32)LongCount;
+        public Int32 Count
+        {
+            get
+            {
+                var v = LongCount;
+                return v > Int32.MaxValue ? Int32.MaxValue : (Int32)v;
+            }
+        }
 
         private DateTime _NextCount;
         /// <summary>总记录数较小时，使用静态字段，较大时增加使用Cache</summary>

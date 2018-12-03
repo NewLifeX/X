@@ -32,7 +32,7 @@ namespace XCode
         public Operator Operator { get; set; }
 
         /// <summary>是否为空</summary>
-        public Boolean Empty { get { return Left == null && Right == null; } }
+        public Boolean Empty => Left == null && Right == null;
         #endregion
 
         #region 构造
