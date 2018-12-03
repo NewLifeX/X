@@ -11,7 +11,6 @@ using NewLife.Caching;
 using NewLife.Log;
 using NewLife.Remoting;
 using NewLife.Security;
-using NewLife.Serialization;
 using XCode;
 using XCode.Code;
 using XCode.DataAccessLayer;
@@ -406,16 +405,20 @@ namespace Test
 
         static void Test8()
         {
-            var obj = new { ID = 1234, Time = DateTime.Now, Time2 = DateTime.Today, Time3 = DateTime.MinValue, Time4 = DateTime.UtcNow };
-            var json = obj.ToJson(true);
-            Console.WriteLine(json);
+            var dal = UserX.Meta.Session.Dal;
+            var dt = UserX.Meta.Table.DataTable;
+            dal.Db.ShowSQL = false;
 
-            var dic = new JsonParser(json).Decode().ToDictionary();
-            Console.WriteLine(dic);
-            foreach (var item in dic)
-            {
-                Console.WriteLine("{0}\t={1}", item.Key, item.Value);
-            }
+            dal.Backup(dt.TableName);
+
+            //File.Delete("member2.db");
+            DAL.AddConnStr("member2", "Server=.;Port=3306;Database=member2;Uid=root;Pwd=root;", null, "MySql");
+            var dal2 = DAL.Create("member2");
+            dal2.Db.ShowSQL = false;
+            dal2.Restore("user.table", dt);
+
+            //dal.BackupAll(null, "backup", true);
+            //dal2.RestoreAll("backup");
         }
 
         static async void Test9()

@@ -572,10 +572,9 @@ namespace XCode.DataAccessLayer
         #endregion
 
 #if !__CORE__
-
         #region 修复实现SqlServer批量操作增添方法
 
-        private int BatchExecute(String sql, List<IDataParameter[]> psList)
+        private Int32 BatchExecute(String sql, List<IDataParameter[]> psList)
         {
             //获取连接对象
             var conn = Database.Pool.Get();
@@ -599,7 +598,7 @@ namespace XCode.DataAccessLayer
             try
             {
                 BeginTrace();
-                int ret = mBatcher.ExecuteBatch();
+                var ret = mBatcher.ExecuteBatch();
                 mBatcher.EndBatch();
                 return ret;
             }
@@ -613,9 +612,8 @@ namespace XCode.DataAccessLayer
                 EndTrace(OnCreateCommand(sql, CommandType.Text));
             }
         }
-
-
-        private List<IDataParameter[]> GetParametersList(IDataColumn[] columns, ICollection<String> ps, IEnumerable<IIndexAccessor> list, bool isInsertOrUpdate = false)
+        
+        private List<IDataParameter[]> GetParametersList(IDataColumn[] columns, ICollection<String> ps, IEnumerable<IIndexAccessor> list, Boolean isInsertOrUpdate = false)
         {
             var db = Database;
             var dpsList = new List<IDataParameter[]>();
@@ -660,7 +658,7 @@ namespace XCode.DataAccessLayer
             private System.Reflection.MethodInfo mInitializeBatching;
             private System.Reflection.MethodInfo mExecuteBatch;
             private System.Data.SqlClient.SqlDataAdapter mAdapter;
-            private bool isStarted;
+            private Boolean isStarted;
 
             public SqlBatcher()
             {
@@ -674,7 +672,7 @@ namespace XCode.DataAccessLayer
             /// <summary>
             /// 获得批处理是否正在批处理状态。
             /// </summary>
-            public bool IsStarted
+            public Boolean IsStarted
             {
                 get { return isStarted; }
             }
@@ -687,10 +685,14 @@ namespace XCode.DataAccessLayer
             public void StartBatch(DbConnection connection)
             {
                 if (isStarted) return;
-                var command = new System.Data.SqlClient.SqlCommand();
-                command.Connection = (System.Data.SqlClient.SqlConnection)connection;
-                mAdapter = new System.Data.SqlClient.SqlDataAdapter();
-                mAdapter.InsertCommand = command;
+                var command = new System.Data.SqlClient.SqlCommand
+                {
+                    Connection = (System.Data.SqlClient.SqlConnection)connection
+                };
+                mAdapter = new System.Data.SqlClient.SqlDataAdapter
+                {
+                    InsertCommand = command
+                };
                 mInitializeBatching.Invoke(mAdapter, null);
                 isStarted = true;
             }
@@ -702,17 +704,17 @@ namespace XCode.DataAccessLayer
             public void AddToBatch(IDbCommand command)
             {
                 if (!isStarted) throw new InvalidOperationException();
-                mAddToBatch.Invoke(mAdapter, new object[1] { command });
+                mAddToBatch.Invoke(mAdapter, new Object[1] { command });
             }
 
             /// <summary>
             /// 执行批处理。
             /// </summary>
             /// <returns>影响的数据行数。</returns>
-            public int ExecuteBatch()
+            public Int32 ExecuteBatch()
             {
                 if (!isStarted) throw new InvalidOperationException();
-                return (int)mExecuteBatch.Invoke(mAdapter, null);
+                return (Int32)mExecuteBatch.Invoke(mAdapter, null);
             }
 
             /// <summary>
@@ -739,7 +741,6 @@ namespace XCode.DataAccessLayer
             }
         }
         #endregion
-
 #endif
     }
 

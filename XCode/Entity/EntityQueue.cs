@@ -46,10 +46,7 @@ namespace XCode
 
         #region 构造
         /// <summary>实例化实体队列</summary>
-        public EntityQueue(IEntitySession session)
-        {
-            Session = session;
-        }
+        public EntityQueue(IEntitySession session) => Session = session;
         #endregion
 
         #region 方法
@@ -156,7 +153,7 @@ namespace XCode
             var sw = Stopwatch.StartNew();
 
             // 分批
-            var batchSize = 5000;
+            var batchSize = 10_000;
             for (var i = 0; i < list.Count();)
             {
                 var batch = list.Skip(i).Take(batchSize).ToList();

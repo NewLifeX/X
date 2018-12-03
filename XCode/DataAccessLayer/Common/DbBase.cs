@@ -247,18 +247,6 @@ namespace XCode.DataAccessLayer
 
         /// <summary>表前缀。所有在该连接上的表名都自动增加该前缀</summary>
         public String TablePrefix { get; set; }
-
-        /// <summary>格式化的表名。加上Owner和表前缀</summary>
-        /// <param name="tableName"></param>
-        /// <returns></returns>
-        public String FormatTableName(String tableName)
-        {
-            if (!TablePrefix.IsNullOrEmpty()) tableName = TablePrefix + tableName;
-            var tname = FormatName(tableName);
-            if (!Owner.IsNullOrEmpty()) tname = $"{FormatName(Owner)}.{tname}";
-
-            return tname;
-        }
         #endregion
 
         #region 方法
@@ -687,6 +675,28 @@ namespace XCode.DataAccessLayer
             return name;
         }
 
+        /// <summary>格式化表名，考虑表前缀和Owner</summary>
+        /// <param name="tableName">名称</param>
+        /// <returns></returns>
+        public virtual String FormatTableName(String tableName)
+        {
+            // 检查自动表前缀
+            var pf = TablePrefix;
+            if (!pf.IsNullOrEmpty()) tableName = pf + tableName;
+
+            tableName = FormatName(tableName);
+
+            // 特殊处理Oracle数据库，在表名前加上方案名（用户名）
+            if (!tableName.Contains("."))
+            {
+                // 角色名作为点前缀来约束表名，支持所有数据库
+                var owner = Owner;
+                if (!owner.IsNullOrEmpty()) tableName = FormatName(owner) + "." + tableName;
+            }
+
+            return tableName;
+        }
+
         /// <summary>格式化数据为SQL数据</summary>
         /// <param name="field">字段</param>
         /// <param name="value">数值</param>
@@ -720,9 +730,9 @@ namespace XCode.DataAccessLayer
                 if (value == null) return isNullable ? "null" : "''";
                 var dt = Convert.ToDateTime(value);
 
-                if (dt <= DateTime.MinValue || dt >= DateTime.MaxValue) return isNullable ? "null" : "''";
+                //if (dt <= DateTime.MinValue || dt >= DateTime.MaxValue) return isNullable ? "null" : "''";
 
-                if ((dt == DateTime.MinValue) && isNullable) return "null";
+                //if (isNullable && (dt <= DateTime.MinValue || dt >= DateTime.MaxValue)) return "null";
 
                 return FormatDateTime(dt);
             }

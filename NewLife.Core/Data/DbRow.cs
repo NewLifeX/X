@@ -1,9 +1,10 @@
 ﻿using System;
+using NewLife.Reflection;
 
 namespace NewLife.Data
 {
     /// <summary>数据行</summary>
-    public class DbRow
+    public struct DbRow : IIndexAccessor
     {
         #region 属性
         /// <summary>数据表</summary>

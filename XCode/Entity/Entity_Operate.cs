@@ -15,10 +15,10 @@ namespace XCode
         {
             #region 主要属性
             /// <summary>实体类型</summary>
-            public virtual Type EntityType { get { return typeof(TEntity); } }
+            public virtual Type EntityType => typeof(TEntity);
 
             /// <summary>实体会话</summary>
-            public virtual IEntitySession Session { get { return Meta.Session; } }
+            public virtual IEntitySession Session => Meta.Session;
             #endregion
 
             #region 属性
@@ -27,22 +27,22 @@ namespace XCode
             public virtual IEntity Default { get { return _Default ?? (_Default = new TEntity()); } set { _Default = value; } }
 
             /// <summary>数据表元数据</summary>
-            public virtual TableItem Table { get { return Meta.Table; } }
+            public virtual TableItem Table => Meta.Table;
 
             /// <summary>所有数据属性</summary>
-            public virtual FieldItem[] AllFields { get { return Meta.AllFields; } }
+            public virtual FieldItem[] AllFields => Meta.AllFields;
 
             /// <summary>所有绑定到数据表的属性</summary>
-            public virtual FieldItem[] Fields { get { return Meta.Fields; } }
+            public virtual FieldItem[] Fields => Meta.Fields;
 
             /// <summary>字段名集合，不区分大小写的哈希表存储，外部不要修改元素数据</summary>
-            public virtual ICollection<String> FieldNames { get { return Meta.FieldNames; } }
+            public virtual ICollection<String> FieldNames => Meta.FieldNames;
 
             /// <summary>唯一键，返回第一个标识列或者唯一的主键</summary>
-            public virtual FieldItem Unique { get { return Meta.Unique; } }
+            public virtual FieldItem Unique => Meta.Unique;
 
             /// <summary>主字段。主字段作为业务主要字段，代表当前数据行意义</summary>
-            public virtual FieldItem Master { get { return Meta.Master; } }
+            public virtual FieldItem Master => Meta.Master;
 
             /// <summary>连接名</summary>
             public virtual String ConnName { get { return Meta.ConnName; } set { Meta.ConnName = value; } }
@@ -51,16 +51,16 @@ namespace XCode
             public virtual String TableName { get { return Meta.TableName; } set { Meta.TableName = value; } }
 
             /// <summary>已格式化的表名，带有中括号等</summary>
-            public virtual String FormatedTableName { get { return Session.FormatedTableName; } }
+            public virtual String FormatedTableName => Session.FormatedTableName;
 
             /// <summary>实体缓存</summary>
-            public virtual IEntityCache Cache { get { return Session.Cache; } }
+            public virtual IEntityCache Cache => Session.Cache;
 
             /// <summary>单对象实体缓存</summary>
-            public virtual ISingleEntityCache SingleCache { get { return Session.SingleCache; } }
+            public virtual ISingleEntityCache SingleCache => Session.SingleCache;
 
             /// <summary>总记录数</summary>
-            public virtual Int32 Count { get { return Session.Count; } }
+            public virtual Int32 Count => Session.Count;
             #endregion
 
             #region 构造
@@ -88,28 +88,28 @@ namespace XCode
             /// <param name="name">名称</param>
             /// <param name="value">数值</param>
             /// <returns></returns>
-            public virtual IEntity Find(String name, Object value) { return Entity<TEntity>.Find(name, value); }
+            public virtual IEntity Find(String name, Object value) => Entity<TEntity>.Find(name, value);
 
             /// <summary>根据条件查找单个实体</summary>
             /// <param name="where"></param>
             /// <returns></returns>
-            public virtual IEntity Find(Expression where) { return Entity<TEntity>.Find(where); }
+            public virtual IEntity Find(Expression where) => Entity<TEntity>.Find(where);
 
             /// <summary>根据主键查找单个实体</summary>
             /// <param name="key"></param>
             /// <returns></returns>
-            public virtual IEntity FindByKey(Object key) { return Entity<TEntity>.FindByKey(key); }
+            public virtual IEntity FindByKey(Object key) => Entity<TEntity>.FindByKey(key);
 
             /// <summary>根据主键查询一个实体对象用于表单编辑</summary>
             /// <param name="key"></param>
             /// <returns></returns>
-            public virtual IEntity FindByKeyForEdit(Object key) { return Entity<TEntity>.FindByKeyForEdit(key); }
+            public virtual IEntity FindByKeyForEdit(Object key) => Entity<TEntity>.FindByKeyForEdit(key);
             #endregion
 
             #region 静态查询
             /// <summary>获取所有实体对象。获取大量数据时会非常慢，慎用</summary>
             /// <returns>实体数组</returns>
-            public virtual IList<IEntity> FindAll() { return Entity<TEntity>.FindAll().Cast<IEntity>().ToList(); }
+            public virtual IList<IEntity> FindAll() => Entity<TEntity>.FindAll().Cast<IEntity>().ToList();
 
             /// <summary>查询并返回实体对象集合。
             /// 表名以及所有字段名，请使用类名以及字段对应的属性名，方法内转换为表名和列名
@@ -143,13 +143,13 @@ namespace XCode
             #region 缓存查询
             /// <summary>查找所有缓存</summary>
             /// <returns></returns>
-            public virtual IList<IEntity> FindAllWithCache() { return Entity<TEntity>.FindAllWithCache().Cast<IEntity>().ToList(); }
+            public virtual IList<IEntity> FindAllWithCache() => Entity<TEntity>.FindAllWithCache().Cast<IEntity>().ToList();
             #endregion
 
             #region 取总记录数
             /// <summary>返回总记录数</summary>
             /// <returns></returns>
-            public virtual Int64 FindCount() { return Entity<TEntity>.FindCount(); }
+            public virtual Int64 FindCount() => Entity<TEntity>.FindCount();
 
             /// <summary>返回总记录数</summary>
             /// <param name="where">条件，不带Where</param>
@@ -201,18 +201,18 @@ namespace XCode
             #region 事务
             /// <summary>开始事务</summary>
             /// <returns></returns>
-            public virtual Int32 BeginTransaction() { return Session.BeginTrans(); }
+            public virtual Int32 BeginTransaction() => Session.BeginTrans();
 
             /// <summary>提交事务</summary>
             /// <returns></returns>
-            public virtual Int32 Commit() { return Session.Commit(); }
+            public virtual Int32 Commit() => Session.Commit();
 
             /// <summary>回滚事务</summary>
             /// <returns></returns>
-            public virtual Int32 Rollback() { return Session.Rollback(); }
+            public virtual Int32 Rollback() => Session.Rollback();
 
             /// <summary>创建事务</summary>
-            public virtual EntityTransaction CreateTrans() { return new EntityTransaction<TEntity>(); }
+            public virtual EntityTransaction CreateTrans() => new EntityTransaction<TEntity>();
             #endregion
 
             #region 辅助方法

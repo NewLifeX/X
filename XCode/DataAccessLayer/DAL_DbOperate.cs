@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using NewLife.Caching;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Reflection;
+using NewLife.Serialization;
 
 namespace XCode.DataAccessLayer
 {
@@ -249,11 +251,6 @@ namespace XCode.DataAccessLayer
             var cache = GetCache();
             if (cache != null)
             {
-                //var key = "";
-                //if (keyFactory != null)
-                //    key = keyFactory(k1, k2, k3);
-                //else
-                //{
                 var sb = Pool.StringBuilder.Get();
                 if (!prefix.IsNullOrEmpty())
                 {
@@ -264,7 +261,6 @@ namespace XCode.DataAccessLayer
                 Append(sb, k2);
                 Append(sb, k3);
                 var key = sb.Put(true);
-                //}
 
                 return cache.GetItem(key, k =>
                 {
@@ -336,10 +332,5 @@ namespace XCode.DataAccessLayer
             }
         }
         #endregion
-
-        //#region 队列
-        ///// <summary>实体队列</summary>
-        //public EntityQueue Queue { get; private set; }
-        //#endregion
     }
 }

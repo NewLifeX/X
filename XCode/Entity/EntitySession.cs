@@ -121,27 +121,8 @@ namespace XCode
         {
             get
             {
-                if (_FormatedTableName.IsNullOrEmpty())
-                {
-                    var str = TableName;
+                if (_FormatedTableName.IsNullOrEmpty()) _FormatedTableName = Dal.Db.FormatTableName(TableName);
 
-                    // 检查自动表前缀
-                    var db = Dal.Db;
-                    var pf = db.TablePrefix;
-                    if (!pf.IsNullOrEmpty() && !str.StartsWithIgnoreCase(pf)) str = pf + str;
-
-                    str = db.FormatName(str);
-
-                    // 特殊处理Oracle数据库，在表名前加上方案名（用户名）
-                    if (!str.Contains("."))
-                    {
-                        // 角色名作为点前缀来约束表名，支持所有数据库
-                        var owner = db.Owner;
-                        if (!owner.IsNullOrEmpty()) str = Dal.Db.FormatName(owner) + "." + str;
-                    }
-
-                    _FormatedTableName = str;
-                }
                 return _FormatedTableName;
             }
         }

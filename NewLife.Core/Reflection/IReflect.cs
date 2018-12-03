@@ -669,6 +669,9 @@ namespace NewLife.Reflection
 
             if (baseType.IsAssignableFrom(type)) return true;
 
+            // 绝大部分子类判断可通过IsAssignableFrom完成，除非其中一方ReflectionOnly
+            if (type.Assembly.ReflectionOnly != baseType.Assembly.ReflectionOnly) return false;
+
             // 缓存
             //var key = $"{type.FullName}_{baseType.FullName}";
             //if (!_as_cache.TryGetValue(type, out var dic))
