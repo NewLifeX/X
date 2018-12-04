@@ -72,7 +72,7 @@ namespace XCode.DataAccessLayer
 
             sw.Stop();
             var ms = sw.Elapsed.TotalMilliseconds;
-            WriteLog("备份[{0}/{1}]完成，共[{2:n0}]行，耗时{3:n0}ms，速度{4:n0}tps", table, ConnName, total, ms, total * 1000 / ms);
+            WriteLog("备份[{0}/{1}]完成，共[{2:n0}]行，耗时{3:n0}ms，速度{4:n0}tps", table, ConnName, total, ms, total * 1000L / ms);
 
             // 返回总行数
             return total;
@@ -257,7 +257,7 @@ namespace XCode.DataAccessLayer
 
             sw.Stop();
             var ms = sw.Elapsed.TotalMilliseconds;
-            WriteLog("恢复[{0}/{1}]完成，共[{2:n0}]行，耗时{3:n0}ms，速度{4:n0}tps", table.Name, ConnName, total, ms, total * 1000 / ms);
+            WriteLog("恢复[{0}/{1}]完成，共[{2:n0}]行，耗时{3:n0}ms，速度{4:n0}tps", table.Name, ConnName, total, ms, total * 1000L / ms);
 
             // 返回总行数
             return total;
