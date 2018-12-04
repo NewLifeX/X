@@ -11,7 +11,7 @@ namespace NewLife.IP
     /// <summary>IP搜索</summary>
     public static class Ip
     {
-        private static Object lockHelper = new Object();
+        private static readonly Object lockHelper = new Object();
         private static Zip zip;
 
         /// <summary>数据文件</summary>
@@ -123,15 +123,20 @@ namespace NewLife.IP
         static UInt32 IPToUInt32(String IpValue)
         {
             var ss = IpValue.Split('.');
-            var buf = new Byte[4];
+            //var buf = stackalloc Byte[4];
+            var val = 0u;
+            //var ptr = (Byte*)&val;
             for (var i = 0; i < 4; i++)
             {
-                if (i < ss.Length && Int32.TryParse(ss[i], out var n))
+                if (i < ss.Length && UInt32.TryParse(ss[i], out var n))
                 {
-                    buf[3 - i] = (Byte)n;
+                    //buf[3 - i] = (Byte)n;
+                    val |= n << (3 - i);
+                    //ptr[3 - i] = n;
                 }
             }
-            return BitConverter.ToUInt32(buf, 0);
+            //return BitConverter.ToUInt32(buf, 0);
+            return val;
         }
     }
 

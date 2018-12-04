@@ -541,6 +541,8 @@ namespace NewLife.Serialization
         #endregion
 
         #region 7位压缩编码整数
+        [ThreadStatic]
+        private static Byte[] _encodes;
         /// <summary>
         /// 以7位压缩格式写入64位整数，小于7位用1个字节，小于14位用2个字节。
         /// 由每次写入的一个字节的第一位标记后面的字节是否还是当前数据，所以每个字节实际可利用存储空间只有后7位。
@@ -549,21 +551,18 @@ namespace NewLife.Serialization
         /// <returns>实际写入字节数</returns>
         public Int32 WriteEncoded(Int64 value)
         {
-            var arr = new Byte[16];
-            var k = 0;
+            if (_encodes == null) _encodes = new Byte[16];
 
-            var count = 1;
+            var count = 0;
             var num = (UInt64)value;
             while (num >= 0x80)
             {
-                arr[k++] = (Byte)(num | 0x80);
+                _encodes[count++] = (Byte)(num | 0x80);
                 num = num >> 7;
-
-                count++;
             }
-            arr[k++] = (Byte)num;
+            _encodes[count++] = (Byte)num;
 
-            Write(arr, 0, k);
+            Write(_encodes, 0, count);
 
             return count;
         }
