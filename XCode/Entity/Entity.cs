@@ -856,6 +856,24 @@ namespace XCode
 
             return LoadData(session.Query(sql));
         }
+
+        /// <summary>查询数据，返回内存表DbTable而不是实体列表</summary>
+        /// <remarks>
+        /// 最经典的批量查询，看这个Select @selects From Table Where @where Order By @order Limit @startRowIndex,@maximumRows，你就明白各参数的意思了。
+        /// </remarks>
+        /// <param name="where">条件字句，不带Where</param>
+        /// <param name="order">排序字句，不带Order By</param>
+        /// <param name="selects">查询列，默认null表示所有字段</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
+        /// <returns>内存表</returns>
+        public static DbTable FindData(Expression where, String order, String selects, Int64 startRowIndex, Int64 maximumRows)
+        {
+            var session = Meta.Session;
+
+            var builder = CreateBuilder(where, order, selects);
+            return session.Query(builder, startRowIndex, maximumRows);
+        }
         #endregion
 
         #region 缓存查询
