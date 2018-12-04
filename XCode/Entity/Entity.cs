@@ -662,7 +662,7 @@ namespace XCode
         {
             var session = Meta.Session;
 
-            var builder = CreateBuilder(where, order, selects, startRowIndex, maximumRows);
+            var builder = CreateBuilder(where, order, selects, true);
             var list = LoadData(session.Query(builder, startRowIndex, maximumRows));
 
             // 如果正在使用单对象缓存，则批量进入
@@ -762,7 +762,7 @@ namespace XCode
                         if (max <= 0) return new List<TEntity>();
 
                         var start = (Int32)(count - (startRowIndex + maximumRows));
-                        var builder2 = CreateBuilder(where, order2, selects, start, max);
+                        var builder2 = CreateBuilder(where, order2, selects);
                         var list = LoadData(session.Query(builder2, start, max));
                         if (list == null || list.Count < 1) return list;
 
@@ -777,7 +777,7 @@ namespace XCode
             }
             #endregion
 
-            var builder = CreateBuilder(where, order, selects, startRowIndex, maximumRows);
+            var builder = CreateBuilder(where, order, selects);
             var list2 = LoadData(session.Query(builder, startRowIndex, maximumRows));
 
             // 如果正在使用单对象缓存，则批量进入
@@ -949,7 +949,8 @@ namespace XCode
         /// <returns>实体集</returns>
         public static SelectBuilder FindSQL(String where, String order, String selects, Int32 startRowIndex = 0, Int32 maximumRows = 0)
         {
-            var builder = CreateBuilder(where, order, selects, startRowIndex, maximumRows, false);
+            var needOrderByID = startRowIndex > 0 || maximumRows > 0;
+            var builder = CreateBuilder(where, order, selects, needOrderByID);
             return Meta.Session.Dal.PageSplit(builder, startRowIndex, maximumRows);
         }
 
@@ -1133,19 +1134,24 @@ namespace XCode
         #endregion
 
         #region 构造SQL语句
-        static SelectBuilder CreateBuilder(Expression where, String order, String selects, Int64 startRowIndex, Int64 maximumRows, Boolean needOrderByID = true)
+        /// <summary>构造SQL查询语句</summary>
+        /// <param name="where">条件</param>
+        /// <param name="order">排序</param>
+        /// <param name="selects">选择列</param>
+        /// <returns></returns>
+        public static SelectBuilder CreateBuilder(Expression where, String order, String selects)
         {
             var session = Meta.Session;
             var ps = session.Dal.Db.UseParameter ? new Dictionary<String, Object>() : null;
             var wh = where?.GetString(ps);
-            var builder = CreateBuilder(wh, order, selects, startRowIndex, maximumRows, needOrderByID);
+            var builder = CreateBuilder(wh, order, selects, true);
 
             builder = FixParam(builder, ps);
 
             return builder;
         }
 
-        static SelectBuilder CreateBuilder(String where, String order, String selects, Int64 startRowIndex, Int64 maximumRows, Boolean needOrderByID = true)
+        static SelectBuilder CreateBuilder(String where, String order, String selects, Boolean needOrderByID)
         {
             var builder = new SelectBuilder
             {
@@ -1179,7 +1185,7 @@ namespace XCode
 
             // XCode对于默认排序的规则：自增主键降序，其它情况默认
             // 返回所有记录
-            if (!needOrderByID && startRowIndex <= 0 && maximumRows <= 0) return builder;
+            if (!needOrderByID) return builder;
 
             var fi = Meta.Table.Identity;
             if (fi != null)
