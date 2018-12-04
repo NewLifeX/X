@@ -802,7 +802,7 @@ namespace XCode
                 var rows = 0L;
 
                 // 如果总记录数超过10万，为了提高性能，返回快速查找且带有缓存的总记录数
-                if ((where == null || where is WhereExpression wh && wh.Empty) && session.LongCount > 100_000)
+                if ((where == null || where.IsEmpty && session.LongCount > 100_000)
                     rows = session.LongCount;
                 else
                     rows = FindCount(where, null, selects, 0, 0);

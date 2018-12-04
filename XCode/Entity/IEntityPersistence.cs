@@ -461,7 +461,7 @@ namespace XCode
 
             var def = DefaultCondition(entity);
             //if (String.IsNullOrEmpty(def)) return null;
-            if (def.Empty) return null;
+            if (def.IsEmpty) return null;
 
             // 处理累加字段
             var dfs = (entity as EntityBase).GetAddition();
