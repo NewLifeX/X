@@ -12,6 +12,9 @@ namespace XCode
         #region 属性
         /// <summary>文本表达式</summary>
         public String Text { get; private set; }
+
+        /// <summary>是否为空</summary>
+        public virtual Boolean IsEmpty => Text.IsNullOrEmpty();
         #endregion
 
         #region 构造
