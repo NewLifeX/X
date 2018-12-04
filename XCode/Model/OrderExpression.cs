@@ -10,6 +10,9 @@ namespace XCode
         #region 属性
         /// <summary>内置字符串</summary>
         public StringBuilder Builder { get; set; } = new StringBuilder();
+
+        /// <summary>是否为空</summary>
+        public override Boolean IsEmpty => Builder == null || Builder.Length == 0;
         #endregion
 
         #region 构造

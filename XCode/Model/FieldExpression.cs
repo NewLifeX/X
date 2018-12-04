@@ -17,6 +17,9 @@ namespace XCode
 
         /// <summary>值</summary>
         public Object Value { get; set; }
+
+        /// <summary>是否为空</summary>
+        public override Boolean IsEmpty => Field == null;
         #endregion
 
         #region 构造

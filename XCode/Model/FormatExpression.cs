@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using NewLife.Reflection;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
-using System.Linq;
 
 namespace XCode
 {
@@ -22,6 +22,9 @@ namespace XCode
 
         /// <summary>操作数</summary>
         public Object Value { get; set; }
+
+        /// <summary>是否为空</summary>
+        public override Boolean IsEmpty => Field == null || Format.IsNullOrWhiteSpace();
         #endregion
 
         #region 构造
