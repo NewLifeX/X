@@ -633,7 +633,7 @@ namespace XCode.DataAccessLayer
 
                     if (sql.Contains(" UNIQUE ")) di.Unique = true;
 
-                    di.Columns = sql.Substring("(", ")").Split(",").Select(e => e.Trim()).ToArray();
+                    di.Columns = sql.Substring("(", ")").Split(",").Select(e => e.Trim().Trim(new[] { '[', ']' })).ToArray();
 
                     table.Indexes.Add(di);
                 }
