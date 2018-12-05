@@ -573,21 +573,23 @@ namespace XCode.DataAccessLayer
                 table.TableName = name;
 
                 sql = dts.Get<String>(dr, "sql");
-                var sqls = sql.Split("\r\n").ToList();
+                var p1 = sql.IndexOf('(');
+                var p2 = sql.LastIndexOf(')');
+                if (p1 < 0 || p2 < 0) continue;
+                sql = sql.Substring(p1 + 1, p2 - p1 - 1);
+                if (sql.IsNullOrEmpty()) continue;
+
+                var sqls = sql.Split(",").ToList();
 
                 #region 字段
-                //var dcs = ss.Query($"select * from {Database.FormatName(name)} limit 0,1", null);
-                //for (var i = 0; i < dcs.Columns.Length; i++)
                 foreach (var line in sqls)
                 {
-                    if (line.IsNullOrEmpty() || line[0] != '\t') continue;
+                    if (line.IsNullOrEmpty() || line.StartsWithIgnoreCase("CREATE")) continue;
 
                     var fs = line.Trim().Split(" ");
                     var field = table.CreateColumn();
 
                     field.ColumnName = fs[0].TrimStart('[').TrimEnd(']');
-                    //field.DataType = dcs.Types[i];
-                    //field.RawType = dcs.TypeNames[i];
 
                     if (line.Contains("AUTOINCREMENT")) field.Identity = true;
                     if (line.Contains("Primary Key")) field.PrimaryKey = true;
