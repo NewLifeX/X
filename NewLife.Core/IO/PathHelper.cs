@@ -290,6 +290,8 @@ namespace System.IO
         /// <returns></returns>
         public static T OpenWrite<T>(this FileInfo file, Func<FileStream, T> func)
         {
+            file.FullName.EnsureDirectory(true);
+
             using (var fs = file.OpenWrite())
             {
                 return func(fs);
