@@ -10,57 +10,6 @@ namespace NewLife.Web
     /// <summary>网页工具类</summary>
     public static class WebHelper
     {
-        #region 辅助
-#if !__CORE__
-        /// <summary>输出脚本</summary>
-        /// <param name="script"></param>
-        public static void WriteScript(String script)
-        {
-            Js.WriteScript(script, true);
-        }
-#endif
-        #endregion
-
-        #region 弹出信息
-#if !__CORE__
-        /// <summary>弹出页面提示</summary>
-        /// <param name="msg"></param>
-        public static void Alert(String msg)
-        {
-            Js.Alert(msg);
-        }
-
-        /// <summary>弹出页面提示并停止输出后退一步！</summary>
-        /// <param name="msg"></param>
-        public static void AlertAndEnd(String msg)
-        {
-            Js.Alert(msg).End();
-        }
-
-        /// <summary>弹出页面提示，并刷新该页面</summary>
-        /// <param name="msg"></param>
-        public static void AlertAndRefresh(String msg)
-        {
-            Js.Alert(msg).Refresh().End();
-        }
-
-        /// <summary>弹出页面提示并重定向到另外的页面</summary>
-        /// <param name="msg"></param>
-        /// <param name="url"></param>
-        public static void AlertAndRedirect(String msg, String url)
-        {
-            Js.Alert(msg).Redirect(url).End();
-        }
-
-        /// <summary>弹出页面提示并关闭当前页面</summary>
-        /// <param name="msg"></param>
-        public static void AlertAndClose(String msg)
-        {
-            Js.Alert(msg).Close().End();
-        }
-#endif
-        #endregion
-
         #region 用户主机
         [ThreadStatic]
         private static String _UserHost;

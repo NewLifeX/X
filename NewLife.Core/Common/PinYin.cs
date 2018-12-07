@@ -4,10 +4,8 @@ using System.Linq;
 using System.Text;
 using NewLife.Reflection;
 using NewLife.Collections;
-#if !__CORE__
 using NewLife.Log;
 using NewLife.Web;
-#endif
 
 namespace NewLife.Common
 {
@@ -252,7 +250,6 @@ namespace NewLife.Common
             return sb.Put(true);
         }
 
-#if !__CORE__
         static Boolean _inited = false;
         static Type _type;
         /// <summary>从微软拼音库获取拼音，包括音调</summary>
@@ -290,6 +287,5 @@ namespace NewLife.Common
             // 驼峰
             return py[0] + py.Substring(1, py.Length - 1).ToLower();
         }
-#endif
     }
 }

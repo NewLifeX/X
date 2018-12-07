@@ -1247,11 +1247,7 @@ namespace System
             else if (offset + count > data.Length)
                 count = data.Length - offset;
 
-#if __CORE__
-            return Convert.ToBase64String(data, offset, count);
-#else
             return Convert.ToBase64String(data, offset, count, lineBreak ? Base64FormattingOptions.InsertLineBreaks : Base64FormattingOptions.None);
-#endif
         }
 
         /// <summary>字节数组转为Url改进型Base64编码</summary>

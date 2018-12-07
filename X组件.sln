@@ -24,10 +24,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XCodeST", "XCodeST\XCodeST.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestST", "TestST\TestST.csproj", "{B944861A-E5FB-4DDB-9DD2-93930B5C1885}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.Core40", "NewLife.Core\NewLife.Core40.csproj", "{8363FB2D-12AB-430E-89B0-B576C149C16D}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XCode40", "XCode\XCode40.csproj", "{660733A3-04A3-451B-A6EF-5D7C89E1AB31}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -58,14 +54,6 @@ Global
 		{B944861A-E5FB-4DDB-9DD2-93930B5C1885}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B944861A-E5FB-4DDB-9DD2-93930B5C1885}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B944861A-E5FB-4DDB-9DD2-93930B5C1885}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8363FB2D-12AB-430E-89B0-B576C149C16D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8363FB2D-12AB-430E-89B0-B576C149C16D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8363FB2D-12AB-430E-89B0-B576C149C16D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8363FB2D-12AB-430E-89B0-B576C149C16D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{660733A3-04A3-451B-A6EF-5D7C89E1AB31}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{660733A3-04A3-451B-A6EF-5D7C89E1AB31}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{660733A3-04A3-451B-A6EF-5D7C89E1AB31}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{660733A3-04A3-451B-A6EF-5D7C89E1AB31}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,11 +1,5 @@
 ﻿using System;
-using System.Reflection;
-#if !__MOBILE__ && !__CORE__
-using System.Web.Script.Serialization;
-#endif
-using System.Xml.Serialization;
 using NewLife.Collections;
-using NewLife.Log;
 using NewLife.Reflection;
 
 namespace NewLife.Serialization
@@ -159,109 +153,9 @@ namespace NewLife.Serialization
         }
     }
 
-#if !__MOBILE__ && !__CORE__
-    class JsonDefault : IJsonHost
-    {
-        private Boolean CheckScriptIgnoreAttribute(MemberInfo memberInfo)
-        {
-#if !__MOBILE__ && !__CORE__
-            if (memberInfo.IsDefined(typeof(ScriptIgnoreAttribute), true)) return true;
-#endif
-            if (memberInfo.IsDefined(typeof(XmlIgnoreAttribute), true)) return true;
-
-            return false;
-        }
-
-    #region IJsonHost 成员
-        public String Write(Object value, Boolean indented)
-        {
-            var json = new JavaScriptSerializer().Serialize(value);
-            //if (indented) json = Process(json);
-            if (indented) json = JsonHelper.Format(json);
-
-            return json;
-        }
-
-        public Object Read(String json, Type type)
-        {
-            // 如果有必要，可以实现JavaScriptTypeResolver，然后借助Type.GetTypeEx得到更强的反射类型能力
-            return new JavaScriptSerializer().Deserialize(json, type);
-        }
-
-        public Object Convert(Object obj, Type targetType) => new JavaScriptSerializer().ConvertToType(obj, targetType);
-    #endregion
-    }
-
-    class JsonNet : IJsonHost
-    {
-        private static Type _Convert;
-        private static Type _Formatting;
-        private static Object _Set;
-        static JsonNet()
-        {
-            var type = "Newtonsoft.Json.JsonConvert".GetTypeEx();
-            if (type != null)
-            {
-                _Convert = type;
-                _Formatting = "Newtonsoft.Json.Formatting".GetTypeEx();
-                type = "Newtonsoft.Json.JsonSerializerSettings".GetTypeEx();
-
-                // 忽略循环引用
-                _Set = type.CreateInstance();
-                if (_Set != null) _Set.SetValue("ReferenceLoopHandling", 1);
-
-                // 自定义IContractResolver，用XmlIgnore特性作为忽略属性的方法
-                var sc = ScriptEngine.Create(_code, false);
-                sc.Compile();
-                if (sc.Method != null)
-                {
-                    _Set.SetValue("ContractResolver", sc.Method.DeclaringType.CreateInstance());
-                }
-
-                if (XTrace.Debug) XTrace.WriteLine("使用Json.Net，位于 {0}", _Convert.Assembly.Location);
-            }
-        }
-
-        private const String _code = @"
-class MyContractResolver : Newtonsoft.Json.Serialization.DefaultContractResolver
-{
-    protected override Newtonsoft.Json.Serialization.JsonProperty CreateProperty(MemberInfo member, Newtonsoft.Json.MemberSerialization memberSerialization)
-    {
-        if (member.GetCustomAttribute<System.Xml.Serialization.XmlIgnoreAttribute>() != null) return null;
-
-        return base.CreateProperty(member, memberSerialization);
-    }
-    public static void Main() { }
-}";
-
-        /// <summary>是否支持</summary>
-        /// <returns></returns>
-        public static Boolean Support() => _Convert != null;
-
-    #region IJsonHost 成员
-        public String Write(Object value, Boolean indented)
-        {
-            // 忽略循环引用
-            //var set = _Set.CreateInstance();
-            //if (set != null) set.SetValue("ReferenceLoopHandling", 1);
-
-            if (!indented)
-                return (String)_Convert.Invoke("SerializeObject", value, _Set);
-            else
-                return (String)_Convert.Invoke("SerializeObject", value, Enum.ToObject(_Formatting, 1), _Set);
-        }
-
-        public Object Read(String json, Type type) => _Convert.Invoke("DeserializeObject", json, type);
-
-        public Object Convert(Object obj, Type targetType) => new JsonReader().ToObject(obj, targetType, null);
-    #endregion
-    }
-#endif
-
     class FastJson : IJsonHost
     {
         #region IJsonHost 成员
-
         public String Write(Object value, Boolean indented = false) => JsonWriter.ToJson(value, indented);
 
         public Object Read(String json, Type type) => new JsonReader().Read(json, type);

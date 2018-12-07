@@ -295,18 +295,8 @@ namespace NewLife.Caching
         /// </remarks>
         public virtual void Bench(Boolean rand = false, Int32 batch = 0)
         {
-            var processor = "";
-            var frequency = 0;
-#if !__CORE__
-            using (var reg = Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\CentralProcessor\0"))
-            {
-                processor = (reg.GetValue("ProcessorNameString") + "").Trim();
-                frequency = reg.GetValue("~MHz").ToInt();
-            }
-#endif
-
             var cpu = Environment.ProcessorCount;
-            XTrace.WriteLine($"{Name}性能测试[{(rand ? "随机" : "顺序")}]，批大小[{batch}]，逻辑处理器 {cpu:n0} 个 {frequency:n0}MHz {processor}");
+            XTrace.WriteLine($"{Name}性能测试[{(rand ? "随机" : "顺序")}]，批大小[{batch}]，逻辑处理器 {cpu:n0} 个");
 
             var times = 10_000;
 

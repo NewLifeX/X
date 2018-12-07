@@ -204,7 +204,6 @@
     <Compile Include="Transform\TimeExtracter.cs" />
     <Compile Include="Transform\ExtractSetting.cs" />
     <Compile Include="Transform\ETL.cs" />
-    <Compile Include="Web\EntityGrid.cs" />
     <Compile Include="Web\UserBehaviorModule..cs" />
     <None Include="Cache\readme.md" />
     <Compile Include="Transform\EntityTransform.cs" />
