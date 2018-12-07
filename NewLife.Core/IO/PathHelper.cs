@@ -178,7 +178,7 @@ namespace System.IO
         /// <summary>文件路径作为文件信息</summary>
         /// <param name="file"></param>
         /// <returns></returns>
-        public static FileInfo AsFile(this String file) { return new FileInfo(file.GetFullPath()); }
+        public static FileInfo AsFile(this String file) => new FileInfo(file.GetFullPath());
 
         /// <summary>从文件中读取数据</summary>
         /// <param name="file"></param>
@@ -269,6 +269,33 @@ namespace System.IO
 
             return false;
         }
+
+        /// <summary>打开并读取</summary>
+        /// <typeparam name="T">返回类型</typeparam>
+        /// <param name="file">文件信息</param>
+        /// <param name="func">要对文件流操作的委托</param>
+        /// <returns></returns>
+        public static T OpenRead<T>(this FileInfo file, Func<FileStream, T> func)
+        {
+            using (var fs = file.OpenRead())
+            {
+                return func(fs);
+            }
+        }
+
+        /// <summary>打开并写入</summary>
+        /// <typeparam name="T">返回类型</typeparam>
+        /// <param name="file">文件信息</param>
+        /// <param name="func">要对文件流操作的委托</param>
+        /// <returns></returns>
+        public static T OpenWrite<T>(this FileInfo file, Func<FileStream, T> func)
+        {
+            using (var fs = file.OpenWrite())
+            {
+                return func(fs);
+            }
+        }
+
 #if !__MOBILE__ && !NET4
         /// <summary>解压缩</summary>
         /// <param name="fi"></param>
