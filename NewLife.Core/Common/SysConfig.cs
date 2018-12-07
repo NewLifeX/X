@@ -1,7 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Linq;
-using System.Xml.Serialization;
 using NewLife.Reflection;
 using NewLife.Xml;
 
@@ -54,7 +53,6 @@ namespace NewLife.Common
         {
         }
 
-#if !__CORE__
         /// <summary>新建配置</summary>
         protected override void OnNew()
         {
@@ -77,7 +75,6 @@ namespace NewLife.Common
                 try
                 {
                     var list = AssemblyX.GetMyAssemblies();
-                    //if (list.Count > 1) list = list.Where(e => e.Title.IsNullOrEmpty() || !(e.Title.Contains("新生命") && (e.Title.Contains("库") || e.Title.Contains("框架") || e.Title.Contains("SQLite")))).ToList();
 
                     // 最后编译那一个
                     list = list.OrderByDescending(e => e.Compile)
@@ -89,7 +86,6 @@ namespace NewLife.Common
                 catch { return null; }
             }
         }
-#endif
         #endregion
     }
 }

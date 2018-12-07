@@ -78,9 +78,8 @@ namespace NewLife.Compression
             #endregion
 
             if (!p.IsNullOrEmpty()) _7z = p.GetFullPath();
-            #region DEBUG
+
             XTrace.WriteLine("7Z目录 {0}", _7z);
-            #endregion
         }
 
         /// <summary>实例化</summary>

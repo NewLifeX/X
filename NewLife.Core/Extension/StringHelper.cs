@@ -944,10 +944,7 @@ namespace System
             var si = p.StartInfo;
             si.FileName = cmd;
             si.Arguments = arguments;
-#if __CORE__
-#else
             si.WindowStyle = ProcessWindowStyle.Hidden;
-#endif
 
             // 对于控制台项目，这里需要捕获输出
             if (msWait > 0)

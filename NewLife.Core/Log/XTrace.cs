@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
-using System.IO;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Text;
 using System.Threading;
@@ -106,7 +104,7 @@ namespace NewLife.Log
             }
         }
 
-        static Object _lock = new Object();
+        static readonly Object _lock = new Object();
         static Int32 _initing = 0;
 
         /// <summary>
@@ -155,7 +153,6 @@ namespace NewLife.Log
         #endregion
 
         #region 使用控制台输出
-#if !__MOBILE__
         private static Boolean _useConsole;
         /// <summary>使用控制台输出日志，只能调用一次</summary>
         /// <param name="useColor">是否使用颜色，默认使用</param>
@@ -165,9 +162,7 @@ namespace NewLife.Log
             if (_useConsole) return;
             _useConsole = true;
 
-#if !__CORE__
             if (!Runtime.IsConsole) return;
-#endif
 
             // 适当加大控制台窗口
             try
@@ -183,7 +178,6 @@ namespace NewLife.Log
             else
                 _Log = clg;
         }
-#endif
         #endregion
 
         #region 拦截WinForm异常

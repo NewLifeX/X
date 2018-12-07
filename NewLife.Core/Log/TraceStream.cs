@@ -79,7 +79,6 @@ namespace NewLife.Log
         #endregion
 
         #region 异步读写方法
-#if !__CORE__
         /// <summary>异步开始读</summary>
         /// <param name="buffer">缓冲区</param>
         /// <param name="offset">偏移</param>
@@ -126,7 +125,6 @@ namespace NewLife.Log
 
             BaseStream.EndWrite(asyncResult);
         }
-#endif
         #endregion
 
         #region 其它方法
@@ -141,8 +139,6 @@ namespace NewLife.Log
             return BaseStream.Seek(offset, origin);
         }
 
-#if __CORE__
-#else
         /// <summary>关闭数据流</summary>
         public override void Close()
         {
@@ -150,7 +146,6 @@ namespace NewLife.Log
 
             BaseStream.Close();
         }
-#endif
 
         /// <summary>刷新缓冲区</summary>
         public override void Flush()
