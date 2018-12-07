@@ -12,6 +12,7 @@ using NewLife.Data;
 using NewLife.Log;
 using NewLife.Remoting;
 using NewLife.Security;
+using NewLife.Serialization;
 using XCode;
 using XCode.Code;
 using XCode.DataAccessLayer;
@@ -36,7 +37,7 @@ namespace Test
                 try
                 {
 #endif
-                Test8();
+                    Test8();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -411,6 +412,17 @@ namespace Test
             var dal = UserX.Meta.Session.Dal;
             var dt = UserX.Meta.Table.DataTable;
             dal.Db.ShowSQL = false;
+
+            var fi = "role.dat".GetFullPath();
+            var rs = Role.FindAll();
+            Console.WriteLine(rs.ToJson(true));
+
+            var len = rs.SaveFile(fi);
+            Console.WriteLine("len={0}", len);
+
+            var rs2 = new List<Role>();
+            rs2.LoadFile(fi);
+            Console.WriteLine(rs2.ToJson(true));
 
             var page = new PageParameter
             {

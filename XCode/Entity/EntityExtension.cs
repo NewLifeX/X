@@ -2,9 +2,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using System.Linq;
 using NewLife;
+using NewLife.Data;
 using NewLife.Reflection;
+using NewLife.Serialization;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 
@@ -496,6 +499,149 @@ namespace XCode
             session.Dal.CheckDatabase();
 
             return fact.Session.Dal.Session.InsertOrUpdate(session.TableName, columns, updateColumns, addColumns, new[] { entity as IIndexAccessor });
+        }
+        #endregion
+
+        #region 读写数据流
+        /// <summary>转为DbTable</summary>
+        /// <param name="list">实体列表</param>
+        /// <returns></returns>
+        public static DbTable ToTable<T>(this IEnumerable<T> list) where T : IEntity
+        {
+            var entity = list.FirstOrDefault();
+            if (entity == null) return null;
+
+            var fact = entity.GetType().AsFactory();
+            var fs = fact.Fields;
+
+            var count = fs.Length;
+            var dt = new DbTable
+            {
+                Columns = new String[count],
+                Types = new Type[count],
+                Rows = new List<Object[]>(),
+            };
+            for (var i = 0; i < fs.Length; i++)
+            {
+                var fi = fs[i];
+                dt.Columns[i] = fi.Name;
+                dt.Types[i] = fi.Type;
+            }
+
+            foreach (var item in list)
+            {
+                var dr = new Object[count];
+                for (var i = 0; i < fs.Length; i++)
+                {
+                    var fi = fs[i];
+                    dr[i] = item[fi.Name];
+                }
+                dt.Rows.Add(dr);
+            }
+
+            return dt;
+        }
+
+        /// <summary>写入数据流</summary>
+        /// <param name="list">实体列表</param>
+        /// <param name="stream">数据流</param>
+        /// <returns></returns>
+        public static Int64 Write<T>(this IEnumerable<T> list, Stream stream) where T : IEntity
+        {
+            if (list == null) return 0;
+
+            var p = stream.Position;
+            foreach (var item in list)
+            {
+                (item as IAccessor).Write(stream, null);
+            }
+
+            return stream.Position - p;
+        }
+
+        /// <summary>写入数据流</summary>
+        /// <param name="list">实体列表</param>
+        /// <param name="file">文件</param>
+        /// <returns></returns>
+        public static Int64 SaveFile<T>(this IEnumerable<T> list, String file) where T : IEntity
+        {
+            if (list == null) return 0;
+
+            // 确保创建目录
+            file.EnsureDirectory(true);
+
+            using (var fs = new FileStream(file, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite))
+            {
+                foreach (var item in list)
+                {
+                    (item as IAccessor).Write(fs, null);
+                }
+
+                return fs.Position;
+            }
+        }
+
+        /// <summary>从数据流读取列表</summary>
+        /// <param name="list">实体列表</param>
+        /// <param name="stream">数据流</param>
+        /// <returns>实体列表</returns>
+        public static IList<T> Read<T>(this IList<T> list, Stream stream) where T : IEntity
+        {
+            if (stream == null) return list;
+
+            var fact = typeof(T).AsFactory();
+            while (stream.Position < stream.Length)
+            {
+                var entity = (T)fact.Create();
+                (entity as IAccessor).Read(stream, null);
+
+                list.Add(entity);
+            }
+
+            return list;
+        }
+
+        /// <summary>从数据流读取列表</summary>
+        /// <param name="list">实体列表</param>
+        /// <param name="stream">数据流</param>
+        /// <returns>实体列表</returns>
+        public static IEnumerable<T> ReadEnumerable<T>(this IList<T> list, Stream stream) where T : IEntity
+        {
+            if (stream == null) yield break;
+
+            var fact = typeof(T).AsFactory();
+            while (stream.Position < stream.Length)
+            {
+                var entity = (T)fact.Create();
+                (entity as IAccessor).Read(stream, null);
+
+                list.Add(entity);
+
+                yield return entity;
+            }
+        }
+
+        /// <summary>从数据流读取列表</summary>
+        /// <param name="list">实体列表</param>
+        /// <param name="file">文件</param>
+        /// <returns>实体列表</returns>
+        public static IList<T> LoadFile<T>(this IList<T> list, String file) where T : IEntity
+        {
+            if (file.IsNullOrEmpty() || !File.Exists(file)) return list;
+
+            var fact = typeof(T).AsFactory();
+            using (var fs = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            {
+                while (fs.Position < fs.Length)
+                {
+                    var entity = (T)fact.Create();
+                    (entity as IAccessor).Read(fs, null);
+
+                    list.Add(entity);
+                }
+            }
+
+            return list;
         }
         #endregion
 
