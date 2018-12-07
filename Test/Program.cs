@@ -424,6 +424,15 @@ namespace Test
             rs2.LoadFile(fi);
             Console.WriteLine(rs2.ToJson(true));
 
+            var tb = rs.ToTable();
+            var len2 = tb.SaveFile("role2.dat");
+            Console.WriteLine("len2={0}", len2);
+
+            var tb2 = new DbTable();
+            tb2.LoadFile("role2.dat");
+            var rs3 = Role.LoadData(tb2);
+            Console.WriteLine(rs3.ToJson(true));
+
             var page = new PageParameter
             {
                 RetrieveTotalCount = true,
