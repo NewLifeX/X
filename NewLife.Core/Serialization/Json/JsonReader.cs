@@ -238,6 +238,8 @@ namespace NewLife.Serialization
                 return Convert.FromBase64String(value + "");
             }
 
+            if (type == typeof(TimeSpan)) return TimeSpan.Parse(value + "");
+
             if (type.GetTypeCode() == TypeCode.Object) return null;
 
             return value.ChangeType(type);

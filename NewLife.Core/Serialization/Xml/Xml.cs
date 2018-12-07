@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
 using NewLife.Reflection;
-using NewLife.Xml;
 
 namespace NewLife.Serialization
 {
@@ -155,7 +153,7 @@ namespace NewLife.Serialization
         {
             var att = UseAttribute;
             if (!att && Member?.GetCustomAttribute<XmlAttributeAttribute>() != null) att = true;
-            if (att && type.GetTypeCode() == TypeCode.Object) att = false;
+            if (att && !type.IsValueType && type.GetTypeCode() == TypeCode.Object) att = false;
 
             var writer = GetWriter();
 

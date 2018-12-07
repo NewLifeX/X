@@ -203,7 +203,7 @@ namespace XCode.DataAccessLayer
         #region 导入导出
         /// <summary>导出</summary>
         /// <returns></returns>
-        public String Export() { return this.ToXml(); }
+        public String Export() => this.ToXml();
 
         /// <summary>导入</summary>
         /// <param name="xml"></param>

@@ -83,6 +83,9 @@ namespace NewLife.Serialization
             )
                 _Builder.Append(((IConvertible)obj).ToString(NumberFormatInfo.InvariantInfo));
 
+            else if (obj is TimeSpan)
+                WriteString(obj + "");
+
             else if (obj is DateTime)
                 WriteDateTime((DateTime)obj);
 

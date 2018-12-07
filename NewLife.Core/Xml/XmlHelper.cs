@@ -15,8 +15,9 @@ namespace NewLife.Xml
         /// <param name="obj">要序列化为Xml的对象</param>
         /// <param name="encoding">编码</param>
         /// <param name="attachComment">是否附加注释，附加成员的Description和DisplayName注释</param>
+        /// <param name="useAttribute">是否使用特性输出</param>
         /// <returns>Xml字符串</returns>
-        public static String ToXml(this Object obj, Encoding encoding = null, Boolean attachComment = false)
+        public static String ToXml(this Object obj, Encoding encoding = null, Boolean attachComment = false, Boolean useAttribute = false)
         {
             //if (obj == null) throw new ArgumentNullException("obj");
             if (obj == null) return null;
@@ -26,7 +27,7 @@ namespace NewLife.Xml
 
             using (var stream = new MemoryStream())
             {
-                ToXml(obj, stream, encoding, attachComment);
+                ToXml(obj, stream, encoding, attachComment, useAttribute);
                 return encoding.GetString(stream.ToArray());
             }
         }
@@ -36,8 +37,8 @@ namespace NewLife.Xml
         /// <param name="stream">目标数据流</param>
         /// <param name="encoding">编码</param>
         /// <param name="attachComment">是否附加注释，附加成员的Description和DisplayName注释</param>
-        /// <returns>Xml字符串</returns>
-        public static void ToXml(this Object obj, Stream stream, Encoding encoding = null, Boolean attachComment = false)
+        /// <param name="useAttribute">是否使用特性输出</param>
+        public static void ToXml(this Object obj, Stream stream, Encoding encoding = null, Boolean attachComment = false, Boolean useAttribute = false)
         {
             if (obj == null) return;
             if (encoding == null) encoding = Encoding.UTF8;
@@ -48,7 +49,7 @@ namespace NewLife.Xml
             {
                 Stream = stream,
                 Encoding = encoding,
-                UseAttribute = false,
+                UseAttribute = useAttribute,
                 UseComment = attachComment
             };
             xml.Write(obj);
