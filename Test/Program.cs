@@ -458,10 +458,11 @@ namespace Test
             //};
             //var list = UserX.FindAll(UserX._.ID < 10000, page);
 
-            dal.Backup(dt.TableName);
+            //dal.Backup(dt.TableName);
 
-            File.Delete("member2.db");
+            //File.Delete("member2.db");
             //DAL.AddConnStr("member2", "Server=.;Port=3306;Database=member2;Uid=root;Pwd=root;", null, "MySql");
+            DAL.AddConnStr("member2", "Server=.;Port=3306;Database=member2;Uid=root;Pwd=root;", null, "Oracle");
             var dal2 = DAL.Create("member2");
             dal2.Db.ShowSQL = false;
             dal2.Restore("user.table", dt);

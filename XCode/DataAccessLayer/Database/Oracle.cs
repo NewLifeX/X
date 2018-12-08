@@ -487,7 +487,9 @@ namespace XCode.DataAccessLayer
                 if (!ps.Contains(dc.Name)) continue;
 
                 //var vs = new List<Object>();
-                var arr = Array.CreateInstance(dc.DataType, list.Count());
+                var type = dc.DataType;
+                if (!type.IsInt() && type.IsEnum) type = typeof(Int32);
+                var arr = Array.CreateInstance(type, list.Count());
                 var k = 0;
                 foreach (var entity in list)
                 {
