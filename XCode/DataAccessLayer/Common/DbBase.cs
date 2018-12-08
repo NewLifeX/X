@@ -713,11 +713,7 @@ namespace XCode.DataAccessLayer
             else if (value != null)
                 type = value.GetType();
 
-            // 枚举
-            if (type.IsEnum) type = typeof(Int32);
-
-            var code = System.Type.GetTypeCode(type);
-            if (code == TypeCode.String)
+            if (type == typeof(String))
             {
                 if (value == null) return isNullable ? "null" : "''";
                 //!!! 为SQL格式化数值时，如果字符串是Empty，将不再格式化为null
@@ -725,7 +721,7 @@ namespace XCode.DataAccessLayer
 
                 return "'" + value.ToString().Replace("'", "''") + "'";
             }
-            else if (code == TypeCode.DateTime)
+            else if (type == typeof(DateTime))
             {
                 if (value == null) return isNullable ? "null" : "''";
                 var dt = Convert.ToDateTime(value);
@@ -736,7 +732,7 @@ namespace XCode.DataAccessLayer
 
                 return FormatDateTime(dt);
             }
-            else if (code == TypeCode.Boolean)
+            else if (type == typeof(Boolean))
             {
                 if (value == null) return isNullable ? "null" : "";
                 return Convert.ToBoolean(value) ? "1" : "0";
@@ -754,16 +750,17 @@ namespace XCode.DataAccessLayer
 
                 return String.Format("'{0}'", value);
             }
-            else
-            {
-                if (value == null) return isNullable ? "null" : "";
 
-                // 转为目标类型，比如枚举转为数字
-                value = value.ChangeType(type);
-                if (value == null) return isNullable ? "null" : "";
+            if (value == null) return isNullable ? "null" : "";
 
-                return value.ToString();
-            }
+            // 枚举
+            if (!type.IsInt() && type.IsEnum) type = typeof(Int32);
+
+            // 转为目标类型，比如枚举转为数字
+            value = value.ChangeType(type);
+            if (value == null) return isNullable ? "null" : "";
+
+            return value.ToString();
         }
 
         ///// <summary>格式化标识列，返回插入数据时所用的表达式，如果字段本身支持自增，则返回空</summary>

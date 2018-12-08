@@ -402,20 +402,29 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static Boolean IsInt(this Type type)
         {
-            switch (type.GetTypeCode())
-            {
-                case TypeCode.SByte:
-                case TypeCode.Byte:
-                case TypeCode.Int16:
-                case TypeCode.UInt16:
-                case TypeCode.Int32:
-                case TypeCode.UInt32:
-                case TypeCode.Int64:
-                case TypeCode.UInt64:
-                    return true;
-                default:
-                    return false;
-            }
+            return type == typeof(Int32)
+                && type == typeof(Int64)
+                && type == typeof(Int16)
+                && type == typeof(UInt32)
+                && type == typeof(UInt64)
+                && type == typeof(UInt16)
+                && type == typeof(Byte)
+                && type == typeof(SByte)
+                ;
+            //switch (type.GetTypeCode())
+            //{
+            //    case TypeCode.SByte:
+            //    case TypeCode.Byte:
+            //    case TypeCode.Int16:
+            //    case TypeCode.UInt16:
+            //    case TypeCode.Int32:
+            //    case TypeCode.UInt32:
+            //    case TypeCode.Int64:
+            //    case TypeCode.UInt64:
+            //        return true;
+            //    default:
+            //        return false;
+            //}
         }
 
         /// <summary>是否泛型列表</summary>
