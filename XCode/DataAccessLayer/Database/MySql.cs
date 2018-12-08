@@ -5,6 +5,7 @@ using System.Data.Common;
 using System.Linq;
 using System.Net;
 using NewLife.Collections;
+using NewLife.Data;
 using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
@@ -299,19 +300,60 @@ namespace XCode.DataAccessLayer
 
             // 值列表
             sb.Append(" Values");
-            foreach (var entity in list)
-            {
-                sb.Append("(");
-                foreach (var dc in columns)
-                {
-                    if (dc.Identity) continue;
 
-                    var value = entity[dc.Name];
-                    sb.Append(db.FormatValue(dc, value));
-                    sb.Append(",");
+            // 优化支持DbTable
+            if (list.FirstOrDefault() is DbRow)
+            {
+                // 提前把列名转为索引，然后根据索引找数据
+                DbTable dt = null;
+                Int32[] ids = null;
+                foreach (DbRow dr in list)
+                {
+                    if (dr.Table != dt)
+                    {
+                        dt = dr.Table;
+                        var cs = new List<Int32>();
+                        foreach (var dc in columns)
+                        {
+                            if (dc.Identity)
+                                cs.Add(0);
+                            else
+                                cs.Add(dt.GetColumn(dc.Name));
+                        }
+                        ids = cs.ToArray();
+                    }
+
+                    sb.Append("(");
+                    var row = dt.Rows[dr.Index];
+                    for (var i = 0; i < columns.Length; i++)
+                    {
+                        var dc = columns[i];
+                        if (dc.Identity) continue;
+
+                        var value = row[ids[i]];
+                        sb.Append(db.FormatValue(dc, value));
+                        sb.Append(",");
+                    }
+                    sb.Length--;
+                    sb.Append("),");
                 }
-                sb.Length--;
-                sb.Append("),");
+            }
+            else
+            {
+                foreach (var entity in list)
+                {
+                    sb.Append("(");
+                    foreach (var dc in columns)
+                    {
+                        if (dc.Identity) continue;
+
+                        var value = entity[dc.Name];
+                        sb.Append(db.FormatValue(dc, value));
+                        sb.Append(",");
+                    }
+                    sb.Length--;
+                    sb.Append("),");
+                }
             }
             sb.Length--;
 
