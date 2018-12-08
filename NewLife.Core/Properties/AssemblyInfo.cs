@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyProduct("NewLife.Core")]
 [assembly: AssemblyCompany("新生命开发团队")]
-[assembly: AssemblyCopyright("©2002-2018 新生命开发团队 https://github.com/NewLifeX/X")]
+[assembly: AssemblyCopyright("版权所有(C) 2002-2019 新生命开发团队 https://github.com/NewLifeX/X")]
 [assembly: AssemblyTrademark("四叶草")]
 [assembly: AssemblyCulture("")]
 

@@ -13,7 +13,7 @@ using XCode;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyProduct("XCode")]
 [assembly: AssemblyCompany("新生命开发团队")]
-[assembly: AssemblyCopyright("©2002-2018 新生命开发团队")]
+[assembly: AssemblyCopyright("版权所有(C) 2002-2019 新生命开发团队")]
 [assembly: AssemblyTrademark("四叶草")]
 [assembly: AssemblyCulture("")]
 

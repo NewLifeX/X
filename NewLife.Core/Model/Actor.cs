@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using NewLife.Log;
 
@@ -37,6 +38,9 @@ namespace NewLife.Model
 
         /// <summary>受限容量。最大可堆积的消息数</summary>
         public Int32 BoundedCapacity { get; set; } = Int32.MaxValue;
+
+        /// <summary>批大小。每次处理消息数，默认1，大于1表示启用批量处理模式</summary>
+        public Int32 BatchSize { get; set; } = 1;
 
         /// <summary>存放消息的邮箱</summary>
         protected BlockingCollection<ActorContext> MailBox { get; set; }
@@ -118,19 +122,11 @@ namespace NewLife.Model
         }
 
         /// <summary>循环消费消息</summary>
-        protected virtual void Loop()
+        private void DoWork()
         {
             try
             {
-                var box = MailBox;
-                while (!box.IsCompleted)
-                {
-                    var ctx = box.Take();
-#if DEBUG
-                    Log.XTrace.WriteLine("[{0}]<=[{1}]：{2}", this, ctx.Sender, ctx.Message);
-#endif
-                    Receive(ctx);
-                }
+                Loop();
             }
             catch (Exception ex)
             {
@@ -141,9 +137,49 @@ namespace NewLife.Model
             Active = false;
         }
 
+        /// <summary>循环消费消息</summary>
+        protected virtual void Loop()
+        {
+            var box = MailBox;
+            while (!box.IsCompleted)
+            {
+                if (BatchSize <= 1)
+                {
+                    var ctx = box.Take();
+#if DEBUG
+                    Log.XTrace.WriteLine("[{0}]<=[{1}]：{2}", this, ctx.Sender, ctx.Message);
+#endif
+                    Receive(ctx);
+                }
+                else
+                {
+                    var list = new List<ActorContext>();
+
+                    // 阻塞取一个
+                    var ctx = box.Take();
+                    list.Add(ctx);
+
+                    for (var i = 1; i < BatchSize; i++)
+                    {
+                        if (!box.TryTake(out ctx)) break;
+
+                        list.Add(ctx);
+                    }
+#if DEBUG
+                    Log.XTrace.WriteLine("[{0}]<=[{1}]", this, list.Count);
+#endif
+                    Receive(list.ToArray());
+                }
+            }
+        }
+
         /// <summary>处理消息</summary>
         /// <param name="context">上下文</param>
-        protected abstract void Receive(ActorContext context);
+        protected virtual void Receive(ActorContext context) { }
+
+        /// <summary>批量处理消息</summary>
+        /// <param name="contexts">上下文集合</param>
+        protected virtual void Receive(ActorContext[] contexts) { }
         #endregion
     }
 }
