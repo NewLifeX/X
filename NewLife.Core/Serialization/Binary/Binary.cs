@@ -121,7 +121,7 @@ namespace NewLife.Serialization
                 type = value.GetType();
 
                 // 一般类型为空是顶级调用
-                if (Hosts.Count == 0) WriteLog("BinaryWrite {0} {1}", type.Name, value);
+                if (Hosts.Count == 0 && Log != null && Log.Enable) WriteLog("BinaryWrite {0} {1}", type.Name, value);
             }
 
             // 优先 IAccessor 接口
@@ -240,7 +240,7 @@ namespace NewLife.Serialization
         //[DebuggerHidden]
         public virtual Boolean TryRead(Type type, ref Object value)
         {
-            if (Hosts.Count == 0) WriteLog("BinaryRead {0} {1}", type.Name, value);
+            if (Hosts.Count == 0 && Log != null && Log.Enable) WriteLog("BinaryRead {0} {1}", type.Name, value);
 
             // 优先 IAccessor 接口
             if (value is IAccessor acc)

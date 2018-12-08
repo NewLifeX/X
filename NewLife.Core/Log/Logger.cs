@@ -119,7 +119,7 @@ namespace NewLife.Log
 
         class NullLogger : Logger
         {
-            public override Boolean Enable { get { return false; } set { } }
+            public override Boolean Enable { get => false; set { } }
 
             protected override void OnWrite(LogLevel level, String format, params Object[] args) { }
         }

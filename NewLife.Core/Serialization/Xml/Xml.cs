@@ -115,7 +115,7 @@ namespace NewLife.Serialization
             CurrentName = name;
 
             // 一般类型为空是顶级调用
-            if (Hosts.Count == 0) WriteLog("XmlWrite {0} {1}", name ?? type.Name, value);
+            if (Hosts.Count == 0 && Log != null && Log.Enable) WriteLog("XmlWrite {0} {1}", name ?? type.Name, value);
 
             // 要先写入根
             Depth++;
@@ -240,7 +240,7 @@ namespace NewLife.Serialization
             // 移动到第一个元素
             while (reader.NodeType != XmlNodeType.Element) { if (!reader.Read()) return false; }
 
-            if (Hosts.Count == 0) WriteLog("XmlRead {0} {1}", type.Name, value);
+            if (Hosts.Count == 0 && Log != null && Log.Enable) WriteLog("XmlRead {0} {1}", type.Name, value);
 
             // 要先写入根
             Depth++;

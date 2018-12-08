@@ -661,6 +661,7 @@ namespace NewLife.Reflection
         public Boolean As(Type type, Type baseType)
         {
             if (type == null) return false;
+            if (type == baseType) return true;
 
             // 如果基类是泛型定义
             if (baseType.IsGenericTypeDefinition && type.IsGenericType && !type.IsGenericTypeDefinition) type = type.GetGenericTypeDefinition();
@@ -669,8 +670,8 @@ namespace NewLife.Reflection
 
             if (baseType.IsAssignableFrom(type)) return true;
 
-            // 绝大部分子类判断可通过IsAssignableFrom完成，除非其中一方ReflectionOnly
-            if (type.Assembly.ReflectionOnly != baseType.Assembly.ReflectionOnly) return false;
+            //// 绝大部分子类判断可通过IsAssignableFrom完成，除非其中一方ReflectionOnly
+            //if (type.Assembly.ReflectionOnly == baseType.Assembly.ReflectionOnly) return false;
 
             // 缓存
             //var key = $"{type.FullName}_{baseType.FullName}";
@@ -683,28 +684,28 @@ namespace NewLife.Reflection
             //if (dic.TryGetValue(baseType, out var rs)) return rs;
             var rs = false;
 
-            // 接口
-            if (baseType.IsInterface)
-            {
-                if (type.GetInterface(baseType.FullName) != null)
-                    rs = true;
-                else if (type.GetInterfaces().Any(e => e.IsGenericType && baseType.IsGenericTypeDefinition ? e.GetGenericTypeDefinition() == baseType : e == baseType))
-                    rs = true;
-            }
+            //// 接口
+            //if (baseType.IsInterface)
+            //{
+            //    if (type.GetInterface(baseType.FullName) != null)
+            //        rs = true;
+            //    else if (type.GetInterfaces().Any(e => e.IsGenericType && baseType.IsGenericTypeDefinition ? e.GetGenericTypeDefinition() == baseType : e == baseType))
+            //        rs = true;
+            //}
 
-            // 判断是否子类时，支持只反射加载的程序集
-            if (!rs && type.Assembly.ReflectionOnly)
-            {
-                // 反射加载时，需要特殊处理接口
-                //if (baseType.IsInterface && type.GetInterface(baseType.Name) != null) return true;
-                while (!rs && type != typeof(Object))
-                {
-                    if (type.FullName == baseType.FullName &&
-                        type.AssemblyQualifiedName == baseType.AssemblyQualifiedName)
-                        rs = true;
-                    type = type.BaseType;
-                }
-            }
+            //// 判断是否子类时，支持只反射加载的程序集
+            //if (!rs && type.Assembly.ReflectionOnly)
+            //{
+            //    // 反射加载时，需要特殊处理接口
+            //    //if (baseType.IsInterface && type.GetInterface(baseType.Name) != null) return true;
+            //    while (!rs && type != typeof(Object))
+            //    {
+            //        if (type.FullName == baseType.FullName &&
+            //            type.AssemblyQualifiedName == baseType.AssemblyQualifiedName)
+            //            rs = true;
+            //        type = type.BaseType;
+            //    }
+            //}
 
             //dic.TryAdd(baseType, rs);
 

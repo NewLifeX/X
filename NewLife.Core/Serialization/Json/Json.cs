@@ -105,7 +105,7 @@ namespace NewLife.Serialization
                 type = value.GetType();
 
                 // 一般类型为空是顶级调用
-                if (Hosts.Count == 0) WriteLog("JsonWrite {0} {1}", type.Name, value);
+                if (Hosts.Count == 0 && Log != null && Log.Enable) WriteLog("JsonWrite {0} {1}", type.Name, value);
             }
 
             //foreach (var item in Handlers)
@@ -169,7 +169,7 @@ namespace NewLife.Serialization
         [DebuggerHidden]
         public virtual Boolean TryRead(Type type, ref Object value)
         {
-            if (Hosts.Count == 0) WriteLog("JsonRead {0} {1}", type.Name, value);
+            if (Hosts.Count == 0 && Log != null && Log.Enable) WriteLog("JsonRead {0} {1}", type.Name, value);
 
             foreach (var item in Handlers)
             {
