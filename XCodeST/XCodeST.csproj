@@ -203,9 +203,11 @@
     <Folder Include="Extension\" />
     <Folder Include="Service\" />
     <Folder Include="Statistics\" />
+    <Folder Include="build\" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="..\XCode\build\NewLife.XCode.props" Link="build\NewLife.XCode.props" />
     <None Include="..\XCode\Extension\生成实体类.tt" Link="Extension\生成实体类.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
     </None>
