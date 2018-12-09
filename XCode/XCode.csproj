@@ -231,6 +231,7 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>生成实体类.log</LastGenOutput>
     </None>
+    <Content Include="Build - Test.tt" />
     <Content Include="Model.xml">
       <SubType>Designer</SubType>
     </Content>

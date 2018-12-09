@@ -1,0 +1,101 @@
+﻿<#@ template language="C#" hostSpecific="true" debug="true" #>
+<#@ assembly name="System.Core.dll" #>
+<#@ assembly name="System.Xml.dll" #>
+<#@ assembly name="System.Linq.dll" #>
+<#@ import namespace="System" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.Text.RegularExpressions" #>
+<#@ import namespace="System.Xml" #>
+<#@ import namespace="System.Linq" #>
+<#@ output extension=".tt.log" #>
+<#
+            var baseDir = Host.ResolveAssemblyReference("$(ProjectDir)");
+            var projectPath = Host.ResolveAssemblyReference("$(ProjectPath)");
+            var pAssetsJsonPath = Path.Combine(baseDir, "obj/project.assets.json");
+            var pkgRgx = @"""libraries"":[\s\S]*(?=""{0}/)""{0}/([^""]+)""";
+            var corePkgName = "NewLife.Core";
+            var xcodePkgName = "NewLife.XCode";
+			var coreDllName = corePkgName;
+            var xcodeDllName = xcodePkgName.TrimStart("NewLife.".ToArray());
+            var framework = "net45";
+
+			var coreDllPath = "";
+            var xcodeDllPath = "";
+
+            // Build(); // 指定了dll路径直接调用
+            // return;
+
+            var proj = new XmlDocument();
+            proj.Load(projectPath);
+            var root = proj.DocumentElement;
+
+            var xcodeXPath = $"/Project/ItemGroup/PackageReference[@Include='{xcodePkgName}']";
+            var xcodeNode = root.SelectSingleNode(xcodeXPath);
+
+            if (!File.Exists(pAssetsJsonPath))
+            {
+                throw new Exception("找不到obj/project.assets.json");
+            }
+
+            /*
+             * 正则匹配 project.assets.json 文件中 libraries 节点的 NewLife.Core 和 NewLife.XCode
+             */
+
+			var result = File.ReadAllText(pAssetsJsonPath);
+
+            var coreMatch = Regex.Match(result, string.Format(pkgRgx, corePkgName));
+            var xcodeMatch = Regex.Match(result, string.Format(pkgRgx, xcodePkgName));
+
+            if (!coreMatch.Success || !xcodeMatch.Success)
+            {
+                throw new Exception("依赖库libraries中找不到" + corePkgName);
+            }
+            if (!coreMatch.Success || !xcodeMatch.Success)
+            {
+                throw new Exception("依赖库libraries中找不到" + xcodePkgName);
+            }
+
+            var coreVer = coreMatch.Groups[1].Value;
+            var xcodeVer = xcodeMatch.Groups[1].Value;
+
+
+            /*
+             * 正则匹配Nuget包保存地址
+             */
+
+            var nugetPathMatch = Regex.Match(result, @"""packageFolders"":\s+{\s+""([^""]+)"":");
+
+            if (!nugetPathMatch.Success)
+            {
+                throw new Exception("找不到Nuget包文件夹地址packageFolders");
+            }
+
+            var packageFolder = nugetPathMatch.Groups[1].Value.Replace("\\\\", "\\");
+
+            coreDllPath = Path.Combine(packageFolder, corePkgName.ToLower(), coreVer, "lib", framework, coreDllName + ".dll");
+            xcodeDllPath = Path.Combine(packageFolder, xcodePkgName.ToLower(), xcodeVer, "lib", framework, xcodeDllName + ".dll");
+
+            Build();
+
+            void Build()
+            {
+                var domain = AppDomain.CurrentDomain;
+                domain.Load(File.ReadAllBytes(coreDllPath));
+                domain.Load(File.ReadAllBytes(xcodeDllPath));
+
+                var pathHelper = domain.GetAssemblies()
+                    .First(f => f.FullName.StartsWith(coreDllName))
+                    .GetType("System.IO.PathHelper")
+                    .GetProperty("BaseDirectory");
+                // 设置基础目录
+                pathHelper.SetValue(null, baseDir);
+
+                var entityBuilde = domain.GetAssemblies()
+                    .First(f => f.FullName.StartsWith(xcodeDllName))
+                    .GetType("XCode.Code.EntityBuilder")
+                    .GetMethod("Build");
+                // 生成模型
+                entityBuilde.Invoke(null, new object[] { null, null, null, null });
+            }
+
+#>
