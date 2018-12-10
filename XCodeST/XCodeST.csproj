@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <AssemblyName>XCode</AssemblyName>
-    <RootNamespace>XCode</RootNamespace>
+    <AssemblyName>NewLife.XCode</AssemblyName>
+    <RootNamespace>NewLife.XCode</RootNamespace>
     <AssemblyTitle>数据中间件</AssemblyTitle>
     <Description>数据中间件，MySQL、SQLite、SqlServer、Oracle</Description>
     <Company>新生命开发团队</Company>
@@ -207,7 +207,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="..\XCode\build\NewLife.XCode.props" Link="build\NewLife.XCode.props" />
+    <None Include="..\XCode\build\NewLife.XCode.props" Link="build\NewLife.XCode.props" >
+      <Pack>true</Pack>
+      <PackagePath>build\</PackagePath>
+    </None>
     <None Include="..\XCode\Extension\生成实体类.tt" Link="Extension\生成实体类.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
     </None>

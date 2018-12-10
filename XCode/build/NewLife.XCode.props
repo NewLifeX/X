@@ -1,10 +1,11 @@
 ﻿<Project DefaultTargets="Build"   xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <PropertyGroup>
-    <TargetDllDir>$(SolutionDir)DLL\</TargetDllDir>
-    <TargetContentDir>$(SolutionDir)DLL\Content\</TargetContentDir>
-  </PropertyGroup>
-
   <Target Name = "BuildModelTarget" AfterTargets="Build" >
+    <PropertyGroup>
+      <TargetDllDir>$(SolutionDir)DLL\</TargetDllDir>
+      <TargetContentDir>$(SolutionDir)DLL\Content\</TargetContentDir>
+      <!--FX项目迁移到包引用方式，$(RestoreProjectStyle)为空，所以还要判断是否存在$(ProjectAssetsFile)-->
+      <IsPackageReference Condition="'$(RestoreProjectStyle)' == 'PackageReference' Or Exists('$(ProjectAssetsFile)')" >true</IsPackageReference>
+    </PropertyGroup>
     <!--<Message Text="包引用方式：$(RestoreProjectStyle)" Importance="high"  />-->
     <CopyNewLifeDll >
       <Output TaskParameter="CoreDllPath" ItemName="SourcePath" />
@@ -16,9 +17,8 @@
     <Copy SourceFiles="@(SourcePath)" DestinationFolder="$(TargetDllDir)" Retries="10" SkipUnchangedFiles="true"></Copy>
     <!--复制一份到项目，如果之前有，不复制-->
     <Copy SourceFiles="@(ContentPath)" DestinationFolder="$(ProjectDir)" Retries="10" SkipUnchangedFiles="true"
-          Condition="'$(RestoreProjectStyle)' == 'PackageReference' And !Exists('$(TargetContentDir)Build.tt')"></Copy>
-    <Copy SourceFiles="@(ContentPath)" DestinationFolder="$(TargetContentDir)" Retries="10" SkipUnchangedFiles="true"
-          Condition="'$(RestoreProjectStyle)' == 'PackageReference'"></Copy>
+          Condition="'$(IsPackageReference)' == 'true' And !Exists('$(TargetContentDir)Build.tt')"></Copy>
+    <Copy SourceFiles="@(ContentPath)" DestinationFolder="$(TargetContentDir)" Retries="10" SkipUnchangedFiles="true"></Copy>
     <!--<Message Text="复制Dll成功" Importance="high"  />-->
   </Target>
   <UsingTask TaskName="CopyNewLifeDll" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
@@ -52,7 +52,7 @@
             var coreVer = "";
             var xcodeVer = "";
 
-            if(isPackageReference == "PackageReference")
+            if(isPackageReference == "PackageReference" || File.Exists(pAssetsJsonPath))
             {
                 /*
                  * 正则匹配 project.assets.json 文件中 libraries 节点的 NewLife.Core 和 NewLife.XCode
@@ -60,8 +60,8 @@
 
                 var result = File.ReadAllText(pAssetsJsonPath);
 
-                var coreMatch = Regex.Match(result, string.Format(pkgRgx, corePkgName));
-                var xcodeMatch = Regex.Match(result, string.Format(pkgRgx, xcodePkgName));
+                var coreMatch = Regex.Match(result, string.Format(pkgRgx, corePkgName.Replace(".", "\\.")));
+                var xcodeMatch = Regex.Match(result, string.Format(pkgRgx, xcodePkgName.Replace(".", "\\.")));
 
                 if (!coreMatch.Success || !xcodeMatch.Success)
                 {
@@ -102,7 +102,13 @@
                 xcodeVer = xcodeNode.Attributes["version"].Value;         
                 
                 CoreDllPath = Path.Combine(nuGetPackageRoot, corePkgName.ToLower() + "." + coreVer, "lib", framework, coreDllName + ".dll");
-                XCodeDllPath = Path.Combine(nuGetPackageRoot, xcodePkgName.ToLower() + "." + xcodeVer, "lib", framework, xcodeDllName + ".dll");
+                var xcodeDir = Path.Combine(nuGetPackageRoot, xcodePkgName.ToLower() + "." + xcodeVer);
+                XCodeDllPath = Path.Combine(xcodeDir, "lib", framework, xcodeDllName + ".dll");
+                var contentPath = Path.Combine(xcodeDir, "content\\");
+                if(Directory.Exists(contentPath))
+                {
+                    ContentPath = Directory.GetFiles(contentPath);                
+                }  
             }
       ]]>
       </Code>
