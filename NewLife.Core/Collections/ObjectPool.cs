@@ -24,7 +24,7 @@ namespace NewLife.Collections
         /// <summary>繁忙个数</summary>
         public Int32 BusyCount => _BusyCount;
 
-        /// <summary>最大个数。默认100</summary>
+        /// <summary>最大个数。默认100，0表示无上限</summary>
         public Int32 Max { get; set; } = 100;
 
         /// <summary>最小个数。默认1</summary>
@@ -107,6 +107,7 @@ namespace NewLife.Collections
             var sw = Log == null || Log == Logger.Null ? null : Stopwatch.StartNew();
             Interlocked.Increment(ref _Total);
 
+            var success = false;
             Item pi = null;
             do
             {
@@ -114,12 +115,14 @@ namespace NewLife.Collections
                 if (_free.TryPop(out pi) || _free2.TryDequeue(out pi))
                 {
                     Interlocked.Decrement(ref _FreeCount);
+
+                    success = true;
                 }
                 else
                 {
                     // 超出最大值后，抛出异常
                     var count = BusyCount;
-                    if (count >= Max)
+                    if (Max > 0 && count >= Max)
                     {
                         var msg = $"申请失败，已有 {count:n0} 达到或超过最大值 {Max:n0}";
 
@@ -135,7 +138,12 @@ namespace NewLife.Collections
                     };
 
                     if (count == 0) Init();
+#if DEBUG
                     WriteLog("Acquire Create Free={0} Busy={1}", FreeCount, count + 1);
+#endif
+
+                    Interlocked.Increment(ref _NewCount);
+                    success = false;
                 }
 
                 // 借出时如果不可用，再次借取
@@ -148,7 +156,7 @@ namespace NewLife.Collections
             _busy.TryAdd(pi.Value, pi);
 
             Interlocked.Increment(ref _BusyCount);
-            Interlocked.Increment(ref _Success);
+            if (success) Interlocked.Increment(ref _Success);
             if (sw != null)
             {
                 sw.Stop();
@@ -181,7 +189,10 @@ namespace NewLife.Collections
             // 从繁忙队列找到并移除缓存项
             if (!_busy.TryRemove(value, out var pi))
             {
+#if DEBUG
                 WriteLog("Put Error");
+#endif
+                Interlocked.Increment(ref _ReleaseCount);
 
                 return false;
             }
@@ -189,15 +200,23 @@ namespace NewLife.Collections
             Interlocked.Decrement(ref _BusyCount);
 
             // 是否可用
-            if (!OnPut(value)) return false;
+            if (!OnPut(value))
+            {
+                Interlocked.Increment(ref _ReleaseCount);
+                return false;
+            }
 
             var db = value as DisposeBase;
-            if (db != null && db.Disposed) return false;
+            if (db != null && db.Disposed)
+            {
+                Interlocked.Increment(ref _ReleaseCount);
+                return false;
+            }
 
             var min = Min;
 
             // 如果空闲数不足最小值，则返回到基础空闲集合
-            if (_FreeCount < min || _free.Count < min)
+            if (_FreeCount < min /*|| _free.Count < min*/)
                 _free.Push(pi);
             else
                 _free2.Enqueue(pi);
@@ -331,11 +350,16 @@ namespace NewLife.Collections
                 }
             }
 
-            if (count > 0)
+            var ncount = _NewCount;
+            var fcount = _ReleaseCount;
+            if (count > 0 || ncount > 0 || fcount > 0)
             {
+                Interlocked.Add(ref _NewCount, -ncount);
+                Interlocked.Add(ref _ReleaseCount, -fcount);
+
                 var p = Total == 0 ? 0 : (Double)Success / Total;
 
-                WriteLog("Release Free={0} Busy={1} 清除过期资源 {2:n0} 项。总请求 {3:n0} 次，命中 {4:p2}，平均 {5:n2}us", FreeCount, BusyCount, count, Total, p, Cost * 1000);
+                WriteLog("Release New={6:n0} Release={7:n0} Free={0} Busy={1} 清除过期资源 {2:n0} 项。总请求 {3:n0} 次，命中 {4:p2}，平均 {5:n2}us", FreeCount, BusyCount, count, Total, p, Cost * 1000, ncount, fcount);
             }
         }
         #endregion
@@ -348,6 +372,12 @@ namespace NewLife.Collections
         private Int32 _Success;
         /// <summary>成功数</summary>
         public Int32 Success => _Success;
+
+        /// <summary>新创建数</summary>
+        private Int32 _NewCount;
+
+        /// <summary>释放数</summary>
+        private Int32 _ReleaseCount;
 
         /// <summary>平均耗时。单位ms</summary>
         private Double Cost;
@@ -362,7 +392,7 @@ namespace NewLife.Collections
         /// <param name="args"></param>
         public void WriteLog(String format, params Object[] args)
         {
-            if (Log == null) return;
+            if (Log == null || !Log.Enable) return;
 
             Log.Info(Name + "." + format, args);
         }
