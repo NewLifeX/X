@@ -7,6 +7,9 @@ using NewLife.Log;
 namespace NewLife.Model
 {
     /// <summary>无锁并行编程模型</summary>
+    /// <remarks>
+    /// 独立线程轮询消息队列，简单设计避免影响默认线程池。
+    /// </remarks>
     public interface IActor
     {
         /// <summary>添加消息，驱动内部处理</summary>
@@ -27,6 +30,9 @@ namespace NewLife.Model
     }
 
     /// <summary>无锁并行编程模型</summary>
+    /// <remarks>
+    /// 独立线程轮询消息队列，简单设计避免影响默认线程池。
+    /// </remarks>
     public abstract class Actor : IActor
     {
         #region 属性
@@ -74,11 +80,7 @@ namespace NewLife.Model
             {
                 lock (this)
                 {
-#if NET4
-                    if (_task == null) _task = TaskEx.Run(() => Loop());
-#else
-                    if (_task == null) _task = Task.Run(() => Loop());
-#endif
+                    if (_task == null) _task = Task.Factory.StartNew(Loop, TaskCreationOptions.LongRunning);
                 }
             }
 
