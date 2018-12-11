@@ -1,7 +1,5 @@
 ﻿using System;
-using NewLife.Http;
 using NewLife.Net;
-using NewLife.Reflection;
 
 namespace NewLife.Remoting
 {
@@ -20,30 +18,28 @@ namespace NewLife.Remoting
 
         /// <summary>初始化</summary>
         /// <param name="config"></param>
+        /// <param name="host"></param>
         /// <returns></returns>
-        public override Boolean Init(String config)
+        public override Boolean Init(Object config, IApiHost host)
         {
-            RawUrl = config;
+            Host = host;
 
-            if (!base.Init(config)) return false;
+            var uri = config as NetUri;
+            Port = uri.Port;
+
+            RawUrl = uri + "";
 
             // Http封包协议
-            Add<HttpCodec>();
+            //Add<HttpCodec>();
+
+            host.Handler = new ApiHttpHandler();
 
             return true;
         }
+    }
 
-        ///// <summary>获取服务提供者</summary>
-        ///// <param name="serviceType"></param>
-        ///// <returns></returns>
-        //public override Object GetService(Type serviceType)
-        //{
-        //    // 服务类是否当前类的基类
-        //    if (GetType().As(serviceType)) return this;
+    class ApiHttpHandler : ApiHandler
+    {
 
-        //    if (serviceType == typeof(ApiHttpServer)) return Provider;
-
-        //    return base.GetService(serviceType);
-        //}
     }
 }

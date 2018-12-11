@@ -55,8 +55,9 @@ namespace NewLife.Remoting
         /// <param name="uri"></param>
         public IApiServer Use(NetUri uri)
         {
-            var svr = new ApiNetServer();
-            if (!svr.Init(uri.ToString())) return null;
+            var svr = uri.Type == NetType.Http ? new ApiHttpServer() : new ApiNetServer();
+
+            if (!svr.Init(uri, this)) return null;
 
             Server = svr;
 
@@ -72,9 +73,11 @@ namespace NewLife.Remoting
 
             if (Port <= 0) throw new ArgumentNullException(nameof(Server), "未指定服务器Server，且未指定端口Port！");
 
-            svr = new ApiNetServer();
-            svr.Host = this;
-            svr.Init(new NetUri(NetType.Unknown, "*", Port) + "");
+            svr = new ApiNetServer
+            {
+                Host = this
+            };
+            svr.Init(new NetUri(NetType.Unknown, "*", Port), this);
 
             return Server = svr;
         }
@@ -87,19 +90,15 @@ namespace NewLife.Remoting
             if (Encoder == null) Encoder = new JsonEncoder();
             //if (Encoder == null) Encoder = new BinaryEncoder();
             if (Handler == null) Handler = new ApiHandler { Host = this };
-            //if (StatInvoke == null) StatInvoke = new PerfCounter();
-            //if (StatProcess == null) StatProcess = new PerfCounter();
 
             Encoder.Log = EncoderLog;
 
             Log.Info("启动{0}，服务器 {1}", GetType().Name, Server);
             Log.Info("编码：{0}", Encoder);
-            //Log.Info("处理：{0}", Handler);
+            Log.Info("处理：{0}", Handler);
 
             var svr = EnsureCreate();
 
-            //if (svr.Handler == null) svr.Handler = Handler;
-            //if (svr.Encoder == null) svr.Encoder = Encoder;
             svr.Host = this;
             svr.Log = Log;
             svr.Start();

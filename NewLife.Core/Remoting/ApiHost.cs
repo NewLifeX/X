@@ -54,11 +54,6 @@ namespace NewLife.Remoting
         /// <param name="method">动作名称。为空时遍历控制器所有公有成员方法</param>
         public void Register(Object controller, String method) => Manager.Register(controller, method);
 
-        /// <summary>注册服务</summary>
-        /// <param name="type">控制器类型</param>
-        /// <param name="method">动作名称。为空时遍历控制器所有公有成员方法</param>
-        public void Register(Type type, String method) => Manager.Register(type, method);
-
         /// <summary>显示可用服务</summary>
         protected void ShowService()
         {
@@ -90,9 +85,7 @@ namespace NewLife.Remoting
         {
             if (msg.Reply) return null;
 
-            //StatReceive?.Increment();
             var st = StatProcess;
-            //var sw = st == null ? 0 : Stopwatch.GetTimestamp();
             var sw = st.StartCount();
             try
             {
@@ -100,7 +93,6 @@ namespace NewLife.Remoting
             }
             finally
             {
-                //if (st != null) st.Increment(1, (Stopwatch.GetTimestamp() - sw) / 10);
                 st.StopCount(sw);
             }
         }

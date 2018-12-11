@@ -158,6 +158,7 @@
     <Compile Include="Remoting\ApiClient.cs" />
     <Compile Include="Remoting\ApiException.cs" />
     <Compile Include="Remoting\ApiHost.cs" />
+    <Compile Include="Remoting\ApiHttpServer.cs" />
     <Compile Include="Remoting\ApiNetServer.cs" />
     <Compile Include="Remoting\ApiServer.cs" />
     <Compile Include="Remoting\ApiTest.cs" />

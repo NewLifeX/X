@@ -77,11 +77,11 @@ namespace NewLife.Net
         #region 扩展属性
         /// <summary>是否Tcp协议</summary>
         [XmlIgnore]
-        public Boolean IsTcp { get { return Type == NetType.Tcp; } }
+        public Boolean IsTcp => Type == NetType.Tcp;
 
         /// <summary>是否Udp协议</summary>
         [XmlIgnore]
-        public Boolean IsUdp { get { return Type == NetType.Udp; } }
+        public Boolean IsUdp => Type == NetType.Udp;
         #endregion
 
         #region 构造
@@ -90,7 +90,7 @@ namespace NewLife.Net
 
         /// <summary>实例化</summary>
         /// <param name="uri"></param>
-        public NetUri(String uri) { Parse(uri); }
+        public NetUri(String uri) => Parse(uri);
 
         /// <summary>实例化</summary>
         /// <param name="protocol"></param>
@@ -248,10 +248,7 @@ namespace NewLife.Net
         /// <summary>重载类型转换，字符串直接转为NetUri对象</summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static implicit operator NetUri(String value)
-        {
-            return new NetUri(value);
-        }
+        public static implicit operator NetUri(String value) => new NetUri(value);
         #endregion
     }
 }

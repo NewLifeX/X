@@ -36,7 +36,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test8();
+                    Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -140,7 +140,7 @@ namespace Test
 
         static void Test3()
         {
-            var svr = new ApiServer(3344)
+            var svr = new ApiServer("http://feifan.link:8080")
             {
                 Log = XTrace.Log,
                 EncoderLog = XTrace.Log,

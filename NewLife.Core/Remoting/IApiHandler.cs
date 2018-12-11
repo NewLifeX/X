@@ -20,7 +20,8 @@ namespace NewLife.Remoting
         Object Execute(IApiSession session, String action, Packet args);
     }
 
-    class ApiHandler : IApiHandler
+    /// <summary>默认处理器</summary>
+    public class ApiHandler : IApiHandler
     {
         /// <summary>Api接口主机</summary>
         public IApiHost Host { get; set; }
@@ -30,7 +31,7 @@ namespace NewLife.Remoting
         /// <param name="action"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        public Object Execute(IApiSession session, String action, Packet args)
+        public virtual Object Execute(IApiSession session, String action, Packet args)
         {
             var api = session.FindAction(action);
             if (api == null) throw new ApiException(404, "无法找到名为[{0}]的服务！".F(action));
@@ -41,35 +42,8 @@ namespace NewLife.Remoting
 
             if (controller is IApi capi) capi.Session = session;
 
-            var enc = Host.Encoder;
-            IDictionary<String, Object> ps = null;
-
-            // 上下文
-            var ctx = new ControllerContext
-            {
-                Controller = controller,
-                Action = api,
-                ActionName = action,
-                Session = session,
-                Request = args,
-            };
-            // 当前上下文
-            ControllerContext.Current = ctx;
-
-            // 如果服务只有一个二进制参数，则走快速通道
-            var fast = api.IsPacketParameter && api.IsPacketReturn;
-            if (!api.IsPacketParameter)
-            {
-                // 不允许参数字典为空
-                var dic = args == null || args.Total == 0 ?
-                    new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase) :
-                    enc.Decode(action, args) as IDictionary<String, Object>;
-                ctx.Parameters = dic;
-
-                // 准备好参数
-                ps = GetParams(api.Method, dic, enc);
-                ctx.ActionParameters = ps;
-            }
+            var ctx = Prepare(session, action, args, api);
+            ctx.Controller = controller;
 
             Object rs = null;
             try
@@ -85,7 +59,7 @@ namespace NewLife.Remoting
                 if (rs == null)
                 {
                     // 特殊处理参数和返回类型都是Packet的服务
-                    if (fast)
+                    if (api.IsPacketParameter && api.IsPacketReturn)
                     {
                         var func = api.Method.As<Func<Packet, Packet>>(controller);
                         rs = func(args);
@@ -96,6 +70,7 @@ namespace NewLife.Remoting
                     }
                     else
                     {
+                        var ps = ctx.ActionParameters;
                         rs = controller.InvokeWithParams(api.Method, ps as IDictionary);
                     }
                     ctx.Result = rs;
@@ -111,7 +86,6 @@ namespace NewLife.Remoting
             catch (ThreadAbortException) { throw; }
             catch (Exception ex)
             {
-                //rs = OnException(ctx, ex);
                 ctx.Exception = ex.GetTrue();
 
                 // 执行动作后的过滤器
@@ -124,24 +98,59 @@ namespace NewLife.Remoting
             }
             finally
             {
-                //// 执行动作后的过滤器
-                //if (controller is IActionFilter filter)
-                //{
-                //    filter.OnActionExecuted(ctx);
-                //    rs = ctx.Result;
-                //}
                 ControllerContext.Current = null;
-
-                //if (ctx.Exception != null && !ctx.ExceptionHandled) throw ctx.Exception;
             }
-
-            //// 二进制优先通道
-            //if (api.IsPacketReturn && rs is Packet pk) return pk;
 
             return rs;
         }
 
-        private IDictionary<String, Object> GetParams(MethodInfo method, IDictionary<String, Object> args, IEncoder encoder)
+        /// <summary>准备上下文</summary>
+        /// <param name="session"></param>
+        /// <param name="action"></param>
+        /// <param name="args"></param>
+        /// <param name="api"></param>
+        /// <returns></returns>
+        protected virtual ControllerContext Prepare(IApiSession session, String action, Packet args, ApiAction api)
+        {
+            var enc = Host.Encoder;
+
+            // 当前上下文
+            var ctx = ControllerContext.Current;
+            if (ctx == null)
+            {
+                ctx = new ControllerContext
+                {
+                    Action = api,
+                    ActionName = action,
+                    Session = session,
+                    Request = args,
+                };
+                ControllerContext.Current = ctx;
+            }
+
+            // 如果服务只有一个二进制参数，则走快速通道
+            if (!api.IsPacketParameter)
+            {
+                // 不允许参数字典为空
+                var dic = args == null || args.Total == 0 ?
+                    new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase) :
+                    enc.Decode(action, args) as IDictionary<String, Object>;
+                ctx.Parameters = dic;
+
+                // 准备好参数
+                var ps = GetParams(api.Method, dic, enc);
+                ctx.ActionParameters = ps;
+            }
+
+            return ctx;
+        }
+
+        /// <summary>获取参数</summary>
+        /// <param name="method"></param>
+        /// <param name="args"></param>
+        /// <param name="encoder"></param>
+        /// <returns></returns>
+        protected virtual IDictionary<String, Object> GetParams(MethodInfo method, IDictionary<String, Object> args, IEncoder encoder)
         {
             // 该方法没有参数，无视外部传入参数
             var pis = method.GetParameters();

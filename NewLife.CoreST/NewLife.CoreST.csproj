@@ -161,6 +161,7 @@
     <Compile Include="..\NewLife.Core\Remoting\ApiClient.cs" Link="Remoting\ApiClient.cs" />
     <Compile Include="..\NewLife.Core\Remoting\ApiException.cs" Link="Remoting\ApiException.cs" />
     <Compile Include="..\NewLife.Core\Remoting\ApiHost.cs" Link="Remoting\ApiHost.cs" />
+    <Compile Include="..\NewLife.Core\Remoting\ApiHttpServer.cs" Link="Remoting\ApiHttpServer.cs" />
     <Compile Include="..\NewLife.Core\Remoting\ApiNetServer.cs" Link="Remoting\ApiNetServer.cs" />
     <Compile Include="..\NewLife.Core\Remoting\ApiServer.cs" Link="Remoting\ApiServer.cs" />
     <Compile Include="..\NewLife.Core\Remoting\ApiTest.cs" Link="Remoting\ApiTest.cs" />
