@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text;
 using NewLife.Collections;
 
 namespace NewLife.Http

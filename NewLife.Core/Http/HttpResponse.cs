@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Linq;
 using System.Net;
-using System.Text;
 using NewLife.Collections;
+using NewLife.Data;
+using NewLife.Messaging;
 
 namespace NewLife.Http
 {

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Security.Cryptography;
-using System.Text;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Security;
@@ -99,7 +98,7 @@ namespace NewLife.Http
             return rs;
         }
 
-        private static Byte[] NewLine = new[] { (Byte)'\r', (Byte)'\n', (Byte)'\r', (Byte)'\n' };
+        private static readonly Byte[] NewLine = new[] { (Byte)'\r', (Byte)'\n', (Byte)'\r', (Byte)'\n' };
         /// <summary>分析头部</summary>
         /// <param name="pk"></param>
         /// <returns></returns>

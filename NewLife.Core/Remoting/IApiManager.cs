@@ -29,7 +29,7 @@ namespace NewLife.Remoting
     class ApiManager : IApiManager
     {
         /// <summary>可提供服务的方法</summary>
-        public IDictionary<String, ApiAction> Services { get; } = new Dictionary<String, ApiAction>();
+        public IDictionary<String, ApiAction> Services { get; } = new Dictionary<String, ApiAction>(StringComparer.OrdinalIgnoreCase);
 
         private void RegisterAll(Object controller, Type type)
         {

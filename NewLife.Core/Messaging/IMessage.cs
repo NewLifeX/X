@@ -10,6 +10,12 @@ namespace NewLife.Messaging
         /// <summary>是否响应</summary>
         Boolean Reply { get; }
 
+        /// <summary>是否有错</summary>
+        Boolean Error { get; set; }
+
+        /// <summary>单向请求</summary>
+        Boolean OneWay { get; }
+
         /// <summary>负载数据</summary>
         Packet Payload { get; set; }
 
@@ -32,6 +38,12 @@ namespace NewLife.Messaging
     {
         /// <summary>是否响应</summary>
         public Boolean Reply { get; set; }
+
+        /// <summary>是否有错</summary>
+        public Boolean Error { get; set; }
+
+        /// <summary>单向请求</summary>
+        public Boolean OneWay { get; set; }
 
         /// <summary>负载数据</summary>
         public Packet Payload { get; set; }

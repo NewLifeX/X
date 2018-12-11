@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using System.Threading;
 using NewLife.Collections;
 using NewLife.Data;
+using NewLife.Messaging;
 using NewLife.Reflection;
 
 namespace NewLife.Remoting
@@ -23,9 +25,12 @@ namespace NewLife.Remoting
     /// <summary>默认处理器</summary>
     public class ApiHandler : IApiHandler
     {
+        #region 属性
         /// <summary>Api接口主机</summary>
         public IApiHost Host { get; set; }
+        #endregion
 
+        #region 执行
         /// <summary>执行</summary>
         /// <param name="session"></param>
         /// <param name="action"></param>
@@ -95,10 +100,6 @@ namespace NewLife.Remoting
                     rs = ctx.Result;
                 }
                 if (ctx.Exception != null && !ctx.ExceptionHandled) throw;
-            }
-            finally
-            {
-                ControllerContext.Current = null;
             }
 
             return rs;
@@ -186,5 +187,6 @@ namespace NewLife.Remoting
 
             return ps;
         }
+        #endregion
     }
 }

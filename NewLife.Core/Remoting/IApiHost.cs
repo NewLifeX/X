@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Threading.Tasks;
 using NewLife.Collections;
 using NewLife.Data;
@@ -70,7 +69,7 @@ namespace NewLife.Remoting
 
             // 编码请求
             var enc = host.Encoder;
-            var pk = EncodeArgs(enc, action, args);
+            var pk = enc.CreateRequest(action, args);
 
             // 构造消息
             var msg = new DefaultMessage { Payload = pk, };
@@ -115,7 +114,7 @@ namespace NewLife.Remoting
             if (resultType == typeof(IMessage)) return rs;
             //if (resultType == typeof(Packet)) return rs.Payload;
 
-            if (!Decode(rs, out var act, out var code, out var data)) throw new InvalidOperationException();
+            if (!enc.Decode(rs, out var act, out var code, out var data)) throw new InvalidOperationException();
 
             // 是否成功
             if (code != 0) throw new ApiException(code, $"远程[{invoker}]错误！ {data.ToStr()}");
@@ -147,7 +146,7 @@ namespace NewLife.Remoting
             var st = host.StatInvoke;
 
             // 编码请求
-            var pk = EncodeArgs(host.Encoder, action, args);
+            var pk = host.Encoder.CreateRequest(action, args);
 
             // 构造消息
             var msg = new DefaultMessage
@@ -187,86 +186,6 @@ namespace NewLife.Remoting
 
             return controller;
         }
-
-        #region 编码/解码
-        /// <summary>编码 请求/响应</summary>
-        /// <param name="action"></param>
-        /// <param name="code"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static Packet Encode(String action, Int32 code, Packet value)
-        {
-            var ms = new MemoryStream();
-            ms.Seek(8, SeekOrigin.Begin);
-
-            // 请求：action + args
-            // 响应：action + code + result
-            var writer = new BinaryWriter(ms);
-            writer.Write(action);
-            if (code != 0) writer.Write(code);
-
-            // 参数或结果
-            var pk2 = value as Packet;
-            if (pk2 != null && pk2.Data != null)
-            {
-                var len = pk2.Total;
-
-                // 不管有没有附加数据，都会写入长度
-                writer.Write(len);
-            }
-
-            var pk = new Packet(ms.GetBuffer(), 8, (Int32)ms.Length - 8);
-            if (pk2 != null && pk2.Data != null) pk.Next = pk2;
-
-            return pk;
-        }
-
-        private static Packet EncodeArgs(IEncoder enc, String action, Object args)
-        {
-            // 二进制优先
-            if (args is Packet pk)
-            {
-            }
-            else if (args is Byte[] buf)
-                pk = new Packet(buf);
-            else
-                pk = enc.Encode(action, 0, args);
-            pk = Encode(action, 0, pk);
-
-            return pk;
-        }
-
-        /// <summary>解码 请求/响应</summary>
-        /// <param name="msg">消息</param>
-        /// <param name="action">服务动作</param>
-        /// <param name="code">错误码</param>
-        /// <param name="value">参数或结果</param>
-        /// <returns></returns>
-        public static Boolean Decode(IMessage msg, out String action, out Int32 code, out Packet value)
-        {
-            action = null;
-            code = 0;
-            value = null;
-
-            // 请求：action + args
-            // 响应：action + code + result
-            var ms = msg.Payload.GetStream();
-            var reader = new BinaryReader(ms);
-
-            action = reader.ReadString();
-            if (msg.Reply && msg is DefaultMessage dm && dm.Error) code = reader.ReadInt32();
-            if (action.IsNullOrEmpty()) throw new Exception("解码错误，无法找到服务名！");
-
-            // 参数或结果
-            if (ms.Length > ms.Position)
-            {
-                var len = reader.ReadInt32();
-                if (len > 0) value = msg.Payload.Slice((Int32)ms.Position, len);
-            }
-
-            return true;
-        }
-        #endregion
 
         #region 统计
         /// <summary>获取统计信息</summary>

@@ -99,6 +99,7 @@
     <Compile Include="Compression\ZipFile.cs" />
     <Compile Include="Configuration\CombConfig.cs" />
     <Compile Include="Data\BinaryTree.cs" />
+    <Compile Include="Http\HttpEncoder.cs" />
     <Compile Include="IO\CsvFile.cs" />
     <Compile Include="Data\DbRow.cs" />
     <Compile Include="Data\DbTable.cs" />

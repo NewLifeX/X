@@ -21,11 +21,11 @@ namespace NewLife.Messaging
         /// <summary>标记位</summary>
         public Byte Flag { get; set; } = 1;
 
-        /// <summary>是否有错</summary>
-        public Boolean Error { get; set; }
+        ///// <summary>是否有错</summary>
+        //public Boolean Error { get; set; }
 
-        /// <summary>是否单向，仅请求无需响应</summary>
-        public Boolean OneWay { get; set; }
+        ///// <summary>是否单向，仅请求无需响应</summary>
+        //public Boolean OneWay { get; set; }
 
         /// <summary>序列号，匹配请求和响应</summary>
         public Byte Sequence { get; set; }

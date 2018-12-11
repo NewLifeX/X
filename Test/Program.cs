@@ -140,10 +140,10 @@ namespace Test
 
         static void Test3()
         {
-            var svr = new ApiServer("http://feifan.link:8080")
+            var svr = new ApiServer("http://*:8080")
             {
                 Log = XTrace.Log,
-                EncoderLog = XTrace.Log,
+                //EncoderLog = XTrace.Log,
                 StatPeriod = 5
             };
             svr.Start();

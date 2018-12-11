@@ -1,4 +1,5 @@
 ﻿using System;
+using NewLife.Http;
 using NewLife.Net;
 
 namespace NewLife.Remoting
@@ -30,9 +31,10 @@ namespace NewLife.Remoting
             RawUrl = uri + "";
 
             // Http封包协议
-            //Add<HttpCodec>();
+            Add<HttpCodec>();
 
-            host.Handler = new ApiHttpHandler();
+            host.Handler = new ApiHttpHandler { Host = host };
+            host.Encoder = new HttpEncoder();
 
             return true;
         }
