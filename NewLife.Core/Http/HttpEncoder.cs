@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Messaging;
+using NewLife.Reflection;
 using NewLife.Remoting;
 using NewLife.Serialization;
 
@@ -28,23 +31,30 @@ namespace NewLife.Http
             return json.GetBytes();
         }
 
-        /// <summary>解码</summary>
+        /// <summary>解码参数</summary>
         /// <param name="action"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        public Object Decode(String action, Packet data)
+        public IDictionary<String, Object> DecodeParameters(String action, Packet data)
+        {
+            var str = data.ToStr();
+            WriteLog("{0}<={1}", action, str);
+            if (!str.IsNullOrEmpty()) return str.SplitAsDictionary("=", "&").ToDictionary(e => e.Key, e => (Object)e.Value);
+
+            return null;
+        }
+
+        /// <summary>解码结果</summary>
+        /// <param name="action"></param>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public Object DecodeResult(String action, Packet data)
         {
             var json = data.ToStr();
             WriteLog("{0}<={1}", action, json);
 
             return new JsonParser(json).Decode();
         }
-
-        /// <summary>转换为对象</summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="obj"></param>
-        /// <returns></returns>
-        public T Convert<T>(Object obj) => (T)Convert(obj, typeof(T));
 
         /// <summary>转换为目标类型</summary>
         /// <param name="obj"></param>
@@ -53,35 +63,72 @@ namespace NewLife.Http
         public Object Convert(Object obj, Type targetType) => JsonHelper.Default.Convert(obj, targetType);
 
         #region 编码/解码
-        /// <summary>编码 请求/响应</summary>
-        /// <param name="action"></param>
-        /// <param name="code"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public override Packet Encode(String action, Int32 code, Packet value)
-        {
-            return null;
-        }
+        ///// <summary>编码 请求/响应</summary>
+        ///// <param name="action"></param>
+        ///// <param name="code"></param>
+        ///// <param name="value"></param>
+        ///// <returns></returns>
+        //public virtual Packet Encode(String action, Int32 code, Packet value)
+        //{
+        //    return null;
+        //}
 
         /// <summary>创建请求</summary>
         /// <param name="action"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        public override Packet CreateRequest(String action, Object args)
+        public virtual IMessage CreateRequest(String action, Object args)
         {
-            // 二进制优先
+            // 请求方法 GET / HTTP/1.1
+            var req = new HttpMessage();
+            var sb = Pool.StringBuilder.Get();
+            sb.Append("GET ");
+            sb.Append(action);
+
+            // 准备参数，二进制优先
             if (args is Packet pk)
             {
             }
             else if (args is Byte[] buf)
                 pk = new Packet(buf);
             else
-                pk = (this as IEncoder).Encode(action, 0, args);
-            pk = Encode(action, 0, pk);
+            {
+                pk = null;
 
-            return pk;
+                // url参数
+                sb.Append("?");
+                if (args.GetType().GetTypeCode() != TypeCode.Object)
+                {
+                    sb.Append(args);
+                }
+                else
+                {
+                    foreach (var item in args.ToDictionary())
+                    {
+                        sb.AppendFormat("{0}={1}", item.Key, item.Value);
+                    }
+                }
+            }
+            sb.AppendLine(" HTTP/1.1");
+
+            if (pk != null && pk.Total > 0)
+            {
+                sb.AppendFormat("Content-Length:{0}\r\n", pk.Total);
+                sb.AppendLine("Content-Type:application/json");
+            }
+            sb.AppendLine("Connection:keep-alive");
+
+            req.Header = sb.Put(true).GetBytes();
+
+            return req;
         }
 
+        /// <summary>创建响应</summary>
+        /// <param name="msg"></param>
+        /// <param name="action"></param>
+        /// <param name="code"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public IMessage CreateResponse(IMessage msg, String action, Int32 code, Object value)
         {
             if (code <= 0) code = 200;

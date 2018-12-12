@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Reflection;
 using System.Threading;
 using NewLife.Collections;
 using NewLife.Data;
-using NewLife.Messaging;
 using NewLife.Reflection;
 
 namespace NewLife.Remoting
@@ -135,7 +133,7 @@ namespace NewLife.Remoting
                 // 不允许参数字典为空
                 var dic = args == null || args.Total == 0 ?
                     new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase) :
-                    enc.Decode(action, args) as IDictionary<String, Object>;
+                    enc.DecodeParameters(action, args);
                 ctx.Parameters = dic;
 
                 // 准备好参数

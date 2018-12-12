@@ -50,20 +50,24 @@ namespace NewLife.Remoting
             return _all = list.ToArray();
         }
 
+        private readonly String _MachineName = Environment.MachineName;
+        private readonly String _UserName = Environment.UserName;
         /// <summary>服务器信息，用户健康检测</summary>
+        /// <param name="state">状态信息</param>
         /// <returns></returns>
-        public Object Info()
+        public Object Info(String state)
         {
             var ctx = ControllerContext.Current;
             var ns = ctx?.Session as INetSession;
 
             var rs = new
             {
-                Environment.MachineName,
-                Environment.UserName,
+                MachineNam = _MachineName,
+                UserName = _UserName,
                 Time = DateTime.Now,
                 LocalIP = NetHelper.MyIP() + "",
                 Remote = ns?.Remote?.EndPoint + "",
+                State = state,
             };
             return rs;
         }

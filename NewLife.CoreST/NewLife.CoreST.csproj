@@ -85,6 +85,7 @@
     <Compile Include="..\NewLife.Core\Extension\StringHelper.cs" Link="Extension\StringHelper.cs" />
     <Compile Include="..\NewLife.Core\Http\HttpBase.cs" Link="Http\HttpBase.cs" />
     <Compile Include="..\NewLife.Core\Http\HttpCodec.cs" Link="Http\HttpCodec.cs" />
+    <Compile Include="..\NewLife.Core\Http\HttpEncoder.cs" Link="Http\HttpEncoder.cs" />
     <Compile Include="..\NewLife.Core\Http\HttpHelper.cs" Link="Http\HttpHelper.cs" />
     <Compile Include="..\NewLife.Core\Http\HttpRequest.cs" Link="Http\HttpRequest.cs" />
     <Compile Include="..\NewLife.Core\Http\HttpResponse.cs" Link="Http\HttpResponse.cs" />

@@ -67,13 +67,10 @@ namespace NewLife.Remoting
             var st = host.StatInvoke;
             var sw = st.StartCount();
 
-            // 编码请求
+            // 编码请求，构造消息
             var enc = host.Encoder;
-            var pk = enc.CreateRequest(action, args);
-
-            // 构造消息
-            var msg = new DefaultMessage { Payload = pk, };
-            if (flag > 0) msg.Flag = flag;
+            var msg = enc.CreateRequest(action, args);
+            if (flag > 0 && msg is DefaultMessage dm) dm.Flag = flag;
 
             var invoker = session;
             IMessage rs = null;
@@ -123,7 +120,7 @@ namespace NewLife.Remoting
             if (resultType == typeof(Packet)) return data;
 
             // 解码结果
-            var result = enc.Decode(action, data);
+            var result = enc.DecodeResult(action, data);
             if (resultType == typeof(Object)) return result;
 
             // 返回
@@ -146,15 +143,13 @@ namespace NewLife.Remoting
             var st = host.StatInvoke;
 
             // 编码请求
-            var pk = host.Encoder.CreateRequest(action, args);
+            var msg = host.Encoder.CreateRequest(action, args);
 
-            // 构造消息
-            var msg = new DefaultMessage
+            if (msg is DefaultMessage dm)
             {
-                OneWay = true,
-                Payload = pk,
-            };
-            if (flag > 0) msg.Flag = flag;
+                dm.OneWay = true;
+                if (flag > 0) dm.Flag = flag;
+            }
 
             var sw = st.StartCount();
             try

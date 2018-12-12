@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using NewLife.Data;
 using NewLife.Log;
@@ -9,19 +10,25 @@ namespace NewLife.Remoting
     /// <summary>编码器</summary>
     public interface IEncoder
     {
-        /// <summary>编码 请求/响应</summary>
-        /// <param name="action"></param>
-        /// <param name="code"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        Packet Encode(String action, Int32 code, Packet value);
+        ///// <summary>编码 请求/响应</summary>
+        ///// <param name="action"></param>
+        ///// <param name="code"></param>
+        ///// <param name="value"></param>
+        ///// <returns></returns>
+        //Packet Encode(String action, Int32 code, Packet value);
 
         /// <summary>创建请求</summary>
         /// <param name="action"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        Packet CreateRequest(String action, Object args);
+        IMessage CreateRequest(String action, Object args);
 
+        /// <summary>创建响应</summary>
+        /// <param name="msg"></param>
+        /// <param name="action"></param>
+        /// <param name="code"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         IMessage CreateResponse(IMessage msg, String action, Int32 code, Object value);
 
         /// <summary>解码 请求/响应</summary>
@@ -32,24 +39,24 @@ namespace NewLife.Remoting
         /// <returns></returns>
         Boolean Decode(IMessage msg, out String action, out Int32 code, out Packet value);
 
-        /// <summary>编码 请求/响应</summary>
-        /// <param name="action">服务动作</param>
-        /// <param name="code">错误码</param>
-        /// <param name="value">参数或结果</param>
-        /// <returns></returns>
-        Packet Encode(String action, Int32 code, Object value);
+        ///// <summary>编码 请求/响应</summary>
+        ///// <param name="action">服务动作</param>
+        ///// <param name="code">错误码</param>
+        ///// <param name="value">参数或结果</param>
+        ///// <returns></returns>
+        //Packet Encode(String action, Int32 code, Object value);
 
-        /// <summary>解码</summary>
+        /// <summary>解码参数</summary>
         /// <param name="action"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        Object Decode(String action, Packet data);
+        IDictionary<String, Object> DecodeParameters(String action, Packet data);
 
-        /// <summary>转换为对象</summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="obj"></param>
+        /// <summary>解码结果</summary>
+        /// <param name="action"></param>
+        /// <param name="data"></param>
         /// <returns></returns>
-        T Convert<T>(Object obj);
+        Object DecodeResult(String action, Packet data);
 
         /// <summary>转换为目标类型</summary>
         /// <param name="obj"></param>
@@ -65,57 +72,6 @@ namespace NewLife.Remoting
     public abstract class EncoderBase
     {
         #region 编码/解码
-        /// <summary>编码 请求/响应</summary>
-        /// <param name="action"></param>
-        /// <param name="code"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public virtual Packet Encode(String action, Int32 code, Packet value)
-        {
-            var ms = new MemoryStream();
-            ms.Seek(8, SeekOrigin.Begin);
-
-            // 请求：action + args
-            // 响应：action + code + result
-            var writer = new BinaryWriter(ms);
-            writer.Write(action);
-            if (code != 0) writer.Write(code);
-
-            // 参数或结果
-            var pk2 = value as Packet;
-            if (pk2 != null && pk2.Data != null)
-            {
-                var len = pk2.Total;
-
-                // 不管有没有附加数据，都会写入长度
-                writer.Write(len);
-            }
-
-            var pk = new Packet(ms.GetBuffer(), 8, (Int32)ms.Length - 8);
-            if (pk2 != null && pk2.Data != null) pk.Next = pk2;
-
-            return pk;
-        }
-
-        /// <summary>创建请求</summary>
-        /// <param name="action"></param>
-        /// <param name="args"></param>
-        /// <returns></returns>
-        public virtual Packet CreateRequest(String action, Object args)
-        {
-            // 二进制优先
-            if (args is Packet pk)
-            {
-            }
-            else if (args is Byte[] buf)
-                pk = new Packet(buf);
-            else
-                pk = (this as IEncoder).Encode(action, 0, args);
-            pk = Encode(action, 0, pk);
-
-            return pk;
-        }
-
         /// <summary>解码 请求/响应</summary>
         /// <param name="msg">消息</param>
         /// <param name="action">服务动作</param>
