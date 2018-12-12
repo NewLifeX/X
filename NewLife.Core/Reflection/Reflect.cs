@@ -403,13 +403,13 @@ namespace NewLife.Reflection
         public static Boolean IsInt(this Type type)
         {
             return type == typeof(Int32)
-                && type == typeof(Int64)
-                && type == typeof(Int16)
-                && type == typeof(UInt32)
-                && type == typeof(UInt64)
-                && type == typeof(UInt16)
-                && type == typeof(Byte)
-                && type == typeof(SByte)
+                || type == typeof(Int64)
+                || type == typeof(Int16)
+                || type == typeof(UInt32)
+                || type == typeof(UInt64)
+                || type == typeof(UInt16)
+                || type == typeof(Byte)
+                || type == typeof(SByte)
                 ;
             //switch (type.GetTypeCode())
             //{

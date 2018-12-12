@@ -36,7 +36,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test3();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -58,36 +58,11 @@ namespace Test
         private static readonly Int32 _count = 0;
         static void Test1()
         {
-            var cpu = Environment.ProcessorCount;
-
-            var ts = new List<Task>();
-            for (var i = 0; i < 15; i++)
+            var list = UserX.FindAll(null, null, null, 0, 10);
+            foreach (var item in list)
             {
-                var t = TaskEx.Run(() =>
-                {
-                    XTrace.WriteLine("begin");
-                    Thread.Sleep(2000);
-                    XTrace.WriteLine("end");
-                });
-                ts.Add(t);
+                Console.WriteLine(item.ID);
             }
-
-            Task.WaitAll(ts.ToArray());
-
-            Console.WriteLine();
-            ts.Clear();
-            for (var i = 0; i < 15; i++)
-            {
-                //var t = Task.Run(() =>
-                //{
-                //    XTrace.WriteLine("begin");
-                //    Thread.Sleep(2000);
-                //    XTrace.WriteLine("end");
-                //});
-                //ts.Add(t);
-            }
-
-            Task.WaitAll(ts.ToArray());
         }
 
         static void Test2()
