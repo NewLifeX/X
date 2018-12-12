@@ -99,6 +99,11 @@ namespace NewLife.Remoting
                 }
                 if (ctx.Exception != null && !ctx.ExceptionHandled) throw;
             }
+            finally
+            {
+                // 重置上下文，待下次重用对象
+                ctx.Reset();
+            }
 
             return rs;
         }

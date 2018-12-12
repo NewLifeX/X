@@ -63,6 +63,12 @@ namespace Test
             {
                 Console.WriteLine(item.ID);
             }
+
+            var list2 = Role.Search("管理员", null);
+            foreach (var item in list2)
+            {
+                Console.WriteLine(item.ID);
+            }
         }
 
         static void Test2()

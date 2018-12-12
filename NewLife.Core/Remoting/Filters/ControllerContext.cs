@@ -55,5 +55,20 @@ namespace NewLife.Remoting
         private static ControllerContext _Current;
         /// <summary>当前线程上下文</summary>
         public static ControllerContext Current { get { return _Current; } set { _Current = value; } }
+
+        /// <summary>重置为默认状态</summary>
+        public void Reset()
+        {
+            Controller = null;
+            Action = null;
+            ActionName = null;
+            Session = null;
+            Request = null;
+            Parameters = null;
+            ActionParameters = null;
+            Result = null;
+            Exception = null;
+            ExceptionHandled = false;
+        }
     }
 }
