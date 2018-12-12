@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <AssemblyName>NewLife.XCode</AssemblyName>
-    <RootNamespace>NewLife.XCode</RootNamespace>
+    <AssemblyName>XCode</AssemblyName>
+    <RootNamespace>XCode</RootNamespace>
     <AssemblyTitle>数据中间件</AssemblyTitle>
     <Description>数据中间件，MySQL、SQLite、SqlServer、Oracle</Description>
     <Company>新生命开发团队</Company>
@@ -22,7 +22,7 @@
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
     <OutputPath>..\..\Bin\</OutputPath>
-    <DocumentationFile>..\..\Bin\netstandard2.0\NewLife.XCode.xml</DocumentationFile>
+    <DocumentationFile>..\..\Bin\netstandard2.0\XCode.xml</DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -30,7 +30,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <OutputPath>..\..\Bin\</OutputPath>
-    <DocumentationFile>..\..\Bin\netstandard2.0\NewLife.XCode.xml</DocumentationFile>
+    <DocumentationFile>..\..\Bin\netstandard2.0\XCode.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
