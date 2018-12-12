@@ -219,6 +219,9 @@ namespace XCode
 
         /// <summary>实体模块集合</summary>
         EntityModules Modules { get; }
+
+        /// <summary>是否完全插入所有字段。false表示不插入没有脏数据的字段，默认true</summary>
+        Boolean FullInsert { get; set; }
         #endregion
     }
 }

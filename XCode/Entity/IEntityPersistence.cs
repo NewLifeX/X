@@ -357,8 +357,8 @@ namespace XCode
 
         static String InsertSQL(IEntity entity, ref IDataParameter[] parameters)
         {
-            var op = EntityFactory.CreateOperate(entity.GetType());
-            var up = op.Session.Dal.Db.UseParameter;
+            var fact = EntityFactory.CreateOperate(entity.GetType());
+            var usep = fact.Session.Dal.Db.UseParameter;
 
             /*
             * 插入数据原则：
@@ -384,22 +384,22 @@ namespace XCode
 
             var dps = new List<IDataParameter>();
             // 只读列没有插入操作
-            foreach (var fi in op.Fields)
+            foreach (var fi in fact.Fields)
             {
                 var value = entity[fi.Name];
                 // 标识列不需要插入，别的类型都需要
-                if (sbNames != null && CheckIdentity(fi, value, op, sbNames, sbValues)) continue;
+                if (sbNames != null && CheckIdentity(fi, value, fact, sbNames, sbValues)) continue;
 
                 // 1，有脏数据的字段一定要参与
-                if (!entity.IsDirty(fi.Name)) continue;
+                if (!fact.FullInsert && !entity.IsDirty(fi.Name)) continue;
 
-                if (sbNames != null) sbNames.Separate(", ").Append(op.FormatName(fi.ColumnName));
+                if (sbNames != null) sbNames.Separate(", ").Append(fact.FormatName(fi.ColumnName));
                 if (sbValues != null) sbValues.Separate(", ");
 
-                if (up || UseParam(fi, value))
-                    dps.Add(CreateParameter(sbValues, op, fi, value));
+                if (usep || UseParam(fi, value))
+                    dps.Add(CreateParameter(sbValues, fact, fi, value));
                 else
-                    sbValues.Append(op.FormatValue(fi, value));
+                    sbValues.Append(fact.FormatValue(fi, value));
             }
 
             var ns = sbNames.Put(true);
@@ -410,7 +410,7 @@ namespace XCode
 
             if (!ns.IsNullOrEmpty())
             {
-                sql = String.Format("Insert Into {0}({1}) Values({2})", op.FormatedTableName, ns, vs);
+                sql = String.Format("Insert Into {0}({1}) Values({2})", fact.FormatedTableName, ns, vs);
                 //// 缓存参数化时的SQL语句
                 //if (up) op.Session.Items[key] = sql;
             }

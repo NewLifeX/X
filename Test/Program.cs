@@ -140,7 +140,8 @@ namespace Test
 
         static void Test3()
         {
-            var svr = new ApiServer("http://*:8080")
+            //var svr = new ApiServer("http://*:8080")
+            var svr = new ApiServer(777)
             {
                 Log = XTrace.Log,
                 //EncoderLog = XTrace.Log,
