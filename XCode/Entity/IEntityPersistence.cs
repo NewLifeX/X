@@ -253,7 +253,7 @@ namespace XCode
         /// <returns></returns>
         public virtual Int32 Update(IEntityOperate factory, String setClause, String whereClause)
         {
-            if (setClause.IsNullOrEmpty() || !setClause.Contains("=") || setClause.Contains("Or")) throw new ArgumentException("非法参数");
+            if (setClause.IsNullOrEmpty() || !setClause.Contains("=") || setClause.Contains(" Or ")) throw new ArgumentException("非法参数");
 
             var sql = String.Format("Update {0} Set {1}", factory.FormatedTableName, setClause.Replace("And", ","));
             if (!String.IsNullOrEmpty(whereClause)) sql += " Where " + whereClause;
