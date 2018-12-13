@@ -122,15 +122,13 @@ namespace NewLife.Remoting
             var ctx = ControllerContext.Current;
             if (ctx == null)
             {
-                ctx = new ControllerContext
-                {
-                    Action = api,
-                    ActionName = action,
-                    Session = session,
-                    Request = args,
-                };
+                ctx = new ControllerContext();
                 ControllerContext.Current = ctx;
             }
+            ctx.Action = api;
+            ctx.ActionName = action;
+            ctx.Session = session;
+            ctx.Request = args;
 
             // 如果服务只有一个二进制参数，则走快速通道
             if (!api.IsPacketParameter)
