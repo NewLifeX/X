@@ -811,22 +811,6 @@ namespace XCode
                 page.TotalCount = rows;
             }
 
-            // 统计数据。100万以上数据要求带where才支持统计
-            if (page.RetrieveState && page.State == null && (Meta.Session.LongCount < 1_000_000 || where != null))
-            {
-                // 找到所有数字字段，进行求和统计
-                var numbers = Meta.Fields.Where(e => e.Type.IsInt() && !e.IsIdentity).ToList();
-                if (numbers.Count > 0)
-                {
-                    var concat = new ConcatExpression();
-                    foreach (var item in numbers)
-                    {
-                        concat &= item.Sum();
-                    }
-                    page.State = FindAll(where, null, concat).FirstOrDefault();
-                }
-            }
-
             // 验证排序字段，避免非法
             var orderby = page.OrderBy;
             if (!page.Sort.IsNullOrEmpty())
@@ -841,10 +825,34 @@ namespace XCode
             }
 
             // 采用起始行还是分页
+            IList<TEntity> list = null;
             if (page.StartRow >= 0)
-                return FindAll(where, orderby, selects, page.StartRow, page.PageSize);
+                list = FindAll(where, orderby, selects, page.StartRow, page.PageSize);
             else
-                return FindAll(where, orderby, selects, (page.PageIndex - 1) * page.PageSize, page.PageSize);
+                list = FindAll(where, orderby, selects, (page.PageIndex - 1) * page.PageSize, page.PageSize);
+
+            if (list == null || list.Count == 0) return list;
+
+            // 统计数据。100万以上数据要求带where才支持统计
+            if (page.RetrieveState && page.State == null && 
+                (page.RetrieveTotalCount && page.TotalCount < 10_000_000
+                || Meta.Session.LongCount < 10_000_000 || where != null)
+                )
+            {
+                // 找到所有数字字段，进行求和统计
+                var numbers = Meta.Fields.Where(e => e.Type.IsInt() && !e.IsIdentity).ToList();
+                if (numbers.Count > 0)
+                {
+                    var concat = new ConcatExpression();
+                    foreach (var item in numbers)
+                    {
+                        concat &= item.Sum();
+                    }
+                    page.State = FindAll(where, null, concat).FirstOrDefault();
+                }
+            }
+
+            return list;
         }
 
         /// <summary>执行SQl获取数据集</summary>
