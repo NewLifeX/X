@@ -174,7 +174,7 @@ namespace NewLife.Remoting
                 if (ex.Code == 401)
                 {
                     var client = GetClient(true);
-                    await OnLoginAsync(client);
+                    await OnLoginAsync(client, true);
 
                     return await ApiHostHelper.InvokeAsync(this, this, resultType, act, args, flag);
                 }
@@ -295,19 +295,32 @@ namespace NewLife.Remoting
         }
         #endregion
 
-        #region 事件
+        #region 登录
         /// <summary>新会话。客户端每次连接或断线重连后，可用InvokeWithClientAsync做登录</summary>
         /// <param name="session">会话</param>
         /// <param name="state">状态。客户端ISocketClient</param>
         public override void OnNewSession(IApiSession session, Object state)
         {
             var client = state as ISocketClient;
-            OnLoginAsync(client)?.Wait();
+            OnLoginAsync(client, true)?.Wait();
         }
 
         /// <summary>连接后自动登录</summary>
         /// <param name="client">客户端</param>
-        protected virtual Task<Object> OnLoginAsync(ISocketClient client) => null;
+        /// <param name="force">强制登录</param>
+        protected virtual Task<Object> OnLoginAsync(ISocketClient client, Boolean force) => null;
+
+        /// <summary>登录</summary>
+        /// <returns></returns>
+        public virtual async Task<Object> LoginAsync()
+        {
+            await Task.Yield();
+
+            // 包装，避免阻塞UI线程
+            var client = await Task.Run(() => GetClient(true));
+
+            return await OnLoginAsync(client, false);
+        }
         #endregion
 
         #region 连接池

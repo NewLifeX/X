@@ -62,7 +62,8 @@ namespace XCode.Service
         #region 登录
         /// <summary>连接后自动登录</summary>
         /// <param name="client">客户端</param>
-        protected override async Task<Object> OnLoginAsync(ISocketClient client)
+        /// <param name="force">强制登录</param>
+        protected override async Task<Object> OnLoginAsync(ISocketClient client, Boolean force)
         {
             var cookie = Rand.NextString(16);
             var pass2 = cookie.GetBytes().RC4(Password.GetBytes()).ToBase64();
