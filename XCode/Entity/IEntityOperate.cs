@@ -217,6 +217,9 @@ namespace XCode
         /// <summary>默认选择的字段</summary>
         String Selects { get; set; }
 
+        /// <summary>默认选择统计语句</summary>
+        String SelectStat { get; set; }
+
         /// <summary>实体模块集合</summary>
         EntityModules Modules { get; }
 

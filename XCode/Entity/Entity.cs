@@ -834,21 +834,29 @@ namespace XCode
             if (list == null || list.Count == 0) return list;
 
             // 统计数据。100万以上数据要求带where才支持统计
-            if (page.RetrieveState && page.State == null && 
+            if (page.RetrieveState && page.State == null &&
                 (page.RetrieveTotalCount && page.TotalCount < 10_000_000
                 || Meta.Session.LongCount < 10_000_000 || where != null)
                 )
             {
-                // 找到所有数字字段，进行求和统计
-                var numbers = Meta.Fields.Where(e => e.Type.IsInt() && !e.IsIdentity).ToList();
-                if (numbers.Count > 0)
+                var selectStat = Meta.Factory.SelectStat;
+                if (!selectStat.IsNullOrEmpty())
                 {
-                    var concat = new ConcatExpression();
-                    foreach (var item in numbers)
+                    page.State = FindAll(where, null, selectStat).FirstOrDefault();
+                }
+                else
+                {
+                    // 找到所有数字字段，进行求和统计
+                    var numbers = Meta.Fields.Where(e => e.Type.IsInt() && !e.IsIdentity).ToList();
+                    if (numbers.Count > 0)
                     {
-                        concat &= item.Sum();
+                        var concat = new ConcatExpression();
+                        foreach (var item in numbers)
+                        {
+                            concat &= item.Sum();
+                        }
+                        page.State = FindAll(where, null, concat).FirstOrDefault();
                     }
-                    page.State = FindAll(where, null, concat).FirstOrDefault();
                 }
             }
 
