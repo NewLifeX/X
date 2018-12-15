@@ -33,7 +33,7 @@ namespace NewLife.Model
     /// <remarks>
     /// 独立线程轮询消息队列，简单设计避免影响默认线程池。
     /// </remarks>
-    public abstract class Actor : IActor
+    public abstract class Actor :DisposeBase, IActor
     {
         #region 属性
         /// <summary>名称</summary>
@@ -58,6 +58,16 @@ namespace NewLife.Model
         #region 构造
         /// <summary>实例化</summary>
         public Actor() => Name = GetType().Name.TrimEnd("Actor");
+
+        /// <summary>销毁</summary>
+        /// <param name="disposing"></param>
+        protected override void OnDispose(Boolean disposing)
+        {
+            base.OnDispose(disposing);
+
+            Stop(0);
+            _task.TryDispose();
+        }
 
         /// <summary>已重载。显示名称</summary>
         /// <returns></returns>
