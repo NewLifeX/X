@@ -36,7 +36,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test1();
+                    Test8();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -394,57 +394,11 @@ namespace Test
             var dt = UserX.Meta.Table.DataTable;
             dal.Db.ShowSQL = false;
 
-            //var fi = "role.dat".GetFullPath();
-            //var rs = Role.FindAll();
-            //Console.WriteLine(rs.ToJson(true));
+            dal.Backup(dt.TableName);
 
-            //var len = rs.SaveFile(fi);
-            //Console.WriteLine("len={0}", len);
-
-            //var rs2 = new List<Role>();
-            //rs2.LoadFile(fi);
-            //Console.WriteLine(rs2.ToJson(true));
-
-            //var tb = rs.ToTable();
-            //var len2 = tb.SaveFile("role2.dat");
-            //Console.WriteLine("len2={0}", len2);
-
-            //var tb2 = new DbTable();
-            //tb2.LoadFile("role2.dat");
-            //var rs3 = Role.LoadData(tb2);
-            //Console.WriteLine(rs3.ToJson(true));
-
-            //var us = new List<UserX>();
-            //for (var i = 0; i < 100_000; i++)
-            //{
-            //    var user = new UserX
-            //    {
-            //        Name = Rand.NextString(8),
-            //    };
-            //    //user.Insert();
-            //    us.Add(user);
-            //    if (i > 0 && i % 1000 == 0)
-            //    {
-            //        us.BatchInsert();
-            //        us.Clear();
-            //    }
-            //}
-            //us.BatchInsert();
-
-            //var page = new PageParameter
-            //{
-            //    RetrieveTotalCount = true,
-            //    RetrieveState = true,
-            //    PageIndex = 1,
-            //    PageSize = 20
-            //};
-            //var list = UserX.FindAll(UserX._.ID < 10000, page);
-
-            //dal.Backup(dt.TableName);
-
-            //File.Delete("member2.db");
+            File.Delete("member2.db");
             //DAL.AddConnStr("member2", "Server=.;Port=3306;Database=member2;Uid=root;Pwd=root;", null, "MySql");
-            DAL.AddConnStr("member2", "Server=.;Port=3306;Database=member2;Uid=root;Pwd=root;", null, "Oracle");
+            //DAL.AddConnStr("member2", "Server=.;Port=3306;Database=member2;Uid=root;Pwd=root;", null, "Oracle");
             var dal2 = DAL.Create("member2");
             dal2.Db.ShowSQL = false;
             dal2.Restore("user.table", dt);

@@ -80,7 +80,7 @@ namespace NewLife.Model
             {
                 lock (this)
                 {
-                    if (_task == null) _task = Task.Factory.StartNew(Loop, TaskCreationOptions.LongRunning);
+                    if (_task == null) _task = Task.Factory.StartNew(DoWork, TaskCreationOptions.LongRunning);
                 }
             }
 
@@ -130,6 +130,7 @@ namespace NewLife.Model
             {
                 Loop();
             }
+            catch (InvalidOperationException) { /*CompleteAdding后Take会抛出IOE异常*/}
             catch (Exception ex)
             {
                 _error = ex;
