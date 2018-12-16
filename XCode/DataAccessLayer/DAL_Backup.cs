@@ -32,8 +32,7 @@ namespace XCode.DataAccessLayer
                 // 最多同时堆积数页
                 BoundedCapacity = 4,
             };
-
-            writeFile.Start();
+            //writeFile.Start();
 
             var sb = new SelectBuilder
             {
@@ -52,8 +51,8 @@ namespace XCode.DataAccessLayer
                 // 查询数据
                 var dt = Session.Query(sb2.ToString(), null);
                 if (dt == null) break;
-                var count = dt.Rows.Count;
 
+                var count = dt.Rows.Count;
                 WriteLog("备份[{0}/{1}]数据 {2:n0} + {3:n0}", table, ConnName, row, count);
 
                 // 进度报告
@@ -214,9 +213,9 @@ namespace XCode.DataAccessLayer
                 // 最多同时堆积数页
                 BoundedCapacity = 4,
             };
+            //writeDb.Start();
 
             var sw = Stopwatch.StartNew();
-            writeDb.Start();
 
             // 二进制读写器
             var bn = new Binary
@@ -352,6 +351,106 @@ namespace XCode.DataAccessLayer
                 }
                 Dal.Session.Insert(_TableName, _Columns, ds);
             }
+        }
+        #endregion
+
+        #region 同步
+        /// <summary>同步单表数据</summary>
+        /// <remarks>
+        /// 把数据同一张表同步到另一个库
+        /// </remarks>
+        /// <param name="table">数据表</param>
+        /// <param name="connName">目标连接名</param>
+        /// <param name="syncSchema">同步架构</param>
+        /// <param name="progress">进度回调，参数为已处理行数和当前页表</param>
+        /// <returns></returns>
+        public Int32 Sync(IDataTable table, String connName, Boolean syncSchema = true, Action<Int32, DbTable> progress = null)
+        {
+            var dal = connName.IsNullOrEmpty() ? null : Create(connName);
+
+            var writeDb = new WriteDbActor
+            {
+                Table = table,
+                Dal = dal,
+
+                // 最多同时堆积数页
+                BoundedCapacity = 4,
+            };
+
+            var sw = Stopwatch.StartNew();
+
+            // 表结构
+            if (syncSchema) dal.SetTables(table);
+
+            var sb = new SelectBuilder
+            {
+                Table = Db.FormatTableName(table.TableName)
+            };
+
+            var row = 0;
+            var pageSize = 10_000;
+            var total = 0;
+            while (true)
+            {
+                // 分页
+                var sb2 = PageSplit(sb, row, pageSize);
+
+                // 查询数据
+                var dt = Session.Query(sb2.ToString(), null);
+                if (dt == null) break;
+
+                var count = dt.Rows.Count;
+                WriteLog("同步[{0}/{1}]数据 {2:n0} + {3:n0}", table.Name, ConnName, row, count);
+
+                // 进度报告
+                progress?.Invoke(row, dt);
+
+                // 消费数据
+                writeDb.Tell(dt);
+
+                // 下一页
+                total += count;
+                if (count < pageSize) break;
+                row += pageSize;
+            }
+
+            // 通知写入完成
+            writeDb.Stop(-1);
+
+            sw.Stop();
+            var ms = sw.Elapsed.TotalMilliseconds;
+            WriteLog("同步[{0}/{1}]完成，共[{2:n0}]行，耗时{3:n0}ms，速度{4:n0}tps", table.Name, ConnName, total, ms, total * 1000L / ms);
+
+            // 返回总行数
+            return total;
+        }
+
+        /// <summary>备份一批表到另一个库</summary>
+        /// <param name="tables">表名集合</param>
+        /// <param name="connName">目标连接名</param>
+        /// <param name="syncSchema">同步架构</param>
+        /// <returns></returns>
+        public IDictionary<String, Int32> SyncAll(IDataTable[] tables, String connName, Boolean syncSchema = true)
+        {
+            var dic = new Dictionary<String, Int32>();
+
+            if (tables == null) tables = Tables.ToArray();
+            if (tables != null && tables.Length > 0)
+            {
+                // 同步架构
+                if (syncSchema)
+                {
+                    var dal = connName.IsNullOrEmpty() ? null : Create(connName);
+                    dal.SetTables(tables);
+                }
+
+                foreach (var item in tables)
+                {
+                    dic[item.Name] = Sync(item, connName, false);
+                }
+            }
+
+            return dic;
         }
         #endregion
     }

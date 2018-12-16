@@ -69,6 +69,8 @@ namespace NewLife.Model
             _error = null;
             Stop(0);
             _task.TryDispose();
+
+            MailBox.TryDispose();
         }
 
         /// <summary>已重载。显示名称</summary>
@@ -108,7 +110,7 @@ namespace NewLife.Model
         /// <summary>通知停止添加消息，并等待处理完成</summary>
         public virtual Boolean Stop(Int32 msTimeout = 0)
         {
-            MailBox.CompleteAdding();
+            MailBox?.CompleteAdding();
 
             if (_error != null) throw _error;
             if (msTimeout == 0 || _task == null) return true;
