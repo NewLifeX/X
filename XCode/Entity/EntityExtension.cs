@@ -387,7 +387,17 @@ namespace XCode
 
             var entity = list.First();
             var fact = entity.GetType().AsFactory();
-            if (columns == null) columns = fact.Fields.Select(e => e.Field).ToArray();
+            if (columns == null)
+            {
+                columns = fact.Fields.Select(e => e.Field).ToArray();
+
+                // 第一列数据包含非零自增，表示要插入自增值
+                var id = columns.FirstOrDefault(e => e.Identity);
+                if (id != null)
+                {
+                    if (entity[id.Name].ToLong() == 0) columns = columns.Where(e => !e.Identity).ToArray();
+                }
+            }
 
             var session = fact.Session;
             session.InitData();
@@ -414,7 +424,7 @@ namespace XCode
 
             var entity = list.First();
             var fact = entity.GetType().AsFactory();
-            if (columns == null) columns = fact.Fields.Select(e => e.Field).ToArray();
+            if (columns == null) columns = fact.Fields.Select(e => e.Field).Where(e => !e.Identity).ToArray();
             //if (updateColumns == null) updateColumns = entity.Dirtys.Keys;
             if (updateColumns == null)
             {
@@ -454,7 +464,7 @@ namespace XCode
 
             var entity = list.First();
             var fact = entity.GetType().AsFactory();
-            if (columns == null) columns = fact.Fields.Select(e => e.Field).ToArray();
+            if (columns == null) columns = fact.Fields.Select(e => e.Field).Where(e => !e.Identity).ToArray();
             //if (updateColumns == null) updateColumns = entity.Dirtys.Keys;
             if (updateColumns == null)
             {
@@ -490,7 +500,7 @@ namespace XCode
         public static Int32 InsertOrUpdate(this IEntity entity, IDataColumn[] columns = null, ICollection<String> updateColumns = null, ICollection<String> addColumns = null)
         {
             var fact = entity.GetType().AsFactory();
-            if (columns == null) columns = fact.Fields.Select(e => e.Field).ToArray();
+            if (columns == null) columns = fact.Fields.Select(e => e.Field).Where(e => !e.Identity).ToArray();
             if (updateColumns == null) updateColumns = entity.Dirtys.Where(e => !e.StartsWithIgnoreCase("Create")).Distinct().ToArray();
             if (addColumns == null) addColumns = fact.AdditionalFields;
 

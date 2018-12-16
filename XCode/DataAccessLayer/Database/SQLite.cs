@@ -388,7 +388,7 @@ namespace XCode.DataAccessLayer
             sb.AppendFormat("Insert Into {0}(", db.FormatTableName(tableName));
             foreach (var dc in columns)
             {
-                if (dc.Identity) continue;
+                //if (dc.Identity) continue;
 
                 sb.Append(db.FormatName(dc.ColumnName));
                 sb.Append(",");
@@ -413,10 +413,10 @@ namespace XCode.DataAccessLayer
                         var cs = new List<Int32>();
                         foreach (var dc in columns)
                         {
-                            if (dc.Identity)
-                                cs.Add(0);
-                            else
-                                cs.Add(dt.GetColumn(dc.Name));
+                            //if (dc.Identity)
+                            //    cs.Add(0);
+                            //else
+                            cs.Add(dt.GetColumn(dc.Name));
                         }
                         ids = cs.ToArray();
                     }
@@ -426,7 +426,7 @@ namespace XCode.DataAccessLayer
                     for (var i = 0; i < columns.Length; i++)
                     {
                         var dc = columns[i];
-                        if (dc.Identity) continue;
+                        //if (dc.Identity) continue;
 
                         var value = row[ids[i]];
                         sb.Append(db.FormatValue(dc, value));
@@ -443,7 +443,7 @@ namespace XCode.DataAccessLayer
                     sb.Append("(");
                     foreach (var dc in columns)
                     {
-                        if (dc.Identity) continue;
+                        //if (dc.Identity) continue;
 
                         var value = entity[dc.Name];
                         sb.Append(db.FormatValue(dc, value));

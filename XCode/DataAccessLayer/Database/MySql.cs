@@ -328,7 +328,7 @@ namespace XCode.DataAccessLayer
                     for (var i = 0; i < columns.Length; i++)
                     {
                         var dc = columns[i];
-                        if (dc.Identity) continue;
+                        //if (dc.Identity) continue;
 
                         var value = row[ids[i]];
                         sb.Append(db.FormatValue(dc, value));
@@ -345,7 +345,7 @@ namespace XCode.DataAccessLayer
                     sb.Append("(");
                     foreach (var dc in columns)
                     {
-                        if (dc.Identity) continue;
+                        //if (dc.Identity) continue;
 
                         var value = entity[dc.Name];
                         sb.Append(db.FormatValue(dc, value));

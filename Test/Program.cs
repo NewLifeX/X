@@ -394,6 +394,7 @@ namespace Test
             var dt = UserX.Meta.Table.DataTable;
             dal.Db.ShowSQL = false;
 
+            File.Delete("member3.db");
             dal.Sync(dt, "member3");
 
             dal.Backup(dt.TableName);
