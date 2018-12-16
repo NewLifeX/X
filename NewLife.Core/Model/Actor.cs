@@ -9,6 +9,7 @@ namespace NewLife.Model
     /// <summary>无锁并行编程模型</summary>
     /// <remarks>
     /// 独立线程轮询消息队列，简单设计避免影响默认线程池。
+    /// 适用于任务颗粒较大的场合，例如IO操作。
     /// </remarks>
     public interface IActor
     {
@@ -33,7 +34,7 @@ namespace NewLife.Model
     /// <remarks>
     /// 独立线程轮询消息队列，简单设计避免影响默认线程池。
     /// </remarks>
-    public abstract class Actor :DisposeBase, IActor
+    public abstract class Actor : DisposeBase, IActor
     {
         #region 属性
         /// <summary>名称</summary>
@@ -48,7 +49,7 @@ namespace NewLife.Model
         /// <summary>批大小。每次处理消息数，默认1，大于1表示启用批量处理模式</summary>
         public Int32 BatchSize { get; set; } = 1;
 
-        /// <summary>存放消息的邮箱</summary>
+        /// <summary>存放消息的邮箱。默认FIFO实现，外部可覆盖</summary>
         protected BlockingCollection<ActorContext> MailBox { get; set; }
 
         private Task _task;
@@ -65,6 +66,7 @@ namespace NewLife.Model
         {
             base.OnDispose(disposing);
 
+            _error = null;
             Stop(0);
             _task.TryDispose();
         }
@@ -90,7 +92,7 @@ namespace NewLife.Model
             {
                 lock (this)
                 {
-                    if (_task == null) _task = Task.Factory.StartNew(DoWork, TaskCreationOptions.LongRunning);
+                    if (_task == null) _task = OnStart();
                 }
             }
 
@@ -98,6 +100,10 @@ namespace NewLife.Model
 
             return _task;
         }
+
+        /// <summary>开始时，返回执行线程包装任务，默认LongRunning</summary>
+        /// <returns></returns>
+        protected virtual Task OnStart() => Task.Factory.StartNew(DoWork, TaskCreationOptions.LongRunning);
 
         /// <summary>通知停止添加消息，并等待处理完成</summary>
         public virtual Boolean Stop(Int32 msTimeout = 0)
@@ -116,16 +122,15 @@ namespace NewLife.Model
         /// <returns>返回待处理消息数</returns>
         public virtual Int32 Tell(Object message, IActor sender = null)
         {
+            // 自动开始
+            if (!Active) Start();
+
             if (!Active)
             {
                 if (_error != null) throw _error;
 
                 throw new ObjectDisposedException(nameof(Actor));
             }
-
-#if DEBUG
-            Log.XTrace.WriteLine("[{0}]=>[{1}]：{2}", sender, this, message);
-#endif
 
             var box = MailBox;
             box.Add(new ActorContext { Sender = sender, Message = message });
@@ -159,9 +164,6 @@ namespace NewLife.Model
                 if (BatchSize <= 1)
                 {
                     var ctx = box.Take();
-#if DEBUG
-                    Log.XTrace.WriteLine("[{0}]<=[{1}]：{2}", this, ctx.Sender, ctx.Message);
-#endif
                     Receive(ctx);
                 }
                 else
@@ -178,9 +180,6 @@ namespace NewLife.Model
 
                         list.Add(ctx);
                     }
-#if DEBUG
-                    Log.XTrace.WriteLine("[{0}]<=[{1}]", this, list.Count);
-#endif
                     Receive(list.ToArray());
                 }
             }
