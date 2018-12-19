@@ -213,7 +213,32 @@ namespace XCode
         /// <param name="list">实体列表</param>
         /// <param name="useTransition">是否使用事务保护</param>
         /// <returns></returns>
-        public static Int32 Update<T>(this IEnumerable<T> list, Boolean? useTransition = null) where T : IEntity => DoAction(list, useTransition, e => e.Update());
+        public static Int32 Update<T>(this IEnumerable<T> list, Boolean? useTransition = null) where T : IEntity
+        {
+            // 避免列表内实体对象为空
+            var entity = list.FirstOrDefault(e => e != null);
+            if (entity == null) return 0;
+
+            if (list.Count() > 1)
+            {
+                var fact = entity.GetType().AsFactory();
+                var db = fact.Session.Dal;
+
+                // Oracle批量更新
+                if (db.DbType == DatabaseType.Oracle)
+                {
+                    if (!(list is IList<T> es)) es = list.ToList();
+                    foreach (IEntity item in es.ToArray())
+                    {
+                        if (item is EntityBase entity2) entity2.Valid(item.IsNullKey);
+                        if (!fact.Modules.Valid(item, item.IsNullKey)) es.Remove((T)item);
+                    }
+                    return BatchUpdate(list);
+                }
+            }
+
+            return DoAction(list, useTransition, e => e.Update());
+        }
 
         /// <summary>把整个保存更新到数据库</summary>
         /// <param name="list">实体列表</param>
@@ -406,12 +431,12 @@ namespace XCode
             return session.Dal.Session.Insert(session.TableName, columns, list.Cast<IIndexAccessor>());
         }
 
-        /// <summary>
-        /// 批量更新
+        /// <summary>批量更新</summary>
+        /// <remarks>
         /// 注意类似：XCode.Exceptions.XSqlException: ORA-00933: SQL 命令未正确结束
         /// [SQL:Update tablen_Name Set FieldName=:FieldName W [:FieldName=System.Int32[]]][DB:AAA/Oracle]
         /// 建议是优先检查表是否存在主键，如果由于没有主键导致，及时通过try...cache 依旧无法正常保存。
-        /// </summary>
+        /// </remarks>
         /// <typeparam name="T">实体类型</typeparam>
         /// <param name="list">实体列表</param>
         /// <param name="columns">要更新的字段，默认所有字段</param>
@@ -448,7 +473,7 @@ namespace XCode
             session.InitData();
             session.Dal.CheckDatabase();
 
-            return fact.Session.Dal.Session.Update(session.TableName, columns, updateColumns, addColumns, list.Cast<IIndexAccessor>());
+            return session.Dal.Session.Update(session.TableName, columns, updateColumns, addColumns, list.Cast<IIndexAccessor>());
         }
 
         /// <summary>批量插入或更新</summary>
