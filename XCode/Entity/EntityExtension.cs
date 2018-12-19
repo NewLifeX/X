@@ -332,18 +332,25 @@ namespace XCode
             var rs = 0;
             if (!fact.Table.DataTable.Indexes.Any(di => di.Unique))
             {
-                var adds = new List<T>();
-                var others = new List<T>();
+                var inserts = new List<T>();
+                var updates = new List<T>();
+                var upserts = new List<T>();
                 foreach (var item in list)
                 {
-                    if (item.IsNullKey)
-                        adds.Add(item);
+                    // 来自数据库，更新
+                    if (item.IsFromDatabase)
+                        updates.Add(item);
+                    // 空主键，插入
+                    else if (item.IsNullKey)
+                        inserts.Add(item);
+                    // 其它 Upsert
                     else
-                        others.Add(item);
+                        upserts.Add(item);
                 }
-                list = others;
+                list = upserts;
 
-                if (adds.Count > 0) rs += BatchInsert(adds);
+                if (inserts.Count > 0) rs += BatchInsert(inserts);
+                if (updates.Count > 0) rs += BatchUpdate(updates);
             }
 
             if (list.Any()) rs += InsertOrUpdate(list);
