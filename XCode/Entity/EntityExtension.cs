@@ -225,16 +225,7 @@ namespace XCode
                 var db = fact.Session.Dal;
 
                 // Oracle批量更新
-                if (db.DbType == DatabaseType.Oracle)
-                {
-                    if (!(list is IList<T> es)) es = list.ToList();
-                    foreach (IEntity item in es.ToArray())
-                    {
-                        if (item is EntityBase entity2) entity2.Valid(item.IsNullKey);
-                        if (!fact.Modules.Valid(item, item.IsNullKey)) es.Remove((T)item);
-                    }
-                    return BatchUpdate(list);
-                }
+                if (db.DbType == DatabaseType.Oracle) return BatchUpdate(list.Valid());
             }
 
             return DoAction(list, useTransition, e => e.Update());
@@ -269,13 +260,7 @@ namespace XCode
                     // 根据是否来自数据库，拆分为两组
                     var ts = Split(list);
                     list = ts.Item1;
-                    var es = ts.Item2;
-                    foreach (IEntity item in es.ToArray())
-                    {
-                        if (item is EntityBase entity2) entity2.Valid(item.IsNullKey);
-                        if (!fact.Modules.Valid(item, item.IsNullKey)) es.Remove((T)item);
-                    }
-                    rs += BatchSave(fact, es);
+                    rs += BatchSave(fact, ts.Item2.Valid());
                 }
             }
 
@@ -350,7 +335,14 @@ namespace XCode
                 list = upserts;
 
                 if (inserts.Count > 0) rs += BatchInsert(inserts);
-                if (updates.Count > 0) rs += BatchUpdate(updates);
+                if (updates.Count > 0)
+                {
+                    // 只有Oracle支持批量Update
+                    if (fact.Session.Dal.DbType == DatabaseType.Oracle)
+                        rs += BatchUpdate(updates);
+                    else
+                        upserts.AddRange(upserts);
+                }
             }
 
             if (list.Any()) rs += Upsert(list);
@@ -404,6 +396,30 @@ namespace XCode
                 if (item != null) count += func(item);
             }
             return count;
+        }
+
+        /// <summary>批量验证对象</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="list"></param>
+        /// <returns></returns>
+        public static IList<T> Valid<T>(this IEnumerable<T> list) where T : IEntity
+        {
+            var rs = new List<T>();
+
+            var entity = list.FirstOrDefault(e => e != null);
+            if (entity == null) return rs;
+
+            var fact = entity.GetType().AsFactory();
+            var modules = fact.Modules;
+
+            // 验证对象
+            foreach (IEntity item in list)
+            {
+                if (item is EntityBase entity2) entity2.Valid(item.IsNullKey);
+                if (modules.Valid(item, item.IsNullKey)) rs.Add((T)item);
+            }
+
+            return rs;
         }
         #endregion
 
