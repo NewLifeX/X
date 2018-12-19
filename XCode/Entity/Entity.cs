@@ -216,12 +216,12 @@ namespace XCode
             return func();
         }
 
-        /// <summary>保存。Insert/Update/InsertOrUpdate</summary>
+        /// <summary>保存。Insert/Update/Upsert</summary>
         /// <remarks>
         /// Save的几个场景：
         /// 1，Find, Update()
         /// 2，new, Insert()
-        /// 3，new, InsertOrUpdate
+        /// 3，new, Upsert()
         /// </remarks>
         /// <returns></returns>
         public override Int32 Save()
@@ -249,7 +249,7 @@ namespace XCode
                 Valid(isnew);
                 if (!Meta.Modules.Valid(this, isnew)) return -1;
 
-                return this.InsertOrUpdate();
+                return this.Upsert();
             }
 
             return FindCount(Persistence.GetPrimaryCondition(this), null, null, 0, 0) > 0 ? Update() : Insert();

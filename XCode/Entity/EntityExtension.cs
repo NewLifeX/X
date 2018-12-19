@@ -250,7 +250,7 @@ namespace XCode
            * Save的几个场景：
            * 1，Find, Update()
            * 2，new, Insert()
-           * 3，new, InsertOrUpdate
+           * 3，new, Upsert()
            */
 
             // 避免列表内实体对象为空
@@ -353,7 +353,7 @@ namespace XCode
                 if (updates.Count > 0) rs += BatchUpdate(updates);
             }
 
-            if (list.Any()) rs += InsertOrUpdate(list);
+            if (list.Any()) rs += Upsert(list);
 
             return rs;
         }
@@ -490,7 +490,7 @@ namespace XCode
         /// <param name="updateColumns">要更新的字段，默认脏数据</param>
         /// <param name="addColumns">要累加更新的字段，默认累加</param>
         /// <returns></returns>
-        public static Int32 InsertOrUpdate<T>(this IEnumerable<T> list, IDataColumn[] columns = null, ICollection<String> updateColumns = null, ICollection<String> addColumns = null) where T : IEntity
+        public static Int32 Upsert<T>(this IEnumerable<T> list, IDataColumn[] columns = null, ICollection<String> updateColumns = null, ICollection<String> addColumns = null) where T : IEntity
         {
             if (list == null || !list.Any()) return 0;
 
@@ -520,7 +520,20 @@ namespace XCode
             session.InitData();
             session.Dal.CheckDatabase();
 
-            return session.Dal.Session.InsertOrUpdate(session.TableName, columns, updateColumns, addColumns, list.Cast<IIndexAccessor>());
+            return session.Dal.Session.Upsert(session.TableName, columns, updateColumns, addColumns, list.Cast<IIndexAccessor>());
+        }
+
+        /// <summary>批量插入或更新</summary>
+        /// <typeparam name="T">实体类型</typeparam>
+        /// <param name="list">实体列表</param>
+        /// <param name="columns">要插入的字段，默认所有字段</param>
+        /// <param name="updateColumns">要更新的字段，默认脏数据</param>
+        /// <param name="addColumns">要累加更新的字段，默认累加</param>
+        /// <returns></returns>
+        [Obsolete("请改用list.Upsert()")]
+        public static Int32 InsertOrUpdate<T>(this IEnumerable<T> list, IDataColumn[] columns = null, ICollection<String> updateColumns = null, ICollection<String> addColumns = null) where T : IEntity
+        {
+            return Upsert(list, columns, updateColumns, addColumns);
         }
 
         /// <summary>批量插入或更新</summary>
@@ -529,7 +542,7 @@ namespace XCode
         /// <param name="updateColumns">主键已存在时，要更新的字段</param>
         /// <param name="addColumns">主键已存在时，要累加更新的字段</param>
         /// <returns></returns>
-        public static Int32 InsertOrUpdate(this IEntity entity, IDataColumn[] columns = null, ICollection<String> updateColumns = null, ICollection<String> addColumns = null)
+        public static Int32 Upsert(this IEntity entity, IDataColumn[] columns = null, ICollection<String> updateColumns = null, ICollection<String> addColumns = null)
         {
             var fact = entity.GetType().AsFactory();
             if (columns == null) columns = fact.Fields.Select(e => e.Field).Where(e => !e.Identity).ToArray();
@@ -540,7 +553,7 @@ namespace XCode
             session.InitData();
             session.Dal.CheckDatabase();
 
-            return fact.Session.Dal.Session.InsertOrUpdate(session.TableName, columns, updateColumns, addColumns, new[] { entity as IIndexAccessor });
+            return fact.Session.Dal.Session.Upsert(session.TableName, columns, updateColumns, addColumns, new[] { entity as IIndexAccessor });
         }
         #endregion
 

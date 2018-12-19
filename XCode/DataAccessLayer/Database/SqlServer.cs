@@ -495,7 +495,7 @@ namespace XCode.DataAccessLayer
             return dps.ToArray();
         }
 
-        public override Int32 InsertOrUpdate(String tableName, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list)
+        public override Int32 Upsert(String tableName, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list)
         {
             var ps = new HashSet<String>();
             var insert = GetInsertSql(tableName, columns, ps);
