@@ -89,6 +89,8 @@
     <Compile Include="Membership\MenuProvider.cs" />
     <Compile Include="Membership\LogProvider.cs" />
     <Compile Include="Membership\UserTimeEntity.cs" />
+    <Compile Include="Membership\字典参数.Biz.cs" />
+    <Compile Include="Membership\字典参数.cs" />
     <Compile Include="Membership\日志.cs" />
     <Compile Include="Membership\日志.Biz.cs">
     </Compile>

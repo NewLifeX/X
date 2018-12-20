@@ -7,16 +7,15 @@ using XCode.DataAccessLayer;
 
 namespace XCode.Membership
 {
-    /// <summary>部门。组织机构，多级树状结构</summary>
+    /// <summary>字典参数</summary>
     [Serializable]
     [DataObject]
-    [Description("部门。组织机构，多级树状结构")]
-    [BindIndex("IX_Department_Name", false, "Name")]
-    [BindIndex("IU_Department_ParentID_Name", true, "ParentID,Name")]
-    [BindIndex("IX_Department_Code", false, "Code")]
-    [BindIndex("IX_Department_UpdateTime", false, "UpdateTime")]
-    [BindTable("Department", Description = "部门。组织机构，多级树状结构", ConnName = "Membership", DbType = DatabaseType.None)]
-    public partial class Department<TEntity> : IDepartment
+    [Description("字典参数")]
+    [BindIndex("IU_Parameter_Category_Name", true, "Category,Name")]
+    [BindIndex("IX_Parameter_Name", false, "Name")]
+    [BindIndex("IX_Parameter_UpdateTime", false, "UpdateTime")]
+    [BindTable("Parameter", Description = "字典参数", ConnName = "Log", DbType = DatabaseType.None)]
+    public partial class Parameter : IParameter
     {
         #region 属性
         private Int32 _ID;
@@ -27,53 +26,37 @@ namespace XCode.Membership
         [BindColumn("ID", "编号", "")]
         public Int32 ID { get { return _ID; } set { if (OnPropertyChanging(__.ID, value)) { _ID = value; OnPropertyChanged(__.ID); } } }
 
-        private String _Code;
-        /// <summary>代码</summary>
-        [DisplayName("代码")]
-        [Description("代码")]
+        private String _Category;
+        /// <summary>类别</summary>
+        [DisplayName("类别")]
+        [Description("类别")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn("Code", "代码", "")]
-        public String Code { get { return _Code; } set { if (OnPropertyChanging(__.Code, value)) { _Code = value; OnPropertyChanged(__.Code); } } }
+        [BindColumn("Category", "类别", "")]
+        public String Category { get { return _Category; } set { if (OnPropertyChanging(__.Category, value)) { _Category = value; OnPropertyChanged(__.Category); } } }
 
         private String _Name;
         /// <summary>名称</summary>
         [DisplayName("名称")]
         [Description("名称")]
-        [DataObjectField(false, false, false, 50)]
+        [DataObjectField(false, false, true, 50)]
         [BindColumn("Name", "名称", "", Master = true)]
         public String Name { get { return _Name; } set { if (OnPropertyChanging(__.Name, value)) { _Name = value; OnPropertyChanged(__.Name); } } }
 
-        private String _FullName;
-        /// <summary>全名</summary>
-        [DisplayName("全名")]
-        [Description("全名")]
+        private String _Value;
+        /// <summary>数值</summary>
+        [DisplayName("数值")]
+        [Description("数值")]
         [DataObjectField(false, false, true, 200)]
-        [BindColumn("FullName", "全名", "")]
-        public String FullName { get { return _FullName; } set { if (OnPropertyChanging(__.FullName, value)) { _FullName = value; OnPropertyChanged(__.FullName); } } }
+        [BindColumn("Value", "数值", "")]
+        public String Value { get { return _Value; } set { if (OnPropertyChanging(__.Value, value)) { _Value = value; OnPropertyChanged(__.Value); } } }
 
-        private Int32 _ParentID;
-        /// <summary>父级</summary>
-        [DisplayName("父级")]
-        [Description("父级")]
+        private XCode.Membership.ParameterKinds _Kind;
+        /// <summary>种类。0普通，1列表，2名值</summary>
+        [DisplayName("种类")]
+        [Description("种类。0普通，1列表，2名值")]
         [DataObjectField(false, false, false, 0)]
-        [BindColumn("ParentID", "父级", "")]
-        public Int32 ParentID { get { return _ParentID; } set { if (OnPropertyChanging(__.ParentID, value)) { _ParentID = value; OnPropertyChanged(__.ParentID); } } }
-
-        private Int32 _Level;
-        /// <summary>层级。树状结构的层级</summary>
-        [DisplayName("层级")]
-        [Description("层级。树状结构的层级")]
-        [DataObjectField(false, false, false, 0)]
-        [BindColumn("Level", "层级。树状结构的层级", "")]
-        public Int32 Level { get { return _Level; } set { if (OnPropertyChanging(__.Level, value)) { _Level = value; OnPropertyChanged(__.Level); } } }
-
-        private Int32 _Sort;
-        /// <summary>排序。同级内排序</summary>
-        [DisplayName("排序")]
-        [Description("排序。同级内排序")]
-        [DataObjectField(false, false, false, 0)]
-        [BindColumn("Sort", "排序。同级内排序", "")]
-        public Int32 Sort { get { return _Sort; } set { if (OnPropertyChanging(__.Sort, value)) { _Sort = value; OnPropertyChanged(__.Sort); } } }
+        [BindColumn("Kind", "种类。0普通，1列表，2名值", "")]
+        public XCode.Membership.ParameterKinds Kind { get { return _Kind; } set { if (OnPropertyChanging(__.Kind, value)) { _Kind = value; OnPropertyChanged(__.Kind); } } }
 
         private Boolean _Enable;
         /// <summary>启用</summary>
@@ -82,14 +65,6 @@ namespace XCode.Membership
         [DataObjectField(false, false, false, 0)]
         [BindColumn("Enable", "启用", "")]
         public Boolean Enable { get { return _Enable; } set { if (OnPropertyChanging(__.Enable, value)) { _Enable = value; OnPropertyChanged(__.Enable); } } }
-
-        private Boolean _Visible;
-        /// <summary>可见</summary>
-        [DisplayName("可见")]
-        [Description("可见")]
-        [DataObjectField(false, false, false, 0)]
-        [BindColumn("Visible", "可见", "")]
-        public Boolean Visible { get { return _Visible; } set { if (OnPropertyChanging(__.Visible, value)) { _Visible = value; OnPropertyChanged(__.Visible); } } }
 
         private Int32 _Ex1;
         /// <summary>扩展1</summary>
@@ -207,7 +182,7 @@ namespace XCode.Membership
         /// <summary>备注</summary>
         [DisplayName("备注")]
         [Description("备注")]
-        [DataObjectField(false, false, true, 200)]
+        [DataObjectField(false, false, true, 2000)]
         [BindColumn("Remark", "备注", "")]
         public String Remark { get { return _Remark; } set { if (OnPropertyChanging(__.Remark, value)) { _Remark = value; OnPropertyChanged(__.Remark); } } }
         #endregion
@@ -223,14 +198,11 @@ namespace XCode.Membership
                 switch (name)
                 {
                     case __.ID : return _ID;
-                    case __.Code : return _Code;
+                    case __.Category : return _Category;
                     case __.Name : return _Name;
-                    case __.FullName : return _FullName;
-                    case __.ParentID : return _ParentID;
-                    case __.Level : return _Level;
-                    case __.Sort : return _Sort;
+                    case __.Value : return _Value;
+                    case __.Kind : return _Kind;
                     case __.Enable : return _Enable;
-                    case __.Visible : return _Visible;
                     case __.Ex1 : return _Ex1;
                     case __.Ex2 : return _Ex2;
                     case __.Ex3 : return _Ex3;
@@ -254,14 +226,11 @@ namespace XCode.Membership
                 switch (name)
                 {
                     case __.ID : _ID = Convert.ToInt32(value); break;
-                    case __.Code : _Code = Convert.ToString(value); break;
+                    case __.Category : _Category = Convert.ToString(value); break;
                     case __.Name : _Name = Convert.ToString(value); break;
-                    case __.FullName : _FullName = Convert.ToString(value); break;
-                    case __.ParentID : _ParentID = Convert.ToInt32(value); break;
-                    case __.Level : _Level = Convert.ToInt32(value); break;
-                    case __.Sort : _Sort = Convert.ToInt32(value); break;
+                    case __.Value : _Value = Convert.ToString(value); break;
+                    case __.Kind : _Kind = (XCode.Membership.ParameterKinds)Convert.ToInt32(value); break;
                     case __.Enable : _Enable = Convert.ToBoolean(value); break;
-                    case __.Visible : _Visible = Convert.ToBoolean(value); break;
                     case __.Ex1 : _Ex1 = Convert.ToInt32(value); break;
                     case __.Ex2 : _Ex2 = Convert.ToInt32(value); break;
                     case __.Ex3 : _Ex3 = Convert.ToDouble(value); break;
@@ -284,35 +253,26 @@ namespace XCode.Membership
         #endregion
 
         #region 字段名
-        /// <summary>取得部门字段信息的快捷方式</summary>
+        /// <summary>取得字典参数字段信息的快捷方式</summary>
         public partial class _
         {
             /// <summary>编号</summary>
             public static readonly Field ID = FindByName(__.ID);
 
-            /// <summary>代码</summary>
-            public static readonly Field Code = FindByName(__.Code);
+            /// <summary>类别</summary>
+            public static readonly Field Category = FindByName(__.Category);
 
             /// <summary>名称</summary>
             public static readonly Field Name = FindByName(__.Name);
 
-            /// <summary>全名</summary>
-            public static readonly Field FullName = FindByName(__.FullName);
+            /// <summary>数值</summary>
+            public static readonly Field Value = FindByName(__.Value);
 
-            /// <summary>父级</summary>
-            public static readonly Field ParentID = FindByName(__.ParentID);
-
-            /// <summary>层级。树状结构的层级</summary>
-            public static readonly Field Level = FindByName(__.Level);
-
-            /// <summary>排序。同级内排序</summary>
-            public static readonly Field Sort = FindByName(__.Sort);
+            /// <summary>种类。0普通，1列表，2名值</summary>
+            public static readonly Field Kind = FindByName(__.Kind);
 
             /// <summary>启用</summary>
             public static readonly Field Enable = FindByName(__.Enable);
-
-            /// <summary>可见</summary>
-            public static readonly Field Visible = FindByName(__.Visible);
 
             /// <summary>扩展1</summary>
             public static readonly Field Ex1 = FindByName(__.Ex1);
@@ -362,35 +322,26 @@ namespace XCode.Membership
             static Field FindByName(String name) { return Meta.Table.FindByName(name); }
         }
 
-        /// <summary>取得部门字段名称的快捷方式</summary>
+        /// <summary>取得字典参数字段名称的快捷方式</summary>
         public partial class __
         {
             /// <summary>编号</summary>
             public const String ID = "ID";
 
-            /// <summary>代码</summary>
-            public const String Code = "Code";
+            /// <summary>类别</summary>
+            public const String Category = "Category";
 
             /// <summary>名称</summary>
             public const String Name = "Name";
 
-            /// <summary>全名</summary>
-            public const String FullName = "FullName";
+            /// <summary>数值</summary>
+            public const String Value = "Value";
 
-            /// <summary>父级</summary>
-            public const String ParentID = "ParentID";
-
-            /// <summary>层级。树状结构的层级</summary>
-            public const String Level = "Level";
-
-            /// <summary>排序。同级内排序</summary>
-            public const String Sort = "Sort";
+            /// <summary>种类。0普通，1列表，2名值</summary>
+            public const String Kind = "Kind";
 
             /// <summary>启用</summary>
             public const String Enable = "Enable";
-
-            /// <summary>可见</summary>
-            public const String Visible = "Visible";
 
             /// <summary>扩展1</summary>
             public const String Ex1 = "Ex1";
@@ -440,36 +391,27 @@ namespace XCode.Membership
         #endregion
     }
 
-    /// <summary>部门。组织机构，多级树状结构接口</summary>
-    public partial interface IDepartment
+    /// <summary>字典参数接口</summary>
+    public partial interface IParameter
     {
         #region 属性
         /// <summary>编号</summary>
         Int32 ID { get; set; }
 
-        /// <summary>代码</summary>
-        String Code { get; set; }
+        /// <summary>类别</summary>
+        String Category { get; set; }
 
         /// <summary>名称</summary>
         String Name { get; set; }
 
-        /// <summary>全名</summary>
-        String FullName { get; set; }
+        /// <summary>数值</summary>
+        String Value { get; set; }
 
-        /// <summary>父级</summary>
-        Int32 ParentID { get; set; }
-
-        /// <summary>层级。树状结构的层级</summary>
-        Int32 Level { get; set; }
-
-        /// <summary>排序。同级内排序</summary>
-        Int32 Sort { get; set; }
+        /// <summary>种类。0普通，1列表，2名值</summary>
+        XCode.Membership.ParameterKinds Kind { get; set; }
 
         /// <summary>启用</summary>
         Boolean Enable { get; set; }
-
-        /// <summary>可见</summary>
-        Boolean Visible { get; set; }
 
         /// <summary>扩展1</summary>
         Int32 Ex1 { get; set; }

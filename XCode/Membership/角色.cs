@@ -32,6 +32,14 @@ namespace XCode.Membership
         [BindColumn("Name", "名称", "", Master = true)]
         public String Name { get { return _Name; } set { if (OnPropertyChanging(__.Name, value)) { _Name = value; OnPropertyChanged(__.Name); } } }
 
+        private Boolean _Enable;
+        /// <summary>启用</summary>
+        [DisplayName("启用")]
+        [Description("启用")]
+        [DataObjectField(false, false, false, 0)]
+        [BindColumn("Enable", "启用", "")]
+        public Boolean Enable { get { return _Enable; } set { if (OnPropertyChanging(__.Enable, value)) { _Enable = value; OnPropertyChanged(__.Enable); } } }
+
         private Boolean _IsSystem;
         /// <summary>系统。用于业务系统开发使用，不受数据权限约束，禁止修改名称或删除</summary>
         [DisplayName("系统")]
@@ -181,6 +189,7 @@ namespace XCode.Membership
                 {
                     case __.ID : return _ID;
                     case __.Name : return _Name;
+                    case __.Enable : return _Enable;
                     case __.IsSystem : return _IsSystem;
                     case __.Permission : return _Permission;
                     case __.Ex1 : return _Ex1;
@@ -207,6 +216,7 @@ namespace XCode.Membership
                 {
                     case __.ID : _ID = Convert.ToInt32(value); break;
                     case __.Name : _Name = Convert.ToString(value); break;
+                    case __.Enable : _Enable = Convert.ToBoolean(value); break;
                     case __.IsSystem : _IsSystem = Convert.ToBoolean(value); break;
                     case __.Permission : _Permission = Convert.ToString(value); break;
                     case __.Ex1 : _Ex1 = Convert.ToInt32(value); break;
@@ -239,6 +249,9 @@ namespace XCode.Membership
 
             /// <summary>名称</summary>
             public static readonly Field Name = FindByName(__.Name);
+
+            /// <summary>启用</summary>
+            public static readonly Field Enable = FindByName(__.Enable);
 
             /// <summary>系统。用于业务系统开发使用，不受数据权限约束，禁止修改名称或删除</summary>
             public static readonly Field IsSystem = FindByName(__.IsSystem);
@@ -303,6 +316,9 @@ namespace XCode.Membership
             /// <summary>名称</summary>
             public const String Name = "Name";
 
+            /// <summary>启用</summary>
+            public const String Enable = "Enable";
+
             /// <summary>系统。用于业务系统开发使用，不受数据权限约束，禁止修改名称或删除</summary>
             public const String IsSystem = "IsSystem";
 
@@ -366,6 +382,9 @@ namespace XCode.Membership
 
         /// <summary>名称</summary>
         String Name { get; set; }
+
+        /// <summary>启用</summary>
+        Boolean Enable { get; set; }
 
         /// <summary>系统。用于业务系统开发使用，不受数据权限约束，禁止修改名称或删除</summary>
         Boolean IsSystem { get; set; }
