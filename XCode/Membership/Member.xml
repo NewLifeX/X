@@ -20,6 +20,16 @@
       <Column Name="LastLoginIP" DataType="String" Description="最后登录IP" />
       <Column Name="RegisterTime" DataType="DateTime" Description="注册时间" />
       <Column Name="RegisterIP" DataType="String" Description="注册IP" />
+      <Column Name="Ex1" DataType="Int32" Description="扩展1" />
+      <Column Name="Ex2" DataType="Int32" Description="扩展2" />
+      <Column Name="Ex3" DataType="Double" Description="扩展3" />
+      <Column Name="Ex4" DataType="String" Description="扩展4" />
+      <Column Name="Ex5" DataType="String" Description="扩展5" />
+      <Column Name="Ex6" DataType="String" Description="扩展6" />
+      <Column Name="UpdateUser" DataType="String" Description="更新用户" />
+      <Column Name="UpdateUserID" DataType="Int32" Description="更新用户" />
+      <Column Name="UpdateIP" DataType="String" Description="更新地址" />
+      <Column Name="UpdateTime" DataType="DateTime" Description="更新时间" />
     </Columns>
     <Indexes>
       <Index Columns="Name" Unique="True" />
@@ -33,9 +43,17 @@
       <Column Name="IsSystem" DataType="Boolean" Description="系统。用于业务系统开发使用，不受数据权限约束，禁止修改名称或删除" />
       <Column Name="Remark" DataType="String" Description="说明" />
       <Column Name="Permission" DataType="String" Length="500" Description="权限。对不同资源的权限，逗号分隔，每个资源的权限子项竖线分隔" />
+      <Column Name="Ex1" DataType="Int32" Description="扩展1" />
+      <Column Name="Ex2" DataType="Int32" Description="扩展2" />
+      <Column Name="Ex3" DataType="Double" Description="扩展3" />
+      <Column Name="Ex4" DataType="String" Description="扩展4" />
+      <Column Name="Ex5" DataType="String" Description="扩展5" />
+      <Column Name="Ex6" DataType="String" Description="扩展6" />
+      <Column Name="CreateUser" DataType="String" Description="创建用户" />
       <Column Name="CreateUserID" DataType="Int32" Description="创建用户" />
       <Column Name="CreateIP" DataType="String" Description="创建地址" />
       <Column Name="CreateTime" DataType="DateTime" Description="创建时间" />
+      <Column Name="UpdateUser" DataType="String" Description="更新用户" />
       <Column Name="UpdateUserID" DataType="Int32" Description="更新用户" />
       <Column Name="UpdateIP" DataType="String" Description="更新地址" />
       <Column Name="UpdateTime" DataType="DateTime" Description="更新时间" />
@@ -57,7 +75,21 @@
       <Column Name="Visible" DataType="Boolean" Description="可见" />
       <Column Name="Necessary" DataType="Boolean" Description="必要。必要的菜单，必须至少有角色拥有这些权限，如果没有则自动授权给系统角色" />
       <Column Name="Permission" DataType="String" Length="200" Description="权限子项。逗号分隔，每个权限子项名值竖线分隔" />
+      <Column Name="Ex1" DataType="Int32" Description="扩展1" />
+      <Column Name="Ex2" DataType="Int32" Description="扩展2" />
+      <Column Name="Ex3" DataType="Double" Description="扩展3" />
+      <Column Name="Ex4" DataType="String" Description="扩展4" />
+      <Column Name="Ex5" DataType="String" Description="扩展5" />
+      <Column Name="Ex6" DataType="String" Description="扩展6" />
       <Column Name="Remark" DataType="String" Length="200" Description="备注" />
+      <Column Name="CreateUser" DataType="String" Description="创建用户" />
+      <Column Name="CreateUserID" DataType="Int32" Description="创建用户" />
+      <Column Name="CreateIP" DataType="String" Description="创建地址" />
+      <Column Name="CreateTime" DataType="DateTime" Description="创建时间" />
+      <Column Name="UpdateUser" DataType="String" Description="更新用户" />
+      <Column Name="UpdateUserID" DataType="Int32" Description="更新用户" />
+      <Column Name="UpdateIP" DataType="String" Description="更新地址" />
+      <Column Name="UpdateTime" DataType="DateTime" Description="更新时间" />
     </Columns>
     <Indexes>
       <Index Columns="Name" />
@@ -71,6 +103,13 @@
       <Column Name="Action" DataType="String" Description="操作" />
       <Column Name="LinkID" DataType="Int32" Description="链接" />
       <Column Name="UserName" DataType="String" Description="用户名" />
+      <Column Name="Ex1" DataType="Int32" Description="扩展1" />
+      <Column Name="Ex2" DataType="Int32" Description="扩展2" />
+      <Column Name="Ex3" DataType="Double" Description="扩展3" />
+      <Column Name="Ex4" DataType="String" Description="扩展4" />
+      <Column Name="Ex5" DataType="String" Description="扩展5" />
+      <Column Name="Ex6" DataType="String" Description="扩展6" />
+      <Column Name="CreateUser" DataType="String" Description="创建用户" />
       <Column Name="CreateUserID" DataType="Int32" Description="用户编号" />
       <Column Name="CreateIP" DataType="String" Description="IP地址" />
       <Column Name="CreateTime" DataType="DateTime" Description="时间" />
