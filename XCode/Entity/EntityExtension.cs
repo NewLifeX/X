@@ -528,7 +528,9 @@ namespace XCode
                         if (!hs.Contains(elm)) hs.Add(elm);
                     }
                 }
-                updateColumns = hs;
+                if (hs.Count > 0) updateColumns = hs;
+                else
+                    updateColumns = columns.Where(e => !e.ColumnName.StartsWithIgnoreCase("Create")).Select(e => e.ColumnName).ToList();
             }
             if (addColumns == null) addColumns = fact.AdditionalFields;
 
