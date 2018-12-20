@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -8,11 +7,10 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Caching;
-using NewLife.Data;
 using NewLife.Log;
 using NewLife.Remoting;
 using NewLife.Security;
-using XCode;
+using NewLife.Serialization;
 using XCode.Code;
 using XCode.DataAccessLayer;
 using XCode.Membership;
@@ -36,7 +34,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test8();
+                    Test7();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -308,82 +306,31 @@ namespace Test
 
         static void Test7()
         {
-            var set = XCode.Setting.Current;
-            //set.Debug = true;
-            set.ShowSQL = false;
+            Parameter.Meta.Session.Dal.Db.ShowSQL = true;
 
-            //XCode.Cache.CacheBase.Debug = true;
-
-            var dal = UserX.Meta.Session.Dal;
-            dal.Db.DataCache = 3;
-
-            var list = UserX.FindAll(null, null, null, 1, 20);
-            var u = UserX.FindByKey(1);
-            var n = UserX.FindCount();
-            Console.WriteLine("总数据：{0:n0}", n);
-
-            //using (var tr = UserX.Meta.CreateTrans())
-            //{
-            //    u = new UserX
-            //    {
-            //        Name = Rand.NextString(8),
-            //        DisplayName = Rand.NextString(16)
-            //    };
-            //    u.Insert();
-
-            //    if (Rand.Next(2) == 1) tr.Commit();
-            //}
-            Task.Run(() =>
+            var p = Parameter.FindByCategoryAndName("量化交易", "交易所");
+            if (p == null) p = new Parameter
             {
-                var us = new List<UserX>();
-                for (var i = 0; i < 1_000_000; i++)
-                {
-                    var entity = new UserX
-                    {
-                        Name = Rand.NextString(8),
-                        DisplayName = Rand.NextString(16)
-                    };
-                    us.Add(entity);
-                }
-                us.Insert(true);
-            });
-
-            var sql = "select * from user limit 20";
-            var ds = dal.Select(sql);
-            ds = dal.Select(sql, CommandType.Text);
-            ds = dal.Select(sql, CommandType.Text, new Dictionary<String, Object>());
-            var dt = dal.Query(sql, new Dictionary<String, Object>());
-            n = dal.SelectCount(sql, CommandType.Text);
-
-            var sb = SelectBuilder.Create("select roleid,count(*) from user group by roleid order by count(*) desc");
-            ds = dal.Select(sb, 3, 5);
-            dt = dal.Query(sb, 4, 6);
-            n = dal.SelectCount(sb);
-
-            for (var i = 0; i < 20; i++)
+                Category = "量化交易",
+                Name = "交易所"
+            };
+            var dic = new Dictionary<Int32, String>
             {
-                //Console.WriteLine(i);
+                [1] = "上海交易所",
+                [2] = "深圳交易所",
+                [900] = "纽约交易所"
+            };
+            p.SetValue(dic);
+            p.Save();
 
-                var sw = Stopwatch.StartNew();
-                list = UserX.FindAll(null, null, null, 1, 20);
-                u = UserX.FindByKey(1);
-                n = UserX.FindCount();
-
-                ds = dal.Select(sql);
-                ds = dal.Select(sql, CommandType.Text);
-                ds = dal.Select(sql, CommandType.Text, new Dictionary<String, Object>());
-                dt = dal.Query(sql, new Dictionary<String, Object>());
-                n = dal.SelectCount(sql, CommandType.Text);
-
-                ds = dal.Select(sb, 3, 5);
-                dt = dal.Query(sb, 4, 6);
-                n = dal.SelectCount(sb);
-
-                sw.Stop();
-                XTrace.WriteLine("{0} {1:n0}us", i, sw.Elapsed.TotalMilliseconds * 1000);
-
-                Thread.Sleep(1000);
+            var p2 = Parameter.FindByCategoryAndName("量化交易", "交易所");
+            var dic2 = p2.GetHash<Int32, String>();
+            foreach (var item in dic2)
+            {
+                Console.WriteLine("{0}={1}", item.Key, item.Value);
             }
+            Console.WriteLine(p2.ToJson(true));
+            p2.Delete();
         }
 
         static void Test8()

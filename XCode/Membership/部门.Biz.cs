@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -29,7 +29,7 @@ namespace XCode.Membership
     public class Department : Department<Department> { }
 
     /// <summary>部门。组织机构，多级树状结构</summary>
-    public partial class Department<TEntity> : Entity<TEntity> where TEntity : Department<TEntity>, new()
+    public partial class Department<TEntity> : EntityTree<TEntity> where TEntity : Department<TEntity>, new()
     {
         #region 对象操作
         static Department()

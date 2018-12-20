@@ -50,12 +50,20 @@ namespace XCode.Membership
         [BindColumn("Value", "数值", "")]
         public String Value { get { return _Value; } set { if (OnPropertyChanging(__.Value, value)) { _Value = value; OnPropertyChanged(__.Value); } } }
 
+        private String _LongValue;
+        /// <summary>长数值</summary>
+        [DisplayName("长数值")]
+        [Description("长数值")]
+        [DataObjectField(false, false, true, 2000)]
+        [BindColumn("LongValue", "长数值", "")]
+        public String LongValue { get { return _LongValue; } set { if (OnPropertyChanging(__.LongValue, value)) { _LongValue = value; OnPropertyChanged(__.LongValue); } } }
+
         private XCode.Membership.ParameterKinds _Kind;
-        /// <summary>种类。0普通，1列表，2名值</summary>
+        /// <summary>种类。0普通，21列表，22名值</summary>
         [DisplayName("种类")]
-        [Description("种类。0普通，1列表，2名值")]
+        [Description("种类。0普通，21列表，22名值")]
         [DataObjectField(false, false, false, 0)]
-        [BindColumn("Kind", "种类。0普通，1列表，2名值", "")]
+        [BindColumn("Kind", "种类。0普通，21列表，22名值", "")]
         public XCode.Membership.ParameterKinds Kind { get { return _Kind; } set { if (OnPropertyChanging(__.Kind, value)) { _Kind = value; OnPropertyChanged(__.Kind); } } }
 
         private Boolean _Enable;
@@ -182,7 +190,7 @@ namespace XCode.Membership
         /// <summary>备注</summary>
         [DisplayName("备注")]
         [Description("备注")]
-        [DataObjectField(false, false, true, 2000)]
+        [DataObjectField(false, false, true, 200)]
         [BindColumn("Remark", "备注", "")]
         public String Remark { get { return _Remark; } set { if (OnPropertyChanging(__.Remark, value)) { _Remark = value; OnPropertyChanged(__.Remark); } } }
         #endregion
@@ -201,6 +209,7 @@ namespace XCode.Membership
                     case __.Category : return _Category;
                     case __.Name : return _Name;
                     case __.Value : return _Value;
+                    case __.LongValue : return _LongValue;
                     case __.Kind : return _Kind;
                     case __.Enable : return _Enable;
                     case __.Ex1 : return _Ex1;
@@ -229,6 +238,7 @@ namespace XCode.Membership
                     case __.Category : _Category = Convert.ToString(value); break;
                     case __.Name : _Name = Convert.ToString(value); break;
                     case __.Value : _Value = Convert.ToString(value); break;
+                    case __.LongValue : _LongValue = Convert.ToString(value); break;
                     case __.Kind : _Kind = (XCode.Membership.ParameterKinds)Convert.ToInt32(value); break;
                     case __.Enable : _Enable = Convert.ToBoolean(value); break;
                     case __.Ex1 : _Ex1 = Convert.ToInt32(value); break;
@@ -268,7 +278,10 @@ namespace XCode.Membership
             /// <summary>数值</summary>
             public static readonly Field Value = FindByName(__.Value);
 
-            /// <summary>种类。0普通，1列表，2名值</summary>
+            /// <summary>长数值</summary>
+            public static readonly Field LongValue = FindByName(__.LongValue);
+
+            /// <summary>种类。0普通，21列表，22名值</summary>
             public static readonly Field Kind = FindByName(__.Kind);
 
             /// <summary>启用</summary>
@@ -337,7 +350,10 @@ namespace XCode.Membership
             /// <summary>数值</summary>
             public const String Value = "Value";
 
-            /// <summary>种类。0普通，1列表，2名值</summary>
+            /// <summary>长数值</summary>
+            public const String LongValue = "LongValue";
+
+            /// <summary>种类。0普通，21列表，22名值</summary>
             public const String Kind = "Kind";
 
             /// <summary>启用</summary>
@@ -407,7 +423,10 @@ namespace XCode.Membership
         /// <summary>数值</summary>
         String Value { get; set; }
 
-        /// <summary>种类。0普通，1列表，2名值</summary>
+        /// <summary>长数值</summary>
+        String LongValue { get; set; }
+
+        /// <summary>种类。0普通，21列表，22名值</summary>
         XCode.Membership.ParameterKinds Kind { get; set; }
 
         /// <summary>启用</summary>
