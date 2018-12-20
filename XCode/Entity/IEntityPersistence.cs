@@ -397,7 +397,12 @@ namespace XCode
                 if (sbValues != null) sbValues.Separate(", ");
 
                 if (usep || UseParam(fi, value))
-                    dps.Add(CreateParameter(sbValues, fact, fi, value));
+                {
+                    var dp = CreateParameter(fact, fi, value);
+                    dps.Add(dp);
+
+                    sbValues.Append(dp.ParameterName);
+                }
                 else
                     sbValues.Append(fact.FormatValue(fi, value));
             }
@@ -478,13 +483,39 @@ namespace XCode
                 sb.Append(name);
                 sb.Append("=");
 
+                // 检查累加
+                var flag = TryCheckAdditionalValue(dfs, fi.Name, out var val, out var sign);
+
                 if (up || UseParam(fi, value))
-                    dps.Add(CreateParameter(sb, op, fi, value));
+                {
+                    var dp = CreateParameter(op, fi, flag ? val : value);
+                    dps.Add(dp);
+
+                    // 检查累加
+                    if (flag)
+                    {
+                        if (sign)
+                            sb.AppendFormat("{0}+{1}", name, dp.ParameterName);
+                        else
+                            sb.AppendFormat("{0}-{1}", name, dp.ParameterName);
+                    }
+                    else
+                    {
+                        sb.Append(dp.ParameterName);
+                    }
+                }
                 else
                 {
                     // 检查累加
-                    if (!CheckAdditionalValue(sb, dfs, fi.Name, name))
-                        sb.Append(op.FormatValue(fi, value)); // 数据
+                    if (flag)
+                    {
+                        if (sign)
+                            sb.AppendFormat("{0}+{1}", name, val);
+                        else
+                            sb.AppendFormat("{0}-{1}", name, val);
+                    }
+                    else
+                        sb.Append(op.FormatValue(fi, value));
                 }
             }
 
@@ -546,7 +577,7 @@ namespace XCode
             return false;
         }
 
-        static Object FormatParamValue(FieldItem fi, Object value, IEntityOperate eop)
+        static Object FormatParamValue(FieldItem fi, Object value, IEntityOperate fact)
         {
             if (value != null) return value;
 
@@ -583,19 +614,19 @@ namespace XCode
             return DBNull.Value;
         }
 
-        static IDataParameter CreateParameter(StringBuilder sb, IEntityOperate op, FieldItem fi, Object value)
+        static IDataParameter CreateParameter(IEntityOperate fact, FieldItem fi, Object value)
         {
-            var dp = op.Session.Dal.Db.CreateParameter(fi.ColumnName ?? fi.Name, value, fi.Field);
-
-            if (sb != null) sb.Append(dp.ParameterName);
+            var dp = fact.Session.Dal.Db.CreateParameter(fi.ColumnName ?? fi.Name, value, fi.Field);
 
             if (dp is DbParameter dbp) dbp.IsNullable = fi.IsNullable;
 
             return dp;
         }
 
-        static Boolean CheckAdditionalValue(StringBuilder sb, IDictionary<String, Object[]> dfs, String name, String cname)
+        static Boolean TryCheckAdditionalValue(IDictionary<String, Object[]> dfs, String name, out Object value, out Boolean sign)
         {
+            value = null;
+            sign = false;
             if (dfs == null || !dfs.TryGetValue(name, out var vs)) return false;
 
             var cur = vs[0];
@@ -604,8 +635,8 @@ namespace XCode
             //// 如果原始值是0，不使用累加，因为可能原始数据字段是NULL，导致累加失败
             //if (Convert.ToInt64(old) == 0) return false;
 
-            var sign = true;
-            var value = old;
+            sign = true;
+            value = old;
 
             // 计算累加数据
             switch (cur.GetType().GetTypeCode())
@@ -665,10 +696,6 @@ namespace XCode
                 default:
                     break;
             }
-            if (sign)
-                sb.AppendFormat("{0}+{1}", cname, value);
-            else
-                sb.AppendFormat("{0}-{1}", cname, value);
 
             return true;
         }
