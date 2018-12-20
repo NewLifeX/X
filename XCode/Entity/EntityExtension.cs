@@ -529,10 +529,10 @@ namespace XCode
                     }
                 }
                 if (hs.Count > 0) updateColumns = hs;
-                else
-                    updateColumns = columns.Where(e => !e.ColumnName.StartsWithIgnoreCase("Create")).Select(e => e.ColumnName).ToList();
             }
             if (addColumns == null) addColumns = fact.AdditionalFields;
+            // 没有任何数据变更则直接返回0
+            if (updateColumns == null && updateColumns.Count <= 0 && addColumns == null && addColumns.Count <= 0) return 0;
 
             var session = fact.Session;
             session.InitData();

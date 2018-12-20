@@ -358,10 +358,10 @@ namespace XCode.DataAccessLayer
             sb.Length--;
 
             // 重复键执行update
-            if (updateColumns != null || addColumns != null)
+            if ((updateColumns != null && updateColumns.Count > 0) || (addColumns != null && addColumns.Count > 0))
             {
                 sb.Append(" On Duplicate Key Update ");
-                if (updateColumns != null)
+                if (updateColumns != null && updateColumns.Count > 0)
                 {
                     foreach (var dc in columns)
                     {
@@ -372,7 +372,7 @@ namespace XCode.DataAccessLayer
                     }
                     sb.Length--;
                 }
-                if (addColumns != null)
+                if (addColumns != null && addColumns.Count > 0)
                 {
                     sb.Append(",");
                     foreach (var dc in columns)
