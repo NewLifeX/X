@@ -105,6 +105,118 @@ namespace XCode.Membership
         [BindColumn("Permission", "权限子项。逗号分隔，每个权限子项名值竖线分隔", "")]
         public String Permission { get { return _Permission; } set { if (OnPropertyChanging(__.Permission, value)) { _Permission = value; OnPropertyChanged(__.Permission); } } }
 
+        private Int32 _Ex1;
+        /// <summary>扩展1</summary>
+        [DisplayName("扩展1")]
+        [Description("扩展1")]
+        [DataObjectField(false, false, false, 0)]
+        [BindColumn("Ex1", "扩展1", "")]
+        public Int32 Ex1 { get { return _Ex1; } set { if (OnPropertyChanging(__.Ex1, value)) { _Ex1 = value; OnPropertyChanged(__.Ex1); } } }
+
+        private Int32 _Ex2;
+        /// <summary>扩展2</summary>
+        [DisplayName("扩展2")]
+        [Description("扩展2")]
+        [DataObjectField(false, false, false, 0)]
+        [BindColumn("Ex2", "扩展2", "")]
+        public Int32 Ex2 { get { return _Ex2; } set { if (OnPropertyChanging(__.Ex2, value)) { _Ex2 = value; OnPropertyChanged(__.Ex2); } } }
+
+        private Double _Ex3;
+        /// <summary>扩展3</summary>
+        [DisplayName("扩展3")]
+        [Description("扩展3")]
+        [DataObjectField(false, false, false, 0)]
+        [BindColumn("Ex3", "扩展3", "")]
+        public Double Ex3 { get { return _Ex3; } set { if (OnPropertyChanging(__.Ex3, value)) { _Ex3 = value; OnPropertyChanged(__.Ex3); } } }
+
+        private String _Ex4;
+        /// <summary>扩展4</summary>
+        [DisplayName("扩展4")]
+        [Description("扩展4")]
+        [DataObjectField(false, false, true, 50)]
+        [BindColumn("Ex4", "扩展4", "")]
+        public String Ex4 { get { return _Ex4; } set { if (OnPropertyChanging(__.Ex4, value)) { _Ex4 = value; OnPropertyChanged(__.Ex4); } } }
+
+        private String _Ex5;
+        /// <summary>扩展5</summary>
+        [DisplayName("扩展5")]
+        [Description("扩展5")]
+        [DataObjectField(false, false, true, 50)]
+        [BindColumn("Ex5", "扩展5", "")]
+        public String Ex5 { get { return _Ex5; } set { if (OnPropertyChanging(__.Ex5, value)) { _Ex5 = value; OnPropertyChanged(__.Ex5); } } }
+
+        private String _Ex6;
+        /// <summary>扩展6</summary>
+        [DisplayName("扩展6")]
+        [Description("扩展6")]
+        [DataObjectField(false, false, true, 50)]
+        [BindColumn("Ex6", "扩展6", "")]
+        public String Ex6 { get { return _Ex6; } set { if (OnPropertyChanging(__.Ex6, value)) { _Ex6 = value; OnPropertyChanged(__.Ex6); } } }
+
+        private String _CreateUser;
+        /// <summary>创建用户</summary>
+        [DisplayName("创建用户")]
+        [Description("创建用户")]
+        [DataObjectField(false, false, true, 50)]
+        [BindColumn("CreateUser", "创建用户", "")]
+        public String CreateUser { get { return _CreateUser; } set { if (OnPropertyChanging(__.CreateUser, value)) { _CreateUser = value; OnPropertyChanged(__.CreateUser); } } }
+
+        private Int32 _CreateUserID;
+        /// <summary>创建用户</summary>
+        [DisplayName("创建用户")]
+        [Description("创建用户")]
+        [DataObjectField(false, false, false, 0)]
+        [BindColumn("CreateUserID", "创建用户", "")]
+        public Int32 CreateUserID { get { return _CreateUserID; } set { if (OnPropertyChanging(__.CreateUserID, value)) { _CreateUserID = value; OnPropertyChanged(__.CreateUserID); } } }
+
+        private String _CreateIP;
+        /// <summary>创建地址</summary>
+        [DisplayName("创建地址")]
+        [Description("创建地址")]
+        [DataObjectField(false, false, true, 50)]
+        [BindColumn("CreateIP", "创建地址", "")]
+        public String CreateIP { get { return _CreateIP; } set { if (OnPropertyChanging(__.CreateIP, value)) { _CreateIP = value; OnPropertyChanged(__.CreateIP); } } }
+
+        private DateTime _CreateTime;
+        /// <summary>创建时间</summary>
+        [DisplayName("创建时间")]
+        [Description("创建时间")]
+        [DataObjectField(false, false, true, 0)]
+        [BindColumn("CreateTime", "创建时间", "")]
+        public DateTime CreateTime { get { return _CreateTime; } set { if (OnPropertyChanging(__.CreateTime, value)) { _CreateTime = value; OnPropertyChanged(__.CreateTime); } } }
+
+        private String _UpdateUser;
+        /// <summary>更新用户</summary>
+        [DisplayName("更新用户")]
+        [Description("更新用户")]
+        [DataObjectField(false, false, true, 50)]
+        [BindColumn("UpdateUser", "更新用户", "")]
+        public String UpdateUser { get { return _UpdateUser; } set { if (OnPropertyChanging(__.UpdateUser, value)) { _UpdateUser = value; OnPropertyChanged(__.UpdateUser); } } }
+
+        private Int32 _UpdateUserID;
+        /// <summary>更新用户</summary>
+        [DisplayName("更新用户")]
+        [Description("更新用户")]
+        [DataObjectField(false, false, false, 0)]
+        [BindColumn("UpdateUserID", "更新用户", "")]
+        public Int32 UpdateUserID { get { return _UpdateUserID; } set { if (OnPropertyChanging(__.UpdateUserID, value)) { _UpdateUserID = value; OnPropertyChanged(__.UpdateUserID); } } }
+
+        private String _UpdateIP;
+        /// <summary>更新地址</summary>
+        [DisplayName("更新地址")]
+        [Description("更新地址")]
+        [DataObjectField(false, false, true, 50)]
+        [BindColumn("UpdateIP", "更新地址", "")]
+        public String UpdateIP { get { return _UpdateIP; } set { if (OnPropertyChanging(__.UpdateIP, value)) { _UpdateIP = value; OnPropertyChanged(__.UpdateIP); } } }
+
+        private DateTime _UpdateTime;
+        /// <summary>更新时间</summary>
+        [DisplayName("更新时间")]
+        [Description("更新时间")]
+        [DataObjectField(false, false, true, 0)]
+        [BindColumn("UpdateTime", "更新时间", "")]
+        public DateTime UpdateTime { get { return _UpdateTime; } set { if (OnPropertyChanging(__.UpdateTime, value)) { _UpdateTime = value; OnPropertyChanged(__.UpdateTime); } } }
+
         private String _Remark;
         /// <summary>备注</summary>
         [DisplayName("备注")]
@@ -135,6 +247,20 @@ namespace XCode.Membership
                     case __.Visible : return _Visible;
                     case __.Necessary : return _Necessary;
                     case __.Permission : return _Permission;
+                    case __.Ex1 : return _Ex1;
+                    case __.Ex2 : return _Ex2;
+                    case __.Ex3 : return _Ex3;
+                    case __.Ex4 : return _Ex4;
+                    case __.Ex5 : return _Ex5;
+                    case __.Ex6 : return _Ex6;
+                    case __.CreateUser : return _CreateUser;
+                    case __.CreateUserID : return _CreateUserID;
+                    case __.CreateIP : return _CreateIP;
+                    case __.CreateTime : return _CreateTime;
+                    case __.UpdateUser : return _UpdateUser;
+                    case __.UpdateUserID : return _UpdateUserID;
+                    case __.UpdateIP : return _UpdateIP;
+                    case __.UpdateTime : return _UpdateTime;
                     case __.Remark : return _Remark;
                     default: return base[name];
                 }
@@ -154,6 +280,20 @@ namespace XCode.Membership
                     case __.Visible : _Visible = Convert.ToBoolean(value); break;
                     case __.Necessary : _Necessary = Convert.ToBoolean(value); break;
                     case __.Permission : _Permission = Convert.ToString(value); break;
+                    case __.Ex1 : _Ex1 = Convert.ToInt32(value); break;
+                    case __.Ex2 : _Ex2 = Convert.ToInt32(value); break;
+                    case __.Ex3 : _Ex3 = Convert.ToDouble(value); break;
+                    case __.Ex4 : _Ex4 = Convert.ToString(value); break;
+                    case __.Ex5 : _Ex5 = Convert.ToString(value); break;
+                    case __.Ex6 : _Ex6 = Convert.ToString(value); break;
+                    case __.CreateUser : _CreateUser = Convert.ToString(value); break;
+                    case __.CreateUserID : _CreateUserID = Convert.ToInt32(value); break;
+                    case __.CreateIP : _CreateIP = Convert.ToString(value); break;
+                    case __.CreateTime : _CreateTime = Convert.ToDateTime(value); break;
+                    case __.UpdateUser : _UpdateUser = Convert.ToString(value); break;
+                    case __.UpdateUserID : _UpdateUserID = Convert.ToInt32(value); break;
+                    case __.UpdateIP : _UpdateIP = Convert.ToString(value); break;
+                    case __.UpdateTime : _UpdateTime = Convert.ToDateTime(value); break;
                     case __.Remark : _Remark = Convert.ToString(value); break;
                     default: base[name] = value; break;
                 }
@@ -198,6 +338,48 @@ namespace XCode.Membership
             /// <summary>权限子项。逗号分隔，每个权限子项名值竖线分隔</summary>
             public static readonly Field Permission = FindByName(__.Permission);
 
+            /// <summary>扩展1</summary>
+            public static readonly Field Ex1 = FindByName(__.Ex1);
+
+            /// <summary>扩展2</summary>
+            public static readonly Field Ex2 = FindByName(__.Ex2);
+
+            /// <summary>扩展3</summary>
+            public static readonly Field Ex3 = FindByName(__.Ex3);
+
+            /// <summary>扩展4</summary>
+            public static readonly Field Ex4 = FindByName(__.Ex4);
+
+            /// <summary>扩展5</summary>
+            public static readonly Field Ex5 = FindByName(__.Ex5);
+
+            /// <summary>扩展6</summary>
+            public static readonly Field Ex6 = FindByName(__.Ex6);
+
+            /// <summary>创建用户</summary>
+            public static readonly Field CreateUser = FindByName(__.CreateUser);
+
+            /// <summary>创建用户</summary>
+            public static readonly Field CreateUserID = FindByName(__.CreateUserID);
+
+            /// <summary>创建地址</summary>
+            public static readonly Field CreateIP = FindByName(__.CreateIP);
+
+            /// <summary>创建时间</summary>
+            public static readonly Field CreateTime = FindByName(__.CreateTime);
+
+            /// <summary>更新用户</summary>
+            public static readonly Field UpdateUser = FindByName(__.UpdateUser);
+
+            /// <summary>更新用户</summary>
+            public static readonly Field UpdateUserID = FindByName(__.UpdateUserID);
+
+            /// <summary>更新地址</summary>
+            public static readonly Field UpdateIP = FindByName(__.UpdateIP);
+
+            /// <summary>更新时间</summary>
+            public static readonly Field UpdateTime = FindByName(__.UpdateTime);
+
             /// <summary>备注</summary>
             public static readonly Field Remark = FindByName(__.Remark);
 
@@ -239,6 +421,48 @@ namespace XCode.Membership
 
             /// <summary>权限子项。逗号分隔，每个权限子项名值竖线分隔</summary>
             public const String Permission = "Permission";
+
+            /// <summary>扩展1</summary>
+            public const String Ex1 = "Ex1";
+
+            /// <summary>扩展2</summary>
+            public const String Ex2 = "Ex2";
+
+            /// <summary>扩展3</summary>
+            public const String Ex3 = "Ex3";
+
+            /// <summary>扩展4</summary>
+            public const String Ex4 = "Ex4";
+
+            /// <summary>扩展5</summary>
+            public const String Ex5 = "Ex5";
+
+            /// <summary>扩展6</summary>
+            public const String Ex6 = "Ex6";
+
+            /// <summary>创建用户</summary>
+            public const String CreateUser = "CreateUser";
+
+            /// <summary>创建用户</summary>
+            public const String CreateUserID = "CreateUserID";
+
+            /// <summary>创建地址</summary>
+            public const String CreateIP = "CreateIP";
+
+            /// <summary>创建时间</summary>
+            public const String CreateTime = "CreateTime";
+
+            /// <summary>更新用户</summary>
+            public const String UpdateUser = "UpdateUser";
+
+            /// <summary>更新用户</summary>
+            public const String UpdateUserID = "UpdateUserID";
+
+            /// <summary>更新地址</summary>
+            public const String UpdateIP = "UpdateIP";
+
+            /// <summary>更新时间</summary>
+            public const String UpdateTime = "UpdateTime";
 
             /// <summary>备注</summary>
             public const String Remark = "Remark";
@@ -282,6 +506,48 @@ namespace XCode.Membership
 
         /// <summary>权限子项。逗号分隔，每个权限子项名值竖线分隔</summary>
         String Permission { get; set; }
+
+        /// <summary>扩展1</summary>
+        Int32 Ex1 { get; set; }
+
+        /// <summary>扩展2</summary>
+        Int32 Ex2 { get; set; }
+
+        /// <summary>扩展3</summary>
+        Double Ex3 { get; set; }
+
+        /// <summary>扩展4</summary>
+        String Ex4 { get; set; }
+
+        /// <summary>扩展5</summary>
+        String Ex5 { get; set; }
+
+        /// <summary>扩展6</summary>
+        String Ex6 { get; set; }
+
+        /// <summary>创建用户</summary>
+        String CreateUser { get; set; }
+
+        /// <summary>创建用户</summary>
+        Int32 CreateUserID { get; set; }
+
+        /// <summary>创建地址</summary>
+        String CreateIP { get; set; }
+
+        /// <summary>创建时间</summary>
+        DateTime CreateTime { get; set; }
+
+        /// <summary>更新用户</summary>
+        String UpdateUser { get; set; }
+
+        /// <summary>更新用户</summary>
+        Int32 UpdateUserID { get; set; }
+
+        /// <summary>更新地址</summary>
+        String UpdateIP { get; set; }
+
+        /// <summary>更新时间</summary>
+        DateTime UpdateTime { get; set; }
 
         /// <summary>备注</summary>
         String Remark { get; set; }

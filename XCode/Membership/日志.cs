@@ -58,6 +58,62 @@ namespace XCode.Membership
         [BindColumn("UserName", "用户名", "")]
         public String UserName { get { return _UserName; } set { if (OnPropertyChanging(__.UserName, value)) { _UserName = value; OnPropertyChanged(__.UserName); } } }
 
+        private Int32 _Ex1;
+        /// <summary>扩展1</summary>
+        [DisplayName("扩展1")]
+        [Description("扩展1")]
+        [DataObjectField(false, false, false, 0)]
+        [BindColumn("Ex1", "扩展1", "")]
+        public Int32 Ex1 { get { return _Ex1; } set { if (OnPropertyChanging(__.Ex1, value)) { _Ex1 = value; OnPropertyChanged(__.Ex1); } } }
+
+        private Int32 _Ex2;
+        /// <summary>扩展2</summary>
+        [DisplayName("扩展2")]
+        [Description("扩展2")]
+        [DataObjectField(false, false, false, 0)]
+        [BindColumn("Ex2", "扩展2", "")]
+        public Int32 Ex2 { get { return _Ex2; } set { if (OnPropertyChanging(__.Ex2, value)) { _Ex2 = value; OnPropertyChanged(__.Ex2); } } }
+
+        private Double _Ex3;
+        /// <summary>扩展3</summary>
+        [DisplayName("扩展3")]
+        [Description("扩展3")]
+        [DataObjectField(false, false, false, 0)]
+        [BindColumn("Ex3", "扩展3", "")]
+        public Double Ex3 { get { return _Ex3; } set { if (OnPropertyChanging(__.Ex3, value)) { _Ex3 = value; OnPropertyChanged(__.Ex3); } } }
+
+        private String _Ex4;
+        /// <summary>扩展4</summary>
+        [DisplayName("扩展4")]
+        [Description("扩展4")]
+        [DataObjectField(false, false, true, 50)]
+        [BindColumn("Ex4", "扩展4", "")]
+        public String Ex4 { get { return _Ex4; } set { if (OnPropertyChanging(__.Ex4, value)) { _Ex4 = value; OnPropertyChanged(__.Ex4); } } }
+
+        private String _Ex5;
+        /// <summary>扩展5</summary>
+        [DisplayName("扩展5")]
+        [Description("扩展5")]
+        [DataObjectField(false, false, true, 50)]
+        [BindColumn("Ex5", "扩展5", "")]
+        public String Ex5 { get { return _Ex5; } set { if (OnPropertyChanging(__.Ex5, value)) { _Ex5 = value; OnPropertyChanged(__.Ex5); } } }
+
+        private String _Ex6;
+        /// <summary>扩展6</summary>
+        [DisplayName("扩展6")]
+        [Description("扩展6")]
+        [DataObjectField(false, false, true, 50)]
+        [BindColumn("Ex6", "扩展6", "")]
+        public String Ex6 { get { return _Ex6; } set { if (OnPropertyChanging(__.Ex6, value)) { _Ex6 = value; OnPropertyChanged(__.Ex6); } } }
+
+        private String _CreateUser;
+        /// <summary>创建用户</summary>
+        [DisplayName("创建用户")]
+        [Description("创建用户")]
+        [DataObjectField(false, false, true, 50)]
+        [BindColumn("CreateUser", "创建用户", "")]
+        public String CreateUser { get { return _CreateUser; } set { if (OnPropertyChanging(__.CreateUser, value)) { _CreateUser = value; OnPropertyChanged(__.CreateUser); } } }
+
         private Int32 _CreateUserID;
         /// <summary>用户编号</summary>
         [DisplayName("用户编号")]
@@ -106,6 +162,13 @@ namespace XCode.Membership
                     case __.Action : return _Action;
                     case __.LinkID : return _LinkID;
                     case __.UserName : return _UserName;
+                    case __.Ex1 : return _Ex1;
+                    case __.Ex2 : return _Ex2;
+                    case __.Ex3 : return _Ex3;
+                    case __.Ex4 : return _Ex4;
+                    case __.Ex5 : return _Ex5;
+                    case __.Ex6 : return _Ex6;
+                    case __.CreateUser : return _CreateUser;
                     case __.CreateUserID : return _CreateUserID;
                     case __.CreateIP : return _CreateIP;
                     case __.CreateTime : return _CreateTime;
@@ -122,6 +185,13 @@ namespace XCode.Membership
                     case __.Action : _Action = Convert.ToString(value); break;
                     case __.LinkID : _LinkID = Convert.ToInt32(value); break;
                     case __.UserName : _UserName = Convert.ToString(value); break;
+                    case __.Ex1 : _Ex1 = Convert.ToInt32(value); break;
+                    case __.Ex2 : _Ex2 = Convert.ToInt32(value); break;
+                    case __.Ex3 : _Ex3 = Convert.ToDouble(value); break;
+                    case __.Ex4 : _Ex4 = Convert.ToString(value); break;
+                    case __.Ex5 : _Ex5 = Convert.ToString(value); break;
+                    case __.Ex6 : _Ex6 = Convert.ToString(value); break;
+                    case __.CreateUser : _CreateUser = Convert.ToString(value); break;
                     case __.CreateUserID : _CreateUserID = Convert.ToInt32(value); break;
                     case __.CreateIP : _CreateIP = Convert.ToString(value); break;
                     case __.CreateTime : _CreateTime = Convert.ToDateTime(value); break;
@@ -150,6 +220,27 @@ namespace XCode.Membership
 
             /// <summary>用户名</summary>
             public static readonly Field UserName = FindByName(__.UserName);
+
+            /// <summary>扩展1</summary>
+            public static readonly Field Ex1 = FindByName(__.Ex1);
+
+            /// <summary>扩展2</summary>
+            public static readonly Field Ex2 = FindByName(__.Ex2);
+
+            /// <summary>扩展3</summary>
+            public static readonly Field Ex3 = FindByName(__.Ex3);
+
+            /// <summary>扩展4</summary>
+            public static readonly Field Ex4 = FindByName(__.Ex4);
+
+            /// <summary>扩展5</summary>
+            public static readonly Field Ex5 = FindByName(__.Ex5);
+
+            /// <summary>扩展6</summary>
+            public static readonly Field Ex6 = FindByName(__.Ex6);
+
+            /// <summary>创建用户</summary>
+            public static readonly Field CreateUser = FindByName(__.CreateUser);
 
             /// <summary>用户编号</summary>
             public static readonly Field CreateUserID = FindByName(__.CreateUserID);
@@ -184,6 +275,27 @@ namespace XCode.Membership
             /// <summary>用户名</summary>
             public const String UserName = "UserName";
 
+            /// <summary>扩展1</summary>
+            public const String Ex1 = "Ex1";
+
+            /// <summary>扩展2</summary>
+            public const String Ex2 = "Ex2";
+
+            /// <summary>扩展3</summary>
+            public const String Ex3 = "Ex3";
+
+            /// <summary>扩展4</summary>
+            public const String Ex4 = "Ex4";
+
+            /// <summary>扩展5</summary>
+            public const String Ex5 = "Ex5";
+
+            /// <summary>扩展6</summary>
+            public const String Ex6 = "Ex6";
+
+            /// <summary>创建用户</summary>
+            public const String CreateUser = "CreateUser";
+
             /// <summary>用户编号</summary>
             public const String CreateUserID = "CreateUserID";
 
@@ -217,6 +329,27 @@ namespace XCode.Membership
 
         /// <summary>用户名</summary>
         String UserName { get; set; }
+
+        /// <summary>扩展1</summary>
+        Int32 Ex1 { get; set; }
+
+        /// <summary>扩展2</summary>
+        Int32 Ex2 { get; set; }
+
+        /// <summary>扩展3</summary>
+        Double Ex3 { get; set; }
+
+        /// <summary>扩展4</summary>
+        String Ex4 { get; set; }
+
+        /// <summary>扩展5</summary>
+        String Ex5 { get; set; }
+
+        /// <summary>扩展6</summary>
+        String Ex6 { get; set; }
+
+        /// <summary>创建用户</summary>
+        String CreateUser { get; set; }
 
         /// <summary>用户编号</summary>
         Int32 CreateUserID { get; set; }
