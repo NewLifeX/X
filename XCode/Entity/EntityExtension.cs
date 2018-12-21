@@ -488,9 +488,11 @@ namespace XCode
                         if (!hs.Contains(elm)) hs.Add(elm);
                     }
                 }
-                updateColumns = hs;
+                if (hs.Count > 0) updateColumns = hs;
             }
             if (addColumns == null) addColumns = fact.AdditionalFields;
+
+            if ((updateColumns == null || updateColumns.Count < 1) && (addColumns == null || addColumns.Count < 1)) return 0;
 
             var session = fact.Session;
             session.InitData();
