@@ -509,9 +509,6 @@ namespace XCode
             if (list.Count > 1 && DAL.Debug)
             {
                 DAL.WriteLog("调用FindUnique(\"{0}\")不合理，只有返回唯一记录的查询条件才允许调用！", wh);
-#if !__CORE__
-                XTrace.DebugStack(5);
-#endif
             }
             return list[0];
         }

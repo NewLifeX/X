@@ -38,15 +38,7 @@ namespace XCode.Membership
             if (isNew)
             {
                 // 自动设置当前登录用户
-                if (!IsDirty(__.UserName))
-                {
-#if !__CORE__
-                    var user = HttpContext.Current?.User?.Identity as IManageUser;
-#else
-                    var user = ManageProvider.Provider?.Current;
-#endif
-                    UserName = user + "";
-                }
+                if (!IsDirty(__.UserName)) UserName = ManageProvider.Provider?.Current + "";
             }
 
             // 处理过长的备注

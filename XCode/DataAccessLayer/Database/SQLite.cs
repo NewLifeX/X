@@ -39,27 +39,13 @@ namespace XCode.DataAccessLayer
                             else
                             {
                                 //_Factory = GetProviderFactory(null, "System.Data.SQLite.SQLiteFactory", true);
-#if __CORE__
                                 _Factory = GetProviderFactory(null, "System.Data.SQLite.SQLiteFactory", true);
-                                if (_Factory != null)
-                                {
-                                    // 加载子目录
-                                    var plugin = NewLife.Setting.Current.GetPluginPath();
-                                }
-                                else
-                                {
-                                    _Factory = GetProviderFactory("Microsoft.Data.Sqlite.dll", "Microsoft.Data.Sqlite.SqliteFactory", true);
-                                }
-#else
-                                //_Factory = GetProviderFactory(null, "Microsoft.Data.Sqlite.SqliteFactory");
-#endif
+                                if (_Factory == null) _Factory = GetProviderFactory("Microsoft.Data.Sqlite.dll", "Microsoft.Data.Sqlite.SqliteFactory", true);
                                 if (_Factory == null) _Factory = GetProviderFactory("System.Data.SQLite.dll", "System.Data.SQLite.SQLiteFactory");
                             }
 
-#if !__CORE__
-                            // 设置线程安全模式
-                            if (_Factory != null) SetThreadSafe();
-#endif
+                            //// 设置线程安全模式
+                            //if (_Factory != null) SetThreadSafe();
                         }
                     }
                 }
@@ -178,7 +164,6 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected override IMetaData OnCreateMetaData() => new SQLiteMetaData();
 
-#if !__CORE__
         private void SetThreadSafe()
         {
             var asm = _Factory?.GetType().Assembly;
@@ -197,7 +182,6 @@ namespace XCode.DataAccessLayer
 
             mi.Invoke(this, new Object[] { 2 });
         }
-#endif
         #endregion
 
         #region 分页

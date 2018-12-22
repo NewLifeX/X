@@ -28,12 +28,8 @@ namespace XCode.DataAccessLayer
                 {
                     lock (typeof(Oracle))
                     {
-#if __CORE__
                         //_Factory = GetProviderFactory("System.Data.OracleClient.dll", "System.Data.OracleClient.OracleClientFactory");
                         _Factory = GetProviderFactory("Oracle.ManagedDataAccess.dll", "Oracle.ManagedDataAccess.Client.OracleClientFactory");
-#else
-                        _Factory = GetProviderFactory("Oracle.ManagedDataAccess.dll", "Oracle.ManagedDataAccess.Client.OracleClientFactory");
-#endif
                     }
                 }
 

@@ -84,11 +84,7 @@ namespace XCode.DataAccessLayer
 
             if (builder[Application_Name] == null)
             {
-#if !__CORE__
-                var name = Runtime.IsWeb ? System.Web.Hosting.HostingEnvironment.SiteName : AppDomain.CurrentDomain.FriendlyName;
-#else
                 var name = AppDomain.CurrentDomain.FriendlyName;
-#endif
                 builder[Application_Name] = String.Format("XCode_{0}_{1}", name, ConnName);
             }
         }
@@ -421,7 +417,6 @@ namespace XCode.DataAccessLayer
         #region 批量操作
         public override Int32 Insert(String tableName, IDataColumn[] columns, IEnumerable<IIndexAccessor> list)
         {
-
 #if !__CORE__
             //重写批量插入方法
             var ps = new HashSet<String>();

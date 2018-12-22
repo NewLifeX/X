@@ -207,7 +207,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\XCode\build\NewLife.XCode.props" Link="build\NewLife.XCode.props" >
+    <None Include="..\XCode\build\NewLife.XCode.props" Link="build\NewLife.XCode.props">
       <Pack>true</Pack>
       <PackagePath>build\</PackagePath>
     </None>

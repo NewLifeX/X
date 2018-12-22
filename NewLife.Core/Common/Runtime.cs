@@ -30,31 +30,33 @@ namespace NewLife
         }
         #endregion
 
-        #region Web环境
-#if __CORE__
-        /// <summary>是否Web环境</summary>
-        public static Boolean IsWeb => false;
-#else
-        /// <summary>是否Web环境</summary>
-        public static Boolean IsWeb => !String.IsNullOrEmpty(System.Web.HttpRuntime.AppDomainAppId);
-#endif
-        #endregion
-
         #region 系统特性
         /// <summary>是否Mono环境</summary>
         public static Boolean Mono { get; } = Type.GetType("Mono.Runtime") != null;
 
-        /// <summary>是否Linux环境</summary>
 #if __CORE__
+        /// <summary>是否Web环境</summary>
+        public static Boolean IsWeb => false;
+
+        /// <summary>是否Windows环境</summary>
+        public static Boolean Windows => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+
+        /// <summary>是否Linux环境</summary>
         public static Boolean Linux => RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
-#else
-        public static Boolean Linux => false;
-#endif
 
         /// <summary>是否OSX环境</summary>
-#if __CORE__
         public static Boolean OSX => RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
 #else
+        /// <summary>是否Web环境</summary>
+        public static Boolean IsWeb => !String.IsNullOrEmpty(System.Web.HttpRuntime.AppDomainAppId);
+
+        /// <summary>是否Windows环境</summary>
+        public static Boolean Windows => true;
+
+        /// <summary>是否Linux环境</summary>
+        public static Boolean Linux => false;
+
+        /// <summary>是否OSX环境</summary>
         public static Boolean OSX => false;
 #endif
         #endregion

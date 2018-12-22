@@ -173,11 +173,8 @@ namespace XCode.Membership
             {
                 // 当前登录用户
                 var prv = Provider2 ?? ManageProvider.Provider;
-#if !__CORE__
-                var user = prv?.Current ?? HttpContext.Current?.User?.Identity as IManageUser;
-#else
+                //var user = prv?.Current ?? HttpContext.Current?.User?.Identity as IManageUser;
                 var user = prv?.Current;
-#endif
                 if (user != null)
                 {
                     if (log.CreateUserID == 0) log.CreateUserID = user.ID;

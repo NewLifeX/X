@@ -27,31 +27,20 @@ namespace XCode.DataAccessLayer
         #region 构造函数
         static DbBase()
         {
-#if !__CORE__
-            var root = Runtime.IsWeb ? System.Web.HttpRuntime.BinDirectory : AppDomain.CurrentDomain.BaseDirectory;
-#else
             var root = AppDomain.CurrentDomain.BaseDirectory;
-#endif
+            if (Runtime.IsWeb) root = root.CombinePath("bin");
 
             // 根据进程版本，设定x86或者x64为DLL目录
             var dir = Environment.Is64BitProcess ? "x64" : "x86";
             dir = root.CombinePath(dir);
             //if (Directory.Exists(dir)) SetDllDirectory(dir);
             // 不要判断是否存在，因为可能目录还不存在，一会下载驱动后将创建目录
-#if __CORE__
-            if (!Runtime.Mono && !Runtime.Linux) SetDllDirectory(dir);
-#else
-            if (!Runtime.Mono) SetDllDirectory(dir);
-#endif
+            if (Runtime.Windows) SetDllDirectory(dir);
 
             root = NewLife.Setting.Current.GetPluginPath();
             dir = Environment.Is64BitProcess ? "x64" : "x86";
             dir = root.CombinePath(dir);
-#if __CORE__
-            if (!Runtime.Mono && !Runtime.Linux) SetDllDirectory(dir);
-#else
-            if (!Runtime.Mono) SetDllDirectory(dir);
-#endif
+            if (Runtime.Windows) SetDllDirectory(dir);
         }
 
         /// <summary>销毁资源时，回滚未提交事务，并关闭数据库连接</summary>
@@ -345,11 +334,9 @@ namespace XCode.DataAccessLayer
                     //linkName += ";" + name;
                     if (!links.Contains(name)) links.Add(name);
 
-#if __CORE__
                     //linkName = "st_" + name;
                     // 指定完全类型名可获取项目中添加了引用的类型，否则dll文件需要放在根目录
                     className = className + "," + name;
-#endif
                 }
 
                 var type = PluginHelper.LoadPlugin(className, null, assemblyFile, links.Join(","));
