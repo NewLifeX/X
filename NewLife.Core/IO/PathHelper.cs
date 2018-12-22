@@ -1,10 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Text;
 using NewLife.IO;
-#if !__MOBILE__
 using System.IO.Compression;
 using NewLife.Compression;
-#endif
 
 namespace System.IO
 {
@@ -298,7 +296,6 @@ namespace System.IO
             }
         }
 
-#if !__MOBILE__ && !NET4
         /// <summary>解压缩</summary>
         /// <param name="fi"></param>
         /// <param name="destDir"></param>
@@ -369,46 +366,6 @@ namespace System.IO
                 new SevenZip().Compress(fi.FullName, destFile);
             }
         }
-#elif !__MOBILE__
-        /// <summary>解压缩</summary>
-        /// <param name="fi"></param>
-        /// <param name="destDir"></param>
-        /// <param name="overwrite">是否覆盖目标同名文件</param>
-        public static void Extract(this FileInfo fi, String destDir, Boolean overwrite = false)
-        {
-            if (destDir.IsNullOrEmpty()) destDir = fi.Name.GetFullPath();
-
-            //ZipFile.ExtractToDirectory(fi.FullName, destDir);
-
-            if (fi.Name.EndsWithIgnoreCase(".zip"))
-            {
-                ZipFile.ExtractToDirectory(fi.FullName, destDir, overwrite, false);
-            }
-            else
-            {
-                new SevenZip().Extract(fi.FullName, destDir);
-            }
-        }
-
-        /// <summary>压缩文件</summary>
-        /// <param name="fi"></param>
-        /// <param name="destFile"></param>
-        public static void Compress(this FileInfo fi, String destFile)
-        {
-            if (destFile.IsNullOrEmpty()) destFile = fi.Name + ".zip";
-
-            if (File.Exists(destFile)) File.Delete(destFile);
-
-            if (destFile.EndsWithIgnoreCase(".zip"))
-            {
-                ZipFile.CompressFile(fi.FullName, destFile);
-            }
-            else
-            {
-                new SevenZip().Compress(fi.FullName, destFile);
-            }
-        }
-#endif
         #endregion
 
         #region 目录扩展
@@ -532,7 +489,6 @@ namespace System.IO
             return list.ToArray();
         }
 
-#if !__MOBILE__
         /// <summary>压缩</summary>
         /// <param name="di"></param>
         /// <param name="destFile"></param>
@@ -542,16 +498,11 @@ namespace System.IO
 
             if (File.Exists(destFile)) File.Delete(destFile);
 
-#if !NET4
             if (destFile.EndsWithIgnoreCase(".zip"))
                 ZipFile.CreateFromDirectory(di.FullName, destFile, CompressionLevel.Optimal, true);
             else
                 new SevenZip().Compress(di.FullName, destFile);
-#else
-            new SevenZip().Compress(di.FullName, destFile);
-#endif
         }
-#endif
         #endregion
     }
 }

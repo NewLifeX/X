@@ -877,9 +877,7 @@ namespace System
         #endregion
 
         #region 文字转语音
-#if __MOBILE__
-#elif __CORE__
-#else
+#if !__CORE__
         private static NewLife.Extension.SpeakProvider _provider;
         //private static System.Speech.Synthesis.SpeechSynthesizer _provider;
         static void Init()

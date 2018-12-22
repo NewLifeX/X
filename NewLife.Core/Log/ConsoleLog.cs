@@ -25,7 +25,6 @@ namespace NewLife.Log
 
             lock (this)
             {
-#if !__MOBILE__
                 var cc = Console.ForegroundColor;
                 switch (level)
                 {
@@ -43,11 +42,8 @@ namespace NewLife.Log
 
                 var old = Console.ForegroundColor;
                 Console.ForegroundColor = cc;
-#endif
                 ConsoleWriteLog(e);
-#if !__MOBILE__
                 Console.ForegroundColor = old;
-#endif
             }
         }
 

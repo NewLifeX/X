@@ -9,7 +9,7 @@ using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Net;
-#if !__MOBILE__ && !__CORE__
+#if !__CORE__
 using Microsoft.Win32;
 using System.Management;
 using System.Security.AccessControl;
@@ -268,23 +268,6 @@ namespace System
         /// <returns></returns>
         public static IEnumerable<IPAddress> GetIPs()
         {
-#if __ANDROID__
-            return Dns.GetHostAddresses(Dns.GetHostName());
-#endif
-#if __IOS__
-            foreach (var netInterface in NetworkInterface.GetAllNetworkInterfaces())
-            {
-                foreach (var addrInfo in netInterface.GetIPProperties().UnicastAddresses)
-                {
-                    if (addrInfo.Address.AddressFamily == AddressFamily.InterNetwork)
-                    {
-                        yield return addrInfo.Address;
-                    }
-                }
-            }
-#endif
-#if !__MOBILE__
-
             var dic = new Dictionary<UnicastIPAddressInformation, Int32>();
             foreach (var item in GetActiveInterfaces())
             {
@@ -311,7 +294,6 @@ namespace System
                 .Select(e => e.Key.Address).ToList();
 
             return ips;
-#endif
         }
 
         private static DictionaryCache<Int32, IPAddress[]> _ips = new DictionaryCache<Int32, IPAddress[]> { Expire = 60/*, Asynchronous = true*/ };
@@ -367,7 +349,7 @@ namespace System
         #endregion
 
         #region 设置适配器信息
-#if !__MOBILE__ && !__CORE__
+#if !__CORE__
         static private ManagementObjectCollection GetInstances()
         {
             var mc = new ManagementClass("Win32_NetworkAdapterConfiguration");
@@ -577,7 +559,7 @@ namespace System
         #endregion
 
         #region Tcp参数
-#if !__MOBILE__ && !__CORE__
+#if !__CORE__
         /// <summary>设置最大Tcp连接数</summary>
         public static void SetTcpMax()
         {

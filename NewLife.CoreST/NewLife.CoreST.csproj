@@ -30,6 +30,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Configuration\**" />
+    <EmbeddedResource Remove="Configuration\**" />
+    <None Remove="Configuration\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Remove="Stub\NonSerializedAttribute.cs" />
     <Compile Remove="Stub\SerializableAttribute.cs" />
   </ItemGroup>
@@ -52,7 +58,6 @@
     <Compile Include="..\NewLife.Core\Collections\ObjectPool.cs" Link="Collections\ObjectPool.cs" />
     <Compile Include="..\NewLife.Core\Collections\Pool.cs" Link="Collections\Pool.cs" />
     <Compile Include="..\NewLife.Core\Common\DisposeBase.cs" Link="Common\DisposeBase.cs" />
-    <Compile Include="..\NewLife.Core\Common\IdentityCard.cs" Link="Common\IdentityCard.cs" />
     <Compile Include="..\NewLife.Core\Common\PinYin.cs" Link="Common\PinYin.cs" />
     <Compile Include="..\NewLife.Core\Common\Runtime.cs" Link="Common\Runtime.cs" />
     <Compile Include="..\NewLife.Core\Common\SysConfig.cs" Link="Common\SysConfig.cs" />
@@ -253,7 +258,6 @@
     <Folder Include="Applications\IP\" />
     <Folder Include="Collections\" />
     <Folder Include="Compression\" />
-    <Folder Include="Configuration\" />
     <Folder Include="Data\" />
     <Folder Include="Event\" />
     <Folder Include="Exceptions\" />

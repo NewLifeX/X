@@ -31,7 +31,7 @@ namespace NewLife
         #endregion
 
         #region Web环境
-#if __MOBILE__ || __CORE__
+#if __CORE__
         /// <summary>是否Web环境</summary>
         public static Boolean IsWeb => false;
 #else

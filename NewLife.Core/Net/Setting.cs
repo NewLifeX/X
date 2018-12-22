@@ -6,9 +6,7 @@ namespace NewLife.Net
 {
     /// <summary>网络设置</summary>
     [DisplayName("网络设置")]
-#if !__MOBILE__
     [XmlConfigFile(@"Config\Socket.config", 15000)]
-#endif
     public class Setting : XmlConfig<Setting>
     {
         #region 属性

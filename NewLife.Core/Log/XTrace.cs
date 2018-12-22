@@ -5,9 +5,7 @@ using System.Runtime.Versioning;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-#if __MOBILE__
-#elif __CORE__
-#else
+#if !__CORE__
 using System.Windows.Forms;
 #endif
 using NewLife.Reflection;
@@ -70,26 +68,13 @@ namespace NewLife.Log
         #region 构造
         static XTrace()
         {
-#if __CORE__
-#else
+#if !__CORE__
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 #endif
             TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
             ThreadPoolX.Init();
         }
-
-#if __MOBILE__
-        static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
-        {
-            var msg = "" + e.ExceptionObject;
-            WriteLine(msg);
-            if (e.IsTerminating)
-            {
-                Log.Fatal("异常退出！");
-            }
-        }
-#endif
 
         private static void TaskScheduler_UnobservedTaskException(Object sender, UnobservedTaskExceptionEventArgs e)
         {
@@ -130,11 +115,7 @@ namespace NewLife.Log
                 if (_Log != null) return true;
 
                 _initing = Thread.CurrentThread.ManagedThreadId;
-#if !__MOBILE__
                 _Log = TextFileLog.Create(LogPath);
-#else
-                _Log = new NetworkLog();
-#endif
 
                 var set = Setting.Current;
                 if (!set.NetworkLog.IsNullOrEmpty())
@@ -181,9 +162,7 @@ namespace NewLife.Log
         #endregion
 
         #region 拦截WinForm异常
-#if __MOBILE__
-#elif __CORE__
-#else
+#if !__CORE__
         private static Int32 initWF = 0;
         private static Boolean _ShowErrorMessage;
         //private static String _Title;

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using NewLife.Configuration;
 using NewLife.Model;
 
 namespace XCode.Membership
@@ -16,9 +15,8 @@ namespace XCode.Membership
         /// <param name="remark">备注</param>
         public abstract void WriteLog(Type type, String action, String remark);
 
-        private Boolean _Enable = true;
         /// <summary>是否使用日志</summary>
-        public Boolean Enable { get { return _Enable; } set { _Enable = value; } }
+        public Boolean Enable { get; set; } = true;
         #endregion
 
         #region 静态属性

@@ -110,10 +110,8 @@ namespace NewLife.Xml
                 {
                     // 这里不能着急，派生类可能通过静态构造函数指定配置文件路径
                     //throw new XException("编码错误！请为配置类{0}设置{1}特性，指定配置文件！", typeof(TConfig), typeof(XmlConfigFileAttribute).Name);
-#if !__MOBILE__
                     _.ConfigFile = "Config\\{0}.config".F(typeof(TConfig).Name);
                     _.ReloadTime = 10000;
-#endif
                 }
                 else
                 {

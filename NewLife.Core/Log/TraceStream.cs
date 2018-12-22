@@ -278,20 +278,16 @@ namespace NewLife.Log
 
         void TraceStream_OnAction(Object sender, EventArgs<String, Object[]> e)
         {
-#if !__MOBILE__
             var color = Console.ForegroundColor;
 
             // 红色动作
             Console.ForegroundColor = ConsoleColor.Red;
-#endif
             var act = e.Arg1;
             if (act.Length < 8) act += "\t";
             Console.Write(act);
 
-#if !__MOBILE__
             // 白色十六进制
             Console.ForegroundColor = ConsoleColor.White;
-#endif
             Console.Write("\t");
 
             Byte[] buffer = null;
@@ -327,10 +323,8 @@ namespace NewLife.Log
                 else
                     Console.Write(BitConverter.ToString(buffer, offset, count <= 50 ? count : 50) + (count <= 50 ? "" : "...（共" + count + "）"));
             }
-#if !__MOBILE__
             // 黄色内容
             Console.ForegroundColor = ConsoleColor.Yellow;
-#endif
             Console.Write("\t");
             if (e.Arg2.Length == 1)
             {
@@ -354,9 +348,7 @@ namespace NewLife.Log
                 else if (count < 50)
                     Console.Write(Encoding.GetString(buffer, offset, count));
             }
-#if !__MOBILE__
             Console.ForegroundColor = color;
-#endif
             Console.WriteLine();
         }
 

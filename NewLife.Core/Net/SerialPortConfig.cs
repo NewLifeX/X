@@ -1,8 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
-#if !__MOBILE__
 using System.IO.Ports;
-#endif
 using System.Text;
 using System.Xml.Serialization;
 using NewLife.Xml;
@@ -25,7 +23,6 @@ namespace NewLife.Net
         [Description("数据位")]
         public Int32 DataBits { get; set; } = 8;
 
-#if !__MOBILE__
         /// <summary>停止位</summary>
         [Description("停止位 None/One/Two/OnePointFive")]
         public StopBits StopBits { get; set; } = StopBits.One;
@@ -33,7 +30,6 @@ namespace NewLife.Net
         /// <summary>奇偶校验</summary>
         [Description("奇偶校验 None/Odd/Even/Mark/Space")]
         public Parity Parity { get; set; } = Parity.None;
-#endif
 
         /// <summary>文本编码</summary>
         [XmlIgnore]

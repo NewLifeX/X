@@ -411,7 +411,6 @@ namespace NewLife.Serialization
         #endregion
 
         #region 跟踪日志
-#if !__MOBILE__
         /// <summary>使用跟踪流。实际上是重新包装一次Stream，必须在设置Stream后，使用之前</summary>
         public virtual void EnableTrace()
         {
@@ -420,7 +419,6 @@ namespace NewLife.Serialization
 
             Stream = new TraceStream(stream) { Encoding = Encoding, IsLittleEndian = IsLittleEndian };
         }
-#endif
         #endregion
 
         #region 快捷方法

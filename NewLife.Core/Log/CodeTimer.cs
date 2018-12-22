@@ -48,23 +48,17 @@ namespace NewLife.Log
                 Action = action,
                 ShowProgress = true
             };
-#if !__MOBILE__
             var currentForeColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Yellow;
             var left = Console.CursorLeft;
-#endif
             if (needTimeOne) timer.TimeOne();
             timer.Time();
 
             // 等一会，让进度那边先输出
             Thread.Sleep(10);
-#if !__MOBILE__
             Console.CursorLeft = left;
-#endif
             Console.WriteLine(timer.ToString());
-#if !__MOBILE__
             Console.ForegroundColor = currentForeColor;
-#endif
 
             return timer;
         }
@@ -75,10 +69,8 @@ namespace NewLife.Log
         {
             Write(title, 16);
             Console.Write("：");
-#if !__MOBILE__
             var currentForeColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Yellow;
-#endif
             Write("执行时间", 9);
             Console.Write(" ");
             Write("CPU时间", 9);
@@ -88,9 +80,7 @@ namespace NewLife.Log
             Console.WriteLine("   百分比");
 
             msBase = 0;
-#if !__MOBILE__
             Console.ForegroundColor = currentForeColor;
-#endif
         }
 
         static void Write(String name, Int32 max)
@@ -316,13 +306,11 @@ namespace NewLife.Log
 
         void Progress(Object state)
         {
-#if !__MOBILE__
             var left = Console.CursorLeft;
 
             // 设置光标不可见
             var cursorVisible = Console.CursorVisible;
             Console.CursorVisible = false;
-#endif
             var sw = Stopwatch.StartNew();
             while (true)
             {
@@ -343,9 +331,7 @@ namespace NewLife.Log
                         var cost = ms / i;
 
                         Console.Write($"{ms,7:n0}ms {prog:p2} Total=>{ts}");
-#if !__MOBILE__
                         Console.CursorLeft = left;
-#endif
                     }
                 }
                 catch (ThreadAbortException) { break; }
@@ -354,10 +340,8 @@ namespace NewLife.Log
                 Thread.Sleep(500);
             }
             sw.Stop();
-#if !__MOBILE__
             Console.CursorLeft = left;
             Console.CursorVisible = cursorVisible;
-#endif
         }
         #endregion
 
