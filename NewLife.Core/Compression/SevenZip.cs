@@ -29,19 +29,17 @@ namespace NewLife.Compression
             #endregion
 
             #region 注册表
-#if !__CORE__
-            if (p.IsNullOrEmpty())
-            {
-                var reg = Registry.LocalMachine.OpenSubKey("Software\\7-Zip");
-                if (reg == null) reg = Registry.LocalMachine.OpenSubKey("Software\\Wow6432Node\\7-Zip");
-                if (reg != null)
-                {
-                    var d = reg.GetValue("Path") + "";
-                    var f = d.CombinePath("7z.exe");
-                    if (File.Exists(f)) p = f;
-                }
-            }
-#endif
+            //if (p.IsNullOrEmpty())
+            //{
+            //    var reg = Registry.LocalMachine.OpenSubKey("Software\\7-Zip");
+            //    if (reg == null) reg = Registry.LocalMachine.OpenSubKey("Software\\Wow6432Node\\7-Zip");
+            //    if (reg != null)
+            //    {
+            //        var d = reg.GetValue("Path") + "";
+            //        var f = d.CombinePath("7z.exe");
+            //        if (File.Exists(f)) p = f;
+            //    }
+            //}
             #endregion
 
             #region X组件缓存

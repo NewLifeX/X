@@ -122,10 +122,11 @@ namespace NewLife.Net
             sock.Bind(Local.EndPoint);
             sock.Listen(Int32.MaxValue);
 
-#if !__CORE__
-            sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
-            sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.DontLinger, true);
-#endif
+            if (Runtime.Windows)
+            {
+                sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
+                sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.DontLinger, true);
+            }
 
             Active = true;
 

@@ -553,12 +553,7 @@ namespace NewLife.Net
                         //svr.AddressFamily = family;
 
                         // 协议端口不能是已经被占用
-                        //if (!NetHelper.IsUsed(svr.Local.ProtocolType, svr.Local.Address, svr.Port)) list.Add(svr);
-#if __CORE__
-                        list.Add(svr);
-#else
                         if (!svr.Local.CheckPort()) list.Add(svr);
-#endif
                     }
                     break;
                 default:
