@@ -707,10 +707,6 @@ namespace XCode.DataAccessLayer
                 _trace_sqls.Add(sql);
             }
 
-#if !__CORE__
-            var obj = new SQLRunEvent() { Sql = sql, RunTime = _swSql.ElapsedMilliseconds };
-            EventBus.Instance.Publish(obj);
-#endif
             XTrace.WriteLine("SQL耗时较长，建议优化 {0:n0}毫秒 {1}", _swSql.ElapsedMilliseconds, sql);
         }
         #endregion

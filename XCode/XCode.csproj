@@ -73,13 +73,6 @@
     <Compile Include="Entity\EntitySession.cs" />
     <Compile Include="Entity\IEntityModule.cs" />
     <Compile Include="Entity\IEntitySession.cs" />
-    <Compile Include="Events\ActionDelegatedEventHandler.cs" />
-    <Compile Include="Events\EventBus.cs" />
-    <Compile Include="Events\HandlesAsynchronouslyAttribute.cs" />
-    <Compile Include="Events\IEvent.cs" />
-    <Compile Include="Events\IEventHandler.cs" />
-    <Compile Include="Events\SQLRunEvent.cs" />
-    <Compile Include="Events\SqlRunEventHandler.cs" />
     <Compile Include="Exceptions\EntityException.cs" />
     <Compile Include="Cache\FieldCache.cs" />
     <Compile Include="Extension\数据缓存.Biz.cs" />
