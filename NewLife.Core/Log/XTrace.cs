@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.Versioning;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 #if !__CORE__
@@ -268,98 +266,6 @@ namespace NewLife.Log
 
         /// <summary>临时目录</summary>
         public static String TempPath { get; set; } = Setting.Current.TempPath;
-        #endregion
-
-        #region 调用栈
-#if __CORE__
-#else
-        /// <summary>堆栈调试。
-        /// 输出堆栈信息，用于调试时处理调用上下文。
-        /// 本方法会造成大量日志，请慎用。
-        /// </summary>
-        public static void DebugStack()
-        {
-            var msg = GetCaller(2, 16, Environment.NewLine);
-            WriteLine("调用堆栈：" + Environment.NewLine + msg);
-        }
-
-        /// <summary>堆栈调试。</summary>
-        /// <param name="maxNum">最大捕获堆栈方法数</param>
-        public static void DebugStack(Int32 maxNum)
-        {
-            var msg = GetCaller(2, maxNum, Environment.NewLine);
-            WriteLine("调用堆栈：" + Environment.NewLine + msg);
-        }
-
-        /// <summary>堆栈调试</summary>
-        /// <param name="start">开始方法数，0是DebugStack的直接调用者</param>
-        /// <param name="maxNum">最大捕获堆栈方法数</param>
-        public static void DebugStack(Int32 start, Int32 maxNum)
-        {
-            // 至少跳过当前这个
-            if (start < 1) start = 1;
-            var msg = GetCaller(start + 1, maxNum, Environment.NewLine);
-            WriteLine("调用堆栈：" + Environment.NewLine + msg);
-        }
-
-        /// <summary>获取调用栈</summary>
-        /// <param name="start">要跳过的方法数，默认1，也就是跳过GetCaller</param>
-        /// <param name="maxNum">最大层数</param>
-        /// <param name="split">分割符号，默认左箭头加上换行</param>
-        /// <returns></returns>
-        public static String GetCaller(Int32 start = 1, Int32 maxNum = 0, String split = null)
-        {
-            // 至少跳过当前这个
-            if (start < 1) start = 1;
-            var st = new StackTrace(start, true);
-
-            if (String.IsNullOrEmpty(split)) split = "<-" + Environment.NewLine;
-
-            Type last = null;
-            var asm = Assembly.GetEntryAssembly();
-            var entry = asm?.EntryPoint;
-
-            var count = st.FrameCount;
-            var sb = new StringBuilder(count * 20);
-            //if (maxNum > 0 && maxNum < count) count = maxNum;
-            for (var i = 0; i < count && maxNum > 0; i++)
-            {
-                var sf = st.GetFrame(i);
-                var method = sf.GetMethod();
-
-                // 跳过<>类型的匿名方法
-                if (method == null || String.IsNullOrEmpty(method.Name) || method.Name[0] == '<' && method.Name.Contains(">")) continue;
-
-                // 跳过有[DebuggerHidden]特性的方法
-                if (method.GetCustomAttribute<DebuggerHiddenAttribute>() != null) continue;
-
-                var type = method.DeclaringType ?? method.ReflectedType;
-                if (type != null) sb.Append(type.Name);
-                sb.Append(".");
-
-                var name = method.ToString();
-                // 去掉前面的返回类型
-                var p = name.IndexOf(" ");
-                if (p >= 0) name = name.Substring(p + 1);
-                // 去掉前面的System
-                name = name
-                    .Replace("System.Web.", null)
-                    .Replace("System.", null);
-
-                sb.Append(name);
-
-                // 如果到达了入口点，可以结束了
-                if (method == entry) break;
-
-                if (i < count - 1) sb.Append(split);
-
-                last = type;
-
-                maxNum--;
-            }
-            return sb.ToString();
-        }
-#endif
         #endregion
 
         #region 版本信息
