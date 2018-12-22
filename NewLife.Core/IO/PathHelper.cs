@@ -11,11 +11,7 @@ namespace System.IO
     {
         #region 属性
         /// <summary>基础目录。GetFullPath依赖于此，默认为当前应用程序域基础目录</summary>
-#if __CORE__
-        public static String BaseDirectory { get; set; } = AppContext.BaseDirectory;
-#else
         public static String BaseDirectory { get; set; } = AppDomain.CurrentDomain.BaseDirectory;
-#endif
         #endregion
 
         #region 路径操作辅助
@@ -33,17 +29,11 @@ namespace System.IO
                     dir = BaseDirectory;
                     break;
                 case 2:
-#if __CORE__
-                    dir = AppContext.BaseDirectory;
-#else
                     dir = AppDomain.CurrentDomain.BaseDirectory;
-#endif
                     break;
-#if !__CORE__
                 case 3:
                     dir = Environment.CurrentDirectory;
                     break;
-#endif
                 default:
                     break;
             }
@@ -103,7 +93,6 @@ namespace System.IO
             return GetPath(path, 2);
         }
 
-#if !__CORE__
         /// <summary>获取文件或目录基于当前目录的全路径，过滤相对目录</summary>
         /// <remarks>不确保目录后面一定有分隔符，是否有分隔符由原始路径末尾决定</remarks>
         /// <param name="path">文件或目录</param>
@@ -114,7 +103,6 @@ namespace System.IO
 
             return GetPath(path, 3);
         }
-#endif
 
         /// <summary>确保目录存在，若不存在则创建</summary>
         /// <remarks>

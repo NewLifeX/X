@@ -45,11 +45,7 @@ namespace NewLife.Compression
             #endregion
 
             #region X组件缓存
-#if !__CORE__
-            var cache = Environment.SystemDirectory.CombinePath(@"..\..\X\7z").GetFullPath();
-#else
             var cache = Path.GetPathRoot(".".GetFullPath()).CombinePath(@"\X\7z").GetFullPath();
-#endif
             if (p.IsNullOrEmpty())
             {
                 var f = cache.CombinePath("7z.exe");
