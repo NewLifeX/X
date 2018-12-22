@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.Common;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using NewLife;
@@ -417,21 +418,11 @@ namespace XCode.DataAccessLayer
         #region 批量操作
         public override Int32 Insert(String tableName, IDataColumn[] columns, IEnumerable<IIndexAccessor> list)
         {
-#if !__CORE__
-            //重写批量插入方法
             var ps = new HashSet<String>();
             var sql = GetInsertSql(tableName, columns, ps);
             var dpsList = GetParametersList(columns, ps, list);
 
             return BatchExecute(sql, dpsList);
-#else
-            //Core仍使用原来的方法（有问题）
-            var ps = new HashSet<String>();
-            var sql = GetInsertSql(tableName, columns, ps);
-            var dps = GetParameters(columns, ps, list);
-
-            return Execute(sql, CommandType.Text, dps);
-#endif
         }
 
         private String GetInsertSql(String tableName, IDataColumn[] columns, ICollection<String> ps)
@@ -468,28 +459,6 @@ namespace XCode.DataAccessLayer
             return sb.Put(true);
         }
 
-        private IDataParameter[] GetParameters(IDataColumn[] columns, ICollection<String> ps, IEnumerable<IIndexAccessor> list)
-        {
-            var db = Database;
-            var dps = new List<IDataParameter>();
-            foreach (var dc in columns)
-            {
-                //if (dc.Identity) continue;
-                if (!ps.Contains(dc.Name)) continue;
-
-                var vs = new List<Object>();
-                foreach (var entity in list)
-                {
-                    vs.Add(entity[dc.Name]);
-                }
-                var dp = db.CreateParameter(dc.Name, vs.ToArray(), dc);
-
-                dps.Add(dp);
-            }
-
-            return dps.ToArray();
-        }
-
         public override Int32 Upsert(String tableName, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list)
         {
             var ps = new HashSet<String>();
@@ -508,16 +477,8 @@ namespace XCode.DataAccessLayer
             var sql = sb.Put(true);
 
 
-#if !__CORE__
-            // 重写
             var dpsList = GetParametersList(columns, ps, list, true);
             return BatchExecute(sql, dpsList);
-#else
-            // Core仍使用原来的版本（有问题）
-            var dps = GetParameters(columns, ps, list);
-            return Execute(sql, CommandType.Text, dps);
-#endif
-
         }
 
         private String GetUpdateSql(String tableName, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, ICollection<String> ps)
@@ -566,7 +527,6 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
-#if !__CORE__
         #region 修复实现SqlServer批量操作增添方法
 
         private Int32 BatchExecute(String sql, List<IDataParameter[]> psList)
@@ -607,7 +567,7 @@ namespace XCode.DataAccessLayer
                 EndTrace(OnCreateCommand(sql, CommandType.Text));
             }
         }
-        
+
         private List<IDataParameter[]> GetParametersList(IDataColumn[] columns, ICollection<String> ps, IEnumerable<IIndexAccessor> list, Boolean isInsertOrUpdate = false)
         {
             var db = Database;
@@ -648,20 +608,27 @@ namespace XCode.DataAccessLayer
         /// </summary>
         class SqlBatcher
         {
-            private System.Reflection.MethodInfo mAddToBatch;
-            private System.Reflection.MethodInfo mClearBatch;
-            private System.Reflection.MethodInfo mInitializeBatching;
-            private System.Reflection.MethodInfo mExecuteBatch;
-            private System.Data.SqlClient.SqlDataAdapter mAdapter;
+            //private readonly MethodInfo mAddToBatch;
+            //private MethodInfo mClearBatch;
+            //private readonly MethodInfo mInitializeBatching;
+            //private MethodInfo mExecuteBatch;
+            private DataAdapter mAdapter;
             private Boolean isStarted;
+
+            private static DbProviderFactory _Factory;
+            static SqlBatcher()
+            {
+                _Factory = new SqlServer().Factory;
+            }
 
             public SqlBatcher()
             {
-                var type = typeof(System.Data.SqlClient.SqlDataAdapter);
-                mAddToBatch = type.GetMethod("AddToBatch", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                mClearBatch = type.GetMethod("ClearBatch", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                mInitializeBatching = type.GetMethod("InitializeBatching", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                mExecuteBatch = type.GetMethod("ExecuteBatch", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                //var ad = _Factory.CreateDataAdapter();
+                //var type = ad.GetType();
+                //mAddToBatch = type.GetMethod("AddToBatch", BindingFlags.NonPublic | BindingFlags.Instance);
+                //mClearBatch = type.GetMethod("ClearBatch", BindingFlags.NonPublic | BindingFlags.Instance);
+                //mInitializeBatching = type.GetMethod("InitializeBatching", BindingFlags.NonPublic | BindingFlags.Instance);
+                //mExecuteBatch = type.GetMethod("ExecuteBatch", BindingFlags.NonPublic | BindingFlags.Instance);
             }
 
             /// <summary>
@@ -669,23 +636,21 @@ namespace XCode.DataAccessLayer
             /// </summary>
             public Boolean IsStarted => isStarted;
 
-            /**/
-            /// <summary>
-            /// 开始批处理。
-            /// </summary>
+            /// <summary>开始批处理</summary>
             /// <param name="connection">连接。</param>
             public void StartBatch(DbConnection connection)
             {
                 if (isStarted) return;
-                var command = new System.Data.SqlClient.SqlCommand
-                {
-                    Connection = (System.Data.SqlClient.SqlConnection)connection
-                };
-                mAdapter = new System.Data.SqlClient.SqlDataAdapter
-                {
-                    InsertCommand = command
-                };
-                mInitializeBatching.Invoke(mAdapter, null);
+
+                var cmd = _Factory.CreateCommand();
+                cmd.Connection = connection;
+
+                var adapter = _Factory.CreateDataAdapter();
+                adapter.InsertCommand = cmd;
+                adapter.Invoke("InitializeBatching");
+
+                mAdapter = adapter;
+
                 isStarted = true;
             }
 
@@ -696,7 +661,8 @@ namespace XCode.DataAccessLayer
             public void AddToBatch(IDbCommand command)
             {
                 if (!isStarted) throw new InvalidOperationException();
-                mAddToBatch.Invoke(mAdapter, new Object[1] { command });
+                //mAddToBatch.Invoke(mAdapter, new Object[1] { command });
+                mAdapter.Invoke("mAdapter", new Object[] { command });
             }
 
             /// <summary>
@@ -706,7 +672,9 @@ namespace XCode.DataAccessLayer
             public Int32 ExecuteBatch()
             {
                 if (!isStarted) throw new InvalidOperationException();
-                return (Int32)mExecuteBatch.Invoke(mAdapter, null);
+
+                //return (Int32)mExecuteBatch.Invoke(mAdapter, null);
+                return (Int32)mAdapter.Invoke("ExecuteBatch");
             }
 
             /// <summary>
@@ -729,11 +697,11 @@ namespace XCode.DataAccessLayer
             public void ClearBatch()
             {
                 if (!isStarted) throw new InvalidOperationException();
-                mClearBatch.Invoke(mAdapter, null);
+                //mClearBatch.Invoke(mAdapter, null);
+                mAdapter.Invoke("ClearBatch");
             }
         }
         #endregion
-#endif
     }
 
     /// <summary>SqlServer元数据</summary>
