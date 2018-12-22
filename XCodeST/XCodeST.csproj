@@ -163,7 +163,6 @@
     <Compile Include="..\XCode\Statistics\StatLevels.cs" Link="Statistics\StatLevels.cs" />
     <Compile Include="..\XCode\Statistics\StatModel.cs" Link="Statistics\StatModel.cs" />
     <Compile Include="..\XCode\Transform\DataContext.cs" Link="Transform\DataContext.cs" />
-    <Compile Include="..\XCode\Transform\EntityTransform.cs" Link="Transform\EntityTransform.cs" />
     <Compile Include="..\XCode\Transform\ETL.cs" Link="Transform\ETL.cs" />
     <Compile Include="..\XCode\Transform\ExtractSetting.cs" Link="Transform\ExtractSetting.cs" />
     <Compile Include="..\XCode\Transform\IETLModule.cs" Link="Transform\IETLModule.cs" />

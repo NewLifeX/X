@@ -99,11 +99,8 @@ namespace XCode.DataAccessLayer
             _Tables = null;
             _hasCheck = false;
             HasCheckTables.Clear();
-#if !__CORE__
-            _Assembly = null;
-#endif
 
-            GC.Collect();
+            GC.Collect(2);
         }
 
         private static Dictionary<String, String> _connStrs;
@@ -519,37 +516,6 @@ namespace XCode.DataAccessLayer
             }
 
             Db.CreateMetaData().SetTables(Db.Migration, tables);
-        }
-        #endregion
-
-        #region 创建数据操作实体
-#if !__CORE__
-        private EntityAssembly _Assembly;
-        /// <summary>根据数据模型动态创建的程序集</summary>
-        public EntityAssembly Assembly
-        {
-            get
-            {
-                return _Assembly ?? (_Assembly = EntityAssembly.CreateWithCache(ConnName, Tables));
-            }
-            set { _Assembly = value; }
-        }
-#endif
-
-        /// <summary>创建实体操作接口</summary>
-        /// <remarks>因为只用来做实体操作，所以只需要一个实例即可</remarks>
-        /// <param name="tableName"></param>
-        /// <returns></returns>
-        public IEntityOperate CreateOperate(String tableName)
-        {
-#if !__CORE__
-            var type = Assembly?.GetType(tableName);
-            if (type == null) return null;
-
-            return EntityFactory.CreateOperate(type);
-#else
-            return null;
-#endif
         }
         #endregion
     }

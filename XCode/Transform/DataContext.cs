@@ -49,10 +49,10 @@ namespace XCode.Transform
 
         #region 扩展属性
         /// <summary>抽取速度</summary>
-        public Int32 FetchSpeed { get => (FetchCost == 0 || Data == null) ? 0 : (Int32)(Data.Count * 1000 / FetchCost); }
+        public Int32 FetchSpeed => (FetchCost == 0 || Data == null) ? 0 : (Int32)(Data.Count * 1000L / FetchCost);
 
         /// <summary>处理速度</summary>
-        public Int32 ProcessSpeed { get => (ProcessCost == 0 || Data == null) ? 0 : (Int32)(Data.Count * 1000 / ProcessCost); }
+        public Int32 ProcessSpeed => (ProcessCost == 0 || Data == null) ? 0 : (Int32)(Data.Count * 1000L / ProcessCost);
         #endregion
     }
 }

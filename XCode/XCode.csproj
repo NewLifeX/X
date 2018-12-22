@@ -123,7 +123,6 @@
     <Compile Include="Attributes\ModelCheckModeAttribute.cs" />
     <Compile Include="Attributes\ModelSortMode.cs" />
     <Compile Include="Cache\IEntityCache.cs" />
-    <Compile Include="Code\EntityAssembly.cs" />
     <Compile Include="Common\Helper.cs" />
     <Compile Include="Configuration\TableItem.cs" />
     <Compile Include="DataAccessLayer\Common\DatabaseType.cs" />
@@ -204,7 +203,6 @@
     <Compile Include="Web\UserBehaviorModule..cs" />
     <None Include="build\NewLife.XCode.props" />
     <None Include="Cache\readme.md" />
-    <Compile Include="Transform\EntityTransform.cs" />
     <Compile Include="Tree\IEntityTreeSettting.cs" />
     <Compile Include="Web\DbRunTimeModule.cs" />
     <Compile Include="Tree\EntityTree.cs" />
