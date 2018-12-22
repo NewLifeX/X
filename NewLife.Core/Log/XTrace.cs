@@ -66,12 +66,20 @@ namespace NewLife.Log
         #region 构造
         static XTrace()
         {
-#if !__CORE__
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-#endif
             TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
             ThreadPoolX.Init();
+        }
+        static void CurrentDomain_UnhandledException(Object sender, UnhandledExceptionEventArgs e)
+        {
+            var ex = e.ExceptionObject as Exception;
+            var msg = ex == null ? "" : ex.Message;
+            WriteException(ex);
+            if (e.IsTerminating)
+            {
+                Log.Fatal("异常退出！");
+            }
         }
 
         private static void TaskScheduler_UnobservedTaskException(Object sender, UnobservedTaskExceptionEventArgs e)
@@ -174,27 +182,17 @@ namespace NewLife.Log
             if (initWF > 0 || Interlocked.CompareExchange(ref initWF, 1, 0) != 0) return;
             //if (!Application.MessageLoop) return;
 
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException2;
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
             Application.ThreadException += Application_ThreadException;
         }
 
-        static void CurrentDomain_UnhandledException(Object sender, UnhandledExceptionEventArgs e)
+        static void CurrentDomain_UnhandledException2(Object sender, UnhandledExceptionEventArgs e)
         {
             var show = _ShowErrorMessage && Application.MessageLoop;
             var ex = e.ExceptionObject as Exception;
-            var msg = ex == null ? "" : ex.Message;
-            WriteException(ex);
-            if (e.IsTerminating)
-            {
-                Log.Fatal("异常退出！" + msg);
-                if (show) MessageBox.Show(msg, "异常退出", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            else
-            {
-                ex = ex.GetTrue();
-                if (ex != null) Log.Error(ex.Message);
-                if (show) MessageBox.Show(msg, "出错", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            var title = e.IsTerminating ? "异常退出" : "出错";
+            if (show) MessageBox.Show(ex?.Message, title, MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
         static void Application_ThreadException(Object sender, ThreadExceptionEventArgs e)
