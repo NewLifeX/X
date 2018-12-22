@@ -6,9 +6,6 @@ using System.Threading.Tasks;
 using XCode;
 using XCode.Cache;
 using XCode.Configuration;
-#if !NET4
-using TaskEx = System.Threading.Tasks.Task;
-#endif
 
 namespace XCode.Cache
 {
@@ -57,7 +54,7 @@ namespace XCode.Cache
             var key = "{0}_{1}".F(typeof(TEntity).Name, _field?.Name);
             var dc = DataCache.Current;
 
-            if (_task == null || _task.IsOK()) _task = TaskEx.Run(() =>
+            if (_task == null || _task.Status == TaskStatus.RanToCompletion) _task = Task.Run(() =>
             {
                 //var id = _field.Table.Identity;
                 var list = Entities.Take(MaxRows).ToList();

@@ -7,9 +7,6 @@ using NewLife;
 using NewLife.Log;
 using NewLife.Threading;
 using XCode.Membership;
-#if !NET4
-using TaskEx = System.Threading.Tasks.Task;
-#endif
 
 /*
  * 数据抽取流程：
@@ -83,17 +80,11 @@ namespace XCode.Transform
 
         #region 构造
         /// <summary>实例化数据抽取器</summary>
-        public ETL()
-        {
-            Name = GetType().Name.TrimEnd("Worker");
-        }
+        public ETL() => Name = GetType().Name.TrimEnd("Worker");
 
         /// <summary>实例化数据抽取器</summary>
         /// <param name="source"></param>
-        public ETL(IEntityOperate source) : this()
-        {
-            Extracter = new TimeExtracter { Factory = source };
-        }
+        public ETL(IEntityOperate source) : this() => Extracter = new TimeExtracter { Factory = source };
         #endregion
 
         #region 开始停止
@@ -216,10 +207,7 @@ namespace XCode.Transform
         /// <param name="extracter"></param>
         /// <param name="set">设置</param>
         /// <returns></returns>
-        internal protected virtual IList<IEntity> Fetch(DataContext ctx, IExtracter extracter, IExtractSetting set)
-        {
-            return extracter?.Fetch(set);
-        }
+        internal protected virtual IList<IEntity> Fetch(DataContext ctx, IExtracter extracter, IExtractSetting set) => extracter?.Fetch(set);
 
         /// <summary>处理列表，传递批次配置，支持多线程和异步</summary>
         /// <remarks>
@@ -326,7 +314,7 @@ namespace XCode.Transform
         /// <param name="ctx">数据上下文</param>
         /// <param name="source">源实体</param>
         /// <returns></returns>
-        protected virtual IEntity ProcessItem(DataContext ctx, IEntity source) { return source; }
+        protected virtual IEntity ProcessItem(DataContext ctx, IEntity source) => source;
 
         private Exception _lastError;
         /// <summary>遇到错误时如何处理</summary>

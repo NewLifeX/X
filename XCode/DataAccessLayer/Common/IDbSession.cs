@@ -179,20 +179,6 @@ namespace XCode.DataAccessLayer
         Int32 Upsert(String tableName, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list);
         #endregion
 
-        #region 异步操作
-#if !NET4
-        ///// <summary>异步打开</summary>
-        ///// <returns></returns>
-        //Task OpenAsync();
-
-        /// <summary>执行SQL查询，返回记录集</summary>
-        /// <param name="sql">SQL语句</param>
-        /// <param name="ps">命令参数</param>
-        /// <returns></returns>
-        Task<DbTable> QueryAsync(String sql, params IDataParameter[] ps);
-#endif
-        #endregion
-
         #region 高级
         /// <summary>清空数据表，标识归零</summary>
         /// <param name="tableName"></param>

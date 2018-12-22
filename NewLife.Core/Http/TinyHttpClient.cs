@@ -73,11 +73,7 @@ namespace NewLife.Http
             {
                 tc.TryDispose();
                 tc = new TcpClient();
-#if NET4
-                tc.Connect(remote.Address, remote.Port);
-#else
                 await tc.ConnectAsync(remote.Address, remote.Port);
-#endif
 
                 Client = tc;
                 ns = tc.GetStream();
@@ -89,13 +85,8 @@ namespace NewLife.Http
 
             // 接收
             var buf = new Byte[64 * 1024];
-#if NET4
-            var count = ns.Read(buf, 0, buf.Length);
-#else
             var source = new CancellationTokenSource(Timeout);
-
             var count = await ns.ReadAsync(buf, 0, buf.Length, source.Token);
-#endif
 
             return new Packet(buf, 0, count);
         }

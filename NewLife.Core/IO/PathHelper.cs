@@ -360,7 +360,7 @@ namespace System.IO
         /// <summary>路径作为目录信息</summary>
         /// <param name="dir"></param>
         /// <returns></returns>
-        public static DirectoryInfo AsDirectory(this String dir) { return new DirectoryInfo(dir.GetFullPath()); }
+        public static DirectoryInfo AsDirectory(this String dir) => new DirectoryInfo(dir.GetFullPath());
 
         /// <summary>获取目录内所有符合条件的文件，支持多文件扩展匹配</summary>
         /// <param name="di">目录</param>

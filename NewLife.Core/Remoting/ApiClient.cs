@@ -155,10 +155,8 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public virtual async Task<Object> InvokeAsync(Type resultType, String action, Object args = null, Byte flag = 0)
         {
-#if !NET4
             // 让上层异步到这直接返回，后续代码在另一个线程执行
             await Task.Yield();
-#endif
 
             Open();
 

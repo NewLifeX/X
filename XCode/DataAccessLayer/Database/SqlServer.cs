@@ -667,10 +667,7 @@ namespace XCode.DataAccessLayer
             /// <summary>
             /// 获得批处理是否正在批处理状态。
             /// </summary>
-            public Boolean IsStarted
-            {
-                get { return isStarted; }
-            }
+            public Boolean IsStarted => isStarted;
 
             /**/
             /// <summary>

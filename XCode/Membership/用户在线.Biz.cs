@@ -51,7 +51,7 @@ namespace XCode.Membership
         /// <summary>物理地址</summary>
         [DisplayName("物理地址")]
         //[Map(__.CreateIP)]
-        public String CreateAddress { get { return CreateIP.IPToAddress(); } }
+        public String CreateAddress => CreateIP.IPToAddress();
         #endregion
 
         #region 扩展查询

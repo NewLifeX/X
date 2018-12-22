@@ -63,10 +63,6 @@
     <Compile Include="..\NewLife.Core\Common\SysConfig.cs" Link="Common\SysConfig.cs" />
     <Compile Include="..\NewLife.Core\Common\Utility.cs" Link="Common\Utility.cs" />
     <Compile Include="..\NewLife.Core\Compression\SevenZip.cs" Link="Compression\SevenZip.cs" />
-    <Compile Include="..\NewLife.Core\Compression\ZipConstants.cs" Link="Compression\ZipConstants.cs" />
-    <Compile Include="..\NewLife.Core\Compression\ZipEntry.cs" Link="Compression\ZipEntry.cs" />
-    <Compile Include="..\NewLife.Core\Compression\ZipException.cs" Link="Compression\ZipException.cs" />
-    <Compile Include="..\NewLife.Core\Compression\ZipFile.cs" Link="Compression\ZipFile.cs" />
     <Compile Include="..\NewLife.Core\Data\BinaryTree.cs" Link="Data\BinaryTree.cs" />
     <Compile Include="..\NewLife.Core\Data\DbRow.cs" Link="Data\DbRow.cs" />
     <Compile Include="..\NewLife.Core\Data\DbTable.cs" Link="Data\DbTable.cs" />
@@ -224,8 +220,6 @@
     <Compile Include="..\NewLife.Core\Serialization\Xml\XmlGeneral.cs" Link="Serialization\Xml\XmlGeneral.cs" />
     <Compile Include="..\NewLife.Core\Serialization\Xml\XmlList.cs" Link="Serialization\Xml\XmlList.cs" />
     <Compile Include="..\NewLife.Core\Setting.cs" Link="Setting.cs" />
-    <Compile Include="..\NewLife.Core\Threading\TaskEx.cs" Link="Threading\TaskEx.cs" />
-    <Compile Include="..\NewLife.Core\Threading\TaskHelper.cs" Link="Threading\TaskHelper.cs" />
     <Compile Include="..\NewLife.Core\Threading\ThreadPoolX.cs" Link="Threading\ThreadPoolX.cs" />
     <Compile Include="..\NewLife.Core\Threading\TimerScheduler.cs" Link="Threading\TimerScheduler.cs" />
     <Compile Include="..\NewLife.Core\Threading\TimerX.cs" Link="Threading\TimerX.cs" />

@@ -6,9 +6,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
-#if !__CORE__
-using System.Web;
-#endif
 using NewLife.Log;
 
 namespace NewLife.Reflection
@@ -534,11 +531,7 @@ namespace NewLife.Reflection
 
                     var basedir = AppDomain.CurrentDomain.BaseDirectory;
                     set.Add(basedir);
-#if !__CORE__
-                    if (HttpRuntime.AppDomainId != null) set.Add(HttpRuntime.BinDirectory);
-#else
                     if (Directory.Exists("bin".GetFullPath())) set.Add("bin".GetFullPath());
-#endif
                     var plugin = Setting.Current.GetPluginPath();
                     if (!set.Contains(plugin)) set.Add(plugin);
 

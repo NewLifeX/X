@@ -9,9 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Log;
 using NewLife.Reflection;
-#if !NET4
-using TaskEx = System.Threading.Tasks.Task;
-#endif
 
 namespace NewLife.Agent
 {
@@ -442,7 +439,7 @@ namespace NewLife.Agent
                 var ts = new List<Task>();
                 foreach (var item in ss)
                 {
-                    ts.Add(TaskEx.Run(() => item.Stop(reason)));
+                    ts.Add(Task.Run(() => item.Stop(reason)));
                 }
                 Task.WaitAll(ts.ToArray(), set.WaitForExit);
             }

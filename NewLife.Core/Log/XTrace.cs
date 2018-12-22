@@ -73,13 +73,8 @@ namespace NewLife.Log
         }
         static void CurrentDomain_UnhandledException(Object sender, UnhandledExceptionEventArgs e)
         {
-            var ex = e.ExceptionObject as Exception;
-            var msg = ex == null ? "" : ex.Message;
-            WriteException(ex);
-            if (e.IsTerminating)
-            {
-                Log.Fatal("异常退出！");
-            }
+            WriteException(e.ExceptionObject as Exception);
+            if (e.IsTerminating) Log.Fatal("异常退出！");
         }
 
         private static void TaskScheduler_UnobservedTaskException(Object sender, UnobservedTaskExceptionEventArgs e)

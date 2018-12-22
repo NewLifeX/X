@@ -13,7 +13,7 @@ namespace NewLife.Common
     public class PinYin
     {
         #region 数组信息
-        private static Int32[] pyValue = new Int32[]
+        private static readonly Int32[] pyValue = new Int32[]
         {
             -20319, -20317, -20304, -20295, -20292, -20283, -20265, -20257, -20242,
             -20230, -20051, -20036, -20032, -20026, -20002, -19990, -19986, -19982,
@@ -61,7 +61,7 @@ namespace NewLife.Common
             -10307, -10296, -10281, -10274, -10270, -10262, -10260, -10256, -10254
         };
 
-        private static String[] pyName = new String[]
+        private static readonly String[] pyName = new String[]
         {
              "A", "Ai", "An", "Ang", "Ao", "Ba", "Bai", "Ban", "Bang", "Bao", "Bei",
              "Ben", "Beng", "Bi", "Bian", "Biao", "Bie", "Bin", "Bing", "Bo", "Bu",

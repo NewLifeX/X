@@ -5,17 +5,11 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Collections;
 using NewLife.Log;
-using NewLife.Messaging;
 using NewLife.Model;
-using NewLife.Net.Handlers;
-#if !NET4
-using TaskEx = System.Threading.Tasks.Task;
-#endif
 
 namespace NewLife.Net
 {
@@ -495,10 +489,10 @@ namespace NewLife.Net
             var ts = new List<Task>();
             foreach (var item in Sessions)
             {
-                ts.Add(TaskEx.Run(() => item.Value.Send(buffer)));
+                ts.Add(Task.Run(() => item.Value.Send(buffer)));
             }
 
-            return TaskEx.WhenAll(ts).ContinueWith(t => Sessions.Count);
+            return Task.WhenAll(ts).ContinueWith(t => Sessions.Count);
         }
         #endregion
 

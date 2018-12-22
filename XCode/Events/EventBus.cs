@@ -36,13 +36,7 @@ namespace XCode
         /// <summary>
         /// 初始化空的事件总件
         /// </summary>
-        public static EventBus Instance
-        {
-            get
-            {
-                return _eventBus ?? (_eventBus = new EventBus());
-            }
-        }
+        public static EventBus Instance => _eventBus ?? (_eventBus = new EventBus());
 
         #region 事件订阅&取消订阅，可以扩展
         /// <summary>
@@ -133,10 +127,7 @@ namespace XCode
         /// <typeparam name="TEvent"></typeparam>
         /// <param name="eventHandlerFunc"></param>
         public void Unsubscribe<TEvent>(Action<TEvent> eventHandlerFunc)
-            where TEvent : class, IEvent
-        {
-            Unsubscribe<TEvent>(new ActionDelegatedEventHandler<TEvent>(eventHandlerFunc));
-        }
+            where TEvent : class, IEvent => Unsubscribe<TEvent>(new ActionDelegatedEventHandler<TEvent>(eventHandlerFunc));
         #endregion
 
         #region 事件发布

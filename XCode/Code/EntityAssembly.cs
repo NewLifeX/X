@@ -68,10 +68,12 @@ namespace XCode.Code
 
             return cache.GetOrAdd(name, k =>
             {
-                var asm = new EntityAssembly();
-                asm.Name = name;
-                asm.ConnName = name;
-                asm.Tables = tables;
+                var asm = new EntityAssembly
+                {
+                    Name = name,
+                    ConnName = name,
+                    Tables = tables
+                };
 
                 return asm;
             });
@@ -93,10 +95,12 @@ namespace XCode.Code
 
         EntityBuilder Create2(IDataTable table)
         {
-            var builder = new EntityBuilder();
-            builder.Table = table;
-            builder.ConnName = ConnName;
-            builder.Output = XTrace.TempPath.CombinePath(ConnName).EnsureDirectory(false);
+            var builder = new EntityBuilder
+            {
+                Table = table,
+                ConnName = ConnName,
+                Output = XTrace.TempPath.CombinePath(ConnName).EnsureDirectory(false)
+            };
 
             if (Debug) builder.Log = XTrace.Log;
             builder.CSharp = new Version(5, 0);
@@ -187,8 +191,10 @@ namespace XCode.Code
             var tempPath = XTrace.TempPath.EnsureDirectory(false);
             if (options == null)
             {
-                options = new CompilerParameters();
-                options.GenerateInMemory = true;
+                options = new CompilerParameters
+                {
+                    GenerateInMemory = true
+                };
 
                 if (Debug)
                 {
@@ -241,7 +247,7 @@ namespace XCode.Code
         #region 辅助函数
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override String ToString() { return Name; }
+        public override String ToString() => Name;
         #endregion
     }
 }

@@ -114,17 +114,11 @@ namespace XCode.Membership
 
         /// <summary>查找所有类别名</summary>
         /// <returns></returns>
-        public static IList<TEntity> FindAllCategory()
-        {
-            return CategoryCache.Entities;
-        }
+        public static IList<TEntity> FindAllCategory() => CategoryCache.Entities;
 
         /// <summary>获取所有类别名称</summary>
         /// <returns></returns>
-        public static IDictionary<String, String> FindAllCategoryName()
-        {
-            return CategoryCache.FindAllName();
-        }
+        public static IDictionary<String, String> FindAllCategoryName() => CategoryCache.FindAllName();
         #endregion
 
         #region 业务
@@ -175,10 +169,7 @@ namespace XCode.Membership
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override String ToString()
-        {
-            return String.Format("{0} {1} {2} {3:yyyy-MM-dd HH:mm:ss} {4}", Category, Action, UserName, CreateTime, Remark);
-        }
+        public override String ToString() => String.Format("{0} {1} {2} {3:yyyy-MM-dd HH:mm:ss} {4}", Category, Action, UserName, CreateTime, Remark);
         #endregion
     }
 

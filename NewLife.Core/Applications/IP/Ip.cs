@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using NewLife.Log;
+using NewLife.Threading;
 using NewLife.Web;
 
 namespace NewLife.IP
@@ -26,7 +27,7 @@ namespace NewLife.IP
             // 如果本地没有IP数据库，则从网络下载
             if (DbFile.IsNullOrWhiteSpace())
             {
-                Task.Factory.StartNew(() =>
+                ThreadPoolX.QueueUserWorkItem(() =>
                 {
                     var url = Setting.Current.PluginServer;
                     XTrace.WriteLine("没有找到IP数据库{0}，准备联网获取 {1}", ip, url);
@@ -44,7 +45,7 @@ namespace NewLife.IP
                         // 让它重新初始化
                         _inited = null;
                     }
-                }, TaskCreationOptions.LongRunning).LogException();
+                });
             }
         }
 
@@ -142,9 +143,6 @@ namespace NewLife.IP
 
     class MyIpProvider : NetHelper.IPProvider
     {
-        public String GetAddress(IPAddress addr)
-        {
-            return Ip.GetAddress(addr);
-        }
+        public String GetAddress(IPAddress addr) => Ip.GetAddress(addr);
     }
 }

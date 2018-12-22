@@ -16,8 +16,6 @@ using XCode.Cache;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 using XCode.Model;
-#if !NET4
-#endif
 
 /*
  * 检查表结构流程：

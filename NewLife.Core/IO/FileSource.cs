@@ -24,12 +24,7 @@ namespace NewLife.IO
             if (stream == null) throw new ArgumentException("filename", String.Format("在程序集{0}中无法找到名为{1}的资源！", asm.GetName().Name, fileName));
 
             if (destFile.IsNullOrEmpty()) destFile = fileName;
-
-            if (!Path.IsPathRooted(destFile))
-            {
-                var str = Runtime.IsWeb ? HttpRuntime.BinDirectory : AppDomain.CurrentDomain.BaseDirectory;
-                destFile = Path.Combine(str, destFile);
-            }
+            destFile = destFile.GetFullPath();
 
             if (File.Exists(destFile) && !overWrite) return;
 
@@ -80,12 +75,7 @@ namespace NewLife.IO
                 ns = names.Where(e => e.StartsWithIgnoreCase(prefix));
 
             if (String.IsNullOrEmpty(dest)) dest = AppDomain.CurrentDomain.BaseDirectory;
-
-            if (!Path.IsPathRooted(dest))
-            {
-                var str = Runtime.IsWeb ? HttpRuntime.BinDirectory : AppDomain.CurrentDomain.BaseDirectory;
-                dest = Path.Combine(str, dest);
-            }
+            dest = dest.GetFullPath();
 
             // 开始处理
             foreach (var item in ns)

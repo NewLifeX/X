@@ -8,9 +8,6 @@ using System.Threading.Tasks;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Web;
-#if NET4
-using Task = System.Threading.Tasks.TaskEx;
-#endif
 
 namespace NewLife.Net
 {
