@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.ServiceProcess;
 using NewLife.Log;
-using System.Linq;
 
 namespace NewLife.Agent
 {
@@ -23,6 +22,7 @@ namespace NewLife.Agent
                 var filename = p.MainModule.FileName;
                 filename = Path.GetFileName(filename);
                 filename = filename.Replace(".vshost.", ".");
+
                 return filename;
             }
         }
@@ -42,7 +42,16 @@ namespace NewLife.Agent
             if (Environment.OSVersion.Version.Major >= 6) WriteLine("在win7/win2008及更高系统中，可能需要管理员权限执行才能安装/卸载服务。");
             if (isinstall)
             {
-                RunSC("create " + name + " BinPath= \"" + ExeName.GetFullPath() + " -s\" start= auto DisplayName= \"" + service.DisplayName + "\"");
+                var exe = ExeName;
+
+                // 兼容dotnet
+                var args = Environment.GetCommandLineArgs();
+                if (args.Length >= 1 && exe.EqualIgnoreCase("dotnet", "dotnet.exe"))
+                    exe += " " + args[0].GetFullPath();
+                else
+                    exe = exe.GetFullPath();
+
+                RunSC("create " + name + " BinPath= \"" + exe + " -s\" start= auto DisplayName= \"" + service.DisplayName + "\"");
                 if (!String.IsNullOrEmpty(service.Description)) RunSC("description " + name + " \"" + service.Description + "\"");
             }
             else
