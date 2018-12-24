@@ -4,10 +4,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.ServiceProcess;
-using System.Threading;
-using System.Threading.Tasks;
 using NewLife.Log;
 using NewLife.Reflection;
+using NewLife.Threading;
 
 namespace NewLife.Agent
 {
@@ -64,28 +63,15 @@ namespace NewLife.Agent
                     {
                         XTrace.WriteException(ex);
                     }
-                    return;
                 }
                 else if (cmd == "-i") //安装服务
-                {
                     service.Install(true);
-                    return;
-                }
                 else if (cmd == "-u") //卸载服务
-                {
                     service.Install(false);
-                    return;
-                }
                 else if (cmd == "-start") //启动服务
-                {
                     service.ControlService(true);
-                    return;
-                }
                 else if (cmd == "-stop") //停止服务
-                {
                     service.ControlService(false);
-                    return;
-                }
                 #endregion
             }
             else
@@ -128,40 +114,6 @@ namespace NewLife.Agent
                                 service.ControlService(false);
                             else
                                 service.ControlService(true);
-                            break;
-                        case '4':
-                            #region 单步调试
-                            try
-                            {
-                                var count = Instance.ThreadCount;
-                                var n = 0;
-                                if (count > 1)
-                                {
-                                    Console.Write("请输入要调试的任务（任务数：{0}）：", count);
-                                    var k = Console.ReadKey();
-                                    Console.WriteLine();
-                                    n = k.KeyChar - '0';
-                                }
-
-                                Console.WriteLine("正在单步调试……");
-                                if (n < 0 || n > count - 1)
-                                {
-                                    for (var i = 0; i < count; i++)
-                                    {
-                                        service.Work(i);
-                                    }
-                                }
-                                else
-                                {
-                                    service.Work(n);
-                                }
-                                Console.WriteLine("单步调试完成！");
-                            }
-                            catch (Exception ex)
-                            {
-                                Console.WriteLine(ex.ToString());
-                            }
-                            #endregion
                             break;
                         case '5':
                             #region 循环调试
@@ -316,55 +268,13 @@ namespace NewLife.Agent
         #endregion
 
         #region 服务控制
-        /// <summary>任务项</summary>
-        public ServiceItem[] Items { get; private set; }
-
-        /// <summary>任务调度器</summary>
-        public JobSchedule Schedule { get; } = new JobSchedule();
-
         /// <summary>开始工作</summary>
         /// <param name="reason"></param>
         protected virtual void StartWork(String reason)
         {
-            var tcount = ThreadCount;
-            var sch = Schedule;
-            var count = tcount + sch.Count;
-            WriteLog("服务启动 共[{0:n0}]个工作线程 {1}", count, reason);
+            WriteLog("服务启动 {0}", reason);
 
-            try
-            {
-                var ss = Items = new ServiceItem[count];
-
-                // 可以通过设置任务的时间间隔小于0来关闭指定任务
-                var vs = Intervals;
-                for (var i = 0; i < count; i++)
-                {
-                    var time = vs[0];
-                    // 使用专用的时间间隔
-                    if (i < vs.Length) time = vs[i];
-
-                    var si = ss[i] = new ServiceItem(i, null, time);
-                    if (i < tcount)
-                    {
-                        si.Callback = Work;
-                    }
-                    else
-                    {
-                        var job = sch.Jobs[i - tcount];
-                        if (job is JobBase jb) jb.Log = Log;
-                        si.Job = job;
-                    }
-
-                    ss[i].Start(reason);
-                }
-
-                // 启动服务管理线程
-                StartManagerThread();
-            }
-            catch (Exception ex)
-            {
-                Log?.Error(ex.GetTrue()?.ToString());
-            }
+            _Timer = new TimerX(DoCheck, null, 10_000, 10_000, "AM");
         }
 
         /// <summary>核心工作方法。调度线程会定期调用该方法</summary>
@@ -380,119 +290,27 @@ namespace NewLife.Agent
         /// <param name="reason"></param>
         protected virtual void StopWork(String reason)
         {
-            WriteLog("服务停止");
+            _Timer.TryDispose();
 
-            // 停止服务管理线程
-            StopManagerThread();
-
-            var ss = Items;
-            if (ss != null)
-            {
-                // 等待各个工作线程退出
-                var set = Setting.Current;
-                var ts = new List<Task>();
-                foreach (var item in ss)
-                {
-                    ts.Add(Task.Run(() => item.Stop(reason)));
-                }
-                Task.WaitAll(ts.ToArray(), set.WaitForExit);
-            }
-        }
-
-        /// <summary>唤醒指定任务马上开始处理任务</summary>
-        /// <param name="index"></param>
-        public virtual void Wake(Int32 index)
-        {
-            var ss = Items;
-            if (index < 0 || index >= ss.Length) return;
-
-            ss[index].Event?.Set();
+            WriteLog("服务停止 {0}", reason);
         }
         #endregion
 
-        #region 服务维护线程
-        /// <summary>服务管理线程</summary>
-        private Thread ManagerThread;
-
-        /// <summary>开始服务管理线程</summary>
-        public void StartManagerThread()
-        {
-            // 管理线程具有最高优先级
-            var mt = ManagerThread = new Thread(ManagerThreadWaper)
-            {
-                //ManagerThread.Name = "XAgent_Manager";
-                Name = "AM",
-                IsBackground = true,
-                Priority = ThreadPriority.Highest
-            };
-            mt.Start();
-        }
-
-        /// <summary>停止服务管理线程</summary>
-        public void StopManagerThread()
-        {
-            var mt = ManagerThread;
-            if (mt == null) return;
-            if (mt.IsAlive)
-            {
-                try
-                {
-                    mt.Abort();
-                }
-                catch (Exception ex)
-                {
-                    //WriteLine(ex.ToString());
-                    Log?.Error(ex.GetTrue()?.ToString());
-                }
-            }
-        }
+        #region 服务维护
+        private TimerX _Timer;
 
         /// <summary>服务管理线程封装</summary>
         /// <param name="data"></param>
-        protected virtual void ManagerThreadWaper(Object data)
+        protected virtual void DoCheck(Object data)
         {
-            // 暂停一会，等待各个任务线程完全启动
-            Thread.Sleep(2 * 1000);
-            while (true)
-            {
-                try
-                {
-                    CheckActive();
+            // 如果某一项检查需要重启服务，则返回true，这里跳出循环，等待服务重启
+            if (CheckMemory()) return;
+            if (CheckThread()) return;
+            if (CheckHandle()) return;
+            if (CheckAutoRestart()) return;
 
-                    // 如果某一项检查需要重启服务，则返回true，这里跳出循环，等待服务重启
-                    if (CheckMemory()) break;
-                    if (CheckThread()) break;
-                    if (CheckHandle()) break;
-                    if (CheckAutoRestart()) break;
-
-                    // 检查看门狗
-                    CheckWatchDog();
-
-                    Thread.Sleep(10 * 1000);
-                }
-                catch (ThreadAbortException)
-                {
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    //WriteLine(ex.ToString());
-                    Log?.Error(ex.GetTrue()?.ToString());
-                }
-            }
-        }
-
-        /// <summary>检查是否有工作线程死亡</summary>
-        protected virtual void CheckActive()
-        {
-            var ss = Items;
-            if (ss == null || ss.Length < 1) return;
-
-            // 检查已经停止了的工作线程
-            foreach (var item in ss)
-            {
-                item.CheckActive();
-            }
+            // 检查看门狗
+            CheckWatchDog();
         }
 
         /// <summary>检查内存是否超标</summary>
@@ -505,16 +323,13 @@ namespace NewLife.Agent
             var p = Process.GetCurrentProcess();
             var cur = p.WorkingSet64 + p.PrivateMemorySize64;
             cur = cur / 1024 / 1024;
-            if (cur > max)
-            {
-                WriteLog("当前进程占用内存 {0:n0}M，超过阀值 {1:n0}M，准备重新启动！", cur, max);
+            if (cur < max) return false;
 
-                Restart("MaxMemory");
+            WriteLog("当前进程占用内存 {0:n0}M，超过阀值 {1:n0}M，准备重新启动！", cur, max);
 
-                return true;
-            }
+            Restart("MaxMemory");
 
-            return false;
+            return true;
         }
 
         /// <summary>检查服务进程的总线程数是否超标</summary>
@@ -525,16 +340,13 @@ namespace NewLife.Agent
             if (max <= 0) return false;
 
             var p = Process.GetCurrentProcess();
-            if (p.Threads.Count > max)
-            {
-                WriteLog("当前进程总线程 {0:n0}个，超过阀值 {1:n0}个，准备重新启动！", p.Threads.Count, max);
+            if (p.Threads.Count < max) return false;
 
-                Restart("MaxThread");
+            WriteLog("当前进程总线程 {0:n0}个，超过阀值 {1:n0}个，准备重新启动！", p.Threads.Count, max);
 
-                return true;
-            }
+            Restart("MaxThread");
 
-            return false;
+            return true;
         }
 
         /// <summary>检查服务进程的句柄数是否超标</summary>
@@ -545,16 +357,13 @@ namespace NewLife.Agent
             if (max <= 0) return false;
 
             var p = Process.GetCurrentProcess();
-            if (p.HandleCount > max)
-            {
-                WriteLog("当前进程句柄 {0:n0}个，超过阀值 {1:n0}个，准备重新启动！", p.HandleCount, max);
+            if (p.HandleCount < max) return false;
 
-                Restart("MaxHandle");
+            WriteLog("当前进程句柄 {0:n0}个，超过阀值 {1:n0}个，准备重新启动！", p.HandleCount, max);
 
-                return true;
-            }
+            Restart("MaxHandle");
 
-            return false;
+            return true;
         }
 
         /// <summary>服务开始时间</summary>
@@ -568,16 +377,13 @@ namespace NewLife.Agent
             if (auto <= 0) return false;
 
             var ts = DateTime.Now - Start;
-            if (ts.TotalMinutes > auto)
-            {
-                WriteLog("服务已运行 {0:n0}分钟，达到预设重启时间（{1:n0}分钟），准备重启！", ts.TotalMinutes, auto);
+            if (ts.TotalMinutes < auto) return false;
 
-                Restart("AutoRestart");
+            WriteLog("服务已运行 {0:n0}分钟，达到预设重启时间（{1:n0}分钟），准备重启！", ts.TotalMinutes, auto);
 
-                return true;
-            }
+            Restart("AutoRestart");
 
-            return false;
+            return true;
         }
 
         /// <summary>重启服务</summary>
@@ -595,12 +401,6 @@ namespace NewLife.Agent
             File.AppendAllText(filename, "ping 127.0.0.1 -n 5 > nul ");
             File.AppendAllText(filename, Environment.NewLine);
             File.AppendAllText(filename, "net start " + ServiceName);
-
-            // 准备重启服务，等待所有工作线程返回
-            foreach (var item in Items)
-            {
-                item.Stop(reason);
-            }
 
             //执行重启服务的批处理
             //RunCmd(filename, false, false);
@@ -622,48 +422,13 @@ namespace NewLife.Agent
         #region 服务高级功能
         /// <summary>服务启动事件</summary>
         /// <param name="args"></param>
-        protected override void OnStart(String[] args)
-        {
-            EventLog.WriteEntry("服务启动 共[{0:n0}]个工作线程".F(ThreadCount), EventLogEntryType.Information);
-
-            StartWork("服务启动");
-        }
+        protected override void OnStart(String[] args) => StartWork(nameof(OnStart));
 
         /// <summary>服务停止事件</summary>
-        protected override void OnStop()
-        {
-            StopWork("服务停止");
-        }
-
-        /// <summary>暂停命令发送到服务的服务控制管理器 (SCM) 时执行。 指定当服务就会暂停时要执行的操作。</summary>
-        protected override void OnPause()
-        {
-            WriteLog(nameof(OnPause));
-
-            foreach (var item in Items)
-            {
-                item.Stop(nameof(OnPause));
-            }
-        }
-
-        /// <summary>继续命令发送到服务的服务控制管理器 (SCM) 运行。 指定当某个服务后继续正常工作正在暂停时要执行的操作。</summary>
-        protected override void OnContinue()
-        {
-            WriteLog(nameof(OnContinue));
-
-            foreach (var item in Items)
-            {
-                item.Start(nameof(OnContinue));
-            }
-        }
+        protected override void OnStop() => StopWork(nameof(OnStop));
 
         /// <summary>在系统关闭时执行。 指定在系统关闭之前应该发生什么。</summary>
-        protected override void OnShutdown()
-        {
-            WriteLog(nameof(OnShutdown));
-
-            StopWork(nameof(OnShutdown));
-        }
+        protected override void OnShutdown() => StopWork(nameof(OnShutdown));
 
         /// <summary>在计算机的电源状态已发生更改时执行。 这适用于便携式计算机，当他们进入挂起模式，这不是系统关闭相同。</summary>
         /// <param name="powerStatus"></param>
@@ -671,30 +436,6 @@ namespace NewLife.Agent
         protected override Boolean OnPowerEvent(PowerBroadcastStatus powerStatus)
         {
             WriteLog(nameof(OnPowerEvent) + " " + powerStatus);
-
-            switch (powerStatus)
-            {
-                case PowerBroadcastStatus.BatteryLow:
-                    break;
-                case PowerBroadcastStatus.OemEvent:
-                    break;
-                case PowerBroadcastStatus.PowerStatusChange:
-                    break;
-                case PowerBroadcastStatus.QuerySuspend:
-                    break;
-                case PowerBroadcastStatus.QuerySuspendFailed:
-                    break;
-                case PowerBroadcastStatus.ResumeAutomatic:
-                    break;
-                case PowerBroadcastStatus.ResumeCritical:
-                    break;
-                case PowerBroadcastStatus.ResumeSuspend:
-                    break;
-                case PowerBroadcastStatus.Suspend:
-                    break;
-                default:
-                    break;
-            }
 
             return true;
         }

@@ -13,9 +13,6 @@ namespace NewLife.Agent
 
         /// <summary>描述</summary>
         public virtual String Description { get; set; }
-
-        /// <summary>线程数</summary>
-        public virtual Int32 ThreadCount { get; set; } = 1;
         #endregion
 
         #region 构造
@@ -24,7 +21,7 @@ namespace NewLife.Agent
         {
             CanStop = true;
             CanShutdown = true;
-            CanPauseAndContinue = true;
+            CanPauseAndContinue = false;
             CanHandlePowerEvent = true;
             CanHandleSessionChangeEvent = true;
             AutoLog = true;
@@ -35,20 +32,6 @@ namespace NewLife.Agent
         /// <summary>服务实例。每个应用程序域只有一个服务实例</summary>
         public static AgentServiceBase Instance { get; set; }
         #endregion
-
-        private static Int32[] _Intervals;
-        /// <summary>间隔数组。默认60秒</summary>
-        public static Int32[] Intervals
-        {
-            get
-            {
-                if (_Intervals != null) return _Intervals;
-
-                _Intervals = Setting.Current.Intervals.SplitAsInt();
-                return _Intervals;
-            }
-            set { _Intervals = value; }
-        }
 
         #region 日志
         /// <summary>日志</summary>
