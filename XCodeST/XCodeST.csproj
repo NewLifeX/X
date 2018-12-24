@@ -222,10 +222,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Data.Common" Version="4.3.0" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\NewLife.CoreST\NewLife.CoreST.csproj" />
   </ItemGroup>
 
