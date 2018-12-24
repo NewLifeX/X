@@ -57,17 +57,6 @@ namespace NewLife.Agent
         /// <summary>看门狗，保护其它服务，每分钟检查一次。多个服务名逗号分隔</summary>
         [Description("看门狗，保护其它服务，每分钟检查一次。多个服务名逗号分隔")]
         public String WatchDog { get; set; } = "";
-
-        /// <summary>依赖服务</summary>
-        [Description("依赖服务")]
-        public String ServicesDependedOn { get; set; } = "";
-        #endregion
-
-        #region 方法
-        /// <summary>新建时调用</summary>
-        protected override void OnNew()
-        {
-        }
         #endregion
     }
 }

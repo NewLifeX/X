@@ -357,9 +357,6 @@ namespace NewLife.Agent
         /// <param name="reason"></param>
         protected virtual void StartWork(String reason)
         {
-            // 依赖服务检测
-            this.PreStartWork();
-
             var tcount = ThreadCount;
             var sch = Schedule;
             var count = tcount + sch.Count;
