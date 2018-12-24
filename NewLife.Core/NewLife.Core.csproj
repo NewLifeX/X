@@ -54,6 +54,9 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Agent\AgentService.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Agent\AgentServiceBase.cs">
       <SubType>Component</SubType>
     </Compile>

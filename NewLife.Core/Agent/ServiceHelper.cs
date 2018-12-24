@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.ServiceProcess;
 using NewLife.Log;
+using System.Linq;
 
 namespace NewLife.Agent
 {
@@ -118,30 +119,13 @@ namespace NewLife.Agent
         /// <summary>是否已启动</summary>
         public static Boolean? IsRunning(String serviceName) => IsServiceRunning(serviceName);
 
-        /// <summary>取得服务</summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        public static ServiceController GetService(String name)
-        {
-            var list = new List<ServiceController>(ServiceController.GetServices());
-            if (list == null || list.Count < 1) return null;
-
-            //return list.Find(delegate(ServiceController item) { return item.ServiceName == name; });
-            foreach (var item in list)
-            {
-                if (item.ServiceName == name) return item;
-            }
-            return null;
-        }
-
         /// <summary>是否已安装</summary>
         public static Boolean? IsServiceInstalled(String name)
         {
-            ServiceController control = null;
             try
             {
                 // 取的时候就抛异常，是不知道是否安装的
-                control = GetService(name);
+                var control = ServiceController.GetServices().FirstOrDefault(e => e.ServiceName == name);
                 if (control == null) return false;
                 try
                 {
@@ -152,16 +136,14 @@ namespace NewLife.Agent
                 catch { return false; }
             }
             catch { return null; }
-            finally { if (control != null) control.Dispose(); }
         }
 
         /// <summary>是否已启动</summary>
         public static Boolean? IsServiceRunning(String name)
         {
-            ServiceController control = null;
             try
             {
-                control = GetService(name);
+                var control = ServiceController.GetServices().FirstOrDefault(e => e.ServiceName == name);
                 if (control == null) return false;
                 try
                 {
@@ -176,7 +158,6 @@ namespace NewLife.Agent
                 return null;
             }
             catch { return null; }
-            finally { if (control != null) control.Dispose(); }
         }
         #endregion
 

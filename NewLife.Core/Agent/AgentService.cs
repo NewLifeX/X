@@ -2,6 +2,7 @@
 
 namespace NewLife.Agent
 {
+#if DEBUG
     /// <summary>代理服务例子。自定义服务程序可参照该类实现。</summary>
     public class AgentService : AgentServiceBase
     {
@@ -21,6 +22,8 @@ namespace NewLife.Agent
         #endregion
 
         #region 核心
+        /// <summary>开始工作</summary>
+        /// <param name="reason"></param>
         protected override void StartWork(String reason)
         {
             WriteLog("业务开始……");
@@ -28,6 +31,8 @@ namespace NewLife.Agent
             base.StartWork(reason);
         }
 
+        /// <summary>停止服务</summary>
+        /// <param name="reason"></param>
         protected override void StopWork(String reason)
         {
             WriteLog("业务结束！");
@@ -36,4 +41,5 @@ namespace NewLife.Agent
         }
         #endregion
     }
+#endif
 }

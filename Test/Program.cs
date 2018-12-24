@@ -35,7 +35,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test1();
+                Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -56,7 +56,7 @@ namespace Test
 
         static void Test1()
         {
-            //new AgentService().ServiceMain();
+            new AgentService().Main();
         }
 
         static void Test2()
