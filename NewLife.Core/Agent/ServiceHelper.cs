@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.ServiceProcess;
 using NewLife.Log;
 
@@ -30,7 +29,7 @@ namespace NewLife.Agent
         /// <summary>安装、卸载 服务</summary>
         /// <param name="service">服务对象</param>
         /// <param name="isinstall">是否安装</param>
-        public static void Install(this IAgentService service, Boolean isinstall = true)
+        public static void Install(this AgentServiceBase service, Boolean isinstall = true)
         {
             var name = service.ServiceName;
             if (String.IsNullOrEmpty(name)) throw new Exception("未指定服务名！");
@@ -56,7 +55,7 @@ namespace NewLife.Agent
         /// <summary>启动、停止 服务</summary>
         /// <param name="service">服务对象</param>
         /// <param name="isstart"></param>
-        public static void ControlService(this IAgentService service, Boolean isstart = true)
+        public static void ControlService(this AgentServiceBase service, Boolean isstart = true)
         {
             var name = service.ServiceName;
             if (String.IsNullOrEmpty(name)) throw new Exception("未指定服务名！");
@@ -114,10 +113,10 @@ namespace NewLife.Agent
 
         #region 服务操作辅助函数
         /// <summary>是否已安装</summary>
-        public static Boolean? IsInstalled(this IAgentService service) => IsServiceInstalled(service.ServiceName);
+        public static Boolean? IsInstalled(String serviceName) => IsServiceInstalled(serviceName);
 
         /// <summary>是否已启动</summary>
-        public static Boolean? IsRunning(this IAgentService service) => IsServiceRunning(service.ServiceName);
+        public static Boolean? IsRunning(String serviceName) => IsServiceRunning(serviceName);
 
         /// <summary>取得服务</summary>
         /// <param name="name"></param>

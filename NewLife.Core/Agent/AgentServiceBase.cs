@@ -1,5 +1,4 @@
-﻿#if !__CORE__
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -14,32 +13,17 @@ namespace NewLife.Agent
 {
     /// <summary>服务程序基类</summary>
     /// <typeparam name="TService">服务类型</typeparam>
-    public abstract class AgentServiceBase<TService> : AgentServiceBase, IAgentService
+    public abstract class AgentServiceBase<TService> : AgentServiceBase
          where TService : AgentServiceBase<TService>, new()
     {
-        #region 构造
-        static AgentServiceBase()
-        {
-            XTrace.UseConsole();
-
-            if (_Instance == null) _Instance = new TService();
-        }
-
-        /// <summary>实例化，读取配置</summary>
-        public AgentServiceBase()
-        {
-            var set = Setting.Current;
-        }
-        #endregion
-
         #region 静态辅助函数
         /// <summary>服务主函数</summary>
         public static void ServiceMain()
         {
-            //// 降低进程优先级，提升稳定性
-            //Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.BelowNormal;
+            XTrace.UseConsole();
 
-            var service = Instance as TService;
+            var service = new TService();
+            Instance = service;
 
             // 初始化配置
             var set = Setting.Current;
@@ -60,21 +44,21 @@ namespace NewLife.Agent
             service.DisplayName = set.DisplayName;
             service.Description = set.Description;
 
-            var Args = Environment.GetCommandLineArgs();
+            var name = service.ServiceName;
+            var args = Environment.GetCommandLineArgs();
 
-            if (Args.Length > 1)
+            if (args.Length > 1)
             {
                 service.Log = XTrace.Log;
 
                 #region 命令
-                var cmd = Args[1].ToLower();
+                var cmd = args[1].ToLower();
                 if (cmd == "-s")  //启动服务
                 {
-                    var ServicesToRun = new ServiceBase[] { service };
 
                     try
                     {
-                        ServiceBase.Run(ServicesToRun);
+                        ServiceBase.Run(new[] { service });
                     }
                     catch (Exception ex)
                     {
@@ -102,22 +86,6 @@ namespace NewLife.Agent
                     service.ControlService(false);
                     return;
                 }
-                //else if (cmd == "-run") //循环执行任务
-                //{
-                //    var service2 = new TService();
-                //    service2.StartWork("-run");
-                //    Console.ReadKey(true);
-                //    return;
-                //}
-                //else if (cmd == "-step") //单步执行任务
-                //{
-                //    var service2 = new TService();
-                //    for (var i = 0; i < service2.ThreadCount; i++)
-                //    {
-                //        service2.Work(i);
-                //    }
-                //    return;
-                //}
                 #endregion
             }
             else
@@ -150,13 +118,13 @@ namespace NewLife.Agent
 
                             break;
                         case '2':
-                            if (service.IsInstalled() == true)
+                            if (ServiceHelper.IsInstalled(name) == true)
                                 service.Install(false);
                             else
                                 service.Install(true);
                             break;
                         case '3':
-                            if (service.IsRunning() == true)
+                            if (ServiceHelper.IsRunning(name) == true)
                                 service.ControlService(false);
                             else
                                 service.ControlService(true);
@@ -232,7 +200,7 @@ namespace NewLife.Agent
             var color = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Red;
 
-            var service = Instance as IAgentService;
+            var service = Instance;
             var name = service.ServiceName;
 
             if (name != service.DisplayName)
@@ -241,15 +209,18 @@ namespace NewLife.Agent
                 Console.WriteLine("服务：{0}", name);
             Console.WriteLine("描述：{0}", service.Description);
             Console.Write("状态：");
-            if (service.IsInstalled() == null)
+
+            var install = ServiceHelper.IsInstalled(name);
+            if (install == null)
                 Console.WriteLine("未知");
-            else if (service.IsInstalled() == false)
+            else if (install == false)
                 Console.WriteLine("未安装");
             else
             {
-                if (service.IsRunning() == null)
+                var run = ServiceHelper.IsRunning(name);
+                if (run == null)
                     Console.WriteLine("未知");
-                else if (service.IsRunning() == false)
+                else if (run == false)
                     Console.WriteLine("未启动");
                 else
                     Console.WriteLine("运行中");
@@ -258,16 +229,10 @@ namespace NewLife.Agent
             var asm = AssemblyX.Create(Assembly.GetExecutingAssembly());
             Console.WriteLine();
             Console.WriteLine("{0}\t版本：{1}\t发布：{2:yyyy-MM-dd HH:mm:ss}", asm.Name, asm.FileVersion, asm.Compile);
-            //Console.WriteLine("文件：{0}", asm.FileVersion);
-            //Console.WriteLine("发布：{0:yyyy-MM-dd HH:mm:ss}", asm.Compile);
 
             var asm2 = AssemblyX.Create(Assembly.GetEntryAssembly());
             if (asm2 != asm)
-            {
-                //Console.WriteLine();
                 Console.WriteLine("{0}\t版本：{1}\t发布：{2:yyyy-MM-dd HH:mm:ss}", asm2.Name, asm2.FileVersion, asm2.Compile);
-                //Console.WriteLine("发布：{0:yyyy-MM-dd HH:mm:ss}", asm2.Compile);
-            }
 
             Console.ForegroundColor = color;
         }
@@ -275,7 +240,8 @@ namespace NewLife.Agent
         /// <summary>显示菜单</summary>
         protected virtual void ShowMenu()
         {
-            var service = Instance as IAgentService;
+            var service = Instance;
+            var name = service.ServiceName;
 
             var color = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Yellow;
@@ -283,9 +249,11 @@ namespace NewLife.Agent
             Console.WriteLine();
             Console.WriteLine("1 显示状态");
 
-            if (service.IsInstalled() == true)
+            var install = ServiceHelper.IsInstalled(name);
+            var run = ServiceHelper.IsRunning(name);
+            if (install == true)
             {
-                if (service.IsRunning() == true)
+                if (run == true)
                 {
                     Console.WriteLine("3 停止服务 -stop");
                 }
@@ -301,15 +269,16 @@ namespace NewLife.Agent
                 Console.WriteLine("2 安装服务 -i");
             }
 
-            if (service.IsRunning() != true)
+            if (run != true)
             {
                 Console.WriteLine("4 单步调试 -step");
                 Console.WriteLine("5 循环调试 -run");
             }
 
-            if (WatchDogs.Length > 0)
+            var dogs = WatchDogs;
+            if (dogs.Length > 0)
             {
-                Console.WriteLine("7 看门狗保护服务 {0}", String.Join(",", WatchDogs));
+                Console.WriteLine("7 看门狗保护服务 {0}", dogs.Join());
             }
 
             if (_Menus.Count > 0)
@@ -386,19 +355,14 @@ namespace NewLife.Agent
                         si.Job = job;
                     }
 
-                    //StartWork(i);
                     ss[i].Start(reason);
                 }
 
                 // 启动服务管理线程
                 StartManagerThread();
-
-                //// 显示用户界面交互窗体
-                //Interactive.ShowForm();
             }
             catch (Exception ex)
             {
-                //WriteLog(ex.ToString());
                 Log?.Error(ex.GetTrue()?.ToString());
             }
         }
@@ -424,13 +388,6 @@ namespace NewLife.Agent
             var ss = Items;
             if (ss != null)
             {
-                //// 先停止各个任务，然后才停止线程
-                //foreach (var item in ss)
-                //{
-                //    item.Active = false;
-                //    item.Event?.Set();
-                //}
-
                 // 等待各个工作线程退出
                 var set = Setting.Current;
                 var ts = new List<Task>();
@@ -440,8 +397,6 @@ namespace NewLife.Agent
                 }
                 Task.WaitAll(ts.ToArray(), set.WaitForExit);
             }
-
-            //Interactive.Hide();
         }
 
         /// <summary>唤醒指定任务马上开始处理任务</summary>
@@ -603,7 +558,7 @@ namespace NewLife.Agent
         }
 
         /// <summary>服务开始时间</summary>
-        private DateTime Start = DateTime.Now;
+        private readonly DateTime Start = DateTime.Now;
 
         /// <summary>检查自动重启</summary>
         /// <returns></returns>
@@ -753,17 +708,8 @@ namespace NewLife.Agent
         #endregion
 
         #region 看门狗
-        private static String[] _WatchDogs;
         /// <summary>看门狗要保护的服务</summary>
-        public static String[] WatchDogs
-        {
-            get
-            {
-                if (_WatchDogs == null) _WatchDogs = Setting.Current.WatchDog.Split(",", ";");
-
-                return _WatchDogs;
-            }
-        }
+        public static String[] WatchDogs => Setting.Current.WatchDog.Split(",", ";");
 
         /// <summary>检查看门狗。</summary>
         /// <remarks>
@@ -789,4 +735,3 @@ namespace NewLife.Agent
         #endregion
     }
 }
-#endif
