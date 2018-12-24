@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using NewLife.Agent;
 using NewLife.Caching;
 using NewLife.Log;
 using NewLife.Remoting;
@@ -34,7 +35,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test7();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -53,20 +54,9 @@ namespace Test
             }
         }
 
-        private static readonly Int32 _count = 0;
         static void Test1()
         {
-            var list = UserX.FindAll(null, null, null, 0, 10);
-            foreach (var item in list)
-            {
-                Console.WriteLine(item.ID);
-            }
-
-            var list2 = Role.Search("管理员", null);
-            foreach (var item in list2)
-            {
-                Console.WriteLine(item.ID);
-            }
+            //new AgentService().ServiceMain();
         }
 
         static void Test2()

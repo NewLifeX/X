@@ -57,9 +57,6 @@
     <Compile Include="Agent\AgentServiceBase.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="Agent\AgentServiceBase_Base.cs">
-      <SubType>Component</SubType>
-    </Compile>
     <Compile Include="Agent\ServiceHelper.cs" />
     <Compile Include="Agent\Setting.cs" />
     <Compile Include="Applications\IP\Ip.cs" />

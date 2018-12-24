@@ -10,19 +10,46 @@ using NewLife.Threading;
 
 namespace NewLife.Agent
 {
-    /// <summary>服务程序基类</summary>
     /// <typeparam name="TService">服务类型</typeparam>
     public abstract class AgentServiceBase<TService> : AgentServiceBase
          where TService : AgentServiceBase<TService>, new()
     {
-        #region 静态辅助函数
         /// <summary>服务主函数</summary>
-        public static void ServiceMain()
+        public void ServiceMain() => new TService().Main();
+    }
+
+    /// <summary>服务程序基类</summary>
+    public abstract class AgentServiceBase : ServiceBase
+    {
+        #region 属性
+        /// <summary>显示名</summary>
+        public virtual String DisplayName { get; set; }
+
+        /// <summary>描述</summary>
+        public virtual String Description { get; set; }
+        #endregion
+
+        #region 构造
+        /// <summary>初始化</summary>
+        public AgentServiceBase()
+        {
+            CanStop = true;
+            CanShutdown = true;
+            CanPauseAndContinue = false;
+            CanHandlePowerEvent = true;
+            CanHandleSessionChangeEvent = true;
+            AutoLog = true;
+        }
+        #endregion
+
+        #region 主函数
+        /// <summary>服务主函数</summary>
+        public void Main()
         {
             XTrace.UseConsole();
 
-            var service = new TService();
-            Instance = service;
+            var service = this;
+            service.Log = XTrace.Log;
 
             // 初始化配置
             var set = Setting.Current;
@@ -48,8 +75,6 @@ namespace NewLife.Agent
 
             if (args.Length > 1)
             {
-                service.Log = XTrace.Log;
-
                 #region 命令
                 var cmd = args[1].ToLower();
                 if (cmd == "-s")  //启动服务
@@ -79,8 +104,6 @@ namespace NewLife.Agent
                 Console.Title = service.DisplayName;
 
                 #region 命令行
-                service.Log = XTrace.Log;
-
                 // 输出状态
                 service.ShowStatus();
 
@@ -152,7 +175,7 @@ namespace NewLife.Agent
             var color = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Red;
 
-            var service = Instance;
+            var service = this;
             var name = service.ServiceName;
 
             if (name != service.DisplayName)
@@ -192,7 +215,7 @@ namespace NewLife.Agent
         /// <summary>显示菜单</summary>
         protected virtual void ShowMenu()
         {
-            var service = Instance;
+            var service = this;
             var name = service.ServiceName;
 
             var color = Console.ForegroundColor;
@@ -223,7 +246,6 @@ namespace NewLife.Agent
 
             if (run != true)
             {
-                Console.WriteLine("4 单步调试 -step");
                 Console.WriteLine("5 循环调试 -run");
             }
 
@@ -275,15 +297,6 @@ namespace NewLife.Agent
             WriteLog("服务启动 {0}", reason);
 
             _Timer = new TimerX(DoCheck, null, 10_000, 10_000, "AM");
-        }
-
-        /// <summary>核心工作方法。调度线程会定期调用该方法</summary>
-        /// <param name="index">线程序号</param>
-        /// <returns>是否立即开始下一步工作。某些任务能达到满负荷，线程可以不做等待</returns>
-        public virtual Boolean Work(Int32 index)
-        {
-            //return false;
-            throw new NotImplementedException("工作任务需要重载 Boolean Work(Int32 index)");
         }
 
         /// <summary>停止服务</summary>
@@ -472,6 +485,19 @@ namespace NewLife.Agent
                     ServiceHelper.RunCmd("net start " + item, false, true);
                 }
             }
+        }
+        #endregion
+
+        #region 日志
+        /// <summary>日志</summary>
+        public ILog Log { get; set; } = Logger.Null;
+
+        /// <summary>写日志</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        public void WriteLog(String format, params Object[] args)
+        {
+            if (Log != null && Log.Enable) Log.Info(format, args);
         }
         #endregion
     }
