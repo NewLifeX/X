@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using NewLife.Agent;
+//using NewLife.Agent;
 using NewLife.Log;
 using NewLife.Net;
 using NewLife.Serialization;
@@ -53,7 +53,7 @@ namespace TestST
 
         static void Test2()
         {
-            new AgentService().Main();
+            //new AgentService().Main();
         }
 
         static void Test3()

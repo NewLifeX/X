@@ -24,6 +24,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XCodeST", "XCodeST\XCodeST.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestST", "TestST\TestST.csproj", "{B944861A-E5FB-4DDB-9DD2-93930B5C1885}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.Agent", "NewLife.Agent\NewLife.Agent.csproj", "{260A337D-B1E2-46AE-A42B-DACE9FD95359}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -54,6 +56,10 @@ Global
 		{B944861A-E5FB-4DDB-9DD2-93930B5C1885}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B944861A-E5FB-4DDB-9DD2-93930B5C1885}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B944861A-E5FB-4DDB-9DD2-93930B5C1885}.Release|Any CPU.Build.0 = Release|Any CPU
+		{260A337D-B1E2-46AE-A42B-DACE9FD95359}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{260A337D-B1E2-46AE-A42B-DACE9FD95359}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{260A337D-B1E2-46AE-A42B-DACE9FD95359}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{260A337D-B1E2-46AE-A42B-DACE9FD95359}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
