@@ -53,7 +53,7 @@ namespace TestST
 
         static void Test2()
         {
-            new AgentService().Main();
+            //new AgentService().Main();
         }
 
         static void Test3()

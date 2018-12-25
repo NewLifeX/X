@@ -56,7 +56,7 @@ namespace Test
 
         static void Test1()
         {
-            new AgentService().Main();
+            //new AgentService().Main();
         }
 
         static void Test2()

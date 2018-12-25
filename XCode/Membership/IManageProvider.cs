@@ -75,11 +75,7 @@ namespace XCode.Membership
     }
 
     /// <summary>管理提供者</summary>
-#if !__CORE__
-    public abstract class ManageProvider : IManageProvider, IErrorInfoProvider
-#else
     public abstract class ManageProvider : IManageProvider
-#endif
     {
         #region 静态实例
         static ManageProvider()
@@ -221,23 +217,6 @@ namespace XCode.Membership
         }
         #endregion
 
-#if !__CORE__
-        #region IErrorInfoProvider 成员
-        void IErrorInfoProvider.AddInfo(Exception ex, StringBuilder builder)
-        {
-            var user = Current;
-            if (user != null)
-            {
-                var e = user as IEntity;
-                if (e["RoleName"] != null)
-                    builder.AppendFormat("登录：{0}({1})\r\n", user.Name, e["RoleName"]);
-                else
-                    builder.AppendFormat("登录：{0}\r\n", user.Name);
-            }
-        }
-        #endregion
-#endif
-
         #region 实体类扩展
         /// <summary>根据实体类接口获取实体工厂</summary>
         /// <typeparam name="TIEntity"></typeparam>
@@ -289,14 +268,6 @@ namespace XCode.Membership
             var expire = TimeSpan.FromDays(0);
             if (rememberme && user != null) expire = TimeSpan.FromDays(365);
             this.SaveCookie(user, expire);
-
-#if !__CORE__
-            //if (rememberme && user != null) this.SetCookie(TimeSpan.FromDays(365));
-            //{
-            //    var cookie = HttpContext.Current.Response.Cookies[CookieKey];
-            //    if (cookie != null) cookie.Expires = DateTime.Now.Date.AddYears(1);
-            //}
-#endif
 
             return user;
         }
