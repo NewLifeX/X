@@ -54,9 +54,7 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Agent\AgentService.cs">
-      <SubType>Component</SubType>
-    </Compile>
+    <Compile Include="Agent\AgentService.cs" />
     <Compile Include="Agent\AgentServiceBase.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -295,12 +293,6 @@
     <Compile Include="Yun\Driving.cs" />
     <Compile Include="Yun\Map.cs" />
     <EmbeddedResource Include="Windows\MySpeech.cs" />
-    <Compile Include="Windows\SerialPortList.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="Windows\SerialPortList.designer.cs">
-      <DependentUpon>SerialPortList.cs</DependentUpon>
-    </Compile>
     <Compile Include="Windows\SpeechRecognition.cs" />
     <Compile Include="Xml\SerializableDictionary.cs" />
     <Compile Include="Xml\XmlConfig.cs" />
@@ -308,9 +300,6 @@
     <Compile Include="Xml\XmlHelper.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Windows\SerialPortList.resx">
-      <DependentUpon>SerialPortList.cs</DependentUpon>
-    </EmbeddedResource>
     <Compile Include="Extension\EndPointExtensions.cs" />
     <None Include="Caching\Readme.MD" />
     <None Include="Log\Readme.md" />
