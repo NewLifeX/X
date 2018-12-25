@@ -97,8 +97,8 @@ namespace NewLife.Model
                     user.Save();
                 };
             }
-            else
-                user.LastLoginIP = WebHelper.UserHost;
+            //else
+            //    user.LastLoginIP = WebHelper.UserHost;
 
             user.Online = true;
             user.Save();

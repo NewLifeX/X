@@ -172,7 +172,7 @@ namespace NewLife.Web
             //if (state.IsNullOrEmpty()) state = Rand.Next().ToString();
 
             // 如果是相对路径，自动加上前缀。需要考虑反向代理的可能，不能直接使用Request.Url
-            redirect = redirect.AsUri(baseUri) + "";
+            //redirect = redirect.AsUri(baseUri) + "";
             _redirect = redirect;
             _state = state;
 
@@ -341,7 +341,7 @@ namespace NewLife.Web
             if (url.IsNullOrEmpty()) throw new ArgumentNullException(nameof(LogoutUrl), "未设置注销地址");
 
             // 如果是相对路径，自动加上前缀。需要考虑反向代理的可能，不能直接使用Request.Url
-            redirect = redirect.AsUri(baseUri) + "";
+            //redirect = redirect.AsUri(baseUri) + "";
             _redirect = redirect;
             _state = state;
 

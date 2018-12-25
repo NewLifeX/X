@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Web;
 using NewLife.Model;
 using NewLife.Threading;
@@ -195,32 +196,32 @@ namespace XCode.Membership
         {
             if (!isNew && !entity.HasDirty) return true;
 
-            var ip = WebHelper.UserHost;
-            if (!ip.IsNullOrEmpty())
-            {
-                // 如果不是IPv6，去掉后面端口
-                if (ip.Contains("://")) ip = ip.Substring("://", null);
-                if (ip.Contains(":") && !ip.Contains("::")) ip = ip.Substring(null, ":");
+            //var ip = WebHelper.UserHost;
+            //if (!ip.IsNullOrEmpty())
+            //{
+            //    // 如果不是IPv6，去掉后面端口
+            //    if (ip.Contains("://")) ip = ip.Substring("://", null);
+            //    if (ip.Contains(":") && !ip.Contains("::")) ip = ip.Substring(null, ":");
 
-                var fs = GetFields(entity.GetType());
+            //    var fs = GetFields(entity.GetType());
 
-                if (isNew)
-                {
-                    SetNoDirtyItem(fs, entity, __.CreateIP, ip);
+            //    if (isNew)
+            //    {
+            //        SetNoDirtyItem(fs, entity, __.CreateIP, ip);
 
-                    var fs2 = GetIPFieldNames(entity.GetType());
-                    if (fs2 != null)
-                    {
-                        foreach (var item in fs2)
-                        {
-                            SetNoDirtyItem(fs2, entity, item, ip);
-                        }
-                    }
-                }
+            //        var fs2 = GetIPFieldNames(entity.GetType());
+            //        if (fs2 != null)
+            //        {
+            //            foreach (var item in fs2)
+            //            {
+            //                SetNoDirtyItem(fs2, entity, item, ip);
+            //            }
+            //        }
+            //    }
 
-                // 不管新建还是更新，都改变更新时间
-                SetNoDirtyItem(fs, entity, __.UpdateIP, ip);
-            }
+            //    // 不管新建还是更新，都改变更新时间
+            //    SetNoDirtyItem(fs, entity, __.UpdateIP, ip);
+            //}
 
             return true;
         }

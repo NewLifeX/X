@@ -232,11 +232,9 @@
     <Compile Include="..\NewLife.Core\Web\OAuth\QQClient.cs" Link="Web\OAuth\QQClient.cs" />
     <Compile Include="..\NewLife.Core\Web\OAuth\TaobaoClient.cs" Link="Web\OAuth\TaobaoClient.cs" />
     <Compile Include="..\NewLife.Core\Web\OAuth\WeixinClient.cs" Link="Web\OAuth\WeixinClient.cs" />
-    <Compile Include="..\NewLife.Core\Web\Pager.cs" Link="Web\Pager.cs" />
     <Compile Include="..\NewLife.Core\Web\PluginHelper.cs" Link="Web\PluginHelper.cs" />
     <Compile Include="..\NewLife.Core\Web\TokenProvider.cs" Link="Web\TokenProvider.cs" />
     <Compile Include="..\NewLife.Core\Web\WebClientX.cs" Link="Web\WebClientX.cs" />
-    <Compile Include="..\NewLife.Core\Web\WebHelper.cs" Link="Web\WebHelper.cs" />
     <Compile Include="..\NewLife.Core\Xml\SerializableDictionary.cs" Link="Xml\SerializableDictionary.cs" />
     <Compile Include="..\NewLife.Core\Xml\XmlConfig.cs" Link="Xml\XmlConfig.cs" />
     <Compile Include="..\NewLife.Core\Xml\XmlConfigFileAttribute.cs" Link="Xml\XmlConfigFileAttribute.cs" />

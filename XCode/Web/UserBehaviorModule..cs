@@ -61,7 +61,14 @@ namespace XCode.Web
             var user = ctx.User?.Identity as IManageUser ?? ManageProvider.User as IManageUser;
 
             var sid = ctx.Session?.SessionID;
-            var ip = WebHelper.UserHost;
+            //var ip = WebHelper.UserHost;
+            var ip = (String)ctx.Items["UserHostAddress"];
+            if (ip.IsNullOrEmpty()) ip = req.ServerVariables["HTTP_X_FORWARDED_FOR"];
+            if (ip.IsNullOrEmpty()) ip = req.ServerVariables["X-Real-IP"];
+            if (ip.IsNullOrEmpty()) ip = req.ServerVariables["X-Forwarded-For"];
+            if (ip.IsNullOrEmpty()) ip = req.ServerVariables["REMOTE_ADDR"];
+            if (ip.IsNullOrEmpty()) ip = req.UserHostName;
+            if (ip.IsNullOrEmpty()) ip = req.UserHostAddress;
 
             var page = GetPage(req);
 
