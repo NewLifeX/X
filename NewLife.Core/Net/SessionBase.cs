@@ -16,6 +16,9 @@ namespace NewLife.Net
     public abstract class SessionBase : DisposeBase, ISocketClient, ITransport
     {
         #region 属性
+        /// <summary>标识</summary>
+        public Int32 ID { get; internal set; }
+
         /// <summary>名称</summary>
         public String Name { get; set; }
 
@@ -64,6 +67,12 @@ namespace NewLife.Net
 
         /// <summary>缓冲区大小。默认8k</summary>
         public Int32 BufferSize { get; set; }
+
+        /// <summary>用户数据</summary>
+        public object Tag { get; set; }
+
+        /// <summary>用户标记</summary>
+        public Int32 UserFlag { get; set; } = 0;
         #endregion
 
         #region 构造
