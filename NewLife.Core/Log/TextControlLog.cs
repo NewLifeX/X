@@ -6,13 +6,11 @@ namespace NewLife.Log
     /// <summary>文本控件输出日志</summary>
     public class TextControlLog : Logger
     {
-        private Control _Control;
         /// <summary>文本控件</summary>
-        public Control Control { get { return _Control; } set { _Control = value; } }
+        public Control Control { get; set; }
 
-        private Int32 _MaxLines = 1000;
         /// <summary>最大行数，超过该行数讲清空文本控件。默认1000行</summary>
-        public Int32 MaxLines { get { return _MaxLines; } set { _MaxLines = value; } }
+        public Int32 MaxLines { get; set; } = 1000;
 
         /// <summary>写日志</summary>
         /// <param name="level"></param>

@@ -54,6 +54,7 @@ namespace TestST
         static void Test2()
         {
             //new AgentService().Main();
+            "圣诞快乐".SpeakAsync();
         }
 
         static void Test3()
