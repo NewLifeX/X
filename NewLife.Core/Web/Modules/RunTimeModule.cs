@@ -28,41 +28,7 @@ namespace NewLife.Web
         protected virtual void OnInit(HttpContext context) { }
         #endregion
 
-        #region 属性
-        ///// <summary>上下文</summary>
-        //public static HttpContext Context { get { return HttpContext.Current; } }
-
-        ///// <summary>请求</summary>
-        //public static HttpRequest Request { get { return HttpContext.Current.Request; } }
-
-        ///// <summary>响应</summary>
-        //public static HttpResponse Response { get { return HttpContext.Current.Response; } }
-        #endregion
-
         #region 运行时输出
-        ///// <summary>当前请求是否输出执行时间</summary>
-        ///// <remarks>如果要所有请求不输出执行时间，则从配置中移除当前模块</remarks>
-        //public static Boolean IsWriteRunTime
-        //{
-        //    get
-        //    {
-        //        var obj = Context.Items["IsWriteRunTime"];
-        //        return (obj is Boolean) ? (Boolean)obj : XTrace.Debug;
-        //    }
-        //    set { Context.Items["IsWriteRunTime"] = value; }
-        //}
-
-        ///// <summary>当前请求是否已经输出执行时间</summary>
-        //public static Boolean HasWrite
-        //{
-        //    get
-        //    {
-        //        var obj = Context.Items["HasWrite"];
-        //        return (obj is Boolean) ? (Boolean)obj : false;
-        //    }
-        //    set { Context.Items["HasWrite"] = value; }
-        //}
-
         /// <summary>执行时间字符串</summary>
         public static String RunTimeFormat { get; set; } = "页面执行时间{0}毫秒！";
 

@@ -645,10 +645,10 @@ namespace XCode.Code
                 if (dc != null) WriteLine("//if (!Dirtys[{0}]) {0} = DateTime.Now;", NameOf(dc.Name));
 
                 dc = Table.Columns.FirstOrDefault(e => e.Name.EqualIgnoreCase("CreateIP"));
-                if (dc != null) WriteLine("//if (isNew && !Dirtys[{0}]) {0} = WebHelper.UserHost;", NameOf(dc.Name));
+                if (dc != null) WriteLine("//if (isNew && !Dirtys[{0}]) {0} = ManageProvider.UserHost;", NameOf(dc.Name));
 
                 dc = Table.Columns.FirstOrDefault(e => e.Name.EqualIgnoreCase("UpdateIP"));
-                if (dc != null) WriteLine("//if (!Dirtys[{0}]) {0} = WebHelper.UserHost;", NameOf(dc.Name));
+                if (dc != null) WriteLine("//if (!Dirtys[{0}]) {0} = ManageProvider.UserHost;", NameOf(dc.Name));
 
                 // 唯一索引检查唯一性
                 var dis = Table.Indexes.Where(e => e.Unique).ToArray();

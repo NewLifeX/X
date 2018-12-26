@@ -366,8 +366,8 @@ namespace XCode.Membership
         {
             Logins++;
             LastLogin = DateTime.Now;
-            //var ip = WebHelper.UserHost;
-            //if (!String.IsNullOrEmpty(ip)) LastLoginIP = ip;
+            var ip = ManageProvider.UserHost;
+            if (!ip.IsNullOrEmpty()) LastLoginIP = ip;
 
             Online = true;
 
@@ -406,7 +406,7 @@ namespace XCode.Membership
                 }
 
                 RegisterTime = DateTime.Now;
-                //RegisterIP = WebHelper.UserHost;
+                RegisterIP = ManageProvider.UserHost;
 
                 Insert();
 

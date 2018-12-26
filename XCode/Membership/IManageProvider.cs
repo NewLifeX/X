@@ -95,6 +95,10 @@ namespace XCode.Membership
 
         /// <summary>菜单工厂</summary>
         public static IMenuFactory Menu => GetFactory<IMenu>() as IMenuFactory;
+
+        private static ThreadLocal<String> _UserHost = new ThreadLocal<String>();
+        /// <summary>用户主机</summary>
+        public static String UserHost { get => _UserHost.Value; set => _UserHost.Value = value; }
         #endregion
 
         #region IManageProvider 接口
