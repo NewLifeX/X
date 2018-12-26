@@ -15,7 +15,7 @@ namespace NewLife.Agent
          where TService : AgentServiceBase<TService>, new()
     {
         /// <summary>服务主函数</summary>
-        public void ServiceMain() => new TService().Main();
+        public static void ServiceMain() => new TService().Main();
     }
 
     /// <summary>服务程序基类</summary>
