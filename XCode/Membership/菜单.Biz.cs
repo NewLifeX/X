@@ -41,6 +41,8 @@ namespace XCode.Membership
 
             base.Valid(isNew);
 
+            if (Icon == "&#xe63f;") Icon = null;
+
             SavePermission();
         }
 
@@ -50,7 +52,9 @@ namespace XCode.Membership
         {
             // 先处理一次，否则可能因为别的字段没有修改而没有脏数据
             SavePermission();
-            if (Icon.IsNullOrWhiteSpace()) Icon = "&#xe63f;";
+
+            //if (Icon.IsNullOrWhiteSpace()) Icon = "&#xe63f;";
+
             // 更改日志保存顺序，先保存才能获取到id
             var action = "添加";
             var isNew = IsNullKey;
