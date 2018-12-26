@@ -576,14 +576,8 @@ namespace XCode.DataAccessLayer
         {
             if (sql.IsNullOrEmpty()) return;
 
-#if !__CORE__
             // 如果页面设定有XCode_SQLList列表，则往列表写入SQL语句
-            var context = HttpContext.Current;
-            if (context != null)
-            {
-                if (context.Items["XCode_SQLList"] is List<String> list) list.Add(sql);
-            }
-#endif
+            DAL.LocalFilter?.Invoke(sql);
 
             if (!ShowSQL) return;
 
@@ -641,17 +635,8 @@ namespace XCode.DataAccessLayer
 
         public String WriteSQL(DbCommand cmd)
         {
-            var flag = ShowSQL;
-#if !__CORE__
             // 如果页面设定有XCode_SQLList列表，则往列表写入SQL语句
-            var context = HttpContext.Current;
-            if (context != null)
-            {
-                if (context.Items["XCode_SQLList"] is List<String> list) flag = true;
-            }
-#endif
-
-            if (!flag) return null;
+            if (!ShowSQL && DAL.LocalFilter == null) return null;
 
             var sql = GetSql(cmd);
 
@@ -663,11 +648,7 @@ namespace XCode.DataAccessLayer
         /// <summary>输出日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
-        public static void WriteLog(String format, params Object[] args)
-        {
-            //DAL.WriteLog(format, args);
-            XTrace.WriteLine(format, args);
-        }
+        public static void WriteLog(String format, params Object[] args) => XTrace.WriteLine(format, args);
         #endregion
 
         #region SQL时间跟踪

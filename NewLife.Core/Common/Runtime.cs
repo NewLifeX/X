@@ -51,7 +51,7 @@ namespace NewLife
         public static Boolean IsWeb => !String.IsNullOrEmpty(System.Web.HttpRuntime.AppDomainAppId);
 
         /// <summary>是否Windows环境</summary>
-        public static Boolean Windows => true;
+        public static Boolean Windows { get; } = Environment.OSVersion.Platform <= PlatformID.WinCE;
 
         /// <summary>是否Linux环境</summary>
         public static Boolean Linux => false;
