@@ -93,13 +93,6 @@ namespace NewLife.Net
         /// <summary>缓冲区大小</summary>
         Int32 BufferSize { get; set; }
 
-        /// <summary>用户数据</summary>
-        object Tag { get; set; }
-
-        /// <summary>
-        /// 用户标记
-        /// </summary>
-        Int32 UserFlag { get; set; }
         #endregion
 
         #region 发送
