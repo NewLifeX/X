@@ -6,12 +6,12 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using NewLife.Agent;
 using NewLife.Caching;
 using NewLife.Log;
 using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
+using NewLife.Web;
 using XCode.Code;
 using XCode.DataAccessLayer;
 using XCode.Membership;
@@ -57,6 +57,19 @@ namespace Test
         static void Test1()
         {
             //new AgentService().Main();
+
+            var wc = new WebClientX
+            {
+                Log = XTrace.Log
+            };
+            var url = wc.DownloadLink("http://x.newlifex.com/", "Oracle.ManagedDataAccess.netstandard", ".");
+            XTrace.WriteLine(url);
+
+            url = wc.DownloadLink("http://x.newlifex.com/", "MySql.Data.netstandard", ".");
+            XTrace.WriteLine(url);
+
+            url = wc.DownloadLink("http://x.newlifex.com/", "System.Data.SqlClient.netstandard", ".");
+            XTrace.WriteLine(url);
         }
 
         static void Test2()

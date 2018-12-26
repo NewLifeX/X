@@ -57,10 +57,14 @@ namespace NewLife.Web
         #region 构造
         static WebClientX()
         {
-            if (Runtime.Windows)
+            try
+            {
                 ServicePointManager.SecurityProtocol |= SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
-            else
+            }
+            catch
+            {
                 ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
+            }
         }
 
         /// <summary>实例化</summary>
@@ -319,7 +323,8 @@ namespace NewLife.Web
                     foreach (var item in names)
                     {
                         link = ls.Where(e => !e.Url.IsNullOrWhiteSpace())
-                           .Where(e => e.Name.EqualIgnoreCase(item) || e.Name.StartsWithIgnoreCase(item + ".") || e.Name.StartsWithIgnoreCase(item + "_"))
+                           //.Where(e => e.Name.EqualIgnoreCase(item) || e.Name.StartsWithIgnoreCase(item + ".") || e.Name.StartsWithIgnoreCase(item + "_"))
+                           .Where(e => e.Name.EqualIgnoreCase(item))
                            .OrderByDescending(e => e.Version)
                            .OrderByDescending(e => e.Time)
                            .FirstOrDefault();
@@ -343,27 +348,28 @@ namespace NewLife.Web
                 return file;
             }
 
-            var file2 = destdir.CombinePath(link.Name).EnsureDirectory();
+            var linkName = link.FullName;
+            var file2 = destdir.CombinePath(linkName).EnsureDirectory();
 
             // 已经提前检查过，这里几乎不可能有文件存在
             if (File.Exists(file2))
             {
                 // 如果连接名所表示的文件存在，并且带有时间，那么就智能是它啦
-                var p = link.Name.LastIndexOf("_");
-                if (p > 0 && (p + 8 + 1 == link.Name.Length || p + 14 + 1 == link.Name.Length))
+                var p = linkName.LastIndexOf("_");
+                if (p > 0 && (p + 8 + 1 == linkName.Length || p + 14 + 1 == linkName.Length))
                 {
-                    Log.Info("分析得到文件 {0}，目标文件已存在，无需下载 {1}", link.Name, link.Url);
+                    Log.Info("分析得到文件 {0}，目标文件已存在，无需下载 {1}", linkName, link.Url);
                     return file;
                 }
 
                 // 如果文件存在，另外改一个名字吧
-                var ext = Path.GetExtension(link.Name);
-                file2 = Path.GetFileNameWithoutExtension(link.Name);
+                var ext = Path.GetExtension(linkName);
+                file2 = Path.GetFileNameWithoutExtension(linkName);
                 file2 = "{0}_{1:yyyyMMddHHmmss}{2}".F(file2, DateTime.Now, ext);
                 file2 = destdir.CombinePath(file2).EnsureDirectory();
             }
 
-            Log.Info("分析得到文件 {0}，准备下载 {1}", link.Name, link.Url);
+            Log.Info("分析得到文件 {0}，准备下载 {1}", linkName, link.Url);
             // 开始下载文件，注意要提前建立目录，否则会报错
             file2 = file2.EnsureDirectory();
 
@@ -379,7 +385,7 @@ namespace NewLife.Web
                 // 缓存文件
                 if (!destdir.EqualIgnoreCase(cachedir))
                 {
-                    var cachefile = cachedir.CombinePath(link.Name);
+                    var cachefile = cachedir.CombinePath(linkName);
                     Log.Info("缓存到 {0}", cachefile);
                     try
                     {
