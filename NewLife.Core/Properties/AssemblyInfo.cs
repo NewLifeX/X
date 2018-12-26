@@ -32,10 +32,12 @@ using System.Runtime.InteropServices;
 //
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("7.4.*")]
-[assembly: AssemblyFileVersion("7.4.2018.1103")]
+[assembly: AssemblyVersion("8.0.*")]
+[assembly: AssemblyFileVersion("8.0.2018.1224")]
 
 /*
+ * v8.0.2018.1224   全面进入netstandard时代
+ * 
  * v7.4.2018.1103   重构Redis，支持自动管道，提升吞吐率
  * 
  * v7.3.2018.0614   重构高性能资源池，减少GC压力，增加线程池，让异步任务得到平等竞争CPU的机会

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -14,10 +14,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Orleans.Server" Version="2.1.2" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <ProjectReference Include="..\NewLife.Agent\NewLife.Agent.csproj" />
     <ProjectReference Include="..\NewLife.CoreST\NewLife.CoreST.csproj" />
     <ProjectReference Include="..\XCodeST\XCodeST.csproj" />
   </ItemGroup>

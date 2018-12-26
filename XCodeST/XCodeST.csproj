@@ -131,6 +131,8 @@
     <Compile Include="..\XCode\Membership\LogEntity.cs" Link="Membership\LogEntity.cs" />
     <Compile Include="..\XCode\Membership\LogProvider.cs" Link="Membership\LogProvider.cs" />
     <Compile Include="..\XCode\Membership\UserTimeEntity.cs" Link="Membership\UserTimeEntity.cs" />
+    <Compile Include="..\XCode\Membership\字典参数.Biz.cs" Link="Membership\字典参数.Biz.cs" />
+    <Compile Include="..\XCode\Membership\字典参数.cs" Link="Membership\字典参数.cs" />
     <Compile Include="..\XCode\Membership\日志.Biz.cs" Link="Membership\日志.Biz.cs" />
     <Compile Include="..\XCode\Membership\日志.cs" Link="Membership\日志.cs" />
     <Compile Include="..\XCode\Membership\用户.Biz.cs" Link="Membership\用户.Biz.cs" />
@@ -143,6 +145,8 @@
     <Compile Include="..\XCode\Membership\角色.cs" Link="Membership\角色.cs" />
     <Compile Include="..\XCode\Membership\访问统计.Biz.cs" Link="Membership\访问统计.Biz.cs" />
     <Compile Include="..\XCode\Membership\访问统计.cs" Link="Membership\访问统计.cs" />
+    <Compile Include="..\XCode\Membership\部门.Biz.cs" Link="Membership\部门.Biz.cs" />
+    <Compile Include="..\XCode\Membership\部门.cs" Link="Membership\部门.cs" />
     <Compile Include="..\XCode\Model\ConcatExpression.cs" Link="Model\ConcatExpression.cs" />
     <Compile Include="..\XCode\Model\Expression.cs" Link="Model\Expression.cs" />
     <Compile Include="..\XCode\Model\FieldExpression.cs" Link="Model\FieldExpression.cs" />
@@ -219,10 +223,6 @@
     <None Include="..\XCode\Sharding\生成实体类.tt" Link="Sharding\生成实体类.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="System.Data.Common" Version="4.3.0" />
   </ItemGroup>
 
   <ItemGroup>

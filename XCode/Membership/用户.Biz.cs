@@ -7,6 +7,7 @@ using System.Security.Principal;
 using System.Web;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
+using NewLife.Data;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Web;
@@ -208,7 +209,7 @@ namespace XCode.Membership
         /// <param name="isEnable"></param>
         /// <param name="p"></param>
         /// <returns></returns>
-        public static IList<TEntity> Search(String key, Int32 roleId, Boolean? isEnable, Pager p) => Search(key, roleId, isEnable, DateTime.MinValue, DateTime.MinValue, p);
+        public static IList<TEntity> Search(String key, Int32 roleId, Boolean? isEnable, PageParameter p) => Search(key, roleId, isEnable, DateTime.MinValue, DateTime.MinValue, p);
 
         /// <summary>高级查询</summary>
         /// <param name="key"></param>
@@ -218,7 +219,7 @@ namespace XCode.Membership
         /// <param name="end"></param>
         /// <param name="p"></param>
         /// <returns></returns>
-        public static IList<TEntity> Search(String key, Int32 roleId, Boolean? isEnable, DateTime start, DateTime end, Pager p)
+        public static IList<TEntity> Search(String key, Int32 roleId, Boolean? isEnable, DateTime start, DateTime end, PageParameter p)
         {
             var exp = _.LastLogin.Between(start, end);
             if (roleId > 0) exp &= _.RoleID == roleId | _.RoleIDs.Contains("," + roleId + ",");
@@ -365,8 +366,8 @@ namespace XCode.Membership
         {
             Logins++;
             LastLogin = DateTime.Now;
-            var ip = WebHelper.UserHost;
-            if (!String.IsNullOrEmpty(ip)) LastLoginIP = ip;
+            //var ip = WebHelper.UserHost;
+            //if (!String.IsNullOrEmpty(ip)) LastLoginIP = ip;
 
             Online = true;
 
@@ -405,7 +406,7 @@ namespace XCode.Membership
                 }
 
                 RegisterTime = DateTime.Now;
-                RegisterIP = WebHelper.UserHost;
+                //RegisterIP = WebHelper.UserHost;
 
                 Insert();
 

@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Security.Cryptography;
-using System.Text;
 using System.Threading;
 using System.Web;
 using NewLife.Collections;
 using NewLife.Log;
-using NewLife.Model;
 
 namespace NewLife.Web
 {
@@ -88,37 +86,8 @@ namespace NewLife.Web
             if (id != null && id.Identity != null && !String.IsNullOrEmpty(id.Identity.Name))
                 sb.AppendFormat("用户：{0}({1})\r\n", id.Identity.Name, id.Identity.AuthenticationType);
 
-            // 具体使用哪一种提供者由用户决定
-            var eip = ObjectContainer.Current.Resolve<IErrorInfoProvider>();
-            //var eip = ObjectContainer.Current.AutoRegister(typeof(IErrorInfoProvider)).Resolve<IErrorInfoProvider>();
-            if (eip != null) eip.AddInfo(ex, sb);
-
             XTrace.WriteLine(sb.Put(true));
-
-            //OnErrorComplete();
         }
-
-        ///// <summary>错误处理完成后执行。一般用于输出友好错误信息</summary>
-        //protected virtual void OnErrorComplete()
-        //{
-        //    if (!XTrace.Debug)
-        //    {
-        //        var Server = HttpContext.Current.Server;
-        //        var Response = HttpContext.Current.Response;
-
-        //        Server.ClearError();
-        //        Response.Write("非常抱歉，服务器遇到错误，请与管理员联系！");
-        //    }
-        //}
         #endregion
-    }
-
-    /// <summary>错误信息提供者。用于为错误处理模块提供扩展信息</summary>
-    public interface IErrorInfoProvider
-    {
-        /// <summary>为指定错误添加附加错误信息。需要自己格式化并加换行</summary>
-        /// <param name="ex"></param>
-        /// <param name="builder"></param>
-        void AddInfo(Exception ex, StringBuilder builder);
     }
 }

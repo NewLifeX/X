@@ -265,16 +265,11 @@ namespace NewLife.Log
         /// <summary>输出核心库和启动程序的版本号</summary>
         public static void WriteVersion()
         {
-#if __CORE__
-            var asm2 = Assembly.GetEntryAssembly();
-            WriteVersion(asm2);
-#else
             var asm = Assembly.GetExecutingAssembly();
             WriteVersion(asm);
 
             var asm2 = Assembly.GetEntryAssembly();
             if (asm2 != asm) WriteVersion(asm2);
-#endif
         }
 
         /// <summary>输出程序集版本</summary>

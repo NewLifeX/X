@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using NewLife.Reflection;
 using NewLife.Collections;
-using NewLife.Log;
-using NewLife.Web;
 
 namespace NewLife.Common
 {
@@ -159,6 +154,7 @@ namespace NewLife.Common
 
             return sb.Put(true);
         }
+
         private static Encoding gb2312;
         /// <summary>获取单字拼音</summary>
         /// <param name="ch"></param>
@@ -176,7 +172,7 @@ namespace NewLife.Common
 
             if (gb2312 == null) gb2312 = Encoding.GetEncoding("gb2312");
             var arr = gb2312.GetBytes(ch.ToString());
-            var chr = (Int16)arr[0] * 256 + (Int16)arr[1] - 65536;
+            var chr = arr[0] * 256 + arr[1] - 65536;
 
             // 单字符--英文或半角字符  
             if (chr > 0 && chr < 160) return ch.ToString();
@@ -208,28 +204,7 @@ namespace NewLife.Common
             }
             #endregion 中文字符处理
 
-#if !__CORE__
-            // 调用微软类库
-            var ss = GetPinYinByMS(ch);
-            if (ss != null && ss.Length > 0) return FixMS(ss[0], false);
-#endif
-
             return String.Empty;
-        }
-
-        /// <summary>获取多音节拼音</summary>
-        /// <param name="ch"></param>
-        /// <returns></returns>
-        public static String[] GetMulti(Char ch)
-        {
-#if !__CORE__
-            // 多音节优先使用微软库
-            var ss = GetPinYinByMS(ch);
-            // 去掉最后的音调
-            if (ss != null) return ss.Select(e => FixMS(e, true)).ToArray();
-#endif
-
-            return new String[] { Get(ch) };
         }
 
         /// <summary>把汉字转换成拼音(全拼)</summary>
@@ -248,44 +223,6 @@ namespace NewLife.Common
             }
 
             return sb.Put(true);
-        }
-
-        static Boolean _inited = false;
-        static Type _type;
-        /// <summary>从微软拼音库获取拼音，包括音调</summary>
-        /// <param name="chr"></param>
-        /// <returns></returns>
-        public static String[] GetPinYinByMS(Char chr)
-        {
-            if (_type == null)
-            {
-                if (_inited) return null;
-                _inited = true;
-
-                _type = PluginHelper.LoadPlugin("ChineseChar", "微软拼音库", "ChnCharInfo.dll", "PinYin");
-                if (_type == null) XTrace.WriteLine("未找到微软拼音库ChineseChar类");
-            }
-            if (_type == null) return null;
-
-            var list = _type.CreateInstance(chr).GetValue("Pinyins", false) as IList<String>;
-            if (list == null || list.Count == 0) return null;
-
-            return list.Where(e => !String.IsNullOrEmpty(e)).ToArray();
-        }
-
-        private static String FixMS(String py, Boolean yinJie)
-        {
-            if (py.IsNullOrEmpty()) return py;
-
-            if (!yinJie)
-            {
-                // 去掉最后的音调
-                var ch = py[py.Length - 1];
-                if (ch >= '0' && ch <= '9') py = py.Substring(0, py.Length - 1);
-            }
-
-            // 驼峰
-            return py[0] + py.Substring(1, py.Length - 1).ToLower();
         }
     }
 }

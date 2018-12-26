@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using NewLife.Agent;
 using NewLife.Log;
 using NewLife.Net;
 using NewLife.Serialization;
@@ -19,7 +20,7 @@ namespace TestST
 
             var sw = Stopwatch.StartNew();
 
-            Test3();
+            Test2();
 
             sw.Stop();
             Console.WriteLine("OK! {0:n0}ms", sw.ElapsedMilliseconds);
@@ -52,11 +53,8 @@ namespace TestST
 
         static void Test2()
         {
-            var cs = DAL.ConnStrs;
-            foreach (var item in cs)
-            {
-                Console.WriteLine("{0}={1}", item.Key, item.Value);
-            }
+            //new AgentService().Main();
+            "圣诞快乐".SpeakAsync();
         }
 
         static void Test3()

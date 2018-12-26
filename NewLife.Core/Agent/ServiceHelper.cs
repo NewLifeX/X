@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -23,6 +22,7 @@ namespace NewLife.Agent
                 var filename = p.MainModule.FileName;
                 filename = Path.GetFileName(filename);
                 filename = filename.Replace(".vshost.", ".");
+
                 return filename;
             }
         }
@@ -30,7 +30,7 @@ namespace NewLife.Agent
         /// <summary>安装、卸载 服务</summary>
         /// <param name="service">服务对象</param>
         /// <param name="isinstall">是否安装</param>
-        public static void Install(this IAgentService service, Boolean isinstall = true)
+        public static void Install(this AgentServiceBase service, Boolean isinstall = true)
         {
             var name = service.ServiceName;
             if (String.IsNullOrEmpty(name)) throw new Exception("未指定服务名！");
@@ -42,7 +42,16 @@ namespace NewLife.Agent
             if (Environment.OSVersion.Version.Major >= 6) WriteLine("在win7/win2008及更高系统中，可能需要管理员权限执行才能安装/卸载服务。");
             if (isinstall)
             {
-                RunSC("create " + name + " BinPath= \"" + ExeName.GetFullPath() + " -s\" start= auto DisplayName= \"" + service.DisplayName + "\"");
+                var exe = ExeName;
+
+                // 兼容dotnet
+                var args = Environment.GetCommandLineArgs();
+                if (args.Length >= 1 && exe.EqualIgnoreCase("dotnet", "dotnet.exe"))
+                    exe += " " + args[0].GetFullPath();
+                else
+                    exe = exe.GetFullPath();
+
+                RunSC("create " + name + " BinPath= \"" + exe + " -s\" start= auto DisplayName= \"" + service.DisplayName + "\"");
                 if (!String.IsNullOrEmpty(service.Description)) RunSC("description " + name + " \"" + service.Description + "\"");
             }
             else
@@ -56,7 +65,7 @@ namespace NewLife.Agent
         /// <summary>启动、停止 服务</summary>
         /// <param name="service">服务对象</param>
         /// <param name="isstart"></param>
-        public static void ControlService(this IAgentService service, Boolean isstart = true)
+        public static void ControlService(this AgentServiceBase service, Boolean isstart = true)
         {
             var name = service.ServiceName;
             if (String.IsNullOrEmpty(name)) throw new Exception("未指定服务名！");
@@ -114,35 +123,18 @@ namespace NewLife.Agent
 
         #region 服务操作辅助函数
         /// <summary>是否已安装</summary>
-        public static Boolean? IsInstalled(this IAgentService service) => IsServiceInstalled(service.ServiceName);
+        public static Boolean? IsInstalled(String serviceName) => IsServiceInstalled(serviceName);
 
         /// <summary>是否已启动</summary>
-        public static Boolean? IsRunning(this IAgentService service) => IsServiceRunning(service.ServiceName);
-
-        /// <summary>取得服务</summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        public static ServiceController GetService(String name)
-        {
-            var list = new List<ServiceController>(ServiceController.GetServices());
-            if (list == null || list.Count < 1) return null;
-
-            //return list.Find(delegate(ServiceController item) { return item.ServiceName == name; });
-            foreach (var item in list)
-            {
-                if (item.ServiceName == name) return item;
-            }
-            return null;
-        }
+        public static Boolean? IsRunning(String serviceName) => IsServiceRunning(serviceName);
 
         /// <summary>是否已安装</summary>
         public static Boolean? IsServiceInstalled(String name)
         {
-            ServiceController control = null;
             try
             {
                 // 取的时候就抛异常，是不知道是否安装的
-                control = GetService(name);
+                var control = ServiceController.GetServices().FirstOrDefault(e => e.ServiceName == name);
                 if (control == null) return false;
                 try
                 {
@@ -153,16 +145,14 @@ namespace NewLife.Agent
                 catch { return false; }
             }
             catch { return null; }
-            finally { if (control != null) control.Dispose(); }
         }
 
         /// <summary>是否已启动</summary>
         public static Boolean? IsServiceRunning(String name)
         {
-            ServiceController control = null;
             try
             {
-                control = GetService(name);
+                var control = ServiceController.GetServices().FirstOrDefault(e => e.ServiceName == name);
                 if (control == null) return false;
                 try
                 {
@@ -177,51 +167,6 @@ namespace NewLife.Agent
                 return null;
             }
             catch { return null; }
-            finally { if (control != null) control.Dispose(); }
-        }
-        #endregion
-
-        #region 服务依赖
-        /// <summary>启动服务准备工作</summary>
-        public static void PreStartWork(this IAgentService service)
-        {
-            var Services = ServiceController.GetServices();
-
-            //首先检查是否有依赖服务
-            // 1.服务本身的依赖
-            ServiceController[] servicesDependedOn = null;
-            var scApp = Services.FirstOrDefault(s => s.ServiceName == service.ServiceName);
-            if (scApp != null)
-            {
-                servicesDependedOn = scApp.ServicesDependedOn;
-
-                foreach (var sc in servicesDependedOn)
-                {
-                    try
-                    {
-                        sc.Start();
-                    }
-                    catch (Exception ex)
-                    {
-                        //依赖服务启动未成功
-                        throw new Exception("依赖服务" + sc.ServiceName + "未启动成功", ex);
-                    }
-                }
-            }
-            // 2.配置文件的依赖
-            //var scConfig = Config.GetConfigSplit("XAgent.ServicesDependedOn", ",", Config.GetConfigSplit<String>("ServicesDependedOn", ",", null));
-            var scConfig = Setting.Current.ServicesDependedOn.Split(",");
-            if (scConfig != null)
-            {
-                foreach (var item in scConfig)
-                {
-                    var sc = Services.FirstOrDefault(s => s.ServiceName == item);
-                    if (sc != null)
-                        sc.Start();
-                    else
-                        throw new Exception(String.Format("依赖服务{0}不存在", item));
-                }
-            }
         }
         #endregion
 

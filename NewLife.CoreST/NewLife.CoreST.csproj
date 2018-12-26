@@ -7,12 +7,12 @@
     <Description>日志、网络、RPC、序列化、缓存、Windows服务、线程池</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2018 新生命开发团队</Copyright>
-    <FileVersion>7.4.2018.1103</FileVersion>
-    <AssemblyVersion>7.4.*</AssemblyVersion>
+    <FileVersion>8.0.2018.1224</FileVersion>
+    <AssemblyVersion>8.0.*</AssemblyVersion>
     <!--是否确定版本，false以支持*-->
     <Deterministic>false</Deterministic>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <Version>7.4.2018.1103</Version>
+    <Version>8.0.2018.1224</Version>
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
@@ -232,11 +232,9 @@
     <Compile Include="..\NewLife.Core\Web\OAuth\QQClient.cs" Link="Web\OAuth\QQClient.cs" />
     <Compile Include="..\NewLife.Core\Web\OAuth\TaobaoClient.cs" Link="Web\OAuth\TaobaoClient.cs" />
     <Compile Include="..\NewLife.Core\Web\OAuth\WeixinClient.cs" Link="Web\OAuth\WeixinClient.cs" />
-    <Compile Include="..\NewLife.Core\Web\Pager.cs" Link="Web\Pager.cs" />
     <Compile Include="..\NewLife.Core\Web\PluginHelper.cs" Link="Web\PluginHelper.cs" />
     <Compile Include="..\NewLife.Core\Web\TokenProvider.cs" Link="Web\TokenProvider.cs" />
     <Compile Include="..\NewLife.Core\Web\WebClientX.cs" Link="Web\WebClientX.cs" />
-    <Compile Include="..\NewLife.Core\Web\WebHelper.cs" Link="Web\WebHelper.cs" />
     <Compile Include="..\NewLife.Core\Xml\SerializableDictionary.cs" Link="Xml\SerializableDictionary.cs" />
     <Compile Include="..\NewLife.Core\Xml\XmlConfig.cs" Link="Xml\XmlConfig.cs" />
     <Compile Include="..\NewLife.Core\Xml\XmlConfigFileAttribute.cs" Link="Xml\XmlConfigFileAttribute.cs" />

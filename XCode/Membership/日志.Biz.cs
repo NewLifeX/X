@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Web;
+using NewLife.Data;
 using NewLife.Model;
 using NewLife.Web;
 using XCode.Cache;
@@ -83,7 +84,7 @@ namespace XCode.Membership
         /// <param name="end"></param>
         /// <param name="p"></param>
         /// <returns></returns>
-        public static IList<TEntity> Search(String key, Int32 userid, String category, DateTime start, DateTime end, Pager p)
+        public static IList<TEntity> Search(String key, Int32 userid, String category, DateTime start, DateTime end, PageParameter p)
         {
             var exp = new WhereExpression();
             //if (!key.IsNullOrEmpty()) exp &= (_.Action == key | _.Remark.Contains(key));
