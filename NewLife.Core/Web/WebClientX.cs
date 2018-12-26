@@ -362,11 +362,11 @@ namespace NewLife.Web
                     return file;
                 }
 
-                // 如果文件存在，另外改一个名字吧
-                var ext = Path.GetExtension(linkName);
-                file2 = Path.GetFileNameWithoutExtension(linkName);
-                file2 = "{0}_{1:yyyyMMddHHmmss}{2}".F(file2, DateTime.Now, ext);
-                file2 = destdir.CombinePath(file2).EnsureDirectory();
+                //// 如果文件存在，另外改一个名字吧
+                //var ext = Path.GetExtension(linkName);
+                //file2 = Path.GetFileNameWithoutExtension(linkName);
+                //file2 = "{0}_{1:yyyyMMddHHmmss}{2}".F(file2, DateTime.Now, ext);
+                //file2 = destdir.CombinePath(file2).EnsureDirectory();
             }
 
             Log.Info("分析得到文件 {0}，准备下载 {1}", linkName, link.Url);
