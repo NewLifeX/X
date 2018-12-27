@@ -323,7 +323,7 @@ namespace XCode.DataAccessLayer
                         links.Add(name + ".win");
                     }
 
-                    linkName = name + ".netstandard";
+                    linkName = name + ".st";
 #else
                     if (Environment.Is64BitProcess) linkName += "64";
                     var ver = Environment.Version;

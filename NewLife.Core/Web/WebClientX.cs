@@ -404,8 +404,12 @@ namespace NewLife.Web
             var di = dir.AsDirectory();
             if (di != null && di.Exists)
             {
-                var fi = di.GetFiles(name + ".*").FirstOrDefault();
-                if (fi == null || !fi.Exists) fi = di.GetFiles(name + "_*.*").FirstOrDefault();
+                // 所有文件，转Link后匹配
+                var ls = di.GetFiles().Select(e => new Link().Parse(e.FullName)).ToList();
+                ls = ls.Where(e => e.Name.EqualIgnoreCase(name)).ToList();
+                // 先版本后时间排序，降序
+                var lnk = ls.OrderByDescending(e => e.Version).OrderByDescending(e => e.Time).FirstOrDefault();
+                var fi = lnk?.RawUrl.AsFile();
                 if (fi != null && fi.Exists)
                 {
                     Log.Info("目标文件{0}已存在，更新于{1}", fi.FullName, fi.LastWriteTime);

@@ -460,56 +460,14 @@ namespace System
             return str.Substring(0, len) + pad;
         }
 
-        ///// <summary>根据最大长度截取字符串（二进制计算长度），并允许以指定空白填充末尾</summary>
-        ///// <remarks>默认采用Default编码进行处理，其它编码请参考本函数代码另外实现</remarks>
-        ///// <param name="str">字符串</param>
-        ///// <param name="maxLength">截取后字符串的最大允许长度，包含后面填充</param>
-        ///// <param name="pad">需要填充在后面的字符串，比如几个圆点</param>
-        ///// <param name="strict">严格模式时，遇到截断位置位于一个字符中间时，忽略该字符，否则包括该字符。默认true</param>
-        ///// <returns></returns>
-        //public static String CutBinary(this String str, Int32 maxLength, String pad = null, Boolean strict = true)
-        //{
-        //    if (String.IsNullOrEmpty(str) || maxLength <= 0 || str.Length < maxLength) return str;
-
-        //    var encoding = Encoding.UTF8;
-
-        //    var buf = encoding.GetBytes(str);
-        //    if (buf.Length < maxLength) return str;
-
-        //    // 计算截取字节长度
-        //    var len = maxLength;
-        //    if (!String.IsNullOrEmpty(pad)) len -= encoding.GetByteCount(pad);
-        //    if (len <= 0) return pad;
-
-        //    // 计算截取字符长度。避免把一个字符劈开
-        //    var clen = 0;
-        //    while (true)
-        //    {
-        //        try
-        //        {
-        //            clen = encoding.GetCharCount(buf, 0, len);
-        //            break;
-        //        }
-        //        catch (DecoderFallbackException)
-        //        {
-        //            // 发生了回退，减少len再试
-        //            len--;
-        //        }
-        //    }
-        //    // 可能过长，修正
-        //    if (strict) while (encoding.GetByteCount(str.ToCharArray(), 0, clen) > len) clen--;
-
-        //    return str.Substring(0, clen) + pad;
-        //}
-
         /// <summary>从当前字符串开头移除另一字符串以及之前的部分</summary>
         /// <param name="str">当前字符串</param>
         /// <param name="starts">另一字符串</param>
         /// <returns></returns>
         public static String CutStart(this String str, params String[] starts)
         {
-            if (String.IsNullOrEmpty(str)) return str;
-            if (starts == null || starts.Length < 1 || String.IsNullOrEmpty(starts[0])) return str;
+            if (str.IsNullOrEmpty()) return str;
+            if (starts == null || starts.Length < 1 || starts[0].IsNullOrEmpty()) return str;
 
             for (var i = 0; i < starts.Length; i++)
             {
@@ -517,7 +475,7 @@ namespace System
                 if (p >= 0)
                 {
                     str = str.Substring(p + starts[i].Length);
-                    if (String.IsNullOrEmpty(str)) break;
+                    if (str.IsNullOrEmpty()) break;
                 }
             }
             return str;

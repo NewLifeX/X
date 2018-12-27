@@ -62,13 +62,16 @@ namespace Test
             {
                 Log = XTrace.Log
             };
-            var url = wc.DownloadLink("http://x.newlifex.com/", "Oracle.ManagedDataAccess.netstandard", ".");
+            var url = wc.DownloadLink("http://x.newlifex.com/", "Oracle.ManagedDataAccess.st", ".");
             XTrace.WriteLine(url);
 
-            url = wc.DownloadLink("http://x.newlifex.com/", "MySql.Data.netstandard", ".");
+            url = wc.DownloadLink("http://x.newlifex.com/", "MySql.Data.st", ".");
             XTrace.WriteLine(url);
 
-            url = wc.DownloadLink("http://x.newlifex.com/", "System.Data.SqlClient.netstandard", ".");
+            url = wc.DownloadLink("http://x.newlifex.com/", "MySql.Data64Fx40,MySql.Data", ".");
+            XTrace.WriteLine(url);
+
+            url = wc.DownloadLink("http://x.newlifex.com/", "System.Data.SqlClient.st", ".");
             XTrace.WriteLine(url);
         }
 
