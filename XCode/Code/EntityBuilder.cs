@@ -813,10 +813,10 @@ namespace XCode.Code
 
                     WriteLine();
                     WriteLine("// 单对象缓存");
-                    WriteLine("//return Meta.SingleCache[{0}];", name);
+                    WriteLine("return Meta.SingleCache[{0}];", name);
 
                     WriteLine();
-                    WriteLine("return Find(_.{0} == {1});", pk.Name, name);
+                    WriteLine("//return Find(_.{0} == {1});", pk.Name, name);
                 }
                 WriteLine("}");
             }
