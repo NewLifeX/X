@@ -287,6 +287,8 @@ namespace NewLife.Web
         /// <returns>返回已下载的文件，无效时返回空</returns>
         public String DownloadLink(String urls, String name, String destdir)
         {
+            Log.Info("下载链接 {0}，目标 {1}", urls, name);
+
             var names = name.Split(",", ";");
 
             var file = "";

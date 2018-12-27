@@ -40,7 +40,7 @@ namespace XCode.DataAccessLayer
                             {
                                 //_Factory = GetProviderFactory(null, "System.Data.SQLite.SQLiteFactory", true);
                                 _Factory = GetProviderFactory(null, "System.Data.SQLite.SQLiteFactory", true);
-                                if (_Factory == null) _Factory = GetProviderFactory("Microsoft.Data.Sqlite.dll", "Microsoft.Data.Sqlite.SqliteFactory", true);
+                                //if (_Factory == null) _Factory = GetProviderFactory("Microsoft.Data.Sqlite.dll", "Microsoft.Data.Sqlite.SqliteFactory", true);
                                 if (_Factory == null) _Factory = GetProviderFactory("System.Data.SQLite.dll", "System.Data.SQLite.SQLiteFactory");
                             }
 
