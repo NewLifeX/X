@@ -287,29 +287,9 @@ namespace NewLife.Web
         /// <returns>返回已下载的文件，无效时返回空</returns>
         public String DownloadLink(String urls, String name, String destdir)
         {
-            // 一定时间之内，不再重复下载
-            var cacheTime = DateTime.Now.AddDays(-1);
-            var cachedir = Setting.Current.GetPluginCache();
             var names = name.Split(",", ";");
 
             var file = "";
-            foreach (var item in names)
-            {
-                // 猜测本地可能存在的文件
-                var fi = CheckCache(item, destdir);
-                if (fi != null && fi.LastWriteTime > cacheTime) return fi.FullName;
-                // 检查缓存目录
-                if (!destdir.EqualIgnoreCase(cachedir))
-                {
-                    fi = CheckCache(item, cachedir) ?? fi;
-                    if (fi != null && fi.LastWriteTime > cacheTime) return fi.FullName;
-                }
-
-                // 确保即使联网下载失败，也返回较旧版本
-                if (fi != null) file = fi.FullName;
-            }
-
-            // 确保即使联网下载失败，也返回较旧版本
             Link link = null;
             Exception lastError = null;
             foreach (var url in urls.Split(",", ";"))
@@ -323,7 +303,6 @@ namespace NewLife.Web
                     foreach (var item in names)
                     {
                         link = ls.Where(e => !e.Url.IsNullOrWhiteSpace())
-                           //.Where(e => e.Name.EqualIgnoreCase(item) || e.Name.StartsWithIgnoreCase(item + ".") || e.Name.StartsWithIgnoreCase(item + "_"))
                            .Where(e => e.Name.EqualIgnoreCase(item))
                            .OrderByDescending(e => e.Version)
                            .OrderByDescending(e => e.Time)
@@ -361,12 +340,6 @@ namespace NewLife.Web
                     Log.Info("分析得到文件 {0}，目标文件已存在，无需下载 {1}", linkName, link.Url);
                     return file;
                 }
-
-                //// 如果文件存在，另外改一个名字吧
-                //var ext = Path.GetExtension(linkName);
-                //file2 = Path.GetFileNameWithoutExtension(linkName);
-                //file2 = "{0}_{1:yyyyMMddHHmmss}{2}".F(file2, DateTime.Now, ext);
-                //file2 = destdir.CombinePath(file2).EnsureDirectory();
             }
 
             Log.Info("分析得到文件 {0}，准备下载 {1}", linkName, link.Url);
@@ -375,49 +348,15 @@ namespace NewLife.Web
 
             var sw = Stopwatch.StartNew();
             Task.Run(() => DownloadFileAsync(link.Url, file2)).Wait();
-            //ThreadPoolX.QueueUserWorkItem(() => DownloadFileAsync(link.Url, file2).Wait());
-            //ThreadPoolX.QueueTask(() => DownloadFileAsync(link.Url, file2)).Wait();
             sw.Stop();
 
             if (File.Exists(file2))
             {
                 Log.Info("下载完成，共{0:n0}字节，耗时{1:n0}毫秒", file2.AsFile().Length, sw.ElapsedMilliseconds);
-                // 缓存文件
-                if (!destdir.EqualIgnoreCase(cachedir))
-                {
-                    var cachefile = cachedir.CombinePath(linkName);
-                    Log.Info("缓存到 {0}", cachefile);
-                    try
-                    {
-                        File.Copy(file2, cachefile.EnsureDirectory(), true);
-                    }
-                    catch { }
-                }
                 file = file2;
             }
 
             return file;
-        }
-
-        FileInfo CheckCache(String name, String dir)
-        {
-            var di = dir.AsDirectory();
-            if (di != null && di.Exists)
-            {
-                // 所有文件，转Link后匹配
-                var ls = di.GetFiles().Select(e => new Link().Parse(e.FullName)).ToList();
-                ls = ls.Where(e => e.Name.EqualIgnoreCase(name)).ToList();
-                // 先版本后时间排序，降序
-                var lnk = ls.OrderByDescending(e => e.Version).OrderByDescending(e => e.Time).FirstOrDefault();
-                var fi = lnk?.RawUrl.AsFile();
-                if (fi != null && fi.Exists)
-                {
-                    Log.Info("目标文件{0}已存在，更新于{1}", fi.FullName, fi.LastWriteTime);
-                    return fi;
-                }
-            }
-
-            return null;
         }
 
         /// <summary>分析指定页面指定名称的链接，并下载到目标目录，解压Zip后返回目标文件</summary>
@@ -429,12 +368,11 @@ namespace NewLife.Web
         public String DownloadLinkAndExtract(String urls, String name, String destdir, Boolean overwrite = false)
         {
             var file = "";
-            var cachedir = Setting.Current.GetPluginCache();
 
             // 下载
             try
             {
-                file = DownloadLink(urls, name, cachedir);
+                file = DownloadLink(urls, name, destdir);
             }
             catch (Exception ex)
             {
@@ -451,16 +389,6 @@ namespace NewLife.Web
                 }
             }
 
-            // 如果下载失败，尝试缓存
-            if (file.IsNullOrEmpty())
-            {
-                try
-                {
-                    var fi = CheckCache(name, cachedir);
-                    file = fi?.FullName;
-                }
-                catch { }
-            }
             if (file.IsNullOrEmpty()) return null;
 
             // 解压缩

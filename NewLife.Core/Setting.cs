@@ -43,10 +43,6 @@ namespace NewLife
         /// <summary>插件服务器。将从该网页上根据关键字分析链接并下载插件</summary>
         [Description("插件服务器。将从该网页上根据关键字分析链接并下载插件")]
         public String PluginServer { get; set; } = "http://x.newlifex.com/";
-
-        /// <summary>插件缓存目录。默认位于系统盘的X\Cache</summary>
-        [Description("插件缓存目录。默认位于系统盘的X\\Cache")]
-        public String PluginCache { get; set; } = "";
         #endregion
 
         #region 方法
@@ -59,13 +55,6 @@ namespace NewLife
             if (TempPath.IsNullOrEmpty()) TempPath = web ? "..\\XTemp" : "XTemp";
             if (LogFileFormat.IsNullOrEmpty()) LogFileFormat = "{0:yyyy_MM_dd}.log";
 
-            if (PluginCache.IsNullOrWhiteSpace())
-            {
-                // 兼容Linux Mono
-                var sys = Environment.SystemDirectory;
-                if (sys.IsNullOrEmpty()) sys = "/";
-                PluginCache = Path.GetPathRoot(sys).CombinePath("X", "Cache");
-            }
             if (PluginServer.IsNullOrWhiteSpace()) PluginServer = "http://x.newlifex.com/";
 
             base.OnLoaded();
@@ -74,38 +63,6 @@ namespace NewLife
         /// <summary>获取插件目录</summary>
         /// <returns></returns>
         public String GetPluginPath() => PluginPath.GetBasePath();
-
-        /// <summary>获取插件缓存目录</summary>
-        /// <returns></returns>
-        public String GetPluginCache()
-        {
-            var cachedir = PluginCache;
-
-            // 确保缓存目录可用
-            for (var i = 0; i < 2; i++)
-            {
-                try
-                {
-                    cachedir.EnsureDirectory();
-                    break;
-                }
-                catch
-                {
-                    if (i == 0)
-                    {
-                        var sys = Environment.SystemDirectory;
-                        if (sys.IsNullOrEmpty()) sys = "/";
-                        cachedir = Path.GetPathRoot(sys).CombinePath("X", "Cache");
-                    }
-                    else
-                        cachedir = "..\\Cache".GetFullPath();
-
-                    PluginCache = cachedir;
-                }
-            }
-
-            return cachedir;
-        }
         #endregion
     }
 }

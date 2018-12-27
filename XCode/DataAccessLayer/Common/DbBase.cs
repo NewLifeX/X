@@ -331,12 +331,7 @@ namespace XCode.DataAccessLayer
 #endif
                     links.Add(linkName);
                     // 有些数据库驱动不区分x86/x64，并且逐步以Fx4为主，所以来一个默认
-                    //linkName += ";" + name;
                     if (!links.Contains(name)) links.Add(name);
-
-                    //linkName = "st_" + name;
-                    // 指定完全类型名可获取项目中添加了引用的类型，否则dll文件需要放在根目录
-                    className = className + "," + name;
                 }
 
                 var type = PluginHelper.LoadPlugin(className, null, assemblyFile, links.Join(","));
