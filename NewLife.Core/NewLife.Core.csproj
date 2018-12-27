@@ -205,7 +205,6 @@
     <Compile Include="Reflection\DynamicInternal.cs" />
     <Compile Include="Reflection\DynamicXml.cs" />
     <Compile Include="Reflection\IReflect.cs" />
-    <Compile Include="Reflection\PEImage.cs" />
     <Compile Include="Reflection\Reflect.cs" />
     <Compile Include="Reflection\OrcasNamer.cs" />
     <Compile Include="Reflection\ScriptEngine.cs" />

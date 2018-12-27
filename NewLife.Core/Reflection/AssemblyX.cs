@@ -650,8 +650,8 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static Assembly ReflectionOnlyLoadFrom(String file, Version ver = null)
         {
-            // 仅加载.Net文件，并且小于等于当前版本
-            if (!PEImage.CanLoad(file, ver, XTrace.Debug)) return null;
+            //// 仅加载.Net文件，并且小于等于当前版本
+            //if (!PEImage.CanLoad(file, ver, XTrace.Debug)) return null;
 
             try
             {
