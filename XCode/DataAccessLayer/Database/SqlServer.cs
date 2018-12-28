@@ -4,10 +4,8 @@ using System.Data;
 using System.Data.Common;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
-using NewLife;
 using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Reflection;
@@ -593,8 +591,12 @@ namespace XCode.DataAccessLayer
                     }
                     if (!ps.Contains(dc.Name)) continue;
 
+                    // 用于参数化的字符串不能为null
+                    var val = entity[dc.Name];
+                    if (dc.DataType == typeof(String)) val += "";
+
                     // 逐列创建参数对象
-                    dps.Add(db.CreateParameter(dc.Name, entity[dc.Name], dc));
+                    dps.Add(db.CreateParameter(dc.Name, val, dc));
                 }
 
                 dpsList.Add(dps.ToArray());
@@ -662,7 +664,7 @@ namespace XCode.DataAccessLayer
             {
                 if (!isStarted) throw new InvalidOperationException();
                 //mAddToBatch.Invoke(mAdapter, new Object[1] { command });
-                mAdapter.Invoke("mAdapter", new Object[] { command });
+                mAdapter.Invoke("AddToBatch", new Object[] { command });
             }
 
             /// <summary>
