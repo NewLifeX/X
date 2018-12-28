@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.IO;
 using System.Text;
+using System.Threading;
 using NewLife.Threading;
 
 namespace NewLife.Log
@@ -28,11 +29,7 @@ namespace NewLife.Log
             else
                 FileFormat = Setting.Current.LogFileFormat;
 
-            _Timer = new TimerX(WriteFile, null, 1000, 1000)
-            {
-                Async = true,
-                CanExecute = () => !_Logs.IsEmpty
-            };
+            _Timer = new TimerX(s => CloseFile(), null, 5_000, 5_000) { Async = true };
         }
 
         static ConcurrentDictionary<String, TextFileLog> cache = new ConcurrentDictionary<String, TextFileLog>(StringComparer.OrdinalIgnoreCase);
@@ -62,8 +59,10 @@ namespace NewLife.Log
         /// <summary>销毁</summary>
         public void Dispose()
         {
+            _Timer.TryDispose();
+
             // 销毁前把队列日志输出
-            if (_Logs != null && !_Logs.IsEmpty) WriteFile(null);
+            if (!_Logs.IsEmpty) WriteFile();
 
             var writer = LogWriter;
             if (writer != null)
@@ -177,12 +176,12 @@ namespace NewLife.Log
 
         #region 异步写日志
         private readonly TimerX _Timer;
-        private ConcurrentQueue<String> _Logs = new ConcurrentQueue<String>();
+        private readonly ConcurrentQueue<String> _Logs = new ConcurrentQueue<String>();
+        private Int32 _writing;
         private DateTime _NextClose;
 
         /// <summary>写文件</summary>
-        /// <param name="state"></param>
-        protected virtual void WriteFile(Object state)
+        protected virtual void WriteFile()
         {
             var writer = LogWriter;
 
@@ -194,20 +193,6 @@ namespace NewLife.Log
                 writer = null;
             }
 
-            if (_Logs.IsEmpty)
-            {
-                // 连续5秒没日志，就关闭
-                if (_NextClose < now)
-                {
-                    writer.TryDispose();
-                    writer = null;
-
-                    _NextClose = now.AddSeconds(5);
-                }
-
-                return;
-            }
-
             // 初始化日志读写器
             if (writer == null) writer = InitLog();
 
@@ -215,6 +200,35 @@ namespace NewLife.Log
             {
                 // 写日志
                 writer.WriteLine(str);
+            }
+
+            // 连续5秒没日志，就关闭
+            _NextClose = now.AddSeconds(5);
+        }
+
+        /// <summary>关闭文件</summary>
+        protected virtual void CloseFile()
+        {
+            // 同步写日志
+            if (Interlocked.CompareExchange(ref _writing, 1, 0) == 0)
+            {
+                try
+                {
+                    // 处理残余
+                    if (!_Logs.IsEmpty) WriteFile();
+
+                    // 连续5秒没日志，就关闭
+                    var writer = LogWriter;
+                    if (writer != null && _NextClose < TimerX.Now)
+                    {
+                        writer.TryDispose();
+                        LogWriter = null;
+                    }
+                }
+                finally
+                {
+                    _writing = 0;
+                }
             }
         }
         #endregion
@@ -233,8 +247,24 @@ namespace NewLife.Log
             else
                 e = e.Set(Format(format, args), null);
 
-            // 推入队列，异步写日志
+            // 推入队列
             _Logs.Enqueue(e.ToString());
+
+            // 异步写日志
+            if (Interlocked.CompareExchange(ref _writing, 1, 0) == 0)
+            {
+                ThreadPoolX.QueueUserWorkItem(() =>
+                {
+                    try
+                    {
+                        WriteFile();
+                    }
+                    finally
+                    {
+                        _writing = 0;
+                    }
+                });
+            }
         }
         #endregion
 
