@@ -76,6 +76,11 @@ namespace NewLife.Net
     public interface ISocketRemote : ISocket, IExtend
     {
         #region 属性
+        /// <summary>
+        /// 标识
+        /// </summary>
+        Int32 ID { get; }
+
         /// <summary>远程地址</summary>
         NetUri Remote { get; set; }
 
@@ -87,6 +92,7 @@ namespace NewLife.Net
 
         /// <summary>缓冲区大小</summary>
         Int32 BufferSize { get; set; }
+
         #endregion
 
         #region 发送

@@ -88,6 +88,7 @@ namespace NewLife.Net
 
         /// <summary>缓冲区大小。默认8k</summary>
         public Int32 BufferSize { get { return Server.BufferSize; } set { Server.BufferSize = value; } }
+
         #endregion
 
         #region 构造
