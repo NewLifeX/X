@@ -92,7 +92,8 @@ namespace XCode.Membership
                 Name = name,
                 Code = code,
                 ParentID = parentid,
-                Enable = true
+                Enable = true,
+                Visible = true,
             };
 
             entity.Save();
