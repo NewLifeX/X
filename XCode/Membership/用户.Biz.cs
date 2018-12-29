@@ -133,6 +133,14 @@ namespace XCode.Membership
         //[BindRelation(__.LastLoginIP)]
         [XmlIgnore, ScriptIgnore]
         public String LastLoginAddress => LastLoginIP.IPToAddress();
+
+        /// <summary>部门</summary>
+        [XmlIgnore, ScriptIgnore]
+        public Department Department => Extends.Get(nameof(Department), k => Department.FindByID(DepartmentID));
+
+        /// <summary>部门</summary>
+        [Map(__.DepartmentID, typeof(Department), __.ID)]
+        public String DepartmentName => Department + "";
         #endregion
 
         #region 扩展查询

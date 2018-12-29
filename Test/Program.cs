@@ -35,7 +35,7 @@ namespace Test
                 try
                 {
 #endif
-                Test2();
+                Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -126,16 +126,8 @@ namespace Test
 
         static void Test3()
         {
-            //var svr = new ApiServer("http://*:8080")
-            var svr = new ApiServer(777)
-            {
-                Log = XTrace.Log,
-                //EncoderLog = XTrace.Log,
-                StatPeriod = 5
-            };
-            svr.Start();
-
-            Console.ReadKey(true);
+            var list = Department.FindAll();
+            Console.WriteLine(list.ToJson(true));
         }
 
         static void Test4()

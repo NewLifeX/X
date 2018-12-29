@@ -62,7 +62,7 @@ namespace XCode.Membership
     }
 
     /// <summary>字典参数</summary>
-    public partial class Parameter : Entity<Parameter>
+    public partial class Parameter : EntityTree<Parameter>
     {
         #region 对象操作
         static Parameter()
