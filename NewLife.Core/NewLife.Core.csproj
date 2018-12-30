@@ -136,6 +136,7 @@
     <Compile Include="Model\IManageUser.cs" />
     <Compile Include="Model\ModelExtension.cs" />
     <Compile Include="Model\ObjectContainerHelper.cs" />
+    <Compile Include="Net\Handlers\SplitDataCodec.cs" />
     <Compile Include="Net\NetHandlerContext.cs" />
     <Compile Include="Remoting\ApiAction.cs" />
     <Compile Include="Remoting\ApiAttribute.cs" />
