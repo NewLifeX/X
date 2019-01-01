@@ -11,8 +11,8 @@ namespace NewLife.Net
     public class TcpSession : SessionBase, ISocketSession
     {
         #region 属性
-        /// <summary>会话编号</summary>
-        public Int32 ID { get; internal set; }
+        ///// <summary>会话编号</summary>
+        //public Int32 ID { get; internal set; }
 
         /// <summary>收到空数据时抛出异常并断开连接。默认true</summary>
         public Boolean DisconnectWhenEmptyData { get; set; } = true;
