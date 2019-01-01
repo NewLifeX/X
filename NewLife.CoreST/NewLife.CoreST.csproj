@@ -6,13 +6,13 @@
     <AssemblyTitle>新生命X组件核心库</AssemblyTitle>
     <Description>日志、网络、RPC、序列化、缓存、Windows服务、线程池</Description>
     <Company>新生命开发团队</Company>
-    <Copyright>©2002-2018 新生命开发团队</Copyright>
-    <FileVersion>8.0.2018.1224</FileVersion>
+    <Copyright>©2002-2019 新生命开发团队</Copyright>
+    <FileVersion>8.0.2019.0101</FileVersion>
     <AssemblyVersion>8.0.*</AssemblyVersion>
     <!--是否确定版本，false以支持*-->
     <Deterministic>false</Deterministic>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <Version>8.0.2018.1224</Version>
+    <Version>8.0.2019.0101</Version>
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
