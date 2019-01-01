@@ -39,8 +39,8 @@ using XCode;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("9.9.*")]
-[assembly: AssemblyFileVersion("9.9.2018.1103")]
+[assembly: AssemblyVersion("9.10.*")]
+[assembly: AssemblyFileVersion("9.10.2019.0101")]
 
 /*
  * XCode的重大改进
@@ -58,6 +58,8 @@ using XCode;
  * /
 
 /*
+ * v9.10.2019.0101  全面巩固批量Insert/Update/Upsert，支持数据备份、恢复和同步，支持实体列表保存到文件以及加载
+ * 
  * v9.9.2018.1103   重构数据层查询，DbTable替代DataSet，为将来数据备份和传输打基础
  * 
  * v9.9.2018.0907   恢复使用数据层缓存，默认10秒，任意写入清空
