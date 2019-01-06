@@ -129,13 +129,19 @@ namespace Test
             //var list = Department.FindAll();
             //Console.WriteLine(list.ToJson(true));
 
-            var list = new List<Int32>() as IList<Int32>;
-            list.Add(12);
-            list.Add(34);
-            list.Add(56);
+            //var list = new List<Int32>() as IList<Int32>;
+            //list.Add(12);
+            //list.Add(34);
+            //list.Add(56);
 
-            var xml = list.ToXml();
-            Console.WriteLine(xml);
+            //var xml = list.ToXml();
+            //Console.WriteLine(xml);
+
+            var list = UserX.FindAll();
+            foreach (var item in list)
+            {
+                Console.WriteLine(item.RoleName);
+            }
         }
 
         static void Test4()

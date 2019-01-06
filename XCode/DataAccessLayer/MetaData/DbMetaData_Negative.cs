@@ -417,6 +417,8 @@ namespace XCode.DataAccessLayer
             // 如果指定了新列和旧列，则构建两个集合
             if (entitytable.Columns != null && entitytable.Columns.Count > 0 && dbtable.Columns != null && dbtable.Columns.Count > 0)
             {
+                var db = Database;
+
                 var sbName = new StringBuilder();
                 var sbValue = new StringBuilder();
                 foreach (var item in entitytable.Columns)
@@ -450,14 +452,14 @@ namespace XCode.DataAccessLayer
                                 if (sbName.Length > 0) sbName.Append(", ");
                                 if (sbValue.Length > 0) sbValue.Append(", ");
                                 sbName.Append(fname);
-                                sbValue.Append(Database.FormatDateTime(DateTime.MinValue));
+                                sbValue.Append(db.FormatDateTime(DateTime.MinValue));
                             }
                             else if (type == typeof(Boolean))
                             {
                                 if (sbName.Length > 0) sbName.Append(", ");
                                 if (sbValue.Length > 0) sbValue.Append(", ");
                                 sbName.Append(fname);
-                                sbValue.Append(Database.FormatValue(item, false));
+                                sbValue.Append(db.FormatValue(item, false));
                             }
                         }
                     }
@@ -466,24 +468,33 @@ namespace XCode.DataAccessLayer
                         if (sbName.Length > 0) sbName.Append(", ");
                         if (sbValue.Length > 0) sbValue.Append(", ");
                         sbName.Append(fname);
+
+                        var flag = false;
+
                         // 处理一下非空默认值
-                        if (field.Nullable && !item.Nullable)
+                        if (field.Nullable && !item.Nullable || !item.Nullable && db.Type == DatabaseType.SQLite)
                         {
+                            flag = true;
                             if (type == typeof(String))
                                 sbValue.Append("ifnull({0}, \'\')".F(fname));
                             else if (type == typeof(Int16) || type == typeof(Int32) || type == typeof(Int64) ||
                                type == typeof(Single) || type == typeof(Double) || type == typeof(Decimal))
                                 sbValue.Append("ifnull({0}, 0)".F(fname));
                             else if (type == typeof(DateTime))
-                                sbValue.Append("ifnull({0}, {1})".F(fname, Database.FormatDateTime(DateTime.MinValue)));
+                                sbValue.Append("ifnull({0}, {1})".F(fname, db.FormatDateTime(DateTime.MinValue)));
+                            else if (type == typeof(Boolean))
+                                sbValue.Append("ifnull({0}, {1})".F(fname, db.FormatValue(item, false)));
+                            else
+                                flag = false;
                         }
-                        else
+
+                        if (!flag)
                         {
                             //sbValue.Append(fname);
 
                             // 处理字符串不允许空，ntext不支持+""
-                            if (type == typeof(String) && !item.Nullable && item.Length > 0 && item.Length < Database.LongTextLength)
-                                sbValue.Append(Database.StringConcat(fname, "\'\'"));
+                            if (type == typeof(String) && !item.Nullable && item.Length > 0 && item.Length < db.LongTextLength)
+                                sbValue.Append(db.StringConcat(fname, "\'\'"));
                             else
                                 sbValue.Append(fname);
                         }
