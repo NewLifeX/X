@@ -884,7 +884,24 @@ namespace XCode.DataAccessLayer
             }
             if (!flag) return sql;
 
-            Database.CreateSession().Execute(sql);
+            //Database.CreateSession().Execute(sql);
+            // 拆分为多行执行，避免数据库被锁定
+            var sqls = sql.Split("; " + Environment.NewLine);
+            var session = Database.CreateSession();
+            session.BeginTransaction(IsolationLevel.Serializable);
+            try
+            {
+                foreach (var item in sqls)
+                {
+                    session.Execute(item);
+                }
+                session.Commit();
+            }
+            catch
+            {
+                session.Rollback();
+                throw;
+            }
 
             return null;
         }

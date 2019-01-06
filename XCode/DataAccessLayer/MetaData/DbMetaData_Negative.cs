@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using NewLife.Reflection;
@@ -408,7 +409,7 @@ namespace XCode.DataAccessLayer
 
             // 每个分号后面故意加上空格，是为了让DbMetaData执行SQL时，不要按照分号加换行来拆分这个SQL语句
             var sb = new StringBuilder();
-            sb.AppendLine("BEGIN TRANSACTION; ");
+            //sb.AppendLine("BEGIN TRANSACTION; ");
             sb.Append(RenameTable(tableName, tempTableName));
             sb.AppendLine("; ");
             sb.Append(CreateTableSQL(entitytable));
@@ -508,8 +509,8 @@ namespace XCode.DataAccessLayer
             }
             sb.AppendLine("; ");
             sb.AppendFormat("Drop Table {0}", tempTableName);
-            sb.AppendLine("; ");
-            sb.Append("COMMIT;");
+            //sb.AppendLine("; ");
+            //sb.Append("COMMIT;");
 
             return sb.ToString();
         }
@@ -725,13 +726,24 @@ namespace XCode.DataAccessLayer
             if (/*schema == DDLSchema.TableExist ||*/ schema == DDLSchema.DatabaseExist) return session.QueryCount(sql) > 0;
 
             // 分隔符是分号加换行，如果不想被拆开执行（比如有事务），可以在分号和换行之间加一个空格
-            var ss = sql.Split(";" + Environment.NewLine);
-            if (ss == null || ss.Length < 1) return session.Execute(sql);
+            var sqls = sql.Split(";" + Environment.NewLine);
+            if (sqls == null || sqls.Length < 1) return session.Execute(sql);
 
-            foreach (var item in ss)
+            session.BeginTransaction(IsolationLevel.Serializable);
+            try
             {
-                session.Execute(item);
+                foreach (var item in sqls)
+                {
+                    session.Execute(item);
+                }
+                session.Commit();
             }
+            catch
+            {
+                session.Rollback();
+                throw;
+            }
+
             return 0;
         }
 
