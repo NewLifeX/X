@@ -624,7 +624,8 @@ namespace XCode.DataAccessLayer
                     else if (line.Contains(" NULL "))
                         field.Nullable = true;
 
-                    field.RawType = fs[1];
+                    field.RawType = fs.Length > 1 ? fs[1] : "nvarchar(50)";
+
                     field.Length = field.RawType.Substring("(", ")").ToInt();
 
                     field.DataType = GetDataType(field.RawType);

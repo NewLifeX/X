@@ -137,11 +137,17 @@ namespace Test
             //var xml = list.ToXml();
             //Console.WriteLine(xml);
 
-            var list = UserX.FindAll();
-            foreach (var item in list)
-            {
-                Console.WriteLine(item.RoleName);
-            }
+            //var list = UserX.FindAll();
+            //foreach (var item in list)
+            //{
+            //    Console.WriteLine(item.RoleName);
+            //}
+
+            var dal = UserX.Meta.Session.Dal;
+            var ts = dal.Tables;
+            //Console.WriteLine(ts.ToXml());
+            var xml = dal.Export();
+            Console.WriteLine(xml);
         }
 
         static void Test4()
