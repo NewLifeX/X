@@ -52,6 +52,11 @@ namespace XCode
                     return Convert.ToInt64(v1) == Convert.ToInt64(v2);
                 case TypeCode.String:
                     return v1 + "" == v2 + "";
+                case TypeCode.Single:
+                case TypeCode.Double:
+                    return Math.Abs(v1.ToDouble() - v2.ToDouble()) < 0.000_001;
+                case TypeCode.Decimal:
+                    return Math.Abs((Decimal)v1 - (Decimal)v2) < 0.000_000_000_001m;
                 default:
                     break;
             }

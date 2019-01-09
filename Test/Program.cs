@@ -126,28 +126,14 @@ namespace Test
 
         static void Test3()
         {
-            //var list = Department.FindAll();
-            //Console.WriteLine(list.ToJson(true));
+            var m = 95.12345678901234567890123456789012345678901m;
+            Console.WriteLine(m);
+            Console.WriteLine(m.ToString());
 
-            //var list = new List<Int32>() as IList<Int32>;
-            //list.Add(12);
-            //list.Add(34);
-            //list.Add(56);
+            var d = (Double)m;
+            Console.WriteLine(d);
+            Console.WriteLine(d.ToString());
 
-            //var xml = list.ToXml();
-            //Console.WriteLine(xml);
-
-            //var list = UserX.FindAll();
-            //foreach (var item in list)
-            //{
-            //    Console.WriteLine(item.RoleName);
-            //}
-
-            var dal = UserX.Meta.Session.Dal;
-            var ts = dal.Tables;
-            //Console.WriteLine(ts.ToXml());
-            var xml = dal.Export();
-            Console.WriteLine(xml);
         }
 
         static void Test4()
