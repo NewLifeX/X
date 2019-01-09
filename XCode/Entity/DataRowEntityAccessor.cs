@@ -232,7 +232,17 @@ namespace XCode
             //Boolean? b = null;
             //if (ds.ContainsKey(name)) b = ds[name];
 
-            entity[name] = value == DBNull.Value ? null : value;
+            //entity[name] = value == DBNull.Value ? null : value;
+
+            // 如果值类型不一致，则备份原始值到扩展，解决数据库类型比实体类型大（如Int64到Int32）
+            if (value == DBNull.Value)
+                entity[name] = null;
+            else
+            {
+                entity[name] = value;
+
+                if (value.GetType() != type && !EntityBase.CheckEqual(value, entity[name])) entity.Extends[name] = value;
+            }
 
             //if (b != null)
             //    ds[name] = b.Value;

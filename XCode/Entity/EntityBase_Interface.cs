@@ -26,7 +26,7 @@ namespace XCode
         /// <param name="v1"></param>
         /// <param name="v2"></param>
         /// <returns></returns>
-        private Boolean CheckEqual(Object v1, Object v2)
+        internal static Boolean CheckEqual(Object v1, Object v2)
         {
             if (v1 == null || v2 == null) return Equals(v1, v2);
 
