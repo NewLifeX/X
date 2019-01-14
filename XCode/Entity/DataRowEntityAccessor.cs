@@ -241,7 +241,7 @@ namespace XCode
             {
                 entity[name] = value;
 
-                if (value.GetType() != type && !EntityBase.CheckEqual(value, entity[name])) entity.Extends[name] = value;
+                if (value.GetType() != type && !EntityBase.CheckEqual(entity[name], value)) entity.Extends[name] = value;
             }
 
             //if (b != null)

@@ -56,7 +56,7 @@ namespace XCode
                 case TypeCode.Double:
                     return Math.Abs(v1.ToDouble() - v2.ToDouble()) < 0.000_001;
                 case TypeCode.Decimal:
-                    return Math.Abs((Decimal)v1 - (Decimal)v2) < 0.000_000_000_001m;
+                    return Math.Abs((Decimal)v1 - Convert.ToDecimal(v2)) < 0.000_000_000_001m;
                 default:
                     break;
             }
