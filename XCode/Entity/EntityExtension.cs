@@ -652,6 +652,7 @@ namespace XCode
                     (item as IAccessor).Write(fs, null);
                 }
 
+                fs.SetLength(fs.Position);
                 return fs.Position;
             }
         }
