@@ -130,8 +130,8 @@ namespace NewLife.Net.Handlers
         /// <returns></returns>
         protected virtual IList<Packet> Parse(Packet pk, CodecItem codec, Func<Packet, Int32> getLength, Int32 expire = 5000)
         {
-            var _ms = codec.Stream;
-            var nodata = _ms == null || _ms.Position < 0 || _ms.Position >= _ms.Length;
+            var ms = codec.Stream;
+            var nodata = ms == null || ms.Position < 0 || ms.Position >= ms.Length;
 
             var list = new List<Packet>();
             // 内部缓存没有数据，直接判断输入数据流是否刚好一帧数据，快速处理，绝大多数是这种场景
@@ -142,13 +142,13 @@ namespace NewLife.Net.Handlers
                 var idx = 0;
                 while (idx < pk.Total)
                 {
-                    //var pk2 = new Packet(pk.Data, pk.Offset + idx, pk.Total - idx);
+                    // 切出来一片，计算长度
                     var pk2 = pk.Slice(idx);
                     var len = getLength(pk2);
                     if (len <= 0 || len > pk2.Count) break;
 
+                    // 根据计算得到的长度，重新设置数据片正确长度
                     pk2.Set(pk2.Data, pk2.Offset, len);
-                    //pk2.SetSub(0, len);
                     list.Add(pk2);
                     idx += len;
                 }
@@ -156,38 +156,36 @@ namespace NewLife.Net.Handlers
                 if (idx == pk.Total) return list.ToArray();
 
                 // 剩下的
-                //pk = new Packet(pk.Data, pk.Offset + idx, pk.Total - idx);
                 pk = pk.Slice(idx);
             }
 
-            if (_ms == null) codec.Stream = _ms = new MemoryStream();
+            if (ms == null) codec.Stream = ms = new MemoryStream();
 
             // 加锁，避免多线程冲突
-            lock (_ms)
+            lock (ms)
             {
                 // 超过该时间后按废弃数据处理
                 var now = TimerX.Now;
-                if (_ms.Length > _ms.Position && codec.Last.AddMilliseconds(expire) < now)
+                if (ms.Length > ms.Position && codec.Last.AddMilliseconds(expire) < now)
                 {
-                    _ms.SetLength(0);
-                    _ms.Position = 0;
+                    ms.SetLength(0);
+                    ms.Position = 0;
                 }
                 codec.Last = now;
 
                 // 合并数据到最后面
                 if (pk != null && pk.Total > 0)
                 {
-                    var p = _ms.Position;
-                    _ms.Position = _ms.Length;
-                    pk.WriteTo(_ms);
-                    _ms.Position = p;
+                    var p = ms.Position;
+                    ms.Position = ms.Length;
+                    pk.WriteTo(ms);
+                    ms.Position = p;
                 }
 
                 // 尝试解包
-                while (_ms.Position < _ms.Length)
+                while (ms.Position < ms.Length)
                 {
-                    //var pk2 = new Packet(_ms.GetBuffer(), (Int32)_ms.Position, (Int32)_ms.Length);
-                    var pk2 = new Packet(_ms);
+                    var pk2 = new Packet(ms);
                     var len = getLength(pk2);
 
                     // 资源不足一包
@@ -195,17 +193,16 @@ namespace NewLife.Net.Handlers
 
                     // 解包成功
                     pk2.Set(pk2.Data, pk2.Offset, len);
-                    //pk2.SetSub(0, len);
                     list.Add(pk2);
 
-                    _ms.Seek(len, SeekOrigin.Current);
+                    ms.Seek(len, SeekOrigin.Current);
                 }
 
                 // 如果读完了数据，需要重置缓冲区
-                if (_ms.Position >= _ms.Length)
+                if (ms.Position >= ms.Length)
                 {
-                    _ms.SetLength(0);
-                    _ms.Position = 0;
+                    ms.SetLength(0);
+                    ms.Position = 0;
                 }
 
                 return list;
