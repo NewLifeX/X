@@ -17,6 +17,8 @@ namespace NewLife.Net.Handlers
     /// 默认以"0x0D 0x0A"即换行来分割，分割的包包含分割字节本身，使用时请注意。
     /// 默认分割方式：ISocket.Add&lt;SplitDataCodec&gt;()
     /// 自定义分割方式：ISocket.Add(new SplitDataHandler { SplitData = 自定义分割字节数组 })
+    /// 自定义最大缓存大小方式：ISocket.Add(new SplitDataHandler { MaxCacheDataLength = 2048 })
+    /// 自定义方式：ISocket.Add(new SplitDataHandler { MaxCacheDataLength = 2048, SplitData = 自定义分割字节数组 })
     /// </remarks>
     public class SplitDataCodec : Handler
     {
@@ -24,6 +26,11 @@ namespace NewLife.Net.Handlers
         /// 粘包分割字节数据（默认0x0D,0x0A）
         /// </summary>
         public byte[] SplitData { get; set; } = new byte[] { 0x0D, 0x0A };
+
+        /// <summary>
+        /// 最大缓存待处理数据（字节）
+        /// </summary>
+        public int MaxCacheDataLength { get; set; } = 1024;
 
         /// <summary>读取数据</summary>
         /// <param name="context"></param>
@@ -106,9 +113,9 @@ namespace NewLife.Net.Handlers
             // 加锁，避免多线程冲突
             lock (_ms)
             {
-                // 超过该时间后按废弃数据处理
+                // 超过该时间后按废弃数据处理  2019-1-9 +待处理数据超过设定值也按废弃数据处理【重要】
                 var now = TimerX.Now;
-                if (_ms.Length > _ms.Position && codec.Last.AddMilliseconds(expire) < now)
+                if ((_ms.Length > _ms.Position && codec.Last.AddMilliseconds(expire) < now) || _ms.Length >= MaxCacheDataLength)
                 {
                     _ms.SetLength(0);
                     _ms.Position = 0;
