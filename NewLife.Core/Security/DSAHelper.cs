@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Security.Cryptography;
+using System.Xml;
 
 namespace NewLife.Security
 {
@@ -16,11 +17,12 @@ namespace NewLife.Security
 
             var ss = new String[2];
             var pa = dsa.ExportParameters(true);
-            ss[0] = dsa.ToXmlString(true);
-            ss[1] = dsa.ToXmlString(false);
+            ss[0] = dsa.ToXmlStringX(true);
+            ss[1] = dsa.ToXmlStringX(false);
 
             return ss;
         }
+
         #endregion
 
         #region 数字签名
@@ -31,7 +33,7 @@ namespace NewLife.Security
         public static Byte[] Sign(Byte[] buf, String priKey)
         {
             var dsa = new DSACryptoServiceProvider();
-            dsa.FromXmlString(priKey);
+            dsa.FromXmlStringX(priKey);
 
             return dsa.SignData(buf);
         }
@@ -44,9 +46,54 @@ namespace NewLife.Security
         public static Boolean Verify(Byte[] buf, String pukKey, Byte[] rgbSignature)
         {
             var dsa = new DSACryptoServiceProvider();
-            dsa.FromXmlString(pukKey);
+            dsa.FromXmlStringX(pukKey);
 
             return dsa.VerifyData(buf, rgbSignature);
+        }
+        #endregion
+
+        #region 兼容core
+        public static void FromXmlStringX(this DSACryptoServiceProvider rsa, string xmlString)
+        {
+            var parameters = new DSAParameters();
+
+            var xmlDoc = new XmlDocument();
+            xmlDoc.LoadXml(xmlString);
+
+            if (xmlDoc.DocumentElement == null || !xmlDoc.DocumentElement.Name.Equals("DSAKeyValue"))
+            {
+                throw new Exception("Invalid XML DSA key.");
+            }
+
+            foreach (XmlNode node in xmlDoc.DocumentElement.ChildNodes)
+            {
+                switch (node.Name)
+                {
+                    case "P": parameters.P = (string.IsNullOrEmpty(node.InnerText) ? null : Convert.FromBase64String(node.InnerText)); break;
+                    case "Q": parameters.Q = (string.IsNullOrEmpty(node.InnerText) ? null : Convert.FromBase64String(node.InnerText)); break;
+                    case "G": parameters.G = (string.IsNullOrEmpty(node.InnerText) ? null : Convert.FromBase64String(node.InnerText)); break;
+                    case "Y": parameters.Y = (string.IsNullOrEmpty(node.InnerText) ? null : Convert.FromBase64String(node.InnerText)); break;
+                    case "Seed": parameters.Seed = (string.IsNullOrEmpty(node.InnerText) ? null : Convert.FromBase64String(node.InnerText)); break;
+                    case "Counter": parameters.Counter = Convert.ToInt32(node.InnerText); break;
+                    case "X": parameters.X = (string.IsNullOrEmpty(node.InnerText) ? null : Convert.FromBase64String(node.InnerText)); break;
+                }
+            }
+
+            rsa.ImportParameters(parameters);
+        }
+
+        public static string ToXmlStringX(this DSACryptoServiceProvider rsa, bool includePrivateParameters)
+        {
+            var parameters = rsa.ExportParameters(includePrivateParameters);
+
+            return string.Format("<DSAKeyValue><P>{0}</P><Q>{1}</Q><G>{2}</G><Y>{3}</Y><Seed>{4}</Seed><PgenCounter>{5}</PgenCounter><X>{6}</X></DSAKeyValue>",
+                parameters.P != null ? Convert.ToBase64String(parameters.P) : null,
+                parameters.Q != null ? Convert.ToBase64String(parameters.Q) : null,
+                parameters.G != null ? Convert.ToBase64String(parameters.G) : null,
+                parameters.Y != null ? Convert.ToBase64String(parameters.Y) : null,
+                parameters.Seed != null ? Convert.ToBase64String(parameters.Seed) : null,
+                parameters.Counter,
+                parameters.X != null ? Convert.ToBase64String(parameters.X) : null);
         }
         #endregion
     }
