@@ -512,7 +512,7 @@ namespace XCode.DataAccessLayer
                     }
                     //if (item.Type == typeof(Type)) obj = (obj as Type).Name;
                 }
-                writer.WriteAttributeString(pi.Name, obj?.ToString());
+                writer.WriteAttributeString(pi.Name, obj + "");
             }
 
             if (value is IDataTable)

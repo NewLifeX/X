@@ -43,10 +43,10 @@ namespace NewLife.Net.Handlers
         protected override IList<IMessage> Decode(IHandlerContext context, Packet pk)
         {
             var ss = context.Owner as IExtend;
-            var mcp = ss["CodecItem"] as CodecItem;
-            if (mcp == null) ss["CodecItem"] = mcp = new CodecItem();
+            var pc = ss["Codec"] as PacketCodec;
+            if (pc == null) ss["Codec"] = pc = new PacketCodec {  GetLength = DefaultMessage.GetLength };
 
-            var pks = Parse(pk, mcp, DefaultMessage.GetLength);
+            var pks = pc.Parse(pk);
             var list = pks.Select(e =>
             {
                 var msg = new DefaultMessage();

@@ -154,6 +154,9 @@ namespace NewLife.Threading
                     {
                         if (_NowTimer == null)
                         {
+                            // 多线程下首次访问Now可能取得空时间
+                            _Now = DateTime.Now;
+
                             _NowTimer = new TimerX(CopyNow, null, 0, 500);
                         }
                     }

@@ -408,10 +408,36 @@ namespace XCode.Code
 
                         if (!type.IsNullOrEmpty())
                         {
+                            if (!type.Contains("."))
+                            {
+
+                            }
                             if (!type.Contains(".") && conv.GetMethod("To" + type, new Type[] { typeof(Object) }) != null)
-                                WriteLine("case __.{0} : _{0} = Convert.To{1}(value); break;", dc.Name, type);
+                            {
+                                switch (type)
+                                {
+                                    case "Int32":
+                                        WriteLine("case __.{0} : _{0} = value.ToInt(); break;", dc.Name);
+                                        break;
+                                    case "Int64":
+                                        WriteLine("case __.{0} : _{0} = value.ToLong(); break;", dc.Name);
+                                        break;
+                                    case "Double":
+                                        WriteLine("case __.{0} : _{0} = value.ToDouble(); break;", dc.Name);
+                                        break;
+                                    case "Boolean":
+                                        WriteLine("case __.{0} : _{0} = value.ToBoolean(); break;", dc.Name);
+                                        break;
+                                    case "DateTime":
+                                        WriteLine("case __.{0} : _{0} = value.ToDateTime(); break;", dc.Name);
+                                        break;
+                                    default:
+                                        WriteLine("case __.{0} : _{0} = Convert.To{1}(value); break;", dc.Name, type);
+                                        break;
+                                }
+                            }
                             else
-                                WriteLine("case __.{0} : _{0} = ({1})Convert.ToInt32(value); break;", dc.Name, type);
+                                WriteLine("case __.{0} : _{0} = ({1})value.ToInt(); break;", dc.Name, type);
                         }
                     }
                     WriteLine("default: base[name] = value; break;");
