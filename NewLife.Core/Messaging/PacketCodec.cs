@@ -63,7 +63,9 @@ namespace NewLife.Messaging
             // 加锁，避免多线程冲突
             lock (this)
             {
+                // 检查缓存，内部可能创建或清空
                 CheckCache();
+                ms = Stream;
 
                 // 合并数据到最后面
                 if (pk != null && pk.Total > 0)
