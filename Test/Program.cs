@@ -77,6 +77,8 @@ namespace Test
 
         static void Test2()
         {
+            UserX.Meta.Session.Dal.Db.ShowSQL = true;
+            Log.Meta.Session.Dal.Db.ShowSQL = true;
             //var sb = new StringBuilder();
             //sb.Append("HelloWorld");
             //sb.Length--;

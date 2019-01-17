@@ -491,7 +491,7 @@ namespace XCode.DataAccessLayer
                 if (dc.Identity || dc.PrimaryKey) continue;
 
                 // 修复当columns看存在updateColumns不存在列时构造出来的Sql语句会出现连续逗号的问题
-                if (updateColumns != null && updateColumns.Contains(dc.Name))
+                if (updateColumns != null && updateColumns.Contains(dc.Name) && (addColumns == null || !addColumns.Contains(dc.Name)))
                 {
                     sb.AppendFormat("{0}={1},", db.FormatName(dc.ColumnName), db.FormatParameterName(dc.Name));
 
