@@ -23,8 +23,8 @@ namespace NewLife.Messaging
         /// <summary>缓存有效期。超过该时间后仍未匹配数据包的缓存数据将被抛弃</summary>
         public Int32 Expire { get; set; } = 5_000;
 
-        /// <summary>最大缓存待处理数据。默认1M</summary>
-        public Int32 MaxCache { get; set; } = 1024 * 1024;
+        /// <summary>最大缓存待处理数据。默认0无限制</summary>
+        public Int32 MaxCache { get; set; }
         #endregion
 
         /// <summary>分析数据流，得到一帧数据</summary>
