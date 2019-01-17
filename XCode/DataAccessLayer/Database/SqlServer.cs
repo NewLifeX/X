@@ -333,10 +333,17 @@ namespace XCode.DataAccessLayer
 
         public override String FormatValue(IDataColumn field, Object value)
         {
-            var code = System.Type.GetTypeCode(field.DataType);
-            var isNullable = field.Nullable;
+            var isNullable = true;
+            Type type = null;
+            if (field != null)
+            {
+                type = field.DataType;
+                isNullable = field.Nullable;
+            }
+            else if (value != null)
+                type = value.GetType();
 
-            if (code == TypeCode.String)
+            if (type == typeof(String))
             {
                 // 热心网友 Hannibal 在处理日文网站时发现插入的日文为乱码，这里加上N前缀
                 if (value == null) return isNullable ? "null" : "''";
@@ -346,6 +353,17 @@ namespace XCode.DataAccessLayer
                     return "N'" + value.ToString().Replace("'", "''") + "'";
                 else
                     return "'" + value.ToString().Replace("'", "''") + "'";
+            }
+            else if (type == typeof(DateTime))
+            {
+                if (value == null) return isNullable ? "null" : "''";
+                var dt = Convert.ToDateTime(value);
+
+                if (dt <= DateTime.MinValue || dt >= DateTime.MaxValue) return isNullable ? "null" : "''";
+
+                if (isNullable && (dt <= DateTime.MinValue || dt >= DateTime.MaxValue)) return "null";
+
+                return FormatDateTime(dt);
             }
 
             return base.FormatValue(field, value);
@@ -432,7 +450,7 @@ namespace XCode.DataAccessLayer
             sb.AppendFormat("Insert Into {0}(", db.FormatTableName(tableName));
             foreach (var dc in columns)
             {
-                //if (dc.Identity) continue;
+                if (dc.Identity) continue;
 
                 sb.Append(db.FormatName(dc.ColumnName));
                 sb.Append(",");
@@ -444,7 +462,7 @@ namespace XCode.DataAccessLayer
             sb.Append(" Values(");
             foreach (var dc in columns)
             {
-                //if (dc.Identity) continue;
+                if (dc.Identity) continue;
 
                 sb.Append(db.FormatParameterName(dc.Name));
                 sb.Append(",");
@@ -473,8 +491,7 @@ namespace XCode.DataAccessLayer
             sb.AppendLine(";");
             sb.AppendLine("END;");
             var sql = sb.Put(true);
-
-
+            
             var dpsList = GetParametersList(columns, ps, list, true);
             return BatchExecute(sql, dpsList);
         }
@@ -509,6 +526,9 @@ namespace XCode.DataAccessLayer
             //sb.Append(")");
 
             // 条件
+            var pks = columns.Where(e => e.PrimaryKey).ToArray();
+            if (pks == null || pks.Length == 0) throw new InvalidOperationException("未指定用于更新的主键");
+
             sb.Append(" Where ");
             foreach (var dc in columns)
             {
@@ -593,7 +613,13 @@ namespace XCode.DataAccessLayer
 
                     // 用于参数化的字符串不能为null
                     var val = entity[dc.Name];
-                    if (dc.DataType == typeof(String)) val += "";
+                    if (dc.DataType == typeof(String))
+                        val += "";
+                    else if (dc.DataType == typeof(DateTime))
+                    {
+                        var dt = val.ToDateTime();
+                        if (dt.Year < 1970) val = new DateTime(1970, 1, 1);
+                    }
 
                     // 逐列创建参数对象
                     dps.Add(db.CreateParameter(dc.Name, val, dc));
