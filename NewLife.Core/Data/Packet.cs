@@ -201,7 +201,7 @@ namespace NewLife.Data
 
             // 链式包输出
             var ms = Pool.MemoryStream.Get();
-            WriteTo(ms);
+            CopyTo(ms);
 
             return ms.Put(true);
         }
@@ -266,7 +266,7 @@ namespace NewLife.Data
             if (Next == null) return new MemoryStream(Data, Offset, Count, false, true);
 
             var ms = new MemoryStream();
-            WriteTo(ms);
+            CopyTo(ms);
             ms.Position = 0;
 
             return ms;
@@ -274,10 +274,10 @@ namespace NewLife.Data
 
         /// <summary>把封包写入到数据流</summary>
         /// <param name="stream"></param>
-        public void WriteTo(Stream stream)
+        public void CopyTo(Stream stream)
         {
             stream.Write(Data, Offset, Count);
-            Next?.WriteTo(stream);
+            Next?.CopyTo(stream);
         }
 
         /// <summary>把封包写入到目标数组</summary>

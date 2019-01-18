@@ -169,7 +169,7 @@ namespace NewLife.Caching
                     ms.Write(sizes);
                     ms.Write(NewLine);
                     //ms.Write(item);
-                    item.WriteTo(ms);
+                    item.CopyTo(ms);
                     ms.Write(NewLine);
                 }
             }

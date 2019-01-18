@@ -18,7 +18,7 @@ namespace NewLife.Messaging
         public Func<Packet, Int32> GetLength { get; set; }
 
         /// <summary>最后一次解包成功，而不是最后一次接收</summary>
-        public DateTime Last { get; set; }
+        public DateTime Last { get; set; } = TimerX.Now;
 
         /// <summary>缓存有效期。超过该时间后仍未匹配数据包的缓存数据将被抛弃</summary>
         public Int32 Expire { get; set; } = 5_000;
@@ -73,7 +73,7 @@ namespace NewLife.Messaging
                 {
                     var p = ms.Position;
                     ms.Position = ms.Length;
-                    pk.WriteTo(ms);
+                    pk.CopyTo(ms);
                     ms.Position = p;
                 }
 
