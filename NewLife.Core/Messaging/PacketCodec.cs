@@ -98,8 +98,8 @@ namespace NewLife.Messaging
                     ms.Position = 0;
                 }
 
-                // 记录最后一次解包成功时间，以此作为过期依据，避免收到错误分片后，持续的新片而不能过期
-                if (list.Count > 0) Last = TimerX.Now;
+                //// 记录最后一次解包成功时间，以此作为过期依据，避免收到错误分片后，持续的新片而不能过期
+                //if (list.Count > 0) Last = TimerX.Now;
 
                 return list;
             }
@@ -120,7 +120,7 @@ namespace NewLife.Messaging
                 ms.SetLength(0);
                 ms.Position = 0;
             }
-            //Last = now;
+            Last = now;
         }
     }
 }
