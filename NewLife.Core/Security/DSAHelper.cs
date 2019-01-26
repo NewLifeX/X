@@ -53,7 +53,10 @@ namespace NewLife.Security
         #endregion
 
         #region 兼容core
-        public static void FromXmlStringX(this DSACryptoServiceProvider rsa, string xmlString)
+        /// <summary>从Xml加载DSA密钥</summary>
+        /// <param name="rsa"></param>
+        /// <param name="xmlString"></param>
+        public static void FromXmlStringX(this DSACryptoServiceProvider rsa, String xmlString)
         {
             var parameters = new DSAParameters();
 
@@ -69,24 +72,28 @@ namespace NewLife.Security
             {
                 switch (node.Name)
                 {
-                    case "P": parameters.P = (string.IsNullOrEmpty(node.InnerText) ? null : Convert.FromBase64String(node.InnerText)); break;
-                    case "Q": parameters.Q = (string.IsNullOrEmpty(node.InnerText) ? null : Convert.FromBase64String(node.InnerText)); break;
-                    case "G": parameters.G = (string.IsNullOrEmpty(node.InnerText) ? null : Convert.FromBase64String(node.InnerText)); break;
-                    case "Y": parameters.Y = (string.IsNullOrEmpty(node.InnerText) ? null : Convert.FromBase64String(node.InnerText)); break;
-                    case "Seed": parameters.Seed = (string.IsNullOrEmpty(node.InnerText) ? null : Convert.FromBase64String(node.InnerText)); break;
+                    case "P": parameters.P = (String.IsNullOrEmpty(node.InnerText) ? null : Convert.FromBase64String(node.InnerText)); break;
+                    case "Q": parameters.Q = (String.IsNullOrEmpty(node.InnerText) ? null : Convert.FromBase64String(node.InnerText)); break;
+                    case "G": parameters.G = (String.IsNullOrEmpty(node.InnerText) ? null : Convert.FromBase64String(node.InnerText)); break;
+                    case "Y": parameters.Y = (String.IsNullOrEmpty(node.InnerText) ? null : Convert.FromBase64String(node.InnerText)); break;
+                    case "Seed": parameters.Seed = (String.IsNullOrEmpty(node.InnerText) ? null : Convert.FromBase64String(node.InnerText)); break;
                     case "Counter": parameters.Counter = Convert.ToInt32(node.InnerText); break;
-                    case "X": parameters.X = (string.IsNullOrEmpty(node.InnerText) ? null : Convert.FromBase64String(node.InnerText)); break;
+                    case "X": parameters.X = (String.IsNullOrEmpty(node.InnerText) ? null : Convert.FromBase64String(node.InnerText)); break;
                 }
             }
 
             rsa.ImportParameters(parameters);
         }
 
-        public static string ToXmlStringX(this DSACryptoServiceProvider rsa, bool includePrivateParameters)
+        /// <summary>保存DSA密钥到Xml</summary>
+        /// <param name="rsa"></param>
+        /// <param name="includePrivateParameters"></param>
+        /// <returns></returns>
+        public static String ToXmlStringX(this DSACryptoServiceProvider rsa, Boolean includePrivateParameters)
         {
             var parameters = rsa.ExportParameters(includePrivateParameters);
 
-            return string.Format("<DSAKeyValue><P>{0}</P><Q>{1}</Q><G>{2}</G><Y>{3}</Y><Seed>{4}</Seed><PgenCounter>{5}</PgenCounter><X>{6}</X></DSAKeyValue>",
+            return String.Format("<DSAKeyValue><P>{0}</P><Q>{1}</Q><G>{2}</G><Y>{3}</Y><Seed>{4}</Seed><PgenCounter>{5}</PgenCounter><X>{6}</X></DSAKeyValue>",
                 parameters.P != null ? Convert.ToBase64String(parameters.P) : null,
                 parameters.Q != null ? Convert.ToBase64String(parameters.Q) : null,
                 parameters.G != null ? Convert.ToBase64String(parameters.G) : null,

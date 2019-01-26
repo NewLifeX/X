@@ -11,7 +11,6 @@ using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
 using NewLife.Web;
-using NewLife.Xml;
 using XCode.Code;
 using XCode.DataAccessLayer;
 using XCode.Membership;
@@ -35,7 +34,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test2();
+                    Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -129,14 +128,15 @@ namespace Test
 
         static void Test3()
         {
-            var m = 95.12345678901234567890123456789012345678901m;
-            Console.WriteLine(m);
-            Console.WriteLine(m.ToString());
+            var n = 123456789;
+            var crc = n.GetBytes().Crc16();
+            Console.WriteLine(crc.ToString("X4"));
 
-            var d = (Double)m;
-            Console.WriteLine(d);
-            Console.WriteLine(d.ToString());
+            crc = n.GetBytes(false).Crc16();
+            Console.WriteLine(crc.ToString("X4"));
 
+            crc = n.ToString().GetBytes().Crc16();
+            Console.WriteLine(crc.ToString("X4"));
         }
 
         static void Test4()
