@@ -180,21 +180,21 @@ namespace XCode.Membership
             {
                 switch (name)
                 {
-                    case __.ID : _ID = Convert.ToInt32(value); break;
+                    case __.ID : _ID = value.ToInt(); break;
                     case __.Category : _Category = Convert.ToString(value); break;
                     case __.Action : _Action = Convert.ToString(value); break;
-                    case __.LinkID : _LinkID = Convert.ToInt32(value); break;
+                    case __.LinkID : _LinkID = value.ToInt(); break;
                     case __.UserName : _UserName = Convert.ToString(value); break;
-                    case __.Ex1 : _Ex1 = Convert.ToInt32(value); break;
-                    case __.Ex2 : _Ex2 = Convert.ToInt32(value); break;
-                    case __.Ex3 : _Ex3 = Convert.ToDouble(value); break;
+                    case __.Ex1 : _Ex1 = value.ToInt(); break;
+                    case __.Ex2 : _Ex2 = value.ToInt(); break;
+                    case __.Ex3 : _Ex3 = value.ToDouble(); break;
                     case __.Ex4 : _Ex4 = Convert.ToString(value); break;
                     case __.Ex5 : _Ex5 = Convert.ToString(value); break;
                     case __.Ex6 : _Ex6 = Convert.ToString(value); break;
                     case __.CreateUser : _CreateUser = Convert.ToString(value); break;
-                    case __.CreateUserID : _CreateUserID = Convert.ToInt32(value); break;
+                    case __.CreateUserID : _CreateUserID = value.ToInt(); break;
                     case __.CreateIP : _CreateIP = Convert.ToString(value); break;
-                    case __.CreateTime : _CreateTime = Convert.ToDateTime(value); break;
+                    case __.CreateTime : _CreateTime = value.ToDateTime(); break;
                     case __.Remark : _Remark = Convert.ToString(value); break;
                     default: base[name] = value; break;
                 }

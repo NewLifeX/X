@@ -37,18 +37,11 @@ namespace NewLife.Data
         /// <param name="seg"></param>
         public Packet(ArraySegment<Byte> seg) => Set(seg.Array, seg.Offset, seg.Count);
 
-        /// <summary>从可扩展内存流实例化</summary>
+        /// <summary>从可扩展内存流实例化，尝试窃取内存流内部的字节数组，失败后拷贝</summary>
+        /// <remarks>因数据包内数组窃取自内存流，需要特别小心，避免多线程共用</remarks>
         /// <param name="stream"></param>
         public Packet(Stream stream)
         {
-            // 下面代码需要.Net 4.6支持
-
-            //// 尝试抠了内部存储区，下面代码需要.Net 4.6支持
-            //if (stream.TryGetBuffer(out var seg))
-            //    Set(seg.Array, seg.Offset, seg.Count);
-            //else
-            //    Set(stream.ToArray());
-
             if (stream is MemoryStream ms)
             {
                 try
@@ -83,7 +76,14 @@ namespace NewLife.Data
 
                 return Data[p];
             }
-            set { Data[Offset + index] = value; }
+            set
+            {
+                var p = Offset + index;
+                if (p >= Data.Length && Next != null)
+                    Next[p - Data.Length] = value;
+                else
+                    Data[p] = value;
+            }
         }
         #endregion
 
@@ -109,18 +109,6 @@ namespace NewLife.Data
                 Count = count;
             }
         }
-
-        ///// <summary>设置子数据区</summary>
-        ///// <param name="offset">相对偏移</param>
-        ///// <param name="count">字节个数</param>
-        //public virtual void SetSub(Int32 offset, Int32 count = -1)
-        //{
-        //    Offset += offset;
-
-        //    if (count < 0) count = Count - offset;
-        //    if (count < 0) count = Data.Length - Offset;
-        //    Count = count;
-        //}
 
         /// <summary>截取子数据区</summary>
         /// <param name="offset">相对偏移</param>
@@ -162,8 +150,6 @@ namespace NewLife.Data
         /// <returns></returns>
         public Int32 IndexOf(Byte[] data, Int32 offset = 0, Int32 count = -1)
         {
-            //return (Int32)IOHelper.IndexOf(Data, Offset, Count, data, offset, count);
-
             var start = offset;
             var length = data.Length;
 
@@ -215,7 +201,7 @@ namespace NewLife.Data
 
             // 链式包输出
             var ms = Pool.MemoryStream.Get();
-            WriteTo(ms);
+            CopyTo(ms);
 
             return ms.Put(true);
         }
@@ -280,7 +266,7 @@ namespace NewLife.Data
             if (Next == null) return new MemoryStream(Data, Offset, Count, false, true);
 
             var ms = new MemoryStream();
-            WriteTo(ms);
+            CopyTo(ms);
             ms.Position = 0;
 
             return ms;
@@ -288,10 +274,10 @@ namespace NewLife.Data
 
         /// <summary>把封包写入到数据流</summary>
         /// <param name="stream"></param>
-        public void WriteTo(Stream stream)
+        public void CopyTo(Stream stream)
         {
             stream.Write(Data, Offset, Count);
-            Next?.WriteTo(stream);
+            Next?.CopyTo(stream);
         }
 
         /// <summary>把封包写入到目标数组</summary>
@@ -336,7 +322,6 @@ namespace NewLife.Data
         public String ToStr(Encoding encoding = null, Int32 offset = 0, Int32 count = -1)
         {
             if (Data == null) return null;
-            //if (Count == 0) return String.Empty;
 
             if (encoding == null) encoding = Encoding.UTF8;
             if (count < 0) count = Total - offset;
@@ -354,12 +339,6 @@ namespace NewLife.Data
         public String ToHex(Int32 maxLength = 32, String separate = null, Int32 groupSize = 0)
         {
             if (Data == null) return null;
-            //if (Count == 0) return String.Empty;
-
-            //var len = Math.Min(Count, maxLength);
-            //var buf = Data;
-            //if (Offset > 0) buf = Data.ReadBytes(Offset, len);
-            //return buf.ToHex(separate, groupSize, len);
 
             return ReadBytes(0, maxLength).ToHex(separate, groupSize);
         }

@@ -5,7 +5,7 @@ using XCode.Configuration;
 
 namespace XCode
 {
-    public partial class EntityBase : ICustomTypeDescriptor, IEditableObject
+    public partial class EntityBase : ICustomTypeDescriptor/*, IEditableObject*/
     {
         #region INotifyPropertyChanged接口
         /// <summary>属性改变。重载时记得调用基类的该方法，以设置脏数据属性，否则数据将无法Update到数据库。</summary>
@@ -26,7 +26,7 @@ namespace XCode
         /// <param name="v1"></param>
         /// <param name="v2"></param>
         /// <returns></returns>
-        private Boolean CheckEqual(Object v1, Object v2)
+        internal static Boolean CheckEqual(Object v1, Object v2)
         {
             if (v1 == null || v2 == null) return Equals(v1, v2);
 
@@ -52,6 +52,11 @@ namespace XCode
                     return Convert.ToInt64(v1) == Convert.ToInt64(v2);
                 case TypeCode.String:
                     return v1 + "" == v2 + "";
+                case TypeCode.Single:
+                case TypeCode.Double:
+                    return Math.Abs(v1.ToDouble() - v2.ToDouble()) < 0.000_001;
+                case TypeCode.Decimal:
+                    return Math.Abs((Decimal)v1 - Convert.ToDecimal(v2)) < 0.000_000_000_001m;
                 default:
                     break;
             }
@@ -98,46 +103,21 @@ namespace XCode
             return atts;
         }
 
-        String ICustomTypeDescriptor.GetClassName()
-        {
-            //return TypeDescriptor.GetClassName(this, true);
-            return GetType().FullName;
-        }
+        String ICustomTypeDescriptor.GetClassName() => GetType().FullName;
 
-        String ICustomTypeDescriptor.GetComponentName()
-        {
-            return TypeDescriptor.GetComponentName(this, true);
-        }
+        String ICustomTypeDescriptor.GetComponentName() => TypeDescriptor.GetComponentName(this, true);
 
-        TypeConverter ICustomTypeDescriptor.GetConverter()
-        {
-            return TypeDescriptor.GetConverter(this, true);
-        }
+        TypeConverter ICustomTypeDescriptor.GetConverter() => TypeDescriptor.GetConverter(this, true);
 
-        EventDescriptor ICustomTypeDescriptor.GetDefaultEvent()
-        {
-            return TypeDescriptor.GetDefaultEvent(this, true);
-        }
+        EventDescriptor ICustomTypeDescriptor.GetDefaultEvent() => TypeDescriptor.GetDefaultEvent(this, true);
 
-        PropertyDescriptor ICustomTypeDescriptor.GetDefaultProperty()
-        {
-            return TypeDescriptor.GetDefaultProperty(this, true);
-        }
+        PropertyDescriptor ICustomTypeDescriptor.GetDefaultProperty() => TypeDescriptor.GetDefaultProperty(this, true);
 
-        Object ICustomTypeDescriptor.GetEditor(Type editorBaseType)
-        {
-            return TypeDescriptor.GetEditor(this, editorBaseType, true);
-        }
+        Object ICustomTypeDescriptor.GetEditor(Type editorBaseType) => TypeDescriptor.GetEditor(this, editorBaseType, true);
 
-        EventDescriptorCollection ICustomTypeDescriptor.GetEvents(Attribute[] attributes)
-        {
-            return TypeDescriptor.GetEvents(this, attributes, true);
-        }
+        EventDescriptorCollection ICustomTypeDescriptor.GetEvents(Attribute[] attributes) => TypeDescriptor.GetEvents(this, attributes, true);
 
-        EventDescriptorCollection ICustomTypeDescriptor.GetEvents()
-        {
-            return TypeDescriptor.GetEvents(this, true);
-        }
+        EventDescriptorCollection ICustomTypeDescriptor.GetEvents() => TypeDescriptor.GetEvents(this, true);
 
         PropertyDescriptorCollection ICustomTypeDescriptor.GetProperties(Attribute[] attributes)
         {
@@ -149,10 +129,7 @@ namespace XCode
             return Fix(GetType(), TypeDescriptor.GetProperties(this, true));
         }
 
-        Object ICustomTypeDescriptor.GetPropertyOwner(PropertyDescriptor pd)
-        {
-            return this;
-        }
+        Object ICustomTypeDescriptor.GetPropertyOwner(PropertyDescriptor pd) => this;
 
         internal static PropertyDescriptorCollection Fix(Type type, PropertyDescriptorCollection pdc)
         {
@@ -203,28 +180,28 @@ namespace XCode
         #endregion
 
         #region IEditableObject 成员
-        [NonSerialized]
-        private EntityBase _bak;
+        //[NonSerialized]
+        //private EntityBase _bak;
 
-        void IEditableObject.BeginEdit()
-        {
-            _bak = Clone() as EntityBase;
-        }
+        //void IEditableObject.BeginEdit()
+        //{
+        //    _bak = Clone() as EntityBase;
+        //}
 
-        void IEditableObject.CancelEdit()
-        {
-            CopyFrom(_bak, false);
+        //void IEditableObject.CancelEdit()
+        //{
+        //    CopyFrom(_bak, false);
 
-            _bak = null;
-        }
+        //    _bak = null;
+        //}
 
-        void IEditableObject.EndEdit()
-        {
-            //Update();
-            Save();
+        //void IEditableObject.EndEdit()
+        //{
+        //    //Update();
+        //    Save();
 
-            _bak = null;
-        }
+        //    _bak = null;
+        //}
         #endregion
     }
 }

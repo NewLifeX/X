@@ -624,7 +624,8 @@ namespace XCode.DataAccessLayer
                     else if (line.Contains(" NULL "))
                         field.Nullable = true;
 
-                    field.RawType = fs[1];
+                    field.RawType = fs.Length > 1 ? fs[1] : "nvarchar(50)";
+
                     field.Length = field.RawType.Substring("(", ")").ToInt();
 
                     field.DataType = GetDataType(field.RawType);
@@ -884,7 +885,24 @@ namespace XCode.DataAccessLayer
             }
             if (!flag) return sql;
 
-            Database.CreateSession().Execute(sql);
+            //Database.CreateSession().Execute(sql);
+            // 拆分为多行执行，避免数据库被锁定
+            var sqls = sql.Split("; " + Environment.NewLine);
+            var session = Database.CreateSession();
+            session.BeginTransaction(IsolationLevel.Serializable);
+            try
+            {
+                foreach (var item in sqls)
+                {
+                    session.Execute(item);
+                }
+                session.Commit();
+            }
+            catch
+            {
+                session.Rollback();
+                throw;
+            }
 
             return null;
         }

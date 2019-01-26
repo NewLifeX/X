@@ -21,7 +21,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override Boolean Write(Object value, Type type)
         {
-            if (!type.As<IDictionary>()) return false;
+            if (!type.As<IDictionary>() && !(value is IDictionary)) return false;
 
             var dic = value as IDictionary;
 

@@ -514,7 +514,8 @@ namespace XCode
 
             var entity = list.First();
             var fact = entity.GetType().AsFactory();
-            if (columns == null) columns = fact.Fields.Select(e => e.Field).Where(e => !e.Identity).ToArray();
+            //if (columns == null) columns = fact.Fields.Select(e => e.Field).Where(e => !e.Identity).ToArray();
+            if (columns == null) columns = fact.Fields.Select(e => e.Field).Where(e => !e.Identity || e.PrimaryKey).ToArray();
             //if (updateColumns == null) updateColumns = entity.Dirtys.Keys;
             if (updateColumns == null)
             {
@@ -652,6 +653,7 @@ namespace XCode
                     (item as IAccessor).Write(fs, null);
                 }
 
+                fs.SetLength(fs.Position);
                 return fs.Position;
             }
         }

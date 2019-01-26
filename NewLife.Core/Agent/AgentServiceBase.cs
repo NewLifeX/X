@@ -296,7 +296,7 @@ namespace NewLife.Agent
         {
             WriteLog("服务启动 {0}", reason);
 
-            _Timer = new TimerX(DoCheck, null, 10_000, 10_000, "AM");
+            _Timer = new TimerX(DoCheck, null, 10_000, 10_000, "AM") { Async = true };
         }
 
         /// <summary>停止服务</summary>
@@ -333,9 +333,15 @@ namespace NewLife.Agent
             var max = Setting.Current.MaxMemory;
             if (max <= 0) return false;
 
-            var p = Process.GetCurrentProcess();
-            var cur = p.WorkingSet64 + p.PrivateMemorySize64;
+            var cur = GC.GetTotalMemory(false);
             cur = cur / 1024 / 1024;
+            if (cur < max) return false;
+
+            // 执行一次GC回收
+            GC.Collect(2, GCCollectionMode.Forced, false);
+
+            // 再次判断内存
+            cur = GC.GetTotalMemory(true);
             if (cur < max) return false;
 
             WriteLog("当前进程占用内存 {0:n0}M，超过阀值 {1:n0}M，准备重新启动！", cur, max);

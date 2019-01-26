@@ -129,6 +129,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Messaging\MessageEventArgs.cs" />
+    <Compile Include="Messaging\PacketCodec.cs" />
     <Compile Include="Model\Actor.cs" />
     <Compile Include="Model\IFactory.cs" />
     <Compile Include="Model\IAuthUser.cs" />

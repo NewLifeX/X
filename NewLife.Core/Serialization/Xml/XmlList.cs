@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Xml;
 using NewLife.Reflection;
 
 namespace NewLife.Serialization
@@ -22,7 +21,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override Boolean Write(Object value, Type type)
         {
-            if (!type.As<IList>()) return false;
+            if (!type.As<IList>() && !(value is IList)) return false;
 
             var list = value as IList;
             if (list == null || list.Count == 0) return true;
@@ -69,7 +68,7 @@ namespace NewLife.Serialization
             var elmType = type.GetElementTypeEx();
 
             var list = value as IList;
-            if (list == null|| value is Array) list = typeof(List<>).MakeGenericType(elmType).CreateInstance() as IList;
+            if (list == null || value is Array) list = typeof(List<>).MakeGenericType(elmType).CreateInstance() as IList;
 
             // 清空已有数据
             list.Clear();
