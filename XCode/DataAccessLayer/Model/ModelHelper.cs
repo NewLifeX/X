@@ -595,7 +595,7 @@ namespace XCode.DataAccessLayer
                     dc.Nullable = false;
                     break;
                 case TypeCode.Double:
-                    dc.RawType = "double";
+                    dc.RawType = "float";
                     dc.Nullable = false;
                     break;
                 case TypeCode.Decimal:
@@ -640,7 +640,7 @@ namespace XCode.DataAccessLayer
             }
 
             dc.DataType = null;
-            if (oridc.Table.DbType != DatabaseType.SqlServer) dc.RawType = null;
+            /*if (oridc.Table.DbType != DatabaseType.SqlServer)*/ dc.RawType = null;
 
             return dc;
         }

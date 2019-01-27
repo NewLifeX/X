@@ -44,6 +44,9 @@ namespace NewLife.Net.Handlers
             {
                 // 把数据发送给后续处理器
                 var rs = base.Read(context, msg);
+
+                // 匹配输入回调，让上层事件收到分包信息
+                context.FireRead(rs);
             }
 
             return null;

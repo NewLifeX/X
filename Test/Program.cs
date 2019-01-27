@@ -11,7 +11,6 @@ using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
 using NewLife.Web;
-using NewLife.Xml;
 using XCode.Code;
 using XCode.DataAccessLayer;
 using XCode.Membership;
@@ -77,6 +76,8 @@ namespace Test
 
         static void Test2()
         {
+            UserX.Meta.Session.Dal.Db.ShowSQL = true;
+            Log.Meta.Session.Dal.Db.ShowSQL = true;
             //var sb = new StringBuilder();
             //sb.Append("HelloWorld");
             //sb.Length--;
@@ -86,6 +87,7 @@ namespace Test
             //DAL.AddConnStr("Log", "Data Source=tcp://127.0.0.1/ORCL;User Id=scott;Password=tiger;UseParameter=true", null, "Oracle");
             //DAL.AddConnStr("Log", "Server=.;Port=3306;Database=Log;Uid=root;Pwd=root;", null, "MySql");
             //DAL.AddConnStr("Membership", "Server=.;Port=3306;Database=times;Uid=root;Pwd=Pass@word;TablePrefix=xx_", null, "MySql");
+            DAL.AddConnStr("Membership", @"Server=.\JSQL2008;User ID=sa;Password=sa;Database=Membership;", null, "sqlserver");
             DAL.AddConnStr("Log", @"Server=.\JSQL2008;User ID=sa;Password=sa;Database=Log;", null, "sqlserver");
 
             var gs = UserX.FindAll(null, null, null, 0, 10);
@@ -126,14 +128,15 @@ namespace Test
 
         static void Test3()
         {
-            var m = 95.12345678901234567890123456789012345678901m;
-            Console.WriteLine(m);
-            Console.WriteLine(m.ToString());
+            var n = 123456789;
+            var crc = n.GetBytes().Crc16();
+            Console.WriteLine(crc.ToString("X4"));
 
-            var d = (Double)m;
-            Console.WriteLine(d);
-            Console.WriteLine(d.ToString());
+            crc = n.GetBytes(false).Crc16();
+            Console.WriteLine(crc.ToString("X4"));
 
+            crc = n.ToString().GetBytes().Crc16();
+            Console.WriteLine(crc.ToString("X4"));
         }
 
         static void Test4()

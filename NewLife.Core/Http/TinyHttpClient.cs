@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -31,8 +32,8 @@ namespace NewLife.Http
         /// <summary>状态码</summary>
         public Int32 StatusCode { get; set; }
 
-        /// <summary>超时时间。默认15000ms</summary>
-        public Int32 Timeout { get; set; } = 15000;
+        /// <summary>超时时间。默认15s</summary>
+        public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(5);
 
         /// <summary>头部集合</summary>
         public IDictionary<String, String> Headers { get; set; } = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
@@ -46,15 +47,23 @@ namespace NewLife.Http
             base.OnDispose(disposing);
 
             Client.TryDispose();
+
+            if (_Cache != null)
+            {
+                foreach (var item in _Cache)
+                {
+                    item.Value.TryDispose();
+                }
+            }
         }
         #endregion
 
         #region 核心方法
         /// <summary>异步请求</summary>
-        /// <param name="remote"></param>
+        /// <param name="uri"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        protected virtual async Task<Packet> SendDataAsync(NetUri remote, Packet request)
+        protected virtual async Task<Packet> SendDataAsync(Uri uri, Packet request)
         {
             var tc = Client;
             NetworkStream ns = null;
@@ -71,8 +80,10 @@ namespace NewLife.Http
             // 如果连接不可用，则重新建立连接
             if (!active)
             {
+                var remote = new NetUri(NetType.Tcp, uri.Host, uri.Port);
+
                 tc.TryDispose();
-                tc = new TcpClient();
+                tc = new TcpClient { ReceiveTimeout = (Int32)Timeout.TotalMilliseconds };
                 await tc.ConnectAsync(remote.Address, remote.Port);
 
                 Client = tc;
@@ -80,7 +91,6 @@ namespace NewLife.Http
             }
 
             // 发送
-            //await ns.WriteAsync(data, 0, data.Length);
             if (request != null) await request.CopyToAsync(ns);
 
             // 接收
@@ -92,12 +102,11 @@ namespace NewLife.Http
         }
 
         /// <summary>异步发出请求，并接收响应</summary>
-        /// <param name="url"></param>
+        /// <param name="uri"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        public virtual async Task<Packet> SendAsync(String url, Byte[] data)
+        public virtual async Task<Packet> SendAsync(Uri uri, Byte[] data)
         {
-            var uri = new Uri(url);
             var remote = new NetUri(NetType.Tcp, uri.Host, uri.Port);
 
             // 构造请求
@@ -106,7 +115,7 @@ namespace NewLife.Http
             StatusCode = -1;
 
             // 发出请求
-            var rs = await SendDataAsync(remote, req);
+            var rs = await SendDataAsync(uri, req);
             if (rs == null || rs.Count == 0) return null;
 
             // 解析响应
@@ -123,7 +132,82 @@ namespace NewLife.Http
 
             return rs;
         }
+        #endregion
 
+        #region 同步核心
+        /// <summary>同步请求</summary>
+        /// <param name="uri"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        protected virtual Packet SendData(Uri uri, Packet request)
+        {
+            var tc = Client;
+            NetworkStream ns = null;
+
+            // 判断连接是否可用
+            var active = false;
+            try
+            {
+                ns = tc?.GetStream();
+                active = tc != null && tc.Connected && ns != null && ns.CanWrite && ns.CanRead;
+            }
+            catch { }
+
+            // 如果连接不可用，则重新建立连接
+            if (!active)
+            {
+                var remote = new NetUri(NetType.Tcp, uri.Host, uri.Port);
+
+                tc.TryDispose();
+                tc = new TcpClient { ReceiveTimeout = (Int32)Timeout.TotalMilliseconds };
+                tc.Connect(remote.Address, remote.Port);
+
+                Client = tc;
+                ns = tc.GetStream();
+            }
+
+            // 发送
+            if (request != null) request.CopyTo(ns);
+
+            // 接收
+            var buf = new Byte[64 * 1024];
+            var count = ns.Read(buf, 0, buf.Length);
+
+            return new Packet(buf, 0, count);
+        }
+
+        /// <summary>异步发出请求，并接收响应</summary>
+        /// <param name="uri"></param>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public virtual Packet Send(Uri uri, Byte[] data)
+        {
+            // 构造请求
+            var req = BuildRequest(uri, data);
+
+            StatusCode = -1;
+
+            // 发出请求
+            var rs = SendData(uri, req);
+            if (rs == null || rs.Count == 0) return null;
+
+            // 解析响应
+            rs = ParseResponse(rs);
+
+            // 头部和主体分两个包回来
+            if (rs != null && rs.Count == 0 && ContentLength != 0)
+            {
+                rs = SendData(null, null);
+            }
+
+            // chunk编码
+            if (rs.Count > 0 && Headers["Transfer-Encoding"].EqualIgnoreCase("chunked")) rs = ParseChunk(rs);
+
+            return rs;
+        }
+        #endregion
+
+        #region 辅助
         /// <summary>构造请求头</summary>
         /// <param name="uri"></param>
         /// <param name="data"></param>
@@ -231,16 +315,63 @@ namespace NewLife.Http
         #endregion
 
         #region 主要方法
+        private ConcurrentDictionary<String, IPool<TinyHttpClient>> _Cache;
+
+        /// <summary>根据主机获取对象池</summary>
+        /// <param name="host"></param>
+        /// <returns></returns>
+        protected virtual IPool<TinyHttpClient> GetPool(String host)
+        {
+            if (_Cache == null)
+            {
+                lock (this)
+                {
+                    if (_Cache == null) _Cache = new ConcurrentDictionary<String, IPool<TinyHttpClient>>();
+                }
+            }
+            return _Cache.GetOrAdd(host, k => new ObjectPool<TinyHttpClient>
+            {
+                Min = 0,
+                Max = 1000,
+                IdleTime = 10,
+                AllIdleTime = 60
+            });
+        }
+
         /// <summary>异步获取</summary>
         /// <param name="url">地址</param>
         /// <returns></returns>
-        public async Task<String> GetAsync(String url)
+        public async Task<String> GetStringAsync(String url)
         {
-            // 发出请求
-            var rs = await SendAsync(url, null);
-            if (rs == null || rs.Count == 0) return null;
+            var uri = new Uri(url);
+            var pool = GetPool(uri.Host);
+            var client = pool.Get();
+            try
+            {
+                return (await client.SendAsync(uri, null))?.ToStr();
+            }
+            finally
+            {
+                pool.Put(client);
+            }
+        }
 
-            return rs?.ToStr();
+        /// <summary>同步获取</summary>
+        /// <param name="url"></param>
+        /// <returns></returns>
+        public String GetString(String url)
+        {
+            var uri = new Uri(url);
+            var pool = GetPool(uri.Host);
+            var client = pool.Get();
+            try
+            {
+                return client.Send(uri, null)?.ToStr();
+            }
+            finally
+            {
+                pool.Put(client);
+            }
         }
         #endregion
     }
