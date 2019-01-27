@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Threading;
@@ -11,6 +12,11 @@ namespace XCode
     {
         /// <summary>过期时间。单位是秒</summary>
         public Int32 Expire { get; set; }
+
+        /// <summary>
+        /// 所有键
+        /// </summary>
+        public List<String> Keys => _cache.Keys.ToList();
 
         private Dictionary<String, CacheItem> _cache;
 
