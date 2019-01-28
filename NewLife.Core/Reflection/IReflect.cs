@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Serialization;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 
@@ -378,6 +379,8 @@ namespace NewLife.Reflection
                 if (pi.GetIndexParameters().Length > 0) continue;
                 if (pi.GetCustomAttribute<XmlIgnoreAttribute>() != null) continue;
                 if (pi.GetCustomAttribute<ScriptIgnoreAttribute>() != null) continue;
+                if (pi.GetCustomAttribute<IgnoreDataMemberAttribute>() != null) continue;
+
 
                 if (!set.Contains(pi.Name))
                 {
