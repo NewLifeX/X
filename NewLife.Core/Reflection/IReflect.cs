@@ -380,8 +380,7 @@ namespace NewLife.Reflection
                 if (pi.GetCustomAttribute<XmlIgnoreAttribute>() != null) continue;
                 if (pi.GetCustomAttribute<ScriptIgnoreAttribute>() != null) continue;
                 if (pi.GetCustomAttribute<IgnoreDataMemberAttribute>() != null) continue;
-
-
+                
                 if (!set.Contains(pi.Name))
                 {
                     list.Add(pi);
