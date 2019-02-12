@@ -428,7 +428,10 @@ namespace XCode
         /// <typeparam name="T">实体类型</typeparam>
         /// <param name="list">实体列表</param>
         /// <param name="columns">要插入的字段，默认所有字段</param>
-        /// <returns></returns>
+        /// <returns>
+        /// Oracle：当批量插入操作中有一条记录无法正常写入，则本次写入的所有数据都不会被写入（可以理解为自带事物）
+        /// MySQL：当批量插入操作中有一条记录无法正常写入，则本次写入的所有数据都不会被写入（可以理解为自带事物）
+        /// </returns>
         public static Int32 BatchInsert<T>(this IEnumerable<T> list, IDataColumn[] columns = null) where T : IEntity
         {
             if (list == null || !list.Any()) return 0;
