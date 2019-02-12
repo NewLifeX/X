@@ -511,7 +511,8 @@ namespace XCode
         /// MySQL返回值：返回值相当于流程执行次数，及时insert失败也会累计一次执行（所以不建议通过该返回值确定操作记录数）
         /// do insert success = 1次; 
         /// do update success =2次(insert 1次+update 1次)，
-        /// 简单来说：如果Insert 成功则返回1，如果需要执行的是update 则返回2，
+        /// 简单来说：对于一行记录，如果Insert 成功则返回1，如果需要执行的是update 则返回2
+        /// Oracle返回值：无论是插入还是更新返回的都始终为-1
         /// </returns>
         public static Int32 Upsert<T>(this IEnumerable<T> list, IDataColumn[] columns = null, ICollection<String> updateColumns = null, ICollection<String> addColumns = null) where T : IEntity
         {
