@@ -102,6 +102,7 @@
     <Compile Include="Membership\访问统计.cs" />
     <Compile Include="Membership\部门.Biz.cs" />
     <Compile Include="Membership\部门.cs" />
+    <Compile Include="Model\EntityDeferredQueue.cs" />
     <Compile Include="Service\DbClient.cs" />
     <Compile Include="Service\DbParam.cs" />
     <Compile Include="Service\DbServer.cs" />

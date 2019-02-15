@@ -116,6 +116,7 @@
     <Compile Include="..\NewLife.Core\Messaging\MessageEventArgs.cs" Link="Messaging\MessageEventArgs.cs" />
     <Compile Include="..\NewLife.Core\Messaging\PacketCodec.cs" Link="Messaging\PacketCodec.cs" />
     <Compile Include="..\NewLife.Core\Model\Actor.cs" Link="Model\Actor.cs" />
+    <Compile Include="..\NewLife.Core\Model\DeferredQueue.cs" Link="Model\DeferredQueue.cs" />
     <Compile Include="..\NewLife.Core\Model\IAuthUser.cs" Link="Model\IAuthUser.cs" />
     <Compile Include="..\NewLife.Core\Model\IFactory.cs" Link="Model\IFactory.cs" />
     <Compile Include="..\NewLife.Core\Model\IHandler.cs" Link="Model\IHandler.cs" />

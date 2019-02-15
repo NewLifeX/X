@@ -148,6 +148,7 @@
     <Compile Include="..\XCode\Membership\部门.Biz.cs" Link="Membership\部门.Biz.cs" />
     <Compile Include="..\XCode\Membership\部门.cs" Link="Membership\部门.cs" />
     <Compile Include="..\XCode\Model\ConcatExpression.cs" Link="Model\ConcatExpression.cs" />
+    <Compile Include="..\XCode\Model\EntityDeferredQueue.cs" Link="Model\EntityDeferredQueue.cs" />
     <Compile Include="..\XCode\Model\Expression.cs" Link="Model\Expression.cs" />
     <Compile Include="..\XCode\Model\FieldExpression.cs" Link="Model\FieldExpression.cs" />
     <Compile Include="..\XCode\Model\FormatExpression.cs" Link="Model\FormatExpression.cs" />

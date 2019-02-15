@@ -132,6 +132,7 @@
     <Compile Include="Messaging\MessageEventArgs.cs" />
     <Compile Include="Messaging\PacketCodec.cs" />
     <Compile Include="Model\Actor.cs" />
+    <Compile Include="Model\DeferredQueue.cs" />
     <Compile Include="Model\IFactory.cs" />
     <Compile Include="Model\IAuthUser.cs" />
     <Compile Include="Model\IPlugin.cs" />
