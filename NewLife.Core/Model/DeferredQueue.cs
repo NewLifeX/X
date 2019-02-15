@@ -39,6 +39,9 @@ namespace NewLife.Model
         /// <summary>批大小。默认5_000</summary>
         public Int32 BatchSize { get; set; } = 5_000;
 
+        /// <summary>等待借出对象确认修改的时间，默认3000ms</summary>
+        public Int32 WaitForBusy { get; set; } = 3_000;
+
         /// <summary>保存速度，每秒保存多少个实体</summary>
         public Int32 Speed { get; private set; }
 
@@ -164,8 +167,6 @@ namespace NewLife.Model
             return entity as T;
         }
 
-        /// <summary>等待借出对象确认修改的时间，默认3000ms</summary>
-        private readonly Int32 _waitForBusy = 3_000;
         /// <summary>等待确认修改的借出对象数</summary>
         private volatile Int32 _busy;
 
@@ -193,7 +194,7 @@ namespace NewLife.Model
             Interlocked.Add(ref _Times, -times);
 
             // 检查繁忙数，等待外部未完成的修改
-            var t = _waitForBusy;
+            var t = WaitForBusy;
             while (_busy > 0 && t > 0)
             {
                 Thread.Sleep(100);
