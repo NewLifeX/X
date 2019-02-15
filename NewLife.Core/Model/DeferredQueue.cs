@@ -12,7 +12,10 @@ namespace NewLife.Model
 {
     /// <summary>延迟队列。缓冲合并对象，批量处理</summary>
     /// <remarks>
-    /// 借助实体字典，缓冲实体对象，定期给字典换新，实现批量处理
+    /// 借助实体字典，缓冲实体对象，定期给字典换新，实现批量处理。
+    /// 
+    /// 有可能外部拿到对象后，正在修改，内部恰巧执行批量处理，导致外部的部分修改未能得到处理。
+    /// 解决办法是增加一个提交机制，外部用完后提交修改，内部需要处理时，等待一个时间。
     /// </remarks>
     public class DeferredQueue : DisposeBase
     {
@@ -26,9 +29,6 @@ namespace NewLife.Model
 
         /// <summary>跟踪数。达到该值时输出跟踪日志，默认1000</summary>
         public Int32 TraceCount { get; set; } = 1000;
-
-        /// <summary>批量处理回调</summary>
-        public Func<IList<Object>, Int32> OnProcess { get; set; }
 
         /// <summary>周期。默认10_000毫秒</summary>
         public Int32 Period { get; set; } = 10_000;
@@ -121,7 +121,10 @@ namespace NewLife.Model
             return true;
         }
 
-        /// <summary>获取 或 添加</summary>
+        /// <summary>获取 或 添加 实体对象，在外部修改对象值</summary>
+        /// <remarks>
+        /// 外部正在修改对象时，内部不允许执行批量处理
+        /// </remarks>
         /// <typeparam name="T"></typeparam>
         /// <param name="key"></param>
         /// <param name="valueFactory"></param>
@@ -155,7 +158,23 @@ namespace NewLife.Model
                 Thread.Sleep(100);
             }
 
+            // 增加繁忙数
+            Interlocked.Increment(ref _busy);
+
             return entity as T;
+        }
+
+        /// <summary>等待借出对象确认修改的时间，默认3000ms</summary>
+        private readonly Int32 _waitForBusy = 3_000;
+        /// <summary>等待确认修改的借出对象数</summary>
+        private volatile Int32 _busy;
+
+        /// <summary>提交对象的修改，外部不再使用该对象</summary>
+        /// <param name="key"></param>
+        public virtual void Commit(String key)
+        {
+            // 减少繁忙数
+            if (_busy > 0) Interlocked.Decrement(ref _busy);
         }
 
         /// <summary>当前缓存个数</summary>
@@ -172,6 +191,15 @@ namespace NewLife.Model
 
             Interlocked.Add(ref _count, -es.Count);
             Interlocked.Add(ref _Times, -times);
+
+            // 检查繁忙数，等待外部未完成的修改
+            var t = _waitForBusy;
+            while (_busy > 0 && t > 0)
+            {
+                Thread.Sleep(100);
+                t -= 100;
+            }
+            //_busy = 0;
 
             // 先取出来
             var list = es.Values.ToList();
@@ -222,12 +250,7 @@ namespace NewLife.Model
 
         /// <summary>处理一批</summary>
         /// <param name="list"></param>
-        public virtual Int32 Process(IList<Object> list)
-        {
-            if (OnProcess == null) return 0;
-
-            return OnProcess(list);
-        }
+        public virtual Int32 Process(IList<Object> list) => 0;
 
         /// <summary>发生错误</summary>
         /// <param name="list"></param>
