@@ -51,9 +51,6 @@ namespace NewLife.Model
         private Int32 _Times;
         /// <summary>合并保存的总次数</summary>
         public Int32 Times => _Times;
-
-        /// <summary>错误发生时</summary>
-        public event EventHandler<EventArgs<Exception>> Error;
         #endregion
 
         #region 构造
@@ -256,13 +253,7 @@ namespace NewLife.Model
         /// <summary>发生错误</summary>
         /// <param name="list"></param>
         /// <param name="ex"></param>
-        protected virtual void OnError(IList<Object> list, Exception ex)
-        {
-            if (Error != null)
-                Error(this, new EventArgs<Exception>(ex));
-            else
-                XTrace.WriteException(ex);
-        }
+        protected virtual void OnError(IList<Object> list, Exception ex) => XTrace.WriteException(ex);
         #endregion
     }
 }
