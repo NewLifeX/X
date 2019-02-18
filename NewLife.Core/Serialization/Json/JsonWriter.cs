@@ -126,7 +126,7 @@ namespace NewLife.Serialization
 
             foreach (String item in nvs)
             {
-                if (NullValue || nvs[item] != null)
+                if (NullValue || !IsNull(nvs[item]))
                 {
                     if (!first) _Builder.Append(',');
                     first = false;
@@ -146,7 +146,7 @@ namespace NewLife.Serialization
 
             foreach (DictionaryEntry item in dic)
             {
-                if (NullValue || item.Value != null)
+                if (NullValue || !IsNull(item.Value))
                 {
                     if (!first) _Builder.Append(',');
                     first = false;
@@ -192,7 +192,7 @@ namespace NewLife.Serialization
             foreach (var pi in t.GetProperties(true))
             {
                 var value = obj.GetValue(pi);
-                if (NullValue || value != null && !(value is DBNull))
+                if (NullValue || !IsNull(value))
                 {
                     if (!first) _Builder.Append(',');
                     first = false;
@@ -247,7 +247,7 @@ namespace NewLife.Serialization
             var first = true;
             foreach (DictionaryEntry item in dic)
             {
-                if (NullValue || item.Value != null)
+                if (NullValue || !IsNull(item.Value))
                 {
                     if (!first) _Builder.Append(',');
                     first = false;
@@ -266,7 +266,7 @@ namespace NewLife.Serialization
             var first = true;
             foreach (var item in dic)
             {
-                if (NullValue || item.Value != null)
+                if (NullValue || !IsNull(item.Value))
                 {
                     if (!first) _Builder.Append(',');
                     first = false;
@@ -285,14 +285,17 @@ namespace NewLife.Serialization
             var first = true;
             foreach (DictionaryEntry entry in dic)
             {
-                if (!first) _Builder.Append(',');
-                first = false;
+                if (NullValue || !IsNull(entry.Value))
+                {
+                    if (!first) _Builder.Append(',');
+                    first = false;
 
-                _Builder.Append('{');
-                WritePair("k", entry.Key);
-                _Builder.Append(",");
-                WritePair("v", entry.Value);
-                _Builder.Append('}');
+                    _Builder.Append('{');
+                    WritePair("k", entry.Key);
+                    _Builder.Append(",");
+                    WritePair("v", entry.Value);
+                    _Builder.Append('}');
+                }
             }
             _Builder.Append(']');
         }
@@ -357,6 +360,43 @@ namespace NewLife.Serialization
             if (CamelCase) return name.Substring(0, 1).ToLower() + name.Substring(1);
 
             return name;
+        }
+
+        private static IDictionary<TypeCode, Object> _def;
+        private static Boolean IsNull(Object obj)
+        {
+            if (obj == null || obj is DBNull) return true;
+
+            var code = obj.GetType().GetTypeCode();
+            if (code == TypeCode.Object) return false;
+            if (code == TypeCode.Empty || code == TypeCode.DBNull) return true;
+
+            var dic = _def;
+            if (dic == null)
+            {
+                dic = new Dictionary<TypeCode, Object>
+                {
+                    [TypeCode.Boolean] = false,
+                    [TypeCode.Char] = '\0',
+                    [TypeCode.SByte] = (SByte)0,
+                    [TypeCode.Byte] = (Byte)0,
+                    [TypeCode.Int16] = (Int16)0,
+                    [TypeCode.UInt16] = (UInt16)0,
+                    [TypeCode.Int32] = 0,
+                    [TypeCode.UInt32] = (UInt32)0,
+                    [TypeCode.Int64] = (Int64)0,
+                    [TypeCode.UInt64] = (UInt64)0,
+                    [TypeCode.Single] = (Single)0,
+                    [TypeCode.Double] = (Double)0,
+                    [TypeCode.Decimal] = (Decimal)0,
+                    [TypeCode.DateTime] = DateTime.MinValue,
+                    [TypeCode.String] = "",
+                };
+
+                _def = dic;
+            }
+
+            return dic.TryGetValue(code, out var rs) && Equals(obj, rs);
         }
         #endregion
     }
