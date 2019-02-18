@@ -54,7 +54,7 @@ namespace NewLife.Remoting
             if (type == null) type = method.DeclaringType;
             if (type == null) return null;
 
-            var typeName = type.Name.TrimEnd("Controller");
+            var typeName = type.Name.TrimEnd("Controller", "Service");
             var att = type.GetCustomAttribute<ApiAttribute>(true);
             if (att != null) typeName = att.Name;
 

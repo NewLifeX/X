@@ -79,29 +79,11 @@ namespace NewLife.Remoting
                 var ss = Servers;
                 if (ss == null || ss.Length == 0) throw new ArgumentNullException(nameof(Servers), "未指定服务端地址");
 
-                //if (Pool == null) Pool = new MyPool { Host = this };
-
                 if (Encoder == null) Encoder = new JsonEncoder();
                 //if (Encoder == null) Encoder = new BinaryEncoder();
                 if (Handler == null) Handler = new ApiHandler { Host = this };
-                //if (StatInvoke == null) StatInvoke = new PerfCounter();
-                //if (StatProcess == null) StatProcess = new PerfCounter();
-                //if (StatSend == null) StatSend = new PerfCounter();
-                //if (StatReceive == null) StatReceive = new PerfCounter();
 
                 Encoder.Log = EncoderLog;
-
-                // 不要阻塞打开，各个线程从池里借出连接来使用
-                //var ct = Pool.Get();
-                //try
-                //{
-                //    // 打开网络连接
-                //    if (!ct.Open()) return false;
-                //}
-                //finally
-                //{
-                //    Pool.Put(ct);
-                //}
 
                 ShowService();
 
@@ -129,8 +111,6 @@ namespace NewLife.Remoting
 
             var ct = GetClient(false);
             if (ct != null) ct.Close(reason ?? (GetType().Name + "Close"));
-            //Pool.TryDispose();
-            //Pool = null;
 
             Active = false;
         }
@@ -172,7 +152,10 @@ namespace NewLife.Remoting
                 if (ex.Code == 401)
                 {
                     var client = GetClient(true);
-                    await OnLoginAsync(client, true);
+                    var waiter = OnLoginAsync(client, true);
+                    if (waiter == null) throw;
+
+                    await waiter;
 
                     return await ApiHostHelper.InvokeAsync(this, this, resultType, act, args, flag);
                 }
