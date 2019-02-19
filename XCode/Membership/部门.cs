@@ -253,29 +253,29 @@ namespace XCode.Membership
             {
                 switch (name)
                 {
-                    case __.ID : _ID = Convert.ToInt32(value); break;
+                    case __.ID : _ID = value.ToInt(); break;
                     case __.Code : _Code = Convert.ToString(value); break;
                     case __.Name : _Name = Convert.ToString(value); break;
                     case __.FullName : _FullName = Convert.ToString(value); break;
-                    case __.ParentID : _ParentID = Convert.ToInt32(value); break;
-                    case __.Level : _Level = Convert.ToInt32(value); break;
-                    case __.Sort : _Sort = Convert.ToInt32(value); break;
-                    case __.Enable : _Enable = Convert.ToBoolean(value); break;
-                    case __.Visible : _Visible = Convert.ToBoolean(value); break;
-                    case __.Ex1 : _Ex1 = Convert.ToInt32(value); break;
-                    case __.Ex2 : _Ex2 = Convert.ToInt32(value); break;
-                    case __.Ex3 : _Ex3 = Convert.ToDouble(value); break;
+                    case __.ParentID : _ParentID = value.ToInt(); break;
+                    case __.Level : _Level = value.ToInt(); break;
+                    case __.Sort : _Sort = value.ToInt(); break;
+                    case __.Enable : _Enable = value.ToBoolean(); break;
+                    case __.Visible : _Visible = value.ToBoolean(); break;
+                    case __.Ex1 : _Ex1 = value.ToInt(); break;
+                    case __.Ex2 : _Ex2 = value.ToInt(); break;
+                    case __.Ex3 : _Ex3 = value.ToDouble(); break;
                     case __.Ex4 : _Ex4 = Convert.ToString(value); break;
                     case __.Ex5 : _Ex5 = Convert.ToString(value); break;
                     case __.Ex6 : _Ex6 = Convert.ToString(value); break;
                     case __.CreateUser : _CreateUser = Convert.ToString(value); break;
-                    case __.CreateUserID : _CreateUserID = Convert.ToInt32(value); break;
+                    case __.CreateUserID : _CreateUserID = value.ToInt(); break;
                     case __.CreateIP : _CreateIP = Convert.ToString(value); break;
-                    case __.CreateTime : _CreateTime = Convert.ToDateTime(value); break;
+                    case __.CreateTime : _CreateTime = value.ToDateTime(); break;
                     case __.UpdateUser : _UpdateUser = Convert.ToString(value); break;
-                    case __.UpdateUserID : _UpdateUserID = Convert.ToInt32(value); break;
+                    case __.UpdateUserID : _UpdateUserID = value.ToInt(); break;
                     case __.UpdateIP : _UpdateIP = Convert.ToString(value); break;
-                    case __.UpdateTime : _UpdateTime = Convert.ToDateTime(value); break;
+                    case __.UpdateTime : _UpdateTime = value.ToDateTime(); break;
                     case __.Remark : _Remark = Convert.ToString(value); break;
                     default: base[name] = value; break;
                 }

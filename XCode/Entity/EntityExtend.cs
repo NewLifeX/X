@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Threading;
@@ -11,6 +12,9 @@ namespace XCode
     {
         /// <summary>过期时间。单位是秒</summary>
         public Int32 Expire { get; set; }
+
+        /// <summary>键集合</summary>
+        public ICollection<String> Keys => _cache.Keys;
 
         private Dictionary<String, CacheItem> _cache;
 
@@ -140,7 +144,7 @@ namespace XCode
             public DateTime ExpiredTime { get; set; }
 
             /// <summary>是否过期</summary>
-            public Boolean Expired { get { return ExpiredTime <= TimerX.Now; } }
+            public Boolean Expired => ExpiredTime <= TimerX.Now;
 
             public CacheItem(Object value, Int32 seconds)
             {

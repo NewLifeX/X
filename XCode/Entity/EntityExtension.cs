@@ -428,7 +428,10 @@ namespace XCode
         /// <typeparam name="T">实体类型</typeparam>
         /// <param name="list">实体列表</param>
         /// <param name="columns">要插入的字段，默认所有字段</param>
-        /// <returns></returns>
+        /// <returns>
+        /// Oracle：当批量插入操作中有一条记录无法正常写入，则本次写入的所有数据都不会被写入（可以理解为自带事物）
+        /// MySQL：当批量插入操作中有一条记录无法正常写入，则本次写入的所有数据都不会被写入（可以理解为自带事物）
+        /// </returns>
         public static Int32 BatchInsert<T>(this IEnumerable<T> list, IDataColumn[] columns = null) where T : IEntity
         {
             if (list == null || !list.Any()) return 0;
@@ -507,14 +510,21 @@ namespace XCode
         /// <param name="columns">要插入的字段，默认所有字段</param>
         /// <param name="updateColumns">要更新的字段，默认脏数据</param>
         /// <param name="addColumns">要累加更新的字段，默认累加</param>
-        /// <returns></returns>
+        /// <returns>
+        /// MySQL返回值：返回值相当于流程执行次数，及时insert失败也会累计一次执行（所以不建议通过该返回值确定操作记录数）
+        /// do insert success = 1次; 
+        /// do update success =2次(insert 1次+update 1次)，
+        /// 简单来说：对于一行记录，如果Insert 成功则返回1，如果需要执行的是update 则返回2
+        /// Oracle返回值：无论是插入还是更新返回的都始终为-1
+        /// </returns>
         public static Int32 Upsert<T>(this IEnumerable<T> list, IDataColumn[] columns = null, ICollection<String> updateColumns = null, ICollection<String> addColumns = null) where T : IEntity
         {
             if (list == null || !list.Any()) return 0;
 
             var entity = list.First();
             var fact = entity.GetType().AsFactory();
-            if (columns == null) columns = fact.Fields.Select(e => e.Field).Where(e => !e.Identity).ToArray();
+            //if (columns == null) columns = fact.Fields.Select(e => e.Field).Where(e => !e.Identity).ToArray();
+            if (columns == null) columns = fact.Fields.Select(e => e.Field).Where(e => !e.Identity || e.PrimaryKey).ToArray();
             //if (updateColumns == null) updateColumns = entity.Dirtys.Keys;
             if (updateColumns == null)
             {
@@ -561,7 +571,12 @@ namespace XCode
         /// <param name="columns">要插入的字段，默认所有字段</param>
         /// <param name="updateColumns">主键已存在时，要更新的字段</param>
         /// <param name="addColumns">主键已存在时，要累加更新的字段</param>
-        /// <returns></returns>
+        /// <returns>
+        /// MySQL返回值：返回值相当于流程执行次数，及时insert失败也会累计一次执行（所以不建议通过该返回值确定操作记录数）
+        /// do insert success = 1次; 
+        /// do update success =2次(insert 1次+update 1次)，
+        /// 简单来说：如果Insert 成功则返回1，如果需要执行的是update 则返回2，
+        /// </returns>
         public static Int32 Upsert(this IEntity entity, IDataColumn[] columns = null, ICollection<String> updateColumns = null, ICollection<String> addColumns = null)
         {
             var fact = entity.GetType().AsFactory();

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using NewLife.Data;
+using NewLife.Log;
 using NewLife.Threading;
 
 namespace NewLife.Messaging
@@ -16,8 +17,8 @@ namespace NewLife.Messaging
         /// <summary>获取长度的委托</summary>
         public Func<Packet, Int32> GetLength { get; set; }
 
-        /// <summary>最后一次接收</summary>
-        public DateTime Last { get; set; }
+        /// <summary>最后一次解包成功，而不是最后一次接收</summary>
+        public DateTime Last { get; set; } = TimerX.Now;
 
         /// <summary>缓存有效期。超过该时间后仍未匹配数据包的缓存数据将被抛弃</summary>
         public Int32 Expire { get; set; } = 5_000;
@@ -63,14 +64,16 @@ namespace NewLife.Messaging
             // 加锁，避免多线程冲突
             lock (this)
             {
+                // 检查缓存，内部可能创建或清空
                 CheckCache();
+                ms = Stream;
 
                 // 合并数据到最后面
                 if (pk != null && pk.Total > 0)
                 {
                     var p = ms.Position;
                     ms.Position = ms.Length;
-                    pk.WriteTo(ms);
+                    pk.CopyTo(ms);
                     ms.Position = p;
                 }
 
@@ -95,6 +98,9 @@ namespace NewLife.Messaging
                     ms.Position = 0;
                 }
 
+                //// 记录最后一次解包成功时间，以此作为过期依据，避免收到错误分片后，持续的新片而不能过期
+                //if (list.Count > 0) Last = TimerX.Now;
+
                 return list;
             }
         }
@@ -109,6 +115,8 @@ namespace NewLife.Messaging
             var now = TimerX.Now;
             if (ms.Length > ms.Position && Last.AddMilliseconds(Expire) < now && (MaxCache <= 0 || MaxCache <= ms.Length))
             {
+                if (XTrace.Debug) XTrace.Log.Debug("数据包编码器放弃数据 {0:n0}，Last={1}，MaxCache={2:n0}", ms.Length, Last, MaxCache);
+
                 ms.SetLength(0);
                 ms.Position = 0;
             }

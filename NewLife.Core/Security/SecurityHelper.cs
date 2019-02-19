@@ -48,48 +48,36 @@ namespace System
         /// <summary>Crc散列</summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public static UInt32 Crc(this Byte[] data) { return new Crc32().Update(data).Value; }
+        public static UInt32 Crc(this Byte[] data) => new Crc32().Update(data).Value;
 
         /// <summary>Crc16散列</summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public static UInt16 Crc16(this Byte[] data) { return new Crc16().Update(data).Value; }
+        public static UInt16 Crc16(this Byte[] data) => new Crc16().Update(data).Value;
 
         /// <summary>SHA128</summary>
         /// <param name="data"></param>
         /// <param name="key"></param>
         /// <returns></returns>
-        public static Byte[] SHA1(this Byte[] data, Byte[] key)
-        {
-            return new HMACSHA1(key).ComputeHash(data);
-        }
+        public static Byte[] SHA1(this Byte[] data, Byte[] key) => new HMACSHA1(key).ComputeHash(data);
 
         /// <summary>SHA256</summary>
         /// <param name="data"></param>
         /// <param name="key"></param>
         /// <returns></returns>
-        public static Byte[] SHA256(this Byte[] data, Byte[] key)
-        {
-            return new HMACSHA256(key).ComputeHash(data);
-        }
+        public static Byte[] SHA256(this Byte[] data, Byte[] key) => new HMACSHA256(key).ComputeHash(data);
 
         /// <summary>SHA384</summary>
         /// <param name="data"></param>
         /// <param name="key"></param>
         /// <returns></returns>
-        public static Byte[] SHA384(this Byte[] data, Byte[] key)
-        {
-            return new HMACSHA384(key).ComputeHash(data);
-        }
+        public static Byte[] SHA384(this Byte[] data, Byte[] key) => new HMACSHA384(key).ComputeHash(data);
 
         /// <summary>SHA512</summary>
         /// <param name="data"></param>
         /// <param name="key"></param>
         /// <returns></returns>
-        public static Byte[] SHA512(this Byte[] data, Byte[] key)
-        {
-            return new HMACSHA512(key).ComputeHash(data);
-        }
+        public static Byte[] SHA512(this Byte[] data, Byte[] key) => new HMACSHA512(key).ComputeHash(data);
         #endregion
 
         #region 同步加密扩展

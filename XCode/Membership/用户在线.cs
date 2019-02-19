@@ -135,17 +135,17 @@ namespace XCode.Membership
             {
                 switch (name)
                 {
-                    case __.ID : _ID = Convert.ToInt32(value); break;
-                    case __.UserID : _UserID = Convert.ToInt32(value); break;
+                    case __.ID : _ID = value.ToInt(); break;
+                    case __.UserID : _UserID = value.ToInt(); break;
                     case __.Name : _Name = Convert.ToString(value); break;
                     case __.SessionID : _SessionID = Convert.ToString(value); break;
-                    case __.Times : _Times = Convert.ToInt32(value); break;
+                    case __.Times : _Times = value.ToInt(); break;
                     case __.Page : _Page = Convert.ToString(value); break;
                     case __.Status : _Status = Convert.ToString(value); break;
-                    case __.OnlineTime : _OnlineTime = Convert.ToInt32(value); break;
+                    case __.OnlineTime : _OnlineTime = value.ToInt(); break;
                     case __.CreateIP : _CreateIP = Convert.ToString(value); break;
-                    case __.CreateTime : _CreateTime = Convert.ToDateTime(value); break;
-                    case __.UpdateTime : _UpdateTime = Convert.ToDateTime(value); break;
+                    case __.CreateTime : _CreateTime = value.ToDateTime(); break;
+                    case __.UpdateTime : _UpdateTime = value.ToDateTime(); break;
                     default: base[name] = value; break;
                 }
             }
