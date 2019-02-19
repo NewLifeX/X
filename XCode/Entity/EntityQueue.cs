@@ -35,9 +35,6 @@ namespace XCode
         /// <summary>保存速度，每秒保存多少个实体</summary>
         public Int32 Speed { get; private set; }
 
-        /// <summary>错误发生时</summary>
-        public event EventHandler<EventArgs<Exception>> Error;
-
         private TimerX _Timer;
         #endregion
 
