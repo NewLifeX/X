@@ -246,7 +246,7 @@ namespace NewLife.Caching
                     // 命令数足够，自动提交
                     if (AutoPipeline > 0 && rds.PipelineCommands >= AutoPipeline)
                     {
-                        StopPipeline();
+                        StopPipeline(true);
                         StartPipeline();
                     }
 
@@ -290,6 +290,7 @@ namespace NewLife.Caching
             if (rds == null)
             {
                 rds = Pool.Get();
+                rds.Reset();
                 rds.StartPipeline();
 
                 _client.Value = rds;
@@ -325,7 +326,7 @@ namespace NewLife.Caching
         /// <returns></returns>
         public override Int32 Commit()
         {
-            var rs = StopPipeline();
+            var rs = StopPipeline(true);
             if (rs == null) return 0;
 
             return rs.Length;
@@ -458,7 +459,7 @@ namespace NewLife.Caching
                 }
                 finally
                 {
-                    StopPipeline();
+                    StopPipeline(true);
                 }
             }
         }

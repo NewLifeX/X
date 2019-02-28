@@ -89,11 +89,16 @@ namespace NewLife.Model
 
             var name = Async ? "DQ" : Name;
 
-            return new TimerX(Work, null, p, Period, name)
+            var timer = new TimerX(Work, null, p, Period, name)
             {
                 Async = Async,
                 CanExecute = () => _Entities.Any()
             };
+
+            // 独立调度时加大最大耗时告警
+            if (!Async) timer.Scheduler.MaxCost = 30_000;
+
+            return timer;
         }
         #endregion
 
