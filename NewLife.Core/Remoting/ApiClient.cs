@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Log;
@@ -13,7 +14,7 @@ namespace NewLife.Remoting
     {
         #region 属性
         /// <summary>是否已打开</summary>
-        public Boolean Active { get; set; }
+        public Boolean Active { get; protected set; }
 
         /// <summary>服务端地址集合。负载均衡</summary>
         public String[] Servers { get; set; }
@@ -27,16 +28,11 @@ namespace NewLife.Remoting
         /// <summary>所有服务器所有会话，包含自己</summary>
         IApiSession[] IApiSession.AllSessions => new IApiSession[] { this };
 
-        ///// <summary>调用超时时间。默认30_000ms</summary>
-        //public Int32 Timeout { get; set; } = 30_000;
-
         /// <summary>发送数据包统计信息</summary>
         public ICounter StatSend { get; set; }
 
         /// <summary>接收数据包统计信息</summary>
         public ICounter StatReceive { get; set; }
-
-        private readonly Object Root = new Object();
         #endregion
 
         #region 构造
@@ -46,13 +42,15 @@ namespace NewLife.Remoting
             var type = GetType();
             Name = type.GetDisplayName() ?? type.Name.TrimEnd("Client");
 
+            // 注册默认服务控制器
             Register(new ApiController { Host = this }, null);
         }
 
         /// <summary>实例化应用接口客户端</summary>
-        public ApiClient(String uri) : this()
+        /// <param name="uris">服务端地址集合，逗号分隔</param>
+        public ApiClient(String uris) : this()
         {
-            if (!uri.IsNullOrEmpty()) Servers = uri.Split(",");
+            if (!uris.IsNullOrEmpty()) Servers = uris.Split(",");
         }
 
         /// <summary>销毁</summary>
@@ -68,6 +66,7 @@ namespace NewLife.Remoting
         #endregion
 
         #region 打开关闭
+        private readonly Object Root = new Object();
         /// <summary>打开客户端</summary>
         public virtual Boolean Open()
         {
@@ -85,8 +84,11 @@ namespace NewLife.Remoting
 
                 Encoder.Log = EncoderLog;
 
-                ShowService();
+                // 拥有默认服务控制器之外的服务时，才显示服务
+                var svcs = Manager.Services;
+                if (svcs.Any(e => !(e.Value.Controller is ApiController))) ShowService();
 
+                // 控制性能统计信息
                 var ms = StatPeriod * 1000;
                 if (ms > 0)
                 {
@@ -165,7 +167,7 @@ namespace NewLife.Remoting
             // 截断任务取消异常，避免过长
             catch (TaskCanceledException ex)
             {
-                throw new TaskCanceledException($"[{action}]超时取消", ex);
+                throw new TaskCanceledException($"[{action}]超时[{Timeout:n0}ms]取消", ex);
             }
         }
 
@@ -213,6 +215,7 @@ namespace NewLife.Remoting
         }
 
         /// <summary>指定客户端的异步调用，等待返回结果</summary>
+        /// <remarks>常用于在OnLoginAsync中实现连接后登录功能</remarks>
         /// <typeparam name="TResult"></typeparam>
         /// <param name="client">客户端</param>
         /// <param name="action">服务操作</param>
@@ -247,7 +250,7 @@ namespace NewLife.Remoting
                 }
             }
 
-            if (ShowError) WriteLog("请求[{0}]错误！Timeout=[{1}ms] {2}", client, Timeout, last?.GetMessage());
+            if (ShowError) WriteLog("请求[{0}]错误！Timeout=[{1:n0}ms] {2}", client, Timeout, last?.GetMessage());
 
             throw last;
         }
@@ -271,6 +274,8 @@ namespace NewLife.Remoting
                     client.TryDispose();
                 }
             }
+
+            if (ShowError) WriteLog("请求[{0}]错误！Timeout=[{1:n0}ms] {2}", client, Timeout, last?.GetMessage());
 
             throw last;
         }
@@ -384,12 +389,11 @@ namespace NewLife.Remoting
         protected virtual ISocketClient OnCreate(String svr)
         {
             var client = new NetUri(svr).CreateRemote();
-            //client.Timeout = Timeout;
-            //if (Log != null) client.Log = Log;
+            // 网络层采用消息层超时
+            client.Timeout = Timeout;
             client.StatSend = StatSend;
             client.StatReceive = StatReceive;
 
-            //client.Add(new StandardCodec { Timeout = Timeout, UserPacket = false });
             client.Add(GetMessageCodec());
 
             client.Opened += (s, e) => OnNewSession(this, s);

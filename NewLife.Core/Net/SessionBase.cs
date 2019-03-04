@@ -126,7 +126,12 @@ namespace NewLife.Net
                     var rs = OnOpen();
                     if (!rs) return false;
 
-                    if (Timeout > 0) Client.ReceiveTimeout = Timeout;
+                    var timeout = Timeout;
+                    if (timeout > 0)
+                    {
+                        Client.SendTimeout = timeout;
+                        Client.ReceiveTimeout = timeout;
+                    }
 
                     if (!Local.IsUdp)
                     {

@@ -128,15 +128,8 @@ namespace Test
 
         static void Test3()
         {
-            var n = 123456789;
-            var crc = n.GetBytes().Crc16();
-            Console.WriteLine(crc.ToString("X4"));
-
-            crc = n.GetBytes(false).Crc16();
-            Console.WriteLine(crc.ToString("X4"));
-
-            crc = n.ToString().GetBytes().Crc16();
-            Console.WriteLine(crc.ToString("X4"));
+            var n = 26_731_396;
+            Console.WriteLine("{0:0000,0000}", n);
         }
 
         static void Test4()
