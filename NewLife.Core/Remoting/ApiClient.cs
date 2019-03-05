@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Net;
@@ -18,6 +19,9 @@ namespace NewLife.Remoting
 
         /// <summary>服务端地址集合。负载均衡</summary>
         public String[] Servers { get; set; }
+
+        /// <summary>客户端连接集群</summary>
+        public ICluster<ISocketClient> Cluster { get; set; }
 
         /// <summary>主机</summary>
         IApiHost IApiSession.Host => this;
@@ -81,6 +85,7 @@ namespace NewLife.Remoting
                 if (Encoder == null) Encoder = new JsonEncoder();
                 //if (Encoder == null) Encoder = new BinaryEncoder();
                 if (Handler == null) Handler = new ApiHandler { Host = this };
+                if (Cluster == null) Cluster = new ClientSingleCluster { Servers = Servers, OnCreate = OnCreate };
 
                 Encoder.Log = EncoderLog;
 
@@ -310,79 +315,15 @@ namespace NewLife.Remoting
         #endregion
 
         #region 连接池
-        ///// <summary>连接池</summary>
-        //public IPool<ISocketClient> Pool { get; private set; }
-
-        /// <summary>创建回调</summary>
-        public Action<ISocketClient> CreateCallback { get; set; }
-
-        //class MyPool : ObjectPool<ISocketClient>
-        //{
-        //    public ApiClient Host { get; set; }
-
-        //    public MyPool()
-        //    {
-        //        // 最小值为0，连接池不再使用栈，只使用队列
-        //        Min = 0;
-        //        Max = 100000;
-        //    }
-
-        //    protected override ISocketClient OnCreate() => Host.OnCreate();
-        //}
-
-        private ISocketClient _Client;
-        /// <summary>获取客户端</summary>
+        /// <summary>获取客户端连接</summary>
         /// <param name="create">是否创建</param>
         /// <returns></returns>
-        protected virtual ISocketClient GetClient(Boolean create)
-        {
-            var tc = _Client;
-            if (!create) return tc;
+        protected virtual ISocketClient GetClient(Boolean create) => Cluster.Get(create);
 
-            if (tc != null && tc.Active && !tc.Disposed) return tc;
-            lock (this)
-            {
-                tc = _Client;
-                if (tc != null && tc.Active && !tc.Disposed) return tc;
-
-                return _Client = OnCreate();
-            }
-        }
-
-        /// <summary>Round-Robin 负载均衡</summary>
-        private Int32 _index = -1;
-
-        /// <summary>为连接池创建连接</summary>
+        /// <summary>归还客户端连接</summary>
+        /// <param name="client"></param>
         /// <returns></returns>
-        protected virtual ISocketClient OnCreate()
-        {
-            // 遍历所有服务，找到可用服务端
-            var svrs = Servers;
-            if (svrs == null || svrs.Length == 0) throw new InvalidOperationException("没有设置服务端地址Servers");
-
-            var idx = Interlocked.Increment(ref _index);
-            Exception last = null;
-            for (var i = 0; i < svrs.Length; i++)
-            {
-                // Round-Robin 负载均衡
-                var k = (idx + i) % svrs.Length;
-                var svr = svrs[k];
-                try
-                {
-                    var client = OnCreate(svr);
-                    CreateCallback?.Invoke(client);
-                    client.Open();
-
-                    return client;
-                }
-                catch (Exception ex)
-                {
-                    last = ex;
-                }
-            }
-
-            throw last;
-        }
+        protected virtual Boolean PutClient(ISocketClient client) => Cluster.Put(client);
 
         /// <summary>创建客户端之后，打开连接之前</summary>
         /// <param name="svr"></param>

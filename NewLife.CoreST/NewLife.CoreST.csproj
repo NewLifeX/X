@@ -53,6 +53,7 @@
     <Compile Include="..\NewLife.Core\Collections\CollectionHelper.cs" Link="Collections\CollectionHelper.cs" />
     <Compile Include="..\NewLife.Core\Collections\ConcurrentHashSet.cs" Link="Collections\ConcurrentHashSet.cs" />
     <Compile Include="..\NewLife.Core\Collections\DictionaryCache.cs" Link="Collections\DictionaryCache.cs" />
+    <Compile Include="..\NewLife.Core\Collections\ICluster.cs" Link="Collections\ICluster.cs" />
     <Compile Include="..\NewLife.Core\Collections\IPool.cs" Link="Collections\IPool.cs" />
     <Compile Include="..\NewLife.Core\Collections\NullableDictionary.cs" Link="Collections\NullableDictionary.cs" />
     <Compile Include="..\NewLife.Core\Collections\ObjectPool.cs" Link="Collections\ObjectPool.cs" />
@@ -170,6 +171,8 @@
     <Compile Include="..\NewLife.Core\Remoting\ApiNetServer.cs" Link="Remoting\ApiNetServer.cs" />
     <Compile Include="..\NewLife.Core\Remoting\ApiServer.cs" Link="Remoting\ApiServer.cs" />
     <Compile Include="..\NewLife.Core\Remoting\ApiTest.cs" Link="Remoting\ApiTest.cs" />
+    <Compile Include="..\NewLife.Core\Remoting\ClientPoolCluster.cs" Link="Remoting\ClientPoolCluster.cs" />
+    <Compile Include="..\NewLife.Core\Remoting\ClientSingleCluster.cs" Link="Remoting\ClientSingleCluster.cs" />
     <Compile Include="..\NewLife.Core\Remoting\Controllers\ApiController.cs" Link="Remoting\Controllers\ApiController.cs" />
     <Compile Include="..\NewLife.Core\Remoting\Filters\ControllerContext.cs" Link="Remoting\Filters\ControllerContext.cs" />
     <Compile Include="..\NewLife.Core\Remoting\Filters\IActionFilter.cs" Link="Remoting\Filters\IActionFilter.cs" />
