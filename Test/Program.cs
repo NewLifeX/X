@@ -135,14 +135,17 @@ namespace Test
                 {
                     Log = XTrace.Log,
                     EncoderLog = XTrace.Log,
+                    StatPeriod = 10,
                 };
 
                 var ns = svr.EnsureCreate() as NetServer;
                 ns.EnsureCreateServer();
                 var ts = ns.Servers.FirstOrDefault(e => e is TcpServer);
-                ts.ProcessAsync = true;
+                //ts.ProcessAsync = true;
 
                 svr.Start();
+
+                Console.ReadKey();
             }
             else
             {
@@ -150,33 +153,84 @@ namespace Test
                 {
                     Log = XTrace.Log,
                     EncoderLog = XTrace.Log,
+                    StatPeriod = 10,
                 };
                 client.Open();
 
                 Task.Run(() =>
                 {
                     var sw = Stopwatch.StartNew();
-                    for (var i = 0; i < 10; i++)
+                    try
                     {
-                        client.InvokeAsync<Object>("Api/All").Wait();
+                        for (var i = 0; i < 10; i++)
+                        {
+                            client.InvokeAsync<Object>("Api/All", new { state = 111 }).Wait();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        XTrace.WriteException(ex);
                     }
                     sw.Stop();
-                    Console.WriteLine("总耗时 {0:n0}ms", sw.ElapsedMilliseconds);
+                    XTrace.WriteLine("总耗时 {0:n0}ms", sw.ElapsedMilliseconds);
                 });
 
                 Task.Run(() =>
                 {
                     var sw = Stopwatch.StartNew();
-                    for (var i = 0; i < 10; i++)
+                    try
                     {
-                        client.InvokeAsync<Object>("Api/Info").Wait();
+                        for (var i = 0; i < 10; i++)
+                        {
+                            client.InvokeAsync<Object>("Api/All", new { state = 222 }).Wait();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        XTrace.WriteException(ex);
                     }
                     sw.Stop();
-                    Console.WriteLine("总耗时 {0:n0}ms", sw.ElapsedMilliseconds);
+                    XTrace.WriteLine("总耗时 {0:n0}ms", sw.ElapsedMilliseconds);
                 });
-            }
 
-            Console.ReadKey();
+                Task.Run(() =>
+                {
+                    var sw = Stopwatch.StartNew();
+                    try
+                    {
+                        for (var i = 0; i < 10; i++)
+                        {
+                            client.InvokeAsync<Object>("Api/Info", new { state = 333 }).Wait();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        XTrace.WriteException(ex);
+                    }
+                    sw.Stop();
+                    XTrace.WriteLine("总耗时 {0:n0}ms", sw.ElapsedMilliseconds);
+                });
+
+                Task.Run(() =>
+                {
+                    var sw = Stopwatch.StartNew();
+                    try
+                    {
+                        for (var i = 0; i < 10; i++)
+                        {
+                            client.InvokeAsync<Object>("Api/Info", new { state = 444 }).Wait();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        XTrace.WriteException(ex);
+                    }
+                    sw.Stop();
+                    XTrace.WriteLine("总耗时 {0:n0}ms", sw.ElapsedMilliseconds);
+                });
+
+                Console.ReadKey();
+            }
         }
 
         static void Test4()

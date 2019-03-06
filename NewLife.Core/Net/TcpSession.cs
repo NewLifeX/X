@@ -98,7 +98,7 @@ namespace NewLife.Net
                 }
                 sock.Bind(Local.EndPoint);
                 CheckDynamic();
-                
+
                 WriteLog("Open {0}", this);
             }
 
@@ -261,9 +261,9 @@ namespace NewLife.Net
         protected override Boolean OnReceive(ReceivedEventArgs e)
         {
             var pk = e.Packet;
-            if (pk == null || pk.Count == 0 && !MatchEmpty) return true;
+            if ((pk == null || pk.Count == 0) && e.Message == null && !MatchEmpty) return true;
 
-            StatReceive?.Increment(pk.Count, 0);
+            if (pk != null) StatReceive?.Increment(pk.Count, 0);
 
             // 分析处理
             RaiseReceive(this, e);
