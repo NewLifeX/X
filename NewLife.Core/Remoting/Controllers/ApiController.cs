@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using NewLife.Collections;
+using NewLife.Log;
 using NewLife.Net;
 
 namespace NewLife.Remoting
@@ -18,7 +19,8 @@ namespace NewLife.Remoting
         public String[] All()
         {
             // 加上10ms延迟来模拟业务损耗，测试消耗占95.63%。没加睡眠时，Json损耗占55.5%
-            //System.Threading.Thread.Sleep(10);
+            XTrace.WriteLine(nameof(All) + "_Start");
+            System.Threading.Thread.Sleep(1000);
             if (_all != null) return _all;
 
             var list = new List<String>();
@@ -46,6 +48,7 @@ namespace NewLife.Remoting
 
                 list.Add(sb.Put(true));
             }
+            XTrace.WriteLine(nameof(All) + "_End");
 
             return _all = list.ToArray();
         }
@@ -57,6 +60,8 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public Object Info(String state)
         {
+            XTrace.WriteLine(nameof(Info) + "_Start");
+            System.Threading.Thread.Sleep(1000);
             var ctx = ControllerContext.Current;
             var ns = ctx?.Session as INetSession;
 
@@ -69,6 +74,7 @@ namespace NewLife.Remoting
                 Remote = ns?.Remote?.EndPoint + "",
                 State = state,
             };
+            XTrace.WriteLine(nameof(Info) + "_End");
             return rs;
         }
     }

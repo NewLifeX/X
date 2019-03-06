@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Caching;
 using NewLife.Log;
+using NewLife.Net;
 using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
@@ -128,13 +129,52 @@ namespace Test
 
         static void Test3()
         {
-            var svr = new ApiServer(1234)
+            if (Console.ReadLine() == "1")
             {
-                Log = XTrace.Log,
-                EncoderLog = XTrace.Log,
-            };
+                var svr = new ApiServer(1234)
+                {
+                    Log = XTrace.Log,
+                    EncoderLog = XTrace.Log,
+                };
 
-            svr.Start();
+                var ns = svr.EnsureCreate() as NetServer;
+                ns.EnsureCreateServer();
+                var ts = ns.Servers.FirstOrDefault(e => e is TcpServer);
+                ts.ProcessAsync = true;
+
+                svr.Start();
+            }
+            else
+            {
+                var client = new ApiClient("tcp://127.0.0.1:1234")
+                {
+                    Log = XTrace.Log,
+                    EncoderLog = XTrace.Log,
+                };
+                client.Open();
+
+                Task.Run(() =>
+                {
+                    var sw = Stopwatch.StartNew();
+                    for (var i = 0; i < 10; i++)
+                    {
+                        client.InvokeAsync<Object>("Api/All").Wait();
+                    }
+                    sw.Stop();
+                    Console.WriteLine("总耗时 {0:n0}ms", sw.ElapsedMilliseconds);
+                });
+
+                Task.Run(() =>
+                {
+                    var sw = Stopwatch.StartNew();
+                    for (var i = 0; i < 10; i++)
+                    {
+                        client.InvokeAsync<Object>("Api/Info").Wait();
+                    }
+                    sw.Stop();
+                    Console.WriteLine("总耗时 {0:n0}ms", sw.ElapsedMilliseconds);
+                });
+            }
 
             Console.ReadKey();
         }
