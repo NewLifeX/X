@@ -305,7 +305,7 @@ namespace NewLife.Net
             }
 
             // 触发事件
-            Received?.Invoke(this, new ReceivedEventArgs(pk));
+            Received?.Invoke(this, new ReceivedEventArgs { Packet = pk });
         }
 
         /// <summary>数据到达事件</summary>

@@ -18,10 +18,7 @@ namespace NewLife.Remoting
         public IPool<ISocketClient> Pool { get; private set; }
 
         /// <summary>实例化连接池集群</summary>
-        public ClientPoolCluster()
-        {
-            Pool = new MyPool { Host = this };
-        }
+        public ClientPoolCluster() => Pool = new MyPool { Host = this };
 
         /// <summary>从集群中获取资源</summary>
         /// <param name="create"></param>

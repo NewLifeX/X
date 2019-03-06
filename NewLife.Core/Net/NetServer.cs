@@ -8,6 +8,7 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Collections;
+using NewLife.Data;
 using NewLife.Log;
 using NewLife.Model;
 
@@ -404,15 +405,15 @@ namespace NewLife.Net
         {
             var session = sender as INetSession;
 
-            OnReceive(session, e.Stream);
+            OnReceive(session, e.Packet);
 
             Received?.Invoke(sender, e);
         }
 
         /// <summary>收到数据时，最原始的数据处理，但不影响会话内部的数据处理</summary>
         /// <param name="session"></param>
-        /// <param name="stream"></param>
-        protected virtual void OnReceive(INetSession session, Stream stream) { }
+        /// <param name="pk"></param>
+        protected virtual void OnReceive(INetSession session, Packet pk) { }
 
         /// <summary>错误发生/断开连接时。sender是ISocketSession</summary>
         public event EventHandler<ExceptionEventArgs> Error;

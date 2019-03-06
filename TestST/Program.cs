@@ -28,29 +28,6 @@ namespace TestST
             Console.ReadKey();
         }
 
-        static void Test1()
-        {
-            XTrace.WriteLine("学无先后达者为师！");
-            Console.WriteLine(".".GetFullPath());
-
-            var svr = new NetServer
-            {
-                Port = 8080
-            };
-            svr.Received += Svr_Received;
-            svr.Log = XTrace.Log;
-            svr.SessionLog = svr.Log;
-            svr.LogReceive = true;
-            svr.Start();
-
-            Console.ReadKey();
-        }
-
-        private static void Svr_Received(Object sender, ReceivedEventArgs e)
-        {
-            XTrace.WriteLine(e.ToStr());
-        }
-
         static void Test2()
         {
             //new AgentService().Main();
