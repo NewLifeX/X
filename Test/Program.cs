@@ -34,7 +34,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test3();
+                Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -128,8 +128,15 @@ namespace Test
 
         static void Test3()
         {
-            var n = 26_731_396;
-            Console.WriteLine("{0:0000,0000}", n);
+            var svr = new ApiServer(1234)
+            {
+                Log = XTrace.Log,
+                EncoderLog = XTrace.Log,
+            };
+
+            svr.Start();
+
+            Console.ReadKey();
         }
 
         static void Test4()

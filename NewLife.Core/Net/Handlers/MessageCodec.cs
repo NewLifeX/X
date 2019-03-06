@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Messaging;
 using NewLife.Model;
-using NewLife.Threading;
 
 namespace NewLife.Net.Handlers
 {
@@ -58,9 +57,7 @@ namespace NewLife.Net.Handlers
         {
             if (msg != null && context["TaskSource"] is TaskCompletionSource<Object> source)
             {
-                var timeout = Timeout;
-                //if (context.Session is ISocketClient client) timeout = client.Timeout;
-                Queue.Add(context.Owner, msg, timeout, source);
+                Queue.Add(context.Owner, msg, Timeout, source);
             }
         }
 
@@ -91,8 +88,9 @@ namespace NewLife.Net.Handlers
                     // 匹配
                     if (msg3.Reply)
                     {
-                        //!!! 处理结果的Packet需要拷贝一份，否交给另一个线程使用会有冲突
+                        //!!! 处理结果的Packet需要拷贝一份，否则交给另一个线程使用会有冲突
                         if (rs is IMessage msg4 && msg4.Payload != null && msg4.Payload == msg3.Payload) msg4.Payload = msg4.Payload.Clone();
+
                         Queue.Match(context.Owner, msg, rs, IsMatch);
                     }
                 }

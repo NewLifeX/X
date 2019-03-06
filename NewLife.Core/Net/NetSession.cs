@@ -54,13 +54,10 @@ namespace NewLife.Net
         {
             if (LogSession && Log != null && Log.Enable) WriteLog("新会话 {0}", Session);
 
-            //this["Host"] = (this as INetSession).Host;
-
             var ss = Session;
             if (ss != null)
             {
                 ss.Received += (s, e2) => OnReceive(e2);
-                //ss.MessageReceived += (s, e2) => OnReceive(e2);
                 ss.OnDisposed += (s, e2) => Dispose();
                 ss.Error += OnError;
             }
@@ -87,15 +84,8 @@ namespace NewLife.Net
         /// <param name="e"></param>
         protected virtual void OnReceive(ReceivedEventArgs e) => Received?.Invoke(this, e);
 
-        ///// <summary>收到客户端发来的消息</summary>
-        ///// <param name="e"></param>
-        //protected virtual void OnReceive(MessageEventArgs e) => MessageReceived?.Invoke(this, e);
-
         /// <summary>数据到达事件</summary>
         public event EventHandler<ReceivedEventArgs> Received;
-
-        ///// <summary>消息到达事件</summary>
-        //public event EventHandler<MessageEventArgs> MessageReceived;
         #endregion
 
         #region 收发

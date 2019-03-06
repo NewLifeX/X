@@ -202,9 +202,7 @@ namespace NewLife.Net
             LastRemote = remote;
 
             // 为该连接单独创建一个会话，方便直接通信
-            var session = CreateSession(remote);
-
-            return session;
+            return CreateSession(remote);
         }
 
         /// <summary>处理收到的数据</summary>

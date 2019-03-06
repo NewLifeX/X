@@ -44,7 +44,6 @@ namespace NewLife.Net.Handlers
             // 控制超时时间，默认15秒
             if (msTimeout <= 10 || msTimeout >= 600_000) msTimeout = 15_000;
 
-            if (source == null) source = new TaskCompletionSource<Object>();
             var qi = new Item
             {
                 Owner = owner,
@@ -79,7 +78,7 @@ namespace NewLife.Net.Handlers
                 }
             }
 
-            return source.Task;
+            return source?.Task;
         }
 
         /// <summary>检查请求队列是否有匹配该响应的请求</summary>
@@ -104,9 +103,6 @@ namespace NewLife.Net.Handlers
                 {
                     qs[i].Value = null;
                     Interlocked.Decrement(ref _Count);
-
-                    // 标记为已处理
-                    qi.Source = null;
 
                     // 异步设置完成结果，否则可能会在当前线程恢复上层await，导致堵塞当前任务
                     if (!src.Task.IsCompleted) Task.Factory.StartNew(() => src.TrySetResult(result));
@@ -143,24 +139,9 @@ namespace NewLife.Net.Handlers
                     qs[i].Value = null;
                     Interlocked.Decrement(ref _Count);
 
-                    qi.Source = null;
-
-                    if (!src.Task.IsCompleted)
-                    {
-#if DEBUG
-                        var msg = qi.Request as Messaging.DefaultMessage;
-                        Log.XTrace.WriteLine("超时丢失消息 Seq={0}", msg.Sequence);
-#endif
-                        //src.TrySetCanceled();
-                        Task.Factory.StartNew(() => src.TrySetCanceled());
-                    }
-                }
-
-                // 清理无效项
-                if (src == null)
-                {
-                    qs[i].Value = null;
-                    Interlocked.Decrement(ref _Count);
+                    // 当前在线程池里面
+                    if (!src.Task.IsCompleted) src.TrySetCanceled();
+                    //if (!src.Task.IsCompleted) Task.Factory.StartNew(() => src.TrySetCanceled());
                 }
             }
         }
