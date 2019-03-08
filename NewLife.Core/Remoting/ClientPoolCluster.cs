@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using NewLife.Collections;
 using NewLife.Net;
@@ -6,10 +8,10 @@ using NewLife.Net;
 namespace NewLife.Remoting
 {
     /// <summary>客户端连接池负载均衡集群</summary>
-    public class ClientPoolCluster : ICluster<ISocketClient>
+    public class ClientPoolCluster : ICluster<String, ISocketClient>
     {
         /// <summary>服务器地址列表</summary>
-        public String[] Servers { get; set; }
+        public Func<IEnumerable<String>> GetItems { get; set; }
 
         /// <summary>创建回调</summary>
         public Func<String, ISocketClient> OnCreate { get; set; }
@@ -20,19 +22,17 @@ namespace NewLife.Remoting
         /// <summary>实例化连接池集群</summary>
         public ClientPoolCluster() => Pool = new MyPool { Host = this };
 
-        /// <summary>从集群中获取资源</summary>
-        /// <param name="create"></param>
-        /// <returns></returns>
-        public ISocketClient Get(Boolean create)
-        {
-            if (!create)
-            {
-                var p = Pool as MyPool;
-                if (p.FreeCount == 0) return null;
-            }
+        /// <summary>打开</summary>
+        public virtual Boolean Open() => true;
 
-            return Pool.Get();
-        }
+        /// <summary>关闭</summary>
+        /// <param name="reason">关闭原因。便于日志分析</param>
+        /// <returns>是否成功</returns>
+        public virtual Boolean Close(String reason) => Pool.Clear() > 0;
+
+        /// <summary>从集群中获取资源</summary>
+        /// <returns></returns>
+        public virtual ISocketClient Get() => Pool.Get();
 
         /// <summary>归还</summary>
         /// <param name="value"></param>
@@ -51,7 +51,7 @@ namespace NewLife.Remoting
         protected virtual ISocketClient CreateClient()
         {
             // 遍历所有服务，找到可用服务端
-            var svrs = Servers;
+            var svrs = GetItems().ToArray();
             if (svrs == null || svrs.Length == 0) throw new InvalidOperationException("没有设置服务端地址Servers");
 
             var idx = Interlocked.Increment(ref _index);
