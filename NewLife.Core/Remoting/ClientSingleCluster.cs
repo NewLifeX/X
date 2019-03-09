@@ -26,7 +26,6 @@ namespace NewLife.Remoting
 
         private ISocketClient _Client;
         /// <summary>从集群中获取资源</summary>
-        /// <param name="create"></param>
         /// <returns></returns>
         public virtual ISocketClient Get()
         {
