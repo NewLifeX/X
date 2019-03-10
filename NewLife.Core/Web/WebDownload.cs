@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !__CORE__
+using System;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -217,3 +218,4 @@ namespace NewLife.Web
         }
     }
 }
+#endif

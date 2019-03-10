@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !__CORE__
+using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -143,3 +144,4 @@ namespace NewLife.Agent
         #endregion
     }
 }
+#endif

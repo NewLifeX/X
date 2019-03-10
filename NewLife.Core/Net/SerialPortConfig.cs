@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if __WIN__
+using System;
 using System.ComponentModel;
 using System.IO.Ports;
 using System.Text;
@@ -60,12 +61,13 @@ namespace NewLife.Net
         public String Extend { get; set; } = "";
         /// <summary>DtrEnable</summary>
         [Description("DtrEnable")]
-        public bool DtrEnable { get; set; } = false;
+        public Boolean DtrEnable { get; set; } = false;
         /// <summary>RtsEnable</summary>
         [Description("RtsEnable")]
-        public bool RtsEnable { get; set; } = false;
+        public Boolean RtsEnable { get; set; } = false;
         /// <summary>BreakState</summary>
         [Description("BreakState")]
-        public bool BreakState { get; set; } = false;
+        public Boolean BreakState { get; set; } = false;
     }
 }
+#endif

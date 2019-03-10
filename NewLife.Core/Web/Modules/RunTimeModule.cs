@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !__CORE__
+using System;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
@@ -78,3 +79,4 @@ namespace NewLife.Web
         #endregion
     }
 }
+#endif

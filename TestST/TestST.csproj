@@ -15,7 +15,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\NewLife.Agent\NewLife.Agent.csproj" />
-    <ProjectReference Include="..\NewLife.CoreST\NewLife.CoreST.csproj" />
     <ProjectReference Include="..\XCodeST\XCodeST.csproj" />
   </ItemGroup>
 

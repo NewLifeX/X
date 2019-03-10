@@ -18,13 +18,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XCode", "XCode\XCode.csproj
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.Core", "NewLife.Core\NewLife.Core.csproj", "{5813C22E-EEB3-4DEE-A45C-BB218041193A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NewLife.CoreST", "NewLife.CoreST\NewLife.CoreST.csproj", "{2FA4D593-02E9-425A-AD5F-10ACC6D42CC1}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XCodeST", "XCodeST\XCodeST.csproj", "{3995D557-2B50-4099-802C-F16197E5BEC1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestST", "TestST\TestST.csproj", "{B944861A-E5FB-4DDB-9DD2-93930B5C1885}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.Agent", "NewLife.Agent\NewLife.Agent.csproj", "{260A337D-B1E2-46AE-A42B-DACE9FD95359}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NewLife.Agent", "NewLife.Agent\NewLife.Agent.csproj", "{260A337D-B1E2-46AE-A42B-DACE9FD95359}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -44,10 +42,6 @@ Global
 		{5813C22E-EEB3-4DEE-A45C-BB218041193A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5813C22E-EEB3-4DEE-A45C-BB218041193A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5813C22E-EEB3-4DEE-A45C-BB218041193A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2FA4D593-02E9-425A-AD5F-10ACC6D42CC1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2FA4D593-02E9-425A-AD5F-10ACC6D42CC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2FA4D593-02E9-425A-AD5F-10ACC6D42CC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2FA4D593-02E9-425A-AD5F-10ACC6D42CC1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{3995D557-2B50-4099-802C-F16197E5BEC1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{3995D557-2B50-4099-802C-F16197E5BEC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3995D557-2B50-4099-802C-F16197E5BEC1}.Release|Any CPU.ActiveCfg = Release|Any CPU

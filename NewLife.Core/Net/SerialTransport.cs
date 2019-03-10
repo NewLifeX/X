@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if __WIN__
+using System;
 using System.Collections.Generic;
 using System.IO.Ports;
 using System.Linq;
@@ -518,3 +519,4 @@ namespace NewLife.Net
         #endregion
     }
 }
+#endif

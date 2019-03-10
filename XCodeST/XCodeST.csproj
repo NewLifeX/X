@@ -226,8 +226,4 @@
     </None>
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\NewLife.CoreST\NewLife.CoreST.csproj" />
-  </ItemGroup>
-
 </Project>
