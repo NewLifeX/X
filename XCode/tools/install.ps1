@@ -31,7 +31,7 @@ try
     
     
     # 包内路径
-    $pPath = "lib/net40/";
+    $pPath = "lib/net45/";
 
       # 文件名
     $coreDllName = "NewLife.Core.dll"
