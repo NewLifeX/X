@@ -20,7 +20,7 @@
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageLicenseUrl>https://raw.githubusercontent.com/NewLifeX/X/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/NewLifeX</PackageProjectUrl>
-    <PackageIconUrl>http://www.NewLifeX.com/favicon.ico</PackageIconUrl>
+    <PackageIconUrl>http://www.NewLifeX.com/logo.png</PackageIconUrl>
     <PackageTags>新生命团队;X组件;NewLife;XCode</PackageTags>
     <PackageReleaseNotes>https://github.com/NewLifeX/X/releases</PackageReleaseNotes>
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>

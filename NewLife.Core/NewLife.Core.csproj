@@ -11,6 +11,13 @@
     <AssemblyVersion>8.1.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <Version>8.1.2019.0310</Version>
+    <!--是否要求接受许可-->
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageLicenseUrl>https://raw.githubusercontent.com/NewLifeX/X/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/NewLifeX</PackageProjectUrl>
+    <PackageIconUrl>http://www.NewLifeX.com/logo.png</PackageIconUrl>
+    <PackageTags>新生命团队;X组件;NewLife;Core</PackageTags>
+    <PackageReleaseNotes>https://github.com/NewLifeX/X/releases</PackageReleaseNotes>
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <!--包含符号-->
     <!--<IncludeSymbols>true</IncludeSymbols>-->
