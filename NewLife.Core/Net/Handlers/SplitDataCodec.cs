@@ -52,6 +52,17 @@ namespace NewLife.Net.Handlers
             return null;
         }
 
+        /// <summary>连接关闭时，清空粘包编码器</summary>
+        /// <param name="context"></param>
+        /// <param name="reason"></param>
+        /// <returns></returns>
+        public override Boolean Close(IHandlerContext context, String reason)
+        {
+            if (context.Owner is IExtend ss) ss["Codec"] = null;
+
+            return base.Close(context, reason);
+        }
+
         #region 粘包处理
         /// <summary>解码</summary>
         /// <param name="context"></param>
