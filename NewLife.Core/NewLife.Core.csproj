@@ -12,6 +12,12 @@
     <Deterministic>false</Deterministic>
     <Version>8.1.2019.0310</Version>
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
+    <!--包含符号-->
+    <!--<IncludeSymbols>true</IncludeSymbols>-->
+    <!--包含源码-->
+    <IncludeSource>true</IncludeSource>
+    <!--编译时生成Nuget包-->
+    <!--<GeneratePackageOnBuild>true</GeneratePackageOnBuild>-->
     <RepositoryType>git</RepositoryType>
     <OutputPath>..\..\Bin</OutputPath>
     <DocumentationFile>$(OutputPath)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>

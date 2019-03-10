@@ -1,18 +1,37 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net45;netstandard2.0</TargetFrameworks>
+    <!--Nuget包ID-->
+    <PackageId>NewLife.XCode</PackageId>
+    <!--Nuget包版本-->
+    <!-- <PackageVersion>9.10.2019.0310</PackageVersion> -->
     <AssemblyName>XCode</AssemblyName>
     <RootNamespace>XCode</RootNamespace>
     <AssemblyTitle>数据中间件</AssemblyTitle>
     <Description>数据中间件，MySQL、SQLite、SqlServer、Oracle</Description>
+    <Authors>新生命开发团队</Authors>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2019 新生命开发团队</Copyright>
     <FileVersion>9.10.2019.0310</FileVersion>
     <AssemblyVersion>9.10.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <Version>9.10.2019.0310</Version>
+    <!--是否要求接受许可-->
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageLicenseUrl>https://raw.githubusercontent.com/NewLifeX/X/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/NewLifeX</PackageProjectUrl>
+    <PackageIconUrl>http://www.NewLifeX.com/favicon.ico</PackageIconUrl>
+    <PackageTags>新生命团队;X组件;NewLife;XCode</PackageTags>
+    <PackageReleaseNotes>https://github.com/NewLifeX/X/releases</PackageReleaseNotes>
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
+    <!--包含符号-->
+    <!--<IncludeSymbols>true</IncludeSymbols>-->
+    <!--包含源码-->
+    <IncludeSource>true</IncludeSource>
+    <!--编译时生成Nuget包-->
+    <!--<GeneratePackageOnBuild>true</GeneratePackageOnBuild>-->
+    <Trademark>四叶草</Trademark>
     <OutputPath>..\..\Bin</OutputPath>
     <DocumentationFile>$(OutputPath)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
     <DefineConstants>TRACE</DefineConstants>
@@ -56,15 +75,19 @@
   <ItemGroup>
     <Content Include="Build.tt">
       <Pack>true</Pack>
-      <PackagePath>Entity\</PackagePath>
+      <PackagePath>content\</PackagePath>
     </Content>
-    <Content Include="Model.xml" >
+    <Content Include="Model.xml">
       <Pack>true</Pack>
-      <PackagePath>Entity\</PackagePath>
+      <PackagePath>content\</PackagePath>
     </Content>
-    <Content Include="tools\install.ps1" >
+    <Content Include="tools\install.ps1">
       <Pack>true</Pack>
       <PackagePath>tools\</PackagePath>
+    </Content>
+    <Content Include="build\NewLife.XCode.props">
+      <Pack>true</Pack>
+      <PackagePath>build\</PackagePath>
     </Content>
   </ItemGroup>
 

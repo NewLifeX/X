@@ -63,11 +63,11 @@
                 var coreMatch = Regex.Match(result, string.Format(pkgRgx, corePkgName.Replace(".", "\\.")));
                 var xcodeMatch = Regex.Match(result, string.Format(pkgRgx, xcodePkgName.Replace(".", "\\.")));
 
-                if (!coreMatch.Success || !xcodeMatch.Success)
+                if (!coreMatch.Success)
                 {
                     throw new Exception("依赖库libraries中找不到" + corePkgName);
                 }
-                if (!coreMatch.Success || !xcodeMatch.Success)
+                if (!xcodeMatch.Success)
                 {
                     throw new Exception("依赖库libraries中找不到" + xcodePkgName);
                 }
