@@ -20,7 +20,7 @@
     <PackageId>NewLife.XCode</PackageId>
     <Authors>$(Company)</Authors>
     <ProjectUrl>https://github.com/NewLifeX</ProjectUrl>
-    <PackageIconUrl>http://www.NewLifeX.com/favicon.ico</PackageIconUrl>
+    <PackageIconUrl>http://www.NewLifeX.com/logo.png</PackageIconUrl>
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
@@ -77,11 +77,11 @@
   <ItemGroup>
     <Content Include="Build.tt">
       <Pack>true</Pack>
-      <PackagePath>Entity\</PackagePath>
+      <PackagePath>content\Entity\</PackagePath>
     </Content>
     <Content Include="Model.xml">
       <Pack>true</Pack>
-      <PackagePath>Entity\</PackagePath>
+      <PackagePath>content\Entity\</PackagePath>
     </Content>
   </ItemGroup>
 
