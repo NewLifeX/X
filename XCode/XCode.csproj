@@ -7,17 +7,31 @@
     <Description>数据中间件，MySQL、SQLite、SqlServer、Oracle</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2019 新生命开发团队</Copyright>
-    <FileVersion>9.10.2019.0310</FileVersion>
-    <AssemblyVersion>9.10.*</AssemblyVersion>
+    <Version>9.11.2019.0310</Version>
+    <FileVersion>9.11.2019.0310</FileVersion>
+    <AssemblyVersion>9.11.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
-    <Version>9.10.2019.0310</Version>
-    <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
     <OutputPath>..\..\Bin</OutputPath>
     <DocumentationFile>$(OutputPath)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
     <DefineConstants>TRACE</DefineConstants>
-    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>NewLife.XCode</PackageId>
+    <Authors>$(Company)</Authors>
+    <projectUrl>https://github.com/NewLifeX</projectUrl>
+    <PackageIconUrl>http://www.NewLifeX.com/favicon.ico</PackageIconUrl>
+    <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-*" PrivateAssets="All"/>
+  </ItemGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
     <DefineConstants>$(DefineConstants);NETSTANDARD2_0;__CORE__</DefineConstants>
@@ -48,9 +62,6 @@
     <None Remove="Model.xml" />
     <None Remove="Readme.MD" />
     <None Remove="UpdateInfo.txt" />
-  </ItemGroup>
-
-  <ItemGroup>
   </ItemGroup>
 
   <ItemGroup>
