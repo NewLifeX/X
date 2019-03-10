@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if __WIN__
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -449,3 +450,4 @@ namespace XCode.DataAccessLayer
         #endregion
     }
 }
+#endif

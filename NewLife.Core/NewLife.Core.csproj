@@ -10,7 +10,6 @@
     <FileVersion>8.1.2019.0310</FileVersion>
     <AssemblyVersion>8.1.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <Version>8.1.2019.0310</Version>
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>

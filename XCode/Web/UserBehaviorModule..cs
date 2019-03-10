@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !__CORE__
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -210,3 +211,4 @@ namespace XCode.Web
         }
     }
 }
+#endif
