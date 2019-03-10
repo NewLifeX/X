@@ -7,8 +7,8 @@
     <Description>数据中间件，MySQL、SQLite、SqlServer、Oracle</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2019 新生命开发团队</Copyright>
-    <Version>9.11.2019.0310</Version>
-    <FileVersion>9.11.2019.0310</FileVersion>
+    <Version>9.11.2019.0311</Version>
+    <FileVersion>9.11.2019.0311</FileVersion>
     <AssemblyVersion>9.11.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <OutputPath>..\..\Bin</OutputPath>
@@ -19,7 +19,7 @@
   <PropertyGroup>
     <PackageId>NewLife.XCode</PackageId>
     <Authors>$(Company)</Authors>
-    <projectUrl>https://github.com/NewLifeX</projectUrl>
+    <ProjectUrl>https://github.com/NewLifeX</ProjectUrl>
     <PackageIconUrl>http://www.NewLifeX.com/favicon.ico</PackageIconUrl>
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
@@ -31,7 +31,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-*" PrivateAssets="All"/>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-*" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="build\**" />
+    <Compile Remove="tools\**" />
+    <EmbeddedResource Remove="build\**" />
+    <EmbeddedResource Remove="tools\**" />
+    <None Remove="build\**" />
+    <None Remove="tools\**" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
@@ -70,13 +79,9 @@
       <Pack>true</Pack>
       <PackagePath>Entity\</PackagePath>
     </Content>
-    <Content Include="Model.xml" >
+    <Content Include="Model.xml">
       <Pack>true</Pack>
       <PackagePath>Entity\</PackagePath>
-    </Content>
-    <Content Include="tools\install.ps1" >
-      <Pack>true</Pack>
-      <PackagePath>tools\</PackagePath>
     </Content>
   </ItemGroup>
 
@@ -87,6 +92,17 @@
 
   <ItemGroup>
     <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Membership\生成实体类.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>生成实体类.log</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
 
 </Project>
