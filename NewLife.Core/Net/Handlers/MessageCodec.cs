@@ -61,6 +61,17 @@ namespace NewLife.Net.Handlers
             }
         }
 
+        /// <summary>连接关闭时，清空粘包编码器</summary>
+        /// <param name="context"></param>
+        /// <param name="reason"></param>
+        /// <returns></returns>
+        public override Boolean Close(IHandlerContext context, String reason)
+        {
+            Queue.Clear();
+
+            return base.Close(context, reason);
+        }
+
         /// <summary>读取数据</summary>
         /// <param name="context"></param>
         /// <param name="message"></param>

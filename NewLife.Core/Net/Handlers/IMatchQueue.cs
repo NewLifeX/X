@@ -23,6 +23,9 @@ namespace NewLife.Net.Handlers
         /// <param name="callback">用于检查匹配的回调</param>
         /// <returns></returns>
         Boolean Match(Object owner, Object response, Object result, Func<Object, Object, Boolean> callback);
+
+        /// <summary>清空队列</summary>
+        void Clear();
     }
 
     /// <summary>消息匹配队列。子类可重载以自定义请求响应匹配逻辑</summary>
@@ -144,6 +147,17 @@ namespace NewLife.Net.Handlers
                     //if (!src.Task.IsCompleted) Task.Factory.StartNew(() => src.TrySetCanceled());
                 }
             }
+        }
+
+        /// <summary>清空队列</summary>
+        public virtual void Clear()
+        {
+            var items = Items;
+            for (var i = 0; i < items.Length; ++i)
+            {
+                items[i].Value = null;
+            }
+            _Count = 0;
         }
 
         class Item
