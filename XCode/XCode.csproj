@@ -16,18 +16,19 @@
     <OutputPath>..\..\Bin</OutputPath>
     <DocumentationFile>$(OutputPath)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
     <DefineConstants>TRACE</DefineConstants>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
-    <DefineConstants>NETSTANDARD2_0;__CORE__</DefineConstants>
+    <DefineConstants>$(DefineConstants);NETSTANDARD2_0;__CORE__</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)'=='net45'">
-    <DefineConstants>__WIN__</DefineConstants>
+    <DefineConstants>$(DefineConstants);__WIN__</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
-    <DefineConstants>DEBUG</DefineConstants>
+    <DefineConstants>$(DefineConstants);DEBUG</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)'=='net45'">
@@ -42,8 +43,29 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Build.tt" />
+    <None Remove="install.ps1" />
+    <None Remove="Model.xml" />
     <None Remove="Readme.MD" />
     <None Remove="UpdateInfo.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Build.tt">
+      <Pack>true</Pack>
+      <PackagePath>Entity\</PackagePath>
+    </Content>
+    <Content Include="Model.xml" >
+      <Pack>true</Pack>
+      <PackagePath>Entity\</PackagePath>
+    </Content>
+    <Content Include="tools\install.ps1" >
+      <Pack>true</Pack>
+      <PackagePath>tools\</PackagePath>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
