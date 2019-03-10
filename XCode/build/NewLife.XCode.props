@@ -1,11 +1,13 @@
 ﻿<Project DefaultTargets="Build"   xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Target Name = "BuildModelTarget" AfterTargets="Build" >
+  <Target Name = "BuildModelTarget" AfterTargets="Build" Condition="'$(MSBuildRuntimeType)'=='Full'">
     <PropertyGroup>
       <TargetDllDir>$(SolutionDir)DLL\</TargetDllDir>
       <TargetContentDir>$(SolutionDir)DLL\Content\</TargetContentDir>
       <!--FX项目迁移到包引用方式，$(RestoreProjectStyle)为空，所以还要判断是否存在$(ProjectAssetsFile)-->
       <IsPackageReference Condition="'$(RestoreProjectStyle)' == 'PackageReference' Or Exists('$(ProjectAssetsFile)')" >true</IsPackageReference>
     </PropertyGroup>
+    <!--core项目在vs下的值Full、命令行dotnet下的值：Core、Mono下是Mono。core版本的MSBuild有兼容问题-->
+    <!-- <Message Text="MSBuild运行类型： $(MSBuildRuntimeType)" Importance="high"  /> -->
     <!--<Message Text="包引用方式：$(RestoreProjectStyle)" Importance="high"  />-->
     <CopyNewLifeDll >
       <Output TaskParameter="CoreDllPath" ItemName="SourcePath" />
