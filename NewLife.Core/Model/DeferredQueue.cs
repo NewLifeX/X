@@ -118,10 +118,7 @@ namespace NewLife.Model
             Interlocked.Increment(ref _count);
 
             // 超过最大值时，堵塞一段时间，等待消费完成
-            while (_count >= MaxEntity)
-            {
-                Thread.Sleep(100);
-            }
+            CheckMax();
 
             return true;
         }
@@ -158,15 +155,29 @@ namespace NewLife.Model
             }
 
             // 超过最大值时，堵塞一段时间，等待消费完成
-            while (_count >= MaxEntity)
-            {
-                Thread.Sleep(100);
-            }
+            CheckMax();
 
             // 增加繁忙数
             Interlocked.Increment(ref _busy);
 
             return entity as T;
+        }
+
+        private void CheckMax()
+        {
+            if (_count < MaxEntity) return;
+
+            // 超过最大值时，堵塞一段时间，等待消费完成
+            var t = WaitForBusy * 5;
+            while (t > 0)
+            {
+                if (_count < MaxEntity) return;
+
+                Thread.Sleep(100);
+                t -= 100;
+            }
+
+            throw new InvalidOperationException($"已有数据量[{_count:n0}]超过最大数据量[{MaxEntity:n0}]");
         }
 
         /// <summary>等待确认修改的借出对象数</summary>
