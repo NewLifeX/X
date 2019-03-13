@@ -155,7 +155,7 @@
   </xs:complexType>
   <!--Table-end-->
 
-<xs:simpleType name="DbTypeType">
+  <xs:simpleType name="DbTypeType">
     <xs:annotation>
       <xs:documentation>
         数据库类型，生成数据库表的是时候会针对数据库类型做处理
@@ -181,19 +181,19 @@
   <!--Column-start-->
   <xs:complexType name="ColumnType">
     <xs:attribute name="Name" type="xs:string">
-        <xs:annotation>
-            <xs:documentation>
-                名称，对应实体类属性名，ColumnName为空时使用此属性
-            </xs:documentation>
-        </xs:annotation>
+      <xs:annotation>
+        <xs:documentation>
+          名称，对应实体类属性名，ColumnName为空时使用此属性
+        </xs:documentation>
+      </xs:annotation>
     </xs:attribute>
-      <xs:attribute name="ColumnName" type="xs:string">
-          <xs:annotation>
-              <xs:documentation>
-                  列名
-              </xs:documentation>
-          </xs:annotation>
-      </xs:attribute>
+    <xs:attribute name="ColumnName" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>
+          列名
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
     <xs:attribute name="DataType" type="DataTypeType">
       <xs:annotation>
         <xs:documentation xml:lang="zh-cn">
@@ -201,83 +201,83 @@
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
-      <xs:attribute name="RawType" type="xs:string">
-          <xs:annotation>
-              <xs:documentation>
-                  原始数据类型，当且仅当目标数据库同为该数据库类型时，采用实体属性信息上的RawType作为反向工程的目标字段类型，以期获得开发和生产的最佳兼容。
-              </xs:documentation>
-          </xs:annotation>
-      </xs:attribute>
+    <xs:attribute name="RawType" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>
+          原始数据类型，当且仅当目标数据库同为该数据库类型时，采用实体属性信息上的RawType作为反向工程的目标字段类型，以期获得开发和生产的最佳兼容。
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
     <xs:attribute name="Identity" type="BooleanType">
-        <xs:annotation>
-            <xs:documentation>
-                标识
-            </xs:documentation>
-        </xs:annotation>
+      <xs:annotation>
+        <xs:documentation>
+          标识
+        </xs:documentation>
+      </xs:annotation>
     </xs:attribute>
     <xs:attribute name="PrimaryKey" type="BooleanType">
-        <xs:annotation>
-            <xs:documentation>
-                主键
-            </xs:documentation>
-        </xs:annotation>
+      <xs:annotation>
+        <xs:documentation>
+          主键
+        </xs:documentation>
+      </xs:annotation>
     </xs:attribute>
-      <xs:attribute name="Master" type="xs:string">
-          <xs:annotation>
-              <xs:documentation>
-                  主字段。主字段作为业务主要字段，代表当前数据行意义
-              </xs:documentation>
-          </xs:annotation>
-      </xs:attribute>
-      <xs:attribute name="Length" type="xs:int">
-          <xs:annotation>
-              <xs:documentation>
-                  长度
-              </xs:documentation>
-          </xs:annotation>
-      </xs:attribute>
-      <xs:attribute name="Precision" type="xs:int">
-          <xs:annotation>
-              <xs:documentation>
-                  精度
-              </xs:documentation>
-          </xs:annotation>
-      </xs:attribute>      
-      <xs:attribute name="Scale" type="xs:int">
-          <xs:annotation>
-              <xs:documentation>
-                  位数
-              </xs:documentation>
-          </xs:annotation>
-      </xs:attribute>
-      <xs:attribute name="Nullable" type="BooleanType">
-          <xs:annotation>
-              <xs:documentation>
-                  允许空
-              </xs:documentation>
-          </xs:annotation>
-      </xs:attribute>
-      <xs:attribute name="DisplayName" type="xs:string">
-          <xs:annotation>
-              <xs:documentation>
-                  显示名。如果有Description则使用Description，否则使用Name
-              </xs:documentation>
-          </xs:annotation>
-      </xs:attribute>
-      <xs:attribute name="Description" type="xs:string">
-          <xs:annotation>
-              <xs:documentation>
-                  说明
-              </xs:documentation>
-          </xs:annotation>
-      </xs:attribute>
-      <xs:attribute name="Type" type="xs:string">
-          <xs:annotation>
-              <xs:documentation>
-                  生成枚举类型，值就是枚举名称，需要自己定义一个类型
-              </xs:documentation>
-          </xs:annotation>
-      </xs:attribute>
+    <xs:attribute name="Master" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>
+          主字段。主字段作为业务主要字段，代表当前数据行意义
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="Length" type="xs:int">
+      <xs:annotation>
+        <xs:documentation>
+          长度
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="Precision" type="xs:int">
+      <xs:annotation>
+        <xs:documentation>
+          精度
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="Scale" type="xs:int">
+      <xs:annotation>
+        <xs:documentation>
+          位数
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="Nullable" type="BooleanType">
+      <xs:annotation>
+        <xs:documentation>
+          允许空
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="DisplayName" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>
+          显示名。如果有Description则使用Description，否则使用Name
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="Description" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>
+          说明
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="Type" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>
+          生成枚举类型，值就是枚举名称，需要自己定义一个类型
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
   </xs:complexType>
   <!--Column-end-->
 
@@ -293,21 +293,21 @@
   <!--DataType-start-->
   <xs:simpleType name="DataTypeType">
     <xs:restriction base="xs:string">
-        <xs:enumeration value="Boolean" ></xs:enumeration>
-        <xs:enumeration value="SByte" ></xs:enumeration>
-        <xs:enumeration value="Byte" ></xs:enumeration>
-        <xs:enumeration value="Int16" ></xs:enumeration>
-        <xs:enumeration value="UInt16" ></xs:enumeration>
-        <xs:enumeration value="UInt16" ></xs:enumeration>
-        <xs:enumeration value="Int32" ></xs:enumeration>
-        <xs:enumeration value="UInt32" ></xs:enumeration>
-        <xs:enumeration value="Int64" ></xs:enumeration>
-        <xs:enumeration value="UInt64" ></xs:enumeration>
-        <xs:enumeration value="Single" ></xs:enumeration>
-        <xs:enumeration value="Double" ></xs:enumeration>
-        <xs:enumeration value="Decimal" ></xs:enumeration>
-        <xs:enumeration value="DateTime" ></xs:enumeration>
-        <xs:enumeration value="String" ></xs:enumeration>
+      <xs:enumeration value="Boolean" ></xs:enumeration>
+      <xs:enumeration value="SByte" ></xs:enumeration>
+      <xs:enumeration value="Byte" ></xs:enumeration>
+      <xs:enumeration value="Int16" ></xs:enumeration>
+      <xs:enumeration value="UInt16" ></xs:enumeration>
+      <xs:enumeration value="UInt16" ></xs:enumeration>
+      <xs:enumeration value="Int32" ></xs:enumeration>
+      <xs:enumeration value="UInt32" ></xs:enumeration>
+      <xs:enumeration value="Int64" ></xs:enumeration>
+      <xs:enumeration value="UInt64" ></xs:enumeration>
+      <xs:enumeration value="Single" ></xs:enumeration>
+      <xs:enumeration value="Double" ></xs:enumeration>
+      <xs:enumeration value="Decimal" ></xs:enumeration>
+      <xs:enumeration value="DateTime" ></xs:enumeration>
+      <xs:enumeration value="String" ></xs:enumeration>
     </xs:restriction>
   </xs:simpleType>
   <!--DataType-end-->
