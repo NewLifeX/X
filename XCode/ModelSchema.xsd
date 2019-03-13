@@ -232,7 +232,7 @@
     <xs:attribute name="Length" type="xs:int">
       <xs:annotation>
         <xs:documentation>
-          长度
+          长度，当使用-1时表示文本类型
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
