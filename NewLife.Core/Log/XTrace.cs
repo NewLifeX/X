@@ -163,7 +163,7 @@ namespace NewLife.Log
         #endregion
 
         #region 拦截WinForm异常
-#if !__CORE__
+#if __WIN__
         private static Int32 initWF = 0;
         private static Boolean _ShowErrorMessage;
         //private static String _Title;

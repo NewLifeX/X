@@ -32,10 +32,12 @@ using System.Runtime.InteropServices;
 //
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("8.0.*")]
-[assembly: AssemblyFileVersion("8.0.2019.0101")]
+[assembly: AssemblyVersion("8.1.*")]
+[assembly: AssemblyFileVersion("8.1.2019.0307")]
 
 /*
+ * v8.1.2019.0307   ApiServer单连接会话支持多消息并行处理
+ * 
  * v8.0.2019.0101   standard版完整支持netcore以及nfx应用
  * 
  * v8.0.2018.1224   全面进入netstandard时代

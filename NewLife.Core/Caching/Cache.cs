@@ -333,7 +333,7 @@ namespace NewLife.Caching
             XTrace.WriteLine("");
             XTrace.WriteLine($"测试 {times:n0} 项，{threads,3:n0} 线程");
 
-            var key = "Bench_";
+            var key = "bstr_";
             Set(key, Rand.NextString(32));
             var v = Get<String>(key);
             Remove(key);
@@ -348,6 +348,7 @@ namespace NewLife.Caching
             BenchRemove(key, times, threads, rand);
 
             // 累加测试
+            key = "bint_";
             BenchInc(key, times, threads, rand, batch);
         }
 
@@ -409,7 +410,7 @@ namespace NewLife.Caching
             sw.Stop();
 
             var speed = times * 1000 / sw.ElapsedMilliseconds;
-            XTrace.WriteLine($"读取 {times:n0} 项，{threads,3:n0} 线程，耗时 {sw.ElapsedMilliseconds,7:n0}ms 速度 {speed,9:n0} ops");
+            XTrace.WriteLine($"读取 耗时 {sw.ElapsedMilliseconds,7:n0}ms 速度 {speed,9:n0} ops");
         }
 
         /// <summary>赋值测试</summary>
@@ -480,7 +481,7 @@ namespace NewLife.Caching
             sw.Stop();
 
             var speed = times * 1000 / sw.ElapsedMilliseconds;
-            XTrace.WriteLine($"赋值 {times:n0} 项，{threads,3:n0} 线程，耗时 {sw.ElapsedMilliseconds,7:n0}ms 速度 {speed,9:n0} ops");
+            XTrace.WriteLine($"赋值 耗时 {sw.ElapsedMilliseconds,7:n0}ms 速度 {speed,9:n0} ops");
         }
 
         /// <summary>累加测试</summary>
@@ -525,7 +526,7 @@ namespace NewLife.Caching
             sw.Stop();
 
             var speed = times * 1000 / sw.ElapsedMilliseconds;
-            XTrace.WriteLine($"累加 {times:n0} 项，{threads,3:n0} 线程，耗时 {sw.ElapsedMilliseconds,7:n0}ms 速度 {speed,9:n0} ops");
+            XTrace.WriteLine($"累加 耗时 {sw.ElapsedMilliseconds,7:n0}ms 速度 {speed,9:n0} ops");
         }
 
         /// <summary>删除测试</summary>
@@ -569,7 +570,7 @@ namespace NewLife.Caching
             sw.Stop();
 
             var speed = times * 1000 / sw.ElapsedMilliseconds;
-            XTrace.WriteLine($"删除 {times:n0} 项，{threads,3:n0} 线程，耗时 {sw.ElapsedMilliseconds,7:n0}ms 速度 {speed,9:n0} ops");
+            XTrace.WriteLine($"删除 耗时 {sw.ElapsedMilliseconds,7:n0}ms 速度 {speed,9:n0} ops");
         }
         #endregion
 

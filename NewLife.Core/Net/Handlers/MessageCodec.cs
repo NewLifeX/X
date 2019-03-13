@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Messaging;
 using NewLife.Model;
-using NewLife.Threading;
 
 namespace NewLife.Net.Handlers
 {
@@ -58,10 +57,19 @@ namespace NewLife.Net.Handlers
         {
             if (msg != null && context["TaskSource"] is TaskCompletionSource<Object> source)
             {
-                var timeout = Timeout;
-                //if (context.Session is ISocketClient client) timeout = client.Timeout;
-                Queue.Add(context.Owner, msg, timeout, source);
+                Queue.Add(context.Owner, msg, Timeout, source);
             }
+        }
+
+        /// <summary>连接关闭时，清空粘包编码器</summary>
+        /// <param name="context"></param>
+        /// <param name="reason"></param>
+        /// <returns></returns>
+        public override Boolean Close(IHandlerContext context, String reason)
+        {
+            Queue.Clear();
+
+            return base.Close(context, reason);
         }
 
         /// <summary>读取数据</summary>
@@ -91,8 +99,9 @@ namespace NewLife.Net.Handlers
                     // 匹配
                     if (msg3.Reply)
                     {
-                        //!!! 处理结果的Packet需要拷贝一份，否交给另一个线程使用会有冲突
+                        //!!! 处理结果的Packet需要拷贝一份，否则交给另一个线程使用会有冲突
                         if (rs is IMessage msg4 && msg4.Payload != null && msg4.Payload == msg3.Payload) msg4.Payload = msg4.Payload.Clone();
+
                         Queue.Match(context.Owner, msg, rs, IsMatch);
                     }
                 }
@@ -102,7 +111,8 @@ namespace NewLife.Net.Handlers
                     Queue.Match(context.Owner, msg, rs, IsMatch);
                 }
 
-                // 匹配输入回调，让上层事件收到分包信息
+                // 匹配输入回调，让上层事件收到分包信息。
+                // 这里很可能处于网络IO线程，阻塞了下一个Tcp包的接收
                 context.FireRead(rs);
             }
 

@@ -837,24 +837,7 @@ namespace XCode
                 )
             {
                 var selectStat = Meta.Factory.SelectStat;
-                if (!selectStat.IsNullOrEmpty())
-                {
-                    page.State = FindAll(where, null, selectStat).FirstOrDefault();
-                }
-                else
-                {
-                    // 找到所有数字字段，进行求和统计
-                    var numbers = Meta.Fields.Where(e => e.Type.IsInt() && !e.IsIdentity).ToList();
-                    if (numbers.Count > 0)
-                    {
-                        var concat = new ConcatExpression();
-                        foreach (var item in numbers)
-                        {
-                            concat &= item.Sum();
-                        }
-                        page.State = FindAll(where, null, concat).FirstOrDefault();
-                    }
-                }
+                if (!selectStat.IsNullOrEmpty()) page.State = FindAll(where, null, selectStat).FirstOrDefault();
             }
 
             return list;

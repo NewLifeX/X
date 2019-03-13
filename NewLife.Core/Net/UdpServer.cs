@@ -202,16 +202,15 @@ namespace NewLife.Net
             LastRemote = remote;
 
             // 为该连接单独创建一个会话，方便直接通信
-            var session = CreateSession(remote);
-
-            return session;
+            return CreateSession(remote);
         }
 
         /// <summary>处理收到的数据</summary>
         /// <param name="e">接收事件参数</param>
         protected override Boolean OnReceive(ReceivedEventArgs e)
         {
-            StatReceive?.Increment(e.Packet.Count, 0);
+            var pk = e.Packet;
+            StatReceive?.Increment(pk.Count, 0);
 
             var remote = e.Remote;
 
@@ -223,7 +222,7 @@ namespace NewLife.Net
             else
             {
                 // 没有匹配到任何会话时，才在这里显示日志。理论上不存在这个可能性
-                if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", e.Length, e.ToHex(32, null));
+                if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", pk.Count, pk.ToHex(32, null));
             }
 
             if (session != null) RaiseReceive(session, e);

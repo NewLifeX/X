@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !__CORE__
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -494,6 +495,48 @@ namespace NewLife.Agent
         }
         #endregion
 
+        #region 安装卸载
+        /// <summary>安装、卸载 服务</summary>
+        /// <param name="isinstall">是否安装</param>
+        public void Install(Boolean isinstall = true)
+        {
+            var name = ServiceName;
+            if (String.IsNullOrEmpty(name)) throw new Exception("未指定服务名！");
+
+            if (name.Length < name.GetBytes().Length) throw new Exception("服务名不能是中文！");
+
+            name = name.Replace(" ", "_");
+            // win7及以上系统时才提示
+            if (Environment.OSVersion.Version.Major >= 6) ServiceHelper.WriteLine("在win7/win2008及更高系统中，可能需要管理员权限执行才能安装/卸载服务。");
+            if (isinstall)
+            {
+                var exe = ServiceHelper.ExeName;
+
+                // 兼容dotnet
+                var args = Environment.GetCommandLineArgs();
+                if (args.Length >= 1 && exe.EqualIgnoreCase("dotnet", "dotnet.exe"))
+                    exe += " " + args[0].GetFullPath();
+                else
+                    exe = exe.GetFullPath();
+
+                var bin = GetBinPath(exe);
+                ServiceHelper.RunSC($"create {name} BinPath= \"{bin}\" start= auto DisplayName= \"{DisplayName}\"");
+                if (!Description.IsNullOrEmpty()) ServiceHelper.RunSC($"description {name} \"{Description}\"");
+            }
+            else
+            {
+                this.ControlService(false);
+
+                ServiceHelper.RunSC("Delete " + name);
+            }
+        }
+
+        /// <summary>获取安装服务的命令参数</summary>
+        /// <param name="exe"></param>
+        /// <returns></returns>
+        protected virtual String GetBinPath(String exe) => $"{exe} -s";
+        #endregion
+
         #region 日志
         /// <summary>日志</summary>
         public ILog Log { get; set; } = Logger.Null;
@@ -508,3 +551,4 @@ namespace NewLife.Agent
         #endregion
     }
 }
+#endif

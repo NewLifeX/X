@@ -29,7 +29,7 @@ namespace XCode
     }
 
     /// <summary>实体累加接口。实现Count+=1的效果</summary>
-    class EntityAddition : IEntityAddition
+    public class EntityAddition : IEntityAddition
     {
         #region 属性
         /// <summary>实体对象</summary>
@@ -56,6 +56,8 @@ namespace XCode
             _Values = vs.ToArray();
         }
 
+        /// <summary>获取累加备份</summary>
+        /// <returns></returns>
         public IDictionary<String, Object[]> Get()
         {
             var dic = new Dictionary<String, Object[]>();
@@ -75,6 +77,8 @@ namespace XCode
             return dic;
         }
 
+        /// <summary>重置累加备份</summary>
+        /// <param name="dfs"></param>
         public void Reset(IDictionary<String, Object[]> dfs)
         {
             if (dfs == null || dfs.Count == 0) return;
@@ -89,6 +93,8 @@ namespace XCode
         #endregion
 
         #region 静态
+        /// <summary>设置累加备份</summary>
+        /// <param name="list"></param>
         public static void SetField(IEnumerable<IEntity> list)
         {
             if (list == null) return;
@@ -99,14 +105,16 @@ namespace XCode
             var fs = first.GetType().AsFactory().AdditionalFields;
             if (fs.Count > 0)
             {
-                foreach (EntityBase entity in list)
+                foreach (var entity in list)
                 {
                     if (entity != null) entity.Addition.Set(fs);
                 }
             }
         }
 
-        public static void SetField(EntityBase entity)
+        /// <summary>设置累加备份</summary>
+        /// <param name="entity"></param>
+        public static void SetField(IEntity entity)
         {
             if (entity == null) return;
 

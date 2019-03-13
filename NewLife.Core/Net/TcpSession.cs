@@ -11,9 +11,6 @@ namespace NewLife.Net
     public class TcpSession : SessionBase, ISocketSession
     {
         #region 属性
-        ///// <summary>会话编号</summary>
-        //public Int32 ID { get; internal set; }
-
         /// <summary>收到空数据时抛出异常并断开连接。默认true</summary>
         public Boolean DisconnectWhenEmptyData { get; set; } = true;
 
@@ -101,7 +98,7 @@ namespace NewLife.Net
                 }
                 sock.Bind(Local.EndPoint);
                 CheckDynamic();
-                
+
                 WriteLog("Open {0}", this);
             }
 
@@ -264,9 +261,9 @@ namespace NewLife.Net
         protected override Boolean OnReceive(ReceivedEventArgs e)
         {
             var pk = e.Packet;
-            if (pk == null || pk.Count == 0 && !MatchEmpty) return true;
+            if ((pk == null || pk.Count == 0) && e.Message == null && !MatchEmpty) return true;
 
-            StatReceive?.Increment(pk.Count, 0);
+            if (pk != null) StatReceive?.Increment(pk.Count, 0);
 
             // 分析处理
             RaiseReceive(this, e);

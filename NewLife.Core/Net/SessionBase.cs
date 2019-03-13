@@ -126,7 +126,12 @@ namespace NewLife.Net
                     var rs = OnOpen();
                     if (!rs) return false;
 
-                    if (Timeout > 0) Client.ReceiveTimeout = Timeout;
+                    var timeout = Timeout;
+                    if (timeout > 0)
+                    {
+                        Client.SendTimeout = timeout;
+                        Client.ReceiveTimeout = timeout;
+                    }
 
                     if (!Local.IsUdp)
                     {
@@ -424,7 +429,7 @@ namespace NewLife.Net
 
                 if (Local.IsTcp) remote = Remote.EndPoint;
 
-                var e = new ReceivedEventArgs(pk) { Remote = remote };
+                var e = new ReceivedEventArgs { Packet = pk, Remote = remote };
 
                 // 不管Tcp/Udp，都在这使用管道
                 var pp = Pipeline;

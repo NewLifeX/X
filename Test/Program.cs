@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Caching;
 using NewLife.Log;
+using NewLife.Net;
 using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
@@ -34,7 +35,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test3();
+                Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -128,15 +129,108 @@ namespace Test
 
         static void Test3()
         {
-            var n = 123456789;
-            var crc = n.GetBytes().Crc16();
-            Console.WriteLine(crc.ToString("X4"));
+            if (Console.ReadLine() == "1")
+            {
+                var svr = new ApiServer(1234)
+                {
+                    Log = XTrace.Log,
+                    EncoderLog = XTrace.Log,
+                    StatPeriod = 10,
+                };
 
-            crc = n.GetBytes(false).Crc16();
-            Console.WriteLine(crc.ToString("X4"));
+                var ns = svr.EnsureCreate() as NetServer;
+                ns.EnsureCreateServer();
+                var ts = ns.Servers.FirstOrDefault(e => e is TcpServer);
+                //ts.ProcessAsync = true;
 
-            crc = n.ToString().GetBytes().Crc16();
-            Console.WriteLine(crc.ToString("X4"));
+                svr.Start();
+
+                Console.ReadKey();
+            }
+            else
+            {
+                var client = new ApiClient("tcp://127.0.0.1:1234")
+                {
+                    Log = XTrace.Log,
+                    EncoderLog = XTrace.Log,
+                    StatPeriod = 10,
+                };
+                client.Open();
+
+                Task.Run(() =>
+                {
+                    var sw = Stopwatch.StartNew();
+                    try
+                    {
+                        for (var i = 0; i < 10; i++)
+                        {
+                            client.InvokeAsync<Object>("Api/All", new { state = 111 }).Wait();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        XTrace.WriteException(ex);
+                    }
+                    sw.Stop();
+                    XTrace.WriteLine("总耗时 {0:n0}ms", sw.ElapsedMilliseconds);
+                });
+
+                Task.Run(() =>
+                {
+                    var sw = Stopwatch.StartNew();
+                    try
+                    {
+                        for (var i = 0; i < 10; i++)
+                        {
+                            client.InvokeAsync<Object>("Api/All", new { state = 222 }).Wait();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        XTrace.WriteException(ex);
+                    }
+                    sw.Stop();
+                    XTrace.WriteLine("总耗时 {0:n0}ms", sw.ElapsedMilliseconds);
+                });
+
+                Task.Run(() =>
+                {
+                    var sw = Stopwatch.StartNew();
+                    try
+                    {
+                        for (var i = 0; i < 10; i++)
+                        {
+                            client.InvokeAsync<Object>("Api/Info", new { state = 333 }).Wait();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        XTrace.WriteException(ex);
+                    }
+                    sw.Stop();
+                    XTrace.WriteLine("总耗时 {0:n0}ms", sw.ElapsedMilliseconds);
+                });
+
+                Task.Run(() =>
+                {
+                    var sw = Stopwatch.StartNew();
+                    try
+                    {
+                        for (var i = 0; i < 10; i++)
+                        {
+                            client.InvokeAsync<Object>("Api/Info", new { state = 444 }).Wait();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        XTrace.WriteException(ex);
+                    }
+                    sw.Stop();
+                    XTrace.WriteLine("总耗时 {0:n0}ms", sw.ElapsedMilliseconds);
+                });
+
+                Console.ReadKey();
+            }
         }
 
         static void Test4()

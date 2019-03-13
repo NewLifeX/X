@@ -18,7 +18,7 @@ namespace NewLife.Remoting
         public String[] All()
         {
             // 加上10ms延迟来模拟业务损耗，测试消耗占95.63%。没加睡眠时，Json损耗占55.5%
-            //System.Threading.Thread.Sleep(10);
+            //System.Threading.Thread.Sleep(1000);
             if (_all != null) return _all;
 
             var list = new List<String>();

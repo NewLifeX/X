@@ -1,4 +1,8 @@
-﻿v8.0.2018.1224   全面进入netstandard时代
+﻿v8.1.2019.0307   ApiServer单连接会话支持多消息并行处理
+
+v8.0.2019.0101   standard版完整支持netcore以及nfx应用
+
+v8.0.2018.1224   全面进入netstandard时代
 
 v7.4.2018.1103   重构Redis，支持自动管道，提升吞吐率
 

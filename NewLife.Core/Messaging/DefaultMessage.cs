@@ -4,7 +4,7 @@ using NewLife.Reflection;
 
 namespace NewLife.Messaging
 {
-    /// <summary>标准消息</summary>
+    /// <summary>标准消息SRMP</summary>
     /// <remarks>
     /// 标准网络封包协议：1 Flag + 1 Sequence + 2 Length + N Payload
     /// 1个字节标识位，标识请求、响应、错误、加密、压缩等；
@@ -20,12 +20,6 @@ namespace NewLife.Messaging
         #region 属性
         /// <summary>标记位</summary>
         public Byte Flag { get; set; } = 1;
-
-        ///// <summary>是否有错</summary>
-        //public Boolean Error { get; set; }
-
-        ///// <summary>是否单向，仅请求无需响应</summary>
-        //public Boolean OneWay { get; set; }
 
         /// <summary>序列号，匹配请求和响应</summary>
         public Byte Sequence { get; set; }
@@ -58,8 +52,6 @@ namespace NewLife.Messaging
             var buf = pk.ReadBytes(0, size);
 
             Flag = (Byte)(buf[0] & 0b0011_1111);
-            //if ((Flag & 0x80) == 0x80) Reply = true;
-            //if ((Flag & 0x40) == 0x40) Error = true;
             var mode = buf[0] >> 6;
             switch (mode)
             {
@@ -95,12 +87,11 @@ namespace NewLife.Messaging
         /// <returns></returns>
         public override Packet ToPacket()
         {
+            var pk = Payload;
             var len = 0;
-            if (Payload != null) len = Payload.Total;
-            //if (len > 0xFFFF) throw new InvalidDataException("标准消息最大只支持64k负载");
+            if (pk != null) len = pk.Total;
 
             // 增加4字节头部
-            var pk = Payload;
             var size = len < 0xFFFF ? 4 : 8;
             if (pk.Offset >= size)
                 pk = new Packet(pk.Data, pk.Offset - size, pk.Count + size) { Next = pk.Next };

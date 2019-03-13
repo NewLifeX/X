@@ -78,9 +78,7 @@ namespace NewLife.Remoting
             {
                 if (session is IApiSession ss)
                 {
-                    var rs2 = await ss.SendAsync(msg);
-                    rs = rs2.Item1;
-                    if (rs2.Item2 != null) invoker = rs2.Item2;
+                    rs = await ss.SendAsync(msg);
                 }
                 else if (session is ISocketRemote client)
                     rs = (await client.SendMessageAsync(msg)) as IMessage;

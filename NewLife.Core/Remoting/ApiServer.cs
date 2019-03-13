@@ -27,6 +27,7 @@ namespace NewLife.Remoting
             var type = GetType();
             Name = type.GetDisplayName() ?? type.Name.TrimEnd("Server");
 
+            // 注册默认服务控制器
             Register(new ApiController { Host = this }, null);
         }
 

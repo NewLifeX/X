@@ -1,6 +1,7 @@
 ﻿using System;
-using System.Threading;
+using System.Linq;
 using System.Threading.Tasks;
+using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Net;
@@ -13,10 +14,16 @@ namespace NewLife.Remoting
     {
         #region 属性
         /// <summary>是否已打开</summary>
-        public Boolean Active { get; set; }
+        public Boolean Active { get; protected set; }
 
         /// <summary>服务端地址集合。负载均衡</summary>
         public String[] Servers { get; set; }
+
+        /// <summary>客户端连接集群</summary>
+        public ICluster<String, ISocketClient> Cluster { get; set; }
+
+        /// <summary>是否使用连接池。true时建立多个到服务端的连接，默认false使用单一连接</summary>
+        public Boolean UsePool { get; set; }
 
         /// <summary>主机</summary>
         IApiHost IApiSession.Host => this;
@@ -27,16 +34,11 @@ namespace NewLife.Remoting
         /// <summary>所有服务器所有会话，包含自己</summary>
         IApiSession[] IApiSession.AllSessions => new IApiSession[] { this };
 
-        ///// <summary>调用超时时间。默认30_000ms</summary>
-        //public Int32 Timeout { get; set; } = 30_000;
-
         /// <summary>发送数据包统计信息</summary>
         public ICounter StatSend { get; set; }
 
         /// <summary>接收数据包统计信息</summary>
         public ICounter StatReceive { get; set; }
-
-        private readonly Object Root = new Object();
         #endregion
 
         #region 构造
@@ -46,13 +48,15 @@ namespace NewLife.Remoting
             var type = GetType();
             Name = type.GetDisplayName() ?? type.Name.TrimEnd("Client");
 
+            // 注册默认服务控制器
             Register(new ApiController { Host = this }, null);
         }
 
         /// <summary>实例化应用接口客户端</summary>
-        public ApiClient(String uri) : this()
+        /// <param name="uris">服务端地址集合，逗号分隔</param>
+        public ApiClient(String uris) : this()
         {
-            if (!uri.IsNullOrEmpty()) Servers = uri.Split(",");
+            if (!uris.IsNullOrEmpty()) Servers = uris.Split(",");
         }
 
         /// <summary>销毁</summary>
@@ -68,6 +72,7 @@ namespace NewLife.Remoting
         #endregion
 
         #region 打开关闭
+        private readonly Object Root = new Object();
         /// <summary>打开客户端</summary>
         public virtual Boolean Open()
         {
@@ -79,32 +84,34 @@ namespace NewLife.Remoting
                 var ss = Servers;
                 if (ss == null || ss.Length == 0) throw new ArgumentNullException(nameof(Servers), "未指定服务端地址");
 
-                //if (Pool == null) Pool = new MyPool { Host = this };
-
                 if (Encoder == null) Encoder = new JsonEncoder();
                 //if (Encoder == null) Encoder = new BinaryEncoder();
                 if (Handler == null) Handler = new ApiHandler { Host = this };
-                //if (StatInvoke == null) StatInvoke = new PerfCounter();
-                //if (StatProcess == null) StatProcess = new PerfCounter();
-                //if (StatSend == null) StatSend = new PerfCounter();
-                //if (StatReceive == null) StatReceive = new PerfCounter();
+
+                // 集群
+                var cluster = Cluster;
+                if (cluster == null)
+                {
+                    if (UsePool)
+                        cluster = new ClientPoolCluster();
+                    else
+                        cluster = new ClientSingleCluster();
+                    Cluster = cluster;
+                }
+
+                if (cluster is ClientSingleCluster sc && sc.OnCreate == null) sc.OnCreate = OnCreate;
+                if (cluster is ClientPoolCluster pc && pc.OnCreate == null) pc.OnCreate = OnCreate;
+
+                if (cluster.GetItems == null) cluster.GetItems = () => Servers;
+                cluster.Open();
 
                 Encoder.Log = EncoderLog;
 
-                // 不要阻塞打开，各个线程从池里借出连接来使用
-                //var ct = Pool.Get();
-                //try
-                //{
-                //    // 打开网络连接
-                //    if (!ct.Open()) return false;
-                //}
-                //finally
-                //{
-                //    Pool.Put(ct);
-                //}
+                // 拥有默认服务控制器之外的服务时，才显示服务
+                var svcs = Manager.Services;
+                if (svcs.Any(e => !(e.Value.Controller is ApiController))) ShowService();
 
-                ShowService();
-
+                // 控制性能统计信息
                 var ms = StatPeriod * 1000;
                 if (ms > 0)
                 {
@@ -127,10 +134,7 @@ namespace NewLife.Remoting
         {
             if (!Active) return;
 
-            var ct = GetClient(false);
-            if (ct != null) ct.Close(reason ?? (GetType().Name + "Close"));
-            //Pool.TryDispose();
-            //Pool = null;
+            Cluster?.Close(reason ?? (GetType().Name + "Close"));
 
             Active = false;
         }
@@ -171,8 +175,10 @@ namespace NewLife.Remoting
                 // 重新登录后再次调用
                 if (ex.Code == 401)
                 {
-                    var client = GetClient(true);
-                    await OnLoginAsync(client, true);
+                    var waiter = Cluster.Invoke(client => OnLoginAsync(client, true));
+                    if (waiter == null) throw;
+
+                    await waiter;
 
                     return await ApiHostHelper.InvokeAsync(this, this, resultType, act, args, flag);
                 }
@@ -182,7 +188,7 @@ namespace NewLife.Remoting
             // 截断任务取消异常，避免过长
             catch (TaskCanceledException ex)
             {
-                throw new TaskCanceledException($"[{action}]超时取消", ex);
+                throw new TaskCanceledException($"[{action}]超时[{Timeout:n0}ms]取消", ex);
             }
         }
 
@@ -230,6 +236,7 @@ namespace NewLife.Remoting
         }
 
         /// <summary>指定客户端的异步调用，等待返回结果</summary>
+        /// <remarks>常用于在OnLoginAsync中实现连接后登录功能</remarks>
         /// <typeparam name="TResult"></typeparam>
         /// <param name="client">客户端</param>
         /// <param name="action">服务操作</param>
@@ -243,53 +250,32 @@ namespace NewLife.Remoting
             return (TResult)await ApiHostHelper.InvokeAsync(this, client, typeof(TResult), act, args, flag);
         }
 
-        async Task<Tuple<IMessage, Object>> IApiSession.SendAsync(IMessage msg)
+        async Task<IMessage> IApiSession.SendAsync(IMessage msg)
         {
-            Exception last = null;
-            ISocketClient client = null;
-
-            var count = Servers.Length;
-            for (var i = 0; i < count; i++)
+            try
             {
-                try
-                {
-                    client = GetClient(true);
-                    var rs = (await client.SendMessageAsync(msg)) as IMessage;
-                    return new Tuple<IMessage, Object>(rs, client);
-                }
-                catch (Exception ex)
-                {
-                    last = ex;
-                    client.TryDispose();
-                }
+                return await Cluster.InvokeAll(async client => await client.SendMessageAsync(msg) as IMessage);
             }
+            catch (ClusterException ex)
+            {
+                if (ShowError) WriteLog("请求[{0}]错误！Timeout=[{1:n0}ms] {2}", ex.Resource, Timeout, ex.GetMessage());
 
-            if (ShowError) WriteLog("请求[{0}]错误！Timeout=[{1}ms] {2}", client, Timeout, last?.GetMessage());
-
-            throw last;
+                throw ex;
+            }
         }
 
         Boolean IApiSession.Send(IMessage msg)
         {
-            Exception last = null;
-            ISocketClient client = null;
-
-            var count = Servers.Length;
-            for (var i = 0; i < count; i++)
+            try
             {
-                try
-                {
-                    client = GetClient(true);
-                    return client.SendMessage(msg);
-                }
-                catch (Exception ex)
-                {
-                    last = ex;
-                    client.TryDispose();
-                }
+                return Cluster.InvokeAll(client => client.SendMessage(msg));
             }
+            catch (ClusterException ex)
+            {
+                if (ShowError) WriteLog("请求[{0}]错误！Timeout=[{1:n0}ms] {2}", ex.Resource, Timeout, ex.GetMessage());
 
-            throw last;
+                throw ex;
+            }
         }
         #endregion
 
@@ -314,99 +300,21 @@ namespace NewLife.Remoting
         {
             await Task.Yield();
 
-            // 包装，避免阻塞UI线程
-            var client = await Task.Run(() => GetClient(true));
-
-            return await OnLoginAsync(client, false);
+            return Cluster.InvokeAll(client => OnLoginAsync(client, false));
         }
         #endregion
 
         #region 连接池
-        ///// <summary>连接池</summary>
-        //public IPool<ISocketClient> Pool { get; private set; }
-
-        /// <summary>创建回调</summary>
-        public Action<ISocketClient> CreateCallback { get; set; }
-
-        //class MyPool : ObjectPool<ISocketClient>
-        //{
-        //    public ApiClient Host { get; set; }
-
-        //    public MyPool()
-        //    {
-        //        // 最小值为0，连接池不再使用栈，只使用队列
-        //        Min = 0;
-        //        Max = 100000;
-        //    }
-
-        //    protected override ISocketClient OnCreate() => Host.OnCreate();
-        //}
-
-        private ISocketClient _Client;
-        /// <summary>获取客户端</summary>
-        /// <param name="create">是否创建</param>
-        /// <returns></returns>
-        protected virtual ISocketClient GetClient(Boolean create)
-        {
-            var tc = _Client;
-            if (!create) return tc;
-
-            if (tc != null && tc.Active && !tc.Disposed) return tc;
-            lock (this)
-            {
-                tc = _Client;
-                if (tc != null && tc.Active && !tc.Disposed) return tc;
-
-                return _Client = OnCreate();
-            }
-        }
-
-        /// <summary>Round-Robin 负载均衡</summary>
-        private Int32 _index = -1;
-
-        /// <summary>为连接池创建连接</summary>
-        /// <returns></returns>
-        protected virtual ISocketClient OnCreate()
-        {
-            // 遍历所有服务，找到可用服务端
-            var svrs = Servers;
-            if (svrs == null || svrs.Length == 0) throw new InvalidOperationException("没有设置服务端地址Servers");
-
-            var idx = Interlocked.Increment(ref _index);
-            Exception last = null;
-            for (var i = 0; i < svrs.Length; i++)
-            {
-                // Round-Robin 负载均衡
-                var k = (idx + i) % svrs.Length;
-                var svr = svrs[k];
-                try
-                {
-                    var client = OnCreate(svr);
-                    CreateCallback?.Invoke(client);
-                    client.Open();
-
-                    return client;
-                }
-                catch (Exception ex)
-                {
-                    last = ex;
-                }
-            }
-
-            throw last;
-        }
-
         /// <summary>创建客户端之后，打开连接之前</summary>
         /// <param name="svr"></param>
         protected virtual ISocketClient OnCreate(String svr)
         {
             var client = new NetUri(svr).CreateRemote();
-            //client.Timeout = Timeout;
-            //if (Log != null) client.Log = Log;
+            // 网络层采用消息层超时
+            client.Timeout = Timeout;
             client.StatSend = StatSend;
             client.StatReceive = StatReceive;
 
-            //client.Add(new StandardCodec { Timeout = Timeout, UserPacket = false });
             client.Add(GetMessageCodec());
 
             client.Opened += (s, e) => OnNewSession(this, s);

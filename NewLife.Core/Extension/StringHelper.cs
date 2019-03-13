@@ -880,6 +880,19 @@ namespace System
             }
             catch { }
         }
+
+        /// <summary>
+        /// 停止所有语音播报
+        /// </summary>
+        /// <param name="value"></param>
+        public static string SpeakAsyncCancelAll(this String value)
+        {
+            Init();
+
+            _provider.SpeakAsyncCancelAll();
+
+            return value;
+        }
         #endregion
 
         #region 执行命令行

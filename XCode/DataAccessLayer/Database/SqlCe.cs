@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if __WIN__
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
@@ -552,3 +553,4 @@ namespace XCode.DataAccessLayer
         public SqlCeEngine Shrink() { Engine.Invoke("Shrink"); return this; }
     }
 }
+#endif

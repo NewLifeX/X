@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !__CORE__
+using System;
 using System.CodeDom.Compiler;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -525,3 +526,4 @@ namespace NewLife.Reflection
         #endregion
     }
 }
+#endif

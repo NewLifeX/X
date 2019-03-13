@@ -427,7 +427,7 @@ namespace XCode
             if (def.IsNullOrEmpty()) return null;
 
             // 处理累加字段
-            var dfs = (entity as EntityBase).GetAddition();
+            var dfs = entity.Addition?.Get();
 
             var sb = Pool.StringBuilder.Get();
             var dps = new List<IDataParameter>();
@@ -484,7 +484,7 @@ namespace XCode
             }
 
             // 重置累加数据
-            if (dfs != null && dfs.Count > 0) (entity as EntityBase).Addition.Reset(dfs);
+            if (dfs != null && dfs.Count > 0) entity.Addition.Reset(dfs);
 
             var str = sb.Put(true);
             if (str.IsNullOrEmpty()) return null;
