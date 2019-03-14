@@ -38,7 +38,7 @@ namespace NewLife.Net
                 // 也可能在粘包处理时，已经拷贝了一次
                 if (ori.Packet != null && message is IMessage msg)
                 {
-                    if (ori.Packet.Data == msg.Payload.Data) msg.Payload = msg.Payload.Clone();
+                    if (msg.Payload != null && ori.Packet.Data == msg.Payload.Data) msg.Payload = msg.Payload.Clone();
                 }
 
                 // 异步处理
