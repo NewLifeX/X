@@ -582,7 +582,7 @@ namespace XCode.Code
                 var ns = new HashSet<String>(Table.Columns.Select(e => e.Name), StringComparer.OrdinalIgnoreCase);
                 WriteLine();
                 WriteLine("// 过滤器 UserModule、TimeModule、IPModule");
-                if (ns.Contains("CreateUserID") || ns.Contains("UpdateUserID"))
+                if (ns.Contains("CreateUserID") || ns.Contains("CreateUser") || ns.Contains("UpdateUserID") || ns.Contains("UpdateUser"))
                     WriteLine("Meta.Modules.Add<UserModule>();");
                 if (ns.Contains("CreateTime") || ns.Contains("UpdateTime"))
                     WriteLine("Meta.Modules.Add<TimeModule>();");
