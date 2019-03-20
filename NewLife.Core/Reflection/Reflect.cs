@@ -427,15 +427,15 @@ namespace NewLife.Reflection
             //}
         }
 
-        /// <summary>是否泛型列表</summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        public static Boolean IsList(this Type type) => type != null && type.IsGenericType && type.As(typeof(IList<>));
+        ///// <summary>是否泛型列表</summary>
+        ///// <param name="type"></param>
+        ///// <returns></returns>
+        //public static Boolean IsList(this Type type) => type != null && type.IsGenericType && type.As(typeof(IList<>));
 
-        /// <summary>是否泛型字典</summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        public static Boolean IsDictionary(this Type type) => type != null && type.IsGenericType && type.As(typeof(IDictionary<,>));
+        ///// <summary>是否泛型字典</summary>
+        ///// <param name="type"></param>
+        ///// <returns></returns>
+        //public static Boolean IsDictionary(this Type type) => type != null && type.IsGenericType && type.As(typeof(IDictionary<,>));
 
         ///// <summary>是否能够转为指定基类</summary>
         ///// <typeparam name="T"></typeparam>
