@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NewLife.Collections;
 using NewLife.Log;
+using NewLife.Reflection;
 using NewLife.Threading;
 
 namespace XCode
@@ -52,14 +53,14 @@ namespace XCode
             try
             {
                 // 比较小几率出现多线程问题
-                if (dic.TryGetValue(key, out ci) && (func == null || !ci.Expired)) return (T)ci.Value;
+                if (dic.TryGetValue(key, out ci) && (func == null || !ci.Expired)) return ci.Value.ChangeType<T>();
             }
             catch (Exception ex) { XTrace.WriteException(ex); }
 
             lock (dic)
             {
                 // 只有指定func时才使用过期
-                if (dic.TryGetValue(key, out ci) && (func == null || !ci.Expired)) return (T)ci.Value;
+                if (dic.TryGetValue(key, out ci) && (func == null || !ci.Expired)) return ci.Value.ChangeType<T>();
 
                 if (func == null) return default(T);
 
