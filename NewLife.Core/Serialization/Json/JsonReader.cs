@@ -56,7 +56,7 @@ namespace NewLife.Serialization
             // Json对象是字典，目标类型可以是字典或复杂对象
             if (jobj is IDictionary<String, Object> vdic)
             {
-                if (type.As<IDictionary>())
+                if (type.IsGenericType && type.As<IDictionary>())
                     return ParseDictionary(vdic, type, target as IDictionary);
                 else
                     return ParseObject(vdic, type, target);
@@ -65,10 +65,10 @@ namespace NewLife.Serialization
             // Json对象是列表，目标类型只能是列表或数组
             if (jobj is IList<Object> vlist)
             {
-                if (type.As<IList>()) return ParseList(vlist, type, target);
+                if (type.IsGenericType && type.As<IList>()) return ParseList(vlist, type, target);
                 if (type.IsArray) return ParseArray(vlist, type, target);
                 // 复杂键值的字典，也可能保存为Json数组
-                if (type.As<IDictionary>()) return CreateDictionary(vlist, type, target);
+                if (type.IsGenericType && type.As<IDictionary>()) return CreateDictionary(vlist, type, target);
 
                 if (vlist.Count == 0) return target;
 
@@ -173,7 +173,7 @@ namespace NewLife.Serialization
 
             if (target == null) target = type.CreateInstance();
 
-            if (type.As<IDictionary>()) return CreateDic(dic, type, target);
+            if (type.IsGenericType && type.As<IDictionary>()) return CreateDic(dic, type, target);
 
             if (!_circobj.TryGetValue(target, out var circount))
             {
