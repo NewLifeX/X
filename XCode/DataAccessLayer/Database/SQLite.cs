@@ -607,52 +607,43 @@ namespace XCode.DataAccessLayer
                 var sqls = sql.Split(",").ToList();
 
                 #region 字段
+                //GetTbFields(table);
+                foreach (var line in sqls)
+                {
+                    if (line.IsNullOrEmpty() || line.StartsWithIgnoreCase("CREATE")) continue;
 
-                GetTbFields(table);
-                ////var dcs = ss.Query($"select * from {Database.FormatName(name)} limit 0,1", null);
-                ////for (var i = 0; i < dcs.Columns.Length; i++)
-                //foreach (var line in sqls)
-                //{
-                //    if (line.IsNullOrEmpty() || line[0] != '\t') continue;
+                    var fs = line.Trim().Split(" ");
+                    var field = table.CreateColumn();
 
+                    field.ColumnName = fs[0].TrimStart('[').TrimEnd(']');
 
-                //    var fs = line.Trim().Split(" ");
-                //    var field = table.CreateColumn();
+                    if (line.Contains("AUTOINCREMENT")) field.Identity = true;
+                    if (line.Contains("Primary Key")) field.PrimaryKey = true;
 
+                    if (line.Contains("NOT NULL"))
+                        field.Nullable = false;
+                    else if (line.Contains(" NULL "))
+                        field.Nullable = true;
 
-                //    field.ColumnName = fs[0].TrimStart('[').TrimEnd(']');
-                //    //field.DataType = dcs.Types[i];
-                //    //field.RawType = dcs.TypeNames[i];
+                    field.RawType = fs.Length > 1 ? fs[1] : "nvarchar(50)";
+                    field.Length = field.RawType.Substring("(", ")").ToInt();
+                    field.DataType = GetDataType(field.RawType);
 
-                //    if (line.Contains("AUTOINCREMENT")) field.Identity = true;
-                //    if (line.Contains("Primary Key")) field.PrimaryKey = true;
+                    // SQLite的字段长度、精度等，都是由类型决定，固定值
 
-                //    if (line.Contains("NOT NULL"))
-                //        field.Nullable = false;
-                //    else if (line.Contains(" NULL "))
-                //        field.Nullable = true;
+                    // 如果数据库里面是integer或者autoincrement，识别类型是Int64，又是自增，则改为Int32，保持与大多数数据库的兼容
+                    if (field.Identity && field.DataType == typeof(Int64) && field.RawType.EqualIgnoreCase("integer", "autoincrement"))
+                    {
+                        field.DataType = typeof(Int32);
+                    }
 
+                    if (field.DataType == null)
+                    {
+                        if (field.RawType.StartsWithIgnoreCase("varchar2", "nvarchar2")) field.DataType = typeof(String);
+                    }
 
-                //    field.RawType = fs[1];
-                //    field.Length = field.RawType.Substring("(", ")").ToInt();
-
-                //    field.DataType = GetDataType(field.RawType);
-
-                //    // SQLite的字段长度、精度等，都是由类型决定，固定值
-
-                //    // 如果数据库里面是integer或者autoincrement，识别类型是Int64，又是自增，则改为Int32，保持与大多数数据库的兼容
-                //    if (field.Identity && field.DataType == typeof(Int64) && field.RawType.EqualIgnoreCase("integer", "autoincrement"))
-                //    {
-                //        field.DataType = typeof(Int32);
-                //    }
-
-                //    if (field.DataType == null)
-                //    {
-                //        if (field.RawType.StartsWithIgnoreCase("varchar2", "nvarchar2")) field.DataType = typeof(String);
-                //    }
-
-                //    table.Columns.Add(field);
-                //}
+                    table.Columns.Add(field);
+                }
                 #endregion
 
                 #region 索引
@@ -690,7 +681,7 @@ namespace XCode.DataAccessLayer
         /// <param name="table"></param>
         public void GetTbFields(IDataTable table)
         {
-            string sql = string.Format(" PRAGMA table_info({0})", table.TableName);
+            var sql = String.Format("PRAGMA table_info({0})", table.TableName);
 
             var ss = Database.CreateSession();
             var ds = ss.Query(sql, null);
