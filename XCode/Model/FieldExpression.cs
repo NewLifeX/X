@@ -25,6 +25,10 @@ namespace XCode
         #region 构造
         /// <summary>构造字段表达式</summary>
         /// <param name="field"></param>
+        public FieldExpression(FieldItem field) => Field = field;
+
+        /// <summary>构造字段表达式</summary>
+        /// <param name="field"></param>
         /// <param name="action"></param>
         /// <param name="value"></param>
         public FieldExpression(FieldItem field, String action, Object value)
@@ -43,6 +47,12 @@ namespace XCode
         public override void GetString(StringBuilder builder, IDictionary<String, Object> ps)
         {
             if (Field == null) return;
+
+            if (Action.IsNullOrEmpty())
+            {
+                builder.Append(Field.FormatedName);
+                return;
+            }
 
             var op = Field.Factory;
 

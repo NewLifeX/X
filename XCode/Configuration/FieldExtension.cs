@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Text;
 using XCode.Configuration;
-using XCode.DataAccessLayer;
 
 namespace XCode
 {
@@ -353,9 +351,10 @@ namespace XCode
 
             for (var i = 0; i < fields.Length; i++)
             {
-                if (i == 0) exp &= fields[i].GroupBy();
-
-                exp.And(fields[i]);
+                if (i == 0)
+                    exp &= fields[i].GroupBy();
+                else
+                    exp.And(fields[i]);
             }
 
             return new WhereExpression(where, Operator.Space, exp);
