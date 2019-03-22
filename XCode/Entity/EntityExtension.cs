@@ -278,7 +278,46 @@ namespace XCode
         /// <param name="list">实体列表</param>
         /// <param name="useTransition">是否使用事务保护</param>
         /// <returns></returns>
-        public static Int32 Delete<T>(this IEnumerable<T> list, Boolean? useTransition = null) where T : IEntity => DoAction(list, useTransition, e => e.Delete());
+        public static Int32 Delete<T>(this IEnumerable<T> list, Boolean? useTransition = null) where T : IEntity
+        {
+            // 避免列表内实体对象为空
+            var entity = list.FirstOrDefault(e => e != null);
+            if (entity == null) return 0;
+
+            // 单一主键，采用批量操作
+            var fact = entity.GetType().AsFactory();
+            var pks = fact.Table.PrimaryKeys;
+            if (pks != null && pks.Length == 1)
+            {
+                var pk = pks[0];
+                var count = 0;
+                var rs = 0;
+                var ks = new List<Object>();
+                var sql = $"Delete From {fact.FormatedTableName} Where ";
+                foreach (var item in list)
+                {
+                    ks.Add(item[pk.Name]);
+                    count++;
+
+                    // 分批执行
+                    if (count >= 1000)
+                    {
+                        rs += fact.Session.Execute(sql + pk.In(ks));
+
+                        ks.Clear();
+                        count = 0;
+                    }
+                }
+                if (count > 0)
+                {
+                    rs += fact.Session.Execute(sql + pk.In(ks));
+                }
+
+                return rs;
+            }
+
+            return DoAction(list, useTransition, e => e.Delete());
+        }
 
         private static Int32 DoAction<T>(this IEnumerable<T> list, Boolean? useTransition, Func<T, Int32> func) where T : IEntity
         {

@@ -12,6 +12,7 @@ using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
 using NewLife.Web;
+using XCode;
 using XCode.Code;
 using XCode.DataAccessLayer;
 using XCode.Membership;
@@ -35,7 +36,7 @@ namespace Test
                 try
                 {
 #endif
-                Test3();
+                Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -88,11 +89,10 @@ namespace Test
             //DAL.AddConnStr("Log", "Data Source=tcp://127.0.0.1/ORCL;User Id=scott;Password=tiger;UseParameter=true", null, "Oracle");
             //DAL.AddConnStr("Log", "Server=.;Port=3306;Database=Log;Uid=root;Pwd=root;", null, "MySql");
             //DAL.AddConnStr("Membership", "Server=.;Port=3306;Database=times;Uid=root;Pwd=Pass@word;TablePrefix=xx_", null, "MySql");
-            DAL.AddConnStr("Membership", @"Server=.\JSQL2008;User ID=sa;Password=sa;Database=Membership;", null, "sqlserver");
-            DAL.AddConnStr("Log", @"Server=.\JSQL2008;User ID=sa;Password=sa;Database=Log;", null, "sqlserver");
+            //DAL.AddConnStr("Membership", @"Server=.\JSQL2008;User ID=sa;Password=sa;Database=Membership;", null, "sqlserver");
+            //DAL.AddConnStr("Log", @"Server=.\JSQL2008;User ID=sa;Password=sa;Database=Log;", null, "sqlserver");
 
             var gs = UserX.FindAll(null, null, null, 0, 10);
-            Console.WriteLine(gs.First().Logins);
             var count = UserX.FindCount();
             Console.WriteLine("Count={0}", count);
 
@@ -105,8 +105,8 @@ namespace Test
             {
                 var entity = new UserX
                 {
-                    Name = "Stone",
-                    DisplayName = "大石头",
+                    Name = "Stone" + i,
+                    DisplayName = "大石头" + i,
                     Logins = 1,
                     LastLogin = DateTime.Now,
                     RegisterTime = DateTime.Now
@@ -117,14 +117,20 @@ namespace Test
             }
             //list.Save();
 
-            var user = gs.First();
-            user.Logins++;
-            user.SaveAsync();
+            var user = gs.FirstOrDefault();
+            if (user != null)
+            {
+                user.Logins++;
+                user.SaveAsync();
+            }
+
+            Thread.Sleep(3000);
 
             count = UserX.FindCount();
             Console.WriteLine("Count={0}", count);
             gs = UserX.FindAll(null, null, null, 0, 10);
-            Console.WriteLine(gs.First().Logins);
+
+            gs.Delete(true);
         }
 
         static void Test3()
