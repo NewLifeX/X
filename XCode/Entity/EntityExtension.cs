@@ -486,8 +486,15 @@ namespace XCode
 
             var entity = list.First();
             var fact = entity.GetType().AsFactory();
-            //if (columns == null) columns = fact.Fields.Select(e => e.Field).Where(e => !e.Identity).ToArray();
-            if (columns == null) columns = fact.Fields.Select(e => e.Field).Where(e => !e.Identity || e.PrimaryKey).ToArray();
+
+            // SqlServer的批量Upsert需要主键参与，哪怕是自增，构建update的where时用到主键
+            if (columns == null)
+            {
+                if (fact.Session.Dal.DbType == DatabaseType.SqlServer)
+                    columns = fact.Fields.Select(e => e.Field).Where(e => !e.Identity || e.PrimaryKey).ToArray();
+                else
+                    columns = fact.Fields.Select(e => e.Field).Where(e => !e.Identity).ToArray();
+            }
             //if (updateColumns == null) updateColumns = entity.Dirtys.Keys;
             if (updateColumns == null)
             {
