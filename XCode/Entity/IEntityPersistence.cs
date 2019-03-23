@@ -363,8 +363,8 @@ namespace XCode
                 // 1，有脏数据的字段一定要参与
                 if (!fact.FullInsert && !entity.IsDirty(fi.Name)) continue;
 
-                sbNames.Separate(", ").Append(fact.FormatName(fi.ColumnName));
-                sbValues.Separate(", ");
+                sbNames.Separate(",").Append(fact.FormatName(fi.ColumnName));
+                sbValues.Separate(",");
 
                 if (db.UseParameter || UseParam(fi, value))
                 {
@@ -441,7 +441,7 @@ namespace XCode
 
                 var value = entity[fi.Name];
 
-                sb.Separate(", "); // 加逗号
+                sb.Separate(","); // 加逗号
 
                 var name = fact.FormatName(fi.ColumnName);
                 sb.Append(name);
