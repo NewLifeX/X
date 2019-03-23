@@ -380,7 +380,7 @@ namespace NewLife.Reflection
                 if (pi.GetCustomAttribute<XmlIgnoreAttribute>() != null) continue;
                 if (pi.GetCustomAttribute<ScriptIgnoreAttribute>() != null) continue;
                 if (pi.GetCustomAttribute<IgnoreDataMemberAttribute>() != null) continue;
-                
+
                 if (!set.Contains(pi.Name))
                 {
                     list.Add(pi);
@@ -665,8 +665,12 @@ namespace NewLife.Reflection
             if (type == null) return false;
             if (type == baseType) return true;
 
-            // 如果基类是泛型定义
-            if (baseType.IsGenericTypeDefinition && type.IsGenericType && !type.IsGenericTypeDefinition) type = type.GetGenericTypeDefinition();
+            // 如果基类是泛型定义，补充完整，例如IList<>
+            //if (baseType.IsGenericTypeDefinition && type.IsGenericType && !type.IsGenericTypeDefinition) type = type.GetGenericTypeDefinition();
+            if (baseType.IsGenericTypeDefinition
+                && type.IsGenericType && !type.IsGenericTypeDefinition
+                && baseType is TypeInfo inf && inf.GenericTypeParameters.Length == type.GenericTypeArguments.Length)
+                baseType = baseType.MakeGenericType(type.GenericTypeArguments);
 
             if (type == baseType) return true;
 

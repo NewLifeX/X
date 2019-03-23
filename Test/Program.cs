@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using NewLife.Caching;
 using NewLife.Log;
 using NewLife.Net;
+using NewLife.Reflection;
 using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
@@ -36,7 +37,7 @@ namespace Test
                 try
                 {
 #endif
-                Test2();
+                Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -59,21 +60,33 @@ namespace Test
         {
             //new AgentService().Main();
 
-            var wc = new WebClientX
-            {
-                Log = XTrace.Log
-            };
-            var url = wc.DownloadLink("http://x.newlifex.com/", "Oracle.ManagedDataAccess.st", ".");
-            XTrace.WriteLine(url);
+            //var wc = new WebClientX
+            //{
+            //    Log = XTrace.Log
+            //};
+            //var url = wc.DownloadLink("http://x.newlifex.com/", "Oracle.ManagedDataAccess.st", ".");
+            //XTrace.WriteLine(url);
 
-            url = wc.DownloadLink("http://x.newlifex.com/", "MySql.Data.st", ".");
-            XTrace.WriteLine(url);
+            //url = wc.DownloadLink("http://x.newlifex.com/", "MySql.Data.st", ".");
+            //XTrace.WriteLine(url);
 
-            url = wc.DownloadLink("http://x.newlifex.com/", "MySql.Data64Fx40,MySql.Data", ".");
-            XTrace.WriteLine(url);
+            //url = wc.DownloadLink("http://x.newlifex.com/", "MySql.Data64Fx40,MySql.Data", ".");
+            //XTrace.WriteLine(url);
 
-            url = wc.DownloadLink("http://x.newlifex.com/", "System.Data.SqlClient.st", ".");
-            XTrace.WriteLine(url);
+            //url = wc.DownloadLink("http://x.newlifex.com/", "System.Data.SqlClient.st", ".");
+            //XTrace.WriteLine(url);
+
+            var list = new List<String>();
+            var rs = list.GetType().IsList();
+            Console.WriteLine(rs);
+            rs = list.GetType().IsDictionary();
+            Console.WriteLine(rs);
+
+            var dic = new Dictionary<Int32, Double>();
+            rs = dic.GetType().IsList();
+            Console.WriteLine(rs);
+            rs = dic.GetType().IsDictionary();
+            Console.WriteLine(rs);
         }
 
         static void Test2()
