@@ -612,13 +612,10 @@ namespace XCode.DataAccessLayer
                 {
                     if (line.IsNullOrEmpty() || line.StartsWithIgnoreCase("CREATE")) continue;
 
-                    // 处理外键设置
-                    if (line.Contains("CONSTRAINT") && line.Contains("FOREIGN KEY"))continue;
-
                     var fs = line.Trim().Split(" ");
                     var field = table.CreateColumn();
 
-                    field.ColumnName = fs[0].TrimStart('[', '"').TrimEnd(']', '"');
+                    field.ColumnName = fs[0].TrimStart('[').TrimEnd(']');
 
                     if (line.Contains("AUTOINCREMENT")) field.Identity = true;
                     if (line.Contains("Primary Key")) field.PrimaryKey = true;
@@ -661,7 +658,7 @@ namespace XCode.DataAccessLayer
 
                     if (sql.Contains(" UNIQUE ")) di.Unique = true;
 
-                    di.Columns = sql.Substring("(", ")").Split(",").Select(e => e.Trim().Trim(new[] { '[', '"', ']' })).ToArray();
+                    di.Columns = sql.Substring("(", ")").Split(",").Select(e => e.Trim().Trim(new[] { '[', ']' })).ToArray();
 
                     table.Indexes.Add(di);
                 }
