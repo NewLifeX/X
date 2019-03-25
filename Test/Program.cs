@@ -37,7 +37,7 @@ namespace Test
                 try
                 {
 #endif
-                Test1();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -542,5 +542,58 @@ namespace Test
             var output = Path.Combine(Directory.GetCurrentDirectory(), "../");
             EntityBuilder.Build(xmlFile, output);
         }
+
+        /// <summary>测试序列化</summary>
+        static void Test12()
+        {
+            var bdic = new Dictionary<String, Object>();
+            bdic.Add("x", "1");
+            bdic.Add("y", "2");
+
+            var flist = new List<foo>();
+            flist.Add(new foo() { A = 3, B = "e", AList = new List<String>() { "E", "F", "G" }, ADic = bdic });
+
+            var dic = new Dictionary<String, Object>();
+            dic.Add("x", "1");
+            dic.Add("y", "2");
+
+
+            var entity = new foo()
+            {
+                A = 1,
+                B = "2",
+                C = DateTime.Now,
+                AList = new List<String>() { "A", "B", "C" },
+                BList = flist,
+                CList = new List<String>() { "A1", "B1", "C1" },
+                ADic = dic,
+                BDic = bdic
+            };
+
+            var json = entity.ToJson();
+
+            var fentity = json.ToJsonEntity(typeof(foo));
+
+            var x = 1;
+        }
+    }
+
+    class foo
+    {
+        public Int32 A { get; set; }
+
+        public String B { get; set; }
+
+        public DateTime C { get; set; }
+
+        public IList<String> AList { get; set; }
+
+        public IList<foo> BList { get; set; }
+
+        public List<String> CList { get; set; }
+
+        public Dictionary<String, Object> ADic { get; set; }
+
+        public IDictionary<String, Object> BDic { get; set; }
     }
 }
