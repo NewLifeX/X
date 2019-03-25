@@ -354,7 +354,7 @@ namespace XCode
                 if (i == 0)
                     exp &= fields[i].GroupBy();
                 else
-                    exp.And(fields[i]);
+                    exp.And(new FieldExpression(fields[i]));
             }
 
             return new WhereExpression(where, Operator.Space, exp);
