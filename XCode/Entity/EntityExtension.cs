@@ -492,8 +492,11 @@ namespace XCode
             {
                 if (fact.Session.Dal.DbType == DatabaseType.SqlServer)
                     columns = fact.Fields.Select(e => e.Field).Where(e => !e.Identity || e.PrimaryKey).ToArray();
+                else if (fact.Session.Dal.DbType == DatabaseType.MySql)
+                    columns = fact.Fields.Select(e => e.Field).ToArray(); //只有标识键的情况下会导致重复执行insert方法 目前只测试了Mysql库
                 else
                     columns = fact.Fields.Select(e => e.Field).Where(e => !e.Identity).ToArray();
+
             }
             //if (updateColumns == null) updateColumns = entity.Dirtys.Keys;
             if (updateColumns == null)
