@@ -8,12 +8,9 @@ using System.Threading.Tasks;
 using NewLife.Caching;
 using NewLife.Log;
 using NewLife.Net;
-using NewLife.Reflection;
 using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
-using NewLife.Web;
-using XCode;
 using XCode.Code;
 using XCode.DataAccessLayer;
 using XCode.Membership;
@@ -37,7 +34,7 @@ namespace Test
                 try
                 {
 #endif
-                Test2();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -76,17 +73,14 @@ namespace Test
             //url = wc.DownloadLink("http://x.newlifex.com/", "System.Data.SqlClient.st", ".");
             //XTrace.WriteLine(url);
 
-            var list = new List<String>();
-            var rs = list.GetType().IsList();
-            Console.WriteLine(rs);
-            rs = list.GetType().IsDictionary();
-            Console.WriteLine(rs);
+            VisitStat.Meta.Session.Dal.Db.ShowSQL = true;
 
-            var dic = new Dictionary<Int32, Double>();
-            rs = dic.GetType().IsList();
-            Console.WriteLine(rs);
-            rs = dic.GetType().IsDictionary();
-            Console.WriteLine(rs);
+            var vs = VisitStat.FindByID(1) ?? new VisitStat();
+            vs.Times += 123;
+            vs.Users++;
+            vs.IPs++;
+
+            vs.Save();
         }
 
         static void Test2()
@@ -546,16 +540,22 @@ namespace Test
         /// <summary>测试序列化</summary>
         static void Test12()
         {
-            var bdic = new Dictionary<String, Object>();
-            bdic.Add("x", "1");
-            bdic.Add("y", "2");
+            var bdic = new Dictionary<String, Object>
+            {
+                { "x", "1" },
+                { "y", "2" }
+            };
 
-            var flist = new List<foo>();
-            flist.Add(new foo() { A = 3, B = "e", AList = new List<String>() { "E", "F", "G" }, ADic = bdic });
+            var flist = new List<foo>
+            {
+                new foo() { A = 3, B = "e", AList = new List<String>() { "E", "F", "G" }, ADic = bdic }
+            };
 
-            var dic = new Dictionary<String, Object>();
-            dic.Add("x", "1");
-            dic.Add("y", "2");
+            var dic = new Dictionary<String, Object>
+            {
+                { "x", "1" },
+                { "y", "2" }
+            };
 
 
             var entity = new foo()
@@ -573,8 +573,6 @@ namespace Test
             var json = entity.ToJson();
 
             var fentity = json.ToJsonEntity(typeof(foo));
-
-            var x = 1;
         }
     }
 
