@@ -37,7 +37,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test1();
+                Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -141,9 +141,9 @@ namespace Test
 
             count = UserX.FindCount();
             Console.WriteLine("Count={0}", count);
-            gs = UserX.FindAll(null, null, null, 0, 10);
+            //gs = UserX.FindAll(null, null, null, 0, 10);
 
-            gs.Delete(true);
+            //gs.Delete(true);
         }
 
         static void Test3()
