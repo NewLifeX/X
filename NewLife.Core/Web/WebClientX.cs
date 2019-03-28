@@ -400,6 +400,9 @@ namespace NewLife.Web
                 //ZipFile.ExtractToDirectory(file, destdir);
                 file.AsFile().Extract(destdir, overwrite);
 
+                // 删除zip
+                File.Delete(file);
+
                 return file;
             }
             catch (Exception ex)

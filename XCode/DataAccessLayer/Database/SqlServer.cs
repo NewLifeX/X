@@ -491,7 +491,7 @@ namespace XCode.DataAccessLayer
             sb.AppendLine(";");
             sb.AppendLine("END;");
             var sql = sb.Put(true);
-            
+
             var dpsList = GetParametersList(columns, ps, list, true);
             return BatchExecute(sql, dpsList);
         }
@@ -546,7 +546,6 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 修复实现SqlServer批量操作增添方法
-
         private Int32 BatchExecute(String sql, List<IDataParameter[]> psList)
         {
             //获取连接对象
@@ -563,7 +562,6 @@ namespace XCode.DataAccessLayer
                 {
                     var cmd = OnCreateCommand(sql, CommandType.Text, dps);
                     mBatcher.AddToBatch(cmd);
-                    //XTrace.WriteLine(base.GetSql(cmd));
                 }
             }
 
@@ -636,39 +634,18 @@ namespace XCode.DataAccessLayer
         /// </summary>
         class SqlBatcher
         {
-            //private readonly MethodInfo mAddToBatch;
-            //private MethodInfo mClearBatch;
-            //private readonly MethodInfo mInitializeBatching;
-            //private MethodInfo mExecuteBatch;
             private DataAdapter mAdapter;
-            private Boolean isStarted;
-
             private static DbProviderFactory _Factory;
-            static SqlBatcher()
-            {
-                _Factory = new SqlServer().Factory;
-            }
+            static SqlBatcher() => _Factory = new SqlServer().Factory;
 
-            public SqlBatcher()
-            {
-                //var ad = _Factory.CreateDataAdapter();
-                //var type = ad.GetType();
-                //mAddToBatch = type.GetMethod("AddToBatch", BindingFlags.NonPublic | BindingFlags.Instance);
-                //mClearBatch = type.GetMethod("ClearBatch", BindingFlags.NonPublic | BindingFlags.Instance);
-                //mInitializeBatching = type.GetMethod("InitializeBatching", BindingFlags.NonPublic | BindingFlags.Instance);
-                //mExecuteBatch = type.GetMethod("ExecuteBatch", BindingFlags.NonPublic | BindingFlags.Instance);
-            }
-
-            /// <summary>
-            /// 获得批处理是否正在批处理状态。
-            /// </summary>
-            public Boolean IsStarted => isStarted;
+            /// <summary>获得批处理是否正在批处理状态。</summary>
+            public Boolean IsStarted { get; private set; }
 
             /// <summary>开始批处理</summary>
             /// <param name="connection">连接。</param>
             public void StartBatch(DbConnection connection)
             {
-                if (isStarted) return;
+                if (IsStarted) return;
 
                 var cmd = _Factory.CreateCommand();
                 cmd.Connection = connection;
@@ -679,7 +656,7 @@ namespace XCode.DataAccessLayer
 
                 mAdapter = adapter;
 
-                isStarted = true;
+                IsStarted = true;
             }
 
             /// <summary>
@@ -688,8 +665,8 @@ namespace XCode.DataAccessLayer
             /// <param name="command">命令</param>
             public void AddToBatch(IDbCommand command)
             {
-                if (!isStarted) throw new InvalidOperationException();
-                //mAddToBatch.Invoke(mAdapter, new Object[1] { command });
+                if (!IsStarted) throw new InvalidOperationException();
+
                 mAdapter.Invoke("AddToBatch", new Object[] { command });
             }
 
@@ -699,9 +676,8 @@ namespace XCode.DataAccessLayer
             /// <returns>影响的数据行数。</returns>
             public Int32 ExecuteBatch()
             {
-                if (!isStarted) throw new InvalidOperationException();
+                if (!IsStarted) throw new InvalidOperationException();
 
-                //return (Int32)mExecuteBatch.Invoke(mAdapter, null);
                 return (Int32)mAdapter.Invoke("ExecuteBatch");
             }
 
@@ -710,12 +686,12 @@ namespace XCode.DataAccessLayer
             /// </summary>
             public void EndBatch()
             {
-                if (isStarted)
+                if (IsStarted)
                 {
                     ClearBatch();
                     mAdapter.Dispose();
                     mAdapter = null;
-                    isStarted = false;
+                    IsStarted = false;
                 }
             }
 
@@ -724,8 +700,8 @@ namespace XCode.DataAccessLayer
             /// </summary>
             public void ClearBatch()
             {
-                if (!isStarted) throw new InvalidOperationException();
-                //mClearBatch.Invoke(mAdapter, null);
+                if (!IsStarted) throw new InvalidOperationException();
+
                 mAdapter.Invoke("ClearBatch");
             }
         }

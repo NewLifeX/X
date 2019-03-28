@@ -11,7 +11,6 @@ using NewLife.Net;
 using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
-using NewLife.Web;
 using XCode.Code;
 using XCode.DataAccessLayer;
 using XCode.Membership;
@@ -35,7 +34,7 @@ namespace Test
                 try
                 {
 #endif
-                Test3();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -58,21 +57,30 @@ namespace Test
         {
             //new AgentService().Main();
 
-            var wc = new WebClientX
-            {
-                Log = XTrace.Log
-            };
-            var url = wc.DownloadLink("http://x.newlifex.com/", "Oracle.ManagedDataAccess.st", ".");
-            XTrace.WriteLine(url);
+            //var wc = new WebClientX
+            //{
+            //    Log = XTrace.Log
+            //};
+            //var url = wc.DownloadLink("http://x.newlifex.com/", "Oracle.ManagedDataAccess.st", ".");
+            //XTrace.WriteLine(url);
 
-            url = wc.DownloadLink("http://x.newlifex.com/", "MySql.Data.st", ".");
-            XTrace.WriteLine(url);
+            //url = wc.DownloadLink("http://x.newlifex.com/", "MySql.Data.st", ".");
+            //XTrace.WriteLine(url);
 
-            url = wc.DownloadLink("http://x.newlifex.com/", "MySql.Data64Fx40,MySql.Data", ".");
-            XTrace.WriteLine(url);
+            //url = wc.DownloadLink("http://x.newlifex.com/", "MySql.Data64Fx40,MySql.Data", ".");
+            //XTrace.WriteLine(url);
 
-            url = wc.DownloadLink("http://x.newlifex.com/", "System.Data.SqlClient.st", ".");
-            XTrace.WriteLine(url);
+            //url = wc.DownloadLink("http://x.newlifex.com/", "System.Data.SqlClient.st", ".");
+            //XTrace.WriteLine(url);
+
+            VisitStat.Meta.Session.Dal.Db.ShowSQL = true;
+
+            var vs = VisitStat.FindByID(1) ?? new VisitStat();
+            vs.Times += 123;
+            vs.Users++;
+            vs.IPs++;
+
+            vs.Save();
         }
 
         static void Test2()
@@ -88,11 +96,10 @@ namespace Test
             //DAL.AddConnStr("Log", "Data Source=tcp://127.0.0.1/ORCL;User Id=scott;Password=tiger;UseParameter=true", null, "Oracle");
             //DAL.AddConnStr("Log", "Server=.;Port=3306;Database=Log;Uid=root;Pwd=root;", null, "MySql");
             //DAL.AddConnStr("Membership", "Server=.;Port=3306;Database=times;Uid=root;Pwd=Pass@word;TablePrefix=xx_", null, "MySql");
-            DAL.AddConnStr("Membership", @"Server=.\JSQL2008;User ID=sa;Password=sa;Database=Membership;", null, "sqlserver");
-            DAL.AddConnStr("Log", @"Server=.\JSQL2008;User ID=sa;Password=sa;Database=Log;", null, "sqlserver");
+            //DAL.AddConnStr("Membership", @"Server=.\JSQL2008;User ID=sa;Password=sa;Database=Membership;", null, "sqlserver");
+            //DAL.AddConnStr("Log", @"Server=.\JSQL2008;User ID=sa;Password=sa;Database=Log;", null, "sqlserver");
 
             var gs = UserX.FindAll(null, null, null, 0, 10);
-            Console.WriteLine(gs.First().Logins);
             var count = UserX.FindCount();
             Console.WriteLine("Count={0}", count);
 
@@ -105,8 +112,8 @@ namespace Test
             {
                 var entity = new UserX
                 {
-                    Name = "Stone",
-                    DisplayName = "大石头",
+                    Name = "Stone" + i,
+                    DisplayName = "大石头" + i,
                     Logins = 1,
                     LastLogin = DateTime.Now,
                     RegisterTime = DateTime.Now
@@ -117,14 +124,20 @@ namespace Test
             }
             //list.Save();
 
-            var user = gs.First();
-            user.Logins++;
-            user.SaveAsync();
+            var user = gs.FirstOrDefault();
+            if (user != null)
+            {
+                user.Logins++;
+                user.SaveAsync();
+            }
+
+            Thread.Sleep(3000);
 
             count = UserX.FindCount();
             Console.WriteLine("Count={0}", count);
-            gs = UserX.FindAll(null, null, null, 0, 10);
-            Console.WriteLine(gs.First().Logins);
+            //gs = UserX.FindAll(null, null, null, 0, 10);
+
+            //gs.Delete(true);
         }
 
         static void Test3()
@@ -523,5 +536,62 @@ namespace Test
             var output = Path.Combine(Directory.GetCurrentDirectory(), "../");
             EntityBuilder.Build(xmlFile, output);
         }
+
+        /// <summary>测试序列化</summary>
+        static void Test12()
+        {
+            var bdic = new Dictionary<String, Object>
+            {
+                { "x", "1" },
+                { "y", "2" }
+            };
+
+            var flist = new List<foo>
+            {
+                new foo() { A = 3, B = "e", AList = new List<String>() { "E", "F", "G" }, ADic = bdic }
+            };
+
+            var dic = new Dictionary<String, Object>
+            {
+                { "x", "1" },
+                { "y", "2" }
+            };
+
+
+            var entity = new foo()
+            {
+                A = 1,
+                B = "2",
+                C = DateTime.Now,
+                AList = new List<String>() { "A", "B", "C" },
+                BList = flist,
+                CList = new List<String>() { "A1", "B1", "C1" },
+                ADic = dic,
+                BDic = bdic
+            };
+
+            var json = entity.ToJson();
+
+            var fentity = json.ToJsonEntity(typeof(foo));
+        }
+    }
+
+    class foo
+    {
+        public Int32 A { get; set; }
+
+        public String B { get; set; }
+
+        public DateTime C { get; set; }
+
+        public IList<String> AList { get; set; }
+
+        public IList<foo> BList { get; set; }
+
+        public List<String> CList { get; set; }
+
+        public Dictionary<String, Object> ADic { get; set; }
+
+        public IDictionary<String, Object> BDic { get; set; }
     }
 }

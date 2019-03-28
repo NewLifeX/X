@@ -17,82 +17,6 @@ namespace XCode
     public static class EntityExtension
     {
         #region 泛型实例列表扩展
-        /// <summary>根据指定项查找</summary>
-        /// <param name="list">实体列表</param>
-        /// <param name="name">属性名</param>
-        /// <param name="value">属性值</param>
-        /// <returns></returns>
-        [Obsolete("将来不再支持实体列表，请改用list.FirstOrDefault()")]
-        public static T Find<T>(this IList<T> list, String name, Object value) where T : IEntity
-        {
-            return list.FirstOrDefault(e => e[name] == value);
-        }
-
-        /// <summary>根据指定项查找</summary>
-        /// <param name="list">实体列表</param>
-        /// <param name="name">属性名</param>
-        /// <param name="value">属性值</param>
-        /// <returns></returns>
-        [Obsolete("将来不再支持实体列表，请改用list.FirstOrDefault()")]
-        public static T FindIgnoreCase<T>(this IList<T> list, String name, String value) where T : IEntity
-        {
-            return list.FirstOrDefault(e => (e[name] + "").EqualIgnoreCase(value));
-        }
-
-        ///// <summary>检索与指定谓词定义的条件匹配的所有元素。</summary>
-        ///// <param name="list">实体列表</param>
-        ///// <param name="match">条件</param>
-        ///// <returns></returns>
-        //[Obsolete("将来不再支持实体列表，请改用list.FirstOrDefault()")]
-        //public static T Find<T>(this IList<T> list, Predicate<T> match) where T : IEntity
-        //{
-        //    return list.FirstOrDefault(e => match(e));
-        //}
-
-        /// <summary>根据指定项查找</summary>
-        /// <param name="list">实体列表</param>
-        /// <param name="name">属性名</param>
-        /// <param name="value">属性值</param>
-        /// <returns></returns>
-        [Obsolete("将来不再支持实体列表，请改用list.Where()")]
-        public static IList<T> FindAll<T>(this IList<T> list, String name, Object value) where T : IEntity
-        {
-            return list.Where(e => e[name] == value).ToList();
-        }
-
-        /// <summary>根据指定项查找</summary>
-        /// <param name="list">实体列表</param>
-        /// <param name="name">属性名</param>
-        /// <param name="value">属性值</param>
-        /// <returns></returns>
-        [Obsolete("将来不再支持实体列表，请改用list.Where()")]
-        public static IList<T> FindAllIgnoreCase<T>(this IList<T> list, String name, String value) where T : IEntity
-        {
-            return list.Where(e => (e[name] + "").EqualIgnoreCase(value)).ToList();
-        }
-
-        ///// <summary>检索与指定谓词定义的条件匹配的所有元素。</summary>
-        ///// <param name="list">实体列表</param>
-        ///// <param name="match">条件</param>
-        ///// <returns></returns>
-        //[Obsolete("将来不再支持实体列表，请改用list.Where()")]
-        //public static IList<T> FindAll<T>(this IList<T> list, Predicate<T> match) where T : IEntity
-        //{
-        //    return list.Where(e => match(e)).ToList();
-        //}
-
-        /// <summary>集合是否包含指定项</summary>
-        /// <param name="list">实体列表</param>
-        /// <param name="name">名称</param>
-        /// <param name="value">数值</param>
-        /// <returns></returns>
-        [Obsolete("将来不再支持实体列表，请改用list.Any()")]
-        public static Boolean Exists<T>(this IList<T> list, String name, Object value) where T : IEntity
-        {
-            return list.Any(e => e[name] == value);
-
-        }
-
         /// <summary>实体列表转为字典。主键为Key</summary>
         /// <param name="list">实体列表</param>
         /// <param name="valueField">作为Value部分的字段，默认为空表示整个实体对象为值</param>
@@ -354,7 +278,46 @@ namespace XCode
         /// <param name="list">实体列表</param>
         /// <param name="useTransition">是否使用事务保护</param>
         /// <returns></returns>
-        public static Int32 Delete<T>(this IEnumerable<T> list, Boolean? useTransition = null) where T : IEntity => DoAction(list, useTransition, e => e.Delete());
+        public static Int32 Delete<T>(this IEnumerable<T> list, Boolean? useTransition = null) where T : IEntity
+        {
+            // 避免列表内实体对象为空
+            var entity = list.FirstOrDefault(e => e != null);
+            if (entity == null) return 0;
+
+            // 单一主键，采用批量操作
+            var fact = entity.GetType().AsFactory();
+            var pks = fact.Table.PrimaryKeys;
+            if (pks != null && pks.Length == 1)
+            {
+                var pk = pks[0];
+                var count = 0;
+                var rs = 0;
+                var ks = new List<Object>();
+                var sql = $"Delete From {fact.FormatedTableName} Where ";
+                foreach (var item in list)
+                {
+                    ks.Add(item[pk.Name]);
+                    count++;
+
+                    // 分批执行
+                    if (count >= 1000)
+                    {
+                        rs += fact.Session.Execute(sql + pk.In(ks));
+
+                        ks.Clear();
+                        count = 0;
+                    }
+                }
+                if (count > 0)
+                {
+                    rs += fact.Session.Execute(sql + pk.In(ks));
+                }
+
+                return rs;
+            }
+
+            return DoAction(list, useTransition, e => e.Delete());
+        }
 
         private static Int32 DoAction<T>(this IEnumerable<T> list, Boolean? useTransition, Func<T, Int32> func) where T : IEntity
         {
@@ -523,8 +486,18 @@ namespace XCode
 
             var entity = list.First();
             var fact = entity.GetType().AsFactory();
-            //if (columns == null) columns = fact.Fields.Select(e => e.Field).Where(e => !e.Identity).ToArray();
-            if (columns == null) columns = fact.Fields.Select(e => e.Field).Where(e => !e.Identity || e.PrimaryKey).ToArray();
+
+            // SqlServer的批量Upsert需要主键参与，哪怕是自增，构建update的where时用到主键
+            if (columns == null)
+            {
+                var dbt = fact.Session.Dal.DbType;
+                if (dbt == DatabaseType.SqlServer || dbt == DatabaseType.Oracle)
+                    columns = fact.Fields.Select(e => e.Field).Where(e => !e.Identity || e.PrimaryKey).ToArray();
+                else if (dbt == DatabaseType.MySql)
+                    columns = fact.Fields.Select(e => e.Field).ToArray(); //只有标识键的情况下会导致重复执行insert方法 目前只测试了Mysql库
+                else
+                    columns = fact.Fields.Select(e => e.Field).Where(e => !e.Identity).ToArray();
+            }
             //if (updateColumns == null) updateColumns = entity.Dirtys.Keys;
             if (updateColumns == null)
             {
@@ -551,19 +524,6 @@ namespace XCode
             session.Dal.CheckDatabase();
 
             return session.Dal.Session.Upsert(session.TableName, columns, updateColumns, addColumns, list.Cast<IIndexAccessor>());
-        }
-
-        /// <summary>批量插入或更新</summary>
-        /// <typeparam name="T">实体类型</typeparam>
-        /// <param name="list">实体列表</param>
-        /// <param name="columns">要插入的字段，默认所有字段</param>
-        /// <param name="updateColumns">要更新的字段，默认脏数据</param>
-        /// <param name="addColumns">要累加更新的字段，默认累加</param>
-        /// <returns></returns>
-        [Obsolete("请改用list.Upsert()")]
-        public static Int32 InsertOrUpdate<T>(this IEnumerable<T> list, IDataColumn[] columns = null, ICollection<String> updateColumns = null, ICollection<String> addColumns = null) where T : IEntity
-        {
-            return Upsert(list, columns, updateColumns, addColumns);
         }
 
         /// <summary>批量插入或更新</summary>

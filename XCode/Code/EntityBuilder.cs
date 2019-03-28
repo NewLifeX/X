@@ -582,7 +582,7 @@ namespace XCode.Code
                 var ns = new HashSet<String>(Table.Columns.Select(e => e.Name), StringComparer.OrdinalIgnoreCase);
                 WriteLine();
                 WriteLine("// 过滤器 UserModule、TimeModule、IPModule");
-                if (ns.Contains("CreateUserID") || ns.Contains("UpdateUserID"))
+                if (ns.Contains("CreateUserID") || ns.Contains("CreateUser") || ns.Contains("UpdateUserID") || ns.Contains("UpdateUser"))
                     WriteLine("Meta.Modules.Add<UserModule>();");
                 if (ns.Contains("CreateTime") || ns.Contains("UpdateTime"))
                     WriteLine("Meta.Modules.Add<TimeModule>();");
@@ -657,24 +657,24 @@ namespace XCode.Code
                     foreach (var item in cs)
                     {
                         if (item.Name.EqualIgnoreCase("CreateUserID"))
-                            WriteLine("if (isNew && !Dirtys[{0}) {0} = user.ID;", NameOf(item.Name));
+                            WriteLine("if (isNew && !Dirtys[{0}]) {1} = user.ID;", NameOf(item.Name), item.Name);
                         else
-                            WriteLine("if (!Dirtys[{0}]) {0} = user.ID;", NameOf(item.Name));
+                            WriteLine("if (!Dirtys[{0}]) {1} = user.ID;", NameOf(item.Name), item.Name);
                     }
                     WriteLine("}*/");
                 }
 
                 var dc = Table.Columns.FirstOrDefault(e => e.Name.EqualIgnoreCase("CreateTime"));
-                if (dc != null) WriteLine("//if (isNew && !Dirtys[{0}]) {0} = DateTime.Now;", NameOf(dc.Name));
+                if (dc != null) WriteLine("//if (isNew && !Dirtys[{0}]) {1} = DateTime.Now;", NameOf(dc.Name), dc.Name);
 
                 dc = Table.Columns.FirstOrDefault(e => e.Name.EqualIgnoreCase("UpdateTime"));
-                if (dc != null) WriteLine("//if (!Dirtys[{0}]) {0} = DateTime.Now;", NameOf(dc.Name));
+                if (dc != null) WriteLine("//if (!Dirtys[{0}]) {1} = DateTime.Now;", NameOf(dc.Name), dc.Name);
 
                 dc = Table.Columns.FirstOrDefault(e => e.Name.EqualIgnoreCase("CreateIP"));
-                if (dc != null) WriteLine("//if (isNew && !Dirtys[{0}]) {0} = ManageProvider.UserHost;", NameOf(dc.Name));
+                if (dc != null) WriteLine("//if (isNew && !Dirtys[{0}]) {1} = ManageProvider.UserHost;", NameOf(dc.Name), dc.Name);
 
                 dc = Table.Columns.FirstOrDefault(e => e.Name.EqualIgnoreCase("UpdateIP"));
-                if (dc != null) WriteLine("//if (!Dirtys[{0}]) {0} = ManageProvider.UserHost;", NameOf(dc.Name));
+                if (dc != null) WriteLine("//if (!Dirtys[{0}]) {1} = ManageProvider.UserHost;", NameOf(dc.Name), dc.Name);
 
                 // 唯一索引检查唯一性
                 var dis = Table.Indexes.Where(e => e.Unique).ToArray();

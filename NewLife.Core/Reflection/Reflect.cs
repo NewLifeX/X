@@ -436,15 +436,6 @@ namespace NewLife.Reflection
         /// <param name="type"></param>
         /// <returns></returns>
         public static Boolean IsDictionary(this Type type) => type != null && type.IsGenericType && type.As(typeof(IDictionary<,>));
-
-        ///// <summary>是否能够转为指定基类</summary>
-        ///// <typeparam name="T"></typeparam>
-        ///// <param name="type"></param>
-        ///// <returns></returns>
-        //public static Boolean As<T>(this Type type)
-        //{
-        //    return type != null && typeof(T).IsAssignableFrom(type);
-        //}
         #endregion
 
         #region 插件
