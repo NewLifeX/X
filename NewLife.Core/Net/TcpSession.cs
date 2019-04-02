@@ -174,6 +174,8 @@ namespace NewLife.Net
 
         #region 发送
         private Int32 _bsize;
+        private SpinLock _spinLock = new SpinLock();
+
         /// <summary>发送数据</summary>
         /// <remarks>
         /// 目标地址由<seealso cref="SessionBase.Remote"/>决定
@@ -188,12 +190,15 @@ namespace NewLife.Net
             if (Log != null && Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, pk.ToHex());
 
             var sock = Client;
+            var gotLock = false;
             try
             {
                 // 修改发送缓冲区，读取SendBufferSize耗时很大
                 if (_bsize == 0) _bsize = sock.SendBufferSize;
                 if (_bsize < count) sock.SendBufferSize = _bsize = count;
 
+                // 这里试试加锁
+                _spinLock.Enter(ref gotLock);
                 if (count == 0)
                     sock.Send(new Byte[0]);
                 else if (pk.Next == null)
@@ -215,6 +220,10 @@ namespace NewLife.Net
                 }
 
                 return false;
+            }
+            finally
+            {
+                if (gotLock) _spinLock.Exit();
             }
 
             LastTime = TimerX.Now;
