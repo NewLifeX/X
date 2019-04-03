@@ -197,14 +197,19 @@ namespace NewLife.Net
                 if (_bsize == 0) _bsize = sock.SendBufferSize;
                 if (_bsize < count) sock.SendBufferSize = _bsize = count;
 
-                // 这里试试加锁
+                // 加锁发送
                 _spinLock.Enter(ref gotLock);
+
+                var rs = 0;
                 if (count == 0)
-                    sock.Send(new Byte[0]);
+                    rs = sock.Send(new Byte[0]);
                 else if (pk.Next == null)
-                    sock.Send(pk.Data, pk.Offset, count, SocketFlags.None);
+                    rs = sock.Send(pk.Data, pk.Offset, count, SocketFlags.None);
                 else
-                    sock.Send(pk.ToArray(), 0, count, SocketFlags.None);
+                    rs = sock.Send(pk.ToArray(), 0, count, SocketFlags.None);
+
+                // 检查返回值
+                if (rs != count) throw new NetException($"发送[{count:n0}]而成功[{rs:n0}]");
             }
             catch (Exception ex)
             {
