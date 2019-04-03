@@ -100,7 +100,7 @@ namespace NewLife.Data
             if (data == null)
             {
                 Offset = 0;
-                count = 0;
+                Count = 0;
             }
             else
             {
@@ -172,7 +172,7 @@ namespace NewLife.Data
                 {
                     //win = 0; // 只要有一个不匹配，马上清零
                     // 不能直接清零，那样会导致数据丢失，需要逐位探测，窗口一个个字节滑动
-                    i = i - win;
+                    i -= win;
                     win = 0;
                 }
             }

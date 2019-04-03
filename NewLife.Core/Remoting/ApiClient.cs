@@ -202,7 +202,7 @@ namespace NewLife.Remoting
         {
             // 发送失败时，返回空
             var rs = await InvokeAsync(typeof(TResult), action, args, flag);
-            if (rs == null) return default(TResult);
+            if (rs == null) return default;
 
             return (TResult)rs;
         }
@@ -216,7 +216,7 @@ namespace NewLife.Remoting
         {
             // 发送失败时，返回空
             var rs = InvokeAsync(typeof(TResult), action, args, flag).Result;
-            if (rs == null) return default(TResult);
+            if (rs == null) return default;
 
             return (TResult)rs;
         }
@@ -328,8 +328,7 @@ namespace NewLife.Remoting
             LastActive = DateTime.Now;
 
             // Api解码消息得到Action和参数
-            var msg = e.Message as IMessage;
-            if (msg == null || msg.Reply) return;
+            if (!(e.Message is IMessage msg) || msg.Reply) return;
 
             var ss = sender as ISocketRemote;
             var host = this as IApiHost;
