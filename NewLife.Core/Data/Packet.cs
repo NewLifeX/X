@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -256,6 +257,20 @@ namespace NewLife.Data
             if (Next == null) return new ArraySegment<Byte>(Data, Offset, Count);
 
             return new ArraySegment<Byte>(ToArray());
+        }
+
+        /// <summary>返回数据段集合</summary>
+        /// <returns></returns>
+        public IList<ArraySegment<Byte>> ToSegments()
+        {
+            var list = new List<ArraySegment<Byte>>();
+
+            for (var pk = this; pk != null; pk = pk.Next)
+            {
+                list.Add(new ArraySegment<Byte>(pk.Data, pk.Offset, pk.Count));
+            }
+
+            return list;
         }
 
         /// <summary>获取封包的数据流形式</summary>
