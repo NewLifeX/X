@@ -98,7 +98,7 @@ namespace NewLife.Caching
                 //tc.Connect(Server.Address, Server.Port);
                 // 采用异步来解决连接超时设置问题
                 var ar = tc.BeginConnect(Server.Address, Server.Port, null, null);
-                if (!ar.AsyncWaitHandle.WaitOne(timeout, false))
+                if (!ar.AsyncWaitHandle.WaitOne(timeout, true))
                 {
                     tc.Close();
                     throw new TimeoutException($"连接[{Server}][{timeout}ms]超时！");

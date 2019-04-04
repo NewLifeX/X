@@ -184,7 +184,7 @@ namespace NewLife.Threading
                 catch { }
 
                 if (waitForTimer == null) waitForTimer = new AutoResetEvent(false);
-                waitForTimer.WaitOne(period, false);
+                waitForTimer.WaitOne(period, true);
             }
         }
 

@@ -113,7 +113,7 @@ namespace NewLife.Net
                 {
                     // 采用异步来解决连接超时设置问题
                     var ar = sock.BeginConnect(Remote.EndPoint, null, null);
-                    if (!ar.AsyncWaitHandle.WaitOne(timeout, false))
+                    if (!ar.AsyncWaitHandle.WaitOne(timeout, true))
                     {
                         sock.Close();
                         throw new TimeoutException($"连接[{Remote}][{timeout}ms]超时！");
