@@ -30,22 +30,22 @@ namespace NewLife.Collections
         Boolean Put(TValue value);
     }
 
-    /// <summary>集群异常</summary>
-    public class ClusterException : Exception
-    {
-        /// <summary>资源</summary>
-        public String Resource { get; set; }
+    ///// <summary>集群异常</summary>
+    //public class ClusterException : Exception
+    //{
+    //    /// <summary>资源</summary>
+    //    public String Resource { get; set; }
 
-        /// <summary>实例化</summary>
-        /// <param name="res"></param>
-        /// <param name="message"></param>
-        public ClusterException(String res, String message) : base($"[{res}]异常.{message}") => Resource = res;
+    //    /// <summary>实例化</summary>
+    //    /// <param name="res"></param>
+    //    /// <param name="message"></param>
+    //    public ClusterException(String res, String message) : base($"[{res}]异常.{message}") => Resource = res;
 
-        /// <summary>实例化</summary>
-        /// <param name="res"></param>
-        /// <param name="inner"></param>
-        public ClusterException(String res, Exception inner) : base($"[{res}]异常.{inner.Message}", inner) => Resource = res;
-    }
+    //    /// <summary>实例化</summary>
+    //    /// <param name="res"></param>
+    //    /// <param name="inner"></param>
+    //    public ClusterException(String res, Exception inner) : base($"[{res}]异常.{inner.Message}", inner) => Resource = res;
+    //}
 
     /// <summary>集群助手</summary>
     public static class ClusterHelper

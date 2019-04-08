@@ -260,30 +260,30 @@ namespace NewLife.Remoting
 
         async Task<IMessage> IApiSession.SendAsync(IMessage msg)
         {
-            try
-            {
-                return await Cluster.InvokeAll(async client => await client.SendMessageAsync(msg) as IMessage);
-            }
-            catch (ClusterException ex)
-            {
-                if (ShowError) WriteLog("请求[{0}]错误！Timeout=[{1:n0}ms] {2}", ex.Resource, Timeout, ex.GetMessage());
+            //try
+            //{
+            return await Cluster.InvokeAll(async client => await client.SendMessageAsync(msg) as IMessage);
+            //}
+            //catch (ClusterException ex)
+            //{
+            //    if (ShowError) WriteLog("请求[{0}]错误！Timeout=[{1:n0}ms] {2}", ex.Resource, Timeout, ex.GetMessage());
 
-                throw ex;
-            }
+            //    throw ex;
+            //}
         }
 
         Boolean IApiSession.Send(IMessage msg)
         {
-            try
-            {
-                return Cluster.InvokeAll(client => client.SendMessage(msg));
-            }
-            catch (ClusterException ex)
-            {
-                if (ShowError) WriteLog("请求[{0}]错误！Timeout=[{1:n0}ms] {2}", ex.Resource, Timeout, ex.GetMessage());
+            //try
+            //{
+            return Cluster.InvokeAll(client => client.SendMessage(msg));
+            //}
+            //catch (ClusterException ex)
+            //{
+            //    if (ShowError) WriteLog("请求[{0}]错误！Timeout=[{1:n0}ms] {2}", ex.Resource, Timeout, ex.GetMessage());
 
-                throw ex;
-            }
+            //    throw ex;
+            //}
         }
         #endregion
 
