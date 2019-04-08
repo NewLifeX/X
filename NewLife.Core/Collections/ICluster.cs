@@ -71,41 +71,41 @@ namespace NewLife.Collections
             }
         }
 
-        /// <summary>对集群进行多次调用</summary>
-        /// <typeparam name="TKey"></typeparam>
-        /// <typeparam name="TValue"></typeparam>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="cluster"></param>
-        /// <param name="func"></param>
-        /// <returns></returns>
-        public static TResult InvokeAll<TKey, TValue, TResult>(this ICluster<TKey, TValue> cluster, Func<TValue, TResult> func)
-        {
-            Exception error = null;
-            var item = default(TValue);
-            var count = cluster.GetItems().Count();
-            for (var i = 0; i < count; i++)
-            {
-                try
-                {
-                    item = cluster.Get();
-                    return func(item);
-                }
-                catch (Exception ex)
-                {
-                    error = ex;
-                }
-                finally
-                {
-                    cluster.Put(item);
-                }
-            }
+        ///// <summary>对集群进行多次调用</summary>
+        ///// <typeparam name="TKey"></typeparam>
+        ///// <typeparam name="TValue"></typeparam>
+        ///// <typeparam name="TResult"></typeparam>
+        ///// <param name="cluster"></param>
+        ///// <param name="func"></param>
+        ///// <returns></returns>
+        //public static TResult InvokeAll<TKey, TValue, TResult>(this ICluster<TKey, TValue> cluster, Func<TValue, TResult> func)
+        //{
+        //    Exception error = null;
+        //    var item = default(TValue);
+        //    var count = cluster.GetItems().Count();
+        //    for (var i = 0; i < count; i++)
+        //    {
+        //        try
+        //        {
+        //            item = cluster.Get();
+        //            return func(item);
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            error = ex;
+        //        }
+        //        finally
+        //        {
+        //            cluster.Put(item);
+        //        }
+        //    }
 
-            throw error;
+        //    throw error;
 
-            //if (error is SocketException se)
-            //    throw new ClusterException(item + "", se.Message);
-            //else
-            //    throw new ClusterException(item + "", error);
-        }
+        //    //if (error is SocketException se)
+        //    //    throw new ClusterException(item + "", se.Message);
+        //    //else
+        //    //    throw new ClusterException(item + "", error);
+        //}
     }
 }

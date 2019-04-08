@@ -262,7 +262,7 @@ namespace NewLife.Remoting
         {
             //try
             //{
-            return await Cluster.InvokeAll(async client => await client.SendMessageAsync(msg) as IMessage);
+            return await Cluster.Invoke(async client => await client.SendMessageAsync(msg) as IMessage);
             //}
             //catch (ClusterException ex)
             //{
@@ -276,7 +276,7 @@ namespace NewLife.Remoting
         {
             //try
             //{
-            return Cluster.InvokeAll(client => client.SendMessage(msg));
+            return Cluster.Invoke(client => client.SendMessage(msg));
             //}
             //catch (ClusterException ex)
             //{
@@ -308,7 +308,7 @@ namespace NewLife.Remoting
         {
             await Task.Yield();
 
-            return Cluster.InvokeAll(client => OnLoginAsync(client, false));
+            return Cluster.Invoke(client => OnLoginAsync(client, false));
         }
         #endregion
 
