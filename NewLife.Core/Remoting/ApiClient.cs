@@ -89,21 +89,7 @@ namespace NewLife.Remoting
                 if (Handler == null) Handler = new ApiHandler { Host = this };
 
                 // 集群
-                var cluster = Cluster;
-                if (cluster == null)
-                {
-                    if (UsePool)
-                        cluster = new ClientPoolCluster();
-                    else
-                        cluster = new ClientSingleCluster();
-                    Cluster = cluster;
-                }
-
-                if (cluster is ClientSingleCluster sc && sc.OnCreate == null) sc.OnCreate = OnCreate;
-                if (cluster is ClientPoolCluster pc && pc.OnCreate == null) pc.OnCreate = OnCreate;
-
-                if (cluster.GetItems == null) cluster.GetItems = () => Servers;
-                cluster.Open();
+                Cluster = InitCluster();
 
                 Encoder.Log = EncoderLog;
 
@@ -137,6 +123,28 @@ namespace NewLife.Remoting
             Cluster?.Close(reason ?? (GetType().Name + "Close"));
 
             Active = false;
+        }
+
+        /// <summary>初始化集群</summary>
+        protected virtual ICluster<String, ISocketClient> InitCluster()
+        {
+            var cluster = Cluster;
+            if (cluster == null)
+            {
+                if (UsePool)
+                    cluster = new ClientPoolCluster();
+                else
+                    cluster = new ClientSingleCluster();
+                //Cluster = cluster;
+            }
+
+            if (cluster is ClientSingleCluster sc && sc.OnCreate == null) sc.OnCreate = OnCreate;
+            if (cluster is ClientPoolCluster pc && pc.OnCreate == null) pc.OnCreate = OnCreate;
+
+            if (cluster.GetItems == null) cluster.GetItems = () => Servers;
+            cluster.Open();
+
+            return cluster;
         }
 
         /// <summary>查找Api动作</summary>
@@ -186,9 +194,9 @@ namespace NewLife.Remoting
                 throw;
             }
             // 截断任务取消异常，避免过长
-            catch (TaskCanceledException ex)
+            catch (TaskCanceledException)
             {
-                throw new TaskCanceledException($"[{action}]超时[{Timeout:n0}ms]取消", ex);
+                throw new TaskCanceledException($"[{act}]超时[{Timeout:n0}ms]取消");
             }
         }
 

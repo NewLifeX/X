@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Sockets;
 
 namespace NewLife.Collections
 {
@@ -34,6 +35,11 @@ namespace NewLife.Collections
     {
         /// <summary>资源</summary>
         public String Resource { get; set; }
+
+        /// <summary>实例化</summary>
+        /// <param name="res"></param>
+        /// <param name="message"></param>
+        public ClusterException(String res, String message) : base($"[{res}]异常.{message}") => Resource = res;
 
         /// <summary>实例化</summary>
         /// <param name="res"></param>
@@ -94,8 +100,12 @@ namespace NewLife.Collections
                 }
             }
 
-            //throw error;
-            throw new ClusterException(item + "", error);
+            throw error;
+
+            //if (error is SocketException se)
+            //    throw new ClusterException(item + "", se.Message);
+            //else
+            //    throw new ClusterException(item + "", error);
         }
     }
 }

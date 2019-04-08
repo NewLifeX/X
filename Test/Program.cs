@@ -34,7 +34,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test1();
+                    Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -182,7 +182,7 @@ namespace Test
                     }
                     catch (Exception ex)
                     {
-                        XTrace.WriteException(ex);
+                        XTrace.WriteException(ex.GetTrue());
                     }
                     sw.Stop();
                     XTrace.WriteLine("总耗时 {0:n0}ms", sw.ElapsedMilliseconds);
@@ -200,7 +200,7 @@ namespace Test
                     }
                     catch (Exception ex)
                     {
-                        XTrace.WriteException(ex);
+                        XTrace.WriteException(ex.GetTrue());
                     }
                     sw.Stop();
                     XTrace.WriteLine("总耗时 {0:n0}ms", sw.ElapsedMilliseconds);
@@ -218,7 +218,7 @@ namespace Test
                     }
                     catch (Exception ex)
                     {
-                        XTrace.WriteException(ex);
+                        XTrace.WriteException(ex.GetTrue());
                     }
                     sw.Stop();
                     XTrace.WriteLine("总耗时 {0:n0}ms", sw.ElapsedMilliseconds);
@@ -236,7 +236,7 @@ namespace Test
                     }
                     catch (Exception ex)
                     {
-                        XTrace.WriteException(ex);
+                        XTrace.WriteException(ex.GetTrue());
                     }
                     sw.Stop();
                     XTrace.WriteLine("总耗时 {0:n0}ms", sw.ElapsedMilliseconds);
