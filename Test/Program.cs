@@ -34,7 +34,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test3();
+                Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -73,14 +73,33 @@ namespace Test
             //url = wc.DownloadLink("http://x.newlifex.com/", "System.Data.SqlClient.st", ".");
             //XTrace.WriteLine(url);
 
-            VisitStat.Meta.Session.Dal.Db.ShowSQL = true;
+            //VisitStat.Meta.Session.Dal.Db.ShowSQL = true;
 
-            var vs = VisitStat.FindByID(1) ?? new VisitStat();
-            vs.Times += 123;
-            vs.Users++;
-            vs.IPs++;
+            //var vs = VisitStat.FindByID(1) ?? new VisitStat();
+            //vs.Times += 123;
+            //vs.Users++;
+            //vs.IPs++;
 
-            vs.Save();
+            //vs.Save();
+
+            XTrace.Log.Level = LogLevel.All;
+
+            using (var tran = UserX.Meta.CreateTrans())
+            {
+                var user = UserX.FindByKey(1);
+                XTrace.WriteLine(user.Logins + "");
+
+                user.Logins++;
+
+                user.Save();
+
+                //tran.Commit();
+            }
+
+            {
+                var user = UserX.FindByKey(1);
+                XTrace.WriteLine(user.Logins + "");
+            }
         }
 
         static void Test2()

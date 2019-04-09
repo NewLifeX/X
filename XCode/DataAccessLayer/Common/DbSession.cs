@@ -291,14 +291,14 @@ namespace XCode.DataAccessLayer
         {
             using (var cmd = OnCreateCommand(sql, type, ps))
             {
-                return Execute(cmd, true, cmd2 => cmd2.ExecuteNonQuery());
+                return Execute(cmd, false, cmd2 => cmd2.ExecuteNonQuery());
             }
         }
 
         /// <summary>执行DbCommand，返回受影响的行数</summary>
         /// <param name="cmd">DbCommand</param>
         /// <returns></returns>
-        public virtual Int32 Execute(DbCommand cmd) => Execute(cmd, true, cmd2 => cmd2.ExecuteNonQuery());
+        public virtual Int32 Execute(DbCommand cmd) => Execute(cmd, false, cmd2 => cmd2.ExecuteNonQuery());
 
         public virtual T Execute<T>(DbCommand cmd, Boolean query, Func<DbCommand, T> callback)
         {
