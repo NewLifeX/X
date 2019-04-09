@@ -512,8 +512,6 @@ namespace NewLife.Net
         /// <returns></returns>
         public virtual Boolean SendMessage(Object message)
         {
-            //Pipeline.FireWrite(this, message);
-
             var ctx = CreateContext(this);
             message = Pipeline.Write(ctx, message);
 
@@ -525,8 +523,6 @@ namespace NewLife.Net
         /// <returns></returns>
         public virtual Task<Object> SendMessageAsync(Object message)
         {
-            //Pipeline.FireWriteAndWait(this, message);
-
             var ctx = CreateContext(this);
             var source = new TaskCompletionSource<Object>();
             ctx["TaskSource"] = source;

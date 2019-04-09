@@ -109,7 +109,7 @@ namespace NewLife.Remoting
             if (resultType == typeof(IMessage)) return rs;
             //if (resultType == typeof(Packet)) return rs.Payload;
 
-            if (!enc.Decode(rs, out var act, out var code, out var data)) throw new InvalidOperationException();
+            if (!enc.Decode(rs, out _, out var code, out var data)) throw new InvalidOperationException();
 
             // 是否成功
             if (code != 0) throw new ApiException(code, $"远程[{invoker}]错误！ {data.ToStr()}");
@@ -137,7 +137,6 @@ namespace NewLife.Remoting
             if (session == null) return false;
 
             // 性能计数器，次数、TPS、平均耗时
-            //host.StatSend?.Increment();
             var st = host.StatInvoke;
 
             // 编码请求

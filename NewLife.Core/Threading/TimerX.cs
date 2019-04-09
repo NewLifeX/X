@@ -56,7 +56,7 @@ namespace NewLife.Threading
         [ThreadStatic]
         private static TimerX _Current;
         /// <summary>当前定时器</summary>
-        public static TimerX Current { get { return _Current; } internal set { _Current = value; } }
+        public static TimerX Current { get => _Current; internal set => _Current = value; }
         #endregion
 
         #region 构造

@@ -89,21 +89,7 @@ namespace NewLife.Remoting
                 if (Handler == null) Handler = new ApiHandler { Host = this };
 
                 // 集群
-                var cluster = Cluster;
-                if (cluster == null)
-                {
-                    if (UsePool)
-                        cluster = new ClientPoolCluster();
-                    else
-                        cluster = new ClientSingleCluster();
-                    Cluster = cluster;
-                }
-
-                if (cluster is ClientSingleCluster sc && sc.OnCreate == null) sc.OnCreate = OnCreate;
-                if (cluster is ClientPoolCluster pc && pc.OnCreate == null) pc.OnCreate = OnCreate;
-
-                if (cluster.GetItems == null) cluster.GetItems = () => Servers;
-                cluster.Open();
+                Cluster = InitCluster();
 
                 Encoder.Log = EncoderLog;
 
@@ -137,6 +123,28 @@ namespace NewLife.Remoting
             Cluster?.Close(reason ?? (GetType().Name + "Close"));
 
             Active = false;
+        }
+
+        /// <summary>初始化集群</summary>
+        protected virtual ICluster<String, ISocketClient> InitCluster()
+        {
+            var cluster = Cluster;
+            if (cluster == null)
+            {
+                if (UsePool)
+                    cluster = new ClientPoolCluster();
+                else
+                    cluster = new ClientSingleCluster();
+                //Cluster = cluster;
+            }
+
+            if (cluster is ClientSingleCluster sc && sc.OnCreate == null) sc.OnCreate = OnCreate;
+            if (cluster is ClientPoolCluster pc && pc.OnCreate == null) pc.OnCreate = OnCreate;
+
+            if (cluster.GetItems == null) cluster.GetItems = () => Servers;
+            cluster.Open();
+
+            return cluster;
         }
 
         /// <summary>查找Api动作</summary>
@@ -186,9 +194,9 @@ namespace NewLife.Remoting
                 throw;
             }
             // 截断任务取消异常，避免过长
-            catch (TaskCanceledException ex)
+            catch (TaskCanceledException)
             {
-                throw new TaskCanceledException($"[{action}]超时[{Timeout:n0}ms]取消", ex);
+                throw new TaskCanceledException($"[{act}]超时[{Timeout:n0}ms]取消");
             }
         }
 
@@ -202,7 +210,7 @@ namespace NewLife.Remoting
         {
             // 发送失败时，返回空
             var rs = await InvokeAsync(typeof(TResult), action, args, flag);
-            if (rs == null) return default(TResult);
+            if (rs == null) return default;
 
             return (TResult)rs;
         }
@@ -216,7 +224,7 @@ namespace NewLife.Remoting
         {
             // 发送失败时，返回空
             var rs = InvokeAsync(typeof(TResult), action, args, flag).Result;
-            if (rs == null) return default(TResult);
+            if (rs == null) return default;
 
             return (TResult)rs;
         }
@@ -252,30 +260,30 @@ namespace NewLife.Remoting
 
         async Task<IMessage> IApiSession.SendAsync(IMessage msg)
         {
-            try
-            {
-                return await Cluster.InvokeAll(async client => await client.SendMessageAsync(msg) as IMessage);
-            }
-            catch (ClusterException ex)
-            {
-                if (ShowError) WriteLog("请求[{0}]错误！Timeout=[{1:n0}ms] {2}", ex.Resource, Timeout, ex.GetMessage());
+            //try
+            //{
+            return await Cluster.Invoke(async client => await client.SendMessageAsync(msg) as IMessage);
+            //}
+            //catch (ClusterException ex)
+            //{
+            //    if (ShowError) WriteLog("请求[{0}]错误！Timeout=[{1:n0}ms] {2}", ex.Resource, Timeout, ex.GetMessage());
 
-                throw ex;
-            }
+            //    throw ex;
+            //}
         }
 
         Boolean IApiSession.Send(IMessage msg)
         {
-            try
-            {
-                return Cluster.InvokeAll(client => client.SendMessage(msg));
-            }
-            catch (ClusterException ex)
-            {
-                if (ShowError) WriteLog("请求[{0}]错误！Timeout=[{1:n0}ms] {2}", ex.Resource, Timeout, ex.GetMessage());
+            //try
+            //{
+            return Cluster.Invoke(client => client.SendMessage(msg));
+            //}
+            //catch (ClusterException ex)
+            //{
+            //    if (ShowError) WriteLog("请求[{0}]错误！Timeout=[{1:n0}ms] {2}", ex.Resource, Timeout, ex.GetMessage());
 
-                throw ex;
-            }
+            //    throw ex;
+            //}
         }
         #endregion
 
@@ -300,7 +308,7 @@ namespace NewLife.Remoting
         {
             await Task.Yield();
 
-            return Cluster.InvokeAll(client => OnLoginAsync(client, false));
+            return Cluster.Invoke(client => OnLoginAsync(client, false));
         }
         #endregion
 
@@ -328,8 +336,7 @@ namespace NewLife.Remoting
             LastActive = DateTime.Now;
 
             // Api解码消息得到Action和参数
-            var msg = e.Message as IMessage;
-            if (msg == null || msg.Reply) return;
+            if (!(e.Message is IMessage msg) || msg.Reply) return;
 
             var ss = sender as ISocketRemote;
             var host = this as IApiHost;

@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Threading;
@@ -24,8 +22,9 @@ namespace XCode.Cache
         /// <summary>缓存过期时间</summary>
         DateTime ExpiredTime { get; set; } = DateTime.Now.AddHours(-1);
 
+        private volatile Int32 _Times;
         /// <summary>缓存更新次数</summary>
-        private Int64 Times { get; set; }
+        public Int32 Times => _Times;
 
         /// <summary>过期时间。单位是秒，默认60秒</summary>
         public Int32 Expire { get; set; }
@@ -46,6 +45,7 @@ namespace XCode.Cache
         {
             var exp = Setting.Current.EntityCacheExpire;
             if (exp <= 0) exp = 60;
+
             Expire = exp;
         }
         #endregion
@@ -83,13 +83,13 @@ namespace XCode.Cache
              * 2，缓存过期，开个异步更新，继续走
              */
 
-            if (Times == 0)
+            if (_Times == 0)
             {
                 if (WaitFirst)
                 {
                     lock (this)
                     {
-                        if (Times == 0) UpdateCache("第一次");
+                        if (_Times == 0) UpdateCache("第一次");
                     }
                 }
                 else
@@ -98,7 +98,7 @@ namespace XCode.Cache
                     {
                         try
                         {
-                            if (Times == 0) UpdateCache("第一次");
+                            if (_Times == 0) UpdateCache("第一次");
                         }
                         finally
                         {
@@ -152,11 +152,13 @@ namespace XCode.Cache
         {
             Interlocked.Increment(ref _updating);
 
+            var ts = _Times;
+
             // 这里直接计算有效期，避免每次判断缓存有效期时进行的时间相加而带来的性能损耗
             // 设置时间放在获取缓存之前，让其它线程不要空等
-            if (Times > 0) ExpiredTime = TimerX.Now.AddSeconds(Expire);
+            if (ts > 0) ExpiredTime = TimerX.Now.AddSeconds(Expire);
 
-            WriteLog("更新{0}（第{2}次） 原因：{1}", ToString(), reason, Times + 1);
+            WriteLog("更新{0}（第{2}次） 原因：{1}", ToString(), reason, ts + 1);
 
             try
             {
@@ -171,9 +173,9 @@ namespace XCode.Cache
                 _updating = 0;
             }
 
-            Times++;
+            ts = Interlocked.Increment(ref _Times);
             ExpiredTime = TimerX.Now.AddSeconds(Expire);
-            WriteLog("完成{0}[{1}]（第{2}次）", ToString(), _Entities.Count, Times);
+            WriteLog("完成{0}[{1}]（第{2}次）", ToString(), _Entities.Count, ts);
         }
 
         /// <summary>清除缓存</summary>

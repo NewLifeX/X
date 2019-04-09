@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -99,7 +100,7 @@ namespace NewLife.Data
             if (data == null)
             {
                 Offset = 0;
-                count = 0;
+                Count = 0;
             }
             else
             {
@@ -171,7 +172,7 @@ namespace NewLife.Data
                 {
                     //win = 0; // 只要有一个不匹配，马上清零
                     // 不能直接清零，那样会导致数据丢失，需要逐位探测，窗口一个个字节滑动
-                    i = i - win;
+                    i -= win;
                     win = 0;
                 }
             }
@@ -256,6 +257,20 @@ namespace NewLife.Data
             if (Next == null) return new ArraySegment<Byte>(Data, Offset, Count);
 
             return new ArraySegment<Byte>(ToArray());
+        }
+
+        /// <summary>返回数据段集合</summary>
+        /// <returns></returns>
+        public IList<ArraySegment<Byte>> ToSegments()
+        {
+            var list = new List<ArraySegment<Byte>>();
+
+            for (var pk = this; pk != null; pk = pk.Next)
+            {
+                list.Add(new ArraySegment<Byte>(pk.Data, pk.Offset, pk.Count));
+            }
+
+            return list;
         }
 
         /// <summary>获取封包的数据流形式</summary>
