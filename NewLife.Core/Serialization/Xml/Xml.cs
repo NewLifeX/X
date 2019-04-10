@@ -157,8 +157,8 @@ namespace NewLife.Serialization
 
             var writer = GetWriter();
 
-            // 写入注释
-            if (UseComment)
+            // 写入注释。写特性时忽略注释
+            if (UseComment && !att)
             {
                 var des = "";
                 if (Member != null) des = Member.GetDisplayName() ?? Member.GetDescription();

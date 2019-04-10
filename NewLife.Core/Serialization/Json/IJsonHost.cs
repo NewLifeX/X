@@ -9,9 +9,11 @@ namespace NewLife.Serialization
     {
         /// <summary>写入对象，得到Json字符串</summary>
         /// <param name="value"></param>
-        /// <param name="indented">是否缩进</param>
+        /// <param name="indented">是否缩进。默认false</param>
+        /// <param name="nullValue">是否写控制。默认true</param>
+        /// <param name="camelCase">是否驼峰命名。默认false</param>
         /// <returns></returns>
-        String Write(Object value, Boolean indented = false);
+        String Write(Object value, Boolean indented = false, Boolean nullValue = true, Boolean camelCase = false);
 
         /// <summary>从Json字符串中读取对象</summary>
         /// <param name="json"></param>
@@ -48,6 +50,14 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public static String ToJson(this Object value, Boolean indented = false) => Default.Write(value, indented);
 
+        /// <summary>写入对象，得到Json字符串</summary>
+        /// <param name="value"></param>
+        /// <param name="indented">是否缩进。默认false</param>
+        /// <param name="nullValue">是否写控制。默认true</param>
+        /// <param name="camelCase">是否驼峰命名。默认false</param>
+        /// <returns></returns>
+        public static String ToJson(this Object value, Boolean indented, Boolean nullValue, Boolean camelCase) => Default.Write(value, indented, nullValue, camelCase);
+
         /// <summary>从Json字符串中读取对象</summary>
         /// <param name="json"></param>
         /// <param name="type"></param>
@@ -65,7 +75,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public static T ToJsonEntity<T>(this String json)
         {
-            if (json.IsNullOrEmpty()) return default(T);
+            if (json.IsNullOrEmpty()) return default;
 
             return (T)Default.Read(json, typeof(T));
         }
@@ -145,7 +155,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public static T Convert<T>(Object obj)
         {
-            if (obj == null) return default(T);
+            if (obj == null) return default;
             if (obj is T) return (T)obj;
             if (obj.GetType().As<T>()) return (T)obj;
 
@@ -156,7 +166,7 @@ namespace NewLife.Serialization
     class FastJson : IJsonHost
     {
         #region IJsonHost 成员
-        public String Write(Object value, Boolean indented = false) => JsonWriter.ToJson(value, indented);
+        public String Write(Object value, Boolean indented, Boolean nullValue, Boolean camelCase) => JsonWriter.ToJson(value, indented, nullValue, camelCase);
 
         public Object Read(String json, Type type) => new JsonReader().Read(json, type);
 

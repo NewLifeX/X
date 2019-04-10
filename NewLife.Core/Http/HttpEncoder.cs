@@ -25,7 +25,7 @@ namespace NewLife.Http
             // 不支持序列化异常
             if (value is Exception ex) value = ex.GetTrue()?.Message;
 
-            var json = value.ToJson();
+            var json = value.ToJson(false, false, false);
             WriteLog("{0}=>{1}", action, json);
 
             return json.GetBytes();

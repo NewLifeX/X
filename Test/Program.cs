@@ -8,12 +8,9 @@ using System.Threading.Tasks;
 using NewLife.Caching;
 using NewLife.Log;
 using NewLife.Net;
-using NewLife.Reflection;
 using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
-using NewLife.Web;
-using XCode;
 using XCode.Code;
 using XCode.DataAccessLayer;
 using XCode.Membership;
@@ -76,17 +73,33 @@ namespace Test
             //url = wc.DownloadLink("http://x.newlifex.com/", "System.Data.SqlClient.st", ".");
             //XTrace.WriteLine(url);
 
-            var list = new List<String>();
-            var rs = list.GetType().IsList();
-            Console.WriteLine(rs);
-            rs = list.GetType().IsDictionary();
-            Console.WriteLine(rs);
+            //VisitStat.Meta.Session.Dal.Db.ShowSQL = true;
 
-            var dic = new Dictionary<Int32, Double>();
-            rs = dic.GetType().IsList();
-            Console.WriteLine(rs);
-            rs = dic.GetType().IsDictionary();
-            Console.WriteLine(rs);
+            //var vs = VisitStat.FindByID(1) ?? new VisitStat();
+            //vs.Times += 123;
+            //vs.Users++;
+            //vs.IPs++;
+
+            //vs.Save();
+
+            XTrace.Log.Level = LogLevel.All;
+
+            using (var tran = UserX.Meta.CreateTrans())
+            {
+                var user = UserX.FindByKey(1);
+                XTrace.WriteLine(user.Logins + "");
+
+                user.Logins++;
+
+                user.Save();
+
+                //tran.Commit();
+            }
+
+            {
+                var user = UserX.FindByKey(1);
+                XTrace.WriteLine(user.Logins + "");
+            }
         }
 
         static void Test2()
@@ -141,9 +154,9 @@ namespace Test
 
             count = UserX.FindCount();
             Console.WriteLine("Count={0}", count);
-            gs = UserX.FindAll(null, null, null, 0, 10);
+            //gs = UserX.FindAll(null, null, null, 0, 10);
 
-            gs.Delete(true);
+            //gs.Delete(true);
         }
 
         static void Test3()
@@ -188,7 +201,7 @@ namespace Test
                     }
                     catch (Exception ex)
                     {
-                        XTrace.WriteException(ex);
+                        XTrace.WriteException(ex.GetTrue());
                     }
                     sw.Stop();
                     XTrace.WriteLine("总耗时 {0:n0}ms", sw.ElapsedMilliseconds);
@@ -206,7 +219,7 @@ namespace Test
                     }
                     catch (Exception ex)
                     {
-                        XTrace.WriteException(ex);
+                        XTrace.WriteException(ex.GetTrue());
                     }
                     sw.Stop();
                     XTrace.WriteLine("总耗时 {0:n0}ms", sw.ElapsedMilliseconds);
@@ -224,7 +237,7 @@ namespace Test
                     }
                     catch (Exception ex)
                     {
-                        XTrace.WriteException(ex);
+                        XTrace.WriteException(ex.GetTrue());
                     }
                     sw.Stop();
                     XTrace.WriteLine("总耗时 {0:n0}ms", sw.ElapsedMilliseconds);
@@ -242,7 +255,7 @@ namespace Test
                     }
                     catch (Exception ex)
                     {
-                        XTrace.WriteException(ex);
+                        XTrace.WriteException(ex.GetTrue());
                     }
                     sw.Stop();
                     XTrace.WriteLine("总耗时 {0:n0}ms", sw.ElapsedMilliseconds);
@@ -542,5 +555,62 @@ namespace Test
             var output = Path.Combine(Directory.GetCurrentDirectory(), "../");
             EntityBuilder.Build(xmlFile, output);
         }
+
+        /// <summary>测试序列化</summary>
+        static void Test12()
+        {
+            var bdic = new Dictionary<String, Object>
+            {
+                { "x", "1" },
+                { "y", "2" }
+            };
+
+            var flist = new List<foo>
+            {
+                new foo() { A = 3, B = "e", AList = new List<String>() { "E", "F", "G" }, ADic = bdic }
+            };
+
+            var dic = new Dictionary<String, Object>
+            {
+                { "x", "1" },
+                { "y", "2" }
+            };
+
+
+            var entity = new foo()
+            {
+                A = 1,
+                B = "2",
+                C = DateTime.Now,
+                AList = new List<String>() { "A", "B", "C" },
+                BList = flist,
+                CList = new List<String>() { "A1", "B1", "C1" },
+                ADic = dic,
+                BDic = bdic
+            };
+
+            var json = entity.ToJson();
+
+            var fentity = json.ToJsonEntity(typeof(foo));
+        }
+    }
+
+    class foo
+    {
+        public Int32 A { get; set; }
+
+        public String B { get; set; }
+
+        public DateTime C { get; set; }
+
+        public IList<String> AList { get; set; }
+
+        public IList<foo> BList { get; set; }
+
+        public List<String> CList { get; set; }
+
+        public Dictionary<String, Object> ADic { get; set; }
+
+        public IDictionary<String, Object> BDic { get; set; }
     }
 }

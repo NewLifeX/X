@@ -27,24 +27,44 @@ namespace NewLife.Net
             if (!Session.ProcessAsync)
             {
                 var ori = Data as ReceivedEventArgs;
-                var e = new ReceivedEventArgs
-                {
-                    Remote = ori.Remote,
-                    Message = message,
-                    UserState = ori.UserState,
-                };
-
                 // 如果消息使用了原来SEAE的数据包，需要拷贝，避免多线程冲突
                 // 也可能在粘包处理时，已经拷贝了一次
-                if (ori.Packet != null && message is IMessage msg)
+                var flag = false;
+                if (ori.Packet != null)
                 {
-                    if (msg.Payload != null && ori.Packet.Data == msg.Payload.Data) msg.Payload = msg.Payload.Clone();
+                    if (message is IMessage msg)
+                    {
+                        if (msg.Payload != null && ori.Packet.Data == msg.Payload.Data)
+                        {
+                            msg.Payload = msg.Payload.Clone();
+                            flag = true;
+                        }
+                    }
+                    else if (message is Packet pk)
+                    {
+                        if (pk != null && ori.Packet.Data == pk.Data)
+                        {
+                            message = pk.Clone();
+                            flag = true;
+                        }
+                    }
                 }
 
-                // 异步处理
-                ThreadPoolX.QueueUserWorkItem(Session.Process, e);
+                // 只有完成了数据包拷贝的消息，才走异步处理，避免用户消息中引用了IOCP层数据包
+                if (flag)
+                {
+                    var e = new ReceivedEventArgs
+                    {
+                        Remote = ori.Remote,
+                        Message = message,
+                        UserState = ori.UserState,
+                    };
+
+                    ThreadPoolX.QueueUserWorkItem(Session.Process, e);
+                    return;
+                }
             }
-            else
+
             {
                 var data = Data ?? new ReceivedEventArgs();
                 data.Message = message;

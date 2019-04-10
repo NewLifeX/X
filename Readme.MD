@@ -17,6 +17,7 @@
 |       [NewLife.MQ](https://github.com/NewLifeX/NewLife.MQ)       | 2016  | 维护中 |     √     | 轻量级消息队列                                     |
 |         [Stardust](https://github.com/NewLifeX/Stardust)         | 2018  | 开发中 |     √     | 星尘，微服务平台，学习Dubbo                        |
 |           [XAgent](https://github.com/NewLifeX/XAgent)           | 2008  | 重构中 |     √     | 集群节点分布式计算平台，学习Hadoop                 |
+|           [AntJob](https://github.com/NewLifeX/AntJob)           | 2019  | 开发中 |     √     | 蚂蚁调度系统，大数据实时计算平台                 |
 |             [NoDb](https://github.com/NewLifeX/NoDb)             | 2017  | 开发中 |     √     | NoSQL数据库，百万级读写性能，学习Redis+MongoDB     |
 |    [NewLife.Cache](https://github.com/NewLifeX/NewLife.Cache)    | 2018  | 维护中 |     √     | 自定义缓存服务器                                   |
 |            [XLink](https://github.com/NewLifeX/XLink)            | 2016  | 维护中 |     √     | 物联网云平台                                       |
@@ -96,11 +97,9 @@ SSH地址：`centos.newlifex.com`
 感谢笑笑和漫游者近半年来给大家带来的netcore知识，以他们账号作为密码，实至名归！
 
 #### 新生命开发团队
-网站：http://www.NewLifeX.com
-博客：https://nnhy.cnblogs.com
-QQ群：1600800
-
-## 项目源码位置
-`注意：X组件具有15年漫长历史，源码库保留有2010年以来所有修改记录，并一直保持更新，请确保获取得到最新版本源代码`
-国内 http://git.NewLifeX.com/NewLife/X
-国外 https://github.com/NewLifeX/X
+`新生命团队始于2002年，部分开源项目具有15年以上漫长历史，源码库保留有2010年以来所有修改记录，并一直保持更新，请确保获取得到最新版本源代码`
+网站：http://www.NewLifeX.com  
+国内：http://git.NewLifeX.com  
+国外：https://github.com/NewLifeX  
+博客：https://nnhy.cnblogs.com  
+QQ群：1600800/1600838  

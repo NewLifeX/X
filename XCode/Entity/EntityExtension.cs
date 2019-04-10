@@ -490,8 +490,11 @@ namespace XCode
             // SqlServer的批量Upsert需要主键参与，哪怕是自增，构建update的where时用到主键
             if (columns == null)
             {
-                if (fact.Session.Dal.DbType == DatabaseType.SqlServer)
+                var dbt = fact.Session.Dal.DbType;
+                if (dbt == DatabaseType.SqlServer || dbt == DatabaseType.Oracle)
                     columns = fact.Fields.Select(e => e.Field).Where(e => !e.Identity || e.PrimaryKey).ToArray();
+                else if (dbt == DatabaseType.MySql)
+                    columns = fact.Fields.Select(e => e.Field).ToArray(); //只有标识键的情况下会导致重复执行insert方法 目前只测试了Mysql库
                 else
                     columns = fact.Fields.Select(e => e.Field).Where(e => !e.Identity).ToArray();
             }

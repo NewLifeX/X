@@ -15,7 +15,7 @@ namespace XCode
         public Int32 Expire { get; set; }
 
         /// <summary>键集合</summary>
-        public ICollection<String> Keys => _cache.Keys;
+        public ICollection<String> Keys => _cache?.Keys;
 
         private Dictionary<String, CacheItem> _cache;
 
