@@ -15,7 +15,7 @@ using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
 {
-    class SQLite : FileDbBase
+    internal class SQLite : FileDbBase
     {
         #region 属性
         /// <summary>返回数据库类型。</summary>
@@ -67,7 +67,7 @@ namespace XCode.DataAccessLayer
         /// </remarks>
         public Boolean AutoVacuum { get; set; }
 
-        static readonly String MemoryDatabase = ":memory:";
+        private static readonly String MemoryDatabase = ":memory:";
 
         protected override String OnResolveFile(String file)
         {
@@ -191,53 +191,18 @@ namespace XCode.DataAccessLayer
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <param name="keyColumn">主键列。用于not in分页</param>
         /// <returns></returns>
-        public override String PageSplit(String sql, Int64 startRowIndex, Int64 maximumRows, String keyColumn)
-        {
-            // 从第一行开始，不需要分页
-            if (startRowIndex <= 0)
-            {
-                if (maximumRows < 1)
-                    return sql;
-                else
-                    return String.Format("{0} limit {1}", sql, maximumRows);
-            }
-            if (maximumRows < 1) throw new NotSupportedException("不支持取第几条数据之后的所有数据！");
-
-            return String.Format("{0} limit {1}, {2}", sql, startRowIndex, maximumRows);
-        }
+        public override String PageSplit(String sql, Int64 startRowIndex, Int64 maximumRows, String keyColumn) => MySql.PageSplitByLimit(sql, startRowIndex, maximumRows);
 
         /// <summary>构造分页SQL</summary>
-        /// <remarks>
-        /// 两个构造分页SQL的方法，区别就在于查询生成器能够构造出来更好的分页语句，尽可能的避免子查询。
-        /// MS体系的分页精髓就在于唯一键，当唯一键带有Asc/Desc/Unkown等排序结尾时，就采用最大最小值分页，否则使用较次的TopNotIn分页。
-        /// TopNotIn分页和MaxMin分页的弊端就在于无法完美的支持GroupBy查询分页，只能查到第一页，往后分页就不行了，因为没有主键。
-        /// </remarks>
         /// <param name="builder">查询生成器</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>分页SQL</returns>
-        public override SelectBuilder PageSplit(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows)
-        {
-            // 从第一行开始，不需要分页
-            if (startRowIndex <= 0)
-            {
-                if (maximumRows > 0) builder.Limit += String.Format(" limit {0}", maximumRows);
-                return builder;
-            }
-            if (maximumRows < 1) throw new NotSupportedException("不支持取第几条数据之后的所有数据！");
-
-            // 不要修改原来的查询语句
-            builder = builder.Clone();
-            builder.Limit += String.Format(" limit {0}, {1}", startRowIndex, maximumRows);
-            return builder;
-        }
+        public override SelectBuilder PageSplit(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows) => MySql.PageSplitByLimit(builder, startRowIndex, maximumRows);
         #endregion
 
         #region 数据库特性
-        protected override String ReservedWordsStr
-        {
-            get { return "ABORT,ACTION,ADD,AFTER,ALL,ALTER,ANALYZE,AND,AS,ASC,ATTACH,AUTOINCREMENT,BEFORE,BEGIN,BETWEEN,BY,CASCADE,CASE,CAST,CHECK,COLLATE,COLUMN,COMMIT,CONFLICT,CONSTRAINT,CREATE,CROSS,CURRENT_DATE,CURRENT_TIME,CURRENT_TIMESTAMP,DATABASE,DEFAULT,DEFERRABLE,DEFERRED,DELETE,DESC,DETACH,DISTINCT,DROP,EACH,ELSE,END,ESCAPE,EXCEPT,EXCLUSIVE,EXISTS,EXPLAIN,FAIL,FOR,FOREIGN,FROM,FULL,GLOB,GROUP,HAVING,IF,IGNORE,IMMEDIATE,IN,INDEX,INDEXED,INITIALLY,INNER,INSERT,INSTEAD,INTERSECT,INTO,IS,ISNULL,JOIN,KEY,LEFT,LIKE,LIMIT,MATCH,NATURAL,NO,NOT,NOTNULL,NULL,OF,OFFSET,ON,OR,ORDER,OUTER,PLAN,PRAGMA,PRIMARY,QUERY,RAISE,RECURSIVE,REFERENCES,REGEXP,REINDEX,RELEASE,RENAME,REPLACE,RESTRICT,RIGHT,ROLLBACK,ROW,SAVEPOINT,SELECT,SET,TABLE,TEMP,TEMPORARY,THEN,TO,TRANSACTION,TRIGGER,UNION,UNIQUE,UPDATE,USING,VACUUM,VALUES,VIEW,VIRTUAL,WHEN,WHERE,WITH,WITHOUT"; }
-        }
+        protected override String ReservedWordsStr => "ABORT,ACTION,ADD,AFTER,ALL,ALTER,ANALYZE,AND,AS,ASC,ATTACH,AUTOINCREMENT,BEFORE,BEGIN,BETWEEN,BY,CASCADE,CASE,CAST,CHECK,COLLATE,COLUMN,COMMIT,CONFLICT,CONSTRAINT,CREATE,CROSS,CURRENT_DATE,CURRENT_TIME,CURRENT_TIMESTAMP,DATABASE,DEFAULT,DEFERRABLE,DEFERRED,DELETE,DESC,DETACH,DISTINCT,DROP,EACH,ELSE,END,ESCAPE,EXCEPT,EXCLUSIVE,EXISTS,EXPLAIN,FAIL,FOR,FOREIGN,FROM,FULL,GLOB,GROUP,HAVING,IF,IGNORE,IMMEDIATE,IN,INDEX,INDEXED,INITIALLY,INNER,INSERT,INSTEAD,INTERSECT,INTO,IS,ISNULL,JOIN,KEY,LEFT,LIKE,LIMIT,MATCH,NATURAL,NO,NOT,NOTNULL,NULL,OF,OFFSET,ON,OR,ORDER,OUTER,PLAN,PRAGMA,PRIMARY,QUERY,RAISE,RECURSIVE,REFERENCES,REGEXP,REINDEX,RELEASE,RENAME,REPLACE,RESTRICT,RIGHT,ROLLBACK,ROW,SAVEPOINT,SELECT,SET,TABLE,TEMP,TEMPORARY,THEN,TO,TRANSACTION,TRIGGER,UNION,UNIQUE,UPDATE,USING,VACUUM,VALUES,VIEW,VIRTUAL,WHEN,WHERE,WITH,WITHOUT";
 
         /// <summary>格式化关键字</summary>
         /// <param name="keyWord">关键字</param>
@@ -524,7 +489,7 @@ namespace XCode.DataAccessLayer
     }
 
     /// <summary>SQLite元数据</summary>
-    class SQLiteMetaData : FileDbMetaData
+    internal class SQLiteMetaData : FileDbMetaData
     {
         public SQLiteMetaData() => Types = _DataTypes;
 
@@ -545,7 +510,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>数据类型映射</summary>
-        private static Dictionary<Type, String[]> _DataTypes = new Dictionary<Type, String[]>
+        private static readonly Dictionary<Type, String[]> _DataTypes = new Dictionary<Type, String[]>
         {
             { typeof(Byte[]), new String[] { "binary", "varbinary", "blob", "image", "general", "oleobject" } },
             { typeof(Guid), new String[] { "uniqueidentifier", "guid" } },
@@ -613,7 +578,7 @@ namespace XCode.DataAccessLayer
                     if (line.IsNullOrEmpty() || line.StartsWithIgnoreCase("CREATE")) continue;
 
                     // 处理外键设置
-                    if (line.Contains("CONSTRAINT") && line.Contains("FOREIGN KEY"))continue;
+                    if (line.Contains("CONSTRAINT") && line.Contains("FOREIGN KEY")) continue;
 
                     var fs = line.Trim().Split(" ");
                     var field = table.CreateColumn();
@@ -955,7 +920,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 反向工程
-        private List<IDataTable> memoryTables = new List<IDataTable>();
+        private readonly List<IDataTable> memoryTables = new List<IDataTable>();
         /// <summary>已重载。因为内存数据库无法检测到架构，不知道表是否已存在，所以需要自己维护</summary>
         /// <param name="entitytable"></param>
         /// <param name="dbtable"></param>

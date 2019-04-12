@@ -38,7 +38,7 @@ namespace XCode.DataAccessLayer
             if (startRowIndex <= 0 && maximumRows <= 0) return builder;
 
             // 2016年7月2日 HUIYUE 取消分页SQL缓存，此部分缓存提升性能不多，但有可能会造成分页数据不准确，感觉得不偿失
-            return Db.PageSplit(builder, startRowIndex, maximumRows);
+            return Db.PageSplit(builder.Clone(), startRowIndex, maximumRows);
         }
 
         /// <summary>执行SQL查询，返回记录集</summary>
