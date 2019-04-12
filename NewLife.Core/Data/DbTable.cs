@@ -125,17 +125,16 @@ namespace NewLife.Data
             if (rows <= 0) return 0;
 
             var ts = Types;
-            var count = ts.Length;
 
             var total = 0;
-            var length = bn.Stream.Length;
+            //var length = bn.Stream.Length;
             var rs = new List<Object[]>(rows);
             for (var k = 0; k < rows; k++)
             {
-                if (bn.Stream.Position >= length) break;
+                //if (bn.Stream.Position >= length) break;
 
-                var row = new Object[count];
-                for (var i = 0; i < count; i++)
+                var row = new Object[ts.Length];
+                for (var i = 0; i < ts.Length; i++)
                 {
                     row[i] = bn.Read(ts[i]);
                 }
