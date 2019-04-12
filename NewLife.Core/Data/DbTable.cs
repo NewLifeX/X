@@ -21,7 +21,7 @@ namespace NewLife.Data
         /// <summary>数据行</summary>
         public IList<Object[]> Rows { get; set; }
 
-        /// <summary>总函数</summary>
+        /// <summary>总行数</summary>
         public Int32 Total { get; set; }
         #endregion
 
@@ -180,7 +180,7 @@ namespace NewLife.Data
 
             // 写入数据体
             var rs = Rows;
-            Total = rs == null ? 0 : rs.Count;
+            if (Total == 0 && rs != null) Total = rs.Count;
 
             // 写入头部
             WriteHeader(bn);
