@@ -26,7 +26,7 @@ namespace NewLife.Serialization
                     return true;
                 case TypeCode.Byte:
                 case TypeCode.SByte:
-                    Host.Write((Byte)value);
+                    Host.Write(Convert.ToByte(value));
                     return true;
                 case TypeCode.Char:
                     Write((Char)value);
