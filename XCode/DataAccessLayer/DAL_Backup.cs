@@ -39,6 +39,10 @@ namespace XCode.DataAccessLayer
                 Table = Db.FormatTableName(table)
             };
 
+            // 总行数
+            writeFile.Total = SelectCount(sb);
+            WriteLog("备份[{0}/{1}]开始，共[{2:n0}]行", table, ConnName, writeFile.Total);
+
             var row = 0;
             var pageSize = 10_000;
             var total = 0;
@@ -137,10 +141,10 @@ namespace XCode.DataAccessLayer
         class WriteFileActor : Actor
         {
             public Stream Stream { get; set; }
+            public Int32 Total { get; set; }
 
             private Binary _Binary;
-            private Int64 _CountPosition;
-            private Int32 _Total;
+            private Boolean _writeHeader;
 
             public override Task Start()
             {
@@ -154,36 +158,18 @@ namespace XCode.DataAccessLayer
                 return base.Start();
             }
 
-            protected override void Loop()
-            {
-                base.Loop();
-
-                var total = _Total;
-                if (total > 0)
-                {
-                    var bn = _Binary;
-                    var stream = bn.Stream;
-
-                    // 更新行数
-                    var p = stream.Position;
-                    stream.Position = _CountPosition;
-                    bn.Write(total.GetBytes(), 0, 4);
-                    stream.Position = p;
-                }
-            }
-
             protected override void Receive(ActorContext context)
             {
                 var dt = context.Message as DbTable;
                 var bn = _Binary;
 
                 // 写头部结构。没有数据时可以备份结构
-                if (_Total == 0)
+                if (!_writeHeader)
                 {
+                    dt.Total = Total;
                     dt.WriteHeader(bn);
 
-                    // 数据行数，占位
-                    _CountPosition = bn.Stream.Position - 4;
+                    _writeHeader = true;
                 }
 
                 var rs = dt.Rows;
@@ -191,8 +177,6 @@ namespace XCode.DataAccessLayer
 
                 // 写入文件
                 dt.WriteData(bn);
-
-                _Total += rs.Count;
             }
         }
         #endregion
@@ -226,6 +210,7 @@ namespace XCode.DataAccessLayer
 
             var dt = new DbTable();
             dt.ReadHeader(bn);
+            WriteLog("恢复[{0}/{1}]开始，共[{2:n0}]行", table.Name, ConnName, dt.Total);
 
             var row = 0;
             var pageSize = 10_000;

@@ -21,7 +21,7 @@ namespace NewLife.Data
         /// <summary>数据行</summary>
         public IList<Object[]> Rows { get; set; }
 
-        /// <summary>总函数</summary>
+        /// <summary>总行数</summary>
         public Int32 Total { get; set; }
         #endregion
 
@@ -125,17 +125,16 @@ namespace NewLife.Data
             if (rows <= 0) return 0;
 
             var ts = Types;
-            var count = ts.Length;
 
             var total = 0;
-            var length = bn.Stream.Length;
+            //var length = bn.Stream.Length;
             var rs = new List<Object[]>(rows);
             for (var k = 0; k < rows; k++)
             {
-                if (bn.Stream.Position >= length) break;
+                //if (bn.Stream.Position >= length) break;
 
-                var row = new Object[count];
-                for (var i = 0; i < count; i++)
+                var row = new Object[ts.Length];
+                for (var i = 0; i < ts.Length; i++)
                 {
                     row[i] = bn.Read(ts[i]);
                 }
@@ -180,7 +179,7 @@ namespace NewLife.Data
 
             // 写入数据体
             var rs = Rows;
-            Total = rs == null ? 0 : rs.Count;
+            if (Total == 0 && rs != null) Total = rs.Count;
 
             // 写入头部
             WriteHeader(bn);
