@@ -4,9 +4,11 @@ using System.Data.SqlClient;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using NewLife.Agent;
 using NewLife.Log;
 using NewLife.Net;
+using NewLife.Remoting;
 using NewLife.Serialization;
 using XCode.DataAccessLayer;
 using XCode.Membership;
@@ -26,13 +28,23 @@ namespace TestST
             sw.Stop();
             Console.WriteLine("OK! {0:n0}ms", sw.ElapsedMilliseconds);
 
-            Console.ReadKey();
+            //Console.ReadKey();
+            Thread.Sleep(-1);
         }
 
+        private static ApiServer _Server;
         static void Test2()
         {
             //new AgentService().Main();
             //"圣诞快乐".SpeakAsync();
+
+            var svr = new ApiServer(5678);
+            svr.Log = XTrace.Log;
+            svr.EncoderLog = XTrace.Log;
+            svr.StatPeriod = 60;
+            svr.Start();
+
+            _Server = svr;
         }
 
         static void Test3()
