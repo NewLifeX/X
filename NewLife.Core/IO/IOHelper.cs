@@ -19,17 +19,19 @@ namespace System
         /// <remarks>返回输出流，注意此时指针位于末端</remarks>
         public static Stream Compress(this Stream inStream, Stream outStream = null)
         {
-            if (outStream == null) outStream = new MemoryStream();
+            var ms = outStream ?? new MemoryStream();
 
             // 第三个参数为true，保持数据流打开，内部不应该干涉外部，不要关闭外部的数据流
-            using (var stream = new DeflateStream(outStream, CompressionLevel.Optimal, true))
+            using (var stream = new DeflateStream(ms, CompressionLevel.Optimal, true))
             {
                 inStream.CopyTo(stream);
                 stream.Flush();
-                //stream.Close();
             }
 
-            return outStream;
+            // 内部数据流需要把位置指向开头
+            if (outStream == null) ms.Position = 0;
+
+            return ms;
         }
 
         /// <summary>解压缩数据流</summary>
@@ -38,16 +40,18 @@ namespace System
         /// <remarks>返回输出流，注意此时指针位于末端</remarks>
         public static Stream Decompress(this Stream inStream, Stream outStream = null)
         {
-            if (outStream == null) outStream = new MemoryStream();
+            var ms = outStream ?? new MemoryStream();
 
             // 第三个参数为true，保持数据流打开，内部不应该干涉外部，不要关闭外部的数据流
             using (var stream = new DeflateStream(inStream, CompressionMode.Decompress, true))
             {
-                stream.CopyTo(outStream);
-                //stream.Close();
+                stream.CopyTo(ms);
             }
 
-            return outStream;
+            // 内部数据流需要把位置指向开头
+            if (outStream == null) ms.Position = 0;
+
+            return ms;
         }
 
         /// <summary>压缩字节数组</summary>
@@ -76,17 +80,19 @@ namespace System
         /// <remarks>返回输出流，注意此时指针位于末端</remarks>
         public static Stream CompressGZip(this Stream inStream, Stream outStream = null)
         {
-            if (outStream == null) outStream = new MemoryStream();
+            var ms = outStream ?? new MemoryStream();
 
             // 第三个参数为true，保持数据流打开，内部不应该干涉外部，不要关闭外部的数据流
-            using (var stream = new GZipStream(outStream, CompressionLevel.Optimal, true))
+            using (var stream = new GZipStream(ms, CompressionLevel.Optimal, true))
             {
                 inStream.CopyTo(stream);
                 stream.Flush();
-                //stream.Close();
             }
 
-            return outStream;
+            // 内部数据流需要把位置指向开头
+            if (outStream == null) ms.Position = 0;
+
+            return ms;
         }
 
         /// <summary>解压缩数据流</summary>
@@ -95,16 +101,18 @@ namespace System
         /// <remarks>返回输出流，注意此时指针位于末端</remarks>
         public static Stream DecompressGZip(this Stream inStream, Stream outStream = null)
         {
-            if (outStream == null) outStream = new MemoryStream();
+            var ms = outStream ?? new MemoryStream();
 
             // 第三个参数为true，保持数据流打开，内部不应该干涉外部，不要关闭外部的数据流
             using (var stream = new GZipStream(inStream, CompressionMode.Decompress, true))
             {
-                stream.CopyTo(outStream);
-                //stream.Close();
+                stream.CopyTo(ms);
             }
 
-            return outStream;
+            // 内部数据流需要把位置指向开头
+            if (outStream == null) ms.Position = 0;
+
+            return ms;
         }
         #endregion
 
