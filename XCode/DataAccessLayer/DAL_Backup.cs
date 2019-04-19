@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -98,7 +99,17 @@ namespace XCode.DataAccessLayer
 
             using (var fs = new FileStream(file2, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite))
             {
-                return Backup(table, fs);
+                if (file.EndsWithIgnoreCase(".gz"))
+                {
+                    using (var gs = new GZipStream(fs, CompressionLevel.Optimal, true))
+                    {
+                        return Backup(table, gs);
+                    }
+                }
+                else
+                {
+                    return Backup(table, fs);
+                }
             }
         }
 
@@ -285,7 +296,17 @@ namespace XCode.DataAccessLayer
 
             using (var fs = new FileStream(file2, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
-                return Restore(fs, table);
+                if (file.EndsWithIgnoreCase(".gz"))
+                {
+                    using (var gs = new GZipStream(fs, CompressionMode.Decompress, true))
+                    {
+                        return Restore(gs, table);
+                    }
+                }
+                else
+                {
+                    return Restore(fs, table);
+                }
             }
         }
 
