@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Model;
 using NewLife.Reflection;
@@ -169,6 +170,12 @@ namespace XCode.DataAccessLayer
                     dt.Total = Total;
                     dt.WriteHeader(bn);
 
+                    // 输出日志
+                    var cs = dt.Columns;
+                    var ts = dt.Types;
+                    WriteLog("字段[{0}]：{1}", cs.Length, cs.Join());
+                    WriteLog("类型[{0}]：{1}", ts.Length, ts.Join(",", e => e.Name));
+
                     _writeHeader = true;
                 }
 
@@ -211,6 +218,12 @@ namespace XCode.DataAccessLayer
             var dt = new DbTable();
             dt.ReadHeader(bn);
             WriteLog("恢复[{0}/{1}]开始，共[{2:n0}]行", table.Name, ConnName, dt.Total);
+
+            // 输出日志
+            var cs = dt.Columns;
+            var ts = dt.Types;
+            WriteLog("字段[{0}]：{1}", cs.Length, cs.Join());
+            WriteLog("类型[{0}]：{1}", ts.Length, ts.Join(",", e => e.Name));
 
             var row = 0;
             var pageSize = 10_000;
