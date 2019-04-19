@@ -24,6 +24,9 @@ namespace NewLife.Serialization
         /// <summary>写入空值。默认true</summary>
         public Boolean NullValue { get; set; } = true;
 
+        /// <summary>最大序列化深度。默认5</summary>
+        public Int32 MaxDepth { get; set; } = 5;
+
         private StringBuilder _Builder = new StringBuilder();
         #endregion
 
@@ -184,7 +187,7 @@ namespace NewLife.Serialization
 
             _Builder.Append('{');
             _depth++;
-            if (_depth > 5) throw new Exception("超过了序列化最大深度 " + 5);
+            if (_depth > MaxDepth) throw new Exception("超过了序列化最大深度 " + MaxDepth);
 
             var t = obj.GetType();
 
