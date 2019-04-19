@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using NewLife.Collections;
+using NewLife.Data;
 using NewLife.Reflection;
 using XCode.Common;
 
@@ -338,6 +339,35 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 基本方法 查询/执行
+        protected override DbTable OnFill(DbDataReader dr)
+        {
+            var dt = new DbTable();
+            dt.ReadHeader(dr);
+
+            Int32[] fields = null;
+
+            // 干掉rowNumber
+            var idx = Array.FindIndex(dt.Columns, c => c.EqualIgnoreCase("rowNumber"));
+            if (idx >= 0)
+            {
+                var cs = dt.Columns.ToList();
+                var ts = dt.Types.ToList();
+                var fs = Enumerable.Range(0, cs.Count).ToList();
+
+                cs.RemoveAt(idx);
+                ts.RemoveAt(idx);
+                fs.RemoveAt(idx);
+
+                dt.Columns = cs.ToArray();
+                dt.Types = ts.ToArray();
+                fields = fs.ToArray();
+            }
+
+            dt.ReadData(dr, fields);
+
+            return dt;
+        }
+
         /// <summary>快速查询单表记录数，稍有偏差</summary>
         /// <param name="tableName"></param>
         /// <returns></returns>

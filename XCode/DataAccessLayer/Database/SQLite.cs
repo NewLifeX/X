@@ -262,22 +262,28 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 基本方法 查询/执行
-        protected override void OnFill(DbTable ds, DbDataReader dr)
-        {
-            var count = dr.FieldCount;
-            var md = Database.CreateMetaData() as DbMetaData;
+        //protected override DbTable OnFill(DbDataReader dr)
+        //{
+        //    var dt = new DbTable();
+        //    dt.ReadHeader(dr);
 
-            // 字段
-            var ts = new Type[count];
-            var tns = new String[count];
-            for (var i = 0; i < count; i++)
-            {
-                tns[i] = dr.GetDataTypeName(i);
-                ts[i] = md.GetDataType(tns[i]);
-            }
-            ds.Types = ts;
-            //ds.TypeNames = tns;
-        }
+        //    var count = dr.FieldCount;
+        //    var md = Database.CreateMetaData() as DbMetaData;
+
+        //    // 字段
+        //    var ts = new Type[count];
+        //    var tns = new String[count];
+        //    for (var i = 0; i < count; i++)
+        //    {
+        //        tns[i] = dr.GetDataTypeName(i);
+        //        ts[i] = md.GetDataType(tns[i]);
+        //    }
+        //    dt.Types = ts;
+
+        //    dt.ReadData(dr);
+
+        //    return dt;
+        //}
 
         /// <summary>执行插入语句并返回新增行的自动编号</summary>
         /// <param name="sql">SQL语句</param>
@@ -365,7 +371,7 @@ namespace XCode.DataAccessLayer
                             //if (dc.Identity)
                             //    cs.Add(0);
                             //else
-                            cs.Add(dt.GetColumn(dc.Name));
+                            cs.Add(dt.GetColumn(dc.ColumnName));
                         }
                         ids = cs.ToArray();
                     }

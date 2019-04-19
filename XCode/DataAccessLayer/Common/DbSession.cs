@@ -230,24 +230,24 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual DbTable Query(String sql, IDataParameter[] ps)
         {
-            //var dps = ps == null ? null : Database.CreateParameters(ps);
             using (var cmd = OnCreateCommand(sql, CommandType.Text, ps))
             {
                 return Execute(cmd, true, cmd2 =>
                 {
                     using (var dr = cmd2.ExecuteReader())
                     {
-                        var ds = new DbTable();
-                        OnFill(ds, dr);
-                        ds.Read(dr);
-
-                        return ds;
+                        return OnFill(dr);
                     }
                 });
             }
         }
 
-        protected virtual void OnFill(DbTable ds, DbDataReader dr) { }
+        protected virtual DbTable OnFill(DbDataReader dr)
+        {
+            var dt = new DbTable();
+            dt.Read(dr);
+            return dt;
+        }
 
         private static Regex reg_QueryCount = new Regex(@"^\s*select\s+\*\s+from\s+([\w\W]+)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         /// <summary>执行SQL查询，返回总记录数</summary>

@@ -328,7 +328,7 @@ namespace XCode.DataAccessLayer
                             if (dc.Identity)
                                 cs.Add(0);
                             else
-                                cs.Add(dt.GetColumn(dc.Name));
+                                cs.Add(dt.GetColumn(dc.ColumnName));
                         }
                         ids = cs.ToArray();
                     }

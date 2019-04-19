@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
+using System.Linq;
 using NewLife.Reflection;
 using NewLife.Serialization;
 
@@ -33,6 +34,14 @@ namespace NewLife.Data
         /// <param name="dr"></param>
         public void Read(IDataReader dr)
         {
+            ReadHeader(dr);
+            ReadData(dr);
+        }
+
+        /// <summary>读取头部</summary>
+        /// <param name="dr"></param>
+        public void ReadHeader(IDataReader dr)
+        {
             var count = dr.FieldCount;
 
             // 字段
@@ -40,20 +49,33 @@ namespace NewLife.Data
             var ts = new Type[count];
             for (var i = 0; i < count; i++)
             {
-                if (cs[i] == null) cs[i] = dr.GetName(i);
-                if (ts[i] == null) ts[i] = dr.GetFieldType(i);
+                cs[i] = dr.GetName(i);
+                ts[i] = dr.GetFieldType(i);
             }
             Columns = cs;
             Types = ts;
+        }
+
+        /// <summary>读取数据</summary>
+        /// <param name="dr">数据读取器</param>
+        /// <param name="fields">要读取的字段序列</param>
+        public void ReadData(IDataReader dr, Int32[] fields = null)
+        {
+            // 字段
+            var cs = Columns;
+            var ts = Types;
+
+            if (fields == null) fields = Enumerable.Range(0, cs.Length).ToArray();
 
             // 数据
             var rs = new List<Object[]>();
             while (dr.Read())
             {
-                var row = new Object[count];
-                for (var i = 0; i < count; i++)
+                var row = new Object[fields.Length];
+                for (var i = 0; i < fields.Length; i++)
                 {
-                    var val = dr[i];
+                    var val = dr[fields[i]];
+
                     if (val == DBNull.Value) val = GetDefault(ts[i].GetTypeCode());
                     row[i] = val;
                 }
@@ -403,7 +425,7 @@ namespace NewLife.Data
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        struct DbEnumerator : IEnumerator<DbRow>
+        private struct DbEnumerator : IEnumerator<DbRow>
         {
             public DbTable Table { get; set; }
 
