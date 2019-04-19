@@ -99,17 +99,23 @@ namespace XCode.DataAccessLayer
 
             using (var fs = new FileStream(file2, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite))
             {
+                var rs = 0;
                 if (file.EndsWithIgnoreCase(".gz"))
                 {
                     using (var gs = new GZipStream(fs, CompressionLevel.Optimal, true))
                     {
-                        return Backup(table, gs);
+                        rs = Backup(table, gs);
                     }
                 }
                 else
                 {
-                    return Backup(table, fs);
+                    rs = Backup(table, fs);
                 }
+
+                // 截断文件
+                fs.SetLength(fs.Position);
+
+                return rs;
             }
         }
 
