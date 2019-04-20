@@ -34,7 +34,7 @@ namespace Test
                 try
                 {
 #endif
-                Test8();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -55,51 +55,20 @@ namespace Test
 
         static void Test1()
         {
-            //new AgentService().Main();
+            var total = UserX.Meta.Count;
+            Console.WriteLine("总行数：{0:n0}", total);
 
-            //var wc = new WebClientX
-            //{
-            //    Log = XTrace.Log
-            //};
-            //var url = wc.DownloadLink("http://x.newlifex.com/", "Oracle.ManagedDataAccess.st", ".");
-            //XTrace.WriteLine(url);
-
-            //url = wc.DownloadLink("http://x.newlifex.com/", "MySql.Data.st", ".");
-            //XTrace.WriteLine(url);
-
-            //url = wc.DownloadLink("http://x.newlifex.com/", "MySql.Data64Fx40,MySql.Data", ".");
-            //XTrace.WriteLine(url);
-
-            //url = wc.DownloadLink("http://x.newlifex.com/", "System.Data.SqlClient.st", ".");
-            //XTrace.WriteLine(url);
-
-            //VisitStat.Meta.Session.Dal.Db.ShowSQL = true;
-
-            //var vs = VisitStat.FindByID(1) ?? new VisitStat();
-            //vs.Times += 123;
-            //vs.Users++;
-            //vs.IPs++;
-
-            //vs.Save();
-
-            XTrace.Log.Level = LogLevel.All;
-
-            using (var tran = UserX.Meta.CreateTrans())
+            // 查询1000万次，不预热
+            var count = 10_000_000;
+            var sw = Stopwatch.StartNew();
+            for (var i = 0; i < count; i++)
             {
-                var user = UserX.FindByKey(1);
-                XTrace.WriteLine(user.Logins + "");
-
-                user.Logins++;
-
-                user.Save();
-
-                //tran.Commit();
+                var user = UserX.FindByName("admin");
             }
+            sw.Stop();
 
-            {
-                var user = UserX.FindByKey(1);
-                XTrace.WriteLine(user.Logins + "");
-            }
+            var ms = sw.Elapsed.TotalMilliseconds;
+            Console.WriteLine("查询[{0:n0}]次，耗时{1:n0}ms，速度{2:n0}qps", count, ms, count * 1000L / ms);
         }
 
         static void Test2()
