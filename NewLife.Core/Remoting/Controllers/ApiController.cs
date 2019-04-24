@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using NewLife.Collections;
+using NewLife.Data;
 using NewLife.Net;
+using NewLife.Serialization;
 
 namespace NewLife.Remoting
 {
@@ -50,8 +52,9 @@ namespace NewLife.Remoting
             return _all = list.ToArray();
         }
 
-        private readonly String _MachineName = Environment.MachineName;
-        private readonly String _UserName = Environment.UserName;
+        private readonly static String _MachineName = Environment.MachineName;
+        private readonly static String _UserName = Environment.UserName;
+        private readonly static String _LocalIP = NetHelper.MyIP() + "";
         /// <summary>服务器信息，用户健康检测</summary>
         /// <param name="state">状态信息</param>
         /// <returns></returns>
@@ -65,11 +68,35 @@ namespace NewLife.Remoting
                 MachineNam = _MachineName,
                 UserName = _UserName,
                 Time = DateTime.Now,
-                LocalIP = NetHelper.MyIP() + "",
+                LocalIP = _LocalIP,
                 Remote = ns?.Remote?.EndPoint + "",
                 State = state,
             };
             return rs;
+        }
+
+        private static Packet _myInfo;
+        /// <summary>服务器信息，用户健康检测，二进制压测</summary>
+        /// <param name="state">状态信息</param>
+        /// <returns></returns>
+        public Packet Info2(Packet state)
+        {
+            if (_myInfo == null)
+            {
+                // 不包含时间和远程地址
+                var rs = new
+                {
+                    MachineNam = _MachineName,
+                    UserName = _UserName,
+                    LocalIP = _LocalIP,
+                };
+                _myInfo = new Packet(rs.ToJson().GetBytes());
+            }
+
+            var pk = _myInfo.Slice(0, -1);
+            pk.Append(state);
+
+            return pk;
         }
     }
 }

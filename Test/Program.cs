@@ -137,7 +137,7 @@ namespace Test
                 {
                     Log = XTrace.Log,
                     //EncoderLog = XTrace.Log,
-                    StatPeriod = 10,
+                    StatPeriod = 0,
                 };
 
                 var ns = svr.EnsureCreate() as NetServer;

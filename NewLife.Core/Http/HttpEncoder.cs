@@ -22,6 +22,8 @@ namespace NewLife.Http
         {
             if (value == null) return null;
 
+            if (value is Packet pk) return pk;
+
             // 不支持序列化异常
             if (value is Exception ex) value = ex.GetTrue()?.Message;
 
