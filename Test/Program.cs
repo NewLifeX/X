@@ -34,7 +34,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test1();
+                    Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -132,10 +132,11 @@ namespace Test
         {
             if (Console.ReadLine() == "1")
             {
-                var svr = new ApiServer(1234)
+                //var svr = new ApiServer(1234)
+                var svr = new ApiServer("http://*:1234")
                 {
                     Log = XTrace.Log,
-                    EncoderLog = XTrace.Log,
+                    //EncoderLog = XTrace.Log,
                     StatPeriod = 10,
                 };
 
