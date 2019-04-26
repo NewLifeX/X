@@ -132,12 +132,12 @@ namespace Test
         {
             if (Console.ReadLine() == "1")
             {
-                //var svr = new ApiServer(1234)
-                var svr = new ApiServer("http://*:1234")
+                var svr = new ApiServer(1234)
+                //var svr = new ApiServer("http://*:1234")
                 {
                     Log = XTrace.Log,
-                    //EncoderLog = XTrace.Log,
-                    StatPeriod = 0,
+                    EncoderLog = XTrace.Log,
+                    StatPeriod = 10,
                 };
 
                 var ns = svr.EnsureCreate() as NetServer;

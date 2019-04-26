@@ -99,7 +99,7 @@ namespace NewLife.Remoting
 
         private IMessage OnProcess(IApiSession session, IMessage msg)
         {
-            var enc = Encoder;
+            var enc = session["Encoder"] as IEncoder ?? Encoder;
 
             var action = "";
             Object result = null;

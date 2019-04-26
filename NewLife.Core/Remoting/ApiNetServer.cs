@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using NewLife.Http;
 using NewLife.Messaging;
 using NewLife.Net;
 
@@ -36,6 +37,8 @@ namespace NewLife.Remoting
             // 如果主机为空，监听所有端口
             if (Local.Host.IsNullOrEmpty() || Local.Host == "*") AddressFamily = System.Net.Sockets.AddressFamily.Unspecified;
 
+            // Http封包协议
+            Add<HttpCodec>();
             // 新生命标准网络封包协议
             Add(Host.GetMessageCodec());
 
