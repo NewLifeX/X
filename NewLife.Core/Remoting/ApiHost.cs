@@ -32,6 +32,9 @@ namespace NewLife.Remoting
         /// <summary>接收数据包统计信息</summary>
         public ICounter StatProcess { get; set; }
 
+        /// <summary>慢调用。远程调用时间超过该值时，输出慢调用日志，默认3000ms</summary>
+        public Int32 SlowInvoke { get; set; } = 3_000;
+
         /// <summary>用户会话数据</summary>
         public IDictionary<String, Object> Items { get; set; } = new NullableDictionary<String, Object>();
 
