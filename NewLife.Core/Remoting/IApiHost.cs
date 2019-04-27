@@ -38,8 +38,8 @@ namespace NewLife.Remoting
         /// <summary>接收统计</summary>
         ICounter StatProcess { get; set; }
 
-        /// <summary>慢调用。远程调用时间超过该值时，输出慢调用日志，默认3000ms</summary>
-        Int32 SlowInvoke { get; set; }
+        /// <summary>慢追踪。远程调用或处理时间超过该值时，输出慢调用日志，默认5000ms</summary>
+        Int32 SlowTrace { get; set; }
 
         /// <summary>日志</summary>
         ILog Log { get; set; }
@@ -104,7 +104,7 @@ namespace NewLife.Remoting
             finally
             {
                 var msCost = st.StopCount(sw) / 1000;
-                if (host.SlowInvoke > 0 && msCost >= host.SlowInvoke) host.WriteLog($"慢调用[{action}]，耗时{msCost:n0}ms");
+                if (host.SlowTrace > 0 && msCost >= host.SlowTrace) host.WriteLog($"慢调用[{action}]，耗时{msCost:n0}ms");
             }
 
             // 特殊返回类型
@@ -162,7 +162,8 @@ namespace NewLife.Remoting
             }
             finally
             {
-                st.StopCount(sw);
+                var msCost = st.StopCount(sw) / 1000;
+                if (host.SlowTrace > 0 && msCost >= host.SlowTrace) host.WriteLog($"慢调用[{action}]，耗时{msCost:n0}ms");
             }
         }
 
