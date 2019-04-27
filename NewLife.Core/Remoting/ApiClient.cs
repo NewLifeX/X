@@ -22,7 +22,7 @@ namespace NewLife.Remoting
         /// <summary>客户端连接集群</summary>
         public ICluster<String, ISocketClient> Cluster { get; set; }
 
-        /// <summary>是否使用连接池。true时建立多个到服务端的连接，默认false使用单一连接</summary>
+        /// <summary>是否使用连接池。true时建立多个到服务端的连接（高吞吐），默认false使用单一连接（低延迟）</summary>
         public Boolean UsePool { get; set; }
 
         /// <summary>主机</summary>
@@ -90,6 +90,7 @@ namespace NewLife.Remoting
 
                 // 集群
                 Cluster = InitCluster();
+                WriteLog("集群：{0}", Cluster);
 
                 Encoder.Log = EncoderLog;
 
@@ -183,10 +184,7 @@ namespace NewLife.Remoting
                 // 重新登录后再次调用
                 if (ex.Code == 401)
                 {
-                    var waiter = Cluster.Invoke(client => OnLoginAsync(client, true));
-                    if (waiter == null) throw;
-
-                    await waiter;
+                    await Cluster.InvokeAsync(client => OnLoginAsync(client, true));
 
                     return await ApiHostHelper.InvokeAsync(this, this, resultType, act, args, flag);
                 }
@@ -258,33 +256,9 @@ namespace NewLife.Remoting
             return (TResult)await ApiHostHelper.InvokeAsync(this, client, typeof(TResult), act, args, flag);
         }
 
-        async Task<IMessage> IApiSession.SendAsync(IMessage msg)
-        {
-            //try
-            //{
-            return await Cluster.Invoke(async client => await client.SendMessageAsync(msg) as IMessage);
-            //}
-            //catch (ClusterException ex)
-            //{
-            //    if (ShowError) WriteLog("请求[{0}]错误！Timeout=[{1:n0}ms] {2}", ex.Resource, Timeout, ex.GetMessage());
+        Task<IMessage> IApiSession.SendAsync(IMessage msg) => Cluster.InvokeAsync(client => client.SendMessageAsync(msg)).ContinueWith(t => t.Result as IMessage);
 
-            //    throw ex;
-            //}
-        }
-
-        Boolean IApiSession.Send(IMessage msg)
-        {
-            //try
-            //{
-            return Cluster.Invoke(client => client.SendMessage(msg));
-            //}
-            //catch (ClusterException ex)
-            //{
-            //    if (ShowError) WriteLog("请求[{0}]错误！Timeout=[{1:n0}ms] {2}", ex.Resource, Timeout, ex.GetMessage());
-
-            //    throw ex;
-            //}
-        }
+        Boolean IApiSession.Send(IMessage msg) => Cluster.Invoke(client => client.SendMessage(msg));
         #endregion
 
         #region 登录
@@ -300,7 +274,7 @@ namespace NewLife.Remoting
         /// <summary>连接后自动登录</summary>
         /// <param name="client">客户端</param>
         /// <param name="force">强制登录</param>
-        protected virtual Task<Object> OnLoginAsync(ISocketClient client, Boolean force) => null;
+        protected virtual Task<Object> OnLoginAsync(ISocketClient client, Boolean force) => Task.FromResult<Object>(null);
 
         /// <summary>登录</summary>
         /// <returns></returns>
@@ -308,7 +282,7 @@ namespace NewLife.Remoting
         {
             await Task.Yield();
 
-            return Cluster.Invoke(client => OnLoginAsync(client, false));
+            return await Cluster.InvokeAsync(client => OnLoginAsync(client, false));
         }
         #endregion
 

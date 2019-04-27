@@ -34,7 +34,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test3();
+                Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -136,7 +136,7 @@ namespace Test
                 //var svr = new ApiServer("http://*:1234")
                 {
                     Log = XTrace.Log,
-                    EncoderLog = XTrace.Log,
+                    //EncoderLog = XTrace.Log,
                     StatPeriod = 10,
                 };
 
@@ -154,8 +154,10 @@ namespace Test
                 var client = new ApiClient("tcp://127.0.0.1:1234")
                 {
                     Log = XTrace.Log,
-                    EncoderLog = XTrace.Log,
+                    //EncoderLog = XTrace.Log,
                     StatPeriod = 10,
+
+                    UsePool = true,
                 };
                 client.Open();
 

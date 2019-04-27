@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net.Sockets;
+using System.Threading.Tasks;
 
 namespace NewLife.Collections
 {
@@ -30,23 +29,6 @@ namespace NewLife.Collections
         Boolean Put(TValue value);
     }
 
-    ///// <summary>集群异常</summary>
-    //public class ClusterException : Exception
-    //{
-    //    /// <summary>资源</summary>
-    //    public String Resource { get; set; }
-
-    //    /// <summary>实例化</summary>
-    //    /// <param name="res"></param>
-    //    /// <param name="message"></param>
-    //    public ClusterException(String res, String message) : base($"[{res}]异常.{message}") => Resource = res;
-
-    //    /// <summary>实例化</summary>
-    //    /// <param name="res"></param>
-    //    /// <param name="inner"></param>
-    //    public ClusterException(String res, Exception inner) : base($"[{res}]异常.{inner.Message}", inner) => Resource = res;
-    //}
-
     /// <summary>集群助手</summary>
     public static class ClusterHelper
     {
@@ -71,41 +53,25 @@ namespace NewLife.Collections
             }
         }
 
-        ///// <summary>对集群进行多次调用</summary>
-        ///// <typeparam name="TKey"></typeparam>
-        ///// <typeparam name="TValue"></typeparam>
-        ///// <typeparam name="TResult"></typeparam>
-        ///// <param name="cluster"></param>
-        ///// <param name="func"></param>
-        ///// <returns></returns>
-        //public static TResult InvokeAll<TKey, TValue, TResult>(this ICluster<TKey, TValue> cluster, Func<TValue, TResult> func)
-        //{
-        //    Exception error = null;
-        //    var item = default(TValue);
-        //    var count = cluster.GetItems().Count();
-        //    for (var i = 0; i < count; i++)
-        //    {
-        //        try
-        //        {
-        //            item = cluster.Get();
-        //            return func(item);
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            error = ex;
-        //        }
-        //        finally
-        //        {
-        //            cluster.Put(item);
-        //        }
-        //    }
-
-        //    throw error;
-
-        //    //if (error is SocketException se)
-        //    //    throw new ClusterException(item + "", se.Message);
-        //    //else
-        //    //    throw new ClusterException(item + "", error);
-        //}
+        /// <summary>借助集群资源处理事务</summary>
+        /// <typeparam name="TKey"></typeparam>
+        /// <typeparam name="TValue"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="cluster"></param>
+        /// <param name="func"></param>
+        /// <returns></returns>
+        public static async Task<TResult> InvokeAsync<TKey, TValue, TResult>(this ICluster<TKey, TValue> cluster, Func<TValue, Task<TResult>> func)
+        {
+            var item = default(TValue);
+            try
+            {
+                item = cluster.Get();
+                return await func(item);
+            }
+            finally
+            {
+                cluster.Put(item);
+            }
+        }
     }
 }
