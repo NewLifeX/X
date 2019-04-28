@@ -116,7 +116,8 @@ namespace NewLife.Remoting
         /// <returns></returns>
         protected virtual ControllerContext Prepare(IApiSession session, String action, Packet args, ApiAction api)
         {
-            var enc = Host.Encoder;
+            //var enc = Host.Encoder;
+            var enc = session["Encoder"] as IEncoder ?? Host.Encoder;
 
             // 当前上下文
             var ctx = ControllerContext.Current;
