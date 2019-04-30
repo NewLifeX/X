@@ -361,8 +361,9 @@ namespace NewLife.Caching
                 var client = Pool.Get();
                 try
                 {
-                    var rs = client.Execute<String>("KEYS", "*");
-                    return rs.Split(Environment.NewLine).ToList();
+                    var rs = client.Execute<String[]>("KEYS", "*");
+                    //return rs.Split(Environment.NewLine).ToList();
+                    return rs;
                 }
                 finally
                 {
