@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.2024
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28803.202
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Others", "Others", "{32891F65-FBA1-42B2-918E-61F3A9623F2A}"
 	ProjectSection(SolutionItems) = preProject
@@ -14,13 +14,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Others", "Others", "{32891F
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", "{6740B4CD-B2F6-49DF-BDA0-7DC17144C666}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XCode", "XCode\XCode.csproj", "{B49ABA5A-C5DA-45F4-87F1-B435EC51D710}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XCode", "XCode\XCode.csproj", "{B49ABA5A-C5DA-45F4-87F1-B435EC51D710}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewLife.Core", "NewLife.Core\NewLife.Core.csproj", "{5813C22E-EEB3-4DEE-A45C-BB218041193A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NewLife.Core", "NewLife.Core\NewLife.Core.csproj", "{5813C22E-EEB3-4DEE-A45C-BB218041193A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestST", "TestST\TestST.csproj", "{B944861A-E5FB-4DDB-9DD2-93930B5C1885}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NewLife.Agent", "NewLife.Agent\NewLife.Agent.csproj", "{260A337D-B1E2-46AE-A42B-DACE9FD95359}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XUnitTest.Core", "XUnitTest.Core\XUnitTest.Core.csproj", "{EDAB9A50-37C7-4CB0-8643-D57A577C1461}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -48,6 +50,10 @@ Global
 		{260A337D-B1E2-46AE-A42B-DACE9FD95359}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{260A337D-B1E2-46AE-A42B-DACE9FD95359}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{260A337D-B1E2-46AE-A42B-DACE9FD95359}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EDAB9A50-37C7-4CB0-8643-D57A577C1461}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EDAB9A50-37C7-4CB0-8643-D57A577C1461}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EDAB9A50-37C7-4CB0-8643-D57A577C1461}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EDAB9A50-37C7-4CB0-8643-D57A577C1461}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
