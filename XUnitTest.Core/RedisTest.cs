@@ -92,5 +92,21 @@ namespace XUnitTest.Core
             Assert.Equal(Environment.MachineName, name);
             Assert.NotEqual(Environment.UserName, name);
         }
+
+        [Fact(DisplayName = "累加累减")]
+        public void IncDec()
+        {
+            var ic = Redis;
+            var key = "CostInt";
+            var key2 = "CostDouble";
+
+            ic.Set(key, 123);
+            ic.Increment(key, 22);
+            Assert.Equal(123 + 22, ic.Get<Int32>(key));
+
+            ic.Set(key2, 456d);
+            ic.Increment(key2, 22d);
+            Assert.Equal(456d + 22d, ic.Get<Double>(key2));
+        }
     }
 }
