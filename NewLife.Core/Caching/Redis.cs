@@ -475,7 +475,7 @@ namespace NewLife.Caching
         /// <returns></returns>
         public override Boolean Add<T>(String key, T value, Int32 expire = -1)
         {
-            if (expire < 0) expire = Expire;
+            //if (expire < 0) expire = Expire;
 
             if (expire <= 0)
                 return Execute(key, rds => rds.Execute<Int32>("SETNX", key, value) == 1, true);
