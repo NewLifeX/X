@@ -70,5 +70,27 @@ namespace XUnitTest.Core
                 Assert.Equal(item.Value, dic2[item.Key]);
             }
         }
+
+        [Fact(DisplayName = "高级添加")]
+        public void AddReplace()
+        {
+            var ic = Redis;
+            var key = "Name";
+
+            ic.Set(key, Environment.UserName);
+            var rs = ic.Add(key, Environment.MachineName);
+            Assert.False(rs);
+
+            var name = ic.Get<String>(key);
+            Assert.Equal(Environment.UserName, name);
+            Assert.NotEqual(Environment.MachineName, name);
+
+            var old = ic.Replace(key, Environment.MachineName);
+            Assert.Equal(Environment.UserName, old);
+
+            name = ic.Get<String>(key);
+            Assert.Equal(Environment.MachineName, name);
+            Assert.NotEqual(Environment.UserName, name);
+        }
     }
 }
