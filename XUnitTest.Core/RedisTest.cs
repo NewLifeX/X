@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using NewLife.Caching;
 using NewLife.Log;
 using Xunit;
+using NewLife.Serialization;
+using NewLife.Data;
 
 namespace XUnitTest.Core
 {
@@ -107,6 +109,66 @@ namespace XUnitTest.Core
             ic.Set(key2, 456d);
             ic.Increment(key2, 22d);
             Assert.Equal(456d + 22d, ic.Get<Double>(key2));
+        }
+
+        [Fact(DisplayName = "复杂对象")]
+        public void TestObject()
+        {
+            var obj = new User
+            {
+                Name = "大石头",
+                Company = "NewLife",
+                Age = 24,
+                Roles = new[] { "管理员", "游客" },
+                UpdateTime = DateTime.Now,
+            };
+
+            var ic = Redis;
+            var key = "user";
+
+            ic.Set(key, obj);
+            var obj2 = ic.Get<User>(key);
+
+            Assert.Equal(obj.ToJson(), obj2.ToJson());
+        }
+
+        class User
+        {
+            public String Name { get; set; }
+            public String Company { get; set; }
+            public Int32 Age { get; set; }
+            public String[] Roles { get; set; }
+            public DateTime UpdateTime { get; set; }
+        }
+
+        [Fact(DisplayName = "字节数组")]
+        public void TestBuffer()
+        {
+            var ic = Redis;
+            var key = "buf";
+
+            var str = "学无先后达者为师";
+            var buf = str.GetBytes();
+
+            ic.Set(key, buf);
+            var buf2 = ic.Get<Byte[]>(key);
+
+            Assert.Equal(buf.ToHex(), buf2.ToHex());
+        }
+
+        [Fact(DisplayName = "数据包")]
+        public void TestPacket()
+        {
+            var ic = Redis;
+            var key = "buf";
+
+            var str = "学无先后达者为师";
+            var pk = new Packet(str.GetBytes());
+
+            ic.Set(key, pk);
+            var pk2 = ic.Get<Packet>(key);
+
+            Assert.Equal(pk.ToHex(), pk2.ToHex());
         }
     }
 }
