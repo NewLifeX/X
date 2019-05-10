@@ -7,8 +7,8 @@
     <Description>数据中间件，MySQL、SQLite、SqlServer、Oracle</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2019 新生命开发团队</Copyright>
-    <Version>9.11.2019.0415</Version>
-    <FileVersion>9.11.2019.0415</FileVersion>
+    <Version>9.11.2019.0510</Version>
+    <FileVersion>9.11.2019.0510</FileVersion>
     <AssemblyVersion>9.11.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <OutputPath>..\..\Bin</OutputPath>
@@ -26,7 +26,7 @@
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
-    <PackageReleaseNotes>修正事务BUG；改进数据备份支持单向流</PackageReleaseNotes>
+    <PackageReleaseNotes>改进数据备份</PackageReleaseNotes>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>

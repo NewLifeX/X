@@ -7,8 +7,8 @@
     <Description>日志、网络、RPC、序列化、缓存、Windows服务、线程池</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2019 新生命开发团队</Copyright>
-    <Version>8.1.2019.0415</Version>
-    <FileVersion>8.1.2019.0415</FileVersion>
+    <Version>8.1.2019.0510</Version>
+    <FileVersion>8.1.2019.0510</FileVersion>
     <AssemblyVersion>8.1.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <OutputPath>..\..\Bin</OutputPath>
@@ -26,7 +26,7 @@
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
-    <PackageReleaseNotes>优化ApiClient客户端集群</PackageReleaseNotes>
+    <PackageReleaseNotes>ApiServer支持Http协议和SRMP协议混合使用</PackageReleaseNotes>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
