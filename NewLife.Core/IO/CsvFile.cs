@@ -34,7 +34,7 @@ namespace NewLife.IO
         public CsvFile(String file, Boolean write = false)
         {
             if (write)
-                _stream = new FileStream(file, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
+                _stream = new FileStream(file.GetFullPath().EnsureDirectory(true), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
             else
                 _stream = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
         }
