@@ -450,18 +450,11 @@ namespace XCode
             if (updateColumns == null)
             {
                 // 所有实体对象的脏字段作为更新字段
-                var hs = new HashSet<String>();
-                foreach (var item in list)
-                {
-                    foreach (var elm in item.Dirtys)
-                    {
-                        // 创建时间等字段不参与Update
-                        if (elm.StartsWithIgnoreCase("Create")) continue;
+                var dirtys = GetDirtyColumns(fact, list.Cast<IEntity>());
+                // 创建时间等字段不参与Update
+                dirtys = dirtys.Where(e => !e.StartsWithIgnoreCase("Create")).ToArray();
 
-                        if (!hs.Contains(elm)) hs.Add(elm);
-                    }
-                }
-                if (hs.Count > 0) updateColumns = hs;
+                if (dirtys.Length > 0) updateColumns = dirtys;
             }
             if (addColumns == null) addColumns = fact.AdditionalFields;
 
@@ -504,23 +497,23 @@ namespace XCode
                     columns = fact.Fields.Select(e => e.Field).ToArray(); //只有标识键的情况下会导致重复执行insert方法 目前只测试了Mysql库
                 else
                     columns = fact.Fields.Select(e => e.Field).Where(e => !e.Identity).ToArray();
+
+                // 每个列要么有脏数据，要么允许空。不允许空又没有脏数据的字段插入没有意义
+                var dirtys = GetDirtyColumns(fact, list.Cast<IEntity>());
+                if (fact.FullInsert)
+                    columns = columns.Where(e => e.Nullable || dirtys.Contains(e.Name)).ToArray();
+                else
+                    columns = columns.Where(e => dirtys.Contains(e.Name)).ToArray();
             }
             //if (updateColumns == null) updateColumns = entity.Dirtys.Keys;
             if (updateColumns == null)
             {
                 // 所有实体对象的脏字段作为更新字段
-                var hs = new HashSet<String>();
-                foreach (var item in list)
-                {
-                    foreach (var elm in item.Dirtys)
-                    {
-                        // 创建时间等字段不参与Update
-                        if (elm.StartsWithIgnoreCase("Create")) continue;
+                var dirtys = GetDirtyColumns(fact, list.Cast<IEntity>());
+                // 创建时间等字段不参与Update
+                dirtys = dirtys.Where(e => !e.StartsWithIgnoreCase("Create")).ToArray();
 
-                        if (!hs.Contains(elm)) hs.Add(elm);
-                    }
-                }
-                if (hs.Count > 0) updateColumns = hs;
+                if (dirtys.Length > 0) updateColumns = dirtys;
             }
             if (addColumns == null) addColumns = fact.AdditionalFields;
             // 没有任何数据变更则直接返回0
@@ -547,7 +540,17 @@ namespace XCode
         public static Int32 Upsert(this IEntity entity, IDataColumn[] columns = null, ICollection<String> updateColumns = null, ICollection<String> addColumns = null)
         {
             var fact = entity.GetType().AsFactory();
-            if (columns == null) columns = fact.Fields.Select(e => e.Field).Where(e => !e.Identity).ToArray();
+            if (columns == null)
+            {
+                columns = fact.Fields.Select(e => e.Field).Where(e => !e.Identity).ToArray();
+
+                // 每个列要么有脏数据，要么允许空。不允许空又没有脏数据的字段插入没有意义
+                var dirtys = GetDirtyColumns(fact, new[] { entity });
+                if (fact.FullInsert)
+                    columns = columns.Where(e => e.Nullable || dirtys.Contains(e.Name)).ToArray();
+                else
+                    columns = columns.Where(e => dirtys.Contains(e.Name)).ToArray();
+            }
             if (updateColumns == null) updateColumns = entity.Dirtys.Where(e => !e.StartsWithIgnoreCase("Create")).Distinct().ToArray();
             if (addColumns == null) addColumns = fact.AdditionalFields;
 
