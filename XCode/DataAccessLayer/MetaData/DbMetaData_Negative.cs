@@ -771,6 +771,17 @@ namespace XCode.DataAccessLayer
             // 约束
             sb.Append(GetFieldConstraints(field, onlyDefine));
 
+            // 默认值
+            if (!field.Nullable && !field.Identity)
+            {
+                if (field.DataType.IsInt() || field.DataType.IsEnum)
+                    sb.AppendFormat(" DEFAULT '0'");
+                else if (field.DataType == typeof(Boolean))
+                    sb.AppendFormat(" DEFAULT '0'");
+                else if (field.DataType == typeof(Double) || field.DataType == typeof(Single))
+                    sb.AppendFormat(" DEFAULT '0'");
+            }
+
             return sb.ToString();
         }
 
