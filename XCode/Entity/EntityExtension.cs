@@ -411,6 +411,13 @@ namespace XCode
                 {
                     if (entity[id.Name].ToLong() == 0) columns = columns.Where(e => !e.Identity).ToArray();
                 }
+
+                // 每个列要么有脏数据，要么允许空。不允许空又没有脏数据的字段插入没有意义
+                var dirtys = GetDirtyColumns(fact, list.Cast<IEntity>());
+                if (fact.FullInsert)
+                    columns = columns.Where(e => e.Nullable || dirtys.Contains(e.Name)).ToArray();
+                else
+                    columns = columns.Where(e => dirtys.Contains(e.Name)).ToArray();
             }
 
             var session = fact.Session;
@@ -549,6 +556,30 @@ namespace XCode
             session.Dal.CheckDatabase();
 
             return fact.Session.Dal.Session.Upsert(session.TableName, columns, updateColumns, addColumns, new[] { entity as IIndexAccessor });
+        }
+
+        /// <summary>获取脏数据列</summary>
+        /// <param name="fact"></param>
+        /// <param name="list"></param>
+        /// <returns></returns>
+        private static String[] GetDirtyColumns(IEntityOperate fact, IEnumerable<IEntity> list)
+        {
+            //var fact = list.FirstOrDefault().GetType().AsFactory();
+
+            // 获取所有带有脏数据的字段
+            var ns = new List<String>();
+            foreach (var entity in list)
+            {
+                foreach (var fi in fact.Fields)
+                {
+                    if (!ns.Contains(fi.Name) && entity.Dirtys[fi.Name])
+                    {
+                        ns.Add(fi.Name);
+                    }
+                }
+            }
+
+            return ns.ToArray();
         }
         #endregion
 
