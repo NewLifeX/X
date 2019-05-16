@@ -778,8 +778,10 @@ namespace XCode.DataAccessLayer
                     sb.AppendFormat(" DEFAULT '0'");
                 else if (field.DataType == typeof(Boolean))
                     sb.AppendFormat(" DEFAULT '0'");
-                else if (field.DataType == typeof(Double) || field.DataType == typeof(Single))
+                else if (field.DataType == typeof(Double) || field.DataType == typeof(Single) || field.DataType == typeof(Decimal))
                     sb.AppendFormat(" DEFAULT '0'");
+                else if (field.DataType == typeof(DateTime))
+                    sb.AppendFormat(" DEFAULT '0001-01-01'");
             }
 
             return sb.ToString();

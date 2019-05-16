@@ -101,6 +101,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Membership\生成实体类.log">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>生成实体类.tt</DependentUpon>
+    </None>
     <None Update="Membership\生成实体类.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>生成实体类.log</LastGenOutput>
