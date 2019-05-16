@@ -472,7 +472,7 @@ namespace XCode.DataAccessLayer
             { typeof(Double), new String[] { "DOUBLE" } },
             { typeof(Decimal), new String[] { "DECIMAL({0}, {1})" } },
             { typeof(DateTime), new String[] { "DATETIME", "DATE", "TIMESTAMP", "TIME" } },
-            { typeof(String), new String[] { "NVARCHAR({0})", "TEXT", "CHAR({0})", "NCHAR({0})", "VARCHAR({0})", "SET", "ENUM", "TINYTEXT", "TEXT", "MEDIUMTEXT", "LONGTEXT" } },
+            { typeof(String), new String[] { "NVARCHAR({0})", "LONGTEXT", "TEXT", "CHAR({0})", "NCHAR({0})", "VARCHAR({0})", "SET", "ENUM", "TINYTEXT", "TEXT", "MEDIUMTEXT" } },
             { typeof(Boolean), new String[] { "TINYINT" } },
         };
         #endregion
