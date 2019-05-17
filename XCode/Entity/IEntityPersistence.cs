@@ -365,8 +365,8 @@ namespace XCode
                 {
                     if (!fact.FullInsert) continue;
 
-                    // 不允许空时，插入空值没有意义
-                    if (!fi.IsNullable) continue;
+                    //// 不允许空时，插入空值没有意义
+                    //if (!fi.IsNullable) continue;
                 }
 
                 sbNames.Separate(",").Append(fact.FormatName(fi.ColumnName));

@@ -413,11 +413,16 @@ namespace XCode
                 }
 
                 // 每个列要么有脏数据，要么允许空。不允许空又没有脏数据的字段插入没有意义
-                var dirtys = GetDirtyColumns(fact, list.Cast<IEntity>());
-                if (fact.FullInsert)
-                    columns = columns.Where(e => e.Nullable || dirtys.Contains(e.Name)).ToArray();
-                else
+                //var dirtys = GetDirtyColumns(fact, list.Cast<IEntity>());
+                //if (fact.FullInsert)
+                //    columns = columns.Where(e => e.Nullable || dirtys.Contains(e.Name)).ToArray();
+                //else
+                //    columns = columns.Where(e => dirtys.Contains(e.Name)).ToArray();
+                if (!fact.FullInsert)
+                {
+                    var dirtys = GetDirtyColumns(fact, list.Cast<IEntity>());
                     columns = columns.Where(e => dirtys.Contains(e.Name)).ToArray();
+                }
             }
 
             var session = fact.Session;
@@ -499,11 +504,16 @@ namespace XCode
                     columns = fact.Fields.Select(e => e.Field).Where(e => !e.Identity).ToArray();
 
                 // 每个列要么有脏数据，要么允许空。不允许空又没有脏数据的字段插入没有意义
-                var dirtys = GetDirtyColumns(fact, list.Cast<IEntity>());
-                if (fact.FullInsert)
-                    columns = columns.Where(e => e.Nullable || dirtys.Contains(e.Name)).ToArray();
-                else
+                //var dirtys = GetDirtyColumns(fact, list.Cast<IEntity>());
+                //if (fact.FullInsert)
+                //    columns = columns.Where(e => e.Nullable || dirtys.Contains(e.Name)).ToArray();
+                //else
+                //    columns = columns.Where(e => dirtys.Contains(e.Name)).ToArray();
+                if (!fact.FullInsert)
+                {
+                    var dirtys = GetDirtyColumns(fact, list.Cast<IEntity>());
                     columns = columns.Where(e => dirtys.Contains(e.Name)).ToArray();
+                }
             }
             //if (updateColumns == null) updateColumns = entity.Dirtys.Keys;
             if (updateColumns == null)
@@ -545,11 +555,16 @@ namespace XCode
                 columns = fact.Fields.Select(e => e.Field).Where(e => !e.Identity).ToArray();
 
                 // 每个列要么有脏数据，要么允许空。不允许空又没有脏数据的字段插入没有意义
-                var dirtys = GetDirtyColumns(fact, new[] { entity });
-                if (fact.FullInsert)
-                    columns = columns.Where(e => e.Nullable || dirtys.Contains(e.Name)).ToArray();
-                else
+                //var dirtys = GetDirtyColumns(fact, new[] { entity });
+                //if (fact.FullInsert)
+                //    columns = columns.Where(e => e.Nullable || dirtys.Contains(e.Name)).ToArray();
+                //else
+                //    columns = columns.Where(e => dirtys.Contains(e.Name)).ToArray();
+                if (!fact.FullInsert)
+                {
+                    var dirtys = GetDirtyColumns(fact, new[] { entity });
                     columns = columns.Where(e => dirtys.Contains(e.Name)).ToArray();
+                }
             }
             if (updateColumns == null) updateColumns = entity.Dirtys.Where(e => !e.StartsWithIgnoreCase("Create")).Distinct().ToArray();
             if (addColumns == null) addColumns = fact.AdditionalFields;
