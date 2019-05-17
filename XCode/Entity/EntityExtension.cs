@@ -512,7 +512,7 @@ namespace XCode
                 if (!fact.FullInsert)
                 {
                     var dirtys = GetDirtyColumns(fact, list.Cast<IEntity>());
-                    columns = columns.Where(e => dirtys.Contains(e.Name)).ToArray();
+                    columns = columns.Where(e => e.PrimaryKey || dirtys.Contains(e.Name)).ToArray();
                 }
             }
             //if (updateColumns == null) updateColumns = entity.Dirtys.Keys;
@@ -563,7 +563,7 @@ namespace XCode
                 if (!fact.FullInsert)
                 {
                     var dirtys = GetDirtyColumns(fact, new[] { entity });
-                    columns = columns.Where(e => dirtys.Contains(e.Name)).ToArray();
+                    columns = columns.Where(e => e.PrimaryKey || dirtys.Contains(e.Name)).ToArray();
                 }
             }
             if (updateColumns == null) updateColumns = entity.Dirtys.Where(e => !e.StartsWithIgnoreCase("Create")).Distinct().ToArray();
