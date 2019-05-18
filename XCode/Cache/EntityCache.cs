@@ -204,14 +204,16 @@ namespace XCode.Cache
             if (!Using) return null;
 
             var es = _Entities;
-            var fi = Operate.Unique;
-            if (fi == null) return null;
 
             var e = es.Find(x => x == entity);
             if (e == null)
             {
-                var v = entity[fi.Name];
-                e = es.Find(x => Equals(x[fi.Name], v));
+                var fi = Operate.Unique;
+                if (fi != null)
+                {
+                    var v = entity[fi.Name];
+                    e = es.Find(x => Equals(x[fi.Name], v));
+                }
             }
             if (e == null) return null;
 
@@ -229,10 +231,33 @@ namespace XCode.Cache
         {
             if (!Using) return null;
 
-            var rs = Remove(entity);
-            Add(entity);
+            var es = _Entities as List<TEntity>;
 
-            return rs;
+            // 如果对象本身就在缓存里面，啥也不用做
+            var e = es.Find(x => x == entity);
+            if (e != null) return e;
+
+            var idx = -1;
+            var fi = Operate.Unique;
+            if (fi != null)
+            {
+                var v = entity[fi.Name];
+                idx = es.FindIndex(x => Equals(x[fi.Name], v));
+            }
+
+            //if (e != entity) e.CopyFrom(entity);
+            // 更新实体缓存时，不做拷贝，避免产生脏数据，如果恰巧又使用单对象缓存，那会导致自动保存
+            if (idx >= 0)
+                es[idx] = entity;
+            else
+            {
+                lock (es)
+                {
+                    es.Add(entity);
+                }
+            }
+
+            return e;
         }
         #endregion
 
