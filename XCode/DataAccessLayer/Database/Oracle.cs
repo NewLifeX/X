@@ -1009,10 +1009,18 @@ namespace XCode.DataAccessLayer
 
         protected override String GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
         {
-            if (field.Nullable)
-                return " NULL";
-            else
-                return " NOT NULL";
+            return field.Nullable ? " NULL" : " NOT NULL";
+        }
+
+        /// <summary>默认值</summary>
+        /// <param name="field"></param>
+        /// <param name="onlyDefine"></param>
+        /// <returns></returns>
+        protected override String GetDefault(IDataColumn field, Boolean onlyDefine)
+        {
+            if (field.DataType == typeof(DateTime)) return " DEFAULT To_Date('0001-01-01','yyyy-mm-dd')";
+
+            return base.GetDefault(field, onlyDefine);
         }
 
         public override String CreateTableSQL(IDataTable table)
