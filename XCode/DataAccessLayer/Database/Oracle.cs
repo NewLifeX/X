@@ -1009,7 +1009,15 @@ namespace XCode.DataAccessLayer
 
         protected override String GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
         {
-            return field.Nullable ? " NULL" : " NOT NULL";
+            var str = field.Nullable ? " NULL" : " NOT NULL";
+
+            // 默认值
+            if (!field.Nullable && !field.Identity)
+            {
+                str = GetDefault(field, onlyDefine) + str;
+            }
+
+            return str;
         }
 
         /// <summary>默认值</summary>

@@ -771,13 +771,6 @@ namespace XCode.DataAccessLayer
             // 约束
             sb.Append(GetFieldConstraints(field, onlyDefine));
 
-            // 默认值
-            if (!field.Nullable && !field.Identity)
-            {
-                var rs = GetDefault(field, onlyDefine);
-                if (!rs.IsNullOrEmpty()) sb.Append(rs);
-            }
-
             return sb.ToString();
         }
 
@@ -790,7 +783,15 @@ namespace XCode.DataAccessLayer
             if (field.PrimaryKey && field.Table.PrimaryKeys.Length < 2) return " Primary Key";
 
             // 是否为空
-            return field.Nullable ? " NULL" : " NOT NULL";
+            var str = field.Nullable ? " NULL" : " NOT NULL";
+
+            // 默认值
+            if (!field.Nullable && !field.Identity)
+            {
+                str += GetDefault(field, onlyDefine);
+            }
+
+            return str;
         }
 
         /// <summary>默认值</summary>
