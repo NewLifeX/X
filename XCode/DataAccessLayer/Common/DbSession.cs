@@ -593,6 +593,7 @@ namespace XCode.DataAccessLayer
 
         private String GetSql(DbCommand cmd)
         {
+            var max = (Database as DbBase).SQLMaxLength;
             try
             {
                 var sql = cmd.CommandText;
@@ -626,7 +627,10 @@ namespace XCode.DataAccessLayer
                 }
 
                 // 截断超长字符串
-                if (sql.Length > 4096 && sql.StartsWithIgnoreCase("Insert")) sql = sql.Substring(0, 2048) + "..." + sql.Substring(sql.Length - 2048);
+                if (max > 0)
+                {
+                    if (sql.Length > max && sql.StartsWithIgnoreCase("Insert")) sql = sql.Substring(0, max / 2) + "..." + sql.Substring(sql.Length - max / 2);
+                }
 
                 return sql;
             }
