@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -8,9 +9,11 @@ using System.Threading.Tasks;
 using NewLife.Caching;
 using NewLife.Log;
 using NewLife.Net;
+using NewLife.Reflection;
 using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
+using XCode;
 using XCode.Code;
 using XCode.DataAccessLayer;
 using XCode.Membership;
@@ -34,7 +37,7 @@ namespace Test
                 try
                 {
 #endif
-                Test2();
+                    Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -121,6 +124,32 @@ namespace Test
             //gs = UserX.FindAll(null, null, null, 0, 10);
 
             //gs.Delete(true);
+        }
+
+        public static Int32 SaveWithTime(this IEntity entity)
+        {
+            if (entity.IsNullKey) entity.SetItem("CreateTime", DateTime.Now);
+            entity.SetItem("UpdateTime", DateTime.Now);
+
+            return entity.Save();
+        }
+
+        /// <summary>从Http请求中读取数据并填充到实体属性</summary>
+        /// <param name="entity"></param>
+        /// <param name="collection"></param>
+        public static void FillWithRequest(this IEntity entity, NameValueCollection collection)
+        {
+            // 获取实体工厂
+            var factory = entity.GetType().AsFactory();
+            // 遍历所有字段
+            foreach (var fi in factory.Fields)
+            {
+                // 获取请求数据
+                var value = collection[fi.Name];
+                // 转为字段类型并设置到属性上
+                if (!value.IsNullOrEmpty())
+                    entity.SetItem(fi.Name, value.ChangeType(fi.Type));
+            }
         }
 
         static void Test3()
