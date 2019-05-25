@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using NewLife;
 using NewLife.Data;
+using NewLife.IO;
 using NewLife.Reflection;
 using NewLife.Serialization;
 using XCode.Configuration;
@@ -413,11 +414,16 @@ namespace XCode
                 }
 
                 // 每个列要么有脏数据，要么允许空。不允许空又没有脏数据的字段插入没有意义
-                var dirtys = GetDirtyColumns(fact, list.Cast<IEntity>());
-                if (fact.FullInsert)
-                    columns = columns.Where(e => e.Nullable || dirtys.Contains(e.Name)).ToArray();
-                else
+                //var dirtys = GetDirtyColumns(fact, list.Cast<IEntity>());
+                //if (fact.FullInsert)
+                //    columns = columns.Where(e => e.Nullable || dirtys.Contains(e.Name)).ToArray();
+                //else
+                //    columns = columns.Where(e => dirtys.Contains(e.Name)).ToArray();
+                if (!fact.FullInsert)
+                {
+                    var dirtys = GetDirtyColumns(fact, list.Cast<IEntity>());
                     columns = columns.Where(e => dirtys.Contains(e.Name)).ToArray();
+                }
             }
 
             var session = fact.Session;
@@ -499,11 +505,16 @@ namespace XCode
                     columns = fact.Fields.Select(e => e.Field).Where(e => !e.Identity).ToArray();
 
                 // 每个列要么有脏数据，要么允许空。不允许空又没有脏数据的字段插入没有意义
-                var dirtys = GetDirtyColumns(fact, list.Cast<IEntity>());
-                if (fact.FullInsert)
-                    columns = columns.Where(e => e.Nullable || dirtys.Contains(e.Name)).ToArray();
-                else
-                    columns = columns.Where(e => dirtys.Contains(e.Name)).ToArray();
+                //var dirtys = GetDirtyColumns(fact, list.Cast<IEntity>());
+                //if (fact.FullInsert)
+                //    columns = columns.Where(e => e.Nullable || dirtys.Contains(e.Name)).ToArray();
+                //else
+                //    columns = columns.Where(e => dirtys.Contains(e.Name)).ToArray();
+                if (!fact.FullInsert)
+                {
+                    var dirtys = GetDirtyColumns(fact, list.Cast<IEntity>());
+                    columns = columns.Where(e => e.PrimaryKey || dirtys.Contains(e.Name)).ToArray();
+                }
             }
             //if (updateColumns == null) updateColumns = entity.Dirtys.Keys;
             if (updateColumns == null)
@@ -545,11 +556,16 @@ namespace XCode
                 columns = fact.Fields.Select(e => e.Field).Where(e => !e.Identity).ToArray();
 
                 // 每个列要么有脏数据，要么允许空。不允许空又没有脏数据的字段插入没有意义
-                var dirtys = GetDirtyColumns(fact, new[] { entity });
-                if (fact.FullInsert)
-                    columns = columns.Where(e => e.Nullable || dirtys.Contains(e.Name)).ToArray();
-                else
-                    columns = columns.Where(e => dirtys.Contains(e.Name)).ToArray();
+                //var dirtys = GetDirtyColumns(fact, new[] { entity });
+                //if (fact.FullInsert)
+                //    columns = columns.Where(e => e.Nullable || dirtys.Contains(e.Name)).ToArray();
+                //else
+                //    columns = columns.Where(e => dirtys.Contains(e.Name)).ToArray();
+                if (!fact.FullInsert)
+                {
+                    var dirtys = GetDirtyColumns(fact, new[] { entity });
+                    columns = columns.Where(e => e.PrimaryKey || dirtys.Contains(e.Name)).ToArray();
+                }
             }
             if (updateColumns == null) updateColumns = entity.Dirtys.Where(e => !e.StartsWithIgnoreCase("Create")).Distinct().ToArray();
             if (addColumns == null) addColumns = fact.AdditionalFields;
@@ -643,7 +659,7 @@ namespace XCode
             return stream.Position - p;
         }
 
-        /// <summary>写入数据流</summary>
+        /// <summary>写入文件，二进制格式</summary>
         /// <param name="list">实体列表</param>
         /// <param name="file">文件</param>
         /// <returns></returns>
@@ -654,12 +670,60 @@ namespace XCode
             // 确保创建目录
             file.EnsureDirectory(true);
 
-            using (var fs = new FileStream(file, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite))
+            using (var fs = new FileStream(file.GetFullPath(), FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite))
             {
                 foreach (var item in list)
                 {
                     (item as IAccessor).Write(fs, null);
                 }
+
+                fs.SetLength(fs.Position);
+                return fs.Position;
+            }
+        }
+
+        /// <summary>写入数据流，Csv格式</summary>
+        /// <param name="list">实体列表</param>
+        /// <param name="stream">数据量</param>
+        /// <param name="displayName">是否使用中文显示名，否则使用英文属性名</param>
+        /// <returns></returns>
+        public static Int64 SaveCsv<T>(this IEnumerable<T> list, Stream stream, Boolean displayName = false) where T : IEntity
+        {
+            if (list == null) return 0;
+
+            var p = stream.Position;
+            var fact = typeof(T).AsFactory();
+            using (var csv = new CsvFile(stream, true))
+            {
+                var fs = fact.Fields;
+                if (displayName)
+                    csv.WriteLine(fs.Select(e => e.DisplayName));
+                else
+                    csv.WriteLine(fs.Select(e => e.Name));
+                foreach (var entity in list)
+                {
+                    csv.WriteLine(fs.Select(e => entity[e.Name]));
+                }
+            }
+
+            return stream.Position - p;
+        }
+
+        /// <summary>写入文件，Csv格式</summary>
+        /// <param name="list">实体列表</param>
+        /// <param name="file">文件</param>
+        /// <param name="displayName">是否使用中文显示名，否则使用英文属性名</param>
+        /// <returns></returns>
+        public static Int64 SaveCsv<T>(this IEnumerable<T> list, String file, Boolean displayName = false) where T : IEntity
+        {
+            if (list == null) return 0;
+
+            // 确保创建目录
+            file.EnsureDirectory(true);
+
+            using (var fs = new FileStream(file.GetFullPath(), FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite))
+            {
+                SaveCsv(list, fs, displayName);
 
                 fs.SetLength(fs.Position);
                 return fs.Position;
@@ -706,13 +770,15 @@ namespace XCode
             }
         }
 
-        /// <summary>从数据流读取列表</summary>
+        /// <summary>从文件读取列表，二进制格式</summary>
         /// <param name="list">实体列表</param>
         /// <param name="file">文件</param>
         /// <returns>实体列表</returns>
         public static IList<T> LoadFile<T>(this IList<T> list, String file) where T : IEntity
         {
-            if (file.IsNullOrEmpty() || !File.Exists(file)) return list;
+            if (file.IsNullOrEmpty()) return list;
+            file = file.GetFullPath();
+            if (!File.Exists(file)) return list;
 
             var fact = typeof(T).AsFactory();
             using (var fs = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
@@ -727,6 +793,59 @@ namespace XCode
             }
 
             return list;
+        }
+
+        /// <summary>从数据流读取列表，Csv格式</summary>
+        /// <param name="list">实体列表</param>
+        /// <param name="stream">数据流</param>
+        /// <returns>实体列表</returns>
+        public static IList<T> LoadCsv<T>(this IList<T> list, Stream stream) where T : IEntity
+        {
+            var fact = typeof(T).AsFactory();
+            using (var csv = new CsvFile(stream, true))
+            {
+                // 匹配字段
+                var names = csv.ReadLine();
+                var fields = new FieldItem[names.Length];
+                for (var i = 0; i < names.Length; i++)
+                {
+                    fields[i] = fact.Fields.FirstOrDefault(e => names[i].EqualIgnoreCase(e.Name, e.DisplayName, e.ColumnName));
+                }
+
+                // 读取数据
+                while (true)
+                {
+                    var line = csv.ReadLine();
+                    if (line == null || line.Length == 0) break;
+
+                    var entity = (T)fact.Create();
+                    for (var i = 0; i < fields.Length; i++)
+                    {
+                        var fi = fields[i];
+                        if (fi != null && !line[i].IsNullOrEmpty()) entity[fi.Name] = line[i].ChangeType(fi.Type);
+                    }
+
+                    list.Add(entity);
+                }
+            }
+
+            return list;
+        }
+
+        /// <summary>从文件读取列表，Csv格式</summary>
+        /// <param name="list">实体列表</param>
+        /// <param name="file">文件</param>
+        /// <returns>实体列表</returns>
+        public static IList<T> LoadCsv<T>(this IList<T> list, String file) where T : IEntity
+        {
+            if (file.IsNullOrEmpty()) return list;
+            file = file.GetFullPath();
+            if (!File.Exists(file)) return list;
+
+            using (var fs = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            {
+                return LoadCsv(list, fs);
+            }
         }
         #endregion
 

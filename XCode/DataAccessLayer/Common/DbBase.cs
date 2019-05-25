@@ -903,6 +903,9 @@ namespace XCode.DataAccessLayer
         #region Sql日志输出
         /// <summary>是否输出SQL语句，默认为XCode调试开关XCode.Debug</summary>
         public Boolean ShowSQL { get; set; } = Setting.Current.ShowSQL;
+
+        /// <summary>SQL最大长度，输出日志时的SQL最大长度，超长截断，默认4096，不截断用0</summary>
+        public Int32 SQLMaxLength { get; set; } = Setting.Current.SQLMaxLength;
         #endregion
 
         #region 参数化

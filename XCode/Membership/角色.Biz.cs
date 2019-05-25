@@ -59,7 +59,7 @@ namespace XCode.Membership
             // 用于引发基类的静态构造函数
             var entity = new TEntity();
 
-            Meta.Factory.FullInsert = false;
+            //Meta.Factory.FullInsert = false;
 
             Meta.Modules.Add<UserModule>();
             Meta.Modules.Add<TimeModule>();
