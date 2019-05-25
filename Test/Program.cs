@@ -11,6 +11,7 @@ using NewLife.Net;
 using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
+using XCode;
 using XCode.Code;
 using XCode.DataAccessLayer;
 using XCode.Membership;
@@ -34,7 +35,7 @@ namespace Test
                 try
                 {
 #endif
-                Test2();
+                    Test7();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -407,31 +408,13 @@ namespace Test
 
         static void Test7()
         {
-            Parameter.Meta.Session.Dal.Db.ShowSQL = true;
+            var list = Role.FindAll();
+            list.SaveCsv("role.csv", true);
 
-            var p = Parameter.FindByCategoryAndName("量化交易", "交易所");
-            if (p == null) p = new Parameter
-            {
-                Category = "量化交易",
-                Name = "交易所"
-            };
-            var dic = new Dictionary<Int32, String>
-            {
-                [1] = "上海交易所",
-                [2] = "深圳交易所",
-                [900] = "纽约交易所"
-            };
-            p.SetValue(dic);
-            p.Save();
+            var list2 = new List<Role>();
+            list2.LoadCsv("role.csv");
 
-            var p2 = Parameter.FindByCategoryAndName("量化交易", "交易所");
-            var dic2 = p2.GetHash<Int32, String>();
-            foreach (var item in dic2)
-            {
-                Console.WriteLine("{0}={1}", item.Key, item.Value);
-            }
-            Console.WriteLine(p2.ToJson(true));
-            p2.Delete();
+            Console.WriteLine("{0} {1}", list.Count, list2.Count);
         }
 
         static void Test8()
