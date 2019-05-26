@@ -410,13 +410,18 @@ namespace Test
 
         static void Test7()
         {
-            var list = Role.FindAll();
-            list.SaveCsv("role.csv", true);
+            //var list = Role.FindAll();
+            //list.SaveCsv("role.csv", true);
 
-            var list2 = new List<Role>();
-            list2.LoadCsv("role.csv");
+            //var list2 = new List<Role>();
+            //list2.LoadCsv("role.csv");
 
-            Console.WriteLine("{0} {1}", list.Count, list2.Count);
+            //Console.WriteLine("{0} {1}", list.Count, list2.Count);
+
+            var str = "01011C00084170692F496E666F0F0000007B227374617465223A22616263227D";
+            str = "2132353323323823-4170692F496E666F-23-7B227374617465223A22616263227D";
+            var buf = str.ToHex();
+            Console.WriteLine(buf.ToStr());
         }
 
         static void Test8()
