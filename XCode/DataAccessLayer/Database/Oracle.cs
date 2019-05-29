@@ -40,12 +40,12 @@ namespace XCode.DataAccessLayer
 
         protected override void OnSetConnectionString(ConnectionStringBuilder builder)
         {
-            // Oracle强制关闭反向工程，禁止通过连接字符串设置
-            if (builder.TryGetAndRemove(_.Migration, out var value) && !value.IsNullOrEmpty())
-            {
-                //var mode = (Migration)Enum.Parse(typeof(Migration), value, true);
-                //DAL.WriteLog("");
-            }
+            //// Oracle强制关闭反向工程，禁止通过连接字符串设置
+            //if (builder.TryGetAndRemove(_.Migration, out var value) && !value.IsNullOrEmpty())
+            //{
+            //    //var mode = (Migration)Enum.Parse(typeof(Migration), value, true);
+            //    //DAL.WriteLog("");
+            //}
 
             base.OnSetConnectionString(builder);
 
@@ -71,8 +71,8 @@ namespace XCode.DataAccessLayer
         /// <summary>实例化</summary>
         public Oracle()
         {
-            // Oracle强制关闭反向工程，无视配置文件设置，但代码设置和连接字符串设置有效
-            Migration = Migration.Off;
+            //// Oracle强制关闭反向工程，无视配置文件设置，但代码设置和连接字符串设置有效
+            //Migration = Migration.Off;
         }
         #endregion
 
