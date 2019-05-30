@@ -27,8 +27,12 @@ namespace NewLife.IO
         #region 构造
         /// <summary>数据流实例化</summary>
         /// <param name="stream"></param>
+        public CsvFile(Stream stream) => _stream = stream;
+
+        /// <summary>数据流实例化</summary>
+        /// <param name="stream"></param>
         /// <param name="leaveOpen">保留打开</param>
-        public CsvFile(Stream stream, Boolean leaveOpen = false)
+        public CsvFile(Stream stream, Boolean leaveOpen)
         {
             _stream = stream;
             _leaveOpen = leaveOpen;
