@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 using NewLife.Collections;
 using NewLife.Data;
@@ -71,15 +72,16 @@ namespace NewLife.Remoting
             var rs = new
             {
                 Server = asmx?.Name,
-                Version = asmx?.Version,
+                asmx?.Version,
                 OS = _OS,
                 MachineName = _MachineName,
                 UserName = _UserName,
                 ApiVersion = asmx2?.Version,
-                Time = DateTime.Now,
+
                 LocalIP = _LocalIP,
                 Remote = ns?.Remote?.EndPoint + "",
                 State = state,
+                Time = DateTime.Now,
             };
 
             // 转字典
@@ -94,14 +96,44 @@ namespace NewLife.Remoting
                 dic["MaxOnline"] = nsvr.MaxSessionCount;
             }
 
+            // 进程
+            dic["Process"] = GetProcess();
+
             // 加上统计信息
-            var dic2 = new Dictionary<String, Object>();
-            dic["Stat"] = dic2;
-            dic2["_Total"] = Host.StatProcess + "";
+            dic["Stat"] = GetStat();
+
+            return dic;
+        }
+
+        private Object GetProcess()
+        {
+            var proc = Process.GetCurrentProcess();
+
+            return new
+            {
+                Environment.ProcessorCount,
+                ProcessId = proc.Id,
+                Threads = proc.Threads.Count,
+                Handles = proc.HandleCount,
+                WorkingSet = proc.WorkingSet64,
+                PrivateMemorySize = proc.PrivateMemorySize64,
+                GCMemory = GC.GetTotalMemory(false),
+                GC0 = GC.GetGeneration(0),
+                GC1 = GC.GetGeneration(1),
+                GC2 = GC.GetGeneration(2),
+            };
+        }
+
+        private Object GetStat()
+        {
+            var dic = new Dictionary<String, Object>
+            {
+                ["_Total"] = Host.StatProcess + ""
+            };
             foreach (var item in Host.Manager.Services)
             {
                 var api = item.Value;
-                dic2[item.Key] = api.StatProcess + "";
+                dic[item.Key] = api.StatProcess + "";
             }
 
             return dic;
