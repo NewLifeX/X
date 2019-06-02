@@ -80,7 +80,7 @@ namespace XCode.DataAccessLayer
         {
             base.OnSetConnectionString(builder);
 
-            var flag = Factory.GetType().FullName.StartsWith("System.Data");
+            var flag = Factory != null && Factory.GetType().FullName.StartsWith("System.Data");
             if (flag)
             {
                 //// 正常情况下INSERT, UPDATE和DELETE语句不返回数据。 当开启count-changes，以上语句返回一行含一个整数值的数据——该语句插入，修改或删除的行数。
