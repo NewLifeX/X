@@ -37,7 +37,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test3();
+                    Test6();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -398,6 +398,12 @@ namespace Test
             ic.Increment("count", 11);
             var count2 = ic.Decrement("count", 10);
             XTrace.WriteLine("count={0}", count2);
+
+            var inf = ic.GetInfo();
+            foreach (var item in inf)
+            {
+                Console.WriteLine("{0}:\t{1}", item.Key, item.Value);
+            }
 
             //ic.Bench();
         }
