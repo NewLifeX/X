@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using NewLife.Collections;
+using NewLife.Data;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Net;
@@ -372,6 +373,17 @@ namespace NewLife.Caching
             }
         }
 
+        /// <summary>获取信息</summary>
+        /// <returns></returns>
+        public virtual IDictionary<String, String> GetInfo()
+        {
+            var rs = Execute(null, rds => rds.Execute("INFO", "all") as Packet);
+            if (rs == null || rs.Count == 0) return null;
+
+            var inf = rs.ToStr();
+            return inf.SplitAsDictionary(":", "\r\n");
+        }
+
         /// <summary>单个实体项</summary>
         /// <param name="key">键</param>
         /// <param name="value">值</param>
@@ -388,7 +400,7 @@ namespace NewLife.Caching
 
         /// <summary>获取单体</summary>
         /// <param name="key">键</param>
-        public override T Get<T>(String key) => Execute(key,rds => rds.Execute<T>("GET", key));
+        public override T Get<T>(String key) => Execute(key, rds => rds.Execute<T>("GET", key));
 
         /// <summary>批量移除缓存项</summary>
         /// <param name="keys">键集合</param>
