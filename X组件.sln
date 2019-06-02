@@ -9,7 +9,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Others", "Others", "{32891F
 		.gitignore = .gitignore
 		Readme.MD = Readme.MD
 		XCode\Readme.MD = XCode\Readme.MD
-		发布NuGet.cs = 发布NuGet.cs
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", "{6740B4CD-B2F6-49DF-BDA0-7DC17144C666}"
@@ -22,7 +21,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestST", "TestST\TestST.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NewLife.Agent", "NewLife.Agent\NewLife.Agent.csproj", "{260A337D-B1E2-46AE-A42B-DACE9FD95359}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XUnitTest.Core", "XUnitTest.Core\XUnitTest.Core.csproj", "{EDAB9A50-37C7-4CB0-8643-D57A577C1461}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XUnitTest.Core", "XUnitTest.Core\XUnitTest.Core.csproj", "{EDAB9A50-37C7-4CB0-8643-D57A577C1461}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
