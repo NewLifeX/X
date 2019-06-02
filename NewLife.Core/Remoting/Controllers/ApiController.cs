@@ -85,10 +85,19 @@ namespace NewLife.Remoting
             // 转字典
             var dic = rs.ToDictionary();
 
+            // 时间和连接数
+            if (Host is ApiHost ah) dic["Uptime"] = (DateTime.Now - ah.StartTime).ToString();
+            if (Host is ApiServer svr && svr.Server is NetServer nsvr)
+            {
+                dic["Port"] = nsvr.Port;
+                dic["Online"] = nsvr.SessionCount;
+                dic["MaxOnline"] = nsvr.MaxSessionCount;
+            }
+
             // 加上统计信息
             var dic2 = new Dictionary<String, Object>();
             dic["Stat"] = dic2;
-            dic2["Total"] = Host.StatProcess + "";
+            dic2["_Total"] = Host.StatProcess + "";
             foreach (var item in Host.Manager.Services)
             {
                 var api = item.Value;

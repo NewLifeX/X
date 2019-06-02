@@ -42,6 +42,9 @@ namespace NewLife.Remoting
         /// <param name="key"></param>
         /// <returns></returns>
         public virtual Object this[String key] { get { return Items[key]; } set { Items[key] = value; } }
+
+        /// <summary>启动时间</summary>
+        public DateTime StartTime { get; set; } = DateTime.Now;
         #endregion
 
         #region 控制器管理
