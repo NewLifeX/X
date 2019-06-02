@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Net;
+using NewLife.Reflection;
 using NewLife.Serialization;
 
 namespace NewLife.Remoting
@@ -52,6 +54,7 @@ namespace NewLife.Remoting
             return _all = list.ToArray();
         }
 
+        private readonly static String _OS = Environment.OSVersion + "";
         private readonly static String _MachineName = Environment.MachineName;
         private readonly static String _UserName = Environment.UserName;
         private readonly static String _LocalIP = NetHelper.MyIP() + "";
@@ -62,17 +65,37 @@ namespace NewLife.Remoting
         {
             var ctx = ControllerContext.Current;
             var ns = ctx?.Session as INetSession;
+            var asmx = AssemblyX.Entry;
+            var asmx2 = AssemblyX.Create(Assembly.GetExecutingAssembly());
 
             var rs = new
             {
-                MachineNam = _MachineName,
+                Server = asmx?.Name,
+                Version = asmx?.Version,
+                OS = _OS,
+                MachineName = _MachineName,
                 UserName = _UserName,
+                ApiVersion = asmx2?.Version,
                 Time = DateTime.Now,
                 LocalIP = _LocalIP,
                 Remote = ns?.Remote?.EndPoint + "",
                 State = state,
             };
-            return rs;
+
+            // 转字典
+            var dic = rs.ToDictionary();
+
+            // 加上统计信息
+            var dic2 = new Dictionary<String, Object>();
+            dic["Stat"] = dic2;
+            dic2["Total"] = Host.StatProcess + "";
+            foreach (var item in Host.Manager.Services)
+            {
+                var api = item.Value;
+                dic2[item.Key] = api.StatProcess + "";
+            }
+
+            return dic;
         }
 
         private static Packet _myInfo;

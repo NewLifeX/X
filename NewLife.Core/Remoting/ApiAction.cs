@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using NewLife.Data;
+using NewLife.Log;
 using NewLife.Reflection;
 
 namespace NewLife.Remoting
@@ -28,6 +29,9 @@ namespace NewLife.Remoting
 
         /// <summary>是否二进制返回</summary>
         public Boolean IsPacketReturn { get; }
+
+        /// <summary>处理统计</summary>
+        public ICounter StatProcess { get; set; } = new PerfCounter();
 
         /// <summary>实例化</summary>
         public ApiAction(MethodInfo method, Type type)

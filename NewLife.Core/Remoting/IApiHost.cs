@@ -32,10 +32,10 @@ namespace NewLife.Remoting
         /// <returns></returns>
         IMessage Process(IApiSession session, IMessage msg);
 
-        /// <summary>发送统计</summary>
+        /// <summary>调用统计</summary>
         ICounter StatInvoke { get; set; }
 
-        /// <summary>接收统计</summary>
+        /// <summary>处理统计</summary>
         ICounter StatProcess { get; set; }
 
         /// <summary>慢追踪。远程调用或处理时间超过该值时，输出慢调用日志，默认5000ms</summary>

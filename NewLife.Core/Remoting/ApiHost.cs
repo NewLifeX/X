@@ -26,10 +26,10 @@ namespace NewLife.Remoting
         /// <summary>调用超时时间。请求发出后，等待响应的最大时间，默认15_000ms</summary>
         public Int32 Timeout { get; set; } = 15_000;
 
-        /// <summary>发送数据包统计信息</summary>
+        /// <summary>调用统计</summary>
         public ICounter StatInvoke { get; set; }
 
-        /// <summary>接收数据包统计信息</summary>
+        /// <summary>处理统计</summary>
         public ICounter StatProcess { get; set; }
 
         /// <summary>慢追踪。远程调用或处理时间超过该值时，输出慢调用日志，默认5000ms</summary>
