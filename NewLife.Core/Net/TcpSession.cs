@@ -124,6 +124,8 @@ namespace NewLife.Net
             }
             catch (Exception ex)
             {
+                // 连接失败时，任何错误都放弃当前Socket
+                Client = null;
                 if (!Disposed && !ex.IsDisposed()) OnError("Connect", ex);
                 /*if (ThrowException)*/
                 throw;
