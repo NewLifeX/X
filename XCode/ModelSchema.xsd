@@ -163,7 +163,7 @@
     </xs:annotation>
     <xs:restriction base="xs:string">
       <xs:enumeration value="Access" ></xs:enumeration>
-      <xs:enumeration value="Mysql" ></xs:enumeration>
+      <xs:enumeration value="MySql" ></xs:enumeration>
       <xs:enumeration value="Oracle" ></xs:enumeration>
       <xs:enumeration value="PostgreSQL" ></xs:enumeration>
       <xs:enumeration value="SqlCe" ></xs:enumeration>
@@ -274,7 +274,7 @@
     <xs:attribute name="Type" type="xs:string">
       <xs:annotation>
         <xs:documentation>
-          生成枚举类型，值就是枚举名称，需要自己定义一个类型
+          生成自定义类型，比如枚举，值可以是类型名也可以是命名空间+类型名
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
