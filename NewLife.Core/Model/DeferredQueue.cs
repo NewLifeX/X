@@ -45,17 +45,23 @@ namespace NewLife.Model
         /// <summary>保存速度，每秒保存多少个实体</summary>
         public Int32 Speed { get; private set; }
 
-        /// <summary>是否异步处理。true表示异步处理，共用DQ定时调度；false表示同步处理，独立线程</summary>
+        /// <summary>是否异步处理。默认true表示异步处理，共用DQ定时调度；false表示同步处理，独立线程</summary>
         public Boolean Async { get; set; } = true;
 
         private Int32 _Times;
         /// <summary>合并保存的总次数</summary>
         public Int32 Times => _Times;
+
+        /// <summary>批次处理成功时</summary>
+        public Action<IList<Object>> Finish;
+
+        /// <summary>批次处理失败时</summary>
+        public Action<IList<Object>, Exception> Error;
         #endregion
 
         #region 构造
         /// <summary>实例化</summary>
-        public DeferredQueue() => Name = GetType().Name.TrimEnd("Queue");
+        public DeferredQueue() => Name = GetType().Name.TrimEnd("Queue", "Actor", "Cache");
 
         /// <summary>销毁。统计队列销毁时保存数据</summary>
         /// <param name="disposing"></param>
@@ -250,6 +256,8 @@ namespace NewLife.Model
                 try
                 {
                     total += Process(batch);
+
+                    Finish?.Invoke(batch);
                 }
                 catch (Exception ex)
                 {
@@ -269,7 +277,13 @@ namespace NewLife.Model
         /// <summary>发生错误</summary>
         /// <param name="list"></param>
         /// <param name="ex"></param>
-        protected virtual void OnError(IList<Object> list, Exception ex) => XTrace.WriteException(ex);
+        protected virtual void OnError(IList<Object> list, Exception ex)
+        {
+            if (Error != null)
+                Error(list, ex);
+            else
+                XTrace.WriteException(ex);
+        }
         #endregion
     }
 }

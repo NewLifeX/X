@@ -263,7 +263,8 @@ namespace NewLife.Data
         /// <returns></returns>
         public IList<ArraySegment<Byte>> ToSegments()
         {
-            var list = new List<ArraySegment<Byte>>();
+            // 初始4元素，优化扩容
+            var list = new List<ArraySegment<Byte>>(4);
 
             for (var pk = this; pk != null; pk = pk.Next)
             {

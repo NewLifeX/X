@@ -520,17 +520,6 @@ namespace NewLife.Caching
         /// <summary>退出</summary>
         /// <returns></returns>
         public Boolean Quit() => Execute<String>("QUIT") == "OK";
-
-        /// <summary>获取信息</summary>
-        /// <returns></returns>
-        public IDictionary<String, String> GetInfo()
-        {
-            var rs = Execute("INFO") as Packet;
-            if (rs == null || rs.Count == 0) return null;
-
-            var inf = rs.ToStr();
-            return inf.SplitAsDictionary(":", "\r\n");
-        }
         #endregion
 
         #region 获取设置

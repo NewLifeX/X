@@ -38,10 +38,10 @@ namespace TestST
             //new AgentService().Main();
             //"圣诞快乐".SpeakAsync();
 
-            var svr = new ApiServer(5678);
+            var svr = new ApiServer(1234);
             svr.Log = XTrace.Log;
             svr.EncoderLog = XTrace.Log;
-            svr.StatPeriod = 60;
+            svr.StatPeriod = 10;
             svr.Start();
 
             _Server = svr;

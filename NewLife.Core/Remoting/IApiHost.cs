@@ -32,11 +32,14 @@ namespace NewLife.Remoting
         /// <returns></returns>
         IMessage Process(IApiSession session, IMessage msg);
 
-        /// <summary>发送统计</summary>
+        /// <summary>调用统计</summary>
         ICounter StatInvoke { get; set; }
 
-        /// <summary>接收统计</summary>
+        /// <summary>处理统计</summary>
         ICounter StatProcess { get; set; }
+
+        /// <summary>慢追踪。远程调用或处理时间超过该值时，输出慢调用日志，默认5000ms</summary>
+        Int32 SlowTrace { get; set; }
 
         /// <summary>日志</summary>
         ILog Log { get; set; }
@@ -77,14 +80,12 @@ namespace NewLife.Remoting
             try
             {
                 if (session is IApiSession ss)
-                {
                     rs = await ss.SendAsync(msg);
-                }
                 else if (session is ISocketRemote client)
                     rs = (await client.SendMessageAsync(msg)) as IMessage;
                 else
                     throw new InvalidOperationException();
-                //rs = await session.SendAsync(msg);
+
                 if (rs == null) return null;
             }
             catch (AggregateException aggex)
@@ -102,7 +103,8 @@ namespace NewLife.Remoting
             }
             finally
             {
-                st.StopCount(sw);
+                var msCost = st.StopCount(sw) / 1000;
+                if (host.SlowTrace > 0 && msCost >= host.SlowTrace) host.WriteLog($"慢调用[{action}]，耗时{msCost:n0}ms");
             }
 
             // 特殊返回类型
@@ -160,7 +162,8 @@ namespace NewLife.Remoting
             }
             finally
             {
-                st.StopCount(sw);
+                var msCost = st.StopCount(sw) / 1000;
+                if (host.SlowTrace > 0 && msCost >= host.SlowTrace) host.WriteLog($"慢调用[{action}]，耗时{msCost:n0}ms");
             }
         }
 

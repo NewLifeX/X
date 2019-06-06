@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Threading;
 using NewLife.Collections;
 using NewLife.Data;
+using NewLife.Log;
 using NewLife.Reflection;
 
 namespace NewLife.Remoting
@@ -44,6 +45,9 @@ namespace NewLife.Remoting
             if (controller == null) throw new ApiException(403, "无法创建名为[{0}]的服务！".F(api.Name));
 
             if (controller is IApi capi) capi.Session = session;
+
+            var st = api.StatProcess;
+            var sw = st.StartCount();
 
             var ctx = Prepare(session, action, args, api);
             ctx.Controller = controller;
@@ -103,6 +107,8 @@ namespace NewLife.Remoting
             {
                 // 重置上下文，待下次重用对象
                 ctx.Reset();
+
+                st.StopCount(sw);
             }
 
             return rs;
@@ -116,7 +122,8 @@ namespace NewLife.Remoting
         /// <returns></returns>
         protected virtual ControllerContext Prepare(IApiSession session, String action, Packet args, ApiAction api)
         {
-            var enc = Host.Encoder;
+            //var enc = Host.Encoder;
+            var enc = session["Encoder"] as IEncoder ?? Host.Encoder;
 
             // 当前上下文
             var ctx = ControllerContext.Current;

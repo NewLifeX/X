@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -8,9 +9,11 @@ using System.Threading.Tasks;
 using NewLife.Caching;
 using NewLife.Log;
 using NewLife.Net;
+using NewLife.Reflection;
 using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
+using XCode;
 using XCode.Code;
 using XCode.DataAccessLayer;
 using XCode.Membership;
@@ -34,7 +37,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test1();
+                    Test6();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -73,19 +76,14 @@ namespace Test
 
         static void Test2()
         {
-            UserX.Meta.Session.Dal.Db.ShowSQL = true;
-            Log.Meta.Session.Dal.Db.ShowSQL = true;
-            //var sb = new StringBuilder();
-            //sb.Append("HelloWorld");
-            //sb.Length--;
-            //sb.Append("Stone");
-            //Console.WriteLine(sb.ToString());
-
             //DAL.AddConnStr("Log", "Data Source=tcp://127.0.0.1/ORCL;User Id=scott;Password=tiger;UseParameter=true", null, "Oracle");
             //DAL.AddConnStr("Log", "Server=.;Port=3306;Database=Log;Uid=root;Pwd=root;", null, "MySql");
             //DAL.AddConnStr("Membership", "Server=.;Port=3306;Database=times;Uid=root;Pwd=Pass@word;TablePrefix=xx_", null, "MySql");
             //DAL.AddConnStr("Membership", @"Server=.\JSQL2008;User ID=sa;Password=sa;Database=Membership;", null, "sqlserver");
             //DAL.AddConnStr("Log", @"Server=.\JSQL2008;User ID=sa;Password=sa;Database=Log;", null, "sqlserver");
+
+            UserX.Meta.Session.Dal.Db.ShowSQL = true;
+            Log.Meta.Session.Dal.Db.ShowSQL = true;
 
             var gs = UserX.FindAll(null, null, null, 0, 10);
             var count = UserX.FindCount();
@@ -133,9 +131,10 @@ namespace Test
             if (Console.ReadLine() == "1")
             {
                 var svr = new ApiServer(1234)
+                //var svr = new ApiServer("http://*:1234")
                 {
                     Log = XTrace.Log,
-                    EncoderLog = XTrace.Log,
+                    //EncoderLog = XTrace.Log,
                     StatPeriod = 10,
                 };
 
@@ -153,8 +152,10 @@ namespace Test
                 var client = new ApiClient("tcp://127.0.0.1:1234")
                 {
                     Log = XTrace.Log,
-                    EncoderLog = XTrace.Log,
+                    //EncoderLog = XTrace.Log,
                     StatPeriod = 10,
+
+                    UsePool = true,
                 };
                 client.Open();
 
@@ -398,6 +399,12 @@ namespace Test
             var count2 = ic.Decrement("count", 10);
             XTrace.WriteLine("count={0}", count2);
 
+            var inf = ic.GetInfo();
+            foreach (var item in inf)
+            {
+                Console.WriteLine("{0}:\t{1}", item.Key, item.Value);
+            }
+
             //ic.Bench();
         }
 
@@ -409,31 +416,18 @@ namespace Test
 
         static void Test7()
         {
-            Parameter.Meta.Session.Dal.Db.ShowSQL = true;
+            //var list = Role.FindAll();
+            //list.SaveCsv("role.csv", true);
 
-            var p = Parameter.FindByCategoryAndName("量化交易", "交易所");
-            if (p == null) p = new Parameter
-            {
-                Category = "量化交易",
-                Name = "交易所"
-            };
-            var dic = new Dictionary<Int32, String>
-            {
-                [1] = "上海交易所",
-                [2] = "深圳交易所",
-                [900] = "纽约交易所"
-            };
-            p.SetValue(dic);
-            p.Save();
+            //var list2 = new List<Role>();
+            //list2.LoadCsv("role.csv");
 
-            var p2 = Parameter.FindByCategoryAndName("量化交易", "交易所");
-            var dic2 = p2.GetHash<Int32, String>();
-            foreach (var item in dic2)
-            {
-                Console.WriteLine("{0}={1}", item.Key, item.Value);
-            }
-            Console.WriteLine(p2.ToJson(true));
-            p2.Delete();
+            //Console.WriteLine("{0} {1}", list.Count, list2.Count);
+
+            var str = "01011C00084170692F496E666F0F0000007B227374617465223A22616263227D";
+            str = "2132353323323823-4170692F496E666F-23-7B227374617465223A22616263227D";
+            var buf = str.ToHex();
+            Console.WriteLine(buf.ToStr());
         }
 
         static void Test8()

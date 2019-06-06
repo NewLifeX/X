@@ -783,7 +783,33 @@ namespace XCode.DataAccessLayer
             if (field.PrimaryKey && field.Table.PrimaryKeys.Length < 2) return " Primary Key";
 
             // 是否为空
-            return field.Nullable ? " NULL" : " NOT NULL";
+            var str = field.Nullable ? " NULL" : " NOT NULL";
+
+            // 默认值
+            if (!field.Nullable && !field.Identity)
+            {
+                str += GetDefault(field, onlyDefine);
+            }
+
+            return str;
+        }
+
+        /// <summary>默认值</summary>
+        /// <param name="field"></param>
+        /// <param name="onlyDefine"></param>
+        /// <returns></returns>
+        protected virtual String GetDefault(IDataColumn field, Boolean onlyDefine)
+        {
+            if (field.DataType.IsInt() || field.DataType.IsEnum)
+                return " DEFAULT 0";
+            else if (field.DataType == typeof(Boolean))
+                return " DEFAULT 0";
+            else if (field.DataType == typeof(Double) || field.DataType == typeof(Single) || field.DataType == typeof(Decimal))
+                return " DEFAULT 0";
+            else if (field.DataType == typeof(DateTime))
+                return " DEFAULT '0001-01-01'";
+
+            return null;
         }
         #endregion
 

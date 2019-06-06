@@ -134,7 +134,7 @@ namespace XCode.Membership
         /// <summary>时间</summary>
         [DisplayName("时间")]
         [Description("时间")]
-        [DataObjectField(false, false, true, 0)]
+        [DataObjectField(false, false, false, 0)]
         [BindColumn("CreateTime", "时间", "")]
         public DateTime CreateTime { get { return _CreateTime; } set { if (OnPropertyChanging(__.CreateTime, value)) { _CreateTime = value; OnPropertyChanged(__.CreateTime); } } }
 

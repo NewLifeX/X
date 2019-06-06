@@ -57,6 +57,9 @@ namespace NewLife.Net
             var ss = Session;
             if (ss != null)
             {
+                // 网络会话和Socket会话共用用户会话数据
+                Items = ss.Items;
+
                 ss.Received += (s, e2) => OnReceive(e2);
                 ss.OnDisposed += (s, e2) => Dispose();
                 ss.Error += OnError;

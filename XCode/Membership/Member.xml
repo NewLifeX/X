@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Tables Version="9.10.6956.39821" NameSpace="XCode.Membership" ConnName="Membership" Output="" BaseClass="Entity">
+<Tables Version="9.11.7092.30905" NameSpace="XCode.Membership" ConnName="Membership" Output="" BaseClass="Entity">
   <Table Name="User" Description="用户" RenderGenEntity="true">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
@@ -30,7 +30,7 @@
       <Column Name="UpdateUser" DataType="String" Description="更新用户" />
       <Column Name="UpdateUserID" DataType="Int32" Description="更新用户" />
       <Column Name="UpdateIP" DataType="String" Description="更新地址" />
-      <Column Name="UpdateTime" DataType="DateTime" Description="更新时间" />
+      <Column Name="UpdateTime" DataType="DateTime" Nullable="False" Description="更新时间" />
       <Column Name="Remark" DataType="String" Length="200" Description="备注" />
     </Columns>
     <Indexes>
@@ -59,11 +59,11 @@
       <Column Name="CreateUser" DataType="String" Description="创建用户" />
       <Column Name="CreateUserID" DataType="Int32" Description="创建用户" />
       <Column Name="CreateIP" DataType="String" Description="创建地址" />
-      <Column Name="CreateTime" DataType="DateTime" Description="创建时间" />
+      <Column Name="CreateTime" DataType="DateTime" Nullable="False" Description="创建时间" />
       <Column Name="UpdateUser" DataType="String" Description="更新用户" />
       <Column Name="UpdateUserID" DataType="Int32" Description="更新用户" />
       <Column Name="UpdateIP" DataType="String" Description="更新地址" />
-      <Column Name="UpdateTime" DataType="DateTime" Description="更新时间" />
+      <Column Name="UpdateTime" DataType="DateTime" Nullable="False" Description="更新时间" />
       <Column Name="Remark" DataType="String" Length="200" Description="备注" />
     </Columns>
     <Indexes>
@@ -89,11 +89,11 @@
       <Column Name="CreateUser" DataType="String" Description="创建用户" />
       <Column Name="CreateUserID" DataType="Int32" Description="创建用户" />
       <Column Name="CreateIP" DataType="String" Description="创建地址" />
-      <Column Name="CreateTime" DataType="DateTime" Description="创建时间" />
+      <Column Name="CreateTime" DataType="DateTime" Nullable="False" Description="创建时间" />
       <Column Name="UpdateUser" DataType="String" Description="更新用户" />
       <Column Name="UpdateUserID" DataType="Int32" Description="更新用户" />
       <Column Name="UpdateIP" DataType="String" Description="更新地址" />
-      <Column Name="UpdateTime" DataType="DateTime" Description="更新时间" />
+      <Column Name="UpdateTime" DataType="DateTime" Nullable="False" Description="更新时间" />
       <Column Name="Remark" DataType="String" Length="200" Description="备注" />
     </Columns>
     <Indexes>
@@ -122,11 +122,11 @@
       <Column Name="CreateUser" DataType="String" Description="创建用户" />
       <Column Name="CreateUserID" DataType="Int32" Description="创建用户" />
       <Column Name="CreateIP" DataType="String" Description="创建地址" />
-      <Column Name="CreateTime" DataType="DateTime" Description="创建时间" />
+      <Column Name="CreateTime" DataType="DateTime" Nullable="False" Description="创建时间" />
       <Column Name="UpdateUser" DataType="String" Description="更新用户" />
       <Column Name="UpdateUserID" DataType="Int32" Description="更新用户" />
       <Column Name="UpdateIP" DataType="String" Description="更新地址" />
-      <Column Name="UpdateTime" DataType="DateTime" Description="更新时间" />
+      <Column Name="UpdateTime" DataType="DateTime" Nullable="False" Description="更新时间" />
       <Column Name="Remark" DataType="String" Length="200" Description="备注" />
     </Columns>
     <Indexes>
@@ -134,7 +134,7 @@
       <Index Columns="ParentID,Name" Unique="True" />
     </Indexes>
   </Table>
-  <Table Name="Parameter" Description="字典参数" BaseType="EntityTree">
+  <Table Name="Parameter" Description="字典参数">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
       <Column Name="Category" DataType="String" Description="类别" />
@@ -152,11 +152,11 @@
       <Column Name="CreateUser" DataType="String" Description="创建用户" />
       <Column Name="CreateUserID" DataType="Int32" Description="创建用户" />
       <Column Name="CreateIP" DataType="String" Description="创建地址" />
-      <Column Name="CreateTime" DataType="DateTime" Description="创建时间" />
+      <Column Name="CreateTime" DataType="DateTime" Nullable="False" Description="创建时间" />
       <Column Name="UpdateUser" DataType="String" Description="更新用户" />
       <Column Name="UpdateUserID" DataType="Int32" Description="更新用户" />
       <Column Name="UpdateIP" DataType="String" Description="更新地址" />
-      <Column Name="UpdateTime" DataType="DateTime" Description="更新时间" />
+      <Column Name="UpdateTime" DataType="DateTime" Nullable="False" Description="更新时间" />
       <Column Name="Remark" DataType="String" Length="200" Description="备注" />
     </Columns>
     <Indexes>
@@ -181,7 +181,7 @@
       <Column Name="CreateUser" DataType="String" Description="创建用户" />
       <Column Name="CreateUserID" DataType="Int32" Description="用户编号" />
       <Column Name="CreateIP" DataType="String" Description="IP地址" />
-      <Column Name="CreateTime" DataType="DateTime" Description="时间" />
+      <Column Name="CreateTime" DataType="DateTime" Nullable="False" Description="时间" />
       <Column Name="Remark" DataType="String" Length="500" Description="详细信息" />
     </Columns>
     <Indexes>
@@ -201,8 +201,8 @@
       <Column Name="Status" DataType="String" Length="200" Description="状态" />
       <Column Name="OnlineTime" DataType="Int32" Description="在线时间。本次在线总时间，秒" />
       <Column Name="CreateIP" DataType="String" Description="创建地址" />
-      <Column Name="CreateTime" DataType="DateTime" Description="创建时间" />
-      <Column Name="UpdateTime" DataType="DateTime" Description="修改时间" />
+      <Column Name="CreateTime" DataType="DateTime" Nullable="False" Description="创建时间" />
+      <Column Name="UpdateTime" DataType="DateTime" Nullable="False" Description="修改时间" />
     </Columns>
     <Indexes>
       <Index Columns="UserID" />
@@ -223,8 +223,8 @@
       <Column Name="Error" DataType="Int32" Description="错误" />
       <Column Name="Cost" DataType="Int32" Description="耗时。毫秒" />
       <Column Name="MaxCost" DataType="Int32" Description="最大耗时。毫秒" />
-      <Column Name="CreateTime" DataType="DateTime" Description="创建时间" />
-      <Column Name="UpdateTime" DataType="DateTime" Description="更新时间" />
+      <Column Name="CreateTime" DataType="DateTime" Nullable="False" Description="创建时间" />
+      <Column Name="UpdateTime" DataType="DateTime" Nullable="False" Description="更新时间" />
       <Column Name="Remark" DataType="String" Length="5000" Description="详细信息" />
     </Columns>
     <Indexes>

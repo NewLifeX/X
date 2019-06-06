@@ -361,7 +361,13 @@ namespace XCode
                 if (CheckIdentity(fi, value, fact, sbNames, sbValues)) continue;
 
                 // 1，有脏数据的字段一定要参与
-                if (!fact.FullInsert && !entity.IsDirty(fi.Name)) continue;
+                if (!entity.IsDirty(fi.Name))
+                {
+                    if (!fact.FullInsert) continue;
+
+                    //// 不允许空时，插入空值没有意义
+                    //if (!fi.IsNullable) continue;
+                }
 
                 sbNames.Separate(",").Append(fact.FormatName(fi.ColumnName));
                 sbValues.Separate(",");

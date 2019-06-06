@@ -368,7 +368,8 @@ namespace XCode
         /// <returns></returns>
         protected static IList<TEntity> FindAllParents(IEntityTree entity, Boolean includeSelf = false)
         {
-            if (entity == null || IsNull((TKey)entity[Setting.Parent]) || entity.Parent == null) return new List<TEntity>();
+            var pkey = Setting.Parent;
+            if (entity == null || pkey.IsNullOrEmpty() || IsNull((TKey)entity[pkey]) || entity.Parent == null) return new List<TEntity>();
 
             var list = new List<TEntity>();
             var item = entity as TEntity;

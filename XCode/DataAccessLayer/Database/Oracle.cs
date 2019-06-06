@@ -40,12 +40,12 @@ namespace XCode.DataAccessLayer
 
         protected override void OnSetConnectionString(ConnectionStringBuilder builder)
         {
-            // Oracle强制关闭反向工程，禁止通过连接字符串设置
-            if (builder.TryGetAndRemove(_.Migration, out var value) && !value.IsNullOrEmpty())
-            {
-                //var mode = (Migration)Enum.Parse(typeof(Migration), value, true);
-                //DAL.WriteLog("");
-            }
+            //// Oracle强制关闭反向工程，禁止通过连接字符串设置
+            //if (builder.TryGetAndRemove(_.Migration, out var value) && !value.IsNullOrEmpty())
+            //{
+            //    //var mode = (Migration)Enum.Parse(typeof(Migration), value, true);
+            //    //DAL.WriteLog("");
+            //}
 
             base.OnSetConnectionString(builder);
 
@@ -71,8 +71,8 @@ namespace XCode.DataAccessLayer
         /// <summary>实例化</summary>
         public Oracle()
         {
-            // Oracle强制关闭反向工程，无视配置文件设置，但代码设置和连接字符串设置有效
-            Migration = Migration.Off;
+            //// Oracle强制关闭反向工程，无视配置文件设置，但代码设置和连接字符串设置有效
+            //Migration = Migration.Off;
         }
         #endregion
 
@@ -1009,10 +1009,26 @@ namespace XCode.DataAccessLayer
 
         protected override String GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
         {
-            if (field.Nullable)
-                return " NULL";
-            else
-                return " NOT NULL";
+            var str = field.Nullable ? " NULL" : " NOT NULL";
+
+            // 默认值
+            if (!field.Nullable && !field.Identity)
+            {
+                str = GetDefault(field, onlyDefine) + str;
+            }
+
+            return str;
+        }
+
+        /// <summary>默认值</summary>
+        /// <param name="field"></param>
+        /// <param name="onlyDefine"></param>
+        /// <returns></returns>
+        protected override String GetDefault(IDataColumn field, Boolean onlyDefine)
+        {
+            if (field.DataType == typeof(DateTime)) return " DEFAULT To_Date('0001-01-01','yyyy-mm-dd')";
+
+            return base.GetDefault(field, onlyDefine);
         }
 
         public override String CreateTableSQL(IDataTable table)

@@ -20,5 +20,12 @@ namespace NewLife.Net
         /// <summary>用户数据</summary>
         public Object UserState { get; set; }
         #endregion
+
+        #region 方法
+        //public ReceivedEventArgs Clone()
+        //{
+        //    var e=new ReceivedEventArgs { }
+        //}
+        #endregion
     }
 }
