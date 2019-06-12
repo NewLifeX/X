@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -9,11 +8,9 @@ using System.Threading.Tasks;
 using NewLife.Caching;
 using NewLife.Log;
 using NewLife.Net;
-using NewLife.Reflection;
 using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
-using XCode;
 using XCode.Code;
 using XCode.DataAccessLayer;
 using XCode.Membership;
@@ -366,9 +363,9 @@ namespace Test
             //var ic = new MemoryCache();
 
             // 实例化Redis，默认端口6379可以省略，密码有两种写法
-            var ic = Redis.Create("127.0.0.1", 7);
+            //var ic = Redis.Create("127.0.0.1", 7);
             //var ic = Redis.Create("pass@127.0.0.1:6379", 7);
-            //var ic = Redis.Create("server=127.0.0.1:6379;password=pass", 7);
+            var ic = Redis.Create("server=127.0.0.1:6379;password=newlife", 7);
             ic.Log = XTrace.Log; // 调试日志。正式使用时注释
 
             var user = new User { Name = "NewLife", CreateTime = DateTime.Now };
@@ -399,10 +396,24 @@ namespace Test
             var count2 = ic.Decrement("count", 10);
             XTrace.WriteLine("count={0}", count2);
 
-            var inf = ic.GetInfo();
-            foreach (var item in inf)
+            //var inf = ic.GetInfo();
+            //foreach (var item in inf)
+            //{
+            //    Console.WriteLine("{0}:\t{1}", item.Key, item.Value);
+            //}
+
+            for (var i = 0; i < 20; i++)
             {
-                Console.WriteLine("{0}:\t{1}", item.Key, item.Value);
+                try
+                {
+                    ic.Set("k" + i, i, 30);
+                }
+                catch (Exception ex)
+                {
+                    //XTrace.WriteException(ex);
+                    XTrace.WriteLine(ex.Message);
+                }
+                Thread.Sleep(3_000);
             }
 
             //ic.Bench();

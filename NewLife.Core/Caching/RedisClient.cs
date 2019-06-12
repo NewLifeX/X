@@ -27,8 +27,14 @@ namespace NewLife.Caching
         /// <summary>内容类型</summary>
         public NetUri Server { get; set; }
 
-        /// <summary>密码</summary>
-        public String Password { get; set; }
+        /// <summary>宿主</summary>
+        public Redis Host { get; set; }
+
+        ///// <summary>密码</summary>
+        //public String Password { get; set; }
+
+        ///// <summary>目标数据库。默认0</summary>
+        //public Int32 Db { get; set; }
 
         /// <summary>是否已登录</summary>
         public Boolean Logined { get; private set; }
@@ -116,7 +122,7 @@ namespace NewLife.Caching
         ///// <summary>收发缓冲区。不支持收发超过64k的大包</summary>
         //private Byte[] _Buffer;
 
-        private static Byte[] NewLine = new[] { (Byte)'\r', (Byte)'\n' };
+        private static readonly Byte[] NewLine = new[] { (Byte)'\r', (Byte)'\n' };
 
         /// <summary>发出请求</summary>
         /// <param name="ms"></param>
@@ -256,14 +262,21 @@ namespace NewLife.Caching
 
         private void CheckLogin(String cmd)
         {
-            if (!Logined && !Password.IsNullOrEmpty() && cmd != "AUTH")
-            {
-                var ars = ExecuteCommand("AUTH", new Packet[] { Password.GetBytes() });
-                if (ars as String != "OK") throw new Exception("登录失败！" + ars);
+            if (Logined) return;
+            if (cmd.EqualIgnoreCase("Auth", "Select")) return;
 
-                Logined = true;
-                LoginTime = DateTime.Now;
+            if (!Host.Password.IsNullOrEmpty() /*&& cmd != "AUTH"*/)
+            {
+                //var ars = ExecuteCommand("AUTH", new Packet[] { Host.Password.GetBytes() });
+                //if (ars as String != "OK") throw new Exception("登录失败！" + ars);
+
+                if (!Auth(Host.Password)) throw new Exception("登录失败！");
             }
+
+            if (Host.Db > 0) Select(Host.Db);
+
+            Logined = true;
+            LoginTime = DateTime.Now;
         }
 
         /// <summary>重置。干掉历史残留数据</summary>
@@ -388,9 +401,7 @@ namespace NewLife.Caching
                 return default(TResult);
             }
 
-            var type = typeof(TResult);
             var rs = Execute(cmd, args);
-
             if (TryChangeType(rs, typeof(TResult), out var target)) return (TResult)target;
 
             return default(TResult);
@@ -632,10 +643,10 @@ namespace NewLife.Caching
         /// <returns></returns>
         protected T FromBytes<T>(Packet pk) => (T)FromBytes(pk, typeof(T));
 
-        private static ConcurrentDictionary<String, Byte[]> _cache0 = new ConcurrentDictionary<String, Byte[]>();
-        private static ConcurrentDictionary<String, Byte[]> _cache1 = new ConcurrentDictionary<String, Byte[]>();
-        private static ConcurrentDictionary<String, Byte[]> _cache2 = new ConcurrentDictionary<String, Byte[]>();
-        private static ConcurrentDictionary<String, Byte[]> _cache3 = new ConcurrentDictionary<String, Byte[]>();
+        private static readonly ConcurrentDictionary<String, Byte[]> _cache0 = new ConcurrentDictionary<String, Byte[]>();
+        private static readonly ConcurrentDictionary<String, Byte[]> _cache1 = new ConcurrentDictionary<String, Byte[]>();
+        private static readonly ConcurrentDictionary<String, Byte[]> _cache2 = new ConcurrentDictionary<String, Byte[]>();
+        private static readonly ConcurrentDictionary<String, Byte[]> _cache3 = new ConcurrentDictionary<String, Byte[]>();
         /// <summary>获取命令对应的字节数组，全局缓存</summary>
         /// <param name="cmd"></param>
         /// <param name="args"></param>

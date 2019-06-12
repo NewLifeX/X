@@ -167,28 +167,7 @@ namespace NewLife.Caching
         {
             public Redis Instance { get; set; }
 
-            protected override RedisClient OnCreate()
-            {
-                var rds = Instance;
-                var svr = rds.Server;
-                if (svr.IsNullOrEmpty()) throw new ArgumentNullException(nameof(rds.Server));
-
-                if (!svr.Contains("://")) svr = "tcp://" + svr;
-
-                var uri = new NetUri(svr);
-                if (uri.Port == 0) uri.Port = 6379;
-
-                var rc = new RedisClient
-                {
-                    Server = uri,
-                    Password = rds.Password,
-                };
-
-                rc.Log = rds.Log;
-                if (rds.Db > 0) rc.Select(rds.Db);
-
-                return rc;
-            }
+            protected override RedisClient OnCreate() => Instance.OnCreate();
 
             protected override Boolean OnGet(RedisClient value)
             {
@@ -197,6 +176,32 @@ namespace NewLife.Caching
 
                 return base.OnGet(value);
             }
+        }
+
+        /// <summary>创建连接客户端</summary>
+        /// <returns></returns>
+        protected virtual RedisClient OnCreate()
+        {
+            var svr = Server;
+            if (svr.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Server));
+
+            if (!svr.Contains("://")) svr = "tcp://" + svr;
+
+            var uri = new NetUri(svr);
+            if (uri.Port == 0) uri.Port = 6379;
+
+            var rc = new RedisClient
+            {
+                Host = this,
+                Server = uri,
+                //Password = rds.Password,
+                //Db = rds.Db,
+            };
+
+            rc.Log = Log;
+            //if (rds.Db > 0) rc.Select(rds.Db);
+
+            return rc;
         }
 
         private MyPool _Pool;
