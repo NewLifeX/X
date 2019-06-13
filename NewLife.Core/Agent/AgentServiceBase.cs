@@ -515,10 +515,10 @@ namespace NewLife.Agent
 
                 // 兼容dotnet
                 var args = Environment.GetCommandLineArgs();
-                if (args.Length >= 1 && exe.EqualIgnoreCase("dotnet", "dotnet.exe"))
+                if (args.Length >= 1 && Path.GetFileName(exe).EqualIgnoreCase("dotnet", "dotnet.exe"))
                     exe += " " + args[0].GetFullPath();
-                else
-                    exe = exe.GetFullPath();
+                //else
+                //    exe = exe.GetFullPath();
 
                 var bin = GetBinPath(exe);
                 ServiceHelper.RunSC($"create {name} BinPath= \"{bin}\" start= auto DisplayName= \"{DisplayName}\"");
