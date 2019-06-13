@@ -343,6 +343,7 @@ namespace NewLife.Agent
 
             // 再次判断内存
             cur = GC.GetTotalMemory(true);
+            cur = cur / 1024 / 1024;
             if (cur < max) return false;
 
             WriteLog("当前进程占用内存 {0:n0}M，超过阀值 {1:n0}M，准备重新启动！", cur, max);
