@@ -33,6 +33,9 @@ namespace NewLife.Remoting
         /// <summary>处理统计</summary>
         public ICounter StatProcess { get; set; } = new PerfCounter();
 
+        /// <summary>最后会话</summary>
+        public String LastSession { get; set; }
+
         /// <summary>实例化</summary>
         public ApiAction(MethodInfo method, Type type)
         {

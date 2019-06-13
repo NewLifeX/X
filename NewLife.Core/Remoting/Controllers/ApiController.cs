@@ -116,7 +116,7 @@ namespace NewLife.Remoting
                 Threads = proc.Threads.Count,
                 Handles = proc.HandleCount,
                 WorkingSet = proc.WorkingSet64,
-                PrivateMemorySize = proc.PrivateMemorySize64,
+                PrivateMemory = proc.PrivateMemorySize64,
                 GCMemory = GC.GetTotalMemory(false),
                 GC0 = GC.GetGeneration(0),
                 GC1 = GC.GetGeneration(1),
@@ -133,7 +133,7 @@ namespace NewLife.Remoting
             foreach (var item in Host.Manager.Services)
             {
                 var api = item.Value;
-                dic[item.Key] = api.StatProcess + "";
+                dic[item.Key] = api.StatProcess + " " + api.LastSession;
             }
 
             return dic;

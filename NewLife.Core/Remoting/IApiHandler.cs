@@ -6,6 +6,7 @@ using System.Threading;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
+using NewLife.Net;
 using NewLife.Reflection;
 
 namespace NewLife.Remoting
@@ -37,6 +38,8 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public virtual Object Execute(IApiSession session, String action, Packet args)
         {
+            if (action.IsNullOrEmpty()) action = "Api/Info";
+
             var api = session.FindAction(action);
             if (api == null) throw new ApiException(404, "无法找到名为[{0}]的服务！".F(action));
 
@@ -45,6 +48,10 @@ namespace NewLife.Remoting
             if (controller == null) throw new ApiException(403, "无法创建名为[{0}]的服务！".F(api.Name));
 
             if (controller is IApi capi) capi.Session = session;
+            if (session is INetSession ss)
+                api.LastSession = ss.Remote + "";
+            else
+                api.LastSession = session + "";
 
             var st = api.StatProcess;
             var sw = st.StartCount();

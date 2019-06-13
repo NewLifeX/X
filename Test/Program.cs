@@ -34,7 +34,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test6();
+                    Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -443,26 +443,11 @@ namespace Test
 
         static void Test8()
         {
-            //XCode.Setting.Current.Debug = false;
-
-            var dal = UserX.Meta.Session.Dal;
-            var dt = UserX.Meta.Table.DataTable;
-            dal.Db.ShowSQL = false;
-
-            File.Delete("member3.db");
-            dal.Sync(dt, "member3");
-
-            dal.Backup(dt.TableName);
-
-            File.Delete("member2.db");
-            //DAL.AddConnStr("member2", "Server=.;Port=3306;Database=member2;Uid=root;Pwd=root;", null, "MySql");
-            //DAL.AddConnStr("member2", "Server=.;Port=3306;Database=member2;Uid=root;Pwd=root;", null, "Oracle");
-            var dal2 = DAL.Create("member2");
-            dal2.Db.ShowSQL = false;
-            dal2.Restore("user.table", dt);
-
-            //dal.BackupAll(null, "backup", true);
-            //dal2.RestoreAll("backup");
+            var ss = new String[8];
+            ss[1] = "Stone";
+            ss[3] = "NewLife";
+            var str = ss.Join();
+            Console.WriteLine(str);
         }
 
         static async void Test9()
