@@ -548,40 +548,43 @@ namespace XCode.DataAccessLayer
         #region 修复实现SqlServer批量操作增添方法
         private Int32 BatchExecute(String sql, List<IDataParameter[]> psList)
         {
-            //获取连接对象
-            var conn = Database.Pool.Get();
-
-            // 准备
-            var mBatcher = new SqlBatcher();
-            mBatcher.StartBatch(conn);
-
-            // 创建并添加Command
-            foreach (var dps in psList)
+            return Process(conn =>
             {
-                if (dps != null)
+                ////获取连接对象
+                //var conn = Database.Pool.Get();
+
+                // 准备
+                var mBatcher = new SqlBatcher();
+                mBatcher.StartBatch(conn);
+
+                // 创建并添加Command
+                foreach (var dps in psList)
                 {
-                    var cmd = OnCreateCommand(sql, CommandType.Text, dps);
-                    mBatcher.AddToBatch(cmd);
+                    if (dps != null)
+                    {
+                        var cmd = OnCreateCommand(sql, CommandType.Text, dps);
+                        mBatcher.AddToBatch(cmd);
+                    }
                 }
-            }
 
-            // 执行批量操作
-            try
-            {
-                BeginTrace();
-                var ret = mBatcher.ExecuteBatch();
-                mBatcher.EndBatch();
-                return ret;
-            }
-            catch (DbException ex)
-            {
-                throw OnException(ex);
-            }
-            finally
-            {
-                if (conn != null) Database.Pool.Put(conn);
-                EndTrace(OnCreateCommand(sql, CommandType.Text));
-            }
+                // 执行批量操作
+                try
+                {
+                    BeginTrace();
+                    var ret = mBatcher.ExecuteBatch();
+                    mBatcher.EndBatch();
+                    return ret;
+                }
+                catch (DbException ex)
+                {
+                    throw OnException(ex);
+                }
+                finally
+                {
+                    //if (conn != null) Database.Pool.Put(conn);
+                    EndTrace(OnCreateCommand(sql, CommandType.Text));
+                }
+            });
         }
 
         private List<IDataParameter[]> GetParametersList(IDataColumn[] columns, ICollection<String> ps, IEnumerable<IIndexAccessor> list, Boolean isInsertOrUpdate = false)

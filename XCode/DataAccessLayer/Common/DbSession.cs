@@ -7,7 +7,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
 using NewLife;
 using NewLife.Collections;
 using NewLife.Data;
@@ -103,6 +102,36 @@ namespace XCode.DataAccessLayer
                 return new XSqlException(sql, this, ex);
             else
                 return new XSqlException(sql, this);
+        }
+
+        /// <summary>打开连接并执行操作</summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="callback"></param>
+        /// <returns></returns>
+        public virtual TResult Process<TResult>(Func<DbConnection, TResult> callback)
+        {
+            using (var conn = Database.Factory.CreateConnection())
+            {
+                conn.ConnectionString = ConnectionString;
+                conn.Open();
+
+                return callback(conn);
+            }
+        }
+
+        /// <summary>打开连接并执行操作</summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="callback"></param>
+        /// <returns></returns>
+        public virtual async Task<TResult> ProcessAsync<TResult>(Func<DbConnection, Task<TResult>> callback)
+        {
+            using (var conn = Database.Factory.CreateConnection())
+            {
+                conn.ConnectionString = ConnectionString;
+                await conn.OpenAsync();
+
+                return await callback(conn);
+            }
         }
         #endregion
 
@@ -311,24 +340,27 @@ namespace XCode.DataAccessLayer
 
             var text = WriteSQL(cmd);
 
-            DbConnection conn = null;
-            try
+            return Process(conn =>
             {
-                if (cmd.Connection == null) cmd.Connection = conn = Database.Pool.Get();
+                //DbConnection conn = null;
+                try
+                {
+                    //if (cmd.Connection == null) cmd.Connection = conn = Database.Pool.Get();
 
-                BeginTrace();
-                return callback(cmd);
-            }
-            catch (DbException ex)
-            {
-                throw OnException(ex, cmd, text);
-            }
-            finally
-            {
-                if (conn != null) Database.Pool.Put(conn);
+                    BeginTrace();
+                    return callback(cmd);
+                }
+                catch (DbException ex)
+                {
+                    throw OnException(ex, cmd, text);
+                }
+                finally
+                {
+                    //if (conn != null) Database.Pool.Put(conn);
 
-                EndTrace(cmd, text);
-            }
+                    EndTrace(cmd, text);
+                }
+            });
         }
 
         /// <summary>执行插入语句并返回新增行的自动编号</summary>
@@ -504,15 +536,7 @@ namespace XCode.DataAccessLayer
             var dt = db._SchemaCache[key];
             if (dt == null)
             {
-                var conn2 = conn ?? Database.Pool.Get();
-                try
-                {
-                    dt = GetSchemaInternal(conn2, key, collectionName, restrictionValues);
-                }
-                finally
-                {
-                    if (conn == null) Database.Pool.Put(conn2);
-                }
+                dt = Process(conn2 => GetSchemaInternal(conn2, key, collectionName, restrictionValues));
 
                 db._SchemaCache[key] = dt;
             }

@@ -11,33 +11,20 @@ namespace XCode.DataAccessLayer
         /// <summary>系统数据库名</summary>
         public virtual String SystemDatabaseName => "master";
 
-        /// <summary>数据库服务器版本</summary>
-        public override String ServerVersion
-        {
-            get
-            {
-                var ver = _ServerVersion;
-                if (ver != null) return ver;
-                _ServerVersion = String.Empty;
+        ///// <summary>数据库服务器版本</summary>
+        //public override String ServerVersion
+        //{
+        //    get
+        //    {
+        //        var ver = _ServerVersion;
+        //        if (ver != null) return ver;
+        //        _ServerVersion = String.Empty;
 
-                //var session = CreateSession() as RemoteDbSession;
-                //ver = _ServerVersion = session.ProcessWithSystem(s =>
-                //{
-                //    var conn = Pool.Get();
-                //    try
-                //    {
-                //        return conn.ServerVersion;
-                //    }
-                //    finally
-                //    {
-                //        Pool.Put(conn);
-                //    }
-                //}) as String;
-                ver = _ServerVersion = Pool.Execute(conn => conn.ServerVersion);
+        //        ver = _ServerVersion = Pool.Execute(conn => conn.ServerVersion);
 
-                return ver;
-            }
-        }
+        //        return ver;
+        //    }
+        //}
 
         private String _User;
         /// <summary>用户名UserID</summary>
@@ -84,14 +71,14 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        const String Pooling = "Pooling";
-        protected override void OnSetConnectionString(ConnectionStringBuilder builder)
-        {
-            base.OnSetConnectionString(builder);
+        //const String Pooling = "Pooling";
+        //protected override void OnSetConnectionString(ConnectionStringBuilder builder)
+        //{
+        //    base.OnSetConnectionString(builder);
 
-            // 关闭底层连接池，使用XCode连接池
-            builder.TryAdd(Pooling, "false");
-        }
+        //    // 关闭底层连接池，使用XCode连接池
+        //    builder.TryAdd(Pooling, "false");
+        //}
         #endregion
     }
 
@@ -142,14 +129,10 @@ namespace XCode.DataAccessLayer
 
                         OpenDatabase(conn, sysdbname);
 
-                        //Conn = conn;
-
                         return callback(this, conn);
                     }
                     finally
                     {
-                        //Conn = null;
-
                         if (DAL.Debug) WriteLog("退出系统库[{0}]，回到[{1}]", sysdbname, dbname);
                     }
                 }

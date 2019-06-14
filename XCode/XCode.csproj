@@ -7,9 +7,9 @@
     <Description>数据中间件，MySQL、SQLite、SqlServer、Oracle</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2019 新生命开发团队</Copyright>
-    <Version>9.11.2019.0602</Version>
-    <FileVersion>9.11.2019.0602</FileVersion>
-    <AssemblyVersion>9.11.*</AssemblyVersion>
+    <Version>9.12.2019.0614</Version>
+    <FileVersion>9.12.2019.0614</FileVersion>
+    <AssemblyVersion>9.12.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <OutputPath>..\..\Bin</OutputPath>
     <DocumentationFile>$(OutputPath)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
@@ -68,6 +68,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="DataAccessLayer\Common\ConnectionPool.cs" />
     <Compile Remove="DataAccessLayer\Database\Firebird.cs" />
     <Compile Remove="Properties\AssemblyInfo.cs" />
   </ItemGroup>

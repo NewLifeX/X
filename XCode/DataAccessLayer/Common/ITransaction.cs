@@ -136,7 +136,8 @@ namespace XCode.DataAccessLayer
             if (n == 1)
             {
                 // 打开事务后，由事务管理连接
-                Conn = _Session.Database.Pool.Get();
+                //Conn = _Session.Database.Pool.Get();
+                Conn = _Session.Database.Factory.CreateConnection();
             }
 
             return this;
@@ -163,8 +164,9 @@ namespace XCode.DataAccessLayer
                 {
                     Tran = null;
 
-                    // 把连接归还给对象池
-                    _Session.Database.Pool.Put(Conn);
+                    //// 把连接归还给对象池
+                    //_Session.Database.Pool.Put(Conn);
+                    Conn.Close();
                     Conn = null;
                 }
             }
@@ -193,8 +195,9 @@ namespace XCode.DataAccessLayer
                 {
                     Tran = null;
 
-                    // 把连接归还给对象池
-                    _Session.Database.Pool.Put(Conn);
+                    //// 把连接归还给对象池
+                    //_Session.Database.Pool.Put(Conn);
+                    Conn.Close();
                     Conn = null;
                 }
             }

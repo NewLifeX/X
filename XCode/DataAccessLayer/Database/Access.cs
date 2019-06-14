@@ -7,7 +7,6 @@ using System.Data.OleDb;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using NewLife.IO;
 
 namespace XCode.DataAccessLayer
 {
@@ -15,7 +14,7 @@ namespace XCode.DataAccessLayer
     {
         #region 属性
         /// <summary>返回数据库类型。外部DAL数据库类请使用Other</summary>
-        public override DatabaseType Type { get { return DatabaseType.Access; } }
+        public override DatabaseType Type => DatabaseType.Access;
 
         private static DbProviderFactory _dbProviderFactory;
         /// <summary>工厂</summary>
@@ -23,10 +22,8 @@ namespace XCode.DataAccessLayer
         {
             get
             {
-                if (_dbProviderFactory == null)
-                {
-                    _dbProviderFactory = OleDbFactory.Instance;
-                }
+                if (_dbProviderFactory == null) _dbProviderFactory = OleDbFactory.Instance;
+
                 return _dbProviderFactory;
             }
         }
@@ -39,7 +36,7 @@ namespace XCode.DataAccessLayer
                 if (builder != null)
                 {
                     var name = Path.GetTempFileName();
-                    FileSource.ReleaseFile(Assembly.GetExecutingAssembly(), "Database.mdb", name, true);
+                    //FileSource.ReleaseFile(Assembly.GetExecutingAssembly(), "Database.mdb", name, true);
 
                     builder[_.DataSource] = name;
                     builder["Provider"] = "Microsoft.Jet.OLEDB.4.0";
@@ -54,11 +51,11 @@ namespace XCode.DataAccessLayer
         #region 方法
         /// <summary>创建数据库会话</summary>
         /// <returns></returns>
-        protected override IDbSession OnCreateSession() { return new AccessSession(this); }
+        protected override IDbSession OnCreateSession() => new AccessSession(this);
 
         /// <summary>创建元数据对象</summary>
         /// <returns></returns>
-        protected override IMetaData OnCreateMetaData() { return new AccessMetaData(); }
+        protected override IMetaData OnCreateMetaData() => new AccessMetaData();
 
         public override Boolean Support(String providerName)
         {
@@ -85,12 +82,6 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据库特性
-        ///// <summary>当前时间函数</summary>
-        //public override String DateTimeNow { get { return "now()"; } }
-
-        ///// <summary>最小时间</summary>
-        //public override DateTime DateTimeMin { get { return DateTime.MinValue; } }
-
         /// <summary>长文本长度</summary>
         public override Int32 LongTextLength => 255;
 
@@ -105,24 +96,18 @@ namespace XCode.DataAccessLayer
         /// <summary>格式化时间为SQL字符串</summary>
         /// <param name="dateTime">时间值</param>
         /// <returns></returns>
-        public override String FormatDateTime(DateTime dateTime) { return "#" + dateTime.ToFullString() + "#"; }
-        //public override String FormatDateTime(DateTime dateTime)
-        //{
-        //    return String.Format("#{0:yyyy-MM-dd HH:mm:ss}#", dateTime);
-        //}
+        public override String FormatDateTime(DateTime dateTime) => "#" + dateTime.ToFullString() + "#";
 
         /// <summary>格式化关键字</summary>
         /// <param name="keyWord">关键字</param>
         /// <returns></returns>
         public override String FormatKeyWord(String keyWord)
         {
-            //if (String.IsNullOrEmpty(keyWord)) throw new ArgumentNullException("keyWord");
             if (String.IsNullOrEmpty(keyWord)) return keyWord;
 
             if (keyWord.StartsWith("[") && keyWord.EndsWith("]")) return keyWord;
 
-            return String.Format("[{0}]", keyWord);
-            //return keyWord;
+            return $"[{keyWord}]";
         }
 
         /// <summary>格式化数据为SQL数据</summary>
@@ -143,10 +128,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 分页
-        public override SelectBuilder PageSplit(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows)
-        {
-            return MSPageSplit.PageSplit(builder, startRowIndex, maximumRows, false, b => CreateSession().QueryCount(b));
-        }
+        public override SelectBuilder PageSplit(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows) => MSPageSplit.PageSplit(builder, startRowIndex, maximumRows, false, b => CreateSession().QueryCount(b));
         #endregion
 
         #region 平台检查
@@ -154,8 +136,7 @@ namespace XCode.DataAccessLayer
         public static void CheckSupport()
         {
             var module = typeof(Object).Module;
-
-            module.GetPEKind(out var kind, out var machine);
+            module.GetPEKind(out var _, out var machine);
 
             if (machine != ImageFileMachine.I386) throw new NotSupportedException("64位平台不支持OLEDB驱动！");
         }
@@ -166,20 +147,10 @@ namespace XCode.DataAccessLayer
     internal class AccessSession : FileDbSession
     {
         #region 构造函数
-        public AccessSession(IDatabase db) : base(db)
-        {
-            Access.CheckSupport();
-        }
+        public AccessSession(IDatabase db) : base(db) => Access.CheckSupport();
         #endregion
 
         #region 方法
-        ///// <summary>打开。已重写，为了建立数据库</summary>
-        //public override void Open()
-        //{
-        //    Access.CheckSupport();
-
-        //    base.Open();
-        //}
         #endregion
 
         #region 基本方法 查询/执行
@@ -199,10 +170,6 @@ namespace XCode.DataAccessLayer
                 return rs;
             }
             catch { Rollback(true); throw; }
-            //finally
-            //{
-            //    AutoClose();
-            //}
         }
         #endregion
     }
@@ -221,51 +188,6 @@ namespace XCode.DataAccessLayer
 
             return GetTables(rows, names);
         }
-
-        protected override void FixField(IDataColumn field, DataRow drColumn)
-        {
-            base.FixField(field, drColumn);
-
-            //// 字段标识
-            //var flag = GetDataRowValue<Int64>(drColumn, "COLUMN_FLAGS");
-
-            //Boolean? isLong = null;
-
-            //if (Int32.TryParse(GetDataRowValue<String>(drColumn, "DATA_TYPE"), out var id))
-            //{
-            //    var drs = FindDataType(field, "" + id, isLong);
-            //    if (drs != null && drs.Length > 0)
-            //    {
-            //        var typeName = GetDataRowValue<String>(drs[0], "TypeName");
-            //        field.RawType = typeName;
-
-            //        if (TryGetDataRowValue(drs[0], "DataType", out typeName)) field.DataType = typeName.GetTypeEx();
-
-            //        // 修正备注类型
-            //        if (field.DataType == typeof(String) && drs.Length > 1)
-            //        {
-            //            isLong = (flag & 0x80) == 0x80;
-            //            drs = FindDataType(field, "" + id, isLong);
-            //            if (drs != null && drs.Length > 0)
-            //            {
-            //                typeName = GetDataRowValue<String>(drs[0], "TypeName");
-            //                field.RawType = typeName;
-            //            }
-            //        }
-            //    }
-            //}
-
-            //// 修正原始类型
-            //if (TryGetDataRowValue(drDataType, "TypeName", out String typeName)) field.RawType = typeName;
-        }
-
-        //protected override void FixField(IDataColumn field, DataRow drColumn, DataRow drDataType)
-        //{
-        //    base.FixField(field, drColumn, drDataType);
-
-        //    // 修正原始类型
-        //    if (TryGetDataRowValue(drDataType, "TypeName", out String typeName)) field.RawType = typeName;
-        //}
 
         /// <summary>获取索引</summary>
         /// <param name="table"></param>
@@ -315,40 +237,6 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 反向工程创建表
-        //protected override void CreateTable(StringBuilder sb, IDataTable table, Boolean onlySql)
-        //{
-        //    base.CreateTable(sb, table, onlySql);
-
-        //    if (!onlySql)
-        //    {
-        //        IDatabase entityDb = null;
-        //        foreach (IDataColumn dc in table.Columns)
-        //        {
-        //            // 如果实体存在默认值，则增加
-        //            if (!String.IsNullOrEmpty(dc.Default))
-        //            {
-        //                var tc = Type.GetTypeCode(dc.DataType);
-        //                String dv = dc.Default;
-        //                // 特殊处理时间
-        //                if (tc == TypeCode.DateTime)
-        //                {
-        //                    if (entityDb != null && dv == entityDb.DateTimeNow) dc.Default = Database.DateTimeNow;
-        //                }
-        //                // 特殊处理Guid
-        //                else if (tc == TypeCode.String || dc.DataType == typeof(Guid))
-        //                {
-        //                    if (entityDb != null && dv == entityDb.NewGuid) dc.Default = Database.NewGuid;
-        //                }
-
-        //                PerformSchema(sb, onlySql, DDLSchema.AddDefault, dc);
-
-        //                // 还原
-        //                dc.Default = dv;
-        //            }
-        //        }
-        //    }
-        //}
-
         public override String CreateTableSQL(IDataTable table)
         {
             var sql = base.CreateTableSQL(table);
@@ -384,43 +272,6 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据类型
-        //protected override DataRow[] FindDataType(IDataColumn field, String typeName, Boolean? isLong)
-        //{
-        //    var drs = base.FindDataType(field, typeName, isLong);
-        //    if (drs != null && drs.Length > 0) return drs;
-
-        //    //// 处理SByte类型
-        //    //if (typeName == typeof(SByte).FullName)
-        //    //{
-        //    //    typeName = typeof(Byte).FullName;
-        //    //    drs = base.FindDataType(field, typeName, isLong);
-        //    //    if (drs != null && drs.Length > 0) return drs;
-        //    //}
-
-        //    var dt = DataTypes;
-        //    if (dt == null) return null;
-
-        //    // 转为整数
-        //    if (!Int32.TryParse(typeName, out var n)) return null;
-
-        //    try
-        //    {
-        //        if (isLong == null)
-        //        {
-        //            drs = dt.Select(String.Format("NativeDataType={0}", n));
-        //            if (drs == null || drs.Length < 1) drs = dt.Select(String.Format("ProviderDbType={0}", n));
-        //        }
-        //        else
-        //        {
-        //            drs = dt.Select(String.Format("NativeDataType={0} And IsLong={1}", n, isLong.Value));
-        //            if (drs == null || drs.Length < 1) drs = dt.Select(String.Format("ProviderDbType={0} And IsLong={1}", n, isLong.Value));
-        //        }
-        //    }
-        //    catch { }
-
-        //    return drs;
-        //}
-
         protected override String GetFieldType(IDataColumn field)
         {
             var typeName = base.GetFieldType(field);

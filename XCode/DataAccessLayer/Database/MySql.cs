@@ -40,7 +40,7 @@ namespace XCode.DataAccessLayer
 
         const String Server_Key = "Server";
         const String CharSet = "CharSet";
-        const String AllowZeroDatetime = "Allow Zero Datetime";
+        //const String AllowZeroDatetime = "Allow Zero Datetime";
         const String MaxPoolSize = "MaxPoolSize";
         const String Sslmode = "Sslmode";
         protected override void OnSetConnectionString(ConnectionStringBuilder builder)
