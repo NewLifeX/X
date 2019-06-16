@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Caching;
@@ -34,7 +35,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test3();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -55,20 +56,55 @@ namespace Test
 
         static void Test1()
         {
-            var total = UserX.Meta.Count;
-            Console.WriteLine("总行数：{0:n0}", total);
+            var ip = "112.74.79.65";
+            var addr = ip.IPToAddress();
+            Console.WriteLine(addr);
 
-            // 查询1000万次，不预热
-            var count = 10_000_000;
-            var sw = Stopwatch.StartNew();
-            for (var i = 0; i < count; i++)
+            var v = IPToUInt32(ip);
+            Console.WriteLine("{0} {0:X8}", v);
+
+            var v4 = IPToUInt32_(ip);
+            Console.WriteLine("{0} {0:X8}", v4);
+
+            var addr2 = IPAddress.Parse(ip);
+            var v2 = (UInt32)addr2.GetAddressBytes().Reverse().ToInt();
+            Console.WriteLine("{0} {0:X8}", v2);
+
+            var v3 = (UInt32)addr2.GetAddressBytes().ToInt();
+            Console.WriteLine("{0} {0:X8}", v3);
+        }
+
+        static UInt32 IPToUInt32(String IpValue)
+        {
+            var ss = IpValue.Split('.');
+            //var buf = stackalloc Byte[4];
+            var val = 0u;
+            //var ptr = (Byte*)&val;
+            for (var i = 0; i < 4; i++)
             {
-                var user = UserX.FindByName("admin");
+                if (i < ss.Length && UInt32.TryParse(ss[i], out var n))
+                {
+                    //buf[3 - i] = (Byte)n;
+                    val |= n << ((3 - i) << 3);
+                    //ptr[3 - i] = n;
+                }
             }
-            sw.Stop();
+            //return BitConverter.ToUInt32(buf, 0);
+            return val;
+        }
 
-            var ms = sw.Elapsed.TotalMilliseconds;
-            Console.WriteLine("查询[{0:n0}]次，耗时{1:n0}ms，速度{2:n0}qps", count, ms, count * 1000L / ms);
+        static UInt32 IPToUInt32_(String IpValue)
+        {
+            var ss = IpValue.Split('.');
+            var buf = new Byte[4];
+            for (var i = 0; i < 4; i++)
+            {
+                if (i < ss.Length && Int32.TryParse(ss[i], out var n))
+                {
+                    buf[3 - i] = (Byte)n;
+                }
+            }
+            return BitConverter.ToUInt32(buf, 0);
         }
 
         static void Test2()
