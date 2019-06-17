@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Web;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Messaging;
@@ -41,7 +42,16 @@ namespace NewLife.Http
         {
             var str = data.ToStr();
             WriteLog("{0}<={1}", action, str);
-            if (!str.IsNullOrEmpty()) return str.SplitAsDictionary("=", "&").ToDictionary(e => e.Key, e => (Object)e.Value);
+            if (!str.IsNullOrEmpty())
+            {
+                var dic = str.SplitAsDictionary("=", "&");//.ToDictionary(e => e.Key, e => (Object)e.Value, StringComparer.OrdinalIgnoreCase);
+                var rs = new Dictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
+                foreach (var item in dic)
+                {
+                    rs[item.Key] = HttpUtility.UrlDecode(item.Value);
+                }
+                return rs;
+            }
 
             return null;
         }
