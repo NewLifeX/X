@@ -45,7 +45,7 @@ namespace XCode.DataAccessLayer
             catch (ObjectDisposedException) { }
             catch (Exception ex)
             {
-                WriteLog("执行" + DbType.ToString() + "的Dispose时出错：" + ex.ToString());
+                WriteLog("执行" + Database.Type + "的Dispose时出错：" + ex);
             }
         }
         #endregion
@@ -54,14 +54,14 @@ namespace XCode.DataAccessLayer
         /// <summary>数据库</summary>
         public IDatabase Database { get; }
 
-        /// <summary>返回数据库类型。外部DAL数据库类请使用Other</summary>
-        private DatabaseType DbType => Database.Type;
+        ///// <summary>返回数据库类型。外部DAL数据库类请使用Other</summary>
+        //private DatabaseType DbType => Database.Type;
 
-        /// <summary>工厂</summary>
-        private DbProviderFactory Factory => Database.Factory;
+        ///// <summary>工厂</summary>
+        //private DbProviderFactory Factory => Database.Factory;
 
-        /// <summary>链接字符串，会话单独保存，允许修改，修改不会影响数据库中的连接字符串</summary>
-        public String ConnectionString { get; set; }
+        ///// <summary>链接字符串，会话单独保存，允许修改，修改不会影响数据库中的连接字符串</summary>
+        //public String ConnectionString { get; set; }
 
         ///// <summary>数据连接对象。</summary>
         //public DbConnection Conn { get; protected set; }
@@ -110,29 +110,26 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual TResult Process<TResult>(Func<DbConnection, TResult> callback)
         {
-            using (var conn = Database.Factory.CreateConnection())
+            using (var conn = Database.OpenConnection())
             {
-                conn.ConnectionString = ConnectionString;
-                conn.Open();
-
                 return callback(conn);
             }
         }
 
-        /// <summary>打开连接并执行操作</summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="callback"></param>
-        /// <returns></returns>
-        public virtual async Task<TResult> ProcessAsync<TResult>(Func<DbConnection, Task<TResult>> callback)
-        {
-            using (var conn = Database.Factory.CreateConnection())
-            {
-                conn.ConnectionString = ConnectionString;
-                await conn.OpenAsync();
+        ///// <summary>打开连接并执行操作</summary>
+        ///// <typeparam name="TResult"></typeparam>
+        ///// <param name="callback"></param>
+        ///// <returns></returns>
+        //public virtual async Task<TResult> ProcessAsync<TResult>(Func<DbConnection, Task<TResult>> callback)
+        //{
+        //    using (var conn = Database.Factory.CreateConnection())
+        //    {
+        //        conn.ConnectionString = Database.ConnectionString;
+        //        await conn.OpenAsync();
 
-                return await callback(conn);
-            }
-        }
+        //        return await callback(conn);
+        //    }
+        //}
         #endregion
 
         #region 事务
@@ -241,7 +238,7 @@ namespace XCode.DataAccessLayer
         {
             return Execute(cmd, true, cmd2 =>
             {
-                using (var da = Factory.CreateDataAdapter())
+                using (var da = Database.Factory.CreateDataAdapter())
                 {
                     da.SelectCommand = cmd2;
 
@@ -346,6 +343,7 @@ namespace XCode.DataAccessLayer
                 try
                 {
                     //if (cmd.Connection == null) cmd.Connection = conn = Database.Pool.Get();
+                    if (cmd.Connection == null) cmd.Connection = conn;
 
                     BeginTrace();
                     return callback(cmd);
@@ -466,7 +464,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected virtual DbCommand OnCreateCommand(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
         {
-            var cmd = Factory?.CreateCommand();
+            var cmd = Database.Factory?.CreateCommand();
             if (cmd == null) return null;
 
             //if (!Opened) Open();

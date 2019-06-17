@@ -19,8 +19,8 @@ namespace XCode.DataAccessLayer
         /// <summary>数据库</summary>
         IDatabase Database { get; }
 
-        /// <summary>链接字符串</summary>
-        String ConnectionString { get; set; }
+        ///// <summary>链接字符串</summary>
+        //String ConnectionString { get; set; }
 
         /// <summary>查询次数</summary>
         Int32 QueryTimes { get; set; }
@@ -39,11 +39,11 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         TResult Process<TResult>(Func<DbConnection, TResult> callback);
 
-        /// <summary>打开连接并执行操作</summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="callback"></param>
-        /// <returns></returns>
-        Task<TResult> ProcessAsync<TResult>(Func<DbConnection, Task<TResult>> callback);
+        ///// <summary>打开连接并执行操作</summary>
+        ///// <typeparam name="TResult"></typeparam>
+        ///// <param name="callback"></param>
+        ///// <returns></returns>
+        //Task<TResult> ProcessAsync<TResult>(Func<DbConnection, Task<TResult>> callback);
         #endregion
 
         #region 事务

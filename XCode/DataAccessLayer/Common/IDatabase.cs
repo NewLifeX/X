@@ -73,6 +73,10 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         IMetaData CreateMetaData();
 
+        /// <summary>创建连接</summary>
+        /// <returns></returns>
+        DbConnection OpenConnection();
+
         /// <summary>是否支持该提供者所描述的数据库</summary>
         /// <param name="providerName">提供者</param>
         /// <returns></returns>

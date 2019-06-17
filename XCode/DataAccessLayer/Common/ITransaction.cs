@@ -137,7 +137,7 @@ namespace XCode.DataAccessLayer
             {
                 // 打开事务后，由事务管理连接
                 //Conn = _Session.Database.Pool.Get();
-                Conn = _Session.Database.Factory.CreateConnection();
+                Conn = _Session.Database.OpenConnection();
             }
 
             return this;

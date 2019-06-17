@@ -103,7 +103,7 @@ namespace XCode.DataAccessLayer
             }
             catch (Exception ex)
             {
-                DAL.WriteLog("[3]GetSchema({0})异常重试！{1},连接字符串 {2}", collectionName, ex.Message, ConnectionString, Database.ConnName);
+                DAL.WriteLog("[2]GetSchema({0})异常重试！{1}", collectionName, ex.Message, Database.ConnName);
 
                 // 如果没有数据库，登录会失败，需要切换到系统数据库再试试
                 return ProcessWithSystem((s, c) => base.GetSchema(c, collectionName, restrictionValues)) as DataTable;
@@ -125,7 +125,7 @@ namespace XCode.DataAccessLayer
                 {
                     try
                     {
-                        conn.ConnectionString = ConnectionString;
+                        conn.ConnectionString = Database.ConnectionString;
 
                         OpenDatabase(conn, sysdbname);
 

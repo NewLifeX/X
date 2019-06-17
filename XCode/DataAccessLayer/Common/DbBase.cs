@@ -209,7 +209,11 @@ namespace XCode.DataAccessLayer
 
                 _ServerVersion = String.Empty;
 
-                return _ServerVersion = Process(conn => conn.ServerVersion);
+                //return _ServerVersion = Process(conn => conn.ServerVersion);
+                using (var conn = OpenConnection())
+                {
+                    return _ServerVersion = conn.ServerVersion;
+                }
             }
         }
 
@@ -244,7 +248,7 @@ namespace XCode.DataAccessLayer
             session = OnCreateSession();
 
             CheckConnStr();
-            session.ConnectionString = ConnectionString;
+            //session.ConnectionString = ConnectionString;
 
             _store.Value = session;
 
@@ -279,20 +283,31 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected abstract IMetaData OnCreateMetaData();
 
-        /// <summary>打开连接并执行操作</summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="callback"></param>
+        /// <summary>创建连接</summary>
         /// <returns></returns>
-        public virtual TResult Process<TResult>(Func<DbConnection, TResult> callback)
+        public virtual DbConnection OpenConnection()
         {
-            using (var conn = Factory.CreateConnection())
-            {
-                conn.ConnectionString = ConnectionString;
-                conn.Open();
+            var conn = Factory.CreateConnection();
+            conn.ConnectionString = ConnectionString;
+            conn.Open();
 
-                return callback(conn);
-            }
+            return conn;
         }
+
+        ///// <summary>打开连接并执行操作</summary>
+        ///// <typeparam name="TResult"></typeparam>
+        ///// <param name="callback"></param>
+        ///// <returns></returns>
+        //public virtual TResult Process<TResult>(Func<DbConnection, TResult> callback)
+        //{
+        //    using (var conn = CreateConnection())
+        //    {
+        //        //conn.ConnectionString = ConnectionString;
+        //        //conn.Open();
+
+        //        return callback(conn);
+        //    }
+        //}
 
         /// <summary>是否支持该提供者所描述的数据库</summary>
         /// <param name="providerName">提供者</param>

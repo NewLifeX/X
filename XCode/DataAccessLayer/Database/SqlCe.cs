@@ -165,7 +165,7 @@ namespace XCode.DataAccessLayer
             //FileSource.ReleaseFile(Assembly.GetExecutingAssembly(), "SqlCe.sdf", FileName, true);
             DAL.WriteLog("创建数据库：{0}", FileName);
 
-            var sce = SqlCeEngine.Create(ConnectionString);
+            var sce = SqlCeEngine.Create(Database.ConnectionString);
             if (sce != null) sce.CreateDatabase().Dispose();
         }
 

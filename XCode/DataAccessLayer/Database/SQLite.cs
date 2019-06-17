@@ -761,13 +761,13 @@ namespace XCode.DataAccessLayer
             if (File.Exists(bf)) File.Delete(bf);
 
             using (var conn = Database.Factory.CreateConnection())
-            using (var conn2 = Database.Factory.CreateConnection())
+            using (var conn2 = Database.OpenConnection())
             {
                 conn.ConnectionString = "Data Source={0}".F(bf);
                 conn.Open();
 
-                conn2.ConnectionString = Database.ConnectionString;
-                conn2.Open();
+                //conn2.ConnectionString = Database.ConnectionString;
+                //conn2.Open();
 
                 //var method = conn.GetType().GetMethodEx("BackupDatabase");
                 // 借助BackupDatabase函数可以实现任意两个SQLite之间倒数据，包括内存数据库
