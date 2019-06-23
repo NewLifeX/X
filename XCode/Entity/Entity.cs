@@ -1460,6 +1460,31 @@ namespace XCode
         #endregion
 
         #region 脏数据
+        /// <summary>从数据库查询数据，对比重置脏数据</summary>
+        /// <remarks>
+        /// 在MVC中直接用实体对象接收前端数据进行更新操作时，脏数据可能不准确。
+        /// 该方法实现脏数据重置，确保可以准确保存到数据库。
+        /// </remarks>
+        /// <returns></returns>
+        public Int32 ResetDirty()
+        {
+            var key = Meta.Unique;
+            if (key == null) throw new InvalidOperationException("要求有唯一主键");
+
+            var rs = 0;
+            var entity = FindByKey(this[key.Name]);
+            foreach (var item in Meta.Fields)
+            {
+                var eq = CheckEqual(this[item.Name], entity[item.Name]);
+                if (Dirtys[item.Name] != eq)
+                {
+                    Dirtys[item.Name] = eq;
+                    rs++;
+                }
+            }
+
+            return rs;
+        }
         #endregion
 
         #region 高并发
