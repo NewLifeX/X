@@ -1475,10 +1475,10 @@ namespace XCode
             var entity = FindByKey(this[key.Name]);
             foreach (var item in Meta.Fields)
             {
-                var eq = CheckEqual(this[item.Name], entity[item.Name]);
-                if (Dirtys[item.Name] != eq)
+                var change = !CheckEqual(this[item.Name], entity[item.Name]);
+                if (Dirtys[item.Name] != change)
                 {
-                    Dirtys[item.Name] = eq;
+                    Dirtys[item.Name] = change;
                     rs++;
                 }
             }

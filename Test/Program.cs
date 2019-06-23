@@ -35,7 +35,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test2();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -56,6 +56,19 @@ namespace Test
 
         static void Test1()
         {
+            Role.Meta.Session.Dal.Db.ShowSQL = true;
+
+            var role = new Role
+            {
+                ID = 1,
+                Name = "管理员",
+                Enable = false,
+                Ex4 = "All"
+            };
+
+            role.ResetDirty();
+
+            role.Save();
         }
 
         static void Test2()
