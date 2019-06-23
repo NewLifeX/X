@@ -16,7 +16,6 @@ namespace NewLife.Caching
     /// <summary>Redis客户端</summary>
     /// <remarks>
     /// 以极简原则进行设计，每个客户端不支持并行命令处理，可通过多客户端多线程解决。
-    /// 收发共用64k缓冲区，所以命令请求和响应不能超过64k。
     /// </remarks>
     public class RedisClient : DisposeBase
     {
@@ -29,12 +28,6 @@ namespace NewLife.Caching
 
         /// <summary>宿主</summary>
         public Redis Host { get; set; }
-
-        ///// <summary>密码</summary>
-        //public String Password { get; set; }
-
-        ///// <summary>目标数据库。默认0</summary>
-        //public Int32 Db { get; set; }
 
         /// <summary>是否已登录</summary>
         public Boolean Logined { get; private set; }
@@ -119,10 +112,7 @@ namespace NewLife.Caching
             return ns;
         }
 
-        ///// <summary>收发缓冲区。不支持收发超过64k的大包</summary>
-        //private Byte[] _Buffer;
-
-        private static readonly Byte[] NewLine = new[] { (Byte)'\r', (Byte)'\n' };
+        private static readonly Byte[] _NewLine = new[] { (Byte)'\r', (Byte)'\n' };
 
         /// <summary>发出请求</summary>
         /// <param name="ms"></param>
@@ -159,7 +149,7 @@ namespace NewLife.Caching
                 {
                     var size = item.Total;
                     var sizes = size.ToString().GetBytes();
-                    var len = 1 + sizes.Length + NewLine.Length * 2 + size;
+                    var len = 1 + sizes.Length + _NewLine.Length * 2 + size;
 
                     if (log != null)
                     {
@@ -173,10 +163,10 @@ namespace NewLife.Caching
                     //ms.Write(str.GetBytes());
                     ms.WriteByte((Byte)'$');
                     ms.Write(sizes);
-                    ms.Write(NewLine);
+                    ms.Write(_NewLine);
                     //ms.Write(item);
                     item.CopyTo(ms);
-                    ms.Write(NewLine);
+                    ms.Write(_NewLine);
                 }
             }
             if (log != null) WriteLog(log.Put(true));
