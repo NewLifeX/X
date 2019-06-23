@@ -27,8 +27,6 @@ namespace NewLife.Threading
                 ts = new TimerScheduler(name);
                 _cache[name] = ts;
 
-                WriteLog("启动定时调度器：{0}", name);
-
                 return ts;
             }
         }
@@ -39,7 +37,7 @@ namespace NewLife.Threading
         [ThreadStatic]
         private static TimerScheduler _Current;
         /// <summary>当前调度器</summary>
-        public static TimerScheduler Current { get { return _Current; } private set { _Current = value; } }
+        public static TimerScheduler Current { get => _Current; private set => _Current = value; }
         #endregion
 
         #region 属性
@@ -82,6 +80,8 @@ namespace NewLife.Threading
                         IsBackground = true
                     };
                     thread.Start();
+
+                    WriteLog("启动定时调度器：{0}", Name);
                 }
 
                 Wake();
@@ -305,13 +305,10 @@ namespace NewLife.Threading
         public override String ToString() => Name;
 
         #region 设置
-        /// <summary>是否开启调试，输出更多信息</summary>
-        public static Boolean Debug { get; set; }
+        /// <summary>日志</summary>
+        public ILog Log { get; set; }
 
-        static void WriteLog(String format, params Object[] args)
-        {
-            if (Debug) XTrace.WriteLine(format, args);
-        }
+        private void WriteLog(String format, params Object[] args) => Log?.Info(format, args);
         #endregion
     }
 }

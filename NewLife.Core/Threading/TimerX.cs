@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Text;
 using System.Threading;
-using NewLife.Log;
 
 namespace NewLife.Threading
 {
@@ -13,7 +11,7 @@ namespace NewLife.Threading
     /// 
     /// 该定时器不能放入太多任务，否则适得其反！
     /// 
-    /// TimerX必须维持对象，否则很容易被GC回收。
+    /// TimerX必须维持对象，否则Scheduler也没有维持对象时，大家很容易一起被GC回收。
     /// </remarks>
     public class TimerX : /*DisposeBase*/IDisposable
     {
