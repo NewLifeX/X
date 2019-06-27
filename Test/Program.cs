@@ -65,19 +65,10 @@ namespace Test
             var list = Role.FindAll();
             Console.WriteLine("共有实体：{0}", list.Count);
 
-            var ms = new MemoryStream();
-            list.Write(ms);
-            var buf = ms.ToArray();
-            Console.WriteLine("[{0}]={1} {2}", buf.Length, buf.ToHex(), buf.ToStr());
-
-            var list2 = new List<Role>();
-            list2.Read(new MemoryStream(buf));
-            Console.WriteLine("共有实体：{0}", list2.Count);
-
-            list.SaveFile("role.db");
+            list.SaveCsv("role.csv");
 
             var list3 = new List<Role>();
-            list3.LoadFile("role.db");
+            list3.LoadCsv("role.csv");
             Console.WriteLine("文件共有实体：{0}", list3.Count);
         }
 
