@@ -56,8 +56,6 @@ namespace Test
 
         static void Test1()
         {
-            Role.Meta.Session.Dal.Db.ShowSQL = true;
-
             var role = new Role
             {
                 ID = 1,
@@ -66,9 +64,11 @@ namespace Test
                 Ex4 = "All"
             };
 
-            role.ResetDirty();
+            var js = role.ToJson(true, false, false);
+            Console.WriteLine(js);
 
-            role.Save();
+            var role2 = js.ToJsonEntity<Role>();
+            Console.WriteLine("{0} {1} {2}", role2.ID, role2.Name, role2.Ex4);
         }
 
         static void Test2()

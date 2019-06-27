@@ -52,8 +52,8 @@ namespace NewLife.Serialization
 
         /// <summary>写入对象，得到Json字符串</summary>
         /// <param name="value"></param>
-        /// <param name="indented">是否缩进。默认false</param>
-        /// <param name="nullValue">是否写控制。默认true</param>
+        /// <param name="indented">是否换行缩进。默认false</param>
+        /// <param name="nullValue">是否写空值。默认true</param>
         /// <param name="camelCase">是否驼峰命名。默认false</param>
         /// <returns></returns>
         public static String ToJson(this Object value, Boolean indented, Boolean nullValue, Boolean camelCase) => Default.Write(value, indented, nullValue, camelCase);
