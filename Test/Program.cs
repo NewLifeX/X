@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Caching;
@@ -12,6 +13,7 @@ using NewLife.Net;
 using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
+using NewLife.Xml;
 using XCode.Code;
 using XCode.DataAccessLayer;
 using XCode.Membership;
@@ -64,10 +66,13 @@ namespace Test
                 Ex4 = "All"
             };
 
-            var js = role.ToJson(true, false, false);
-            Console.WriteLine(js);
+            var xml = role.ToXml();
+            Console.WriteLine(xml);
 
-            var role2 = js.ToJsonEntity<Role>();
+            var xml2 = role.ToXml(Encoding.UTF8, false, true);
+            Console.WriteLine(xml2);
+
+            var role2 = xml.ToXmlEntity<Role>();
             Console.WriteLine("{0} {1} {2}", role2.ID, role2.Name, role2.Ex4);
         }
 
