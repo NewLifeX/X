@@ -66,13 +66,16 @@ namespace Test
                 Ex4 = "All"
             };
 
-            var xml = role.ToXml();
-            Console.WriteLine(xml);
 
-            var xml2 = role.ToXml(Encoding.UTF8, false, true);
-            Console.WriteLine(xml2);
+            var ms = new MemoryStream();
+            (role as IAccessor).Write(ms, null);
+            var buf = ms.ToArray();
+            Console.WriteLine("[{0}]={1} {2}", buf.Length, buf.ToHex(), buf.ToStr());
 
-            var role2 = xml.ToXmlEntity<Role>();
+            var ms2 = new MemoryStream(buf);
+            var role2 = new Role();
+            (role2 as IAccessor).Read(ms2, null);
+
             Console.WriteLine("{0} {1} {2}", role2.ID, role2.Name, role2.Ex4);
         }
 
