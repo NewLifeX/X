@@ -14,6 +14,7 @@ using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
 using NewLife.Xml;
+using XCode;
 using XCode.Code;
 using XCode.DataAccessLayer;
 using XCode.Membership;
@@ -58,25 +59,20 @@ namespace Test
 
         static void Test1()
         {
-            var role = new Role
-            {
-                ID = 1,
-                Name = "管理员",
-                Enable = false,
-                Ex4 = "All"
-            };
+            var count = Role.Meta.Count;
+            Thread.Sleep(1000);
 
+            var list = Role.FindAll();
+            Console.WriteLine("共有实体：{0}", list.Count);
 
             var ms = new MemoryStream();
-            (role as IAccessor).Write(ms, null);
+            list.Write(ms);
             var buf = ms.ToArray();
             Console.WriteLine("[{0}]={1} {2}", buf.Length, buf.ToHex(), buf.ToStr());
 
-            var ms2 = new MemoryStream(buf);
-            var role2 = new Role();
-            (role2 as IAccessor).Read(ms2, null);
-
-            Console.WriteLine("{0} {1} {2}", role2.ID, role2.Name, role2.Ex4);
+            var list2 = new List<Role>();
+            list2.Read(new MemoryStream(buf));
+            Console.WriteLine("共有实体：{0}", list2.Count);
         }
 
         static void Test2()
