@@ -73,6 +73,12 @@ namespace Test
             var list2 = new List<Role>();
             list2.Read(new MemoryStream(buf));
             Console.WriteLine("共有实体：{0}", list2.Count);
+
+            list.SaveFile("role.db");
+
+            var list3 = new List<Role>();
+            list3.LoadFile("role.db");
+            Console.WriteLine("文件共有实体：{0}", list3.Count);
         }
 
         static void Test2()
