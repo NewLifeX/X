@@ -329,9 +329,17 @@ namespace XCode
                                 if (name.Length >= 3 && !Char.IsUpper(name[name.Length - 3])) continue;
                             }
 
+                            // 第二名称，去掉后面的数字，便于模式匹配
+                            var name2 = item.Name;
+                            while (name2.Length > 1 && Char.IsDigit(name2[name2.Length - 1])) name2 = name2.Substring(0, name2.Length - 1);
+
                             if (name.StartsWith("Max") && name.Length > 3 && Char.IsUpper(name[3]))
                                 concat &= item.Max();
-                            else if (name.EndsWith("Rate") && name.Length > 4 && !Char.IsUpper(name[name.Length - 5]))
+                            else if (name.StartsWith("Min") && name.Length > 3 && Char.IsUpper(name[3]))
+                                concat &= item.Min();
+                            else if (name.StartsWith("Agv") && name.Length > 3 && Char.IsUpper(name[3]))
+                                concat &= item.Agv();
+                            else if (name2.EndsWith("Rate"))
                                 concat &= item.Max();
                             else
                                 concat &= item.Sum();
