@@ -78,6 +78,12 @@ namespace System
         /// <param name="key"></param>
         /// <returns></returns>
         public static Byte[] SHA512(this Byte[] data, Byte[] key) => new HMACSHA512(key).ComputeHash(data);
+
+        /// <summary>Murmur128哈希</summary>
+        /// <param name="data"></param>
+        /// <param name="seed"></param>
+        /// <returns></returns>
+        public static Byte[] Murmur128(this Byte[] data, UInt32 seed = 0) => new Murmur128(seed).ComputeHash(data);
         #endregion
 
         #region 同步加密扩展

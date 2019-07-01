@@ -58,7 +58,8 @@ namespace Test
         {
             var count = 10_000_000;
 
-            var bf = new BloomFilter(count, 0.00001);
+            //var bf = new BloomFilter(count, 0.0001);
+            var bf = new BloomFilter(count * 32);
             var rs1 = 0;
             var rs2 = 0;
 
@@ -75,8 +76,8 @@ namespace Test
                     rs2++;
                 }
             }
-            Console.WriteLine($"  存在：{rs1} {(Double)rs1 / count:p4}");
-            Console.WriteLine($"不存在：{rs2} {(Double)rs2 / count:p4}");
+            Console.WriteLine($"  存在：{rs1} {(Double)rs1 / count:p8}");
+            Console.WriteLine($"不存在：{rs2} {(Double)rs2 / count:p8}");
         }
 
         static void Test2()

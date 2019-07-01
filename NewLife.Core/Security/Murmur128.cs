@@ -2,7 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 
-namespace NewLife.Core.Security
+namespace NewLife.Security
 {
     /// <summary>高性能低碰撞Murmur128哈希算法</summary>
     /// <remarks>
@@ -29,7 +29,7 @@ namespace NewLife.Core.Security
         #region 构造
         /// <summary>实例化</summary>
         /// <param name="seed"></param>
-        protected Murmur128(UInt32 seed = 0)
+        public Murmur128(UInt32 seed = 0)
         {
             _Seed = seed;
             Reset();

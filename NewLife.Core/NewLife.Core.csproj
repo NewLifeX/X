@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFrameworks>net45;netstandard2.0</TargetFrameworks>
     <AssemblyName>NewLife.Core</AssemblyName>
-    <RootNamespace>NewLife.Core</RootNamespace>
+    <RootNamespace>NewLife</RootNamespace>
     <AssemblyTitle>新生命X组件核心库</AssemblyTitle>
     <Description>日志、网络、RPC、序列化、缓存、Windows服务、线程池</Description>
     <Company>新生命开发团队</Company>
