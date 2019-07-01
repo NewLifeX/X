@@ -3,18 +3,15 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Caching;
+using NewLife.Core.Collections;
 using NewLife.Log;
 using NewLife.Net;
 using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
-using NewLife.Xml;
-using XCode;
 using XCode.Code;
 using XCode.DataAccessLayer;
 using XCode.Membership;
@@ -59,17 +56,27 @@ namespace Test
 
         static void Test1()
         {
-            var count = Role.Meta.Count;
-            Thread.Sleep(1000);
+            var count = 10_000_000;
 
-            var list = Role.FindAll();
-            Console.WriteLine("共有实体：{0}", list.Count);
+            var bf = new BloomFilter(count, 0.00001);
+            var rs1 = 0;
+            var rs2 = 0;
 
-            list.SaveCsv("role.csv");
-
-            var list3 = new List<Role>();
-            list3.LoadCsv("role.csv");
-            Console.WriteLine("文件共有实体：{0}", list3.Count);
+            for (var i = 0; i < count; i++)
+            {
+                var key = $"ip_{i}";
+                if (bf.Get(key))
+                {
+                    rs1++;
+                }
+                else
+                {
+                    bf.Set(key);
+                    rs2++;
+                }
+            }
+            Console.WriteLine($"  存在：{rs1} {(Double)rs1 / count:p4}");
+            Console.WriteLine($"不存在：{rs2} {(Double)rs2 / count:p4}");
         }
 
         static void Test2()
