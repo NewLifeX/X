@@ -88,7 +88,7 @@ namespace NewLife.Caching
                 tc.TryDispose();
                 if (!create) return null;
 
-                var timeout = 3_000;
+                var timeout = Host.Timeout;
                 tc = new TcpClient
                 {
                     SendTimeout = timeout,
@@ -464,6 +464,9 @@ namespace NewLife.Caching
 
             var ns = GetStream(true);
             if (ns == null) return null;
+
+            // 验证登录
+            CheckLogin(null);
 
             // 整体打包所有命令
             var ms = Pool.MemoryStream.Get();

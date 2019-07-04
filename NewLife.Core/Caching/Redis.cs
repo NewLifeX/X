@@ -90,6 +90,9 @@ namespace NewLife.Caching
         /// <summary>目标数据库。默认0</summary>
         public Int32 Db { get; set; }
 
+        /// <summary>读写超时时间。默认3000ms</summary>
+        public Int32 Timeout { get; set; } = 3_000;
+
         /// <summary>出错重试次数。如果出现协议解析错误，可以重试的次数，默认3</summary>
         public Int32 Retry { get; set; } = 3;
 
