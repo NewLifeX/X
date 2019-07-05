@@ -3,11 +3,14 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using NewLife.Collections;
 using NewLife.Log;
+#if !NET4
+using System.Net.Http;
+#endif
 
 namespace NewLife.Web
 {
@@ -22,6 +25,16 @@ namespace NewLife.Web
         #region 构造
         static WebClientX()
         {
+#if NET4
+            try
+            {
+                ServicePointManager.SecurityProtocol |= SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls;
+            }
+            catch
+            {
+                ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls;
+            }
+#else
             try
             {
                 ServicePointManager.SecurityProtocol |= SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
@@ -30,6 +43,7 @@ namespace NewLife.Web
             {
                 ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
             }
+#endif
         }
 
         /// <summary>实例化</summary>
@@ -46,6 +60,97 @@ namespace NewLife.Web
         #endregion
 
         #region 核心方法
+#if NET4
+        /// <summary>请求</summary>
+        public HttpWebRequest Request { get; private set; }
+
+        /// <summary>响应</summary>
+        public HttpWebResponse Response { get; private set; }
+
+        /// <summary>创建客户端会话</summary>
+        /// <param name="uri"></param>
+        /// <returns></returns>
+        protected virtual HttpWebRequest Create(String uri)
+        {
+            var req = WebRequest.Create(uri) as HttpWebRequest;
+
+            return req;
+        }
+
+        /// <summary>下载数据</summary>
+        /// <param name="address"></param>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        protected virtual async Task<Byte[]> SendAsync(String address, Byte[] data = null)
+        {
+            var time = Timeout;
+            if (time <= 0) time = 3000;
+            while (true)
+            {
+                var http = Create(address);
+                http.Timeout = time;
+                http.Method = data == null || data.Length == 0 ? "GET" : "POST";
+
+                Log.Info("WebClientX.SendAsync {0}", address);
+
+                // 发送请求
+                var rs = (await Task.Factory.FromAsync(http.BeginGetResponse, http.EndGetResponse, null)) as HttpWebResponse;
+
+                // 如果是重定向
+                switch (rs.StatusCode)
+                {
+                    case HttpStatusCode.MovedPermanently:
+                    case HttpStatusCode.Redirect:
+                    case HttpStatusCode.RedirectMethod:
+                        var url = rs.Headers[HttpResponseHeader.Location + ""] + "";
+                        if (!url.IsNullOrEmpty())
+                        {
+                            address = url;
+                            data = null;
+                            continue;
+                        }
+                        break;
+                    default:
+                        break;
+                }
+
+                var ms = NewLife.Collections.Pool.MemoryStream.Get();
+                var ns = rs.GetResponseStream();
+
+                ns.CopyTo(ms);
+                while (rs.ContentLength > 0 && ms.Length < rs.ContentLength)
+                {
+                    Thread.Sleep(10);
+                    ns.CopyTo(ms);
+                }
+
+                return ms.Put(true);
+            }
+        }
+
+        /// <summary>下载数据</summary>
+        /// <param name="address"></param>
+        /// <returns></returns>
+        public virtual async Task<Byte[]> DownloadDataAsync(String address) => await SendAsync(address);
+
+        /// <summary>下载字符串</summary>
+        /// <param name="address"></param>
+        /// <returns></returns>
+        public virtual async Task<String> DownloadStringAsync(String address) => (await SendAsync(address)).ToStr();
+
+        /// <summary>下载文件</summary>
+        /// <param name="address"></param>
+        /// <param name="fileName"></param>
+        public virtual async Task DownloadFileAsync(String address, String fileName)
+        {
+            var rs = await SendAsync(address);
+            fileName.EnsureDirectory(true);
+            using (var fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+            {
+                await fs.WriteAsync(rs, 0, rs.Length);
+            }
+        }
+#else
         private HttpClient _client;
 
         /// <summary>创建客户端会话</summary>
@@ -107,6 +212,7 @@ namespace NewLife.Web
                 await rs.CopyToAsync(fs);
             }
         }
+#endif
         #endregion
 
         #region 方法

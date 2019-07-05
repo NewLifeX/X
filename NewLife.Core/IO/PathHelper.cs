@@ -296,7 +296,11 @@ namespace System.IO
 
             if (fi.Name.EndsWithIgnoreCase(".zip"))
             {
+#if NET4
+                using (var zip = new ZipFile(fi.FullName))
+#else
                 using (var zip = ZipFile.Open(fi.FullName, ZipArchiveMode.Read, null))
+#endif
                 {
                     var di = Directory.CreateDirectory(destDir);
                     var fullName = di.FullName;
@@ -344,10 +348,17 @@ namespace System.IO
 
             if (destFile.EndsWithIgnoreCase(".zip"))
             {
-                using (var zf = ZipFile.Open(destFile, ZipArchiveMode.Create))
+#if NET4
+                using (var zip = new ZipFile(fi.FullName))
                 {
-                    zf.CreateEntryFromFile(fi.FullName, fi.Name, CompressionLevel.Optimal);
+                    zip.CreateEntryFromFile(fi.FullName, fi.Name, CompressionLevel.Optimal);
                 }
+#else
+                using (var zip = ZipFile.Open(destFile, ZipArchiveMode.Create))
+                {
+                    zip.CreateEntryFromFile(fi.FullName, fi.Name, CompressionLevel.Optimal);
+                }
+#endif
             }
             else
             {

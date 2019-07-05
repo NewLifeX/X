@@ -339,7 +339,11 @@ namespace NewLife.Agent
             if (cur < max) return false;
 
             // 执行一次GC回收
+#if NET4
+            GC.Collect(2, GCCollectionMode.Forced);
+#else
             GC.Collect(2, GCCollectionMode.Forced, false);
+#endif
 
             // 再次判断内存
             cur = GC.GetTotalMemory(true);
