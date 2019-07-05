@@ -291,7 +291,7 @@ namespace System.IO.Compression
         /// <summary>解压缩</summary>
         /// <param name="path">目标路径</param>
         /// <param name="overrideExisting">是否覆盖已有文件</param>
-        public void Extract(String path, Boolean overrideExisting = true)
+        public void ExtractToFile(String path, Boolean overrideExisting = true)
         {
             if (path.IsNullOrEmpty()) throw new ArgumentNullException(nameof(path));
 

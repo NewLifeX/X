@@ -351,7 +351,7 @@ namespace System.IO
 #if NET4
                 using (var zip = new ZipFile(fi.FullName))
                 {
-                    zip.CreateEntryFromFile(fi.FullName, fi.Name, CompressionLevel.Optimal);
+                    zip.AddFile(fi.FullName, fi.Name);
                 }
 #else
                 using (var zip = ZipFile.Open(destFile, ZipArchiveMode.Create))
@@ -498,7 +498,11 @@ namespace System.IO
             if (File.Exists(destFile)) File.Delete(destFile);
 
             if (destFile.EndsWithIgnoreCase(".zip"))
+#if NET4
+                ZipFile.CompressDirectory(di.FullName, destFile);
+#else
                 ZipFile.CreateFromDirectory(di.FullName, destFile, CompressionLevel.Optimal, true);
+#endif
             else
                 new SevenZip().Compress(di.FullName, destFile);
         }

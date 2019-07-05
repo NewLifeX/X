@@ -318,12 +318,12 @@ namespace System.IO.Compression
             foreach (var item in Entries)
             {
                 if (throwException)
-                    item.Extract(outputPath, overrideExisting);
+                    item.ExtractToFile(outputPath, overrideExisting);
                 else
                 {
                     try
                     {
-                        item.Extract(outputPath, overrideExisting);
+                        item.ExtractToFile(outputPath, overrideExisting);
                     }
                     catch { }
                 }
@@ -391,10 +391,10 @@ namespace System.IO.Compression
         /// <param name="stored">是否仅存储，不压缩</param>
         public void AddDirectory(String dirName, String entryName = null, Boolean? stored = null)
         {
-            if (String.IsNullOrEmpty(dirName)) throw new ArgumentNullException("fileName");
+            if (dirName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(dirName));
             dirName = Path.GetFullPath(dirName);
 
-            if (!String.IsNullOrEmpty(entryName))
+            if (!entryName.IsNullOrEmpty())
             {
                 if (!entryName.EndsWith(DirSeparator)) entryName += DirSeparator;
                 var entry = ZipEntry.Create(null, entryName, true);
