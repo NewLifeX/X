@@ -666,11 +666,14 @@ namespace NewLife.Reflection
             if (type == baseType) return true;
 
             // 如果基类是泛型定义，补充完整，例如IList<>
-            //if (baseType.IsGenericTypeDefinition && type.IsGenericType && !type.IsGenericTypeDefinition) type = type.GetGenericTypeDefinition();
+#if NET4
+            if (baseType.IsGenericTypeDefinition && type.IsGenericType && !type.IsGenericTypeDefinition) type = type.GetGenericTypeDefinition();
+#else
             if (baseType.IsGenericTypeDefinition
                 && type.IsGenericType && !type.IsGenericTypeDefinition
                 && baseType is TypeInfo inf && inf.GenericTypeParameters.Length == type.GenericTypeArguments.Length)
                 baseType = baseType.MakeGenericType(type.GenericTypeArguments);
+#endif
 
             if (type == baseType) return true;
 

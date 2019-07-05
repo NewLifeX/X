@@ -92,11 +92,17 @@ namespace System.IO.Compression
         #region 属性
         /// <summary>是否目录</summary>
         [XmlIgnore]
-        public Boolean IsDirectory { get { return ("" + FileName).EndsWith(ZipFile.DirSeparator); } }
+        public Boolean IsDirectory => ("" + FileName).EndsWith(ZipFile.DirSeparator);
 
         /// <summary>数据源</summary>
         [NonSerialized]
         private IDataSource DataSource;
+
+        /// <summary>全名</summary>
+        public String FullName => FileName;
+
+        /// <summary>长度</summary>
+        public Int32 Length => ExtraFieldLength;
         #endregion
 
         #region 构造

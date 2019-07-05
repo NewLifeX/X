@@ -169,7 +169,9 @@ namespace NewLife.Remoting
         public virtual async Task<Object> InvokeAsync(Type resultType, String action, Object args = null, Byte flag = 0)
         {
             // 让上层异步到这直接返回，后续代码在另一个线程执行
+#if !NET4
             await Task.Yield();
+#endif
 
             Open();
 
@@ -280,7 +282,9 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public virtual async Task<Object> LoginAsync()
         {
+#if !NET4
             await Task.Yield();
+#endif
 
             return await Cluster.InvokeAsync(client => OnLoginAsync(client, false));
         }

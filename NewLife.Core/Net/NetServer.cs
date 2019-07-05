@@ -315,7 +315,8 @@ namespace NewLife.Net
                         if (elm != item && elm.Port == 0) elm.Port = Port;
                     }
                 }
-                /*if (item.Port <= 0)*/ WriteLog("开始监听 {0}", item);
+                /*if (item.Port <= 0)*/
+                WriteLog("开始监听 {0}", item);
             }
         }
 
@@ -480,6 +481,7 @@ namespace NewLife.Net
         #endregion
 
         #region 群发
+#if !NET4
         /// <summary>异步群发</summary>
         /// <param name="buffer"></param>
         /// <returns></returns>
@@ -495,6 +497,7 @@ namespace NewLife.Net
 
             return Task.WhenAll(ts).ContinueWith(t => Sessions.Count);
         }
+#endif
         #endregion
 
         #region 创建Tcp/Udp、IPv4/IPv6服务

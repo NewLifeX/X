@@ -10,6 +10,7 @@ using NewLife.Collections;
 using NewLife.Log;
 #if !NET4
 using System.Net.Http;
+using TaskEx = System.Threading.Tasks.Task;
 #endif
 
 namespace NewLife.Web
@@ -55,18 +56,14 @@ namespace NewLife.Web
         {
             base.OnDispose(disposing);
 
+#if !NET4
             _client.TryDispose();
+#endif
         }
         #endregion
 
         #region 核心方法
 #if NET4
-        /// <summary>请求</summary>
-        public HttpWebRequest Request { get; private set; }
-
-        /// <summary>响应</summary>
-        public HttpWebResponse Response { get; private set; }
-
         /// <summary>创建客户端会话</summary>
         /// <param name="uri"></param>
         /// <returns></returns>
@@ -219,7 +216,7 @@ namespace NewLife.Web
         /// <summary>获取指定地址的Html，自动处理文本编码</summary>
         /// <param name="url"></param>
         /// <returns></returns>
-        public String GetHtml(String url) => Task.Run(() => DownloadStringAsync(url)).Result;
+        public String GetHtml(String url) => TaskEx.Run(() => DownloadStringAsync(url)).Result;
 
         /// <summary>获取指定地址的Html，分析所有超链接</summary>
         /// <param name="url"></param>
@@ -304,7 +301,7 @@ namespace NewLife.Web
             file2 = file2.EnsureDirectory();
 
             var sw = Stopwatch.StartNew();
-            Task.Run(() => DownloadFileAsync(link.Url, file2)).Wait();
+            TaskEx.Run(() => DownloadFileAsync(link.Url, file2)).Wait();
             sw.Stop();
 
             if (File.Exists(file2))
