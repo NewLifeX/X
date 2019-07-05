@@ -9,6 +9,9 @@ using NewLife.Data;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Threading;
+#if !NET4
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 namespace NewLife.Net
 {
@@ -529,7 +532,7 @@ namespace NewLife.Net
 
             message = Pipeline.Write(ctx, message);
 
-            if (!ctx.FireWrite(message)) return Task.FromResult((Object)null);
+            if (!ctx.FireWrite(message)) return TaskEx.FromResult((Object)null);
 
             return source.Task;
         }

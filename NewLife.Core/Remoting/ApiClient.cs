@@ -6,6 +6,9 @@ using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Net;
 using NewLife.Threading;
+#if !NET4
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 namespace NewLife.Remoting
 {
@@ -276,7 +279,7 @@ namespace NewLife.Remoting
         /// <summary>连接后自动登录</summary>
         /// <param name="client">客户端</param>
         /// <param name="force">强制登录</param>
-        protected virtual Task<Object> OnLoginAsync(ISocketClient client, Boolean force) => Task.FromResult<Object>(null);
+        protected virtual Task<Object> OnLoginAsync(ISocketClient client, Boolean force) => TaskEx.FromResult<Object>(null);
 
         /// <summary>登录</summary>
         /// <returns></returns>
