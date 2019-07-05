@@ -58,25 +58,20 @@ namespace System.IO.Compression
     public partial class ZipFile : IDisposable, IEnumerable, IEnumerable<ZipEntry>
     {
         #region 属性
-        private String _Name;
         /// <summary>名称</summary>
-        public String Name { get => _Name; set => _Name = value; }
+        public String Name { get; set; }
 
-        private String _Comment;
         /// <summary>注释</summary>
-        public String Comment { get { EnsureRead(); return _Comment; } set => _Comment = value; }
+        public String Comment { get; set; }
 
-        private Encoding _Encoding;
         /// <summary>字符串编码</summary>
-        public Encoding Encoding { get => _Encoding ?? Encoding.UTF8; set => _Encoding = value; }
+        public Encoding Encoding { get; set; } = Encoding.UTF8;
 
-        private Boolean _UseDirectory;
         /// <summary>是否使用目录。不使用目录可以减少一点点文件大小，网络上的压缩包也这么做，但是Rar压缩的使用了目录</summary>
-        public Boolean UseDirectory { get => _UseDirectory; set => _UseDirectory = value; }
+        public Boolean UseDirectory { get; set; }
 
-        private Int64 _EmbedFileDataMaxSize = 10 * 1024 * 1024;
         /// <summary>内嵌文件数据最大大小。小于该大小的文件将加载到内存中，否则保持文件流连接，直到读写文件。默认10M</summary>
-        public Int64 EmbedFileDataMaxSize { get => _EmbedFileDataMaxSize; set => _EmbedFileDataMaxSize = value; }
+        public Int64 EmbedFileDataMaxSize { get; set; } = 10 * 1024 * 1024;
         #endregion
 
         #region 构造
@@ -129,19 +124,15 @@ namespace System.IO.Compression
                 var f = _file;
                 _file = null;
                 var fs = File.OpenRead(f);
-#if !DEBUG
                 try
-#endif
                 {
                     Read(fs);
                 }
-#if !DEBUG
                 catch (Exception ex)
                 {
                     fs.Dispose();
                     throw new ZipException("不是有效的Zip格式！", ex);
                 }
-#endif
 
                 if (fs.Length < EmbedFileDataMaxSize) fs.Dispose();
             }
@@ -308,22 +299,6 @@ namespace System.IO.Compression
         {
             if (String.IsNullOrEmpty(fileName)) throw new ArgumentNullException("fileName");
 
-            //// 根据文件后缀决定采用的压缩算法
-            //var method = CompressionMethod.Stored;
-            //var ext = Path.GetExtension(fileName);
-            //if (ext == ".7z" || ext == ".lzma")
-            //    method = CompressionMethod.LZMA;
-            //else
-            //    method = CompressionMethod.Deflated;
-
-            //if (method != CompressionMethod.Stored)
-            //{
-            //    foreach (var item in Entries.Values)
-            //    {
-            //        item.CompressionMethod = method;
-            //    }
-            //}
-
             using (var fs = File.Create(fileName))
             {
                 Write(fs);
@@ -457,7 +432,7 @@ namespace System.IO.Compression
         /// <param name="outputName"></param>
         public static void CompressFile(String fileName, String outputName = null)
         {
-            if (String.IsNullOrEmpty(fileName)) throw new ArgumentNullException("fileName");
+            if (String.IsNullOrEmpty(fileName)) throw new ArgumentNullException(nameof(fileName));
             if (String.IsNullOrEmpty(outputName)) outputName = Path.ChangeExtension(fileName, ".zip");
 
             using (var zf = new ZipFile())
@@ -472,7 +447,7 @@ namespace System.IO.Compression
         /// <param name="outputName"></param>
         public static void CompressDirectory(String dirName, String outputName = null)
         {
-            if (String.IsNullOrEmpty(dirName)) throw new ArgumentNullException("dirName");
+            if (String.IsNullOrEmpty(dirName)) throw new ArgumentNullException(nameof(dirName));
             if (String.IsNullOrEmpty(outputName)) outputName = Path.ChangeExtension(Path.GetFileName(dirName), ".zip");
 
             using (var zf = new ZipFile())
@@ -535,9 +510,6 @@ namespace System.IO.Compression
         #region 辅助
         internal IFormatterX CreateReader(Stream stream)
         {
-#if DEBUG
-            //stream = new NewLife.Log.TraceStream(stream);
-#endif
             var bn = new Binary() { Stream = stream };
             bn.EncodeInt = false;
             bn.UseFieldSize = true;
@@ -545,18 +517,12 @@ namespace System.IO.Compression
             bn.SizeWidth = 2;
             bn.IsLittleEndian = true;
             bn.Encoding = Encoding;
-#if DEBUG
-            bn.Log = NewLife.Log.XTrace.Log;
-#endif
 
             return bn;
         }
 
         internal IFormatterX CreateWriter(Stream stream)
         {
-#if DEBUG
-            //stream = new NewLife.Log.TraceStream(stream);
-#endif
             var bn = new Binary() { Stream = stream };
             bn.EncodeInt = false;
             bn.UseFieldSize = true;
@@ -564,9 +530,6 @@ namespace System.IO.Compression
             bn.SizeWidth = 2;
             bn.IsLittleEndian = true;
             bn.Encoding = Encoding;
-#if DEBUG
-            bn.Log = NewLife.Log.XTrace.Log;
-#endif
 
             return bn;
         }
