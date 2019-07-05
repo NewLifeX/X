@@ -60,7 +60,9 @@ namespace NewLife.Security
             Body(array, ibStart, cbSize);
         }
 
+#if !__NET40__
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         private void Body(Byte[] data, Int32 start, Int32 length)
         {
             var remainder = length & 15;
@@ -78,7 +80,9 @@ namespace NewLife.Security
                 Tail(data, alignedLength, remainder);
         }
 
+#if !__NET40__
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         private void Tail(Byte[] tail, Int32 start, Int32 remaining)
         {
             // create our keys and initialize to 0
@@ -136,7 +140,9 @@ namespace NewLife.Security
         //[MethodImpl(MethodImplOptions.AggressiveInlining)]
         //private static UInt32 RotateLeft(UInt32 x, Byte r) => (x << r) | (x >> (32 - r));
 
+#if !__NET40__
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         private static UInt64 RotateLeft(UInt64 x, Byte r) => (x << r) | (x >> (64 - r));
 
         //[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -147,7 +153,9 @@ namespace NewLife.Security
         //    return h ^ (h >> 16);
         //}
 
+#if !__NET40__
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         private static UInt64 FMix(UInt64 h)
         {
             h = (h ^ (h >> 33)) * 0xff51afd7ed558ccd;

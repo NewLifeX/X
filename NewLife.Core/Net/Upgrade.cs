@@ -210,10 +210,7 @@ namespace NewLife.Net
         {
             if (_Client != null) return _Client;
 
-            var web = new WebClientX(true, true)
-            {
-                UserAgent = "NewLife.Upgrade"
-            };
+            var web = new WebClientX();
             return _Client = web;
         }
 

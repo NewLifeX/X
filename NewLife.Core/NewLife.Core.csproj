@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net45;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net45;netstandard2.0;net40</TargetFrameworks>
     <AssemblyName>NewLife.Core</AssemblyName>
     <RootNamespace>NewLife</RootNamespace>
     <AssemblyTitle>新生命X组件核心库</AssemblyTitle>
@@ -46,6 +46,10 @@
     <DefineConstants>$(DefineConstants);__WIN__</DefineConstants>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(TargetFramework)'=='net40'">
+    <DefineConstants>$(DefineConstants);__WIN__;__NET40__</DefineConstants>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <DefineConstants>$(DefineConstants);DEBUG</DefineConstants>
     <DebugType>full</DebugType>
@@ -53,6 +57,15 @@
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)'=='net45'">
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.ServiceProcess" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Windows.Forms" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)'=='net40'">
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.ServiceProcess" />

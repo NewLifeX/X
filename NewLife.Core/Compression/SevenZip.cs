@@ -57,7 +57,7 @@ namespace NewLife.Compression
                 XTrace.WriteLine("准备下载7z扩展包");
 
                 var url = Setting.Current.PluginServer;
-                var client = new WebClientX(true, true)
+                var client = new WebClientX()
                 {
                     Log = XTrace.Log
                 };
