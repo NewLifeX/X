@@ -14,7 +14,7 @@ namespace XUnitTest.Core
 
         public RedisTest()
         {
-            Redis = Redis.Create("127.0.0.1:6379", 4);
+            Redis = Redis.Create("127.0.0.1:6379", "newlife", 4);
             Redis.Log = XTrace.Log;
         }
 
