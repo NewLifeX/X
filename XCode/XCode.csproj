@@ -61,6 +61,10 @@
     <Optimize>false</Optimize>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+
   <ItemGroup Condition="'$(TargetFramework)'=='net45'">
     <Reference Include="System.Data" />
     <Reference Include="System.Web" />

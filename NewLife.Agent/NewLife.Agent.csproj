@@ -42,6 +42,10 @@
     <Optimize>false</Optimize>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Include="..\NewLife.Core\Agent\AgentService.cs" Link="AgentService.cs" />
     <Compile Include="..\NewLife.Core\Agent\AgentServiceBase.cs" Link="AgentServiceBase.cs" />
