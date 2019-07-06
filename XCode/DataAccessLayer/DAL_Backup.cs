@@ -102,7 +102,11 @@ namespace XCode.DataAccessLayer
                 var rs = 0;
                 if (file.EndsWithIgnoreCase(".gz"))
                 {
+#if NET4
+                    using (var gs = new GZipStream(fs, CompressionMode.Compress, true))
+#else
                     using (var gs = new GZipStream(fs, CompressionLevel.Optimal, true))
+#endif
                     {
                         rs = Backup(table, gs);
                     }

@@ -7,8 +7,8 @@
     <Description>数据中间件，MySQL、SQLite、SqlServer、Oracle</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2019 新生命开发团队</Copyright>
-    <Version>9.12.2019.0618</Version>
-    <FileVersion>9.12.2019.0618</FileVersion>
+    <Version>9.13.2019.0706</Version>
+    <FileVersion>9.13.2019.0706</FileVersion>
     <AssemblyVersion>9.12.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <OutputPath>..\..\Bin</OutputPath>
@@ -66,6 +66,12 @@
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)'=='net45'">
+    <Reference Include="System.Data" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)'=='net40'">
     <Reference Include="System.Data" />
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Extensions" />
