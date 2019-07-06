@@ -84,7 +84,7 @@ namespace System.IO.Compression
         public ZipFile(String fileName, Encoding encoding = null)
         {
             Name = fileName;
-            Encoding = encoding;
+            if (encoding != null) Encoding = encoding;
             _file = fileName;
         }
 
@@ -93,7 +93,7 @@ namespace System.IO.Compression
         /// <param name="encoding"></param>
         public ZipFile(Stream stream, Encoding encoding = null)
         {
-            Encoding = encoding;
+            if (encoding != null) Encoding = encoding;
             _stream = stream;
         }
 
@@ -337,10 +337,10 @@ namespace System.IO.Compression
         /// <param name="throwException"></param>
         public static void ExtractToDirectory(String fileName, String outputPath, Boolean overrideExisting = true, Boolean throwException = true)
         {
-            if (String.IsNullOrEmpty(fileName)) throw new ArgumentNullException("fileName");
+            if (fileName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(fileName));
             // 默认使用没有后缀的路径作为目录
-            if (String.IsNullOrEmpty(outputPath)) outputPath = Path.GetFileNameWithoutExtension(fileName);
-            if (String.IsNullOrEmpty(outputPath)) throw new ArgumentNullException("outputPath");
+            if (outputPath.IsNullOrEmpty()) outputPath = Path.GetDirectoryName(fileName);
+            if (outputPath.IsNullOrEmpty()) throw new ArgumentNullException(nameof(outputPath));
 
             using (var zf = new ZipFile(fileName))
             {

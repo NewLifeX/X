@@ -289,22 +289,21 @@ namespace System.IO.Compression
 
         #region 解压缩
         /// <summary>解压缩</summary>
-        /// <param name="path">目标路径</param>
+        /// <param name="destinationFileName">目标路径</param>
         /// <param name="overrideExisting">是否覆盖已有文件</param>
-        public void ExtractToFile(String path, Boolean overrideExisting = true)
+        public void ExtractToFile(String destinationFileName, Boolean overrideExisting = true)
         {
-            if (path.IsNullOrEmpty()) throw new ArgumentNullException(nameof(path));
+            if (destinationFileName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(destinationFileName));
 
             if (!IsDirectory)
             {
                 //if (DataSource == null) throw new ZipException("文件数据不正确！");
                 //if (CompressedSize <= 0) throw new ZipException("文件大小不正确！");
 
-                var file = Path.Combine(path, FileName);
+                var file = destinationFileName.GetFullPath();
                 if (!overrideExisting && File.Exists(file)) return;
 
-                path = Path.GetDirectoryName(file);
-                if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+                file.EnsureDirectory(true);
 
                 using (var stream = File.Create(file))
                 {
@@ -323,8 +322,8 @@ namespace System.IO.Compression
             }
             else
             {
-                path = Path.Combine(path, FileName);
-                if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+                destinationFileName = Path.Combine(destinationFileName, FileName);
+                if (!Directory.Exists(destinationFileName)) Directory.CreateDirectory(destinationFileName);
             }
         }
 

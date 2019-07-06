@@ -296,7 +296,7 @@ namespace NewLife.Web
                 }
             }
 
-            Log.Info("分析得到文件 {0}，准备下载 {1}", linkName, link.Url);
+            Log.Info("分析得到文件 {0}，准备下载 {1}，保存到 {2}", linkName, link.Url, file2);
             // 开始下载文件，注意要提前建立目录，否则会报错
             file2 = file2.EnsureDirectory();
 
@@ -361,15 +361,15 @@ namespace NewLife.Web
             {
                 Log.Error(ex?.GetTrue()?.ToString());
 
-                // 这个时候出现异常，删除zip
-                if (!file.IsNullOrEmpty() && File.Exists(file))
-                {
-                    try
-                    {
-                        File.Delete(file);
-                    }
-                    catch { }
-                }
+                //// 这个时候出现异常，删除zip
+                //if (!file.IsNullOrEmpty() && File.Exists(file))
+                //{
+                //    try
+                //    {
+                //        File.Delete(file);
+                //    }
+                //    catch { }
+                //}
             }
 
             return null;

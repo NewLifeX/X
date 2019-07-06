@@ -290,7 +290,7 @@ namespace System.IO
         /// <param name="overwrite">是否覆盖目标同名文件</param>
         public static void Extract(this FileInfo fi, String destDir, Boolean overwrite = false)
         {
-            if (destDir.IsNullOrEmpty()) destDir = fi.Name.GetFullPath();
+            if (destDir.IsNullOrEmpty()) destDir = Path.GetDirectoryName(fi.FullName).CombinePath(fi.Name).GetFullPath();
 
             //ZipFile.ExtractToDirectory(fi.FullName, destDir);
 
@@ -304,19 +304,16 @@ namespace System.IO
                 {
                     var di = Directory.CreateDirectory(destDir);
                     var fullName = di.FullName;
-                    foreach (var current in zip.Entries)
+                    foreach (var item in zip.Entries)
                     {
-                        var fullPath = Path.GetFullPath(Path.Combine(fullName, current.FullName));
+                        var fullPath = Path.GetFullPath(Path.Combine(fullName, item.FullName));
                         if (!fullPath.StartsWith(fullName, StringComparison.OrdinalIgnoreCase))
-                        {
                             throw new IOException("IO_ExtractingResultsInOutside");
-                        }
+
                         if (Path.GetFileName(fullPath).Length == 0)
                         {
-                            if (current.Length != 0L)
-                            {
-                                throw new IOException("IO_DirectoryNameWithData");
-                            }
+                            if (item.Length != 0L) throw new IOException("IO_DirectoryNameWithData");
+
                             Directory.CreateDirectory(fullPath);
                         }
                         else
@@ -324,7 +321,7 @@ namespace System.IO
                             Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
                             try
                             {
-                                current.ExtractToFile(fullPath, overwrite);
+                                item.ExtractToFile(fullPath, overwrite);
                             }
                             catch { }
                         }
