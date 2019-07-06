@@ -16,6 +16,9 @@ using XCode.Code;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 using XCode.Service;
+#if !NET4
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 namespace Test
 {
@@ -35,7 +38,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test1();
+                    Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -165,7 +168,7 @@ namespace Test
                 };
                 client.Open();
 
-                Task.Run(() =>
+                TaskEx.Run(() =>
                 {
                     var sw = Stopwatch.StartNew();
                     try
@@ -183,7 +186,7 @@ namespace Test
                     XTrace.WriteLine("总耗时 {0:n0}ms", sw.ElapsedMilliseconds);
                 });
 
-                Task.Run(() =>
+                TaskEx.Run(() =>
                 {
                     var sw = Stopwatch.StartNew();
                     try
@@ -201,7 +204,7 @@ namespace Test
                     XTrace.WriteLine("总耗时 {0:n0}ms", sw.ElapsedMilliseconds);
                 });
 
-                Task.Run(() =>
+                TaskEx.Run(() =>
                 {
                     var sw = Stopwatch.StartNew();
                     try
@@ -219,7 +222,7 @@ namespace Test
                     XTrace.WriteLine("总耗时 {0:n0}ms", sw.ElapsedMilliseconds);
                 });
 
-                Task.Run(() =>
+                TaskEx.Run(() =>
                 {
                     var sw = Stopwatch.StartNew();
                     try
