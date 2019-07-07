@@ -43,4 +43,8 @@
     <Folder Include="Properties\" />
   </ItemGroup>
 
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="del &quot;$(TargetDir)*.xml&quot; /q" />
+  </Target>
+
 </Project>
