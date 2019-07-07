@@ -11,6 +11,9 @@ using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Model;
+#if !NET4
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 namespace NewLife.Net
 {
@@ -481,7 +484,6 @@ namespace NewLife.Net
         #endregion
 
         #region 群发
-#if !NET4
         /// <summary>异步群发</summary>
         /// <param name="buffer"></param>
         /// <returns></returns>
@@ -492,12 +494,11 @@ namespace NewLife.Net
             var ts = new List<Task>();
             foreach (var item in Sessions)
             {
-                ts.Add(Task.Run(() => item.Value.Send(buffer)));
+                ts.Add(TaskEx.Run(() => item.Value.Send(buffer)));
             }
 
-            return Task.WhenAll(ts).ContinueWith(t => Sessions.Count);
+            return TaskEx.WhenAll(ts).ContinueWith(t => Sessions.Count);
         }
-#endif
         #endregion
 
         #region 创建Tcp/Udp、IPv4/IPv6服务
