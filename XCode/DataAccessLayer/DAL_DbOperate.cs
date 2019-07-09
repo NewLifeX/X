@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using NewLife.Collections;
 using NewLife.Data;
+using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Serialization;
 
@@ -262,10 +263,41 @@ namespace XCode.DataAccessLayer
                 Append(sb, k3);
                 var key = sb.Put(true);
 
+                //if (cache.TryGetValue(key, out var value)) return value.ChangeType<TResult>();
+
                 return cache.GetItem(key, k =>
                 {
+                    // 达到60秒后全表查询使用文件缓存
+                    var dataFile = "";
+                    if (Expire >= 60 && prefix == nameof(Query))
+                    {
+                        var builder = k1 as SelectBuilder;
+                        var start = (Int64)(Object)k2;
+                        var max = (Int64)(Object)k3;
+                        if (start <= 0 && max <= 0 && builder != null && builder.Where.IsNullOrEmpty())
+                        {
+                            dataFile = XTrace.TempPath.CombinePath(ConnName, builder.Table.Trim('[', ']', '`', '"') + ".dt");
+
+                            // 首次缓存加载时采用文件缓存替代，避免读取数据库耗时过长
+                            if (!cache.ContainsKey(k) && File.Exists(dataFile.GetFullPath()))
+                            {
+                                var dt = new DbTable();
+                                dt.LoadFile(dataFile);
+                                return dt;
+                            }
+                        }
+                    }
+
                     Interlocked.Increment(ref _QueryTimes);
-                    return callback(k1, k2, k3);
+                    var rs = callback(k1, k2, k3);
+
+                    // 达到60秒后全表查询使用文件缓存
+                    if (Expire >= 60 && !dataFile.IsNullOrEmpty())
+                    {
+                        (rs as DbTable).SaveFile(dataFile);
+                    }
+
+                    return rs;
                 }).ChangeType<TResult>();
             }
 

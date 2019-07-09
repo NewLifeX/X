@@ -39,7 +39,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test2();
+                    Test7();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -440,8 +440,14 @@ namespace Test
 
         static void Test7()
         {
-            var str = @"D:\X\Test\net40\Plugins\System.Data.SQLite64FX40_v3.26.zip";
-            ZipFile.ExtractToDirectory(str, null);
+            Role.Meta.Session.Dal.Db.ShowSQL = true;
+            Role.Meta.Session.Dal.Expire = 60;
+
+            var list = Role.FindAll();
+            Console.WriteLine(list.Count);
+
+            list = Role.FindAll();
+            Console.WriteLine(list.Count);
         }
 
         static void Test8()

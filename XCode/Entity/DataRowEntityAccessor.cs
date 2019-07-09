@@ -93,7 +93,7 @@ namespace XCode
         {
             // 准备好实体列表
             var list = new List<T>();
-            if (ds == null || ds.Rows.Count < 1) return list;
+            if (ds?.Rows == null || ds.Rows.Count == 0) return list;
 
             // 对应数据表中字段的实体字段
             var ps = new Dictionary<Int32, FieldItem>();
