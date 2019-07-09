@@ -167,7 +167,7 @@ namespace XCode.DataAccessLayer
         /// <summary>获取 或 设置 自动关闭。每次使用完数据库连接后，是否自动关闭连接，高频操作时设为false可提升性能。默认true</summary>
         Boolean AutoClose { get; set; }
 
-        /// <summary>本连接数据只读。需求不够强劲，暂不支持在连接字符串中设置</summary>
+        /// <summary>本连接数据只读</summary>
         Boolean Readonly { get; set; }
 
         /// <summary>数据层缓存有效期。单位秒</summary>

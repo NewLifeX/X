@@ -223,7 +223,7 @@ namespace XCode.DataAccessLayer
         /// <summary>跟踪SQL执行时间，大于该阀值将输出日志</summary>
         public Int32 TraceSQLTime { get; set; } = Setting.Current.TraceSQLTime;
 
-        /// <summary>本连接数据只读。需求不够强劲，暂不支持在连接字符串中设置</summary>
+        /// <summary>本连接数据只读</summary>
         public Boolean Readonly { get; set; }
 
         /// <summary>数据层缓存有效期。单位秒</summary>

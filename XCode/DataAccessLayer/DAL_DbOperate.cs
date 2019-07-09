@@ -269,7 +269,7 @@ namespace XCode.DataAccessLayer
                 {
                     // 达到60秒后全表查询使用文件缓存
                     var dataFile = "";
-                    if (Expire >= 60 && prefix == nameof(Query))
+                    if ((Expire >= 60 || Db.Readonly) && prefix == nameof(Query))
                     {
                         var builder = k1 as SelectBuilder;
                         var start = (Int64)(Object)k2;
@@ -292,7 +292,7 @@ namespace XCode.DataAccessLayer
                     var rs = callback(k1, k2, k3);
 
                     // 达到60秒后全表查询使用文件缓存
-                    if (Expire >= 60 && !dataFile.IsNullOrEmpty())
+                    if (!dataFile.IsNullOrEmpty())
                     {
                         (rs as DbTable).SaveFile(dataFile);
                     }

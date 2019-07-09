@@ -441,10 +441,24 @@ namespace Test
         static void Test7()
         {
             Role.Meta.Session.Dal.Db.ShowSQL = true;
-            Role.Meta.Session.Dal.Expire = 60;
+            Role.Meta.Session.Dal.Expire = 10;
+            Role.Meta.Session.Dal.Db.Readonly = true;
 
             var list = Role.FindAll();
             Console.WriteLine(list.Count);
+
+            Thread.Sleep(1000);
+
+            list = Role.FindAll();
+            Console.WriteLine(list.Count);
+
+            Thread.Sleep(1000);
+
+            var r = list.Last();
+            r.IsSystem = !r.IsSystem;
+            r.Update();
+
+            Thread.Sleep(5000);
 
             list = Role.FindAll();
             Console.WriteLine(list.Count);
