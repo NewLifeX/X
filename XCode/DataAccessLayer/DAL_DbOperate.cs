@@ -315,7 +315,24 @@ namespace XCode.DataAccessLayer
             var rs = callback(k1, k2, k3);
 
             var st = GetCache();
-            st?.Clear();
+            if (st != null)
+            {
+                st?.Clear();
+
+                // 删除文件缓存
+                var dataDir = XTrace.TempPath.CombinePath(ConnName);
+                if (Directory.Exists(dataDir))
+                {
+                    try
+                    {
+                        Directory.Delete(dataDir, true);
+                    }
+                    catch (Exception ex)
+                    {
+                        XTrace.WriteException(ex);
+                    }
+                }
+            }
 
             Interlocked.Increment(ref _ExecuteTimes);
 
