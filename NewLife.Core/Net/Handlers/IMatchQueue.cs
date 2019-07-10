@@ -152,10 +152,24 @@ namespace NewLife.Net.Handlers
         /// <summary>清空队列</summary>
         public virtual void Clear()
         {
-            var items = Items;
-            for (var i = 0; i < items.Length; ++i)
+            var qs = Items;
+            for (var i = 0; i < qs.Length; ++i)
             {
-                items[i].Value = null;
+                var qi = qs[i].Value;
+                if (qi == null) continue;
+
+                qs[i].Value = null;
+
+                // 过期取消
+                var src = qi.Source;
+                if (src != null)
+                {
+                    Interlocked.Decrement(ref _Count);
+
+                    // 当前在线程池里面
+                    if (!src.Task.IsCompleted) src.TrySetCanceled();
+                    //if (!src.Task.IsCompleted) Task.Factory.StartNew(() => src.TrySetCanceled());
+                }
             }
             _Count = 0;
         }
