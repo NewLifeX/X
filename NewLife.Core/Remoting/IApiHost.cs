@@ -80,9 +80,9 @@ namespace NewLife.Remoting
             try
             {
                 if (session is IApiSession ss)
-                    rs = await ss.SendAsync(msg);
+                    rs = await ss.SendAsync(msg).ConfigureAwait(false);
                 else if (session is ISocketRemote client)
-                    rs = (await client.SendMessageAsync(msg)) as IMessage;
+                    rs = (await client.SendMessageAsync(msg).ConfigureAwait(false)) as IMessage;
                 else
                     throw new InvalidOperationException();
 

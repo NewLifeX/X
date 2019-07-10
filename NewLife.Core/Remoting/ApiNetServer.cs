@@ -96,9 +96,9 @@ namespace NewLife.Remoting
         /// <param name="args">参数</param>
         /// <param name="flag">标识</param>
         /// <returns></returns>
-        public async Task<TResult> InvokeAsync<TResult>(String action, Object args = null, Byte flag = 0) => (TResult)await ApiHostHelper.InvokeAsync(_Host, this, typeof(TResult), action, args, flag);
+        public async Task<TResult> InvokeAsync<TResult>(String action, Object args = null, Byte flag = 0) => (TResult)await ApiHostHelper.InvokeAsync(_Host, this, typeof(TResult), action, args, flag).ConfigureAwait(false);
 
-        async Task<IMessage> IApiSession.SendAsync(IMessage msg) => await Session.SendMessageAsync(msg) as IMessage;
+        async Task<IMessage> IApiSession.SendAsync(IMessage msg) => await Session.SendMessageAsync(msg).ConfigureAwait(false) as IMessage;
 
         Boolean IApiSession.Send(IMessage msg) => Session.SendMessage(msg);
     }

@@ -66,7 +66,7 @@ namespace NewLife.Collections
             try
             {
                 item = cluster.Get();
-                return await func(item);
+                return await func(item).ConfigureAwait(false);
             }
             finally
             {

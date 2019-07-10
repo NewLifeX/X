@@ -87,7 +87,7 @@ namespace NewLife.Http
 #if NET4
                 tc.Connect(remote.Address, remote.Port);
 #else
-                await tc.ConnectAsync(remote.Address, remote.Port);
+                await tc.ConnectAsync(remote.Address, remote.Port).ConfigureAwait(false);
 #endif
 
                 Client = tc;
@@ -95,7 +95,7 @@ namespace NewLife.Http
             }
 
             // 发送
-            if (request != null) await request.CopyToAsync(ns);
+            if (request != null) await request.CopyToAsync(ns).ConfigureAwait(false);
 
             // 接收
             var buf = new Byte[64 * 1024];
@@ -104,7 +104,7 @@ namespace NewLife.Http
 #else
             var source = new CancellationTokenSource(Timeout);
 
-            var count = await ns.ReadAsync(buf, 0, buf.Length, source.Token);
+            var count = await ns.ReadAsync(buf, 0, buf.Length, source.Token).ConfigureAwait(false);
 #endif
 
             return new Packet(buf, 0, count);
@@ -124,7 +124,7 @@ namespace NewLife.Http
             StatusCode = -1;
 
             // 发出请求
-            var rs = await SendDataAsync(uri, req);
+            var rs = await SendDataAsync(uri, req).ConfigureAwait(false);
             if (rs == null || rs.Count == 0) return null;
 
             // 解析响应
@@ -133,7 +133,7 @@ namespace NewLife.Http
             // 头部和主体分两个包回来
             if (rs != null && rs.Count == 0 && ContentLength != 0)
             {
-                rs = await SendDataAsync(null, null);
+                rs = await SendDataAsync(null, null).ConfigureAwait(false);
             }
 
             // chunk编码
@@ -357,7 +357,7 @@ namespace NewLife.Http
             var client = pool.Get();
             try
             {
-                return (await client.SendAsync(uri, null))?.ToStr();
+                return (await client.SendAsync(uri, null).ConfigureAwait(false))?.ToStr();
             }
             finally
             {
