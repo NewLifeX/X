@@ -26,6 +26,13 @@
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
+    <xs:attribute name="ChineseFileName" type="BooleanType">
+      <xs:annotation>
+        <xs:documentation xml:lang="zh-cn">
+          中文名称
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
     <xs:attribute name="ConnName" type="xs:string">
       <xs:annotation>
         <xs:documentation xml:lang="zh-cn">
