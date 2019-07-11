@@ -276,6 +276,7 @@ namespace XCode.Code
                 us.Add("System.Web");
                 //us.Add("System.Web.Script.Serialization");
                 us.Add("System.Xml.Serialization");
+                us.Add("System.Runtime.Serialization");
 
                 us.Add("NewLife");
                 us.Add("NewLife.Data");
@@ -784,7 +785,7 @@ namespace XCode.Code
                     var pk = dt.PrimaryKeys[0];
 
                     WriteLine("/// <summary>{0}</summary>", dis);
-                    WriteLine("[XmlIgnore]");
+                    WriteLine("[XmlIgnore, IgnoreDataMember]");
                     WriteLine("//[ScriptIgnore]");
                     WriteLine("public {1} {1} {{ get {{ return Extends.Get({0}, k => {1}.FindBy{3}({2})); }} }}", NameOf(pname), dt.Name, dc.Name, pk.Name);
 
@@ -795,7 +796,7 @@ namespace XCode.Code
                     {
                         WriteLine();
                         WriteLine("/// <summary>{0}</summary>", dis);
-                        WriteLine("[XmlIgnore]");
+                        WriteLine("[XmlIgnore, IgnoreDataMember]]");
                         WriteLine("//[ScriptIgnore]");
                         if (!dis.IsNullOrEmpty()) WriteLine("[DisplayName(\"{0}\")]", dis);
                         WriteLine("[Map(__.{0}, typeof({1}), \"{2}\")]", dc.Name, dt.Name, pk.Name);

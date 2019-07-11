@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Web;
 using System.Web.Script.Serialization;
@@ -124,11 +125,11 @@ namespace XCode.Membership
 
         #region 扩展属性
         /// <summary></summary>
-        [XmlIgnore, ScriptIgnore]
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public String Url2 => Url?.Replace("~", "");
 
         /// <summary>父菜单名</summary>
-        [XmlIgnore, ScriptIgnore]
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public virtual String ParentMenuName { get { return Parent?.Name; } set { } }
 
         /// <summary>必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色</summary>
@@ -146,7 +147,7 @@ namespace XCode.Membership
         }
 
         /// <summary>友好名称。优先显示名</summary>
-        [XmlIgnore, ScriptIgnore]
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public String FriendName => DisplayName.IsNullOrWhiteSpace() ? Name : DisplayName;
         #endregion
 
@@ -236,7 +237,7 @@ namespace XCode.Membership
 
         #region 扩展权限
         /// <summary>可选权限子项</summary>
-        [XmlIgnore, ScriptIgnore]
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public Dictionary<Int32, String> Permissions { get; set; } = new Dictionary<Int32, String>();
 
         void LoadPermission()

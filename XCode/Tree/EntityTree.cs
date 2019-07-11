@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
@@ -52,7 +53,7 @@ namespace XCode
         }
 
         /// <summary>子节点</summary>
-        [XmlIgnore, ScriptIgnore]
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public virtual IList<TEntity> Childs
         {
             get { return Extends.Get(nameof(Childs), e => FindChilds()); }
@@ -63,7 +64,7 @@ namespace XCode
         protected virtual IList<TEntity> FindChilds() { return FindAllByParent((TKey)this[Setting.Key]); }
 
         /// <summary>父节点</summary>
-        [XmlIgnore, ScriptIgnore]
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public virtual TEntity Parent
         {
             get { return Extends.Get(nameof(Parent), e => FindParent()); }
@@ -83,7 +84,7 @@ namespace XCode
         }
 
         /// <summary>子孙节点</summary>
-        [XmlIgnore, ScriptIgnore]
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public virtual IList<TEntity> AllChilds
         {
             get { return Extends.Get(nameof(AllChilds), e => FindAllChilds(this)); }
@@ -91,7 +92,7 @@ namespace XCode
         }
 
         /// <summary>子孙节点，包含自己</summary>
-        [XmlIgnore, ScriptIgnore]
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public virtual IList<TEntity> MyAllChilds
         {
             get { return Extends.Get(nameof(MyAllChilds), e => FindAllChilds(this, true)); }
@@ -99,7 +100,7 @@ namespace XCode
         }
 
         /// <summary>父节点集合</summary>
-        [XmlIgnore, ScriptIgnore]
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public virtual IList<TEntity> AllParents
         {
             get { return Extends.Get(nameof(AllParents), e => FindAllParents(this)); }
@@ -107,7 +108,7 @@ namespace XCode
         }
 
         /// <summary>深度</summary>
-        [XmlIgnore, ScriptIgnore]
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public virtual Int32 Deepth
         {
             get
@@ -138,7 +139,7 @@ namespace XCode
         }
 
         /// <summary>节点名</summary>
-        [XmlIgnore, ScriptIgnore]
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public virtual String NodeName
         {
             get
@@ -151,7 +152,7 @@ namespace XCode
         }
 
         /// <summary>父级节点名</summary>
-        [XmlIgnore, ScriptIgnore]
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public virtual String ParentNodeName
         {
             get
@@ -168,7 +169,7 @@ namespace XCode
 
         /// <summary>树形节点名，根据深度带全角空格前缀</summary>
         [DisplayName("节点名")]
-        [XmlIgnore, ScriptIgnore]
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public virtual String TreeNodeName
         {
             get
@@ -185,7 +186,7 @@ namespace XCode
         }
 
         /// <summary>树形节点名，根据深度带全角空格前缀</summary>
-        [XmlIgnore, ScriptIgnore]
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public virtual String TreeNodeName2
         {
             get
@@ -202,7 +203,7 @@ namespace XCode
         }
 
         /// <summary>树形节点名，根据深度带全角空格前缀</summary>
-        [XmlIgnore, ScriptIgnore]
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public virtual String TreeNodeText
         {
             get
@@ -224,11 +225,11 @@ namespace XCode
         }
 
         /// <summary>斜杠分隔的全路径</summary>
-        [XmlIgnore, ScriptIgnore]
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public String FullPath { get { return @"\" + GetFullPath(true); } }
 
         /// <summary>斜杠分隔的全父路径</summary>
-        [XmlIgnore, ScriptIgnore]
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public String FullParentPath { get { return @"\" + GetFullPath(false); } }
         #endregion
 

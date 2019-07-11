@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Runtime.Serialization;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using NewLife.Reflection;
@@ -164,7 +165,7 @@ namespace XCode
         [NonSerialized]
         private DirtyCollection _Dirtys;
         /// <summary>脏属性。存储哪些属性的数据被修改过了。</summary>
-        [XmlIgnore, ScriptIgnore]
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         protected DirtyCollection Dirtys
         {
             get
@@ -199,7 +200,7 @@ namespace XCode
         internal EntityExtend _Extends;
         /// <summary>扩展属性</summary>
         //[NonSerialized]
-        [XmlIgnore, ScriptIgnore]
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public EntityExtend Extends { get { return _Extends ?? (_Extends = new EntityExtend()); } set { _Extends = value; } }
         #endregion
 
@@ -207,7 +208,7 @@ namespace XCode
         [NonSerialized]
         private IEntityAddition _Addition;
         /// <summary>累加</summary>
-        [XmlIgnore, ScriptIgnore]
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         IEntityAddition IEntity.Addition
         {
             get
@@ -224,7 +225,7 @@ namespace XCode
 
         #region 主键为空
         /// <summary>主键是否为空</summary>
-        [XmlIgnore, ScriptIgnore]
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         Boolean IEntity.IsNullKey => Helper.IsEntityNullKey(this);
 
         /// <summary>主键是否为空</summary>
