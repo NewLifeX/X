@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using NewLife.Log;
 
+#if NET4
 namespace System.Threading.Tasks
 {
     /// <summary>任务助手</summary>
@@ -242,3 +243,4 @@ namespace System.Threading.Tasks
         #endregion
     }
 }
+#endif
