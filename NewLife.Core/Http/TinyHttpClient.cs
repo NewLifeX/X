@@ -158,12 +158,12 @@ namespace NewLife.Http
         /// <returns></returns>
         public virtual async Task<Packet> SendAsync(Uri uri, Byte[] data)
         {
-            var remote = new NetUri(NetType.Tcp, uri.Host, uri.Port);
+            //var remote = new NetUri(NetType.Tcp, uri.Host, uri.Port);
 
             // 构造请求
             var req = BuildRequest(uri, data);
 
-            var code = StatusCode = -1;
+            StatusCode = -1;
 
             Packet rs = null;
             var retry = 5;
@@ -177,8 +177,7 @@ namespace NewLife.Http
                 rs = ParseResponse(rs);
 
                 // 跳转
-                code = StatusCode;
-                if (code == 301 || code == 302)
+                if (StatusCode == 301 || StatusCode == 302)
                 {
                     if (Headers.TryGetValue("Location", out var location) && !location.IsNullOrEmpty())
                     {
@@ -195,17 +194,33 @@ namespace NewLife.Http
                 break;
             }
 
-            code = StatusCode;
-            if (code != 200) throw new Exception($"{code} {StatusDescription}");
+            if (StatusCode != 200) throw new Exception($"{StatusCode} {StatusDescription}");
 
-            // 头部和主体分两个包回来
-            if (rs != null && rs.Count == 0 && ContentLength != 0)
+            //// 头部和主体分两个包回来
+            //if (rs != null && rs.Count == 0 && ContentLength != 0)
+            //{
+            //    rs = await SendDataAsync(null, null).ConfigureAwait(false);
+            //}
+            // 如果没有收完数据包
+            if (ContentLength > 0 && rs.Count < ContentLength)
             {
-                rs = await SendDataAsync(null, null).ConfigureAwait(false);
+                var total = rs.Total;
+                var last = rs;
+                while (total < ContentLength)
+                {
+                    var pk = await SendDataAsync(null, null).ConfigureAwait(false);
+                    last.Append(pk);
+
+                    last = pk;
+                    total += pk.Total;
+                }
             }
 
             // chunk编码
-            if (rs.Count > 0 && Headers["Transfer-Encoding"].EqualIgnoreCase("chunked")) rs = ParseChunk(rs);
+            if (rs.Count > 0 && Headers["Transfer-Encoding"].EqualIgnoreCase("chunked"))
+            {
+                rs = await ReadChunk(rs);
+            }
 
             return rs;
         }
@@ -294,11 +309,12 @@ namespace NewLife.Http
         }
 
         private static readonly Byte[] NewLine = new[] { (Byte)'\r', (Byte)'\n' };
-        private Packet ParseChunk(Packet rs)
+        private Packet ParseChunk(Packet rs, out Int32 octets)
         {
             // chunk编码
             // 1 ba \r\n xxxx \r\n 0 \r\n\r\n
 
+            octets = 0;
             var p = rs.IndexOf(NewLine);
             if (p <= 0) return rs;
 
@@ -307,15 +323,55 @@ namespace NewLife.Http
             //if (str.Length % 2 != 0) str = "0" + str;
             //var len = (Int32)str.ToHex().ToUInt32(0, false);
             //Int32.TryParse(str, NumberStyles.HexNumber, null, out var len);
-            var len = Int32.Parse(str, NumberStyles.HexNumber);
+            octets = Int32.Parse(str, NumberStyles.HexNumber);
 
-            if (ContentLength < 0) ContentLength = len;
+            //if (ContentLength < 0) ContentLength = len;
 
-            var pk = rs.Slice(p + 2, len);
+            return rs.Slice(p + 2, octets);
+        }
 
-            // 暂时不支持多段编码
+        /// <summary>读取分片，返回链式Packet</summary>
+        /// <param name="body"></param>
+        /// <returns></returns>
+        protected virtual async Task<Packet> ReadChunk(Packet body)
+        {
+            var rs = body;
+            var last = body;
+            var pk = body;
+            while (true)
+            {
+                // 分析一个片段，如果该片段数据不足，则需要多次读取
+                var chunk = ParseChunk(pk, out var len);
+                if (len <= 0) break;
 
-            return pk;
+                // 第一个包需要替换，因为偏移量改变
+                if (last == body)
+                    rs = chunk;
+                else
+                    last.Append(chunk);
+
+                last = chunk;
+
+                // 如果该片段数据不足，则需要多次读取
+                var total = chunk.Total;
+                while (total < len)
+                {
+                    pk = await SendDataAsync(null, null).ConfigureAwait(false);
+
+                    // 结尾的间断符号（如换行或00）。这里有可能一个数据包里面同时返回多个分片，暂时不支持
+                    if (total + pk.Total > len) pk = pk.Slice(0, len - total);
+
+                    last.Append(pk);
+                    last = pk;
+                    total += pk.Total;
+                }
+
+                // 读取新的数据片段，如果不存在则跳出
+                pk = await SendDataAsync(null, null).ConfigureAwait(false);
+                if (pk == null || pk.Total == 0) break;
+            }
+
+            return rs;
         }
         #endregion
 
