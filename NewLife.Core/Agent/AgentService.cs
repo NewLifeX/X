@@ -7,10 +7,10 @@ namespace NewLife.Agent
     /// <summary>代理服务例子。自定义服务程序可参照该类实现。</summary>
     public class AgentService : AgentServiceBase
     {
-#region 属性
-#endregion
+        #region 属性
+        #endregion
 
-#region 构造函数
+        #region 构造函数
         /// <summary>实例化一个代理服务</summary>
         public AgentService()
         {
@@ -20,9 +20,9 @@ namespace NewLife.Agent
             DisplayName = "新生命服务代理";
             Description = "用于承载各种服务的服务代理！";
         }
-#endregion
+        #endregion
 
-#region 核心
+        #region 核心
         /// <summary>开始工作</summary>
         /// <param name="reason"></param>
         protected override void StartWork(String reason)
@@ -40,7 +40,7 @@ namespace NewLife.Agent
 
             base.StopWork(reason);
         }
-#endregion
+        #endregion
     }
 #endif
 }
