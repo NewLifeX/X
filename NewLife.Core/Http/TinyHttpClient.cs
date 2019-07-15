@@ -14,6 +14,9 @@ using System.Threading.Tasks;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Net;
+#if !NET4
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 namespace NewLife.Http
 {
@@ -97,7 +100,8 @@ namespace NewLife.Http
                 tc.TryDispose();
                 tc = new TcpClient { ReceiveTimeout = (Int32)Timeout.TotalMilliseconds };
 #if NET4
-                tc.Connect(remote.Address, remote.Port);
+                //tc.Connect(remote.Address, remote.Port);
+                await Task.Factory.FromAsync(tc.BeginConnect, tc.EndConnect, remote.Address, remote.Port, null);
 #else
                 await tc.ConnectAsync(remote.Address, remote.Port).ConfigureAwait(false);
 #endif
