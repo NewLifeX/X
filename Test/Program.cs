@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Caching;
 using NewLife.Core.Collections;
+using NewLife.Http;
 using NewLife.Log;
 using NewLife.Net;
 using NewLife.Remoting;
@@ -39,7 +40,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test7();
+                Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -60,28 +61,10 @@ namespace Test
 
         static void Test1()
         {
-            var count = 10_000_000;
-
-            //var bf = new BloomFilter(count, 0.0001);
-            var bf = new BloomFilter(count * 32);
-            var rs1 = 0;
-            var rs2 = 0;
-
-            for (var i = 0; i < count; i++)
-            {
-                var key = $"ip_{i}";
-                if (bf.Get(key))
-                {
-                    rs1++;
-                }
-                else
-                {
-                    bf.Set(key);
-                    rs2++;
-                }
-            }
-            Console.WriteLine($"  存在：{rs1} {(Double)rs1 / count:p8}");
-            Console.WriteLine($"不存在：{rs2} {(Double)rs2 / count:p8}");
+            var url = "http://www.newlifex.com/";
+            var client = new TinyHttpClient();
+            var html = client.GetString(url);
+            Console.WriteLine(html);
         }
 
         static void Test2()

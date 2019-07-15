@@ -32,6 +32,9 @@ namespace NewLife.Http
         /// <summary>状态码</summary>
         public Int32 StatusCode { get; set; }
 
+        /// <summary>状态描述</summary>
+        public String StatusDescription { get; set; }
+
         /// <summary>超时时间。默认15s</summary>
         public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(5);
 
@@ -121,92 +124,45 @@ namespace NewLife.Http
             // 构造请求
             var req = BuildRequest(uri, data);
 
-            StatusCode = -1;
+            var code = StatusCode = -1;
 
-            // 发出请求
-            var rs = await SendDataAsync(uri, req).ConfigureAwait(false);
-            if (rs == null || rs.Count == 0) return null;
+            Packet rs = null;
+            var retry = 5;
+            while (retry-- > 0)
+            {
+                // 发出请求
+                rs = await SendDataAsync(uri, req).ConfigureAwait(false);
+                if (rs == null || rs.Count == 0) return null;
 
-            // 解析响应
-            rs = ParseResponse(rs);
+                // 解析响应
+                rs = ParseResponse(rs);
+
+                // 跳转
+                code = StatusCode;
+                if (code == 301 || code == 302)
+                {
+                    if (Headers.TryGetValue("Location", out var location) && !location.IsNullOrEmpty())
+                    {
+                        // 再次请求
+                        var uri2 = new Uri(location);
+
+                        if (uri.Host != uri2.Host || uri.Scheme != uri2.Scheme) Client.TryDispose();
+
+                        uri = uri2;
+                        continue;
+                    }
+                }
+
+                break;
+            }
+
+            code = StatusCode;
+            if (code != 200) throw new Exception($"{code} {StatusDescription}");
 
             // 头部和主体分两个包回来
             if (rs != null && rs.Count == 0 && ContentLength != 0)
             {
                 rs = await SendDataAsync(null, null).ConfigureAwait(false);
-            }
-
-            // chunk编码
-            if (rs.Count > 0 && Headers["Transfer-Encoding"].EqualIgnoreCase("chunked")) rs = ParseChunk(rs);
-
-            return rs;
-        }
-        #endregion
-
-        #region 同步核心
-        /// <summary>同步请求</summary>
-        /// <param name="uri"></param>
-        /// <param name="request"></param>
-        /// <returns></returns>
-        protected virtual Packet SendData(Uri uri, Packet request)
-        {
-            var tc = Client;
-            NetworkStream ns = null;
-
-            // 判断连接是否可用
-            var active = false;
-            try
-            {
-                ns = tc?.GetStream();
-                active = tc != null && tc.Connected && ns != null && ns.CanWrite && ns.CanRead;
-            }
-            catch { }
-
-            // 如果连接不可用，则重新建立连接
-            if (!active)
-            {
-                var remote = new NetUri(NetType.Tcp, uri.Host, uri.Port);
-
-                tc.TryDispose();
-                tc = new TcpClient { ReceiveTimeout = (Int32)Timeout.TotalMilliseconds };
-                tc.Connect(remote.Address, remote.Port);
-
-                Client = tc;
-                ns = tc.GetStream();
-            }
-
-            // 发送
-            if (request != null) request.CopyTo(ns);
-
-            // 接收
-            var buf = new Byte[64 * 1024];
-            var count = ns.Read(buf, 0, buf.Length);
-
-            return new Packet(buf, 0, count);
-        }
-
-        /// <summary>异步发出请求，并接收响应</summary>
-        /// <param name="uri"></param>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        public virtual Packet Send(Uri uri, Byte[] data)
-        {
-            // 构造请求
-            var req = BuildRequest(uri, data);
-
-            StatusCode = -1;
-
-            // 发出请求
-            var rs = SendData(uri, req);
-            if (rs == null || rs.Count == 0) return null;
-
-            // 解析响应
-            rs = ParseResponse(rs);
-
-            // 头部和主体分两个包回来
-            if (rs != null && rs.Count == 0 && ContentLength != 0)
-            {
-                rs = SendData(null, null);
             }
 
             // chunk编码
@@ -271,8 +227,9 @@ namespace NewLife.Http
 
             // 分析响应码
             var code = StatusCode = ss[1].ToInt();
+            StatusDescription = ss.Skip(2).Join(" ");
             //if (code == 302) return null;
-            if (code != 200) throw new Exception($"{code} {ss.Skip(2).Join(" ")}");
+            if (code >= 400) throw new Exception($"{code} {StatusDescription}");
 
             // 分析头部
             var hs = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
@@ -368,20 +325,7 @@ namespace NewLife.Http
         /// <summary>同步获取</summary>
         /// <param name="url"></param>
         /// <returns></returns>
-        public String GetString(String url)
-        {
-            var uri = new Uri(url);
-            var pool = GetPool(uri.Host);
-            var client = pool.Get();
-            try
-            {
-                return client.Send(uri, null)?.ToStr();
-            }
-            finally
-            {
-                pool.Put(client);
-            }
-        }
+        public String GetString(String url) => TaskEx.Run(() => GetStringAsync(url)).Result;
         #endregion
     }
 }
