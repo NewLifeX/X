@@ -2,8 +2,12 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Net.Security;
 using System.Net.Sockets;
+using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,7 +17,7 @@ using NewLife.Net;
 
 namespace NewLife.Http
 {
-    /// <summary>迷你Http客户端。不支持https和302跳转</summary>
+    /// <summary>迷你Http客户端。支持https和302跳转</summary>
     public class TinyHttpClient : DisposeBase
     {
         #region 属性
@@ -40,6 +44,8 @@ namespace NewLife.Http
 
         /// <summary>头部集合</summary>
         public IDictionary<String, String> Headers { get; set; } = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+
+        private Stream _stream;
         #endregion
 
         #region 构造
@@ -62,19 +68,22 @@ namespace NewLife.Http
         #endregion
 
         #region 核心方法
-        /// <summary>异步请求</summary>
+        /// <summary>获取网络数据流</summary>
         /// <param name="uri"></param>
-        /// <param name="request"></param>
         /// <returns></returns>
-        protected virtual async Task<Packet> SendDataAsync(Uri uri, Packet request)
+        protected virtual async Task<Stream> GetStream(Uri uri)
         {
             var tc = Client;
-            NetworkStream ns = null;
+            //NetworkStream ns = null;
+            var ns = _stream;
 
             // 判断连接是否可用
             var active = false;
             try
             {
+                active = tc != null && tc.Connected && ns != null && ns.CanWrite && ns.CanRead;
+                if (active) return ns;
+
                 ns = tc?.GetStream();
                 active = tc != null && tc.Connected && ns != null && ns.CanWrite && ns.CanRead;
             }
@@ -95,7 +104,37 @@ namespace NewLife.Http
 
                 Client = tc;
                 ns = tc.GetStream();
+
+                active = true;
             }
+
+            // 支持SSL
+            if (active)
+            {
+                if (uri.Scheme.EqualIgnoreCase("https"))
+                {
+                    var sslStream = new SslStream(ns, false, (sender, certificate, chain, sslPolicyErrors) => true);
+#if NET4
+                    sslStream.AuthenticateAsClient(uri.Host, new X509CertificateCollection(), SslProtocols.Tls, false);
+#else
+                    await sslStream.AuthenticateAsClientAsync(uri.Host, new X509CertificateCollection(), SslProtocols.Tls12, false).ConfigureAwait(false);
+#endif
+                    ns = sslStream;
+                }
+
+                _stream = ns;
+            }
+
+            return ns;
+        }
+
+        /// <summary>异步请求</summary>
+        /// <param name="uri"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        protected virtual async Task<Packet> SendDataAsync(Uri uri, Packet request)
+        {
+            var ns = await GetStream(uri).ConfigureAwait(false);
 
             // 发送
             if (request != null) await request.CopyToAsync(ns).ConfigureAwait(false);

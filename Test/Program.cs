@@ -59,11 +59,12 @@ namespace Test
             }
         }
 
-        static void Test1()
+        static async void Test1()
         {
             var url = "http://www.newlifex.com/";
+            //var url = "https://www.baidu.com/";
             var client = new TinyHttpClient();
-            var html = client.GetString(url);
+            var html = await client.GetStringAsync(url);
             Console.WriteLine(html);
         }
 
