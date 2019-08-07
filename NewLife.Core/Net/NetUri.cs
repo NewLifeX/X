@@ -135,12 +135,12 @@ namespace NewLife.Net
 
             // 分析协议
             var protocol = "";
-            var p = uri.IndexOf(Sep);
-            if (p >= 0)
+            var array = uri.Split(Sep);
+            if (array.Length >= 2)
             {
-                protocol = uri.Substring(0, p);
+                protocol = array[0];
                 Type = ParseType(protocol);
-                uri = uri.Substring(p + Sep.Length);
+                uri = array[1];
             }
 
             _EndPoint = null;
@@ -159,20 +159,21 @@ namespace NewLife.Net
             }
 
             // 这个可能是一个Uri，去掉尾部
-            p = uri.IndexOf('/');
+           var p = uri.IndexOf('/');
             if (p < 0) p = uri.IndexOf('\\');
             if (p < 0) p = uri.IndexOf('?');
             if (p >= 0) uri = uri.Substring(0, p);
 
             // 分析端口
-            p = uri.LastIndexOf(":");
-            if (p >= 0)
+            var ipArray = uri.Split(":");
+
+            if (ipArray.Length >= 2)
             {
-                var pt = uri.Substring(p + 1);
+                var pt = ipArray[1];
                 if (Int32.TryParse(pt, out var port))
                 {
                     Port = port;
-                    uri = uri.Substring(0, p);
+                    uri = ipArray[0];
                 }
             }
 
