@@ -194,25 +194,29 @@ namespace NewLife.Net
             }
             catch { return NetType.Unknown; }
         }
+
+        /// <summary>获取该域名下所有IP地址</summary>
+        /// <returns></returns>
+        public IPAddress[] GetAddresses() => ParseAddress(Host);
         #endregion
 
         #region 辅助
         /// <summary>分析地址</summary>
         /// <param name="hostname">主机地址</param>
         /// <returns></returns>
-        public static IPAddress ParseAddress(String hostname)
+        public static IPAddress[] ParseAddress(String hostname)
         {
             if (hostname.IsNullOrEmpty()) return null;
             if (hostname == "*") return null;
 
             try
             {
-                if (IPAddress.TryParse(hostname, out var addr)) return addr;
+                if (IPAddress.TryParse(hostname, out var addr)) return new[] { addr };
 
                 var hostAddresses = Dns.GetHostAddresses(hostname);
-                if (hostAddresses == null || hostAddresses.Length < 1) return null;
+                if (hostAddresses == null || hostAddresses.Length <= 0) return null;
 
-                return hostAddresses.FirstOrDefault(d => d.AddressFamily == AddressFamily.InterNetwork || d.AddressFamily == AddressFamily.InterNetworkV6);
+                return hostAddresses.Where(d => d.AddressFamily == AddressFamily.InterNetwork || d.AddressFamily == AddressFamily.InterNetworkV6).ToArray();
             }
             catch (SocketException ex)
             {
