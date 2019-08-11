@@ -6,6 +6,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using NewLife;
 using NewLife.Caching;
 using NewLife.Core.Collections;
 using NewLife.Http;
@@ -40,7 +41,7 @@ namespace Test
                 try
                 {
 #endif
-                Test1();
+                Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -122,6 +123,10 @@ namespace Test
 
         static void Test3()
         {
+            //XTrace.WriteLine("IsConsole={0}", Runtime.IsConsole);
+            //Console.WriteLine("IsConsole={0}", Runtime.IsConsole);
+            //XTrace.WriteLine("MainWindowHandle={0}", Process.GetCurrentProcess().MainWindowHandle);
+
             if (Console.ReadLine() == "1")
             {
                 var svr = new ApiServer(1234)
