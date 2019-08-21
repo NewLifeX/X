@@ -144,7 +144,8 @@ namespace NewLife.Log
             if (_useConsole) return;
             _useConsole = true;
 
-            if (!Runtime.IsConsole) return;
+            //if (!Runtime.IsConsole) return;
+            Runtime.IsConsole = true;
 
             // 适当加大控制台窗口
             try
@@ -172,6 +173,8 @@ namespace NewLife.Log
         /// <param name="showErrorMessage">发为捕获异常时，是否显示提示，默认显示</param>
         public static void UseWinForm(Boolean showErrorMessage = true)
         {
+            Runtime.IsConsole = false;
+
             _ShowErrorMessage = showErrorMessage;
 
             if (initWF > 0 || Interlocked.CompareExchange(ref initWF, 1, 0) != 0) return;

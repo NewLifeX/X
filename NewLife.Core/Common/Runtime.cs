@@ -31,6 +31,7 @@ namespace NewLife
 
                 return _IsConsole.Value;
             }
+            set { _IsConsole = value; }
         }
         #endregion
 
