@@ -7,9 +7,9 @@
     <Description>数据中间件，MySQL、SQLite、SqlServer、Oracle</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2019 新生命开发团队</Copyright>
-    <Version>9.13.2019.0706</Version>
-    <FileVersion>9.13.2019.0706</FileVersion>
-    <AssemblyVersion>9.12.*</AssemblyVersion>
+    <Version>9.14.2019.0822</Version>
+    <FileVersion>9.14.2019.0822</FileVersion>
+    <AssemblyVersion>9.14.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <OutputPath>..\..\Bin</OutputPath>
     <DocumentationFile>$(OutputPath)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
@@ -26,7 +26,7 @@
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
-    <PackageReleaseNotes>合并NET40分支</PackageReleaseNotes>
+    <PackageReleaseNotes>增强一级缓存，部分场景使用文件缓存</PackageReleaseNotes>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
