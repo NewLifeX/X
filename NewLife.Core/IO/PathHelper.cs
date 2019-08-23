@@ -259,28 +259,67 @@ namespace System.IO
         /// <summary>打开并读取</summary>
         /// <typeparam name="T">返回类型</typeparam>
         /// <param name="file">文件信息</param>
+        /// <param name="compressed">是否压缩</param>
         /// <param name="func">要对文件流操作的委托</param>
         /// <returns></returns>
-        public static T OpenRead<T>(this FileInfo file, Func<FileStream, T> func)
+        public static Int64 OpenRead(this FileInfo file, Boolean compressed, Action<Stream> func)
         {
-            using (var fs = file.OpenRead())
+            if (compressed)
             {
-                return func(fs);
+                using (var fs = file.OpenRead())
+                using (var gs = new GZipStream(fs, CompressionMode.Decompress, true))
+                {
+                    func(gs);
+                    return fs.Position;
+                }
+            }
+            else
+            {
+                using (var fs = file.OpenRead())
+                {
+                    func(fs);
+                    return fs.Position;
+                }
             }
         }
 
         /// <summary>打开并写入</summary>
         /// <typeparam name="T">返回类型</typeparam>
         /// <param name="file">文件信息</param>
+        /// <param name="compressed">是否压缩</param>
         /// <param name="func">要对文件流操作的委托</param>
         /// <returns></returns>
-        public static T OpenWrite<T>(this FileInfo file, Func<FileStream, T> func)
+        public static Int64 OpenWrite(this FileInfo file, Boolean compressed, Action<Stream> func)
         {
             file.FullName.EnsureDirectory(true);
 
-            using (var fs = file.OpenWrite())
+            if (compressed)
             {
-                return func(fs);
+                using (var fs = file.OpenWrite())
+#if NET4
+                using (var gs = new GZipStream(fs, CompressionMode.Compress, true))
+#else
+                using (var gs = new GZipStream(fs, CompressionLevel.Optimal, true))
+#endif
+                {
+                    func(gs);
+
+                    gs.Flush();
+                    fs.SetLength(fs.Position);
+
+                    return fs.Position;
+                }
+            }
+            else
+            {
+                using (var fs = file.OpenWrite())
+                {
+                    func(fs);
+
+                    fs.SetLength(fs.Position);
+
+                    return fs.Position;
+                }
             }
         }
 

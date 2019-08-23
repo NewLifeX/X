@@ -182,8 +182,9 @@ namespace NewLife.Data
 
         /// <summary>从文件加载</summary>
         /// <param name="file"></param>
+        /// <param name="compressed">是否压缩</param>
         /// <returns></returns>
-        public Int64 LoadFile(String file) => file.AsFile().OpenRead(s => Read(s));
+        public Int64 LoadFile(String file, Boolean compressed = false) => file.AsFile().OpenRead(compressed, s => Read(s));
         #endregion
 
         #region 二进制写入
@@ -271,8 +272,9 @@ namespace NewLife.Data
 
         /// <summary>保存到文件</summary>
         /// <param name="file"></param>
+        /// <param name="compressed">是否压缩</param>
         /// <returns></returns>
-        public Int64 SaveFile(String file) => file.AsFile().OpenWrite(s => Write(s));
+        public Int64 SaveFile(String file, Boolean compressed = false) => file.AsFile().OpenWrite(compressed, s => Write(s));
         #endregion
 
         #region 获取

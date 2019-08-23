@@ -304,20 +304,22 @@ namespace XCode.DataAccessLayer
 
             WriteLog("恢复[{2}]到[{0}/{1}]", table, ConnName, file);
 
-            using (var fs = new FileStream(file2, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-            {
-                if (file.EndsWithIgnoreCase(".gz"))
-                {
-                    using (var gs = new GZipStream(fs, CompressionMode.Decompress, true))
-                    {
-                        return Restore(gs, table);
-                    }
-                }
-                else
-                {
-                    return Restore(fs, table);
-                }
-            }
+            var compressed = file.EndsWithIgnoreCase(".gz");
+            return file2.AsFile().OpenRead(compressed, s => Restore(s, table));
+            //using (var fs = new FileStream(file2, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            //{
+            //    if (file.EndsWithIgnoreCase(".gz"))
+            //    {
+            //        using (var gs = new GZipStream(fs, CompressionMode.Decompress, true))
+            //        {
+            //            return Restore(gs, table);
+            //        }
+            //    }
+            //    else
+            //    {
+            //        return Restore(fs, table);
+            //    }
+            //}
         }
 
         /// <summary>从指定目录恢复一批数据到目标库</summary>
