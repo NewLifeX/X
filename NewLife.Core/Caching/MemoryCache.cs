@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Threading;
+using NewLife.Data;
 using NewLife.Log;
 using NewLife.Reflection;
+using NewLife.Serialization;
 using NewLife.Threading;
 
 namespace NewLife.Caching
@@ -541,6 +545,95 @@ namespace NewLife.Caching
 
             // 修正
             _count = k;
+        }
+        #endregion
+
+        #region 持久化
+        /// <summary>保存到数据流</summary>
+        /// <param name="stream"></param>
+        /// <returns></returns>
+        public void Save(Stream stream)
+        {
+            var bn = new Binary
+            {
+                Stream = stream,
+                EncodeInt = true,
+            };
+
+            //bn.Write(_cache);
+
+            bn.WriteSize(_cache.Count);
+            foreach (var item in _cache)
+            {
+                // Key+Type+Value+Expire
+                bn.Write(item.Key);
+
+                var ci = item.Value;
+                var code = ci.Value?.GetType().GetTypeCode() ?? TypeCode.Empty;
+                bn.Write((Byte)code);
+                if (code == TypeCode.Object)
+                    bn.Write(Binary.FastWrite(ci.Value));
+                else
+                    bn.Write(ci);
+
+                bn.Write(ci.ExpiredTime.ToInt());
+            }
+        }
+
+        /// <summary>从数据流加载</summary>
+        /// <param name="stream"></param>
+        /// <returns></returns>
+        public void Load(Stream stream)
+        {
+            var bn = new Binary
+            {
+                Stream = stream,
+                EncodeInt = true,
+            };
+
+            var count = bn.ReadSize();
+            while (count-- > 0 && stream.Position < stream.Length)
+            {
+                var key = bn.Read<String>();
+                var code = (TypeCode)bn.ReadByte();
+
+                Object value = null;
+                if (code == TypeCode.Object)
+                    value = bn.Read<Packet>();
+                else
+                    value = bn.Read(Type.GetType("System." + code));
+
+                var exp = bn.Read<Int32>().ToDateTime();
+
+                Set(key, value, exp - DateTime.Now);
+            }
+
+            //var dic = bn.Read<Dictionary<String, Packet>>();
+            //if (dic != null)
+            //{
+            //    foreach (var item in dic)
+            //    {
+
+            //    }
+            //}
+        }
+
+        /// <summary>保存到文件</summary>
+        /// <param name="file"></param>
+        /// <param name="compressed"></param>
+        /// <returns></returns>
+        public Int64 Save(String file, Boolean compressed)
+        {
+            return file.AsFile().OpenWrite(compressed, s => Save(s));
+        }
+
+        /// <summary>从文件加载</summary>
+        /// <param name="file"></param>
+        /// <param name="compressed"></param>
+        /// <returns></returns>
+        public Int64 Load(String file, Boolean compressed)
+        {
+            return file.AsFile().OpenRead(compressed, s => Load(s));
         }
         #endregion
 
