@@ -79,11 +79,45 @@ namespace NewLife.Data
             get
             {
                 var p = Offset + index;
-                if (p >= Data.Length && Next != null) return Next[p - Data.Length];
-
+                if (p >= Count && Next != null) return Next[p - Count];
+                // Offset 至 Offset+Count 代表了当前链的可用数据区
+                // Count 是当前链的实际可用数据长度,(而用 Data.Length 是不准确的,Data的数据不是全部可用),
+                // 所以  这里通过索引取整个链表的索引数据应该用 Count 作运算.
                 return Data[p];
             }
-            set { Data[Offset + index] = value; }
+            set
+            {
+                //Data[Offset + index] = value;
+                //设置 对应索引 的数据 应该也是针对整个链表的有效数据区
+                var p = Offset + index;
+                if (p < Count)
+                {
+                    Data[Offset + index] = value;
+                }
+                else if (Next != null)
+                {
+                    Next[p - Count] = value;
+                }
+                else
+                {
+                    //new IndexOutOfRangeException();//超出索引下标报错 或新建一个Pakcet 继续延申数据链
+                    Byte[] b;
+                    if (index < 1000)
+                    {
+                        b = new Byte[1000];
+                    }
+                    else
+                    {
+                        b = new Byte[index];
+                    }
+                    var pk = new Packet(b);
+                    Next = pk;
+                    Next[p - Count] = value;
+                    
+                }
+
+            }
+
         }
         #endregion
 
