@@ -155,25 +155,35 @@ namespace TestST
             spk5.Append(pk4);
 
 
-            //var index = pk1.IndexOf(s1);
-            //Console.WriteLine($" 正确应该是[-1] 实际[{index}]  ----index = pk1.IndexOf(s1);----------------------------- ");
-
-
-            //index = spk5.IndexOf(s1);//异常 
-            //Console.WriteLine($" 正确应该是[-1] 实际[{index}]  ----index = spk5.IndexOf(s1);----------------------------- ");
-
+            var index = pk1.IndexOf(s1);
+            Console.WriteLine($" 正确应该是[-1] 实际[{index}]  ----index = pk1.IndexOf(s1);----------------------------- ");
+            index = spk5.IndexOf(s2);//异常 
+            Console.WriteLine($" 正确应该是[8] 实际[{index}]  ----index = spk5.IndexOf(s1);----------------------------- ");
 
             var val = spk5[39];
-            Console.WriteLine(val);
-            //spk5[40] = 255;
-             //spk5[-1]=255;
+            Console.WriteLine($" 正确应该是[9] 实际[{val}]");
 
-            //val = spk5[-1];
-            //Console.WriteLine(val);
-            val = spk5[40];
-            Console.WriteLine(val);
+            spk5[40] = 255;
+            Console.WriteLine($" 正确应该是[255] 实际[{ spk5[40] }]");
 
-
+            var ex = TryCatch(new Action(delegate { spk5[-1] = 255; }));
+            Console.WriteLine($" 正常应该出现异常 ----->  {ex}\r\n\r\n");
+            var ex1 = TryCatch(new Action(delegate { var l = spk5[41]; }));
+            Console.WriteLine($" 正常应该出现异常 ----->  {ex1}\r\n\r\n");
+            var ex2 = TryCatch(new Action(delegate { var l = spk5[-1]; }));
+            Console.WriteLine($" 正常应该出现异常 ----->  {ex2}\r\n\r\n");
+        }
+        private static string TryCatch(Action action)
+        {
+            try
+            {
+                action?.Invoke();
+            }
+            catch (Exception ex)
+            {
+                return "出现异常 " + ex.ToString();
+            }
+            return "没有异常 测试不通过";
         }
     }
 }
