@@ -78,42 +78,66 @@ namespace NewLife.Data
         {
             get
             {
-                var p = Offset + index;
-                if (p >= Count && Next != null) return Next[p - Count];
+
+                if (index >= Total || index < 0)
+                {
+                    throw new IndexOutOfRangeException($"超出Packet 索引范围 获取的索引{index} Packet最大索引{Total - 1}");
+                }
+                var p = Offset + index;//读取位置
+                var can = Offset + Count;//实际可用位置
+                                         //当 Offset>0的时候 下一个指数计算不正确?
+
+                if (p >= can && Next != null) return Next[index - Count];
+                return Data[p];
+
+                //if (p < can)
+                //{
+                //    return Data[p];
+                //}
+                //else if (Next != null)
+                //{
+                //    return Next[index - Count];
+                //}
+                //else
+                //{
+                //    throw new IndexOutOfRangeException($"Packet索引器 超出预期的代码");
+                //}
+
                 // Offset 至 Offset+Count 代表了当前链的可用数据区
                 // Count 是当前链的实际可用数据长度,(而用 Data.Length 是不准确的,Data的数据不是全部可用),
                 // 所以  这里通过索引取整个链表的索引数据应该用 Count 作运算.
-                return Data[p];
+                //Console.WriteLine($"索引 Count={Count} (当前位置)p={p}  Offset={Offset}  Total={Total}");
+                //超过下标直接报错
+
+                //return Data[p];
             }
             set
             {
+                if (index < 0)
+                {
+                    throw new ArgumentOutOfRangeException($"{index} 索引参数不在给定的范围内 ");
+                }
                 //Data[Offset + index] = value;
                 //设置 对应索引 的数据 应该也是针对整个链表的有效数据区
                 var p = Offset + index;
-                if (p < Count)
+                var can = Offset + Count;//实际可用位置
+                if (p < can)
                 {
-                    Data[Offset + index] = value;
+                    Data[p] = value;
                 }
                 else if (Next != null)
                 {
-                    Next[p - Count] = value;
+                    Next[index - Count] = value;
                 }
                 else
                 {
-                    //new IndexOutOfRangeException();//超出索引下标报错 或新建一个Pakcet 继续延申数据链
-                    Byte[] b;
-                    if (index < 1000)
-                    {
-                        b = new Byte[1000];
-                    }
-                    else
-                    {
-                        b = new Byte[index];
-                    }
+                    //throw new IndexOutOfRangeException();//超出索引下标报错
+                    Byte[] b;// 或新建一个Pakcet 继续延申数据链
+                    b = new Byte[index - Count + 1];
                     var pk = new Packet(b);
                     Next = pk;
-                    Next[p - Count] = value;
-                    
+                    Next[index - Count] = value;
+
                 }
 
             }
@@ -203,11 +227,13 @@ namespace NewLife.Data
 
             if (count < 0 || count > Total - offset) count = Total - offset;
 
+            Console.WriteLine($"count={count}  offset={offset} Total={Total}");
             // 已匹配字节数
             var win = 0;
             // 索引加上data剩余字节数必须小于count
             for (var i = 0; i + length - win <= count; i++)
             {
+                Console.WriteLine($"start + i {start + i}");
                 if (this[start + i] == data[win])
                 {
                     win++;
