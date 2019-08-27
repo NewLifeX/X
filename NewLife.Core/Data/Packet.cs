@@ -72,10 +72,47 @@ namespace NewLife.Data
         {
             get
             {
-                var p = Offset + index;
-                if (p >= Data.Length && Next != null) return Next[p - Data.Length];
-
+                if (index >= Total || index < 0)
+                {  //超过下标直接报错,谁也不想处理了异常的数据也不知道
+                    throw new IndexOutOfRangeException($"超出Packet 索引范围 获取的索引{index} Packet最大索引{Total - 1}");
+                }
+                var p = Offset + index;//读取位置
+                var can = Offset + Count;//实际可用位置
+                if (p >= can && Next != null) return Next[index - Count];
                 return Data[p];
+
+                // Offset 至 Offset+Count 代表了当前链的可用数据区
+                // Count 是当前链的实际可用数据长度,(而用 Data.Length 是不准确的,Data的数据不是全部可用),
+                // 所以  这里通过索引取整个链表的索引数据应该用 Count 作运算.              
+            }
+            set
+            {
+                if (index < 0)
+                {
+                    throw new ArgumentOutOfRangeException($"{index} 索引参数不在Packet索引给定的范围内");
+                }
+                //设置 对应索引 的数据 应该也是针对整个链表的有效数据区
+                var p = Offset + index;
+                var can = Offset + Count;//实际可用位置
+                if (p < can)
+                {
+                    Data[p] = value;
+                }
+                else if (Next != null)
+                {
+                    Next[index - Count] = value;
+                }
+                else
+                {
+                    //throw new IndexOutOfRangeException();//超出索引下标报错
+                    Byte[] b;// 或新建一个Pakcet 继续延申数据链,我觉得选择延时比较好,有时候写代码可以偷懒
+                    b = new Byte[index - Count + 1];
+                    var pk = new Packet(b);
+                    Next = pk;
+                    Next[index - Count] = value;
+
+                }
+
             }
             set
             {
@@ -155,12 +192,12 @@ namespace NewLife.Data
             var length = data.Length;
 
             if (count < 0 || count > Total - offset) count = Total - offset;
-
             // 已匹配字节数
             var win = 0;
             // 索引加上data剩余字节数必须小于count
             for (var i = 0; i + length - win <= count; i++)
             {
+
                 if (this[start + i] == data[win])
                 {
                     win++;
