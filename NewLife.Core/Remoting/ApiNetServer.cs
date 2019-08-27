@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using NewLife.Http;
 using NewLife.Messaging;
 using NewLife.Net;
 
@@ -36,6 +37,8 @@ namespace NewLife.Remoting
             // 如果主机为空，监听所有端口
             if (Local.Host.IsNullOrEmpty() || Local.Host == "*") AddressFamily = System.Net.Sockets.AddressFamily.Unspecified;
 
+            // Http封包协议
+            Add<HttpCodec>();
             // 新生命标准网络封包协议
             Add(Host.GetMessageCodec());
 
@@ -93,13 +96,9 @@ namespace NewLife.Remoting
         /// <param name="args">参数</param>
         /// <param name="flag">标识</param>
         /// <returns></returns>
-        public async Task<TResult> InvokeAsync<TResult>(String action, Object args = null, Byte flag = 0) => (TResult)await ApiHostHelper.InvokeAsync(_Host, this, typeof(TResult), action, args, flag);
+        public async Task<TResult> InvokeAsync<TResult>(String action, Object args = null, Byte flag = 0) => (TResult)await ApiHostHelper.InvokeAsync(_Host, this, typeof(TResult), action, args, flag).ConfigureAwait(false);
 
-        async Task<Tuple<IMessage, Object>> IApiSession.SendAsync(IMessage msg)
-        {
-            var rs = await Session.SendMessageAsync(msg) as IMessage;
-            return new Tuple<IMessage, Object>(rs, Session);
-        }
+        async Task<IMessage> IApiSession.SendAsync(IMessage msg) => await Session.SendMessageAsync(msg).ConfigureAwait(false) as IMessage;
 
         Boolean IApiSession.Send(IMessage msg) => Session.SendMessage(msg);
     }

@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using NewLife.Collections;
 using NewLife.Data;
+using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Serialization;
 
@@ -38,7 +39,7 @@ namespace XCode.DataAccessLayer
             if (startRowIndex <= 0 && maximumRows <= 0) return builder;
 
             // 2016年7月2日 HUIYUE 取消分页SQL缓存，此部分缓存提升性能不多，但有可能会造成分页数据不准确，感觉得不偿失
-            return Db.PageSplit(builder, startRowIndex, maximumRows);
+            return Db.PageSplit(builder.Clone(), startRowIndex, maximumRows);
         }
 
         /// <summary>执行SQL查询，返回记录集</summary>
@@ -262,10 +263,41 @@ namespace XCode.DataAccessLayer
                 Append(sb, k3);
                 var key = sb.Put(true);
 
+                //if (cache.TryGetValue(key, out var value)) return value.ChangeType<TResult>();
+
                 return cache.GetItem(key, k =>
                 {
+                    // 达到60秒后全表查询使用文件缓存
+                    var dataFile = "";
+                    if ((Expire >= 60 || Db.Readonly) && prefix == nameof(Query))
+                    {
+                        var builder = k1 as SelectBuilder;
+                        var start = (Int64)(Object)k2;
+                        var max = (Int64)(Object)k3;
+                        if (start <= 0 && max <= 0 && builder != null && builder.Where.IsNullOrEmpty())
+                        {
+                            dataFile = XTrace.TempPath.CombinePath(ConnName, builder.Table.Trim('[', ']', '`', '"') + ".dt");
+
+                            // 首次缓存加载时采用文件缓存替代，避免读取数据库耗时过长
+                            if (!cache.ContainsKey(k) && File.Exists(dataFile.GetFullPath()))
+                            {
+                                var dt = new DbTable();
+                                dt.LoadFile(dataFile);
+                                return dt;
+                            }
+                        }
+                    }
+
                     Interlocked.Increment(ref _QueryTimes);
-                    return callback(k1, k2, k3);
+                    var rs = callback(k1, k2, k3);
+
+                    // 达到60秒后全表查询使用文件缓存
+                    if (!dataFile.IsNullOrEmpty())
+                    {
+                        (rs as DbTable).SaveFile(dataFile);
+                    }
+
+                    return rs;
                 }).ChangeType<TResult>();
             }
 
@@ -283,7 +315,24 @@ namespace XCode.DataAccessLayer
             var rs = callback(k1, k2, k3);
 
             var st = GetCache();
-            st?.Clear();
+            if (st != null)
+            {
+                st?.Clear();
+
+                // 删除文件缓存
+                var dataDir = XTrace.TempPath.CombinePath(ConnName);
+                if (Directory.Exists(dataDir))
+                {
+                    try
+                    {
+                        Directory.Delete(dataDir, true);
+                    }
+                    catch (Exception ex)
+                    {
+                        XTrace.WriteException(ex);
+                    }
+                }
+            }
 
             Interlocked.Increment(ref _ExecuteTimes);
 

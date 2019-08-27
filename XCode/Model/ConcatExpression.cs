@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using XCode.Configuration;
 
 namespace XCode
 {
@@ -101,6 +102,19 @@ namespace XCode
             if (value == null) return exp;
 
             exp.And(value);
+
+            return exp;
+        }
+
+        /// <summary>重载运算符实现And操作，同时通过布尔型支持AndIf</summary>
+        /// <param name="exp"></param>
+        /// <param name="field">数值</param>
+        /// <returns></returns>
+        public static ConcatExpression operator &(ConcatExpression exp, FieldItem field)
+        {
+            if (field == null) return exp;
+
+            exp.And(new FieldExpression(field));
 
             return exp;
         }

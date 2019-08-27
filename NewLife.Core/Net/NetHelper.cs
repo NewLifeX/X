@@ -32,13 +32,15 @@ namespace System
             socket.IOControl(IOControlCode.KeepAliveValues, inOptionValues, null);
         }
 
-        private static readonly DictionaryCache<String, IPAddress> _dnsCache = new DictionaryCache<String, IPAddress>(NetUri.ParseAddress, StringComparer.OrdinalIgnoreCase) { Expire = 60 };
+        private static readonly DictionaryCache<String, IPAddress> _dnsCache = new DictionaryCache<String, IPAddress>(StringComparer.OrdinalIgnoreCase) { Expire = 60 };
         /// <summary>分析地址，根据IP或者域名得到IP地址，缓存60秒，异步更新</summary>
         /// <param name="hostname"></param>
         /// <returns></returns>
         public static IPAddress ParseAddress(this String hostname)
         {
             if (hostname.IsNullOrEmpty()) return null;
+
+            if (_dnsCache.FindMethod == null) _dnsCache.FindMethod = s => NetUri.ParseAddress(s)?.FirstOrDefault();
 
             //return _dnsCache.GetItem(hostname, NetUri.ParseAddress);
             return _dnsCache[hostname];

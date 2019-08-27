@@ -2,12 +2,11 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Linq;
 using System.Text;
 
 namespace XCode.DataAccessLayer
 {
-    class PostgreSQL : RemoteDb
+    internal class PostgreSQL : RemoteDb
     {
         #region 属性
         /// <summary>返回数据库类型。</summary>
@@ -35,11 +34,11 @@ namespace XCode.DataAccessLayer
         #region 方法
         /// <summary>创建数据库会话</summary>
         /// <returns></returns>
-        protected override IDbSession OnCreateSession() { return new PostgreSQLSession(this); }
+        protected override IDbSession OnCreateSession() => new PostgreSQLSession(this);
 
         /// <summary>创建元数据对象</summary>
         /// <returns></returns>
-        protected override IMetaData OnCreateMetaData() { return new PostgreSQLMetaData(); }
+        protected override IMetaData OnCreateMetaData() => new PostgreSQLMetaData();
 
         public override Boolean Support(String providerName)
         {
@@ -59,46 +58,14 @@ namespace XCode.DataAccessLayer
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <param name="keyColumn">主键列。用于not in分页</param>
         /// <returns></returns>
-        public override String PageSplit(String sql, Int64 startRowIndex, Int64 maximumRows, String keyColumn)
-        {
-            // 从第一行开始，不需要分页
-            if (startRowIndex <= 0)
-            {
-                if (maximumRows < 1)
-                    return sql;
-                else
-                    return String.Format("{0} limit {1}", sql, maximumRows);
-            }
-            if (maximumRows < 1)
-                throw new NotSupportedException("不支持取第几条数据之后的所有数据！");
-            else
-                sql = String.Format("{0} limit {1} offset {2}", sql, startRowIndex, maximumRows);
-            return sql;
-        }
+        public override String PageSplit(String sql, Int64 startRowIndex, Int64 maximumRows, String keyColumn) => MySql.PageSplitByLimit(sql, startRowIndex, maximumRows);
 
         /// <summary>构造分页SQL</summary>
-        /// <remarks>
-        /// 两个构造分页SQL的方法，区别就在于查询生成器能够构造出来更好的分页语句，尽可能的避免子查询。
-        /// MS体系的分页精髓就在于唯一键，当唯一键带有Asc/Desc/Unkown等排序结尾时，就采用最大最小值分页，否则使用较次的TopNotIn分页。
-        /// TopNotIn分页和MaxMin分页的弊端就在于无法完美的支持GroupBy查询分页，只能查到第一页，往后分页就不行了，因为没有主键。
-        /// </remarks>
         /// <param name="builder">查询生成器</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>分页SQL</returns>
-        public override SelectBuilder PageSplit(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows)
-        {
-            // 从第一行开始，不需要分页
-            if (startRowIndex <= 0)
-            {
-                if (maximumRows > 0) builder.Limit += String.Format(" limit {0}", maximumRows);
-                return builder;
-            }
-            if (maximumRows < 1) throw new NotSupportedException("不支持取第几条数据之后的所有数据！");
-
-            builder.Limit += String.Format(" limit {0} offset {1}", startRowIndex, maximumRows);
-            return builder;
-        }
+        public override SelectBuilder PageSplit(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows) => MySql.PageSplitByLimit(builder, startRowIndex, maximumRows);
         #endregion
 
         #region 数据库特性
@@ -158,7 +125,7 @@ namespace XCode.DataAccessLayer
         /// <summary>长文本长度</summary>
         public override Int32 LongTextLength => 4000;
 
-        internal protected override String ParamPrefix => "$";
+        protected internal override String ParamPrefix => "$";
 
         /// <summary>系统数据库名</summary>
         public override String SystemDatabaseName => "PostgreSQL";
@@ -167,7 +134,7 @@ namespace XCode.DataAccessLayer
         /// <param name="left"></param>
         /// <param name="right"></param>
         /// <returns></returns>
-        public override String StringConcat(String left, String right) { return (!String.IsNullOrEmpty(left) ? left : "\'\'") + "||" + (!String.IsNullOrEmpty(right) ? right : "\'\'"); }
+        public override String StringConcat(String left, String right) => (!String.IsNullOrEmpty(left) ? left : "\'\'") + "||" + (!String.IsNullOrEmpty(right) ? right : "\'\'");
         #endregion
     }
 
@@ -193,12 +160,9 @@ namespace XCode.DataAccessLayer
     }
 
     /// <summary>PostgreSQL元数据</summary>
-    class PostgreSQLMetaData : RemoteDbMetaData
+    internal class PostgreSQLMetaData : RemoteDbMetaData
     {
-        public PostgreSQLMetaData()
-        {
-            Types = _DataTypes;
-        }
+        public PostgreSQLMetaData() => Types = _DataTypes;
 
         protected override void FixTable(IDataTable table, DataRow dr, IDictionary<String, DataTable> data)
         {
@@ -327,7 +291,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>数据类型映射</summary>
-        private static Dictionary<Type, String[]> _DataTypes = new Dictionary<Type, String[]>
+        private static readonly Dictionary<Type, String[]> _DataTypes = new Dictionary<Type, String[]>
         {
             { typeof(Byte[]), new String[] { "BLOB", "TINYBLOB", "MEDIUMBLOB", "LONGBLOB", "binary({0})", "varbinary({0})" } },
             //{ typeof(TimeSpan), new String[] { "TIME" } },
@@ -375,10 +339,7 @@ namespace XCode.DataAccessLayer
         //    return String.Format("Create Database Binary {0}", FormatKeyWord(dbname));
         //}
 
-        public override String DropDatabaseSQL(String dbname)
-        {
-            return String.Format("Drop Database If Exists {0}", FormatName(dbname));
-        }
+        public override String DropDatabaseSQL(String dbname) => String.Format("Drop Database If Exists {0}", FormatName(dbname));
 
         public override String CreateTableSQL(IDataTable table)
         {
@@ -415,10 +376,7 @@ namespace XCode.DataAccessLayer
             return String.Format("Alter Table {0} Comment '{1}'", FormatName(table.TableName), table.Description);
         }
 
-        public override String AlterColumnSQL(IDataColumn field, IDataColumn oldfield)
-        {
-            return String.Format("Alter Table {0} Modify Column {1}", FormatName(field.Table.TableName), FieldClause(field, false));
-        }
+        public override String AlterColumnSQL(IDataColumn field, IDataColumn oldfield) => String.Format("Alter Table {0} Modify Column {1}", FormatName(field.Table.TableName), FieldClause(field, false));
 
         public override String AddColumnDescriptionSQL(IDataColumn field)
         {

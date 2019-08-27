@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if __WIN__
+using System;
 using System.Drawing;
 
 namespace NewLife.Serialization
@@ -60,3 +61,4 @@ namespace NewLife.Serialization
         }
     }
 }
+#endif

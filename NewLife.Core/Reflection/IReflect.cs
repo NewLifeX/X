@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Serialization;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 
@@ -378,6 +379,7 @@ namespace NewLife.Reflection
                 if (pi.GetIndexParameters().Length > 0) continue;
                 if (pi.GetCustomAttribute<XmlIgnoreAttribute>() != null) continue;
                 if (pi.GetCustomAttribute<ScriptIgnoreAttribute>() != null) continue;
+                if (pi.GetCustomAttribute<IgnoreDataMemberAttribute>() != null) continue;
 
                 if (!set.Contains(pi.Name))
                 {
@@ -663,8 +665,15 @@ namespace NewLife.Reflection
             if (type == null) return false;
             if (type == baseType) return true;
 
-            // 如果基类是泛型定义
+            // 如果基类是泛型定义，补充完整，例如IList<>
+#if NET4
             if (baseType.IsGenericTypeDefinition && type.IsGenericType && !type.IsGenericTypeDefinition) type = type.GetGenericTypeDefinition();
+#else
+            if (baseType.IsGenericTypeDefinition
+                && type.IsGenericType && !type.IsGenericTypeDefinition
+                && baseType is TypeInfo inf && inf.GenericTypeParameters.Length == type.GenericTypeArguments.Length)
+                baseType = baseType.MakeGenericType(type.GenericTypeArguments);
+#endif
 
             if (type == baseType) return true;
 

@@ -59,5 +59,16 @@ namespace NewLife.Extension
             EnsureSynth();
             if (synth != null) synth.Invoke("SpeakAsync", value);
         }
+
+        /// <summary>
+        /// 停止话音播报
+        /// </summary>
+        public void SpeakAsyncCancelAll()
+        {
+            if (_type == null) return;
+
+            EnsureSynth();
+            if (synth != null) synth.Invoke("SpeakAsyncCancelAll");
+        }
     }
 }

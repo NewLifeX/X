@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Threading;
 using NewLife;
-using NewLife.Collections;
 using NewLife.Log;
 
 namespace XCode.DataAccessLayer
@@ -87,7 +85,10 @@ namespace XCode.DataAccessLayer
 
             Tran = null;
             _Session = null;
+
+            var conn = Conn;
             Conn = null;
+            conn?.Close();
         }
         #endregion
 
@@ -101,14 +102,15 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public DbTransaction Check(DbCommand cmd, Boolean execute)
         {
-            if (cmd.Transaction != null) return cmd.Transaction;
+            var conn = Conn;
+            if (conn == null || cmd.Transaction != null) return cmd.Transaction;
 
             // 此时事务可能为空
             var tr = Tran;
-            if (cmd.Connection != null && cmd.Connection != Conn) return tr;
+            if (cmd.Connection != null && cmd.Connection != conn) return tr;
 
             cmd.Transaction = tr;
-            cmd.Connection = Conn;
+            cmd.Connection = conn;
 
             // 不要为查询打开事务
             if (!execute) return tr;
@@ -117,9 +119,9 @@ namespace XCode.DataAccessLayer
 
             if (tr != null) return tr;
 
-            tr = Tran = Conn.BeginTransaction(Level);
+            tr = Tran = conn.BeginTransaction(Level);
             cmd.Transaction = tr;
-            cmd.Connection = Conn;
+            cmd.Connection = conn;
 
             Level = tr.IsolationLevel;
             ID = Interlocked.Increment(ref _gid);
@@ -138,7 +140,8 @@ namespace XCode.DataAccessLayer
             if (n == 1)
             {
                 // 打开事务后，由事务管理连接
-                Conn = _Session.Database.Pool.Get();
+                //Conn = _Session.Database.Pool.Get();
+                Conn = _Session.Database.OpenConnection();
             }
 
             return this;
@@ -165,9 +168,11 @@ namespace XCode.DataAccessLayer
                 {
                     Tran = null;
 
-                    // 把连接归还给对象池
-                    _Session.Database.Pool.Put(Conn);
+                    //// 把连接归还给对象池
+                    //_Session.Database.Pool.Put(Conn);
+                    var conn = Conn;
                     Conn = null;
+                    conn?.Close();
                 }
             }
 
@@ -195,9 +200,11 @@ namespace XCode.DataAccessLayer
                 {
                     Tran = null;
 
-                    // 把连接归还给对象池
-                    _Session.Database.Pool.Put(Conn);
+                    //// 把连接归还给对象池
+                    //_Session.Database.Pool.Put(Conn);
+                    var conn = Conn;
                     Conn = null;
+                    conn?.Close();
                 }
             }
 

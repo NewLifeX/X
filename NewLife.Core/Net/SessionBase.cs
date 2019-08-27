@@ -9,6 +9,9 @@ using NewLife.Data;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Threading;
+#if !NET4
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 namespace NewLife.Net
 {
@@ -126,7 +129,12 @@ namespace NewLife.Net
                     var rs = OnOpen();
                     if (!rs) return false;
 
-                    if (Timeout > 0) Client.ReceiveTimeout = Timeout;
+                    var timeout = Timeout;
+                    if (timeout > 0)
+                    {
+                        Client.SendTimeout = timeout;
+                        Client.ReceiveTimeout = timeout;
+                    }
 
                     if (!Local.IsUdp)
                     {
@@ -424,7 +432,7 @@ namespace NewLife.Net
 
                 if (Local.IsTcp) remote = Remote.EndPoint;
 
-                var e = new ReceivedEventArgs(pk) { Remote = remote };
+                var e = new ReceivedEventArgs { Packet = pk, Remote = remote };
 
                 // 不管Tcp/Udp，都在这使用管道
                 var pp = Pipeline;
@@ -507,8 +515,6 @@ namespace NewLife.Net
         /// <returns></returns>
         public virtual Boolean SendMessage(Object message)
         {
-            //Pipeline.FireWrite(this, message);
-
             var ctx = CreateContext(this);
             message = Pipeline.Write(ctx, message);
 
@@ -520,15 +526,13 @@ namespace NewLife.Net
         /// <returns></returns>
         public virtual Task<Object> SendMessageAsync(Object message)
         {
-            //Pipeline.FireWriteAndWait(this, message);
-
             var ctx = CreateContext(this);
             var source = new TaskCompletionSource<Object>();
             ctx["TaskSource"] = source;
 
             message = Pipeline.Write(ctx, message);
 
-            if (!ctx.FireWrite(message)) return Task.FromResult((Object)null);
+            if (!ctx.FireWrite(message)) return TaskEx.FromResult((Object)null);
 
             return source.Task;
         }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace NewLife
@@ -17,8 +18,11 @@ namespace NewLife
 
                 try
                 {
-                    var flag = Console.CursorVisible;
-                    _IsConsole = true;
+                    var flag = Console.ForegroundColor;
+                    if (Process.GetCurrentProcess().MainWindowHandle != IntPtr.Zero)
+                        _IsConsole = false;
+                    else
+                        _IsConsole = true;
                 }
                 catch
                 {
@@ -27,6 +31,7 @@ namespace NewLife
 
                 return _IsConsole.Value;
             }
+            set { _IsConsole = value; }
         }
         #endregion
 

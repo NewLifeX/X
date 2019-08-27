@@ -85,7 +85,7 @@ namespace NewLife.Http
             BodyLength += pk.Count;
 
             if (_cache == null) _cache = new MemoryStream();
-            pk.WriteTo(_cache);
+            pk.CopyTo(_cache);
 
             if (!IsCompleted) return false;
 

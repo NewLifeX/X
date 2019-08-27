@@ -1,5 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>NewLife.Agent</AssemblyName>
@@ -8,26 +7,43 @@
     <Description>应用程序注册为系统服务，仅支持Windows</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2019 新生命开发团队</Copyright>
-    <FileVersion>8.0.2019.0101</FileVersion>
-    <AssemblyVersion>8.0.*</AssemblyVersion>
-    <!--是否确定版本，false以支持*-->
+    <Version>8.3.2019.0822</Version>
+    <FileVersion>8.3.2019.0822</FileVersion>
+    <AssemblyVersion>8.3.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <Version>8.0.2019.0101</Version>
+    <OutputPath>..\..\Bin</OutputPath>
+    <DocumentationFile>$(OutputPath)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineConstants>TRACE</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>$(AssemblyName)</PackageId>
+    <Authors>$(Company)</Authors>
+    <ProjectUrl>https://github.com/NewLifeX</ProjectUrl>
+    <PackageIconUrl>http://www.NewLifeX.com/favicon.ico</PackageIconUrl>
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
+    <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSource>true</IncludeSource>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DefineConstants>TRACE;RELEASE;NETSTANDARD2_0;__CORE__</DefineConstants>
-    <OutputPath>..\..\Bin</OutputPath>
-    <DocumentationFile>..\..\Bin\netstandard2.0\NewLife.Agent.xml</DocumentationFile>
+  <PropertyGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
+    <DefineConstants>$(DefineConstants);NETSTANDARD2_0</DefineConstants>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0;__CORE__</DefineConstants>
-    <OutputPath>..\..\Bin</OutputPath>
-    <DocumentationFile>..\..\Bin\netstandard2.0\NewLife.Agent.xml</DocumentationFile>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <DefineConstants>$(DefineConstants);DEBUG</DefineConstants>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
@@ -42,7 +58,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NewLife.CoreST\NewLife.CoreST.csproj" />
+    <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj" />
   </ItemGroup>
 
 </Project>

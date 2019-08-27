@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Text;
 using System.Threading;
-using NewLife.Log;
 
 namespace NewLife.Threading
 {
@@ -13,7 +11,7 @@ namespace NewLife.Threading
     /// 
     /// 该定时器不能放入太多任务，否则适得其反！
     /// 
-    /// TimerX必须维持对象，否则很容易被GC回收。
+    /// TimerX必须维持对象，否则Scheduler也没有维持对象时，大家很容易一起被GC回收。
     /// </remarks>
     public class TimerX : /*DisposeBase*/IDisposable
     {
@@ -56,7 +54,7 @@ namespace NewLife.Threading
         [ThreadStatic]
         private static TimerX _Current;
         /// <summary>当前定时器</summary>
-        public static TimerX Current { get { return _Current; } internal set { _Current = value; } }
+        public static TimerX Current { get => _Current; internal set => _Current = value; }
         #endregion
 
         #region 构造
@@ -154,6 +152,9 @@ namespace NewLife.Threading
                     {
                         if (_NowTimer == null)
                         {
+                            // 多线程下首次访问Now可能取得空时间
+                            _Now = DateTime.Now;
+
                             _NowTimer = new TimerX(CopyNow, null, 0, 500);
                         }
                     }

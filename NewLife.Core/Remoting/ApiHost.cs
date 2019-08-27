@@ -26,11 +26,14 @@ namespace NewLife.Remoting
         /// <summary>调用超时时间。请求发出后，等待响应的最大时间，默认15_000ms</summary>
         public Int32 Timeout { get; set; } = 15_000;
 
-        /// <summary>发送数据包统计信息</summary>
+        /// <summary>调用统计</summary>
         public ICounter StatInvoke { get; set; }
 
-        /// <summary>接收数据包统计信息</summary>
+        /// <summary>处理统计</summary>
         public ICounter StatProcess { get; set; }
+
+        /// <summary>慢追踪。远程调用或处理时间超过该值时，输出慢调用日志，默认5000ms</summary>
+        public Int32 SlowTrace { get; set; } = 5_000;
 
         /// <summary>用户会话数据</summary>
         public IDictionary<String, Object> Items { get; set; } = new NullableDictionary<String, Object>();
@@ -39,6 +42,9 @@ namespace NewLife.Remoting
         /// <param name="key"></param>
         /// <returns></returns>
         public virtual Object this[String key] { get { return Items[key]; } set { Items[key] = value; } }
+
+        /// <summary>启动时间</summary>
+        public DateTime StartTime { get; set; } = DateTime.Now;
         #endregion
 
         #region 控制器管理
@@ -85,64 +91,51 @@ namespace NewLife.Remoting
         {
             if (msg.Reply) return null;
 
+            var action = "";
+            Object result = null;
+            var code = 0;
+
             var st = StatProcess;
             var sw = st.StartCount();
             try
             {
-                return OnProcess(session, msg);
+                var enc = session["Encoder"] as IEncoder ?? Encoder;
+
+                try
+                {
+                    if (!enc.Decode(msg, out action, out _, out var args)) return null;
+
+                    result = OnProcess(session, action, args);
+                }
+                catch (Exception ex)
+                {
+                    ex = ex.GetTrue();
+
+                    if (ShowError) WriteLog("{0}", ex);
+
+                    // 支持自定义错误
+                    if (ex is ApiException aex)
+                    {
+                        code = aex.Code;
+                        result = ex?.Message;
+                    }
+                    else
+                    {
+                        code = 500;
+                        result = ex?.Message;
+                    }
+                }
+
+                // 单向请求无需响应
+                if (msg.OneWay) return null;
+
+                return enc.CreateResponse(msg, action, code, result);
             }
             finally
             {
-                st.StopCount(sw);
+                var msCost = st.StopCount(sw) / 1000;
+                if (SlowTrace > 0 && msCost >= SlowTrace) WriteLog($"慢处理[{action}]，Code={code}，耗时{msCost:n0}ms");
             }
-        }
-
-        private IMessage OnProcess(IApiSession session, IMessage msg)
-        {
-            var enc = Encoder;
-
-            var action = "";
-            Object result = null;
-            var code = 0;
-            try
-            {
-                if (!enc.Decode(msg, out action, out _, out var args)) return null;
-
-                result = OnProcess(session, action, args);
-            }
-            catch (Exception ex)
-            {
-                ex = ex.GetTrue();
-
-                if (ShowError) WriteLog("{0}", ex);
-
-                // 支持自定义错误
-                if (ex is ApiException aex)
-                {
-                    code = aex.Code;
-                    result = ex?.Message;
-                }
-                else
-                {
-                    code = 500;
-                    result = ex?.Message;
-                }
-            }
-
-            // 单向请求无需响应
-            if (msg.OneWay) return null;
-
-            //// 编码响应数据包，二进制优先
-            //if (!(result is Packet pk)) pk = enc.Encode(action, code, result);
-            //pk = enc.Encode(action, code, pk);
-
-            //// 构造响应消息
-            //var rs = msg.CreateReply();
-            //rs.Payload = pk;
-            //if (code > 0) rs.Error = true;
-            var rs = enc.CreateResponse(msg, action, code, result);
-
-            return rs;
         }
 
         /// <summary>执行</summary>

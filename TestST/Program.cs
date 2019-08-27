@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using NewLife.Agent;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Net;
+using NewLife.Remoting;
 using NewLife.Serialization;
 using XCode.DataAccessLayer;
 using XCode.Membership;
@@ -26,36 +29,23 @@ namespace TestST
             sw.Stop();
             Console.WriteLine("OK! {0:n0}ms", sw.ElapsedMilliseconds);
 
-            Console.ReadKey();
+            //Console.ReadKey();
+            Thread.Sleep(-1);
         }
 
-        static void Test1()
-        {
-            XTrace.WriteLine("学无先后达者为师！");
-            Console.WriteLine(".".GetFullPath());
-
-            var svr = new NetServer
-            {
-                Port = 8080
-            };
-            svr.Received += Svr_Received;
-            svr.Log = XTrace.Log;
-            svr.SessionLog = svr.Log;
-            svr.LogReceive = true;
-            svr.Start();
-
-            Console.ReadKey();
-        }
-
-        private static void Svr_Received(Object sender, ReceivedEventArgs e)
-        {
-            XTrace.WriteLine(e.ToStr());
-        }
-
+        private static ApiServer _Server;
         static void Test2()
         {
             //new AgentService().Main();
-            "圣诞快乐".SpeakAsync();
+            //"圣诞快乐".SpeakAsync();
+
+            var svr = new ApiServer(1234);
+            svr.Log = XTrace.Log;
+            svr.EncoderLog = XTrace.Log;
+            svr.StatPeriod = 10;
+            svr.Start();
+
+            _Server = svr;
         }
 
         static void Test3()

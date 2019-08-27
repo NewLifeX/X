@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Model;
@@ -202,16 +203,15 @@ namespace NewLife.Net
             LastRemote = remote;
 
             // 为该连接单独创建一个会话，方便直接通信
-            var session = CreateSession(remote);
-
-            return session;
+            return CreateSession(remote);
         }
 
         /// <summary>处理收到的数据</summary>
         /// <param name="e">接收事件参数</param>
         protected override Boolean OnReceive(ReceivedEventArgs e)
         {
-            StatReceive?.Increment(e.Packet.Count, 0);
+            var pk = e.Packet;
+            StatReceive?.Increment(pk.Count, 0);
 
             var remote = e.Remote;
 
@@ -223,7 +223,7 @@ namespace NewLife.Net
             else
             {
                 // 没有匹配到任何会话时，才在这里显示日志。理论上不存在这个可能性
-                if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", e.Length, e.ToHex(32, null));
+                if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", pk.Count, pk.ToHex(32, null));
             }
 
             if (session != null) RaiseReceive(session, e);
@@ -279,6 +279,8 @@ namespace NewLife.Net
         /// <summary>会话集合。用地址端口作为标识，业务应用自己维持地址端口与业务主键的对应关系。</summary>
         public IDictionary<String, ISocketSession> Sessions => _Sessions;
 
+        private IDictionary<Int32, ISocketSession> _broadcasts = new NullableDictionary<Int32, ISocketSession>();
+
         Int32 g_ID = 0;
         /// <summary>创建会话</summary>
         /// <param name="remoteEP"></param>
@@ -302,6 +304,8 @@ namespace NewLife.Net
 
             // 需要查找已有会话，已有会话不存在时才创建新会话
             var session = sessions.Get(remoteEP + "");
+            // 是否匹配广播端口
+            if (session == null) session = _broadcasts[remoteEP.Port];
             if (session != null) return session;
 
             // 相同远程地址可能同时发来多个数据包，而底层采取多线程方式同时调度，导致创建多个会话
@@ -309,6 +313,7 @@ namespace NewLife.Net
             {
                 // 需要查找已有会话，已有会话不存在时才创建新会话
                 session = sessions.Get(remoteEP + "");
+                if (session == null) session = _broadcasts[remoteEP.Port];
                 if (session != null) return session;
 
                 var us = new UdpSession(this, remoteEP)
@@ -325,6 +330,19 @@ namespace NewLife.Net
                 session = us;
                 if (sessions.Add(session))
                 {
+                    // 广播地址，接受任何地址响应数据
+                    if (Equals(remoteEP.Address, IPAddress.Broadcast))
+                    {
+                        _broadcasts[remoteEP.Port] = session;
+                        session.OnDisposed += (s, e) =>
+                        {
+                            lock (_broadcasts)
+                            {
+                                _broadcasts.Remove((s as UdpSession).Remote.Port);
+                            }
+                        };
+                    }
+
                     //us.ID = g_ID++;
                     // 会话改为原子操作，避免多线程冲突
                     us.ID = Interlocked.Increment(ref g_ID);

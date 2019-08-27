@@ -93,7 +93,7 @@ namespace XCode
         {
             // 准备好实体列表
             var list = new List<T>();
-            if (ds == null || ds.Rows.Count < 1) return list;
+            if (ds?.Rows == null || ds.Rows.Count == 0) return list;
 
             // 对应数据表中字段的实体字段
             var ps = new Dictionary<Int32, FieldItem>();
@@ -232,7 +232,17 @@ namespace XCode
             //Boolean? b = null;
             //if (ds.ContainsKey(name)) b = ds[name];
 
-            entity[name] = value == DBNull.Value ? null : value;
+            //entity[name] = value == DBNull.Value ? null : value;
+
+            // 如果值类型不一致，则备份原始值到扩展，解决数据库类型比实体类型大（如Int64到Int32）
+            if (value == DBNull.Value)
+                entity[name] = null;
+            else
+            {
+                entity[name] = value;
+
+                if (value?.GetType() != type && !EntityBase.CheckEqual(entity[name], value)) entity.Extends[name] = value;
+            }
 
             //if (b != null)
             //    ds[name] = b.Value;

@@ -15,12 +15,12 @@
     <AndroidResgenFile>Resources\Resource.Designer.cs</AndroidResgenFile>
     <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
     <AndroidUseLatestPlatformSdk>False</AndroidUseLatestPlatformSdk>
-    <TargetFrameworkVersion>v4.0.3</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v7.0</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
-    <Optimize>true</Optimize>
+    <Optimize>false</Optimize>
     <OutputPath>..\..\Bin\</OutputPath>
     <DefineConstants>TRACE;DEBUG;__UNIFIED__;__MOBILE__;__ANDROID__;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
@@ -40,7 +40,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Mono.Android" />
-    <Reference Include="Mono.CSharp" />
     <Reference Include="mscorlib" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -49,6 +48,21 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\NewLife.Core\Caching\Cache.cs">
+      <Link>Caching\Cache.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Caching\CacheLock.cs">
+      <Link>Caching\CacheLock.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Caching\ICache.cs">
+      <Link>Caching\ICache.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Caching\IProducerConsumer.cs">
+      <Link>Caching\IProducerConsumer.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Caching\MemoryCache.cs">
+      <Link>Caching\MemoryCache.cs</Link>
+    </Compile>
     <Compile Include="..\NewLife.Core\Collections\CollectionHelper.cs">
       <Link>Collections\CollectionHelper.cs</Link>
     </Compile>
@@ -58,8 +72,20 @@
     <Compile Include="..\NewLife.Core\Collections\DictionaryCache.cs">
       <Link>Collections\DictionaryCache.cs</Link>
     </Compile>
+    <Compile Include="..\NewLife.Core\Collections\ICluster.cs">
+      <Link>Collections\ICluster.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Collections\IPool.cs">
+      <Link>Collections\IPool.cs</Link>
+    </Compile>
     <Compile Include="..\NewLife.Core\Collections\NullableDictionary.cs">
       <Link>Collections\NullableDictionary.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Collections\ObjectPool.cs">
+      <Link>Collections\ObjectPool.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Collections\Pool.cs">
+      <Link>Collections\Pool.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Core\Common\DisposeBase.cs">
       <Link>Common\DisposeBase.cs</Link>
@@ -70,8 +96,17 @@
     <Compile Include="..\NewLife.Core\Common\Utility.cs">
       <Link>Common\Utility.cs</Link>
     </Compile>
-    <Compile Include="..\NewLife.Core\Configuration\Config.cs">
-      <Link>Configuration\Config.cs</Link>
+    <Compile Include="..\NewLife.Core\Data\DbRow.cs">
+      <Link>Data\DbRow.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Data\DbTable.cs">
+      <Link>Data\DbTable.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Data\IData.cs">
+      <Link>Data\IData.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Data\IExtend.cs">
+      <Link>Data\IExtend.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Core\Data\IFilter.cs">
       <Link>Data\IFilter.cs</Link>
@@ -109,8 +144,11 @@
     <Compile Include="..\NewLife.Core\Http\HttpBase.cs">
       <Link>Http\HttpBase.cs</Link>
     </Compile>
-    <Compile Include="..\NewLife.Core\Http\HttpClient.cs">
-      <Link>Http\HttpClient.cs</Link>
+    <Compile Include="..\NewLife.Core\Http\HttpCodec.cs">
+      <Link>Http\HttpCodec.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Http\HttpEncoder.cs">
+      <Link>Http\HttpEncoder.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Core\Http\HttpHelper.cs">
       <Link>Http\HttpHelper.cs</Link>
@@ -124,8 +162,11 @@
     <Compile Include="..\NewLife.Core\Http\HttpServer.cs">
       <Link>Http\HttpServer.cs</Link>
     </Compile>
-    <Compile Include="..\NewLife.Core\Http\HttpSession.cs">
-      <Link>Http\HttpSession.cs</Link>
+    <Compile Include="..\NewLife.Core\Http\TinyHttpClient.cs">
+      <Link>Http\TinyHttpClient.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\IO\CsvFile.cs">
+      <Link>IO\CsvFile.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Core\IO\EncodingHelper.cs">
       <Link>IO\EncodingHelper.cs</Link>
@@ -148,6 +189,9 @@
     <Compile Include="..\NewLife.Core\Log\ConsoleLog.cs">
       <Link>Log\ConsoleLog.cs</Link>
     </Compile>
+    <Compile Include="..\NewLife.Core\Log\ICounter.cs">
+      <Link>Log\ICounter.cs</Link>
+    </Compile>
     <Compile Include="..\NewLife.Core\Log\ILog.cs">
       <Link>Log\ILog.cs</Link>
     </Compile>
@@ -159,6 +203,9 @@
     </Compile>
     <Compile Include="..\NewLife.Core\Log\NetworkLog.cs">
       <Link>Log\NetworkLog.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Log\PerfCounter.cs">
+      <Link>Log\PerfCounter.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Core\Log\TextFileLog.cs">
       <Link>Log\TextFileLog.cs</Link>
@@ -184,11 +231,35 @@
     <Compile Include="..\NewLife.Core\Messaging\MessageEventArgs.cs">
       <Link>Messaging\MessageEventArgs.cs</Link>
     </Compile>
+    <Compile Include="..\NewLife.Core\Messaging\PacketCodec.cs">
+      <Link>Messaging\PacketCodec.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Model\Actor.cs">
+      <Link>Model\Actor.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Model\DeferredQueue.cs">
+      <Link>Model\DeferredQueue.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Model\IAuthUser.cs">
+      <Link>Model\IAuthUser.cs</Link>
+    </Compile>
     <Compile Include="..\NewLife.Core\Model\IFactory.cs">
       <Link>Model\IFactory.cs</Link>
     </Compile>
+    <Compile Include="..\NewLife.Core\Model\IHandler.cs">
+      <Link>Model\IHandler.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Model\IHandlerContext.cs">
+      <Link>Model\IHandlerContext.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Model\IManageUser.cs">
+      <Link>Model\IManageUser.cs</Link>
+    </Compile>
     <Compile Include="..\NewLife.Core\Model\IObjectContainer.cs">
       <Link>Model\IObjectContainer.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Model\IPipeline.cs">
+      <Link>Model\IPipeline.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Core\Model\IPlugin.cs">
       <Link>Model\IPlugin.cs</Link>
@@ -205,17 +276,23 @@
     <Compile Include="..\NewLife.Core\Model\ObjectContainerHelper.cs">
       <Link>Model\ObjectContainerHelper.cs</Link>
     </Compile>
-    <Compile Include="..\NewLife.Core\Net\DefaultPacket.cs">
-      <Link>Net\DefaultPacket.cs</Link>
+    <Compile Include="..\NewLife.Core\Net\Handlers\IMatchQueue.cs">
+      <Link>Net\Handlers\IMatchQueue.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Net\Handlers\LengthFieldCodec.cs">
+      <Link>Net\Handlers\LengthFieldCodec.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Net\Handlers\MessageCodec.cs">
+      <Link>Net\Handlers\MessageCodec.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Net\Handlers\SplitDataCodec.cs">
+      <Link>Net\Handlers\SplitDataCodec.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Net\Handlers\StandardCodec.cs">
+      <Link>Net\Handlers\StandardCodec.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Core\Net\INetSession.cs">
       <Link>Net\INetSession.cs</Link>
-    </Compile>
-    <Compile Include="..\NewLife.Core\Net\IPacket.cs">
-      <Link>Net\IPacket.cs</Link>
-    </Compile>
-    <Compile Include="..\NewLife.Core\Net\IPacketQueue.cs">
-      <Link>Net\IPacketQueue.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Core\Net\ISocket.cs">
       <Link>Net\ISocket.cs</Link>
@@ -228,9 +305,6 @@
     </Compile>
     <Compile Include="..\NewLife.Core\Net\ISocketSession.cs">
       <Link>Net\ISocketSession.cs</Link>
-    </Compile>
-    <Compile Include="..\NewLife.Core\Net\IStatistics.cs">
-      <Link>Net\IStatistics.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Core\Net\ITransport.cs">
       <Link>Net\ITransport.cs</Link>
@@ -253,9 +327,6 @@
     <Compile Include="..\NewLife.Core\Net\ReceivedEventArgs.cs">
       <Link>Net\ReceivedEventArgs.cs</Link>
     </Compile>
-    <Compile Include="..\NewLife.Core\Net\SendQueue.cs">
-      <Link>Net\SendQueue.cs</Link>
-    </Compile>
     <Compile Include="..\NewLife.Core\Net\SessionBase.cs">
       <Link>Net\SessionBase.cs</Link>
     </Compile>
@@ -267,9 +338,6 @@
     </Compile>
     <Compile Include="..\NewLife.Core\Net\SocketHelper.cs">
       <Link>Net\SocketHelper.cs</Link>
-    </Compile>
-    <Compile Include="..\NewLife.Core\Net\Statistics.cs">
-      <Link>Net\Statistics.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Core\Net\TcpServer.cs">
       <Link>Net\TcpServer.cs</Link>
@@ -292,11 +360,80 @@
     <Compile Include="..\NewLife.Core\Reflection\AttributeX.cs">
       <Link>Reflection\AttributeX.cs</Link>
     </Compile>
+    <Compile Include="..\NewLife.Core\Reflection\IIndexAccessor.cs">
+      <Link>Reflection\IIndexAccessor.cs</Link>
+    </Compile>
     <Compile Include="..\NewLife.Core\Reflection\IReflect.cs">
       <Link>Reflection\IReflect.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Core\Reflection\Reflect.cs">
       <Link>Reflection\Reflect.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Remoting\ApiAction.cs">
+      <Link>Remoting\ApiAction.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Remoting\ApiAttribute.cs">
+      <Link>Remoting\ApiAttribute.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Remoting\ApiClient.cs">
+      <Link>Remoting\ApiClient.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Remoting\ApiException.cs">
+      <Link>Remoting\ApiException.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Remoting\ApiHost.cs">
+      <Link>Remoting\ApiHost.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Remoting\ApiHttpServer.cs">
+      <Link>Remoting\ApiHttpServer.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Remoting\ApiNetServer.cs">
+      <Link>Remoting\ApiNetServer.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Remoting\ApiServer.cs">
+      <Link>Remoting\ApiServer.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Remoting\ApiTest.cs">
+      <Link>Remoting\ApiTest.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Remoting\ClientPoolCluster.cs">
+      <Link>Remoting\ClientPoolCluster.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Remoting\ClientSingleCluster.cs">
+      <Link>Remoting\ClientSingleCluster.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Remoting\Controllers\ApiController.cs">
+      <Link>Remoting\Controllers\ApiController.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Remoting\Filters\ControllerContext.cs">
+      <Link>Remoting\Filters\ControllerContext.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Remoting\Filters\IActionFilter.cs">
+      <Link>Remoting\Filters\IActionFilter.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Remoting\IApi.cs">
+      <Link>Remoting\IApi.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Remoting\IApiHandler.cs">
+      <Link>Remoting\IApiHandler.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Remoting\IApiHost.cs">
+      <Link>Remoting\IApiHost.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Remoting\IApiManager.cs">
+      <Link>Remoting\IApiManager.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Remoting\IApiServer.cs">
+      <Link>Remoting\IApiServer.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Remoting\IApiSession.cs">
+      <Link>Remoting\IApiSession.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Remoting\IEncoder.cs">
+      <Link>Remoting\IEncoder.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Remoting\JsonEncoder.cs">
+      <Link>Remoting\JsonEncoder.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Core\Security\Certificate.cs">
       <Link>Security\Certificate.cs</Link>
@@ -322,6 +459,15 @@
     <Compile Include="..\NewLife.Core\Security\SecurityHelper.cs">
       <Link>Security\SecurityHelper.cs</Link>
     </Compile>
+    <Compile Include="..\NewLife.Core\Serialization\Accessor.cs">
+      <Link>Serialization\Accessor.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Serialization\BinaryCodec.cs">
+      <Link>Serialization\BinaryCodec.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Serialization\BinaryCodec2.cs">
+      <Link>Serialization\BinaryCodec2.cs</Link>
+    </Compile>
     <Compile Include="..\NewLife.Core\Serialization\Binary\Binary.cs">
       <Link>Serialization\Binary\Binary.cs</Link>
     </Compile>
@@ -343,20 +489,29 @@
     <Compile Include="..\NewLife.Core\Serialization\Binary\BinaryPair.cs">
       <Link>Serialization\Binary\BinaryPair.cs</Link>
     </Compile>
-    <Compile Include="..\NewLife.Core\Serialization\Binary\BitSizeAttribute.cs">
-      <Link>Serialization\Binary\BitSizeAttribute.cs</Link>
-    </Compile>
     <Compile Include="..\NewLife.Core\Serialization\Binary\FieldSizeAttribute.cs">
       <Link>Serialization\Binary\FieldSizeAttribute.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Core\Serialization\Binary\IBinary.cs">
       <Link>Serialization\Binary\IBinary.cs</Link>
     </Compile>
+    <Compile Include="..\NewLife.Core\Serialization\Interface\IAccessor.cs">
+      <Link>Serialization\Interface\IAccessor.cs</Link>
+    </Compile>
     <Compile Include="..\NewLife.Core\Serialization\Interface\IFormatterX.cs">
       <Link>Serialization\Interface\IFormatterX.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Core\Serialization\Interface\IMemberAccessor.cs">
       <Link>Serialization\Interface\IMemberAccessor.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Serialization\JsonCodec.cs">
+      <Link>Serialization\JsonCodec.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Serialization\JsonCodec2.cs">
+      <Link>Serialization\JsonCodec2.cs</Link>
+    </Compile>
+    <Compile Include="..\NewLife.Core\Serialization\SerialHelper.cs">
+      <Link>Serialization\SerialHelper.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Core\Serialization\Xml\IXml.cs">
       <Link>Serialization\Xml\IXml.cs</Link>
@@ -376,9 +531,6 @@
     <Compile Include="..\NewLife.Core\Setting.cs">
       <Link>Setting.cs</Link>
     </Compile>
-    <Compile Include="..\NewLife.Core\Threading\TaskHelper.cs">
-      <Link>Threading\TaskHelper.cs</Link>
-    </Compile>
     <Compile Include="..\NewLife.Core\Threading\TimerScheduler.cs">
       <Link>Threading\TimerScheduler.cs</Link>
     </Compile>
@@ -390,9 +542,6 @@
     </Compile>
     <Compile Include="..\NewLife.Core\Xml\XmlConfigFileAttribute.cs">
       <Link>Xml\XmlConfigFileAttribute.cs</Link>
-    </Compile>
-    <Compile Include="..\NewLife.Core\Xml\XmlEntity.cs">
-      <Link>Xml\XmlEntity.cs</Link>
     </Compile>
     <Compile Include="..\NewLife.Core\Xml\XmlHelper.cs">
       <Link>Xml\XmlHelper.cs</Link>

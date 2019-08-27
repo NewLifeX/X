@@ -16,7 +16,6 @@ namespace NewLife.Caching
     /// <summary>Redis客户端</summary>
     /// <remarks>
     /// 以极简原则进行设计，每个客户端不支持并行命令处理，可通过多客户端多线程解决。
-    /// 收发共用64k缓冲区，所以命令请求和响应不能超过64k。
     /// </remarks>
     public class RedisClient : DisposeBase
     {
@@ -27,8 +26,8 @@ namespace NewLife.Caching
         /// <summary>内容类型</summary>
         public NetUri Server { get; set; }
 
-        /// <summary>密码</summary>
-        public String Password { get; set; }
+        /// <summary>宿主</summary>
+        public Redis Host { get; set; }
 
         /// <summary>是否已登录</summary>
         public Boolean Logined { get; private set; }
@@ -89,7 +88,7 @@ namespace NewLife.Caching
                 tc.TryDispose();
                 if (!create) return null;
 
-                var timeout = 3_000;
+                var timeout = Host.Timeout;
                 tc = new TcpClient
                 {
                     SendTimeout = timeout,
@@ -98,7 +97,7 @@ namespace NewLife.Caching
                 //tc.Connect(Server.Address, Server.Port);
                 // 采用异步来解决连接超时设置问题
                 var ar = tc.BeginConnect(Server.Address, Server.Port, null, null);
-                if (!ar.AsyncWaitHandle.WaitOne(timeout, false))
+                if (!ar.AsyncWaitHandle.WaitOne(timeout, true))
                 {
                     tc.Close();
                     throw new TimeoutException($"连接[{Server}][{timeout}ms]超时！");
@@ -113,10 +112,7 @@ namespace NewLife.Caching
             return ns;
         }
 
-        ///// <summary>收发缓冲区。不支持收发超过64k的大包</summary>
-        //private Byte[] _Buffer;
-
-        private static Byte[] NewLine = new[] { (Byte)'\r', (Byte)'\n' };
+        private static readonly Byte[] _NewLine = new[] { (Byte)'\r', (Byte)'\n' };
 
         /// <summary>发出请求</summary>
         /// <param name="ms"></param>
@@ -153,7 +149,7 @@ namespace NewLife.Caching
                 {
                     var size = item.Total;
                     var sizes = size.ToString().GetBytes();
-                    var len = 1 + sizes.Length + NewLine.Length * 2 + size;
+                    var len = 1 + sizes.Length + _NewLine.Length * 2 + size;
 
                     if (log != null)
                     {
@@ -167,10 +163,10 @@ namespace NewLife.Caching
                     //ms.Write(str.GetBytes());
                     ms.WriteByte((Byte)'$');
                     ms.Write(sizes);
-                    ms.Write(NewLine);
+                    ms.Write(_NewLine);
                     //ms.Write(item);
-                    item.WriteTo(ms);
-                    ms.Write(NewLine);
+                    item.CopyTo(ms);
+                    ms.Write(_NewLine);
                 }
             }
             if (log != null) WriteLog(log.Put(true));
@@ -256,14 +252,21 @@ namespace NewLife.Caching
 
         private void CheckLogin(String cmd)
         {
-            if (!Logined && !Password.IsNullOrEmpty() && cmd != "AUTH")
-            {
-                var ars = ExecuteCommand("AUTH", new Packet[] { Password.GetBytes() });
-                if (ars as String != "OK") throw new Exception("登录失败！" + ars);
+            if (Logined) return;
+            if (cmd.EqualIgnoreCase("Auth", "Select")) return;
 
-                Logined = true;
-                LoginTime = DateTime.Now;
+            if (!Host.Password.IsNullOrEmpty() /*&& cmd != "AUTH"*/)
+            {
+                //var ars = ExecuteCommand("AUTH", new Packet[] { Host.Password.GetBytes() });
+                //if (ars as String != "OK") throw new Exception("登录失败！" + ars);
+
+                if (!Auth(Host.Password)) throw new Exception("登录失败！");
             }
+
+            if (Host.Db > 0) Select(Host.Db);
+
+            Logined = true;
+            LoginTime = DateTime.Now;
         }
 
         /// <summary>重置。干掉历史残留数据</summary>
@@ -388,9 +391,7 @@ namespace NewLife.Caching
                 return default(TResult);
             }
 
-            var type = typeof(TResult);
             var rs = Execute(cmd, args);
-
             if (TryChangeType(rs, typeof(TResult), out var target)) return (TResult)target;
 
             return default(TResult);
@@ -464,6 +465,9 @@ namespace NewLife.Caching
             var ns = GetStream(true);
             if (ns == null) return null;
 
+            // 验证登录
+            CheckLogin(null);
+
             // 整体打包所有命令
             var ms = Pool.MemoryStream.Get();
             foreach (var item in ps)
@@ -520,17 +524,6 @@ namespace NewLife.Caching
         /// <summary>退出</summary>
         /// <returns></returns>
         public Boolean Quit() => Execute<String>("QUIT") == "OK";
-
-        /// <summary>获取信息</summary>
-        /// <returns></returns>
-        public IDictionary<String, String> GetInfo()
-        {
-            var rs = Execute("INFO") as Packet;
-            if (rs == null || rs.Count == 0) return null;
-
-            var inf = rs.ToStr();
-            return inf.SplitAsDictionary(":", "\r\n");
-        }
         #endregion
 
         #region 获取设置
@@ -643,10 +636,10 @@ namespace NewLife.Caching
         /// <returns></returns>
         protected T FromBytes<T>(Packet pk) => (T)FromBytes(pk, typeof(T));
 
-        private static ConcurrentDictionary<String, Byte[]> _cache0 = new ConcurrentDictionary<String, Byte[]>();
-        private static ConcurrentDictionary<String, Byte[]> _cache1 = new ConcurrentDictionary<String, Byte[]>();
-        private static ConcurrentDictionary<String, Byte[]> _cache2 = new ConcurrentDictionary<String, Byte[]>();
-        private static ConcurrentDictionary<String, Byte[]> _cache3 = new ConcurrentDictionary<String, Byte[]>();
+        private static readonly ConcurrentDictionary<String, Byte[]> _cache0 = new ConcurrentDictionary<String, Byte[]>();
+        private static readonly ConcurrentDictionary<String, Byte[]> _cache1 = new ConcurrentDictionary<String, Byte[]>();
+        private static readonly ConcurrentDictionary<String, Byte[]> _cache2 = new ConcurrentDictionary<String, Byte[]>();
+        private static readonly ConcurrentDictionary<String, Byte[]> _cache3 = new ConcurrentDictionary<String, Byte[]>();
         /// <summary>获取命令对应的字节数组，全局缓存</summary>
         /// <param name="cmd"></param>
         /// <param name="args"></param>

@@ -109,7 +109,7 @@ namespace XCode.Membership
         /// <summary>创建时间</summary>
         [DisplayName("创建时间")]
         [Description("创建时间")]
-        [DataObjectField(false, false, true, 0)]
+        [DataObjectField(false, false, false, 0)]
         [BindColumn("CreateTime", "创建时间", "")]
         public DateTime CreateTime { get { return _CreateTime; } set { if (OnPropertyChanging(__.CreateTime, value)) { _CreateTime = value; OnPropertyChanged(__.CreateTime); } } }
 
@@ -117,7 +117,7 @@ namespace XCode.Membership
         /// <summary>更新时间</summary>
         [DisplayName("更新时间")]
         [Description("更新时间")]
-        [DataObjectField(false, false, true, 0)]
+        [DataObjectField(false, false, false, 0)]
         [BindColumn("UpdateTime", "更新时间", "")]
         public DateTime UpdateTime { get { return _UpdateTime; } set { if (OnPropertyChanging(__.UpdateTime, value)) { _UpdateTime = value; OnPropertyChanged(__.UpdateTime); } } }
 
@@ -161,19 +161,19 @@ namespace XCode.Membership
             {
                 switch (name)
                 {
-                    case __.ID : _ID = Convert.ToInt32(value); break;
-                    case __.Level : _Level = (XCode.Statistics.StatLevels)Convert.ToInt32(value); break;
-                    case __.Time : _Time = Convert.ToDateTime(value); break;
+                    case __.ID : _ID = value.ToInt(); break;
+                    case __.Level : _Level = (XCode.Statistics.StatLevels)value.ToInt(); break;
+                    case __.Time : _Time = value.ToDateTime(); break;
                     case __.Page : _Page = Convert.ToString(value); break;
                     case __.Title : _Title = Convert.ToString(value); break;
-                    case __.Times : _Times = Convert.ToInt32(value); break;
-                    case __.Users : _Users = Convert.ToInt32(value); break;
-                    case __.IPs : _IPs = Convert.ToInt32(value); break;
-                    case __.Error : _Error = Convert.ToInt32(value); break;
-                    case __.Cost : _Cost = Convert.ToInt32(value); break;
-                    case __.MaxCost : _MaxCost = Convert.ToInt32(value); break;
-                    case __.CreateTime : _CreateTime = Convert.ToDateTime(value); break;
-                    case __.UpdateTime : _UpdateTime = Convert.ToDateTime(value); break;
+                    case __.Times : _Times = value.ToInt(); break;
+                    case __.Users : _Users = value.ToInt(); break;
+                    case __.IPs : _IPs = value.ToInt(); break;
+                    case __.Error : _Error = value.ToInt(); break;
+                    case __.Cost : _Cost = value.ToInt(); break;
+                    case __.MaxCost : _MaxCost = value.ToInt(); break;
+                    case __.CreateTime : _CreateTime = value.ToDateTime(); break;
+                    case __.UpdateTime : _UpdateTime = value.ToDateTime(); break;
                     case __.Remark : _Remark = Convert.ToString(value); break;
                     default: base[name] = value; break;
                 }

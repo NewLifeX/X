@@ -19,6 +19,7 @@ namespace XCode.Membership
         static Log()
         {
             Meta.Table.DataTable.InsertOnly = true;
+            //Meta.Factory.FullInsert = false;
 
             Meta.Modules.Add<TimeModule>();
             Meta.Modules.Add<UserModule>();

@@ -62,7 +62,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 静态管理
-        private static Dictionary<String, DAL> _dals = new Dictionary<String, DAL>(StringComparer.OrdinalIgnoreCase);
+        private static ConcurrentDictionary<String, DAL> _dals = new ConcurrentDictionary<String, DAL>(StringComparer.OrdinalIgnoreCase);
         /// <summary>创建一个数据访问层对象。</summary>
         /// <param name="connName">配置名</param>
         /// <returns>对应于指定链接的全局唯一的数据访问层对象</returns>
@@ -71,18 +71,21 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(connName)) throw new ArgumentNullException(nameof(connName));
 
             // 如果需要修改一个DAL的连接字符串，不应该修改这里，而是修改DAL实例的ConnStr属性
-            if (!_dals.TryGetValue(connName, out var dal))
-            {
-                lock (_dals)
-                {
-                    if (!_dals.TryGetValue(connName, out dal))
-                    {
-                        dal = new DAL(connName);
-                        // 不用connName，因为可能在创建过程中自动识别了ConnName
-                        _dals.Add(dal.ConnName, dal);
-                    }
-                }
-            }
+            //if (!_dals.TryGetValue(connName, out var dal))
+            //{
+            //    lock (_dals)
+            //    {
+            //        if (!_dals.TryGetValue(connName, out dal))
+            //        {
+            //            dal = new DAL(connName);
+            //            // 不用connName，因为可能在创建过程中自动识别了ConnName
+            //            _dals.Add(dal.ConnName, dal);
+            //        }
+            //    }
+            //}
+
+            // Dictionary.TryGetValue 在多线程高并发下有可能抛出空异常
+            var dal = _dals.GetOrAdd(connName, k => new DAL(k));
 
             // 创建完成对象后，初始化时单独锁这个对象，避免整体加锁
             dal.Init();

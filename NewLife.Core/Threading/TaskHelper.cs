@@ -1,7 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using NewLife.Log;
 
+#if NET4
 namespace System.Threading.Tasks
 {
     /// <summary>任务助手</summary>
@@ -111,6 +114,51 @@ namespace System.Threading.Tasks
         }
         #endregion
 
+        #region 数据流异步
+#if !__CORE__
+        /// <summary>异步读取数据流</summary>
+        /// <param name="stream"></param>
+        /// <param name="buffer"></param>
+        /// <param name="offset"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        public static Task<Int32> ReadAsync(this Stream stream, Byte[] buffer, Int32 offset, Int32 count)
+        {
+            return Task<Int32>.Factory.FromAsync(stream.BeginRead, stream.EndRead, buffer, offset, count, null);
+        }
+
+        /// <summary>异步读取数据</summary>
+        /// <param name="stream"></param>
+        /// <param name="length"></param>
+        /// <returns></returns>
+        public static Task<Byte[]> ReadAsync(this Stream stream, Int32 length)
+        {
+            if (length <= 0) throw new ArgumentOutOfRangeException("length");
+
+            var buffer = new Byte[length];
+            var task = Task.Factory.FromAsync(stream.BeginRead, stream.EndRead, buffer, 0, length, null);
+            return task.ContinueWith(t =>
+            {
+                var len = t.Result;
+                if (len == length) return buffer;
+
+                return buffer.ReadBytes(len);
+            });
+        }
+
+        /// <summary>异步写入数据流</summary>
+        /// <param name="stream"></param>
+        /// <param name="buffer"></param>
+        /// <param name="offset"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        public static Task WriteAsync(this Stream stream, Byte[] buffer, Int32 offset, Int32 count)
+        {
+            return Task.Factory.FromAsync(stream.BeginWrite, stream.EndWrite, buffer, offset, count, null);
+        }
+#endif
+        #endregion
+
         #region 任务转换
         /// <summary>任务转换</summary>
         /// <typeparam name="TResult"></typeparam>
@@ -195,3 +243,4 @@ namespace System.Threading.Tasks
         #endregion
     }
 }
+#endif

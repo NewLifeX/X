@@ -31,7 +31,7 @@ namespace NewLife.Collections
         /// <summary>查找数据的方法</summary>
         public Func<TKey, TValue> FindMethod { get; set; }
 
-        private ConcurrentDictionary<TKey, CacheItem> _cache;
+        private readonly ConcurrentDictionary<TKey, CacheItem> _cache;
         #endregion
 
         #region 构造
@@ -156,9 +156,24 @@ namespace NewLife.Collections
         /// <returns></returns>
         public virtual TValue Get(TKey key)
         {
-            if (!_cache.TryGetValue(key, out var item)) return default(TValue);
+            if (!_cache.TryGetValue(key, out var item) || item.Expired) return default(TValue);
 
             return item.Visit();
+        }
+
+        /// <summary>尝试获取数据</summary>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public virtual Boolean TryGetValue(TKey key, out TValue value)
+        {
+            value = default(TValue);
+
+            if (!_cache.TryGetValue(key, out var item) || item.Expired) return false;
+
+            value = item.Visit();
+
+            return true;
         }
 
         /// <summary>设置 AddOrUpdate</summary>
@@ -207,8 +222,6 @@ namespace NewLife.Collections
         /// <param name="key">键</param>
         /// <param name="func">获取值的委托，该委托以键作为参数</param>
         /// <returns></returns>
-        //[DebuggerHidden]
-        //[Obsolete]
         public virtual TValue GetItem(TKey key, Func<TKey, TValue> func)
         {
             var exp = Expire;

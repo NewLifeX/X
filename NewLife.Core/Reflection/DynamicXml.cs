@@ -61,20 +61,21 @@ namespace NewLife.Reflection
         }
 
 #if DEBUG
-        /// <summary>测试</summary>
-        public static void Test()
-        {
-            dynamic xml = new DynamicXml("Test");
-            xml.Name = "NewLife";
-            xml.Sign = "学无先后达者为师！";
-            xml.Detail = new DynamicXml();
-            xml.Detail.Name = "新生命开发团队";
-            xml.Detail.CreateTime = new DateTime(2002, 12, 31);
+        // 2019-03-10合并为混合项目后一下编译不通过，注释掉
+        ///// <summary>测试</summary>
+        //public static void Test()
+        //{
+        //    dynamic xml = new DynamicXml("Test");
+        //    xml.Name = "NewLife";
+        //    xml.Sign = "学无先后达者为师！";
+        //    xml.Detail = new DynamicXml();
+        //    xml.Detail.Name = "新生命开发团队";
+        //    xml.Detail.CreateTime = new DateTime(2002, 12, 31);
 
-            var node = xml.Node as XElement;
-            var str = node.ToString();
-            Console.WriteLine(str);
-        }
+        //    var node = xml.Node as XElement;
+        //    var str = node.ToString();
+        //    Console.WriteLine(str);
+        //}
 #endif
     }
 }

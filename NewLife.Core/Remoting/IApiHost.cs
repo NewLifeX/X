@@ -32,11 +32,14 @@ namespace NewLife.Remoting
         /// <returns></returns>
         IMessage Process(IApiSession session, IMessage msg);
 
-        /// <summary>发送统计</summary>
+        /// <summary>调用统计</summary>
         ICounter StatInvoke { get; set; }
 
-        /// <summary>接收统计</summary>
+        /// <summary>处理统计</summary>
         ICounter StatProcess { get; set; }
+
+        /// <summary>慢追踪。远程调用或处理时间超过该值时，输出慢调用日志，默认5000ms</summary>
+        Int32 SlowTrace { get; set; }
 
         /// <summary>日志</summary>
         ILog Log { get; set; }
@@ -77,16 +80,12 @@ namespace NewLife.Remoting
             try
             {
                 if (session is IApiSession ss)
-                {
-                    var rs2 = await ss.SendAsync(msg);
-                    rs = rs2.Item1;
-                    if (rs2.Item2 != null) invoker = rs2.Item2;
-                }
+                    rs = await ss.SendAsync(msg).ConfigureAwait(false);
                 else if (session is ISocketRemote client)
-                    rs = (await client.SendMessageAsync(msg)) as IMessage;
+                    rs = (await client.SendMessageAsync(msg).ConfigureAwait(false)) as IMessage;
                 else
                     throw new InvalidOperationException();
-                //rs = await session.SendAsync(msg);
+
                 if (rs == null) return null;
             }
             catch (AggregateException aggex)
@@ -104,14 +103,15 @@ namespace NewLife.Remoting
             }
             finally
             {
-                st.StopCount(sw);
+                var msCost = st.StopCount(sw) / 1000;
+                if (host.SlowTrace > 0 && msCost >= host.SlowTrace) host.WriteLog($"慢调用[{action}]，耗时{msCost:n0}ms");
             }
 
             // 特殊返回类型
             if (resultType == typeof(IMessage)) return rs;
             //if (resultType == typeof(Packet)) return rs.Payload;
 
-            if (!enc.Decode(rs, out var act, out var code, out var data)) throw new InvalidOperationException();
+            if (!enc.Decode(rs, out _, out var code, out var data)) throw new InvalidOperationException();
 
             // 是否成功
             if (code != 0) throw new ApiException(code, $"远程[{invoker}]错误！ {data.ToStr()}");
@@ -139,7 +139,6 @@ namespace NewLife.Remoting
             if (session == null) return false;
 
             // 性能计数器，次数、TPS、平均耗时
-            //host.StatSend?.Increment();
             var st = host.StatInvoke;
 
             // 编码请求
@@ -163,7 +162,8 @@ namespace NewLife.Remoting
             }
             finally
             {
-                st.StopCount(sw);
+                var msCost = st.StopCount(sw) / 1000;
+                if (host.SlowTrace > 0 && msCost >= host.SlowTrace) host.WriteLog($"慢调用[{action}]，耗时{msCost:n0}ms");
             }
         }
 

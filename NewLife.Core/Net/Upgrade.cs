@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Web;
+#if !NET4
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 namespace NewLife.Net
 {
@@ -120,7 +123,7 @@ namespace NewLife.Net
             if (String.IsNullOrEmpty(link.Url)) throw new Exception("升级包地址无效！");
 
             // 如果更新包不存在，则下载
-            var file = UpdatePath.CombinePath(link.Name).GetFullPath();
+            var file = UpdatePath.CombinePath(link.FullName).GetFullPath();
             if (!File.Exists(file))
             {
                 WriteLog("准备下载 {0} 到 {1}", link.Url, file);
@@ -128,7 +131,7 @@ namespace NewLife.Net
                 var sw = Stopwatch.StartNew();
 
                 var web = CreateClient();
-                Task.Run(() => web.DownloadFileAsync(link.Url, file)).Wait();
+                TaskEx.Run(() => web.DownloadFileAsync(link.Url, file)).Wait();
 
                 sw.Stop();
                 WriteLog("下载完成！大小{0:n0}字节，耗时{1:n0}ms", file.AsFile().Length, sw.ElapsedMilliseconds);
@@ -146,7 +149,7 @@ namespace NewLife.Net
             WriteLog("发现更新包 {0}", file);
 
             // 解压更新程序包
-            if (!file.EndsWithIgnoreCase(".zip")) return false;
+            if (!file.EndsWithIgnoreCase(".zip", ".7z")) return false;
 
             var dest = XTrace.TempPath.CombinePath(Path.GetFileNameWithoutExtension(file)).GetFullPath();
             WriteLog("解压缩更新包到临时目录 {0}", dest);
@@ -210,10 +213,7 @@ namespace NewLife.Net
         {
             if (_Client != null) return _Client;
 
-            var web = new WebClientX(true, true)
-            {
-                UserAgent = "NewLife.Upgrade"
-            };
+            var web = new WebClientX();
             return _Client = web;
         }
 

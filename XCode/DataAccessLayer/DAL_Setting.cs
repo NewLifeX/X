@@ -64,7 +64,21 @@ namespace XCode.DataAccessLayer
 
         /// <summary>是否支持批操作</summary>
         /// <returns></returns>
-        public Boolean SupportBatch => DbType == DatabaseType.MySql || DbType == DatabaseType.Oracle || DbType == DatabaseType.SqlServer || DbType == DatabaseType.SQLite;
+        public Boolean SupportBatch
+        {
+            get
+            {
+                if (DbType == DatabaseType.MySql || DbType == DatabaseType.Oracle || DbType == DatabaseType.SQLite) return true;
+
+#if !__CORE__
+                // SqlServer对批处理有BUG，将在3.0中修复
+                // https://github.com/dotnet/corefx/issues/29391
+                if (DbType == DatabaseType.SqlServer) return true;
+#endif
+
+                return false;
+            }
+        }
         #endregion
     }
 }

@@ -406,7 +406,7 @@ namespace XCode.Configuration
         /// <returns></returns>
         public Expression IsNull() => CreateFormat("{0} Is Null", null);
 
-        /// <summary>NotIn操作</summary>
+        /// <summary>NotIsNull操作</summary>
         /// <returns></returns>
         public Expression NotIsNull() => CreateFormat("Not {0} Is Null", null);
         #endregion

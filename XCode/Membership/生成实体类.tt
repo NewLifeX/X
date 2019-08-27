@@ -1,6 +1,6 @@
 ﻿<#@ template language="C#" hostSpecific="true" debug="true" #>
-<#@ assembly name="$(SolutionDir)\..\Bin\NewLife.Core.dll" #>
-<#@ assembly name="$(SolutionDir)\..\Bin\XCode.dll" #>
+<#@ assembly name="$(ProjectDir)\$(OutputPath)\NewLife.Core.dll" #>
+<#@ assembly name="$(ProjectDir)\$(OutputPath)\XCode.dll" #>
 <#@ import namespace="System.Diagnostics" #>
 <#@ import namespace="System.IO" #>
 <#@ import namespace="XCode.Code" #>

@@ -208,7 +208,7 @@ namespace XCode
         private IEntityAddition _Addition;
         /// <summary>累加</summary>
         [XmlIgnore, ScriptIgnore]
-        internal IEntityAddition Addition
+        IEntityAddition IEntity.Addition
         {
             get
             {
@@ -220,8 +220,6 @@ namespace XCode
                 return _Addition;
             }
         }
-
-        internal IDictionary<String, Object[]> GetAddition() => _Addition?.Get();
         #endregion
 
         #region 主键为空

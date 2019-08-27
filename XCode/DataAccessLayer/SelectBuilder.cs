@@ -335,6 +335,7 @@ $";
                 _OrderBy = _OrderBy,
                 GroupBy = GroupBy,
                 Having = Having,
+                Limit = Limit,
 
                 Keys = Keys,
                 IsDescs = IsDescs,

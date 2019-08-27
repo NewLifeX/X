@@ -44,29 +44,13 @@ namespace NewLife.Security
             0xEF1F,0xFF3E,0xCF5D,0xDF7C,0xAF9B,0xBFBA,0x8FD9,0x9FF8,
             0x6E17,0x7E36,0x4E55,0x5E74,0x2E93,0x3EB2,0x0ED1,0x1EF0
         };
+
+        /// <summary>校验值</summary>
+        public UInt16 Value { get; set; } = 0xFFFF;
         #endregion
 
-        ///// <summary>取得CRC16校验码</summary>
-        ///// <param name="pcrc"></param>
-        ///// <returns></returns>
-        //public UInt16 CRC16Code(byte[] pcrc)
-        //{
-        //    UInt16 crc16 = 0;
-
-        //    for (int i = 0; i < pcrc.Length; ++i)
-        //    {
-        //        crc16 = (UInt16)((crc16 << 8) ^ CrcTable[((crc16 >> 8) ^ pcrc[i])]);
-        //    }
-        //    return crc16;
-        //}
-
-        /// <summary>校验值</summary>
-        UInt16 crc = 0xFFFF;
-        /// <summary>校验值</summary>
-        public UInt16 Value { get { return crc; } set { crc = value; } }
-
         /// <summary>重置清零</summary>
-        public Crc16 Reset() { crc = 0xFFFF; return this; }
+        public Crc16 Reset() { Value = 0xFFFF; return this; }
 
         /// <summary>添加整数进行校验</summary>
         /// <param name = "value">
@@ -74,40 +58,29 @@ namespace NewLife.Security
         /// </param>
         public Crc16 Update(Int16 value)
         {
-            //crc = CrcTable[(crc ^ value) & 0xFF] ^ (crc >> 8);
-            crc = (UInt16)((crc << 8) ^ CrcTable[((crc >> 8) ^ value)]);
+            Value = (UInt16)((Value << 8) ^ CrcTable[((Value >> 8) ^ value)]);
 
             return this;
         }
 
         /// <summary>添加字节数组进行校验  CRC16-CCITT x16+x12+x5+1 1021  ISO HDLC, ITU X.25, V.34/V.41/V.42, PPP-FCS</summary>
-        /// <param name = "buffer">
-        /// The buffer which contains the data
-        /// </param>
-        /// <param name = "offset">
-        /// The offset in the buffer where the data starts
-        /// </param>
-        /// <param name = "count">
-        /// The number of data bytes to update the CRC with.
-        /// </param>
+        /// <remarks>字符串123456789的Crc16是31C3</remarks>
+        /// <param name = "buffer">数据缓冲区</param>
+        /// <param name = "offset">偏移量</param>
+        /// <param name = "count">字节个数</param>
         public Crc16 Update(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
         {
-            if (buffer == null) throw new ArgumentNullException("buffer");
-            //if (count < 0) throw new ArgumentOutOfRangeException("count", "Count不能小于0！");
+            if (buffer == null) throw new ArgumentNullException(nameof(buffer));
             if (count <= 0) count = buffer.Length;
-            if (offset < 0 || offset + count > buffer.Length) throw new ArgumentOutOfRangeException("offset");
+            if (offset < 0 || offset + count > buffer.Length) throw new ArgumentOutOfRangeException(nameof(offset));
 
-            //while (--count >= 0)
-            //{
-            //    crc = CrcTable[(crc ^ buffer[offset++]) & 0xFF] ^ (crc >> 8);
-            //}
-            //crc16 = (UInt16)((crc16 << 8) ^ CrcTable[((crc16 >> 8) ^ pcrc[i])]);
+            var crc = Value;
             crc ^= crc;
             for (var i = 0; i < count; i++)
             {
                 crc = (UInt16)((crc << 8) ^ CrcTable[(crc >> 8 ^ buffer[offset + i]) & 0xFF]);
             }
-            //crc ^= crc;
+            Value = crc;
 
             return this;
         }
@@ -117,17 +90,15 @@ namespace NewLife.Security
         /// <param name="count">数量</param>
         public Crc16 Update(Stream stream, Int64 count = -1)
         {
-            if (stream == null) throw new ArgumentNullException("stream");
-            //if (count < 0) throw new ArgumentOutOfRangeException("count", "Count不能小于0！");
+            if (stream == null) throw new ArgumentNullException(nameof(stream));
             if (count <= 0) count = Int64.MaxValue;
 
+            var crc = Value;
             while (--count >= 0)
             {
                 var b = stream.ReadByte();
                 if (b == -1) break;
 
-                //crc = CrcTable[(crc ^ b) & 0xFF] ^ (crc >> 8);
-                //crc = (UInt16)((crc << 8) ^ CrcTable[(crc ^ b) & 0xFF]);
                 crc ^= (Byte)b;
                 for (var i = 0; i < 8; i++)
                 {
@@ -137,6 +108,7 @@ namespace NewLife.Security
                         crc = (UInt16)(crc >> 1);
                 }
             }
+            Value = crc;
 
             return this;
         }

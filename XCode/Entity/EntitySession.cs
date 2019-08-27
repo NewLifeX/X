@@ -718,7 +718,7 @@ namespace XCode
         #endregion
 
         #region 事务保护
-        private ITransaction GetTran() => (Dal.Session as DbSession).Transaction;
+        //private ITransaction GetTran() => (Dal.Session as DbSession).Transaction;
 
         /// <summary>开始事务</summary>
         /// <returns>剩下的事务计数</returns>

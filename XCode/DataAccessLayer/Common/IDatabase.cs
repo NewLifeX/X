@@ -42,8 +42,8 @@ namespace XCode.DataAccessLayer
         /// <summary>链接字符串</summary>
         String ConnectionString { get; set; }
 
-        /// <summary>连接池</summary>
-        ConnectionPool Pool { get; }
+        ///// <summary>连接池</summary>
+        //ConnectionPool Pool { get; }
 
         /// <summary>拥有者</summary>
         String Owner { get; set; }
@@ -72,6 +72,10 @@ namespace XCode.DataAccessLayer
         /// <summary>创建元数据对象</summary>
         /// <returns></returns>
         IMetaData CreateMetaData();
+
+        /// <summary>创建连接</summary>
+        /// <returns></returns>
+        DbConnection OpenConnection();
 
         /// <summary>是否支持该提供者所描述的数据库</summary>
         /// <param name="providerName">提供者</param>
@@ -163,7 +167,7 @@ namespace XCode.DataAccessLayer
         /// <summary>获取 或 设置 自动关闭。每次使用完数据库连接后，是否自动关闭连接，高频操作时设为false可提升性能。默认true</summary>
         Boolean AutoClose { get; set; }
 
-        /// <summary>本连接数据只读。需求不够强劲，暂不支持在连接字符串中设置</summary>
+        /// <summary>本连接数据只读</summary>
         Boolean Readonly { get; set; }
 
         /// <summary>数据层缓存有效期。单位秒</summary>

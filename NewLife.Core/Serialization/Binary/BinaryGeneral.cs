@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 
 namespace NewLife.Serialization
 {
@@ -26,7 +27,7 @@ namespace NewLife.Serialization
                     return true;
                 case TypeCode.Byte:
                 case TypeCode.SByte:
-                    Host.Write((Byte)value);
+                    Host.Write(Convert.ToByte(value));
                     return true;
                 case TypeCode.Char:
                     Write((Char)value);
@@ -457,8 +458,9 @@ namespace NewLife.Serialization
             //if (n == 0) return String.Empty;
 
             var buffer = ReadBytes(n);
+            var enc = Host.Encoding ?? Encoding.UTF8;
 
-            return Host.Encoding.GetString(buffer);
+            return enc.GetString(buffer);
         }
         #endregion
 
