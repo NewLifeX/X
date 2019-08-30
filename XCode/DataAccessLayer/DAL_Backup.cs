@@ -286,7 +286,7 @@ namespace XCode.DataAccessLayer
         /// <param name="file"></param>
         /// <param name="table"></param>
         /// <returns></returns>
-        public Int32 Restore(String file, IDataTable table = null)
+        public Int64 Restore(String file, IDataTable table = null)
         {
             if (file.IsNullOrEmpty() || !File.Exists(file)) return 0;
 
@@ -326,9 +326,9 @@ namespace XCode.DataAccessLayer
         /// <param name="dir"></param>
         /// <param name="tables"></param>
         /// <returns></returns>
-        public IDictionary<String, Int32> RestoreAll(String dir, IDataTable[] tables = null)
+        public IDictionary<String, Int64> RestoreAll(String dir, IDataTable[] tables = null)
         {
-            var dic = new Dictionary<String, Int32>();
+            var dic = new Dictionary<String, Int64>();
             if (dir.IsNullOrEmpty() || !Directory.Exists(dir)) return dic;
 
             if (tables == null)
