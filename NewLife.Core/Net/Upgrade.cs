@@ -16,7 +16,8 @@ namespace NewLife.Net
 {
     /// <summary>升级更新</summary>
     /// <remarks>
-    /// 自动更新的难点在于覆盖正在使用的exe/dll文件，通过改名可以解决
+    /// 优先比较版本Version，再比较时间Time。
+    /// 自动更新的难点在于覆盖正在使用的exe/dll文件，通过改名可以解决。
     /// </remarks>
     public class Upgrade
     {
@@ -31,10 +32,7 @@ namespace NewLife.Net
         public Version Version { get; set; }
 
         /// <summary>本地编译时间</summary>
-        public DateTime Compile { get; set; }
-
-        /// <summary>更新完成以后自动启动主程序</summary>
-        public Boolean AutoStart { get; set; } = true;
+        public DateTime Time { get; set; }
 
         /// <summary>更新目录</summary>
         public String UpdatePath { get; set; } = "Update";
@@ -42,8 +40,8 @@ namespace NewLife.Net
         /// <summary>目标目录</summary>
         public String DestinationPath { get; set; } = ".";
 
-        /// <summary>超链接信息，其中第一个为最佳匹配项</summary>
-        public Link[] Links { get; set; } = new Link[0];
+        /// <summary>超链接信息</summary>
+        public Link Link { get; set; }
 
         /// <summary>更新源文件</summary>
         public String SourceFile { get; set; }
@@ -58,7 +56,7 @@ namespace NewLife.Net
 
             Version = asm.GetName().Version;
             Name = asm.GetName().Name;
-            Compile = asmx.Compile;
+            Time = asmx.Compile;
 
             Server = NewLife.Setting.Current.PluginServer;
         }
@@ -74,38 +72,51 @@ namespace NewLife.Net
 
             var url = Server;
 
-            WriteLog("准备获取更新信息 {0}", url);
+            WriteLog("检查资源包 {0}", url);
 
             var web = CreateClient();
             var html = web.GetHtml(url);
-            var links = Link.Parse(html, url, item => item.Name.StartsWithIgnoreCase(Name) || item.Name.Contains(Name));
-            if (links.Length < 1) return false;
-
-            // 分析所有链接
-            var list = new List<Link>();
-            foreach (var link in links)
+            var links = Link.Parse(html, url, item => item.Name.EqualIgnoreCase(Name));
+            if (links == null || links.Length == 0)
             {
-                // 不是满足条件的name不要
-                if (!link.Name.StartsWithIgnoreCase(Name) || !link.Name.Contains(Name)) continue;
-
-                // 第一个时间命中
-                if (link.Time.Year <= DateTime.Now.Year) list.Add(link);
+                WriteLog("找不到资源包");
+                return false;
             }
-            if (list.Count < 1) return false;
 
-            // 按照时间降序
-            Links = list.OrderByDescending(e => e.Time).ToArray();
+            // 先比较版本
+            if (Version > new Version(0, 0))
+            {
+                var link = links.OrderByDescending(e => e.Version).FirstOrDefault();
+                if (link.Version > Version)
+                {
+                    Link = link;
+                    WriteLog("线上版本[{0}]较新 {1}>{2}", link.FullName, link.Version, Version);
+                }
+                else
+                    WriteLog("线上版本[{0}]较旧 {1}<={2}", link.FullName, link.Version, Version);
+            }
+            // 再比较时间
+            else
+            {
+                var link = links.OrderByDescending(e => e.Time).FirstOrDefault();
+                // 只有文件时间大于编译时间才更新，需要考虑文件编译后过一段时间才打包
+                if (link.Time > Time.AddMinutes(10))
+                {
+                    Link = link;
+                    WriteLog("线上版本[{0}]较新 {1}>{2}", link.FullName, link.Time, Time);
+                }
+                else
+                    WriteLog("线上版本[{0}]较旧 {1}<={2}", link.FullName, link.Time, Time);
+            }
 
-            // 只有文件时间大于编译时间才更新，需要考虑文件编译后过一段时间才打包
-            return Links[0].Time > Compile.AddMinutes(10);
+            return Link != null;
         }
 
         /// <summary>开始更新</summary>
         public void Download()
         {
-            if (Links.Length == 0) throw new Exception("没有可用新版本！");
-
-            var link = Links[0];
+            var link = Link;
+            if (link == null) throw new Exception("没有可用新版本！");
             if (String.IsNullOrEmpty(link.Url)) throw new Exception("升级包地址无效！");
 
             // 如果更新包不存在，则下载
@@ -129,9 +140,13 @@ namespace NewLife.Net
         /// <summary>检查并执行更新操作</summary>
         public Boolean Update()
         {
+            // 删除备份文件
+            DeleteBuckup(DestinationPath);
+
             var file = SourceFile;
 
             if (!File.Exists(file)) return false;
+
             WriteLog("发现更新包 {0}", file);
 
             // 解压更新程序包
@@ -144,20 +159,21 @@ namespace NewLife.Net
             // 拷贝替换更新
             CopyAndReplace(tmp, DestinationPath);
 
-            if (AutoStart)
-            {
-                // 启动进程
-                var exe = Assembly.GetEntryAssembly().Location;
-                WriteLog("启动进程 {0}", exe);
-                Process.Start(exe);
-
-                WriteLog("退出当前进程");
-                if (!Runtime.IsConsole) Process.GetCurrentProcess().CloseMainWindow();
-                Environment.Exit(0);
-                Process.GetCurrentProcess().Kill();
-            }
-
             return true;
+        }
+
+        /// <summary>启动当前应用的新进程。当前进程退出</summary>
+        public void Run()
+        {
+            // 启动进程
+            var exe = Assembly.GetEntryAssembly().Location;
+            WriteLog("启动进程 {0}", exe);
+            Process.Start(exe);
+
+            WriteLog("退出当前进程");
+            if (!Runtime.IsConsole) Process.GetCurrentProcess().CloseMainWindow();
+            Environment.Exit(0);
+            Process.GetCurrentProcess().Kill();
         }
         #endregion
 

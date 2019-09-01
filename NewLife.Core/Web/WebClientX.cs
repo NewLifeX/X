@@ -259,7 +259,7 @@ namespace NewLife.Web
                         link = ls.Where(e => !e.Url.IsNullOrWhiteSpace())
                            .Where(e => e.Name.EqualIgnoreCase(item))
                            .OrderByDescending(e => e.Version)
-                           .OrderByDescending(e => e.Time)
+                           .ThenByDescending(e => e.Time)
                            .FirstOrDefault();
                         if (link != null) break;
                     }
