@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using NewLife.Http;
 using NewLife.Messaging;
 using NewLife.Net;
+using NewLife.Threading;
 
 namespace NewLife.Remoting
 {
@@ -86,8 +87,20 @@ namespace NewLife.Remoting
             var msg = e.Message as IMessage;
             if (msg == null || msg.Reply) return;
 
-            var rs = _Host.Process(this, msg);
-            if (rs != null) Session?.SendMessage(rs);
+            // 连接复用
+            if (_Host is ApiServer svr && svr.Multiplex)
+            {
+                ThreadPoolX.QueueUserWorkItem(m =>
+                {
+                    var rs = _Host.Process(this, m);
+                    if (rs != null) Session?.SendMessage(rs);
+                }, msg);
+            }
+            else
+            {
+                var rs = _Host.Process(this, msg);
+                if (rs != null) Session?.SendMessage(rs);
+            }
         }
 
         /// <summary>远程调用</summary>
