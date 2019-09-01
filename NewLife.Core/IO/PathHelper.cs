@@ -257,7 +257,6 @@ namespace System.IO
         }
 
         /// <summary>打开并读取</summary>
-        /// <typeparam name="T">返回类型</typeparam>
         /// <param name="file">文件信息</param>
         /// <param name="compressed">是否压缩</param>
         /// <param name="func">要对文件流操作的委托</param>
@@ -284,7 +283,6 @@ namespace System.IO
         }
 
         /// <summary>打开并写入</summary>
-        /// <typeparam name="T">返回类型</typeparam>
         /// <param name="file">文件信息</param>
         /// <param name="compressed">是否压缩</param>
         /// <param name="func">要对文件流操作的委托</param>

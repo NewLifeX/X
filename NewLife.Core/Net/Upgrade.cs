@@ -39,6 +39,9 @@ namespace NewLife.Net
         /// <summary>更新目录</summary>
         public String UpdatePath { get; set; } = "Update";
 
+        /// <summary>目标目录</summary>
+        public String DestinationPath { get; set; } = ".";
+
         /// <summary>超链接信息，其中第一个为最佳匹配项</summary>
         public Link[] Links { get; set; } = new Link[0];
 
@@ -67,26 +70,9 @@ namespace NewLife.Net
         public Boolean Check()
         {
             // 删除备份文件
-            DeleteBuckup();
+            DeleteBuckup(DestinationPath);
 
             var url = Server;
-            // 如果配置地址未指定参数，则附加参数
-            if (url.StartsWithIgnoreCase("http://"))
-            {
-                if (!url.Contains("{0}"))
-                {
-                    if (!url.Contains("?"))
-                        url += "?";
-                    else
-                        url += "&";
-
-                    url += String.Format("Name={0}&Version={1}", Name, Version);
-                }
-                else
-                {
-                    url = String.Format(url, Name, Version);
-                }
-            }
 
             WriteLog("准备获取更新信息 {0}", url);
 
@@ -151,12 +137,12 @@ namespace NewLife.Net
             // 解压更新程序包
             if (!file.EndsWithIgnoreCase(".zip", ".7z")) return false;
 
-            var dest = XTrace.TempPath.CombinePath(Path.GetFileNameWithoutExtension(file)).GetFullPath();
-            WriteLog("解压缩更新包到临时目录 {0}", dest);
-            file.AsFile().Extract(dest, true);
+            var tmp = XTrace.TempPath.CombinePath(Path.GetFileNameWithoutExtension(file)).GetFullPath();
+            WriteLog("解压缩更新包到临时目录 {0}", tmp);
+            file.AsFile().Extract(tmp, true);
 
             // 拷贝替换更新
-            CopyAndReplace(dest);
+            CopyAndReplace(tmp, DestinationPath);
 
             if (AutoStart)
             {
@@ -173,38 +159,6 @@ namespace NewLife.Net
 
             return true;
         }
-
-        /// <summary>正在使用锁定的文件不可删除，但可以改名</summary>
-        /// <param name="source"></param>
-        private void CopyAndReplace(String source)
-        {
-            // 删除备份
-            DeleteBuckup();
-
-            var di = source.AsDirectory();
-
-            // 来源目录根，用于截断
-            var root = di.FullName.EnsureEnd(Path.DirectorySeparatorChar.ToString());
-            foreach (var item in di.GetAllFiles(null, true))
-            {
-                var name = item.FullName.TrimStart(root);
-                var dst = ".".CombinePath(name).GetFullPath();
-
-                // 如果是应用配置文件，不要更新
-                if (dst.EndsWithIgnoreCase(".exe.config")) continue;
-
-                WriteLog("更新 {0}", dst);
-
-                // 如果是exe/dll，则先改名，因为可能无法覆盖
-                if (dst.EndsWithIgnoreCase(".exe", ".dll")) File.Move(dst, dst + ".del");
-
-                // 拷贝覆盖
-                item.CopyTo(dst.EnsureDirectory(true), true);
-            }
-
-            // 删除临时目录
-            di.Delete(true);
-        }
         #endregion
 
         #region 辅助
@@ -218,15 +172,61 @@ namespace NewLife.Net
         }
 
         /// <summary>删除备份文件</summary>
-        public static void DeleteBuckup()
+        /// <param name="dest">目标目录</param>
+        public static void DeleteBuckup(String dest)
         {
             // 删除备份
-            var di = ".".AsDirectory();
-            var fs = di.GetAllFiles("*.del");
+            var di = dest.AsDirectory();
+            var fs = di.GetAllFiles("*.del", true);
             foreach (var item in fs)
             {
-                item.Delete();
+                try
+                {
+                    item.Delete();
+                }
+                catch { }
             }
+        }
+
+        /// <summary>拷贝并替换。正在使用锁定的文件不可删除，但可以改名</summary>
+        /// <param name="source">源目录</param>
+        /// <param name="dest">目标目录</param>
+        public static void CopyAndReplace(String source, String dest)
+        {
+            var di = source.AsDirectory();
+
+            // 来源目录根，用于截断
+            var root = di.FullName.EnsureEnd(Path.DirectorySeparatorChar.ToString());
+            foreach (var item in di.GetAllFiles(null, true))
+            {
+                var name = item.FullName.TrimStart(root);
+                var dst = dest.CombinePath(name).GetFullPath();
+
+                // 如果是应用配置文件，不要更新
+                if (dst.EndsWithIgnoreCase(".exe.config")) continue;
+
+                // 如果是exe/dll，则先改名，因为可能无法覆盖
+                if (dst.EndsWithIgnoreCase(".exe", ".dll") && File.Exists(dst))
+                {
+                    // 先尝试删除
+                    try
+                    {
+                        File.Delete(dst);
+                    }
+                    catch
+                    {
+                        var del = dst + ".del";
+                        if (File.Exists(del)) File.Delete(del);
+                        File.Move(dst, del);
+                    }
+                }
+
+                // 拷贝覆盖
+                item.CopyTo(dst.EnsureDirectory(true), true);
+            }
+
+            // 删除临时目录
+            di.Delete(true);
         }
         #endregion
 
