@@ -692,9 +692,10 @@ namespace XCode
             Int64 count = 0;
             if (startRowIndex > 500000 && (count = session.LongCount) > 1000000)
             {
-                // 计算本次查询的结果行数
-                var wh = where?.GetString(null);
-                if (!wh.IsNullOrEmpty()) count = FindCount(where, order, selects, startRowIndex, maximumRows);
+                //// 计算本次查询的结果行数
+                //var wh = where?.GetString(null);
+                // 数据量巨大，每次都查总记录数很不划算，还不如用一个不太准的数据
+                //if (!wh.IsNullOrEmpty()) count = FindCount(where, order, selects, startRowIndex, maximumRows);
                 // 游标在中间偏后
                 if (startRowIndex * 2 > count)
                 {
