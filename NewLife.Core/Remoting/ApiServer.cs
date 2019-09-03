@@ -18,6 +18,9 @@ namespace NewLife.Remoting
 
         /// <summary>服务器</summary>
         public IApiServer Server { get; set; }
+
+        /// <summary>连接复用。默认true，单个Tcp连接在处理某个请求未完成时，可以接收并处理新的请求</summary>
+        public Boolean Multiplex { get; set; } = true;
         #endregion
 
         #region 构造
