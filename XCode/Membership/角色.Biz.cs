@@ -431,6 +431,7 @@ namespace XCode.Membership
             {
                 Name = name,
                 IsSystem = issys,
+                Enable = true,
                 Remark = remark
             };
             entity.Save();
