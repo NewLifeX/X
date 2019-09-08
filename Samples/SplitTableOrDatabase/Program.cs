@@ -15,7 +15,8 @@ namespace SplitTableOrDatabase
             XTrace.UseConsole();
 
             //TestByNumber();
-            TestByDate();
+            //TestByDate();
+            SearchByDate();
 
             Console.WriteLine("OK!");
             Console.ReadLine();
@@ -118,6 +119,44 @@ namespace SplitTableOrDatabase
                 // 批量插入。两种写法等价
                 //list.BatchInsert();
                 list.Insert(true);
+            }
+        }
+
+        static void SearchByDate()
+        {
+            // 预先准备好各个库的连接字符串，动态增加，也可以在配置文件写好
+            var start = DateTime.Today;
+            for (var i = 0; i < 12; i++)
+            {
+                var dt = new DateTime(start.Year, i + 1, 1);
+                var connName = $"HDB_{dt:yyMM}";
+                DAL.AddConnStr(connName, $"data source=timeData\\{connName}.db", null, "sqlite");
+            }
+
+            // 随机日期。批量操作
+            start = new DateTime(start.Year, 1, 1);
+            {
+                var dt = start.AddDays(Rand.Next(0, 365));
+                XTrace.WriteLine("查询日期：{0}", dt);
+
+                History.Meta.ConnName = $"HDB_{dt:yyMM}";
+                History.Meta.TableName = $"History_{dt:yyMMdd}";
+
+                var list = History.FindAll();
+                XTrace.WriteLine("数据：{0}", list.Count);
+            }
+
+            // 随机日期。个例操作
+            start = new DateTime(start.Year, 1, 1);
+            {
+                var dt = start.AddDays(Rand.Next(0, 365));
+                XTrace.WriteLine("查询日期：{0}", dt);
+                var list = History.Meta.ProcessWithSplit(
+                    $"HDB_{dt:yyMM}",
+                    $"History_{dt:yyMMdd}",
+                    () => History.FindAll());
+
+                XTrace.WriteLine("数据：{0}", list.Count);
             }
         }
     }
