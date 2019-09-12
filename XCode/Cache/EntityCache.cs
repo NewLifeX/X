@@ -244,10 +244,10 @@ namespace XCode.Cache
         {
             if (!Using) return null;
 
-            var es = _Entities as List<TEntity>;
+            var es = _Entities;
 
             // 如果对象本身就在缓存里面，啥也不用做
-            var e = es.Find(x => x == entity);
+            var e = es.FirstOrDefault(x => x == entity);
             if (e != null) return e;
 
             var idx = -1;
@@ -255,7 +255,7 @@ namespace XCode.Cache
             if (fi != null)
             {
                 var v = entity[fi.Name];
-                idx = es.FindIndex(x => Equals(x[fi.Name], v));
+                idx = Array.FindIndex(es, x => Equals(x[fi.Name], v));
             }
 
             //if (e != entity) e.CopyFrom(entity);
@@ -266,7 +266,11 @@ namespace XCode.Cache
             {
                 lock (es)
                 {
-                    es.Add(entity);
+                    //es.Add(entity);
+
+                    var list = _Entities.ToList();
+                    list.Add(entity);
+                    _Entities = list.ToArray();
                 }
             }
 
