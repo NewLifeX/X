@@ -41,7 +41,7 @@ namespace Test
                 try
                 {
 #endif
-                Test3();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -62,11 +62,15 @@ namespace Test
 
         static async void Test1()
         {
-            var url = "http://www.newlifex.com/";
-            //var url = "https://www.baidu.com/";
-            var client = new TinyHttpClient();
-            var html = await client.GetStringAsync(url);
-            Console.WriteLine(html);
+            //var url = "http://www.newlifex.com/";
+            ////var url = "https://www.baidu.com/";
+            //var client = new TinyHttpClient();
+            //var html = await client.GetStringAsync(url);
+            //Console.WriteLine(html);
+
+            IList<Int32> list = new Int32[0];
+            list.Add(123);
+            Console.WriteLine(list.Count);
         }
 
         static void Test2()
