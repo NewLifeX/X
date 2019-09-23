@@ -51,7 +51,7 @@ namespace XCode.Cache
         #endregion
 
         #region 缓存核心
-        private IList<TEntity> _Entities = new List<TEntity>();
+        private TEntity[] _Entities = new TEntity[0];
         /// <summary>实体集合。无数据返回空集合而不是null</summary>
         public IList<TEntity> Entities
         {
@@ -162,7 +162,7 @@ namespace XCode.Cache
 
             try
             {
-                _Entities = Invoke<Object, IList<TEntity>>(s => FillListMethod(), null);
+                _Entities = Invoke<Object, IList<TEntity>>(s => FillListMethod(), null).ToArray();
             }
             catch (Exception ex)
             {
@@ -175,7 +175,7 @@ namespace XCode.Cache
 
             ts = Interlocked.Increment(ref _Times);
             ExpiredTime = TimerX.Now.AddSeconds(Expire);
-            WriteLog("完成{0}[{1}]（第{2}次）", ToString(), _Entities.Count, ts);
+            WriteLog("完成{0}[{1}]（第{2}次）", ToString(), _Entities.Length, ts);
         }
 
         /// <summary>清除缓存</summary>
@@ -188,18 +188,27 @@ namespace XCode.Cache
         }
 
         private IEntityOperate Operate = Entity<TEntity>.Meta.Factory;
-        internal void Add(TEntity entity)
+        /// <summary>添加对象到缓存</summary>
+        /// <param name="entity"></param>
+        public void Add(TEntity entity)
         {
             if (!Using) return;
 
             var es = _Entities;
             lock (es)
             {
-                es.Add(entity);
+                //es.Add(entity);
+
+                var list = _Entities.ToList();
+                list.Add(entity);
+                _Entities = list.ToArray();
             }
         }
 
-        internal TEntity Remove(TEntity entity)
+        /// <summary>从缓存中删除对象</summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        public TEntity Remove(TEntity entity)
         {
             if (!Using) return null;
 
@@ -221,7 +230,11 @@ namespace XCode.Cache
             // 更新实体缓存时，不做拷贝，避免产生脏数据，如果恰巧又使用单对象缓存，那会导致自动保存
             lock (es)
             {
-                es.Remove(e);
+                //es.Remove(e);
+
+                var list = _Entities.ToList();
+                list.Remove(e);
+                _Entities = list.ToArray();
             }
 
             return e;
@@ -231,10 +244,10 @@ namespace XCode.Cache
         {
             if (!Using) return null;
 
-            var es = _Entities as List<TEntity>;
+            var es = _Entities;
 
             // 如果对象本身就在缓存里面，啥也不用做
-            var e = es.Find(x => x == entity);
+            var e = es.FirstOrDefault(x => x == entity);
             if (e != null) return e;
 
             var idx = -1;
@@ -242,7 +255,7 @@ namespace XCode.Cache
             if (fi != null)
             {
                 var v = entity[fi.Name];
-                idx = es.FindIndex(x => Equals(x[fi.Name], v));
+                idx = Array.FindIndex(es, x => Equals(x[fi.Name], v));
             }
 
             //if (e != entity) e.CopyFrom(entity);
@@ -253,7 +266,11 @@ namespace XCode.Cache
             {
                 lock (es)
                 {
-                    es.Add(entity);
+                    //es.Add(entity);
+
+                    var list = _Entities.ToList();
+                    list.Add(entity);
+                    _Entities = list.ToArray();
                 }
             }
 
@@ -275,7 +292,7 @@ namespace XCode.Cache
             {
                 var sb = Pool.StringBuilder.Get();
                 var type = GetType();
-                var name = "{2}<{0}>({1:n0})".F(typeof(TEntity).Name, _Entities.Count, type.GetDisplayName() ?? type.Name);
+                var name = "{2}<{0}>({1:n0})".F(typeof(TEntity).Name, _Entities.Length, type.GetDisplayName() ?? type.Name);
                 sb.AppendFormat("{0,-24}", name);
                 sb.AppendFormat("总次数{0,11:n0}", Total);
                 if (Success > 0) sb.AppendFormat("，命中{0,11:n0}（{1,6:P02}）", Success, (Double)Success / Total);

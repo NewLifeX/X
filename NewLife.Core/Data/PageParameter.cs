@@ -17,6 +17,12 @@ namespace NewLife.Data
             get { return _Sort; }
             set
             {
+                if (!value.IsNullOrWhiteSpace() && !_OrderBy.IsNullOrWhiteSpace())
+                {
+                    _Sort = null;
+                    return;
+                    //throw new Exception("已设置OrderBy，不允许设置Sort");
+                }
                 _Sort = value;
 
                 // 自动识别带有Asc/Desc的排序
@@ -83,7 +89,24 @@ namespace NewLife.Data
 
                 return str;
             }
-            set { _OrderBy = value; Sort = value; }
+            set
+            {
+                if (!value.IsNullOrWhiteSpace())
+                {
+                    //单字段复杂表达式排序或多字段排序清空 Sort 
+                    var temp = value.ToLower().Replace("asc", "").Replace("desc", "").Trim();
+                    if (temp.Contains(",") || temp.Contains(" ") || temp.Contains("(") || temp.Contains(")") || temp.Contains("+") || temp.Contains("-") || temp.Contains("*") || temp.Contains("/") || temp.Contains("%"))
+                        Sort = null;
+                    else
+                        Sort = value;
+                    _OrderBy = value;
+                }
+                else
+                {
+                    _OrderBy = value;
+                    Sort = value;
+                }
+            }
         }
 
         /// <summary>获取 或 设置 开始行</summary>
