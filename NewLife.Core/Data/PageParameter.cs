@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.Serialization;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 
@@ -10,7 +11,7 @@ namespace NewLife.Data
         #region 核心属性
         private String _Sort;
         /// <summary>获取 或 设置 排序字段，前台接收，便于做安全性校验</summary>
-        [XmlIgnore, ScriptIgnore]
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public virtual String Sort
         {
             get { return _Sort; }
@@ -42,7 +43,7 @@ namespace NewLife.Data
         }
 
         /// <summary>获取 或 设置 是否降序</summary>
-        [XmlIgnore, ScriptIgnore]
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public virtual Boolean Desc { get; set; }
 
         /// <summary>获取 或 设置 页面索引。从1开始，默认1</summary>
@@ -87,19 +88,19 @@ namespace NewLife.Data
 
         /// <summary>获取 或 设置 开始行</summary>
         /// <remarks>如果设定了开始行，分页时将不再使用PageIndex</remarks>
-        [XmlIgnore, ScriptIgnore]
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public virtual Int64 StartRow { get; set; } = -1;
 
         /// <summary>获取 或 设置 是否获取总记录数，默认false</summary>
-        [XmlIgnore, ScriptIgnore]
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public Boolean RetrieveTotalCount { get; set; }
 
         /// <summary>获取 或 设置 状态。用于传递统计等数据</summary>
-        [XmlIgnore, ScriptIgnore]
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public virtual Object State { get; set; }
 
         /// <summary>获取 或 设置 是否获取统计，默认false</summary>
-        [XmlIgnore, ScriptIgnore]
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public Boolean RetrieveState { get; set; }
         #endregion
 
