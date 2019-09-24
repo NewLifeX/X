@@ -288,7 +288,9 @@ namespace System
             }
 
             des.WriteEncodedInt(src.Length);
-            return des.Write(src);
+            des.Write(src);
+
+            return des;
         }
 
         /// <summary>读取字节数组，先读取压缩整数表示的长度</summary>

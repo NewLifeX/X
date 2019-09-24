@@ -45,7 +45,8 @@ namespace XCode.Code
         /// <param name="output">输出目录</param>
         /// <param name="nameSpace">命名空间</param>
         /// <param name="connName">连接名</param>
-        public static Int32 Build(String xmlFile = null, String output = null, String nameSpace = null, String connName = null, Boolean? chineseFileName = null)
+        /// <param name="chineseFileName">中文文件名</param>
+        public static Int32 Build(String xmlFile = null, String output = null, String nameSpace = null, String connName = null, Boolean? chineseFileName = true)
         {
             if (xmlFile.IsNullOrEmpty())
             {
@@ -244,6 +245,7 @@ namespace XCode.Code
         /// <summary>保存</summary>
         /// <param name="ext"></param>
         /// <param name="overwrite"></param>
+        /// <param name="chineseFileName"></param>
         public override String Save(String ext = null, Boolean overwrite = true, Boolean chineseFileName = true)
         {
             if (ext.IsNullOrEmpty() && Business)

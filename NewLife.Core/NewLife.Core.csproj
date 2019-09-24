@@ -1,14 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net45;netstandard2.0;net40</TargetFrameworks>
+    <TargetFrameworks>net45;netstandard2.0;net40;net46;netstandard2.1</TargetFrameworks>
     <AssemblyName>NewLife.Core</AssemblyName>
     <RootNamespace>NewLife</RootNamespace>
     <AssemblyTitle>新生命X组件核心库</AssemblyTitle>
     <Description>算法、日志、网络、RPC、序列化、缓存、Windows服务、线程池</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2019 新生命开发团队</Copyright>
-    <Version>8.3.2019.0822</Version>
-    <FileVersion>8.3.2019.0822</FileVersion>
+    <Version>8.3.2019.0923</Version>
+    <FileVersion>8.3.2019.0923</FileVersion>
     <AssemblyVersion>8.3.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <OutputPath>..\..\Bin</OutputPath>
@@ -22,7 +22,7 @@
     <PackageId>$(AssemblyName)</PackageId>
     <Authors>$(Company)</Authors>
     <ProjectUrl>https://github.com/NewLifeX</ProjectUrl>
-    <PackageIconUrl>http://www.NewLifeX.com/favicon.ico</PackageIconUrl>
+    <PackageIcon>logo.ico</PackageIcon>
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
@@ -35,7 +35,11 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
-    <DefineConstants>$(DefineConstants);NETSTANDARD2_0;__CORE__</DefineConstants>
+    <DefineConstants>$(DefineConstants);STD20;NETSTANDARD2_0;__CORE__</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)'=='netstandard2.1'">
+    <DefineConstants>$(DefineConstants);STD21;NETSTANDARD2_1;__CORE__</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)'=='net45'">
@@ -44,6 +48,10 @@
 
   <PropertyGroup Condition="'$(TargetFramework)'=='net40'">
     <DefineConstants>$(DefineConstants);__WIN__;NET4</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)'=='net46'">
+    <DefineConstants>$(DefineConstants);__WIN__;NET46</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
@@ -56,7 +64,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)'=='net45'">
+  <ItemGroup Condition="'$(TargetFramework)'=='net45' Or '$(TargetFramework)'=='net46'">
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.ServiceProcess" />
@@ -88,6 +96,10 @@
   <ItemGroup>
     <None Remove="UpdateInfo.txt" />
     <None Remove="X组件.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\Doc\logo.ico" Link="logo.ico" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <ItemGroup>

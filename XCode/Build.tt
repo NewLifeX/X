@@ -8,7 +8,8 @@
 <#
     // 设置当前工作目录
 	PathHelper.BaseDirectory = Host.ResolvePath(".");
-	// 导入模型文件并生成实体类，模型文件、输出目录、命名空间、连接名
+	// 导入模型文件并生成实体类，模型文件、输出目录、命名空间、连接名、中文文件名
+	//EntityBuilder.Build(String xmlFile = null, String output = null, String nameSpace = null, String connName = null, Boolean? chineseFileName = true);
 	EntityBuilder.Build();
 
 	//var tables = DAL.ImportFrom("Company.Project.xml");

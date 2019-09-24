@@ -1,14 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net45;netstandard2.0;net40</TargetFrameworks>
+    <TargetFrameworks>net45;netstandard2.0;net40;net46;netstandard2.1</TargetFrameworks>
     <AssemblyName>XCode</AssemblyName>
     <RootNamespace>XCode</RootNamespace>
     <AssemblyTitle>数据中间件</AssemblyTitle>
     <Description>数据中间件，MySQL、SQLite、SqlServer、Oracle</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2019 新生命开发团队</Copyright>
-    <Version>9.14.2019.0822</Version>
-    <FileVersion>9.14.2019.0822</FileVersion>
+    <Version>9.14.2019.0923</Version>
+    <FileVersion>9.14.2019.0923</FileVersion>
     <AssemblyVersion>9.14.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <OutputPath>..\..\Bin</OutputPath>
@@ -22,7 +22,7 @@
     <PackageId>NewLife.XCode</PackageId>
     <Authors>$(Company)</Authors>
     <ProjectUrl>https://github.com/NewLifeX</ProjectUrl>
-    <PackageIconUrl>http://www.NewLifeX.com/logo.png</PackageIconUrl>
+    <PackageIcon>logo.ico</PackageIcon>
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
@@ -32,7 +32,8 @@
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSource>true</IncludeSource>
     <LangVersion>latest</LangVersion>
-  </PropertyGroup>
+  
+</PropertyGroup>
 
   <ItemGroup>
     <Compile Remove="build\**" />
@@ -44,7 +45,11 @@
   </ItemGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
-    <DefineConstants>$(DefineConstants);NETSTANDARD2_0;__CORE__</DefineConstants>
+    <DefineConstants>$(DefineConstants);STD20;NETSTANDARD2_0;__CORE__</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)'=='netstandard2.1'">
+    <DefineConstants>$(DefineConstants);STD21;NETSTANDARD2_1;__CORE__</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)'=='net45'">
@@ -53,6 +58,10 @@
 
   <PropertyGroup Condition="'$(TargetFramework)'=='net40'">
     <DefineConstants>$(DefineConstants);__WIN__;NET4</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)'=='net46'">
+    <DefineConstants>$(DefineConstants);__WIN__;NET46</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
@@ -65,13 +74,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)'=='net45'">
-    <Reference Include="System.Data" />
-    <Reference Include="System.Web" />
-    <Reference Include="System.Web.Extensions" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)'=='net40'">
+  <ItemGroup Condition="'$(TargetFramework)'=='net40' Or '$(TargetFramework)'=='net45' Or '$(TargetFramework)'=='net46'">
     <Reference Include="System.Data" />
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Extensions" />
@@ -109,6 +112,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\Doc\logo.ico" Link="logo.ico" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <ItemGroup>
