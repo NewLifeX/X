@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -63,7 +62,7 @@ namespace XCode.DataAccessLayer
                 _metadata = null;
             }
 
-            _Pool.TryDispose();
+            //_Pool.TryDispose();
         }
 
         /// <summary>释放所有会话</summary>
@@ -126,12 +125,12 @@ namespace XCode.DataAccessLayer
                     ReleaseSession();
                 }
 
-                // 更新连接池的连接字符串
-                if (_Pool != null)
-                {
-                    _Pool.ConnectionString = connStr;
-                    _Pool.Clear();
-                }
+                //// 更新连接池的连接字符串
+                //if (_Pool != null)
+                //{
+                //    _Pool.ConnectionString = connStr;
+                //    _Pool.Clear();
+                //}
             }
         }
 
@@ -141,29 +140,29 @@ namespace XCode.DataAccessLayer
                 throw new XCodeException("[{0}]未指定连接字符串！", ConnName);
         }
 
-        private ConnectionPool _Pool;
-        /// <summary>连接池</summary>
-        public ConnectionPool Pool
-        {
-            get
-            {
-                if (_Pool != null) return _Pool;
-                lock (this)
-                {
-                    if (_Pool != null) return _Pool;
+        //private ConnectionPool _Pool;
+        ///// <summary>连接池</summary>
+        //public ConnectionPool Pool
+        //{
+        //    get
+        //    {
+        //        if (_Pool != null) return _Pool;
+        //        lock (this)
+        //        {
+        //            if (_Pool != null) return _Pool;
 
-                    var pool = new ConnectionPool
-                    {
-                        Name = ConnName + "Pool",
-                        Factory = Factory,
-                        ConnectionString = ConnectionString,
-                    };
-                    if (DAL.Debug && XTrace.Log.Level == LogLevel.Debug) pool.Log = XTrace.Log;
+        //            var pool = new ConnectionPool
+        //            {
+        //                Name = ConnName + "Pool",
+        //                Factory = Factory,
+        //                ConnectionString = ConnectionString,
+        //            };
+        //            if (DAL.Debug && XTrace.Log.Level == LogLevel.Debug) pool.Log = XTrace.Log;
 
-                    return _Pool = pool;
-                }
-            }
-        }
+        //            return _Pool = pool;
+        //        }
+        //    }
+        //}
 
         protected virtual String DefaultConnectionString => String.Empty;
 
@@ -210,14 +209,10 @@ namespace XCode.DataAccessLayer
 
                 _ServerVersion = String.Empty;
 
-                var conn = Pool.Get();
-                try
+                //return _ServerVersion = Process(conn => conn.ServerVersion);
+                using (var conn = OpenConnection())
                 {
                     return _ServerVersion = conn.ServerVersion;
-                }
-                finally
-                {
-                    Pool.Put(conn);
                 }
             }
         }
@@ -228,7 +223,7 @@ namespace XCode.DataAccessLayer
         /// <summary>跟踪SQL执行时间，大于该阀值将输出日志</summary>
         public Int32 TraceSQLTime { get; set; } = Setting.Current.TraceSQLTime;
 
-        /// <summary>本连接数据只读。需求不够强劲，暂不支持在连接字符串中设置</summary>
+        /// <summary>本连接数据只读</summary>
         public Boolean Readonly { get; set; }
 
         /// <summary>数据层缓存有效期。单位秒</summary>
@@ -253,7 +248,7 @@ namespace XCode.DataAccessLayer
             session = OnCreateSession();
 
             CheckConnStr();
-            session.ConnectionString = ConnectionString;
+            //session.ConnectionString = ConnectionString;
 
             _store.Value = session;
 
@@ -287,6 +282,32 @@ namespace XCode.DataAccessLayer
         /// <summary>创建元数据对象</summary>
         /// <returns></returns>
         protected abstract IMetaData OnCreateMetaData();
+
+        /// <summary>创建连接</summary>
+        /// <returns></returns>
+        public virtual DbConnection OpenConnection()
+        {
+            var conn = Factory.CreateConnection();
+            conn.ConnectionString = ConnectionString;
+            conn.Open();
+
+            return conn;
+        }
+
+        ///// <summary>打开连接并执行操作</summary>
+        ///// <typeparam name="TResult"></typeparam>
+        ///// <param name="callback"></param>
+        ///// <returns></returns>
+        //public virtual TResult Process<TResult>(Func<DbConnection, TResult> callback)
+        //{
+        //    using (var conn = CreateConnection())
+        //    {
+        //        //conn.ConnectionString = ConnectionString;
+        //        //conn.Open();
+
+        //        return callback(conn);
+        //    }
+        //}
 
         /// <summary>是否支持该提供者所描述的数据库</summary>
         /// <param name="providerName">提供者</param>
@@ -903,6 +924,9 @@ namespace XCode.DataAccessLayer
         #region Sql日志输出
         /// <summary>是否输出SQL语句，默认为XCode调试开关XCode.Debug</summary>
         public Boolean ShowSQL { get; set; } = Setting.Current.ShowSQL;
+
+        /// <summary>SQL最大长度，输出日志时的SQL最大长度，超长截断，默认4096，不截断用0</summary>
+        public Int32 SQLMaxLength { get; set; } = Setting.Current.SQLMaxLength;
         #endregion
 
         #region 参数化

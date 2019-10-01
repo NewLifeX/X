@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !__CORE__
+using System;
 using System.Web;
 using NewLife.Web;
 using XCode.DataAccessLayer;
@@ -33,3 +34,4 @@ namespace XCode.Web
         }
     }
 }
+#endif

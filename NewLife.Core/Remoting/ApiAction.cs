@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using NewLife.Data;
+using NewLife.Log;
 using NewLife.Reflection;
 
 namespace NewLife.Remoting
@@ -29,6 +30,12 @@ namespace NewLife.Remoting
         /// <summary>是否二进制返回</summary>
         public Boolean IsPacketReturn { get; }
 
+        /// <summary>处理统计</summary>
+        public ICounter StatProcess { get; set; } = new PerfCounter();
+
+        /// <summary>最后会话</summary>
+        public String LastSession { get; set; }
+
         /// <summary>实例化</summary>
         public ApiAction(MethodInfo method, Type type)
         {
@@ -54,7 +61,7 @@ namespace NewLife.Remoting
             if (type == null) type = method.DeclaringType;
             if (type == null) return null;
 
-            var typeName = type.Name.TrimEnd("Controller");
+            var typeName = type.Name.TrimEnd("Controller", "Service");
             var att = type.GetCustomAttribute<ApiAttribute>(true);
             if (att != null) typeName = att.Name;
 

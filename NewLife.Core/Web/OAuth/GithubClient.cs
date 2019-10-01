@@ -41,7 +41,7 @@ namespace NewLife.Web.OAuth
                 WebClientX.SetAllowUnsafeHeaderParsing(true);
 
                 // 必须指定中文编码
-                _Client = new WebClientX(true, true);
+                _Client = new WebClientX();
             }
             return LastHtml = _Client.GetHtml(url);
         }

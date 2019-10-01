@@ -692,9 +692,10 @@ namespace XCode
             Int64 count = 0;
             if (startRowIndex > 500000 && (count = session.LongCount) > 1000000)
             {
-                // 计算本次查询的结果行数
-                var wh = where?.GetString(null);
-                if (!wh.IsNullOrEmpty()) count = FindCount(where, order, selects, startRowIndex, maximumRows);
+                //// 计算本次查询的结果行数
+                //var wh = where?.GetString(null);
+                // 数据量巨大，每次都查总记录数很不划算，还不如用一个不太准的数据
+                //if (!wh.IsNullOrEmpty()) count = FindCount(where, order, selects, startRowIndex, maximumRows);
                 // 游标在中间偏后
                 if (startRowIndex * 2 > count)
                 {
@@ -837,24 +838,7 @@ namespace XCode
                 )
             {
                 var selectStat = Meta.Factory.SelectStat;
-                if (!selectStat.IsNullOrEmpty())
-                {
-                    page.State = FindAll(where, null, selectStat).FirstOrDefault();
-                }
-                else
-                {
-                    // 找到所有数字字段，进行求和统计
-                    var numbers = Meta.Fields.Where(e => e.Type.IsInt() && !e.IsIdentity).ToList();
-                    if (numbers.Count > 0)
-                    {
-                        var concat = new ConcatExpression();
-                        foreach (var item in numbers)
-                        {
-                            concat &= item.Sum();
-                        }
-                        page.State = FindAll(where, null, concat).FirstOrDefault();
-                    }
-                }
+                if (!selectStat.IsNullOrEmpty()) page.State = FindAll(where, null, selectStat).FirstOrDefault();
             }
 
             return list;
@@ -1477,6 +1461,31 @@ namespace XCode
         #endregion
 
         #region 脏数据
+        /// <summary>从数据库查询数据，对比重置脏数据</summary>
+        /// <remarks>
+        /// 在MVC中直接用实体对象接收前端数据进行更新操作时，脏数据可能不准确。
+        /// 该方法实现脏数据重置，确保可以准确保存到数据库。
+        /// </remarks>
+        /// <returns></returns>
+        public Int32 ResetDirty()
+        {
+            var key = Meta.Unique;
+            if (key == null) throw new InvalidOperationException("要求有唯一主键");
+
+            var rs = 0;
+            var entity = FindByKey(this[key.Name]);
+            foreach (var item in Meta.Fields)
+            {
+                var change = !CheckEqual(this[item.Name], entity[item.Name]);
+                if (Dirtys[item.Name] != change)
+                {
+                    Dirtys[item.Name] = change;
+                    rs++;
+                }
+            }
+
+            return rs;
+        }
         #endregion
 
         #region 高并发

@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !__CORE__
+using System;
 
 namespace NewLife.Agent
 {
@@ -43,3 +44,4 @@ namespace NewLife.Agent
     }
 #endif
 }
+#endif

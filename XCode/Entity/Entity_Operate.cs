@@ -298,8 +298,60 @@ namespace XCode
             /// <summary>默认选择的字段</summary>
             public String Selects { get; set; }
 
+            private String _SelectStat;
             /// <summary>默认选择统计语句</summary>
-            public String SelectStat { get; set; }
+            public String SelectStat
+            {
+                get
+                {
+                    if (_SelectStat == null)
+                    {
+                        // 找到所有数字字段，进行求和统计
+                        var concat = new ConcatExpression();
+                        //// 先来个行数
+                        //if (!Fields.Any(e => e.Name.EqualIgnoreCase("Count"))) concat &= "Count(*) as Count";
+                        foreach (var item in Fields)
+                        {
+                            // 自增和主键不参与
+                            if (item.IsIdentity || item.PrimaryKey) continue;
+                            // 只要Int32和Int64，一般Int16太小不适合聚合
+                            if (item.Type != typeof(Int32) &&
+                                item.Type != typeof(Int64) &&
+                                item.Type != typeof(Single) &&
+                                item.Type != typeof(Double) &&
+                                item.Type != typeof(Decimal)) continue;
+
+                            // 特殊处理 AbcID 形式的外键关联，不参与
+                            var name = item.Name;
+                            if (name.EndsWith("ID") || name.EndsWith("Id"))
+                            {
+                                // 倒数第三个字符为小写
+                                if (name.Length >= 3 && !Char.IsUpper(name[name.Length - 3])) continue;
+                            }
+
+                            // 第二名称，去掉后面的数字，便于模式匹配
+                            var name2 = item.Name;
+                            while (name2.Length > 1 && Char.IsDigit(name2[name2.Length - 1])) name2 = name2.Substring(0, name2.Length - 1);
+
+                            if (name.StartsWith("Max") && name.Length > 3 && Char.IsUpper(name[3]))
+                                concat &= item.Max();
+                            else if (name.StartsWith("Min") && name.Length > 3 && Char.IsUpper(name[3]))
+                                concat &= item.Min();
+                            else if (name.StartsWith("Agv") && name.Length > 3 && Char.IsUpper(name[3]))
+                                concat &= item.Agv();
+                            else if (name2.EndsWith("Rate"))
+                                concat &= item.Max();
+                            else
+                                concat &= item.Sum();
+                        }
+                        // 至少有个空字符串，避免重入
+                        _SelectStat = concat + "";
+                    }
+
+                    return _SelectStat;
+                }
+                set => _SelectStat = value;
+            }
 
             /// <summary>实体模块集合</summary>
             public EntityModules Modules => Meta.Modules;

@@ -249,22 +249,14 @@ namespace NewLife.Net
         /// <summary>添加处理器</summary>
         /// <typeparam name="THandler"></typeparam>
         /// <param name="session">会话</param>
-        public static void Add<THandler>(this ISocket session) where THandler : IHandler, new()
-        {
-            if (session.Pipeline == null) session.Pipeline = new Pipeline();
-
-            session.Pipeline.AddLast(new THandler());
-        }
+        public static void Add<THandler>(this ISocket session) where THandler : IHandler, new() => GetPipe(session).AddLast(new THandler());
 
         /// <summary>添加处理器</summary>
         /// <param name="session">会话</param>
         /// <param name="handler">处理器</param>
-        public static void Add(this ISocket session, IHandler handler)
-        {
-            if (session.Pipeline == null) session.Pipeline = new Pipeline();
+        public static void Add(this ISocket session, IHandler handler) => GetPipe(session).AddLast(handler);
 
-            session.Pipeline.AddLast(handler);
-        }
+        private static IPipeline GetPipe(ISocket session) => session.Pipeline ?? (session.Pipeline = new Pipeline());
         #endregion
     }
 }

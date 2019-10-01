@@ -43,10 +43,10 @@ namespace NewLife.Net.Handlers
         protected override IList<IMessage> Decode(IHandlerContext context, Packet pk)
         {
             var ss = context.Owner as IExtend;
-            var mcp = ss["CodecItem"] as CodecItem;
-            if (mcp == null) ss["CodecItem"] = mcp = new CodecItem();
+            var pc = ss["Codec"] as PacketCodec;
+            if (pc == null) ss["Codec"] = pc = new PacketCodec { GetLength = DefaultMessage.GetLength };
 
-            var pks = Parse(pk, mcp, DefaultMessage.GetLength);
+            var pks = pc.Parse(pk);
             var list = pks.Select(e =>
             {
                 var msg = new DefaultMessage();
@@ -67,6 +67,17 @@ namespace NewLife.Net.Handlers
             return request is DefaultMessage req &&
                 response is DefaultMessage res &&
                 req.Sequence == res.Sequence;
+        }
+
+        /// <summary>连接关闭时，清空粘包编码器</summary>
+        /// <param name="context"></param>
+        /// <param name="reason"></param>
+        /// <returns></returns>
+        public override Boolean Close(IHandlerContext context, String reason)
+        {
+            if (context.Owner is IExtend ss) ss["Codec"] = null;
+
+            return base.Close(context, reason);
         }
     }
 }

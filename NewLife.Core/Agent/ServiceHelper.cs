@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !__CORE__
+using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -20,45 +21,10 @@ namespace NewLife.Agent
             {
                 var p = Process.GetCurrentProcess();
                 var filename = p.MainModule.FileName;
-                filename = Path.GetFileName(filename);
+                //filename = Path.GetFileName(filename);
                 filename = filename.Replace(".vshost.", ".");
 
                 return filename;
-            }
-        }
-
-        /// <summary>安装、卸载 服务</summary>
-        /// <param name="service">服务对象</param>
-        /// <param name="isinstall">是否安装</param>
-        public static void Install(this AgentServiceBase service, Boolean isinstall = true)
-        {
-            var name = service.ServiceName;
-            if (String.IsNullOrEmpty(name)) throw new Exception("未指定服务名！");
-
-            if (name.Length < name.GetBytes().Length) throw new Exception("服务名不能是中文！");
-
-            name = name.Replace(" ", "_");
-            // win7及以上系统时才提示
-            if (Environment.OSVersion.Version.Major >= 6) WriteLine("在win7/win2008及更高系统中，可能需要管理员权限执行才能安装/卸载服务。");
-            if (isinstall)
-            {
-                var exe = ExeName;
-
-                // 兼容dotnet
-                var args = Environment.GetCommandLineArgs();
-                if (args.Length >= 1 && exe.EqualIgnoreCase("dotnet", "dotnet.exe"))
-                    exe += " " + args[0].GetFullPath();
-                else
-                    exe = exe.GetFullPath();
-
-                RunSC("create " + name + " BinPath= \"" + exe + " -s\" start= auto DisplayName= \"" + service.DisplayName + "\"");
-                if (!String.IsNullOrEmpty(service.Description)) RunSC("description " + name + " \"" + service.Description + "\"");
-            }
-            else
-            {
-                service.ControlService(false);
-
-                RunSC("Delete " + name);
             }
         }
 
@@ -178,3 +144,4 @@ namespace NewLife.Agent
         #endregion
     }
 }
+#endif

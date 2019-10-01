@@ -20,7 +20,7 @@ namespace NewLife.Serialization
         /// <summary>成员</summary>
         MemberInfo Member { get; set; }
 
-        /// <summary>文本编码</summary>
+        /// <summary>字符串编码，默认utf-8</summary>
         Encoding Encoding { get; set; }
 
         /// <summary>序列化属性而不是字段。默认true</summary>
@@ -93,7 +93,7 @@ namespace NewLife.Serialization
         /// <summary>成员</summary>
         public MemberInfo Member { get; set; }
 
-        /// <summary>字符串编码，默认Default</summary>
+        /// <summary>字符串编码，默认utf-8</summary>
         public Encoding Encoding { get; set; }
 
         /// <summary>序列化属性而不是字段。默认true</summary>

@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 
+#if NET4
 namespace System.Threading.Tasks
 {
     /// <summary>任务扩展</summary>
     public static class TaskEx
     {
-        #region 异步执行
+#region 异步执行
         /// <summary>公平调度的工厂</summary>
         public static TaskFactory Factory { get; } = new TaskFactory(TaskCreationOptions.PreferFairness, TaskContinuationOptions.PreferFairness);
 
@@ -67,9 +68,8 @@ namespace System.Threading.Tasks
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public static Task<TResult> Run<TResult>(Func<Task<TResult>> function, CancellationToken cancellationToken) => TaskExtensions.Unwrap(Run<Task<TResult>>(function, cancellationToken));
-        #endregion
+#endregion
 
-#if NET4
         private const String ArgumentOutOfRange_TimeoutNonNegativeOrMinusOne = "The timeout must be non-negative or -1, and it must be less than or equal to Int32.MaxValue.";
 
         private static readonly Task s_preCompletedTask = FromResult(false);
@@ -289,7 +289,6 @@ namespace System.Threading.Tasks
             }
             targetList.Add(exception);
         }
-#endif
     }
 
     /// <summary>任务扩展</summary>
@@ -300,3 +299,4 @@ namespace System.Threading.Tasks
         public static TaskFactory<TResult> Factory { get; } = new TaskFactory<TResult>(TaskCreationOptions.PreferFairness, TaskContinuationOptions.PreferFairness);
     }
 }
+#endif

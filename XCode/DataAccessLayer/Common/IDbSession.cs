@@ -19,11 +19,8 @@ namespace XCode.DataAccessLayer
         /// <summary>数据库</summary>
         IDatabase Database { get; }
 
-        /// <summary>链接字符串</summary>
-        String ConnectionString { get; set; }
-
-        ///// <summary>数据库链接</summary>
-        //DbConnection Conn { get; }
+        ///// <summary>链接字符串</summary>
+        //String ConnectionString { get; set; }
 
         /// <summary>查询次数</summary>
         Int32 QueryTimes { get; set; }
@@ -36,25 +33,17 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 打开/关闭
-        ///// <summary>连接是否已经打开</summary>
-        //Boolean Opened { get; }
+        /// <summary>打开连接并执行操作</summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="callback"></param>
+        /// <returns></returns>
+        TResult Process<TResult>(Func<DbConnection, TResult> callback);
 
-        ///// <summary>打开</summary>
-        //void Open();
-
-        ///// <summary>关闭</summary>
-        //void Close();
-
-        ///// <summary>
-        ///// 自动关闭。
-        ///// 启用事务后，不关闭连接。
-        ///// 在提交或回滚事务时，如果IsAutoClose为true，则会自动关闭
-        ///// </summary>
-        //void AutoClose();
-
-        ///// <summary>设置自动关闭。启用、禁用、继承</summary>
-        ///// <param name="enable"></param>
-        //void SetAutoClose(Boolean? enable);
+        ///// <summary>打开连接并执行操作</summary>
+        ///// <typeparam name="TResult"></typeparam>
+        ///// <param name="callback"></param>
+        ///// <returns></returns>
+        //Task<TResult> ProcessAsync<TResult>(Func<DbConnection, Task<TResult>> callback);
         #endregion
 
         #region 事务

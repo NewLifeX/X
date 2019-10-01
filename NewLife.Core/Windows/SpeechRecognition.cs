@@ -1,10 +1,11 @@
-﻿using NewLife.IO;
-using NewLife.Log;
-using NewLife.Model;
-using NewLife.Reflection;
+﻿#if __WIN__
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using NewLife.IO;
+using NewLife.Log;
+using NewLife.Model;
+using NewLife.Reflection;
 
 namespace NewLife.Windows
 {
@@ -23,7 +24,7 @@ namespace NewLife.Windows
         private DateTime _Tip;
 
         /// <summary>是否可用</summary>
-        public Boolean Enable { get { return _speech != null; } }
+        public Boolean Enable => _speech != null;
         #endregion
 
         #region 构造
@@ -146,8 +147,7 @@ namespace NewLife.Windows
             {
                 XTrace.WriteLine("语音识别：{0} {1}", txt, conf);
 
-                Action func = null;
-                if (_dic.TryGetValue(txt, out func)) func();
+                if (_dic.TryGetValue(txt, out var func)) func();
             }
         }
         #endregion
@@ -187,3 +187,4 @@ namespace NewLife.Windows
         }
     }
 }
+#endif

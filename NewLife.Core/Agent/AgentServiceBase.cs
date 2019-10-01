@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !__CORE__
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -296,7 +297,7 @@ namespace NewLife.Agent
         {
             WriteLog("服务启动 {0}", reason);
 
-            _Timer = new TimerX(DoCheck, null, 10_000, 10_000, "AM");
+            _Timer = new TimerX(DoCheck, null, 10_000, 10_000, "AM") { Async = true };
         }
 
         /// <summary>停止服务</summary>
@@ -333,8 +334,19 @@ namespace NewLife.Agent
             var max = Setting.Current.MaxMemory;
             if (max <= 0) return false;
 
-            var p = Process.GetCurrentProcess();
-            var cur = p.WorkingSet64 + p.PrivateMemorySize64;
+            var cur = GC.GetTotalMemory(false);
+            cur = cur / 1024 / 1024;
+            if (cur < max) return false;
+
+            // 执行一次GC回收
+#if NET4
+            GC.Collect(2, GCCollectionMode.Forced);
+#else
+            GC.Collect(2, GCCollectionMode.Forced, false);
+#endif
+
+            // 再次判断内存
+            cur = GC.GetTotalMemory(true);
             cur = cur / 1024 / 1024;
             if (cur < max) return false;
 
@@ -488,6 +500,48 @@ namespace NewLife.Agent
         }
         #endregion
 
+        #region 安装卸载
+        /// <summary>安装、卸载 服务</summary>
+        /// <param name="isinstall">是否安装</param>
+        public void Install(Boolean isinstall = true)
+        {
+            var name = ServiceName;
+            if (String.IsNullOrEmpty(name)) throw new Exception("未指定服务名！");
+
+            if (name.Length < name.GetBytes().Length) throw new Exception("服务名不能是中文！");
+
+            name = name.Replace(" ", "_");
+            // win7及以上系统时才提示
+            if (Environment.OSVersion.Version.Major >= 6) ServiceHelper.WriteLine("在win7/win2008及更高系统中，可能需要管理员权限执行才能安装/卸载服务。");
+            if (isinstall)
+            {
+                var exe = ServiceHelper.ExeName;
+
+                // 兼容dotnet
+                var args = Environment.GetCommandLineArgs();
+                if (args.Length >= 1 && Path.GetFileName(exe).EqualIgnoreCase("dotnet", "dotnet.exe"))
+                    exe += " " + args[0].GetFullPath();
+                //else
+                //    exe = exe.GetFullPath();
+
+                var bin = GetBinPath(exe);
+                ServiceHelper.RunSC($"create {name} BinPath= \"{bin}\" start= auto DisplayName= \"{DisplayName}\"");
+                if (!Description.IsNullOrEmpty()) ServiceHelper.RunSC($"description {name} \"{Description}\"");
+            }
+            else
+            {
+                this.ControlService(false);
+
+                ServiceHelper.RunSC("Delete " + name);
+            }
+        }
+
+        /// <summary>获取安装服务的命令参数</summary>
+        /// <param name="exe"></param>
+        /// <returns></returns>
+        protected virtual String GetBinPath(String exe) => $"{exe} -s";
+        #endregion
+
         #region 日志
         /// <summary>日志</summary>
         public ILog Log { get; set; } = Logger.Null;
@@ -502,3 +556,4 @@ namespace NewLife.Agent
         #endregion
     }
 }
+#endif

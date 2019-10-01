@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
@@ -58,6 +59,8 @@ namespace XCode.Membership
         {
             // 用于引发基类的静态构造函数
             var entity = new TEntity();
+
+            //Meta.Factory.FullInsert = false;
 
             Meta.Modules.Add<UserModule>();
             Meta.Modules.Add<TimeModule>();
@@ -267,7 +270,7 @@ namespace XCode.Membership
 
         #region 扩展权限
         /// <summary>本角色权限集合</summary>
-        [XmlIgnore, ScriptIgnore]
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public IDictionary<Int32, PermissionFlags> Permissions { get; } = new Dictionary<Int32, PermissionFlags>();
 
         /// <summary>是否拥有指定资源的指定权限</summary>
@@ -389,7 +392,7 @@ namespace XCode.Membership
         }
 
         /// <summary>当前角色拥有的资源</summary>
-        [XmlIgnore, ScriptIgnore]
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public Int32[] Resources { get { return Permissions.Keys.ToArray(); } }
         #endregion
 
@@ -429,6 +432,7 @@ namespace XCode.Membership
             {
                 Name = name,
                 IsSystem = issys,
+                Enable = true,
                 Remark = remark
             };
             entity.Save();

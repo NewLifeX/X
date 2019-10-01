@@ -28,6 +28,10 @@ namespace XCode
         [Description("SQL执行时间。跟踪SQL执行时间，大于该阀值将输出日志，默认1000毫秒")]
         public Int32 TraceSQLTime { get; set; } = 1000;
 
+        /// <summary>SQL最大长度，输出日志时的SQL最大长度，超长截断，默认4096，不截断用0</summary>
+        [Description("SQL最大长度。输出日志时的SQL最大长度，超长截断，默认4096，不截断用0")]
+        public Int32 SQLMaxLength { get; set; } = 4096;
+
         /// <summary>连接名映射#，表名映射@，表名映射@，把实体类中的Test2和Test3连接名映射到Test去</summary>
         [Description("连接映射。连接名映射#，表名映射@，把实体类中的Test2和Test3连接名映射到Test去")]
         public String ConnMaps { get; set; } = "";
@@ -48,8 +52,8 @@ namespace XCode
         [Description("命令超时。查询执行超时时间，默认0秒不限制")]
         public Int32 CommandTimeout { get; set; }
 
-        /// <summary>数据层缓存。默认0秒</summary>
-        [Description("数据层缓存。默认0秒")]
+        /// <summary>数据层缓存。默认0秒，达到60秒后全表查询使用文件缓存</summary>
+        [Description("数据层缓存。默认0秒，达到60秒后全表查询使用文件缓存")]
         public Int32 DataCacheExpire { get; set; }
 
         /// <summary>实体缓存过期。整表缓存实体列表，默认10秒</summary>

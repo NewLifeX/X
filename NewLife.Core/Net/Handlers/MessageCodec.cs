@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Messaging;
 using NewLife.Model;
-using NewLife.Threading;
 
 namespace NewLife.Net.Handlers
 {
@@ -58,10 +57,19 @@ namespace NewLife.Net.Handlers
         {
             if (msg != null && context["TaskSource"] is TaskCompletionSource<Object> source)
             {
-                var timeout = Timeout;
-                //if (context.Session is ISocketClient client) timeout = client.Timeout;
-                Queue.Add(context.Owner, msg, timeout, source);
+                Queue.Add(context.Owner, msg, Timeout, source);
             }
+        }
+
+        /// <summary>连接关闭时，清空粘包编码器</summary>
+        /// <param name="context"></param>
+        /// <param name="reason"></param>
+        /// <returns></returns>
+        public override Boolean Close(IHandlerContext context, String reason)
+        {
+            Queue.Clear();
+
+            return base.Close(context, reason);
         }
 
         /// <summary>读取数据</summary>
@@ -91,8 +99,9 @@ namespace NewLife.Net.Handlers
                     // 匹配
                     if (msg3.Reply)
                     {
-                        //!!! 处理结果的Packet需要拷贝一份，否交给另一个线程使用会有冲突
+                        //!!! 处理结果的Packet需要拷贝一份，否则交给另一个线程使用会有冲突
                         if (rs is IMessage msg4 && msg4.Payload != null && msg4.Payload == msg3.Payload) msg4.Payload = msg4.Payload.Clone();
+
                         Queue.Match(context.Owner, msg, rs, IsMatch);
                     }
                 }
@@ -102,7 +111,8 @@ namespace NewLife.Net.Handlers
                     Queue.Match(context.Owner, msg, rs, IsMatch);
                 }
 
-                // 匹配输入回调，让上层事件收到分包信息
+                // 匹配输入回调，让上层事件收到分包信息。
+                // 这里很可能处于网络IO线程，阻塞了下一个Tcp包的接收
                 context.FireRead(rs);
             }
 
@@ -122,96 +132,6 @@ namespace NewLife.Net.Handlers
         protected virtual Boolean IsMatch(Object request, Object response) => true;
 
         #region 粘包处理
-        /// <summary>分析数据流，得到一帧数据</summary>
-        /// <param name="pk">待分析数据包</param>
-        /// <param name="codec">参数</param>
-        /// <param name="getLength">获取长度</param>
-        /// <param name="expire">缓存有效期</param>
-        /// <returns></returns>
-        protected virtual IList<Packet> Parse(Packet pk, CodecItem codec, Func<Packet, Int32> getLength, Int32 expire = 5000)
-        {
-            var _ms = codec.Stream;
-            var nodata = _ms == null || _ms.Position < 0 || _ms.Position >= _ms.Length;
-
-            var list = new List<Packet>();
-            // 内部缓存没有数据，直接判断输入数据流是否刚好一帧数据，快速处理，绝大多数是这种场景
-            if (nodata)
-            {
-                if (pk == null) return list.ToArray();
-
-                var idx = 0;
-                while (idx < pk.Total)
-                {
-                    //var pk2 = new Packet(pk.Data, pk.Offset + idx, pk.Total - idx);
-                    var pk2 = pk.Slice(idx);
-                    var len = getLength(pk2);
-                    if (len <= 0 || len > pk2.Count) break;
-
-                    pk2.Set(pk2.Data, pk2.Offset, len);
-                    //pk2.SetSub(0, len);
-                    list.Add(pk2);
-                    idx += len;
-                }
-                // 如果没有剩余，可以返回
-                if (idx == pk.Total) return list.ToArray();
-
-                // 剩下的
-                //pk = new Packet(pk.Data, pk.Offset + idx, pk.Total - idx);
-                pk = pk.Slice(idx);
-            }
-
-            if (_ms == null) codec.Stream = _ms = new MemoryStream();
-
-            // 加锁，避免多线程冲突
-            lock (_ms)
-            {
-                // 超过该时间后按废弃数据处理
-                var now = TimerX.Now;
-                if (_ms.Length > _ms.Position && codec.Last.AddMilliseconds(expire) < now)
-                {
-                    _ms.SetLength(0);
-                    _ms.Position = 0;
-                }
-                codec.Last = now;
-
-                // 合并数据到最后面
-                if (pk != null && pk.Total > 0)
-                {
-                    var p = _ms.Position;
-                    _ms.Position = _ms.Length;
-                    pk.WriteTo(_ms);
-                    _ms.Position = p;
-                }
-
-                // 尝试解包
-                while (_ms.Position < _ms.Length)
-                {
-                    //var pk2 = new Packet(_ms.GetBuffer(), (Int32)_ms.Position, (Int32)_ms.Length);
-                    var pk2 = new Packet(_ms);
-                    var len = getLength(pk2);
-
-                    // 资源不足一包
-                    if (len <= 0 || len > pk2.Total) break;
-
-                    // 解包成功
-                    pk2.Set(pk2.Data, pk2.Offset, len);
-                    //pk2.SetSub(0, len);
-                    list.Add(pk2);
-
-                    _ms.Seek(len, SeekOrigin.Current);
-                }
-
-                // 如果读完了数据，需要重置缓冲区
-                if (_ms.Position >= _ms.Length)
-                {
-                    _ms.SetLength(0);
-                    _ms.Position = 0;
-                }
-
-                return list;
-            }
-        }
-
         /// <summary>从数据流中获取整帧数据长度</summary>
         /// <param name="pk"></param>
         /// <param name="offset"></param>
@@ -263,15 +183,5 @@ namespace NewLife.Net.Handlers
             return len;
         }
         #endregion
-    }
-
-    /// <summary>消息编码参数</summary>
-    public class CodecItem
-    {
-        /// <summary>缓存流</summary>
-        public MemoryStream Stream;
-
-        /// <summary>最后一次接收</summary>
-        public DateTime Last;
     }
 }

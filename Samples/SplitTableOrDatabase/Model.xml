@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Tables Version="9.12.7136.19046" NameSpace="STOD.Entity" ConnName="STOD" Output="" BaseClass="Entity" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:schemaLocation="http://www.newlifex.com https://raw.githubusercontent.com/NewLifeX/X/master/XCode/ModelSchema.xsd" xmlns="http://www.newlifex.com/ModelSchema.xsd">
+  <Table Name="History" Description="历史">
+    <Columns>
+      <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
+      <Column Name="Category" DataType="String" Description="类别" />
+      <Column Name="Action" DataType="String" Description="操作" />
+      <Column Name="UserName" DataType="String" Description="用户名" />
+      <Column Name="CreateUserID" DataType="Int32" Description="用户编号" />
+      <Column Name="CreateIP" DataType="String" Description="IP地址" />
+      <Column Name="CreateTime" DataType="DateTime" Description="时间" />
+      <Column Name="Remark" DataType="String" Length="500" Description="详细信息" />
+    </Columns>
+    <Indexes>
+      <Index Columns="CreateTime" />
+    </Indexes>
+  </Table>
+</Tables>

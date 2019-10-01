@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -37,18 +38,11 @@ namespace NewLife.Data
         /// <param name="seg"></param>
         public Packet(ArraySegment<Byte> seg) => Set(seg.Array, seg.Offset, seg.Count);
 
-        /// <summary>从可扩展内存流实例化</summary>
+        /// <summary>从可扩展内存流实例化，尝试窃取内存流内部的字节数组，失败后拷贝</summary>
+        /// <remarks>因数据包内数组窃取自内存流，需要特别小心，避免多线程共用</remarks>
         /// <param name="stream"></param>
         public Packet(Stream stream)
         {
-            // 下面代码需要.Net 4.6支持
-
-            //// 尝试抠了内部存储区，下面代码需要.Net 4.6支持
-            //if (stream.TryGetBuffer(out var seg))
-            //    Set(seg.Array, seg.Offset, seg.Count);
-            //else
-            //    Set(stream.ToArray());
-
             if (stream is MemoryStream ms)
             {
                 try
@@ -78,12 +72,41 @@ namespace NewLife.Data
         {
             get
             {
+                //超过下标直接报错,谁也不想处理了异常的数据也不知道
+                if (index >= Total || index < 0)
+                    throw new IndexOutOfRangeException($"超出Packet 索引范围 获取的索引{index} Packet最大索引{Total - 1}");
+
                 var p = Offset + index;
-                if (p >= Data.Length && Next != null) return Next[p - Data.Length];
+                if (p >= Offset + Count && Next != null) return Next[index - Count];
 
                 return Data[p];
+
+                // Offset 至 Offset+Count 代表了当前链的可用数据区
+                // Count 是当前链的实际可用数据长度,(而用 Data.Length 是不准确的,Data的数据不是全部可用),
+                // 所以  这里通过索引取整个链表的索引数据应该用 Count 作运算.              
             }
-            set { Data[Offset + index] = value; }
+            set
+            {
+                if (index >= Total || index < 0)
+                    throw new ArgumentOutOfRangeException($"{index} 索引参数不在Packet索引给定的范围内");
+
+                //设置 对应索引 的数据 应该也是针对整个链表的有效数据区
+                var p = Offset + index;
+                if (p >= Offset + Count && Next != null)
+                    Next[p - Data.Length] = value;
+                else
+                    Data[p] = value;
+                // 基础类需要严谨给出明确功用，不能模棱两可，因此不能越界
+                //else
+                //{
+                //    //throw new IndexOutOfRangeException();//超出索引下标报错
+                //    Byte[] b;// 或新建一个Pakcet 继续延申数据链,我觉得选择延时比较好,有时候写代码可以偷懒
+                //    b = new Byte[index - Count + 1];
+                //    var pk = new Packet(b);
+                //    Next = pk;
+                //    Next[index - Count] = value;
+                //}
+            }
         }
         #endregion
 
@@ -99,7 +122,7 @@ namespace NewLife.Data
             if (data == null)
             {
                 Offset = 0;
-                count = 0;
+                Count = 0;
             }
             else
             {
@@ -109,18 +132,6 @@ namespace NewLife.Data
                 Count = count;
             }
         }
-
-        ///// <summary>设置子数据区</summary>
-        ///// <param name="offset">相对偏移</param>
-        ///// <param name="count">字节个数</param>
-        //public virtual void SetSub(Int32 offset, Int32 count = -1)
-        //{
-        //    Offset += offset;
-
-        //    if (count < 0) count = Count - offset;
-        //    if (count < 0) count = Data.Length - Offset;
-        //    Count = count;
-        //}
 
         /// <summary>截取子数据区</summary>
         /// <param name="offset">相对偏移</param>
@@ -162,18 +173,16 @@ namespace NewLife.Data
         /// <returns></returns>
         public Int32 IndexOf(Byte[] data, Int32 offset = 0, Int32 count = -1)
         {
-            //return (Int32)IOHelper.IndexOf(Data, Offset, Count, data, offset, count);
-
             var start = offset;
             var length = data.Length;
 
             if (count < 0 || count > Total - offset) count = Total - offset;
-
             // 已匹配字节数
             var win = 0;
             // 索引加上data剩余字节数必须小于count
             for (var i = 0; i + length - win <= count; i++)
             {
+
                 if (this[start + i] == data[win])
                 {
                     win++;
@@ -185,7 +194,7 @@ namespace NewLife.Data
                 {
                     //win = 0; // 只要有一个不匹配，马上清零
                     // 不能直接清零，那样会导致数据丢失，需要逐位探测，窗口一个个字节滑动
-                    i = i - win;
+                    i -= win;
                     win = 0;
                 }
             }
@@ -215,7 +224,7 @@ namespace NewLife.Data
 
             // 链式包输出
             var ms = Pool.MemoryStream.Get();
-            WriteTo(ms);
+            CopyTo(ms);
 
             return ms.Put(true);
         }
@@ -272,6 +281,21 @@ namespace NewLife.Data
             return new ArraySegment<Byte>(ToArray());
         }
 
+        /// <summary>返回数据段集合</summary>
+        /// <returns></returns>
+        public IList<ArraySegment<Byte>> ToSegments()
+        {
+            // 初始4元素，优化扩容
+            var list = new List<ArraySegment<Byte>>(4);
+
+            for (var pk = this; pk != null; pk = pk.Next)
+            {
+                list.Add(new ArraySegment<Byte>(pk.Data, pk.Offset, pk.Count));
+            }
+
+            return list;
+        }
+
         /// <summary>获取封包的数据流形式</summary>
         /// <returns></returns>
         public virtual MemoryStream GetStream()
@@ -280,7 +304,7 @@ namespace NewLife.Data
             if (Next == null) return new MemoryStream(Data, Offset, Count, false, true);
 
             var ms = new MemoryStream();
-            WriteTo(ms);
+            CopyTo(ms);
             ms.Position = 0;
 
             return ms;
@@ -288,10 +312,10 @@ namespace NewLife.Data
 
         /// <summary>把封包写入到数据流</summary>
         /// <param name="stream"></param>
-        public void WriteTo(Stream stream)
+        public void CopyTo(Stream stream)
         {
             stream.Write(Data, Offset, Count);
-            Next?.WriteTo(stream);
+            Next?.CopyTo(stream);
         }
 
         /// <summary>把封包写入到目标数组</summary>
@@ -336,7 +360,6 @@ namespace NewLife.Data
         public String ToStr(Encoding encoding = null, Int32 offset = 0, Int32 count = -1)
         {
             if (Data == null) return null;
-            //if (Count == 0) return String.Empty;
 
             if (encoding == null) encoding = Encoding.UTF8;
             if (count < 0) count = Total - offset;
@@ -354,12 +377,6 @@ namespace NewLife.Data
         public String ToHex(Int32 maxLength = 32, String separate = null, Int32 groupSize = 0)
         {
             if (Data == null) return null;
-            //if (Count == 0) return String.Empty;
-
-            //var len = Math.Min(Count, maxLength);
-            //var buf = Data;
-            //if (Offset > 0) buf = Data.ReadBytes(Offset, len);
-            //return buf.ToHex(separate, groupSize, len);
 
             return ReadBytes(0, maxLength).ToHex(separate, groupSize);
         }

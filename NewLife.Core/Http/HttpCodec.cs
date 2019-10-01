@@ -30,6 +30,17 @@ namespace NewLife.Http
         {
             if (!(message is Packet pk)) return base.Read(context, message);
 
+            // 是否Http请求
+            var ext = context.Owner as IExtend;
+            if (!(ext["Encoder"] is HttpEncoder))
+            {
+                if (!(pk[0] == 'G' && pk[1] == 'E' && pk[2] == 'T') &&
+                    !(pk[0] == 'P' && pk[1] == 'O' && pk[2] == 'S' && pk[3] == 'T'))
+                    return base.Read(context, message);
+
+                ext["Encoder"] = new HttpEncoder();
+            }
+
             // 解码得到消息
 
             var msg = new HttpMessage();

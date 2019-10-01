@@ -18,6 +18,7 @@ namespace NewLife.IO
         public Encoding Encoding { get; set; } = Encoding.UTF8;
 
         private readonly Stream _stream;
+        private readonly Boolean _leaveOpen;
 
         /// <summary>分隔符。默认逗号</summary>
         public Char Separator { get; set; } = ',';
@@ -28,13 +29,23 @@ namespace NewLife.IO
         /// <param name="stream"></param>
         public CsvFile(Stream stream) => _stream = stream;
 
+        /// <summary>数据流实例化</summary>
+        /// <param name="stream"></param>
+        /// <param name="leaveOpen">保留打开</param>
+        public CsvFile(Stream stream, Boolean leaveOpen)
+        {
+            _stream = stream;
+            _leaveOpen = leaveOpen;
+        }
+
         /// <summary>Csv文件实例化</summary>
         /// <param name="file"></param>
         /// <param name="write"></param>
         public CsvFile(String file, Boolean write = false)
         {
+            file = file.GetFullPath();
             if (write)
-                _stream = new FileStream(file, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
+                _stream = new FileStream(file.EnsureDirectory(true), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
             else
                 _stream = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
         }
@@ -49,10 +60,10 @@ namespace NewLife.IO
 
             _writer?.Flush();
 
-            if (_stream is FileStream fs)
+            if (!_leaveOpen && _stream != null)
             {
                 _writer.TryDispose();
-                fs.TryDispose();
+                _stream.Close();
             }
         }
         #endregion

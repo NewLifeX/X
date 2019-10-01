@@ -131,7 +131,7 @@ namespace NewLife.Yun
             LastString = null;
             LastKey = key;
 
-            var rs = await _Client.DownloadStringAsync(url);
+            var rs = await _Client.DownloadStringAsync(url).ConfigureAwait(false);
 
             //// 删除无效密钥
             //if (IsValidKey(rs)) RemoveKey(key);
@@ -147,7 +147,7 @@ namespace NewLife.Yun
         {
             LastResult = null;
 
-            var html = await GetStringAsync(url);
+            var html = await GetStringAsync(url).ConfigureAwait(false);
             if (html.IsNullOrEmpty()) return default(T);
 
             var rs = new JsonParser(html).Decode();

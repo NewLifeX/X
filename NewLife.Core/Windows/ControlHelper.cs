@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿#if __WIN__
+using System.Drawing;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
@@ -554,3 +555,4 @@ namespace System.Windows.Forms
         #endregion
     }
 }
+#endif

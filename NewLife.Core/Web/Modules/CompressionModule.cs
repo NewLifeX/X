@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !__CORE__
+using System;
 using System.ComponentModel;
 using System.IO.Compression;
 using System.Linq;
@@ -92,3 +93,4 @@ namespace NewLife.Web
         #endregion
     }
 }
+#endif

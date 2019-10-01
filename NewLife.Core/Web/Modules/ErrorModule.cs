@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !__CORE__
+using System;
 using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Threading;
@@ -91,3 +92,4 @@ namespace NewLife.Web
         #endregion
     }
 }
+#endif

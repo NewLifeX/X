@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if __WIN__
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
@@ -164,7 +165,7 @@ namespace XCode.DataAccessLayer
             //FileSource.ReleaseFile(Assembly.GetExecutingAssembly(), "SqlCe.sdf", FileName, true);
             DAL.WriteLog("创建数据库：{0}", FileName);
 
-            var sce = SqlCeEngine.Create(ConnectionString);
+            var sce = SqlCeEngine.Create(Database.ConnectionString);
             if (sce != null) sce.CreateDatabase().Dispose();
         }
 
@@ -552,3 +553,4 @@ namespace XCode.DataAccessLayer
         public SqlCeEngine Shrink() { Engine.Invoke("Shrink"); return this; }
     }
 }
+#endif

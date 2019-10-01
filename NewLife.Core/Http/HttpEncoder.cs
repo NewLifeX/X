@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Web;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Messaging;
@@ -18,14 +19,16 @@ namespace NewLife.Http
         /// <param name="code"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public Packet Encode(String action, Int32 code, Object value)
+        public virtual Packet Encode(String action, Int32 code, Object value)
         {
             if (value == null) return null;
+
+            if (value is Packet pk) return pk;
 
             // 不支持序列化异常
             if (value is Exception ex) value = ex.GetTrue()?.Message;
 
-            var json = value.ToJson();
+            var json = value.ToJson(false, false, false);
             WriteLog("{0}=>{1}", action, json);
 
             return json.GetBytes();
@@ -35,11 +38,20 @@ namespace NewLife.Http
         /// <param name="action"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        public IDictionary<String, Object> DecodeParameters(String action, Packet data)
+        public virtual IDictionary<String, Object> DecodeParameters(String action, Packet data)
         {
             var str = data.ToStr();
             WriteLog("{0}<={1}", action, str);
-            if (!str.IsNullOrEmpty()) return str.SplitAsDictionary("=", "&").ToDictionary(e => e.Key, e => (Object)e.Value);
+            if (!str.IsNullOrEmpty())
+            {
+                var dic = str.SplitAsDictionary("=", "&");//.ToDictionary(e => e.Key, e => (Object)e.Value, StringComparer.OrdinalIgnoreCase);
+                var rs = new Dictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
+                foreach (var item in dic)
+                {
+                    rs[item.Key] = HttpUtility.UrlDecode(item.Value);
+                }
+                return rs;
+            }
 
             return null;
         }
@@ -48,7 +60,7 @@ namespace NewLife.Http
         /// <param name="action"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        public Object DecodeResult(String action, Packet data)
+        public virtual Object DecodeResult(String action, Packet data)
         {
             var json = data.ToStr();
             WriteLog("{0}<={1}", action, json);
@@ -60,7 +72,7 @@ namespace NewLife.Http
         /// <param name="obj"></param>
         /// <param name="targetType"></param>
         /// <returns></returns>
-        public Object Convert(Object obj, Type targetType) => JsonHelper.Default.Convert(obj, targetType);
+        public virtual Object Convert(Object obj, Type targetType) => JsonHelper.Default.Convert(obj, targetType);
 
         #region 编码/解码
         ///// <summary>编码 请求/响应</summary>
@@ -129,7 +141,7 @@ namespace NewLife.Http
         /// <param name="code"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public IMessage CreateResponse(IMessage msg, String action, Int32 code, Object value)
+        public virtual IMessage CreateResponse(IMessage msg, String action, Int32 code, Object value)
         {
             if (code <= 0) code = 200;
 
@@ -152,7 +164,7 @@ namespace NewLife.Http
             else
                 sb.AppendLine(" Error");
 
-            sb.AppendFormat("Content-Length:{0}\r\n", pk.Total);
+            sb.AppendFormat("Content-Length:{0}\r\n", pk?.Total ?? 0);
             sb.AppendLine("Content-Type:application/json");
             sb.AppendLine("Connection:keep-alive");
 

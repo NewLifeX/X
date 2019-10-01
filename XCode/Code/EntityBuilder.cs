@@ -45,7 +45,7 @@ namespace XCode.Code
         /// <param name="output">输出目录</param>
         /// <param name="nameSpace">命名空间</param>
         /// <param name="connName">连接名</param>
-        public static Int32 Build(String xmlFile = null, String output = null, String nameSpace = null, String connName = null)
+        public static Int32 Build(String xmlFile = null, String output = null, String nameSpace = null, String connName = null, Boolean? chineseFileName = null)
         {
             if (xmlFile.IsNullOrEmpty())
             {
@@ -94,9 +94,20 @@ namespace XCode.Code
             else
                 baseClass = atts["BaseClass"];
 
+            // 中文文件名
+            if (chineseFileName != null)
+            {
+                atts["ChineseFileName"] = chineseFileName.Value ? "True" : "False";
+            }
+            else
+            {
+                chineseFileName = atts["ChineseFileName"].ToBoolean(true);
+            }
+            
+
             XTrace.WriteLine("代码生成源：{0}", xmlFile);
 
-            var rs = BuildTables(tables, output, nameSpace, connName, baseClass);
+            var rs = BuildTables(tables, output, nameSpace, connName, baseClass, chineseFileName.Value);
 
             // 确保输出空特性
             if (atts["Output"].IsNullOrEmpty()) atts["Output"] = "";
@@ -117,7 +128,8 @@ namespace XCode.Code
         /// <param name="nameSpace">命名空间</param>
         /// <param name="connName">连接名</param>
         /// <param name="baseClass">基类</param>
-        public static Int32 BuildTables(IList<IDataTable> tables, String output = null, String nameSpace = null, String connName = null, String baseClass = null)
+        /// <param name="chineseFileName">是否中文名称</param>
+        public static Int32 BuildTables(IList<IDataTable> tables, String output = null, String nameSpace = null, String connName = null, String baseClass = null, Boolean chineseFileName = true)
         {
             if (tables == null || tables.Count == 0) return 0;
 
@@ -159,11 +171,11 @@ namespace XCode.Code
                 str = item.Properties["Output"];
                 if (str.IsNullOrEmpty()) str = output;
                 builder.Output = str;
-                builder.Save(null, true);
+                builder.Save(null, true, chineseFileName);
 
                 builder.Business = true;
                 builder.Execute();
-                builder.Save(null, false);
+                builder.Save(null, false, chineseFileName);
 
                 count++;
             }
@@ -232,7 +244,7 @@ namespace XCode.Code
         /// <summary>保存</summary>
         /// <param name="ext"></param>
         /// <param name="overwrite"></param>
-        public override String Save(String ext = null, Boolean overwrite = true)
+        public override String Save(String ext = null, Boolean overwrite = true, Boolean chineseFileName = true)
         {
             if (ext.IsNullOrEmpty() && Business)
             {
@@ -240,7 +252,7 @@ namespace XCode.Code
                 //overwrite = false;
             }
 
-            return base.Save(ext, overwrite);
+            return base.Save(ext, overwrite, chineseFileName);
         }
 
         /// <summary>生成尾部</summary>
@@ -276,6 +288,7 @@ namespace XCode.Code
                 us.Add("System.Web");
                 //us.Add("System.Web.Script.Serialization");
                 us.Add("System.Xml.Serialization");
+                us.Add("System.Runtime.Serialization");
 
                 us.Add("NewLife");
                 us.Add("NewLife.Data");
@@ -408,10 +421,36 @@ namespace XCode.Code
 
                         if (!type.IsNullOrEmpty())
                         {
+                            if (!type.Contains("."))
+                            {
+
+                            }
                             if (!type.Contains(".") && conv.GetMethod("To" + type, new Type[] { typeof(Object) }) != null)
-                                WriteLine("case __.{0} : _{0} = Convert.To{1}(value); break;", dc.Name, type);
+                            {
+                                switch (type)
+                                {
+                                    case "Int32":
+                                        WriteLine("case __.{0} : _{0} = value.ToInt(); break;", dc.Name);
+                                        break;
+                                    case "Int64":
+                                        WriteLine("case __.{0} : _{0} = value.ToLong(); break;", dc.Name);
+                                        break;
+                                    case "Double":
+                                        WriteLine("case __.{0} : _{0} = value.ToDouble(); break;", dc.Name);
+                                        break;
+                                    case "Boolean":
+                                        WriteLine("case __.{0} : _{0} = value.ToBoolean(); break;", dc.Name);
+                                        break;
+                                    case "DateTime":
+                                        WriteLine("case __.{0} : _{0} = value.ToDateTime(); break;", dc.Name);
+                                        break;
+                                    default:
+                                        WriteLine("case __.{0} : _{0} = Convert.To{1}(value); break;", dc.Name, type);
+                                        break;
+                                }
+                            }
                             else
-                                WriteLine("case __.{0} : _{0} = ({1})Convert.ToInt32(value); break;", dc.Name, type);
+                                WriteLine("case __.{0} : _{0} = ({1})value.ToInt(); break;", dc.Name, type);
                         }
                     }
                     WriteLine("default: base[name] = value; break;");
@@ -556,7 +595,7 @@ namespace XCode.Code
                 var ns = new HashSet<String>(Table.Columns.Select(e => e.Name), StringComparer.OrdinalIgnoreCase);
                 WriteLine();
                 WriteLine("// 过滤器 UserModule、TimeModule、IPModule");
-                if (ns.Contains("CreateUserID") || ns.Contains("UpdateUserID"))
+                if (ns.Contains("CreateUserID") || ns.Contains("CreateUser") || ns.Contains("UpdateUserID") || ns.Contains("UpdateUser"))
                     WriteLine("Meta.Modules.Add<UserModule>();");
                 if (ns.Contains("CreateTime") || ns.Contains("UpdateTime"))
                     WriteLine("Meta.Modules.Add<TimeModule>();");
@@ -631,24 +670,24 @@ namespace XCode.Code
                     foreach (var item in cs)
                     {
                         if (item.Name.EqualIgnoreCase("CreateUserID"))
-                            WriteLine("if (isNew && !Dirtys[{0}) {0} = user.ID;", NameOf(item.Name));
+                            WriteLine("if (isNew && !Dirtys[{0}]) {1} = user.ID;", NameOf(item.Name), item.Name);
                         else
-                            WriteLine("if (!Dirtys[{0}]) {0} = user.ID;", NameOf(item.Name));
+                            WriteLine("if (!Dirtys[{0}]) {1} = user.ID;", NameOf(item.Name), item.Name);
                     }
                     WriteLine("}*/");
                 }
 
                 var dc = Table.Columns.FirstOrDefault(e => e.Name.EqualIgnoreCase("CreateTime"));
-                if (dc != null) WriteLine("//if (isNew && !Dirtys[{0}]) {0} = DateTime.Now;", NameOf(dc.Name));
+                if (dc != null) WriteLine("//if (isNew && !Dirtys[{0}]) {1} = DateTime.Now;", NameOf(dc.Name), dc.Name);
 
                 dc = Table.Columns.FirstOrDefault(e => e.Name.EqualIgnoreCase("UpdateTime"));
-                if (dc != null) WriteLine("//if (!Dirtys[{0}]) {0} = DateTime.Now;", NameOf(dc.Name));
+                if (dc != null) WriteLine("//if (!Dirtys[{0}]) {1} = DateTime.Now;", NameOf(dc.Name), dc.Name);
 
                 dc = Table.Columns.FirstOrDefault(e => e.Name.EqualIgnoreCase("CreateIP"));
-                if (dc != null) WriteLine("//if (isNew && !Dirtys[{0}]) {0} = ManageProvider.UserHost;", NameOf(dc.Name));
+                if (dc != null) WriteLine("//if (isNew && !Dirtys[{0}]) {1} = ManageProvider.UserHost;", NameOf(dc.Name), dc.Name);
 
                 dc = Table.Columns.FirstOrDefault(e => e.Name.EqualIgnoreCase("UpdateIP"));
-                if (dc != null) WriteLine("//if (!Dirtys[{0}]) {0} = ManageProvider.UserHost;", NameOf(dc.Name));
+                if (dc != null) WriteLine("//if (!Dirtys[{0}]) {1} = ManageProvider.UserHost;", NameOf(dc.Name), dc.Name);
 
                 // 唯一索引检查唯一性
                 var dis = Table.Indexes.Where(e => e.Unique).ToArray();
@@ -758,7 +797,7 @@ namespace XCode.Code
                     var pk = dt.PrimaryKeys[0];
 
                     WriteLine("/// <summary>{0}</summary>", dis);
-                    WriteLine("[XmlIgnore]");
+                    WriteLine("[XmlIgnore, IgnoreDataMember]");
                     WriteLine("//[ScriptIgnore]");
                     WriteLine("public {1} {1} {{ get {{ return Extends.Get({0}, k => {1}.FindBy{3}({2})); }} }}", NameOf(pname), dt.Name, dc.Name, pk.Name);
 
@@ -769,7 +808,7 @@ namespace XCode.Code
                     {
                         WriteLine();
                         WriteLine("/// <summary>{0}</summary>", dis);
-                        WriteLine("[XmlIgnore]");
+                        WriteLine("[XmlIgnore, IgnoreDataMember]");
                         WriteLine("//[ScriptIgnore]");
                         if (!dis.IsNullOrEmpty()) WriteLine("[DisplayName(\"{0}\")]", dis);
                         WriteLine("[Map(__.{0}, typeof({1}), \"{2}\")]", dc.Name, dt.Name, pk.Name);

@@ -132,7 +132,8 @@ namespace NewLife.IP
                 if (i < ss.Length && UInt32.TryParse(ss[i], out var n))
                 {
                     //buf[3 - i] = (Byte)n;
-                    val |= n << (3 - i);
+                    // 感谢啊富弟（QQ125662872）指出错误，右边需要乘以8，这里为了避开乘法，采用位移实现
+                    val |= n << ((3 - i) << 3);
                     //ptr[3 - i] = n;
                 }
             }

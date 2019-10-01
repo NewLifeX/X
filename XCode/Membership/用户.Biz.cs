@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.Common;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Security.Principal;
 using System.Web;
 using System.Web.Script.Serialization;
@@ -52,6 +53,7 @@ namespace XCode.Membership
             // 不过这不是理由，同一个线程遇到同一个锁不会堵塞
             // 发生死锁的可能性是这里引发EnsureInit，而另一个线程提前引发EnsureInit拿到锁
             Meta.Factory.AdditionalFields.Add(__.Logins);
+            //Meta.Factory.FullInsert = false;
 
             // 单对象缓存
             var sc = Meta.SingleCache;
@@ -125,17 +127,17 @@ namespace XCode.Membership
 
         #region 扩展属性
         /// <summary>友好名字</summary>
-        [XmlIgnore, ScriptIgnore]
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public virtual String FriendName => String.IsNullOrEmpty(DisplayName) ? Name : DisplayName;
 
         /// <summary>物理地址</summary>
         [DisplayName("物理地址")]
         //[BindRelation(__.LastLoginIP)]
-        [XmlIgnore, ScriptIgnore]
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public String LastLoginAddress => LastLoginIP.IPToAddress();
 
         /// <summary>部门</summary>
-        [XmlIgnore, ScriptIgnore]
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public Department Department => Extends.Get(nameof(Department), k => Department.FindByID(DepartmentID));
 
         /// <summary>部门</summary>
@@ -441,11 +443,11 @@ namespace XCode.Membership
         #region 权限
         /// <summary>角色</summary>
         /// <remarks>扩展属性不缓存空对象，一般来说，每个管理员都有对应的角色，如果没有，可能是在初始化</remarks>
-        [XmlIgnore, ScriptIgnore]
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public virtual IRole Role => Extends.Get(nameof(Role), k => ManageProvider.Get<IRole>()?.FindByID(RoleID));
 
         /// <summary>角色集合</summary>
-        [XmlIgnore, ScriptIgnore]
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public virtual IRole[] Roles => Extends.Get(nameof(Roles), k => GetRoleIDs().Select(e => ManageProvider.Get<IRole>()?.FindByID(e)).Where(e => e != null).ToArray());
 
         /// <summary>获取角色列表。主角色在前，其它角色升序在后</summary>
@@ -461,7 +463,7 @@ namespace XCode.Membership
         /// <summary>角色名</summary>
         [DisplayName("角色")]
         [Map(__.RoleID, typeof(RoleMapProvider))]
-        [XmlIgnore, ScriptIgnore]
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public virtual String RoleName => Role + "";
 
         /// <summary>用户是否拥有当前菜单的指定权限</summary>

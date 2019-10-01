@@ -150,7 +150,7 @@ namespace XCode.Membership
         /// <summary>创建时间</summary>
         [DisplayName("创建时间")]
         [Description("创建时间")]
-        [DataObjectField(false, false, true, 0)]
+        [DataObjectField(false, false, false, 0)]
         [BindColumn("CreateTime", "创建时间", "")]
         public DateTime CreateTime { get { return _CreateTime; } set { if (OnPropertyChanging(__.CreateTime, value)) { _CreateTime = value; OnPropertyChanged(__.CreateTime); } } }
 
@@ -182,7 +182,7 @@ namespace XCode.Membership
         /// <summary>更新时间</summary>
         [DisplayName("更新时间")]
         [Description("更新时间")]
-        [DataObjectField(false, false, true, 0)]
+        [DataObjectField(false, false, false, 0)]
         [BindColumn("UpdateTime", "更新时间", "")]
         public DateTime UpdateTime { get { return _UpdateTime; } set { if (OnPropertyChanging(__.UpdateTime, value)) { _UpdateTime = value; OnPropertyChanged(__.UpdateTime); } } }
 
@@ -234,27 +234,27 @@ namespace XCode.Membership
             {
                 switch (name)
                 {
-                    case __.ID : _ID = Convert.ToInt32(value); break;
+                    case __.ID : _ID = value.ToInt(); break;
                     case __.Category : _Category = Convert.ToString(value); break;
                     case __.Name : _Name = Convert.ToString(value); break;
                     case __.Value : _Value = Convert.ToString(value); break;
                     case __.LongValue : _LongValue = Convert.ToString(value); break;
-                    case __.Kind : _Kind = (XCode.Membership.ParameterKinds)Convert.ToInt32(value); break;
-                    case __.Enable : _Enable = Convert.ToBoolean(value); break;
-                    case __.Ex1 : _Ex1 = Convert.ToInt32(value); break;
-                    case __.Ex2 : _Ex2 = Convert.ToInt32(value); break;
-                    case __.Ex3 : _Ex3 = Convert.ToDouble(value); break;
+                    case __.Kind : _Kind = (XCode.Membership.ParameterKinds)value.ToInt(); break;
+                    case __.Enable : _Enable = value.ToBoolean(); break;
+                    case __.Ex1 : _Ex1 = value.ToInt(); break;
+                    case __.Ex2 : _Ex2 = value.ToInt(); break;
+                    case __.Ex3 : _Ex3 = value.ToDouble(); break;
                     case __.Ex4 : _Ex4 = Convert.ToString(value); break;
                     case __.Ex5 : _Ex5 = Convert.ToString(value); break;
                     case __.Ex6 : _Ex6 = Convert.ToString(value); break;
                     case __.CreateUser : _CreateUser = Convert.ToString(value); break;
-                    case __.CreateUserID : _CreateUserID = Convert.ToInt32(value); break;
+                    case __.CreateUserID : _CreateUserID = value.ToInt(); break;
                     case __.CreateIP : _CreateIP = Convert.ToString(value); break;
-                    case __.CreateTime : _CreateTime = Convert.ToDateTime(value); break;
+                    case __.CreateTime : _CreateTime = value.ToDateTime(); break;
                     case __.UpdateUser : _UpdateUser = Convert.ToString(value); break;
-                    case __.UpdateUserID : _UpdateUserID = Convert.ToInt32(value); break;
+                    case __.UpdateUserID : _UpdateUserID = value.ToInt(); break;
                     case __.UpdateIP : _UpdateIP = Convert.ToString(value); break;
-                    case __.UpdateTime : _UpdateTime = Convert.ToDateTime(value); break;
+                    case __.UpdateTime : _UpdateTime = value.ToDateTime(); break;
                     case __.Remark : _Remark = Convert.ToString(value); break;
                     default: base[name] = value; break;
                 }

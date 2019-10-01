@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -291,11 +291,20 @@ namespace NewLife.Xml
 
                 //if (File.Exists(filename)) File.Delete(filename);
                 filename.EnsureDirectory(true);
-
-                if (xml1 != xml2) File.WriteAllText(filename, xml2);
+                OnSaving(filename, xml1, xml2);
             }
         }
-
+        /// <summary>
+        /// 在持久化配置文件时执行
+        /// 如果重写该方法 请注意调用父类 以免造成配置文件不能正常持久化。
+        /// </summary>
+        /// <param name="filename">配置文件全路径</param>
+        /// <param name="oldXml">老配置文件的内容</param>
+        /// <param name="newXml">新配置文件的内容</param>
+        protected virtual void OnSaving(String filename, String oldXml, String newXml)
+        {
+            if (oldXml != newXml) File.WriteAllText(filename, newXml);
+        }
         /// <summary>保存到配置文件中去</summary>
         public virtual void Save() { Save(null); }
 

@@ -19,6 +19,7 @@ namespace XCode.Membership
         static Log()
         {
             Meta.Table.DataTable.InsertOnly = true;
+            //Meta.Factory.FullInsert = false;
 
             Meta.Modules.Add<TimeModule>();
             Meta.Modules.Add<UserModule>();
@@ -63,7 +64,7 @@ namespace XCode.Membership
 
         #region 扩展属性
         ///// <summary>创建人名称</summary>
-        //[XmlIgnore, ScriptIgnore]
+        //[XmlIgnore, ScriptIgnore, IgnoreDataMember]
         //[DisplayName("创建人")]
         //[Map("CreateUserID")]
         //public String CreateUserName { get { return ManageProvider.Provider.FindByID(CreateUserID) + ""; } }

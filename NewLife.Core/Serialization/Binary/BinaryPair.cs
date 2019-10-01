@@ -184,7 +184,7 @@ namespace NewLife.Serialization
         #region 字典名值对
         private Boolean WriteDictionary(Object value, Type type)
         {
-            if (!type.As<IDictionary>()) return false;
+            if (!type.As<IDictionary>() && !(value is IDictionary)) return false;
 
             var dic = value as IDictionary;
 
@@ -236,7 +236,7 @@ namespace NewLife.Serialization
         #region 数组名值对
         private Boolean WriteArray(Object value, Type type)
         {
-            if (!type.As<IList>()) return false;
+            if (!type.As<IList>() && !(value is IList)) return false;
 
             var list = value as IList;
             if (list == null || list.Count == 0) return true;

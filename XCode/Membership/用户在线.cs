@@ -94,7 +94,7 @@ namespace XCode.Membership
         /// <summary>创建时间</summary>
         [DisplayName("创建时间")]
         [Description("创建时间")]
-        [DataObjectField(false, false, true, 0)]
+        [DataObjectField(false, false, false, 0)]
         [BindColumn("CreateTime", "创建时间", "")]
         public DateTime CreateTime { get { return _CreateTime; } set { if (OnPropertyChanging(__.CreateTime, value)) { _CreateTime = value; OnPropertyChanged(__.CreateTime); } } }
 
@@ -102,7 +102,7 @@ namespace XCode.Membership
         /// <summary>修改时间</summary>
         [DisplayName("修改时间")]
         [Description("修改时间")]
-        [DataObjectField(false, false, true, 0)]
+        [DataObjectField(false, false, false, 0)]
         [BindColumn("UpdateTime", "修改时间", "")]
         public DateTime UpdateTime { get { return _UpdateTime; } set { if (OnPropertyChanging(__.UpdateTime, value)) { _UpdateTime = value; OnPropertyChanged(__.UpdateTime); } } }
         #endregion
@@ -135,17 +135,17 @@ namespace XCode.Membership
             {
                 switch (name)
                 {
-                    case __.ID : _ID = Convert.ToInt32(value); break;
-                    case __.UserID : _UserID = Convert.ToInt32(value); break;
+                    case __.ID : _ID = value.ToInt(); break;
+                    case __.UserID : _UserID = value.ToInt(); break;
                     case __.Name : _Name = Convert.ToString(value); break;
                     case __.SessionID : _SessionID = Convert.ToString(value); break;
-                    case __.Times : _Times = Convert.ToInt32(value); break;
+                    case __.Times : _Times = value.ToInt(); break;
                     case __.Page : _Page = Convert.ToString(value); break;
                     case __.Status : _Status = Convert.ToString(value); break;
-                    case __.OnlineTime : _OnlineTime = Convert.ToInt32(value); break;
+                    case __.OnlineTime : _OnlineTime = value.ToInt(); break;
                     case __.CreateIP : _CreateIP = Convert.ToString(value); break;
-                    case __.CreateTime : _CreateTime = Convert.ToDateTime(value); break;
-                    case __.UpdateTime : _UpdateTime = Convert.ToDateTime(value); break;
+                    case __.CreateTime : _CreateTime = value.ToDateTime(); break;
+                    case __.UpdateTime : _UpdateTime = value.ToDateTime(); break;
                     default: base[name] = value; break;
                 }
             }

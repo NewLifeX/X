@@ -40,7 +40,7 @@ namespace XCode.DataAccessLayer
 
         const String Server_Key = "Server";
         const String CharSet = "CharSet";
-        const String AllowZeroDatetime = "Allow Zero Datetime";
+        //const String AllowZeroDatetime = "Allow Zero Datetime";
         const String MaxPoolSize = "MaxPoolSize";
         const String Sslmode = "Sslmode";
         protected override void OnSetConnectionString(ConnectionStringBuilder builder)
@@ -92,7 +92,21 @@ namespace XCode.DataAccessLayer
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <param name="keyColumn">主键列。用于not in分页</param>
         /// <returns></returns>
-        public override String PageSplit(String sql, Int64 startRowIndex, Int64 maximumRows, String keyColumn)
+        public override String PageSplit(String sql, Int64 startRowIndex, Int64 maximumRows, String keyColumn) => PageSplitByLimit(sql, startRowIndex, maximumRows);
+
+        /// <summary>构造分页SQL</summary>
+        /// <param name="builder">查询生成器</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
+        /// <returns>分页SQL</returns>
+        public override SelectBuilder PageSplit(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows) => PageSplitByLimit(builder, startRowIndex, maximumRows);
+
+        /// <summary>已重写。获取分页</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
+        /// <returns></returns>
+        public static String PageSplitByLimit(String sql, Int64 startRowIndex, Int64 maximumRows)
         {
             // 从第一行开始，不需要分页
             if (startRowIndex <= 0)
@@ -107,26 +121,21 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>构造分页SQL</summary>
-        /// <remarks>
-        /// 两个构造分页SQL的方法，区别就在于查询生成器能够构造出来更好的分页语句，尽可能的避免子查询。
-        /// MS体系的分页精髓就在于唯一键，当唯一键带有Asc/Desc/Unkown等排序结尾时，就采用最大最小值分页，否则使用较次的TopNotIn分页。
-        /// TopNotIn分页和MaxMin分页的弊端就在于无法完美的支持GroupBy查询分页，只能查到第一页，往后分页就不行了，因为没有主键。
-        /// </remarks>
         /// <param name="builder">查询生成器</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>分页SQL</returns>
-        public override SelectBuilder PageSplit(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows)
+        public static SelectBuilder PageSplitByLimit(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows)
         {
             // 从第一行开始，不需要分页
             if (startRowIndex <= 0)
             {
-                if (maximumRows > 0) builder.Limit += " limit {0}".F(maximumRows);
+                if (maximumRows > 0) builder.Limit = "limit {0}".F(maximumRows);
                 return builder;
             }
             if (maximumRows < 1) throw new NotSupportedException("不支持取第几条数据之后的所有数据！");
 
-            builder.Limit += " limit {0}, {1}".F(startRowIndex, maximumRows);
+            builder.Limit = "limit {0}, {1}".F(startRowIndex, maximumRows);
             return builder;
         }
         #endregion
@@ -290,7 +299,8 @@ namespace XCode.DataAccessLayer
             sb.AppendFormat("Insert Into {0}(", db.FormatTableName(tableName));
             foreach (var dc in columns)
             {
-                if (dc.Identity) continue;
+                // 取消对主键的过滤，避免列名和值无法一一对应的问题
+                //if (dc.Identity) continue;
 
                 sb.Append(db.FormatName(dc.ColumnName));
                 sb.Append(",");
@@ -318,7 +328,7 @@ namespace XCode.DataAccessLayer
                             if (dc.Identity)
                                 cs.Add(0);
                             else
-                                cs.Add(dt.GetColumn(dc.Name));
+                                cs.Add(dt.GetColumn(dc.ColumnName));
                         }
                         ids = cs.ToArray();
                     }
@@ -462,7 +472,7 @@ namespace XCode.DataAccessLayer
             { typeof(Double), new String[] { "DOUBLE" } },
             { typeof(Decimal), new String[] { "DECIMAL({0}, {1})" } },
             { typeof(DateTime), new String[] { "DATETIME", "DATE", "TIMESTAMP", "TIME" } },
-            { typeof(String), new String[] { "NVARCHAR({0})", "TEXT", "CHAR({0})", "NCHAR({0})", "VARCHAR({0})", "SET", "ENUM", "TINYTEXT", "TEXT", "MEDIUMTEXT", "LONGTEXT" } },
+            { typeof(String), new String[] { "NVARCHAR({0})", "LONGTEXT", "TEXT", "CHAR({0})", "NCHAR({0})", "VARCHAR({0})", "SET", "ENUM", "TINYTEXT", "TEXT", "MEDIUMTEXT" } },
             { typeof(Boolean), new String[] { "TINYINT" } },
         };
         #endregion

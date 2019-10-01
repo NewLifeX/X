@@ -11,9 +11,6 @@ namespace NewLife.Net
     public class TcpSession : SessionBase, ISocketSession
     {
         #region 属性
-        ///// <summary>会话编号</summary>
-        //public Int32 ID { get; internal set; }
-
         /// <summary>收到空数据时抛出异常并断开连接。默认true</summary>
         public Boolean DisconnectWhenEmptyData { get; set; } = true;
 
@@ -101,7 +98,7 @@ namespace NewLife.Net
                 }
                 sock.Bind(Local.EndPoint);
                 CheckDynamic();
-                
+
                 WriteLog("Open {0}", this);
             }
 
@@ -116,7 +113,7 @@ namespace NewLife.Net
                 {
                     // 采用异步来解决连接超时设置问题
                     var ar = sock.BeginConnect(Remote.EndPoint, null, null);
-                    if (!ar.AsyncWaitHandle.WaitOne(timeout, false))
+                    if (!ar.AsyncWaitHandle.WaitOne(timeout, true))
                     {
                         sock.Close();
                         throw new TimeoutException($"连接[{Remote}][{timeout}ms]超时！");
@@ -127,6 +124,8 @@ namespace NewLife.Net
             }
             catch (Exception ex)
             {
+                // 连接失败时，任何错误都放弃当前Socket
+                Client = null;
                 if (!Disposed && !ex.IsDisposed()) OnError("Connect", ex);
                 /*if (ThrowException)*/
                 throw;
@@ -177,6 +176,8 @@ namespace NewLife.Net
 
         #region 发送
         private Int32 _bsize;
+        private SpinLock _spinLock = new SpinLock();
+
         /// <summary>发送数据</summary>
         /// <remarks>
         /// 目标地址由<seealso cref="SessionBase.Remote"/>决定
@@ -191,18 +192,26 @@ namespace NewLife.Net
             if (Log != null && Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, pk.ToHex());
 
             var sock = Client;
+            var gotLock = false;
             try
             {
                 // 修改发送缓冲区，读取SendBufferSize耗时很大
                 if (_bsize == 0) _bsize = sock.SendBufferSize;
                 if (_bsize < count) sock.SendBufferSize = _bsize = count;
 
+                // 加锁发送
+                _spinLock.Enter(ref gotLock);
+
+                var rs = 0;
                 if (count == 0)
-                    sock.Send(new Byte[0]);
+                    rs = sock.Send(new Byte[0]);
                 else if (pk.Next == null)
-                    sock.Send(pk.Data, pk.Offset, count, SocketFlags.None);
+                    rs = sock.Send(pk.Data, pk.Offset, count, SocketFlags.None);
                 else
-                    sock.Send(pk.ToArray(), 0, count, SocketFlags.None);
+                    rs = sock.Send(pk.ToSegments());
+
+                // 检查返回值
+                if (rs != count) throw new NetException($"发送[{count:n0}]而成功[{rs:n0}]");
             }
             catch (Exception ex)
             {
@@ -218,6 +227,10 @@ namespace NewLife.Net
                 }
 
                 return false;
+            }
+            finally
+            {
+                if (gotLock) _spinLock.Exit();
             }
 
             LastTime = TimerX.Now;
@@ -264,9 +277,9 @@ namespace NewLife.Net
         protected override Boolean OnReceive(ReceivedEventArgs e)
         {
             var pk = e.Packet;
-            if (pk == null || pk.Count == 0 && !MatchEmpty) return true;
+            if ((pk == null || pk.Count == 0) && e.Message == null && !MatchEmpty) return true;
 
-            StatReceive?.Increment(pk.Count, 0);
+            if (pk != null) StatReceive?.Increment(pk.Count, 0);
 
             // 分析处理
             RaiseReceive(this, e);

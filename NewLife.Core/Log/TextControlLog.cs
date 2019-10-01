@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if __WIN__
+using System;
 using System.Windows.Forms;
 
 namespace NewLife.Log
@@ -37,3 +38,4 @@ namespace NewLife.Log
         }
     }
 }
+#endif

@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !__CORE__
+using System;
 using System.ComponentModel;
 using NewLife.Xml;
 
@@ -44,3 +45,4 @@ namespace NewLife.Agent
         #endregion
     }
 }
+#endif
