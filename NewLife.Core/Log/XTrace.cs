@@ -3,7 +3,7 @@ using System.Reflection;
 using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
-#if !__CORE__
+#if __WIN__ || NC30
 using System.Windows.Forms;
 #endif
 using NewLife.Reflection;
@@ -164,7 +164,7 @@ namespace NewLife.Log
         #endregion
 
         #region 拦截WinForm异常
-#if __WIN__
+#if __WIN__ || NC30
         private static Int32 initWF = 0;
         private static Boolean _ShowErrorMessage;
         //private static String _Title;

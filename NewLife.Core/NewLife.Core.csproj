@@ -1,15 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net45;netstandard2.0;net40;net46;netstandard2.1</TargetFrameworks>
+    <TargetFrameworks>net45;netstandard2.0;net40;net46;netstandard2.1;netcoreapp3.0</TargetFrameworks>
     <AssemblyName>NewLife.Core</AssemblyName>
     <RootNamespace>NewLife</RootNamespace>
     <AssemblyTitle>新生命X组件核心库</AssemblyTitle>
     <Description>算法、日志、网络、RPC、序列化、缓存、Windows服务、线程池</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2019 新生命开发团队</Copyright>
-    <Version>8.3.2019.0923</Version>
-    <FileVersion>8.3.2019.0923</FileVersion>
-    <AssemblyVersion>8.3.*</AssemblyVersion>
+    <Version>8.4.2019.1007</Version>
+    <FileVersion>8.4.2019.1007</FileVersion>
+    <AssemblyVersion>8.4.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <OutputPath>..\..\Bin</OutputPath>
     <DocumentationFile>$(OutputPath)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
@@ -40,6 +40,13 @@
 
   <PropertyGroup Condition="'$(TargetFramework)'=='netstandard2.1'">
     <DefineConstants>$(DefineConstants);STD21;NETSTANDARD2_1;__CORE__</DefineConstants>
+  </PropertyGroup>
+
+  <Import Sdk="Microsoft.NET.Sdk.WindowsDesktop" Project="Sdk.props"  Condition="'$(TargetFramework)'=='netcoreapp3.0'"/>
+  <Import Sdk="Microsoft.NET.Sdk.WindowsDesktop" Project="Sdk.targets" Condition="'$(TargetFramework)'=='netcoreapp3.0'" />
+  <PropertyGroup Condition="'$(TargetFramework)'=='netcoreapp3.0'">
+    <DefineConstants>$(DefineConstants);STD21;NETSTANDARD2_1;__CORE__;NC30</DefineConstants>
+    <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)'=='net45'">

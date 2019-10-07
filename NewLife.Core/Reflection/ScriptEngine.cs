@@ -1,4 +1,4 @@
-﻿#if !__CORE__
+﻿#if __WIN__ || NC30
 using System;
 using System.CodeDom.Compiler;
 using System.Collections.Concurrent;

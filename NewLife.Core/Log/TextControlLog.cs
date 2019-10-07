@@ -1,4 +1,4 @@
-﻿#if __WIN__
+﻿#if __WIN__ || NC30
 using System;
 using System.Windows.Forms;
 
