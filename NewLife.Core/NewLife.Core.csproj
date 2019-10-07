@@ -42,7 +42,7 @@
     <DefineConstants>$(DefineConstants);STD21;NETSTANDARD2_1;__CORE__</DefineConstants>
   </PropertyGroup>
 
-  <Import Sdk="Microsoft.NET.Sdk.WindowsDesktop" Project="Sdk.props"  Condition="'$(TargetFramework)'=='netcoreapp3.0'"/>
+  <Import Sdk="Microsoft.NET.Sdk.WindowsDesktop" Project="Sdk.props" Condition="'$(TargetFramework)'=='netcoreapp3.0'" />
   <Import Sdk="Microsoft.NET.Sdk.WindowsDesktop" Project="Sdk.targets" Condition="'$(TargetFramework)'=='netcoreapp3.0'" />
   <PropertyGroup Condition="'$(TargetFramework)'=='netcoreapp3.0'">
     <DefineConstants>$(DefineConstants);STD21;NETSTANDARD2_1;__CORE__;NC30</DefineConstants>
@@ -90,6 +90,8 @@
   <ItemGroup>
     <Compile Remove="Http\HttpClient.cs" />
     <Compile Remove="Http\HttpSession.cs" />
+    <Compile Remove="Net\SerialPortConfig.cs" />
+    <Compile Remove="Net\SerialTransport.cs" />
     <Compile Remove="Net\WebSocketSession.cs" />
     <Compile Remove="Properties\AssemblyInfo.cs" />
     <Compile Remove="Reflection\EmitHelper.cs" />
