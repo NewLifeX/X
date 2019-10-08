@@ -31,6 +31,8 @@ namespace Test
         {
             //XTrace.Log = new NetworkLog();
             XTrace.UseConsole();
+            TestCreateMsSqlDb();
+            Console.ReadKey();
 #if DEBUG
             XTrace.Debug = true;
 #endif
@@ -58,6 +60,12 @@ namespace Test
                 var key = Console.ReadKey(true);
                 if (key.Key != ConsoleKey.C) break;
             }
+        }
+
+        static void TestCreateMsSqlDb()
+        {
+            TestTable.Meta.ConnName = "MSSQL2";
+            var list = TestTable.FindAll();
         }
 
         static async void Test1()
