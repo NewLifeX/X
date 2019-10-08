@@ -1,4 +1,4 @@
-﻿#if __WIN__ || NC30
+﻿#if __WIN__
 using System.Drawing;
 using System.Reflection;
 using System.Runtime.InteropServices;

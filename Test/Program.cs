@@ -62,15 +62,21 @@ namespace Test
 
         static async void Test1()
         {
-            //var url = "http://www.newlifex.com/";
-            ////var url = "https://www.baidu.com/";
-            //var client = new TinyHttpClient();
-            //var html = await client.GetStringAsync(url);
-            //Console.WriteLine(html);
+            var svr = new ApiServer(1234)
+            {
+                Log = XTrace.Log,
+                EncoderLog = XTrace.Log,
+                StatPeriod = 10,
+            };
 
-            IList<Int32> list = new Int32[0];
-            list.Add(123);
-            Console.WriteLine(list.Count);
+            var ns = svr.EnsureCreate() as NetServer;
+            ns.EnsureCreateServer();
+            var ts = ns.Servers.FirstOrDefault(e => e is TcpServer);
+            //ts.ProcessAsync = true;
+
+            svr.Start();
+
+            Console.ReadKey();
         }
 
         static void Test2()

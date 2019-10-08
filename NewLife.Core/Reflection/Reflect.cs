@@ -354,7 +354,7 @@ namespace NewLife.Reflection
         /// <summary>从参数数组中获取类型数组</summary>
         /// <param name="args"></param>
         /// <returns></returns>
-        internal static Type[] GetTypeArray(this Object[] args)
+        public static Type[] GetTypeArray(this Object[] args)
         {
             if (args == null) return Type.EmptyTypes;
 
