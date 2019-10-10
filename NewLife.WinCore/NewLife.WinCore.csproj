@@ -52,6 +52,7 @@
   <ItemGroup>
     <Compile Include="..\NewLife.Core\Log\TextControlLog.cs" Link="TextControlLog.cs" />
     <Compile Include="..\NewLife.Core\Reflection\ScriptEngine.cs" Link="ScriptEngine.cs" />
+    <Compile Include="..\NewLife.Core\Serialization\Binary\BinaryFont.cs" Link="BinaryFont.cs" />
     <Compile Include="..\NewLife.Core\Windows\ControlHelper.cs" Link="ControlHelper.cs" />
     <EmbeddedResource Include="..\NewLife.Core\Windows\MySpeech.cs" Link="MySpeech.cs" />
     <Compile Include="..\NewLife.Core\Windows\SpeechRecognition.cs" Link="SpeechRecognition.cs" />
