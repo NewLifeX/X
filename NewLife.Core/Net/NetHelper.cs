@@ -324,17 +324,56 @@ namespace System
             }
         }
 
-        /// <summary>获取以太网MAC地址</summary>
+        private static readonly String[] _Excludes = new[] { "Loopback", "VMware", "VBox", "Virtual", "Teredo", "Microsoft", "VPN", "VNIC", "IEEE" };
+        /// <summary>获取所有物理网卡MAC地址</summary>
         /// <returns></returns>
         public static IEnumerable<Byte[]> GetMacs()
         {
             foreach (var item in NetworkInterface.GetAllNetworkInterfaces())
             {
-                if (item.NetworkInterfaceType != NetworkInterfaceType.Ethernet) continue;
+                if (_Excludes.Any(e => item.Description.Contains(e))) continue;
+                if (item.Speed < 1_000_000) continue;
 
-                var mac = item.GetPhysicalAddress();
-                if (mac != null) yield return mac.GetAddressBytes();
+                var ips = item.GetIPProperties();
+                var addrs = ips.UnicastAddresses
+                    .Where(e => e.Address.AddressFamily == AddressFamily.InterNetwork)
+                    .Select(e => e.Address)
+                    .ToArray();
+                if (addrs.All(e => IPAddress.IsLoopback(e))) continue;
+
+                var mac = item.GetPhysicalAddress()?.GetAddressBytes();
+                if (mac != null && mac.Length == 6) yield return mac;
             }
+        }
+
+        /// <summary>获取网卡MAC地址（网关所在网卡）</summary>
+        /// <returns></returns>
+        public static Byte[] GetMac()
+        {
+            foreach (var item in NetworkInterface.GetAllNetworkInterfaces())
+            {
+                if (_Excludes.Any(e => item.Description.Contains(e))) continue;
+                if (item.Speed < 1_000_000) continue;
+
+                var ips = item.GetIPProperties();
+                var addrs = ips.UnicastAddresses
+                    .Where(e => e.Address.AddressFamily == AddressFamily.InterNetwork)
+                    .Select(e => e.Address)
+                    .ToArray();
+                if (addrs.All(e => IPAddress.IsLoopback(e))) continue;
+
+                // 网关
+                addrs = ips.GatewayAddresses
+                    .Where(e => e.Address.AddressFamily == AddressFamily.InterNetwork)
+                    .Select(e => e.Address)
+                    .ToArray();
+                if (addrs.Length == 0) continue;
+
+                var mac = item.GetPhysicalAddress()?.GetAddressBytes();
+                if (mac != null && mac.Length == 6) return mac;
+            }
+
+            return null;
         }
 
         /// <summary>获取本地第一个IPv4地址</summary>
