@@ -110,4 +110,9 @@
     <EmbeddedResource Include="X组件.txt" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="Microsoft.VisualBasic" />
+    <Reference Include="System.Management" />
+  </ItemGroup>
+
 </Project>
