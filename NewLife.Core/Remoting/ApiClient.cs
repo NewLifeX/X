@@ -59,7 +59,7 @@ namespace NewLife.Remoting
         /// <param name="uris">服务端地址集合，逗号分隔</param>
         public ApiClient(String uris) : this()
         {
-            if (!uris.IsNullOrEmpty()) Servers = uris.Split(",");
+            if (!uris.IsNullOrEmpty()) Servers = uris.Split(",",";");
         }
 
         /// <summary>销毁</summary>
@@ -136,9 +136,9 @@ namespace NewLife.Remoting
             if (cluster == null)
             {
                 if (UsePool)
-                    cluster = new ClientPoolCluster();
+                    cluster = new ClientPoolCluster { Log = Log };
                 else
-                    cluster = new ClientSingleCluster();
+                    cluster = new ClientSingleCluster { Log = Log };
                 //Cluster = cluster;
             }
 

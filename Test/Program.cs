@@ -41,7 +41,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test1();
+                    Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -158,7 +158,7 @@ namespace Test
             }
             else
             {
-                var client = new ApiClient("tcp://127.0.0.1:1234")
+                var client = new ApiClient("tcp://127.0.0.1:335,tcp://127.0.0.1:1234")
                 {
                     Log = XTrace.Log,
                     //EncoderLog = XTrace.Log,
