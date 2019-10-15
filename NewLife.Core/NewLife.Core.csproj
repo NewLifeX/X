@@ -71,6 +71,8 @@
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Windows.Forms" />
+    <Reference Include="Microsoft.VisualBasic" />
+    <Reference Include="System.Management" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)'=='net40'">
@@ -78,6 +80,8 @@
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Windows.Forms" />
+    <Reference Include="Microsoft.VisualBasic" />
+    <Reference Include="System.Management" />
   </ItemGroup>
 
   <ItemGroup>
@@ -108,11 +112,6 @@
     <EmbeddedResource Include="UpdateInfo.txt" />
     <EmbeddedResource Include="Windows\MySpeech.cs" />
     <EmbeddedResource Include="X组件.txt" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="Microsoft.VisualBasic" />
-    <Reference Include="System.Management" />
   </ItemGroup>
 
 </Project>

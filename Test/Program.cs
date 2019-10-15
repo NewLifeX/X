@@ -12,6 +12,7 @@ using NewLife.Core.Collections;
 using NewLife.Http;
 using NewLife.Log;
 using NewLife.Net;
+using NewLife.Reflection;
 using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
@@ -41,7 +42,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test3();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -62,19 +63,12 @@ namespace Test
 
         static async void Test1()
         {
-            var svr = new ApiServer(1234)
+            var mi = new MachineInfo();
+
+            foreach (var pi in mi.GetType().GetProperties())
             {
-                Log = XTrace.Log,
-                EncoderLog = XTrace.Log,
-                StatPeriod = 10,
-            };
-
-            var ns = svr.EnsureCreate() as NetServer;
-            ns.EnsureCreateServer();
-            var ts = ns.Servers.FirstOrDefault(e => e is TcpServer);
-            //ts.ProcessAsync = true;
-
-            svr.Start();
+                Console.WriteLine("{0}:\t{1}", pi.Name, mi.GetValue(pi));
+            }
 
             Console.ReadKey();
         }
