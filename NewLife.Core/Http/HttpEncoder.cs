@@ -24,6 +24,7 @@ namespace NewLife.Http
             if (value == null) return null;
 
             if (value is Packet pk) return pk;
+            if (value is IAccessor acc) return acc.ToPacket();
 
             // 不支持序列化异常
             if (value is Exception ex) value = ex.GetTrue()?.Message;
@@ -101,6 +102,9 @@ namespace NewLife.Http
             if (args is Packet pk)
             {
             }
+            // 支持IAccessor
+            if (args is IAccessor acc)
+                pk = acc.ToPacket();
             else if (args is Byte[] buf)
                 pk = new Packet(buf);
             else
@@ -146,7 +150,13 @@ namespace NewLife.Http
             if (code <= 0) code = 200;
 
             // 编码响应数据包，二进制优先
-            if (!(value is Packet pk)) pk = Encode(action, code, value);
+            if (value is Packet pk)
+            {
+            }
+            if (value is IAccessor acc)
+                pk = acc.ToPacket();
+            else
+                pk = Encode(action, code, value);
 
             // 构造响应消息
             var rs = new HttpMessage

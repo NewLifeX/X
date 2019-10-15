@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using NewLife.Data;
 using NewLife.Messaging;
 using NewLife.Model;
+using NewLife.Serialization;
 using NewLife.Threading;
 
 namespace NewLife.Net
@@ -84,6 +85,7 @@ namespace NewLife.Net
             if (message is Byte[] buf) return session.Send(buf);
             if (message is Packet pk) return session.Send(pk);
             if (message is String str) return session.Send(str.GetBytes());
+            if (message is IAccessor acc) return session.Send(acc.ToPacket());
 
             // 发送一批数据包
             if (message is IEnumerable<Packet> pks)

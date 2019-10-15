@@ -100,14 +100,16 @@ namespace NewLife.Remoting
             if (args is Packet pk)
             {
             }
+            // 支持IAccessor
+            if (args is IAccessor acc)
+                pk = acc.ToPacket();
             else if (args is Byte[] buf)
                 pk = new Packet(buf);
             else
                 pk = Encode(action, 0, args);
             pk = Encode(action, 0, pk);
 
-            var msg = new DefaultMessage { Payload = pk, };
-            return msg;
+            return new DefaultMessage { Payload = pk, };
         }
 
         /// <summary>创建响应</summary>
@@ -119,7 +121,13 @@ namespace NewLife.Remoting
         public IMessage CreateResponse(IMessage msg, String action, Int32 code, Object value)
         {
             // 编码响应数据包，二进制优先
-            if (!(value is Packet pk)) pk = Encode(action, code, value);
+            if (value is Packet pk)
+            {
+            }
+            else if (value is IAccessor acc)
+                pk = acc.ToPacket();
+            else
+                pk = Encode(action, code, value);
             pk = Encode(action, code, pk);
 
             // 构造响应消息
