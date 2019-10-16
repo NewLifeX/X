@@ -75,7 +75,7 @@ namespace NewLife.Remoting
         public void Register(Object controller, String method) => Manager.Register(controller, method);
 
         /// <summary>显示可用服务</summary>
-        protected void ShowService()
+        protected virtual void ShowService()
         {
             var ms = Manager.Services;
             if (ms.Count > 0)
@@ -151,7 +151,7 @@ namespace NewLife.Remoting
                 //if (StatInvoke == null) StatInvoke = new PerfCounter();
                 if (StatProcess == null) StatProcess = new PerfCounter();
 
-                _Timer = new TimerX(DoWork, null, ms, ms) { Async = true };
+                _Timer = new TimerX(DoStat, null, ms, ms) { Async = true };
             }
 
             Active = true;
@@ -180,7 +180,6 @@ namespace NewLife.Remoting
             if (msg.Reply) return null;
 
             var action = "";
-            Object result = null;
             var code = 0;
 
             var st = StatProcess;
@@ -189,6 +188,7 @@ namespace NewLife.Remoting
             {
                 var enc = session["Encoder"] as IEncoder ?? Encoder;
 
+                Object result;
                 try
                 {
                     if (!enc.Decode(msg, out action, out _, out var args)) return null;
@@ -241,7 +241,7 @@ namespace NewLife.Remoting
         /// <summary>显示统计信息的周期。默认600秒，0表示不显示统计信息</summary>
         public Int32 StatPeriod { get; set; } = 600;
 
-        private void DoWork(Object state)
+        private void DoStat(Object state)
         {
             var sb = Pool.StringBuilder.Get();
             var pf2 = StatProcess;

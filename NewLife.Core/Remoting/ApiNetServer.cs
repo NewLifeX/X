@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using NewLife.Http;
 using NewLife.Messaging;
 using NewLife.Net;
@@ -18,8 +17,8 @@ namespace NewLife.Remoting
         /// <summary>当前服务器所有会话</summary>
         public IApiSession[] AllSessions => Sessions.ToValueArray().Where(e => e is IApiSession).Cast<IApiSession>().ToArray();
 
-        /// <summary>调用超时时间。默认30_000ms</summary>
-        public Int32 Timeout { get; set; } = 30_000;
+        ///// <summary>调用超时时间。默认30_000ms</summary>
+        //public Int32 Timeout { get; set; } = 30_000;
 
         public ApiNetServer()
         {
