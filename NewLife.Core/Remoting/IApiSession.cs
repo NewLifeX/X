@@ -31,22 +31,22 @@ namespace NewLife.Remoting
         /// <returns></returns>
         Object CreateController(ApiAction api);
 
-        /// <summary>发送消息。低级接口，由框架使用</summary>
-        /// <param name="msg"></param>
-        /// <returns></returns>
-        Task<IMessage> SendAsync(IMessage msg);
+        ///// <summary>发送消息。低级接口，由框架使用</summary>
+        ///// <param name="msg"></param>
+        ///// <returns></returns>
+        //Task<IMessage> SendAsync(IMessage msg);
 
-        /// <summary>发送消息。低级接口，由框架使用</summary>
-        /// <param name="msg"></param>
-        /// <returns></returns>
-        Boolean Send(IMessage msg);
+        ///// <summary>发送消息。低级接口，由框架使用</summary>
+        ///// <param name="msg"></param>
+        ///// <returns></returns>
+        //Boolean Send(IMessage msg);
 
-        /// <summary>远程调用</summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="action">服务操作</param>
-        /// <param name="args">参数</param>
-        /// <param name="flag">标识</param>
-        /// <returns></returns>
-        Task<TResult> InvokeAsync<TResult>(String action, Object args = null, Byte flag = 0);
+        ///// <summary>远程调用</summary>
+        ///// <typeparam name="TResult"></typeparam>
+        ///// <param name="action">服务操作</param>
+        ///// <param name="args">参数</param>
+        ///// <param name="flag">标识</param>
+        ///// <returns></returns>
+        //Task<TResult> InvokeAsync<TResult>(String action, Object args = null, Byte flag = 0);
     }
 }

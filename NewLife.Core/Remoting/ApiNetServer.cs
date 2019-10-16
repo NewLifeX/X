@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using NewLife.Http;
 using NewLife.Messaging;
 using NewLife.Net;
+using NewLife.Reflection;
 using NewLife.Threading;
 
 namespace NewLife.Remoting
@@ -49,7 +50,7 @@ namespace NewLife.Remoting
 
     class ApiNetSession : NetSession<ApiNetServer>, IApiSession
     {
-        private IApiHost _Host;
+        private ApiServer _Host;
         /// <summary>主机</summary>
         IApiHost IApiSession.Host => _Host;
 
@@ -57,16 +58,16 @@ namespace NewLife.Remoting
         public DateTime LastActive { get; set; }
 
         /// <summary>所有服务器所有会话，包含自己</summary>
-        public virtual IApiSession[] AllSessions => (_Host as ApiServer).Server.AllSessions;
+        public virtual IApiSession[] AllSessions => _Host.Server.AllSessions;
 
         /// <summary>开始会话处理</summary>
         public override void Start()
         {
             base.Start();
 
-            _Host = Host.Host;
+            _Host = Host.Host as ApiServer;
 
-            if (_Host is ApiHost host) host.OnNewSession(this, null);
+            //if (_Host is ApiHost host) host.OnNewSession(this, null);
         }
 
         /// <summary>查找Api动作</summary>
@@ -77,7 +78,15 @@ namespace NewLife.Remoting
         /// <summary>创建控制器实例</summary>
         /// <param name="api"></param>
         /// <returns></returns>
-        public virtual Object CreateController(ApiAction api) => _Host.CreateController(this, api);
+        public virtual Object CreateController(ApiAction api)
+        {
+            var controller = api.Controller;
+            if (controller != null) return controller;
+
+            controller = api.Type.CreateInstance();
+
+            return controller;
+        }
 
         protected override void OnReceive(ReceivedEventArgs e)
         {
@@ -103,16 +112,16 @@ namespace NewLife.Remoting
             }
         }
 
-        /// <summary>远程调用</summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="action">服务操作</param>
-        /// <param name="args">参数</param>
-        /// <param name="flag">标识</param>
-        /// <returns></returns>
-        public async Task<TResult> InvokeAsync<TResult>(String action, Object args = null, Byte flag = 0) => (TResult)await ApiHostHelper.InvokeAsync(_Host, this, typeof(TResult), action, args, flag).ConfigureAwait(false);
+        ///// <summary>远程调用</summary>
+        ///// <typeparam name="TResult"></typeparam>
+        ///// <param name="action">服务操作</param>
+        ///// <param name="args">参数</param>
+        ///// <param name="flag">标识</param>
+        ///// <returns></returns>
+        //public async Task<TResult> InvokeAsync<TResult>(String action, Object args = null, Byte flag = 0) => (TResult)await ApiHostHelper.InvokeAsync(_Host, this, typeof(TResult), action, args, flag).ConfigureAwait(false);
 
-        async Task<IMessage> IApiSession.SendAsync(IMessage msg) => await Session.SendMessageAsync(msg).ConfigureAwait(false) as IMessage;
+        //async Task<IMessage> IApiSession.SendAsync(IMessage msg) => await Session.SendMessageAsync(msg).ConfigureAwait(false) as IMessage;
 
-        Boolean IApiSession.Send(IMessage msg) => Session.SendMessage(msg);
+        //Boolean IApiSession.Send(IMessage msg) => Session.SendMessage(msg);
     }
 }

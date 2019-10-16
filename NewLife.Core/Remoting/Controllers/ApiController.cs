@@ -26,8 +26,9 @@ namespace NewLife.Remoting
             //System.Threading.Thread.Sleep(1000);
             if (_all != null) return _all;
 
+            var svc = Host as ApiServer;
             var list = new List<String>();
-            foreach (var item in Host.Manager.Services)
+            foreach (var item in svc.Manager.Services)
             {
                 var act = item.Value;
 
@@ -126,11 +127,13 @@ namespace NewLife.Remoting
 
         private Object GetStat()
         {
+            var svc = Host as ApiServer;
+
             var dic = new Dictionary<String, Object>
             {
-                ["_Total"] = Host.StatProcess + ""
+                ["_Total"] = svc.StatProcess + ""
             };
-            foreach (var item in Host.Manager.Services)
+            foreach (var item in svc.Manager.Services)
             {
                 var api = item.Value;
                 dic[item.Key] = api.StatProcess + " " + api.LastSession;
