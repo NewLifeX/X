@@ -9,32 +9,32 @@ namespace NewLife.Log
         /// <param name="level">日志级别</param>
         /// <param name="format">格式化字符串</param>
         /// <param name="args">格式化参数</param>
-        void Write(LogLevel level, String format, params Object[] args);
+        void Write(LogLevel level, String format, params Object?[] args);
 
         /// <summary>调试日志</summary>
         /// <param name="format">格式化字符串</param>
         /// <param name="args">格式化参数</param>
-        void Debug(String format, params Object[] args);
+        void Debug(String format, params Object?[] args);
 
         /// <summary>信息日志</summary>
         /// <param name="format">格式化字符串</param>
         /// <param name="args">格式化参数</param>
-        void Info(String format, params Object[] args);
+        void Info(String format, params Object?[] args);
 
         /// <summary>警告日志</summary>
         /// <param name="format">格式化字符串</param>
         /// <param name="args">格式化参数</param>
-        void Warn(String format, params Object[] args);
+        void Warn(String format, params Object?[] args);
 
         /// <summary>错误日志</summary>
         /// <param name="format">格式化字符串</param>
         /// <param name="args">格式化参数</param>
-        void Error(String format, params Object[] args);
+        void Error(String format, params Object?[] args);
 
         /// <summary>严重错误日志</summary>
         /// <param name="format">格式化字符串</param>
         /// <param name="args">格式化参数</param>
-        void Fatal(String format, params Object[] args);
+        void Fatal(String format, params Object?[] args);
 
         /// <summary>是否启用日志</summary>
         Boolean Enable { get; set; }

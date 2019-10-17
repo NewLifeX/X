@@ -63,6 +63,9 @@ namespace Test
 
         static async void Test1()
         {
+            var ip = "180.165.235.0".IPToAddress();
+            Console.WriteLine(ip);
+
             var mi = new MachineInfo();
 
             foreach (var pi in mi.GetType().GetProperties())

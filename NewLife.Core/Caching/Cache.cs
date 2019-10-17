@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Win32;
 using NewLife.Log;
 using NewLife.Security;
 
@@ -27,7 +26,7 @@ namespace NewLife.Caching
         /// <summary>获取和设置缓存，永不过期</summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public virtual Object this[String key] { get { return Get<Object>(key); } set { Set(key, value); } }
+        public virtual Object this[String key] { get => Get<Object>(key); set => Set(key, value); }
 
         /// <summary>缓存个数</summary>
         public abstract Int32 Count { get; }

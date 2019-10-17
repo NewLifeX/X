@@ -24,10 +24,10 @@ namespace NewLife.Agent
     {
         #region 属性
         /// <summary>显示名</summary>
-        public virtual String DisplayName { get; set; }
+        public virtual String DisplayName { get; set; } = "";
 
         /// <summary>描述</summary>
-        public virtual String Description { get; set; }
+        public virtual String Description { get; set; } = "";
         #endregion
 
         #region 构造
@@ -269,7 +269,7 @@ namespace NewLife.Agent
             Console.ForegroundColor = color;
         }
 
-        private Dictionary<Char, Menu> _Menus = new Dictionary<Char, Menu>();
+        private readonly Dictionary<Char, Menu> _Menus = new Dictionary<Char, Menu>();
         /// <summary>添加菜单</summary>
         /// <param name="key"></param>
         /// <param name="name"></param>
@@ -278,7 +278,7 @@ namespace NewLife.Agent
         {
             if (!_Menus.ContainsKey(key))
             {
-                _Menus.Add(key, new Menu { Key = key, Name = name, Callback = callbak });
+                _Menus.Add(key, new Menu(key, name, callbak));
             }
         }
 
@@ -287,6 +287,13 @@ namespace NewLife.Agent
             public Char Key { get; set; }
             public String Name { get; set; }
             public Action Callback { get; set; }
+
+            public Menu(Char key, String name, Action callback)
+            {
+                Key = key;
+                Name = name;
+                Callback = callback;
+            }
         }
         #endregion
 
@@ -311,7 +318,7 @@ namespace NewLife.Agent
         #endregion
 
         #region 服务维护
-        private TimerX _Timer;
+        private TimerX? _Timer;
 
         /// <summary>服务管理线程封装</summary>
         /// <param name="data"></param>
@@ -467,10 +474,7 @@ namespace NewLife.Agent
 
         /// <summary>在终端服务器会话中接收的更改事件时执行</summary>
         /// <param name="changeDescription"></param>
-        protected override void OnSessionChange(SessionChangeDescription changeDescription)
-        {
-            WriteLog(nameof(OnSessionChange) + " SessionId={0} Reason={1}", changeDescription.SessionId, changeDescription.Reason);
-        }
+        protected override void OnSessionChange(SessionChangeDescription changeDescription) => WriteLog(nameof(OnSessionChange) + " SessionId={0} Reason={1}", changeDescription.SessionId, changeDescription.Reason);
         #endregion
 
         #region 看门狗

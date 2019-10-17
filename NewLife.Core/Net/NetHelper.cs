@@ -473,7 +473,7 @@ namespace System
         /// <returns></returns>
         public static String IPToAddress(this String addr)
         {
-            if (addr.IsNullOrEmpty()) return null;
+            if (addr.IsNullOrEmpty()) return String.Empty;
 
             // 有可能是NetUri
             var p = addr.IndexOf("://");
@@ -486,7 +486,7 @@ namespace System
             // 过滤IPv4/IPv6端口
             if (addr.Replace("::", "").Contains(":")) addr = addr.Substring(0, addr.LastIndexOf(":"));
 
-            if (!IPAddress.TryParse(addr, out var ip)) return null;
+            if (!IPAddress.TryParse(addr, out var ip)) return String.Empty;
 
             return ip.GetAddress();
         }

@@ -38,7 +38,7 @@ namespace NewLife.Log
         /// <summary>写日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
-        public static void WriteLine(String format, params Object[] args)
+        public static void WriteLine(String format, params Object?[] args)
         {
             if (!InitLog()) return;
 
@@ -73,7 +73,7 @@ namespace NewLife.Log
         }
         static void CurrentDomain_UnhandledException(Object sender, UnhandledExceptionEventArgs e)
         {
-            WriteException(e.ExceptionObject as Exception);
+            if (e.ExceptionObject is Exception ex) WriteException(ex);
             if (e.IsTerminating) Log.Fatal("异常退出！");
         }
 

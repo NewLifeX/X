@@ -259,7 +259,7 @@ namespace NewLife.Web
                     foreach (var item in names)
                     {
                         link = ls.Where(e => !e.Url.IsNullOrWhiteSpace())
-                           .Where(e => e.Name.EqualIgnoreCase(item))
+                           .Where(e => e.Name.EqualIgnoreCase(item) || e.FullName.Equals(item))
                            .OrderByDescending(e => e.Version)
                            .ThenByDescending(e => e.Time)
                            .FirstOrDefault();

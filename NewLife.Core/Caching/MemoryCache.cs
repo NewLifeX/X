@@ -60,7 +60,7 @@ namespace NewLife.Caching
         #region 方法
         /// <summary>初始化配置</summary>
         /// <param name="config"></param>
-        public override void Init(String config)
+        public override void Init(String? config)
         {
             if (clearTimer == null)
             {
@@ -83,7 +83,7 @@ namespace NewLife.Caching
         {
             if (expire < 0) expire = Expire;
 
-            CacheItem ci = null;
+            CacheItem? ci = null;
             do
             {
                 if (_cache.TryGetValue(key, out var item)) return (T)item.Visit();
@@ -124,7 +124,7 @@ namespace NewLife.Caching
             //    });
 
             // 不用AddOrUpdate，避免匿名委托带来的GC损耗
-            CacheItem ci = null;
+            CacheItem? ci = null;
             do
             {
                 if (_cache.TryGetValue(key, out var item))
@@ -207,10 +207,10 @@ namespace NewLife.Caching
         {
             if (expire < 0) expire = Expire;
 
-            CacheItem ci = null;
+            CacheItem? ci = null;
             do
             {
-                if (_cache.TryGetValue(key, out var item)) return false;
+                if (_cache.TryGetValue(key, out _)) return false;
 
                 if (ci == null) ci = new CacheItem(value, expire);
             } while (!_cache.TryAdd(key, ci));
@@ -229,7 +229,7 @@ namespace NewLife.Caching
         {
             var expire = Expire;
 
-            CacheItem ci = null;
+            CacheItem? ci = null;
             do
             {
                 if (_cache.TryGetValue(key, out var item))
@@ -338,7 +338,7 @@ namespace NewLife.Caching
         {
             var expire = Expire;
 
-            CacheItem ci = null;
+            CacheItem? ci = null;
             do
             {
                 if (_cache.TryGetValue(key, out var item)) return item;
@@ -356,9 +356,9 @@ namespace NewLife.Caching
         /// <summary>缓存项</summary>
         protected class CacheItem
         {
-            private Object _Value;
+            private Object? _Value;
             /// <summary>数值</summary>
-            public Object Value { get { return _Value; } set { _Value = value; } }
+            public Object? Value { get { return _Value; } set { _Value = value; } }
 
             /// <summary>过期时间</summary>
             public DateTime ExpiredTime { get; set; }
@@ -372,12 +372,12 @@ namespace NewLife.Caching
             /// <summary>构造缓存项</summary>
             /// <param name="value"></param>
             /// <param name="expire"></param>
-            public CacheItem(Object value, Int32 expire) => Set(value, expire);
+            public CacheItem(Object? value, Int32 expire) => Set(value, expire);
 
             /// <summary>设置数值和过期时间</summary>
             /// <param name="value"></param>
             /// <param name="expire"></param>
-            public void Set(Object value, Int32 expire)
+            public void Set(Object? value, Int32 expire)
             {
                 Value = value;
 
@@ -390,7 +390,7 @@ namespace NewLife.Caching
 
             /// <summary>更新访问时间并返回数值</summary>
             /// <returns></returns>
-            public Object Visit()
+            public Object? Visit()
             {
                 VisitTime = TimerX.Now;
                 return Value;
@@ -413,11 +413,11 @@ namespace NewLife.Caching
             {
                 var code = value.GetType().GetTypeCode();
                 // 原子操作
-                Object newValue = null;
-                Object oldValue = null;
+                Object newValue;
+                Object oldValue;
                 do
                 {
-                    oldValue = _Value;
+                    oldValue = _Value ?? 0;
                     switch (code)
                     {
                         case TypeCode.Int32:
@@ -445,11 +445,11 @@ namespace NewLife.Caching
             {
                 var code = value.GetType().GetTypeCode();
                 // 原子操作
-                Object newValue = null;
-                Object oldValue = null;
+                Object newValue;
+                Object oldValue;
                 do
                 {
-                    oldValue = _Value;
+                    oldValue = _Value ?? 0;
                     switch (code)
                     {
                         case TypeCode.Int32:
@@ -474,7 +474,7 @@ namespace NewLife.Caching
 
         #region 清理过期缓存
         /// <summary>清理会话计时器</summary>
-        private TimerX clearTimer;
+        private TimerX? clearTimer;
 
         /// <summary>移除过期的缓存项</summary>
         void RemoveNotAlive(Object state)
@@ -488,7 +488,8 @@ namespace NewLife.Caching
             // 过期时间升序，用于缓存满以后删除
             var slist = new SortedList<DateTime, IList<String>>();
             // 超出个数
-            if (Capacity <= 0 || _count <= Capacity) slist = null;
+            var flag = true;
+            if (Capacity <= 0 || _count <= Capacity) flag = false;
 
             // 60分钟之内过期的数据，进入LRU淘汰
             var now = TimerX.Now;
@@ -505,7 +506,7 @@ namespace NewLife.Caching
                 else
                 {
                     k++;
-                    if (slist != null && ci.ExpiredTime < exp)
+                    if (flag && ci.ExpiredTime < exp)
                     {
                         if (!slist.TryGetValue(ci.VisitTime, out var ss))
                             slist.Add(ci.VisitTime, ss = new List<String>());
@@ -516,7 +517,7 @@ namespace NewLife.Caching
             }
 
             // 如果满了，删除前面
-            if (slist != null && slist.Count > 0 && _count - list.Count > Capacity)
+            if (flag && slist.Count > 0 && _count - list.Count > Capacity)
             {
                 var over = _count - list.Count - Capacity;
                 for (var i = 0; i < slist.Count && over > 0; i++)
@@ -571,10 +572,13 @@ namespace NewLife.Caching
                 var ci = item.Value;
                 var code = ci.Value?.GetType().GetTypeCode() ?? TypeCode.Empty;
                 bn.Write((Byte)code);
-                if (code == TypeCode.Object)
-                    bn.Write(Binary.FastWrite(ci.Value));
-                else
-                    bn.Write(ci);
+                if (ci.Value != null)
+                {
+                    if (code == TypeCode.Object)
+                        bn.Write(Binary.FastWrite(ci.Value));
+                    else
+                        bn.Write(ci);
+                }
 
                 bn.Write(ci.ExpiredTime.ToInt());
             }
@@ -597,7 +601,7 @@ namespace NewLife.Caching
                 var key = bn.Read<String>();
                 var code = (TypeCode)bn.ReadByte();
 
-                Object value = null;
+                Object value;
                 if (code == TypeCode.Object)
                     value = bn.Read<Packet>();
                 else
