@@ -44,9 +44,9 @@ namespace XCode.DataAccessLayer
 
         /// <summary>销毁资源时，回滚未提交事务，并关闭数据库连接</summary>
         /// <param name="disposing"></param>
-        protected override void OnDispose(Boolean disposing)
+        protected override void Dispose(Boolean disposing)
         {
-            base.OnDispose(disposing);
+            base.Dispose(disposing);
 
             //_store.Values.TryDispose();
             _store.TryDispose();

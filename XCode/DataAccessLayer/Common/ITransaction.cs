@@ -73,9 +73,9 @@ namespace XCode.DataAccessLayer
 #endif
         }
 
-        protected override void OnDispose(Boolean disposing)
+        protected override void Dispose(Boolean disposing)
         {
-            base.OnDispose(disposing);
+            base.Dispose(disposing);
 
             if (Count > 0)
             {

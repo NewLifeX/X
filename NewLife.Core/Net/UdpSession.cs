@@ -125,9 +125,9 @@ namespace NewLife.Net
             pp?.Open(Server.CreateContext(this));
         }
 
-        protected override void OnDispose(Boolean disposing)
+        protected override void Dispose(Boolean disposing)
         {
-            base.OnDispose(disposing);
+            base.Dispose(disposing);
 
             WriteLog("Close {0}", Remote.EndPoint);
 

@@ -23,7 +23,7 @@ namespace NewLife.Threading
         public WeakAction<Object> Callback { get; set; }
 
         /// <summary>获取/设置 用户数据</summary>
-        public Object State { get; set; }
+        public Object? State { get; set; }
 
         /// <summary>获取/设置 下一次调用时间</summary>
         public DateTime NextTime { get; set; }
@@ -52,9 +52,9 @@ namespace NewLife.Threading
 
         #region 静态
         [ThreadStatic]
-        private static TimerX _Current;
+        private static TimerX? _Current;
         /// <summary>当前定时器</summary>
-        public static TimerX Current { get => _Current; internal set => _Current = value; }
+        public static TimerX? Current { get => _Current; internal set => _Current = value; }
         #endregion
 
         #region 构造
@@ -64,7 +64,7 @@ namespace NewLife.Threading
         /// <param name="dueTime">多久之后开始。毫秒</param>
         /// <param name="period">间隔周期。毫秒</param>
         /// <param name="scheduler">调度器</param>
-        public TimerX(WaitCallback callback, Object state, Int32 dueTime, Int32 period, String scheduler = null)
+        public TimerX(WaitCallback callback, Object? state, Int32 dueTime, Int32 period, String? scheduler = null)
         {
             if (dueTime < 0) throw new ArgumentOutOfRangeException(nameof(dueTime));
             //if (period < 0) throw new ArgumentOutOfRangeException("period");
@@ -113,7 +113,22 @@ namespace NewLife.Threading
         }
 
         /// <summary>销毁定时器</summary>
-        public void Dispose() => Scheduler?.Remove(this);
+        public void Dispose() => Dispose(true);
+
+        private void Dispose(Boolean disposing)
+        {
+            if (disposing)
+            {
+                // 释放托管资源
+
+                // 告诉GC，不要调用析构函数
+                GC.SuppressFinalize(this);
+            }
+
+            // 释放非托管资源
+
+            Scheduler?.Remove(this);
+        }
         #endregion
 
         #region 方法

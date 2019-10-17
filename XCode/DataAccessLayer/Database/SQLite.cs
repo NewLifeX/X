@@ -136,9 +136,9 @@ namespace XCode.DataAccessLayer
             AutoClose = false;
         }
 
-        protected override void OnDispose(Boolean disposing)
+        protected override void Dispose(Boolean disposing)
         {
-            base.OnDispose(disposing);
+            base.Dispose(disposing);
 
             // 不用Factory属性，为了避免触发加载SQLite驱动
             if (_Factory != null)

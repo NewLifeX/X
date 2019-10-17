@@ -37,9 +37,9 @@ namespace NewLife.Net
             };
         }
 
-        protected override void OnDispose(Boolean disposing)
+        protected override void Dispose(Boolean disposing)
         {
-            base.OnDispose(disposing);
+            base.Dispose(disposing);
 
             clearTimer.TryDispose();
 

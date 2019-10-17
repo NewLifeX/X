@@ -34,11 +34,11 @@ namespace NewLife.Log
 
         /// <summary>析构</summary>
         /// <param name="disposing"></param>
-        protected override void OnDispose(Boolean disposing)
+        protected override void Dispose(Boolean disposing)
         {
             Stop();
 
-            base.OnDispose(disposing);
+            base.Dispose(disposing);
         }
         #endregion
 

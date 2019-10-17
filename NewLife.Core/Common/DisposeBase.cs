@@ -58,7 +58,7 @@ namespace NewLife
         [field: NonSerialized]
         public event EventHandler? OnDisposed;
 
-        /// <summary>释放资源，参数表示是否由Dispose调用。该方法保证OnDispose只被调用一次！</summary>
+        /// <summary>释放资源，参数表示是否由Dispose调用。重载时先调用基类方法</summary>
         /// <param name="disposing"></param>
         protected virtual void Dispose(Boolean disposing)
         {

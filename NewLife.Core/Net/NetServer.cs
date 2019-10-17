@@ -159,9 +159,9 @@ namespace NewLife.Net
 
         /// <summary>已重载。释放会话集合等资源</summary>
         /// <param name="disposing"></param>
-        protected override void OnDispose(Boolean disposing)
+        protected override void Dispose(Boolean disposing)
         {
-            base.OnDispose(disposing);
+            base.Dispose(disposing);
 
             if (Active) Stop(GetType().Name + (disposing ? "Dispose" : "GC"));
 
