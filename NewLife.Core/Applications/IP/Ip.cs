@@ -2,7 +2,6 @@
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Threading.Tasks;
 using NewLife.Log;
 using NewLife.Threading;
 using NewLife.Web;
@@ -13,10 +12,10 @@ namespace NewLife.IP
     public static class Ip
     {
         private static readonly Object lockHelper = new Object();
-        private static Zip zip;
+        private static Zip? zip;
 
         /// <summary>数据文件</summary>
-        public static String DbFile { get; set; }
+        public static String DbFile { get; set; } = "";
 
         static Ip()
         {
@@ -96,7 +95,7 @@ namespace NewLife.IP
         {
             if (String.IsNullOrEmpty(ip)) return "";
 
-            if (!Init()) return "";
+            if (!Init() || zip == null) return "";
 
             var ip2 = IPToUInt32(ip.Trim());
             lock (lockHelper)
@@ -112,7 +111,7 @@ namespace NewLife.IP
         {
             if (addr == null) return "";
 
-            if (!Init()) return "";
+            if (!Init() || zip == null) return "";
 
             var ip2 = (UInt32)addr.GetAddressBytes().Reverse().ToInt();
             lock (lockHelper)

@@ -12,9 +12,9 @@ namespace NewLife.IP
         UInt32 Index_Count;
         UInt32 Search_Index_Set;
         UInt32 Search_Index_End;
-        IndexInfo Search_Set;
-        IndexInfo Search_Mid;
-        IndexInfo Search_End;
+        //IndexInfo Search_Set;
+        //IndexInfo Search_Mid;
+        //IndexInfo Search_End;
 
         /// <summary>数据流</summary>
         public Stream Stream { get; set; }
@@ -29,9 +29,12 @@ namespace NewLife.IP
 
         void OnDispose(Boolean disposing)
         {
-            if (Stream != null) Stream.Dispose();
+            if (disposing)
+            {
+                Stream?.Dispose();
 
-            if (disposing) GC.SuppressFinalize(this);
+                GC.SuppressFinalize(this);
+            }
         }
         #endregion
 
@@ -69,23 +72,24 @@ namespace NewLife.IP
             Search_Index_Set = 0u;
             Search_Index_End = Index_Count - 1u;
 
+            IndexInfo set;
             while (true)
             {
-                Search_Set = IndexInfoAtPos(Search_Index_Set);
-                Search_End = IndexInfoAtPos(Search_Index_End);
-                if (ip >= Search_Set.IpSet && ip <= Search_Set.IpEnd) break;
+                set = IndexInfoAtPos(Search_Index_Set);
+                var end = IndexInfoAtPos(Search_Index_End);
+                if (ip >= set.IpSet && ip <= set.IpEnd) break;
 
-                if (ip >= Search_End.IpSet && ip <= Search_End.IpEnd) return ReadAddressInfoAtOffset(Search_End.Offset);
+                if (ip >= end.IpSet && ip <= end.IpEnd) return ReadAddressInfoAtOffset(end.Offset);
 
-                Search_Mid = IndexInfoAtPos((Search_Index_End + Search_Index_Set) / 2u);
-                if (ip >= Search_Mid.IpSet && ip <= Search_Mid.IpEnd) return ReadAddressInfoAtOffset(Search_Mid.Offset);
+                var mid = IndexInfoAtPos((Search_Index_End + Search_Index_Set) / 2u);
+                if (ip >= mid.IpSet && ip <= mid.IpEnd) return ReadAddressInfoAtOffset(mid.Offset);
 
-                if (ip < Search_Mid.IpSet)
+                if (ip < mid.IpSet)
                     Search_Index_End = (Search_Index_End + Search_Index_Set) / 2u;
                 else
                     Search_Index_Set = (Search_Index_End + Search_Index_Set) / 2u;
             }
-            return ReadAddressInfoAtOffset(Search_Set.Offset);
+            return ReadAddressInfoAtOffset(set.Offset);
         }
 
         String ReadAddressInfoAtOffset(UInt32 Offset)
@@ -133,13 +137,12 @@ namespace NewLife.IP
 
         UInt32 GetOffset()
         {
-            return BitConverter.ToUInt32(new Byte[]
-                {
-                    (Byte)Stream.ReadByte(),
-                    (Byte)Stream.ReadByte(),
-                    (Byte)Stream.ReadByte(),
-                    0
-                }, 0);
+            return BitConverter.ToUInt32(new Byte[] {
+                (Byte)Stream.ReadByte(),
+                (Byte)Stream.ReadByte(),
+                (Byte)Stream.ReadByte(),
+                0 },
+                0);
         }
 
         String ReadArea()
@@ -163,8 +166,10 @@ namespace NewLife.IP
                 k += 1;
                 buf[k] = (Byte)Stream.ReadByte();
             }
+
             var str = Encoding.GetEncoding("GB2312").GetString(buf).Trim().Trim('\0').Trim();
-            if (str == "CZ88.NET") return null;
+            if (str == "CZ88.NET") return String.Empty;
+
             return str;
         }
 
