@@ -10,14 +10,14 @@ namespace NewLife.IP
         UInt32 Index_Set;
         UInt32 Index_End;
         UInt32 Index_Count;
-        UInt32 Search_Index_Set;
-        UInt32 Search_Index_End;
+        //UInt32 Search_Index_Set;
+        //UInt32 Search_Index_End;
         //IndexInfo Search_Set;
         //IndexInfo Search_Mid;
         //IndexInfo Search_End;
 
         /// <summary>数据流</summary>
-        public Stream Stream { get; set; }
+        public Stream? Stream { get; set; }
         #endregion
 
         #region 构造
@@ -69,49 +69,52 @@ namespace NewLife.IP
         {
             if (Stream == null) return "";
 
-            Search_Index_Set = 0u;
-            Search_Index_End = Index_Count - 1u;
+            var idxSet = 0u;
+            var idxEnd = Index_Count - 1u;
 
             IndexInfo set;
             while (true)
             {
-                set = IndexInfoAtPos(Search_Index_Set);
-                var end = IndexInfoAtPos(Search_Index_End);
+                set = IndexInfoAtPos(idxSet);
+                var end = IndexInfoAtPos(idxEnd);
                 if (ip >= set.IpSet && ip <= set.IpEnd) break;
 
                 if (ip >= end.IpSet && ip <= end.IpEnd) return ReadAddressInfoAtOffset(end.Offset);
 
-                var mid = IndexInfoAtPos((Search_Index_End + Search_Index_Set) / 2u);
+                var mid = IndexInfoAtPos((idxEnd + idxSet) / 2u);
                 if (ip >= mid.IpSet && ip <= mid.IpEnd) return ReadAddressInfoAtOffset(mid.Offset);
 
                 if (ip < mid.IpSet)
-                    Search_Index_End = (Search_Index_End + Search_Index_Set) / 2u;
+                    idxEnd = (idxEnd + idxSet) / 2u;
                 else
-                    Search_Index_Set = (Search_Index_End + Search_Index_Set) / 2u;
+                    idxSet = (idxEnd + idxSet) / 2u;
             }
             return ReadAddressInfoAtOffset(set.Offset);
         }
 
         String ReadAddressInfoAtOffset(UInt32 Offset)
         {
-            Stream.Position = Offset + 4;
+            var ms = Stream;
+            if (ms == null) return String.Empty;
+
+            ms.Position = Offset + 4;
             var tag = GetTag();
             String addr;
             String area;
             if (tag == 1)
             {
-                Stream.Position = GetOffset();
+                ms.Position = GetOffset();
                 tag = GetTag();
                 if (tag == 2)
                 {
                     var offset = GetOffset();
                     area = ReadArea();
-                    Stream.Position = offset;
+                    ms.Position = offset;
                     addr = ReadString();
                 }
                 else
                 {
-                    Stream.Position -= 1;
+                    ms.Position -= 1;
                     addr = ReadString();
                     area = ReadArea();
                 }
@@ -122,12 +125,12 @@ namespace NewLife.IP
                 {
                     var offset = GetOffset();
                     area = ReadArea();
-                    Stream.Position = offset;
+                    ms.Position = offset;
                     addr = ReadString();
                 }
                 else
                 {
-                    Stream.Position -= 1;
+                    ms.Position -= 1;
                     addr = ReadString();
                     area = ReadArea();
                 }
@@ -137,34 +140,43 @@ namespace NewLife.IP
 
         UInt32 GetOffset()
         {
+            var ms = Stream;
+            if (ms == null) return 0;
+
             return BitConverter.ToUInt32(new Byte[] {
-                (Byte)Stream.ReadByte(),
-                (Byte)Stream.ReadByte(),
-                (Byte)Stream.ReadByte(),
+                (Byte)ms.ReadByte(),
+                (Byte)ms.ReadByte(),
+                (Byte)ms.ReadByte(),
                 0 },
                 0);
         }
 
         String ReadArea()
         {
+            var ms = Stream;
+            if (ms == null) return String.Empty;
+
             var tag = GetTag();
             if (tag == 1 || tag == 2)
-                Stream.Position = GetOffset();
+                ms.Position = GetOffset();
             else
-                Stream.Position -= 1;
+                ms.Position -= 1;
 
             return ReadString();
         }
 
         String ReadString()
         {
+            var ms = Stream;
+            if (ms == null) return String.Empty;
+
             var k = 0;
             var buf = new Byte[256];
-            buf[k] = (Byte)Stream.ReadByte();
+            buf[k] = (Byte)ms.ReadByte();
             while (buf[k] != 0)
             {
                 k += 1;
-                buf[k] = (Byte)Stream.ReadByte();
+                buf[k] = (Byte)ms.ReadByte();
             }
 
             var str = Encoding.GetEncoding("GB2312").GetString(buf).Trim().Trim('\0').Trim();
@@ -173,23 +185,30 @@ namespace NewLife.IP
             return str;
         }
 
-        Byte GetTag() => (Byte)Stream.ReadByte();
+        Byte GetTag() => (Byte)(Stream?.ReadByte() ?? 0);
 
         IndexInfo IndexInfoAtPos(UInt32 Index_Pos)
         {
             var inf = new IndexInfo();
-            Stream.Position = Index_Set + 7u * Index_Pos;
+            var ms = Stream;
+            if (ms == null) return inf;
+
+            ms.Position = Index_Set + 7u * Index_Pos;
             inf.IpSet = GetUInt32();
             inf.Offset = GetOffset();
-            Stream.Position = inf.Offset;
+            ms.Position = inf.Offset;
             inf.IpEnd = GetUInt32();
+
             return inf;
         }
 
         UInt32 GetUInt32()
         {
+            var ms = Stream;
+            if (ms == null) return 0;
+
             var array = new Byte[4];
-            Stream.Read(array, 0, 4);
+            ms.Read(array, 0, 4);
             return BitConverter.ToUInt32(array, 0);
         }
         #endregion
