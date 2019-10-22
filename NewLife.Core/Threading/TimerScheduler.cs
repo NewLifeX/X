@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Threading;
 using NewLife.Log;
 
+#nullable enable
 namespace NewLife.Threading
 {
     /// <summary>定时器调度器</summary>
@@ -35,9 +36,9 @@ namespace NewLife.Threading
         public static TimerScheduler Default { get; } = Create("Default");
 
         [ThreadStatic]
-        private static TimerScheduler _Current;
+        private static TimerScheduler? _Current;
         /// <summary>当前调度器</summary>
-        public static TimerScheduler Current { get => _Current; private set => _Current = value; }
+        public static TimerScheduler? Current { get => _Current; private set => _Current = value; }
         #endregion
 
         #region 属性
@@ -50,7 +51,7 @@ namespace NewLife.Threading
         /// <summary>最大耗时。超过时报警告日志，默认500ms</summary>
         public Int32 MaxCost { get; set; } = 500;
 
-        private Thread thread;
+        private Thread? thread;
 
         private TimerX[] Timers = new TimerX[0];
         #endregion
@@ -111,7 +112,7 @@ namespace NewLife.Threading
             }
         }
 
-        private AutoResetEvent waitForTimer;
+        private AutoResetEvent? waitForTimer;
         private Int32 period = 10;
 
         /// <summary>唤醒处理</summary>
@@ -142,7 +143,7 @@ namespace NewLife.Threading
 
                     var th = thread;
                     thread = null;
-                    th.Abort();
+                    th?.Abort();
 
                     break;
                 }
@@ -225,6 +226,8 @@ namespace NewLife.Threading
         private void Execute(Object state)
         {
             var timer = state as TimerX;
+            if (timer == null) return;
+
             TimerX.Current = timer;
 
             // 控制日志显示
@@ -306,9 +309,10 @@ namespace NewLife.Threading
 
         #region 设置
         /// <summary>日志</summary>
-        public ILog Log { get; set; }
+        public ILog Log { get; set; } = Logger.Null;
 
         private void WriteLog(String format, params Object[] args) => Log?.Info(format, args);
         #endregion
     }
 }
+#nullable restore

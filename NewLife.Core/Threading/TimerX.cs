@@ -76,7 +76,7 @@ namespace NewLife.Threading
 
             NextTime = DateTime.Now.AddMilliseconds(dueTime);
 
-            Scheduler = scheduler.IsNullOrEmpty() ? TimerScheduler.Default : TimerScheduler.Create(scheduler);
+            Scheduler = (scheduler == null || scheduler.IsNullOrEmpty()) ? TimerScheduler.Default : TimerScheduler.Create(scheduler);
             Scheduler.Add(this);
         }
 
@@ -109,7 +109,7 @@ namespace NewLife.Threading
             }
             NextTime = next;
 
-            Scheduler = scheduler.IsNullOrEmpty() ? TimerScheduler.Default : TimerScheduler.Create(scheduler);
+            Scheduler = (scheduler == null || scheduler.IsNullOrEmpty()) ? TimerScheduler.Default : TimerScheduler.Create(scheduler);
             Scheduler.Add(this);
         }
 
