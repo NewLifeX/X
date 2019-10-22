@@ -266,7 +266,6 @@ namespace NewLife.Remoting
         }
 
         /// <summary>调用</summary>
-        /// <param name="host"></param>
         /// <param name="session"></param>
         /// <param name="resultType">结果类型</param>
         /// <param name="action">服务操作</param>
@@ -340,7 +339,6 @@ namespace NewLife.Remoting
         }
 
         /// <summary>调用</summary>
-        /// <param name="host"></param>
         /// <param name="session"></param>
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>

@@ -2,6 +2,7 @@
 using System.IO;
 using System.Text;
 
+#nullable enable
 namespace NewLife.IP
 {
     class Zip : IDisposable
@@ -222,3 +223,4 @@ namespace NewLife.IP
         }
     }
 }
+#nullable restore

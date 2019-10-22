@@ -9,6 +9,7 @@ using System.Windows.Forms;
 using NewLife.Reflection;
 using NewLife.Threading;
 
+#nullable enable
 namespace NewLife.Log
 {
     /// <summary>日志类，包含跟踪调试功能</summary>
@@ -22,7 +23,7 @@ namespace NewLife.Log
     {
         #region 写日志
         /// <summary>文本文件日志</summary>
-        private static ILog _Log;
+        private static ILog _Log = Logger.Null;
         /// <summary>日志提供者，默认使用文本文件日志</summary>
         public static ILog Log { get { InitLog(); return _Log; } set { _Log = value; } }
 
@@ -240,7 +241,7 @@ namespace NewLife.Log
         /// <returns></returns>
         public static ILog Combine(this Control control, ILog log, Int32 maxLines = 1000)
         {
-            if (control == null || log == null) return log;
+            //if (control == null || log == null) return log;
 
             var clg = new TextControlLog
             {
@@ -296,3 +297,4 @@ namespace NewLife.Log
         #endregion
     }
 }
+#nullable restore

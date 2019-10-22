@@ -6,6 +6,7 @@ using NewLife.Log;
 using NewLife.Threading;
 using NewLife.Web;
 
+#nullable enable
 namespace NewLife.IP
 {
     /// <summary>IP搜索</summary>
@@ -146,3 +147,4 @@ namespace NewLife.IP
         public String GetAddress(IPAddress addr) => Ip.GetAddress(addr);
     }
 }
+#nullable restore

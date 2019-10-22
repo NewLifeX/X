@@ -6,6 +6,7 @@ using System.Text;
 using NewLife.Collections;
 using NewLife.Log;
 
+#nullable enable
 namespace System
 {
     /// <summary>字符串助手类</summary>
@@ -447,14 +448,14 @@ namespace System
         /// <param name="maxLength">截取后字符串的最大允许长度，包含后面填充</param>
         /// <param name="pad">需要填充在后面的字符串，比如几个圆点</param>
         /// <returns></returns>
-        public static String Cut(this String str, Int32 maxLength, String pad = null)
+        public static String Cut(this String str, Int32 maxLength, String? pad = null)
         {
             if (String.IsNullOrEmpty(str) || maxLength <= 0 || str.Length < maxLength) return str;
 
             // 计算截取长度
             var len = maxLength;
-            if (!String.IsNullOrEmpty(pad)) len -= pad.Length;
-            if (len <= 0) return pad;
+            if (pad != null && !String.IsNullOrEmpty(pad)) len -= pad.Length;
+            if (len <= 0) throw new ArgumentOutOfRangeException(nameof(maxLength));
 
             return str.Substring(0, len) + pad;
         }
@@ -948,3 +949,4 @@ namespace System
         #endregion
     }
 }
+#nullable restore

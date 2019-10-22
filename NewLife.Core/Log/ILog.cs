@@ -1,5 +1,6 @@
 ﻿using System;
 
+#nullable enable
 namespace NewLife.Log
 {
     /// <summary>日志接口</summary>
@@ -43,3 +44,4 @@ namespace NewLife.Log
         LogLevel Level { get; set; }
     }
 }
+#nullable restore

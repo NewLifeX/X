@@ -8,6 +8,7 @@ using NewLife.Security;
 using NewLife.Serialization;
 using NewLife.Web;
 
+#nullable enable
 namespace NewLife.Yun
 {
     /// <summary>地图提供者接口</summary>
@@ -143,7 +144,7 @@ namespace NewLife.Yun
         /// <param name="url">目标Url</param>
         /// <param name="result">结果字段</param>
         /// <returns></returns>
-        protected virtual async Task<T> InvokeAsync<T>(String url, String result)
+        protected virtual async Task<T?> InvokeAsync<T>(String url, String result) where T : class
         {
             LastResult = null;
 
@@ -166,8 +167,11 @@ namespace NewLife.Yun
         /// <returns></returns>
         protected String AcquireKey()
         {
+            if (AppKey.IsNullOrEmpty()) return String.Empty;
+
             var ks = _Keys;
-            if (ks == null) ks = _Keys = AppKey.Split(",");
+            if (ks == null) ks = _Keys = AppKey?.Split(",");
+            if (ks == null) return String.Empty;
 
             //var key = _Keys[_KeyIndex++];
             //if (_KeyIndex >= _Keys.Length) _KeyIndex = 0;
@@ -219,3 +223,4 @@ namespace NewLife.Yun
         #endregion
     }
 }
+#nullable restore

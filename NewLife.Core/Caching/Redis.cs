@@ -193,15 +193,10 @@ namespace NewLife.Caching
             var uri = new NetUri(svr);
             if (uri.Port == 0) uri.Port = 6379;
 
-            var rc = new RedisClient
+            var rc = new RedisClient(this, uri)
             {
-                Host = this,
-                Server = uri,
-                //Password = rds.Password,
-                //Db = rds.Db,
+                Log = Log
             };
-
-            rc.Log = Log;
             //if (rds.Db > 0) rc.Select(rds.Db);
 
             return rc;

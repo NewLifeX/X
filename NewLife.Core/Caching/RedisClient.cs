@@ -11,6 +11,7 @@ using NewLife.Net;
 using NewLife.Reflection;
 using NewLife.Serialization;
 
+#nullable enable
 namespace NewLife.Caching
 {
     /// <summary>Redis客户端</summary>
@@ -21,7 +22,7 @@ namespace NewLife.Caching
     {
         #region 属性
         /// <summary>客户端</summary>
-        public TcpClient Client { get; set; }
+        public TcpClient? Client { get; set; }
 
         /// <summary>内容类型</summary>
         public NetUri Server { get; set; }
@@ -40,6 +41,15 @@ namespace NewLife.Caching
         #endregion
 
         #region 构造
+        /// <summary>实例化</summary>
+        /// <param name="redis"></param>
+        /// <param name="server"></param>
+        public RedisClient(Redis redis, NetUri server)
+        {
+            Host = redis;
+            Server = server;
+        }
+
         /// <summary>销毁</summary>
         /// <param name="disposing"></param>
         protected override void Dispose(Boolean disposing)
@@ -65,17 +75,17 @@ namespace NewLife.Caching
         /// <summary>异步请求</summary>
         /// <param name="create">新建连接</param>
         /// <returns></returns>
-        private Stream GetStream(Boolean create)
+        private Stream? GetStream(Boolean create)
         {
             var tc = Client;
-            NetworkStream ns = null;
+            NetworkStream? ns = null;
 
             // 判断连接是否可用
             var active = false;
             try
             {
                 ns = tc?.GetStream();
-                active = ns != null && tc.Connected && ns != null && ns.CanWrite && ns.CanRead;
+                active = ns != null && tc != null && tc.Connected && ns != null && ns.CanWrite && ns.CanRead;
             }
             catch { }
 
@@ -227,7 +237,7 @@ namespace NewLife.Caching
         /// <param name="cmd"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        protected virtual Object ExecuteCommand(String cmd, Packet[] args)
+        protected virtual Object? ExecuteCommand(String cmd, Packet[] args)
         {
             var isQuit = cmd == "QUIT";
 
@@ -250,7 +260,7 @@ namespace NewLife.Caching
             return rs.FirstOrDefault();
         }
 
-        private void CheckLogin(String cmd)
+        private void CheckLogin(String? cmd)
         {
             if (Logined) return;
             if (cmd.EqualIgnoreCase("Auth", "Select")) return;
@@ -291,7 +301,7 @@ namespace NewLife.Caching
         {
             var rs = ReadPacket(ms);
 
-            if (rs != null && Log != null && Log != Logger.Null)
+            if (/*rs != null &&*/ Log != null && Log != Logger.Null)
             {
                 if (rs.Count <= 32)
                     WriteLog("=> {0}", rs.ToStr());
@@ -302,7 +312,7 @@ namespace NewLife.Caching
             return rs;
         }
 
-        private Object[] ReadBlocks(Stream ms)
+        private Object?[] ReadBlocks(Stream ms)
         {
             // 结果集数量
             var n = ReadLine(ms).ToInt(-1);
@@ -329,7 +339,8 @@ namespace NewLife.Caching
         private Packet ReadPacket(Stream ms)
         {
             var len = ReadLine(ms).ToInt(-1);
-            if (len <= 0) return null;
+            //if (len <= 0) return null;
+            if (len <= 0) throw new InvalidDataException();
 
             var buf = new Byte[len + 2];
             var p = 0;
@@ -376,13 +387,13 @@ namespace NewLife.Caching
         /// <param name="cmd"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        public virtual Object Execute(String cmd, params Object[] args) => ExecuteCommand(cmd, args.Select(e => ToBytes(e)).ToArray());
+        public virtual Object? Execute(String cmd, params Object[] args) => ExecuteCommand(cmd, args.Select(e => ToBytes(e)).ToArray());
 
         /// <summary>执行命令。返回基本类型、对象、对象数组</summary>
         /// <param name="cmd"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        public virtual TResult Execute<TResult>(String cmd, params Object[] args)
+        public virtual TResult Execute<TResult>(String cmd, params Object?[] args)
         {
             // 管道模式
             if (_ps != null)
@@ -392,7 +403,7 @@ namespace NewLife.Caching
             }
 
             var rs = Execute(cmd, args);
-            if (TryChangeType(rs, typeof(TResult), out var target)) return (TResult)target;
+            if (rs != null && TryChangeType(rs, typeof(TResult), out var target)) return (TResult)target;
 
             return default(TResult);
         }
@@ -402,7 +413,7 @@ namespace NewLife.Caching
         /// <param name="type"></param>
         /// <param name="target"></param>
         /// <returns></returns>
-        public virtual Boolean TryChangeType(Object value, Type type, out Object target)
+        public virtual Boolean TryChangeType(Object value, Type type, out Object? target)
         {
             if (value is String str)
             {
@@ -433,7 +444,7 @@ namespace NewLife.Caching
                 var arr = Array.CreateInstance(elmType, pks.Length);
                 for (var i = 0; i < pks.Length; i++)
                 {
-                    arr.SetValue(FromBytes(pks[i] as Packet, elmType), i);
+                    if (pks[i] is Packet pk3) arr.SetValue(FromBytes(pk3, elmType), i);
                 }
                 target = arr;
                 return true;
@@ -443,7 +454,7 @@ namespace NewLife.Caching
             return false;
         }
 
-        private IList<Command> _ps;
+        private IList<Command>? _ps;
         /// <summary>管道命令个数</summary>
         public Int32 PipelineCommands => _ps == null ? 0 : _ps.Count;
 
@@ -455,7 +466,7 @@ namespace NewLife.Caching
 
         /// <summary>结束管道模式</summary>
         /// <param name="requireResult">要求结果</param>
-        public virtual Object[] StopPipeline(Boolean requireResult)
+        public virtual Object[]? StopPipeline(Boolean requireResult)
         {
             var ps = _ps;
             if (ps == null) return null;
@@ -485,7 +496,7 @@ namespace NewLife.Caching
             var list = GetResponse(ns, ps.Count);
             for (var i = 0; i < list.Count; i++)
             {
-                if (TryChangeType(list[i], ps[i].Type, out var target)) list[i] = target;
+                if (TryChangeType(list[i], ps[i].Type, out var target) && target != null) list[i] = target;
             }
 
             return list.ToArray();
@@ -560,6 +571,8 @@ namespace NewLife.Caching
                 //ps.Add(item.Key.GetBytes());
                 //ps.Add(ToBytes(item.Value));
                 ps.Add(item.Key);
+
+                if (item.Value == null) throw new NullReferenceException();
                 ps.Add(item.Value);
             }
 
@@ -583,7 +596,7 @@ namespace NewLife.Caching
 
             for (var i = 0; i < ks.Length && i < rs.Length; i++)
             {
-                dic[ks[i]] = FromBytes<T>(rs[i] as Packet);
+                if (rs[i] is Packet pk) dic[ks[i]] = FromBytes<T>(pk);
             }
 
             return dic;
@@ -617,7 +630,7 @@ namespace NewLife.Caching
         /// <returns></returns>
         protected virtual Object FromBytes(Packet pk, Type type)
         {
-            if (pk == null) return null;
+            //if (pk == null) return null;
 
             if (type == typeof(Packet)) return pk;
             if (type == typeof(Byte[])) return pk.ToArray();
@@ -666,3 +679,4 @@ namespace NewLife.Caching
         #endregion
     }
 }
+#nullable restore

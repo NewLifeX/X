@@ -11,6 +11,7 @@ using NewLife.Reflection;
 using NewLife.Serialization;
 using NewLife.Threading;
 
+#nullable enable
 namespace NewLife.Caching
 {
     /// <summary>默认字典缓存</summary>
@@ -702,3 +703,4 @@ namespace NewLife.Caching
         }
     }
 }
+#nullable restore

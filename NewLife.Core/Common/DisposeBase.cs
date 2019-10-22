@@ -6,6 +6,7 @@ using System.Threading;
 using System.Xml.Serialization;
 using NewLife.Log;
 
+#nullable enable
 namespace NewLife
 {
     /// <summary>具有是否已释放和释放后事件的接口</summary>
@@ -144,3 +145,4 @@ namespace NewLife
         }
     }
 }
+#nullable restore
