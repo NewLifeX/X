@@ -11,7 +11,7 @@ using NewLife.Net;
 using NewLife.Reflection;
 using NewLife.Serialization;
 
-#nullable enable
+//#nullable enable
 namespace NewLife.Caching
 {
     /// <summary>Redis客户端</summary>
@@ -22,7 +22,7 @@ namespace NewLife.Caching
     {
         #region 属性
         /// <summary>客户端</summary>
-        public TcpClient? Client { get; set; }
+        public TcpClient Client { get; set; }
 
         /// <summary>内容类型</summary>
         public NetUri Server { get; set; }
@@ -75,10 +75,10 @@ namespace NewLife.Caching
         /// <summary>异步请求</summary>
         /// <param name="create">新建连接</param>
         /// <returns></returns>
-        private Stream? GetStream(Boolean create)
+        private Stream GetStream(Boolean create)
         {
             var tc = Client;
-            NetworkStream? ns = null;
+            NetworkStream ns = null;
 
             // 判断连接是否可用
             var active = false;
@@ -237,7 +237,7 @@ namespace NewLife.Caching
         /// <param name="cmd"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        protected virtual Object? ExecuteCommand(String cmd, Packet[] args)
+        protected virtual Object ExecuteCommand(String cmd, Packet[] args)
         {
             var isQuit = cmd == "QUIT";
 
@@ -260,7 +260,7 @@ namespace NewLife.Caching
             return rs.FirstOrDefault();
         }
 
-        private void CheckLogin(String? cmd)
+        private void CheckLogin(String cmd)
         {
             if (Logined) return;
             if (cmd.EqualIgnoreCase("Auth", "Select")) return;
@@ -312,7 +312,7 @@ namespace NewLife.Caching
             return rs;
         }
 
-        private Object?[] ReadBlocks(Stream ms)
+        private Object[] ReadBlocks(Stream ms)
         {
             // 结果集数量
             var n = ReadLine(ms).ToInt(-1);
@@ -387,25 +387,25 @@ namespace NewLife.Caching
         /// <param name="cmd"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        public virtual Object? Execute(String cmd, params Object[] args) => ExecuteCommand(cmd, args.Select(e => ToBytes(e)).ToArray());
+        public virtual Object Execute(String cmd, params Object[] args) => ExecuteCommand(cmd, args.Select(e => ToBytes(e)).ToArray());
 
         /// <summary>执行命令。返回基本类型、对象、对象数组</summary>
         /// <param name="cmd"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        public virtual TResult Execute<TResult>(String cmd, params Object?[] args)
+        public virtual TResult Execute<TResult>(String cmd, params Object[] args)
         {
             // 管道模式
             if (_ps != null)
             {
                 _ps.Add(new Command(cmd, args, typeof(TResult)));
-                return default(TResult);
+                return default;
             }
 
             var rs = Execute(cmd, args);
             if (rs != null && TryChangeType(rs, typeof(TResult), out var target)) return (TResult)target;
 
-            return default(TResult);
+            return default;
         }
 
         /// <summary>尝试转换类型</summary>
@@ -413,7 +413,7 @@ namespace NewLife.Caching
         /// <param name="type"></param>
         /// <param name="target"></param>
         /// <returns></returns>
-        public virtual Boolean TryChangeType(Object value, Type type, out Object? target)
+        public virtual Boolean TryChangeType(Object value, Type type, out Object target)
         {
             if (value is String str)
             {
@@ -454,7 +454,7 @@ namespace NewLife.Caching
             return false;
         }
 
-        private IList<Command>? _ps;
+        private IList<Command> _ps;
         /// <summary>管道命令个数</summary>
         public Int32 PipelineCommands => _ps == null ? 0 : _ps.Count;
 
@@ -466,7 +466,7 @@ namespace NewLife.Caching
 
         /// <summary>结束管道模式</summary>
         /// <param name="requireResult">要求结果</param>
-        public virtual Object[]? StopPipeline(Boolean requireResult)
+        public virtual Object[] StopPipeline(Boolean requireResult)
         {
             var ps = _ps;
             if (ps == null) return null;
@@ -679,4 +679,4 @@ namespace NewLife.Caching
         #endregion
     }
 }
-#nullable restore
+//#nullable restore

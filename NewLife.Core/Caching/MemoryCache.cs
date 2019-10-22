@@ -11,7 +11,7 @@ using NewLife.Reflection;
 using NewLife.Serialization;
 using NewLife.Threading;
 
-#nullable enable
+//#nullable enable
 namespace NewLife.Caching
 {
     /// <summary>默认字典缓存</summary>
@@ -61,7 +61,7 @@ namespace NewLife.Caching
         #region 方法
         /// <summary>初始化配置</summary>
         /// <param name="config"></param>
-        public override void Init(String? config)
+        public override void Init(String config)
         {
             if (clearTimer == null)
             {
@@ -84,7 +84,7 @@ namespace NewLife.Caching
         {
             if (expire < 0) expire = Expire;
 
-            CacheItem? ci = null;
+            CacheItem ci = null;
             do
             {
                 if (_cache.TryGetValue(key, out var item)) return (T)item.Visit();
@@ -125,7 +125,7 @@ namespace NewLife.Caching
             //    });
 
             // 不用AddOrUpdate，避免匿名委托带来的GC损耗
-            CacheItem? ci = null;
+            CacheItem ci = null;
             do
             {
                 if (_cache.TryGetValue(key, out var item))
@@ -147,7 +147,7 @@ namespace NewLife.Caching
         /// <returns></returns>
         public override T Get<T>(String key)
         {
-            if (!_cache.TryGetValue(key, out var item) || item == null) return default(T);
+            if (!_cache.TryGetValue(key, out var item) || item == null) return default;
 
             return (T)item.Visit();
         }
@@ -208,7 +208,7 @@ namespace NewLife.Caching
         {
             if (expire < 0) expire = Expire;
 
-            CacheItem? ci = null;
+            CacheItem ci = null;
             do
             {
                 if (_cache.TryGetValue(key, out _)) return false;
@@ -230,7 +230,7 @@ namespace NewLife.Caching
         {
             var expire = Expire;
 
-            CacheItem? ci = null;
+            CacheItem ci = null;
             do
             {
                 if (_cache.TryGetValue(key, out var item))
@@ -245,7 +245,7 @@ namespace NewLife.Caching
 
             Interlocked.Increment(ref _count);
 
-            return default(T);
+            return default;
         }
 
         /// <summary>累加，原子操作</summary>
@@ -339,7 +339,7 @@ namespace NewLife.Caching
         {
             var expire = Expire;
 
-            CacheItem? ci = null;
+            CacheItem ci = null;
             do
             {
                 if (_cache.TryGetValue(key, out var item)) return item;
@@ -357,9 +357,9 @@ namespace NewLife.Caching
         /// <summary>缓存项</summary>
         protected class CacheItem
         {
-            private Object? _Value;
+            private Object _Value;
             /// <summary>数值</summary>
-            public Object? Value { get { return _Value; } set { _Value = value; } }
+            public Object Value { get { return _Value; } set { _Value = value; } }
 
             /// <summary>过期时间</summary>
             public DateTime ExpiredTime { get; set; }
@@ -373,12 +373,12 @@ namespace NewLife.Caching
             /// <summary>构造缓存项</summary>
             /// <param name="value"></param>
             /// <param name="expire"></param>
-            public CacheItem(Object? value, Int32 expire) => Set(value, expire);
+            public CacheItem(Object value, Int32 expire) => Set(value, expire);
 
             /// <summary>设置数值和过期时间</summary>
             /// <param name="value"></param>
             /// <param name="expire"></param>
-            public void Set(Object? value, Int32 expire)
+            public void Set(Object value, Int32 expire)
             {
                 Value = value;
 
@@ -391,7 +391,7 @@ namespace NewLife.Caching
 
             /// <summary>更新访问时间并返回数值</summary>
             /// <returns></returns>
-            public Object? Visit()
+            public Object Visit()
             {
                 VisitTime = TimerX.Now;
                 return Value;
@@ -475,7 +475,7 @@ namespace NewLife.Caching
 
         #region 清理过期缓存
         /// <summary>清理会话计时器</summary>
-        private TimerX? clearTimer;
+        private TimerX clearTimer;
 
         /// <summary>移除过期的缓存项</summary>
         void RemoveNotAlive(Object state)
@@ -703,4 +703,4 @@ namespace NewLife.Caching
         }
     }
 }
-#nullable restore
+//#nullable restore
