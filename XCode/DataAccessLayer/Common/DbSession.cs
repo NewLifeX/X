@@ -534,7 +534,13 @@ namespace XCode.DataAccessLayer
             var dt = db._SchemaCache[key];
             if (dt == null)
             {
+                /*
+                * TODO: Bug
+                * sqlserver切换到master库时,仍然使用Process去获取DbConnection，然而此时DataBase对象为连接字符串中的数据库
+                * 这里不知道是应该在RemoteDb的OpenDatabase方法（改变DataBase对象）抑或是修改这里的Process方法
+                */
                 dt = Process(conn2 => GetSchemaInternal(conn2, key, collectionName, restrictionValues));
+                //dt = GetSchemaInternal(conn, key, collectionName, restrictionValues);
 
                 db._SchemaCache[key] = dt;
             }
