@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife;
@@ -78,54 +79,7 @@ namespace Test
 
         static void Test2()
         {
-            //DAL.AddConnStr("Log", "Data Source=tcp://127.0.0.1/ORCL;User Id=scott;Password=tiger;UseParameter=true", null, "Oracle");
-            //DAL.AddConnStr("Log", "Server=.;Port=3306;Database=Log;Uid=root;Pwd=root;", null, "MySql");
-            //DAL.AddConnStr("Membership", "Server=.;Port=3306;Database=times;Uid=root;Pwd=Pass@word;TablePrefix=xx_", null, "MySql");
-            //DAL.AddConnStr("Membership", @"Server=.\JSQL2008;User ID=sa;Password=sa;Database=Membership;", null, "sqlserver");
-            //DAL.AddConnStr("Log", @"Server=.\JSQL2008;User ID=sa;Password=sa;Database=Log;", null, "sqlserver");
-
-            UserX.Meta.Session.Dal.Db.ShowSQL = true;
-            Log.Meta.Session.Dal.Db.ShowSQL = true;
-
-            var gs = UserX.FindAll(null, null, null, 0, 10);
-            var count = UserX.FindCount();
-            Console.WriteLine("Count={0}", count);
-
-            LogProvider.Provider.WriteLog("test", "新增", "学无先后达者为师");
-            LogProvider.Provider.WriteLog("test", "新增", "学无先后达者为师");
-            LogProvider.Provider.WriteLog("test", "新增", "学无先后达者为师");
-
-            var list = new List<UserX>();
-            for (var i = 0; i < 4; i++)
-            {
-                var entity = new UserX
-                {
-                    Name = "Stone" + i,
-                    DisplayName = "大石头" + i,
-                    Logins = 1,
-                    LastLogin = DateTime.Now,
-                    RegisterTime = DateTime.Now
-                };
-                list.Add(entity);
-                entity.SaveAsync();
-                //entity.InsertOrUpdate();
-            }
-            //list.Save();
-
-            var user = gs.FirstOrDefault();
-            if (user != null)
-            {
-                user.Logins++;
-                user.SaveAsync();
-            }
-
-            Thread.Sleep(3000);
-
-            count = UserX.FindCount();
-            Console.WriteLine("Count={0}", count);
-            //gs = UserX.FindAll(null, null, null, 0, 10);
-
-            //gs.Delete(true);
+            
         }
 
         static void Test3()
