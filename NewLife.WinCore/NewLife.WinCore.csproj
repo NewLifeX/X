@@ -8,8 +8,8 @@
     <Description>算法、日志、网络、RPC、序列化、缓存、Windows服务、线程池</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2019 新生命开发团队</Copyright>
-    <Version>8.4.2019.1007</Version>
-    <FileVersion>8.4.2019.1007</FileVersion>
+    <Version>8.4.2019.1101</Version>
+    <FileVersion>8.4.2019.1101</FileVersion>
     <AssemblyVersion>8.4.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <OutputPath>..\..\Bin</OutputPath>
@@ -27,7 +27,7 @@
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
-    <PackageReleaseNotes>RPC连接复用优化；分页类改进</PackageReleaseNotes>
+    <PackageReleaseNotes>Windows专用.NET Core 3.0</PackageReleaseNotes>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>

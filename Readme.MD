@@ -18,9 +18,11 @@
 |                              中间件                              |       |        |           | 对接各知名中间件平台                               |
 |    [NewLife.Redis](https://github.com/NewLifeX/NewLife.Redis)    | 2017  | 维护中 |     √     | Redis客户端，微秒级延迟，百亿级项目验证            |
 | [NewLife.RocketMQ](https://github.com/NewLifeX/NewLife.RocketMQ) | 2018  | 维护中 |     √     | 支持Apache RocketMQ和阿里云消息队列                |
+|       [NewLife.MQ](https://github.com/NewLifeX/NewLife.MQ)       | 2016  | 维护中 |     √     | 轻量级消息队列                                     |
+|     [NewLife.MQTT](https://github.com/NewLifeX/NewLife.MQTT)     | 2019  | 开发中 |     √     | 物联网消息协议                                     |
+|     [NewLife.LoRa](https://github.com/NewLifeX/NewLife.LoRa)     | 2016  | 维护中 |     √     | 超低功耗的物联网远程通信协议LoRaWAN                |
 |   [NewLife.Thrift](https://github.com/NewLifeX/NewLife.Thrift)   | 2019  | 维护中 |     √     | Thrift协议实现                                     |
 |     [NewLife.Hive](https://github.com/NewLifeX/NewLife.Hive)     | 2019  | 维护中 |     √     | 纯托管读写Hive，Hadoop数据仓库，基于Thrift协议     |
-|       [NewLife.MQ](https://github.com/NewLifeX/NewLife.MQ)       | 2016  | 维护中 |     √     | 轻量级消息队列                                     |
 |             [NoDb](https://github.com/NewLifeX/NoDb)             | 2017  | 开发中 |     √     | NoSQL数据库，百万级kv读写性能，持久化              |
 |    [NewLife.Cache](https://github.com/NewLifeX/NewLife.Cache)    | 2018  | 维护中 |     √     | 自定义缓存服务器                                   |
 |      [NewLife.Ftp](https://github.com/NewLifeX/NewLife.Ftp)      | 2008  | 维护中 |     √     | Ftp客户端实现                                      |
@@ -36,7 +38,7 @@
 |          [SmartOS](https://github.com/NewLifeX/SmartOS)          | 2014  | 保密中 |   C++11   | 嵌入式操作系统，完全独立自主，ARM Cortex-M芯片架构 |
 |         [GitCandy](https://github.com/NewLifeX/GitCandy)         | 2015  | 维护中 |     ×     | Git管理系统                                        |
 |                               其它                               |       |        |           |                                                    |
-|           [XCoder](https://github.com/NewLifeX/XCoder)           | 2006  | 维护中 |     ×     | 码神工具，开发者必备                               |
+|           [XCoder](https://github.com/NewLifeX/XCoder)           | 2006  | 维护中 |     √     | 码神工具，开发者必备                               |
 |        [XTemplate](https://github.com/NewLifeX/XTemplate)        | 2008  | 维护中 |     √     | 模版引擎，T4(Text Template)语法                    |
 |       [X组件 .NET2.0](https://github.com/NewLifeX/X_NET20)       | 2002  | 存档中 |  .NET2.0  | 日志、网络、RPC、序列化、缓存、Windows服务、多线程 |
 |       [X组件 .NET4.0](https://github.com/NewLifeX/X_NET40)       | 2002  | 存档中 |  .NET4.0  | 日志、网络、RPC、序列化、缓存、Windows服务、多线程 |
@@ -76,7 +78,7 @@
 1. [x] [魔方netcore版](https://github.com/NewLifeX/NewLife.Cube)。需要尽快推出，其它所有组件都已经支持netcore
 2. [x] 产品级反向代理[XProxy](https://github.com/NewLifeX/XProxy)。一个XProxy服务支持多组反向代理设置，支持数据库和远程桌面等，netcore版，Web管理得等netcore魔方。比较简单，可以尽快完成。
 3. [ ] 产品级分布式服务代理[XAgent](https://github.com/NewLifeX/XAgent)。XAgent.exe安装到各个Windows/Linux节点并注册成为服务，控制中心推送应用包到个节点，由XAgent启动并负责监管。工程量大，预计年底开工。
-4. [ ] ApiServer支持http协议。ApiServer在Linux上大量使用，验证了它的可靠性和性能，如果能够直接支持http协议，即可在一定程度上替代WebApi，避免维护两套系统。
+4. [x] ApiServer支持http协议。ApiServer在Linux上大量使用，验证了它的可靠性和性能，如果能够直接支持http协议，即可在一定程度上替代WebApi，避免维护两套系统。
 5. [ ] ApiServer支持非标协议。标准协议是4字节头部，为了在物联网领域得到扩大，有必要支持非标协议。工作量不小，需要考虑的东西挺多。
 6. [ ] 发布[NewLife.MySql](https://github.com/NewLifeX/NewLife.MySql)驱动。现在官方新版MySql驱动用起来还不错，自己的驱动倒是动力不强了，慢慢推进吧。
 7. [ ] 发布NoDb数据库。至今为止最期待的大数据存储方案，各种算法，比较伤脑细胞。
@@ -85,28 +87,9 @@
 10. [x] 升级[NewLife.Cache](https://github.com/NewLifeX/NewLife.Cache)。CacheServer/CacheClient由Json协议改为二进制协议，以获取极致性能。不太难
 11. [x] 开源[NewLife.RocketMQ](https://github.com/NewLifeX/NewLife.RocketMQ)。实现发布消息、消费消息、负载均衡，支持Apache RocketMQ和阿里云消息队列
 
-## 新生命团队netcore服务器免费开放计划
-为了便于大家学习测试netcore，我们计划提供1~3台公网Linux服务器（CentOS/Ubuntu），1vCPU+1G内存+100Mbps，为期1年，每周重置系统修改一次密码。
-对使用者要求如下：
-1，不干坏事。由Q群1600800监督管理
-2，向源码库贡献源码或star，https://github.com/NewLifeX
-3，博客分享学习经验
-
-我们希望同学们不仅可以部署测试netcore应用，还可以在一台真实公网服务器上学习如何安装配置环境，观察应用系统运行指标，如何诊断系统异常等。
-
-开放服务器暂定由Q群1600800监督管理，每周修改一次密码并重置系统，如有用户报告异常，核实后马上重置。
-修改后的密码会在Q群1600800和源码库https://github.com/NewLifeX/X/blob/master/Readme.MD公布。
-
-服务器已准备就绪！第二期账号如下：
-SSH地址：`centos.newlifex.com`
-账号密码：`root / nx@466364748`
-
-感谢笑笑和漫游者近半年来给大家带来的netcore知识，以他们账号作为密码，实至名归！
-
 #### 新生命开发团队
-`新生命团队始于2002年，部分开源项目具有15年以上漫长历史，源码库保留有2010年以来所有修改记录，并一直保持更新，请确保获取得到最新版本源代码`
+`新生命团队始于2002年，部分开源项目具有15年以上漫长历史，源码库保留有2010年以来所有修改记录，并一直保持更新，请确保获取得到最新版本源代码`  
 网站：http://www.NewLifeX.com  
-国内：http://git.NewLifeX.com  
-国外：https://github.com/NewLifeX  
+开源：https://github.com/NewLifeX  
 博客：https://nnhy.cnblogs.com  
 QQ群：1600800/1600838  
