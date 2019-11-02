@@ -181,7 +181,8 @@ namespace XCode.DataAccessLayer
             var session = Database.CreateSession();
             var databaseName = Database.DatabaseName;
 
-            if (values != null && values.Length > 0 && values[0] is String && values[0] + "" != "") databaseName = values[0] + "";  //ahuang 2014.06.12  类型强制转string的bug
+            // ahuang 2014.06.12  类型强制转string的bug
+            if (values != null && values.Length > 0 && values[0] is String str && !str.IsNullOrEmpty()) databaseName = str;
 
             switch (schema)
             {
