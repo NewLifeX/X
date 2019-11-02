@@ -11,9 +11,12 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Net;
+using NewLife.Reflection;
+using NewLife.Serialization;
 #if !NET4
 using TaskEx = System.Threading.Tasks.Task;
 #endif
@@ -626,9 +629,77 @@ namespace NewLife.Http
         #endregion
 
         #region 远程调用
-        public T Invoke<T>(String action, Object arg)
+        /// <summary>同步调用，阻塞等待</summary>
+        /// <param name="action">服务操作</param>
+        /// <param name="args">参数</param>
+        /// <returns></returns>
+        public TResult Invoke<TResult>(String action, Object args = null)
         {
-            return default;
+            if (BaseAddress == null) throw new ArgumentNullException(nameof(BaseAddress));
+
+            var uri = new Uri(BaseAddress, action);
+
+            // 序列化参数，决定GET/POST
+            Packet pk = null;
+            if (args != null)
+            {
+                var ps = args.ToDictionary();
+                if (ps.Any(e => e.Value != null && e.Value.GetType().GetTypeCode() == TypeCode.Object))
+                    pk = ps.ToJson().GetBytes();
+                else
+                {
+                    var sb = Pool.StringBuilder.Get();
+                    sb.Append(uri);
+                    sb.Append("?");
+
+                    var first = true;
+                    foreach (var item in ps)
+                    {
+                        if (!first) sb.Append("&");
+                        first = false;
+
+                        sb.AppendFormat("{0}={1}", item.Key, HttpUtility.UrlEncode("{0}".F(item.Value)));
+                    }
+
+                    uri = new Uri(sb.Put(true));
+                }
+            }
+
+            Packet rs = null;
+            var pool = GetPool(uri.Host);
+            var client = pool.Get();
+            try
+            {
+                rs = client.Send(uri, pk.ToArray());
+            }
+            finally
+            {
+                pool.Put(client);
+            }
+
+            if (rs == null || rs.Total == 0) return default;
+
+            var str = rs.ToStr();
+            if (Type.GetTypeCode(typeof(TResult)) != TypeCode.Object) return str.ChangeType<TResult>();
+
+            // 反序列化
+            var dic = new JsonParser(str).Decode() as IDictionary<String, Object>;
+            if (!dic.TryGetValue("data", out var data)) throw new InvalidDataException("未识别响应数据");
+
+            if (dic.TryGetValue("result", out var result))
+            {
+                if (result is Boolean res && !res) throw new InvalidOperationException("远程错误，{0}".F(data));
+            }
+            else if (dic.TryGetValue("code", out var code))
+            {
+                if (code is Int32 cd && cd != 0) throw new InvalidOperationException("远程{1}错误，{0}".F(data, cd));
+            }
+            else
+            {
+                throw new InvalidDataException("未识别响应数据");
+            }
+
+            return JsonHelper.Convert<TResult>(data);
         }
         #endregion
     }
