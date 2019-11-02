@@ -109,12 +109,12 @@ namespace NewLife.Log
              * 6，正常写入日志
              */
 
-            if (_Log != null) return true;
+            if (_Log != null && _Log != Logger.Null) return true;
             if (_initing > 0 && _initing == Thread.CurrentThread.ManagedThreadId) return false;
 
             lock (_lock)
             {
-                if (_Log != null) return true;
+                if (_Log != null && _Log != Logger.Null) return true;
 
                 _initing = Thread.CurrentThread.ManagedThreadId;
                 _Log = TextFileLog.Create(LogPath);
