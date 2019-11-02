@@ -27,6 +27,9 @@ namespace NewLife.Http
         /// <summary>客户端</summary>
         public TcpClient Client { get; set; }
 
+        /// <summary>基础地址</summary>
+        public Uri BaseAddress { get; set; }
+
         /// <summary>内容类型</summary>
         public String ContentType { get; set; }
 
@@ -107,6 +110,8 @@ namespace NewLife.Http
 
                 Client = tc;
                 ns = tc.GetStream();
+
+                if (BaseAddress == null) BaseAddress = new Uri(uri, "/");
 
                 active = true;
             }
@@ -299,6 +304,8 @@ namespace NewLife.Http
 
                 Client = tc;
                 ns = tc.GetStream();
+
+                if (BaseAddress == null) BaseAddress = new Uri(uri, "/");
 
                 active = true;
             }
@@ -615,6 +622,13 @@ namespace NewLife.Http
             {
                 pool.Put(client);
             }
+        }
+        #endregion
+
+        #region 远程调用
+        public T Invoke<T>(String action, Object arg)
+        {
+            return default;
         }
         #endregion
     }

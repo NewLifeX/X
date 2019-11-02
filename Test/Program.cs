@@ -43,7 +43,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test1();
+                    Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -79,7 +79,14 @@ namespace Test
 
         static void Test2()
         {
-            
+            var uri = new Uri("http://www.newlifex.com");
+            var client = new TinyHttpClient();
+            var html = client.Send(uri, null)?.ToStr();
+
+            Console.WriteLine(client.BaseAddress);
+
+            Console.WriteLine(uri);
+            Console.WriteLine(client.BaseAddress == uri);
         }
 
         static void Test3()
