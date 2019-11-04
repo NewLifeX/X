@@ -81,10 +81,10 @@ namespace NewLife.Remoting
             if (rtype.GetTypeCode() != TypeCode.Object) return str.ChangeType<TResult>();
 
             // 反序列化
-            var dic = new JsonParser(str).Decode() as IDictionary<String, Object>;
-            if (dic == null) throw new InvalidDataException("未识别响应数据");
+            var js = new JsonParser(str).Decode();
+            if (!(js is IDictionary<String, Object> dic) && !(js is IList<Object>)) throw new InvalidDataException("未识别响应数据");
 
-            return JsonHelper.Convert<TResult>(dic);
+            return JsonHelper.Convert<TResult>(js);
         }
 
         /// <summary>同步调用，阻塞等待</summary>

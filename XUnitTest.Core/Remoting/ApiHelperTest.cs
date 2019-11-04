@@ -49,6 +49,10 @@ namespace XUnitTest.Remoting
             var pk = await _Client.InvokeAsync<Packet>("api/info");
             Assert.NotNull(pk);
             Assert.True(pk.Total > 100);
+
+            var ss = await _Client.InvokeAsync<String[]>("Api/All");
+            Assert.NotNull(ss);
+            Assert.True(ss.Length > 3);
         }
 
         [Fact(DisplayName = "异常请求")]
