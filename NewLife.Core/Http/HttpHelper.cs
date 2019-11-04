@@ -1,20 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
-using System.Threading.Tasks;
 using NewLife.Collections;
 using NewLife.Data;
-using NewLife.Reflection;
 using NewLife.Security;
-using NewLife.Serialization;
-using NewLife.Remoting;
-#if !NET4
-using System.Net.Http;
-using System.Net.Http.Headers;
-#endif
 
 namespace NewLife.Http
 {
@@ -289,117 +280,6 @@ namespace NewLife.Http
 
             return new Packet(ms.ToArray()) { Next = pk };
         }
-        #endregion
-
-        #region 远程调用
-#if !NET4
-        /// <summary>同步调用，阻塞等待</summary>
-        /// <param name="client">Http客户端</param>
-        /// <param name="action">服务操作</param>
-        /// <param name="args">参数</param>
-        /// <returns></returns>
-        public static async Task<TResult> InvokeAsync<TResult>(this HttpClient client, String action, Object args = null)
-        {
-            if (client?.BaseAddress == null) throw new ArgumentNullException(nameof(client.BaseAddress));
-
-            // 内容类型
-            var jtype = "application/json";
-            var acc = client.DefaultRequestHeaders.Accept;
-            if (acc.Count == 0) acc.TryParseAdd(jtype);
-            //if (!acc.Contains(jtype)) acc.Add(jtype);
-
-            // 序列化参数，决定GET/POST
-            Byte[] buf = null;
-            var code = HttpStatusCode.OK;
-            var ps = args?.ToDictionary();
-            if (ps != null && ps.Any(e => e.Value != null && e.Value.GetType().GetTypeCode() == TypeCode.Object))
-            {
-                var content = new ByteArrayContent(ps.ToJson().GetBytes());
-                //content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-                var msg = await client.PostAsync(action, content);
-                code = msg.StatusCode;
-                //msg.EnsureSuccessStatusCode();
-                buf = await msg.Content.ReadAsByteArrayAsync();
-            }
-            else
-            {
-                var url = GetUrl(action, ps);
-                // 如果长度过大，还是走POST
-                buf = await client.GetByteArrayAsync(url);
-            }
-            if (buf == null || buf.Length == 0) return default;
-
-            // 异常处理
-            if (code != HttpStatusCode.OK) throw new ApiException((Int32)code, buf.ToStr()?.Trim('\"'));
-
-            // 原始数据
-            var rtype = typeof(TResult);
-            if (rtype == typeof(Byte[])) return (TResult)(Object)buf;
-            if (rtype == typeof(Packet)) return (TResult)(Object)new Packet(buf);
-
-            // 简单类型
-            var str = buf.ToStr();
-            if (rtype.GetTypeCode() != TypeCode.Object) return str.ChangeType<TResult>();
-
-            // 反序列化
-            var dic = new JsonParser(str).Decode() as IDictionary<String, Object>;
-            //if (!dic.TryGetValue("data", out var data)) throw new InvalidDataException("未识别响应数据");
-            if (dic == null) throw new InvalidDataException("未识别响应数据");
-
-            //if (dic.TryGetValue("result", out var result))
-            //{
-            //    if (result is Boolean res && !res) throw new InvalidOperationException("远程错误，{0}".F(data));
-            //}
-            //else if (dic.TryGetValue("code", out var code))
-            //{
-            //    if (code is Int32 cd && cd != 0) throw new InvalidOperationException("远程{1}错误，{0}".F(data, cd));
-            //}
-            //else
-            //{
-            //    throw new InvalidDataException("未识别响应数据");
-            //}
-
-            return JsonHelper.Convert<TResult>(dic);
-        }
-
-        /// <summary>同步调用，阻塞等待</summary>
-        /// <param name="client">Http客户端</param>
-        /// <param name="action">服务操作</param>
-        /// <param name="args">参数</param>
-        /// <returns></returns>
-        public static TResult Invoke<TResult>(this HttpClient client, String action, Object args = null) => Task.Run(() => InvokeAsync<TResult>(client, action, args)).Result;
-
-        private static String Encode(String data)
-        {
-            if (String.IsNullOrEmpty(data)) return String.Empty;
-
-            return Uri.EscapeDataString(data).Replace("%20", "+");
-        }
-
-        private static String GetUrl(String action, IDictionary<String, Object> ps)
-        {
-            var url = action;
-            if (ps != null && ps.Count > 0)
-            {
-                var sb = Pool.StringBuilder.Get();
-                sb.Append(action);
-                sb.Append("?");
-
-                var first = true;
-                foreach (var item in ps)
-                {
-                    if (!first) sb.Append("&");
-                    first = false;
-
-                    sb.AppendFormat("{0}={1}", Encode(item.Key), Encode("{0}".F(item.Value)));
-                }
-
-                url = sb.Put(true);
-            }
-
-            return url;
-        }
-#endif
         #endregion
     }
 }
