@@ -6,6 +6,7 @@ using Xunit;
 using NewLife.Remoting;
 using System.Net;
 using NewLife.Data;
+using NewLife.Security;
 
 namespace XUnitTest.Remoting
 {
@@ -44,7 +45,7 @@ namespace XUnitTest.Remoting
             var dic = await _Client.InvokeAsync<IDictionary<String, Object>>("api/info");
             Assert.NotNull(dic);
             Assert.True(dic.Count > 10);
-            Assert.Equal("xLinkServer", dic["Server"] + "");
+            Assert.Equal("xLinkServer", dic["Server"]);
 
             var pk = await _Client.InvokeAsync<Packet>("api/info");
             Assert.NotNull(pk);
@@ -78,6 +79,26 @@ namespace XUnitTest.Remoting
                 Assert.Equal(404, ex.Code);
                 Assert.Equal("无法找到名为[api/info3]的服务！", ex.Message);
             }
+        }
+
+        [Fact(DisplayName = "上传数据")]
+        public async void PostAsyncTest()
+        {
+            var state = Rand.NextString(8);
+            var state2 = Rand.NextString(8);
+            var dic = await _Client.InvokeAsync<IDictionary<String, Object>>("api/info", new { state, state2 });
+            Assert.NotNull(dic);
+            Assert.Equal(state, dic[nameof(state)]);
+            Assert.NotEqual(state2, dic[nameof(state2)]);
+
+            var msg = await _Client.InvokeAsync<HttpResponseMessage>("api/info", new { state, state2 });
+            Assert.NotNull(msg);
+            Assert.Equal(HttpMethod.Get, msg.RequestMessage.Method);
+
+            state = Rand.NextString(1000 + 8);
+            msg = await _Client.InvokeAsync<HttpResponseMessage>("api/info", new { state, state2 });
+            Assert.NotNull(msg);
+            Assert.Equal(HttpMethod.Post, msg.RequestMessage.Method);
         }
     }
 }
