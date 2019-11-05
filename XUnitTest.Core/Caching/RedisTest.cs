@@ -6,7 +6,7 @@ using Xunit;
 using NewLife.Serialization;
 using NewLife.Data;
 
-namespace XUnitTest.Core
+namespace XUnitTest.Caching
 {
     public class RedisTest
     {

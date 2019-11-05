@@ -23,4 +23,8 @@
     <ProjectReference Include="..\XCode\XCode.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Collections\" />
+  </ItemGroup>
+
 </Project>
