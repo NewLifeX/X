@@ -290,12 +290,10 @@ namespace NewLife.Remoting
             IMessage rs = null;
             try
             {
-                if (session is IApiSession ss)
-                    rs = (await Cluster.InvokeAsync(client => client.SendMessageAsync(msg)).ConfigureAwait(false)) as IMessage;
-                else if (session is ISocketRemote client)
+                if (session is ISocketRemote client)
                     rs = (await client.SendMessageAsync(msg).ConfigureAwait(false)) as IMessage;
                 else
-                    throw new InvalidOperationException();
+                    rs = (await Cluster.InvokeAsync(client => client.SendMessageAsync(msg)).ConfigureAwait(false)) as IMessage;
 
                 if (rs == null) return null;
             }
