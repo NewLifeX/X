@@ -43,7 +43,7 @@ namespace Test
                 try
                 {
 #endif
-                Test2();
+                    Test6();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -335,73 +335,30 @@ namespace Test
             //Console.WriteLine("Execute={0}", es);
         }
 
+        private static NetServer _netServer;
         static void Test6()
         {
-            // 缓存默认实现Cache.Default是MemoryCache，可修改
-            //var ic = Cache.Default;
-            //var ic = new MemoryCache();
-
-            // 实例化Redis，默认端口6379可以省略，密码有两种写法
-            //var ic = Redis.Create("127.0.0.1", 7);
-            //var ic = Redis.Create("pass@127.0.0.1:6379", 7);
-            var ic = Redis.Create("server=127.0.0.1:6379;password=newlife", 7);
-            ic.Log = XTrace.Log; // 调试日志。正式使用时注释
-
-            var user = new User { Name = "NewLife", CreateTime = DateTime.Now };
-            ic.Set("user", user, 3600);
-            var user2 = ic.Get<User>("user");
-            XTrace.WriteLine("Json: {0}", ic.Get<String>("user"));
-            if (ic.ContainsKey("user")) XTrace.WriteLine("存在！");
-            ic.Remove("user");
-
-            var dic = new Dictionary<String, Object>
+            var svr = new NetServer<MySession>
             {
-                ["name"] = "NewLife",
-                ["time"] = DateTime.Now,
-                ["count"] = 1234
+                Port = 12345,
+                Log = XTrace.Log,
+                SessionLog = XTrace.Log,
+                SocketLog = XTrace.Log,
+                LogSend = true,
+                LogReceive = true,
             };
-            ic.SetAll(dic, 120);
+            svr.Start();
 
-            var vs = ic.GetAll<String>(dic.Keys);
-            XTrace.WriteLine(vs.Join(",", e => $"{e.Key}={e.Value}"));
-
-            var flag = ic.Add("count", 5678);
-            XTrace.WriteLine(flag ? "Add成功" : "Add失败");
-            var ori = ic.Replace("count", 777);
-            var count = ic.Get<Int32>("count");
-            XTrace.WriteLine("count由{0}替换为{1}", ori, count);
-
-            ic.Increment("count", 11);
-            var count2 = ic.Decrement("count", 10);
-            XTrace.WriteLine("count={0}", count2);
-
-            //var inf = ic.GetInfo();
-            //foreach (var item in inf)
-            //{
-            //    Console.WriteLine("{0}:\t{1}", item.Key, item.Value);
-            //}
-
-            for (var i = 0; i < 20; i++)
-            {
-                try
-                {
-                    ic.Set("k" + i, i, 30);
-                }
-                catch (Exception ex)
-                {
-                    //XTrace.WriteException(ex);
-                    XTrace.WriteLine(ex.Message);
-                }
-                Thread.Sleep(3_000);
-            }
-
-            //ic.Bench();
+            _netServer = svr;
         }
-
-        class User
+        class MySession : NetSession
         {
-            public String Name { get; set; }
-            public DateTime CreateTime { get; set; }
+            protected override void OnReceive(ReceivedEventArgs e)
+            {
+                base.OnReceive(e);
+
+                Send(e.Packet);
+            }
         }
 
         static void Test7()
