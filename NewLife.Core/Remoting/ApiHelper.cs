@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !NET4
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,10 +9,8 @@ using NewLife.Reflection;
 using NewLife.Data;
 using System.IO;
 using NewLife.Collections;
-#if !NET4
 using System.Net.Http;
 using System.Net.Http.Headers;
-#endif
 
 namespace NewLife.Remoting
 {
@@ -19,8 +18,7 @@ namespace NewLife.Remoting
     public static class ApiHelper
     {
         #region 远程调用
-#if !NET4
-        /// <summary>同步调用，阻塞等待</summary>
+        /// <summary>异步调用，等待返回结果</summary>
         /// <param name="client">Http客户端</param>
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
@@ -124,7 +122,7 @@ namespace NewLife.Remoting
 
             return url;
         }
-#endif
         #endregion
     }
 }
+#endif

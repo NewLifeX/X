@@ -9,11 +9,12 @@ using Xunit;
 
 namespace XUnitTest.Remoting
 {
-    public class ApiTest : DisposeBase
+    public class ApiHttpClientTests : DisposeBase
     {
         private readonly ApiServer _Server;
+        private readonly ApiHttpClient _Client;
 
-        public ApiTest()
+        public ApiHttpClientTests()
         {
             _Server = new ApiServer(12345)
             {
@@ -21,6 +22,9 @@ namespace XUnitTest.Remoting
                 //EncoderLog = XTrace.Log,
             };
             _Server.Start();
+
+            _Client = new ApiHttpClient();
+            _Client.Add("addr1", new Uri("http://127.0.0.1:12345"));
         }
 
         protected override void Dispose(Boolean disposing)
@@ -33,13 +37,7 @@ namespace XUnitTest.Remoting
         [Fact(DisplayName = "基础Api测试")]
         public async void BasicTest()
         {
-            var client = new ApiClient("tcp://127.0.0.1:12345")
-            {
-                Log = XTrace.Log
-            };
-            //client.EncoderLog = XTrace.Log;
-
-            var apis = await client.InvokeAsync<String[]>("api/all");
+            var apis = await _Client.InvokeAsync<String[]>("api/all");
             Assert.NotNull(apis);
             Assert.Equal(3, apis.Length);
             Assert.Equal("String[] Api/All()", apis[0]);
@@ -50,15 +48,10 @@ namespace XUnitTest.Remoting
         [Fact(DisplayName = "参数测试")]
         public async void InfoTest()
         {
-            var client = new ApiClient("tcp://127.0.0.1:12345")
-            {
-                Log = XTrace.Log
-            };
-
             var state = Rand.NextString(8);
             var state2 = Rand.NextString(8);
 
-            var infs = await client.InvokeAsync<IDictionary<String, Object>>("api/info", new { state, state2 });
+            var infs = await _Client.InvokeAsync<IDictionary<String, Object>>("api/info", new { state, state2 });
             Assert.NotNull(infs);
             Assert.Equal(Environment.MachineName, infs["MachineName"]);
             Assert.Equal(Environment.UserName, infs["UserName"]);
@@ -70,14 +63,9 @@ namespace XUnitTest.Remoting
         [Fact(DisplayName = "二进制测试")]
         public async void Info2Test()
         {
-            var client = new ApiClient("tcp://127.0.0.1:12345")
-            {
-                Log = XTrace.Log
-            };
-
             var buf = Rand.NextBytes(32);
 
-            var pk = await client.InvokeAsync<Packet>("api/info2", buf);
+            var pk = await _Client.InvokeAsync<Packet>("api/info2", buf);
             Assert.NotNull(pk);
             Assert.True(pk.Total > buf.Length);
             Assert.Equal(buf, pk.Slice(pk.Total - buf.Length, -1).ToArray());
@@ -86,14 +74,9 @@ namespace XUnitTest.Remoting
         [Fact(DisplayName = "异常请求")]
         public async void ErrorTest()
         {
-            var client = new ApiClient("tcp://127.0.0.1:12345")
-            {
-                Log = XTrace.Log
-            };
-
             try
             {
-                var msg = await client.InvokeAsync<Object>("api/info3");
+                var msg = await _Client.InvokeAsync<Object>("api/info3");
             }
             catch (Exception ex)
             {

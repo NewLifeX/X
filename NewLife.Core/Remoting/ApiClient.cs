@@ -13,7 +13,7 @@ using TaskEx = System.Threading.Tasks.Task;
 namespace NewLife.Remoting
 {
     /// <summary>应用接口客户端</summary>
-    public class ApiClient : ApiHost/*, IApiSession*/
+    public class ApiClient : ApiHost, IApiClient
     {
         #region 属性
         /// <summary>是否已打开</summary>
@@ -211,12 +211,11 @@ namespace NewLife.Remoting
         /// <typeparam name="TResult"></typeparam>
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
-        /// <param name="flag">标识</param>
         /// <returns></returns>
-        public virtual async Task<TResult> InvokeAsync<TResult>(String action, Object args = null, Byte flag = 0)
+        public virtual async Task<TResult> InvokeAsync<TResult>(String action, Object args = null)
         {
             // 发送失败时，返回空
-            var rs = await InvokeAsync(typeof(TResult), action, args, flag).ConfigureAwait(false);
+            var rs = await InvokeAsync(typeof(TResult), action, args).ConfigureAwait(false);
             if (rs == null) return default;
 
             return (TResult)rs;
@@ -225,12 +224,11 @@ namespace NewLife.Remoting
         /// <summary>同步调用，阻塞等待</summary>
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
-        /// <param name="flag">标识</param>
         /// <returns></returns>
-        public virtual TResult Invoke<TResult>(String action, Object args = null, Byte flag = 0)
+        public virtual TResult Invoke<TResult>(String action, Object args = null)
         {
             // 发送失败时，返回空
-            var rs = TaskEx.Run(() => InvokeAsync(typeof(TResult), action, args, flag)).Result;
+            var rs = TaskEx.Run(() => InvokeAsync(typeof(TResult), action, args)).Result;
             if (rs == null) return default;
 
             return (TResult)rs;

@@ -1,11 +1,212 @@
-﻿using System;
+﻿#if !NET4
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
+using System.Threading.Tasks;
+using NewLife.Collections;
+using NewLife.Data;
+using NewLife.Log;
+using NewLife.Reflection;
+using NewLife.Serialization;
 
 namespace NewLife.Remoting
 {
-    class ApiHttpClient
+    /// <summary>Http应用接口客户端</summary>
+    public class ApiHttpClient : IApiClient
     {
+        #region 属性
+        /// <summary>请求方法</summary>
+        public HttpMethod Method { get; set; }
+
+        private readonly IList<ServiceItem> _Items = new List<ServiceItem>();
+        #endregion
+
+        #region 构造
+        /// <summary>实例化</summary>
+        public ApiHttpClient() { }
+
+        /// <summary>实例化</summary>
+        /// <param name="url"></param>
+        public ApiHttpClient(String url) => Add("Default", new Uri(url));
+        #endregion
+
+        #region 方法
+        /// <summary>添加服务地址</summary>
+        /// <param name="name"></param>
+        /// <param name="address"></param>
+        public void Add(String name, Uri address) => _Items.Add(new ServiceItem { Name = name, Address = address });
+        #endregion
+
+        #region 核心方法
+        /// <summary>异步调用，等待返回结果</summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="action">服务操作</param>
+        /// <param name="args">参数</param>
+        /// <returns></returns>
+        public virtual async Task<TResult> InvokeAsync<TResult>(String action, Object args = null)
+        {
+            var rtype = typeof(TResult);
+
+            // 序列化参数，决定GET/POST
+            var request = new HttpRequestMessage(HttpMethod.Get, action);
+            if (rtype != typeof(Byte[]) && rtype != typeof(Packet))
+                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+            Byte[] buf = null;
+            var code = HttpStatusCode.OK;
+            var ps = args?.ToDictionary();
+            if (ps != null && ps.Any(e => e.Value != null && e.Value.GetType().GetTypeCode() == TypeCode.Object))
+            {
+                var content = new ByteArrayContent(ps.ToJson().GetBytes());
+                content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+                request.Content = content;
+                request.Method = HttpMethod.Post;
+            }
+            else
+            {
+                var url = GetUrl(action, ps);
+                // 如果长度过大，还是走POST
+                if (url.Length < 1000)
+                    request.RequestUri = new Uri(url, UriKind.RelativeOrAbsolute);
+                else
+                {
+                    var content = new ByteArrayContent(ps.ToJson().GetBytes());
+                    content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+                    request.Content = content;
+                    request.Method = HttpMethod.Post;
+                }
+            }
+
+            // 发起请求
+            var msg = await SendAsync(request);
+            if (rtype == typeof(HttpResponseMessage)) return (TResult)(Object)msg;
+
+            code = msg.StatusCode;
+            buf = await msg.Content.ReadAsByteArrayAsync();
+            if (buf == null || buf.Length == 0) return default;
+
+            // 异常处理
+            if (code != HttpStatusCode.OK) throw new ApiException((Int32)code, buf.ToStr()?.Trim('\"'));
+
+            // 原始数据
+            if (rtype == typeof(Byte[])) return (TResult)(Object)buf;
+            if (rtype == typeof(Packet)) return (TResult)(Object)new Packet(buf);
+
+            // 简单类型
+            var str = buf.ToStr();
+            if (rtype.GetTypeCode() != TypeCode.Object) return str.ChangeType<TResult>();
+
+            // 反序列化
+            var js = new JsonParser(str).Decode();
+            if (!(js is IDictionary<String, Object> dic) && !(js is IList<Object>)) throw new InvalidDataException("未识别响应数据");
+
+            return JsonHelper.Convert<TResult>(js);
+        }
+
+        /// <summary>同步调用，阻塞等待</summary>
+        /// <param name="action">服务操作</param>
+        /// <param name="args">参数</param>
+        /// <returns></returns>
+        public virtual TResult Invoke<TResult>(String action, Object args = null) => Task.Run(() => InvokeAsync<TResult>(action, args)).Result;
+
+        private static String Encode(String data)
+        {
+            if (String.IsNullOrEmpty(data)) return String.Empty;
+
+            return Uri.EscapeDataString(data).Replace("%20", "+");
+        }
+
+        private static String GetUrl(String action, IDictionary<String, Object> ps)
+        {
+            var url = action;
+            if (ps != null && ps.Count > 0)
+            {
+                var sb = Pool.StringBuilder.Get();
+                sb.Append(action);
+                sb.Append("?");
+
+                var first = true;
+                foreach (var item in ps)
+                {
+                    if (!first) sb.Append("&");
+                    first = false;
+
+                    sb.AppendFormat("{0}={1}", Encode(item.Key), Encode("{0}".F(item.Value)));
+                }
+
+                url = sb.Put(true);
+            }
+
+            return url;
+        }
+        #endregion
+
+        #region 调度池
+        private Int32 _Index;
+        /// <summary>异步请求，等待响应</summary>
+        /// <param name="request">Http请求</param>
+        /// <returns></returns>
+        protected virtual async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request)
+        {
+            var ms = _Items;
+            if (ms.Count == 0) throw new InvalidOperationException("未添加服务地址！");
+
+            Exception error = null;
+            for (var i = 0; i < ms.Count; i++)
+            {
+                var mi = ms[_Index];
+                try
+                {
+                    if (mi.Client == null) mi.Client = new HttpClient { BaseAddress = mi.Address };
+
+                    var rs = await mi.Client.SendAsync(request);
+                    if (rs.StatusCode == HttpStatusCode.OK) return rs;
+                }
+                catch (Exception ex)
+                {
+                    if (error == null)
+                    {
+                        error = ex;
+
+                        ex.Data.Add(nameof(mi.Name), mi.Name);
+                        ex.Data.Add(nameof(mi.Address), mi.Address);
+                        ex.Data.Add(nameof(mi.Client), mi.Client);
+                    }
+                }
+
+                _Index++;
+                if (_Index >= ms.Count) _Index = 0;
+            }
+
+            throw error;
+        }
+        #endregion
+
+        #region 内嵌
+        class ServiceItem
+        {
+            public String Name { get; set; }
+
+            public Uri Address { get; set; }
+
+            public HttpClient Client { get; set; }
+        }
+        #endregion
+
+        #region 日志
+        /// <summary>日志</summary>
+        public ILog Log { get; set; } = Logger.Null;
+
+        /// <summary>写日志</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        public void WriteLog(String format, params Object[] args) => Log?.Info(format, args);
+        #endregion
     }
 }
+#endif
