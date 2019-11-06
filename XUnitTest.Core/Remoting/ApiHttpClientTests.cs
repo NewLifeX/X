@@ -83,6 +83,20 @@ namespace XUnitTest.Remoting
                 var aex = ex as ApiException;
                 Assert.NotNull(aex);
                 Assert.Equal(404, aex.Code);
+                //Assert.True(ex.Message.EndsWith("无法找到名为[api/info3]的服务！"));
+                Assert.EndsWith("无法找到名为[api/info3]的服务！", ex.Message);
+            }
+
+            _Client.UseHttpStatus = true;
+            try
+            {
+                var msg = await _Client.InvokeAsync<Object>("api/info3");
+            }
+            catch (Exception ex)
+            {
+                var aex = ex as ApiException;
+                Assert.NotNull(aex);
+                Assert.Equal(404, aex.Code);
                 Assert.Equal("远程[Api]错误！ \"无法找到名为[api/info3]的服务！\"", ex.Message);
             }
         }

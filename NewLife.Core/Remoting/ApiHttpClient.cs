@@ -20,8 +20,11 @@ namespace NewLife.Remoting
     public class ApiHttpClient : IApiClient
     {
         #region 属性
-        /// <summary>请求方法</summary>
-        public HttpMethod Method { get; set; }
+        /// <summary>请求方法。默认Auto自动选择GET，复杂对象和二进制选POST</summary>
+        public HttpMethod Method { get; set; } = new HttpMethod("Auto");
+
+        /// <summary>是否使用Http状态抛出异常。默认true，使用ApiException抛出异常</summary>
+        public Boolean UseHttpStatus { get; set; }
 
         private readonly IList<ServiceItem> _Items = new List<ServiceItem>();
         #endregion
@@ -53,45 +56,26 @@ namespace NewLife.Remoting
             var rtype = typeof(TResult);
 
             // 序列化参数，决定GET/POST
-            var request = new HttpRequestMessage(HttpMethod.Get, action);
-            if (rtype != typeof(Byte[]) && rtype != typeof(Packet))
-                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-            Byte[] buf = null;
-            var code = HttpStatusCode.OK;
-            var ps = args?.ToDictionary();
-            if (ps != null && ps.Any(e => e.Value != null && e.Value.GetType().GetTypeCode() == TypeCode.Object))
-            {
-                var content = new ByteArrayContent(ps.ToJson().GetBytes());
-                content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-                request.Content = content;
-                request.Method = HttpMethod.Post;
-            }
-            else
-            {
-                var url = GetUrl(action, ps);
-                // 如果长度过大，还是走POST
-                if (url.Length < 1000)
-                    request.RequestUri = new Uri(url, UriKind.RelativeOrAbsolute);
-                else
-                {
-                    var content = new ByteArrayContent(ps.ToJson().GetBytes());
-                    content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-                    request.Content = content;
-                    request.Method = HttpMethod.Post;
-                }
-            }
+            var request = BuildRequest(action, args, rtype);
 
             // 发起请求
             var msg = await SendAsync(request);
             if (rtype == typeof(HttpResponseMessage)) return (TResult)(Object)msg;
 
-            code = msg.StatusCode;
-            buf = await msg.Content.ReadAsByteArrayAsync();
+            // 使用Http状态抛出异常
+            if (UseHttpStatus) msg.EnsureSuccessStatusCode();
+
+            var code = msg.StatusCode;
+            var buf = await msg.Content.ReadAsByteArrayAsync();
             if (buf == null || buf.Length == 0) return default;
 
             // 异常处理
-            if (code != HttpStatusCode.OK) throw new ApiException((Int32)code, buf.ToStr()?.Trim('\"'));
+            //if (code != HttpStatusCode.OK) throw new ApiException((Int32)code, buf.ToStr()?.Trim('\"'));
+            if (code != HttpStatusCode.OK)
+            {
+                var invoker = _Items[_Index]?.Address + "";
+                throw new ApiException((Int32)code, $"远程[{invoker}]错误！ {buf.ToStr()?.Trim('\"')}");
+            }
 
             // 原始数据
             if (rtype == typeof(Byte[])) return (TResult)(Object)buf;
@@ -113,6 +97,76 @@ namespace NewLife.Remoting
         /// <param name="args">参数</param>
         /// <returns></returns>
         public virtual TResult Invoke<TResult>(String action, Object args = null) => Task.Run(() => InvokeAsync<TResult>(action, args)).Result;
+
+        /// <summary>建立请求</summary>
+        /// <param name="action"></param>
+        /// <param name="args"></param>
+        /// <param name="returnType"></param>
+        /// <returns></returns>
+        protected virtual HttpRequestMessage BuildRequest(String action, Object args, Type returnType)
+        {
+            // 序列化参数，决定GET/POST
+            var request = new HttpRequestMessage(HttpMethod.Get, action);
+            if (returnType != typeof(Byte[]) && returnType != typeof(Packet))
+                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+            if (Method == HttpMethod.Post || args is Packet || args is Byte[])
+            {
+                FillContent(request, args);
+            }
+            else if (Method == HttpMethod.Get)
+            {
+                var ps = args?.ToDictionary();
+                var url = GetUrl(action, ps);
+                request.RequestUri = new Uri(url, UriKind.RelativeOrAbsolute);
+            }
+            else
+            {
+                var ps = args?.ToDictionary();
+                if (ps != null && ps.Any(e => e.Value != null && e.Value.GetType().GetTypeCode() == TypeCode.Object))
+                {
+                    FillContent(request, args);
+                }
+                else
+                {
+                    var url = GetUrl(action, ps);
+                    // 如果长度过大，还是走POST
+                    if (url.Length < 1000)
+                        request.RequestUri = new Uri(url, UriKind.RelativeOrAbsolute);
+                    else
+                        FillContent(request, args);
+                }
+            }
+
+            return request;
+        }
+
+        private void FillContent(HttpRequestMessage request, Object args)
+        {
+            if (args is Packet pk)
+            {
+                var content =
+                    pk.Next == null ?
+                    new ByteArrayContent(pk.Data, pk.Offset, pk.Count) :
+                    new ByteArrayContent(pk.ToArray());
+                content.Headers.ContentType = new MediaTypeHeaderValue("application/stream");
+                request.Content = content;
+            }
+            else if (args is Byte[] buf)
+            {
+                var content = new ByteArrayContent(buf);
+                content.Headers.ContentType = new MediaTypeHeaderValue("application/stream");
+                request.Content = content;
+            }
+            else if (args != null)
+            {
+                var ps = args?.ToDictionary();
+                var content = new ByteArrayContent(ps.ToJson().GetBytes());
+                content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+                request.Content = content;
+            }
+            request.Method = HttpMethod.Post;
+        }
 
         private static String Encode(String data)
         {
@@ -165,7 +219,9 @@ namespace NewLife.Remoting
                     if (mi.Client == null) mi.Client = new HttpClient { BaseAddress = mi.Address };
 
                     var rs = await mi.Client.SendAsync(request);
-                    if (rs.StatusCode == HttpStatusCode.OK) return rs;
+                    //if (!UseHttpStatus || rs.StatusCode == HttpStatusCode.OK) return rs;
+                    if (UseHttpStatus) rs.EnsureSuccessStatusCode();
+                    return rs;
                 }
                 catch (Exception ex)
                 {
