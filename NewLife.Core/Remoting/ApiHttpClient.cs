@@ -23,7 +23,7 @@ namespace NewLife.Remoting
         /// <summary>请求方法。默认Auto自动选择GET，复杂对象和二进制选POST</summary>
         public HttpMethod Method { get; set; } = new HttpMethod("Auto");
 
-        /// <summary>是否使用Http状态抛出异常。默认true，使用ApiException抛出异常</summary>
+        /// <summary>是否使用Http状态抛出异常。默认false，使用ApiException抛出异常</summary>
         public Boolean UseHttpStatus { get; set; }
 
         private readonly IList<ServiceItem> _Items = new List<ServiceItem>();
