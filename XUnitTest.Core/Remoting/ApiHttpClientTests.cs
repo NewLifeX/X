@@ -18,7 +18,7 @@ namespace XUnitTest.Remoting
 
         public ApiHttpClientTests()
         {
-            _Server = new ApiServer(12345)
+            _Server = new ApiServer(12347)
             {
                 Log = XTrace.Log,
                 //EncoderLog = XTrace.Log,
@@ -26,8 +26,8 @@ namespace XUnitTest.Remoting
             _Server.Start();
 
             //_Client = new ApiHttpClient();
-            //_Client.Add("addr1", new Uri("http://127.0.0.1:12345"));
-            _Client = new ApiHttpClient("http://127.0.0.1:12345");
+            //_Client.Add("addr1", new Uri("http://127.0.0.1:12347"));
+            _Client = new ApiHttpClient("http://127.0.0.1:12347");
         }
 
         protected override void Dispose(Boolean disposing)

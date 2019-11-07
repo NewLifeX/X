@@ -1,25 +1,40 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net.Http;
-using System.Text;
-using Xunit;
-using NewLife.Remoting;
 using System.Net;
+using System.Net.Http;
+using NewLife;
 using NewLife.Data;
+using NewLife.Log;
+using NewLife.Remoting;
 using NewLife.Security;
+using Xunit;
 
 namespace XUnitTest.Remoting
 {
-    public class ApiHelperTest
+    public class ApiHelperTest : DisposeBase
     {
+        private readonly ApiServer _Server;
         private HttpClient _Client;
 
         public ApiHelperTest()
         {
+            _Server = new ApiServer(12346)
+            {
+                Log = XTrace.Log,
+            };
+            _Server.Start();
+
             _Client = new HttpClient
             {
-                BaseAddress = new Uri("http://feifan.link:2233")
+                BaseAddress = new Uri("http://127.0.0.1:12346")
             };
+        }
+
+        protected override void Dispose(Boolean disposing)
+        {
+            base.Dispose(disposing);
+
+            _Server.TryDispose();
         }
 
         [Fact(DisplayName = "同步请求")]
@@ -32,7 +47,7 @@ namespace XUnitTest.Remoting
             var dic = _Client.Invoke<IDictionary<String, Object>>("api/info");
             Assert.NotNull(dic);
             Assert.True(dic.Count > 10);
-            Assert.Equal("xLinkServer", dic["Server"] + "");
+            Assert.Equal("testhost", dic["Server"] + "");
         }
 
         [Fact(DisplayName = "异步请求")]
@@ -45,7 +60,7 @@ namespace XUnitTest.Remoting
             var dic = await _Client.InvokeAsync<IDictionary<String, Object>>("api/info");
             Assert.NotNull(dic);
             Assert.True(dic.Count > 10);
-            Assert.Equal("xLinkServer", dic["Server"]);
+            Assert.Equal("testhost", dic["Server"]);
 
             var pk = await _Client.InvokeAsync<Packet>("api/info");
             Assert.NotNull(pk);
@@ -53,7 +68,7 @@ namespace XUnitTest.Remoting
 
             var ss = await _Client.InvokeAsync<String[]>("Api/All");
             Assert.NotNull(ss);
-            Assert.True(ss.Length > 3);
+            Assert.True(ss.Length >= 3);
         }
 
         [Fact(DisplayName = "异常请求")]
