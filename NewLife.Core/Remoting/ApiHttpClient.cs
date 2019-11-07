@@ -87,7 +87,7 @@ namespace NewLife.Remoting
 
             // 反序列化
             var js = new JsonParser(str).Decode();
-            if (!(js is IDictionary<String, Object> dic) && !(js is IList<Object>)) throw new InvalidDataException("未识别响应数据");
+            if (!(js is IDictionary<String, Object>) && !(js is IList<Object>)) throw new InvalidDataException("未识别响应数据");
 
             return JsonHelper.Convert<TResult>(js);
         }

@@ -28,14 +28,8 @@ namespace NewLife.Remoting
         /// <summary>是否使用连接池。true时建立多个到服务端的连接（高吞吐），默认false使用单一连接（低延迟）</summary>
         public Boolean UsePool { get; set; }
 
-        ///// <summary>主机</summary>
-        //IApiHost IApiSession.Host => this;
-
         /// <summary>最后活跃时间</summary>
         public DateTime LastActive { get; set; }
-
-        ///// <summary>所有服务器所有会话，包含自己</summary>
-        //IApiSession[] IApiSession.AllSessions => new IApiSession[] { this };
 
         /// <summary>调用统计</summary>
         public ICounter StatInvoke { get; set; }
@@ -53,9 +47,6 @@ namespace NewLife.Remoting
         {
             var type = GetType();
             Name = type.GetDisplayName() ?? type.Name.TrimEnd("Client");
-
-            //// 注册默认服务控制器
-            //Register(new ApiController { Host = this }, null);
         }
 
         /// <summary>实例化应用接口客户端</summary>
@@ -100,16 +91,10 @@ namespace NewLife.Remoting
 
                 Encoder.Log = EncoderLog;
 
-                //// 拥有默认服务控制器之外的服务时，才显示服务
-                //var svcs = Manager.Services;
-                //if (svcs.Any(e => !(e.Value.Controller is ApiController))) ShowService();
-
                 // 控制性能统计信息
                 var ms = StatPeriod * 1000;
                 if (ms > 0)
                 {
-                    //if (StatInvoke == null) StatInvoke = new PerfCounter();
-                    //if (StatProcess == null) StatProcess = new PerfCounter();
                     if (StatSend == null) StatSend = new PerfCounter();
                     if (StatReceive == null) StatReceive = new PerfCounter();
 
@@ -153,16 +138,6 @@ namespace NewLife.Remoting
 
             return cluster;
         }
-
-        ///// <summary>查找Api动作</summary>
-        ///// <param name="action"></param>
-        ///// <returns></returns>
-        //public virtual ApiAction FindAction(String action) => Manager.Find(action);
-
-        ///// <summary>创建控制器实例</summary>
-        ///// <param name="api"></param>
-        ///// <returns></returns>
-        //public virtual Object CreateController(ApiAction api) => this.CreateController(this, api);
         #endregion
 
         #region 远程调用
@@ -372,10 +347,6 @@ namespace NewLife.Remoting
                 if (SlowTrace > 0 && msCost >= SlowTrace) WriteLog($"慢调用[{action}]，耗时{msCost:n0}ms");
             }
         }
-
-        //Task<IMessage> IApiSession.SendAsync(IMessage msg) => Cluster.InvokeAsync(client => client.SendMessageAsync(msg)).ContinueWith(t => t.Result as IMessage);
-
-        //Boolean IApiSession.Send(IMessage msg) => Cluster.Invoke(client => client.SendMessage(msg));
         #endregion
 
         #region 登录
@@ -383,7 +354,6 @@ namespace NewLife.Remoting
         /// <param name="client">会话</param>
         public virtual void OnNewSession(ISocketClient client)
         {
-            //var client = state as ISocketClient;
             OnLoginAsync(client, true)?.Wait();
         }
 
@@ -418,23 +388,9 @@ namespace NewLife.Remoting
             client.Add(GetMessageCodec());
 
             client.Opened += (s, e) => OnNewSession(s as ISocketClient);
-            //client.Received += Client_Received;
 
             return client;
         }
-
-        //private void Client_Received(Object sender, ReceivedEventArgs e)
-        //{
-        //    LastActive = DateTime.Now;
-
-        //    // Api解码消息得到Action和参数
-        //    if (!(e.Message is IMessage msg) || msg.Reply) return;
-
-        //    var ss = sender as ISocketRemote;
-        //    var host = this as IApiHost;
-        //    var rs = host.Process(this, msg);
-        //    if (rs != null) ss?.SendMessage(rs);
-        //}
         #endregion
 
         #region 统计
