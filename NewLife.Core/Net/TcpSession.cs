@@ -221,7 +221,9 @@ namespace NewLife.Net
 
                     // 发送异常可能是连接出了问题，需要关闭
                     Close("发送出错");
-                    Reconnect();
+
+                    // 异步重连
+                    ThreadPoolX.QueueUserWorkItem(Reconnect);
 
                     if (ThrowException) throw;
                 }
