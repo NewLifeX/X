@@ -88,6 +88,10 @@ namespace NewLife.Remoting
             // 转字典
             var dic = rs.ToDictionary();
 
+            // 令牌
+            var token = ctx.Parameters["Token"] + "";
+            if (!token.IsNullOrEmpty()) dic["Token"] = token;
+
             // 时间和连接数
             if (Host is ApiHost ah) dic["Uptime"] = (DateTime.Now - ah.StartTime).ToString();
             if (Host is ApiServer svr && svr.Server is NetServer nsvr)

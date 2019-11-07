@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using NewLife.Collections;
 using NewLife.Data;
@@ -27,6 +28,9 @@ namespace NewLife.Remoting
 
         /// <summary>是否使用连接池。true时建立多个到服务端的连接（高吞吐），默认false使用单一连接（低延迟）</summary>
         public Boolean UsePool { get; set; }
+
+        /// <summary>令牌。每次请求携带</summary>
+        public String Token { get; set; }
 
         /// <summary>最后活跃时间</summary>
         public DateTime LastActive { get; set; }
@@ -214,6 +218,14 @@ namespace NewLife.Remoting
             // 性能计数器，次数、TPS、平均耗时
             var st = StatInvoke;
             var sw = st.StartCount();
+
+            // 令牌
+            if (!Token.IsNullOrEmpty())
+            {
+                var dic = args.ToDictionary();
+                if (!dic.ContainsKey(nameof(Token))) dic[nameof(Token)] = Token;
+                args = dic;
+            }
 
             // 编码请求，构造消息
             var enc = Encoder;
