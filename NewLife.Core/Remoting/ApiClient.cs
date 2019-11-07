@@ -219,6 +219,8 @@ namespace NewLife.Remoting
             var st = StatInvoke;
             var sw = st.StartCount();
 
+            LastActive = DateTime.Now;
+
             // 令牌
             if (!Token.IsNullOrEmpty())
             {
