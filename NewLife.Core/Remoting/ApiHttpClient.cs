@@ -214,11 +214,12 @@ namespace NewLife.Remoting
             for (var i = 0; i < ms.Count; i++)
             {
                 var mi = ms[_Index];
+                HttpResponseMessage rs = null;
                 try
                 {
                     if (mi.Client == null) mi.Client = new HttpClient { BaseAddress = mi.Address };
 
-                    var rs = await mi.Client.SendAsync(request);
+                    rs = await mi.Client.SendAsync(request);
                     //if (!UseHttpStatus || rs.StatusCode == HttpStatusCode.OK) return rs;
                     if (UseHttpStatus) rs.EnsureSuccessStatusCode();
                     return rs;
@@ -229,6 +230,7 @@ namespace NewLife.Remoting
                     {
                         error = ex;
 
+                        ex.Data.Add("Response", rs);
                         ex.Data.Add(nameof(mi.Name), mi.Name);
                         ex.Data.Add(nameof(mi.Address), mi.Address);
                         ex.Data.Add(nameof(mi.Client), mi.Client);

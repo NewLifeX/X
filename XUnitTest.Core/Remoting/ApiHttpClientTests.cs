@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
+using System.Net.Http;
 using NewLife;
 using NewLife.Data;
 using NewLife.Log;
@@ -23,8 +25,9 @@ namespace XUnitTest.Remoting
             };
             _Server.Start();
 
-            _Client = new ApiHttpClient();
-            _Client.Add("addr1", new Uri("http://127.0.0.1:12345"));
+            //_Client = new ApiHttpClient();
+            //_Client.Add("addr1", new Uri("http://127.0.0.1:12345"));
+            _Client = new ApiHttpClient("http://127.0.0.1:12345");
         }
 
         protected override void Dispose(Boolean disposing)
@@ -94,10 +97,14 @@ namespace XUnitTest.Remoting
             }
             catch (Exception ex)
             {
-                var aex = ex as ApiException;
+                var aex = ex as HttpRequestException;
                 Assert.NotNull(aex);
-                Assert.Equal(404, aex.Code);
-                Assert.Equal("远程[Api]错误！ \"无法找到名为[api/info3]的服务！\"", ex.Message);
+                Assert.Equal("Default", ex.Data["Name"]);
+
+                var rs = ex.Data["Response"] as HttpResponseMessage;
+                Assert.NotNull(rs);
+                Assert.Equal(HttpStatusCode.NotFound, rs.StatusCode);
+                //Assert.Equal("远程[Api]错误！ \"无法找到名为[api/info3]的服务！\"", ex.Message);
             }
         }
     }
