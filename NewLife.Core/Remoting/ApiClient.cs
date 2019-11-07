@@ -142,12 +142,11 @@ namespace NewLife.Remoting
 
         #region 远程调用
         /// <summary>异步调用，等待返回结果</summary>
-        /// <param name="resultType">返回类型</param>
+        /// <typeparam name="TResult">返回类型</typeparam>
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
-        /// <param name="flag">标识</param>
         /// <returns></returns>
-        public virtual async Task<Object> InvokeAsync(Type resultType, String action, Object args = null, Byte flag = 0)
+        public virtual async Task<TResult> InvokeAsync<TResult>(String action, Object args = null)
         {
             // 让上层异步到这直接返回，后续代码在另一个线程执行
             //!!! Task.Yield会导致强制捕获上下文，虽然会在另一个线程执行，但在UI线程中可能无法抢占上下文导致死锁
@@ -161,7 +160,7 @@ namespace NewLife.Remoting
 
             try
             {
-                return await InvokeAsync(this, resultType, act, args, flag).ConfigureAwait(false);
+                return await InvokeWithClientAsync<TResult>(null, act, args).ConfigureAwait(false);
             }
             catch (ApiException ex)
             {
@@ -170,7 +169,7 @@ namespace NewLife.Remoting
                 {
                     await Cluster.InvokeAsync(client => OnLoginAsync(client, true)).ConfigureAwait(false);
 
-                    return await InvokeAsync(this, resultType, act, args, flag).ConfigureAwait(false);
+                    return await InvokeWithClientAsync<TResult>(null, act, args).ConfigureAwait(false);
                 }
 
                 throw;
@@ -182,32 +181,11 @@ namespace NewLife.Remoting
             }
         }
 
-        /// <summary>异步调用，等待返回结果</summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="action">服务操作</param>
-        /// <param name="args">参数</param>
-        /// <returns></returns>
-        public virtual async Task<TResult> InvokeAsync<TResult>(String action, Object args = null)
-        {
-            // 发送失败时，返回空
-            var rs = await InvokeAsync(typeof(TResult), action, args).ConfigureAwait(false);
-            if (rs == null) return default;
-
-            return (TResult)rs;
-        }
-
         /// <summary>同步调用，阻塞等待</summary>
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
         /// <returns></returns>
-        public virtual TResult Invoke<TResult>(String action, Object args = null)
-        {
-            // 发送失败时，返回空
-            var rs = TaskEx.Run(() => InvokeAsync(typeof(TResult), action, args)).Result;
-            if (rs == null) return default;
-
-            return (TResult)rs;
-        }
+        public virtual TResult Invoke<TResult>(String action, Object args = null) => TaskEx.Run(() => InvokeAsync<TResult>(action, args)).Result;
 
         /// <summary>单向发送。同步调用，不等待返回</summary>
         /// <param name="action">服务操作</param>
@@ -231,26 +209,9 @@ namespace NewLife.Remoting
         /// <param name="args">参数</param>
         /// <param name="flag">标识</param>
         /// <returns></returns>
-        protected virtual async Task<TResult> InvokeWithClientAsync<TResult>(ISocketClient client, String action, Object args = null, Byte flag = 0)
+        public virtual async Task<TResult> InvokeWithClientAsync<TResult>(ISocketClient client, String action, Object args = null, Byte flag = 0)
         {
-            var act = action;
-
-            return (TResult)await InvokeAsync(client, typeof(TResult), act, args, flag).ConfigureAwait(false);
-        }
-
-        /// <summary>调用</summary>
-        /// <param name="session"></param>
-        /// <param name="resultType">结果类型</param>
-        /// <param name="action">服务操作</param>
-        /// <param name="args">参数</param>
-        /// <param name="flag">标识</param>
-        /// <returns></returns>
-        private async Task<Object> InvokeAsync(Object session, Type resultType, String action, Object args, Byte flag)
-        {
-            if (session == null) return null;
-
             // 性能计数器，次数、TPS、平均耗时
-            //host.StatSend?.Increment();
             var st = StatInvoke;
             var sw = st.StartCount();
 
@@ -259,16 +220,16 @@ namespace NewLife.Remoting
             var msg = enc.CreateRequest(action, args);
             if (flag > 0 && msg is DefaultMessage dm) dm.Flag = flag;
 
-            var invoker = session;
+            var invoker = client != null ? (client + "") : ToString();
             IMessage rs = null;
             try
             {
-                if (session is ISocketRemote client)
+                if (client != null)
                     rs = (await client.SendMessageAsync(msg).ConfigureAwait(false)) as IMessage;
                 else
                     rs = (await Cluster.InvokeAsync(client => client.SendMessageAsync(msg)).ConfigureAwait(false)) as IMessage;
 
-                if (rs == null) return null;
+                if (rs == null) return default;
             }
             catch (AggregateException aggex)
             {
@@ -290,7 +251,8 @@ namespace NewLife.Remoting
             }
 
             // 特殊返回类型
-            if (resultType == typeof(IMessage)) return rs;
+            var resultType = typeof(TResult);
+            if (resultType == typeof(IMessage)) return (TResult)rs;
             //if (resultType == typeof(Packet)) return rs.Payload;
 
             if (!enc.Decode(rs, out _, out var code, out var data)) throw new InvalidOperationException();
@@ -298,15 +260,15 @@ namespace NewLife.Remoting
             // 是否成功
             if (code != 0) throw new ApiException(code, $"远程[{invoker}]错误！ {data.ToStr()}");
 
-            if (data == null) return null;
-            if (resultType == typeof(Packet)) return data;
+            if (data == null) return default;
+            if (resultType == typeof(Packet)) return (TResult)(Object)data;
 
             // 解码结果
             var result = enc.DecodeResult(action, data);
-            if (resultType == typeof(Object)) return result;
+            if (resultType == typeof(Object)) return (TResult)result;
 
             // 返回
-            return enc.Convert(result, resultType);
+            return (TResult)enc.Convert(result, resultType);
         }
 
         /// <summary>调用</summary>

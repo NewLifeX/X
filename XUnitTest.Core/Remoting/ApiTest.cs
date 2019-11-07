@@ -47,16 +47,18 @@ namespace XUnitTest.Remoting
             Assert.Equal("Packet Api/Info2(Packet state)", apis[2]);
         }
 
-        [Fact(DisplayName = "参数测试")]
-        public async void InfoTest()
+        [Theory(DisplayName = "参数测试")]
+        [InlineData("12345678", "ABCDEFG")]
+        [InlineData("ABCDEFG", "12345678")]
+        public async void InfoTest(String state, String state2)
         {
             var client = new ApiClient("tcp://127.0.0.1:12345")
             {
                 Log = XTrace.Log
             };
 
-            var state = Rand.NextString(8);
-            var state2 = Rand.NextString(8);
+            //var state = Rand.NextString(8);
+            //var state2 = Rand.NextString(8);
 
             var infs = await client.InvokeAsync<IDictionary<String, Object>>("api/info", new { state, state2 });
             Assert.NotNull(infs);
