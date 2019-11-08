@@ -107,5 +107,19 @@ namespace XUnitTest.Remoting
                 //Assert.Equal("远程[Api]错误！ \"无法找到名为[api/info3]的服务！\"", ex.Message);
             }
         }
+
+        [Theory(DisplayName = "令牌测试")]
+        [InlineData("12345678")]
+        [InlineData("ABCDEFG")]
+        public async void TokenTest(String token)
+        {
+            _Client.Token = token;
+
+            var infs = await _Client.InvokeAsync<IDictionary<String, Object>>("api/info");
+            Assert.NotNull(infs);
+            Assert.Equal(token, infs["token"]);
+
+            _Client.Token = null;
+        }
     }
 }

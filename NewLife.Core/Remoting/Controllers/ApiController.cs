@@ -89,8 +89,8 @@ namespace NewLife.Remoting
             var dic = rs.ToDictionary();
 
             // 令牌
-            var token = ctx.Parameters["Token"] + "";
-            if (!token.IsNullOrEmpty()) dic["Token"] = token;
+            //var token = ctx.Parameters["Token"] + "";
+            if (ctx.Parameters.TryGetValue("Token", out var token) && token + "" != "") dic["Token"] = token;
 
             // 时间和连接数
             if (Host is ApiHost ah) dic["Uptime"] = (DateTime.Now - ah.StartTime).ToString();

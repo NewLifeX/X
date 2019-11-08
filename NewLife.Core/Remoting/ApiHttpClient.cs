@@ -26,6 +26,9 @@ namespace NewLife.Remoting
         /// <summary>是否使用Http状态抛出异常。默认false，使用ApiException抛出异常</summary>
         public Boolean UseHttpStatus { get; set; }
 
+        /// <summary>令牌。每次请求携带</summary>
+        public String Token { get; set; }
+
         private readonly IList<ServiceItem> _Items = new List<ServiceItem>();
         #endregion
 
@@ -81,15 +84,28 @@ namespace NewLife.Remoting
             if (rtype == typeof(Byte[])) return (TResult)(Object)buf;
             if (rtype == typeof(Packet)) return (TResult)(Object)new Packet(buf);
 
-            // 简单类型
             var str = buf.ToStr();
-            if (rtype.GetTypeCode() != TypeCode.Object) return str.ChangeType<TResult>();
+            Object data = str;
+            if (!UseHttpStatus)
+            {
+                var js2 = new JsonParser(str).Decode() as IDictionary<String, Object>;
+                data = js2["data"];
+                var code2 = js2["code"].ToInt();
+                if (code2 != 0)
+                {
+                    var invoker = _Items[_Index]?.Address + "";
+                    throw new ApiException(code2, $"远程[{invoker}]错误！ {data}");
+                }
+            }
+
+            // 简单类型
+            if (rtype.GetTypeCode() != TypeCode.Object) return data.ChangeType<TResult>();
 
             // 反序列化
-            var js = new JsonParser(str).Decode();
-            if (!(js is IDictionary<String, Object>) && !(js is IList<Object>)) throw new InvalidDataException("未识别响应数据");
+            if (UseHttpStatus) data = new JsonParser(str).Decode();
+            if (!(data is IDictionary<String, Object>) && !(data is IList<Object>)) throw new InvalidDataException("未识别响应数据");
 
-            return JsonHelper.Convert<TResult>(js);
+            return JsonHelper.Convert<TResult>(data);
         }
 
         /// <summary>同步调用，阻塞等待</summary>
@@ -109,6 +125,14 @@ namespace NewLife.Remoting
             var request = new HttpRequestMessage(HttpMethod.Get, action);
             if (returnType != typeof(Byte[]) && returnType != typeof(Packet))
                 request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+            // 令牌
+            //if (!Token.IsNullOrEmpty()) request.Headers.Add(nameof(Token), Token);
+            if (!Token.IsNullOrEmpty())
+            {
+                action += action.Contains("?") ? "&" : "?";
+                action += $"token={Token}";
+            }
 
             if (Method == HttpMethod.Post || args is Packet || args is Byte[])
             {
