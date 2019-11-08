@@ -40,9 +40,9 @@ namespace XUnitTest.Remoting
         [Fact(DisplayName = "同步请求")]
         public void SendTest()
         {
-            var html = _Client.Invoke<String>("api/info");
-
-            Assert.True(!html.IsNullOrEmpty() && html.Length > 500);
+            var pk = _Client.Invoke<Packet>("api/info");
+            Assert.NotNull(pk);
+            Assert.True(pk.Total > 500);
 
             var dic = _Client.Invoke<IDictionary<String, Object>>("api/info");
             Assert.NotNull(dic);
@@ -53,10 +53,6 @@ namespace XUnitTest.Remoting
         [Fact(DisplayName = "异步请求")]
         public async void SendAsyncTest()
         {
-            var html = await _Client.InvokeAsync<String>("api/info");
-
-            Assert.True(!html.IsNullOrEmpty() && html.Length > 500);
-
             var dic = await _Client.InvokeAsync<IDictionary<String, Object>>("api/info");
             Assert.NotNull(dic);
             Assert.True(dic.Count > 10);
@@ -78,12 +74,12 @@ namespace XUnitTest.Remoting
             Assert.NotNull(msg);
             Assert.Equal(HttpStatusCode.OK, msg.StatusCode);
 
-            msg = await _Client.InvokeAsync<HttpResponseMessage>("api/info3");
-            Assert.NotNull(msg);
-            Assert.Equal(HttpStatusCode.NotFound, msg.StatusCode);
+            //msg = await _Client.InvokeAsync<HttpResponseMessage>("api/info3");
+            //Assert.NotNull(msg);
+            //Assert.Equal(HttpStatusCode.NotFound, msg.StatusCode);
 
-            var str = await msg.Content.ReadAsStringAsync();
-            Assert.Equal("\"无法找到名为[api/info3]的服务！\"", str);
+            //var str = await msg.Content.ReadAsStringAsync();
+            //Assert.Equal("\"无法找到名为[api/info3]的服务！\"", str);
 
             try
             {

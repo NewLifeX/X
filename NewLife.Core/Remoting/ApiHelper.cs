@@ -22,8 +22,9 @@ namespace NewLife.Remoting
         /// <param name="client">Http客户端</param>
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
+        /// <param name="useHttpStatus">是否使用Http状态抛出异常</param>
         /// <returns></returns>
-        public static async Task<TResult> InvokeAsync<TResult>(this HttpClient client, String action, Object args = null)
+        public static async Task<TResult> InvokeAsync<TResult>(this HttpClient client, String action, Object args = null, Boolean useHttpStatus = false)
         {
             if (client?.BaseAddress == null) throw new ArgumentNullException(nameof(client.BaseAddress));
 
@@ -74,23 +75,33 @@ namespace NewLife.Remoting
             if (rtype == typeof(Byte[])) return (TResult)(Object)buf;
             if (rtype == typeof(Packet)) return (TResult)(Object)new Packet(buf);
 
-            // 简单类型
             var str = buf.ToStr();
-            if (rtype.GetTypeCode() != TypeCode.Object) return str.ChangeType<TResult>();
+            Object data = str;
+            if (!useHttpStatus)
+            {
+                var js2 = new JsonParser(str).Decode() as IDictionary<String, Object>;
+                data = js2["data"];
+                var code2 = js2["code"].ToInt();
+                if (code2 != 0) throw new ApiException(code2, data + "");
+            }
+
+            // 简单类型
+            if (rtype.GetTypeCode() != TypeCode.Object) return data.ChangeType<TResult>();
 
             // 反序列化
-            var js = new JsonParser(str).Decode();
-            if (!(js is IDictionary<String, Object> dic) && !(js is IList<Object>)) throw new InvalidDataException("未识别响应数据");
+            if (useHttpStatus) data = new JsonParser(str).Decode();
+            if (!(data is IDictionary<String, Object>) && !(data is IList<Object>)) throw new InvalidDataException("未识别响应数据");
 
-            return JsonHelper.Convert<TResult>(js);
+            return JsonHelper.Convert<TResult>(data);
         }
 
         /// <summary>同步调用，阻塞等待</summary>
         /// <param name="client">Http客户端</param>
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
+        /// <param name="useHttpStatus">是否使用Http状态抛出异常</param>
         /// <returns></returns>
-        public static TResult Invoke<TResult>(this HttpClient client, String action, Object args = null) => Task.Run(() => InvokeAsync<TResult>(client, action, args)).Result;
+        public static TResult Invoke<TResult>(this HttpClient client, String action, Object args = null, Boolean useHttpStatus = false) => Task.Run(() => InvokeAsync<TResult>(client, action, args, useHttpStatus)).Result;
 
         private static String Encode(String data)
         {
