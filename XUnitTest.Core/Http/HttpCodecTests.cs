@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Text;
 using NewLife.Data;
 using NewLife.Http;
+using NewLife.Model;
+using NewLife.Net;
 using Xunit;
 
 namespace XUnitTest.Http
@@ -75,6 +77,28 @@ namespace XUnitTest.Http
 
             var codec = new HttpCodec();
             var rm = codec.Write(null, msg) as Packet;
+            Assert.NotNull(rm);
+            Assert.Equal(http, rm.ToStr());
+        }
+
+        [Theory(DisplayName = "读取编码")]
+        [InlineData("GET /123.html HTTP/1.1\r\nHost: www.newlifex.com\r\n\r\n", null)]
+        [InlineData("POST /123.ashx HTTP/1.1\r\nHost: www.newlifex.com\r\nContent-Length:9\r\n\r\ncode=abcd", null)]
+        [InlineData("POST /123.ashx HTTP/1.1\r\nHost: www.newlifex.com\r\nContent-Length:9\r\n\r\n", "code=abcd")]
+        public void ReadCodec(String http, String http2)
+        {
+            var pk = http.GetBytes();
+            var pk2 = http2.GetBytes();
+
+            var msg = new HttpMessage();
+            var rs = msg.Read(pk);
+            Assert.True(rs);
+
+            var context = new HandlerContext();
+            context.Owner = context;
+
+            var codec = new HttpCodec();
+            var rm = codec.Read(context, pk) as Packet;
             Assert.NotNull(rm);
             Assert.Equal(http, rm.ToStr());
         }
