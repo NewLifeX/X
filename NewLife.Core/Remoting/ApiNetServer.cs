@@ -73,12 +73,17 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public override Object this[String key]
         {
-            get => Items2 != null ? Items2[key] : Items[key]; set
+            get
             {
-                if (Items2 != null)
-                    Items2[key] = value;
-                else
-                    Items[key] = value;
+                var ms = Items2 ?? Items;
+                if (ms.TryGetValue(key, out var rs)) return rs;
+
+                return null;
+            }
+            set
+            {
+                var ms = Items2 ?? Items;
+                ms[key] = value;
             }
         }
 

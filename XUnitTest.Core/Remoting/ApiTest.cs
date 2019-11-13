@@ -20,6 +20,7 @@ namespace XUnitTest.Remoting
                 Log = XTrace.Log,
                 //EncoderLog = XTrace.Log,
             };
+            _Server.Handler = new TokenApiHandler { Host = _Server };
             _Server.Start();
         }
 
@@ -107,9 +108,9 @@ namespace XUnitTest.Remoting
         }
 
         [Theory(DisplayName = "令牌测试")]
-        [InlineData("12345678")]
-        [InlineData("ABCDEFG")]
-        public async void TokenTest(String token)
+        [InlineData("12345678", "ABCDEFG")]
+        [InlineData("ABCDEFG", "12345678")]
+        public async void TokenTest(String token, String state)
         {
             var client = new ApiClient("tcp://127.0.0.1:12345")
             {
@@ -117,9 +118,20 @@ namespace XUnitTest.Remoting
                 Token = token,
             };
 
-            var infs = await client.InvokeAsync<IDictionary<String, Object>>("api/info");
+            var infs = await client.InvokeAsync<IDictionary<String, Object>>("api/info", new { state });
             Assert.NotNull(infs);
             Assert.Equal(token, infs["token"]);
+
+            // 另一个客户端，共用令牌，应该可以拿到上一次状态数据
+            var client2 = new ApiClient("tcp://127.0.0.1:12345")
+            {
+                Log = XTrace.Log,
+                Token = token,
+            };
+
+            infs = await client2.InvokeAsync<IDictionary<String, Object>>("api/info");
+            Assert.NotNull(infs);
+            Assert.Equal(state, infs["LastState"]);
         }
     }
 }

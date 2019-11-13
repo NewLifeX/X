@@ -84,8 +84,12 @@ namespace NewLife.Remoting
                 LocalIP = _LocalIP,
                 Remote = ns?.Remote?.EndPoint + "",
                 State = state,
+                LastState = Session["State"],
                 Time = DateTime.Now,
             };
+
+            // 记录上一次状态
+            Session["State"] = state;
 
             // 转字典
             var dic = rs.ToDictionary();
