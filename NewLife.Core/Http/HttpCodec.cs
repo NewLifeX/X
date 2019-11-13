@@ -138,6 +138,12 @@ namespace NewLife.Http
         /// <summary>负载数据</summary>
         public Packet Payload { get; set; }
 
+        /// <summary>请求方法</summary>
+        public String Method { get; set; }
+
+        /// <summary>请求资源</summary>
+        public String Uri { get; set; }
+
         /// <summary>内容长度</summary>
         public Int32 ContentLength { get; set; } = -1;
 
@@ -181,11 +187,20 @@ namespace NewLife.Http
             var pk = Header;
             if (pk == null || pk.Total == 0) return false;
 
+            // 请求方法 GET / HTTP/1.1
             var dic = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
             var ss = pk.ToStr().Split(Environment.NewLine);
-            foreach (var item in ss)
             {
-                var kv = item.Split(":");
+                var kv = ss[0].Split(" ");
+                if (kv != null && kv.Length >= 3)
+                {
+                    Method = kv[0].Trim();
+                    Uri = kv[1].Trim();
+                }
+            }
+            for (var i = 1; i < ss.Length; i++)
+            {
+                var kv = ss[i].Split(":");
                 if (kv != null && kv.Length >= 2)
                 {
                     dic[kv[0].Trim()] = kv[1].Trim();
@@ -196,8 +211,6 @@ namespace NewLife.Http
             // 内容长度
             if (dic.TryGetValue("Content-Length", out var str))
                 ContentLength = str.ToInt();
-            else
-                ContentLength = 0;
 
             return true;
         }
