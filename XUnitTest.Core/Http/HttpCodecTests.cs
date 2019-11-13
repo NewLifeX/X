@@ -87,20 +87,61 @@ namespace XUnitTest.Http
         [InlineData("POST /123.ashx HTTP/1.1\r\nHost: www.newlifex.com\r\nContent-Length:9\r\n\r\n", "code=abcd")]
         public void ReadCodec(String http, String http2)
         {
-            var pk = http.GetBytes();
-            var pk2 = http2.GetBytes();
+            var pk = new Packet(http.GetBytes());
+            var pk2 = new Packet(http2.GetBytes());
 
-            var msg = new HttpMessage();
-            var rs = msg.Read(pk);
-            Assert.True(rs);
+            //var msg = new HttpMessage();
+            //var rs = msg.Read(pk);
+            //Assert.True(rs);
 
-            var context = new HandlerContext();
-            context.Owner = context;
+            var context = new MyHandlerContext
+            {
+                Owner = new HandlerContext()
+            };
 
             var codec = new HttpCodec();
-            var rm = codec.Read(context, pk) as Packet;
-            Assert.NotNull(rm);
-            Assert.Equal(http, rm.ToStr());
+            var rm = codec.Read(context, pk);
+            Assert.Null(rm);
+            if (pk2.Total > 0) rm = codec.Read(context, pk2);
+            Assert.Null(rm);
+
+            var rs = context.Result;
+            Assert.NotNull(rs);
+
+            var str = rs.ToPacket().ToStr();
+            Assert.Equal(http + http2, str);
+        }
+
+        class MyHandlerContext : HandlerContext
+        {
+            public HttpMessage Result { get; set; }
+
+            public override void FireRead(Object message)
+            {
+                Assert.NotNull(message);
+
+                var msg = message as HttpMessage;
+                Assert.NotNull(msg);
+
+                Result = msg;
+
+                if (msg.Method == "POST")
+                {
+                    Assert.Equal("/123.ashx", msg.Uri);
+                    Assert.Equal(9, msg.ContentLength);
+                }
+                else
+                {
+                    Assert.Null(msg.Method);
+
+                    var rs = msg.ParseHeaders();
+                    Assert.True(rs);
+                    Assert.Equal("GET", msg.Method);
+
+                    Assert.Equal("/123.html", msg.Uri);
+                    Assert.Equal(-1, msg.ContentLength);
+                }
+            }
         }
     }
 }
