@@ -206,7 +206,10 @@ namespace NewLife.Remoting
             {
                 var sb = Pool.StringBuilder.Get();
                 sb.Append(action);
-                sb.Append("?");
+                if (action.Contains("?"))
+                    sb.Append("&");
+                else
+                    sb.Append("?");
 
                 var first = true;
                 foreach (var item in ps)
