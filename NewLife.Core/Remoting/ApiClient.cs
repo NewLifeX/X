@@ -87,7 +87,7 @@ namespace NewLife.Remoting
 
                 if (Encoder == null) Encoder = new JsonEncoder();
                 //if (Encoder == null) Encoder = new BinaryEncoder();
-                if (Handler == null) Handler = new ApiHandler { Host = this };
+                //if (Handler == null) Handler = new ApiHandler { Host = this };
 
                 // 集群
                 Cluster = InitCluster();

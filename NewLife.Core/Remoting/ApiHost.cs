@@ -18,8 +18,8 @@ namespace NewLife.Remoting
         /// <summary>编码器</summary>
         public IEncoder Encoder { get; set; }
 
-        /// <summary>处理器</summary>
-        public IApiHandler Handler { get; set; }
+        ///// <summary>处理器</summary>
+        //public IApiHandler Handler { get; set; }
 
         /// <summary>调用超时时间。请求发出后，等待响应的最大时间，默认15_000ms</summary>
         public Int32 Timeout { get; set; } = 15_000;

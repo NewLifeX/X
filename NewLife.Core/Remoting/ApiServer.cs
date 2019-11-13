@@ -20,6 +20,9 @@ namespace NewLife.Remoting
         /// <summary>端口</summary>
         public Int32 Port { get; set; }
 
+        /// <summary>处理器</summary>
+        public IApiHandler Handler { get; set; }
+
         /// <summary>服务器</summary>
         public IApiServer Server { get; set; }
 

@@ -33,15 +33,15 @@ namespace NewLife.Remoting
             // Http封包协议
             Add<HttpCodec>();
 
-            host.Handler = new ApiHttpHandler { Host = host };
+            //host.Handler = new ApiHttpHandler { Host = host };
             host.Encoder = new HttpEncoder();
 
             return true;
         }
     }
 
-    class ApiHttpHandler : ApiHandler
-    {
+    //class ApiHttpHandler : ApiHandler
+    //{
 
-    }
+    //}
 }
