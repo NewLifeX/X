@@ -141,7 +141,7 @@ namespace NewLife.Http
                 sb.AppendFormat("Content-Length:{0}\r\n", pk.Total);
                 sb.AppendLine("Content-Type:application/json");
             }
-            sb.AppendLine("Connection:keep-alive");
+            sb.Append("Connection:keep-alive");
 
             req.Header = sb.Put(true).GetBytes();
 
@@ -193,7 +193,7 @@ namespace NewLife.Http
 
             sb.AppendFormat("Content-Length:{0}\r\n", pk?.Total ?? 0);
             sb.AppendLine("Content-Type:application/json");
-            sb.AppendLine("Connection:keep-alive");
+            sb.Append("Connection:keep-alive");
 
             rs.Header = sb.Put(true).GetBytes();
 

@@ -219,9 +219,10 @@ namespace NewLife.Http
         /// <returns></returns>
         public virtual Packet ToPacket()
         {
+            // 使用子数据区，不改变原来的头部对象
             var pk = Header.Slice(0, -1);
-            //pk.Next = NewLine;
-            pk.Next = new[] { (Byte)'\r', (Byte)'\n' };
+            pk.Next = NewLine;
+            //pk.Next = new[] { (Byte)'\r', (Byte)'\n' };
 
             var pay = Payload;
             if (pay != null && pay.Total > 0) pk.Append(pay);
