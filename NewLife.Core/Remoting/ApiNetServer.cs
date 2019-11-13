@@ -65,6 +65,23 @@ namespace NewLife.Remoting
         /// <summary>请求参数</summary>
         public IDictionary<String, Object> Parameters { get; set; }
 
+        /// <summary>第二会话数据</summary>
+        public IDictionary<String, Object> Items2 { get; set; }
+
+        /// <summary>获取/设置 用户会话数据。优先使用第二会话数据</summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public override Object this[String key]
+        {
+            get => Items2 != null ? Items2[key] : Items[key]; set
+            {
+                if (Items2 != null)
+                    Items2[key] = value;
+                else
+                    Items[key] = value;
+            }
+        }
+
         /// <summary>开始会话处理</summary>
         public override void Start()
         {
