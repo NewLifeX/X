@@ -21,6 +21,9 @@ namespace NewLife.Web
         #region 属性
         /// <summary>超时，默认15000毫秒</summary>
         public Int32 Timeout { get; set; } = 15000;
+
+        /// <summary>最后使用的连接名</summary>
+        public Link LastLink { get; set; }
         #endregion
 
         #region 构造
@@ -283,6 +286,7 @@ namespace NewLife.Web
                 return file;
             }
 
+            LastLink = link;
             var linkName = link.FullName;
             var file2 = destdir.CombinePath(linkName).EnsureDirectory();
 
@@ -294,7 +298,7 @@ namespace NewLife.Web
                 if (p > 0 && (p + 8 + 1 == linkName.Length || p + 14 + 1 == linkName.Length))
                 {
                     Log.Info("分析得到文件 {0}，目标文件已存在，无需下载 {1}", linkName, link.Url);
-                    return file;
+                    return file2;
                 }
             }
 
