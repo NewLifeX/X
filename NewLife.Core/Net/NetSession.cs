@@ -14,7 +14,7 @@ namespace NewLife.Net
     public class NetSession<TServer> : NetSession where TServer : NetServer
     {
         /// <summary>主服务</summary>
-        public virtual TServer Host { get { return (this as INetSession).Host as TServer; } set { (this as INetSession).Host = value; } }
+        public virtual TServer Host { get => (this as INetSession).Host as TServer; set => (this as INetSession).Host = value; }
     }
 
     /// <summary>网络服务的会话</summary>
@@ -45,7 +45,7 @@ namespace NewLife.Net
         /// <summary>获取/设置 用户会话数据</summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public virtual Object this[String key] { get { return Items[key]; } set { Items[key] = value; } }
+        public virtual Object this[String key] { get => Items[key]; set => Items[key] = value; }
         #endregion
 
         #region 方法

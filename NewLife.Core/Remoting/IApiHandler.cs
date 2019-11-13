@@ -152,6 +152,9 @@ namespace NewLife.Remoting
                     new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase) :
                     enc.DecodeParameters(action, args);
                 ctx.Parameters = dic;
+                session.Parameters = dic;
+                // 令牌
+                if (dic.TryGetValue("Token", out var token)) session.Token = token + "";
 
                 // 准备好参数
                 var ps = GetParams(api.Method, dic, enc);

@@ -11,11 +11,13 @@ using NewLife.Serialization;
 namespace NewLife.Remoting
 {
     /// <summary>API控制器</summary>
-    //[AllowAnonymous]
-    public class ApiController
+    public class ApiController : IApi
     {
         /// <summary>主机</summary>
         public IApiHost Host { get; set; }
+
+        /// <summary>会话</summary>
+        public IApiSession Session { get; set; }
 
         private String[] _all;
         /// <summary>获取所有接口</summary>
@@ -90,7 +92,8 @@ namespace NewLife.Remoting
 
             // 令牌
             //var token = ctx.Parameters["Token"] + "";
-            if (ctx.Parameters.TryGetValue("Token", out var token) && token + "" != "") dic["Token"] = token;
+            //if (ctx.Parameters.TryGetValue("Token", out var token) && token + "" != "") dic["Token"] = token;
+            if (!Session.Token.IsNullOrEmpty()) dic["Token"] = Session.Token;
 
             // 时间和连接数
             if (Host is ApiHost ah) dic["Uptime"] = (DateTime.Now - ah.StartTime).ToString();
