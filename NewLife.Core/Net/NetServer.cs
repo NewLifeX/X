@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Collections;
@@ -94,6 +96,13 @@ namespace NewLife.Net
 
         /// <summary>使用会话集合，允许遍历会话。默认true</summary>
         public Boolean UseSession { get; set; } = true;
+
+        /// <summary>SSL协议。默认None，服务端Default，客户端不启用</summary>
+        public SslProtocols SslProtocol { get; set; } = SslProtocols.None;
+
+        /// <summary>SSL证书。服务端使用</summary>
+        /// <remarks>var cert = new X509Certificate2("file", "pass");</remarks>
+        public X509Certificate Certificate { get; set; }
 
         /// <summary>会话统计</summary>
         public ICounter StatSession { get; set; }
@@ -219,6 +228,12 @@ namespace NewLife.Net
             server.LogReceive = LogReceive;
 
             server.Error += OnError;
+
+            if (server is TcpServer ts)
+            {
+                ts.SslProtocol = SslProtocol;
+                ts.Certificate = Certificate;
+            }
 
             Servers.Add(server);
 

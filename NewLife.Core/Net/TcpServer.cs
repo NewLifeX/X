@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Log;
@@ -65,6 +67,13 @@ namespace NewLife.Net
 
         /// <summary>接收统计</summary>
         public ICounter StatReceive { get; set; }
+
+        /// <summary>SSL协议。默认None，服务端Default，客户端不启用</summary>
+        public SslProtocols SslProtocol { get; set; } = SslProtocols.None;
+
+        /// <summary>SSL证书。服务端使用</summary>
+        /// <remarks>var cert = new X509Certificate2("file", "pass");</remarks>
+        public X509Certificate Certificate { get; set; }
         #endregion
 
         #region 构造
@@ -262,6 +271,8 @@ namespace NewLife.Net
                 NewSession?.Invoke(this, new SessionEventArgs { Session = session });
 
                 // 自动开始异步接收处理
+                session.SslProtocol = SslProtocol;
+                session.Certificate = Certificate;
                 session.Start();
             }
         }

@@ -285,7 +285,7 @@ namespace NewLife.Net
                 var buf = new Byte[BufferSize];
                 var se = new SocketAsyncEventArgs();
                 se.SetBuffer(buf, 0, buf.Length);
-                se.Completed += (s, e) => ProcessEvent(e);
+                se.Completed += (s, e) => ProcessEvent(e, -1);
                 se.UserToken = count;
 
                 if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("创建RecvSA {0}", count);
@@ -346,9 +346,9 @@ namespace NewLife.Net
             if (!rs)
             {
                 if (io)
-                    ProcessEvent(se);
+                    ProcessEvent(se, -1);
                 else
-                    ThreadPoolX.QueueUserWorkItem(ProcessEvent, se);
+                    ThreadPoolX.QueueUserWorkItem(s => ProcessEvent(s, -1), se);
             }
 
             return true;
@@ -358,7 +358,8 @@ namespace NewLife.Net
 
         /// <summary>同步或异步收到数据</summary>
         /// <param name="se"></param>
-        void ProcessEvent(SocketAsyncEventArgs se)
+        /// <param name="bytes"></param>
+        internal protected void ProcessEvent(SocketAsyncEventArgs se, Int32 bytes)
         {
             try
             {
@@ -385,8 +386,8 @@ namespace NewLife.Net
                 else
                 {
                     var ep = se.RemoteEndPoint as IPEndPoint ?? Remote.EndPoint;
-
-                    var pk = new Packet(se.Buffer, se.Offset, se.BytesTransferred);
+                    if (bytes < 0) bytes = se.BytesTransferred;
+                    var pk = new Packet(se.Buffer, se.Offset, bytes);
                     if (ProcessAsync)
                     {
                         // 拷贝走数据，参数要重复利用
