@@ -44,6 +44,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="NewLife.Core">
+      <HintPath>..\..\ZTO-Channel\DLL\netcore20\NewLife.Core.dll</HintPath>
+    </Reference>
     <Reference Include="System.Net.Http" />
   </ItemGroup>
 

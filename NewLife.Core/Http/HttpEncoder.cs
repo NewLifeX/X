@@ -47,14 +47,36 @@ namespace NewLife.Http
         /// <summary>解码参数</summary>
         /// <param name="action"></param>
         /// <param name="data"></param>
+        /// <param name="msg"></param>
         /// <returns></returns>
-        public virtual IDictionary<String, Object> DecodeParameters(String action, Packet data)
+        public virtual IDictionary<String, Object> DecodeParameters(String action, Packet data, IMessage msg)
         {
+            /*
+             * 数据内容解析需要根据http数据类型来判定使用什么格式处理
+             * **/
+
+            var headers = ((HttpMessage)msg).Headers;
+            var ctype = (headers["Content-type"] + "").Split(";");
+
             var str = data.ToStr();
             WriteLog("{0}<={1}", action, str);
-            if (!str.IsNullOrEmpty())
+            if (str.IsNullOrEmpty()) return null;
+
+            if (ctype.Contains("application/json"))
             {
-                var dic = str.SplitAsDictionary("=", "&");//.ToDictionary(e => e.Key, e => (Object)e.Value, StringComparer.OrdinalIgnoreCase);
+                var jtool = new JsonParser(str);
+                var dic = jtool.Decode().ToDictionary();
+                var rs = new Dictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
+                foreach (var item in dic)
+                {
+                    rs[item.Key] = HttpUtility.UrlDecode(item.Value + "");
+                }
+
+                return rs;
+            }
+            else
+            {
+                var dic = str.SplitAsDictionary("=", "&");
                 var rs = new Dictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
                 foreach (var item in dic)
                 {
@@ -62,8 +84,6 @@ namespace NewLife.Http
                 }
                 return rs;
             }
-
-            return null;
         }
 
         /// <summary>解码结果</summary>
