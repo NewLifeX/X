@@ -43,7 +43,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test6();
+                    Test7();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -365,9 +365,12 @@ namespace Test
         {
             Role.Meta.Session.Dal.Db.ShowSQL = true;
             Role.Meta.Session.Dal.Expire = 10;
-            Role.Meta.Session.Dal.Db.Readonly = true;
+            //Role.Meta.Session.Dal.Db.Readonly = true;
 
             var list = Role.FindAll();
+            Console.WriteLine(list.Count);
+
+            list = Role.FindAll(Role._.Name.NotContains("abc"));
             Console.WriteLine(list.Count);
 
             Thread.Sleep(1000);
