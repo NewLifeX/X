@@ -5,6 +5,8 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
+using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife;
@@ -338,29 +340,51 @@ namespace Test
         private static NetServer _netServer;
         static void Test6()
         {
-            var svr = new NetServer<MySession>
+            var pfx = new X509Certificate2("../newlife.pfx", "newlife");
+            //Console.WriteLine(pfx);
+
+            //using var svr = new ApiServer(1234);
+            //svr.Log = XTrace.Log;
+            //svr.EncoderLog = XTrace.Log;
+
+            //var ns = svr.EnsureCreate() as NetServer;
+
+            using var ns = new NetServer(1234)
             {
-                Port = 12345,
+                Name = "Server",
+                ProtocolType = NetType.Tcp,
                 Log = XTrace.Log,
                 SessionLog = XTrace.Log,
                 SocketLog = XTrace.Log,
-                LogSend = true,
-                LogReceive = true,
+                LogReceive = true
             };
-            svr.Start();
 
-            _netServer = svr;
-        }
-        class MySession : NetSession
-        {
-            protected override void OnReceive(ReceivedEventArgs e)
+            ns.EnsureCreateServer();
+            foreach (var item in ns.Servers)
             {
-                base.OnReceive(e);
-
-                Send(e.Packet);
+                if (item is TcpServer ts) ts.Certificate = pfx;
             }
-        }
 
+            ns.Received += (s, e) =>
+            {
+                XTrace.WriteLine("收到：{0}", e.Packet.ToStr());
+            };
+            ns.Start();
+
+            using var client = new TcpSession
+            {
+                Name = "Client",
+                Remote = new NetUri("tcp://127.0.0.1:1234"),
+                SslProtocol = SslProtocols.Tls,
+                Log = XTrace.Log,
+                LogSend = true
+            };
+            client.Open();
+
+            client.Send("Stone");
+
+            Console.ReadLine();
+        }
         static void Test7()
         {
             Role.Meta.Session.Dal.Db.ShowSQL = true;

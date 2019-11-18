@@ -137,6 +137,8 @@ namespace NewLife.Remoting
             if (Method == HttpMethod.Post || args is Packet || args is Byte[])
             {
                 FillContent(request, args);
+                // 避免token 保证token可以正常传输到服务端
+                request.Headers.Add("x-token", Token);
             }
             else if (Method == HttpMethod.Get)
             {
