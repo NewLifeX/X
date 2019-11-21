@@ -4,6 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFrameworks>net45;netcoreapp2.1;netcoreapp3.0</TargetFrameworks>
     <OutputPath>..\..\Test\</OutputPath>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
@@ -44,6 +45,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="NewLife.Core">
+      <HintPath>..\..\ZTO-Channel\DLL\netcore20\NewLife.Core.dll</HintPath>
+    </Reference>
     <Reference Include="System.Net.Http" />
   </ItemGroup>
 

@@ -149,7 +149,7 @@ namespace NewLife.Caching
         {
             if (!_cache.TryGetValue(key, out var item) || item == null) return default;
 
-            return (T)item.Visit();
+            return item.Visit().ChangeType<T>();
         }
 
         /// <summary>批量移除缓存项</summary>
@@ -171,7 +171,11 @@ namespace NewLife.Caching
         }
 
         /// <summary>清空所有缓存项</summary>
-        public override void Clear() => _cache.Clear();
+        public override void Clear()
+        {
+            _cache.Clear();
+            _count = 0;
+        }
 
         /// <summary>设置缓存项有效期</summary>
         /// <param name="key">键</param>

@@ -20,6 +20,9 @@ namespace NewLife.Remoting
         /// <summary>端口</summary>
         public Int32 Port { get; set; }
 
+        /// <summary>处理器</summary>
+        public IApiHandler Handler { get; set; }
+
         /// <summary>服务器</summary>
         public IApiServer Server { get; set; }
 
@@ -193,7 +196,7 @@ namespace NewLife.Remoting
                 {
                     if (!enc.Decode(msg, out action, out _, out var args)) return null;
 
-                    result = OnProcess(session, action, args);
+                    result = OnProcess(session, action, args, msg);
                 }
                 catch (Exception ex)
                 {
@@ -231,7 +234,7 @@ namespace NewLife.Remoting
         /// <param name="action"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        protected virtual Object OnProcess(IApiSession session, String action, Packet args) => Handler.Execute(session, action, args);
+        protected virtual Object OnProcess(IApiSession session, String action, Packet args, IMessage msg) => Handler.Execute(session, action, args, msg);
         #endregion
 
         #region 统计

@@ -59,6 +59,34 @@ namespace NewLife.Remoting
         /// <summary>所有服务器所有会话，包含自己</summary>
         public virtual IApiSession[] AllSessions => _Host.Server.AllSessions;
 
+        /// <summary>令牌</summary>
+        public String Token { get; set; }
+
+        /// <summary>请求参数</summary>
+        public IDictionary<String, Object> Parameters { get; set; }
+
+        /// <summary>第二会话数据</summary>
+        public IDictionary<String, Object> Items2 { get; set; }
+
+        /// <summary>获取/设置 用户会话数据。优先使用第二会话数据</summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public override Object this[String key]
+        {
+            get
+            {
+                var ms = Items2 ?? Items;
+                if (ms.TryGetValue(key, out var rs)) return rs;
+
+                return null;
+            }
+            set
+            {
+                var ms = Items2 ?? Items;
+                ms[key] = value;
+            }
+        }
+
         /// <summary>开始会话处理</summary>
         public override void Start()
         {
@@ -110,17 +138,5 @@ namespace NewLife.Remoting
                 if (rs != null) Session?.SendMessage(rs);
             }
         }
-
-        ///// <summary>远程调用</summary>
-        ///// <typeparam name="TResult"></typeparam>
-        ///// <param name="action">服务操作</param>
-        ///// <param name="args">参数</param>
-        ///// <param name="flag">标识</param>
-        ///// <returns></returns>
-        //public async Task<TResult> InvokeAsync<TResult>(String action, Object args = null, Byte flag = 0) => (TResult)await ApiHostHelper.InvokeAsync(_Host, this, typeof(TResult), action, args, flag).ConfigureAwait(false);
-
-        //async Task<IMessage> IApiSession.SendAsync(IMessage msg) => await Session.SendMessageAsync(msg).ConfigureAwait(false) as IMessage;
-
-        //Boolean IApiSession.Send(IMessage msg) => Session.SendMessage(msg);
     }
 }

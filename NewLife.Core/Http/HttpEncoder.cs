@@ -14,6 +14,11 @@ namespace NewLife.Http
     /// <summary>Http编码器</summary>
     public class HttpEncoder : EncoderBase, IEncoder
     {
+        #region 属性
+        /// <summary>是否使用Http状态。默认false，使用json包装响应码</summary>
+        public Boolean UseHttpStatus { get; set; }
+        #endregion
+
         /// <summary>编码</summary>
         /// <param name="action"></param>
         /// <param name="code"></param>
@@ -29,7 +34,11 @@ namespace NewLife.Http
             // 不支持序列化异常
             if (value is Exception ex) value = ex.GetTrue()?.Message;
 
-            var json = value.ToJson(false, false, false);
+            String json;
+            if (UseHttpStatus)
+                json = value.ToJson(false, false, false);
+            else
+                json = new { action, code, data = value }.ToJson(false, true, false);
             WriteLog("{0}=>{1}", action, json);
 
             return json.GetBytes();
@@ -38,14 +47,36 @@ namespace NewLife.Http
         /// <summary>解码参数</summary>
         /// <param name="action"></param>
         /// <param name="data"></param>
+        /// <param name="msg"></param>
         /// <returns></returns>
-        public virtual IDictionary<String, Object> DecodeParameters(String action, Packet data)
+        public virtual IDictionary<String, Object> DecodeParameters(String action, Packet data, IMessage msg)
         {
+            /*
+             * 数据内容解析需要根据http数据类型来判定使用什么格式处理
+             * **/
+
+            var headers = ((HttpMessage)msg).Headers;
+            var ctype = (headers["Content-type"] + "").Split(";");
+
             var str = data.ToStr();
             WriteLog("{0}<={1}", action, str);
-            if (!str.IsNullOrEmpty())
+            if (str.IsNullOrEmpty()) return null;
+
+            if (ctype.Contains("application/json"))
             {
-                var dic = str.SplitAsDictionary("=", "&");//.ToDictionary(e => e.Key, e => (Object)e.Value, StringComparer.OrdinalIgnoreCase);
+                var jtool = new JsonParser(str);
+                var dic = jtool.Decode().ToDictionary();
+                var rs = new Dictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
+                foreach (var item in dic)
+                {
+                    rs[item.Key] = HttpUtility.UrlDecode(item.Value + "");
+                }
+
+                return rs;
+            }
+            else
+            {
+                var dic = str.SplitAsDictionary("=", "&");
                 var rs = new Dictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
                 foreach (var item in dic)
                 {
@@ -53,8 +84,6 @@ namespace NewLife.Http
                 }
                 return rs;
             }
-
-            return null;
         }
 
         /// <summary>解码结果</summary>
@@ -132,7 +161,7 @@ namespace NewLife.Http
                 sb.AppendFormat("Content-Length:{0}\r\n", pk.Total);
                 sb.AppendLine("Content-Type:application/json");
             }
-            sb.AppendLine("Connection:keep-alive");
+            sb.Append("Connection:keep-alive");
 
             req.Header = sb.Put(true).GetBytes();
 
@@ -147,7 +176,7 @@ namespace NewLife.Http
         /// <returns></returns>
         public virtual IMessage CreateResponse(IMessage msg, String action, Int32 code, Object value)
         {
-            if (code <= 0) code = 200;
+            if (code <= 0 && UseHttpStatus) code = 200;
 
             // 编码响应数据包，二进制优先
             if (value is Packet pk)
@@ -168,15 +197,23 @@ namespace NewLife.Http
             // HTTP/1.1 502 Bad Gateway
             var sb = Pool.StringBuilder.Get();
             sb.Append("HTTP/1.1 ");
-            sb.Append(code);
-            if (code < 500)
-                sb.AppendLine(" OK");
+
+            if (UseHttpStatus)
+            {
+                sb.Append(code);
+                if (code < 500)
+                    sb.AppendLine(" OK");
+                else
+                    sb.AppendLine(" Error");
+            }
             else
-                sb.AppendLine(" Error");
+            {
+                sb.AppendLine("200 OK");
+            }
 
             sb.AppendFormat("Content-Length:{0}\r\n", pk?.Total ?? 0);
             sb.AppendLine("Content-Type:application/json");
-            sb.AppendLine("Connection:keep-alive");
+            sb.Append("Connection:keep-alive");
 
             rs.Header = sb.Put(true).GetBytes();
 

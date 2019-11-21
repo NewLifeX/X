@@ -1,8 +1,13 @@
 ﻿using System;
+using System.IO;
 using System.Net;
+using System.Net.Security;
 using System.Net.Sockets;
+using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using NewLife.Data;
+using NewLife.Log;
 using NewLife.Threading;
 
 namespace NewLife.Net
@@ -26,6 +31,15 @@ namespace NewLife.Net
 
         /// <summary>不延迟直接发送。Tcp为了合并小包而设计，客户端默认false，服务端默认true</summary>
         public Boolean NoDelay { get; set; }
+
+        /// <summary>SSL协议。默认None，服务端Default，客户端不启用</summary>
+        public SslProtocols SslProtocol { get; set; } = SslProtocols.None;
+
+        /// <summary>SSL证书。服务端使用</summary>
+        /// <remarks>var cert = new X509Certificate2("file", "pass");</remarks>
+        public X509Certificate Certificate { get; set; }
+
+        private SslStream _Stream;
         #endregion
 
         #region 构造
@@ -69,6 +83,24 @@ namespace NewLife.Net
             var pp = Pipeline;
             pp?.Open(CreateContext(this));
 
+            // 服务端SSL
+            var sock = Client;
+            if (sock != null && Certificate != null)
+            {
+                var ns = new NetworkStream(sock);
+                var sslStream = new SslStream(ns, false);
+
+                var sp = SslProtocol;
+                if (sp == SslProtocols.None) sp = SslProtocols.Default;
+
+                WriteLog("服务端SSL认证 {0} {1}", sp, Certificate.Issuer);
+
+                //var cert = new X509Certificate2("file", "pass");
+                sslStream.AuthenticateAsServer(Certificate, false, sp, false);
+
+                _Stream = sslStream;
+            }
+
             ReceiveAsync();
         }
 
@@ -79,13 +111,14 @@ namespace NewLife.Net
             if (_Server != null) return false;
 
             var timeout = Timeout;
+            var uri = Remote;
             var sock = Client;
             if (sock == null || !sock.IsBound)
             {
                 // 根据目标地址适配本地IPv4/IPv6
-                if (Remote != null && !Remote.Address.IsAny())
+                if (uri != null && !uri.Address.IsAny())
                 {
-                    Local.Address = Local.Address.GetRightAny(Remote.Address.AddressFamily);
+                    Local.Address = Local.Address.GetRightAny(uri.Address.AddressFamily);
                 }
 
                 sock = Client = NetHelper.CreateTcp(Local.EndPoint.Address.IsIPv4());
@@ -103,23 +136,35 @@ namespace NewLife.Net
             }
 
             // 打开端口前如果已设定远程地址，则自动连接
-            if (Remote == null || Remote.EndPoint.IsAny()) return false;
+            if (uri == null || uri.EndPoint.IsAny()) return false;
 
             try
             {
                 if (timeout <= 0)
-                    sock.Connect(Remote.EndPoint);
+                    sock.Connect(uri.EndPoint);
                 else
                 {
                     // 采用异步来解决连接超时设置问题
-                    var ar = sock.BeginConnect(Remote.EndPoint, null, null);
+                    var ar = sock.BeginConnect(uri.EndPoint, null, null);
                     if (!ar.AsyncWaitHandle.WaitOne(timeout, true))
                     {
                         sock.Close();
-                        throw new TimeoutException($"连接[{Remote}][{timeout}ms]超时！");
+                        throw new TimeoutException($"连接[{uri}][{timeout}ms]超时！");
                     }
 
                     sock.EndConnect(ar);
+                }
+
+                // 客户端SSL
+                if (SslProtocol != SslProtocols.None)
+                {
+                    WriteLog("客户端SSL认证 {0} {1}", SslProtocol, uri.Host);
+
+                    var ns = new NetworkStream(sock);
+                    var sslStream = new SslStream(ns, false, OnCertificateValidationCallback);
+                    sslStream.AuthenticateAsClient(uri.Host, new X509CertificateCollection(), SslProtocol, false);
+
+                    _Stream = sslStream;
                 }
             }
             catch (Exception ex)
@@ -134,6 +179,20 @@ namespace NewLife.Net
             }
 
             _Reconnect = 0;
+
+            return true;
+        }
+
+        private Boolean OnCertificateValidationCallback(Object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        {
+            WriteLog("Valid {0} {1}", certificate.Issuer, sslPolicyErrors);
+            if (chain?.ChainStatus != null)
+            {
+                foreach (var item in chain.ChainStatus)
+                {
+                    WriteLog("Chain {0} {1}", item.Status, item.StatusInformation?.Trim());
+                }
+            }
 
             return true;
         }
@@ -203,15 +262,27 @@ namespace NewLife.Net
                 _spinLock.Enter(ref gotLock);
 
                 var rs = 0;
-                if (count == 0)
-                    rs = sock.Send(new Byte[0]);
-                else if (pk.Next == null)
-                    rs = sock.Send(pk.Data, pk.Offset, count, SocketFlags.None);
+                if (_Stream == null)
+                {
+                    if (count == 0)
+                        rs = sock.Send(new Byte[0]);
+                    else if (pk.Next == null)
+                        rs = sock.Send(pk.Data, pk.Offset, count, SocketFlags.None);
+                    else
+                        rs = sock.Send(pk.ToSegments());
+                }
                 else
-                    rs = sock.Send(pk.ToSegments());
+                {
+                    if (count == 0)
+                        _Stream.Write(new Byte[0]);
+                    else if (pk.Next == null)
+                        _Stream.Write(pk.Data, pk.Offset, count);
+                    else
+                        _Stream.Write(pk.ToArray());
+                }
 
-                // 检查返回值
-                if (rs != count) throw new NetException($"发送[{count:n0}]而成功[{rs:n0}]");
+                //// 检查返回值
+                //if (rs != count) throw new NetException($"发送[{count:n0}]而成功[{rs:n0}]");
             }
             catch (Exception ex)
             {
@@ -221,7 +292,9 @@ namespace NewLife.Net
 
                     // 发送异常可能是连接出了问题，需要关闭
                     Close("发送出错");
-                    Reconnect();
+
+                    // 异步重连
+                    ThreadPoolX.QueueUserWorkItem(Reconnect);
 
                     if (ThrowException) throw;
                 }
@@ -245,7 +318,40 @@ namespace NewLife.Net
             var sock = Client;
             if (sock == null || !Active || Disposed) throw new ObjectDisposedException(GetType().Name);
 
+            var ss = _Stream;
+            if (ss != null)
+            {
+                ss.BeginRead(se.Buffer, se.Offset, se.Count, OnEndRead, se);
+
+                return true;
+            }
+
             return sock.ReceiveAsync(se);
+        }
+
+        private void OnEndRead(IAsyncResult ar)
+        {
+            var se = ar.AsyncState as SocketAsyncEventArgs;
+            var bytes = 0;
+            try
+            {
+                bytes = _Stream.EndRead(ar);
+            }
+            catch (Exception ex)
+            {
+                if (ex is IOException ||
+                ex is SocketException sex && sex.SocketErrorCode == SocketError.ConnectionReset)
+                {
+                }
+                else
+                {
+                    XTrace.WriteException(ex);
+                }
+
+                return;
+            }
+
+            ProcessEvent(se, bytes);
         }
 
         private Int32 _empty;

@@ -50,7 +50,7 @@ namespace NewLife.Remoting
         /// <param name="action"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        IDictionary<String, Object> DecodeParameters(String action, Packet data);
+        IDictionary<String, Object> DecodeParameters(String action, Packet data, IMessage msg);
 
         /// <summary>解码结果</summary>
         /// <param name="action"></param>

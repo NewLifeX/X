@@ -64,7 +64,7 @@ namespace NewLife.Remoting
         /// <param name="action"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        public IDictionary<String, Object> DecodeParameters(String action, Packet data)
+        public IDictionary<String, Object> DecodeParameters(String action, Packet data, IMessage msg)
         {
             var json = data.ToStr();
             WriteLog("{0}<={1}", action, json);

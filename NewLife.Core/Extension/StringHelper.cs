@@ -82,6 +82,7 @@ namespace System
         /// <returns></returns>
         public static String[] Split(this String? value, params String[] separators)
         {
+            //!! netcore3.0中新增Split(String? separator, StringSplitOptions options = StringSplitOptions.None)，优先于StringHelper扩展
             if (value == null || String.IsNullOrEmpty(value)) return new String[0];
             if (separators == null || separators.Length < 1 || separators.Length == 1 && separators[0].IsNullOrEmpty()) separators = new String[] { ",", ";" };
 

@@ -3,9 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
+using NewLife.Caching;
 using NewLife.Collections;
 using NewLife.Data;
+using NewLife.Http;
 using NewLife.Log;
+using NewLife.Messaging;
 using NewLife.Net;
 using NewLife.Reflection;
 
@@ -19,10 +22,13 @@ namespace NewLife.Remoting
         /// <param name="action"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        Object Execute(IApiSession session, String action, Packet args);
+        Object Execute(IApiSession session, String action, Packet args, IMessage msg);
     }
 
     /// <summary>默认处理器</summary>
+    /// <remarks>
+    /// 在基于令牌Token的无状态验证模式中，可以借助Token重写IApiHandler.Prepare，来达到同一个Token共用相同的IApiSession.Items
+    /// </remarks>
     public class ApiHandler : IApiHandler
     {
         #region 属性
@@ -36,7 +42,7 @@ namespace NewLife.Remoting
         /// <param name="action"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        public virtual Object Execute(IApiSession session, String action, Packet args)
+        public virtual Object Execute(IApiSession session, String action, Packet args, IMessage msg)
         {
             if (action.IsNullOrEmpty()) action = "Api/Info";
 
@@ -56,7 +62,7 @@ namespace NewLife.Remoting
             var st = api.StatProcess;
             var sw = st.StartCount();
 
-            var ctx = Prepare(session, action, args, api);
+            var ctx = Prepare(session, action, args, api, msg);
             ctx.Controller = controller;
 
             Object rs = null;
@@ -121,13 +127,14 @@ namespace NewLife.Remoting
             return rs;
         }
 
-        /// <summary>准备上下文</summary>
+        /// <summary>准备上下文，可以借助Token重写Session会话集合</summary>
         /// <param name="session"></param>
         /// <param name="action"></param>
         /// <param name="args"></param>
         /// <param name="api"></param>
+        /// <param name="msg">消息内容，辅助数据解析</param>
         /// <returns></returns>
-        protected virtual ControllerContext Prepare(IApiSession session, String action, Packet args, ApiAction api)
+        protected virtual ControllerContext Prepare(IApiSession session, String action, Packet args, ApiAction api, IMessage msg)
         {
             //var enc = Host.Encoder;
             var enc = session["Encoder"] as IEncoder ?? Host.Encoder;
@@ -150,8 +157,17 @@ namespace NewLife.Remoting
                 // 不允许参数字典为空
                 var dic = args == null || args.Total == 0 ?
                     new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase) :
-                    enc.DecodeParameters(action, args);
+                    enc.DecodeParameters(action, args, msg);
                 ctx.Parameters = dic;
+                session.Parameters = dic;
+                // 令牌
+                if (dic.TryGetValue("Token", out var token)) session.Token = token + "";
+                if (session.Token.IsNullOrEmpty())
+                {
+                    // post、package、byte三种情况将token 写入请求头
+                    if (((HttpMessage)msg).Headers.TryGetValue("x-token", out var xtoken))
+                        session.Token = xtoken;
+                }
 
                 // 准备好参数
                 var ps = GetParams(api.Method, dic, enc);
@@ -203,5 +219,48 @@ namespace NewLife.Remoting
             return ps;
         }
         #endregion
+    }
+
+    /// <summary>带令牌会话的处理器</summary>
+    /// <remarks>
+    /// 在基于令牌Token的无状态验证模式中，可以借助Token重写IApiHandler.Prepare，来达到同一个Token共用相同的IApiSession.Items。
+    /// 支持内存缓存和Redis缓存。
+    /// </remarks>
+    public class TokenApiHandler : ApiHandler
+    {
+        /// <summary>会话存储</summary>
+        public ICache Cache { get; set; } = new MemoryCache { Expire = 20 * 60 };
+
+        /// <summary>准备上下文，可以借助Token重写Session会话集合</summary>
+        /// <param name="session"></param>
+        /// <param name="action"></param>
+        /// <param name="args"></param>
+        /// <param name="api"></param>
+        /// <param name="msg"></param>
+        /// <returns></returns>
+        protected override ControllerContext Prepare(IApiSession session, String action, Packet args, ApiAction api, IMessage msg)
+        {
+            var ctx = base.Prepare(session, action, args, api, msg);
+
+            var token = session.Token;
+            if (!token.IsNullOrEmpty())
+            {
+                // 第一用户数据是本地字典，用于记录是否启用了第二数据
+                if (session is ApiNetSession ns && ns.Items["Token"] + "" != token)
+                {
+                    var key = GetKey(token);
+                    // 采用哈希结构。内存缓存用并行字段，Redis用Set
+                    ns.Items2 = Cache.GetDictionary<Object>(key);
+                    ns.Items["Token"] = token;
+                }
+            }
+
+            return ctx;
+        }
+
+        /// <summary>根据令牌活期缓存Key</summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        protected virtual String GetKey(String token) => (!token.IsNullOrEmpty() && token.Length > 16) ? token.MD5() : token;
     }
 }
