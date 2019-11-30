@@ -76,6 +76,7 @@ namespace NewLife.Remoting
             {
                 Server = asmx?.Name,
                 asmx?.Version,
+                asmx?.Compile,
                 OS = _OS,
                 MachineName = _MachineName,
                 UserName = _UserName,

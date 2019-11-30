@@ -45,7 +45,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test7();
+                    Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -79,7 +79,7 @@ namespace Test
             Console.ReadKey();
         }
 
-        static void Test2()
+        static async void Test2()
         {
             //var uri = new Uri("http://www.newlifex.com");
             //var client = new TinyHttpClient();
@@ -93,10 +93,10 @@ namespace Test
             var client = new HttpClient();
             client.BaseAddress = new Uri("http://feifan.link:2233");
 
-            var rs = client.Invoke<Object>("api/info");
+            var rs = await client.GetAsync<Object>("api/info");
             Console.WriteLine(rs.ToJson(true));
 
-            rs = client.Invoke<Object>("api/info3", rs);
+            rs = await client.PostAsync<Object>("api/info3", rs);
             Console.WriteLine(rs.ToJson(true));
         }
 
@@ -385,6 +385,7 @@ namespace Test
 
             Console.ReadLine();
         }
+
         static void Test7()
         {
             Role.Meta.Session.Dal.Db.ShowSQL = true;

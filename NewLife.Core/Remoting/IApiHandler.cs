@@ -160,12 +160,13 @@ namespace NewLife.Remoting
                     enc.DecodeParameters(action, args, msg);
                 ctx.Parameters = dic;
                 session.Parameters = dic;
+
                 // 令牌
                 if (dic.TryGetValue("Token", out var token)) session.Token = token + "";
-                if (session.Token.IsNullOrEmpty())
+                if (session.Token.IsNullOrEmpty() && msg is HttpMessage hmsg && hmsg.Headers != null)
                 {
                     // post、package、byte三种情况将token 写入请求头
-                    if (((HttpMessage)msg).Headers.TryGetValue("x-token", out var xtoken))
+                    if (hmsg.Headers.TryGetValue("x-token", out var xtoken))
                         session.Token = xtoken;
                 }
 
