@@ -55,17 +55,19 @@ namespace NewLife.Http
              * 数据内容解析需要根据http数据类型来判定使用什么格式处理
              * **/
 
-            var headers = ((HttpMessage)msg).Headers;
-            var ctype = (headers["Content-type"] + "").Split(";");
-
             var str = data.ToStr();
             WriteLog("{0}<={1}", action, str);
             if (str.IsNullOrEmpty()) return null;
 
+            var ctype = new String[0];
+            if (msg is HttpMessage hmsg && str[0] == '{')
+            {
+                if (hmsg.ParseHeaders()) ctype = (hmsg.Headers["Content-type"] + "").Split(";");
+            }
+
             if (ctype.Contains("application/json"))
             {
-                var jtool = new JsonParser(str);
-                var dic = jtool.Decode().ToDictionary();
+                var dic = new JsonParser(str).Decode().ToDictionary();
                 var rs = new Dictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
                 foreach (var item in dic)
                 {
