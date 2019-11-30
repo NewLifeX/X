@@ -47,8 +47,9 @@ namespace NewLife.Remoting
         //Packet Encode(String action, Int32 code, Object value);
 
         /// <summary>解码参数</summary>
-        /// <param name="action"></param>
-        /// <param name="data"></param>
+        /// <param name="action">动作</param>
+        /// <param name="data">数据</param>
+        /// <param name="msg">消息</param>
         /// <returns></returns>
         IDictionary<String, Object> DecodeParameters(String action, Packet data, IMessage msg);
 

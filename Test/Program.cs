@@ -64,7 +64,7 @@ namespace Test
             }
         }
 
-        static async void Test1()
+        static void Test1()
         {
             var ip = "180.165.235.0".IPToAddress();
             Console.WriteLine(ip);
@@ -337,7 +337,6 @@ namespace Test
             //Console.WriteLine("Execute={0}", es);
         }
 
-        private static NetServer _netServer;
         static void Test6()
         {
             var pfx = new X509Certificate2("../newlife.pfx", "newlife");

@@ -230,9 +230,10 @@ namespace NewLife.Remoting
         }
 
         /// <summary>执行</summary>
-        /// <param name="session"></param>
-        /// <param name="action"></param>
-        /// <param name="args"></param>
+        /// <param name="session">会话</param>
+        /// <param name="action">动作</param>
+        /// <param name="args">参数</param>
+        /// <param name="msg">消息</param>
         /// <returns></returns>
         protected virtual Object OnProcess(IApiSession session, String action, Packet args, IMessage msg) => Handler.Execute(session, action, args, msg);
         #endregion
