@@ -18,9 +18,10 @@ namespace NewLife.Remoting
     public interface IApiHandler
     {
         /// <summary>执行</summary>
-        /// <param name="session"></param>
-        /// <param name="action"></param>
-        /// <param name="args"></param>
+        /// <param name="session">会话</param>
+        /// <param name="action">动作</param>
+        /// <param name="args">参数</param>
+        /// <param name="msg">消息</param>
         /// <returns></returns>
         Object Execute(IApiSession session, String action, Packet args, IMessage msg);
     }
@@ -38,9 +39,10 @@ namespace NewLife.Remoting
 
         #region 执行
         /// <summary>执行</summary>
-        /// <param name="session"></param>
-        /// <param name="action"></param>
-        /// <param name="args"></param>
+        /// <param name="session">会话</param>
+        /// <param name="action">动作</param>
+        /// <param name="args">参数</param>
+        /// <param name="msg">消息</param>
         /// <returns></returns>
         public virtual Object Execute(IApiSession session, String action, Packet args, IMessage msg)
         {
@@ -160,12 +162,13 @@ namespace NewLife.Remoting
                     enc.DecodeParameters(action, args, msg);
                 ctx.Parameters = dic;
                 session.Parameters = dic;
+
                 // 令牌
                 if (dic.TryGetValue("Token", out var token)) session.Token = token + "";
-                if (session.Token.IsNullOrEmpty())
+                if (session.Token.IsNullOrEmpty() && msg is HttpMessage hmsg && hmsg.Headers != null)
                 {
                     // post、package、byte三种情况将token 写入请求头
-                    if (((HttpMessage)msg).Headers.TryGetValue("x-token", out var xtoken))
+                    if (hmsg.Headers.TryGetValue("x-token", out var xtoken))
                         session.Token = xtoken;
                 }
 

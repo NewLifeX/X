@@ -100,9 +100,6 @@ namespace XCode.Configuration
         /// </remarks>
         public String ColumnName { get { return _ColumnName; } set { if (value != null) _ColumnName = value.Trim(COLUMNNAME_FLAG); } }
 
-        ///// <summary>默认值</summary>
-        //public String DefaultValue { get; set; }
-
         /// <summary>是否只读</summary>
         /// <remarks>set { _ReadOnly = value; } 放出只读属性的设置，比如在编辑页面的时候，有的字段不能修改 如修改用户时  不能修改用户名</remarks>
         public Boolean ReadOnly { get; set; }
@@ -296,7 +293,7 @@ namespace XCode.Configuration
             return CreateLike("%{0}%".F(value));
         }
 
-        /// <summary>包含某个字符串，%{0}%操作</summary>
+        /// <summary>不包含某个字符串，%{0}%操作</summary>
         /// <remarks>空参数不参与表达式操作，不生成该部分SQL拼接</remarks>
         /// <param name="value">数值</param>
         /// <returns></returns>
@@ -306,7 +303,7 @@ namespace XCode.Configuration
 
             if (value == null || value + "" == "") return new Expression();
 
-            return CreateFormat("{0} Not Like {1}", value);
+            return CreateFormat("{0} Not Like {1}", "%{0}%".F(value));
         }
 
         /// <summary>In操作</summary>

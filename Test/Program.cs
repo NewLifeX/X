@@ -45,7 +45,7 @@ namespace Test
                 try
                 {
 #endif
-                Test6();
+                    Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -64,7 +64,7 @@ namespace Test
             }
         }
 
-        static async void Test1()
+        static void Test1()
         {
             var ip = "180.165.235.0".IPToAddress();
             Console.WriteLine(ip);
@@ -79,7 +79,7 @@ namespace Test
             Console.ReadKey();
         }
 
-        static void Test2()
+        static async void Test2()
         {
             //var uri = new Uri("http://www.newlifex.com");
             //var client = new TinyHttpClient();
@@ -93,10 +93,10 @@ namespace Test
             var client = new HttpClient();
             client.BaseAddress = new Uri("http://feifan.link:2233");
 
-            var rs = client.Invoke<Object>("api/info");
+            var rs = await client.GetAsync<Object>("api/info");
             Console.WriteLine(rs.ToJson(true));
 
-            rs = client.Invoke<Object>("api/info3", rs);
+            rs = await client.PostAsync<Object>("api/info3", rs);
             Console.WriteLine(rs.ToJson(true));
         }
 
@@ -337,7 +337,6 @@ namespace Test
             //Console.WriteLine("Execute={0}", es);
         }
 
-        private static NetServer _netServer;
         static void Test6()
         {
             var pfx = new X509Certificate2("../newlife.pfx", "newlife");
@@ -385,13 +384,17 @@ namespace Test
 
             Console.ReadLine();
         }
+
         static void Test7()
         {
             Role.Meta.Session.Dal.Db.ShowSQL = true;
             Role.Meta.Session.Dal.Expire = 10;
-            Role.Meta.Session.Dal.Db.Readonly = true;
+            //Role.Meta.Session.Dal.Db.Readonly = true;
 
             var list = Role.FindAll();
+            Console.WriteLine(list.Count);
+
+            list = Role.FindAll(Role._.Name.NotContains("abc"));
             Console.WriteLine(list.Count);
 
             Thread.Sleep(1000);

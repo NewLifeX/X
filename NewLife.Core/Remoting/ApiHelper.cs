@@ -22,50 +22,71 @@ namespace NewLife.Remoting
         /// <param name="client">Http客户端</param>
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
-        /// <param name="useHttpStatus">是否使用Http状态抛出异常</param>
         /// <returns></returns>
-        public static async Task<TResult> InvokeAsync<TResult>(this HttpClient client, String action, Object args = null, Boolean useHttpStatus = false)
+        public static async Task<TResult> GetAsync<TResult>(this HttpClient client, String action, Object args = null)
+        {
+            return await client.InvokeAsync<TResult>(HttpMethod.Get, action, args);
+        }
+
+        /// <summary>异步调用，等待返回结果</summary>
+        /// <param name="client">Http客户端</param>
+        /// <param name="action">服务操作</param>
+        /// <param name="args">参数</param>
+        /// <returns></returns>
+        public static async Task<TResult> PostAsync<TResult>(this HttpClient client, String action, Object args = null)
+        {
+            return await client.InvokeAsync<TResult>(HttpMethod.Post, action, args);
+        }
+
+        /// <summary>异步调用，等待返回结果</summary>
+        /// <param name="client">Http客户端</param>
+        /// <param name="method">请求方法</param>
+        /// <param name="action">服务操作</param>
+        /// <param name="args">参数</param>
+        /// <returns></returns>
+        public static async Task<TResult> InvokeAsync<TResult>(this HttpClient client, HttpMethod method, String action, Object args = null)
         {
             if (client?.BaseAddress == null) throw new ArgumentNullException(nameof(client.BaseAddress));
 
             var rtype = typeof(TResult);
 
             // 序列化参数，决定GET/POST
-            var request = new HttpRequestMessage(HttpMethod.Get, action);
+            var request = new HttpRequestMessage(method, action);
             if (rtype != typeof(Byte[]) && rtype != typeof(Packet))
                 request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-            Byte[] buf = null;
-            var code = HttpStatusCode.OK;
-            var ps = args?.ToDictionary();
-            if (ps != null && ps.Any(e => e.Value != null && e.Value.GetType().GetTypeCode() == TypeCode.Object))
+            if (args is Packet pk)
             {
+                var content = new ByteArrayContent(pk.ToArray());
+                content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+                request.Content = content;
+            }
+            else if (args is Byte[] bufData)
+            {
+                var content = new ByteArrayContent(bufData);
+                content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+                request.Content = content;
+            }
+            else if (args != null && method == HttpMethod.Post)
+            {
+                var ps = args?.ToDictionary();
                 var content = new ByteArrayContent(ps.ToJson().GetBytes());
                 content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
                 request.Content = content;
-                request.Method = HttpMethod.Post;
             }
             else
             {
+                var ps = args?.ToDictionary();
                 var url = GetUrl(action, ps);
-                // 如果长度过大，还是走POST
-                if (url.Length < 1000)
-                    request.RequestUri = new Uri(url, UriKind.RelativeOrAbsolute);
-                else
-                {
-                    var content = new ByteArrayContent(ps.ToJson().GetBytes());
-                    content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-                    request.Content = content;
-                    request.Method = HttpMethod.Post;
-                }
+                request.RequestUri = new Uri(url, UriKind.RelativeOrAbsolute);
             }
 
             // 发起请求
             var msg = await client.SendAsync(request);
             if (rtype == typeof(HttpResponseMessage)) return (TResult)(Object)msg;
 
-            code = msg.StatusCode;
-            buf = await msg.Content.ReadAsByteArrayAsync();
+            var code = msg.StatusCode;
+            var buf = await msg.Content.ReadAsByteArrayAsync();
             if (buf == null || buf.Length == 0) return default;
 
             // 异常处理
@@ -76,32 +97,21 @@ namespace NewLife.Remoting
             if (rtype == typeof(Packet)) return (TResult)(Object)new Packet(buf);
 
             var str = buf.ToStr();
-            Object data = str;
-            if (!useHttpStatus)
-            {
-                var js2 = new JsonParser(str).Decode() as IDictionary<String, Object>;
-                data = js2["data"];
-                var code2 = js2["code"].ToInt();
-                if (code2 != 0) throw new ApiException(code2, data + "");
-            }
+            var js = new JsonParser(str).Decode() as IDictionary<String, Object>;
+            var data = js["data"];
+            var code2 = js["code"].ToInt();
+            if (code2 != 0 && code2 != 200) throw new ApiException(code2, data + "");
 
             // 简单类型
             if (rtype.GetTypeCode() != TypeCode.Object) return data.ChangeType<TResult>();
 
             // 反序列化
-            if (useHttpStatus) data = new JsonParser(str).Decode();
+            if (data == null) return default;
+
             if (!(data is IDictionary<String, Object>) && !(data is IList<Object>)) throw new InvalidDataException("未识别响应数据");
 
             return JsonHelper.Convert<TResult>(data);
         }
-
-        /// <summary>同步调用，阻塞等待</summary>
-        /// <param name="client">Http客户端</param>
-        /// <param name="action">服务操作</param>
-        /// <param name="args">参数</param>
-        /// <param name="useHttpStatus">是否使用Http状态抛出异常</param>
-        /// <returns></returns>
-        public static TResult Invoke<TResult>(this HttpClient client, String action, Object args = null, Boolean useHttpStatus = false) => Task.Run(() => InvokeAsync<TResult>(client, action, args, useHttpStatus)).Result;
 
         private static String Encode(String data)
         {
@@ -117,7 +127,10 @@ namespace NewLife.Remoting
             {
                 var sb = Pool.StringBuilder.Get();
                 sb.Append(action);
-                sb.Append("?");
+                if (action.Contains("?"))
+                    sb.Append("&");
+                else
+                    sb.Append("?");
 
                 var first = true;
                 foreach (var item in ps)
@@ -133,7 +146,7 @@ namespace NewLife.Remoting
 
             return url;
         }
-        #endregion
+        #endregion   
     }
 }
 #endif
