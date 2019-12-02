@@ -31,6 +31,9 @@ namespace XCode.Code
 
         /// <summary>基类</summary>
         public String BaseClass { get; set; }
+
+        /// <summary>忽略表名、字段名大小写（true 当前表名与类名称相同时，则自动省略该属性，反之 false）</summary>
+        public Boolean NameIgnoreCase { get; set; }
         #endregion
 
         #region 构造

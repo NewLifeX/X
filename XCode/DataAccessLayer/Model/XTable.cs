@@ -143,6 +143,12 @@ namespace XCode.DataAccessLayer
         [DisplayName("扩展属性")]
         [Description("扩展属性")]
         public IDictionary<String, String> Properties { get; private set; }
+
+        /// <summary>忽略名称大小写</summary>
+        [XmlAttribute]
+        [DisplayName("是否忽略大小写")]
+        [Description("是否忽略大小写")]
+        public String NameIgnoreCase { get; set; }
         #endregion
 
         #region 构造

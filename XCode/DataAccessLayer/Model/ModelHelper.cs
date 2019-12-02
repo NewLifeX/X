@@ -10,6 +10,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using NewLife.Log;
 using NewLife.Reflection;
+using NewLife.Serialization;
 
 namespace XCode.DataAccessLayer
 {
@@ -130,6 +131,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public static String ToXml(IEnumerable<IDataTable> tables, IDictionary<String, String> atts = null)
         {
+            XTrace.WriteLine(atts.ToJson());
             var ms = new MemoryStream();
 
             var settings = new XmlWriterSettings
@@ -439,15 +441,21 @@ namespace XCode.DataAccessLayer
         {
             var type = value.GetType();
             var def = GetDefault(type);
-            if (value is IDataColumn)
+            var isignorename = true;
+            if (value is IDataColumn value2)
             {
                 //var dc2 = def as IDataColumn;
-                var value2 = value as IDataColumn;
+                //var value2 = value as IDataColumn;
                 // 需要重新创建，因为GetDefault带有缓存
                 var dc2 = type.CreateInstance() as IDataColumn;
                 dc2.DataType = value2.DataType;
                 dc2.Length = value2.Length;
                 def = Fix(dc2, value2);
+                isignorename = (value2.Table.NameIgnoreCase).ToBoolean(true);
+            }
+            else if (value is IDataTable value3)
+            {
+                isignorename = (value3.NameIgnoreCase).ToBoolean(true);
             }
 
             String name = null;
@@ -480,10 +488,13 @@ namespace XCode.DataAccessLayer
                 if (code == TypeCode.String)
                 {
                     // 如果别名与名称相同，则跳过，不区分大小写
+                    // 改为区分大小写，避免linux环境下 mysql 数据库存在
                     if (pi.Name == "Name")
                         name = (String)obj;
                     else if (pi.Name == "TableName" || pi.Name == "ColumnName")
-                        if (name.EqualIgnoreCase((String)obj)) continue;
+                    {
+                        if (name.EqualIgnoreCase((String)obj) && isignorename) continue;
+                    }
                 }
                 else if (code == TypeCode.Object)
                 {
@@ -640,7 +651,8 @@ namespace XCode.DataAccessLayer
             }
 
             dc.DataType = null;
-            /*if (oridc.Table.DbType != DatabaseType.SqlServer)*/ dc.RawType = null;
+            /*if (oridc.Table.DbType != DatabaseType.SqlServer)*/
+            dc.RawType = null;
 
             return dc;
         }
