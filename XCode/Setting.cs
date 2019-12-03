@@ -73,8 +73,8 @@ namespace XCode
         public Migration Migration { get; set; } = Migration.On;
 
         /// <summary></summary>
-        [Description("表名称、字段名大小写格式。No 根据模型生成;Upper 全大写;Lower 全小写")]
-        public NameFormatEnum NameFormat { get; set; } = NameFormatEnum.No;
+        [Description("表名称、字段名大小写格式。Default 根据模型生成;Upper 全大写;Lower 全小写")]
+        public NameFormats NameFormat { get; set; } = NameFormats.Default;
         #endregion
 
         #region 方法

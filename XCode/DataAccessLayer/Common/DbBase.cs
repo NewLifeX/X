@@ -182,7 +182,7 @@ namespace XCode.DataAccessLayer
             if (builder.TryGetAndRemove(nameof(Readonly), out value) && !value.IsNullOrEmpty()) Readonly = value.ToBoolean();
             if (builder.TryGetAndRemove(nameof(DataCache), out value) && !value.IsNullOrEmpty()) DataCache = value.ToInt();
             // 反向工程生成sql中表名和字段名称大小写
-            if (builder.TryGetAndRemove(nameof(NameFormat), out value) && !value.IsNullOrEmpty()) NameFormat = (NameFormatEnum)Enum.Parse(typeof(NameFormatEnum), value, true);
+            if (builder.TryGetAndRemove(nameof(NameFormat), out value) && !value.IsNullOrEmpty()) NameFormat = (NameFormats)Enum.Parse(typeof(NameFormats), value, true);
 
             // 连接字符串去掉provider，可能有些数据库不支持这个属性
             if (builder.TryGetAndRemove("provider", out value) && !value.IsNullOrEmpty()) { }
@@ -234,7 +234,7 @@ namespace XCode.DataAccessLayer
         public String TablePrefix { get; set; }
 
         /// <summary>反向工程表名、字段名大小写设置</summary>
-        public NameFormatEnum NameFormat { get; set; } = Setting.Current.NameFormat;
+        public NameFormats NameFormat { get; set; } = Setting.Current.NameFormat;
         #endregion
 
         #region 方法
