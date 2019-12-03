@@ -184,5 +184,48 @@ namespace XUnitTest.Caching
 
             Redis.AutoPipeline = ap;
         }
+
+        [Fact(DisplayName = "管道2")]
+        public void TestPipeline2()
+        {
+            var ap = Redis.AutoPipeline;
+            Redis.AutoPipeline = 100;
+
+            var ic = Redis;
+            var key = "Name";
+            var key2 = "Company";
+
+            ic.Set(key, "大石头");
+            ic.Set(key2, "新生命");
+            var ss = ic.StopPipeline(true);
+            Assert.Equal("OK", ss[0]);
+            Assert.Equal("OK", ss[1]);
+            Assert.Equal("大石头", ic.Get<String>(key));
+            Assert.Equal("新生命", ic.Get<String>(key2));
+
+            var count = ic.Count;
+            Assert.True(count >= 2);
+
+            // Keys
+            var keys = ic.Keys;
+            Assert.True(keys.Contains(key));
+
+            // 过期时间
+            ic.SetExpire(key, TimeSpan.FromSeconds(1));
+            var ts = ic.GetExpire(key);
+            Assert.True(ts.TotalSeconds > 0 && ts.TotalSeconds < 2, "过期时间");
+
+            var rs = ic.Remove(key2);
+            if (ic.AutoPipeline > 0) rs = (Int32)ic.StopPipeline(true)[0];
+            Assert.Equal(1, rs);
+
+            Assert.False(ic.ContainsKey(key2));
+
+            ic.Clear();
+            ic.StopPipeline(true);
+            Assert.True(ic.Count == 0);
+
+            Redis.AutoPipeline = ap;
+        }
     }
 }
