@@ -20,7 +20,7 @@ namespace XUnitTest.Caching
         }
 
         [Fact(DisplayName = "基础测试")]
-        public void Test1()
+        public void BasicTest()
         {
             var ic = Redis;
             var key = "Name";
@@ -44,11 +44,13 @@ namespace XUnitTest.Caching
             Assert.True(ts.TotalSeconds > 0 && ts.TotalSeconds < 2, "过期时间");
 
             var rs = ic.Remove(key2);
+            if (ic.AutoPipeline > 0) rs = (Int32)ic.StopPipeline(true)[0];
             Assert.Equal(1, rs);
 
             Assert.False(ic.ContainsKey(key2));
 
             ic.Clear();
+            ic.StopPipeline(true);
             Assert.True(ic.Count == 0);
         }
 
@@ -170,6 +172,17 @@ namespace XUnitTest.Caching
             var pk2 = ic.Get<Packet>(key);
 
             Assert.Equal(pk.ToHex(), pk2.ToHex());
+        }
+
+        [Fact(DisplayName = "管道")]
+        public void TestPipeline()
+        {
+            var ap = Redis.AutoPipeline;
+            Redis.AutoPipeline = 100;
+
+            BasicTest();
+
+            Redis.AutoPipeline = ap;
         }
     }
 }
