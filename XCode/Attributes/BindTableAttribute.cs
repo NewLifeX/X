@@ -33,6 +33,9 @@ namespace XCode
         /// <summary>是否视图</summary>
         public Boolean IsView { get; set; }
 
+        /// <summary>忽略大小写</summary>
+        public Boolean NameIgnoreCase { get; set; }
+
         /// <summary>构造函数</summary>
         /// <param name="name">表名</param>
         public BindTableAttribute(String name)
@@ -43,10 +46,11 @@ namespace XCode
         /// <summary>构造函数</summary>
         /// <param name="name">表名</param>
         /// <param name="description">描述</param>
-        public BindTableAttribute(String name, String description)
+        public BindTableAttribute(String name, String description, Boolean nameIgnoreCase)
         {
             Name = name;
             Description = description;
+            NameIgnoreCase = nameIgnoreCase;
         }
 
         /// <summary>构造函数</summary>
@@ -55,13 +59,14 @@ namespace XCode
         /// <param name="connName"></param>
         /// <param name="dbType"></param>
         /// <param name="isView"></param>
-        public BindTableAttribute(String name, String description, String connName, DatabaseType dbType, Boolean isView)
+        public BindTableAttribute(String name, String description, String connName, DatabaseType dbType, Boolean isView, Boolean nameIgnoreCase)
         {
             Name = name;
             Description = description;
             ConnName = connName;
             DbType = dbType;
             IsView = isView;
+            NameIgnoreCase = nameIgnoreCase;
         }
     }
 }
