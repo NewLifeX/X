@@ -45,7 +45,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test3();
+                    Test4();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -239,6 +239,7 @@ namespace Test
                     break;
                 case '3':
                     ch = Redis.Create("127.0.0.1", 9);
+                    //(ch as Redis).Log = XTrace.Log;
                     break;
             }
 
@@ -249,7 +250,10 @@ namespace Test
 
             Console.Clear();
 
-            ch.Bench(mode);
+            var batch = 0;
+            if (mode) batch = 100;
+
+            ch.Bench(mode, batch);
         }
 
         static void Test5()

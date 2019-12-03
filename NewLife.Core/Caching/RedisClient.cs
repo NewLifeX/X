@@ -301,7 +301,7 @@ namespace NewLife.Caching
         {
             var rs = ReadPacket(ms);
 
-            if (/*rs != null &&*/ Log != null && Log != Logger.Null)
+            if (rs != null && Log != null && Log != Logger.Null)
             {
                 if (rs.Count <= 32)
                     WriteLog("=> {0}", rs.ToStr());
@@ -339,8 +339,8 @@ namespace NewLife.Caching
         private Packet ReadPacket(Stream ms)
         {
             var len = ReadLine(ms).ToInt(-1);
-            //if (len <= 0) return null;
-            if (len <= 0) throw new InvalidDataException();
+            if (len <= 0) return null;
+            //if (len <= 0) throw new InvalidDataException();
 
             var buf = new Byte[len + 2];
             var p = 0;
