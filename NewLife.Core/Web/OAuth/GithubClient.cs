@@ -27,6 +27,7 @@ namespace NewLife.Web.OAuth
             if (dic.ContainsKey("login")) UserName = dic["login"].Trim();
             if (dic.ContainsKey("name")) NickName = dic["name"].Trim();
             if (dic.ContainsKey("avatar_url")) Avatar = dic["avatar_url"].Trim();
+            if (dic.ContainsKey("bio")) Detail = dic["bio"].Trim();
         }
 
 #if !NET4

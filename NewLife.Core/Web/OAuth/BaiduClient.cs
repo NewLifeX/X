@@ -26,6 +26,7 @@ namespace NewLife.Web.OAuth
             if (dic.ContainsKey("uid")) UserID = dic["uid"].Trim().ToLong();
             if (dic.ContainsKey("uname")) UserName = dic["uname"].Trim();
             if (dic.ContainsKey("realname")) NickName = dic["realname"].Trim();
+            if (dic.ContainsKey("userdetail")) Detail = dic["userdetail"].Trim();
 
             // 修改性别数据，1男0女，而本地是1男2女
             if (dic.TryGetValue("sex", out var str) && str.ToInt() == 0) dic["sex"] = "2";

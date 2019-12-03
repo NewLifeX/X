@@ -277,6 +277,9 @@ namespace NewLife.Web
         /// <summary>头像</summary>
         public String Avatar { get; set; }
 
+        /// <summary>明细</summary>
+        public String Detail { get; set; }
+
         /// <summary>获取用户信息</summary>
         /// <returns></returns>
         public virtual String GetUserInfo()
