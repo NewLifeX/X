@@ -131,7 +131,6 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public static String ToXml(IEnumerable<IDataTable> tables, IDictionary<String, String> atts = null)
         {
-            XTrace.WriteLine(atts.ToJson());
             var ms = new MemoryStream();
 
             var settings = new XmlWriterSettings
