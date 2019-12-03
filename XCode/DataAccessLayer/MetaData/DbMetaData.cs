@@ -69,6 +69,9 @@ namespace XCode.DataAccessLayer
                 }
             }
         }
+
+        /// <summary>名称大小写格式化</summary>
+        public NameFormats Nameformat => Database.NameFormat;
         #endregion
 
         #region GetSchema方法
@@ -185,7 +188,23 @@ namespace XCode.DataAccessLayer
         /// <summary>格式化关键字</summary>
         /// <param name="name">名称</param>
         /// <returns></returns>
-        protected String FormatName(String name) => Database.FormatName(name);
+        protected String FormatName(String name)
+        {
+            switch (Nameformat)
+            {
+                case NameFormats.Upper:
+                    name = name.ToUpper();
+                    break;
+                case NameFormats.Lower:
+                    name = name.ToLower();
+                    break;
+                case NameFormats.Default:
+                default:
+                    break;
+            }
+
+            return Database.FormatName(name);
+        }
         #endregion
 
         #region 日志输出

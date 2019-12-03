@@ -23,16 +23,16 @@ namespace XCode.DataAccessLayer
     }
 
     /// <summary>名称格式化</summary>
-    public enum NameFormatEnum
+    public enum NameFormats
     {
         /// <summary>原样</summary>
-        No = 0,
+        Default = 0,
 
         /// <summary>全大写</summary>
         Upper,
 
         /// <summary>全小写</summary>
-        Low
+        Lower
     }
 
     /// <summary>数据库接口</summary>
@@ -77,7 +77,7 @@ namespace XCode.DataAccessLayer
         Migration Migration { get; set; }
 
         /// <summary>表名、字段名大小写设置。（No 保持原样输出、Upper 全大写、Lower全小写）</summary>
-        NameFormatEnum NameFormat { get; set; }
+        NameFormats NameFormat { get; set; }
         #endregion
 
         #region 方法

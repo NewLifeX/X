@@ -59,8 +59,6 @@ namespace XCode.DataAccessLayer
         #region 属性
         private String ConnName => Database.ConnName;
 
-        /// <summary>表、字段大小写</summary>
-        private NameFormatEnum NameFormat => Database.NameFormat;
         #endregion
 
         #region 反向工程
@@ -758,22 +756,8 @@ namespace XCode.DataAccessLayer
         {
             var sb = new StringBuilder();
 
-            var fname = FormatName(field.ColumnName);
-            switch (NameFormat)
-            {
-                case NameFormatEnum.Upper:
-                    fname = fname.ToUpper();
-                    break;
-                case NameFormatEnum.Low:
-                    fname = fname.ToLower();
-                    break;
-                case NameFormatEnum.No:
-                default:
-                    break;
-            }
-
             //字段名
-            sb.AppendFormat("{0} ", fname);
+            sb.AppendFormat("{0} ", FormatName(field.ColumnName));
 
             String typeName = null;
             // 如果还是原来的数据库类型，则直接使用
@@ -840,23 +824,9 @@ namespace XCode.DataAccessLayer
         public virtual String CreateTableSQL(IDataTable table)
         {
             var fs = new List<IDataColumn>(table.Columns);
-
             var sb = new StringBuilder();
-   
-            var tbname = FormatName(table.TableName);
-            switch (NameFormat)
-            {
-                case NameFormatEnum.Upper:
-                    tbname = tbname.ToUpper();
-                    break;
-                case NameFormatEnum.Low:
-                    tbname = tbname.ToLower();
-                    break;
-                case NameFormatEnum.No:
-                default:
-                    break;
-            }
-            sb.AppendFormat("Create Table {0}(", tbname);
+
+            sb.AppendFormat("Create Table {0}(", FormatName(table.TableName));
             for (var i = 0; i < fs.Count; i++)
             {
                 sb.AppendLine();
@@ -872,20 +842,7 @@ namespace XCode.DataAccessLayer
 
         public virtual String DropTableSQL(IDataTable table)
         {
-            var tbname = FormatName(table.TableName);
-            switch (NameFormat)
-            {
-                case NameFormatEnum.Upper:
-                    tbname = tbname.ToUpper();
-                    break;
-                case NameFormatEnum.Low:
-                    tbname = tbname.ToLower();
-                    break;
-                case NameFormatEnum.No:
-                default:
-                    break;
-            }
-            return $"Drop Table {tbname}";
+            return $"Drop Table {FormatName(table.TableName)}";
         }
 
         public virtual String TableExistSQL(IDataTable table) => throw new NotSupportedException("该功能未实现！");
@@ -894,63 +851,11 @@ namespace XCode.DataAccessLayer
 
         public virtual String DropTableDescriptionSQL(IDataTable table) => null;
 
-        public virtual String AddColumnSQL(IDataColumn field)
-        {
-            var tbname = FormatName(field.Table.TableName);
-            switch (NameFormat)
-            {
-                case NameFormatEnum.Upper:
-                    tbname = tbname.ToUpper();
-                    break;
-                case NameFormatEnum.Low:
-                    tbname = tbname.ToLower();
-                    break;
-                case NameFormatEnum.No:
-                default:
-                    break;
-            }
+        public virtual String AddColumnSQL(IDataColumn field) => $"Alter Table {FormatName(field.Table.TableName)} Add {FieldClause(field, true)}";
 
-            return $"Alter Table {tbname} Add {FieldClause(field, true)}";
-        }
+        public virtual String AlterColumnSQL(IDataColumn field, IDataColumn oldfield) => $"Alter Table {FormatName(field.Table.TableName)} Alter Column {FieldClause(field, false)}";
 
-        public virtual String AlterColumnSQL(IDataColumn field, IDataColumn oldfield)
-        {
-            var tbname = FormatName(field.Table.TableName);
-            switch (NameFormat)
-            {
-                case NameFormatEnum.Upper:
-                    tbname = tbname.ToUpper();
-                    break;
-                case NameFormatEnum.Low:
-                    tbname = tbname.ToLower();
-                    break;
-                case NameFormatEnum.No:
-                default:
-                    break;
-            }
-            return $"Alter Table {tbname} Alter Column {FieldClause(field, false)}";
-        }
-
-        public virtual String DropColumnSQL(IDataColumn field)
-        {
-            var tbname = FormatName(field.Table.TableName);
-            var fname = field.ColumnName;
-            switch (NameFormat)
-            {
-                case NameFormatEnum.Upper:
-                    tbname = tbname.ToUpper();
-                    fname = fname.ToUpper();
-                    break;
-                case NameFormatEnum.Low:
-                    tbname = tbname.ToLower();
-                    fname = fname.ToLower();
-                    break;
-                case NameFormatEnum.No:
-                default:
-                    break;
-            }
-            return $"Alter Table {tbname} Drop Column {fname}";
-        }
+        public virtual String DropColumnSQL(IDataColumn field) => $"Alter Table {FormatName(field.Table.TableName)} Drop Column {FormatName(field.ColumnName)}";
 
         public virtual String AddColumnDescriptionSQL(IDataColumn field) => null;
 
@@ -958,20 +863,6 @@ namespace XCode.DataAccessLayer
 
         public virtual String CreateIndexSQL(IDataIndex index)
         {
-            var tbname = FormatName(index.Table.TableName);
-            switch (NameFormat)
-            {
-                case NameFormatEnum.Upper:
-                    tbname = tbname.ToUpper();
-                    break;
-                case NameFormatEnum.Low:
-                    tbname = tbname.ToLower();
-                    break;
-                case NameFormatEnum.No:
-                default:
-                    break;
-            }
-
             var sb = new StringBuilder();
             if (index.Unique)
                 sb.Append("Create Unique Index ");
@@ -979,47 +870,18 @@ namespace XCode.DataAccessLayer
                 sb.Append("Create Index ");
 
             sb.Append(FormatName(index.Name));
-            sb.AppendFormat(" On {0} (", tbname);
+            sb.AppendFormat(" On {0} (", FormatName(index.Table.TableName));
             for (var i = 0; i < index.Columns.Length; i++)
             {
                 if (i > 0) sb.Append(", ");
-                switch (NameFormat)
-                {
-                    case NameFormatEnum.Upper:
-                        sb.Append(FormatName(index.Columns[i]).ToUpper());
-                        break;
-                    case NameFormatEnum.Low:
-                        sb.Append(FormatName(index.Columns[i]).ToLower());
-                        break;
-                    case NameFormatEnum.No:
-                    default:
-                        sb.Append(FormatName(index.Columns[i]));
-                        break;
-                }
+                sb.Append(FormatName(index.Columns[i]));
             }
             sb.Append(")");
 
             return sb.ToString();
         }
 
-        public virtual String DropIndexSQL(IDataIndex index)
-        {
-            var tbname = FormatName(index.Table.TableName);
-            switch (NameFormat)
-            {
-                case NameFormatEnum.Upper:
-                    tbname = tbname.ToUpper();
-                    break;
-                case NameFormatEnum.Low:
-                    tbname = tbname.ToLower();
-                    break;
-                case NameFormatEnum.No:
-                default:
-                    break;
-            }
-
-            return $"Drop Index {FormatName(index.Name)} On {tbname}";
-        }
+        public virtual String DropIndexSQL(IDataIndex index) => $"Drop Index {FormatName(index.Name)} On {FormatName(index.Table.TableName)}";
 
         //public virtual String CompactDatabaseSQL() => null;
         #endregion
