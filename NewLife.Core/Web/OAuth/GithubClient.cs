@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace NewLife.Web.OAuth
 {
@@ -38,14 +39,15 @@ namespace NewLife.Web.OAuth
         {
             if (_Client == null)
             {
-                //// 允许宽松头部
-                //WebClientX.SetAllowUnsafeHeaderParsing(true);
+                // 允许宽松头部
+                WebClientX.SetAllowUnsafeHeaderParsing(true);
 
-                //// 必须指定中文编码
+                var asm = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
+                var agent = "";
+                if (asm != null) agent = $"{asm.GetName().Name} v{asm.GetName().Version}";
 
-                var asm = Reflection.AssemblyX.Entry;
                 var client = new System.Net.Http.HttpClient();
-                client.DefaultRequestHeaders.UserAgent.ParseAdd($"{asm.Name} v{asm.Version}");
+                client.DefaultRequestHeaders.UserAgent.ParseAdd(agent);
 
                 _Client = client;
             }
