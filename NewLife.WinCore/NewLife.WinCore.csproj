@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop" ToolsVersion="Current">
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.0;netcoreapp3.1</TargetFramework>
+    <TargetFrameworks>netcoreapp3.0;netcoreapp3.1</TargetFrameworks>
     <UseWindowsForms>true</UseWindowsForms>
     <AssemblyName>NewLife.WinCore</AssemblyName>
     <RootNamespace>NewLife</RootNamespace>
