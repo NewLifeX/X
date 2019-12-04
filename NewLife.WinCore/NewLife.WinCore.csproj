@@ -1,6 +1,6 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop" ToolsVersion="Current">
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFramework>netcoreapp3.0;netcoreapp3.1</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
     <AssemblyName>NewLife.WinCore</AssemblyName>
     <RootNamespace>NewLife</RootNamespace>
@@ -16,9 +16,8 @@
     <DocumentationFile>$(OutputPath)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>TRACE;__CORE__;__WIN__</DefineConstants>
   </PropertyGroup>
-
   <PropertyGroup>
     <PackageId>$(AssemblyName)</PackageId>
     <Authors>$(Company)</Authors>
@@ -34,21 +33,14 @@
     <IncludeSource>true</IncludeSource>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
-
-  <PropertyGroup Condition="'$(TargetFramework)'=='netcoreapp3.0'">
-    <DefineConstants>$(DefineConstants);__CORE__;NC30;__WIN__</DefineConstants>
-  </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <DefineConstants>$(DefineConstants);DEBUG</DefineConstants>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
     <!--<GeneratePackageOnBuild>true</GeneratePackageOnBuild>-->
   </PropertyGroup>
-
   <ItemGroup>
     <Compile Include="..\NewLife.Core\Log\TextControlLog.cs" Link="TextControlLog.cs" />
     <Compile Include="..\NewLife.Core\Reflection\ScriptEngine.cs" Link="ScriptEngine.cs" />
@@ -57,9 +49,7 @@
     <EmbeddedResource Include="..\NewLife.Core\Windows\MySpeech.cs" Link="MySpeech.cs" />
     <Compile Include="..\NewLife.Core\Windows\SpeechRecognition.cs" Link="SpeechRecognition.cs" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj" />
   </ItemGroup>
-
 </Project>
