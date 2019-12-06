@@ -388,12 +388,12 @@ namespace XCode.Membership
         public virtual void Logout()
         {
             //var user = Current;
-            var user = this;
-            if (user != null)
-            {
-                user.Online = false;
-                user.SaveAsync();
-            }
+            //var user = this;
+            //if (user != null)
+            //{
+            //    user.Online = false;
+            //    user.SaveAsync();
+            //}
 
             //Current = null;
             //Thread.CurrentPrincipal = null;
