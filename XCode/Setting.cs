@@ -81,7 +81,7 @@ namespace XCode
         /// <summary>加载后检查默认值</summary>
         protected override void OnLoaded()
         {
-            if (SQLiteDbPath.IsNullOrEmpty()) SQLiteDbPath = Runtime.IsWeb ? "..\\Data" : ".";
+            if (SQLiteDbPath.IsNullOrEmpty()) SQLiteDbPath = Runtime.IsWeb ? "..\\Data" : "Data";
             if (BackupPath.IsNullOrEmpty()) BackupPath = Runtime.IsWeb ? "..\\Backup" : "Backup";
 
             base.OnLoaded();
