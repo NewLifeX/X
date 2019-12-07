@@ -80,12 +80,6 @@ namespace NewLife
             if (Runtime.Linux) OSName = GetLinuxName();
 
 #else
-            var reg = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Cryptography");
-            if (reg != null)
-            {
-                Guid = reg.GetValue("MachineGuid") + "";
-            }
-
             // 性能计数器的初始化非常耗时
             Task.Factory.StartNew(() =>
             {
@@ -96,12 +90,18 @@ namespace NewLife
                 _cpuCounter.NextValue();
             });
 
-            var ci = new ComputerInfo();
-            OSName = ci.OSFullName;
-            OSVersion = ci.OSVersion;
+            var reg = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Cryptography");
+            if (reg != null) Guid = reg.GetValue("MachineGuid") + "";
+            if (Guid.IsNullOrEmpty())
+            {
+                reg = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
+                if (reg != null) Guid = reg.GetValue("MachineGuid") + "";
+            }
 
+            var ci = new ComputerInfo();
+            OSName = ci.OSFullName.TrimStart("Microsoft").Trim();
+            OSVersion = ci.OSVersion;
             Memory = ci.TotalPhysicalMemory;
-            //AvailableMemory = ci.AvailablePhysicalMemory;
 
             _cinfo = ci;
 
