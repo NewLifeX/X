@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -63,17 +64,22 @@ namespace NewLife
 
         #region 构造
         /// <summary>实例化机器信息</summary>
-        public MachineInfo()
-        {
-            Refresh();
-        }
+        public MachineInfo() { }
         #endregion
 
         #region 方法
         /// <summary>刷新</summary>
-        public void Refresh()
+        public void Init()
         {
-#if __WIN__
+#if __CORE__
+            var osv = Environment.OSVersion;
+            OSVersion = osv.Version + "";
+            OSName = (osv + "").TrimEnd(OSVersion).Trim();
+
+            // 特别识别Linux发行版
+            if (Runtime.Linux) OSName = GetLinuxName();
+
+#else
             var reg = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Cryptography");
             if (reg != null)
             {
@@ -103,6 +109,27 @@ namespace NewLife
             CpuID = GetInfo("Win32_Processor", "ProcessorId");
             UUID = GetInfo("Win32_ComputerSystemProduct", "UUID");
 #endif
+        }
+        #endregion
+
+        #region 辅助
+        /// <summary>获取Linux发行版名称</summary>
+        /// <returns></returns>
+        public static String GetLinuxName()
+        {
+            var fr = "/etc/redhat-release";
+            var dr = "/etc/debian-release";
+            if (File.Exists(fr))
+                return File.ReadAllText(fr).Trim();
+            else if (File.Exists(dr))
+                return File.ReadAllText(dr).Trim();
+            else
+            {
+                var sr = "/etc/os-release";
+                if (File.Exists(sr)) return File.ReadAllText(sr).SplitAsDictionary("=", "\n", true)["PRETTY_NAME"].Trim();
+            }
+
+            return null;
         }
         #endregion
 

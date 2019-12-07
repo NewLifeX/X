@@ -212,22 +212,9 @@ namespace NewLife.Log
             sb.AppendFormat("#ApplicationType: {0}\r\n", apptype);
             sb.AppendFormat("#CLR: {0}, {1}\r\n", Environment.Version, ver);
 
+            // 特别识别Linux发行版
             var os = Environment.OSVersion + "";
-            if (Runtime.Linux)
-            {
-                // 特别识别Linux发行版
-                var fr = "/etc/redhat-release";
-                var dr = "/etc/debian-release";
-                if (File.Exists(fr))
-                    os = File.ReadAllText(fr).Trim();
-                else if (File.Exists(dr))
-                    os = File.ReadAllText(dr).Trim();
-                else
-                {
-                    var sr = "/etc/os-release";
-                    if (File.Exists(sr)) os = File.ReadAllText(sr).SplitAsDictionary("=", "\n", true)["PRETTY_NAME"].Trim();
-                }
-            }
+            if (Runtime.Linux) os = MachineInfo.GetLinuxName();
 
             sb.AppendFormat("#OS: {0}, {1}/{2}\r\n", os, Environment.MachineName, Environment.UserName);
             sb.AppendFormat("#CPU: {0}\r\n", System.Environment.ProcessorCount);
