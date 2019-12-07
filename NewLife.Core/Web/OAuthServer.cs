@@ -134,8 +134,8 @@ namespace NewLife.Web
         {
             var prv = GetProvider();
 
-            var username = prv.Decode(token, out var expire);
-            if (username.IsNullOrEmpty()) throw new Exception("非法访问令牌");
+            var rs = prv.TryDecode(token, out var username, out var expire);
+            if (!rs || username.IsNullOrEmpty()) throw new Exception("非法访问令牌");
             if (expire < DateTime.Now) throw new Exception("令牌已过期");
 
             return username;
