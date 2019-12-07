@@ -1,5 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFrameworks>net45</TargetFrameworks>
@@ -13,53 +12,42 @@
     <Optimize>true</Optimize>
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <DefineConstants>$(DefineConstants);DEBUG</DefineConstants>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
     <DefineConstants>$(DefineConstants);NETSTANDARD2_0;__CORE__</DefineConstants>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(TargetFramework)'=='net45'">
     <DefineConstants>$(DefineConstants);__WIN__</DefineConstants>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(TargetFramework)'=='net40'">
     <DefineConstants>$(DefineConstants);__WIN__;NET4</DefineConstants>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <DefineConstants>$(DefineConstants);DEBUG</DefineConstants>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
   </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj" />
     <ProjectReference Include="..\XCode\XCode.csproj" />
     <ProjectReference Include="..\NewLife.Agent\NewLife.Agent.csproj" />
   </ItemGroup>
-
   <ItemGroup>
     <None Update="appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-
   <ItemGroup>
     <Folder Include="Properties\" />
   </ItemGroup>
-
   <ItemGroup>
     <Reference Include="System.Net.Http" />
   </ItemGroup>
-
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="del &quot;$(TargetDir)*.xml&quot; /q" />
   </Target>
-
 </Project>
