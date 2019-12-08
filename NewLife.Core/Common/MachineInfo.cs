@@ -110,9 +110,18 @@ namespace NewLife
                 // 树莓派优先 Model
                 if (TryGet("/proc/cpuinfo", new[] { "Model" }, out var str)) Processor = str;
                 if (Processor.IsNullOrEmpty() && TryGet("/proc/cpuinfo", new[] { "cpu model", "model name", "Hardware" }, out str)) Processor = str;
-                if (TryGet("/proc/meminfo", new[] { "MemTotal" }, out str)) Memory = (UInt64)(str.ToInt() * 1024);
-                if (TryGet("/proc/meminfo", new[] { "MemAvailable" }, out str)) AvailableMemory = (UInt64)(str.ToInt() * 1024);
+                if (TryGet("/proc/cpuinfo", new[] { "Serial", "serial" }, out str)) CpuID = str;
+                if (TryGet("/proc/meminfo", new[] { "MemTotal" }, out str)) Memory = (UInt64)str.TrimEnd(" kB").ToInt() * 1024;
+                if (TryGet("/proc/meminfo", new[] { "MemAvailable" }, out str)) AvailableMemory = (UInt64)str.TrimEnd(" kB").ToInt() * 1024;
                 if (TryGet("/sys/class/thermal/thermal_zone0/temp", null, out str)) Temperature = str.ToDouble() / 1000;
+
+                var dmi = Execute("dmidecode");
+                if (!dmi.IsNullOrEmpty())
+                {
+                    if (TryFind(dmi, new[] { "ID" }, out str)) CpuID = str.Replace(" ", null);
+                    if (TryFind(dmi, new[] { "UUID" }, out str)) UUID = str;
+                    //if (TryFind(dmi, new[] { "Serial Number" }, out str)) Guid = str;
+                }
             }
 #else
             // 性能计数器的初始化非常耗时
@@ -178,10 +187,25 @@ namespace NewLife
             if (!File.Exists(file)) return false;
 
             using var reader = new StreamReader(file);
-            while (!reader.EndOfStream)
+            return Find(reader, keys, out value);
+        }
+
+        private static Boolean TryFind(String txt, String[] keys, out String value)
+        {
+            using var reader = new StringReader(txt);
+            return Find(reader, keys, out value);
+        }
+
+        private static Boolean Find(TextReader reader, String[] keys, out String value)
+        {
+            value = null;
+
+            //while (!reader.EndOfStream)
+            while (true)
             {
                 // 按行读取
                 var line = reader.ReadLine();
+                if (line == null) break;
                 if (line != null)
                 {
                     if (keys == null || keys.Length == 0)
@@ -202,6 +226,15 @@ namespace NewLife
             }
 
             return false;
+        }
+
+        private static String Execute(String cmd, String arguments = null)
+        {
+            var psi = new ProcessStartInfo(cmd, arguments) { RedirectStandardOutput = true };
+            var process = Process.Start(psi);
+            if (!process.WaitForExit(3_000)) return null;
+
+            return process.StandardOutput.ReadToEnd();
         }
         #endregion
 
