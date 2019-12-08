@@ -46,7 +46,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test4();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -68,13 +68,14 @@ namespace Test
         static void Test1()
         {
             var ip = "180.165.235.0".IPToAddress();
-            Console.WriteLine(ip);
+            XTrace.WriteLine(ip);
 
             var mi = new MachineInfo();
+            mi.Init();
 
             foreach (var pi in mi.GetType().GetProperties())
             {
-                Console.WriteLine("{0}:\t{1}", pi.Name, mi.GetValue(pi));
+                XTrace.WriteLine("{0}:\t{1}", pi.Name, mi.GetValue(pi));
             }
 
             Console.ReadKey();
