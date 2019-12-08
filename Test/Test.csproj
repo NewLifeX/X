@@ -18,7 +18,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
+  <PropertyGroup Condition="'$(TargetFramework)'=='netcoreapp3.1'">
     <DefineConstants>$(DefineConstants);NETSTANDARD2_0;__CORE__</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)'=='net45'">

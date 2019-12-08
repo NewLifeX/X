@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Reflection;
 using System.Runtime;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace NewLife.Log
@@ -152,6 +153,9 @@ namespace NewLife.Log
                 var tar = asm.GetCustomAttribute<System.Runtime.Versioning.TargetFrameworkAttribute>();
                 if (tar != null) ver = tar.FrameworkDisplayName ?? tar.FrameworkName;
             }
+#if __CORE__
+            ver = RuntimeInformation.FrameworkDescription;
+#endif
             if (String.IsNullOrEmpty(name))
             {
                 try

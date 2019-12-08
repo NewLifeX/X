@@ -5,6 +5,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
@@ -67,8 +68,8 @@ namespace Test
 
         static void Test1()
         {
-            var ip = "180.165.235.0".IPToAddress();
-            XTrace.WriteLine(ip);
+            //var ip = "180.165.235.0".IPToAddress();
+            //XTrace.WriteLine(ip);
 
             var mi = new MachineInfo();
             mi.Init();
@@ -77,6 +78,22 @@ namespace Test
             {
                 XTrace.WriteLine("{0}:\t{1}", pi.Name, mi.GetValue(pi));
             }
+
+            Console.WriteLine();
+
+#if __CORE__
+            foreach (var pi in typeof(RuntimeInformation).GetProperties())
+            {
+                XTrace.WriteLine("{0}:\t{1}", pi.Name, pi.GetValue(null));
+            }
+#endif
+
+            //Console.WriteLine();
+
+            //foreach (var pi in typeof(Environment).GetProperties())
+            //{
+            //    XTrace.WriteLine("{0}:\t{1}", pi.Name, pi.GetValue(null));
+            //}
 
             Console.ReadKey();
         }

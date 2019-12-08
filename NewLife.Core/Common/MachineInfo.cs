@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using NewLife.Log;
 using NewLife.Model;
@@ -101,11 +100,20 @@ namespace NewLife
 #if __CORE__
             var osv = Environment.OSVersion;
             OSVersion = osv.Version + "";
-            OSName = (osv + "").TrimEnd(OSVersion).Trim();
+            OSName = (osv + "").TrimStart("Microsoft").TrimEnd(OSVersion).Trim();
 
             // 特别识别Linux发行版
-            if (Runtime.Linux) OSName = GetLinuxName();
+            if (Runtime.Linux)
+            {
+                OSName = GetLinuxName();
 
+                // 树莓派优先 Model
+                if (TryGet("/proc/cpuinfo", new[] { "Model" }, out var str)) Processor = str;
+                if (Processor.IsNullOrEmpty() && TryGet("/proc/cpuinfo", new[] { "cpu model", "model name", "Hardware" }, out str)) Processor = str;
+                if (TryGet("/proc/meminfo", new[] { "MemTotal" }, out str)) Memory = (UInt64)(str.ToInt() * 1024);
+                if (TryGet("/proc/meminfo", new[] { "MemAvailable" }, out str)) AvailableMemory = (UInt64)(str.ToInt() * 1024);
+                if (TryGet("/sys/class/thermal/thermal_zone0/temp", null, out str)) Temperature = str.ToDouble() / 1000;
+            }
 #else
             // 性能计数器的初始化非常耗时
             Task.Factory.StartNew(() =>
@@ -161,6 +169,39 @@ namespace NewLife
             }
 
             return null;
+        }
+
+        private static Boolean TryGet(String file, String[] keys, out String value)
+        {
+            value = null;
+
+            if (!File.Exists(file)) return false;
+
+            using var reader = new StreamReader(file);
+            while (!reader.EndOfStream)
+            {
+                // 按行读取
+                var line = reader.ReadLine();
+                if (line != null)
+                {
+                    if (keys == null || keys.Length == 0)
+                    {
+                        value = line.Trim();
+                        return true;
+                    }
+
+                    // 分割
+                    var p = line.IndexOf(':');
+                    //if (p > 0 && line.Substring(0, p).Trim().EqualIgnoreCase(keys))
+                    if (p > 0 && keys.Contains(line.Substring(0, p).Trim()))
+                    {
+                        value = line.Substring(p + 1).Trim();
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
         #endregion
 
