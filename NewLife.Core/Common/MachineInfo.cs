@@ -23,25 +23,25 @@ namespace NewLife
     {
         #region 属性
         /// <summary>系统名称</summary>
-        public String OSName { get; private set; }
+        public String OSName { get; set; }
 
         /// <summary>系统版本</summary>
-        public String OSVersion { get; private set; }
+        public String OSVersion { get; set; }
 
         /// <summary>处理器序列号</summary>
-        public String Processor { get; private set; }
+        public String Processor { get; set; }
 
         /// <summary>处理器序列号</summary>
-        public String CpuID { get; private set; }
+        public String CpuID { get; set; }
 
         /// <summary>唯一标识</summary>
-        public String UUID { get; private set; }
+        public String UUID { get; set; }
 
         /// <summary>机器标识</summary>
-        public String Guid { get; private set; }
+        public String Guid { get; set; }
 
         /// <summary>内存总量</summary>
-        public UInt64 Memory { get; private set; }
+        public UInt64 Memory { get; set; }
 
 #if __WIN__
         private ComputerInfo _cinfo;
@@ -60,7 +60,7 @@ namespace NewLife
 #endif
 
         /// <summary>温度</summary>
-        public Double Temperature { get; }
+        public Double Temperature { get; set; }
         #endregion
 
         #region 构造
@@ -135,6 +135,10 @@ namespace NewLife
             Processor = GetInfo("Win32_Processor", "Name");
             CpuID = GetInfo("Win32_Processor", "ProcessorId");
             UUID = GetInfo("Win32_ComputerSystemProduct", "UUID");
+
+            // 读取主板温度，不太准。标准方案是ring0通过IOPort读取CPU温度，太难在基础类库实现
+            var str = GetInfo("MSAcpi_ThermalZoneTemperature", "CurrentTemperature");
+            if (!str.IsNullOrEmpty()) Temperature = (str.ToDouble() - 2732) / 10.0;
 #endif
         }
         #endregion
