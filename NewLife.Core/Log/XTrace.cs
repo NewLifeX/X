@@ -33,6 +33,8 @@ namespace NewLife.Log
         {
             if (!InitLog()) return;
 
+            WriteVersion();
+
             Log.Info(msg);
         }
 
@@ -42,6 +44,8 @@ namespace NewLife.Log
         public static void WriteLine(String format, params Object?[] args)
         {
             if (!InitLog()) return;
+
+            WriteVersion();
 
             Log.Info(format, args);
         }
@@ -60,6 +64,8 @@ namespace NewLife.Log
         {
             if (!InitLog()) return;
 
+            WriteVersion();
+
             Log.Error("{0}", ex);
         }
         #endregion
@@ -72,6 +78,7 @@ namespace NewLife.Log
 
             ThreadPoolX.Init();
         }
+
         static void CurrentDomain_UnhandledException(Object sender, UnhandledExceptionEventArgs e)
         {
             if (e.ExceptionObject is Exception ex) WriteException(ex);
@@ -129,7 +136,7 @@ namespace NewLife.Log
                 _initing = 0;
             }
 
-            WriteVersion();
+            //WriteVersion();
 
             return true;
         }
@@ -266,9 +273,12 @@ namespace NewLife.Log
         #endregion
 
         #region 版本信息
+        private static Int32 _writeVersion;
         /// <summary>输出核心库和启动程序的版本号</summary>
         public static void WriteVersion()
         {
+            if (_writeVersion > 0 || Interlocked.CompareExchange(ref _writeVersion, 1, 0) != 0) return;
+
             var asm = Assembly.GetExecutingAssembly();
             WriteVersion(asm);
 

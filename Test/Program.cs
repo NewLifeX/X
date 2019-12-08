@@ -33,6 +33,7 @@ namespace Test
     {
         private static void Main(String[] args)
         {
+            MachineInfo.RegisterAsync();
             //XTrace.Log = new NetworkLog();
             XTrace.UseConsole();
 #if DEBUG

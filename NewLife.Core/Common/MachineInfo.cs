@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using NewLife.Log;
+using NewLife.Model;
 #if __WIN__
 using System.Management;
 using Microsoft.VisualBasic.Devices;
@@ -65,6 +66,32 @@ namespace NewLife
         #region 构造
         /// <summary>实例化机器信息</summary>
         public MachineInfo() { }
+
+        /// <summary>当前机器信息</summary>
+        public static MachineInfo Current { get; set; }
+
+        /// <summary>异步注册一个初始化后的机器信息实例</summary>
+        /// <returns></returns>
+        public static Task<MachineInfo> RegisterAsync()
+        {
+            return Task.Factory.StartNew(() =>
+            {
+                var mi = new MachineInfo();
+
+                mi.Init();
+
+                Current = mi;
+
+                // 注册到对象容器
+                ObjectContainer.Current.Register<MachineInfo>(mi);
+
+                return mi;
+            });
+        }
+
+        /// <summary>从对象容器中获取一个已注册机器信息实例</summary>
+        /// <returns></returns>
+        public static MachineInfo Resolve() => ObjectContainer.Current.ResolveInstance<MachineInfo>();
         #endregion
 
         #region 方法
