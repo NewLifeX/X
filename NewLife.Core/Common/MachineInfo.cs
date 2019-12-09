@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
+using System.Security;
 using System.Threading.Tasks;
 using NewLife.Collections;
 using NewLife.Log;
@@ -132,6 +134,14 @@ namespace NewLife
 
                 str = Execute("wmic", "os get Version");
                 if (!str.IsNullOrEmpty()) OSVersion = str.TrimStart("Version").Trim();
+
+                MEMORYSTATUSEX ms = default;
+                ms.Init();
+                if (GlobalMemoryStatusEx(ref ms))
+                {
+                    Memory = ms.ullTotalPhys;
+                    AvailableMemory = ms.ullAvailPhys;
+                }
             }
             // 特别识别Linux发行版
             else if (Runtime.Linux)
@@ -273,6 +283,37 @@ namespace NewLife
                 return process.StandardOutput.ReadToEnd();
             }
             catch { return null; }
+        }
+
+        #endregion
+
+        #region 内存
+        [DllImport("Kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        [SecurityCritical]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern Boolean GlobalMemoryStatusEx(ref MEMORYSTATUSEX lpBuffer);
+
+        internal struct MEMORYSTATUSEX
+        {
+            internal UInt32 dwLength;
+
+            internal UInt32 dwMemoryLoad;
+
+            internal UInt64 ullTotalPhys;
+
+            internal UInt64 ullAvailPhys;
+
+            internal UInt64 ullTotalPageFile;
+
+            internal UInt64 ullAvailPageFile;
+
+            internal UInt64 ullTotalVirtual;
+
+            internal UInt64 ullAvailVirtual;
+
+            internal UInt64 ullAvailExtendedVirtual;
+
+            internal void Init() => dwLength = checked((UInt32)Marshal.SizeOf(typeof(MEMORYSTATUSEX)));
         }
         #endregion
 
