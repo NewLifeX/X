@@ -102,8 +102,25 @@ namespace NewLife
             OSVersion = osv.Version + "";
             OSName = (osv + "").TrimStart("Microsoft").TrimEnd(OSVersion).Trim();
 
+            if (Runtime.Windows)
+            {
+                var str = Execute("wmic", "cpu get ProcessorId");
+                if (!str.IsNullOrEmpty()) CpuID = str.TrimStart("ProcessorId").Trim();
+
+                str = Execute("wmic", "cpu get name");
+                if (!str.IsNullOrEmpty()) Processor = str.TrimStart("Name").Trim();
+
+                str = Execute("wmic", "csproduct get UUID");
+                if (!str.IsNullOrEmpty()) UUID = str.TrimStart("UUID").Trim();
+
+                str = Execute("wmic", "os get Caption");
+                if (!str.IsNullOrEmpty()) OSName = str.TrimStart("Caption").Trim();
+
+                str = Execute("wmic", "os get Version");
+                if (!str.IsNullOrEmpty()) OSVersion = str.TrimStart("Version").Trim();
+            }
             // 特别识别Linux发行版
-            if (Runtime.Linux)
+            else if (Runtime.Linux)
             {
                 OSName = GetLinuxName();
                 var str = "";
