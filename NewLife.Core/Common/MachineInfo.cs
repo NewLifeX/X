@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using NewLife.Log;
 using NewLife.Model;
+using NewLife.Serialization;
 #if __WIN__
 using System.Management;
 using Microsoft.VisualBasic.Devices;
@@ -73,11 +74,23 @@ namespace NewLife
         /// <returns></returns>
         public static Task<MachineInfo> RegisterAsync()
         {
+            // 文件缓存，加快机器信息获取
+            var file = XTrace.TempPath.CombinePath("machine.info");
+            if (Current == null && File.Exists(file))
+            {
+                try
+                {
+                    Current = File.ReadAllText(file).ToJsonEntity<MachineInfo>();
+                }
+                finally { }
+            }
+
             return Task.Factory.StartNew(() =>
             {
-                var mi = new MachineInfo();
+                var mi = Current ?? new MachineInfo();
 
                 mi.Init();
+                File.WriteAllText(file.EnsureDirectory(true), mi.ToJson(true));
 
                 Current = mi;
 
@@ -114,7 +127,7 @@ namespace NewLife
                 if (!str.IsNullOrEmpty()) UUID = str.TrimStart("UUID").Trim();
 
                 str = Execute("wmic", "os get Caption");
-                if (!str.IsNullOrEmpty()) OSName = str.TrimStart("Caption").Trim();
+                if (!str.IsNullOrEmpty()) OSName = str.TrimStart("Caption").TrimStart("Microsoft").Trim();
 
                 str = Execute("wmic", "os get Version");
                 if (!str.IsNullOrEmpty()) OSVersion = str.TrimStart("Version").Trim();
