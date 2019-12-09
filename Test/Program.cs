@@ -34,6 +34,8 @@ namespace Test
     {
         private static void Main(String[] args)
         {
+            Environment.SetEnvironmentVariable("DOTNET_SYSTEM_GLOBALIZATION_INVARIANT", "1");
+
             MachineInfo.RegisterAsync();
             //XTrace.Log = new NetworkLog();
             XTrace.UseConsole();

@@ -146,8 +146,8 @@ namespace NewLife
             // 特别识别Linux发行版
             else if (Runtime.Linux)
             {
-                OSName = GetLinuxName();
-                var str = "";
+                var str = GetLinuxName();
+                if (!str.IsNullOrEmpty()) OSName = str;
 
                 // 树莓派优先 Model
                 var dic = ReadInfo("/proc/cpuinfo");
