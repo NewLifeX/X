@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Serialization;
@@ -139,29 +140,37 @@ namespace NewLife
                 var str = "";
 
                 // 树莓派优先 Model
-                var file = "/proc/cpuinfo";
-                if (File.Exists(file))
+                var dic = ReadInfo("/proc/cpuinfo");
+                if (dic != null)
                 {
-                    var txt = File.ReadAllText(file);
+                    if (dic.TryGetValue("Model", out str) ||
+                        dic.TryGetValue("Hardware", out str) ||
+                        dic.TryGetValue("cpu model", out str) ||
+                        dic.TryGetValue("model name", out str))
+                        Processor = str;
 
-                    if (TryFind(txt, new[] { "Model" }, out str))
-                        Processor = str;
-                    else if (TryFind(txt, new[] { "Hardware" }, out str))
-                        Processor = str;
-                    else if (TryFind(txt, new[] { "cpu model", "model name" }, out str))
-                        Processor = str;
+                    if (dic.TryGetValue("Serial", out str)) CpuID = str;
                 }
 
-                if (TryGet("/proc/cpuinfo", new[] { "Serial", "serial" }, out str)) CpuID = str;
-                if (TryGet("/proc/meminfo", new[] { "MemTotal" }, out str)) Memory = (UInt64)str.TrimEnd(" kB").ToInt() * 1024;
-                if (TryGet("/proc/meminfo", new[] { "MemAvailable" }, out str)) AvailableMemory = (UInt64)str.TrimEnd(" kB").ToInt() * 1024;
-                if (TryGet("/sys/class/thermal/thermal_zone0/temp", null, out str)) Temperature = str.ToDouble() / 1000;
-
-                var dmi = Execute("dmidecode");
-                if (!dmi.IsNullOrEmpty())
+                dic = ReadInfo("/proc/meminfo");
+                if (dic != null)
                 {
-                    if (TryFind(dmi, new[] { "ID" }, out str)) CpuID = str.Replace(" ", null);
-                    if (TryFind(dmi, new[] { "UUID" }, out str)) UUID = str;
+                    if (dic.TryGetValue("MemTotal", out str))
+                        Memory = (UInt64)str.TrimEnd(" kB").ToInt() * 1024;
+
+                    if (dic.TryGetValue("MemAvailable", out str) ||
+                        dic.TryGetValue("MemFree", out str))
+                        AvailableMemory = (UInt64)str.TrimEnd(" kB").ToInt() * 1024;
+                }
+
+                var file = "/sys/class/thermal/thermal_zone0/temp";
+                if (File.Exists(file)) Temperature = File.ReadAllText(file).Trim().ToDouble() / 1000;
+
+                var dmi = Execute("dmidecode")?.SplitAsDictionary(":", "\n");
+                if (dmi != null)
+                {
+                    if (dmi.TryGetValue("ID", out str)) CpuID = str.Replace(" ", null);
+                    if (dmi.TryGetValue("UUID", out str)) UUID = str;
                     //if (TryFind(dmi, new[] { "Serial Number" }, out str)) Guid = str;
                 }
             }
@@ -222,52 +231,31 @@ namespace NewLife
             return null;
         }
 
-        private static Boolean TryGet(String file, String[] keys, out String value)
+        private static IDictionary<String, String> ReadInfo(String file, Char separate = ':')
         {
-            value = null;
+            if (file.IsNullOrEmpty() || !File.Exists(file)) return null;
 
-            if (!File.Exists(file)) return false;
+            var dic = new NullableDictionary<String, String>();
 
             using var reader = new StreamReader(file);
-            return Find(reader, keys, out value);
-        }
-
-        private static Boolean TryFind(String txt, String[] keys, out String value)
-        {
-            using var reader = new StringReader(txt);
-            return Find(reader, keys, out value);
-        }
-
-        private static Boolean Find(TextReader reader, String[] keys, out String value)
-        {
-            value = null;
-
-            //while (!reader.EndOfStream)
-            while (true)
+            while (!reader.EndOfStream)
             {
                 // 按行读取
                 var line = reader.ReadLine();
-                if (line == null) break;
                 if (line != null)
                 {
-                    if (keys == null || keys.Length == 0)
-                    {
-                        value = line.Trim();
-                        return true;
-                    }
-
                     // 分割
-                    var p = line.IndexOf(':');
-                    //if (p > 0 && line.Substring(0, p).Trim().EqualIgnoreCase(keys))
-                    if (p > 0 && keys.Contains(line.Substring(0, p).Trim()))
+                    var p = line.IndexOf(separate);
+                    if (p > 0)
                     {
-                        value = line.Substring(p + 1).Trim();
-                        return true;
+                        var key = line.Substring(0, p).Trim();
+                        var value = line.Substring(p + 1).Trim();
+                        dic[key] = value;
                     }
                 }
             }
 
-            return false;
+            return dic;
         }
 
         private static String Execute(String cmd, String arguments = null)
