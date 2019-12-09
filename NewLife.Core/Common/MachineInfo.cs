@@ -106,10 +106,22 @@ namespace NewLife
             if (Runtime.Linux)
             {
                 OSName = GetLinuxName();
+                var str = "";
 
                 // 树莓派优先 Model
-                if (TryGet("/proc/cpuinfo", new[] { "Model" }, out var str)) Processor = str;
-                if (Processor.IsNullOrEmpty() && TryGet("/proc/cpuinfo", new[] { "cpu model", "model name", "Hardware" }, out str)) Processor = str;
+                var file = "/proc/cpuinfo";
+                if (File.Exists(file))
+                {
+                    var txt = File.ReadAllText(file);
+
+                    if (TryFind(txt, new[] { "Model" }, out str))
+                        Processor = str;
+                    else if (TryFind(txt, new[] { "Hardware" }, out str))
+                        Processor = str;
+                    else if (TryFind(txt, new[] { "cpu model", "model name" }, out str))
+                        Processor = str;
+                }
+
                 if (TryGet("/proc/cpuinfo", new[] { "Serial", "serial" }, out str)) CpuID = str;
                 if (TryGet("/proc/meminfo", new[] { "MemTotal" }, out str)) Memory = (UInt64)str.TrimEnd(" kB").ToInt() * 1024;
                 if (TryGet("/proc/meminfo", new[] { "MemAvailable" }, out str)) AvailableMemory = (UInt64)str.TrimEnd(" kB").ToInt() * 1024;
@@ -230,11 +242,19 @@ namespace NewLife
 
         private static String Execute(String cmd, String arguments = null)
         {
-            var psi = new ProcessStartInfo(cmd, arguments) { RedirectStandardOutput = true };
-            var process = Process.Start(psi);
-            if (!process.WaitForExit(3_000)) return null;
+            try
+            {
+                var psi = new ProcessStartInfo(cmd, arguments) { RedirectStandardOutput = true };
+                var process = Process.Start(psi);
+                if (!process.WaitForExit(3_000))
+                {
+                    process.Kill();
+                    return null;
+                }
 
-            return process.StandardOutput.ReadToEnd();
+                return process.StandardOutput.ReadToEnd();
+            }
+            catch { return null; }
         }
         #endregion
 
