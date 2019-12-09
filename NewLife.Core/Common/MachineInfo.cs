@@ -77,19 +77,19 @@ namespace NewLife
         /// <returns></returns>
         public static Task<MachineInfo> RegisterAsync()
         {
-            // 文件缓存，加快机器信息获取
-            var file = XTrace.TempPath.CombinePath("machine.info");
-            if (Current == null && File.Exists(file))
-            {
-                try
-                {
-                    Current = File.ReadAllText(file).ToJsonEntity<MachineInfo>();
-                }
-                finally { }
-            }
-
             return Task.Factory.StartNew(() =>
             {
+                // 文件缓存，加快机器信息获取
+                var file = XTrace.TempPath.CombinePath("machine.info");
+                if (Current == null && File.Exists(file))
+                {
+                    try
+                    {
+                        Current = File.ReadAllText(file).ToJsonEntity<MachineInfo>();
+                    }
+                    finally { }
+                }
+
                 var mi = Current ?? new MachineInfo();
 
                 mi.Init();
