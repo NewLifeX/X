@@ -5,6 +5,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Threading;
+using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Reflection;
@@ -310,7 +311,7 @@ namespace NewLife.Caching
         /// <returns></returns>
         public override IDictionary<String, T> GetDictionary<T>(String key)
         {
-            var item = GetOrAddItem(key, k => new ConcurrentDictionary<String, T>());
+            var item = GetOrAddItem(key, k => new NullableDictionary<String, T>());
             return item.Visit() as IDictionary<String, T>;
         }
 
