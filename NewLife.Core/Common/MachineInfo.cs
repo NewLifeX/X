@@ -147,24 +147,6 @@ namespace NewLife
                     if (cpu.TryGetValue("LoadPercentage", out str)) CpuRate = (Single)(str.ToDouble() / 100);
                 }
 
-                //str = Execute("wmic", "cpu get ProcessorId");
-                //if (!str.IsNullOrEmpty()) CpuID = str.TrimStart("ProcessorId").Trim();
-
-                //str = Execute("wmic", "cpu get name");
-                //if (!str.IsNullOrEmpty()) Processor = str.TrimStart("Name").Trim();
-
-                //str = Execute("wmic", "csproduct get UUID");
-                //if (!str.IsNullOrEmpty()) UUID = str.TrimStart("UUID").Trim();
-
-                //str = Execute("wmic", "csproduct get Name");
-                //if (!str.IsNullOrEmpty()) Product = str.TrimStart("Name").Trim();
-
-                //str = Execute("wmic", "os get Caption");
-                //if (!str.IsNullOrEmpty()) OSName = str.TrimStart("Caption").TrimStart("Microsoft").Trim();
-
-                //str = Execute("wmic", "os get Version");
-                //if (!str.IsNullOrEmpty()) OSVersion = str.TrimStart("Version").Trim();
-
                 MEMORYSTATUSEX ms = default;
                 ms.Init();
                 if (GlobalMemoryStatusEx(ref ms))
@@ -203,6 +185,10 @@ namespace NewLife
                         AvailableMemory = (UInt64)str.TrimEnd(" kB").ToInt() * 1024;
                 }
 
+                var mid = "/etc/machine-id";
+                if (!File.Exists(mid)) mid = "/var/lib/dbus/machine-id";
+                if (File.Exists(mid)) Guid = File.ReadAllText(mid).Trim();
+
                 var file = "/sys/class/thermal/thermal_zone0/temp";
                 if (File.Exists(file)) Temperature = File.ReadAllText(file).Trim().ToDouble() / 1000;
 
@@ -211,7 +197,15 @@ namespace NewLife
                 {
                     if (dmi.TryGetValue("ID", out str)) CpuID = str.Replace(" ", null);
                     if (dmi.TryGetValue("UUID", out str)) UUID = str;
+                    if (dmi.TryGetValue("Product Name", out str)) Product = str;
                     //if (TryFind(dmi, new[] { "Serial Number" }, out str)) Guid = str;
+                }
+
+                var upt = Execute("uptime");
+                if (!upt.IsNullOrEmpty())
+                {
+                    str = upt.Substring("load average:");
+                    if (!str.IsNullOrEmpty()) CpuRate = (Single)str.Split(",")[0].ToDouble();
                 }
             }
 #else
@@ -268,6 +262,9 @@ namespace NewLife
                 var sr = "/etc/os-release";
                 if (File.Exists(sr)) return File.ReadAllText(sr).SplitAsDictionary("=", "\n", true)["PRETTY_NAME"].Trim();
             }
+
+            var uname = Execute("uname", "-sr")?.Trim();
+            if (!uname.IsNullOrEmpty()) return uname;
 
             return null;
         }
