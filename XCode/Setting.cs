@@ -71,13 +71,17 @@ namespace XCode
         /// <summary>反向工程。Off 关闭；ReadOnly 只读不执行；On 打开，仅新建；Full 完全，修改删除</summary>
         [Description("反向工程。Off 关闭；ReadOnly 只读不执行；On 打开，仅新建；Full 完全，修改删除")]
         public Migration Migration { get; set; } = Migration.On;
+
+        /// <summary></summary>
+        [Description("表名称、字段名大小写格式。Default 根据模型生成;Upper 全大写;Lower 全小写")]
+        public NameFormats NameFormat { get; set; } = NameFormats.Default;
         #endregion
 
         #region 方法
         /// <summary>加载后检查默认值</summary>
         protected override void OnLoaded()
         {
-            if (SQLiteDbPath.IsNullOrEmpty()) SQLiteDbPath = Runtime.IsWeb ? "..\\Data" : ".";
+            if (SQLiteDbPath.IsNullOrEmpty()) SQLiteDbPath = Runtime.IsWeb ? "..\\Data" : "Data";
             if (BackupPath.IsNullOrEmpty()) BackupPath = Runtime.IsWeb ? "..\\Backup" : "Backup";
 
             base.OnLoaded();

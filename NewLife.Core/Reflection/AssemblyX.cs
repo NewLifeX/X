@@ -673,11 +673,20 @@ namespace NewLife.Reflection
                 // 加载程序集列表很容易抛出异常，全部屏蔽
                 try
                 {
-                    if (String.IsNullOrEmpty(asmx.FileVersion)) continue;
+                    if (asmx.FileVersion.IsNullOrEmpty()) continue;
+
                     var file = asmx.Asm.CodeBase;
-                    if (String.IsNullOrEmpty(file)) continue;
-                    file = file.TrimStart("file:///");
-                    file = file.Replace("/", "\\");
+                    if (file.IsNullOrEmpty()) file = asmx.Asm.Location;
+                    if (file.IsNullOrEmpty()) continue;
+
+                    if (file.StartsWith("file:///"))
+                    {
+                        file = file.TrimStart("file:///");
+                        if (Path.DirectorySeparatorChar == '\\')
+                            file = file.Replace('/', '\\');
+                        else
+                            file = file.Replace('\\', '/').EnsureStart("/");
+                    }
                     if (!file.StartsWithIgnoreCase(cur)) continue;
 
                     if (!hs.Contains(file))

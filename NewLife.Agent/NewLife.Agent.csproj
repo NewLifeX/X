@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
   <PropertyGroup>
     <TargetFrameworks>net40;net45;netstandard2.0</TargetFrameworks>
     <AssemblyName>NewLife.Agent</AssemblyName>
@@ -7,8 +7,8 @@
     <Description>应用程序注册为系统服务，仅支持Windows</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2019 新生命开发团队</Copyright>
-    <Version>8.4.2019.1109</Version>
-    <FileVersion>8.4.2019.1109</FileVersion>
+    <Version>8.4.2019.1203</Version>
+    <FileVersion>8.4.2019.1203</FileVersion>
     <AssemblyVersion>8.4.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <OutputPath>..\..\Bin</OutputPath>
@@ -19,7 +19,6 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-
   <PropertyGroup>
     <PackageId>$(AssemblyName)</PackageId>
     <Authors>$(Company)</Authors>
@@ -33,30 +32,24 @@
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSource>true</IncludeSource>
-</PropertyGroup>
-
+  </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)'=='net40'">
     <DefineConstants>$(DefineConstants);__WIN__;NET4</DefineConstants>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(TargetFramework)'=='net45'">
     <DefineConstants>$(DefineConstants);__WIN__;NET45</DefineConstants>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
     <DefineConstants>$(DefineConstants);NETSTANDARD2_0</DefineConstants>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <DefineConstants>$(DefineConstants);DEBUG</DefineConstants>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
     <!--<GeneratePackageOnBuild>true</GeneratePackageOnBuild>-->
   </PropertyGroup>
-
   <ItemGroup Condition="'$(TargetFramework)'=='net45' Or '$(TargetFramework)'=='net46'">
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.Net.Http" />
@@ -67,7 +60,6 @@
     <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="System.Management" />
   </ItemGroup>
-
   <ItemGroup Condition="'$(TargetFramework)'=='net40'">
     <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Web" />
@@ -76,24 +68,19 @@
     <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="System.Management" />
   </ItemGroup>
-
   <ItemGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
     <PackageReference Include="System.ServiceProcess.ServiceController" Version="4.5.0" />
   </ItemGroup>
-
   <ItemGroup>
     <None Include="..\Doc\logo.ico" Link="logo.ico" Pack="true" PackagePath="\" />
   </ItemGroup>
-
   <ItemGroup>
     <Compile Include="..\NewLife.Core\Agent\AgentService.cs" Link="AgentService.cs" />
     <Compile Include="..\NewLife.Core\Agent\AgentServiceBase.cs" Link="AgentServiceBase.cs" />
     <Compile Include="..\NewLife.Core\Agent\ServiceHelper.cs" Link="ServiceHelper.cs" />
     <Compile Include="..\NewLife.Core\Agent\Setting.cs" Link="Setting.cs" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj" />
   </ItemGroup>
-
 </Project>

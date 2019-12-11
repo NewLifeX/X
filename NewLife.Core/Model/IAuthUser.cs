@@ -11,8 +11,8 @@ namespace NewLife.Model
         /// <summary>密码</summary>
         String Password { get; set; }
 
-        /// <summary>在线</summary>
-        Boolean Online { get; set; }
+        ///// <summary>在线</summary>
+        //Boolean Online { get; set; }
 
         /// <summary>登录次数</summary>
         Int32 Logins { get; set; }
@@ -90,17 +90,17 @@ namespace NewLife.Model
             if (session != null)
             {
                 user.LastLoginIP = session.Remote?.Address + "";
-                // 销毁时
-                session.OnDisposed += (s, e) =>
-                {
-                    user.Online = false;
-                    user.Save();
-                };
+                //// 销毁时
+                //session.OnDisposed += (s, e) =>
+                //{
+                //    user.Online = false;
+                //    user.Save();
+                //};
             }
             //else
             //    user.LastLoginIP = WebHelper.UserHost;
 
-            user.Online = true;
+            //user.Online = true;
             user.Save();
         }
 
@@ -116,15 +116,15 @@ namespace NewLife.Model
             if (session != null)
             {
                 user.RegisterIP = session.Remote?.Address + "";
-                // 销毁时
-                session.OnDisposed += (s, e) =>
-                {
-                    user.Online = false;
-                    user.Save();
-                };
+                //// 销毁时
+                //session.OnDisposed += (s, e) =>
+                //{
+                //    user.Online = false;
+                //    user.Save();
+                //};
             }
 
-            user.Online = true;
+            //user.Online = true;
             user.Save();
         }
     }

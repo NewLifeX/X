@@ -37,32 +37,19 @@ namespace XUnitTest.Remoting
             _Server.TryDispose();
         }
 
-        [Fact(DisplayName = "同步请求")]
-        public void SendTest()
-        {
-            var pk = _Client.Invoke<Packet>("api/info");
-            Assert.NotNull(pk);
-            Assert.True(pk.Total > 500);
-
-            var dic = _Client.Invoke<IDictionary<String, Object>>("api/info");
-            Assert.NotNull(dic);
-            Assert.True(dic.Count > 10);
-            Assert.Equal("testhost", dic["Server"] + "");
-        }
-
         [Fact(DisplayName = "异步请求")]
         public async void SendAsyncTest()
         {
-            var dic = await _Client.InvokeAsync<IDictionary<String, Object>>("api/info");
+            var dic = await _Client.GetAsync<IDictionary<String, Object>>("api/info");
             Assert.NotNull(dic);
             Assert.True(dic.Count > 10);
             Assert.Equal("testhost", dic["Server"]);
 
-            var pk = await _Client.InvokeAsync<Packet>("api/info");
+            var pk = await _Client.GetAsync<Packet>("api/info");
             Assert.NotNull(pk);
             Assert.True(pk.Total > 100);
 
-            var ss = await _Client.InvokeAsync<String[]>("Api/All");
+            var ss = await _Client.PostAsync<String[]>("Api/All");
             Assert.NotNull(ss);
             Assert.True(ss.Length >= 3);
         }
@@ -70,7 +57,7 @@ namespace XUnitTest.Remoting
         [Fact(DisplayName = "异常请求")]
         public async void ErrorTest()
         {
-            var msg = await _Client.InvokeAsync<HttpResponseMessage>("api/info");
+            var msg = await _Client.GetAsync<HttpResponseMessage>("api/info");
             Assert.NotNull(msg);
             Assert.Equal(HttpStatusCode.OK, msg.StatusCode);
 
@@ -83,7 +70,7 @@ namespace XUnitTest.Remoting
 
             try
             {
-                var dic = await _Client.InvokeAsync<Object>("api/info3");
+                var dic = await _Client.GetAsync<Object>("api/info3");
             }
             catch (ApiException ex)
             {
@@ -97,17 +84,17 @@ namespace XUnitTest.Remoting
         {
             var state = Rand.NextString(8);
             var state2 = Rand.NextString(8);
-            var dic = await _Client.InvokeAsync<IDictionary<String, Object>>("api/info", new { state, state2 });
+            var dic = await _Client.GetAsync<IDictionary<String, Object>>("api/info", new { state, state2 });
             Assert.NotNull(dic);
             Assert.Equal(state, dic[nameof(state)]);
             Assert.NotEqual(state2, dic[nameof(state2)]);
 
-            var msg = await _Client.InvokeAsync<HttpResponseMessage>("api/info", new { state, state2 });
+            var msg = await _Client.GetAsync<HttpResponseMessage>("api/info", new { state, state2 });
             Assert.NotNull(msg);
             Assert.Equal(HttpMethod.Get, msg.RequestMessage.Method);
 
             state = Rand.NextString(1000 + 8);
-            msg = await _Client.InvokeAsync<HttpResponseMessage>("api/info", new { state, state2 });
+            msg = await _Client.PostAsync<HttpResponseMessage>("api/info", new { state, state2 });
             Assert.NotNull(msg);
             Assert.Equal(HttpMethod.Post, msg.RequestMessage.Method);
         }

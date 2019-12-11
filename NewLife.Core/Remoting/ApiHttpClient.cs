@@ -24,6 +24,12 @@ namespace NewLife.Remoting
         /// <summary>令牌。每次请求携带</summary>
         public String Token { get; set; }
 
+        /// <summary>超时时间。默认15000ms</summary>
+        public Int32 Timeout { get; set; } = 15_000;
+
+        /// <summary>服务器源。正在使用的服务器</summary>
+        public String Source { get; private set; }
+
         /// <summary>调用统计</summary>
         public ICounter StatInvoke { get; set; }
 
@@ -54,19 +60,13 @@ namespace NewLife.Remoting
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
         /// <returns></returns>
-        public async Task<TResult> GetAsync<TResult>(String action, Object args = null)
-        {
-            return await InvokeAsync<TResult>(HttpMethod.Get, action, args);
-        }
+        public async Task<TResult> GetAsync<TResult>(String action, Object args = null) => await InvokeAsync<TResult>(HttpMethod.Get, action, args);
 
         /// <summary>异步提交，参数Json打包在Body</summary>
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
         /// <returns></returns>
-        public async Task<TResult> PostAsync<TResult>(String action, Object args = null)
-        {
-            return await InvokeAsync<TResult>(HttpMethod.Post, action, args);
-        }
+        public async Task<TResult> PostAsync<TResult>(String action, Object args = null) => await InvokeAsync<TResult>(HttpMethod.Post, action, args);
 
         /// <summary>异步调用，等待返回结果</summary>
         /// <typeparam name="TResult"></typeparam>
@@ -78,11 +78,8 @@ namespace NewLife.Remoting
         {
             var rtype = typeof(TResult);
 
-            // 序列化参数，决定GET/POST
-            var request = BuildRequest(method, action, args, rtype);
-
             // 发起请求
-            var msg = await SendAsync(request);
+            var msg = await SendAsync(method, action, args, rtype);
             if (rtype == typeof(HttpResponseMessage)) return (TResult)(Object)msg;
 
             var code = msg.StatusCode;
@@ -129,14 +126,16 @@ namespace NewLife.Remoting
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
         /// <returns></returns>
-        async Task<TResult> IApiClient.InvokeAsync<TResult>(String action, Object args = null) => await InvokeAsync<TResult>(HttpMethod.Post, action, args);
+        async Task<TResult> IApiClient.InvokeAsync<TResult>(String action, Object args) => await InvokeAsync<TResult>(HttpMethod.Post, action, args);
 
         /// <summary>同步调用，阻塞等待</summary>
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
         /// <returns></returns>
-        TResult IApiClient.Invoke<TResult>(String action, Object args = null) => Task.Run(() => InvokeAsync<TResult>(HttpMethod.Post, action, args)).Result;
+        TResult IApiClient.Invoke<TResult>(String action, Object args) => Task.Run(() => InvokeAsync<TResult>(HttpMethod.Post, action, args)).Result;
+        #endregion
 
+        #region 构造请求
         /// <summary>建立请求</summary>
         /// <param name="method">请求方法</param>
         /// <param name="action"></param>
@@ -150,9 +149,9 @@ namespace NewLife.Remoting
             if (returnType != typeof(Byte[]) && returnType != typeof(Packet))
                 request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-            var ps = args?.ToDictionary();
             if (method == HttpMethod.Get)
             {
+                var ps = args?.ToDictionary();
                 var url = GetUrl(action, ps);
                 if (!Token.IsNullOrEmpty())
                 {
@@ -164,7 +163,8 @@ namespace NewLife.Remoting
             else
             {
                 FillContent(request, args);
-                if (!Token.IsNullOrEmpty()) request.Headers.Add("X-Token", Token);
+                //if (!Token.IsNullOrEmpty()) request.Headers.Add("X-Token", Token);
+                if (!Token.IsNullOrEmpty()) request.Headers.Add("Authorization", "Bearer " + Token);
             }
 
             return request;
@@ -178,19 +178,18 @@ namespace NewLife.Remoting
                     pk.Next == null ?
                     new ByteArrayContent(pk.Data, pk.Offset, pk.Count) :
                     new ByteArrayContent(pk.ToArray());
-                content.Headers.ContentType = new MediaTypeHeaderValue("application/stream");
+                content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
                 request.Content = content;
             }
             else if (args is Byte[] buf)
             {
                 var content = new ByteArrayContent(buf);
-                content.Headers.ContentType = new MediaTypeHeaderValue("application/stream");
+                content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
                 request.Content = content;
             }
             else if (args != null)
             {
-                var ps = args?.ToDictionary();
-                var content = new ByteArrayContent(ps.ToJson().GetBytes());
+                var content = new ByteArrayContent(args.ToJson().GetBytes());
                 content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
                 request.Content = content;
             }
@@ -234,10 +233,13 @@ namespace NewLife.Remoting
 
         #region 调度池
         private Int32 _Index;
-        /// <summary>异步请求，等待响应</summary>
-        /// <param name="request">Http请求</param>
+        /// <summary>异步发送</summary>
+        /// <param name="method"></param>
+        /// <param name="action"></param>
+        /// <param name="returnType"></param>
+        /// <param name="args"></param>
         /// <returns></returns>
-        protected virtual async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request)
+        protected virtual async Task<HttpResponseMessage> SendAsync(HttpMethod method, String action, Object args, Type returnType)
         {
             var ms = _Items;
             if (ms.Count == 0) throw new InvalidOperationException("未添加服务地址！");
@@ -245,33 +247,35 @@ namespace NewLife.Remoting
             Exception error = null;
             for (var i = 0; i < ms.Count; i++)
             {
-                var mi = ms[_Index];
-                HttpResponseMessage rs = null;
+                // 序列化参数，决定GET/POST
+                var request = BuildRequest(method, action, args, returnType);
+
+                var service = ms[_Index];
+                Source = service.Name;
 
                 // 性能计数器，次数、TPS、平均耗时
                 var st = StatInvoke;
                 var sw = st.StartCount();
                 try
                 {
-                    if (mi.Client == null) mi.Client = new HttpClient { BaseAddress = mi.Address };
+                    if (service.Client == null)
+                    {
+                        WriteLog("使用[{0}]：{1}", service.Name, service.Address);
 
-                    rs = await mi.Client.SendAsync(request);
-                    // 业务层只会返回200 OK
-                    rs.EnsureSuccessStatusCode();
+                        service.Client = new HttpClient
+                        {
+                            BaseAddress = service.Address,
+                            Timeout = TimeSpan.FromMilliseconds(Timeout)
+                        };
+                    }
 
-                    return rs;
+                    return await SendOnServiceAsync(request, service.Name, service.Client);
                 }
                 catch (Exception ex)
                 {
-                    if (error == null)
-                    {
-                        error = ex;
+                    if (error == null) error = ex;
 
-                        ex.Data.Add("Response", rs);
-                        ex.Data.Add(nameof(mi.Name), mi.Name);
-                        ex.Data.Add(nameof(mi.Address), mi.Address);
-                        ex.Data.Add(nameof(mi.Client), mi.Client);
-                    }
+                    service.Client = null;
                 }
                 finally
                 {
@@ -285,15 +289,33 @@ namespace NewLife.Remoting
 
             throw error;
         }
+
+        /// <summary>在指定服务地址上发生请求</summary>
+        /// <param name="request"></param>
+        /// <param name="serviceName"></param>
+        /// <param name="client"></param>
+        /// <returns></returns>
+        protected virtual async Task<HttpResponseMessage> SendOnServiceAsync(HttpRequestMessage request, String serviceName, HttpClient client)
+        {
+            var rs = await client.SendAsync(request);
+            // 业务层只会返回200 OK
+            rs.EnsureSuccessStatusCode();
+
+            return rs;
+        }
         #endregion
 
         #region 内嵌
+        /// <summary>服务项</summary>
         class ServiceItem
         {
+            /// <summary>名称</summary>
             public String Name { get; set; }
 
+            /// <summary>名称</summary>
             public Uri Address { get; set; }
 
+            /// <summary>名称</summary>
             public HttpClient Client { get; set; }
         }
         #endregion

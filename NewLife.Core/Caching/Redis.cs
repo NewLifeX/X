@@ -258,6 +258,9 @@ namespace NewLife.Caching
                 }
             }
 
+            // 读操作遇到未完成管道队列时，立马执行管道操作
+            if (!write) StopPipeline(true);
+
             // 统计性能
             var sw = Counter?.StartCount();
 

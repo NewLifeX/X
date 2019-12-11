@@ -22,6 +22,19 @@ namespace XCode.DataAccessLayer
         Full = 3
     }
 
+    /// <summary>名称格式化</summary>
+    public enum NameFormats
+    {
+        /// <summary>原样</summary>
+        Default = 0,
+
+        /// <summary>全大写</summary>
+        Upper,
+
+        /// <summary>全小写</summary>
+        Lower
+    }
+
     /// <summary>数据库接口</summary>
     /// <remarks>
     /// 抽象数据库的功能特点。
@@ -62,6 +75,9 @@ namespace XCode.DataAccessLayer
 
         /// <summary>反向工程。Off 关闭；ReadOnly 只读不执行；On 打开，新建；Full 完全，修改删除</summary>
         Migration Migration { get; set; }
+
+        /// <summary>表名、字段名大小写设置。（No 保持原样输出、Upper 全大写、Lower全小写）</summary>
+        NameFormats NameFormat { get; set; }
         #endregion
 
         #region 方法

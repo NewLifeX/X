@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
   <PropertyGroup>
     <TargetFrameworks>net40;net45;netstandard2.0</TargetFrameworks>
     <AssemblyName>XCode</AssemblyName>
@@ -7,8 +7,8 @@
     <Description>数据中间件，MySQL、SQLite、SqlServer、Oracle</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2019 新生命开发团队</Copyright>
-    <Version>9.14.2019.1109</Version>
-    <FileVersion>9.14.2019.1109</FileVersion>
+    <Version>9.14.2019.1203</Version>
+    <FileVersion>9.14.2019.1203</FileVersion>
     <AssemblyVersion>9.14.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <OutputPath>..\..\Bin</OutputPath>
@@ -19,7 +19,6 @@
     <LangVersion>latest</LangVersion>
     <!--<Nullable>enable</Nullable>-->
   </PropertyGroup>
-
   <PropertyGroup>
     <PackageId>NewLife.XCode</PackageId>
     <Authors>$(Company)</Authors>
@@ -28,13 +27,12 @@
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
-    <PackageReleaseNotes>增强一级缓存，部分场景使用文件缓存</PackageReleaseNotes>
+    <PackageReleaseNotes>改进区分大小写的MySql反向工程</PackageReleaseNotes>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSource>true</IncludeSource>
-</PropertyGroup>
-
+  </PropertyGroup>
   <ItemGroup>
     <Compile Remove="build\**" />
     <Compile Remove="tools\**" />
@@ -43,49 +41,39 @@
     <None Remove="build\**" />
     <None Remove="tools\**" />
   </ItemGroup>
-
   <PropertyGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
     <DefineConstants>$(DefineConstants);STD20;NETSTANDARD2_0;__CORE__</DefineConstants>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(TargetFramework)'=='netstandard2.1'">
     <DefineConstants>$(DefineConstants);STD21;NETSTANDARD2_1;__CORE__</DefineConstants>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(TargetFramework)'=='net45'">
     <DefineConstants>$(DefineConstants);__WIN__</DefineConstants>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(TargetFramework)'=='net40'">
     <DefineConstants>$(DefineConstants);__WIN__;NET4</DefineConstants>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(TargetFramework)'=='net46'">
     <DefineConstants>$(DefineConstants);__WIN__;NET46</DefineConstants>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <DefineConstants>$(DefineConstants);DEBUG</DefineConstants>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
     <!--<GeneratePackageOnBuild>true</GeneratePackageOnBuild>-->
   </PropertyGroup>
-
   <ItemGroup Condition="'$(TargetFramework)'=='net40' Or '$(TargetFramework)'=='net45' Or '$(TargetFramework)'=='net46'">
     <Reference Include="System.Data" />
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Extensions" />
   </ItemGroup>
-
   <ItemGroup>
     <Compile Remove="DataAccessLayer\Common\ConnectionPool.cs" />
     <Compile Remove="DataAccessLayer\Database\Firebird.cs" />
     <Compile Remove="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-
   <ItemGroup>
     <None Remove="Build.tt" />
     <None Remove="install.ps1" />
@@ -93,7 +81,6 @@
     <None Remove="Readme.MD" />
     <None Remove="UpdateInfo.txt" />
   </ItemGroup>
-
   <ItemGroup>
     <Content Include="Build.tt">
       <Pack>true</Pack>
@@ -104,20 +91,16 @@
       <PackagePath>content\Entity\</PackagePath>
     </Content>
   </ItemGroup>
-
   <ItemGroup>
     <EmbeddedResource Include="Readme.MD" />
     <EmbeddedResource Include="UpdateInfo.txt" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj" />
   </ItemGroup>
-
   <ItemGroup>
     <None Include="..\Doc\logo.ico" Link="logo.ico" Pack="true" PackagePath="\" />
   </ItemGroup>
-
   <ItemGroup>
     <None Update="Membership\生成实体类.log">
       <DesignTime>True</DesignTime>
@@ -129,9 +112,7 @@
       <LastGenOutput>生成实体类.log</LastGenOutput>
     </None>
   </ItemGroup>
-
   <ItemGroup>
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
-
 </Project>

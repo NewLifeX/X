@@ -58,6 +58,7 @@ namespace XCode.DataAccessLayer
     {
         #region 属性
         private String ConnName => Database.ConnName;
+
         #endregion
 
         #region 反向工程
@@ -823,7 +824,6 @@ namespace XCode.DataAccessLayer
         public virtual String CreateTableSQL(IDataTable table)
         {
             var fs = new List<IDataColumn>(table.Columns);
-
             var sb = new StringBuilder();
 
             sb.AppendFormat("Create Table {0}(", FormatName(table.TableName));
@@ -840,7 +840,10 @@ namespace XCode.DataAccessLayer
             return sb.ToString();
         }
 
-        public virtual String DropTableSQL(IDataTable table) => $"Drop Table {FormatName(table.TableName)}";
+        public virtual String DropTableSQL(IDataTable table)
+        {
+            return $"Drop Table {FormatName(table.TableName)}";
+        }
 
         public virtual String TableExistSQL(IDataTable table) => throw new NotSupportedException("该功能未实现！");
 
@@ -852,7 +855,7 @@ namespace XCode.DataAccessLayer
 
         public virtual String AlterColumnSQL(IDataColumn field, IDataColumn oldfield) => $"Alter Table {FormatName(field.Table.TableName)} Alter Column {FieldClause(field, false)}";
 
-        public virtual String DropColumnSQL(IDataColumn field) => $"Alter Table {FormatName(field.Table.TableName)} Drop Column {field.ColumnName}";
+        public virtual String DropColumnSQL(IDataColumn field) => $"Alter Table {FormatName(field.Table.TableName)} Drop Column {FormatName(field.ColumnName)}";
 
         public virtual String AddColumnDescriptionSQL(IDataColumn field) => null;
 

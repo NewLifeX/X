@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
   <PropertyGroup>
     <TargetFrameworks>net40;net45;net46;netstandard2.0</TargetFrameworks>
     <AssemblyName>NewLife.Core</AssemblyName>
@@ -7,8 +7,8 @@
     <Description>算法、日志、网络、RPC、序列化、缓存、Windows服务、线程池</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2019 新生命开发团队</Copyright>
-    <Version>8.4.2019.1109</Version>
-    <FileVersion>8.4.2019.1109</FileVersion>
+    <Version>8.4.2019.1203</Version>
+    <FileVersion>8.4.2019.1203</FileVersion>
     <AssemblyVersion>8.4.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <OutputPath>..\..\Bin</OutputPath>
@@ -19,7 +19,6 @@
     <LangVersion>latest</LangVersion>
     <!--<Nullable>enable</Nullable>-->
   </PropertyGroup>
-
   <PropertyGroup>
     <PackageId>$(AssemblyName)</PackageId>
     <Authors>$(Company)</Authors>
@@ -28,43 +27,35 @@
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
-    <PackageReleaseNotes>Agent独立</PackageReleaseNotes>
+    <PackageReleaseNotes>增加ApiHttpClient</PackageReleaseNotes>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSource>true</IncludeSource>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(TargetFramework)'=='net40'">
     <DefineConstants>$(DefineConstants);__WIN__;NET4</DefineConstants>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(TargetFramework)'=='net45'">
     <DefineConstants>$(DefineConstants);__WIN__;NET45</DefineConstants>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(TargetFramework)'=='net46'">
     <DefineConstants>$(DefineConstants);__WIN__;NET46</DefineConstants>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
     <DefineConstants>$(DefineConstants);__CORE__;STD20</DefineConstants>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(TargetFramework)'=='netstandard2.1'">
     <DefineConstants>$(DefineConstants);__CORE__;STD21</DefineConstants>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <DefineConstants>$(DefineConstants);DEBUG</DefineConstants>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
     <!--<GeneratePackageOnBuild>true</GeneratePackageOnBuild>-->
   </PropertyGroup>
-
   <ItemGroup Condition="'$(TargetFramework)'=='net45' Or '$(TargetFramework)'=='net46'">
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.Net.Http" />
@@ -75,7 +66,6 @@
     <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="System.Management" />
   </ItemGroup>
-
   <ItemGroup Condition="'$(TargetFramework)'=='net40'">
     <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Web" />
@@ -84,13 +74,11 @@
     <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="System.Management" />
   </ItemGroup>
-
   <ItemGroup>
     <Compile Remove="Agent\**" />
     <EmbeddedResource Remove="Agent\**" />
     <None Remove="Agent\**" />
   </ItemGroup>
-
   <ItemGroup>
     <Compile Remove="Http\HttpClient.cs" />
     <Compile Remove="Http\HttpSession.cs" />
@@ -105,20 +93,16 @@
     <Compile Remove="Windows\MySpeech.cs" />
     <Compile Remove="发布NuGet.cs" />
   </ItemGroup>
-
   <ItemGroup>
     <None Remove="UpdateInfo.txt" />
     <None Remove="X组件.txt" />
   </ItemGroup>
-
   <ItemGroup>
     <None Include="..\Doc\logo.ico" Link="logo.ico" Pack="true" PackagePath="\" />
   </ItemGroup>
-
   <ItemGroup>
     <EmbeddedResource Include="UpdateInfo.txt" />
     <EmbeddedResource Include="Windows\MySpeech.cs" />
     <EmbeddedResource Include="X组件.txt" />
   </ItemGroup>
-
 </Project>

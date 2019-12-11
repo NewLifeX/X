@@ -117,6 +117,9 @@ namespace NewLife.Web
             var client = type?.CreateInstance() as OAuthClient ?? new OAuthClient();
             client.Apply(name);
 
+            // NewLife支持注销
+            if (name.EqualIgnoreCase("NewLife") && client.LogoutUrl.IsNullOrEmpty()) client.LogoutUrl = "logout?client_id={key}&redirect_uri={redirect}&state={state}";
+
             return client;
         }
         #endregion
@@ -276,6 +279,9 @@ namespace NewLife.Web
 
         /// <summary>头像</summary>
         public String Avatar { get; set; }
+
+        /// <summary>明细</summary>
+        public String Detail { get; set; }
 
         /// <summary>获取用户信息</summary>
         /// <returns></returns>

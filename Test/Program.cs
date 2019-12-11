@@ -5,6 +5,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
@@ -33,6 +34,7 @@ namespace Test
     {
         private static void Main(String[] args)
         {
+            MachineInfo.RegisterAsync();
             //XTrace.Log = new NetworkLog();
             XTrace.UseConsole();
 #if DEBUG
@@ -45,7 +47,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test7();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -64,22 +66,39 @@ namespace Test
             }
         }
 
-        static async void Test1()
+        static void Test1()
         {
-            var ip = "180.165.235.0".IPToAddress();
-            Console.WriteLine(ip);
+            //var ip = "180.165.235.0".IPToAddress();
+            //XTrace.WriteLine(ip);
 
             var mi = new MachineInfo();
+            mi.Init();
 
             foreach (var pi in mi.GetType().GetProperties())
             {
-                Console.WriteLine("{0}:\t{1}", pi.Name, mi.GetValue(pi));
+                XTrace.WriteLine("{0}:\t{1}", pi.Name, mi.GetValue(pi));
             }
+
+            Console.WriteLine();
+
+#if __CORE__
+            foreach (var pi in typeof(RuntimeInformation).GetProperties())
+            {
+                XTrace.WriteLine("{0}:\t{1}", pi.Name, pi.GetValue(null));
+            }
+#endif
+
+            //Console.WriteLine();
+
+            //foreach (var pi in typeof(Environment).GetProperties())
+            //{
+            //    XTrace.WriteLine("{0}:\t{1}", pi.Name, pi.GetValue(null));
+            //}
 
             Console.ReadKey();
         }
 
-        static void Test2()
+        static async void Test2()
         {
             //var uri = new Uri("http://www.newlifex.com");
             //var client = new TinyHttpClient();
@@ -93,10 +112,10 @@ namespace Test
             var client = new HttpClient();
             client.BaseAddress = new Uri("http://feifan.link:2233");
 
-            var rs = client.Invoke<Object>("api/info");
+            var rs = await client.GetAsync<Object>("api/info");
             Console.WriteLine(rs.ToJson(true));
 
-            rs = client.Invoke<Object>("api/info3", rs);
+            rs = await client.PostAsync<Object>("api/info3", rs);
             Console.WriteLine(rs.ToJson(true));
         }
 
@@ -239,6 +258,7 @@ namespace Test
                     break;
                 case '3':
                     ch = Redis.Create("127.0.0.1", 9);
+                    //(ch as Redis).Log = XTrace.Log;
                     break;
             }
 
@@ -249,7 +269,10 @@ namespace Test
 
             Console.Clear();
 
-            ch.Bench(mode);
+            var batch = 0;
+            if (mode) batch = 100;
+
+            ch.Bench(mode, batch);
         }
 
         static void Test5()
@@ -337,7 +360,6 @@ namespace Test
             //Console.WriteLine("Execute={0}", es);
         }
 
-        private static NetServer _netServer;
         static void Test6()
         {
             var pfx = new X509Certificate2("../newlife.pfx", "newlife");
@@ -385,6 +407,7 @@ namespace Test
 
             Console.ReadLine();
         }
+
         static void Test7()
         {
             Role.Meta.Session.Dal.Db.ShowSQL = true;

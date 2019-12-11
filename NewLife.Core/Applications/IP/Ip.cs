@@ -20,7 +20,7 @@ namespace NewLife.IP
 
         static Ip()
         {
-            var dir = Runtime.IsWeb ? "..\\Data" : ".";
+            var dir = Runtime.IsWeb ? "..\\Data" : "Data";
             var ip = dir.CombinePath("ip.gz").GetFullPath();
             if (File.Exists(ip)) DbFile = ip;
 

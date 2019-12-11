@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace NewLife.Web.OAuth
 {
-    /// <summary>身份验证提供者</summary>
+    /// <summary>百度身份验证提供者</summary>
     public class BaiduClient : OAuthClient
     {
         /// <summary>实例化</summary>
@@ -26,6 +26,7 @@ namespace NewLife.Web.OAuth
             if (dic.ContainsKey("uid")) UserID = dic["uid"].Trim().ToLong();
             if (dic.ContainsKey("uname")) UserName = dic["uname"].Trim();
             if (dic.ContainsKey("realname")) NickName = dic["realname"].Trim();
+            if (dic.ContainsKey("userdetail")) Detail = dic["userdetail"].Trim();
 
             // 修改性别数据，1男0女，而本地是1男2女
             if (dic.TryGetValue("sex", out var str) && str.ToInt() == 0) dic["sex"] = "2";
@@ -33,6 +34,9 @@ namespace NewLife.Web.OAuth
             // small image: http://tb.himg.baidu.com/sys/portraitn/item/{$portrait}
             // large image: http://tb.himg.baidu.com/sys/portrait/item/{$portrait}
             if (dic.ContainsKey("portrait")) Avatar = "http://tb.himg.baidu.com/sys/portrait/item/" + dic["portrait"].Trim();
+
+            // 百度升级协议后，用户名带有星号，不能要
+            if (!UserName.IsNullOrEmpty() && UserName.Contains("*")) UserName = null;
         }
 
         ///// <summary>根据授权码获取访问令牌</summary>

@@ -32,7 +32,7 @@ namespace NewLife.Log
             _Timer = new TimerX(s => CloseFile(), null, 5_000, 5_000) { Async = true };
         }
 
-        static ConcurrentDictionary<String, TextFileLog> cache = new ConcurrentDictionary<String, TextFileLog>(StringComparer.OrdinalIgnoreCase);
+        static readonly ConcurrentDictionary<String, TextFileLog> cache = new ConcurrentDictionary<String, TextFileLog>(StringComparer.OrdinalIgnoreCase);
         /// <summary>每个目录的日志实例应该只有一个，所以采用静态创建</summary>
         /// <param name="path">日志目录或日志文件路径</param>
         /// <param name="fileFormat"></param>
@@ -57,7 +57,11 @@ namespace NewLife.Log
         }
 
         /// <summary>销毁</summary>
-        public void Dispose()
+        public void Dispose() { Dispose(true); GC.SuppressFinalize(this); }
+
+        /// <summary>销毁</summary>
+        /// <param name="disposing"></param>
+        protected virtual void Dispose(Boolean disposing)
         {
             _Timer.TryDispose();
 

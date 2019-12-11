@@ -175,8 +175,8 @@ namespace XCode.Membership
 
             if (user == null) return SetStatus(sessionid, page, status, 0, null, ip);
 
-            if (user is IAuthUser user2) user2.Online = true;
-            (user as IEntity).SaveAsync(1000);
+            //if (user is IAuthUser user2) user2.Online = true;
+            //(user as IEntity).SaveAsync(1000);
 
             return SetStatus(sessionid, page, status, user.ID, user + "", ip);
         }
@@ -193,16 +193,16 @@ namespace XCode.Membership
             var list = FindAll(exp, null, null, 0, 0);
             list.Delete();
 
-            // 设置离线
-            foreach (var item in list)
-            {
-                var user = ManageProvider.Provider.FindByID(item.UserID);
-                if (user is IAuthUser user2)
-                {
-                    user2.Online = false;
-                    user2.Save();
-                }
-            }
+            //// 设置离线
+            //foreach (var item in list)
+            //{
+            //    var user = ManageProvider.Provider.FindByID(item.UserID);
+            //    if (user is IAuthUser user2)
+            //    {
+            //        user2.Online = false;
+            //        user2.Save();
+            //    }
+            //}
 
             return list;
         }

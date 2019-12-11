@@ -1,8 +1,8 @@
 ﻿using System;
 using System.ComponentModel;
-using System.IO;
 using System.Reflection;
 using System.Runtime;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace NewLife.Log
@@ -15,27 +15,27 @@ namespace NewLife.Log
         /// <summary>调试日志</summary>
         /// <param name="format">格式化字符串</param>
         /// <param name="args">格式化参数</param>
-        public virtual void Debug(String format, params Object[] args) { Write(LogLevel.Debug, format, args); }
+        public virtual void Debug(String format, params Object[] args) => Write(LogLevel.Debug, format, args);
 
         /// <summary>信息日志</summary>
         /// <param name="format">格式化字符串</param>
         /// <param name="args">格式化参数</param>
-        public virtual void Info(String format, params Object[] args) { Write(LogLevel.Info, format, args); }
+        public virtual void Info(String format, params Object[] args) => Write(LogLevel.Info, format, args);
 
         /// <summary>警告日志</summary>
         /// <param name="format">格式化字符串</param>
         /// <param name="args">格式化参数</param>
-        public virtual void Warn(String format, params Object[] args) { Write(LogLevel.Warn, format, args); }
+        public virtual void Warn(String format, params Object[] args) => Write(LogLevel.Warn, format, args);
 
         /// <summary>错误日志</summary>
         /// <param name="format">格式化字符串</param>
         /// <param name="args">格式化参数</param>
-        public virtual void Error(String format, params Object[] args) { Write(LogLevel.Error, format, args); }
+        public virtual void Error(String format, params Object[] args) => Write(LogLevel.Error, format, args);
 
         /// <summary>严重错误日志</summary>
         /// <param name="format">格式化字符串</param>
         /// <param name="args">格式化参数</param>
-        public virtual void Fatal(String format, params Object[] args) { Write(LogLevel.Fatal, format, args); }
+        public virtual void Fatal(String format, params Object[] args) => Write(LogLevel.Fatal, format, args);
         #endregion
 
         #region 核心方法
@@ -153,6 +153,9 @@ namespace NewLife.Log
                 var tar = asm.GetCustomAttribute<System.Runtime.Versioning.TargetFrameworkAttribute>();
                 if (tar != null) ver = tar.FrameworkDisplayName ?? tar.FrameworkName;
             }
+#if __CORE__
+            ver = RuntimeInformation.FrameworkDescription;
+#endif
             if (String.IsNullOrEmpty(name))
             {
                 try
@@ -212,25 +215,29 @@ namespace NewLife.Log
             sb.AppendFormat("#ApplicationType: {0}\r\n", apptype);
             sb.AppendFormat("#CLR: {0}, {1}\r\n", Environment.Version, ver);
 
-            var os = Environment.OSVersion + "";
-            if (Runtime.Linux)
+            var os = "";
+            // 获取丰富的机器信息，需要提注册 MachineInfo.RegisterAsync
+            var mi = MachineInfo.Current;
+            if (mi != null)
+            {
+                os = mi.OSName + " " + mi.OSVersion;
+            }
+            else
             {
                 // 特别识别Linux发行版
-                var fr = "/etc/redhat-release";
-                var dr = "/etc/debian-release";
-                if (File.Exists(fr))
-                    os = File.ReadAllText(fr).Trim();
-                else if (File.Exists(dr))
-                    os = File.ReadAllText(dr).Trim();
-                else
-                {
-                    var sr = "/etc/os-release";
-                    if (File.Exists(sr)) os = File.ReadAllText(sr).SplitAsDictionary("=", "\n", true)["PRETTY_NAME"].Trim();
-                }
+                os = Environment.OSVersion + "";
+                if (Runtime.Linux) os = MachineInfo.GetLinuxName();
             }
 
             sb.AppendFormat("#OS: {0}, {1}/{2}\r\n", os, Environment.MachineName, Environment.UserName);
-            sb.AppendFormat("#CPU: {0}\r\n", System.Environment.ProcessorCount);
+            sb.AppendFormat("#CPU: {0}\r\n", Environment.ProcessorCount);
+            if (mi != null)
+            {
+                sb.AppendFormat("#Memory: {0:n0}M/{1:n0}M\r\n", mi.AvailableMemory / 1024 / 1024, mi.Memory / 1024 / 1024);
+                sb.AppendFormat("#Processor: {0}\r\n", mi.Processor);
+                sb.AppendFormat("#Temperature: {0}\r\n", mi.Temperature);
+
+            }
             sb.AppendFormat("#GC: IsServerGC={0}, LatencyMode={1}\r\n", GCSettings.IsServerGC, GCSettings.LatencyMode);
 
             sb.AppendFormat("#Date: {0:yyyy-MM-dd}\r\n", DateTime.Now);
