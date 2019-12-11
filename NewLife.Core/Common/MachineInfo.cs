@@ -31,6 +31,9 @@ namespace NewLife
         /// <summary>系统版本</summary>
         public String OSVersion { get; set; }
 
+        /// <summary>产品名称。制造商</summary>
+        public String Product { get; set; }
+
         /// <summary>处理器序列号</summary>
         public String Processor { get; set; }
 
@@ -120,20 +123,47 @@ namespace NewLife
 
             if (Runtime.Windows)
             {
-                var str = Execute("wmic", "cpu get ProcessorId");
-                if (!str.IsNullOrEmpty()) CpuID = str.TrimStart("ProcessorId").Trim();
+                var str = "";
 
-                str = Execute("wmic", "cpu get name");
-                if (!str.IsNullOrEmpty()) Processor = str.TrimStart("Name").Trim();
+                var os = ReadWmic("os", "Caption", "Version");
+                if (os != null)
+                {
+                    if (os.TryGetValue("Caption", out str)) OSName = str.TrimStart("Microsoft").Trim();
+                    if (os.TryGetValue("Version", out str)) OSVersion = str;
+                }
 
-                str = Execute("wmic", "csproduct get UUID");
-                if (!str.IsNullOrEmpty()) UUID = str.TrimStart("UUID").Trim();
+                var csproduct = ReadWmic("csproduct", "Name", "UUID");
+                if (csproduct != null)
+                {
+                    if (csproduct.TryGetValue("Name", out str)) Product = str;
+                    if (csproduct.TryGetValue("UUID", out str)) UUID = str;
+                }
 
-                str = Execute("wmic", "os get Caption");
-                if (!str.IsNullOrEmpty()) OSName = str.TrimStart("Caption").TrimStart("Microsoft").Trim();
+                var cpu = ReadWmic("cpu", "Name", "ProcessorId", "LoadPercentage");
+                if (cpu != null)
+                {
+                    if (cpu.TryGetValue("Name", out str)) Processor = str;
+                    if (cpu.TryGetValue("ProcessorId", out str)) CpuID = str;
+                    if (cpu.TryGetValue("LoadPercentage", out str)) CpuRate = (Single)(str.ToDouble() / 100);
+                }
 
-                str = Execute("wmic", "os get Version");
-                if (!str.IsNullOrEmpty()) OSVersion = str.TrimStart("Version").Trim();
+                //str = Execute("wmic", "cpu get ProcessorId");
+                //if (!str.IsNullOrEmpty()) CpuID = str.TrimStart("ProcessorId").Trim();
+
+                //str = Execute("wmic", "cpu get name");
+                //if (!str.IsNullOrEmpty()) Processor = str.TrimStart("Name").Trim();
+
+                //str = Execute("wmic", "csproduct get UUID");
+                //if (!str.IsNullOrEmpty()) UUID = str.TrimStart("UUID").Trim();
+
+                //str = Execute("wmic", "csproduct get Name");
+                //if (!str.IsNullOrEmpty()) Product = str.TrimStart("Name").Trim();
+
+                //str = Execute("wmic", "os get Caption");
+                //if (!str.IsNullOrEmpty()) OSName = str.TrimStart("Caption").TrimStart("Microsoft").Trim();
+
+                //str = Execute("wmic", "os get Version");
+                //if (!str.IsNullOrEmpty()) OSVersion = str.TrimStart("Version").Trim();
 
                 MEMORYSTATUSEX ms = default;
                 ms.Init();
@@ -213,6 +243,7 @@ namespace NewLife
             Processor = GetInfo("Win32_Processor", "Name");
             CpuID = GetInfo("Win32_Processor", "ProcessorId");
             UUID = GetInfo("Win32_ComputerSystemProduct", "UUID");
+            Product = GetInfo("Win32_ComputerSystemProduct", "Name");
 
             // 读取主板温度，不太准。标准方案是ring0通过IOPort读取CPU温度，太难在基础类库实现
             var str = GetInfo("MSAcpi_ThermalZoneTemperature", "CurrentTemperature");
@@ -285,6 +316,20 @@ namespace NewLife
             catch { return null; }
         }
 
+        /// <summary>通过WMIC命令读取信息</summary>
+        /// <param name="type"></param>
+        /// <param name="keys"></param>
+        /// <returns></returns>
+        public static IDictionary<String, String> ReadWmic(String type, params String[] keys)
+        {
+            var dic = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+
+            var args = $"{type} get {keys.Join(",")} /format:list";
+            var str = Execute("wmic", args);
+            if (str.IsNullOrEmpty()) return dic;
+
+            return str.SplitAsDictionary("=", Environment.NewLine);
+        }
         #endregion
 
         #region 内存
