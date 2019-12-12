@@ -76,7 +76,7 @@ namespace NewLife.Net
 
             var web = CreateClient();
             var html = web.GetHtml(url);
-            var links = Link.Parse(html, url, item => item.Name.EqualIgnoreCase(Name));
+            var links = Link.Parse(html, url, item => item.Name.ToLower().Contains(Name.ToLower())); 
             if (links == null || links.Length == 0)
             {
                 WriteLog("找不到资源包");
