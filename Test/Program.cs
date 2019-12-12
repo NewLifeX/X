@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
-using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
@@ -12,8 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using NewLife;
 using NewLife.Caching;
-using NewLife.Core.Collections;
-using NewLife.Http;
 using NewLife.Log;
 using NewLife.Net;
 using NewLife.Reflection;
@@ -49,7 +45,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test1();
+                    Test7();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -111,14 +107,14 @@ namespace Test
             //Console.WriteLine(uri);
             //Console.WriteLine(client.BaseAddress == uri);
 
-            var client = new HttpClient();
-            client.BaseAddress = new Uri("http://feifan.link:2233");
+            //var client = new HttpClient();
+            //client.BaseAddress = new Uri("http://feifan.link:2233");
 
-            var rs = await client.GetAsync<Object>("api/info");
-            Console.WriteLine(rs.ToJson(true));
+            //var rs = await client.GetAsync<Object>("api/info");
+            //Console.WriteLine(rs.ToJson(true));
 
-            rs = await client.PostAsync<Object>("api/info3", rs);
-            Console.WriteLine(rs.ToJson(true));
+            //rs = await client.PostAsync<Object>("api/info3", rs);
+            //Console.WriteLine(rs.ToJson(true));
         }
 
         static void Test3()
@@ -412,6 +408,12 @@ namespace Test
 
         static void Test7()
         {
+#if __CORE__
+            XTrace.WriteLine(RuntimeInformation.OSDescription);
+#endif
+
+            DAL.AddConnStr("membership", "Server=10.0.0.3;Port=3306;Database=Membership;Uid=root;Pwd=Pass@word;", null, "mysql");
+
             Role.Meta.Session.Dal.Db.ShowSQL = true;
             Role.Meta.Session.Dal.Expire = 10;
             //Role.Meta.Session.Dal.Db.Readonly = true;

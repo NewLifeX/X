@@ -407,7 +407,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        [DllImport("kernel32.dll")]
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
         static extern Int32 SetDllDirectory(String pathName);
         #endregion
 
