@@ -45,7 +45,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test7();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -412,7 +412,7 @@ namespace Test
             XTrace.WriteLine(RuntimeInformation.OSDescription);
 #endif
 
-            DAL.AddConnStr("membership", "Server=10.0.0.3;Port=3306;Database=Membership;Uid=root;Pwd=Pass@word;", null, "mysql");
+            //DAL.AddConnStr("membership", "Server=10.0.0.3;Port=3306;Database=Membership;Uid=root;Pwd=Pass@word;", null, "mysql");
 
             Role.Meta.Session.Dal.Db.ShowSQL = true;
             Role.Meta.Session.Dal.Expire = 10;
