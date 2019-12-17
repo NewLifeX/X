@@ -940,10 +940,13 @@ namespace System
                 p.BeginErrorReadLine();
             }
 
-            if (msWait <= 0) return -1;
+            if (msWait == 0) return -1;
 
             // 如果未退出，则不能拿到退出代码
-            if (!p.WaitForExit(msWait)) return -1;
+            if (msWait < 0)
+                p.WaitForExit();
+            else if (!p.WaitForExit(msWait))
+                return -1;
 
             return p.ExitCode;
         }
