@@ -32,7 +32,7 @@ namespace Test
         {
             Environment.SetEnvironmentVariable("DOTNET_SYSTEM_GLOBALIZATION_INVARIANT", "1");
 
-            MachineInfo.RegisterAsync();
+            MachineInfo.RegisterAsync(5_000);
             //XTrace.Log = new NetworkLog();
             XTrace.UseConsole();
 #if DEBUG
@@ -92,6 +92,13 @@ namespace Test
             //{
             //    XTrace.WriteLine("{0}:\t{1}", pi.Name, pi.GetValue(null));
             //}
+
+            mi = MachineInfo.Current;
+            for (var i = 0; i < 100; i++)
+            {
+                XTrace.WriteLine("{0} {1} {2}", mi.CpuRate, mi.Temperature, (Double)mi.AvailableMemory / 1024 / 1024);
+                Thread.Sleep(1000);
+            }
 
             Console.ReadKey();
         }

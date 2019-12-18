@@ -10,6 +10,7 @@ using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Serialization;
+using NewLife.Threading;
 #if __WIN__
 using System.Management;
 using Microsoft.VisualBasic.Devices;
@@ -48,25 +49,21 @@ namespace NewLife
 
         /// <summary>内存总量</summary>
         public UInt64 Memory { get; set; }
-
-#if __WIN__
-        private ComputerInfo _cinfo;
-        /// <summary>可用内存</summary>
-        public UInt64 AvailableMemory => _cinfo.AvailablePhysicalMemory;
-
-        private PerformanceCounter _cpuCounter;
-        /// <summary>CPU占用率</summary>
-        public Single CpuRate => _cpuCounter == null ? 0 : (_cpuCounter.NextValue() / 100);
-#else
         /// <summary>可用内存</summary>
         public UInt64 AvailableMemory { get; private set; }
 
         /// <summary>CPU占用率</summary>
         public Single CpuRate { get; private set; }
-#endif
 
         /// <summary>温度</summary>
         public Double Temperature { get; set; }
+
+#if __WIN__
+        private ComputerInfo _cinfo;
+        private PerformanceCounter _cpuCounter;
+#endif
+
+        private TimerX _timer;
         #endregion
 
         #region 构造
@@ -77,8 +74,9 @@ namespace NewLife
         public static MachineInfo Current { get; set; }
 
         /// <summary>异步注册一个初始化后的机器信息实例</summary>
+        /// <param name="msRefresh">定时刷新实时数据，默认0ms不刷新</param>
         /// <returns></returns>
-        public static Task<MachineInfo> RegisterAsync()
+        public static Task<MachineInfo> RegisterAsync(Int32 msRefresh = 0)
         {
             return Task.Factory.StartNew(() =>
             {
@@ -97,6 +95,9 @@ namespace NewLife
 
                 mi.Init();
                 File.WriteAllText(file.EnsureDirectory(true), mi.ToJson(true));
+
+                // 定时刷新
+                if (msRefresh > 0) mi._timer = new TimerX(s => mi.GetRuntime(), null, msRefresh, msRefresh) { Async = true };
 
                 Current = mi;
 
@@ -139,21 +140,21 @@ namespace NewLife
                     if (csproduct.TryGetValue("UUID", out str)) UUID = str;
                 }
 
-                var cpu = ReadWmic("cpu", "Name", "ProcessorId", "LoadPercentage");
-                if (cpu != null)
-                {
-                    if (cpu.TryGetValue("Name", out str)) Processor = str;
-                    if (cpu.TryGetValue("ProcessorId", out str)) CpuID = str;
-                    if (cpu.TryGetValue("LoadPercentage", out str)) CpuRate = (Single)(str.ToDouble() / 100);
-                }
+                //var cpu = ReadWmic("cpu", "Name", "ProcessorId", "LoadPercentage");
+                //if (cpu != null)
+                //{
+                //    if (cpu.TryGetValue("Name", out str)) Processor = str;
+                //    if (cpu.TryGetValue("ProcessorId", out str)) CpuID = str;
+                //    if (cpu.TryGetValue("LoadPercentage", out str)) CpuRate = (Single)(str.ToDouble() / 100);
+                //}
 
-                MEMORYSTATUSEX ms = default;
-                ms.Init();
-                if (GlobalMemoryStatusEx(ref ms))
-                {
-                    Memory = ms.ullTotalPhys;
-                    AvailableMemory = ms.ullAvailPhys;
-                }
+                //MEMORYSTATUSEX ms = default;
+                //ms.Init();
+                //if (GlobalMemoryStatusEx(ref ms))
+                //{
+                //    Memory = ms.ullTotalPhys;
+                //    AvailableMemory = ms.ullAvailPhys;
+                //}
             }
             // 特别识别Linux发行版
             else if (Runtime.Linux)
@@ -174,23 +175,23 @@ namespace NewLife
                     if (dic.TryGetValue("Serial", out str)) CpuID = str;
                 }
 
-                dic = ReadInfo("/proc/meminfo");
-                if (dic != null)
-                {
-                    if (dic.TryGetValue("MemTotal", out str))
-                        Memory = (UInt64)str.TrimEnd(" kB").ToInt() * 1024;
+                //dic = ReadInfo("/proc/meminfo");
+                //if (dic != null)
+                //{
+                //    if (dic.TryGetValue("MemTotal", out str))
+                //        Memory = (UInt64)str.TrimEnd(" kB").ToInt() * 1024;
 
-                    if (dic.TryGetValue("MemAvailable", out str) ||
-                        dic.TryGetValue("MemFree", out str))
-                        AvailableMemory = (UInt64)str.TrimEnd(" kB").ToInt() * 1024;
-                }
+                //    if (dic.TryGetValue("MemAvailable", out str) ||
+                //        dic.TryGetValue("MemFree", out str))
+                //        AvailableMemory = (UInt64)str.TrimEnd(" kB").ToInt() * 1024;
+                //}
 
                 var mid = "/etc/machine-id";
                 if (!File.Exists(mid)) mid = "/var/lib/dbus/machine-id";
                 if (File.Exists(mid)) Guid = File.ReadAllText(mid).Trim();
 
-                var file = "/sys/class/thermal/thermal_zone0/temp";
-                if (File.Exists(file)) Temperature = File.ReadAllText(file).Trim().ToDouble() / 1000;
+                //var file = "/sys/class/thermal/thermal_zone0/temp";
+                //if (File.Exists(file)) Temperature = File.ReadAllText(file).Trim().ToDouble() / 1000;
 
                 var dmi = Execute("dmidecode")?.SplitAsDictionary(":", "\n");
                 if (dmi != null)
@@ -201,12 +202,12 @@ namespace NewLife
                     //if (TryFind(dmi, new[] { "Serial Number" }, out str)) Guid = str;
                 }
 
-                var upt = Execute("uptime");
-                if (!upt.IsNullOrEmpty())
-                {
-                    str = upt.Substring("load average:");
-                    if (!str.IsNullOrEmpty()) CpuRate = (Single)str.Split(",")[0].ToDouble();
-                }
+                //var upt = Execute("uptime");
+                //if (!upt.IsNullOrEmpty())
+                //{
+                //    str = upt.Substring("load average:");
+                //    if (!str.IsNullOrEmpty()) CpuRate = (Single)str.Split(",")[0].ToDouble();
+                //}
             }
 #else
             // 性能计数器的初始化非常耗时
@@ -242,6 +243,64 @@ namespace NewLife
             // 读取主板温度，不太准。标准方案是ring0通过IOPort读取CPU温度，太难在基础类库实现
             var str = GetInfo("MSAcpi_ThermalZoneTemperature", "CurrentTemperature");
             if (!str.IsNullOrEmpty()) Temperature = (str.ToDouble() - 2732) / 10.0;
+#endif
+
+            GetRuntime();
+        }
+
+        /// <summary>获取实时数据，如CPU、内存、温度</summary>
+        private void GetRuntime()
+        {
+#if __CORE__
+            if (Runtime.Windows)
+            {
+                var str = "";
+
+                var cpu = ReadWmic("cpu", "Name", "ProcessorId", "LoadPercentage");
+                if (cpu != null)
+                {
+                    if (cpu.TryGetValue("Name", out str)) Processor = str;
+                    if (cpu.TryGetValue("ProcessorId", out str)) CpuID = str;
+                    if (cpu.TryGetValue("LoadPercentage", out str)) CpuRate = (Single)(str.ToDouble() / 100);
+                }
+
+                MEMORYSTATUSEX ms = default;
+                ms.Init();
+                if (GlobalMemoryStatusEx(ref ms))
+                {
+                    Memory = ms.ullTotalPhys;
+                    AvailableMemory = ms.ullAvailPhys;
+                }
+            }
+            // 特别识别Linux发行版
+            else if (Runtime.Linux)
+            {
+                var str = "";
+
+                var dic = ReadInfo("/proc/meminfo");
+                if (dic != null)
+                {
+                    if (dic.TryGetValue("MemTotal", out str))
+                        Memory = (UInt64)str.TrimEnd(" kB").ToInt() * 1024;
+
+                    if (dic.TryGetValue("MemAvailable", out str) ||
+                        dic.TryGetValue("MemFree", out str))
+                        AvailableMemory = (UInt64)str.TrimEnd(" kB").ToInt() * 1024;
+                }
+
+                var file = "/sys/class/thermal/thermal_zone0/temp";
+                if (File.Exists(file)) Temperature = File.ReadAllText(file).Trim().ToDouble() / 1000;
+
+                var upt = Execute("uptime");
+                if (!upt.IsNullOrEmpty())
+                {
+                    str = upt.Substring("load average:");
+                    if (!str.IsNullOrEmpty()) CpuRate = (Single)str.Split(",")[0].ToDouble();
+                }
+            }
+#else
+            AvailableMemory = _cinfo.AvailablePhysicalMemory;
+            CpuRate = _cpuCounter == null ? 0 : (_cpuCounter.NextValue() / 100);
 #endif
         }
         #endregion
