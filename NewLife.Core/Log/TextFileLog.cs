@@ -181,6 +181,7 @@ namespace NewLife.Log
         #region 异步写日志
         private readonly TimerX _Timer;
         private readonly ConcurrentQueue<String> _Logs = new ConcurrentQueue<String>();
+        private volatile Int32 _logCount;
         private Int32 _writing;
         private DateTime _NextClose;
 
@@ -202,6 +203,8 @@ namespace NewLife.Log
 
             while (_Logs.TryDequeue(out var str))
             {
+                Interlocked.Decrement(ref _logCount);
+
                 // 写日志
                 writer.WriteLine(str);
             }
@@ -244,6 +247,9 @@ namespace NewLife.Log
         /// <param name="args"></param>
         protected override void OnWrite(LogLevel level, String format, params Object[] args)
         {
+            // 据@夏玉龙反馈，如果不给Log目录写入权限，日志队列积压将会导致内存暴增
+            if (_logCount > 100) return;
+
             var e = WriteLogEventArgs.Current.Set(level);
             // 特殊处理异常对象
             if (args != null && args.Length == 1 && args[0] is Exception ex && (format.IsNullOrEmpty() || format == "{0}"))
@@ -253,6 +259,7 @@ namespace NewLife.Log
 
             // 推入队列
             _Logs.Enqueue(e.ToString());
+            Interlocked.Increment(ref _logCount);
 
             // 异步写日志
             if (Interlocked.CompareExchange(ref _writing, 1, 0) == 0)
