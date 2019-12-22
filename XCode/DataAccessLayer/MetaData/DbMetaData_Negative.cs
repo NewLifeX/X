@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using NewLife.Reflection;
 using NewLife.Security;
 
@@ -263,7 +264,8 @@ namespace XCode.DataAccessLayer
                 }
                 if (IsColumnChanged(item, dbf, entityDb)) PerformSchema(sb, noDelete, DDLSchema.AlterColumn, item, dbf);
 
-                if (item.Description + "" != dbf.Description + "")
+                //if (item.Description + "" != dbf.Description + "")
+                if (FormatDescription(item.Description) != FormatDescription(dbf.Description))
                 {
                     // 先删除旧注释
                     //if (dbf.Description != null) PerformSchema(sb, noDelete, DDLSchema.DropColumnDescription, dbf);
@@ -290,7 +292,8 @@ namespace XCode.DataAccessLayer
             var sb = new StringBuilder();
 
             #region 表说明
-            if (entitytable.Description + "" != dbtable.Description + "")
+            //if (entitytable.Description + "" != dbtable.Description + "")
+            if (FormatDescription(entitytable.Description) != FormatDescription(dbtable.Description))
             {
                 //// 先删除旧注释
                 //if (!String.IsNullOrEmpty(dbtable.Description)) PerformSchema(sb, onlySql, DDLSchema.DropTableDescription, dbtable);
@@ -352,6 +355,18 @@ namespace XCode.DataAccessLayer
             return sb.ToString();
         }
 
+        /// <summary>格式化注释，去除所有非单词字符</summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        private String FormatDescription(String str)
+        {
+            if (str.IsNullOrWhiteSpace()) return null;
+
+            return Regex.Replace(
+                str.Replace("\r\n", " ").Replace("\n", " ").Replace("\\", "\\\\").Replace("'", "")
+                .Replace("\"", "").Replace("。", ""), @"\W", "");
+        }
+
         /// <summary>检查字段是否有改变，除了默认值和备注以外</summary>
         /// <param name="entityColumn"></param>
         /// <param name="dbColumn"></param>
@@ -367,14 +382,16 @@ namespace XCode.DataAccessLayer
             // 是否已改变
             var isChanged = false;
 
-            //仅针对字符串类型比较长度
+            // 仅针对字符串类型比较长度
             if (!isChanged && entityColumn.DataType == typeof(String) && entityColumn.Length != dbColumn.Length)
             {
                 isChanged = true;
 
-                //如果是大文本类型，长度可能不等
-                if ((entityColumn.Length > Database.LongTextLength || entityColumn.Length <= 0) &&
-                    (entityDb != null && dbColumn.Length > entityDb.LongTextLength || dbColumn.Length <= 0)) isChanged = false;
+                // 如果是大文本类型，长度可能不等
+                if ((entityColumn.Length > Database.LongTextLength || entityColumn.Length <= 0)
+                    && (entityDb != null && dbColumn.Length > entityDb.LongTextLength || dbColumn.Length <= 0)
+                    || dbColumn.RawType.EqualIgnoreCase("ntext", "text", "sysname"))
+                    isChanged = false;
             }
 
             return isChanged;
@@ -385,6 +402,7 @@ namespace XCode.DataAccessLayer
             var type = entityColumn.DataType;
             if (type.IsEnum) type = typeof(Int32);
             if (type == dbColumn.DataType) return false;
+            if (Nullable.GetUnderlyingType(type) == dbColumn.DataType) return false;
 
             //// 整型不做改变
             //if (type.IsInt() && dbColumn.DataType.IsInt()) return false;
@@ -840,10 +858,7 @@ namespace XCode.DataAccessLayer
             return sb.ToString();
         }
 
-        public virtual String DropTableSQL(IDataTable table)
-        {
-            return $"Drop Table {FormatName(table.TableName)}";
-        }
+        public virtual String DropTableSQL(IDataTable table) => $"Drop Table {FormatName(table.TableName)}";
 
         public virtual String TableExistSQL(IDataTable table) => throw new NotSupportedException("该功能未实现！");
 
