@@ -121,6 +121,7 @@ namespace NewLife
             var osv = Environment.OSVersion;
             OSVersion = osv.Version + "";
             OSName = (osv + "").TrimStart("Microsoft").TrimEnd(OSVersion).Trim();
+            Guid = "";
 
             if (Runtime.Windows)
             {
