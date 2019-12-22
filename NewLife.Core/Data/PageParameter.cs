@@ -69,8 +69,12 @@ namespace NewLife.Data
         {
             get
             {
+                // 如果PageSize小于等于0，则直接返回1
+                if (PageSize <= 0) return 1;
+
                 var count = TotalCount / PageSize;
                 if ((TotalCount % PageSize) != 0) count++;
+
                 return count;
             }
         }
