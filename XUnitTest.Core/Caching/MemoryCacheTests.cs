@@ -106,6 +106,10 @@ namespace NewLife.Caching.Tests
             ic.Set(key2, 456d);
             ic.Increment(key2, 22d);
             Assert.Equal(456d + 22d, ic.Get<Double>(key2));
+
+            ic.Set("cc", 3.14);
+            ic.Increment("cc", 0.3);
+            Assert.Equal(3.14 + 0.3, ic.Get<Double>("cc"));
         }
 
         [Fact(DisplayName = "复杂对象")]
