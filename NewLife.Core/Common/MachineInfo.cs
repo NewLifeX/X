@@ -97,7 +97,7 @@ namespace NewLife
                 File.WriteAllText(file.EnsureDirectory(true), mi.ToJson(true));
 
                 // 定时刷新
-                if (msRefresh > 0) mi._timer = new TimerX(s => mi.GetRuntime(), null, msRefresh, msRefresh) { Async = true };
+                if (msRefresh > 0) mi._timer = new TimerX(s => mi.Refresh(), null, msRefresh, msRefresh) { Async = true };
 
                 Current = mi;
 
@@ -246,11 +246,11 @@ namespace NewLife
             if (!str.IsNullOrEmpty()) Temperature = (str.ToDouble() - 2732) / 10.0;
 #endif
 
-            GetRuntime();
+            Refresh();
         }
 
         /// <summary>获取实时数据，如CPU、内存、温度</summary>
-        private void GetRuntime()
+        public void Refresh()
         {
 #if __CORE__
             if (Runtime.Windows)
