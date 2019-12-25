@@ -194,6 +194,11 @@ namespace NewLife
                 //var file = "/sys/class/thermal/thermal_zone0/temp";
                 //if (File.Exists(file)) Temperature = File.ReadAllText(file).Trim().ToDouble() / 1000;
 
+                var file = "/sys/class/dmi/id/product_uuid";
+                if (File.Exists(file)) UUID = File.ReadAllText(file).Trim();
+                file = "/sys/class/dmi/id/product_name";
+                if (File.Exists(file)) Product = File.ReadAllText(file).Trim();
+
                 var dmi = Execute("dmidecode")?.SplitAsDictionary(":", "\n");
                 if (dmi != null)
                 {
