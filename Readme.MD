@@ -1,13 +1,13 @@
 ![XCode](https://www.newlifex.com/logo.png)
 新生命团队基础框架X组件，包括`算法、日志、数据库、网络、RPC、序列化、缓存、Windows服务、多线程`等模块，支持`.Net Framework/.netstandard/Mono`。
 
-2002~2019，成千上万兄弟姐妹们努力的见证！  
+2002~2020，成千上万兄弟姐妹们努力的见证！  
 
 国内文档中心：[http://doc.newlifex.com/](http://doc.newlifex.com/)  
 国外文档中心：[https://newlifex.github.io/XDoc/](https://newlifex.github.io/XDoc/)  
 
 ## 新生命开源项目矩阵
-各项目默认支持net4.5/net4.0/netstandard2.0  
+各项目默认支持netstandard2.0/net4.5/net4.0/  
 
 |                               项目                               | 年份  |  状态  | .NET Core | 说明                                               |
 | :--------------------------------------------------------------: | :---: | :----: | :-------: | -------------------------------------------------- |
