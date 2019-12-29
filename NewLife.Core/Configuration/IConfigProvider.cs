@@ -13,6 +13,9 @@ namespace NewLife.Configuration
     /// </remarks>
     public interface IConfigProvider
     {
+        /// <summary>所有键</summary>
+        ICollection<String> Keys { get; }
+
         /// <summary>获取 或 设置 配置值</summary>
         /// <param name="key">键</param>
         /// <returns></returns>
@@ -46,6 +49,9 @@ namespace NewLife.Configuration
         #region 属性
         /// <summary>配置项集合</summary>
         public IDictionary<String, String> Items { get; set; } = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+
+        /// <summary>所有键</summary>
+        public ICollection<String> Keys => Items.Keys;
 
         /// <summary>获取 或 设置 配置值</summary>
         /// <param name="key">键</param>
