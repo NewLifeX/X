@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Xml;
 
 namespace NewLife.Configuration
@@ -21,7 +22,24 @@ namespace NewLife.Configuration
 
             var dic = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
 
+            // 移动到第一个元素
+            while (reader.NodeType != XmlNodeType.Element) reader.Read();
+
             reader.ReadStartElement();
+            while (true)
+            {
+                while (reader.NodeType == XmlNodeType.Comment || reader.NodeType == XmlNodeType.Whitespace) reader.Skip();
+                if (reader.NodeType != XmlNodeType.Element) break;
+
+                var name = reader.Name;
+                reader.ReadStartElement();
+                var value = reader.ReadContentAsString();
+                dic[name] = value;
+
+                if (reader.NodeType == XmlNodeType.Attribute) reader.Read();
+                if (reader.NodeType == XmlNodeType.EndElement) reader.ReadEndElement();
+            }
+            if (reader.NodeType == XmlNodeType.EndElement) reader.ReadEndElement();
 
             return dic;
         }
@@ -31,7 +49,31 @@ namespace NewLife.Configuration
         /// <param name="source"></param>
         protected override void OnWrite(String fileName, IDictionary<String, String> source)
         {
-            throw new NotImplementedException();
+            var set = new XmlWriterSettings
+            {
+                Encoding = Encoding.UTF8,
+                Indent = true
+            };
+
+            using var fs = File.OpenWrite(fileName);
+            using var writer = XmlWriter.Create(fs, set);
+
+            writer.WriteStartDocument();
+            var name = Path.GetFileNameWithoutExtension(fileName);
+            writer.WriteStartElement(name);
+
+            foreach (var item in source)
+            {
+                writer.WriteStartElement(item.Key);
+                writer.WriteValue(item.Value);
+                writer.WriteEndElement();
+            }
+
+            writer.WriteEndElement();
+            writer.WriteEndDocument();
+
+            // 截断文件
+            fs.SetLength(fs.Position);
         }
     }
 }

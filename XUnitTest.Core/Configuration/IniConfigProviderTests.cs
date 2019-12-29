@@ -57,13 +57,13 @@ namespace XUnitTest.Configuration
         public void TestBind()
         {
             var json = @"Debug = True
-                        LogLevel = Fatal
-                        LogPath = xxx
-                        NetworkLog = 255.255.255.255:514
-                        LogFileFormat = {0:yyyy_MM_dd}.log
-                        TempPath = yyy
-                        PluginPath = Plugins
-                        PluginServer = http://x.newlifex.com/";
+LogLevel = Fatal
+LogPath = xxx
+NetworkLog = 255.255.255.255:514
+LogFileFormat = {0:yyyy_MM_dd}.log
+TempPath = yyy
+PluginPath = Plugins
+PluginServer = http://x.newlifex.com/";
 
             var prv = _provider as FileConfigProvider;
             var file = prv.FileName.GetFullPath();
