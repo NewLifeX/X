@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
+﻿using System.IO;
 using NewLife;
 using NewLife.Configuration;
+using NewLife.Log;
 using Xunit;
 
 namespace XUnitTest.Configuration
@@ -33,23 +31,41 @@ namespace XUnitTest.Configuration
         }
 
         [Fact]
-        public void TestLoad()
+        public void TestLoadAndSave()
         {
-            var set = _provider.Load<Setting>();
-            Assert.NotNull(set);
-            Assert.True(set.Debug);
-            Assert.NotEmpty(set.LogFileFormat);
-        }
+            var set = new Setting
+            {
+                Debug = true,
+                LogLevel = LogLevel.Fatal,
+                LogPath = "xxx",
+                NetworkLog = "255.255.255.255:514",
+                TempPath = "yyy",
+            };
 
-        [Fact]
-        public void TestSave()
-        {
-            var set = new Setting();
             _provider.Save(set);
 
-            Assert.NotNull(set);
-            Assert.True(set.Debug);
-            Assert.NotEmpty(set.LogFileFormat);
+            var prv = _provider as FileConfigProvider;
+            Assert.NotNull(prv);
+            Assert.Equal(prv["Debug"], set.Debug + "");
+            Assert.Equal(prv["LogLevel"], set.LogLevel + "");
+            Assert.Equal(prv["LogPath"], set.LogPath + "");
+            Assert.Equal(prv["NetworkLog"], set.NetworkLog + "");
+            Assert.Equal(prv["LogFileFormat"], set.LogFileFormat + "");
+            Assert.Equal(prv["TempPath"], set.TempPath + "");
+            Assert.Equal(prv["PluginPath"], set.PluginPath + "");
+            Assert.Equal(prv["PluginServer"], set.PluginServer + "");
+
+            var set2 = _provider.Load<Setting>();
+
+            Assert.NotNull(set2);
+            Assert.Equal(set2.Debug, set.Debug);
+            Assert.Equal(set2.LogLevel, set.LogLevel);
+            Assert.Equal(set2.LogPath, set.LogPath);
+            Assert.Equal(set2.NetworkLog, set.NetworkLog);
+            Assert.Equal(set2.LogFileFormat, set.LogFileFormat);
+            Assert.Equal(set2.TempPath, set.TempPath);
+            Assert.Equal(set2.PluginPath, set.PluginPath);
+            Assert.Equal(set2.PluginServer, set.PluginServer);
         }
 
         [Fact]
@@ -57,6 +73,7 @@ namespace XUnitTest.Configuration
         {
             var set = new Setting();
             _provider.Bind(set, null);
+
             Assert.NotNull(set);
             Assert.True(set.Debug);
             Assert.NotEmpty(set.LogFileFormat);
