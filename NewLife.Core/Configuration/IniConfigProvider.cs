@@ -1,29 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Xml;
+using NewLife.Serialization;
 
 namespace NewLife.Configuration
 {
-    /// <summary>Xml文件配置提供者</summary>
+    /// <summary>Ini文件配置提供者</summary>
     /// <remarks>
     /// 支持从不同配置文件加载到不同配置模型
     /// </remarks>
-    public class XmlConfigProvider : FileConfigProvider
+    public class IniConfigProvider : FileConfigProvider
     {
         /// <summary>读取配置文件，得到字典</summary>
         /// <param name="fileName"></param>
         /// <returns></returns>
         protected override IDictionary<String, String> OnRead(String fileName)
         {
-            using var fs = File.OpenRead(fileName);
-            using var reader = XmlReader.Create(fs);
+            var txt = File.ReadAllText(fileName);
+            var json = new JsonParser(txt);
+            var src = json.Decode() as IDictionary<String, Object>;
 
-            var dic = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+            var rs = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+            Map(src, rs, null);
 
-            reader.ReadStartElement();
-
-            return dic;
+            return rs;
         }
 
         /// <summary>把字典写入配置文件</summary>
@@ -31,7 +31,9 @@ namespace NewLife.Configuration
         /// <param name="source"></param>
         protected override void OnWrite(String fileName, IDictionary<String, String> source)
         {
-            throw new NotImplementedException();
+            var json = source.ToJson(true, true, false);
+
+            File.WriteAllText(fileName, json);
         }
     }
 }

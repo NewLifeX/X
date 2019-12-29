@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using NewLife.Collections;
-using NewLife.Json;
 using NewLife.Reflection;
-using NewLife.Xml;
 
 namespace NewLife.Configuration
 {
@@ -110,10 +108,7 @@ namespace NewLife.Configuration
         /// <typeparam name="T">模型</typeparam>
         /// <param name="model">模型实例</param>
         /// <param name="nameSpace">命名空间。映射时加上</param>
-        public virtual void Save<T>(T model, String nameSpace = null)
-        {
-            MapFrom(Items, model, nameSpace);
-        }
+        public virtual void Save<T>(T model, String nameSpace = null) => MapFrom(Items, model, nameSpace);
 
         /// <summary>从公有实例属性映射到字典</summary>
         /// <param name="source"></param>
@@ -168,48 +163,7 @@ namespace NewLife.Configuration
         /// <typeparam name="T">模型</typeparam>
         /// <param name="model">模型实例</param>
         /// <param name="nameSpace">命名空间。映射时去掉</param>
-        public virtual void Bind<T>(T model, String nameSpace = null)
-        {
-            MapTo(Items, model, nameSpace);
-        }
+        public virtual void Bind<T>(T model, String nameSpace = null) => MapTo(Items, model, nameSpace);
         #endregion
-    }
-
-    /// <summary>文件配置提供者</summary>
-    public class FileConfigProvider: ConfigProvider
-    {
-        /// <summary>文件名。最高优先级，优先于模型特性指定的文件名</summary>
-        public String FileName { get; set; }
-
-        /// <summary>获取模型的文件名</summary>
-        /// <param name="modelType"></param>
-        /// <returns></returns>
-        protected virtual String GetFileName(Type modelType)
-        {
-            var fileName = FileName;
-
-            // 从模型类头部特性获取文件名路径，Xml/Json 是为了兼容旧版本
-            if (fileName.IsNullOrEmpty())
-            {
-                var atts = modelType.GetCustomAttributes(typeof(ConfigFileAttribute), false);
-                if (atts != null && atts.Length > 0 && atts[0] is ConfigFileAttribute xcf) fileName = xcf.FileName;
-            }
-            if (fileName.IsNullOrEmpty())
-            {
-                var atts = modelType.GetCustomAttributes(typeof(XmlConfigFileAttribute), false);
-                if (atts != null && atts.Length > 0 && atts[0] is XmlConfigFileAttribute xcf) fileName = xcf.FileName;
-            }
-            if (fileName.IsNullOrEmpty())
-            {
-                var atts = modelType.GetCustomAttributes(typeof(JsonConfigFileAttribute), false);
-                if (atts != null && atts.Length > 0 && atts[0] is JsonConfigFileAttribute xcf) fileName = xcf.FileName;
-            }
-
-            //if (fileName.IsNullOrEmpty()) fileName = FileName;
-
-            //todo 这里需要想办法修改配置根目录
-
-            return fileName;
-        }
     }
 }
