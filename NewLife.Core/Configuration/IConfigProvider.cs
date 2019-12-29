@@ -79,6 +79,7 @@ namespace NewLife.Configuration
             {
                 if (!pi.CanRead || !pi.CanWrite) continue;
                 if (pi.GetIndexParameters().Length > 0) continue;
+                if (pi.Name.EqualIgnoreCase("ConfigFile", "IsNew")) continue;
 
                 var name = pi.Name;
                 if (!nameSpace.IsNullOrEmpty()) name = $"{nameSpace}:{pi.Name}";
@@ -125,6 +126,7 @@ namespace NewLife.Configuration
             {
                 if (!pi.CanRead || !pi.CanWrite) continue;
                 if (pi.GetIndexParameters().Length > 0) continue;
+                if (pi.Name.EqualIgnoreCase("ConfigFile", "IsNew")) continue;
 
                 var name = pi.Name;
                 if (!nameSpace.IsNullOrEmpty()) name = $"{nameSpace}:{pi.Name}";
