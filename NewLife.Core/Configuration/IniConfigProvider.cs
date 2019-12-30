@@ -73,9 +73,6 @@ namespace NewLife.Configuration
                 }
                 else
                 {
-                    // 段前空一行
-                    if (sb.Length > 0) sb.AppendLine();
-
                     sb.AppendLine($"{item.Key} = {item.Value}");
                 }
             }

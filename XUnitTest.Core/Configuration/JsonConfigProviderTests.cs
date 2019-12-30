@@ -73,27 +73,27 @@ namespace XUnitTest.Configuration
         public void TestBind()
         {
             var json = @"{
-              ""Debug"":  ""True"",
-              ""LogLevel"":  ""Fatal"",
-              ""LogPath"":  ""xxx"",
-              ""NetworkLog"":  ""255.255.255.255:514"",
-              ""LogFileFormat"":  ""{0:yyyy_MM_dd}.log"",
-              ""TempPath"":  """",
-              ""PluginPath"":  ""Plugins"",
-              ""PluginServer"":  ""http://x.newlifex.com/"",
-              ""Sys"":  {
-                ""Name"":  ""NewLife.Cube"",
-                ""Version"":  """",
-                ""DisplayName"":  ""魔方平台"",
-                ""Company"":  ""新生命开发团队"",
-                ""Develop"":  ""True"",
-                ""Enable"":  ""True"",
-                ""InstallTime"":  ""2019-12-30 21:05:09"",
-                ""xxx"": {
-                    ""yyy"": ""zzz""
-                }
-              }
-            }";
+    ""Debug"":  ""True"",
+    ""LogLevel"":  ""Fatal"",
+    ""LogPath"":  ""xxx"",
+    ""NetworkLog"":  ""255.255.255.255:514"",
+    ""LogFileFormat"":  ""{0:yyyy_MM_dd}.log"",
+    ""TempPath"":  """",
+    ""PluginPath"":  ""Plugins"",
+    ""PluginServer"":  ""http://x.newlifex.com/"",
+    ""Sys"":  {
+        ""Name"":  ""NewLife.Cube"",
+        ""Version"":  """",
+        ""DisplayName"":  ""魔方平台"",
+        ""Company"":  ""新生命开发团队"",
+        ""Develop"":  ""True"",
+        ""Enable"":  ""True"",
+        ""InstallTime"":  ""2019-12-30 21:05:09"",
+        ""xxx"": {
+            ""yyy"": ""zzz""
+        }
+    }
+}";
 
             var prv = new JsonConfigProvider { FileName = "Config/core2.json" };
             var file = prv.FileName.GetFullPath();
