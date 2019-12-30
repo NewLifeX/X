@@ -395,6 +395,7 @@ namespace NewLife
         #endregion
 
         #region 内存
+#if __CORE__
         [DllImport("Kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         [SecurityCritical]
         [return: MarshalAs(UnmanagedType.Bool)]
@@ -422,6 +423,7 @@ namespace NewLife
 
             internal void Init() => dwLength = checked((UInt32)Marshal.SizeOf(typeof(MEMORYSTATUSEX)));
         }
+#endif
         #endregion
 
         #region WMI辅助
