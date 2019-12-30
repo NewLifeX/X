@@ -68,25 +68,6 @@ namespace NewLife.Configuration
         /// <returns></returns>
         protected abstract IDictionary<String, String> OnRead(String fileName);
 
-        /// <summary>多层字典映射为一层</summary>
-        /// <param name="src"></param>
-        /// <param name="dst"></param>
-        /// <param name="nameSpace"></param>
-        protected virtual void Map(IDictionary<String, Object> src, IDictionary<String, String> dst, String nameSpace)
-        {
-            foreach (var item in src)
-            {
-                var name = item.Key;
-                if (!nameSpace.IsNullOrEmpty()) name = $"{nameSpace}:{item.Key}";
-
-                // 仅支持内层字典，不支持内层数组
-                if (item.Value is IDictionary<String, Object> dic)
-                    Map(dic, dst, name);
-                else
-                    dst[name] = "{0}".F(item.Value);
-            }
-        }
-
         /// <summary>保存模型实例</summary>
         /// <typeparam name="T">模型</typeparam>
         /// <param name="model">模型实例</param>
@@ -126,5 +107,71 @@ namespace NewLife.Configuration
 
             MapTo(source, model, null);
         }
+
+        #region 辅助
+        /// <summary>多层字典映射为一层</summary>
+        /// <param name="src"></param>
+        /// <param name="dst"></param>
+        /// <param name="nameSpace"></param>
+        protected virtual void Map(IDictionary<String, Object> src, IDictionary<String, String> dst, String nameSpace)
+        {
+            foreach (var item in src)
+            {
+                var name = item.Key;
+                if (!nameSpace.IsNullOrEmpty()) name = $"{nameSpace}:{item.Key}";
+
+                // 仅支持内层字典，不支持内层数组
+                if (item.Value is IDictionary<String, Object> dic)
+                    Map(dic, dst, name);
+                else
+                    dst[name] = "{0}".F(item.Value);
+            }
+        }
+
+        /// <summary>一层字典映射为多层</summary>
+        /// <param name="src"></param>
+        /// <param name="dst"></param>
+        protected virtual void Map(IDictionary<String, String> src, IDictionary<String, Object> dst)
+        {
+            // 按照配置段分组，相同组写在一起
+            var dic = new Dictionary<String, Dictionary<String, String>>();
+
+            foreach (var item in src)
+            {
+                var section = "";
+
+                var name = item.Key;
+                var p = item.Key.IndexOf(':');
+                if (p > 0)
+                {
+                    section = item.Key.Substring(0, p);
+                    name = item.Key.Substring(p + 1);
+                }
+
+                if (!dic.TryGetValue(section, out var dic2)) dic[section] = dic2 = new Dictionary<String, String>();
+
+                dic2[name] = item.Value;
+            }
+
+            // 转多层
+            foreach (var item in dic)
+            {
+                if (item.Key.IsNullOrEmpty())
+                {
+                    foreach (var elm in item.Value)
+                    {
+                        dst[elm.Key] = elm.Value;
+                    }
+                }
+                else
+                {
+                    var rs = new Dictionary<String, Object>();
+                    Map(item.Value, rs);
+
+                    dst[item.Key] = rs;
+                }
+            }
+        }
+        #endregion
     }
 }

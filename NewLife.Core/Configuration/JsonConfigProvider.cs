@@ -20,7 +20,7 @@ namespace NewLife.Configuration
             var json = new JsonParser(txt);
             var src = json.Decode() as IDictionary<String, Object>;
 
-            var rs = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+            var rs = new Dictionary<String, String>();
             Map(src, rs, null);
 
             return rs;
@@ -31,7 +31,10 @@ namespace NewLife.Configuration
         /// <param name="source"></param>
         protected override void OnWrite(String fileName, IDictionary<String, String> source)
         {
-            var json = source.ToJson(true, true, false);
+            var rs = new Dictionary<String, Object>();
+            Map(source, rs);
+
+            var json = rs.ToJson(true, true, false);
 
             File.WriteAllText(fileName, json);
         }

@@ -51,43 +51,32 @@ namespace NewLife.Configuration
         /// <param name="source"></param>
         protected override void OnWrite(String fileName, IDictionary<String, String> source)
         {
-            // 按照配置段分组，相同组写在一起
-            var dic = new Dictionary<String, Dictionary<String, String>>();
-
-            foreach (var item in source)
-            {
-                var section = "";
-
-                var name = item.Key;
-                var p = item.Key.IndexOf(':');
-                if (p > 0)
-                {
-                    section = item.Key.Substring(0, p);
-                    name = item.Key.Substring(p + 1);
-                }
-
-                if (!dic.TryGetValue(section, out var dic2)) dic[section] = dic2 = new Dictionary<String, String>();
-
-                dic2[name] = item.Value;
-            }
+            var dic = new Dictionary<String, Object>();
+            Map(source, dic);
 
             // 分组写入
             //todo 需要写入Ini注释
             var sb = new StringBuilder();
             foreach (var item in dic)
             {
-                if (!item.Key.IsNullOrEmpty())
+                if (item.Value is IDictionary<String, Object> dic2)
+                {
+                    // 段前空一行
+                    sb.AppendLine();
+                    sb.AppendLine($"[{item.Key}]");
+
+                    // 写入当前段
+                    foreach (var elm in dic2)
+                    {
+                        sb.AppendLine($"{elm.Key} = {elm.Value}");
+                    }
+                }
+                else
                 {
                     // 段前空一行
                     if (sb.Length > 0) sb.AppendLine();
 
-                    sb.AppendLine($"[{item.Key}]");
-                }
-
-                // 写入当前段
-                foreach (var elm in item.Value)
-                {
-                    sb.AppendLine($"{elm.Key} = {elm.Value}");
+                    sb.AppendLine($"{item.Key} = {item.Value}");
                 }
             }
 
