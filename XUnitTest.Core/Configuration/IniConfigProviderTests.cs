@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using NewLife;
+using NewLife.Common;
 using NewLife.Configuration;
 using NewLife.Log;
 using Xunit;
@@ -18,13 +19,20 @@ namespace XUnitTest.Configuration
         [Fact]
         public void TestLoadAndSave()
         {
-            var set = new Setting
+            var set = new ConfigModel
             {
                 Debug = true,
                 LogLevel = LogLevel.Fatal,
                 LogPath = "xxx",
                 NetworkLog = "255.255.255.255:514",
                 TempPath = "yyy",
+
+                Sys = new SysConfig
+                {
+                    Name = "NewLife.Cube",
+                    DisplayName = "魔方平台",
+                    Company = "新生命开发团队",
+                },
             };
 
             _provider.Save(set);
@@ -40,7 +48,12 @@ namespace XUnitTest.Configuration
             Assert.Equal(set.PluginPath, prv["PluginPath"]);
             Assert.Equal(set.PluginServer, prv["PluginServer"]);
 
-            var set2 = _provider.Load<Setting>();
+            var sys = set.Sys;
+            Assert.Equal(sys.Name, prv["Sys:Name"]);
+            Assert.Equal(sys.DisplayName, prv["Sys:DisplayName"]);
+            Assert.Equal(sys.Company, prv["Sys:Company"]);
+
+            var set2 = _provider.Load<ConfigModel>();
 
             Assert.NotNull(set2);
             Assert.Equal(set.Debug, set2.Debug);
@@ -51,6 +64,12 @@ namespace XUnitTest.Configuration
             Assert.Equal(set.TempPath, set2.TempPath);
             Assert.Equal(set.PluginPath, set2.PluginPath);
             Assert.Equal(set.PluginServer, set2.PluginServer);
+
+            var sys2 = set2.Sys;
+            Assert.NotNull(sys2);
+            Assert.Equal(sys.Name, sys2.Name);
+            Assert.Equal(sys.DisplayName, sys2.DisplayName);
+            Assert.Equal(sys.Company, sys2.Company);
         }
 
         [Fact]
@@ -63,13 +82,23 @@ NetworkLog = 255.255.255.255:514
 LogFileFormat = {0:yyyy_MM_dd}.log
 TempPath = yyy
 PluginPath = Plugins
-PluginServer = http://x.newlifex.com/";
+PluginServer = http://x.newlifex.com/
+
+[Sys]
+Name = NewLife.Cube
+Version = 
+DisplayName = 魔方平台
+Company = 新生命开发团队
+Develop = True
+Enable = True
+InstallTime = 2019-12-30 18:26:18
+";
 
             var prv = _provider as FileConfigProvider;
             var file = prv.FileName.GetFullPath();
             File.WriteAllText(file, json);
 
-            var set = new Setting();
+            var set = new ConfigModel();
             _provider.Bind(set, null);
 
             Assert.NotNull(set);
