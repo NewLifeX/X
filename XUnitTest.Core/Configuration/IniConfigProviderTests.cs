@@ -9,12 +9,9 @@ namespace XUnitTest.Configuration
 {
     public class InIConfigProviderTests
     {
-        IConfigProvider _provider;
+        readonly IConfigProvider _provider;
 
-        public InIConfigProviderTests()
-        {
-            _provider = new InIConfigProvider { FileName = "Config/core.ini" };
-        }
+        public InIConfigProviderTests() => _provider = new InIConfigProvider { FileName = "Config/core.ini" };
 
         [Fact]
         public void TestLoadAndSave()
@@ -94,12 +91,12 @@ Enable = True
 InstallTime = 2019-12-30 18:26:18
 ";
 
-            var prv = _provider as FileConfigProvider;
+            var prv = new InIConfigProvider { FileName = "Config/core2.ini" };
             var file = prv.FileName.GetFullPath();
             File.WriteAllText(file, json);
 
             var set = new ConfigModel();
-            _provider.Bind(set, null);
+            prv.Bind(set, null);
 
             Assert.NotNull(set);
             Assert.True(set.Debug);

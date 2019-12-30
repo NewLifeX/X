@@ -82,20 +82,41 @@ namespace XUnitTest.Configuration
   <TempPath>yyy</TempPath>
   <PluginPath>Plugins</PluginPath>
   <PluginServer>http://x.newlifex.com/</PluginServer>
+  <Sys>
+    <Name>NewLife.Cube</Name>
+    <Version></Version>
+    <DisplayName>魔方平台</DisplayName>
+    <Company>新生命开发团队</Company>
+    <Develop>True</Develop>
+    <Enable>True</Enable>
+    <InstallTime>2019-12-30 21:41:57</InstallTime>
+    <xxx>
+        <yyy>zzz</yyy>
+    </xxx>
+  </Sys>
 </core>";
 
-            var prv = _provider as FileConfigProvider;
+            var prv = new XmlConfigProvider { FileName = "Config/core2.xml" };
             var file = prv.FileName.GetFullPath();
             File.WriteAllText(file, json);
 
             var set = new ConfigModel();
-            _provider.Bind(set, null);
+            prv.Bind(set, null);
 
             Assert.NotNull(set);
             Assert.True(set.Debug);
             Assert.Equal(LogLevel.Fatal, set.LogLevel);
             Assert.Equal("xxx", set.LogPath);
             Assert.Equal("255.255.255.255:514", set.NetworkLog);
+
+            var sys = set.Sys;
+            Assert.NotNull(sys);
+            Assert.Equal("NewLife.Cube", sys.Name);
+            Assert.Equal("魔方平台", sys.DisplayName);
+            Assert.Equal("新生命开发团队", sys.Company);
+
+            // 三层
+            Assert.Equal("zzz", prv["Sys:xxx:yyy"]);
         }
     }
 }

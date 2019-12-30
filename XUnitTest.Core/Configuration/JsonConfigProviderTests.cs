@@ -95,12 +95,12 @@ namespace XUnitTest.Configuration
               }
             }";
 
-            var prv = _provider as FileConfigProvider;
+            var prv = new JsonConfigProvider { FileName = "Config/core2.json" };
             var file = prv.FileName.GetFullPath();
             File.WriteAllText(file, json);
 
             var set = new ConfigModel();
-            _provider.Bind(set, null);
+            prv.Bind(set, null);
 
             Assert.NotNull(set);
             Assert.True(set.Debug);

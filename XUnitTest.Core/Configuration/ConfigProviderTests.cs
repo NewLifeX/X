@@ -12,8 +12,8 @@ namespace XUnitTest.Configuration
         [Fact]
         public void Test1()
         {
-            var xml = new XmlConfigProvider { FileName = "Config/core.xml" };
-            var json = new JsonConfigProvider { FileName = "Config/core.json" };
+            var xml = new XmlConfigProvider { FileName = "Config/core0.xml" };
+            var json = new JsonConfigProvider { FileName = "Config/core0.json" };
             var http = new HttpConfigProvider
             {
                 Server = "http://127.0.0.1:5000/config,http://10.0.0.4/config",

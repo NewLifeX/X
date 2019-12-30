@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp3.1;net45</TargetFrameworks>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <IsPackable>false</IsPackable>
     <RootNamespace>XUnitTest</RootNamespace>
   </PropertyGroup>
