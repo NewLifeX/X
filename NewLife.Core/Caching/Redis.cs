@@ -12,7 +12,10 @@ using NewLife.Net;
 
 namespace NewLife.Caching
 {
-    /// <summary>Redis缓存</summary>
+    /// <summary>Redi客户端</summary>
+    /// <remarks>
+    /// 强烈建议直接new Redis()，并保持唯一对象
+    /// </remarks>
     public class Redis : Cache
     {
         #region 静态
@@ -25,6 +28,7 @@ namespace NewLife.Caching
         /// <param name="server">服务器地址。支持前面加上密码，@分隔</param>
         /// <param name="db">使用的数据库</param>
         /// <returns></returns>
+        [Obsolete("=>new Redis(\"127.0.0.1\", \"abcd1234\", 3)")]
         public static Redis Create(String server, Int32 db)
         {
             if (server.IsNullOrEmpty() || server == ".") server = "127.0.0.1";
@@ -63,6 +67,7 @@ namespace NewLife.Caching
         /// <param name="password">密码</param>
         /// <param name="db">使用的数据库</param>
         /// <returns></returns>
+        [Obsolete("=>new Redis(\"127.0.0.1\", \"abcd1234\", 3)")]
         public static Redis Create(String server, String password, Int32 db)
         {
             if (server.IsNullOrEmpty() || server == ".") server = "127.0.0.1";
@@ -107,7 +112,21 @@ namespace NewLife.Caching
         #endregion
 
         #region 构造
-        /// <summary>初始化</summary>
+        /// <summary>实例化</summary>
+        public Redis() { }
+
+        /// <summary>实例化Redis，指定服务器地址、密码、库</summary>
+        /// <param name="server"></param>
+        /// <param name="password"></param>
+        /// <param name="db"></param>
+        public Redis(String server, String password, Int32 db)
+        {
+            Server = server;
+            Password = password;
+            Db = db;
+        }
+
+        /// <summary>使用连接字符串初始化</summary>
         /// <param name="config"></param>
         public override void Init(String config)
         {
@@ -143,26 +162,26 @@ namespace NewLife.Caching
         #endregion
 
         #region 子库
-        private ConcurrentDictionary<Int32, Redis> _sub = new ConcurrentDictionary<Int32, Redis>();
-        /// <summary>为同一服务器创建不同Db的子级库</summary>
-        /// <param name="db"></param>
-        /// <returns></returns>
-        public virtual Redis CreateSub(Int32 db)
-        {
-            if (Db != 0) throw new ArgumentOutOfRangeException(nameof(Db), "只有Db=0的库才能创建子级库连接");
-            if (db == 0) return this;
+        //private ConcurrentDictionary<Int32, Redis> _sub = new ConcurrentDictionary<Int32, Redis>();
+        ///// <summary>为同一服务器创建不同Db的子级库</summary>
+        ///// <param name="db"></param>
+        ///// <returns></returns>
+        //public virtual Redis CreateSub(Int32 db)
+        //{
+        //    if (Db != 0) throw new ArgumentOutOfRangeException(nameof(Db), "只有Db=0的库才能创建子级库连接");
+        //    if (db == 0) return this;
 
-            return _sub.GetOrAdd(db, k =>
-            {
-                var r = new Redis
-                {
-                    Server = Server,
-                    Db = db,
-                    Password = Password,
-                };
-                return r;
-            });
-        }
+        //    return _sub.GetOrAdd(db, k =>
+        //    {
+        //        var r = new Redis
+        //        {
+        //            Server = Server,
+        //            Db = db,
+        //            Password = Password,
+        //        };
+        //        return r;
+        //    });
+        //}
         #endregion
 
         #region 客户端池

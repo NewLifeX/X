@@ -23,7 +23,7 @@ namespace NewLife.Caching
         /// <summary>默认缓存时间。默认0秒表示不过期</summary>
         public Int32 Expire { get; set; }
 
-        /// <summary>获取和设置缓存，永不过期</summary>
+        /// <summary>获取和设置缓存，使用默认过期时间</summary>
         /// <param name="key"></param>
         /// <returns></returns>
         public virtual Object this[String key] { get => Get<Object>(key); set => Set(key, value); }
@@ -37,11 +37,11 @@ namespace NewLife.Caching
 
         #region 构造
         /// <summary>构造函数</summary>
-        public Cache() => Name = GetType().Name.TrimEnd("Cache");
+        protected Cache() => Name = GetType().Name.TrimEnd("Cache");
         #endregion
 
         #region 基础操作
-        /// <summary>初始化配置</summary>
+        /// <summary>使用连接字符串初始化配置</summary>
         /// <param name="config"></param>
         public virtual void Init(String config) { }
 

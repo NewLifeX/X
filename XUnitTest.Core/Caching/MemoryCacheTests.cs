@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using NewLife.Caching;
 using NewLife.Data;
 using NewLife.Serialization;
 using Xunit;
 
-namespace NewLife.Caching.Tests
+namespace XUnitTest.Caching
 {
     public class MemoryCacheTests
     {
