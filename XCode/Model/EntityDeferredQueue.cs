@@ -53,7 +53,11 @@ namespace XCode.Model
                     switch (Action)
                     {
                         case EntityActions.Save:
-                            rs += item.Save();
+                            // 来自数据库，更新
+                            if (item.IsFromDatabase)
+                                rs += item.Update();
+                            else
+                                rs += item.Upsert();
                             break;
                         case EntityActions.Insert:
                             rs += item.Insert();
@@ -62,7 +66,6 @@ namespace XCode.Model
                             rs += item.Update();
                             break;
                         case EntityActions.Upsert:
-                            //var cs = GetColumns(new[] { item });
                             rs += item.Upsert();
                             break;
                         case EntityActions.Delete:
@@ -88,9 +91,9 @@ namespace XCode.Model
                             // 来自数据库，更新
                             if (item.IsFromDatabase)
                                 us.Add(item);
-                            // 空主键，插入
-                            else if (item.IsNullKey)
-                                ns.Add(item);
+                            //// 空主键，插入
+                            //else if (item.IsNullKey)
+                            //    ns.Add(item);
                             // 其它 Upsert
                             else
                                 ps.Add(item);
