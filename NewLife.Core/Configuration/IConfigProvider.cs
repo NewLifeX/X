@@ -101,7 +101,11 @@ namespace NewLife.Configuration
                     {
                         // 如果有无参构造函数，则实例化一个
                         var ci = pi.PropertyType.GetConstructor(new Type[0]);
-                        if (ci != null) val = ci.Invoke(null);
+                        if (ci != null)
+                        {
+                            val = ci.Invoke(null);
+                            pi.SetValue(model, val, null);
+                        }
                     }
 
                     // 递归映射
