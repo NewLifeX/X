@@ -9,6 +9,14 @@ namespace NewLife.Http
     /// <summary>Http编解码器</summary>
     public class HttpCodec : Handler
     {
+        #region 属性
+        /// <summary>允许分析头部。默认false</summary>
+        /// <remarks>
+        /// 分析头部对性能有一定损耗
+        /// </remarks>
+        public Boolean AllowParseHeader { get; set; }
+        #endregion
+
         /// <summary>写入数据</summary>
         /// <param name="context"></param>
         /// <param name="message"></param>
@@ -52,7 +60,7 @@ namespace NewLife.Http
                 msg = new HttpMessage();
                 if (!msg.Read(pk)) throw new XException("Http请求头不完整");
 
-                if (!msg.ParseHeaders()) throw new XException("Http头部解码失败");
+                if (AllowParseHeader && !msg.ParseHeaders()) throw new XException("Http头部解码失败");
 
                 // GET请求一次性过来，暂时不支持头部被拆为多包的场景
                 if (isGet)

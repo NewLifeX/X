@@ -105,7 +105,19 @@ namespace XUnitTest.Http
             if (pk2.Total > 0) rm = codec.Read(context, pk2);
             Assert.Null(rm);
 
-            var rs = context.Result;
+            var context2 = new MyHandlerContext
+            {
+                Owner = new HandlerContext(),
+                AllowParseHeader = true,
+            };
+
+            var codec2 = new HttpCodec { AllowParseHeader = true };
+            var rm2 = codec2.Read(context2, pk);
+            Assert.Null(rm2);
+            if (pk2.Total > 0) rm2 = codec2.Read(context2, pk2);
+            Assert.Null(rm2);
+
+            var rs = context2.Result;
             Assert.NotNull(rs);
 
             var str = rs.ToPacket().ToStr();
@@ -115,6 +127,8 @@ namespace XUnitTest.Http
         class MyHandlerContext : HandlerContext
         {
             public HttpMessage Result { get; set; }
+
+            public Boolean AllowParseHeader { get; set; }
 
             public override void FireRead(Object message)
             {
@@ -132,10 +146,14 @@ namespace XUnitTest.Http
                 }
                 else
                 {
-                    //Assert.Null(msg.Method);
+                    if (!AllowParseHeader)
+                    {
+                        Assert.Null(msg.Method);
 
-                    var rs = msg.ParseHeaders();
-                    Assert.True(rs);
+                        var rs = msg.ParseHeaders();
+                        Assert.True(rs);
+                    }
+
                     Assert.Equal("GET", msg.Method);
 
                     Assert.Equal("/123.html", msg.Uri);

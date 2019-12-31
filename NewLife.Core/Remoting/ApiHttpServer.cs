@@ -31,7 +31,8 @@ namespace NewLife.Remoting
             RawUrl = uri + "";
 
             // Http封包协议
-            Add<HttpCodec>();
+            //Add<HttpCodec>();
+            Add(new HttpCodec { AllowParseHeader = true });
 
             //host.Handler = new ApiHttpHandler { Host = host };
             host.Encoder = new HttpEncoder();

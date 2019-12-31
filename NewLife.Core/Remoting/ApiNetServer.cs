@@ -39,7 +39,8 @@ namespace NewLife.Remoting
             if (Local.Host.IsNullOrEmpty() || Local.Host == "*") AddressFamily = System.Net.Sockets.AddressFamily.Unspecified;
 
             // Http封包协议
-            Add<HttpCodec>();
+            //Add<HttpCodec>();
+            Add(new HttpCodec { AllowParseHeader = true });
             // 新生命标准网络封包协议
             Add(Host.GetMessageCodec());
 
