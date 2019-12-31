@@ -241,7 +241,11 @@ namespace NewLife.Remoting
                 if (client != null)
                     rs = (await client.SendMessageAsync(msg).ConfigureAwait(false)) as IMessage;
                 else
-                    rs = (await Cluster.InvokeAsync(client => client.SendMessageAsync(msg)).ConfigureAwait(false)) as IMessage;
+                    rs = (await Cluster.InvokeAsync(client =>
+                    {
+                        invoker = client.Remote + "";
+                        return client.SendMessageAsync(msg);
+                    }).ConfigureAwait(false)) as IMessage;
 
                 if (rs == null) return default;
             }
@@ -272,7 +276,7 @@ namespace NewLife.Remoting
             if (!enc.Decode(rs, out _, out var code, out var data)) throw new InvalidOperationException();
 
             // 是否成功
-            if (code != 0) throw new ApiException(code, $"远程[{invoker}]错误！ {data.ToStr()}");
+            if (code != 0) throw new ApiException(code, data.ToStr()?.Trim('\"')) { Source = invoker + "/" + action };
 
             if (data == null) return default;
             if (resultType == typeof(Packet)) return (TResult)(Object)data;

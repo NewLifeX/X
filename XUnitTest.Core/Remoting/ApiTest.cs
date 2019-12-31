@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using NewLife;
 using NewLife.Data;
 using NewLife.Log;
+using NewLife.Net;
 using NewLife.Remoting;
 using NewLife.Security;
 using Xunit;
@@ -103,7 +104,10 @@ namespace XUnitTest.Remoting
                 var aex = ex as ApiException;
                 Assert.NotNull(aex);
                 Assert.Equal(404, aex.Code);
-                Assert.Equal("远程[Api]错误！ \"无法找到名为[api/info3]的服务！\"", ex.Message);
+                Assert.Equal("无法找到名为[api/info3]的服务！", ex.Message);
+
+                var uri = new NetUri(client.Servers[0]);
+                Assert.Equal(uri + "/api/info3", ex.Source);
             }
         }
 
