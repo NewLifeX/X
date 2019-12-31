@@ -43,7 +43,7 @@ namespace XUnitTest.Remoting
             var dic = await _Client.GetAsync<IDictionary<String, Object>>("api/info");
             Assert.NotNull(dic);
             Assert.True(dic.Count > 10);
-            Assert.Equal("testhost", dic["Server"]);
+            Assert.StartsWith("testhost", (dic["Server"] + ""));
 
             var pk = await _Client.GetAsync<Packet>("api/info");
             Assert.NotNull(pk);
@@ -76,6 +76,7 @@ namespace XUnitTest.Remoting
             {
                 Assert.Equal(404, ex.Code);
                 Assert.Equal("无法找到名为[api/info3]的服务！", ex.Message);
+                //Assert.Equal(_Client.BaseAddress + "api/info3", ex.Source);
             }
         }
 

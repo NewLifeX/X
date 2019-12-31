@@ -23,20 +23,14 @@ namespace NewLife.Remoting
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
         /// <returns></returns>
-        public static async Task<TResult> GetAsync<TResult>(this HttpClient client, String action, Object args = null)
-        {
-            return await client.InvokeAsync<TResult>(HttpMethod.Get, action, args);
-        }
+        public static async Task<TResult> GetAsync<TResult>(this HttpClient client, String action, Object args = null) => await client.InvokeAsync<TResult>(HttpMethod.Get, action, args);
 
         /// <summary>异步调用，等待返回结果</summary>
         /// <param name="client">Http客户端</param>
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
         /// <returns></returns>
-        public static async Task<TResult> PostAsync<TResult>(this HttpClient client, String action, Object args = null)
-        {
-            return await client.InvokeAsync<TResult>(HttpMethod.Post, action, args);
-        }
+        public static async Task<TResult> PostAsync<TResult>(this HttpClient client, String action, Object args = null) => await client.InvokeAsync<TResult>(HttpMethod.Post, action, args);
 
         /// <summary>异步调用，等待返回结果</summary>
         /// <param name="client">Http客户端</param>
@@ -50,39 +44,68 @@ namespace NewLife.Remoting
 
             var rtype = typeof(TResult);
 
+            // 构建请求
+            var request = BuildRequest(method, action, args, rtype);
+
+            // 发起请求
+            var msg = await client.SendAsync(request);
+            return await ProcessResponse<TResult>(msg);
+        }
+
+        /// <summary>建立请求</summary>
+        /// <param name="method">请求方法</param>
+        /// <param name="action"></param>
+        /// <param name="args"></param>
+        /// <param name="returnType"></param>
+        /// <returns></returns>
+        public static HttpRequestMessage BuildRequest(HttpMethod method, String action, Object args, Type returnType)
+        {
             // 序列化参数，决定GET/POST
             var request = new HttpRequestMessage(method, action);
-            if (rtype != typeof(Byte[]) && rtype != typeof(Packet))
+            if (returnType != typeof(Byte[]) && returnType != typeof(Packet))
                 request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-            if (args is Packet pk)
-            {
-                var content = new ByteArrayContent(pk.ToArray());
-                content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-                request.Content = content;
-            }
-            else if (args is Byte[] bufData)
-            {
-                var content = new ByteArrayContent(bufData);
-                content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-                request.Content = content;
-            }
-            else if (args != null && method == HttpMethod.Post)
-            {
-                var ps = args?.ToDictionary();
-                var content = new ByteArrayContent(ps.ToJson().GetBytes());
-                content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-                request.Content = content;
-            }
-            else
+            if (method == HttpMethod.Get)
             {
                 var ps = args?.ToDictionary();
                 var url = GetUrl(action, ps);
                 request.RequestUri = new Uri(url, UriKind.RelativeOrAbsolute);
             }
+            else
+            {
+                if (args is Packet pk)
+                {
+                    var content =
+                        pk.Next == null ?
+                        new ByteArrayContent(pk.Data, pk.Offset, pk.Count) :
+                        new ByteArrayContent(pk.ToArray());
+                    content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+                    request.Content = content;
+                }
+                else if (args is Byte[] buf)
+                {
+                    var content = new ByteArrayContent(buf);
+                    content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+                    request.Content = content;
+                }
+                else if (args != null)
+                {
+                    var content = new ByteArrayContent(args.ToJson().GetBytes());
+                    content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+                    request.Content = content;
+                }
+            }
 
-            // 发起请求
-            var msg = await client.SendAsync(request);
+            return request;
+        }
+
+        /// <summary>处理响应</summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="msg"></param>
+        /// <returns></returns>
+        public static async Task<TResult> ProcessResponse<TResult>(HttpResponseMessage msg)
+        {
+            var rtype = typeof(TResult);
             if (rtype == typeof(HttpResponseMessage)) return (TResult)(Object)msg;
 
             var code = msg.StatusCode;
@@ -100,7 +123,13 @@ namespace NewLife.Remoting
             var js = new JsonParser(str).Decode() as IDictionary<String, Object>;
             var data = js["data"];
             var code2 = js["code"].ToInt();
-            if (code2 != 0 && code2 != 200) throw new ApiException(code2, data + "");
+            if (code2 != 0 && code2 != 200)
+            {
+                var message = js["message"] + "";
+                if (message.IsNullOrEmpty()) message = js["msg"] + "";
+                if (message.IsNullOrEmpty()) message = data + "";
+                throw new ApiException(code2, message);
+            }
 
             // 简单类型
             if (rtype.GetTypeCode() != TypeCode.Object) return data.ChangeType<TResult>();
@@ -113,14 +142,11 @@ namespace NewLife.Remoting
             return JsonHelper.Convert<TResult>(data);
         }
 
-        private static String Encode(String data)
-        {
-            if (String.IsNullOrEmpty(data)) return String.Empty;
-
-            return Uri.EscapeDataString(data).Replace("%20", "+");
-        }
-
-        private static String GetUrl(String action, IDictionary<String, Object> ps)
+        /// <summary>根据动作和参数构造Url</summary>
+        /// <param name="action"></param>
+        /// <param name="ps"></param>
+        /// <returns></returns>
+        public static String GetUrl(String action, IDictionary<String, Object> ps)
         {
             var url = action;
             if (ps != null && ps.Count > 0)
@@ -146,7 +172,14 @@ namespace NewLife.Remoting
 
             return url;
         }
-        #endregion   
+
+        private static String Encode(String data)
+        {
+            if (String.IsNullOrEmpty(data)) return String.Empty;
+
+            return Uri.EscapeDataString(data).Replace("%20", "+");
+        }
+        #endregion
     }
 }
 #endif

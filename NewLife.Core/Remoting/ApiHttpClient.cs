@@ -80,45 +80,16 @@ namespace NewLife.Remoting
 
             // 发起请求
             var msg = await SendAsync(method, action, args, rtype);
-            if (rtype == typeof(HttpResponseMessage)) return (TResult)(Object)msg;
 
-            var code = msg.StatusCode;
-            var buf = await msg.Content.ReadAsByteArrayAsync();
-            if (buf == null || buf.Length == 0) return default;
-
-            // 异常处理
-            if (code != HttpStatusCode.OK)
+            try
             {
-                var invoker = _Items[_Index]?.Address + "";
-                var err = buf.ToStr()?.Trim('\"');
-                if (err.IsNullOrEmpty()) err = msg.ReasonPhrase;
-                throw new ApiException((Int32)code, $"远程[{invoker}]错误！ {err}");
+                return await ApiHelper.ProcessResponse<TResult>(msg);
             }
-
-            // 原始数据
-            if (rtype == typeof(Byte[])) return (TResult)(Object)buf;
-            if (rtype == typeof(Packet)) return (TResult)(Object)new Packet(buf);
-
-            var str = buf.ToStr();
-            var js = new JsonParser(str).Decode() as IDictionary<String, Object>;
-            var data = js["data"];
-            var code2 = js["code"].ToInt();
-            if (code2 != 0 && code2 != 200)
+            catch (ApiException ex)
             {
-                var invoker = _Items[_Index]?.Address + "";
-                if (data == null) data = js["msg"];
-                throw new ApiException(code2, $"远程[{invoker}]错误！ {data}");
+                ex.Source = _Items[_Index]?.Address + "/" + action;
+                throw;
             }
-
-            // 简单类型
-            if (rtype.GetTypeCode() != TypeCode.Object) return data.ChangeType<TResult>();
-
-            // 反序列化
-            if (data == null) return default;
-
-            if (!(data is IDictionary<String, Object>) && !(data is IList<Object>)) throw new InvalidDataException("未识别响应数据");
-
-            return JsonHelper.Convert<TResult>(data);
         }
 
         /// <summary>异步调用，等待返回结果</summary>
@@ -144,90 +115,12 @@ namespace NewLife.Remoting
         /// <returns></returns>
         protected virtual HttpRequestMessage BuildRequest(HttpMethod method, String action, Object args, Type returnType)
         {
-            // 序列化参数，决定GET/POST
-            var request = new HttpRequestMessage(HttpMethod.Get, action);
-            if (returnType != typeof(Byte[]) && returnType != typeof(Packet))
-                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            var request = ApiHelper.BuildRequest(method, action, args, returnType);
 
-            if (method == HttpMethod.Get)
-            {
-                var ps = args?.ToDictionary();
-                var url = GetUrl(action, ps);
-                if (!Token.IsNullOrEmpty())
-                {
-                    url += url.Contains("?") ? "&" : "?";
-                    url += $"token={Token}";
-                }
-                request.RequestUri = new Uri(url, UriKind.RelativeOrAbsolute);
-            }
-            else
-            {
-                FillContent(request, args);
-                //if (!Token.IsNullOrEmpty()) request.Headers.Add("X-Token", Token);
-                if (!Token.IsNullOrEmpty()) request.Headers.Add("Authorization", "Bearer " + Token);
-            }
+            // 加上令牌
+            if (!Token.IsNullOrEmpty()) request.Headers.Add("Authorization", "Bearer " + Token);
 
             return request;
-        }
-
-        private void FillContent(HttpRequestMessage request, Object args)
-        {
-            if (args is Packet pk)
-            {
-                var content =
-                    pk.Next == null ?
-                    new ByteArrayContent(pk.Data, pk.Offset, pk.Count) :
-                    new ByteArrayContent(pk.ToArray());
-                content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-                request.Content = content;
-            }
-            else if (args is Byte[] buf)
-            {
-                var content = new ByteArrayContent(buf);
-                content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-                request.Content = content;
-            }
-            else if (args != null)
-            {
-                var content = new ByteArrayContent(args.ToJson().GetBytes());
-                content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-                request.Content = content;
-            }
-            request.Method = HttpMethod.Post;
-        }
-
-        private static String Encode(String data)
-        {
-            if (String.IsNullOrEmpty(data)) return String.Empty;
-
-            return Uri.EscapeDataString(data).Replace("%20", "+");
-        }
-
-        private static String GetUrl(String action, IDictionary<String, Object> ps)
-        {
-            var url = action;
-            if (ps != null && ps.Count > 0)
-            {
-                var sb = Pool.StringBuilder.Get();
-                sb.Append(action);
-                if (action.Contains("?"))
-                    sb.Append("&");
-                else
-                    sb.Append("?");
-
-                var first = true;
-                foreach (var item in ps)
-                {
-                    if (!first) sb.Append("&");
-                    first = false;
-
-                    sb.AppendFormat("{0}={1}", Encode(item.Key), Encode("{0}".F(item.Value)));
-                }
-
-                url = sb.Put(true);
-            }
-
-            return url;
         }
         #endregion
 
