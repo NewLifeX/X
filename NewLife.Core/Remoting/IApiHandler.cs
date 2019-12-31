@@ -168,8 +168,10 @@ namespace NewLife.Remoting
                 if (session.Token.IsNullOrEmpty() && msg is HttpMessage hmsg && hmsg.Headers != null)
                 {
                     // post、package、byte三种情况将token 写入请求头
-                    if (hmsg.Headers.TryGetValue("x-token", out var xtoken))
-                        session.Token = xtoken;
+                    if (hmsg.Headers.TryGetValue("x-token", out var token2))
+                        session.Token = token2;
+                    else if (hmsg.Headers.TryGetValue("Authorization", out token2))
+                        session.Token = token2.TrimStart("Bearer ");
                 }
 
                 // 准备好参数

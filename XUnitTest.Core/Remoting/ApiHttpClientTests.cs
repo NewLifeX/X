@@ -90,23 +90,6 @@ namespace XUnitTest.Remoting
                 //Assert.True(ex.Message.EndsWith("无法找到名为[api/info3]的服务！"));
                 Assert.EndsWith("无法找到名为[api/info3]的服务！", ex.Message);
             }
-
-            //_Client.UseHttpStatus = true;
-            //try
-            //{
-            //    var msg = await _Client.InvokeAsync<Object>("api/info3");
-            //}
-            //catch (Exception ex)
-            //{
-            //    var aex = ex as HttpRequestException;
-            //    Assert.NotNull(aex);
-            //    Assert.Equal("Default", ex.Data["Name"]);
-
-            //    var rs = ex.Data["Response"] as HttpResponseMessage;
-            //    Assert.NotNull(rs);
-            //    Assert.Equal(HttpStatusCode.NotFound, rs.StatusCode);
-            //    //Assert.Equal("远程[Api]错误！ \"无法找到名为[api/info3]的服务！\"", ex.Message);
-            //}
         }
 
         [Theory(DisplayName = "令牌测试")]

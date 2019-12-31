@@ -52,6 +52,8 @@ namespace NewLife.Http
                 msg = new HttpMessage();
                 if (!msg.Read(pk)) throw new XException("Http请求头不完整");
 
+                if (!msg.ParseHeaders()) throw new XException("Http头部解码失败");
+
                 // GET请求一次性过来，暂时不支持头部被拆为多包的场景
                 if (isGet)
                 {
@@ -61,8 +63,6 @@ namespace NewLife.Http
                 // POST可能多次，最典型的是头部和主体分离
                 else
                 {
-                    if (!msg.ParseHeaders()) throw new XException("Http头部解码失败");
-
                     // 消息完整才允许上报
                     if (msg.ContentLength == 0 || msg.ContentLength > 0 && msg.Payload != null && msg.Payload.Total >= msg.ContentLength)
                     {
