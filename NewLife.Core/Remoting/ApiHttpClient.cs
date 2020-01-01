@@ -76,13 +76,14 @@ namespace NewLife.Remoting
         /// <param name="method">请求方法</param>
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
+        /// <param name="onRequest">请求头回调</param>
         /// <returns></returns>
-        public virtual async Task<TResult> InvokeAsync<TResult>(HttpMethod method, String action, Object args = null)
+        public virtual async Task<TResult> InvokeAsync<TResult>(HttpMethod method, String action, Object args = null, Action<HttpRequestMessage> onRequest = null)
         {
             var rtype = typeof(TResult);
 
             // 发起请求
-            var msg = await SendAsync(method, action, args, rtype);
+            var msg = await SendAsync(method, action, args, rtype, onRequest);
 
             try
             {
@@ -138,12 +139,13 @@ namespace NewLife.Remoting
         #region 调度池
         private Int32 _Index;
         /// <summary>异步发送</summary>
-        /// <param name="method"></param>
-        /// <param name="action"></param>
-        /// <param name="returnType"></param>
-        /// <param name="args"></param>
+        /// <param name="method">请求方法</param>
+        /// <param name="action">服务操作</param>
+        /// <param name="args">参数</param>
+        /// <param name="returnType">返回类型</param>
+        /// <param name="onRequest">请求头回调</param>
         /// <returns></returns>
-        protected virtual async Task<HttpResponseMessage> SendAsync(HttpMethod method, String action, Object args, Type returnType)
+        protected virtual async Task<HttpResponseMessage> SendAsync(HttpMethod method, String action, Object args, Type returnType, Action<HttpRequestMessage> onRequest)
         {
             var ms = _Items;
             if (ms.Count == 0) throw new InvalidOperationException("未添加服务地址！");
@@ -153,6 +155,7 @@ namespace NewLife.Remoting
             {
                 // 序列化参数，决定GET/POST
                 var request = BuildRequest(method, action, args, returnType);
+                onRequest?.Invoke(request);
 
                 var service = ms[_Index];
                 Source = service.Name;
