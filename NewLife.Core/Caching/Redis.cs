@@ -291,11 +291,7 @@ namespace NewLife.Caching
                 try
                 {
                     client.Reset();
-                    var rs = func(client);
-
-                    Counter?.StopCount(sw);
-
-                    return rs;
+                    return func(client);
                 }
                 catch (InvalidDataException)
                 {
@@ -304,6 +300,8 @@ namespace NewLife.Caching
                 finally
                 {
                     Pool.Put(client);
+
+                    Counter?.StopCount(sw);
                 }
             } while (true);
         }
@@ -326,12 +324,15 @@ namespace NewLife.Caching
         }
 
         /// <summary>结束管道模式</summary>
-        /// <param name="requireResult">要求结果。默认false</param>
-        public virtual Object[] StopPipeline(Boolean requireResult = false)
+        /// <param name="requireResult">要求结果。默认true</param>
+        public virtual Object[] StopPipeline(Boolean requireResult = true)
         {
             var rds = _client.Value;
             if (rds == null) return null;
             _client.Value = null;
+
+            // 统计性能
+            var sw = Counter?.StartCount();
 
             // 管道处理不需要重试
             try
@@ -345,6 +346,8 @@ namespace NewLife.Caching
 
                 rds.Reset();
                 Pool.Put(rds);
+
+                Counter?.StopCount(sw);
             }
         }
 
@@ -599,13 +602,19 @@ namespace NewLife.Caching
         /// </remarks>
         /// <param name="rand">随机读写</param>
         /// <param name="batch">批量操作</param>
-        public override void Bench(Boolean rand = true, Int32 batch = 100)
+        public override Int64 Bench(Boolean rand = true, Int32 batch = 1000)
         {
             XTrace.WriteLine($"目标服务器：{Server}/{Db}");
 
-            if (AutoPipeline == 0) AutoPipeline = 100;
+            //if (AutoPipeline == 0) AutoPipeline = 1000;
+            // 顺序操作时，打开自动管道
+            if (!rand && batch > 0)
+            {
+                AutoPipeline = batch;
+                FullPipeline = true;
+            }
 
-            base.Bench(rand, batch);
+            return base.Bench(rand, batch);
         }
 
         /// <summary>使用指定线程测试指定次数</summary>
@@ -613,11 +622,11 @@ namespace NewLife.Caching
         /// <param name="threads">线程</param>
         /// <param name="rand">随机读写</param>
         /// <param name="batch">批量操作</param>
-        public override void BenchOne(Int64 times, Int32 threads, Boolean rand, Int32 batch)
+        public override Int64 BenchOne(Int64 times, Int32 threads, Boolean rand, Int32 batch)
         {
-            if (rand && batch > 10) times *= 10;
+            if (AutoPipeline > 0 && batch > 10) times *= 10;
 
-            base.BenchOne(times, threads, rand, batch);
+            return base.BenchOne(times, threads, rand, batch);
         }
         #endregion
 
