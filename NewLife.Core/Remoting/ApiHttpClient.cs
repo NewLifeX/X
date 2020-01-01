@@ -184,6 +184,7 @@ namespace NewLife.Remoting
             // 重试次数
             var retry = Retry;
             if (retry == 0) retry = ms.Count;
+            if (retry <= 0) retry = 1;
 
             Exception error = null;
             for (var i = 0; i < retry; i++)
