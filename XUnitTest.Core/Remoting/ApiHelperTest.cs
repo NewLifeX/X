@@ -152,7 +152,7 @@ namespace XUnitTest.Remoting
             }
         }
 
-        [Theory(DisplayName = "处理错误响应")]
+        [Theory(DisplayName = "处理Http错误响应")]
         [InlineData(null)]
         [InlineData("12345678")]
         public async void ProcessErrorResponseTest(String content)
@@ -184,6 +184,96 @@ namespace XUnitTest.Remoting
                 else
                     Assert.Equal(msg.ReasonPhrase, ex.Message);
             }
+        }
+
+        [Theory(DisplayName = "处理应用错误响应")]
+        [InlineData("{code:500,data:12345678}")]
+        [InlineData("{code:501,message:\"error\"}")]
+        [InlineData("{code:502,data:12345678,message:\"error\"}")]
+        public async void ProcessErrorResponseTest2(String content)
+        {
+            var msg = new HttpResponseMessage(HttpStatusCode.OK);
+            if (!content.IsNullOrEmpty()) msg.Content = new StringContent(content);
+
+            // 返回原型，不抛出异常
+            try
+            {
+                var rs = await ApiHelper.ProcessResponse<HttpResponseMessage>(msg);
+                Assert.Equal(msg, rs);
+            }
+            catch (Exception)
+            {
+                Assert.True(false);
+            }
+
+            // 捕获Api异常
+            try
+            {
+                var rs = await ApiHelper.ProcessResponse<String>(msg);
+            }
+            catch (ApiException ex)
+            {
+                Assert.Equal(content.Substring("code:", ",").ToInt(), ex.Code);
+
+                var error = content.Substring("message:\"", "\"}");
+                if (error.IsNullOrEmpty()) error = content.Substring("data:", "}");
+                Assert.Equal(error, ex.Message);
+            }
+        }
+
+        [Theory(DisplayName = "处理Byte响应")]
+        [InlineData(null)]
+        [InlineData("12345678")]
+        public async void ProcessByteResponseTest(String content)
+        {
+            var msg = new HttpResponseMessage(HttpStatusCode.OK);
+            if (!content.IsNullOrEmpty()) msg.Content = new ByteArrayContent(content.ToHex());
+
+            // 处理
+            var rs = await ApiHelper.ProcessResponse<Byte[]>(msg);
+            if (content != null)
+            {
+                Assert.NotNull(rs);
+                Assert.Equal(content, rs.ToHex());
+            }
+            else
+            {
+                Assert.Null(rs);
+            }
+        }
+
+        [Theory(DisplayName = "处理Packet响应")]
+        [InlineData(null)]
+        [InlineData("12345678")]
+        public async void ProcessPacketResponseTest(String content)
+        {
+            var msg = new HttpResponseMessage(HttpStatusCode.OK);
+            if (!content.IsNullOrEmpty()) msg.Content = new ByteArrayContent(content.ToHex());
+
+            // 处理
+            var rs = await ApiHelper.ProcessResponse<Packet>(msg);
+            if (content != null)
+            {
+                Assert.NotNull(rs);
+                Assert.Equal(content, rs.ToHex());
+            }
+            else
+            {
+                Assert.Null(rs);
+            }
+        }
+
+        [Theory(DisplayName = "处理响应")]
+        [InlineData("{code:0,data:12345678}")]
+        [InlineData("{code:0,data:{aaa:bbb,xxx:1234}}")]
+        public async void ProcessResponseTest(String content)
+        {
+            var msg = new HttpResponseMessage(HttpStatusCode.OK);
+            if (!content.IsNullOrEmpty()) msg.Content = new StringContent(content);
+
+            // 处理
+            var rs = await ApiHelper.ProcessResponse<String>(msg);
+            Assert.Equal(content.Substring("data:", "}"), rs);
         }
 
         [Fact(DisplayName = "异步请求")]
