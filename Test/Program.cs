@@ -45,7 +45,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test4();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -69,6 +69,44 @@ namespace Test
             //var ip = "180.165.235.0".IPToAddress();
             //XTrace.WriteLine(ip);
 
+            var dt = DateTime.Now;
+            Console.WriteLine(dt);
+            Console.WriteLine(dt.ToFullString());
+
+            var dt2 = dt.ToUniversalTime();
+            Console.WriteLine(dt2);
+            Console.WriteLine(dt2.ToFullString());
+
+            var dt3 = dt2.ToFullString().ToDateTime();
+            Console.WriteLine(dt3.Kind);
+            Console.WriteLine(dt3);
+            Console.WriteLine(dt3.ToFullString());
+
+            var tzi = TimeZoneInfo.FindSystemTimeZoneById("Newfoundland Standard Time");
+            var dt4 = TimeZoneInfo.ConvertTime(dt, tzi);
+            Console.WriteLine(dt4.Kind);
+            Console.WriteLine(dt4);
+            Console.WriteLine(dt4.ToFullString());
+
+            var dto = DateTimeOffset.Now;
+            Console.WriteLine(dto);
+            Console.WriteLine(dto.ToFullString());
+
+            var dto2 = dto.ToUniversalTime();
+            Console.WriteLine(dto2);
+            Console.WriteLine(dto2.ToFullString());
+
+            var dto4 = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(dto, "Newfoundland Standard Time");
+            Console.WriteLine(dto4);
+            Console.WriteLine(dto4.ToFullString());
+
+            var zi = TimeZoneInfo.Local;
+            foreach (var pi in zi.GetType().GetProperties())
+            {
+                XTrace.WriteLine("{0}:\t{1}", pi.Name, zi.GetValue(pi));
+            }
+
+            Console.WriteLine();
             var mi = new MachineInfo();
             mi.Init();
 

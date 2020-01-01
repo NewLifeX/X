@@ -56,6 +56,28 @@ namespace System
         /// <returns></returns>
         public static DateTime ToDateTime(this Object value, DateTime defaultValue) => Convert.ToDateTime(value, defaultValue);
 
+        /// <summary>转为时间日期，转换失败时返回最小时间。支持字符串、整数（Unix秒）</summary>
+        /// <param name="value">待转换对象</param>
+        /// <returns></returns>
+        public static DateTimeOffset ToDateTimeOffset(this Object value) => Convert.ToDateTimeOffset(value, DateTimeOffset.MinValue);
+
+        /// <summary>转为时间日期，转换失败时返回默认值</summary>
+        /// <remarks><see cref="DateTimeOffset.MinValue"/>不是常量无法做默认值</remarks>
+        /// <param name="value">待转换对象</param>
+        /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
+        /// <returns></returns>
+        public static DateTimeOffset ToDateTimeOffset(this Object value, DateTimeOffset defaultValue) => Convert.ToDateTimeOffset(value, defaultValue);
+
+        /// <summary>去掉时间日期秒后面</summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static DateTime Trim(this DateTime value) => new DateTime(value.Year, value.Month, value.Day, value.Hour, value.Minute, value.Second, value.Kind);
+
+        /// <summary>去掉时间日期秒后面</summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static DateTimeOffset Trim(this DateTimeOffset value) => new DateTimeOffset(value.DateTime.Trim(), value.Offset);
+
         /// <summary>时间日期转为yyyy-MM-dd HH:mm:ss完整字符串</summary>
         /// <remarks>最常用的时间日期格式，可以无视各平台以及系统自定义的时间格式</remarks>
         /// <param name="value">待转换对象</param>
@@ -68,6 +90,13 @@ namespace System
         /// <param name="emptyValue">字符串空值时（DateTime.MinValue）显示的字符串，null表示原样显示最小时间，String.Empty表示不显示</param>
         /// <returns></returns>
         public static String ToFullString(this DateTime value, String emptyValue = null) => Convert.ToFullString(value, emptyValue);
+
+        /// <summary>时间日期转为yyyy-MM-dd HH:mm:ss +08:00完整字符串，支持指定最小时间的字符串</summary>
+        /// <remarks>最常用的时间日期格式，可以无视各平台以及系统自定义的时间格式</remarks>
+        /// <param name="value">待转换对象</param>
+        /// <param name="emptyValue">字符串空值时（DateTimeOffset.MinValue）显示的字符串，null表示原样显示最小时间，String.Empty表示不显示</param>
+        /// <returns></returns>
+        public static String ToFullString(this DateTimeOffset value, String emptyValue = null) => Convert.ToFullString(value, emptyValue);
 
         /// <summary>时间日期转为指定格式字符串</summary>
         /// <param name="value">待转换对象</param>
@@ -334,6 +363,44 @@ namespace System
             catch { return defaultValue; }
         }
 
+        /// <summary>转为时间日期，转换失败时返回最小时间。支持字符串、整数（Unix秒）</summary>
+        /// <param name="value">待转换对象</param>
+        /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
+        /// <returns></returns>
+        public virtual DateTimeOffset ToDateTimeOffset(Object value, DateTimeOffset defaultValue)
+        {
+            if (value == null || value == DBNull.Value) return defaultValue;
+
+            // 特殊处理字符串，也是最常见的
+
+            if (value is String str)
+            {
+                str = str.Trim();
+                if (str.IsNullOrEmpty()) return defaultValue;
+
+                if (DateTimeOffset.TryParse(str, out var n)) return n;
+                if (str.Contains("-") && DateTimeOffset.TryParseExact(str, "yyyy-M-d", null, DateTimeStyles.None, out n)) return n;
+                if (str.Contains("/") && DateTimeOffset.TryParseExact(str, "yyyy/M/d", null, DateTimeStyles.None, out n)) return n;
+                if (DateTimeOffset.TryParse(str, out n)) return n;
+                return defaultValue;
+            }
+            // 特殊处理整数，Unix秒，绝对时间差，不考虑UTC时间和本地时间。
+            if (value is Int32 k) return k == 0 ? DateTimeOffset.MinValue : _dt1970.AddSeconds(k);
+            if (value is Int64 m)
+            {
+                if (m > 100 * 365 * 24 * 3600L)
+                    return _dt1970.AddMilliseconds(m);
+                else
+                    return _dt1970.AddSeconds(m);
+            }
+
+            try
+            {
+                return Convert.ToDateTime(value);
+            }
+            catch { return defaultValue; }
+        }
+
         /// <summary>全角为半角</summary>
         /// <remarks>全角半角的关系是相差0xFEE0</remarks>
         /// <param name="str"></param>
@@ -394,33 +461,88 @@ namespace System
 
             var m = value.Month;
             cs[k++] = (Char)('0' + (m / 10));
-            m %= 10;
-            cs[k++] = (Char)('0' + m);
+            cs[k++] = (Char)('0' + (m % 10));
             k++;
 
             m = value.Day;
             cs[k++] = (Char)('0' + (m / 10));
-            m %= 10;
-            cs[k++] = (Char)('0' + m);
+            cs[k++] = (Char)('0' + (m % 10));
             k++;
 
             m = value.Hour;
             cs[k++] = (Char)('0' + (m / 10));
-            m %= 10;
-            cs[k++] = (Char)('0' + m);
+            cs[k++] = (Char)('0' + (m % 10));
             k++;
 
             m = value.Minute;
             cs[k++] = (Char)('0' + (m / 10));
-            m %= 10;
-            cs[k++] = (Char)('0' + m);
+            cs[k++] = (Char)('0' + (m % 10));
             k++;
 
             m = value.Second;
             cs[k++] = (Char)('0' + (m / 10));
-            m %= 10;
-            cs[k++] = (Char)('0' + m);
+            cs[k++] = (Char)('0' + (m % 10));
             k++;
+
+            return new String(cs);
+        }
+
+        /// <summary>时间日期转为yyyy-MM-dd HH:mm:ss完整字符串</summary>
+        /// <param name="value">待转换对象</param>
+        /// <param name="emptyValue">字符串空值时显示的字符串，null表示原样显示最小时间，String.Empty表示不显示</param>
+        /// <returns></returns>
+        public virtual String ToFullString(DateTimeOffset value, String emptyValue = null)
+        {
+            if (emptyValue != null && value <= DateTimeOffset.MinValue) return emptyValue;
+
+            var cs = "yyyy-MM-dd HH:mm:ss +08:00".ToCharArray();
+
+            var k = 0;
+            var y = value.Year;
+            cs[k++] = (Char)('0' + (y / 1000));
+            y %= 1000;
+            cs[k++] = (Char)('0' + (y / 100));
+            y %= 100;
+            cs[k++] = (Char)('0' + (y / 10));
+            y %= 10;
+            cs[k++] = (Char)('0' + y);
+            k++;
+
+            var m = value.Month;
+            cs[k++] = (Char)('0' + (m / 10));
+            cs[k++] = (Char)('0' + (m % 10));
+            k++;
+
+            m = value.Day;
+            cs[k++] = (Char)('0' + (m / 10));
+            cs[k++] = (Char)('0' + (m % 10));
+            k++;
+
+            m = value.Hour;
+            cs[k++] = (Char)('0' + (m / 10));
+            cs[k++] = (Char)('0' + (m % 10));
+            k++;
+
+            m = value.Minute;
+            cs[k++] = (Char)('0' + (m / 10));
+            cs[k++] = (Char)('0' + (m % 10));
+            k++;
+
+            m = value.Second;
+            cs[k++] = (Char)('0' + (m / 10));
+            cs[k++] = (Char)('0' + (m % 10));
+            k++;
+
+            // 时区
+            var offset = value.Offset;
+            cs[k++] = offset.TotalSeconds >= 0 ? '+' : '-';
+            m = Math.Abs(offset.Hours);
+            cs[k++] = (Char)('0' + (m / 10));
+            cs[k++] = (Char)('0' + (m % 10));
+            k++;
+            m = Math.Abs(offset.Minutes);
+            cs[k++] = (Char)('0' + (m / 10));
+            cs[k++] = (Char)('0' + (m % 10));
 
             return new String(cs);
         }
