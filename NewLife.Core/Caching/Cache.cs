@@ -252,8 +252,8 @@ namespace NewLife.Caching
 
         #region 性能测试
         /// <summary>多线程性能测试</summary>
-        /// <param name="rand">随机读写</param>
-        /// <param name="batch">批量操作。默认0不分批</param>
+        /// <param name="rand">随机读写。顺序，每个线程多次操作一个key；随机，每个线程每次操作不同key</param>
+        /// <param name="batch">批量操作。默认0不分批，分批仅针对随机读写，对顺序读写的单key操作没有意义</param>
         /// <remarks>
         /// Memory性能测试[顺序]，逻辑处理器 32 个 2,000MHz Intel(R) Xeon(R) CPU E5-2640 v2 @ 2.00GHz
         /// 
@@ -292,31 +292,34 @@ namespace NewLife.Caching
         /// 读取 320,000,000 项，256 线程，耗时   1,907ms 速度 167,802,831 ops
         /// 删除 320,000,000 项，256 线程，耗时   2,350ms 速度 136,170,212 ops
         /// </remarks>
-        public virtual void Bench(Boolean rand = false, Int32 batch = 0)
+        public virtual Int64 Bench(Boolean rand = false, Int32 batch = 0)
         {
             var cpu = Environment.ProcessorCount;
             XTrace.WriteLine($"{Name}性能测试[{(rand ? "随机" : "顺序")}]，批大小[{batch}]，逻辑处理器 {cpu:n0} 个");
 
+            var rs = 0L;
             var times = 10_000;
 
             // 单线程
-            BenchOne(times, 1, rand, batch);
+            rs += BenchOne(times, 1, rand, batch);
 
             // 多线程
-            if (cpu != 2) BenchOne(times * 2, 2, rand, batch);
-            if (cpu != 4) BenchOne(times * 4, 4, rand, batch);
-            if (cpu != 8) BenchOne(times * 8, 8, rand, batch);
+            if (cpu != 2) rs += BenchOne(times * 2, 2, rand, batch);
+            if (cpu != 4) rs += BenchOne(times * 4, 4, rand, batch);
+            if (cpu != 8) rs += BenchOne(times * 8, 8, rand, batch);
 
             // CPU个数
-            BenchOne(times * cpu, cpu, rand, batch);
+            rs += BenchOne(times * cpu, cpu, rand, batch);
 
             //// 1.5倍
             //var cpu2 = cpu * 3 / 2;
             //if (!(new[] { 2, 4, 8, 64, 256 }).Contains(cpu2)) BenchOne(times * cpu2, cpu2, rand);
 
             // 最大
-            if (cpu < 64) BenchOne(times * cpu, 64, rand, batch);
+            if (cpu < 64) rs += BenchOne(times * cpu, 64, rand, batch);
             //if (cpu * 8 >= 256) BenchOne(times * cpu, cpu * 8, rand);
+
+            return rs;
         }
 
         /// <summary>使用指定线程测试指定次数</summary>
@@ -324,13 +327,15 @@ namespace NewLife.Caching
         /// <param name="threads">线程</param>
         /// <param name="rand">随机读写</param>
         /// <param name="batch">批量操作</param>
-        public virtual void BenchOne(Int64 times, Int32 threads, Boolean rand, Int32 batch)
+        public virtual Int64 BenchOne(Int64 times, Int32 threads, Boolean rand, Int32 batch)
         {
             if (threads <= 0) threads = Environment.ProcessorCount;
             if (times <= 0) times = threads * 1_000;
 
             XTrace.WriteLine("");
             XTrace.WriteLine($"测试 {times:n0} 项，{threads,3:n0} 线程");
+
+            var rs = 3L;
 
             //提前执行一次网络操作，预热链路
             var key = "bstr_";
@@ -340,16 +345,22 @@ namespace NewLife.Caching
 
             // 赋值测试
             BenchSet(key, times, threads, rand, batch);
+            rs += times + 1;
 
             // 读取测试
             BenchGet(key, times, threads, rand, batch);
+            rs += times + 1;
 
             // 删除测试
             BenchRemove(key, times, threads, rand);
+            rs += times + 1;
 
             // 累加测试
             key = "bint_";
             BenchInc(key, times, threads, rand, batch);
+            rs += times + 1;
+
+            return rs;
         }
 
         /// <summary>读取测试</summary>
@@ -366,6 +377,7 @@ namespace NewLife.Caching
             var sw = Stopwatch.StartNew();
             if (rand)
             {
+                // 随机操作，每个线程每次操作不同key，跳跃式
                 Parallel.For(0, threads, k =>
                 {
                     if (batch == 0)
@@ -398,6 +410,7 @@ namespace NewLife.Caching
             }
             else
             {
+                // 顺序操作，每个线程多次操作同一个key
                 Parallel.For(0, threads, k =>
                 {
                     var mykey = key + k;
@@ -422,11 +435,12 @@ namespace NewLife.Caching
         /// <param name="batch">批量操作</param>
         protected virtual void BenchSet(String key, Int64 times, Int32 threads, Boolean rand, Int32 batch)
         {
-            //Set(key, Rand.NextBytes(32));
+            Set(key, Rand.NextBytes(32));
 
             var sw = Stopwatch.StartNew();
             if (rand)
             {
+                // 随机操作，每个线程每次操作不同key，跳跃式
                 Parallel.For(0, threads, k =>
                 {
                     var val = Rand.NextString(8);
@@ -465,6 +479,7 @@ namespace NewLife.Caching
             }
             else
             {
+                // 顺序操作，每个线程多次操作同一个key
                 Parallel.For(0, threads, k =>
                 {
                     var mykey = key + k;
@@ -485,6 +500,53 @@ namespace NewLife.Caching
             XTrace.WriteLine($"赋值 耗时 {sw.ElapsedMilliseconds,7:n0}ms 速度 {speed,9:n0} ops");
         }
 
+        /// <summary>删除测试</summary>
+        /// <param name="key">键</param>
+        /// <param name="times">次数</param>
+        /// <param name="threads">线程</param>
+        /// <param name="rand">随机读写</param>
+        protected virtual void BenchRemove(String key, Int64 times, Int32 threads, Boolean rand)
+        {
+            //提前执行一次网络操作，预热链路
+            Remove(key);
+
+            var sw = Stopwatch.StartNew();
+            if (rand)
+            {
+                // 随机操作，每个线程每次操作不同key，跳跃式
+                Parallel.For(0, threads, k =>
+                {
+                    for (var i = k; i < times; i += threads)
+                    {
+                        Remove(key + i);
+                    }
+
+                    // 提交变更
+                    Commit();
+                });
+            }
+            else
+            {
+                // 顺序操作，每个线程多次操作同一个key
+                Parallel.For(0, threads, k =>
+                {
+                    var mykey = key + k;
+                    var count = times / threads;
+                    for (var i = 0; i < count; i++)
+                    {
+                        Remove(mykey);
+                    }
+
+                    // 提交变更
+                    Commit();
+                });
+            }
+            sw.Stop();
+
+            var speed = times * 1000 / sw.ElapsedMilliseconds;
+            XTrace.WriteLine($"删除 耗时 {sw.ElapsedMilliseconds,7:n0}ms 速度 {speed,9:n0} ops");
+        }
+
         /// <summary>累加测试</summary>
         /// <param name="key">键</param>
         /// <param name="times">次数</param>
@@ -493,9 +555,13 @@ namespace NewLife.Caching
         /// <param name="batch">批量操作</param>
         protected virtual void BenchInc(String key, Int64 times, Int32 threads, Boolean rand, Int32 batch)
         {
+            //提前执行一次网络操作，预热链路
+            Increment(key, 1);
+
             var sw = Stopwatch.StartNew();
             if (rand)
             {
+                // 随机操作，每个线程每次操作不同key，跳跃式
                 Parallel.For(0, threads, k =>
                 {
                     var val = Rand.Next(100);
@@ -510,6 +576,7 @@ namespace NewLife.Caching
             }
             else
             {
+                // 顺序操作，每个线程多次操作同一个key
                 Parallel.For(0, threads, k =>
                 {
                     var mykey = key + k;
@@ -528,51 +595,6 @@ namespace NewLife.Caching
 
             var speed = times * 1000 / sw.ElapsedMilliseconds;
             XTrace.WriteLine($"累加 耗时 {sw.ElapsedMilliseconds,7:n0}ms 速度 {speed,9:n0} ops");
-        }
-
-        /// <summary>删除测试</summary>
-        /// <param name="key">键</param>
-        /// <param name="times">次数</param>
-        /// <param name="threads">线程</param>
-        /// <param name="rand">随机读写</param>
-        protected virtual void BenchRemove(String key, Int64 times, Int32 threads, Boolean rand)
-        {
-            //提前执行一次网络操作，预热链路
-            Remove(key);
-
-            var sw = Stopwatch.StartNew();
-            if (rand)
-            {
-                Parallel.For(0, threads, k =>
-                {
-                    for (var i = k; i < times; i += threads)
-                    {
-                        Remove(key + i);
-                    }
-
-                    // 提交变更
-                    Commit();
-                });
-            }
-            else
-            {
-                Parallel.For(0, threads, k =>
-                {
-                    var mykey = key + k;
-                    var count = times / threads;
-                    for (var i = 0; i < count; i++)
-                    {
-                        Remove(mykey);
-                    }
-
-                    // 提交变更
-                    Commit();
-                });
-            }
-            sw.Stop();
-
-            var speed = times * 1000 / sw.ElapsedMilliseconds;
-            XTrace.WriteLine($"删除 耗时 {sw.ElapsedMilliseconds,7:n0}ms 速度 {speed,9:n0} ops");
         }
         #endregion
 

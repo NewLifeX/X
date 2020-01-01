@@ -165,9 +165,9 @@ namespace NewLife.Caching
 
         #region 性能测试
         /// <summary>多线程性能测试</summary>
-        /// <param name="rand">随机读写</param>
-        /// <param name="batch">批量操作。默认0不分批</param>
-        void Bench(Boolean rand = false, Int32 batch = 0);
+        /// <param name="rand">随机读写。顺序，每个线程多次操作一个key；随机，每个线程每次操作不同key</param>
+        /// <param name="batch">批量操作。默认0不分批，分批仅针对随机读写，对顺序读写的单key操作没有意义</param>
+        Int64 Bench(Boolean rand = false, Int32 batch = 0);
         #endregion
     }
 }

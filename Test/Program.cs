@@ -45,7 +45,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test1();
+                    Test4();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -262,8 +262,9 @@ namespace Test
                     ch = new DbCache();
                     break;
                 case '3':
-                    ch = Redis.Create("127.0.0.1", 9);
-                    //(ch as Redis).Log = XTrace.Log;
+                    var rds = new Redis("127.0.0.1", null, 9);
+                    rds.Counter = new PerfCounter();
+                    ch = rds;
                     break;
             }
 
@@ -272,12 +273,20 @@ namespace Test
             Console.Write("选择测试模式：1，顺序；2，随机 ");
             if (Console.ReadKey().KeyChar != '1') mode = true;
 
+            var batch = 0;
+            Console.WriteLine();
+            Console.Write("选择输入批大小[0]：");
+            batch = Console.ReadLine().ToInt();
+
             Console.Clear();
 
-            var batch = 0;
-            if (mode) batch = 100;
+            //var batch = 0;
+            //if (mode) batch = 1000;
 
-            ch.Bench(mode, batch);
+            var rs = ch.Bench(mode, batch);
+
+            XTrace.WriteLine("总测试数据：{0:n0}", rs);
+            if (ch is Redis rds2) XTrace.WriteLine(rds2.Counter + "");
         }
 
         static void Test5()
