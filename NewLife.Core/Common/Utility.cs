@@ -68,15 +68,23 @@ namespace System
         /// <returns></returns>
         public static DateTimeOffset ToDateTimeOffset(this Object value, DateTimeOffset defaultValue) => Convert.ToDateTimeOffset(value, defaultValue);
 
-        /// <summary>去掉时间日期秒后面</summary>
-        /// <param name="value"></param>
+        /// <summary>去掉时间日期秒后面部分，可指定毫秒</summary>
+        /// <param name="value">时间日期</param>
+        /// <param name="format">格式字符串，默认s格式化到秒，ms格式化到毫秒</param>
         /// <returns></returns>
-        public static DateTime Trim(this DateTime value) => new DateTime(value.Year, value.Month, value.Day, value.Hour, value.Minute, value.Second, value.Kind);
+        public static DateTime Trim(this DateTime value, String format = "s")
+        {
+            if (format == "s") return new DateTime(value.Year, value.Month, value.Day, value.Hour, value.Minute, value.Second, value.Kind);
+            if (format == "ms") return new DateTime(value.Year, value.Month, value.Day, value.Hour, value.Minute, value.Second, value.Millisecond, value.Kind);
 
-        /// <summary>去掉时间日期秒后面</summary>
-        /// <param name="value"></param>
+            return value;
+        }
+
+        /// <summary>去掉时间日期秒后面部分，可指定毫秒</summary>
+        /// <param name="value">时间日期</param>
+        /// <param name="format">格式字符串，默认s格式化到秒，ms格式化到毫秒</param>
         /// <returns></returns>
-        public static DateTimeOffset Trim(this DateTimeOffset value) => new DateTimeOffset(value.DateTime.Trim(), value.Offset);
+        public static DateTimeOffset Trim(this DateTimeOffset value, String format = "s") => new DateTimeOffset(value.DateTime.Trim(format), value.Offset);
 
         /// <summary>时间日期转为yyyy-MM-dd HH:mm:ss完整字符串</summary>
         /// <remarks>最常用的时间日期格式，可以无视各平台以及系统自定义的时间格式</remarks>
@@ -124,6 +132,7 @@ namespace System
     public class DefaultConvert
     {
         private static DateTime _dt1970 = new DateTime(1970, 1, 1);
+        private static DateTimeOffset _dto1970 = new DateTimeOffset(new DateTime(1970, 1, 1));
 
         /// <summary>转为整数，转换失败时返回默认值。支持字符串、全角、字节数组（小端）、时间（Unix秒）</summary>
         /// <param name="value">待转换对象</param>
@@ -153,6 +162,12 @@ namespace System
                 //// 先转UTC时间再相减，以得到绝对时间差
                 //return (Int32)(dt.ToUniversalTime() - _dt1970).TotalSeconds;
                 return (Int32)(dt - _dt1970).TotalSeconds;
+            }
+            if (value is DateTimeOffset dto)
+            {
+                if (dto == DateTimeOffset.MinValue) return 0;
+
+                return (Int32)(dto - _dto1970).TotalSeconds;
             }
 
             if (value is Byte[] buf)
@@ -209,6 +224,12 @@ namespace System
                 //// 先转UTC时间再相减，以得到绝对时间差
                 //return (Int32)(dt.ToUniversalTime() - _dt1970).TotalSeconds;
                 return (Int64)(dt - _dt1970).TotalMilliseconds;
+            }
+            if (value is DateTimeOffset dto)
+            {
+                if (dto == DateTimeOffset.MinValue) return 0;
+
+                return (Int64)(dto - _dto1970).TotalMilliseconds;
             }
 
             if (value is Byte[] buf)
@@ -385,13 +406,13 @@ namespace System
                 return defaultValue;
             }
             // 特殊处理整数，Unix秒，绝对时间差，不考虑UTC时间和本地时间。
-            if (value is Int32 k) return k == 0 ? DateTimeOffset.MinValue : _dt1970.AddSeconds(k);
+            if (value is Int32 k) return k == 0 ? DateTimeOffset.MinValue : _dto1970.AddSeconds(k);
             if (value is Int64 m)
             {
                 if (m > 100 * 365 * 24 * 3600L)
-                    return _dt1970.AddMilliseconds(m);
+                    return _dto1970.AddMilliseconds(m);
                 else
-                    return _dt1970.AddSeconds(m);
+                    return _dto1970.AddSeconds(m);
             }
 
             try
