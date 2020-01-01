@@ -47,6 +47,7 @@ namespace NewLife.Agent
         /// <summary>服务主函数</summary>
         public void Main()
         {
+            MachineInfo.RegisterAsync();
             XTrace.UseConsole();
 
             var service = this;
