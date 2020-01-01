@@ -187,9 +187,9 @@ namespace XUnitTest.Remoting
         }
 
         [Theory(DisplayName = "处理应用错误响应")]
-        [InlineData("{code:500,data:12345678}")]
+        [InlineData("{code:500,data:\"Stone\"}")]
         [InlineData("{code:501,message:\"error\"}")]
-        [InlineData("{code:502,data:12345678,message:\"error\"}")]
+        [InlineData("{code:502,data:\"Stone\",msg:\"error\"}")]
         public async void ProcessErrorResponseTest2(String content)
         {
             var msg = new HttpResponseMessage(HttpStatusCode.OK);
@@ -216,7 +216,8 @@ namespace XUnitTest.Remoting
                 Assert.Equal(content.Substring("code:", ",").ToInt(), ex.Code);
 
                 var error = content.Substring("message:\"", "\"}");
-                if (error.IsNullOrEmpty()) error = content.Substring("data:", "}");
+                if (error.IsNullOrEmpty()) error = content.Substring("msg:\"", "\"}");
+                if (error.IsNullOrEmpty()) error = content.Substring("data:\"", "\"}");
                 Assert.Equal(error, ex.Message);
             }
         }
@@ -265,15 +266,47 @@ namespace XUnitTest.Remoting
 
         [Theory(DisplayName = "处理响应")]
         [InlineData("{code:0,data:12345678}")]
-        [InlineData("{code:0,data:{aaa:bbb,xxx:1234}}")]
+        [InlineData("{code:0,data:\"Stone\"}")]
+        [InlineData("{code:0,data:{aaa:\"bbb\",xxx:1234}}")]
+        [InlineData("{code:0,data:{OSName:\"win10\",OSVersion:\"10.0\"}}")]
         public async void ProcessResponseTest(String content)
         {
             var msg = new HttpResponseMessage(HttpStatusCode.OK);
             if (!content.IsNullOrEmpty()) msg.Content = new StringContent(content);
 
-            // 处理
-            var rs = await ApiHelper.ProcessResponse<String>(msg);
-            Assert.Equal(content.Substring("data:", "}"), rs);
+            var data = content.Substring("data:", "}");
+            Assert.NotEmpty(data);
+
+            // 处理，基本类型直接返回
+            if (data == "12345678")
+            {
+                var rs = await ApiHelper.ProcessResponse<Int32>(msg);
+                Assert.Equal(data.ToInt(), rs);
+            }
+            else if (data[0] == '\"' && data[^1] == '\"')
+            {
+                var rs = await ApiHelper.ProcessResponse<String>(msg);
+                Assert.Equal(data.Trim('\"'), rs);
+            }
+            else if (content != null)
+            {
+                // 复杂类型Json序列化，或者字典
+                if (content.Contains("win10"))
+                {
+                    var mi = await ApiHelper.ProcessResponse<MachineInfo>(msg);
+                    Assert.NotNull(mi);
+                    Assert.Equal("win10", mi.OSName);
+                    Assert.Equal("10.0", mi.OSVersion);
+                }
+                else
+                {
+                    var rs = await ApiHelper.ProcessResponse<Object>(msg);
+                    var dic = rs as IDictionary<String, Object>;
+                    Assert.NotNull(dic);
+                    Assert.Equal("bbb", dic["aaa"]);
+                    Assert.Equal(1234L, dic["xxx"]);
+                }
+            }
         }
 
         [Fact(DisplayName = "异步请求")]

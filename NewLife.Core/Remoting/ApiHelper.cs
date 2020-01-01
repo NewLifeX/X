@@ -70,7 +70,7 @@ namespace NewLife.Remoting
         }
         #endregion
 
-        #region 
+        #region 远程辅助
         /// <summary>建立请求，action写到url里面</summary>
         /// <param name="method">请求方法</param>
         /// <param name="action">动作</param>
@@ -165,6 +165,8 @@ namespace NewLife.Remoting
             }
 
             // 简单类型
+            if (data is TResult result) return result;
+            if (rtype == typeof(Object)) return (TResult)data;
             if (rtype.GetTypeCode() != TypeCode.Object) return data.ChangeType<TResult>();
 
             // 反序列化
