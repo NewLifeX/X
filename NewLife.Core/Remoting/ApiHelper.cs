@@ -71,10 +71,10 @@ namespace NewLife.Remoting
         #endregion
 
         #region 
-        /// <summary>建立请求</summary>
+        /// <summary>建立请求，action写到url里面</summary>
         /// <param name="method">请求方法</param>
-        /// <param name="action"></param>
-        /// <param name="args"></param>
+        /// <param name="action">动作</param>
+        /// <param name="args">参数</param>
         /// <returns></returns>
         public static HttpRequestMessage BuildRequest(HttpMethod method, String action, Object args)
         {
@@ -83,11 +83,28 @@ namespace NewLife.Remoting
 
             if (method == HttpMethod.Get)
             {
-                var ps = args?.ToDictionary();
-                var url = GetUrl(action, ps);
-                request.RequestUri = new Uri(url, UriKind.RelativeOrAbsolute);
+                if (args is Packet pk)
+                {
+                    var url = action;
+                    url += url.Contains("?") ? "&" : "?";
+                    url += pk.ToArray().ToUrlBase64();
+                    request.RequestUri = new Uri(url, UriKind.RelativeOrAbsolute);
+                }
+                else if (args is Byte[] buf)
+                {
+                    var url = action;
+                    url += url.Contains("?") ? "&" : "?";
+                    url += buf.ToUrlBase64();
+                    request.RequestUri = new Uri(url, UriKind.RelativeOrAbsolute);
+                }
+                else if (args != null)
+                {
+                    var ps = args?.ToDictionary();
+                    var url = GetUrl(action, ps);
+                    request.RequestUri = new Uri(url, UriKind.RelativeOrAbsolute);
+                }
             }
-            else
+            else if (method == HttpMethod.Post)
             {
                 if (args is Packet pk)
                 {

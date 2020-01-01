@@ -9,6 +9,7 @@ using NewLife.Log;
 using NewLife.Remoting;
 using NewLife.Security;
 using Xunit;
+using NewLife.Serialization;
 
 namespace XUnitTest.Remoting
 {
@@ -16,7 +17,7 @@ namespace XUnitTest.Remoting
     public class ApiHelperTest : DisposeBase
     {
         private readonly ApiServer _Server;
-        private HttpClient _Client;
+        private readonly HttpClient _Client;
 
         public ApiHelperTest()
         {
@@ -38,6 +39,117 @@ namespace XUnitTest.Remoting
             base.Dispose(disposing);
 
             _Server.TryDispose();
+        }
+
+        [Theory(DisplayName = "建立请求")]
+        [InlineData("Get", "api/info")]
+        [InlineData("Post", "api/info")]
+        [InlineData("Put", "api/info")]
+        public void BuildRequestTest(String method, String action)
+        {
+            // 基础建立请求，无参数
+            var md = new HttpMethod(method);
+            var request = ApiHelper.BuildRequest(md, action, null);
+
+            Assert.NotNull(request);
+            Assert.Equal(md, request.Method);
+            Assert.Equal(action, request.RequestUri + "");
+            Assert.Null(request.Content);
+        }
+
+        [Theory(DisplayName = "带参数建立请求")]
+        [InlineData("Get", "api/info", "[buffer]")]
+        [InlineData("Get", "api/info", "[packet]")]
+        [InlineData("Get", "api/info", "[object]")]
+        [InlineData("Get", "api/info", "[dictionary]")]
+        [InlineData("Post", "api/info", "[buffer]")]
+        [InlineData("Post", "api/info", "[packet]")]
+        [InlineData("Post", "api/info", "[object]")]
+        [InlineData("Post", "api/info", "[dictionary]")]
+        [InlineData("Put", "api/info", "[buffer]")]
+        [InlineData("Put", "api/info", "[packet]")]
+        [InlineData("Put", "api/info", "[object]")]
+        [InlineData("Put", "api/info", "[dictionary]")]
+        public void BuildRequestTest2(String method, String action, String argKind)
+        {
+            // 几大类型参数
+            Object args = null;
+            switch (argKind)
+            {
+                case "[buffer]":
+                    args = Rand.NextBytes(16);
+                    break;
+                case "[packet]":
+                    args = new Packet(Rand.NextBytes(16));
+                    break;
+                case "[object]":
+                    args = new { name = Rand.NextString(8), code = Rand.Next() };
+                    break;
+                case "[dictionary]":
+                    var dic = new Dictionary<String, Object>
+                    {
+                        ["aaa"] = Rand.NextString(16),
+                        ["bbb"] = Rand.Next(1000, 9999),
+                        ["ccc"] = Rand.Next()
+                    };
+                    args = dic;
+                    break;
+            }
+
+            // 建立请求
+            var md = new HttpMethod(method);
+            var request = ApiHelper.BuildRequest(md, action, args);
+
+            // 无论如何，请求方法不会错
+            Assert.NotNull(request);
+            Assert.Equal(method, request.Method.Method);
+
+            // Get有url参数，而Post没有
+            var uri = request.RequestUri + "";
+            var query = uri.Substring("?");
+            switch (method)
+            {
+                case "Get":
+                    Assert.NotEqual(action, request.RequestUri + "");
+                    Assert.NotEmpty(query);
+                    Assert.Null(request.Content);
+
+                    // 对象和字典有特殊处理方式
+                    if (argKind == "[object]")
+                        Assert.Equal(args.ToDictionary().Join("&", k => $"{k.Key}={k.Value}"), query);
+                    else if (argKind == "[dictionary]" && args is IDictionary<String, Object> dic)
+                        Assert.Equal(dic.Join("&", k => $"{k.Key}={k.Value}"), query);
+                    break;
+                case "Post":
+                    Assert.Equal(action, request.RequestUri + "");
+                    Assert.Null(query);
+                    Assert.NotNull(request.Content);
+
+                    // 不同参数类型，有不同的请求内容类型
+                    var content = request.Content;
+                    switch (argKind)
+                    {
+                        case "[buffer]":
+                            Assert.Equal("application/octet-stream", content.Headers.ContentType + "");
+                            Assert.Equal((args as Byte[]).ToHex(), content.ReadAsByteArrayAsync().Result.ToHex());
+                            break;
+                        case "[packet]":
+                            Assert.Equal("application/octet-stream", request.Content.Headers.ContentType + "");
+                            Assert.Equal((args as Packet).ToHex(), content.ReadAsByteArrayAsync().Result.ToHex());
+                            break;
+                        case "[object]":
+                        case "[dictionary]":
+                            Assert.Equal("application/json", request.Content.Headers.ContentType + "");
+                            Assert.Equal(args.ToJson(), content.ReadAsStringAsync().Result);
+                            break;
+                    }
+                    break;
+                default:
+                    Assert.Equal(action, request.RequestUri + "");
+                    Assert.Null(query);
+                    Assert.Null(request.Content);
+                    break;
+            }
         }
 
         [Fact(DisplayName = "异步请求")]
