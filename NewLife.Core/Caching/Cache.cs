@@ -332,7 +332,7 @@ namespace NewLife.Caching
             if (threads <= 0) threads = Environment.ProcessorCount;
             if (times <= 0) times = threads * 1_000;
 
-            XTrace.WriteLine("");
+            //XTrace.WriteLine("");
             XTrace.WriteLine($"测试 {times:n0} 项，{threads,3:n0} 线程");
 
             var rs = 3L;
@@ -344,21 +344,17 @@ namespace NewLife.Caching
             Remove(key);
 
             // 赋值测试
-            BenchSet(key, times, threads, rand, batch);
-            rs += times + 1;
+            rs += BenchSet(key, times, threads, rand, batch);
 
             // 读取测试
-            BenchGet(key, times, threads, rand, batch);
-            rs += times + 1;
+            rs += BenchGet(key, times, threads, rand, batch);
 
             // 删除测试
-            BenchRemove(key, times, threads, rand);
-            rs += times + 1;
+            rs += BenchRemove(key, times, threads, rand, batch);
 
             // 累加测试
             key = "bint_";
-            BenchInc(key, times, threads, rand, batch);
-            rs += times + 1;
+            rs += BenchInc(key, times, threads, rand, batch);
 
             return rs;
         }
@@ -369,7 +365,7 @@ namespace NewLife.Caching
         /// <param name="threads">线程</param>
         /// <param name="rand">随机读写</param>
         /// <param name="batch">批量操作</param>
-        protected virtual void BenchGet(String key, Int64 times, Int32 threads, Boolean rand, Int32 batch)
+        protected virtual Int64 BenchGet(String key, Int64 times, Int32 threads, Boolean rand, Int32 batch)
         {
             //提前执行一次网络操作，预热链路
             var v = Get<String>(key);
@@ -425,6 +421,8 @@ namespace NewLife.Caching
 
             var speed = times * 1000 / sw.ElapsedMilliseconds;
             XTrace.WriteLine($"读取 耗时 {sw.ElapsedMilliseconds,7:n0}ms 速度 {speed,9:n0} ops");
+
+            return times + 1;
         }
 
         /// <summary>赋值测试</summary>
@@ -433,7 +431,7 @@ namespace NewLife.Caching
         /// <param name="threads">线程</param>
         /// <param name="rand">随机读写</param>
         /// <param name="batch">批量操作</param>
-        protected virtual void BenchSet(String key, Int64 times, Int32 threads, Boolean rand, Int32 batch)
+        protected virtual Int64 BenchSet(String key, Int64 times, Int32 threads, Boolean rand, Int32 batch)
         {
             Set(key, Rand.NextBytes(32));
 
@@ -498,6 +496,8 @@ namespace NewLife.Caching
 
             var speed = times * 1000 / sw.ElapsedMilliseconds;
             XTrace.WriteLine($"赋值 耗时 {sw.ElapsedMilliseconds,7:n0}ms 速度 {speed,9:n0} ops");
+
+            return times + 1;
         }
 
         /// <summary>删除测试</summary>
@@ -505,7 +505,8 @@ namespace NewLife.Caching
         /// <param name="times">次数</param>
         /// <param name="threads">线程</param>
         /// <param name="rand">随机读写</param>
-        protected virtual void BenchRemove(String key, Int64 times, Int32 threads, Boolean rand)
+        /// <param name="batch">批量操作</param>
+        protected virtual Int64 BenchRemove(String key, Int64 times, Int32 threads, Boolean rand, Int32 batch)
         {
             //提前执行一次网络操作，预热链路
             Remove(key);
@@ -516,9 +517,31 @@ namespace NewLife.Caching
                 // 随机操作，每个线程每次操作不同key，跳跃式
                 Parallel.For(0, threads, k =>
                 {
-                    for (var i = k; i < times; i += threads)
+                    if (batch == 0)
                     {
-                        Remove(key + i);
+                        for (var i = k; i < times; i += threads)
+                        {
+                            Remove(key + i);
+                        }
+                    }
+                    else
+                    {
+                        var n = 0;
+                        var keys = new String[batch];
+                        for (var i = k; i < times; i += threads)
+                        {
+                            keys[n++] = key + i;
+
+                            if (n >= batch)
+                            {
+                                Remove(keys);
+                                n = 0;
+                            }
+                        }
+                        if (n > 0)
+                        {
+                            Remove(keys.Take(n).ToArray());
+                        }
                     }
 
                     // 提交变更
@@ -545,6 +568,8 @@ namespace NewLife.Caching
 
             var speed = times * 1000 / sw.ElapsedMilliseconds;
             XTrace.WriteLine($"删除 耗时 {sw.ElapsedMilliseconds,7:n0}ms 速度 {speed,9:n0} ops");
+
+            return times + 1;
         }
 
         /// <summary>累加测试</summary>
@@ -553,7 +578,7 @@ namespace NewLife.Caching
         /// <param name="threads">线程</param>
         /// <param name="rand">随机读写</param>
         /// <param name="batch">批量操作</param>
-        protected virtual void BenchInc(String key, Int64 times, Int32 threads, Boolean rand, Int32 batch)
+        protected virtual Int64 BenchInc(String key, Int64 times, Int32 threads, Boolean rand, Int32 batch)
         {
             //提前执行一次网络操作，预热链路
             Increment(key, 1);
@@ -595,6 +620,8 @@ namespace NewLife.Caching
 
             var speed = times * 1000 / sw.ElapsedMilliseconds;
             XTrace.WriteLine($"累加 耗时 {sw.ElapsedMilliseconds,7:n0}ms 速度 {speed,9:n0} ops");
+
+            return times + 1;
         }
         #endregion
 
