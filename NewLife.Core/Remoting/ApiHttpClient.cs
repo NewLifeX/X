@@ -27,6 +27,9 @@ namespace NewLife.Remoting
         /// <summary>超时时间。默认15000ms</summary>
         public Int32 Timeout { get; set; } = 15_000;
 
+        /// <summary>身份验证</summary>
+        public AuthenticationHeaderValue Authentication { get; set; }
+
         /// <summary>服务器源。正在使用的服务器</summary>
         public String Source { get; private set; }
 
@@ -115,10 +118,18 @@ namespace NewLife.Remoting
         /// <returns></returns>
         protected virtual HttpRequestMessage BuildRequest(HttpMethod method, String action, Object args, Type returnType)
         {
-            var request = ApiHelper.BuildRequest(method, action, args, returnType);
+            var request = ApiHelper.BuildRequest(method, action, args);
 
-            // 加上令牌
-            if (!Token.IsNullOrEmpty()) request.Headers.Add("Authorization", "Bearer " + Token);
+            // 指定返回类型
+            if (returnType == typeof(Byte[]) || returnType == typeof(Packet))
+                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/octet-stream"));
+            else
+                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+            // 加上令牌或其它身份验证
+            var auth = Authentication;
+            if (auth == null && !Token.IsNullOrEmpty()) auth = new AuthenticationHeaderValue("Bearer", Token);
+            if (auth != null) request.Headers.Authorization = auth;
 
             return request;
         }

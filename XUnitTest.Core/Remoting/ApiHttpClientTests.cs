@@ -14,6 +14,7 @@ namespace XUnitTest.Remoting
     public class ApiHttpClientTests : DisposeBase
     {
         private readonly ApiServer _Server;
+        private String _Address;
         private readonly IApiClient _Client;
 
         public ApiHttpClientTests()
@@ -26,9 +27,11 @@ namespace XUnitTest.Remoting
             _Server.Handler = new TokenApiHandler { Host = _Server };
             _Server.Start();
 
+            _Address = "http://127.0.0.1:12347";
+
             //_Client = new ApiHttpClient();
             //_Client.Add("addr1", new Uri("http://127.0.0.1:12347"));
-            _Client = new ApiHttpClient("http://127.0.0.1:12347");
+            _Client = new ApiHttpClient(_Address);
         }
 
         protected override void Dispose(Boolean disposing)
@@ -97,20 +100,15 @@ namespace XUnitTest.Remoting
         [InlineData("ABCDEFG", "12345678")]
         public async void TokenTest(String token, String state)
         {
-            _Client.Token = token;
+            var client = new ApiHttpClient(_Address) { Token = token };
+            var ac = client as IApiClient;
 
-            var infs = await _Client.InvokeAsync<IDictionary<String, Object>>("api/info", new { state });
+            var infs = await ac.InvokeAsync<IDictionary<String, Object>>("api/info", new { state });
             Assert.NotNull(infs);
             Assert.Equal(token, infs["token"]);
 
-            _Client.Token = null;
-
             // 另一个客户端，共用令牌，应该可以拿到上一次状态数据
-            var client2 = new ApiHttpClient("http://127.0.0.1:12347")
-            {
-                Log = XTrace.Log,
-                Token = token,
-            };
+            var client2 = new ApiHttpClient(_Address) { Token = token };
 
             infs = await client2.GetAsync<IDictionary<String, Object>>("api/info");
             Assert.NotNull(infs);

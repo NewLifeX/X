@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using NewLife;
 using NewLife.Data;
 using NewLife.Log;
@@ -11,6 +12,7 @@ using Xunit;
 
 namespace XUnitTest.Remoting
 {
+    /// <summary>ApiHttp助手类测试</summary>
     public class ApiHelperTest : DisposeBase
     {
         private readonly ApiServer _Server;
@@ -18,6 +20,7 @@ namespace XUnitTest.Remoting
 
         public ApiHelperTest()
         {
+            // 使用ApiServer作为测试服务端
             _Server = new ApiServer(12346)
             {
                 Log = XTrace.Log,
@@ -98,6 +101,28 @@ namespace XUnitTest.Remoting
             msg = await _Client.PostAsync<HttpResponseMessage>("api/info", new { state, state2 });
             Assert.NotNull(msg);
             Assert.Equal(HttpMethod.Post, msg.RequestMessage.Method);
+        }
+
+        [Fact(DisplayName = "令牌请求")]
+        public async void TokenTest()
+        {
+            var auth = new AuthenticationHeaderValue("Bearer", "12345678");
+            //var headers = new Dictionary<String, String>();
+            //headers["Authorization"] = auth + "";
+
+            var dic = await _Client.InvokeAsync<IDictionary<String, Object>>(HttpMethod.Get, "api/info", null, r => r.Headers.Authorization = auth);
+            Assert.NotNull(dic);
+            Assert.True(dic.Count > 10);
+            Assert.StartsWith("testhost", (dic["Server"] + ""));
+            Assert.Equal("12345678", (dic["token"] + ""));
+
+            var pk = await _Client.GetAsync<Packet>("api/info");
+            Assert.NotNull(pk);
+            Assert.True(pk.Total > 100);
+
+            var ss = await _Client.PostAsync<String[]>("Api/All");
+            Assert.NotNull(ss);
+            Assert.True(ss.Length >= 3);
         }
     }
 }

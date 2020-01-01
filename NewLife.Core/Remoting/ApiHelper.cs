@@ -37,33 +37,49 @@ namespace NewLife.Remoting
         /// <param name="method">请求方法</param>
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
+        /// <param name="onRequest">请求头回调</param>
         /// <returns></returns>
-        public static async Task<TResult> InvokeAsync<TResult>(this HttpClient client, HttpMethod method, String action, Object args = null)
+        public static async Task<TResult> InvokeAsync<TResult>(this HttpClient client, HttpMethod method, String action, Object args = null, Action<HttpRequestMessage> onRequest = null)
         {
             if (client?.BaseAddress == null) throw new ArgumentNullException(nameof(client.BaseAddress));
 
-            var rtype = typeof(TResult);
+            var returnType = typeof(TResult);
 
             // 构建请求
-            var request = BuildRequest(method, action, args, rtype);
+            var request = BuildRequest(method, action, args);
+
+            // 指定返回类型
+            if (returnType == typeof(Byte[]) || returnType == typeof(Packet))
+                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/octet-stream"));
+            else
+                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+            // 附加的头部
+            //if (headers != null)
+            //{
+            //    foreach (var item in headers)
+            //    {
+            //        request.Headers.Add(item.Key, item.Value);
+            //    }
+            //}
+            onRequest?.Invoke(request);
 
             // 发起请求
             var msg = await client.SendAsync(request);
             return await ProcessResponse<TResult>(msg);
         }
+        #endregion
 
+        #region 
         /// <summary>建立请求</summary>
         /// <param name="method">请求方法</param>
         /// <param name="action"></param>
         /// <param name="args"></param>
-        /// <param name="returnType"></param>
         /// <returns></returns>
-        public static HttpRequestMessage BuildRequest(HttpMethod method, String action, Object args, Type returnType)
+        public static HttpRequestMessage BuildRequest(HttpMethod method, String action, Object args)
         {
             // 序列化参数，决定GET/POST
             var request = new HttpRequestMessage(method, action);
-            if (returnType != typeof(Byte[]) && returnType != typeof(Packet))
-                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
             if (method == HttpMethod.Get)
             {
