@@ -142,11 +142,11 @@ namespace NewLife.Remoting
             if (rtype == typeof(HttpResponseMessage)) return (TResult)(Object)msg;
 
             var code = msg.StatusCode;
-            var buf = await msg.Content.ReadAsByteArrayAsync();
-            if (buf == null || buf.Length == 0) return default;
+            var buf = msg.Content == null ? null : (await msg.Content.ReadAsByteArrayAsync());
 
             // 异常处理
-            if (code != HttpStatusCode.OK) throw new ApiException((Int32)code, buf.ToStr()?.Trim('\"'));
+            if (code != HttpStatusCode.OK) throw new ApiException((Int32)code, buf.ToStr()?.Trim('\"') ?? msg.ReasonPhrase);
+            if (buf == null || buf.Length == 0) return default;
 
             // 原始数据
             if (rtype == typeof(Byte[])) return (TResult)(Object)buf;
