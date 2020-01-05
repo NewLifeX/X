@@ -55,7 +55,7 @@ namespace NewLife.Messaging
                     // 根据计算得到的长度，重新设置数据片正确长度
                     pk2.Set(pk2.Data, pk2.Offset, Offset + len);
                     list.Add(pk2);
-                    idx += len;
+                    idx += Offset + len;
                 }
                 // 如果没有剩余，可以返回
                 if (idx == pk.Total) return list.ToArray();
@@ -91,7 +91,7 @@ namespace NewLife.Messaging
                     pk2.Set(pk2.Data, pk2.Offset, Offset + len);
                     list.Add(pk2);
 
-                    ms.Seek(len, SeekOrigin.Current);
+                    ms.Seek(Offset + len, SeekOrigin.Current);
                 }
 
                 // 如果读完了数据，需要重置缓冲区
