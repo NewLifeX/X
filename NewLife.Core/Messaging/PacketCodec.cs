@@ -17,6 +17,9 @@ namespace NewLife.Messaging
         /// <summary>获取长度的委托</summary>
         public Func<Packet, Int32> GetLength { get; set; }
 
+        /// <summary>长度的偏移量，截取数据包时加上，否则将会漏掉长度之间的数据包，如MQTT</summary>
+        public Int32 Offset { get; set; }
+
         /// <summary>最后一次解包成功，而不是最后一次接收</summary>
         public DateTime Last { get; set; } = TimerX.Now;
 
@@ -50,7 +53,7 @@ namespace NewLife.Messaging
                     if (len <= 0 || len > pk2.Total) break;
 
                     // 根据计算得到的长度，重新设置数据片正确长度
-                    pk2.Set(pk2.Data, pk2.Offset, len);
+                    pk2.Set(pk2.Data, pk2.Offset, Offset + len);
                     list.Add(pk2);
                     idx += len;
                 }
@@ -85,7 +88,7 @@ namespace NewLife.Messaging
                     if (len <= 0 || len > pk2.Total) break;
 
                     // 根据计算得到的长度，重新设置数据片正确长度
-                    pk2.Set(pk2.Data, pk2.Offset, len);
+                    pk2.Set(pk2.Data, pk2.Offset, Offset + len);
                     list.Add(pk2);
 
                     ms.Seek(len, SeekOrigin.Current);

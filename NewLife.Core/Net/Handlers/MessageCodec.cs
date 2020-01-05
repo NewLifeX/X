@@ -133,9 +133,9 @@ namespace NewLife.Net.Handlers
 
         #region 粘包处理
         /// <summary>从数据流中获取整帧数据长度</summary>
-        /// <param name="pk"></param>
-        /// <param name="offset"></param>
-        /// <param name="size"></param>
+        /// <param name="pk">数据包</param>
+        /// <param name="offset">长度的偏移量</param>
+        /// <param name="size">长度大小。0变长，1/2/4小端字节，-2/-4大端字节</param>
         /// <returns>数据帧长度（包含头部长度位）</returns>
         protected static Int32 GetLength(Packet pk, Int32 offset, Int32 size)
         {
