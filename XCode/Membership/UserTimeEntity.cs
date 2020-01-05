@@ -43,11 +43,7 @@ namespace XCode.Membership
 
         /// <summary>实例化</summary>
         /// <param name="provider"></param>
-        public UserModule(IManageProvider provider)
-        {
-            //Provider = provider ?? ManageProvider.Provider;
-            Provider = provider;
-        }
+        public UserModule(IManageProvider provider) => Provider = provider;
         #endregion
 
         /// <summary>初始化。检查是否匹配</summary>

@@ -6,7 +6,7 @@
     <AssemblyTitle>数据中间件</AssemblyTitle>
     <Description>数据中间件，MySQL、SQLite、SqlServer、Oracle</Description>
     <Company>新生命开发团队</Company>
-    <Copyright>©2002-2019 新生命开发团队</Copyright>
+    <Copyright>©2002-2020 新生命开发团队</Copyright>
     <Version>9.14.2020.0101</Version>
     <FileVersion>9.14.2020.0101</FileVersion>
     <AssemblyVersion>9.14.*</AssemblyVersion>
