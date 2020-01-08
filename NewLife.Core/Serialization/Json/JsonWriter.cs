@@ -24,6 +24,9 @@ namespace NewLife.Serialization
         /// <summary>写入空值。默认true</summary>
         public Boolean NullValue { get; set; } = true;
 
+        /// <summary>枚举使用字符串。默认false使用数字</summary>
+        public Boolean EnumString { get; set; }
+
         /// <summary>最大序列化深度。默认5</summary>
         public Int32 MaxDepth { get; set; } = 5;
 
@@ -32,10 +35,7 @@ namespace NewLife.Serialization
 
         #region 构造
         /// <summary>实例化</summary>
-        public JsonWriter()
-        {
-            UseUTCDateTime = false;
-        }
+        public JsonWriter() { }
         #endregion
 
         #region 静态转换
@@ -63,6 +63,14 @@ namespace NewLife.Serialization
         #endregion
 
         #region 写入方法
+        /// <summary>写入对象</summary>
+        /// <param name="value"></param>
+        public void Write(Object value) => WriteValue(value);
+
+        /// <summary>获取结果</summary>
+        /// <returns></returns>
+        public String GetString() => _Builder.ToString();
+
         private void WriteValue(Object obj)
         {
             if (obj == null || obj is DBNull)
@@ -115,7 +123,12 @@ namespace NewLife.Serialization
                 WriteArray((IEnumerable)obj);
 
             else if (obj is Enum)
-                WriteValue(Convert.ToInt32(obj));
+            {
+                if (EnumString)
+                    WriteValue(obj + "");
+                else
+                    WriteValue(Convert.ToInt32(obj));
+            }
 
             else
                 WriteObject(obj);
@@ -171,7 +184,12 @@ namespace NewLife.Serialization
             if (dt.Year > 1000)
             {
                 if (dt.Hour == 0 && dt.Minute == 0 && dt.Second == 0)
+                {
                     str = dt.ToString("yyyy-MM-dd");
+
+                    // 处理UTC
+                    if (dt.Kind == DateTimeKind.Utc) str += " UTC";
+                }
                 else
                     str = dt.ToFullString();
             }

@@ -399,7 +399,10 @@ namespace NewLife.Serialization
                 return Double.Parse(s, NumberFormatInfo.InvariantInfo);
             }
 
-            return CreateLong(out var num, _json, startIndex, index - startIndex);
+            var m = CreateLong(out _, _json, startIndex, index - startIndex);
+            if (m < Int32.MaxValue && m > Int32.MinValue) return (Int32)m;
+
+            return m;
         }
 
         private Token LookAhead()

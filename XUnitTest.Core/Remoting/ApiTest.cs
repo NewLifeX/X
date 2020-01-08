@@ -7,7 +7,7 @@ using NewLife.Net;
 using NewLife.Remoting;
 using NewLife.Security;
 using Xunit;
-using Xunit.Extensions.Ordering;
+//using Xunit.Extensions.Ordering;
 
 namespace XUnitTest.Remoting
 {
@@ -41,7 +41,7 @@ namespace XUnitTest.Remoting
             _Server.TryDispose();
         }
 
-        [Order(1)]
+        //[Order(1)]
         [Fact(DisplayName = "基础Api测试")]
         public async void BasicTest()
         {
@@ -59,7 +59,7 @@ namespace XUnitTest.Remoting
             Assert.Equal("Packet Api/Info2(Packet state)", apis[2]);
         }
 
-        [Order(2)]
+        //[Order(2)]
         [Theory(DisplayName = "参数测试")]
         [InlineData("12345678", "ABCDEFG")]
         [InlineData("ABCDEFG", "12345678")]
@@ -82,7 +82,7 @@ namespace XUnitTest.Remoting
             Assert.Null(infs["state2"]);
         }
 
-        [Order(3)]
+        //[Order(3)]
         [Fact(DisplayName = "二进制测试")]
         public async void Info2Test()
         {
@@ -99,7 +99,7 @@ namespace XUnitTest.Remoting
             Assert.Equal(buf, pk.Slice(pk.Total - buf.Length, -1).ToArray());
         }
 
-        [Order(4)]
+        //[Order(4)]
         [Fact(DisplayName = "异常请求")]
         public async void ErrorTest()
         {
