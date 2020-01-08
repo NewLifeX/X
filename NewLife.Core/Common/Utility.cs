@@ -86,7 +86,7 @@ namespace System
         /// <returns></returns>
         public static DateTimeOffset Trim(this DateTimeOffset value, String format = "s") => new DateTimeOffset(value.DateTime.Trim(format), value.Offset);
 
-        /// <summary>时间日期转为yyyy-MM-dd HH:mm:ss完整字符串</summary>
+        /// <summary>时间日期转为yyyy-MM-dd HH:mm:ss完整字符串，对UTC时间加后缀</summary>
         /// <remarks>最常用的时间日期格式，可以无视各平台以及系统自定义的时间格式</remarks>
         /// <param name="value">待转换对象</param>
         /// <returns></returns>
@@ -361,11 +361,27 @@ namespace System
                 str = str.Trim();
                 if (str.IsNullOrEmpty()) return defaultValue;
 
-                if (DateTime.TryParse(str, out var n)) return n;
-                if (str.Contains("-") && DateTime.TryParseExact(str, "yyyy-M-d", null, DateTimeStyles.None, out n)) return n;
-                if (str.Contains("/") && DateTime.TryParseExact(str, "yyyy/M/d", null, DateTimeStyles.None, out n)) return n;
-                if (DateTime.TryParse(str, out n)) return n;
-                return defaultValue;
+                // 处理UTC
+                var utc = false;
+                if (str.EndsWithIgnoreCase(" UTC"))
+                {
+                    utc = true;
+                    str = str.Substring(0, str.Length - 4);
+                }
+
+                var dt = DateTime.MinValue;
+                if (!DateTime.TryParse(str, out dt) &&
+                    !str.Contains("-") && DateTime.TryParseExact(str, "yyyy-M-d", null, DateTimeStyles.None, out dt) &&
+                    !str.Contains("/") && DateTime.TryParseExact(str, "yyyy/M/d", null, DateTimeStyles.None, out dt) &&
+                    !DateTime.TryParse(str, out dt))
+                {
+                    dt = defaultValue;
+                }
+
+                // 处理UTC
+                if (utc) dt = new DateTime(dt.Ticks, DateTimeKind.Utc);
+
+                return dt;
             }
             // 特殊处理整数，Unix秒，绝对时间差，不考虑UTC时间和本地时间。
             if (value is Int32 k) return k == 0 ? DateTime.MinValue : _dt1970.AddSeconds(k);
@@ -399,10 +415,10 @@ namespace System
                 str = str.Trim();
                 if (str.IsNullOrEmpty()) return defaultValue;
 
-                if (DateTimeOffset.TryParse(str, out var n)) return n;
-                if (str.Contains("-") && DateTimeOffset.TryParseExact(str, "yyyy-M-d", null, DateTimeStyles.None, out n)) return n;
-                if (str.Contains("/") && DateTimeOffset.TryParseExact(str, "yyyy/M/d", null, DateTimeStyles.None, out n)) return n;
-                if (DateTimeOffset.TryParse(str, out n)) return n;
+                if (DateTimeOffset.TryParse(str, out var dt)) return dt;
+                if (str.Contains("-") && DateTimeOffset.TryParseExact(str, "yyyy-M-d", null, DateTimeStyles.None, out dt)) return dt;
+                if (str.Contains("/") && DateTimeOffset.TryParseExact(str, "yyyy/M/d", null, DateTimeStyles.None, out dt)) return dt;
+                if (DateTimeOffset.TryParse(str, out dt)) return dt;
                 return defaultValue;
             }
             // 特殊处理整数，Unix秒，绝对时间差，不考虑UTC时间和本地时间。
@@ -505,7 +521,11 @@ namespace System
             cs[k++] = (Char)('0' + (m % 10));
             k++;
 
-            return new String(cs);
+            var str = new String(cs);
+
+            if (value.Kind == DateTimeKind.Utc) str += " UTC";
+
+            return str;
         }
 
         /// <summary>时间日期转为yyyy-MM-dd HH:mm:ss完整字符串</summary>
