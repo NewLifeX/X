@@ -352,7 +352,7 @@ namespace NewLife.Serialization
                 if (str.Length > 21 && str[19] == '.')
                     ms = CreateInteger(str, 20, 3);
 
-                if (str[str.Length - 1] == 'Z') utc = true;
+                if (str[str.Length - 1] == 'Z' || str.EndsWithIgnoreCase("UTC")) utc = true;
             }
 
             if (!UseUTCDateTime && !utc)
