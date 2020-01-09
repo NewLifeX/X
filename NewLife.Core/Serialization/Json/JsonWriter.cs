@@ -21,8 +21,11 @@ namespace NewLife.Serialization
         /// <summary>使用驼峰命名</summary>
         public Boolean CamelCase { get; set; }
 
-        /// <summary>写入空值。默认true</summary>
-        public Boolean NullValue { get; set; } = true;
+        /// <summary>忽略空值。默认false</summary>
+        public Boolean IgnoreNullValues { get; set; } 
+
+        /// <summary>忽略只读属性。默认false</summary>
+        public Boolean IgnoreReadOnlyProperties { get; set; }
 
         /// <summary>枚举使用字符串。默认false使用数字</summary>
         public Boolean EnumString { get; set; }
@@ -49,7 +52,7 @@ namespace NewLife.Serialization
         {
             var jw = new JsonWriter
             {
-                NullValue = nullValue,
+                IgnoreNullValues = !nullValue,
                 CamelCase = camelCase
             };
 
@@ -142,7 +145,7 @@ namespace NewLife.Serialization
 
             foreach (String item in nvs)
             {
-                if (NullValue || !IsNull(nvs[item]))
+                if (!IgnoreNullValues || !IsNull(nvs[item]))
                 {
                     if (!first) _Builder.Append(',');
                     first = false;
@@ -162,7 +165,7 @@ namespace NewLife.Serialization
 
             foreach (DictionaryEntry item in dic)
             {
-                if (NullValue || !IsNull(item.Value))
+                if (!IgnoreNullValues || !IsNull(item.Value))
                 {
                     if (!first) _Builder.Append(',');
                     first = false;
@@ -201,7 +204,7 @@ namespace NewLife.Serialization
         private Dictionary<Object, Int32> _cirobj = new Dictionary<Object, Int32>();
         private void WriteObject(Object obj)
         {
-            if (!_cirobj.TryGetValue(obj, out var i)) _cirobj.Add(obj, _cirobj.Count + 1);
+            if (!_cirobj.TryGetValue(obj, out _)) _cirobj.Add(obj, _cirobj.Count + 1);
 
             _Builder.Append('{');
             _depth++;
@@ -212,8 +215,10 @@ namespace NewLife.Serialization
             var first = true;
             foreach (var pi in t.GetProperties(true))
             {
+                if (IgnoreReadOnlyProperties && pi.CanRead && !pi.CanWrite) continue;
+
                 var value = obj.GetValue(pi);
-                if (NullValue || !IsNull(value))
+                if (!IgnoreNullValues || !IsNull(value))
                 {
                     if (!first) _Builder.Append(',');
                     first = false;
@@ -268,7 +273,7 @@ namespace NewLife.Serialization
             var first = true;
             foreach (DictionaryEntry item in dic)
             {
-                if (NullValue || !IsNull(item.Value))
+                if (!IgnoreNullValues || !IsNull(item.Value))
                 {
                     if (!first) _Builder.Append(',');
                     first = false;
@@ -287,7 +292,7 @@ namespace NewLife.Serialization
             var first = true;
             foreach (var item in dic)
             {
-                if (NullValue || !IsNull(item.Value))
+                if (!IgnoreNullValues || !IsNull(item.Value))
                 {
                     if (!first) _Builder.Append(',');
                     first = false;
@@ -306,7 +311,7 @@ namespace NewLife.Serialization
             var first = true;
             foreach (DictionaryEntry entry in dic)
             {
-                if (NullValue || !IsNull(entry.Value))
+                if (!IgnoreNullValues || !IsNull(entry.Value))
                 {
                     if (!first) _Builder.Append(',');
                     first = false;
