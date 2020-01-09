@@ -64,7 +64,14 @@ namespace XCode.Code
 
             // 导入模型
             var xml = File.ReadAllText(xmlFile);
-            var atts = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+            var atts = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["xmlns"] = "http://www.newlifex.com/Model2020.xsd",
+                ["xmlns:xs"] = "http://www.w3.org/2001/XMLSchema-instance",
+                ["xs:schemaLocation"] = "http://www.newlifex.com http://www.newlifex.com/Model2020.xsd"
+            };
+
+            // 导入模型
             var tables = ModelHelper.FromXml(xml, DAL.CreateTable, atts);
             if (tables.Count == 0) return 0;
 
@@ -130,10 +137,9 @@ namespace XCode.Code
             if (atts["IgnoreNameCase"].IsNullOrEmpty()) atts["IgnoreNameCase"] = true + "";
             atts.Remove("NameIgnoreCase");
 
-            // 修复DTD
-            if (atts["xmlns"].IsNullOrEmpty()) atts["xmlns"] = "http://www.newlifex.com/ModelSchema.xsd";
-            if (atts["xmlns:xs"].IsNullOrEmpty()) atts["xmlns:xs"] = "http://www.w3.org/2001/XMLSchema-instance";
-            if (atts["xs:schemaLocation"].IsNullOrEmpty()) atts["xs:schemaLocation"] = "http://www.newlifex.com http://www.newlifex.com/ModelSchema.xsd";
+            // 更新xsd
+            atts["xmlns"] = atts["xmlns"].Replace("ModelSchema", "Model2020");
+            atts["xs:schemaLocation"] = atts["xs:schemaLocation"].Replace("ModelSchema", "Model2020");
 
             // 保存模型文件
             var xml2 = ModelHelper.ToXml(tables, atts);
