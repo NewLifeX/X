@@ -130,6 +130,11 @@ namespace XCode.Code
             if (atts["IgnoreNameCase"].IsNullOrEmpty()) atts["IgnoreNameCase"] = true + "";
             atts.Remove("NameIgnoreCase");
 
+            // 修复DTD
+            if (atts["xmlns"].IsNullOrEmpty()) atts["xmlns"] = "http://www.newlifex.com/ModelSchema.xsd";
+            if (atts["xmlns:xs"].IsNullOrEmpty()) atts["xmlns:xs"] = "http://www.w3.org/2001/XMLSchema-instance";
+            if (atts["xs:schemaLocation"].IsNullOrEmpty()) atts["xs:schemaLocation"] = "http://www.newlifex.com http://www.newlifex.com/ModelSchema.xsd";
+
             // 保存模型文件
             var xml2 = ModelHelper.ToXml(tables, atts);
             if (xml != xml2) File.WriteAllText(xmlFile, xml2);
