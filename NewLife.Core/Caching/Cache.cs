@@ -134,6 +134,12 @@ namespace NewLife.Caching
         /// <returns></returns>
         public virtual IProducerConsumer<T> GetQueue<T>(String key) => throw new NotSupportedException();
 
+        /// <summary>获取栈</summary>
+        /// <typeparam name="T">元素类型</typeparam>
+        /// <param name="key">键</param>
+        /// <returns></returns>
+        public virtual IProducerConsumer<T> GetStack<T>(String key) => throw new NotSupportedException();
+
         /// <summary>获取Set</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="key"></param>

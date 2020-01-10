@@ -325,6 +325,16 @@ namespace NewLife.Caching
             return item.Visit() as IProducerConsumer<T>;
         }
 
+        /// <summary>获取栈</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public override IProducerConsumer<T> GetStack<T>(String key)
+        {
+            var item = GetOrAddItem(key, k => new MemoryQueue<T>(new ConcurrentStack<T>()));
+            return item.Visit() as IProducerConsumer<T>;
+        }
+
         /// <summary>获取Set</summary>
         /// <remarks>基于HashSet，非线程安全</remarks>
         /// <typeparam name="T"></typeparam>
