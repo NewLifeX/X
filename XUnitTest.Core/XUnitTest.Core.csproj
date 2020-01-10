@@ -3,9 +3,23 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <IsPackable>false</IsPackable>
     <RootNamespace>XUnitTest</RootNamespace>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineConstants>TRACE</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <DefineConstants>$(DefineConstants);DEBUG</DefineConstants>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="TestEntity\**" />
+    <EmbeddedResource Remove="TestEntity\**" />
+    <None Remove="TestEntity\**" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Remove="PacketTest.cs" />
+    <Compile Remove="PageParameterTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.4.0" />
@@ -18,9 +32,9 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj" />
-    <ProjectReference Include="..\XCode\XCode.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Collections\" />
+    <Folder Include="Json\" />
   </ItemGroup>
 </Project>

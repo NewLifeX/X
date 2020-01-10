@@ -608,24 +608,8 @@ namespace NewLife.Reflection
                 if (loadeds.Any(e => e.Location.EqualIgnoreCase(item)) ||
                     loadeds2.Any(e => e.Location.EqualIgnoreCase(item))) continue;
 
-#if !__CORE__
                 var asm = ReflectionOnlyLoadFrom(item, ver);
                 if (asm == null) continue;
-#else
-
-                var asm = (Assembly)null;
-                try
-                {
-                    asm = Assembly.LoadFrom(item);
-                }
-                catch (BadImageFormatException)
-                {
-                    _BakImages.Add(item);
-                    //XTrace.WriteLine(ex.ToString());
-                }
-
-                if (asm == null) continue;
-#endif
 
                 // 不搜索系统程序集，优化性能
                 if (CheckSystem(asm)) continue;
@@ -643,7 +627,6 @@ namespace NewLife.Reflection
             }
         }
 
-#if !__CORE__
         /// <summary>只反射加载指定路径的所有程序集</summary>
         /// <param name="file"></param>
         /// <param name="ver"></param>
@@ -655,11 +638,18 @@ namespace NewLife.Reflection
 
             try
             {
+#if !__CORE__
                 return Assembly.ReflectionOnlyLoadFrom(file);
-            }
-            catch { return null; }
-        }
+#else
+                return Assembly.LoadFrom(file);
 #endif
+            }
+            catch
+            {
+                _BakImages.Add(file);
+                return null;
+            }
+        }
 
         /// <summary>获取当前应用程序的所有程序集，不包括系统程序集，仅限本目录</summary>
         /// <returns></returns>

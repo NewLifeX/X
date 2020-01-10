@@ -21,8 +21,10 @@ namespace XUnitTest.Remoting
 
         public ApiHelperTest()
         {
+            var port = Rand.Next(1000, 50000);
+
             // 使用ApiServer作为测试服务端
-            _Server = new ApiServer(12346)
+            _Server = new ApiServer(port)
             {
                 Log = XTrace.Log,
             };
@@ -30,7 +32,7 @@ namespace XUnitTest.Remoting
 
             _Client = new HttpClient
             {
-                BaseAddress = new Uri("http://127.0.0.1:12346")
+                BaseAddress = new Uri($"http://127.0.0.1:{port}")
             };
         }
 
@@ -304,7 +306,7 @@ namespace XUnitTest.Remoting
                     var dic = rs as IDictionary<String, Object>;
                     Assert.NotNull(dic);
                     Assert.Equal("bbb", dic["aaa"]);
-                    Assert.Equal(1234L, dic["xxx"]);
+                    Assert.Equal(1234, dic["xxx"]);
                 }
             }
         }

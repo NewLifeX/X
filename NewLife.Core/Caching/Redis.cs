@@ -21,7 +21,7 @@ namespace NewLife.Caching
         #region 静态
         static Redis()
         {
-            ObjectContainer.Current.AutoRegister<Redis, Redis>();
+            //ObjectContainer.Current.AutoRegister<Redis, Redis>();
         }
 
         /// <summary>创建指定服务器的实例</summary>
