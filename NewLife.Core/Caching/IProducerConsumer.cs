@@ -7,6 +7,12 @@ namespace NewLife.Caching
     /// <typeparam name="T"></typeparam>
     public interface IProducerConsumer<T>
     {
+        /// <summary>元素个数</summary>
+        Int32 Count { get; }
+
+        /// <summary>集合是否为空</summary>
+        Boolean IsEmpty { get; }
+
         /// <summary>生产添加</summary>
         /// <param name="values"></param>
         /// <returns></returns>

@@ -688,6 +688,21 @@ namespace NewLife.Caching
         /// <param name="collection"></param>
         public MemoryQueue(IProducerConsumerCollection<T> collection) => _Collection = collection;
 
+        /// <summary>元素个数</summary>
+        public Int32 Count => _Collection.Count;
+
+        /// <summary>集合是否为空</summary>
+        public Boolean IsEmpty
+        {
+            get
+            {
+                if (_Collection is ConcurrentQueue<T> queue) return queue.IsEmpty;
+                if (_Collection is ConcurrentStack<T> stack) return stack.IsEmpty;
+
+                throw new NotSupportedException();
+            }
+        }
+
         /// <summary>生产添加</summary>
         /// <param name="values"></param>
         /// <returns></returns>
