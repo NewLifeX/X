@@ -46,8 +46,8 @@ namespace XCode.Code
         /// <param name="nameSpace">命名空间</param>
         /// <param name="connName">连接名</param>
         /// <param name="chineseFileName">中文文件名</param>
-        /// <param name="nameIgnoreCase">忽略表名、字段名大小写（true 当前表名与类名称相同时，则自动省略该属性，反之 false）</param>
-        public static Int32 Build(String xmlFile = null, String output = null, String nameSpace = null, String connName = null, Boolean? chineseFileName = true, Boolean? nameIgnoreCase = null)
+        /// <param name="ignoreNameCase">忽略表名、字段名大小写（true 当前表名与类名称相同时，则自动省略该属性，反之 false）</param>
+        public static Int32 Build(String xmlFile = null, String output = null, String nameSpace = null, String connName = null, Boolean? chineseFileName = true, Boolean? ignoreNameCase = null)
         {
             if (xmlFile.IsNullOrEmpty())
             {
@@ -64,7 +64,14 @@ namespace XCode.Code
 
             // 导入模型
             var xml = File.ReadAllText(xmlFile);
-            var atts = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+            var atts = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["xmlns"] = "http://www.newlifex.com/Model2020.xsd",
+                ["xmlns:xs"] = "http://www.w3.org/2001/XMLSchema-instance",
+                ["xs:schemaLocation"] = "http://www.newlifex.com http://www.newlifex.com/Model2020.xsd"
+            };
+
+            // 导入模型
             var tables = ModelHelper.FromXml(xml, DAL.CreateTable, atts);
             if (tables.Count == 0) return 0;
 
@@ -107,25 +114,32 @@ namespace XCode.Code
             }
 
             // 忽略表名/字段名称大小写
-            if (nameIgnoreCase != null)
+            if (ignoreNameCase != null)
             {
-                atts["NameIgnoreCase"] = nameIgnoreCase.Value ? "True" : "False";
+                atts["IgnoreNameCase"] = ignoreNameCase.Value ? "True" : "False";
             }
             else
             {
-                nameIgnoreCase = atts["NameIgnoreCase"].ToBoolean();
+                var str = atts["IgnoreNameCase"];
+                if (str.IsNullOrEmpty()) str = atts["NameIgnoreCase"];
+                ignoreNameCase = str.ToBoolean();
             }
 
             XTrace.WriteLine("代码生成源：{0}", xmlFile);
 
-            var rs = BuildTables(tables, output, nameSpace, connName, baseClass, chineseFileName.Value, nameIgnoreCase.Value);
+            var rs = BuildTables(tables, output, nameSpace, connName, baseClass, chineseFileName.Value, ignoreNameCase.Value);
 
             // 确保输出空特性
             if (atts["Output"].IsNullOrEmpty()) atts["Output"] = "";
             if (atts["NameSpace"].IsNullOrEmpty()) atts["NameSpace"] = "";
             if (atts["ConnName"].IsNullOrEmpty()) atts["ConnName"] = "";
             if (atts["BaseClass"].IsNullOrEmpty()) atts["BaseClass"] = "Entity";
-            if (atts["NameIgnoreCase"].IsNullOrEmpty()) atts["NameIgnoreCase"] = true + "";
+            if (atts["IgnoreNameCase"].IsNullOrEmpty()) atts["IgnoreNameCase"] = true + "";
+            atts.Remove("NameIgnoreCase");
+
+            // 更新xsd
+            atts["xmlns"] = atts["xmlns"].Replace("ModelSchema", "Model2020");
+            atts["xs:schemaLocation"] = atts["xs:schemaLocation"].Replace("ModelSchema", "Model2020");
 
             // 保存模型文件
             var xml2 = ModelHelper.ToXml(tables, atts);
@@ -141,8 +155,8 @@ namespace XCode.Code
         /// <param name="connName">连接名</param>
         /// <param name="baseClass">基类</param>
         /// <param name="chineseFileName">是否中文名称</param>
-        /// <param name="nameIgnoreCase">忽略表名、字段名大小写（true 当前表名与类名称相同时，则自动省略该属性，反之 false）</param>
-        public static Int32 BuildTables(IList<IDataTable> tables, String output = null, String nameSpace = null, String connName = null, String baseClass = null, Boolean chineseFileName = true, Boolean nameIgnoreCase = true)
+        /// <param name="ignoreNameCase">忽略表名、字段名大小写（true 当前表名与类名称相同时，则自动省略该属性，反之 false）</param>
+        public static Int32 BuildTables(IList<IDataTable> tables, String output = null, String nameSpace = null, String connName = null, String baseClass = null, Boolean chineseFileName = true, Boolean ignoreNameCase = true)
         {
             if (tables == null || tables.Count == 0) return 0;
 
@@ -177,7 +191,8 @@ namespace XCode.Code
                 builder.BaseClass = str;
 
                 // 名称忽略大小写(默认忽略)
-                if (item.NameIgnoreCase.IsNullOrEmpty() && !nameIgnoreCase) item.NameIgnoreCase = nameIgnoreCase + "";
+                if (item.IgnoreNameCase.IsNullOrEmpty() && !ignoreNameCase) item.IgnoreNameCase = ignoreNameCase + "";
+                item.Properties.Remove("NameIgnoreCase");
 
                 if (Debug) builder.Log = XTrace.Log;
 

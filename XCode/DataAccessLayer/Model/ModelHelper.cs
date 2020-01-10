@@ -440,7 +440,7 @@ namespace XCode.DataAccessLayer
         {
             var type = value.GetType();
             var def = GetDefault(type);
-            var isignorename = true;
+            var ignoreNameCase = true;
             if (value is IDataColumn value2)
             {
                 //var dc2 = def as IDataColumn;
@@ -450,11 +450,11 @@ namespace XCode.DataAccessLayer
                 dc2.DataType = value2.DataType;
                 dc2.Length = value2.Length;
                 def = Fix(dc2, value2);
-                isignorename = (value2.Table.NameIgnoreCase).ToBoolean(true);
+                ignoreNameCase = (value2.Table.IgnoreNameCase).ToBoolean(true);
             }
             else if (value is IDataTable value3)
             {
-                isignorename = (value3.NameIgnoreCase).ToBoolean(true);
+                ignoreNameCase = (value3.IgnoreNameCase).ToBoolean(true);
             }
 
             String name = null;
@@ -492,7 +492,8 @@ namespace XCode.DataAccessLayer
                         name = (String)obj;
                     else if (pi.Name == "TableName" || pi.Name == "ColumnName")
                     {
-                        if (name.EqualIgnoreCase((String)obj) && isignorename) continue;
+                        if (name == (String)obj) continue;
+                        if (ignoreNameCase && name.EqualIgnoreCase((String)obj)) continue;
                     }
                 }
                 else if (code == TypeCode.Object)

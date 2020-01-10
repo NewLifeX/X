@@ -148,7 +148,7 @@ namespace XCode.DataAccessLayer
         [XmlAttribute]
         [DisplayName("是否忽略大小写")]
         [Description("是否忽略大小写")]
-        public String NameIgnoreCase { get; set; }
+        public String IgnoreNameCase { get; set; }
         #endregion
 
         #region 构造

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Tables Version="9.6.6663.16294" NameSpace="XCode.Membership" ConnName="Membership" Output="" BaseClass="Entity"
-         xmlns="http://www.newlifex.com/ModelSchema.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:schemaLocation="http://www.newlifex.com https://raw.githubusercontent.com/NewLifeX/X/master/XCode/ModelSchema.xsd" >
-  <Table Name="User" Description="用户" DbType="SqlServer" RenderGenEntity="true">
+<Tables xmlns="http://www.newlifex.com/Model2020.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:schemaLocation="http://www.newlifex.com http://www.newlifex.com/Model2020.xsd" Version="9.6.6663.16294" NameSpace="XCode.Membership" ConnName="Membership" Output="" BaseClass="Entity" ChineseFileName="True" IgnoreNameCase="True">
+  <Table Name="User" Description="用户" DbType="SqlServer" RenderGenEntity="True">
     <Columns>
       <Column Name="ID" DataType="Int32"  Identity="True" PrimaryKey="True" Description="编号" />
       <Column Name="Name" DataType="String" Master="True" Nullable="False" Description="名称。登录用户名" />
@@ -27,7 +26,7 @@
       <Index Columns="RoleID" />
     </Indexes>
   </Table>
-  <Table Name="Role" Description="角色" RenderGenEntity="true">
+  <Table Name="Role" Description="角色" RenderGenEntity="True">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
       <Column Name="Name" DataType="String" Master="True" Nullable="False" Description="名称" />
@@ -45,7 +44,7 @@
       <Index Columns="Name" Unique="True" />
     </Indexes>
   </Table>
-  <Table Name="Menu" Description="菜单" BaseType="EntityTree" RenderGenEntity="true">
+  <Table Name="Menu" Description="菜单" BaseType="EntityTree" RenderGenEntity="True">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
       <Column Name="Name" DataType="String" Master="True" Nullable="False" Description="名称" />
@@ -65,7 +64,7 @@
       <Index Columns="ParentID,Name" Unique="True" />
     </Indexes>
   </Table>
-  <Table Name="Log" Description="日志" ConnName="Log" RenderGenEntity="true">
+  <Table Name="Log" Description="日志" ConnName="Log" RenderGenEntity="True">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
       <Column Name="Category" DataType="String" Description="类别" />
