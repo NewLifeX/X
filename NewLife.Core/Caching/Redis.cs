@@ -28,7 +28,7 @@ namespace NewLife.Caching
         /// <param name="server">服务器地址。支持前面加上密码，@分隔</param>
         /// <param name="db">使用的数据库</param>
         /// <returns></returns>
-        [Obsolete("=>new Redis(\"127.0.0.1\", \"abcd1234\", 3)")]
+        [Obsolete("=>new FullRedis/Redis(\"127.0.0.1\", \"abcd1234\", 3)")]
         public static Redis Create(String server, Int32 db)
         {
             if (server.IsNullOrEmpty() || server == ".") server = "127.0.0.1";
@@ -67,7 +67,7 @@ namespace NewLife.Caching
         /// <param name="password">密码</param>
         /// <param name="db">使用的数据库</param>
         /// <returns></returns>
-        [Obsolete("=>new Redis(\"127.0.0.1\", \"abcd1234\", 3)")]
+        [Obsolete("=>new FullRedis/Redis(\"127.0.0.1\", \"abcd1234\", 3)")]
         public static Redis Create(String server, String password, Int32 db)
         {
             if (server.IsNullOrEmpty() || server == ".") server = "127.0.0.1";
@@ -504,6 +504,30 @@ namespace NewLife.Caching
                 }
             }
         }
+
+        /// <summary>获取哈希</summary>
+        /// <typeparam name="T">元素类型</typeparam>
+        /// <param name="key">键</param>
+        /// <returns></returns>
+        public override IDictionary<String, T> GetDictionary<T>(String key) => throw new NotSupportedException("Redis未支持该功能，需要new FullRedis");
+
+        /// <summary>获取队列</summary>
+        /// <typeparam name="T">元素类型</typeparam>
+        /// <param name="key">键</param>
+        /// <returns></returns>
+        public override IProducerConsumer<T> GetQueue<T>(String key) => throw new NotSupportedException("Redis未支持该功能，需要new FullRedis");
+
+        /// <summary>获取栈</summary>
+        /// <typeparam name="T">元素类型</typeparam>
+        /// <param name="key">键</param>
+        /// <returns></returns>
+        public override IProducerConsumer<T> GetStack<T>(String key) => throw new NotSupportedException("Redis未支持该功能，需要new FullRedis");
+
+        /// <summary>获取Set</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public override ICollection<T> GetSet<T>(String key) => throw new NotSupportedException("Redis未支持该功能，需要new FullRedis");
         #endregion
 
         #region 高级操作
