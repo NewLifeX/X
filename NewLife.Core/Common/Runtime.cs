@@ -16,6 +16,11 @@ namespace NewLife
             {
                 if (_IsConsole != null) return _IsConsole.Value;
 
+#if __CORE__
+                // netcore 默认都是控制台，除非主动设置
+                _IsConsole = true;
+#else
+
                 try
                 {
                     var flag = Console.ForegroundColor;
@@ -28,6 +33,7 @@ namespace NewLife
                 {
                     _IsConsole = false;
                 }
+#endif
 
                 return _IsConsole.Value;
             }

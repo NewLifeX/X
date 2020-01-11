@@ -119,9 +119,9 @@ namespace NewLife
         {
 #if __CORE__
             var osv = Environment.OSVersion;
-            OSVersion = osv.Version + "";
-            OSName = (osv + "").TrimStart("Microsoft").TrimEnd(OSVersion).Trim();
-            Guid = "";
+            if (OSVersion.IsNullOrEmpty()) OSVersion = osv.Version + "";
+            if (OSName.IsNullOrEmpty()) OSName = (osv + "").TrimStart("Microsoft").TrimEnd(OSVersion).Trim();
+            if (Guid.IsNullOrEmpty()) Guid = "";
 
             if (Runtime.Windows)
             {
@@ -140,22 +140,6 @@ namespace NewLife
                     if (csproduct.TryGetValue("Name", out str)) Product = str;
                     if (csproduct.TryGetValue("UUID", out str)) UUID = str;
                 }
-
-                //var cpu = ReadWmic("cpu", "Name", "ProcessorId", "LoadPercentage");
-                //if (cpu != null)
-                //{
-                //    if (cpu.TryGetValue("Name", out str)) Processor = str;
-                //    if (cpu.TryGetValue("ProcessorId", out str)) CpuID = str;
-                //    if (cpu.TryGetValue("LoadPercentage", out str)) CpuRate = (Single)(str.ToDouble() / 100);
-                //}
-
-                //MEMORYSTATUSEX ms = default;
-                //ms.Init();
-                //if (GlobalMemoryStatusEx(ref ms))
-                //{
-                //    Memory = ms.ullTotalPhys;
-                //    AvailableMemory = ms.ullAvailPhys;
-                //}
             }
             // 特别识别Linux发行版
             else if (Runtime.Linux)
@@ -176,23 +160,9 @@ namespace NewLife
                     if (dic.TryGetValue("Serial", out str)) CpuID = str;
                 }
 
-                //dic = ReadInfo("/proc/meminfo");
-                //if (dic != null)
-                //{
-                //    if (dic.TryGetValue("MemTotal", out str))
-                //        Memory = (UInt64)str.TrimEnd(" kB").ToInt() * 1024;
-
-                //    if (dic.TryGetValue("MemAvailable", out str) ||
-                //        dic.TryGetValue("MemFree", out str))
-                //        AvailableMemory = (UInt64)str.TrimEnd(" kB").ToInt() * 1024;
-                //}
-
                 var mid = "/etc/machine-id";
                 if (!File.Exists(mid)) mid = "/var/lib/dbus/machine-id";
                 if (File.Exists(mid)) Guid = File.ReadAllText(mid).Trim();
-
-                //var file = "/sys/class/thermal/thermal_zone0/temp";
-                //if (File.Exists(file)) Temperature = File.ReadAllText(file).Trim().ToDouble() / 1000;
 
                 var file = "/sys/class/dmi/id/product_uuid";
                 if (File.Exists(file)) UUID = File.ReadAllText(file).Trim();
@@ -207,13 +177,6 @@ namespace NewLife
                     if (dmi.TryGetValue("Product Name", out str)) Product = str;
                     //if (TryFind(dmi, new[] { "Serial Number" }, out str)) Guid = str;
                 }
-
-                //var upt = Execute("uptime");
-                //if (!upt.IsNullOrEmpty())
-                //{
-                //    str = upt.Substring("load average:");
-                //    if (!str.IsNullOrEmpty()) CpuRate = (Single)str.Split(",")[0].ToDouble();
-                //}
             }
 #else
             // 性能计数器的初始化非常耗时

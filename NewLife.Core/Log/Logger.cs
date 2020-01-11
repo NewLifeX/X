@@ -176,7 +176,7 @@ namespace NewLife.Log
                 fileName = process.MainModule.FileName;
             }
             catch { }
-            if (fileName.IsNullOrEmpty() || !fileName.EndsWithIgnoreCase("dotnet", "dotnet.exe"))
+            if (fileName.IsNullOrEmpty() || fileName.EndsWithIgnoreCase("dotnet", "dotnet.exe"))
             {
                 try
                 {
@@ -191,14 +191,14 @@ namespace NewLife.Log
             sb.AppendFormat("#BaseDirectory: {0}\r\n", baseDir);
 
             // 当前目录。如果由别的进程启动，默认的当前目录就是父级进程的当前目录
-            var curDir = System.Environment.CurrentDirectory;
+            var curDir = Environment.CurrentDirectory;
             //if (!curDir.EqualIC(baseDir) && !(curDir + "\\").EqualIC(baseDir))
             if (!baseDir.EqualIgnoreCase(curDir, curDir + "\\", curDir + "/"))
                 sb.AppendFormat("#CurrentDirectory: {0}\r\n", curDir);
 
             // 命令行不为空，也不是文件名时，才输出
             // 当使用cmd启动程序时，这里就是用户输入的整个命令行，所以可能包含空格和各种符号
-            var line = System.Environment.CommandLine;
+            var line = Environment.CommandLine;
             if (!line.IsNullOrEmpty())
                 sb.AppendFormat("#CommandLine: {0}\r\n", line);
 
@@ -235,6 +235,7 @@ namespace NewLife.Log
             {
                 sb.AppendFormat("#Memory: {0:n0}M/{1:n0}M\r\n", mi.AvailableMemory / 1024 / 1024, mi.Memory / 1024 / 1024);
                 sb.AppendFormat("#Processor: {0}\r\n", mi.Processor);
+                if (!mi.Product.IsNullOrEmpty()) sb.AppendFormat("#Product: {0}\r\n", mi.Product);
                 if (mi.Temperature > 0) sb.AppendFormat("#Temperature: {0}\r\n", mi.Temperature);
             }
             sb.AppendFormat("#GC: IsServerGC={0}, LatencyMode={1}\r\n", GCSettings.IsServerGC, GCSettings.LatencyMode);
