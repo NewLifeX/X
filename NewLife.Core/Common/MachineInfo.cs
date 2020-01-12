@@ -258,7 +258,14 @@ namespace NewLife
                 }
 
                 var file = "/sys/class/thermal/thermal_zone0/temp";
-                if (File.Exists(file)) Temperature = File.ReadAllText(file).Trim().ToDouble() / 1000;
+                if (File.Exists(file))
+                    Temperature = File.ReadAllText(file).Trim().ToDouble() / 1000;
+                else
+                {
+                    // A2温度获取，Ubuntu 16.04 LTS， Linux 3.4.39
+                    file = "/sys/class/hwmon/hwmon0/device/temp_value";
+                    if (File.Exists(file)) Temperature = File.ReadAllText(file).Trim().Substring(null, ":").ToDouble();
+                }
 
                 var upt = Execute("uptime");
                 if (!upt.IsNullOrEmpty())
