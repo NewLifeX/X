@@ -3,9 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Security;
+#if !NET40
+using System.Net.Http;
+#endif
 
 namespace NewLife.Http
 {
@@ -158,6 +162,22 @@ namespace NewLife.Http
 
             return headers;
         }
+        #endregion
+
+        #region 高级功能扩展
+#if !NET40
+        /// <summary>下载文件</summary>
+        /// <param name="client"></param>
+        /// <param name="address"></param>
+        /// <param name="fileName"></param>
+        public static async Task DownloadFileAsync(this HttpClient client, String address, String fileName)
+        {
+            var rs = await client.GetStreamAsync(address);
+            fileName.EnsureDirectory(true);
+            using var fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+            await fs.CopyToAsync(rs);
+        }
+#endif
         #endregion
 
         #region WebSocket
