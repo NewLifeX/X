@@ -39,9 +39,9 @@ namespace XCode.DataAccessLayer
                             else
                             {
                                 //_Factory = GetProviderFactory(null, "System.Data.SQLite.SQLiteFactory", true);
-                                _Factory = GetProviderFactory(null, "System.Data.SQLite.SQLiteFactory", true);
-                                //if (_Factory == null) _Factory = GetProviderFactory("Microsoft.Data.Sqlite.dll", "Microsoft.Data.Sqlite.SqliteFactory", true);
-                                if (_Factory == null) _Factory = GetProviderFactory("System.Data.SQLite.dll", "System.Data.SQLite.SQLiteFactory");
+                                _Factory = GetProviderFactory(null, "System.Data.SQLite.SQLiteFactory", true, true) ??
+                                    GetProviderFactory("Microsoft.Data.Sqlite.dll", "Microsoft.Data.Sqlite.SqliteFactory", true, true) ??
+                                    GetProviderFactory("System.Data.SQLite.dll", "System.Data.SQLite.SQLiteFactory", false, false);
                             }
 
                             //// 设置线程安全模式

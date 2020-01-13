@@ -325,7 +325,7 @@ namespace XCode.DataAccessLayer
         /// <param name="className"></param>
         /// <param name="ignoreError"></param>
         /// <returns></returns>
-        public static DbProviderFactory GetProviderFactory(String assemblyFile, String className, Boolean ignoreError = false)
+        public static DbProviderFactory GetProviderFactory(String assemblyFile, String className, Boolean strict = false, Boolean ignoreError = false)
         {
             try
             {
@@ -335,34 +335,24 @@ namespace XCode.DataAccessLayer
                 {
                     var linkName = name;
 #if __CORE__
+                    var arch = (RuntimeInformation.OSArchitecture + "").ToLower();
+                    var platform = "";
                     if (Runtime.Linux)
-                    {
-                        linkName += Environment.Is64BitProcess ? ".linux-x64" : ".linux-x86";
-                        links.Add(linkName);
-                        links.Add(name + ".linux");
-                    }
+                        platform = "linux";
                     else if (Runtime.OSX)
-                    {
-                        linkName += Environment.Is64BitProcess ? ".osx-x64" : ".osx-x86";
-                        links.Add(linkName);
-                        links.Add(name + ".osx");
-                    }
+                        platform = "osx";
                     else
-                    {
-                        linkName += Environment.Is64BitProcess ? ".win-x64" : ".win-x86";
-                        links.Add(linkName);
-                        links.Add(name + ".win");
-                    }
+                        platform = "win";
 
-                    linkName = name + ".st";
+                    links.Add($"{name}.{platform}-{arch}");
 #else
                     if (Environment.Is64BitProcess) linkName += "64";
                     var ver = Environment.Version;
                     if (ver.Major >= 4) linkName += "Fx" + ver.Major + ver.Minor;
-#endif
                     links.Add(linkName);
+#endif
                     // 有些数据库驱动不区分x86/x64，并且逐步以Fx4为主，所以来一个默认
-                    if (!links.Contains(name)) links.Add(name);
+                    if (!strict && !links.Contains(name)) links.Add(name);
                 }
 
                 var type = PluginHelper.LoadPlugin(className, null, assemblyFile, links.Join(","));
