@@ -30,7 +30,6 @@ namespace NewLife.Web.OAuth
             if (dic.ContainsKey("bio")) Detail = dic["bio"].Trim();
         }
 
-#if !NET4
         private System.Net.Http.HttpClient _Client;
 
         /// <summary>创建客户端</summary>
@@ -54,6 +53,5 @@ namespace NewLife.Web.OAuth
             }
             return LastHtml = _Client.GetStringAsync(url).Result;
         }
-#endif
     }
 }

@@ -1,5 +1,4 @@
-﻿#if !NET4
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -217,4 +216,3 @@ namespace NewLife.Remoting
         #endregion
     }
 }
-#endif

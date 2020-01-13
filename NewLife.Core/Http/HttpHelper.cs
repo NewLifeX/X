@@ -7,9 +7,7 @@ using System.Threading.Tasks;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Security;
-#if !NET40
 using System.Net.Http;
-#endif
 
 namespace NewLife.Http
 {
@@ -165,7 +163,6 @@ namespace NewLife.Http
         #endregion
 
         #region 高级功能扩展
-#if !NET40
         /// <summary>下载文件</summary>
         /// <param name="client"></param>
         /// <param name="address"></param>
@@ -175,9 +172,12 @@ namespace NewLife.Http
             var rs = await client.GetStreamAsync(address);
             fileName.EnsureDirectory(true);
             using var fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+#if NET4
+            fs.CopyTo(rs);
+#else
             await fs.CopyToAsync(rs);
-        }
 #endif
+        }
         #endregion
 
         #region WebSocket
