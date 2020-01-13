@@ -341,6 +341,12 @@ namespace XCode.DataAccessLayer
                         links.Add(linkName);
                         links.Add(name + ".linux");
                     }
+                    else if (Runtime.OSX)
+                    {
+                        linkName += Environment.Is64BitProcess ? ".osx-x64" : ".osx-x86";
+                        links.Add(linkName);
+                        links.Add(name + ".osx");
+                    }
                     else
                     {
                         linkName += Environment.Is64BitProcess ? ".win-x64" : ".win-x86";
