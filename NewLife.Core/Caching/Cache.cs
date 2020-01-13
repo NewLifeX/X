@@ -439,7 +439,7 @@ namespace NewLife.Caching
         /// <param name="batch">批量操作</param>
         protected virtual Int64 BenchSet(String key, Int64 times, Int32 threads, Boolean rand, Int32 batch)
         {
-            Set(key, Rand.NextBytes(32));
+            Set(key, Rand.NextString(32));
 
             var sw = Stopwatch.StartNew();
             if (rand)
