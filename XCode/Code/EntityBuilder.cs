@@ -47,7 +47,7 @@ namespace XCode.Code
         /// <param name="connName">连接名</param>
         /// <param name="chineseFileName">中文文件名</param>
         /// <param name="ignoreNameCase">忽略表名、字段名大小写（true 当前表名与类名称相同时，则自动省略该属性，反之 false）</param>
-        public static Int32 Build(String xmlFile = null, String output = null, String nameSpace = null, String connName = null, Boolean? chineseFileName = true, Boolean? ignoreNameCase = null)
+        public static Int32 Build(String xmlFile = null, String output = null, String nameSpace = null, String connName = null, Boolean? chineseFileName = null, Boolean? ignoreNameCase = null)
         {
             if (xmlFile.IsNullOrEmpty())
             {
