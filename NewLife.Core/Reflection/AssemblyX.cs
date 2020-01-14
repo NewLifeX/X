@@ -531,21 +531,16 @@ namespace NewLife.Reflection
 
                     var basedir = AppDomain.CurrentDomain.BaseDirectory;
                     set.Add(basedir);
-                    if (Directory.Exists("bin".GetFullPath())) set.Add("bin".GetFullPath());
-                    var plugin = Setting.Current.GetPluginPath();
+
+                    var bin = "bin".GetFullPath();
+                    if (Directory.Exists(bin)) set.Add(bin);
+
+                    var cfg = Setting.Current;
+                    var plugin = cfg.PluginPath.GetFullPath();
                     if (!set.Contains(plugin)) set.Add(plugin);
 
-                    //// 增加所有程序集所在目录为搜索目录，便于查找程序集
-                    //foreach (var asm in GetAssemblies())
-                    //{
-                    //    // GAC程序集和系统程序集跳过
-                    //    if (asm.Asm.GlobalAssemblyCache) continue;
-                    //    if (asm.IsSystemAssembly) continue;
-                    //    if (String.IsNullOrEmpty(asm.Location)) continue;
-
-                    //    var dir = Path.GetDirectoryName(asm.Location).EnsureEnd("\\");
-                    //    if (!set.Contains(dir)) set.Add(dir);
-                    //}
+                    plugin = cfg.PluginPath.GetBasePath();
+                    if (!set.Contains(plugin)) set.Add(plugin);
 
                     _AssemblyPaths = set;
                 }

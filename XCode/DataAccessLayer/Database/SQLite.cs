@@ -749,7 +749,7 @@ namespace XCode.DataAccessLayer
                 else
                     bf = "{0}_{1:yyyyMMddHHmmss}{2}".F(name, DateTime.Now, ext);
             }
-            if (!Path.IsPathRooted(bf)) bf = Setting.Current.BackupPath.CombinePath(bf).GetFullPath();
+            if (!Path.IsPathRooted(bf)) bf = NewLife.Setting.Current.BackupPath.CombinePath(bf).GetBasePath();
 
             bf = bf.EnsureDirectory(true);
 

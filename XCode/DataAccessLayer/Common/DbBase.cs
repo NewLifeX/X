@@ -323,6 +323,7 @@ namespace XCode.DataAccessLayer
         /// <summary>获取提供者工厂</summary>
         /// <param name="assemblyFile"></param>
         /// <param name="className"></param>
+        /// <param name="strict"></param>
         /// <param name="ignoreError"></param>
         /// <returns></returns>
         public static DbProviderFactory GetProviderFactory(String assemblyFile, String className, Boolean strict = false, Boolean ignoreError = false)

@@ -20,9 +20,17 @@ namespace NewLife
         [Description("日志等级。只输出大于等于该级别的日志，All/Debug/Info/Warn/Error/Fatal，默认Info")]
         public LogLevel LogLevel { get; set; } = LogLevel.Info;
 
-        /// <summary>文件日志目录</summary>
-        [Description("文件日志目录")]
+        /// <summary>文件日志目录。默认Log子目录，web上一级Log</summary>
+        [Description("文件日志目录。默认Log子目录，web上一级Log")]
         public String LogPath { get; set; } = "";
+
+        /// <summary>数据目录。本地数据库目录，默认Data子目录，web上一级Data</summary>
+        [Description("数据目录。本地数据库目录，默认Data子目录，web上一级Data")]
+        public String DataPath { get; set; } = "";
+
+        /// <summary>备份目录。备份数据库时存放的目录，默认Backup子目录，web上一级Backup</summary>
+        [Description("备份目录。备份数据库时存放的目录，默认Backup子目录，web上一级Backup")]
+        public String BackupPath { get; set; } = "";
 
         /// <summary>网络日志。本地子网日志广播255.255.255.255:514</summary>
         [Description("网络日志。本地子网日志广播255.255.255.255:514")]
@@ -32,8 +40,8 @@ namespace NewLife
         [Description("日志文件格式。默认{0:yyyy_MM_dd}.log")]
         public String LogFileFormat { get; set; } = "{0:yyyy_MM_dd}.log";
 
-        /// <summary>临时目录</summary>
-        [Description("临时目录")]
+        /// <summary>临时目录。默认Temp子目录，web上一级Temp</summary>
+        [Description("临时目录。默认Temp子目录，web上一级Temp")]
         public String TempPath { get; set; } = "";
 
         /// <summary>插件目录</summary>
@@ -52,7 +60,9 @@ namespace NewLife
             var web = Runtime.IsWeb;
 
             if (LogPath.IsNullOrEmpty()) LogPath = web ? "..\\Log" : "Log";
-            if (TempPath.IsNullOrEmpty()) TempPath = web ? "..\\XTemp" : "XTemp";
+            if (DataPath.IsNullOrEmpty()) DataPath = web ? "..\\Data" : "Data";
+            if (BackupPath.IsNullOrEmpty()) BackupPath = web ? "..\\Backup" : "Backup";
+            if (TempPath.IsNullOrEmpty()) TempPath = web ? "..\\Temp" : "Temp";
             if (LogFileFormat.IsNullOrEmpty()) LogFileFormat = "{0:yyyy_MM_dd}.log";
 
             if (PluginServer.IsNullOrWhiteSpace()) PluginServer = "http://x.newlifex.com/";

@@ -20,8 +20,9 @@ namespace NewLife.IP
 
         static Ip()
         {
-            var dir = Runtime.IsWeb ? "..\\Data" : "Data";
-            var ip = dir.CombinePath("ip.gz").GetFullPath();
+            var set = Setting.Current;
+            var dir = set.DataPath;
+            var ip = dir.CombinePath("ip.gz").GetBasePath();
             if (File.Exists(ip)) DbFile = ip;
 
             // 如果本地没有IP数据库，则从网络下载
@@ -29,18 +30,18 @@ namespace NewLife.IP
             {
                 ThreadPoolX.QueueUserWorkItem(() =>
                 {
-                    var url = Setting.Current.PluginServer;
+                    var url = set.PluginServer;
                     XTrace.WriteLine("没有找到IP数据库{0}，准备联网获取 {1}", ip, url);
 
                     var client = new WebClientX
                     {
                         Log = XTrace.Log
                     };
-                    var file = client.DownloadLink(url, "ip.gz", dir.GetFullPath());
+                    var file = client.DownloadLink(url, "ip.gz", dir.GetBasePath());
 
                     if (File.Exists(file))
                     {
-                        DbFile = file.GetFullPath();
+                        DbFile = file;
                         zip = null;
                         // 让它重新初始化
                         _inited = null;

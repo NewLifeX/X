@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -33,7 +33,7 @@ namespace NewLife.Xml
             {
                 if (_loading) return _Current ?? new TConfig();
 
-                var dcf = _.ConfigFile;
+                var dcf = _.ConfigFile?.GetBasePath();
                 if (dcf == null) return new TConfig();
 
                 // 这里要小心，避免_Current的null判断完成后，_Current被别人置空，而导致这里返回null
@@ -60,7 +60,7 @@ namespace NewLife.Xml
                     _Current = config;
                     if (!config.Load(dcf))
                     {
-                        config.ConfigFile = dcf.GetFullPath();
+                        config.ConfigFile = dcf;
                         config.SetExpire();  // 设定过期时间
                         config.IsNew = true;
                         config.OnNew();
@@ -68,7 +68,7 @@ namespace NewLife.Xml
                         config.OnLoaded();
 
                         // 创建或覆盖
-                        var act = File.Exists(dcf.GetFullPath()) ? "加载出错" : "不存在";
+                        var act = File.Exists(dcf) ? "加载出错" : "不存在";
                         XTrace.WriteLine("{0}的配置文件{1} {2}，准备用默认配置覆盖！", typeof(TConfig).Name, dcf, act);
                         try
                         {
@@ -206,7 +206,8 @@ namespace NewLife.Xml
         public virtual Boolean Load(String filename)
         {
             if (filename.IsNullOrWhiteSpace()) return false;
-            filename = filename.GetFullPath();
+
+            filename = filename.GetBasePath();
             if (!File.Exists(filename)) return false;
 
             _loading = true;
@@ -281,7 +282,8 @@ namespace NewLife.Xml
         {
             if (filename.IsNullOrWhiteSpace()) filename = ConfigFile;
             if (filename.IsNullOrWhiteSpace()) throw new XException("未指定{0}的配置文件路径！", typeof(TConfig).Name);
-            filename = filename.GetFullPath();
+
+            filename = filename.GetBasePath();
 
             // 加锁避免多线程保存同一个文件冲突
             lock (filename)
