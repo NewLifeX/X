@@ -450,12 +450,12 @@ namespace NewLife.Reflection
             // 处理工作目录
             var flag = false;
             var _cur = Environment.CurrentDirectory;
-            var _my = PathHelper.BaseDirectory;
+            var _my = PathHelper.BasePath;
             if (!WorkingDirectory.IsNullOrEmpty())
             {
                 flag = true;
                 Environment.CurrentDirectory = WorkingDirectory;
-                PathHelper.BaseDirectory = WorkingDirectory;
+                PathHelper.BasePath = WorkingDirectory;
             }
 
             try
@@ -467,7 +467,7 @@ namespace NewLife.Reflection
                 if (flag)
                 {
                     Environment.CurrentDirectory = _cur;
-                    PathHelper.BaseDirectory = _my;
+                    PathHelper.BasePath = _my;
                 }
             }
         }
