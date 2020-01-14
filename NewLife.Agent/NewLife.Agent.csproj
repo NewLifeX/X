@@ -7,8 +7,8 @@
     <Description>应用程序注册为系统服务，仅支持Windows</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2020 新生命开发团队</Copyright>
-    <Version>8.5.2020.0101</Version>
-    <FileVersion>8.5.2020.0101</FileVersion>
+    <Version>8.5.2020.0115</Version>
+    <FileVersion>8.5.2020.0115</FileVersion>
     <AssemblyVersion>8.5.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <OutputPath>..\..\Bin</OutputPath>

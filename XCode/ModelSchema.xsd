@@ -170,6 +170,13 @@
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
+    <xs:attribute name="IgnoreNameCase" type="BooleanType">
+      <xs:annotation>
+        <xs:documentation xml:lang="zh-cn">
+          是否忽略表名/字段名大小写，默认false，表示类名和表名采用不区分大小写来判断是否相等
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
 
   </xs:complexType>
   <!--Table-end-->
