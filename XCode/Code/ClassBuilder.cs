@@ -277,7 +277,7 @@ namespace XCode.Code
             else
                 p = p.CombinePath(Table.Name + ext);
 
-            p = p.GetFullPath();
+            p = p.GetBasePath();
 
             if (!File.Exists(p) || overwrite) File.WriteAllText(p.EnsureDirectory(true), ToString());
 
