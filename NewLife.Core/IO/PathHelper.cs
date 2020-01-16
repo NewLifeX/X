@@ -15,6 +15,13 @@ namespace System.IO
         /// 为了适应函数计算，该路径将支持从命令行参数和环境变量读取
         /// </remarks>
         public static String BasePath { get; set; }
+
+        /// <summary>基础目录。GetBasePath依赖于此，默认为当前应用程序域基础目录。用于X组件内部各目录，专门为函数计算而定制</summary>
+        /// <remarks>
+        /// 为了适应函数计算，该路径将支持从命令行参数和环境变量读取
+        /// </remarks>
+        public static String BaseDirectory { get => BasePath; set => BasePath = value; }
+
         #endregion
 
         #region 静态构造
