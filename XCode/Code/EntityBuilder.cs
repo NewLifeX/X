@@ -51,7 +51,7 @@ namespace XCode.Code
         {
             if (xmlFile.IsNullOrEmpty())
             {
-                var di = ".".AsDirectory();
+                var di = ".".GetBasePath().AsDirectory();
                 XTrace.WriteLine("未指定模型文件，准备从目录中查找第一个xml文件 {0}", di.FullName);
                 // 选当前目录第一个
                 xmlFile = di.GetFiles("*.xml", SearchOption.TopDirectoryOnly).FirstOrDefault()?.FullName;
@@ -59,7 +59,7 @@ namespace XCode.Code
 
             if (xmlFile.IsNullOrEmpty()) throw new Exception("找不到任何模型文件！");
 
-            xmlFile = xmlFile.GetFullPath();
+            xmlFile = xmlFile.GetBasePath();
             if (!File.Exists(xmlFile)) throw new FileNotFoundException("指定模型文件不存在！", xmlFile);
 
             // 导入模型
@@ -160,6 +160,8 @@ namespace XCode.Code
         {
             if (tables == null || tables.Count == 0) return 0;
 
+            output = output.GetBasePath();
+
             // 连接名
             if (connName.IsNullOrEmpty() && !nameSpace.IsNullOrEmpty() && nameSpace.Contains(".")) connName = nameSpace.Substring(nameSpace.LastIndexOf(".") + 1);
 
@@ -200,7 +202,7 @@ namespace XCode.Code
 
                 // 输出目录
                 str = item.Properties["Output"];
-                if (str.IsNullOrEmpty()) str = output;
+                str = str.IsNullOrEmpty() ? output : str.GetBasePath();
                 builder.Output = str;
                 builder.Save(null, true, chineseFileName);
 
