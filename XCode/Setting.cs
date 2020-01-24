@@ -40,13 +40,13 @@ namespace XCode
         [Description("参数化添删改查。默认关闭")]
         public Boolean UseParameter { get; set; }
 
-        /// <summary>SQLite数据库默认目录。没有设置连接字符串的连接默认创建SQLite连接，数据库放在该目录</summary>
-        [Description("SQLite默认目录。没有设置连接字符串的连接默认创建SQLite连接，数据库放在该目录")]
-        public String SQLiteDbPath { get; set; } = "";
+        ///// <summary>SQLite数据库默认目录。没有设置连接字符串的连接默认创建SQLite连接，数据库放在该目录</summary>
+        //[Description("SQLite默认目录。没有设置连接字符串的连接默认创建SQLite连接，数据库放在该目录")]
+        //public String SQLiteDbPath { get; set; } = "";
 
-        /// <summary>备份目录。备份数据库时存放的目录</summary>
-        [Description("备份目录。备份数据库时存放的目录")]
-        public String BackupPath { get; set; } = "";
+        ///// <summary>备份目录。备份数据库时存放的目录</summary>
+        //[Description("备份目录。备份数据库时存放的目录")]
+        //public String BackupPath { get; set; } = "";
 
         /// <summary>命令超时。查询执行超时时间，默认0秒不限制</summary>
         [Description("命令超时。查询执行超时时间，默认0秒不限制")]
@@ -78,14 +78,14 @@ namespace XCode
         #endregion
 
         #region 方法
-        /// <summary>加载后检查默认值</summary>
-        protected override void OnLoaded()
-        {
-            if (SQLiteDbPath.IsNullOrEmpty()) SQLiteDbPath = Runtime.IsWeb ? "..\\Data" : "Data";
-            if (BackupPath.IsNullOrEmpty()) BackupPath = Runtime.IsWeb ? "..\\Backup" : "Backup";
+        ///// <summary>加载后检查默认值</summary>
+        //protected override void OnLoaded()
+        //{
+        //    if (SQLiteDbPath.IsNullOrEmpty()) SQLiteDbPath = Runtime.IsWeb ? "..\\Data" : "Data";
+        //    if (BackupPath.IsNullOrEmpty()) BackupPath = Runtime.IsWeb ? "..\\Backup" : "Backup";
 
-            base.OnLoaded();
-        }
+        //    base.OnLoaded();
+        //}
         #endregion
     }
 }

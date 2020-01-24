@@ -33,16 +33,8 @@ namespace XCode
             switch (Type.GetTypeCode(v1.GetType()))
             {
                 case TypeCode.DateTime:
-                    {
-                        var d1 = (DateTime)v1;
-                        var d2 = (DateTime)v2;
-
-                        // 时间存储包括年月日时分秒，后面还有微秒，而我们数据库存储默认不需要微秒，所以时间的相等判断需要做特殊处理
-                        return d1.Date == d2.Date &&
-                            d1.Hour == d2.Hour &&
-                            d1.Minute == d2.Minute &&
-                            d1.Second == d2.Second;
-                    }
+                    // 时间存储包括年月日时分秒，后面还有微秒，而我们数据库存储默认不需要微秒，所以时间的相等判断需要做特殊处理
+                    return v1.ToDateTime().Trim() == v2.ToDateTime().Trim();
                 case TypeCode.Int16:
                 case TypeCode.Int32:
                 case TypeCode.Int64:

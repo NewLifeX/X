@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.IO;
 using System.Reflection;
 using System.Runtime;
 using System.Runtime.InteropServices;
@@ -195,6 +196,10 @@ namespace NewLife.Log
             //if (!curDir.EqualIC(baseDir) && !(curDir + "\\").EqualIC(baseDir))
             if (!baseDir.EqualIgnoreCase(curDir, curDir + "\\", curDir + "/"))
                 sb.AppendFormat("#CurrentDirectory: {0}\r\n", curDir);
+
+            var basePath = PathHelper.BasePath;
+            if (basePath != baseDir)
+                sb.AppendFormat("#BasePath: {0}\r\n", basePath);
 
             // 命令行不为空，也不是文件名时，才输出
             // 当使用cmd启动程序时，这里就是用户输入的整个命令行，所以可能包含空格和各种符号

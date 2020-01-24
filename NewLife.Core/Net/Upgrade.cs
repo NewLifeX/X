@@ -120,7 +120,7 @@ namespace NewLife.Net
             if (String.IsNullOrEmpty(link.Url)) throw new Exception("升级包地址无效！");
 
             // 如果更新包不存在，则下载
-            var file = UpdatePath.CombinePath(link.FullName).GetFullPath();
+            var file = UpdatePath.CombinePath(link.FullName).GetBasePath();
             if (!File.Exists(file))
             {
                 WriteLog("准备下载 {0} 到 {1}", link.Url, file);
@@ -152,7 +152,7 @@ namespace NewLife.Net
             // 解压更新程序包
             if (!file.EndsWithIgnoreCase(".zip", ".7z")) return false;
 
-            var tmp = XTrace.TempPath.CombinePath(Path.GetFileNameWithoutExtension(file)).GetFullPath();
+            var tmp = XTrace.TempPath.CombinePath(Path.GetFileNameWithoutExtension(file)).GetBasePath();
             WriteLog("解压缩更新包到临时目录 {0}", tmp);
             file.AsFile().Extract(tmp, true);
 
@@ -216,7 +216,7 @@ namespace NewLife.Net
             foreach (var item in di.GetAllFiles(null, true))
             {
                 var name = item.FullName.TrimStart(root);
-                var dst = dest.CombinePath(name).GetFullPath();
+                var dst = dest.CombinePath(name).GetBasePath();
 
                 // 如果是应用配置文件，不要更新
                 if (dst.EndsWithIgnoreCase(".exe.config")) continue;

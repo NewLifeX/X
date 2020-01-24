@@ -52,7 +52,7 @@ namespace NewLife.Configuration
             var fileName = GetFileName(typeof(T));
 
             // 这里需要想办法修改根目录
-            fileName = fileName.GetFullPath();
+            fileName = fileName.GetBasePath();
 
             var source = OnRead(fileName);
             Merge(source, Items, nameSpace);
@@ -81,7 +81,7 @@ namespace NewLife.Configuration
             Merge(dic, Items, null);
 
             var fileName = GetFileName(typeof(T));
-            fileName = fileName.GetFullPath();
+            fileName = fileName.GetBasePath();
 
             OnWrite(fileName, dic);
         }
@@ -100,7 +100,7 @@ namespace NewLife.Configuration
             var fileName = GetFileName(typeof(T));
 
             // 这里需要想办法修改根目录
-            fileName = fileName.GetFullPath();
+            fileName = fileName.GetBasePath();
 
             var source = OnRead(fileName);
             Merge(source, Items, nameSpace);

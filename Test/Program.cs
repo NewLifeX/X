@@ -45,7 +45,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test4();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -66,6 +66,9 @@ namespace Test
 
         static void Test1()
         {
+            XTrace.WriteLine("FullPath:{0}", ".".GetFullPath());
+            XTrace.WriteLine("BasePath:{0}", ".".GetBasePath());
+
             var mi = new MachineInfo();
             mi.Init();
 

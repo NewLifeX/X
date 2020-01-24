@@ -81,7 +81,7 @@ namespace NewLife
             return Task.Factory.StartNew(() =>
             {
                 // 文件缓存，加快机器信息获取
-                var file = XTrace.TempPath.CombinePath("machine.info").GetFullPath();
+                var file = XTrace.TempPath.CombinePath("machine.info").GetBasePath();
                 if (Current == null && File.Exists(file))
                 {
                     try

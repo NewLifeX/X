@@ -21,7 +21,7 @@ namespace NewLife.Web
         {
             if (file.IsNullOrEmpty()) return false;
 
-            file = file.GetFullPath();
+            file = file.GetBasePath();
             if (File.Exists(file))
             {
                 Key = File.ReadAllText(file);
