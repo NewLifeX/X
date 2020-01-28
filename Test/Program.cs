@@ -469,7 +469,11 @@ namespace Test
                 await http.DownloadFileAsync(url, file);
             }
 
-
+            var txt = File.ReadAllText(file);
+            foreach (var item in Area.Parse(txt))
+            {
+                XTrace.WriteLine("{0} {1}", item.ID, item.Name);
+            }
         }
 
         static async void Test9()
