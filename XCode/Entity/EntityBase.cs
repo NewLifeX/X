@@ -19,7 +19,7 @@ namespace XCode
         #region 初始化数据
         /// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        internal protected virtual void InitData() { }
+        protected internal virtual void InitData() { }
         #endregion
 
         #region 填充数据

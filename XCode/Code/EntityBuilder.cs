@@ -746,7 +746,7 @@ namespace XCode.Code
 
             WriteLine("///// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>");
             WriteLine("//[EditorBrowsable(EditorBrowsableState.Never)]");
-            WriteLine("//protected override void InitData()");
+            WriteLine("//protected internal override void InitData()");
             WriteLine("//{");
             WriteLine("//    // InitData一般用于当数据表没有数据时添加一些默认数据，该实体类的任何第一次数据库操作都会触发该方法，默认异步调用");
             WriteLine("//    if (Meta.Session.Count > 0) return;");
