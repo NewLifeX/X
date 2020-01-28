@@ -107,27 +107,27 @@ namespace XCode.Membership
         public String Ex6 { get { return _Ex6; } set { if (OnPropertyChanging(__.Ex6, value)) { _Ex6 = value; OnPropertyChanged(__.Ex6); } } }
 
         private String _CreateUser;
-        /// <summary>创建用户</summary>
-        [DisplayName("创建用户")]
-        [Description("创建用户")]
+        /// <summary>创建者</summary>
+        [DisplayName("创建者")]
+        [Description("创建者")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn("CreateUser", "创建用户", "")]
+        [BindColumn("CreateUser", "创建者", "")]
         public String CreateUser { get { return _CreateUser; } set { if (OnPropertyChanging(__.CreateUser, value)) { _CreateUser = value; OnPropertyChanged(__.CreateUser); } } }
 
         private Int32 _CreateUserID;
-        /// <summary>用户编号</summary>
-        [DisplayName("用户编号")]
-        [Description("用户编号")]
+        /// <summary>创建用户</summary>
+        [DisplayName("创建用户")]
+        [Description("创建用户")]
         [DataObjectField(false, false, false, 0)]
-        [BindColumn("CreateUserID", "用户编号", "")]
+        [BindColumn("CreateUserID", "创建用户", "")]
         public Int32 CreateUserID { get { return _CreateUserID; } set { if (OnPropertyChanging(__.CreateUserID, value)) { _CreateUserID = value; OnPropertyChanged(__.CreateUserID); } } }
 
         private String _CreateIP;
-        /// <summary>IP地址</summary>
-        [DisplayName("IP地址")]
-        [Description("IP地址")]
+        /// <summary>创建地址</summary>
+        [DisplayName("创建地址")]
+        [Description("创建地址")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn("CreateIP", "IP地址", "")]
+        [BindColumn("CreateIP", "创建地址", "")]
         public String CreateIP { get { return _CreateIP; } set { if (OnPropertyChanging(__.CreateIP, value)) { _CreateIP = value; OnPropertyChanged(__.CreateIP); } } }
 
         private DateTime _CreateTime;
@@ -239,13 +239,13 @@ namespace XCode.Membership
             /// <summary>扩展6</summary>
             public static readonly Field Ex6 = FindByName(__.Ex6);
 
-            /// <summary>创建用户</summary>
+            /// <summary>创建者</summary>
             public static readonly Field CreateUser = FindByName(__.CreateUser);
 
-            /// <summary>用户编号</summary>
+            /// <summary>创建用户</summary>
             public static readonly Field CreateUserID = FindByName(__.CreateUserID);
 
-            /// <summary>IP地址</summary>
+            /// <summary>创建地址</summary>
             public static readonly Field CreateIP = FindByName(__.CreateIP);
 
             /// <summary>时间</summary>
@@ -293,13 +293,13 @@ namespace XCode.Membership
             /// <summary>扩展6</summary>
             public const String Ex6 = "Ex6";
 
-            /// <summary>创建用户</summary>
+            /// <summary>创建者</summary>
             public const String CreateUser = "CreateUser";
 
-            /// <summary>用户编号</summary>
+            /// <summary>创建用户</summary>
             public const String CreateUserID = "CreateUserID";
 
-            /// <summary>IP地址</summary>
+            /// <summary>创建地址</summary>
             public const String CreateIP = "CreateIP";
 
             /// <summary>时间</summary>
@@ -348,13 +348,13 @@ namespace XCode.Membership
         /// <summary>扩展6</summary>
         String Ex6 { get; set; }
 
-        /// <summary>创建用户</summary>
+        /// <summary>创建者</summary>
         String CreateUser { get; set; }
 
-        /// <summary>用户编号</summary>
+        /// <summary>创建用户</summary>
         Int32 CreateUserID { get; set; }
 
-        /// <summary>IP地址</summary>
+        /// <summary>创建地址</summary>
         String CreateIP { get; set; }
 
         /// <summary>时间</summary>

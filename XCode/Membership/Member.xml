@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Tables Version="9.14.7333.11161" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:schemaLocation="http://www.newlifex.com http://www.newlifex.com/Model2020.xsd" NameSpace="XCode.Membership" ConnName="Membership" Output="" BaseClass="Entity" ChineseFileName="True" IgnoreNameCase="True" xmlns="http://www.newlifex.com/Model2020.xsd">
+<Tables Version="9.14.7333.11186" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:schemaLocation="http://www.newlifex.com http://www.newlifex.com/Model2020.xsd" NameSpace="XCode.Membership" ConnName="Membership" Output="" BaseClass="Entity" ChineseFileName="True" IgnoreNameCase="True" xmlns="http://www.newlifex.com/Model2020.xsd">
   <Table Name="User" Description="用户" RenderGenEntity="True">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
@@ -27,7 +27,7 @@
       <Column Name="Ex4" DataType="String" Description="扩展4" />
       <Column Name="Ex5" DataType="String" Description="扩展5" />
       <Column Name="Ex6" DataType="String" Description="扩展6" />
-      <Column Name="UpdateUser" DataType="String" Description="更新用户" />
+      <Column Name="UpdateUser" DataType="String" Description="更新者" />
       <Column Name="UpdateUserID" DataType="Int32" Description="更新用户" />
       <Column Name="UpdateIP" DataType="String" Description="更新地址" />
       <Column Name="UpdateTime" DataType="DateTime" Nullable="False" Description="更新时间" />
@@ -57,11 +57,11 @@
       <Column Name="Ex4" DataType="String" Description="扩展4" />
       <Column Name="Ex5" DataType="String" Description="扩展5" />
       <Column Name="Ex6" DataType="String" Description="扩展6" />
-      <Column Name="CreateUser" DataType="String" Description="创建用户" />
+      <Column Name="CreateUser" DataType="String" Description="创建者" />
       <Column Name="CreateUserID" DataType="Int32" Description="创建用户" />
       <Column Name="CreateIP" DataType="String" Description="创建地址" />
       <Column Name="CreateTime" DataType="DateTime" Nullable="False" Description="创建时间" />
-      <Column Name="UpdateUser" DataType="String" Description="更新用户" />
+      <Column Name="UpdateUser" DataType="String" Description="更新者" />
       <Column Name="UpdateUserID" DataType="Int32" Description="更新用户" />
       <Column Name="UpdateIP" DataType="String" Description="更新地址" />
       <Column Name="UpdateTime" DataType="DateTime" Nullable="False" Description="更新时间" />
@@ -87,11 +87,11 @@
       <Column Name="Ex4" DataType="String" Description="扩展4" />
       <Column Name="Ex5" DataType="String" Description="扩展5" />
       <Column Name="Ex6" DataType="String" Description="扩展6" />
-      <Column Name="CreateUser" DataType="String" Description="创建用户" />
+      <Column Name="CreateUser" DataType="String" Description="创建者" />
       <Column Name="CreateUserID" DataType="Int32" Description="创建用户" />
       <Column Name="CreateIP" DataType="String" Description="创建地址" />
       <Column Name="CreateTime" DataType="DateTime" Nullable="False" Description="创建时间" />
-      <Column Name="UpdateUser" DataType="String" Description="更新用户" />
+      <Column Name="UpdateUser" DataType="String" Description="更新者" />
       <Column Name="UpdateUserID" DataType="Int32" Description="更新用户" />
       <Column Name="UpdateIP" DataType="String" Description="更新地址" />
       <Column Name="UpdateTime" DataType="DateTime" Nullable="False" Description="更新时间" />
@@ -120,11 +120,11 @@
       <Column Name="Ex4" DataType="String" Description="扩展4" />
       <Column Name="Ex5" DataType="String" Description="扩展5" />
       <Column Name="Ex6" DataType="String" Description="扩展6" />
-      <Column Name="CreateUser" DataType="String" Description="创建用户" />
+      <Column Name="CreateUser" DataType="String" Description="创建者" />
       <Column Name="CreateUserID" DataType="Int32" Description="创建用户" />
       <Column Name="CreateIP" DataType="String" Description="创建地址" />
       <Column Name="CreateTime" DataType="DateTime" Nullable="False" Description="创建时间" />
-      <Column Name="UpdateUser" DataType="String" Description="更新用户" />
+      <Column Name="UpdateUser" DataType="String" Description="更新者" />
       <Column Name="UpdateUserID" DataType="Int32" Description="更新用户" />
       <Column Name="UpdateIP" DataType="String" Description="更新地址" />
       <Column Name="UpdateTime" DataType="DateTime" Nullable="False" Description="更新时间" />
@@ -150,11 +150,11 @@
       <Column Name="Ex4" DataType="String" Description="扩展4" />
       <Column Name="Ex5" DataType="String" Description="扩展5" />
       <Column Name="Ex6" DataType="String" Description="扩展6" />
-      <Column Name="CreateUser" DataType="String" Description="创建用户" />
+      <Column Name="CreateUser" DataType="String" Description="创建者" />
       <Column Name="CreateUserID" DataType="Int32" Description="创建用户" />
       <Column Name="CreateIP" DataType="String" Description="创建地址" />
       <Column Name="CreateTime" DataType="DateTime" Nullable="False" Description="创建时间" />
-      <Column Name="UpdateUser" DataType="String" Description="更新用户" />
+      <Column Name="UpdateUser" DataType="String" Description="更新者" />
       <Column Name="UpdateUserID" DataType="Int32" Description="更新用户" />
       <Column Name="UpdateIP" DataType="String" Description="更新地址" />
       <Column Name="UpdateTime" DataType="DateTime" Nullable="False" Description="更新时间" />
@@ -164,6 +164,31 @@
       <Index Columns="Category,Name" Unique="True" />
       <Index Columns="Name" />
       <Index Columns="UpdateTime" />
+    </Indexes>
+  </Table>
+  <Table Name="Area" Description="地区。行政区划数据">
+    <Columns>
+      <Column Name="ID" DataType="Int32" PrimaryKey="True" Description="编码。行政区划编码" />
+      <Column Name="Name" DataType="String" Master="True" Description="名称" />
+      <Column Name="FullName" DataType="String" Master="True" Description="全名" />
+      <Column Name="ParentID" DataType="Int32" Description="父级" />
+      <Column Name="Level" DataType="Int32" Description="层级" />
+      <Column Name="Longitude" DataType="Double" Description="经度" />
+      <Column Name="Latitude" DataType="Double" Description="纬度" />
+      <Column Name="Enable" DataType="Boolean" Description="启用" />
+      <Column Name="CreateUser" DataType="String" Description="创建者" />
+      <Column Name="CreateUserID" DataType="Int32" Description="创建用户" />
+      <Column Name="CreateTime" DataType="DateTime" Description="创建时间" />
+      <Column Name="UpdateUser" DataType="String" Description="更新者" />
+      <Column Name="UpdateUserID" DataType="Int32" Description="更新用户" />
+      <Column Name="UpdateIP" DataType="String" Description="更新地址" />
+      <Column Name="UpdateTime" DataType="DateTime" Description="更新时间" />
+      <Column Name="Remark" DataType="String" Length="200" Description="备注" />
+    </Columns>
+    <Indexes>
+      <Index Columns="ParentID" />
+      <Index Columns="Name" />
+      <Index Columns="UpdateTime,ID" />
     </Indexes>
   </Table>
   <Table Name="Log" Description="日志" ConnName="Log" RenderGenEntity="True">
@@ -179,9 +204,9 @@
       <Column Name="Ex4" DataType="String" Description="扩展4" />
       <Column Name="Ex5" DataType="String" Description="扩展5" />
       <Column Name="Ex6" DataType="String" Description="扩展6" />
-      <Column Name="CreateUser" DataType="String" Description="创建用户" />
-      <Column Name="CreateUserID" DataType="Int32" Description="用户编号" />
-      <Column Name="CreateIP" DataType="String" Description="IP地址" />
+      <Column Name="CreateUser" DataType="String" Description="创建者" />
+      <Column Name="CreateUserID" DataType="Int32" Description="创建用户" />
+      <Column Name="CreateIP" DataType="String" Description="创建地址" />
       <Column Name="CreateTime" DataType="DateTime" Nullable="False" Description="时间" />
       <Column Name="Remark" DataType="String" Length="500" Description="详细信息" />
     </Columns>

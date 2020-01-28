@@ -154,11 +154,11 @@ namespace XCode.Membership
         public String Ex6 { get { return _Ex6; } set { if (OnPropertyChanging(__.Ex6, value)) { _Ex6 = value; OnPropertyChanged(__.Ex6); } } }
 
         private String _CreateUser;
-        /// <summary>创建用户</summary>
-        [DisplayName("创建用户")]
-        [Description("创建用户")]
+        /// <summary>创建者</summary>
+        [DisplayName("创建者")]
+        [Description("创建者")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn("CreateUser", "创建用户", "")]
+        [BindColumn("CreateUser", "创建者", "")]
         public String CreateUser { get { return _CreateUser; } set { if (OnPropertyChanging(__.CreateUser, value)) { _CreateUser = value; OnPropertyChanged(__.CreateUser); } } }
 
         private Int32 _CreateUserID;
@@ -186,11 +186,11 @@ namespace XCode.Membership
         public DateTime CreateTime { get { return _CreateTime; } set { if (OnPropertyChanging(__.CreateTime, value)) { _CreateTime = value; OnPropertyChanged(__.CreateTime); } } }
 
         private String _UpdateUser;
-        /// <summary>更新用户</summary>
-        [DisplayName("更新用户")]
-        [Description("更新用户")]
+        /// <summary>更新者</summary>
+        [DisplayName("更新者")]
+        [Description("更新者")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn("UpdateUser", "更新用户", "")]
+        [BindColumn("UpdateUser", "更新者", "")]
         public String UpdateUser { get { return _UpdateUser; } set { if (OnPropertyChanging(__.UpdateUser, value)) { _UpdateUser = value; OnPropertyChanged(__.UpdateUser); } } }
 
         private Int32 _UpdateUserID;
@@ -356,7 +356,7 @@ namespace XCode.Membership
             /// <summary>扩展6</summary>
             public static readonly Field Ex6 = FindByName(__.Ex6);
 
-            /// <summary>创建用户</summary>
+            /// <summary>创建者</summary>
             public static readonly Field CreateUser = FindByName(__.CreateUser);
 
             /// <summary>创建用户</summary>
@@ -368,7 +368,7 @@ namespace XCode.Membership
             /// <summary>创建时间</summary>
             public static readonly Field CreateTime = FindByName(__.CreateTime);
 
-            /// <summary>更新用户</summary>
+            /// <summary>更新者</summary>
             public static readonly Field UpdateUser = FindByName(__.UpdateUser);
 
             /// <summary>更新用户</summary>
@@ -440,7 +440,7 @@ namespace XCode.Membership
             /// <summary>扩展6</summary>
             public const String Ex6 = "Ex6";
 
-            /// <summary>创建用户</summary>
+            /// <summary>创建者</summary>
             public const String CreateUser = "CreateUser";
 
             /// <summary>创建用户</summary>
@@ -452,7 +452,7 @@ namespace XCode.Membership
             /// <summary>创建时间</summary>
             public const String CreateTime = "CreateTime";
 
-            /// <summary>更新用户</summary>
+            /// <summary>更新者</summary>
             public const String UpdateUser = "UpdateUser";
 
             /// <summary>更新用户</summary>
@@ -525,7 +525,7 @@ namespace XCode.Membership
         /// <summary>扩展6</summary>
         String Ex6 { get; set; }
 
-        /// <summary>创建用户</summary>
+        /// <summary>创建者</summary>
         String CreateUser { get; set; }
 
         /// <summary>创建用户</summary>
@@ -537,7 +537,7 @@ namespace XCode.Membership
         /// <summary>创建时间</summary>
         DateTime CreateTime { get; set; }
 
-        /// <summary>更新用户</summary>
+        /// <summary>更新者</summary>
         String UpdateUser { get; set; }
 
         /// <summary>更新用户</summary>
