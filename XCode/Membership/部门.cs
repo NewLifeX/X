@@ -91,6 +91,14 @@ namespace XCode.Membership
         [BindColumn("Visible", "可见", "")]
         public Boolean Visible { get { return _Visible; } set { if (OnPropertyChanging(__.Visible, value)) { _Visible = value; OnPropertyChanged(__.Visible); } } }
 
+        private Int32 _ManagerID;
+        /// <summary>管理者</summary>
+        [DisplayName("管理者")]
+        [Description("管理者")]
+        [DataObjectField(false, false, false, 0)]
+        [BindColumn("ManagerID", "管理者", "")]
+        public Int32 ManagerID { get { return _ManagerID; } set { if (OnPropertyChanging(__.ManagerID, value)) { _ManagerID = value; OnPropertyChanged(__.ManagerID); } } }
+
         private Int32 _Ex1;
         /// <summary>扩展1</summary>
         [DisplayName("扩展1")]
@@ -231,6 +239,7 @@ namespace XCode.Membership
                     case __.Sort : return _Sort;
                     case __.Enable : return _Enable;
                     case __.Visible : return _Visible;
+                    case __.ManagerID : return _ManagerID;
                     case __.Ex1 : return _Ex1;
                     case __.Ex2 : return _Ex2;
                     case __.Ex3 : return _Ex3;
@@ -262,6 +271,7 @@ namespace XCode.Membership
                     case __.Sort : _Sort = value.ToInt(); break;
                     case __.Enable : _Enable = value.ToBoolean(); break;
                     case __.Visible : _Visible = value.ToBoolean(); break;
+                    case __.ManagerID : _ManagerID = value.ToInt(); break;
                     case __.Ex1 : _Ex1 = value.ToInt(); break;
                     case __.Ex2 : _Ex2 = value.ToInt(); break;
                     case __.Ex3 : _Ex3 = value.ToDouble(); break;
@@ -313,6 +323,9 @@ namespace XCode.Membership
 
             /// <summary>可见</summary>
             public static readonly Field Visible = FindByName(__.Visible);
+
+            /// <summary>管理者</summary>
+            public static readonly Field ManagerID = FindByName(__.ManagerID);
 
             /// <summary>扩展1</summary>
             public static readonly Field Ex1 = FindByName(__.Ex1);
@@ -392,6 +405,9 @@ namespace XCode.Membership
             /// <summary>可见</summary>
             public const String Visible = "Visible";
 
+            /// <summary>管理者</summary>
+            public const String ManagerID = "ManagerID";
+
             /// <summary>扩展1</summary>
             public const String Ex1 = "Ex1";
 
@@ -470,6 +486,9 @@ namespace XCode.Membership
 
         /// <summary>可见</summary>
         Boolean Visible { get; set; }
+
+        /// <summary>管理者</summary>
+        Int32 ManagerID { get; set; }
 
         /// <summary>扩展1</summary>
         Int32 Ex1 { get; set; }

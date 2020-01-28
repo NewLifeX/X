@@ -7,7 +7,7 @@
 <#@ output extension=".log" #>
 <#
     // 设置当前工作目录
-	PathHelper.BaseDirectory = Host.ResolvePath(".");
+	PathHelper.BasePath = Host.ResolvePath(".");
 	// 导入模型文件并生成实体类，模型文件、输出目录、命名空间、连接名
 	EntityBuilder.Build();
 #>
