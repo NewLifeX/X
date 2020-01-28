@@ -173,9 +173,9 @@ namespace NewLife.Http
             fileName.EnsureDirectory(true);
             using var fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
 #if NET4
-            fs.CopyTo(rs);
+            rs.CopyTo(fs);
 #else
-            await fs.CopyToAsync(rs);
+            await rs.CopyToAsync(fs);
 #endif
         }
         #endregion

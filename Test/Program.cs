@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
@@ -20,6 +21,7 @@ using XCode.Code;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 using XCode.Service;
+using NewLife.Http;
 #if !NET4
 using TaskEx = System.Threading.Tasks.Task;
 #endif
@@ -45,7 +47,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test1();
+                    Test8();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -99,7 +101,7 @@ namespace Test
                 XTrace.WriteLine("{0} {1} {2}", mi.CpuRate, mi.Temperature, (Double)mi.AvailableMemory / 1024 / 1024);
                 Thread.Sleep(1000);
             }
-            
+
             Console.ReadKey();
         }
 
@@ -457,13 +459,17 @@ namespace Test
             Console.WriteLine(list.Count);
         }
 
-        static void Test8()
+        static async void Test8()
         {
-            var ss = new String[8];
-            ss[1] = "Stone";
-            ss[3] = "NewLife";
-            var str = ss.Join();
-            Console.WriteLine(str);
+            var url = "http://www.mca.gov.cn/article/sj/xzqh/2019/2019/201912251506.html";
+            var file = "area.html".GetFullPath();
+            if (!File.Exists(file))
+            {
+                var http = new HttpClient();
+                await http.DownloadFileAsync(url, file);
+            }
+
+
         }
 
         static async void Test9()
