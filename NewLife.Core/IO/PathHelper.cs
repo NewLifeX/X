@@ -20,7 +20,7 @@ namespace System.IO
         /// <remarks>
         /// 为了适应函数计算，该路径将支持从命令行参数和环境变量读取
         /// </remarks>
-        [Obsolete]
+        [Obsolete("=>BasePath")]
         public static String BaseDirectory { get => BasePath; set => BasePath = value; }
 
         #endregion

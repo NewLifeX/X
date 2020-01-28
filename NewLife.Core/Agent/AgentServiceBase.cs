@@ -426,7 +426,7 @@ namespace NewLife.Agent
             WriteLog("重启服务！");
 
             // 在临时目录生成重启服务的批处理文件
-            var filename = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "重启.bat");
+            var filename = "重启.bat".GetFullPath();
             if (File.Exists(filename)) File.Delete(filename);
 
             File.AppendAllText(filename, "net stop " + ServiceName);

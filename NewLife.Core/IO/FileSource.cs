@@ -74,7 +74,7 @@ namespace NewLife.IO
             else
                 ns = names.Where(e => e.StartsWithIgnoreCase(prefix));
 
-            if (String.IsNullOrEmpty(dest)) dest = AppDomain.CurrentDomain.BaseDirectory;
+            if (String.IsNullOrEmpty(dest)) dest = ".".GetFullPath();
             dest = dest.GetFullPath();
 
             // 开始处理
