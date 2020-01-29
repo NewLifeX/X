@@ -506,11 +506,16 @@ namespace XCode.Membership
         /// <returns></returns>
         public static Int32 ParseAndSave(String txt)
         {
+            // 预备好所有三级数据
+            var list = FindAll(_.ID > 10_00_00 & _.ID < 99_99_99);
+
             var rs = new List<Area>();
             foreach (var item in Parse(txt))
             {
                 // 查找是否已存在
-                var r = Area.FindByID(item.ID);
+                var r = list.Find(e => e.ID == item.ID);
+                if (r == null && item.ID > 99_99_99) r = FindByID(item.ID);
+
                 if (r == null)
                 {
                     r = item;
