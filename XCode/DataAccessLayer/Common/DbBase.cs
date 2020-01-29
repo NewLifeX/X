@@ -337,6 +337,9 @@ namespace XCode.DataAccessLayer
                     var linkName = name;
 #if __CORE__
                     var arch = (RuntimeInformation.OSArchitecture + "").ToLower();
+                    // 可能是在x64架构上跑x86
+                    if (arch == "x64" && !Environment.Is64BitProcess) arch = "x86";
+
                     var platform = "";
                     if (Runtime.Linux)
                         platform = "linux";
