@@ -46,6 +46,7 @@ namespace XCode.Membership
     }
 
     /// <summary>字典参数</summary>
+    [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
     public partial class Parameter : Entity<Parameter>
     {
         #region 对象操作

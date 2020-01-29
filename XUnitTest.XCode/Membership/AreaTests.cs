@@ -5,6 +5,7 @@ using NewLife.Http;
 using NewLife.Log;
 using XCode.Membership;
 using Xunit;
+using static XCode.Membership.Area;
 
 namespace XUnitTest.XCode.Membership
 {
@@ -37,9 +38,24 @@ namespace XUnitTest.XCode.Membership
             var rs = Area.Parse(txt).ToList();
             Assert.NotNull(rs);
             Assert.True(rs.Count > 3000);
+        }
 
-            //var r = Area.FindByName(0, "上海");
-            //Assert.NotNull(r);
+        [Fact]
+        public void ParseAndSave()
+        {
+            var file = "area.html".GetFullPath();
+            var txt = File.ReadAllText(file);
+
+            var rs = Area.ParseAndSave(txt);
+            //Assert.True(rs > 3000);
+
+            var r = Area.Find(_.Name == "上海");
+            Assert.NotNull(r);
+            Assert.Equal("上海市", r.FullName);
+
+            r = Area.Find(_.Name == "广西");
+            Assert.NotNull(r);
+            Assert.Equal("广西壮族自治区", r.FullName);
         }
     }
 }
