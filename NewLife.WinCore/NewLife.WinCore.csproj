@@ -4,10 +4,10 @@
     <UseWindowsForms>true</UseWindowsForms>
     <AssemblyName>NewLife.WinCore</AssemblyName>
     <RootNamespace>NewLife</RootNamespace>
-    <AssemblyTitle>新生命X组件核心库</AssemblyTitle>
+    <AssemblyTitle>X组件核心库</AssemblyTitle>
     <Description>算法、日志、网络、RPC、序列化、缓存、Windows服务、线程池</Description>
     <Company>新生命开发团队</Company>
-    <Copyright>©2002-2020 新生命开发团队</Copyright>
+    <Copyright>©2002-2020 NewLife</Copyright>
     <Version>8.5.2020.0115</Version>
     <FileVersion>8.5.2020.0115</FileVersion>
     <AssemblyVersion>8.5.*</AssemblyVersion>
