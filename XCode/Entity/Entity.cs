@@ -797,7 +797,10 @@ namespace XCode
             if (page.State is Expression exp)
                 where &= exp;
             else if (page.State is WhereBuilder builder)
+            {
+                if (builder.Factory == null) builder.Factory = Meta.Factory;
                 where &= builder.GetExpression();
+            }
 
             // 先查询满足条件的记录数，如果没有数据，则直接返回空集合，不再查询数据
             if (page.RetrieveTotalCount)
