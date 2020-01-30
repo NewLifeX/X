@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using NewLife.Data;
 using NewLife.Reflection;
 using XCode.Configuration;
 
@@ -24,13 +25,23 @@ namespace XCode.Model
         public String Expression { get; set; }
 
         /// <summary>数据源。{$name}访问</summary>
-        public IDictionary<String, Object> Data { get; set; }
+        public IExtend Data { get; set; }
 
         /// <summary>第二数据源。{#name}访问</summary>
-        public IDictionary<String, Object> Data2 { get; set; }
+        public IExtend Data2 { get; set; }
         #endregion
 
         #region 构造
+        #endregion
+
+        #region 方法
+        /// <summary>设置数据源</summary>
+        /// <param name="dictionary"></param>
+        public void SetData(IDictionary<String, Object> dictionary) => Data = dictionary.ToExtend();
+
+        /// <summary>设置第二数据源</summary>
+        /// <param name="dictionary"></param>
+        public void SetData2(IDictionary<String, Object> dictionary) => Data2 = dictionary.ToExtend();
         #endregion
 
         #region 表达式
@@ -126,7 +137,8 @@ namespace XCode.Model
                 if (!key.Contains("."))
                 {
                     // 普通变量
-                    if (!dt.TryGetValue(key, out var value)) throw new ArgumentException($"数据源中缺少数据[{key}]", source);
+                    //if (!dt.TryGetValue(key, out var value)) throw new ArgumentException($"数据源中缺少数据[{key}]", source);
+                    var value = dt[key];
 
                     return value;
                 }
@@ -134,7 +146,8 @@ namespace XCode.Model
                 {
                     // 多层变量
                     var ss = key.Split('.');
-                    if (!dt.TryGetValue(ss[0], out var value)) throw new ArgumentException($"数据源中缺少数据[{key}]", source);
+                    //if (!dt.TryGetValue(ss[0], out var value)) throw new ArgumentException($"数据源中缺少数据[{key}]", source);
+                    var value = dt[ss[0]];
 
                     for (var i = 1; i < ss.Length; i++)
                     {
@@ -273,16 +286,16 @@ namespace XCode.Model
             public FieldItem Field { get; set; }
         }
 
-        private Int32 IndexOfAny(String str, String[] seps)
-        {
-            foreach (var item in seps)
-            {
-                var p = str.IndexOf(item);
-                if (p >= 0) return p;
-            }
+        //private Int32 IndexOfAny(String str, String[] seps)
+        //{
+        //    foreach (var item in seps)
+        //    {
+        //        var p = str.IndexOf(item);
+        //        if (p >= 0) return p;
+        //    }
 
-            return -1;
-        }
+        //    return -1;
+        //}
         #endregion
     }
 }

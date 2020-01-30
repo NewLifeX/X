@@ -21,8 +21,8 @@ namespace XUnitTest.XCode.Model
             {
                 Factory = Log.Meta.Factory,
                 Expression = "CreateUserID={$userId}",
-                Data = dic,
             };
+            builder.SetData(dic);
 
             var exp = builder.GetExpression();
             Assert.NotNull(exp);
@@ -59,12 +59,21 @@ namespace XUnitTest.XCode.Model
             {
                 Factory = Log.Meta.Factory,
                 Expression = "CreateUserID={#userId}",
-                Data2 = dic,
             };
+            builder.SetData2(dic);
 
             // 变量大小写
-            var ex = Assert.Throws<ArgumentException>("Data2", () => builder.GetExpression());
-            Assert.NotNull(ex);
+            //var ex = Assert.Throws<ArgumentException>("Data2", () => builder.GetExpression());
+            //Assert.NotNull(ex);
+
+            var exp = builder.GetExpression();
+            Assert.NotNull(exp);
+
+            var fe = exp as FieldExpression;
+            Assert.NotNull(fe);
+            Assert.Equal(Log._.CreateUserID, fe.Field);
+            Assert.Equal("=", fe.Action);
+            Assert.Null(fe.Value);
         }
 
         [Fact(DisplayName = "无字段")]
@@ -92,8 +101,8 @@ namespace XUnitTest.XCode.Model
             {
                 Factory = Log.Meta.Factory,
                 Expression = "CreateUserID={$User.ID}",
-                Data = dic,
             };
+            builder.SetData(dic);
 
             var exp = builder.GetExpression();
             Assert.NotNull(exp);
@@ -117,8 +126,8 @@ namespace XUnitTest.XCode.Model
             {
                 Factory = Log.Meta.Factory,
                 Expression = "linkid in{#SiteIds} or CreateUserID={#userId}",
-                Data2 = dic,
             };
+            builder.SetData2(dic);
 
             var exp = builder.GetExpression();
             Assert.NotNull(exp);
@@ -146,8 +155,8 @@ namespace XUnitTest.XCode.Model
             {
                 Factory = Log.Meta.Factory,
                 Expression = "CreateUserID>={$User.ID}",
-                Data = dic,
             };
+            builder.SetData(dic);
 
             var ex = Assert.Throws<XCodeException>(() => builder.GetExpression());
             Assert.NotNull(ex);
@@ -167,9 +176,9 @@ namespace XUnitTest.XCode.Model
             {
                 Factory = Log.Meta.Factory,
                 Expression = exp,
-                Data = dic,
-                Data2 = dic,
             };
+            builder.SetData(dic);
+            builder.SetData2(dic);
 
             var log = new Log { LinkID = 8, CreateUserID = 1234 };
 
@@ -191,9 +200,9 @@ namespace XUnitTest.XCode.Model
             {
                 Factory = Log.Meta.Factory,
                 Expression = exp,
-                Data = dic,
-                Data2 = dic,
             };
+            builder.SetData(dic);
+            builder.SetData2(dic);
 
             var log = new Log { LinkID = 17, CreateUserID = 1235 };
 
