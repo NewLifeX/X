@@ -31,6 +31,21 @@ namespace XCode
         /// <returns></returns>
         public Object this[String key] { get => Get<Object>(key); set => Set(key, value); }
 
+        /// <summary>尝试获取</summary>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public Boolean TryGetValue(String key,out Object value)
+        {
+            var rs = _cache.TryGetValue(key, out var ci);
+            if (rs)
+                value = ci?.Value;
+            else
+                value = null;
+
+            return rs;
+        }
+
         /// <summary>扩展获取数据项，当数据项不存在时，通过调用委托获取数据项。线程安全。</summary>
         /// <param name="key">键</param>
         /// <param name="func">获取值的委托，该委托以键作为参数</param>

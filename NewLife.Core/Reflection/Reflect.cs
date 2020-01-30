@@ -221,26 +221,13 @@ namespace NewLife.Reflection
         /// <param name="name">名称</param>
         /// <param name="value">数值</param>
         /// <returns>是否成功获取数值</returns>
-        public static Boolean TryGetValue(this Object target, String name, out Object value)
+        internal static Boolean TryGetValue(this Object target, String name, out Object value)
         {
             value = null;
 
             if (String.IsNullOrEmpty(name)) return false;
 
             var type = GetType(ref target);
-            //var pi = GetPropertyEx(type, name);
-            //if (pi != null)
-            //{
-            //    value = target.GetValue(pi);
-            //    return true;
-            //}
-
-            //var fi = GetFieldEx(type, name);
-            //if (fi != null)
-            //{
-            //    value = target.GetValue(fi);
-            //    return true;
-            //}
 
             var mi = type.GetMemberEx(name, true);
             if (mi == null) return false;
