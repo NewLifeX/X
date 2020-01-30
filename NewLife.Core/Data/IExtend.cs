@@ -52,34 +52,21 @@ namespace NewLife.Data
             }
 
             // 反射 Items
-            var pi = extend.GetType().GetProperty("Items", BindingFlags.Public | BindingFlags.Instance);
-            if (pi != null && pi.PropertyType.As<IDictionary<String, Object>>()) return pi.GetValue(pi, null) as IDictionary<String, Object>;
+            var pi = extend.GetType().GetProperty("Items", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            if (pi != null && pi.PropertyType.As<IDictionary<String, Object>>()) return pi.GetValue(extend, null) as IDictionary<String, Object>;
+
+            var fi = extend.GetType().GetField("Items", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            if (fi != null && fi.FieldType.As<IDictionary<String, Object>>()) return fi.GetValue(extend) as IDictionary<String, Object>;
 
             throw new NotSupportedException($"不支持从类型[{extend.GetType().FullName}]中获取字典！");
         }
     }
 
     /// <summary>扩展字典。引用型</summary>
-    class ExtendDictionary : /*Dictionary<String, Object>,*/ IExtend
+    class ExtendDictionary : IExtend
     {
         /// <summary>数据项</summary>
         public IDictionary<String, Object> Items { get; set; }
-
-        ///// <summary>实例化一个扩展字典</summary>
-        //public ExtendDictionary() { }
-
-        ///// <summary>实例化一个扩展字典</summary>
-        ///// <param name="dictionary"></param>
-        //public ExtendDictionary(IDictionary<String, Object> dictionary) : base(dictionary) { }
-
-        ///// <summary>指定比较器实例化一个扩展字典</summary>
-        ///// <param name="comparer"></param>
-        //public ExtendDictionary(IEqualityComparer<String> comparer) : base(comparer) { }
-
-        ///// <summary>实例化一个扩展字典</summary>
-        ///// <param name="dictionary"></param>
-        ///// <param name="comparer"></param>
-        //public ExtendDictionary(IDictionary<String, Object> dictionary, IEqualityComparer<String> comparer) : base(dictionary, comparer) { }
 
         /// <summary>获取 或 设置 数据</summary>
         /// <param name="item"></param>
