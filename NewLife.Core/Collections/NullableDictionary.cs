@@ -19,7 +19,7 @@ namespace NewLife.Collections
         /// <param name="comparer"></param>
         public NullableDictionary(IDictionary<TKey, TValue> dic, IEqualityComparer<TKey> comparer) : base(dic, comparer) { }
 
-        /// <summary>获取或设置与指定的属性是否有脏数据。</summary>
+        /// <summary>获取 或 设置 数据</summary>
         /// <param name="item"></param>
         /// <returns></returns>
         public new TValue this[TKey item]
