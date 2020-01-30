@@ -134,7 +134,7 @@ namespace XUnitTest.XCode.Model
             Assert.Equal(dic["SiteIds"], left.Value);
         }
 
-        [Fact(DisplayName = "复杂比较操作")]
+        [Fact(DisplayName = "未支持表达式")]
         public void ParseUnknown()
         {
             var user = new UserX { ID = 1234 };
@@ -149,9 +149,56 @@ namespace XUnitTest.XCode.Model
                 Data = dic,
             };
 
-            var exp = builder.GetExpression();
-            Assert.NotNull(exp);
-            Assert.Equal("CreateUserID>=1234", exp.Text);
+            var ex = Assert.Throws<XCodeException>(() => builder.GetExpression());
+            Assert.NotNull(ex);
+        }
+
+        [Theory]
+        [InlineData("CreateUserID={$userId}")]
+        [InlineData("CreateUserID!={#userId} or linkid in{#SiteIds}")]
+        public void EvalSuccess(String exp)
+        {
+            var dic = new Dictionary<String, Object>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["SiteIds"] = new[] { 2, 4, 8, 16 },
+                ["userid"] = 1234
+            };
+            var builder = new WhereBuilder
+            {
+                Factory = Log.Meta.Factory,
+                Expression = exp,
+                Data = dic,
+                Data2 = dic,
+            };
+
+            var log = new Log { LinkID = 8, CreateUserID = 1234 };
+
+            var rs = builder.Eval(log);
+            Assert.True(rs);
+        }
+
+        [Theory]
+        [InlineData("CreateUserID=={$userId}")]
+        [InlineData("CreateUserID=={#userId} or linkid in{#SiteIds}")]
+        public void EvalFail(String exp)
+        {
+            var dic = new Dictionary<String, Object>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["SiteIds"] = new[] { 2, 4, 8, 16 },
+                ["userid"] = 1234
+            };
+            var builder = new WhereBuilder
+            {
+                Factory = Log.Meta.Factory,
+                Expression = exp,
+                Data = dic,
+                Data2 = dic,
+            };
+
+            var log = new Log { LinkID = 17, CreateUserID = 1235 };
+
+            var rs = builder.Eval(log);
+            Assert.False(rs);
         }
     }
 }
