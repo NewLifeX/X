@@ -126,7 +126,7 @@ namespace XUnitTest.Data
 
         class ExtendTest3 : IExtend
         {
-            private NullableDictionary<String, Object> Items { get; set; } = new NullableDictionary<String, Object>();
+            public NullableDictionary<String, Object> Items { get; set; } = new NullableDictionary<String, Object>();
 
             public Object this[String item]
             {
@@ -135,34 +135,34 @@ namespace XUnitTest.Data
             }
         }
 
-        [Fact]
-        public void ToDictionary_RefrectField()
-        {
-            var ext = new ExtendTest4
-            {
-                ["aaa"] = 1234
-            };
+        //[Fact]
+        //public void ToDictionary_RefrectField()
+        //{
+        //    var ext = new ExtendTest4
+        //    {
+        //        ["aaa"] = 1234
+        //    };
 
-            var dic = ext.ToDictionary();
-            Assert.NotNull(dic);
-            Assert.Equal(typeof(NullableDictionary<String, Object>), dic.GetType());
-            Assert.Equal(1234, dic["aaa"]);
+        //    var dic = ext.ToDictionary();
+        //    Assert.NotNull(dic);
+        //    Assert.Equal(typeof(NullableDictionary<String, Object>), dic.GetType());
+        //    Assert.Equal(1234, dic["aaa"]);
 
-            // 引用型
-            dic["bbb"] = "xxx";
-            Assert.Equal("xxx", ext["bbb"]);
-        }
+        //    // 引用型
+        //    dic["bbb"] = "xxx";
+        //    Assert.Equal("xxx", ext["bbb"]);
+        //}
 
-        class ExtendTest4 : IExtend
-        {
-            private NullableDictionary<String, Object> Items = new NullableDictionary<String, Object>();
+        //class ExtendTest4 : IExtend
+        //{
+        //    private NullableDictionary<String, Object> Items = new NullableDictionary<String, Object>();
 
-            public Object this[String item]
-            {
-                get => Items[item];
-                set => Items[item] = value;
-            }
-        }
+        //    public Object this[String item]
+        //    {
+        //        get => Items[item];
+        //        set => Items[item] = value;
+        //    }
+        //}
 
         [Fact]
         public void ToDictionary_NotSupported()
