@@ -793,6 +793,12 @@ namespace XCode
         {
             if (page == null) return FindAll(where, null, selects, 0, 0);
 
+            // 页面参数携带进来的扩展查询
+            if (page.State is Expression exp)
+                where &= exp;
+            else if (page.State is WhereBuilder builder)
+                where &= builder.GetExpression();
+
             // 先查询满足条件的记录数，如果没有数据，则直接返回空集合，不再查询数据
             if (page.RetrieveTotalCount)
             {
@@ -832,7 +838,7 @@ namespace XCode
             if (list == null || list.Count == 0) return list;
 
             // 统计数据。100万以上数据要求带where才支持统计
-            if (page.RetrieveState && page.State == null &&
+            if (page.RetrieveState && 
                 (page.RetrieveTotalCount && page.TotalCount < 10_000_000
                 || Meta.Session.LongCount < 10_000_000 || where != null)
                 )
@@ -986,7 +992,7 @@ namespace XCode
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>实体集</returns>
-        [Obsolete("=>Search(DateTime start, DateTime end, String key, PageParameter param)")]
+        [Obsolete("=>Search(DateTime start, DateTime end, String key, PageParameter page)")]
         public static IList<TEntity> Search(String key, String order, Int64 startRowIndex, Int64 maximumRows) => FindAll(SearchWhereByKeys(key, null), order, null, startRowIndex, maximumRows);
 
         /// <summary>查询满足条件的记录总数，分页和排序无效，带参数是因为ObjectDataSource要求它跟Search统一</summary>
@@ -995,14 +1001,14 @@ namespace XCode
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns>记录数</returns>
-        [Obsolete("=>Search(DateTime start, DateTime end, String key, PageParameter param)")]
+        [Obsolete("=>Search(DateTime start, DateTime end, String key, PageParameter page)")]
         public static Int32 SearchCount(String key, String order, Int64 startRowIndex, Int64 maximumRows) => (Int32)FindCount(SearchWhereByKeys(key, null), null, null, 0, 0);
 
         /// <summary>同时查询满足条件的记录集和记录总数。没有数据时返回空集合而不是null</summary>
         /// <param name="key"></param>
         /// <param name="page">分页排序参数，同时返回满足条件的总记录数</param>
         /// <returns></returns>
-        //[Obsolete("=>Search(DateTime start, DateTime end, String key, PageParameter param)")]
+        //[Obsolete("=>Search(DateTime start, DateTime end, String key, PageParameter page)")]
         public static IList<TEntity> Search(String key, PageParameter page) => FindAll(SearchWhereByKeys(key), page);
 
         /// <summary>同时查询满足条件的记录集和记录总数。没有数据时返回空集合而不是null</summary>

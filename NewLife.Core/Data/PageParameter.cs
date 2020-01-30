@@ -5,7 +5,7 @@ using System.Xml.Serialization;
 
 namespace NewLife.Data
 {
-    /// <summary>分页参数信息</summary>
+    /// <summary>分页参数信息。可携带统计和数据权限扩展查询等信息</summary>
     public class PageParameter
     {
         #region 核心属性
@@ -122,7 +122,7 @@ namespace NewLife.Data
         [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public Boolean RetrieveTotalCount { get; set; }
 
-        /// <summary>获取 或 设置 状态。用于传递统计等数据</summary>
+        /// <summary>获取 或 设置 状态。用于传递统计、扩展查询等用户数据</summary>
         [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public virtual Object State { get; set; }
 
