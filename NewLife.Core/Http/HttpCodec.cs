@@ -102,7 +102,8 @@ namespace NewLife.Http
                     context.FireRead(msg);
 
                     // 移除消息
-                    ext.Items.Remove("Message");
+                    //ext.Items.Remove("Message");
+                    ext["Message"] = null;
                 }
             }
 

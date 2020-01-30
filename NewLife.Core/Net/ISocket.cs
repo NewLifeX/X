@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
@@ -76,9 +77,7 @@ namespace NewLife.Net
     public interface ISocketRemote : ISocket, IExtend
     {
         #region 属性
-        /// <summary>
-        /// 标识
-        /// </summary>
+        /// <summary>标识</summary>
         Int32 ID { get; }
 
         /// <summary>远程地址</summary>
@@ -93,6 +92,8 @@ namespace NewLife.Net
         /// <summary>缓冲区大小</summary>
         Int32 BufferSize { get; set; }
 
+        /// <summary>数据项</summary>
+        IDictionary<String, Object> Items { get; }
         #endregion
 
         #region 发送
