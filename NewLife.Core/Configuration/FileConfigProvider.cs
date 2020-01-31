@@ -7,6 +7,9 @@ using NewLife.Xml;
 namespace NewLife.Configuration
 {
     /// <summary>文件配置提供者</summary>
+    /// <remarks>
+    /// 每个提供者实例对应一个配置文件，支持热更新
+    /// </remarks>
     public abstract class FileConfigProvider : ConfigProvider
     {
         /// <summary>文件名。最高优先级，优先于模型特性指定的文件名</summary>
@@ -23,22 +26,18 @@ namespace NewLife.Configuration
             if (fileName.IsNullOrEmpty())
             {
                 var atts = modelType.GetCustomAttributes(typeof(ConfigFileAttribute), false);
-                if (atts != null && atts.Length > 0 && atts[0] is ConfigFileAttribute xcf) fileName = xcf.FileName;
+                if (atts != null && atts.Length > 0 && atts[0] is ConfigFileAttribute cf) fileName = cf.FileName;
             }
             if (fileName.IsNullOrEmpty())
             {
                 var atts = modelType.GetCustomAttributes(typeof(XmlConfigFileAttribute), false);
-                if (atts != null && atts.Length > 0 && atts[0] is XmlConfigFileAttribute xcf) fileName = xcf.FileName;
+                if (atts != null && atts.Length > 0 && atts[0] is XmlConfigFileAttribute cf) fileName = cf.FileName;
             }
             if (fileName.IsNullOrEmpty())
             {
                 var atts = modelType.GetCustomAttributes(typeof(JsonConfigFileAttribute), false);
-                if (atts != null && atts.Length > 0 && atts[0] is JsonConfigFileAttribute xcf) fileName = xcf.FileName;
+                if (atts != null && atts.Length > 0 && atts[0] is JsonConfigFileAttribute cf) fileName = cf.FileName;
             }
-
-            //if (fileName.IsNullOrEmpty()) fileName = FileName;
-
-            //todo 这里需要想办法修改配置根目录
 
             return fileName;
         }
@@ -49,16 +48,17 @@ namespace NewLife.Configuration
         /// <returns>模型实例</returns>
         public override T Load<T>(String nameSpace = null)
         {
+            // 准备文件名
             var fileName = GetFileName(typeof(T));
-
-            // 这里需要想办法修改根目录
             fileName = fileName.GetBasePath();
 
+            // 读取文件，合并到Items中
             var source = OnRead(fileName);
-            Merge(source, Items, nameSpace);
+            Merge(source, Items, null);
 
+            // 构建模型实例
             var model = new T();
-            MapTo(source, model, null);
+            MapTo(Items, model, nameSpace);
 
             return model;
         }
@@ -66,7 +66,7 @@ namespace NewLife.Configuration
         /// <summary>读取配置文件，得到字典</summary>
         /// <param name="fileName"></param>
         /// <returns></returns>
-        protected abstract IDictionary<String, String> OnRead(String fileName);
+        protected abstract IDictionary<String, ConfigItem> OnRead(String fileName);
 
         /// <summary>保存模型实例</summary>
         /// <typeparam name="T">模型</typeparam>
@@ -74,23 +74,24 @@ namespace NewLife.Configuration
         /// <param name="nameSpace">命名空间。映射时加上</param>
         public override void Save<T>(T model, String nameSpace = null)
         {
-            //base.Save<T>(model, nameSpace);
-
-            var dic = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+            // 模型转字典，合并到Items中
+            var dic = new Dictionary<String, ConfigItem>(StringComparer.OrdinalIgnoreCase);
             MapFrom(dic, model, nameSpace);
             Merge(dic, Items, null);
 
+            // 准备文件名
             var fileName = GetFileName(typeof(T));
             fileName = fileName.GetBasePath();
             fileName.EnsureDirectory(true);
 
-            OnWrite(fileName, dic);
+            // 写入文件
+            OnWrite(fileName, Items);
         }
 
         /// <summary>把字典写入配置文件</summary>
         /// <param name="fileName"></param>
         /// <param name="source"></param>
-        protected abstract void OnWrite(String fileName, IDictionary<String, String> source);
+        protected abstract void OnWrite(String fileName, IDictionary<String, ConfigItem> source);
 
         /// <summary>绑定模型，使能热更新，配置存储数据改变时同步修改模型属性</summary>
         /// <typeparam name="T">模型</typeparam>
@@ -98,15 +99,16 @@ namespace NewLife.Configuration
         /// <param name="nameSpace">命名空间。映射时去掉</param>
         public override void Bind<T>(T model, String nameSpace = null)
         {
+            // 准备文件名
             var fileName = GetFileName(typeof(T));
-
-            // 这里需要想办法修改根目录
             fileName = fileName.GetBasePath();
 
+            // 读取文件，合并到Items中
             var source = OnRead(fileName);
-            Merge(source, Items, nameSpace);
+            Merge(source, Items, null);
 
-            MapTo(source, model, null);
+            // 绑定到模型实例
+            MapTo(Items, model, nameSpace);
         }
 
         #region 辅助
@@ -114,7 +116,7 @@ namespace NewLife.Configuration
         /// <param name="src"></param>
         /// <param name="dst"></param>
         /// <param name="nameSpace"></param>
-        protected virtual void Map(IDictionary<String, Object> src, IDictionary<String, String> dst, String nameSpace)
+        protected virtual void Map(IDictionary<String, Object> src, IDictionary<String, ConfigItem> dst, String nameSpace)
         {
             foreach (var item in src)
             {
@@ -125,17 +127,17 @@ namespace NewLife.Configuration
                 if (item.Value is IDictionary<String, Object> dic)
                     Map(dic, dst, name);
                 else
-                    dst[name] = "{0}".F(item.Value);
+                    dst[name] = new ConfigItem { Key = name, Value = "{0}".F(item.Value) };
             }
         }
 
         /// <summary>一层字典映射为多层</summary>
         /// <param name="src"></param>
         /// <param name="dst"></param>
-        protected virtual void Map(IDictionary<String, String> src, IDictionary<String, Object> dst)
+        protected virtual void Map(IDictionary<String, ConfigItem> src, IDictionary<String, Object> dst)
         {
             // 按照配置段分组，相同组写在一起
-            var dic = new Dictionary<String, Dictionary<String, String>>();
+            var dic = new Dictionary<String, Dictionary<String, ConfigItem>>();
 
             foreach (var item in src)
             {
@@ -149,7 +151,7 @@ namespace NewLife.Configuration
                     name = item.Key.Substring(p + 1);
                 }
 
-                if (!dic.TryGetValue(section, out var dic2)) dic[section] = dic2 = new Dictionary<String, String>();
+                if (!dic.TryGetValue(section, out var dic2)) dic[section] = dic2 = new Dictionary<String, ConfigItem>();
 
                 dic2[name] = item.Value;
             }

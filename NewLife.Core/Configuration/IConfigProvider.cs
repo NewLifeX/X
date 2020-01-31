@@ -1,7 +1,8 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Reflection;
-using NewLife.Collections;
 using NewLife.Reflection;
 
 namespace NewLife.Configuration
@@ -47,8 +48,9 @@ namespace NewLife.Configuration
     public class ConfigProvider : IConfigProvider
     {
         #region 属性
+        private readonly Dictionary<String, ConfigItem> _Items = new Dictionary<String, ConfigItem>(StringComparer.OrdinalIgnoreCase);
         /// <summary>配置项集合</summary>
-        public IDictionary<String, String> Items { get; set; } = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+        public IDictionary<String, ConfigItem> Items => _Items;
 
         /// <summary>所有键</summary>
         public ICollection<String> Keys => Items.Keys;
@@ -56,7 +58,26 @@ namespace NewLife.Configuration
         /// <summary>获取 或 设置 配置值</summary>
         /// <param name="key">键</param>
         /// <returns></returns>
-        public virtual String this[String key] { get => Items[key]; set => Items[key] = value; }
+        public virtual String this[String key]
+        {
+            get
+            {
+                if (_Items.TryGetValue(key, out var ci)) return ci.Value;
+
+                return null;
+            }
+            set
+            {
+                //_Items.AddOrUpdate(key,
+                //    k => new ConfigItem { Key = key, Value = value },
+                //    (k, ci) => { ci.Value = value; return ci; }
+                //    );
+                if (Items.TryGetValue(key, out var ci))
+                    ci.Value = value;
+                else
+                    Items.Add(key, new ConfigItem { Key = key, Value = value });
+            }
+        }
         #endregion
 
         #region 加载/保存
@@ -76,7 +97,7 @@ namespace NewLife.Configuration
         /// <param name="source"></param>
         /// <param name="model"></param>
         /// <param name="nameSpace"></param>
-        protected virtual void MapTo(IDictionary<String, String> source, Object model, String nameSpace)
+        protected virtual void MapTo(IDictionary<String, ConfigItem> source, Object model, String nameSpace)
         {
             // 反射公有实例属性
             foreach (var pi in model.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
@@ -91,7 +112,7 @@ namespace NewLife.Configuration
                 // 分别处理基本类型和复杂类型
                 if (pi.PropertyType.GetTypeCode() != TypeCode.Object)
                 {
-                    if (source.TryGetValue(name, out var str)) pi.SetValue(model, str.ChangeType(pi.PropertyType), null);
+                    if (source.TryGetValue(name, out var ci)) pi.SetValue(model, ci.Value.ChangeType(pi.PropertyType), null);
                 }
                 else
                 {
@@ -124,7 +145,7 @@ namespace NewLife.Configuration
         /// <param name="source"></param>
         /// <param name="model"></param>
         /// <param name="nameSpace"></param>
-        protected virtual void MapFrom(IDictionary<String, String> source, Object model, String nameSpace)
+        protected virtual void MapFrom(IDictionary<String, ConfigItem> source, Object model, String nameSpace)
         {
             // 反射公有实例属性
             foreach (var pi in model.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
@@ -133,16 +154,32 @@ namespace NewLife.Configuration
                 if (pi.GetIndexParameters().Length > 0) continue;
                 if (pi.Name.EqualIgnoreCase("ConfigFile", "IsNew")) continue;
 
+                // 名称前面加上命名空间
                 var name = pi.Name;
                 if (!nameSpace.IsNullOrEmpty()) name = $"{nameSpace}:{pi.Name}";
 
+                // 反射获取属性值
                 var val = pi.GetValue(model, null);
+                var att = pi.GetCustomAttribute<DescriptionAttribute>();
+                var remark = att?.Description;
+                if (remark.IsNullOrEmpty())
+                {
+                    var att2 = pi.GetCustomAttribute<DisplayNameAttribute>();
+                    remark = att2?.DisplayName;
+                }
 
                 // 分别处理基本类型和复杂类型
                 if (pi.PropertyType.GetTypeCode() != TypeCode.Object)
                 {
                     // 格式化为字符串，主要处理时间日期格式
-                    source[name] = "{0}".F(val);
+                    var str = "{0}".F(val);
+                    if (source.TryGetValue(name, out var ci))
+                    {
+                        ci.Value = str;
+                        ci.Description = remark;
+                    }
+                    else
+                        source.Add(name, new ConfigItem { Key = name, Value = str, Description = remark });
                 }
                 else
                 {
@@ -153,10 +190,10 @@ namespace NewLife.Configuration
         }
 
         /// <summary>合并源字典到目标字典</summary>
-        /// <param name="source"></param>
-        /// <param name="dest"></param>
-        /// <param name="nameSpace"></param>
-        protected virtual void Merge(IDictionary<String, String> source, IDictionary<String, String> dest, String nameSpace)
+        /// <param name="source">源字典</param>
+        /// <param name="dest">目标字典</param>
+        /// <param name="nameSpace">命名空间</param>
+        protected virtual void Merge(IDictionary<String, ConfigItem> source, IDictionary<String, ConfigItem> dest, String nameSpace)
         {
             foreach (var item in source)
             {
@@ -175,5 +212,18 @@ namespace NewLife.Configuration
         /// <param name="nameSpace">命名空间。映射时去掉</param>
         public virtual void Bind<T>(T model, String nameSpace = null) => MapTo(Items, model, nameSpace);
         #endregion
+    }
+
+    /// <summary>配置项</summary>
+    public class ConfigItem
+    {
+        /// <summary>配置名</summary>
+        public String Key { get; set; }
+
+        /// <summary>配置值</summary>
+        public String Value { get; set; }
+
+        /// <summary>注释</summary>
+        public String Description { get; set; }
     }
 }

@@ -14,13 +14,13 @@ namespace NewLife.Configuration
         /// <summary>读取配置文件，得到字典</summary>
         /// <param name="fileName"></param>
         /// <returns></returns>
-        protected override IDictionary<String, String> OnRead(String fileName)
+        protected override IDictionary<String, ConfigItem> OnRead(String fileName)
         {
             var txt = File.ReadAllText(fileName);
             var json = new JsonParser(txt);
             var src = json.Decode() as IDictionary<String, Object>;
 
-            var rs = new Dictionary<String, String>();
+            var rs = new Dictionary<String, ConfigItem>();
             Map(src, rs, null);
 
             return rs;
@@ -29,7 +29,7 @@ namespace NewLife.Configuration
         /// <summary>把字典写入配置文件</summary>
         /// <param name="fileName"></param>
         /// <param name="source"></param>
-        protected override void OnWrite(String fileName, IDictionary<String, String> source)
+        protected override void OnWrite(String fileName, IDictionary<String, ConfigItem> source)
         {
             var rs = new Dictionary<String, Object>();
             Map(source, rs);

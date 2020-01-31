@@ -15,7 +15,7 @@ namespace NewLife.Configuration
         /// <summary>读取配置文件，得到字典</summary>
         /// <param name="fileName"></param>
         /// <returns></returns>
-        protected override IDictionary<String, String> OnRead(String fileName)
+        protected override IDictionary<String, ConfigItem> OnRead(String fileName)
         {
             using var fs = File.OpenRead(fileName);
             using var reader = XmlReader.Create(fs);
@@ -32,7 +32,7 @@ namespace NewLife.Configuration
 
             if (reader.NodeType == XmlNodeType.EndElement) reader.ReadEndElement();
 
-            var rs = new Dictionary<String, String>();
+            var rs = new Dictionary<String, ConfigItem>();
             Map(dic, rs, null);
 
             return rs;
@@ -68,7 +68,7 @@ namespace NewLife.Configuration
         /// <summary>把字典写入配置文件</summary>
         /// <param name="fileName"></param>
         /// <param name="source"></param>
-        protected override void OnWrite(String fileName, IDictionary<String, String> source)
+        protected override void OnWrite(String fileName, IDictionary<String, ConfigItem> source)
         {
             var set = new XmlWriterSettings
             {

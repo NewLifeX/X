@@ -14,18 +14,24 @@ namespace NewLife.Configuration
         /// <summary>读取配置文件，得到字典</summary>
         /// <param name="fileName"></param>
         /// <returns></returns>
-        protected override IDictionary<String, String> OnRead(String fileName)
+        protected override IDictionary<String, ConfigItem> OnRead(String fileName)
         {
             var lines = File.ReadAllLines(fileName);
-            var dic = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+            var dic = new Dictionary<String, ConfigItem>(StringComparer.OrdinalIgnoreCase);
 
             var section = "";
+            var remark = "";
             foreach (var item in lines)
             {
                 var str = item.Trim();
                 if (str.IsNullOrEmpty()) continue;
-                if (str[0] == '#') continue;
-                if (str[0] == ';') continue;
+
+                // 读取注释
+                if (str[0] == '#' || str[0] == ';')
+                {
+                    remark = str.TrimStart('#', ';').Trim();
+                    continue;
+                }
 
                 if (str[0] == '[' && str[str.Length - 1] == ']')
                 {
@@ -38,9 +44,19 @@ namespace NewLife.Configuration
                     {
                         var name = str.Substring(0, p).Trim();
                         if (!section.IsNullOrEmpty()) name = $"{section}:{name}";
-                        dic[name] = str.Substring(p + 1).Trim();
+
+                        // 构建配置值和注释
+                        dic[name] = new ConfigItem
+                        {
+                            Key = name,
+                            Value = str.Substring(p + 1).Trim(),
+                            Description = remark
+                        };
                     }
                 }
+
+                // 清空注释
+                remark = null;
             }
 
             return dic;
@@ -49,7 +65,7 @@ namespace NewLife.Configuration
         /// <summary>把字典写入配置文件</summary>
         /// <param name="fileName"></param>
         /// <param name="source"></param>
-        protected override void OnWrite(String fileName, IDictionary<String, String> source)
+        protected override void OnWrite(String fileName, IDictionary<String, ConfigItem> source)
         {
             var dic = new Dictionary<String, Object>();
             Map(source, dic);
@@ -68,12 +84,21 @@ namespace NewLife.Configuration
                     // 写入当前段
                     foreach (var elm in dic2)
                     {
-                        sb.AppendLine($"{elm.Key} = {elm.Value}");
+                        if (elm.Value is ConfigItem ci)
+                        {
+                            // 注释
+                            if (!ci.Description.IsNullOrEmpty()) sb.AppendLine("; " + ci.Description);
+
+                            sb.AppendLine($"{elm.Key} = {ci.Value}");
+                        }
                     }
                 }
-                else
+                else if (item.Value is ConfigItem ci)
                 {
-                    sb.AppendLine($"{item.Key} = {item.Value}");
+                    // 注释
+                    if (!ci.Description.IsNullOrEmpty()) sb.AppendLine("; " + ci.Description);
+
+                    sb.AppendLine($"{item.Key} = {ci.Value}");
                 }
             }
 
