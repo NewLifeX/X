@@ -97,7 +97,7 @@ namespace XUnitTest.Configuration
 </core>";
 
             var prv = new XmlConfigProvider { FileName = "Config/core2.xml" };
-            var file = prv.FileName.GetFullPath();
+            var file = prv.FileName.GetFullPath().EnsureDirectory(true);
             File.WriteAllText(file, json);
 
             var set = new ConfigModel();

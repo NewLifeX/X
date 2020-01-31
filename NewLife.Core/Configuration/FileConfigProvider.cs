@@ -82,6 +82,7 @@ namespace NewLife.Configuration
 
             var fileName = GetFileName(typeof(T));
             fileName = fileName.GetBasePath();
+            fileName.EnsureDirectory(true);
 
             OnWrite(fileName, dic);
         }

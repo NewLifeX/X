@@ -30,3 +30,5 @@ bld/
 /BinSamples
 /Samples/SplitTableOrDatabase/Config
 /TestResults
+/BinCoreTest
+/BinXCodeTest
