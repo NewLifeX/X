@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Reflection;
 using NewLife.Reflection;
 
@@ -54,29 +54,56 @@ namespace NewLife.Configuration
 
         /// <summary>所有键</summary>
         public ICollection<String> Keys => Items.Keys;
+        #endregion
 
+        #region 方法
         /// <summary>获取 或 设置 配置值</summary>
         /// <param name="key">键</param>
         /// <returns></returns>
         public virtual String this[String key]
         {
-            get
-            {
-                if (_Items.TryGetValue(key, out var ci)) return ci.Value;
+            get => Find(key, false)?.Value;
+            set => Find(key, true).Value = value;
+        }
 
-                return null;
-            }
-            set
+        /// <summary>查找配置项。可得到子级和配置</summary>
+        /// <param name="key"></param>
+        /// <param name="createOnMiss"></param>
+        /// <returns></returns>
+        public virtual ConfigItem Find(String key, Boolean createOnMiss = false)
+        {
+            // 分层
+            var ss = key.Split(':');
+
+            // 顶级查找
+            if (!_Items.TryGetValue(ss[0], out var config))
             {
-                //_Items.AddOrUpdate(key,
-                //    k => new ConfigItem { Key = key, Value = value },
-                //    (k, ci) => { ci.Value = value; return ci; }
-                //    );
-                if (Items.TryGetValue(key, out var ci))
-                    ci.Value = value;
-                else
-                    Items.Add(key, new ConfigItem { Key = key, Value = value });
+                if (!createOnMiss) return null;
+
+                config = new ConfigItem { Key = ss[0] };
+                _Items[ss[0]] = config;
             }
+
+            // 单层
+            if (ss.Length <= 1) return config;
+
+            // 逐级下钻
+            for (var i = 1; i < ss.Length; i++)
+            {
+                var cfg = config.Childs?.FirstOrDefault(e => e.Key == ss[i]);
+                if (cfg == null)
+                {
+                    if (!createOnMiss) return null;
+
+                    cfg = new ConfigItem { Key = ss[i] };
+                    if (config.Childs == null) config.Childs = new List<ConfigItem>();
+                    config.Childs.Add(cfg);
+                }
+
+                config = cfg;
+            }
+
+            return config;
         }
         #endregion
 
@@ -225,5 +252,8 @@ namespace NewLife.Configuration
 
         /// <summary>注释</summary>
         public String Description { get; set; }
+
+        /// <summary>子级</summary>
+        public IList<ConfigItem> Childs { get; set; }
     }
 }

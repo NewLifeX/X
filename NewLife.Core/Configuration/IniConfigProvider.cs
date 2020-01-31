@@ -71,7 +71,6 @@ namespace NewLife.Configuration
             Map(source, dic);
 
             // 分组写入
-            //todo 需要写入Ini注释
             var sb = new StringBuilder();
             foreach (var item in dic)
             {
