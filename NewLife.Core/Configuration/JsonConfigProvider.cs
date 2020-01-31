@@ -11,28 +11,26 @@ namespace NewLife.Configuration
     /// </remarks>
     public class JsonConfigProvider : FileConfigProvider
     {
-        /// <summary>读取配置文件，得到字典</summary>
-        /// <param name="fileName"></param>
-        /// <returns></returns>
-        protected override IDictionary<String, ConfigItem> OnRead(String fileName)
+        /// <summary>读取配置文件</summary>
+        /// <param name="fileName">文件名</param>
+        /// <param name="section">配置段</param>
+        protected override void OnRead(String fileName, IConfigSection section)
         {
             var txt = File.ReadAllText(fileName);
             var json = new JsonParser(txt);
             var src = json.Decode() as IDictionary<String, Object>;
 
-            var rs = new Dictionary<String, ConfigItem>();
+            var rs = new Dictionary<String, ConfigSection>();
             Map(src, rs, null);
-
-            return rs;
         }
 
-        /// <summary>把字典写入配置文件</summary>
-        /// <param name="fileName"></param>
-        /// <param name="source"></param>
-        protected override void OnWrite(String fileName, IDictionary<String, ConfigItem> source)
+        /// <summary>写入配置文件</summary>
+        /// <param name="fileName">文件名</param>
+        /// <param name="section">配置段</param>
+        protected override void OnWrite(String fileName, IConfigSection section)
         {
             var rs = new Dictionary<String, Object>();
-            Map(source, rs);
+            //Map(source, rs);
 
             var json = rs.ToJson(true, true, false);
 

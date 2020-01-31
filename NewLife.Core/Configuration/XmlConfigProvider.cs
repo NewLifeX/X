@@ -12,10 +12,10 @@ namespace NewLife.Configuration
     /// </remarks>
     public class XmlConfigProvider : FileConfigProvider
     {
-        /// <summary>读取配置文件，得到字典</summary>
-        /// <param name="fileName"></param>
-        /// <returns></returns>
-        protected override IDictionary<String, ConfigItem> OnRead(String fileName)
+        /// <summary>读取配置文件</summary>
+        /// <param name="fileName">文件名</param>
+        /// <param name="section">配置段</param>
+        protected override void OnRead(String fileName, IConfigSection section)
         {
             using var fs = File.OpenRead(fileName);
             using var reader = XmlReader.Create(fs);
@@ -32,10 +32,8 @@ namespace NewLife.Configuration
 
             if (reader.NodeType == XmlNodeType.EndElement) reader.ReadEndElement();
 
-            var rs = new Dictionary<String, ConfigItem>();
+            var rs = new Dictionary<String, ConfigSection>();
             Map(dic, rs, null);
-
-            return rs;
         }
 
         private void ReadNode(XmlReader reader, IDictionary<String, Object> dic)
@@ -65,10 +63,10 @@ namespace NewLife.Configuration
             }
         }
 
-        /// <summary>把字典写入配置文件</summary>
-        /// <param name="fileName"></param>
-        /// <param name="source"></param>
-        protected override void OnWrite(String fileName, IDictionary<String, ConfigItem> source)
+        /// <summary>写入配置文件</summary>
+        /// <param name="fileName">文件名</param>
+        /// <param name="section">配置段</param>
+        protected override void OnWrite(String fileName, IConfigSection section)
         {
             var set = new XmlWriterSettings
             {
@@ -77,7 +75,7 @@ namespace NewLife.Configuration
             };
 
             var rs = new Dictionary<String, Object>();
-            Map(source, rs);
+            //Map(source, rs);
 
             using var fs = File.OpenWrite(fileName);
             using var writer = XmlWriter.Create(fs, set);
