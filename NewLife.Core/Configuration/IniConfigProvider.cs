@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace NewLife.Configuration
@@ -17,7 +18,7 @@ namespace NewLife.Configuration
         {
             var lines = File.ReadAllLines(fileName);
 
-            var sec = "";
+            var currentSection = section;
             var remark = "";
             foreach (var item in lines)
             {
@@ -33,7 +34,9 @@ namespace NewLife.Configuration
 
                 if (str[0] == '[' && str[str.Length - 1] == ']')
                 {
-                    sec = str.Trim('[', ']');
+                    var secName = str.Trim('[', ']');
+                    currentSection = section.Childs?.FirstOrDefault(e => e.Key == secName);
+                    if (currentSection == null) currentSection = section.AddChild(secName);
                 }
                 else
                 {
@@ -41,16 +44,11 @@ namespace NewLife.Configuration
                     if (p > 0)
                     {
                         var name = str.Substring(0, p).Trim();
-                        if (!sec.IsNullOrEmpty()) name = $"{sec}:{name}";
 
                         // 构建配置值和注释
-                        var cfg = new ConfigSection
-                        {
-                            Key = name,
-                            Value = str.Substring(p + 1).Trim(),
-                            Description = remark
-                        };
-                        section.Childs.Add(cfg);
+                        var cfg = currentSection.AddChild(name);
+                        cfg.Value = str.Substring(p + 1).Trim();
+                        cfg.Description = remark;
                     }
                 }
 

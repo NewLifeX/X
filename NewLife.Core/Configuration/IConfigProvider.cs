@@ -48,32 +48,47 @@ namespace NewLife.Configuration
         void Bind<T>(T model, Boolean autoReload = true, String nameSpace = null);
     }
 
-    ///// <summary>配置助手</summary>
-    //public static class ConfigHelper
-    //{
-    //    /// <summary>加载配置到模型</summary>
-    //    /// <typeparam name="T">模型</typeparam>
-    //    /// <param name="provider"></param>
-    //    /// <returns></returns>
-    //    public static T Load<T>(this IConfigProvider provider) where T : new()
-    //    {
-    //        if (provider is FileConfigProvider fcp && fcp.ModelType == null) fcp.ModelType = typeof(T);
+    /// <summary>配置助手</summary>
+    public static class ConfigHelper
+    {
+        ///// <summary>加载配置到模型</summary>
+        ///// <typeparam name="T">模型</typeparam>
+        ///// <param name="provider"></param>
+        ///// <returns></returns>
+        //public static T Load<T>(this IConfigProvider provider) where T : new()
+        //{
+        //    if (provider is FileConfigProvider fcp && fcp.ModelType == null) fcp.ModelType = typeof(T);
 
-    //        var model = new T();
-    //        provider.Bind(model, true);
+        //    var model = new T();
+        //    provider.Bind(model, true);
 
-    //        return model;
-    //    }
+        //    return model;
+        //}
 
-    //    /// <summary>保存模型实例</summary>
-    //    /// <typeparam name="T">模型</typeparam>
-    //    /// <param name="provider"></param>
-    //    /// <param name="model">模型实例</param>
-    //    public static void Save<T>(this IConfigProvider provider, T model)
-    //    {
-    //        provider.Save();
-    //    }
-    //}
+        ///// <summary>保存模型实例</summary>
+        ///// <typeparam name="T">模型</typeparam>
+        ///// <param name="provider"></param>
+        ///// <param name="model">模型实例</param>
+        //public static void Save<T>(this IConfigProvider provider, T model)
+        //{
+        //    provider.Save();
+        //}
+
+        /// <summary>添加子节点</summary>
+        /// <param name="section"></param>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public static IConfigSection AddChild(this IConfigSection section, String key)
+        {
+            if (section == null) return null;
+
+            var cfg = new ConfigSection { Key = key };
+            if (section.Childs == null) section.Childs = new List<IConfigSection>();
+            section.Childs.Add(cfg);
+
+            return cfg;
+        }
+    }
 
     /// <summary>配置提供者基类</summary>
     /// <remarks>
@@ -109,25 +124,23 @@ namespace NewLife.Configuration
             // 分层
             var ss = key.Split(':');
 
-            var config = _Root;
+            var section = _Root;
 
             // 逐级下钻
             for (var i = 0; i < ss.Length; i++)
             {
-                var cfg = config.Childs?.FirstOrDefault(e => e.Key == ss[i]);
+                var cfg = section.Childs?.FirstOrDefault(e => e.Key == ss[i]);
                 if (cfg == null)
                 {
                     if (!createOnMiss) return null;
 
-                    cfg = new ConfigSection { Key = ss[i] };
-                    if (config.Childs == null) config.Childs = new List<IConfigSection>();
-                    config.Childs.Add(cfg);
+                    cfg = section.AddChild(ss[i]);
                 }
 
-                config = cfg;
+                section = cfg;
             }
 
-            return config;
+            return section;
         }
         #endregion
 
@@ -178,7 +191,7 @@ namespace NewLife.Configuration
                 if (pi.Name.EqualIgnoreCase("ConfigFile", "IsNew")) continue;
 
                 var name = pi.Name;
-                var cfg = source.Childs.FirstOrDefault(e => e.Key == name);
+                var cfg = source.Childs?.FirstOrDefault(e => e.Key == name);
                 if (cfg == null) continue;
 
                 // 分别处理基本类型和复杂类型
@@ -224,12 +237,12 @@ namespace NewLife.Configuration
         }
 
         /// <summary>从公有实例属性映射到字典</summary>
-        /// <param name="source"></param>
+        /// <param name="section"></param>
         /// <param name="model"></param>
         /// <param name="nameSpace"></param>
-        protected virtual void MapFrom(IConfigSection source, Object model)
+        protected virtual void MapFrom(IConfigSection section, Object model)
         {
-            if (source == null) return;
+            if (section == null) return;
 
             // 反射公有实例属性
             foreach (var pi in model.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
@@ -240,12 +253,8 @@ namespace NewLife.Configuration
 
                 // 名称前面加上命名空间
                 var name = pi.Name;
-                var cfg = source.Childs.FirstOrDefault(e => e.Key == name);
-                if (cfg == null)
-                {
-                    cfg = new ConfigSection { Key = name };
-                    source.Childs.Add(cfg);
-                }
+                var cfg = section.Childs?.FirstOrDefault(e => e.Key == name);
+                if (cfg == null) cfg = section.AddChild(name);
 
                 // 反射获取属性值
                 var val = pi.GetValue(model, null);

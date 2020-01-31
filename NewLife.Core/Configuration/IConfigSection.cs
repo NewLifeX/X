@@ -35,5 +35,17 @@ namespace NewLife.Configuration
         /// <summary>子级</summary>
         public IList<IConfigSection> Childs { get; set; }
         #endregion
+
+        #region 方法
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override String ToString()
+        {
+            if (Childs != null && Childs.Count > 0)
+                return $"{Key}[{Childs.Count}]";
+            else
+                return $"{Key}={Value}";
+        }
+        #endregion
     }
 }
