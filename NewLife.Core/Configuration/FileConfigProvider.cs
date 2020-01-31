@@ -26,27 +26,30 @@ namespace NewLife.Configuration
             var fileName = FileName;
 
             // 从模型类头部特性获取文件名路径，Xml/Json 是为了兼容旧版本
-            if (fileName.IsNullOrEmpty())
+            if (modelType != null)
             {
-                var atts = modelType.GetCustomAttributes(typeof(ConfigFileAttribute), false);
-                if (atts != null && atts.Length > 0 && atts[0] is ConfigFileAttribute cf) fileName = cf.FileName;
-            }
-            if (fileName.IsNullOrEmpty())
-            {
-                var atts = modelType.GetCustomAttributes(typeof(XmlConfigFileAttribute), false);
-                if (atts != null && atts.Length > 0 && atts[0] is XmlConfigFileAttribute cf) fileName = cf.FileName;
-            }
-            if (fileName.IsNullOrEmpty())
-            {
-                var atts = modelType.GetCustomAttributes(typeof(JsonConfigFileAttribute), false);
-                if (atts != null && atts.Length > 0 && atts[0] is JsonConfigFileAttribute cf) fileName = cf.FileName;
+                if (fileName.IsNullOrEmpty())
+                {
+                    var atts = modelType.GetCustomAttributes(typeof(ConfigFileAttribute), false);
+                    if (atts != null && atts.Length > 0 && atts[0] is ConfigFileAttribute cf) fileName = cf.FileName;
+                }
+                if (fileName.IsNullOrEmpty())
+                {
+                    var atts = modelType.GetCustomAttributes(typeof(XmlConfigFileAttribute), false);
+                    if (atts != null && atts.Length > 0 && atts[0] is XmlConfigFileAttribute cf) fileName = cf.FileName;
+                }
+                if (fileName.IsNullOrEmpty())
+                {
+                    var atts = modelType.GetCustomAttributes(typeof(JsonConfigFileAttribute), false);
+                    if (atts != null && atts.Length > 0 && atts[0] is JsonConfigFileAttribute cf) fileName = cf.FileName;
+                }
             }
 
             return fileName;
         }
 
         /// <summary>加载配置</summary>
-        public override void Load()
+        public override void LoadAll()
         {
             // 准备文件名
             var fileName = GetFileName(ModelType);
@@ -58,6 +61,7 @@ namespace NewLife.Configuration
 
         /// <summary>加载配置到模型</summary>
         /// <typeparam name="T">模型</typeparam>
+        /// <param name="nameSpace">命名空间。配置树位置，配置中心等多对象混合使用时</param>
         /// <returns></returns>
         public override T Load<T>(String nameSpace = null)
         {
@@ -71,46 +75,22 @@ namespace NewLife.Configuration
         /// <param name="section">配置段</param>
         protected abstract void OnRead(String fileName, IConfigSection section);
 
-        /// <summary>保存模型实例</summary>
-        /// <typeparam name="T">模型</typeparam>
-        /// <param name="model">模型实例</param>
-        /// <param name="nameSpace">命名空间。配置树位置</param>
-        public override void Save<T>(T model, String nameSpace = null)
+        /// <summary>保存配置树到数据源</summary>
+        public override void SaveAll()
         {
-            // 如果有命名空间则使用指定层级数据源
-            var section = nameSpace.IsNullOrEmpty() ? Root : Find(nameSpace, true);
-
-            //// 模型转字典，合并到Items中
-            //var dic = new Dictionary<String, ConfigSection>(StringComparer.OrdinalIgnoreCase);
-            //MapFrom(dic, model, nameSpace);
-            //Merge(dic, Items, null);
-
             // 准备文件名
-            var fileName = GetFileName(typeof(T));
+            var fileName = GetFileName(ModelType);
             fileName = fileName.GetBasePath();
             fileName.EnsureDirectory(true);
 
             // 写入文件
-            if (section != null && section.Childs != null) OnWrite(fileName, section);
+            OnWrite(fileName, Root);
         }
 
         /// <summary>写入配置文件</summary>
         /// <param name="fileName">文件名</param>
         /// <param name="section">配置段</param>
         protected abstract void OnWrite(String fileName, IConfigSection section);
-
-        /// <summary>绑定模型，使能热更新，配置存储数据改变时同步修改模型属性</summary>
-        /// <typeparam name="T">模型</typeparam>
-        /// <param name="model">模型实例</param>
-        /// <param name="nameSpace">命名空间。映射时去掉</param>
-        public override void Bind<T>(T model, String nameSpace = null)
-        {
-            // 如果有命名空间则使用指定层级数据源
-            var source = nameSpace.IsNullOrEmpty() ? Root : Find(nameSpace, true);
-
-            // 绑定到模型实例
-            MapTo(source, model);
-        }
 
         #region 辅助
         /// <summary>多层字典映射为一层</summary>

@@ -23,26 +23,57 @@ namespace NewLife.Configuration
         String this[String key] { get; set; }
 
         /// <summary>从数据源加载数据到配置树</summary>
-        void Load();
+        void LoadAll();
+
+        /// <summary>保存配置树到数据源</summary>
+        void SaveAll();
 
         /// <summary>加载配置到模型</summary>
         /// <typeparam name="T">模型</typeparam>
-        /// <param name="nameSpace">命名空间。配置树位置</param>
+        /// <param name="nameSpace">命名空间。配置树位置，配置中心等多对象混合使用时</param>
         /// <returns></returns>
         T Load<T>(String nameSpace = null) where T : new();
 
         /// <summary>保存模型实例</summary>
         /// <typeparam name="T">模型</typeparam>
         /// <param name="model">模型实例</param>
-        /// <param name="nameSpace">命名空间。配置树位置</param>
+        /// <param name="nameSpace">命名空间。配置树位置，配置中心等多对象混合使用时</param>
         void Save<T>(T model, String nameSpace = null);
 
         /// <summary>绑定模型，使能热更新，配置存储数据改变时同步修改模型属性</summary>
         /// <typeparam name="T">模型</typeparam>
         /// <param name="model">模型实例</param>
-        /// <param name="nameSpace">命名空间。映射时去掉</param>
-        void Bind<T>(T model, String nameSpace = null);
+        /// <param name="autoReload">是否自动更新。默认true</param>
+        /// <param name="nameSpace">命名空间。配置树位置，配置中心等多对象混合使用时</param>
+        void Bind<T>(T model, Boolean autoReload = true, String nameSpace = null);
     }
+
+    ///// <summary>配置助手</summary>
+    //public static class ConfigHelper
+    //{
+    //    /// <summary>加载配置到模型</summary>
+    //    /// <typeparam name="T">模型</typeparam>
+    //    /// <param name="provider"></param>
+    //    /// <returns></returns>
+    //    public static T Load<T>(this IConfigProvider provider) where T : new()
+    //    {
+    //        if (provider is FileConfigProvider fcp && fcp.ModelType == null) fcp.ModelType = typeof(T);
+
+    //        var model = new T();
+    //        provider.Bind(model, true);
+
+    //        return model;
+    //    }
+
+    //    /// <summary>保存模型实例</summary>
+    //    /// <typeparam name="T">模型</typeparam>
+    //    /// <param name="provider"></param>
+    //    /// <param name="model">模型实例</param>
+    //    public static void Save<T>(this IConfigProvider provider, T model)
+    //    {
+    //        provider.Save();
+    //    }
+    //}
 
     /// <summary>配置提供者基类</summary>
     /// <remarks>
@@ -102,20 +133,21 @@ namespace NewLife.Configuration
 
         #region 加载/保存
         /// <summary>加载配置</summary>
-        public virtual void Load() { }
+        public virtual void LoadAll() { }
 
         private Boolean _Loaded;
         private void EnsureLoad()
         {
             if (_Loaded) return;
 
-            Load();
+            LoadAll();
 
             _Loaded = true;
         }
 
         /// <summary>加载配置到模型</summary>
         /// <typeparam name="T">模型</typeparam>
+        /// <param name="nameSpace">命名空间。配置树位置，配置中心等多对象混合使用时</param>
         /// <returns></returns>
         public virtual T Load<T>(String nameSpace = null) where T : new()
         {
@@ -175,6 +207,9 @@ namespace NewLife.Configuration
             }
         }
 
+        /// <summary>保存配置树到数据源</summary>
+        public virtual void SaveAll() { }
+
         /// <summary>保存模型实例</summary>
         /// <typeparam name="T">模型</typeparam>
         /// <param name="model">模型实例</param>
@@ -184,6 +219,8 @@ namespace NewLife.Configuration
             // 如果有命名空间则使用指定层级数据源
             var source = nameSpace.IsNullOrEmpty() ? _Root : Find(nameSpace);
             if (source != null) MapFrom(source, model);
+
+            SaveAll();
         }
 
         /// <summary>从公有实例属性映射到字典</summary>
@@ -234,32 +271,16 @@ namespace NewLife.Configuration
                 }
             }
         }
-
-        ///// <summary>合并源字典到目标字典</summary>
-        ///// <param name="source">源字典</param>
-        ///// <param name="dest">目标字典</param>
-        ///// <param name="nameSpace">命名空间</param>
-        //protected virtual void Merge(IDictionary<String, ConfigItem> source, IDictionary<String, ConfigItem> dest, String nameSpace)
-        //{
-        //    foreach (var item in source)
-        //    {
-        //        var name = item.Key;
-        //        if (!nameSpace.IsNullOrEmpty()) name = $"{nameSpace}:{item.Key}";
-
-        //        dest[name] = item.Value;
-        //    }
-        //}
         #endregion
 
         #region 绑定
         /// <summary>绑定模型，使能热更新，配置存储数据改变时同步修改模型属性</summary>
         /// <typeparam name="T">模型</typeparam>
         /// <param name="model">模型实例</param>
-        /// <param name="nameSpace">命名空间。映射时去掉</param>
-        public virtual void Bind<T>(T model, String nameSpace = null)
+        /// <param name="autoReload">是否自动更新。默认true</param>
+        /// <param name="nameSpace">命名空间。配置树位置，配置中心等多对象混合使用时</param>
+        public virtual void Bind<T>(T model, Boolean autoReload = true, String nameSpace = null)
         {
-            EnsureLoad();
-
             // 如果有命名空间则使用指定层级数据源
             var source = nameSpace.IsNullOrEmpty() ? _Root : Find(nameSpace);
             if (source != null) MapTo(source, model);

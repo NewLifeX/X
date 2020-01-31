@@ -101,9 +101,10 @@ InstallTime = 2019-12-30 18:26:18
             var prv = new InIConfigProvider { FileName = "Config/core2.ini" };
             var file = prv.FileName.GetFullPath();
             File.WriteAllText(file, json);
+            prv.LoadAll();
 
             var set = new ConfigModel();
-            prv.Bind(set, null);
+            prv.Bind(set);
 
             Assert.NotNull(set);
             Assert.True(set.Debug);

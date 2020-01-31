@@ -12,6 +12,7 @@ namespace XUnitTest.Configuration
         [Fact]
         public void Test1()
         {
+            var ini = new InIConfigProvider { FileName = "Config/core0.ini" };
             var xml = new XmlConfigProvider { FileName = "Config/core0.xml" };
             var json = new JsonConfigProvider { FileName = "Config/core0.json" };
             var http = new HttpConfigProvider
@@ -31,6 +32,7 @@ namespace XUnitTest.Configuration
             Assert.True(cfg.Debug);
             Assert.NotEmpty(cfg.LogFileFormat);
 
+            ini.Save(cfg);
             xml.Save(cfg);
             json.Save(cfg);
         }
