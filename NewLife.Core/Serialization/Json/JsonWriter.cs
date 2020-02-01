@@ -366,9 +366,9 @@ namespace NewLife.Serialization
                     // 注释
                     if (!IgnoreComment && Indented && dic.TryGetValue("#" + name, out var comment) && comment != null)
                     {
-                        //WritePair("#" + name, comment);
-                        //_Builder.Append(',');
-                        _Builder.AppendFormat("// {0}", comment);
+                        WritePair("#" + name, comment);
+                        _Builder.Append(',');
+                        //_Builder.AppendFormat("// {0}", comment);
                         WriteIndent();
                     }
 
