@@ -34,7 +34,7 @@ namespace XUnitTest.Configuration
 
             _provider.Save(set);
 
-            var prv = _provider as FileConfigProvider;
+            var prv = _provider;
             Assert.NotNull(prv);
             Assert.Equal(set.Debug + "", prv["Debug"]);
             Assert.Equal(set.LogLevel + "", prv["LogLevel"]);
@@ -44,7 +44,7 @@ namespace XUnitTest.Configuration
             Assert.Equal(set.TempPath, prv["TempPath"]);
             Assert.Equal(set.PluginPath, prv["PluginPath"]);
             Assert.Equal(set.PluginServer, prv["PluginServer"]);
-       
+
             Assert.Equal("全局调试。XTrace.Debug", prv.GetSection("Debug").Comment);
             Assert.Equal("系统配置", prv.GetSection("Sys").Comment);
             Assert.Equal("用于标识系统的英文名", prv.GetSection("Sys:Name").Comment);
@@ -54,7 +54,7 @@ namespace XUnitTest.Configuration
             Assert.Equal(sys.DisplayName, prv["Sys:DisplayName"]);
             Assert.Equal(sys.Company, prv["Sys:Company"]);
 
-            var prv2 = new XmlConfigProvider { FileName = prv.FileName };
+            var prv2 = new XmlConfigProvider { FileName = (_provider as FileConfigProvider).FileName };
             var set2 = prv2.Load<ConfigModel>();
 
             Assert.NotNull(set2);

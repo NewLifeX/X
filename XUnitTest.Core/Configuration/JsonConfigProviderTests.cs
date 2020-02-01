@@ -34,7 +34,7 @@ namespace XUnitTest.Configuration
 
             _provider.Save(set);
 
-            var prv = _provider as FileConfigProvider;
+            var prv = _provider;
             Assert.NotNull(prv);
             Assert.Equal(set.Debug + "", prv["Debug"]);
             Assert.Equal(set.LogLevel + "", prv["LogLevel"]);
@@ -54,7 +54,7 @@ namespace XUnitTest.Configuration
             Assert.Equal(sys.DisplayName, prv["Sys:DisplayName"]);
             Assert.Equal(sys.Company, prv["Sys:Company"]);
 
-            var prv2 = new JsonConfigProvider { FileName = prv.FileName };
+            var prv2 = new JsonConfigProvider { FileName = (_provider as FileConfigProvider).FileName };
             var set2 = prv2.Load<ConfigModel>();
 
             Assert.NotNull(set2);
