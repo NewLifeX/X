@@ -13,7 +13,7 @@ namespace NewLife.Configuration
         String Value { get; set; }
 
         /// <summary>注释</summary>
-        String Description { get; set; }
+        String Comment { get; set; }
 
         /// <summary>子级</summary>
         IList<IConfigSection> Childs { get; set; }
@@ -30,7 +30,7 @@ namespace NewLife.Configuration
         public String Value { get; set; }
 
         /// <summary>注释</summary>
-        public String Description { get; set; }
+        public String Comment { get; set; }
 
         /// <summary>子级</summary>
         public IList<IConfigSection> Childs { get; set; }

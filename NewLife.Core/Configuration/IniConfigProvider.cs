@@ -34,9 +34,7 @@ namespace NewLife.Configuration
 
                 if (str[0] == '[' && str[str.Length - 1] == ']')
                 {
-                    var secName = str.Trim('[', ']');
-                    currentSection = section.Childs?.FirstOrDefault(e => e.Key == secName);
-                    if (currentSection == null) currentSection = section.AddChild(secName);
+                    currentSection = section.GetOrAddChild(str.Trim('[', ']'));
                 }
                 else
                 {
@@ -48,7 +46,7 @@ namespace NewLife.Configuration
                         // 构建配置值和注释
                         var cfg = currentSection.AddChild(name);
                         cfg.Value = str.Substring(p + 1).Trim();
-                        cfg.Description = remark;
+                        cfg.Comment = remark;
                     }
                 }
 
@@ -76,7 +74,7 @@ namespace NewLife.Configuration
                     foreach (var elm in item.Childs)
                     {
                         // 注释
-                        if (!elm.Description.IsNullOrEmpty()) sb.AppendLine("; " + elm.Description);
+                        if (!elm.Comment.IsNullOrEmpty()) sb.AppendLine("; " + elm.Comment);
 
                         sb.AppendLine($"{elm.Key} = {elm.Value}");
                     }
@@ -84,7 +82,7 @@ namespace NewLife.Configuration
                 else
                 {
                     // 注释
-                    if (!item.Description.IsNullOrEmpty()) sb.AppendLine("; " + item.Description);
+                    if (!item.Comment.IsNullOrEmpty()) sb.AppendLine("; " + item.Comment);
 
                     sb.AppendLine($"{item.Key} = {item.Value}");
                 }

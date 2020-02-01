@@ -20,46 +20,48 @@ namespace NewLife.Configuration
             using var fs = File.OpenRead(fileName);
             using var reader = XmlReader.Create(fs);
 
-            var dic = new Dictionary<String, Object>();
+            //var dic = new Dictionary<String, Object>();
 
             // 移动到第一个元素
             while (reader.NodeType != XmlNodeType.Element) reader.Read();
 
             reader.ReadStartElement();
-            while (reader.NodeType == XmlNodeType.Comment || reader.NodeType == XmlNodeType.Whitespace) reader.Skip();
+            while (reader.NodeType == XmlNodeType.Whitespace) reader.Skip();
 
-            ReadNode(reader, dic);
+            ReadNode(reader, section);
 
             if (reader.NodeType == XmlNodeType.EndElement) reader.ReadEndElement();
 
-            var rs = new Dictionary<String, ConfigSection>();
-            Map(dic, rs, null);
+            //var rs = new Dictionary<String, ConfigSection>();
+            //Map(dic, rs, null);
         }
 
-        private void ReadNode(XmlReader reader, IDictionary<String, Object> dic)
+        private void ReadNode(XmlReader reader, IConfigSection section)
         {
             while (true)
             {
+                var remark = "";
+                if (reader.NodeType == XmlNodeType.Comment) remark = reader.Value;
+                while (reader.NodeType == XmlNodeType.Comment || reader.NodeType == XmlNodeType.Whitespace) reader.Skip();
                 if (reader.NodeType != XmlNodeType.Element) break;
 
                 var name = reader.Name;
+                var cfg = section.GetOrAddChild(name);
+                // 前一行是注释
+                if (!remark.IsNullOrEmpty()) cfg.Comment = remark;
 
                 reader.ReadStartElement();
-                while (reader.NodeType == XmlNodeType.Comment || reader.NodeType == XmlNodeType.Whitespace) reader.Skip();
+                while (reader.NodeType == XmlNodeType.Whitespace) reader.Skip();
 
-                if (reader.NodeType != XmlNodeType.Element)
-                    dic[name] = reader.ReadContentAsString();
-                else
-                {
-                    var dic2 = new Dictionary<String, Object>();
-                    ReadNode(reader, dic2);
-
-                    dic[name] = dic2;
-                }
+                // 遇到下一层节点
+                if (reader.NodeType == XmlNodeType.Element || reader.NodeType == XmlNodeType.Comment)
+                    ReadNode(reader, cfg);
+                else if (reader.NodeType == XmlNodeType.Text)
+                    cfg.Value = reader.ReadContentAsString();
 
                 if (reader.NodeType == XmlNodeType.Attribute) reader.Read();
                 if (reader.NodeType == XmlNodeType.EndElement) reader.ReadEndElement();
-                while (reader.NodeType == XmlNodeType.Comment || reader.NodeType == XmlNodeType.Whitespace) reader.Skip();
+                while (reader.NodeType == XmlNodeType.Whitespace) reader.Skip();
             }
         }
 
@@ -74,7 +76,7 @@ namespace NewLife.Configuration
                 Indent = true
             };
 
-            var rs = new Dictionary<String, Object>();
+            //var rs = new Dictionary<String, Object>();
             //Map(source, rs);
 
             using var fs = File.OpenWrite(fileName);
@@ -82,7 +84,7 @@ namespace NewLife.Configuration
 
             writer.WriteStartDocument();
             var name = Path.GetFileNameWithoutExtension(fileName);
-            WriteNode(writer, name, rs);
+            WriteNode(writer, name, section);
             writer.WriteEndDocument();
 
             // 截断文件
@@ -90,14 +92,17 @@ namespace NewLife.Configuration
             fs.SetLength(fs.Position);
         }
 
-        private void WriteNode(XmlWriter writer, String name, IDictionary<String, Object> source)
+        private void WriteNode(XmlWriter writer, String name, IConfigSection section)
         {
             writer.WriteStartElement(name);
 
-            foreach (var item in source)
+            foreach (var item in section.Childs)
             {
-                if (item.Value is IDictionary<String, Object> dic)
-                    WriteNode(writer, item.Key, dic);
+                // 写注释
+                if (!item.Comment.IsNullOrEmpty()) writer.WriteComment(item.Comment);
+
+                if (item.Childs != null)
+                    WriteNode(writer, item.Key, item);
                 else
                 {
                     writer.WriteStartElement(item.Key);

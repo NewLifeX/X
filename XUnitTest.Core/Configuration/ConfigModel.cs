@@ -44,6 +44,7 @@ namespace NewLife
         [Description("插件服务器。将从该网页上根据关键字分析链接并下载插件")]
         public String PluginServer { get; set; } = "http://x.newlifex.com/";
 
+        [Description("系统配置")]
         public SysConfig Sys { get; set; }
         #endregion
     }

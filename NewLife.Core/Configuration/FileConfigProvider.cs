@@ -53,7 +53,11 @@ namespace NewLife.Configuration
         {
             // 准备文件名
             var fileName = GetFileName(ModelType);
+            if (fileName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(FileName));
+
             fileName = fileName.GetBasePath();
+
+            if (!File.Exists(fileName)) throw new FileNotFoundException("找不到文件", fileName);
 
             // 读取文件
             OnRead(fileName, Root);
@@ -80,6 +84,8 @@ namespace NewLife.Configuration
         {
             // 准备文件名
             var fileName = GetFileName(ModelType);
+            if (fileName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(FileName));
+
             fileName = fileName.GetBasePath();
             fileName.EnsureDirectory(true);
 
