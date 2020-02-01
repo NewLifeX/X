@@ -22,10 +22,13 @@ namespace NewLife.Serialization
         public Boolean CamelCase { get; set; }
 
         /// <summary>忽略空值。默认false</summary>
-        public Boolean IgnoreNullValues { get; set; } 
+        public Boolean IgnoreNullValues { get; set; }
 
         /// <summary>忽略只读属性。默认false</summary>
         public Boolean IgnoreReadOnlyProperties { get; set; }
+
+        /// <summary>忽略注释。默认true</summary>
+        public Boolean IgnoreComment { get; set; } = true;
 
         /// <summary>枚举使用字符串。默认false使用数字</summary>
         public Boolean EnumString { get; set; }
@@ -292,12 +295,23 @@ namespace NewLife.Serialization
             var first = true;
             foreach (var item in dic)
             {
+                // 跳过注释
+                if (item.Key[0] == '#') continue;
+
                 if (!IgnoreNullValues || !IsNull(item.Value))
                 {
                     if (!first) _Builder.Append(',');
                     first = false;
 
                     var name = FormatName(item.Key);
+
+                    // 注释
+                    if (!IgnoreComment && dic.TryGetValue("#" + name, out var comment) && comment != null)
+                    {
+                        WritePair("#" + name, comment);
+                        _Builder.Append(',');
+                    }
+
                     WritePair(name, item.Value);
                 }
             }

@@ -20,8 +20,7 @@ namespace NewLife.Configuration
             var json = new JsonParser(txt);
             var src = json.Decode() as IDictionary<String, Object>;
 
-            var rs = new Dictionary<String, ConfigSection>();
-            Map(src, rs, null);
+            Map(src, section);
         }
 
         /// <summary>写入配置文件</summary>
@@ -30,9 +29,19 @@ namespace NewLife.Configuration
         protected override void OnWrite(String fileName, IConfigSection section)
         {
             var rs = new Dictionary<String, Object>();
-            //Map(source, rs);
+            Map(section, rs);
 
-            var json = rs.ToJson(true, true, false);
+            var jw = new JsonWriter
+            {
+                IgnoreNullValues = false,
+                IgnoreComment = false,
+            };
+
+            jw.Write(rs);
+
+            // 输出，并格式化
+            var json = jw.GetString();
+            json = JsonHelper.Format(json);
 
             File.WriteAllText(fileName, json);
         }

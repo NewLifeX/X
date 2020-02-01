@@ -101,62 +101,44 @@ namespace NewLife.Configuration
         #region 辅助
         /// <summary>多层字典映射为一层</summary>
         /// <param name="src"></param>
-        /// <param name="dst"></param>
-        /// <param name="nameSpace"></param>
-        protected virtual void Map(IDictionary<String, Object> src, IDictionary<String, ConfigSection> dst, String nameSpace)
+        /// <param name="section"></param>
+        protected virtual void Map(IDictionary<String, Object> src, IConfigSection section)
         {
             foreach (var item in src)
             {
                 var name = item.Key;
-                if (!nameSpace.IsNullOrEmpty()) name = $"{nameSpace}:{item.Key}";
+                if (name[0] == '#') continue;
+
+                var cfg = section.GetOrAddChild(name);
+                var cname = "#" + name;
+                if (src.TryGetValue(cname, out var comment) && comment != null) cfg.Comment = comment + "";
 
                 // 仅支持内层字典，不支持内层数组
                 if (item.Value is IDictionary<String, Object> dic)
-                    Map(dic, dst, name);
+                    Map(dic, cfg);
                 else
-                    dst[name] = new ConfigSection { Key = name, Value = "{0}".F(item.Value) };
+                    cfg.Value = "{0}".F(item.Value);
             }
         }
 
         /// <summary>一层字典映射为多层</summary>
-        /// <param name="src"></param>
+        /// <param name="section"></param>
         /// <param name="dst"></param>
-        protected virtual void Map(IDictionary<String, ConfigSection> src, IDictionary<String, Object> dst)
+        protected virtual void Map(IConfigSection section, IDictionary<String, Object> dst)
         {
-            // 按照配置段分组，相同组写在一起
-            var dic = new Dictionary<String, Dictionary<String, ConfigSection>>();
-
-            foreach (var item in src)
+            foreach (var item in section.Childs)
             {
-                var section = "";
+                // 注释
+                if (!item.Comment.IsNullOrEmpty()) dst["#" + item.Key] = item.Comment;
 
-                var name = item.Key;
-                var p = item.Key.IndexOf(':');
-                if (p > 0)
+                if (item.Childs == null)
                 {
-                    section = item.Key.Substring(0, p);
-                    name = item.Key.Substring(p + 1);
-                }
-
-                if (!dic.TryGetValue(section, out var dic2)) dic[section] = dic2 = new Dictionary<String, ConfigSection>();
-
-                dic2[name] = item.Value;
-            }
-
-            // 转多层
-            foreach (var item in dic)
-            {
-                if (item.Key.IsNullOrEmpty())
-                {
-                    foreach (var elm in item.Value)
-                    {
-                        dst[elm.Key] = elm.Value;
-                    }
+                    dst[item.Key] = item.Value;
                 }
                 else
                 {
                     var rs = new Dictionary<String, Object>();
-                    Map(item.Value, rs);
+                    Map(item, rs);
 
                     dst[item.Key] = rs;
                 }
