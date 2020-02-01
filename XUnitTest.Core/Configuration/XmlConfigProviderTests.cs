@@ -45,8 +45,8 @@ namespace XUnitTest.Configuration
             Assert.Equal(set.PluginPath, prv["PluginPath"]);
             Assert.Equal(set.PluginServer, prv["PluginServer"]);
        
-            Assert.Equal("全局调试。XTrace.Debug", prv.Find("Debug").Description);
-            Assert.Equal("用于标识系统的英文名", prv.Find("Sys:Name").Description);
+            Assert.Equal("全局调试。XTrace.Debug", prv.GetSection("Debug").Description);
+            Assert.Equal("用于标识系统的英文名", prv.GetSection("Sys:Name").Description);
 
             var sys = set.Sys;
             Assert.Equal(sys.Name, prv["Sys:Name"]);
@@ -66,8 +66,8 @@ namespace XUnitTest.Configuration
             Assert.Equal(set.PluginPath, set2.PluginPath);
             Assert.Equal(set.PluginServer, set2.PluginServer);
 
-            Assert.Equal("全局调试。XTrace.Debug", prv2.Find("Debug").Description);
-            Assert.Equal("用于标识系统的英文名", prv2.Find("Sys:Name").Description);
+            Assert.Equal("全局调试。XTrace.Debug", prv2.GetSection("Debug").Description);
+            Assert.Equal("用于标识系统的英文名", prv2.GetSection("Sys:Name").Description);
 
             var sys2 = set2.Sys;
             Assert.NotNull(sys2);

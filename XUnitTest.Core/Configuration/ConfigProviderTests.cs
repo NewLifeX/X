@@ -47,13 +47,13 @@ namespace XUnitTest.Configuration
             Assert.Null(ini["aaa:bbb:ccc"]);
 
             ini["xxx"] = "xyz";
-            var ci = ini.Find("xxx");
+            var ci = ini.GetSection("xxx");
             Assert.NotNull(ci);
             Assert.Equal("xxx", ci.Key);
             Assert.Equal("xyz", ci.Value);
 
             ini["aaa:bbb:ccc"] = "abc";
-            var ci2 = ini.Find("aaa");
+            var ci2 = ini.GetSection("aaa");
             Assert.NotNull(ci2);
             Assert.Equal("aaa", ci2.Key);
             Assert.Null(ci2.Value);
@@ -73,7 +73,7 @@ namespace XUnitTest.Configuration
             Assert.Equal("abc", ci2.Value);
             Assert.Null(ci2.Childs);
 
-            var ci3 = ini.Find("aaa:bbb:ccc");
+            var ci3 = ini.GetSection("aaa:bbb:ccc");
             Assert.NotNull(ci3);
             Assert.Equal("ccc", ci3.Key);
             Assert.Equal("abc", ci3.Value);

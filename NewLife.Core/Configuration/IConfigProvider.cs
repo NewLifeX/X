@@ -22,6 +22,11 @@ namespace NewLife.Configuration
         /// <returns></returns>
         String this[String key] { get; set; }
 
+        /// <summary>查找配置项。可得到子级和配置</summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        IConfigSection GetSection(String key);
+
         /// <summary>从数据源加载数据到配置树</summary>
         void LoadAll();
 
@@ -117,10 +122,17 @@ namespace NewLife.Configuration
 
         /// <summary>查找配置项。可得到子级和配置</summary>
         /// <param name="key"></param>
+        /// <returns></returns>
+        public virtual IConfigSection GetSection(String key) => Find(key, false);
+
+        /// <summary>查找配置项。可得到子级和配置</summary>
+        /// <param name="key"></param>
         /// <param name="createOnMiss"></param>
         /// <returns></returns>
-        public virtual IConfigSection Find(String key, Boolean createOnMiss = false)
+        protected virtual IConfigSection Find(String key, Boolean createOnMiss = false)
         {
+            if (key.IsNullOrEmpty()) return _Root;
+
             // 分层
             var ss = key.Split(':');
 
@@ -167,7 +179,7 @@ namespace NewLife.Configuration
             EnsureLoad();
 
             // 如果有命名空间则使用指定层级数据源
-            var source = nameSpace.IsNullOrEmpty() ? _Root : Find(nameSpace);
+            var source = GetSection(nameSpace);
             if (source == null) return default;
 
             var model = new T();
@@ -230,7 +242,7 @@ namespace NewLife.Configuration
         public virtual void Save<T>(T model, String nameSpace = null)
         {
             // 如果有命名空间则使用指定层级数据源
-            var source = nameSpace.IsNullOrEmpty() ? _Root : Find(nameSpace);
+            var source = GetSection(nameSpace);
             if (source != null) MapFrom(source, model);
 
             SaveAll();
@@ -291,7 +303,7 @@ namespace NewLife.Configuration
         public virtual void Bind<T>(T model, Boolean autoReload = true, String nameSpace = null)
         {
             // 如果有命名空间则使用指定层级数据源
-            var source = nameSpace.IsNullOrEmpty() ? _Root : Find(nameSpace);
+            var source = GetSection(nameSpace);
             if (source != null) MapTo(source, model);
         }
         #endregion
