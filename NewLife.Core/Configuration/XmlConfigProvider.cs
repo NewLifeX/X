@@ -12,6 +12,18 @@ namespace NewLife.Configuration
     /// </remarks>
     public class XmlConfigProvider : FileConfigProvider
     {
+        /// <summary>根元素名称</summary>
+        public String RootName { get; set; } = "Root";
+
+        /// <summary>设置模型类</summary>
+        /// <typeparam name="T"></typeparam>
+        public override void SetModel<T>()
+        {
+            base.SetModel<T>();
+
+            RootName = typeof(T).Name;
+        }
+
         /// <summary>读取配置文件</summary>
         /// <param name="fileName">文件名</param>
         /// <param name="section">配置段</param>
@@ -24,6 +36,8 @@ namespace NewLife.Configuration
 
             // 移动到第一个元素
             while (reader.NodeType != XmlNodeType.Element) reader.Read();
+
+            if (!reader.Name.IsNullOrEmpty()) RootName = reader.Name;
 
             reader.ReadStartElement();
             while (reader.NodeType == XmlNodeType.Whitespace) reader.Skip();
@@ -76,20 +90,41 @@ namespace NewLife.Configuration
                 Indent = true
             };
 
-            //var rs = new Dictionary<String, Object>();
-            //Map(source, rs);
-
             using var fs = File.OpenWrite(fileName);
             using var writer = XmlWriter.Create(fs, set);
 
             writer.WriteStartDocument();
-            var name = Path.GetFileNameWithoutExtension(fileName);
-            WriteNode(writer, name, section);
+            WriteNode(writer, RootName, section);
             writer.WriteEndDocument();
 
             // 截断文件
             writer.Flush();
             fs.SetLength(fs.Position);
+        }
+
+        /// <summary>获取字符串形式</summary>
+        /// <param name="section">配置段</param>
+        /// <returns></returns>
+        public override String GetString(IConfigSection section = null)
+        {
+            if (section == null) section = Root;
+
+            var set = new XmlWriterSettings
+            {
+                Encoding = Encoding.UTF8,
+                Indent = true
+            };
+
+            using var ms = new MemoryStream();
+            using var writer = XmlWriter.Create(ms, set);
+
+            writer.WriteStartDocument();
+            WriteNode(writer, RootName, section);
+            writer.WriteEndDocument();
+
+            ms.Position = 0;
+
+            return ms.ToStr();
         }
 
         private void WriteNode(XmlWriter writer, String name, IConfigSection section)

@@ -28,6 +28,17 @@ namespace NewLife.Configuration
         /// <param name="section">配置段</param>
         protected override void OnWrite(String fileName, IConfigSection section)
         {
+            var json = GetString(section);
+            File.WriteAllText(fileName, json);
+        }
+
+        /// <summary>获取字符串形式</summary>
+        /// <param name="section">配置段</param>
+        /// <returns></returns>
+        public override String GetString(IConfigSection section = null)
+        {
+            if (section == null) section = Root;
+
             var rs = new Dictionary<String, Object>();
             Map(section, rs);
 
@@ -44,7 +55,7 @@ namespace NewLife.Configuration
             var json = jw.GetString();
             //json = JsonHelper.Format(json);
 
-            File.WriteAllText(fileName, json);
+            return json;
         }
     }
 }

@@ -28,10 +28,10 @@ namespace NewLife.Configuration
         IConfigSection GetSection(String key);
 
         /// <summary>从数据源加载数据到配置树</summary>
-        void LoadAll();
+        Boolean LoadAll();
 
         /// <summary>保存配置树到数据源</summary>
-        void SaveAll();
+        Boolean SaveAll();
 
         /// <summary>加载配置到模型</summary>
         /// <typeparam name="T">模型</typeparam>
@@ -43,7 +43,7 @@ namespace NewLife.Configuration
         /// <typeparam name="T">模型</typeparam>
         /// <param name="model">模型实例</param>
         /// <param name="nameSpace">命名空间。配置树位置，配置中心等多对象混合使用时</param>
-        void Save<T>(T model, String nameSpace = null);
+        Boolean Save<T>(T model, String nameSpace = null);
 
         /// <summary>绑定模型，使能热更新，配置存储数据改变时同步修改模型属性</summary>
         /// <typeparam name="T">模型</typeparam>
@@ -152,7 +152,7 @@ namespace NewLife.Configuration
 
         #region 加载/保存
         /// <summary>从数据源加载数据到配置树</summary>
-        public virtual void LoadAll() { }
+        public virtual Boolean LoadAll() => true;
 
         private Boolean _Loaded;
         private void EnsureLoad()
@@ -227,19 +227,19 @@ namespace NewLife.Configuration
         }
 
         /// <summary>保存配置树到数据源</summary>
-        public virtual void SaveAll() { }
+        public virtual Boolean SaveAll() => true;
 
         /// <summary>保存模型实例</summary>
         /// <typeparam name="T">模型</typeparam>
         /// <param name="model">模型实例</param>
         /// <param name="nameSpace">命名空间。配置树位置</param>
-        public virtual void Save<T>(T model, String nameSpace = null)
+        public virtual Boolean Save<T>(T model, String nameSpace = null)
         {
             // 如果有命名空间则使用指定层级数据源
             var source = GetSection(nameSpace);
             if (source != null) MapFrom(source, model);
 
-            SaveAll();
+            return SaveAll();
         }
 
         /// <summary>从公有实例属性映射到配置树</summary>

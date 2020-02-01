@@ -61,6 +61,17 @@ namespace NewLife.Configuration
         /// <param name="section">配置段</param>
         protected override void OnWrite(String fileName, IConfigSection section)
         {
+            var ini = GetString(section);
+            File.WriteAllText(fileName, ini);
+        }
+
+        /// <summary>获取字符串形式</summary>
+        /// <param name="section">配置段</param>
+        /// <returns></returns>
+        public override String GetString(IConfigSection section = null)
+        {
+            if (section == null) section = Root;
+
             // 分组写入
             var sb = new StringBuilder();
             foreach (var item in section.Childs)
@@ -91,7 +102,7 @@ namespace NewLife.Configuration
                 }
             }
 
-            File.WriteAllText(fileName, sb.ToString());
+            return sb.ToString();
         }
     }
 }
