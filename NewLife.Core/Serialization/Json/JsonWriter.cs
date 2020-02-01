@@ -33,6 +33,9 @@ namespace NewLife.Serialization
         /// <summary>枚举使用字符串。默认false使用数字</summary>
         public Boolean EnumString { get; set; }
 
+        /// <summary>缩进。默认false</summary>
+        public Boolean Indented { get; set; }
+
         /// <summary>最大序列化深度。默认5</summary>
         public Int32 MaxDepth { get; set; } = 5;
 
@@ -56,13 +59,14 @@ namespace NewLife.Serialization
             var jw = new JsonWriter
             {
                 IgnoreNullValues = !nullValue,
-                CamelCase = camelCase
+                CamelCase = camelCase,
+                Indented = indented,
             };
 
             jw.WriteValue(obj);
 
             var json = jw._Builder.ToString();
-            if (indented) json = JsonHelper.Format(json);
+            //if (indented) json = JsonHelper.Format(json);
 
             return json;
         }
@@ -143,6 +147,7 @@ namespace NewLife.Serialization
         private void WriteNV(NameValueCollection nvs)
         {
             _Builder.Append('{');
+            WriteLeftIndent();
 
             var first = true;
 
@@ -150,19 +155,26 @@ namespace NewLife.Serialization
             {
                 if (!IgnoreNullValues || !IsNull(nvs[item]))
                 {
-                    if (!first) _Builder.Append(',');
+                    if (!first)
+                    {
+                        _Builder.Append(',');
+                        WriteIndent();
+                    }
                     first = false;
 
                     var name = FormatName(item);
                     WritePair(name, nvs[item]);
                 }
             }
+
+            WriteRightIndent();
             _Builder.Append('}');
         }
 
         private void WriteSD(StringDictionary dic)
         {
             _Builder.Append('{');
+            WriteLeftIndent();
 
             var first = true;
 
@@ -170,13 +182,19 @@ namespace NewLife.Serialization
             {
                 if (!IgnoreNullValues || !IsNull(item.Value))
                 {
-                    if (!first) _Builder.Append(',');
+                    if (!first)
+                    {
+                        _Builder.Append(',');
+                        WriteIndent();
+                    }
                     first = false;
 
                     var name = FormatName((String)item.Key);
                     WritePair(name, item.Value);
                 }
             }
+
+            WriteRightIndent();
             _Builder.Append('}');
         }
 
@@ -210,6 +228,8 @@ namespace NewLife.Serialization
             if (!_cirobj.TryGetValue(obj, out _)) _cirobj.Add(obj, _cirobj.Count + 1);
 
             _Builder.Append('{');
+            WriteLeftIndent();
+
             _depth++;
             if (_depth > MaxDepth) throw new Exception("超过了序列化最大深度 " + MaxDepth);
 
@@ -223,13 +243,31 @@ namespace NewLife.Serialization
                 var value = obj.GetValue(pi);
                 if (!IgnoreNullValues || !IsNull(value))
                 {
-                    if (!first) _Builder.Append(',');
+                    if (!first)
+                    {
+                        _Builder.Append(',');
+                        WriteIndent();
+                    }
                     first = false;
 
                     var name = FormatName(SerialHelper.GetName(pi));
+
+                    // 注释
+                    if (!IgnoreComment && Indented)
+                    {
+                        var comment = pi.GetDisplayName() ?? pi.GetDescription();
+                        if (!comment.IsNullOrEmpty())
+                        {
+                            _Builder.AppendFormat("// {0}", comment);
+                            WriteIndent();
+                        }
+                    }
+
                     WritePair(name, value);
                 }
             }
+
+            WriteRightIndent();
             _Builder.Append('}');
             _depth--;
         }
@@ -250,6 +288,7 @@ namespace NewLife.Serialization
             WriteStringFast(name);
 
             _Builder.Append(':');
+            if (Indented) _Builder.Append(' ');
 
             WriteValue(value);
         }
@@ -257,40 +296,55 @@ namespace NewLife.Serialization
         private void WriteArray(IEnumerable arr)
         {
             _Builder.Append('[');
+            WriteLeftIndent();
 
             var first = true;
             foreach (var obj in arr)
             {
-                if (!first) _Builder.Append(',');
+                if (!first)
+                {
+                    _Builder.Append(',');
+                    WriteIndent();
+                }
                 first = false;
 
                 WriteValue(obj);
             }
+
+            WriteRightIndent();
             _Builder.Append(']');
         }
 
         private void WriteStringDictionary(IDictionary dic)
         {
             _Builder.Append('{');
+            WriteLeftIndent();
 
             var first = true;
             foreach (DictionaryEntry item in dic)
             {
                 if (!IgnoreNullValues || !IsNull(item.Value))
                 {
-                    if (!first) _Builder.Append(',');
+                    if (!first)
+                    {
+                        _Builder.Append(',');
+                        WriteIndent();
+                    }
                     first = false;
 
                     var name = FormatName((String)item.Key);
                     WritePair(name, item.Value);
                 }
             }
+
+            WriteRightIndent();
             _Builder.Append('}');
         }
 
         private void WriteStringDictionary(IDictionary<String, Object> dic)
         {
             _Builder.Append('{');
+            WriteLeftIndent();
 
             var first = true;
             foreach (var item in dic)
@@ -300,43 +354,61 @@ namespace NewLife.Serialization
 
                 if (!IgnoreNullValues || !IsNull(item.Value))
                 {
-                    if (!first) _Builder.Append(',');
+                    if (!first)
+                    {
+                        _Builder.Append(',');
+                        WriteIndent();
+                    }
                     first = false;
 
                     var name = FormatName(item.Key);
 
                     // 注释
-                    if (!IgnoreComment && dic.TryGetValue("#" + name, out var comment) && comment != null)
+                    if (!IgnoreComment && Indented && dic.TryGetValue("#" + name, out var comment) && comment != null)
                     {
-                        WritePair("#" + name, comment);
-                        _Builder.Append(',');
+                        //WritePair("#" + name, comment);
+                        //_Builder.Append(',');
+                        _Builder.AppendFormat("// {0}", comment);
+                        WriteIndent();
                     }
 
                     WritePair(name, item.Value);
                 }
             }
+
+            WriteRightIndent();
             _Builder.Append('}');
         }
 
         private void WriteDictionary(IDictionary dic)
         {
             _Builder.Append('[');
+            WriteLeftIndent();
 
             var first = true;
             foreach (DictionaryEntry entry in dic)
             {
                 if (!IgnoreNullValues || !IsNull(entry.Value))
                 {
-                    if (!first) _Builder.Append(',');
+                    if (!first)
+                    {
+                        _Builder.Append(',');
+                        WriteIndent();
+                    }
                     first = false;
 
                     _Builder.Append('{');
+                    WriteLeftIndent();
                     WritePair("k", entry.Key);
                     _Builder.Append(",");
+                    WriteIndent();
                     WritePair("v", entry.Value);
+                    WriteRightIndent();
                     _Builder.Append('}');
                 }
             }
+
+            WriteRightIndent();
             _Builder.Append(']');
         }
 
@@ -437,6 +509,35 @@ namespace NewLife.Serialization
             }
 
             return dic.TryGetValue(code, out var rs) && Equals(obj, rs);
+        }
+        #endregion
+
+        #region 缩进
+        /// <summary>当前缩进层级</summary>
+        private Int32 _level;
+
+        private void WriteIndent()
+        {
+            if (!Indented) return;
+
+            _Builder.AppendLine();
+            _Builder.Append(' ', _level * 4);
+        }
+
+        private void WriteLeftIndent()
+        {
+            if (!Indented) return;
+
+            _Builder.AppendLine();
+            _Builder.Append(' ', ++_level * 4);
+        }
+
+        private void WriteRightIndent()
+        {
+            if (!Indented) return;
+
+            _Builder.AppendLine();
+            _Builder.Append(' ', --_level * 4);
         }
         #endregion
     }

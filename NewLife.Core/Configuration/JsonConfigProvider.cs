@@ -35,13 +35,14 @@ namespace NewLife.Configuration
             {
                 IgnoreNullValues = false,
                 IgnoreComment = false,
+                Indented = true,
             };
 
             jw.Write(rs);
 
             // 输出，并格式化
             var json = jw.GetString();
-            json = JsonHelper.Format(json);
+            //json = JsonHelper.Format(json);
 
             File.WriteAllText(fileName, json);
         }

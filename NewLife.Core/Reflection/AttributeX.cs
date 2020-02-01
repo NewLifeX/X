@@ -91,7 +91,7 @@ namespace System
             });
         }
 
-        /// <summary>获取成员绑定的显示名，优先DisplayName，然后Description</summary>
+        /// <summary>获取成员绑定的显示名</summary>
         /// <param name="member"></param>
         /// <param name="inherit"></param>
         /// <returns></returns>
@@ -103,7 +103,7 @@ namespace System
             return null;
         }
 
-        /// <summary>获取成员绑定的显示名，优先DisplayName，然后Description</summary>
+        /// <summary>获取成员绑定的备注</summary>
         /// <param name="member"></param>
         /// <param name="inherit"></param>
         /// <returns></returns>
