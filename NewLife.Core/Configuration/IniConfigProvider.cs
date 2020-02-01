@@ -35,6 +35,7 @@ namespace NewLife.Configuration
                 if (str[0] == '[' && str[str.Length - 1] == ']')
                 {
                     currentSection = section.GetOrAddChild(str.Trim('[', ']'));
+                    currentSection.Comment = remark;
                 }
                 else
                 {
@@ -68,6 +69,8 @@ namespace NewLife.Configuration
                 {
                     // 段前空一行
                     sb.AppendLine();
+                    // 注释
+                    if (!item.Comment.IsNullOrEmpty()) sb.AppendLine("; " + item.Comment);
                     sb.AppendLine($"[{item.Key}]");
 
                     // 写入当前段
