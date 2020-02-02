@@ -1,15 +1,14 @@
 ﻿using System;
 using System.ComponentModel;
-using NewLife;
-using NewLife.Xml;
+using NewLife.Configuration;
 using XCode.DataAccessLayer;
 
 namespace XCode
 {
     /// <summary>XCode设置</summary>
     [DisplayName("XCode设置")]
-    [XmlConfigFile(@"Config\XCode.config", 15000)]
-    public class Setting : XmlConfig<Setting>
+    [Config("XCode")]
+    public class Setting : Config<Setting>
     {
         #region 属性
         /// <summary>是否启用调试。默认启用</summary>

@@ -11,7 +11,7 @@ namespace XUnitTest.Configuration
     {
         readonly IConfigProvider _provider;
 
-        public XmlConfigProviderTests() => _provider = new XmlConfigProvider { FileName = "Config/core.xml" };
+        public XmlConfigProviderTests() => _provider = new XmlConfigProvider { FileName = "Config/core1.xml" };
 
         [Fact]
         public void TestLoadAndSave()

@@ -8,7 +8,7 @@ namespace NewLife
 {
     /// <summary>配置模型</summary>
     [DisplayName("配置模型")]
-    [ConfigFile(@"Config\Core.config")]
+    [Config("Core")]
     public class ConfigModel
     {
         #region 属性

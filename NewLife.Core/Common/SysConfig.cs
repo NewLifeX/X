@@ -1,19 +1,14 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Linq;
+using NewLife.Configuration;
 using NewLife.Reflection;
-using NewLife.Xml;
 
 namespace NewLife.Common
 {
-    /// <summary>系统设置。提供系统名称、版本等基本设置。</summary>
-    public class SysConfig : SysConfig<SysConfig> { }
-
-    /// <summary>系统设置。提供系统名称、版本等基本设置。泛型基类，可继承扩展。</summary>
-    /// <typeparam name="TSetting"></typeparam>
+    /// <summary>系统设置。提供系统名称、版本等基本设置</summary>
     [DisplayName("系统设置")]
-    [XmlConfigFile("Config/Sys.config", 15000)]
-    public class SysConfig<TSetting> : XmlConfig<TSetting> where TSetting : SysConfig<TSetting>, new()
+    public class SysConfig : Config<SysConfig>
     {
         #region 属性
         /// <summary>系统名称</summary>
@@ -47,24 +42,24 @@ namespace NewLife.Common
         public DateTime InstallTime { get; set; } = DateTime.Now;
         #endregion
 
-        #region 构造
-        /// <summary>实例化</summary>
-        public SysConfig()
+        #region 方法
+        /// <summary>加载后触发</summary>
+        protected override void OnLoaded()
         {
-        }
+            if (IsNew)
+            {
+                var asmx = SysAssembly;
 
-        /// <summary>新建配置</summary>
-        protected override void OnNew()
-        {
-            var asmx = SysAssembly;
+                Name = asmx?.Name ?? "NewLife.Cube";
+                Version = asmx?.Version ?? "0.1";
+                DisplayName = (asmx?.Title ?? asmx?.Name) ?? "魔方平台";
+                Company = asmx?.Company ?? "新生命开发团队";
+                //Address = "新生命开发团队";
 
-            Name = asmx?.Name ?? "NewLife.Cube";
-            Version = asmx?.Version ?? "0.1";
-            DisplayName = (asmx?.Title ?? asmx?.Name) ?? "魔方平台";
-            Company = asmx?.Company ?? "新生命开发团队";
-            //Address = "新生命开发团队";
+                if (DisplayName.IsNullOrEmpty()) DisplayName = "系统设置";
+            }
 
-            if (DisplayName.IsNullOrEmpty()) DisplayName = "系统设置";
+            base.OnLoaded();
         }
 
         /// <summary>系统主程序集</summary>

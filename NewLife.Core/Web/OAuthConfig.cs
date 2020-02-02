@@ -4,13 +4,12 @@ using System.ComponentModel;
 using System.Linq;
 using System.Xml.Serialization;
 using NewLife.Common;
-using NewLife.Xml;
+using NewLife.Configuration;
 
 namespace NewLife.Web
 {
     /// <summary>配置</summary>
-    [XmlConfigFile("Config/OAuth.config", 15000)]
-    public class OAuthConfig : XmlConfig<OAuthConfig>
+    public class OAuthConfig : Config<OAuthConfig>
     {
         #region 属性
         /// <summary>调试开关。默认true</summary>

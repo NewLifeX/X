@@ -11,7 +11,7 @@ namespace XUnitTest.Configuration
     {
         readonly IConfigProvider _provider;
 
-        public InIConfigProviderTests() => _provider = new InIConfigProvider { FileName = "Config/core.ini" };
+        public InIConfigProviderTests() => _provider = new InIConfigProvider { FileName = "Config/core1.ini" };
 
         [Fact]
         public void TestLoadAndSave()

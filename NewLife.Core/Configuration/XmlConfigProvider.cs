@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Xml;
@@ -15,13 +14,16 @@ namespace NewLife.Configuration
         /// <summary>根元素名称</summary>
         public String RootName { get; set; } = "Root";
 
-        /// <summary>设置模型类</summary>
-        /// <typeparam name="T"></typeparam>
-        public override void SetModel<T>()
+        /// <summary>初始化</summary>
+        /// <param name="value"></param>
+        public override void Init(String value)
         {
-            base.SetModel<T>();
+            if (RootName.IsNullOrEmpty() && !value.IsNullOrEmpty()) RootName = Path.GetFileNameWithoutExtension(value);
 
-            RootName = typeof(T).Name;
+            // 加上默认后缀
+            if (!value.IsNullOrEmpty() && Path.GetExtension(value).IsNullOrEmpty()) value += ".xml";
+
+            base.Init(value);
         }
 
         /// <summary>读取配置文件</summary>

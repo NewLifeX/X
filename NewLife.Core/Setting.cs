@@ -1,15 +1,15 @@
 ﻿using System;
 using System.ComponentModel;
 using System.IO;
+using NewLife.Configuration;
 using NewLife.Log;
-using NewLife.Xml;
 
 namespace NewLife
 {
     /// <summary>核心设置</summary>
     [DisplayName("核心设置")]
-    [XmlConfigFile(@"Config\Core.config", 15000)]
-    public class Setting : XmlConfig<Setting>
+    [Config("Core")]
+    public class Setting : Config<Setting>
     {
         #region 属性
         /// <summary>是否启用全局调试。默认启用</summary>

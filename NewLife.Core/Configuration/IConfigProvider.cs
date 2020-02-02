@@ -148,6 +148,10 @@ namespace NewLife.Configuration
 
             return section;
         }
+
+        /// <summary>初始化提供者</summary>
+        /// <param name="value"></param>
+        public virtual void Init(String value) { }
         #endregion
 
         #region 加载/保存
@@ -296,6 +300,49 @@ namespace NewLife.Configuration
             // 如果有命名空间则使用指定层级数据源
             var source = GetSection(nameSpace);
             if (source != null) MapTo(source, model);
+        }
+        #endregion
+
+        #region 静态
+        /// <summary>默认提供者。默认xml</summary>
+        public static String DefaultProvider { get; set; } = "xml";
+
+        static ConfigProvider()
+        {
+            Register<InIConfigProvider>("ini");
+            Register<XmlConfigProvider>("xml");
+            Register<JsonConfigProvider>("json");
+            Register<HttpConfigProvider>("http");
+        }
+
+        private static IDictionary<String, Type> _providers = new Dictionary<String, Type>(StringComparer.OrdinalIgnoreCase);
+        /// <summary>注册提供者</summary>
+        /// <typeparam name="TProvider"></typeparam>
+        /// <param name="name"></param>
+        public static void Register<TProvider>(String name) where TProvider : IConfigProvider, new()
+        {
+            _providers[name] = typeof(TProvider);
+        }
+
+        /// <summary>根据指定名称创建提供者</summary>
+        /// <remarks>
+        /// 如果是文件名，根据后缀确定使用哪一种提供者。
+        /// </remarks>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public static IConfigProvider Create(String name)
+        {
+            if (name.IsNullOrEmpty()) name = DefaultProvider;
+
+            var p = name.LastIndexOf('.');
+            var ext = p >= 0 ? name.Substring(p + 1) : name;
+
+            if (!_providers.TryGetValue(ext, out var type)) ext = DefaultProvider;
+            if (!_providers.TryGetValue(ext, out type)) throw new Exception($"无法为[{name}]找到适配的配置提供者！");
+
+            var config = type.CreateInstance() as IConfigProvider;
+
+            return config;
         }
         #endregion
     }

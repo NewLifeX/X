@@ -11,7 +11,7 @@ namespace XUnitTest.Configuration
     {
         readonly IConfigProvider _provider;
 
-        public JsonConfigProviderTests() => _provider = new JsonConfigProvider { FileName = "Config/core.json" };
+        public JsonConfigProviderTests() => _provider = new JsonConfigProvider { FileName = "Config/core1.json" };
 
         [Fact]
         public void TestLoadAndSave()

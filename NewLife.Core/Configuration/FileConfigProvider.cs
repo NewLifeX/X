@@ -16,35 +16,23 @@ namespace NewLife.Configuration
         /// <summary>文件名。最高优先级，优先于模型特性指定的文件名</summary>
         public String FileName { get; set; }
 
-        ///// <summary>模型类。兼容旧版配置类，用于识别配置头</summary>
-        //public Type ModelType { get; set; }
-
         /// <summary>是否新的配置文件</summary>
         public Boolean IsNew { get; set; }
         #endregion
 
         #region 方法
-        /// <summary>设置模型类</summary>
-        /// <typeparam name="T"></typeparam>
-        public virtual void SetModel<T>()
+        /// <summary>初始化</summary>
+        /// <param name="value"></param>
+        public override void Init(String value)
         {
-            var modelType = typeof(T);
+            base.Init(value);
 
-            var fileName = FileName;
-            if (fileName.IsNullOrEmpty())
+            if (FileName.IsNullOrEmpty() && !value.IsNullOrEmpty())
             {
-                var atts = modelType.GetCustomAttributes(typeof(ConfigFileAttribute), false);
-                if (atts != null && atts.Length > 0 && atts[0] is ConfigFileAttribute cf) fileName = cf.FileName;
-            }
-            if (fileName.IsNullOrEmpty())
-            {
-                var atts = modelType.GetCustomAttributes(typeof(XmlConfigFileAttribute), false);
-                if (atts != null && atts.Length > 0 && atts[0] is XmlConfigFileAttribute cf) fileName = cf.FileName;
-            }
-            if (fileName.IsNullOrEmpty())
-            {
-                var atts = modelType.GetCustomAttributes(typeof(JsonConfigFileAttribute), false);
-                if (atts != null && atts.Length > 0 && atts[0] is JsonConfigFileAttribute cf) fileName = cf.FileName;
+                var str = value;
+                if (!str.StartsWithIgnoreCase("Config/", "Config\\")) str = "Config".CombinePath(str);
+
+                FileName = str;
             }
         }
 

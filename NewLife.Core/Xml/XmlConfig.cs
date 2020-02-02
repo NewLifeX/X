@@ -16,6 +16,7 @@ namespace NewLife.Xml
     /// Current将加载配置文件，如果文件不存在或者加载失败，将实例化一个对象返回。
     /// </remarks>
     /// <typeparam name="TConfig"></typeparam>
+    [Obsolete("=>Config<TConfig>")]
     public class XmlConfig<TConfig> where TConfig : XmlConfig<TConfig>, new()
     {
         #region 静态
@@ -39,13 +40,11 @@ namespace NewLife.Xml
                     if (prv.FileName.IsNullOrEmpty())
                     {
                         var att = typeof(TConfig).GetCustomAttribute<XmlConfigFileAttribute>(true);
-                        prv.FileName = att?.FileName;
+                        if (att != null) prv.Init(att.FileName);
                     }
 
                     var config = new TConfig();
 
-                    //_Current = _Provider.Load<TConfig>();
-                    prv.SetModel<TConfig>();
                     if (!prv.LoadAll())
                     {
                         XTrace.WriteLine("初始化{0}的配置文件{1}！", typeof(TConfig).Name, prv.FileName);

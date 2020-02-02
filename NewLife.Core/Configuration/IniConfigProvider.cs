@@ -11,6 +11,16 @@ namespace NewLife.Configuration
     /// </remarks>
     public class InIConfigProvider : FileConfigProvider
     {
+        /// <summary>初始化</summary>
+        /// <param name="value"></param>
+        public override void Init(String value)
+        {
+            // 加上默认后缀
+            if (!value.IsNullOrEmpty() && Path.GetExtension(value).IsNullOrEmpty()) value += ".ini";
+
+            base.Init(value);
+        }
+
         /// <summary>读取配置文件</summary>
         /// <param name="fileName">文件名</param>
         /// <param name="section">配置段</param>
