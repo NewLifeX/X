@@ -81,22 +81,10 @@ namespace NewLife.Configuration
         /// <param name="section">配置段</param>
         protected override void OnWrite(String fileName, IConfigSection section)
         {
-            var set = new XmlWriterSettings
-            {
-                Encoding = Encoding.UTF8,
-                Indent = true
-            };
+            var str = GetString(section);
+            var old = File.ReadAllText(fileName);
 
-            using var fs = File.OpenWrite(fileName);
-            using var writer = XmlWriter.Create(fs, set);
-
-            writer.WriteStartDocument();
-            WriteNode(writer, RootName, section);
-            writer.WriteEndDocument();
-
-            // 截断文件
-            writer.Flush();
-            fs.SetLength(fs.Position);
+            if (str != old) File.WriteAllText(fileName, str);
         }
 
         /// <summary>获取字符串形式</summary>
@@ -109,7 +97,8 @@ namespace NewLife.Configuration
             var set = new XmlWriterSettings
             {
                 Encoding = Encoding.UTF8,
-                Indent = true
+                Indent = true,
+                CloseOutput = true,
             };
 
             using var ms = new MemoryStream();
@@ -119,6 +108,7 @@ namespace NewLife.Configuration
             WriteNode(writer, RootName, section);
             writer.WriteEndDocument();
 
+            writer.Flush();
             ms.Position = 0;
 
             return ms.ToStr();
@@ -137,8 +127,9 @@ namespace NewLife.Configuration
                     WriteNode(writer, item.Key, item);
                 else
                 {
+                    // 避免写null时导致xml元素未闭合
                     writer.WriteStartElement(item.Key);
-                    writer.WriteValue(item.Value);
+                    writer.WriteValue(item.Value + "");
                     writer.WriteEndElement();
                 }
             }

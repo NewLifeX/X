@@ -284,7 +284,7 @@ namespace NewLife.Configuration
                 if (pi.PropertyType.GetTypeCode() != TypeCode.Object)
                 {
                     // 格式化为字符串，主要处理时间日期格式
-                    cfg.Value = "{0}".F(val);
+                    if (val != null) cfg.Value = "{0}".F(val);
                 }
                 else
                 {
