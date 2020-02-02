@@ -23,6 +23,7 @@ namespace NewLife.Json
     /// 用户也可以通过配置实体类的静态构造函数修改基类的<see cref="_.ConfigFile"/>和<see cref="_.ReloadTime"/>来动态配置加载信息。
     /// </remarks>
     /// <typeparam name="TConfig"></typeparam>
+    [Obsolete("=>Config<TConfig>")]
     public class JsonConfig<TConfig> : DisposeBase where TConfig : JsonConfig<TConfig>, new()
     {
         #region 静态
