@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -285,6 +286,39 @@ namespace NewLife.Configuration
                 {
                     // 格式化为字符串，主要处理时间日期格式
                     if (val != null) cfg.Value = "{0}".F(val);
+                }
+                else if (pi.PropertyType.As<IList>())
+                {
+                    if (val is IList list)
+                    {
+                        // 为了避免数组元素叠加，干掉原来的
+                        section.Childs.Remove(cfg);
+                        cfg = new ConfigSection { Key = cfg.Key, Childs = new List<IConfigSection>(), Comment = cfg.Comment };
+                        section.Childs.Add(cfg);
+                        //if (cfg.Childs == null) cfg.Childs = new List<IConfigSection>();
+
+                        // 数组元素是没有key的集合
+                        foreach (var item in list)
+                        {
+                            if (item == null) continue;
+
+                            var cfg2 = new ConfigSection { Key = pi.PropertyType.GetElementType().Name };
+
+                            // 分别处理基本类型和复杂类型
+                            if (item.GetType().GetTypeCode() != TypeCode.Object)
+                            {
+                                // 格式化为字符串，主要处理时间日期格式
+                                cfg2.Value = "{0}".F(item);
+                            }
+                            else
+                            {
+                                // 递归映射
+                                MapFrom(cfg2, item);
+                            }
+
+                            cfg.Childs.Add(cfg2);
+                        }
+                    }
                 }
                 else
                 {

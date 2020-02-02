@@ -1,8 +1,10 @@
 ﻿using System.IO;
+using NewLife.Reflection;
 using NewLife;
 using NewLife.Common;
 using NewLife.Configuration;
 using NewLife.Log;
+using NewLife.Web;
 using Xunit;
 
 namespace XUnitTest.Configuration
@@ -127,6 +129,21 @@ namespace XUnitTest.Configuration
 
             // 三层
             Assert.Equal("zzz", prv["Sys:xxx:yyy"]);
+        }
+
+        [Fact]
+        public void ArrayTest()
+        {
+            var cfg = OAuthConfig.Current;
+
+            Assert.NotNull(cfg.Items);
+            Assert.Equal(8, cfg.Items.Length);
+
+            cfg.Save();
+
+            var xml = File.ReadAllText(@"Config/OAuth.config".GetBasePath());
+            Assert.NotEmpty(xml);
+            Assert.DoesNotContain("<Items></Items>", xml);
         }
     }
 }

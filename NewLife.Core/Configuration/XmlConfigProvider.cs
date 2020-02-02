@@ -130,8 +130,22 @@ namespace NewLife.Configuration
                 // 写注释
                 if (!item.Comment.IsNullOrEmpty()) writer.WriteComment(item.Comment);
 
-                if (item.Childs != null)
-                    WriteNode(writer, item.Key, item);
+                var cs = item.Childs;
+                if (cs != null)
+                {
+                    // 数组
+                    if (cs.Count >= 2 && cs[0].Key == cs[1].Key)
+                    {
+                        writer.WriteStartElement(item.Key);
+                        foreach (var elm in cs)
+                        {
+                            WriteAttributeNode(writer, elm.Key, elm);
+                        }
+                        writer.WriteEndElement();
+                    }
+                    else
+                        WriteNode(writer, item.Key, item);
+                }
                 else
                 {
                     // 避免写null时导致xml元素未闭合
@@ -142,6 +156,22 @@ namespace NewLife.Configuration
             }
 
             writer.WriteEndElement();
+        }
+
+        private void WriteAttributeNode(XmlWriter writer, String name, IConfigSection section)
+        {
+            writer.WriteStartElement(name);
+            //writer.WriteStartAttribute(name);
+
+            foreach (var item in section.Childs)
+            {
+                writer.WriteAttributeString(item.Key, item.Value + "");
+            }
+
+            if (writer.WriteState == WriteState.Attribute)
+                writer.WriteEndAttribute();
+            else
+                writer.WriteEndElement();
         }
     }
 }

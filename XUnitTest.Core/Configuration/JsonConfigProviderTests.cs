@@ -3,6 +3,7 @@ using NewLife;
 using NewLife.Common;
 using NewLife.Configuration;
 using NewLife.Log;
+using NewLife.Web;
 using Xunit;
 
 namespace XUnitTest.Configuration
@@ -44,7 +45,7 @@ namespace XUnitTest.Configuration
             Assert.Equal(set.TempPath, prv["TempPath"]);
             Assert.Equal(set.PluginPath, prv["PluginPath"]);
             Assert.Equal(set.PluginServer, prv["PluginServer"]);
-         
+
             Assert.Equal("全局调试。XTrace.Debug", prv.GetSection("Debug").Comment);
             Assert.Equal("系统配置", prv.GetSection("Sys").Comment);
             Assert.Equal("用于标识系统的英文名", prv.GetSection("Sys:Name").Comment);
@@ -126,6 +127,24 @@ namespace XUnitTest.Configuration
 
             // 三层
             Assert.Equal("zzz", prv["Sys:xxx:yyy"]);
+        }
+
+        [Fact]
+        public void ArrayTest()
+        {
+            var prv = new JsonConfigProvider { FileName = "Config/OAuth.json" };
+
+            var cfg = OAuthConfig.Current;
+
+            Assert.NotNull(cfg.Items);
+            Assert.Equal(8, cfg.Items.Length);
+
+            //cfg.Save();
+            prv.Save(cfg);
+
+            var json = File.ReadAllText(@"Config/OAuth.json".GetBasePath());
+            Assert.NotEmpty(json);
+            Assert.DoesNotContain("Items: []", json);
         }
     }
 }

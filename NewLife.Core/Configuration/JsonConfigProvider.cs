@@ -106,16 +106,32 @@ namespace NewLife.Configuration
                 // 注释
                 if (!item.Comment.IsNullOrEmpty()) dst["#" + item.Key] = item.Comment;
 
-                if (item.Childs == null)
+                var cs = item.Childs;
+                if (cs != null)
                 {
-                    dst[item.Key] = item.Value;
+                    // 数组
+                    if (cs.Count >= 2 && cs[0].Key == cs[1].Key)
+                    {
+                        var list = new List<Object>();
+                        foreach (var elm in cs)
+                        {
+                            var rs = new Dictionary<String, Object>();
+                            Map(elm, rs);
+                            list.Add(rs);
+                        }
+                        dst[item.Key] = list;
+                    }
+                    else
+                    {
+                        var rs = new Dictionary<String, Object>();
+                        Map(item, rs);
+
+                        dst[item.Key] = rs;
+                    }
                 }
                 else
                 {
-                    var rs = new Dictionary<String, Object>();
-                    Map(item, rs);
-
-                    dst[item.Key] = rs;
+                    dst[item.Key] = item.Value;
                 }
             }
         }
