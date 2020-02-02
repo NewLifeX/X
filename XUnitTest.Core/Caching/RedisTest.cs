@@ -17,7 +17,7 @@ namespace XUnitTest.Caching
             //Redis = Redis.Create("127.0.0.1:6379", "newlife", 4);
             //Redis = Redis.Create("127.0.0.1:6379", null, 4);
             Redis = new Redis("127.0.0.1:6379", null, 4);
-            Redis.Log = XTrace.Log;
+            //Redis.Log = XTrace.Log;
         }
 
         [Fact(DisplayName = "基础测试")]

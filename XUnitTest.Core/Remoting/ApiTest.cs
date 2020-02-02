@@ -20,7 +20,7 @@ namespace XUnitTest.Remoting
         {
             _Server = new ApiServer(12345)
             {
-                Log = XTrace.Log,
+                //Log = XTrace.Log,
                 //EncoderLog = XTrace.Log,
             };
             _Server.Handler = new TokenApiHandler { Host = _Server };
@@ -28,9 +28,9 @@ namespace XUnitTest.Remoting
 
             var client = new ApiClient("tcp://127.0.0.1:12345")
             {
-                Log = XTrace.Log
+                //Log = XTrace.Log
             };
-            client.EncoderLog = XTrace.Log;
+            //client.EncoderLog = XTrace.Log;
             _Client = client;
         }
 
@@ -131,7 +131,7 @@ namespace XUnitTest.Remoting
         {
             var client = new ApiClient("tcp://127.0.0.1:12345")
             {
-                Log = XTrace.Log,
+                //Log = XTrace.Log,
                 Token = token,
             };
 
@@ -142,7 +142,7 @@ namespace XUnitTest.Remoting
             // 另一个客户端，共用令牌，应该可以拿到上一次状态数据
             var client2 = new ApiClient("tcp://127.0.0.1:12345")
             {
-                Log = XTrace.Log,
+                //Log = XTrace.Log,
                 Token = token,
             };
 

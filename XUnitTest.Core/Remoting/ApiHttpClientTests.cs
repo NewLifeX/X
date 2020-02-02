@@ -21,7 +21,7 @@ namespace XUnitTest.Remoting
         {
             _Server = new ApiServer(12347)
             {
-                Log = XTrace.Log,
+                //Log = XTrace.Log,
                 //EncoderLog = XTrace.Log,
             };
             _Server.Handler = new TokenApiHandler { Host = _Server };

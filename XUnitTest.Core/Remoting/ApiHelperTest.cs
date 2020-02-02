@@ -26,7 +26,7 @@ namespace XUnitTest.Remoting
             // 使用ApiServer作为测试服务端
             _Server = new ApiServer(port)
             {
-                Log = XTrace.Log,
+                //Log = XTrace.Log,
             };
             _Server.Start();
 
