@@ -61,11 +61,55 @@ namespace NewLife.Configuration
 
             jw.Write(rs);
 
-            // 输出，并格式化
-            var json = jw.GetString();
-            //json = JsonHelper.Format(json);
-
-            return json;
+            return jw.GetString();
         }
+
+        #region 辅助
+        /// <summary>多层字典映射为一层</summary>
+        /// <param name="src"></param>
+        /// <param name="section"></param>
+        protected virtual void Map(IDictionary<String, Object> src, IConfigSection section)
+        {
+            foreach (var item in src)
+            {
+                var name = item.Key;
+                if (name[0] == '#') continue;
+
+                var cfg = section.GetOrAddChild(name);
+                var cname = "#" + name;
+                if (src.TryGetValue(cname, out var comment) && comment != null) cfg.Comment = comment + "";
+
+                // 仅支持内层字典，不支持内层数组
+                if (item.Value is IDictionary<String, Object> dic)
+                    Map(dic, cfg);
+                else
+                    cfg.Value = "{0}".F(item.Value);
+            }
+        }
+
+        /// <summary>一层字典映射为多层</summary>
+        /// <param name="section"></param>
+        /// <param name="dst"></param>
+        protected virtual void Map(IConfigSection section, IDictionary<String, Object> dst)
+        {
+            foreach (var item in section.Childs)
+            {
+                // 注释
+                if (!item.Comment.IsNullOrEmpty()) dst["#" + item.Key] = item.Comment;
+
+                if (item.Childs == null)
+                {
+                    dst[item.Key] = item.Value;
+                }
+                else
+                {
+                    var rs = new Dictionary<String, Object>();
+                    Map(item, rs);
+
+                    dst[item.Key] = rs;
+                }
+            }
+        }
+        #endregion
     }
 }

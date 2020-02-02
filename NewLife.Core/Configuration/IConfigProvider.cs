@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
+using System.Xml.Serialization;
 using NewLife.Reflection;
 
 namespace NewLife.Configuration
@@ -201,6 +202,7 @@ namespace NewLife.Configuration
             {
                 if (!pi.CanRead || !pi.CanWrite) continue;
                 if (pi.GetIndexParameters().Length > 0) continue;
+                if (pi.GetCustomAttribute<XmlIgnoreAttribute>() != null) continue;
                 if (pi.Name.EqualIgnoreCase("ConfigFile", "IsNew")) continue;
 
                 var name = pi.Name;
@@ -261,6 +263,7 @@ namespace NewLife.Configuration
             {
                 if (!pi.CanRead || !pi.CanWrite) continue;
                 if (pi.GetIndexParameters().Length > 0) continue;
+                if (pi.GetCustomAttribute<XmlIgnoreAttribute>() != null) continue;
                 if (pi.Name.EqualIgnoreCase("ConfigFile", "IsNew")) continue;
 
                 // 名称前面加上命名空间

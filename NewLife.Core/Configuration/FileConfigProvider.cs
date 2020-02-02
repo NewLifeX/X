@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using NewLife.Json;
-using NewLife.Xml;
 
 namespace NewLife.Configuration
 {
@@ -27,8 +24,10 @@ namespace NewLife.Configuration
         {
             base.Init(value);
 
+            // 加上文件名
             if (FileName.IsNullOrEmpty() && !value.IsNullOrEmpty())
             {
+                // 加上配置目录
                 var str = value;
                 if (!str.StartsWithIgnoreCase("Config/", "Config\\")) str = "Config".CombinePath(str);
 
@@ -88,54 +87,6 @@ namespace NewLife.Configuration
         /// <param name="section">配置段</param>
         /// <returns></returns>
         public virtual String GetString(IConfigSection section = null) => null;
-        #endregion
-
-        #region 辅助
-        /// <summary>多层字典映射为一层</summary>
-        /// <param name="src"></param>
-        /// <param name="section"></param>
-        protected virtual void Map(IDictionary<String, Object> src, IConfigSection section)
-        {
-            foreach (var item in src)
-            {
-                var name = item.Key;
-                if (name[0] == '#') continue;
-
-                var cfg = section.GetOrAddChild(name);
-                var cname = "#" + name;
-                if (src.TryGetValue(cname, out var comment) && comment != null) cfg.Comment = comment + "";
-
-                // 仅支持内层字典，不支持内层数组
-                if (item.Value is IDictionary<String, Object> dic)
-                    Map(dic, cfg);
-                else
-                    cfg.Value = "{0}".F(item.Value);
-            }
-        }
-
-        /// <summary>一层字典映射为多层</summary>
-        /// <param name="section"></param>
-        /// <param name="dst"></param>
-        protected virtual void Map(IConfigSection section, IDictionary<String, Object> dst)
-        {
-            foreach (var item in section.Childs)
-            {
-                // 注释
-                if (!item.Comment.IsNullOrEmpty()) dst["#" + item.Key] = item.Comment;
-
-                if (item.Childs == null)
-                {
-                    dst[item.Key] = item.Value;
-                }
-                else
-                {
-                    var rs = new Dictionary<String, Object>();
-                    Map(item, rs);
-
-                    dst[item.Key] = rs;
-                }
-            }
-        }
         #endregion
     }
 }

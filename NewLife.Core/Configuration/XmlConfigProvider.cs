@@ -34,8 +34,6 @@ namespace NewLife.Configuration
             using var fs = File.OpenRead(fileName);
             using var reader = XmlReader.Create(fs);
 
-            //var dic = new Dictionary<String, Object>();
-
             // 移动到第一个元素
             while (reader.NodeType != XmlNodeType.Element) reader.Read();
 
@@ -47,9 +45,6 @@ namespace NewLife.Configuration
             ReadNode(reader, section);
 
             if (reader.NodeType == XmlNodeType.EndElement) reader.ReadEndElement();
-
-            //var rs = new Dictionary<String, ConfigSection>();
-            //Map(dic, rs, null);
         }
 
         private void ReadNode(XmlReader reader, IConfigSection section)
