@@ -10,7 +10,7 @@ namespace NewLife.Serialization
         /// <summary>写入对象，得到Json字符串</summary>
         /// <param name="value"></param>
         /// <param name="indented">是否缩进。默认false</param>
-        /// <param name="nullValue">是否写控制。默认true</param>
+        /// <param name="nullValue">是否写空值。默认true</param>
         /// <param name="camelCase">是否驼峰命名。默认false</param>
         /// <returns></returns>
         String Write(Object value, Boolean indented = false, Boolean nullValue = true, Boolean camelCase = false);

@@ -111,7 +111,10 @@ namespace Test
 
             var dal = Role.Meta.Session.Dal;
             var db = dal.Query("select * from role");
-            var json = db.ToJson(true);
+            var json = db.ToJson(true, false, true);
+            XTrace.WriteLine(json);
+
+            json = db.ToJson();
             XTrace.WriteLine(json);
         }
 
