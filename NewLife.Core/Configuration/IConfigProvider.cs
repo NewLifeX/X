@@ -9,8 +9,11 @@ namespace NewLife.Configuration
 {
     /// <summary>配置提供者</summary>
     /// <remarks>
-    /// 建立扁平化配置数据体系，以分布式配置中心为核心，支持基于key的索引读写，也支持Load/Save/Bind的实体模型转换。
+    /// 建立树状配置数据体系，以分布式配置中心为核心，支持基于key的索引读写，也支持Load/Save/Bind的实体模型转换。
     /// key索引支持冒号分隔的多层结构，在配置中心中作为整个key存在，在文件配置中第一段表示不同文件。
+    /// 
+    /// 一个配置类，支持从不同持久化提供者读取，可根据需要选择配置持久化策略。
+    /// 例如，小系统采用ini/xml/json文件配置，分布式系统采用配置中心。
     /// </remarks>
     public interface IConfigProvider
     {
@@ -18,12 +21,12 @@ namespace NewLife.Configuration
         ICollection<String> Keys { get; }
 
         /// <summary>获取 或 设置 配置值</summary>
-        /// <param name="key">键</param>
+        /// <param name="key">配置名</param>
         /// <returns></returns>
         String this[String key] { get; set; }
 
         /// <summary>查找配置项。可得到子级和配置</summary>
-        /// <param name="key"></param>
+        /// <param name="key">配置名</param>
         /// <returns></returns>
         IConfigSection GetSection(String key);
 
@@ -309,10 +312,26 @@ namespace NewLife.Configuration
 
         static ConfigProvider()
         {
+            // 支持从命令行参数和环境变量设定默认配置提供者
+            var str = "";
+            var args = Environment.GetCommandLineArgs();
+            for (var i = 0; i < args.Length; i++)
+            {
+                if (args[i].EqualIgnoreCase("-DefaultConfig", "--DefaultConfig") && i + 1 < args.Length)
+                {
+                    str = args[i + 1];
+                    break;
+                }
+            }
+            if (str.IsNullOrEmpty()) str = Environment.GetEnvironmentVariable("DefaultConfig");
+            if (!str.IsNullOrEmpty()) DefaultProvider = str;
+
             Register<InIConfigProvider>("ini");
             Register<XmlConfigProvider>("xml");
             Register<JsonConfigProvider>("json");
             Register<HttpConfigProvider>("http");
+
+            Register<XmlConfigProvider>("config");
         }
 
         private static IDictionary<String, Type> _providers = new Dictionary<String, Type>(StringComparer.OrdinalIgnoreCase);

@@ -18,10 +18,10 @@ namespace NewLife.Configuration
         /// <param name="value"></param>
         public override void Init(String value)
         {
-            if (RootName.IsNullOrEmpty() && !value.IsNullOrEmpty()) RootName = Path.GetFileNameWithoutExtension(value);
+            if ((RootName.IsNullOrEmpty() || RootName == "Root") && !value.IsNullOrEmpty()) RootName = Path.GetFileNameWithoutExtension(value);
 
             // 加上默认后缀
-            if (!value.IsNullOrEmpty() && Path.GetExtension(value).IsNullOrEmpty()) value += ".xml";
+            if (!value.IsNullOrEmpty() && Path.GetExtension(value).IsNullOrEmpty()) value += ".config";
 
             base.Init(value);
         }
