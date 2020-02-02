@@ -32,11 +32,12 @@ namespace NewLife.Configuration
 
                 // 如果正在加载中，需要返回默认值。因为在加载配置的过程中，可能循环触发导致再次加载配置
                 var config = new TConfig();
-                if (_loading) return config;
+                if (_loading) return _Current = config;
                 _loading = true;
 
                 try
                 {
+                    var flag = false;
                     var prv = Provider;
                     if (prv == null)
                     {
@@ -62,16 +63,17 @@ namespace NewLife.Configuration
                                 }
 
                                 Provider = prv;
+                                flag = true;
                             }
                         }
                     }
 
-                    if (_Current != null) return _Current;
+                    if (!flag) return _Current;
 
                     // 加载配置数据到提供者
                     if (!prv.LoadAll())
                     {
-                        XTrace.WriteLine("初始化{0}的配置 {1}", typeof(TConfig).Name, prv);
+                        XTrace.WriteLine("初始化{0}的配置 {1}", typeof(TConfig).FullName, prv);
                         prv.Save(config);
                     }
 
@@ -79,6 +81,9 @@ namespace NewLife.Configuration
                     prv.Bind(config, true);
 
                     config.OnLoaded();
+
+                    // OnLoad 中可能有变化，存回去
+                    prv.Save(config);
 
                     return _Current = config;
                 }
@@ -97,38 +102,7 @@ namespace NewLife.Configuration
 
         #region 成员方法
         /// <summary>从配置文件中读取完成后触发</summary>
-        protected virtual void OnLoaded()
-        {
-            // 仅适用于文件提供者
-            var fprv = Provider as FileConfigProvider;
-            if (fprv == null) return;
-
-            // 如果默认加载后的配置与保存的配置不一致，说明可能配置实体类已变更，需要强制覆盖
-            var config = this;
-            try
-            {
-                var cfi = fprv.FileName.GetBasePath();
-
-                // 新建配置不要检查格式
-                var flag = File.Exists(cfi);
-                if (!flag) return;
-
-                var xml1 = File.ReadAllText(cfi).Trim();
-                var xml2 = fprv.GetString();
-                flag = xml1 == xml2;
-
-                if (!flag)
-                {
-                    // 异步处理，避免加载日志路径配置时死循环
-                    XTrace.WriteLine("配置文件{0}格式不一致，保存为最新格式！", cfi);
-                    Provider.Save(config);
-                }
-            }
-            catch (Exception ex)
-            {
-                XTrace.WriteException(ex);
-            }
-        }
+        protected virtual void OnLoaded() { }
 
         /// <summary>保存到配置文件中去</summary>
         //[Obsolete("=>Provider.Save")]

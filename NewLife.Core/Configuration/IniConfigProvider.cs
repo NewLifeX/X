@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text;
+using NewLife.Log;
 
 namespace NewLife.Configuration
 {
@@ -70,8 +71,16 @@ namespace NewLife.Configuration
         /// <param name="section">配置段</param>
         protected override void OnWrite(String fileName, IConfigSection section)
         {
-            var ini = GetString(section);
-            File.WriteAllText(fileName, ini);
+            var str = GetString(section);
+            var old = "";
+            if (File.Exists(fileName)) old = File.ReadAllText(fileName);
+
+            if (str != old)
+            {
+                XTrace.WriteLine("保存配置 {0}", fileName);
+
+                File.WriteAllText(fileName, str);
+            }
         }
 
         /// <summary>获取字符串形式</summary>

@@ -2,6 +2,7 @@
 using System.IO;
 using System.Text;
 using System.Xml;
+using NewLife.Log;
 
 namespace NewLife.Configuration
 {
@@ -82,9 +83,15 @@ namespace NewLife.Configuration
         protected override void OnWrite(String fileName, IConfigSection section)
         {
             var str = GetString(section);
-            var old = File.ReadAllText(fileName);
+            var old = "";
+            if (File.Exists(fileName)) old = File.ReadAllText(fileName);
 
-            if (str != old) File.WriteAllText(fileName, str);
+            if (str != old)
+            {
+                XTrace.WriteLine("保存配置 {0}", fileName);
+
+                File.WriteAllText(fileName, str);
+            }
         }
 
         /// <summary>获取字符串形式</summary>

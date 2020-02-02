@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Reflection;
 using System.Xml.Serialization;
 using NewLife.Configuration;
@@ -56,6 +55,9 @@ namespace NewLife.Xml
                     if (prv.IsNew) config.OnNew();
                     config.OnLoaded();
 
+                    // OnLoad 中可能有变化，存回去
+                    prv.Save(config);
+
                     return _Current = config;
                 }
             }
@@ -72,33 +74,7 @@ namespace NewLife.Xml
 
         #region 成员方法
         /// <summary>从配置文件中读取完成后触发</summary>
-        protected virtual void OnLoaded()
-        {
-            // 如果默认加载后的配置与保存的配置不一致，说明可能配置实体类已变更，需要强制覆盖
-            var config = this;
-            try
-            {
-                var cfi = _Provider.FileName.GetBasePath();
-                // 新建配置不要检查格式
-                var flag = File.Exists(cfi);
-                if (!flag) return;
-
-                var xml1 = File.ReadAllText(cfi).Trim();
-                var xml2 = _Provider.GetString();
-                flag = xml1 == xml2;
-
-                if (!flag)
-                {
-                    // 异步处理，避免加载日志路径配置时死循环
-                    XTrace.WriteLine("配置文件{0}格式不一致，保存为最新格式！", cfi);
-                    config.Save();
-                }
-            }
-            catch (Exception ex)
-            {
-                XTrace.WriteException(ex);
-            }
-        }
+        protected virtual void OnLoaded() { }
 
         /// <summary>保存到配置文件中去</summary>
         public virtual void Save() => _Provider.Save(this);
