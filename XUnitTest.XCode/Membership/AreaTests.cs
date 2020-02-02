@@ -57,5 +57,19 @@ namespace XUnitTest.XCode.Membership
             Assert.NotNull(r);
             Assert.Equal("广西壮族自治区", r.FullName);
         }
+
+        [Fact]
+        public void FetchAndSave()
+        {
+            var rs = Area.FetchAndSave();
+
+            var r = Area.Find(_.Name == "上海");
+            Assert.NotNull(r);
+            Assert.Equal("上海市", r.FullName);
+
+            r = Area.Find(_.Name == "广西");
+            Assert.NotNull(r);
+            Assert.Equal("广西壮族自治区", r.FullName);
+        }
     }
 }

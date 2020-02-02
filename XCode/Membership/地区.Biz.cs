@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
@@ -459,23 +460,23 @@ namespace XCode.Membership
         }
 
         /// <summary>从内容中分析得到地区。以民政部颁布的行政区划代码为准</summary>
-        /// <param name="txt"></param>
+        /// <param name="html"></param>
         /// <returns></returns>
-        public static IEnumerable<Area> Parse(String txt)
+        public static IEnumerable<Area> Parse(String html)
         {
-            if (txt.IsNullOrEmpty()) yield break;
+            if (html.IsNullOrEmpty()) yield break;
 
             var p = 0;
             while (true)
             {
-                var s = txt.IndexOf("<tr ", p);
+                var s = html.IndexOf("<tr ", p);
                 if (s < 0) break;
 
-                var e = txt.IndexOf("</tr>", s);
+                var e = html.IndexOf("</tr>", s);
                 if (e < 0) break;
 
                 // 分析数据
-                var ss = txt.Substring(s, e - s).Split("<td", "</td>");
+                var ss = html.Substring(s, e - s).Split("<td", "</td>");
                 if (ss.Length > 4)
                 {
                     var id = ss[3];
@@ -502,15 +503,15 @@ namespace XCode.Membership
         }
 
         /// <summary>从内容中分析得到地区并保存。以民政部颁布的行政区划代码为准</summary>
-        /// <param name="txt"></param>
+        /// <param name="html"></param>
         /// <returns></returns>
-        public static Int32 ParseAndSave(String txt)
+        public static Int32 ParseAndSave(String html)
         {
             // 预备好所有三级数据
             var list = FindAll(_.ID > 10_00_00 & _.ID < 99_99_99);
 
             var rs = new List<Area>();
-            foreach (var item in Parse(txt))
+            foreach (var item in Parse(html))
             {
                 // 查找是否已存在
                 var r = list.Find(e => e.ID == item.ID);
@@ -546,6 +547,20 @@ namespace XCode.Membership
             }
 
             return rs.Save(true);
+        }
+
+        /// <summary>抓取并保存数据</summary>
+        /// <param name="url">民政局。http://www.mca.gov.cn/article/sj/xzqh/2019/2019/201912251506.html</param>
+        /// <returns></returns>
+        public static Int32 FetchAndSave(String url = null)
+        {
+            if (url.IsNullOrEmpty()) url = "http://www.mca.gov.cn/article/sj/xzqh/2019/2019/201912251506.html";
+
+            var http = new HttpClient();
+            var html = http.GetStringAsync(url).Result;
+            if (html.IsNullOrEmpty()) return 0;
+
+            return ParseAndSave(html);
         }
         #endregion
 
