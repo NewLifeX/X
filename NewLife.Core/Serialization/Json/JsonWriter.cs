@@ -129,8 +129,10 @@ namespace NewLife.Serialization
             else if (obj is NameValueCollection)
                 WriteNV((NameValueCollection)obj);
 
-            else if (obj is IEnumerable)
-                WriteArray((IEnumerable)obj);
+            //else if (obj.GetType().IsArray)
+            //    WriteArray((IEnumerable)obj);
+            else if (obj is IList list)
+                WriteArray(list);
 
             else if (obj is Enum)
             {

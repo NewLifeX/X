@@ -47,7 +47,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test8();
+                Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -107,23 +107,12 @@ namespace Test
 
         static async void Test2()
         {
-            //var uri = new Uri("http://www.newlifex.com");
-            //var client = new TinyHttpClient();
-            //var html = client.Send(uri, null)?.ToStr();
+            var count = Role.Meta.Count;
 
-            //Console.WriteLine(client.BaseAddress);
-
-            //Console.WriteLine(uri);
-            //Console.WriteLine(client.BaseAddress == uri);
-
-            //var client = new HttpClient();
-            //client.BaseAddress = new Uri("http://feifan.link:2233");
-
-            //var rs = await client.GetAsync<Object>("api/info");
-            //Console.WriteLine(rs.ToJson(true));
-
-            //rs = await client.PostAsync<Object>("api/info3", rs);
-            //Console.WriteLine(rs.ToJson(true));
+            var dal = Role.Meta.Session.Dal;
+            var db = dal.Query("select * from role");
+            var json = db.ToJson(true);
+            XTrace.WriteLine(json);
         }
 
         static void Test3()
