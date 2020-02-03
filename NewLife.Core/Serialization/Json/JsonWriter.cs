@@ -563,7 +563,7 @@ namespace NewLife.Serialization
             else
             {
                 _Builder.AppendLine();
-                _Builder.Append(' ', _level * 4);
+                if (_level > 0) _Builder.Append(' ', _level * 4);
             }
         }
 
@@ -578,7 +578,7 @@ namespace NewLife.Serialization
             else
             {
                 _Builder.AppendLine();
-                _Builder.Append(' ', _level * 4);
+                if (_level > 0) _Builder.Append(' ', _level * 4);
             }
         }
 
@@ -593,7 +593,7 @@ namespace NewLife.Serialization
             else
             {
                 _Builder.AppendLine();
-                _Builder.Append(' ', _level * 4);
+                if (_level > 0) _Builder.Append(' ', _level * 4);
             }
         }
         #endregion
