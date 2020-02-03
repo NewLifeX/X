@@ -36,6 +36,9 @@ namespace NewLife.Serialization
         /// <summary>缩进。默认false</summary>
         public Boolean Indented { get; set; }
 
+        /// <summary>智能缩进，内层不换行。默认false</summary>
+        public Boolean SmartIndented { get; set; }
+
         /// <summary>最大序列化深度。默认5</summary>
         public Int32 MaxDepth { get; set; } = 5;
 
@@ -61,6 +64,7 @@ namespace NewLife.Serialization
                 IgnoreNullValues = !nullValue,
                 CamelCase = camelCase,
                 Indented = indented,
+                SmartIndented = indented,
             };
 
             jw.WriteValue(obj);
@@ -522,24 +526,41 @@ namespace NewLife.Serialization
         {
             if (!Indented) return;
 
-            _Builder.AppendLine();
-            _Builder.Append(' ', _level * 4);
+            if (SmartIndented && _level > 1)
+                _Builder.Append(' ');
+            else
+            {
+                _Builder.AppendLine();
+                _Builder.Append(' ', _level * 4);
+            }
         }
 
         private void WriteLeftIndent()
         {
             if (!Indented) return;
 
-            _Builder.AppendLine();
-            _Builder.Append(' ', ++_level * 4);
+            _level++;
+            if (SmartIndented && _level > 1)
+                _Builder.Append(' ');
+            else
+            {
+                _Builder.AppendLine();
+                _Builder.Append(' ', _level * 4);
+            }
         }
 
         private void WriteRightIndent()
         {
             if (!Indented) return;
 
-            _Builder.AppendLine();
-            _Builder.Append(' ', --_level * 4);
+            _level--;
+            if (SmartIndented && _level > 1)
+                _Builder.Append(' ');
+            else
+            {
+                _Builder.AppendLine();
+                _Builder.Append(' ', _level * 4);
+            }
         }
         #endregion
     }
