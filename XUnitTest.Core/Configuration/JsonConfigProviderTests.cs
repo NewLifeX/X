@@ -168,5 +168,27 @@ namespace XUnitTest.Configuration
             Assert.Equal(8, cfg2.Items.Length);
             Assert.Equal(ti.Secret, cfg2.Items[0].Secret);
         }
+
+        [Fact]
+        public void ArrayTest2()
+        {
+            var prv = new JsonConfigProvider { FileName = "Config/OAuth2.json" };
+
+            var cfg = new OAuthConfig();
+            cfg.Items = new OAuthItem[0];
+
+            prv.Save(cfg);
+
+            var txt = File.ReadAllText(prv.FileName.GetBasePath());
+            Assert.NotEmpty(txt);
+            Assert.Contains("\"Items\": []", txt);
+
+            var prv2 = new JsonConfigProvider { FileName = prv.FileName };
+            var cfg2 = prv2.Load<OAuthConfig>();
+
+            Assert.NotNull(cfg2);
+            Assert.NotNull(cfg2.Items);
+            Assert.Empty(cfg2.Items);
+        }
     }
 }

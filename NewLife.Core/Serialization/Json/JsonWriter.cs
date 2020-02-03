@@ -280,7 +280,8 @@ namespace NewLife.Serialization
                 }
             }
 
-            WriteRightIndent(forceIndent);
+            // 考虑无数据，此时没有缩进
+            if (!first) WriteRightIndent(forceIndent);
             _Builder.Append('}');
             _depth--;
         }
@@ -331,7 +332,8 @@ namespace NewLife.Serialization
                 WriteValue(obj);
             }
 
-            WriteRightIndent(forceIndent);
+            // 考虑无数据，此时没有缩进
+            if (!first) WriteRightIndent(forceIndent);
             _Builder.Append(']');
         }
 
@@ -364,7 +366,8 @@ namespace NewLife.Serialization
                 }
             }
 
-            WriteRightIndent(forceIndent);
+            // 考虑无数据，此时没有缩进
+            if (!first) WriteRightIndent(forceIndent);
             _Builder.Append('}');
         }
 
@@ -410,7 +413,8 @@ namespace NewLife.Serialization
                 }
             }
 
-            WriteRightIndent(forceIndent);
+            // 考虑无数据，此时没有缩进
+            if (!first) WriteRightIndent(forceIndent);
             _Builder.Append('}');
         }
 

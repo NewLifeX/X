@@ -125,7 +125,7 @@ namespace NewLife.Configuration
                 if (cs != null)
                 {
                     // 数组
-                    if (cs.Count >= 2 && cs[0].Key == cs[1].Key)
+                    if (cs.Count == 0 || cs.Count > 0 && cs[0].Key == null || cs.Count >= 2 && cs[0].Key == cs[1].Key)
                     {
                         var list = new List<Object>();
                         foreach (var elm in cs)
