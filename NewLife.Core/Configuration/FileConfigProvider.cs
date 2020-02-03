@@ -49,8 +49,10 @@ namespace NewLife.Configuration
             //if (!File.Exists(fileName)) throw new FileNotFoundException("找不到文件", fileName);
             if (!File.Exists(fileName)) return false;
 
-            // 读取文件
-            OnRead(fileName, Root);
+            // 读取文件，换个对象，避免数组元素在多次加载后重叠
+            var section = new ConfigSection { };
+            OnRead(fileName, section);
+            Root = section;
 
             IsNew = false;
 
