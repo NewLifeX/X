@@ -118,6 +118,6 @@ namespace NewLife.Web
 
         /// <summary>授权范围</summary>
         [XmlAttribute]
-        public String Scope { get; set; } = "";
+        public String Scope { get; set; }
     }
 }

@@ -4,6 +4,7 @@ using NewLife;
 using NewLife.Common;
 using NewLife.Configuration;
 using NewLife.Log;
+using NewLife.Reflection;
 using NewLife.Security;
 using NewLife.Web;
 using Xunit;
@@ -39,7 +40,7 @@ namespace XUnitTest.Configuration
 
             var prv = _provider;
             Assert.NotNull(prv);
-            Assert.Equal(set.Debug + "", prv["Debug"]);
+            Assert.Equal(set.Debug.ToString().ToLower(), prv["Debug"]);
             Assert.Equal(set.LogLevel + "", prv["LogLevel"]);
             Assert.Equal(set.LogPath, prv["LogPath"]);
             Assert.Equal(set.NetworkLog, prv["NetworkLog"]);
@@ -139,7 +140,9 @@ namespace XUnitTest.Configuration
         {
             var prv = new JsonConfigProvider { FileName = "Config/OAuth.json" };
 
-            var cfg = OAuthConfig.Current;
+            //var cfg = OAuthConfig.Current;
+            var cfg = new OAuthConfig();
+            cfg.Invoke("OnLoaded");
 
             Assert.NotNull(cfg.Items);
             Assert.Equal(8, cfg.Items.Length);
@@ -155,6 +158,13 @@ namespace XUnitTest.Configuration
             Assert.NotEmpty(txt);
             Assert.DoesNotContain("Items: []", txt);
             Assert.Contains($"\"Secret\": \"{ti.Secret}\"", txt);
+
+            var prv2 = new JsonConfigProvider { FileName = prv.FileName };
+            var cfg2 = prv2.Load<OAuthConfig>();
+
+            Assert.NotNull(cfg2);
+            Assert.NotNull(cfg2.Items);
+            Assert.Equal(ti.Secret, cfg2.Items[0].Secret);
         }
     }
 }

@@ -56,7 +56,7 @@ namespace NewLife.Configuration
 
                         // 构建配置值和注释
                         var cfg = currentSection.AddChild(name);
-                        cfg.Value = str.Substring(p + 1).Trim();
+                        if (p + 1 < str.Length) cfg.Value = str.Substring(p + 1).Trim();
                         cfg.Comment = remark;
                     }
                 }

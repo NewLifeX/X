@@ -93,7 +93,7 @@ namespace NewLife.Configuration
                 if (item.Value is IDictionary<String, Object> dic)
                     Map(dic, cfg);
                 else
-                    cfg.Value = "{0}".F(item.Value);
+                    cfg.SetValue(item.Value);
             }
         }
 

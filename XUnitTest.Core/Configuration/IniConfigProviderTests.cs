@@ -36,7 +36,7 @@ namespace XUnitTest.Configuration
 
             var prv = _provider;
             Assert.NotNull(prv);
-            Assert.Equal(set.Debug + "", prv["Debug"]);
+            Assert.Equal(set.Debug.ToString().ToLower(), prv["Debug"]);
             Assert.Equal(set.LogLevel + "", prv["LogLevel"]);
             Assert.Equal(set.LogPath, prv["LogPath"]);
             Assert.Equal(set.NetworkLog, prv["NetworkLog"]);
@@ -113,6 +113,9 @@ InstallTime = 2019-12-30 18:26:18
             Assert.Equal(LogLevel.Fatal, set.LogLevel);
             Assert.Equal("xxx", set.LogPath);
             Assert.Equal("255.255.255.255:514", set.NetworkLog);
+
+            // 保存
+            prv.Save(set);
         }
     }
 }

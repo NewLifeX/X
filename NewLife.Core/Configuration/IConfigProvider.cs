@@ -93,6 +93,16 @@ namespace NewLife.Configuration
 
             return cfg;
         }
+
+        internal static void SetValue(this IConfigSection section, Object value)
+        {
+            if (value is DateTime dt)
+                section.Value = dt.ToFullString();
+            else if (value is Boolean b)
+                section.Value = b.ToString().ToLower();
+            else
+                section.Value = value?.ToString();
+        }
     }
 
     /// <summary>配置提供者基类</summary>
@@ -344,8 +354,7 @@ namespace NewLife.Configuration
                 // 分别处理基本类型、数组类型、复杂类型
                 if (pi.PropertyType.GetTypeCode() != TypeCode.Object)
                 {
-                    // 格式化为字符串，主要处理时间日期格式
-                    cfg.Value = "{0}".F(val);
+                    cfg.SetValue(val);
                 }
                 else if (pi.PropertyType.As<IList>())
                 {
@@ -375,7 +384,7 @@ namespace NewLife.Configuration
 
                 // 分别处理基本类型和复杂类型
                 if (item.GetType().GetTypeCode() != TypeCode.Object)
-                    cfg2.Value = "{0}".F(item);
+                    cfg2.SetValue(item);
                 else
                     MapFrom(cfg2, item);
             }

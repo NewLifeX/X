@@ -40,7 +40,7 @@ namespace XUnitTest.Configuration
 
             var prv = _provider;
             Assert.NotNull(prv);
-            Assert.Equal(set.Debug + "", prv["Debug"]);
+            Assert.Equal(set.Debug.ToString().ToLower(), prv["Debug"]);
             Assert.Equal(set.LogLevel + "", prv["LogLevel"]);
             Assert.Equal(set.LogPath, prv["LogPath"]);
             Assert.Equal(set.NetworkLog, prv["NetworkLog"]);
@@ -131,6 +131,9 @@ namespace XUnitTest.Configuration
 
             // 三层
             Assert.Equal("zzz", prv["Sys:xxx:yyy"]);
+
+            // 保存
+            prv.Save(set);
         }
 
         [Fact]
