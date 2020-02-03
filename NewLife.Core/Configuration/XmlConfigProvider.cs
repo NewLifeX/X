@@ -58,11 +58,22 @@ namespace NewLife.Configuration
                 if (reader.NodeType != XmlNodeType.Element) break;
 
                 var name = reader.Name;
-                var cfg = section.GetOrAddChild(name);
+                var cfg = section.AddChild(name);
                 // 前一行是注释
                 if (!remark.IsNullOrEmpty()) cfg.Comment = remark;
 
-                reader.ReadStartElement();
+                // 读取属性值
+                if (reader.HasAttributes)
+                {
+                    reader.MoveToFirstAttribute();
+                    do
+                    {
+                        var cfg2 = cfg.AddChild(reader.Name);
+                        cfg2.Value = reader.Value;
+                    } while (reader.MoveToNextAttribute());
+                }
+                else
+                    reader.ReadStartElement();
                 while (reader.NodeType == XmlNodeType.Whitespace) reader.Skip();
 
                 // 遇到下一层节点

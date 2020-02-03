@@ -103,7 +103,7 @@ namespace NewLife.Configuration
     {
         #region 属性
         /// <summary>根元素</summary>
-        public IConfigSection Root { get; } = new ConfigSection { Childs = new List<IConfigSection>() };
+        public IConfigSection Root { get; protected set; } = new ConfigSection { Childs = new List<IConfigSection>() };
 
         /// <summary>所有键</summary>
         public ICollection<String> Keys => Root.Childs.Select(e => e.Key).ToList();
@@ -191,12 +191,12 @@ namespace NewLife.Configuration
             return model;
         }
 
-        /// <summary>映射配置树到公有实例属性</summary>
-        /// <param name="source">数据源</param>
+        /// <summary>映射配置树到实例公有属性</summary>
+        /// <param name="section">数据源</param>
         /// <param name="model">模型</param>
-        protected virtual void MapTo(IConfigSection source, Object model)
+        protected virtual void MapTo(IConfigSection section, Object model)
         {
-            if (source == null || source.Childs == null || source.Childs.Count == 0) return;
+            if (section == null || section.Childs == null || section.Childs.Count == 0) return;
 
             // 反射公有实例属性
             foreach (var pi in model.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
@@ -207,32 +207,90 @@ namespace NewLife.Configuration
                 if (pi.Name.EqualIgnoreCase("ConfigFile", "IsNew")) continue;
 
                 var name = pi.Name;
-                var cfg = source.Childs?.FirstOrDefault(e => e.Key == name);
+                var cfg = section.Childs?.FirstOrDefault(e => e.Key == name);
                 if (cfg == null) continue;
 
-                // 分别处理基本类型和复杂类型
+                // 分别处理基本类型、数组类型、复杂类型
                 if (pi.PropertyType.GetTypeCode() != TypeCode.Object)
                 {
                     pi.SetValue(model, cfg.Value.ChangeType(pi.PropertyType), null);
                 }
                 else if (cfg.Childs != null)
                 {
-                    // 复杂类型需要递归处理
-                    var val = pi.GetValue(model, null);
-                    if (val == null)
+                    if (pi.PropertyType.As<IList>())
                     {
-                        // 如果有无参构造函数，则实例化一个
-                        var ctor = pi.PropertyType.GetConstructor(new Type[0]);
-                        if (ctor != null)
-                        {
-                            val = ctor.Invoke(null);
-                            pi.SetValue(model, val, null);
-                        }
+                        if (pi.PropertyType.IsArray)
+                            MapArray(cfg, model, pi);
+                        else
+                            MapList(cfg, model, pi);
                     }
+                    else
+                    {
+                        // 复杂类型需要递归处理
+                        var val = pi.GetValue(model, null);
+                        if (val == null)
+                        {
+                            // 如果有无参构造函数，则实例化一个
+                            var ctor = pi.PropertyType.GetConstructor(new Type[0]);
+                            if (ctor != null)
+                            {
+                                val = ctor.Invoke(null);
+                                pi.SetValue(model, val, null);
+                            }
+                        }
 
-                    // 递归映射
-                    if (val != null) MapTo(cfg, val);
+                        // 递归映射
+                        if (val != null) MapTo(cfg, val);
+                    }
                 }
+            }
+        }
+
+        private void MapArray(IConfigSection section, Object model, PropertyInfo pi)
+        {
+            var elementType = pi.PropertyType.GetElementTypeEx();
+
+            // 实例化数组
+            var arr = pi.GetValue(model, null) as Array;
+            if (arr == null)
+            {
+                arr = Array.CreateInstance(elementType, section.Childs.Count);
+                pi.SetValue(model, arr, null);
+            }
+
+            // 逐个映射
+            for (var i = 0; i < section.Childs.Count; i++)
+            {
+                var val = elementType.CreateInstance();
+                MapTo(section.Childs[i], val);
+                arr.SetValue(val, i);
+            }
+        }
+
+        private void MapList(IConfigSection section, Object model, PropertyInfo pi)
+        {
+            var elementType = pi.PropertyType.GetElementTypeEx();
+
+            // 实例化列表
+            var list = pi.GetValue(model, null) as IList;
+            if (list == null)
+            {
+                var obj = !pi.PropertyType.IsInterface ?
+                    pi.PropertyType.CreateInstance() :
+                    typeof(List<>).MakeGenericType(elementType).CreateInstance();
+
+                list = obj as IList;
+                if (list == null) return;
+
+                pi.SetValue(model, list, null);
+            }
+
+            // 逐个映射
+            for (var i = 0; i < section.Childs.Count; i++)
+            {
+                var val = elementType.CreateInstance();
+                MapTo(section.Childs[i], val);
+                list[i] = val;
             }
         }
 
@@ -252,7 +310,7 @@ namespace NewLife.Configuration
             return SaveAll();
         }
 
-        /// <summary>从公有实例属性映射到配置树</summary>
+        /// <summary>从实例公有属性映射到配置树</summary>
         /// <param name="section"></param>
         /// <param name="model"></param>
         protected virtual void MapFrom(IConfigSection section, Object model)
@@ -281,50 +339,45 @@ namespace NewLife.Configuration
                     cfg.Comment = att2?.DisplayName;
                 }
 
-                // 分别处理基本类型和复杂类型
+                if (val == null) continue;
+
+                // 分别处理基本类型、数组类型、复杂类型
                 if (pi.PropertyType.GetTypeCode() != TypeCode.Object)
                 {
                     // 格式化为字符串，主要处理时间日期格式
-                    if (val != null) cfg.Value = "{0}".F(val);
+                    cfg.Value = "{0}".F(val);
                 }
                 else if (pi.PropertyType.As<IList>())
                 {
-                    if (val is IList list)
-                    {
-                        // 为了避免数组元素叠加，干掉原来的
-                        section.Childs.Remove(cfg);
-                        cfg = new ConfigSection { Key = cfg.Key, Childs = new List<IConfigSection>(), Comment = cfg.Comment };
-                        section.Childs.Add(cfg);
-                        //if (cfg.Childs == null) cfg.Childs = new List<IConfigSection>();
-
-                        // 数组元素是没有key的集合
-                        foreach (var item in list)
-                        {
-                            if (item == null) continue;
-
-                            var cfg2 = new ConfigSection { Key = pi.PropertyType.GetElementType().Name };
-
-                            // 分别处理基本类型和复杂类型
-                            if (item.GetType().GetTypeCode() != TypeCode.Object)
-                            {
-                                // 格式化为字符串，主要处理时间日期格式
-                                cfg2.Value = "{0}".F(item);
-                            }
-                            else
-                            {
-                                // 递归映射
-                                MapFrom(cfg2, item);
-                            }
-
-                            cfg.Childs.Add(cfg2);
-                        }
-                    }
+                    if (val is IList list) MapArray(section, cfg, list, pi.PropertyType.GetElementTypeEx());
                 }
                 else
                 {
                     // 递归映射
-                    if (val != null) MapFrom(cfg, val);
+                    MapFrom(cfg, val);
                 }
+            }
+        }
+
+        private void MapArray(IConfigSection section, IConfigSection cfg, IList list, Type elementType)
+        {
+            // 为了避免数组元素叠加，干掉原来的
+            section.Childs.Remove(cfg);
+            cfg = new ConfigSection { Key = cfg.Key, Childs = new List<IConfigSection>(), Comment = cfg.Comment };
+            section.Childs.Add(cfg);
+
+            // 数组元素是没有key的集合
+            foreach (var item in list)
+            {
+                if (item == null) continue;
+
+                var cfg2 = cfg.AddChild(elementType.Name);
+
+                // 分别处理基本类型和复杂类型
+                if (item.GetType().GetTypeCode() != TypeCode.Object)
+                    cfg2.Value = "{0}".F(item);
+                else
+                    MapFrom(cfg2, item);
             }
         }
         #endregion
@@ -371,14 +424,11 @@ namespace NewLife.Configuration
             Register<XmlConfigProvider>("config");
         }
 
-        private static IDictionary<String, Type> _providers = new Dictionary<String, Type>(StringComparer.OrdinalIgnoreCase);
+        private static readonly IDictionary<String, Type> _providers = new Dictionary<String, Type>(StringComparer.OrdinalIgnoreCase);
         /// <summary>注册提供者</summary>
         /// <typeparam name="TProvider"></typeparam>
         /// <param name="name"></param>
-        public static void Register<TProvider>(String name) where TProvider : IConfigProvider, new()
-        {
-            _providers[name] = typeof(TProvider);
-        }
+        public static void Register<TProvider>(String name) where TProvider : IConfigProvider, new() => _providers[name] = typeof(TProvider);
 
         /// <summary>根据指定名称创建提供者</summary>
         /// <remarks>

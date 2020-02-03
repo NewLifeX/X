@@ -6,6 +6,8 @@ using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Web;
 using Xunit;
+using NewLife.Security;
+using System.Linq;
 
 namespace XUnitTest.Configuration
 {
@@ -139,11 +141,23 @@ namespace XUnitTest.Configuration
             Assert.NotNull(cfg.Items);
             Assert.Equal(8, cfg.Items.Length);
 
+            // 修改其中一项
+            var ti = cfg.Items.FirstOrDefault();
+            ti.Secret = Rand.NextString(16);
+
             cfg.Save();
 
-            var xml = File.ReadAllText(@"Config/OAuth.config".GetBasePath());
-            Assert.NotEmpty(xml);
-            Assert.DoesNotContain("<Items></Items>", xml);
+            var txt = File.ReadAllText(@"Config/OAuth.config".GetBasePath());
+            Assert.NotEmpty(txt);
+            Assert.DoesNotContain("<Items></Items>", txt);
+            Assert.Contains($"Secret=\"{ti.Secret}\"", txt);
+
+            var prv2 = new XmlConfigProvider { FileName = "Config/OAuth.config" };
+            var cfg2 = prv2.Load<OAuthConfig>();
+
+            Assert.NotNull(cfg2.Items);
+            Assert.Equal(8, cfg2.Items.Length);
+            Assert.Equal(ti.Secret, cfg2.Items[0].Secret);
         }
     }
 }

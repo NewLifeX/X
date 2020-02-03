@@ -1,8 +1,10 @@
 ﻿using System.IO;
+using System.Linq;
 using NewLife;
 using NewLife.Common;
 using NewLife.Configuration;
 using NewLife.Log;
+using NewLife.Security;
 using NewLife.Web;
 using Xunit;
 
@@ -127,6 +129,9 @@ namespace XUnitTest.Configuration
 
             // 三层
             Assert.Equal("zzz", prv["Sys:xxx:yyy"]);
+
+            // 保存
+            prv.Save(set);
         }
 
         [Fact]
@@ -139,12 +144,17 @@ namespace XUnitTest.Configuration
             Assert.NotNull(cfg.Items);
             Assert.Equal(8, cfg.Items.Length);
 
+            // 修改其中一项
+            var ti = cfg.Items.FirstOrDefault();
+            ti.Secret = Rand.NextString(16);
+
             //cfg.Save();
             prv.Save(cfg);
 
-            var json = File.ReadAllText(@"Config/OAuth.json".GetBasePath());
-            Assert.NotEmpty(json);
-            Assert.DoesNotContain("Items: []", json);
+            var txt = File.ReadAllText(@"Config/OAuth.json".GetBasePath());
+            Assert.NotEmpty(txt);
+            Assert.DoesNotContain("Items: []", txt);
+            Assert.Contains($"\"Secret\": \"{ti.Secret}\"", txt);
         }
     }
 }

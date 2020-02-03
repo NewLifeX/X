@@ -75,7 +75,7 @@ namespace NewLife.Configuration
         }
 
         #region 辅助
-        /// <summary>多层字典映射为一层</summary>
+        /// <summary>字典映射到配置树</summary>
         /// <param name="src"></param>
         /// <param name="section"></param>
         protected virtual void Map(IDictionary<String, Object> src, IConfigSection section)
@@ -97,7 +97,7 @@ namespace NewLife.Configuration
             }
         }
 
-        /// <summary>一层字典映射为多层</summary>
+        /// <summary>配置树映射到字典</summary>
         /// <param name="section"></param>
         /// <param name="dst"></param>
         protected virtual void Map(IConfigSection section, IDictionary<String, Object> dst)
