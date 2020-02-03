@@ -16,7 +16,7 @@ namespace XUnitTest.XCode.Membership
         {
             var url = "http://www.mca.gov.cn/article/sj/xzqh/2019/2019/201912251506.html";
             var file = "area.html".GetFullPath();
-            if (!File.Exists(file))
+            //if (!File.Exists(file))
             {
                 var http = new HttpClient();
                 await http.DownloadFileAsync(url, file);
@@ -56,6 +56,11 @@ namespace XUnitTest.XCode.Membership
             r = Area.Find(_.Name == "广西");
             Assert.NotNull(r);
             Assert.Equal("广西壮族自治区", r.FullName);
+
+            r = Area.Find(_.Name == "仙桃");
+            Assert.NotNull(r);
+            Assert.NotNull(r.Parent);
+            Assert.Equal("湖北", r.Parent.Name);
         }
 
         [Fact]

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using NewLife.Collections;
@@ -79,30 +78,24 @@ namespace XCode.Membership
 
         /// <summary>所有父级</summary>
         [XmlIgnore, ScriptIgnore]
-        public IList<Area> AllParents
-        {
-            get
-            {
-                return Extends.Get(nameof(AllParents), k =>
-                {
-                    var list = new List<Area>();
-                    var entity = Parent;
-                    while (entity != null)
-                    {
-                        if (list.Contains(entity)) break;
+        public IList<Area> AllParents => Extends.Get(nameof(AllParents), k =>
+                                                       {
+                                                           var list = new List<Area>();
+                                                           var entity = Parent;
+                                                           while (entity != null)
+                                                           {
+                                                               if (list.Contains(entity)) break;
 
-                        list.Add(entity);
+                                                               list.Add(entity);
 
-                        entity = entity.Parent;
-                    }
+                                                               entity = entity.Parent;
+                                                           }
 
-                    // 倒序
-                    list.Reverse();
+                                                           // 倒序
+                                                           list.Reverse();
 
-                    return list;
-                });
-            }
-        }
+                                                           return list;
+                                                       });
 
         /// <summary>父级路径</summary>
         [XmlIgnore, ScriptIgnore]
@@ -132,22 +125,16 @@ namespace XCode.Membership
 
         /// <summary>子孙级区域。支持省市区，不支持乡镇街道</summary>
         [XmlIgnore, ScriptIgnore]
-        public IList<Area> AllChilds
-        {
-            get
-            {
-                return Extends.Get(nameof(AllChilds), k =>
-                {
-                    var list = new List<Area>();
-                    foreach (var item in Childs)
-                    {
-                        list.Add(item);
-                        if (item.ID % 100 == 0) list.AddRange(item.AllChilds);
-                    }
-                    return list;
-                });
-            }
-        }
+        public IList<Area> AllChilds => Extends.Get(nameof(AllChilds), k =>
+                                                      {
+                                                          var list = new List<Area>();
+                                                          foreach (var item in Childs)
+                                                          {
+                                                              list.Add(item);
+                                                              if (item.ID % 100 == 0) list.AddRange(item.AllChilds);
+                                                          }
+                                                          return list;
+                                                      });
         #endregion
 
         #region 扩展查询
@@ -507,11 +494,13 @@ namespace XCode.Membership
         /// <returns></returns>
         public static Int32 ParseAndSave(String html)
         {
+            var all = Parse(html).ToList();
+
             // 预备好所有三级数据
             var list = FindAll(_.ID > 10_00_00 & _.ID < 99_99_99);
 
             var rs = new List<Area>();
-            foreach (var item in Parse(html))
+            foreach (var item in all)
             {
                 // 查找是否已存在
                 var r = list.Find(e => e.ID == item.ID);
@@ -529,6 +518,25 @@ namespace XCode.Membership
                         pid = item.ID - (item.ID % 10000);
                     else if (item.ID <= 99_99_99)
                         pid = item.ID - (item.ID % 100);
+
+                    // 部分区县由省直管，中间没有第二级
+                    if (!list.Any(e => e.ID == pid) && !all.Any(e => e.ID == pid))
+                    {
+                        //pid = item.ID - (item.ID % 10000);
+                        r.FixLevel();
+                        for (var i = r.Level - 1; i >= 1; i--)
+                        {
+                            var str = item.ID.ToString();
+                            str = str.Substring(0, 2 * i);
+                            if (i < 3) str += new String('0', 6 - 2 * i);
+                            var id = str.ToInt();
+                            if (list.Any(e => e.ID == pid) || all.Any(e => e.ID == id))
+                            {
+                                pid = id;
+                                break;
+                            }
+                        }
+                    }
 
                     r.ParentID = pid;
                     r.Enable = true;
@@ -565,7 +573,7 @@ namespace XCode.Membership
         #endregion
 
         #region 大区
-        private static Dictionary<String, String[]> _big = new Dictionary<String, String[]>
+        private static readonly Dictionary<String, String[]> _big = new Dictionary<String, String[]>
         {
             { "华北", new[]{ "北京", "天津", "河北", "山西", "内蒙古" } },
             { "东北", new[]{ "辽宁", "吉林", "黑龙江" } },
@@ -606,7 +614,7 @@ namespace XCode.Membership
                 Level = 4;
         }
 
-        private static String[] minzu = new String[] { "汉族", "壮族", "满族", "回族", "苗族", "维吾尔族", "土家族", "彝族", "蒙古族", "藏族", "布依族", "侗族", "瑶族", "朝鲜族", "白族", "哈尼族", "哈萨克族", "黎族", "傣族", "畲族", "傈僳族", "仡佬族", "东乡族", "高山族", "拉祜族", "水族", "佤族", "纳西族", "羌族", "土族", "仫佬族", "锡伯族", "柯尔克孜族", "达斡尔族", "景颇族", "毛南族", "撒拉族", "布朗族", "塔吉克族", "阿昌族", "普米族", "鄂温克族", "怒族", "京族", "基诺族", "德昂族", "保安族", "俄罗斯族", "裕固族", "乌孜别克族", "门巴族", "鄂伦春族", "独龙族", "塔塔尔族", "赫哲族", "珞巴族" };
+        private static readonly String[] minzu = new String[] { "汉族", "壮族", "满族", "回族", "苗族", "维吾尔族", "土家族", "彝族", "蒙古族", "藏族", "布依族", "侗族", "瑶族", "朝鲜族", "白族", "哈尼族", "哈萨克族", "黎族", "傣族", "畲族", "傈僳族", "仡佬族", "东乡族", "高山族", "拉祜族", "水族", "佤族", "纳西族", "羌族", "土族", "仫佬族", "锡伯族", "柯尔克孜族", "达斡尔族", "景颇族", "毛南族", "撒拉族", "布朗族", "塔吉克族", "阿昌族", "普米族", "鄂温克族", "怒族", "京族", "基诺族", "德昂族", "保安族", "俄罗斯族", "裕固族", "乌孜别克族", "门巴族", "鄂伦春族", "独龙族", "塔塔尔族", "赫哲族", "珞巴族" };
 
         /// <summary>修正名称</summary>
         public void FixName()
