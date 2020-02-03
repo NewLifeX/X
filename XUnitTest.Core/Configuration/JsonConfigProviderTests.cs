@@ -154,16 +154,18 @@ namespace XUnitTest.Configuration
             //cfg.Save();
             prv.Save(cfg);
 
-            var txt = File.ReadAllText(@"Config/OAuth.json".GetBasePath());
+            var txt = File.ReadAllText(prv.FileName.GetBasePath());
             Assert.NotEmpty(txt);
             Assert.DoesNotContain("Items: []", txt);
             Assert.Contains($"\"Secret\": \"{ti.Secret}\"", txt);
+            Assert.Contains("{ \"Name\": \"Baidu\", \"Server\": null, \"AccessServer\": null, \"AppID\": null, \"Secret\": null, \"Scope\": null },", txt);
 
             var prv2 = new JsonConfigProvider { FileName = prv.FileName };
             var cfg2 = prv2.Load<OAuthConfig>();
 
             Assert.NotNull(cfg2);
             Assert.NotNull(cfg2.Items);
+            Assert.Equal(8, cfg2.Items.Length);
             Assert.Equal(ti.Secret, cfg2.Items[0].Secret);
         }
     }

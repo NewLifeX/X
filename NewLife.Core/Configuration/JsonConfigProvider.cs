@@ -89,9 +89,23 @@ namespace NewLife.Configuration
                 var cname = "#" + name;
                 if (src.TryGetValue(cname, out var comment) && comment != null) cfg.Comment = comment + "";
 
-                // 仅支持内层字典，不支持内层数组
+                // 支持字典
                 if (item.Value is IDictionary<String, Object> dic)
                     Map(dic, cfg);
+                else if (item.Value is IList<Object> list)
+                {
+                    // 数组处理
+                    cfg.Childs = new List<IConfigSection>();
+                    foreach (var elm in list)
+                    {
+                        if (elm is IDictionary<String, Object> dic2)
+                        {
+                            var cfg2 = new ConfigSection();
+                            Map(dic2, cfg2);
+                            cfg.Childs.Add(cfg2);
+                        }
+                    }
+                }
                 else
                     cfg.SetValue(item.Value);
             }

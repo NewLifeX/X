@@ -139,7 +139,11 @@ namespace XUnitTest.Configuration
         [Fact]
         public void ArrayTest()
         {
-            var cfg = OAuthConfig.Current;
+            var prv = new XmlConfigProvider { FileName = "Config/OAuth.xml" };
+
+            //var cfg = OAuthConfig.Current;
+            var cfg = new OAuthConfig();
+            cfg.Invoke("OnLoaded");
 
             Assert.NotNull(cfg.Items);
             Assert.Equal(8, cfg.Items.Length);
@@ -148,16 +152,19 @@ namespace XUnitTest.Configuration
             var ti = cfg.Items.FirstOrDefault();
             ti.Secret = Rand.NextString(16);
 
-            cfg.Save();
+            //cfg.Save();
+            prv.Save(cfg);
 
-            var txt = File.ReadAllText(@"Config/OAuth.config".GetBasePath());
+            var txt = File.ReadAllText(prv.FileName.GetBasePath());
             Assert.NotEmpty(txt);
             Assert.DoesNotContain("<Items></Items>", txt);
             Assert.Contains($"Secret=\"{ti.Secret}\"", txt);
+            Assert.Contains("<OAuthItem Name=\"Baidu\" Server=\"\" AccessServer=\"\" AppID=\"\" Secret=\"\" Scope=\"\" />", txt);
 
-            var prv2 = new XmlConfigProvider { FileName = "Config/OAuth.config" };
+            var prv2 = new XmlConfigProvider { FileName = prv.FileName };
             var cfg2 = prv2.Load<OAuthConfig>();
 
+            Assert.NotNull(cfg2.Items);
             Assert.NotNull(cfg2.Items);
             Assert.Equal(8, cfg2.Items.Length);
             Assert.Equal(ti.Secret, cfg2.Items[0].Secret);
