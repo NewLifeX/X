@@ -116,6 +116,10 @@ namespace Test
 
             json = db.ToJson();
             XTrace.WriteLine(json);
+
+            db = dal.Query("select id,name,enable 启用 from role");
+            json = db.ToJson(true, false, true);
+            XTrace.WriteLine(json);
         }
 
         static void Test3()

@@ -234,13 +234,14 @@ namespace NewLife.Serialization
             if (!_cirobj.TryGetValue(obj, out _)) _cirobj.Add(obj, _cirobj.Count + 1);
 
             _Builder.Append('{');
-            WriteLeftIndent();
+            //WriteLeftIndent();
 
             _depth++;
             if (_depth > MaxDepth) throw new Exception("超过了序列化最大深度 " + MaxDepth);
 
             var t = obj.GetType();
 
+            var forceIndent = false;
             var first = true;
             foreach (var pi in t.GetProperties(true))
             {
@@ -249,10 +250,16 @@ namespace NewLife.Serialization
                 var value = obj.GetValue(pi);
                 if (!IgnoreNullValues || !IsNull(value))
                 {
-                    if (!first)
+                    // 缩进，复杂对象要求强制换行
+                    forceIndent = value != null && value.GetType().GetTypeCode() == TypeCode.Object;
+                    if (first)
+                    {
+                        WriteLeftIndent(forceIndent);
+                    }
+                    else
                     {
                         _Builder.Append(',');
-                        WriteIndent();
+                        WriteIndent(forceIndent);
                     }
                     first = false;
 
@@ -273,7 +280,7 @@ namespace NewLife.Serialization
                 }
             }
 
-            WriteRightIndent();
+            WriteRightIndent(forceIndent);
             _Builder.Append('}');
             _depth--;
         }
@@ -302,39 +309,53 @@ namespace NewLife.Serialization
         private void WriteArray(IEnumerable arr)
         {
             _Builder.Append('[');
-            WriteLeftIndent();
+            //WriteLeftIndent();
 
+            var forceIndent = false;
             var first = true;
             foreach (var obj in arr)
             {
-                if (!first)
+                // 缩进，复杂对象要求强制换行
+                forceIndent = obj != null && obj.GetType().GetTypeCode() == TypeCode.Object;
+                if (first)
+                {
+                    WriteLeftIndent(forceIndent);
+                }
+                else
                 {
                     _Builder.Append(',');
-                    WriteIndent();
+                    WriteIndent(forceIndent);
                 }
                 first = false;
 
                 WriteValue(obj);
             }
 
-            WriteRightIndent();
+            WriteRightIndent(forceIndent);
             _Builder.Append(']');
         }
 
         private void WriteStringDictionary(IDictionary dic)
         {
             _Builder.Append('{');
-            WriteLeftIndent();
+            //WriteLeftIndent();
 
+            var forceIndent = false;
             var first = true;
             foreach (DictionaryEntry item in dic)
             {
                 if (!IgnoreNullValues || !IsNull(item.Value))
                 {
-                    if (!first)
+                    // 缩进，复杂对象要求强制换行
+                    forceIndent = item.Value != null && item.Value.GetType().GetTypeCode() == TypeCode.Object;
+                    if (first)
+                    {
+                        WriteLeftIndent(forceIndent);
+                    }
+                    else
                     {
                         _Builder.Append(',');
-                        WriteIndent();
+                        WriteIndent(forceIndent);
                     }
                     first = false;
 
@@ -343,15 +364,16 @@ namespace NewLife.Serialization
                 }
             }
 
-            WriteRightIndent();
+            WriteRightIndent(forceIndent);
             _Builder.Append('}');
         }
 
         private void WriteStringDictionary(IDictionary<String, Object> dic)
         {
             _Builder.Append('{');
-            WriteLeftIndent();
+            //WriteLeftIndent();
 
+            var forceIndent = false;
             var first = true;
             foreach (var item in dic)
             {
@@ -360,10 +382,16 @@ namespace NewLife.Serialization
 
                 if (!IgnoreNullValues || !IsNull(item.Value))
                 {
-                    if (!first)
+                    // 缩进，复杂对象要求强制换行
+                    forceIndent = item.Value != null && item.Value.GetType().GetTypeCode() == TypeCode.Object;
+                    if (first)
+                    {
+                        WriteLeftIndent(forceIndent);
+                    }
+                    else
                     {
                         _Builder.Append(',');
-                        WriteIndent();
+                        WriteIndent(forceIndent);
                     }
                     first = false;
 
@@ -382,7 +410,7 @@ namespace NewLife.Serialization
                 }
             }
 
-            WriteRightIndent();
+            WriteRightIndent(forceIndent);
             _Builder.Append('}');
         }
 
@@ -475,7 +503,11 @@ namespace NewLife.Serialization
             if (name.IsNullOrEmpty()) return name;
 
             if (LowerCase) return name.ToLower();
-            if (CamelCase) return name.Substring(0, 1).ToLower() + name.Substring(1);
+            if (CamelCase)
+            {
+                if (name == "ID") return "id";
+                return name.Substring(0, 1).ToLower() + name.Substring(1);
+            }
 
             return name;
         }
@@ -522,11 +554,11 @@ namespace NewLife.Serialization
         /// <summary>当前缩进层级</summary>
         private Int32 _level;
 
-        private void WriteIndent()
+        private void WriteIndent(Boolean forceIndent = false)
         {
             if (!Indented) return;
 
-            if (SmartIndented && _level > 1)
+            if (SmartIndented && _level > 1 && !forceIndent)
                 _Builder.Append(' ');
             else
             {
@@ -535,12 +567,13 @@ namespace NewLife.Serialization
             }
         }
 
-        private void WriteLeftIndent()
+        private void WriteLeftIndent(Boolean forceIndent = false)
         {
             if (!Indented) return;
 
+            // 第二层开始
             _level++;
-            if (SmartIndented && _level > 1)
+            if (SmartIndented && _level > 1 && !forceIndent)
                 _Builder.Append(' ');
             else
             {
@@ -549,12 +582,13 @@ namespace NewLife.Serialization
             }
         }
 
-        private void WriteRightIndent()
+        private void WriteRightIndent(Boolean forceIndent = false)
         {
             if (!Indented) return;
 
+            // 第二层开始
             _level--;
-            if (SmartIndented && _level > 1)
+            if (SmartIndented && _level >= 1 && !forceIndent)
                 _Builder.Append(' ');
             else
             {
