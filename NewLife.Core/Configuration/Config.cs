@@ -74,7 +74,7 @@ namespace NewLife.Configuration
                     if (!prv.LoadAll())
                     {
                         XTrace.WriteLine("初始化{0}的配置 {1}", typeof(TConfig).FullName, prv);
-                        prv.Save(config);
+                        //prv.Save(config);
                     }
 
                     // 绑定提供者数据到配置对象
