@@ -11,8 +11,8 @@ namespace XCode.Membership
     [Serializable]
     [DataObject]
     [Description("日志")]
-    [BindIndex("IX_Log_Category", false, "Category")]
-    [BindIndex("IX_Log_CreateUserID", false, "CreateUserID")]
+    [BindIndex("IX_Log_Category_CreateTime", false, "Category,CreateTime")]
+    [BindIndex("IX_Log_CreateUserID_CreateTime", false, "CreateUserID,CreateTime")]
     [BindIndex("IX_Log_CreateTime", false, "CreateTime")]
     [BindTable("Log", Description = "日志", ConnName = "Log", DbType = DatabaseType.None)]
     public partial class Log<TEntity> : ILog

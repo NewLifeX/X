@@ -182,9 +182,6 @@ namespace XCode.Membership
             if (visible != null) exp &= _.Visible == visible.Value;
             if (!key.IsNullOrEmpty()) exp &= _.Code.StartsWith(key) | _.Name.StartsWith(key) | _.FullName.StartsWith(key);
 
-            // 默认排序
-            if (page.Sort.IsNullOrEmpty()) page.Sort = _.Name;
-
             return FindAll(exp, page);
         }
         #endregion

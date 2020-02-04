@@ -265,9 +265,6 @@ namespace XCode.Membership
             exp &= _.LastLogin.Between(start, end);
             if (!key.IsNullOrEmpty()) exp &= _.Code.StartsWith(key) | _.Name.StartsWith(key) | _.DisplayName.StartsWith(key) | _.Mobile.StartsWith(key) | _.Mail.StartsWith(key);
 
-            // 默认排序
-            if (page.Sort.IsNullOrEmpty()) page.Sort = _.Name;
-
             return FindAll(exp, page);
         }
         #endregion

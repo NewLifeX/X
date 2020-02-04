@@ -11,7 +11,7 @@ namespace XCode.Membership
     [Serializable]
     [DataObject]
     [Description("字典参数")]
-    [BindIndex("IU_Parameter_Category_Name", true, "Category,Name")]
+    [BindIndex("IU_Parameter_UserID_Category_Name", true, "UserID,Category,Name")]
     [BindIndex("IX_Parameter_Name", false, "Name")]
     [BindIndex("IX_Parameter_UpdateTime", false, "UpdateTime")]
     [BindTable("Parameter", Description = "字典参数", ConnName = "Membership", DbType = DatabaseType.None)]
@@ -25,6 +25,14 @@ namespace XCode.Membership
         [DataObjectField(true, true, false, 0)]
         [BindColumn("ID", "编号", "")]
         public Int32 ID { get { return _ID; } set { if (OnPropertyChanging(__.ID, value)) { _ID = value; OnPropertyChanged(__.ID); } } }
+
+        private Int32 _UserID;
+        /// <summary>用户。按用户区分参数，用户0表示系统级</summary>
+        [DisplayName("用户")]
+        [Description("用户。按用户区分参数，用户0表示系统级")]
+        [DataObjectField(false, false, false, 0)]
+        [BindColumn("UserID", "用户。按用户区分参数，用户0表示系统级", "")]
+        public Int32 UserID { get { return _UserID; } set { if (OnPropertyChanging(__.UserID, value)) { _UserID = value; OnPropertyChanged(__.UserID); } } }
 
         private String _Category;
         /// <summary>类别</summary>
@@ -206,6 +214,7 @@ namespace XCode.Membership
                 switch (name)
                 {
                     case __.ID : return _ID;
+                    case __.UserID : return _UserID;
                     case __.Category : return _Category;
                     case __.Name : return _Name;
                     case __.Value : return _Value;
@@ -235,6 +244,7 @@ namespace XCode.Membership
                 switch (name)
                 {
                     case __.ID : _ID = value.ToInt(); break;
+                    case __.UserID : _UserID = value.ToInt(); break;
                     case __.Category : _Category = Convert.ToString(value); break;
                     case __.Name : _Name = Convert.ToString(value); break;
                     case __.Value : _Value = Convert.ToString(value); break;
@@ -268,6 +278,9 @@ namespace XCode.Membership
         {
             /// <summary>编号</summary>
             public static readonly Field ID = FindByName(__.ID);
+
+            /// <summary>用户。按用户区分参数，用户0表示系统级</summary>
+            public static readonly Field UserID = FindByName(__.UserID);
 
             /// <summary>类别</summary>
             public static readonly Field Category = FindByName(__.Category);
@@ -341,6 +354,9 @@ namespace XCode.Membership
             /// <summary>编号</summary>
             public const String ID = "ID";
 
+            /// <summary>用户。按用户区分参数，用户0表示系统级</summary>
+            public const String UserID = "UserID";
+
             /// <summary>类别</summary>
             public const String Category = "Category";
 
@@ -413,6 +429,9 @@ namespace XCode.Membership
         #region 属性
         /// <summary>编号</summary>
         Int32 ID { get; set; }
+
+        /// <summary>用户。按用户区分参数，用户0表示系统级</summary>
+        Int32 UserID { get; set; }
 
         /// <summary>类别</summary>
         String Category { get; set; }

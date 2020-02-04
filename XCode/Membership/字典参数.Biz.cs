@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using NewLife.Collections;
+using NewLife.Data;
 using NewLife.Reflection;
 using XCode;
 
@@ -91,31 +92,36 @@ namespace XCode.Membership
             return Find(_.ID == id);
         }
 
-        /// <summary>根据类别、名称查找</summary>
-        /// <param name="category">类别</param>
-        /// <param name="name">名称</param>
-        /// <returns>实体对象</returns>
-        public static Parameter FindByCategoryAndName(String category, String name)
-        {
-            // 实体缓存
-            if (Meta.Session.Count < 1000) return Meta.Cache.Find(e => e.Category == category && e.Name == name);
-
-            return Find(_.Category == category & _.Name == name);
-        }
-
-        /// <summary>根据名称查找</summary>
-        /// <param name="name">名称</param>
+        /// <summary>根据用户查找</summary>
+        /// <param name="userId">用户</param>
         /// <returns>实体列表</returns>
-        public static IList<Parameter> FindAllByName(String name)
+        public static IList<Parameter> FindAllByUserID(Int32 userId)
         {
             // 实体缓存
-            if (Meta.Session.Count < 1000) return Meta.Cache.FindAll(e => e.Name == name);
+            if (Meta.Session.Count < 1000) return Meta.Cache.FindAll(e => e.UserID == userId);
 
-            return FindAll(_.Name == name);
+            return FindAll(_.UserID == userId);
         }
         #endregion
 
         #region 高级查询
+        /// <summary>高级搜索</summary>
+        /// <param name="userId"></param>
+        /// <param name="category"></param>
+        /// <param name="enable"></param>
+        /// <param name="key"></param>
+        /// <param name="page"></param>
+        /// <returns></returns>
+        public static IList<Parameter> Search(Int32 userId, String category, Boolean? enable, String key, PageParameter page)
+        {
+            var exp = new WhereExpression();
+            if (userId >= 0) exp &= _.UserID == userId;
+            if (!category.IsNullOrEmpty()) exp &= _.Category == category;
+            if (enable != null) exp &= _.Enable == enable.Value;
+            if (!key.IsNullOrEmpty()) exp &= _.Name.Contains(key) | _.Value.Contains(key);
+
+            return FindAll(exp, page);
+        }
         #endregion
 
         #region 业务操作

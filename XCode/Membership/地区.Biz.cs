@@ -289,9 +289,6 @@ namespace XCode.Membership
             if (idend > 0) exp &= _.ID <= idend;
             if (enable != null) exp &= _.Enable == enable;
 
-            // 默认排序
-            if (page.Sort.IsNullOrEmpty()) page.Sort = __.Level;
-
             if (!key.IsNullOrEmpty())
             {
                 var exp2 = _.Name.StartsWith(key) | _.FullName.StartsWith(key);
