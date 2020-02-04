@@ -12,6 +12,10 @@ using NewLife.Threading;
 namespace XCode.Membership
 {
     /// <summary>地区。行政区划数据</summary>
+    /// <remarks>
+    /// 民政局 http://www.mca.gov.cn/article/sj/xzqh/2019/2019/201912251506.html
+    /// 统计局 http://www.stats.gov.cn/tjsj/tjbz/tjyqhdmhcxhfdm/2018/index.html
+    /// </remarks>
     [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
     public partial class Area : Entity<Area>
     {
