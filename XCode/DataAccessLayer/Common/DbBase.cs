@@ -892,27 +892,15 @@ namespace XCode.DataAccessLayer
 
         protected static String ResolveFile(String file)
         {
-            if (String.IsNullOrEmpty(file)) return file;
+            if (file.IsNullOrEmpty()) return file;
 
-            file = file.Replace("|DataDirectory|", @"~\App_Data");
+            var cfg = NewLife.Setting.Current;
+            file = file.Replace("|DataDirectory|", cfg.DataPath);
+            file = file.Replace(@"~\App_Data", cfg.DataPath);
+            file = file.TrimStart("~");
 
-            var sep = Path.DirectorySeparatorChar + "";
-            var sep2 = sep == "/" ? "\\" : "/";
-            var bpath = AppDomain.CurrentDomain.BaseDirectory.EnsureEnd(sep);
-            if (file.StartsWith("~" + sep) || file.StartsWith("~" + sep2))
-            {
-                file = file.Replace(sep2, sep).Replace("~" + sep, bpath);
-            }
-            else if (file.StartsWith("." + sep) || file.StartsWith("." + sep2))
-            {
-                file = file.Replace(sep2, sep).Replace("." + sep, bpath);
-            }
-            else if (!Path.IsPathRooted(file))
-            {
-                file = bpath.CombinePath(file.Replace(sep2, sep));
-            }
             // 过滤掉不必要的符号
-            file = new FileInfo(file).FullName;
+            file = new FileInfo(file.GetBasePath()).FullName;
 
             return file;
         }
