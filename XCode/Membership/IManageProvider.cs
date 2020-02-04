@@ -1,13 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Principal;
-using System.Text;
 using System.Threading;
-using System.Web;
-using NewLife.Common;
 using NewLife.Model;
-using NewLife.Web;
 using XCode.Model;
 
 namespace XCode.Membership
@@ -144,10 +137,7 @@ namespace XCode.Membership
         }
 
         /// <summary>注销</summary>
-        public virtual void Logout()
-        {
-            Current = null;
-        }
+        public virtual void Logout() => Current = null;
 
         /// <summary>注册用户</summary>
         /// <param name="name">用户名</param>
