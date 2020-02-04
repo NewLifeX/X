@@ -47,6 +47,7 @@ namespace XUnitTest.Remoting
         [InlineData("Get", "api/info")]
         [InlineData("Post", "api/info")]
         [InlineData("Put", "api/info")]
+        [InlineData("Get", null)]
         public void BuildRequestTest(String method, String action)
         {
             // 基础建立请求，无参数
@@ -55,7 +56,7 @@ namespace XUnitTest.Remoting
 
             Assert.NotNull(request);
             Assert.Equal(md, request.Method);
-            Assert.Equal(action, request.RequestUri + "");
+            Assert.Equal(action, request.RequestUri?.ToString());
             Assert.Null(request.Content);
         }
 
