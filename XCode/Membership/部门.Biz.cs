@@ -4,9 +4,11 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
+using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using NewLife;
 using NewLife.Data;
@@ -103,6 +105,13 @@ namespace XCode.Membership
         #endregion
 
         #region 扩展属性
+        /// <summary>管理者</summary>
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
+        public UserX Manager => Extends.Get(nameof(Manager), k => UserX.FindByID(ManagerID));
+
+        /// <summary>管理者</summary>
+        [Map(__.ManagerID, typeof(UserX), __.ID)]
+        public String ManagerName => Manager?.ToString();
         #endregion
 
         #region 扩展查询
@@ -158,6 +167,26 @@ namespace XCode.Membership
         #endregion
 
         #region 高级查询
+        /// <summary>高级搜索</summary>
+        /// <param name="parentId"></param>
+        /// <param name="enable"></param>
+        /// <param name="visible"></param>
+        /// <param name="key"></param>
+        /// <param name="page"></param>
+        /// <returns></returns>
+        public static IList<TEntity> Search(Int32 parentId, Boolean? enable, Boolean? visible, String key, PageParameter page)
+        {
+            var exp = new WhereExpression();
+            if (parentId >= 0) exp &= _.ParentID == parentId;
+            if (enable != null) exp &= _.Enable == enable.Value;
+            if (visible != null) exp &= _.Visible == visible.Value;
+            if (!key.IsNullOrEmpty()) exp &= _.Code.StartsWith(key) | _.Name.StartsWith(key) | _.FullName.StartsWith(key);
+
+            // 默认排序
+            if (page.Sort.IsNullOrEmpty()) page.Sort = _.Name;
+
+            return FindAll(exp, page);
+        }
         #endregion
 
         #region 业务操作

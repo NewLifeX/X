@@ -142,7 +142,7 @@ namespace XCode.Membership
 
         /// <summary>部门</summary>
         [Map(__.DepartmentID, typeof(Department), __.ID)]
-        public String DepartmentName => Department + "";
+        public String DepartmentName => Department?.ToString();
         #endregion
 
         #region 扩展查询
@@ -245,6 +245,30 @@ namespace XCode.Membership
             }
 
             return FindAll(exp, p);
+        }
+
+        /// <summary>高级搜索</summary>
+        /// <param name="roleId">角色</param>
+        /// <param name="departmentId">部门</param>
+        /// <param name="enable">启用</param>
+        /// <param name="start">登录时间开始</param>
+        /// <param name="end">登录时间结束</param>
+        /// <param name="key">关键字，搜索代码、名称、昵称、手机、邮箱</param>
+        /// <param name="page"></param>
+        /// <returns></returns>
+        public static IList<TEntity> Search(Int32 roleId, Int32 departmentId, Boolean? enable, DateTime start, DateTime end, String key, PageParameter page)
+        {
+            var exp = new WhereExpression();
+            if (roleId >= 0) exp &= _.RoleID == roleId | _.RoleIDs.Contains("," + roleId + ",");
+            if (departmentId >= 0) exp &= _.DepartmentID == departmentId;
+            if (enable != null) exp &= _.Enable == enable.Value;
+            exp &= _.LastLogin.Between(start, end);
+            if (!key.IsNullOrEmpty()) exp &= _.Code.StartsWith(key) | _.Name.StartsWith(key) | _.DisplayName.StartsWith(key) | _.Mobile.StartsWith(key) | _.Mail.StartsWith(key);
+
+            // 默认排序
+            if (page.Sort.IsNullOrEmpty()) page.Sort = _.Name;
+
+            return FindAll(exp, page);
         }
         #endregion
 
