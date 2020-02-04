@@ -126,13 +126,12 @@ namespace XCode.Membership
         #endregion
 
         #region 扩展属性
-        /// <summary>友好名字</summary>
-        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
-        public virtual String FriendName => String.IsNullOrEmpty(DisplayName) ? Name : DisplayName;
+        ///// <summary>友好名字</summary>
+        //[XmlIgnore, ScriptIgnore, IgnoreDataMember]
+        //public virtual String FriendName => DisplayName.IsNullOrEmpty() ? Name : DisplayName;
 
         /// <summary>物理地址</summary>
         [DisplayName("物理地址")]
-        //[BindRelation(__.LastLoginIP)]
         [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public String LastLoginAddress => LastLoginIP.IPToAddress();
 
@@ -142,6 +141,7 @@ namespace XCode.Membership
 
         /// <summary>部门</summary>
         [Map(__.DepartmentID, typeof(Department), __.ID)]
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public String DepartmentName => Department?.ToString();
         #endregion
 
@@ -302,7 +302,7 @@ namespace XCode.Membership
 
         /// <summary>已重载。显示友好名字</summary>
         /// <returns></returns>
-        public override String ToString() => FriendName;
+        public override String ToString() => DisplayName.IsNullOrEmpty() ? Name : DisplayName;
         #endregion
 
         #region 业务
@@ -547,8 +547,8 @@ namespace XCode.Membership
 
     public partial interface IUser
     {
-        /// <summary>友好名字</summary>
-        String FriendName { get; }
+        ///// <summary>友好名字</summary>
+        //String FriendName { get; }
 
         /// <summary>角色</summary>
         IRole Role { get; }
