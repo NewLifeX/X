@@ -58,6 +58,9 @@ namespace NewLife.Web
         /// <summary>统一标识</summary>
         public String OpenID { get; set; }
 
+        /// <summary>企业级标识</summary>
+        public String UnionID { get; set; }
+
         /// <summary>过期时间</summary>
         public DateTime Expire { get; set; }
 
