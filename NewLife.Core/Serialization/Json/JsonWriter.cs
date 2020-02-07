@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 using NewLife.Reflection;
 
@@ -133,10 +134,13 @@ namespace NewLife.Serialization
             else if (obj is NameValueCollection)
                 WriteNV((NameValueCollection)obj);
 
-            //else if (obj.GetType().IsArray)
-            //    WriteArray((IEnumerable)obj);
+            // 列表、数组
             else if (obj is IList list)
                 WriteArray(list);
+
+            // Linq产生的枚举
+            else if (obj is IEnumerable arr && obj.GetType().Assembly == typeof(Enumerable).Assembly)
+                WriteArray(arr);
 
             else if (obj is Enum)
             {

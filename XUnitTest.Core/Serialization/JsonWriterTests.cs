@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using NewLife.Data;
 using NewLife.Log;
 using NewLife.Serialization;
 using Xunit;
@@ -189,6 +189,38 @@ namespace XUnitTest.Serialization
                 Assert.Equal(5, dic["Level"]);
                 Assert.Equal((Int32)LogLevel.Fatal, dic["Level"].ToInt());
             }
+        }
+
+        [Fact]
+        public void ArrayTest()
+        {
+            var arr = new[] { 12, 34, 56, 78 };
+            var str = JsonWriter.ToJson(arr);
+            Assert.Equal("[12,34,56,78]", str);
+        }
+
+        [Fact]
+        public void Array_匿名()
+        {
+            var arr = new[] { 12, 34, 56, 78 };
+            var str = JsonWriter.ToJson(arr.Select(e => e + 100));
+            Assert.Equal("[112,134,156,178]", str);
+        }
+
+        [Fact]
+        public void Array_DbTable()
+        {
+            var dt = new DbTable
+            {
+                Columns = new[] { "id1", "id1", "id1", "id1" },
+                Rows = new List<Object[]>(),
+                Total = 1234,
+            };
+            dt.Rows.Add(new Object[] { 12, 34, 56, 78 });
+            dt.Rows.Add(new Object[] { 87, 65, 43, 32 });
+
+            var str = JsonWriter.ToJson(dt);
+            Assert.Equal("{\"Columns\":[\"id1\",\"id1\",\"id1\",\"id1\"],\"Rows\":[[12,34,56,78],[87,65,43,32]],\"Total\":1234}", str);
         }
     }
 }
