@@ -47,22 +47,22 @@ namespace NewLife.Web
 
         #region 返回参数
         /// <summary>授权码</summary>
-        public String Code { get; private set; }
+        public String Code { get; set; }
 
         /// <summary>访问令牌</summary>
-        public String AccessToken { get; private set; }
+        public String AccessToken { get; set; }
 
         /// <summary>刷新令牌</summary>
-        public String RefreshToken { get; private set; }
+        public String RefreshToken { get; set; }
 
         /// <summary>统一标识</summary>
-        public String OpenID { get; private set; }
+        public String OpenID { get; set; }
 
         /// <summary>过期时间</summary>
-        public DateTime Expire { get; private set; }
+        public DateTime Expire { get; set; }
 
         /// <summary>访问项</summary>
-        public IDictionary<String, String> Items { get; private set; }
+        public IDictionary<String, String> Items { get; set; }
         #endregion
 
         #region 构造
