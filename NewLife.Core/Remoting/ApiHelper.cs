@@ -131,20 +131,26 @@ namespace NewLife.Remoting
             return request;
         }
 
-        /// <summary>处理响应</summary>
+        /// <summary>结果代码名称</summary>
+        public static IList<String> CodeNames { get; } = new List<String> { "code", "errcode" };
+
+        /// <summary>结果消息名称</summary>
+        public static IList<String> MessageNames { get; } = new List<String> { "message", "msg", "errmsg" };
+
+        /// <summary>处理响应。统一识别code/message</summary>
         /// <typeparam name="TResult"></typeparam>
-        /// <param name="msg"></param>
+        /// <param name="response">Http响应消息</param>
+        /// <param name="dataName">数据字段名称，默认data</param>
         /// <returns></returns>
-        public static async Task<TResult> ProcessResponse<TResult>(HttpResponseMessage msg)
+        public static async Task<TResult> ProcessResponse<TResult>(HttpResponseMessage response, String dataName = "data")
         {
             var rtype = typeof(TResult);
-            if (rtype == typeof(HttpResponseMessage)) return (TResult)(Object)msg;
+            if (rtype == typeof(HttpResponseMessage)) return (TResult)(Object)response;
 
-            var code = msg.StatusCode;
-            var buf = msg.Content == null ? null : (await msg.Content.ReadAsByteArrayAsync());
+            var buf = response.Content == null ? null : (await response.Content.ReadAsByteArrayAsync());
 
             // 异常处理
-            if (code != HttpStatusCode.OK) throw new ApiException((Int32)code, buf.ToStr()?.Trim('\"') ?? msg.ReasonPhrase);
+            if (response.StatusCode != HttpStatusCode.OK) throw new ApiException((Int32)response.StatusCode, buf.ToStr()?.Trim('\"') ?? response.ReasonPhrase);
             if (buf == null || buf.Length == 0) return default;
 
             // 原始数据
@@ -153,14 +159,31 @@ namespace NewLife.Remoting
 
             var str = buf.ToStr();
             var js = new JsonParser(str).Decode() as IDictionary<String, Object>;
-            var data = js["data"];
-            var code2 = js["code"].ToInt();
-            if (code2 != 0 && code2 != 200)
+            var data = js[dataName];
+            var code = 0;// js["code"].ToInt();
+            foreach (var item in CodeNames)
             {
-                var message = js["message"] + "";
-                if (message.IsNullOrEmpty()) message = js["msg"] + "";
+                if (js.TryGetValue(item, out var v))
+                {
+                    code = v.ToInt();
+                    break;
+                }
+            }
+            if (code != 0 && code != 200)
+            {
+                var message = "";
+                foreach (var item in MessageNames)
+                {
+                    if(js.TryGetValue(item,out var v))
+                    {
+                        message = v as String;
+                        break;
+                    }
+                }
+                //var message = js["message"] + "";
+                //if (message.IsNullOrEmpty()) message = js["msg"] + "";
                 if (message.IsNullOrEmpty()) message = data + "";
-                throw new ApiException(code2, message);
+                throw new ApiException(code, message);
             }
 
             // 简单类型

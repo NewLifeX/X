@@ -312,6 +312,53 @@ namespace XUnitTest.Remoting
             }
         }
 
+        [Theory(DisplayName = "处理复杂响应")]
+        [InlineData("{errcode:0,errmsg:\"ok\",access_token:\"12345678\"}")]
+        public async void ProcessResponse_OtherData(String content)
+        {
+            var msg = new HttpResponseMessage(HttpStatusCode.OK);
+            if (!content.IsNullOrEmpty()) msg.Content = new StringContent(content);
+
+            var token = await ApiHelper.ProcessResponse<String>(msg, "access_token");
+            Assert.Equal("12345678", token);
+        }
+
+        [Theory(DisplayName = "处理异常响应")]
+        [InlineData("{errcode:500,errmsg:\"valid data\"}")]
+        public async void ProcessResponse_Error(String content)
+        {
+            var msg = new HttpResponseMessage(HttpStatusCode.OK);
+            if (!content.IsNullOrEmpty()) msg.Content = new StringContent(content);
+
+            var ex = await Assert.ThrowsAsync<ApiException>(async () => await ApiHelper.ProcessResponse<String>(msg, "access_token"));
+            Assert.NotNull(ex);
+            Assert.Equal(500, ex.Code);
+            Assert.Equal("valid data", ex.Message);
+        }
+
+        [Fact]
+        public async void ProcessResponse_DingTalk()
+        {
+            var key = "dingbvcq0mz3pidpwtch";
+            var secret = "7OTdnimQwf5LJnVp8e0udX1wPxKyCsspLqM2YcBDawvg3BlIkzxIsOs1YhDjiOxj";
+            var url = "https://oapi.dingtalk.com/gettoken?appkey={key}&appsecret={secret}";
+            url = url.Replace("{key}", key).Replace("{secret}", secret);
+
+            var http = new HttpClient();
+            var html = await http.GetStringAsync(url);
+            XTrace.WriteLine(html);
+
+            var js = new JsonParser(html).Decode() as IDictionary<String, Object>;
+            var token = js["access_token"] as String;
+            XTrace.WriteLine("token: {0}", token);
+
+            var url2 = "https://oapi.dingtalk.com/user/listbypage?access_token={token}&department_id=1&offset=0&size=100";
+            url2 = url2.Replace("{token}", token);
+
+            var html2 = await http.GetStringAsync(url2);
+            XTrace.WriteLine(html2);
+        }
+
         [Fact(DisplayName = "异步请求")]
         public async void SendAsyncTest()
         {
