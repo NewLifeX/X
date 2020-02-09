@@ -10,6 +10,7 @@ using NewLife.Remoting;
 using NewLife.Security;
 using Xunit;
 using NewLife.Serialization;
+using System.Collections;
 
 namespace XUnitTest.Remoting
 {
@@ -345,18 +346,16 @@ namespace XUnitTest.Remoting
             url = url.Replace("{key}", key).Replace("{secret}", secret);
 
             var http = new HttpClient();
-            var html = await http.GetStringAsync(url);
-            XTrace.WriteLine(html);
-
-            var js = new JsonParser(html).Decode() as IDictionary<String, Object>;
-            var token = js["access_token"] as String;
-            XTrace.WriteLine("token: {0}", token);
+            var token = await http.InvokeAsync<String>(HttpMethod.Get, url, null, null, "access_token");
+            Assert.NotNull(token);
+            Assert.NotEmpty(token);
 
             var url2 = "https://oapi.dingtalk.com/user/listbypage?access_token={token}&department_id=1&offset=0&size=100";
             url2 = url2.Replace("{token}", token);
 
-            var html2 = await http.GetStringAsync(url2);
-            XTrace.WriteLine(html2);
+            var users = await http.InvokeAsync<IList>(HttpMethod.Get, url2, null, null, "userlist");
+            Assert.NotNull(users);
+            Assert.True(users.Count > 0);
         }
 
         [Fact(DisplayName = "异步请求")]

@@ -37,10 +37,11 @@ namespace NewLife.Remoting
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
         /// <param name="onRequest">请求头回调</param>
+        /// <param name="dataName">数据字段名称，默认data。同一套rpc体系不同接口的code/message一致，但data可能不同</param>
         /// <returns></returns>
-        public static async Task<TResult> InvokeAsync<TResult>(this HttpClient client, HttpMethod method, String action, Object args = null, Action<HttpRequestMessage> onRequest = null)
+        public static async Task<TResult> InvokeAsync<TResult>(this HttpClient client, HttpMethod method, String action, Object args = null, Action<HttpRequestMessage> onRequest = null, String dataName = "data")
         {
-            if (client?.BaseAddress == null) throw new ArgumentNullException(nameof(client.BaseAddress));
+            //if (client?.BaseAddress == null) throw new ArgumentNullException(nameof(client.BaseAddress));
 
             var returnType = typeof(TResult);
 
@@ -53,19 +54,12 @@ namespace NewLife.Remoting
             else
                 request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-            // 附加的头部
-            //if (headers != null)
-            //{
-            //    foreach (var item in headers)
-            //    {
-            //        request.Headers.Add(item.Key, item.Value);
-            //    }
-            //}
+            // 可能附加头部
             onRequest?.Invoke(request);
 
             // 发起请求
             var msg = await client.SendAsync(request);
-            return await ProcessResponse<TResult>(msg);
+            return await ProcessResponse<TResult>(msg, dataName);
         }
         #endregion
 
@@ -140,7 +134,7 @@ namespace NewLife.Remoting
         /// <summary>处理响应。统一识别code/message</summary>
         /// <typeparam name="TResult"></typeparam>
         /// <param name="response">Http响应消息</param>
-        /// <param name="dataName">数据字段名称，默认data</param>
+        /// <param name="dataName">数据字段名称，默认data。同一套rpc体系不同接口的code/message一致，但data可能不同</param>
         /// <returns></returns>
         public static async Task<TResult> ProcessResponse<TResult>(HttpResponseMessage response, String dataName = "data")
         {
@@ -174,7 +168,7 @@ namespace NewLife.Remoting
                 var message = "";
                 foreach (var item in MessageNames)
                 {
-                    if(js.TryGetValue(item,out var v))
+                    if (js.TryGetValue(item, out var v))
                     {
                         message = v as String;
                         break;
