@@ -66,7 +66,7 @@ namespace NewLife.Data
     }
 
     /// <summary>扩展字典。引用型</summary>
-    class ExtendDictionary : IExtend
+    public class ExtendDictionary : IExtend
     {
         /// <summary>数据项</summary>
         public IDictionary<String, Object> Items { get; set; }

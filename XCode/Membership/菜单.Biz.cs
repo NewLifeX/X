@@ -224,7 +224,7 @@ namespace XCode.Membership
                 FullName = fullName,
                 Url = url,
                 ParentID = ID,
-                Parent = this as TEntity,
+                //Parent = this as TEntity,
 
                 Visible = ID == 0 || displayName != null
             };

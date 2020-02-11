@@ -183,7 +183,7 @@ namespace XCode
             {
                 type = value?.GetType();
                 // 如果扩展数据里面有该字段也读取旧值
-                if (entity.Extends.ContainsKey(name)) oldValue = entity.Extends[name];
+                if (entity.Extends.TryGetValue(name, out var v)) oldValue = v;
             }
 
             // 不处理相同数据的赋值

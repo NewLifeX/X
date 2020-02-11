@@ -57,7 +57,7 @@ namespace XCode
         public virtual IList<TEntity> Childs
         {
             get { return Extends.Get(nameof(Childs), e => FindChilds()); }
-            set { Extends.Set(nameof(Childs), value); }
+            //set { Extends.Set(nameof(Childs), value); }
         }
 
         /// <summary>子节点</summary>
@@ -68,7 +68,7 @@ namespace XCode
         public virtual TEntity Parent
         {
             get { return Extends.Get(nameof(Parent), e => FindParent()); }
-            set { Extends.Set(nameof(Parent), value); }
+            //set { Extends.Set(nameof(Parent), value); }
         }
 
         /// <summary>父节点</summary>
@@ -88,7 +88,7 @@ namespace XCode
         public virtual IList<TEntity> AllChilds
         {
             get { return Extends.Get(nameof(AllChilds), e => FindAllChilds(this)); }
-            set { Extends.Set(nameof(AllChilds), value); }
+            //set { Extends.Set(nameof(AllChilds), value); }
         }
 
         /// <summary>子孙节点，包含自己</summary>
@@ -96,7 +96,7 @@ namespace XCode
         public virtual IList<TEntity> MyAllChilds
         {
             get { return Extends.Get(nameof(MyAllChilds), e => FindAllChilds(this, true)); }
-            set { Extends.Set(nameof(MyAllChilds), value); }
+            //set { Extends.Set(nameof(MyAllChilds), value); }
         }
 
         /// <summary>父节点集合</summary>
@@ -104,7 +104,7 @@ namespace XCode
         public virtual IList<TEntity> AllParents
         {
             get { return Extends.Get(nameof(AllParents), e => FindAllParents(this)); }
-            set { Extends.Set(nameof(AllParents), value); }
+            //set { Extends.Set(nameof(AllParents), value); }
         }
 
         /// <summary>深度</summary>

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using NewLife.Collections;
+using NewLife.Data;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Threading;
@@ -9,7 +9,7 @@ using NewLife.Threading;
 namespace XCode
 {
     /// <summary>实体扩展</summary>
-    public class EntityExtend
+    public class EntityExtend : IExtend
     {
         /// <summary>过期时间。单位是秒</summary>
         public Int32 Expire { get; set; }
@@ -35,7 +35,7 @@ namespace XCode
         /// <param name="key"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public Boolean TryGetValue(String key,out Object value)
+        public Boolean TryGetValue(String key, out Object value)
         {
             var rs = _cache.TryGetValue(key, out var ci);
             if (rs)
@@ -129,10 +129,10 @@ namespace XCode
             return true;
         }
 
-        /// <summary>是否已存在</summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public Boolean ContainsKey(String key) => _cache != null && _cache.ContainsKey(key);
+        ///// <summary>是否已存在</summary>
+        ///// <param name="key"></param>
+        ///// <returns></returns>
+        //public Boolean ContainsKey(String key) => _cache != null && _cache.ContainsKey(key);
 
         /// <summary>赋值到目标缓存</summary>
         /// <param name="target"></param>
