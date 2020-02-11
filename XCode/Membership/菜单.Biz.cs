@@ -3,15 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
-using System.Text;
-using System.Web;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
-using NewLife;
+using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Reflection;
-using NewLife.Collections;
 using NewLife.Threading;
 
 namespace XCode.Membership
@@ -27,7 +24,7 @@ namespace XCode.Membership
         #region 对象操作
         static Menu()
         {
-            var entity = new TEntity();
+            new TEntity();
 
             EntityFactory.Register(typeof(TEntity), new MenuFactory());
 
@@ -85,23 +82,21 @@ namespace XCode.Membership
 
             // 递归删除子菜单
             var rs = 0;
-            using (var ts = Meta.CreateTrans())
+            using var ts = Meta.CreateTrans();
+            rs += base.OnDelete();
+
+            var ms = Childs;
+            if (ms != null && ms.Count > 0)
             {
-                rs += base.OnDelete();
-
-                var ms = Childs;
-                if (ms != null && ms.Count > 0)
+                foreach (var item in ms)
                 {
-                    foreach (var item in ms)
-                    {
-                        rs += item.Delete();
-                    }
+                    rs += item.Delete();
                 }
-
-                ts.Commit();
-
-                return rs;
             }
+
+            ts.Commit();
+
+            return rs;
         }
 
         /// <summary>加载权限字典</summary>
