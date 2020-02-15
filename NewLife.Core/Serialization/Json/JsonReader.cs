@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
+using NewLife.Data;
 using NewLife.Reflection;
 
 namespace NewLife.Serialization
@@ -182,6 +183,9 @@ namespace NewLife.Serialization
                 _cirrev.Add(circount, target);
             }
 
+            // 扩展属性
+            var ext = target as IExtend;
+
             // 遍历所有可用于序列化的属性
             var props = type.GetProperties(true).ToDictionary(e => SerialHelper.GetName(e), e => e);
             foreach (var item in dic)
@@ -193,7 +197,13 @@ namespace NewLife.Serialization
                 {
                     // 可能有小写
                     pi = props.Values.FirstOrDefault(e => e.Name.EqualIgnoreCase(item.Key));
-                    if (pi == null) continue;
+                    if (pi == null)
+                    {
+                        // 可能有扩展属性
+                        if (ext != null) ext[item.Key] = item.Value;
+
+                        continue;
+                    }
                 }
                 if (!pi.CanWrite) continue;
 
