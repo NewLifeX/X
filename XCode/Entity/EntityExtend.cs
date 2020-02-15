@@ -35,8 +35,11 @@ namespace XCode
         /// <param name="key"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public Boolean TryGetValue(String key,out Object value)
+        public Boolean TryGetValue(String key, out Object value)
         {
+            value = null;
+            if (_cache == null) return false;
+
             var rs = _cache.TryGetValue(key, out var ci);
             if (rs)
                 value = ci?.Value;
