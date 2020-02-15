@@ -9,13 +9,13 @@ using NewLife.Threading;
 namespace XCode
 {
     /// <summary>实体扩展</summary>
-    public class EntityExtend : IExtend
+    public class EntityExtend : IExtend2
     {
         /// <summary>过期时间。单位是秒</summary>
         public Int32 Expire { get; set; }
 
         /// <summary>键集合</summary>
-        public ICollection<String> Keys => _cache?.Keys;
+        public IEnumerable<String> Keys => _cache?.Keys;
 
         private Dictionary<String, CacheItem> _cache;
 
