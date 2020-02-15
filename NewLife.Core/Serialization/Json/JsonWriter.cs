@@ -5,6 +5,7 @@ using System.Collections.Specialized;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using NewLife.Data;
 using NewLife.Reflection;
 
 namespace NewLife.Serialization
@@ -43,7 +44,7 @@ namespace NewLife.Serialization
         /// <summary>最大序列化深度。默认5</summary>
         public Int32 MaxDepth { get; set; } = 5;
 
-        private StringBuilder _Builder = new StringBuilder();
+        private readonly StringBuilder _Builder = new StringBuilder();
         #endregion
 
         #region 构造
@@ -232,7 +233,7 @@ namespace NewLife.Serialization
         }
 
         Int32 _depth = 0;
-        private Dictionary<Object, Int32> _cirobj = new Dictionary<Object, Int32>();
+        private readonly Dictionary<Object, Int32> _cirobj = new Dictionary<Object, Int32>();
         private void WriteObject(Object obj)
         {
             if (!_cirobj.TryGetValue(obj, out _)) _cirobj.Add(obj, _cirobj.Count + 1);
@@ -254,33 +255,28 @@ namespace NewLife.Serialization
                 var value = obj.GetValue(pi);
                 if (!IgnoreNullValues || !IsNull(value))
                 {
-                    // 缩进，复杂对象要求强制换行
-                    forceIndent = value != null && value.GetType().GetTypeCode() == TypeCode.Object;
-                    if (first)
-                    {
-                        WriteLeftIndent(forceIndent);
-                    }
-                    else
-                    {
-                        _Builder.Append(',');
-                        WriteIndent(forceIndent);
-                    }
-                    first = false;
-
                     var name = FormatName(SerialHelper.GetName(pi));
+                    String comment = null;
+                    if (!IgnoreComment && Indented) comment = pi.GetDisplayName() ?? pi.GetDescription();
 
-                    // 注释
-                    if (!IgnoreComment && Indented)
-                    {
-                        var comment = pi.GetDisplayName() ?? pi.GetDescription();
-                        if (!comment.IsNullOrEmpty())
-                        {
-                            _Builder.AppendFormat("// {0}", comment);
-                            WriteIndent();
-                        }
-                    }
+                    WriteMember(name, value, comment, ref forceIndent, ref first);
+                }
+            }
 
-                    WritePair(name, value);
+            // 扩展数据
+            if (obj is IExtend2 ext2 && ext2.Keys != null)
+            {
+                foreach (var item in ext2.Keys)
+                {
+                    var value = ext2[item];
+                    WriteMember(item, value, null, ref forceIndent, ref first);
+                }
+            }
+            if (obj is IExtend3 ext3 && ext3.Items != null)
+            {
+                foreach (var item in ext3.Items)
+                {
+                    WriteMember(item.Key, item.Value, null, ref forceIndent, ref first);
                 }
             }
 
@@ -288,6 +284,38 @@ namespace NewLife.Serialization
             if (!first) WriteRightIndent(forceIndent);
             _Builder.Append('}');
             _depth--;
+        }
+
+        private void WriteMember(String name, Object value, String comment, ref Boolean forceIndent, ref Boolean first)
+        {
+            if (!IgnoreNullValues || !IsNull(value))
+            {
+                // 缩进，复杂对象要求强制换行
+                forceIndent = value != null && value.GetType().GetTypeCode() == TypeCode.Object;
+                if (first)
+                {
+                    WriteLeftIndent(forceIndent);
+                }
+                else
+                {
+                    _Builder.Append(',');
+                    WriteIndent(forceIndent);
+                }
+                first = false;
+
+                // 注释
+                if (!IgnoreComment && Indented)
+                {
+                    //var comment = pi.GetDisplayName() ?? pi.GetDescription();
+                    if (!comment.IsNullOrEmpty())
+                    {
+                        _Builder.AppendFormat("// {0}", comment);
+                        WriteIndent();
+                    }
+                }
+
+                WritePair(name, value);
+            }
         }
         #endregion
 

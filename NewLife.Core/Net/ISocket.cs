@@ -74,7 +74,7 @@ namespace NewLife.Net
     }
 
     /// <summary>远程通信Socket，仅具有收发功能</summary>
-    public interface ISocketRemote : ISocket, IExtend
+    public interface ISocketRemote : ISocket, IExtend3
     {
         #region 属性
         /// <summary>标识</summary>
@@ -92,8 +92,8 @@ namespace NewLife.Net
         /// <summary>缓冲区大小</summary>
         Int32 BufferSize { get; set; }
 
-        /// <summary>数据项</summary>
-        IDictionary<String, Object> Items { get; }
+        ///// <summary>数据项</summary>
+        //IDictionary<String, Object> Items { get; }
         #endregion
 
         #region 发送

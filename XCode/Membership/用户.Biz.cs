@@ -310,7 +310,7 @@ namespace XCode.Membership
         /// <returns></returns>
         public static TEntity Login(String username, String password, Boolean rememberme = false)
         {
-            if (String.IsNullOrEmpty(username)) throw new ArgumentNullException("username");
+            if (String.IsNullOrEmpty(username)) throw new ArgumentNullException(nameof(username));
             //if (String.IsNullOrEmpty(password)) throw new ArgumentNullException("password");
 
             try
@@ -326,7 +326,7 @@ namespace XCode.Membership
 
         static TEntity Login(String username, String password, Int32 hashTimes)
         {
-            if (String.IsNullOrEmpty(username)) throw new ArgumentNullException("username", "该帐号不存在！");
+            if (String.IsNullOrEmpty(username)) throw new ArgumentNullException(nameof(username), "该帐号不存在！");
 
             // 过滤帐号中的空格，防止出现无操作无法登录的情况
             var account = username.Trim();
@@ -423,26 +423,24 @@ namespace XCode.Membership
         /// <summary>注册用户。第一注册用户自动抢管理员</summary>
         public virtual void Register()
         {
-            using (var tran = Meta.CreateTrans())
+            using var tran = Meta.CreateTrans();
+            //!!! 第一个用户注册时，如果只有一个默认admin账号，则自动抢管理员
+            if (Meta.Count < 3 && FindCount() <= 1)
             {
-                //!!! 第一个用户注册时，如果只有一个默认admin账号，则自动抢管理员
-                if (Meta.Count < 3 && FindCount() <= 1)
+                var list = FindAll();
+                if (list.Count == 0 || list.Count == 1 && list[0].DisableAdmin())
                 {
-                    var list = FindAll();
-                    if (list.Count == 0 || list.Count == 1 && list[0].DisableAdmin())
-                    {
-                        RoleID = 1;
-                        Enable = true;
-                    }
+                    RoleID = 1;
+                    Enable = true;
                 }
-
-                RegisterTime = DateTime.Now;
-                RegisterIP = ManageProvider.UserHost;
-
-                Insert();
-
-                tran.Commit();
             }
+
+            RegisterTime = DateTime.Now;
+            RegisterIP = ManageProvider.UserHost;
+
+            Insert();
+
+            tran.Commit();
         }
 
         /// <summary>禁用默认管理员</summary>

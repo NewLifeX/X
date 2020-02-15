@@ -33,7 +33,7 @@ namespace XCode
             // 1，可以初始化该实体类型的操作工厂
             // 2，CreateOperate将会实例化一个TEntity对象，从而引发TEntity的静态构造函数，
             // 避免实际应用中，直接调用Entity的静态方法时，没有引发TEntity的静态构造函数。
-            var entity = new TEntity();
+            new TEntity();
         }
 
         /// <summary>创建实体。</summary>
@@ -200,7 +200,7 @@ namespace XCode
 
             if (enableValid)
             {
-                var rt = false;
+                Boolean rt;
                 if (isnew != null)
                 {
                     Valid(isnew.Value);
@@ -582,7 +582,7 @@ namespace XCode
             // 判断实体
             if (entity == null)
             {
-                String msg = null;
+                String msg;
                 if (Helper.IsNullKey(key, field.Type))
                     msg = String.Format("参数错误！无法取得编号为{0}的{1}！可能未设置自增主键！", key, Meta.Table.Description);
                 else
@@ -689,7 +689,7 @@ namespace XCode
 
             // 如下优化，避免了每次都调用Meta.Count而导致形成一次查询，虽然这次查询时间损耗不大
             // 但是绝大多数查询，都不需要进行类似的海量数据优化，显然，这个startRowIndex将会挡住99%以上的浪费
-            Int64 count = 0;
+            Int64 count;
             if (startRowIndex > 500000 && (count = session.LongCount) > 1000000)
             {
                 //// 计算本次查询的结果行数
@@ -806,7 +806,7 @@ namespace XCode
             if (page.RetrieveTotalCount)
             {
                 var session = Meta.Session;
-                var rows = 0L;
+                Int64 rows;
 
                 // 如果总记录数超过10万，为了提高性能，返回快速查找且带有缓存的总记录数
                 if ((where == null || where.IsEmpty) && session.LongCount > 100_000)
@@ -832,7 +832,7 @@ namespace XCode
             }
 
             // 采用起始行还是分页
-            IList<TEntity> list = null;
+            IList<TEntity> list;
             if (page.StartRow >= 0)
                 list = FindAll(where, orderby, selects, page.StartRow, page.PageSize);
             else
@@ -841,7 +841,7 @@ namespace XCode
             if (list == null || list.Count == 0) return list;
 
             // 统计数据。100万以上数据要求带where才支持统计
-            if (page.RetrieveState && 
+            if (page.RetrieveState &&
                 (page.RetrieveTotalCount && page.TotalCount < 10_000_000
                 || Meta.Session.LongCount < 10_000_000 || where != null)
                 )
@@ -1339,12 +1339,7 @@ namespace XCode
         /// <param name="extend">是否序列化扩展属性</param>
         protected virtual Boolean OnRead(Stream stream, Object context, Boolean extend)
         {
-            var bn = context as Binary;
-            if (bn == null) bn = new Binary
-            {
-                Stream = stream,
-                EncodeInt = true
-            };
+            if (!(context is Binary bn)) bn = new Binary { Stream = stream, EncodeInt = true };
 
             var fs = extend ? Meta.AllFields : Meta.Fields;
             foreach (var fi in fs)
@@ -1362,12 +1357,7 @@ namespace XCode
         /// <param name="extend">是否序列化扩展属性</param>
         protected virtual Boolean OnWrite(Stream stream, Object context, Boolean extend)
         {
-            var bn = context as Binary;
-            if (bn == null) bn = new Binary
-            {
-                Stream = stream,
-                EncodeInt = true
-            };
+            if (!(context is Binary bn)) bn = new Binary { Stream = stream, EncodeInt = true };
 
             var fs = extend ? Meta.AllFields : Meta.Fields;
             foreach (var fi in fs)

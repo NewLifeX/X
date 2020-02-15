@@ -165,29 +165,17 @@ namespace XUnitTest.Remoting
             if (!content.IsNullOrEmpty()) msg.Content = new StringContent(content);
 
             // 返回原型，不抛出异常
-            try
-            {
-                var rs = await ApiHelper.ProcessResponse<HttpResponseMessage>(msg);
-                Assert.Equal(msg, rs);
-            }
-            catch (Exception)
-            {
-                Assert.True(false);
-            }
+            var rs = await ApiHelper.ProcessResponse<HttpResponseMessage>(msg);
+            Assert.Equal(msg, rs);
 
             // 捕获Api异常
-            try
-            {
-                var rs = await ApiHelper.ProcessResponse<String>(msg);
-            }
-            catch (ApiException ex)
-            {
-                Assert.Equal(HttpStatusCode.BadRequest, (HttpStatusCode)ex.Code);
-                if (!content.IsNullOrEmpty())
-                    Assert.Equal(content, ex.Message);
-                else
-                    Assert.Equal(msg.ReasonPhrase, ex.Message);
-            }
+            var ex = await Assert.ThrowsAsync<ApiException>(async () => await ApiHelper.ProcessResponse<String>(msg));
+
+            Assert.Equal(HttpStatusCode.BadRequest, (HttpStatusCode)ex.Code);
+            if (!content.IsNullOrEmpty())
+                Assert.Equal(content, ex.Message);
+            else
+                Assert.Equal(msg.ReasonPhrase, ex.Message);
         }
 
         [Theory(DisplayName = "处理应用错误响应")]
@@ -200,30 +188,18 @@ namespace XUnitTest.Remoting
             if (!content.IsNullOrEmpty()) msg.Content = new StringContent(content);
 
             // 返回原型，不抛出异常
-            try
-            {
-                var rs = await ApiHelper.ProcessResponse<HttpResponseMessage>(msg);
-                Assert.Equal(msg, rs);
-            }
-            catch (Exception)
-            {
-                Assert.True(false);
-            }
+            var rs = await ApiHelper.ProcessResponse<HttpResponseMessage>(msg);
+            Assert.Equal(msg, rs);
 
             // 捕获Api异常
-            try
-            {
-                var rs = await ApiHelper.ProcessResponse<String>(msg);
-            }
-            catch (ApiException ex)
-            {
-                Assert.Equal(content.Substring("code:", ",").ToInt(), ex.Code);
+            var ex = await Assert.ThrowsAsync<ApiException>(async () => await ApiHelper.ProcessResponse<String>(msg));
 
-                var error = content.Substring("message:\"", "\"}");
-                if (error.IsNullOrEmpty()) error = content.Substring("msg:\"", "\"}");
-                if (error.IsNullOrEmpty()) error = content.Substring("data:\"", "\"}");
-                Assert.Equal(error, ex.Message);
-            }
+            Assert.Equal(content.Substring("code:", ",").ToInt(), ex.Code);
+
+            var error = content.Substring("message:\"", "\"}");
+            if (error.IsNullOrEmpty()) error = content.Substring("msg:\"", "\"}");
+            if (error.IsNullOrEmpty()) error = content.Substring("data:\"", "\"}");
+            Assert.Equal(error, ex.Message);
         }
 
         [Theory(DisplayName = "处理Byte响应")]

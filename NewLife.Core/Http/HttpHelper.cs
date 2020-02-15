@@ -239,7 +239,7 @@ namespace NewLife.Http
              * len = 126    后续2字节表示长度，大端
              * len = 127    后续8字节表示长度
              */
-            len = len & 0x7F;
+            len &= 0x7F;
             if (len == 126)
                 len = ms.ReadBytes(2).ToUInt16(0, false);
             else if (len == 127)

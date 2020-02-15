@@ -24,7 +24,7 @@ namespace NewLife.Model
     }
 
     /// <summary>处理器上下文</summary>
-    public class HandlerContext : IHandlerContext
+    public class HandlerContext : IHandlerContext, IExtend3
     {
         #region 属性
         /// <summary>管道</summary>
