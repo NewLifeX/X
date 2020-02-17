@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Runtime.Serialization;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
+using NewLife.Data;
 using NewLife.Reflection;
 using XCode.Common;
 using XCode.Configuration;
@@ -14,7 +15,7 @@ namespace XCode
     /// <summary>数据实体基类的基类</summary>
     [Serializable]
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public abstract partial class EntityBase : IEntity, ICloneable
+    public abstract partial class EntityBase : IEntity, IExtend2, ICloneable
     {
         #region 初始化数据
         /// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>
@@ -92,18 +93,6 @@ namespace XCode
             }
             return b;
         }
-
-        ///// <summary>设置脏数据项。如果某个键存在并且数据没有脏，则设置</summary>
-        ///// <param name="name"></param>
-        ///// <param name="value"></param>
-        ///// <returns>返回是否成功设置了数据</returns>
-        //public Boolean SetNoDirtyItem(String name, Object value)
-        //{
-        //    var fact = EntityFactory.CreateOperate(GetType());
-        //    if (fact.FieldNames.Contains(name) && !Dirtys[name]) return SetItem(name, value);
-
-        //    return false;
-        //}
         #endregion
 
         #region 克隆
@@ -199,9 +188,11 @@ namespace XCode
         [NonSerialized]
         internal EntityExtend _Extends;
         /// <summary>扩展属性</summary>
-        //[NonSerialized]
         [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public EntityExtend Extends { get { return _Extends ?? (_Extends = new EntityExtend()); } set { _Extends = value; } }
+
+        /// <summary>扩展数据键集合</summary>
+        IEnumerable<String> IExtend2.Keys => _Extends?.Keys;
         #endregion
 
         #region 累加
