@@ -66,7 +66,7 @@ namespace NewLife.Serialization
                 IgnoreNullValues = !nullValue,
                 CamelCase = camelCase,
                 Indented = indented,
-                SmartIndented = indented,
+                //SmartIndented = indented,
             };
 
             jw.WriteValue(obj);
