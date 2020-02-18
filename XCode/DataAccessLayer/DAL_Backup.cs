@@ -34,7 +34,15 @@ namespace XCode.DataAccessLayer
             };
             //writeFile.Start();
 
+            // 自增
             var id = table.Columns.FirstOrDefault(e => e.Identity);
+            // 主键
+            if (id == null)
+            {
+                var pks = table.PrimaryKeys;
+                if (pks != null && pks.Length == 1 && pks[0].DataType.IsInt()) id = pks[0];
+            }
+
             var sb = new SelectBuilder
             {
                 Table = Db.FormatTableName(table.TableName)
@@ -44,7 +52,7 @@ namespace XCode.DataAccessLayer
             writeFile.Total = SelectCount(sb);
             WriteLog("备份[{0}/{1}]开始，共[{2:n0}]行", table, ConnName, writeFile.Total);
 
-            var row = 0;
+            var row = 0L;
             var pageSize = 10_000;
             var total = 0;
             var sw = Stopwatch.StartNew();
@@ -54,8 +62,8 @@ namespace XCode.DataAccessLayer
                 // 分割数据页，自增或分页
                 if (id != null)
                 {
-                    sb.Where = $"{id.ColumnName}>={row} and {id.ColumnName}<{row + pageSize}";
-                    sql = sb;
+                    sb.Where = $"{id.ColumnName}>={row}";
+                    sql = PageSplit(sb, 0, pageSize);
                 }
                 else
                     sql = PageSplit(sb, row, pageSize);
@@ -66,9 +74,10 @@ namespace XCode.DataAccessLayer
 
                 var count = dt.Rows.Count;
                 WriteLog("备份[{0}/{1}]数据 {2:n0} + {3:n0}", table, ConnName, row, count);
+                if (count == 0) break;
 
                 // 进度报告
-                progress?.Invoke(row, dt);
+                progress?.Invoke((Int32)row, dt);
 
                 // 消费数据
                 writeFile.Tell(dt);
@@ -76,7 +85,12 @@ namespace XCode.DataAccessLayer
                 // 下一页
                 total += count;
                 //if (count < pageSize) break;
-                row += pageSize;
+
+                // 自增分割时，取最后一行
+                if (id != null)
+                    row = dt.Get<Int64>(count - 1, id.ColumnName) + 1;
+                else
+                    row += pageSize;
             }
 
             // 通知写入完成
@@ -393,6 +407,15 @@ namespace XCode.DataAccessLayer
                 BoundedCapacity = 4,
             };
 
+            // 自增
+            var id = table.Columns.FirstOrDefault(e => e.Identity);
+            // 主键
+            if (id == null)
+            {
+                var pks = table.PrimaryKeys;
+                if (pks != null && pks.Length == 1 && pks[0].DataType.IsInt()) id = pks[0];
+            }
+
             var sw = Stopwatch.StartNew();
 
             // 表结构
@@ -403,31 +426,43 @@ namespace XCode.DataAccessLayer
                 Table = Db.FormatTableName(table.TableName)
             };
 
-            var row = 0;
+            var row = 0L;
             var pageSize = 10_000;
             var total = 0;
             while (true)
             {
-                // 分页
-                var sb2 = PageSplit(sb, row, pageSize);
+                var sql = "";
+                // 分割数据页，自增或分页
+                if (id != null)
+                {
+                    sb.Where = $"{id.ColumnName}>={row}";
+                    sql = PageSplit(sb, 0, pageSize);
+                }
+                else
+                    sql = PageSplit(sb, row, pageSize);
 
                 // 查询数据
-                var dt = Session.Query(sb2.ToString(), null);
+                var dt = Session.Query(sql, null);
                 if (dt == null) break;
 
                 var count = dt.Rows.Count;
                 WriteLog("同步[{0}/{1}]数据 {2:n0} + {3:n0}", table.Name, ConnName, row, count);
 
                 // 进度报告
-                progress?.Invoke(row, dt);
+                progress?.Invoke((Int32)row, dt);
 
                 // 消费数据
                 writeDb.Tell(dt);
 
                 // 下一页
                 total += count;
-                if (count < pageSize) break;
-                row += pageSize;
+                //if (count < pageSize) break;
+
+                // 自增分割时，取最后一行
+                if (id != null)
+                    row = dt.Get<Int64>(count - 1, id.ColumnName) + 1;
+                else
+                    row += pageSize;
             }
 
             // 通知写入完成
