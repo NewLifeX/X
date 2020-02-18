@@ -4,9 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Model;
 using NewLife.Reflection;
@@ -25,20 +23,21 @@ namespace XCode.DataAccessLayer
         /// <param name="stream">目标数据流</param>
         /// <param name="progress">进度回调，参数为已处理行数和当前页表</param>
         /// <returns></returns>
-        public Int32 Backup(String table, Stream stream, Action<Int32, DbTable> progress = null)
+        public Int32 Backup(IDataTable table, Stream stream, Action<Int32, DbTable> progress = null)
         {
             var writeFile = new WriteFileActor
             {
                 Stream = stream,
 
-                // 最多同时堆积数页
+                // 最多同时堆积数
                 BoundedCapacity = 4,
             };
             //writeFile.Start();
 
+            var id = table.Columns.FirstOrDefault(e => e.Identity);
             var sb = new SelectBuilder
             {
-                Table = Db.FormatTableName(table)
+                Table = Db.FormatTableName(table.TableName)
             };
 
             // 总行数
@@ -49,13 +48,20 @@ namespace XCode.DataAccessLayer
             var pageSize = 10_000;
             var total = 0;
             var sw = Stopwatch.StartNew();
-            while (true)
+            while (total < writeFile.Total)
             {
-                // 分页
-                var sb2 = PageSplit(sb, row, pageSize);
+                var sql = "";
+                // 分割数据页，自增或分页
+                if (id != null)
+                {
+                    sb.Where = $"{id.ColumnName}>={row} and {id.ColumnName}<{row + pageSize}";
+                    sql = sb;
+                }
+                else
+                    sql = PageSplit(sb, row, pageSize);
 
                 // 查询数据
-                var dt = Session.Query(sb2.ToString(), null);
+                var dt = Session.Query(sql, null);
                 if (dt == null) break;
 
                 var count = dt.Rows.Count;
@@ -69,7 +75,7 @@ namespace XCode.DataAccessLayer
 
                 // 下一页
                 total += count;
-                if (count < pageSize) break;
+                //if (count < pageSize) break;
                 row += pageSize;
             }
 
@@ -85,10 +91,10 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>备份单表数据到文件</summary>
-        /// <param name="table"></param>
-        /// <param name="file"></param>
+        /// <param name="table">数据表</param>
+        /// <param name="file">文件。.gz后缀时采用压缩</param>
         /// <returns></returns>
-        public Int32 Backup(String table, String file = null)
+        public Int32 Backup(IDataTable table, String file = null)
         {
             if (file.IsNullOrEmpty()) file = table + ".table";
 
@@ -124,36 +130,28 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>备份一批表到指定目录</summary>
-        /// <param name="tables"></param>
+        /// <param name="tables">数据表集合</param>
         /// <param name="dir"></param>
         /// <param name="backupSchema">备份架构</param>
         /// <returns></returns>
-        public IDictionary<String, Int32> BackupAll(String[] tables, String dir, Boolean backupSchema = true)
+        public IDictionary<String, Int32> BackupAll(IList<IDataTable> tables, String dir, Boolean backupSchema = true)
         {
             var dic = new Dictionary<String, Int32>();
 
-            IList<IDataTable> tbls = null;
-            if (tables == null)
-            {
-                tbls = Tables;
-                tables = tbls.Select(e => e.TableName).ToArray();
-            }
-            if (tables != null && tables.Length > 0)
+            if (tables == null) tables = Tables;
+            if (tables != null && tables.Count > 0)
             {
                 // 备份架构
                 if (backupSchema)
                 {
-                    if (tbls == null) tbls = Tables;
-                    var bs = tables.Select(e => tbls.FirstOrDefault(t => e.EqualIgnoreCase(t.Name, t.TableName))).Where(e => e != null).ToArray();
-
-                    var xml = Export(bs);
+                    var xml = Export(tables);
                     dir.EnsureDirectory(false);
                     File.WriteAllText(dir.CombinePath(ConnName + ".xml"), xml);
                 }
 
                 foreach (var item in tables)
                 {
-                    dic[item] = Backup(item, dir.CombinePath(item + ".table"));
+                    dic[item.Name] = Backup(item, dir.CombinePath(item + ".gz"));
                 }
             }
 
@@ -307,20 +305,6 @@ namespace XCode.DataAccessLayer
 
             var compressed = file.EndsWithIgnoreCase(".gz");
             return file2.AsFile().OpenRead(compressed, s => Restore(s, table));
-            //using (var fs = new FileStream(file2, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-            //{
-            //    if (file.EndsWithIgnoreCase(".gz"))
-            //    {
-            //        using (var gs = new GZipStream(fs, CompressionMode.Decompress, true))
-            //        {
-            //            return Restore(gs, table);
-            //        }
-            //    }
-            //    else
-            //    {
-            //        return Restore(fs, table);
-            //    }
-            //}
         }
 
         /// <summary>从指定目录恢复一批数据到目标库</summary>
