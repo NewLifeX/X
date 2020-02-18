@@ -205,6 +205,7 @@ namespace XCode.DataAccessLayer
 
                 // 写入文件
                 dt.WriteData(bn);
+                Stream.Flush();
             }
         }
         #endregion
