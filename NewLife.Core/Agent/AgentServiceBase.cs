@@ -65,7 +65,7 @@ namespace NewLife.Agent
             if (set.DisplayName.IsNullOrEmpty()) set.DisplayName = asm.Title;
             if (set.Description.IsNullOrEmpty()) set.Description = asm.Description;
 
-            set.SaveAsync();
+            set.Save();
 
             // 用配置覆盖
             service.ServiceName = set.ServiceName;
