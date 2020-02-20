@@ -135,6 +135,34 @@ namespace XCode.Membership
 
             return FindAll(exp, page);
         }
+
+        /// <summary>获取 或 添加 参数，支持指定默认值</summary>
+        /// <param name="userId"></param>
+        /// <param name="category"></param>
+        /// <param name="name"></param>
+        /// <param name="defaultValue"></param>
+        /// <returns></returns>
+        public static Parameter GetOrAdd(Int32 userId, String category, String name, String defaultValue = null)
+        {
+            var list = FindAllByUserID(userId);
+            var p = list.FirstOrDefault(e => e.Category == category && e.Name == name);
+            if (p == null)
+            {
+                p = new Parameter { UserID = userId, Category = category, Name = name, Enable = true, Value = defaultValue };
+
+                try
+                {
+                    p.Insert();
+                }
+                catch
+                {
+                    var p2 = Find(_.UserID == userId & _.Category == category & _.Name == name);
+                    if (p2 != null) return p2;
+                }
+            }
+
+            return p;
+        }
         #endregion
 
         #region 业务操作
