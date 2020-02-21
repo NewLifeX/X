@@ -35,10 +35,13 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="build\**" />
+    <Compile Remove="Sync\**" />
     <Compile Remove="tools\**" />
     <EmbeddedResource Remove="build\**" />
+    <EmbeddedResource Remove="Sync\**" />
     <EmbeddedResource Remove="tools\**" />
     <None Remove="build\**" />
+    <None Remove="Sync\**" />
     <None Remove="tools\**" />
   </ItemGroup>
   <PropertyGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
