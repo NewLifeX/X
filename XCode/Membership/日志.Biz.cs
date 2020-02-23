@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Web;
 using NewLife.Data;
-using NewLife.Model;
-using NewLife.Web;
 using XCode.Cache;
 
 namespace XCode.Membership
@@ -63,20 +60,9 @@ namespace XCode.Membership
         #endregion
 
         #region 扩展属性
-        ///// <summary>创建人名称</summary>
-        //[XmlIgnore, ScriptIgnore, IgnoreDataMember]
-        //[DisplayName("创建人")]
-        //[Map("CreateUserID")]
-        //public String CreateUserName { get { return ManageProvider.Provider.FindByID(CreateUserID) + ""; } }
-
-        ///// <summary>物理地址</summary>
-        ////[BindRelation("CreateIP")]
-        //[DisplayName("物理地址")]
-        //public String CreateAddress { get { return CreateIP.IPToAddress(); } }
         #endregion
 
         #region 扩展查询
-
         /// <summary>查询</summary>
         /// <param name="key"></param>
         /// <param name="userid"></param>
@@ -91,12 +77,7 @@ namespace XCode.Membership
             //if (!key.IsNullOrEmpty()) exp &= (_.Action == key | _.Remark.Contains(key));
             if (!category.IsNullOrEmpty() && category != "全部") exp &= _.Category == category;
             if (userid >= 0) exp &= _.CreateUserID == userid;
-            if (start > DateTime.MinValue) exp &= _.CreateTime >= start;
-            if (end > DateTime.MinValue)
-            {
-                if (end == end.Date) end = end.AddDays(1);
-                exp &= _.CreateTime < end;
-            }
+            exp &= _.CreateTime.Between(start, end);
 
             // 先精确查询，再模糊
             if (!key.IsNullOrEmpty())
@@ -112,11 +93,7 @@ namespace XCode.Membership
         #endregion
 
         #region 扩展操作
-        static FieldCache<TEntity> CategoryCache = new FieldCache<TEntity>(_.Category);
-
-        /// <summary>查找所有类别名</summary>
-        /// <returns></returns>
-        public static IList<TEntity> FindAllCategory() => CategoryCache.Entities;
+        static readonly FieldCache<TEntity> CategoryCache = new FieldCache<TEntity>(_.Category);
 
         /// <summary>获取所有类别名称</summary>
         /// <returns></returns>
@@ -124,51 +101,6 @@ namespace XCode.Membership
         #endregion
 
         #region 业务
-        ///// <summary>创建日志</summary>
-        ///// <param name="category"></param>
-        ///// <param name="action"></param>
-        ///// <returns></returns>
-        //public static TEntity Create(String category, String action)
-        //{
-        //    var entity = new TEntity();
-
-        //    entity.Category = category;
-        //    entity.Action = action;
-
-        //    return entity;
-        //}
-
-        ///// <summary>创建日志</summary>
-        ///// <param name="type">类型</param>
-        ///// <param name="action"></param>
-        ///// <returns></returns>
-        //public static TEntity Create(Type type, String action)
-        //{
-        //    var name = type.GetDisplayName() ?? type.GetDescription() ?? type.Name;
-
-        //    return Create(name, action);
-        //}
-
-        ///// <summary>创建</summary>
-        ///// <param name="type"></param>
-        ///// <param name="action"></param>
-        ///// <returns></returns>
-        //ILog ILog.Create(Type type, String action) { return Create(type, action); }
-
-        ///// <summary>写日志</summary>
-        ///// <param name="type">类型</param>
-        ///// <param name="action">操作</param>
-        ///// <param name="remark">备注</param>
-        //public void WriteLog(Type type, String action, String remark)
-        //{
-        //    var log = Create(type, action);
-        //    if (log != null)
-        //    {
-        //        log.Remark = remark;
-        //        log.Save();
-        //    }
-        //}
-
         /// <summary>已重载。</summary>
         /// <returns></returns>
         public override String ToString() => String.Format("{0} {1} {2} {3:yyyy-MM-dd HH:mm:ss} {4}", Category, Action, UserName, CreateTime, Remark);

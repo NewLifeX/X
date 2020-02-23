@@ -1,27 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
-using System.Linq;
-using System.Reflection;
 using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
-using NewLife;
 using NewLife.Data;
 using NewLife.Log;
-using NewLife.Model;
-using NewLife.Reflection;
-using NewLife.Threading;
-using NewLife.Web;
-using XCode;
-using XCode.Cache;
-using XCode.Configuration;
-using XCode.DataAccessLayer;
-using XCode.Membership;
 
 namespace XCode.Membership
 {
@@ -159,6 +143,8 @@ namespace XCode.Membership
         /// <returns>实体对象</returns>
         public static TEntity FindByCode(String code)
         {
+            if (code.IsNullOrEmpty()) return null;
+
             // 实体缓存
             if (Meta.Session.Count < 1000) return Meta.Cache.Find(e => e.Code == code);
 
