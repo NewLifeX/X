@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Reflection;
 using XCode.Configuration;
@@ -44,10 +43,7 @@ namespace XCode
         /// <summary>根据类型创建实体工厂</summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public static IEntityFactory AsFactory(this Type type)
-        {
-            return CreateOperate(type);
-        }
+        public static IEntityFactory AsFactory(this Type type) => CreateOperate(type);
 
         /// <summary>使用指定的实体对象创建实体操作接口，主要用于Entity内部调用，避免反射带来的损耗</summary>
         /// <param name="type">类型</param>

@@ -7,7 +7,6 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using NewLife.Collections;
 using NewLife.Data;
-using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Serialization;
 using NewLife.Threading;
@@ -252,7 +251,7 @@ namespace XCode
                 return this.Upsert();
             }
 
-            return FindCount(Persistence.GetPrimaryCondition(this), null, null, 0, 0) > 0 ? Update() : Insert();
+            return FindCount(Persistence.GetPrimaryCondition(Meta.Factory, this), null, null, 0, 0) > 0 ? Update() : Insert();
         }
 
         /// <summary>不需要验证的保存，不执行Valid，一般用于快速导入数据</summary>

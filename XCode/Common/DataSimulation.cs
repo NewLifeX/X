@@ -102,7 +102,7 @@ namespace XCode.Common
                             e.SetItem(item.Name, DateTime.Now.AddSeconds(Rand.Next(-10000, 10000)));
                     }
                     var sql = "";
-                    if (UseSql) sql = pst.GetSql(e, DataObjectMethodType.Insert);
+                    if (UseSql) sql = pst.GetSql(fact, e, DataObjectMethodType.Insert);
                     lock (list)
                     {
                         list.Add(e);

@@ -234,8 +234,7 @@ namespace XCode
         {
             return _fieldNames.GetOrAdd(entityType, t =>
             {
-                var fact = EntityFactory.CreateOperate(t);
-                //return fact == null ? null : fact.FieldNames;
+                var fact = t.AsFactory();
                 if (fact == null) return null;
 
                 return new HashSet<FieldItem>(fact.Fields);

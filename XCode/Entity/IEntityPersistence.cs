@@ -17,19 +17,22 @@ namespace XCode
     {
         #region 添删改方法
         /// <summary>插入</summary>
-        /// <param name="entity"></param>
+        /// <param name="factory">实体工厂</param>
+        /// <param name="entity">实体</param>
         /// <returns></returns>
-        Int32 Insert(IEntity entity);
+        Int32 Insert(IEntityFactory factory, IEntity entity);
 
         /// <summary>更新</summary>
-        /// <param name="entity"></param>
+        /// <param name="factory">实体工厂</param>
+        /// <param name="entity">实体</param>
         /// <returns></returns>
-        Int32 Update(IEntity entity);
+        Int32 Update(IEntityFactory factory, IEntity entity);
 
         /// <summary>删除</summary>
-        /// <param name="entity"></param>
+        /// <param name="factory">实体工厂</param>
+        /// <param name="entity">实体</param>
         /// <returns></returns>
-        Int32 Delete(IEntity entity);
+        Int32 Delete(IEntityFactory factory, IEntity entity);
 
         /// <summary>把一个实体对象持久化到数据库</summary>
         /// <param name="factory">实体工厂</param>
@@ -72,13 +75,13 @@ namespace XCode
         /// <summary>获取主键条件</summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        WhereExpression GetPrimaryCondition(IEntity entity);
+        WhereExpression GetPrimaryCondition(IEntityFactory factory, IEntity entity);
 
         /// <summary>把SQL模版格式化为SQL语句</summary>
         /// <param name="entity">实体对象</param>
         /// <param name="methodType"></param>
         /// <returns>SQL字符串</returns>
-        String GetSql(IEntity entity, DataObjectMethodType methodType);
+        String GetSql(IEntityFactory factory, IEntity entity, DataObjectMethodType methodType);
         #endregion
 
         #region 参数化
@@ -94,26 +97,26 @@ namespace XCode
     {
         #region 添删改方法
         /// <summary>插入</summary>
-        /// <param name="entity"></param>
+        /// <param name="factory">实体工厂</param>
+        /// <param name="entity">实体</param>
         /// <returns></returns>
-        public virtual Int32 Insert(IEntity entity)
+        public virtual Int32 Insert(IEntityFactory factory, IEntity entity)
         {
-            var fact = EntityFactory.CreateOperate(entity.GetType());
-            var session = fact.Session;
+            var session = factory.Session;
 
             // 添加数据前，处理Guid
-            SetGuidField(fact, entity);
+            SetGuidField(factory, entity);
 
             IDataParameter[] dps = null;
-            var sql = SQL(entity, DataObjectMethodType.Insert, ref dps);
+            var sql = SQL(factory, entity, DataObjectMethodType.Insert, ref dps);
             if (String.IsNullOrEmpty(sql)) return 0;
 
             var rs = 0;
 
             //检查是否有标识列，标识列需要特殊处理
-            var field = fact.Table.Identity;
-            var bAllow = fact.AllowInsertIdentity;
-            if (field != null && field.IsIdentity && !bAllow && fact.AutoIdentity)
+            var field = factory.Table.Identity;
+            var bAllow = factory.AllowInsertIdentity;
+            if (field != null && field.IsIdentity && !bAllow && factory.AutoIdentity)
             {
                 var id = session.InsertAndGetIdentity(sql, CommandType.Text, dps);
                 if (id > 0) entity[field.Name] = id;
@@ -123,12 +126,12 @@ namespace XCode
             {
                 if (bAllow)
                 {
-                    var dal = DAL.Create(fact.ConnName);
+                    var dal = DAL.Create(factory.ConnName);
                     if (dal.DbType == DatabaseType.SqlServer)
                     {
                         // 如果所有字段都不是自增，则取消对自增的处理
-                        if (fact.Fields.All(f => !f.IsIdentity)) bAllow = false;
-                        if (bAllow) sql = String.Format("SET IDENTITY_INSERT {1} ON;{0};SET IDENTITY_INSERT {1} OFF", sql, fact.FormatedTableName);
+                        if (factory.Fields.All(f => !f.IsIdentity)) bAllow = false;
+                        if (bAllow) sql = String.Format("SET IDENTITY_INSERT {1} ON;{0};SET IDENTITY_INSERT {1} OFF", sql, factory.FormatedTableName);
                     }
                 }
                 rs = session.Execute(sql, CommandType.Text, dps);
@@ -140,9 +143,9 @@ namespace XCode
             return rs;
         }
 
-        static void SetGuidField(IEntityFactory op, IEntity entity)
+        static void SetGuidField(IEntityFactory factory, IEntity entity)
         {
-            var fi = op.AutoSetGuidField;
+            var fi = factory.AutoSetGuidField;
             if (fi != null)
             {
                 // 判断是否设置了数据
@@ -158,9 +161,10 @@ namespace XCode
         }
 
         /// <summary>更新</summary>
-        /// <param name="entity"></param>
+        /// <param name="factory">实体工厂</param>
+        /// <param name="entity">实体</param>
         /// <returns></returns>
-        public virtual Int32 Update(IEntity entity)
+        public virtual Int32 Update(IEntityFactory factory, IEntity entity)
         {
             // 没有脏数据，不需要更新
             if (!entity.HasDirty) return 0;
@@ -173,15 +177,14 @@ namespace XCode
             {
                 if (!entity.HasDirty) return 0;
 
-                sql = SQL(entity, DataObjectMethodType.Update, ref dps);
+                sql = SQL(factory, entity, DataObjectMethodType.Update, ref dps);
                 if (sql.IsNullOrEmpty()) return 0;
 
                 //清除脏数据，避免重复提交
                 entity.Dirtys.Clear();
             }
 
-            var fact = EntityFactory.CreateOperate(entity.GetType());
-            var session = fact.Session;
+            var session = factory.Session;
             var rs = session.Execute(sql, CommandType.Text, dps);
 
             //EntityAddition.ClearValues(entity as EntityBase);
@@ -190,16 +193,16 @@ namespace XCode
         }
 
         /// <summary>删除</summary>
-        /// <param name="entity"></param>
+        /// <param name="factory">实体工厂</param>
+        /// <param name="entity">实体</param>
         /// <returns></returns>
-        public virtual Int32 Delete(IEntity entity)
+        public virtual Int32 Delete(IEntityFactory factory, IEntity entity)
         {
             IDataParameter[] dps = null;
-            var sql = SQL(entity, DataObjectMethodType.Delete, ref dps);
+            var sql = SQL(factory, entity, DataObjectMethodType.Delete, ref dps);
             if (String.IsNullOrEmpty(sql)) return 0;
 
-            var op = EntityFactory.CreateOperate(entity.GetType());
-            var session = op.Session;
+            var session = factory.Session;
             var rs = session.Execute(sql, CommandType.Text, dps);
 
             // 清除脏数据，避免重复提交保存
@@ -314,10 +317,10 @@ namespace XCode
         /// <param name="entity">实体对象</param>
         /// <param name="methodType"></param>
         /// <returns>SQL字符串</returns>
-        public virtual String GetSql(IEntity entity, DataObjectMethodType methodType)
+        public virtual String GetSql(IEntityFactory factory, IEntity entity, DataObjectMethodType methodType)
         {
             IDataParameter[] dps = null;
-            return SQL(entity, methodType, ref dps);
+            return SQL(factory, entity, methodType, ref dps);
         }
 
         /// <summary>把SQL模版格式化为SQL语句</summary>
@@ -325,21 +328,20 @@ namespace XCode
         /// <param name="methodType"></param>
         /// <param name="parameters">参数数组</param>
         /// <returns>SQL字符串</returns>
-        String SQL(IEntity entity, DataObjectMethodType methodType, ref IDataParameter[] parameters)
+        String SQL(IEntityFactory factory, IEntity entity, DataObjectMethodType methodType, ref IDataParameter[] parameters)
         {
             switch (methodType)
             {
-                case DataObjectMethodType.Insert: return InsertSQL(entity, ref parameters);
-                case DataObjectMethodType.Update: return UpdateSQL(entity, ref parameters);
-                case DataObjectMethodType.Delete: return DeleteSQL(entity, ref parameters);
+                case DataObjectMethodType.Insert: return InsertSQL(factory, entity, ref parameters);
+                case DataObjectMethodType.Update: return UpdateSQL(factory, entity, ref parameters);
+                case DataObjectMethodType.Delete: return DeleteSQL(factory, entity, ref parameters);
             }
             return null;
         }
 
-        static String InsertSQL(IEntity entity, ref IDataParameter[] parameters)
+        static String InsertSQL(IEntityFactory factory, IEntity entity, ref IDataParameter[] parameters)
         {
-            var fact = EntityFactory.CreateOperate(entity.GetType());
-            var db = fact.Session.Dal.Db;
+            var db = factory.Session.Dal.Db;
 
             /*
             * 插入数据原则：
@@ -354,22 +356,22 @@ namespace XCode
 
             var dps = new List<IDataParameter>();
             // 只读列没有插入操作
-            foreach (var fi in fact.Fields)
+            foreach (var fi in factory.Fields)
             {
                 var value = entity[fi.Name];
                 // 标识列不需要插入，别的类型都需要
-                if (CheckIdentity(fi, value, fact, sbNames, sbValues)) continue;
+                if (CheckIdentity(fi, value, factory, sbNames, sbValues)) continue;
 
                 // 1，有脏数据的字段一定要参与
                 if (!entity.IsDirty(fi.Name))
                 {
-                    if (!fact.FullInsert) continue;
+                    if (!factory.FullInsert) continue;
 
                     //// 不允许空时，插入空值没有意义
                     //if (!fi.IsNullable) continue;
                 }
 
-                sbNames.Separate(",").Append(fact.FormatName(fi.ColumnName));
+                sbNames.Separate(",").Append(factory.FormatName(fi.ColumnName));
                 sbValues.Separate(",");
 
                 if (db.UseParameter || UseParam(fi, value))
@@ -380,7 +382,7 @@ namespace XCode
                     sbValues.Append(dp.ParameterName);
                 }
                 else
-                    sbValues.Append(fact.FormatValue(fi, value));
+                    sbValues.Append(factory.FormatValue(fi, value));
             }
 
             var ns = sbNames.Put(true);
@@ -389,16 +391,16 @@ namespace XCode
 
             if (dps.Count > 0) parameters = dps.ToArray();
 
-            return "Insert Into {0}({1}) Values({2})".F(fact.FormatedTableName, ns, vs);
+            return "Insert Into {0}({1}) Values({2})".F(factory.FormatedTableName, ns, vs);
         }
 
-        static Boolean CheckIdentity(FieldItem fi, Object value, IEntityFactory op, StringBuilder sbNames, StringBuilder sbValues)
+        static Boolean CheckIdentity(FieldItem fi, Object value, IEntityFactory factory, StringBuilder sbNames, StringBuilder sbValues)
         {
             if (!fi.IsIdentity) return false;
 
             // 有些时候需要向自增字段插入数据，这里特殊处理
             String idv = null;
-            if (op.AllowInsertIdentity)
+            if (factory.AllowInsertIdentity)
                 idv = "" + value;
             //else
             //    idv = DAL.Create(op.ConnName).Db.FormatIdentity(fi.Field, value);
@@ -406,7 +408,7 @@ namespace XCode
             // 允许返回String.Empty作为插入空
             if (idv == null) return true;
 
-            sbNames.Separate(", ").Append(op.FormatName(fi.ColumnName));
+            sbNames.Separate(", ").Append(factory.FormatName(fi.ColumnName));
             sbValues.Separate(", ");
 
             sbValues.Append(idv);
@@ -414,7 +416,7 @@ namespace XCode
             return true;
         }
 
-        static String UpdateSQL(IEntity entity, ref IDataParameter[] parameters)
+        String UpdateSQL(IEntityFactory factory, IEntity entity, ref IDataParameter[] parameters)
         {
             /*
              * 实体更新原则：
@@ -424,10 +426,9 @@ namespace XCode
              * 4，累加字段特殊处理
              */
 
-            var fact = EntityFactory.CreateOperate(entity.GetType());
-            var db = fact.Session.Dal.Db;
+            var db = factory.Session.Dal.Db;
 
-            var exp = DefaultCondition(entity);
+            var exp = GetPrimaryCondition(factory, entity);
             var ps = !db.UseParameter ? null : new Dictionary<String, Object>();
             var def = exp?.GetString(ps);
             if (def.IsNullOrEmpty()) return null;
@@ -438,7 +439,7 @@ namespace XCode
             var sb = Pool.StringBuilder.Get();
             var dps = new List<IDataParameter>();
             // 只读列没有更新操作
-            foreach (var fi in fact.Fields)
+            foreach (var fi in factory.Fields)
             {
                 if (fi.IsIdentity) continue;
 
@@ -449,7 +450,7 @@ namespace XCode
 
                 sb.Separate(","); // 加逗号
 
-                var name = fact.FormatName(fi.ColumnName);
+                var name = factory.FormatName(fi.ColumnName);
                 sb.Append(name);
                 sb.Append("=");
 
@@ -485,7 +486,7 @@ namespace XCode
                             sb.AppendFormat("{0}-{1}", name, val);
                     }
                     else
-                        sb.Append(fact.FormatValue(fi, value));
+                        sb.Append(factory.FormatValue(fi, value));
                 }
             }
 
@@ -500,23 +501,22 @@ namespace XCode
             {
                 foreach (var item in ps)
                 {
-                    var dp = db.CreateParameter(item.Key, item.Value, fact.Table.FindByName(item.Key)?.Field);
+                    var dp = db.CreateParameter(item.Key, item.Value, factory.Table.FindByName(item.Key)?.Field);
 
                     dps.Add(dp);
                 }
             }
 
             if (dps.Count > 0) parameters = dps.ToArray();
-            return "Update {0} Set {1} Where {2}".F(fact.FormatedTableName, str, def);
+            return "Update {0} Set {1} Where {2}".F(factory.FormatedTableName, str, def);
         }
 
-        static String DeleteSQL(IEntity entity, ref IDataParameter[] parameters)
+        String DeleteSQL(IEntityFactory factory, IEntity entity, ref IDataParameter[] parameters)
         {
-            var fact = EntityFactory.CreateOperate(entity.GetType());
-            var db = fact.Session.Dal.Db;
+            var db = factory.Session.Dal.Db;
 
             // 标识列作为删除关键字
-            var exp = DefaultCondition(entity);
+            var exp = GetPrimaryCondition(factory, entity);
             var ps = !db.UseParameter ? null : new Dictionary<String, Object>();
             var def = exp?.GetString(ps);
             if (def.IsNullOrEmpty()) return null;
@@ -526,14 +526,14 @@ namespace XCode
                 var dps = new List<IDataParameter>();
                 foreach (var item in ps)
                 {
-                    var dp = db.CreateParameter(item.Key, item.Value, fact.Table.FindByName(item.Key)?.Field);
+                    var dp = db.CreateParameter(item.Key, item.Value, factory.Table.FindByName(item.Key)?.Field);
 
                     dps.Add(dp);
                 }
                 parameters = dps.ToArray();
             }
 
-            var formatedTalbeName = fact.FormatedTableName;
+            var formatedTalbeName = factory.FormatedTableName;
             return "Delete From {0} Where {1}".F(formatedTalbeName, def);
         }
 
@@ -640,24 +640,18 @@ namespace XCode
         }
 
         /// <summary>获取主键条件</summary>
-        /// <param name="entity"></param>
-        /// <returns></returns>
-        public virtual WhereExpression GetPrimaryCondition(IEntity entity) => DefaultCondition(entity);
-
-        /// <summary>
-        /// 默认条件。
+        /// <remarks>
         /// 若有标识列，则使用一个标识列作为条件；
         /// 如有主键，则使用全部主键作为条件。
-        /// </summary>
+        /// </remarks>
         /// <param name="entity">实体对象</param>
-        /// <returns>条件</returns>
-        static WhereExpression DefaultCondition(IEntity entity)
+        /// <returns></returns>
+        public virtual WhereExpression GetPrimaryCondition(IEntityFactory factory, IEntity entity)
         {
-            var op = EntityFactory.CreateOperate(entity.GetType());
             var exp = new WhereExpression();
 
             // 标识列作为查询关键字
-            var fi = op.Table.Identity;
+            var fi = factory.Table.Identity;
             if (fi != null)
             {
                 exp &= (fi as Field) == entity[fi.Name];
@@ -665,9 +659,9 @@ namespace XCode
             }
 
             // 主键作为查询关键字
-            var ps = op.Table.PrimaryKeys;
+            var ps = factory.Table.PrimaryKeys;
             // 没有标识列和主键，返回取所有数据的语句
-            if (ps == null || ps.Length < 1) ps = op.Table.Fields;
+            if (ps == null || ps.Length < 1) ps = factory.Table.Fields;
 
             foreach (var item in ps)
             {

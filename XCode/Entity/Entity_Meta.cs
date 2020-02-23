@@ -30,7 +30,7 @@ namespace XCode
                     var type = ThisType;
                     if (type.IsInterface) return null;
 
-                    return EntityFactory.CreateOperate(type);
+                    return type.AsFactory();
                 }
             }
 

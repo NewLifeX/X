@@ -107,7 +107,7 @@ namespace XCode
         /// <summary>表信息</summary>
         TableItem Table => TableItem.Create(ThisType);
 
-        IEntityFactory Operate => EntityFactory.CreateOperate(ThisType);
+        IEntityFactory Factory { get; } = typeof(TEntity).AsFactory();
 
         private DAL _Dal;
         /// <summary>数据操作层</summary>
@@ -225,7 +225,7 @@ namespace XCode
                         //BeginTrans();
                         try
                         {
-                            if (Operate.Default is EntityBase entity)
+                            if (Factory.Default is EntityBase entity)
                             {
                                 entity.InitData();
                                 //// 异步执行初始化，只等一会，避免死锁
@@ -780,7 +780,7 @@ namespace XCode
         /// <returns></returns>
         public virtual Int32 Insert(IEntity entity)
         {
-            var rs = Persistence.Insert(entity);
+            var rs = Persistence.Insert(Factory, entity);
 
             var e = entity as TEntity;
 
@@ -799,7 +799,7 @@ namespace XCode
         /// <returns></returns>
         public virtual Int32 Update(IEntity entity)
         {
-            var rs = Persistence.Update(entity);
+            var rs = Persistence.Update(Factory, entity);
 
             var e = entity as TEntity;
 
@@ -819,7 +819,7 @@ namespace XCode
         /// <returns></returns>
         public virtual Int32 Delete(IEntity entity)
         {
-            var rs = Persistence.Delete(entity);
+            var rs = Persistence.Delete(Factory, entity);
 
             var e = entity as TEntity;
 

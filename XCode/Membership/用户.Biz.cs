@@ -526,7 +526,7 @@ namespace XCode.Membership
         {
             var role = ManageProvider.Get<IRole>();
             EntityType = role.GetType();
-            Key = EntityFactory.CreateOperate(EntityType).Unique?.Name;
+            Key = EntityType.AsFactory().Unique?.Name;
         }
     }
 

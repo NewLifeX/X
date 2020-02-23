@@ -28,7 +28,7 @@ namespace XCode
             if (list == null || !list.Any()) return new Dictionary<String, String>();
 
             var type = list.First().GetType();
-            var fact = EntityFactory.CreateOperate(type);
+            var fact = type.AsFactory();
 
             // 构造主键类型和值类型
             var key = fact.Unique;
@@ -68,8 +68,7 @@ namespace XCode
             var dps = new List<IDataParameter>();
             if (entity == null) return dps.ToArray();
 
-            var type = entity.GetType();
-            var fact = EntityFactory.CreateOperate(type);
+            var fact = entity.GetType().AsFactory();
             var db = fact.Session.Dal.Db;
 
             foreach (var item in fact.Fields)
@@ -88,8 +87,7 @@ namespace XCode
             var dps = new List<IDataParameter>();
             if (list == null || !list.Any()) return dps.ToArray();
 
-            var type = list.First().GetType();
-            var fact = EntityFactory.CreateOperate(type);
+            var fact = list.First().GetType().AsFactory();
             var db = fact.Session.Dal.Db;
 
             foreach (var item in fact.Fields)
@@ -328,7 +326,7 @@ namespace XCode
             var entity = list.First(e => e != null);
             if (entity == null) return 0;
 
-            var fact = EntityFactory.CreateOperate(entity.GetType());
+            var fact = entity.GetType().AsFactory();
 
             // SQLite 批操作默认使用事务，其它数据库默认不使用事务
             if (useTransition == null) useTransition = fact.Session.Dal.DbType == DatabaseType.SQLite;

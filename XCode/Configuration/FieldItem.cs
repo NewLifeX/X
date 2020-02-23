@@ -118,7 +118,7 @@ namespace XCode.Configuration
                 var type = Table.EntityType;
                 if (type.IsInterface) return null;
 
-                return EntityFactory.CreateOperate(type);
+                return type.AsFactory();
             }
         }
 
