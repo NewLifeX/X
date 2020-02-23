@@ -423,6 +423,15 @@ namespace NewLife.Reflection
             var type = Type.GetType(typeName);
             if (type != null) return type;
 
+            // 数组
+            if (typeName.EndsWith("[]"))
+            {
+                var elemType = GetType(typeName.Substring(0, typeName.Length - 2), isLoadAssembly);
+                if (elemType == null) return null;
+
+                return elemType.MakeArrayType();
+            }
+
             // 加速基础类型识别，忽略大小写
             if (!typeName.Contains("."))
             {

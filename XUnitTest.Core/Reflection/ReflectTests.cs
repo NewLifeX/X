@@ -29,5 +29,17 @@ namespace XUnitTest.Reflection
             var t2 = name.GetTypeEx(false);
             Assert.Equal(type, t2);
         }
+
+        [Theory]
+        [InlineData("true", typeof(Boolean), true)]
+        [InlineData("1234", typeof(Int16), (Int16)1234)]
+        [InlineData("1234", typeof(Int32), 1234)]
+        [InlineData("12.34", typeof(Double), 12.34)]
+        [InlineData("byte[]", typeof(Type), typeof(Byte[]))]
+        public void ChangeTypeTest(Object value, Type targetType, Object target)
+        {
+            var rs = value.ChangeType(targetType);
+            Assert.Equal(target, rs);
+        }
     }
 }
