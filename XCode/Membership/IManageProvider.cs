@@ -176,7 +176,7 @@ namespace XCode.Membership
         /// <summary>根据实体类接口获取实体工厂</summary>
         /// <typeparam name="TIEntity"></typeparam>
         /// <returns></returns>
-        internal static IEntityOperate GetFactory<TIEntity>()
+        internal static IEntityFactory GetFactory<TIEntity>()
         {
             var container = XCodeService.Container;
             var type = container.ResolveType<TIEntity>();

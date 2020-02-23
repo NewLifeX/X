@@ -23,7 +23,7 @@ namespace XCode.Common
     {
         #region 属性
         /// <summary>实体工厂</summary>
-        public IEntityOperate Factory { get; set; }
+        public IEntityFactory Factory { get; set; }
 
         /// <summary>事务提交的批大小</summary>
         public Int32 BatchSize { get; set; } = 1000;

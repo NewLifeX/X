@@ -15,7 +15,7 @@ namespace XCode
     public static class EntityFactory
     {
         #region 创建实体操作接口
-        private static ConcurrentDictionary<Type, IEntityOperate> _factories = new ConcurrentDictionary<Type, IEntityOperate>();
+        private static ConcurrentDictionary<Type, IEntityFactory> _factories = new ConcurrentDictionary<Type, IEntityFactory>();
         /// <summary>创建实体操作接口</summary>
         /// <remarks>
         /// 因为只用来做实体操作，所以只需要一个实例即可。
@@ -23,7 +23,7 @@ namespace XCode
         /// </remarks>
         /// <param name="type">类型</param>
         /// <returns></returns>
-        public static IEntityOperate CreateOperate(Type type)
+        public static IEntityFactory CreateOperate(Type type)
         {
             if (type == null) throw new ArgumentNullException(nameof(type));
 
@@ -44,7 +44,7 @@ namespace XCode
         /// <summary>根据类型创建实体工厂</summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public static IEntityOperate AsFactory(this Type type)
+        public static IEntityFactory AsFactory(this Type type)
         {
             return CreateOperate(type);
         }
@@ -53,7 +53,7 @@ namespace XCode
         /// <param name="type">类型</param>
         /// <param name="factory"></param>
         /// <returns></returns>
-        public static IEntityOperate Register(Type type, IEntityOperate factory)
+        public static IEntityFactory Register(Type type, IEntityFactory factory)
         {
             if (factory == null) throw new ArgumentNullException(nameof(factory));
 

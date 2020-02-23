@@ -36,14 +36,14 @@ namespace XCode
         /// <param name="names">更新属性列表</param>
         /// <param name="values">更新值列表</param>
         /// <returns>返回受影响的行数</returns>
-        Int32 Insert(IEntityOperate factory, String[] names, Object[] values);
+        Int32 Insert(IEntityFactory factory, String[] names, Object[] values);
 
         /// <summary>更新一批实体数据</summary>
         /// <param name="factory">实体工厂</param>
         /// <param name="setClause">要更新的项和数据</param>
         /// <param name="whereClause">指定要更新的实体</param>
         /// <returns></returns>
-        Int32 Update(IEntityOperate factory, String setClause, String whereClause);
+        Int32 Update(IEntityFactory factory, String setClause, String whereClause);
 
         /// <summary>更新一批实体数据</summary>
         /// <param name="factory">实体工厂</param>
@@ -52,20 +52,20 @@ namespace XCode
         /// <param name="whereNames">条件属性列表</param>
         /// <param name="whereValues">条件值列表</param>
         /// <returns>返回受影响的行数</returns>
-        Int32 Update(IEntityOperate factory, String[] setNames, Object[] setValues, String[] whereNames, Object[] whereValues);
+        Int32 Update(IEntityFactory factory, String[] setNames, Object[] setValues, String[] whereNames, Object[] whereValues);
 
         /// <summary>从数据库中删除指定条件的实体对象。</summary>
         /// <param name="factory">实体工厂</param>
         /// <param name="whereClause">限制条件</param>
         /// <returns></returns>
-        Int32 Delete(IEntityOperate factory, String whereClause);
+        Int32 Delete(IEntityFactory factory, String whereClause);
 
         /// <summary>从数据库中删除指定属性列表和值列表所限定的实体对象。</summary>
         /// <param name="factory">实体工厂</param>
         /// <param name="names">属性列表</param>
         /// <param name="values">值列表</param>
         /// <returns></returns>
-        Int32 Delete(IEntityOperate factory, String[] names, Object[] values);
+        Int32 Delete(IEntityFactory factory, String[] names, Object[] values);
         #endregion
 
         #region 获取语句
@@ -85,7 +85,7 @@ namespace XCode
         /// <summary>插入语句</summary>
         /// <param name="factory"></param>
         /// <returns></returns>
-        String InsertSQL(IEntityOperate factory);
+        String InsertSQL(IEntityFactory factory);
         #endregion
     }
 
@@ -140,7 +140,7 @@ namespace XCode
             return rs;
         }
 
-        static void SetGuidField(IEntityOperate op, IEntity entity)
+        static void SetGuidField(IEntityFactory op, IEntity entity)
         {
             var fi = op.AutoSetGuidField;
             if (fi != null)
@@ -213,7 +213,7 @@ namespace XCode
         /// <param name="names">更新属性列表</param>
         /// <param name="values">更新值列表</param>
         /// <returns>返回受影响的行数</returns>
-        public virtual Int32 Insert(IEntityOperate factory, String[] names, Object[] values)
+        public virtual Int32 Insert(IEntityFactory factory, String[] names, Object[] values)
         {
             if (names == null) throw new ArgumentNullException(nameof(names), "属性列表和值列表不能为空");
             if (values == null) throw new ArgumentNullException(nameof(values), "属性列表和值列表不能为空");
@@ -247,7 +247,7 @@ namespace XCode
         /// <param name="setClause">要更新的项和数据</param>
         /// <param name="whereClause">指定要更新的实体</param>
         /// <returns></returns>
-        public virtual Int32 Update(IEntityOperate factory, String setClause, String whereClause)
+        public virtual Int32 Update(IEntityFactory factory, String setClause, String whereClause)
         {
             if (setClause.IsNullOrEmpty() || !setClause.Contains("=") || setClause.ToLower().Contains(" or ")) throw new ArgumentException("非法参数");
 
@@ -263,7 +263,7 @@ namespace XCode
         /// <param name="whereNames">条件属性列表</param>
         /// <param name="whereValues">条件值列表</param>
         /// <returns>返回受影响的行数</returns>
-        public virtual Int32 Update(IEntityOperate factory, String[] setNames, Object[] setValues, String[] whereNames, Object[] whereValues)
+        public virtual Int32 Update(IEntityFactory factory, String[] setNames, Object[] setValues, String[] whereNames, Object[] whereValues)
         {
             var sc = Join(factory, setNames, setValues, ", ");
             var wc = Join(factory, whereNames, whereValues, " And ");
@@ -274,7 +274,7 @@ namespace XCode
         /// <param name="factory">实体工厂</param>
         /// <param name="whereClause">限制条件</param>
         /// <returns></returns>
-        public virtual Int32 Delete(IEntityOperate factory, String whereClause)
+        public virtual Int32 Delete(IEntityFactory factory, String whereClause)
         {
             var sql = String.Format("Delete From {0}", factory.FormatedTableName);
             if (!whereClause.IsNullOrEmpty()) sql += " Where " + whereClause;
@@ -286,9 +286,9 @@ namespace XCode
         /// <param name="names">属性列表</param>
         /// <param name="values">值列表</param>
         /// <returns></returns>
-        public virtual Int32 Delete(IEntityOperate factory, String[] names, Object[] values) => Delete(factory, Join(factory, names, values, "And"));
+        public virtual Int32 Delete(IEntityFactory factory, String[] names, Object[] values) => Delete(factory, Join(factory, names, values, "And"));
 
-        private static String Join(IEntityOperate factory, String[] names, Object[] values, String split)
+        private static String Join(IEntityFactory factory, String[] names, Object[] values, String split)
         {
             var fs = new Dictionary<String, FieldItem>(StringComparer.OrdinalIgnoreCase);
             foreach (var fi in factory.Fields)
@@ -392,7 +392,7 @@ namespace XCode
             return "Insert Into {0}({1}) Values({2})".F(fact.FormatedTableName, ns, vs);
         }
 
-        static Boolean CheckIdentity(FieldItem fi, Object value, IEntityOperate op, StringBuilder sbNames, StringBuilder sbValues)
+        static Boolean CheckIdentity(FieldItem fi, Object value, IEntityFactory op, StringBuilder sbNames, StringBuilder sbValues)
         {
             if (!fi.IsIdentity) return false;
 
@@ -682,7 +682,7 @@ namespace XCode
         /// <summary>插入语句</summary>
         /// <param name="factory"></param>
         /// <returns></returns>
-        public virtual String InsertSQL(IEntityOperate factory)
+        public virtual String InsertSQL(IEntityFactory factory)
         {
             var fact = factory;
             var db = fact.Session.Dal.Db;

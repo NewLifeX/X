@@ -13,7 +13,7 @@ namespace XCode.Transform
         String Name { get; set; }
 
         /// <summary>实体工厂</summary>
-        IEntityOperate Factory { get; set; }
+        IEntityFactory Factory { get; set; }
 
         /// <summary>获取 或 设置 时间字段</summary>
         String FieldName { get; set; }
@@ -48,7 +48,7 @@ namespace XCode.Transform
         public String Name { get; set; }
 
         /// <summary>实体工厂</summary>
-        public IEntityOperate Factory { get; set; }
+        public IEntityFactory Factory { get; set; }
 
         /// <summary>获取 或 设置 时间字段</summary>
         public String FieldName { get; set; }

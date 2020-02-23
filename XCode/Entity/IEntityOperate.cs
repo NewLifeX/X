@@ -7,7 +7,11 @@ using XCode.Configuration;
 namespace XCode
 {
     /// <summary>数据实体操作接口</summary>
-    public interface IEntityOperate
+    [Obsolete("=>IEntityFactory")]
+    public interface IEntityOperate : IEntityFactory { }
+
+    /// <summary>数据实体操作接口</summary>
+    public interface IEntityFactory
     {
         #region 主要属性
         /// <summary>实体类型</summary>

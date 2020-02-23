@@ -111,7 +111,7 @@ namespace XCode.Configuration
         public IDataColumn Field { get; private set; }
 
         /// <summary>实体操作者</summary>
-        public IEntityOperate Factory
+        public IEntityFactory Factory
         {
             get
             {

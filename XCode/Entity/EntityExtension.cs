@@ -236,7 +236,7 @@ namespace XCode
             return new Tuple<IList<T>, IList<T>>(updates, others);
         }
 
-        private static Int32 BatchSave<T>(IEntityOperate fact, IEnumerable<T> list) where T : IEntity
+        private static Int32 BatchSave<T>(IEntityFactory fact, IEnumerable<T> list) where T : IEntity
         {
             // 没有其它唯一索引，且主键为空时，走批量插入
             var rs = 0;
@@ -581,7 +581,7 @@ namespace XCode
         /// <param name="fact"></param>
         /// <param name="list"></param>
         /// <returns></returns>
-        private static String[] GetDirtyColumns(IEntityOperate fact, IEnumerable<IEntity> list)
+        private static String[] GetDirtyColumns(IEntityFactory fact, IEnumerable<IEntity> list)
         {
             //var fact = list.FirstOrDefault().GetType().AsFactory();
 

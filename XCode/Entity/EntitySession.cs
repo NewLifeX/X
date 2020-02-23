@@ -107,7 +107,7 @@ namespace XCode
         /// <summary>表信息</summary>
         TableItem Table => TableItem.Create(ThisType);
 
-        IEntityOperate Operate => EntityFactory.CreateOperate(ThisType);
+        IEntityFactory Operate => EntityFactory.CreateOperate(ThisType);
 
         private DAL _Dal;
         /// <summary>数据操作层</summary>

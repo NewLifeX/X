@@ -19,7 +19,7 @@ namespace XCode.Model
     {
         #region 属性
         /// <summary>实体工厂</summary>
-        public IEntityOperate Factory { get; set; }
+        public IEntityFactory Factory { get; set; }
 
         /// <summary>表达式语句</summary>
         public String Expression { get; set; }

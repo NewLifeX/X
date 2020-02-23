@@ -11,7 +11,7 @@ namespace XCode
     partial class Entity<TEntity>
     {
         /// <summary>默认的实体操作者</summary>
-        public class EntityOperate : IEntityOperate
+        public class EntityOperate : IEntityFactory
         {
             #region 主要属性
             /// <summary>实体类型</summary>

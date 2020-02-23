@@ -23,7 +23,7 @@ namespace XCode
             public static Type ThisType => typeof(TEntity);
 
             /// <summary>实体操作者</summary>
-            public static IEntityOperate Factory
+            public static IEntityFactory Factory
             {
                 get
                 {
