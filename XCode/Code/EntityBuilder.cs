@@ -484,7 +484,14 @@ namespace XCode.Code
                                 }
                             }
                             else
-                                WriteLine("case __.{0}: _{0} = ({1})value.ToInt(); break;", dc.Name, type);
+                            {
+                                // 特殊支持枚举
+                                var type2 = type.GetTypeEx();
+                                if (type2 != null && type2.IsEnum)
+                                    WriteLine("case __.{0}: _{0} = ({1})value.ToInt(); break;", dc.Name, type);
+                                else
+                                    WriteLine("case __.{0}: _{0} = ({1})value; break;", dc.Name, type);
+                            }
                         }
                     }
                     WriteLine("default: base[name] = value; break;");
@@ -621,7 +628,7 @@ namespace XCode.Code
                 var dc = Table.Columns.FirstOrDefault(e => !e.Identity && !e.PrimaryKey && (e.DataType == typeof(Int32) || e.DataType == typeof(Int64)));
                 if (dc != null)
                 {
-                    WriteLine("// 累加字段");
+                    WriteLine("// 累加字段，生成 Update xx Set Count=Count+1234 Where xxx");
                     WriteLine("//var df = Meta.Factory.AdditionalFields;");
                     WriteLine("//df.Add(__.{0});", dc.Name);
                 }
