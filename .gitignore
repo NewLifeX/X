@@ -32,3 +32,4 @@ bld/
 /TestResults
 /BinCoreTest
 /BinXCodeTest
+/XUnitTest.XCode/TestEntity/Config

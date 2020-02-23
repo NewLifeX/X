@@ -113,7 +113,7 @@ namespace Test
             {
                 Category = "test",
                 Action = "abc",
-                Remark = Rand.NextBytes(1024)
+                //Remark = Rand.NextBytes(1024)
             };
             log.Insert();
 
