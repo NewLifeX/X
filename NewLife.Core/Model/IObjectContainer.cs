@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace NewLife.Model
 {
@@ -30,12 +29,12 @@ namespace NewLife.Model
         /// <returns></returns>
         IObjectContainer Register(Type from, Type to, Object instance, Object id = null, Int32 priority = 0);
 
-        /// <summary>遍历所有程序集的所有类型，自动注册实现了指定接口或基类的类型。如果没有注册任何实现，则默认注册第一个排除类型</summary>
-        /// <remarks>自动注册一般用于单实例功能扩展型接口</remarks>
-        /// <param name="from">接口或基类</param>
-        /// <param name="excludeTypes">要排除的类型，一般是内部默认实现</param>
-        /// <returns></returns>
-        IObjectContainer AutoRegister(Type from, params Type[] excludeTypes);
+        ///// <summary>遍历所有程序集的所有类型，自动注册实现了指定接口或基类的类型。如果没有注册任何实现，则默认注册第一个排除类型</summary>
+        ///// <remarks>自动注册一般用于单实例功能扩展型接口</remarks>
+        ///// <param name="from">接口或基类</param>
+        ///// <param name="excludeTypes">要排除的类型，一般是内部默认实现</param>
+        ///// <returns></returns>
+        //IObjectContainer AutoRegister(Type from, params Type[] excludeTypes);
         #endregion
 
         #region 解析

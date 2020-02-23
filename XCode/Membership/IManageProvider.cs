@@ -166,7 +166,7 @@ namespace XCode.Membership
         /// <summary>获取服务</summary>
         /// <param name="serviceType"></param>
         /// <returns></returns>
-        public virtual Object GetService(Type serviceType) => XCodeService.Container.Resolve(serviceType);
+        public virtual Object GetService(Type serviceType) => null;
         #endregion
 
         #region 实体类扩展

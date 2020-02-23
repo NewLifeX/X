@@ -159,44 +159,44 @@ namespace NewLife.Model
             return this;
         }
 
-        /// <summary>遍历所有程序集的所有类型，自动注册实现了指定接口或基类的类型。如果没有注册任何实现，则默认注册第一个排除类型</summary>
-        /// <remarks>自动注册一般用于单实例功能扩展型接口</remarks>
-        /// <param name="from">接口或基类</param>
-        /// <param name="excludeTypes">要排除的类型，一般是内部默认实现</param>
-        /// <returns></returns>
-        public virtual IObjectContainer AutoRegister(Type from, params Type[] excludeTypes)
-        {
-            if (from == null) throw new ArgumentNullException(nameof(from));
+        ///// <summary>遍历所有程序集的所有类型，自动注册实现了指定接口或基类的类型。如果没有注册任何实现，则默认注册第一个排除类型</summary>
+        ///// <remarks>自动注册一般用于单实例功能扩展型接口</remarks>
+        ///// <param name="from">接口或基类</param>
+        ///// <param name="excludeTypes">要排除的类型，一般是内部默认实现</param>
+        ///// <returns></returns>
+        //public virtual IObjectContainer AutoRegister(Type from, params Type[] excludeTypes)
+        //{
+        //    if (from == null) throw new ArgumentNullException(nameof(from));
 
-            if (excludeTypes == null) excludeTypes = Type.EmptyTypes;
+        //    if (excludeTypes == null) excludeTypes = Type.EmptyTypes;
 
-            // 如果存在已注册项，并且优先级大于0，那么这里就不要注册了
-            var dic = Find(from);
-            if (dic != null && dic.Count > 0)
-            {
-                if (FindMap(dic, null) is Map map && map.Priority > 0) return this;
-            }
+        //    // 如果存在已注册项，并且优先级大于0，那么这里就不要注册了
+        //    var dic = Find(from);
+        //    if (dic != null && dic.Count > 0)
+        //    {
+        //        if (FindMap(dic, null) is Map map && map.Priority > 0) return this;
+        //    }
 
-            // 遍历所有程序集，自动加载
-            foreach (var item in from.GetAllSubclasses(true))
-            {
-                if (Array.IndexOf(excludeTypes, item) < 0)
-                {
-                    // 实例化一次，让这个类有机会执行类型构造函数，可以获取旧的类型实现
-                    var obj = item.CreateInstance();
+        //    // 遍历所有程序集，自动加载
+        //    foreach (var item in from.GetAllSubclasses(true))
+        //    {
+        //        if (Array.IndexOf(excludeTypes, item) < 0)
+        //        {
+        //            // 实例化一次，让这个类有机会执行类型构造函数，可以获取旧的类型实现
+        //            var obj = item.CreateInstance();
 
-                    if (XTrace.Debug) XTrace.WriteLine("为{0}自动注册{1}", from.FullName, item.FullName);
+        //            if (XTrace.Debug) XTrace.WriteLine("为{0}自动注册{1}", from.FullName, item.FullName);
 
-                    Register(from, null, obj);
-                    return this;
-                }
-            }
+        //            Register(from, null, obj);
+        //            return this;
+        //        }
+        //    }
 
-            // 如果没有注册任何实现，则默认注册第一个排除类型
-            if (excludeTypes.Length > 0) Register(from, excludeTypes[0], null);
+        //    // 如果没有注册任何实现，则默认注册第一个排除类型
+        //    if (excludeTypes.Length > 0) Register(from, excludeTypes[0], null);
 
-            return this;
-        }
+        //    return this;
+        //}
         #endregion
 
         #region 解析
@@ -272,7 +272,7 @@ namespace NewLife.Model
         #region 辅助
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override String ToString() { return String.Format("{0}[Count={1}]", GetType().Name, Stores.Count); }
+        public override String ToString() => String.Format("{0}[Count={1}]", GetType().Name, Stores.Count);
         #endregion
     }
 }

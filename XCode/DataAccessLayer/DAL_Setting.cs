@@ -2,13 +2,20 @@
 using System.Diagnostics;
 using System.Threading;
 using NewLife.Log;
+using NewLife.Model;
 using XCode.Model;
 
 namespace XCode.DataAccessLayer
 {
     partial class DAL
     {
-        static DAL() => InitLog();
+        static DAL()
+        {
+            var ioc = ObjectContainer.Current;
+            ioc.Register<IDataTable, XTable>();
+
+            InitLog();
+        }
 
         #region Sql日志输出
         /// <summary>是否调试</summary>
@@ -60,7 +67,7 @@ namespace XCode.DataAccessLayer
 
         /// <summary>建立数据表对象</summary>
         /// <returns></returns>
-        internal static IDataTable CreateTable() => XCodeService.CreateTable();
+        internal static IDataTable CreateTable() => ObjectContainer.Current.Resolve<IDataTable>();
 
         /// <summary>是否支持批操作</summary>
         /// <returns></returns>

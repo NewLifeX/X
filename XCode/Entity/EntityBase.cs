@@ -208,7 +208,7 @@ namespace XCode
             {
                 if (_Addition == null)
                 {
-                    _Addition = XCodeService.Container.Resolve<IEntityAddition>();
+                    _Addition = new EntityAddition();
                     _Addition.Entity = this;
                 }
                 return _Addition;

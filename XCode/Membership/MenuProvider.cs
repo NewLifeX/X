@@ -1,5 +1,4 @@
 ﻿using System;
-using NewLife.Model;
 
 namespace XCode.Membership
 {
@@ -18,21 +17,8 @@ namespace XCode.Membership
         #endregion
 
         #region 静态属性
-        static MenuProvider()
-        {
-            ObjectContainer.Current.AutoRegister<MenuProvider, DefaultMenuProvider>();
-        }
-
-        private static MenuProvider _Provider;
         /// <summary>当前成员提供者</summary>
-        public static MenuProvider Provider
-        {
-            get
-            {
-                if (_Provider == null) _Provider = ObjectContainer.Current.Resolve<MenuProvider>();
-                return _Provider;
-            }
-        }
+        public static MenuProvider Provider { get; set; } = new DefaultMenuProvider();
         #endregion
     }
 
@@ -48,7 +34,7 @@ namespace XCode.Membership
         {
             if (!Enable) return;
 
-            if (type == null) throw new ArgumentNullException("type");
+            if (type == null) throw new ArgumentNullException(nameof(type));
 
             var factory = EntityFactory.CreateOperate(typeof(TMenu));
             var log = factory.Create() as ILog;

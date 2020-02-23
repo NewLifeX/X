@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using NewLife.Collections;
 using NewLife.Data;
+using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Serialization;
 using NewLife.Threading;
@@ -75,7 +76,9 @@ namespace XCode
         {
             if (dt == null) return new List<TEntity>();
 
-            var list = DreAccessor.LoadData<TEntity>(dt);
+            var provider = ObjectContainer.Current.ResolveInstance<IDataRowEntityAccessorProvider>();
+            var accessor = provider.CreateAccessor(typeof(TEntity));
+            var list = accessor.LoadData<TEntity>(dt);
             OnLoadData(list);
 
             return list;
@@ -88,7 +91,9 @@ namespace XCode
         {
             if (ds == null) return new List<TEntity>();
 
-            var list = DreAccessor.LoadData<TEntity>(ds);
+            var provider = ObjectContainer.Current.ResolveInstance<IDataRowEntityAccessorProvider>();
+            var accessor = provider.CreateAccessor(typeof(TEntity));
+            var list = accessor.LoadData<TEntity>(ds);
             OnLoadData(list);
 
             return list;
@@ -101,7 +106,9 @@ namespace XCode
         {
             if (dr == null) return new List<TEntity>();
 
-            var list = DreAccessor.LoadData<TEntity>(dr);
+            var provider = ObjectContainer.Current.ResolveInstance<IDataRowEntityAccessorProvider>();
+            var accessor = provider.CreateAccessor(typeof(TEntity));
+            var list = accessor.LoadData<TEntity>(dr);
             OnLoadData(list);
 
             return list;
@@ -135,7 +142,7 @@ namespace XCode
             }
         }
 
-        private static IDataRowEntityAccessor DreAccessor => XCodeService.CreateDataRowEntityAccessor(typeof(TEntity));
+        //private static IDataRowEntityAccessor DreAccessor => ObjectContainer.Current.ResolveInstance<IDataRowEntityAccessorProvider>().CreateDataRowEntityAccessor(typeof(TEntity));
         #endregion
 
         #region 操作

@@ -33,7 +33,7 @@ namespace XCode
         /// <summary>创建实体类的数据行访问器</summary>
         /// <param name="entityType"></param>
         /// <returns></returns>
-        IDataRowEntityAccessor CreateDataRowEntityAccessor(Type entityType);
+        IDataRowEntityAccessor CreateAccessor(Type entityType);
     }
 
     class DataRowEntityAccessorProvider : IDataRowEntityAccessorProvider
@@ -41,7 +41,7 @@ namespace XCode
         /// <summary>创建实体类的数据行访问器</summary>
         /// <param name="entityType"></param>
         /// <returns></returns>
-        public IDataRowEntityAccessor CreateDataRowEntityAccessor(Type entityType) => new DataRowEntityAccessor();
+        public IDataRowEntityAccessor CreateAccessor(Type entityType) => new DataRowEntityAccessor();
     }
 
     class DataRowEntityAccessor : IDataRowEntityAccessor
