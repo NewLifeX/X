@@ -120,6 +120,9 @@ namespace Test
             db = dal.Query("select id,name,enable 启用 from role");
             json = db.ToJson(true, false, true);
             XTrace.WriteLine(json);
+
+            var names = Log.FindAllCategoryName();
+            Console.WriteLine(names.ToJson());
         }
 
         static void Test3()
