@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Threading;
 using NewLife.Log;
 using NewLife.Model;
-using XCode.Model;
 
 namespace XCode.DataAccessLayer
 {
@@ -12,7 +11,7 @@ namespace XCode.DataAccessLayer
         static DAL()
         {
             var ioc = ObjectContainer.Current;
-            ioc.Register<IDataTable, XTable>();
+            ioc.AddTransient<IDataTable, XTable>();
 
             InitLog();
         }

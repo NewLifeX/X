@@ -164,6 +164,7 @@ namespace System
         /// <param name="id">标识</param>
         /// <param name="priority">优先级</param>
         /// <returns></returns>
+        [Obsolete]
         public static IObjectContainer Register<TInterface, TImplement>(this IObjectContainer container, Object id = null, Int32 priority = 0) => container.Register(typeof(TInterface), typeof(TImplement), null);
 
         /// <summary>注册类型指定名称的实例</summary>
@@ -173,20 +174,29 @@ namespace System
         /// <param name="id">标识</param>
         /// <param name="priority">优先级</param>
         /// <returns></returns>
+        [Obsolete]
         public static IObjectContainer Register<TInterface>(this IObjectContainer container, Object instance, Object id = null, Int32 priority = 0) => container.Register(typeof(TInterface), null, instance);
 
-        /// <summary>解析类型指定名称的实例</summary>
-        /// <typeparam name="TInterface">接口类型</typeparam>
+        /// <summary>解析类型的实例</summary>
+        /// <typeparam name="TService">接口类型</typeparam>
         /// <param name="container">对象容器</param>
-        /// <param name="id">标识</param>
         /// <returns></returns>
-        public static TInterface Resolve<TInterface>(this IObjectContainer container, Object id = null) => (TInterface)container.Resolve(typeof(TInterface));
+        public static TService Resolve<TService>(this IObjectContainer container) => (TService)container.Resolve(typeof(TService));
 
         /// <summary>解析类型指定名称的实例</summary>
         /// <typeparam name="TInterface">接口类型</typeparam>
         /// <param name="container">对象容器</param>
         /// <param name="id">标识</param>
         /// <returns></returns>
+        [Obsolete]
+        public static TInterface Resolve<TInterface>(this IObjectContainer container, Object id) => (TInterface)container.Resolve(typeof(TInterface));
+
+        /// <summary>解析类型指定名称的实例</summary>
+        /// <typeparam name="TInterface">接口类型</typeparam>
+        /// <param name="container">对象容器</param>
+        /// <param name="id">标识</param>
+        /// <returns></returns>
+        [Obsolete]
         public static TInterface ResolveInstance<TInterface>(this IObjectContainer container, Object id = null) => (TInterface)container.Resolve(typeof(TInterface));
         #endregion
     }

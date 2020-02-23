@@ -114,14 +114,15 @@ namespace NewLife.Model
             var item = _list.FirstOrDefault(e => e.ServiceType == serviceType);
             if (item == null) return null;
 
+            var type = item.ImplementationType ?? item.ServiceType;
             if (item.Lifttime == ObjectLifetime.Singleton && item is ObjectMap map)
             {
-                if (map.Instance == null) map.Instance = item.ImplementationType.CreateInstance();
+                if (map.Instance == null) map.Instance = type.CreateInstance();
 
                 return map.Instance;
             }
 
-            return item.ImplementationType.CreateInstance();
+            return type.CreateInstance();
         }
 
         /// <summary>解析类型指定名称的实例</summary>

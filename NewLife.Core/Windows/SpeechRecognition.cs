@@ -49,10 +49,7 @@ namespace NewLife.Windows
 
         /// <summary>获取已注册的所有键值</summary>
         /// <returns></returns>
-        public String[] GetAllKeys()
-        {
-            return _dic.Keys.ToArray();
-        }
+        public String[] GetAllKeys() => _dic.Keys.ToArray();
         #endregion
 
         #region 方法

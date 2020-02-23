@@ -102,7 +102,7 @@ namespace NewLife
                 Current = mi;
 
                 // 注册到对象容器
-                ObjectContainer.Current.Register<MachineInfo>(mi);
+                ObjectContainer.Current.AddSingleton(mi);
 
                 return mi;
             });
@@ -110,7 +110,7 @@ namespace NewLife
 
         /// <summary>从对象容器中获取一个已注册机器信息实例</summary>
         /// <returns></returns>
-        public static MachineInfo Resolve() => ObjectContainer.Current.ResolveInstance<MachineInfo>();
+        public static MachineInfo Resolve() => ObjectContainer.Current.Resolve<MachineInfo>();
         #endregion
 
         #region 方法

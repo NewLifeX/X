@@ -30,6 +30,9 @@ namespace XCode
 
             EntityFactory.Register(typeof(TEntity), new EntityOperate());
 
+            var ioc = ObjectContainer.Current;
+            ioc.AddSingleton<IDataRowEntityAccessorProvider, DataRowEntityAccessorProvider>();
+
             // 1，可以初始化该实体类型的操作工厂
             // 2，CreateOperate将会实例化一个TEntity对象，从而引发TEntity的静态构造函数，
             // 避免实际应用中，直接调用Entity的静态方法时，没有引发TEntity的静态构造函数。
@@ -76,7 +79,7 @@ namespace XCode
         {
             if (dt == null) return new List<TEntity>();
 
-            var provider = ObjectContainer.Current.ResolveInstance<IDataRowEntityAccessorProvider>();
+            var provider = ObjectContainer.Current.Resolve<IDataRowEntityAccessorProvider>();
             var accessor = provider.CreateAccessor(typeof(TEntity));
             var list = accessor.LoadData<TEntity>(dt);
             OnLoadData(list);
@@ -91,7 +94,7 @@ namespace XCode
         {
             if (ds == null) return new List<TEntity>();
 
-            var provider = ObjectContainer.Current.ResolveInstance<IDataRowEntityAccessorProvider>();
+            var provider = ObjectContainer.Current.Resolve<IDataRowEntityAccessorProvider>();
             var accessor = provider.CreateAccessor(typeof(TEntity));
             var list = accessor.LoadData<TEntity>(ds);
             OnLoadData(list);
@@ -106,7 +109,7 @@ namespace XCode
         {
             if (dr == null) return new List<TEntity>();
 
-            var provider = ObjectContainer.Current.ResolveInstance<IDataRowEntityAccessorProvider>();
+            var provider = ObjectContainer.Current.Resolve<IDataRowEntityAccessorProvider>();
             var accessor = provider.CreateAccessor(typeof(TEntity));
             var list = accessor.LoadData<TEntity>(dr);
             OnLoadData(list);
