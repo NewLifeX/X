@@ -52,7 +52,7 @@ namespace XCode.Code
             if (xmlFile.IsNullOrEmpty())
             {
                 var di = ".".GetBasePath().AsDirectory();
-                XTrace.WriteLine("未指定模型文件，准备从目录中查找第一个xml文件 {0}", di.FullName);
+                //XTrace.WriteLine("未指定模型文件，准备从目录中查找第一个xml文件 {0}", di.FullName);
                 // 选当前目录第一个
                 xmlFile = di.GetFiles("*.xml", SearchOption.TopDirectoryOnly).FirstOrDefault()?.FullName;
             }
@@ -125,7 +125,7 @@ namespace XCode.Code
                 ignoreNameCase = str.ToBoolean();
             }
 
-            XTrace.WriteLine("代码生成源：{0}", xmlFile);
+            //XTrace.WriteLine("代码生成源：{0}", xmlFile);
 
             var rs = BuildTables(tables, output, nameSpace, connName, baseClass, chineseFileName.Value, ignoreNameCase.Value);
 
@@ -165,7 +165,7 @@ namespace XCode.Code
             // 连接名
             if (connName.IsNullOrEmpty() && !nameSpace.IsNullOrEmpty() && nameSpace.Contains(".")) connName = nameSpace.Substring(nameSpace.LastIndexOf(".") + 1);
 
-            XTrace.WriteLine("代码生成：{0} 输出：{1} 命名空间：{2} 连接名：{3} 基类：{4}", tables.Count, output, nameSpace, connName, baseClass);
+            //XTrace.WriteLine("代码生成：{0} 输出：{1} 命名空间：{2} 连接名：{3} 基类：{4}", tables.Count, output, nameSpace, connName, baseClass);
 
             var count = 0;
             foreach (var item in tables)

@@ -49,7 +49,7 @@ namespace XCode.Code
         /// <summary>执行生成</summary>
         public virtual void Execute()
         {
-            WriteLog("生成 {0} {1}", Table.Name, Table.DisplayName);
+            //WriteLog("生成 {0} {1}", Table.Name, Table.DisplayName);
 
             Clear();
             if (Writer == null) Writer = new StringWriter();
@@ -309,10 +309,7 @@ namespace XCode.Code
         /// <summary>写日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
-        public void WriteLog(String format, params Object[] args)
-        {
-            Log?.Info(format, args);
-        }
+        public void WriteLog(String format, params Object[] args) => Log?.Info(format, args);
         #endregion
     }
 }
