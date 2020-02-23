@@ -15,100 +15,101 @@ namespace XCode
     /// <summary>实体持久化接口。可通过实现该接口来自定义实体类持久化行为。</summary>
     public interface IEntityPersistence
     {
+        #region 属性
+        /// <summary>实体工厂</summary>
+        IEntityFactory Factory { get; }
+        #endregion
+
         #region 添删改方法
         /// <summary>插入</summary>
-        /// <param name="factory">实体工厂</param>
         /// <param name="entity">实体</param>
         /// <returns></returns>
-        Int32 Insert(IEntityFactory factory, IEntity entity);
+        Int32 Insert(IEntity entity);
 
         /// <summary>更新</summary>
-        /// <param name="factory">实体工厂</param>
         /// <param name="entity">实体</param>
         /// <returns></returns>
-        Int32 Update(IEntityFactory factory, IEntity entity);
+        Int32 Update(IEntity entity);
 
         /// <summary>删除</summary>
-        /// <param name="factory">实体工厂</param>
         /// <param name="entity">实体</param>
         /// <returns></returns>
-        Int32 Delete(IEntityFactory factory, IEntity entity);
+        Int32 Delete(IEntity entity);
 
         /// <summary>把一个实体对象持久化到数据库</summary>
-        /// <param name="factory">实体工厂</param>
         /// <param name="names">更新属性列表</param>
         /// <param name="values">更新值列表</param>
         /// <returns>返回受影响的行数</returns>
-        Int32 Insert(IEntityFactory factory, String[] names, Object[] values);
+        Int32 Insert(String[] names, Object[] values);
 
         /// <summary>更新一批实体数据</summary>
-        /// <param name="factory">实体工厂</param>
         /// <param name="setClause">要更新的项和数据</param>
         /// <param name="whereClause">指定要更新的实体</param>
         /// <returns></returns>
-        Int32 Update(IEntityFactory factory, String setClause, String whereClause);
+        Int32 Update(String setClause, String whereClause);
 
         /// <summary>更新一批实体数据</summary>
-        /// <param name="factory">实体工厂</param>
         /// <param name="setNames">更新属性列表</param>
         /// <param name="setValues">更新值列表</param>
         /// <param name="whereNames">条件属性列表</param>
         /// <param name="whereValues">条件值列表</param>
         /// <returns>返回受影响的行数</returns>
-        Int32 Update(IEntityFactory factory, String[] setNames, Object[] setValues, String[] whereNames, Object[] whereValues);
+        Int32 Update(String[] setNames, Object[] setValues, String[] whereNames, Object[] whereValues);
 
         /// <summary>从数据库中删除指定条件的实体对象。</summary>
-        /// <param name="factory">实体工厂</param>
         /// <param name="whereClause">限制条件</param>
         /// <returns></returns>
-        Int32 Delete(IEntityFactory factory, String whereClause);
+        Int32 Delete(String whereClause);
 
         /// <summary>从数据库中删除指定属性列表和值列表所限定的实体对象。</summary>
-        /// <param name="factory">实体工厂</param>
         /// <param name="names">属性列表</param>
         /// <param name="values">值列表</param>
         /// <returns></returns>
-        Int32 Delete(IEntityFactory factory, String[] names, Object[] values);
+        Int32 Delete(String[] names, Object[] values);
         #endregion
 
         #region 获取语句
         /// <summary>获取主键条件</summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        WhereExpression GetPrimaryCondition(IEntityFactory factory, IEntity entity);
+        WhereExpression GetPrimaryCondition(IEntity entity);
 
         /// <summary>把SQL模版格式化为SQL语句</summary>
         /// <param name="entity">实体对象</param>
         /// <param name="methodType"></param>
         /// <returns>SQL字符串</returns>
-        String GetSql(IEntityFactory factory, IEntity entity, DataObjectMethodType methodType);
+        String GetSql(IEntity entity, DataObjectMethodType methodType);
         #endregion
 
         #region 参数化
         /// <summary>插入语句</summary>
-        /// <param name="factory"></param>
         /// <returns></returns>
-        String InsertSQL(IEntityFactory factory);
+        String InsertSQL();
         #endregion
     }
 
     /// <summary>默认实体持久化</summary>
     public class EntityPersistence : IEntityPersistence
     {
+        #region 属性
+        /// <summary>实体工厂</summary>
+        public IEntityFactory Factory { get; set; }
+        #endregion
+
         #region 添删改方法
         /// <summary>插入</summary>
-        /// <param name="factory">实体工厂</param>
         /// <param name="entity">实体</param>
         /// <returns></returns>
-        public virtual Int32 Insert(IEntityFactory factory, IEntity entity)
+        public virtual Int32 Insert(IEntity entity)
         {
+            var factory = Factory;
             var session = factory.Session;
 
             // 添加数据前，处理Guid
-            SetGuidField(factory, entity);
+            SetGuidField(entity);
 
             IDataParameter[] dps = null;
-            var sql = SQL(factory, entity, DataObjectMethodType.Insert, ref dps);
+            var sql = SQL(entity, DataObjectMethodType.Insert, ref dps);
             if (String.IsNullOrEmpty(sql)) return 0;
 
             var rs = 0;
@@ -143,9 +144,9 @@ namespace XCode
             return rs;
         }
 
-        static void SetGuidField(IEntityFactory factory, IEntity entity)
+        void SetGuidField(IEntity entity)
         {
-            var fi = factory.AutoSetGuidField;
+            var fi = Factory.AutoSetGuidField;
             if (fi != null)
             {
                 // 判断是否设置了数据
@@ -161,10 +162,9 @@ namespace XCode
         }
 
         /// <summary>更新</summary>
-        /// <param name="factory">实体工厂</param>
         /// <param name="entity">实体</param>
         /// <returns></returns>
-        public virtual Int32 Update(IEntityFactory factory, IEntity entity)
+        public virtual Int32 Update(IEntity entity)
         {
             // 没有脏数据，不需要更新
             if (!entity.HasDirty) return 0;
@@ -177,14 +177,14 @@ namespace XCode
             {
                 if (!entity.HasDirty) return 0;
 
-                sql = SQL(factory, entity, DataObjectMethodType.Update, ref dps);
+                sql = SQL(entity, DataObjectMethodType.Update, ref dps);
                 if (sql.IsNullOrEmpty()) return 0;
 
                 //清除脏数据，避免重复提交
                 entity.Dirtys.Clear();
             }
 
-            var session = factory.Session;
+            var session = Factory.Session;
             var rs = session.Execute(sql, CommandType.Text, dps);
 
             //EntityAddition.ClearValues(entity as EntityBase);
@@ -193,17 +193,15 @@ namespace XCode
         }
 
         /// <summary>删除</summary>
-        /// <param name="factory">实体工厂</param>
         /// <param name="entity">实体</param>
         /// <returns></returns>
-        public virtual Int32 Delete(IEntityFactory factory, IEntity entity)
+        public virtual Int32 Delete(IEntity entity)
         {
             IDataParameter[] dps = null;
-            var sql = SQL(factory, entity, DataObjectMethodType.Delete, ref dps);
+            var sql = SQL(entity, DataObjectMethodType.Delete, ref dps);
             if (String.IsNullOrEmpty(sql)) return 0;
 
-            var session = factory.Session;
-            var rs = session.Execute(sql, CommandType.Text, dps);
+            var rs = Factory.Session.Execute(sql, CommandType.Text, dps);
 
             // 清除脏数据，避免重复提交保存
             entity.Dirtys.Clear();
@@ -212,16 +210,16 @@ namespace XCode
         }
 
         /// <summary>把一个实体对象持久化到数据库</summary>
-        /// <param name="factory">实体工厂</param>
         /// <param name="names">更新属性列表</param>
         /// <param name="values">更新值列表</param>
         /// <returns>返回受影响的行数</returns>
-        public virtual Int32 Insert(IEntityFactory factory, String[] names, Object[] values)
+        public virtual Int32 Insert(String[] names, Object[] values)
         {
             if (names == null) throw new ArgumentNullException(nameof(names), "属性列表和值列表不能为空");
             if (values == null) throw new ArgumentNullException(nameof(values), "属性列表和值列表不能为空");
             if (names.Length != values.Length) throw new ArgumentException("属性列表必须和值列表一一对应");
 
+            var factory = Factory;
             var fs = new Dictionary<String, FieldItem>(StringComparer.OrdinalIgnoreCase);
             foreach (var fi in factory.Fields)
                 fs.Add(fi.Name, fi);
@@ -246,53 +244,52 @@ namespace XCode
         }
 
         /// <summary>更新一批实体数据</summary>
-        /// <param name="factory">实体工厂</param>
         /// <param name="setClause">要更新的项和数据</param>
         /// <param name="whereClause">指定要更新的实体</param>
         /// <returns></returns>
-        public virtual Int32 Update(IEntityFactory factory, String setClause, String whereClause)
+        public virtual Int32 Update(String setClause, String whereClause)
         {
             if (setClause.IsNullOrEmpty() || !setClause.Contains("=") || setClause.ToLower().Contains(" or ")) throw new ArgumentException("非法参数");
 
+            var factory = Factory;
             var sql = String.Format("Update {0} Set {1}", factory.FormatedTableName, setClause.Replace("And", ","));
             if (!String.IsNullOrEmpty(whereClause)) sql += " Where " + whereClause;
             return factory.Session.Execute(sql);
         }
 
         /// <summary>更新一批实体数据</summary>
-        /// <param name="factory">实体工厂</param>
         /// <param name="setNames">更新属性列表</param>
         /// <param name="setValues">更新值列表</param>
         /// <param name="whereNames">条件属性列表</param>
         /// <param name="whereValues">条件值列表</param>
         /// <returns>返回受影响的行数</returns>
-        public virtual Int32 Update(IEntityFactory factory, String[] setNames, Object[] setValues, String[] whereNames, Object[] whereValues)
+        public virtual Int32 Update(String[] setNames, Object[] setValues, String[] whereNames, Object[] whereValues)
         {
-            var sc = Join(factory, setNames, setValues, ", ");
-            var wc = Join(factory, whereNames, whereValues, " And ");
-            return Update(factory, sc, wc);
+            var sc = Join(setNames, setValues, ", ");
+            var wc = Join(whereNames, whereValues, " And ");
+            return Update(sc, wc);
         }
 
         /// <summary>从数据库中删除指定条件的实体对象。</summary>
-        /// <param name="factory">实体工厂</param>
         /// <param name="whereClause">限制条件</param>
         /// <returns></returns>
-        public virtual Int32 Delete(IEntityFactory factory, String whereClause)
+        public virtual Int32 Delete(String whereClause)
         {
+            var factory = Factory;
             var sql = String.Format("Delete From {0}", factory.FormatedTableName);
             if (!whereClause.IsNullOrEmpty()) sql += " Where " + whereClause;
             return factory.Session.Execute(sql);
         }
 
         /// <summary>从数据库中删除指定属性列表和值列表所限定的实体对象。</summary>
-        /// <param name="factory">实体工厂</param>
         /// <param name="names">属性列表</param>
         /// <param name="values">值列表</param>
         /// <returns></returns>
-        public virtual Int32 Delete(IEntityFactory factory, String[] names, Object[] values) => Delete(factory, Join(factory, names, values, "And"));
+        public virtual Int32 Delete(String[] names, Object[] values) => Delete(Join(names, values, "And"));
 
-        private static String Join(IEntityFactory factory, String[] names, Object[] values, String split)
+        private String Join(String[] names, Object[] values, String split)
         {
+            var factory = Factory;
             var fs = new Dictionary<String, FieldItem>(StringComparer.OrdinalIgnoreCase);
             foreach (var fi in factory.Fields)
                 fs.Add(fi.Name, fi);
@@ -317,10 +314,10 @@ namespace XCode
         /// <param name="entity">实体对象</param>
         /// <param name="methodType"></param>
         /// <returns>SQL字符串</returns>
-        public virtual String GetSql(IEntityFactory factory, IEntity entity, DataObjectMethodType methodType)
+        public virtual String GetSql(IEntity entity, DataObjectMethodType methodType)
         {
             IDataParameter[] dps = null;
-            return SQL(factory, entity, methodType, ref dps);
+            return SQL(entity, methodType, ref dps);
         }
 
         /// <summary>把SQL模版格式化为SQL语句</summary>
@@ -328,19 +325,20 @@ namespace XCode
         /// <param name="methodType"></param>
         /// <param name="parameters">参数数组</param>
         /// <returns>SQL字符串</returns>
-        String SQL(IEntityFactory factory, IEntity entity, DataObjectMethodType methodType, ref IDataParameter[] parameters)
+        String SQL(IEntity entity, DataObjectMethodType methodType, ref IDataParameter[] parameters)
         {
-            switch (methodType)
+            return methodType switch
             {
-                case DataObjectMethodType.Insert: return InsertSQL(factory, entity, ref parameters);
-                case DataObjectMethodType.Update: return UpdateSQL(factory, entity, ref parameters);
-                case DataObjectMethodType.Delete: return DeleteSQL(factory, entity, ref parameters);
-            }
-            return null;
+                DataObjectMethodType.Insert => InsertSQL(entity, ref parameters),
+                DataObjectMethodType.Update => UpdateSQL(entity, ref parameters),
+                DataObjectMethodType.Delete => DeleteSQL(entity, ref parameters),
+                _ => null,
+            };
         }
 
-        static String InsertSQL(IEntityFactory factory, IEntity entity, ref IDataParameter[] parameters)
+        String InsertSQL(IEntity entity, ref IDataParameter[] parameters)
         {
+            var factory = Factory;
             var db = factory.Session.Dal.Db;
 
             /*
@@ -360,7 +358,7 @@ namespace XCode
             {
                 var value = entity[fi.Name];
                 // 标识列不需要插入，别的类型都需要
-                if (CheckIdentity(fi, value, factory, sbNames, sbValues)) continue;
+                if (CheckIdentity(fi, value, sbNames, sbValues)) continue;
 
                 // 1，有脏数据的字段一定要参与
                 if (!entity.IsDirty(fi.Name))
@@ -394,12 +392,13 @@ namespace XCode
             return "Insert Into {0}({1}) Values({2})".F(factory.FormatedTableName, ns, vs);
         }
 
-        static Boolean CheckIdentity(FieldItem fi, Object value, IEntityFactory factory, StringBuilder sbNames, StringBuilder sbValues)
+        Boolean CheckIdentity(FieldItem fi, Object value, StringBuilder sbNames, StringBuilder sbValues)
         {
             if (!fi.IsIdentity) return false;
 
             // 有些时候需要向自增字段插入数据，这里特殊处理
             String idv = null;
+            var factory = Factory;
             if (factory.AllowInsertIdentity)
                 idv = "" + value;
             //else
@@ -416,7 +415,7 @@ namespace XCode
             return true;
         }
 
-        String UpdateSQL(IEntityFactory factory, IEntity entity, ref IDataParameter[] parameters)
+        String UpdateSQL(IEntity entity, ref IDataParameter[] parameters)
         {
             /*
              * 实体更新原则：
@@ -426,9 +425,10 @@ namespace XCode
              * 4，累加字段特殊处理
              */
 
+            var factory = Factory;
             var db = factory.Session.Dal.Db;
 
-            var exp = GetPrimaryCondition(factory, entity);
+            var exp = GetPrimaryCondition(entity);
             var ps = !db.UseParameter ? null : new Dictionary<String, Object>();
             var def = exp?.GetString(ps);
             if (def.IsNullOrEmpty()) return null;
@@ -511,12 +511,13 @@ namespace XCode
             return "Update {0} Set {1} Where {2}".F(factory.FormatedTableName, str, def);
         }
 
-        String DeleteSQL(IEntityFactory factory, IEntity entity, ref IDataParameter[] parameters)
+        String DeleteSQL(IEntity entity, ref IDataParameter[] parameters)
         {
+            var factory = Factory;
             var db = factory.Session.Dal.Db;
 
             // 标识列作为删除关键字
-            var exp = GetPrimaryCondition(factory, entity);
+            var exp = GetPrimaryCondition(entity);
             var ps = !db.UseParameter ? null : new Dictionary<String, Object>();
             var def = exp?.GetString(ps);
             if (def.IsNullOrEmpty()) return null;
@@ -646,8 +647,9 @@ namespace XCode
         /// </remarks>
         /// <param name="entity">实体对象</param>
         /// <returns></returns>
-        public virtual WhereExpression GetPrimaryCondition(IEntityFactory factory, IEntity entity)
+        public virtual WhereExpression GetPrimaryCondition(IEntity entity)
         {
+            var factory = Factory;
             var exp = new WhereExpression();
 
             // 标识列作为查询关键字
@@ -674,11 +676,10 @@ namespace XCode
 
         #region 参数化
         /// <summary>插入语句</summary>
-        /// <param name="factory"></param>
         /// <returns></returns>
-        public virtual String InsertSQL(IEntityFactory factory)
+        public virtual String InsertSQL()
         {
-            var fact = factory;
+            var fact = Factory;
             var db = fact.Session.Dal.Db;
 
             var sbNames = Pool.StringBuilder.Get();

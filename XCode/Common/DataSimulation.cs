@@ -56,7 +56,8 @@ namespace XCode.Common
             set.TraceSQLTime = 0;
 
             var fact = Factory;
-            var pst = XCodeService.Container.ResolveInstance<IEntityPersistence>();
+            //var pst = XCodeService.Container.ResolveInstance<IEntityPersistence>();
+            var pst = fact.Persistence;
             var conn = fact.ConnName;
 
             // 关闭SQL日志
@@ -102,7 +103,7 @@ namespace XCode.Common
                             e.SetItem(item.Name, DateTime.Now.AddSeconds(Rand.Next(-10000, 10000)));
                     }
                     var sql = "";
-                    if (UseSql) sql = pst.GetSql(fact, e, DataObjectMethodType.Insert);
+                    if (UseSql) sql = pst.GetSql(e, DataObjectMethodType.Insert);
                     lock (list)
                     {
                         list.Add(e);

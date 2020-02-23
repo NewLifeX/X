@@ -68,17 +68,17 @@ namespace XCode.Membership
     public abstract class ManageProvider : IManageProvider
     {
         #region 静态实例
-        //static ManageProvider()
-        //{
-        //    var ioc = ObjectContainer.Current;
-        //    // 外部管理提供者需要手工覆盖
-        //    //ioc.Register<IManageProvider, DefaultManageProvider>();
+        static ManageProvider()
+        {
+            var ioc = ObjectContainer.Current;
+            // 外部管理提供者需要手工覆盖
+            //ioc.Register<IManageProvider, DefaultManageProvider>();
 
-        //    ioc.AutoRegister<IRole, Role>()
-        //        .AutoRegister<IMenu, Menu>()
-        //        .AutoRegister<ILog, Log>()
-        //        .AutoRegister<IUser, UserX>();
-        //}
+            ioc.AutoRegister<IRole, Role>()
+                .AutoRegister<IMenu, Menu>()
+                .AutoRegister<ILog, Log>()
+                .AutoRegister<IUser, UserX>();
+        }
 
         /// <summary>当前管理提供者</summary>
         public static IManageProvider Provider { get; set; }
@@ -89,7 +89,7 @@ namespace XCode.Membership
         /// <summary>菜单工厂</summary>
         public static IMenuFactory Menu => GetFactory<IMenu>() as IMenuFactory;
 
-        private static ThreadLocal<String> _UserHost = new ThreadLocal<String>();
+        private static readonly ThreadLocal<String> _UserHost = new ThreadLocal<String>();
         /// <summary>用户主机</summary>
         public static String UserHost { get => _UserHost.Value; set => _UserHost.Value = value; }
         #endregion

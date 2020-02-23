@@ -139,7 +139,7 @@ namespace XCode
         #endregion
 
         #region 操作
-        private static IEntityPersistence Persistence => XCodeService.Container.ResolveInstance<IEntityPersistence>();
+        private static IEntityPersistence Persistence => Meta.Factory.Persistence;
 
         /// <summary>插入数据，<see cref="Valid"/>后，在事务中调用<see cref="OnInsert"/>。</summary>
         /// <returns></returns>
@@ -251,7 +251,7 @@ namespace XCode
                 return this.Upsert();
             }
 
-            return FindCount(Persistence.GetPrimaryCondition(Meta.Factory, this), null, null, 0, 0) > 0 ? Update() : Insert();
+            return FindCount(Persistence.GetPrimaryCondition(this), null, null, 0, 0) > 0 ? Update() : Insert();
         }
 
         /// <summary>不需要验证的保存，不执行Valid，一般用于快速导入数据</summary>
@@ -1100,7 +1100,7 @@ namespace XCode
         /// <param name="values">更新值列表</param>
         /// <returns>返回受影响的行数</returns>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public static Int32 Insert(String[] names, Object[] values) => Persistence.Insert(Meta.Factory, names, values);
+        public static Int32 Insert(String[] names, Object[] values) => Persistence.Insert(names, values);
 
         /// <summary>把一个实体对象更新到数据库</summary>
         /// <param name="obj">实体对象</param>
@@ -1114,7 +1114,7 @@ namespace XCode
         /// <param name="whereClause">指定要更新的实体</param>
         /// <returns></returns>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public static Int32 Update(String setClause, String whereClause) => Persistence.Update(Meta.Factory, setClause, whereClause);
+        public static Int32 Update(String setClause, String whereClause) => Persistence.Update(setClause, whereClause);
 
         /// <summary>更新一批实体数据</summary>
         /// <param name="setNames">更新属性列表</param>
@@ -1123,7 +1123,7 @@ namespace XCode
         /// <param name="whereValues">条件值列表</param>
         /// <returns>返回受影响的行数</returns>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public static Int32 Update(String[] setNames, Object[] setValues, String[] whereNames, Object[] whereValues) => Persistence.Update(Meta.Factory, setNames, setValues, whereNames, whereValues);
+        public static Int32 Update(String[] setNames, Object[] setValues, String[] whereNames, Object[] whereValues) => Persistence.Update(setNames, setValues, whereNames, whereValues);
 
         /// <summary>
         /// 从数据库中删除指定实体对象。
@@ -1139,14 +1139,14 @@ namespace XCode
         /// <param name="whereClause">限制条件</param>
         /// <returns></returns>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public static Int32 Delete(String whereClause) => Persistence.Delete(Meta.Factory, whereClause);
+        public static Int32 Delete(String whereClause) => Persistence.Delete(whereClause);
 
         /// <summary>从数据库中删除指定属性列表和值列表所限定的实体对象。</summary>
         /// <param name="names">属性列表</param>
         /// <param name="values">值列表</param>
         /// <returns></returns>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public static Int32 Delete(String[] names, Object[] values) => Persistence.Delete(Meta.Factory, names, values);
+        public static Int32 Delete(String[] names, Object[] values) => Persistence.Delete(names, values);
 
         /// <summary>把一个实体对象更新到数据库</summary>
         /// <param name="obj">实体对象</param>

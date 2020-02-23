@@ -19,6 +19,9 @@ namespace XCode
 
         /// <summary>实体会话</summary>
         IEntitySession Session { get; }
+
+        /// <summary>实体持久化</summary>
+        IEntityPersistence Persistence { get; set; }
         #endregion
 
         #region 属性

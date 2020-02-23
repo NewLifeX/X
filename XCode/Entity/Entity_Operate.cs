@@ -19,6 +19,9 @@ namespace XCode
 
             /// <summary>实体会话</summary>
             public virtual IEntitySession Session => Meta.Session;
+
+            /// <summary>实体持久化</summary>
+            public IEntityPersistence Persistence { get; set; }
             #endregion
 
             #region 属性
@@ -68,6 +71,7 @@ namespace XCode
             public EntityOperate()
             {
                 //MasterTime = GetMasterTime();
+                Persistence = new EntityPersistence { Factory = this };
             }
             #endregion
 

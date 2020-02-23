@@ -304,15 +304,13 @@ namespace XCode.Membership
         /// <param name="flag"></param>
         public void Set(Int32 resid, PermissionFlags flag = PermissionFlags.All)
         {
-            var pf = PermissionFlags.None;
-            if (!Permissions.TryGetValue(resid, out pf))
+            if (Permissions.TryGetValue(resid, out var pf))
             {
-                if (flag != PermissionFlags.None)
-                    Permissions.Add(resid, flag);
+                Permissions[resid] = pf | flag;
             }
             else
             {
-                Permissions[resid] = pf | flag;
+                if (flag != PermissionFlags.None) Permissions.Add(resid, flag);
             }
         }
 
@@ -321,8 +319,7 @@ namespace XCode.Membership
         /// <param name="flag"></param>
         public void Reset(Int32 resid, PermissionFlags flag)
         {
-            var pf = PermissionFlags.None;
-            if (Permissions.TryGetValue(resid, out pf))
+            if (Permissions.TryGetValue(resid, out var pf))
             {
                 Permissions[resid] = pf & ~flag;
             }
