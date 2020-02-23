@@ -12,7 +12,7 @@ namespace XCode.Membership
     [DataObject]
     [Description("字典参数")]
     [BindIndex("IU_Parameter_UserID_Category_Name", true, "UserID,Category,Name")]
-    [BindIndex("IX_Parameter_Name", false, "Name")]
+    [BindIndex("IX_Parameter_Category_Name", false, "Category,Name")]
     [BindIndex("IX_Parameter_UpdateTime", false, "UpdateTime")]
     [BindTable("Parameter", Description = "字典参数", ConnName = "Membership", DbType = DatabaseType.None)]
     public partial class Parameter : IParameter

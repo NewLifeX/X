@@ -1047,20 +1047,25 @@ namespace XCode.Code
 
             // 字段缓存，用于魔方前台下拉选择
             {
+                // 主键和时间字段
+                var pk = Table.Columns.FirstOrDefault(e => e.Identity);
+                var pname = pk?.Name ?? "Id";
+                var dcTime = cs.FirstOrDefault(e => e.DataType == typeof(DateTime));
+                var tname = dcTime?.Name ?? "CreateTime";
+
                 // 遍历索引，第一个字段是字符串类型，则为其生成下拉选择
                 var count = 0;
                 foreach (var di in idx)
                 {
                     if (di.Columns == null || di.Columns.Length == 0) continue;
 
+                    // 单字段唯一索引，不需要
+                    if (di.Unique && di.Columns.Length == 1) continue;
+
                     var dc = Table.GetColumn(di.Columns[0]);
-                    if (dc == null || dc.DataType != typeof(String)) continue;
+                    if (dc == null || dc.DataType != typeof(String) || dc.Master) continue;
 
                     var name = dc.Name;
-                    var pk = Table.Columns.FirstOrDefault(e => e.Identity);
-                    var pname = pk?.Name ?? "Id";
-                    var dcTime = cs.FirstOrDefault(e => e.DataType == typeof(DateTime));
-                    var tname = dcTime?.Name ?? "CreateTime";
 
                     WriteLine();
                     WriteLine($"// Select Count({pname}) as {pname},{name} From {Table.Name} Where {tname}>'2020-01-24 00:00:00' Group By {name} Order By {pname} Desc limit 20");
@@ -1071,7 +1076,7 @@ namespace XCode.Code
                     }
                     WriteLine("};");
                     WriteLine();
-                    WriteLine($"/// <summary>获取所有{dc.DisplayName}列表，字段缓存10分钟，分组统计数据最多的前20种，用于魔方前台下拉选择</summary>");
+                    WriteLine($"/// <summary>获取{dc.DisplayName}列表，字段缓存10分钟，分组统计数据最多的前20种，用于魔方前台下拉选择</summary>");
                     WriteLine("/// <returns></returns>");
                     WriteLine($"public static IDictionary<String, String> Get{name}List() => _{name}Cache.FindAllName();");
 
@@ -1082,15 +1087,15 @@ namespace XCode.Code
                 if (count == 0)
                 {
                     WriteLine();
-                    WriteLine("// Select Count(ID) as ID,Category From Log Where CreateTime>'2020-01-24 00:00:00' Group By Category Order By ID Desc limit 20");
+                    WriteLine($"// Select Count({pname}) as {pname},Category From {Table.Name} Where {tname}>'2020-01-24 00:00:00' Group By Category Order By {pname} Desc limit 20");
                     WriteLine($"//static readonly FieldCache<{returnName}> _CategoryCache = new FieldCache<{returnName}>(_.Category)");
                     WriteLine("//{");
                     {
-                        WriteLine("//Where = _.CreateTime > DateTime.Today.AddDays(-30) & Expression.Empty");
+                        WriteLine($"//Where = _.{tname} > DateTime.Today.AddDays(-30) & Expression.Empty");
                     }
                     WriteLine("//};");
                     WriteLine();
-                    WriteLine("///// <summary>获取所有类别列表，字段缓存10分钟，分组统计数据最多的前20种，用于魔方前台下拉选择</summary>");
+                    WriteLine("///// <summary>获取类别列表，字段缓存10分钟，分组统计数据最多的前20种，用于魔方前台下拉选择</summary>");
                     WriteLine("///// <returns></returns>");
                     WriteLine("//public static IDictionary<String, String> GetCategoryList() => _CategoryCache.FindAllName();");
                 }
