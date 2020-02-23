@@ -32,7 +32,7 @@ namespace XCode
         public Operator Operator { get; set; }
 
         /// <summary>是否为空</summary>
-        public override Boolean IsEmpty => Left == null && Right == null;
+        public override Boolean IsEmpty => (Left == null || Left.IsEmpty) && (Right == null || Right.IsEmpty);
         #endregion
 
         #region 构造
@@ -89,13 +89,13 @@ namespace XCode
         private void GetString(StringBuilder builder, IDictionary<String, Object> ps, Expression exp)
         {
             exp = Flatten(exp);
-            if (exp == null) return;
+            if (exp == null || exp.IsEmpty) return;
 
             // 递归构建，下级运算符优先级较低时加括号
             var bracket = false;
             if (exp is WhereExpression where)
             {
-                if (where.IsEmpty) return;
+                //if (where.IsEmpty) return;
 
                 if (where.Operator > Operator) bracket = true;
             }
