@@ -300,6 +300,16 @@ namespace XCode.Code
             return "\"" + name + "\"";
         }
 
+        /// <summary>驼峰命名，首字母小写</summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        protected static String GetCamelCase(String name)
+        {
+            if (name.EqualIgnoreCase("id")) return "id";
+
+            return Char.ToLower(name[0]) + name.Substring(1);
+        }
+
         /// <summary>是否调试</summary>
         public static Boolean Debug { get; set; }
 

@@ -867,7 +867,7 @@ namespace XCode.Code
             if (Table.PrimaryKeys.Length == 1)
             {
                 pk = Table.PrimaryKeys[0];
-                var name = pk.Name.ToLower();
+                var name = pk.CamelName();
 
                 WriteLine("/// <summary>根据{0}查找</summary>", pk.DisplayName);
                 WriteLine("/// <param name=\"{0}\">{1}</param>", name, pk.DisplayName);
@@ -910,7 +910,7 @@ namespace XCode.Code
                 WriteLine("/// <summary>根据{0}查找</summary>", cs.Select(e => e.DisplayName).Join("、"));
                 foreach (var dc in cs)
                 {
-                    WriteLine("/// <param name=\"{0}\">{1}</param>", dc.Name.ToLower(), dc.DisplayName);
+                    WriteLine("/// <param name=\"{0}\">{1}</param>", dc.CamelName(), dc.DisplayName);
                 }
 
                 // 返回类型
@@ -918,7 +918,7 @@ namespace XCode.Code
                 if (!di.Unique) rt = "IList<{0}>".F(rt);
 
                 WriteLine("/// <returns>{0}</returns>", di.Unique ? "实体对象" : "实体列表");
-                WriteLine("public static {2} Find{3}By{0}({1})", cs.Select(e => e.Name).Join("And"), cs.Select(e => e.DataType.Name + " " + e.Name.ToLower()).Join(", "), rt, di.Unique ? "" : "All");
+                WriteLine("public static {2} Find{3}By{0}({1})", cs.Select(e => e.Name).Join("And"), cs.Select(e => e.DataType.Name + " " + e.CamelName()).Join(", "), rt, di.Unique ? "" : "All");
                 WriteLine("{");
                 {
                     var exp = new StringBuilder();
@@ -926,10 +926,10 @@ namespace XCode.Code
                     foreach (var dc in cs)
                     {
                         if (exp.Length > 0) exp.Append(" & ");
-                        exp.AppendFormat("_.{0} == {1}", dc.Name, dc.Name.ToLower());
+                        exp.AppendFormat("_.{0} == {1}", dc.Name, dc.CamelName());
 
                         if (wh.Length > 0) wh.Append(" && ");
-                        wh.AppendFormat("e.{0} == {1}", dc.Name, dc.Name.ToLower());
+                        wh.AppendFormat("e.{0} == {1}", dc.Name, dc.CamelName());
                     }
 
                     if (di.Unique)
@@ -942,7 +942,7 @@ namespace XCode.Code
                         {
                             WriteLine();
                             WriteLine("// 单对象缓存");
-                            WriteLine("//return Meta.SingleCache.GetItemWithSlaveKey({0}) as {1};", cs[0].Name.ToLower(), rt);
+                            WriteLine("//return Meta.SingleCache.GetItemWithSlaveKey({0}) as {1};", cs[0].CamelName(), rt);
                         }
 
                         WriteLine();
@@ -966,7 +966,83 @@ namespace XCode.Code
         /// <summary>高级查询</summary>
         protected virtual void BuildSearch()
         {
+            // 收集索引信息，索引中的所有字段都参与，构造一个高级查询模板
+            var idx = Table.Indexes;
+            var cs = new List<IDataColumn>();
+            if (idx != null && idx.Count > 0)
+            {
+                // 索引中的所有字段，按照表字段顺序
+                var dcs = idx.SelectMany(e => e.Columns).Distinct().ToArray();
+                foreach (var dc in Table.Columns)
+                {
+                    // 主键和自增，不参与
+                    if (dc.PrimaryKey || dc.Identity) continue;
+
+                    if (dc.Name.EqualIgnoreCase(dcs) || dc.ColumnName.EqualIgnoreCase(dcs)) cs.Add(dc);
+                }
+            }
+
             WriteLine("#region 高级查询");
+            if (cs.Count > 0)
+            {
+                // 时间字段
+                var dcTime = cs.FirstOrDefault(e => e.DataType == typeof(DateTime));
+                cs.Remove(dcTime);
+
+                // 可用于关键字模糊搜索的字段
+                var keys = Table.Columns.Where(e => e.DataType == typeof(String) && !cs.Contains(e)).ToList();
+
+                // 注释部分
+                WriteLine("/// <summary>高级查询</summary>");
+                foreach (var dc in cs)
+                {
+                    WriteLine("/// <param name=\"{0}\">{1}</param>", dc.CamelName(), dc.Description);
+                }
+                if (dcTime != null)
+                {
+                    WriteLine("/// <param name=\"start\">{0}开始</param>", dcTime.DisplayName);
+                    WriteLine("/// <param name=\"end\">{0}结束</param>", dcTime.DisplayName);
+                }
+                WriteLine("/// <param name=\"key\">关键字</param>");
+                WriteLine("/// <param name=\"page\">分页参数信息。可携带统计和数据权限扩展查询等信息</param>");
+                WriteLine("/// <returns>实体列表</returns>");
+
+                // 参数部分
+                var returnName = GenericType ? "TEntity" : Table.Name;
+                var pis = cs.Join(", ", dc => $"{dc.DataType.Name} {dc.CamelName()}");
+                var piTime = dcTime == null ? "" : "DateTime start, DateTime end, ";
+                WriteLine("public static IList<{0}> Search({1}, {2}String key, PageParameter page)", returnName, pis, piTime);
+                WriteLine("{");
+                {
+                    WriteLine("var exp = new WhereExpression();");
+
+                    // 构造表达式
+                    WriteLine();
+                    foreach (var dc in cs)
+                    {
+                        if (dc.DataType.IsInt())
+                            WriteLine("if ({0} >= 0) exp &= _.{1} == {0};", dc.CamelName(), dc.Name);
+                        else if (dc.DataType == typeof(Boolean))
+                            WriteLine("if ({0} != null) exp &= _.{1} == {0};", dc.CamelName(), dc.Name);
+                        else if (dc.DataType == typeof(String))
+                            WriteLine("if (!{0}.IsNullOrEmpty()) exp &= _.{1} == {0};", dc.CamelName(), dc.Name);
+                    }
+                    if (dcTime != null)
+                    {
+                        WriteLine("exp &= _.{0}.Between(start, end);", dcTime.Name);
+                    }
+                    if (keys.Count > 0)
+                    {
+                        WriteLine("if (!key.IsNullOrEmpty()) exp &= {0};", keys.Join(" | ", k => $"_.{k.Name}.Contains(key)"));
+                    }
+
+                    // 查询返回
+                    WriteLine();
+                    WriteLine("return FindAll(exp, page);");
+                }
+                WriteLine("}");
+
+            }
             WriteLine("#endregion");
         }
 

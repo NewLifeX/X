@@ -122,6 +122,29 @@ namespace XCode.DataAccessLayer
             var names = columns.Select(e => e.Name).ToArray();
             return dis.FirstOrDefault(e => e.Columns.EqualIgnoreCase(names));
         }
+
+        /// <summary>驼峰变量名</summary>
+        /// <param name="column"></param>
+        /// <returns></returns>
+        public static String CamelName(this IDataColumn column)
+        {
+            var name = column.Name;
+            if (name.EqualIgnoreCase("id")) return "id";
+
+            // 全小写，直接返回
+            if (name == name.ToLower()) return name;
+
+            // 全大写，可能是专有名词，整体转小写
+            if (name == name.ToUpper()) return name.ToLower();
+
+            // 首字母小写
+            name = Char.ToLower(name[0]) + name.Substring(1);
+
+            // 特殊处理ID结尾，改为Id，否则难看
+            if (name.Length > 3 && name.EndsWith("ID") && Char.IsLower(name[name.Length - 3])) name = name.Substring(0, name.Length - 2) + "Id";
+
+            return name;
+        }
         #endregion
 
         #region 序列化扩展
