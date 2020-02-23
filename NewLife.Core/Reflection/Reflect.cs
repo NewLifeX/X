@@ -29,6 +29,15 @@ namespace NewLife.Reflection
             var type = Type.GetType(typeName);
             if (type != null) return type;
 
+            // 数组
+            if (typeName.EndsWith("[]"))
+            {
+                var elemType = GetTypeEx(typeName.Substring(0, typeName.Length - 2));
+                if (elemType == null) return null;
+
+                return elemType.MakeArrayType();
+            }
+
             return Provider.GetType(typeName, isLoadAssembly);
         }
 
