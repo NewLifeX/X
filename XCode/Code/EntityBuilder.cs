@@ -967,7 +967,7 @@ namespace XCode.Code
         protected virtual void BuildSearch()
         {
             // 收集索引信息，索引中的所有字段都参与，构造一个高级查询模板
-            var idx = Table.Indexes;
+            var idx = Table.Indexes ?? new List<IDataIndex>();
             var cs = new List<IDataColumn>();
             if (idx != null && idx.Count > 0)
             {
@@ -981,6 +981,8 @@ namespace XCode.Code
                     if (dc.Name.EqualIgnoreCase(dcs) || dc.ColumnName.EqualIgnoreCase(dcs)) cs.Add(dc);
                 }
             }
+
+            var returnName = GenericType ? "TEntity" : Table.Name;
 
             WriteLine("#region 高级查询");
             if (cs.Count > 0)
@@ -1008,7 +1010,6 @@ namespace XCode.Code
                 WriteLine("/// <returns>实体列表</returns>");
 
                 // 参数部分
-                var returnName = GenericType ? "TEntity" : Table.Name;
                 var pis = cs.Join(", ", dc => $"{dc.DataType.Name} {dc.CamelName()}");
                 var piTime = dcTime == null ? "" : "DateTime start, DateTime end, ";
                 WriteLine("public static IList<{0}> Search({1}, {2}String key, PageParameter page)", returnName, pis, piTime);
@@ -1043,6 +1044,58 @@ namespace XCode.Code
                 WriteLine("}");
 
             }
+
+            // 字段缓存，用于魔方前台下拉选择
+            {
+                // 遍历索引，第一个字段是字符串类型，则为其生成下拉选择
+                var count = 0;
+                foreach (var di in idx)
+                {
+                    if (di.Columns == null || di.Columns.Length == 0) continue;
+
+                    var dc = Table.GetColumn(di.Columns[0]);
+                    if (dc == null || dc.DataType != typeof(String)) continue;
+
+                    var name = dc.Name;
+                    var pk = Table.Columns.FirstOrDefault(e => e.Identity);
+                    var pname = pk?.Name ?? "Id";
+                    var dcTime = cs.FirstOrDefault(e => e.DataType == typeof(DateTime));
+                    var tname = dcTime?.Name ?? "CreateTime";
+
+                    WriteLine();
+                    WriteLine($"// Select Count({pname}) as {pname},{name} From {Table.Name} Where {tname}>'2020-01-24 00:00:00' Group By {name} Order By {pname} Desc limit 20");
+                    WriteLine($"static readonly FieldCache<{returnName}> _{name}Cache = new FieldCache<{returnName}>(_.{name})");
+                    WriteLine("{");
+                    {
+                        WriteLine($"//Where = _.{tname} > DateTime.Today.AddDays(-30) & Expression.Empty");
+                    }
+                    WriteLine("};");
+                    WriteLine();
+                    WriteLine($"/// <summary>获取所有{dc.DisplayName}列表，字段缓存10分钟，分组统计数据最多的前20种，用于魔方前台下拉选择</summary>");
+                    WriteLine("/// <returns></returns>");
+                    WriteLine($"public static IDictionary<String, String> Get{name}List() => _{name}Cache.FindAllName();");
+
+                    count++;
+                }
+
+                // 如果没有输出，则生成一个注释的模板
+                if (count == 0)
+                {
+                    WriteLine();
+                    WriteLine("// Select Count(ID) as ID,Category From Log Where CreateTime>'2020-01-24 00:00:00' Group By Category Order By ID Desc limit 20");
+                    WriteLine($"//static readonly FieldCache<{returnName}> _CategoryCache = new FieldCache<{returnName}>(_.Category)");
+                    WriteLine("//{");
+                    {
+                        WriteLine("//Where = _.CreateTime > DateTime.Today.AddDays(-30) & Expression.Empty");
+                    }
+                    WriteLine("//};");
+                    WriteLine();
+                    WriteLine("///// <summary>获取所有类别列表，字段缓存10分钟，分组统计数据最多的前20种，用于魔方前台下拉选择</summary>");
+                    WriteLine("///// <returns></returns>");
+                    WriteLine("//public static IDictionary<String, String> GetCategoryList() => _CategoryCache.FindAllName();");
+                }
+            }
+
             WriteLine("#endregion");
         }
 
