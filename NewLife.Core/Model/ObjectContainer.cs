@@ -111,7 +111,8 @@ namespace NewLife.Model
         {
             if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
 
-            var item = _list.FirstOrDefault(e => e.ServiceType == serviceType);
+            //var item = _list.FirstOrDefault(e => e.ServiceType == serviceType);
+            var item = _list.LastOrDefault(e => e.ServiceType == serviceType);
             if (item == null) return null;
 
             var type = item.ImplementationType ?? item.ServiceType;
