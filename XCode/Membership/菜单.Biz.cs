@@ -472,8 +472,8 @@ namespace XCode.Membership
                     ThreadPoolX.QueueUserWorkItem(() =>
                     {
                         XTrace.WriteLine("新增了菜单，需要检查权限");
-                        var eop = ManageProvider.GetFactory<IRole>();
-                        eop.EntityType.Invoke("CheckRole");
+                        var fact = ManageProvider.GetFactory<IRole>();
+                        fact.EntityType.Invoke("CheckRole");
                     });
                 }
 

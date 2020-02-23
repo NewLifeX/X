@@ -112,8 +112,8 @@ namespace XCode.Membership
             var list = FindAll();
 
             // 如果某些菜单已经被删除，但是角色权限表仍然存在，则删除
-            var eopMenu = ManageProvider.GetFactory<IMenu>();
-            var menus = eopMenu.FindAll().Cast<IMenu>().ToList();
+            var fact = ManageProvider.GetFactory<IMenu>();
+            var menus = fact.FindAll().Cast<IMenu>().ToList();
             var ids = menus.Select(e => (Int32)e["ID"]).ToArray();
             foreach (var role in list)
             {

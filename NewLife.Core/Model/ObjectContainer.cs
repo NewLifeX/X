@@ -242,31 +242,31 @@ namespace NewLife.Model
         #endregion
 
         #region 解析类型
-        /// <summary>解析接口指定名称的实现类型</summary>
-        /// <param name="from">接口类型</param>
-        /// <param name="id">标识</param>
-        /// <returns></returns>
-        public virtual Type ResolveType(Type from, Object id = null)
-        {
-            if (from == null) throw new ArgumentNullException("from");
+        ///// <summary>解析接口指定名称的实现类型</summary>
+        ///// <param name="from">接口类型</param>
+        ///// <param name="id">标识</param>
+        ///// <returns></returns>
+        //public virtual Type ResolveType(Type from, Object id = null)
+        //{
+        //    if (from == null) throw new ArgumentNullException("from");
 
-            var map = FindMap(Find(from), id);
-            if (map == null) return null;
+        //    var map = FindMap(Find(from), id);
+        //    if (map == null) return null;
 
-            return map.Type;
-        }
+        //    return map.Type;
+        //}
 
-        /// <summary>解析接口所有已注册的对象映射</summary>
-        /// <param name="from">接口类型</param>
-        /// <returns></returns>
-        public virtual IEnumerable<IObjectMap> ResolveAll(Type from)
-        {
-            var dic = Find(from);
-            if (dic != null)
-                return Find(from).Values;
-            else
-                return new List<IObjectMap>();
-        }
+        ///// <summary>解析接口所有已注册的对象映射</summary>
+        ///// <param name="from">接口类型</param>
+        ///// <returns></returns>
+        //public virtual IEnumerable<IObjectMap> ResolveAll(Type from)
+        //{
+        //    var dic = Find(from);
+        //    if (dic != null)
+        //        return Find(from).Values;
+        //    else
+        //        return new List<IObjectMap>();
+        //}
         #endregion
 
         #region 辅助

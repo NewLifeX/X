@@ -21,7 +21,7 @@ namespace XCode.Model
                 .AutoRegister<IModelResolver, ModelResolver>()
                 .AutoRegister<IEntityAddition, EntityAddition>();
 
-            DbFactory.Reg(container);
+            //DbFactory.Reg(container);
         }
 
         #region 使用

@@ -53,16 +53,16 @@ namespace NewLife.Model
         #endregion
 
         #region 解析类型
-        /// <summary>解析接口指定名称的实现类型</summary>
-        /// <param name="from">接口类型</param>
-        /// <param name="id">标识</param>
-        /// <returns></returns>
-        Type ResolveType(Type from, Object id = null);
+        ///// <summary>解析接口指定名称的实现类型</summary>
+        ///// <param name="from">接口类型</param>
+        ///// <param name="id">标识</param>
+        ///// <returns></returns>
+        //Type ResolveType(Type from, Object id = null);
 
-        /// <summary>解析接口所有已注册的对象映射</summary>
-        /// <param name="from">接口类型</param>
-        /// <returns></returns>
-        IEnumerable<IObjectMap> ResolveAll(Type from);
+        ///// <summary>解析接口所有已注册的对象映射</summary>
+        ///// <param name="from">接口类型</param>
+        ///// <returns></returns>
+        //IEnumerable<IObjectMap> ResolveAll(Type from);
         #endregion
     }
 

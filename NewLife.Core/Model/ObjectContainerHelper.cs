@@ -62,14 +62,14 @@ namespace System
             return container.AutoRegister(typeof(TInterface), typeof(TImplement));
         }
 
-        /// <summary>解析接口指定名称的实现类型</summary>
-        /// <typeparam name="TInterface">接口类型</typeparam>
-        /// <param name="container">对象容器</param>
-        /// <param name="id">标识</param>
-        /// <returns></returns>
-        public static Type ResolveType<TInterface>(this IObjectContainer container, Object id = null)
-        {
-            return container.ResolveType(typeof(TInterface), id);
-        }
+        ///// <summary>解析接口指定名称的实现类型</summary>
+        ///// <typeparam name="TInterface">接口类型</typeparam>
+        ///// <param name="container">对象容器</param>
+        ///// <param name="id">标识</param>
+        ///// <returns></returns>
+        //public static Type ResolveType<TInterface>(this IObjectContainer container, Object id = null)
+        //{
+        //    return container.ResolveType(typeof(TInterface), id);
+        //}
     }
 }
