@@ -145,7 +145,7 @@ namespace NewLife.IP
 
     class MyIpProvider : NetHelper.IPProvider
     {
-        public String GetAddress(IPAddress addr) => Ip.GetAddress(addr);
+        public override String GetAddress(IPAddress addr) => Ip.GetAddress(addr);
     }
 }
 #nullable restore
