@@ -22,6 +22,9 @@ namespace XCode
 
         /// <summary>实体持久化</summary>
         IEntityPersistence Persistence { get; set; }
+
+        /// <summary>数据行访问器，把数据行映射到实体类</summary>
+        IDataRowEntityAccessor Accessor { get; set; }
         #endregion
 
         #region 属性

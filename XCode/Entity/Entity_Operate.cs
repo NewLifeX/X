@@ -22,6 +22,9 @@ namespace XCode
 
             /// <summary>实体持久化</summary>
             public IEntityPersistence Persistence { get; set; }
+
+            /// <summary>数据行访问器，把数据行映射到实体类</summary>
+            public IDataRowEntityAccessor Accessor { get; set; }
             #endregion
 
             #region 属性
@@ -72,6 +75,7 @@ namespace XCode
             {
                 //MasterTime = GetMasterTime();
                 Persistence = new EntityPersistence { Factory = this };
+                Accessor = new DataRowEntityAccessor();
             }
             #endregion
 

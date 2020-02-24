@@ -7,7 +7,6 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using NewLife.Collections;
 using NewLife.Data;
-using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Serialization;
 using NewLife.Threading;
@@ -30,8 +29,8 @@ namespace XCode
 
             EntityFactory.Register(typeof(TEntity), new EntityOperate());
 
-            var ioc = ObjectContainer.Current;
-            ioc.AddSingleton<IDataRowEntityAccessorProvider, DataRowEntityAccessorProvider>();
+            //var ioc = ObjectContainer.Current;
+            //ioc.AddSingleton<IDataRowEntityAccessorProvider, DataRowEntityAccessorProvider>();
 
             // 1，可以初始化该实体类型的操作工厂
             // 2，CreateOperate将会实例化一个TEntity对象，从而引发TEntity的静态构造函数，
@@ -79,9 +78,7 @@ namespace XCode
         {
             if (dt == null) return new List<TEntity>();
 
-            var provider = ObjectContainer.Current.Resolve<IDataRowEntityAccessorProvider>();
-            var accessor = provider.CreateAccessor(typeof(TEntity));
-            var list = accessor.LoadData<TEntity>(dt);
+            var list = Meta.Factory.Accessor.LoadData<TEntity>(dt);
             OnLoadData(list);
 
             return list;
@@ -94,9 +91,7 @@ namespace XCode
         {
             if (ds == null) return new List<TEntity>();
 
-            var provider = ObjectContainer.Current.Resolve<IDataRowEntityAccessorProvider>();
-            var accessor = provider.CreateAccessor(typeof(TEntity));
-            var list = accessor.LoadData<TEntity>(ds);
+            var list = Meta.Factory.Accessor.LoadData<TEntity>(ds);
             OnLoadData(list);
 
             return list;
@@ -109,9 +104,7 @@ namespace XCode
         {
             if (dr == null) return new List<TEntity>();
 
-            var provider = ObjectContainer.Current.Resolve<IDataRowEntityAccessorProvider>();
-            var accessor = provider.CreateAccessor(typeof(TEntity));
-            var list = accessor.LoadData<TEntity>(dr);
+            var list = Meta.Factory.Accessor.LoadData<TEntity>(dr);
             OnLoadData(list);
 
             return list;
@@ -144,8 +137,6 @@ namespace XCode
                 }, list);
             }
         }
-
-        //private static IDataRowEntityAccessor DreAccessor => ObjectContainer.Current.ResolveInstance<IDataRowEntityAccessorProvider>().CreateDataRowEntityAccessor(typeof(TEntity));
         #endregion
 
         #region 操作

@@ -27,22 +27,22 @@ namespace XCode
         IList<T> LoadData<T>(IDataReader dr) where T : Entity<T>, new();
     }
 
-    /// <summary>在数据行和实体类之间映射数据接口的提供者</summary>
-    public interface IDataRowEntityAccessorProvider
-    {
-        /// <summary>创建实体类的数据行访问器</summary>
-        /// <param name="entityType"></param>
-        /// <returns></returns>
-        IDataRowEntityAccessor CreateAccessor(Type entityType);
-    }
+    ///// <summary>在数据行和实体类之间映射数据接口的提供者</summary>
+    //public interface IDataRowEntityAccessorProvider
+    //{
+    //    /// <summary>创建实体类的数据行访问器</summary>
+    //    /// <param name="entityType"></param>
+    //    /// <returns></returns>
+    //    IDataRowEntityAccessor CreateAccessor(Type entityType);
+    //}
 
-    class DataRowEntityAccessorProvider : IDataRowEntityAccessorProvider
-    {
-        /// <summary>创建实体类的数据行访问器</summary>
-        /// <param name="entityType"></param>
-        /// <returns></returns>
-        public IDataRowEntityAccessor CreateAccessor(Type entityType) => new DataRowEntityAccessor();
-    }
+    //class DataRowEntityAccessorProvider : IDataRowEntityAccessorProvider
+    //{
+    //    /// <summary>创建实体类的数据行访问器</summary>
+    //    /// <param name="entityType"></param>
+    //    /// <returns></returns>
+    //    public IDataRowEntityAccessor CreateAccessor(Type entityType) => new DataRowEntityAccessor();
+    //}
 
     class DataRowEntityAccessor : IDataRowEntityAccessor
     {
