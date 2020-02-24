@@ -32,7 +32,20 @@ namespace NewLife.Model
         #region 方法
         /// <summary>添加</summary>
         /// <param name="item"></param>
-        public void Add(IObject item) => _list.Add(item);
+        public void Add(IObject item)
+        {
+            for (var i = 0; i < _list.Count; i++)
+            {
+                // 覆盖重复项
+                if (_list[i].ServiceType == item.ServiceType)
+                {
+                    _list[i] = item;
+                    return;
+                }
+            }
+
+            _list.Add(item);
+        }
 
         /// <summary>插入</summary>
         /// <param name="index"></param>
@@ -115,19 +128,27 @@ namespace NewLife.Model
         {
             if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
 
-            //var item = _list.FirstOrDefault(e => e.ServiceType == serviceType);
-            var item = _list.LastOrDefault(e => e.ServiceType == serviceType);
+            var item = _list.FirstOrDefault(e => e.ServiceType == serviceType);
+            //var item = _list.LastOrDefault(e => e.ServiceType == serviceType);
             if (item == null) return null;
 
             var type = item.ImplementationType ?? item.ServiceType;
-            if (item.Lifttime == ObjectLifetime.Singleton && item is ObjectMap map)
+            switch (item.Lifttime)
             {
-                if (map.Instance == null) map.Instance = type.CreateInstance();
+                case ObjectLifetime.Singleton:
+                    if (item is ObjectMap map)
+                    {
+                        if (map.Instance == null) map.Instance = type.CreateInstance();
 
-                return map.Instance;
+                        return map.Instance;
+                    }
+                    return type.CreateInstance();
+
+                case ObjectLifetime.Scoped:
+                case ObjectLifetime.Transient:
+                default:
+                    return type.CreateInstance();
             }
-
-            return type.CreateInstance();
         }
 
         /// <summary>解析类型指定名称的实例</summary>
@@ -171,16 +192,6 @@ namespace NewLife.Model
         public Func<IServiceProvider, Object> Factory { get; set; }
         #endregion
 
-        #region 构造
-        //public ObjectMap(Type serviceType, Type implementationType, ObjectLifetime lifetime, Object instance)
-        //{
-        //    ServiceType = serviceType;
-        //    ImplementationType = implementationType;
-        //    Lifttime = lifetime;
-        //    Instance = instance;
-        //}
-        #endregion
-
         #region 方法
         public override String ToString() => String.Format("[{0},{1}]", ServiceType?.Name, ImplementationType?.Name);
         #endregion
@@ -188,7 +199,7 @@ namespace NewLife.Model
 
     class ServiceProvider : IServiceProvider
     {
-        private IObjectContainer _container;
+        private readonly IObjectContainer _container;
 
         public ServiceProvider(IObjectContainer container) => _container = container;
 
