@@ -156,6 +156,18 @@ namespace System
         public static IObjectContainer AddTransient<TService>(this IObjectContainer container, Func<IServiceProvider, Object> factory) where TService : class => container.AddTransient(typeof(TService), factory);
         #endregion
 
+        #region 构建
+        /// <summary>从对象容器创建服务提供者</summary>
+        /// <param name="container"></param>
+        /// <returns></returns>
+        public static IServiceProvider BuildServiceProvider(this IObjectContainer container)
+        {
+            if (container == null) throw new ArgumentNullException(nameof(container));
+
+            return new ServiceProvider(container);
+        }
+        #endregion
+
         #region 旧版方法
         /// <summary>注册类型和名称</summary>
         /// <typeparam name="TInterface">接口类型</typeparam>
@@ -165,6 +177,7 @@ namespace System
         /// <param name="priority">优先级</param>
         /// <returns></returns>
         [Obsolete]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public static IObjectContainer Register<TInterface, TImplement>(this IObjectContainer container, Object id = null, Int32 priority = 0) => container.Register(typeof(TInterface), typeof(TImplement), null);
 
         /// <summary>注册类型指定名称的实例</summary>
@@ -175,12 +188,14 @@ namespace System
         /// <param name="priority">优先级</param>
         /// <returns></returns>
         [Obsolete]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public static IObjectContainer Register<TInterface>(this IObjectContainer container, Object instance, Object id = null, Int32 priority = 0) => container.Register(typeof(TInterface), null, instance);
 
         /// <summary>解析类型的实例</summary>
         /// <typeparam name="TService">接口类型</typeparam>
         /// <param name="container">对象容器</param>
         /// <returns></returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public static TService Resolve<TService>(this IObjectContainer container) => (TService)container.Resolve(typeof(TService));
 
         /// <summary>解析类型指定名称的实例</summary>
@@ -189,6 +204,7 @@ namespace System
         /// <param name="id">标识</param>
         /// <returns></returns>
         [Obsolete]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public static TInterface Resolve<TInterface>(this IObjectContainer container, Object id) => (TInterface)container.Resolve(typeof(TInterface));
 
         /// <summary>解析类型指定名称的实例</summary>
@@ -197,6 +213,7 @@ namespace System
         /// <param name="id">标识</param>
         /// <returns></returns>
         [Obsolete]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public static TInterface ResolveInstance<TInterface>(this IObjectContainer container, Object id = null) => (TInterface)container.Resolve(typeof(TInterface));
         #endregion
     }

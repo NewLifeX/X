@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using NewLife.Reflection;
 
 namespace NewLife.Model
 {
-    /// <summary>实现 <seealso cref="IObjectContainer"/> 接口的对象容器</summary>
+    /// <summary>对象容器，仅依赖查找，不支持注入</summary>
     public class ObjectContainer : IObjectContainer
     {
-        #region 当前静态对象容器
+        #region 静态
         /// <summary>当前容器</summary>
         public static IObjectContainer Current { get; set; } = new ObjectContainer();
         #endregion
@@ -77,6 +78,7 @@ namespace NewLife.Model
         /// <param name="implementationType">实现类型</param>
         /// <param name="instance">实例</param>
         /// <returns></returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public virtual IObjectContainer Register(Type serviceType, Type implementationType, Object instance)
         {
             if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
@@ -99,6 +101,7 @@ namespace NewLife.Model
         /// <param name="id">标识</param>
         /// <param name="priority">优先级</param>
         /// <returns></returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public virtual IObjectContainer Register(Type from, Type to, Object instance, Object id = null, Int32 priority = 0)
         => Register(from, to, instance);
         #endregion
@@ -107,6 +110,7 @@ namespace NewLife.Model
         /// <summary>解析类型的实例</summary>
         /// <param name="serviceType">接口类型</param>
         /// <returns></returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public virtual Object Resolve(Type serviceType)
         {
             if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
@@ -130,12 +134,14 @@ namespace NewLife.Model
         /// <param name="from">接口类型</param>
         /// <param name="id">标识</param>
         /// <returns></returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public virtual Object Resolve(Type from, Object id) => Resolve(from);
 
         /// <summary>解析类型指定名称的实例</summary>
         /// <param name="from">接口类型</param>
         /// <param name="id">标识</param>
         /// <returns></returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public virtual Object ResolveInstance(Type from, Object id = null) => Resolve(from);
         #endregion
 
@@ -178,5 +184,14 @@ namespace NewLife.Model
         #region 方法
         public override String ToString() => String.Format("[{0},{1}]", ServiceType?.Name, ImplementationType?.Name);
         #endregion
+    }
+
+    class ServiceProvider : IServiceProvider
+    {
+        private IObjectContainer _container;
+
+        public ServiceProvider(IObjectContainer container) => _container = container;
+
+        public Object GetService(Type serviceType) => _container.Resolve(serviceType);
     }
 }
