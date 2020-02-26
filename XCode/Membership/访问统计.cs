@@ -23,7 +23,7 @@ namespace XCode.Membership
         [Description("编号")]
         [DataObjectField(true, true, false, 0)]
         [BindColumn("ID", "编号", "")]
-        public Int32 ID { get { return _ID; } set { if (OnPropertyChanging(__.ID, value)) { _ID = value; OnPropertyChanged(__.ID); } } }
+        public Int32 ID { get => _ID; set { if (OnPropertyChanging(__.ID, value)) { _ID = value; OnPropertyChanged(__.ID); } } }
 
         private XCode.Statistics.StatLevels _Level;
         /// <summary>层级</summary>
@@ -31,7 +31,7 @@ namespace XCode.Membership
         [Description("层级")]
         [DataObjectField(false, false, false, 0)]
         [BindColumn("Level", "层级", "")]
-        public XCode.Statistics.StatLevels Level { get { return _Level; } set { if (OnPropertyChanging(__.Level, value)) { _Level = value; OnPropertyChanged(__.Level); } } }
+        public XCode.Statistics.StatLevels Level { get => _Level; set { if (OnPropertyChanging(__.Level, value)) { _Level = value; OnPropertyChanged(__.Level); } } }
 
         private DateTime _Time;
         /// <summary>时间</summary>
@@ -39,7 +39,7 @@ namespace XCode.Membership
         [Description("时间")]
         [DataObjectField(false, false, true, 0)]
         [BindColumn("Time", "时间", "")]
-        public DateTime Time { get { return _Time; } set { if (OnPropertyChanging(__.Time, value)) { _Time = value; OnPropertyChanged(__.Time); } } }
+        public DateTime Time { get => _Time; set { if (OnPropertyChanging(__.Time, value)) { _Time = value; OnPropertyChanged(__.Time); } } }
 
         private String _Page;
         /// <summary>页面</summary>
@@ -47,7 +47,7 @@ namespace XCode.Membership
         [Description("页面")]
         [DataObjectField(false, false, false, 50)]
         [BindColumn("Page", "页面", "")]
-        public String Page { get { return _Page; } set { if (OnPropertyChanging(__.Page, value)) { _Page = value; OnPropertyChanged(__.Page); } } }
+        public String Page { get => _Page; set { if (OnPropertyChanging(__.Page, value)) { _Page = value; OnPropertyChanged(__.Page); } } }
 
         private String _Title;
         /// <summary>标题</summary>
@@ -55,7 +55,7 @@ namespace XCode.Membership
         [Description("标题")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn("Title", "标题", "", Master = true)]
-        public String Title { get { return _Title; } set { if (OnPropertyChanging(__.Title, value)) { _Title = value; OnPropertyChanged(__.Title); } } }
+        public String Title { get => _Title; set { if (OnPropertyChanging(__.Title, value)) { _Title = value; OnPropertyChanged(__.Title); } } }
 
         private Int32 _Times;
         /// <summary>次数</summary>
@@ -63,7 +63,7 @@ namespace XCode.Membership
         [Description("次数")]
         [DataObjectField(false, false, false, 0)]
         [BindColumn("Times", "次数", "")]
-        public Int32 Times { get { return _Times; } set { if (OnPropertyChanging(__.Times, value)) { _Times = value; OnPropertyChanged(__.Times); } } }
+        public Int32 Times { get => _Times; set { if (OnPropertyChanging(__.Times, value)) { _Times = value; OnPropertyChanged(__.Times); } } }
 
         private Int32 _Users;
         /// <summary>用户</summary>
@@ -71,7 +71,7 @@ namespace XCode.Membership
         [Description("用户")]
         [DataObjectField(false, false, false, 0)]
         [BindColumn("Users", "用户", "")]
-        public Int32 Users { get { return _Users; } set { if (OnPropertyChanging(__.Users, value)) { _Users = value; OnPropertyChanged(__.Users); } } }
+        public Int32 Users { get => _Users; set { if (OnPropertyChanging(__.Users, value)) { _Users = value; OnPropertyChanged(__.Users); } } }
 
         private Int32 _IPs;
         /// <summary>IP</summary>
@@ -79,7 +79,7 @@ namespace XCode.Membership
         [Description("IP")]
         [DataObjectField(false, false, false, 0)]
         [BindColumn("IPs", "IP", "")]
-        public Int32 IPs { get { return _IPs; } set { if (OnPropertyChanging(__.IPs, value)) { _IPs = value; OnPropertyChanged(__.IPs); } } }
+        public Int32 IPs { get => _IPs; set { if (OnPropertyChanging(__.IPs, value)) { _IPs = value; OnPropertyChanged(__.IPs); } } }
 
         private Int32 _Error;
         /// <summary>错误</summary>
@@ -87,7 +87,7 @@ namespace XCode.Membership
         [Description("错误")]
         [DataObjectField(false, false, false, 0)]
         [BindColumn("Error", "错误", "")]
-        public Int32 Error { get { return _Error; } set { if (OnPropertyChanging(__.Error, value)) { _Error = value; OnPropertyChanged(__.Error); } } }
+        public Int32 Error { get => _Error; set { if (OnPropertyChanging(__.Error, value)) { _Error = value; OnPropertyChanged(__.Error); } } }
 
         private Int32 _Cost;
         /// <summary>耗时。毫秒</summary>
@@ -95,7 +95,7 @@ namespace XCode.Membership
         [Description("耗时。毫秒")]
         [DataObjectField(false, false, false, 0)]
         [BindColumn("Cost", "耗时。毫秒", "")]
-        public Int32 Cost { get { return _Cost; } set { if (OnPropertyChanging(__.Cost, value)) { _Cost = value; OnPropertyChanged(__.Cost); } } }
+        public Int32 Cost { get => _Cost; set { if (OnPropertyChanging(__.Cost, value)) { _Cost = value; OnPropertyChanged(__.Cost); } } }
 
         private Int32 _MaxCost;
         /// <summary>最大耗时。毫秒</summary>
@@ -103,7 +103,7 @@ namespace XCode.Membership
         [Description("最大耗时。毫秒")]
         [DataObjectField(false, false, false, 0)]
         [BindColumn("MaxCost", "最大耗时。毫秒", "")]
-        public Int32 MaxCost { get { return _MaxCost; } set { if (OnPropertyChanging(__.MaxCost, value)) { _MaxCost = value; OnPropertyChanged(__.MaxCost); } } }
+        public Int32 MaxCost { get => _MaxCost; set { if (OnPropertyChanging(__.MaxCost, value)) { _MaxCost = value; OnPropertyChanged(__.MaxCost); } } }
 
         private DateTime _CreateTime;
         /// <summary>创建时间</summary>
@@ -111,7 +111,7 @@ namespace XCode.Membership
         [Description("创建时间")]
         [DataObjectField(false, false, false, 0)]
         [BindColumn("CreateTime", "创建时间", "")]
-        public DateTime CreateTime { get { return _CreateTime; } set { if (OnPropertyChanging(__.CreateTime, value)) { _CreateTime = value; OnPropertyChanged(__.CreateTime); } } }
+        public DateTime CreateTime { get => _CreateTime; set { if (OnPropertyChanging(__.CreateTime, value)) { _CreateTime = value; OnPropertyChanged(__.CreateTime); } } }
 
         private DateTime _UpdateTime;
         /// <summary>更新时间</summary>
@@ -119,7 +119,7 @@ namespace XCode.Membership
         [Description("更新时间")]
         [DataObjectField(false, false, false, 0)]
         [BindColumn("UpdateTime", "更新时间", "")]
-        public DateTime UpdateTime { get { return _UpdateTime; } set { if (OnPropertyChanging(__.UpdateTime, value)) { _UpdateTime = value; OnPropertyChanged(__.UpdateTime); } } }
+        public DateTime UpdateTime { get => _UpdateTime; set { if (OnPropertyChanging(__.UpdateTime, value)) { _UpdateTime = value; OnPropertyChanged(__.UpdateTime); } } }
 
         private String _Remark;
         /// <summary>详细信息</summary>
@@ -127,7 +127,7 @@ namespace XCode.Membership
         [Description("详细信息")]
         [DataObjectField(false, false, true, 5000)]
         [BindColumn("Remark", "详细信息", "")]
-        public String Remark { get { return _Remark; } set { if (OnPropertyChanging(__.Remark, value)) { _Remark = value; OnPropertyChanged(__.Remark); } } }
+        public String Remark { get => _Remark; set { if (OnPropertyChanging(__.Remark, value)) { _Remark = value; OnPropertyChanged(__.Remark); } } }
         #endregion
 
         #region 获取/设置 字段值
@@ -140,20 +140,20 @@ namespace XCode.Membership
             {
                 switch (name)
                 {
-                    case __.ID : return _ID;
-                    case __.Level : return _Level;
-                    case __.Time : return _Time;
-                    case __.Page : return _Page;
-                    case __.Title : return _Title;
-                    case __.Times : return _Times;
-                    case __.Users : return _Users;
-                    case __.IPs : return _IPs;
-                    case __.Error : return _Error;
-                    case __.Cost : return _Cost;
-                    case __.MaxCost : return _MaxCost;
-                    case __.CreateTime : return _CreateTime;
-                    case __.UpdateTime : return _UpdateTime;
-                    case __.Remark : return _Remark;
+                    case __.ID: return _ID;
+                    case __.Level: return _Level;
+                    case __.Time: return _Time;
+                    case __.Page: return _Page;
+                    case __.Title: return _Title;
+                    case __.Times: return _Times;
+                    case __.Users: return _Users;
+                    case __.IPs: return _IPs;
+                    case __.Error: return _Error;
+                    case __.Cost: return _Cost;
+                    case __.MaxCost: return _MaxCost;
+                    case __.CreateTime: return _CreateTime;
+                    case __.UpdateTime: return _UpdateTime;
+                    case __.Remark: return _Remark;
                     default: return base[name];
                 }
             }
@@ -161,20 +161,20 @@ namespace XCode.Membership
             {
                 switch (name)
                 {
-                    case __.ID : _ID = value.ToInt(); break;
-                    case __.Level : _Level = (XCode.Statistics.StatLevels)value.ToInt(); break;
-                    case __.Time : _Time = value.ToDateTime(); break;
-                    case __.Page : _Page = Convert.ToString(value); break;
-                    case __.Title : _Title = Convert.ToString(value); break;
-                    case __.Times : _Times = value.ToInt(); break;
-                    case __.Users : _Users = value.ToInt(); break;
-                    case __.IPs : _IPs = value.ToInt(); break;
-                    case __.Error : _Error = value.ToInt(); break;
-                    case __.Cost : _Cost = value.ToInt(); break;
-                    case __.MaxCost : _MaxCost = value.ToInt(); break;
-                    case __.CreateTime : _CreateTime = value.ToDateTime(); break;
-                    case __.UpdateTime : _UpdateTime = value.ToDateTime(); break;
-                    case __.Remark : _Remark = Convert.ToString(value); break;
+                    case __.ID: _ID = value.ToInt(); break;
+                    case __.Level: _Level = (XCode.Statistics.StatLevels)value.ToInt(); break;
+                    case __.Time: _Time = value.ToDateTime(); break;
+                    case __.Page: _Page = Convert.ToString(value); break;
+                    case __.Title: _Title = Convert.ToString(value); break;
+                    case __.Times: _Times = value.ToInt(); break;
+                    case __.Users: _Users = value.ToInt(); break;
+                    case __.IPs: _IPs = value.ToInt(); break;
+                    case __.Error: _Error = value.ToInt(); break;
+                    case __.Cost: _Cost = value.ToInt(); break;
+                    case __.MaxCost: _MaxCost = value.ToInt(); break;
+                    case __.CreateTime: _CreateTime = value.ToDateTime(); break;
+                    case __.UpdateTime: _UpdateTime = value.ToDateTime(); break;
+                    case __.Remark: _Remark = Convert.ToString(value); break;
                     default: base[name] = value; break;
                 }
             }
@@ -227,7 +227,7 @@ namespace XCode.Membership
             /// <summary>详细信息</summary>
             public static readonly Field Remark = FindByName(__.Remark);
 
-            static Field FindByName(String name) { return Meta.Table.FindByName(name); }
+            static Field FindByName(String name) => Meta.Table.FindByName(name);
         }
 
         /// <summary>取得访问统计字段名称的快捷方式</summary>

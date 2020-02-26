@@ -187,7 +187,7 @@ namespace XCode.Cache
             UpdateCacheAsync(reason);
         }
 
-        private IEntityOperate Operate = Entity<TEntity>.Meta.Factory;
+        private IEntityFactory Operate = Entity<TEntity>.Meta.Factory;
         /// <summary>添加对象到缓存</summary>
         /// <param name="entity"></param>
         public void Add(TEntity entity)

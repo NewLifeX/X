@@ -107,19 +107,32 @@ namespace Test
 
         static async void Test2()
         {
-            var count = Role.Meta.Count;
+            //LogProvider.Provider.WriteLog("test", "xxx", "yyy");
 
-            var dal = Role.Meta.Session.Dal;
-            var db = dal.Query("select * from role");
-            var json = db.ToJson(true, false, true);
-            XTrace.WriteLine(json);
+            var log = new Log
+            {
+                Category = "test",
+                Action = "abc",
+                //Remark = Rand.NextBytes(1024)
+            };
+            log.Insert();
 
-            json = db.ToJson();
-            XTrace.WriteLine(json);
+            //var count = Role.Meta.Count;
 
-            db = dal.Query("select id,name,enable 启用 from role");
-            json = db.ToJson(true, false, true);
-            XTrace.WriteLine(json);
+            //var dal = Role.Meta.Session.Dal;
+            //var db = dal.Query("select * from role");
+            //var json = db.ToJson(true, false, true);
+            //XTrace.WriteLine(json);
+
+            //json = db.ToJson();
+            //XTrace.WriteLine(json);
+
+            //db = dal.Query("select id,name,enable 启用 from role");
+            //json = db.ToJson(true, false, true);
+            //XTrace.WriteLine(json);
+
+            //var names = Log.FindAllCategoryName();
+            //Console.WriteLine(names.ToJson());
         }
 
         static void Test3()
@@ -532,8 +545,9 @@ namespace Test
 
         static void Test11()
         {
-            var xmlFile = Path.Combine(Directory.GetCurrentDirectory(), "../X/XCode/Model.xml");
-            var output = Path.Combine(Directory.GetCurrentDirectory(), "../");
+            var xmlFile = Path.Combine(Directory.GetCurrentDirectory(), "../../Src/XCode/Model.xml");
+            //var output = Path.Combine(Directory.GetCurrentDirectory(), "../../");
+            var output = "./Entity";
             EntityBuilder.Build(xmlFile, output);
         }
 

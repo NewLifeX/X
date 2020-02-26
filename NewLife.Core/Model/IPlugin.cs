@@ -27,9 +27,8 @@ namespace NewLife.Model
     [AttributeUsage(AttributeTargets.Class)]
     public class PluginAttribute : Attribute
     {
-        private String _Identity;
         /// <summary>插件宿主标识</summary>
-        public String Identity { get { return _Identity; } set { _Identity = value; } }
+        public String Identity { get; set; }
 
         /// <summary>实例化</summary>
         /// <param name="identity"></param>

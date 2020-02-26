@@ -107,7 +107,7 @@ namespace XCode
         /// <summary>表信息</summary>
         TableItem Table => TableItem.Create(ThisType);
 
-        IEntityOperate Operate => EntityFactory.CreateOperate(ThisType);
+        IEntityFactory Factory { get; } = typeof(TEntity).AsFactory();
 
         private DAL _Dal;
         /// <summary>数据操作层</summary>
@@ -225,7 +225,7 @@ namespace XCode
                         //BeginTrans();
                         try
                         {
-                            if (Operate.Default is EntityBase entity)
+                            if (Factory.Default is EntityBase entity)
                             {
                                 entity.InitData();
                                 //// 异步执行初始化，只等一会，避免死锁
@@ -773,14 +773,14 @@ namespace XCode
         #endregion
 
         #region 实体操作
-        private IEntityPersistence Persistence => XCodeService.Container.ResolveInstance<IEntityPersistence>();
+        //private IEntityPersistence Persistence => XCodeService.Container.ResolveInstance<IEntityPersistence>();
 
         /// <summary>把该对象持久化到数据库，添加/更新实体缓存和单对象缓存，增加总计数</summary>
         /// <param name="entity">实体对象</param>
         /// <returns></returns>
         public virtual Int32 Insert(IEntity entity)
         {
-            var rs = Persistence.Insert(entity);
+            var rs = Factory.Persistence.Insert(entity);
 
             var e = entity as TEntity;
 
@@ -799,7 +799,7 @@ namespace XCode
         /// <returns></returns>
         public virtual Int32 Update(IEntity entity)
         {
-            var rs = Persistence.Update(entity);
+            var rs = Factory.Persistence.Update(entity);
 
             var e = entity as TEntity;
 
@@ -819,7 +819,7 @@ namespace XCode
         /// <returns></returns>
         public virtual Int32 Delete(IEntity entity)
         {
-            var rs = Persistence.Delete(entity);
+            var rs = Factory.Persistence.Delete(entity);
 
             var e = entity as TEntity;
 

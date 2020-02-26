@@ -6,6 +6,7 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using NewLife.Collections;
+using NewLife.IP;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Net;
@@ -450,22 +451,21 @@ namespace System
         #endregion
 
         #region IP地理位置
-        static IPProvider _IpProvider;
+        /// <summary>IP地址提供者</summary>
+        public static IPProvider IpProvider;
+
         /// <summary>获取IP地址的物理地址位置</summary>
         /// <param name="addr"></param>
         /// <returns></returns>
         public static String GetAddress(this IPAddress addr)
         {
-            if (addr.IsAny())
-                return "任意地址";
-            else if (IPAddress.IsLoopback(addr))
-                return "本地环回地址";
-            else if (addr.IsLocal())
-                return "本机地址";
+            if (addr.IsAny()) return "任意地址";
+            if (IPAddress.IsLoopback(addr)) return "本地环回";
+            if (addr.IsLocal()) return "本机地址";
 
-            if (_IpProvider == null) _IpProvider = ObjectContainer.Current.AutoRegister<IPProvider, IpProviderDefault>().Resolve<IPProvider>();
+            if (IpProvider == null) IpProvider = new MyIpProvider();
 
-            return _IpProvider.GetAddress(addr);
+            return IpProvider.GetAddress(addr);
         }
 
         /// <summary>根据字符串形式IP地址转为物理地址</summary>
@@ -491,18 +491,13 @@ namespace System
             return ip.GetAddress();
         }
 
-        /// <summary>IP地址提供者接口</summary>
-        public interface IPProvider
+        /// <summary>IP地址提供者</summary>
+        public class IPProvider
         {
             /// <summary>获取IP地址的物理地址位置</summary>
             /// <param name="addr"></param>
             /// <returns></returns>
-            String GetAddress(IPAddress addr);
-        }
-
-        class IpProviderDefault : IPProvider
-        {
-            public String GetAddress(IPAddress addr)
+            public virtual String GetAddress(IPAddress addr)
             {
                 // 判断局域网地址
                 var ip = addr.ToString();

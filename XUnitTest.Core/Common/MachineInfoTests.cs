@@ -38,7 +38,7 @@ namespace XUnitTest.Common
             var mi = task.Result;
             Assert.Equal(mi, MachineInfo.Current);
 
-            var mi2 = ObjectContainer.Current.ResolveInstance<MachineInfo>();
+            var mi2 = ObjectContainer.Current.Resolve<MachineInfo>();
             Assert.Equal(mi, mi2);
 
             var file = XTrace.TempPath.CombinePath("machine.info").GetFullPath();

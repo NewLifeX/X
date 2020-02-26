@@ -11,7 +11,7 @@ namespace XCode
     partial class Entity<TEntity>
     {
         /// <summary>默认的实体操作者</summary>
-        public class EntityOperate : IEntityOperate
+        public class EntityOperate : IEntityFactory
         {
             #region 主要属性
             /// <summary>实体类型</summary>
@@ -19,6 +19,12 @@ namespace XCode
 
             /// <summary>实体会话</summary>
             public virtual IEntitySession Session => Meta.Session;
+
+            /// <summary>实体持久化</summary>
+            public IEntityPersistence Persistence { get; set; }
+
+            /// <summary>数据行访问器，把数据行映射到实体类</summary>
+            public IDataRowEntityAccessor Accessor { get; set; }
             #endregion
 
             #region 属性
@@ -68,6 +74,8 @@ namespace XCode
             public EntityOperate()
             {
                 //MasterTime = GetMasterTime();
+                Persistence = new EntityPersistence { Factory = this };
+                Accessor = new DataRowEntityAccessor();
             }
             #endregion
 

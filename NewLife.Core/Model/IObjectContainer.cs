@@ -1,26 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 
 namespace NewLife.Model
 {
-    /// <summary>对象容器接口</summary>
-    /// <remarks>
-    /// 1，如果容器里面没有这个类型，则返回空；
-    /// 2，如果容器里面包含这个类型，<see cref="ResolveInstance"/>返回单例；
-    /// 3，如果容器里面包含这个类型，<see cref="Resolve"/>创建对象返回多实例；
-    /// 4，如果有带参数构造函数，则从容器内获取各个参数的实例，最后创建对象返回。
-    /// 
-    /// 这里有一点跟大多数对象容器非常不同，其它对象容器会控制对象的生命周期，在对象不再使用时收回到容器里面。
-    /// 这里的对象容器主要是为了用于解耦，所以只有最简单的功能实现。
-    /// 
-    /// 代码注册的默认优先级是0；
-    /// 配置注册的默认优先级是1；
-    /// 自动注册的外部实现（非排除项）的默认优先级是1，排除项的优先级是0；
-    /// 所以，配置注册的优先级最高
-    /// </remarks>
-    public interface IObjectContainer
+    /// <summary>对象容器，仅依赖查找，不支持注入</summary>
+    public interface IObjectContainer : IList<IObject>
     {
         #region 注册
+        /// <summary>注册类型和名称</summary>
+        /// <param name="serviceType">接口类型</param>
+        /// <param name="implementationType">实现类型</param>
+        /// <param name="instance">实例</param>
+        /// <returns></returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        IObjectContainer Register(Type serviceType, Type implementationType, Object instance);
+
         /// <summary>注册类型和名称</summary>
         /// <param name="from">接口类型</param>
         /// <param name="to">实现类型</param>
@@ -28,54 +23,59 @@ namespace NewLife.Model
         /// <param name="id">标识</param>
         /// <param name="priority">优先级</param>
         /// <returns></returns>
-        IObjectContainer Register(Type from, Type to, Object instance, Object id = null, Int32 priority = 0);
-
-        /// <summary>遍历所有程序集的所有类型，自动注册实现了指定接口或基类的类型。如果没有注册任何实现，则默认注册第一个排除类型</summary>
-        /// <remarks>自动注册一般用于单实例功能扩展型接口</remarks>
-        /// <param name="from">接口或基类</param>
-        /// <param name="excludeTypes">要排除的类型，一般是内部默认实现</param>
-        /// <returns></returns>
-        IObjectContainer AutoRegister(Type from, params Type[] excludeTypes);
+        [Obsolete]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        IObjectContainer Register(Type from, Type to, Object instance, Object id, Int32 priority = 0);
         #endregion
 
         #region 解析
-        /// <summary>解析类型指定名称的实例</summary>
-        /// <param name="from">接口类型</param>
-        /// <param name="id">标识</param>
+        /// <summary>解析类型的实例</summary>
+        /// <param name="serviceType">接口类型</param>
         /// <returns></returns>
-        Object Resolve(Type from, Object id = null);
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        Object Resolve(Type serviceType);
 
         /// <summary>解析类型指定名称的实例</summary>
         /// <param name="from">接口类型</param>
         /// <param name="id">标识</param>
         /// <returns></returns>
+        [Obsolete]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        Object Resolve(Type from, Object id);
+
+        /// <summary>解析类型指定名称的实例</summary>
+        /// <param name="from">接口类型</param>
+        /// <param name="id">标识</param>
+        /// <returns></returns>
+        [Obsolete]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         Object ResolveInstance(Type from, Object id = null);
-        #endregion
-
-        #region 解析类型
-        /// <summary>解析接口指定名称的实现类型</summary>
-        /// <param name="from">接口类型</param>
-        /// <param name="id">标识</param>
-        /// <returns></returns>
-        Type ResolveType(Type from, Object id = null);
-
-        /// <summary>解析接口所有已注册的对象映射</summary>
-        /// <param name="from">接口类型</param>
-        /// <returns></returns>
-        IEnumerable<IObjectMap> ResolveAll(Type from);
         #endregion
     }
 
-    /// <summary>对象映射接口</summary>
-    public interface IObjectMap
+    /// <summary>生命周期</summary>
+    public enum ObjectLifetime
     {
-        /// <summary>名称</summary>
-        Object Identity { get; }
+        /// <summary>单实例</summary>
+        Singleton,
+
+        /// <summary>容器内单实例</summary>
+        Scoped,
+
+        /// <summary>每次一个实例</summary>
+        Transient
+    }
+
+    /// <summary>对象映射接口</summary>
+    public interface IObject
+    {
+        /// <summary>服务类型</summary>
+        Type ServiceType { get; }
 
         /// <summary>实现类型</summary>
-        Type Type { get; }
+        Type ImplementationType { get; }
 
-        /// <summary>对象实例</summary>
-        Object Instance { get; }
+        /// <summary>生命周期</summary>
+        ObjectLifetime Lifttime { get; }
     }
 }

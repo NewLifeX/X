@@ -17,11 +17,11 @@ namespace XCode.Model
             var container = Container;
             container.Register<IDataTable, XTable>()
                 .AutoRegister<IDataRowEntityAccessorProvider, DataRowEntityAccessorProvider>()
-                .AutoRegister<IEntityPersistence, EntityPersistence>()
+                //.AutoRegister<IEntityPersistence, EntityPersistence>()
                 .AutoRegister<IModelResolver, ModelResolver>()
                 .AutoRegister<IEntityAddition, EntityAddition>();
 
-            DbFactory.Reg(container);
+            //DbFactory.Reg(container);
         }
 
         #region 使用

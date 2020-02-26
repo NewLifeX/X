@@ -127,7 +127,7 @@ namespace XCode
         {
             if (pdc == null || pdc.Count < 1) return pdc;
 
-            var factory = EntityFactory.CreateOperate(type);
+            var factory = type.AsFactory();
 
             // 准备字段集合
             var dic = new Dictionary<String, FieldItem>(StringComparer.OrdinalIgnoreCase);

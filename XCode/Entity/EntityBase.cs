@@ -78,7 +78,7 @@ namespace XCode
         /// <returns>返回是否成功设置了数据</returns>
         public Boolean SetItem(String name, Object value)
         {
-            var fact = EntityFactory.CreateOperate(GetType());
+            var fact = GetType().AsFactory();
             FieldItem fi = fact.Table.FindByName(name);
             // 确保数据类型一致
             if (fi != null) value = value.ChangeType(fi.Type);
@@ -119,9 +119,11 @@ namespace XCode
             if (entity == this) return 0;
 
             IEntity src = this;
-            var nsSrc = EntityFactory.CreateOperate(src.GetType()).FieldNames;
+            var fact1 = src.GetType().AsFactory();
+            var fact2 = entity.GetType().AsFactory();
+            var nsSrc = fact1.FieldNames;
             //if (nsSrc == null || nsSrc.Count < 1) return 0;
-            var nsDes = EntityFactory.CreateOperate(entity.GetType()).FieldNames;
+            var nsDes = fact2.FieldNames;
             if (nsDes == null || nsDes.Count < 1) return 0;
 
             var n = 0;
@@ -206,7 +208,7 @@ namespace XCode
             {
                 if (_Addition == null)
                 {
-                    _Addition = XCodeService.Container.Resolve<IEntityAddition>();
+                    _Addition = new EntityAddition();
                     _Addition.Entity = this;
                 }
                 return _Addition;
@@ -225,7 +227,7 @@ namespace XCode
         /// <summary>设置主键为空。Save将调用Insert</summary>
         void IEntity.SetNullKey()
         {
-            var eop = EntityFactory.CreateOperate(GetType());
+            var eop = GetType().AsFactory();
             foreach (var item in eop.Fields)
             {
                 if (item.PrimaryKey || item.IsIdentity) this[item.Name] = null;
@@ -243,7 +245,7 @@ namespace XCode
             if (this == entity) return true;
 
             // 判断是否所有主键相等
-            var op = EntityFactory.CreateOperate(GetType());
+            var op = GetType().AsFactory();
             var ps = op.Table.PrimaryKeys;
             // 如果没有主键，则判断所有字段
             if (ps == null || ps.Length < 1) ps = op.Table.Fields;

@@ -23,7 +23,7 @@ namespace XCode.Common
     {
         #region 属性
         /// <summary>实体工厂</summary>
-        public IEntityOperate Factory { get; set; }
+        public IEntityFactory Factory { get; set; }
 
         /// <summary>事务提交的批大小</summary>
         public Int32 BatchSize { get; set; } = 1000;
@@ -56,7 +56,8 @@ namespace XCode.Common
             set.TraceSQLTime = 0;
 
             var fact = Factory;
-            var pst = XCodeService.Container.ResolveInstance<IEntityPersistence>();
+            //var pst = XCodeService.Container.ResolveInstance<IEntityPersistence>();
+            var pst = fact.Persistence;
             var conn = fact.ConnName;
 
             // 关闭SQL日志

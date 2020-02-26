@@ -24,7 +24,7 @@ namespace XCode.Membership
         [Description("编号")]
         [DataObjectField(true, true, false, 0)]
         [BindColumn("ID", "编号", "")]
-        public Int32 ID { get { return _ID; } set { if (OnPropertyChanging(__.ID, value)) { _ID = value; OnPropertyChanged(__.ID); } } }
+        public Int32 ID { get => _ID; set { if (OnPropertyChanging(__.ID, value)) { _ID = value; OnPropertyChanged(__.ID); } } }
 
         private Int32 _UserID;
         /// <summary>用户</summary>
@@ -32,7 +32,7 @@ namespace XCode.Membership
         [Description("用户")]
         [DataObjectField(false, false, false, 0)]
         [BindColumn("UserID", "用户", "")]
-        public Int32 UserID { get { return _UserID; } set { if (OnPropertyChanging(__.UserID, value)) { _UserID = value; OnPropertyChanged(__.UserID); } } }
+        public Int32 UserID { get => _UserID; set { if (OnPropertyChanging(__.UserID, value)) { _UserID = value; OnPropertyChanged(__.UserID); } } }
 
         private String _Name;
         /// <summary>名称</summary>
@@ -40,7 +40,7 @@ namespace XCode.Membership
         [Description("名称")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn("Name", "名称", "", Master = true)]
-        public String Name { get { return _Name; } set { if (OnPropertyChanging(__.Name, value)) { _Name = value; OnPropertyChanged(__.Name); } } }
+        public String Name { get => _Name; set { if (OnPropertyChanging(__.Name, value)) { _Name = value; OnPropertyChanged(__.Name); } } }
 
         private String _SessionID;
         /// <summary>会话。Web的SessionID或Server的会话编号</summary>
@@ -48,7 +48,7 @@ namespace XCode.Membership
         [Description("会话。Web的SessionID或Server的会话编号")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn("SessionID", "会话。Web的SessionID或Server的会话编号", "")]
-        public String SessionID { get { return _SessionID; } set { if (OnPropertyChanging(__.SessionID, value)) { _SessionID = value; OnPropertyChanged(__.SessionID); } } }
+        public String SessionID { get => _SessionID; set { if (OnPropertyChanging(__.SessionID, value)) { _SessionID = value; OnPropertyChanged(__.SessionID); } } }
 
         private Int32 _Times;
         /// <summary>次数</summary>
@@ -56,7 +56,7 @@ namespace XCode.Membership
         [Description("次数")]
         [DataObjectField(false, false, false, 0)]
         [BindColumn("Times", "次数", "")]
-        public Int32 Times { get { return _Times; } set { if (OnPropertyChanging(__.Times, value)) { _Times = value; OnPropertyChanged(__.Times); } } }
+        public Int32 Times { get => _Times; set { if (OnPropertyChanging(__.Times, value)) { _Times = value; OnPropertyChanged(__.Times); } } }
 
         private String _Page;
         /// <summary>页面</summary>
@@ -64,7 +64,7 @@ namespace XCode.Membership
         [Description("页面")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn("Page", "页面", "")]
-        public String Page { get { return _Page; } set { if (OnPropertyChanging(__.Page, value)) { _Page = value; OnPropertyChanged(__.Page); } } }
+        public String Page { get => _Page; set { if (OnPropertyChanging(__.Page, value)) { _Page = value; OnPropertyChanged(__.Page); } } }
 
         private String _Status;
         /// <summary>状态</summary>
@@ -72,7 +72,7 @@ namespace XCode.Membership
         [Description("状态")]
         [DataObjectField(false, false, true, 200)]
         [BindColumn("Status", "状态", "")]
-        public String Status { get { return _Status; } set { if (OnPropertyChanging(__.Status, value)) { _Status = value; OnPropertyChanged(__.Status); } } }
+        public String Status { get => _Status; set { if (OnPropertyChanging(__.Status, value)) { _Status = value; OnPropertyChanged(__.Status); } } }
 
         private Int32 _OnlineTime;
         /// <summary>在线时间。本次在线总时间，秒</summary>
@@ -80,7 +80,7 @@ namespace XCode.Membership
         [Description("在线时间。本次在线总时间，秒")]
         [DataObjectField(false, false, false, 0)]
         [BindColumn("OnlineTime", "在线时间。本次在线总时间，秒", "")]
-        public Int32 OnlineTime { get { return _OnlineTime; } set { if (OnPropertyChanging(__.OnlineTime, value)) { _OnlineTime = value; OnPropertyChanged(__.OnlineTime); } } }
+        public Int32 OnlineTime { get => _OnlineTime; set { if (OnPropertyChanging(__.OnlineTime, value)) { _OnlineTime = value; OnPropertyChanged(__.OnlineTime); } } }
 
         private String _CreateIP;
         /// <summary>创建地址</summary>
@@ -88,7 +88,7 @@ namespace XCode.Membership
         [Description("创建地址")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn("CreateIP", "创建地址", "")]
-        public String CreateIP { get { return _CreateIP; } set { if (OnPropertyChanging(__.CreateIP, value)) { _CreateIP = value; OnPropertyChanged(__.CreateIP); } } }
+        public String CreateIP { get => _CreateIP; set { if (OnPropertyChanging(__.CreateIP, value)) { _CreateIP = value; OnPropertyChanged(__.CreateIP); } } }
 
         private DateTime _CreateTime;
         /// <summary>创建时间</summary>
@@ -96,7 +96,7 @@ namespace XCode.Membership
         [Description("创建时间")]
         [DataObjectField(false, false, false, 0)]
         [BindColumn("CreateTime", "创建时间", "")]
-        public DateTime CreateTime { get { return _CreateTime; } set { if (OnPropertyChanging(__.CreateTime, value)) { _CreateTime = value; OnPropertyChanged(__.CreateTime); } } }
+        public DateTime CreateTime { get => _CreateTime; set { if (OnPropertyChanging(__.CreateTime, value)) { _CreateTime = value; OnPropertyChanged(__.CreateTime); } } }
 
         private DateTime _UpdateTime;
         /// <summary>修改时间</summary>
@@ -104,7 +104,7 @@ namespace XCode.Membership
         [Description("修改时间")]
         [DataObjectField(false, false, false, 0)]
         [BindColumn("UpdateTime", "修改时间", "")]
-        public DateTime UpdateTime { get { return _UpdateTime; } set { if (OnPropertyChanging(__.UpdateTime, value)) { _UpdateTime = value; OnPropertyChanged(__.UpdateTime); } } }
+        public DateTime UpdateTime { get => _UpdateTime; set { if (OnPropertyChanging(__.UpdateTime, value)) { _UpdateTime = value; OnPropertyChanged(__.UpdateTime); } } }
         #endregion
 
         #region 获取/设置 字段值
@@ -117,17 +117,17 @@ namespace XCode.Membership
             {
                 switch (name)
                 {
-                    case __.ID : return _ID;
-                    case __.UserID : return _UserID;
-                    case __.Name : return _Name;
-                    case __.SessionID : return _SessionID;
-                    case __.Times : return _Times;
-                    case __.Page : return _Page;
-                    case __.Status : return _Status;
-                    case __.OnlineTime : return _OnlineTime;
-                    case __.CreateIP : return _CreateIP;
-                    case __.CreateTime : return _CreateTime;
-                    case __.UpdateTime : return _UpdateTime;
+                    case __.ID: return _ID;
+                    case __.UserID: return _UserID;
+                    case __.Name: return _Name;
+                    case __.SessionID: return _SessionID;
+                    case __.Times: return _Times;
+                    case __.Page: return _Page;
+                    case __.Status: return _Status;
+                    case __.OnlineTime: return _OnlineTime;
+                    case __.CreateIP: return _CreateIP;
+                    case __.CreateTime: return _CreateTime;
+                    case __.UpdateTime: return _UpdateTime;
                     default: return base[name];
                 }
             }
@@ -135,17 +135,17 @@ namespace XCode.Membership
             {
                 switch (name)
                 {
-                    case __.ID : _ID = value.ToInt(); break;
-                    case __.UserID : _UserID = value.ToInt(); break;
-                    case __.Name : _Name = Convert.ToString(value); break;
-                    case __.SessionID : _SessionID = Convert.ToString(value); break;
-                    case __.Times : _Times = value.ToInt(); break;
-                    case __.Page : _Page = Convert.ToString(value); break;
-                    case __.Status : _Status = Convert.ToString(value); break;
-                    case __.OnlineTime : _OnlineTime = value.ToInt(); break;
-                    case __.CreateIP : _CreateIP = Convert.ToString(value); break;
-                    case __.CreateTime : _CreateTime = value.ToDateTime(); break;
-                    case __.UpdateTime : _UpdateTime = value.ToDateTime(); break;
+                    case __.ID: _ID = value.ToInt(); break;
+                    case __.UserID: _UserID = value.ToInt(); break;
+                    case __.Name: _Name = Convert.ToString(value); break;
+                    case __.SessionID: _SessionID = Convert.ToString(value); break;
+                    case __.Times: _Times = value.ToInt(); break;
+                    case __.Page: _Page = Convert.ToString(value); break;
+                    case __.Status: _Status = Convert.ToString(value); break;
+                    case __.OnlineTime: _OnlineTime = value.ToInt(); break;
+                    case __.CreateIP: _CreateIP = Convert.ToString(value); break;
+                    case __.CreateTime: _CreateTime = value.ToDateTime(); break;
+                    case __.UpdateTime: _UpdateTime = value.ToDateTime(); break;
                     default: base[name] = value; break;
                 }
             }
@@ -189,7 +189,7 @@ namespace XCode.Membership
             /// <summary>修改时间</summary>
             public static readonly Field UpdateTime = FindByName(__.UpdateTime);
 
-            static Field FindByName(String name) { return Meta.Table.FindByName(name); }
+            static Field FindByName(String name) => Meta.Table.FindByName(name);
         }
 
         /// <summary>取得用户在线字段名称的快捷方式</summary>

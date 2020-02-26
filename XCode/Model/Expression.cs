@@ -15,6 +15,9 @@ namespace XCode
 
         /// <summary>是否为空</summary>
         public virtual Boolean IsEmpty => Text.IsNullOrEmpty();
+
+        /// <summary>空表达式，一般用于表达式连写</summary>
+        public static Expression Empty = new Expression();
         #endregion
 
         #region 构造

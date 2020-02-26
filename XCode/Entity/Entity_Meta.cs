@@ -23,14 +23,14 @@ namespace XCode
             public static Type ThisType => typeof(TEntity);
 
             /// <summary>实体操作者</summary>
-            public static IEntityOperate Factory
+            public static IEntityFactory Factory
             {
                 get
                 {
                     var type = ThisType;
                     if (type.IsInterface) return null;
 
-                    return EntityFactory.CreateOperate(type);
+                    return type.AsFactory();
                 }
             }
 

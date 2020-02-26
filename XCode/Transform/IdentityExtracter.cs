@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using NewLife.Log;
-using XCode;
-using XCode.Configuration;
 
 /*
  *  自增抽取流程：

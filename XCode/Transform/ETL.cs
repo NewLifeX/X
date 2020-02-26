@@ -84,7 +84,7 @@ namespace XCode.Transform
 
         /// <summary>实例化数据抽取器</summary>
         /// <param name="source"></param>
-        public ETL(IEntityOperate source) : this() => Extracter = new TimeExtracter { Factory = source };
+        public ETL(IEntityFactory source) : this() => Extracter = new TimeExtracter { Factory = source };
         #endregion
 
         #region 开始停止

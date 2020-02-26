@@ -3,13 +3,11 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.Serialization;
-using System.Text;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using NewLife;
 using NewLife.Collections;
 using NewLife.Log;
-using NewLife.Reflection;
 using NewLife.Threading;
 
 namespace XCode.Membership
@@ -114,8 +112,8 @@ namespace XCode.Membership
             var list = FindAll();
 
             // 如果某些菜单已经被删除，但是角色权限表仍然存在，则删除
-            var eopMenu = ManageProvider.GetFactory<IMenu>();
-            var menus = eopMenu.FindAll().Cast<IMenu>().ToList();
+            var fact = ManageProvider.GetFactory<IMenu>();
+            var menus = fact.FindAll().Cast<IMenu>().ToList();
             var ids = menus.Select(e => (Int32)e["ID"]).ToArray();
             foreach (var role in list)
             {
@@ -306,15 +304,13 @@ namespace XCode.Membership
         /// <param name="flag"></param>
         public void Set(Int32 resid, PermissionFlags flag = PermissionFlags.All)
         {
-            var pf = PermissionFlags.None;
-            if (!Permissions.TryGetValue(resid, out pf))
+            if (Permissions.TryGetValue(resid, out var pf))
             {
-                if (flag != PermissionFlags.None)
-                    Permissions.Add(resid, flag);
+                Permissions[resid] = pf | flag;
             }
             else
             {
-                Permissions[resid] = pf | flag;
+                if (flag != PermissionFlags.None) Permissions.Add(resid, flag);
             }
         }
 
@@ -323,8 +319,7 @@ namespace XCode.Membership
         /// <param name="flag"></param>
         public void Reset(Int32 resid, PermissionFlags flag)
         {
-            var pf = PermissionFlags.None;
-            if (Permissions.TryGetValue(resid, out pf))
+            if (Permissions.TryGetValue(resid, out var pf))
             {
                 Permissions[resid] = pf & ~flag;
             }

@@ -334,6 +334,7 @@
       <xs:enumeration value="Decimal" ></xs:enumeration>
       <xs:enumeration value="DateTime" ></xs:enumeration>
       <xs:enumeration value="String" ></xs:enumeration>
+      <xs:enumeration value="Byte[]" ></xs:enumeration>
     </xs:restriction>
   </xs:simpleType>
   <!--DataType-end-->

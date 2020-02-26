@@ -52,7 +52,7 @@ namespace XCode.Code
             if (xmlFile.IsNullOrEmpty())
             {
                 var di = ".".GetBasePath().AsDirectory();
-                XTrace.WriteLine("未指定模型文件，准备从目录中查找第一个xml文件 {0}", di.FullName);
+                //XTrace.WriteLine("未指定模型文件，准备从目录中查找第一个xml文件 {0}", di.FullName);
                 // 选当前目录第一个
                 xmlFile = di.GetFiles("*.xml", SearchOption.TopDirectoryOnly).FirstOrDefault()?.FullName;
             }
@@ -125,7 +125,7 @@ namespace XCode.Code
                 ignoreNameCase = str.ToBoolean();
             }
 
-            XTrace.WriteLine("代码生成源：{0}", xmlFile);
+            //XTrace.WriteLine("代码生成源：{0}", xmlFile);
 
             var rs = BuildTables(tables, output, nameSpace, connName, baseClass, chineseFileName.Value, ignoreNameCase.Value);
 
@@ -165,7 +165,7 @@ namespace XCode.Code
             // 连接名
             if (connName.IsNullOrEmpty() && !nameSpace.IsNullOrEmpty() && nameSpace.Contains(".")) connName = nameSpace.Substring(nameSpace.LastIndexOf(".") + 1);
 
-            XTrace.WriteLine("代码生成：{0} 输出：{1} 命名空间：{2} 连接名：{3} 基类：{4}", tables.Count, output, nameSpace, connName, baseClass);
+            //XTrace.WriteLine("代码生成：{0} 输出：{1} 命名空间：{2} 连接名：{3} 基类：{4}", tables.Count, output, nameSpace, connName, baseClass);
 
             var count = 0;
             foreach (var item in tables)
@@ -394,7 +394,7 @@ namespace XCode.Code
             if (Interface)
                 WriteLine("{0} {1} {{ get; set; }}", type, dc.Name);
             else
-                WriteLine("public {0} {1} {{ get {{ return _{1}; }} set {{ if (OnPropertyChanging(__.{1}, value)) {{ _{1} = value; OnPropertyChanged(__.{1}); }} }} }}", type, dc.Name);
+                WriteLine("public {0} {1} {{ get => _{1}; set {{ if (OnPropertyChanging(__.{1}, value)) {{ _{1} = value; OnPropertyChanged(__.{1}); }} }} }}", type, dc.Name);
         }
 
         /// <summary>生成主体</summary>
@@ -432,7 +432,7 @@ namespace XCode.Code
                     WriteLine("{");
                     foreach (var dc in Table.Columns)
                     {
-                        WriteLine("case __.{0} : return _{0};", dc.Name);
+                        WriteLine("case __.{0}: return _{0};", dc.Name);
                     }
                     WriteLine("default: return base[name];");
                     WriteLine("}");
@@ -464,27 +464,34 @@ namespace XCode.Code
                                 switch (type)
                                 {
                                     case "Int32":
-                                        WriteLine("case __.{0} : _{0} = value.ToInt(); break;", dc.Name);
+                                        WriteLine("case __.{0}: _{0} = value.ToInt(); break;", dc.Name);
                                         break;
                                     case "Int64":
-                                        WriteLine("case __.{0} : _{0} = value.ToLong(); break;", dc.Name);
+                                        WriteLine("case __.{0}: _{0} = value.ToLong(); break;", dc.Name);
                                         break;
                                     case "Double":
-                                        WriteLine("case __.{0} : _{0} = value.ToDouble(); break;", dc.Name);
+                                        WriteLine("case __.{0}: _{0} = value.ToDouble(); break;", dc.Name);
                                         break;
                                     case "Boolean":
-                                        WriteLine("case __.{0} : _{0} = value.ToBoolean(); break;", dc.Name);
+                                        WriteLine("case __.{0}: _{0} = value.ToBoolean(); break;", dc.Name);
                                         break;
                                     case "DateTime":
-                                        WriteLine("case __.{0} : _{0} = value.ToDateTime(); break;", dc.Name);
+                                        WriteLine("case __.{0}: _{0} = value.ToDateTime(); break;", dc.Name);
                                         break;
                                     default:
-                                        WriteLine("case __.{0} : _{0} = Convert.To{1}(value); break;", dc.Name, type);
+                                        WriteLine("case __.{0}: _{0} = Convert.To{1}(value); break;", dc.Name, type);
                                         break;
                                 }
                             }
                             else
-                                WriteLine("case __.{0} : _{0} = ({1})value.ToInt(); break;", dc.Name, type);
+                            {
+                                // 特殊支持枚举
+                                var type2 = type.GetTypeEx();
+                                if (type2 != null && type2.IsEnum)
+                                    WriteLine("case __.{0}: _{0} = ({1})value.ToInt(); break;", dc.Name, type);
+                                else
+                                    WriteLine("case __.{0}: _{0} = ({1})value; break;", dc.Name, type);
+                            }
                         }
                     }
                     WriteLine("default: base[name] = value; break;");
@@ -510,7 +517,7 @@ namespace XCode.Code
                 WriteLine("public static readonly Field {0} = FindByName(__.{0});", dc.Name);
                 WriteLine();
             }
-            WriteLine("static Field FindByName(String name) { return Meta.Table.FindByName(name); }");
+            WriteLine("static Field FindByName(String name) => Meta.Table.FindByName(name);");
             WriteLine("}");
 
             WriteLine();
@@ -621,7 +628,7 @@ namespace XCode.Code
                 var dc = Table.Columns.FirstOrDefault(e => !e.Identity && !e.PrimaryKey && (e.DataType == typeof(Int32) || e.DataType == typeof(Int64)));
                 if (dc != null)
                 {
-                    WriteLine("// 累加字段");
+                    WriteLine("// 累加字段，生成 Update xx Set Count=Count+1234 Where xxx");
                     WriteLine("//var df = Meta.Factory.AdditionalFields;");
                     WriteLine("//df.Add(__.{0});", dc.Name);
                 }
@@ -833,7 +840,7 @@ namespace XCode.Code
                     WriteLine("/// <summary>{0}</summary>", dis);
                     WriteLine("[XmlIgnore, IgnoreDataMember]");
                     WriteLine("//[ScriptIgnore]");
-                    WriteLine("public {1} {1} {{ get {{ return Extends.Get({0}, k => {1}.FindBy{3}({2})); }} }}", NameOf(pname), dt.Name, dc.Name, pk.Name);
+                    WriteLine("public {1} {1} => Extends.Get({0}, k => {1}.FindBy{3}({2}));", NameOf(pname), dt.Name, dc.Name, pk.Name);
 
                     // 主字段
                     var master = dt.Master ?? dt.GetColumn("Name");
@@ -847,9 +854,9 @@ namespace XCode.Code
                         if (!dis.IsNullOrEmpty()) WriteLine("[DisplayName(\"{0}\")]", dis);
                         WriteLine("[Map(__.{0}, typeof({1}), \"{2}\")]", dc.Name, dt.Name, pk.Name);
                         if (master.DataType == typeof(String))
-                            WriteLine("public {2} {0}{1} {{ get {{ return {0}?.{1}; }} }}", pname, master.Name, master.DataType.Name);
+                            WriteLine("public {2} {0}{1} => {0}?.{1};", pname, master.Name, master.DataType.Name);
                         else
-                            WriteLine("public {2} {0}{1} {{ get {{ return {0} != null ? {0}.{1} : 0; }} }}", pname, master.Name, master.DataType.Name);
+                            WriteLine("public {2} {0}{1} => {0} != null ? {0}.{1} : 0;", pname, master.Name, master.DataType.Name);
                     }
                 }
             }
@@ -867,7 +874,7 @@ namespace XCode.Code
             if (Table.PrimaryKeys.Length == 1)
             {
                 pk = Table.PrimaryKeys[0];
-                var name = pk.Name.ToLower();
+                var name = pk.CamelName();
 
                 WriteLine("/// <summary>根据{0}查找</summary>", pk.DisplayName);
                 WriteLine("/// <param name=\"{0}\">{1}</param>", name, pk.DisplayName);
@@ -910,7 +917,7 @@ namespace XCode.Code
                 WriteLine("/// <summary>根据{0}查找</summary>", cs.Select(e => e.DisplayName).Join("、"));
                 foreach (var dc in cs)
                 {
-                    WriteLine("/// <param name=\"{0}\">{1}</param>", dc.Name.ToLower(), dc.DisplayName);
+                    WriteLine("/// <param name=\"{0}\">{1}</param>", dc.CamelName(), dc.DisplayName);
                 }
 
                 // 返回类型
@@ -918,7 +925,7 @@ namespace XCode.Code
                 if (!di.Unique) rt = "IList<{0}>".F(rt);
 
                 WriteLine("/// <returns>{0}</returns>", di.Unique ? "实体对象" : "实体列表");
-                WriteLine("public static {2} Find{3}By{0}({1})", cs.Select(e => e.Name).Join("And"), cs.Select(e => e.DataType.Name + " " + e.Name.ToLower()).Join(", "), rt, di.Unique ? "" : "All");
+                WriteLine("public static {2} Find{3}By{0}({1})", cs.Select(e => e.Name).Join("And"), cs.Select(e => e.DataType.Name + " " + e.CamelName()).Join(", "), rt, di.Unique ? "" : "All");
                 WriteLine("{");
                 {
                     var exp = new StringBuilder();
@@ -926,10 +933,10 @@ namespace XCode.Code
                     foreach (var dc in cs)
                     {
                         if (exp.Length > 0) exp.Append(" & ");
-                        exp.AppendFormat("_.{0} == {1}", dc.Name, dc.Name.ToLower());
+                        exp.AppendFormat("_.{0} == {1}", dc.Name, dc.CamelName());
 
                         if (wh.Length > 0) wh.Append(" && ");
-                        wh.AppendFormat("e.{0} == {1}", dc.Name, dc.Name.ToLower());
+                        wh.AppendFormat("e.{0} == {1}", dc.Name, dc.CamelName());
                     }
 
                     if (di.Unique)
@@ -942,7 +949,7 @@ namespace XCode.Code
                         {
                             WriteLine();
                             WriteLine("// 单对象缓存");
-                            WriteLine("//return Meta.SingleCache.GetItemWithSlaveKey({0}) as {1};", cs[0].Name.ToLower(), rt);
+                            WriteLine("//return Meta.SingleCache.GetItemWithSlaveKey({0}) as {1};", cs[0].CamelName(), rt);
                         }
 
                         WriteLine();
@@ -966,7 +973,141 @@ namespace XCode.Code
         /// <summary>高级查询</summary>
         protected virtual void BuildSearch()
         {
+            // 收集索引信息，索引中的所有字段都参与，构造一个高级查询模板
+            var idx = Table.Indexes ?? new List<IDataIndex>();
+            var cs = new List<IDataColumn>();
+            if (idx != null && idx.Count > 0)
+            {
+                // 索引中的所有字段，按照表字段顺序
+                var dcs = idx.SelectMany(e => e.Columns).Distinct().ToArray();
+                foreach (var dc in Table.Columns)
+                {
+                    // 主键和自增，不参与
+                    if (dc.PrimaryKey || dc.Identity) continue;
+
+                    if (dc.Name.EqualIgnoreCase(dcs) || dc.ColumnName.EqualIgnoreCase(dcs)) cs.Add(dc);
+                }
+            }
+
+            var returnName = GenericType ? "TEntity" : Table.Name;
+
             WriteLine("#region 高级查询");
+            if (cs.Count > 0)
+            {
+                // 时间字段
+                var dcTime = cs.FirstOrDefault(e => e.DataType == typeof(DateTime));
+                cs.Remove(dcTime);
+
+                // 可用于关键字模糊搜索的字段
+                var keys = Table.Columns.Where(e => e.DataType == typeof(String) && !cs.Contains(e)).ToList();
+
+                // 注释部分
+                WriteLine("/// <summary>高级查询</summary>");
+                foreach (var dc in cs)
+                {
+                    WriteLine("/// <param name=\"{0}\">{1}</param>", dc.CamelName(), dc.Description);
+                }
+                if (dcTime != null)
+                {
+                    WriteLine("/// <param name=\"start\">{0}开始</param>", dcTime.DisplayName);
+                    WriteLine("/// <param name=\"end\">{0}结束</param>", dcTime.DisplayName);
+                }
+                WriteLine("/// <param name=\"key\">关键字</param>");
+                WriteLine("/// <param name=\"page\">分页参数信息。可携带统计和数据权限扩展查询等信息</param>");
+                WriteLine("/// <returns>实体列表</returns>");
+
+                // 参数部分
+                var pis = cs.Join(", ", dc => $"{dc.DataType.Name} {dc.CamelName()}");
+                var piTime = dcTime == null ? "" : "DateTime start, DateTime end, ";
+                WriteLine("public static IList<{0}> Search({1}, {2}String key, PageParameter page)", returnName, pis, piTime);
+                WriteLine("{");
+                {
+                    WriteLine("var exp = new WhereExpression();");
+
+                    // 构造表达式
+                    WriteLine();
+                    foreach (var dc in cs)
+                    {
+                        if (dc.DataType.IsInt())
+                            WriteLine("if ({0} >= 0) exp &= _.{1} == {0};", dc.CamelName(), dc.Name);
+                        else if (dc.DataType == typeof(Boolean))
+                            WriteLine("if ({0} != null) exp &= _.{1} == {0};", dc.CamelName(), dc.Name);
+                        else if (dc.DataType == typeof(String))
+                            WriteLine("if (!{0}.IsNullOrEmpty()) exp &= _.{1} == {0};", dc.CamelName(), dc.Name);
+                    }
+                    if (dcTime != null)
+                    {
+                        WriteLine("exp &= _.{0}.Between(start, end);", dcTime.Name);
+                    }
+                    if (keys.Count > 0)
+                    {
+                        WriteLine("if (!key.IsNullOrEmpty()) exp &= {0};", keys.Join(" | ", k => $"_.{k.Name}.Contains(key)"));
+                    }
+
+                    // 查询返回
+                    WriteLine();
+                    WriteLine("return FindAll(exp, page);");
+                }
+                WriteLine("}");
+
+            }
+
+            // 字段缓存，用于魔方前台下拉选择
+            {
+                // 主键和时间字段
+                var pk = Table.Columns.FirstOrDefault(e => e.Identity);
+                var pname = pk?.Name ?? "Id";
+                var dcTime = cs.FirstOrDefault(e => e.DataType == typeof(DateTime));
+                var tname = dcTime?.Name ?? "CreateTime";
+
+                // 遍历索引，第一个字段是字符串类型，则为其生成下拉选择
+                var count = 0;
+                foreach (var di in idx)
+                {
+                    if (di.Columns == null || di.Columns.Length == 0) continue;
+
+                    // 单字段唯一索引，不需要
+                    if (di.Unique && di.Columns.Length == 1) continue;
+
+                    var dc = Table.GetColumn(di.Columns[0]);
+                    if (dc == null || dc.DataType != typeof(String) || dc.Master) continue;
+
+                    var name = dc.Name;
+
+                    WriteLine();
+                    WriteLine($"// Select Count({pname}) as {pname},{name} From {Table.Name} Where {tname}>'2020-01-24 00:00:00' Group By {name} Order By {pname} Desc limit 20");
+                    WriteLine($"static readonly FieldCache<{returnName}> _{name}Cache = new FieldCache<{returnName}>(_.{name})");
+                    WriteLine("{");
+                    {
+                        WriteLine($"//Where = _.{tname} > DateTime.Today.AddDays(-30) & Expression.Empty");
+                    }
+                    WriteLine("};");
+                    WriteLine();
+                    WriteLine($"/// <summary>获取{dc.DisplayName}列表，字段缓存10分钟，分组统计数据最多的前20种，用于魔方前台下拉选择</summary>");
+                    WriteLine("/// <returns></returns>");
+                    WriteLine($"public static IDictionary<String, String> Get{name}List() => _{name}Cache.FindAllName();");
+
+                    count++;
+                }
+
+                // 如果没有输出，则生成一个注释的模板
+                if (count == 0)
+                {
+                    WriteLine();
+                    WriteLine($"// Select Count({pname}) as {pname},Category From {Table.Name} Where {tname}>'2020-01-24 00:00:00' Group By Category Order By {pname} Desc limit 20");
+                    WriteLine($"//static readonly FieldCache<{returnName}> _CategoryCache = new FieldCache<{returnName}>(_.Category)");
+                    WriteLine("//{");
+                    {
+                        WriteLine($"//Where = _.{tname} > DateTime.Today.AddDays(-30) & Expression.Empty");
+                    }
+                    WriteLine("//};");
+                    WriteLine();
+                    WriteLine("///// <summary>获取类别列表，字段缓存10分钟，分组统计数据最多的前20种，用于魔方前台下拉选择</summary>");
+                    WriteLine("///// <returns></returns>");
+                    WriteLine("//public static IDictionary<String, String> GetCategoryList() => _CategoryCache.FindAllName();");
+                }
+            }
+
             WriteLine("#endregion");
         }
 

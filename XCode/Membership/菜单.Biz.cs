@@ -28,7 +28,7 @@ namespace XCode.Membership
 
             EntityFactory.Register(typeof(TEntity), new MenuFactory());
 
-            ObjectContainer.Current.AutoRegister<IMenuFactory, MenuFactory>();
+            //ObjectContainer.Current.AutoRegister<IMenuFactory, MenuFactory>();
         }
 
         /// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>
@@ -472,8 +472,8 @@ namespace XCode.Membership
                     ThreadPoolX.QueueUserWorkItem(() =>
                     {
                         XTrace.WriteLine("新增了菜单，需要检查权限");
-                        var eop = ManageProvider.GetFactory<IRole>();
-                        eop.EntityType.Invoke("CheckRole");
+                        var fact = ManageProvider.GetFactory<IRole>();
+                        fact.EntityType.Invoke("CheckRole");
                     });
                 }
 

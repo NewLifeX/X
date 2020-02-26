@@ -276,7 +276,7 @@ namespace XCode.DataAccessLayer
 
         #region 静态实例
         /// <summary>当前名称解析器</summary>
-        public static IModelResolver Current { get { return XCodeService.Container.ResolveInstance<IModelResolver>(); } }
+        public static IModelResolver Current { get; set; } = new ModelResolver();
         #endregion
     }
 }

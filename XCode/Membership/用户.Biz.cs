@@ -1,17 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data.Common;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Security.Principal;
-using System.Web;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Model;
-using NewLife.Web;
 
 namespace XCode.Membership
 {
@@ -126,10 +123,6 @@ namespace XCode.Membership
         #endregion
 
         #region 扩展属性
-        ///// <summary>友好名字</summary>
-        //[XmlIgnore, ScriptIgnore, IgnoreDataMember]
-        //public virtual String FriendName => DisplayName.IsNullOrEmpty() ? Name : DisplayName;
-
         /// <summary>物理地址</summary>
         [DisplayName("物理地址")]
         [XmlIgnore, ScriptIgnore, IgnoreDataMember]
@@ -179,10 +172,9 @@ namespace XCode.Membership
         {
             if (mail.IsNullOrEmpty()) return null;
 
-            if (Meta.Count >= 1000)
-                return Find(__.Mail, mail);
-            else // 实体缓存
-                return Meta.Cache.Find(e => e.Mail.EqualIgnoreCase(mail));
+            if (Meta.Count < 1000) return Meta.Cache.Find(e => e.Mail.EqualIgnoreCase(mail));
+
+            return Find(__.Mail, mail);
         }
 
         /// <summary>根据手机号码查找</summary>
@@ -192,10 +184,9 @@ namespace XCode.Membership
         {
             if (mobile.IsNullOrEmpty()) return null;
 
-            if (Meta.Count >= 1000)
-                return Find(__.Mobile, mobile);
-            else // 实体缓存
-                return Meta.Cache.Find(e => e.Mobile.EqualIgnoreCase(mobile));
+            if (Meta.Count < 1000) return Meta.Cache.Find(e => e.Mobile == mobile);
+
+            return Find(__.Mobile, mobile);
         }
 
         /// <summary>根据唯一代码查找</summary>
@@ -205,10 +196,9 @@ namespace XCode.Membership
         {
             if (code.IsNullOrEmpty()) return null;
 
-            if (Meta.Count >= 1000)
-                return Find(__.Code, code);
-            else // 实体缓存
-                return Meta.Cache.Find(e => e.Code.EqualIgnoreCase(code));
+            if (Meta.Count < 1000) return Meta.Cache.Find(e => e.Code.EqualIgnoreCase(code));
+
+            return Find(__.Code, code);
         }
         #endregion
 
@@ -536,15 +526,12 @@ namespace XCode.Membership
         {
             var role = ManageProvider.Get<IRole>();
             EntityType = role.GetType();
-            Key = EntityFactory.CreateOperate(EntityType).Unique?.Name;
+            Key = EntityType.AsFactory().Unique?.Name;
         }
     }
 
     public partial interface IUser
     {
-        ///// <summary>友好名字</summary>
-        //String FriendName { get; }
-
         /// <summary>角色</summary>
         IRole Role { get; }
 

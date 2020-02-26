@@ -49,7 +49,7 @@ namespace XCode.Code
         /// <summary>执行生成</summary>
         public virtual void Execute()
         {
-            WriteLog("生成 {0} {1}", Table.Name, Table.DisplayName);
+            //WriteLog("生成 {0} {1}", Table.Name, Table.DisplayName);
 
             Clear();
             if (Writer == null) Writer = new StringWriter();
@@ -300,6 +300,16 @@ namespace XCode.Code
             return "\"" + name + "\"";
         }
 
+        /// <summary>驼峰命名，首字母小写</summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        protected static String GetCamelCase(String name)
+        {
+            if (name.EqualIgnoreCase("id")) return "id";
+
+            return Char.ToLower(name[0]) + name.Substring(1);
+        }
+
         /// <summary>是否调试</summary>
         public static Boolean Debug { get; set; }
 
@@ -309,10 +319,7 @@ namespace XCode.Code
         /// <summary>写日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
-        public void WriteLog(String format, params Object[] args)
-        {
-            Log?.Info(format, args);
-        }
+        public void WriteLog(String format, params Object[] args) => Log?.Info(format, args);
         #endregion
     }
 }

@@ -19,7 +19,7 @@ namespace NewLife.Caching
     {
         #region 属性
         /// <summary>实体工厂</summary>
-        protected IEntityOperate Factory { get; }
+        protected IEntityFactory Factory { get; }
 
         /// <summary>主键字段</summary>
         protected Field KeyField { get; }
@@ -33,7 +33,7 @@ namespace NewLife.Caching
         /// <param name="factory"></param>
         /// <param name="keyName"></param>
         /// <param name="timeName"></param>
-        public DbCache(IEntityOperate factory = null, String keyName = null, String timeName = null)
+        public DbCache(IEntityFactory factory = null, String keyName = null, String timeName = null)
         {
             if (factory == null) factory = MyDbCache.Meta.Factory;
             if (!(factory.Default is IDbCache)) throw new XCodeException("实体类[{0}]需要实现[{1}]接口", factory.EntityType.FullName, typeof(IDbCache).FullName);

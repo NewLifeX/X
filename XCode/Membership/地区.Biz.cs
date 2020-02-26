@@ -67,7 +67,7 @@ namespace XCode.Membership
             }
 
             // 预热数据
-            ThreadPoolX.QueueUserWorkItem(() => ScanLoad());
+            ThreadPoolX.QueueUserWorkItem(() => Preload());
         }
         #endregion
 
@@ -385,12 +385,8 @@ namespace XCode.Membership
         }
 
         /// <summary>扫描预热数据</summary>
-        public static Int32 ScanLoad()
+        public static Int32 Preload()
         {
-            //var ss = Meta.Session.Dal.Session;
-            //var old = ss.ShowSQL;
-            //ss.ShowSQL = false;
-
             var layer = 2;
             var count = 0;
             var list = Root.Childs.ToArray().ToList();
@@ -405,10 +401,6 @@ namespace XCode.Membership
                 list = bs;
                 count += bs.Count;
             }
-            //var list = Search(-1, 100000, 999999, null, null, DateTime.MinValue, DateTime.MinValue, null);
-            //var count = list.Count;
-
-            //ss.ShowSQL = old;
 
             return count;
         }

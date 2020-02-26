@@ -122,6 +122,29 @@ namespace XCode.DataAccessLayer
             var names = columns.Select(e => e.Name).ToArray();
             return dis.FirstOrDefault(e => e.Columns.EqualIgnoreCase(names));
         }
+
+        /// <summary>驼峰变量名</summary>
+        /// <param name="column"></param>
+        /// <returns></returns>
+        public static String CamelName(this IDataColumn column)
+        {
+            var name = column.Name;
+            if (name.EqualIgnoreCase("id")) return "id";
+
+            // 全小写，直接返回
+            if (name == name.ToLower()) return name;
+
+            // 全大写，可能是专有名词，整体转小写
+            if (name == name.ToUpper()) return name.ToLower();
+
+            // 首字母小写
+            name = Char.ToLower(name[0]) + name.Substring(1);
+
+            // 特殊处理ID结尾，改为Id，否则难看
+            if (name.Length > 3 && name.EndsWith("ID") && Char.IsLower(name[name.Length - 3])) name = name.Substring(0, name.Length - 2) + "Id";
+
+            return name;
+        }
         #endregion
 
         #region 序列化扩展
@@ -276,7 +299,9 @@ namespace XCode.DataAccessLayer
                                 v = reader.GetAttribute("Length");
                                 if (v != null && Int32.TryParse(v, out var len)) dc.Length = len;
 
-                                dc = Fix(dc, dc);
+                                dc = FixDefaultByType(dc, null);
+                                // 清空默认的原始类型，让其从xml读取
+                                dc.RawType = null;
                             }
                             (dc as IXmlSerializable).ReadXml(reader);
                             table.Columns.Add(dc);
@@ -449,7 +474,7 @@ namespace XCode.DataAccessLayer
                 var dc2 = type.CreateInstance() as IDataColumn;
                 dc2.DataType = value2.DataType;
                 dc2.Length = value2.Length;
-                def = Fix(dc2, value2);
+                def = FixDefaultByType(dc2, value2);
                 ignoreNameCase = (value2.Table.IgnoreNameCase).ToBoolean(true);
             }
             else if (value is IDataTable value3)
@@ -523,7 +548,7 @@ namespace XCode.DataAccessLayer
                     }
                     //if (item.Type == typeof(Type)) obj = (obj as Type).Name;
                 }
-                writer.WriteAttributeString(pi.Name, obj + "");
+                if (obj != null) writer.WriteAttributeString(pi.Name, obj + "");
             }
 
             if (value is IDataTable)
@@ -564,7 +589,7 @@ namespace XCode.DataAccessLayer
         /// <param name="dc"></param>
         /// <param name="oridc"></param>
         /// <returns></returns>
-        static IDataColumn Fix(this IDataColumn dc, IDataColumn oridc)
+        static IDataColumn FixDefaultByType(this IDataColumn dc, IDataColumn oridc)
         {
             if (dc?.DataType == null) return dc;
 
@@ -614,6 +639,7 @@ namespace XCode.DataAccessLayer
                     dc.Nullable = false;
                     break;
                 case TypeCode.String:
+                    // 原来就是普通字符串，或者非ntext字符串，一律转nvarchar
                     if (dc.Length >= 0 && dc.Length < 4000 || !isnew && oridc.RawType != "ntext")
                     {
                         var len = dc.Length;
@@ -629,16 +655,17 @@ namespace XCode.DataAccessLayer
                     else
                     {
                         // 新建默认长度-1，写入忽略所有长度
+                        dc.Length = -1;
                         if (isnew)
                         {
                             dc.RawType = "ntext";
-                            dc.Length = -1;
+                            //dc.Length = -1;
                         }
                         else
                         {
-                            // 写入长度-1
-                            dc.Length = 0;
-                            oridc.Length = -1;
+                            // 强制写入长度-1
+                            //dc.Length = 0;
+                            oridc.Length = 0;
 
                             // 不写RawType
                             dc.RawType = oridc.RawType;
@@ -647,12 +674,17 @@ namespace XCode.DataAccessLayer
                     dc.Nullable = true;
                     break;
                 default:
+                    if (dc.DataType == typeof(Byte[]))
+                    {
+                        dc.Length = 0;
+                        dc.Nullable = true;
+                    }
                     break;
             }
 
+            // 默认值里面不要设置数据类型，否则写入模型文件的时候会漏掉数据类型
             dc.DataType = null;
-            /*if (oridc.Table.DbType != DatabaseType.SqlServer)*/
-            dc.RawType = null;
+            if (dc.RawType.IsNullOrEmpty()) dc.RawType = null;
 
             return dc;
         }
