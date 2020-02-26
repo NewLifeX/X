@@ -429,8 +429,9 @@ namespace XCode
             var session = fact.Session;
             session.InitData();
             session.Dal.CheckDatabase();
+            var tableName = session.Dal.Db.FormatTableName(session.TableName);
 
-            return session.Dal.Session.Insert(session.TableName, columns, list.Cast<IIndexAccessor>());
+            return session.Dal.Session.Insert(tableName, columns, list.Cast<IIndexAccessor>());
         }
 
         /// <summary>批量更新</summary>
@@ -469,8 +470,9 @@ namespace XCode
             var session = fact.Session;
             session.InitData();
             session.Dal.CheckDatabase();
+            var tableName = session.Dal.Db.FormatTableName(session.TableName);
 
-            return session.Dal.Session.Update(session.TableName, columns, updateColumns, addColumns, list.Cast<IIndexAccessor>());
+            return session.Dal.Session.Update(tableName, columns, updateColumns, addColumns, list.Cast<IIndexAccessor>());
         }
 
         /// <summary>批量插入或更新</summary>
@@ -533,8 +535,9 @@ namespace XCode
             var session = fact.Session;
             session.InitData();
             session.Dal.CheckDatabase();
+            var tableName = session.Dal.Db.FormatTableName(session.TableName);
 
-            return session.Dal.Session.Upsert(session.TableName, columns, updateColumns, addColumns, list.Cast<IIndexAccessor>());
+            return session.Dal.Session.Upsert(tableName, columns, updateColumns, addColumns, list.Cast<IIndexAccessor>());
         }
 
         /// <summary>批量插入或更新</summary>
@@ -573,8 +576,9 @@ namespace XCode
             var session = fact.Session;
             session.InitData();
             session.Dal.CheckDatabase();
+            var tableName = session.Dal.Db.FormatTableName(session.TableName);
 
-            return fact.Session.Dal.Session.Upsert(session.TableName, columns, updateColumns, addColumns, new[] { entity as IIndexAccessor });
+            return fact.Session.Dal.Session.Upsert(tableName, columns, updateColumns, addColumns, new[] { entity as IIndexAccessor });
         }
 
         /// <summary>获取脏数据列</summary>

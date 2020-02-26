@@ -296,7 +296,7 @@ namespace XCode.DataAccessLayer
 
             // 字段列表
             //if (columns == null) columns = table.Columns.ToArray();
-            sb.AppendFormat("Insert Into {0}(", db.FormatTableName(tableName));
+            sb.AppendFormat("Insert Into {0}(", db.FormatName(tableName));
             foreach (var dc in columns)
             {
                 // 取消对主键的过滤，避免列名和值无法一一对应的问题

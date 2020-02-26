@@ -369,8 +369,11 @@ namespace XCode.DataAccessLayer
                 // 匹配要写入的列
                 if (_TableName == null)
                 {
-                    _TableName = Dal.Db.FormatTableName(Table.TableName);
+                    _TableName = Table.TableName;
                     _Columns = Table.GetColumns(dt.Columns);
+
+                    WriteLog("数据表：{0}/{1}", Table.Name, _TableName);
+                    WriteLog("匹配列：{0}", _Columns.Join(",", e => e.ColumnName));
                 }
 
                 // 批量插入

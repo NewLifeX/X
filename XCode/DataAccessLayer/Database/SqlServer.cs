@@ -447,7 +447,7 @@ namespace XCode.DataAccessLayer
             var db = Database as DbBase;
 
             // 字段列表
-            sb.AppendFormat("Insert Into {0}(", db.FormatTableName(tableName));
+            sb.AppendFormat("Insert Into {0}(", db.FormatName(tableName));
             foreach (var dc in columns)
             {
                 if (dc.Identity) continue;
@@ -502,7 +502,7 @@ namespace XCode.DataAccessLayer
             var db = Database as DbBase;
 
             // 字段列表
-            sb.AppendFormat("Update {0} Set ", db.FormatTableName(tableName));
+            sb.AppendFormat("Update {0} Set ", db.FormatName(tableName));
             foreach (var dc in columns)
             {
                 if (dc.Identity || dc.PrimaryKey) continue;
