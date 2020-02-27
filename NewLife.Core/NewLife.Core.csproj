@@ -7,8 +7,8 @@
     <Description>算法、日志、网络、RPC、序列化、缓存、Windows服务、线程池</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2020 NewLife</Copyright>
-    <Version>8.6.2020.0225-beta</Version>
-    <FileVersion>8.6.2020.0225</FileVersion>
+    <Version>8.6.2020.0227-cbeta</Version>
+    <FileVersion>8.6.2020.0227</FileVersion>
     <AssemblyVersion>8.6.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <OutputPath>..\..\Bin</OutputPath>
@@ -83,7 +83,6 @@
   <ItemGroup>
     <Compile Remove="Http\HttpClient.cs" />
     <Compile Remove="Http\HttpSession.cs" />
-    <Compile Remove="Model\ModelExtension.cs" />
     <Compile Remove="Net\SerialPortConfig.cs" />
     <Compile Remove="Net\SerialTransport.cs" />
     <Compile Remove="Net\WebSocketSession.cs" />

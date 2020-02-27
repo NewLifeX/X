@@ -1,6 +1,7 @@
 ﻿using System;
 using NewLife.Reflection;
 
+#if !__CORE__
 namespace NewLife.Model
 {
     /// <summary>模型扩展</summary>
@@ -44,3 +45,4 @@ namespace NewLife.Model
         }
     }
 }
+#endif

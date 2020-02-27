@@ -13,9 +13,9 @@ namespace XCode.DataAccessLayer
         static DbFactory()
         {
             Register<SQLite>(DatabaseType.SQLite);
-            Register<SqlServer>(DatabaseType.SqlServer);
-            Register<Oracle>(DatabaseType.Oracle);
             Register<MySql>(DatabaseType.MySql);
+            Register<Oracle>(DatabaseType.Oracle);
+            Register<SqlServer>(DatabaseType.SqlServer);
             Register<PostgreSQL>(DatabaseType.PostgreSQL);
 #if !__CORE__
             Register<Access>(DatabaseType.Access);
@@ -35,7 +35,7 @@ namespace XCode.DataAccessLayer
         /// <summary>根据数据库类型创建提供者</summary>
         /// <param name="dbType"></param>
         /// <returns></returns>
-        public static IDatabase Create(DatabaseType dbType) => _dbs[dbType].GetType().CreateInstance() as IDatabase;
+        public static IDatabase Create(DatabaseType dbType) => _dbs[dbType]?.GetType().CreateInstance() as IDatabase;
 
         /// <summary>根据名称获取默认提供者</summary>
         /// <param name="dbType"></param>
