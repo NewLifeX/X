@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
-using XCode;
-using XCode.Cache;
 using XCode.Configuration;
 #if !NET4
 using TaskEx = System.Threading.Tasks.Task;
@@ -20,8 +18,8 @@ namespace XCode.Cache
         private FieldItem _field;
         private FieldItem _Unique;
 
-        /// <summary>最大行数。默认20</summary>
-        public Int32 MaxRows { get; set; } = 20;
+        /// <summary>最大行数。默认50</summary>
+        public Int32 MaxRows { get; set; } = 50;
 
         /// <summary>数据源条件</summary>
         public WhereExpression Where { get; set; }
