@@ -483,6 +483,9 @@ namespace XCode.DataAccessLayer
             var ss = Database.CreateSession();
             var db = Database.DatabaseName;
 
+            var old = ss.ShowSQL;
+            ss.ShowSQL = false;
+
             var sql = $"SHOW TABLE STATUS FROM `{db}`";
             var dt = ss.Query(sql, null);
             if (dt.Rows.Count == 0) return null;
@@ -555,6 +558,8 @@ namespace XCode.DataAccessLayer
 
                 list.Add(table);
             }
+
+            ss.ShowSQL = old;
 
             // 找到使用枚举作为布尔型的旧表
             var es = (Database as MySql).EnumTables;
