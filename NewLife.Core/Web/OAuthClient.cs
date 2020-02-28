@@ -280,6 +280,15 @@ namespace NewLife.Web
         /// <summary>昵称</summary>
         public String NickName { get; set; }
 
+        /// <summary>用户代码</summary>
+        public String UserCode { get; set; }
+
+        /// <summary>手机</summary>
+        public String Mobile { get; set; }
+
+        /// <summary>邮箱</summary>
+        public String Mail { get; set; }
+
         /// <summary>头像</summary>
         public String Avatar { get; set; }
 
