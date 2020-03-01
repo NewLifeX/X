@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Text;
 using System.Linq;
 using System.Net.Http;
 using NewLife.Http;
@@ -35,9 +36,24 @@ namespace XUnitTest.XCode.Membership
             //    XTrace.WriteLine("{0} {1}", item.ID, item.Name);
             //}
 
-            var rs = Area.Parse(txt).ToList();
+            var rs = Parse(txt).ToList();
             Assert.NotNull(rs);
             Assert.True(rs.Count > 3000);
+        }
+
+        [Fact]
+        public void ParseLevel4Test()
+        {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
+            var url = "http://www.stats.gov.cn/tjsj/tjbz/tjyqhdmhcxhfdm/2018/45/09/450921.html";
+            var http = new HttpClient();
+            var buf = http.GetByteArrayAsync(url).Result;
+            var html = Encoding.GetEncoding("gb2312").GetString(buf);
+
+            var rs = ParseLevel4(html).ToList();
+            Assert.NotNull(rs);
+            Assert.Equal(15, rs.Count);
         }
 
         [Fact]

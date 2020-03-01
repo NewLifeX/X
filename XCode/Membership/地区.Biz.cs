@@ -482,10 +482,47 @@ namespace XCode.Membership
             }
         }
 
+        /// <summary>分析得到四级地区</summary>
+        /// <param name="html"></param>
+        /// <returns></returns>
+        public static IEnumerable<Area> ParseLevel4(String html)
+        {
+            if (html.IsNullOrEmpty()) yield break;
+
+            var p = 0;
+            while (true)
+            {
+                var s = html.IndexOf("<tr class='towntr'>", p);
+                if (s < 0) break;
+
+                var e = html.IndexOf("</tr>", s);
+                if (e < 0) break;
+
+                // 分析数据
+                var ss = html.Substring(s, e - s).Split("'>", "</a>");
+                if (ss.Length > 4)
+                {
+                    var id = ss[2].Trim().TrimEnd("000");
+                    var name = ss[4].Trim();
+                    if (!id.IsNullOrEmpty() && id.ToInt() > 10_00_00 && !name.IsNullOrEmpty())
+                    {
+                        var r = new Area
+                        {
+                            ID = id.ToInt(),
+                            FullName = name,
+                        };
+                        yield return r;
+                    }
+                }
+
+                p = e;
+            }
+        }
+
         /// <summary>从内容中分析得到地区并保存。以民政部颁布的行政区划代码为准</summary>
         /// <param name="html"></param>
         /// <returns></returns>
-        public static Int32 ParseAndSave(String html)
+        public static IList<Area> ParseAndSave(String html)
         {
             var all = Parse(html).ToList();
 
@@ -551,7 +588,9 @@ namespace XCode.Membership
                 rs.Add(r);
             }
 
-            return rs.Save(true);
+            rs.Save(true);
+
+            return rs;
         }
 
         private static Int32 GetParent(Int32 id)
@@ -565,8 +604,9 @@ namespace XCode.Membership
 
         /// <summary>抓取并保存数据</summary>
         /// <param name="url">民政局。http://www.mca.gov.cn/article/sj/xzqh/2019/2019/201912251506.html</param>
+        /// <param name="level4">是否组装四级乡镇街道</param>
         /// <returns></returns>
-        public static Int32 FetchAndSave(String url = null)
+        public static Int32 FetchAndSave(String url = null, Boolean level4 = false)
         {
             if (url.IsNullOrEmpty()) url = "http://www.mca.gov.cn/article/sj/xzqh/2019/2019/201912251506.html";
 
@@ -574,7 +614,16 @@ namespace XCode.Membership
             var html = http.GetStringAsync(url).Result;
             if (html.IsNullOrEmpty()) return 0;
 
-            return ParseAndSave(html);
+            var rs = ParseAndSave(html);
+            var count = rs.Count;
+
+            // 拉取四级地区
+            if (level4)
+            {
+
+            }
+
+            return count;
         }
         #endregion
 
