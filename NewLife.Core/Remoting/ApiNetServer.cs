@@ -17,9 +17,6 @@ namespace NewLife.Remoting
         /// <summary>当前服务器所有会话</summary>
         public IApiSession[] AllSessions => Sessions.ToValueArray().Where(e => e is IApiSession).Cast<IApiSession>().ToArray();
 
-        ///// <summary>调用超时时间。默认30_000ms</summary>
-        //public Int32 Timeout { get; set; } = 30_000;
-
         public ApiNetServer()
         {
             Name = "Api";
@@ -41,6 +38,7 @@ namespace NewLife.Remoting
             // Http封包协议
             //Add<HttpCodec>();
             Add(new HttpCodec { AllowParseHeader = true });
+
             // 新生命标准网络封包协议
             Add(Host.GetMessageCodec());
 
@@ -94,8 +92,6 @@ namespace NewLife.Remoting
             base.Start();
 
             _Host = Host.Host as ApiServer;
-
-            //if (_Host is ApiHost host) host.OnNewSession(this, null);
         }
 
         /// <summary>查找Api动作</summary>

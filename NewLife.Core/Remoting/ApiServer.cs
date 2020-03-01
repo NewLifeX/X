@@ -178,7 +178,7 @@ namespace NewLife.Remoting
         /// <param name="session"></param>
         /// <param name="msg"></param>
         /// <returns></returns>
-        internal IMessage Process(IApiSession session, IMessage msg)
+        internal protected virtual IMessage Process(IApiSession session, IMessage msg)
         {
             if (msg.Reply) return null;
 

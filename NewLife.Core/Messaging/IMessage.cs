@@ -5,7 +5,7 @@ using NewLife.Reflection;
 namespace NewLife.Messaging
 {
     /// <summary>消息命令</summary>
-    public interface IMessage //: IAccessor
+    public interface IMessage
     {
         /// <summary>是否响应</summary>
         Boolean Reply { get; }
