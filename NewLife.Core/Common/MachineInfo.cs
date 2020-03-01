@@ -140,6 +140,9 @@ namespace NewLife
                     if (csproduct.TryGetValue("Name", out str)) Product = str;
                     if (csproduct.TryGetValue("UUID", out str)) UUID = str;
                 }
+
+                // window+netcore 不方便读取注册表，随机生成一个guid，借助文件缓存确保其不变
+                if (Guid.IsNullOrEmpty()) Guid = System.Guid.NewGuid().ToString();
             }
             // 特别识别Linux发行版
             else if (Runtime.Linux)
