@@ -101,8 +101,8 @@ namespace XCode.Membership
             }
 
             //CheckRole();
-            // 当前处于事务之中，下面使用Menu会触发异步检查架构，SQLite单线程机制可能会造成死锁
-            ThreadPoolX.QueueUserWorkItem(CheckRole);
+            //// 当前处于事务之中，下面使用Menu会触发异步检查架构，SQLite单线程机制可能会造成死锁
+            //ThreadPoolX.QueueUserWorkItem(CheckRole);
         }
 
         /// <summary>初始化时执行必要的权限检查，以防万一管理员无法操作</summary>
