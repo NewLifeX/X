@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using NewLife.Collections;
@@ -544,7 +545,7 @@ namespace XCode.Membership
                     var pid = GetParent(item.ID);
 
                     // 部分区县由省直管，中间没有第二级
-                    if (!list.Any(e => e.ID == pid) && !all.Any(e => e.ID == pid))
+                    if (pid > 0 && !list.Any(e => e.ID == pid) && !all.Any(e => e.ID == pid))
                     {
                         var pid2 = GetParent(pid);
                         var r2 = all.Find(e => e.ID == pid2);
@@ -604,9 +605,8 @@ namespace XCode.Membership
 
         /// <summary>抓取并保存数据</summary>
         /// <param name="url">民政局。http://www.mca.gov.cn/article/sj/xzqh/2019/2019/201912251506.html</param>
-        /// <param name="level4">是否组装四级乡镇街道</param>
         /// <returns></returns>
-        public static Int32 FetchAndSave(String url = null, Boolean level4 = false)
+        public static Int32 FetchAndSave(String url = null)
         {
             if (url.IsNullOrEmpty()) url = "http://www.mca.gov.cn/article/sj/xzqh/2019/2019/201912251506.html";
 
@@ -617,11 +617,37 @@ namespace XCode.Membership
             var rs = ParseAndSave(html);
             var count = rs.Count;
 
-            // 拉取四级地区
-            if (level4)
-            {
+//            // 拉取四级地区
+//            if (level4)
+//            {
+//#if __CORE__
+//                //Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+//                var encode = Encoding.GetEncoding("gb2312");
+//#else
+//                var encode = Encoding.Default;
+//#endif
+//                foreach (var item in rs)
+//                {
+//                    if (item.Level == 3)
+//                    {
+//                        var str = item.ID + "";
+//                        var url2 = $"http://www.stats.gov.cn/tjsj/tjbz/tjyqhdmhcxhfdm/2018/{str.Substring(0, 2)}/{str.Substring(2, 2)}/{str}.html";
+//                        XTrace.WriteLine("拉取[{0}/{1}]的四级地区 {2}", item.Name, item.ID, url2);
 
-            }
+//                        var buf = http.GetByteArrayAsync(url2).Result;
+//                        var html2 = encode.GetString(buf);
+//                        foreach (var elm in ParseLevel4(html2))
+//                        {
+//                            elm.ParentID = item.ID;
+
+//                            elm.FixLevel();
+//                            elm.FixName();
+
+//                            elm.SaveAsync();
+//                        }
+//                    }
+//                }
+//            }
 
             return count;
         }

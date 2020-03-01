@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Linq;
 using System.Net.Http;
 using System.Runtime.InteropServices;
@@ -22,6 +23,8 @@ using XCode.DataAccessLayer;
 using XCode.Membership;
 using XCode.Service;
 using NewLife.Http;
+using NewLife.IO;
+using XCode;
 #if !NET4
 using TaskEx = System.Threading.Tasks.Task;
 #endif
@@ -47,7 +50,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test8();
+                Test8();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -476,6 +479,8 @@ namespace Test
 
         static async void Test8()
         {
+            Area.Meta.Session.Dal.Db.ShowSQL = false;
+
             var url = "http://www.mca.gov.cn/article/sj/xzqh/2019/2019/201912251506.html";
             //var file = "area.html".GetFullPath();
             //if (!File.Exists(file))
@@ -490,16 +495,98 @@ namespace Test
             //    XTrace.WriteLine("{0} {1}", item.ID, item.Name);
             //}
 
+            //#if __CORE__
+            //            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            //#endif
             Area.FetchAndSave(url);
 
-            var list = Area.FindAll();
-            foreach (var item in list)
+            //            var list = Area.FindAll();
+            //            foreach (var item in list)
+            //            {
+            //                if (item.ParentID > 0 && item.Level - 1 != item.Parent.Level)
+            //                {
+            //                    XTrace.WriteLine("{0} {1} {2}", item.ID, item.Level, item.Name);
+            //                }
+            //            }
+
+            //var file = "../2020年02月四级行政区划库.csv";
+            var file = "Area.csv";
+            var list = new List<Area>();
+            list.LoadCsv(file);
+
+            foreach (var r in list)
             {
-                if (item.ParentID > 0 && item.Level - 1 != item.Parent.Level)
+                r.UpdateTime = DateTime.Now;
+                if (r.ID > 70_00_00)
                 {
-                    XTrace.WriteLine("{0} {1} {2}", item.ID, item.Level, item.Name);
+                    r.Enable = true;
+                    r.SaveAsync();
+                }
+                else
+                {
+                    var r2 = Area.FindByID(r.ID);
+                    //if (r.ParentID != r2.ParentID || r.FullName != r2.FullName || r.Name != r2.Name) XTrace.WriteLine("{0} {1} {2}", r.ID, r.Name, r.FullName);
+                    if (r2 == null)
+                    {
+                        XTrace.WriteLine("找不到 {0} {1} {2}", r.ID, r.Name, r.FullName);
+                        r.Enable = false;
+                        r.SaveAsync();
+                    }
+                    else
+                    {
+                        if (r.FullName != r2.FullName || r.Name != r2.Name) XTrace.WriteLine("{0} {1} {2} => {3} {4}", r.ID, r.Name, r.FullName, r2.Name, r2.FullName);
+
+                        //r2.Longitude = r.Longitude;
+                        //r2.Latitude = r.Latitude;
+                        //r2.SaveAsync();
+                        r.Enable = true;
+                        r.SaveAsync();
+                    }
                 }
             }
+
+            //using var csv = new CsvFile(file);
+            //csv.ReadLine();
+
+            //while (true)
+            //{
+            //    var ss = csv.ReadLine();
+            //    if (ss == null) break;
+
+            //    var r = new Area
+            //    {
+            //        ID = ss[0].ToInt(),
+            //        ParentID = ss[1].ToInt(),
+            //        FullName = ss[2].Trim(),
+            //        Name = ss[3].Trim(),
+            //        Longitude = ss[4].ToDouble(),
+            //        Latitude = ss[5].ToDouble(),
+            //        Enable = true,
+            //    };
+            //    if (r.ID > 70_00_00)
+            //    {
+            //        r.SaveAsync();
+            //    }
+            //    else
+            //    {
+            //        var r2 = Area.FindByID(r.ID);
+            //        //if (r.ParentID != r2.ParentID || r.FullName != r2.FullName || r.Name != r2.Name) XTrace.WriteLine("{0} {1} {2}", r.ID, r.Name, r.FullName);
+            //        if (r2 == null)
+            //        {
+            //            XTrace.WriteLine("找不到 {0} {1} {2}", r.ID, r.Name, r.FullName);
+            //            r.Enable = false;
+            //            r.SaveAsync();
+            //        }
+            //        else
+            //        {
+            //            if (r.FullName != r2.FullName) XTrace.WriteLine("{0} {1} {2} => {3} {4}", r.ID, r.Name, r.FullName, r2.Name, r2.FullName);
+
+            //            r2.Longitude = r.Longitude;
+            //            r2.Latitude = r.Latitude;
+            //            r2.SaveAsync();
+            //        }
+            //    }
+            //}
         }
 
         static async void Test9()

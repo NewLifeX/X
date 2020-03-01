@@ -82,30 +82,6 @@ namespace XCode.Membership
         [BindColumn("Enable", "启用", "")]
         public Boolean Enable { get => _Enable; set { if (OnPropertyChanging(__.Enable, value)) { _Enable = value; OnPropertyChanged(__.Enable); } } }
 
-        private String _CreateUser;
-        /// <summary>创建者</summary>
-        [DisplayName("创建者")]
-        [Description("创建者")]
-        [DataObjectField(false, false, true, 50)]
-        [BindColumn("CreateUser", "创建者", "")]
-        public String CreateUser { get => _CreateUser; set { if (OnPropertyChanging(__.CreateUser, value)) { _CreateUser = value; OnPropertyChanged(__.CreateUser); } } }
-
-        private Int32 _CreateUserID;
-        /// <summary>创建用户</summary>
-        [DisplayName("创建用户")]
-        [Description("创建用户")]
-        [DataObjectField(false, false, false, 0)]
-        [BindColumn("CreateUserID", "创建用户", "")]
-        public Int32 CreateUserID { get => _CreateUserID; set { if (OnPropertyChanging(__.CreateUserID, value)) { _CreateUserID = value; OnPropertyChanged(__.CreateUserID); } } }
-
-        private DateTime _CreateTime;
-        /// <summary>创建时间</summary>
-        [DisplayName("创建时间")]
-        [Description("创建时间")]
-        [DataObjectField(false, false, true, 0)]
-        [BindColumn("CreateTime", "创建时间", "")]
-        public DateTime CreateTime { get => _CreateTime; set { if (OnPropertyChanging(__.CreateTime, value)) { _CreateTime = value; OnPropertyChanged(__.CreateTime); } } }
-
         private String _UpdateUser;
         /// <summary>更新者</summary>
         [DisplayName("更新者")]
@@ -165,9 +141,6 @@ namespace XCode.Membership
                     case __.Longitude: return _Longitude;
                     case __.Latitude: return _Latitude;
                     case __.Enable: return _Enable;
-                    case __.CreateUser: return _CreateUser;
-                    case __.CreateUserID: return _CreateUserID;
-                    case __.CreateTime: return _CreateTime;
                     case __.UpdateUser: return _UpdateUser;
                     case __.UpdateUserID: return _UpdateUserID;
                     case __.UpdateIP: return _UpdateIP;
@@ -188,9 +161,6 @@ namespace XCode.Membership
                     case __.Longitude: _Longitude = value.ToDouble(); break;
                     case __.Latitude: _Latitude = value.ToDouble(); break;
                     case __.Enable: _Enable = value.ToBoolean(); break;
-                    case __.CreateUser: _CreateUser = Convert.ToString(value); break;
-                    case __.CreateUserID: _CreateUserID = value.ToInt(); break;
-                    case __.CreateTime: _CreateTime = value.ToDateTime(); break;
                     case __.UpdateUser: _UpdateUser = Convert.ToString(value); break;
                     case __.UpdateUserID: _UpdateUserID = value.ToInt(); break;
                     case __.UpdateIP: _UpdateIP = Convert.ToString(value); break;
@@ -229,15 +199,6 @@ namespace XCode.Membership
 
             /// <summary>启用</summary>
             public static readonly Field Enable = FindByName(__.Enable);
-
-            /// <summary>创建者</summary>
-            public static readonly Field CreateUser = FindByName(__.CreateUser);
-
-            /// <summary>创建用户</summary>
-            public static readonly Field CreateUserID = FindByName(__.CreateUserID);
-
-            /// <summary>创建时间</summary>
-            public static readonly Field CreateTime = FindByName(__.CreateTime);
 
             /// <summary>更新者</summary>
             public static readonly Field UpdateUser = FindByName(__.UpdateUser);
@@ -284,15 +245,6 @@ namespace XCode.Membership
             /// <summary>启用</summary>
             public const String Enable = "Enable";
 
-            /// <summary>创建者</summary>
-            public const String CreateUser = "CreateUser";
-
-            /// <summary>创建用户</summary>
-            public const String CreateUserID = "CreateUserID";
-
-            /// <summary>创建时间</summary>
-            public const String CreateTime = "CreateTime";
-
             /// <summary>更新者</summary>
             public const String UpdateUser = "UpdateUser";
 
@@ -338,15 +290,6 @@ namespace XCode.Membership
 
         /// <summary>启用</summary>
         Boolean Enable { get; set; }
-
-        /// <summary>创建者</summary>
-        String CreateUser { get; set; }
-
-        /// <summary>创建用户</summary>
-        Int32 CreateUserID { get; set; }
-
-        /// <summary>创建时间</summary>
-        DateTime CreateTime { get; set; }
 
         /// <summary>更新者</summary>
         String UpdateUser { get; set; }
