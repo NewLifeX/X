@@ -47,7 +47,7 @@ namespace Test
                 try
                 {
 #endif
-                Test1();
+                Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -153,6 +153,9 @@ namespace Test
                     //EncoderLog = XTrace.Log,
                     StatPeriod = 10,
                 };
+
+                // http状态
+                svr.UseHttpStatus = true;
 
                 var ns = svr.EnsureCreate() as NetServer;
                 ns.EnsureCreateServer();

@@ -54,7 +54,25 @@ namespace NewLife.Http
             }
 
             // 检查是否有未完成消息
-            if (!(ext["Message"] is HttpMessage msg))
+            if (ext["Message"] is HttpMessage msg)
+            {
+                // 数据包拼接到上一个未完整消息中
+                if (msg.Payload == null)
+                    msg.Payload = pk;
+                else
+                    msg.Payload.Append(pk);
+
+                // 消息完整才允许上报
+                if (msg.ContentLength == 0 || msg.ContentLength > 0 && msg.Payload != null && msg.Payload.Total >= msg.ContentLength)
+                {
+                    // 匹配输入回调，让上层事件收到分包信息
+                    context.FireRead(msg);
+
+                    // 移除消息
+                    ext["Message"] = null;
+                }
+            }
+            else
             {
                 // 解码得到消息
                 msg = new HttpMessage();
@@ -87,42 +105,6 @@ namespace NewLife.Http
                     }
                 }
             }
-            else
-            {
-                // 数据包拼接到上一个未完整消息中
-                if (msg.Payload == null)
-                    msg.Payload = pk;
-                else
-                    msg.Payload.Append(pk);
-
-                // 消息完整才允许上报
-                if (msg.ContentLength == 0 || msg.ContentLength > 0 && msg.Payload != null && msg.Payload.Total >= msg.ContentLength)
-                {
-                    // 匹配输入回调，让上层事件收到分包信息
-                    context.FireRead(msg);
-
-                    // 移除消息
-                    //ext.Items.Remove("Message");
-                    ext["Message"] = null;
-                }
-            }
-
-            //if (pk.ToStr(null, 0, 4) == "HTTP")
-            //{
-            //    var response = new HttpResponse();
-            //    if (!response.ParseHeader(pk)) return base.Read(context, message);
-
-            //    // 匹配输入回调，让上层事件收到分包信息
-            //    context.FireRead(response);
-            //}
-            //else
-            //{
-            //    var request = new HttpRequest();
-            //    if (!request.ParseHeader(pk)) return base.Read(context, message);
-
-            //    // 匹配输入回调，让上层事件收到分包信息
-            //    context.FireRead(request);
-            //}
 
             return null;
         }

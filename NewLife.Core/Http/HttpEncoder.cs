@@ -26,7 +26,7 @@ namespace NewLife.Http
         /// <returns></returns>
         public virtual Packet Encode(String action, Int32 code, Object value)
         {
-            if (value == null) return null;
+            //if (value == null) return null;
 
             if (value is Packet pk) return pk;
             if (value is IAccessor acc) return acc.ToPacket();
@@ -107,16 +107,6 @@ namespace NewLife.Http
         public virtual Object Convert(Object obj, Type targetType) => JsonHelper.Default.Convert(obj, targetType);
 
         #region 编码/解码
-        ///// <summary>编码 请求/响应</summary>
-        ///// <param name="action"></param>
-        ///// <param name="code"></param>
-        ///// <param name="value"></param>
-        ///// <returns></returns>
-        //public virtual Packet Encode(String action, Int32 code, Packet value)
-        //{
-        //    return null;
-        //}
-
         /// <summary>创建请求</summary>
         /// <param name="action"></param>
         /// <param name="args"></param>
@@ -181,13 +171,7 @@ namespace NewLife.Http
             if (code <= 0 && UseHttpStatus) code = 200;
 
             // 编码响应数据包，二进制优先
-            if (value is Packet pk)
-            {
-            }
-            if (value is IAccessor acc)
-                pk = acc.ToPacket();
-            else
-                pk = Encode(action, code, value);
+            var pk = Encode(action, code, value);
 
             // 构造响应消息
             var rs = new HttpMessage

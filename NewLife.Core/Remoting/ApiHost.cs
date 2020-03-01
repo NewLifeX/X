@@ -18,14 +18,8 @@ namespace NewLife.Remoting
         /// <summary>编码器</summary>
         public IEncoder Encoder { get; set; }
 
-        ///// <summary>处理器</summary>
-        //public IApiHandler Handler { get; set; }
-
         /// <summary>调用超时时间。请求发出后，等待响应的最大时间，默认15_000ms</summary>
         public Int32 Timeout { get; set; } = 15_000;
-
-        ///// <summary>调用统计</summary>
-        //public ICounter StatInvoke { get; set; }
 
         /// <summary>慢追踪。远程调用或处理时间超过该值时，输出慢调用日志，默认5000ms</summary>
         public Int32 SlowTrace { get; set; } = 5_000;
@@ -46,13 +40,6 @@ namespace NewLife.Remoting
         /// <summary>获取消息编码器。重载以指定不同的封包协议</summary>
         /// <returns></returns>
         public virtual IHandler GetMessageCodec() => new StandardCodec { Timeout = Timeout, UserPacket = false };
-        #endregion
-
-        #region 事件
-        ///// <summary>新会话。服务端收到新连接，客户端每次连接或断线重连后，可用于做登录</summary>
-        ///// <param name="session">会话</param>
-        ///// <param name="state">状态。客户端ISocketClient</param>
-        //public virtual void OnNewSession(IApiSession session, Object state) { }
         #endregion
 
         #region 日志

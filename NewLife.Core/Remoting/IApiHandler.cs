@@ -163,7 +163,7 @@ namespace NewLife.Remoting
                 ctx.Parameters = dic;
                 session.Parameters = dic;
 
-                // 令牌
+                // 令牌，作为参数或者http头传递
                 if (dic.TryGetValue("Token", out var token)) session.Token = token + "";
                 if (session.Token.IsNullOrEmpty() && msg is HttpMessage hmsg && hmsg.Headers != null)
                 {

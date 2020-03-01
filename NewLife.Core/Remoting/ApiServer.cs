@@ -2,6 +2,7 @@
 using System.Linq;
 using NewLife.Collections;
 using NewLife.Data;
+using NewLife.Http;
 using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Model;
@@ -28,6 +29,9 @@ namespace NewLife.Remoting
 
         /// <summary>连接复用。默认true，单个Tcp连接在处理某个请求未完成时，可以接收并处理新的请求</summary>
         public Boolean Multiplex { get; set; } = true;
+
+        /// <summary>是否使用Http状态。默认false，使用json包装响应码</summary>
+        public Boolean UseHttpStatus { get; set; }
 
         /// <summary>处理统计</summary>
         public ICounter StatProcess { get; set; }
@@ -174,10 +178,13 @@ namespace NewLife.Remoting
         #endregion
 
         #region 请求处理
-        /// <summary>处理消息</summary>
-        /// <param name="session"></param>
-        /// <param name="msg"></param>
-        /// <returns></returns>
+        /// <summary>处理会话收到的消息，并返回结果消息</summary>
+        /// <remarks>
+        /// 这里是网络RPC的消息处理核心，目标协议只要能封装为IMessage，即可通过重载该方法得到支持
+        /// </remarks>
+        /// <param name="session">网络会话</param>
+        /// <param name="msg">消息</param>
+        /// <returns>要应答对方的消息，为空表示不应答</returns>
         internal protected virtual IMessage Process(IApiSession session, IMessage msg)
         {
             if (msg.Reply) return null;
@@ -220,6 +227,9 @@ namespace NewLife.Remoting
                 // 单向请求无需响应
                 if (msg.OneWay) return null;
 
+                // 处理http封包方式
+                if (enc is HttpEncoder httpEncoder) httpEncoder.UseHttpStatus = UseHttpStatus;
+
                 return enc.CreateResponse(msg, action, code, result);
             }
             finally
@@ -229,7 +239,7 @@ namespace NewLife.Remoting
             }
         }
 
-        /// <summary>执行</summary>
+        /// <summary>执行消息处理，交给Handler</summary>
         /// <param name="session">会话</param>
         /// <param name="action">动作</param>
         /// <param name="args">参数</param>

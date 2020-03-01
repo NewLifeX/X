@@ -313,7 +313,7 @@ namespace XUnitTest.Remoting
             Assert.Equal("valid data", ex.Message);
         }
 
-        [Fact]
+        //[Fact]
         public async void ProcessResponse_DingTalk()
         {
             var key = "dingbvcq0mz3pidpwtch";
