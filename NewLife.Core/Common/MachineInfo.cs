@@ -209,9 +209,9 @@ namespace NewLife
             UUID = GetInfo("Win32_ComputerSystemProduct", "UUID");
             Product = GetInfo("Win32_ComputerSystemProduct", "Name");
 
-            // 读取主板温度，不太准。标准方案是ring0通过IOPort读取CPU温度，太难在基础类库实现
-            var str = GetInfo("MSAcpi_ThermalZoneTemperature", "CurrentTemperature");
-            if (!str.IsNullOrEmpty()) Temperature = (str.ToDouble() - 2732) / 10.0;
+            //// 读取主板温度，不太准。标准方案是ring0通过IOPort读取CPU温度，太难在基础类库实现
+            //var str = GetInfo("MSAcpi_ThermalZoneTemperature", "CurrentTemperature");
+            //if (!str.IsNullOrEmpty()) Temperature = (str.ToDouble() - 2732) / 10.0;
 #endif
 
             Refresh();
