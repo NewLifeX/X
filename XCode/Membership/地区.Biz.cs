@@ -504,30 +504,36 @@ namespace XCode.Membership
                     r = item;
 
                     // 找到它的上级
-                    var pid = 0;
-                    if (item.ID % 10000 == 0)
-                        pid = 0;
-                    else if (item.ID % 100 == 0)
-                        pid = item.ID - (item.ID % 10000);
-                    else if (item.ID <= 99_99_99)
-                        pid = item.ID - (item.ID % 100);
+                    var pid = GetParent(item.ID);
 
                     // 部分区县由省直管，中间没有第二级
                     if (!list.Any(e => e.ID == pid) && !all.Any(e => e.ID == pid))
                     {
-                        //pid = item.ID - (item.ID % 10000);
-                        r.FixLevel();
-                        for (var i = r.Level - 1; i >= 1; i--)
+                        var pid2 = GetParent(pid);
+                        var r2 = all.Find(e => e.ID == pid2);
+                        if (r2 != null)
                         {
-                            var str = item.ID.ToString();
-                            str = str.Substring(0, 2 * i);
-                            if (i < 3) str += new String('0', 6 - 2 * i);
-                            var id = str.ToInt();
-                            if (list.Any(e => e.ID == pid) || all.Any(e => e.ID == id))
+                            var r3 = new Area
                             {
-                                pid = id;
-                                break;
-                            }
+                                ID = pid,
+                                ParentID = pid2,
+                                Enable = true,
+                            };
+
+                            // 直辖市处理市辖区
+                            if (r2.Name.EqualIgnoreCase("北京", "天津", "上海", "重庆"))
+                                r3.Name = "市辖区";
+                            else
+                                r3.Name = "直辖县";
+
+                            r3.FixLevel();
+                            r3.FixName();
+                            rs.Add(r3);
+                            list.Add(r3);
+                        }
+                        else
+                        {
+                            XTrace.WriteLine("无法识别地区的父级 {0} {1}", item.ID, item.Name);
                         }
                     }
 
@@ -542,12 +548,19 @@ namespace XCode.Membership
                 r.FixLevel();
                 r.FixName();
 
-                //item.Upsert();
-
                 rs.Add(r);
             }
 
             return rs.Save(true);
+        }
+
+        private static Int32 GetParent(Int32 id)
+        {
+            if (id % 10000 == 0) return 0;
+            if (id % 100 == 0) return id - (id % 10000);
+            if (id <= 99_99_99) return id - (id % 100);
+
+            return 0;
         }
 
         /// <summary>抓取并保存数据</summary>

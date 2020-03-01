@@ -47,7 +47,7 @@ namespace Test
                 try
                 {
 #endif
-                Test3();
+                    Test8();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -477,17 +477,28 @@ namespace Test
         static async void Test8()
         {
             var url = "http://www.mca.gov.cn/article/sj/xzqh/2019/2019/201912251506.html";
-            var file = "area.html".GetFullPath();
-            if (!File.Exists(file))
-            {
-                var http = new HttpClient();
-                await http.DownloadFileAsync(url, file);
-            }
+            //var file = "area.html".GetFullPath();
+            //if (!File.Exists(file))
+            //{
+            //    var http = new HttpClient();
+            //    await http.DownloadFileAsync(url, file);
+            //}
 
-            var txt = File.ReadAllText(file);
-            foreach (var item in Area.Parse(txt))
+            //var txt = File.ReadAllText(file);
+            //foreach (var item in Area.Parse(txt))
+            //{
+            //    XTrace.WriteLine("{0} {1}", item.ID, item.Name);
+            //}
+
+            Area.FetchAndSave(url);
+
+            var list = Area.FindAll();
+            foreach (var item in list)
             {
-                XTrace.WriteLine("{0} {1}", item.ID, item.Name);
+                if (item.ParentID > 0 && item.Level - 1 != item.Parent.Level)
+                {
+                    XTrace.WriteLine("{0} {1} {2}", item.ID, item.Level, item.Name);
+                }
             }
         }
 
