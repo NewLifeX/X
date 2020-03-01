@@ -185,7 +185,13 @@ namespace NewLife.IO
             {
                 if (sb.Length > 0) sb.Append(Separator);
 
-                if (!(item is String str)) str = "{0}".F(item);
+                var str = item switch
+                {
+                    String str2 => str2,
+                    DateTime dt => dt.ToFullString(""),
+                    Boolean b => b ? "1" : "0",
+                    _ => item + "",
+                };
 
                 if (str.Contains("\""))
                     sb.AppendFormat("\"{0}\"", str.Replace("\"", "\"\""));
