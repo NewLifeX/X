@@ -29,6 +29,12 @@ namespace NewLife.IO
         #endregion
 
         #region 构造
+        /// <summary>实例化Csv文件数据库</summary>
+        public CsvDb() => Comparer = EqualityComparer<T>.Default;
+
+        /// <summary>实例化Csv文件数据库</summary>
+        /// <param name="comparer"></param>
+        public CsvDb(Func<T, T, Boolean> comparer) => Comparer = new MyComparer { Comparer = comparer };
         #endregion
 
         #region 方法
@@ -214,10 +220,10 @@ namespace NewLife.IO
                             var model = new T();
                             foreach (var pi in pis)
                             {
-                                if (headers.TryGetValue(pi.Name, out var idx) && idx < ss.Length)
+                                if (pi.CanWrite && headers.TryGetValue(pi.Name, out var idx) && idx < ss.Length)
                                 {
                                     var value = ss[idx].ChangeType(pi.PropertyType);
-                                    if (value != null) pi.SetValue(model, value);
+                                    if (value != null) pi.SetValue(model, value, null);
                                 }
                             }
 
@@ -258,6 +264,15 @@ namespace NewLife.IO
 
         #region 辅助
         private String GetFile() => FileName.GetFullPath();
+
+        class MyComparer : IEqualityComparer<T>
+        {
+            public Func<T, T, Boolean> Comparer;
+
+            public Boolean Equals(T x, T y) => Comparer(x, y);
+
+            public Int32 GetHashCode(T obj) => obj.GetHashCode();
+        }
         #endregion
     }
 }
