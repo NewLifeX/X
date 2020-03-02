@@ -1,19 +1,11 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
-using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
-using NewLife.Reflection;
-using NewLife.Serialization;
 using NewLife.Threading;
 #if !NET4
 using TaskEx = System.Threading.Tasks.Task;
@@ -100,10 +92,15 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public virtual async Task<TResult> InvokeAsync<TResult>(HttpMethod method, String action, Object args = null, Action<HttpRequestMessage> onRequest = null)
         {
-            var rtype = typeof(TResult);
+            var returnType = typeof(TResult);
 
             // 发起请求
-            var msg = await SendAsync(method, action, args, rtype, onRequest);
+            //var msg = await SendAsync(method, action, args, rtype, onRequest);
+
+            // 建立请求
+            var request = BuildRequest(method, action, args, returnType);
+            onRequest?.Invoke(request);
+            var msg = await SendAsync(request);
 
             try
             {
@@ -159,85 +156,64 @@ namespace NewLife.Remoting
         #region 调度池
         /// <summary>调度索引，当前使用该索引处的服务</summary>
         protected volatile Int32 _Index;
+
         /// <summary>异步发送</summary>
-        /// <param name="method">请求方法</param>
-        /// <param name="action">服务操作</param>
-        /// <param name="args">参数</param>
-        /// <param name="returnType">返回类型</param>
-        /// <param name="onRequest">请求头回调</param>
+        /// <param name="request">请求</param>
         /// <returns></returns>
-        protected virtual async Task<HttpResponseMessage> SendAsync(HttpMethod method, String action, Object args, Type returnType, Action<HttpRequestMessage> onRequest)
+        protected virtual async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request)
         {
             var ms = Services;
             if (ms.Count == 0) throw new InvalidOperationException("未添加服务地址！");
 
             // 设置了重置周期，且地址池有两个或以上时，才启用定时重置
-            if (ResetPeriod > 0 && ms.Count > 2)
+            if (ResetPeriod > 0 && ms.Count > 1 && _timer == null)
             {
-                if (_timer == null)
+                lock (this)
                 {
-                    lock (this)
-                    {
-                        if (_timer == null) _timer = new TimerX(ResetIndex, null, ResetPeriod, ResetPeriod);
-                    }
+                    if (_timer == null) _timer = new TimerX(ResetIndex, null, ResetPeriod, ResetPeriod);
                 }
             }
 
-            // 重试次数
-            var retry = Retry;
-            if (retry == 0) retry = ms.Count;
-            if (retry <= 0) retry = 1;
+            // 获取一个处理当前请求的服务，此处实现负载均衡LoadBalance和故障转移Failover
+            var service = GetService();
+            service.Total++;
+            Source = service.Name;
 
-            Exception error = null;
-            for (var i = 0; i < retry; i++)
+            // 性能计数器，次数、TPS、平均耗时
+            var st = StatInvoke;
+            var sw = st.StartCount();
+            try
             {
-                // 建立请求
-                var request = BuildRequest(method, action, args, returnType);
-                onRequest?.Invoke(request);
-
-                // 获取一个处理当前请求的服务，此处实现负载均衡LoadBalance和故障转移Failover
-                var service = GetService();
-                service.Total++;
-                Source = service.Name;
-
-                // 性能计数器，次数、TPS、平均耗时
-                var st = StatInvoke;
-                var sw = st.StartCount();
-                try
+                if (service.Client == null)
                 {
-                    if (service.Client == null)
+                    WriteLog("使用[{0}]：{1}", service.Name, service.Address);
+
+                    service.Client = new HttpClient
                     {
-                        WriteLog("使用[{0}]：{1}", service.Name, service.Address);
-
-                        service.Client = new HttpClient
-                        {
-                            BaseAddress = service.Address,
-                            Timeout = TimeSpan.FromMilliseconds(Timeout)
-                        };
-                    }
-
-                    return await SendOnServiceAsync(request, service, service.Client);
+                        BaseAddress = service.Address,
+                        Timeout = TimeSpan.FromMilliseconds(Timeout)
+                    };
                 }
-                catch (Exception ex)
-                {
-                    if (error == null) error = ex;
 
-                    service.Client = null;
-                    service.Error++;
-                    service.LastError = DateTime.Now;
-                }
-                finally
-                {
-                    var msCost = st.StopCount(sw) / 1000;
-                    service.TotalCost += msCost;
-                    if (SlowTrace > 0 && msCost >= SlowTrace) WriteLog($"慢调用[{request.RequestUri.AbsoluteUri}]，耗时{msCost:n0}ms");
-
-                    // 归还服务
-                    PutService(service);
-                }
+                return await SendOnServiceAsync(request, service, service.Client);
             }
+            catch (Exception)
+            {
+                service.Client = null;
+                service.Error++;
+                service.LastError = DateTime.Now;
 
-            throw error;
+                throw;
+            }
+            finally
+            {
+                var msCost = st.StopCount(sw) / 1000;
+                service.TotalCost += msCost;
+                if (SlowTrace > 0 && msCost >= SlowTrace) WriteLog($"慢调用[{request.RequestUri.AbsoluteUri}]，耗时{msCost:n0}ms");
+
+                // 归还服务
+                PutService(service);
+            }
         }
 
         /// <summary>获取一个服务用于处理请求，此处可实现负载均衡LoadBalance。默认取当前可用服务</summary>
