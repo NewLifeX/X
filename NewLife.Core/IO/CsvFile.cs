@@ -177,7 +177,10 @@ namespace NewLife.IO
         }
 #endif
 
-        private String BuildLine(IEnumerable<Object> line)
+        /// <summary>构建一行</summary>
+        /// <param name="line"></param>
+        /// <returns></returns>
+        protected virtual String BuildLine(IEnumerable<Object> line)
         {
             var sb = Pool.StringBuilder.Get();
 
