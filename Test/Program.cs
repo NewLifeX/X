@@ -50,7 +50,7 @@ namespace Test
                 try
                 {
 #endif
-                Test8();
+                    Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -115,13 +115,8 @@ namespace Test
         {
             //LogProvider.Provider.WriteLog("test", "xxx", "yyy");
 
-            var log = new Log
-            {
-                Category = "test",
-                Action = "abc",
-                //Remark = Rand.NextBytes(1024)
-            };
-            log.Insert();
+            var r = new Role { ID = 2, Name = "xxx", Enable = false };
+            r.Update();
 
             //var count = Role.Meta.Count;
 

@@ -267,9 +267,10 @@ namespace XCode.Membership
         #endregion
 
         #region 扩展权限
+        private IDictionary<Int32, PermissionFlags> _Permissions;
         /// <summary>本角色权限集合</summary>
         [XmlIgnore, ScriptIgnore, IgnoreDataMember]
-        public IDictionary<Int32, PermissionFlags> Permissions { get; } = new Dictionary<Int32, PermissionFlags>();
+        public IDictionary<Int32, PermissionFlags> Permissions => _Permissions ??= new Dictionary<Int32, PermissionFlags>();
 
         /// <summary>是否拥有指定资源的指定权限</summary>
         /// <param name="resid"></param>
@@ -363,9 +364,12 @@ namespace XCode.Membership
 
         void SavePermission()
         {
+            var ps = _Permissions;
+            if (ps == null) return;
+
             // 不能这样子直接清空，因为可能没有任何改变，而这么做会两次改变脏数据，让系统以为有改变
             //Permission = null;
-            if (Permissions.Count <= 0)
+            if (ps.Count <= 0)
             {
                 //Permission = null;
                 SetItem(__.Permission, null);
@@ -374,7 +378,7 @@ namespace XCode.Membership
 
             var sb = Pool.StringBuilder.Get();
             // 根据资源按照从小到大排序一下
-            foreach (var item in Permissions.OrderBy(e => e.Key))
+            foreach (var item in ps.OrderBy(e => e.Key))
             {
                 //// 跳过None
                 //if (item.Value == PermissionFlags.None) continue;
