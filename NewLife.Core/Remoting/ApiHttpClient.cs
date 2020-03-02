@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using NewLife.Data;
@@ -170,7 +171,7 @@ namespace NewLife.Remoting
             {
                 lock (this)
                 {
-                    if (_timer == null) _timer = new TimerX(ResetIndex, null, ResetPeriod, ResetPeriod);
+                    if (_timer == null) _timer = new TimerX(DoTrace, null, ResetPeriod, ResetPeriod) { Async = true };
                 }
             }
 
@@ -202,6 +203,9 @@ namespace NewLife.Remoting
                 service.Client = null;
                 service.Error++;
                 service.LastError = DateTime.Now;
+
+                // 异常发生，马上安排检查网络
+                _timer.SetNext(-1);
 
                 throw;
             }
@@ -256,9 +260,62 @@ namespace NewLife.Remoting
         }
 
         private TimerX _timer;
-        /// <summary>定时重置索引。让其从第一个地址开始重试</summary>
+        /// <summary>定时检测网络。优先选择第一个</summary>
         /// <param name="state"></param>
-        private void ResetIndex(Object state) => _Index = 0;
+        private void DoTrace(Object state)
+        {
+            var ms = Services;
+            if (ms.Count < 1) return;
+
+            // 打开多个任务，同时检测节点
+            var source = new CancellationTokenSource();
+            var ts = new List<Task<Int32>>();
+            foreach (var service in ms)
+            {
+                ts.Add(TaskEx.Run(() => TraceService(service, source.Token)));
+            }
+
+            // 依次等待完成
+            for (var i = 0; i < ts.Count; i++)
+            {
+                ts[i].Wait();
+
+                // 如果成功，则直接使用
+                if (ts[i].Result >= 0)
+                {
+                    _Index = i;
+                    source.Cancel();
+                    return;
+                }
+            }
+        }
+
+        private async Task<Int32> TraceService(Service service, CancellationToken cancellation)
+        {
+            var request = BuildRequest(HttpMethod.Get, "api", null, null);
+            var client = service.Client ?? new HttpClient
+            {
+                BaseAddress = service.Address,
+                Timeout = TimeSpan.FromMilliseconds(Timeout)
+            };
+
+            // 每个任务若干次，任意一次成功
+            for (var i = 0; i < 3 && !cancellation.IsCancellationRequested; i++)
+            {
+                try
+                {
+                    var rs = await client.SendAsync(request);
+                    if (rs != null)
+                    {
+                        service.Client = client;
+                        return i;
+                    }
+                }
+                catch { }
+            }
+
+            return -1;
+        }
         #endregion
 
         #region 内嵌
