@@ -423,7 +423,7 @@ namespace XCode
         /// <param name="field">字段</param>
         /// <param name="newName">聚合后as的新名称，默认空，表示跟前面字段名一致</param>
         /// <returns></returns>
-        public static ConcatExpression Agv(this FieldItem field, String newName = null) => Aggregate(field, "Agv", newName);
+        public static ConcatExpression Avg(this FieldItem field, String newName = null) => Aggregate(field, "Avg", newName);
         #endregion
     }
 }
