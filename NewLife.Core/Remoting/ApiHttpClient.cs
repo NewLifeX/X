@@ -24,11 +24,11 @@ namespace NewLife.Remoting
         /// <summary>超时时间。默认15000ms</summary>
         public Int32 Timeout { get; set; } = 15_000;
 
-        /// <summary>出错重试次数。-1不重试，0表示每个服务都试一次，默认-1</summary>
-        public Int32 Retry { get; set; } = -1;
+        /// <summary>探测节点可用性的周期。默认600_000ms</summary>
+        public Int32 TracePeriod { get; set; } = 600_000;
 
-        /// <summary>重置周期。该时间后，在多地址中切换回第一个，默认600_000ms</summary>
-        public Int32 ResetPeriod { get; set; } = 600_000;
+        /// <summary>探测次数。每个节点连续探测多次，任意一次成功即认为该节点可用，默认3</summary>
+        public Int32 TraceTimes { get; set; } = 3;
 
         /// <summary>身份验证</summary>
         public AuthenticationHeaderValue Authentication { get; set; }
@@ -167,11 +167,11 @@ namespace NewLife.Remoting
             if (ms.Count == 0) throw new InvalidOperationException("未添加服务地址！");
 
             // 设置了重置周期，且地址池有两个或以上时，才启用定时重置
-            if (ResetPeriod > 0 && ms.Count > 1 && _timer == null)
+            if (TracePeriod > 0 && ms.Count > 1 && _timer == null)
             {
                 lock (this)
                 {
-                    if (_timer == null) _timer = new TimerX(DoTrace, null, ResetPeriod, ResetPeriod) { Async = true };
+                    if (_timer == null) _timer = new TimerX(DoTrace, null, TracePeriod, TracePeriod) { Async = true };
                 }
             }
 
@@ -205,7 +205,11 @@ namespace NewLife.Remoting
                 service.LastError = DateTime.Now;
 
                 // 异常发生，马上安排检查网络
-                _timer.SetNext(-1);
+                if (_timer != null)
+                {
+                    _timer.Period = 5_000;
+                    _timer.SetNext(-1);
+                }
 
                 throw;
             }
@@ -262,17 +266,20 @@ namespace NewLife.Remoting
         private TimerX _timer;
         /// <summary>定时检测网络。优先选择第一个</summary>
         /// <param name="state"></param>
-        private void DoTrace(Object state)
+        protected virtual void DoTrace(Object state)
         {
             var ms = Services;
             if (ms.Count < 1) return;
+
+            var times = TraceTimes;
+            if (times <= 0) times = 1;
 
             // 打开多个任务，同时检测节点
             var source = new CancellationTokenSource();
             var ts = new List<Task<Int32>>();
             foreach (var service in ms)
             {
-                ts.Add(TaskEx.Run(() => TraceService(service, source.Token)));
+                ts.Add(TaskEx.Run(() => TraceService(service, times, source.Token)));
             }
 
             // 依次等待完成
@@ -285,12 +292,21 @@ namespace NewLife.Remoting
                 {
                     _Index = i;
                     source.Cancel();
+
+                    // 调整定时器周期。第一节点时，恢复默认定时，非第一节点时，每分钟探测一次，希望能够尽快回到第一节点
+                    _timer.Period = i == 0 ? TracePeriod : 60_000;
+
                     return;
                 }
             }
         }
 
-        private async Task<Int32> TraceService(Service service, CancellationToken cancellation)
+        /// <summary>探测服务节点</summary>
+        /// <param name="service"></param>
+        /// <param name="times"></param>
+        /// <param name="cancellation"></param>
+        /// <returns></returns>
+        protected virtual async Task<Int32> TraceService(Service service, Int32 times, CancellationToken cancellation)
         {
             var request = BuildRequest(HttpMethod.Get, "api", null, null);
             var client = service.Client ?? new HttpClient
@@ -300,7 +316,7 @@ namespace NewLife.Remoting
             };
 
             // 每个任务若干次，任意一次成功
-            for (var i = 0; i < 3 && !cancellation.IsCancellationRequested; i++)
+            for (var i = 0; i < times && !cancellation.IsCancellationRequested; i++)
             {
                 try
                 {
