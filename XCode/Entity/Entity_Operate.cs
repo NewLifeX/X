@@ -345,8 +345,8 @@ namespace XCode
                                 concat &= item.Max();
                             else if (name.StartsWith("Min") && name.Length > 3 && Char.IsUpper(name[3]))
                                 concat &= item.Min();
-                            else if (name.StartsWith("Agv") && name.Length > 3 && Char.IsUpper(name[3]))
-                                concat &= item.Agv();
+                            else if (name.StartsWith("Avg") && name.Length > 3 && Char.IsUpper(name[3]))
+                                concat &= item.Avg();
                             else if (name2.EndsWith("Rate"))
                                 concat &= item.Max();
                             else
