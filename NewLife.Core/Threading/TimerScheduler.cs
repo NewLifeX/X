@@ -52,6 +52,7 @@ namespace NewLife.Threading
         public Int32 MaxCost { get; set; } = 500;
 
         private Thread? thread;
+        private Int32 _tid;
 
         private TimerX[] Timers = new TimerX[0];
         #endregion
@@ -60,6 +61,7 @@ namespace NewLife.Threading
         /// <param name="timer"></param>
         public void Add(TimerX timer)
         {
+            timer.Id = Interlocked.Increment(ref _tid);
             WriteLog("Timer.Add {0}ms {1}", timer.Period, timer);
 
             lock (this)
@@ -93,14 +95,17 @@ namespace NewLife.Threading
 
         /// <summary>从队列删除定时器</summary>
         /// <param name="timer"></param>
-        public void Remove(TimerX timer)
+        /// <param name="reason"></param>
+        public void Remove(TimerX timer, String reason)
         {
-            if (timer == null) return;
+            if (timer == null || timer.Id == 0) return;
 
-            WriteLog("Timer.Remove {0}", timer);
+            WriteLog("Timer.Remove {0} reason:{1}", timer, reason);
 
             lock (this)
             {
+                timer.Id = 0;
+
                 var list = new List<TimerX>(Timers);
                 if (list.Contains(timer))
                 {
@@ -243,6 +248,7 @@ namespace NewLife.Threading
                 var tc = timer.Callback;
                 if (tc == null || !tc.IsAlive)
                 {
+                    Remove(timer, "委托已不存在（GC回收委托所在对象）");
                     timer.Dispose();
                     return;
                 }
@@ -298,7 +304,10 @@ namespace NewLife.Threading
 
             // 清理一次性定时器
             if (p <= 0)
+            {
+                Remove(timer, "Period<=0");
                 timer.Dispose();
+            }
             else if (p < period)
                 period = p;
         }
@@ -311,7 +320,7 @@ namespace NewLife.Threading
         /// <summary>日志</summary>
         public ILog Log { get; set; } = Logger.Null;
 
-        private void WriteLog(String format, params Object[] args) => Log?.Info(format, args);
+        private void WriteLog(String format, params Object[] args) => Log?.Info(Name + format, args);
         #endregion
     }
 }

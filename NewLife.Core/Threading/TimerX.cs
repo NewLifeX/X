@@ -17,6 +17,9 @@ namespace NewLife.Threading
     public class TimerX : IDisposable
     {
         #region 属性
+        /// <summary>编号</summary>
+        public Int32 Id { get; internal set; }
+
         /// <summary>所属调度器</summary>
         public TimerScheduler Scheduler { get; private set; }
 
@@ -132,7 +135,7 @@ namespace NewLife.Threading
             }
 
             // 释放非托管资源
-            Scheduler?.Remove(this);
+            Scheduler?.Remove(this, disposing ? "Dispose" : "GC");
         }
         #endregion
 
@@ -190,7 +193,7 @@ namespace NewLife.Threading
         #region 辅助
         /// <summary>已重载</summary>
         /// <returns></returns>
-        public override String ToString() => Callback + "";
+        public override String ToString() => Id + " " + Callback;
         #endregion
     }
 }
