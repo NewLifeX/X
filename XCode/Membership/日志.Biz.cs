@@ -93,20 +93,22 @@ namespace XCode.Membership
         }
 
         /// <summary>查询</summary>
-        /// <param name="userid"></param>
         /// <param name="category"></param>
         /// <param name="action"></param>
+        /// <param name="success"></param>
+        /// <param name="userid"></param>
         /// <param name="start"></param>
         /// <param name="end"></param>
         /// <param name="key"></param>
         /// <param name="p"></param>
         /// <returns></returns>
-        public static IList<TEntity> Search(Int32 userid, String category, String action, DateTime start, DateTime end, String key, PageParameter p)
+        public static IList<TEntity> Search(String category, String action, Boolean? success, Int32 userid, DateTime start, DateTime end, String key, PageParameter p)
         {
             var exp = new WhereExpression();
 
             if (!category.IsNullOrEmpty() && category != "全部") exp &= _.Category == category;
             if (!action.IsNullOrEmpty() && action != "全部") exp &= _.Action == action;
+            if (success != null) exp &= _.Success == success;
             if (userid >= 0) exp &= _.CreateUserID == userid;
             exp &= _.CreateTime.Between(start, end);
 
