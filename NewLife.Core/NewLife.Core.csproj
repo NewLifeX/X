@@ -7,9 +7,9 @@
     <Description>算法、日志、网络、RPC、序列化、缓存、Windows服务、线程池</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2020 NewLife</Copyright>
-    <Version>8.6.2020.0308-rc</Version>
-    <FileVersion>8.6.2020.0308</FileVersion>
-    <AssemblyVersion>8.6.*</AssemblyVersion>
+    <Version>8.7.2020.0308</Version>
+    <FileVersion>8.7.2020.0308</FileVersion>
+    <AssemblyVersion>8.7.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <OutputPath>..\..\Bin</OutputPath>
     <DocumentationFile>$(OutputPath)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
@@ -27,7 +27,7 @@
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
-    <PackageReleaseNotes>新一代配置系统</PackageReleaseNotes>
+    <PackageReleaseNotes>重构对象容器IoC；优化ApiHelper/ApiHttpClient</PackageReleaseNotes>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
