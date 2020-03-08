@@ -373,7 +373,7 @@ namespace XCode.Transform
         {
             Log?.Info(Name + " " + format, args);
 
-            Provider?.WriteLog(Name, "处理", format.F(args));
+            Provider?.WriteLog(Name, "处理", true, format.F(args));
         }
 
         /// <summary>显示错误日志。默认true</summary>
@@ -386,7 +386,7 @@ namespace XCode.Transform
         {
             Log?.Error(Name + " " + format, args);
 
-            Provider?.WriteLog(Name, "错误", format.F(args));
+            Provider?.WriteLog(Name, "错误", true, format.F(args));
         }
         #endregion
     }

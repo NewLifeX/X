@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Tables Version="9.15.7365.29720" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:schemaLocation="http://www.newlifex.com http://www.newlifex.com/Model2020.xsd" NameSpace="XCode.Membership" ConnName="Membership" Output="" BaseClass="Entity" ChineseFileName="True" IgnoreNameCase="True" xmlns="http://www.newlifex.com/Model2020.xsd">
+<Tables Version="9.15.7372.18349" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:schemaLocation="http://www.newlifex.com http://www.newlifex.com/Model2020.xsd" NameSpace="XCode.Membership" ConnName="Membership" Output="" BaseClass="Entity" ChineseFileName="True" IgnoreNameCase="True" xmlns="http://www.newlifex.com/Model2020.xsd">
   <Table Name="User" Description="用户" RenderGenEntity="True">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
@@ -195,6 +195,7 @@
       <Column Name="Category" DataType="String" Description="类别" />
       <Column Name="Action" DataType="String" Description="操作" />
       <Column Name="LinkID" DataType="Int32" Description="链接" />
+      <Column Name="Success" DataType="Boolean" Description="成功" />
       <Column Name="UserName" DataType="String" Description="用户名" />
       <Column Name="Ex1" DataType="Int32" Description="扩展1" />
       <Column Name="Ex2" DataType="Int32" Description="扩展2" />
@@ -209,7 +210,7 @@
       <Column Name="Remark" DataType="String" Length="500" Description="详细信息" />
     </Columns>
     <Indexes>
-      <Index Columns="Category,CreateTime" />
+      <Index Columns="Action,Category,CreateTime" />
       <Index Columns="CreateUserID,CreateTime" />
       <Index Columns="CreateTime" />
     </Indexes>

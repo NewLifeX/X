@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Text;
-using System.Web;
 using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Model;
@@ -20,7 +18,8 @@ namespace XCode.Membership
         /// <param name="userid">用户</param>
         /// <param name="name">名称</param>
         /// <param name="ip">地址</param>
-        public abstract void WriteLog(String category, String action, String remark, Int32 userid = 0, String name = null, String ip = null);
+        [Obsolete]
+        public virtual void WriteLog(String category, String action, String remark, Int32 userid = 0, String name = null, String ip = null) => WriteLog(category, action, true, remark, userid, name, ip);
 
         /// <summary>写日志</summary>
         /// <param name="type">类型</param>
@@ -29,7 +28,28 @@ namespace XCode.Membership
         /// <param name="userid">用户</param>
         /// <param name="name">名称</param>
         /// <param name="ip">地址</param>
-        public virtual void WriteLog(Type type, String action, String remark, Int32 userid = 0, String name = null, String ip = null)
+        [Obsolete]
+        public virtual void WriteLog(Type type, String action, String remark, Int32 userid = 0, String name = null, String ip = null) => WriteLog(type, action, true, remark, userid, name, ip);
+
+        /// <summary>写日志</summary>
+        /// <param name="category">类型</param>
+        /// <param name="action">操作</param>
+        /// <param name="success">成功</param>
+        /// <param name="remark">备注</param>
+        /// <param name="userid">用户</param>
+        /// <param name="name">名称</param>
+        /// <param name="ip">地址</param>
+        public abstract void WriteLog(String category, String action, Boolean success, String remark, Int32 userid = 0, String name = null, String ip = null);
+
+        /// <summary>写日志</summary>
+        /// <param name="type">类型</param>
+        /// <param name="action">操作</param>
+        /// <param name="success">成功</param>
+        /// <param name="remark">备注</param>
+        /// <param name="userid">用户</param>
+        /// <param name="name">名称</param>
+        /// <param name="ip">地址</param>
+        public virtual void WriteLog(Type type, String action, Boolean success, String remark, Int32 userid = 0, String name = null, String ip = null)
         {
             var cat = "";
             if (type.As<IEntity>())
@@ -38,13 +58,14 @@ namespace XCode.Membership
                 if (fact != null) cat = fact.Table.DataTable.DisplayName;
             }
             if (cat.IsNullOrEmpty()) cat = type.GetDisplayName() ?? type.GetDescription() ?? type.Name;
-            WriteLog(cat, action, remark, userid, name, ip);
+            WriteLog(cat, action, success, remark, userid, name, ip);
         }
 
         /// <summary>输出实体对象日志</summary>
-        /// <param name="action"></param>
-        /// <param name="entity"></param>
-        public void WriteLog(String action, IEntity entity)
+        /// <param name="action">操作</param>
+        /// <param name="entity">实体</param>
+        /// <param name="error">错误信息</param>
+        public void WriteLog(String action, IEntity entity, String error = null)
         {
             if (!Enable) return;
 
@@ -52,6 +73,7 @@ namespace XCode.Membership
 
             // 构造字段数据的字符串表示形式
             var sb = Pool.StringBuilder.Get();
+            if (error.IsNullOrEmpty()) sb.Append(error);
             foreach (var fi in fact.Fields)
             {
                 if (action == "修改" && !fi.PrimaryKey && !entity.IsDirty(fi.Name)) continue;
@@ -79,7 +101,7 @@ namespace XCode.Membership
                 name = user + "";
             }
 
-            WriteLog(entity.GetType(), action, sb.Put(true), userid, name);
+            WriteLog(entity.GetType(), action, error.IsNullOrEmpty(), sb.Put(true), userid, name);
         }
 
         /// <summary>是否使用日志</summary>
@@ -111,7 +133,7 @@ namespace XCode.Membership
                 // 从参数里提取用户对象
                 var user = args.FirstOrDefault(e => e is IManageUser) as IManageUser;
 
-                Provider.WriteLog(Category, act, msg, user?.ID ?? 0, user + "");
+                Provider.WriteLog(Category, act, true, msg, user?.ID ?? 0, user + "");
             }
         }
         #endregion
@@ -134,17 +156,19 @@ namespace XCode.Membership
         /// <summary>写日志</summary>
         /// <param name="category">类型</param>
         /// <param name="action">操作</param>
+        /// <param name="success">成功</param>
         /// <param name="remark">备注</param>
         /// <param name="userid">用户</param>
         /// <param name="name">名称</param>
         /// <param name="ip">地址</param>
-        public override void WriteLog(String category, String action, String remark, Int32 userid = 0, String name = null, String ip = null)
+        public override void WriteLog(String category, String action, Boolean success, String remark, Int32 userid = 0, String name = null, String ip = null)
         {
             if (!Enable) return;
             var factory = EntityFactory.CreateOperate(typeof(TLog));
             var log = factory.Create() as ILog;
             log.Category = category ?? throw new ArgumentNullException(nameof(category));
             log.Action = action;
+            log.Success = success;
 
             // 加上关联编号
             if (remark.StartsWithIgnoreCase("ID="))
@@ -172,6 +196,8 @@ namespace XCode.Membership
             }
 
             log.Remark = remark;
+            log.CreateTime = DateTime.Now;
+
             log.SaveAsync();
         }
     }

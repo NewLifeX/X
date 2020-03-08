@@ -309,7 +309,7 @@ namespace XCode.Membership
             }
             catch (Exception ex)
             {
-                WriteLog("登录", username + "登录失败！" + ex.Message);
+                WriteLog("登录", false, username + "登录失败！" + ex.Message);
                 throw;
             }
         }
@@ -374,9 +374,9 @@ namespace XCode.Membership
             user.SaveLoginInfo();
 
             if (hashTimes == -1)
-                WriteLog("自动登录", username);
+                WriteLog("自动登录", true, username);
             else
-                WriteLog("登录", username);
+                WriteLog("登录", true, username);
 
             return user;
         }

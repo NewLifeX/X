@@ -71,6 +71,7 @@ namespace XCode.Membership
         /// <param name="end"></param>
         /// <param name="p"></param>
         /// <returns></returns>
+        [Obsolete]
         public static IList<TEntity> Search(String key, Int32 userid, String category, DateTime start, DateTime end, PageParameter p)
         {
             var exp = new WhereExpression();
@@ -90,6 +91,29 @@ namespace XCode.Membership
 
             return FindAll(exp, p);
         }
+
+        /// <summary>查询</summary>
+        /// <param name="userid"></param>
+        /// <param name="category"></param>
+        /// <param name="action"></param>
+        /// <param name="start"></param>
+        /// <param name="end"></param>
+        /// <param name="key"></param>
+        /// <param name="p"></param>
+        /// <returns></returns>
+        public static IList<TEntity> Search(Int32 userid, String category, String action, DateTime start, DateTime end, String key, PageParameter p)
+        {
+            var exp = new WhereExpression();
+
+            if (!category.IsNullOrEmpty() && category != "全部") exp &= _.Category == category;
+            if (!action.IsNullOrEmpty() && action != "全部") exp &= _.Action == action;
+            if (userid >= 0) exp &= _.CreateUserID == userid;
+            exp &= _.CreateTime.Between(start, end);
+
+            if (!key.IsNullOrEmpty()) exp &= _.Remark.Contains(key);
+
+            return FindAll(exp, p);
+        }
         #endregion
 
         #region 扩展操作
@@ -99,15 +123,24 @@ namespace XCode.Membership
             Where = _.CreateTime > DateTime.Today.AddDays(-30) & Expression.Empty
         };
 
-        /// <summary>获取所有类别名称</summary>
+        /// <summary>获取所有类别名称，最近30天</summary>
         /// <returns></returns>
         public static IDictionary<String, String> FindAllCategoryName() => CategoryCache.FindAllName();
+
+        static readonly FieldCache<TEntity> ActionCache = new FieldCache<TEntity>(_.Action)
+        {
+            Where = _.CreateTime > DateTime.Today.AddDays(-30) & Expression.Empty
+        };
+
+        /// <summary>获取所有操作名称，最近30天</summary>
+        /// <returns></returns>
+        public static IDictionary<String, String> FindAllActionName() => ActionCache.FindAllName();
         #endregion
 
         #region 业务
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override String ToString() => String.Format("{0} {1} {2} {3:yyyy-MM-dd HH:mm:ss} {4}", Category, Action, UserName, CreateTime, Remark);
+        public override String ToString() => $"{Category} {Action} {UserName} {CreateTime:yyyy-MM-dd HH:mm:ss} {Remark}";
         #endregion
     }
 

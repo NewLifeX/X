@@ -11,7 +11,7 @@ namespace XCode.Membership
     [Serializable]
     [DataObject]
     [Description("日志")]
-    [BindIndex("IX_Log_Category_CreateTime", false, "Category,CreateTime")]
+    [BindIndex("IX_Log_Action_Category_CreateTime", false, "Action,Category,CreateTime")]
     [BindIndex("IX_Log_CreateUserID_CreateTime", false, "CreateUserID,CreateTime")]
     [BindIndex("IX_Log_CreateTime", false, "CreateTime")]
     [BindTable("Log", Description = "日志", ConnName = "Log", DbType = DatabaseType.None)]
@@ -49,6 +49,14 @@ namespace XCode.Membership
         [DataObjectField(false, false, false, 0)]
         [BindColumn("LinkID", "链接", "")]
         public Int32 LinkID { get => _LinkID; set { if (OnPropertyChanging(__.LinkID, value)) { _LinkID = value; OnPropertyChanged(__.LinkID); } } }
+
+        private Boolean _Success;
+        /// <summary>成功</summary>
+        [DisplayName("成功")]
+        [Description("成功")]
+        [DataObjectField(false, false, false, 0)]
+        [BindColumn("Success", "成功", "")]
+        public Boolean Success { get => _Success; set { if (OnPropertyChanging(__.Success, value)) { _Success = value; OnPropertyChanged(__.Success); } } }
 
         private String _UserName;
         /// <summary>用户名</summary>
@@ -161,6 +169,7 @@ namespace XCode.Membership
                     case __.Category: return _Category;
                     case __.Action: return _Action;
                     case __.LinkID: return _LinkID;
+                    case __.Success: return _Success;
                     case __.UserName: return _UserName;
                     case __.Ex1: return _Ex1;
                     case __.Ex2: return _Ex2;
@@ -184,6 +193,7 @@ namespace XCode.Membership
                     case __.Category: _Category = Convert.ToString(value); break;
                     case __.Action: _Action = Convert.ToString(value); break;
                     case __.LinkID: _LinkID = value.ToInt(); break;
+                    case __.Success: _Success = value.ToBoolean(); break;
                     case __.UserName: _UserName = Convert.ToString(value); break;
                     case __.Ex1: _Ex1 = value.ToInt(); break;
                     case __.Ex2: _Ex2 = value.ToInt(); break;
@@ -217,6 +227,9 @@ namespace XCode.Membership
 
             /// <summary>链接</summary>
             public static readonly Field LinkID = FindByName(__.LinkID);
+
+            /// <summary>成功</summary>
+            public static readonly Field Success = FindByName(__.Success);
 
             /// <summary>用户名</summary>
             public static readonly Field UserName = FindByName(__.UserName);
@@ -272,6 +285,9 @@ namespace XCode.Membership
             /// <summary>链接</summary>
             public const String LinkID = "LinkID";
 
+            /// <summary>成功</summary>
+            public const String Success = "Success";
+
             /// <summary>用户名</summary>
             public const String UserName = "UserName";
 
@@ -326,6 +342,9 @@ namespace XCode.Membership
 
         /// <summary>链接</summary>
         Int32 LinkID { get; set; }
+
+        /// <summary>成功</summary>
+        Boolean Success { get; set; }
 
         /// <summary>用户名</summary>
         String UserName { get; set; }

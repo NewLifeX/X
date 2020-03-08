@@ -88,7 +88,7 @@ namespace XCode.Web
                     if (WebOnline && !sid.IsNullOrEmpty()) UserOnline.SetWebStatus(sid, page, msg, user, ip);
 
                     // 记录用户访问的Url
-                    if (WebBehavior) SaveBehavior(user, ip, page, msg);
+                    if (WebBehavior) SaveBehavior(user, ip, page, msg, GetError(ctx) == null);
 
                     // 每个页面的访问统计
                     if (WebStatistics) SaveStatistics(ctx, user, ip, page, title);
@@ -152,11 +152,11 @@ namespace XCode.Web
             ".woff", ".woff2", ".svg", ".ttf", ".otf", ".eot"   // 字体
         };
 
-        void SaveBehavior(IManageUser user, String ip, String page, String msg)
+        void SaveBehavior(IManageUser user, String ip, String page, String msg, Boolean success)
         {
             if (page.IsNullOrEmpty()) return;
 
-            LogProvider.Provider?.WriteLog("访问", "记录", msg, user?.ID ?? 0, user + "", ip);
+            LogProvider.Provider?.WriteLog("访问", "记录", success, msg, user?.ID ?? 0, user + "", ip);
         }
 
         void SaveStatistics(HttpContext ctx, IManageUser user, String ip, String page, String title)

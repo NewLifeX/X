@@ -78,25 +78,36 @@ namespace XCode.Membership
         /// <returns></returns>
         protected override Int32 OnDelete()
         {
-            LogProvider.Provider.WriteLog("删除", this);
-
-            // 递归删除子菜单
-            var rs = 0;
-            using var ts = Meta.CreateTrans();
-            rs += base.OnDelete();
-
-            var ms = Childs;
-            if (ms != null && ms.Count > 0)
+            var err = "";
+            try
             {
-                foreach (var item in ms)
+                // 递归删除子菜单
+                var rs = 0;
+                using var ts = Meta.CreateTrans();
+                rs += base.OnDelete();
+
+                var ms = Childs;
+                if (ms != null && ms.Count > 0)
                 {
-                    rs += item.Delete();
+                    foreach (var item in ms)
+                    {
+                        rs += item.Delete();
+                    }
                 }
+
+                ts.Commit();
+
+                return rs;
             }
-
-            ts.Commit();
-
-            return rs;
+            catch (Exception ex)
+            {
+                err = ex.Message;
+                throw;
+            }
+            finally
+            {
+                LogProvider.Provider.WriteLog("删除", this, err);
+            }
         }
 
         /// <summary>加载权限字典</summary>
@@ -271,10 +282,10 @@ namespace XCode.Membership
         #endregion
 
         #region 日志
-        /// <summary>写日志</summary>
-        /// <param name="action">操作</param>
-        /// <param name="remark">备注</param>
-        public static void WriteLog(String action, String remark) => LogProvider.Provider.WriteLog(typeof(TEntity), action, remark);
+        ///// <summary>写日志</summary>
+        ///// <param name="action">操作</param>
+        ///// <param name="remark">备注</param>
+        //public static void WriteLog(String action, String remark) => LogProvider.Provider.WriteLog(typeof(TEntity), action, remark);
         #endregion
 
         #region 辅助
