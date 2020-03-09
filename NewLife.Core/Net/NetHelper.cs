@@ -58,7 +58,7 @@ namespace System
             var p = address.IndexOf("://");
             if (p >= 0) address = address.Substring(p + 3);
 
-            p = address.IndexOf(":");
+            p = address.LastIndexOf(':');
             if (p > 0)
                 return new IPEndPoint(ParseAddress(address.Substring(0, p)), Int32.Parse(address.Substring(p + 1)));
             else

@@ -159,21 +159,20 @@ namespace NewLife.Net
             }
 
             // 这个可能是一个Uri，去掉尾部
-           var p = uri.IndexOf('/');
+            var p = uri.IndexOf('/');
             if (p < 0) p = uri.IndexOf('\\');
             if (p < 0) p = uri.IndexOf('?');
             if (p >= 0) uri = uri.Substring(0, p);
 
             // 分析端口
-            var ipArray = uri.Split(":");
-
-            if (ipArray.Length >= 2)
+            p = uri.LastIndexOf(':');
+            if (p >= 0)
             {
-                var pt = ipArray[1];
+                var pt = uri.Substring(p + 1);
                 if (Int32.TryParse(pt, out var port))
                 {
                     Port = port;
-                    uri = ipArray[0];
+                    uri = uri.Substring(0, p);
                 }
             }
 

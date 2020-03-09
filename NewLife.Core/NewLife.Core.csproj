@@ -84,6 +84,7 @@
     <None Remove="Web\OAuth\**" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Remove="Extension\EndPointExtensions.cs" />
     <Compile Remove="Http\HttpClient.cs" />
     <Compile Remove="Http\HttpSession.cs" />
     <Compile Remove="Net\SerialPortConfig.cs" />

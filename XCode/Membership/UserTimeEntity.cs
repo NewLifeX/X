@@ -197,7 +197,7 @@ namespace XCode.Membership
             {
                 // 如果不是IPv6，去掉后面端口
                 if (ip.Contains("://")) ip = ip.Substring("://", null);
-                if (ip.Contains(":") && !ip.Contains("::")) ip = ip.Substring(null, ":");
+                //if (ip.Contains(":") && !ip.Contains("::")) ip = ip.Substring(null, ":");
 
                 var fs = GetFields(entity.GetType());
 
