@@ -20,6 +20,9 @@ namespace XCode
         /// </summary>
         public String RawType { get; set; }
 
+        /// <summary>元素类型</summary>
+        public String ItemType { get; set; }
+
         /// <summary>精度</summary>
         public Int32 Precision { get; set; }
 
@@ -50,70 +53,6 @@ namespace XCode
             Name = name;
             Description = description;
             RawType = rawType;
-        }
-
-        /// <summary>构造函数</summary>
-        /// <param name="name">名称</param>
-        /// <param name="description"></param>
-        /// <param name="rawType"></param>
-        /// <param name="precision"></param>
-        /// <param name="scale"></param>
-        [Obsolete()]
-        public BindColumnAttribute(String name, String description, String rawType, Int32 precision, Int32 scale)
-        {
-            Name = name;
-            Description = description;
-            RawType = rawType;
-            Precision = precision;
-            Scale = scale;
-        }
-
-        /// <summary>构造函数</summary>
-        /// <param name="order"></param>
-        /// <param name="name">名称</param>
-        /// <param name="description"></param>
-        [Obsolete()]
-        public BindColumnAttribute(Int32 order, String name, String description)
-        {
-            Name = name;
-            Description = description;
-            //DefaultValue = defaultValue;
-        }
-
-        /// <summary>构造函数</summary>
-        /// <param name="order">名称</param>
-        /// <param name="name">名称</param>
-        /// <param name="description"></param>
-        /// <param name="rawType"></param>
-        /// <param name="precision"></param>
-        /// <param name="scale"></param>
-        [Obsolete()]
-        public BindColumnAttribute(Int32 order, String name, String description, String rawType, Int32 precision, Int32 scale)
-        {
-            Name = name;
-            Description = description;
-            RawType = rawType;
-            Precision = precision;
-            Scale = scale;
-        }
-
-        /// <summary>构造函数</summary>
-        /// <param name="order"></param>
-        /// <param name="name">名称</param>
-        /// <param name="description"></param>
-        /// <param name="defaultValue"></param>
-        /// <param name="rawType"></param>
-        /// <param name="precision"></param>
-        /// <param name="scale"></param>
-        /// <param name="isUnicode"></param>
-        [Obsolete()]
-        public BindColumnAttribute(Int32 order, String name, String description, String defaultValue, String rawType, Int32 precision, Int32 scale, Boolean isUnicode)
-            : this(order, name, description)
-        {
-            RawType = rawType;
-            Precision = precision;
-            Scale = scale;
-            //IsUnicode = isUnicode;
         }
         #endregion
 

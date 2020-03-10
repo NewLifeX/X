@@ -386,7 +386,9 @@ namespace XCode.Code
             WriteLine("[DataObjectField({0}, {1}, {2}, {3})]", dc.PrimaryKey.ToString().ToLower(), dc.Identity.ToString().ToLower(), dc.Nullable.ToString().ToLower(), dc.Length);
 
             // 支持生成带精度的特性
-            if (dc.Precision > 0 || dc.Scale > 0)
+            if (!dc.ItemType.IsNullOrEmpty())
+                WriteLine("[BindColumn(\"{0}\", \"{1}\", \"{2}\", ItemType = \"{3}\")]", dc.ColumnName, dc.Description, dc.RawType, dc.ItemType);
+            else if (dc.Precision > 0 || dc.Scale > 0)
                 WriteLine("[BindColumn(\"{0}\", \"{1}\", \"{2}\", Precision = {3}, Scale = {4})]", dc.ColumnName, dc.Description, dc.RawType, dc.Precision, dc.Scale);
             else
                 WriteLine("[BindColumn(\"{0}\", \"{1}\", \"{2}\"{3})]", dc.ColumnName, dc.Description, dc.RawType, dc.Master ? ", Master = true" : "");

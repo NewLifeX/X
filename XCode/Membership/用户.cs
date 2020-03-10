@@ -63,7 +63,7 @@ namespace XCode.Membership
         [DisplayName("邮件")]
         [Description("邮件")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn("Mail", "邮件", "")]
+        [BindColumn("Mail", "邮件", "", ItemType = "mail")]
         public String Mail { get => _Mail; set { if (OnPropertyChanging(__.Mail, value)) { _Mail = value; OnPropertyChanged(__.Mail); } } }
 
         private String _Mobile;
@@ -71,7 +71,7 @@ namespace XCode.Membership
         [DisplayName("手机")]
         [Description("手机")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn("Mobile", "手机", "")]
+        [BindColumn("Mobile", "手机", "", ItemType = "mobile")]
         public String Mobile { get => _Mobile; set { if (OnPropertyChanging(__.Mobile, value)) { _Mobile = value; OnPropertyChanged(__.Mobile); } } }
 
         private String _Code;
@@ -87,7 +87,7 @@ namespace XCode.Membership
         [DisplayName("头像")]
         [Description("头像")]
         [DataObjectField(false, false, true, 200)]
-        [BindColumn("Avatar", "头像", "")]
+        [BindColumn("Avatar", "头像", "", ItemType = "image")]
         public String Avatar { get => _Avatar; set { if (OnPropertyChanging(__.Avatar, value)) { _Avatar = value; OnPropertyChanged(__.Avatar); } } }
 
         private Int32 _RoleID;

@@ -46,6 +46,12 @@ namespace XCode.DataAccessLayer
         [Description("原始类型")]
         public String RawType { get; set; }
 
+        /// <summary>元素类型</summary>
+        [XmlAttribute]
+        [DisplayName("元素类型")]
+        [Description("元素类型")]
+        public String ItemType { get; set; }
+
         /// <summary>标识</summary>
         [XmlAttribute]
         [DisplayName("标识")]

@@ -234,6 +234,13 @@
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
+    <xs:attribute name="ItemType" type="ItemTypeType">
+      <xs:annotation>
+        <xs:documentation xml:lang="zh-cn">
+          元素类型，用于魔方表单展示
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
     <xs:attribute name="Identity" type="BooleanType">
       <xs:annotation>
         <xs:documentation>
@@ -338,6 +345,16 @@
     </xs:restriction>
   </xs:simpleType>
   <!--DataType-end-->
+
+  <!--ItemType-start-->
+  <xs:simpleType name="ItemTypeType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="image" ></xs:enumeration>
+      <xs:enumeration value="file" ></xs:enumeration>
+      <xs:enumeration value="html" ></xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  <!--ItemType-end-->
 
   <xs:complexType name="IndexesType">
     <xs:sequence>
