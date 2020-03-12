@@ -124,18 +124,38 @@ namespace NewLife.Reflection
 
         static AssemblyX()
         {
-            AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += (sender, args) =>
+            AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += OnReflectionOnlyAssemblyResolve;
+            AppDomain.CurrentDomain.AssemblyResolve += OnAssemblyResolve;
+        }
+
+        private static Assembly OnReflectionOnlyAssemblyResolve(Object sender, ResolveEventArgs args)
+        {
+            var flag = XTrace.Debug && XTrace.Log.Level <= LogLevel.Debug;
+            if (flag) XTrace.WriteLine("[{0}]请求只反射加载[{1}]", args.RequestingAssembly?.FullName, args.Name);
+            try
             {
-                var flag = XTrace.Debug && XTrace.Log.Level <= LogLevel.Debug;
-                if (flag) XTrace.WriteLine("[{0}]请求只反射加载[{1}]", args.RequestingAssembly?.FullName, args.Name);
                 return Assembly.ReflectionOnlyLoad(args.Name);
-            };
-            AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
+            }
+            catch (Exception ex)
             {
-                var flag = XTrace.Debug && XTrace.Log.Level <= LogLevel.Debug;
-                if (flag) XTrace.WriteLine("[{0}]请求加载[{1}]", args.RequestingAssembly?.FullName, args.Name);
+                XTrace.WriteException(ex);
+                return null;
+            }
+        }
+
+        private static Assembly OnAssemblyResolve(Object sender, ResolveEventArgs args)
+        {
+            var flag = XTrace.Debug && XTrace.Log.Level <= LogLevel.Debug;
+            if (flag) XTrace.WriteLine("[{0}]请求加载[{1}]", args.RequestingAssembly?.FullName, args.Name);
+            try
+            {
                 return OnResolve(args.Name);
-            };
+            }
+            catch (Exception ex)
+            {
+                XTrace.WriteException(ex);
+                return null;
+            }
         }
         #endregion
 
