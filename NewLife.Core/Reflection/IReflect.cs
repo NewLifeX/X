@@ -165,6 +165,11 @@ namespace NewLife.Reflection
 
         /// <summary>在所有程序集中查找指定基类或接口的子类实现</summary>
         /// <param name="baseType">基类或接口</param>
+        /// <returns></returns>
+        IEnumerable<Type> GetAllSubclasses(Type baseType);
+
+        /// <summary>在所有程序集中查找指定基类或接口的子类实现</summary>
+        /// <param name="baseType">基类或接口</param>
         /// <param name="isLoadAssembly">是否加载为加载程序集</param>
         /// <returns></returns>
         IEnumerable<Type> GetAllSubclasses(Type baseType, Boolean isLoadAssembly);
@@ -727,15 +732,31 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public virtual IEnumerable<Type> GetSubclasses(Assembly asm, Type baseType)
         {
-            //if (asm == null) throw new ArgumentNullException(nameof(asm));
-            //if (baseType == null) throw new ArgumentNullException(nameof(baseType));
+            if (asm == null) throw new ArgumentNullException(nameof(asm));
+            if (baseType == null) throw new ArgumentNullException(nameof(baseType));
 
-            //foreach (var item in asm.GetTypes())
-            //{
-            //    if (baseType != item && baseType.IsAssignableFrom(item))
-            //        yield return item;
-            //}
-            return AssemblyX.Create(asm).FindPlugins(baseType);
+            foreach (var item in asm.GetTypes())
+            {
+                if (item.IsInterface || item.IsAbstract || item.IsGenericType) continue;
+                if (baseType != item && baseType.IsAssignableFrom(item))
+                    yield return item;
+            }
+            //return AssemblyX.Create(asm).FindPlugins(baseType);
+        }
+
+        /// <summary>在所有程序集中查找指定基类或接口的子类实现</summary>
+        /// <param name="baseType">基类或接口</param>
+        /// <returns></returns>
+        public virtual IEnumerable<Type> GetAllSubclasses(Type baseType)
+        {
+            // 不支持isLoadAssembly
+            foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                foreach (var type in GetSubclasses(asm, baseType))
+                {
+                    yield return type;
+                }
+            }
         }
 
         /// <summary>在所有程序集中查找指定基类或接口的子类实现</summary>
@@ -753,24 +774,6 @@ namespace NewLife.Reflection
             //    }
             //}
             return AssemblyX.FindAllPlugins(baseType, isLoadAssembly);
-        }
-        #endregion
-
-        #region 辅助方法
-        /// <summary>获取类型，如果target是Type类型，则表示要反射的是静态成员</summary>
-        /// <param name="target">目标对象</param>
-        /// <returns></returns>
-        protected virtual Type GetType(ref Object target)
-        {
-            if (target == null) throw new ArgumentNullException("target");
-
-            var type = target as Type;
-            if (type == null)
-                type = target.GetType();
-            else
-                target = null;
-
-            return type;
         }
         #endregion
     }
