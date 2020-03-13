@@ -443,64 +443,70 @@ namespace XCode.Code
             }
 
             // set
+            WriteLine("set");
+            WriteLine("{");
             {
-                WriteLine("set");
+                WriteLine("switch (name)");
                 WriteLine("{");
+                var conv = typeof(Convert);
+                foreach (var dc in Table.Columns)
                 {
-                    WriteLine("switch (name)");
-                    WriteLine("{");
-                    var conv = typeof(Convert);
-                    foreach (var dc in Table.Columns)
+                    var type = dc.Properties["Type"];
+                    if (type.IsNullOrEmpty()) type = dc.DataType?.Name;
+
+                    if (!type.IsNullOrEmpty())
                     {
-                        var type = dc.Properties["Type"];
-                        if (type.IsNullOrEmpty()) type = dc.DataType?.Name;
-
-                        if (!type.IsNullOrEmpty())
+                        if (!type.Contains("."))
                         {
-                            if (!type.Contains("."))
-                            {
 
-                            }
-                            if (!type.Contains(".") && conv.GetMethod("To" + type, new Type[] { typeof(Object) }) != null)
+                        }
+                        if (!type.Contains(".") && conv.GetMethod("To" + type, new Type[] { typeof(Object) }) != null)
+                        {
+                            switch (type)
                             {
-                                switch (type)
-                                {
-                                    case "Int32":
-                                        WriteLine("case __.{0}: _{0} = value.ToInt(); break;", dc.Name);
-                                        break;
-                                    case "Int64":
-                                        WriteLine("case __.{0}: _{0} = value.ToLong(); break;", dc.Name);
-                                        break;
-                                    case "Double":
-                                        WriteLine("case __.{0}: _{0} = value.ToDouble(); break;", dc.Name);
-                                        break;
-                                    case "Boolean":
-                                        WriteLine("case __.{0}: _{0} = value.ToBoolean(); break;", dc.Name);
-                                        break;
-                                    case "DateTime":
-                                        WriteLine("case __.{0}: _{0} = value.ToDateTime(); break;", dc.Name);
-                                        break;
-                                    default:
-                                        WriteLine("case __.{0}: _{0} = Convert.To{1}(value); break;", dc.Name, type);
-                                        break;
-                                }
+                                case "Int32":
+                                    WriteLine("case __.{0}: _{0} = value.ToInt(); break;", dc.Name);
+                                    break;
+                                case "Int64":
+                                    WriteLine("case __.{0}: _{0} = value.ToLong(); break;", dc.Name);
+                                    break;
+                                case "Double":
+                                    WriteLine("case __.{0}: _{0} = value.ToDouble(); break;", dc.Name);
+                                    break;
+                                case "Boolean":
+                                    WriteLine("case __.{0}: _{0} = value.ToBoolean(); break;", dc.Name);
+                                    break;
+                                case "DateTime":
+                                    WriteLine("case __.{0}: _{0} = value.ToDateTime(); break;", dc.Name);
+                                    break;
+                                default:
+                                    WriteLine("case __.{0}: _{0} = Convert.To{1}(value); break;", dc.Name, type);
+                                    break;
                             }
-                            else
+                        }
+                        else
+                        {
+                            try
                             {
                                 // 特殊支持枚举
-                                var type2 = type.GetTypeEx();
+                                var type2 = type.GetTypeEx(false);
                                 if (type2 != null && type2.IsEnum)
                                     WriteLine("case __.{0}: _{0} = ({1})value.ToInt(); break;", dc.Name, type);
                                 else
                                     WriteLine("case __.{0}: _{0} = ({1})value; break;", dc.Name, type);
                             }
+                            catch (Exception ex)
+                            {
+                                XTrace.WriteException(ex);
+                                WriteLine("case __.{0}: _{0} = ({1})value; break;", dc.Name, type);
+                            }
                         }
                     }
-                    WriteLine("default: base[name] = value; break;");
-                    WriteLine("}");
                 }
+                WriteLine("default: base[name] = value; break;");
                 WriteLine("}");
             }
+            WriteLine("}");
 
             WriteLine("}");
             WriteLine("#endregion");

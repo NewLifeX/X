@@ -18,7 +18,8 @@ namespace NewLife.Extension
                 if (Environment.OSVersion.Version.Major >= 6)
                     Assembly.Load("System.Speech, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35");
 
-                _type = typeName.GetTypeEx(true);
+                //_type = typeName.GetTypeEx(true);
+                _type = Type.GetType(typeName);
             }
             catch (Exception ex)
             {

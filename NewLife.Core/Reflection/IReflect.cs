@@ -168,11 +168,11 @@ namespace NewLife.Reflection
         /// <returns></returns>
         IEnumerable<Type> GetAllSubclasses(Type baseType);
 
-        /// <summary>在所有程序集中查找指定基类或接口的子类实现</summary>
-        /// <param name="baseType">基类或接口</param>
-        /// <param name="isLoadAssembly">是否加载为加载程序集</param>
-        /// <returns></returns>
-        IEnumerable<Type> GetAllSubclasses(Type baseType, Boolean isLoadAssembly);
+        ///// <summary>在所有程序集中查找指定基类或接口的子类实现</summary>
+        ///// <param name="baseType">基类或接口</param>
+        ///// <param name="isLoadAssembly">是否加载为加载程序集</param>
+        ///// <returns></returns>
+        //IEnumerable<Type> GetAllSubclasses(Type baseType, Boolean isLoadAssembly);
         #endregion
     }
 
@@ -759,22 +759,22 @@ namespace NewLife.Reflection
             }
         }
 
-        /// <summary>在所有程序集中查找指定基类或接口的子类实现</summary>
-        /// <param name="baseType">基类或接口</param>
-        /// <param name="isLoadAssembly">是否加载为加载程序集</param>
-        /// <returns></returns>
-        public virtual IEnumerable<Type> GetAllSubclasses(Type baseType, Boolean isLoadAssembly)
-        {
-            //// 不支持isLoadAssembly
-            //foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
-            //{
-            //    foreach (var type in GetSubclasses(asm, baseType))
-            //    {
-            //        yield return type;
-            //    }
-            //}
-            return AssemblyX.FindAllPlugins(baseType, isLoadAssembly);
-        }
+        ///// <summary>在所有程序集中查找指定基类或接口的子类实现</summary>
+        ///// <param name="baseType">基类或接口</param>
+        ///// <param name="isLoadAssembly">是否加载为加载程序集</param>
+        ///// <returns></returns>
+        //public virtual IEnumerable<Type> GetAllSubclasses(Type baseType, Boolean isLoadAssembly)
+        //{
+        //    //// 不支持isLoadAssembly
+        //    //foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
+        //    //{
+        //    //    foreach (var type in GetSubclasses(asm, baseType))
+        //    //    {
+        //    //        yield return type;
+        //    //    }
+        //    //}
+        //    return AssemblyX.FindAllPlugins(baseType, isLoadAssembly);
+        //}
         #endregion
     }
 }

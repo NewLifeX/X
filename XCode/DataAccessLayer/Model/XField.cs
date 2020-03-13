@@ -34,11 +34,11 @@ namespace XCode.DataAccessLayer
         [Description("数据类型")]
         public Type DataType { get; set; }
 
-        /// <summary>字段类型</summary>
-        [XmlIgnore]
-        [DisplayName("字段类型")]
-        [Description("字段类型")]
-        public String FieldType { get { return DataType?.Name; } set { DataType = value.GetTypeEx(); } }
+        ///// <summary>字段类型</summary>
+        //[XmlIgnore]
+        //[DisplayName("字段类型")]
+        //[Description("字段类型")]
+        //public String FieldType { get { return DataType?.Name; } set { DataType = value.GetTypeEx(); } }
 
         /// <summary>原始数据类型</summary>
         [XmlAttribute]
@@ -155,9 +155,9 @@ namespace XCode.DataAccessLayer
         public override String ToString()
         {
             if (!String.IsNullOrEmpty(DisplayName) && DisplayName != Name)
-                return String.Format("Name={0} FieldType={1} RawType={2} DisplayName={3}", ColumnName, FieldType, RawType, DisplayName);
+                return String.Format("Name={0} DataType={1} RawType={2} DisplayName={3}", ColumnName, DataType?.Name, RawType, DisplayName);
             else
-                return String.Format("Name={0} FieldType={1} RawType={2}", ColumnName, FieldType, RawType);
+                return String.Format("Name={0} DataType={1} RawType={2}", ColumnName, DataType?.Name, RawType);
         }
         #endregion
 

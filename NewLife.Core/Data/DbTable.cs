@@ -132,7 +132,7 @@ namespace NewLife.Data
             {
                 cs[i] = bn.Read<String>();
                 var tc = (TypeCode)bn.Read<Byte>();
-                ts[i] = tc.ToString().GetTypeEx(false);
+                ts[i] = Type.GetType("System." + tc);
             }
             Columns = cs;
             Types = ts;

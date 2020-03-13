@@ -435,12 +435,12 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static IEnumerable<Type> GetAllSubclasses(this Type baseType) => Provider.GetAllSubclasses(baseType);
 
-        /// <summary>在所有程序集中查找指定基类或接口的子类实现</summary>
-        /// <param name="baseType">基类或接口</param>
-        /// <param name="isLoadAssembly">是否加载为加载程序集</param>
-        /// <returns></returns>
-        [Obsolete]
-        public static IEnumerable<Type> GetAllSubclasses(this Type baseType, Boolean isLoadAssembly) => Provider.GetAllSubclasses(baseType, isLoadAssembly);
+        ///// <summary>在所有程序集中查找指定基类或接口的子类实现</summary>
+        ///// <param name="baseType">基类或接口</param>
+        ///// <param name="isLoadAssembly">是否加载为加载程序集</param>
+        ///// <returns></returns>
+        //[Obsolete]
+        //public static IEnumerable<Type> GetAllSubclasses(this Type baseType, Boolean isLoadAssembly) => Provider.GetAllSubclasses(baseType, isLoadAssembly);
         #endregion
 
         #region 辅助方法
