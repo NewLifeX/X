@@ -185,18 +185,19 @@ namespace NewLife.Remoting
             var sw = st.StartCount();
             try
             {
-                if (service.Client == null)
+                var client = service.Client;
+                if (client == null)
                 {
                     WriteLog("使用[{0}]：{1}", service.Name, service.Address);
 
-                    service.Client = new HttpClient
+                    service.Client = client = new HttpClient
                     {
                         BaseAddress = service.Address,
                         Timeout = TimeSpan.FromMilliseconds(Timeout)
                     };
                 }
 
-                return await SendOnServiceAsync(request, service, service.Client);
+                return await SendOnServiceAsync(request, service, client);
             }
             catch (Exception)
             {
@@ -290,6 +291,8 @@ namespace NewLife.Remoting
                 // 如果成功，则直接使用
                 if (ts[i].Result >= 0)
                 {
+                    if (i != _Index) WriteLog("ApiHttp.DoTrace 地址切换 {0} => {1}", ms[_Index]?.Address, ms[i]?.Address);
+
                     _Index = i;
                     source.Cancel();
 
@@ -308,27 +311,31 @@ namespace NewLife.Remoting
         /// <returns></returns>
         protected virtual async Task<Int32> TraceService(Service service, Int32 times, CancellationToken cancellation)
         {
-            var request = BuildRequest(HttpMethod.Get, "api", null, null);
-            var client = service.Client ?? new HttpClient
-            {
-                BaseAddress = service.Address,
-                Timeout = TimeSpan.FromMilliseconds(Timeout)
-            };
-
             // 每个任务若干次，任意一次成功
             for (var i = 0; i < times && !cancellation.IsCancellationRequested; i++)
             {
                 try
                 {
+                    var request = BuildRequest(HttpMethod.Get, "api", null, null);
+                    var client = new HttpClient
+                    {
+                        BaseAddress = service.Address,
+                        Timeout = TimeSpan.FromMilliseconds(Timeout)
+                    };
+
                     var rs = await client.SendAsync(request);
                     if (rs != null)
                     {
+                        // 该地址可用
                         service.Client = client;
                         return i;
                     }
                 }
                 catch { }
             }
+
+            // 当前地址不可用
+            WriteLog("ApiHttp.TraceService 地址不可用 :{0}", service.Address);
 
             return -1;
         }
