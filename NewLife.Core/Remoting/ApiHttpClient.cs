@@ -51,8 +51,19 @@ namespace NewLife.Remoting
         public ApiHttpClient() { }
 
         /// <summary>实例化</summary>
-        /// <param name="url"></param>
-        public ApiHttpClient(String url) => Add("Default", new Uri(url));
+        /// <param name="urls"></param>
+        public ApiHttpClient(String urls)
+        {
+            //Add("Default", new Uri(urls));
+            if (!urls.IsNullOrEmpty())
+            {
+                var ss = urls.Split(",");
+                for (var i = 0; i < ss.Length; i++)
+                {
+                    Add("service" + (i + 1), new Uri(ss[i]));
+                }
+            }
+        }
 
         /// <summary>销毁</summary>
         /// <param name="disposing"></param>
