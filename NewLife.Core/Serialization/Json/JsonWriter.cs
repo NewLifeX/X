@@ -264,19 +264,19 @@ namespace NewLife.Serialization
             }
 
             // 扩展数据
-            if (obj is IExtend2 ext2 && ext2.Keys != null)
-            {
-                foreach (var item in ext2.Keys)
-                {
-                    var value = ext2[item];
-                    WriteMember(item, value, null, ref forceIndent, ref first);
-                }
-            }
             if (obj is IExtend3 ext3 && ext3.Items != null)
             {
                 foreach (var item in ext3.Items)
                 {
                     WriteMember(item.Key, item.Value, null, ref forceIndent, ref first);
+                }
+            }
+            else if (obj is IExtend2 ext2 && ext2.Keys != null)
+            {
+                foreach (var item in ext2.Keys)
+                {
+                    var value = ext2[item];
+                    WriteMember(item, value, null, ref forceIndent, ref first);
                 }
             }
 

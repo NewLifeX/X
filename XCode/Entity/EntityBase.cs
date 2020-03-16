@@ -15,7 +15,7 @@ namespace XCode
     /// <summary>数据实体基类的基类</summary>
     [Serializable]
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public abstract partial class EntityBase : IEntity, IExtend2, ICloneable
+    public abstract partial class EntityBase : IEntity, IExtend2, IExtend3, ICloneable
     {
         #region 初始化数据
         /// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>
@@ -139,14 +139,21 @@ namespace XCode
                 else
                 {
                     // 如果没有该字段，则写入到扩展属性里面去
-                    src.Extends[item] = entity[item];
+                    src[item] = entity[item];
                     if (setDirty) Dirtys[item] = true;
                 }
 
                 n++;
             }
             // 赋值扩展数据
-            entity.Extends.CopyTo(src.Extends);
+            //entity.Extends.CopyTo(src.Extends);
+            if (entity is EntityBase entity2 && entity2._Items != null && entity2._Items.Count > 0)
+            {
+                foreach (var item in entity2._Items)
+                {
+                    src[item.Key] = item.Value;
+                }
+            }
 
             return n;
         }
@@ -191,10 +198,16 @@ namespace XCode
         internal EntityExtend _Extends;
         /// <summary>扩展属性</summary>
         [XmlIgnore, ScriptIgnore, IgnoreDataMember]
-        public EntityExtend Extends { get { return _Extends ?? (_Extends = new EntityExtend()); } set { _Extends = value; } }
+        public EntityExtend Extends { get => _Extends ??= new EntityExtend(); set => _Extends = value; }
+
+        [NonSerialized]
+        internal IDictionary<String, Object> _Items;
+        /// <summary>扩展字段。存放未能映射到实体属性的数据库字段</summary>
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
+        public IDictionary<String, Object> Items => _Items ??= new Dictionary<String, Object>();
 
         /// <summary>扩展数据键集合</summary>
-        IEnumerable<String> IExtend2.Keys => _Extends?.Keys;
+        IEnumerable<String> IExtend2.Keys => _Items?.Keys;
         #endregion
 
         #region 累加
