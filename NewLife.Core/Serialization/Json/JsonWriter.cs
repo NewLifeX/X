@@ -248,6 +248,7 @@ namespace NewLife.Serialization
 
             var forceIndent = false;
             var first = true;
+            var hs = new HashSet<String>();
             foreach (var pi in t.GetProperties(true))
             {
                 if (IgnoreReadOnlyProperties && pi.CanRead && !pi.CanWrite) continue;
@@ -259,7 +260,11 @@ namespace NewLife.Serialization
                     String comment = null;
                     if (!IgnoreComment && Indented) comment = pi.GetDisplayName() ?? pi.GetDescription();
 
-                    WriteMember(name, value, comment, ref forceIndent, ref first);
+                    if (!hs.Contains(name))
+                    {
+                        hs.Add(name);
+                        WriteMember(name, value, comment, ref forceIndent, ref first);
+                    }
                 }
             }
 
@@ -268,15 +273,23 @@ namespace NewLife.Serialization
             {
                 foreach (var item in ext3.Items)
                 {
-                    WriteMember(item.Key, item.Value, null, ref forceIndent, ref first);
+                    if (!hs.Contains(item.Key))
+                    {
+                        hs.Add(item.Key);
+                        WriteMember(item.Key, item.Value, null, ref forceIndent, ref first);
+                    }
                 }
             }
             else if (obj is IExtend2 ext2 && ext2.Keys != null)
             {
                 foreach (var item in ext2.Keys)
                 {
-                    var value = ext2[item];
-                    WriteMember(item, value, null, ref forceIndent, ref first);
+                    if (!hs.Contains(item))
+                    {
+                        hs.Add(item);
+                        var value = ext2[item];
+                        WriteMember(item, value, null, ref forceIndent, ref first);
+                    }
                 }
             }
 
