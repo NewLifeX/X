@@ -142,7 +142,7 @@ namespace NewLife.Threading
                 var arr = Timers;
 
                 // 如果没有任务，则销毁线程
-                if (arr.Length == 0 && period == 60000)
+                if (arr.Length == 0 && period == 60_000)
                 {
                     WriteLog("没有可用任务，销毁线程");
 
@@ -158,7 +158,7 @@ namespace NewLife.Threading
                     var now = DateTime.Now;
 
                     // 设置一个较大的间隔，内部会根据处理情况调整该值为最合理值
-                    period = 60000;
+                    period = 60_000;
                     foreach (var timer in arr)
                     {
                         if (!timer.Calling && CheckTime(timer, now))
@@ -190,7 +190,7 @@ namespace NewLife.Threading
                 catch { }
 
                 if (waitForTimer == null) waitForTimer = new AutoResetEvent(false);
-                waitForTimer.WaitOne(period, true);
+                if (period > 0) waitForTimer.WaitOne(period, true);
             }
         }
 
@@ -290,17 +290,8 @@ namespace NewLife.Threading
 
         private void OnFinish(TimerX timer)
         {
-            // 再次读取周期，因为任何函数可能会修改
-            var p = timer.Period;
-
             // 如果内部设置了下一次时间，则不再递加周期
-            if (!timer.hasSetNext)
-            {
-                if (timer.Absolutely)
-                    timer.NextTime = timer.NextTime.AddMilliseconds(p);
-                else
-                    timer.NextTime = DateTime.Now.AddMilliseconds(p);
-            }
+            var p = timer.SetAndGetNextTime();
 
             // 清理一次性定时器
             if (p <= 0)
