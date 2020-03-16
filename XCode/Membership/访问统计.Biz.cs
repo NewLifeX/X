@@ -74,6 +74,20 @@ namespace XCode.Membership
             Meta.Session.Dal.Db.ShowSQL = false;
 #endif
         }
+
+        /// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>
+        /// <param name="isNew"></param>
+        public override void Valid(Boolean isNew)
+        {
+            // 截取长度
+            var len = _.Title.Length;
+            if (len <= 0) len = 50;
+            if (!Title.IsNullOrEmpty() && Title.Length > len) Title = Title.Substring(0, len);
+
+            len = _.Page.Length;
+            if (len <= 0) len = 50;
+            if (!Page.IsNullOrEmpty() && Page.Length > len) Page = Page.Substring(0, len);
+        }
         #endregion
 
         #region 扩展属性
