@@ -114,11 +114,6 @@
     <None Include="..\Doc\logo.ico" Link="logo.ico" Pack="true" PackagePath="\" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="Membership\Build.log">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Build.tt</DependentUpon>
-    </None>
     <None Update="Membership\Build.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>Build.log</LastGenOutput>
