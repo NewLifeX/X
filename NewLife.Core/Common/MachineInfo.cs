@@ -70,7 +70,7 @@ namespace NewLife
         /// <summary>实例化机器信息</summary>
         public MachineInfo() { }
 
-        /// <summary>当前机器信息</summary>
+        /// <summary>当前机器信息。在RegisterAsync后才能使用</summary>
         public static MachineInfo Current { get; set; }
 
         /// <summary>异步注册一个初始化后的机器信息实例</summary>
@@ -117,6 +117,9 @@ namespace NewLife
         /// <summary>刷新</summary>
         public void Init()
         {
+            //var machine_id = Environment.SystemDirectory.CombinePath("../machine-id").GetFullPath();
+            var machine_guid = "";
+
 #if __CORE__
             var osv = Environment.OSVersion;
             if (OSVersion.IsNullOrEmpty()) OSVersion = osv.Version + "";
@@ -140,9 +143,6 @@ namespace NewLife
                     if (csproduct.TryGetValue("Name", out str)) Product = str;
                     if (csproduct.TryGetValue("UUID", out str)) UUID = str;
                 }
-
-                // window+netcore 不方便读取注册表，随机生成一个guid，借助文件缓存确保其不变
-                if (Guid.IsNullOrEmpty()) Guid = System.Guid.NewGuid().ToString();
             }
             // 特别识别Linux发行版
             else if (Runtime.Linux)
@@ -193,11 +193,11 @@ namespace NewLife
             });
 
             var reg = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Cryptography");
-            if (reg != null) Guid = reg.GetValue("MachineGuid") + "";
-            if (Guid.IsNullOrEmpty())
+            if (reg != null) machine_guid = reg.GetValue("MachineGuid") + "";
+            if (machine_guid.IsNullOrEmpty())
             {
                 reg = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
-                if (reg != null) Guid = reg.GetValue("MachineGuid") + "";
+                if (reg != null) machine_guid = reg.GetValue("MachineGuid") + "";
             }
 
             var ci = new ComputerInfo();
@@ -216,6 +216,23 @@ namespace NewLife
             //var str = GetInfo("MSAcpi_ThermalZoneTemperature", "CurrentTemperature");
             //if (!str.IsNullOrEmpty()) Temperature = (str.ToDouble() - 2732) / 10.0;
 #endif
+
+            //// 尝试从系统目录读取Guid
+            //if (machine_guid.IsNullOrEmpty() && File.Exists(machine_id)) machine_guid = File.ReadAllText(machine_id).Trim();
+            if (!machine_guid.IsNullOrEmpty()) Guid = machine_guid;
+
+            // window+netcore 不方便读取注册表，随机生成一个guid，借助文件缓存确保其不变
+            if (Guid.IsNullOrEmpty()) Guid = System.Guid.NewGuid().ToString();
+
+            //// 尝试把Guid写入系统目录
+            //if (!File.Exists(machine_id))
+            //{
+            //    try
+            //    {
+            //        File.WriteAllText(machine_id, Guid);
+            //    }
+            //    catch { }
+            //}
 
             Refresh();
         }
