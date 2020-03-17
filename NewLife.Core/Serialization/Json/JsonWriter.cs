@@ -32,6 +32,9 @@ namespace NewLife.Serialization
         /// <summary>忽略注释。默认true</summary>
         public Boolean IgnoreComment { get; set; } = true;
 
+        /// <summary>忽略循环引用。遇到循环引用时写{}，默认true</summary>
+        public Boolean IgnoreCircle { get; set; } = true;
+
         /// <summary>枚举使用字符串。默认false使用数字</summary>
         public Boolean EnumString { get; set; }
 
@@ -233,10 +236,16 @@ namespace NewLife.Serialization
         }
 
         Int32 _depth = 0;
-        //private readonly Dictionary<Object, Int32> _cirobj = new Dictionary<Object, Int32>();
+        private readonly ICollection<Object> _cirobj = new HashSet<Object>();
         private void WriteObject(Object obj)
         {
-            //if (!_cirobj.TryGetValue(obj, out _)) _cirobj.Add(obj, _cirobj.Count + 1);
+            // 循环引用
+            if (IgnoreCircle && _cirobj.Contains(obj))
+            {
+                _Builder.Append("{}");
+                return;
+            }
+            _cirobj.Add(obj);
 
             if (_depth + 1 > MaxDepth)
             {
