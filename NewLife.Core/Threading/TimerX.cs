@@ -52,6 +52,8 @@ namespace NewLife.Threading
 
         /// <summary>判断任务是否执行的委托。一般跟异步配合使用，避免频繁从线程池借出线程</summary>
         public Func<Boolean>? CanExecute { get; set; }
+
+        private DateTime _AbsolutelyNext;
         #endregion
 
         #region 静态
@@ -83,7 +85,7 @@ namespace NewLife.Threading
             Scheduler.Add(this);
         }
 
-        /// <summary>实例化一个绝对定时器</summary>
+        /// <summary>实例化一个绝对定时器，指定时刻执行，跟当前时间和SetNext无关</summary>
         /// <param name="callback">委托</param>
         /// <param name="state">用户数据</param>
         /// <param name="startTime">绝对开始时间</param>
@@ -101,16 +103,9 @@ namespace NewLife.Threading
 
             var now = DateTime.Now;
             var next = startTime;
-            if (period % 1000 == 0)
-            {
-                var s = period / 1000;
-                while (next < now) next = next.AddSeconds(s);
-            }
-            else
-            {
-                while (next < now) next = next.AddMilliseconds(period);
-            }
+            while (next < now) next = next.AddMilliseconds(period);
             NextTime = next;
+            _AbsolutelyNext = next;
 
             Scheduler = (scheduler == null || scheduler.IsNullOrEmpty()) ? TimerScheduler.Default : TimerScheduler.Create(scheduler);
             Scheduler.Add(this);
@@ -153,10 +148,30 @@ namespace NewLife.Threading
 
             Scheduler.Wake();
         }
+
+        /// <summary>设置下一次执行时间，并获取间隔</summary>
+        /// <returns></returns>
+        internal Int32 SetAndGetNextTime()
+        {
+            // 如果已设置
+            if (hasSetNext) return (Int32)(NextTime - DateTime.Now).TotalMilliseconds;
+
+            var period = Period;
+            if (Absolutely)
+            {
+                NextTime = NextTime.AddMilliseconds(period);
+                return period;
+            }
+            else
+            {
+                NextTime = _AbsolutelyNext = _AbsolutelyNext.AddMilliseconds(period);
+                return (Int32)(NextTime - DateTime.Now).TotalMilliseconds;
+            }
+        }
         #endregion
 
         #region 静态方法
-        /// <summary>延迟执行一个委托</summary>
+        /// <summary>延迟执行一个委托。特别要小心，很可能委托还没被执行，对象就被gc回收了</summary>
         /// <param name="callback"></param>
         /// <param name="ms"></param>
         /// <returns></returns>
@@ -193,7 +208,7 @@ namespace NewLife.Threading
         #region 辅助
         /// <summary>已重载</summary>
         /// <returns></returns>
-        public override String ToString() => Id + " " + Callback;
+        public override String ToString() => $"[{Id}]{Callback}";
         #endregion
     }
 }
