@@ -41,7 +41,7 @@ namespace NewLife.Serialization
         /// <summary>智能缩进，内层不换行。默认false</summary>
         public Boolean SmartIndented { get; set; }
 
-        /// <summary>最大序列化深度。默认5</summary>
+        /// <summary>最大序列化深度。超过时不再序列化，而不是抛出异常，默认5</summary>
         public Int32 MaxDepth { get; set; } = 5;
 
         private readonly StringBuilder _Builder = new StringBuilder();
@@ -233,16 +233,22 @@ namespace NewLife.Serialization
         }
 
         Int32 _depth = 0;
-        private readonly Dictionary<Object, Int32> _cirobj = new Dictionary<Object, Int32>();
+        //private readonly Dictionary<Object, Int32> _cirobj = new Dictionary<Object, Int32>();
         private void WriteObject(Object obj)
         {
-            if (!_cirobj.TryGetValue(obj, out _)) _cirobj.Add(obj, _cirobj.Count + 1);
+            //if (!_cirobj.TryGetValue(obj, out _)) _cirobj.Add(obj, _cirobj.Count + 1);
+
+            if (_depth + 1 > MaxDepth)
+            {
+                //throw new Exception("超过了序列化最大深度 " + MaxDepth);
+                _Builder.Append("{}");
+                return;
+            }
 
             _Builder.Append('{');
             //WriteLeftIndent();
 
             _depth++;
-            if (_depth > MaxDepth) throw new Exception("超过了序列化最大深度 " + MaxDepth);
 
             var t = obj.GetType();
 
