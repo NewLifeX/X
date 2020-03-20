@@ -25,6 +25,7 @@ using XCode.Service;
 using NewLife.Http;
 using NewLife.IO;
 using XCode;
+using System.Net;
 #if !NET4
 using TaskEx = System.Threading.Tasks.Task;
 #endif
@@ -50,7 +51,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test2();
+                Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -113,27 +114,22 @@ namespace Test
 
         static async void Test2()
         {
-            //LogProvider.Provider.WriteLog("test", "xxx", "yyy");
+            //var r = new Role { ID = 2, Name = "xxx", Enable = false };
+            //r.Update();
 
-            var r = new Role { ID = 2, Name = "xxx", Enable = false };
-            r.Update();
+            var proxy = WebRequest.DefaultWebProxy;
+            Console.WriteLine(proxy != null ? "true" : "false");
 
-            //var count = Role.Meta.Count;
+            var http = new HttpClient();
+            http.Timeout = TimeSpan.FromSeconds(5);
+            var html = http.GetStringAsync("http://x.newlifex.com").Result;
+            XTrace.WriteLine(html.Length + "");
+            Console.ReadLine();
 
-            //var dal = Role.Meta.Session.Dal;
-            //var db = dal.Query("select * from role");
-            //var json = db.ToJson(true, false, true);
-            //XTrace.WriteLine(json);
-
-            //json = db.ToJson();
-            //XTrace.WriteLine(json);
-
-            //db = dal.Query("select id,name,enable 启用 from role");
-            //json = db.ToJson(true, false, true);
-            //XTrace.WriteLine(json);
-
-            //var names = Log.FindAllCategoryName();
-            //Console.WriteLine(names.ToJson());
+            var src = new CancellationTokenSource(3_000);
+            var rs = await http.GetAsync("http://x.newlifex.com", src.Token);
+            html = await rs.Content.ReadAsStringAsync();
+            XTrace.WriteLine(html.Length + "");
         }
 
         static void Test3()

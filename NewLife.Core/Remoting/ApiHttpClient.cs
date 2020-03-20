@@ -30,6 +30,9 @@ namespace NewLife.Remoting
         /// <summary>探测次数。每个节点连续探测多次，任意一次成功即认为该节点可用，默认3</summary>
         public Int32 TraceTimes { get; set; } = 3;
 
+        /// <summary>是否使用系统代理设置。默认false不检查系统代理设置，在某些系统上可以大大改善初始化速度</summary>
+        public Boolean UseProxy { get; set; }
+
         /// <summary>身份验证</summary>
         public AuthenticationHeaderValue Authentication { get; set; }
 
@@ -201,7 +204,7 @@ namespace NewLife.Remoting
                 {
                     WriteLog("使用[{0}]：{1}", service.Name, service.Address);
 
-                    service.Client = client = new HttpClient
+                    service.Client = client = new HttpClient(new HttpClientHandler { UseProxy = UseProxy })
                     {
                         BaseAddress = service.Address,
                         Timeout = TimeSpan.FromMilliseconds(Timeout)
@@ -328,7 +331,7 @@ namespace NewLife.Remoting
                 try
                 {
                     var request = BuildRequest(HttpMethod.Get, "api", null, null);
-                    var client = new HttpClient
+                    var client = new HttpClient(new HttpClientHandler { UseProxy = UseProxy })
                     {
                         BaseAddress = service.Address,
                         Timeout = TimeSpan.FromMilliseconds(Timeout)
