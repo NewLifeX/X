@@ -51,7 +51,7 @@ namespace Test
                 try
                 {
 #endif
-                Test2();
+                Test9();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -580,47 +580,14 @@ namespace Test
             //}
         }
 
-        static async void Test9()
+        static  void Test9()
         {
-            //var rds = new Redis();
-            //rds.Server = "127.0.0.1";
-            //if (rds.Pool is ObjectPool<RedisClient> pp) pp.Log = XTrace.Log;
-            //rds.Bench();
+            var str = "学无先后达者为师！学无先后达者为师！学无先后达者为师！学无先后达者为师！学无先后达者为师！学无先后达者为师！学无先后达者为师！学无先后达者为师！";
 
-            //Console.ReadKey();
-
-            var svr = new ApiServer(3379)
+            for (int i = 0; i < 1_000_000; i++)
             {
-                Log = XTrace.Log
-            };
-            svr.Start();
-
-            var client = new ApiClient("tcp://127.0.0.1:3379")
-            {
-                Log = XTrace.Log
-            };
-            client.Open();
-
-            for (var i = 0; i < 10; i++)
-            {
-                XTrace.WriteLine("Invoke {0}", i);
-                var sw = Stopwatch.StartNew();
-                var rs = await client.InvokeAsync<String[]>("Api/All");
-                sw.Stop();
-                XTrace.WriteLine("{0}=> {1:n0}us", i, sw.Elapsed.TotalMilliseconds * 1000);
-                //XTrace.WriteLine(rs.Join(","));
+                XTrace.WriteLine(str);
             }
-
-            Console.WriteLine();
-            Parallel.For(0, 10, async i =>
-            {
-                XTrace.WriteLine("Invoke {0}", i);
-                var sw = Stopwatch.StartNew();
-                var rs = await client.InvokeAsync<String[]>("Api/All");
-                sw.Stop();
-                XTrace.WriteLine("{0}=> {1:n0}us", i, sw.Elapsed.TotalMilliseconds * 1000);
-                //XTrace.WriteLine(rs.Join(","));
-            });
         }
 
         static void Test10()
