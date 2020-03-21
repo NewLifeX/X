@@ -22,6 +22,9 @@ namespace NewLife.Web
         /// <summary>超时，默认15000毫秒</summary>
         public Int32 Timeout { get; set; } = 15000;
 
+        /// <summary>是否使用系统代理设置。默认false不检查系统代理设置，在某些系统上可以大大改善初始化速度</summary>
+        public Boolean UseProxy { get; set; }
+
         /// <summary>最后使用的连接名</summary>
         public Link LastLink { get; set; }
         #endregion
@@ -162,11 +165,12 @@ namespace NewLife.Web
             var http = _client;
             if (http == null)
             {
-                var handler = new HttpClientHandler();
-                http = new HttpClient(handler);
+                http = new HttpClient(new HttpClientHandler { UseProxy = UseProxy })
+                {
+                    Timeout = TimeSpan.FromMilliseconds(Timeout)
+                };
 
                 _client = http;
-                http.Timeout = new TimeSpan(0, 0, 0, 0, Timeout);
             }
 
             return http;
@@ -209,10 +213,8 @@ namespace NewLife.Web
         {
             var rs = await SendAsync(address);
             fileName.EnsureDirectory(true);
-            using (var fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite))
-            {
-                await rs.CopyToAsync(fs);
-            }
+            using var fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+            await rs.CopyToAsync(fs);
         }
 #endif
         #endregion
