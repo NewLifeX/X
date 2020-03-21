@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using NewLife.Threading;
@@ -54,7 +55,7 @@ namespace NewLife.Log
             MaxBytes = set.LogFileMaxBytes;
             Backups = set.LogFileBackups;
 
-            _Timer = new TimerX(DoWriteAndClose, null, 5_000, 5_000) { Async = true };
+            _Timer = new TimerX(DoWriteAndClose, null, 0_000, 5_000) { Async = true };
         }
 
         private static readonly ConcurrentDictionary<String, TextFileLog> cache = new ConcurrentDictionary<String, TextFileLog>(StringComparer.OrdinalIgnoreCase);
@@ -197,6 +198,45 @@ namespace NewLife.Log
         {
             // 同步写日志
             if (Interlocked.CompareExchange(ref _writing, 1, 0) == 0) WriteAndClose(_NextClose);
+
+            // 检查文件是否超过上限
+            if (!_isFile && Backups > 0)
+            {
+                // 删除*.del
+                try
+                {
+                    var dels = LogPath.GetBasePath().AsDirectory().GetFiles("*.del");
+                    if (dels != null && dels.Length > 0)
+                    {
+                        foreach (var item in dels)
+                        {
+                            item.Delete();
+                        }
+                    }
+                }
+                catch { }
+
+                var ext = Path.GetExtension(FileFormat);
+                var fis = LogPath.GetBasePath().AsDirectory().GetFiles("*" + ext);
+                if (fis != null && fis.Length > Backups)
+                {
+                    // 删除最旧的文件
+                    var retain = fis.Length - Backups;
+                    fis = fis.OrderBy(e => e.CreationTime).Take(retain).ToArray();
+                    foreach (var item in fis)
+                    {
+                        OnWrite(LogLevel.Info, "日志文件达到上限 {0}，删除 {1}", Backups, item.Name);
+                        try
+                        {
+                            item.Delete();
+                        }
+                        catch
+                        {
+                            item.MoveTo(item.FullName + ".del");
+                        }
+                    }
+                }
+            }
         }
 
         /// <summary>写入队列日志并关闭文件</summary>
