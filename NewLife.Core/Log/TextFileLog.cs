@@ -106,10 +106,7 @@ namespace NewLife.Log
             logfile.EnsureDirectory(true);
 
             var stream = new FileStream(logfile, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
-            var writer = new StreamWriter(stream, Encoding.UTF8)
-            {
-                AutoFlush = true
-            };
+            var writer = new StreamWriter(stream, Encoding.UTF8);
 
             // 写日志头
             if (!_isFirst)
@@ -177,13 +174,19 @@ namespace NewLife.Log
             // 初始化日志读写器
             if (writer == null) writer = InitLog();
 
+            // 依次把队列日志写入文件
             while (_Logs.TryDequeue(out var str))
             {
                 Interlocked.Decrement(ref _logCount);
 
-                // 写日志
-                writer.WriteLine(str);
+                // 写日志。TextWriter.WriteLine内需要拷贝，浪费资源
+                //writer.WriteLine(str);
+                writer.Write(str);
+                writer.WriteLine();
             }
+
+            // 写完一批后，再刷一次磁盘
+            writer.Flush();
 
             // 连续5秒没日志，就关闭
             _NextClose = now.AddSeconds(5);
