@@ -170,15 +170,12 @@ namespace NewLife.Serialization
 
         static Type GetMemberType(MemberInfo member)
         {
-            switch (member.MemberType)
+            return member.MemberType switch
             {
-                case MemberTypes.Field:
-                    return (member as FieldInfo).FieldType;
-                case MemberTypes.Property:
-                    return (member as PropertyInfo).PropertyType;
-                default:
-                    throw new NotSupportedException();
-            }
+                MemberTypes.Field => (member as FieldInfo).FieldType,
+                MemberTypes.Property => (member as PropertyInfo).PropertyType,
+                _ => throw new NotSupportedException(),
+            };
         }
         #endregion
     }

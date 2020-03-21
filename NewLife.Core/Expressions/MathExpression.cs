@@ -126,20 +126,14 @@ namespace NewLife.Expressions
         /// <returns>返回计算结果</returns>
         private static Double ComplieRpnExp(Double last, Double first, String op)
         {
-            switch (op)
+            return op switch
             {
-                case "+":
-                    return first + last;
-                case "-":
-                    return first - last;
-                case "*":
-                    return first * last;
-                case "/":
-                    return first / last;
-                default:
-                    return 0;
-
-            }
+                "+" => first + last,
+                "-" => first - last,
+                "*" => first * last,
+                "/" => first / last,
+                _ => 0,
+            };
         }
     }
 }

@@ -293,19 +293,14 @@ namespace NewLife.Serialization
                 if (size >= 0) return size;
             }
 
-            switch (SizeWidth)
+            return SizeWidth switch
             {
-                case 1:
-                    return ReadByte();
-                case 2:
-                    return (Int16)Read(typeof(Int16));
-                case 4:
-                    return (Int32)Read(typeof(Int32));
-                case 0:
-                    return ReadEncodedInt32();
-                default:
-                    return -1;
-            }
+                1 => ReadByte(),
+                2 => (Int16)Read(typeof(Int16)),
+                4 => (Int32)Read(typeof(Int32)),
+                0 => ReadEncodedInt32(),
+                _ => -1,
+            };
         }
 
         Int32 GetFieldSize()
