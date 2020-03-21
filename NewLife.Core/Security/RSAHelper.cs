@@ -61,13 +61,13 @@ namespace NewLife.Security
         /// <param name="buf"></param>
         /// <param name="pubKey"></param>
         /// <returns></returns>
-        public static Byte[] EncryptWithDES(Byte[] buf, String pubKey) { return Encrypt<DESCryptoServiceProvider>(buf, pubKey); }
+        public static Byte[] EncryptWithDES(Byte[] buf, String pubKey) => Encrypt<DESCryptoServiceProvider>(buf, pubKey);
 
         /// <summary>配合DES解密</summary>
         /// <param name="buf"></param>
         /// <param name="priKey"></param>
         /// <returns></returns>
-        public static Byte[] DecryptWithDES(Byte[] buf, String priKey) { return Decrypt<DESCryptoServiceProvider>(buf, priKey); }
+        public static Byte[] DecryptWithDES(Byte[] buf, String priKey) => Decrypt<DESCryptoServiceProvider>(buf, priKey);
 
         /// <summary>配合对称算法加密</summary>
         /// <typeparam name="TSymmetricAlgorithm"></typeparam>
@@ -126,7 +126,7 @@ namespace NewLife.Security
             };
 
             // 对称解密
-            return sa.Descrypt(buf);
+            return sa.Decrypt(buf);
         }
         #endregion
 
@@ -171,7 +171,7 @@ namespace NewLife.Security
             return buf;
         }
 
-        static Stream WriteWithLength(this Stream stream, Byte[] buf)
+        private static Stream WriteWithLength(this Stream stream, Byte[] buf)
         {
             var bts = BitConverter.GetBytes(buf.Length);
             stream.Write(bts);
@@ -180,7 +180,7 @@ namespace NewLife.Security
             return stream;
         }
 
-        static Byte[] ReadWithLength(this Stream stream)
+        private static Byte[] ReadWithLength(this Stream stream)
         {
             var bts = new Byte[4];
             stream.Read(bts, 0, bts.Length);
@@ -193,7 +193,7 @@ namespace NewLife.Security
             return bts;
         }
 
-        static Stream Write(this Stream stream, params Byte[][] bufs)
+        private static Stream Write(this Stream stream, params Byte[][] bufs)
         {
             //stream.Write(buf, 0, buf.Length);
             foreach (var buf in bufs)
