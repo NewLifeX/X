@@ -76,7 +76,7 @@ namespace XUnitTest.XCode.Membership
             r = Area.Find(_.Name == "仙桃");
             Assert.NotNull(r);
             Assert.NotNull(r.Parent);
-            Assert.Equal("湖北", r.Parent.Name);
+            Assert.Equal("直辖县", r.Parent.Name);
         }
 
         [Fact]
