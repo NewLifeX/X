@@ -159,13 +159,13 @@ namespace NewLife.Threading
             var period = Period;
             if (Absolutely)
             {
-                NextTime = NextTime.AddMilliseconds(period);
-                return period;
+                NextTime = _AbsolutelyNext = _AbsolutelyNext.AddMilliseconds(period);
+                return (Int32)(NextTime - DateTime.Now).TotalMilliseconds;
             }
             else
             {
-                NextTime = _AbsolutelyNext = _AbsolutelyNext.AddMilliseconds(period);
-                return (Int32)(NextTime - DateTime.Now).TotalMilliseconds;
+                NextTime = NextTime.AddMilliseconds(period);
+                return period;
             }
         }
         #endregion
