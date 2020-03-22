@@ -63,7 +63,7 @@ namespace NewLife
         private PerformanceCounter _cpuCounter;
 #endif
 
-        private TimerX _timer;
+        //private TimerX _timer;
         #endregion
 
         #region 构造
@@ -73,12 +73,14 @@ namespace NewLife
         /// <summary>当前机器信息。在RegisterAsync后才能使用</summary>
         public static MachineInfo Current { get; set; }
 
+        private static Task<MachineInfo> _task;
         /// <summary>异步注册一个初始化后的机器信息实例</summary>
-        /// <param name="msRefresh">定时刷新实时数据，默认0ms不刷新</param>
         /// <returns></returns>
-        public static Task<MachineInfo> RegisterAsync(Int32 msRefresh = 0)
+        public static Task<MachineInfo> RegisterAsync()
         {
-            return Task.Factory.StartNew(() =>
+            if (_task == null) return _task;
+
+            return _task = Task.Factory.StartNew(() =>
             {
                 // 文件缓存，加快机器信息获取
                 var file = XTrace.TempPath.CombinePath("machine.info").GetBasePath();
@@ -96,8 +98,8 @@ namespace NewLife
                 mi.Init();
                 File.WriteAllText(file.EnsureDirectory(true), mi.ToJson(true));
 
-                // 定时刷新
-                if (msRefresh > 0) mi._timer = new TimerX(s => mi.Refresh(), null, msRefresh, msRefresh) { Async = true };
+                //// 定时刷新
+                //if (msRefresh > 0) mi._timer = new TimerX(s => mi.Refresh(), null, msRefresh, msRefresh) { Async = true };
 
                 Current = mi;
 
