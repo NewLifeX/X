@@ -332,7 +332,7 @@ namespace System
             foreach (var item in NetworkInterface.GetAllNetworkInterfaces())
             {
                 if (_Excludes.Any(e => item.Description.Contains(e))) continue;
-                if (item.Speed < 1_000_000) continue;
+                if (NewLife.Runtime.Windows && item.Speed < 1_000_000) continue;
 
                 var ips = item.GetIPProperties();
                 var addrs = ips.UnicastAddresses
@@ -353,7 +353,7 @@ namespace System
             foreach (var item in NetworkInterface.GetAllNetworkInterfaces())
             {
                 if (_Excludes.Any(e => item.Description.Contains(e))) continue;
-                if (item.Speed < 1_000_000) continue;
+                if (NewLife.Runtime.Windows && item.Speed < 1_000_000) continue;
 
                 var ips = item.GetIPProperties();
                 var addrs = ips.UnicastAddresses
