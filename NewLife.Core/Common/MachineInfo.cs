@@ -104,7 +104,11 @@ namespace NewLife
                 // 注册到对象容器
                 ObjectContainer.Current.AddSingleton(mi);
 
-                File.WriteAllText(file.EnsureDirectory(true), mi.ToJson(true));
+                try
+                {
+                    File.WriteAllText(file.EnsureDirectory(true), mi.ToJson(true));
+                }
+                catch { }
 
                 return mi;
             });
@@ -224,7 +228,8 @@ namespace NewLife
             if (!machine_guid.IsNullOrEmpty()) Guid = machine_guid;
 
             // window+netcore 不方便读取注册表，随机生成一个guid，借助文件缓存确保其不变
-            if (Guid.IsNullOrEmpty()) Guid = System.Guid.NewGuid().ToString();
+            if (Guid.IsNullOrEmpty()) Guid = "0-" + System.Guid.NewGuid().ToString();
+            if (UUID.IsNullOrEmpty()) UUID = "0-" + System.Guid.NewGuid().ToString();
 
             //// 尝试把Guid写入系统目录
             //if (!File.Exists(machine_id))
