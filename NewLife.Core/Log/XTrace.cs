@@ -268,8 +268,8 @@ namespace NewLife.Log
         /// <summary>文本日志目录</summary>
         public static String LogPath { get; set; } = Setting.Current.LogPath;
 
-        /// <summary>临时目录</summary>
-        public static String TempPath { get; set; } = Setting.Current.TempPath;
+        ///// <summary>临时目录</summary>
+        //public static String TempPath { get; set; } = Setting.Current.TempPath;
         #endregion
 
         #region 版本信息

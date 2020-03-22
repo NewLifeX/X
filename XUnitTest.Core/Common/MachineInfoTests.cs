@@ -41,7 +41,7 @@ namespace XUnitTest.Common
             var mi2 = ObjectContainer.Current.Resolve<MachineInfo>();
             Assert.Equal(mi, mi2);
 
-            var file = XTrace.TempPath.CombinePath("machine.info").GetFullPath();
+            var file = Path.GetTempPath().CombinePath("machine.info").GetFullPath();
             Assert.True(File.Exists(file));
 
             var mi3 = File.ReadAllText(file).ToJsonEntity<MachineInfo>();

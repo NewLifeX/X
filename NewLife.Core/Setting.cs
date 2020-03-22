@@ -48,9 +48,9 @@ namespace NewLife
         [Description("备份目录。备份数据库时存放的目录，默认Backup子目录，web上一级Backup")]
         public String BackupPath { get; set; } = "";
 
-        /// <summary>临时目录。默认Temp子目录，web上一级Temp</summary>
-        [Description("临时目录。默认Temp子目录，web上一级Temp")]
-        public String TempPath { get; set; } = "";
+        ///// <summary>临时目录。默认Temp子目录，web上一级Temp</summary>
+        //[Description("临时目录。默认Temp子目录，web上一级Temp")]
+        //public String TempPath { get; set; } = "";
 
         /// <summary>插件目录</summary>
         [Description("插件目录")]
@@ -70,7 +70,7 @@ namespace NewLife
             if (LogPath.IsNullOrEmpty()) LogPath = web ? "..\\Log" : "Log";
             if (DataPath.IsNullOrEmpty()) DataPath = web ? "..\\Data" : "Data";
             if (BackupPath.IsNullOrEmpty()) BackupPath = web ? "..\\Backup" : "Backup";
-            if (TempPath.IsNullOrEmpty()) TempPath = web ? "..\\Temp" : "Temp";
+            //if (TempPath.IsNullOrEmpty()) TempPath = web ? "..\\Temp" : "Temp";
             if (LogFileFormat.IsNullOrEmpty()) LogFileFormat = "{0:yyyy_MM_dd}.log";
 
             if (PluginServer.IsNullOrWhiteSpace()) PluginServer = "http://x.newlifex.com/";
