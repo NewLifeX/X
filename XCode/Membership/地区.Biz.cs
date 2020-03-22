@@ -559,7 +559,7 @@ namespace XCode.Membership
                             };
 
                             // 直辖市处理市辖区
-                            if (r2.Name.EqualIgnoreCase("北京", "天津", "上海", "重庆"))
+                            if (r2.Name.EqualIgnoreCase("北京", "天津", "上海", "重庆") && r3.ID != 500200)
                                 r3.Name = "市辖区";
                             else
                                 r3.Name = "直辖县";
@@ -617,37 +617,37 @@ namespace XCode.Membership
             var rs = ParseAndSave(html);
             var count = rs.Count;
 
-//            // 拉取四级地区
-//            if (level4)
-//            {
-//#if __CORE__
-//                //Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-//                var encode = Encoding.GetEncoding("gb2312");
-//#else
-//                var encode = Encoding.Default;
-//#endif
-//                foreach (var item in rs)
-//                {
-//                    if (item.Level == 3)
-//                    {
-//                        var str = item.ID + "";
-//                        var url2 = $"http://www.stats.gov.cn/tjsj/tjbz/tjyqhdmhcxhfdm/2018/{str.Substring(0, 2)}/{str.Substring(2, 2)}/{str}.html";
-//                        XTrace.WriteLine("拉取[{0}/{1}]的四级地区 {2}", item.Name, item.ID, url2);
+            //            // 拉取四级地区
+            //            if (level4)
+            //            {
+            //#if __CORE__
+            //                //Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            //                var encode = Encoding.GetEncoding("gb2312");
+            //#else
+            //                var encode = Encoding.Default;
+            //#endif
+            //                foreach (var item in rs)
+            //                {
+            //                    if (item.Level == 3)
+            //                    {
+            //                        var str = item.ID + "";
+            //                        var url2 = $"http://www.stats.gov.cn/tjsj/tjbz/tjyqhdmhcxhfdm/2018/{str.Substring(0, 2)}/{str.Substring(2, 2)}/{str}.html";
+            //                        XTrace.WriteLine("拉取[{0}/{1}]的四级地区 {2}", item.Name, item.ID, url2);
 
-//                        var buf = http.GetByteArrayAsync(url2).Result;
-//                        var html2 = encode.GetString(buf);
-//                        foreach (var elm in ParseLevel4(html2))
-//                        {
-//                            elm.ParentID = item.ID;
+            //                        var buf = http.GetByteArrayAsync(url2).Result;
+            //                        var html2 = encode.GetString(buf);
+            //                        foreach (var elm in ParseLevel4(html2))
+            //                        {
+            //                            elm.ParentID = item.ID;
 
-//                            elm.FixLevel();
-//                            elm.FixName();
+            //                            elm.FixLevel();
+            //                            elm.FixName();
 
-//                            elm.SaveAsync();
-//                        }
-//                    }
-//                }
-//            }
+            //                            elm.SaveAsync();
+            //                        }
+            //                    }
+            //                }
+            //            }
 
             return count;
         }
