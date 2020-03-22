@@ -150,21 +150,26 @@ namespace NewLife.Threading
         }
 
         /// <summary>设置下一次执行时间，并获取间隔</summary>
-        /// <returns></returns>
+        /// <returns>返回下一次执行的间隔时间，不能小于等于0，否则定时器被销毁</returns>
         internal Int32 SetAndGetNextTime()
         {
             // 如果已设置
-            if (hasSetNext) return (Int32)(NextTime - DateTime.Now).TotalMilliseconds;
-
             var period = Period;
+            if (hasSetNext)
+            {
+                var ts = (Int32)(NextTime - DateTime.Now).TotalMilliseconds;
+                return ts > 0 ? ts : period;
+            }
+
             if (Absolutely)
             {
                 NextTime = _AbsolutelyNext = _AbsolutelyNext.AddMilliseconds(period);
-                return (Int32)(NextTime - DateTime.Now).TotalMilliseconds;
+                var ts = (Int32)(NextTime - DateTime.Now).TotalMilliseconds;
+                return ts > 0 ? ts : period;
             }
             else
             {
-                NextTime = NextTime.AddMilliseconds(period);
+                NextTime = DateTime.Now.AddMilliseconds(period);
                 return period;
             }
         }
