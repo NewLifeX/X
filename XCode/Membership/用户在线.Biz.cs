@@ -92,7 +92,7 @@ namespace XCode.Membership
         {
             if (userid <= 0) return new List<UserOnline>();
 
-            return FindAll(__.UserID, userid);
+            return FindAll(_.UserID == userid);
         }
         #endregion
 

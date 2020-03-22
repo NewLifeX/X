@@ -626,12 +626,20 @@ namespace XCode
         /// <param name="name"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static IList<TEntity> FindAll(String name, Object value) => FindAll(new String[] { name }, new Object[] { value });
+        [Obsolete("=>FindAll(Expression where, PageParameter page = null, String selects = null)")]
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
+        public static IList<TEntity> FindAll(String name, Object value)
+        {
+            var fi = Meta.Table.FindByName(name);
+            return FindAll(fi == value, null, null, 0, 0);
+        }
 
         /// <summary>根据属性列表以及对应的值列表，查找单个实体</summary>
         /// <param name="names">属性名称集合</param>
         /// <param name="values">属性值集合</param>
         /// <returns></returns>
+        [Obsolete("=>FindAll(Expression where, PageParameter page = null, String selects = null)")]
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
         public static IList<TEntity> FindAll(String[] names, Object[] values)
         {
             var exp = new WhereExpression();
