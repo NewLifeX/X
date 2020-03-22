@@ -78,33 +78,33 @@ namespace NewLife
         /// <returns></returns>
         public static Task<MachineInfo> RegisterAsync()
         {
-            if (_task == null) return _task;
+            if (_task != null) return _task;
 
             return _task = Task.Factory.StartNew(() =>
             {
                 // 文件缓存，加快机器信息获取
-                var file = XTrace.TempPath.CombinePath("machine.info").GetBasePath();
+                var file = Path.GetTempPath().CombinePath("machine.info").GetBasePath();
                 if (Current == null && File.Exists(file))
                 {
                     try
                     {
                         Current = File.ReadAllText(file).ToJsonEntity<MachineInfo>();
                     }
-                    finally { }
+                    catch { }
                 }
 
                 var mi = Current ?? new MachineInfo();
 
                 mi.Init();
-                File.WriteAllText(file.EnsureDirectory(true), mi.ToJson(true));
+                Current = mi;
 
                 //// 定时刷新
                 //if (msRefresh > 0) mi._timer = new TimerX(s => mi.Refresh(), null, msRefresh, msRefresh) { Async = true };
 
-                Current = mi;
-
                 // 注册到对象容器
                 ObjectContainer.Current.AddSingleton(mi);
+
+                File.WriteAllText(file.EnsureDirectory(true), mi.ToJson(true));
 
                 return mi;
             });

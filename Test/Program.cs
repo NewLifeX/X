@@ -51,7 +51,7 @@ namespace Test
                 try
                 {
 #endif
-                Test9();
+                Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -75,11 +75,7 @@ namespace Test
             XTrace.WriteLine("FullPath:{0}", ".".GetFullPath());
             XTrace.WriteLine("BasePath:{0}", ".".GetBasePath());
 
-            //var mi = new MachineInfo();
-            //mi.Init();
-
-            Thread.Sleep(1000);
-            var mi = MachineInfo.Current;
+            var mi = MachineInfo.Current ?? MachineInfo.RegisterAsync().Result;
 
             foreach (var pi in mi.GetType().GetProperties())
             {
@@ -105,8 +101,9 @@ namespace Test
             mi = MachineInfo.Current;
             for (var i = 0; i < 100; i++)
             {
-                XTrace.WriteLine("{0} {1} {2}", mi.CpuRate, mi.Temperature, (Double)mi.AvailableMemory / 1024 / 1024);
+                XTrace.WriteLine("CPU={0:p2} Temp={1} Memory={2:n0}", mi.CpuRate, mi.Temperature, (Double)mi.AvailableMemory / 1024 / 1024);
                 Thread.Sleep(1000);
+                mi.Refresh();
             }
 
             Console.ReadKey();
@@ -580,7 +577,7 @@ namespace Test
             //}
         }
 
-        static  void Test9()
+        static void Test9()
         {
             var str = "学无先后达者为师！学无先后达者为师！学无先后达者为师！学无先后达者为师！学无先后达者为师！学无先后达者为师！学无先后达者为师！学无先后达者为师！";
 
