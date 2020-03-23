@@ -158,6 +158,15 @@ namespace NewLife
                     if (csproduct.TryGetValue("Name", out str)) Product = str;
                     if (csproduct.TryGetValue("UUID", out str)) UUID = str;
                 }
+
+                // 不要在刷新里面取CPU负载，因为运行wmic会导致CPU负载很不准确，影响测量
+                var cpu = ReadWmic("cpu", "Name", "ProcessorId", "LoadPercentage");
+                if (cpu != null)
+                {
+                    if (cpu.TryGetValue("Name", out str)) Processor = str;
+                    if (cpu.TryGetValue("ProcessorId", out str)) CpuID = str;
+                    if (cpu.TryGetValue("LoadPercentage", out str)) CpuRate = (Single)(str.ToDouble() / 100);
+                }
             }
             // 特别识别Linux发行版
             else if (Runtime.Linux)
@@ -259,15 +268,15 @@ namespace NewLife
 #if __CORE__
             if (Runtime.Windows)
             {
-                var str = "";
+                //var str = "";
 
-                var cpu = ReadWmic("cpu", "Name", "ProcessorId", "LoadPercentage");
-                if (cpu != null)
-                {
-                    if (cpu.TryGetValue("Name", out str)) Processor = str;
-                    if (cpu.TryGetValue("ProcessorId", out str)) CpuID = str;
-                    if (cpu.TryGetValue("LoadPercentage", out str)) CpuRate = (Single)(str.ToDouble() / 100);
-                }
+                //var cpu = ReadWmic("cpu", "Name", "ProcessorId", "LoadPercentage");
+                //if (cpu != null)
+                //{
+                //    if (cpu.TryGetValue("Name", out str)) Processor = str;
+                //    if (cpu.TryGetValue("ProcessorId", out str)) CpuID = str;
+                //    if (cpu.TryGetValue("LoadPercentage", out str)) CpuRate = (Single)(str.ToDouble() / 100);
+                //}
 
                 MEMORYSTATUSEX ms = default;
                 ms.Init();
