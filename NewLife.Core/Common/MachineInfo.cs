@@ -312,12 +312,16 @@ namespace NewLife
                     if (File.Exists(file)) Temperature = File.ReadAllText(file).Trim().Substring(null, ":").ToDouble();
                 }
 
-                var upt = Execute("uptime");
-                if (!upt.IsNullOrEmpty())
-                {
-                    str = upt.Substring("load average:");
-                    if (!str.IsNullOrEmpty()) CpuRate = (Single)str.Split(",")[0].ToDouble();
-                }
+                //var upt = Execute("uptime");
+                //if (!upt.IsNullOrEmpty())
+                //{
+                //    str = upt.Substring("load average:");
+                //    if (!str.IsNullOrEmpty()) CpuRate = (Single)str.Split(",")[0].ToDouble();
+                //}
+
+                file = "/proc/loadavg";
+                if (File.Exists(file))
+                    CpuRate = (Single)File.ReadAllText(file).Substring(null, " ").ToDouble();
             }
 #else
             AvailableMemory = _cinfo.AvailablePhysicalMemory;
