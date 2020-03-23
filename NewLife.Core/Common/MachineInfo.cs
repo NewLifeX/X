@@ -84,8 +84,8 @@ namespace NewLife
                 var set = Setting.Current;
 
                 // 文件缓存，加快机器信息获取
-                var file = Path.GetTempPath().CombinePath("machine.info").GetBasePath();
-                var file2 = set.DataPath.CombinePath("machine.info").GetBasePath();
+                var file = Path.GetTempPath().CombinePath("machine_info.json").GetBasePath();
+                var file2 = set.DataPath.CombinePath("machine_info.json").GetBasePath();
                 if (Current == null)
                 {
                     var f = file;
@@ -320,8 +320,7 @@ namespace NewLife
                 //}
 
                 file = "/proc/loadavg";
-                if (File.Exists(file))
-                    CpuRate = (Single)File.ReadAllText(file).Substring(null, " ").ToDouble();
+                if (File.Exists(file)) CpuRate = (Single)File.ReadAllText(file).Substring(null, " ").ToDouble();
             }
 #else
             AvailableMemory = _cinfo.AvailablePhysicalMemory;
@@ -336,16 +335,13 @@ namespace NewLife
         public static String GetLinuxName()
         {
             var fr = "/etc/redhat-release";
+            if (File.Exists(fr)) return File.ReadAllText(fr).Trim();
+
             var dr = "/etc/debian-release";
-            if (File.Exists(fr))
-                return File.ReadAllText(fr).Trim();
-            else if (File.Exists(dr))
-                return File.ReadAllText(dr).Trim();
-            else
-            {
-                var sr = "/etc/os-release";
-                if (File.Exists(sr)) return File.ReadAllText(sr).SplitAsDictionary("=", "\n", true)["PRETTY_NAME"].Trim();
-            }
+            if (File.Exists(dr)) return File.ReadAllText(dr).Trim();
+
+            var sr = "/etc/os-release";
+            if (File.Exists(sr)) return File.ReadAllText(sr).SplitAsDictionary("=", "\n", true)["PRETTY_NAME"].Trim();
 
             var uname = Execute("uname", "-sr")?.Trim();
             if (!uname.IsNullOrEmpty()) return uname;

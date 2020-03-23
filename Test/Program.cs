@@ -2,14 +2,12 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
 using System.Linq;
 using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
-using System.Threading.Tasks;
 using NewLife;
 using NewLife.Caching;
 using NewLife.Log;
@@ -22,8 +20,6 @@ using XCode.Code;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 using XCode.Service;
-using NewLife.Http;
-using NewLife.IO;
 using XCode;
 using System.Net;
 #if !NET4
