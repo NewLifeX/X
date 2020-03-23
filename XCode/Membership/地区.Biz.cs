@@ -109,7 +109,9 @@ namespace XCode.Membership
             get
             {
                 var list = AllParents;
-                return list != null && list.Count > 0 ? list.Join("/", r => r.Name) : Parent?.Name;
+                if (list != null && list.Count > 0) return list.Where(r => !r.IsVirtual).Join("/", r => r.Name);
+
+                return Parent?.Name;
             }
         }
 
@@ -120,7 +122,10 @@ namespace XCode.Membership
             get
             {
                 var p = ParentPath;
-                return p.IsNullOrEmpty() ? Name : (p + "/" + Name);
+                if (p.IsNullOrEmpty()) return Name;
+                if (IsVirtual) return p;
+
+                return p + "/" + Name;
             }
         }
 
@@ -140,6 +145,8 @@ namespace XCode.Membership
                                                           }
                                                           return list;
                                                       });
+
+        private Boolean IsVirtual => Name.EqualIgnoreCase("市辖区", "直辖县");
         #endregion
 
         #region 扩展查询
@@ -207,6 +214,20 @@ namespace XCode.Membership
                 if (!item.IsNullOrEmpty())
                 {
                     var r2 = r.Childs.Find(e => e.Name == item || e.FullName == item);
+                    // 可能中间隔了一层市辖区，如上海青浦
+                    if (r2 == null)
+                    {
+                        // 重庆有市辖区也有直辖县
+                        var rs3 = r.Childs.FindAll(e => e.IsVirtual);
+                        if (rs3 != null)
+                        {
+                            foreach (var r3 in rs3)
+                            {
+                                r2 = r3.Childs.Find(e => e.Name == item || e.FullName == item);
+                                if (r2 != null) break;
+                            }
+                        }
+                    }
                     if (r2 == null) return r;
 
                     r = r2;
