@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Model;
@@ -117,59 +118,74 @@ namespace XCode.DataAccessLayer
 
             WriteLog("备份[{0}/{1}]到文件 {2}", table, ConnName, file2);
 
-            using (var fs = new FileStream(file2, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite))
+            using var fs = new FileStream(file2, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
+            var rs = 0;
+            if (file.EndsWithIgnoreCase(".gz"))
             {
-                var rs = 0;
-                if (file.EndsWithIgnoreCase(".gz"))
-                {
 #if NET4
-                    using (var gs = new GZipStream(fs, CompressionMode.Compress, true))
+                using var gs = new GZipStream(fs, CompressionMode.Compress, true);
 #else
-                    using (var gs = new GZipStream(fs, CompressionLevel.Optimal, true))
+                using var gs = new GZipStream(fs, CompressionLevel.Optimal, true);
 #endif
-                    {
-                        rs = Backup(table, gs);
-                    }
-                }
-                else
-                {
-                    rs = Backup(table, fs);
-                }
-
-                // 截断文件
-                fs.SetLength(fs.Position);
-
-                return rs;
+                rs = Backup(table, gs);
             }
+            else
+            {
+                rs = Backup(table, fs);
+            }
+
+            // 截断文件
+            fs.SetLength(fs.Position);
+
+            return rs;
         }
 
-        /// <summary>备份一批表到指定目录</summary>
+        /// <summary>备份一批表到指定压缩文件</summary>
         /// <param name="tables">数据表集合</param>
-        /// <param name="dir"></param>
+        /// <param name="file">zip压缩文件</param>
         /// <param name="backupSchema">备份架构</param>
         /// <returns></returns>
-        public IDictionary<String, Int32> BackupAll(IList<IDataTable> tables, String dir, Boolean backupSchema = true)
+        public Int32 BackupAll(IList<IDataTable> tables, String file, Boolean backupSchema = true)
         {
-            var dic = new Dictionary<String, Int32>();
+            if (tables == null) throw new ArgumentNullException(nameof(tables));
 
-            if (tables == null) tables = Tables;
-            if (tables != null && tables.Count > 0)
+            // 过滤不存在的表
+            var ts = Tables.Select(e => e.TableName).ToArray();
+            tables = tables.Where(e => e.TableName.EqualIgnoreCase(ts)).ToList();
+
+            //if (tables == null) tables = Tables;
+            if (tables.Count > 0)
             {
+#if !NET4
+                var file2 = file.GetFullPath();
+                file2.EnsureDirectory(true);
+
+                WriteLog("备份[{0}]到文件 {1}。{2}", ConnName, file2, tables.Join(",", e => e.Name));
+
+                using var fs = new FileStream(file2, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
+                using var zip = new ZipArchive(fs, ZipArchiveMode.Create, true, Encoding.UTF8);
+
                 // 备份架构
                 if (backupSchema)
                 {
                     var xml = Export(tables);
-                    dir.EnsureDirectory(false);
-                    File.WriteAllText(dir.CombinePath(ConnName + ".xml"), xml);
+                    var entry = zip.CreateEntry(ConnName + ".xml");
+                    var ms = entry.Open();
+                    ms.Write(xml.GetBytes());
+                    ms.Close();
                 }
 
                 foreach (var item in tables)
                 {
-                    dic[item.Name] = Backup(item, dir.CombinePath(item + ".gz"));
+                    var entry = zip.CreateEntry(item.Name + ".table");
+                    var ms = entry.Open();
+                    Backup(item, ms);
+                    ms.Close();
                 }
+#endif
             }
 
-            return dic;
+            return tables.Count;
         }
 
         class WriteFileActor : Actor
@@ -301,15 +317,16 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Int64 Restore(String file, IDataTable table = null)
         {
+            if (table == null) throw new ArgumentNullException(nameof(table));
             if (file.IsNullOrEmpty() || !File.Exists(file)) return 0;
 
-            if (table == null)
-            {
-                var name = Path.GetFileNameWithoutExtension(file);
-                table = Tables.FirstOrDefault(e => name.EqualIgnoreCase(e.Name, e.TableName));
-            }
-            else
-                SetTables(table);
+            //if (table == null)
+            //{
+            //    var name = Path.GetFileNameWithoutExtension(file);
+            //    table = Tables.FirstOrDefault(e => name.EqualIgnoreCase(e.Name, e.TableName));
+            //}
+            //else
+            SetTables(table);
             if (table == null) return 0;
 
             var file2 = file.GetFullPath();
@@ -327,23 +344,25 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public IDictionary<String, Int64> RestoreAll(String dir, IDataTable[] tables = null)
         {
+            if (tables == null) throw new ArgumentNullException(nameof(tables));
+
             var dic = new Dictionary<String, Int64>();
             if (dir.IsNullOrEmpty() || !Directory.Exists(dir)) return dic;
 
-            if (tables == null)
-            {
-                var schm = dir.AsDirectory().GetAllFiles("*.xml").FirstOrDefault();
-                var tbls = schm != null ? ImportFrom(schm.FullName) : Tables;
-                var ts = new List<IDataTable>();
-                foreach (var item in dir.AsDirectory().GetFiles("*.table"))
-                {
-                    var name = Path.GetFileNameWithoutExtension(item.Name);
-                    var tb = tbls.FirstOrDefault(e => name.EqualIgnoreCase(e.Name, e.TableName));
-                    if (tb != null) ts.Add(tb);
-                }
-                tables = ts.ToArray();
-            }
-            if (tables != null && tables.Length > 0)
+            //if (tables == null)
+            //{
+            //    var schm = dir.AsDirectory().GetAllFiles("*.xml").FirstOrDefault();
+            //    var tbls = schm != null ? ImportFrom(schm.FullName) : Tables;
+            //    var ts = new List<IDataTable>();
+            //    foreach (var item in dir.AsDirectory().GetFiles("*.table"))
+            //    {
+            //        var name = Path.GetFileNameWithoutExtension(item.Name);
+            //        var tb = tbls.FirstOrDefault(e => name.EqualIgnoreCase(e.Name, e.TableName));
+            //        if (tb != null) ts.Add(tb);
+            //    }
+            //    tables = ts.ToArray();
+            //}
+            if (tables.Length > 0)
             {
                 foreach (var item in tables)
                 {
@@ -486,10 +505,12 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public IDictionary<String, Int32> SyncAll(IDataTable[] tables, String connName, Boolean syncSchema = true)
         {
+            if (tables == null) throw new ArgumentNullException(nameof(tables));
+
             var dic = new Dictionary<String, Int32>();
 
-            if (tables == null) tables = Tables.ToArray();
-            if (tables != null && tables.Length > 0)
+            //if (tables == null) tables = Tables.ToArray();
+            if (tables.Length > 0)
             {
                 // 同步架构
                 if (syncSchema)

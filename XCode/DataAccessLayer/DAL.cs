@@ -475,7 +475,7 @@ namespace XCode.DataAccessLayer
 
             try
             {
-                var list = EntityFactory.GetTables(name);
+                var list = EntityFactory.GetTables(name, true);
                 if (list != null && list.Count > 0)
                 {
                     // 移除所有已初始化的

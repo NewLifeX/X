@@ -47,7 +47,7 @@ namespace Test
                 try
                 {
 #endif
-                Test1();
+                Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -108,22 +108,11 @@ namespace Test
 
         static async void Test2()
         {
-            //var r = new Role { ID = 2, Name = "xxx", Enable = false };
-            //r.Update();
+            var n = UserX.Meta.Count;
+            var dal = UserX.Meta.Session.Dal;
+            var tables = EntityFactory.GetTables(dal.ConnName, false);
 
-            var proxy = WebRequest.DefaultWebProxy;
-            Console.WriteLine(proxy != null ? "true" : "false");
-
-            var http = new HttpClient();
-            http.Timeout = TimeSpan.FromSeconds(5);
-            var html = http.GetStringAsync("http://x.newlifex.com").Result;
-            XTrace.WriteLine(html.Length + "");
-            Console.ReadLine();
-
-            var src = new CancellationTokenSource(3_000);
-            var rs = await http.GetAsync("http://x.newlifex.com", src.Token);
-            html = await rs.Content.ReadAsStringAsync();
-            XTrace.WriteLine(html.Length + "");
+            dal.BackupAll(tables, $"data/{dal.ConnName}.zip");
         }
 
         static void Test3()

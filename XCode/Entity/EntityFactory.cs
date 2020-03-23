@@ -85,8 +85,9 @@ namespace XCode
 
         /// <summary>获取指定连接名下的初始化时检查的所有实体数据表，用于反向工程检查表架构</summary>
         /// <param name="connName"></param>
+        /// <param name="checkMode"></param>
         /// <returns></returns>
-        public static List<IDataTable> GetTables(String connName)
+        public static List<IDataTable> GetTables(String connName, Boolean checkMode)
         {
             var tables = new List<IDataTable>();
             // 记录每个表名对应的实体类
@@ -98,8 +99,11 @@ namespace XCode
                 list.Add(item.Name);
 
                 // 过滤掉第一次使用才加载的
-                var att = item.GetCustomAttribute<ModelCheckModeAttribute>(true);
-                if (att != null && att.Mode != ModelCheckModes.CheckAllTablesWhenInit) continue;
+                if (checkMode)
+                {
+                    var att = item.GetCustomAttribute<ModelCheckModeAttribute>(true);
+                    if (att != null && att.Mode != ModelCheckModes.CheckAllTablesWhenInit) continue;
+                }
                 list2.Add(item.Name);
 
                 var table = TableItem.Create(item).DataTable;
