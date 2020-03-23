@@ -10,7 +10,6 @@ using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Serialization;
-using NewLife.Threading;
 #if __WIN__
 using System.Management;
 using Microsoft.VisualBasic.Devices;
@@ -82,15 +81,23 @@ namespace NewLife
 
             return _task = Task.Factory.StartNew(() =>
             {
+                var set = Setting.Current;
+
                 // 文件缓存，加快机器信息获取
                 var file = Path.GetTempPath().CombinePath("machine.info").GetBasePath();
-                if (Current == null && File.Exists(file))
+                var file2 = set.DataPath.CombinePath("machine.info").GetBasePath();
+                if (Current == null)
                 {
-                    try
+                    var f = file;
+                    if (!File.Exists(f)) f = file2;
+                    if (File.Exists(f))
                     {
-                        Current = File.ReadAllText(file).ToJsonEntity<MachineInfo>();
+                        try
+                        {
+                            Current = File.ReadAllText(f).ToJsonEntity<MachineInfo>();
+                        }
+                        catch { }
                     }
-                    catch { }
                 }
 
                 var mi = Current ?? new MachineInfo();
@@ -106,7 +113,9 @@ namespace NewLife
 
                 try
                 {
-                    File.WriteAllText(file.EnsureDirectory(true), mi.ToJson(true));
+                    var json = mi.ToJson(true);
+                    File.WriteAllText(file.EnsureDirectory(true), json);
+                    File.WriteAllText(file2.EnsureDirectory(true), json);
                 }
                 catch { }
 
