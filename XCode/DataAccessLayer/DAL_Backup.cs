@@ -170,17 +170,15 @@ namespace XCode.DataAccessLayer
                 {
                     var xml = Export(tables);
                     var entry = zip.CreateEntry(ConnName + ".xml");
-                    var ms = entry.Open();
+                    using var ms = entry.Open();
                     ms.Write(xml.GetBytes());
-                    ms.Close();
                 }
 
                 foreach (var item in tables)
                 {
                     var entry = zip.CreateEntry(item.Name + ".table");
-                    var ms = entry.Open();
+                    using var ms = entry.Open();
                     Backup(item, ms);
-                    ms.Close();
                 }
 #endif
             }
@@ -318,59 +316,62 @@ namespace XCode.DataAccessLayer
         public Int64 Restore(String file, IDataTable table = null)
         {
             if (table == null) throw new ArgumentNullException(nameof(table));
-            if (file.IsNullOrEmpty() || !File.Exists(file)) return 0;
-
-            //if (table == null)
-            //{
-            //    var name = Path.GetFileNameWithoutExtension(file);
-            //    table = Tables.FirstOrDefault(e => name.EqualIgnoreCase(e.Name, e.TableName));
-            //}
-            //else
-            SetTables(table);
-            if (table == null) return 0;
+            if (file.IsNullOrEmpty()) return 0;
 
             var file2 = file.GetFullPath();
+            if (!File.Exists(file2)) return 0;
             file2.EnsureDirectory(true);
 
             WriteLog("恢复[{2}]到[{0}/{1}]", table, ConnName, file);
+
+            SetTables(table);
 
             var compressed = file.EndsWithIgnoreCase(".gz");
             return file2.AsFile().OpenRead(compressed, s => Restore(s, table));
         }
 
-        /// <summary>从指定目录恢复一批数据到目标库</summary>
-        /// <param name="dir"></param>
+        /// <summary>从指定压缩文件恢复一批数据到目标库</summary>
+        /// <param name="file">zip压缩文件</param>
         /// <param name="tables"></param>
         /// <returns></returns>
-        public IDictionary<String, Int64> RestoreAll(String dir, IDataTable[] tables = null)
+        public IDataTable[] RestoreAll(String file, IDataTable[] tables = null)
         {
-            if (tables == null) throw new ArgumentNullException(nameof(tables));
+            if (file.IsNullOrEmpty()) throw new ArgumentNullException(nameof(file));
 
-            var dic = new Dictionary<String, Int64>();
-            if (dir.IsNullOrEmpty() || !Directory.Exists(dir)) return dic;
+            var file2 = file.GetFullPath();
+            if (!File.Exists(file2)) return null;
 
-            //if (tables == null)
-            //{
-            //    var schm = dir.AsDirectory().GetAllFiles("*.xml").FirstOrDefault();
-            //    var tbls = schm != null ? ImportFrom(schm.FullName) : Tables;
-            //    var ts = new List<IDataTable>();
-            //    foreach (var item in dir.AsDirectory().GetFiles("*.table"))
-            //    {
-            //        var name = Path.GetFileNameWithoutExtension(item.Name);
-            //        var tb = tbls.FirstOrDefault(e => name.EqualIgnoreCase(e.Name, e.TableName));
-            //        if (tb != null) ts.Add(tb);
-            //    }
-            //    tables = ts.ToArray();
-            //}
-            if (tables.Length > 0)
+#if !NET4
+            using var fs = new FileStream(file2, FileMode.Open);
+            using var zip = new ZipArchive(fs, ZipArchiveMode.Read, true, Encoding.UTF8);
+
+            // 备份架构
+            if (tables == null)
             {
-                foreach (var item in tables)
+                var entry = zip.Entries.FirstOrDefault(e => e.Name.EndsWithIgnoreCase(".xml"));
+                if (entry != null)
                 {
-                    dic[item.Name] = Restore(dir.CombinePath(item.Name + ".table"), item);
+                    using var ms = entry.Open();
+                    tables = Import(ms.ToStr()).ToArray();
                 }
             }
 
-            return dic;
+            WriteLog("恢复[{0}]从文件 {1}。{2}", ConnName, file2, tables?.Join(",", e => e.Name));
+
+            SetTables(tables);
+
+            foreach (var item in tables)
+            {
+                var entry = zip.GetEntry(item.Name + ".table");
+                if (entry != null)
+                {
+                    using var ms = entry.Open();
+                    Restore(ms, item);
+                }
+            }
+#endif
+
+            return tables;
         }
 
         class WriteDbActor : Actor
