@@ -216,23 +216,28 @@ namespace NewLife.Log
                 }
                 catch { }
 
-                var ext = Path.GetExtension(FileFormat);
-                var fis = LogPath.GetBasePath().AsDirectory().GetFiles("*" + ext);
-                if (fis != null && fis.Length > Backups)
+                // 判断日志目录是否已存在
+                var di = LogPath.GetBasePath().AsDirectory();
+                if (di.Exists)
                 {
-                    // 删除最旧的文件
-                    var retain = fis.Length - Backups;
-                    fis = fis.OrderBy(e => e.CreationTime).Take(retain).ToArray();
-                    foreach (var item in fis)
+                    var ext = Path.GetExtension(FileFormat);
+                    var fis = di.GetFiles("*" + ext);
+                    if (fis != null && fis.Length > Backups)
                     {
-                        OnWrite(LogLevel.Info, "日志文件达到上限 {0}，删除 {1}", Backups, item.Name);
-                        try
+                        // 删除最旧的文件
+                        var retain = fis.Length - Backups;
+                        fis = fis.OrderBy(e => e.CreationTime).Take(retain).ToArray();
+                        foreach (var item in fis)
                         {
-                            item.Delete();
-                        }
-                        catch
-                        {
-                            item.MoveTo(item.FullName + ".del");
+                            OnWrite(LogLevel.Info, "日志文件达到上限 {0}，删除 {1}", Backups, item.Name);
+                            try
+                            {
+                                item.Delete();
+                            }
+                            catch
+                            {
+                                item.MoveTo(item.FullName + ".del");
+                            }
                         }
                     }
                 }
