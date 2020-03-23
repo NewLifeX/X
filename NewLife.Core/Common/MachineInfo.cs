@@ -132,7 +132,6 @@ namespace NewLife
         /// <summary>刷新</summary>
         public void Init()
         {
-            //var machine_id = Environment.SystemDirectory.CombinePath("../machine-id").GetFullPath();
             var machine_guid = "";
 
 #if __CORE__
@@ -241,23 +240,11 @@ namespace NewLife
             //if (!str.IsNullOrEmpty()) Temperature = (str.ToDouble() - 2732) / 10.0;
 #endif
 
-            //// 尝试从系统目录读取Guid
-            //if (machine_guid.IsNullOrEmpty() && File.Exists(machine_id)) machine_guid = File.ReadAllText(machine_id).Trim();
             if (!machine_guid.IsNullOrEmpty()) Guid = machine_guid;
 
             // window+netcore 不方便读取注册表，随机生成一个guid，借助文件缓存确保其不变
             if (Guid.IsNullOrEmpty()) Guid = "0-" + System.Guid.NewGuid().ToString();
             if (UUID.IsNullOrEmpty()) UUID = "0-" + System.Guid.NewGuid().ToString();
-
-            //// 尝试把Guid写入系统目录
-            //if (!File.Exists(machine_id))
-            //{
-            //    try
-            //    {
-            //        File.WriteAllText(machine_id, Guid);
-            //    }
-            //    catch { }
-            //}
 
             Refresh();
         }
