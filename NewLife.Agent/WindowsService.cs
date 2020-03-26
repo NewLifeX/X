@@ -1,7 +1,5 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Diagnostics;
-using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using NewLife.Log;
@@ -11,11 +9,13 @@ namespace NewLife.Agent
     /// <summary>Windows服务</summary>
     public class WindowsService : Host
     {
-        private ServiceBase _service;
+        private IHostedService _service;
         private Advapi32.SERVICE_STATUS _status;
         private Int32 _acceptedCommands;
 
-        public void Run(ServiceBase service)
+        /// <summary>启动服务</summary>
+        /// <param name="service"></param>
+        public override void Run(IHostedService service)
         {
             if (service == null) throw new ArgumentNullException(nameof(service));
 
@@ -25,9 +25,7 @@ namespace NewLife.Agent
             var intPtr = Marshal.AllocHGlobal(checked((1 + 1) * num));
             try
             {
-                //Advapi32.SERVICE_TABLE_ENTRY[] array = new Advapi32.SERVICE_TABLE_ENTRY[1];
-                //IntPtr ptr;
-
+                // Win32OwnProcess/StartPending
                 _status.serviceType = 16;
                 _status.currentState = 2;
                 _status.controlsAccepted = 0;
@@ -36,42 +34,27 @@ namespace NewLife.Agent
                 _status.checkPoint = 0;
                 _status.waitHint = 0;
 
-                //services[i].Initialize(multipleServices);
-                //array[i] = services[i].GetEntry();
                 Advapi32.SERVICE_TABLE_ENTRY result = default;
                 result.callback = ServiceMainCallback;
                 result.name = Marshal.StringToHGlobalUni(service.ServiceName);
-                //array[i] = result;
-                var ptr = intPtr + num * 1;
-                Marshal.StructureToPtr(result, ptr, false);
+                Marshal.StructureToPtr(result, intPtr, false);
 
-                Advapi32.SERVICE_TABLE_ENTRY structure = default;
-                structure.callback = null;
-                structure.name = (IntPtr)0;
-                ptr = intPtr + num;
-                Marshal.StructureToPtr(structure, ptr, false);
+                Advapi32.SERVICE_TABLE_ENTRY result2 = default;
+                result2.callback = null;
+                result2.name = (IntPtr)0;
+                Marshal.StructureToPtr(result2, intPtr + num, false);
+
+                /*
+                 * 如果StartServiceCtrlDispatcher函数执行成功，调用线程（也就是服务进程的主线程）不会返回，直到所有的服务进入到SERVICE_STOPPED状态。
+                 * 调用线程扮演着控制分发的角色，干这样的事情：
+                 * 1、在新的服务启动时启动新线程去调用服务主函数（主意：服务的任务是在新线程中做的）；
+                 * 2、当服务有请求时（注意：请求是由SCM发给它的），调用它对应的处理函数（主意：这相当于主线程“陷入”了，它在等待控制消息并对消息做处理）。
+                 */
+
+                XTrace.WriteLine("启动服务 {0}", service.ServiceName);
+
                 var flag = Advapi32.StartServiceCtrlDispatcher(intPtr);
-                //foreach (ServiceBase serviceBase in services)
-                //{
-                //    if (serviceBase._startFailedException != null)
-                //    {
-                //        serviceBase._startFailedException.Throw();
-                //    }
-                //}
-                //string p = "";
-                //if (!flag)
-                //{
-                //    p = new Win32Exception().Message;
-                //    Console.WriteLine(System.SR.CantStartFromCommandLine);
-                //}
-                //foreach (ServiceBase serviceBase2 in services)
-                //{
-                //    ((Component)serviceBase2).Dispose();
-                //    if (!flag)
-                //    {
-                //        serviceBase2.WriteLogEntry(System.SR.Format(System.SR.StartFailed, p), error: true);
-                //    }
-                //}
+                if (!flag) XTrace.WriteLine("服务启动失败！");
             }
             finally
             {
@@ -99,7 +82,7 @@ namespace NewLife.Agent
                 //{
                 //    Initialize(multipleServices: true);
                 //}
-                _statusHandle = Advapi32.RegisterServiceCtrlHandlerEx(_service.ServiceName, ServiceCommandCallbackEx, (IntPtr)0);
+                _statusHandle = Advapi32.RegisterServiceCtrlHandlerEx(_service.ServiceName, ServiceCommandCallbackEx, IntPtr.Zero);
                 //_nameFrozen = true;
                 //if (_statusHandle == (IntPtr)0)
                 //{
@@ -342,7 +325,9 @@ namespace NewLife.Agent
             Advapi32.SERVICE_STATUS status = default;
             Advapi32.ControlService(service, Advapi32.ControlOptions.CONTROL_STOP, &status);
 
-            return Advapi32.DeleteService(service) != 0;
+            if (Advapi32.DeleteService(service) == 0) throw new Win32Exception(Marshal.GetLastWin32Error());
+
+            return true;
         }
 
         /// <summary>启动服务</summary>
@@ -350,28 +335,16 @@ namespace NewLife.Agent
         /// <returns></returns>
         public override Boolean Start(String serviceName)
         {
-            //GCHandle val = default;
-            //try
-            //{
             using var manager = new SafeServiceHandle(Advapi32.OpenSCManager(null, null, Advapi32.ServiceControllerOptions.SC_MANAGER_CONNECT));
             if (manager.IsInvalid) throw new Win32Exception(Marshal.GetLastWin32Error());
 
             using var service = new SafeServiceHandle(Advapi32.OpenService(manager, serviceName, Advapi32.ServiceOptions.SERVICE_START));
             if (service.IsInvalid) throw new Win32Exception(Marshal.GetLastWin32Error());
 
-            //var array = new IntPtr[0];
-            //val = GCHandle.Alloc(array, GCHandleType.Pinned);
-            //if (!Advapi32.StartService(service, 0, val.AddrOfPinnedObject()))
-            //    throw new Win32Exception(Marshal.GetLastWin32Error());
             if (!Advapi32.StartService(service, 0, IntPtr.Zero))
                 throw new Win32Exception(Marshal.GetLastWin32Error());
 
             return true;
-            //}
-            //finally
-            //{
-            //    if (val.IsAllocated) val.Free();
-            //}
         }
 
         /// <summary>停止服务</summary>

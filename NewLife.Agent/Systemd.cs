@@ -8,5 +8,6 @@ namespace NewLife.Agent
     /// <summary>Linux版进程守护</summary>
     public class Systemd : Host
     {
+        public override void Run(IHostedService service) { }
     }
 }

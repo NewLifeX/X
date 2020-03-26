@@ -85,7 +85,8 @@ namespace NewLife.Agent
                 switch (cmd)
                 {
                     case "-s":
-                        DoLoop();
+                        //DoLoop();
+                        Host.Run(this);
                         break;
                     case "-i":
                         Install();
@@ -293,12 +294,12 @@ namespace NewLife.Agent
         #endregion
 
         #region 服务控制
-        private Thread _mainThread;
-        private void DoLoop()
-        {
-            _mainThread = new Thread(s => StartWork("Main"));
-            _mainThread.Start();
-        }
+        //private Thread _mainThread;
+        //private void DoLoop()
+        //{
+        //    _mainThread = new Thread(s => StartWork("Main"));
+        //    _mainThread.Start();
+        //}
 
         /// <summary>开始工作</summary>
         /// <param name="reason"></param>

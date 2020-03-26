@@ -40,6 +40,8 @@ namespace NewLife.Agent
         Boolean Uninstall(String serviceName);
         Boolean Start(String serviceName);
         Boolean Stop(String serviceName);
+
+        void Run(IHostedService service);
     }
 
     /// <summary>服务主机。用于管理控制服务</summary>
@@ -99,5 +101,7 @@ namespace NewLife.Agent
         public virtual Boolean Uninstall(String serviceName) => false;
         public virtual Boolean Start(String serviceName) => false;
         public virtual Boolean Stop(String serviceName) => false;
+
+        public abstract void Run(IHostedService service);
     }
 }
