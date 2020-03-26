@@ -19,13 +19,15 @@ namespace NewLife.Agent
         public IHost Host { get; set; }
 
         /// <summary>服务名</summary>
-        public virtual String ServiceName { get; set; } = "";
+        public String ServiceName { get; set; }
 
         /// <summary>显示名</summary>
-        public virtual String DisplayName { get; set; } = "";
+        public String DisplayName { get; set; }
 
         /// <summary>描述</summary>
-        public virtual String Description { get; set; } = "";
+        public String Description { get; set; }
+
+        public Boolean Running { get; set; }
         #endregion
 
         #region 构造
@@ -124,21 +126,13 @@ namespace NewLife.Agent
             Console.WriteLine("描述：{0}", Description);
             Console.Write("状态：");
 
-            var install = Host.IsInstalled(name);
-            if (install == null)
-                Console.WriteLine("未知");
-            else if (install == false)
+            var svc = Host.GetService(name);
+            if (svc == null)
                 Console.WriteLine("未安装");
+            else if (svc.Running)
+                Console.WriteLine("运行中");
             else
-            {
-                var run = Host.IsRunning(name);
-                if (run == null)
-                    Console.WriteLine("未知");
-                else if (run == false)
-                    Console.WriteLine("未启动");
-                else
-                    Console.WriteLine("运行中");
-            }
+                Console.WriteLine("未启动");
 
             var asm = AssemblyX.Create(Assembly.GetExecutingAssembly());
             Console.WriteLine();
@@ -168,6 +162,7 @@ namespace NewLife.Agent
                 Console.WriteLine();
                 Console.WriteLine();
 
+                var svc = Host.GetService(name);
                 switch (key.KeyChar)
                 {
                     case '1':
@@ -176,13 +171,13 @@ namespace NewLife.Agent
 
                         break;
                     case '2':
-                        if (Host.IsInstalled(name) == true)
+                        if (svc != null)
                             Host.Uninstall(name);
                         else
                             Host.Install(this);
                         break;
                     case '3':
-                        if (Host.IsRunning(name) == true)
+                        if (svc.Running)
                             Host.Stop(name);
                         else
                             Host.Start(name);
@@ -227,11 +222,10 @@ namespace NewLife.Agent
             Console.WriteLine();
             Console.WriteLine("1 显示状态");
 
-            var install = Host.IsInstalled(name);
-            var run = Host.IsRunning(name);
-            if (install == true)
+            var svc = Host.GetService(name);
+            if (svc != null)
             {
-                if (run == true)
+                if (svc.Running)
                 {
                     Console.WriteLine("3 停止服务 -stop");
                 }
@@ -247,7 +241,7 @@ namespace NewLife.Agent
                 Console.WriteLine("2 安装服务 -i");
             }
 
-            if (run != true)
+            if (svc == null || !svc.Running)
             {
                 Console.WriteLine("5 循环调试 -run");
             }

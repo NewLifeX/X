@@ -279,42 +279,48 @@ namespace NewLife.Agent
         }
 
         #region 服务状态
-        public override Boolean? IsInstalled(String serviceName)
+        /// <summary>获取托管服务</summary>
+        /// <param name="serviceName"></param>
+        /// <returns></returns>
+        public override IHostedService GetService(String serviceName)
         {
             try
             {
-                // 无效句柄即为未安装
-                using var serviceHandle = GetServiceHandle(serviceName, 4);
-                if (serviceHandle == null || serviceHandle.IsInvalid) return false;
-
-                return true;
+                return ServiceController.GetService(serviceName);
             }
             catch { return null; }
         }
 
-        public override Boolean? IsRunning(String serviceName)
+        class ServiceController : DisposeBase, IHostedService
         {
-            try
+            private SafeServiceHandle _manager;
+            private SafeServiceHandle _service;
+
+            public static unsafe ServiceController GetService(String serviceName)
             {
-                // 无效句柄即为未安装
-                using var serviceHandle = GetServiceHandle(serviceName, 4);
-                if (serviceHandle == null || serviceHandle.IsInvalid) return false;
+                var manager = new SafeServiceHandle(Advapi32.OpenSCManager(null, null, 1));
+                if (manager == null || manager.IsInvalid) return null;
 
-                var status = GetStatus(serviceHandle, serviceName);
+                var service = new SafeServiceHandle(Advapi32.OpenService(manager, serviceName, 4));
+                if (service == null || service.IsInvalid) return null;
 
-                if (status == ServiceControllerStatus.Running) return true;
-                if (status == ServiceControllerStatus.Stopped) return false;
-
-                return null;
+                return new ServiceController { _manager = manager, _service = service };
             }
-            catch { return null; }
+
+            protected override void Dispose(Boolean disposing)
+            {
+                base.Dispose(disposing);
+
+                _manager.TryDispose();
+                _service.TryDispose();
+            }
+
+            public Boolean Running => GetStatus(_service) == ServiceControllerStatus.Running;
+
         }
 
-        private static unsafe ServiceControllerStatus GetStatus(SafeServiceHandle serviceHandle, String serviceName)
+        private static unsafe ServiceControllerStatus GetStatus(SafeServiceHandle serviceHandle)
         {
-            //var serviceHandle = GetServiceHandle(serviceName, 4);
-            //try
-            //{
             Advapi32.SERVICE_STATUS sERVICE_STATUS = default;
             if (!Advapi32.QueryServiceStatus(serviceHandle, &sERVICE_STATUS))
             {
@@ -322,11 +328,6 @@ namespace NewLife.Agent
             }
 
             return (ServiceControllerStatus)sERVICE_STATUS.currentState;
-            //}
-            //finally
-            //{
-            //    ((IDisposable)serviceHandle)?.Dispose();
-            //}
         }
         enum ServiceControllerStatus
         {
@@ -384,11 +385,11 @@ namespace NewLife.Agent
             var safeServiceHandle = !machineName.Equals(".") && machineName.Length != 0 ?
                 new SafeServiceHandle(Advapi32.OpenSCManager(machineName, null, serviceControlManagerAccess)) :
                 new SafeServiceHandle(Advapi32.OpenSCManager(null, null, serviceControlManagerAccess));
-            if (safeServiceHandle.IsInvalid)
-            {
-                Exception innerException = new Win32Exception(Marshal.GetLastWin32Error());
-                throw new InvalidOperationException($"OpenSC {machineName}", innerException);
-            }
+            //if (safeServiceHandle.IsInvalid)
+            //{
+            //    Exception innerException = new Win32Exception(Marshal.GetLastWin32Error());
+            //    throw new InvalidOperationException($"OpenSC {machineName}", innerException);
+            //}
             return safeServiceHandle;
         }
         #endregion
