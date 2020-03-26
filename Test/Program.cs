@@ -22,6 +22,7 @@ using XCode.Membership;
 using XCode.Service;
 using XCode;
 using System.Net;
+using NewLife.Agent;
 #if !NET4
 using TaskEx = System.Threading.Tasks.Task;
 #endif
@@ -47,7 +48,7 @@ namespace Test
                 try
                 {
 #endif
-                Test2();
+                Test11();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -590,10 +591,7 @@ namespace Test
 
         static void Test11()
         {
-            var xmlFile = Path.Combine(Directory.GetCurrentDirectory(), "../../Src/XCode/Model.xml");
-            //var output = Path.Combine(Directory.GetCurrentDirectory(), "../../");
-            var output = "./Entity";
-            EntityBuilder.Build(xmlFile, output);
+            new AgentService().Main();
         }
 
         /// <summary>测试序列化</summary>

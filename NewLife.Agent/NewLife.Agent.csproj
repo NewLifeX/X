@@ -17,7 +17,8 @@
     <Optimize>true</Optimize>
     <DefineConstants>TRACE</DefineConstants>
     <LangVersion>latest</LangVersion>
-    <Nullable>enable</Nullable>
+    <!--<Nullable>enable</Nullable>-->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
     <PackageId>$(AssemblyName)</PackageId>
@@ -53,7 +54,6 @@
   <ItemGroup Condition="'$(TargetFramework)'=='net45' Or '$(TargetFramework)'=='net46'">
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.Net.Http" />
-    <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Windows.Forms" />
@@ -61,23 +61,17 @@
     <Reference Include="System.Management" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)'=='net40'">
-    <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="System.Management" />
   </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
-    <PackageReference Include="System.ServiceProcess.ServiceController" Version="4.5.0" />
-  </ItemGroup>
   <ItemGroup>
-    <None Include="..\Doc\logo.ico" Link="logo.ico" Pack="true" PackagePath="\" />
+    <Compile Remove="BackgroundService.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\NewLife.Core\Agent\AgentService.cs" Link="AgentService.cs" />
-    <Compile Include="..\NewLife.Core\Agent\AgentServiceBase.cs" Link="AgentServiceBase.cs" />
-    <Compile Include="..\NewLife.Core\Agent\ServiceHelper.cs" Link="ServiceHelper.cs" />
     <Compile Include="..\NewLife.Core\Agent\Setting.cs" Link="Setting.cs" />
   </ItemGroup>
   <ItemGroup>

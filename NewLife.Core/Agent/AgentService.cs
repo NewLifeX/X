@@ -5,7 +5,7 @@ namespace NewLife.Agent
 {
 #if DEBUG
     /// <summary>代理服务例子。自定义服务程序可参照该类实现。</summary>
-    public class AgentService : AgentServiceBase
+    public class AgentService : ServiceBase
     {
         #region 属性
         #endregion

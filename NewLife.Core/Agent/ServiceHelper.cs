@@ -31,7 +31,7 @@ namespace NewLife.Agent
         /// <summary>启动、停止 服务</summary>
         /// <param name="service">服务对象</param>
         /// <param name="isstart"></param>
-        public static void ControlService(this AgentServiceBase service, Boolean isstart = true)
+        public static void ControlService(this ServiceBase service, Boolean isstart = true)
         {
             var name = service.ServiceName;
             if (String.IsNullOrEmpty(name)) throw new Exception("未指定服务名！");
