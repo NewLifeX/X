@@ -35,36 +35,39 @@ namespace Test
         {
             Environment.SetEnvironmentVariable("DOTNET_SYSTEM_GLOBALIZATION_INVARIANT", "1");
 
-            MachineInfo.RegisterAsync();
-            //XTrace.Log = new NetworkLog();
-            XTrace.UseConsole();
-#if DEBUG
-            XTrace.Debug = true;
-#endif
-            while (true)
-            {
-                var sw = Stopwatch.StartNew();
-#if !DEBUG
-                try
-                {
-#endif
-                Test11();
-#if !DEBUG
-                }
-                catch (Exception ex)
-                {
-                    XTrace.WriteException(ex?.GetTrue());
-                }
-#endif
+            var svc = new AgentService();
+            svc.Main();
+            
+//            MachineInfo.RegisterAsync();
+//            //XTrace.Log = new NetworkLog();
+//            XTrace.UseConsole();
+//#if DEBUG
+//            XTrace.Debug = true;
+//#endif
+//            while (true)
+//            {
+//                var sw = Stopwatch.StartNew();
+//#if !DEBUG
+//                try
+//                {
+//#endif
+//                Test11();
+//#if !DEBUG
+//                }
+//                catch (Exception ex)
+//                {
+//                    XTrace.WriteException(ex?.GetTrue());
+//                }
+//#endif
 
-                sw.Stop();
-                Console.WriteLine("OK! 耗时 {0}", sw.Elapsed);
-                //Thread.Sleep(5000);
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-                var key = Console.ReadKey(true);
-                if (key.Key != ConsoleKey.C) break;
-            }
+//                sw.Stop();
+//                Console.WriteLine("OK! 耗时 {0}", sw.Elapsed);
+//                //Thread.Sleep(5000);
+//                GC.Collect();
+//                GC.WaitForPendingFinalizers();
+//                var key = Console.ReadKey(true);
+//                if (key.Key != ConsoleKey.C) break;
+//            }
         }
 
         static void Test1()
@@ -591,13 +594,6 @@ namespace Test
 
         static void Test11()
         {
-            var set = NewLife.Agent.Setting.Current;
-            //set.ServiceName = "Fax";
-            //set.ServiceName = "Dhcp";
-
-            var svc = new AgentService();
-
-            svc.Main();
         }
 
         /// <summary>测试序列化</summary>

@@ -279,30 +279,15 @@ namespace NewLife.Agent
         }
 
         #region 服务状态
-        ///// <summary>获取托管服务</summary>
-        ///// <param name="serviceName"></param>
-        ///// <returns></returns>
-        //public override IHostedService GetService(String serviceName) => ServiceController.GetService(serviceName);
-
-        const Int32 SC_MANAGER_CONNECT = 0x0001;
-        const Int32 SC_MANAGER_CREATE_SERVICE = 0x0002;
-        const Int32 SC_MANAGER_ALL_ACCESS = 0xF003F;
-        const Int32 SERVICE_QUERY_CONFIG = 0x0001;
-        const Int32 SERVICE_QUERY_STATUS = 0x0004;
-        const Int32 SERVICE_START = 0x0010;
-        const Int32 SERVICE_STOP = 0x0020;
-        const Int32 SERVICE_ALL_ACCESS = 0xF01FF;
-        const Int32 SERVICE_CONTROL_STOP = 0x00000001;
-
         /// <summary>服务是否已安装</summary>
         /// <param name="serviceName"></param>
         /// <returns></returns>
         public override Boolean IsInstalled(String serviceName)
         {
-            using var manager = new SafeServiceHandle(Advapi32.OpenSCManager(null, null, SC_MANAGER_CONNECT));
+            using var manager = new SafeServiceHandle(Advapi32.OpenSCManager(null, null, Advapi32.ServiceControllerOptions.SC_MANAGER_CONNECT));
             if (manager == null || manager.IsInvalid) return false;
 
-            using var service = new SafeServiceHandle(Advapi32.OpenService(manager, serviceName, SERVICE_QUERY_CONFIG));
+            using var service = new SafeServiceHandle(Advapi32.OpenService(manager, serviceName, Advapi32.ServiceOptions.SERVICE_QUERY_CONFIG));
             if (service == null || service.IsInvalid) return false;
 
             return true;
@@ -313,10 +298,10 @@ namespace NewLife.Agent
         /// <returns></returns>
         public override unsafe Boolean IsRunning(String serviceName)
         {
-            using var manager = new SafeServiceHandle(Advapi32.OpenSCManager(null, null, SC_MANAGER_CONNECT));
+            using var manager = new SafeServiceHandle(Advapi32.OpenSCManager(null, null, Advapi32.ServiceControllerOptions.SC_MANAGER_CONNECT));
             if (manager == null || manager.IsInvalid) return false;
 
-            using var service = new SafeServiceHandle(Advapi32.OpenService(manager, serviceName, SERVICE_QUERY_STATUS));
+            using var service = new SafeServiceHandle(Advapi32.OpenService(manager, serviceName, Advapi32.ServiceOptions.SERVICE_QUERY_STATUS));
             if (service == null || service.IsInvalid) return false;
 
             Advapi32.SERVICE_STATUS status = default;
@@ -334,10 +319,10 @@ namespace NewLife.Agent
         /// <returns></returns>
         public override Boolean Install(String serviceName, String displayName, String binPath, String description)
         {
-            using var manager = new SafeServiceHandle(Advapi32.OpenSCManager(null, null, SC_MANAGER_CREATE_SERVICE));
+            using var manager = new SafeServiceHandle(Advapi32.OpenSCManager(null, null, Advapi32.ServiceControllerOptions.SC_MANAGER_CREATE_SERVICE));
             if (manager.IsInvalid) throw new Win32Exception(Marshal.GetLastWin32Error());
 
-            using var service = new SafeServiceHandle(Advapi32.CreateService(manager, serviceName, displayName, SERVICE_ALL_ACCESS, 0x10, 2, 1, binPath, null, 0, null, null, null));
+            using var service = new SafeServiceHandle(Advapi32.CreateService(manager, serviceName, displayName, Advapi32.ServiceOptions.SERVICE_ALL_ACCESS, 0x10, 2, 1, binPath, null, 0, null, null, null));
             if (service.IsInvalid) throw new Win32Exception(Marshal.GetLastWin32Error());
 
             return true;
@@ -348,15 +333,14 @@ namespace NewLife.Agent
         /// <returns></returns>
         public override unsafe Boolean Uninstall(String serviceName)
         {
-            using var manager = new SafeServiceHandle(Advapi32.OpenSCManager(null, null, SC_MANAGER_ALL_ACCESS));
+            using var manager = new SafeServiceHandle(Advapi32.OpenSCManager(null, null, Advapi32.ServiceControllerOptions.SC_MANAGER_ALL));
             if (manager.IsInvalid) throw new Win32Exception(Marshal.GetLastWin32Error());
 
-            var DELETE = 0x10000;
-            using var service = new SafeServiceHandle(Advapi32.OpenService(manager, serviceName, SERVICE_STOP | DELETE));
+            using var service = new SafeServiceHandle(Advapi32.OpenService(manager, serviceName, Advapi32.ServiceOptions.SERVICE_STOP | Advapi32.ServiceOptions.STANDARD_RIGHTS_DELETE));
             if (service.IsInvalid) throw new Win32Exception(Marshal.GetLastWin32Error());
 
             Advapi32.SERVICE_STATUS status = default;
-            Advapi32.ControlService(service, SERVICE_CONTROL_STOP, &status);
+            Advapi32.ControlService(service, Advapi32.ControlOptions.CONTROL_STOP, &status);
 
             return Advapi32.DeleteService(service) != 0;
         }
@@ -369,10 +353,10 @@ namespace NewLife.Agent
             //GCHandle val = default;
             //try
             //{
-            using var manager = new SafeServiceHandle(Advapi32.OpenSCManager(null, null, SC_MANAGER_CONNECT));
+            using var manager = new SafeServiceHandle(Advapi32.OpenSCManager(null, null, Advapi32.ServiceControllerOptions.SC_MANAGER_CONNECT));
             if (manager.IsInvalid) throw new Win32Exception(Marshal.GetLastWin32Error());
 
-            using var service = new SafeServiceHandle(Advapi32.OpenService(manager, serviceName, SERVICE_START));
+            using var service = new SafeServiceHandle(Advapi32.OpenService(manager, serviceName, Advapi32.ServiceOptions.SERVICE_START));
             if (service.IsInvalid) throw new Win32Exception(Marshal.GetLastWin32Error());
 
             //var array = new IntPtr[0];
@@ -395,197 +379,17 @@ namespace NewLife.Agent
         /// <returns></returns>
         public override unsafe Boolean Stop(String serviceName)
         {
-            using var manager = new SafeServiceHandle(Advapi32.OpenSCManager(null, null, SC_MANAGER_ALL_ACCESS));
+            using var manager = new SafeServiceHandle(Advapi32.OpenSCManager(null, null, Advapi32.ServiceControllerOptions.SC_MANAGER_ALL));
             if (manager.IsInvalid) throw new Win32Exception(Marshal.GetLastWin32Error());
 
-            using var service = new SafeServiceHandle(Advapi32.OpenService(manager, serviceName, SERVICE_STOP));
+            using var service = new SafeServiceHandle(Advapi32.OpenService(manager, serviceName, Advapi32.ServiceOptions.SERVICE_STOP));
             if (service.IsInvalid) throw new Win32Exception(Marshal.GetLastWin32Error());
 
             Advapi32.SERVICE_STATUS status = default;
-            if (!Advapi32.ControlService(service, SERVICE_CONTROL_STOP, &status))
+            if (!Advapi32.ControlService(service, Advapi32.ControlOptions.CONTROL_STOP, &status))
                 throw new Win32Exception(Marshal.GetLastWin32Error());
 
             return true;
-        }
-
-        //private static unsafe ServiceControllerStatus GetStatus(SafeServiceHandle serviceHandle)
-        //{
-        //    Advapi32.SERVICE_STATUS sERVICE_STATUS = default;
-        //    if (!Advapi32.QueryServiceStatus(serviceHandle, &sERVICE_STATUS))
-        //    {
-        //        throw new Win32Exception(Marshal.GetLastWin32Error());
-        //    }
-
-        //    return (ServiceControllerStatus)sERVICE_STATUS.currentState;
-        //}
-        //enum ServiceControllerStatus
-        //{
-        //    ContinuePending = 5,
-        //    Paused = 7,
-        //    PausePending = 6,
-        //    Running = 4,
-        //    StartPending = 2,
-        //    Stopped = 1,
-        //    StopPending = 3
-        //}
-
-        //private static SafeServiceHandle GetServiceHandle(String serviceName, Int32 desiredAccess)
-        //{
-        //    using var _serviceManagerHandle = GetDataBaseHandleWithAccess(".", 1);
-        //    var safeServiceHandle = new SafeServiceHandle(Advapi32.OpenService(_serviceManagerHandle, serviceName, desiredAccess));
-
-        //    return safeServiceHandle;
-        //}
-
-        //private static Advapi32.ENUM_SERVICE_STATUS_PROCESS[] GetServices(String machineName, Int32 serviceType, String group)
-        //{
-        //    var resumeHandle = 0;
-        //    var dataBaseHandleWithAccess = GetDataBaseHandleWithAccess(machineName, 4);
-        //    try
-        //    {
-        //        Advapi32.EnumServicesStatusEx(dataBaseHandleWithAccess, 0, serviceType, 3, IntPtr.Zero, 0, out var bytesNeeded, out var servicesReturned, ref resumeHandle, group);
-        //        var intPtr = Marshal.AllocHGlobal((IntPtr)bytesNeeded);
-        //        try
-        //        {
-        //            Advapi32.EnumServicesStatusEx(dataBaseHandleWithAccess, 0, serviceType, 3, intPtr, bytesNeeded, out bytesNeeded, out servicesReturned, ref resumeHandle, group);
-        //            var array = new Advapi32.ENUM_SERVICE_STATUS_PROCESS[servicesReturned];
-        //            for (var i = 0; i < servicesReturned; i++)
-        //            {
-        //                var ptr = (IntPtr)((Int64)intPtr + i * Marshal.SizeOf(typeof(Advapi32.ENUM_SERVICE_STATUS_PROCESS)));
-        //                var eNUM_SERVICE_STATUS_PROCESS = new Advapi32.ENUM_SERVICE_STATUS_PROCESS();
-        //                Marshal.PtrToStructure(ptr, eNUM_SERVICE_STATUS_PROCESS);
-        //                array[i] = eNUM_SERVICE_STATUS_PROCESS;
-        //            }
-        //            return array;
-        //        }
-        //        finally
-        //        {
-        //            Marshal.FreeHGlobal(intPtr);
-        //        }
-        //    }
-        //    finally
-        //    {
-        //        ((IDisposable)dataBaseHandleWithAccess)?.Dispose();
-        //    }
-        //}
-
-        //private static SafeServiceHandle GetDataBaseHandleWithAccess(String machineName, Int32 serviceControlManagerAccess)
-        //{
-        //    var safeServiceHandle = !machineName.Equals(".") && machineName.Length != 0 ?
-        //        new SafeServiceHandle(Advapi32.OpenSCManager(machineName, null, serviceControlManagerAccess)) :
-        //        new SafeServiceHandle(Advapi32.OpenSCManager(null, null, serviceControlManagerAccess));
-        //    //if (safeServiceHandle.IsInvalid)
-        //    //{
-        //    //    Exception innerException = new Win32Exception(Marshal.GetLastWin32Error());
-        //    //    throw new InvalidOperationException($"OpenSC {machineName}", innerException);
-        //    //}
-        //    return safeServiceHandle;
-        //}
-        #endregion
-
-        #region 服务控制
-        //public override void Install(IHostedService service)
-        //{
-        //    var svc = service as ServiceBase;
-        //    var name = svc.ServiceName;
-        //    if (String.IsNullOrEmpty(name)) throw new Exception("未指定服务名！");
-
-        //    if (name.Length < name.GetBytes().Length) throw new Exception("服务名不能是中文！");
-
-        //    name = name.Replace(" ", "_");
-        //    // win7及以上系统时才提示
-        //    if (Environment.OSVersion.Version.Major >= 6) XTrace.WriteLine("在win7/win2008及更高系统中，可能需要管理员权限执行才能安装/卸载服务。");
-
-        //    var exe = GetExeName();
-
-        //    // 兼容dotnet
-        //    var args = Environment.GetCommandLineArgs();
-        //    if (args.Length >= 1 && Path.GetFileName(exe).EqualIgnoreCase("dotnet", "dotnet.exe"))
-        //        exe += " " + args[0].GetFullPath();
-        //    //else
-        //    //    exe = exe.GetFullPath();
-
-        //    var bin = GetBinPath(exe);
-        //    RunSC($"create {name} BinPath= \"{bin}\" start= auto DisplayName= \"{svc.DisplayName}\"");
-        //    if (!svc.Description.IsNullOrEmpty()) RunSC($"description {name} \"{svc.Description}\"");
-        //}
-
-        /// <summary>Exe程序名</summary>
-        static String GetExeName()
-        {
-            var p = Process.GetCurrentProcess();
-            var filename = p.MainModule.FileName;
-            //filename = Path.GetFileName(filename);
-            filename = filename.Replace(".vshost.", ".");
-
-            return filename;
-        }
-
-        //public override void Uninstall(String serviceName)
-        //{
-        //    Stop(serviceName);
-
-        //    RunSC("Delete " + serviceName);
-        //}
-
-        //public override void Start(String serviceName)
-        //{
-        //    RunCmd("net start " + serviceName, false, true);
-        //}
-
-        //public override void Stop(String serviceName)
-        //{
-        //    RunCmd("net stop " + serviceName, false, true);
-        //}
-
-        /// <summary>获取安装服务的命令参数</summary>
-        /// <param name="exe"></param>
-        /// <returns></returns>
-        protected virtual String GetBinPath(String exe) => $"{exe} -s";
-
-        /// <summary>执行一个命令</summary>
-        /// <param name="cmd"></param>
-        /// <param name="showWindow"></param>
-        /// <param name="waitForExit"></param>
-        internal static void RunCmd(String cmd, Boolean showWindow, Boolean waitForExit)
-        {
-            XTrace.WriteLine("RunCmd " + cmd);
-
-            var p = new Process();
-            var si = new ProcessStartInfo();
-            var path = Environment.SystemDirectory;
-            path = Path.Combine(path, @"cmd.exe");
-            si.FileName = path;
-            if (!cmd.StartsWith(@"/")) cmd = @"/c " + cmd;
-            si.Arguments = cmd;
-            si.UseShellExecute = false;
-            si.CreateNoWindow = !showWindow;
-            si.RedirectStandardOutput = true;
-            si.RedirectStandardError = true;
-            p.StartInfo = si;
-
-            p.Start();
-            if (waitForExit)
-            {
-                p.WaitForExit();
-
-                var str = p.StandardOutput.ReadToEnd();
-                if (!String.IsNullOrEmpty(str)) XTrace.WriteLine(str.Trim(new Char[] { '\r', '\n', '\t' }).Trim());
-                str = p.StandardError.ReadToEnd();
-                if (!String.IsNullOrEmpty(str)) XTrace.WriteLine(str.Trim(new Char[] { '\r', '\n', '\t' }).Trim());
-            }
-        }
-
-        /// <summary>执行SC命令</summary>
-        /// <param name="cmd"></param>
-        internal static void RunSC(String cmd)
-        {
-            var path = Environment.SystemDirectory;
-            path = Path.Combine(path, @"sc.exe");
-            if (!File.Exists(path)) path = "sc.exe";
-            if (!File.Exists(path)) return;
-
-            RunCmd(path + " " + cmd, false, true);
         }
         #endregion
     }
