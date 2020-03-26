@@ -591,7 +591,12 @@ namespace Test
 
         static void Test11()
         {
-            new AgentService().Main();
+            var set = NewLife.Agent.Setting.Current;
+            set.ServiceName = "Fax";
+
+            var svc = new AgentService();
+
+            svc.Main();
         }
 
         /// <summary>测试序列化</summary>

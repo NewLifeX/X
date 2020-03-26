@@ -20,6 +20,13 @@ namespace NewLife.Agent
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         Task StopAsync(CancellationToken cancellationToken = default);
+
+        Boolean? IsInstalled(String serviceName);
+        Boolean? IsRunning(String serviceName);
+        void Install(IHostedService service);
+        void Uninstall(String serviceName);
+        void Start(String serviceName);
+        void Stop(String serviceName);
     }
 
     /// <summary>服务主机。用于管理控制服务</summary>
@@ -65,5 +72,13 @@ namespace NewLife.Agent
                 await item.StopAsync(cancellationToken).ConfigureAwait(false);
             }
         }
+
+        public virtual Boolean? IsInstalled(String serviceName) => null;
+
+        public virtual Boolean? IsRunning(String serviceName) => null;
+        public virtual void Install(IHostedService service) { }
+        public virtual void Uninstall(String serviceName) { }
+        public virtual void Start(String serviceName) { }
+        public virtual void Stop(String serviceName) { }
     }
 }

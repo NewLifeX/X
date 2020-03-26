@@ -86,16 +86,16 @@ namespace NewLife.Agent
                         DoLoop();
                         break;
                     case "-i":
-                        service.Install(true);
+                        Host.Install(this);
                         break;
                     case "-u":
-                        service.Install(false);
+                        Host.Uninstall(ServiceName);
                         break;
                     case "-start":
-                        //service.ControlService(true);
+                        Host.Start(ServiceName);
                         break;
                     case "-stop":
-                        //service.ControlService(false);
+                        Host.Stop(ServiceName);
                         break;
                 }
                 #endregion
@@ -104,11 +104,9 @@ namespace NewLife.Agent
             {
                 Console.Title = service.DisplayName;
 
-                #region 命令行
-                // 输出状态
+                // 输出状态，菜单循环
                 service.ShowStatus();
                 service.ProcessMenu();
-                #endregion
             }
         }
 
@@ -126,21 +124,21 @@ namespace NewLife.Agent
             Console.WriteLine("描述：{0}", Description);
             Console.Write("状态：");
 
-            //var install = ServiceHelper.IsInstalled(name);
-            //if (install == null)
-            //    Console.WriteLine("未知");
-            //else if (install == false)
-            //    Console.WriteLine("未安装");
-            //else
-            //{
-            //    var run = ServiceHelper.IsRunning(name);
-            //    if (run == null)
-            //        Console.WriteLine("未知");
-            //    else if (run == false)
-            //        Console.WriteLine("未启动");
-            //    else
-            //        Console.WriteLine("运行中");
-            //}
+            var install = Host.IsInstalled(name);
+            if (install == null)
+                Console.WriteLine("未知");
+            else if (install == false)
+                Console.WriteLine("未安装");
+            else
+            {
+                var run = Host.IsRunning(name);
+                if (run == null)
+                    Console.WriteLine("未知");
+                else if (run == false)
+                    Console.WriteLine("未启动");
+                else
+                    Console.WriteLine("运行中");
+            }
 
             var asm = AssemblyX.Create(Assembly.GetExecutingAssembly());
             Console.WriteLine();
@@ -178,16 +176,16 @@ namespace NewLife.Agent
 
                         break;
                     case '2':
-                        //if (ServiceHelper.IsInstalled(name) == true)
-                        //    Install(false);
-                        //else
-                        //    Install(true);
+                        if (Host.IsInstalled(name) == true)
+                            Host.Uninstall(name);
+                        else
+                            Host.Install(this);
                         break;
                     case '3':
-                        //if (ServiceHelper.IsRunning(name) == true)
-                        //    service.ControlService(false);
-                        //else
-                        //    service.ControlService(true);
+                        if (Host.IsRunning(name) == true)
+                            Host.Stop(name);
+                        else
+                            Host.Start(name);
                         break;
                     case '5':
                         #region 循环调试
@@ -229,30 +227,30 @@ namespace NewLife.Agent
             Console.WriteLine();
             Console.WriteLine("1 显示状态");
 
-            //var install = ServiceHelper.IsInstalled(name);
-            //var run = ServiceHelper.IsRunning(name);
-            //if (install == true)
-            //{
-            //    if (run == true)
-            //    {
-            //        Console.WriteLine("3 停止服务 -stop");
-            //    }
-            //    else
-            //    {
-            //        Console.WriteLine("2 卸载服务 -u");
+            var install = Host.IsInstalled(name);
+            var run = Host.IsRunning(name);
+            if (install == true)
+            {
+                if (run == true)
+                {
+                    Console.WriteLine("3 停止服务 -stop");
+                }
+                else
+                {
+                    Console.WriteLine("2 卸载服务 -u");
 
-            //        Console.WriteLine("3 启动服务 -start");
-            //    }
-            //}
-            //else
-            //{
-            //    Console.WriteLine("2 安装服务 -i");
-            //}
+                    Console.WriteLine("3 启动服务 -start");
+                }
+            }
+            else
+            {
+                Console.WriteLine("2 安装服务 -i");
+            }
 
-            //if (run != true)
-            //{
-            //    Console.WriteLine("5 循环调试 -run");
-            //}
+            if (run != true)
+            {
+                Console.WriteLine("5 循环调试 -run");
+            }
 
             var dogs = WatchDogs;
             if (dogs.Length > 0)
@@ -523,48 +521,6 @@ namespace NewLife.Agent
             //    }
             //}
         }
-        #endregion
-
-        #region 安装卸载
-        /// <summary>安装、卸载 服务</summary>
-        /// <param name="isinstall">是否安装</param>
-        public void Install(Boolean isinstall = true)
-        {
-            var name = ServiceName;
-            if (String.IsNullOrEmpty(name)) throw new Exception("未指定服务名！");
-
-            if (name.Length < name.GetBytes().Length) throw new Exception("服务名不能是中文！");
-
-            name = name.Replace(" ", "_");
-            // win7及以上系统时才提示
-            //if (Environment.OSVersion.Version.Major >= 6) ServiceHelper.WriteLine("在win7/win2008及更高系统中，可能需要管理员权限执行才能安装/卸载服务。");
-            //if (isinstall)
-            //{
-            //    var exe = ServiceHelper.ExeName;
-
-            //    // 兼容dotnet
-            //    var args = Environment.GetCommandLineArgs();
-            //    if (args.Length >= 1 && Path.GetFileName(exe).EqualIgnoreCase("dotnet", "dotnet.exe"))
-            //        exe += " " + args[0].GetFullPath();
-            //    //else
-            //    //    exe = exe.GetFullPath();
-
-            //    var bin = GetBinPath(exe);
-            //    ServiceHelper.RunSC($"create {name} BinPath= \"{bin}\" start= auto DisplayName= \"{DisplayName}\"");
-            //    if (!Description.IsNullOrEmpty()) ServiceHelper.RunSC($"description {name} \"{Description}\"");
-            //}
-            //else
-            //{
-            //    this.ControlService(false);
-
-            //    ServiceHelper.RunSC("Delete " + name);
-            //}
-        }
-
-        /// <summary>获取安装服务的命令参数</summary>
-        /// <param name="exe"></param>
-        /// <returns></returns>
-        protected virtual String GetBinPath(String exe) => $"{exe} -s";
         #endregion
 
         #region 日志
