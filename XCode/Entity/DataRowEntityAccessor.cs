@@ -179,12 +179,12 @@ namespace XCode
             if (type != null)
                 // 仅对精确匹配的字段进行读取旧值
                 oldValue = entity[name];
-            else
-            {
-                type = value?.GetType();
-                // 如果扩展数据里面有该字段也读取旧值
-                if (entity.Extends.TryGetValue(name, out var v)) oldValue = v;
-            }
+            //else
+            //{
+            //    type = value?.GetType();
+            //    // 如果扩展数据里面有该字段也读取旧值
+            //    if (entity.Extends.TryGetValue(name, out var v)) oldValue = v;
+            //}
 
             // 不处理相同数据的赋值
             if (Equals(value, oldValue)) return;
@@ -241,7 +241,11 @@ namespace XCode
             {
                 entity[name] = value;
 
-                if (value?.GetType() != type && !EntityBase.CheckEqual(entity[name], value)) entity.Extends[name] = value;
+                if (value?.GetType() != type && !EntityBase.CheckEqual(entity[name], value))
+                {
+                    var ext = entity as IExtend3;
+                    ext[name] = value;
+                }
             }
 
             //if (b != null)

@@ -75,16 +75,13 @@ namespace NewLife.Web
             // 签名
             var sec = Secret.GetBytes();
             var data = $"{header}.{body}".GetBytes();
-            Byte[] sign;
-            switch (alg)
+            var sign = alg switch
             {
-                case "HS256": sign = data.SHA256(sec); break;
-                case "HS384": sign = data.SHA384(sec); break;
-                case "HS512": sign = data.SHA512(sec); break;
-                default:
-                    throw new InvalidOperationException($"不支持的算法[{alg}]");
-            }
-
+                "HS256" => data.SHA256(sec),
+                "HS384" => data.SHA384(sec),
+                "HS512" => data.SHA512(sec),
+                _ => throw new InvalidOperationException($"不支持的算法[{alg}]"),
+            };
             return $"{header}.{body}.{sign.ToUrlBase64()}";
         }
 
@@ -120,16 +117,13 @@ namespace NewLife.Web
             // 验证签名
             var sec = Secret.GetBytes();
             var data = $"{ts[0]}.{ts[1]}".GetBytes();
-            Byte[] sign;
-            switch (alg)
+            var sign = alg switch
             {
-                case "HS256": sign = data.SHA256(sec); break;
-                case "HS384": sign = data.SHA384(sec); break;
-                case "HS512": sign = data.SHA512(sec); break;
-                default:
-                    throw new InvalidOperationException($"不支持的算法[{alg}]");
-            }
-
+                "HS256" => data.SHA256(sec),
+                "HS384" => data.SHA384(sec),
+                "HS512" => data.SHA512(sec),
+                _ => throw new InvalidOperationException($"不支持的算法[{alg}]"),
+            };
             return sign.ToUrlBase64() == ts[2];
         }
         #endregion

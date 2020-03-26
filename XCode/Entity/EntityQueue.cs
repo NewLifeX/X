@@ -57,6 +57,7 @@ namespace XCode
                     if (_Timer == null)
                     {
                         _Timer = new TimerX(Work, null, Period, Period, "EQ") { Async = true };
+                        //_Timer.Scheduler.Log = XTrace.Log;
                         _Timer.CanExecute = () => DelayEntities.Any() || Entities.Any();
                     }
                 }

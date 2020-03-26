@@ -276,7 +276,7 @@ namespace XCode.DataAccessLayer
                         var max = (Int64)(Object)k3;
                         if (start <= 0 && max <= 0 && builder != null && builder.Where.IsNullOrEmpty())
                         {
-                            dataFile = XTrace.TempPath.CombinePath(ConnName, builder.Table.Trim('[', ']', '`', '"') + ".dt");
+                            dataFile = NewLife.Setting.Current.DataPath.CombinePath(ConnName, builder.Table.Trim('[', ']', '`', '"') + ".dt");
 
                             // 首次缓存加载时采用文件缓存替代，避免读取数据库耗时过长
                             if (!cache.ContainsKey(k) && File.Exists(dataFile.GetFullPath()))
@@ -320,7 +320,7 @@ namespace XCode.DataAccessLayer
                 st?.Clear();
 
                 // 删除文件缓存
-                var dataDir = XTrace.TempPath.CombinePath(ConnName);
+                var dataDir = NewLife.Setting.Current.DataPath.CombinePath(ConnName);
                 if (Directory.Exists(dataDir))
                 {
                     try

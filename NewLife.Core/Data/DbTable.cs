@@ -132,7 +132,7 @@ namespace NewLife.Data
             {
                 cs[i] = bn.Read<String>();
                 var tc = (TypeCode)bn.Read<Byte>();
-                ts[i] = tc.ToString().GetTypeEx(false);
+                ts[i] = Type.GetType("System." + tc);
             }
             Columns = cs;
             Types = ts;
@@ -376,58 +376,24 @@ namespace NewLife.Data
                 foreach (TypeCode item in Enum.GetValues(typeof(TypeCode)))
                 {
                     Object val = null;
-                    switch (item)
+                    val = item switch
                     {
-                        case TypeCode.Boolean:
-                            val = false;
-                            break;
-                        case TypeCode.Char:
-                            val = (Char)0;
-                            break;
-                        case TypeCode.SByte:
-                            val = (SByte)0;
-                            break;
-                        case TypeCode.Byte:
-                            val = (Byte)0;
-                            break;
-                        case TypeCode.Int16:
-                            val = (Int16)0;
-                            break;
-                        case TypeCode.UInt16:
-                            val = (UInt16)0;
-                            break;
-                        case TypeCode.Int32:
-                            val = 0;
-                            break;
-                        case TypeCode.UInt32:
-                            val = (UInt32)0;
-                            break;
-                        case TypeCode.Int64:
-                            val = (Int64)0;
-                            break;
-                        case TypeCode.UInt64:
-                            val = (UInt64)0;
-                            break;
-                        case TypeCode.Single:
-                            val = (Single)0;
-                            break;
-                        case TypeCode.Double:
-                            val = (Double)0;
-                            break;
-                        case TypeCode.Decimal:
-                            val = (Decimal)0;
-                            break;
-                        case TypeCode.DateTime:
-                            val = DateTime.MinValue;
-                            break;
-                        case TypeCode.Empty:
-                        case TypeCode.Object:
-                        case TypeCode.DBNull:
-                        case TypeCode.String:
-                        default:
-                            val = null;
-                            break;
-                    }
+                        TypeCode.Boolean => false,
+                        TypeCode.Char => (Char)0,
+                        TypeCode.SByte => (SByte)0,
+                        TypeCode.Byte => (Byte)0,
+                        TypeCode.Int16 => (Int16)0,
+                        TypeCode.UInt16 => (UInt16)0,
+                        TypeCode.Int32 => 0,
+                        TypeCode.UInt32 => (UInt32)0,
+                        TypeCode.Int64 => (Int64)0,
+                        TypeCode.UInt64 => (UInt64)0,
+                        TypeCode.Single => (Single)0,
+                        TypeCode.Double => (Double)0,
+                        TypeCode.Decimal => (Decimal)0,
+                        TypeCode.DateTime => DateTime.MinValue,
+                        _ => null,
+                    };
                     dic[item] = val;
                 }
                 _Defs = dic;

@@ -10,7 +10,6 @@ using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Serialization;
-using NewLife.Threading;
 #if __WIN__
 using System.Management;
 using Microsoft.VisualBasic.Devices;
@@ -63,46 +62,62 @@ namespace NewLife
         private PerformanceCounter _cpuCounter;
 #endif
 
-        private TimerX _timer;
+        //private TimerX _timer;
         #endregion
 
         #region 构造
         /// <summary>实例化机器信息</summary>
         public MachineInfo() { }
 
-        /// <summary>当前机器信息</summary>
+        /// <summary>当前机器信息。在RegisterAsync后才能使用</summary>
         public static MachineInfo Current { get; set; }
 
+        private static Task<MachineInfo> _task;
         /// <summary>异步注册一个初始化后的机器信息实例</summary>
-        /// <param name="msRefresh">定时刷新实时数据，默认0ms不刷新</param>
         /// <returns></returns>
-        public static Task<MachineInfo> RegisterAsync(Int32 msRefresh = 0)
+        public static Task<MachineInfo> RegisterAsync()
         {
-            return Task.Factory.StartNew(() =>
+            if (_task != null) return _task;
+
+            return _task = Task.Factory.StartNew(() =>
             {
+                var set = Setting.Current;
+
                 // 文件缓存，加快机器信息获取
-                var file = XTrace.TempPath.CombinePath("machine.info").GetBasePath();
-                if (Current == null && File.Exists(file))
+                var file = Path.GetTempPath().CombinePath("machine_info.json").GetBasePath();
+                var file2 = set.DataPath.CombinePath("machine_info.json").GetBasePath();
+                if (Current == null)
                 {
-                    try
+                    var f = file;
+                    if (!File.Exists(f)) f = file2;
+                    if (File.Exists(f))
                     {
-                        Current = File.ReadAllText(file).ToJsonEntity<MachineInfo>();
+                        try
+                        {
+                            Current = File.ReadAllText(f).ToJsonEntity<MachineInfo>();
+                        }
+                        catch { }
                     }
-                    finally { }
                 }
 
                 var mi = Current ?? new MachineInfo();
 
                 mi.Init();
-                File.WriteAllText(file.EnsureDirectory(true), mi.ToJson(true));
-
-                // 定时刷新
-                if (msRefresh > 0) mi._timer = new TimerX(s => mi.Refresh(), null, msRefresh, msRefresh) { Async = true };
-
                 Current = mi;
+
+                //// 定时刷新
+                //if (msRefresh > 0) mi._timer = new TimerX(s => mi.Refresh(), null, msRefresh, msRefresh) { Async = true };
 
                 // 注册到对象容器
                 ObjectContainer.Current.AddSingleton(mi);
+
+                try
+                {
+                    var json = mi.ToJson(true);
+                    File.WriteAllText(file.EnsureDirectory(true), json);
+                    File.WriteAllText(file2.EnsureDirectory(true), json);
+                }
+                catch { }
 
                 return mi;
             });
@@ -117,6 +132,8 @@ namespace NewLife
         /// <summary>刷新</summary>
         public void Init()
         {
+            var machine_guid = "";
+
 #if __CORE__
             var osv = Environment.OSVersion;
             if (OSVersion.IsNullOrEmpty()) OSVersion = osv.Version + "";
@@ -141,8 +158,14 @@ namespace NewLife
                     if (csproduct.TryGetValue("UUID", out str)) UUID = str;
                 }
 
-                // window+netcore 不方便读取注册表，随机生成一个guid，借助文件缓存确保其不变
-                if (Guid.IsNullOrEmpty()) Guid = System.Guid.NewGuid().ToString();
+                // 不要在刷新里面取CPU负载，因为运行wmic会导致CPU负载很不准确，影响测量
+                var cpu = ReadWmic("cpu", "Name", "ProcessorId", "LoadPercentage");
+                if (cpu != null)
+                {
+                    if (cpu.TryGetValue("Name", out str)) Processor = str;
+                    if (cpu.TryGetValue("ProcessorId", out str)) CpuID = str;
+                    if (cpu.TryGetValue("LoadPercentage", out str)) CpuRate = (Single)(str.ToDouble() / 100);
+                }
             }
             // 特别识别Linux发行版
             else if (Runtime.Linux)
@@ -193,11 +216,11 @@ namespace NewLife
             });
 
             var reg = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Cryptography");
-            if (reg != null) Guid = reg.GetValue("MachineGuid") + "";
-            if (Guid.IsNullOrEmpty())
+            if (reg != null) machine_guid = reg.GetValue("MachineGuid") + "";
+            if (machine_guid.IsNullOrEmpty())
             {
                 reg = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
-                if (reg != null) Guid = reg.GetValue("MachineGuid") + "";
+                if (reg != null) machine_guid = reg.GetValue("MachineGuid") + "";
             }
 
             var ci = new ComputerInfo();
@@ -217,6 +240,12 @@ namespace NewLife
             //if (!str.IsNullOrEmpty()) Temperature = (str.ToDouble() - 2732) / 10.0;
 #endif
 
+            if (!machine_guid.IsNullOrEmpty()) Guid = machine_guid;
+
+            // window+netcore 不方便读取注册表，随机生成一个guid，借助文件缓存确保其不变
+            if (Guid.IsNullOrEmpty()) Guid = "0-" + System.Guid.NewGuid().ToString();
+            if (UUID.IsNullOrEmpty()) UUID = "0-" + System.Guid.NewGuid().ToString();
+
             Refresh();
         }
 
@@ -226,15 +255,15 @@ namespace NewLife
 #if __CORE__
             if (Runtime.Windows)
             {
-                var str = "";
+                //var str = "";
 
-                var cpu = ReadWmic("cpu", "Name", "ProcessorId", "LoadPercentage");
-                if (cpu != null)
-                {
-                    if (cpu.TryGetValue("Name", out str)) Processor = str;
-                    if (cpu.TryGetValue("ProcessorId", out str)) CpuID = str;
-                    if (cpu.TryGetValue("LoadPercentage", out str)) CpuRate = (Single)(str.ToDouble() / 100);
-                }
+                //var cpu = ReadWmic("cpu", "Name", "ProcessorId", "LoadPercentage");
+                //if (cpu != null)
+                //{
+                //    if (cpu.TryGetValue("Name", out str)) Processor = str;
+                //    if (cpu.TryGetValue("ProcessorId", out str)) CpuID = str;
+                //    if (cpu.TryGetValue("LoadPercentage", out str)) CpuRate = (Single)(str.ToDouble() / 100);
+                //}
 
                 MEMORYSTATUSEX ms = default;
                 ms.Init();
@@ -270,12 +299,15 @@ namespace NewLife
                     if (File.Exists(file)) Temperature = File.ReadAllText(file).Trim().Substring(null, ":").ToDouble();
                 }
 
-                var upt = Execute("uptime");
-                if (!upt.IsNullOrEmpty())
-                {
-                    str = upt.Substring("load average:");
-                    if (!str.IsNullOrEmpty()) CpuRate = (Single)str.Split(",")[0].ToDouble();
-                }
+                //var upt = Execute("uptime");
+                //if (!upt.IsNullOrEmpty())
+                //{
+                //    str = upt.Substring("load average:");
+                //    if (!str.IsNullOrEmpty()) CpuRate = (Single)str.Split(",")[0].ToDouble();
+                //}
+
+                file = "/proc/loadavg";
+                if (File.Exists(file)) CpuRate = (Single)File.ReadAllText(file).Substring(null, " ").ToDouble();
             }
 #else
             AvailableMemory = _cinfo.AvailablePhysicalMemory;
@@ -290,16 +322,13 @@ namespace NewLife
         public static String GetLinuxName()
         {
             var fr = "/etc/redhat-release";
+            if (File.Exists(fr)) return File.ReadAllText(fr).Trim();
+
             var dr = "/etc/debian-release";
-            if (File.Exists(fr))
-                return File.ReadAllText(fr).Trim();
-            else if (File.Exists(dr))
-                return File.ReadAllText(dr).Trim();
-            else
-            {
-                var sr = "/etc/os-release";
-                if (File.Exists(sr)) return File.ReadAllText(sr).SplitAsDictionary("=", "\n", true)["PRETTY_NAME"].Trim();
-            }
+            if (File.Exists(dr)) return File.ReadAllText(dr).Trim();
+
+            var sr = "/etc/os-release";
+            if (File.Exists(sr)) return File.ReadAllText(sr).SplitAsDictionary("=", "\n", true)["PRETTY_NAME"].Trim();
 
             var uname = Execute("uname", "-sr")?.Trim();
             if (!uname.IsNullOrEmpty()) return uname;

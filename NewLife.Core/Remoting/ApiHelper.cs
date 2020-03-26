@@ -125,10 +125,10 @@ namespace NewLife.Remoting
             return request;
         }
 
-        /// <summary>结果代码名称</summary>
+        /// <summary>结果代码名称。默认 code/errcode</summary>
         public static IList<String> CodeNames { get; } = new List<String> { "code", "errcode" };
 
-        /// <summary>结果消息名称</summary>
+        /// <summary>结果消息名称。默认 message/msg/errmsg</summary>
         public static IList<String> MessageNames { get; } = new List<String> { "message", "msg", "errmsg" };
 
         /// <summary>处理响应。统一识别code/message</summary>

@@ -30,6 +30,9 @@ namespace NewLife.Remoting
         /// <summary>探测次数。每个节点连续探测多次，任意一次成功即认为该节点可用，默认3</summary>
         public Int32 TraceTimes { get; set; } = 3;
 
+        /// <summary>是否使用系统代理设置。默认false不检查系统代理设置，在某些系统上可以大大改善初始化速度</summary>
+        public Boolean UseProxy { get; set; }
+
         /// <summary>身份验证</summary>
         public AuthenticationHeaderValue Authentication { get; set; }
 
@@ -51,8 +54,19 @@ namespace NewLife.Remoting
         public ApiHttpClient() { }
 
         /// <summary>实例化</summary>
-        /// <param name="url"></param>
-        public ApiHttpClient(String url) => Add("Default", new Uri(url));
+        /// <param name="urls"></param>
+        public ApiHttpClient(String urls)
+        {
+            //Add("Default", new Uri(urls));
+            if (!urls.IsNullOrEmpty())
+            {
+                var ss = urls.Split(",");
+                for (var i = 0; i < ss.Length; i++)
+                {
+                    Add("service" + (i + 1), new Uri(ss[i]));
+                }
+            }
+        }
 
         /// <summary>销毁</summary>
         /// <param name="disposing"></param>
@@ -185,18 +199,19 @@ namespace NewLife.Remoting
             var sw = st.StartCount();
             try
             {
-                if (service.Client == null)
+                var client = service.Client;
+                if (client == null)
                 {
                     WriteLog("使用[{0}]：{1}", service.Name, service.Address);
 
-                    service.Client = new HttpClient
+                    service.Client = client = new HttpClient(new HttpClientHandler { UseProxy = UseProxy })
                     {
                         BaseAddress = service.Address,
                         Timeout = TimeSpan.FromMilliseconds(Timeout)
                     };
                 }
 
-                return await SendOnServiceAsync(request, service, service.Client);
+                return await SendOnServiceAsync(request, service, client);
             }
             catch (Exception)
             {
@@ -290,6 +305,8 @@ namespace NewLife.Remoting
                 // 如果成功，则直接使用
                 if (ts[i].Result >= 0)
                 {
+                    if (i != _Index) WriteLog("ApiHttp.DoTrace 地址切换 {0} => {1}", ms[_Index]?.Address, ms[i]?.Address);
+
                     _Index = i;
                     source.Cancel();
 
@@ -308,27 +325,31 @@ namespace NewLife.Remoting
         /// <returns></returns>
         protected virtual async Task<Int32> TraceService(Service service, Int32 times, CancellationToken cancellation)
         {
-            var request = BuildRequest(HttpMethod.Get, "api", null, null);
-            var client = service.Client ?? new HttpClient
-            {
-                BaseAddress = service.Address,
-                Timeout = TimeSpan.FromMilliseconds(Timeout)
-            };
-
             // 每个任务若干次，任意一次成功
             for (var i = 0; i < times && !cancellation.IsCancellationRequested; i++)
             {
                 try
                 {
+                    var request = BuildRequest(HttpMethod.Get, "api", null, null);
+                    var client = new HttpClient(new HttpClientHandler { UseProxy = UseProxy })
+                    {
+                        BaseAddress = service.Address,
+                        Timeout = TimeSpan.FromMilliseconds(Timeout)
+                    };
+
                     var rs = await client.SendAsync(request);
                     if (rs != null)
                     {
+                        // 该地址可用
                         service.Client = client;
                         return i;
                     }
                 }
                 catch { }
             }
+
+            // 当前地址不可用
+            WriteLog("ApiHttp.TraceService 地址不可用 :{0}", service.Address);
 
             return -1;
         }

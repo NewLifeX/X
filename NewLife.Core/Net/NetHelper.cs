@@ -8,7 +8,6 @@ using System.Runtime.InteropServices;
 using NewLife.Collections;
 using NewLife.IP;
 using NewLife.Log;
-using NewLife.Model;
 using NewLife.Net;
 
 namespace System
@@ -295,7 +294,7 @@ namespace System
             return ips;
         }
 
-        private static DictionaryCache<Int32, IPAddress[]> _ips = new DictionaryCache<Int32, IPAddress[]> { Expire = 60/*, Asynchronous = true*/ };
+        private static readonly DictionaryCache<Int32, IPAddress[]> _ips = new DictionaryCache<Int32, IPAddress[]> { Expire = 60/*, Asynchronous = true*/ };
         /// <summary>获取本机可用IP地址，缓存60秒，异步更新</summary>
         /// <returns></returns>
         public static IPAddress[] GetIPsWithCache()
@@ -333,7 +332,7 @@ namespace System
             foreach (var item in NetworkInterface.GetAllNetworkInterfaces())
             {
                 if (_Excludes.Any(e => item.Description.Contains(e))) continue;
-                if (item.Speed < 1_000_000) continue;
+                if (NewLife.Runtime.Windows && item.Speed < 1_000_000) continue;
 
                 var ips = item.GetIPProperties();
                 var addrs = ips.UnicastAddresses
@@ -354,7 +353,7 @@ namespace System
             foreach (var item in NetworkInterface.GetAllNetworkInterfaces())
             {
                 if (_Excludes.Any(e => item.Description.Contains(e))) continue;
-                if (item.Speed < 1_000_000) continue;
+                if (NewLife.Runtime.Windows && item.Speed < 1_000_000) continue;
 
                 var ips = item.GetIPProperties();
                 var addrs = ips.UnicastAddresses
@@ -399,7 +398,7 @@ namespace System
             }
         }
 
-        static void Wake(String mac)
+        private static void Wake(String mac)
         {
             mac = mac.Replace("-", null).Replace(":", null);
             var buffer = new Byte[mac.Length / 2];
@@ -524,17 +523,12 @@ namespace System
         {
             if (local == null) throw new ArgumentNullException(nameof(local));
 
-            switch (local.Type)
+            return local.Type switch
             {
-                case NetType.Tcp:
-                    return new TcpSession { Local = local };
-                case NetType.Udp:
-                    return new UdpServer { Local = local };
-                //case NetType.Http:
-                //    return new HttpClient { Local = local };
-                default:
-                    throw new NotSupportedException("不支持{0}协议".F(local.Type));
-            }
+                NetType.Tcp => new TcpSession { Local = local },
+                NetType.Udp => new UdpServer { Local = local },
+                _ => throw new NotSupportedException("不支持{0}协议".F(local.Type)),
+            };
         }
 
         /// <summary>根据远程网络标识创建客户端</summary>
@@ -544,12 +538,10 @@ namespace System
         {
             if (remote == null) throw new ArgumentNullException(nameof(remote));
 
-            switch (remote.Type)
+            return remote.Type switch
             {
-                case NetType.Tcp:
-                    return new TcpSession { Remote = remote };
-                case NetType.Udp:
-                    return new UdpServer { Remote = remote };
+                NetType.Tcp => new TcpSession { Remote = remote },
+                NetType.Udp => new UdpServer { Remote = remote },
                 //case NetType.Http:
                 //    var http = new HttpClient { Remote = remote };
                 //    //http.IsSSL = remote.Protocol.EqualIgnoreCase("https");
@@ -559,9 +551,8 @@ namespace System
                 //    //ws.IsSSL = remote.Protocol.EqualIgnoreCase("https");
                 //    ws.IsWebSocket = true;
                 //    return ws;
-                default:
-                    throw new NotSupportedException("不支持{0}协议".F(remote.Type));
-            }
+                _ => throw new NotSupportedException("不支持{0}协议".F(remote.Type)),
+            };
         }
 
         ///// <summary>根据远程网络标识创建客户端</summary>

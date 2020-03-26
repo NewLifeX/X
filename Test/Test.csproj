@@ -41,11 +41,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
-    <PackageReference Include="System.Text.Encoding.CodePages">
-      <Version>4.7.0</Version>
-    </PackageReference>
-  </ItemGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="del &quot;$(TargetDir)*.xml&quot; /q" />
   </Target>

@@ -32,6 +32,9 @@ namespace NewLife.Serialization
         /// <summary>忽略注释。默认true</summary>
         public Boolean IgnoreComment { get; set; } = true;
 
+        /// <summary>忽略循环引用。遇到循环引用时写{}，默认true</summary>
+        public Boolean IgnoreCircle { get; set; } = true;
+
         /// <summary>枚举使用字符串。默认false使用数字</summary>
         public Boolean EnumString { get; set; }
 
@@ -41,7 +44,7 @@ namespace NewLife.Serialization
         /// <summary>智能缩进，内层不换行。默认false</summary>
         public Boolean SmartIndented { get; set; }
 
-        /// <summary>最大序列化深度。默认5</summary>
+        /// <summary>最大序列化深度。超过时不再序列化，而不是抛出异常，默认5</summary>
         public Int32 MaxDepth { get; set; } = 5;
 
         private readonly StringBuilder _Builder = new StringBuilder();
@@ -233,21 +236,34 @@ namespace NewLife.Serialization
         }
 
         Int32 _depth = 0;
-        private readonly Dictionary<Object, Int32> _cirobj = new Dictionary<Object, Int32>();
+        private readonly ICollection<Object> _cirobj = new HashSet<Object>();
         private void WriteObject(Object obj)
         {
-            if (!_cirobj.TryGetValue(obj, out _)) _cirobj.Add(obj, _cirobj.Count + 1);
+            // 循环引用
+            if (IgnoreCircle && _cirobj.Contains(obj))
+            {
+                _Builder.Append("{}");
+                return;
+            }
+            _cirobj.Add(obj);
+
+            if (_depth + 1 > MaxDepth)
+            {
+                //throw new Exception("超过了序列化最大深度 " + MaxDepth);
+                _Builder.Append("{}");
+                return;
+            }
 
             _Builder.Append('{');
             //WriteLeftIndent();
 
             _depth++;
-            if (_depth > MaxDepth) throw new Exception("超过了序列化最大深度 " + MaxDepth);
 
             var t = obj.GetType();
 
             var forceIndent = false;
             var first = true;
+            var hs = new HashSet<String>();
             foreach (var pi in t.GetProperties(true))
             {
                 if (IgnoreReadOnlyProperties && pi.CanRead && !pi.CanWrite) continue;
@@ -259,24 +275,36 @@ namespace NewLife.Serialization
                     String comment = null;
                     if (!IgnoreComment && Indented) comment = pi.GetDisplayName() ?? pi.GetDescription();
 
-                    WriteMember(name, value, comment, ref forceIndent, ref first);
+                    if (!hs.Contains(name))
+                    {
+                        hs.Add(name);
+                        WriteMember(name, value, comment, ref forceIndent, ref first);
+                    }
                 }
             }
 
             // 扩展数据
-            if (obj is IExtend2 ext2 && ext2.Keys != null)
-            {
-                foreach (var item in ext2.Keys)
-                {
-                    var value = ext2[item];
-                    WriteMember(item, value, null, ref forceIndent, ref first);
-                }
-            }
             if (obj is IExtend3 ext3 && ext3.Items != null)
             {
                 foreach (var item in ext3.Items)
                 {
-                    WriteMember(item.Key, item.Value, null, ref forceIndent, ref first);
+                    if (!hs.Contains(item.Key))
+                    {
+                        hs.Add(item.Key);
+                        WriteMember(item.Key, item.Value, null, ref forceIndent, ref first);
+                    }
+                }
+            }
+            else if (obj is IExtend2 ext2 && ext2.Keys != null)
+            {
+                foreach (var item in ext2.Keys)
+                {
+                    if (!hs.Contains(item))
+                    {
+                        hs.Add(item);
+                        var value = ext2[item];
+                        WriteMember(item, value, null, ref forceIndent, ref first);
+                    }
                 }
             }
 

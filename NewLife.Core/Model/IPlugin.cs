@@ -109,7 +109,7 @@ namespace NewLife.Model
 
             var list = new List<Type>();
             // 此时是加载所有插件，无法识别哪些是需要的
-            foreach (var item in typeof(IPlugin).GetAllSubclasses(true))
+            foreach (var item in typeof(IPlugin).GetAllSubclasses())
             {
                 if (item != null)
                 {

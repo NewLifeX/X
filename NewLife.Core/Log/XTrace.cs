@@ -268,8 +268,8 @@ namespace NewLife.Log
         /// <summary>文本日志目录</summary>
         public static String LogPath { get; set; } = Setting.Current.LogPath;
 
-        /// <summary>临时目录</summary>
-        public static String TempPath { get; set; } = Setting.Current.TempPath;
+        ///// <summary>临时目录</summary>
+        //public static String TempPath { get; set; } = Setting.Current.TempPath;
         #endregion
 
         #region 版本信息
@@ -297,7 +297,11 @@ namespace NewLife.Log
             {
                 var ver = "";
                 var tar = asm.GetCustomAttribute<TargetFrameworkAttribute>();
-                if (tar != null) ver = tar.FrameworkDisplayName ?? tar.FrameworkName;
+                if (tar != null)
+                {
+                    ver = tar.FrameworkDisplayName;
+                    if (ver.IsNullOrEmpty()) ver = tar.FrameworkName;
+                }
 
                 WriteLine("{0} v{1} Build {2:yyyy-MM-dd HH:mm:ss} {3}", asmx.Name, asmx.FileVersion, asmx.Compile, ver);
                 var att = asmx.Asm.GetCustomAttribute<AssemblyCopyrightAttribute>();

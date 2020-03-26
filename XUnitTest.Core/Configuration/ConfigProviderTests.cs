@@ -80,9 +80,9 @@ namespace XUnitTest.Configuration
             Assert.Equal(ci2, ci3);
         }
 
-        public void GetSet()
-        {
+        //public void GetSet()
+        //{
 
-        }
+        //}
     }
 }

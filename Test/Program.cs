@@ -2,14 +2,12 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
 using System.Linq;
 using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
-using System.Threading.Tasks;
 using NewLife;
 using NewLife.Caching;
 using NewLife.Log;
@@ -22,9 +20,8 @@ using XCode.Code;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 using XCode.Service;
-using NewLife.Http;
-using NewLife.IO;
 using XCode;
+using System.Net;
 #if !NET4
 using TaskEx = System.Threading.Tasks.Task;
 #endif
@@ -37,7 +34,7 @@ namespace Test
         {
             Environment.SetEnvironmentVariable("DOTNET_SYSTEM_GLOBALIZATION_INVARIANT", "1");
 
-            MachineInfo.RegisterAsync(5_000);
+            MachineInfo.RegisterAsync();
             //XTrace.Log = new NetworkLog();
             XTrace.UseConsole();
 #if DEBUG
@@ -50,7 +47,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test2();
+                Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -73,12 +70,9 @@ namespace Test
         {
             XTrace.WriteLine("FullPath:{0}", ".".GetFullPath());
             XTrace.WriteLine("BasePath:{0}", ".".GetBasePath());
+            XTrace.WriteLine("TempPath:{0}", Path.GetTempPath());
 
-            //var mi = new MachineInfo();
-            //mi.Init();
-
-            Thread.Sleep(1000);
-            var mi = MachineInfo.Current;
+            var mi = MachineInfo.Current ?? MachineInfo.RegisterAsync().Result;
 
             foreach (var pi in mi.GetType().GetProperties())
             {
@@ -104,8 +98,9 @@ namespace Test
             mi = MachineInfo.Current;
             for (var i = 0; i < 100; i++)
             {
-                XTrace.WriteLine("{0} {1} {2}", mi.CpuRate, mi.Temperature, (Double)mi.AvailableMemory / 1024 / 1024);
+                XTrace.WriteLine("CPU={0:p2} Temp={1} Memory={2:n0}", mi.CpuRate, mi.Temperature, (Double)mi.AvailableMemory / 1024 / 1024);
                 Thread.Sleep(1000);
+                mi.Refresh();
             }
 
             Console.ReadKey();
@@ -113,27 +108,11 @@ namespace Test
 
         static async void Test2()
         {
-            //LogProvider.Provider.WriteLog("test", "xxx", "yyy");
+            var n = UserX.Meta.Count;
+            var dal = UserX.Meta.Session.Dal;
+            var tables = EntityFactory.GetTables(dal.ConnName, false);
 
-            var r = new Role { ID = 2, Name = "xxx", Enable = false };
-            r.Update();
-
-            //var count = Role.Meta.Count;
-
-            //var dal = Role.Meta.Session.Dal;
-            //var db = dal.Query("select * from role");
-            //var json = db.ToJson(true, false, true);
-            //XTrace.WriteLine(json);
-
-            //json = db.ToJson();
-            //XTrace.WriteLine(json);
-
-            //db = dal.Query("select id,name,enable 启用 from role");
-            //json = db.ToJson(true, false, true);
-            //XTrace.WriteLine(json);
-
-            //var names = Log.FindAllCategoryName();
-            //Console.WriteLine(names.ToJson());
+            dal.BackupAll(tables, $"data/{dal.ConnName}.zip");
         }
 
         static void Test3()
@@ -584,47 +563,14 @@ namespace Test
             //}
         }
 
-        static async void Test9()
+        static void Test9()
         {
-            //var rds = new Redis();
-            //rds.Server = "127.0.0.1";
-            //if (rds.Pool is ObjectPool<RedisClient> pp) pp.Log = XTrace.Log;
-            //rds.Bench();
+            var str = "学无先后达者为师！学无先后达者为师！学无先后达者为师！学无先后达者为师！学无先后达者为师！学无先后达者为师！学无先后达者为师！学无先后达者为师！";
 
-            //Console.ReadKey();
-
-            var svr = new ApiServer(3379)
+            for (int i = 0; i < 1_000_000; i++)
             {
-                Log = XTrace.Log
-            };
-            svr.Start();
-
-            var client = new ApiClient("tcp://127.0.0.1:3379")
-            {
-                Log = XTrace.Log
-            };
-            client.Open();
-
-            for (var i = 0; i < 10; i++)
-            {
-                XTrace.WriteLine("Invoke {0}", i);
-                var sw = Stopwatch.StartNew();
-                var rs = await client.InvokeAsync<String[]>("Api/All");
-                sw.Stop();
-                XTrace.WriteLine("{0}=> {1:n0}us", i, sw.Elapsed.TotalMilliseconds * 1000);
-                //XTrace.WriteLine(rs.Join(","));
+                XTrace.WriteLine(str);
             }
-
-            Console.WriteLine();
-            Parallel.For(0, 10, async i =>
-            {
-                XTrace.WriteLine("Invoke {0}", i);
-                var sw = Stopwatch.StartNew();
-                var rs = await client.InvokeAsync<String[]>("Api/All");
-                sw.Stop();
-                XTrace.WriteLine("{0}=> {1:n0}us", i, sw.Elapsed.TotalMilliseconds * 1000);
-                //XTrace.WriteLine(rs.Join(","));
-            });
         }
 
         static void Test10()

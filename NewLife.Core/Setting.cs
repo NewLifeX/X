@@ -24,6 +24,22 @@ namespace NewLife
         [Description("文件日志目录。默认Log子目录，web上一级Log")]
         public String LogPath { get; set; } = "";
 
+        /// <summary>日志文件上限。超过上限后拆分新日志文件，默认10MB，0表示不限制大小</summary>
+        [Description("日志文件上限。超过上限后拆分新日志文件，默认10MB，0表示不限制大小")]
+        public Int32 LogFileMaxBytes { get; set; } = 10;
+
+        /// <summary>日志文件备份。超过备份数后，最旧的文件将被删除，默认100，0表示不限制个数</summary>
+        [Description("日志文件备份。超过备份数后，最旧的文件将被删除，默认100，0表示不限制个数")]
+        public Int32 LogFileBackups { get; set; } = 100;
+
+        /// <summary>日志文件格式。默认{0:yyyy_MM_dd}.log</summary>
+        [Description("日志文件格式。默认{0:yyyy_MM_dd}.log")]
+        public String LogFileFormat { get; set; } = "{0:yyyy_MM_dd}.log";
+
+        /// <summary>网络日志。本地子网日志广播255.255.255.255:514</summary>
+        [Description("网络日志。本地子网日志广播255.255.255.255:514")]
+        public String NetworkLog { get; set; } = "";
+
         /// <summary>数据目录。本地数据库目录，默认Data子目录，web上一级Data</summary>
         [Description("数据目录。本地数据库目录，默认Data子目录，web上一级Data")]
         public String DataPath { get; set; } = "";
@@ -32,17 +48,9 @@ namespace NewLife
         [Description("备份目录。备份数据库时存放的目录，默认Backup子目录，web上一级Backup")]
         public String BackupPath { get; set; } = "";
 
-        /// <summary>网络日志。本地子网日志广播255.255.255.255:514</summary>
-        [Description("网络日志。本地子网日志广播255.255.255.255:514")]
-        public String NetworkLog { get; set; } = "";
-
-        /// <summary>日志文件格式</summary>
-        [Description("日志文件格式。默认{0:yyyy_MM_dd}.log")]
-        public String LogFileFormat { get; set; } = "{0:yyyy_MM_dd}.log";
-
-        /// <summary>临时目录。默认Temp子目录，web上一级Temp</summary>
-        [Description("临时目录。默认Temp子目录，web上一级Temp")]
-        public String TempPath { get; set; } = "";
+        ///// <summary>临时目录。默认Temp子目录，web上一级Temp</summary>
+        //[Description("临时目录。默认Temp子目录，web上一级Temp")]
+        //public String TempPath { get; set; } = "";
 
         /// <summary>插件目录</summary>
         [Description("插件目录")]
@@ -62,7 +70,7 @@ namespace NewLife
             if (LogPath.IsNullOrEmpty()) LogPath = web ? "..\\Log" : "Log";
             if (DataPath.IsNullOrEmpty()) DataPath = web ? "..\\Data" : "Data";
             if (BackupPath.IsNullOrEmpty()) BackupPath = web ? "..\\Backup" : "Backup";
-            if (TempPath.IsNullOrEmpty()) TempPath = web ? "..\\Temp" : "Temp";
+            //if (TempPath.IsNullOrEmpty()) TempPath = web ? "..\\Temp" : "Temp";
             if (LogFileFormat.IsNullOrEmpty()) LogFileFormat = "{0:yyyy_MM_dd}.log";
 
             if (PluginServer.IsNullOrWhiteSpace()) PluginServer = "http://x.newlifex.com/";

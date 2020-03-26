@@ -626,12 +626,20 @@ namespace XCode
         /// <param name="name"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static IList<TEntity> FindAll(String name, Object value) => FindAll(new String[] { name }, new Object[] { value });
+        [Obsolete("=>FindAll(Expression where, PageParameter page = null, String selects = null)")]
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
+        public static IList<TEntity> FindAll(String name, Object value)
+        {
+            var fi = Meta.Table.FindByName(name);
+            return FindAll(fi == value, null, null, 0, 0);
+        }
 
         /// <summary>根据属性列表以及对应的值列表，查找单个实体</summary>
         /// <param name="names">属性名称集合</param>
         /// <param name="values">属性值集合</param>
         /// <returns></returns>
+        [Obsolete("=>FindAll(Expression where, PageParameter page = null, String selects = null)")]
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
         public static IList<TEntity> FindAll(String[] names, Object[] values)
         {
             var exp = new WhereExpression();
@@ -1294,7 +1302,7 @@ namespace XCode
                 // 检查动态增加的字段，返回默认值
                 var f = Meta.Table.FindByName(name) as FieldItem;
 
-                if (Extends.TryGetValue(name, out var obj))
+                if (_Items != null && _Items.TryGetValue(name, out var obj))
                 {
                     if (f != null && f.IsDynamic) return obj.ChangeType(f.Type);
 
@@ -1303,7 +1311,7 @@ namespace XCode
 
                 if (f != null && f.IsDynamic) return f.Type.CreateInstance();
 
-                if (_Extends != null) return Extends[name];
+                //if (_Extends != null) return Extends[name];
 
                 return null;
             }
@@ -1323,7 +1331,9 @@ namespace XCode
                 // 检查动态增加的字段，返回默认值
                 if (Meta.Table.FindByName(name) is FieldItem f && f.IsDynamic) value = value.ChangeType(f.Type);
 
-                Extends[name] = value;
+                //Extends[name] = value;
+                var ext = this as IExtend3;
+                ext.Items[name] = value;
             }
         }
         #endregion
@@ -1388,7 +1398,14 @@ namespace XCode
                     obj[fi.Name] = this[fi.Name];
             }
 
-            Extends.CopyTo(obj.Extends);
+            //Extends.CopyTo(obj.Extends);
+            if (_Items != null && _Items.Count > 0)
+            {
+                foreach (var item in _Items)
+                {
+                    this[item.Key] = item.Value;
+                }
+            }
 
             return obj;
         }

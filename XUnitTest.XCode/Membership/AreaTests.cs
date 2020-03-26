@@ -13,6 +13,40 @@ namespace XUnitTest.XCode.Membership
     public class AreaTests
     {
         [Fact]
+        public void FindByNamesTest()
+        {
+            var r = Area.FindByNames("广西", "玉林", "容县");
+            Assert.NotNull(r);
+            Assert.Equal(450921, r.ID);
+            Assert.Equal("广西/玉林/容县", r.Path);
+
+            r = Area.FindByNames("上海", "青浦");
+            Assert.NotNull(r);
+            Assert.Equal(310118, r.ID);
+            Assert.Equal("上海/青浦", r.Path);
+
+            r = Area.FindByNames("重庆", "万州");
+            Assert.NotNull(r);
+            Assert.Equal(500101, r.ID);
+            Assert.Equal("重庆/万州", r.Path);
+
+            r = Area.FindByNames("重庆", "巫山");
+            Assert.NotNull(r);
+            Assert.Equal(500237, r.ID);
+            Assert.Equal("重庆/巫山", r.Path);
+
+            r = Area.FindByNames("湖北", "仙桃");
+            Assert.NotNull(r);
+            Assert.Equal(429004, r.ID);
+            Assert.Equal("湖北/仙桃", r.Path);
+
+            r = Area.FindByNames("湖北", "神农架");
+            Assert.NotNull(r);
+            Assert.Equal(429021, r.ID);
+            Assert.Equal("湖北/神农架", r.Path);
+        }
+
+        [Fact]
         public async void Download()
         {
             var url = "http://www.mca.gov.cn/article/sj/xzqh/2019/2019/201912251506.html";
@@ -76,7 +110,7 @@ namespace XUnitTest.XCode.Membership
             r = Area.Find(_.Name == "仙桃");
             Assert.NotNull(r);
             Assert.NotNull(r.Parent);
-            Assert.Equal("湖北", r.Parent.Name);
+            Assert.Equal("直辖县", r.Parent.Name);
         }
 
         [Fact]

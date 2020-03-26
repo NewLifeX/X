@@ -253,6 +253,8 @@ namespace NewLife.IO
             lock (this)
             {
                 var file = GetFile();
+                if (!File.Exists(file)) return 0;
+
                 var lines = File.ReadAllLines(file, Encoding);
                 if (lines == null || lines.Length <= 1) return 0;
 

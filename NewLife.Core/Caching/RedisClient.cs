@@ -616,12 +616,12 @@ namespace NewLife.Caching
             if (value is IAccessor acc) return acc.ToPacket();
 
             var type = value.GetType();
-            switch (type.GetTypeCode())
+            return (type.GetTypeCode()) switch
             {
-                case TypeCode.Object: return value.ToJson().GetBytes();
-                case TypeCode.String: return (value as String).GetBytes();
-                default: return "{0}".F(value).GetBytes();
-            }
+                TypeCode.Object => value.ToJson().GetBytes(),
+                TypeCode.String => (value as String).GetBytes(),
+                _ => "{0}".F(value).GetBytes(),
+            };
         }
 
         /// <summary>字节数组转对象</summary>

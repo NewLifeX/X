@@ -7,8 +7,8 @@
     <Description>数据中间件，MySQL、SQLite、SqlServer、Oracle</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2020 NewLife</Copyright>
-    <Version>9.16.2020.0308</Version>
-    <FileVersion>9.16.2020.0308</FileVersion>
+    <Version>9.16.2020.0324-beta</Version>
+    <FileVersion>9.16.2020.0324-beta</FileVersion>
     <AssemblyVersion>9.16.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <OutputPath>..\..\Bin</OutputPath>
@@ -114,17 +114,22 @@
     <None Include="..\Doc\logo.ico" Link="logo.ico" Pack="true" PackagePath="\" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="Membership\生成实体类.log">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>生成实体类.tt</DependentUpon>
-    </None>
-    <None Update="Membership\生成实体类.tt">
+    <None Update="Membership\Build.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>生成实体类.log</LastGenOutput>
+      <LastGenOutput>Build.log</LastGenOutput>
     </None>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net45'">
+    <PackageReference Include="System.IO.Compression">
+      <Version>4.3.0</Version>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="System.IO.Compression">
+      <Version>4.3.0</Version>
+    </PackageReference>
   </ItemGroup>
 </Project>

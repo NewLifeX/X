@@ -2,8 +2,8 @@
 using System.ComponentModel;
 using System.IO;
 using System.Xml.Serialization;
+using Xunit;
 
-#if DEBUG
 namespace NewLife.Json
 {
     /// <summary>
@@ -14,6 +14,7 @@ namespace NewLife.Json
         /// <summary>
         /// 开始测试
         /// </summary>
+        [Fact]
         public static void Start()
         {
             Console.WriteLine("测试Json配置文件功能\r\n");
@@ -82,4 +83,3 @@ namespace NewLife.Json
         public Int32 Height { get; set; } = 520;
     }
 }
-#endif

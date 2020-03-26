@@ -22,7 +22,7 @@ namespace XUnitTest.Common
             Assert.NotEmpty(mi.Processor);
             Assert.NotEmpty(mi.CpuID);
             Assert.NotEmpty(mi.UUID);
-            //Assert.NotEmpty(mi.Guid);
+            Assert.NotEmpty(mi.Guid);
             Assert.NotNull(mi.Guid);
 
             Assert.True(mi.Memory > 1L * 1024 * 1024 * 1024);
@@ -41,7 +41,7 @@ namespace XUnitTest.Common
             var mi2 = ObjectContainer.Current.Resolve<MachineInfo>();
             Assert.Equal(mi, mi2);
 
-            var file = XTrace.TempPath.CombinePath("machine.info").GetFullPath();
+            var file = Path.GetTempPath().CombinePath("machine_info.json").GetFullPath();
             Assert.True(File.Exists(file));
 
             var mi3 = File.ReadAllText(file).ToJsonEntity<MachineInfo>();

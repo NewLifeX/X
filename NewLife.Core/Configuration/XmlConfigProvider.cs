@@ -174,9 +174,12 @@ namespace NewLife.Configuration
             writer.WriteStartElement(name);
             //writer.WriteStartAttribute(name);
 
-            foreach (var item in section.Childs)
+            if (section != null && section.Childs != null)
             {
-                writer.WriteAttributeString(item.Key, item.Value + "");
+                foreach (var item in section.Childs)
+                {
+                    writer.WriteAttributeString(item.Key, item.Value + "");
+                }
             }
 
             if (writer.WriteState == WriteState.Attribute)

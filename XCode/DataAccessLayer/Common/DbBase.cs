@@ -348,6 +348,7 @@ namespace XCode.DataAccessLayer
                     else
                         platform = "win";
 
+                    links.Add($"{name}.{platform}");
                     links.Add($"{name}.{platform}-{arch}");
 #else
                     if (Environment.Is64BitProcess) linkName += "64";
