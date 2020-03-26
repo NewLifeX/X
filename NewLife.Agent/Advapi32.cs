@@ -401,6 +401,8 @@ namespace NewLife.Agent
                                                     Int32 dwErrorControl, String lpPathName, String lpLoadOrderGroup,
                                                     Int32 lpdwTagId, String lpDependencies, String lpServiceStartName,
                                                     String lpPassword);
+        [DllImport("advapi32.dll")]
+        public static extern int DeleteService(SafeServiceHandle serviceHandle);
 
         [DllImport("advapi32.dll", CharSet = CharSet.Unicode, EntryPoint = "QueryServiceConfigW", SetLastError = true)]
         internal static extern Boolean QueryServiceConfig(SafeServiceHandle serviceHandle, IntPtr queryServiceConfigPtr, Int32 bufferSize, out Int32 bytesNeeded);

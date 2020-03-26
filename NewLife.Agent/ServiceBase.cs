@@ -332,7 +332,7 @@ namespace NewLife.Agent
             var bin = $"{exe} -s";
             //RunSC($"create {name} BinPath= \"{bin}\" start= auto DisplayName= \"{svc.DisplayName}\"");
 
-            Host.Install(ServiceName, DisplayName, bin);
+            Host.Install(ServiceName, DisplayName, bin, Description);
         }
 
         /// <summary>Exe程序名</summary>

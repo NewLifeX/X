@@ -284,12 +284,15 @@ namespace NewLife.Agent
         ///// <returns></returns>
         //public override IHostedService GetService(String serviceName) => ServiceController.GetService(serviceName);
 
-        const int SC_MANAGER_CONNECT = 0x0001;
-        const int SC_MANAGER_CREATE_SERVICE = 0x0002;
-        const int SERVICE_QUERY_CONFIG = 0x0001;
-        const int SERVICE_QUERY_STATUS = 0x0004;
-        const int SERVICE_START = 0x0010;
-        const int SERVICE_STOP = 0x0020;
+        const Int32 SC_MANAGER_CONNECT = 0x0001;
+        const Int32 SC_MANAGER_CREATE_SERVICE = 0x0002;
+        const Int32 SC_MANAGER_ALL_ACCESS = 0xF003F;
+        const Int32 SERVICE_QUERY_CONFIG = 0x0001;
+        const Int32 SERVICE_QUERY_STATUS = 0x0004;
+        const Int32 SERVICE_START = 0x0010;
+        const Int32 SERVICE_STOP = 0x0020;
+        const Int32 SERVICE_ALL_ACCESS = 0xF01FF;
+        const Int32 SERVICE_CONTROL_STOP = 0x00000001;
 
         /// <summary>服务是否已安装</summary>
         /// <param name="serviceName"></param>
@@ -316,60 +319,90 @@ namespace NewLife.Agent
             using var service = new SafeServiceHandle(Advapi32.OpenService(manager, serviceName, SERVICE_QUERY_STATUS));
             if (service == null || service.IsInvalid) return false;
 
-            Advapi32.SERVICE_STATUS sERVICE_STATUS = default;
-            if (!Advapi32.QueryServiceStatus(service, &sERVICE_STATUS))
+            Advapi32.SERVICE_STATUS status = default;
+            if (!Advapi32.QueryServiceStatus(service, &status))
                 throw new Win32Exception(Marshal.GetLastWin32Error());
 
-            return sERVICE_STATUS.currentState == 4;
+            return status.currentState == 4;
         }
 
-        public override Boolean Install(String serviceName, String displayName, String binPath)
+        /// <summary>安装服务</summary>
+        /// <param name="serviceName"></param>
+        /// <param name="displayName"></param>
+        /// <param name="binPath"></param>
+        /// <param name="description"></param>
+        /// <returns></returns>
+        public override Boolean Install(String serviceName, String displayName, String binPath, String description)
         {
             using var manager = new SafeServiceHandle(Advapi32.OpenSCManager(null, null, SC_MANAGER_CREATE_SERVICE));
             if (manager.IsInvalid) throw new Win32Exception(Marshal.GetLastWin32Error());
 
-            using var svc = new SafeServiceHandle(Advapi32.CreateService(manager, serviceName, displayName, 0xF01FF, 0x10, 2, 1, binPath, null, 0, null, null, null));
-            if (svc.IsInvalid) throw new Win32Exception(Marshal.GetLastWin32Error());
+            using var service = new SafeServiceHandle(Advapi32.CreateService(manager, serviceName, displayName, SERVICE_ALL_ACCESS, 0x10, 2, 1, binPath, null, 0, null, null, null));
+            if (service.IsInvalid) throw new Win32Exception(Marshal.GetLastWin32Error());
 
             return true;
         }
 
-        public override Boolean Uninstall(String serviceName) { return false; }
-
-        public override Boolean Start(String serviceName)
+        /// <summary>卸载服务</summary>
+        /// <param name="serviceName"></param>
+        /// <returns></returns>
+        public override unsafe Boolean Uninstall(String serviceName)
         {
-            GCHandle val = default;
-            try
-            {
-                using var manager = new SafeServiceHandle(Advapi32.OpenSCManager(null, null, SC_MANAGER_CONNECT));
-                if (manager == null || manager.IsInvalid) return false;
+            using var manager = new SafeServiceHandle(Advapi32.OpenSCManager(null, null, SC_MANAGER_ALL_ACCESS));
+            if (manager.IsInvalid) throw new Win32Exception(Marshal.GetLastWin32Error());
 
-                using var service = new SafeServiceHandle(Advapi32.OpenService(manager, serviceName, SERVICE_START));
-                if (service == null || service.IsInvalid) return false;
+            var DELETE = 0x10000;
+            using var service = new SafeServiceHandle(Advapi32.OpenService(manager, serviceName, SERVICE_STOP | DELETE));
+            if (service.IsInvalid) throw new Win32Exception(Marshal.GetLastWin32Error());
 
-                var array = new IntPtr[0];
-                val = GCHandle.Alloc(array, GCHandleType.Pinned);
-                if (!Advapi32.StartService(service, 0, val.AddrOfPinnedObject()))
-                    throw new Win32Exception(Marshal.GetLastWin32Error());
+            Advapi32.SERVICE_STATUS status = default;
+            Advapi32.ControlService(service, SERVICE_CONTROL_STOP, &status);
 
-                return true;
-            }
-            finally
-            {
-                if (val.IsAllocated) val.Free();
-            }
+            return Advapi32.DeleteService(service) != 0;
         }
 
+        /// <summary>启动服务</summary>
+        /// <param name="serviceName"></param>
+        /// <returns></returns>
+        public override Boolean Start(String serviceName)
+        {
+            //GCHandle val = default;
+            //try
+            //{
+            using var manager = new SafeServiceHandle(Advapi32.OpenSCManager(null, null, SC_MANAGER_CONNECT));
+            if (manager.IsInvalid) throw new Win32Exception(Marshal.GetLastWin32Error());
+
+            using var service = new SafeServiceHandle(Advapi32.OpenService(manager, serviceName, SERVICE_START));
+            if (service.IsInvalid) throw new Win32Exception(Marshal.GetLastWin32Error());
+
+            //var array = new IntPtr[0];
+            //val = GCHandle.Alloc(array, GCHandleType.Pinned);
+            //if (!Advapi32.StartService(service, 0, val.AddrOfPinnedObject()))
+            //    throw new Win32Exception(Marshal.GetLastWin32Error());
+            if (!Advapi32.StartService(service, 0, IntPtr.Zero))
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+
+            return true;
+            //}
+            //finally
+            //{
+            //    if (val.IsAllocated) val.Free();
+            //}
+        }
+
+        /// <summary>停止服务</summary>
+        /// <param name="serviceName"></param>
+        /// <returns></returns>
         public override unsafe Boolean Stop(String serviceName)
         {
-            using var manager = new SafeServiceHandle(Advapi32.OpenSCManager(null, null, SC_MANAGER_CONNECT));
-            if (manager == null || manager.IsInvalid) return false;
+            using var manager = new SafeServiceHandle(Advapi32.OpenSCManager(null, null, SC_MANAGER_ALL_ACCESS));
+            if (manager.IsInvalid) throw new Win32Exception(Marshal.GetLastWin32Error());
 
             using var service = new SafeServiceHandle(Advapi32.OpenService(manager, serviceName, SERVICE_STOP));
-            if (service == null || service.IsInvalid) return false;
+            if (service.IsInvalid) throw new Win32Exception(Marshal.GetLastWin32Error());
 
-            Advapi32.SERVICE_STATUS sERVICE_STATUS = default;
-            if (!Advapi32.ControlService(service, 1, &sERVICE_STATUS))
+            Advapi32.SERVICE_STATUS status = default;
+            if (!Advapi32.ControlService(service, SERVICE_CONTROL_STOP, &status))
                 throw new Win32Exception(Marshal.GetLastWin32Error());
 
             return true;

@@ -36,7 +36,7 @@ namespace NewLife.Agent
         /// <returns></returns>
         Boolean IsRunning(String serviceName);
 
-        Boolean Install(String serviceName, String displayName, String binPath);
+        Boolean Install(String serviceName, String displayName, String binPath, String description);
         Boolean Uninstall(String serviceName);
         Boolean Start(String serviceName);
         Boolean Stop(String serviceName);
@@ -95,7 +95,7 @@ namespace NewLife.Agent
 
         public virtual Boolean IsRunning(String serviceName) => false;
 
-        public virtual Boolean Install(String serviceName, String displayName, String binPath) => false;
+        public virtual Boolean Install(String serviceName, String displayName, String binPath, String description) => false;
         public virtual Boolean Uninstall(String serviceName) => false;
         public virtual Boolean Start(String serviceName) => false;
         public virtual Boolean Stop(String serviceName) => false;
