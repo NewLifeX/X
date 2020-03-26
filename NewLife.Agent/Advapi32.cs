@@ -395,6 +395,13 @@ namespace NewLife.Agent
         [DllImport("advapi32.dll", CharSet = CharSet.Unicode, EntryPoint = "OpenServiceW", SetLastError = true)]
         internal static extern IntPtr OpenService(SafeServiceHandle databaseHandle, String serviceName, Int32 access);
 
+        [DllImport("Advapi32.dll")]
+        internal static extern IntPtr CreateService(SafeServiceHandle databaseHandle, String lpSvcName, String lpDisplayName,
+                                                    Int32 dwDesiredAccess, Int32 dwServiceType, Int32 dwStartType,
+                                                    Int32 dwErrorControl, String lpPathName, String lpLoadOrderGroup,
+                                                    Int32 lpdwTagId, String lpDependencies, String lpServiceStartName,
+                                                    String lpPassword);
+
         [DllImport("advapi32.dll", CharSet = CharSet.Unicode, EntryPoint = "QueryServiceConfigW", SetLastError = true)]
         internal static extern Boolean QueryServiceConfig(SafeServiceHandle serviceHandle, IntPtr queryServiceConfigPtr, Int32 bufferSize, out Int32 bytesNeeded);
 

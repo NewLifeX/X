@@ -592,8 +592,8 @@ namespace Test
         static void Test11()
         {
             var set = NewLife.Agent.Setting.Current;
-            set.ServiceName = "Fax";
-            set.ServiceName = "Dhcp";
+            //set.ServiceName = "Fax";
+            //set.ServiceName = "Dhcp";
 
             var svc = new AgentService();
 

@@ -88,7 +88,7 @@ namespace NewLife.Agent
                         DoLoop();
                         break;
                     case "-i":
-                        Host.Install(this);
+                        Install();
                         break;
                     case "-u":
                         Host.Uninstall(ServiceName);
@@ -126,10 +126,9 @@ namespace NewLife.Agent
             Console.WriteLine("描述：{0}", Description);
             Console.Write("状态：");
 
-            var svc = Host.GetService(name);
-            if (svc == null)
+            if (!Host.IsInstalled(name))
                 Console.WriteLine("未安装");
-            else if (svc.Running)
+            else if (Host.IsRunning(name))
                 Console.WriteLine("运行中");
             else
                 Console.WriteLine("未启动");
@@ -162,7 +161,6 @@ namespace NewLife.Agent
                 Console.WriteLine();
                 Console.WriteLine();
 
-                var svc = Host.GetService(name);
                 switch (key.KeyChar)
                 {
                     case '1':
@@ -171,13 +169,13 @@ namespace NewLife.Agent
 
                         break;
                     case '2':
-                        if (svc != null)
+                        if (Host.IsInstalled(name))
                             Host.Uninstall(name);
                         else
-                            Host.Install(this);
+                            Install();
                         break;
                     case '3':
-                        if (svc.Running)
+                        if (Host.IsRunning(name))
                             Host.Stop(name);
                         else
                             Host.Start(name);
@@ -222,11 +220,12 @@ namespace NewLife.Agent
             Console.WriteLine();
             Console.WriteLine("1 显示状态");
 
-            var svc = Host.GetService(name);
-            if (svc != null)
+            var run = false;
+            if (Host.IsInstalled(name))
             {
-                if (svc.Running)
+                if (Host.IsRunning(name))
                 {
+                    run = true;
                     Console.WriteLine("3 停止服务 -stop");
                 }
                 else
@@ -241,7 +240,7 @@ namespace NewLife.Agent
                 Console.WriteLine("2 安装服务 -i");
             }
 
-            if (svc == null || !svc.Running)
+            if (!run)
             {
                 Console.WriteLine("5 循环调试 -run");
             }
@@ -317,6 +316,34 @@ namespace NewLife.Agent
             _Timer.TryDispose();
 
             WriteLog("服务停止 {0}", reason);
+        }
+
+        private void Install()
+        {
+            var exe = GetExeName();
+
+            // 兼容dotnet
+            var args = Environment.GetCommandLineArgs();
+            if (args.Length >= 1 && Path.GetFileName(exe).EqualIgnoreCase("dotnet", "dotnet.exe"))
+                exe += " " + args[0].GetFullPath();
+            //else
+            //    exe = exe.GetFullPath();
+
+            var bin = $"{exe} -s";
+            //RunSC($"create {name} BinPath= \"{bin}\" start= auto DisplayName= \"{svc.DisplayName}\"");
+
+            Host.Install(ServiceName, DisplayName, bin);
+        }
+
+        /// <summary>Exe程序名</summary>
+        static String GetExeName()
+        {
+            var p = Process.GetCurrentProcess();
+            var filename = p.MainModule.FileName;
+            //filename = Path.GetFileName(filename);
+            filename = filename.Replace(".vshost.", ".");
+
+            return filename;
         }
         #endregion
 

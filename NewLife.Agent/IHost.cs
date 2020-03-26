@@ -21,25 +21,25 @@ namespace NewLife.Agent
         ///// <returns></returns>
         //Task StopAsync(CancellationToken cancellationToken = default);
 
-        /// <summary>获取托管服务</summary>
+        ///// <summary>获取托管服务</summary>
+        ///// <param name="serviceName"></param>
+        ///// <returns></returns>
+        //IHostedService GetService(String serviceName);
+
+        /// <summary>服务是否已安装</summary>
         /// <param name="serviceName"></param>
         /// <returns></returns>
-        IHostedService GetService(String serviceName);
+        Boolean IsInstalled(String serviceName);
 
-        ///// <summary>服务是否已安装</summary>
-        ///// <param name="serviceName"></param>
-        ///// <returns></returns>
-        //Boolean? IsInstalled(String serviceName);
+        /// <summary>服务是否已启动</summary>
+        /// <param name="serviceName"></param>
+        /// <returns></returns>
+        Boolean IsRunning(String serviceName);
 
-        ///// <summary>服务是否已启动</summary>
-        ///// <param name="serviceName"></param>
-        ///// <returns></returns>
-        //Boolean? IsRunning(String serviceName);
-
-        void Install(IHostedService service);
-        void Uninstall(String serviceName);
-        void Start(String serviceName);
-        void Stop(String serviceName);
+        Boolean Install(String serviceName, String displayName, String binPath);
+        Boolean Uninstall(String serviceName);
+        Boolean Start(String serviceName);
+        Boolean Stop(String serviceName);
     }
 
     /// <summary>服务主机。用于管理控制服务</summary>
@@ -86,17 +86,18 @@ namespace NewLife.Agent
         //    }
         //}
 
-        /// <summary>获取托管服务</summary>
-        /// <param name="serviceName"></param>
-        /// <returns></returns>
-        public virtual IHostedService GetService(String serviceName) => null;
+        ///// <summary>获取托管服务</summary>
+        ///// <param name="serviceName"></param>
+        ///// <returns></returns>
+        //public virtual IHostedService GetService(String serviceName) => null;
 
-        public virtual Boolean? IsInstalled(String serviceName) => null;
+        public virtual Boolean IsInstalled(String serviceName) => false;
 
-        public virtual Boolean? IsRunning(String serviceName) => null;
-        public virtual void Install(IHostedService service) { }
-        public virtual void Uninstall(String serviceName) { }
-        public virtual void Start(String serviceName) { }
-        public virtual void Stop(String serviceName) { }
+        public virtual Boolean IsRunning(String serviceName) => false;
+
+        public virtual Boolean Install(String serviceName, String displayName, String binPath) => false;
+        public virtual Boolean Uninstall(String serviceName) => false;
+        public virtual Boolean Start(String serviceName) => false;
+        public virtual Boolean Stop(String serviceName) => false;
     }
 }
