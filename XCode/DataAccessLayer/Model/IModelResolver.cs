@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Text;
+using NewLife.Collections;
 using XCode.Model;
 
 namespace XCode.DataAccessLayer
@@ -9,6 +10,11 @@ namespace XCode.DataAccessLayer
     public interface IModelResolver
     {
         #region 名称处理
+        /// <summary>获取别名。过滤特殊符号，过滤_之类的前缀。</summary>
+        /// <param name="name">名称</param>
+        /// <returns></returns>
+        String GetName(String name);
+
         /// <summary>根据字段名等信息计算索引的名称</summary>
         /// <param name="di"></param>
         /// <returns></returns>
@@ -41,7 +47,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual String GetName(String name)
         {
-            if (String.IsNullOrEmpty(name)) return name;
+            if (name.IsNullOrEmpty()) return name;
 
             name = name.Replace("$", null);
             name = name.Replace("(", null);
@@ -53,11 +59,11 @@ namespace XCode.DataAccessLayer
             name = name.Replace("/", "_");
             name = name.Replace("\\", "_");
 
-            // 全大写或全小写名字，格式化为驼峰格式
-            if ((name == name.ToUpper() || name == name.ToLower()))
+            // 全大写或全小写名字，格式化为驼峰格式  包含下划线的表名和字段名生成类时自动去掉下划线
+            if (name.Contains("_"))//(  name == name.ToUpper() || name == name.ToLower()))//
             {
                 var ns = name.Split("_");
-                var sb = new StringBuilder();
+                var sb = Pool.StringBuilder.Get();
                 foreach (var item in ns)
                 {
                     if (item.EqualIgnoreCase("ID"))
@@ -69,7 +75,11 @@ namespace XCode.DataAccessLayer
                         sb.Append(item.Substring(1).ToLower());
                     }
                 }
-                name = sb.ToString();
+                name = sb.Put(true);
+            }
+            else if (name != "ID" && name.Length > 2 && (name == name.ToUpper() || name == name.ToLower()))
+            {
+                name = name.Substring(0, 1).ToUpper() + name.Substring(1).ToLower();
             }
 
             return name;
@@ -82,7 +92,7 @@ namespace XCode.DataAccessLayer
         {
             if (di.Columns == null || di.Columns.Length < 1) return null;
 
-            var sb = new StringBuilder();
+            var sb = Pool.StringBuilder.Get();
             if (di.PrimaryKey)
                 sb.Append("PK");
             else if (di.Unique)
@@ -100,7 +110,7 @@ namespace XCode.DataAccessLayer
                 sb.Append("_");
                 sb.Append(di.Columns[i]);
             }
-            return sb.ToString();
+            return sb.Put(true);
         }
 
         /// <summary>获取显示名，如果描述不存在，则使用名称，否则使用描述前面部分，句号（中英文皆可）、换行分隔</summary>
@@ -136,7 +146,17 @@ namespace XCode.DataAccessLayer
         /// <param name="table"></param>
         public virtual IDataTable Fix(IDataTable table)
         {
+            // 去除表名两端的空格
+            if (!table.TableName.IsNullOrEmpty()) table.TableName = table.TableName.Trim();
             if (table.Name.IsNullOrEmpty()) table.Name = GetName(table.TableName);
+            if (!table.Name.IsNullOrEmpty()) table.Name = table.Name.Trim();
+
+            // 去除字段名两端的空格
+            foreach (var item in table.Columns)
+            {
+                if (!item.Name.IsNullOrEmpty()) item.Name = item.Name.Trim();
+                if (!item.ColumnName.IsNullOrEmpty()) item.ColumnName = item.ColumnName.Trim();
+            }
 
             // 最后修复主键
             if (table.PrimaryKeys.Length < 1)
@@ -246,14 +266,17 @@ namespace XCode.DataAccessLayer
                 if (!di.PrimaryKey) di.PrimaryKey = dcs.All(dc => dc.PrimaryKey) && di.Columns.Length == table.Columns.Count(e => e.PrimaryKey);
             }
 
+            // 干掉无效索引
+            dis.RemoveAll(di => di.Columns == null || di.Columns.Length == 0 || di.Columns.Length != table.GetColumns(di.Columns).Length);
+
             // 干掉自增列的索引
-            dis.RemoveAll(di => di.Columns.Length == 1 && table.GetColumn(di.Columns[0]).Identity);
+            dis.RemoveAll(di => di.Columns.Length == 1 && table.GetColumn(di.Columns[0]) != null && table.GetColumn(di.Columns[0]).Identity);
         }
         #endregion
 
         #region 静态实例
         /// <summary>当前名称解析器</summary>
-        public static IModelResolver Current { get { return XCodeService.Container.ResolveInstance<IModelResolver>(); } }
+        public static IModelResolver Current { get; set; } = new ModelResolver();
         #endregion
     }
 }

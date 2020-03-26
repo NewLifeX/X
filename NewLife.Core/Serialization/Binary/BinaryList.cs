@@ -21,7 +21,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override Boolean Write(Object value, Type type)
         {
-            if (!type.As<IList>()) return false;
+            if (!type.As<IList>() && !(value is IList)) return false;
 
             var list = value as IList;
             // 先写入长度

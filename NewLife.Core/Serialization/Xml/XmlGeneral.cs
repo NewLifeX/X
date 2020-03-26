@@ -42,7 +42,7 @@ namespace NewLife.Serialization
                     return true;
                 case TypeCode.DBNull:
                 case TypeCode.Empty:
-                    writer.WriteValue((Byte)0);
+                    writer.WriteValue(0);
                     return true;
                 case TypeCode.DateTime:
                     writer.WriteValue(((DateTime)value).ToFullString());
@@ -83,13 +83,14 @@ namespace NewLife.Serialization
 
             if (type == typeof(DateTimeOffset))
             {
-                writer.WriteValue((DateTimeOffset)value);
+                //writer.WriteValue((DateTimeOffset)value);
+                writer.WriteValue(((DateTimeOffset)value) + "");
                 return true;
             }
 
             if (type == typeof(TimeSpan))
             {
-                writer.WriteValue((TimeSpan)value);
+                writer.WriteValue(((TimeSpan)value) + "");
                 return true;
             }
 
@@ -143,12 +144,13 @@ namespace NewLife.Serialization
             }
             else if (type == typeof(DateTimeOffset))
             {
-                value = reader.ReadContentAs(type, null);
+                //value = reader.ReadContentAs(type, null);
+                value = DateTimeOffset.Parse(reader.ReadContentAsString());
                 return true;
             }
             else if (type == typeof(TimeSpan))
             {
-                value = reader.ReadContentAs(type, null);
+                value = TimeSpan.Parse(reader.ReadContentAsString());
                 return true;
             }
 

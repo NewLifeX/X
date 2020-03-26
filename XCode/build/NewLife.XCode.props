@@ -1,0 +1,119 @@
+﻿<Project DefaultTargets="Build"   xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Target Name = "BuildModelTarget" AfterTargets="Build" Condition="'$(MSBuildRuntimeType)'=='Full'">
+    <PropertyGroup>
+      <TargetDllDir>$(SolutionDir)DLL\</TargetDllDir>
+      <TargetContentDir>$(SolutionDir)DLL\Content\</TargetContentDir>
+      <!--FX项目迁移到包引用方式，$(RestoreProjectStyle)为空，所以还要判断是否存在$(ProjectAssetsFile)-->
+      <IsPackageReference Condition="'$(RestoreProjectStyle)' == 'PackageReference' Or Exists('$(ProjectAssetsFile)')" >true</IsPackageReference>
+    </PropertyGroup>
+    <!--core项目在vs下的值Full、命令行dotnet下的值：Core、Mono下是Mono。core版本的MSBuild有兼容问题-->
+    <!-- <Message Text="MSBuild运行类型： $(MSBuildRuntimeType)" Importance="high"  /> -->
+    <!--<Message Text="包引用方式：$(RestoreProjectStyle)" Importance="high"  />-->
+    <CopyNewLifeDll >
+      <Output TaskParameter="CoreDllPath" ItemName="SourcePath" />
+      <Output TaskParameter="XCodeDllPath" ItemName="SourcePath" />
+      <Output TaskParameter="ContentPath" ItemName="ContentPath" />
+    </CopyNewLifeDll>
+    <!--<Message Text="@(SourcePath)" Importance="high"  />-->
+    <!--<Message Text="@(SourcePath)233" Importance="high"  />-->
+    <Copy SourceFiles="@(SourcePath)" DestinationFolder="$(TargetDllDir)" Retries="10" SkipUnchangedFiles="true"></Copy>
+    <!--复制一份到项目，如果之前有，不复制-->
+    <Copy SourceFiles="@(ContentPath)" DestinationFolder="$(ProjectDir)" Retries="10" SkipUnchangedFiles="true"
+          Condition="'$(IsPackageReference)' == 'true' And !Exists('$(TargetContentDir)Build.tt')"></Copy>
+    <Copy SourceFiles="@(ContentPath)" DestinationFolder="$(TargetContentDir)" Retries="10" SkipUnchangedFiles="true"></Copy>
+    <!--<Message Text="复制Dll成功" Importance="high"  />-->
+  </Target>
+  <UsingTask TaskName="CopyNewLifeDll" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
+    <ParameterGroup>
+      <CoreDllPath ParameterType="System.String" Output="true" />
+      <XCodeDllPath ParameterType="System.String" Output="true" />
+      <ContentPath ParameterType="System.String[]" Output="true" />
+    </ParameterGroup>
+    <Task >
+      <Reference Include="System" />
+      <Reference Include="System.Xml" />
+      <Using Namespace="System" />
+      <Using Namespace="System.IO" />
+      <Using Namespace="System.Linq" />
+      <Using Namespace="System.Text.RegularExpressions" />
+      <Using Namespace="System.Xml" />
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
+            var isPackageReference = "$(RestoreProjectStyle)";
+            var solutionDir = @"$(SolutionDir)";
+            var projectPath = @"$(ProjectPath)";
+            var projectDir = @"$(ProjectDir)";            
+            var pAssetsJsonPath = @"$(ProjectAssetsFile)";
+            var nuGetPackageRoot = @"$(NuGetPackageRoot)";
+            var pkgRgx = @"""libraries"":[\s\S]*(?=""{0}/)""{0}/([^""]+)""";
+            var corePkgName = "NewLife.Core";
+            var xcodePkgName = "NewLife.XCode";
+            var coreDllName = corePkgName;
+            var xcodeDllName = xcodePkgName.TrimStart("NewLife.".ToArray());
+            var framework = "net45";
+            var coreVer = "";
+            var xcodeVer = "";
+
+            if(isPackageReference == "PackageReference" || File.Exists(pAssetsJsonPath))
+            {
+                /*
+                 * 正则匹配 project.assets.json 文件中 libraries 节点的 NewLife.Core 和 NewLife.XCode
+                 */
+
+                var result = File.ReadAllText(pAssetsJsonPath);
+
+                var coreMatch = Regex.Match(result, string.Format(pkgRgx, corePkgName.Replace(".", "\\.")));
+                var xcodeMatch = Regex.Match(result, string.Format(pkgRgx, xcodePkgName.Replace(".", "\\.")));
+
+                if (!coreMatch.Success)
+                {
+                    throw new Exception("依赖库libraries中找不到" + corePkgName);
+                }
+                if (!xcodeMatch.Success)
+                {
+                    throw new Exception("依赖库libraries中找不到" + xcodePkgName);
+                }
+
+                coreVer = coreMatch.Groups[1].Value;
+                xcodeVer = xcodeMatch.Groups[1].Value;
+                
+                CoreDllPath = Path.Combine(nuGetPackageRoot, corePkgName.ToLower(), coreVer, "lib", framework, coreDllName + ".dll");
+                var xcodeDir = Path.Combine(nuGetPackageRoot, xcodePkgName.ToLower(), xcodeVer);
+                XCodeDllPath = Path.Combine(xcodeDir, "lib", framework, xcodeDllName + ".dll");
+                var contentPath = Path.Combine(xcodeDir, "content\\");
+                if(Directory.Exists(contentPath))
+                {
+                    ContentPath = Directory.GetFiles(contentPath);                
+                }                
+            }
+            else
+            {
+                nuGetPackageRoot = Path.Combine(solutionDir, "packages");
+                var pkgCfgPath = Path.Combine(projectDir, "packages.config");
+                var pkgCfg = new XmlDocument();
+                pkgCfg.Load(pkgCfgPath);
+                var root = pkgCfg.DocumentElement;
+
+                var coreXPath = string.Format("/packages/package[@id='{0}']", corePkgName);
+                var xcodeXPath = string.Format("/packages/package[@id='{0}']", xcodePkgName);
+                //version
+                var coreNode = root.SelectSingleNode(coreXPath);                
+                var xcodeNode = root.SelectSingleNode(xcodeXPath);
+                
+                coreVer = coreNode.Attributes["version"].Value;
+                xcodeVer = xcodeNode.Attributes["version"].Value;         
+                
+                CoreDllPath = Path.Combine(nuGetPackageRoot, corePkgName.ToLower() + "." + coreVer, "lib", framework, coreDllName + ".dll");
+                var xcodeDir = Path.Combine(nuGetPackageRoot, xcodePkgName.ToLower() + "." + xcodeVer);
+                XCodeDllPath = Path.Combine(xcodeDir, "lib", framework, xcodeDllName + ".dll");
+                var contentPath = Path.Combine(xcodeDir, "content\\");
+                if(Directory.Exists(contentPath))
+                {
+                    ContentPath = Directory.GetFiles(contentPath);                
+                }  
+            }
+      ]]>
+      </Code>
+    </Task>
+  </UsingTask>
+</Project>

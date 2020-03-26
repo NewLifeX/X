@@ -2,7 +2,7 @@
 using System.Collections.Concurrent;
 using System.IO;
 using System.Text;
-using NewLife.Collections;
+using System.Threading;
 using NewLife.Threading;
 
 namespace NewLife.Log
@@ -29,10 +29,10 @@ namespace NewLife.Log
             else
                 FileFormat = Setting.Current.LogFileFormat;
 
-            _Timer = new TimerX(WriteFile, null, 1000, 1000) { Async = true };
+            _Timer = new TimerX(s => CloseFile(), null, 5_000, 5_000) { Async = true };
         }
 
-        static DictionaryCache<String, TextFileLog> cache = new DictionaryCache<String, TextFileLog>(StringComparer.OrdinalIgnoreCase);
+        static readonly ConcurrentDictionary<String, TextFileLog> cache = new ConcurrentDictionary<String, TextFileLog>(StringComparer.OrdinalIgnoreCase);
         /// <summary>每个目录的日志实例应该只有一个，所以采用静态创建</summary>
         /// <param name="path">日志目录或日志文件路径</param>
         /// <param name="fileFormat"></param>
@@ -43,7 +43,7 @@ namespace NewLife.Log
             if (path.IsNullOrEmpty()) path = Runtime.IsWeb ? "../Log" : "Log";
 
             var key = (path + fileFormat).ToLower();
-            return cache.GetItem(key, k => new TextFileLog(path, false, fileFormat));
+            return cache.GetOrAdd(key, k => new TextFileLog(path, false, fileFormat));
         }
 
         /// <summary>每个目录的日志实例应该只有一个，所以采用静态创建</summary>
@@ -51,18 +51,27 @@ namespace NewLife.Log
         /// <returns></returns>
         public static TextFileLog CreateFile(String path)
         {
-            if (String.IsNullOrEmpty(path)) return Create(path);
+            if (path.IsNullOrEmpty()) return Create(path);
 
-            var key = path.ToLower();
-            return cache.GetItem(key, k => new TextFileLog(path, true));
+            return cache.GetOrAdd(path, k => new TextFileLog(k, true));
         }
 
         /// <summary>销毁</summary>
-        public void Dispose()
+        public void Dispose() { Dispose(true); GC.SuppressFinalize(this); }
+
+        /// <summary>销毁</summary>
+        /// <param name="disposing"></param>
+        protected virtual void Dispose(Boolean disposing)
         {
-            if (LogWriter != null)
+            _Timer.TryDispose();
+
+            // 销毁前把队列日志输出
+            if (!_Logs.IsEmpty) WriteFile();
+
+            var writer = LogWriter;
+            if (writer != null)
             {
-                LogWriter.Dispose();
+                writer.TryDispose();
                 LogWriter = null;
             }
         }
@@ -79,7 +88,7 @@ namespace NewLife.Log
             get
             {
                 if (String.IsNullOrEmpty(_LogPath) && !String.IsNullOrEmpty(LogFile))
-                    _LogPath = Path.GetDirectoryName(LogFile).GetFullPath().EnsureEnd(Path.DirectorySeparatorChar.ToString());
+                    _LogPath = Path.GetDirectoryName(LogFile).GetBasePath().EnsureEnd(Path.DirectorySeparatorChar.ToString());
                 return _LogPath;
             }
             set
@@ -87,7 +96,7 @@ namespace NewLife.Log
                 if (String.IsNullOrEmpty(value))
                     _LogPath = value;
                 else
-                    _LogPath = value.GetFullPath().EnsureEnd(Path.DirectorySeparatorChar.ToString());
+                    _LogPath = value.GetBasePath().EnsureEnd(Path.DirectorySeparatorChar.ToString());
             }
         }
 
@@ -100,6 +109,7 @@ namespace NewLife.Log
 
         #region 内部方法
         private StreamWriter LogWriter;
+        private String CurrentLogFile;
 
         /// <summary>初始化日志记录文件</summary>
         private StreamWriter InitLog()
@@ -123,7 +133,7 @@ namespace NewLife.Log
 
             if (writer == null)
             {
-                logfile = Path.Combine(path, FileFormat.F(DateTime.Now));
+                logfile = Path.Combine(path, FileFormat.F(TimerX.Now));
                 var ext = Path.GetExtension(logfile);
                 var i = 0;
                 while (i < 10)
@@ -145,6 +155,7 @@ namespace NewLife.Log
                             logfile = logfile.Replace(ext, "_0" + ext);
                     }
                 }
+                CurrentLogFile = logfile;
             }
             if (writer == null) throw new XException("无法写入日志！");
 
@@ -165,49 +176,26 @@ namespace NewLife.Log
             }
             return LogWriter = writer;
         }
-
-        ///// <summary>停止日志</summary>
-        //protected virtual void CloseWriter(Object obj)
-        //{
-        //    var writer = LogWriter;
-        //    if (writer == null) return;
-        //    lock (Log_Lock)
-        //    {
-        //        try
-        //        {
-        //            if (writer == null) return;
-        //            writer.Dispose();
-        //            LogWriter = null;
-        //        }
-        //        catch { }
-        //    }
-        //}
         #endregion
 
         #region 异步写日志
-        private TimerX _Timer;
-        private ConcurrentQueue<String> _Logs = new ConcurrentQueue<String>();
+        private readonly TimerX _Timer;
+        private readonly ConcurrentQueue<String> _Logs = new ConcurrentQueue<String>();
+        private volatile Int32 _logCount;
+        private Int32 _writing;
         private DateTime _NextClose;
-        //private Object Log_Lock = new Object();
 
         /// <summary>写文件</summary>
-        /// <param name="state"></param>
-        protected virtual void WriteFile(Object state)
+        protected virtual void WriteFile()
         {
             var writer = LogWriter;
-            if (_Logs.IsEmpty)
+
+            var now = TimerX.Now;
+            var logfile = Path.Combine(LogPath, FileFormat.F(now));
+            if (logfile != CurrentLogFile)
             {
-                // 连续5秒没日志，就关闭
-                var now = TimerX.Now;
-                if (_NextClose < now)
-                {
-                    LogWriter = null;
-                    writer.TryDispose();
-
-                    _NextClose = now.AddSeconds(5);
-                }
-
-                return;
+                writer.TryDispose();
+                writer = null;
             }
 
             // 初始化日志读写器
@@ -215,31 +203,41 @@ namespace NewLife.Log
 
             while (_Logs.TryDequeue(out var str))
             {
+                Interlocked.Decrement(ref _logCount);
+
                 // 写日志
                 writer.WriteLine(str);
             }
+
+            // 连续5秒没日志，就关闭
+            _NextClose = now.AddSeconds(5);
         }
 
-        ///// <summary>使用线程池线程异步执行日志写入动作</summary>
-        ///// <param name="e"></param>
-        //protected virtual void PerformWriteLog(WriteLogEventArgs e)
-        //{
-        //    lock (Log_Lock)
-        //    {
-        //        try
-        //        {
-        //            // 初始化日志读写器
-        //            if (LogWriter == null) InitLog();
-        //            // 写日志
-        //            LogWriter.WriteLine(e.ToString());
-        //            // 声明自动关闭日志读写器的定时器。无限延长时间，实际上不工作
-        //            if (_Timer == null) _Timer = new Timer(CloseWriter, null, Timeout.Infinite, Timeout.Infinite);
-        //            // 改变定时器为5秒后触发一次。如果5秒内有多次写日志操作，估计定时器不会触发，直到空闲五秒为止
-        //            _Timer.Change(5000, Timeout.Infinite);
-        //        }
-        //        catch { }
-        //    }
-        //}
+        /// <summary>关闭文件</summary>
+        protected virtual void CloseFile()
+        {
+            // 同步写日志
+            if (Interlocked.CompareExchange(ref _writing, 1, 0) == 0)
+            {
+                try
+                {
+                    // 处理残余
+                    if (!_Logs.IsEmpty) WriteFile();
+
+                    // 连续5秒没日志，就关闭
+                    var writer = LogWriter;
+                    if (writer != null && _NextClose < TimerX.Now)
+                    {
+                        writer.TryDispose();
+                        LogWriter = null;
+                    }
+                }
+                finally
+                {
+                    _writing = 0;
+                }
+            }
+        }
         #endregion
 
         #region 写日志
@@ -249,6 +247,9 @@ namespace NewLife.Log
         /// <param name="args"></param>
         protected override void OnWrite(LogLevel level, String format, params Object[] args)
         {
+            // 据@夏玉龙反馈，如果不给Log目录写入权限，日志队列积压将会导致内存暴增
+            if (_logCount > 100) return;
+
             var e = WriteLogEventArgs.Current.Set(level);
             // 特殊处理异常对象
             if (args != null && args.Length == 1 && args[0] is Exception ex && (format.IsNullOrEmpty() || format == "{0}"))
@@ -256,8 +257,25 @@ namespace NewLife.Log
             else
                 e = e.Set(Format(format, args), null);
 
-            // 推入队列，异步写日志
+            // 推入队列
             _Logs.Enqueue(e.ToString());
+            Interlocked.Increment(ref _logCount);
+
+            // 异步写日志
+            if (Interlocked.CompareExchange(ref _writing, 1, 0) == 0)
+            {
+                ThreadPoolX.QueueUserWorkItem(() =>
+                {
+                    try
+                    {
+                        WriteFile();
+                    }
+                    finally
+                    {
+                        _writing = 0;
+                    }
+                });
+            }
         }
         #endregion
 

@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using NewLife.Log;
 
+#if NET4
 namespace System.Threading.Tasks
 {
     /// <summary>任务助手</summary>
@@ -13,7 +14,7 @@ namespace System.Threading.Tasks
         /// <summary>是否正确完成</summary>
         /// <param name="task"></param>
         /// <returns></returns>
-        public static Boolean IsOK(this Task task) { return task != null && task.Status == TaskStatus.RanToCompletion; }
+        public static Boolean IsOK(this Task task) => task != null && task.Status == TaskStatus.RanToCompletion;
         #endregion
 
         #region 异常日志/执行时间
@@ -81,8 +82,7 @@ namespace System.Threading.Tasks
             if (log == null) log = XTrace.Log;
             if (log == Logger.Null || !log.Enable) return task;
 
-            var sw = new Stopwatch();
-            sw.Start();
+            var sw = Stopwatch.StartNew();
 
             return task.ContinueWith(t =>
             {
@@ -103,8 +103,7 @@ namespace System.Threading.Tasks
             if (log == null) log = XTrace.Log;
             if (log == Logger.Null || !log.Enable) return task;
 
-            var sw = new Stopwatch();
-            sw.Start();
+            var sw = Stopwatch.StartNew();
 
             return task.ContinueWith(t =>
             {
@@ -125,7 +124,7 @@ namespace System.Threading.Tasks
         /// <returns></returns>
         public static Task<Int32> ReadAsync(this Stream stream, Byte[] buffer, Int32 offset, Int32 count)
         {
-            return Task<Int32>.Factory.FromAsync<Byte[], Int32, Int32>(stream.BeginRead, stream.EndRead, buffer, offset, count, null);
+            return Task<Int32>.Factory.FromAsync(stream.BeginRead, stream.EndRead, buffer, offset, count, null);
         }
 
         /// <summary>异步读取数据</summary>
@@ -137,7 +136,7 @@ namespace System.Threading.Tasks
             if (length <= 0) throw new ArgumentOutOfRangeException("length");
 
             var buffer = new Byte[length];
-            var task = Task.Factory.FromAsync<Byte[], Int32, Int32, Int32>(stream.BeginRead, stream.EndRead, buffer, 0, length, null);
+            var task = Task.Factory.FromAsync(stream.BeginRead, stream.EndRead, buffer, 0, length, null);
             return task.ContinueWith(t =>
             {
                 var len = t.Result;
@@ -155,7 +154,7 @@ namespace System.Threading.Tasks
         /// <returns></returns>
         public static Task WriteAsync(this Stream stream, Byte[] buffer, Int32 offset, Int32 count)
         {
-            return Task.Factory.FromAsync<Byte[], Int32, Int32>(stream.BeginWrite, stream.EndWrite, buffer, offset, count, null);
+            return Task.Factory.FromAsync(stream.BeginWrite, stream.EndWrite, buffer, offset, count, null);
         }
 #endif
         #endregion
@@ -244,3 +243,4 @@ namespace System.Threading.Tasks
         #endregion
     }
 }
+#endif

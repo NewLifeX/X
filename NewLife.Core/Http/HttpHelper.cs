@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Security.Cryptography;
-using System.Text;
+using System.Threading.Tasks;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Security;
+using System.Net.Http;
 
 namespace NewLife.Http
 {
@@ -44,7 +45,7 @@ namespace NewLife.Http
             }
 
             // 构建头部
-            var sb = new StringBuilder();
+            var sb = Pool.StringBuilder.Get();
             sb.AppendFormat("{0} {1} HTTP/1.1\r\n", method, uri.PathAndQuery);
             sb.AppendFormat("Host:{0}\r\n", host);
 
@@ -63,8 +64,10 @@ namespace NewLife.Http
             sb.AppendLine();
 
             //return sb.ToString();
-            var rs = new Packet(sb.ToString().GetBytes());
-            rs.Next = pk;
+            var rs = new Packet(sb.Put(true).GetBytes())
+            {
+                Next = pk
+            };
             return rs;
         }
 
@@ -76,7 +79,7 @@ namespace NewLife.Http
         public static Packet MakeResponse(HttpStatusCode code, IDictionary<String, Object> headers, Packet pk)
         {
             // 构建头部
-            var sb = new StringBuilder();
+            var sb = Pool.StringBuilder.Get();
             sb.AppendFormat("HTTP/1.1 {0} {1}\r\n", (Int32)code, code);
 
             // 内容长度
@@ -90,11 +93,14 @@ namespace NewLife.Http
             sb.AppendLine();
 
             //return sb.ToString();
-            var rs = new Packet(sb.ToString().GetBytes());
-            rs.Next = pk;
+            var rs = new Packet(sb.Put(true).GetBytes())
+            {
+                Next = pk
+            };
             return rs;
         }
 
+        private static readonly Byte[] NewLine = new[] { (Byte)'\r', (Byte)'\n', (Byte)'\r', (Byte)'\n' };
         /// <summary>分析头部</summary>
         /// <param name="pk"></param>
         /// <returns></returns>
@@ -103,7 +109,7 @@ namespace NewLife.Http
             // 客户端收到响应，服务端收到请求
             var headers = new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
 
-            var p = (Int32)pk.Data.IndexOf(pk.Offset, pk.Count, "\r\n\r\n".GetBytes());
+            var p = pk.IndexOf(NewLine);
             if (p < 0) return headers;
 
 #if DEBUG
@@ -153,6 +159,24 @@ namespace NewLife.Http
             }
 
             return headers;
+        }
+        #endregion
+
+        #region 高级功能扩展
+        /// <summary>下载文件</summary>
+        /// <param name="client"></param>
+        /// <param name="address"></param>
+        /// <param name="fileName"></param>
+        public static async Task DownloadFileAsync(this HttpClient client, String address, String fileName)
+        {
+            var rs = await client.GetStreamAsync(address);
+            fileName.EnsureDirectory(true);
+            using var fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+#if NET4
+            rs.CopyTo(fs);
+#else
+            await rs.CopyToAsync(fs);
+#endif
         }
         #endregion
 
@@ -215,7 +239,7 @@ namespace NewLife.Http
              * len = 126    后续2字节表示长度，大端
              * len = 127    后续8字节表示长度
              */
-            len = len & 0x7F;
+            len &= 0x7F;
             if (len == 126)
                 len = ms.ReadBytes(2).ToUInt16(0, false);
             else if (len == 127)

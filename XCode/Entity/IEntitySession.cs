@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Common;
+using NewLife.Data;
 using XCode.Cache;
 using XCode.DataAccessLayer;
 
@@ -68,34 +68,20 @@ namespace XCode
         #endregion
 
         #region 数据库操作
+        /// <summary>初始化数据</summary>
+        void InitData();
+
         /// <summary>执行SQL查询，返回记录集</summary>
         /// <param name="builder">SQL语句</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
         /// <param name="maximumRows">最大返回行数，0表示所有行</param>
         /// <returns></returns>
-        DataSet Query(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows);
-
-        /// <summary>查询</summary>
-        /// <param name="sql">SQL语句</param>
-        /// <returns>结果记录集</returns>
-        [Obsolete("请优先考虑使用SelectBuilder参数做查询！")]
-        DataSet Query(String sql);
+        DbTable Query(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows);
 
         /// <summary>查询记录数</summary>
         /// <param name="builder">查询生成器</param>
         /// <returns>记录数</returns>
         Int32 QueryCount(SelectBuilder builder);
-
-        /// <summary>根据条件把普通查询SQL格式化为分页SQL。</summary>
-        /// <remarks>
-        /// 因为需要继承重写的原因，在数据类中并不方便缓存分页SQL。
-        /// 所以在这里做缓存。
-        /// </remarks>
-        /// <param name="builder">查询生成器</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <returns>分页SQL</returns>
-        SelectBuilder PageSplit(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows);
 
         /// <summary>执行</summary>
         /// <param name="sql">SQL语句</param>

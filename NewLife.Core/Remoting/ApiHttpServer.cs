@@ -1,13 +1,13 @@
 ﻿using System;
+using NewLife.Http;
 using NewLife.Net;
-using NewLife.Reflection;
 
 namespace NewLife.Remoting
 {
     class ApiHttpServer : ApiNetServer
     {
         #region 属性
-        private String RawUrl;
+        //private String RawUrl;
         #endregion
 
         public ApiHttpServer()
@@ -19,31 +19,25 @@ namespace NewLife.Remoting
 
         /// <summary>初始化</summary>
         /// <param name="config"></param>
+        /// <param name="host"></param>
         /// <returns></returns>
-        public override Boolean Init(String config)
+        public override Boolean Init(Object config, IApiHost host)
         {
-            RawUrl = config;
+            Host = host;
 
-            if (!base.Init(config)) return false;
+            var uri = config as NetUri;
+            Port = uri.Port;
+
+            //RawUrl = uri + "";
 
             // Http封包协议
-            //SessionPacket = new HttpPacketFactory();
-            SessionPacket = new PacketFactory { Offset = -1 };
+            //Add<HttpCodec>();
+            Add(new HttpCodec { AllowParseHeader = true });
+
+            //host.Handler = new ApiHttpHandler { Host = host };
+            host.Encoder = new HttpEncoder();
 
             return true;
         }
-
-        ///// <summary>获取服务提供者</summary>
-        ///// <param name="serviceType"></param>
-        ///// <returns></returns>
-        //public override Object GetService(Type serviceType)
-        //{
-        //    // 服务类是否当前类的基类
-        //    if (GetType().As(serviceType)) return this;
-
-        //    if (serviceType == typeof(ApiHttpServer)) return Provider;
-
-        //    return base.GetService(serviceType);
-        //}
     }
 }

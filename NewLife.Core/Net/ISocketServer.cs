@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using NewLife.Collections;
+using NewLife.Log;
 using NewLife.Model;
 
 namespace NewLife.Net
@@ -11,20 +13,14 @@ namespace NewLife.Net
         /// <summary>是否活动</summary>
         Boolean Active { get; }
 
-        ///// <summary>基础Socket对象</summary>
-        //Socket Server { get; set; }
-
         /// <summary>会话超时时间。默认20*60秒</summary>
         /// <remarks>
         /// 对于每一个会话连接，如果超过该时间仍然没有收到任何数据，则断开会话连接。
         /// </remarks>
         Int32 SessionTimeout { get; set; }
 
-        /// <summary>粘包处理接口</summary>
-        IPacketFactory SessionPacket { get; set; }
-
         /// <summary>会话统计</summary>
-        IStatistics StatSession { get; set; }
+        ICounter StatSession { get; set; }
 
         /// <summary>会话集合。用地址端口作为标识，业务应用自己维持地址端口与业务主键的对应关系。</summary>
         IDictionary<String, ISocketSession> Sessions { get; }
@@ -44,13 +40,13 @@ namespace NewLife.Net
         {
             if (socket == null) return null;
 
-            var sb = new StringBuilder();
+            var sb = Pool.StringBuilder.Get();
             //sb.AppendFormat("在线：{0:n0}/{1:n0} ", socket.SessionCount, socket.MaxSessionCount);
-            if (socket.StatSend.Total > 0) sb.AppendFormat("发送：{0} ", socket.StatSend);
-            if (socket.StatReceive.Total > 0) sb.AppendFormat("接收：{0} ", socket.StatReceive);
-            if (socket.StatSession.Total > 0) sb.AppendFormat("会话：{0} ", socket.StatSession);
+            if (socket.StatSend.Value > 0) sb.AppendFormat("发送：{0} ", socket.StatSend);
+            if (socket.StatReceive.Value > 0) sb.AppendFormat("接收：{0} ", socket.StatReceive);
+            if (socket.StatSession.Value > 0) sb.AppendFormat("会话：{0} ", socket.StatSession);
 
-            return sb.ToString();
+            return sb.Put(true);
         }
         #endregion
     }

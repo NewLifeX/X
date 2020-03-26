@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
@@ -10,6 +11,7 @@ namespace NewLife.Xml
     /// <typeparam name="TKey"></typeparam>
     /// <typeparam name="TValue"></typeparam>
     [XmlRoot("Dictionary")]
+    [Serializable]
     public class SerializableDictionary<TKey, TValue> : Dictionary<TKey, TValue>, IXmlSerializable
     {
         /// <summary></summary>
@@ -18,9 +20,14 @@ namespace NewLife.Xml
         /// <summary></summary>
         /// <param name="dictionary"></param>
         public SerializableDictionary(IDictionary<TKey, TValue> dictionary) : base(dictionary) { }
-        #region IXmlSerializable 成员
 
-        XmlSchema IXmlSerializable.GetSchema() { return null; }
+        /// <summary></summary>
+        /// <param name="serializationInfo"></param>
+        /// <param name="streamingContext"></param>
+        protected SerializableDictionary(SerializationInfo serializationInfo, StreamingContext streamingContext) : base(serializationInfo, streamingContext) { }
+
+        #region IXmlSerializable 成员
+        XmlSchema IXmlSerializable.GetSchema() => null;
 
         /// <summary>读取Xml</summary>
         /// <param name="reader">Xml读取器</param>

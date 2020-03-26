@@ -21,6 +21,9 @@ namespace NewLife.Net
         /// <summary>Http协议</summary>
         Http = 80,
 
+        /// <summary>Https协议</summary>
+        Https = 43,
+
         /// <summary>WebSocket协议</summary>
         WebSocket = 81
     }
@@ -33,53 +36,18 @@ namespace NewLife.Net
     public class NetUri
     {
         #region 属性
-        private NetType _Type;
         /// <summary>协议类型</summary>
-        public NetType Type { get { return _Type; } set { _Type = value; _Protocol = value.ToString(); } }
+        public NetType Type { get; set; }
 
-        [NonSerialized]
-        private String _Protocol;
-        /// <summary>协议</summary>
-        [XmlIgnore]
-        public String Protocol
-        {
-            get { return _Protocol; }
-            set
-            {
-                _Protocol = value;
-                if (String.IsNullOrEmpty(value))
-                    _Type = NetType.Unknown;
-                else
-                {
-                    try
-                    {
-                        if (value.EqualIgnoreCase("Http", "Https"))
-                            _Type = NetType.Http;
-                        else if (value.EqualIgnoreCase("ws", "wss"))
-                            _Type = NetType.WebSocket;
-                        else
-                        {
-                            _Type = (NetType)(Int32)Enum.Parse(typeof(ProtocolType), value, true);
-                            // 规范化名字
-                            _Protocol = _Type.ToString();
-                        }
-                    }
-                    catch { _Type = NetType.Unknown; }
-                }
-            }
-        }
+        /// <summary>主机</summary>
+        public String Host { get; set; }
 
         /// <summary>地址</summary>
         [XmlIgnore]
-        public IPAddress Address { get { return EndPoint.Address; } set { EndPoint.Address = value; _Host = value + ""; } }
+        public IPAddress Address { get { return EndPoint.Address; } set { EndPoint.Address = value; } }
 
-        private String _Host;
-        /// <summary>主机</summary>
-        public String Host { get { return _Host; } set { _Host = value; _EndPoint = null; /*只清空，避免这里耗时 try { EndPoint.Address = ParseAddress(value); } catch { }*/ } }
-
-        private Int32 _Port;
         /// <summary>端口</summary>
-        public Int32 Port { get { return _Port = EndPoint.Port; } set { _Port = EndPoint.Port = value; } }
+        public Int32 Port { get { return EndPoint.Port; } set { EndPoint.Port = value; } }
 
         [NonSerialized]
         private IPEndPoint _EndPoint;
@@ -89,24 +57,19 @@ namespace NewLife.Net
         {
             get
             {
-                // Host每次改变都会清空
-                if (_EndPoint == null) _EndPoint = new IPEndPoint(ParseAddress(_Host) ?? IPAddress.Any, _Port);
-                return _EndPoint;
+                var ep = _EndPoint;
+                if (ep == null) ep = _EndPoint = new IPEndPoint(IPAddress.Any, 0);
+                if ((ep.Address == null || ep.Address.IsAny()) && !Host.IsNullOrEmpty()) ep.Address = NetHelper.ParseAddress(Host) ?? IPAddress.Any;
+
+                return ep;
             }
             set
             {
-                // 考虑到序列化问题，Host可能是域名，而Address只是地址
-                _EndPoint = value;
-                if (value != null)
-                {
-                    _Host = _EndPoint.Address + "";
-                    _Port = _EndPoint.Port;
-                }
+                var ep = _EndPoint = value;
+                if (ep != null)
+                    Host = ep.Address + "";
                 else
-                {
-                    _Host = null;
-                    _Port = 0;
-                }
+                    Host = null;
             }
         }
         #endregion
@@ -114,11 +77,11 @@ namespace NewLife.Net
         #region 扩展属性
         /// <summary>是否Tcp协议</summary>
         [XmlIgnore]
-        public Boolean IsTcp { get { return Type == NetType.Tcp; } }
+        public Boolean IsTcp => Type == NetType.Tcp;
 
         /// <summary>是否Udp协议</summary>
         [XmlIgnore]
-        public Boolean IsUdp { get { return Type == NetType.Udp; } }
+        public Boolean IsUdp => Type == NetType.Udp;
         #endregion
 
         #region 构造
@@ -127,7 +90,7 @@ namespace NewLife.Net
 
         /// <summary>实例化</summary>
         /// <param name="uri"></param>
-        public NetUri(String uri) { Parse(uri); }
+        public NetUri(String uri) => Parse(uri);
 
         /// <summary>实例化</summary>
         /// <param name="protocol"></param>
@@ -135,7 +98,7 @@ namespace NewLife.Net
         public NetUri(NetType protocol, IPEndPoint endpoint)
         {
             Type = protocol;
-            EndPoint = endpoint;
+            _EndPoint = endpoint;
         }
 
         /// <summary>实例化</summary>
@@ -171,15 +134,19 @@ namespace NewLife.Net
             if (uri.IsNullOrWhiteSpace()) return this;
 
             // 分析协议
-            var p = uri.IndexOf(Sep);
-            if (p >= 0)
+            var protocol = "";
+            var array = uri.Split(Sep);
+            if (array.Length >= 2)
             {
-                Protocol = uri.Substring(0, p);
-                uri = uri.Substring(p + Sep.Length);
+                protocol = array[0];
+                Type = ParseType(protocol);
+                uri = array[1];
             }
 
+            _EndPoint = null;
+
             // 特殊协议端口
-            switch (Protocol?.ToLower())
+            switch (protocol.ToLower())
             {
                 case "http":
                 case "ws":
@@ -192,21 +159,21 @@ namespace NewLife.Net
             }
 
             // 这个可能是一个Uri，去掉尾部
-            p = uri.IndexOf('/');
+           var p = uri.IndexOf('/');
             if (p < 0) p = uri.IndexOf('\\');
             if (p < 0) p = uri.IndexOf('?');
             if (p >= 0) uri = uri.Substring(0, p);
 
             // 分析端口
-            p = uri.LastIndexOf(":");
-            if (p >= 0)
+            var ipArray = uri.Split(":");
+
+            if (ipArray.Length >= 2)
             {
-                var pt = uri.Substring(p + 1);
-                var port = 0;
-                if (Int32.TryParse(pt, out port))
+                var pt = ipArray[1];
+                if (Int32.TryParse(pt, out var port))
                 {
                     Port = port;
-                    uri = uri.Substring(0, p);
+                    uri = ipArray[0];
                 }
             }
 
@@ -214,26 +181,43 @@ namespace NewLife.Net
 
             return this;
         }
+
+        private static NetType ParseType(String value)
+        {
+            if (value.IsNullOrEmpty()) return NetType.Unknown;
+
+            try
+            {
+                if (value.EqualIgnoreCase("Http", "Https")) return NetType.Http;
+                if (value.EqualIgnoreCase("ws", "wss")) return NetType.WebSocket;
+
+                return (NetType)(Int32)Enum.Parse(typeof(ProtocolType), value, true);
+            }
+            catch { return NetType.Unknown; }
+        }
+
+        /// <summary>获取该域名下所有IP地址</summary>
+        /// <returns></returns>
+        public IPAddress[] GetAddresses() => ParseAddress(Host);
         #endregion
 
         #region 辅助
         /// <summary>分析地址</summary>
         /// <param name="hostname">主机地址</param>
         /// <returns></returns>
-        public static IPAddress ParseAddress(String hostname)
+        public static IPAddress[] ParseAddress(String hostname)
         {
-            if (String.IsNullOrEmpty(hostname)) return null;
+            if (hostname.IsNullOrEmpty()) return null;
             if (hostname == "*") return null;
 
             try
             {
-                IPAddress addr = null;
-                if (IPAddress.TryParse(hostname, out addr)) return addr;
+                if (IPAddress.TryParse(hostname, out var addr)) return new[] { addr };
 
                 var hostAddresses = Dns.GetHostAddresses(hostname);
-                if (hostAddresses == null || hostAddresses.Length < 1) return null;
+                if (hostAddresses == null || hostAddresses.Length <= 0) return null;
 
-                return hostAddresses.FirstOrDefault(d => d.AddressFamily == AddressFamily.InterNetwork || d.AddressFamily == AddressFamily.InterNetworkV6);
+                return hostAddresses.Where(d => d.AddressFamily == AddressFamily.InterNetwork || d.AddressFamily == AddressFamily.InterNetworkV6).ToArray();
             }
             catch (SocketException ex)
             {
@@ -245,7 +229,7 @@ namespace NewLife.Net
         /// <returns></returns>
         public override String ToString()
         {
-            var p = Protocol;
+            var p = Type + "";
             switch (Type)
             {
                 case NetType.Unknown:
@@ -255,10 +239,13 @@ namespace NewLife.Net
                     p = Port == 443 ? "wss" : "ws";
                     break;
             }
+            var host = Host;
+            if (host.IsNullOrEmpty()) host = Address + "";
+
             if (Port > 0)
-                return String.Format("{0}://{1}:{2}", p, Host, Port);
+                return String.Format("{0}://{1}:{2}", p, host, Port);
             else
-                return String.Format("{0}://{1}", p, Host);
+                return String.Format("{0}://{1}", p, host);
         }
         #endregion
 
@@ -266,10 +253,7 @@ namespace NewLife.Net
         /// <summary>重载类型转换，字符串直接转为NetUri对象</summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static implicit operator NetUri(String value)
-        {
-            return new NetUri(value);
-        }
+        public static implicit operator NetUri(String value) => new NetUri(value);
         #endregion
     }
 }

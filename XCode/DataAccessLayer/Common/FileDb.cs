@@ -23,22 +23,23 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        protected override void OnSetConnectionString(XDbConnectionStringBuilder builder)
+        protected override void OnSetConnectionString(ConnectionStringBuilder builder)
         {
             base.OnSetConnectionString(builder);
 
             //if (!builder.TryGetValue(_.DataSource, out file)) return;
             // 允许空，当作内存数据库处理
-            builder.TryGetValue(_.DataSource, out var file);
+            //builder.TryGetValue(_.DataSource, out var file);
+            var file = builder[_.DataSource];
             file = OnResolveFile(file);
             builder[_.DataSource] = file;
-            FileName = file;
+            DatabaseName = file;
         }
 
-        protected virtual String OnResolveFile(String file) { return ResolveFile(file); }
+        protected virtual String OnResolveFile(String file) => ResolveFile(file);
 
-        /// <summary>文件</summary>
-        public String FileName { get; set; }
+        ///// <summary>文件</summary>
+        //public String FileName { get; set; }
         #endregion
     }
 
@@ -47,27 +48,11 @@ namespace XCode.DataAccessLayer
     {
         #region 属性
         /// <summary>文件</summary>
-        public String FileName
-        {
-            get
-            {
-                //return Database is FileDbBase ? (Database as FileDbBase).FileName : null;
-                // 减少一步类型转换
-                var filedb = Database as FileDbBase;
-                return filedb?.FileName;
-            }
-        }
+        public String FileName => (Database as FileDbBase)?.DatabaseName;
         #endregion
 
         #region 构造函数
-        protected FileDbSession(IDatabase db) : base(db) { }
-        #endregion
-
-        #region 方法
-        private static List<String> hasChecked = new List<String>();
-
-        /// <summary>已重载。打开数据库连接前创建数据库</summary>
-        public override void Open()
+        protected FileDbSession(IDatabase db) : base(db)
         {
             if (!String.IsNullOrEmpty(FileName))
             {
@@ -77,9 +62,26 @@ namespace XCode.DataAccessLayer
                     CreateDatabase();
                 }
             }
-
-            base.Open();
         }
+        #endregion
+
+        #region 方法
+        private static List<String> hasChecked = new List<String>();
+
+        ///// <summary>已重载。打开数据库连接前创建数据库</summary>
+        //public override void Open()
+        //{
+        //    if (!String.IsNullOrEmpty(FileName))
+        //    {
+        //        if (!hasChecked.Contains(FileName))
+        //        {
+        //            hasChecked.Add(FileName);
+        //            CreateDatabase();
+        //        }
+        //    }
+
+        //    base.Open();
+        //}
 
         protected virtual void CreateDatabase()
         {
@@ -104,7 +106,7 @@ namespace XCode.DataAccessLayer
     {
         #region 属性
         /// <summary>文件</summary>
-        public String FileName { get { return (Database as FileDbBase).FileName; } }
+        public String FileName => (Database as FileDbBase).DatabaseName;
         #endregion
 
         #region 数据定义
@@ -120,9 +122,9 @@ namespace XCode.DataAccessLayer
                 case DDLSchema.CreateDatabase:
                     CreateDatabase();
                     return null;
-                case DDLSchema.DropDatabase:
-                    DropDatabase();
-                    return null;
+                //case DDLSchema.DropDatabase:
+                //    DropDatabase();
+                //    return null;
                 case DDLSchema.DatabaseExist:
                     return File.Exists(FileName);
                 default:

@@ -4,43 +4,47 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-#if !__CORE__
-using System.Windows.Forms;
-#endif
+using System.Threading.Tasks;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Web;
+#if !NET4
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 namespace NewLife.Net
 {
-    /// <summary>升级</summary>
+    /// <summary>升级更新</summary>
+    /// <remarks>
+    /// 优先比较版本Version，再比较时间Time。
+    /// 自动更新的难点在于覆盖正在使用的exe/dll文件，通过改名可以解决。
+    /// </remarks>
     public class Upgrade
     {
         #region 属性
-        /// <summary>服务器地址</summary>
-        public String Server { get; set; }
-
         /// <summary>名称</summary>
         public String Name { get; set; }
+
+        /// <summary>服务器地址</summary>
+        public String Server { get; set; }
 
         /// <summary>版本</summary>
         public Version Version { get; set; }
 
         /// <summary>本地编译时间</summary>
-        public DateTime Compile { get; set; }
-
-        /// <summary>更新完成以后自动启动主程序</summary>
-        public Boolean AutoStart { get; set; }
+        public DateTime Time { get; set; }
 
         /// <summary>更新目录</summary>
-        public String UpdatePath { get; set; }
+        public String UpdatePath { get; set; } = "Update";
 
-        /// <summary>临时目录</summary>
-        public String TempPath { get; set; }
+        /// <summary>目标目录</summary>
+        public String DestinationPath { get; set; } = ".";
 
-        /// <summary>超链接信息，其中第一个为最佳匹配项</summary>
-        public Link[] Links { get; set; }
+        /// <summary>超链接信息</summary>
+        public Link Link { get; set; }
+
+        /// <summary>更新源文件</summary>
+        public String SourceFile { get; set; }
         #endregion
 
         #region 构造
@@ -52,14 +56,9 @@ namespace NewLife.Net
 
             Version = asm.GetName().Version;
             Name = asm.GetName().Name;
-            Compile = asmx.Compile;
+            Time = asmx.Compile;
 
-            AutoStart = true;
-            UpdatePath = "Update";
             Server = NewLife.Setting.Current.PluginServer;
-
-            TempPath = XTrace.TempPath;
-            Links = new Link[0];
         }
         #endregion
 
@@ -68,143 +67,113 @@ namespace NewLife.Net
         /// <returns></returns>
         public Boolean Check()
         {
+            // 删除备份文件
+            DeleteBuckup(DestinationPath);
+
             var url = Server;
-            // 如果配置地址未指定参数，则附加参数
-            if (url.StartsWithIgnoreCase("http://"))
-            {
-                if (!url.Contains("{0}"))
-                {
-                    if (!url.Contains("?"))
-                        url += "?";
-                    else
-                        url += "&";
 
-                    url += String.Format("Name={0}&Version={1}", Name, Version);
-                }
-                else
-                {
-                    url = String.Format(url, Name, Version);
-                }
-            }
-
-            WriteLog("准备获取更新信息 {0}", url);
+            WriteLog("检查资源包 {0}", url);
 
             var web = CreateClient();
             var html = web.GetHtml(url);
-            var links = Link.Parse(html, url, item => item.Name.StartsWithIgnoreCase(Name) || item.Name.Contains(Name));
-            if (links.Length < 1) return false;
-
-            // 分析所有链接
-            var list = new List<Link>();
-            foreach (var link in links)
+            var links = Link.Parse(html, url, item => item.Name.ToLower().Contains(Name.ToLower())); 
+            if (links == null || links.Length == 0)
             {
-                // 不是满足条件的name不要
-                if (!link.Name.StartsWithIgnoreCase(Name) || !link.Name.Contains(Name)) continue;
-
-                // 第一个时间命中
-                if (link.Time.Year <= DateTime.Now.Year)
-                {
-                    list.Add(link);
-                }
+                WriteLog("找不到资源包");
+                return false;
             }
-            if (list.Count < 1) return false;
 
-            // 按照时间降序
-            Links = list.OrderByDescending(e => e.Time).ToArray();
+            // 先比较版本
+            if (Version > new Version(0, 0))
+            {
+                var link = links.OrderByDescending(e => e.Version).FirstOrDefault();
+                if (link.Version > Version)
+                {
+                    Link = link;
+                    WriteLog("线上版本[{0}]较新 {1}>{2}", link.FullName, link.Version, Version);
+                }
+                else
+                    WriteLog("线上版本[{0}]较旧 {1}<={2}", link.FullName, link.Version, Version);
+            }
+            // 再比较时间
+            else
+            {
+                var link = links.OrderByDescending(e => e.Time).FirstOrDefault();
+                // 只有文件时间大于编译时间才更新，需要考虑文件编译后过一段时间才打包
+                if (link.Time > Time.AddMinutes(10))
+                {
+                    Link = link;
+                    WriteLog("线上版本[{0}]较新 {1}>{2}", link.FullName, link.Time, Time);
+                }
+                else
+                    WriteLog("线上版本[{0}]较旧 {1}<={2}", link.FullName, link.Time, Time);
+            }
 
-            // 只有文件时间大于编译时间才更新，需要考虑文件编译后过一段时间才打包
-            return Links[0].Time > Compile.AddMinutes(30);
+            return Link != null;
         }
 
         /// <summary>开始更新</summary>
         public void Download()
         {
-            if (Links.Length == 0) throw new Exception("没有可用新版本！");
-
-            var link = Links[0];
+            var link = Link;
+            if (link == null) throw new Exception("没有可用新版本！");
             if (String.IsNullOrEmpty(link.Url)) throw new Exception("升级包地址无效！");
 
             // 如果更新包不存在，则下载
-            var file = UpdatePath.CombinePath(link.Name).GetFullPath();
+            var file = UpdatePath.CombinePath(link.FullName).GetBasePath();
             if (!File.Exists(file))
             {
                 WriteLog("准备下载 {0} 到 {1}", link.Url, file);
 
-                var sw = new Stopwatch();
-                sw.Start();
+                var sw = Stopwatch.StartNew();
 
                 var web = CreateClient();
-                web.DownloadFileAsync(link.Url, file).Wait();
+                TaskEx.Run(() => web.DownloadFileAsync(link.Url, file)).Wait();
 
                 sw.Stop();
                 WriteLog("下载完成！大小{0:n0}字节，耗时{1:n0}ms", file.AsFile().Length, sw.ElapsedMilliseconds);
             }
 
-            // 设置更新标记
-            file += ".update";
-            WriteLog("设置更新标记 {0}", file);
-            File.CreateText(file).Close();
+            SourceFile = file;
         }
 
         /// <summary>检查并执行更新操作</summary>
         public Boolean Update()
         {
-            // 查找更新目录
-            var fis = Directory.GetFiles(UpdatePath, "*.update");
-            if (fis == null || fis.Length == 0) return false;
+            // 删除备份文件
+            DeleteBuckup(DestinationPath);
 
-            var file = fis[0].GetFullPath().TrimEnd(".update");
-            WriteLog("发现更新包 {0}，删除所有更新标记文件", file);
-            foreach (var item in fis)
-            {
-                try
-                {
-                    File.Delete(item);
-                }
-                catch { }
-            }
+            var file = SourceFile;
 
             if (!File.Exists(file)) return false;
-            // 如果已经更新过，则也不再更新
-            if (File.Exists(file + ".updated")) return false;
+
+            WriteLog("发现更新包 {0}", file);
 
             // 解压更新程序包
-            if (!file.EndsWithIgnoreCase(".zip")) return false;
+            if (!file.EndsWithIgnoreCase(".zip", ".7z")) return false;
 
-            var dest = TempPath.CombinePath(Path.GetFileNameWithoutExtension(file)).GetFullPath();
-            WriteLog("解压缩更新包到临时目录 {0}", dest);
-            //ZipFile.ExtractToDirectory(file, p);
-            file.AsFile().Extract(dest, true);
+            var tmp = XTrace.TempPath.CombinePath(Path.GetFileNameWithoutExtension(file)).GetBasePath();
+            WriteLog("解压缩更新包到临时目录 {0}", tmp);
+            file.AsFile().Extract(tmp, true);
 
-            var updatebat = UpdatePath.CombinePath("update.bat").GetFullPath();
-            MakeBat(updatebat, dest, ".".GetFullPath());
-
-            // 执行更新程序包
-            var si = new ProcessStartInfo();
-            si.FileName = updatebat;
-            si.Arguments = ">>update.log";
-            si.WorkingDirectory = Path.GetDirectoryName(si.FileName);
-            // 必须创建无窗口进程，否则会等待目标进程完成
-            //if (!XTrace.Debug)
-            {
-                si.CreateNoWindow = true;
-                si.WindowStyle = ProcessWindowStyle.Hidden;
-            }
-            si.UseShellExecute = false;
-            Process.Start(si);
-
-            WriteLog("已启动更新程序来升级，升级脚本 {0}", updatebat);
-
-            // 设置更新标记
-            file += ".updated";
-            WriteLog("设置已更新标记 {0}", file);
-            File.CreateText(file).Close();
-
-#if !__CORE__
-            Application.Exit();
-#endif
+            // 拷贝替换更新
+            CopyAndReplace(tmp, DestinationPath);
 
             return true;
+        }
+
+        /// <summary>启动当前应用的新进程。当前进程退出</summary>
+        public void Run()
+        {
+            // 启动进程
+            var exe = Assembly.GetEntryAssembly().Location;
+            WriteLog("启动进程 {0}", exe);
+            Process.Start(exe);
+
+            WriteLog("退出当前进程");
+            if (!Runtime.IsConsole) Process.GetCurrentProcess().CloseMainWindow();
+            Environment.Exit(0);
+            Process.GetCurrentProcess().Kill();
         }
         #endregion
 
@@ -214,77 +183,66 @@ namespace NewLife.Net
         {
             if (_Client != null) return _Client;
 
-            var web = new WebClientX(true, true);
-            web.UserAgent = "NewLife.Upgrade";
+            var web = new WebClientX();
             return _Client = web;
         }
 
-        void MakeBat(String updatebat, String tmpdir, String curdir)
+        /// <summary>删除备份文件</summary>
+        /// <param name="dest">目标目录</param>
+        public static void DeleteBuckup(String dest)
         {
-            var pid = Process.GetCurrentProcess().Id;
-
-            var sb = new StringBuilder();
-
-            sb.AppendLine("@echo off");
-            sb.AppendLine("echo %time% 等待主程序[PID={0}]退出".F(pid));
-            // 等待2秒(3-1)后，干掉当前进程
-            sb.AppendFormat("ping -n 3 127.0.0.1 >nul");
-            sb.AppendLine();
-            sb.AppendFormat("taskkill /F /PID {0}", pid);
-            sb.AppendLine();
-
-            // 备份配置文件
-            sb.AppendLine("echo %time% 备份配置文件");
-            var cfgs = Directory.GetFiles(curdir);
-            foreach (var item in cfgs)
+            // 删除备份
+            var di = dest.AsDirectory();
+            var fs = di.GetAllFiles("*.del", true);
+            foreach (var item in fs)
             {
-                if (item.EndsWithIgnoreCase(".config", ".xml"))
+                try
                 {
-                    sb.AppendFormat("move /Y \"{0}\" \"{0}.bak\"", item.GetFullPath());
-                    sb.AppendLine();
+                    item.Delete();
                 }
+                catch { }
             }
+        }
 
-            // 复制
-            sb.AppendLine("echo %time% 复制更新文件");
-            sb.AppendFormat("copy \"{0}\\*.*\" \"{1}\" /y", tmpdir, curdir);
-            sb.AppendLine();
-            sb.AppendLine("rd \"" + tmpdir + "\" /s /q");
+        /// <summary>拷贝并替换。正在使用锁定的文件不可删除，但可以改名</summary>
+        /// <param name="source">源目录</param>
+        /// <param name="dest">目标目录</param>
+        public static void CopyAndReplace(String source, String dest)
+        {
+            var di = source.AsDirectory();
 
-            // 还原配置文件
-            sb.AppendLine("echo %time% 还原配置文件");
-            foreach (var item in cfgs)
+            // 来源目录根，用于截断
+            var root = di.FullName.EnsureEnd(Path.DirectorySeparatorChar.ToString());
+            foreach (var item in di.GetAllFiles(null, true))
             {
-                if (item.EndsWithIgnoreCase(".config", ".xml"))
+                var name = item.FullName.TrimStart(root);
+                var dst = dest.CombinePath(name).GetBasePath();
+
+                // 如果是应用配置文件，不要更新
+                if (dst.EndsWithIgnoreCase(".exe.config")) continue;
+
+                // 如果是exe/dll，则先改名，因为可能无法覆盖
+                if (dst.EndsWithIgnoreCase(".exe", ".dll") && File.Exists(dst))
                 {
-                    sb.AppendFormat("move /Y \"{0}.bak\" \"{0}\"", item.GetFullPath());
-                    sb.AppendLine();
+                    // 先尝试删除
+                    try
+                    {
+                        File.Delete(dst);
+                    }
+                    catch
+                    {
+                        var del = dst + ".del";
+                        if (File.Exists(del)) File.Delete(del);
+                        File.Move(dst, del);
+                    }
                 }
+
+                // 拷贝覆盖
+                item.CopyTo(dst.EnsureDirectory(true), true);
             }
 
-#if !__CORE__
-            // 启动
-            if (AutoStart)
-            {
-                sb.AppendLine("echo %time% 启动主程序");
-                var bin = Application.ExecutablePath;
-                sb.AppendFormat("start /D \"{0}\" /I {1}", Path.GetDirectoryName(bin), bin);
-                sb.AppendLine();
-            }
-#endif
-
-#if !DEBUG
-            //sb.AppendFormat("del \"{0}\" /f/q", updatebat);
-            //sb.AppendLine();
-#endif
-
-            sb.AppendFormat("ping -n 3 127.0.0.1 >nul");
-            sb.AppendLine();
-            sb.AppendLine("exit");
-
-            if (File.Exists(updatebat)) File.Delete(updatebat);
-            // 批处理文件不能用UTF8编码保存，否则里面的中文会乱码，特别不能用带有BOM的编码输出
-            File.WriteAllText(updatebat, sb.ToString(), Encoding.Default);
+            // 删除临时目录
+            di.Delete(true);
         }
         #endregion
 

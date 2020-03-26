@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
-using System.Text;
+using System.Runtime.Serialization;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
-using NewLife.IO;
+using NewLife.Data;
 using NewLife.Reflection;
-using NewLife.Serialization;
-using NewLife.Xml;
 using XCode.Common;
 using XCode.Configuration;
 using XCode.Model;
@@ -18,19 +15,23 @@ namespace XCode
     /// <summary>数据实体基类的基类</summary>
     [Serializable]
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public abstract partial class EntityBase : /*BinaryAccessor,*/ IEntity, ICloneable
+    public abstract partial class EntityBase : IEntity, IExtend2, ICloneable
     {
         #region 初始化数据
         /// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        internal protected virtual void InitData() { }
+        protected internal virtual void InitData() { }
         #endregion
 
         #region 填充数据
-        /// <summary>填充数据完成时调用。默认设定标记<see cref="_IsFromDatabase"/></summary>
-        internal protected virtual void OnLoad() { MarkDb(true); }
+        /// <summary>填充数据完成时调用。默认设定标记<see cref="IsFromDatabase"/></summary>
+        protected virtual void OnLoad() => IsFromDatabase = true;
 
-        internal void MarkDb(Boolean flag) { _IsFromDatabase = flag; }
+        /// <summary>是否来自数据库。设置相同属性值时不改变脏数据</summary>
+        protected virtual Boolean IsFromDatabase { get; set; }
+
+        /// <summary>是否来自数据库。设置相同属性值时不改变脏数据</summary>
+        Boolean IEntity.IsFromDatabase => IsFromDatabase;
         #endregion
 
         #region 操作
@@ -58,16 +59,15 @@ namespace XCode
         /// <param name="msDelay">延迟保存的时间。默认0ms近实时保存</param>
         /// <returns>是否成功加入异步队列</returns>
         public abstract Boolean SaveAsync(Int32 msDelay = 0);
+
+        /// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>
+        /// <remarks>建议重写者调用基类的实现，因为基类根据数据字段的唯一索引进行数据验证。</remarks>
+        /// <param name="isNew">是否新数据</param>
+        public abstract void Valid(Boolean isNew);
         #endregion
 
         #region 获取/设置 字段值
-        /// <summary>
-        /// 获取/设置 字段值。
-        /// 一个索引，反射实现。
-        /// 派生实体类可重写该索引，以避免发射带来的性能损耗。
-        /// 基类已经实现了通用的快速访问，但是这里仍然重写，以增加控制，
-        /// 比如字段名是属性名前面加上_，并且要求是实体字段才允许这样访问，否则一律按属性处理。
-        /// </summary>
+        /// <summary>获取/设置 字段值</summary>
         /// <param name="name">字段名</param>
         /// <returns></returns>
         public abstract Object this[String name] { get; set; }
@@ -78,7 +78,7 @@ namespace XCode
         /// <returns>返回是否成功设置了数据</returns>
         public Boolean SetItem(String name, Object value)
         {
-            var fact = EntityFactory.CreateOperate(GetType());
+            var fact = GetType().AsFactory();
             FieldItem fi = fact.Table.FindByName(name);
             // 确保数据类型一致
             if (fi != null) value = value.ChangeType(fi.Type);
@@ -93,18 +93,6 @@ namespace XCode
             }
             return b;
         }
-
-        /// <summary>设置脏数据项。如果某个键存在并且数据没有脏，则设置</summary>
-        /// <param name="name"></param>
-        /// <param name="value"></param>
-        /// <returns>返回是否成功设置了数据</returns>
-        public Boolean SetNoDirtyItem(String name, Object value)
-        {
-            var fact = EntityFactory.CreateOperate(GetType());
-            if (fact.FieldNames.Contains(name) && !Dirtys[name]) return SetItem(name, value);
-
-            return false;
-        }
         #endregion
 
         #region 克隆
@@ -115,7 +103,7 @@ namespace XCode
         /// <summary>克隆实体。创建当前对象的克隆对象，仅拷贝基本字段</summary>
         /// <param name="setDirty">是否设置脏数据</param>
         /// <returns></returns>
-        IEntity IEntity.CloneEntity(Boolean setDirty) { return CloneEntityInternal(setDirty); }
+        IEntity IEntity.CloneEntity(Boolean setDirty) => CloneEntityInternal(setDirty);
 
         /// <summary>克隆实体</summary>
         /// <param name="setDirty"></param>
@@ -131,12 +119,14 @@ namespace XCode
             if (entity == this) return 0;
 
             IEntity src = this;
-            var nsSrc = EntityFactory.CreateOperate(src.GetType()).FieldNames;
+            var fact1 = src.GetType().AsFactory();
+            var fact2 = entity.GetType().AsFactory();
+            var nsSrc = fact1.FieldNames;
             //if (nsSrc == null || nsSrc.Count < 1) return 0;
-            var nsDes = EntityFactory.CreateOperate(entity.GetType()).FieldNames;
+            var nsDes = fact2.FieldNames;
             if (nsDes == null || nsDes.Count < 1) return 0;
 
-            Int32 n = 0;
+            var n = 0;
             foreach (var item in nsDes)
             {
                 if (nsSrc.Contains(item))
@@ -166,8 +156,8 @@ namespace XCode
         [NonSerialized]
         private DirtyCollection _Dirtys;
         /// <summary>脏属性。存储哪些属性的数据被修改过了。</summary>
-        [XmlIgnore, ScriptIgnore]
-        internal protected IDictionary<String, Boolean> Dirtys
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
+        protected DirtyCollection Dirtys
         {
             get
             {
@@ -177,50 +167,48 @@ namespace XCode
         }
 
         /// <summary>脏属性。存储哪些属性的数据被修改过了。</summary>
-        IDictionary<String, Boolean> IEntity.Dirtys { get { return Dirtys; } }
+        DirtyCollection IEntity.Dirtys => Dirtys;
 
-        /// <summary>设置所有数据的脏属性</summary>
-        /// <param name="isDirty">改变脏属性的属性个数</param>
+        /// <summary>是否有脏数据。被修改为不同值</summary>
+        /// <param name="name"></param>
         /// <returns></returns>
-        protected virtual Int32 SetDirty(Boolean isDirty)
-        {
-            var ds = _Dirtys;
-            if (ds == null || ds.IsEmpty) return 0;
+        protected Boolean IsDirty(String name) => _Dirtys != null && _Dirtys[name];
 
-            Int32 count = 0;
-            foreach (String item in ds.Keys)
-            {
-                if (ds[item] != isDirty)
-                {
-                    ds[item] = isDirty;
-                    count++;
-                }
-            }
-            return count;
-        }
+        /// <summary>是否有脏数据。被修改为不同值</summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        Boolean IEntity.IsDirty(String name) => _Dirtys != null && _Dirtys[name];
+
+        /// <summary>是否有脏数据。决定是否可以Update</summary>
+        protected Boolean HasDirty => _Dirtys != null && _Dirtys.Count > 0;
+
+        /// <summary>是否有脏数据。决定是否可以Update</summary>
+        Boolean IEntity.HasDirty => _Dirtys != null && _Dirtys.Count > 0;
         #endregion
 
         #region 扩展属性
         [NonSerialized]
-        private EntityExtend _Extends;
+        internal EntityExtend _Extends;
         /// <summary>扩展属性</summary>
-        //[NonSerialized]
-        [XmlIgnore, ScriptIgnore]
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public EntityExtend Extends { get { return _Extends ?? (_Extends = new EntityExtend()); } set { _Extends = value; } }
+
+        /// <summary>扩展数据键集合</summary>
+        IEnumerable<String> IExtend2.Keys => _Extends?.Keys;
         #endregion
 
         #region 累加
         [NonSerialized]
         private IEntityAddition _Addition;
         /// <summary>累加</summary>
-        [XmlIgnore, ScriptIgnore]
-        internal IEntityAddition Addition
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
+        IEntityAddition IEntity.Addition
         {
             get
             {
                 if (_Addition == null)
                 {
-                    _Addition = XCodeService.Container.Resolve<IEntityAddition>();
+                    _Addition = new EntityAddition();
                     _Addition.Entity = this;
                 }
                 return _Addition;
@@ -230,19 +218,16 @@ namespace XCode
 
         #region 主键为空
         /// <summary>主键是否为空</summary>
-        [XmlIgnore, ScriptIgnore]
-        public Boolean IsNullKey { get { return Helper.IsEntityNullKey(this); } }
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
+        Boolean IEntity.IsNullKey => Helper.IsEntityNullKey(this);
 
-        // JsonNet支持下面这种特殊用法
-        //public Boolean ShouldSerializeIsNullKey()
-        //{
-        //    return false;
-        //}
+        /// <summary>主键是否为空</summary>
+        protected Boolean IsNullKey => Helper.IsEntityNullKey(this);
 
         /// <summary>设置主键为空。Save将调用Insert</summary>
         void IEntity.SetNullKey()
         {
-            var eop = EntityFactory.CreateOperate(GetType());
+            var eop = GetType().AsFactory();
             foreach (var item in eop.Fields)
             {
                 if (item.PrimaryKey || item.IsIdentity) this[item.Name] = null;
@@ -260,7 +245,7 @@ namespace XCode
             if (this == entity) return true;
 
             // 判断是否所有主键相等
-            var op = EntityFactory.CreateOperate(GetType());
+            var op = GetType().AsFactory();
             var ps = op.Table.PrimaryKeys;
             // 如果没有主键，则判断所有字段
             if (ps == null || ps.Length < 1) ps = op.Table.Fields;

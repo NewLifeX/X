@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using NewLife.Collections;
-#if !NET4
-using TaskEx = System.Threading.Tasks.Task;
-#endif
+using System.Linq;
+using System.Threading;
+using XCode.Configuration;
 
 namespace XCode
 {
@@ -52,10 +51,7 @@ namespace XCode
         #region 构造
         /// <summary>实例化实体模块集合</summary>
         /// <param name="entityType"></param>
-        public EntityModules(Type entityType)
-        {
-            EntityType = entityType;
-        }
+        public EntityModules(Type entityType) => EntityType = entityType;
         #endregion
 
         #region 方法
@@ -65,16 +61,13 @@ namespace XCode
         public virtual void Add(IEntityModule module)
         {
             // 异步添加实体模块，避免死锁。实体类一般在静态构造函数里面添加模块，如果这里同步初始化会非常危险
-            TaskEx.Run(() => AddAsync(module));
+            ThreadPool.QueueUserWorkItem(s => AddAsync(module));
         }
 
         /// <summary>添加实体模块</summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public virtual void Add<T>() where T : IEntityModule, new()
-        {
-            Add(new T());
-        }
+        public virtual void Add<T>() where T : IEntityModule, new() => Add(new T());
 
         private void AddAsync(IEntityModule module)
         {
@@ -148,7 +141,7 @@ namespace XCode
         #endregion
 
         #region IEnumerable 成员
-        IEnumerator IEnumerable.GetEnumerator() { return Modules.GetEnumerator(); }
+        IEnumerator IEnumerable.GetEnumerator() => Modules.GetEnumerator();
         #endregion
     }
 
@@ -156,7 +149,7 @@ namespace XCode
     public abstract class EntityModule : IEntityModule
     {
         #region IEntityModule 成员
-        private Dictionary<Type, Boolean> _Inited = new Dictionary<Type, Boolean>();
+        private readonly Dictionary<Type, Boolean> _Inited = new Dictionary<Type, Boolean>();
         /// <summary>为指定实体类初始化模块，返回是否支持</summary>
         /// <param name="entityType"></param>
         /// <returns></returns>
@@ -175,7 +168,7 @@ namespace XCode
         /// <summary>为指定实体类初始化模块，返回是否支持</summary>
         /// <param name="entityType"></param>
         /// <returns></returns>
-        protected virtual Boolean OnInit(Type entityType) { return true; }
+        protected virtual Boolean OnInit(Type entityType) => true;
 
         /// <summary>创建实体对象</summary>
         /// <param name="entity"></param>
@@ -202,7 +195,7 @@ namespace XCode
         /// <param name="entity"></param>
         /// <param name="isNew"></param>
         /// <returns></returns>
-        protected virtual Boolean OnValid(IEntity entity, Boolean isNew) { return true; }
+        protected virtual Boolean OnValid(IEntity entity, Boolean isNew) => true;
 
         /// <summary>删除实体对象</summary>
         /// <param name="entity"></param>
@@ -216,36 +209,35 @@ namespace XCode
         /// <summary>删除实体对象</summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        protected virtual Boolean OnDelete(IEntity entity) { return true; }
+        protected virtual Boolean OnDelete(IEntity entity) => true;
         #endregion
 
         #region 辅助
         /// <summary>设置脏数据项。如果某个键存在并且数据没有脏，则设置</summary>
-        /// <param name="fieldNames"></param>
+        /// <param name="fields"></param>
         /// <param name="entity"></param>
         /// <param name="name"></param>
         /// <param name="value"></param>
         /// <returns>返回是否成功设置了数据</returns>
-        protected virtual Boolean SetNoDirtyItem(ICollection<String> fieldNames, IEntity entity, String name, Object value)
+        protected virtual Boolean SetNoDirtyItem(ICollection<FieldItem> fields, IEntity entity, String name, Object value)
         {
-            if (fieldNames.Contains(name) && !entity.Dirtys[name]) return entity.SetItem(name, value);
+            if (!entity.IsDirty(name) && fields.Any(e => e.Name.EqualIgnoreCase(name))) return entity.SetItem(name, value);
 
             return false;
         }
 
-        private static DictionaryCache<Type, ICollection<String>> _fieldNames = new DictionaryCache<Type, ICollection<String>>();
+        private static ConcurrentDictionary<Type, ICollection<FieldItem>> _fieldNames = new ConcurrentDictionary<Type, ICollection<FieldItem>>();
         /// <summary>获取实体类的字段名。带缓存</summary>
         /// <param name="entityType"></param>
         /// <returns></returns>
-        protected static ICollection<String> GetFieldNames(Type entityType)
+        protected static ICollection<FieldItem> GetFields(Type entityType)
         {
-            return _fieldNames.GetItem(entityType, t =>
+            return _fieldNames.GetOrAdd(entityType, t =>
             {
-                var fact = EntityFactory.CreateOperate(t);
-                //return fact == null ? null : fact.FieldNames;
+                var fact = t.AsFactory();
                 if (fact == null) return null;
 
-                return new HashSet<String>(fact.FieldNames);
+                return new HashSet<FieldItem>(fact.Fields);
             });
         }
         #endregion

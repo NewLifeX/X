@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using NewLife.Data;
 using NewLife.Log;
 using NewLife.Reflection;
 
@@ -45,12 +45,14 @@ namespace NewLife.Serialization
             IgnoreMembers = new HashSet<String>();
 
             // 遍历所有处理器实现
-            var list = new List<IBinaryHandler>();
-            list.Add(new BinaryGeneral { Host = this });
-            list.Add(new BinaryNormal { Host = this });
-            list.Add(new BinaryComposite { Host = this });
-            list.Add(new BinaryList { Host = this });
-            list.Add(new BinaryDictionary { Host = this });
+            var list = new List<IBinaryHandler>
+            {
+                new BinaryGeneral { Host = this },
+                new BinaryNormal { Host = this },
+                new BinaryComposite { Host = this },
+                new BinaryList { Host = this },
+                new BinaryDictionary { Host = this }
+            };
             // 根据优先级排序
             list.Sort();
 
@@ -81,8 +83,10 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public Binary AddHandler<THandler>(Int32 priority = 0) where THandler : IBinaryHandler, new()
         {
-            var handler = new THandler();
-            handler.Host = this;
+            var handler = new THandler
+            {
+                Host = this
+            };
             if (priority != 0) handler.Priority = priority;
 
             return AddHandler(handler);
@@ -107,7 +111,7 @@ namespace NewLife.Serialization
         /// <param name="value">目标对象</param>
         /// <param name="type">类型</param>
         /// <returns></returns>
-        [DebuggerHidden]
+        //[DebuggerHidden]
         public virtual Boolean Write(Object value, Type type = null)
         {
             if (type == null)
@@ -117,7 +121,13 @@ namespace NewLife.Serialization
                 type = value.GetType();
 
                 // 一般类型为空是顶级调用
-                if (Hosts.Count == 0) WriteLog("BinaryWrite {0} {1}", type.Name, value);
+                if (Hosts.Count == 0 && Log != null && Log.Enable) WriteLog("BinaryWrite {0} {1}", type.Name, value);
+            }
+
+            // 优先 IAccessor 接口
+            if (value is IAccessor acc)
+            {
+                if (acc.Write(Stream, this)) return true;
             }
 
             foreach (var item in Handlers)
@@ -129,7 +139,7 @@ namespace NewLife.Serialization
 
         /// <summary>写入字节</summary>
         /// <param name="value"></param>
-        public virtual void Write(Byte value) { Stream.WriteByte(value); }
+        public virtual void Write(Byte value) => Stream.WriteByte(value);
 
         /// <summary>将字节数组部分写入当前流，不写入数组长度。</summary>
         /// <param name="buffer">包含要写入的数据的字节数组。</param>
@@ -175,6 +185,8 @@ namespace NewLife.Serialization
             return -1;
         }
 
+        [ThreadStatic]
+        private static Byte[] _encodes;
         /// <summary>写7位压缩编码整数</summary>
         /// <remarks>
         /// 以7位压缩格式写入32位整数，小于7位用1个字节，小于14位用2个字节。
@@ -184,21 +196,18 @@ namespace NewLife.Serialization
         /// <returns>实际写入字节数</returns>
         Int32 WriteEncoded(Int32 value)
         {
-            var arr = new Byte[16];
-            var k = 0;
+            if (_encodes == null) _encodes = new Byte[16];
 
-            var count = 1;
+            var count = 0;
             var num = (UInt32)value;
             while (num >= 0x80)
             {
-                arr[k++] = (Byte)(num | 0x80);
+                _encodes[count++] = (Byte)(num | 0x80);
                 num = num >> 7;
-
-                count++;
             }
-            arr[k++] = (Byte)num;
+            _encodes[count++] = (Byte)num;
 
-            Write(arr, 0, k);
+            Write(_encodes, 0, count);
 
             return count;
         }
@@ -208,7 +217,7 @@ namespace NewLife.Serialization
         /// <summary>读取指定类型对象</summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        [DebuggerHidden]
+        //[DebuggerHidden]
         public virtual Object Read(Type type)
         {
             //var value = type.CreateInstance();
@@ -221,20 +230,31 @@ namespace NewLife.Serialization
         /// <summary>读取指定类型对象</summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        [DebuggerHidden]
-        public T Read<T>()
-        {
-            return (T)(Object)Read(typeof(T));
-        }
+        //[DebuggerHidden]
+        public T Read<T>() => (T)Read(typeof(T));
 
         /// <summary>尝试读取指定类型对象</summary>
         /// <param name="type"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        [DebuggerHidden]
+        //[DebuggerHidden]
         public virtual Boolean TryRead(Type type, ref Object value)
         {
-            if (Hosts.Count == 0) WriteLog("BinaryRead {0} {1}", type.Name, value);
+            if (Hosts.Count == 0 && Log != null && Log.Enable) WriteLog("BinaryRead {0} {1}", type.Name, value);
+
+            // 优先 IAccessor 接口
+            if (value is IAccessor acc)
+            {
+                if (acc.Read(Stream, this)) return true;
+            }
+            if (value == null && type.As<IAccessor>())
+            {
+                value = type.CreateInstance();
+                if (value is IAccessor acc2)
+                {
+                    if (acc2.Read(Stream, this)) return true;
+                }
+            }
 
             foreach (var item in Handlers)
             {
@@ -313,15 +333,15 @@ namespace NewLife.Serialization
         /// <summary>读取整数的字节数组，某些写入器（如二进制写入器）可能需要改变字节顺序</summary>
         /// <param name="count">数量</param>
         /// <returns></returns>
-        Byte[] ReadIntBytes(Int32 count) { return Stream.ReadBytes(count); }
+        Byte[] ReadIntBytes(Int32 count) => Stream.ReadBytes(count);
 
         /// <summary>从当前流中读取 2 字节有符号整数，并使流的当前位置提升 2 个字节。</summary>
         /// <returns></returns>
-        Int16 ReadInt16() { return BitConverter.ToInt16(ReadIntBytes(2), 0); }
+        Int16 ReadInt16() => BitConverter.ToInt16(ReadIntBytes(2), 0);
 
         /// <summary>从当前流中读取 4 字节有符号整数，并使流的当前位置提升 4 个字节。</summary>
         /// <returns></returns>
-        Int32 ReadInt32() { return BitConverter.ToInt32(ReadIntBytes(4), 0); }
+        Int32 ReadInt32() => BitConverter.ToInt32(ReadIntBytes(4), 0);
         #endregion
 
         #region 7位压缩编码整数
@@ -356,7 +376,7 @@ namespace NewLife.Serialization
             {
                 b = ReadByte();
                 // 必须转为Int32，否则可能溢出
-                rs += (Int32)((b & 0x7f) << n);
+                rs += (b & 0x7f) << n;
                 if ((b & 0x80) == 0) break;
 
                 n += 7;
@@ -391,7 +411,6 @@ namespace NewLife.Serialization
         #endregion
 
         #region 跟踪日志
-#if !__MOBILE__
         /// <summary>使用跟踪流。实际上是重新包装一次Stream，必须在设置Stream后，使用之前</summary>
         public virtual void EnableTrace()
         {
@@ -400,7 +419,34 @@ namespace NewLife.Serialization
 
             Stream = new TraceStream(stream) { Encoding = Encoding, IsLittleEndian = IsLittleEndian };
         }
-#endif
+        #endregion
+
+        #region 快捷方法
+        /// <summary>快速读取</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="stream">数据流</param>
+        /// <param name="encodeInt">使用7位编码整数</param>
+        /// <returns></returns>
+        public static T FastRead<T>(Stream stream, Boolean encodeInt = true)
+        {
+            var bn = new Binary() { Stream = stream, EncodeInt = encodeInt };
+            return bn.Read<T>();
+        }
+
+        /// <summary>快速写入</summary>
+        /// <param name="value">对象</param>
+        /// <param name="encodeInt">使用7位编码整数</param>
+        /// <returns></returns>
+        public static Packet FastWrite(Object value, Boolean encodeInt = true)
+        {
+            // 头部预留8字节，方便加协议头
+            var bn = new Binary { EncodeInt = encodeInt };
+            bn.Stream.Seek(8, SeekOrigin.Current);
+            bn.Write(value);
+
+            var buf = bn.GetBytes();
+            return new Packet(buf, 8, buf.Length - 8);
+        }
         #endregion
     }
 }

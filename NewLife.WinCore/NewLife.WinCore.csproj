@@ -1,0 +1,55 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop" ToolsVersion="Current">
+  <PropertyGroup>
+    <TargetFrameworks>netcoreapp3.0;netcoreapp3.1</TargetFrameworks>
+    <UseWindowsForms>true</UseWindowsForms>
+    <AssemblyName>NewLife.WinCore</AssemblyName>
+    <RootNamespace>NewLife</RootNamespace>
+    <AssemblyTitle>X组件核心库</AssemblyTitle>
+    <Description>算法、日志、网络、RPC、序列化、缓存、Windows服务、线程池</Description>
+    <Company>新生命开发团队</Company>
+    <Copyright>©2002-2020 NewLife</Copyright>
+    <Version>8.6.2020.0204</Version>
+    <FileVersion>8.6.2020.0204</FileVersion>
+    <AssemblyVersion>8.6.*</AssemblyVersion>
+    <Deterministic>false</Deterministic>
+    <OutputPath>..\Bin</OutputPath>
+    <DocumentationFile>$(OutputPath)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineConstants>TRACE;__CORE__;__WIN__</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PackageId>$(AssemblyName)</PackageId>
+    <Authors>$(Company)</Authors>
+    <ProjectUrl>https://github.com/NewLifeX</ProjectUrl>
+    <PackageIconUrl>http://www.NewLifeX.com/favicon.ico</PackageIconUrl>
+    <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
+    <PackageReleaseNotes>Windows专用.NET Core 3.0</PackageReleaseNotes>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSource>true</IncludeSource>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <DefineConstants>$(DefineConstants);DEBUG</DefineConstants>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <!--<GeneratePackageOnBuild>true</GeneratePackageOnBuild>-->
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\NewLife.Core\Log\TextControlLog.cs" Link="TextControlLog.cs" />
+    <Compile Include="..\NewLife.Core\Reflection\ScriptEngine.cs" Link="ScriptEngine.cs" />
+    <Compile Include="..\NewLife.Core\Serialization\Binary\BinaryFont.cs" Link="BinaryFont.cs" />
+    <Compile Include="..\NewLife.Core\Windows\ControlHelper.cs" Link="ControlHelper.cs" />
+    <EmbeddedResource Include="..\NewLife.Core\Windows\MySpeech.cs" Link="MySpeech.cs" />
+    <Compile Include="..\NewLife.Core\Windows\SpeechRecognition.cs" Link="SpeechRecognition.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj" />
+  </ItemGroup>
+</Project>

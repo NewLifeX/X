@@ -1,5 +1,7 @@
 ﻿using System;
-using System.Text;
+using System.Linq;
+using NewLife.Collections;
+using NewLife.Log;
 using NewLife.Model;
 using NewLife.Reflection;
 
@@ -16,7 +18,8 @@ namespace XCode.Membership
         /// <param name="userid">用户</param>
         /// <param name="name">名称</param>
         /// <param name="ip">地址</param>
-        public abstract void WriteLog(String category, String action, String remark, Int32 userid = 0, String name = null, String ip = null);
+        [Obsolete]
+        public virtual void WriteLog(String category, String action, String remark, Int32 userid = 0, String name = null, String ip = null) => WriteLog(category, action, true, remark, userid, name, ip);
 
         /// <summary>写日志</summary>
         /// <param name="type">类型</param>
@@ -25,7 +28,28 @@ namespace XCode.Membership
         /// <param name="userid">用户</param>
         /// <param name="name">名称</param>
         /// <param name="ip">地址</param>
-        public virtual void WriteLog(Type type, String action, String remark, Int32 userid = 0, String name = null, String ip = null)
+        [Obsolete]
+        public virtual void WriteLog(Type type, String action, String remark, Int32 userid = 0, String name = null, String ip = null) => WriteLog(type, action, true, remark, userid, name, ip);
+
+        /// <summary>写日志</summary>
+        /// <param name="category">类型</param>
+        /// <param name="action">操作</param>
+        /// <param name="success">成功</param>
+        /// <param name="remark">备注</param>
+        /// <param name="userid">用户</param>
+        /// <param name="name">名称</param>
+        /// <param name="ip">地址</param>
+        public abstract void WriteLog(String category, String action, Boolean success, String remark, Int32 userid = 0, String name = null, String ip = null);
+
+        /// <summary>写日志</summary>
+        /// <param name="type">类型</param>
+        /// <param name="action">操作</param>
+        /// <param name="success">成功</param>
+        /// <param name="remark">备注</param>
+        /// <param name="userid">用户</param>
+        /// <param name="name">名称</param>
+        /// <param name="ip">地址</param>
+        public virtual void WriteLog(Type type, String action, Boolean success, String remark, Int32 userid = 0, String name = null, String ip = null)
         {
             var cat = "";
             if (type.As<IEntity>())
@@ -34,23 +58,25 @@ namespace XCode.Membership
                 if (fact != null) cat = fact.Table.DataTable.DisplayName;
             }
             if (cat.IsNullOrEmpty()) cat = type.GetDisplayName() ?? type.GetDescription() ?? type.Name;
-            WriteLog(cat, action, remark, userid, name, ip);
+            WriteLog(cat, action, success, remark, userid, name, ip);
         }
 
         /// <summary>输出实体对象日志</summary>
-        /// <param name="action"></param>
-        /// <param name="entity"></param>
-        public void WriteLog(String action, IEntity entity)
+        /// <param name="action">操作</param>
+        /// <param name="entity">实体</param>
+        /// <param name="error">错误信息</param>
+        public void WriteLog(String action, IEntity entity, String error = null)
         {
             if (!Enable) return;
 
             var fact = EntityFactory.CreateOperate(entity.GetType());
 
             // 构造字段数据的字符串表示形式
-            var sb = new StringBuilder();
+            var sb = Pool.StringBuilder.Get();
+            if (error.IsNullOrEmpty()) sb.Append(error);
             foreach (var fi in fact.Fields)
             {
-                if (action == "修改" && !fi.PrimaryKey && !entity.Dirtys[fi.Name]) continue;
+                if (action == "修改" && !fi.PrimaryKey && !entity.IsDirty(fi.Name)) continue;
                 var v = entity[fi.Name];
                 // 空字符串不写日志
                 if (action == "添加" || action == "删除")
@@ -67,30 +93,54 @@ namespace XCode.Membership
                 sb.Separate(",").Append("{0}={1}".F(fi.Name, v));
             }
 
-            WriteLog(entity.GetType(), action, sb.ToString());
+            var userid = 0;
+            var name = "";
+            if (entity is IManageUser user)
+            {
+                userid = user.ID;
+                name = user + "";
+            }
+
+            WriteLog(entity.GetType(), action, error.IsNullOrEmpty(), sb.Put(true), userid, name);
         }
 
         /// <summary>是否使用日志</summary>
         public Boolean Enable { get; set; } = true;
         #endregion
 
-        #region 静态属性
-        static LogProvider()
-        {
-            ObjectContainer.Current.AutoRegister<LogProvider, DefaultLogProvider>();
-        }
+        #region 日志转换
+        /// <summary>转为标准日志接口</summary>
+        /// <param name="category">日志分类</param>
+        /// <returns></returns>
+        public NewLife.Log.ILog AsLog(String category) => new DbLog { Provider = this, Category = category };
 
-        private static LogProvider _Provider;
-        /// <summary>当前成员提供者</summary>
-        public static LogProvider Provider
+        class DbLog : Logger
         {
-            get
+            public LogProvider Provider { get; set; }
+            public String Category { get; set; }
+
+            protected override void OnWrite(LogLevel level, String format, params Object[] args)
             {
-                if (_Provider == null) _Provider = ObjectContainer.Current.Resolve<LogProvider>();
-                return _Provider;
+                var msg = format.F(args);
+                var act = "";
+                var p = msg.IndexOf(' ');
+                if (p > 0)
+                {
+                    act = msg.Substring(0, p).Trim();
+                    msg = msg.Substring(p + 1).Trim();
+                }
+
+                // 从参数里提取用户对象
+                var user = args.FirstOrDefault(e => e is IManageUser) as IManageUser;
+
+                Provider.WriteLog(Category, act, true, msg, user?.ID ?? 0, user + "");
             }
-            set { _Provider = value; }
         }
+        #endregion
+
+        #region 静态属性
+        /// <summary>当前成员提供者</summary>
+        public static LogProvider Provider { get; set; } = new DefaultLogProvider();
         #endregion
     }
 
@@ -98,23 +148,27 @@ namespace XCode.Membership
     /// <typeparam name="TLog"></typeparam>
     public class LogProvider<TLog> : LogProvider where TLog : Log<TLog>, new()
     {
+        #region 提供者
+        /// <summary>当前用户提供者</summary>
+        public IManageProvider Provider2 { get; set; }
+        #endregion
+
         /// <summary>写日志</summary>
         /// <param name="category">类型</param>
         /// <param name="action">操作</param>
+        /// <param name="success">成功</param>
         /// <param name="remark">备注</param>
         /// <param name="userid">用户</param>
         /// <param name="name">名称</param>
         /// <param name="ip">地址</param>
-        public override void WriteLog(String category, String action, String remark, Int32 userid = 0, String name = null, String ip = null)
+        public override void WriteLog(String category, String action, Boolean success, String remark, Int32 userid = 0, String name = null, String ip = null)
         {
             if (!Enable) return;
-
-            if (category == null) throw new ArgumentNullException("category");
-
             var factory = EntityFactory.CreateOperate(typeof(TLog));
             var log = factory.Create() as ILog;
-            log.Category = category;
+            log.Category = category ?? throw new ArgumentNullException(nameof(category));
             log.Action = action;
+            log.Success = success;
 
             // 加上关联编号
             if (remark.StartsWithIgnoreCase("ID="))
@@ -127,7 +181,23 @@ namespace XCode.Membership
             if (!name.IsNullOrEmpty()) log.UserName = name;
             if (!ip.IsNullOrEmpty()) log.CreateIP = ip;
 
+            // 获取当前登录信息
+            if (log.CreateUserID == 0 || name.IsNullOrEmpty())
+            {
+                // 当前登录用户
+                var prv = Provider2 ?? ManageProvider.Provider;
+                //var user = prv?.Current ?? HttpContext.Current?.User?.Identity as IManageUser;
+                var user = prv?.Current;
+                if (user != null)
+                {
+                    if (log.CreateUserID == 0) log.CreateUserID = user.ID;
+                    if (log.UserName.IsNullOrEmpty()) log.UserName = user + "";
+                }
+            }
+
             log.Remark = remark;
+            log.CreateTime = DateTime.Now;
+
             log.SaveAsync();
         }
     }

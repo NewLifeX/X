@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !__CORE__
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,13 +7,12 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.UI;
+using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Model;
+using NewLife.Threading;
 using NewLife.Web;
 using XCode.Membership;
-#if !NET4
-using TaskEx = System.Threading.Tasks.Task;
-#endif
 
 namespace XCode.Web
 {
@@ -30,6 +30,9 @@ namespace XCode.Web
             //context.PreRequestHandlerExecute += OnSession;
             context.PostRequestHandlerExecute += OnPost;
             context.Error += OnPost;
+
+            context.BeginRequest += OnInit;
+            context.PostReleaseRequestState += OnEnd;
         }
 
         private void OnSession(Object sender, EventArgs e)
@@ -49,6 +52,10 @@ namespace XCode.Web
         /// <summary>访问统计</summary>
         public static Boolean WebStatistics { get; set; }
 
+        void OnInit(Object sender, EventArgs e) => ManageProvider.UserHost = GetIP();
+
+        void OnEnd(Object sender, EventArgs e) => ManageProvider.UserHost = null;
+
         void OnPost(Object sender, EventArgs e)
         {
             if (!WebOnline && !WebBehavior && !WebStatistics) return;
@@ -62,13 +69,18 @@ namespace XCode.Web
             var user = ctx.User?.Identity as IManageUser ?? ManageProvider.User as IManageUser;
 
             var sid = ctx.Session?.SessionID;
-            var ip = WebHelper.UserHost;
+            var ip = GetIP();
 
             var page = GetPage(req);
+
+            // 过滤后缀
+            var ext = Path.GetExtension(page);
+            if (!ext.IsNullOrEmpty() && ExcludeSuffixes.Contains(ext)) return;
+
             var title = GetTitle(ctx, req);
             var msg = GetMessage(ctx, req, title);
 
-            TaskEx.Run(() =>
+            ThreadPoolX.QueueUserWorkItem(() =>
             {
                 try
                 {
@@ -76,7 +88,7 @@ namespace XCode.Web
                     if (WebOnline && !sid.IsNullOrEmpty()) UserOnline.SetWebStatus(sid, page, msg, user, ip);
 
                     // 记录用户访问的Url
-                    if (WebBehavior) SaveBehavior(user, ip, page, msg);
+                    if (WebBehavior) SaveBehavior(user, ip, page, msg, GetError(ctx) == null);
 
                     // 每个页面的访问统计
                     if (WebStatistics) SaveStatistics(ctx, user, ip, page, title);
@@ -90,18 +102,18 @@ namespace XCode.Web
 
         String GetMessage(HttpContext ctx, HttpRequest req, String title)
         {
-            var sb = new StringBuilder(256);
+            var sb = Pool.StringBuilder.Get();
 
             if (!title.IsNullOrEmpty()) sb.Append(title + " ");
             sb.AppendFormat("{0} {1}", req.HttpMethod, req.RawUrl);
 
-            var err = ctx.Error?.Message;
+            var err = GetError(ctx)?.Message;
             if (!err.IsNullOrEmpty()) sb.Append(" " + err);
 
             var ts = DateTime.Now - ctx.Timestamp;
             sb.AppendFormat(" {0:n0}ms", ts.TotalMilliseconds);
 
-            return sb.ToString();
+            return sb.Put(true);
         }
 
         String GetTitle(HttpContext ctx, HttpRequest req)
@@ -140,15 +152,11 @@ namespace XCode.Web
             ".woff", ".woff2", ".svg", ".ttf", ".otf", ".eot"   // 字体
         };
 
-        void SaveBehavior(IManageUser user, String ip, String page, String msg)
+        void SaveBehavior(IManageUser user, String ip, String page, String msg, Boolean success)
         {
             if (page.IsNullOrEmpty()) return;
 
-            // 过滤后缀
-            var ext = Path.GetExtension(page);
-            if (!ext.IsNullOrEmpty() && ExcludeSuffixes.Contains(ext)) return;
-
-            LogProvider.Provider?.WriteLog("访问", "记录", msg, user?.ID ?? 0, user + "", ip);
+            LogProvider.Provider?.WriteLog("访问", "记录", success, msg, user?.ID ?? 0, user + "", ip);
         }
 
         void SaveStatistics(HttpContext ctx, IManageUser user, String ip, String page, String title)
@@ -156,7 +164,51 @@ namespace XCode.Web
             var ts = DateTime.Now - ctx.Timestamp;
 
             // 访问统计
-            VisitStat.Add(page, title, (Int32)ts.TotalMilliseconds, user?.ID ?? 0, ip, ctx.Error?.Message);
+            //VisitStat.Add(page, title, (Int32)ts.TotalMilliseconds, user?.ID ?? 0, ip, GetError(ctx)?.Message);
+
+            var model = new VisitStatModel
+            {
+                Time = DateTime.Now,
+                Page = page,
+                Title = title,
+                Cost = (Int32)ts.TotalMilliseconds,
+                User = user + "",
+                IP = ip,
+                Error = GetError(ctx)?.Message,
+            };
+
+            VisitStat.Process(model);
+        }
+
+        /// <summary>获取错误，排除HttpException</summary>
+        /// <param name="ctx"></param>
+        /// <returns></returns>
+        Exception GetError(HttpContext ctx)
+        {
+            var ex = ctx?.Error;
+            if (ex != null && ex is HttpException && ex.InnerException != null) ex = ex.InnerException;
+
+            return ex;
+        }
+
+        String GetIP()
+        {
+            var ctx = HttpContext.Current;
+            if (ctx == null) return null;
+
+            var req = ctx.Request;
+            if (req == null) return null;
+
+            var ip = (String)ctx.Items["UserHostAddress"];
+            if (ip.IsNullOrEmpty()) ip = req.ServerVariables["HTTP_X_FORWARDED_FOR"];
+            if (ip.IsNullOrEmpty()) ip = req.ServerVariables["X-Real-IP"];
+            if (ip.IsNullOrEmpty()) ip = req.ServerVariables["X-Forwarded-For"];
+            if (ip.IsNullOrEmpty()) ip = req.ServerVariables["REMOTE_ADDR"];
+            if (ip.IsNullOrEmpty()) ip = req.UserHostName;
+            if (ip.IsNullOrEmpty()) ip = req.UserHostAddress;
+
+            return ip;
         }
     }
 }
+#endif

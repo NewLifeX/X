@@ -29,7 +29,7 @@ namespace NewLife.Compression
             #endregion
 
             #region 注册表
-#if !__CORE__
+#if __WIN__
             if (p.IsNullOrEmpty())
             {
                 var reg = Registry.LocalMachine.OpenSubKey("Software\\7-Zip");
@@ -45,11 +45,7 @@ namespace NewLife.Compression
             #endregion
 
             #region X组件缓存
-#if !__CORE__
-            var cache = Environment.SystemDirectory.CombinePath(@"..\..\X\7z").GetFullPath();
-#else
             var cache = Path.GetPathRoot(".".GetFullPath()).CombinePath(@"\X\7z").GetFullPath();
-#endif
             if (p.IsNullOrEmpty())
             {
                 var f = cache.CombinePath("7z.exe");
@@ -63,7 +59,7 @@ namespace NewLife.Compression
                 XTrace.WriteLine("准备下载7z扩展包");
 
                 var url = Setting.Current.PluginServer;
-                var client = new WebClientX(true, true)
+                var client = new WebClientX()
                 {
                     Log = XTrace.Log
                 };
@@ -78,9 +74,8 @@ namespace NewLife.Compression
             #endregion
 
             if (!p.IsNullOrEmpty()) _7z = p.GetFullPath();
-            #region DEBUG
+
             XTrace.WriteLine("7Z目录 {0}", _7z);
-            #endregion
         }
 
         /// <summary>实例化</summary>

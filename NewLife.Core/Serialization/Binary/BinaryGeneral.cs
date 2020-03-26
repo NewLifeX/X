@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Text;
 
 namespace NewLife.Serialization
 {
@@ -27,17 +27,17 @@ namespace NewLife.Serialization
                     return true;
                 case TypeCode.Byte:
                 case TypeCode.SByte:
-                    Host.Write((Byte)value);
+                    Host.Write(Convert.ToByte(value));
                     return true;
                 case TypeCode.Char:
                     Write((Char)value);
                     return true;
                 case TypeCode.DBNull:
                 case TypeCode.Empty:
-                    Host.Write((Byte)0);
+                    Host.Write(0);
                     return true;
                 case TypeCode.DateTime:
-                    Write((DateTime)value);
+                    Write(((DateTime)value).ToInt());
                     return true;
                 case TypeCode.Decimal:
                     Write((Decimal)value);
@@ -107,7 +107,7 @@ namespace NewLife.Serialization
                     value = DBNull.Value;
                     return true;
                 case TypeCode.DateTime:
-                    value = ReadDateTime();
+                    value = ReadInt32().ToDateTime();
                     return true;
                 case TypeCode.Decimal:
                     value = ReadDecimal();
@@ -264,27 +264,27 @@ namespace NewLife.Serialization
         /// <summary>将 2 字节无符号整数写入当前流，并将流的位置提升 2 个字节。</summary>
         /// <param name="value">要写入的 2 字节无符号整数。</param>
         //[CLSCompliant(false)]
-        public virtual void Write(UInt16 value) { Write((Int16)value); }
+        public virtual void Write(UInt16 value) => Write((Int16)value);
 
         /// <summary>将 4 字节无符号整数写入当前流，并将流的位置提升 4 个字节。</summary>
         /// <param name="value">要写入的 4 字节无符号整数。</param>
         //[CLSCompliant(false)]
-        public virtual void Write(UInt32 value) { Write((Int32)value); }
+        public virtual void Write(UInt32 value) => Write((Int32)value);
 
         /// <summary>将 8 字节无符号整数写入当前流，并将流的位置提升 8 个字节。</summary>
         /// <param name="value">要写入的 8 字节无符号整数。</param>
         //[CLSCompliant(false)]
-        public virtual void Write(UInt64 value) { Write((Int64)value); }
+        public virtual void Write(UInt64 value) => Write((Int64)value);
         #endregion
 
         #region 浮点数
         /// <summary>将 4 字节浮点值写入当前流，并将流的位置提升 4 个字节。</summary>
         /// <param name="value">要写入的 4 字节浮点值。</param>
-        public virtual void Write(Single value) { Write(BitConverter.GetBytes(value), -1); }
+        public virtual void Write(Single value) => Write(BitConverter.GetBytes(value), -1);
 
         /// <summary>将 8 字节浮点值写入当前流，并将流的位置提升 8 个字节。</summary>
         /// <param name="value">要写入的 8 字节浮点值。</param>
-        public virtual void Write(Double value) { Write(BitConverter.GetBytes(value), -1); }
+        public virtual void Write(Double value) => Write(BitConverter.GetBytes(value), -1);
 
         /// <summary>将一个十进制值写入当前流，并将流位置提升十六个字节。</summary>
         /// <param name="value">要写入的十进制值。</param>
@@ -301,7 +301,7 @@ namespace NewLife.Serialization
         #region 字符串
         /// <summary>将 Unicode 字符写入当前流，并根据所使用的 Encoding 和向流中写入的特定字符，提升流的当前位置。</summary>
         /// <param name="ch">要写入的非代理项 Unicode 字符。</param>
-        public virtual void Write(Char ch) { Write(Convert.ToByte(ch)); }
+        public virtual void Write(Char ch) => Write(Convert.ToByte(ch));
 
         /// <summary>将字符数组部分写入当前流，并根据所使用的 Encoding（可能还根据向流中写入的特定字符），提升流的当前位置。</summary>
         /// <param name="chars">包含要写入的数据的字符数组。</param>
@@ -346,27 +346,13 @@ namespace NewLife.Serialization
             Write(buffer);
         }
         #endregion
-
-        #region 时间日期
-        /// <summary>使用Unix时间格式</summary>
-        private static DateTime _Base = new DateTime(1970, 1, 1);
-
-        /// <summary>将一个时间日期写入</summary>
-        /// <param name="value">数值</param>
-        public virtual void Write(DateTime value)
-        {
-            // 默认保存微秒
-            var ts = value - _Base;
-            Write((Int64)ts.TotalMilliseconds);
-        }
-        #endregion
         #endregion
 
         #region 基元类型读取
         #region 字节
         /// <summary>从当前流中读取下一个字节，并使流的当前位置提升 1 个字节。</summary>
         /// <returns></returns>
-        public virtual Byte ReadByte() { return Host.ReadByte(); }
+        public virtual Byte ReadByte() => Host.ReadByte();
 
         /// <summary>从当前流中将 count 个字节读入字节数组，如果count小于0，则先读取字节数组长度。</summary>
         /// <param name="count">要读取的字节数。</param>
@@ -460,7 +446,7 @@ namespace NewLife.Serialization
         #region 字符串
         /// <summary>从当前流中读取下一个字符，并根据所使用的 Encoding 和从流中读取的特定字符，提升流的当前位置。</summary>
         /// <returns></returns>
-        public virtual Char ReadChar() { return Convert.ToChar(ReadByte()); }
+        public virtual Char ReadChar() => Convert.ToChar(ReadByte());
 
         /// <summary>从当前流中读取一个字符串。字符串有长度前缀，一次 7 位地被编码为整数。</summary>
         /// <returns></returns>
@@ -468,12 +454,13 @@ namespace NewLife.Serialization
         {
             // 先读长度
             var n = Host.ReadSize();
-            if (n < 0) return null;
-            if (n == 0) return String.Empty;
+            if (n <= 0) return null;
+            //if (n == 0) return String.Empty;
 
             var buffer = ReadBytes(n);
+            var enc = Host.Encoding ?? Encoding.UTF8;
 
-            return Host.Encoding.GetString(buffer);
+            return enc.GetString(buffer);
         }
         #endregion
 
@@ -488,22 +475,6 @@ namespace NewLife.Serialization
                 data[i] = ReadInt32();
             }
             return new Decimal(data);
-        }
-
-        /// <summary>读取一个时间日期</summary>
-        /// <returns></returns>
-        public virtual DateTime ReadDateTime()
-        {
-            // 默认识别为微秒，如果太小，就按秒来算
-            var ms = ReadInt64();
-
-            var dt = _Base.AddMilliseconds(ms);
-            //if (dt.Year > 1970) return dt;
-
-            //var dt2 = _Base.AddSeconds(ms);
-            //if (dt2.Year < 3000) return dt2;
-
-            return dt;
         }
         #endregion
 
@@ -539,7 +510,7 @@ namespace NewLife.Serialization
             {
                 b = ReadByte();
                 // 必须转为Int32，否则可能溢出
-                rs += (Int32)((b & 0x7f) << n);
+                rs += (b & 0x7f) << n;
                 if ((b & 0x80) == 0) break;
 
                 n += 7;
@@ -571,28 +542,28 @@ namespace NewLife.Serialization
         #endregion
 
         #region 7位压缩编码整数
+        [ThreadStatic]
+        private static Byte[] _encodes;
         /// <summary>
-        /// 以7位压缩格式写入32位整数，小于7位用1个字节，小于14位用2个字节。
+        /// 以7位压缩格式写入16位整数，小于7位用1个字节，小于14位用2个字节。
         /// 由每次写入的一个字节的第一位标记后面的字节是否还是当前数据，所以每个字节实际可利用存储空间只有后7位。
         /// </summary>
         /// <param name="value">数值</param>
         /// <returns>实际写入字节数</returns>
         public Int32 WriteEncoded(Int16 value)
         {
-            var list = new List<Byte>();
+            if (_encodes == null) _encodes = new Byte[16];
 
-            var count = 1;
+            var count = 0;
             var num = (UInt16)value;
             while (num >= 0x80)
             {
-                list.Add((Byte)(num | 0x80));
+                _encodes[count++] = (Byte)(num | 0x80);
                 num = (UInt16)(num >> 7);
-
-                count++;
             }
-            list.Add((Byte)num);
+            _encodes[count++] = (Byte)num;
 
-            Write(list.ToArray(), 0, list.Count);
+            Write(_encodes, 0, count);
 
             return count;
         }
@@ -605,20 +576,18 @@ namespace NewLife.Serialization
         /// <returns>实际写入字节数</returns>
         public Int32 WriteEncoded(Int32 value)
         {
-            var list = new List<Byte>();
+            if (_encodes == null) _encodes = new Byte[16];
 
-            var count = 1;
+            var count = 0;
             var num = (UInt32)value;
             while (num >= 0x80)
             {
-                list.Add((Byte)(num | 0x80));
+                _encodes[count++] = (Byte)(num | 0x80);
                 num = num >> 7;
-
-                count++;
             }
-            list.Add((Byte)num);
+            _encodes[count++] = (Byte)num;
 
-            Write(list.ToArray(), 0, list.Count);
+            Write(_encodes, 0, count);
 
             return count;
         }
@@ -631,20 +600,18 @@ namespace NewLife.Serialization
         /// <returns>实际写入字节数</returns>
         public Int32 WriteEncoded(Int64 value)
         {
-            var list = new List<Byte>();
+            if (_encodes == null) _encodes = new Byte[16];
 
-            var count = 1;
+            var count = 0;
             var num = (UInt64)value;
             while (num >= 0x80)
             {
-                list.Add((Byte)(num | 0x80));
+                _encodes[count++] = (Byte)(num | 0x80);
                 num = num >> 7;
-
-                count++;
             }
-            list.Add((Byte)num);
+            _encodes[count++] = (Byte)num;
 
-            Write(list.ToArray(), 0, list.Count);
+            Write(_encodes, 0, count);
 
             return count;
         }

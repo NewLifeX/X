@@ -1,17 +1,18 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
+using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Collections;
+using NewLife.Data;
 using NewLife.Log;
-using NewLife.Messaging;
 using NewLife.Model;
+using NewLife.Threading;
 #if !NET4
 using TaskEx = System.Threading.Tasks.Task;
 #endif
@@ -48,7 +49,7 @@ namespace NewLife.Net
         /// <summary>本地结点</summary>
         public NetUri Local
         {
-            get { return _Local; }
+            get => _Local;
             set
             {
                 _Local = value;
@@ -57,10 +58,10 @@ namespace NewLife.Net
         }
 
         /// <summary>端口</summary>
-        public Int32 Port { get { return _Local.Port; } set { _Local.Port = value; } }
+        public Int32 Port { get => _Local.Port; set => _Local.Port = value; }
 
         /// <summary>协议类型</summary>
-        public NetType ProtocolType { get { return _Local.Type; } set { _Local.Type = value; } }
+        public NetType ProtocolType { get => _Local.Type; set => _Local.Type = value; }
 
         /// <summary>寻址方案</summary>
         public AddressFamily AddressFamily { get; set; }
@@ -82,7 +83,7 @@ namespace NewLife.Net
         }
 
         /// <summary>是否活动</summary>
-        public Boolean Active { get { return Servers.Count > 0 && Server != null && Server.Active; } }
+        public Boolean Active => Servers.Count > 0 && Server != null && Server.Active;
 
         /// <summary>会话超时时间。默认0秒，使用SocketServer默认值</summary>
         /// <remarks>
@@ -90,20 +91,30 @@ namespace NewLife.Net
         /// </remarks>
         public Int32 SessionTimeout { get; set; }
 
-        /// <summary>粘包处理接口</summary>
-        public IPacketFactory SessionPacket { get; set; }
+        /// <summary>管道</summary>
+        public IPipeline Pipeline { get; set; }
 
         /// <summary>使用会话集合，允许遍历会话。默认true</summary>
         public Boolean UseSession { get; set; } = true;
 
+        /// <summary>SSL协议。默认None，服务端Default，客户端不启用</summary>
+        public SslProtocols SslProtocol { get; set; } = SslProtocols.None;
+
+        /// <summary>SSL证书。服务端使用</summary>
+        /// <remarks>var cert = new X509Certificate2("file", "pass");</remarks>
+        public X509Certificate Certificate { get; set; }
+
         /// <summary>会话统计</summary>
-        public IStatistics StatSession { get; set; }
+        public ICounter StatSession { get; set; }
 
         /// <summary>发送统计</summary>
-        public IStatistics StatSend { get; set; }
+        public ICounter StatSend { get; set; }
 
         /// <summary>接收统计</summary>
-        public IStatistics StatReceive { get; set; }
+        public ICounter StatReceive { get; set; }
+
+        /// <summary>显示统计信息的周期。默认600秒，0表示不显示统计信息</summary>
+        public Int32 StatPeriod { get; set; } = 600;
 
         /// <summary>是否输出发送日志。默认false</summary>
         public Boolean LogSend { get; set; }
@@ -117,7 +128,7 @@ namespace NewLife.Net
         /// <summary>获取/设置 用户会话数据</summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public virtual Object this[String key] { get { return Items[key]; } set { Items[key] = value; } }
+        public virtual Object this[String key] { get => Items[key]; set => Items[key] = value; }
         #endregion
 
         #region 构造
@@ -126,42 +137,40 @@ namespace NewLife.Net
         {
             Name = GetType().Name.TrimEnd("Server");
 
-            //SessionTimeout = 30;
-            //AddressFamily = AddressFamily.Unknown;
-
             Servers = new List<ISocketServer>();
 
-            StatSession = new Statistics();
-            StatSend = new Statistics();
-            StatReceive = new Statistics();
+            StatSession = new PerfCounter();
+            StatSend = new PerfCounter();
+            StatReceive = new PerfCounter();
 
             if (Setting.Current.Debug) Log = XTrace.Log;
         }
 
         /// <summary>通过指定监听地址和端口实例化一个网络服务器</summary>
+        /// <param name="port"></param>
+        public NetServer(Int32 port) : this(IPAddress.Any, port) { }
+
+        /// <summary>通过指定监听地址和端口实例化一个网络服务器</summary>
         /// <param name="address"></param>
         /// <param name="port"></param>
-        public NetServer(IPAddress address, Int32 port)
-        {
-            Local.Address = address;
-            Port = port;
-        }
+        public NetServer(IPAddress address, Int32 port) : this(address, port, NetType.Unknown) { }
 
         /// <summary>通过指定监听地址和端口，还有协议，实例化一个网络服务器，默认支持Tcp协议和Udp协议</summary>
         /// <param name="address"></param>
         /// <param name="port"></param>
         /// <param name="protocolType"></param>
-        public NetServer(IPAddress address, Int32 port, NetType protocolType)
-            : this(address, port)
+        public NetServer(IPAddress address, Int32 port, NetType protocolType) : this()
         {
+            Local.Address = address;
+            Port = port;
             Local.Type = protocolType;
         }
 
         /// <summary>已重载。释放会话集合等资源</summary>
         /// <param name="disposing"></param>
-        protected override void OnDispose(Boolean disposing)
+        protected override void Dispose(Boolean disposing)
         {
-            base.OnDispose(disposing);
+            base.Dispose(disposing);
 
             if (Active) Stop(GetType().Name + (disposing ? "Dispose" : "GC"));
 
@@ -205,29 +214,26 @@ namespace NewLife.Net
 
             server.Name = String.Format("{0}{1}{2}", Name, server.Local.IsTcp ? "Tcp" : "Udp", server.Local.Address.IsIPv4() ? "" : "6");
             // 内部服务器日志更多是为了方便网络库调试，而网络服务器日志用于应用开发
-            server.Log = SocketLog ?? Log;
+            if (SocketLog != null) server.Log = SocketLog;
             server.NewSession += Server_NewSession;
 
             if (SessionTimeout > 0) server.SessionTimeout = SessionTimeout;
-            if (SessionPacket != null) server.SessionPacket = SessionPacket;
+            if (Pipeline != null) server.Pipeline = Pipeline;
 
-            // 处理UDP最大并发接收
-            if (server is UdpServer udp)
-            {
-                udp.MaxAsync = Environment.ProcessorCount * 16 / 10;
-                // Udp服务器不能关闭自己，但是要关闭会话
-                // Udp客户端一般不关闭自己
-                //udp.EnableReset = true;
-            }
-
-            server.StatSession.Parent = StatSession;
-            server.StatSend.Parent = StatSend;
-            server.StatReceive.Parent = StatReceive;
+            server.StatSession = StatSession;
+            server.StatSend = StatSend;
+            server.StatReceive = StatReceive;
 
             server.LogSend = LogSend;
             server.LogReceive = LogReceive;
 
             server.Error += OnError;
+
+            if (server is TcpServer ts)
+            {
+                ts.SslProtocol = SslProtocol;
+                ts.Certificate = Certificate;
+            }
 
             Servers.Add(server);
 
@@ -264,6 +270,24 @@ namespace NewLife.Net
                     AttachServer(item);
                 }
             }
+        }
+
+        /// <summary>添加处理器</summary>
+        /// <typeparam name="THandler"></typeparam>
+        public void Add<THandler>() where THandler : IHandler, new()
+        {
+            if (Pipeline == null) Pipeline = new Pipeline();
+
+            Pipeline.AddLast(new THandler());
+        }
+
+        /// <summary>添加处理器</summary>
+        /// <param name="handler">处理器</param>
+        public void Add(IHandler handler)
+        {
+            if (Pipeline == null) Pipeline = new Pipeline();
+
+            Pipeline.AddLast(handler);
         }
         #endregion
 
@@ -312,8 +336,11 @@ namespace NewLife.Net
                         if (elm != item && elm.Port == 0) elm.Port = Port;
                     }
                 }
-                if (item.Port <= 0) WriteLog("开始监听 {0}", item);
+                /*if (item.Port <= 0)*/
+                WriteLog("开始监听 {0}", item);
             }
+
+            if (StatPeriod > 0) _Timer = new TimerX(ShowStat, null, 10_000, StatPeriod * 1000);
         }
 
         /// <summary>停止服务</summary>
@@ -322,6 +349,8 @@ namespace NewLife.Net
         {
             //if (!Active) throw new InvalidOperationException("服务没有开始！");
             //if (!Active) return;
+
+            _Timer.TryDispose();
 
             var ss = Servers.Where(e => e.Active).ToArray();
             if (ss == null || ss.Length == 0) return;
@@ -351,8 +380,8 @@ namespace NewLife.Net
         /// <summary>某个会话的数据到达。sender是ISocketSession</summary>
         public event EventHandler<ReceivedEventArgs> Received;
 
-        /// <summary>消息到达事件</summary>
-        public event EventHandler<MessageEventArgs> MessageReceived;
+        ///// <summary>消息到达事件</summary>
+        //public event EventHandler<MessageEventArgs> MessageReceived;
 
         /// <summary>接受连接时，对于Udp是收到数据时（同时触发OnReceived）。</summary>
         /// <param name="sender"></param>
@@ -383,22 +412,14 @@ namespace NewLife.Net
             ns.Host = this;
             ns.Server = session.Server;
             ns.Session = session;
-            if (ns is NetSession) (ns as NetSession).Log = SessionLog ?? Log;
+            if (ns is NetSession ns2) ns2.Log = SessionLog ?? Log;
 
             if (UseSession) AddSession(ns);
 
             ns.Received += OnReceived;
-            ns.MessageReceived += OnMessageReceived;
-            //session.Error += OnError;
 
-            // 估算完成时间，执行过长时提示
-            using (var tc = new TimeCost("NetServer.OnNewSession", 500))
-            {
-                tc.Log = Log;
-
-                // 开始会话处理
-                ns.Start();
-            }
+            // 开始会话处理
+            ns.Start();
 
             return ns;
         }
@@ -410,32 +431,15 @@ namespace NewLife.Net
         {
             var session = sender as INetSession;
 
-            OnReceive(session, e.Stream);
+            OnReceive(session, e.Packet);
 
             Received?.Invoke(sender, e);
         }
 
         /// <summary>收到数据时，最原始的数据处理，但不影响会话内部的数据处理</summary>
         /// <param name="session"></param>
-        /// <param name="stream"></param>
-        protected virtual void OnReceive(INetSession session, Stream stream) { }
-
-        /// <summary>收到消息时</summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void OnMessageReceived(Object sender, MessageEventArgs e)
-        {
-            var session = sender as INetSession;
-
-            OnReceive(session, e.Message);
-
-            MessageReceived?.Invoke(sender, e);
-        }
-
-        /// <summary>收到消息时</summary>
-        /// <param name="session"></param>
-        /// <param name="msg"></param>
-        protected virtual void OnReceive(INetSession session, IMessage msg) { }
+        /// <param name="pk"></param>
+        protected virtual void OnReceive(INetSession session, Packet pk) { }
 
         /// <summary>错误发生/断开连接时。sender是ISocketSession</summary>
         public event EventHandler<ExceptionEventArgs> Error;
@@ -454,11 +458,11 @@ namespace NewLife.Net
         #region 会话
         private ConcurrentDictionary<Int32, INetSession> _Sessions = new ConcurrentDictionary<Int32, INetSession>();
         /// <summary>会话集合。用自增的数字ID作为标识，业务应用自己维持ID与业务主键的对应关系。</summary>
-        public IDictionary<Int32, INetSession> Sessions { get { return _Sessions; } }
+        public IDictionary<Int32, INetSession> Sessions => _Sessions;
 
         private Int32 _SessionCount;
         /// <summary>会话数</summary>
-        public Int32 SessionCount { get { return _SessionCount; } set { _SessionCount = value; } }
+        public Int32 SessionCount { get => _SessionCount; set => _SessionCount = value; }
 
         /// <summary>最高会话数</summary>
         public Int32 MaxSessionCount { get; private set; }
@@ -467,19 +471,13 @@ namespace NewLife.Net
         /// <param name="session"></param>
         protected virtual void AddSession(INetSession session)
         {
-            // 估算完成时间，锁争夺过大时提示
-            using (var tc = new TimeCost("NetServer.AddSession", 100))
+            if (session.Host == null) session.Host = this;
+            session.OnDisposed += (s, e) =>
             {
-                tc.Log = Log;
-
-                if (session.Host == null) session.Host = this;
-                session.OnDisposed += (s, e) =>
-                {
-                    var id = (s as INetSession).ID;
-                    if (id > 0) _Sessions.Remove(id);
-                };
-                _Sessions.TryAdd(session.ID, session);
-            }
+                var id = (s as INetSession).ID;
+                if (id > 0) _Sessions.Remove(id);
+            };
+            _Sessions.TryAdd(session.ID, session);
         }
 
         /// <summary>创建会话</summary>
@@ -502,18 +500,8 @@ namespace NewLife.Net
         {
             if (sessionid == 0) return null;
 
-            // 估算完成时间，锁争夺过大时提示
-            using (var tc = new TimeCost("NetServer.GetSession", 100))
-            {
-                tc.Log = Log;
-
-                //var dic = Sessions;
-                //lock (dic)
-                //{
-                if (!Sessions.TryGetValue(sessionid, out var ns)) return null;
-                return ns;
-                //}
-            }
+            if (!Sessions.TryGetValue(sessionid, out var ns)) return null;
+            return ns;
         }
         #endregion
 
@@ -586,7 +574,6 @@ namespace NewLife.Net
                         //svr.AddressFamily = family;
 
                         // 协议端口不能是已经被占用
-                        //if (!NetHelper.IsUsed(svr.Local.ProtocolType, svr.Local.Address, svr.Port)) list.Add(svr);
                         if (!svr.Local.CheckPort()) list.Add(svr);
                     }
                     break;
@@ -604,17 +591,29 @@ namespace NewLife.Net
         #endregion
 
         #region 统计
+        private TimerX _Timer;
+        private String _Last;
+
+        private void ShowStat(Object state)
+        {
+            var msg = GetStat();
+            if (msg.IsNullOrEmpty() || msg == _Last) return;
+            _Last = msg;
+
+            WriteLog(msg);
+        }
+
         /// <summary>获取统计信息</summary>
         /// <returns></returns>
         public String GetStat()
         {
-            var sb = new StringBuilder();
+            var sb = Pool.StringBuilder.Get();
             if (MaxSessionCount > 0) sb.AppendFormat("在线：{0:n0}/{1:n0} ", SessionCount, MaxSessionCount);
-            if (StatSend.Total > 0) sb.AppendFormat("发送：{0} ", StatSend);
-            if (StatReceive.Total > 0) sb.AppendFormat("接收：{0} ", StatReceive);
-            if (StatSession.Total > 0) sb.AppendFormat("会话：{0} ", StatSession);
+            if (StatSend.Value > 0) sb.AppendFormat("发送：{0} ", StatSend);
+            if (StatReceive.Value > 0) sb.AppendFormat("接收：{0} ", StatReceive);
+            //if (StatSession.Value > 0) sb.AppendFormat("会话：{0} ", StatSession);
 
-            return sb.ToString();
+            return sb.Put(true);
         }
         #endregion
 
@@ -637,7 +636,7 @@ namespace NewLife.Net
                 if (_LogPrefix == null) _LogPrefix = Name;
                 return _LogPrefix;
             }
-            set { _LogPrefix = value; }
+            set => _LogPrefix = value;
         }
 
         /// <summary>写日志</summary>
@@ -652,10 +651,7 @@ namespace NewLife.Net
         /// <summary>输出错误日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
-        public virtual void WriteError(String format, params Object[] args)
-        {
-            Log.Error(LogPrefix + format, args);
-        }
+        public virtual void WriteError(String format, params Object[] args) => Log.Error(LogPrefix + format, args);
         #endregion
 
         #region 辅助
@@ -668,13 +664,13 @@ namespace NewLife.Net
 
             if (servers.Count == 1) return Name + " " + servers[0].ToString();
 
-            var sb = new StringBuilder();
+            var sb = Pool.StringBuilder.Get();
             foreach (var item in servers)
             {
                 if (sb.Length > 0) sb.Append(" ");
                 sb.Append(item);
             }
-            return Name + " " + sb.ToString();
+            return Name + " " + sb.Put(true);
         }
         #endregion
     }

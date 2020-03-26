@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
@@ -6,97 +6,83 @@ using System.Linq;
 #if NET4
 namespace System.Threading.Tasks
 {
-    /// <summary>������չ</summary>
+    /// <summary>任务扩展</summary>
     public static class TaskEx
     {
-        private const string ArgumentOutOfRange_TimeoutNonNegativeOrMinusOne = "The timeout must be non-negative or -1, and it must be less than or equal to Int32.MaxValue.";
+#region 异步执行
+        /// <summary>公平调度的工厂</summary>
+        public static TaskFactory Factory { get; } = new TaskFactory(TaskCreationOptions.PreferFairness, TaskContinuationOptions.PreferFairness);
 
-        private static Task s_preCompletedTask = FromResult<bool>(false);
-
-        /// <summary>ִ��</summary>
+        /// <summary>异步执行</summary>
         /// <param name="action"></param>
         /// <returns></returns>
-        public static Task Run(Action action) { return Run(action, CancellationToken.None); }
+        public static Task Run(Action action) => Run(action, CancellationToken.None);
 
-        /// <summary></summary>
+        /// <summary>异步执行</summary>
         /// <param name="action"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public static Task Run(Action action, CancellationToken cancellationToken)
         {
-            return Task.Factory.StartNew(action, cancellationToken, 0, TaskScheduler.Default);
+            return Factory.StartNew(action, cancellationToken, 0, TaskScheduler.Default);
+            //return ThreadPoolX.Instance.QueueTask(action);
         }
 
-        /// <summary></summary>
+        /// <summary>异步执行</summary>
         /// <typeparam name="TResult"></typeparam>
         /// <param name="function"></param>
         /// <returns></returns>
-        public static Task<TResult> Run<TResult>(Func<TResult> function)
-        {
-            return Run(function, CancellationToken.None);
-        }
+        public static Task<TResult> Run<TResult>(Func<TResult> function) => Run(function, CancellationToken.None);
 
-        /// <summary></summary>
+        /// <summary>异步执行</summary>
         /// <typeparam name="TResult"></typeparam>
         /// <param name="function"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public static Task<TResult> Run<TResult>(Func<TResult> function, CancellationToken cancellationToken)
         {
-            return Task.Factory.StartNew(function, cancellationToken, 0, TaskScheduler.Default);
+            return Factory.StartNew(function, cancellationToken, 0, TaskScheduler.Default);
+            //return ThreadPoolX.Instance.QueueTask(token => function(), cancellationToken);
         }
 
-        /// <summary></summary>
+        /// <summary>异步执行</summary>
         /// <param name="function"></param>
         /// <returns></returns>
-        public static Task Run(Func<Task> function)
-        {
-            return Run(function, CancellationToken.None);
-        }
+        public static Task Run(Func<Task> function) => Run(function, CancellationToken.None);
 
-        /// <summary></summary>
+        /// <summary>异步执行</summary>
         /// <param name="function"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public static Task Run(Func<Task> function, CancellationToken cancellationToken)
-        {
-            return TaskExtensions.Unwrap(Run<Task>(function, cancellationToken));
-        }
+        public static Task Run(Func<Task> function, CancellationToken cancellationToken) => TaskExtensions.Unwrap(Run<Task>(function, cancellationToken));
 
-        /// <summary></summary>
+        /// <summary>异步执行</summary>
         /// <typeparam name="TResult"></typeparam>
         /// <param name="function"></param>
         /// <returns></returns>
-        public static Task<TResult> Run<TResult>(Func<Task<TResult>> function)
-        {
-            return Run(function, CancellationToken.None);
-        }
+        public static Task<TResult> Run<TResult>(Func<Task<TResult>> function) => Run(function, CancellationToken.None);
 
-        /// <summary></summary>
+        /// <summary>异步执行</summary>
         /// <typeparam name="TResult"></typeparam>
         /// <param name="function"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public static Task<TResult> Run<TResult>(Func<Task<TResult>> function, CancellationToken cancellationToken)
-        {
-            return TaskExtensions.Unwrap(Run<Task<TResult>>(function, cancellationToken));
-        }
+        public static Task<TResult> Run<TResult>(Func<Task<TResult>> function, CancellationToken cancellationToken) => TaskExtensions.Unwrap(Run<Task<TResult>>(function, cancellationToken));
+#endregion
+
+        private const String ArgumentOutOfRange_TimeoutNonNegativeOrMinusOne = "The timeout must be non-negative or -1, and it must be less than or equal to Int32.MaxValue.";
+
+        private static readonly Task s_preCompletedTask = FromResult(false);
 
         /// <summary></summary>
         /// <param name="dueTime"></param>
         /// <returns></returns>
-        public static Task Delay(int dueTime)
-        {
-            return Delay(dueTime, CancellationToken.None);
-        }
+        public static Task Delay(Int32 dueTime) => Delay(dueTime, CancellationToken.None);
 
         /// <summary></summary>
         /// <param name="dueTime"></param>
         /// <returns></returns>
-        public static Task Delay(TimeSpan dueTime)
-        {
-            return Delay(dueTime, CancellationToken.None);
-        }
+        public static Task Delay(TimeSpan dueTime) => Delay(dueTime, CancellationToken.None);
 
         /// <summary></summary>
         /// <param name="dueTime"></param>
@@ -104,20 +90,20 @@ namespace System.Threading.Tasks
         /// <returns></returns>
         public static Task Delay(TimeSpan dueTime, CancellationToken cancellationToken)
         {
-            long num = (long)dueTime.TotalMilliseconds;
+            var num = (Int64)dueTime.TotalMilliseconds;
             if (num < -1L || num > 2147483647L)
             {
                 throw new ArgumentOutOfRangeException("dueTime", "The timeout must be non-negative or -1, and it must be less than or equal to Int32.MaxValue.");
             }
             Contract.EndContractBlock();
-            return Delay((int)num, cancellationToken);
+            return Delay((Int32)num, cancellationToken);
         }
 
         /// <summary></summary>
         /// <param name="dueTime"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public static Task Delay(int dueTime, CancellationToken cancellationToken)
+        public static Task Delay(Int32 dueTime, CancellationToken cancellationToken)
         {
             if (dueTime < -1) throw new ArgumentOutOfRangeException("dueTime", "The timeout must be non-negative or -1, and it must be less than or equal to Int32.MaxValue.");
 
@@ -126,7 +112,7 @@ namespace System.Threading.Tasks
 
             if (dueTime == 0) return s_preCompletedTask;
 
-            var tcs = new TaskCompletionSource<bool>();
+            var tcs = new TaskCompletionSource<Boolean>();
             var ctr = default(CancellationTokenRegistration);
             Timer timer = null;
             timer = new Timer(state =>
@@ -153,26 +139,20 @@ namespace System.Threading.Tasks
         /// <summary></summary>
         /// <param name="tasks"></param>
         /// <returns></returns>
-        public static Task WhenAll(params Task[] tasks)
-        {
-            return WhenAll((IEnumerable<Task>)tasks);
-        }
+        public static Task WhenAll(params Task[] tasks) => WhenAll((IEnumerable<Task>)tasks);
 
         /// <summary></summary>
         /// <typeparam name="TResult"></typeparam>
         /// <param name="tasks"></param>
         /// <returns></returns>
-        public static Task<TResult[]> WhenAll<TResult>(params Task<TResult>[] tasks)
-        {
-            return WhenAll<TResult>((IEnumerable<Task<TResult>>)tasks);
-        }
+        public static Task<TResult[]> WhenAll<TResult>(params Task<TResult>[] tasks) => WhenAll((IEnumerable<Task<TResult>>)tasks);
 
         /// <summary></summary>
         /// <param name="tasks"></param>
         /// <returns></returns>
         public static Task WhenAll(IEnumerable<Task> tasks)
         {
-            return WhenAllCore<object>(tasks, (completedTasks, tcs) =>
+            return WhenAllCore<Object>(tasks, (completedTasks, tcs) =>
             {
                 tcs.TrySetResult(null);
             });
@@ -202,7 +182,7 @@ namespace System.Threading.Tasks
             Contract.EndContractBlock();
             Contract.Assert(setResultAction != null, null);
             var tcs = new TaskCompletionSource<TResult>();
-            Task[] array = (tasks as Task[]) ?? tasks.ToArray();
+            var array = (tasks as Task[]) ?? tasks.ToArray();
             if (array.Length == 0)
             {
                 setResultAction.Invoke(array, tcs);
@@ -212,10 +192,10 @@ namespace System.Threading.Tasks
                 Task.Factory.ContinueWhenAll(array, delegate (Task[] completedTasks)
                 {
                     List<Exception> list = null;
-                    bool flag = false;
-                    for (int i = 0; i < completedTasks.Length; i++)
+                    var flag = false;
+                    for (var i = 0; i < completedTasks.Length; i++)
                     {
-                        Task task = completedTasks[i];
+                        var task = completedTasks[i];
                         if (task.IsFaulted)
                         {
                             AddPotentiallyUnwrappedExceptions(ref list, task.Exception);
@@ -244,10 +224,7 @@ namespace System.Threading.Tasks
         /// <summary></summary>
         /// <param name="tasks"></param>
         /// <returns></returns>
-        public static Task<Task> WhenAny(params Task[] tasks)
-        {
-            return WhenAny((IEnumerable<Task>)tasks);
-        }
+        public static Task<Task> WhenAny(params Task[] tasks) => WhenAny((IEnumerable<Task>)tasks);
 
         /// <summary></summary>
         /// <param name="tasks"></param>
@@ -258,7 +235,7 @@ namespace System.Threading.Tasks
 
             Contract.EndContractBlock();
             var tcs = new TaskCompletionSource<Task>();
-            Task.Factory.ContinueWhenAny<bool>((tasks as Task[]) ?? tasks.ToArray(), (Task completed) => tcs.TrySetResult(completed), CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+            Task.Factory.ContinueWhenAny<Boolean>((tasks as Task[]) ?? tasks.ToArray(), (Task completed) => tcs.TrySetResult(completed), CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
             return tcs.Task;
         }
 
@@ -266,10 +243,7 @@ namespace System.Threading.Tasks
         /// <typeparam name="TResult"></typeparam>
         /// <param name="tasks"></param>
         /// <returns></returns>
-        public static Task<Task<TResult>> WhenAny<TResult>(params Task<TResult>[] tasks)
-        {
-            return WhenAny((IEnumerable<Task<TResult>>)tasks);
-        }
+        public static Task<Task<TResult>> WhenAny<TResult>(params Task<TResult>[] tasks) => WhenAny((IEnumerable<Task<TResult>>)tasks);
 
         /// <summary></summary>
         /// <typeparam name="TResult"></typeparam>
@@ -315,6 +289,14 @@ namespace System.Threading.Tasks
             }
             targetList.Add(exception);
         }
+    }
+
+    /// <summary>任务扩展</summary>
+    /// <typeparam name="TResult"></typeparam>
+    public class TaskEx<TResult>
+    {
+        /// <summary>公平调度的工厂</summary>
+        public static TaskFactory<TResult> Factory { get; } = new TaskFactory<TResult>(TaskCreationOptions.PreferFairness, TaskContinuationOptions.PreferFairness);
     }
 }
 #endif

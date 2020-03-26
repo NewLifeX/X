@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using NewLife.Reflection;
+using System.Data.Common;
+using NewLife.Data;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 
@@ -15,27 +15,34 @@ namespace XCode
         /// <param name="dt">数据表</param>
         /// <returns>实体数组</returns>
         IList<T> LoadData<T>(DataTable dt) where T : Entity<T>, new();
+
+        /// <summary>加载数据表。无数据时返回空集合而不是null。</summary>
+        /// <param name="ds">数据表</param>
+        /// <returns>实体数组</returns>
+        IList<T> LoadData<T>(DbTable ds) where T : Entity<T>, new();
+
+        /// <summary>加载数据表。无数据时返回空集合而不是null。</summary>
+        /// <param name="dr">数据读取器</param>
+        /// <returns>实体数组</returns>
+        IList<T> LoadData<T>(IDataReader dr) where T : Entity<T>, new();
     }
 
-    /// <summary>在数据行和实体类之间映射数据接口的提供者</summary>
-    public interface IDataRowEntityAccessorProvider
-    {
-        /// <summary>创建实体类的数据行访问器</summary>
-        /// <param name="entityType"></param>
-        /// <returns></returns>
-        IDataRowEntityAccessor CreateDataRowEntityAccessor(Type entityType);
-    }
+    ///// <summary>在数据行和实体类之间映射数据接口的提供者</summary>
+    //public interface IDataRowEntityAccessorProvider
+    //{
+    //    /// <summary>创建实体类的数据行访问器</summary>
+    //    /// <param name="entityType"></param>
+    //    /// <returns></returns>
+    //    IDataRowEntityAccessor CreateAccessor(Type entityType);
+    //}
 
-    class DataRowEntityAccessorProvider : IDataRowEntityAccessorProvider
-    {
-        /// <summary>创建实体类的数据行访问器</summary>
-        /// <param name="entityType"></param>
-        /// <returns></returns>
-        public IDataRowEntityAccessor CreateDataRowEntityAccessor(Type entityType)
-        {
-            return new DataRowEntityAccessor();
-        }
-    }
+    //class DataRowEntityAccessorProvider : IDataRowEntityAccessorProvider
+    //{
+    //    /// <summary>创建实体类的数据行访问器</summary>
+    //    /// <param name="entityType"></param>
+    //    /// <returns></returns>
+    //    public IDataRowEntityAccessor CreateAccessor(Type entityType) => new DataRowEntityAccessor();
+    //}
 
     class DataRowEntityAccessor : IDataRowEntityAccessor
     {
@@ -57,10 +64,9 @@ namespace XCode
             foreach (DataColumn item in dt.Columns)
             {
                 //var fi = Entity<T>.Meta.Fields.FirstOrDefault(e => e.ColumnName.EqualIgnoreCase(item.ColumnName));
-                var fi = ti.FindByName(item.ColumnName) as FieldItem;
-                if (fi != null)
+                if (ti.FindByName(item.ColumnName) is FieldItem fi)
                     ps.Add(item, fi);
-                else
+                else if (!item.ColumnName.EqualIgnoreCase(IgnoreFields))
                     exts.Add(item, item.ColumnName);
             }
 
@@ -79,11 +85,92 @@ namespace XCode
             }
             return list;
         }
+
+        /// <summary>加载数据表。无数据时返回空集合而不是null。</summary>
+        /// <param name="ds">数据表</param>
+        /// <returns>实体数组</returns>
+        public IList<T> LoadData<T>(DbTable ds) where T : Entity<T>, new()
+        {
+            // 准备好实体列表
+            var list = new List<T>();
+            if (ds?.Rows == null || ds.Rows.Count == 0) return list;
+
+            // 对应数据表中字段的实体字段
+            var ps = new Dictionary<Int32, FieldItem>();
+            // 数据表中找不到对应的实体字段的数据字段
+            var exts = new Dictionary<Int32, String>();
+            var ti = Entity<T>.Meta.Table;
+            for (var i = 0; i < ds.Columns.Length; i++)
+            {
+                var item = ds.Columns[i];
+                if (ti.FindByName(item) is FieldItem fi)
+                    ps.Add(i, fi);
+                else if (!item.EqualIgnoreCase(IgnoreFields))
+                    exts.Add(i, item);
+            }
+
+            // 遍历每一行数据，填充成为实体
+            foreach (var dr in ds.Rows)
+            {
+                // 由实体操作者创建实体对象，因为实体操作者可能更换
+                var entity = Entity<T>.Meta.Factory.Create() as T;
+                foreach (var item in ps)
+                    SetValue(entity, item.Value.Name, item.Value.Type, dr[item.Key]);
+
+                foreach (var item in exts)
+                    SetValue(entity, item.Value, ds.Types[item.Key], dr[item.Key]);
+
+                list.Add(entity);
+            }
+            return list;
+        }
+
+        /// <summary>加载数据表。无数据时返回空集合而不是null。</summary>
+        /// <param name="dr">数据读取器</param>
+        /// <returns>实体数组</returns>
+        public IList<T> LoadData<T>(IDataReader dr) where T : Entity<T>, new()
+        {
+            // 准备好实体列表
+            var list = new List<T>();
+            if (dr == null) return list;
+
+            var dr2 = dr as DbDataReader;
+
+            // 对应数据表中字段的实体字段
+            var ps = new Dictionary<Int32, FieldItem>();
+            // 数据表中找不到对应的实体字段的数据字段
+            var exts = new Dictionary<Int32, String>();
+            var ti = Entity<T>.Meta.Table;
+            for (var i = 0; i < dr2.FieldCount; i++)
+            {
+                var name = dr2.GetName(i);
+                if (ti.FindByName(name) is FieldItem fi)
+                    ps.Add(i, fi);
+                else if (!name.EqualIgnoreCase(IgnoreFields))
+                    exts.Add(i, name);
+            }
+
+            // 遍历每一行数据，填充成为实体
+            while (dr.Read())
+            {
+                // 由实体操作者创建实体对象，因为实体操作者可能更换
+                var entity = Entity<T>.Meta.Factory.Create() as T;
+                foreach (var item in ps)
+                    SetValue(entity, item.Value.Name, item.Value.Type, dr[item.Key]);
+
+                foreach (var item in exts)
+                    SetValue(entity, item.Value, null, dr[item.Key]);
+
+                list.Add(entity);
+            }
+            return list;
+        }
         #endregion
 
         #region 方法
-        static String[] TrueString = new String[] { "true", "y", "yes", "1" };
-        static String[] FalseString = new String[] { "false", "n", "no", "0" };
+        static readonly String[] TrueString = new String[] { "true", "y", "yes", "1" };
+        static readonly String[] FalseString = new String[] { "false", "n", "no", "0" };
+        static readonly String[] IgnoreFields = new[] { "rowNumber" };
 
         private void SetValue(IEntity entity, String name, Type type, Object value)
         {
@@ -94,13 +181,13 @@ namespace XCode
                 oldValue = entity[name];
             else
             {
-                type = value.GetType();
+                type = value?.GetType();
                 // 如果扩展数据里面有该字段也读取旧值
-                if (entity.Extends.ContainsKey(name)) oldValue = entity.Extends[name];
+                if (entity.Extends.TryGetValue(name, out var v)) oldValue = v;
             }
 
             // 不处理相同数据的赋值
-            if (Object.Equals(value, oldValue)) return;
+            if (Equals(value, oldValue)) return;
 
             if (type == typeof(String))
             {
@@ -140,17 +227,27 @@ namespace XCode
                 }
             }
 
-            // 不影响脏数据的状态
-            var ds = entity.Dirtys;
-            Boolean? b = null;
-            if (ds.ContainsKey(name)) b = ds[name];
+            //// 不影响脏数据的状态
+            //var ds = entity.Dirtys;
+            //Boolean? b = null;
+            //if (ds.ContainsKey(name)) b = ds[name];
 
-            entity[name] = value == DBNull.Value ? null : value;
+            //entity[name] = value == DBNull.Value ? null : value;
 
-            if (b != null)
-                ds[name] = b.Value;
+            // 如果值类型不一致，则备份原始值到扩展，解决数据库类型比实体类型大（如Int64到Int32）
+            if (value == DBNull.Value)
+                entity[name] = null;
             else
-                ds.Remove(name);
+            {
+                entity[name] = value;
+
+                if (value?.GetType() != type && !EntityBase.CheckEqual(entity[name], value)) entity.Extends[name] = value;
+            }
+
+            //if (b != null)
+            //    ds[name] = b.Value;
+            //else
+            //    ds.Remove(name);
         }
         #endregion
     }

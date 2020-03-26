@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Security.Principal;
-using System.Text;
-using System.Web;
+using System.Threading;
+using NewLife.Collections;
 using NewLife.Model;
-using NewLife.Web;
 using XCode.Model;
 
 namespace XCode.Membership
@@ -20,6 +18,16 @@ namespace XCode.Membership
     {
         /// <summary>当前登录用户，设为空则注销登录</summary>
         IManageUser Current { get; set; }
+
+        /// <summary>获取当前用户</summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        IManageUser GetCurrent(IServiceProvider context);
+
+        /// <summary>设置当前用户</summary>
+        /// <param name="user"></param>
+        /// <param name="context"></param>
+        void SetCurrent(IManageUser user, IServiceProvider context);
 
         /// <summary>根据用户编号查找</summary>
         /// <param name="userid"></param>
@@ -44,10 +52,10 @@ namespace XCode.Membership
         /// <summary>注册用户</summary>
         /// <param name="name">用户名</param>
         /// <param name="password">密码</param>
-        /// <param name="rolename">角色名称</param>
+        /// <param name="roleid">角色</param>
         /// <param name="enable">是否启用</param>
         /// <returns></returns>
-        IManageUser Register(String name, String password, String rolename = "注册用户", Boolean enable = false);
+        IManageUser Register(String name, String password, Int32 roleid = 0, Boolean enable = false);
 
         /// <summary>获取服务</summary>
         /// <remarks>
@@ -59,197 +67,118 @@ namespace XCode.Membership
     }
 
     /// <summary>管理提供者</summary>
-#if !__CORE__
-    public abstract class ManageProvider : IManageProvider, IErrorInfoProvider
-#else
     public abstract class ManageProvider : IManageProvider
-#endif
     {
         #region 静态实例
         static ManageProvider()
         {
-            var ioc = ObjectContainer.Current;
-            // 外部管理提供者需要手工覆盖
-            ioc.Register<IManageProvider, DefaultManageProvider>();
-
-            ioc.AutoRegister<IRole, Role>()
-                .AutoRegister<IMenu, Menu>()
-                .AutoRegister<ILog, Log>()
-                .AutoRegister<IUser, UserX>();
+            Register<IRole>(Role.Meta.Factory);
+            Register<IMenu>(XCode.Membership.Menu.Meta.Factory);
+            Register<ILog>(Log.Meta.Factory);
+            Register<IUser>(UserX.Meta.Factory);
         }
 
         /// <summary>当前管理提供者</summary>
-        public static IManageProvider Provider { get { return ObjectContainer.Current.ResolveInstance<IManageProvider>(); } }
+        public static IManageProvider Provider { get; set; }
 
         /// <summary>当前登录用户</summary>
-        public static IUser User { get { return Provider.Current as IUser; } set { Provider.Current = value as IManageUser; } }
+        public static IUser User { get => Provider.Current as IUser; set => Provider.Current = value as IManageUser; }
 
         /// <summary>菜单工厂</summary>
-        public static IMenuFactory Menu { get { return GetFactory<IMenu>() as IMenuFactory; } }
+        public static IMenuFactory Menu => GetFactory<IMenu>() as IMenuFactory;
+
+        private static readonly ThreadLocal<String> _UserHost = new ThreadLocal<String>();
+        /// <summary>用户主机</summary>
+        public static String UserHost { get => _UserHost.Value; set => _UserHost.Value = value; }
         #endregion
 
         #region IManageProvider 接口
         /// <summary>当前用户</summary>
-        public abstract IManageUser Current { get; set; }
+        public virtual IManageUser Current { get => GetCurrent(); set => SetCurrent(value); }
+
+        /// <summary>获取当前用户</summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public abstract IManageUser GetCurrent(IServiceProvider context = null);
+
+        /// <summary>设置当前用户</summary>
+        /// <param name="user"></param>
+        /// <param name="context"></param>
+        public abstract void SetCurrent(IManageUser user, IServiceProvider context = null);
 
         /// <summary>根据用户编号查找</summary>
         /// <param name="userid"></param>
         /// <returns></returns>
-        public abstract IManageUser FindByID(Object userid);
+        public virtual IManageUser FindByID(Object userid) => UserX.FindByID((userid + "").ToInt(-1));
 
         /// <summary>根据用户帐号查找</summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public abstract IManageUser FindByName(String name);
+        public virtual IManageUser FindByName(String name) => UserX.FindByName(name);
 
         /// <summary>登录</summary>
         /// <param name="name"></param>
         /// <param name="password"></param>
         /// <param name="rememberme">是否记住密码</param>
         /// <returns></returns>
-        public abstract IManageUser Login(String name, String password, Boolean rememberme);
+        public virtual IManageUser Login(String name, String password, Boolean rememberme)
+        {
+            var user = UserX.Login(name, password, rememberme);
+
+            Current = user;
+
+            //var expire = TimeSpan.FromDays(0);
+            //if (rememberme && user != null) expire = TimeSpan.FromDays(365);
+            //this.SaveCookie(user, expire);
+
+            return user;
+        }
 
         /// <summary>注销</summary>
-        public virtual void Logout() { Current = null; }
+        public virtual void Logout() => Current = null;
 
         /// <summary>注册用户</summary>
         /// <param name="name">用户名</param>
         /// <param name="password">密码</param>
-        /// <param name="rolename">角色名称</param>
+        /// <param name="roleid">角色</param>
         /// <param name="enable">是否启用。某些系统可能需要验证审核</param>
         /// <returns></returns>
-        public abstract IManageUser Register(String name, String password, String rolename, Boolean enable);
-
-        /// <summary>获取服务</summary>
-        /// <typeparam name="TService"></typeparam>
-        /// <returns></returns>
-        public TService GetService<TService>() { return (TService)GetService(typeof(TService)); }
-
-        /// <summary>获取服务</summary>
-        /// <param name="serviceType"></param>
-        /// <returns></returns>
-        public virtual Object GetService(Type serviceType)
+        public virtual IManageUser Register(String name, String password, Int32 roleid, Boolean enable)
         {
-            var container = XCodeService.Container;
-            return container.Resolve(serviceType);
-        }
-        #endregion
-
-#if !__CORE__
-        #region IErrorInfoProvider 成员
-        void IErrorInfoProvider.AddInfo(Exception ex, StringBuilder builder)
-        {
-            var user = Current;
-            if (user != null)
+            var user = new UserX
             {
-                var e = user as IEntity;
-                if (e["RoleName"] != null)
-                    builder.AppendFormat("登录：{0}({1})\r\n", user.Name, e["RoleName"]);
-                else
-                    builder.AppendFormat("登录：{0}\r\n", user.Name);
-            }
-        }
-        #endregion
-#endif
-
-        #region 实体类扩展
-        /// <summary>根据实体类接口获取实体工厂</summary>
-        /// <typeparam name="TIEntity"></typeparam>
-        /// <returns></returns>
-        internal static IEntityOperate GetFactory<TIEntity>()
-        {
-            var container = XCodeService.Container;
-            var type = container.ResolveType<TIEntity>();
-            if (type == null) return null;
-
-            return EntityFactory.CreateOperate(type);
-        }
-
-        internal static T Get<T>()
-        {
-            var eop = GetFactory<T>();
-            if (eop == null) return default(T);
-
-            return (T)eop.Default;
-        }
-        #endregion
-    }
-
-    /// <summary>基于User实体类的管理提供者</summary>
-    /// <typeparam name="TUser"></typeparam>
-    public class ManageProvider<TUser> : ManageProvider where TUser : User<TUser>, new()
-    {
-        /// <summary>当前用户</summary>
-        public override IManageUser Current { get { return User<TUser>.Current; } set { User<TUser>.Current = (TUser)value; } }
-
-        /// <summary>根据用户编号查找</summary>
-        /// <param name="userid"></param>
-        /// <returns></returns>
-        public override IManageUser FindByID(Object userid) { return User<TUser>.FindByID((Int32)userid); }
-
-        /// <summary>根据用户帐号查找</summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        public override IManageUser FindByName(String name) { return User<TUser>.FindByName(name); }
-
-        /// <summary>登录</summary>
-        /// <param name="name"></param>
-        /// <param name="password"></param>
-        /// <param name="rememberme">是否记住密码</param>
-        /// <returns></returns>
-        public override IManageUser Login(String name, String password, Boolean rememberme) { return User<TUser>.Login(name, password, rememberme); }
-
-        /// <summary>注册用户</summary>
-        /// <param name="name">用户名</param>
-        /// <param name="password">密码</param>
-        /// <param name="rolename">角色名称</param>
-        /// <param name="enable">是否启用。某些系统可能需要验证审核</param>
-        /// <returns></returns>
-        public override IManageUser Register(String name, String password, String rolename, Boolean enable)
-        {
-            var user = new TUser();
-            user.Name = name;
-            user.Password = password;
-            user.Enable = enable;
-
-            if (!String.IsNullOrEmpty(rolename))
-            {
-                var fact = Get<IRole>();
-                var role = fact.FindOrCreateByName(rolename);
-                user.RoleID = role.ID;
-            }
+                Name = name,
+                Password = password,
+                Enable = enable,
+                RoleID = roleid
+            };
 
             user.Register();
 
             return user;
         }
+
+        /// <summary>获取服务</summary>
+        /// <typeparam name="TService"></typeparam>
+        /// <returns></returns>
+        public TService GetService<TService>() => (TService)GetService(typeof(TService));
+
+        /// <summary>获取服务</summary>
+        /// <param name="serviceType"></param>
+        /// <returns></returns>
+        public virtual Object GetService(Type serviceType) => null;
+        #endregion
+
+        #region 实体类扩展
+        private static IDictionary<Type, IEntityFactory> _factories = new NullableDictionary<Type, IEntityFactory>();
+        private static void Register<TIEntity>(IEntityFactory factory) => _factories[typeof(TIEntity)] = factory;
+
+        /// <summary>根据实体类接口获取实体工厂</summary>
+        /// <typeparam name="TIEntity"></typeparam>
+        /// <returns></returns>
+        internal static IEntityFactory GetFactory<TIEntity>() => _factories[typeof(TIEntity)];
+
+        internal static T Get<T>() => (T)GetFactory<T>()?.Default;
+        #endregion
     }
-
-    class DefaultManageProvider : ManageProvider<UserX> { }
-
-#if !__CORE__
-    /// <summary>管理提供者助手</summary>
-    public static class ManagerProviderHelper
-    {
-        /// <summary>设置当前用户</summary>
-        /// <param name="provider">提供者</param>
-        public static void SetPrincipal(this IManageProvider provider)
-        {
-            var ctx = HttpContext.Current;
-            if (ctx == null) return;
-
-            var user = provider.Current;
-            if (user == null) return;
-
-            var id = user as IIdentity;
-            if (id == null) return;
-
-            // 角色列表
-            var roles = new List<String>();
-            if (user is IUser) roles.Add((user as IUser).RoleName);
-
-            ctx.User = new GenericPrincipal(id, roles.ToArray());
-        }
-    }
-#endif
 }

@@ -1,16 +1,60 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using NewLife.Collections;
 using NewLife.Data;
-using NewLife.Threading;
 using XCode;
 using XCode.Cache;
+using XCode.Statistics;
 
 namespace XCode.Membership
 {
+    /// <summary>访问统计模型</summary>
+    public class VisitStatModel : StatModel<VisitStatModel>
+    {
+        #region 属性
+        /// <summary>页面</summary>
+        public String Page { get; set; }
+
+        /// <summary>标题</summary>
+        public String Title { get; set; }
+
+        /// <summary>耗时</summary>
+        public Int32 Cost { get; set; }
+
+        /// <summary>用户</summary>
+        public String User { get; set; }
+
+        /// <summary>IP地址</summary>
+        public String IP { get; set; }
+
+        /// <summary>错误</summary>
+        public String Error { get; set; }
+        #endregion
+
+        #region 相等比较
+        /// <summary>相等</summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public override Boolean Equals(Object obj)
+        {
+            if (!base.Equals(obj)) return false;
+
+            if (obj is VisitStatModel model) return Page + "" == model.Page + "";
+
+            return false;
+        }
+
+        /// <summary>获取哈希</summary>
+        /// <returns></returns>
+        public override Int32 GetHashCode() => base.GetHashCode() ^ Page.GetHashCode();
+        #endregion
+    }
+
     /// <summary>访问统计</summary>
-    public partial class VisitStat : Entity<VisitStat>
+    public partial class VisitStat : Entity<VisitStat>, IStat
     {
         #region 对象操作
         static VisitStat()
@@ -25,49 +69,14 @@ namespace XCode.Membership
             // 过滤器 UserModule、TimeModule、IPModule
             Meta.Modules.Add<TimeModule>();
 
-            // 单对象缓存从键
-            var sc = Meta.SingleCache;
-            if (sc.Expire < 20 * 60) sc.Expire = 20 * 60;
-            sc.FindSlaveKeyMethod = k =>
-            {
-                var ss = k.Split(new Char[] { '#' }, StringSplitOptions.None);
-                var ds = ss[1].SplitAsInt("_");
-                var exp = _.Year == ds[0] & _.Month == ds[1] & _.Day == ds[2];
-                if (ss[0].IsNullOrEmpty())
-                    exp &= _.Page.IsNullOrEmpty();
-                else
-                    exp &= _.Page == ss[0];
-
-                return Find(exp);
-            };
-            sc.GetSlaveKeyMethod = e => "{0}#{1}_{2}_{3}".F(e.Page, e.Year, e.Month, e.Day);
-
 #if !DEBUG
             // 关闭SQL日志
             Meta.Session.Dal.Db.ShowSQL = false;
 #endif
         }
-
-        /// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>
-        /// <param name="isNew">是否插入</param>
-        public override void Valid(Boolean isNew)
-        {
-            // 如果没有脏数据，则不需要进行任何处理
-            if (!HasDirty) return;
-
-            // 在新插入数据或者修改了指定字段时进行修正
-            //if (isNew && !Dirtys[nameof(CreateTime)]) nameof(CreateTime) = DateTime.Now;
-            //if (!Dirtys[nameof(UpdateTime)]) nameof(UpdateTime) = DateTime.Now;
-
-            // 检查唯一索引
-            // CheckExist(isNew, __.Year, __.Month, __.Day);
-        }
         #endregion
 
         #region 扩展属性
-        /// <summary>平均耗时</summary>
-        [Map(__.Cost)]
-        public Int32 AvgCost { get { return (Int32)(Times == 0 ? 0 : Cost / Times); } }
         #endregion
 
         #region 扩展查询
@@ -87,43 +96,46 @@ namespace XCode.Membership
             //return Find(_.ID == id);
         }
 
-        /// <summary>根据年、月、日查找</summary>
-        /// <param name="page">页</param>
-        /// <param name="year">年</param>
-        /// <param name="month">月</param>
-        /// <param name="day">日</param>
-        /// <returns>实体对象</returns>
-        public static VisitStat FindByPage(String page, Int32 year, Int32 month, Int32 day)
+        private static DictionaryCache<VisitStatModel, VisitStat> _cache = new DictionaryCache<VisitStatModel, VisitStat> { Expire = 20 * 60, Period = 60 };
+        /// <summary>根据模型查找</summary>
+        /// <param name="model"></param>
+        /// <param name="cache"></param>
+        /// <returns></returns>
+        public static VisitStat FindByModel(VisitStatModel model, Boolean cache)
         {
-            //// 实体缓存
-            //if (Meta.Count < 1000) return Meta.Cache.Find(e => e.Year == year && e.Month == month && e.Day == day);
+            if (model == null) return null;
 
-            //return Find(_.Year == year & _.Month == month & _.Day == day);
+            if (cache)
+            {
+                if (_cache.FindMethod == null) _cache.FindMethod = m => FindByModel(m, false);
 
-            var key = "{0}#{1}_{2}_{3}".F(page, year, month, day);
-            return Meta.SingleCache.GetItemWithSlaveKey(key) as VisitStat;
+                return _cache[model];
+            }
+
+            var exp = new WhereExpression();
+            exp &= _.Level == model.Level;
+            if (model.Level > 0 && model.Time > DateTime.MinValue) exp &= _.Time == model.GetDate(model.Level);
+            exp &= _.Page == model.Page;
+
+            return Find(exp);
         }
         #endregion
 
         #region 高级查询
         /// <summary>高级查询访问统计</summary>
-        /// <param name="page"></param>
-        /// <param name="year"></param>
-        /// <param name="month"></param>
-        /// <param name="day"></param>
+        /// <param name="model"></param>
         /// <param name="start"></param>
         /// <param name="end"></param>
         /// <param name="param"></param>
         /// <returns></returns>
-        public static IList<VisitStat> Search(String page, Int32 year, Int32 month, Int32 day, DateTime start, DateTime end, PageParameter param)
+        public static IList<VisitStat> Search(VisitStatModel model, DateTime start, DateTime end, PageParameter param)
         {
             var exp = new WhereExpression();
-            if (year >= 0) exp &= _.Year == year;
-            if (month >= 0) exp &= _.Month == month;
-            if (day >= 0) exp &= _.Day == day;
+            if (model.Level >= 0) exp &= _.Level == model.Level;
+            if (model.Level > 0 && model.Time > DateTime.MinValue) exp &= _.Time == model.GetDate(model.Level);
+            if (!model.Page.IsNullOrEmpty()) exp &= _.Page == model.Page;
 
-            if (!page.IsNullOrEmpty()) exp &= _.Page == page;
-            exp &= _.CreateTime.Between(start, end);
+            exp &= _.Time.Between(start, end);
 
             return FindAll(exp, param);
         }
@@ -146,81 +158,72 @@ namespace XCode.Membership
         #endregion
 
         #region 业务操作
-        /// <summary>添加统计记录</summary>
-        /// <param name="page"></param>
-        /// <param name="title"></param>
-        /// <param name="cost"></param>
-        /// <param name="userid"></param>
-        /// <param name="ip"></param>
-        /// <param name="err"></param>
+        /// <summary>业务统计</summary>
+        /// <param name="model">模型</param>
+        /// <param name="levels">要统计的层级</param>
         /// <returns></returns>
-        public static VisitStat Add(String page, String title, Int32 cost, Int32 userid, String ip, String err)
+        public static void Process(VisitStatModel model, params StatLevels[] levels)
         {
-            var now = TimerX.Now;
+            model = model.Clone();
 
-            // 今天
-            var st = Add(page, now.Year, now.Month, now.Day, title, cost, userid, ip, err);
-            Add(null, now.Year, now.Month, now.Day, null, cost, userid, ip, err);
+            if (levels == null || levels.Length == 0) levels = new[] { StatLevels.Day, StatLevels.Month, StatLevels.Year };
 
-            // 本月
-            Add(page, now.Year, now.Month, 0, title, cost, userid, ip, err);
-            Add(null, now.Year, now.Month, 0, null, cost, userid, ip, err);
+            // 当前
+            var list = model.Split(levels);
 
-            // 今年
-            Add(page, now.Year, 0, 0, title, cost, userid, ip, err);
-            Add(null, now.Year, 0, 0, null, cost, userid, ip, err);
-
-            // 全部
-            Add(page, 0, 0, 0, title, cost, userid, ip, err);
-            Add(null, 0, 0, 0, null, cost, userid, ip, err);
-
-            return st;
-        }
-
-        /// <summary>添加统计记录</summary>
-        /// <param name="page"></param>
-        /// <param name="year"></param>
-        /// <param name="month"></param>
-        /// <param name="day"></param>
-        /// <param name="title"></param>
-        /// <param name="cost"></param>
-        /// <param name="userid"></param>
-        /// <param name="ip"></param>
-        /// <param name="err"></param>
-        /// <returns></returns>
-        public static VisitStat Add(String page, Int32 year, Int32 month, Int32 day, String title, Int32 cost, Int32 userid, String ip, String err)
-        {
-            var st = FindByPage(page, year, month, day);
-            if (st == null)
+            // 全局
+            if (!model.Page.IsNullOrEmpty())
             {
-                st = new VisitStat
-                {
-                    Page = page,
-                    Year = year,
-                    Month = month,
-                    Day = day,
-                };
+                model.Page = "全部";
 
-                st.Insert();
+                list.AddRange(model.Split(levels));
             }
 
-            if (!title.IsNullOrEmpty()) st.Title = title;
-            st.Times++;
-            st.Cost += cost;
-            if (!err.IsNullOrEmpty()) st.Error++;
+            // 并行处理
+            Parallel.ForEach(list, m => ProcessItem(m as VisitStatModel));
+        }
 
-            if (userid > 0 || !ip.IsNullOrEmpty())
+        private static VisitStat ProcessItem(VisitStatModel model)
+        {
+            var st = StatHelper.GetOrAdd(model, FindByModel, e =>
+            {
+                e.Page = model.Page;
+            });
+            if (st == null) return null;
+
+            // 历史平均
+            if (st.Cost > 0)
+                st.Cost = (Int32)Math.Round(((Double)st.Cost * st.Times + model.Cost) / (st.Times + 1));
+            else
+                st.Cost = model.Cost;
+            if (model.Cost > st.MaxCost) st.MaxCost = model.Cost;
+
+            if (!model.Title.IsNullOrEmpty()) st.Title = model.Title;
+            //st.Times++;
+            Interlocked.Increment(ref st._Times);
+
+            if (!model.Error.IsNullOrEmpty())
+            {
+                //st.Error++;
+                Interlocked.Increment(ref st._Error);
+            }
+
+            var user = model.User;
+            var ip = model.IP;
+            if (!user.IsNullOrEmpty() || !ip.IsNullOrEmpty())
             {
                 // 计算用户和IP，合并在Remark里面
                 var ss = new HashSet<String>((st.Remark + "").Split(","));
-                if (userid > 0 && !ss.Contains(userid + ""))
+                if (!user.IsNullOrEmpty() && !ss.Contains(user))
                 {
-                    st.Users++;
-                    ss.Add(userid + "");
+                    //st.Users++;
+                    Interlocked.Increment(ref st._Users);
+                    ss.Add(user + "");
                 }
                 if (!ip.IsNullOrEmpty() && !ss.Contains(ip))
                 {
-                    st.IPs++;
+                    //st.IPs++;
+                    Interlocked.Increment(ref st._IPs);
                     ss.Add(ip);
                 }
                 // 如果超长，砍掉前面
@@ -239,10 +242,13 @@ namespace XCode.Membership
                 }
             }
 
-            st.SaveAsync(5000);
+            st.SaveAsync(5_000);
 
             return st;
         }
+        #endregion
+
+        #region 辅助
         #endregion
     }
 }

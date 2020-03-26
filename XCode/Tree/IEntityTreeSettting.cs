@@ -37,9 +37,9 @@ namespace XCode
     public class EntityTreeSetting<TEntity> : IEntityTreeSetting where TEntity : Entity<TEntity>, new()
     {
         #region 属性
-        private IEntityOperate _Factory = Entity<TEntity>.Meta.Factory;
+        private IEntityFactory _Factory = Entity<TEntity>.Meta.Factory;
         /// <summary>实体操作者</summary>
-        public IEntityOperate Factory { get { return _Factory; } set { _Factory = value; } }
+        public IEntityFactory Factory { get { return _Factory; } set { _Factory = value; } }
         #endregion
 
         #region 设置型属性

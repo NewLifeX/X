@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Reflection;
 using NewLife.Log;
 using NewLife.Reflection;
 
@@ -18,52 +17,49 @@ namespace NewLife.Web
         /// <returns></returns>
         public static Type LoadPlugin(String typeName, String disname, String dll, String linkName, String urls = null)
         {
-            var set = Setting.Current;
-            var plug = set.GetPluginPath();
-
-            var file = "";
-            // 尝试加载
-            if (!dll.IsNullOrEmpty())
-            {
-                // 先检查当前目录，再检查插件目录
-                file = dll.GetFullPath();
-                if (!File.Exists(file) && Runtime.IsWeb) file = "Bin".GetFullPath().CombinePath(dll);
-                if (!File.Exists(file)) file = plug.CombinePath(dll);
-
-                if (File.Exists(file))
-                {
-                    try { Assembly.LoadFrom(file); }
-                    catch { }
-                }
-            }
-
-            var type = typeName.GetTypeEx();
+            var type = typeName.GetTypeEx(true);
             if (type != null) return type;
 
             if (dll.IsNullOrEmpty()) return null;
 
-            if (urls.IsNullOrEmpty()) urls = set.PluginServer;
-
-            // 如果本地没有数据库，则从网络下载
-            if (!File.Exists(file))
+            lock (typeName)
             {
-                XTrace.WriteLine("{0}不存在或平台版本不正确，准备联网获取 {1}", disname ?? dll, urls);
+                var set = Setting.Current;
 
-                var client = new WebClientX(true, true)
+                var file = "";
+                if (!dll.IsNullOrEmpty())
                 {
-                    Log = XTrace.Log
-                };
-                var dir = Path.GetDirectoryName(file);
-                var file2 = client.DownloadLinkAndExtract(urls, linkName, dir);
-                client.TryDispose();
-            }
-            if (!File.Exists(file))
-            {
-                XTrace.WriteLine("未找到 {0} {1}", disname, dll);
-                return null;
-            }
+                    // 先检查当前目录，再检查插件目录
+                    file = dll.GetFullPath();
+                    if (!File.Exists(file) && Runtime.IsWeb) file = "Bin".GetFullPath().CombinePath(dll);
+                    if (!File.Exists(file)) file = set.PluginPath.GetFullPath().CombinePath(dll);
+                    if (!File.Exists(file)) file = set.PluginPath.GetBasePath().CombinePath(dll);
+                }
 
-            return Assembly.LoadFrom(file).GetType(typeName);
+                if (urls.IsNullOrEmpty()) urls = set.PluginServer;
+
+                // 如果本地没有数据库，则从网络下载
+                if (!File.Exists(file))
+                {
+                    XTrace.WriteLine("{0}不存在或平台版本不正确，准备联网获取 {1}", disname ?? dll, urls);
+
+                    var client = new WebClientX()
+                    {
+                        Log = XTrace.Log
+                    };
+                    var dir = Path.GetDirectoryName(file);
+                    var file2 = client.DownloadLinkAndExtract(urls, linkName, dir);
+                    client.TryDispose();
+                }
+                if (!File.Exists(file))
+                {
+                    XTrace.WriteLine("未找到 {0} {1}", disname, dll);
+                    return null;
+                }
+
+                //return Assembly.LoadFrom(file).GetType(typeName);
+                return typeName.GetTypeEx(true);
+            }
         }
     }
 }

@@ -1,17 +1,16 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
+using NewLife;
 using NewLife.Log;
 using NewLife.Reflection;
+using NewLife.Serialization;
 using XCode.Code;
-#if __CORE__
-using Microsoft.Extensions.Configuration;
-#endif
 
 namespace XCode.DataAccessLayer
 {
@@ -27,25 +26,44 @@ namespace XCode.DataAccessLayer
         #region 创建函数
         /// <summary>构造函数</summary>
         /// <param name="connName">配置名</param>
-        private DAL(String connName)
+        private DAL(String connName) => ConnName = connName;
+
+        private Boolean _inited;
+        private void Init()
         {
-            _ConnName = connName;
-
-            //if (!ConnStrs.ContainsKey(connName)) throw new XCodeException("请在使用数据库前设置[" + connName + "]连接字符串");
-            if (!ConnStrs.ContainsKey(connName))
+            if (_inited) return;
+            lock (this)
             {
-                var connstr = "Data Source=" + Setting.Current.SQLiteDbPath.CombinePath(connName + ".db;Migration=On");
-                WriteLog("自动为[{0}]设置SQLite连接字符串：{1}", connName, connstr);
-                AddConnStr(connName, connstr, null, "SQLite");
+                if (_inited) return;
+
+                var connName = ConnName;
+                var css = ConnStrs;
+                //if (!css.ContainsKey(connName)) throw new XCodeException("请在使用数据库前设置[" + connName + "]连接字符串");
+                if (!css.ContainsKey(connName)) OnResolve?.Invoke(this, new ResolveEventArgs(connName));
+                if (!css.ContainsKey(connName) && _defs.TryGetValue(connName, out var kv))
+                {
+                    AddConnStr(connName, kv.Item1, null, kv.Item2);
+                }
+                if (!css.ContainsKey(connName))
+                {
+                    var cfg = NewLife.Setting.Current;
+                    var set = Setting.Current;
+                    var connstr = "Data Source=" + cfg.DataPath.CombinePath(connName + ".db");
+                    if (set.Migration <= Migration.On) connstr += ";Migration=On";
+                    WriteLog("自动为[{0}]设置SQLite连接字符串：{1}", connName, connstr);
+                    AddConnStr(connName, connstr, null, "SQLite");
+                }
+
+                ConnStr = css[connName];
+                if (ConnStr.IsNullOrEmpty()) throw new XCodeException("请在使用数据库前设置[" + connName + "]连接字符串");
+
+                _inited = true;
             }
-
-            _ConnStr = ConnStrs[connName];
-            if (_ConnStr.IsNullOrEmpty()) throw new XCodeException("请在使用数据库前设置[" + connName + "]连接字符串");
-
-            Queue = new EntityQueue { Dal = this };
         }
+        #endregion
 
-        private static Dictionary<String, DAL> _dals = new Dictionary<String, DAL>(StringComparer.OrdinalIgnoreCase);
+        #region 静态管理
+        private static ConcurrentDictionary<String, DAL> _dals = new ConcurrentDictionary<String, DAL>(StringComparer.OrdinalIgnoreCase);
         /// <summary>创建一个数据访问层对象。</summary>
         /// <param name="connName">配置名</param>
         /// <returns>对应于指定链接的全局唯一的数据访问层对象</returns>
@@ -54,17 +72,39 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(connName)) throw new ArgumentNullException(nameof(connName));
 
             // 如果需要修改一个DAL的连接字符串，不应该修改这里，而是修改DAL实例的ConnStr属性
-            if (_dals.TryGetValue(connName, out var dal)) return dal;
-            lock (_dals)
-            {
-                if (_dals.TryGetValue(connName, out dal)) return dal;
+            //if (!_dals.TryGetValue(connName, out var dal))
+            //{
+            //    lock (_dals)
+            //    {
+            //        if (!_dals.TryGetValue(connName, out dal))
+            //        {
+            //            dal = new DAL(connName);
+            //            // 不用connName，因为可能在创建过程中自动识别了ConnName
+            //            _dals.Add(dal.ConnName, dal);
+            //        }
+            //    }
+            //}
 
-                dal = new DAL(connName);
-                // 不用connName，因为可能在创建过程中自动识别了ConnName
-                _dals.Add(dal.ConnName, dal);
-            }
+            // Dictionary.TryGetValue 在多线程高并发下有可能抛出空异常
+            var dal = _dals.GetOrAdd(connName, k => new DAL(k));
+
+            // 创建完成对象后，初始化时单独锁这个对象，避免整体加锁
+            dal.Init();
 
             return dal;
+        }
+
+        private void Reset()
+        {
+            _Db.TryDispose();
+
+            _ProviderType = null;
+            _Db = null;
+            _Tables = null;
+            _hasCheck = false;
+            HasCheckTables.Clear();
+
+            GC.Collect(2);
         }
 
         private static Dictionary<String, String> _connStrs;
@@ -81,60 +121,69 @@ namespace XCode.DataAccessLayer
                 lock (_connTypes)
                 {
                     if (_connStrs != null) return _connStrs;
+
                     var cs = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
 
-#if !__CORE__
-                    // 读取配置文件
-                    var css = ConfigurationManager.ConnectionStrings;
-                    if (css != null && css.Count > 0)
-                    {
-                        foreach (ConnectionStringSettings set in css)
-                        {
-                            var name = set.Name;
-                            var connstr = set.ConnectionString;
-                            var provider = set.ProviderName;
-                            if (connstr.IsNullOrWhiteSpace()) continue;
-                            if (name.EqualIgnoreCase("LocalSqlServer", "LocalMySqlServer")) continue;
-
-                            var type = DbFactory.GetProviderType(connstr, provider);
-                            if (type == null) XTrace.WriteLine("无法识别{0}的提供者{1}！", name, provider);
-
-                            cs.Add(name, set.ConnectionString);
-                            _connTypes.Add(name, type);
-                        }
-                    }
-                    _connStrs = cs;
-#else
                     var file = "web.config".GetFullPath();
-                    if (!File.Exists(file)) file = "{0}.exe.config".F(AppDomain.CurrentDomain.FriendlyName).GetFullPath();
-                    if (!File.Exists(file)) file = "{0}.dll.config".F(AppDomain.CurrentDomain.FriendlyName).GetFullPath();
+                    var fname = AppDomain.CurrentDomain.FriendlyName;
+                    if (!File.Exists(file)) file = "app.config".GetFullPath();
+                    if (!File.Exists(file)) file = "{0}.config".F(fname).GetFullPath();
+                    if (!File.Exists(file)) file = "{0}.exe.config".F(fname).GetFullPath();
+                    if (!File.Exists(file)) file = "{0}.dll.config".F(fname).GetFullPath();
 
                     if (File.Exists(file))
                     {
                         // 读取配置文件
-                        var css = new ConfigurationBuilder()
-                            .AddXmlFile(file)
-                            .Build().GetSection("connectionStrings")?.GetSection("add");
-                        if (css != null)
+                        var doc = new XmlDocument();
+                        doc.Load(file);
+                        var nodes = doc.SelectNodes("/configuration/connectionStrings/add");
+                        if (nodes != null)
                         {
-                            foreach (var item in css.GetChildren())
+                            foreach (XmlNode item in nodes)
                             {
-                                var name = item["name"];
-                                var constr = item["connectionString"];
-                                var provider = item["providerName"];
-                                if (constr.IsNullOrWhiteSpace()) continue;
-                                if (name.EqualIgnoreCase("LocalSqlServer", "LocalMySqlServer")) continue;
+                                var name = item.Attributes["name"]?.Value;
+                                var connstr = item.Attributes["connectionString"]?.Value;
+                                var provider = item.Attributes["providerName"]?.Value;
+                                if (name.IsNullOrEmpty() || connstr.IsNullOrWhiteSpace()) continue;
 
-                                var type = DbFactory.GetProviderType(constr, provider);
+                                var type = DbFactory.GetProviderType(connstr, provider);
                                 if (type == null) XTrace.WriteLine("无法识别{0}的提供者{1}！", name, provider);
 
-                                cs.Add(name, constr);
-                                _connTypes.Add(name, type);
+                                cs[name] = connstr;
+                                _connTypes[name] = type;
                             }
                         }
                     }
+
+                    // 联合使用 appsettings.json
+                    file = "appsettings.json".GetFullPath();
+                    if (!File.Exists(file)) file = Directory.GetCurrentDirectory() + "/appsettings.json";//Asp.Net Core的Debug模式下配置文件位于项目目录而不是输出目录
+                    if (File.Exists(file))
+                    {
+                        var dic = new JsonParser(File.ReadAllText(file)).Decode() as IDictionary<String, Object>;
+                        dic = dic?["ConnectionStrings"] as IDictionary<String, Object>;
+                        if (dic != null && dic.Count > 0)
+                        {
+                            foreach (var item in dic)
+                            {
+                                var name = item.Key;
+                                var ds = item.Value as IDictionary<String, Object>;
+                                if (name.IsNullOrEmpty() || ds == null) continue;
+
+                                var connstr = ds["connectionString"] + "";
+                                var provider = ds["providerName"] + "";
+                                if (connstr.IsNullOrWhiteSpace()) continue;
+
+                                var type = DbFactory.GetProviderType(connstr, provider);
+                                if (type == null) XTrace.WriteLine("无法识别{0}的提供者{1}！", name, provider);
+
+                                cs[name] = connstr;
+                                _connTypes[name] = type;
+                            }
+                        }
+                    }
+
                     _connStrs = cs;
-#endif
                 }
                 return _connStrs;
             }
@@ -147,24 +196,45 @@ namespace XCode.DataAccessLayer
         /// <param name="provider">数据库提供者，如果没有指定数据库类型，则有提供者判断使用哪一种内置类型</param>
         public static void AddConnStr(String connName, String connStr, Type type, String provider)
         {
-            if (String.IsNullOrEmpty(connName)) throw new ArgumentNullException("connName");
+            if (connName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(connName));
+            if (connStr.IsNullOrEmpty()) return;
+
             //2016.01.04 @宁波-小董，加锁解决大量分表分库多线程带来的提供者无法识别错误
             lock (_connTypes)
             {
+                if (!ConnStrs.TryGetValue(connName, out var oldConnStr)) oldConnStr = null;
+
                 if (type == null) type = DbFactory.GetProviderType(connStr, provider);
 
                 // 允许后来者覆盖前面设置过了的
                 //var set = new ConnectionStringSettings(connName, connStr, provider);
                 ConnStrs[connName] = connStr;
                 _connTypes[connName] = type ?? throw new XCodeException("无法识别{0}的提供者{1}！", connName, provider);
+
+                // 如果连接字符串改变，则重置所有
+                if (!oldConnStr.IsNullOrEmpty() && !oldConnStr.EqualIgnoreCase(connStr))
+                {
+                    WriteLog("[{0}]的连接字符串改变，准备重置！", connName);
+
+                    var dal = Create(connName);
+                    dal.ConnStr = connStr;
+                    dal.Reset();
+                }
             }
         }
-        #endregion
 
-        #region 属性
-        private String _ConnName;
+        /// <summary>找不到连接名时调用。支持用户自定义默认连接</summary>
+        public static event EventHandler<ResolveEventArgs> OnResolve;
+
+        private static ConcurrentDictionary<String, Tuple<String, String>> _defs = new ConcurrentDictionary<String, Tuple<String, String>>(StringComparer.OrdinalIgnoreCase);
+        /// <summary>注册默认连接字符串。无法从配置文件获取时使用</summary>
+        /// <param name="connName">连接名</param>
+        /// <param name="connStr">连接字符串</param>
+        /// <param name="provider">数据库提供者</param>
+        public static void RegisterDefault(String connName, String connStr, String provider) => _defs[connName] = new Tuple<String, String>(connStr, provider);
+
         /// <summary>连接名</summary>
-        public String ConnName { get { return _ConnName; } }
+        public String ConnName { get; }
 
         private Type _ProviderType;
         /// <summary>实现了IDatabase接口的数据库类型</summary>
@@ -182,32 +252,19 @@ namespace XCode.DataAccessLayer
         {
             get
             {
+                if (_Db != null) return _Db.Type;
+
                 var db = DbFactory.GetDefault(ProviderType);
                 if (db == null) return DatabaseType.None;
                 return db.Type;
             }
         }
 
-        private String _ConnStr;
         /// <summary>连接字符串</summary>
         /// <remarks>
         /// 修改连接字符串将会清空<see cref="Db"/>
         /// </remarks>
-        public String ConnStr
-        {
-            get { return _ConnStr; }
-            set
-            {
-                if (_ConnStr != value)
-                {
-                    _ConnStr = value;
-                    _ProviderType = null;
-                    _Db = null;
-
-                    AddConnStr(ConnName, _ConnStr, null, null);
-                }
-            }
-        }
+        public String ConnStr { get; private set; }
 
         private IDatabase _Db;
         /// <summary>数据库。所有数据库操作在此统一管理，强烈建议不要直接使用该属性，在不同版本中IDatabase可能有较大改变</summary>
@@ -223,15 +280,11 @@ namespace XCode.DataAccessLayer
                     var type = ProviderType;
                     if (type == null) throw new XCodeException("无法识别{0}的数据提供者！", ConnName);
 
-                    //_Db = type.CreateInstance() as IDatabase;
-                    //if (!String.IsNullOrEmpty(ConnName)) _Db.ConnName = ConnName;
-                    //if (!String.IsNullOrEmpty(ConnStr)) _Db.ConnectionString = DecodeConnStr(ConnStr);
                     //!!! 重量级更新：经常出现链接字符串为127/master的连接错误，非常有可能是因为这里线程冲突，A线程创建了实例但未来得及赋值连接字符串，就被B线程使用了
                     var db = type.CreateInstance() as IDatabase;
-                    if (!String.IsNullOrEmpty(ConnName)) db.ConnName = ConnName;
-                    if (!String.IsNullOrEmpty(ConnStr)) db.ConnectionString = DecodeConnStr(ConnStr);
+                    if (!ConnName.IsNullOrEmpty()) db.ConnName = ConnName;
+                    if (!ConnStr.IsNullOrEmpty()) db.ConnectionString = DecodeConnStr(ConnStr);
 
-                    //Interlocked.CompareExchange<IDatabase>(ref _Db, db, null);
                     _Db = db;
 
                     return _Db;
@@ -240,7 +293,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>数据库会话</summary>
-        public IDbSession Session { get { return Db.CreateSession(); } }
+        public IDbSession Session => Db.CreateSession();
         #endregion
 
         #region 连接字符串编码解码
@@ -312,7 +365,9 @@ namespace XCode.DataAccessLayer
 
         private List<IDataTable> GetTables()
         {
-            CheckBeforeUseDatabase();
+            if (Db is DbBase db2 && !db2.SupportSchema) return new List<IDataTable>();
+
+            CheckDatabase();
             return Db.CreateMetaData().GetTables();
         }
 
@@ -330,10 +385,7 @@ namespace XCode.DataAccessLayer
         /// <summary>导出模型</summary>
         /// <param name="tables"></param>
         /// <returns></returns>
-        public static String Export(IEnumerable<IDataTable> tables)
-        {
-            return ModelHelper.ToXml(tables);
-        }
+        public static String Export(IEnumerable<IDataTable> tables) => ModelHelper.ToXml(tables);
 
         /// <summary>导入模型</summary>
         /// <param name="xml"></param>
@@ -360,33 +412,38 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 反向工程
-        Int32 _hasCheck;
+        private Boolean _hasCheck;
         /// <summary>使用数据库之前检查表架构</summary>
         /// <remarks>不阻塞，可能第一个线程正在检查表架构，别的线程已经开始使用数据库了</remarks>
-        void CheckBeforeUseDatabase()
+        public void CheckDatabase()
         {
-            if (_hasCheck > 0 || Interlocked.CompareExchange(ref _hasCheck, 1, 0) > 0) return;
+            if (_hasCheck) return;
+            lock (this)
+            {
+                if (_hasCheck) return;
 
-            try
-            {
-                switch (Db.Migration)
+                try
                 {
-                    case Migration.Off:
-                        break;
-                    case Migration.ReadOnly:
-                        Task.Factory.StartNew(CheckTables);
-                        break;
-                    case Migration.On:
-                    case Migration.Full:
-                        CheckTables();
-                        break;
-                    default:
-                        break;
+                    switch (Db.Migration)
+                    {
+                        case Migration.Off:
+                            break;
+                        case Migration.ReadOnly:
+                            Task.Factory.StartNew(CheckTables);
+                            break;
+                        case Migration.On:
+                        case Migration.Full:
+                            CheckTables();
+                            break;
+                        default:
+                            break;
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                if (Debug) WriteLog(ex.ToString());
+                catch (Exception ex)
+                {
+                    if (Debug) WriteLog(ex.GetMessage());
+                }
+                _hasCheck = true;
             }
         }
 
@@ -411,14 +468,14 @@ namespace XCode.DataAccessLayer
         /// <summary>检查数据表架构，不受反向工程启用开关限制，仅检查未经过常规检查的表</summary>
         public void CheckTables()
         {
-            WriteLog("开始检查连接[{0}/{1}]的数据库架构……", ConnName, DbType);
+            var name = ConnName;
+            WriteLog("开始检查连接[{0}/{1}]的数据库架构……", name, DbType);
 
-            var sw = new Stopwatch();
-            sw.Start();
+            var sw = Stopwatch.StartNew();
 
             try
             {
-                var list = EntityFactory.GetTables(ConnName);
+                var list = EntityFactory.GetTables(name);
                 if (list != null && list.Count > 0)
                 {
                     // 移除所有已初始化的
@@ -432,7 +489,7 @@ namespace XCode.DataAccessLayer
 
                     if (list != null && list.Count > 0)
                     {
-                        WriteLog(ConnName + "待检查表架构的实体个数：" + list.Count);
+                        WriteLog(name + "待检查表架构的实体个数：" + list.Count);
 
                         SetTables(list.ToArray());
                     }
@@ -442,7 +499,7 @@ namespace XCode.DataAccessLayer
             {
                 sw.Stop();
 
-                WriteLog("检查连接[{0}/{1}]的数据库架构耗时{2:n0}ms", ConnName, DbType, sw.Elapsed.TotalMilliseconds);
+                WriteLog("检查连接[{0}/{1}]的数据库架构耗时{2:n0}ms", name, DbType, sw.Elapsed.TotalMilliseconds);
             }
         }
 
@@ -450,38 +507,19 @@ namespace XCode.DataAccessLayer
         /// <param name="tables"></param>
         public void SetTables(params IDataTable[] tables)
         {
-            Db.CreateMetaData().SetTables(Db.Migration, tables);
-        }
-        #endregion
+            if (Db is DbBase db2 && !db2.SupportSchema) return;
 
-        #region 创建数据操作实体
-#if !__CORE__
-        private EntityAssembly _Assembly;
-        /// <summary>根据数据模型动态创建的程序集</summary>
-        public EntityAssembly Assembly
-        {
-            get
+            // 构建DataTable时也要注意表前缀，避免反向工程用错
+            var pf = Db.TablePrefix;
+            if (!pf.IsNullOrEmpty())
             {
-                return _Assembly ?? (_Assembly = EntityAssembly.CreateWithCache(ConnName, Tables));
+                foreach (var tbl in tables)
+                {
+                    if (!tbl.TableName.StartsWithIgnoreCase(pf)) tbl.TableName = pf + tbl.TableName;
+                }
             }
-            set { _Assembly = value; }
-        }
-#endif
 
-        /// <summary>创建实体操作接口</summary>
-        /// <remarks>因为只用来做实体操作，所以只需要一个实例即可</remarks>
-        /// <param name="tableName"></param>
-        /// <returns></returns>
-        public IEntityOperate CreateOperate(String tableName)
-        {
-#if !__CORE__
-            var type = Assembly?.GetType(tableName);
-            if (type == null) return null;
-
-            return EntityFactory.CreateOperate(type);
-#else
-            return null;
-#endif
+            Db.CreateMetaData().SetTables(Db.Migration, tables);
         }
         #endregion
     }

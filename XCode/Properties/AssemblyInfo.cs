@@ -8,12 +8,12 @@ using XCode;
 // 有关程序集的常规信息通过下列属性集
 // 控制。更改这些属性值可修改
 // 与程序集关联的信息。
-[assembly: AssemblyTitle("大数据中间件")]
-[assembly: AssemblyDescription("分布式大数据中间件")]
+[assembly: AssemblyTitle("数据中间件")]
+[assembly: AssemblyDescription("数据中间件，MySQL、SQLite、SqlServer、Oracle")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyProduct("XCode")]
 [assembly: AssemblyCompany("新生命开发团队")]
-[assembly: AssemblyCopyright("©2002-2017 新生命开发团队 http://www.NewLifeX.com")]
+[assembly: AssemblyCopyright("版权所有(C) 2002-2019 新生命开发团队")]
 [assembly: AssemblyTrademark("四叶草")]
 [assembly: AssemblyCulture("")]
 
@@ -39,8 +39,8 @@ using XCode;
 //
 // 可以指定所有这些值，也可以使用“修订号”和“内部版本号”的默认值，
 // 方法是按如下所示使用“*”:
-[assembly: AssemblyVersion("9.6.*")]
-[assembly: AssemblyFileVersion("9.6.2017.0808")]
+[assembly: AssemblyVersion("9.10.*")]
+[assembly: AssemblyFileVersion("9.10.2019.0101")]
 
 /*
  * XCode的重大改进
@@ -58,6 +58,20 @@ using XCode;
  * /
 
 /*
+ * v9.10.2019.0101  全面巩固批量Insert/Update/Upsert，支持数据备份、恢复和同步，支持实体列表保存到文件以及加载
+ * 
+ * v9.9.2018.1103   重构数据层查询，DbTable替代DataSet，为将来数据备份和传输打基础
+ * 
+ * v9.9.2018.0907   恢复使用数据层缓存，默认10秒，任意写入清空
+ * 
+ * v9.9.2018.0813   支持批量插入和更新，MySql/Oracle
+ * 
+ * v9.8.2018.0605   由DataReader直接映射实体列表，以支持netstandard的MySql和SQLite，且提升性能
+ * 
+ * v9.7.2018.0421   支持运行时修改DAL连接字符串
+ * 
+ * v9.6.2018.0326   重构权限体系，支持多角色
+ * 
  * v9.6.2017.0808   重构正向工程，基于映射表查找数据库字段类型到实体类型的映射
  * 
  * v9.5.2017.0607   全面支持参数化添删改查

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -18,7 +19,7 @@ namespace XCode.Cache
         {
             get
             {
-                if (_Current == null) _Current = Load(_File.GetFullPath(), true);
+                if (_Current == null) _Current = Load(_File.GetBasePath(), true);
 
                 return _Current;
             }
@@ -40,7 +41,12 @@ namespace XCode.Cache
             DataCache data = null;
             if (!file.IsNullOrEmpty() && File.Exists(file))
             {
-                data = File.ReadAllText(file).ToJsonEntity<DataCache>();
+                // 如果数据损坏，迟点异常
+                try
+                {
+                    data = File.ReadAllText(file).ToJsonEntity<DataCache>();
+                }
+                catch { }
             }
 
             if (data == null && create)
@@ -60,33 +66,39 @@ namespace XCode.Cache
             file.EnsureDirectory(true);
             var js = data.ToJson(true);
 
-            File.WriteAllText(file, js, Encoding.UTF8);
+            try
+            {
+                File.WriteAllText(file, js, Encoding.UTF8);
+            }
+            catch (IOException) { }
         }
 
-        private TimerX _task;
+        private TimerX _timer;
         /// <summary>异步保存</summary>
         public void SaveAsync()
         {
-            if (_task == null)
+            if (_timer == null)
             {
-                _task = TimerX.Delay(s =>
-                {
-                    Save(_File.GetFullPath(), this);
+                _timer = new TimerX(s => Save(_File.GetBasePath(), s as DataCache), this, 100, 10 * 60 * 1000) { Async = true };
+                //_timer = TimerX.Delay(s =>
+                //{
+                //    Save(_File.GetFullPath(), this);
 
-                    _task = null;
-                }, 3000);
+                //    _timer = null;
+                //}, 3000);
             }
+            _timer.SetNext(100);
         }
         #endregion
 
         #region 总记录数
         /// <summary>每个表总记录数</summary>
-        public IDictionary<String, Int64> Counts { get; set; } = new Dictionary<String, Int64>();
+        public IDictionary<String, Int64> Counts { get; set; } = new ConcurrentDictionary<String, Int64>();
         #endregion
 
         #region 字段缓存
         /// <summary>字段缓存，每个缓存项的值</summary>
-        public IDictionary<String, Dictionary<String, String>> FieldCache { get; set; } = new Dictionary<String, Dictionary<String, String>>();
+        public IDictionary<String, Dictionary<String, String>> FieldCache { get; set; } = new ConcurrentDictionary<String, Dictionary<String, String>>();
         #endregion
     }
 }

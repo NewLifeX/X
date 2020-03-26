@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Xml.Serialization;
+using NewLife.Collections;
 using NewLife.Reflection;
 
 namespace NewLife.Serialization
@@ -86,14 +87,14 @@ namespace NewLife.Serialization
             else
             {
                 // 准备好名值对再一起写入。为了得到数据长度，需要提前计算好数据长度，所以需要临时切换数据流
-                var ms = new MemoryStream();
+                var ms = Pool.MemoryStream.Get();
                 var old = host.Stream;
                 host.Stream = ms;
                 var rs = host.Write(value, type);
                 host.Stream = old;
 
                 if (!rs) return false;
-                buf = ms.ToArray();
+                buf = ms.Put(true);
             }
 
             WriteLog("    WritePair {0}\t= {1}", name, value);
@@ -108,10 +109,7 @@ namespace NewLife.Serialization
 
         /// <summary>读取原始名值对</summary>
         /// <returns></returns>
-        public IDictionary<String, Byte[]> ReadPair()
-        {
-            return ReadPair(Host.Stream, Host.Encoding);
-        }
+        public IDictionary<String, Byte[]> ReadPair() => ReadPair(Host.Stream, Host.Encoding);
 
         /// <summary>读取原始名值对</summary>
         /// <param name="ms">数据流</param>
@@ -146,8 +144,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public Boolean TryReadPair(IDictionary<String, Byte[]> dic, String name, Type type, ref Object value)
         {
-            Byte[] buf = null;
-            if (!dic.TryGetValue(name, out buf)) return false;
+            if (!dic.TryGetValue(name, out var buf)) return false;
 
             if (type == null)
             {
@@ -187,7 +184,7 @@ namespace NewLife.Serialization
         #region 字典名值对
         private Boolean WriteDictionary(Object value, Type type)
         {
-            if (!type.As<IDictionary>()) return false;
+            if (!type.As<IDictionary>() && !(value is IDictionary)) return false;
 
             var dic = value as IDictionary;
 
@@ -239,7 +236,7 @@ namespace NewLife.Serialization
         #region 数组名值对
         private Boolean WriteArray(Object value, Type type)
         {
-            if (!type.As<IList>()) return false;
+            if (!type.As<IList>() && !(value is IList)) return false;
 
             var list = value as IList;
             if (list == null || list.Count == 0) return true;
@@ -324,7 +321,8 @@ namespace NewLife.Serialization
             if (Type.GetTypeCode(type) != TypeCode.Object) return false;
             // 不支持基类不是Object的特殊类型
             //if (type.BaseType != typeof(Object)) return false;
-            if (!type.As<Object>()) return false;
+            //if (!type.As<Object>()) return false;
+            if (!typeof(Object).IsAssignableFrom(type)) return false;
 
             var ims = Host.IgnoreMembers;
 

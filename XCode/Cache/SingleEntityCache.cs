@@ -1,16 +1,12 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using NewLife;
+using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Threading;
-#if !NET4
-using TaskEx = System.Threading.Tasks.Task;
-#endif
 
 namespace XCode.Cache
 {
@@ -26,11 +22,14 @@ namespace XCode.Cache
         /// <summary>过期时间。单位是秒，默认60秒</summary>
         public Int32 Expire { get; set; }
 
+        /// <summary>清理周期。默认60秒检查一次，清理10倍（600秒）未访问的缓存项</summary>
+        public Int32 ClearPeriod { get; set; } = 60;
+
         /// <summary>最大实体数。默认10000</summary>
         public Int32 MaxEntity { get; set; } = 10000;
 
         /// <summary>是否在使用缓存</summary>
-        public Boolean Using { get; private set; }
+        public Boolean Using { get; set; }
         #endregion
 
         #region 主键
@@ -68,9 +67,9 @@ namespace XCode.Cache
         /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
         /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）。
         /// 因为该方法只会被调用一次，所以该参数的意义不太大。</param>
-        protected override void OnDispose(Boolean disposing)
+        protected override void Dispose(Boolean disposing)
         {
-            base.OnDispose(disposing);
+            base.Dispose(disposing);
 
             try
             {
@@ -90,8 +89,8 @@ namespace XCode.Cache
         {
             if (_Timer == null)
             {
-                var period = Expire * 1000;
-                if (period > 60 * 1000) period = 60 * 1000;
+                var period = ClearPeriod * 1000;
+                //if (period > 60 * 1000) period = 60 * 1000;
 
                 // 启动一个定时器，用于定时清理过期缓存。因为比较耗时，最后一个参数采用线程池
                 _Timer = new TimerX(CheckExpire, null, period, period, "SC")
@@ -104,7 +103,7 @@ namespace XCode.Cache
         private void CheckExpire(Object state)
         {
             var es = Entities;
-            if (es == null) return;
+            if (es == null || es.IsEmpty) return;
 
             // 过期时间升序，用于缓存满以后删除
             var slist = new SortedList<DateTime, IList<CacheItem>>();
@@ -114,12 +113,12 @@ namespace XCode.Cache
             if (MaxEntity <= 0 || over < 0) slist = null;
 
             // 找到所有很久未访问的缓存项，10倍
-            var exp = TimerX.Now.AddSeconds(-10 * Expire);
+            var exp = TimerX.Now.AddSeconds(-10 * ClearPeriod);
             var list = new List<CacheItem>();
             foreach (var item in es)
             {
                 var ci = item.Value;
-                if (ci.VisitTime < exp)
+                if (ci.VisitTime <= exp)
                     list.Add(ci);
                 else if (slist != null)
                 {
@@ -133,7 +132,7 @@ namespace XCode.Cache
             // 如果满了，删除前面
             if (slist != null)
             {
-                over = es.Count - list.Count - MaxEntity;
+                over -= list.Count;
                 if (over > 0)
                 {
                     for (var i = 0; i < slist.Count && over > 0; i++)
@@ -150,19 +149,12 @@ namespace XCode.Cache
                 }
             }
 
+            // 主从一起删除
+            var ses = _SlaveEntities;
             foreach (var item in list)
             {
-                es.Remove(item.Key);
-            }
-
-            // 删除从表
-            var ses = _SlaveEntities;
-            if (ses != null && list.Count > 0)
-            {
-                foreach (var item in list)
-                {
-                    if (!item.SlaveKey.IsNullOrEmpty()) ses.Remove(item.SlaveKey);
-                }
+                if (es.Remove(item.Key)) Interlocked.Decrement(ref _Count);
+                if (ses != null && !item.SlaveKey.IsNullOrEmpty()) ses.Remove(item.SlaveKey);
             }
         }
         #endregion
@@ -187,7 +179,7 @@ namespace XCode.Cache
             public DateTime ExpireTime { get; set; }
 
             /// <summary>是否已经过期</summary>
-            public Boolean Expired { get { return ExpireTime <= TimerX.Now; } }
+            public Boolean Expired => ExpireTime <= TimerX.Now;
 
             public void SetEntity(TEntity entity, Int32 expire)
             {
@@ -199,6 +191,9 @@ namespace XCode.Cache
         #endregion
 
         #region 单对象缓存
+        /// <summary>缓存个数</summary>
+        private Int32 _Count;
+
         /// <summary>单对象缓存</summary>
         private ConcurrentDictionary<TKey, CacheItem> Entities = new ConcurrentDictionary<TKey, CacheItem>();
 
@@ -238,13 +233,14 @@ namespace XCode.Cache
         {
             if (Total > 0)
             {
-                var sb = new StringBuilder();
+                var sb = Pool.StringBuilder.Get();
                 var name = "<{0}>({1:n0})".F(typeof(TEntity).Name, Entities.Count);
                 sb.AppendFormat("对象缓存{0,-20}", name);
                 sb.AppendFormat("总次数{0,11:n0}", Total);
                 if (Success > 0) sb.AppendFormat("，命中{0,11:n0}（{1,6:P02}）", Success, (Double)Success / Total);
+                sb.AppendFormat("\t[{0}]", typeof(TEntity).FullName);
 
-                XTrace.WriteLine(sb.ToString());
+                XTrace.WriteLine(sb.Put(true));
             }
         }
         #endregion
@@ -253,7 +249,7 @@ namespace XCode.Cache
         /// <summary>根据主键获取实体数据</summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public TEntity this[TKey key] { get { return GetItem(Entities, key); } set { Add(key, value); } }
+        public TEntity this[TKey key] { get => GetItem(Entities, key); set => Add(key, value); }
 
         private TEntity GetItem<TKey2>(ConcurrentDictionary<TKey2, CacheItem> dic, TKey2 key)
         {
@@ -266,20 +262,27 @@ namespace XCode.Cache
             Interlocked.Increment(ref Success);
 
             // 获取 或 添加
-            if (!dic.TryGetValue(key, out var item))
+            CacheItem item = null;
+            CacheItem ci = null;
+            while (!dic.TryGetValue(key, out item))
             {
-                item = Object.ReferenceEquals(dic, Entities) ? CreateItem(key) : CreateSlaveItem(key);
+                if (ci == null) ci = Object.ReferenceEquals(dic, Entities) ? CreateItem(key) : CreateSlaveItem(key);
                 // 不要缓存空值
-                if (item == null) return null;
+                if (ci == null) return null;
 
                 // 尝试添加，即使多线程并发，这里宁可多浪费点时间，也不要带来锁定
-                dic.TryAdd(key, item);
+                if (dic.TryAdd(key, ci))
+                {
+                    item = ci;
+                    Interlocked.Increment(ref _Count);
+                    break;
+                }
             }
             // 最后访问时间
             item.VisitTime = TimerX.Now;
 
             // 异步更新缓存
-            if (item.Expired) ThreadPool.UnsafeQueueUserWorkItem(UpdateData, item);
+            if (item.Expired) ThreadPoolX.QueueUserWorkItem(UpdateData, item);
 
             return item.Entity;
         }
@@ -332,13 +335,6 @@ namespace XCode.Cache
             // 新增或更新
             es[key] = item;
 
-            //// 如果满了，删除前面一个
-            //while (MaxEntity > 0 && es.Count >= MaxEntity)
-            //{
-            //    RemoveKey(es.Keys.First());
-            //    WriteLog("单对象缓存满，删除{0}", key);
-            //}
-
             if (!skey.IsNullOrWhiteSpace())
             {
                 var ses = SlaveEntities;
@@ -352,7 +348,7 @@ namespace XCode.Cache
         /// <summary>根据从键获取实体数据</summary>
         /// <param name="slaveKey"></param>
         /// <returns></returns>
-        public TEntity GetItemWithSlaveKey(String slaveKey) { return GetItem(SlaveEntities, slaveKey); }
+        public TEntity GetItemWithSlaveKey(String slaveKey) => GetItem(SlaveEntities, slaveKey);
 
         private void UpdateData(Object state)
         {
@@ -373,7 +369,7 @@ namespace XCode.Cache
             }
             catch (Exception ex)
             {
-                XTrace.WriteException(ex);
+                XTrace.WriteLine($"[{TableName}/{ConnName}]" + ex.GetTrue());
             }
         }
         #endregion
@@ -382,12 +378,12 @@ namespace XCode.Cache
         /// <summary>是否包含指定键</summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public Boolean ContainsKey(TKey key) { return Entities.ContainsKey(key); }
+        public Boolean ContainsKey(TKey key) => Entities.ContainsKey(key);
 
         /// <summary>是否包含指定从键</summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public Boolean ContainsSlaveKey(String key) { return SlaveEntities.ContainsKey(key); }
+        public Boolean ContainsSlaveKey(String key) => SlaveEntities.ContainsKey(key);
 
         /// <summary>向单对象缓存添加项</summary>
         /// <param name="key"></param>
@@ -417,7 +413,7 @@ namespace XCode.Cache
         public void Remove(TEntity entity)
         {
             if (entity == null) return;
-
+            if (GetKeyMethod == null) return;
             var key = GetKeyMethod(entity);
             RemoveKey(key);
         }
@@ -448,21 +444,21 @@ namespace XCode.Cache
         /// <summary>获取数据</summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        IEntity ISingleEntityCache.this[Object key] { get { return this[(TKey)key]; } }
+        IEntity ISingleEntityCache.this[Object key] => this[(TKey)key];
 
         /// <summary>根据从键获取实体数据</summary>
         /// <param name="slaveKey"></param>
         /// <returns></returns>
-        IEntity ISingleEntityCache.GetItemWithSlaveKey(String slaveKey) { return GetItemWithSlaveKey(slaveKey); }
+        IEntity ISingleEntityCache.GetItemWithSlaveKey(String slaveKey) => GetItemWithSlaveKey(slaveKey);
 
         /// <summary>是否包含指定主键</summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        Boolean ISingleEntityCache.ContainsKey(Object key) { return ContainsKey((TKey)key); }
+        Boolean ISingleEntityCache.ContainsKey(Object key) => ContainsKey((TKey)key);
 
         /// <summary>移除指定项</summary>
         /// <param name="entity"></param>
-        void ISingleEntityCache.Remove(IEntity entity) { Remove(entity as TEntity); }
+        void ISingleEntityCache.Remove(IEntity entity) => Remove(entity as TEntity);
 
         /// <summary>向单对象缓存添加项</summary>
         /// <param name="value">实体对象</param>
@@ -497,10 +493,7 @@ namespace XCode.Cache
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override String ToString()
-        {
-            return "SingleEntityCache<{0}, {1}>[{2}]".F(typeof(TKey).Name, typeof(TEntity).Name, Entities.Count);
-        }
+        public override String ToString() => "SingleEntityCache<{0}, {1}>[{2}]".F(typeof(TKey).Name, typeof(TEntity).Name, Entities.Count);
         #endregion
     }
 }

@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Text;
+using System.Runtime.Serialization;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using NewLife;
+using NewLife.Collections;
 using NewLife.Log;
-using NewLife.Reflection;
+using NewLife.Threading;
 
 namespace XCode.Membership
 {
@@ -55,7 +56,13 @@ namespace XCode.Membership
         static Role()
         {
             // 用于引发基类的静态构造函数
-            TEntity entity = new TEntity();
+            var entity = new TEntity();
+
+            //Meta.Factory.FullInsert = false;
+
+            Meta.Modules.Add<UserModule>();
+            Meta.Modules.Add<TimeModule>();
+            Meta.Modules.Add<IPModule>();
         }
 
         /// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>
@@ -80,73 +87,70 @@ namespace XCode.Membership
 
                     role.Save();
                 }
+            }
+            else
+            {
+                if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}角色数据……", typeof(TEntity).Name);
 
-                CheckRole();
+                Add("管理员", true, "默认拥有全部最高权限，由系统工程师使用，安装配置整个系统");
+                Add("高级用户", false, "业务管理人员，可以管理业务模块，可以分配授权用户等级");
+                Add("普通用户", false, "普通业务人员，可以使用系统常规业务模块功能");
+                Add("游客", false, "新注册用户默认属于游客组");
 
-                return;
+                if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}角色数据！", typeof(TEntity).Name);
             }
 
-            if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}角色数据……", typeof(TEntity).Name);
-
-            Add("管理员", true, "默认拥有全部最高权限，由系统工程师使用，安装配置整个系统");
-            Add("高级用户", true, "业务管理人员，可以管理业务模块，可以分配授权用户等级");
-            Add("普通用户", true, "普通业务人员，可以使用系统常规业务模块功能");
-            Add("游客", true, "新注册用户默认属于游客组");
-
-            if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}角色数据！", typeof(TEntity).Name);
-
-            CheckRole();
+            //CheckRole();
+            //// 当前处于事务之中，下面使用Menu会触发异步检查架构，SQLite单线程机制可能会造成死锁
+            //ThreadPoolX.QueueUserWorkItem(CheckRole);
         }
 
         /// <summary>初始化时执行必要的权限检查，以防万一管理员无法操作</summary>
         static void CheckRole()
         {
             // InitData中用缓存将会导致二次调用InitData，从而有一定几率死锁
-            var rs = FindAll();
-            var list = rs.ToList();
+            var list = FindAll();
 
             // 如果某些菜单已经被删除，但是角色权限表仍然存在，则删除
-            var eopMenu = ManageProvider.GetFactory<IMenu>();
-            var ids = eopMenu.FindAllWithCache().Select(e => (Int32)e["ID"]).ToArray();
-            foreach (var role in rs)
+            var fact = ManageProvider.GetFactory<IMenu>();
+            var menus = fact.FindAll().Cast<IMenu>().ToList();
+            var ids = menus.Select(e => (Int32)e["ID"]).ToArray();
+            foreach (var role in list)
             {
-                if (!role.CheckValid(ids))
-                {
-                    XTrace.WriteLine("删除[{0}]中的无效资源权限！", role);
-                    //role.Save();
-                }
+                if (!role.CheckValid(ids)) XTrace.WriteLine("删除[{0}]中的无效资源权限！", role);
             }
 
             // 所有角色都有权进入管理平台，否则无法使用后台
-            var menu = eopMenu.EntityType.GetValue("Root", false) as IMenu;
-            menu = menu.Childs.FirstOrDefault(e => e.Name.EqualIgnoreCase("Admin"));
+            var menu = menus.FirstOrDefault(e => e.Name == "Admin");
             if (menu != null)
             {
-                foreach (var role in rs)
+                foreach (var role in list)
                 {
                     role.Set(menu.ID, PermissionFlags.Detail);
-                    //role.Save();
                 }
             }
-            rs.Save();
+            list.Save();
 
-            var sys = list.LastOrDefault(e => e.IsSystem);
+            // 系统角色
+            var sys = list.Where(e => e.IsSystem).OrderBy(e => e.ID).FirstOrDefault();
             if (sys == null) return;
 
             // 如果没有任何角色拥有权限管理的权限，那是很悲催的事情
             var count = 0;
-            var nes = eopMenu.EntityType.GetValue("Necessaries", false) as Int32[];
-            foreach (var item in nes)
+            foreach (var item in menus)
             {
-                if (!list.Any(e => e.Has(item, PermissionFlags.Detail)))
+                //if (item.Visible && !list.Any(e => e.Has(item.ID, PermissionFlags.Detail)))
+                if (!list.Any(e => e.Has(item.ID, PermissionFlags.Detail)))
                 {
                     count++;
-                    sys.Set(item, PermissionFlags.All);
+                    sys.Set(item.ID, PermissionFlags.All);
+
+                    XTrace.WriteLine("没有任何角色拥有菜单[{0}]的权限", item.Name);
                 }
             }
             if (count > 0)
             {
-                XTrace.WriteLine("共有{0}个必要菜单，没有任何角色拥有权限，准备授权第一系统角色[{1}]拥有其完全管理权！", count, sys);
+                XTrace.WriteLine("共有{0}个菜单，没有任何角色拥有权限，准备授权第一系统角色[{1}]拥有其完全管理权！", count, sys);
                 sys.Save();
 
                 // 更新缓存
@@ -180,7 +184,7 @@ namespace XCode.Membership
             if (Meta.Count <= 1 && FindCount() <= 1)
             {
                 var msg = String.Format("至少保留一个角色[{0}]禁止删除！", name);
-                WriteLog("删除", msg);
+                WriteLog("删除", true, msg);
 
                 throw new XException(msg);
             }
@@ -188,7 +192,7 @@ namespace XCode.Membership
             if (entity.IsSystem)
             {
                 var msg = String.Format("系统角色[{0}]禁止删除！", name);
-                WriteLog("删除", msg);
+                WriteLog("删除", true, msg);
 
                 throw new XException(msg);
             }
@@ -206,8 +210,18 @@ namespace XCode.Membership
             return base.Save();
         }
 
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override Int32 Update()
+        {
+            // 先处理一次，否则可能因为别的字段没有修改而没有脏数据
+            SavePermission();
+
+            return base.Update();
+        }
+
         /// <summary>加载权限字典</summary>
-        internal protected override void OnLoad()
+        protected override void OnLoad()
         {
             base.OnLoad();
 
@@ -253,9 +267,10 @@ namespace XCode.Membership
         #endregion
 
         #region 扩展权限
+        private IDictionary<Int32, PermissionFlags> _Permissions;
         /// <summary>本角色权限集合</summary>
-        [XmlIgnore, ScriptIgnore]
-        public IDictionary<Int32, PermissionFlags> Permissions { get; } = new Dictionary<Int32, PermissionFlags>();
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
+        public IDictionary<Int32, PermissionFlags> Permissions => _Permissions ??= new Dictionary<Int32, PermissionFlags>();
 
         /// <summary>是否拥有指定资源的指定权限</summary>
         /// <param name="resid"></param>
@@ -290,15 +305,13 @@ namespace XCode.Membership
         /// <param name="flag"></param>
         public void Set(Int32 resid, PermissionFlags flag = PermissionFlags.All)
         {
-            var pf = PermissionFlags.None;
-            if (!Permissions.TryGetValue(resid, out pf))
+            if (Permissions.TryGetValue(resid, out var pf))
             {
-                if (flag != PermissionFlags.None)
-                    Permissions.Add(resid, flag);
+                Permissions[resid] = pf | flag;
             }
             else
             {
-                Permissions[resid] = pf | flag;
+                if (flag != PermissionFlags.None) Permissions.Add(resid, flag);
             }
         }
 
@@ -307,8 +320,7 @@ namespace XCode.Membership
         /// <param name="flag"></param>
         public void Reset(Int32 resid, PermissionFlags flag)
         {
-            var pf = PermissionFlags.None;
-            if (Permissions.TryGetValue(resid, out pf))
+            if (Permissions.TryGetValue(resid, out var pf))
             {
                 Permissions[resid] = pf & ~flag;
             }
@@ -320,20 +332,21 @@ namespace XCode.Membership
         {
             if (resids == null || resids.Length == 0) return true;
 
-            var count = Permissions.Count;
+            var ps = Permissions;
+            var count = ps.Count;
 
             var list = new List<Int32>();
-            foreach (var item in Permissions)
+            foreach (var item in ps)
             {
                 if (!resids.Contains(item.Key)) list.Add(item.Key);
             }
             // 删除无效项
             foreach (var item in list)
             {
-                Permissions.Remove(item);
+                ps.Remove(item);
             }
 
-            return count == Permissions.Count;
+            return count == ps.Count;
         }
 
         void LoadPermission()
@@ -351,18 +364,21 @@ namespace XCode.Membership
 
         void SavePermission()
         {
+            var ps = _Permissions;
+            if (ps == null) return;
+
             // 不能这样子直接清空，因为可能没有任何改变，而这么做会两次改变脏数据，让系统以为有改变
             //Permission = null;
-            if (Permissions.Count <= 0)
+            if (ps.Count <= 0)
             {
                 //Permission = null;
                 SetItem(__.Permission, null);
                 return;
             }
 
-            var sb = new StringBuilder();
+            var sb = Pool.StringBuilder.Get();
             // 根据资源按照从小到大排序一下
-            foreach (var item in Permissions.OrderBy(e => e.Key))
+            foreach (var item in ps.OrderBy(e => e.Key))
             {
                 //// 跳过None
                 //if (item.Value == PermissionFlags.None) continue;
@@ -371,11 +387,11 @@ namespace XCode.Membership
                 if (sb.Length > 0) sb.Append(",");
                 sb.AppendFormat("{0}#{1}", item.Key, (Int32)item.Value);
             }
-            SetItem(__.Permission, sb.ToString());
+            SetItem(__.Permission, sb.Put(true));
         }
 
         /// <summary>当前角色拥有的资源</summary>
-        [XmlIgnore, ScriptIgnore]
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public Int32[] Resources { get { return Permissions.Keys.ToArray(); } }
         #endregion
 
@@ -383,9 +399,19 @@ namespace XCode.Membership
         /// <summary>根据名称查找角色，若不存在则创建</summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        IRole IRole.FindOrCreateByName(String name)
+        public static IRole GetOrAdd(String name)
         {
-            if (String.IsNullOrEmpty(name)) return null;
+            if (name.IsNullOrEmpty()) return null;
+
+            return Add(name, false);
+        }
+
+        /// <summary>根据名称查找角色，若不存在则创建</summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        IRole IRole.GetOrAdd(String name)
+        {
+            if (name.IsNullOrEmpty()) return null;
 
             return Add(name, false);
         }
@@ -398,13 +424,16 @@ namespace XCode.Membership
         public static TEntity Add(String name, Boolean issys, String remark = null)
         {
             //var entity = FindByName(name);
-            //var entity = Find(__.Name, name);
-            //if (entity != null) return entity;
+            var entity = Find(__.Name, name);
+            if (entity != null) return entity;
 
-            var entity = new TEntity();
-            entity.Name = name;
-            entity.IsSystem = issys;
-            entity.Remark = remark;
+            entity = new TEntity
+            {
+                Name = name,
+                IsSystem = issys,
+                Enable = true,
+                Remark = remark
+            };
             entity.Save();
 
             return entity;
@@ -449,7 +478,7 @@ namespace XCode.Membership
         /// <summary>根据名称查找角色，若不存在则创建</summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        IRole FindOrCreateByName(String name);
+        IRole GetOrAdd(String name);
 
         /// <summary>保存</summary>
         /// <returns></returns>

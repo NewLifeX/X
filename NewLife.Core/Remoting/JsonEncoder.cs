@@ -1,67 +1,142 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using NewLife.Collections;
+using System.IO;
 using NewLife.Data;
-using NewLife.Log;
+using NewLife.Messaging;
 using NewLife.Serialization;
 
 namespace NewLife.Remoting
 {
     /// <summary>Json编码器</summary>
-    public class JsonEncoder : EncoderBase
+    public class JsonEncoder : EncoderBase, IEncoder
     {
-        /// <summary>编码</summary>
-        public Encoding Encoding { get; set; } = Encoding.UTF8;
-
-        /// <summary>编码对象</summary>
-        /// <param name="obj"></param>
+        /// <summary>编码 请求/响应</summary>
+        /// <param name="action"></param>
+        /// <param name="code"></param>
+        /// <param name="value"></param>
         /// <returns></returns>
-        public override Byte[] Encode(Object obj)
+        public virtual Packet Encode(String action, Int32 code, Packet value)
         {
-            var json = obj.ToJson();
+            var ms = new MemoryStream();
+            ms.Seek(8, SeekOrigin.Begin);
 
-            WriteLog("=>{0}", json);
+            // 请求：action + args
+            // 响应：action + code + result
+            var writer = new BinaryWriter(ms);
+            writer.Write(action);
+            if (code != 0) writer.Write(code);
 
-            return json.GetBytes(Encoding);
+            // 参数或结果
+            var pk2 = value as Packet;
+            if (pk2 != null && pk2.Data != null)
+            {
+                var len = pk2.Total;
+
+                // 不管有没有附加数据，都会写入长度
+                writer.Write(len);
+            }
+
+            var pk = new Packet(ms.GetBuffer(), 8, (Int32)ms.Length - 8);
+            if (pk2 != null && pk2.Data != null) pk.Next = pk2;
+
+            return pk;
         }
 
-        /// <summary>解码成为字典</summary>
-        /// <param name="pk"></param>
+        /// <summary>编码</summary>
+        /// <param name="action"></param>
+        /// <param name="code"></param>
+        /// <param name="value"></param>
         /// <returns></returns>
-        public override IDictionary<String, Object> Decode(Packet pk)
+        public Packet Encode(String action, Int32 code, Object value)
         {
-            if (pk.Count <= 2) return new NullableDictionary<String, Object>();
+            if (value == null) return null;
 
-            if (pk[0] != '{') throw new Exception("非法Json字符串");
+            // 不支持序列化异常
+            if (value is Exception ex) value = ex.GetTrue()?.Message;
 
-            var json = pk.ToStr(Encoding);
+            var json = value.ToJson(false, false, false);
+            WriteLog("{0}=>{1}", action, json);
 
-            WriteLog("<={0}", json);
-            if (json.IsNullOrWhiteSpace()) return new NullableDictionary<String, Object>();
+            return json.GetBytes();
+        }
 
-            var jp = new JsonParser(json);
-            try
-            {
-                return jp.Decode() as IDictionary<String, Object>;
-            }
-            catch
-            {
-                if (XTrace.Debug) XTrace.WriteLine("Json解码错误！" + json);
-                throw;
-            }
+        /// <summary>解码参数</summary>
+        /// <param name="action">动作</param>
+        /// <param name="data">数据</param>
+        /// <param name="msg">消息</param>
+        /// <returns></returns>
+        public IDictionary<String, Object> DecodeParameters(String action, Packet data, IMessage msg)
+        {
+            var json = data.ToStr();
+            WriteLog("{0}<={1}", action, json);
+
+            return new JsonParser(json).Decode() as IDictionary<String, Object>;
+        }
+
+        /// <summary>解码结果</summary>
+        /// <param name="action"></param>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public Object DecodeResult(String action, Packet data)
+        {
+            var json = data.ToStr();
+            WriteLog("{0}<={1}", action, json);
+
+            return new JsonParser(json).Decode();
         }
 
         /// <summary>转换为目标类型</summary>
         /// <param name="obj"></param>
         /// <param name="targetType"></param>
         /// <returns></returns>
-        public override Object Convert(Object obj, Type targetType)
-        {
-            //var reader = new JsonReader();
+        public Object Convert(Object obj, Type targetType) => JsonHelper.Default.Convert(obj, targetType);
 
-            //return reader.ToObject(obj, targetType);
-            return JsonHelper.Default.Convert(obj, targetType);
+        /// <summary>创建请求</summary>
+        /// <param name="action"></param>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        public virtual IMessage CreateRequest(String action, Object args)
+        {
+            // 二进制优先
+            if (args is Packet pk)
+            {
+            }
+            // 支持IAccessor
+            if (args is IAccessor acc)
+                pk = acc.ToPacket();
+            else if (args is Byte[] buf)
+                pk = new Packet(buf);
+            else
+                pk = Encode(action, 0, args);
+            pk = Encode(action, 0, pk);
+
+            return new DefaultMessage { Payload = pk, };
+        }
+
+        /// <summary>创建响应</summary>
+        /// <param name="msg"></param>
+        /// <param name="action"></param>
+        /// <param name="code"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public IMessage CreateResponse(IMessage msg, String action, Int32 code, Object value)
+        {
+            // 编码响应数据包，二进制优先
+            if (value is Packet pk)
+            {
+            }
+            else if (value is IAccessor acc)
+                pk = acc.ToPacket();
+            else
+                pk = Encode(action, code, value);
+            pk = Encode(action, code, pk);
+
+            // 构造响应消息
+            var rs = msg.CreateReply();
+            rs.Payload = pk;
+            if (code > 0) rs.Error = true;
+
+            return rs;
         }
     }
 }

@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Serialization;
+using System.Web.Script.Serialization;
 using System.Xml.Serialization;
-using NewLife.Collections;
 
 namespace NewLife.Reflection
 {
@@ -179,13 +181,10 @@ namespace NewLife.Reflection
         /// <param name="typeName">类型名</param>
         /// <param name="isLoadAssembly">是否从未加载程序集中获取类型。使用仅反射的方法检查目标类型，如果存在，则进行常规加载</param>
         /// <returns></returns>
-        public virtual Type GetType(String typeName, Boolean isLoadAssembly)
-        {
-            return AssemblyX.GetType(typeName, isLoadAssembly);
-        }
+        public virtual Type GetType(String typeName, Boolean isLoadAssembly) => AssemblyX.GetType(typeName, isLoadAssembly);
 
-        static BindingFlags bf = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance;
-        static BindingFlags bfic = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.IgnoreCase;
+        static readonly BindingFlags bf = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance;
+        static readonly BindingFlags bfic = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.IgnoreCase;
 
         /// <summary>获取方法</summary>
         /// <remarks>用于具有多个签名的同名方法的场合，不确定是否存在性能问题，不建议普通场合使用</remarks>
@@ -310,8 +309,8 @@ namespace NewLife.Reflection
         #endregion
 
         #region 反射获取 字段/属性
-        private DictionaryCache<Type, IList<FieldInfo>> _cache1 = new DictionaryCache<Type, IList<FieldInfo>>();
-        private DictionaryCache<Type, IList<FieldInfo>> _cache2 = new DictionaryCache<Type, IList<FieldInfo>>();
+        private ConcurrentDictionary<Type, IList<FieldInfo>> _cache1 = new ConcurrentDictionary<Type, IList<FieldInfo>>();
+        private ConcurrentDictionary<Type, IList<FieldInfo>> _cache2 = new ConcurrentDictionary<Type, IList<FieldInfo>>();
         /// <summary>获取字段</summary>
         /// <param name="type"></param>
         /// <param name="baseFirst"></param>
@@ -319,9 +318,9 @@ namespace NewLife.Reflection
         public virtual IList<FieldInfo> GetFields(Type type, Boolean baseFirst = true)
         {
             if (baseFirst)
-                return _cache1.GetItem(type, key => GetFields2(key, true));
+                return _cache1.GetOrAdd(type, key => GetFields2(key, true));
             else
-                return _cache2.GetItem(type, key => GetFields2(key, false));
+                return _cache2.GetOrAdd(type, key => GetFields2(key, false));
         }
 
         IList<FieldInfo> GetFields2(Type type, Boolean baseFirst)
@@ -346,8 +345,8 @@ namespace NewLife.Reflection
             return list;
         }
 
-        private DictionaryCache<Type, IList<PropertyInfo>> _cache3 = new DictionaryCache<Type, IList<PropertyInfo>>();
-        private DictionaryCache<Type, IList<PropertyInfo>> _cache4 = new DictionaryCache<Type, IList<PropertyInfo>>();
+        private ConcurrentDictionary<Type, IList<PropertyInfo>> _cache3 = new ConcurrentDictionary<Type, IList<PropertyInfo>>();
+        private ConcurrentDictionary<Type, IList<PropertyInfo>> _cache4 = new ConcurrentDictionary<Type, IList<PropertyInfo>>();
         /// <summary>获取属性</summary>
         /// <param name="type"></param>
         /// <param name="baseFirst"></param>
@@ -355,9 +354,9 @@ namespace NewLife.Reflection
         public virtual IList<PropertyInfo> GetProperties(Type type, Boolean baseFirst = true)
         {
             if (baseFirst)
-                return _cache3.GetItem(type, key => GetProperties2(key, true));
+                return _cache3.GetOrAdd(type, key => GetProperties2(key, true));
             else
-                return _cache4.GetItem(type, key => GetProperties2(key, false));
+                return _cache4.GetOrAdd(type, key => GetProperties2(key, false));
         }
 
         IList<PropertyInfo> GetProperties2(Type type, Boolean baseFirst)
@@ -379,6 +378,8 @@ namespace NewLife.Reflection
             {
                 if (pi.GetIndexParameters().Length > 0) continue;
                 if (pi.GetCustomAttribute<XmlIgnoreAttribute>() != null) continue;
+                if (pi.GetCustomAttribute<ScriptIgnoreAttribute>() != null) continue;
+                if (pi.GetCustomAttribute<IgnoreDataMemberAttribute>() != null) continue;
 
                 if (!set.Contains(pi.Name))
                 {
@@ -419,10 +420,7 @@ namespace NewLife.Reflection
         /// <param name="method">方法</param>
         /// <param name="parameters">方法参数</param>
         /// <returns></returns>
-        public virtual Object Invoke(Object target, MethodBase method, params Object[] parameters)
-        {
-            return method.Invoke(target, parameters);
-        }
+        public virtual Object Invoke(Object target, MethodBase method, params Object[] parameters) => method.Invoke(target, parameters);
 
         /// <summary>反射调用指定对象的方法</summary>
         /// <param name="target">要调用其方法的对象，如果要调用静态方法，则target是类型</param>
@@ -450,37 +448,25 @@ namespace NewLife.Reflection
         /// <param name="target">目标对象</param>
         /// <param name="property">属性</param>
         /// <returns></returns>
-        public virtual Object GetValue(Object target, PropertyInfo property)
-        {
-            return property.GetValue(target, null);
-        }
+        public virtual Object GetValue(Object target, PropertyInfo property) => property.GetValue(target, null);
 
         /// <summary>获取目标对象的字段值</summary>
         /// <param name="target">目标对象</param>
         /// <param name="field">字段</param>
         /// <returns></returns>
-        public virtual Object GetValue(Object target, FieldInfo field)
-        {
-            return field.GetValue(target);
-        }
+        public virtual Object GetValue(Object target, FieldInfo field) => field.GetValue(target);
 
         /// <summary>设置目标对象的属性值</summary>
         /// <param name="target">目标对象</param>
         /// <param name="property">属性</param>
         /// <param name="value">数值</param>
-        public virtual void SetValue(Object target, PropertyInfo property, Object value)
-        {
-            property.SetValue(target, value.ChangeType(property.PropertyType), null);
-        }
+        public virtual void SetValue(Object target, PropertyInfo property, Object value) => property.SetValue(target, value.ChangeType(property.PropertyType), null);
 
         /// <summary>设置目标对象的字段值</summary>
         /// <param name="target">目标对象</param>
         /// <param name="field">字段</param>
         /// <param name="value">数值</param>
-        public virtual void SetValue(Object target, FieldInfo field, Object value)
-        {
-            field.SetValue(target, value.ChangeType(field.FieldType));
-        }
+        public virtual void SetValue(Object target, FieldInfo field, Object value) => field.SetValue(target, value.ChangeType(field.FieldType));
         #endregion
 
         #region 对象拷贝
@@ -622,7 +608,7 @@ namespace NewLife.Reflection
 
                 // 字符串转为简单整型，如果长度比较小，满足32位整型要求，则先转为32位再改变类型
                 var code = Type.GetTypeCode(conversionType);
-                if (code >= TypeCode.Int16 && code <= TypeCode.UInt64 && str.Length <= 10) return Convert.ChangeType(value.ToInt(), conversionType);
+                if (code >= TypeCode.Int16 && code <= TypeCode.UInt64 && str.Length <= 10) return Convert.ChangeType(value.ToLong(), conversionType);
             }
 
             if (value != null)
@@ -665,10 +651,11 @@ namespace NewLife.Reflection
         /// <param name="type">指定类型</param>
         /// <param name="isfull">是否全名，包含命名空间</param>
         /// <returns></returns>
-        public virtual String GetName(Type type, Boolean isfull) { return isfull ? type.FullName : type.Name; }
+        public virtual String GetName(Type type, Boolean isfull) => isfull ? type.FullName : type.Name;
         #endregion
 
         #region 插件
+        //private readonly ConcurrentDictionary<Type, ConcurrentDictionary<Type, Boolean>> _as_cache = new ConcurrentDictionary<Type, ConcurrentDictionary<Type, Boolean>>();
         /// <summary>是否子类</summary>
         /// <param name="type"></param>
         /// <param name="baseType"></param>
@@ -678,30 +665,60 @@ namespace NewLife.Reflection
             if (type == null) return false;
             if (type == baseType) return true;
 
+            // 如果基类是泛型定义，补充完整，例如IList<>
+#if NET4
+            if (baseType.IsGenericTypeDefinition && type.IsGenericType && !type.IsGenericTypeDefinition) type = type.GetGenericTypeDefinition();
+#else
+            if (baseType.IsGenericTypeDefinition
+                && type.IsGenericType && !type.IsGenericTypeDefinition
+                && baseType is TypeInfo inf && inf.GenericTypeParameters.Length == type.GenericTypeArguments.Length)
+                baseType = baseType.MakeGenericType(type.GenericTypeArguments);
+#endif
+
+            if (type == baseType) return true;
+
             if (baseType.IsAssignableFrom(type)) return true;
 
-            // 接口
-            if (baseType.IsInterface)
-            {
-                if (type.GetInterface(baseType.Name) != null) return true;
-                if (type.GetInterfaces().Any(e => e.IsGenericType && baseType.IsGenericTypeDefinition ? e.GetGenericTypeDefinition() == baseType : e == baseType)) return true;
-            }
+            //// 绝大部分子类判断可通过IsAssignableFrom完成，除非其中一方ReflectionOnly
+            //if (type.Assembly.ReflectionOnly == baseType.Assembly.ReflectionOnly) return false;
 
-            // 判断是否子类时，支持只反射加载的程序集
-            if (type.Assembly.ReflectionOnly)
-            {
-                // 反射加载时，需要特殊处理接口
-                //if (baseType.IsInterface && type.GetInterface(baseType.Name) != null) return true;
-                while (type != typeof(Object))
-                {
-                    if (type.FullName == baseType.FullName &&
-                        type.AssemblyQualifiedName == baseType.AssemblyQualifiedName)
-                        return true;
-                    type = type.BaseType;
-                }
-            }
+            // 缓存
+            //var key = $"{type.FullName}_{baseType.FullName}";
+            //if (!_as_cache.TryGetValue(type, out var dic))
+            //{
+            //    dic = new ConcurrentDictionary<Type, Boolean>();
+            //    _as_cache.TryAdd(type, dic);
+            //}
 
-            return false;
+            //if (dic.TryGetValue(baseType, out var rs)) return rs;
+            var rs = false;
+
+            //// 接口
+            //if (baseType.IsInterface)
+            //{
+            //    if (type.GetInterface(baseType.FullName) != null)
+            //        rs = true;
+            //    else if (type.GetInterfaces().Any(e => e.IsGenericType && baseType.IsGenericTypeDefinition ? e.GetGenericTypeDefinition() == baseType : e == baseType))
+            //        rs = true;
+            //}
+
+            //// 判断是否子类时，支持只反射加载的程序集
+            //if (!rs && type.Assembly.ReflectionOnly)
+            //{
+            //    // 反射加载时，需要特殊处理接口
+            //    //if (baseType.IsInterface && type.GetInterface(baseType.Name) != null) return true;
+            //    while (!rs && type != typeof(Object))
+            //    {
+            //        if (type.FullName == baseType.FullName &&
+            //            type.AssemblyQualifiedName == baseType.AssemblyQualifiedName)
+            //            rs = true;
+            //        type = type.BaseType;
+            //    }
+            //}
+
+            //dic.TryAdd(baseType, rs);
+
+            return rs;
         }
 
         /// <summary>在指定程序集中查找指定基类的子类</summary>

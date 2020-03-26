@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
+using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Threading;
 
@@ -23,8 +22,9 @@ namespace XCode.Cache
         /// <summary>缓存过期时间</summary>
         DateTime ExpiredTime { get; set; } = DateTime.Now.AddHours(-1);
 
+        private volatile Int32 _Times;
         /// <summary>缓存更新次数</summary>
-        private Int64 Times { get; set; }
+        public Int32 Times => _Times;
 
         /// <summary>过期时间。单位是秒，默认60秒</summary>
         public Int32 Expire { get; set; }
@@ -36,7 +36,7 @@ namespace XCode.Cache
         public Boolean WaitFirst { get; set; } = true;
 
         /// <summary>是否在使用缓存，在不触发缓存动作的情况下检查是否有使用缓存</summary>
-        internal Boolean Using { get; private set; }
+        internal Boolean Using { get; set; }
         #endregion
 
         #region 构造
@@ -45,15 +45,13 @@ namespace XCode.Cache
         {
             var exp = Setting.Current.EntityCacheExpire;
             if (exp <= 0) exp = 60;
+
             Expire = exp;
         }
         #endregion
 
         #region 缓存核心
-        /// <summary>当前更新任务</summary>
-        private Task _task;
-
-        private IList<TEntity> _Entities = new List<TEntity>();
+        private TEntity[] _Entities = new TEntity[0];
         /// <summary>实体集合。无数据返回空集合而不是null</summary>
         public IList<TEntity> Entities
         {
@@ -77,24 +75,40 @@ namespace XCode.Cache
                 return;
             }
 
-            // 建立异步更新任务
-            if (_task == null)
+            /*
+             * 来到这里，都是缓存超时的线程
+             * 1，第一次请求，还没有缓存数据，需要等待首次数据
+             *      WaitFirst   加锁等待
+             *      !WaitFirst  跳过等待
+             * 2，缓存过期，开个异步更新，继续走
+             */
+
+            if (_Times == 0)
             {
-                lock (this)
+                if (WaitFirst)
                 {
-                    if (_task == null)
+                    lock (this)
                     {
-                        var reason = Times == 0 ? "第一次" : "过期{0:n0}秒".F(sec);
-                        _task = UpdateCacheAsync(reason);
-                        _task.ContinueWith(t => { _task = null; });
+                        if (_Times == 0) UpdateCache("第一次");
+                    }
+                }
+                else
+                {
+                    if (Monitor.TryEnter(this, 5000))
+                    {
+                        try
+                        {
+                            if (_Times == 0) UpdateCache("第一次");
+                        }
+                        finally
+                        {
+                            Monitor.Exit(this);
+                        }
                     }
                 }
             }
-            // 第一次所有线程一起等待结果
-            if (Times == 1 && WaitFirst && _task != null)
-            {
-                if (!_task.Wait(5000)) XTrace.WriteLine("{0}缓存初始化超时，当前线程可能取得空数据", ToString());
-            }
+            else
+                UpdateCacheAsync("过期{0:n0}秒".F(sec));
 
             // 只要访问了实体缓存数据集合，就认为是使用了实体缓存，允许更新缓存数据期间向缓存集合添删数据
             Using = true;
@@ -124,24 +138,44 @@ namespace XCode.Cache
         #endregion
 
         #region 缓存操作
-        Task UpdateCacheAsync(String reason)
-        {
-            // 这里直接计算有效期，避免每次判断缓存有效期时进行的时间相加而带来的性能损耗
-            // 设置时间放在获取缓存之前，让其它线程不要空等
-            if (Times > 0) ExpiredTime = TimerX.Now.AddSeconds(Expire);
-            Times++;
+        private volatile Int32 _updating;
 
-            return Task.Factory.StartNew(FillWaper, reason);
+        void UpdateCacheAsync(String reason)
+        {
+            // 控制只有一个线程能更新
+            if (Interlocked.CompareExchange(ref _updating, 1, 0) != 0) return;
+
+            ThreadPoolX.QueueUserWorkItem(UpdateCache, reason);
         }
 
-        private void FillWaper(Object state)
+        void UpdateCache(String reason)
         {
-            WriteLog("更新{0}（第{2}次） 原因：{1}", ToString(), state + "", Times);
+            Interlocked.Increment(ref _updating);
 
-            _Entities = Invoke<Object, IList<TEntity>>(s => FillListMethod(), null);
+            var ts = _Times;
 
+            // 这里直接计算有效期，避免每次判断缓存有效期时进行的时间相加而带来的性能损耗
+            // 设置时间放在获取缓存之前，让其它线程不要空等
+            if (ts > 0) ExpiredTime = TimerX.Now.AddSeconds(Expire);
+
+            WriteLog("更新{0}（第{2}次） 原因：{1}", ToString(), reason, ts + 1);
+
+            try
+            {
+                _Entities = Invoke<Object, IList<TEntity>>(s => FillListMethod(), null).ToArray();
+            }
+            catch (Exception ex)
+            {
+                XTrace.WriteLine($"[{TableName}/{ConnName}]" + ex.GetTrue());
+            }
+            finally
+            {
+                _updating = 0;
+            }
+
+            ts = Interlocked.Increment(ref _Times);
             ExpiredTime = TimerX.Now.AddSeconds(Expire);
-            WriteLog("完成{0}[{1}]（第{2}次）", ToString(), _Entities.Count, Times);
+            WriteLog("完成{0}[{1}]（第{2}次）", ToString(), _Entities.Length, ts);
         }
 
         /// <summary>清除缓存</summary>
@@ -149,38 +183,46 @@ namespace XCode.Cache
         {
             if (!Using) return;
 
-            //lock (this)
-            //{
             // 直接执行异步更新，明明白白，确保任何情况下数据最新，并且不影响其它任务的性能
             UpdateCacheAsync(reason);
-            //}
         }
 
-        private IEntityOperate Operate = Entity<TEntity>.Meta.Factory;
-        internal void Add(TEntity entity)
+        private IEntityFactory Operate = Entity<TEntity>.Meta.Factory;
+        /// <summary>添加对象到缓存</summary>
+        /// <param name="entity"></param>
+        public void Add(TEntity entity)
         {
             if (!Using) return;
 
             var es = _Entities;
             lock (es)
             {
-                es.Add(entity);
+                //es.Add(entity);
+
+                var list = _Entities.ToList();
+                list.Add(entity);
+                _Entities = list.ToArray();
             }
         }
 
-        internal TEntity Remove(TEntity entity)
+        /// <summary>从缓存中删除对象</summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        public TEntity Remove(TEntity entity)
         {
             if (!Using) return null;
 
             var es = _Entities;
-            var fi = Operate.Unique;
-            if (fi == null) return null;
 
             var e = es.Find(x => x == entity);
             if (e == null)
             {
-                var v = entity[fi.Name];
-                e = es.Find(x => x[fi.Name] == v);
+                var fi = Operate.Unique;
+                if (fi != null)
+                {
+                    var v = entity[fi.Name];
+                    e = es.Find(x => Equals(x[fi.Name], v));
+                }
             }
             if (e == null) return null;
 
@@ -188,7 +230,11 @@ namespace XCode.Cache
             // 更新实体缓存时，不做拷贝，避免产生脏数据，如果恰巧又使用单对象缓存，那会导致自动保存
             lock (es)
             {
-                es.Remove(e);
+                //es.Remove(e);
+
+                var list = _Entities.ToList();
+                list.Remove(e);
+                _Entities = list.ToArray();
             }
 
             return e;
@@ -198,10 +244,37 @@ namespace XCode.Cache
         {
             if (!Using) return null;
 
-            var rs = Remove(entity);
-            Add(entity);
+            var es = _Entities;
 
-            return rs;
+            // 如果对象本身就在缓存里面，啥也不用做
+            var e = es.FirstOrDefault(x => x == entity);
+            if (e != null) return e;
+
+            var idx = -1;
+            var fi = Operate.Unique;
+            if (fi != null)
+            {
+                var v = entity[fi.Name];
+                idx = Array.FindIndex(es, x => Equals(x[fi.Name], v));
+            }
+
+            //if (e != entity) e.CopyFrom(entity);
+            // 更新实体缓存时，不做拷贝，避免产生脏数据，如果恰巧又使用单对象缓存，那会导致自动保存
+            if (idx >= 0)
+                es[idx] = entity;
+            else
+            {
+                lock (es)
+                {
+                    //es.Add(entity);
+
+                    var list = _Entities.ToList();
+                    list.Add(entity);
+                    _Entities = list.ToArray();
+                }
+            }
+
+            return e;
         }
         #endregion
 
@@ -217,14 +290,15 @@ namespace XCode.Cache
         {
             if (Total > 0)
             {
-                var sb = new StringBuilder();
+                var sb = Pool.StringBuilder.Get();
                 var type = GetType();
-                var name = "{2}<{0}>({1:n0})".F(typeof(TEntity).Name, Entities.Count, type.GetDisplayName() ?? type.Name);
+                var name = "{2}<{0}>({1:n0})".F(typeof(TEntity).Name, _Entities.Length, type.GetDisplayName() ?? type.Name);
                 sb.AppendFormat("{0,-24}", name);
                 sb.AppendFormat("总次数{0,11:n0}", Total);
                 if (Success > 0) sb.AppendFormat("，命中{0,11:n0}（{1,6:P02}）", Success, (Double)Success / Total);
+                sb.AppendFormat("\t[{0}]", typeof(TEntity).FullName);
 
-                XTrace.WriteLine(sb.ToString());
+                XTrace.WriteLine(sb.Put(true));
             }
         }
         #endregion

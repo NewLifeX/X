@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Linq;
 using System.Net;
-using System.Text;
+using NewLife.Collections;
+using NewLife.Data;
+using NewLife.Messaging;
 
 namespace NewLife.Http
 {
@@ -50,7 +52,7 @@ namespace NewLife.Http
         protected override String BuildHeader(Int32 length)
         {
             // 构建头部
-            var sb = new StringBuilder();
+            var sb = Pool.StringBuilder.Get();
             sb.AppendFormat("HTTP/1.1 {0} {1}\r\n", (Int32)StatusCode, StatusCode);
 
             //cors
@@ -69,7 +71,7 @@ namespace NewLife.Http
 
             sb.AppendLine();
 
-            return sb.ToString();
+            return sb.Put(true);
         }
 
         /// <summary>验证，如果失败则抛出异常</summary>

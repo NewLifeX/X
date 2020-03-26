@@ -1,12 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
+using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
-using NewLife.Messaging;
+using NewLife.Model;
+using NewLife.Threading;
+#if !NET4
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 namespace NewLife.Net
 {
@@ -24,10 +29,10 @@ namespace NewLife.Net
         public UdpServer Server { get; set; }
 
         /// <summary>底层Socket</summary>
-        Socket ISocket.Client { get { return Server?.Client; } }
+        Socket ISocket.Client => Server?.Client;
 
-        /// <summary>数据流</summary>
-        public Stream Stream { get; set; }
+        ///// <summary>数据流</summary>
+        //public Stream Stream { get; set; }
 
         private NetUri _Local;
         /// <summary>本地地址</summary>
@@ -59,8 +64,11 @@ namespace NewLife.Net
             }
         }
 
+        /// <summary>管道</summary>
+        public IPipeline Pipeline { get; set; }
+
         /// <summary>Socket服务器。当前通讯所在的Socket服务器，其实是TcpServer/UdpServer</summary>
-        ISocketServer ISocketSession.Server { get { return Server; } }
+        ISocketServer ISocketSession.Server => Server;
 
         /// <summary>是否抛出异常，默认false不抛出。Send/Receive时可能发生异常，该设置决定是直接抛出异常还是通过<see cref="Error"/>事件</summary>
         public Boolean ThrowException { get { return Server.ThrowException; } set { Server.ThrowException = value; } }
@@ -69,11 +77,11 @@ namespace NewLife.Net
         /// <remarks>异步处理有可能造成数据包乱序，特别是Tcp。false避免拷贝，提升处理速度</remarks>
         public Boolean ProcessAsync { get { return Server.ProcessAsync; } set { Server.ProcessAsync = value; } }
 
-        /// <summary>发送数据包统计信息，默认关闭，通过<see cref="IStatistics.Enable"/>打开。</summary>
-        public IStatistics StatSend { get; set; }
+        /// <summary>发送数据包统计信息</summary>
+        public ICounter StatSend { get; set; }
 
-        /// <summary>接收数据包统计信息，默认关闭，通过<see cref="IStatistics.Enable"/>打开。</summary>
-        public IStatistics StatReceive { get; set; }
+        /// <summary>接收数据包统计信息</summary>
+        public ICounter StatReceive { get; set; }
 
         /// <summary>通信开始时间</summary>
         public DateTime StartTime { get; private set; }
@@ -83,13 +91,14 @@ namespace NewLife.Net
 
         /// <summary>缓冲区大小。默认8k</summary>
         public Int32 BufferSize { get { return Server.BufferSize; } set { Server.BufferSize = value; } }
+
         #endregion
 
         #region 构造
         public UdpSession(UdpServer server, IPEndPoint remote)
         {
             Name = server.Name;
-            Stream = new MemoryStream();
+            //Stream = new MemoryStream();
             StartTime = DateTime.Now;
 
             Server = server;
@@ -104,17 +113,27 @@ namespace NewLife.Net
 
         public void Start()
         {
+            Pipeline = Server.Pipeline;
+
             //Server.ReceiveAsync();
             Server.Open();
 
             WriteLog("New {0}", Remote.EndPoint);
+
+            // 管道
+            var pp = Pipeline;
+            pp?.Open(Server.CreateContext(this));
         }
 
-        protected override void OnDispose(Boolean disposing)
+        protected override void Dispose(Boolean disposing)
         {
-            base.OnDispose(disposing);
+            base.Dispose(disposing);
 
             WriteLog("Close {0}", Remote.EndPoint);
+
+            // 管道
+            var pp = Pipeline;
+            pp?.Close(Server.CreateContext(this), disposing ? "Dispose" : "GC");
 
             // 释放对服务对象的引用，如果没有其它引用，服务对象将会被回收
             Server = null;
@@ -126,113 +145,69 @@ namespace NewLife.Net
         {
             if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
-            StatSend?.Increment(pk.Count);
-            if (Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", pk.Count, pk.ToHex());
-
-            LastTime = DateTime.Now;
-
-            try
-            {
-                Server.Client.SendTo(pk.Data, pk.Offset, pk.Count, SocketFlags.None, Remote.EndPoint);
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                OnError("Send", ex);
-                Dispose();
-                throw;
-            }
+            return Server.OnSend(pk, Remote.EndPoint);
         }
 
-        /// <summary>异步发送数据并等待响应</summary>
-        /// <param name="pk"></param>
+        /// <summary>发送消息</summary>
+        /// <param name="message"></param>
         /// <returns></returns>
-        public async Task<Packet> SendAsync(Packet pk)
+        public virtual Boolean SendMessage(Object message)
         {
-            if (Server == null) return null;
+            var ctx = Server.CreateContext(this);
+            message = Pipeline.Write(ctx, message);
 
-            return await Server.SendAsync(pk, Remote.EndPoint, true);
+            return ctx.FireWrite(message);
         }
 
         /// <summary>发送消息并等待响应</summary>
-        /// <param name="msg"></param>
+        /// <param name="message"></param>
         /// <returns></returns>
-        public async Task<IMessage> SendAsync(IMessage msg)
+        public virtual Task<Object> SendMessageAsync(Object message)
         {
-            if (Server == null) return null;
+            var ctx = Server.CreateContext(this);
+            var source = new TaskCompletionSource<Object>();
+            ctx["TaskSource"] = source;
 
-            var pk = msg.ToPacket();
-            var task = Server.SendAsync(pk, Remote.EndPoint, !msg.Reply);
+            message = Pipeline.Write(ctx, message);
 
-            // 如果是响应包，直接返回不等待
-            if (msg.Reply) return null;
+            if (!ctx.FireWrite(message)) return TaskEx.FromResult((Object)null);
 
-            return Packet.LoadMessage(await task);
+            return source.Task;
         }
+
         #endregion
 
         #region 接收
+        /// <summary>接收数据</summary>
+        /// <returns></returns>
         public Packet Receive()
         {
             if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
-            var task = SendAsync((Packet)null);
-            if (Timeout > 0 && !task.Wait(Timeout)) return null;
+            //var task = SendAsync((Packet)null);
+            //if (Timeout > 0 && !task.Wait(Timeout)) return null;
 
-            return task.Result;
+            //return task.Result;
+
+            var ep = Remote.EndPoint as EndPoint;
+            var buf = new Byte[BufferSize];
+            var size = Server.Client.ReceiveFrom(buf, ref ep);
+
+            return new Packet(buf, 0, size);
         }
 
         public event EventHandler<ReceivedEventArgs> Received;
 
-        /// <summary>消息到达事件</summary>
-        public event EventHandler<MessageEventArgs> MessageReceived;
-
-        /// <summary>粘包处理接口</summary>
-        public IPacket Packet { get; set; }
-
         internal void OnReceive(ReceivedEventArgs e)
         {
-            var stream = e.Stream;
-            var remote = e.UserState as IPEndPoint;
-            var pk = new Packet(e.Data);
+            LastTime = TimerX.Now;
 
-            if (Packet == null)
-                OnReceive(pk, remote);
-            else
-            {
-                // 拆包，多个包多次调用处理程序
-                foreach (var msg in Packet.Parse(pk))
-                {
-                    OnReceive(msg, remote);
-                }
-            }
+            if (e != null) Received?.Invoke(this, e);
         }
 
-        private void OnReceive(Packet pk, IPEndPoint remote)
-        {
-            var e = new ReceivedEventArgs(pk);
-            e.UserState = remote;
-
-            LastTime = DateTime.Now;
-            //if (StatReceive != null) StatReceive.Increment(e.Length);
-
-            if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", e.Length, e.ToHex(32, null));
-
-            Received?.Invoke(this, e);
-
-            if (Packet != null && e.Packet != null && MessageReceived != null)
-            {
-                var msg = Packet.LoadMessage(e.Packet);
-                var me = new MessageEventArgs
-                {
-                    Packet = e.Packet,
-                    UserState = e.UserState,
-                    Message = msg
-                };
-                MessageReceived(this, me);
-            }
-        }
+        /// <summary>处理数据帧</summary>
+        /// <param name="data">数据帧</param>
+        void ISocketRemote.Process(IData data) => OnReceive(data as ReceivedEventArgs);
         #endregion
 
         #region 异常处理
@@ -245,7 +220,7 @@ namespace NewLife.Net
         protected virtual void OnError(String action, Exception ex)
         {
             if (Log != null) Log.Error(LogPrefix + "{0}Error {1} {2}", action, this, ex?.Message);
-            if (Error != null) Error(this, new ExceptionEventArgs { Exception = ex });
+            Error?.Invoke(this, new ExceptionEventArgs { Exception = ex });
         }
         #endregion
 
@@ -262,9 +237,19 @@ namespace NewLife.Net
         #endregion
 
         #region ITransport接口
-        Boolean ITransport.Open() { return true; }
+        Boolean ITransport.Open() => true;
 
-        Boolean ITransport.Close() { return true; }
+        Boolean ITransport.Close() => true;
+        #endregion
+
+        #region 扩展接口
+        /// <summary>数据项</summary>
+        public IDictionary<String, Object> Items { get; } = new NullableDictionary<String, Object>();
+
+        /// <summary>设置 或 获取 数据项</summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public Object this[String key] { get => Items[key]; set => Items[key] = value; }
         #endregion
 
         #region 日志

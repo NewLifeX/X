@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Text;
 using NewLife;
+using NewLife.Collections;
 using NewLife.Reflection;
 
 namespace System
@@ -18,21 +19,27 @@ namespace System
         /// <remarks>返回输出流，注意此时指针位于末端</remarks>
         public static Stream Compress(this Stream inStream, Stream outStream = null)
         {
-            if (outStream == null) outStream = new MemoryStream();
+            var ms = outStream ?? new MemoryStream();
 
             // 第三个参数为true，保持数据流打开，内部不应该干涉外部，不要关闭外部的数据流
 #if NET4
-            using (var stream = new DeflateStream(outStream, CompressionMode.Compress, true))
-#else
-            using (var stream = new DeflateStream(outStream, CompressionLevel.Optimal, true))
-#endif
+            using (var stream = new DeflateStream(ms, CompressionMode.Compress, true))
             {
                 inStream.CopyTo(stream);
                 stream.Flush();
-                //stream.Close();
             }
+#else
+            using (var stream = new DeflateStream(ms, CompressionLevel.Optimal, true))
+            {
+                inStream.CopyTo(stream);
+                stream.Flush();
+            }
+#endif
 
-            return outStream;
+            // 内部数据流需要把位置指向开头
+            if (outStream == null) ms.Position = 0;
+
+            return ms;
         }
 
         /// <summary>解压缩数据流</summary>
@@ -41,16 +48,18 @@ namespace System
         /// <remarks>返回输出流，注意此时指针位于末端</remarks>
         public static Stream Decompress(this Stream inStream, Stream outStream = null)
         {
-            if (outStream == null) outStream = new MemoryStream();
+            var ms = outStream ?? new MemoryStream();
 
             // 第三个参数为true，保持数据流打开，内部不应该干涉外部，不要关闭外部的数据流
             using (var stream = new DeflateStream(inStream, CompressionMode.Decompress, true))
             {
-                stream.CopyTo(outStream);
-                //stream.Close();
+                stream.CopyTo(ms);
             }
 
-            return outStream;
+            // 内部数据流需要把位置指向开头
+            if (outStream == null) ms.Position = 0;
+
+            return ms;
         }
 
         /// <summary>压缩字节数组</summary>
@@ -79,21 +88,27 @@ namespace System
         /// <remarks>返回输出流，注意此时指针位于末端</remarks>
         public static Stream CompressGZip(this Stream inStream, Stream outStream = null)
         {
-            if (outStream == null) outStream = new MemoryStream();
+            var ms = outStream ?? new MemoryStream();
 
             // 第三个参数为true，保持数据流打开，内部不应该干涉外部，不要关闭外部的数据流
 #if NET4
-            using (var stream = new GZipStream(outStream, CompressionMode.Compress, true))
-#else
-            using (var stream = new GZipStream(outStream, CompressionLevel.Optimal, true))
-#endif
+            using (var stream = new GZipStream(ms, CompressionMode.Compress, true))
             {
                 inStream.CopyTo(stream);
                 stream.Flush();
-                //stream.Close();
             }
+#else
+            using (var stream = new GZipStream(ms, CompressionLevel.Optimal, true))
+            {
+                inStream.CopyTo(stream);
+                stream.Flush();
+            }
+#endif
 
-            return outStream;
+            // 内部数据流需要把位置指向开头
+            if (outStream == null) ms.Position = 0;
+
+            return ms;
         }
 
         /// <summary>解压缩数据流</summary>
@@ -102,16 +117,18 @@ namespace System
         /// <remarks>返回输出流，注意此时指针位于末端</remarks>
         public static Stream DecompressGZip(this Stream inStream, Stream outStream = null)
         {
-            if (outStream == null) outStream = new MemoryStream();
+            var ms = outStream ?? new MemoryStream();
 
             // 第三个参数为true，保持数据流打开，内部不应该干涉外部，不要关闭外部的数据流
             using (var stream = new GZipStream(inStream, CompressionMode.Decompress, true))
             {
-                stream.CopyTo(outStream);
-                //stream.Close();
+                stream.CopyTo(ms);
             }
 
-            return outStream;
+            // 内部数据流需要把位置指向开头
+            if (outStream == null) ms.Position = 0;
+
+            return ms;
         }
         #endregion
 
@@ -138,8 +155,7 @@ namespace System
                 }
 
                 // 反射读取内存流中数据的原始位置，然后直接把数据拿出来用
-                Object obj = 0;
-                if (ms.TryGetValue("_origin", out obj))
+                if (ms.TryGetValue("_origin", out var obj))
                 {
                     var _origin = (Int32)obj;
                     // 其实地址不为0时，一般不能直接访问缓冲区，因为可能被限制访问
@@ -159,8 +175,7 @@ namespace System
             {
                 var ms = des as MemoryStream;
                 // 
-                Object obj = 0;
-                if (ms.TryGetValue("_origin", out obj))
+                if (ms.TryGetValue("_origin", out var obj))
                 {
                     var _origin = (Int32)obj;
                     // 缓冲区还剩下多少空间
@@ -273,7 +288,9 @@ namespace System
             }
 
             des.WriteEncodedInt(src.Length);
-            return des.Write(src);
+            des.Write(src);
+
+            return des;
         }
 
         /// <summary>读取字节数组，先读取压缩整数表示的长度</summary>
@@ -291,6 +308,40 @@ namespace System
             if (len > 1024 * 2) throw new XException("安全需要，不允许读取超大变长数组 {0:n0}>{1:n0}", len, 1024 * 2);
 
             return des.ReadBytes(len);
+        }
+
+        ///// <summary>读取数据包，先读取压缩整数表示的长度</summary>
+        ///// <param name="ms"></param>
+        ///// <returns></returns>
+        //public static Packet ReadPacket(this MemoryStream ms)
+        //{
+        //    var len = ms.ReadEncodedInt();
+
+        //    return new Packet(ms.GetBuffer(), (Int32)ms.Position, len);
+        //}
+
+        /// <summary>写入Unix格式时间，1970年以来秒数，绝对时间，非UTC</summary>
+        /// <param name="stream"></param>
+        /// <param name="dt"></param>
+        /// <returns></returns>
+        public static Stream WriteDateTime(this Stream stream, DateTime dt)
+        {
+            var seconds = dt.ToInt();
+            stream.Write(seconds.GetBytes());
+
+            return stream;
+        }
+
+        /// <summary>读取Unix格式时间，1970年以来秒数，绝对时间，非UTC</summary>
+        /// <param name="stream"></param>
+        /// <returns></returns>
+        public static DateTime ReadDateTime(this Stream stream)
+        {
+            var buf = new Byte[4];
+            stream.Read(buf, 0, 4);
+            var seconds = (Int32)buf.ToUInt32();
+
+            return seconds.ToDateTime();
         }
 
         /// <summary>复制数组</summary>
@@ -316,17 +367,18 @@ namespace System
         /// <param name="src">源数组</param>
         /// <param name="srcOffset">源数组偏移</param>
         /// <param name="count">数量</param>
-        /// <returns></returns>
-        public static Byte[] Write(this Byte[] dst, Int32 dstOffset, Byte[] src, Int32 srcOffset = 0, Int32 count = -1)
+        /// <returns>返回实际写入的字节个数</returns>
+        public static Int32 Write(this Byte[] dst, Int32 dstOffset, Byte[] src, Int32 srcOffset = 0, Int32 count = -1)
         {
             if (count <= 0) count = src.Length - srcOffset;
+            if (dstOffset + count > dst.Length) count = dst.Length - dstOffset;
 
 #if MF
             Array.Copy(src, srcOffset, dst, dstOffset, count);
 #else
             Buffer.BlockCopy(src, srcOffset, dst, dstOffset, count);
 #endif
-            return dst;
+            return count;
         }
 
         /// <summary>合并两个数组</summary>
@@ -375,7 +427,7 @@ namespace System
             // 如果要读完数据，又不支持定位，则采用内存流搬运
             if (!stream.CanSeek)
             {
-                var ms = new MemoryStream();
+                var ms = Pool.MemoryStream.Get();
                 while (true)
                 {
                     var buf = new Byte[1024];
@@ -386,7 +438,7 @@ namespace System
                     if (count < buf.Length) break;
                 }
 
-                return ms.ToArray();
+                return ms.Put(true);
             }
             else
             {
@@ -498,8 +550,8 @@ namespace System
 
             // 可能数据流前面有编码字节序列，需要先去掉
             var idx = 0;
-            var preamble = encoding.GetPreamble();
-            if (preamble != null && preamble.Length > 0 && buf.Length >= preamble.Length)
+            var preamble = encoding?.GetPreamble();
+            if (preamble != null && preamble.Length > 0 && buf.Length >= offset + preamble.Length)
             {
                 if (buf.ReadBytes(offset, preamble.Length).StartsWith(preamble)) idx = preamble.Length;
             }
@@ -532,7 +584,7 @@ namespace System
             if (isLittleEndian) return BitConverter.ToUInt32(data, offset);
 
             // BitConverter得到小端，如果不是小端字节顺序，则倒序
-            data = data.ReadBytes(offset, 4);
+            if (offset > 0) data = data.ReadBytes(offset, 4);
             if (isLittleEndian)
                 return (UInt32)(data[0] | data[1] << 8 | data[2] << 0x10 | data[3] << 0x18);
             else
@@ -548,7 +600,7 @@ namespace System
         {
             if (isLittleEndian) return BitConverter.ToUInt64(data, offset);
 
-            data = data.ReadBytes(offset, 8);
+            if (offset > 0) data = data.ReadBytes(offset, 8);
             if (isLittleEndian)
             {
                 var num1 = data[0] | data[1] << 8 | data[2] << 0x10 | data[3] << 0x18;
@@ -712,7 +764,7 @@ namespace System
         public static Int32 ReadEncodedInt(this Stream stream)
         {
             Byte b;
-            var rs = 0;
+            UInt32 rs = 0;
             Byte n = 0;
             while (true)
             {
@@ -721,22 +773,22 @@ namespace System
                 b = (Byte)bt;
 
                 // 必须转为Int32，否则可能溢出
-                rs += (Int32)((b & 0x7f) << n);
+                rs |= (UInt32)((b & 0x7f) << n);
                 if ((b & 0x80) == 0) break;
 
                 n += 7;
                 if (n >= 32) throw new FormatException("数字值过大，无法使用压缩格式读取！");
             }
-            return rs;
+            return (Int32)rs;
         }
 
         /// <summary>以压缩格式读取32位整数</summary>
         /// <param name="stream">数据流</param>
         /// <returns></returns>
-        public static Int64 ReadEncodedInt64(this Stream stream)
+        public static UInt64 ReadEncodedInt64(this Stream stream)
         {
             Byte b;
-            Int64 rs = 0;
+            UInt64 rs = 0;
             Byte n = 0;
             while (true)
             {
@@ -745,7 +797,7 @@ namespace System
                 b = (Byte)bt;
 
                 // 必须转为Int32，否则可能溢出
-                rs += (Int64)((b & 0x7f) << n);
+                rs |= (UInt64)(b & 0x7f) << n;
                 if ((b & 0x80) == 0) break;
 
                 n += 7;
@@ -758,7 +810,7 @@ namespace System
         /// <param name="stream"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        internal static Boolean TryReadEncodedInt(this Stream stream, out Int32 value)
+        internal static Boolean TryReadEncodedInt(this Stream stream, out UInt32 value)
         {
             Byte b;
             value = 0;
@@ -770,7 +822,7 @@ namespace System
                 b = (Byte)bt;
 
                 // 必须转为Int32，否则可能溢出
-                value += (Int32)((b & 0x7f) << n);
+                value += (UInt32)((b & 0x7f) << n);
                 if ((b & 0x80) == 0) break;
 
                 n += 7;
@@ -779,6 +831,8 @@ namespace System
             return true;
         }
 
+        [ThreadStatic]
+        private static Byte[] _encodes;
         /// <summary>
         /// 以7位压缩格式写入32位整数，小于7位用1个字节，小于14位用2个字节。
         /// 由每次写入的一个字节的第一位标记后面的字节是否还是当前数据，所以每个字节实际可利用存储空间只有后7位。
@@ -788,22 +842,39 @@ namespace System
         /// <returns>实际写入字节数</returns>
         public static Stream WriteEncodedInt(this Stream stream, Int64 value)
         {
-            var list = new List<Byte>();
+            if (_encodes == null) _encodes = new Byte[16];
 
-            var count = 1;
+            var count = 0;
             var num = (UInt64)value;
             while (num >= 0x80)
             {
-                list.Add((Byte)(num | 0x80));
+                _encodes[count++] = (Byte)(num | 0x80);
                 num = num >> 7;
-
-                count++;
             }
-            list.Add((Byte)num);
+            _encodes[count++] = (Byte)num;
 
-            stream.Write(list.ToArray(), 0, list.Count);
+            stream.Write(_encodes, 0, count);
 
             return stream;
+        }
+
+        /// <summary>获取压缩编码整数</summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static Byte[] GetEncodedInt(Int64 value)
+        {
+            if (_encodes == null) _encodes = new Byte[16];
+
+            var count = 0;
+            var num = (UInt64)value;
+            while (num >= 0x80)
+            {
+                _encodes[count++] = (Byte)(num | 0x80);
+                num = num >> 7;
+            }
+            _encodes[count++] = (Byte)num;
+
+            return _encodes.ReadBytes(0, count);
         }
         #endregion
 
@@ -863,7 +934,7 @@ namespace System
         /// <param name="offset">偏移</param>
         /// <param name="length">查找长度</param>
         /// <returns></returns>
-        public static Int64 IndexOf(this Byte[] source, Byte[] buffer, Int64 offset = 0, Int64 length = -1) { return IndexOf(source, 0, 0, buffer, offset, length); }
+        public static Int64 IndexOf(this Byte[] source, Byte[] buffer, Int64 offset = 0, Int64 length = -1) => IndexOf(source, 0, 0, buffer, offset, length);
 
         /// <summary>在字节数组中查找另一个字节数组的位置，不存在则返回-1</summary>
         /// <param name="source">字节数组</param>
@@ -906,7 +977,7 @@ namespace System
         /// <param name="source"></param>
         /// <param name="buffer">缓冲区</param>
         /// <returns></returns>
-        public static Int32 CompareTo(this Byte[] source, Byte[] buffer) { return CompareTo(source, 0, 0, buffer, 0, 0); }
+        public static Int32 CompareTo(this Byte[] source, Byte[] buffer) => CompareTo(source, 0, 0, buffer, 0, 0);
 
         /// <summary>比较两个字节数组大小。相等返回0，不等则返回不等的位置，如果位置为0，则返回1。</summary>
         /// <param name="source"></param>
@@ -1121,7 +1192,7 @@ namespace System
                 // 扣除间隔
                 if (!String.IsNullOrEmpty(separate)) len -= g * separate.Length;
             }
-            var sb = new StringBuilder(len);
+            var sb = Pool.StringBuilder.Get();
             for (var i = 0; i < count; i++)
             {
                 if (sb.Length > 0)
@@ -1137,7 +1208,7 @@ namespace System
                 sb.Append(GetHexValue(b % 0x10));
             }
 
-            return sb.ToString();
+            return sb.Put(true);
         }
 
         private static Char GetHexValue(Int32 i)
@@ -1194,11 +1265,20 @@ namespace System
             else if (offset + count > data.Length)
                 count = data.Length - offset;
 
-#if __CORE__
-            return Convert.ToBase64String(data, offset, count);
-#else
             return Convert.ToBase64String(data, offset, count, lineBreak ? Base64FormattingOptions.InsertLineBreaks : Base64FormattingOptions.None);
-#endif
+        }
+
+        /// <summary>字节数组转为Url改进型Base64编码</summary>
+        /// <param name="data"></param>
+        /// <param name="offset"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        public static String ToUrlBase64(this Byte[] data, Int32 offset = 0, Int32 count = -1)
+        {
+            var str = ToBase64(data, offset, count, false);
+            str = str.TrimEnd('=');
+            str = str.Replace('+', '-').Replace('/', '_');
+            return str;
         }
 
         /// <summary>Base64字符串转为字节数组</summary>
@@ -1206,10 +1286,20 @@ namespace System
         /// <returns></returns>
         public static Byte[] ToBase64(this String data)
         {
-            if (String.IsNullOrEmpty(data)) return new Byte[0];
+            if (data.IsNullOrEmpty()) return new Byte[0];
+
+            if (data[data.Length - 1] != '=')
+            {
+                // 如果不是4的整数倍，后面补上等号
+                var n = data.Length % 4;
+                if (n > 0) data += new String('=', 4 - n);
+            }
+
+            // 针对Url特殊处理
+            data = data.Replace('-', '+').Replace('_', '/');
 
             return Convert.FromBase64String(data);
         }
-#endregion
+        #endregion
     }
 }

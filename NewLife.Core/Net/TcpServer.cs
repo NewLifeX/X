@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
-using NewLife.Http;
 using NewLife.Log;
+using NewLife.Model;
 
 namespace NewLife.Net
 {
@@ -29,7 +31,7 @@ namespace NewLife.Net
         /// <summary>端口</summary>
         public Int32 Port { get { return Local.Port; } set { Local.Port = value; } }
 
-        /// <summary>会话超时时间。默认30秒</summary>
+        /// <summary>会话超时时间</summary>
         /// <remarks>
         /// 对于每一个会话连接，如果超过该时间仍然没有收到任何数据，则断开会话连接。
         /// </remarks>
@@ -48,23 +50,30 @@ namespace NewLife.Net
         /// <summary>是否抛出异常，默认false不抛出。Send/Receive时可能发生异常，该设置决定是直接抛出异常还是通过<see cref="Error"/>事件</summary>
         public Boolean ThrowException { get; set; }
 
-        /// <summary>最大并行数。默认CPU*1.6</summary>
+        /// <summary>最大并行接收连接数。默认CPU*1.6</summary>
         public Int32 MaxAsync { get; set; }
 
         /// <summary>启用Http，数据处理时截去请求响应头，默认false</summary>
         public Boolean EnableHttp { get; set; }
 
-        /// <summary>粘包处理接口</summary>
-        public IPacketFactory SessionPacket { get; set; }
+        /// <summary>管道</summary>
+        public IPipeline Pipeline { get; set; }
 
         /// <summary>会话统计</summary>
-        public IStatistics StatSession { get; set; } = new Statistics();
+        public ICounter StatSession { get; set; }
 
         /// <summary>发送统计</summary>
-        public IStatistics StatSend { get; set; } = new Statistics();
+        public ICounter StatSend { get; set; }
 
         /// <summary>接收统计</summary>
-        public IStatistics StatReceive { get; set; } = new Statistics();
+        public ICounter StatReceive { get; set; }
+
+        /// <summary>SSL协议。默认None，服务端Default，客户端不启用</summary>
+        public SslProtocols SslProtocol { get; set; } = SslProtocols.None;
+
+        /// <summary>SSL证书。服务端使用</summary>
+        /// <remarks>var cert = new X509Certificate2("file", "pass");</remarks>
+        public X509Certificate Certificate { get; set; }
         #endregion
 
         #region 构造
@@ -74,31 +83,22 @@ namespace NewLife.Net
             Name = GetType().Name;
 
             Local = new NetUri(NetType.Tcp, IPAddress.Any, 0);
-            //SessionTimeout = 30;
-            //AutoReceiveAsync = true;
-            //ProcessAsync = true;
-
             SessionTimeout = Setting.Current.SessionTimeout;
-
             MaxAsync = Environment.ProcessorCount * 16 / 10;
-
             _Sessions = new SessionCollection(this);
-            //StatSession = new Statistics();
-            //StatSend = new Statistics();
-            //StatReceive = new Statistics();
 
-            Log = Logger.Null;
+            if (Setting.Current.Debug) Log = XTrace.Log;
         }
 
         /// <summary>构造TCP服务器对象</summary>
         /// <param name="port"></param>
-        public TcpServer(Int32 port) : this() { Port = port; }
+        public TcpServer(Int32 port) : this() => Port = port;
 
         /// <summary>已重载。释放会话集合等资源</summary>
         /// <param name="disposing"></param>
-        protected override void OnDispose(Boolean disposing)
+        protected override void Dispose(Boolean disposing)
         {
-            base.OnDispose(disposing);
+            base.Dispose(disposing);
 
             if (Active) Stop(GetType().Name + (disposing ? "Dispose" : "GC"));
         }
@@ -112,20 +112,30 @@ namespace NewLife.Net
 
             if (Active || Disposed) return;
 
+            // 统计
+            if (StatSession == null) StatSession = new PerfCounter();
+            if (StatSend == null) StatSend = new PerfCounter();
+            if (StatReceive == null) StatReceive = new PerfCounter();
+
+            var sock = Client;
+
             // 开始监听
             //if (Server == null) Server = new TcpListener(Local.EndPoint);
-            if (Client == null) Client = NetHelper.CreateTcp(Local.EndPoint.Address.IsIPv4());
+            if (sock == null) Client = sock = NetHelper.CreateTcp(Local.EndPoint.Address.IsIPv4());
 
             WriteLog("Start {0}", this);
 
             // 三次握手之后，Accept之前的总连接个数，队列满之后，新连接将得到主动拒绝ConnectionRefused错误
             // 在我（大石头）的开发机器上，实际上这里的最大值只能是200，大于200跟200一个样
             //Server.Start();
-            Client.Bind(Local.EndPoint);
-            Client.Listen(Int32.MaxValue);
+            sock.Bind(Local.EndPoint);
+            sock.Listen(Int32.MaxValue);
 
-            Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
-            Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.DontLinger, true);
+            if (Runtime.Windows)
+            {
+                sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
+                sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.DontLinger, true);
+            }
 
             Active = true;
 
@@ -224,13 +234,7 @@ namespace NewLife.Net
                 // 直接在IO线程调用业务逻辑
                 try
                 {
-                    // 估算完成时间，执行过长时提示
-                    using (var tc = new TimeCost("{0}.OnAccept".F(GetType().Name), 200))
-                    {
-                        tc.Log = Log;
-
-                        OnAccept(se.AcceptSocket);
-                    }
+                    OnAccept(se.AcceptSocket);
                 }
                 catch (Exception ex)
                 {
@@ -253,24 +257,23 @@ namespace NewLife.Net
         {
             var session = CreateSession(client);
 
-            // 设置心跳时间
-            client.SetTcpKeepAlive(true);
+            //// 设置心跳时间，默认10秒
+            //client.SetTcpKeepAlive(true);
 
             if (_Sessions.Add(session))
             {
-                //session.ID = g_ID++;
                 // 会话改为原子操作，避免多线程冲突
                 session.ID = Interlocked.Increment(ref g_ID);
-                //WriteLog("{0}新会话 {1}", this, client.Client.RemoteEndPoint);
                 session.WriteLog("New {0}", session.Remote.EndPoint);
 
-                if (StatSession != null) StatSession.Increment(1);
+                StatSession?.Increment(1, 0);
 
                 NewSession?.Invoke(this, new SessionEventArgs { Session = session });
 
-                //// 自动开始异步接收处理
-                //if (AutoReceiveAsync) 
-                session.ReceiveAsync();
+                // 自动开始异步接收处理
+                session.SslProtocol = SslProtocol;
+                session.Certificate = Certificate;
+                session.Start();
             }
         }
         #endregion
@@ -278,23 +281,30 @@ namespace NewLife.Net
         #region 会话
         private SessionCollection _Sessions;
         /// <summary>会话集合。用地址端口作为标识，业务应用自己维持地址端口与业务主键的对应关系。</summary>
-        public IDictionary<String, ISocketSession> Sessions { get { return _Sessions; } }
+        public IDictionary<String, ISocketSession> Sessions => _Sessions;
 
         /// <summary>创建会话</summary>
         /// <param name="client"></param>
         /// <returns></returns>
         protected virtual TcpSession CreateSession(Socket client)
         {
-            var session = EnableHttp ? new HttpSession(this, client) : new TcpSession(this, client);
-            // 服务端不支持掉线重连
-            session.AutoReconnect = 0;
-            session.Log = Log;
-            session.LogSend = LogSend;
-            session.LogReceive = LogReceive;
-            session.StatSend.Parent = StatSend;
-            session.StatReceive.Parent = StatReceive;
-            session.Packet = SessionPacket?.Create();
-            session.ProcessAsync = ProcessAsync;
+            //var session = EnableHttp ? new HttpSession(this, client) : new TcpSession(this, client);
+            var session = new TcpSession(this, client)
+            {
+                // 服务端不支持掉线重连
+                AutoReconnect = 0,
+                NoDelay = true,
+                Log = Log,
+                LogSend = LogSend,
+                LogReceive = LogReceive,
+                StatSend = StatSend,
+                StatReceive = StatReceive,
+                ProcessAsync = ProcessAsync,
+                Pipeline = Pipeline
+            };
+
+            // 为了降低延迟，服务端不要合并小包
+            client.NoDelay = true;
 
             return session;
         }
@@ -324,7 +334,7 @@ namespace NewLife.Net
         protected virtual void OnError(String action, Exception ex)
         {
             if (Log != null) Log.Error("{0}{1}Error {2} {3}", LogPrefix, action, this, ex?.Message);
-            if (Error != null) Error(this, new ExceptionEventArgs { Action = action, Exception = ex });
+            Error?.Invoke(this, new ExceptionEventArgs { Action = action, Exception = ex });
         }
         #endregion
 

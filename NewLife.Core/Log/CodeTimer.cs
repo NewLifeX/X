@@ -20,9 +20,11 @@ namespace NewLife.Log
         /// <returns></returns>
         public static CodeTimer Time(Int32 times, Action<Int32> action, Boolean needTimeOne = true)
         {
-            var timer = new CodeTimer();
-            timer.Times = times;
-            timer.Action = action;
+            var timer = new CodeTimer
+            {
+                Times = times,
+                Action = action
+            };
 
             if (needTimeOne) timer.TimeOne();
             timer.Time();
@@ -35,32 +37,30 @@ namespace NewLife.Log
         /// <param name="times">次数</param>
         /// <param name="action">需要计时的委托</param>
         /// <param name="needTimeOne">是否需要预热</param>
-        public static void TimeLine(String title, Int32 times, Action<Int32> action, Boolean needTimeOne = true)
+        public static CodeTimer TimeLine(String title, Int32 times, Action<Int32> action, Boolean needTimeOne = true)
         {
             var n = Encoding.UTF8.GetByteCount(title);
             Console.Write("{0}{1}：", n >= 16 ? "" : new String(' ', 16 - n), title);
 
-            var timer = new CodeTimer();
-            timer.Times = times;
-            timer.Action = action;
-            timer.ShowProgress = true;
-#if !__MOBILE__
+            var timer = new CodeTimer
+            {
+                Times = times,
+                Action = action,
+                ShowProgress = true
+            };
             var currentForeColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Yellow;
             var left = Console.CursorLeft;
-#endif
             if (needTimeOne) timer.TimeOne();
             timer.Time();
 
             // 等一会，让进度那边先输出
             Thread.Sleep(10);
-#if !__MOBILE__
             Console.CursorLeft = left;
-#endif
             Console.WriteLine(timer.ToString());
-#if !__MOBILE__
             Console.ForegroundColor = currentForeColor;
-#endif
+
+            return timer;
         }
 
         /// <summary>显示头部</summary>
@@ -69,10 +69,8 @@ namespace NewLife.Log
         {
             Write(title, 16);
             Console.Write("：");
-#if !__MOBILE__
             var currentForeColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Yellow;
-#endif
             Write("执行时间", 9);
             Console.Write(" ");
             Write("CPU时间", 9);
@@ -82,9 +80,7 @@ namespace NewLife.Log
             Console.WriteLine("   百分比");
 
             msBase = 0;
-#if !__MOBILE__
             Console.ForegroundColor = currentForeColor;
-#endif
         }
 
         static void Write(String name, Int32 max)
@@ -128,9 +124,7 @@ namespace NewLife.Log
 
         private static Int64 GetCurrentThreadTimes()
         {
-            Int64 l;
-            Int64 kernelTime, userTimer;
-            GetThreadTimes(GetCurrentThread(), out l, out l, out kernelTime, out userTimer);
+            GetThreadTimes(GetCurrentThread(), out var ct, out var et, out var kernelTime, out var userTimer);
             return kernelTime + userTimer;
         }
         #endregion
@@ -157,7 +151,7 @@ namespace NewLife.Log
         /// <summary>CPU周期</summary>
         public Int64 CpuCycles { get; set; }
 
-        /// <summary>线程时间，单位是100ns，除以10000转为ms</summary>
+        /// <summary>线程时间，单位是ms</summary>
         public Int64 ThreadTime { get; set; }
 
         /// <summary>GC代数</summary>
@@ -216,8 +210,7 @@ namespace NewLife.Log
                 gen[i] = GC.CollectionCount(i);
             }
 
-            var watch = new Stopwatch();
-            watch.Start();
+            var watch = Stopwatch.StartNew();
             cpuCycles = GetCycleCount();
             threadTime = GetCurrentThreadTimes();
 
@@ -244,7 +237,8 @@ namespace NewLife.Log
             }
 
             CpuCycles = (Int64)(GetCycleCount() - cpuCycles);
-            ThreadTime = GetCurrentThreadTimes() - threadTime;
+            // 线程时间，单位是100ns，除以10000转为ms
+            ThreadTime = (GetCurrentThreadTimes() - threadTime) / 10_000;
 
             watch.Stop();
             Elapsed = watch.Elapsed;
@@ -293,9 +287,11 @@ namespace NewLife.Log
             if (!ShowProgress) return;
 
             // 使用低优先级线程显示进度
-            thread = new Thread(new ParameterizedThreadStart(Progress));
-            thread.IsBackground = true;
-            thread.Priority = ThreadPriority.BelowNormal;
+            thread = new Thread(Progress)
+            {
+                IsBackground = true,
+                Priority = ThreadPriority.BelowNormal
+            };
             thread.Start();
         }
 
@@ -310,15 +306,12 @@ namespace NewLife.Log
 
         void Progress(Object state)
         {
-#if !__MOBILE__
             var left = Console.CursorLeft;
 
             // 设置光标不可见
             var cursorVisible = Console.CursorVisible;
             Console.CursorVisible = false;
-#endif
-            var sw = new Stopwatch();
-            sw.Start();
+            var sw = Stopwatch.StartNew();
             while (true)
             {
                 try
@@ -328,13 +321,17 @@ namespace NewLife.Log
 
                     if (i > 0 && sw.Elapsed.TotalMilliseconds > 10)
                     {
-                        var d = (Double)i / Times;
+                        var prog = (Double)i / Times;
                         var ms = sw.Elapsed.TotalMilliseconds;
+
+                        // 预计总时间
                         var ts = new TimeSpan(0, 0, 0, 0, (Int32)(ms * Times / i));
-                        Console.Write("{0,7:n0}ms {1:p} Total=>{2}", ms, d, ts);
-#if !__MOBILE__
+
+                        var speed = i / ms;
+                        var cost = ms / i;
+
+                        Console.Write($"{ms,7:n0}ms {prog:p2} Total=>{ts}");
                         Console.CursorLeft = left;
-#endif
                     }
                 }
                 catch (ThreadAbortException) { break; }
@@ -343,10 +340,8 @@ namespace NewLife.Log
                 Thread.Sleep(500);
             }
             sw.Stop();
-#if !__MOBILE__
             Console.CursorLeft = left;
             Console.CursorVisible = cursorVisible;
-#endif
         }
         #endregion
 
@@ -359,7 +354,9 @@ namespace NewLife.Log
             if (msBase == 0) msBase = ms;
             var pc = ms / msBase;
 
-            return String.Format("{0,7:n0}ms {1,7:n0}ms {2,15:n0} {3,3}/{4}/{5}\t{6,8:p2}", ms, ThreadTime / 10000, CpuCycles, Gen[0], Gen[1], Gen[2], pc);
+            var speed = ms == 0 ? 0 : Times / ms;
+            var cost = Times == 0 ? 0 : ms / Times;
+            return $"{ms,7:n0}ms {ThreadTime,7:n0}ms {CpuCycles,15:n0} {Gen[0],3}/{Gen[1]}/{Gen[2]}\t{pc,8:p2}";
         }
         #endregion
     }

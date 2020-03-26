@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !__CORE__
+using System;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -89,21 +90,20 @@ namespace NewLife.Web
 
         /// <summary>检查浏览器缓存是否依然有效，如果有效则跳过Render</summary>
         /// <returns></returns>
-        public virtual Boolean CheckCache()
+        public virtual Boolean CheckCache(HttpContext context)
         {
             //增加 浏览器缓存 304缓存
             //if (BrowserCache)
             {
-                var Request = HttpContext.Current.Request;
-                var Response = HttpContext.Current.Response;
+                var Request = context.Request;
+                var Response = context.Response;
 
                 var since = Request.ServerVariables["HTTP_IF_MODIFIED_SINCE"];
                 if (!String.IsNullOrEmpty(since))
                 {
-                    DateTime dt;
                     //if (DateTime.TryParse(since, out dt) && dt >= attachment.UploadTime)
                     //!!! 注意：本地修改时间精确到毫秒，而HTTP_IF_MODIFIED_SINCE只能到秒
-                    if (DateTime.TryParse(since, out dt) && (dt - ModifyTime).TotalSeconds > -1)
+                    if (DateTime.TryParse(since, out var dt) && (dt - ModifyTime).TotalSeconds > -1)
                     {
                         Response.StatusCode = 304;
                         return true;
@@ -113,8 +113,7 @@ namespace NewLife.Web
                 var etag = Request.ServerVariables["HTTP_IF_NONE_MATCH"];
                 if (!String.IsNullOrEmpty(etag))
                 {
-                    Int64 ticks = 0;
-                    if (Int64.TryParse(etag, out ticks) && (new DateTime(ticks) - ModifyTime).TotalSeconds > -1)
+                    if (Int64.TryParse(etag, out var ticks) && (new DateTime(ticks) - ModifyTime).TotalSeconds > -1)
                     {
                         Response.StatusCode = 304;
                         return true;
@@ -126,10 +125,10 @@ namespace NewLife.Web
         }
 
         /// <summary>输出数据流</summary>
-        public virtual void Render()
+        public virtual void Render(HttpContext context)
         {
-            var Request = HttpContext.Current.Request;
-            var Response = HttpContext.Current.Response;
+            var Request = context.Request;
+            var Response = context.Response;
 
             var stream = Stream;
 
@@ -163,7 +162,22 @@ namespace NewLife.Web
             Response.AddHeader("Connection", "Keep-Alive");
             Response.ContentType = ContentType;
             if (Mode != DispositionMode.None)
+            {
+                /*
+                 * 按照RFC2231的定义， 多语言编码的Content-Disposition应该这么定义：
+                 * Content-Disposition: attachment; filename*="utf8''%e6%94%b6%e6%ac%be%e7%ae%a1%e7%90%86.xls"
+                 * filename后面的等号之前要加 *
+                 * filename的值用单引号分成三段，分别是字符集(utf8)、语言(空)和urlencode过的文件名。
+                 * 最好加上双引号，否则文件名中空格后面的部分在Firefox中显示不出来
+                 */
+                //var cd = String.Format("attachment;filename=\"{0}\"", filename);
+                //if (Request.UserAgent.Contains("MSIE"))
+                //    cd = String.Format("attachment;filename=\"{0}\"", HttpUtility.UrlEncode(filename, encoding));
+                //else if (Request.UserAgent.Contains("Firefox"))
+                //    cd = String.Format("attachment;filename*=\"{0}''{1}\"", encoding.WebName, HttpUtility.UrlEncode(filename, encoding));
+
                 Response.AddHeader("Content-Disposition", Mode + ";filename=" + HttpUtility.UrlEncode(FileName, Encoding.UTF8));
+            }
 
             //增加 浏览器缓存 304缓存
             if (BrowserCache)
@@ -204,3 +218,4 @@ namespace NewLife.Web
         }
     }
 }
+#endif

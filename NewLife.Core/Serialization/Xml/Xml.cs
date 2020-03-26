@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
 using NewLife.Reflection;
-using NewLife.Xml;
 
 namespace NewLife.Serialization
 {
@@ -34,10 +32,12 @@ namespace NewLife.Serialization
         public Xml()
         {
             // 遍历所有处理器实现
-            var list = new List<IXmlHandler>();
-            list.Add(new XmlGeneral { Host = this });
-            list.Add(new XmlList { Host = this });
-            list.Add(new XmlComposite { Host = this });
+            var list = new List<IXmlHandler>
+            {
+                new XmlGeneral { Host = this },
+                new XmlList { Host = this },
+                new XmlComposite { Host = this }
+            };
             // 根据优先级排序
             list.Sort();
 
@@ -68,8 +68,10 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public Xml AddHandler<THandler>(Int32 priority = 0) where THandler : IXmlHandler, new()
         {
-            var handler = new THandler();
-            handler.Host = this;
+            var handler = new THandler
+            {
+                Host = this
+            };
             if (priority != 0) handler.Priority = priority;
 
             return AddHandler(handler);
@@ -113,7 +115,7 @@ namespace NewLife.Serialization
             CurrentName = name;
 
             // 一般类型为空是顶级调用
-            if (Hosts.Count == 0) WriteLog("XmlWrite {0} {1}", name ?? type.Name, value);
+            if (Hosts.Count == 0 && Log != null && Log.Enable) WriteLog("XmlWrite {0} {1}", name ?? type.Name, value);
 
             // 要先写入根
             Depth++;
@@ -143,7 +145,7 @@ namespace NewLife.Serialization
             }
         }
 
-        Boolean IFormatterX.Write(Object value, Type type) { return Write(value, null, type); }
+        Boolean IFormatterX.Write(Object value, Type type) => Write(value, null, type);
 
         /// <summary>写入开头</summary>
         /// <param name="type"></param>
@@ -151,12 +153,12 @@ namespace NewLife.Serialization
         {
             var att = UseAttribute;
             if (!att && Member?.GetCustomAttribute<XmlAttributeAttribute>() != null) att = true;
-            if (att && type.GetTypeCode() == TypeCode.Object) att = false;
+            if (att && !type.IsValueType && type.GetTypeCode() == TypeCode.Object) att = false;
 
             var writer = GetWriter();
 
-            // 写入注释
-            if (UseComment)
+            // 写入注释。写特性时忽略注释
+            if (UseComment && !att)
             {
                 var des = "";
                 if (Member != null) des = Member.GetDisplayName() ?? Member.GetDescription();
@@ -182,7 +184,11 @@ namespace NewLife.Serialization
                 if (writer.WriteState == WriteState.Attribute)
                     writer.WriteEndAttribute();
                 else
+                {
                     writer.WriteEndElement();
+                    //替换成WriteFullEndElement方法，写入完整的结束标记。解决读取空节点（短结束标记"/ >"）发生错误。
+                    //writer.WriteFullEndElement();
+                }
             }
         }
 
@@ -193,10 +199,12 @@ namespace NewLife.Serialization
         {
             if (_Writer == null)
             {
-                var set = new XmlWriterSettings();
-                //set.Encoding = Encoding.TrimPreamble();
-                set.Encoding = Encoding;
-                set.Indent = true;
+                var set = new XmlWriterSettings
+                {
+                    //set.Encoding = Encoding.TrimPreamble();
+                    Encoding = Encoding,
+                    Indent = true
+                };
 
                 _Writer = XmlWriter.Create(Stream, set);
             }
@@ -220,10 +228,7 @@ namespace NewLife.Serialization
         /// <summary>读取指定类型对象</summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public T Read<T>()
-        {
-            return (T)Read(typeof(T));
-        }
+        public T Read<T>() => (T)Read(typeof(T));
 
         /// <summary>尝试读取指定类型对象</summary>
         /// <param name="type"></param>
@@ -235,20 +240,26 @@ namespace NewLife.Serialization
             // 移动到第一个元素
             while (reader.NodeType != XmlNodeType.Element) { if (!reader.Read()) return false; }
 
-            if (Hosts.Count == 0) WriteLog("XmlRead {0} {1}", type.Name, value);
+            if (Hosts.Count == 0 && Log != null && Log.Enable) WriteLog("XmlRead {0} {1}", type.Name, value);
 
             // 要先写入根
             Depth++;
 
+            var d = reader.Depth;
             ReadStart(type);
+
             try
             {
-                foreach (var item in Handlers)
+                // 如果读取器层级没有递增，说明这是空节点，需要跳过
+                if (reader.Depth == d + 1)
                 {
-                    if (item.TryRead(type, ref value)) return true;
-                }
+                    foreach (var item in Handlers)
+                    {
+                        if (item.TryRead(type, ref value)) return true;
+                    }
 
-                value = reader.ReadContentAs(type, null);
+                    value = reader.ReadContentAs(type, null);
+                }
             }
             finally
             {
@@ -282,8 +293,8 @@ namespace NewLife.Serialization
         public void ReadEnd()
         {
             var reader = GetReader();
-            if (reader.NodeType == XmlNodeType.EndElement) reader.ReadEndElement();
             if (reader.NodeType == XmlNodeType.Attribute) reader.Read();
+            if (reader.NodeType == XmlNodeType.EndElement) reader.ReadEndElement();
         }
 
         private XmlReader _Reader;
@@ -312,7 +323,7 @@ namespace NewLife.Serialization
 
         /// <summary>获取字符串</summary>
         /// <returns></returns>
-        public String GetString() { return GetBytes().ToStr(Encoding); }
+        public String GetString() => GetBytes().ToStr(Encoding);
         #endregion
     }
 }

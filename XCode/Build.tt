@@ -1,0 +1,17 @@
+﻿<#@ template language="C#" hostSpecific="true" debug="true" #>
+<#@ assembly name="$(ProjectDir)\$(OutputPath)\NewLife.Core.dll" #>
+<#@ assembly name="$(ProjectDir)\$(OutputPath)\XCode.dll" #>
+<#@ import namespace="System.Diagnostics" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="XCode.Code" #>
+<#@ output extension=".log" #>
+<#
+    // 设置当前工作目录
+	PathHelper.BasePath = Host.ResolvePath(".");
+	// 导入模型文件并生成实体类，模型文件、输出目录、命名空间、连接名、中文文件名、表名字段名大小写
+	//EntityBuilder.Build(String xmlFile = null, String output = null, String nameSpace = null, String connName = null, Boolean? chineseFileName = true,Boolean? nameIgnoreCase = null);
+	EntityBuilder.Build();
+
+	//var tables = DAL.ImportFrom("Company.Project.xml");
+	//EntityBuilder.Build(tables);
+#>

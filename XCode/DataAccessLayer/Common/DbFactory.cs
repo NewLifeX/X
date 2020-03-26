@@ -1,103 +1,97 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using NewLife.Collections;
-using NewLife.Log;
-using NewLife.Model;
 using NewLife.Reflection;
-using XCode.Model;
 
 namespace XCode.DataAccessLayer
 {
     /// <summary>数据库工厂</summary>
     public static class DbFactory
     {
-        #region 创建
-        /// <summary>根据数据库类型创建提供者</summary>
-        /// <param name="dbType"></param>
-        /// <returns></returns>
-        public static IDatabase Create(DatabaseType dbType)
+        #region 静态构造
+        static DbFactory()
         {
-            return XCodeService.Container.ResolveInstance<IDatabase>(dbType);
+            Register<SQLite>(DatabaseType.SQLite);
+            Register<MySql>(DatabaseType.MySql);
+            Register<Oracle>(DatabaseType.Oracle);
+            Register<SqlServer>(DatabaseType.SqlServer);
+            Register<PostgreSQL>(DatabaseType.PostgreSQL);
+#if !__CORE__
+            Register<Access>(DatabaseType.Access);
+            Register<SqlCe>(DatabaseType.SqlCe);
+#endif
+            Register<Network>(DatabaseType.Network);
         }
         #endregion
 
-        #region 静态构造
-        internal static void Reg(IObjectContainer container)
-        {
-            container
-                .Reg<SQLite>()
-                .Reg<SqlServer>()
-                .Reg<Oracle>()
-                .Reg<MySql>()
-                .Reg<PostgreSQL>()
-#if !__CORE__
-                .Reg<Access>()
-                .Reg<SqlCe>()
-#endif
-                .Reg<SQLite>(String.Empty);
-            // SQLite作为默认实现
-        }
+        #region 提供者
+        private static IDictionary<DatabaseType, IDatabase> _dbs = new NullableDictionary<DatabaseType, IDatabase>();
+        /// <summary>注册数据库提供者</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="dbType"></param>
+        public static void Register<T>(DatabaseType dbType) where T : IDatabase, new() => _dbs[dbType] = new T();
 
-        private static IObjectContainer Reg<T>(this IObjectContainer container, Object id = null)
-        {
-            try
-            {
-                var db = typeof(T).CreateInstance() as IDatabase;
-                if (id == null) id = db.Type;
+        /// <summary>根据数据库类型创建提供者</summary>
+        /// <param name="dbType"></param>
+        /// <returns></returns>
+        public static IDatabase Create(DatabaseType dbType) => _dbs[dbType]?.GetType().CreateInstance() as IDatabase;
 
-                // 把这个实例注册进去，作为默认实现
-                return container.Register(typeof(IDatabase), null, db, id);
-            }
-            catch (Exception ex)
-            {
-                XTrace.WriteException(ex);
-                throw;
-            }
-        }
-#endregion
-
-#region 默认提供者
-        private static DictionaryCache<Type, IDatabase> defaultDbs2 = new DictionaryCache<Type, IDatabase>();
         /// <summary>根据名称获取默认提供者</summary>
         /// <param name="dbType"></param>
         /// <returns></returns>
-        internal static IDatabase GetDefault(Type dbType)
-        {
-            if (dbType == null) return null;
-            return defaultDbs2.GetItem(dbType, dt => (IDatabase)dt.CreateInstance());
-        }
-#endregion
+        internal static IDatabase GetDefault(Type dbType) => _dbs.Values.FirstOrDefault(e => e.GetType() == dbType);
 
-#region 方法
+        internal static IDatabase GetDefault(DatabaseType dbType) => _dbs[dbType];
+        #endregion
+
+        #region 方法
         /// <summary>从提供者和连接字符串猜测数据库处理器</summary>
         /// <param name="connStr"></param>
         /// <param name="provider"></param>
         /// <returns></returns>
-        internal static Type GetProviderType(String connStr, String provider)
+        public static Type GetProviderType(String connStr, String provider)
         {
-            var ioc = XCodeService.Container;
+            // 尝试从连接字符串获取优先提供者
+            if (!connStr.IsNullOrWhiteSpace())
+            {
+                var builder = new ConnectionStringBuilder(connStr);
+                if (builder.TryGetValue("provider", out var prv))
+                {
+                    foreach (var item in _dbs)
+                    {
+                        if (item.Value.Support(prv)) return item.Value.GetType();
+                    }
+                }
+            }
+
+            // 尝试解析提供者
             if (!provider.IsNullOrEmpty())
             {
                 var n = 0;
-                foreach (var item in ioc.ResolveAll(typeof(IDatabase)))
+                foreach (var item in _dbs)
                 {
                     n++;
-                    if ("" + item.Identity == "") continue;
 
-                    if (item.Instance is IDatabase db && db.Support(provider)) return item.Type;
+                    if (item.Value.Support(provider)) return item.Value.GetType();
                 }
 
                 if (DAL.Debug) DAL.WriteLog("无法从{0}个默认数据库提供者中识别到{1}！", n, provider);
 
+                // 注册外部提供者
                 var type = provider.GetTypeEx(true);
-                if (type != null) ioc.Register<IDatabase>(type, provider);
+                if (type != null)
+                {
+                    var db = type.CreateInstance() as IDatabase;
+                    if (db != null) _dbs[db.Type] = db;
+                }
+
                 return type;
             }
-            else
-            {
-                // 这里的默认值来自于上面Reg里面的最后那个
-                return ioc.ResolveType<IDatabase>(String.Empty);
-            }
+
+            // 默认SQLite
+            return _dbs[DatabaseType.SQLite].GetType();
         }
-#endregion
+        #endregion
     }
 }

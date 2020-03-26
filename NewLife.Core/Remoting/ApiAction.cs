@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
+using NewLife.Data;
+using NewLife.Log;
 using NewLife.Reflection;
 
 namespace NewLife.Remoting
@@ -12,23 +12,29 @@ namespace NewLife.Remoting
     public class ApiAction
     {
         /// <summary>动作名称</summary>
-        public String Name { get; set; }
+        public String Name { get; }
 
         /// <summary>动作所在类型</summary>
-        public Type Type { get; set; }
+        public Type Type { get; }
 
         /// <summary>方法</summary>
-        public MethodInfo Method { get; set; }
+        public MethodInfo Method { get; }
 
         /// <summary>控制器对象</summary>
         /// <remarks>如果指定控制器对象，则每次调用前不再实例化对象</remarks>
         public Object Controller { get; set; }
 
-        /// <summary>动作过滤器</summary>
-        public IActionFilter[] ActionFilters { get; }
+        /// <summary>是否二进制参数</summary>
+        public Boolean IsPacketParameter { get; }
 
-        /// <summary>异常过滤器</summary>
-        public IExceptionFilter[] ExceptionFilters { get; }
+        /// <summary>是否二进制返回</summary>
+        public Boolean IsPacketReturn { get; }
+
+        /// <summary>处理统计</summary>
+        public ICounter StatProcess { get; set; } = new PerfCounter();
+
+        /// <summary>最后会话</summary>
+        public String LastSession { get; set; }
 
         /// <summary>实例化</summary>
         public ApiAction(MethodInfo method, Type type)
@@ -40,44 +46,10 @@ namespace NewLife.Remoting
             Type = type;
             Method = method;
 
-            ActionFilters = GetAllFilters(method);
-            ExceptionFilters = GetAllExceptionFilters(method);
-        }
+            var ps = method.GetParameters();
+            if (ps != null && ps.Length == 1 && ps[0].ParameterType == typeof(Packet)) IsPacketParameter = true;
 
-        private IActionFilter[] GetAllFilters(MethodInfo method)
-        {
-            if (method == null) throw new ArgumentNullException(nameof(method));
-
-            var fs = new List<IActionFilter>();
-            var atts = method.GetCustomAttributes<ActionFilterAttribute>(true);
-            if (atts != null) fs.AddRange(atts);
-            atts = method.DeclaringType.GetCustomAttributes<ActionFilterAttribute>(true);
-            if (atts != null) fs.AddRange(atts);
-
-            fs.AddRange(GlobalFilters.ActionFilters);
-
-            // 排序
-            var arr = fs.OrderBy(e => (e as FilterAttribute)?.Order ?? 0).ToArray();
-
-            return arr;
-        }
-
-        private IExceptionFilter[] GetAllExceptionFilters(MethodInfo method)
-        {
-            if (method == null) throw new ArgumentNullException(nameof(method));
-
-            var fs = new List<IExceptionFilter>();
-            var atts = method.GetCustomAttributes<HandleErrorAttribute>(true);
-            if (atts != null) fs.AddRange(atts);
-            atts = method.DeclaringType.GetCustomAttributes<HandleErrorAttribute>(true);
-            if (atts != null) fs.AddRange(atts);
-
-            fs.AddRange(GlobalFilters.ExceptionFilters);
-
-            // 排序
-            var arr = fs.OrderBy(e => (e as FilterAttribute)?.Order ?? 0).ToArray();
-
-            return arr;
+            if (method.ReturnType == typeof(Packet)) IsPacketReturn = true;
         }
 
         /// <summary>获取名称</summary>
@@ -89,7 +61,7 @@ namespace NewLife.Remoting
             if (type == null) type = method.DeclaringType;
             if (type == null) return null;
 
-            var typeName = type.Name.TrimEnd("Controller");
+            var typeName = type.Name.TrimEnd("Controller", "Service");
             var att = type.GetCustomAttribute<ApiAttribute>(true);
             if (att != null) typeName = att.Name;
 

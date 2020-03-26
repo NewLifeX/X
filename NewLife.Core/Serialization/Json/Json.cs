@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using NewLife.Collections;
 using NewLife.Reflection;
 
 namespace NewLife.Serialization
@@ -29,10 +30,12 @@ namespace NewLife.Serialization
             //_builder = new StringBuilder();
 
             // 遍历所有处理器实现
-            var list = new List<IJsonHandler>();
-            list.Add(new JsonGeneral { Host = this });
-            list.Add(new JsonComposite { Host = this });
-            list.Add(new JsonArray { Host = this });
+            var list = new List<IJsonHandler>
+            {
+                new JsonGeneral { Host = this },
+                new JsonComposite { Host = this },
+                new JsonArray { Host = this }
+            };
             //list.Add(new JsonDictionary { Host = this });
             // 根据优先级排序
             list.Sort();
@@ -64,8 +67,10 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public Json AddHandler<THandler>(Int32 priority = 0) where THandler : IJsonHandler, new()
         {
-            var handler = new THandler();
-            handler.Host = this;
+            var handler = new THandler
+            {
+                Host = this
+            };
             if (priority != 0) handler.Priority = priority;
 
             return AddHandler(handler);
@@ -100,7 +105,7 @@ namespace NewLife.Serialization
                 type = value.GetType();
 
                 // 一般类型为空是顶级调用
-                if (Hosts.Count == 0) WriteLog("JsonWrite {0} {1}", type.Name, value);
+                if (Hosts.Count == 0 && Log != null && Log.Enable) WriteLog("JsonWrite {0} {1}", type.Name, value);
             }
 
             //foreach (var item in Handlers)
@@ -108,10 +113,10 @@ namespace NewLife.Serialization
             //    if (item.Write(value, type)) return true;
             //}
 
-            var sb = new StringBuilder();
+            var sb = Pool.StringBuilder.Get();
             Write(sb, value);
 
-            Stream.Write(sb.ToString().GetBytes());
+            Stream.Write(sb.Put(true).GetBytes());
 
             return false;
         }
@@ -155,10 +160,7 @@ namespace NewLife.Serialization
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
         [DebuggerHidden]
-        public T Read<T>()
-        {
-            return (T)(Object)Read(typeof(T));
-        }
+        public T Read<T>() => (T)(Object)Read(typeof(T));
 
         /// <summary>尝试读取指定类型对象</summary>
         /// <param name="type"></param>
@@ -167,7 +169,7 @@ namespace NewLife.Serialization
         [DebuggerHidden]
         public virtual Boolean TryRead(Type type, ref Object value)
         {
-            if (Hosts.Count == 0) WriteLog("JsonRead {0} {1}", type.Name, value);
+            if (Hosts.Count == 0 && Log != null && Log.Enable) WriteLog("JsonRead {0} {1}", type.Name, value);
 
             foreach (var item in Handlers)
             {
@@ -179,10 +181,7 @@ namespace NewLife.Serialization
         /// <summary>读取</summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public virtual Boolean Read(String value)
-        {
-            return true;
-        }
+        public virtual Boolean Read(String value) => true;
 
         /// <summary>读取字节</summary>
         /// <returns></returns>

@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using NewLife.Log;
 
+#nullable enable
 namespace NewLife.Threading
 {
     /// <summary>定时器调度器</summary>
     public class TimerScheduler
     {
         #region 静态
-        private TimerScheduler(String name) { Name = name; }
+        private TimerScheduler(String name) => Name = name;
 
         private static Dictionary<String, TimerScheduler> _cache = new Dictionary<String, TimerScheduler>();
 
@@ -28,8 +28,6 @@ namespace NewLife.Threading
                 ts = new TimerScheduler(name);
                 _cache[name] = ts;
 
-                WriteLog("启动定时调度器：{0}", name);
-
                 return ts;
             }
         }
@@ -38,9 +36,9 @@ namespace NewLife.Threading
         public static TimerScheduler Default { get; } = Create("Default");
 
         [ThreadStatic]
-        private static TimerScheduler _Current;
+        private static TimerScheduler? _Current;
         /// <summary>当前调度器</summary>
-        public static TimerScheduler Current { get { return _Current; } private set { _Current = value; } }
+        public static TimerScheduler? Current { get => _Current; private set => _Current = value; }
         #endregion
 
         #region 属性
@@ -53,20 +51,27 @@ namespace NewLife.Threading
         /// <summary>最大耗时。超过时报警告日志，默认500ms</summary>
         public Int32 MaxCost { get; set; } = 500;
 
-        private Thread thread;
+        private Thread? thread;
+        private Int32 _tid;
 
-        private HashSet<TimerX> timers = new HashSet<TimerX>();
+        private TimerX[] Timers = new TimerX[0];
         #endregion
 
         /// <summary>把定时器加入队列</summary>
         /// <param name="timer"></param>
         public void Add(TimerX timer)
         {
+            timer.Id = Interlocked.Increment(ref _tid);
             WriteLog("Timer.Add {0}ms {1}", timer.Period, timer);
 
-            lock (timers)
+            lock (this)
             {
-                timers.Add(timer);
+                var list = new List<TimerX>(Timers);
+                if (list.Contains(timer)) return;
+                list.Add(timer);
+
+                Timers = list.ToArray();
+
                 Count++;
 
                 if (thread == null)
@@ -78,6 +83,8 @@ namespace NewLife.Threading
                         IsBackground = true
                     };
                     thread.Start();
+
+                    WriteLog("启动定时调度器：{0}", Name);
                 }
 
                 Wake();
@@ -88,23 +95,29 @@ namespace NewLife.Threading
 
         /// <summary>从队列删除定时器</summary>
         /// <param name="timer"></param>
-        public void Remove(TimerX timer)
+        /// <param name="reason"></param>
+        public void Remove(TimerX timer, String reason)
         {
-            if (timer == null) return;
+            if (timer == null || timer.Id == 0) return;
 
-            WriteLog("Timer.Remove {0}", timer);
+            WriteLog("Timer.Remove {0} reason:{1}", timer, reason);
 
-            lock (timers)
+            lock (this)
             {
-                if (timers.Contains(timer))
+                timer.Id = 0;
+
+                var list = new List<TimerX>(Timers);
+                if (list.Contains(timer))
                 {
-                    timers.Remove(timer);
+                    list.Remove(timer);
+                    Timers = list.ToArray();
+
                     Count--;
                 }
             }
         }
 
-        private AutoResetEvent waitForTimer;
+        private AutoResetEvent? waitForTimer;
         private Int32 period = 10;
 
         /// <summary>唤醒处理</summary>
@@ -126,20 +139,18 @@ namespace NewLife.Threading
             while (true)
             {
                 // 准备好定时器列表
-                TimerX[] arr = null;
-                lock (timers)
-                {
-                    // 如果没有任务，则销毁线程
-                    if (timers.Count == 0 && period == 60000)
-                    {
-                        WriteLog("没有可用任务，销毁线程");
-                        var th = thread;
-                        thread = null;
-                        th.Abort();
-                        break;
-                    }
+                var arr = Timers;
 
-                    arr = timers.ToArray();
+                // 如果没有任务，则销毁线程
+                if (arr.Length == 0 && period == 60000)
+                {
+                    WriteLog("没有可用任务，销毁线程");
+
+                    var th = thread;
+                    thread = null;
+                    th?.Abort();
+
+                    break;
                 }
 
                 try
@@ -152,14 +163,25 @@ namespace NewLife.Threading
                     {
                         if (!timer.Calling && CheckTime(timer, now))
                         {
-                            // 必须在主线程设置状态，否则可能异步线程还没来得及设置开始状态，主线程又开始了新的一轮调度
-                            timer.Calling = true;
-                            if (!timer.Async)
-                                ProcessItem(timer);
+                            // 是否能够执行
+                            if (timer.CanExecute == null || timer.CanExecute())
+                            {
+                                // 必须在主线程设置状态，否则可能异步线程还没来得及设置开始状态，主线程又开始了新的一轮调度
+                                timer.Calling = true;
+                                if (!timer.Async)
+                                    Execute(timer);
+                                else
+                                    //Task.Factory.StartNew(() => ProcessItem(timer));
+                                    // 不需要上下文流动
+                                    ThreadPool.UnsafeQueueUserWorkItem(Execute, timer);
+                                // 内部线程池，让异步任务有公平竞争CPU的机会
+                                //ThreadPoolX.QueueUserWorkItem(Execute, timer);
+                            }
+                            // 即使不能执行，也要设置下一次的时间
                             else
-                                //Task.Factory.StartNew(() => ProcessItem(timer));
-                                // 不需要上下文流动
-                                ThreadPool.UnsafeQueueUserWorkItem(ProcessItem, timer);
+                            {
+                                OnFinish(timer);
+                            }
                         }
                     }
                 }
@@ -168,7 +190,7 @@ namespace NewLife.Threading
                 catch { }
 
                 if (waitForTimer == null) waitForTimer = new AutoResetEvent(false);
-                waitForTimer.WaitOne(period, false);
+                waitForTimer.WaitOne(period, true);
             }
         }
 
@@ -206,9 +228,11 @@ namespace NewLife.Threading
 
         /// <summary>处理每一个定时器</summary>
         /// <param name="state"></param>
-        private void ProcessItem(Object state)
+        private void Execute(Object state)
         {
             var timer = state as TimerX;
+            if (timer == null) return;
+
             TimerX.Current = timer;
 
             // 控制日志显示
@@ -216,14 +240,22 @@ namespace NewLife.Threading
 
             timer.hasSetNext = false;
 
-            var sw = new Stopwatch();
-            sw.Start();
+            var sw = Stopwatch.StartNew();
 
             try
             {
+                // 弱引用判断
+                var tc = timer.Callback;
+                if (tc == null || !tc.IsAlive)
+                {
+                    Remove(timer, "委托已不存在（GC回收委托所在对象）");
+                    timer.Dispose();
+                    return;
+                }
+
                 //timer.Calling = true;
 
-                timer.Callback(timer.State ?? timer);
+                tc.Invoke(timer.State ?? timer);
             }
             catch (ThreadAbortException) { throw; }
             catch (ThreadInterruptedException) { throw; }
@@ -241,27 +273,10 @@ namespace NewLife.Threading
 
                 if (d > MaxCost && !timer.Async) XTrace.WriteLine("任务 {0} 耗时过长 {1:n0}ms，建议使用异步任务Async=true", timer, d);
 
-                // 再次读取周期，因为任何函数可能会修改
-                var p = timer.Period;
-
                 timer.Timers++;
-
-                // 如果内部设置了下一次时间，则不再递加周期
-                if (!timer.hasSetNext)
-                {
-                    if (timer.Absolutely)
-                        timer.NextTime = timer.NextTime.AddMilliseconds(p);
-                    else
-                        timer.NextTime = DateTime.Now.AddMilliseconds(p);
-                }
+                OnFinish(timer);
 
                 timer.Calling = false;
-
-                // 清理一次性定时器
-                if (p <= 0)
-                    timer.Dispose();
-                else if (p < period)
-                    period = p;
 
                 TimerX.Current = null;
 
@@ -273,18 +288,40 @@ namespace NewLife.Threading
             }
         }
 
+        private void OnFinish(TimerX timer)
+        {
+            // 再次读取周期，因为任何函数可能会修改
+            var p = timer.Period;
+
+            // 如果内部设置了下一次时间，则不再递加周期
+            if (!timer.hasSetNext)
+            {
+                if (timer.Absolutely)
+                    timer.NextTime = timer.NextTime.AddMilliseconds(p);
+                else
+                    timer.NextTime = DateTime.Now.AddMilliseconds(p);
+            }
+
+            // 清理一次性定时器
+            if (p <= 0)
+            {
+                Remove(timer, "Period<=0");
+                timer.Dispose();
+            }
+            else if (p < period)
+                period = p;
+        }
+
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override String ToString() { return Name; }
+        public override String ToString() => Name;
 
         #region 设置
-        /// <summary>是否开启调试，输出更多信息</summary>
-        public static Boolean Debug { get; set; }
+        /// <summary>日志</summary>
+        public ILog Log { get; set; } = Logger.Null;
 
-        static void WriteLog(String format, params Object[] args)
-        {
-            if (Debug) XTrace.WriteLine(format, args);
-        }
+        private void WriteLog(String format, params Object[] args) => Log?.Info(Name + format, args);
         #endregion
     }
 }
+#nullable restore

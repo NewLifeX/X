@@ -2,13 +2,10 @@
 using System.IO;
 using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 using System.Xml.Serialization;
 using NewLife.Log;
 using NewLife.Threading;
-#if NET4
-using Task = System.Threading.Tasks.TaskEx;
-#endif
 
 namespace NewLife.Xml
 {
@@ -24,7 +21,8 @@ namespace NewLife.Xml
     /// 用户也可以通过配置实体类的静态构造函数修改基类的<see cref="_.ConfigFile"/>和<see cref="_.ReloadTime"/>来动态配置加载信息。
     /// </remarks>
     /// <typeparam name="TConfig"></typeparam>
-    public class XmlConfig<TConfig> where TConfig : XmlConfig<TConfig>, new()
+    [Obsolete("=>Config<TConfig>")]
+    public class XmlConfig<TConfig> : DisposeBase where TConfig : XmlConfig<TConfig>, new()
     {
         #region 静态
         private static Boolean _loading;
@@ -36,7 +34,7 @@ namespace NewLife.Xml
             {
                 if (_loading) return _Current ?? new TConfig();
 
-                var dcf = _.ConfigFile;
+                var dcf = _.ConfigFile?.GetBasePath();
                 if (dcf == null) return new TConfig();
 
                 // 这里要小心，避免_Current的null判断完成后，_Current被别人置空，而导致这里返回null
@@ -49,7 +47,7 @@ namespace NewLife.Xml
                     XTrace.WriteLine("{0}的配置文件{1}有更新，重新加载配置！", typeof(TConfig), config.ConfigFile);
 
                     // 异步更新
-                    Task.Run(() => config.Load(dcf));
+                    ThreadPool.QueueUserWorkItem(s => config.Load(dcf));
 
                     return config;
                 }
@@ -63,7 +61,7 @@ namespace NewLife.Xml
                     _Current = config;
                     if (!config.Load(dcf))
                     {
-                        config.ConfigFile = dcf.GetFullPath();
+                        config.ConfigFile = dcf;
                         config.SetExpire();  // 设定过期时间
                         config.IsNew = true;
                         config.OnNew();
@@ -71,7 +69,7 @@ namespace NewLife.Xml
                         config.OnLoaded();
 
                         // 创建或覆盖
-                        var act = File.Exists(dcf.GetFullPath()) ? "加载出错" : "不存在";
+                        var act = File.Exists(dcf) ? "加载出错" : "不存在";
                         XTrace.WriteLine("{0}的配置文件{1} {2}，准备用默认配置覆盖！", typeof(TConfig).Name, dcf, act);
                         try
                         {
@@ -113,10 +111,8 @@ namespace NewLife.Xml
                 {
                     // 这里不能着急，派生类可能通过静态构造函数指定配置文件路径
                     //throw new XException("编码错误！请为配置类{0}设置{1}特性，指定配置文件！", typeof(TConfig), typeof(XmlConfigFileAttribute).Name);
-#if !__MOBILE__
                     _.ConfigFile = "Config\\{0}.config".F(typeof(TConfig).Name);
                     _.ReloadTime = 10000;
-#endif
                 }
                 else
                 {
@@ -193,6 +189,17 @@ namespace NewLife.Xml
         public Boolean IsNew { get; set; }
         #endregion
 
+        #region 构造
+        /// <summary>销毁</summary>
+        /// <param name="disposing"></param>
+        protected override void Dispose(Boolean disposing)
+        {
+            base.Dispose(disposing);
+
+            _Timer.TryDispose();
+        }
+        #endregion
+
         #region 加载
         /// <summary>加载指定配置文件</summary>
         /// <param name="filename"></param>
@@ -200,7 +207,8 @@ namespace NewLife.Xml
         public virtual Boolean Load(String filename)
         {
             if (filename.IsNullOrWhiteSpace()) return false;
-            filename = filename.GetFullPath();
+
+            filename = filename.GetBasePath();
             if (!File.Exists(filename)) return false;
 
             _loading = true;
@@ -210,10 +218,12 @@ namespace NewLife.Xml
                 var config = this as TConfig;
 
                 Object obj = config;
-                var xml = new NewLife.Serialization.Xml();
-                xml.Stream = new MemoryStream(data);
-                xml.UseAttribute = false;
-                xml.UseComment = true;
+                var xml = new Serialization.Xml
+                {
+                    Stream = new MemoryStream(data),
+                    UseAttribute = false,
+                    UseComment = true
+                };
 
                 if (_.Debug) xml.Log = XTrace.Log;
 
@@ -273,7 +283,8 @@ namespace NewLife.Xml
         {
             if (filename.IsNullOrWhiteSpace()) filename = ConfigFile;
             if (filename.IsNullOrWhiteSpace()) throw new XException("未指定{0}的配置文件路径！", typeof(TConfig).Name);
-            filename = filename.GetFullPath();
+
+            filename = filename.GetBasePath();
 
             // 加锁避免多线程保存同一个文件冲突
             lock (filename)
@@ -283,23 +294,65 @@ namespace NewLife.Xml
 
                 //if (File.Exists(filename)) File.Delete(filename);
                 filename.EnsureDirectory(true);
-
-                if (xml1 != xml2) File.WriteAllText(filename, xml2);
+                OnSaving(filename, xml1, xml2);
             }
         }
-
+        /// <summary>
+        /// 在持久化配置文件时执行
+        /// 如果重写该方法 请注意调用父类 以免造成配置文件不能正常持久化。
+        /// </summary>
+        /// <param name="filename">配置文件全路径</param>
+        /// <param name="oldXml">老配置文件的内容</param>
+        /// <param name="newXml">新配置文件的内容</param>
+        protected virtual void OnSaving(String filename, String oldXml, String newXml)
+        {
+            if (oldXml != newXml) File.WriteAllText(filename, newXml);
+        }
         /// <summary>保存到配置文件中去</summary>
         public virtual void Save() { Save(null); }
+
+        private TimerX _Timer;
+        /// <summary>异步保存</summary>
+        public virtual void SaveAsync()
+        {
+            if (_Timer == null)
+            {
+                lock (this)
+                {
+                    if (_Timer == null) _Timer = new TimerX(DoSave, null, 1000, 5000)
+                    {
+                        Async = true,
+                        CanExecute = () => _commits > 0,
+                    };
+                }
+            }
+
+            Interlocked.Increment(ref _commits);
+        }
+
+        private Int32 _commits;
+        private void DoSave(Object state)
+        {
+            var old = _commits;
+            //if (Interlocked.CompareExchange(ref _commits, 0, old) != old) return;
+            if (old == 0) return;
+
+            Save(null);
+
+            Interlocked.Add(ref _commits, -old);
+        }
 
         /// <summary>新创建配置文件时执行</summary>
         protected virtual void OnNew() { }
 
         private String GetXml()
         {
-            var xml = new NewLife.Serialization.Xml();
-            xml.Encoding = Encoding.UTF8;
-            xml.UseAttribute = false;
-            xml.UseComment = true;
+            var xml = new NewLife.Serialization.Xml
+            {
+                Encoding = Encoding.UTF8,
+                UseAttribute = false,
+                UseComment = true
+            };
 
             if (_.Debug) xml.Log = XTrace.Log;
 

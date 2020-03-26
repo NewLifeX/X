@@ -1,11 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
-using NewLife.Messaging;
+using NewLife.Model;
 using NewLife.Threading;
 
 namespace NewLife.Net
@@ -32,6 +34,9 @@ namespace NewLife.Net
         /// <summary>端口</summary>
         Int32 Port { get; set; }
 
+        /// <summary>管道</summary>
+        IPipeline Pipeline { get; set; }
+
         /// <summary>是否抛出异常，默认false不抛出。Send/Receive时可能发生异常，该设置决定是直接抛出异常还是通过<see cref="Error"/>事件</summary>
         Boolean ThrowException { get; set; }
 
@@ -40,10 +45,10 @@ namespace NewLife.Net
         Boolean ProcessAsync { get; set; }
 
         /// <summary>发送统计</summary>
-        IStatistics StatSend { get; set; }
+        ICounter StatSend { get; set; }
 
         /// <summary>接收统计</summary>
-        IStatistics StatReceive { get; set; }
+        ICounter StatReceive { get; set; }
 
         /// <summary>日志提供者</summary>
         ILog Log { get; set; }
@@ -69,9 +74,12 @@ namespace NewLife.Net
     }
 
     /// <summary>远程通信Socket，仅具有收发功能</summary>
-    public interface ISocketRemote : ISocket
+    public interface ISocketRemote : ISocket, IExtend3
     {
         #region 属性
+        /// <summary>标识</summary>
+        Int32 ID { get; }
+
         /// <summary>远程地址</summary>
         NetUri Remote { get; set; }
 
@@ -83,6 +91,9 @@ namespace NewLife.Net
 
         /// <summary>缓冲区大小</summary>
         Int32 BufferSize { get; set; }
+
+        ///// <summary>数据项</summary>
+        //IDictionary<String, Object> Items { get; }
         #endregion
 
         #region 发送
@@ -102,24 +113,22 @@ namespace NewLife.Net
 
         /// <summary>数据到达事件</summary>
         event EventHandler<ReceivedEventArgs> Received;
-
-        /// <summary>消息到达事件</summary>
-        event EventHandler<MessageEventArgs> MessageReceived;
         #endregion
 
-        #region 数据包处理
-        /// <summary>粘包处理接口</summary>
-        IPacket Packet { get; set; }
-
+        #region 消息包
         /// <summary>异步发送数据并等待响应</summary>
-        /// <param name="pk"></param>
+        /// <param name="message">消息</param>
         /// <returns></returns>
-        Task<Packet> SendAsync(Packet pk);
+        Task<Object> SendMessageAsync(Object message);
 
-        /// <summary>发送消息并等待响应</summary>
-        /// <param name="msg"></param>
+        /// <summary>发送消息</summary>
+        /// <param name="message">消息</param>
         /// <returns></returns>
-        Task<IMessage> SendAsync(IMessage msg);
+        Boolean SendMessage(Object message);
+
+        /// <summary>处理数据帧</summary>
+        /// <param name="data">数据帧</param>
+        void Process(IData data);
         #endregion
     }
 
@@ -134,11 +143,15 @@ namespace NewLife.Net
         {
             if (socket == null) return null;
 
-            var sb = new StringBuilder();
-            if (socket.StatSend.Total > 0) sb.AppendFormat("发送：{0} ", socket.StatSend);
-            if (socket.StatReceive.Total > 0) sb.AppendFormat("接收：{0} ", socket.StatReceive);
+            var st1 = socket.StatSend;
+            var st2 = socket.StatReceive;
+            if (st1 == null && st2 == null) return null;
 
-            return sb.ToString();
+            var sb = Pool.StringBuilder.Get();
+            if (st1 != null && st1.Value > 0) sb.AppendFormat("发送：{0} ", st1);
+            if (st2 != null && st2.Value > 0) sb.AppendFormat("接收：{0} ", st2);
+
+            return sb.Put(true);
         }
         #endregion
 
@@ -182,9 +195,9 @@ namespace NewLife.Net
 
         /// <summary>异步多次发送数据</summary>
         /// <param name="session">会话</param>
-        /// <param name="pk"></param>
-        /// <param name="times"></param>
-        /// <param name="msInterval"></param>
+        /// <param name="pk">数据包</param>
+        /// <param name="times">次数</param>
+        /// <param name="msInterval">间隔</param>
         /// <returns></returns>
         public static Boolean SendMulti(this ISocketRemote session, Packet pk, Int32 times, Int32 msInterval)
         {
@@ -234,16 +247,17 @@ namespace NewLife.Net
         #endregion
 
         #region 消息包
-        /// <summary>异步发送数据并等待响应</summary>
+        /// <summary>添加处理器</summary>
+        /// <typeparam name="THandler"></typeparam>
         /// <param name="session">会话</param>
-        /// <param name="buffer"></param>
-        /// <returns></returns>
-        public static async Task<Byte[]> SendAsync(this ISocketRemote session, Byte[] buffer)
-        {
-            var pk = new Packet(buffer);
-            var rs = await session.SendAsync(pk);
-            return rs?.ToArray();
-        }
+        public static void Add<THandler>(this ISocket session) where THandler : IHandler, new() => GetPipe(session).AddLast(new THandler());
+
+        /// <summary>添加处理器</summary>
+        /// <param name="session">会话</param>
+        /// <param name="handler">处理器</param>
+        public static void Add(this ISocket session, IHandler handler) => GetPipe(session).AddLast(handler);
+
+        private static IPipeline GetPipe(ISocket session) => session.Pipeline ?? (session.Pipeline = new Pipeline());
         #endregion
     }
 }

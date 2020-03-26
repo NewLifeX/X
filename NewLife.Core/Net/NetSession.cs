@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
-using NewLife.Messaging;
 
 namespace NewLife.Net
 {
@@ -15,14 +14,14 @@ namespace NewLife.Net
     public class NetSession<TServer> : NetSession where TServer : NetServer
     {
         /// <summary>主服务</summary>
-        public virtual TServer Host { get { return (this as INetSession).Host as TServer; } set { (this as INetSession).Host = value; } }
+        public virtual TServer Host { get => (this as INetSession).Host as TServer; set => (this as INetSession).Host = value; }
     }
 
     /// <summary>网络服务的会话</summary>
     /// <remarks>
     /// 实际应用可通过重载OnReceive实现收到数据时的业务逻辑。
     /// </remarks>
-    public class NetSession : DisposeBase, INetSession
+    public class NetSession : DisposeBase, INetSession, IExtend3
     {
         #region 属性
         /// <summary>编号</summary>
@@ -38,7 +37,7 @@ namespace NewLife.Net
         public ISocketServer Server { get; set; }
 
         /// <summary>客户端地址</summary>
-        public NetUri Remote { get { return Session?.Remote; } }
+        public NetUri Remote => Session?.Remote;
 
         /// <summary>用户会话数据</summary>
         public IDictionary<String, Object> Items { get; set; } = new NullableDictionary<String, Object>();
@@ -46,7 +45,7 @@ namespace NewLife.Net
         /// <summary>获取/设置 用户会话数据</summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public virtual Object this[String key] { get { return Items[key]; } set { Items[key] = value; } }
+        public virtual Object this[String key] { get => Items[key]; set => Items[key] = value; }
         #endregion
 
         #region 方法
@@ -55,13 +54,13 @@ namespace NewLife.Net
         {
             if (LogSession && Log != null && Log.Enable) WriteLog("新会话 {0}", Session);
 
-            //this["Host"] = (this as INetSession).Host;
-
             var ss = Session;
             if (ss != null)
             {
+                // 网络会话和Socket会话共用用户会话数据
+                Items = ss.Items;
+
                 ss.Received += (s, e2) => OnReceive(e2);
-                ss.MessageReceived += (s, e2) => OnReceive(e2);
                 ss.OnDisposed += (s, e2) => Dispose();
                 ss.Error += OnError;
             }
@@ -69,13 +68,14 @@ namespace NewLife.Net
 
         /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
         /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）</param>
-        protected override void OnDispose(Boolean disposing)
+        protected override void Dispose(Boolean disposing)
         {
             if (LogSession && Log != null && Log.Enable) WriteLog("会话结束 {0}", Session);
 
-            base.OnDispose(disposing);
+            base.Dispose(disposing);
 
-            Session.Dispose();
+            //Session.Dispose();//去掉这句话，因为在释放的时候Session有的时候为null，会出异常报错，导致整个程序退出。去掉后正常。
+            Session.TryDispose();
 
             Server = null;
             Session = null;
@@ -85,23 +85,10 @@ namespace NewLife.Net
         #region 业务核心
         /// <summary>收到客户端发来的数据，触发<seealso cref="Received"/>事件，重载者可直接处理数据</summary>
         /// <param name="e"></param>
-        protected virtual void OnReceive(ReceivedEventArgs e)
-        {
-            Received?.Invoke(this, e);
-        }
-
-        /// <summary>收到客户端发来的消息</summary>
-        /// <param name="e"></param>
-        protected virtual void OnReceive(MessageEventArgs e)
-        {
-            MessageReceived?.Invoke(this, e);
-        }
+        protected virtual void OnReceive(ReceivedEventArgs e) => Received?.Invoke(this, e);
 
         /// <summary>数据到达事件</summary>
         public event EventHandler<ReceivedEventArgs> Received;
-
-        /// <summary>消息到达事件</summary>
-        public event EventHandler<MessageEventArgs> MessageReceived;
         #endregion
 
         #region 收发
@@ -135,12 +122,9 @@ namespace NewLife.Net
         }
 
         /// <summary>异步发送并等待响应</summary>
-        /// <param name="pk"></param>
+        /// <param name="message"></param>
         /// <returns></returns>
-        public virtual async Task<Packet> SendAsync(Packet pk)
-        {
-            return await Session.SendAsync(pk);
-        }
+        public virtual Task<Object> SendAsync(Object message) => Session.SendMessageAsync(message);
         #endregion
 
         #region 异常处理

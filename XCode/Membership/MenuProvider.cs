@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using NewLife.Configuration;
-using NewLife.Model;
 
 namespace XCode.Membership
 {
@@ -16,27 +12,13 @@ namespace XCode.Membership
         /// <param name="remark">备注</param>
         public abstract void WriteLog(Type type, String action, String remark);
 
-        private Boolean _Enable = true;
         /// <summary>是否使用日志</summary>
-        public Boolean Enable { get { return _Enable; } set { _Enable = value; } }
+        public Boolean Enable { get; set; } = true;
         #endregion
 
         #region 静态属性
-        static MenuProvider()
-        {
-            ObjectContainer.Current.AutoRegister<MenuProvider, DefaultMenuProvider>();
-        }
-
-        private static MenuProvider _Provider;
         /// <summary>当前成员提供者</summary>
-        public static MenuProvider Provider
-        {
-            get
-            {
-                if (_Provider == null) _Provider = ObjectContainer.Current.Resolve<MenuProvider>();
-                return _Provider;
-            }
-        }
+        public static MenuProvider Provider { get; set; } = new DefaultMenuProvider();
         #endregion
     }
 
@@ -52,7 +34,7 @@ namespace XCode.Membership
         {
             if (!Enable) return;
 
-            if (type == null) throw new ArgumentNullException("type");
+            if (type == null) throw new ArgumentNullException(nameof(type));
 
             var factory = EntityFactory.CreateOperate(typeof(TMenu));
             var log = factory.Create() as ILog;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using NewLife;
+using NewLife.Data;
 using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
@@ -68,6 +69,9 @@ namespace XCode.DataAccessLayer
                 }
             }
         }
+
+        /// <summary>名称大小写格式化</summary>
+        public NameFormats Nameformat => Database.NameFormat;
         #endregion
 
         #region GetSchema方法
@@ -82,7 +86,7 @@ namespace XCode.DataAccessLayer
             {
                 if (!MetaDataCollections.Contains(collectionName)) return null;
             }
-            return Database.CreateSession().GetSchema(collectionName, restrictionValues);
+            return Database.CreateSession().GetSchema(null, collectionName, restrictionValues);
         }
         #endregion
 
@@ -158,12 +162,47 @@ namespace XCode.DataAccessLayer
             return default(T);
         }
 
+        protected static DbTable Select(DbTable ds, String name, Object value)
+        {
+            var list = new List<Object[]>();
+            var col = ds.GetColumn(name);
+            if (col >= 0)
+            {
+                for (var i = 0; i < ds.Rows.Count; i++)
+                {
+                    var dr = ds.Rows[i];
+                    if (Equals(dr[col], value)) list.Add(dr);
+                }
+            }
+
+            var ds2 = new DbTable
+            {
+                Columns = ds.Columns,
+                Types = ds.Types,
+                Rows = list
+            };
+
+            return ds2;
+        }
+
         /// <summary>格式化关键字</summary>
         /// <param name="name">名称</param>
         /// <returns></returns>
         protected String FormatName(String name)
         {
-            //return Database.FormatKeyWord(keyWord);
+            switch (Nameformat)
+            {
+                case NameFormats.Upper:
+                    name = name.ToUpper();
+                    break;
+                case NameFormats.Lower:
+                    name = name.ToLower();
+                    break;
+                case NameFormats.Default:
+                default:
+                    break;
+            }
+
             return Database.FormatName(name);
         }
         #endregion
@@ -171,12 +210,12 @@ namespace XCode.DataAccessLayer
         #region 日志输出
         /// <summary>输出日志</summary>
         /// <param name="msg"></param>
-        public static void WriteLog(String msg) { DAL.WriteLog(msg); }
+        public static void WriteLog(String msg) => DAL.WriteLog(msg);
 
         /// <summary>输出日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
-        public static void WriteLog(String format, params Object[] args) { DAL.WriteLog(format, args); }
+        public static void WriteLog(String format, params Object[] args) => DAL.WriteLog(format, args);
         #endregion
     }
 }

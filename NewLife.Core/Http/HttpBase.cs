@@ -30,14 +30,15 @@ namespace NewLife.Http
         internal DateTime Expire { get; set; }
 
         /// <summary>是否已完整</summary>
-        internal Boolean IsCompleted { get { return ContentLength == 0 || ContentLength <= BodyLength; } }
+        internal Boolean IsCompleted => ContentLength == 0 || ContentLength <= BodyLength;
 
         /// <summary>主体长度</summary>
         internal Int32 BodyLength { get; set; }
 
+        private static Byte[] NewLine = new[] { (Byte)'\r', (Byte)'\n', (Byte)'\r', (Byte)'\n' };
         internal Boolean ParseHeader(Packet pk)
         {
-            var p = (Int32)pk.Data.IndexOf(pk.Offset, pk.Count, "\r\n\r\n".GetBytes());
+            var p = pk.IndexOf(NewLine);
             if (p < 0) return false;
 
             var str = pk.ReadBytes(0, p).ToStr();
@@ -84,7 +85,7 @@ namespace NewLife.Http
             BodyLength += pk.Count;
 
             if (_cache == null) _cache = new MemoryStream();
-            pk.WriteTo(_cache);
+            pk.CopyTo(_cache);
 
             if (!IsCompleted) return false;
 
@@ -103,8 +104,10 @@ namespace NewLife.Http
         {
             var len = data != null ? data.Count : 0;
 
-            var rs = new Packet(BuildHeader(len).GetBytes());
-            rs.Next = data;
+            var rs = new Packet(BuildHeader(len).GetBytes())
+            {
+                Next = data
+            };
 
             return rs;
         }

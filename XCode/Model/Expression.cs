@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
+using NewLife.Collections;
 
 namespace XCode
 {
@@ -11,6 +12,12 @@ namespace XCode
         #region 属性
         /// <summary>文本表达式</summary>
         public String Text { get; private set; }
+
+        /// <summary>是否为空</summary>
+        public virtual Boolean IsEmpty => Text.IsNullOrEmpty();
+
+        /// <summary>空表达式，一般用于表达式连写</summary>
+        public static Expression Empty = new Expression();
         #endregion
 
         #region 构造
@@ -19,7 +26,7 @@ namespace XCode
 
         /// <summary>用一段文本实例化简单表达式</summary>
         /// <param name="value"></param>
-        public Expression(String value) { Text = value; }
+        public Expression(String value) => Text = value;
         #endregion
 
         #region 方法
@@ -30,10 +37,10 @@ namespace XCode
         /// <returns></returns>
         public String GetString(IDictionary<String, Object> ps)
         {
-            var sb = new StringBuilder();
+            var sb = Pool.StringBuilder.Get();
             GetString(sb, ps);
 
-            return sb.ToString();
+            return sb.Put(true);
         }
 
         /// <summary>获取字符串</summary>
@@ -41,22 +48,23 @@ namespace XCode
         /// <param name="ps">参数字典</param>
         public virtual void GetString(StringBuilder builder, IDictionary<String, Object> ps)
         {
-            if (Text.IsNullOrEmpty()) return;
+            var txt = Text;
+            if (txt.IsNullOrEmpty()) return;
 
-            if (_regOr.IsMatch(Text))
-                builder.AppendFormat("({0})", Text);
+            if (_regOr.IsMatch(txt))
+                builder.AppendFormat("({0})", txt);
             else
-                builder.Append(Text);
+                builder.Append(txt);
         }
 
         /// <summary>输出该表达式的字符串形式</summary>
         /// <returns></returns>
-        public override String ToString() { return GetString(null); }
+        public override String ToString() => GetString(null);
 
         /// <summary>类型转换</summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public static implicit operator String(Expression obj) { return obj?.ToString(); }
+        public static implicit operator String(Expression obj) => obj?.ToString();
         #endregion
 
         #region 重载运算符
@@ -64,13 +72,13 @@ namespace XCode
         /// <param name="exp"></param>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        public static WhereExpression operator &(Expression exp, Expression value) { return And(exp, value); }
+        public static WhereExpression operator &(Expression exp, Expression value) => And(exp, value);
 
         /// <summary>重载运算符实现And操作</summary>
         /// <param name="exp"></param>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        public static WhereExpression operator &(Expression exp, String value) { return And(exp, new Expression(value)); }
+        public static WhereExpression operator &(Expression exp, String value) => And(exp, new Expression(value));
 
         static WhereExpression And(Expression exp, Expression value)
         {
@@ -87,13 +95,13 @@ namespace XCode
         /// <param name="exp"></param>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        public static WhereExpression operator |(Expression exp, Expression value) { return Or(exp, value); }
+        public static WhereExpression operator |(Expression exp, Expression value) => Or(exp, value);
 
         /// <summary>重载运算符实现Or操作</summary>
         /// <param name="exp"></param>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        public static WhereExpression operator |(Expression exp, String value) { return Or(exp, new Expression(value)); }
+        public static WhereExpression operator |(Expression exp, String value) => Or(exp, new Expression(value));
 
         static WhereExpression Or(Expression exp, Expression value)
         {

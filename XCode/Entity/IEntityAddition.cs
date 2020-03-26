@@ -1,11 +1,11 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using NewLife.Reflection;
 
 namespace XCode
 {
-    /// <summary>实体累加接口。实现Count+=1的效果</summary>
+    /// <summary>实体累加接口。实现Count=Count+123的效果</summary>
     public interface IEntityAddition
     {
         #region 属性
@@ -14,32 +14,22 @@ namespace XCode
         #endregion
 
         #region 累加
-        /// <summary>设置累加字段。如果是第一次设置该字段，则保存该字段当前数据作为累加基础数据</summary>
-        /// <param name="name">字段名称</param>
-        /// <param name="reset">是否重置。可以保存当前数据作为累加基础数据</param>
-        /// <returns>是否成功设置累加字段。如果不是第一次设置，并且没有重置数据，那么返回失败</returns>
-        Boolean SetField(String name, Boolean reset = false);
+        /// <summary>设置累加字段</summary>
+        /// <param name="names">字段集合</param>
+        void Set(IEnumerable<String> names);
 
-        /// <summary>删除累加字段。</summary>
-        /// <param name="name">字段名称</param>
-        /// <param name="restore">是否恢复数据</param>
-        /// <returns>是否成功删除累加字段</returns>
-        Boolean RemoveField(String name, Boolean restore = false);
+        /// <summary>获取快照</summary>
+        /// <returns></returns>
+        IDictionary<String, Object[]> Get();
 
-        /// <summary>尝试获取累加数据</summary>
-        /// <param name="name">字段名称</param>
-        /// <param name="value">累加数据</param>
-        /// <param name="sign">正负</param>
-        /// <returns>是否获取指定字段的累加数据</returns>
-        Boolean TryGetValue(String name, out Object value, out Boolean sign);
-
-        /// <summary>清除累加字段数据。Update后调用该方法</summary>
-        void ClearValues();
+        /// <summary>使用快照重置</summary>
+        /// <param name="value"></param>
+        void Reset(IDictionary<String, Object[]> value);
         #endregion
     }
 
     /// <summary>实体累加接口。实现Count+=1的效果</summary>
-    class EntityAddition : IEntityAddition
+    public class EntityAddition : IEntityAddition
     {
         #region 属性
         /// <summary>实体对象</summary>
@@ -47,207 +37,89 @@ namespace XCode
         #endregion
 
         #region 累加
-        [NonSerialized]
-        private IDictionary<String, Object> _Additions;
+        private String[] _Names;
+        private Object[] _Values;
 
-        /// <summary>设置累加字段。如果是第一次设置该字段，则保存该字段当前数据作为累加基础数据</summary>
-        /// <param name="name">字段名称</param>
-        /// <param name="reset">是否重置。可以保存当前数据作为累加基础数据</param>
-        /// <returns>是否成功设置累加字段。如果不是第一次设置，并且没有重置数据，那么返回失败</returns>
-        public Boolean SetField(String name, Boolean reset = false)
+        /// <summary>设置累加字段</summary>
+        /// <param name="names">字段集合</param>
+        public void Set(IEnumerable<String> names)
         {
-            var df = _Additions;
-            // 检查集合是否为空
-            if (df == null)
+            var ns = new List<String>();
+            var vs = new List<Object>();
+            foreach (var item in names)
             {
-                //_Additions = new Dictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
-                _Additions = df = new Dictionary<String, Object>();
+                ns.Add(item);
+                vs.Add(Entity[item]);
             }
 
-            lock (df)
-            {
-                if (reset || !df.ContainsKey(name))
-                {
-                    df[name] = Entity[name];
-                    return true;
-                }
-                else
-                    return false;
-            }
+            _Names = ns.ToArray();
+            _Values = vs.ToArray();
         }
 
-        /// <summary>删除累加字段。</summary>
-        /// <param name="name">字段名称</param>
-        /// <param name="restore">是否恢复数据</param>
-        /// <returns>是否成功删除累加字段</returns>
-        public Boolean RemoveField(String name, Boolean restore = false)
+        /// <summary>获取累加备份</summary>
+        /// <returns></returns>
+        public IDictionary<String, Object[]> Get()
         {
-            var df = _Additions;
-            if (df == null) return false;
-            if (!df.TryGetValue(name, out var obj)) return false;
+            var dic = new Dictionary<String, Object[]>();
+            if (_Names == null) return dic;
 
-            if (restore) Entity[name] = obj;
-
-            return true;
-        }
-
-        /// <summary>尝试获取累加数据</summary>
-        /// <param name="name">字段名称</param>
-        /// <param name="value">累加数据绝对值</param>
-        /// <param name="sign">正负</param>
-        /// <returns>是否获取指定字段的累加数据</returns>
-        public Boolean TryGetValue(String name, out Object value, out Boolean sign)
-        {
-            value = null;
-            sign = true;
-
-            var df = _Additions;
-            if (df == null) return false;
-            if (!df.TryGetValue(name, out value)) return false;
-
-            // 如果原始值是0，不使用累加，因为可能原始数据字段是NULL，导致累加失败
-            if (Convert.ToInt64(value) == 0) return false;
-
-            // 计算累加数据
-            var current = Entity[name];
-            var type = current.GetType();
-            var code = Type.GetTypeCode(type);
-            switch (code)
+            for (var i = 0; i < _Names.Length; i++)
             {
-                case TypeCode.Char:
-                case TypeCode.Byte:
-                case TypeCode.SByte:
-                case TypeCode.Int16:
-                case TypeCode.Int32:
-                case TypeCode.Int64:
-                case TypeCode.UInt16:
-                case TypeCode.UInt32:
-                case TypeCode.UInt64:
-                    {
-                        var v = Convert.ToInt64(current) - Convert.ToInt64(value);
-                        if (v < 0)
-                        {
-                            v *= -1;
-                            sign = false;
-                        }
-                        //value = Convert.ChangeType(v, type);
-                        value = v;
-                    }
-                    break;
-                case TypeCode.Single:
-                    {
-                        var v = (Single)current - (Single)value;
-                        if (v < 0)
-                        {
-                            v *= -1;
-                            sign = false;
-                        }
-                        value = v;
-                    }
-                    break;
-                case TypeCode.Double:
-                    {
-                        var v = (Double)current - (Double)value;
-                        if (v < 0)
-                        {
-                            v *= -1;
-                            sign = false;
-                        }
-                        value = v;
-                    }
-                    break;
-                case TypeCode.Decimal:
-                    {
-                        var v = (Decimal)current - (Decimal)value;
-                        if (v < 0)
-                        {
-                            v *= -1;
-                            sign = false;
-                        }
-                        value = v;
-                    }
-                    break;
-                default:
-                    break;
+                var key = _Names[i];
+
+                var vs = new Object[2];
+                dic[key] = vs;
+
+                vs[0] = Entity[key];
+                vs[1] = _Values[i];
             }
 
-            return true;
+            return dic;
         }
 
-        /// <summary>清除累加字段数据。Update后调用该方法</summary>
-        public void ClearValues()
+        /// <summary>重置累加备份</summary>
+        /// <param name="dfs"></param>
+        public void Reset(IDictionary<String, Object[]> dfs)
         {
-            var df = _Additions;
-            if (df == null) return;
+            if (dfs == null || dfs.Count == 0) return;
+            if (_Names == null) return;
 
-            foreach (var item in df.Keys.ToArray())
+            for (var i = 0; i < _Names.Length; i++)
             {
-                df[item] = Entity[item];
+                var key = _Names[i];
+                if (dfs.TryGetValue(key, out var vs) && vs != null && vs.Length > 0) _Values[i] = vs[0];
             }
         }
         #endregion
 
         #region 静态
-        public static IList<IEntity> SetField(IList<IEntity> list)
+        /// <summary>设置累加备份</summary>
+        /// <param name="list"></param>
+        public static void SetField(IEnumerable<IEntity> list)
         {
-            if (list == null || list.Count < 1) return list;
+            if (list == null) return;
 
-            var entityType = list[0].GetType();
-            var factory = EntityFactory.CreateOperate(entityType);
-            var fs = factory.AdditionalFields;
+            var first = list.FirstOrDefault();
+            if (first == null) return;
+
+            var fs = first.GetType().AsFactory().AdditionalFields;
             if (fs.Count > 0)
             {
-                foreach (EntityBase entity in list)
+                foreach (var entity in list)
                 {
-                    if (entity != null)
-                    {
-                        foreach (var item in fs)
-                        {
-                            entity.Addition.SetField(item);
-                        }
-                    }
-                }
-            }
-
-            return list;
-        }
-
-        public static void SetField(EntityBase entity)
-        {
-            if (entity == null) return;
-
-            var factory = EntityFactory.CreateOperate(entity.GetType());
-            var fs = factory.AdditionalFields;
-            if (fs.Count > 0)
-            {
-                foreach (var item in fs)
-                {
-                    entity.Addition.SetField(item);
+                    if (entity != null) entity.Addition.Set(fs);
                 }
             }
         }
 
-        public static void ClearValues(EntityBase entity)
+        /// <summary>设置累加备份</summary>
+        /// <param name="entity"></param>
+        public static void SetField(IEntity entity)
         {
             if (entity == null) return;
 
-            entity.Addition.ClearValues();
-        }
-
-        /// <summary>尝试获取累加数据</summary>
-        /// <param name="entity">实体对象</param>
-        /// <param name="name">字段名称</param>
-        /// <param name="value">累加数据绝对值</param>
-        /// <param name="sign">正负</param>
-        /// <returns>是否获取指定字段的累加数据</returns>
-        public static Boolean TryGetValue(EntityBase entity, String name, out Object value, out Boolean sign)
-        {
-            value = null;
-            sign = false;
-
-            if (entity == null) return false;
-
-            return entity.Addition.TryGetValue(name, out value, out sign);
+            var fs = entity.GetType().AsFactory().AdditionalFields;
+            if (fs.Count > 0) entity.Addition.Set(fs);
         }
         #endregion
     }

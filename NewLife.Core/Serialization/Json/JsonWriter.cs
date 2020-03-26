@@ -3,46 +3,90 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Globalization;
+using System.Linq;
 using System.Text;
+using NewLife.Data;
 using NewLife.Reflection;
 
 namespace NewLife.Serialization
 {
     /// <summary>Json写入器</summary>
-    internal class JsonWriter
+    public class JsonWriter
     {
         #region 属性
-        /// <summary>使用UTC时间</summary>
+        /// <summary>使用UTC时间。默认false</summary>
         public Boolean UseUTCDateTime { get; set; }
 
-        /// <summary>使用消息名称</summary>
-        public Boolean LowerCaseName { get; set; }
+        /// <summary>使用小写名称</summary>
+        public Boolean LowerCase { get; set; }
 
-        /// <summary>写入空值</summary>
-        public Boolean NullValue { get; set; }
+        /// <summary>使用驼峰命名</summary>
+        public Boolean CamelCase { get; set; }
 
-        private StringBuilder _Builder = new StringBuilder();
+        /// <summary>忽略空值。默认false</summary>
+        public Boolean IgnoreNullValues { get; set; }
+
+        /// <summary>忽略只读属性。默认false</summary>
+        public Boolean IgnoreReadOnlyProperties { get; set; }
+
+        /// <summary>忽略注释。默认true</summary>
+        public Boolean IgnoreComment { get; set; } = true;
+
+        /// <summary>枚举使用字符串。默认false使用数字</summary>
+        public Boolean EnumString { get; set; }
+
+        /// <summary>缩进。默认false</summary>
+        public Boolean Indented { get; set; }
+
+        /// <summary>智能缩进，内层不换行。默认false</summary>
+        public Boolean SmartIndented { get; set; }
+
+        /// <summary>最大序列化深度。默认5</summary>
+        public Int32 MaxDepth { get; set; } = 5;
+
+        private readonly StringBuilder _Builder = new StringBuilder();
         #endregion
 
         #region 构造
-        public JsonWriter()
-        {
-            UseUTCDateTime = false;
-            NullValue = true;
-        }
+        /// <summary>实例化</summary>
+        public JsonWriter() { }
+        #endregion
 
-        public String ToJson(Object obj, Boolean indented = false)
+        #region 静态转换
+        /// <summary>对象序列化为Json字符串</summary>
+        /// <param name="obj"></param>
+        /// <param name="indented">是否缩进。默认false</param>
+        /// <param name="nullValue">是否写控制。默认true</param>
+        /// <param name="camelCase">是否驼峰命名。默认false</param>
+        /// <returns></returns>
+        public static String ToJson(Object obj, Boolean indented = false, Boolean nullValue = true, Boolean camelCase = false)
         {
-            WriteValue(obj);
+            var jw = new JsonWriter
+            {
+                IgnoreNullValues = !nullValue,
+                CamelCase = camelCase,
+                Indented = indented,
+                //SmartIndented = indented,
+            };
 
-            var json = _Builder.ToString();
-            if (indented) json = JsonHelper.Format(json);
+            jw.WriteValue(obj);
+
+            var json = jw._Builder.ToString();
+            //if (indented) json = JsonHelper.Format(json);
 
             return json;
         }
         #endregion
 
         #region 写入方法
+        /// <summary>写入对象</summary>
+        /// <param name="value"></param>
+        public void Write(Object value) => WriteValue(value);
+
+        /// <summary>获取结果</summary>
+        /// <returns></returns>
+        public String GetString() => _Builder.ToString();
+
         private void WriteValue(Object obj)
         {
             if (obj == null || obj is DBNull)
@@ -66,18 +110,22 @@ namespace NewLife.Serialization
             )
                 _Builder.Append(((IConvertible)obj).ToString(NumberFormatInfo.InvariantInfo));
 
+            else if (obj is TimeSpan)
+                WriteString(obj + "");
+
             else if (obj is DateTime)
                 WriteDateTime((DateTime)obj);
 
+            else if (obj is IDictionary<String, Object> sdic)
+                WriteStringDictionary(sdic);
             else if (obj is IDictionary && obj.GetType().IsGenericType && obj.GetType().GetGenericArguments()[0] == typeof(String))
                 WriteStringDictionary((IDictionary)obj);
             else if (obj is System.Dynamic.ExpandoObject)
                 WriteStringDictionary((IDictionary<String, Object>)obj);
             else if (obj is IDictionary)
                 WriteDictionary((IDictionary)obj);
-            else if (obj is Byte[])
+            else if (obj is Byte[] buf)
             {
-                var buf = (Byte[])obj;
                 WriteStringFast(Convert.ToBase64String(buf, 0, buf.Length, Base64FormattingOptions.None));
             }
 
@@ -87,11 +135,21 @@ namespace NewLife.Serialization
             else if (obj is NameValueCollection)
                 WriteNV((NameValueCollection)obj);
 
-            else if (obj is IEnumerable)
-                WriteArray((IEnumerable)obj);
+            // 列表、数组
+            else if (obj is IList list)
+                WriteArray(list);
+
+            // Linq产生的枚举
+            else if (obj is IEnumerable arr && obj.GetType().Assembly == typeof(Enumerable).Assembly)
+                WriteArray(arr);
 
             else if (obj is Enum)
-                WriteValue(Convert.ToInt32(obj));
+            {
+                if (EnumString)
+                    WriteValue(obj + "");
+                else
+                    WriteValue(Convert.ToInt32(obj));
+            }
 
             else
                 WriteObject(obj);
@@ -100,41 +158,54 @@ namespace NewLife.Serialization
         private void WriteNV(NameValueCollection nvs)
         {
             _Builder.Append('{');
+            WriteLeftIndent();
 
             var first = true;
 
             foreach (String item in nvs)
             {
-                if (NullValue || nvs[item] != null)
+                if (!IgnoreNullValues || !IsNull(nvs[item]))
                 {
-                    if (!first) _Builder.Append(',');
+                    if (!first)
+                    {
+                        _Builder.Append(',');
+                        WriteIndent();
+                    }
                     first = false;
 
-                    var name = LowerCaseName ? item.ToLower() : item;
+                    var name = FormatName(item);
                     WritePair(name, nvs[item]);
                 }
             }
+
+            WriteRightIndent();
             _Builder.Append('}');
         }
 
         private void WriteSD(StringDictionary dic)
         {
             _Builder.Append('{');
+            WriteLeftIndent();
 
             var first = true;
 
             foreach (DictionaryEntry item in dic)
             {
-                if (NullValue || item.Value != null)
+                if (!IgnoreNullValues || !IsNull(item.Value))
                 {
-                    if (!first) _Builder.Append(',');
+                    if (!first)
+                    {
+                        _Builder.Append(',');
+                        WriteIndent();
+                    }
                     first = false;
 
-                    var name = (String)item.Key;
-                    if (LowerCaseName) name = name.ToLower();
+                    var name = FormatName((String)item.Key);
                     WritePair(name, item.Value);
                 }
             }
+
+            WriteRightIndent();
             _Builder.Append('}');
         }
 
@@ -143,60 +214,108 @@ namespace NewLife.Serialization
             var dt = dateTime;
             if (UseUTCDateTime) dt = dateTime.ToUniversalTime();
 
-            //var ms = (Int64)(DateTime.Now - new DateTime(1970, 1, 1)).TotalMilliseconds;
-            //_Builder.AppendFormat("\"\\/Date({0})\\/\"", ms);
-            _Builder.AppendFormat("\"{0}\"", dateTime.ToFullString());
+            // 纯日期缩短长度
+            var str = "";
+            if (dt.Year > 1000)
+            {
+                if (dt.Hour == 0 && dt.Minute == 0 && dt.Second == 0)
+                {
+                    str = dt.ToString("yyyy-MM-dd");
 
-            //_Builder.Append('\"');
-            //_Builder.Append(dt.Year.ToString("0000", NumberFormatInfo.InvariantInfo));
-            //_Builder.Append('-');
-            //_Builder.Append(dt.Month.ToString("00", NumberFormatInfo.InvariantInfo));
-            //_Builder.Append('-');
-            //_Builder.Append(dt.Day.ToString("00", NumberFormatInfo.InvariantInfo));
-            //if (UseUTCDateTime)
-            //    _Builder.Append('T');
-            //else
-            //    _Builder.Append(' ');
-            //_Builder.Append(dt.Hour.ToString("00", NumberFormatInfo.InvariantInfo));
-            //_Builder.Append(':');
-            //_Builder.Append(dt.Minute.ToString("00", NumberFormatInfo.InvariantInfo));
-            //_Builder.Append(':');
-            //_Builder.Append(dt.Second.ToString("00", NumberFormatInfo.InvariantInfo));
-            //if (UseUTCDateTime) _Builder.Append('Z');
+                    // 处理UTC
+                    if (dt.Kind == DateTimeKind.Utc) str += " UTC";
+                }
+                else
+                    str = dt.ToFullString();
+            }
 
-            //_Builder.Append('\"');
+            _Builder.AppendFormat("\"{0}\"", str);
         }
 
         Int32 _depth = 0;
-        private Dictionary<Object, Int32> _cirobj = new Dictionary<Object, Int32>();
+        private readonly Dictionary<Object, Int32> _cirobj = new Dictionary<Object, Int32>();
         private void WriteObject(Object obj)
         {
-            var i = 0;
-            if (!_cirobj.TryGetValue(obj, out i)) _cirobj.Add(obj, _cirobj.Count + 1);
+            if (!_cirobj.TryGetValue(obj, out _)) _cirobj.Add(obj, _cirobj.Count + 1);
 
             _Builder.Append('{');
-            _depth++;
-            if (_depth > 5) throw new Exception("超过了序列化最大深度 " + 5);
+            //WriteLeftIndent();
 
-            //var map = new Dictionary<String, String>();
+            _depth++;
+            if (_depth > MaxDepth) throw new Exception("超过了序列化最大深度 " + MaxDepth);
+
             var t = obj.GetType();
 
+            var forceIndent = false;
             var first = true;
             foreach (var pi in t.GetProperties(true))
             {
-                var value = obj.GetValue(pi);
-                if (NullValue || value != null && !(value is DBNull))
-                {
-                    if (!first) _Builder.Append(',');
-                    first = false;
+                if (IgnoreReadOnlyProperties && pi.CanRead && !pi.CanWrite) continue;
 
-                    var name = pi.Name;
-                    if (LowerCaseName) name = name.ToLower();
-                    WritePair(name, value);
+                var value = obj.GetValue(pi);
+                if (!IgnoreNullValues || !IsNull(value))
+                {
+                    var name = FormatName(SerialHelper.GetName(pi));
+                    String comment = null;
+                    if (!IgnoreComment && Indented) comment = pi.GetDisplayName() ?? pi.GetDescription();
+
+                    WriteMember(name, value, comment, ref forceIndent, ref first);
                 }
             }
+
+            // 扩展数据
+            if (obj is IExtend2 ext2 && ext2.Keys != null)
+            {
+                foreach (var item in ext2.Keys)
+                {
+                    var value = ext2[item];
+                    WriteMember(item, value, null, ref forceIndent, ref first);
+                }
+            }
+            if (obj is IExtend3 ext3 && ext3.Items != null)
+            {
+                foreach (var item in ext3.Items)
+                {
+                    WriteMember(item.Key, item.Value, null, ref forceIndent, ref first);
+                }
+            }
+
+            // 考虑无数据，此时没有缩进
+            if (!first) WriteRightIndent(forceIndent);
             _Builder.Append('}');
             _depth--;
+        }
+
+        private void WriteMember(String name, Object value, String comment, ref Boolean forceIndent, ref Boolean first)
+        {
+            if (!IgnoreNullValues || !IsNull(value))
+            {
+                // 缩进，复杂对象要求强制换行
+                forceIndent = value != null && value.GetType().GetTypeCode() == TypeCode.Object;
+                if (first)
+                {
+                    WriteLeftIndent(forceIndent);
+                }
+                else
+                {
+                    _Builder.Append(',');
+                    WriteIndent(forceIndent);
+                }
+                first = false;
+
+                // 注释
+                if (!IgnoreComment && Indented)
+                {
+                    //var comment = pi.GetDisplayName() ?? pi.GetDescription();
+                    if (!comment.IsNullOrEmpty())
+                    {
+                        _Builder.AppendFormat("// {0}", comment);
+                        WriteIndent();
+                    }
+                }
+
+                WritePair(name, value);
+            }
         }
         #endregion
 
@@ -215,6 +334,7 @@ namespace NewLife.Serialization
             WriteStringFast(name);
 
             _Builder.Append(':');
+            if (Indented) _Builder.Append(' ');
 
             WriteValue(value);
         }
@@ -222,73 +342,143 @@ namespace NewLife.Serialization
         private void WriteArray(IEnumerable arr)
         {
             _Builder.Append('[');
+            //WriteLeftIndent();
 
+            var forceIndent = false;
             var first = true;
             foreach (var obj in arr)
             {
-                if (!first) _Builder.Append(',');
+                // 缩进，复杂对象要求强制换行
+                forceIndent = obj != null && obj.GetType().GetTypeCode() == TypeCode.Object;
+                if (first)
+                {
+                    WriteLeftIndent(forceIndent);
+                }
+                else
+                {
+                    _Builder.Append(',');
+                    WriteIndent(forceIndent);
+                }
                 first = false;
 
                 WriteValue(obj);
             }
+
+            // 考虑无数据，此时没有缩进
+            if (!first) WriteRightIndent(forceIndent);
             _Builder.Append(']');
         }
 
         private void WriteStringDictionary(IDictionary dic)
         {
             _Builder.Append('{');
+            //WriteLeftIndent();
 
+            var forceIndent = false;
             var first = true;
             foreach (DictionaryEntry item in dic)
             {
-                if (NullValue || item.Value != null)
+                if (!IgnoreNullValues || !IsNull(item.Value))
                 {
-                    if (!first) _Builder.Append(',');
+                    // 缩进，复杂对象要求强制换行
+                    forceIndent = item.Value != null && item.Value.GetType().GetTypeCode() == TypeCode.Object;
+                    if (first)
+                    {
+                        WriteLeftIndent(forceIndent);
+                    }
+                    else
+                    {
+                        _Builder.Append(',');
+                        WriteIndent(forceIndent);
+                    }
                     first = false;
 
-                    var name = (String)item.Key;
-                    if (LowerCaseName) name = name.ToLower();
+                    var name = FormatName((String)item.Key);
                     WritePair(name, item.Value);
                 }
             }
+
+            // 考虑无数据，此时没有缩进
+            if (!first) WriteRightIndent(forceIndent);
             _Builder.Append('}');
         }
 
         private void WriteStringDictionary(IDictionary<String, Object> dic)
         {
             _Builder.Append('{');
+            //WriteLeftIndent();
 
+            var forceIndent = false;
             var first = true;
             foreach (var item in dic)
             {
-                if (NullValue || item.Value != null)
+                // 跳过注释
+                if (item.Key[0] == '#') continue;
+
+                if (!IgnoreNullValues || !IsNull(item.Value))
                 {
-                    if (!first) _Builder.Append(',');
+                    // 缩进，复杂对象要求强制换行
+                    forceIndent = item.Value != null && item.Value.GetType().GetTypeCode() == TypeCode.Object;
+                    if (first)
+                    {
+                        WriteLeftIndent(forceIndent);
+                    }
+                    else
+                    {
+                        _Builder.Append(',');
+                        WriteIndent(forceIndent);
+                    }
                     first = false;
 
-                    var name = LowerCaseName ? item.Key.ToLower() : item.Key;
+                    var name = FormatName(item.Key);
+
+                    // 注释
+                    if (!IgnoreComment && Indented && dic.TryGetValue("#" + name, out var comment) && comment != null)
+                    {
+                        WritePair("#" + name, comment);
+                        _Builder.Append(',');
+                        //_Builder.AppendFormat("// {0}", comment);
+                        WriteIndent();
+                    }
+
                     WritePair(name, item.Value);
                 }
             }
+
+            // 考虑无数据，此时没有缩进
+            if (!first) WriteRightIndent(forceIndent);
             _Builder.Append('}');
         }
 
         private void WriteDictionary(IDictionary dic)
         {
             _Builder.Append('[');
+            WriteLeftIndent();
 
             var first = true;
             foreach (DictionaryEntry entry in dic)
             {
-                if (!first) _Builder.Append(',');
-                first = false;
+                if (!IgnoreNullValues || !IsNull(entry.Value))
+                {
+                    if (!first)
+                    {
+                        _Builder.Append(',');
+                        WriteIndent();
+                    }
+                    first = false;
 
-                _Builder.Append('{');
-                WritePair("k", entry.Key);
-                _Builder.Append(",");
-                WritePair("v", entry.Value);
-                _Builder.Append('}');
+                    _Builder.Append('{');
+                    WriteLeftIndent();
+                    WritePair("k", entry.Key);
+                    _Builder.Append(",");
+                    WriteIndent();
+                    WritePair("v", entry.Value);
+                    WriteRightIndent();
+                    _Builder.Append('}');
+                }
             }
+
+            WriteRightIndent();
             _Builder.Append(']');
         }
 
@@ -339,6 +529,108 @@ namespace NewLife.Serialization
             if (idx != -1) _Builder.Append(str, idx, str.Length - idx);
 
             _Builder.Append('\"');
+        }
+
+        /// <summary>根据小写和驼峰格式化名称</summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        private String FormatName(String name)
+        {
+            if (name.IsNullOrEmpty()) return name;
+
+            if (LowerCase) return name.ToLower();
+            if (CamelCase)
+            {
+                if (name == "ID") return "id";
+                return name.Substring(0, 1).ToLower() + name.Substring(1);
+            }
+
+            return name;
+        }
+
+        private static IDictionary<TypeCode, Object> _def;
+        private static Boolean IsNull(Object obj)
+        {
+            if (obj == null || obj is DBNull) return true;
+
+            var code = obj.GetType().GetTypeCode();
+            if (code == TypeCode.Object) return false;
+            if (code == TypeCode.Empty || code == TypeCode.DBNull) return true;
+
+            var dic = _def;
+            if (dic == null)
+            {
+                dic = new Dictionary<TypeCode, Object>
+                {
+                    [TypeCode.Boolean] = false,
+                    [TypeCode.Char] = '\0',
+                    [TypeCode.SByte] = (SByte)0,
+                    [TypeCode.Byte] = (Byte)0,
+                    [TypeCode.Int16] = (Int16)0,
+                    [TypeCode.UInt16] = (UInt16)0,
+                    [TypeCode.Int32] = 0,
+                    [TypeCode.UInt32] = (UInt32)0,
+                    [TypeCode.Int64] = (Int64)0,
+                    [TypeCode.UInt64] = (UInt64)0,
+                    [TypeCode.Single] = (Single)0,
+                    [TypeCode.Double] = (Double)0,
+                    [TypeCode.Decimal] = (Decimal)0,
+                    [TypeCode.DateTime] = DateTime.MinValue,
+                    [TypeCode.String] = "",
+                };
+
+                _def = dic;
+            }
+
+            return dic.TryGetValue(code, out var rs) && Equals(obj, rs);
+        }
+        #endregion
+
+        #region 缩进
+        /// <summary>当前缩进层级</summary>
+        private Int32 _level;
+
+        private void WriteIndent(Boolean forceIndent = false)
+        {
+            if (!Indented) return;
+
+            if (SmartIndented && _level > 1 && !forceIndent)
+                _Builder.Append(' ');
+            else
+            {
+                _Builder.AppendLine();
+                if (_level > 0) _Builder.Append(' ', _level * 4);
+            }
+        }
+
+        private void WriteLeftIndent(Boolean forceIndent = false)
+        {
+            if (!Indented) return;
+
+            // 第二层开始
+            _level++;
+            if (SmartIndented && _level > 1 && !forceIndent)
+                _Builder.Append(' ');
+            else
+            {
+                _Builder.AppendLine();
+                if (_level > 0) _Builder.Append(' ', _level * 4);
+            }
+        }
+
+        private void WriteRightIndent(Boolean forceIndent = false)
+        {
+            if (!Indented) return;
+
+            // 第二层开始
+            _level--;
+            if (SmartIndented && _level >= 1 && !forceIndent)
+                _Builder.Append(' ');
+            else
+            {
+                _Builder.AppendLine();
+                if (_level > 0) _Builder.Append(' ', _level * 4);
+            }
         }
         #endregion
     }

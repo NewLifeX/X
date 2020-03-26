@@ -1,14 +1,13 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using NewLife.Collections;
-using NewLife.Net;
+using NewLife.Data;
 using NewLife.Reflection;
 using XCode.Common;
 
@@ -30,7 +29,8 @@ namespace XCode.DataAccessLayer
                 {
                     lock (typeof(Oracle))
                     {
-                        if (_Factory == null) _Factory = GetProviderFactory("Oracle.ManagedDataAccess.dll", "Oracle.ManagedDataAccess.Client.OracleClientFactory");
+                        //_Factory = GetProviderFactory("System.Data.OracleClient.dll", "System.Data.OracleClient.OracleClientFactory");
+                        _Factory = GetProviderFactory("Oracle.ManagedDataAccess.dll", "Oracle.ManagedDataAccess.Client.OracleClientFactory");
                     }
                 }
 
@@ -38,33 +38,15 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        private String _UserID;
-        /// <summary>用户名UserID</summary>
-        public String UserID
+        protected override void OnSetConnectionString(ConnectionStringBuilder builder)
         {
-            get
-            {
-                if (_UserID != null) return _UserID;
-                //_UserID = String.Empty;
+            //// Oracle强制关闭反向工程，禁止通过连接字符串设置
+            //if (builder.TryGetAndRemove(_.Migration, out var value) && !value.IsNullOrEmpty())
+            //{
+            //    //var mode = (Migration)Enum.Parse(typeof(Migration), value, true);
+            //    //DAL.WriteLog("");
+            //}
 
-                var connStr = ConnectionString;
-
-                if (String.IsNullOrEmpty(connStr)) return null;
-
-                var ocsb = Factory.CreateConnectionStringBuilder();
-                ocsb.ConnectionString = connStr;
-
-                if (ocsb.ContainsKey("User ID"))
-                    _UserID = (String)ocsb["User ID"];
-                else
-                    _UserID = String.Empty;
-
-                return _UserID;
-            }
-        }
-
-        protected override void OnSetConnectionString(XDbConnectionStringBuilder builder)
-        {
             base.OnSetConnectionString(builder);
 
             // 修正数据源
@@ -78,21 +60,30 @@ namespace XCode.DataAccessLayer
                     var name = uri.PathAndQuery.TrimStart("/");
                     if (name.IsNullOrEmpty()) name = "ORCL";
 
-                    str = "(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL={0})(HOST={1})(PORT={2})))(CONNECT_DATA=(SERVICE_NAME={3})))".F(type, uri.Host, port, name);
+                    str = $"(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL={type})(HOST={uri.Host})(PORT={port})))(CONNECT_DATA=(SERVICE_NAME={name})))";
                 }
-                builder.Add("Data Source", str);
+                builder.TryAdd("Data Source", str);
             }
+        }
+        #endregion
+
+        #region 构造
+        /// <summary>实例化</summary>
+        public Oracle()
+        {
+            //// Oracle强制关闭反向工程，无视配置文件设置，但代码设置和连接字符串设置有效
+            //Migration = Migration.Off;
         }
         #endregion
 
         #region 方法
         /// <summary>创建数据库会话</summary>
         /// <returns></returns>
-        protected override IDbSession OnCreateSession() { return new OracleSession(this); }
+        protected override IDbSession OnCreateSession() => new OracleSession(this);
 
         /// <summary>创建元数据对象</summary>
         /// <returns></returns>
-        protected override IMetaData OnCreateMetaData() { return new OracleMeta(); }
+        protected override IMetaData OnCreateMetaData() => new OracleMeta();
 
         public override Boolean Support(String providerName)
         {
@@ -116,15 +107,17 @@ namespace XCode.DataAccessLayer
             // 从第一行开始
             if (startRowIndex <= 0)
             {
-                if (maximumRows > 0) sql = String.Format("Select * From ({1}) XCode_T0 Where rownum<={0}", maximumRows, sql);
+                if (maximumRows <= 0) return sql;
+
+                if (!sql.ToLower().Contains("order by")) return "Select * From ({1}) T0 Where rownum<={0}".F(maximumRows, sql);
             }
-            else
-            {
-                if (maximumRows <= 0)
-                    sql = String.Format("Select * From ({1}) XCode_T0 Where rownum>={0}", startRowIndex + 1, sql);
-                else
-                    sql = String.Format("Select * From (Select XCode_T0.*, rownum as rowNumber From ({1}) XCode_T0 Where rownum<={2}) XCode_T1 Where rowNumber>{0}", startRowIndex, sql, startRowIndex + maximumRows);
-            }
+
+            //if (maximumRows <= 0)
+            //    sql = String.Format("Select * From ({1}) XCode_T0 Where rownum>={0}", startRowIndex + 1, sql);
+            //else
+            sql = "Select * From (Select T0.*, rownum as rowNumber From ({1}) T0) T1 Where rowNumber>{0}".F(startRowIndex, sql);
+            if (maximumRows > 0) sql += " And rowNumber<={0}".F(startRowIndex + maximumRows);
+
             return sql;
         }
 
@@ -140,17 +133,37 @@ namespace XCode.DataAccessLayer
         /// <returns>分页SQL</returns>
         public override SelectBuilder PageSplit(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows)
         {
+            /*
+             * Oracle的rownum分页，在内层有Order By非主键排序时，外层的rownum会优先生效，
+             * 导致排序字段有相同值时无法在多次查询中保持顺序，（Oracle算法参数会改变）。
+             * 其一，可以在排序字段后加上主键，确保排序内容唯一；
+             * 其二，可以在第二层提前取得rownum，然后在第三层外使用；
+             * 
+             * 原分页算法始于2005年，只有在特殊情况下遇到分页出现重复数据的BUG：
+             * 排序、排序字段不包含主键且不唯一、排序字段拥有相同数值的数据行刚好被分到不同页上
+             */
+
             // 从第一行开始，不需要分页
             if (startRowIndex <= 0)
             {
-                if (maximumRows > 0) builder = builder.AsChild("XCode_T0", false).AppendWhereAnd("rownum<={0}", maximumRows);
-                return builder;
-            }
-            if (maximumRows < 1) return builder.AsChild("XCode_T0", false).AppendWhereAnd("rownum>={0}", startRowIndex + 1);
+                if (maximumRows <= 0) return builder;
 
-            builder = builder.AsChild("XCode_T0", false).AppendWhereAnd("rownum<={0}", startRowIndex + maximumRows);
-            builder.Column = "XCode_T0.*, rownum as rowNumber";
-            builder = builder.AsChild("XCode_T1", false).AppendWhereAnd("rowNumber>{0}", startRowIndex);
+                //// 如果带有排序，需要生成完整语句
+                //if (builder.OrderBy.IsNullOrEmpty())
+                return builder.AsChild("T0", false).AppendWhereAnd("rownum<={0}", maximumRows);
+            }
+            else if (maximumRows < 1)
+                throw new NotSupportedException();
+
+            builder = builder.AsChild("T0", false).AppendWhereAnd("rownum<={0}", startRowIndex + maximumRows);
+            builder.Column = "T0.*, rownum as rowNumber";
+            builder = builder.AsChild("T1", false).AppendWhereAnd("rowNumber>{0}", startRowIndex);
+
+            //builder = builder.AsChild("T0", false);
+            //builder.Column = "T0.*, rownum as rowNumber";
+            //builder = builder.AsChild("T1", false);
+            //builder.AppendWhereAnd("rowNumber>{0}", startRowIndex);
+            //if (maximumRows > 0) builder.AppendWhereAnd("rowNumber<={0}", startRowIndex + maximumRows);
 
             return builder;
         }
@@ -158,9 +171,14 @@ namespace XCode.DataAccessLayer
 
         #region 数据库特性
         /// <summary>已重载。格式化时间</summary>
-        /// <param name="dateTime"></param>
+        /// <param name="dt"></param>
         /// <returns></returns>
-        public override String FormatDateTime(DateTime dateTime) { return "To_Date('" + dateTime.ToFullString() + "', 'YYYY-MM-DD HH24:MI:SS')"; }
+        public override String FormatDateTime(DateTime dt)
+        {
+            if (dt.Hour == 0 && dt.Minute == 0 && dt.Second == 0) return "To_Date('{0:yyyy-MM-dd}', 'YYYY-MM-DD')".F(dt);
+
+            return "To_Date('{0:yyyy-MM-dd HH:mm:ss}', 'YYYY-MM-DD HH24:MI:SS')".F(dt);
+        }
 
         public override String FormatValue(IDataColumn field, Object value)
         {
@@ -180,39 +198,54 @@ namespace XCode.DataAccessLayer
             return base.FormatValue(field, value);
         }
 
-        /// <summary>格式化标识列，返回插入数据时所用的表达式，如果字段本身支持自增，则返回空</summary>
-        /// <param name="field">字段</param>
-        /// <param name="value">数值</param>
-        /// <returns></returns>
-        public override String FormatIdentity(IDataColumn field, Object value)
-        {
-            return String.Format("SEQ_{0}.nextval", field.Table.TableName);
-        }
+        ///// <summary>格式化标识列，返回插入数据时所用的表达式，如果字段本身支持自增，则返回空</summary>
+        ///// <param name="field">字段</param>
+        ///// <param name="value">数值</param>
+        ///// <returns></returns>
+        //public override String FormatIdentity(IDataColumn field, Object value) => String.Format("SEQ_{0}.nextval", field.Table.TableName);
 
-        internal protected override String ParamPrefix { get { return ":"; } }
+        internal protected override String ParamPrefix => ":";
 
         /// <summary>字符串相加</summary>
         /// <param name="left"></param>
         /// <param name="right"></param>
         /// <returns></returns>
-        public override String StringConcat(String left, String right) { return (!String.IsNullOrEmpty(left) ? left : "\'\'") + "||" + (!String.IsNullOrEmpty(right) ? right : "\'\'"); }
+        public override String StringConcat(String left, String right) => (!String.IsNullOrEmpty(left) ? left : "\'\'") + "||" + (!String.IsNullOrEmpty(right) ? right : "\'\'");
 
         /// <summary>创建参数</summary>
         /// <param name="name">名称</param>
         /// <param name="value">值</param>
-        /// <param name="type">类型</param>
+        /// <param name="field">字段</param>
         /// <returns></returns>
-        public override IDataParameter CreateParameter(String name, Object value, Type type = null)
+        public override IDataParameter CreateParameter(String name, Object value, IDataColumn field = null)
         {
-            if (type == null) type = value?.GetType();
+            var type = field?.DataType;
+            if (type == null)
+            {
+                type = value?.GetType();
+                // 参数可能是数组
+                if (type != null && type != typeof(Byte[]) && type.IsArray) type = type.GetElementTypeEx();
+            }
 
             if (type == typeof(Boolean))
             {
-                type = typeof(Int32);
-                value = value.ToBoolean() ? 1 : 0;
+                if (value is IEnumerable<Object> list)
+                    value = list.Select(e => e.ToBoolean() ? 1 : 0).ToArray();
+                else if (value is IEnumerable<Boolean> list2)
+                    value = list2.Select(e => e.ToBoolean() ? 1 : 0).ToArray();
+                else
+                    value = value.ToBoolean() ? 1 : 0;
+
+                //type = typeof(Int32);
+                var dp2 = Factory.CreateParameter();
+                dp2.ParameterName = FormatParameterName(name);
+                dp2.Direction = ParameterDirection.Input;
+                dp2.DbType = DbType.Int32;
+                dp2.Value = value;
+                return dp2;
             }
 
-            var dp = base.CreateParameter(name, value, type);
+            var dp = base.CreateParameter(name, value, field);
 
             // 修正时间映射
             if (type == typeof(DateTime)) dp.DbType = DbType.Date;
@@ -268,10 +301,10 @@ namespace XCode.DataAccessLayer
         public Boolean NeedAnalyzeStatistics(String tableName)
         {
             var owner = Owner;
-            if (owner.IsNullOrEmpty()) owner = UserID;
+            if (owner.IsNullOrEmpty()) owner = User;
 
             // 非当前用户，不支持统计
-            if (!owner.EqualIgnoreCase(UserID)) return false;
+            if (!owner.EqualIgnoreCase(User)) return false;
 
             var key = String.Format("{0}.{1}", owner, tableName);
             if (!cache.TryGetValue(key, out var dt))
@@ -306,6 +339,35 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 基本方法 查询/执行
+        protected override DbTable OnFill(DbDataReader dr)
+        {
+            var dt = new DbTable();
+            dt.ReadHeader(dr);
+
+            Int32[] fields = null;
+
+            // 干掉rowNumber
+            var idx = Array.FindIndex(dt.Columns, c => c.EqualIgnoreCase("rowNumber"));
+            if (idx >= 0)
+            {
+                var cs = dt.Columns.ToList();
+                var ts = dt.Types.ToList();
+                var fs = Enumerable.Range(0, cs.Count).ToList();
+
+                cs.RemoveAt(idx);
+                ts.RemoveAt(idx);
+                fs.RemoveAt(idx);
+
+                dt.Columns = cs.ToArray();
+                dt.Types = ts.ToArray();
+                fields = fs.ToArray();
+            }
+
+            dt.ReadData(dr, fields);
+
+            return dt;
+        }
+
         /// <summary>快速查询单表记录数，稍有偏差</summary>
         /// <param name="tableName"></param>
         /// <returns></returns>
@@ -318,7 +380,7 @@ namespace XCode.DataAccessLayer
             tableName = tableName.ToUpper();
 
             var owner = (Database as Oracle).Owner;
-            if (owner.IsNullOrEmpty()) owner = (Database as Oracle).UserID;
+            if (owner.IsNullOrEmpty()) owner = (Database as Oracle).User;
             //var owner = (Database as Oracle).Owner.ToUpper();
             owner = owner.ToUpper();
 
@@ -363,10 +425,201 @@ namespace XCode.DataAccessLayer
                 return rs;
             }
             catch { Rollback(true); throw; }
-            finally
+            //finally
+            //{
+            //    AutoClose();
+            //}
+        }
+
+        /// <summary>重载支持批量操作</summary>
+        /// <param name="sql"></param>
+        /// <param name="type"></param>
+        /// <param name="ps"></param>
+        /// <returns></returns>
+        protected override DbCommand OnCreateCommand(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
+        {
+            var cmd = base.OnCreateCommand(sql, type, ps);
+            if (cmd == null) return null;
+
+            // 如果参数Value都是数组，那么就是批量操作
+            if (ps != null && ps.Length > 0 && ps.All(p => p.Value is IList))
             {
-                AutoClose();
+                var arr = ps.First().Value as IList;
+                cmd.SetValue("ArrayBindCount", arr.Count);
+                cmd.SetValue("BindByName", true);
+
+                // 超时时间放大10倍
+                if (cmd.CommandTimeout > 0)
+                    cmd.CommandTimeout *= 10;
+                else
+                    cmd.CommandTimeout = 120;
             }
+
+            return cmd;
+        }
+        #endregion
+
+        #region 批量操作
+        public override Int32 Insert(String tableName, IDataColumn[] columns, IEnumerable<IIndexAccessor> list)
+        {
+            var ps = new HashSet<String>();
+            var sql = GetInsertSql(tableName, columns, ps);
+            var dps = GetParameters(columns, ps, list);
+
+            return Execute(sql, CommandType.Text, dps);
+        }
+
+        private String GetInsertSql(String tableName, IDataColumn[] columns, ICollection<String> ps)
+        {
+            var sb = Pool.StringBuilder.Get();
+            var db = Database as DbBase;
+
+            // 字段列表
+            sb.AppendFormat("Insert Into {0}(", db.FormatName(tableName));
+            foreach (var dc in columns)
+            {
+                //if (dc.Identity) continue;
+
+                sb.Append(db.FormatName(dc.ColumnName));
+                sb.Append(",");
+            }
+            sb.Length--;
+            sb.Append(")");
+
+            // 值列表
+            sb.Append(" Values(");
+            foreach (var dc in columns)
+            {
+                //if (dc.Identity) continue;
+
+                sb.Append(db.FormatParameterName(dc.Name));
+                sb.Append(",");
+
+                if (!ps.Contains(dc.Name)) ps.Add(dc.Name);
+            }
+            sb.Length--;
+            sb.Append(")");
+
+            return sb.Put(true);
+        }
+
+        private IDataParameter[] GetParameters(IDataColumn[] columns, ICollection<String> ps, IEnumerable<IIndexAccessor> list)
+        {
+            var db = Database;
+            var dps = new List<IDataParameter>();
+            foreach (var dc in columns)
+            {
+                //if (dc.Identity) continue;
+                if (!ps.Contains(dc.Name)) continue;
+
+                //var vs = new List<Object>();
+                var type = dc.DataType;
+                if (!type.IsInt() && type.IsEnum) type = typeof(Int32);
+                var arr = Array.CreateInstance(type, list.Count());
+                var k = 0;
+                foreach (var entity in list)
+                {
+                    //vs.Add(entity[dc.Name]);
+                    arr.SetValue(entity[dc.Name], k++);
+                }
+                var dp = db.CreateParameter(dc.Name, arr, dc);
+
+                dps.Add(dp);
+            }
+
+            return dps.ToArray();
+        }
+
+        public override Int32 Upsert(String tableName, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list)
+        {
+            var ps = new HashSet<String>();
+            var insert = GetInsertSql(tableName, columns, ps);
+            var update = GetUpdateSql(tableName, columns, updateColumns, addColumns, ps);
+
+            var sb = Pool.StringBuilder.Get();
+            sb.AppendLine("BEGIN");
+            sb.AppendLine(insert + ";");
+            sb.AppendLine("EXCEPTION");
+            // 没有更新时，直接返回，可用于批量插入且其中部分有冲突需要忽略的场景
+            if (!update.IsNullOrEmpty())
+            {
+                sb.AppendLine("WHEN DUP_VAL_ON_INDEX THEN");
+                sb.AppendLine(update + ";");
+            }
+            else
+            {
+                //sb.AppendLine("WHEN OTHERS THEN");
+                sb.AppendLine("WHEN DUP_VAL_ON_INDEX THEN");
+                sb.AppendLine("RETURN;");
+            }
+            sb.AppendLine("END;");
+
+            var sql = sb.Put(true);
+
+            var dps = GetParameters(columns, ps, list);
+
+            return Execute(sql, CommandType.Text, dps);
+        }
+
+        private String GetUpdateSql(String tableName, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, ICollection<String> ps)
+        {
+            if ((updateColumns == null || updateColumns.Count == 0)
+                && (addColumns == null || addColumns.Count == 0)) return null;
+
+            var sb = Pool.StringBuilder.Get();
+            var db = Database as DbBase;
+
+            // 字段列表
+            sb.AppendFormat("Update {0} Set ", db.FormatName(tableName));
+            foreach (var dc in columns)
+            {
+                if (dc.Identity || dc.PrimaryKey) continue;
+
+                if (addColumns != null && addColumns.Contains(dc.Name))
+                {
+                    sb.AppendFormat("{0}={0}+{1},", db.FormatName(dc.ColumnName), db.FormatParameterName(dc.Name));
+
+                    if (!ps.Contains(dc.Name)) ps.Add(dc.Name);
+                }
+                else if (updateColumns != null && updateColumns.Contains(dc.Name))
+                {
+                    sb.AppendFormat("{0}={1},", db.FormatName(dc.ColumnName), db.FormatParameterName(dc.Name));
+
+                    if (!ps.Contains(dc.Name)) ps.Add(dc.Name);
+                }
+            }
+            sb.Length--;
+
+            // 条件
+            sb.Append(" Where ");
+            foreach (var dc in columns)
+            {
+                if (!dc.PrimaryKey) continue;
+
+                sb.AppendFormat("{0}={1}", db.FormatName(dc.ColumnName), db.FormatParameterName(dc.Name));
+                sb.Append(" And ");
+
+                if (!ps.Contains(dc.Name)) ps.Add(dc.Name);
+            }
+            sb.Length -= " And ".Length;
+
+            return sb.Put(true);
+        }
+
+        /// <summary>批量更新</summary>
+        /// <param name="tableName">表名</param>
+        /// <param name="columns">要更新的字段，默认所有字段</param>
+        /// <param name="updateColumns">要更新的字段，默认脏数据</param>
+        /// <param name="addColumns">要累加更新的字段，默认累加</param>
+        /// <param name="list">实体列表</param>
+        /// <returns></returns>
+        public override Int32 Update(String tableName, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list)
+        {
+            var ps = new HashSet<String>();
+            var sql = GetUpdateSql(tableName, columns, updateColumns, addColumns, ps);
+            var dps = GetParameters(columns, ps, list);
+
+            return Execute(sql, CommandType.Text, dps);
         }
         #endregion
     }
@@ -374,10 +627,7 @@ namespace XCode.DataAccessLayer
     /// <summary>Oracle元数据</summary>
     class OracleMeta : RemoteDbMetaData
     {
-        public OracleMeta()
-        {
-            Types = _DataTypes;
-        }
+        public OracleMeta() => Types = _DataTypes;
 
         /// <summary>拥有者</summary>
         public String Owner
@@ -385,14 +635,14 @@ namespace XCode.DataAccessLayer
             get
             {
                 var owner = Database.Owner;
-                if (owner.IsNullOrEmpty()) owner = (Database as Oracle).UserID;
+                if (owner.IsNullOrEmpty()) owner = (Database as Oracle).User;
 
                 return owner.ToUpper();
             }
         }
 
         /// <summary>用户名</summary>
-        public String UserID { get { return (Database as Oracle).UserID.ToUpper(); } }
+        public String UserID => (Database as Oracle).User.ToUpper();
 
         /// <summary>取得所有表构架</summary>
         /// <returns></returns>
@@ -517,34 +767,34 @@ namespace XCode.DataAccessLayer
 
             if (table?.Columns == null || table.Columns.Count == 0) return;
 
-            // 检查该表是否有序列
-            if (CheckSeqExists("SEQ_{0}".F(table.TableName), data))
-            {
-                // 不好判断自增列表，只能硬编码
-                var dc = table.GetColumn("ID");
-                if (dc == null) dc = table.Columns.FirstOrDefault(e => e.PrimaryKey && e.DataType.IsInt());
-                if (dc != null && dc.DataType.IsInt()) dc.Identity = true;
-            }
+            //// 检查该表是否有序列
+            //if (CheckSeqExists("SEQ_{0}".F(table.TableName), data))
+            //{
+            //    // 不好判断自增列表，只能硬编码
+            //    var dc = table.GetColumn("ID");
+            //    if (dc == null) dc = table.Columns.FirstOrDefault(e => e.PrimaryKey && e.DataType.IsInt());
+            //    if (dc != null && dc.DataType.IsInt()) dc.Identity = true;
+            //}
         }
 
-        /// <summary>序列</summary>
-        /// <summary>检查序列是否存在</summary>
-        /// <param name="name">名称</param>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        Boolean CheckSeqExists(String name, IDictionary<String, DataTable> data)
-        {
-            // 序列名一定不是关键字，全部大写
-            name = name.ToUpper();
+        ///// <summary>序列</summary>
+        ///// <summary>检查序列是否存在</summary>
+        ///// <param name="name">名称</param>
+        ///// <param name="data"></param>
+        ///// <returns></returns>
+        //Boolean CheckSeqExists(String name, IDictionary<String, DataTable> data)
+        //{
+        //    // 序列名一定不是关键字，全部大写
+        //    name = name.ToUpper();
 
-            var dt = data?["Sequences"];
-            if (dt?.Rows == null) dt = Database.CreateSession().Query("Select * From ALL_SEQUENCES Where SEQUENCE_OWNER='{0}' And SEQUENCE_NAME='{1}'".F(Owner, name)).Tables[0];
-            if (dt?.Rows == null || dt.Rows.Count < 1) return false;
+        //    var dt = data?["Sequences"];
+        //    if (dt?.Rows == null) dt = Database.CreateSession().Query("Select * From ALL_SEQUENCES Where SEQUENCE_OWNER='{0}' And SEQUENCE_NAME='{1}'".F(Owner, name)).Tables[0];
+        //    if (dt?.Rows == null || dt.Rows.Count < 1) return false;
 
-            var where = String.Format("SEQUENCE_NAME='{0}'", name);
-            var drs = dt.Select(where);
-            return drs != null && drs.Length > 0;
-        }
+        //    var where = String.Format("SEQUENCE_NAME='{0}'", name);
+        //    var drs = dt.Select(where);
+        //    return drs != null && drs.Length > 0;
+        //}
 
         String GetTableComment(String name, IDictionary<String, DataTable> data)
         {
@@ -731,9 +981,9 @@ namespace XCode.DataAccessLayer
             { typeof(Int64), new String[] { "NUMBER(20,0)" } },
             { typeof(Single), new String[] { "BINARY_FLOAT" } },
             { typeof(Double), new String[] { "BINARY_DOUBLE" } },
-            { typeof(Decimal), new String[] { "NUMBER", "FLOAT({0})" } },
+            { typeof(Decimal), new String[] { "NUMBER({0}, {1})", "FLOAT({0})" } },
             { typeof(DateTime), new String[] { "DATE", "TIMESTAMP({0})", "TIMESTAMP({0} WITH LOCAL TIME ZONE)", "TIMESTAMP({0} WITH TIME ZONE)" } },
-            { typeof(String), new String[] { "NVARCHAR2({0})", "LONG", "VARCHAR2({0})", "CHAR({0})", "CLOB", "NCHAR({0})", "NCLOB", "XMLTYPE", "ROWID" } }
+            { typeof(String), new String[] { "VARCHAR2({0})", "NVARCHAR2({0})", "LONG", "CHAR({0})", "CLOB", "NCHAR({0})", "NCLOB", "XMLTYPE", "ROWID" } }
         };
 
         #region 架构定义
@@ -755,17 +1005,30 @@ namespace XCode.DataAccessLayer
             return base.SetSchema(schema, values);
         }
 
-        public override String DatabaseExistSQL(String dbname)
-        {
-            return String.Empty;
-        }
+        public override String DatabaseExistSQL(String dbname) => String.Empty;
 
         protected override String GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
         {
-            if (field.Nullable)
-                return " NULL";
-            else
-                return " NOT NULL";
+            var str = field.Nullable ? " NULL" : " NOT NULL";
+
+            // 默认值
+            if (!field.Nullable && !field.Identity)
+            {
+                str = GetDefault(field, onlyDefine) + str;
+            }
+
+            return str;
+        }
+
+        /// <summary>默认值</summary>
+        /// <param name="field"></param>
+        /// <param name="onlyDefine"></param>
+        /// <returns></returns>
+        protected override String GetDefault(IDataColumn field, Boolean onlyDefine)
+        {
+            if (field.DataType == typeof(DateTime)) return " DEFAULT To_Date('0001-01-01','yyyy-mm-dd')";
+
+            return base.GetDefault(field, onlyDefine);
         }
 
         public override String CreateTableSQL(IDataTable table)
@@ -801,62 +1064,62 @@ namespace XCode.DataAccessLayer
             sb.AppendLine();
             sb.Append(")");
 
-            // 处理延迟段执行
-            if (Database is Oracle db)
-            {
-                var vs = db.ServerVersion.SplitAsInt(".");
-                if (vs.Length >= 4)
-                {
-                    var ver = new Version(vs[0], vs[1], vs[2], vs[3]);
-                    if (ver >= new Version(11, 2, 0, 1)) sb.Append(" SEGMENT CREATION IMMEDIATE");
-                }
-            }
+            //// 处理延迟段执行
+            //if (Database is Oracle db)
+            //{
+            //    var vs = db.ServerVersion.SplitAsInt(".");
+            //    if (vs.Length >= 4)
+            //    {
+            //        var ver = new Version(vs[0], vs[1], vs[2], vs[3]);
+            //        if (ver >= new Version(11, 2, 0, 1)) sb.Append(" SEGMENT CREATION IMMEDIATE");
+            //    }
+            //}
 
             var sql = sb.ToString();
-            if (String.IsNullOrEmpty(sql)) return sql;
+            if (sql.IsNullOrEmpty()) return sql;
 
-            // 有些表没有自增字段
-            var id = table.Columns.FirstOrDefault(e => e.Identity);
-            if (id != null)
-            {
-                // 如果序列已存在，需要先删除
-                if (CheckSeqExists("SEQ_{0}".F(table.TableName), null)) sb.AppendFormat(";\r\nDrop Sequence SEQ_{0}", table.TableName);
+            //// 有些表没有自增字段
+            //var id = table.Columns.FirstOrDefault(e => e.Identity);
+            //if (id != null)
+            //{
+            //    // 如果序列已存在，需要先删除
+            //    if (CheckSeqExists("SEQ_{0}".F(table.TableName), null)) sb.AppendFormat(";\r\nDrop Sequence SEQ_{0}", table.TableName);
 
-                // 感谢@晴天（412684802）和@老徐（gregorius 279504479），这里的最小值开始必须是0，插入的时候有++i的效果，才会得到从1开始的编号
-                // @大石头 在PLSQL里面，创建序列从1开始时，nextval得到从1开始，而ADO.Net这里从1开始时，nextval只会得到2
-                //sb.AppendFormat(";\r\nCreate Sequence SEQ_{0} Minvalue 0 Maxvalue 9999999999 Start With 0 Increment By 1 Cache 20", table.TableName);
+            //    // 感谢@晴天（412684802）和@老徐（gregorius 279504479），这里的最小值开始必须是0，插入的时候有++i的效果，才会得到从1开始的编号
+            //    // @大石头 在PLSQL里面，创建序列从1开始时，nextval得到从1开始，而ADO.Net这里从1开始时，nextval只会得到2
+            //    //sb.AppendFormat(";\r\nCreate Sequence SEQ_{0} Minvalue 0 Maxvalue 9999999999 Start With 0 Increment By 1 Cache 20", table.TableName);
 
-                /*
-                 * Oracle从 11.2.0.1 版本开始，提供了一个“延迟段创建”特性：
-                 * 当我们创建了新的表(table)和序列(sequence)，在插入(insert)语句时，序列会跳过第一个值(1)。
-                 * 所以结果是插入的序列值从 2(序列的第二个值) 开始， 而不是 1开始。
-                 * 
-                 * 更改数据库的“延迟段创建”特性为false（需要有相应的权限）
-                 * ALTER SYSTEM SET deferred_segment_creation=FALSE; 
-                 * 
-                 * 第二种解决办法
-                 * 创建表时让seqment立即执行，如： 
-                 * CREATE TABLE tbl_test(
-                 *   test_id NUMBER PRIMARY KEY, 
-                 *   test_name VARCHAR2(20)
-                 * )
-                 * SEGMENT CREATION IMMEDIATE;
-                 */
-                sb.AppendFormat(";\r\nCreate Sequence SEQ_{0} Minvalue 1 Maxvalue 9999999999 Start With 1 Increment By 1", table.TableName);
-            }
+            //    /*
+            //     * Oracle从 11.2.0.1 版本开始，提供了一个“延迟段创建”特性：
+            //     * 当我们创建了新的表(table)和序列(sequence)，在插入(insert)语句时，序列会跳过第一个值(1)。
+            //     * 所以结果是插入的序列值从 2(序列的第二个值) 开始， 而不是 1开始。
+            //     * 
+            //     * 更改数据库的“延迟段创建”特性为false（需要有相应的权限）
+            //     * ALTER SYSTEM SET deferred_segment_creation=FALSE; 
+            //     * 
+            //     * 第二种解决办法
+            //     * 创建表时让seqment立即执行，如： 
+            //     * CREATE TABLE tbl_test(
+            //     *   test_id NUMBER PRIMARY KEY, 
+            //     *   test_name VARCHAR2(20)
+            //     * )
+            //     * SEGMENT CREATION IMMEDIATE;
+            //     */
+            //    sb.AppendFormat(";\r\nCreate Sequence SEQ_{0} Minvalue 1 Maxvalue 9999999999 Start With 1 Increment By 1", table.TableName);
+            //}
 
             // 去掉分号后的空格，Oracle不支持同时执行多个语句
             return sb.ToString();
         }
 
-        public override String DropTableSQL(String tableName)
-        {
-            var sql = base.DropTableSQL(tableName);
-            if (String.IsNullOrEmpty(sql)) return sql;
+        //public override String DropTableSQL(String tableName)
+        //{
+        //    var sql = base.DropTableSQL(tableName);
+        //    if (String.IsNullOrEmpty(sql)) return sql;
 
-            var sqlSeq = String.Format("Drop Sequence SEQ_{0}", tableName);
-            return sql + "; " + Environment.NewLine + sqlSeq;
-        }
+        //    var sqlSeq = String.Format("Drop Sequence SEQ_{0}", tableName);
+        //    return sql + "; " + Environment.NewLine + sqlSeq;
+        //}
 
         public override String AddColumnSQL(IDataColumn field)
         {

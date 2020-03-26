@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -13,9 +14,8 @@ namespace XCode.Configuration
     public class TableItem
     {
         #region 特性
-        private Type _EntityType;
         /// <summary>实体类型</summary>
-        public Type EntityType { get { return _EntityType; } }
+        public Type EntityType { get; }
 
         /// <summary>绑定表特性</summary>
         private BindTableAttribute _Table;
@@ -44,28 +44,25 @@ namespace XCode.Configuration
         {
             get
             {
-                if (String.IsNullOrEmpty(_TableName))
-                {
-                    var table = _Table;
-                    var str = table != null ? table.Name : EntityType.Name;
-                    //var conn = ConnName;
+                //if (_TableName.IsNullOrEmpty()) _TableName = GetTableName(_Table);
+                if (_TableName.IsNullOrEmpty()) _TableName = _Table?.Name ?? EntityType.Name;
 
-                    //if (conn != null && DAL.ConnStrs.ContainsKey(conn))
-                    //{
-                    //    // 特殊处理Oracle数据库，在表名前加上方案名（用户名）
-                    //    var dal = DAL.Create(conn);
-                    //    if (dal != null && !str.Contains("."))
-                    //    {
-                    //        // 角色名作为点前缀来约束表名，支持所有数据库
-                    //        if (!dal.Db.Owner.IsNullOrEmpty()) str = dal.Db.Owner + "." + str;
-                    //    }
-                    //}
-                    _TableName = str;
-                }
                 return _TableName;
             }
             set { _TableName = value; DataTable.TableName = value; }
         }
+
+        //private String GetTableName(BindTableAttribute table)
+        //{
+        //    var name = table != null ? table.Name : EntityType.Name;
+
+        //    // 检查自动表前缀
+        //    var dal = DAL.Create(ConnName);
+        //    var pf = dal.Db.TablePrefix;
+        //    if (!pf.IsNullOrEmpty() && !name.StartsWithIgnoreCase(pf)) name = pf + name;
+
+        //    return name;
+        //}
 
         private String _ConnName;
         /// <summary>连接名</summary>
@@ -73,13 +70,19 @@ namespace XCode.Configuration
         {
             get
             {
-                if (String.IsNullOrEmpty(_ConnName))
+                if (_ConnName.IsNullOrEmpty())
                 {
-                    String connName = null;
-                    if (_Table != null) connName = _Table.ConnName;
+                    var connName = _Table?.ConnName;
 
-                    var str = FindConnMap(connName, EntityType.Name);
-                    _ConnName = String.IsNullOrEmpty(str) ? connName : str;
+                    var str = FindConnMap(connName, EntityType);
+                    if (!str.IsNullOrEmpty())
+                    {
+                        DAL.WriteLog($"实体 {EntityType.FullName}/{connName} 映射到 {str}");
+
+                        connName = str;
+                    }
+
+                    _ConnName = connName;
                 }
                 return _ConnName;
             }
@@ -100,9 +103,9 @@ namespace XCode.Configuration
                     if (_ConnMaps != null) return _ConnMaps;
 
                     var list = new List<String>();
-                    //String str = Config.GetMutilConfig<String>(null, "XCode.ConnMaps", "XCodeConnMaps");
                     var str = Setting.Current.ConnMaps;
                     if (String.IsNullOrEmpty(str)) return _ConnMaps = list;
+
                     var ss = str.Split(",");
                     foreach (var item in ss)
                     {
@@ -118,17 +121,19 @@ namespace XCode.Configuration
 
         /// <summary>根据连接名和类名查找连接名映射</summary>
         /// <param name="connName"></param>
-        /// <param name="className"></param>
+        /// <param name="type"></param>
         /// <returns></returns>
-        private static String FindConnMap(String connName, String className)
+        private static String FindConnMap(String connName, Type type)
         {
             var name1 = connName + "#";
-            var name2 = className + "@";
+            var name2 = type.FullName + "@";
+            var name3 = type.Name + "@";
 
             foreach (var item in ConnMaps)
             {
                 if (item.StartsWith(name1)) return item.Substring(name1.Length);
                 if (item.StartsWith(name2)) return item.Substring(name2.Length);
+                if (item.StartsWith(name3)) return item.Substring(name3.Length);
             }
             return null;
         }
@@ -183,6 +188,26 @@ namespace XCode.Configuration
             }
         }
 
+        private ICollection<String> _ExtendFieldNames;
+        /// <summary>扩展属性集合，不区分大小写的哈希表存储，外部不要修改元素数据</summary>
+        [XmlIgnore]
+        public ICollection<String> ExtendFieldNames
+        {
+            get
+            {
+                if (_ExtendFieldNames != null) return _ExtendFieldNames;
+
+                var list = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
+                foreach (var item in AllFields)
+                {
+                    if (!item.IsDataObjectField && !list.Contains(item.Name)) list.Add(item.Name);
+                }
+                _ExtendFieldNames = list;
+
+                return _ExtendFieldNames;
+            }
+        }
+
         /// <summary>数据表架构</summary>
         [XmlIgnore]
         public IDataTable DataTable { get; private set; }
@@ -194,7 +219,7 @@ namespace XCode.Configuration
         #region 构造
         private TableItem(Type type)
         {
-            _EntityType = type;
+            EntityType = type;
             _Table = type.GetCustomAttribute<BindTableAttribute>(true);
             if (_Table == null) throw new ArgumentOutOfRangeException("type", "类型" + type + "没有" + typeof(BindTableAttribute).Name + "特性！");
 
@@ -207,7 +232,7 @@ namespace XCode.Configuration
             InitFields();
         }
 
-        static DictionaryCache<Type, TableItem> cache = new DictionaryCache<Type, TableItem>();
+        static ConcurrentDictionary<Type, TableItem> cache = new ConcurrentDictionary<Type, TableItem>();
         /// <summary>创建</summary>
         /// <param name="type">类型</param>
         /// <returns></returns>
@@ -216,7 +241,7 @@ namespace XCode.Configuration
             if (type == null) throw new ArgumentNullException("type");
 
             // 不能给没有BindTableAttribute特性的类型创建TableItem，否则可能会在InitFields中抛出异常
-            return cache.GetItem(type, key => key.GetCustomAttribute<BindTableAttribute>(true) != null ? new TableItem(key) : null);
+            return cache.GetOrAdd(type, key => key.GetCustomAttribute<BindTableAttribute>(true) != null ? new TableItem(key) : null);
         }
 
         void InitFields()
@@ -225,6 +250,8 @@ namespace XCode.Configuration
             var table = DAL.CreateTable();
             DataTable = table;
             table.TableName = bt.Name;
+            //// 构建DataTable时也要注意表前缀，避免反向工程用错
+            //table.TableName = GetTableName(bt);
             table.Name = EntityType.Name;
             table.DbType = bt.DbType;
             table.IsView = bt.IsView;
@@ -442,12 +469,10 @@ namespace XCode.Configuration
         {
             var f = new Field(this, name, type, description, length);
 
-            var list = new List<FieldItem>(Fields);
-            list.Add(f);
+            var list = new List<FieldItem>(Fields) { f };
             Fields = list.ToArray();
 
-            list = new List<FieldItem>(AllFields);
-            list.Add(f);
+            list = new List<FieldItem>(AllFields) { f };
             AllFields = list.ToArray();
 
             var dc = DataTable.CreateColumn();

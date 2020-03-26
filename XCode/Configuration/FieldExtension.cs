@@ -1,6 +1,5 @@
 ﻿using System;
 using XCode.Configuration;
-using XCode.DataAccessLayer;
 
 namespace XCode
 {
@@ -15,6 +14,8 @@ namespace XCode
         /// <returns></returns>
         public static Expression Between(this FieldItem fi, DateTime start, DateTime end)
         {
+            if (fi.Type != typeof(DateTime)) throw new NotSupportedException($"[{nameof(Between)}]函数仅支持时间日期字段！");
+
             var exp = new WhereExpression();
             if (fi == null) return exp;
 
@@ -33,7 +34,7 @@ namespace XCode
                 if (end <= DateTime.MinValue || end >= DateTime.MaxValue) return exp;
 
                 // 如果只有日期，则加一天，表示包含这一天
-                if (end == end.Date) end = end.AddDays(1);
+                if (start == start.Date && end == end.Date) end = end.AddDays(1);
 
                 return exp & fi < end;
             }
@@ -248,12 +249,14 @@ namespace XCode
         /// <returns></returns>
         public static Expression ContainsAll(this FieldItem field, String keys)
         {
+            if (field.Type != typeof(String)) throw new NotSupportedException($"[{nameof(ContainsAll)}]函数仅支持字符串字段！");
+
             var exp = new WhereExpression();
             if (String.IsNullOrEmpty(keys)) return exp;
 
             var ks = keys.Split(" ");
 
-            for (Int32 i = 0; i < ks.Length; i++)
+            for (var i = 0; i < ks.Length; i++)
             {
                 if (!ks[i].IsNullOrWhiteSpace()) exp &= field.Contains(ks[i].Trim());
             }
@@ -267,12 +270,14 @@ namespace XCode
         /// <returns></returns>
         public static Expression ContainsAny(this FieldItem field, String keys)
         {
+            if (field.Type != typeof(String)) throw new NotSupportedException($"[{nameof(ContainsAny)}]函数仅支持字符串字段！");
+
             var exp = new WhereExpression();
             if (String.IsNullOrEmpty(keys)) return exp;
 
             var ks = keys.Split(" ");
 
-            for (Int32 i = 0; i < ks.Length; i++)
+            for (var i = 0; i < ks.Length; i++)
             {
                 if (!ks[i].IsNullOrWhiteSpace()) exp |= field.Contains(ks[i].Trim());
             }
@@ -307,13 +312,53 @@ namespace XCode
         /// <param name="field">字段</param>
         /// <param name="isdesc">是否降序</param>
         /// <returns></returns>
-        public static ConcatExpression Sort(this FieldItem field, Boolean isdesc) { return isdesc ? Desc(field) : Asc(field); }
+        public static ConcatExpression Sort(this FieldItem field, Boolean isdesc) => isdesc ? Desc(field) : Asc(field);
         #endregion
 
         #region 分组选择
         /// <summary>分组。有条件的分组请使用WhereExpression.GroupBy</summary>
         /// <returns></returns>
-        public static ConcatExpression GroupBy(this FieldItem field) { return field == null ? null : new ConcatExpression(String.Format("Group By {0}", field.FormatedName)); }
+        public static ConcatExpression GroupBy(this FieldItem field) => field == null ? null : new ConcatExpression(String.Format("Group By {0}", field.FormatedName));
+
+        ///// <summary>按照指定若干个字段分组。没有条件时使用分组请用FieldItem的GroupBy</summary>
+        ///// <param name="where"></param>
+        ///// <param name="fields"></param>
+        ///// <returns>返回条件语句加上分组语句</returns>
+        //public static ConcatExpression GroupBy(this WhereExpression where, params FieldItem[] fields)
+        //{
+        //    var exp = new ConcatExpression();
+        //    var sb = exp.Builder;
+        //    where.GetString(sb, null);
+
+        //    if (sb.Length > 0) sb.Append(" Group By ");
+
+        //    for (var i = 0; i < fields.Length; i++)
+        //    {
+        //        if (i > 0) sb.Append(", ");
+        //        sb.Append(fields[i].FormatedName);
+        //    }
+
+        //    return exp;
+        //}
+
+        /// <summary>按照指定若干个字段分组。没有条件时使用分组请用FieldItem的GroupBy</summary>
+        /// <param name="where"></param>
+        /// <param name="fields"></param>
+        /// <returns>将需要分组的字段作为ConcatExpression类型添加到whereExpression尾部</returns>
+        public static WhereExpression GroupBy(this WhereExpression where, params FieldItem[] fields)
+        {
+            var exp = new ConcatExpression();
+
+            for (var i = 0; i < fields.Length; i++)
+            {
+                if (i == 0)
+                    exp &= fields[i].GroupBy();
+                else
+                    exp.And(new FieldExpression(fields[i]));
+            }
+
+            return new WhereExpression(where, Operator.Space, exp);
+        }
 
         /// <summary>聚合</summary>
         /// <param name="field">字段</param>
@@ -354,25 +399,31 @@ namespace XCode
         /// <param name="field">字段</param>
         /// <param name="newName">聚合后as的新名称，默认空，表示跟前面字段名一致</param>
         /// <returns></returns>
-        public static ConcatExpression Count(this FieldItem field, String newName = null) { return Aggregate(field, "Count", newName); }
+        public static ConcatExpression Count(this FieldItem field, String newName = null) => Aggregate(field, "Count", newName);
 
         /// <summary>求和</summary>
         /// <param name="field">字段</param>
         /// <param name="newName">聚合后as的新名称，默认空，表示跟前面字段名一致</param>
         /// <returns></returns>
-        public static ConcatExpression Sum(this FieldItem field, String newName = null) { return Aggregate(field, "Sum", newName); }
+        public static ConcatExpression Sum(this FieldItem field, String newName = null) => Aggregate(field, "Sum", newName);
 
         /// <summary>最小值</summary>
         /// <param name="field">字段</param>
         /// <param name="newName">聚合后as的新名称，默认空，表示跟前面字段名一致</param>
         /// <returns></returns>
-        public static ConcatExpression Min(this FieldItem field, String newName = null) { return Aggregate(field, "Min", newName); }
+        public static ConcatExpression Min(this FieldItem field, String newName = null) => Aggregate(field, "Min", newName);
 
         /// <summary>最大值</summary>
         /// <param name="field">字段</param>
         /// <param name="newName">聚合后as的新名称，默认空，表示跟前面字段名一致</param>
         /// <returns></returns>
-        public static ConcatExpression Max(this FieldItem field, String newName = null) { return Aggregate(field, "Max", newName); }
+        public static ConcatExpression Max(this FieldItem field, String newName = null) => Aggregate(field, "Max", newName);
+
+        /// <summary>平均值</summary>
+        /// <param name="field">字段</param>
+        /// <param name="newName">聚合后as的新名称，默认空，表示跟前面字段名一致</param>
+        /// <returns></returns>
+        public static ConcatExpression Avg(this FieldItem field, String newName = null) => Aggregate(field, "Avg", newName);
         #endregion
     }
 }

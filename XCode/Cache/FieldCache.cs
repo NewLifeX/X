@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
-using XCode;
-using XCode.Cache;
 using XCode.Configuration;
 #if !NET4
 using TaskEx = System.Threading.Tasks.Task;
@@ -20,8 +18,11 @@ namespace XCode.Cache
         private FieldItem _field;
         private FieldItem _Unique;
 
-        /// <summary>最大行数。默认20</summary>
-        public Int32 MaxRows { get; set; } = 20;
+        /// <summary>最大行数。默认50</summary>
+        public Int32 MaxRows { get; set; } = 50;
+
+        /// <summary>数据源条件</summary>
+        public WhereExpression Where { get; set; }
 
         /// <summary>获取显示名的委托</summary>
         public Func<TEntity, String> GetDisplay { get; set; }
@@ -37,7 +38,7 @@ namespace XCode.Cache
             Expire = 10 * 60;
             FillListMethod = () =>
             {
-                return Entity<TEntity>.FindAll(_field.GroupBy(), _Unique.Desc(), _Unique.Count() & _field, 0, MaxRows);
+                return Entity<TEntity>.FindAll(Where.GroupBy(_field), _Unique.Desc(), _Unique.Count() & _field, 0, MaxRows);
             };
 
             _field = field;
@@ -57,7 +58,7 @@ namespace XCode.Cache
             var key = "{0}_{1}".F(typeof(TEntity).Name, _field?.Name);
             var dc = DataCache.Current;
 
-            if (_task == null || _task.IsOK()) _task = TaskEx.Run(() =>
+            if (_task == null || _task.Status == TaskStatus.RanToCompletion) _task = TaskEx.Run(() =>
             {
                 //var id = _field.Table.Identity;
                 var list = Entities.Take(MaxRows).ToList();

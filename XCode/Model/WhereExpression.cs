@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using NewLife.Collections;
 
 namespace XCode
 {
@@ -31,7 +32,7 @@ namespace XCode
         public Operator Operator { get; set; }
 
         /// <summary>是否为空</summary>
-        public Boolean Empty { get { return Left == null && Right == null; } }
+        public override Boolean IsEmpty => (Left == null || Left.IsEmpty) && (Right == null || Right.IsEmpty);
         #endregion
 
         #region 构造
@@ -57,7 +58,7 @@ namespace XCode
         /// <returns></returns>
         public override void GetString(StringBuilder builder, IDictionary<String, Object> ps)
         {
-            if (Empty) return;
+            if (IsEmpty) return;
 
             // 递归构建，下级运算符优先级较低时加括号
 
@@ -67,7 +68,7 @@ namespace XCode
             GetString(builder, ps, Left);
 
             // 右侧表达式
-            var sb = new StringBuilder();
+            var sb = Pool.StringBuilder.Get();
             GetString(sb, ps, Right);
 
             // 中间运算符
@@ -82,19 +83,19 @@ namespace XCode
                 }
             }
 
-            builder.Append(sb);
+            builder.Append(sb.Put(true));
         }
 
         private void GetString(StringBuilder builder, IDictionary<String, Object> ps, Expression exp)
         {
             exp = Flatten(exp);
-            if (exp == null) return;
+            if (exp == null || exp.IsEmpty) return;
 
             // 递归构建，下级运算符优先级较低时加括号
             var bracket = false;
             if (exp is WhereExpression where)
             {
-                if (where.Empty) return;
+                //if (where.IsEmpty) return;
 
                 if (where.Operator > Operator) bracket = true;
             }
@@ -126,24 +127,24 @@ namespace XCode
         #endregion
 
         #region 分组
-        /// <summary>按照指定若干个字段分组。没有条件时使用分组请用FieldItem的GroupBy</summary>
-        /// <param name="names"></param>
-        /// <returns>返回条件语句加上分组语句</returns>
-        public String GroupBy(params String[] names)
-        {
-            var where = GetString(null);
+        ///// <summary>按照指定若干个字段分组。没有条件时使用分组请用FieldItem的GroupBy</summary>
+        ///// <param name="names"></param>
+        ///// <returns>返回条件语句加上分组语句</returns>
+        //public String GroupBy(params String[] names)
+        //{
+        //    var where = GetString(null);
 
-            var sb = new StringBuilder();
-            foreach (var item in names)
-            {
-                sb.Separate(",").Append(item);
-            }
+        //    var sb = new StringBuilder();
+        //    foreach (var item in names)
+        //    {
+        //        sb.Separate(",").Append(item);
+        //    }
 
-            if (where.IsNullOrWhiteSpace())
-                return "Group By {0}".F(sb.ToString());
-            else
-                return "{1} Group By {0}".F(sb.ToString(), where);
-        }
+        //    if (where.IsNullOrWhiteSpace())
+        //        return "Group By {0}".F(sb.ToString());
+        //    else
+        //        return "{1} Group By {0}".F(sb.ToString(), where);
+        //}
         #endregion
     }
 }

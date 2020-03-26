@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Web;
+using System.Web.Script.Serialization;
+using System.Xml.Serialization;
+using NewLife.Collections;
 using NewLife.Data;
 
 namespace NewLife.Web
@@ -28,25 +29,23 @@ namespace NewLife.Web
         }
 
         /// <summary>名称类。用户可根据需要修改Url参数名</summary>
-        public __ _ = new __();
+        [XmlIgnore, ScriptIgnore]
+        public static __ _ = new __();
         #endregion
 
         #region 扩展属性
-#if !__CORE__
-        private IDictionary<String, String> _Params;
         /// <summary>参数集合</summary>
-        public IDictionary<String, String> Params { get { return _Params ?? (_Params = WebHelper.Params); } set { _Params = value; } }
-#else
-        /// <summary>参数集合</summary>
-        public IDictionary<String, String> Params { get; set; } = new NewLife.Collections.NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
-#endif
+        [XmlIgnore, ScriptIgnore]
+        public IDictionary<String, String> Params { get; set; } = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>分页链接模版。内部将会替换{链接}和{名称}</summary>
+        [XmlIgnore, ScriptIgnore]
         public String PageUrlTemplate { get; set; } = "<a href=\"{链接}\">{名称}</a>";
 
-        private static PageParameter _def = new PageParameter();
+        private static readonly PageParameter _def = new PageParameter();
 
         /// <summary>默认参数。如果分页参数为默认参数，则不参与构造Url</summary>
+        [XmlIgnore, ScriptIgnore]
         public PageParameter Default { get; set; } = _def;
 
         /// <summary>获取/设置 参数</summary>
@@ -184,43 +183,6 @@ namespace NewLife.Web
 
             return name;
         }
-
-#if !__CORE__
-        /// <summary>获取表单提交的Url</summary>
-        /// <param name="action">动作</param>
-        /// <returns></returns>
-        public virtual String GetFormAction(String action = null)
-        {
-            var req = HttpContext.Current?.Request;
-            if (req == null) return action;
-
-            // 表单提交，不需要排序、分页，不需要表单提交上来的数据，只要请求字符串过来的数据
-            var query = req.QueryString;
-            var forms = new HashSet<String>(req.Form.AllKeys, StringComparer.OrdinalIgnoreCase);
-            var excludes = new HashSet<String>(new[] { _.Sort, _.Desc, _.PageIndex, _.PageSize }, StringComparer.OrdinalIgnoreCase);
-
-            var url = new StringBuilder();
-            foreach (var item in query.AllKeys)
-            {
-                // 只要查询字符串，不要表单
-                if (forms.Contains(item)) continue;
-
-                // 排除掉排序和分页
-                if (excludes.Contains(item)) continue;
-
-                // 内容为空也不要
-                var v = query[item];
-                if (v.IsNullOrEmpty()) continue;
-
-                url.UrlParam(item, v);
-            }
-
-            if (url.Length == 0) return action;
-            if (!action.Contains('?')) action += '?';
-
-            return action + url.ToString();
-        }
-#endif
         #endregion
     }
 }

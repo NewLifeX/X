@@ -20,15 +20,6 @@ namespace NewLife.Remoting
         /// <param name="method">动作名称。为空时遍历控制器所有公有成员方法</param>
         void Register(Object controller, String method);
 
-        /// <summary>注册服务</summary>
-        /// <param name="type">控制器类型</param>
-        /// <param name="method">动作名称。为空时遍历控制器所有公有成员方法</param>
-        void Register(Type type, String method);
-
-        /// <summary>注册服务</summary>
-        /// <param name="method">动作</param>
-        void Register(MethodInfo method);
-
         /// <summary>查找服务</summary>
         /// <param name="action"></param>
         /// <returns></returns>
@@ -38,7 +29,7 @@ namespace NewLife.Remoting
     class ApiManager : IApiManager
     {
         /// <summary>可提供服务的方法</summary>
-        public IDictionary<String, ApiAction> Services { get; } = new Dictionary<String, ApiAction>();
+        public IDictionary<String, ApiAction> Services { get; } = new Dictionary<String, ApiAction>(StringComparer.OrdinalIgnoreCase);
 
         private void RegisterAll(Object controller, Type type)
         {
@@ -65,10 +56,7 @@ namespace NewLife.Remoting
 
         /// <summary>注册服务提供类。该类的所有公开方法将直接暴露</summary>
         /// <typeparam name="TService"></typeparam>
-        public void Register<TService>() where TService : class, new()
-        {
-            RegisterAll(null, typeof(TService));
-        }
+        public void Register<TService>() where TService : class, new() => RegisterAll(null, typeof(TService));
 
         /// <summary>注册服务</summary>
         /// <param name="controller">控制器对象</param>
@@ -93,35 +81,6 @@ namespace NewLife.Remoting
             {
                 RegisterAll(controller, type);
             }
-        }
-
-        /// <summary>注册服务</summary>
-        /// <param name="type">控制器类型</param>
-        /// <param name="method">动作名称。为空时遍历控制器所有公有成员方法</param>
-        public void Register(Type type, String method)
-        {
-            if (type == null) throw new ArgumentNullException(nameof(type));
-
-            if (!method.IsNullOrEmpty())
-            {
-                var mi = type.GetMethodEx(method);
-                var act = new ApiAction(mi, type);
-
-                Services[act.Name] = act;
-            }
-            else
-            {
-                RegisterAll(null, type);
-            }
-        }
-
-        /// <summary>注册服务</summary>
-        /// <param name="method">动作名称。为空时遍历控制器所有公有成员方法</param>
-        public void Register(MethodInfo method)
-        {
-            var act = new ApiAction(method, null);
-
-            Services[act.Name] = act;
         }
 
         /// <summary>查找服务</summary>

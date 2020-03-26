@@ -6,7 +6,9 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using NewLife.Collections;
 using NewLife.Data;
+using NewLife.Log;
 using NewLife.Model;
 
 namespace NewLife.Net
@@ -18,7 +20,7 @@ namespace NewLife.Net
     public class UdpServer : SessionBase, ISocketServer
     {
         #region 属性
-        /// <summary>会话超时时间。默认30秒</summary>
+        /// <summary>会话超时时间</summary>
         /// <remarks>
         /// 对于每一个会话连接，如果超过该时间仍然没有收到任何数据，则断开会话连接。
         /// </remarks>
@@ -31,10 +33,7 @@ namespace NewLife.Net
         public Boolean Loopback { get; set; }
 
         /// <summary>会话统计</summary>
-        public IStatistics StatSession { get; set; }
-
-        /// <summary>粘包处理接口</summary>
-        public IPacketFactory SessionPacket { get; set; }
+        public ICounter StatSession { get; set; }
         #endregion
 
         #region 构造
@@ -45,25 +44,28 @@ namespace NewLife.Net
             Remote.Type = NetType.Udp;
             _Sessions = new SessionCollection(this);
 
-            StatSession = new Statistics();
-
+            //StatSession = new PerfCounter();
             SessionTimeout = Setting.Current.SessionTimeout;
+
+            // 处理UDP最大并发接收
+            MaxAsync = Environment.ProcessorCount * 16 / 10;
+
+            ProcessAsync = true;
+
+            if (Setting.Current.Debug) Log = XTrace.Log;
         }
 
         /// <summary>使用监听口初始化</summary>
         /// <param name="listenPort"></param>
-        public UdpServer(Int32 listenPort)
-            : this()
-        {
-            Port = listenPort;
-        }
+        public UdpServer(Int32 listenPort) : this() => Port = listenPort;
         #endregion
 
         #region 方法
         /// <summary>打开</summary>
         protected override Boolean OnOpen()
         {
-            if (Client == null || !Client.IsBound)
+            var sock = Client;
+            if (sock == null || !sock.IsBound)
             {
                 // 根据目标地址适配本地IPv4/IPv6
                 if (Remote != null && !Remote.Address.IsAny())
@@ -71,8 +73,10 @@ namespace NewLife.Net
                     Local.Address = Local.Address.GetRightAny(Remote.Address.AddressFamily);
                 }
 
-                Client = NetHelper.CreateUdp(Local.EndPoint.Address.IsIPv4());
-                Client.Bind(Local.EndPoint);
+                if (StatSession == null) StatSession = new PerfCounter();
+
+                Client = sock = NetHelper.CreateUdp(Local.EndPoint.Address.IsIPv4());
+                sock.Bind(Local.EndPoint);
                 CheckDynamic();
 
                 WriteLog("Open {0}", this);
@@ -84,17 +88,17 @@ namespace NewLife.Net
         /// <summary>关闭</summary>
         protected override Boolean OnClose(String reason)
         {
-            if (Client != null)
+            var sock = Client;
+            if (sock != null)
             {
                 WriteLog("Close {0} {1}", reason, this);
 
-                var udp = Client;
                 Client = null;
                 try
                 {
                     CloseAllSession();
 
-                    udp.Shutdown();
+                    sock.Shutdown();
                 }
                 catch (Exception ex)
                 {
@@ -116,35 +120,37 @@ namespace NewLife.Net
         /// </remarks>
         /// <param name="pk">数据包</param>
         /// <returns>是否成功</returns>
-        protected override Boolean OnSend(Packet pk)
+        protected override Boolean OnSend(Packet pk) => OnSend(pk, Remote.EndPoint);
+
+        internal Boolean OnSend(Packet pk, IPEndPoint remote)
         {
             var count = pk.Total;
 
-            StatSend?.Increment(count);
+            StatSend?.Increment(count, 0);
 
             try
             {
-                var sp = Client;
-                lock (sp)
+                var sock = Client;
+                lock (sock)
                 {
-                    if (Client.Connected)
+                    if (sock.Connected)
                     {
                         if (Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, pk.ToHex());
 
                         if (pk.Next == null)
-                            sp.Send(pk.Data, pk.Offset, count, SocketFlags.None);
+                            sock.Send(pk.Data, pk.Offset, count, SocketFlags.None);
                         else
-                            sp.Send(pk.ToArray(), 0, count, SocketFlags.None);
+                            sock.Send(pk.ToArray(), 0, count, SocketFlags.None);
                     }
                     else
                     {
-                        Client.CheckBroadcast(Remote.Address);
-                        if (Log.Enable && LogSend) WriteLog("Send {2} [{0}]: {1}", count, pk.ToHex(), Remote.EndPoint);
+                        sock.CheckBroadcast(remote.Address);
+                        if (Log.Enable && LogSend) WriteLog("Send {2} [{0}]: {1}", count, pk.ToHex(), remote);
 
                         if (pk.Next == null)
-                            sp.SendTo(pk.Data, pk.Offset, count, SocketFlags.None, Remote.EndPoint);
+                            sock.SendTo(pk.Data, pk.Offset, count, SocketFlags.None, remote);
                         else
-                            sp.SendTo(pk.ToArray(), 0, count, SocketFlags.None, Remote.EndPoint);
+                            sock.SendTo(pk.ToArray(), 0, count, SocketFlags.None, remote);
                     }
                 }
 
@@ -165,87 +171,49 @@ namespace NewLife.Net
             }
         }
 
-        /// <summary>发送数据包到目的地址</summary>
-        /// <param name="pk"></param>
+        /// <summary>发送消息并等待响应。必须调用会话的发送，否则配对会失败</summary>
+        /// <param name="message"></param>
         /// <returns></returns>
-        public override async Task<Packet> SendAsync(Packet pk)
-        {
-            return await SendAsync(pk, Remote.EndPoint, true);
-        }
-
-        /// <summary>发送数据包到目的地址</summary>
-        /// <param name="pk"></param>
-        /// <param name="remote"></param>
-        /// <param name="wait"></param>
-        /// <returns></returns>
-        internal async Task<Packet> SendAsync(Packet pk, IPEndPoint remote, Boolean wait)
-        {
-            if (pk.Count > 0)
-            {
-                if (remote != null && remote.Address == IPAddress.Broadcast && !Client.EnableBroadcast)
-                {
-                    Client.EnableBroadcast = true;
-                    // 广播匹配任意响应
-                    remote = null;
-                }
-            }
-
-            if (Packet == null) Packet = new PacketProvider();
-
-            var task = !wait ? null : Packet.Add(pk, remote, Timeout);
-
-            // 这里先发送，基类的SendAsync注定发给Remote而不是remote
-            if (!SendByQueue(pk, remote)) return null;
-
-            if (!wait) return null;
-
-            return await task;
-        }
-
-        internal override Boolean OnSendAsync(SocketAsyncEventArgs se)
-        {
-            if (se.RemoteEndPoint == null) se.RemoteEndPoint = Remote.EndPoint;
-
-            return Client.SendToAsync(se);
-        }
+        public override Task<Object> SendMessageAsync(Object message) => CreateSession(Remote.EndPoint).SendMessageAsync(message);
         #endregion
 
         #region 接收
-        /// <summary>处理收到的数据</summary>
-        /// <param name="pk"></param>
-        /// <param name="remote"></param>
-        protected override Boolean OnReceive(Packet pk, IPEndPoint remote)
+        /// <summary>预处理</summary>
+        /// <param name="pk">数据包</param>
+        /// <param name="remote">远程地址</param>
+        /// <returns>将要处理该数据包的会话</returns>
+        internal protected override ISocketSession OnPreReceive(Packet pk, IPEndPoint remote)
         {
             // 过滤自己广播的环回数据。放在这里，兼容UdpSession
             if (!Loopback && remote.Port == Port)
             {
                 if (!Local.Address.IsAny())
                 {
-                    if (remote.Address.Equals(Local.Address)) return false;
+                    if (remote.Address.Equals(Local.Address)) return null;
                 }
                 else
                 {
                     foreach (var item in NetHelper.GetIPsWithCache())
                     {
-                        if (remote.Address.Equals(item)) return false;
+                        if (remote.Address.Equals(item)) return null;
                     }
                 }
             }
 
-#if !__MOBILE__
-            // 更新全局远程IP地址
-            NewLife.Web.WebHelper.UserHost = remote?.Address + "";
-#endif
             LastRemote = remote;
 
-            StatReceive?.Increment(pk.Count);
-            if (base.OnReceive(pk, remote)) return true;
+            // 为该连接单独创建一个会话，方便直接通信
+            return CreateSession(remote);
+        }
 
-            // 分析处理
-            var e = new ReceivedEventArgs(pk)
-            {
-                UserState = remote
-            };
+        /// <summary>处理收到的数据</summary>
+        /// <param name="e">接收事件参数</param>
+        protected override Boolean OnReceive(ReceivedEventArgs e)
+        {
+            var pk = e.Packet;
+            StatReceive?.Increment(pk.Count, 0);
+
+            var remote = e.Remote;
 
             // 为该连接单独创建一个会话，方便直接通信
             var session = CreateSession(remote);
@@ -255,7 +223,7 @@ namespace NewLife.Net
             else
             {
                 // 没有匹配到任何会话时，才在这里显示日志。理论上不存在这个可能性
-                if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", e.Length, e.ToHex(32, null));
+                if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", pk.Count, pk.ToHex(32, null));
             }
 
             if (session != null) RaiseReceive(session, e);
@@ -307,9 +275,11 @@ namespace NewLife.Net
         /// <summary>新会话时触发</summary>
         public event EventHandler<SessionEventArgs> NewSession;
 
-        private SessionCollection _Sessions;
+        private readonly SessionCollection _Sessions;
         /// <summary>会话集合。用地址端口作为标识，业务应用自己维持地址端口与业务主键的对应关系。</summary>
-        public IDictionary<String, ISocketSession> Sessions { get { return _Sessions; } }
+        public IDictionary<String, ISocketSession> Sessions => _Sessions;
+
+        private IDictionary<Int32, ISocketSession> _broadcasts = new NullableDictionary<Int32, ISocketSession>();
 
         Int32 g_ID = 0;
         /// <summary>创建会话</summary>
@@ -334,6 +304,8 @@ namespace NewLife.Net
 
             // 需要查找已有会话，已有会话不存在时才创建新会话
             var session = sessions.Get(remoteEP + "");
+            // 是否匹配广播端口
+            if (session == null) session = _broadcasts[remoteEP.Port];
             if (session != null) return session;
 
             // 相同远程地址可能同时发来多个数据包，而底层采取多线程方式同时调度，导致创建多个会话
@@ -341,6 +313,7 @@ namespace NewLife.Net
             {
                 // 需要查找已有会话，已有会话不存在时才创建新会话
                 session = sessions.Get(remoteEP + "");
+                if (session == null) session = _broadcasts[remoteEP.Port];
                 if (session != null) return session;
 
                 var us = new UdpSession(this, remoteEP)
@@ -351,18 +324,31 @@ namespace NewLife.Net
                     // UDP不好分会话统计
                     //us.StatSend.Parent = StatSend;
                     //us.StatReceive.Parent = StatReceive;
-                    Packet = SessionPacket?.Create()
+                    //Packet = SessionPacket?.Create()
                 };
 
                 session = us;
                 if (sessions.Add(session))
                 {
+                    // 广播地址，接受任何地址响应数据
+                    if (Equals(remoteEP.Address, IPAddress.Broadcast))
+                    {
+                        _broadcasts[remoteEP.Port] = session;
+                        session.OnDisposed += (s, e) =>
+                        {
+                            lock (_broadcasts)
+                            {
+                                _broadcasts.Remove((s as UdpSession).Remote.Port);
+                            }
+                        };
+                    }
+
                     //us.ID = g_ID++;
                     // 会话改为原子操作，避免多线程冲突
                     us.ID = Interlocked.Increment(ref g_ID);
                     us.Start();
 
-                    if (StatSession != null) StatSession.Increment(1);
+                    StatSession?.Increment(1, 0);
 
                     // 触发新会话事件
                     NewSession?.Invoke(this, new SessionEventArgs { Session = session });
@@ -388,9 +374,9 @@ namespace NewLife.Net
         #endregion
 
         #region IServer接口
-        void IServer.Start() { Open(); }
+        void IServer.Start() => Open();
 
-        void IServer.Stop(String reason) { Close(reason ?? "服务停止"); }
+        void IServer.Stop(String reason) => Close(reason ?? "服务停止");
         #endregion
 
         #region 辅助

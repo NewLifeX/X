@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using XCode.Configuration;
 
 namespace XCode
 {
@@ -8,8 +9,14 @@ namespace XCode
     public class ConcatExpression : Expression
     {
         #region 属性
-        /// <summary>内置字符串</summary>
-        public StringBuilder Builder { get; set; } = new StringBuilder();
+        ///// <summary>内置字符串</summary>
+        //public StringBuilder Builder { get; set; } = new StringBuilder();
+
+        /// <summary>内置表达式集合</summary>
+        public IList<Expression> Expressions { get; set; } = new List<Expression>();
+
+        /// <summary>是否为空</summary>
+        public override Boolean IsEmpty => Expressions.Count == 0;
         #endregion
 
         #region 构造
@@ -18,7 +25,7 @@ namespace XCode
 
         /// <summary>实例化</summary>
         /// <param name="exp"></param>
-        public ConcatExpression(String exp) { Builder.Append(exp + ""); }
+        public ConcatExpression(String exp) => Expressions.Add(new Expression(exp));
         #endregion
 
         #region 方法
@@ -29,7 +36,21 @@ namespace XCode
         {
             if (String.IsNullOrEmpty(exp)) return this;
 
-            Builder.Separate(",").Append(exp);
+            //Builder.Separate(",").Append(exp);
+            Expressions.Add(new Expression(exp));
+
+            return this;
+        }
+
+        /// <summary>增加</summary>
+        /// <param name="exp"></param>
+        /// <returns></returns>
+        public ConcatExpression And(Expression exp)
+        {
+            if (exp == null) return this;
+
+            //Builder.Separate(",").Append(exp);
+            Expressions.Add(exp);
 
             return this;
         }
@@ -40,9 +61,21 @@ namespace XCode
         /// <returns></returns>
         public override void GetString(StringBuilder builder, IDictionary<String, Object> ps)
         {
-            if (Builder == null || Builder.Length <= 0) return;
+            //if (Builder == null || Builder.Length <= 0) return;
 
-            builder.Append(Builder);
+            //builder.Append(Builder);
+
+            var exps = Expressions;
+            if (exps == null || exps.Count == 0) return;
+
+            var first = true;
+            foreach (var exp in exps)
+            {
+                if (!first) builder.Append(",");
+                first = false;
+
+                exp.GetString(builder, ps);
+            }
         }
         #endregion
 
@@ -56,6 +89,32 @@ namespace XCode
             if (value == null) return exp;
 
             exp.And(value);
+
+            return exp;
+        }
+
+        /// <summary>重载运算符实现And操作，同时通过布尔型支持AndIf</summary>
+        /// <param name="exp"></param>
+        /// <param name="value">数值</param>
+        /// <returns></returns>
+        public static ConcatExpression operator &(ConcatExpression exp, Expression value)
+        {
+            if (value == null) return exp;
+
+            exp.And(value);
+
+            return exp;
+        }
+
+        /// <summary>重载运算符实现And操作，同时通过布尔型支持AndIf</summary>
+        /// <param name="exp"></param>
+        /// <param name="field">数值</param>
+        /// <returns></returns>
+        public static ConcatExpression operator &(ConcatExpression exp, FieldItem field)
+        {
+            if (field == null) return exp;
+
+            exp.And(new FieldExpression(field));
 
             return exp;
         }

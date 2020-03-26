@@ -7,9 +7,6 @@ using NewLife;
 using NewLife.Log;
 using NewLife.Threading;
 using XCode.Membership;
-#if !NET4
-using TaskEx = System.Threading.Tasks.Task;
-#endif
 
 /*
  * 数据抽取流程：
@@ -78,29 +75,23 @@ namespace XCode.Transform
         private Int32 _currentTask;
 
         /// <summary>过滤模块列表</summary>
-        public List<IETLModule> Modules { get; set; } = new List<IETLModule>();
+        public IETLModule Module { get; set; }
         #endregion
 
         #region 构造
         /// <summary>实例化数据抽取器</summary>
-        public ETL()
-        {
-            Name = GetType().Name.TrimEnd("Worker");
-        }
+        public ETL() => Name = GetType().Name.TrimEnd("Worker");
 
         /// <summary>实例化数据抽取器</summary>
         /// <param name="source"></param>
-        public ETL(IEntityOperate source) : this()
-        {
-            Extracter = new TimeExtracter { Factory = source };
-        }
+        public ETL(IEntityFactory source) : this() => Extracter = new TimeExtracter { Factory = source };
         #endregion
 
         #region 开始停止
         /// <summary>开始</summary>
         public virtual void Start()
         {
-            Modules.Start();
+            Module?.Start();
 
             var ext = Extracter;
             if (ext == null) throw new ArgumentNullException(nameof(Extracter), "没有设置数据抽取器");
@@ -120,7 +111,7 @@ namespace XCode.Transform
             _Inited = false;
 
             _timer.TryDispose();
-            Modules.Stop();
+            Module?.Stop();
         }
         #endregion
 
@@ -133,25 +124,26 @@ namespace XCode.Transform
         {
             WriteLog("开始处理{0}，区间({1} + {3:n0}, {2})", Name, set.Start, set.End, set.Row);
 
-            Modules.Init();
+            Module?.Init();
 
             return true;
         }
-
-        /// <summary>最后一次处理的配置</summary>
-        private IExtractSetting _Last;
 
         /// <summary>抽取并处理一批数据</summary>
         /// <returns>返回抽取数据行数，没有数据返回0，初始化或配置失败返回-1</returns>
         public virtual Int32 Process()
         {
             var ctx = new DataContext();
-            if (!Modules.Processing(ctx)) { _Inited = false; return -1; }
+            if (Module != null && !Module.Processing(ctx))
+            {
+                _Inited = false;
+                return -1;
+            }
 
             var set = ctx.Setting ?? Setting;
 
             // 最后一次处理之前，重新启动
-            if (!_Inited || _Last != null && (set.Start < _Last.Start || set.Start == _Last.Start && set.Row < _Last.Row))
+            if (!_Inited)
             {
                 if (!Init(set)) return -1;
                 _Inited = true;
@@ -180,7 +172,7 @@ namespace XCode.Transform
                 st.Times++;
                 //st.FetchSpeed = ctx.FetchSpeed;
 
-                Modules.Fetched(ctx);
+                Module?.Fetched(ctx);
             }
             catch (Exception ex)
             {
@@ -205,9 +197,7 @@ namespace XCode.Transform
             else
                 ProcessListAsync(ctx);
 
-            Modules.Processed(ctx);
-
-            _Last = ctx.Setting;
+            Module?.Processed(ctx);
 
             return list == null ? 0 : list.Count;
         }
@@ -217,10 +207,7 @@ namespace XCode.Transform
         /// <param name="extracter"></param>
         /// <param name="set">设置</param>
         /// <returns></returns>
-        internal protected virtual IList<IEntity> Fetch(DataContext ctx, IExtracter extracter, IExtractSetting set)
-        {
-            return extracter?.Fetch(set);
-        }
+        internal protected virtual IList<IEntity> Fetch(DataContext ctx, IExtracter extracter, IExtractSetting set) => extracter?.Fetch(set);
 
         /// <summary>处理列表，传递批次配置，支持多线程和异步</summary>
         /// <remarks>
@@ -262,21 +249,17 @@ namespace XCode.Transform
                 cur = _currentTask;
             }
 
-            ThreadPool.UnsafeQueueUserWorkItem(s =>
+            ThreadPoolX.QueueUserWorkItem(s =>
             {
                 try
                 {
-                    ProcessList(ctx);
-                }
-                catch (Exception ex)
-                {
-                    XTrace.WriteException(ex);
+                    ProcessList(s);
                 }
                 finally
                 {
                     Interlocked.Decrement(ref _currentTask);
                 }
-            }, null);
+            }, ctx);
         }
 
         /// <summary>批量处理数据列表，可重载打开事务保护</summary>
@@ -324,14 +307,14 @@ namespace XCode.Transform
             var ends = end > DateTime.MinValue && end < DateTime.MaxValue ? ", {0}".F(end) : "";
             WriteLog("共处理{0}行，区间({1}, {2})，抓取{4:n0}ms，{5:n0}qps，处理{6:n0}ms，{7:n0}tps", total, set.Start, set.Row, ends, ctx.FetchCost, ctx.FetchSpeed, ctx.ProcessCost, ctx.ProcessSpeed);
 
-            Modules.OnFinished(ctx);
+            Module?.OnFinished(ctx);
         }
 
         /// <summary>处理单行数据</summary>
         /// <param name="ctx">数据上下文</param>
         /// <param name="source">源实体</param>
         /// <returns></returns>
-        protected virtual IEntity ProcessItem(DataContext ctx, IEntity source) { return source; }
+        protected virtual IEntity ProcessItem(DataContext ctx, IEntity source) => source;
 
         private Exception _lastError;
         /// <summary>遇到错误时如何处理</summary>
@@ -339,7 +322,7 @@ namespace XCode.Transform
         /// <returns></returns>
         protected virtual Exception OnError(DataContext ctx)
         {
-            Modules.OnError(ctx);
+            Module?.OnError(ctx);
 
             var ex = ctx.Error;
             // 处理单个实体时的异常，会被外层捕获，需要判断跳过
@@ -390,7 +373,7 @@ namespace XCode.Transform
         {
             Log?.Info(Name + " " + format, args);
 
-            Provider?.WriteLog(Name, "处理", format.F(args));
+            Provider?.WriteLog(Name, "处理", true, format.F(args));
         }
 
         /// <summary>显示错误日志。默认true</summary>
@@ -403,7 +386,7 @@ namespace XCode.Transform
         {
             Log?.Error(Name + " " + format, args);
 
-            Provider?.WriteLog(Name, "错误", format.F(args));
+            Provider?.WriteLog(Name, "错误", true, format.F(args));
         }
         #endregion
     }

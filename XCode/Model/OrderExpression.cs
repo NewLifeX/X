@@ -10,6 +10,9 @@ namespace XCode
         #region 属性
         /// <summary>内置字符串</summary>
         public StringBuilder Builder { get; set; } = new StringBuilder();
+
+        /// <summary>是否为空</summary>
+        public override Boolean IsEmpty => Builder == null || Builder.Length == 0;
         #endregion
 
         #region 构造
@@ -49,7 +52,7 @@ namespace XCode
         /// <summary>类型转换</summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public static implicit operator String(OrderExpression obj) { return obj?.GetString(null); }
+        public static implicit operator String(OrderExpression obj) => obj?.GetString(null);
         #endregion
 
         #region 重载运算符

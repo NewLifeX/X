@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using NewLife.Log;
 using XCode.Membership;
 
@@ -160,7 +161,7 @@ namespace XCode.Transform
     {
         #region 属性
         /// <summary>目标实体工厂。分批统计时不需要设定</summary>
-        public IEntityOperate Target { get; set; }
+        public IEntityFactory Target { get; set; }
 
         /// <summary>仅插入，不用判断目标是否已有数据</summary>
         public Boolean InsertOnly { get; set; }
@@ -173,7 +174,7 @@ namespace XCode.Transform
         /// <summary>实例化数据同步</summary>
         /// <param name="source"></param>
         /// <param name="target"></param>
-        public Sync(IEntityOperate source, IEntityOperate target) : base(source) { Target = target; }
+        public Sync(IEntityFactory source, IEntityFactory target) : base(source) { Target = target; }
         #endregion
 
         #region 数据处理
@@ -260,7 +261,7 @@ namespace XCode.Transform
             var st = Stat;
             if (isNew)
                 target.Insert();
-            else if (target.Dirtys.Count > 0)
+            else if (target.HasDirty)
             {
                 target.Update();
                 st.Changes++;

@@ -9,24 +9,43 @@ namespace System.Collections.Generic
     /// <summary>集合扩展</summary>
     public static class CollectionHelper
     {
-        /// <summary>集合转为数组</summary>
+        /// <summary>集合转为数组，加锁确保安全</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="collection"></param>
-        /// <param name="index"></param>
+        /// <param name="index">数组偏移量。大于0时，新数组将空出来前面一截，把数据拷贝到后面</param>
         /// <returns></returns>
-        public static T[] ToArray<T>(this ICollection<T> collection, Int32 index = 0)
+        [Obsolete("index参数晦涩难懂")]
+        public static T[] ToArray<T>(this ICollection<T> collection, Int32 index)
         {
             if (collection == null) return null;
 
-            var count = collection.Count;
-            if (count == 0) return new T[0];
             lock (collection)
             {
-                count = collection.Count;
+                var count = collection.Count;
                 if (count == 0) return new T[0];
 
-                var arr = new T[count - index];
+                var arr = new T[count + index];
                 collection.CopyTo(arr, index);
+
+                return arr;
+            }
+        }
+
+        /// <summary>集合转为数组，加锁确保安全</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="collection"></param>
+        /// <returns></returns>
+        public static T[] ToArray<T>(this ICollection<T> collection)
+        {
+            if (collection == null) return null;
+
+            lock (collection)
+            {
+                var count = collection.Count;
+                if (count == 0) return new T[0];
+
+                var arr = new T[count];
+                collection.CopyTo(arr, 0);
 
                 return arr;
             }
@@ -137,9 +156,39 @@ namespace System.Collections.Generic
         {
             if (collection == null) return null;
 
-            if (collection is NullableDictionary<TKey, TValue>) return collection as NullableDictionary<TKey, TValue>;
+            if (collection is NullableDictionary<TKey, TValue> dic && (comparer != null || dic.Comparer == comparer)) return collection as NullableDictionary<TKey, TValue>;
 
             return new NullableDictionary<TKey, TValue>(collection, comparer);
+        }
+
+        /// <summary>从队列里面获取指定个数元素</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="collection">消费集合</param>
+        /// <param name="count">元素个数</param>
+        /// <returns></returns>
+        public static IEnumerable<T> Take<T>(this Queue<T> collection, Int32 count)
+        {
+            if (collection == null) yield break;
+
+            while (count-- > 0 && collection.Count > 0)
+            {
+                yield return collection.Dequeue();
+            }
+        }
+
+        /// <summary>从消费集合里面获取指定个数元素</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="collection">消费集合</param>
+        /// <param name="count">元素个数</param>
+        /// <returns></returns>
+        public static IEnumerable<T> Take<T>(this IProducerConsumerCollection<T> collection, Int32 count)
+        {
+            if (collection == null) yield break;
+
+            while (count-- > 0 && collection.TryTake(out var item))
+            {
+                yield return item;
+            }
         }
     }
 }

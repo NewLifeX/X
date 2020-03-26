@@ -1,10 +1,15 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Threading;
+using NewLife.Caching;
 using NewLife.Collections;
+using NewLife.Data;
+using NewLife.Http;
+using NewLife.Log;
+using NewLife.Messaging;
+using NewLife.Net;
 using NewLife.Reflection;
 
 namespace NewLife.Remoting
@@ -13,25 +18,36 @@ namespace NewLife.Remoting
     public interface IApiHandler
     {
         /// <summary>执行</summary>
-        /// <param name="session"></param>
-        /// <param name="action"></param>
-        /// <param name="args"></param>
+        /// <param name="session">会话</param>
+        /// <param name="action">动作</param>
+        /// <param name="args">参数</param>
+        /// <param name="msg">消息</param>
         /// <returns></returns>
-        Object Execute(IApiSession session, String action, IDictionary<String, Object> args);
+        Object Execute(IApiSession session, String action, Packet args, IMessage msg);
     }
 
-    class ApiHandler : IApiHandler
+    /// <summary>默认处理器</summary>
+    /// <remarks>
+    /// 在基于令牌Token的无状态验证模式中，可以借助Token重写IApiHandler.Prepare，来达到同一个Token共用相同的IApiSession.Items
+    /// </remarks>
+    public class ApiHandler : IApiHandler
     {
+        #region 属性
         /// <summary>Api接口主机</summary>
         public IApiHost Host { get; set; }
+        #endregion
 
+        #region 执行
         /// <summary>执行</summary>
-        /// <param name="session"></param>
-        /// <param name="action"></param>
-        /// <param name="args"></param>
+        /// <param name="session">会话</param>
+        /// <param name="action">动作</param>
+        /// <param name="args">参数</param>
+        /// <param name="msg">消息</param>
         /// <returns></returns>
-        public Object Execute(IApiSession session, String action, IDictionary<String, Object> args)
+        public virtual Object Execute(IApiSession session, String action, Packet args, IMessage msg)
         {
+            if (action.IsNullOrEmpty()) action = "Api/Info";
+
             var api = session.FindAction(action);
             if (api == null) throw new ApiException(404, "无法找到名为[{0}]的服务！".F(action));
 
@@ -39,139 +55,139 @@ namespace NewLife.Remoting
             var controller = session.CreateController(api);
             if (controller == null) throw new ApiException(403, "无法创建名为[{0}]的服务！".F(api.Name));
 
-            if (controller is IApi) (controller as IApi).Session = session;
-
-            // 服务端需要检查登录授权
-            if (Host is ApiServer svrHost && !svrHost.Anonymous)
-            {
-                if (controller.GetType().GetCustomAttribute<AllowAnonymousAttribute>() == null &&
-                    api.Method.GetCustomAttribute<AllowAnonymousAttribute>() == null)
-                {
-                    if (session.UserSession == null || !session.UserSession.Logined) throw new ApiException(401, "未登录！");
-                }
-            }
-
-            // 服务设置优先于全局主机
-            var svr = session.GetService<IApiServer>();
-            var enc = svr?.Encoder ?? Host.Encoder;
-
-            // 全局过滤器、控制器特性、Action特性
-            var fs = api.ActionFilters;
-            // 控制器实现了过滤器接口
-            if (controller is IActionFilter)
-            {
-                var list = fs.ToList();
-                list.Add(controller as IActionFilter);
-                fs = list.ToArray();
-            }
-
-            // 不允许参数字典为空
-            if (args == null)
-                args = new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
+            if (controller is IApi capi) capi.Session = session;
+            if (session is INetSession ss)
+                api.LastSession = ss.Remote + "";
             else
-                args = args.ToNullable(StringComparer.OrdinalIgnoreCase);
+                api.LastSession = session + "";
 
-            // 准备好参数
-            var ps = GetParams(api.Method, args, enc);
+            var st = api.StatProcess;
+            var sw = st.StartCount();
 
-            // 上下文
-            var ctx = new ControllerContext
-            {
-                Controller = controller,
-                Action = api,
-                ActionName = action,
-                Session = session,
-                Parameters = args
-            };
+            var ctx = Prepare(session, action, args, api, msg);
+            ctx.Controller = controller;
 
             Object rs = null;
-            ExceptionContext etx = null;
             try
             {
-                // 当前上下文
-                var actx = new ActionExecutingContext(ctx) { ActionParameters = ps };
-                ControllerContext.Current = actx;
-
                 // 执行动作前的过滤器
-                OnExecuting(actx, fs);
-                rs = actx.Result;
+                if (controller is IActionFilter filter)
+                {
+                    filter.OnActionExecuting(ctx);
+                    rs = ctx.Result;
+                }
 
                 // 执行动作
-                if (rs == null) rs = controller.InvokeWithParams(api.Method, ps as IDictionary);
+                if (rs == null)
+                {
+                    // 特殊处理参数和返回类型都是Packet的服务
+                    if (api.IsPacketParameter && api.IsPacketReturn)
+                    {
+                        var func = api.Method.As<Func<Packet, Packet>>(controller);
+                        rs = func(args);
+                    }
+                    else if (api.IsPacketParameter)
+                    {
+                        rs = controller.Invoke(api.Method, args);
+                    }
+                    else
+                    {
+                        var ps = ctx.ActionParameters;
+                        rs = controller.InvokeWithParams(api.Method, ps as IDictionary);
+                    }
+                    ctx.Result = rs;
+                }
+
+                // 执行动作后的过滤器
+                if (controller is IActionFilter filter2)
+                {
+                    filter2.OnActionExecuted(ctx);
+                    rs = ctx.Result;
+                }
             }
             catch (ThreadAbortException) { throw; }
             catch (Exception ex)
             {
-                // 过滤得到内层异常
-                ex = ex.GetTrue();
+                ctx.Exception = ex.GetTrue();
 
-                var efs = api.ExceptionFilters;
-                // 控制器实现了异常过滤器接口
-                if (controller is IExceptionFilter)
+                // 执行动作后的过滤器
+                if (controller is IActionFilter filter)
                 {
-                    var list = efs.ToList();
-                    list.Add(controller as IExceptionFilter);
-                    efs = list.ToArray();
+                    filter.OnActionExecuted(ctx);
+                    rs = ctx.Result;
                 }
-
-                // 执行异常过滤器
-                etx = OnException(ctx, ex, efs, rs);
-
-                Host.WriteLog("执行{0}出错！{1}", action, ex.Message);
-
-                // 如果异常没有被拦截，继续向外抛出
-                if (!etx.ExceptionHandled) throw;
-
-                return rs = etx.Result;
+                if (ctx.Exception != null && !ctx.ExceptionHandled) throw;
             }
             finally
             {
-                // 执行动作后的过滤器
-                rs = OnExecuted(ctx, etx, fs, rs);
-                ControllerContext.Current = null;
+                // 重置上下文，待下次重用对象
+                ctx.Reset();
+
+                st.StopCount(sw);
             }
 
             return rs;
         }
 
-        protected virtual void OnExecuting(ActionExecutingContext ctx, IActionFilter[] fs)
+        /// <summary>准备上下文，可以借助Token重写Session会话集合</summary>
+        /// <param name="session"></param>
+        /// <param name="action"></param>
+        /// <param name="args"></param>
+        /// <param name="api"></param>
+        /// <param name="msg">消息内容，辅助数据解析</param>
+        /// <returns></returns>
+        protected virtual ControllerContext Prepare(IApiSession session, String action, Packet args, ApiAction api, IMessage msg)
         {
-            foreach (var filter in fs)
+            //var enc = Host.Encoder;
+            var enc = session["Encoder"] as IEncoder ?? Host.Encoder;
+
+            // 当前上下文
+            var ctx = ControllerContext.Current;
+            if (ctx == null)
             {
-                filter.OnActionExecuting(ctx);
+                ctx = new ControllerContext();
+                ControllerContext.Current = ctx;
             }
+            ctx.Action = api;
+            ctx.ActionName = action;
+            ctx.Session = session;
+            ctx.Request = args;
+
+            // 如果服务只有一个二进制参数，则走快速通道
+            if (!api.IsPacketParameter)
+            {
+                // 不允许参数字典为空
+                var dic = args == null || args.Total == 0 ?
+                    new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase) :
+                    enc.DecodeParameters(action, args, msg);
+                ctx.Parameters = dic;
+                session.Parameters = dic;
+
+                // 令牌，作为参数或者http头传递
+                if (dic.TryGetValue("Token", out var token)) session.Token = token + "";
+                if (session.Token.IsNullOrEmpty() && msg is HttpMessage hmsg && hmsg.Headers != null)
+                {
+                    // post、package、byte三种情况将token 写入请求头
+                    if (hmsg.Headers.TryGetValue("x-token", out var token2))
+                        session.Token = token2;
+                    else if (hmsg.Headers.TryGetValue("Authorization", out token2))
+                        session.Token = token2.TrimStart("Bearer ");
+                }
+
+                // 准备好参数
+                var ps = GetParams(api.Method, dic, enc);
+                ctx.ActionParameters = ps;
+            }
+
+            return ctx;
         }
 
-        protected virtual Object OnExecuted(ControllerContext ctx, ExceptionContext etx, IActionFilter[] fs, Object rs)
-        {
-            if (fs.Length == 0) return rs;
-
-            // 倒序
-            fs = fs.Reverse().ToArray();
-
-            var atx = new ActionExecutedContext(etx ?? ctx) { Result = rs };
-            foreach (var filter in fs)
-            {
-                filter.OnActionExecuted(atx);
-            }
-            return atx.Result;
-        }
-
-        protected virtual ExceptionContext OnException(ControllerContext ctx, Exception ex, IExceptionFilter[] fs, Object rs)
-        {
-            //if (fs.Length == 0) return null;
-
-            var etx = new ExceptionContext(ctx) { Exception = ex, Result = rs };
-
-            foreach (var filter in fs)
-            {
-                filter.OnException(etx);
-            }
-
-            return etx;
-        }
-
-        private IDictionary<String, Object> GetParams(MethodInfo method, IDictionary<String, Object> args, IEncoder encoder)
+        /// <summary>获取参数</summary>
+        /// <param name="method"></param>
+        /// <param name="args"></param>
+        /// <param name="encoder"></param>
+        /// <returns></returns>
+        protected virtual IDictionary<String, Object> GetParams(MethodInfo method, IDictionary<String, Object> args, IEncoder encoder)
         {
             // 该方法没有参数，无视外部传入参数
             var pis = method.GetParameters();
@@ -207,5 +223,49 @@ namespace NewLife.Remoting
 
             return ps;
         }
+        #endregion
+    }
+
+    /// <summary>带令牌会话的处理器</summary>
+    /// <remarks>
+    /// 在基于令牌Token的无状态验证模式中，可以借助Token重写IApiHandler.Prepare，来达到同一个Token共用相同的IApiSession.Items。
+    /// 支持内存缓存和Redis缓存。
+    /// </remarks>
+    public class TokenApiHandler : ApiHandler
+    {
+        /// <summary>会话存储</summary>
+        public ICache Cache { get; set; } = new MemoryCache { Expire = 20 * 60 };
+
+        /// <summary>准备上下文，可以借助Token重写Session会话集合</summary>
+        /// <param name="session"></param>
+        /// <param name="action"></param>
+        /// <param name="args"></param>
+        /// <param name="api"></param>
+        /// <param name="msg"></param>
+        /// <returns></returns>
+        protected override ControllerContext Prepare(IApiSession session, String action, Packet args, ApiAction api, IMessage msg)
+        {
+            var ctx = base.Prepare(session, action, args, api, msg);
+
+            var token = session.Token;
+            if (!token.IsNullOrEmpty())
+            {
+                // 第一用户数据是本地字典，用于记录是否启用了第二数据
+                if (session is ApiNetSession ns && ns.Items["Token"] + "" != token)
+                {
+                    var key = GetKey(token);
+                    // 采用哈希结构。内存缓存用并行字段，Redis用Set
+                    ns.Items2 = Cache.GetDictionary<Object>(key);
+                    ns.Items["Token"] = token;
+                }
+            }
+
+            return ctx;
+        }
+
+        /// <summary>根据令牌活期缓存Key</summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        protected virtual String GetKey(String token) => (!token.IsNullOrEmpty() && token.Length > 16) ? token.MD5() : token;
     }
 }

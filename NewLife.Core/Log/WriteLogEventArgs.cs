@@ -1,11 +1,6 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-#if __MOBILE__
-#elif __CORE__
-#else
-using System.Web;
-#endif
 
 namespace NewLife.Log
 {
@@ -54,7 +49,7 @@ namespace NewLife.Log
         [ThreadStatic]
         private static WriteLogEventArgs _Current;
         /// <summary>线程专有实例。线程静态，每个线程只用一个，避免GC浪费</summary>
-        public static WriteLogEventArgs Current { get { return _Current ?? (_Current = new WriteLogEventArgs()); } }
+        public static WriteLogEventArgs Current => _Current ?? (_Current = new WriteLogEventArgs());
         #endregion
 
         #region 方法
@@ -87,18 +82,14 @@ namespace NewLife.Log
             Time = DateTime.Now;
             var thread = Thread.CurrentThread;
             ThreadID = thread.ManagedThreadId;
-#if !__CORE__
             IsPool = thread.IsThreadPoolThread;
-#endif
             ThreadName = CurrentThreadName ?? thread.Name;
 
             var tid = Task.CurrentId;
             TaskID = tid != null ? tid.Value : -1;
 
-#if __MOBILE__
-#elif __CORE__
-#else
-            IsWeb = HttpContext.Current != null;
+#if !__CORE__
+            IsWeb = System.Web.HttpContext.Current != null;
 #endif
         }
 
@@ -106,14 +97,12 @@ namespace NewLife.Log
         /// <returns></returns>
         public override String ToString()
         {
-            if (Exception != null) Message += Exception.ToString();
+            if (Exception != null) Message += Exception.GetMessage();
 
             var name = ThreadName;
             if (name.IsNullOrEmpty()) name = TaskID >= 0 ? TaskID + "" : "-";
-#if __MOBILE__
             if (name.EqualIgnoreCase("Threadpool worker")) name = "P";
             if (name.EqualIgnoreCase("IO Threadpool worker")) name = "IO";
-#endif
 
             return String.Format("{0:HH:mm:ss.fff} {1,2} {2} {3} {4}", Time, ThreadID, IsPool ? (IsWeb ? 'W' : 'Y') : 'N', name, Message);
         }

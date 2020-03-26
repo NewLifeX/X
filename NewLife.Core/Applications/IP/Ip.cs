@@ -2,58 +2,51 @@
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Threading.Tasks;
 using NewLife.Log;
+using NewLife.Threading;
 using NewLife.Web;
 
+#nullable enable
 namespace NewLife.IP
 {
     /// <summary>IP搜索</summary>
     public static class Ip
     {
-        private static Object lockHelper = new Object();
-        private static Zip zip;
+        private static readonly Object lockHelper = new Object();
+        private static Zip? zip;
 
         /// <summary>数据文件</summary>
-        public static String DbFile { get; set; }
+        public static String DbFile { get; set; } = "";
 
         static Ip()
         {
-            var dir = Runtime.IsWeb ? "..\\Data" : ".";
-            var ip = dir.CombinePath("ip.gz");
+            var set = Setting.Current;
+            var dir = set.DataPath;
+            var ip = dir.CombinePath("ip.gz").GetBasePath();
             if (File.Exists(ip)) DbFile = ip;
-
-            // 删除旧版本
-            ip = "App_Data\\ip.gz".GetFullPath();
-            if (File.Exists(ip))
-            {
-                File.Delete(ip);
-                var di = "App_Data".AsDirectory();
-                if (di.GetFiles().Length == 0) di.Delete(true);
-            }
 
             // 如果本地没有IP数据库，则从网络下载
             if (DbFile.IsNullOrWhiteSpace())
             {
-                Task.Factory.StartNew(() =>
+                ThreadPoolX.QueueUserWorkItem(() =>
                 {
-                    var url = Setting.Current.PluginServer;
-                    XTrace.WriteLine("没有找到IP数据库，准备联网获取 {0}", url);
+                    var url = set.PluginServer;
+                    XTrace.WriteLine("没有找到IP数据库{0}，准备联网获取 {1}", ip, url);
 
                     var client = new WebClientX
                     {
                         Log = XTrace.Log
                     };
-                    var file = client.DownloadLink(url, "ip.gz", dir.GetFullPath());
+                    var file = client.DownloadLink(url, "ip.gz", dir.GetBasePath());
 
                     if (File.Exists(file))
                     {
-                        DbFile = file.GetFullPath();
+                        DbFile = file;
                         zip = null;
                         // 让它重新初始化
                         _inited = null;
                     }
-                }, TaskCreationOptions.LongRunning).LogException();
+                });
             }
         }
 
@@ -104,7 +97,7 @@ namespace NewLife.IP
         {
             if (String.IsNullOrEmpty(ip)) return "";
 
-            if (!Init()) return "";
+            if (!Init() || zip == null) return "";
 
             var ip2 = IPToUInt32(ip.Trim());
             lock (lockHelper)
@@ -120,7 +113,7 @@ namespace NewLife.IP
         {
             if (addr == null) return "";
 
-            if (!Init()) return "";
+            if (!Init() || zip == null) return "";
 
             var ip2 = (UInt32)addr.GetAddressBytes().Reverse().ToInt();
             lock (lockHelper)
@@ -132,23 +125,27 @@ namespace NewLife.IP
         static UInt32 IPToUInt32(String IpValue)
         {
             var ss = IpValue.Split('.');
-            var buf = new Byte[4];
+            //var buf = stackalloc Byte[4];
+            var val = 0u;
+            //var ptr = (Byte*)&val;
             for (var i = 0; i < 4; i++)
             {
-                if (i < ss.Length && Int32.TryParse(ss[i], out var n))
+                if (i < ss.Length && UInt32.TryParse(ss[i], out var n))
                 {
-                    buf[3 - i] = (Byte)n;
+                    //buf[3 - i] = (Byte)n;
+                    // 感谢啊富弟（QQ125662872）指出错误，右边需要乘以8，这里为了避开乘法，采用位移实现
+                    val |= n << ((3 - i) << 3);
+                    //ptr[3 - i] = n;
                 }
             }
-            return BitConverter.ToUInt32(buf, 0);
+            //return BitConverter.ToUInt32(buf, 0);
+            return val;
         }
     }
 
-    class MyIpProvider : NetHelper.IpProvider
+    class MyIpProvider : NetHelper.IPProvider
     {
-        public String GetAddress(IPAddress addr)
-        {
-            return Ip.GetAddress(addr);
-        }
+        public override String GetAddress(IPAddress addr) => Ip.GetAddress(addr);
     }
 }
+#nullable restore

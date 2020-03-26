@@ -1,56 +1,63 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using NewLife.Data;
 using NewLife.Log;
+using NewLife.Messaging;
 
 namespace NewLife.Remoting
 {
     /// <summary>编码器</summary>
     public interface IEncoder
     {
-        /// <summary>编码对象</summary>
-        /// <param name="obj"></param>
-        /// <returns></returns>
-        Byte[] Encode(Object obj);
+        ///// <summary>编码 请求/响应</summary>
+        ///// <param name="action"></param>
+        ///// <param name="code"></param>
+        ///// <param name="value"></param>
+        ///// <returns></returns>
+        //Packet Encode(String action, Int32 code, Packet value);
 
-        /// <summary>编码请求</summary>
+        /// <summary>创建请求</summary>
         /// <param name="action"></param>
         /// <param name="args"></param>
-        /// <param name="cookie">附加参数，位于顶级</param>
         /// <returns></returns>
-        Byte[] Encode(String action, Object args, IDictionary<String, Object> cookie);
+        IMessage CreateRequest(String action, Object args);
 
-        /// <summary>编码响应</summary>
+        /// <summary>创建响应</summary>
+        /// <param name="msg"></param>
+        /// <param name="action"></param>
         /// <param name="code"></param>
-        /// <param name="result"></param>
-        /// <param name="cookie">附加参数，位于顶级</param>
+        /// <param name="value"></param>
         /// <returns></returns>
-        Byte[] Encode(Int32 code, Object result, IDictionary<String, Object> cookie);
+        IMessage CreateResponse(IMessage msg, String action, Int32 code, Object value);
 
-        /// <summary>解码成为字典</summary>
-        /// <param name="pk">数据包</param>
+        /// <summary>解码 请求/响应</summary>
+        /// <param name="msg">消息</param>
+        /// <param name="action">服务动作</param>
+        /// <param name="code">错误码</param>
+        /// <param name="value">参数或结果</param>
         /// <returns></returns>
-        IDictionary<String, Object> Decode(Packet pk);
+        Boolean Decode(IMessage msg, out String action, out Int32 code, out Packet value);
 
-        ///// <summary>解码请求</summary>
-        ///// <param name="dic"></param>
-        ///// <param name="action"></param>
-        ///// <param name="args"></param>
+        ///// <summary>编码 请求/响应</summary>
+        ///// <param name="action">服务动作</param>
+        ///// <param name="code">错误码</param>
+        ///// <param name="value">参数或结果</param>
         ///// <returns></returns>
-        //Boolean TryGet(IDictionary<String, Object> dic, out String action, out Object args);
+        //Packet Encode(String action, Int32 code, Object value);
 
-        ///// <summary>解码响应</summary>
-        ///// <param name="dic"></param>
-        ///// <param name="code"></param>
-        ///// <param name="result"></param>
-        ///// <returns></returns>
-        //Boolean TryGet(IDictionary<String, Object> dic, out Int32 code, out Object result);
-
-        /// <summary>转换为对象</summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="obj"></param>
+        /// <summary>解码参数</summary>
+        /// <param name="action">动作</param>
+        /// <param name="data">数据</param>
+        /// <param name="msg">消息</param>
         /// <returns></returns>
-        T Convert<T>(Object obj);
+        IDictionary<String, Object> DecodeParameters(String action, Packet data, IMessage msg);
+
+        /// <summary>解码结果</summary>
+        /// <param name="action"></param>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        Object DecodeResult(String action, Packet data);
 
         /// <summary>转换为目标类型</summary>
         /// <param name="obj"></param>
@@ -63,99 +70,40 @@ namespace NewLife.Remoting
     }
 
     /// <summary>编码器基类</summary>
-    public abstract class EncoderBase : IEncoder
+    public abstract class EncoderBase
     {
-        /// <summary>编码对象</summary>
-        /// <param name="obj"></param>
+        #region 编码/解码
+        /// <summary>解码 请求/响应</summary>
+        /// <param name="msg">消息</param>
+        /// <param name="action">服务动作</param>
+        /// <param name="code">错误码</param>
+        /// <param name="value">参数或结果</param>
         /// <returns></returns>
-        public abstract Byte[] Encode(Object obj);
-
-        /// <summary>编码请求</summary>
-        /// <param name="action"></param>
-        /// <param name="args"></param>
-        /// <param name="cookie">附加参数，位于顶级</param>
-        /// <returns></returns>
-        public virtual Byte[] Encode(String action, Object args, IDictionary<String, Object> cookie)
+        public virtual Boolean Decode(IMessage msg, out String action, out Int32 code, out Packet value)
         {
-            var obj = new { action, args };
-            return Encode(obj.ToDictionary().Merge(cookie));
+            action = null;
+            code = 0;
+            value = null;
+
+            // 请求：action + args
+            // 响应：action + code + result
+            var ms = msg.Payload.GetStream();
+            var reader = new BinaryReader(ms);
+
+            action = reader.ReadString();
+            if (msg.Reply && msg.Error) code = reader.ReadInt32();
+            if (action.IsNullOrEmpty()) throw new Exception("解码错误，无法找到服务名！");
+
+            // 参数或结果
+            if (ms.Length > ms.Position)
+            {
+                var len = reader.ReadInt32();
+                if (len > 0) value = msg.Payload.Slice((Int32)ms.Position, len);
+            }
+
+            return true;
         }
-
-        /// <summary>编码响应</summary>
-        /// <param name="code"></param>
-        /// <param name="result"></param>
-        /// <param name="cookie">附加参数，位于顶级</param>
-        /// <returns></returns>
-        public virtual Byte[] Encode(Int32 code, Object result, IDictionary<String, Object> cookie)
-        {
-            // 不支持序列化异常
-            if (result is Exception ex) result = ex.GetTrue()?.Message;
-
-            var obj = new { code, result };
-            return Encode(obj.ToDictionary().Merge(cookie));
-        }
-
-        /// <summary>解码成为字典</summary>
-        /// <param name="pk"></param>
-        /// <returns></returns>
-        public abstract IDictionary<String, Object> Decode(Packet pk);
-
-        ///// <summary>解码请求</summary>
-        ///// <param name="dic"></param>
-        ///// <param name="action"></param>
-        ///// <param name="args"></param>
-        ///// <returns></returns>
-        //public virtual Boolean TryGet(IDictionary<String, Object> dic, out String action, out Object args)
-        //{
-        //    action = null;
-        //    args = null;
-
-        //    Object act = null;
-        //    if (!dic.TryGetValue("action", out act)) return false;
-
-        //    // 参数可能不存在
-        //    dic.TryGetValue("args", out args);
-
-        //    action = act + "";
-
-        //    return true;
-        //}
-
-        ///// <summary>解码响应</summary>
-        ///// <param name="dic"></param>
-        ///// <param name="code"></param>
-        ///// <param name="result"></param>
-        ///// <returns></returns>
-        //public virtual Boolean TryGet(IDictionary<String, Object> dic, out Int32 code, out Object result)
-        //{
-        //    code = 0;
-        //    result = null;
-
-        //    Object cod = null;
-        //    if (!dic.TryGetValue("code", out cod)) return false;
-
-        //    // 参数可能不存在
-        //    dic.TryGetValue("result", out result);
-
-        //    code = cod.ToInt();
-
-        //    return true;
-        //}
-
-        /// <summary>转换为对象</summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="obj"></param>
-        /// <returns></returns>
-        public virtual T Convert<T>(Object obj)
-        {
-            return (T)Convert(obj, typeof(T));
-        }
-
-        /// <summary>转换为目标类型</summary>
-        /// <param name="obj"></param>
-        /// <param name="targetType"></param>
-        /// <returns></returns>
-        public abstract Object Convert(Object obj, Type targetType);
+        #endregion
 
         #region 日志
         /// <summary>日志提供者</summary>
@@ -164,10 +112,7 @@ namespace NewLife.Remoting
         /// <summary>写日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
-        public virtual void WriteLog(String format, params Object[] args)
-        {
-            Log.Info(format, args);
-        }
+        public virtual void WriteLog(String format, params Object[] args) => Log?.Info(format, args);
         #endregion
     }
 }

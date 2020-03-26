@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // 特性集控制。更改这些特性值可修改
 // 与程序集关联的信息。
 [assembly: AssemblyTitle("组件核心库")]
-[assembly: AssemblyDescription("日常开发中的各种基础功能")]
+[assembly: AssemblyDescription("日志、网络、RPC、序列化、缓存、Windows服务、多线程")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyProduct("NewLife.Core")]
 [assembly: AssemblyCompany("新生命开发团队")]
-[assembly: AssemblyCopyright("©2002-2017 新生命开发团队 http://git.newlifex.com/NewLife/X")]
+[assembly: AssemblyCopyright("版权所有(C) 2002-2019 新生命开发团队 https://github.com/NewLifeX/X")]
 [assembly: AssemblyTrademark("四叶草")]
 [assembly: AssemblyCulture("")]
 
@@ -32,11 +32,28 @@ using System.Runtime.InteropServices;
 //
 // 可以指定所有这些值，也可以使用“内部版本号”和“修订号”的默认值，
 // 方法是按如下所示使用“*”:
-// [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("6.4.*")]
-[assembly: AssemblyFileVersion("6.4.2017.0719")]
+[assembly: AssemblyVersion("8.1.*")]
+[assembly: AssemblyFileVersion("8.1.2019.0307")]
 
 /*
+ * v8.1.2019.0307   ApiServer单连接会话支持多消息并行处理
+ * 
+ * v8.0.2019.0101   standard版完整支持netcore以及nfx应用
+ * 
+ * v8.0.2018.1224   全面进入netstandard时代
+ * 
+ * v7.4.2018.1103   重构Redis，支持自动管道，提升吞吐率
+ * 
+ * v7.3.2018.0614   重构高性能资源池，减少GC压力，增加线程池，让异步任务得到平等竞争CPU的机会
+ * 
+ * v7.0.2018.0506   重构第四代网络库，改进RPC框架
+ * 
+ * v6.7.2018.0421   网络库废除发送队列SendQueue
+ * 
+ * v6.6.2018.0211   增加OAuth客户端服务端，支持QQ、百度、GitHub、淘宝等
+ * 
+ * v6.5.2017.1015   服务代理Agent增加任务调度器
+ * 
  * v6.4.2017.0719   日志模块支持指定文件名格式，便于不同子系统输出日志文件到相同目录
  * 
  * v6.3.2017.0320   增加7z扩展压缩与解压缩

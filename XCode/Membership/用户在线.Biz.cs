@@ -51,7 +51,7 @@ namespace XCode.Membership
         /// <summary>物理地址</summary>
         [DisplayName("物理地址")]
         //[Map(__.CreateIP)]
-        public String CreateAddress { get { return CreateIP.IPToAddress(); } }
+        public String CreateAddress => CreateIP.IPToAddress();
         #endregion
 
         #region 扩展查询
@@ -153,7 +153,6 @@ namespace XCode.Membership
             return entity;
         }
 
-#if !__CORE__
         private static TimerX _timer;
 
         /// <summary>设置网页会话状态</summary>
@@ -176,12 +175,11 @@ namespace XCode.Membership
 
             if (user == null) return SetStatus(sessionid, page, status, 0, null, ip);
 
-            user.Online = true;
-            (user as IEntity).SaveAsync(1000);
+            //if (user is IAuthUser user2) user2.Online = true;
+            //(user as IEntity).SaveAsync(1000);
 
             return SetStatus(sessionid, page, status, user.ID, user + "", ip);
         }
-#endif
 
         /// <summary>删除过期，指定过期时间</summary>
         /// <param name="secTimeout">超时时间，20 * 60秒</param>
@@ -195,16 +193,16 @@ namespace XCode.Membership
             var list = FindAll(exp, null, null, 0, 0);
             list.Delete();
 
-            // 设置离线
-            foreach (var item in list)
-            {
-                var user = ManageProvider.Provider.FindByID(item.UserID);
-                if (user != null)
-                {
-                    user.Online = false;
-                    user.Save();
-                }
-            }
+            //// 设置离线
+            //foreach (var item in list)
+            //{
+            //    var user = ManageProvider.Provider.FindByID(item.UserID);
+            //    if (user is IAuthUser user2)
+            //    {
+            //        user2.Online = false;
+            //        user2.Save();
+            //    }
+            //}
 
             return list;
         }

@@ -53,15 +53,12 @@ namespace NewLife.Net
         INetSession Send(String msg, Encoding encoding = null);
 
         /// <summary>异步发送并等待响应</summary>
-        /// <param name="pk"></param>
+        /// <param name="message"></param>
         /// <returns></returns>
-        Task<Packet> SendAsync(Packet pk);
+        Task<Object> SendAsync(Object message);
 
         /// <summary>数据到达事件</summary>
         event EventHandler<ReceivedEventArgs> Received;
-
-        /// <summary>消息到达事件</summary>
-        event EventHandler<MessageEventArgs> MessageReceived;
         #endregion
     }
 

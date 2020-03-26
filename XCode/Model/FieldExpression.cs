@@ -17,9 +17,16 @@ namespace XCode
 
         /// <summary>值</summary>
         public Object Value { get; set; }
+
+        /// <summary>是否为空</summary>
+        public override Boolean IsEmpty => Field == null;
         #endregion
 
         #region 构造
+        /// <summary>构造字段表达式</summary>
+        /// <param name="field"></param>
+        public FieldExpression(FieldItem field) => Field = field;
+
         /// <summary>构造字段表达式</summary>
         /// <param name="field"></param>
         /// <param name="action"></param>
@@ -41,8 +48,15 @@ namespace XCode
         {
             if (Field == null) return;
 
+            if (Action.IsNullOrEmpty())
+            {
+                builder.Append(Field.FormatedName);
+                return;
+            }
+
             var op = Field.Factory;
 
+            // 右值是字段
             if (Value is FieldItem fi)
             {
                 builder.AppendFormat("{0}{1}{2}", Field.FormatedName, Action, op.FormatName(fi.ColumnName));

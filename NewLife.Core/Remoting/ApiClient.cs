@@ -3,57 +3,46 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using NewLife.Collections;
 using NewLife.Data;
+using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Net;
-using NewLife.Reflection;
 using NewLife.Threading;
+#if !NET4
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 namespace NewLife.Remoting
 {
     /// <summary>应用接口客户端</summary>
-    public class ApiClient : ApiHost, IApiSession, IUserSession
+    public class ApiClient : ApiHost, IApiClient
     {
-        #region 静态
-        /// <summary>协议到提供者类的映射</summary>
-        public static IDictionary<String, Type> Providers { get; } = new Dictionary<String, Type>(StringComparer.OrdinalIgnoreCase);
-
-        static ApiClient()
-        {
-            var ps = Providers;
-            ps.Add("tcp", typeof(ApiNetClient));
-            ps.Add("udp", typeof(ApiNetClient));
-            ps.Add("http", typeof(ApiHttpClient));
-            ps.Add("ws", typeof(ApiHttpClient));
-        }
-        #endregion
-
         #region 属性
         /// <summary>是否已打开</summary>
-        public Boolean Active { get; set; }
+        public Boolean Active { get; protected set; }
 
-        /// <summary>通信客户端</summary>
-        public IApiClient Client { get; set; }
+        /// <summary>服务端地址集合。负载均衡</summary>
+        public String[] Servers { get; set; }
 
-        /// <summary>主机</summary>
-        IApiHost IApiSession.Host { get { return this; } }
+        /// <summary>客户端连接集群</summary>
+        public ICluster<String, ISocketClient> Cluster { get; set; }
 
-        /// <summary>动作前缀。自动在每个没有/的动作名之前加上</summary>
-        public String ActionPrefix { get; set; }
+        /// <summary>是否使用连接池。true时建立多个到服务端的连接（高吞吐），默认false使用单一连接（低延迟）</summary>
+        public Boolean UsePool { get; set; }
 
-        /// <summary>用户对象。一般用于共享用户信息对象</summary>
-        public Object UserState { get; set; }
-
-        /// <summary>用户状态会话</summary>
-        IUserSession IApiSession.UserSession { get; set; }
+        /// <summary>令牌。每次请求携带</summary>
+        public String Token { get; set; }
 
         /// <summary>最后活跃时间</summary>
         public DateTime LastActive { get; set; }
 
-        /// <summary>所有服务器所有会话，包含自己</summary>
-        IApiSession[] IApiSession.AllSessions { get { return new IApiSession[] { this }; } }
+        /// <summary>调用统计</summary>
+        public ICounter StatInvoke { get; set; }
 
-        /// <summary>附加参数，每次请求都携带</summary>
-        public IDictionary<String, Object> Cookie { get; set; } = new NullableDictionary<String, Object>();
+        /// <summary>发送数据包统计信息</summary>
+        public ICounter StatSend { get; set; }
+
+        /// <summary>接收数据包统计信息</summary>
+        public ICounter StatReceive { get; set; }
         #endregion
 
         #region 构造
@@ -62,58 +51,62 @@ namespace NewLife.Remoting
         {
             var type = GetType();
             Name = type.GetDisplayName() ?? type.Name.TrimEnd("Client");
-
-            (this as IApiSession).UserSession = this;
-
-            Register(new ApiController { Host = this }, null);
         }
 
         /// <summary>实例化应用接口客户端</summary>
-        public ApiClient(String uri) : this()
+        /// <param name="uris">服务端地址集合，逗号分隔</param>
+        public ApiClient(String uris) : this()
         {
-            SetRemote(uri);
+            if (!uris.IsNullOrEmpty()) Servers = uris.Split(",", ";");
         }
 
         /// <summary>销毁</summary>
         /// <param name="disposing"></param>
-        protected override void OnDispose(Boolean disposing)
+        protected override void Dispose(Boolean disposing)
         {
-            base.OnDispose(disposing);
+            base.Dispose(disposing);
+
+            _Timer.TryDispose();
 
             Close(Name + (disposing ? "Dispose" : "GC"));
         }
         #endregion
 
         #region 打开关闭
+        private readonly Object Root = new Object();
         /// <summary>打开客户端</summary>
         public virtual Boolean Open()
         {
             if (Active) return true;
+            lock (Root)
+            {
+                if (Active) return true;
 
-            var ct = Client;
-            if (ct == null) throw new ArgumentNullException(nameof(Client), "未指定通信客户端");
+                var ss = Servers;
+                if (ss == null || ss.Length == 0) throw new ArgumentNullException(nameof(Servers), "未指定服务端地址");
 
-            if (Encoder == null) Encoder = new JsonEncoder();
-            if (Handler == null) Handler = new ApiHandler { Host = this };
+                if (Encoder == null) Encoder = new JsonEncoder();
+                //if (Encoder == null) Encoder = new BinaryEncoder();
+                //if (Handler == null) Handler = new ApiHandler { Host = this };
 
-            Encoder.Log = EncoderLog;
+                // 集群
+                Cluster = InitCluster();
+                WriteLog("集群：{0}", Cluster);
 
-            // 设置过滤器
-            SetFilter();
+                Encoder.Log = EncoderLog;
 
-            ct.Provider = this;
-            ct.Log = Log;
-            ct.Opened += Client_Opened;
+                // 控制性能统计信息
+                var ms = StatPeriod * 1000;
+                if (ms > 0)
+                {
+                    if (StatSend == null) StatSend = new PerfCounter();
+                    if (StatReceive == null) StatReceive = new PerfCounter();
 
-            // 打开网络连接
-            if (!ct.Open()) return false;
+                    _Timer = new TimerX(DoWork, null, ms, ms) { Async = true };
+                }
 
-            ShowService();
-
-            // 打开连接后马上就可以登录
-            Timer = new TimerX(OnTimer, this, 0, 30000);
-
-            return Active = true;
+                return Active = true;
+            }
         }
 
         /// <summary>关闭</summary>
@@ -123,103 +116,64 @@ namespace NewLife.Remoting
         {
             if (!Active) return;
 
-            Key = null;
-            Timer.TryDispose();
-
-            var ct = Client;
-            if (ct != null)
-            {
-                ct.Opened -= Client_Opened;
-                ct.Close(reason ?? (GetType().Name + "Close"));
-            }
+            Cluster?.Close(reason ?? (GetType().Name + "Close"));
 
             Active = false;
         }
 
-        /// <summary>打开后触发。</summary>
-        public event EventHandler Opened;
-
-        private void Client_Opened(Object sender, EventArgs e)
+        /// <summary>初始化集群</summary>
+        protected virtual ICluster<String, ISocketClient> InitCluster()
         {
-            // 每次打开连接，先清空通信密钥
-            Key = null;
-            Logined = false;
-
-            Opened?.Invoke(this, e);
-        }
-
-        /// <summary>设置远程地址</summary>
-        /// <param name="uri"></param>
-        /// <returns></returns>
-        public Boolean SetRemote(String uri)
-        {
-            Type type;
-            var nu = new NetUri(uri);
-            if (!Providers.TryGetValue(nu.Protocol, out type)) return false;
-
-            WriteLog("{0} SetRemote {1}", type.Name, nu);
-
-            if (type.CreateInstance() is IApiClient ac)
+            var cluster = Cluster;
+            if (cluster == null)
             {
-                ac.Provider = this;
-                ac.Log = Log;
-
-                if (ac.Init(uri))
-                {
-                    Client.TryDispose();
-                    Client = ac;
-                }
+                if (UsePool)
+                    cluster = new ClientPoolCluster { Log = Log };
+                else
+                    cluster = new ClientSingleCluster { Log = Log };
+                //Cluster = cluster;
             }
 
-            return true;
+            if (cluster is ClientSingleCluster sc && sc.OnCreate == null) sc.OnCreate = OnCreate;
+            if (cluster is ClientPoolCluster pc && pc.OnCreate == null) pc.OnCreate = OnCreate;
+
+            if (cluster.GetItems == null) cluster.GetItems = () => Servers;
+            cluster.Open();
+
+            return cluster;
         }
-
-        /// <summary>查找Api动作</summary>
-        /// <param name="action"></param>
-        /// <returns></returns>
-        public virtual ApiAction FindAction(String action) { return Manager.Find(action); }
-
-        /// <summary>创建控制器实例</summary>
-        /// <param name="api"></param>
-        /// <returns></returns>
-        public virtual Object CreateController(ApiAction api) { return this.CreateController(this, api); }
         #endregion
 
         #region 远程调用
-        /// <summary>调用</summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="action"></param>
-        /// <param name="args"></param>
-        /// <param name="cookie">附加参数，位于顶级</param>
+        /// <summary>异步调用，等待返回结果</summary>
+        /// <typeparam name="TResult">返回类型</typeparam>
+        /// <param name="action">服务操作</param>
+        /// <param name="args">参数</param>
         /// <returns></returns>
-        public virtual async Task<TResult> InvokeAsync<TResult>(String action, Object args = null, IDictionary<String, Object> cookie = null)
+        public virtual async Task<TResult> InvokeAsync<TResult>(String action, Object args = null)
         {
-            var ss = Client;
-            if (ss == null) return default(TResult);
+            // 让上层异步到这直接返回，后续代码在另一个线程执行
+            //!!! Task.Yield会导致强制捕获上下文，虽然会在另一个线程执行，但在UI线程中可能无法抢占上下文导致死锁
+#if !NET4
+            //await Task.Yield();
+#endif
 
-            // 未登录且设置了用户名，并且当前不是登录，则异步登录
-            if (!Logined && !UserName.IsNullOrEmpty() && action != "Login") await LoginAsync();
+            Open();
 
             var act = action;
-            if (!ActionPrefix.IsNullOrEmpty() && !act.Contains("/")) act = ActionPrefix.EnsureEnd("/") + act;
 
-            LastInvoke = DateTime.Now;
             try
             {
-                return await ApiHostHelper.InvokeAsync<TResult>(this, this, act, args, cookie ?? Cookie);
+                return await InvokeWithClientAsync<TResult>(null, act, args).ConfigureAwait(false);
             }
             catch (ApiException ex)
             {
                 // 重新登录后再次调用
                 if (ex.Code == 401)
                 {
-                    Logined = false;
-                    // 如果当前不是登录，且设置了用户名，尝试自动登录
-                    if (action != "Login" && !UserName.IsNullOrEmpty())
-                    {
-                        await LoginAsync();
-                        return await ApiHostHelper.InvokeAsync<TResult>(this, this, act, args, cookie ?? Cookie);
-                    }
+                    await Cluster.InvokeAsync(client => OnLoginAsync(client, true)).ConfigureAwait(false);
+
+                    return await InvokeWithClientAsync<TResult>(null, act, args).ConfigureAwait(false);
                 }
 
                 throw;
@@ -227,208 +181,221 @@ namespace NewLife.Remoting
             // 截断任务取消异常，避免过长
             catch (TaskCanceledException)
             {
-                throw new TaskCanceledException(action + "超时取消");
+                throw new TaskCanceledException($"[{act}]超时[{Timeout:n0}ms]取消");
             }
         }
 
-        /// <summary>创建消息</summary>
-        /// <param name="pk"></param>
+        /// <summary>同步调用，阻塞等待</summary>
+        /// <param name="action">服务操作</param>
+        /// <param name="args">参数</param>
         /// <returns></returns>
-        IMessage IApiSession.CreateMessage(Packet pk) { return Client?.CreateMessage(pk); }
+        public virtual TResult Invoke<TResult>(String action, Object args = null) => TaskEx.Run(() => InvokeAsync<TResult>(action, args)).Result;
 
-        async Task<IMessage> IApiSession.SendAsync(IMessage msg) { return await Client.SendAsync(msg); }
-        #endregion
-
-        #region 登录
-        /// <summary>用户名</summary>
-        public String UserName { get; set; }
-
-        /// <summary>密码</summary>
-        public String Password { get; set; }
-
-        /// <summary>是否已登录</summary>
-        public Boolean Logined { get; protected set; }
-
-        /// <summary>登录完成事件</summary>
-        public event EventHandler<EventArgs<Object>> OnLogined;
-
-        private Task<Object> _login;
-        private Object _login_lock = new Object();
-
-        /// <summary>异步登录</summary>
-        public virtual async Task<Object> LoginAsync()
+        /// <summary>单向发送。同步调用，不等待返回</summary>
+        /// <param name="action">服务操作</param>
+        /// <param name="args">参数</param>
+        /// <param name="flag">标识</param>
+        /// <returns></returns>
+        public virtual Boolean InvokeOneWay(String action, Object args = null, Byte flag = 0)
         {
-            // 同时只能发起一个登录请求
-            var task = _login;
-            if (task != null) return await task;
+            if (!Open()) return false;
 
-            lock (_login_lock)
+            var act = action;
+
+            return Invoke(this, act, args, flag);
+        }
+
+        /// <summary>指定客户端的异步调用，等待返回结果</summary>
+        /// <remarks>常用于在OnLoginAsync中实现连接后登录功能</remarks>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="client">客户端</param>
+        /// <param name="action">服务操作</param>
+        /// <param name="args">参数</param>
+        /// <param name="flag">标识</param>
+        /// <returns></returns>
+        public virtual async Task<TResult> InvokeWithClientAsync<TResult>(ISocketClient client, String action, Object args = null, Byte flag = 0)
+        {
+            // 性能计数器，次数、TPS、平均耗时
+            var st = StatInvoke;
+            var sw = st.StartCount();
+
+            LastActive = DateTime.Now;
+
+            // 令牌
+            if (!Token.IsNullOrEmpty())
             {
-                task = _login;
-                if (task == null) task = _login = OnLoginAsync();
+                var dic = args.ToDictionary();
+                if (!dic.ContainsKey(nameof(Token))) dic[nameof(Token)] = Token;
+                args = dic;
             }
 
+            // 编码请求，构造消息
+            var enc = Encoder;
+            var msg = enc.CreateRequest(action, args);
+            if (flag > 0 && msg is DefaultMessage dm) dm.Flag = flag;
+
+            var invoker = client != null ? (client + "") : ToString();
+            IMessage rs = null;
             try
             {
-                return await task;
+                if (client != null)
+                    rs = (await client.SendMessageAsync(msg).ConfigureAwait(false)) as IMessage;
+                else
+                    rs = (await Cluster.InvokeAsync(client =>
+                    {
+                        invoker = client.Remote + "";
+                        return client.SendMessageAsync(msg);
+                    }).ConfigureAwait(false)) as IMessage;
+
+                if (rs == null) return default;
+            }
+            catch (AggregateException aggex)
+            {
+                var ex = aggex.GetTrue();
+                if (ex is TaskCanceledException)
+                {
+                    throw new TimeoutException($"请求[{action}]超时！", ex);
+                }
+                throw aggex;
+            }
+            catch (TaskCanceledException ex)
+            {
+                throw new TimeoutException($"请求[{action}]超时！", ex);
             }
             finally
             {
-                _login = null;
+                var msCost = st.StopCount(sw) / 1000;
+                if (SlowTrace > 0 && msCost >= SlowTrace) WriteLog($"慢调用[{action}]，耗时{msCost:n0}ms");
             }
+
+            // 特殊返回类型
+            var resultType = typeof(TResult);
+            if (resultType == typeof(IMessage)) return (TResult)rs;
+            //if (resultType == typeof(Packet)) return rs.Payload;
+
+            if (!enc.Decode(rs, out _, out var code, out var data)) throw new InvalidOperationException();
+
+            // 是否成功
+            if (code != 0) throw new ApiException(code, data.ToStr()?.Trim('\"')) { Source = invoker + "/" + action };
+
+            if (data == null) return default;
+            if (resultType == typeof(Packet)) return (TResult)(Object)data;
+
+            // 解码结果
+            var result = enc.DecodeResult(action, data);
+            if (resultType == typeof(Object)) return (TResult)result;
+
+            // 返回
+            return (TResult)enc.Convert(result, resultType);
         }
 
-        private async Task<Object> OnLoginAsync()
-        {
-            var args = OnPreLogin();
-
-            // 登录前清空密钥
-            if (Logined) Key = null;
-
-            var rs = await OnLogin(args);
-
-            // 注册成功则保存
-            var dic = rs.ToDictionary();
-            if (Password.IsNullOrEmpty() && dic.ContainsKey("pass"))
-            {
-                UserName = dic["user"] + "";
-                Password = dic["pass"] + "";
-
-                WriteLog("注册成功！{0}/{1}", UserName, Password);
-            }
-            else
-                WriteLog("登录成功！");
-
-            // 从响应中解析通信密钥
-            if (Encrypted)
-            {
-                //var dic = rs.ToDictionary();
-                //!!! 使用密码解密通信密钥
-                Key = (dic["Key"] + "").ToHex().RC4(Password.GetBytes());
-
-                WriteLog("密匙:{0}", Key.ToHex());
-            }
-
-            Logined = true;
-
-            OnLogined?.Invoke(this, new EventArgs<Object>(rs));
-
-            // 尽快开始一次心跳
-            Timer?.SetNext(1000);
-
-            return rs;
-        }
-
-        /// <summary>预登录，默认MD5哈希密码，可继承修改登录参数构造方式</summary>
+        /// <summary>调用</summary>
+        /// <param name="session"></param>
+        /// <param name="action">服务操作</param>
+        /// <param name="args">参数</param>
+        /// <param name="flag">标识</param>
         /// <returns></returns>
-        protected virtual Object OnPreLogin()
+        private Boolean Invoke(Object session, String action, Object args, Byte flag = 0)
         {
-            //!!! 安全起见，强烈建议不用传输明文密码
-            var user = UserName;
-            var pass = Password.MD5();
-            if (user.IsNullOrEmpty()) throw new ArgumentNullException(nameof(user), "用户名不能为空！");
-            //if (pass.IsNullOrEmpty()) throw new ArgumentNullException(nameof(pass), "密码不能为空！");
+            if (session == null) return false;
 
-            return new { user, pass };
-        }
+            // 性能计数器，次数、TPS、平均耗时
+            var st = StatInvoke;
 
-        /// <summary>执行登录，可继承修改登录动作</summary>
-        /// <param name="args"></param>
-        /// <returns></returns>
-        protected virtual async Task<Object> OnLogin(Object args)
-        {
-            return await InvokeAsync<Object>("Login", args);
-        }
-        #endregion
+            // 编码请求
+            var msg = Encoder.CreateRequest(action, args);
 
-        #region 心跳
-        /// <summary>调用响应延迟，毫秒</summary>
-        public Int32 Delay { get; private set; }
-
-        /// <summary>服务端与客户端的时间差</summary>
-        public TimeSpan Span { get; private set; }
-
-        /// <summary>发送心跳</summary>
-        /// <param name="args"></param>
-        /// <returns>是否收到成功响应</returns>
-        public virtual async Task<Object> PingAsync(Object args = null)
-        {
-            var dic = args.ToDictionary();
-            if (!dic.ContainsKey("Time")) dic["Time"] = DateTime.Now;
-
-            var rs = await InvokeAsync<Object>("Ping", dic);
-            dic = rs.ToDictionary();
-
-            // 加权计算延迟
-            Object obj;
-            if (dic.TryGetValue("Time", out obj))
+            if (msg is DefaultMessage dm)
             {
-                var ts = DateTime.Now - obj.ToDateTime();
-                var ms = (Int32)ts.TotalMilliseconds;
-
-                if (Delay <= 0)
-                    Delay = ms;
-                else
-                    Delay = (Delay * 3 + ms) / 4;
+                dm.OneWay = true;
+                if (flag > 0) dm.Flag = flag;
             }
 
-            // 获取服务器时间
-            if (dic.TryGetValue("ServerTime", out obj))
-            {
-                // 保存时间差，这样子以后只需要拿本地当前时间加上时间差，即可得到服务器时间
-                Span = DateTime.Now - obj.ToDateTime();
-                //WriteLog("时间差：{0}ms", (Int32)Span.TotalMilliseconds);
-            }
-
-            return rs;
-        }
-
-        /// <summary>定时器</summary>
-        protected TimerX Timer { get; set; }
-
-        /// <summary>最后调用。用于判断是否需要心跳</summary>
-        public DateTime LastInvoke { get; private set; }
-
-        /// <summary>定时执行登录或心跳</summary>
-        /// <param name="state"></param>
-        protected virtual async void OnTimer(Object state)
-        {
+            var sw = st.StartCount();
             try
             {
-                if (Logined)
-                {
-                    if (LastInvoke.AddMilliseconds(Timer.Period) < DateTime.Now) await PingAsync();
-                }
-                else if (!UserName.IsNullOrEmpty())
-                    await LoginAsync();
+                if (session is IApiSession ss)
+                    return Cluster.Invoke(client => client.SendMessage(msg));
+                else if (session is ISocketRemote client)
+                    return client.SendMessage(msg);
+                else
+                    throw new InvalidOperationException();
             }
-            catch (TaskCanceledException ex) { Log.Error(ex.Message); }
-            catch (ApiException ex) { Log.Error(ex.Message); }
-            catch (Exception ex) { Log.Error(ex.ToString()); }
+            finally
+            {
+                var msCost = st.StopCount(sw) / 1000;
+                if (SlowTrace > 0 && msCost >= SlowTrace) WriteLog($"慢调用[{action}]，耗时{msCost:n0}ms");
+            }
         }
         #endregion
 
-        #region 加密&压缩
-        /// <summary>加密通信指令中负载数据的密匙</summary>
-        public Byte[] Key { get; set; }
+        #region 登录
+        /// <summary>新会话。客户端每次连接或断线重连后，可用InvokeWithClientAsync做登录</summary>
+        /// <param name="client">会话</param>
+        public virtual void OnNewSession(ISocketClient client)
+        {
+            OnLoginAsync(client, true)?.Wait();
+        }
 
-        /// <summary>获取通信密钥的委托</summary>
+        /// <summary>连接后自动登录</summary>
+        /// <param name="client">客户端</param>
+        /// <param name="force">强制登录</param>
+        protected virtual Task<Object> OnLoginAsync(ISocketClient client, Boolean force) => TaskEx.FromResult<Object>(null);
+
+        /// <summary>登录</summary>
         /// <returns></returns>
-        protected override Func<FilterContext, Byte[]> GetKeyFunc() { return ctx => Key; }
+        public virtual async Task<Object> LoginAsync()
+        {
+#if !NET4
+            //await Task.Yield();
+#endif
+
+            return await Cluster.InvokeAsync(client => OnLoginAsync(client, false)).ConfigureAwait(false);
+        }
         #endregion
 
-        #region 服务提供者
-        /// <summary>获取服务提供者</summary>
-        /// <param name="serviceType"></param>
-        /// <returns></returns>
-        public override Object GetService(Type serviceType)
+        #region 连接池
+        /// <summary>创建客户端之后，打开连接之前</summary>
+        /// <param name="svr"></param>
+        protected virtual ISocketClient OnCreate(String svr)
         {
-            // 服务类是否当前类的基类
-            if (GetType().As(serviceType)) return this;
+            var client = new NetUri(svr).CreateRemote();
+            // 网络层采用消息层超时
+            client.Timeout = Timeout;
+            client.StatSend = StatSend;
+            client.StatReceive = StatReceive;
 
-            if (serviceType == typeof(IApiClient)) return Client;
+            client.Add(GetMessageCodec());
 
-            return base.GetService(serviceType);
+            client.Opened += (s, e) => OnNewSession(s as ISocketClient);
+
+            return client;
+        }
+        #endregion
+
+        #region 统计
+        private TimerX _Timer;
+        private String _Last;
+
+        /// <summary>显示统计信息的周期。默认600秒，0表示不显示统计信息</summary>
+        public Int32 StatPeriod { get; set; } = 600;
+
+        private void DoWork(Object state)
+        {
+            var sb = Pool.StringBuilder.Get();
+            var pf1 = StatInvoke;
+            if (pf1 != null && pf1.Value > 0) sb.AppendFormat("请求：{0} ", pf1);
+
+            var st1 = StatSend;
+            var st2 = StatReceive;
+            if (st1 != null && st1.Value > 0) sb.AppendFormat("发送：{0} ", st1);
+            if (st2 != null && st2.Value > 0) sb.AppendFormat("接收：{0} ", st2);
+
+            var msg = sb.Put(true);
+            if (msg.IsNullOrEmpty() || msg == _Last) return;
+            _Last = msg;
+
+            WriteLog(msg);
         }
         #endregion
     }

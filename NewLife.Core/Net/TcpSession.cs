@@ -1,8 +1,14 @@
 ﻿using System;
+using System.IO;
 using System.Net;
+using System.Net.Security;
 using System.Net.Sockets;
+using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using NewLife.Data;
+using NewLife.Log;
+using NewLife.Threading;
 
 namespace NewLife.Net
 {
@@ -10,21 +16,30 @@ namespace NewLife.Net
     public class TcpSession : SessionBase, ISocketSession
     {
         #region 属性
-        /// <summary>会话编号</summary>
-        public Int32 ID { get; internal set; }
-
         /// <summary>收到空数据时抛出异常并断开连接。默认true</summary>
         public Boolean DisconnectWhenEmptyData { get; set; } = true;
 
         internal ISocketServer _Server;
         /// <summary>Socket服务器。当前通讯所在的Socket服务器，其实是TcpServer/UdpServer。该属性决定本会话是客户端会话还是服务的会话</summary>
-        ISocketServer ISocketSession.Server { get { return _Server; } }
+        ISocketServer ISocketSession.Server => _Server;
 
         /// <summary>自动重连次数，默认3。发生异常断开连接时，自动重连服务端。</summary>
         public Int32 AutoReconnect { get; set; } = 3;
 
         /// <summary>是否匹配空包。Http协议需要</summary>
         protected Boolean MatchEmpty { get; set; }
+
+        /// <summary>不延迟直接发送。Tcp为了合并小包而设计，客户端默认false，服务端默认true</summary>
+        public Boolean NoDelay { get; set; }
+
+        /// <summary>SSL协议。默认None，服务端Default，客户端不启用</summary>
+        public SslProtocols SslProtocol { get; set; } = SslProtocols.None;
+
+        /// <summary>SSL证书。服务端使用</summary>
+        /// <remarks>var cert = new X509Certificate2("file", "pass");</remarks>
+        public X509Certificate Certificate { get; set; }
+
+        private SslStream _Stream;
         #endregion
 
         #region 构造
@@ -38,16 +53,11 @@ namespace NewLife.Net
 
         /// <summary>使用监听口初始化</summary>
         /// <param name="listenPort"></param>
-        public TcpSession(Int32 listenPort)
-            : this()
-        {
-            Port = listenPort;
-        }
+        public TcpSession(Int32 listenPort) : this() => Port = listenPort;
 
         /// <summary>用TCP客户端初始化</summary>
         /// <param name="client"></param>
-        public TcpSession(Socket client)
-            : this()
+        public TcpSession(Socket client) : this()
         {
             if (client == null) return;
 
@@ -67,44 +77,122 @@ namespace NewLife.Net
         #endregion
 
         #region 方法
+        internal void Start()
+        {
+            // 管道
+            var pp = Pipeline;
+            pp?.Open(CreateContext(this));
+
+            // 服务端SSL
+            var sock = Client;
+            if (sock != null && Certificate != null)
+            {
+                var ns = new NetworkStream(sock);
+                var sslStream = new SslStream(ns, false);
+
+                var sp = SslProtocol;
+                if (sp == SslProtocols.None) sp = SslProtocols.Default;
+
+                WriteLog("服务端SSL认证 {0} {1}", sp, Certificate.Issuer);
+
+                //var cert = new X509Certificate2("file", "pass");
+                sslStream.AuthenticateAsServer(Certificate, false, sp, false);
+
+                _Stream = sslStream;
+            }
+
+            ReceiveAsync();
+        }
+
         /// <summary>打开</summary>
         protected override Boolean OnOpen()
         {
             // 服务端会话没有打开
             if (_Server != null) return false;
 
-            if (Client == null || !Client.IsBound)
+            var timeout = Timeout;
+            var uri = Remote;
+            var sock = Client;
+            if (sock == null || !sock.IsBound)
             {
                 // 根据目标地址适配本地IPv4/IPv6
-                if (Remote != null && !Remote.Address.IsAny())
+                if (uri != null && !uri.Address.IsAny())
                 {
-                    Local.Address = Local.Address.GetRightAny(Remote.Address.AddressFamily);
+                    Local.Address = Local.Address.GetRightAny(uri.Address.AddressFamily);
                 }
 
-                Client = NetHelper.CreateTcp(Local.EndPoint.Address.IsIPv4());
-                //Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, true);
-                Client.Bind(Local.EndPoint);
+                sock = Client = NetHelper.CreateTcp(Local.EndPoint.Address.IsIPv4());
+                //sock.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, true);
+                if (NoDelay) sock.NoDelay = true;
+                if (timeout > 0)
+                {
+                    sock.SendTimeout = timeout;
+                    sock.ReceiveTimeout = timeout;
+                }
+                sock.Bind(Local.EndPoint);
                 CheckDynamic();
 
                 WriteLog("Open {0}", this);
             }
 
             // 打开端口前如果已设定远程地址，则自动连接
-            if (Remote == null || Remote.EndPoint.IsAny()) return false;
+            if (uri == null || uri.EndPoint.IsAny()) return false;
 
             try
             {
-                Client.Connect(Remote.EndPoint);
+                if (timeout <= 0)
+                    sock.Connect(uri.EndPoint);
+                else
+                {
+                    // 采用异步来解决连接超时设置问题
+                    var ar = sock.BeginConnect(uri.EndPoint, null, null);
+                    if (!ar.AsyncWaitHandle.WaitOne(timeout, true))
+                    {
+                        sock.Close();
+                        throw new TimeoutException($"连接[{uri}][{timeout}ms]超时！");
+                    }
+
+                    sock.EndConnect(ar);
+                }
+
+                // 客户端SSL
+                if (SslProtocol != SslProtocols.None)
+                {
+                    WriteLog("客户端SSL认证 {0} {1}", SslProtocol, uri.Host);
+
+                    var ns = new NetworkStream(sock);
+                    var sslStream = new SslStream(ns, false, OnCertificateValidationCallback);
+                    sslStream.AuthenticateAsClient(uri.Host, new X509CertificateCollection(), SslProtocol, false);
+
+                    _Stream = sslStream;
+                }
             }
             catch (Exception ex)
             {
+                // 连接失败时，任何错误都放弃当前Socket
+                Client = null;
                 if (!Disposed && !ex.IsDisposed()) OnError("Connect", ex);
-                if (ThrowException) throw;
+                /*if (ThrowException)*/
+                throw;
 
-                return false;
+                //return false;
             }
 
             _Reconnect = 0;
+
+            return true;
+        }
+
+        private Boolean OnCertificateValidationCallback(Object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        {
+            WriteLog("Valid {0} {1}", certificate.Issuer, sslPolicyErrors);
+            if (chain?.ChainStatus != null)
+            {
+                foreach (var item in chain.ChainStatus)
+                {
+                    WriteLog("Chain {0} {1}", item.Status, item.StatusInformation?.Trim());
+                }
+            }
 
             return true;
         }
@@ -116,7 +204,7 @@ namespace NewLife.Net
             var client = Client;
             if (client != null)
             {
-                Client = null;
+
                 WriteLog("Close {0} {1}", reason, this);
 
                 // 提前关闭这个标识，否则Close时可能触发自动重连机制
@@ -132,11 +220,13 @@ namespace NewLife.Net
                 }
                 catch (Exception ex)
                 {
+                    Client = null;
                     if (!ex.IsDisposed()) OnError("Close", ex);
                     if (ThrowException) throw;
 
                     return false;
                 }
+                Client = null;
             }
 
             return true;
@@ -144,6 +234,9 @@ namespace NewLife.Net
         #endregion
 
         #region 发送
+        private Int32 _bsize;
+        private SpinLock _spinLock = new SpinLock();
+
         /// <summary>发送数据</summary>
         /// <remarks>
         /// 目标地址由<seealso cref="SessionBase.Remote"/>决定
@@ -154,20 +247,42 @@ namespace NewLife.Net
         {
             var count = pk.Total;
 
-            StatSend?.Increment(count);
+            StatSend?.Increment(count, 0);
             if (Log != null && Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, pk.ToHex());
 
+            var sock = Client;
+            var gotLock = false;
             try
             {
-                // 修改发送缓冲区
-                if (Client.SendBufferSize < count) Client.SendBufferSize = count;
+                // 修改发送缓冲区，读取SendBufferSize耗时很大
+                if (_bsize == 0) _bsize = sock.SendBufferSize;
+                if (_bsize < count) sock.SendBufferSize = _bsize = count;
 
-                if (count == 0)
-                    Client.Send(new Byte[0]);
-                else if (pk.Next == null)
-                    Client.Send(pk.Data, pk.Offset, count, SocketFlags.None);
+                // 加锁发送
+                _spinLock.Enter(ref gotLock);
+
+                var rs = 0;
+                if (_Stream == null)
+                {
+                    if (count == 0)
+                        rs = sock.Send(new Byte[0]);
+                    else if (pk.Next == null)
+                        rs = sock.Send(pk.Data, pk.Offset, count, SocketFlags.None);
+                    else
+                        rs = sock.Send(pk.ToSegments());
+                }
                 else
-                    Client.Send(pk.ToArray(), 0, count, SocketFlags.None);
+                {
+                    if (count == 0)
+                        _Stream.Write(new Byte[0]);
+                    else if (pk.Next == null)
+                        _Stream.Write(pk.Data, pk.Offset, count);
+                    else
+                        _Stream.Write(pk.ToArray());
+                }
+
+                //// 检查返回值
+                //if (rs != count) throw new NetException($"发送[{count:n0}]而成功[{rs:n0}]");
             }
             catch (Exception ex)
             {
@@ -177,33 +292,74 @@ namespace NewLife.Net
 
                     // 发送异常可能是连接出了问题，需要关闭
                     Close("发送出错");
-                    Reconnect();
+
+                    // 异步重连
+                    ThreadPoolX.QueueUserWorkItem(Reconnect);
 
                     if (ThrowException) throw;
                 }
 
                 return false;
             }
+            finally
+            {
+                if (gotLock) _spinLock.Exit();
+            }
 
-            LastTime = DateTime.Now;
+            LastTime = TimerX.Now;
 
             return true;
         }
-
-        internal override Boolean OnSendAsync(SocketAsyncEventArgs se) { return Client.SendAsync(se); }
         #endregion
 
         #region 接收
         internal override Boolean OnReceiveAsync(SocketAsyncEventArgs se)
         {
-            var client = Client;
-            if (client == null || !Active || Disposed) throw new ObjectDisposedException(GetType().Name);
+            var sock = Client;
+            if (sock == null || !Active || Disposed) throw new ObjectDisposedException(GetType().Name);
 
-            return client.ReceiveAsync(se);
+            var ss = _Stream;
+            if (ss != null)
+            {
+                ss.BeginRead(se.Buffer, se.Offset, se.Count, OnEndRead, se);
+
+                return true;
+            }
+
+            return sock.ReceiveAsync(se);
+        }
+
+        private void OnEndRead(IAsyncResult ar)
+        {
+            var se = ar.AsyncState as SocketAsyncEventArgs;
+            var bytes = 0;
+            try
+            {
+                bytes = _Stream.EndRead(ar);
+            }
+            catch (Exception ex)
+            {
+                if (ex is IOException ||
+                ex is SocketException sex && sex.SocketErrorCode == SocketError.ConnectionReset)
+                {
+                }
+                else
+                {
+                    XTrace.WriteException(ex);
+                }
+
+                return;
+            }
+
+            ProcessEvent(se, bytes);
         }
 
         private Int32 _empty;
-        internal override void ProcessReceive(Packet pk, IPEndPoint remote)
+        /// <summary>预处理</summary>
+        /// <param name="pk">数据包</param>
+        /// <param name="remote">远程地址</param>
+        /// <returns>将要处理该数据包的会话</returns>
+        internal protected override ISocketSession OnPreReceive(Packet pk, IPEndPoint remote)
         {
             if (pk.Count == 0)
             {
@@ -213,36 +369,25 @@ namespace NewLife.Net
                     Close("收到空数据");
                     Dispose();
 
-                    return;
+                    return null;
                 }
             }
             else
                 _empty = 0;
 
-            base.ProcessReceive(pk, remote);
+            return this;
         }
 
         /// <summary>处理收到的数据</summary>
-        /// <param name="pk"></param>
-        /// <param name="remote"></param>
-        protected override Boolean OnReceive(Packet pk, IPEndPoint remote)
+        /// <param name="e">接收事件参数</param>
+        protected override Boolean OnReceive(ReceivedEventArgs e)
         {
-            if (pk == null || pk.Count == 0 && !MatchEmpty) return true;
+            var pk = e.Packet;
+            if ((pk == null || pk.Count == 0) && e.Message == null && !MatchEmpty) return true;
 
-#if !__MOBILE__
-            // 更新全局远程IP地址
-            NewLife.Web.WebHelper.UserHost = Remote.EndPoint?.Address + "";
-#endif
-
-            StatReceive?.Increment(pk.Count);
-            if (base.OnReceive(pk, remote)) return true;
+            if (pk != null) StatReceive?.Increment(pk.Count, 0);
 
             // 分析处理
-            var e = new ReceivedEventArgs(pk);
-            e.UserState = Remote.EndPoint;
-
-            if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", e.Length, e.ToHex(32, null));
-
             RaiseReceive(this, e);
 
             return true;

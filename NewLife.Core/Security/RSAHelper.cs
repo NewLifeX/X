@@ -32,25 +32,27 @@ namespace NewLife.Security
         /// <summary>RSA加密</summary>
         /// <param name="buf"></param>
         /// <param name="pubKey"></param>
+        /// <param name="fOAEP">如果为 true，则使用 OAEP 填充（仅可用于运行 Windows XP 及更高版本的计算机）执行直接 System.Security.Cryptography.RSA加密；否则，如果为 false，则使用 PKCS#1 v1.5 填充。</param>
         /// <returns></returns>
-        public static Byte[] Encrypt(Byte[] buf, String pubKey)
+        public static Byte[] Encrypt(Byte[] buf, String pubKey, Boolean fOAEP = true)
         {
             var rsa = new RSACryptoServiceProvider();
             rsa.FromXmlString(pubKey);
 
-            return rsa.Encrypt(buf, true);
+            return rsa.Encrypt(buf, fOAEP);
         }
 
         /// <summary>RSA解密</summary>
         /// <param name="buf"></param>
         /// <param name="priKey"></param>
+        /// <param name="fOAEP">如果为 true，则使用 OAEP 填充（仅可用于运行 Microsoft Windows XP 及更高版本的计算机）执行直接 System.Security.Cryptography.RSA解密；否则，如果为 false 则使用 PKCS#1 v1.5 填充。</param>
         /// <returns></returns>
-        public static Byte[] Decrypt(Byte[] buf, String priKey)
+        public static Byte[] Decrypt(Byte[] buf, String priKey, Boolean fOAEP = true)
         {
             var rsa = new RSACryptoServiceProvider();
             rsa.FromXmlString(priKey);
 
-            return rsa.Decrypt(buf, true);
+            return rsa.Decrypt(buf, fOAEP);
         }
         #endregion
 
@@ -117,9 +119,11 @@ namespace NewLife.Security
 
             ms = new MemoryStream(keys);
 
-            var sa = new TSymmetricAlgorithm();
-            sa.Key = ms.ReadWithLength();
-            sa.IV = ms.ReadWithLength();
+            var sa = new TSymmetricAlgorithm
+            {
+                Key = ms.ReadWithLength(),
+                IV = ms.ReadWithLength()
+            };
 
             // 对称解密
             return sa.Descrypt(buf);
