@@ -95,7 +95,7 @@ namespace NewLife.Agent
         {
             public Int32 serviceType;
 
-            public Int32 currentState;
+            public ServiceControllerStatus currentState;
 
             public Int32 controlsAccepted;
 
@@ -106,6 +106,17 @@ namespace NewLife.Agent
             public Int32 checkPoint;
 
             public Int32 waitHint;
+        }
+
+        public enum ServiceControllerStatus : Int32
+        {
+            ContinuePending = 5,
+            Paused = 7,
+            PausePending = 6,
+            Running = 4,
+            StartPending = 2,
+            Stopped = 1,
+            StopPending = 3
         }
 
         public delegate void ServiceMainCallback(Int32 argCount, IntPtr argPointer);
