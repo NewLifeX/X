@@ -180,10 +180,7 @@ namespace NewLife.Agent
                                 SetServiceStatus(_statusHandle, status);
                                 _status.currentState = currentState;
 
-                                ThreadPool.QueueUserWorkItem(delegate
-                                {
-                                    DeferredStop();
-                                });
+                                ThreadPool.QueueUserWorkItem(s => DeferredStop());
                             }
                             break;
                         case ControlOptions.CONTROL_SHUTDOWN:
@@ -194,6 +191,8 @@ namespace NewLife.Agent
                                 _status.waitHint = 0;
                                 _status.currentState = ServiceControllerStatus.Stopped;
                                 SetServiceStatus(_statusHandle, status);
+
+                                ThreadPool.QueueUserWorkItem(s => DeferredStop());
                             }
                             break;
                         default:

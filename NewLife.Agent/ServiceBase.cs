@@ -26,21 +26,12 @@ namespace NewLife.Agent
 
         /// <summary>描述</summary>
         public String Description { get; set; }
-
-        public Boolean Running { get; set; }
         #endregion
 
         #region 构造
         /// <summary>初始化</summary>
         public ServiceBase()
         {
-            //CanStop = true;
-            //CanShutdown = true;
-            //CanPauseAndContinue = false;
-            //CanHandlePowerEvent = true;
-            //CanHandleSessionChangeEvent = true;
-            //AutoLog = true;
-
             if (Runtime.Windows)
                 Host = new WindowsService();
             else
@@ -85,7 +76,6 @@ namespace NewLife.Agent
                 switch (cmd)
                 {
                     case "-s":
-                        //DoLoop();
                         Host.Run(this);
                         break;
                     case "-i":
@@ -294,13 +284,6 @@ namespace NewLife.Agent
         #endregion
 
         #region 服务控制
-        //private Thread _mainThread;
-        //private void DoLoop()
-        //{
-        //    _mainThread = new Thread(s => StartWork("Main"));
-        //    _mainThread.Start();
-        //}
-
         /// <summary>开始工作</summary>
         /// <param name="reason"></param>
         protected virtual void StartWork(String reason)
@@ -453,7 +436,7 @@ namespace NewLife.Agent
         /// <param name="reason"></param>
         public void Restart(String reason)
         {
-            WriteLog("重启服务！");
+            WriteLog("重启服务！{0}", reason);
 
             // 在临时目录生成重启服务的批处理文件
             var filename = "重启.bat".GetFullPath();
@@ -492,30 +475,6 @@ namespace NewLife.Agent
         {
             StopWork("StopAsync");
         }
-
-        ///// <summary>服务启动事件</summary>
-        ///// <param name="args"></param>
-        //protected override void OnStart(String[] args) => StartWork(nameof(OnStart));
-
-        ///// <summary>服务停止事件</summary>
-        //protected override void OnStop() => StopWork(nameof(OnStop));
-
-        ///// <summary>在系统关闭时执行。 指定在系统关闭之前应该发生什么。</summary>
-        //protected override void OnShutdown() => StopWork(nameof(OnShutdown));
-
-        ///// <summary>在计算机的电源状态已发生更改时执行。 这适用于便携式计算机，当他们进入挂起模式，这不是系统关闭相同。</summary>
-        ///// <param name="powerStatus"></param>
-        ///// <returns></returns>
-        //protected override Boolean OnPowerEvent(PowerBroadcastStatus powerStatus)
-        //{
-        //    WriteLog(nameof(OnPowerEvent) + " " + powerStatus);
-
-        //    return true;
-        //}
-
-        ///// <summary>在终端服务器会话中接收的更改事件时执行</summary>
-        ///// <param name="changeDescription"></param>
-        //protected override void OnSessionChange(SessionChangeDescription changeDescription) => WriteLog(nameof(OnSessionChange) + " SessionId={0} Reason={1}", changeDescription.SessionId, changeDescription.Reason);
         #endregion
 
         #region 看门狗
@@ -552,10 +511,7 @@ namespace NewLife.Agent
         /// <summary>写日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
-        public void WriteLog(String format, params Object[] args)
-        {
-            if (Log != null && Log.Enable) Log.Info(format, args);
-        }
+        public void WriteLog(String format, params Object[] args) => Log?.Info(format, args);
         #endregion
     }
 }

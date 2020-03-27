@@ -8,6 +8,15 @@ namespace NewLife.Agent
     /// <summary>Linux版进程守护</summary>
     public class Systemd : Host
     {
-        public override void Run(IHostedService service) { }
+        private IHostedService _service;
+
+        /// <summary>启动服务</summary>
+        /// <param name="service"></param>
+        public override void Run(IHostedService service)
+        {
+            if (service == null) throw new ArgumentNullException(nameof(service));
+
+            _service = service;
+        }
     }
 }
