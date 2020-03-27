@@ -4,7 +4,7 @@
     <AssemblyName>NewLife.Agent</AssemblyName>
     <RootNamespace>NewLife.Agent</RootNamespace>
     <AssemblyTitle>服务代理</AssemblyTitle>
-    <Description>应用程序注册为系统服务，仅支持Windows</Description>
+    <Description>应用程序注册为系统服务，支持Windows/Linux</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2020 NewLife</Copyright>
     <Version>8.7.2020.0322-beta</Version>

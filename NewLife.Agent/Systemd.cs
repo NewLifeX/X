@@ -56,7 +56,7 @@ namespace NewLife.Agent
         /// <summary>卸载服务</summary>
         /// <param name="serviceName">服务名</param>
         /// <returns></returns>
-        public override Boolean Uninstall(String serviceName) => false;
+        public override Boolean Remove(String serviceName) => false;
 
         /// <summary>启动服务</summary>
         /// <param name="serviceName">服务名</param>

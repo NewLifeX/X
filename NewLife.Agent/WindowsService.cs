@@ -310,9 +310,9 @@ namespace NewLife.Agent
         /// <summary>卸载服务</summary>
         /// <param name="serviceName">服务名</param>
         /// <returns></returns>
-        public override unsafe Boolean Uninstall(String serviceName)
+        public override unsafe Boolean Remove(String serviceName)
         {
-            XTrace.WriteLine("{0}.Uninstall {1}", GetType().Name, serviceName);
+            XTrace.WriteLine("{0}.Remove {1}", GetType().Name, serviceName);
 
             using var manager = new SafeServiceHandle(OpenSCManager(null, null, ServiceControllerOptions.SC_MANAGER_ALL));
             if (manager.IsInvalid) throw new Win32Exception(Marshal.GetLastWin32Error());

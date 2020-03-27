@@ -29,7 +29,7 @@ namespace NewLife.Agent
         /// <summary>卸载服务</summary>
         /// <param name="serviceName">服务名</param>
         /// <returns></returns>
-        Boolean Uninstall(String serviceName);
+        Boolean Remove(String serviceName);
 
         /// <summary>启动服务</summary>
         /// <param name="serviceName">服务名</param>
@@ -70,7 +70,7 @@ namespace NewLife.Agent
         /// <summary>卸载服务</summary>
         /// <param name="serviceName">服务名</param>
         /// <returns></returns>
-        public virtual Boolean Uninstall(String serviceName) => false;
+        public virtual Boolean Remove(String serviceName) => false;
 
         /// <summary>启动服务</summary>
         /// <param name="serviceName">服务名</param>

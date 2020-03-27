@@ -86,7 +86,7 @@ namespace NewLife.Agent
                         Install();
                         break;
                     case "-u":
-                        Host.Uninstall(ServiceName);
+                        Host.Remove(ServiceName);
                         break;
                     case "-start":
                         Host.Start(ServiceName);
@@ -165,7 +165,7 @@ namespace NewLife.Agent
                         break;
                     case '2':
                         if (Host.IsInstalled(name))
-                            Host.Uninstall(name);
+                            Host.Remove(name);
                         else
                             Install();
                         break;
