@@ -166,6 +166,10 @@ namespace NewLife
                     if (cpu.TryGetValue("ProcessorId", out str)) CpuID = str;
                     if (cpu.TryGetValue("LoadPercentage", out str)) CpuRate = (Single)(str.ToDouble() / 100);
                 }
+
+                // 从注册表读取 MachineGuid
+                str = Execute("reg", @"query HKLM\SOFTWARE\Microsoft\Cryptography /v MachineGuid");
+                if (!str.IsNullOrEmpty() && str.Contains("REG_SZ")) Guid = str.Substring("REG_SZ", null).Trim();
             }
             // 特别识别Linux发行版
             else if (Runtime.Linux)
