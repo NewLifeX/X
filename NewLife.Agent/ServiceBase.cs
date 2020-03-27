@@ -299,7 +299,11 @@ namespace NewLife.Agent
             _Timer = new TimerX(DoCheck, null, 10_000, 10_000, "AM") { Async = true };
         }
 
-        private void OnProcessExit(Object sender, EventArgs e) => StopWork("ProcessExit");
+        private void OnProcessExit(Object sender, EventArgs e)
+        {
+            StopWork("ProcessExit");
+            Environment.ExitCode = 0;
+        }
 
         /// <summary>停止服务</summary>
         /// <param name="reason"></param>
