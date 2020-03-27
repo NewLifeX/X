@@ -128,6 +128,11 @@ namespace NewLife.Agent
             public ServiceMainCallback callback;
         }
 
+        public struct SERVICE_DESCRIPTION
+        {
+            public String Description;
+        }
+
         public delegate Int32 ServiceControlCallbackEx(Int32 control, Int32 eventType, IntPtr eventData, IntPtr eventContext);
 
         [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
@@ -165,5 +170,8 @@ namespace NewLife.Agent
 
         [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern Boolean StartServiceCtrlDispatcher(IntPtr entry);
+
+        [DllImport("advapi32.dll")]
+        public static extern Boolean ChangeServiceConfig2(SafeServiceHandle serviceHandle, Int32 dwInfoLevel, IntPtr pInfo);
     }
 }

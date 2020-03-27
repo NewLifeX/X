@@ -69,7 +69,7 @@ namespace NewLife.Agent
         }
 
         [EditorBrowsable(EditorBrowsableState.Never)]
-        unsafe void ServiceMainCallback(Int32 argCount, IntPtr argPointer)
+        private unsafe void ServiceMainCallback(Int32 argCount, IntPtr argPointer)
         {
             XTrace.WriteLine("ServiceMainCallback");
 
@@ -236,7 +236,7 @@ namespace NewLife.Agent
             }
         }
 
-        #region 服务状态
+        #region 服务状态和控制
         /// <summary>服务是否已安装</summary>
         /// <param name="serviceName"></param>
         /// <returns></returns>
@@ -277,11 +277,33 @@ namespace NewLife.Agent
         /// <returns></returns>
         public override Boolean Install(String serviceName, String displayName, String binPath, String description)
         {
+            XTrace.WriteLine("{0}.Install {1}, {2}, {3}, {4}", GetType().Name, serviceName, displayName, binPath, description);
+
             using var manager = new SafeServiceHandle(OpenSCManager(null, null, ServiceControllerOptions.SC_MANAGER_CREATE_SERVICE));
             if (manager.IsInvalid) throw new Win32Exception(Marshal.GetLastWin32Error());
 
             using var service = new SafeServiceHandle(CreateService(manager, serviceName, displayName, ServiceOptions.SERVICE_ALL_ACCESS, 0x10, 2, 1, binPath, null, 0, null, null, null));
             if (service.IsInvalid) throw new Win32Exception(Marshal.GetLastWin32Error());
+
+            // 设置描述信息
+            if (!description.IsNullOrEmpty())
+            {
+                SERVICE_DESCRIPTION sd;
+                sd.Description = description;
+                var lpInfo = Marshal.AllocHGlobal(Marshal.SizeOf(sd));
+
+                try
+                {
+                    Marshal.StructureToPtr(sd, lpInfo, false);
+
+                    const Int32 SERVICE_CONFIG_DESCRIPTION = 1;
+                    ChangeServiceConfig2(service, SERVICE_CONFIG_DESCRIPTION, lpInfo);
+                }
+                finally
+                {
+                    Marshal.FreeHGlobal(lpInfo);
+                }
+            }
 
             return true;
         }
@@ -291,6 +313,8 @@ namespace NewLife.Agent
         /// <returns></returns>
         public override unsafe Boolean Uninstall(String serviceName)
         {
+            XTrace.WriteLine("{0}.Uninstall {1}", GetType().Name, serviceName);
+
             using var manager = new SafeServiceHandle(OpenSCManager(null, null, ServiceControllerOptions.SC_MANAGER_ALL));
             if (manager.IsInvalid) throw new Win32Exception(Marshal.GetLastWin32Error());
 
@@ -310,6 +334,8 @@ namespace NewLife.Agent
         /// <returns></returns>
         public override Boolean Start(String serviceName)
         {
+            XTrace.WriteLine("{0}.Start {1}", GetType().Name, serviceName);
+
             using var manager = new SafeServiceHandle(OpenSCManager(null, null, ServiceControllerOptions.SC_MANAGER_CONNECT));
             if (manager.IsInvalid) throw new Win32Exception(Marshal.GetLastWin32Error());
 
@@ -327,6 +353,8 @@ namespace NewLife.Agent
         /// <returns></returns>
         public override unsafe Boolean Stop(String serviceName)
         {
+            XTrace.WriteLine("{0}.Stop {1}", GetType().Name, serviceName);
+
             using var manager = new SafeServiceHandle(OpenSCManager(null, null, ServiceControllerOptions.SC_MANAGER_ALL));
             if (manager.IsInvalid) throw new Win32Exception(Marshal.GetLastWin32Error());
 
