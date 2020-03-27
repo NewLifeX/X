@@ -40,7 +40,11 @@ namespace NewLife.Agent
         public void Main()
         {
             MachineInfo.RegisterAsync();
-            XTrace.UseConsole();
+
+            // 以服务方式启动时，不写控制台日志
+            var args = Environment.GetCommandLineArgs();
+            if (args == null || args.Length <= 1 || args[1].ToLower() != "-s")
+                XTrace.UseConsole();
 
             if (Host == null)
             {
@@ -72,7 +76,6 @@ namespace NewLife.Agent
             service.DisplayName = set.DisplayName;
             service.Description = set.Description;
 
-            var args = Environment.GetCommandLineArgs();
             if (args.Length > 1)
             {
                 #region 命令
