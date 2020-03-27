@@ -14,7 +14,7 @@ namespace NewLife.Agent
         private SERVICE_STATUS _status;
         private Int32 _acceptedCommands;
 
-        /// <summary>启动服务</summary>
+        /// <summary>开始执行服务</summary>
         /// <param name="service"></param>
         public override void Run(IHostedService service)
         {
@@ -237,7 +237,7 @@ namespace NewLife.Agent
 
         #region 服务状态和控制
         /// <summary>服务是否已安装</summary>
-        /// <param name="serviceName"></param>
+        /// <param name="serviceName">服务名</param>
         /// <returns></returns>
         public override Boolean IsInstalled(String serviceName)
         {
@@ -251,7 +251,7 @@ namespace NewLife.Agent
         }
 
         /// <summary>服务是否已启动</summary>
-        /// <param name="serviceName"></param>
+        /// <param name="serviceName">服务名</param>
         /// <returns></returns>
         public override unsafe Boolean IsRunning(String serviceName)
         {
@@ -269,7 +269,7 @@ namespace NewLife.Agent
         }
 
         /// <summary>安装服务</summary>
-        /// <param name="serviceName"></param>
+        /// <param name="serviceName">服务名</param>
         /// <param name="displayName"></param>
         /// <param name="binPath"></param>
         /// <param name="description"></param>
@@ -308,7 +308,7 @@ namespace NewLife.Agent
         }
 
         /// <summary>卸载服务</summary>
-        /// <param name="serviceName"></param>
+        /// <param name="serviceName">服务名</param>
         /// <returns></returns>
         public override unsafe Boolean Uninstall(String serviceName)
         {
@@ -329,7 +329,7 @@ namespace NewLife.Agent
         }
 
         /// <summary>启动服务</summary>
-        /// <param name="serviceName"></param>
+        /// <param name="serviceName">服务名</param>
         /// <returns></returns>
         public override Boolean Start(String serviceName)
         {
@@ -348,7 +348,7 @@ namespace NewLife.Agent
         }
 
         /// <summary>停止服务</summary>
-        /// <param name="serviceName"></param>
+        /// <param name="serviceName">服务名</param>
         /// <returns></returns>
         public override unsafe Boolean Stop(String serviceName)
         {

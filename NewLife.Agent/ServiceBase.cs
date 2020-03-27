@@ -32,10 +32,6 @@ namespace NewLife.Agent
         /// <summary>初始化</summary>
         public ServiceBase()
         {
-            if (Runtime.Windows)
-                Host = new WindowsService();
-            else
-                Host = new Systemd();
         }
         #endregion
 
@@ -45,6 +41,14 @@ namespace NewLife.Agent
         {
             MachineInfo.RegisterAsync();
             XTrace.UseConsole();
+
+            if (Host == null)
+            {
+                if (Runtime.Windows)
+                    Host = new WindowsService();
+                else
+                    Host = new Systemd();
+            }
 
             var service = this;
             service.Log = XTrace.Log;
@@ -115,7 +119,7 @@ namespace NewLife.Agent
             else
                 Console.WriteLine("服务：{0}", name);
             Console.WriteLine("描述：{0}", Description);
-            Console.Write("状态：");
+            Console.Write("状态：{0} ", Host.GetType().Name);
 
             if (!Host.IsInstalled(name))
                 Console.WriteLine("未安装");
