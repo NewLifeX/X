@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using NewLife.Log;
 
 namespace NewLife.Agent
@@ -40,6 +41,12 @@ namespace NewLife.Agent
             if (service == null) throw new ArgumentNullException(nameof(service));
 
             _service = service;
+
+            var source = new CancellationTokenSource();
+            service.StartAsync(source.Token);
+
+            // 阻塞
+            Thread.Sleep(-1);
         }
 
         /// <summary>服务是否已安装</summary>
