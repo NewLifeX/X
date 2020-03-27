@@ -294,14 +294,20 @@ namespace NewLife.Agent
         {
             WriteLog("服务启动 {0}", reason);
 
+            if (_Timer == null) AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
+
             _Timer = new TimerX(DoCheck, null, 10_000, 10_000, "AM") { Async = true };
         }
+
+        private void OnProcessExit(Object sender, EventArgs e) => StopWork("ProcessExit");
 
         /// <summary>停止服务</summary>
         /// <param name="reason"></param>
         protected virtual void StopWork(String reason)
         {
+            if (_Timer != null) AppDomain.CurrentDomain.ProcessExit -= OnProcessExit;
             _Timer.TryDispose();
+            _Timer = null;
 
             WriteLog("服务停止 {0}", reason);
         }
