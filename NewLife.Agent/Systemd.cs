@@ -86,7 +86,7 @@ namespace NewLife.Agent
             var file = _path.CombinePath($"{serviceName}.service");
             XTrace.WriteLine(file);
 
-            //var asm = Assembly.GetEntryAssembly();
+            var asm = Assembly.GetEntryAssembly();
             var des = !displayName.IsNullOrEmpty() ? displayName : description;
 
             var sb = new StringBuilder();
@@ -98,6 +98,7 @@ namespace NewLife.Agent
             sb.AppendLine("Type=simple");
             //sb.AppendLine($"ExecStart=/usr/bin/dotnet {asm.Location}");
             sb.AppendLine($"ExecStart={binPath}");
+            sb.AppendLine($"WorkingDirectory={".".GetFullPath()}");
             sb.AppendLine("Restart=on-failure");
 
             sb.AppendLine();
