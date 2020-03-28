@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
@@ -16,13 +15,10 @@ using NewLife.Reflection;
 using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
-using XCode.Code;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 using XCode.Service;
 using XCode;
-using System.Net;
-using NewLife.Agent;
 #if !NET4
 using TaskEx = System.Threading.Tasks.Task;
 #endif
@@ -35,39 +31,36 @@ namespace Test
         {
             Environment.SetEnvironmentVariable("DOTNET_SYSTEM_GLOBALIZATION_INVARIANT", "1");
 
-            var svc = new MyXService();
-            svc.Main();
-            
-//            MachineInfo.RegisterAsync();
-//            //XTrace.Log = new NetworkLog();
-//            XTrace.UseConsole();
-//#if DEBUG
-//            XTrace.Debug = true;
-//#endif
-//            while (true)
-//            {
-//                var sw = Stopwatch.StartNew();
-//#if !DEBUG
-//                try
-//                {
-//#endif
-//                Test11();
-//#if !DEBUG
-//                }
-//                catch (Exception ex)
-//                {
-//                    XTrace.WriteException(ex?.GetTrue());
-//                }
-//#endif
+            MachineInfo.RegisterAsync();
+            //XTrace.Log = new NetworkLog();
+            XTrace.UseConsole();
+#if DEBUG
+            XTrace.Debug = true;
+#endif
+            while (true)
+            {
+                var sw = Stopwatch.StartNew();
+#if !DEBUG
+                try
+                {
+#endif
+                Test11();
+#if !DEBUG
+                }
+                catch (Exception ex)
+                {
+                    XTrace.WriteException(ex?.GetTrue());
+                }
+#endif
 
-//                sw.Stop();
-//                Console.WriteLine("OK! 耗时 {0}", sw.Elapsed);
-//                //Thread.Sleep(5000);
-//                GC.Collect();
-//                GC.WaitForPendingFinalizers();
-//                var key = Console.ReadKey(true);
-//                if (key.Key != ConsoleKey.C) break;
-//            }
+                sw.Stop();
+                Console.WriteLine("OK! 耗时 {0}", sw.Elapsed);
+                //Thread.Sleep(5000);
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                var key = Console.ReadKey(true);
+                if (key.Key != ConsoleKey.C) break;
+            }
         }
 
         static void Test1()

@@ -418,7 +418,7 @@ namespace System
                 if (DateTimeOffset.TryParse(str, out var dt)) return dt;
                 if (str.Contains("-") && DateTimeOffset.TryParseExact(str, "yyyy-M-d", null, DateTimeStyles.None, out dt)) return dt;
                 if (str.Contains("/") && DateTimeOffset.TryParseExact(str, "yyyy/M/d", null, DateTimeStyles.None, out dt)) return dt;
-                if (DateTimeOffset.TryParse(str, out dt)) return dt;
+
                 return defaultValue;
             }
             // 特殊处理整数，Unix秒，绝对时间差，不考虑UTC时间和本地时间。
