@@ -82,10 +82,12 @@ namespace NewLife
             return _task = Task.Factory.StartNew(() =>
             {
                 var set = Setting.Current;
+                var dataPath = set.DataPath;
+                if (dataPath.IsNullOrEmpty()) dataPath = "Data";
 
                 // 文件缓存，加快机器信息获取
                 var file = Path.GetTempPath().CombinePath("machine_info.json").GetBasePath();
-                var file2 = set.DataPath.CombinePath("machine_info.json").GetBasePath();
+                var file2 = dataPath.CombinePath("machine_info.json").GetBasePath();
                 if (Current == null)
                 {
                     var f = file;
