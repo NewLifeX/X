@@ -183,10 +183,8 @@ namespace XCode
             /// <returns></returns>
             public static T ProcessWithSplit<T>(String connName, String tableName, Func<T> func)
             {
-                using (var split = CreateSplit(connName, tableName))
-                {
-                    return func();
-                }
+                using var split = CreateSplit(connName, tableName);
+                return func();
             }
 
             /// <summary>创建分库会话，using结束时自动还原</summary>

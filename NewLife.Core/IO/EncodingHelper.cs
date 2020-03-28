@@ -16,10 +16,8 @@ namespace NewLife.IO
         /// <returns></returns>
         public static Encoding Detect(String filename)
         {
-            using (var fs = File.OpenRead(filename))
-            {
-                return Detect(fs);
-            }
+            using var fs = File.OpenRead(filename);
+            return Detect(fs);
         }
 
         /// <summary>检测文件编码</summary>
@@ -27,10 +25,8 @@ namespace NewLife.IO
         /// <returns></returns>
         public static Encoding DetectEncoding(this FileInfo file)
         {
-            using (var fs = file.OpenRead())
-            {
-                return fs.Detect();
-            }
+            using var fs = file.OpenRead();
+            return fs.Detect();
         }
 
         /// <summary>检测数据流编码</summary>

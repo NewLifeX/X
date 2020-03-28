@@ -334,12 +334,10 @@ namespace XCode
             var count = 0;
             if (useTransition != null && useTransition.Value)
             {
-                using (var trans = fact.CreateTrans())
-                {
-                    count = DoAction(list, func, count);
+                using var trans = fact.CreateTrans();
+                count = DoAction(list, func, count);
 
-                    trans.Commit();
-                }
+                trans.Commit();
             }
             else
             {
@@ -672,16 +670,14 @@ namespace XCode
             // 确保创建目录
             file.EnsureDirectory(true);
 
-            using (var fs = new FileStream(file.GetFullPath(), FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite))
+            using var fs = new FileStream(file.GetFullPath(), FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite);
+            foreach (var item in list)
             {
-                foreach (var item in list)
-                {
-                    (item as IAccessor).Write(fs, null);
-                }
-
-                fs.SetLength(fs.Position);
-                return fs.Position;
+                (item as IAccessor).Write(fs, null);
             }
+
+            fs.SetLength(fs.Position);
+            return fs.Position;
         }
 
         /// <summary>写入数据流，Csv格式</summary>
@@ -723,13 +719,11 @@ namespace XCode
             // 确保创建目录
             file.EnsureDirectory(true);
 
-            using (var fs = new FileStream(file.GetFullPath(), FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite))
-            {
-                SaveCsv(list, fs, displayName);
+            using var fs = new FileStream(file.GetFullPath(), FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite);
+            SaveCsv(list, fs, displayName);
 
-                fs.SetLength(fs.Position);
-                return fs.Position;
-            }
+            fs.SetLength(fs.Position);
+            return fs.Position;
         }
 
         /// <summary>从数据流读取列表</summary>
@@ -844,10 +838,8 @@ namespace XCode
             file = file.GetFullPath();
             if (!File.Exists(file)) return list;
 
-            using (var fs = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-            {
-                return LoadCsv(list, fs);
-            }
+            using var fs = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            return LoadCsv(list, fs);
         }
         #endregion
 

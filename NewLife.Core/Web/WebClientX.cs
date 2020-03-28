@@ -150,10 +150,8 @@ namespace NewLife.Web
         {
             var rs = await SendAsync(address);
             fileName.EnsureDirectory(true);
-            using (var fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite))
-            {
-                await fs.WriteAsync(rs, 0, rs.Length);
-            }
+            using var fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+            await fs.WriteAsync(rs, 0, rs.Length);
         }
 #else
         private HttpClient _client;

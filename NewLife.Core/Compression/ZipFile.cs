@@ -299,10 +299,8 @@ namespace System.IO.Compression
         {
             if (String.IsNullOrEmpty(fileName)) throw new ArgumentNullException("fileName");
 
-            using (var fs = File.Create(fileName))
-            {
-                Write(fs);
-            }
+            using var fs = File.Create(fileName);
+            Write(fs);
         }
         #endregion
 
@@ -342,10 +340,8 @@ namespace System.IO.Compression
             if (outputPath.IsNullOrEmpty()) outputPath = Path.GetDirectoryName(fileName);
             if (outputPath.IsNullOrEmpty()) throw new ArgumentNullException(nameof(outputPath));
 
-            using (var zf = new ZipFile(fileName))
-            {
-                zf.Extract(outputPath, overrideExisting, throwException);
-            }
+            using var zf = new ZipFile(fileName);
+            zf.Extract(outputPath, overrideExisting, throwException);
         }
         #endregion
 
@@ -435,11 +431,9 @@ namespace System.IO.Compression
             if (String.IsNullOrEmpty(fileName)) throw new ArgumentNullException(nameof(fileName));
             if (String.IsNullOrEmpty(outputName)) outputName = Path.ChangeExtension(fileName, ".zip");
 
-            using (var zf = new ZipFile())
-            {
-                zf.AddFile(fileName);
-                zf.Write(outputName);
-            }
+            using var zf = new ZipFile();
+            zf.AddFile(fileName);
+            zf.Write(outputName);
         }
 
         /// <summary>快速压缩目录。</summary>
@@ -450,11 +444,9 @@ namespace System.IO.Compression
             if (String.IsNullOrEmpty(dirName)) throw new ArgumentNullException(nameof(dirName));
             if (String.IsNullOrEmpty(outputName)) outputName = Path.ChangeExtension(Path.GetFileName(dirName), ".zip");
 
-            using (var zf = new ZipFile())
-            {
-                zf.AddDirectory(dirName);
-                zf.Write(outputName);
-            }
+            using var zf = new ZipFile();
+            zf.AddDirectory(dirName);
+            zf.Write(outputName);
         }
         #endregion
 

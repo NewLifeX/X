@@ -37,13 +37,11 @@ namespace XCode.DataAccessLayer
 
                         if (_Factory != null)
                         {
-                            using (var conn = _Factory.CreateConnection())
-                            {
-                                if (conn.ServerVersion.StartsWith("4"))
-                                    SqlCeProviderVersion = SQLCEVersion.SQLCE40;
-                                else
-                                    SqlCeProviderVersion = SQLCEVersion.SQLCE35;
-                            }
+                            using var conn = _Factory.CreateConnection();
+                            if (conn.ServerVersion.StartsWith("4"))
+                                SqlCeProviderVersion = SQLCEVersion.SQLCE40;
+                            else
+                                SqlCeProviderVersion = SQLCEVersion.SQLCE35;
                         }
                     }
                 }
@@ -444,10 +442,8 @@ namespace XCode.DataAccessLayer
             using (var fs = new FileStream(fileName, FileMode.Open))
             {
                 fs.Seek(16, SeekOrigin.Begin);
-                using (var reader = new BinaryReader(fs))
-                {
-                    versionLONGWORD = reader.ReadInt32();
-                }
+                using var reader = new BinaryReader(fs);
+                versionLONGWORD = reader.ReadInt32();
             }
 
             if (versionDictionary.ContainsKey(versionLONGWORD))

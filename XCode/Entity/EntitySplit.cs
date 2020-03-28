@@ -18,10 +18,8 @@ namespace XCode
         /// <returns></returns>
         public static T Split<T>(this IEntityFactory factory, String connName, String tableName, Func<T> func)
         {
-            using (var split = new SplitPackge(factory, connName, tableName))
-            {
-                return func();
-            }
+            using var split = new SplitPackge(factory, connName, tableName);
+            return func();
         }
 
         class SplitPackge : IDisposable

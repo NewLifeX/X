@@ -203,14 +203,12 @@ namespace XCode.Transform
             var fact = Target;
             if (fact == null) throw new ArgumentNullException(nameof(Target));
 
-            using (var tran = fact.CreateTrans())
-            {
-                var rs = base.OnProcess(ctx);
+            using var tran = fact.CreateTrans();
+            var rs = base.OnProcess(ctx);
 
-                tran.Commit();
+            tran.Commit();
 
-                return rs;
-            }
+            return rs;
         }
 
         /// <summary>同步单行数据</summary>

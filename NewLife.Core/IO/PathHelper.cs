@@ -206,14 +206,12 @@ namespace System.IO
         /// <returns></returns>
         public static Byte[] ReadBytes(this FileInfo file, Int32 offset = 0, Int32 count = -1)
         {
-            using (var fs = file.OpenRead())
-            {
-                fs.Position = offset;
+            using var fs = file.OpenRead();
+            fs.Position = offset;
 
-                if (count <= 0) count = (Int32)(fs.Length - offset);
+            if (count <= 0) count = (Int32)(fs.Length - offset);
 
-                return fs.ReadBytes(count);
-            }
+            return fs.ReadBytes(count);
         }
 
         /// <summary>把数据写入文件指定位置</summary>
@@ -240,14 +238,10 @@ namespace System.IO
         /// <returns></returns>
         public static String ReadText(this FileInfo file, Encoding encoding = null)
         {
-            using (var fs = file.OpenRead())
-            {
-                if (encoding == null) encoding = fs.Detect() ?? Encoding.UTF8;
-                using (var reader = new StreamReader(fs, encoding))
-                {
-                    return reader.ReadToEnd();
-                }
-            }
+            using var fs = file.OpenRead();
+            if (encoding == null) encoding = fs.Detect() ?? Encoding.UTF8;
+            using var reader = new StreamReader(fs, encoding);
+            return reader.ReadToEnd();
         }
 
         /// <summary>把文本写入文件，自动检测编码</summary>
@@ -257,14 +251,10 @@ namespace System.IO
         /// <returns></returns>
         public static FileInfo WriteText(this FileInfo file, String text, Encoding encoding = null)
         {
-            using (var fs = file.OpenWrite())
-            {
-                if (encoding == null) encoding = fs.Detect() ?? Encoding.UTF8;
-                using (var writer = new StreamWriter(fs, encoding))
-                {
-                    writer.Write(text);
-                }
-            }
+            using var fs = file.OpenWrite();
+            if (encoding == null) encoding = fs.Detect() ?? Encoding.UTF8;
+            using var writer = new StreamWriter(fs, encoding);
+            writer.Write(text);
 
             return file;
         }
@@ -298,20 +288,16 @@ namespace System.IO
         {
             if (compressed)
             {
-                using (var fs = file.OpenRead())
-                using (var gs = new GZipStream(fs, CompressionMode.Decompress, true))
-                {
-                    func(gs);
-                    return fs.Position;
-                }
+                using var fs = file.OpenRead();
+                using var gs = new GZipStream(fs, CompressionMode.Decompress, true);
+                func(gs);
+                return fs.Position;
             }
             else
             {
-                using (var fs = file.OpenRead())
-                {
-                    func(fs);
-                    return fs.Position;
-                }
+                using var fs = file.OpenRead();
+                func(fs);
+                return fs.Position;
             }
         }
 
@@ -324,34 +310,24 @@ namespace System.IO
         {
             file.FullName.EnsureDirectory(true);
 
+            using var fs = file.OpenWrite();
             if (compressed)
             {
-                using (var fs = file.OpenWrite())
 #if NET4
-                using (var gs = new GZipStream(fs, CompressionMode.Compress, true))
+                using var gs = new GZipStream(fs, CompressionMode.Compress, true);
 #else
-                using (var gs = new GZipStream(fs, CompressionLevel.Optimal, true))
+                using var gs = new GZipStream(fs, CompressionLevel.Optimal, true);
 #endif
-                {
-                    func(gs);
-
-                    gs.Flush();
-                    fs.SetLength(fs.Position);
-
-                    return fs.Position;
-                }
+                func(gs);
             }
             else
             {
-                using (var fs = file.OpenWrite())
-                {
-                    func(fs);
-
-                    fs.SetLength(fs.Position);
-
-                    return fs.Position;
-                }
+                func(fs);
             }
+
+            fs.SetLength(fs.Position);
+
+            return fs.Position;
         }
 
         /// <summary>解压缩</summary>
@@ -367,34 +343,32 @@ namespace System.IO
             if (fi.Name.EndsWithIgnoreCase(".zip"))
             {
 #if NET4
-                using (var zip = new ZipFile(fi.FullName))
+                using var zip = new ZipFile(fi.FullName);
 #else
-                using (var zip = ZipFile.Open(fi.FullName, ZipArchiveMode.Read, null))
+                using var zip = ZipFile.Open(fi.FullName, ZipArchiveMode.Read, null);
 #endif
+                var di = Directory.CreateDirectory(destDir);
+                var fullName = di.FullName;
+                foreach (var item in zip.Entries)
                 {
-                    var di = Directory.CreateDirectory(destDir);
-                    var fullName = di.FullName;
-                    foreach (var item in zip.Entries)
+                    var fullPath = Path.GetFullPath(Path.Combine(fullName, item.FullName));
+                    if (!fullPath.StartsWith(fullName, StringComparison.OrdinalIgnoreCase))
+                        throw new IOException("IO_ExtractingResultsInOutside");
+
+                    if (Path.GetFileName(fullPath).Length == 0)
                     {
-                        var fullPath = Path.GetFullPath(Path.Combine(fullName, item.FullName));
-                        if (!fullPath.StartsWith(fullName, StringComparison.OrdinalIgnoreCase))
-                            throw new IOException("IO_ExtractingResultsInOutside");
+                        if (item.Length != 0L) throw new IOException("IO_DirectoryNameWithData");
 
-                        if (Path.GetFileName(fullPath).Length == 0)
+                        Directory.CreateDirectory(fullPath);
+                    }
+                    else
+                    {
+                        Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
+                        try
                         {
-                            if (item.Length != 0L) throw new IOException("IO_DirectoryNameWithData");
-
-                            Directory.CreateDirectory(fullPath);
+                            item.ExtractToFile(fullPath, overwrite);
                         }
-                        else
-                        {
-                            Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
-                            try
-                            {
-                                item.ExtractToFile(fullPath, overwrite);
-                            }
-                            catch { }
-                        }
+                        catch { }
                     }
                 }
             }
@@ -416,15 +390,11 @@ namespace System.IO
             if (destFile.EndsWithIgnoreCase(".zip"))
             {
 #if NET4
-                using (var zip = new ZipFile(fi.FullName))
-                {
-                    zip.AddFile(fi.FullName, fi.Name);
-                }
+                using var zip = new ZipFile(fi.FullName);
+                zip.AddFile(fi.FullName, fi.Name);
 #else
-                using (var zip = ZipFile.Open(destFile, ZipArchiveMode.Create))
-                {
-                    zip.CreateEntryFromFile(fi.FullName, fi.Name, CompressionLevel.Optimal);
-                }
+                using var zip = ZipFile.Open(destFile, ZipArchiveMode.Create);
+                zip.CreateEntryFromFile(fi.FullName, fi.Name, CompressionLevel.Optimal);
 #endif
             }
             else

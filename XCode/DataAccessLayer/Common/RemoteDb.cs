@@ -121,20 +121,18 @@ namespace XCode.DataAccessLayer
             if (!dbname.IsNullOrEmpty() && !dbname.EqualIgnoreCase(sysdbname))
             {
                 if (DAL.Debug) WriteLog("切换到系统库[{0}]", sysdbname);
-                using (var conn = Database.Factory.CreateConnection())
+                using var conn = Database.Factory.CreateConnection();
+                try
                 {
-                    try
-                    {
-                        //conn.ConnectionString = Database.ConnectionString;
+                    //conn.ConnectionString = Database.ConnectionString;
 
-                        OpenDatabase(conn, Database.ConnectionString, sysdbname);
+                    OpenDatabase(conn, Database.ConnectionString, sysdbname);
 
-                        return callback(this, conn);
-                    }
-                    finally
-                    {
-                        if (DAL.Debug) WriteLog("退出系统库[{0}]，回到[{1}]", sysdbname, dbname);
-                    }
+                    return callback(this, conn);
+                }
+                finally
+                {
+                    if (DAL.Debug) WriteLog("退出系统库[{0}]，回到[{1}]", sysdbname, dbname);
                 }
             }
             else
@@ -206,13 +204,11 @@ namespace XCode.DataAccessLayer
                         ss.WriteSQL(sql);
                         return ss.ProcessWithSystem((s, c) =>
                         {
-                            using (var cmd = Database.Factory.CreateCommand())
-                            {
-                                cmd.Connection = c;
-                                cmd.CommandText = sql;
+                            using var cmd = Database.Factory.CreateCommand();
+                            cmd.Connection = c;
+                            cmd.CommandText = sql;
 
-                                return cmd.ExecuteNonQuery();
-                            }
+                            return cmd.ExecuteNonQuery();
                         });
                     }
 

@@ -211,10 +211,8 @@ namespace XCode.DataAccessLayer
                 _ServerVersion = String.Empty;
 
                 //return _ServerVersion = Process(conn => conn.ServerVersion);
-                using (var conn = OpenConnection())
-                {
-                    return _ServerVersion = conn.ServerVersion;
-                }
+                using var conn = OpenConnection();
+                return _ServerVersion = conn.ServerVersion;
             }
         }
 

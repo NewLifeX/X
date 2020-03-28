@@ -110,10 +110,8 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual TResult Process<TResult>(Func<DbConnection, TResult> callback)
         {
-            using (var conn = Database.OpenConnection())
-            {
-                return callback(conn);
-            }
+            using var conn = Database.OpenConnection();
+            return callback(conn);
         }
 
         ///// <summary>打开连接并执行操作</summary>
@@ -225,10 +223,8 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual DataSet Query(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
         {
-            using (var cmd = OnCreateCommand(sql, type, ps))
-            {
-                return Query(cmd);
-            }
+            using var cmd = OnCreateCommand(sql, type, ps);
+            return Query(cmd);
         }
 
         /// <summary>执行DbCommand，返回记录集</summary>
@@ -238,15 +234,13 @@ namespace XCode.DataAccessLayer
         {
             return Execute(cmd, true, cmd2 =>
             {
-                using (var da = Database.Factory.CreateDataAdapter())
-                {
-                    da.SelectCommand = cmd2;
+                using var da = Database.Factory.CreateDataAdapter();
+                da.SelectCommand = cmd2;
 
-                    var ds = new DataSet();
-                    da.Fill(ds);
+                var ds = new DataSet();
+                da.Fill(ds);
 
-                    return ds;
-                }
+                return ds;
             });
         }
 
@@ -256,16 +250,12 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual DbTable Query(String sql, IDataParameter[] ps)
         {
-            using (var cmd = OnCreateCommand(sql, CommandType.Text, ps))
+            using var cmd = OnCreateCommand(sql, CommandType.Text, ps);
+            return Execute(cmd, true, cmd2 =>
             {
-                return Execute(cmd, true, cmd2 =>
-                {
-                    using (var dr = cmd2.ExecuteReader())
-                    {
-                        return OnFill(dr);
-                    }
-                });
-            }
+                using var dr = cmd2.ExecuteReader();
+                return OnFill(dr);
+            });
         }
 
         protected virtual DbTable OnFill(DbDataReader dr)
@@ -315,10 +305,8 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual Int32 Execute(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
         {
-            using (var cmd = OnCreateCommand(sql, type, ps))
-            {
-                return Execute(cmd, false, cmd2 => cmd2.ExecuteNonQuery());
-            }
+            using var cmd = OnCreateCommand(sql, type, ps);
+            return Execute(cmd, false, cmd2 => cmd2.ExecuteNonQuery());
         }
 
         /// <summary>执行DbCommand，返回受影响的行数</summary>
@@ -369,19 +357,17 @@ namespace XCode.DataAccessLayer
         public virtual Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
         {
             //return Execute(sql, type, ps);
-            using (var cmd = OnCreateCommand(sql, type, ps))
+            using var cmd = OnCreateCommand(sql, type, ps);
+            //Transaction?.Check(cmd, true);
+
+            //return ExecuteScalar<Int64>(cmd);
+            return Execute(cmd, false, cmd2 =>
             {
-                //Transaction?.Check(cmd, true);
+                var rs = cmd.ExecuteScalar();
+                if (rs == null || rs == DBNull.Value) return 0;
 
-                //return ExecuteScalar<Int64>(cmd);
-                return Execute(cmd, false, cmd2 =>
-                {
-                    var rs = cmd.ExecuteScalar();
-                    if (rs == null || rs == DBNull.Value) return 0;
-
-                    return Reflect.ChangeType<Int64>(rs);
-                });
-            }
+                return Reflect.ChangeType<Int64>(rs);
+            });
         }
 
         /// <summary>执行SQL语句，返回结果中的第一行第一列</summary>
@@ -392,18 +378,16 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual T ExecuteScalar<T>(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
         {
-            using (var cmd = OnCreateCommand(sql, type, ps))
+            using var cmd = OnCreateCommand(sql, type, ps);
+            //return ExecuteScalar<T>(cmd);
+            return Execute(cmd, true, cmd2 =>
             {
-                //return ExecuteScalar<T>(cmd);
-                return Execute(cmd, true, cmd2 =>
-                {
-                    var rs = cmd.ExecuteScalar();
-                    if (rs == null || rs == DBNull.Value) return default(T);
-                    if (rs is T) return (T)rs;
+                var rs = cmd.ExecuteScalar();
+                if (rs == null || rs == DBNull.Value) return default(T);
+                if (rs is T) return (T)rs;
 
-                    return (T)Reflect.ChangeType(rs, typeof(T));
-                });
-            }
+                return (T)Reflect.ChangeType(rs, typeof(T));
+            });
         }
 
         //protected virtual T ExecuteScalar<T>(DbCommand cmd)
