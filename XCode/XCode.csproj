@@ -26,7 +26,6 @@
     <PackageIcon>logo.ico</PackageIcon>
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <RepositoryBranch>dev</RepositoryBranch>
     <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
     <PackageReleaseNotes>整库备份与还原</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
