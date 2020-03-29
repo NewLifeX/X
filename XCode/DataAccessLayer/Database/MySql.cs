@@ -529,6 +529,8 @@ namespace XCode.DataAccessLayer
                     // MySql中没有布尔型，这里处理YN枚举作为布尔型
                     if (field.RawType == "enum('N','Y')" || field.RawType == "enum('Y','N')") field.DataType = typeof(Boolean);
 
+                    field.Fix();
+                    
                     table.Columns.Add(field);
                 }
                 #endregion
