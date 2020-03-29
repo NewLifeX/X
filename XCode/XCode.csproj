@@ -23,7 +23,7 @@
     <PackageId>NewLife.XCode</PackageId>
     <Authors>$(Company)</Authors>
     <ProjectUrl>https://github.com/NewLifeX</ProjectUrl>
-    <PackageIcon>logo.ico</PackageIcon>
+    <PackageIcon>leaf.png</PackageIcon>
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
@@ -97,6 +97,7 @@
     <None Remove="UpdateInfo.txt" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="..\Doc\leaf.png" Link="leaf.png" PackagePath="\" />
     <Content Include="Build_netcore.tt">
       <PackagePath>content\Entity\</PackagePath>
       <Pack>true</Pack>
@@ -116,9 +117,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\Doc\logo.ico" Link="logo.ico" Pack="true" PackagePath="\" />
   </ItemGroup>
   <ItemGroup>
     <None Update="Membership\Build.tt">
