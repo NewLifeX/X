@@ -43,29 +43,7 @@ namespace System.IO
             // 环境变量
             if (dir.IsNullOrEmpty()) dir = Environment.GetEnvironmentVariable("BasePath");
 
-            // 进程所在路径，Linux下编译为单文件时，应用程序释放到临时目录，这里基路径需要取进程路径
-            if (dir.IsNullOrEmpty())
-            {
-                var process = System.Diagnostics.Process.GetCurrentProcess();
-                var fileName = String.Empty;
-                // MonoAndroid无法识别MainModule，致命异常
-                try
-                {
-                    fileName = process.MainModule.FileName;
-                }
-                catch { }
-                if (fileName.IsNullOrEmpty() || fileName.EndsWithIgnoreCase("dotnet", "dotnet.exe"))
-                {
-                    try
-                    {
-                        fileName = process.StartInfo.FileName;
-                    }
-                    catch { }
-                }
-                if (!fileName.IsNullOrEmpty()) dir = Path.GetDirectoryName(fileName);
-            }
-
-            // 最终取应用程序域
+            // 最终取应用程序域。Linux下编译为单文件时，应用程序释放到临时目录，应用程序域基路径不对，当前目录也不一定正确，唯有进程路径正确
             if (dir.IsNullOrEmpty()) dir = AppDomain.CurrentDomain.BaseDirectory;
 
             BasePath = GetPath(dir, 1);
