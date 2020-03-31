@@ -66,23 +66,6 @@ namespace NewLife.Configuration
             }
         }
 
-        /// <summary>写入配置文件</summary>
-        /// <param name="fileName">文件名</param>
-        /// <param name="section">配置段</param>
-        protected override void OnWrite(String fileName, IConfigSection section)
-        {
-            var str = GetString(section);
-            var old = "";
-            if (File.Exists(fileName)) old = File.ReadAllText(fileName);
-
-            if (str != old)
-            {
-                XTrace.WriteLine("保存配置 {0}", fileName);
-
-                File.WriteAllText(fileName, str);
-            }
-        }
-
         /// <summary>获取字符串形式</summary>
         /// <param name="section">配置段</param>
         /// <returns></returns>

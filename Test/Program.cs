@@ -19,6 +19,7 @@ using XCode.DataAccessLayer;
 using XCode.Membership;
 using XCode.Service;
 using XCode;
+using System.Collections;
 #if !NET4
 using TaskEx = System.Threading.Tasks.Task;
 #endif
@@ -44,7 +45,7 @@ namespace Test
                 try
                 {
 #endif
-                Test11();
+                    Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -63,7 +64,7 @@ namespace Test
             }
         }
 
-        static void Test1()
+        private static void Test1()
         {
             XTrace.WriteLine("FullPath:{0}", ".".GetFullPath());
             XTrace.WriteLine("BasePath:{0}", ".".GetBasePath());
@@ -103,16 +104,23 @@ namespace Test
             Console.ReadKey();
         }
 
-        static async void Test2()
+        private static void Test2()
         {
-            var n = UserX.Meta.Count;
-            var dal = UserX.Meta.Session.Dal;
-            var tables = EntityFactory.GetTables(dal.ConnName, false);
+            XTrace.WriteLine("FullPath:{0}", ".".GetFullPath());
+            XTrace.WriteLine("BasePath:{0}", ".".GetBasePath());
+            XTrace.WriteLine("TempPath:{0}", Path.GetTempPath());
+            Console.WriteLine();
 
-            dal.BackupAll(tables, $"data/{dal.ConnName}.zip");
+            var set = NewLife.Setting.Current;
+            for (var i = 0; i < 100; i++)
+            {
+                XTrace.WriteLine(set.DataPath);
+
+                Thread.Sleep(1000);
+            }
         }
 
-        static void Test3()
+        private static void Test3()
         {
             //XTrace.WriteLine("IsConsole={0}", Runtime.IsConsole);
             //Console.WriteLine("IsConsole={0}", Runtime.IsConsole);
@@ -228,7 +236,7 @@ namespace Test
             }
         }
 
-        static void Test4()
+        private static void Test4()
         {
             var v = Rand.NextBytes(32);
             Console.WriteLine(v.ToBase64());
@@ -253,8 +261,10 @@ namespace Test
                     ch = new DbCache();
                     break;
                 case '3':
-                    var rds = new Redis("127.0.0.1", null, 9);
-                    rds.Counter = new PerfCounter();
+                    var rds = new Redis("127.0.0.1", null, 9)
+                    {
+                        Counter = new PerfCounter()
+                    };
                     ch = rds;
                     break;
             }
@@ -280,7 +290,7 @@ namespace Test
             if (ch is Redis rds2) XTrace.WriteLine(rds2.Counter + "");
         }
 
-        static void Test5()
+        private static void Test5()
         {
             var set = XCode.Setting.Current;
             set.Debug = true;
@@ -365,7 +375,7 @@ namespace Test
             //Console.WriteLine("Execute={0}", es);
         }
 
-        static void Test6()
+        private static void Test6()
         {
             var pfx = new X509Certificate2("../newlife.pfx", "newlife");
             //Console.WriteLine(pfx);
@@ -413,7 +423,7 @@ namespace Test
             Console.ReadLine();
         }
 
-        static void Test7()
+        private static void Test7()
         {
 #if __CORE__
             XTrace.WriteLine(RuntimeInformation.OSDescription);
@@ -448,7 +458,7 @@ namespace Test
             Console.WriteLine(list.Count);
         }
 
-        static async void Test8()
+        private static async void Test8()
         {
             Area.Meta.Session.Dal.Db.ShowSQL = false;
 
@@ -560,17 +570,17 @@ namespace Test
             //}
         }
 
-        static void Test9()
+        private static void Test9()
         {
             var str = "学无先后达者为师！学无先后达者为师！学无先后达者为师！学无先后达者为师！学无先后达者为师！学无先后达者为师！学无先后达者为师！学无先后达者为师！";
 
-            for (int i = 0; i < 1_000_000; i++)
+            for (var i = 0; i < 1_000_000; i++)
             {
                 XTrace.WriteLine(str);
             }
         }
 
-        static void Test10()
+        private static void Test10()
         {
             var dt1 = new DateTime(1970, 1, 1);
             //var x = dt1.ToFileTimeUtc();
@@ -585,12 +595,12 @@ namespace Test
             Console.WriteLine(dt1.ToLong());
         }
 
-        static void Test11()
+        private static void Test11()
         {
         }
 
         /// <summary>测试序列化</summary>
-        static void Test12()
+        private static void Test12()
         {
             var bdic = new Dictionary<String, Object>
             {
@@ -628,7 +638,7 @@ namespace Test
         }
     }
 
-    class foo
+    internal class foo
     {
         public Int32 A { get; set; }
 

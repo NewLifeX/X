@@ -109,7 +109,7 @@ namespace NewLife.Configuration
     /// <remarks>
     /// 同时也是基于Items字典的内存配置提供者。
     /// </remarks>
-    public class ConfigProvider : IConfigProvider
+    public class ConfigProvider : DisposeBase, IConfigProvider
     {
         #region 属性
         /// <summary>根元素</summary>

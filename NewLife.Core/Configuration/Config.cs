@@ -32,7 +32,8 @@ namespace NewLife.Configuration
 
                 // 如果正在加载中，需要返回默认值。因为在加载配置的过程中，可能循环触发导致再次加载配置
                 var config = new TConfig();
-                if (_loading) return _Current = config;
+                if (_Current == null) _Current = config;
+                if (_loading) return _Current;
                 _loading = true;
 
                 try

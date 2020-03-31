@@ -32,7 +32,7 @@ namespace NewLife.Configuration
         /// <param name="section">配置段</param>
         protected override void OnRead(String fileName, IConfigSection section)
         {
-            using var fs = File.OpenRead(fileName);
+            using var fs = File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
             using var reader = XmlReader.Create(fs);
 
             // 移动到第一个元素
@@ -85,23 +85,6 @@ namespace NewLife.Configuration
                 if (reader.NodeType == XmlNodeType.Attribute) reader.Read();
                 if (reader.NodeType == XmlNodeType.EndElement) reader.ReadEndElement();
                 while (reader.NodeType == XmlNodeType.Whitespace) reader.Skip();
-            }
-        }
-
-        /// <summary>写入配置文件</summary>
-        /// <param name="fileName">文件名</param>
-        /// <param name="section">配置段</param>
-        protected override void OnWrite(String fileName, IConfigSection section)
-        {
-            var str = GetString(section);
-            var old = "";
-            if (File.Exists(fileName)) old = File.ReadAllText(fileName);
-
-            if (str != old)
-            {
-                XTrace.WriteLine("保存配置 {0}", fileName);
-
-                File.WriteAllText(fileName, str);
             }
         }
 
