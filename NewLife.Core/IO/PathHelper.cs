@@ -345,11 +345,7 @@ namespace System.IO
 
             if (fi.Name.EndsWithIgnoreCase(".zip"))
             {
-#if NET4
-                using var zip = new ZipFile(fi.FullName);
-#else
                 using var zip = ZipFile.Open(fi.FullName, ZipArchiveMode.Read, null);
-#endif
                 var di = Directory.CreateDirectory(destDir);
                 var fullName = di.FullName;
                 foreach (var item in zip.Entries)
@@ -392,13 +388,8 @@ namespace System.IO
 
             if (destFile.EndsWithIgnoreCase(".zip"))
             {
-#if NET4
-                using var zip = new ZipFile(fi.FullName);
-                zip.AddFile(fi.FullName, fi.Name);
-#else
                 using var zip = ZipFile.Open(destFile, ZipArchiveMode.Create);
                 zip.CreateEntryFromFile(fi.FullName, fi.Name, CompressionLevel.Optimal);
-#endif
             }
             else
             {
@@ -538,11 +529,7 @@ namespace System.IO
             if (File.Exists(destFile)) File.Delete(destFile);
 
             if (destFile.EndsWithIgnoreCase(".zip"))
-#if NET4
-                ZipFile.CompressDirectory(di.FullName, destFile);
-#else
                 ZipFile.CreateFromDirectory(di.FullName, destFile, CompressionLevel.Optimal, true);
-#endif
             else
                 new SevenZip().Compress(di.FullName, destFile);
         }

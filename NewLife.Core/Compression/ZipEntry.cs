@@ -36,7 +36,7 @@ namespace System.IO.Compression
         private Int32 _LastModified;
         /// <summary>最后修改时间</summary>
         [XmlIgnore]
-        public DateTime LastModified { get => ZipFile.DosDateTimeToFileTime(_LastModified); set => _LastModified = ZipFile.FileTimeToDosDateTime(value); }
+        public DateTime LastModified { get => ZipArchive.DosDateTimeToFileTime(_LastModified); set => _LastModified = ZipArchive.FileTimeToDosDateTime(value); }
 
         /// <summary>CRC校验</summary>
         public UInt32 Crc;
@@ -92,7 +92,7 @@ namespace System.IO.Compression
         #region 属性
         /// <summary>是否目录</summary>
         [XmlIgnore]
-        public Boolean IsDirectory => ("" + FileName).EndsWith(ZipFile.DirSeparator);
+        public Boolean IsDirectory => ("" + FileName).EndsWith(ZipArchive.DirSeparator);
 
         /// <summary>数据源</summary>
         [NonSerialized]
@@ -129,7 +129,7 @@ namespace System.IO.Compression
         #endregion
 
         #region 读取核心
-        internal static ZipEntry ReadEntry(ZipFile zipfile, Stream stream, Boolean first, Boolean embedFileData)
+        internal static ZipEntry ReadEntry(ZipArchive zipfile, Stream stream, Boolean first, Boolean embedFileData)
         {
             var reader = zipfile.CreateReader(stream);
             // 读取文件头时忽略掉这些字段，这些都是DirEntry的字段
@@ -183,7 +183,7 @@ namespace System.IO.Compression
             return entry;
         }
 
-        internal static ZipEntry ReadDirEntry(ZipFile zipfile, Stream stream)
+        internal static ZipEntry ReadDirEntry(ZipArchive zipfile, Stream stream)
         {
             var reader = zipfile.CreateReader(stream);
 
@@ -312,7 +312,7 @@ namespace System.IO.Compression
                 }
 
                 // 修正时间
-                if (LastModified > ZipFile.MinDateTime)
+                if (LastModified > ZipArchive.MinDateTime)
                 {
                     var fi = new FileInfo(file)
                     {
@@ -377,7 +377,7 @@ namespace System.IO.Compression
             }
 
             IDataSource ds = null;
-            if (!entryName.EndsWith(ZipFile.DirSeparator))
+            if (!entryName.EndsWith(ZipArchive.DirSeparator))
             {
                 if (fileName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(fileName));
 
@@ -387,7 +387,7 @@ namespace System.IO.Compression
             var entry = Create(entryName, ds, stored);
 
             // 读取最后修改时间
-            if (entry.LastModified <= ZipFile.MinDateTime)
+            if (entry.LastModified <= ZipArchive.MinDateTime)
             {
                 var fi = new FileInfo(fileName);
                 entry.LastModified = fi.LastWriteTime;
@@ -420,7 +420,7 @@ namespace System.IO.Compression
             var entry = Create(entryName, ds, stored);
 
             // 读取最后修改时间
-            if (!String.IsNullOrEmpty(fileName) && entry.LastModified <= ZipFile.MinDateTime)
+            if (!String.IsNullOrEmpty(fileName) && entry.LastModified <= ZipArchive.MinDateTime)
             {
                 var fi = new FileInfo(fileName);
                 entry.LastModified = fi.LastWriteTime;
@@ -496,7 +496,7 @@ namespace System.IO.Compression
             public Int64 Offset { get; }
 
             /// <summary>长度</summary>
-            public Int64 Length { get; }
+            public Int64 Length => Stream.Length;
 
             /// <summary>是否被压缩</summary>
             public Boolean IsCompressed { get; set; }
@@ -505,7 +505,7 @@ namespace System.IO.Compression
             {
                 Stream = stream;
                 Offset = stream.Position;
-                Length = stream.Length;
+                //Length = stream.Length;
             }
 
             public void Dispose() => Stream.TryDispose();
@@ -520,7 +520,7 @@ namespace System.IO.Compression
             public UInt32 GetCRC()
             {
                 Stream.Seek(Offset, SeekOrigin.Begin);
-                return new Crc32().Update(Stream, Length).Value;
+                return new Crc32().Update(Stream, Stream.Length).Value;
             }
             #endregion
         }
