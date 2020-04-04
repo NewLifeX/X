@@ -92,7 +92,7 @@ namespace NewLife.Log
             _Timer.TryDispose();
 
             // 销毁前把队列日志输出
-            WriteAndClose(DateTime.MinValue);
+            if (Interlocked.CompareExchange(ref _writing, 1, 0) == 0) WriteAndClose(DateTime.MinValue);
         }
         #endregion
 
@@ -288,10 +288,11 @@ namespace NewLife.Log
             _Logs.Enqueue(e.ToString());
             Interlocked.Increment(ref _logCount);
 
-            // 异步写日志，实时。既是这里错误，定时器那边仍然会补上
+            // 异步写日志，实时。即使这里错误，定时器那边仍然会补上
             if (Interlocked.CompareExchange(ref _writing, 1, 0) == 0)
             {
-                ThreadPoolX.QueueUserWorkItem(() =>
+                // 调试级别同步写日志
+                if (Level <= LogLevel.Debug)
                 {
                     try
                     {
@@ -301,7 +302,21 @@ namespace NewLife.Log
                     {
                         _writing = 0;
                     }
-                });
+                }
+                else
+                {
+                    ThreadPoolX.QueueUserWorkItem(() =>
+                    {
+                        try
+                        {
+                            WriteFile();
+                        }
+                        finally
+                        {
+                            _writing = 0;
+                        }
+                    });
+                }
             }
         }
         #endregion
