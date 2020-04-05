@@ -22,7 +22,7 @@ namespace NewLife
     /// <remarks>
     /// 刷新信息成本较高，建议采用单例模式
     /// </remarks>
-    public class MachineInfo
+    public class MachineInfo : DisposeBase
     {
         #region 属性
         /// <summary>系统名称</summary>
@@ -61,13 +61,22 @@ namespace NewLife
         private ComputerInfo _cinfo;
         private PerformanceCounter _cpuCounter;
 #endif
-
-        //private TimerX _timer;
         #endregion
 
         #region 构造
         /// <summary>实例化机器信息</summary>
         public MachineInfo() { }
+
+        /// <summary>销毁</summary>
+        /// <param name="disposing"></param>
+        protected override void Dispose(Boolean disposing)
+        {
+            base.Dispose(disposing);
+
+#if __WIN__
+            _cpuCounter.TryDispose();
+#endif
+        }
 
         /// <summary>当前机器信息。在RegisterAsync后才能使用</summary>
         public static MachineInfo Current { get; set; }
