@@ -186,9 +186,6 @@ namespace NewLife.Log
                 writer.WriteLine();
             }
 
-            // 写完一批后，再刷一次磁盘
-            writer.Flush();
-
             // 连续5秒没日志，就关闭
             _NextClose = now.AddSeconds(5);
         }
@@ -250,10 +247,16 @@ namespace NewLife.Log
             try
             {
                 // 处理残余
-                if (!_Logs.IsEmpty) WriteFile();
+                var writer = LogWriter;
+                if (!_Logs.IsEmpty)
+                {
+                    WriteFile();
+
+                    // 写完一批后，刷一次磁盘
+                    writer?.Flush();
+                }
 
                 // 连续5秒没日志，就关闭
-                var writer = LogWriter;
                 if (writer != null && closeTime < TimerX.Now)
                 {
                     writer.TryDispose();
