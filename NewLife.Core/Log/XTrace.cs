@@ -75,6 +75,7 @@ namespace NewLife.Log
         {
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
+            AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
 
             ThreadPoolX.Init();
         }
@@ -82,7 +83,16 @@ namespace NewLife.Log
         static void CurrentDomain_UnhandledException(Object sender, UnhandledExceptionEventArgs e)
         {
             if (e.ExceptionObject is Exception ex) WriteException(ex);
-            if (e.IsTerminating) Log.Fatal("异常退出！");
+            if (e.IsTerminating)
+            {
+                Log.Fatal("异常退出！");
+
+                if (Log is CompositeLog compositeLog)
+                {
+                    var log = compositeLog.Get<TextFileLog>();
+                    log.TryDispose();
+                }
+            }
         }
 
         private static void TaskScheduler_UnobservedTaskException(Object sender, UnobservedTaskExceptionEventArgs e)
@@ -95,6 +105,15 @@ namespace NewLife.Log
                     WriteException(ex);
                 }
                 e.SetObserved();
+            }
+        }
+
+        private static void OnProcessExit(Object sender, EventArgs e)
+        {
+            if (Log is CompositeLog compositeLog)
+            {
+                var log = compositeLog.Get<TextFileLog>();
+                log.TryDispose();
             }
         }
 

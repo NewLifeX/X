@@ -186,6 +186,9 @@ namespace NewLife.Log
                 writer.WriteLine();
             }
 
+            // 写完一批后，刷一次磁盘
+            writer?.Flush();
+
             // 连续5秒没日志，就关闭
             _NextClose = now.AddSeconds(5);
         }
@@ -248,13 +251,7 @@ namespace NewLife.Log
             {
                 // 处理残余
                 var writer = LogWriter;
-                if (!_Logs.IsEmpty)
-                {
-                    WriteFile();
-
-                    // 写完一批后，刷一次磁盘
-                    writer?.Flush();
-                }
+                if (!_Logs.IsEmpty) WriteFile();
 
                 // 连续5秒没日志，就关闭
                 if (writer != null && closeTime < TimerX.Now)
@@ -294,8 +291,8 @@ namespace NewLife.Log
             // 异步写日志，实时。即使这里错误，定时器那边仍然会补上
             if (Interlocked.CompareExchange(ref _writing, 1, 0) == 0)
             {
-                // 调试级别同步写日志
-                if (Level <= LogLevel.Debug)
+                // 调试级别 或 致命错误 同步写日志
+                if (Setting.Current.LogLevel <= LogLevel.Debug || Level >= LogLevel.Error)
                 {
                     try
                     {
