@@ -1332,8 +1332,7 @@ namespace XCode
                 if (Meta.Table.FindByName(name) is FieldItem f && f.IsDynamic) value = value.ChangeType(f.Type);
 
                 //Extends[name] = value;
-                var ext = this as IExtend3;
-                ext.Items[name] = value;
+                Items[name] = value;
             }
         }
         #endregion

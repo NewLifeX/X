@@ -8,7 +8,6 @@ using NewLife.Data;
 using NewLife.Reflection;
 using XCode.Common;
 using XCode.Configuration;
-using XCode.Model;
 
 namespace XCode
 {
