@@ -52,7 +52,7 @@ namespace XCode.Membership
         /// <summary>权限。对不同资源的权限，逗号分隔，每个资源的权限子项竖线分隔</summary>
         [DisplayName("权限")]
         [Description("权限。对不同资源的权限，逗号分隔，每个资源的权限子项竖线分隔")]
-        [DataObjectField(false, false, true, 2000)]
+        [DataObjectField(false, false, true, -1)]
         [BindColumn("Permission", "权限。对不同资源的权限，逗号分隔，每个资源的权限子项竖线分隔", "")]
         public String Permission { get => _Permission; set { if (OnPropertyChanging(__.Permission, value)) { _Permission = value; OnPropertyChanged(__.Permission); } } }
 
