@@ -76,11 +76,11 @@ namespace XCode.DataAccessLayer
             {
                 if (DbType == DatabaseType.MySql || DbType == DatabaseType.Oracle || DbType == DatabaseType.SQLite) return true;
 
-#if !__CORE__
+                //#if !__CORE__
                 // SqlServer对批处理有BUG，将在3.0中修复
                 // https://github.com/dotnet/corefx/issues/29391
                 if (DbType == DatabaseType.SqlServer) return true;
-#endif
+                //#endif
 
                 return false;
             }
