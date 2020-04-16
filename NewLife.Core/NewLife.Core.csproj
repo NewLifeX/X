@@ -7,8 +7,8 @@
     <Description>算法、日志、网络、RPC、序列化、缓存、线程池</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2020 NewLife</Copyright>
-    <Version>8.7.2020.0412-beta</Version>
-    <FileVersion>8.7.2020.0412</FileVersion>
+    <Version>8.7.2020.0417-beta</Version>
+    <FileVersion>8.7.2020.0417</FileVersion>
     <AssemblyVersion>8.7.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <OutputPath>..\..\Bin</OutputPath>
@@ -85,14 +85,12 @@
     <PackageReference Include="System.Net.Http" Version="2.0.20710" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Remove="Agent\**" />
     <Compile Remove="Web\OAuth\**" />
-    <EmbeddedResource Remove="Agent\**" />
     <EmbeddedResource Remove="Web\OAuth\**" />
-    <None Remove="Agent\**" />
     <None Remove="Web\OAuth\**" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Remove="Agent\AgentService.cs" />
     <Compile Remove="Extension\EndPointExtensions.cs" />
     <Compile Remove="Http\HttpClient.cs" />
     <Compile Remove="Http\HttpSession.cs" />
