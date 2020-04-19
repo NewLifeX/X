@@ -154,21 +154,15 @@ namespace XCode.Membership
             return FindAll(exp, param);
         }
 
-        static FieldCache<VisitStat> PageCache = new FieldCache<VisitStat>(_.Page);
+        static FieldCache<VisitStat> PageCache = new FieldCache<VisitStat>(__.Page);
 
         /// <summary>查找所有</summary>
         /// <returns></returns>
-        public static IList<VisitStat> FindAllPage()
-        {
-            return PageCache.Entities;
-        }
+        public static IList<VisitStat> FindAllPage() => PageCache.Entities;
 
         /// <summary>获取所有名称</summary>
         /// <returns></returns>
-        public static IDictionary<String, String> FindAllPageName()
-        {
-            return PageCache.FindAllName();
-        }
+        public static IDictionary<String, String> FindAllPageName() => PageCache.FindAllName();
         #endregion
 
         #region 业务操作

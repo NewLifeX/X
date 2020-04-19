@@ -1085,7 +1085,7 @@ namespace XCode.Code
 
                     WriteLine();
                     WriteLine($"// Select Count({pname}) as {pname},{name} From {Table.Name} Where {tname}>'2020-01-24 00:00:00' Group By {name} Order By {pname} Desc limit 20");
-                    WriteLine($"static readonly FieldCache<{returnName}> _{name}Cache = new FieldCache<{returnName}>(_.{name})");
+                    WriteLine($"static readonly FieldCache<{returnName}> _{name}Cache = new FieldCache<{returnName}>(__.{name})");
                     WriteLine("{");
                     {
                         WriteLine($"//Where = _.{tname} > DateTime.Today.AddDays(-30) & Expression.Empty");
@@ -1104,7 +1104,7 @@ namespace XCode.Code
                 {
                     WriteLine();
                     WriteLine($"// Select Count({pname}) as {pname},Category From {Table.Name} Where {tname}>'2020-01-24 00:00:00' Group By Category Order By {pname} Desc limit 20");
-                    WriteLine($"//static readonly FieldCache<{returnName}> _CategoryCache = new FieldCache<{returnName}>(_.Category)");
+                    WriteLine($"//static readonly FieldCache<{returnName}> _CategoryCache = new FieldCache<{returnName}>(__.Category)");
                     WriteLine("//{");
                     {
                         WriteLine($"//Where = _.{tname} > DateTime.Today.AddDays(-30) & Expression.Empty");
