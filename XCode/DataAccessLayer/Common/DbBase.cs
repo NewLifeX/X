@@ -69,8 +69,12 @@ namespace XCode.DataAccessLayer
         internal void ReleaseSession()
         {
             //_store.Values.TryDispose();
-            _store.TryDispose();
-            _store = new ThreadLocal<IDbSession>();
+            var st = _store;
+            if (st != null && st.IsValueCreated)
+            {
+                _store = new ThreadLocal<IDbSession>();
+                st.TryDispose();
+            }
         }
         #endregion
 
@@ -118,7 +122,7 @@ namespace XCode.DataAccessLayer
 #if DEBUG
                 XTrace.WriteLine("{0} 格式 {1}", ConnName, connStr);
 #endif
-                if (_ConnectionString != connStr)
+                if (_ConnectionString != null && _ConnectionString != connStr)
                 {
                     _ConnectionString = connStr;
 
