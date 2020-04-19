@@ -122,7 +122,7 @@ namespace XCode.DataAccessLayer
 #if DEBUG
                 XTrace.WriteLine("{0} 格式 {1}", ConnName, connStr);
 #endif
-                if (_ConnectionString != null && _ConnectionString != connStr)
+                if (_ConnectionString != connStr)
                 {
                     _ConnectionString = connStr;
 

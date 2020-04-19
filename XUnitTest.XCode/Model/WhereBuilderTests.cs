@@ -136,7 +136,7 @@ namespace XUnitTest.XCode.Model
             Assert.NotNull(where);
             Assert.Equal(Operator.Or, where.Operator);
 
-            var left = where.Left as FormatExpression;
+            var left = where.Left as InExpression;
             Assert.NotNull(left);
             Assert.Equal(Log._.LinkID, left.Field);
             Assert.Equal("{0} In({1})", left.Format);

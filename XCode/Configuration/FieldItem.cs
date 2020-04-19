@@ -237,6 +237,7 @@ namespace XCode.Configuration
         /// <param name="value">数值</param>
         /// <returns></returns>
         internal Expression CreateFormat(String format, Object value) => new FormatExpression(this, format, value);
+        private Expression CreateIn(String format, Object value) => new InExpression(this, format, value);
 
         internal static Expression CreateField(FieldItem field, String action, Object value) => field == null ? new Expression() : new FieldExpression(field, action, value);
         #endregion
@@ -252,8 +253,6 @@ namespace XCode.Configuration
         /// <returns></returns>
         public Expression NotEqual(Object value) => CreateField(this, "<>", value);
 
-        Expression CreateLike(String value) => CreateFormat("{0} Like {1}", value);
-
         /// <summary>以某个字符串开始,{0}%操作</summary>
         /// <remarks>空参数不参与表达式操作，不生成该部分SQL拼接</remarks>
         /// <param name="value">数值</param>
@@ -264,7 +263,7 @@ namespace XCode.Configuration
 
             if (value == null || value + "" == "") return new Expression();
 
-            return CreateLike("{0}%".F(value));
+            return CreateFormat("{0} Like {1}", "{0}%".F(value));
         }
 
         /// <summary>以某个字符串结束，%{0}操作</summary>
@@ -277,7 +276,7 @@ namespace XCode.Configuration
 
             if (value == null || value + "" == "") return new Expression();
 
-            return CreateLike("%{0}".F(value));
+            return CreateFormat("{0} Like {1}", "%{0}".F(value));
         }
 
         /// <summary>包含某个字符串，%{0}%操作</summary>
@@ -290,7 +289,7 @@ namespace XCode.Configuration
 
             if (value == null || value + "" == "") return new Expression();
 
-            return CreateLike("%{0}%".F(value));
+            return CreateFormat("{0} Like {1}", "%{0}%".F(value));
         }
 
         /// <summary>不包含某个字符串，%{0}%操作</summary>
@@ -346,7 +345,7 @@ namespace XCode.Configuration
             // 如果In操作且只有一项，修改为等于
             if (list.Count == 1) return CreateField(this, flag ? "=" : "<>", vs[0]);
 
-            return CreateFormat(flag ? "{0} In({1})" : "{0} Not In({1})", list);
+            return CreateIn(flag ? "{0} In({1})" : "{0} Not In({1})", list);
         }
 
         /// <summary>NotIn操作</summary>
@@ -363,7 +362,7 @@ namespace XCode.Configuration
         {
             if (child == null) return new Expression();
 
-            return CreateFormat("{0} In({1})", child);
+            return CreateIn("{0} In({1})", child);
         }
 
         /// <summary>NotIn操作。直接使用字符串可能有注入风险</summary>
@@ -374,7 +373,7 @@ namespace XCode.Configuration
         {
             if (child == null) return new Expression();
 
-            return CreateFormat("{0} Not In({1})", child);
+            return CreateIn("{0} Not In({1})", child);
         }
 
         /// <summary>In操作。直接使用字符串可能有注入风险</summary>
@@ -385,7 +384,7 @@ namespace XCode.Configuration
         {
             if (builder == null) return new Expression();
 
-            return CreateFormat("{0} In({1})", builder);
+            return CreateIn("{0} In({1})", builder);
         }
 
         /// <summary>NotIn操作。直接使用字符串可能有注入风险</summary>
@@ -396,7 +395,7 @@ namespace XCode.Configuration
         {
             if (builder == null) return new Expression();
 
-            return CreateFormat("{0} Not In ({1})", builder);
+            return CreateIn("{0} Not In({1})", builder);
         }
 
         /// <summary>IsNull操作，不为空，一般用于字符串，但不匹配0长度字符串</summary>
