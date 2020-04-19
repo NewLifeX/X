@@ -123,6 +123,16 @@ namespace NewLife.Remoting
             // 连接复用
             if (_Host is ApiServer svr && svr.Multiplex)
             {
+                // 如果消息使用了原来SEAE的数据包，需要拷贝，避免多线程冲突
+                // 也可能在粘包处理时，已经拷贝了一次
+                if (e.Packet != null)
+                {
+                    if (msg.Payload != null && e.Packet.Data == msg.Payload.Data)
+                    {
+                        msg.Payload = msg.Payload.Clone();
+                    }
+                }
+
                 ThreadPoolX.QueueUserWorkItem(m =>
                 {
                     var rs = _Host.Process(this, m);
