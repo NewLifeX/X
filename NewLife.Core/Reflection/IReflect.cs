@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
+using NewLife.Log;
 
 namespace NewLife.Reflection
 {
@@ -735,7 +736,22 @@ namespace NewLife.Reflection
             if (asm == null) throw new ArgumentNullException(nameof(asm));
             if (baseType == null) throw new ArgumentNullException(nameof(baseType));
 
-            foreach (var item in asm.GetTypes())
+            Type[] ts;
+            try
+            {
+                ts = asm.GetTypes();
+            }
+            catch (Exception ex)
+            {
+                if (XTrace.Log.Level <= LogLevel.Debug)
+                {
+                    XTrace.WriteLine("asm.GetTypes 出错：{0}", asm.Location);
+                    XTrace.WriteException(ex);
+                }
+                yield break;
+            }
+
+            foreach (var item in ts)
             {
                 if (item.IsInterface || item.IsAbstract || item.IsGenericType) continue;
                 if (baseType != item && baseType.IsAssignableFrom(item))
