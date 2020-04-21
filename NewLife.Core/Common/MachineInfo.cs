@@ -22,7 +22,11 @@ namespace NewLife
     /// <remarks>
     /// 刷新信息成本较高，建议采用单例模式
     /// </remarks>
-    public class MachineInfo : DisposeBase
+#if __WIN__
+    public class MachineInfo : IDisposable
+#else
+    public class MachineInfo
+#endif
     {
         #region 属性
         /// <summary>系统名称</summary>
@@ -64,19 +68,30 @@ namespace NewLife
         #endregion
 
         #region 构造
-        /// <summary>实例化机器信息</summary>
-        public MachineInfo() { }
+#if __WIN__
+        /// <summary>析构函数</summary>
+        /// <remarks>
+        /// 如果忘记调用Dispose，这里会释放非托管资源
+        /// 如果曾经调用过Dispose，因为GC.SuppressFinalize(this)，不会再调用该析构函数
+        /// </remarks>
+        ~MachineInfo() { Dispose(false); }
+
+        /// <summary>释放资源</summary>
+        public void Dispose()
+        {
+            Dispose(true);
+
+            // 告诉GC，不要调用析构函数
+            GC.SuppressFinalize(this);
+        }
 
         /// <summary>销毁</summary>
         /// <param name="disposing"></param>
-        protected override void Dispose(Boolean disposing)
+        protected void Dispose(Boolean disposing)
         {
-            base.Dispose(disposing);
-
-#if __WIN__
             _cpuCounter.TryDispose();
-#endif
         }
+#endif
 
         /// <summary>当前机器信息。在RegisterAsync后才能使用</summary>
         public static MachineInfo Current { get; set; }
