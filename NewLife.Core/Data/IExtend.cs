@@ -42,16 +42,6 @@ namespace NewLife.Data
             return new ExtendDictionary { Items = dictionary };
         }
 
-        ///// <summary>名值字典转扩展接口</summary>
-        ///// <param name="dictionary"></param>
-        ///// <returns></returns>
-        //public static IExtend ToExtend(this IDictionary dictionary)
-        //{
-        //    if (dictionary is IExtend ext) return ext;
-
-        //    return new ExtendDictionary2 { Items = dictionary };
-        //}
-
         /// <summary>扩展接口转名值字典</summary>
         /// <param name="extend"></param>
         /// <param name="throwOnError">出错时是否抛出异常</param>
@@ -105,47 +95,6 @@ namespace NewLife.Data
         public IDictionary<String, Object> Items { get; set; }
 
         IEnumerable<String> IExtend2.Keys => Items?.Keys;
-
-        /// <summary>获取 或 设置 数据</summary>
-        /// <param name="item"></param>
-        /// <returns></returns>
-        public Object this[String item]
-        {
-            get
-            {
-                if (Items == null) return null;
-
-                if (Items.TryGetValue(item, out var v)) return v;
-
-                return default;
-            }
-            set
-            {
-                if (Items == null) Items = new Dictionary<String, Object>();
-
-                Items[item] = value;
-            }
-        }
-    }
-
-    /// <summary>扩展字典。引用型</summary>
-    public class ExtendDictionary2 : IExtend, IExtend2
-    {
-        /// <summary>数据项</summary>
-        public IDictionary Items { get; set; }
-
-        IEnumerable<String> IExtend2.Keys
-        {
-            get
-            {
-                if (Items == null) yield break;
-
-                foreach (var item in Items)
-                {
-                    yield return item as String;
-                }
-            }
-        }
 
         /// <summary>获取 或 设置 数据</summary>
         /// <param name="item"></param>

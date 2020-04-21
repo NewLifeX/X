@@ -286,7 +286,9 @@ namespace NewLife.Serialization
             // 扩展数据
             if (obj is IExtend3 ext3 && ext3.Items != null)
             {
-                foreach (var item in ext3.Items)
+                // 提前拷贝，避免遍历中改变集合
+                var dic = ext3.Items.ToDictionary(e => e.Key, e => e.Value);
+                foreach (var item in dic)
                 {
                     if (!hs.Contains(item.Key))
                     {
@@ -297,7 +299,9 @@ namespace NewLife.Serialization
             }
             else if (obj is IExtend2 ext2 && ext2.Keys != null)
             {
-                foreach (var item in ext2.Keys)
+                // 提前拷贝，避免遍历中改变集合
+                var keys = ext2.Keys.ToArray();
+                foreach (var item in keys)
                 {
                     if (!hs.Contains(item))
                     {

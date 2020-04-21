@@ -30,7 +30,7 @@ namespace NewLife.Remoting
         /// <summary>获取/设置 用户会话数据</summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public virtual Object this[String key] { get { return Items[key]; } set { Items[key] = value; } }
+        public virtual Object this[String key] { get => Items[key]; set => Items[key] = value; }
 
         /// <summary>启动时间</summary>
         public DateTime StartTime { get; set; } = DateTime.Now;
