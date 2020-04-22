@@ -30,7 +30,7 @@ namespace Test
     {
         private static void Main(String[] args)
         {
-            Environment.SetEnvironmentVariable("DOTNET_SYSTEM_GLOBALIZATION_INVARIANT", "1");
+            //Environment.SetEnvironmentVariable("DOTNET_SYSTEM_GLOBALIZATION_INVARIANT", "1");
 
             MachineInfo.RegisterAsync();
             //XTrace.Log = new NetworkLog();
@@ -45,7 +45,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test1();
+                    Test7();
 #if !DEBUG
                 }
                 catch (Exception ex)
