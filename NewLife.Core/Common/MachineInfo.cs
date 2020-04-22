@@ -22,11 +22,11 @@ namespace NewLife
     /// <remarks>
     /// 刷新信息成本较高，建议采用单例模式
     /// </remarks>
-#if __WIN__
-    public class MachineInfo : IDisposable
-#else
+    //#if __WIN__
+    //    public class MachineInfo : IDisposable
+    //#else
     public class MachineInfo
-#endif
+    //#endif
     {
         #region 属性
         /// <summary>系统名称</summary>
@@ -63,35 +63,32 @@ namespace NewLife
 
 #if __WIN__
         private ComputerInfo _cinfo;
-        private PerformanceCounter _cpuCounter;
+        //private readonly PerformanceCounter _cpuCounter;
 #endif
         #endregion
 
         #region 构造
-#if __WIN__
-        /// <summary>析构函数</summary>
-        /// <remarks>
-        /// 如果忘记调用Dispose，这里会释放非托管资源
-        /// 如果曾经调用过Dispose，因为GC.SuppressFinalize(this)，不会再调用该析构函数
-        /// </remarks>
-        ~MachineInfo() { Dispose(false); }
+        //#if __WIN__
+        //        /// <summary>析构函数</summary>
+        //        /// <remarks>
+        //        /// 如果忘记调用Dispose，这里会释放非托管资源
+        //        /// 如果曾经调用过Dispose，因为GC.SuppressFinalize(this)，不会再调用该析构函数
+        //        /// </remarks>
+        //        ~MachineInfo() { Dispose(false); }
 
-        /// <summary>释放资源</summary>
-        public void Dispose()
-        {
-            Dispose(true);
+        //        /// <summary>释放资源</summary>
+        //        public void Dispose()
+        //        {
+        //            Dispose(true);
 
-            // 告诉GC，不要调用析构函数
-            GC.SuppressFinalize(this);
-        }
+        //            // 告诉GC，不要调用析构函数
+        //            GC.SuppressFinalize(this);
+        //        }
 
-        /// <summary>销毁</summary>
-        /// <param name="disposing"></param>
-        protected void Dispose(Boolean disposing)
-        {
-            _cpuCounter.TryDispose();
-        }
-#endif
+        //        /// <summary>销毁</summary>
+        //        /// <param name="disposing"></param>
+        //        protected void Dispose(Boolean disposing) => _cpuCounter.TryDispose();
+        //#endif
 
         /// <summary>当前机器信息。在RegisterAsync后才能使用</summary>
         public static MachineInfo Current { get; set; }
@@ -235,15 +232,22 @@ namespace NewLife
                 }
             }
 #else
-            // 性能计数器的初始化非常耗时
-            Task.Factory.StartNew(() =>
-            {
-                _cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total")
-                {
-                    MachineName = "."
-                };
-                _cpuCounter.NextValue();
-            });
+            //// 性能计数器的初始化非常耗时
+            //Task.Factory.StartNew(() =>
+            //{
+            //    try
+            //    {
+            //        _cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total")
+            //        {
+            //            MachineName = "."
+            //        };
+            //        _cpuCounter.NextValue();
+            //    }
+            //    catch
+            //    {
+            //        _cpuCounter = null;
+            //    }
+            //});
 
             var reg = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Cryptography");
             if (reg != null) machine_guid = reg.GetValue("MachineGuid") + "";
@@ -341,8 +345,36 @@ namespace NewLife
             }
 #else
             AvailableMemory = _cinfo.AvailablePhysicalMemory;
-            CpuRate = _cpuCounter == null ? 0 : (_cpuCounter.NextValue() / 100);
+
+            //if (_cpuCounter != null)
+            //    CpuRate = _cpuCounter.NextValue() / 100;
+            //else
+            //    CpuRate = (Single)GetInfo("Win32_PerfFormattedData_PerfOS_Processor where name='_Total'", "PercentProcessorTime").ToDouble() / 100;
 #endif
+
+            if (Runtime.Windows)
+            {
+                GetSystemTimes(out var idleTime, out var kernelTime, out var userTime);
+
+                var current = new SystemTime
+                {
+                    IdleTime = idleTime.ToLong(),
+                    KernelTime = kernelTime.ToLong(),
+                    UserTime = userTime.ToLong(),
+                };
+
+                if (_systemTime != null)
+                {
+                    var idle = current.IdleTime - _systemTime.IdleTime;
+                    var kernel = current.KernelTime - _systemTime.KernelTime;
+                    var user = current.UserTime - _systemTime.UserTime;
+                    var total = kernel + user;
+
+                    CpuRate = total == 0 ? 0 : (Single)((Double)(total - idle) / total);
+                }
+
+                _systemTime = current;
+            }
         }
         #endregion
 
@@ -458,7 +490,34 @@ namespace NewLife
 #endif
         #endregion
 
-        #region WMI辅助
+        #region Windows辅助
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern Boolean GetSystemTimes(out FILETIME idleTime, out FILETIME kernelTime, out FILETIME userTime);
+
+        private struct FILETIME
+        {
+            public UInt32 Low;
+
+            public UInt32 High;
+
+            public FILETIME(Int64 time)
+            {
+                Low = (UInt32)time;
+                High = (UInt32)(time >> 32);
+            }
+
+            public Int64 ToLong() => (Int64)(((UInt64)High << 32) | Low);
+        }
+
+        private class SystemTime
+        {
+            public Int64 IdleTime;
+            public Int64 KernelTime;
+            public Int64 UserTime;
+        }
+
+        private SystemTime _systemTime;
+
 #if __WIN__
         /// <summary>获取WMI信息</summary>
         /// <param name="path"></param>
@@ -477,11 +536,8 @@ namespace NewLife
                 var moc = cimobject.Get();
                 foreach (var mo in moc)
                 {
-                    if (mo != null &&
-                        mo.Properties != null &&
-                        mo.Properties[property] != null &&
-                        mo.Properties[property].Value != null)
-                        bbs.Add(mo.Properties[property].Value.ToString());
+                    var val = mo?.Properties?[property]?.Value;
+                    if (val != null) bbs.Add(val.ToString());
                 }
             }
             catch (Exception ex)
