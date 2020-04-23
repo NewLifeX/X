@@ -123,7 +123,7 @@ namespace XCode.DataAccessLayer
         private void CheckAllTables(IDataTable[] tables, Migration mode, Boolean dbExit)
         {
             // 数据库表进入字典
-            var dic = new Dictionary<String, IDataTable>(StringComparer.OrdinalIgnoreCase);
+            var dic = new Dictionary<String, IDataTable>();
             if (dbExit)
             {
                 var dbtables = OnGetTables(tables.Select(t => t.TableName).ToArray());
@@ -131,7 +131,8 @@ namespace XCode.DataAccessLayer
                 {
                     foreach (var item in dbtables)
                     {
-                        dic.Add(item.TableName, item);
+                        //dic.Add(item.TableName, item);
+                        dic[item.TableName] = item;
                     }
                 }
             }
