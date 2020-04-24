@@ -51,6 +51,10 @@ namespace XCode
         [Description("命令超时。查询执行超时时间，默认0秒不限制")]
         public Int32 CommandTimeout { get; set; }
 
+        /// <summary>失败重试。执行命令超时后的重试次数，默认0不重试</summary>
+        [Description("失败重试。执行命令超时后的重试次数，默认0不重试")]
+        public Int32 RetryOnFailure { get; set; }
+
         /// <summary>数据层缓存。默认0秒，达到60秒后全表查询使用文件缓存</summary>
         [Description("数据层缓存。默认0秒，达到60秒后全表查询使用文件缓存")]
         public Int32 DataCacheExpire { get; set; }

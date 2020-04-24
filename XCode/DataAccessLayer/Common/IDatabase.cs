@@ -73,6 +73,9 @@ namespace XCode.DataAccessLayer
         /// <summary>参数化添删改查。默认关闭</summary>
         Boolean UseParameter { get; set; }
 
+        /// <summary>失败重试。执行命令超时后的重试次数，默认0不重试</summary>
+        Int32 RetryOnFailure { get; set; }
+
         /// <summary>反向工程。Off 关闭；ReadOnly 只读不执行；On 打开，新建；Full 完全，修改删除</summary>
         Migration Migration { get; set; }
 

@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
+using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Tasks;
 using NewLife;
 using NewLife.Collections;
 using NewLife.Data;
@@ -17,7 +17,7 @@ using XCode.Exceptions;
 namespace XCode.DataAccessLayer
 {
     /// <summary>数据库会话基类</summary>
-    abstract partial class DbSession : DisposeBase, IDbSession
+    internal abstract partial class DbSession : DisposeBase, IDbSession
     {
         #region 构造函数
         protected DbSession(IDatabase db)
@@ -110,8 +110,66 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual TResult Process<TResult>(Func<DbConnection, TResult> callback)
         {
-            using var conn = Database.OpenConnection();
-            return callback(conn);
+            var delay = 1000;
+            var retry = Database.RetryOnFailure;
+            for (var i = 0; i <= retry; i++)
+            {
+                try
+                {
+                    using var conn = Database.OpenConnection();
+                    return callback(conn);
+                }
+                catch (Exception ex)
+                {
+                    // 如果重试次数用完，或者不应该在该异常上重试，则直接向上抛出异常
+                    if (i == retry || !ShouldRetryOn(ex)) throw;
+
+                    if (XTrace.Log.Level <= LogLevel.Debug) WriteLog("retry {0}，delay {1}", i + 1, delay);
+                    Thread.Sleep(delay);
+
+                    // 间隔时间倍增，最大30秒
+                    delay *= 2;
+                    if (delay > 30_000) delay = 30_000;
+                }
+            }
+
+            return default;
+        }
+
+        /// <summary>是否应该在该异常上重试</summary>
+        /// <param name="ex"></param>
+        /// <returns></returns>
+        protected virtual Boolean ShouldRetryOn(Exception ex)
+        {
+            if (ex == null) return false;
+
+            // 基础异常
+            if (ex is TimeoutException) return true;
+            if (ex is SocketException sex)
+            {
+                switch (sex.SocketErrorCode)
+                {
+                    case SocketError.ConnectionAborted:
+                    case SocketError.ConnectionReset:
+                    case SocketError.ConnectionRefused:
+                        return true;
+                }
+            }
+
+            // 叠加异常
+            if (ex is AggregateException agg)
+            {
+                foreach (var item in agg.InnerExceptions)
+                {
+                    if (ShouldRetryOn(item)) return true;
+                }
+            }
+
+            // 内部异常
+            var inner = ex.InnerException;
+            if (inner != null && ShouldRetryOn(inner)) return true;
+
+            return false;
         }
 
         ///// <summary>打开连接并执行操作</summary>
@@ -265,7 +323,7 @@ namespace XCode.DataAccessLayer
             return dt;
         }
 
-        private static Regex reg_QueryCount = new Regex(@"^\s*select\s+\*\s+from\s+([\w\W]+)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static readonly Regex reg_QueryCount = new Regex(@"^\s*select\s+\*\s+from\s+([\w\W]+)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         /// <summary>执行SQL查询，返回总记录数</summary>
         /// <param name="sql">SQL语句</param>
         /// <param name="type">命令类型，默认SQL文本</param>
@@ -534,7 +592,7 @@ namespace XCode.DataAccessLayer
             return dt;
         }
 
-        DataTable GetSchemaInternal(DbConnection conn, String key, String collectionName, String[] restrictionValues)
+        private DataTable GetSchemaInternal(DbConnection conn, String key, String collectionName, String[] restrictionValues)
         {
             QueryTimes++;
 
@@ -582,7 +640,7 @@ namespace XCode.DataAccessLayer
         /// <summary>是否输出SQL语句，默认为XCode调试开关XCode.Debug</summary>
         public Boolean ShowSQL { get; set; }
 
-        static ILog logger;
+        private static ILog logger;
 
         /// <summary>写入SQL到文本中</summary>
         /// <param name="sql"></param>
@@ -671,7 +729,7 @@ namespace XCode.DataAccessLayer
 
         #region SQL时间跟踪
         private Stopwatch _swSql;
-        private static HashSet<String> _trace_sqls = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
+        private static readonly HashSet<String> _trace_sqls = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
 
         protected void BeginTrace()
         {

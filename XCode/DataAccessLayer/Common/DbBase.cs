@@ -229,6 +229,9 @@ namespace XCode.DataAccessLayer
         /// <summary>本连接数据只读</summary>
         public Boolean Readonly { get; set; }
 
+        /// <summary>失败重试。执行命令超时后的重试次数，默认0不重试</summary>
+        public Int32 RetryOnFailure { get; set; } = Setting.Current.RetryOnFailure;
+
         /// <summary>数据层缓存有效期。单位秒</summary>
         public Int32 DataCache { get; set; }
 

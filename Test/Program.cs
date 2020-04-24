@@ -436,7 +436,7 @@ namespace Test
             Role.Meta.Session.Dal.Db.ShowSQL = true;
             Role.Meta.Session.Dal.Expire = 10;
             //Role.Meta.Session.Dal.Db.Readonly = true;
-
+            
             var list = Role.FindAll();
             Console.WriteLine(list.Count);
 
