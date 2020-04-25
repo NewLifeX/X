@@ -22,6 +22,11 @@ namespace NewLife.Yun
         /// <summary>访问密钥</summary>
         public String AccessKeySecret { get; set; }
 
+        /// <summary>存储空间</summary>
+        public String BucketName { get; set; }
+
+        private String _bucketName;
+        private String _baseAddress;
         private HttpClient _Client;
         #endregion
 
@@ -32,15 +37,38 @@ namespace NewLife.Yun
 
             var http = new HttpClient(new HttpClientHandler { UseProxy = false })
             {
-                BaseAddress = new Uri(Endpoint)
+                BaseAddress = new Uri(_baseAddress ?? Endpoint)
             };
 
             return _Client = http;
         }
 
+        private void SetBucket(String bucketName)
+        {
+            var url = Endpoint;
+            if (!bucketName.IsNullOrEmpty())
+            {
+                var ss = Endpoint.Split("://");
+                url = $"{ss[0]}://{bucketName}.{ss[1]}";
+            }
+
+            // 判断是否有改变
+            if (_baseAddress != url)
+            {
+                _baseAddress = url;
+                _Client = null;
+            }
+
+            _bucketName = bucketName;
+        }
+
         public async Task<IDictionary<String, Object>> InvokeAsync(HttpMethod method, String action, Object args = null)
         {
             var request = ApiHelper.BuildRequest(method, action, args);
+
+            // 资源路径
+            var resourcePath = action;
+            if (!_bucketName.IsNullOrEmpty()) resourcePath += _bucketName + "/";
 
             // 时间
             request.Headers.Date = DateTimeOffset.UtcNow;
@@ -48,7 +76,7 @@ namespace NewLife.Yun
 
             // 签名
             var headers = request.Headers.ToDictionary(e => e.Key, e => e.Value?.FirstOrDefault());
-            var canonicalString = BuildCanonicalString(method.Method, action, headers, null);
+            var canonicalString = BuildCanonicalString(method.Method, resourcePath, headers, null);
             var signature = canonicalString.GetBytes().SHA1(AccessKeySecret.GetBytes()).ToBase64();
             request.Headers.Authorization = new AuthenticationHeaderValue("OSS", AccessKeyId + ":" + signature);
 
@@ -64,6 +92,8 @@ namespace NewLife.Yun
         /// <returns></returns>
         public async Task<String[]> ListBuckets()
         {
+            SetBucket(null);
+
             var rs = await InvokeAsync(HttpMethod.Get, "/");
 
             var bs = rs?["Buckets"] as IDictionary<String, Object>;
@@ -79,6 +109,8 @@ namespace NewLife.Yun
         /// <returns></returns>
         public async Task<IList<Object>> ListBuckets(String prefix, String marker, Int32 maxKeys = 100)
         {
+            SetBucket(null);
+
             var rs = await InvokeAsync(HttpMethod.Get, "/", new { prefix, marker, maxKeys });
 
             var bs = rs?["Buckets"] as IDictionary<String, Object>;
@@ -89,6 +121,34 @@ namespace NewLife.Yun
         #endregion
 
         #region Object操作
+        /// <summary>列出所有文件名称</summary>
+        /// <returns></returns>
+        public async Task<String[]> ListObjects()
+        {
+            SetBucket(BucketName);
+
+            var rs = await InvokeAsync(HttpMethod.Get, "/");
+
+            var contents = rs?["Contents"] as IList<Object>;
+
+            return contents?.Select(e => (e as IDictionary<String, Object>)["Key"] + "").ToArray();
+        }
+
+        /// <summary>列出所有文件明细，支持过滤</summary>
+        /// <param name="prefix"></param>
+        /// <param name="marker"></param>
+        /// <param name="maxKeys"></param>
+        /// <returns></returns>
+        public async Task<IList<Object>> ListObjects(String prefix, String marker, Int32 maxKeys = 100)
+        {
+            SetBucket(BucketName);
+
+            var rs = await InvokeAsync(HttpMethod.Get, "/", new { prefix, marker, maxKeys });
+
+            var contents = rs?["Contents"] as IList<Object>;
+
+            return contents;
+        }
         #endregion
 
         #region 辅助

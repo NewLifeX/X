@@ -108,7 +108,6 @@
     <Compile Remove="Web\Pager.cs" />
     <Compile Remove="Web\WebHelper.cs" />
     <Compile Remove="Windows\MySpeech.cs" />
-    <Compile Remove="Yun\OssClient.cs" />
     <Compile Remove="发布NuGet.cs" />
   </ItemGroup>
   <ItemGroup>

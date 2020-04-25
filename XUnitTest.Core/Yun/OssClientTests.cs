@@ -58,5 +58,25 @@ namespace XUnitTest.Yun
             var buckets = await client.ListBuckets("newlife", null);
             Assert.NotNull(buckets);
         }
+
+        [Fact]
+        public async void ListObjects()
+        {
+            var client = GetClient();
+            client.BucketName = "newlife-x";
+
+            var objects = await client.ListObjects();
+            Assert.NotNull(objects);
+        }
+
+        [Fact]
+        public async void ListObjects2()
+        {
+            var client = GetClient();
+            client.BucketName = "newlife-x";
+
+            var objects = await client.ListObjects("MySql", null);
+            Assert.NotNull(objects);
+        }
     }
 }
