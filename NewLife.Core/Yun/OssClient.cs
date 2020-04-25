@@ -6,6 +6,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using NewLife.Remoting;
+using NewLife.Serialization;
 
 namespace NewLife.Yun
 {
@@ -55,6 +56,7 @@ namespace NewLife.Yun
             //rs.EnsureSuccessStatusCode();
 
             var xml = await rs.Content.ReadAsStringAsync();
+            var dic = XmlParser.Decode(xml);
 
             return default;
         }
