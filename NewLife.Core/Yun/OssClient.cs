@@ -6,7 +6,6 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using NewLife.Remoting;
-using NewLife.Serialization;
 
 namespace NewLife.Yun
 {
@@ -15,7 +14,7 @@ namespace NewLife.Yun
     {
         #region 属性
         /// <summary>访问域名</summary>
-        public String Endpoint { get; set; }
+        public String Endpoint { get; set; } = "http://oss-cn-shanghai.aliyuncs.com";
 
         /// <summary>访问密钥</summary>
         public String AccessKeyId { get; set; }
@@ -31,8 +30,10 @@ namespace NewLife.Yun
         {
             if (_Client != null) return _Client;
 
-            var http = new HttpClient(new HttpClientHandler { UseProxy = false });
-            http.BaseAddress = new Uri(Endpoint);
+            var http = new HttpClient(new HttpClientHandler { UseProxy = false })
+            {
+                BaseAddress = new Uri(Endpoint)
+            };
 
             return _Client = http;
         }
@@ -56,24 +57,34 @@ namespace NewLife.Yun
 
             return await ApiHelper.ProcessResponse<IDictionary<String, Object>>(rs);
         }
-
-        private void OnRequest(HttpRequestMessage request)
-        {
-
-        }
         #endregion
 
         #region Bucket操作
-        public async Task<String[]> ListBuckets(String prefix = null, String marker = null, Int32 maxKeys = 100)
+        /// <summary>列出所有存储空间名称</summary>
+        /// <returns></returns>
+        public async Task<String[]> ListBuckets()
         {
-            var rs = (prefix.IsNullOrEmpty() && marker.IsNullOrEmpty() && maxKeys == 100) ?
-                await InvokeAsync(HttpMethod.Get, "/") :
-                await InvokeAsync(HttpMethod.Get, "/", new { prefix, marker, maxKeys });
+            var rs = await InvokeAsync(HttpMethod.Get, "/");
 
             var bs = rs?["Buckets"] as IDictionary<String, Object>;
             var bk = bs?["Bucket"] as IList<Object>;
 
             return bk?.Select(e => (e as IDictionary<String, Object>)["Name"] + "").ToArray();
+        }
+
+        /// <summary>列出所有存储空间明细，支持过滤</summary>
+        /// <param name="prefix"></param>
+        /// <param name="marker"></param>
+        /// <param name="maxKeys"></param>
+        /// <returns></returns>
+        public async Task<IList<Object>> ListBuckets(String prefix, String marker, Int32 maxKeys = 100)
+        {
+            var rs = await InvokeAsync(HttpMethod.Get, "/", new { prefix, marker, maxKeys });
+
+            var bs = rs?["Buckets"] as IDictionary<String, Object>;
+            var bk = bs?["Bucket"] as IList<Object>;
+
+            return bk;
         }
         #endregion
 

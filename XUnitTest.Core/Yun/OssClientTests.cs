@@ -9,27 +9,34 @@ namespace XUnitTest.Yun
 {
     public class OssClientTests
     {
-        //private OssClient _config;
+        private OssClient _config;
         private OssClient GetClient()
         {
-            //if (_config == null)
-            //{
-            //    var prv = new XmlConfigProvider { FileName = @"Config\Oss.config" };
+            if (_config == null)
+            {
+                var prv = new XmlConfigProvider { FileName = @"Config\Oss.config" };
 
-            //    _config = prv.Load<OssClient>();
-            //    if (prv.IsNew) prv.Save(_config);
-            //}
+                _config = prv.Load<OssClient>();
+                if (prv.IsNew) prv.Save(_config);
+            }
 
             var client = new OssClient
             {
-                //Endpoint = _config.Endpoint,
-                //AccessKeyId = _config.AccessKeyId,
-                //AccessKeySecret = _config.AccessKeySecret,
+                Endpoint = _config.Endpoint,
+                AccessKeyId = _config.AccessKeyId,
+                AccessKeySecret = _config.AccessKeySecret,
 
-                Endpoint = "http://oss-cn-shanghai.aliyuncs.com",
-                AccessKeyId = "LTAISlFUZjVkLuLX",
-                AccessKeySecret = "WDwecIlqCQVQxmUFjN432u1mEmDN8P",
+                //Endpoint = "http://oss-cn-shanghai.aliyuncs.com",
+                //AccessKeyId = "LTAISlFUZjVkLuLX",
+                //AccessKeySecret = "WDwecIlqCQVQxmUFjN432u1mEmDN8P",
             };
+
+            if (client.Endpoint.IsNullOrEmpty())
+            {
+                client.Endpoint = "http://oss-cn-shanghai.aliyuncs.com";
+                client.AccessKeyId = "LTAISlFUZjVkLuLX";
+                client.AccessKeySecret = "WDwecIlqCQVQxmUFjN432u1mEmDN8P";
+            }
 
             return client;
         }
@@ -40,6 +47,15 @@ namespace XUnitTest.Yun
             var client = GetClient();
 
             var buckets = await client.ListBuckets();
+            Assert.NotNull(buckets);
+        }
+
+        [Fact]
+        public async void ListBuckets2()
+        {
+            var client = GetClient();
+
+            var buckets = await client.ListBuckets("newlife", null);
             Assert.NotNull(buckets);
         }
     }
