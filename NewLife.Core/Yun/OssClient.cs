@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using NewLife.Data;
@@ -40,6 +41,14 @@ namespace NewLife.Yun
             {
                 BaseAddress = new Uri(_baseAddress ?? Endpoint)
             };
+
+            var asm = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
+            var asmName = asm?.GetName();
+            if (asmName != null)
+            {
+                //var userAgent = $"{asmName.Name}/{asmName.Version}({Environment.OSVersion};{Environment.Version})";
+                http.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue(asmName.Name, asmName.Version + ""));
+            }
 
             return _Client = http;
         }
@@ -102,9 +111,12 @@ namespace NewLife.Yun
             var rs = await InvokeAsync(HttpMethod.Get, "/");
 
             var bs = rs?["Buckets"] as IDictionary<String, Object>;
-            var bk = bs?["Bucket"] as IList<Object>;
+            var bk = bs?["Bucket"];
 
-            return bk?.Select(e => (e as IDictionary<String, Object>)["Name"] + "").ToArray();
+            if (bk is IList<Object> list) return list.Select(e => (e as IDictionary<String, Object>)["Name"] + "").ToArray();
+            if (bk is IDictionary<String, Object> dic) return new[] { dic["Name"] + "" };
+
+            return null;
         }
 
         /// <summary>列出所有存储空间明细，支持过滤</summary>
@@ -120,8 +132,8 @@ namespace NewLife.Yun
 
             var bs = rs?["Buckets"] as IDictionary<String, Object>;
             var bk = bs?["Bucket"] as IList<Object>;
-
-            return bk;
+            if (bk is IList<Object> list) return list;
+            return new[] { bk };
         }
         #endregion
 
@@ -134,9 +146,11 @@ namespace NewLife.Yun
 
             var rs = await InvokeAsync(HttpMethod.Get, "/");
 
-            var contents = rs?["Contents"] as IList<Object>;
+            var contents = rs?["Contents"];
+            if (contents is IList<Object> list) return list?.Select(e => (e as IDictionary<String, Object>)["Key"] + "").ToArray();
+            if (contents is IDictionary<String, Object> dic) return new[] { dic["Key"] + "" };
 
-            return contents?.Select(e => (e as IDictionary<String, Object>)["Key"] + "").ToArray();
+            return null;
         }
 
         /// <summary>列出所有文件明细，支持过滤</summary>
@@ -150,9 +164,9 @@ namespace NewLife.Yun
 
             var rs = await InvokeAsync(HttpMethod.Get, "/", new { prefix, marker, maxKeys });
 
-            var contents = rs?["Contents"] as IList<Object>;
-
-            return contents;
+            var contents = rs?["Contents"];
+            if (contents is IList<Object> list) return list;
+            return new[] { contents };
         }
 
         /// <summary>上传文件</summary>
