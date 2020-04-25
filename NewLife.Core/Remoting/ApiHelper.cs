@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Net;
-using NewLife.Serialization;
-using NewLife.Reflection;
-using NewLife.Data;
 using System.IO;
-using NewLife.Collections;
+using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Threading.Tasks;
+using NewLife.Collections;
+using NewLife.Data;
+using NewLife.Reflection;
+using NewLife.Serialization;
 
 namespace NewLife.Remoting
 {
@@ -151,13 +151,17 @@ namespace NewLife.Remoting
             if (rtype == typeof(Byte[])) return (TResult)(Object)buf;
             if (rtype == typeof(Packet)) return (TResult)(Object)new Packet(buf);
 
-            var str = buf.ToStr();
-            var js = new JsonParser(str).Decode() as IDictionary<String, Object>;
-            var data = js[dataName];
-            var code = 0;// js["code"].ToInt();
+            var str = buf.ToStr()?.Trim();
+            var dic = str.StartsWith("<") && str.EndsWith(">") ? XmlParser.Decode(str) : JsonParser.Decode(str);
+
+            // 未指定有效数据名时，整体返回
+            if (!dic.ContainsKey(dataName) && rtype == typeof(IDictionary<String, Object>)) return (TResult)dic;
+
+            var data = dic[dataName];
+            var code = 0;
             foreach (var item in CodeNames)
             {
-                if (js.TryGetValue(item, out var v))
+                if (dic.TryGetValue(item, out var v))
                 {
                     code = v.ToInt();
                     break;
@@ -168,7 +172,7 @@ namespace NewLife.Remoting
                 var message = "";
                 foreach (var item in MessageNames)
                 {
-                    if (js.TryGetValue(item, out var v))
+                    if (dic.TryGetValue(item, out var v))
                     {
                         message = v as String;
                         break;

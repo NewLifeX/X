@@ -37,7 +37,7 @@ namespace NewLife.Yun
             return _Client = http;
         }
 
-        public async Task<TResult> InvokeAsync<TResult>(HttpMethod method, String action, Object args = null)
+        public async Task<IDictionary<String, Object>> InvokeAsync(HttpMethod method, String action, Object args = null)
         {
             var request = ApiHelper.BuildRequest(method, action, args);
 
@@ -53,12 +53,8 @@ namespace NewLife.Yun
 
             var http = GetClient();
             var rs = await http.SendAsync(request);
-            //rs.EnsureSuccessStatusCode();
 
-            var xml = await rs.Content.ReadAsStringAsync();
-            var dic = XmlParser.Decode(xml);
-
-            return default;
+            return await ApiHelper.ProcessResponse<IDictionary<String, Object>>(rs);
         }
 
         private void OnRequest(HttpRequestMessage request)
@@ -71,10 +67,13 @@ namespace NewLife.Yun
         public async Task<String[]> ListBuckets(String prefix = null, String marker = null, Int32 maxKeys = 100)
         {
             var rs = (prefix.IsNullOrEmpty() && marker.IsNullOrEmpty() && maxKeys == 100) ?
-                await InvokeAsync<String>(HttpMethod.Get, "/") :
-                await InvokeAsync<String>(HttpMethod.Get, "/", new { prefix, marker, maxKeys });
+                await InvokeAsync(HttpMethod.Get, "/") :
+                await InvokeAsync(HttpMethod.Get, "/", new { prefix, marker, maxKeys });
 
-            return null;
+            var bs = rs?["Buckets"] as IDictionary<String, Object>;
+            var bk = bs?["Bucket"] as IList<Object>;
+
+            return bk?.Select(e => (e as IDictionary<String, Object>)["Name"] + "").ToArray();
         }
         #endregion
 
