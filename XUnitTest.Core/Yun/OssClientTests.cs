@@ -1,0 +1,46 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using NewLife.Configuration;
+using NewLife.Yun;
+using Xunit;
+
+namespace XUnitTest.Yun
+{
+    public class OssClientTests
+    {
+        //private OssClient _config;
+        private OssClient GetClient()
+        {
+            //if (_config == null)
+            //{
+            //    var prv = new XmlConfigProvider { FileName = @"Config\Oss.config" };
+
+            //    _config = prv.Load<OssClient>();
+            //    if (prv.IsNew) prv.Save(_config);
+            //}
+
+            var client = new OssClient
+            {
+                //Endpoint = _config.Endpoint,
+                //AccessKeyId = _config.AccessKeyId,
+                //AccessKeySecret = _config.AccessKeySecret,
+
+                Endpoint = "http://oss-cn-shanghai.aliyuncs.com",
+                AccessKeyId = "LTAISlFUZjVkLuLX",
+                AccessKeySecret = "WDwecIlqCQVQxmUFjN432u1mEmDN8P",
+            };
+
+            return client;
+        }
+
+        [Fact]
+        public async void ListBuckets()
+        {
+            var client = GetClient();
+
+            var buckets = await client.ListBuckets();
+            Assert.NotNull(buckets);
+        }
+    }
+}
