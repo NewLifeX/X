@@ -84,7 +84,7 @@ namespace XUnitTest.Yun
         }
 
         [Fact]
-        public async void PutObject()
+        public async void PutGetDelete()
         {
             var client = GetClient();
             client.BucketName = "newlife-x";
@@ -93,11 +93,17 @@ namespace XUnitTest.Yun
             var buf = fi.ReadBytes();
 
             var objectName = "Log/" + fi.Name;
+
+            // 上传
             await client.PutObject(objectName, buf);
 
+            // 获取
             var obj = await client.GetObject(objectName);
             Assert.NotNull(obj);
             Assert.Equal(buf.ToBase64(), obj.ToBase64());
+
+            // 删除
+            await client.DeleteObject(objectName);
         }
     }
 }

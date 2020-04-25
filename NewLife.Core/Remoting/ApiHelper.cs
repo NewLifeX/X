@@ -144,7 +144,7 @@ namespace NewLife.Remoting
             var buf = response.Content == null ? null : (await response.Content.ReadAsByteArrayAsync());
 
             // 异常处理
-            if (response.StatusCode != HttpStatusCode.OK) throw new ApiException((Int32)response.StatusCode, buf.ToStr()?.Trim('\"') ?? response.ReasonPhrase);
+            if (response.StatusCode >= HttpStatusCode.BadRequest) throw new ApiException((Int32)response.StatusCode, buf.ToStr()?.Trim('\"') ?? response.ReasonPhrase);
             if (buf == null || buf.Length == 0) return default;
 
             // 原始数据

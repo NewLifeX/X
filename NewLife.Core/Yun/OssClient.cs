@@ -193,6 +193,16 @@ namespace NewLife.Yun
 
             return rs;
         }
+
+        /// <summary>删除文件</summary>
+        /// <param name="objectName"></param>
+        /// <returns></returns>
+        public async Task DeleteObject(String objectName)
+        {
+            SetBucket(BucketName);
+
+            await InvokeAsync<Object>(HttpMethod.Delete, "/" + objectName);
+        }
         #endregion
 
         #region 辅助
