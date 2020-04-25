@@ -189,8 +189,8 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public virtual Type GetType(String typeName, Boolean isLoadAssembly) => AssemblyX.GetType(typeName, isLoadAssembly);
 
-        static readonly BindingFlags bf = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance;
-        static readonly BindingFlags bfic = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.IgnoreCase;
+        private static readonly BindingFlags bf = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance;
+        private static readonly BindingFlags bfic = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.IgnoreCase;
 
         /// <summary>获取方法</summary>
         /// <remarks>用于具有多个签名的同名方法的场合，不确定是否存在性能问题，不建议普通场合使用</remarks>
@@ -315,8 +315,8 @@ namespace NewLife.Reflection
         #endregion
 
         #region 反射获取 字段/属性
-        private ConcurrentDictionary<Type, IList<FieldInfo>> _cache1 = new ConcurrentDictionary<Type, IList<FieldInfo>>();
-        private ConcurrentDictionary<Type, IList<FieldInfo>> _cache2 = new ConcurrentDictionary<Type, IList<FieldInfo>>();
+        private readonly ConcurrentDictionary<Type, IList<FieldInfo>> _cache1 = new ConcurrentDictionary<Type, IList<FieldInfo>>();
+        private readonly ConcurrentDictionary<Type, IList<FieldInfo>> _cache2 = new ConcurrentDictionary<Type, IList<FieldInfo>>();
         /// <summary>获取字段</summary>
         /// <param name="type"></param>
         /// <param name="baseFirst"></param>
@@ -329,7 +329,7 @@ namespace NewLife.Reflection
                 return _cache2.GetOrAdd(type, key => GetFields2(key, false));
         }
 
-        IList<FieldInfo> GetFields2(Type type, Boolean baseFirst)
+        private IList<FieldInfo> GetFields2(Type type, Boolean baseFirst)
         {
             var list = new List<FieldInfo>();
 
@@ -351,8 +351,8 @@ namespace NewLife.Reflection
             return list;
         }
 
-        private ConcurrentDictionary<Type, IList<PropertyInfo>> _cache3 = new ConcurrentDictionary<Type, IList<PropertyInfo>>();
-        private ConcurrentDictionary<Type, IList<PropertyInfo>> _cache4 = new ConcurrentDictionary<Type, IList<PropertyInfo>>();
+        private readonly ConcurrentDictionary<Type, IList<PropertyInfo>> _cache3 = new ConcurrentDictionary<Type, IList<PropertyInfo>>();
+        private readonly ConcurrentDictionary<Type, IList<PropertyInfo>> _cache4 = new ConcurrentDictionary<Type, IList<PropertyInfo>>();
         /// <summary>获取属性</summary>
         /// <param name="type"></param>
         /// <param name="baseFirst"></param>
@@ -365,7 +365,7 @@ namespace NewLife.Reflection
                 return _cache4.GetOrAdd(type, key => GetProperties2(key, false));
         }
 
-        IList<PropertyInfo> GetProperties2(Type type, Boolean baseFirst)
+        private IList<PropertyInfo> GetProperties2(Type type, Boolean baseFirst)
         {
             var list = new List<PropertyInfo>();
 
@@ -410,7 +410,31 @@ namespace NewLife.Reflection
             try
             {
                 if (parameters == null || parameters.Length == 0)
+                {
+                    // 基元类型
+                    switch (type.GetTypeCode())
+                    {
+                        case TypeCode.Empty:
+                        case TypeCode.DBNull: return null;
+                        case TypeCode.Boolean: return false;
+                        case TypeCode.Char: return '\0';
+                        case TypeCode.SByte: return (SByte)0;
+                        case TypeCode.Byte: return (Byte)0;
+                        case TypeCode.Int16: return (Int16)0;
+                        case TypeCode.UInt16: return (UInt16)0;
+                        case TypeCode.Int32: return 0;
+                        case TypeCode.UInt32: return 0U;
+                        case TypeCode.Int64: return 0L;
+                        case TypeCode.UInt64: return 0UL;
+                        case TypeCode.Single: return 0F;
+                        case TypeCode.Double: return 0D;
+                        case TypeCode.Decimal: return 0M;
+                        case TypeCode.DateTime: return DateTime.MinValue;
+                        case TypeCode.String: return String.Empty;
+                    }
+
                     return Activator.CreateInstance(type, true);
+                }
                 else
                     return Activator.CreateInstance(type, parameters);
             }
