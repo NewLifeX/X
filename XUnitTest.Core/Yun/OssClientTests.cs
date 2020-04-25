@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Text;
+using NewLife;
 using NewLife.Configuration;
+using NewLife.Log;
 using NewLife.Yun;
 using Xunit;
 
@@ -76,6 +80,18 @@ namespace XUnitTest.Yun
             client.BucketName = "newlife-x";
 
             var objects = await client.ListObjects("MySql", null);
+            Assert.NotNull(objects);
+        }
+
+        [Fact]
+        public async void PutObject()
+        {
+            var client = GetClient();
+            client.BucketName = "newlife-x";
+
+            var fi = XTrace.LogPath.AsDirectory().GetFiles().FirstOrDefault();
+
+            var objects = await client.PutObject("Log/" + fi.Name, fi.ReadBytes());
             Assert.NotNull(objects);
         }
     }

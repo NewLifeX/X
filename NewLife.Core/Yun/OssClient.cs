@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using NewLife.Data;
 using NewLife.Remoting;
 
 namespace NewLife.Yun
@@ -62,13 +63,18 @@ namespace NewLife.Yun
             _bucketName = bucketName;
         }
 
-        public async Task<IDictionary<String, Object>> InvokeAsync(HttpMethod method, String action, Object args = null)
+        /// <summary>异步调用命令</summary>
+        /// <param name="method"></param>
+        /// <param name="action"></param>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        protected async Task<IDictionary<String, Object>> InvokeAsync(HttpMethod method, String action, Object args = null)
         {
             var request = ApiHelper.BuildRequest(method, action, args);
 
             // 资源路径
             var resourcePath = action;
-            if (!_bucketName.IsNullOrEmpty()) resourcePath += _bucketName + "/";
+            if (!_bucketName.IsNullOrEmpty()) resourcePath = "/" + _bucketName + resourcePath;
 
             // 时间
             request.Headers.Date = DateTimeOffset.UtcNow;
@@ -76,6 +82,7 @@ namespace NewLife.Yun
 
             // 签名
             var headers = request.Headers.ToDictionary(e => e.Key, e => e.Value?.FirstOrDefault());
+            //var parameters = args?.ToDictionary().ToDictionary(e => e.Key, e => e.Value + "");
             var canonicalString = BuildCanonicalString(method.Method, resourcePath, headers, null);
             var signature = canonicalString.GetBytes().SHA1(AccessKeySecret.GetBytes()).ToBase64();
             request.Headers.Authorization = new AuthenticationHeaderValue("OSS", AccessKeyId + ":" + signature);
@@ -148,6 +155,21 @@ namespace NewLife.Yun
             var contents = rs?["Contents"] as IList<Object>;
 
             return contents;
+        }
+
+        /// <summary>上传文件</summary>
+        /// <param name="objectName">对象文件名</param>
+        /// <param name="data">数据内容</param>
+        /// <returns></returns>
+        public async Task<String[]> PutObject(String objectName, Byte[] data)
+        {
+            SetBucket(BucketName);
+
+            var rs = await InvokeAsync(HttpMethod.Put, "/" + objectName, data);
+
+            var contents = rs?["Contents"] as IList<Object>;
+
+            return contents?.Select(e => (e as IDictionary<String, Object>)["Key"] + "").ToArray();
         }
         #endregion
 

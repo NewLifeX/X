@@ -97,7 +97,7 @@ namespace NewLife.Remoting
                     request.RequestUri = new Uri(url, UriKind.RelativeOrAbsolute);
                 }
             }
-            else if (method == HttpMethod.Post)
+            else if (method == HttpMethod.Post || method == HttpMethod.Put)
             {
                 if (args is Packet pk)
                 {
@@ -105,13 +105,13 @@ namespace NewLife.Remoting
                         pk.Next == null ?
                         new ByteArrayContent(pk.Data, pk.Offset, pk.Count) :
                         new ByteArrayContent(pk.ToArray());
-                    content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+                    //content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
                     request.Content = content;
                 }
                 else if (args is Byte[] buf)
                 {
                     var content = new ByteArrayContent(buf);
-                    content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+                    //content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
                     request.Content = content;
                 }
                 else if (args != null)
