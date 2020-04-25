@@ -45,7 +45,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test7();
+                Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -66,6 +66,12 @@ namespace Test
 
         private static void Test1()
         {
+            foreach (var item in Enum.GetValues(typeof(TypeCode)))
+            {
+                var t = (item + "").GetTypeEx();
+                Console.WriteLine("{0}\t{1}\t{2}", item, t, t?.IsPrimitive);
+            }
+
             "你好".SpeakAsync();
 
             XTrace.WriteLine("FullPath:{0}", ".".GetFullPath());
@@ -436,7 +442,7 @@ namespace Test
             Role.Meta.Session.Dal.Db.ShowSQL = true;
             Role.Meta.Session.Dal.Expire = 10;
             //Role.Meta.Session.Dal.Db.Readonly = true;
-            
+
             var list = Role.FindAll();
             Console.WriteLine(list.Count);
 

@@ -20,6 +20,10 @@ namespace NewLife.Web
         [Description("应用地址。域名和端口，应用系统经过反向代理重定向时指定外部地址")]
         public String AppUrl { get; set; }
 
+        /// <summary>应用集合</summary>
+        [Description("应用集合")]
+        public String[] Apps { get; set; }
+
         /// <summary>配置项</summary>
         [Description("配置项")]
         public OAuthItem[] Items { get; set; }
@@ -29,6 +33,12 @@ namespace NewLife.Web
         /// <summary>已加载</summary>
         protected override void OnLoaded()
         {
+            var apps = Apps;
+            if (apps == null || apps.Length == 0)
+            {
+                Apps = new[] { "QQ", "Weixin", "Taobao", "Alipay" };
+            }
+
             var ms = Items;
             if (ms == null || ms.Length == 0)
             {

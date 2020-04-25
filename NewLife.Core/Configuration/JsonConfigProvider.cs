@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using NewLife.Log;
 using NewLife.Serialization;
 
@@ -77,14 +78,24 @@ namespace NewLife.Configuration
                     Map(dic, cfg);
                 else if (item.Value is IList<Object> list)
                 {
-                    // 数组处理
                     cfg.Childs = new List<IConfigSection>();
                     foreach (var elm in list)
                     {
+                        // 复杂对象
                         if (elm is IDictionary<String, Object> dic2)
                         {
                             var cfg2 = new ConfigSection();
                             Map(dic2, cfg2);
+                            cfg.Childs.Add(cfg2);
+                        }
+                        // 简单基元类型
+                        else
+                        {
+                            var cfg2 = new ConfigSection
+                            {
+                                Key = elm?.GetType()?.Name,
+                                Value = elm + "",
+                            };
                             cfg.Childs.Add(cfg2);
                         }
                     }
@@ -110,14 +121,22 @@ namespace NewLife.Configuration
                     // 数组
                     if (cs.Count == 0 || cs.Count > 0 && cs[0].Key == null || cs.Count >= 2 && cs[0].Key == cs[1].Key)
                     {
-                        var list = new List<Object>();
-                        foreach (var elm in cs)
+                        // 普通基元类型数组
+                        if (cs.Count > 0 && (cs[0].Childs == null || cs[0].Childs.Count == 0))
                         {
-                            var rs = new Dictionary<String, Object>();
-                            Map(elm, rs);
-                            list.Add(rs);
+                            dst[item.Key] = cs.Select(e => e.Value).ToArray();
                         }
-                        dst[item.Key] = list;
+                        else
+                        {
+                            var list = new List<Object>();
+                            foreach (var elm in cs)
+                            {
+                                var rs = new Dictionary<String, Object>();
+                                Map(elm, rs);
+                                list.Add(rs);
+                            }
+                            dst[item.Key] = list;
+                        }
                     }
                     else
                     {

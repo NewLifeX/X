@@ -206,7 +206,7 @@ namespace NewLife.Configuration
         /// <param name="model">模型</param>
         protected virtual void MapTo(IConfigSection section, Object model)
         {
-            if (section == null || section.Childs == null || section.Childs.Count == 0) return;
+            if (section == null || section.Childs == null || section.Childs.Count == 0 || model == null) return;
 
             // 反射公有实例属性
             foreach (var pi in model.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
@@ -271,9 +271,24 @@ namespace NewLife.Configuration
             // 逐个映射
             for (var i = 0; i < section.Childs.Count; i++)
             {
-                var val = elementType.CreateInstance();
-                MapTo(section.Childs[i], val);
-                arr.SetValue(val, i);
+                var sec = section.Childs[i];
+
+                // 基元类型
+                if (elementType.GetTypeCode() != TypeCode.Object)
+                {
+                    var key = sec.Childs?.FirstOrDefault(e => e.Key == "key")?.Value;
+                    var val = sec.Childs?.FirstOrDefault(e => e.Key == "Value")?.Value;
+                    if (key == elementType.Name)
+                    {
+                        arr.SetValue(val.ChangeType(elementType), i);
+                    }
+                }
+                else
+                {
+                    var val = elementType.CreateInstance();
+                    MapTo(sec, val);
+                    arr.SetValue(val, i);
+                }
             }
         }
 
