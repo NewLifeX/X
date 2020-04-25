@@ -81,9 +81,7 @@ namespace NewLife.Yun
             //request.Headers.Add("Date", DateTime.UtcNow.ToString("ddd, dd MMM yyyy HH:mm:ss \\G\\M\\T"));
 
             // 签名
-            var headers = request.Headers.ToDictionary(e => e.Key, e => e.Value?.FirstOrDefault());
-            //var parameters = args?.ToDictionary().ToDictionary(e => e.Key, e => e.Value + "");
-            var canonicalString = BuildCanonicalString(method.Method, resourcePath, headers, null);
+            var canonicalString = BuildCanonicalString(method.Method, resourcePath, request);
             var signature = canonicalString.GetBytes().SHA1(AccessKeySecret.GetBytes()).ToBase64();
             request.Headers.Authorization = new AuthenticationHeaderValue("OSS", AccessKeyId + ":" + signature);
 
@@ -190,13 +188,14 @@ namespace NewLife.Yun
             "response-expires"
         };
 
-        private static String BuildCanonicalString(String method, String resourcePath, IDictionary<String, String> headers, IDictionary<String, String> parameters)
+        private static String BuildCanonicalString(String method, String resourcePath, HttpRequestMessage request)
         {
             var sb = new StringBuilder();
 
             sb.Append(method).Append(NewLineMarker);
 
             var headersToSign = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+            var headers = request.Headers.ToDictionary(e => e.Key, e => e.Value?.FirstOrDefault());
             if (headers != null)
             {
                 foreach (var header in headers)
@@ -207,8 +206,9 @@ namespace NewLife.Yun
                 }
             }
 
-            if (!headersToSign.ContainsKey("Content-Type")) headersToSign.Add("Content-Type", "");
-            if (!headersToSign.ContainsKey("Content-MD5")) headersToSign.Add("Content-MD5", "");
+            var contentHeaders = request.Content?.Headers;
+            if (!headersToSign.ContainsKey("Content-Type")) headersToSign.Add("Content-Type", contentHeaders?.ContentType + "");
+            if (!headersToSign.ContainsKey("Content-MD5")) headersToSign.Add("Content-MD5", contentHeaders?.ContentMD5?.ToHex() + "");
 
             var sortedHeaders = headersToSign.Keys.OrderBy(e => e).ToList();
             foreach (var key in sortedHeaders)
@@ -224,6 +224,7 @@ namespace NewLife.Yun
 
             sb.Append(resourcePath);
 
+            var parameters = request.Properties;
             if (parameters != null)
             {
                 var separator = '?';
@@ -234,7 +235,7 @@ namespace NewLife.Yun
                     sb.Append(separator);
                     sb.Append(paramName);
                     var paramValue = parameters[paramName];
-                    if (!String.IsNullOrEmpty(paramValue))
+                    if (!String.IsNullOrEmpty(paramValue + ""))
                         sb.Append("=").Append(paramValue);
 
                     separator = '&';
