@@ -144,6 +144,8 @@ namespace XUnitTest.Configuration
             var cfg = new OAuthConfig();
             cfg.Invoke("OnLoaded");
 
+            Assert.NotNull(cfg.Apps);
+            Assert.Equal(4, cfg.Apps.Length);
             Assert.NotNull(cfg.Items);
             Assert.Equal(8, cfg.Items.Length);
 
@@ -162,8 +164,13 @@ namespace XUnitTest.Configuration
 
             var prv2 = new JsonConfigProvider { FileName = prv.FileName };
             var cfg2 = prv2.Load<OAuthConfig>();
-
             Assert.NotNull(cfg2);
+
+            Assert.NotNull(cfg2.Apps);
+            Assert.Equal(4, cfg2.Apps.Length);
+            Assert.NotNull(cfg2.Apps[0]);
+            Assert.NotNull(cfg2.Apps[1]);
+
             Assert.NotNull(cfg2.Items);
             Assert.Equal(8, cfg2.Items.Length);
             Assert.Equal(ti.Secret, cfg2.Items[0].Secret);

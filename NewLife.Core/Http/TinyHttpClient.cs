@@ -49,7 +49,7 @@ namespace NewLife.Http
         public String StatusDescription { get; set; }
 
         /// <summary>超时时间。默认15s</summary>
-        public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(5);
+        public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(15);
 
         /// <summary>头部集合</summary>
         public IDictionary<String, String> Headers { get; set; } = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);

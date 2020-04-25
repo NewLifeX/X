@@ -276,11 +276,9 @@ namespace NewLife.Configuration
                 // 基元类型
                 if (elementType.GetTypeCode() != TypeCode.Object)
                 {
-                    var key = sec.Childs?.FirstOrDefault(e => e.Key == "key")?.Value;
-                    var val = sec.Childs?.FirstOrDefault(e => e.Key == "Value")?.Value;
-                    if (key == elementType.Name)
+                    if (sec.Key == elementType.Name)
                     {
-                        arr.SetValue(val.ChangeType(elementType), i);
+                        arr.SetValue(sec.Value.ChangeType(elementType), i);
                     }
                 }
                 else

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Xml;
@@ -65,12 +66,26 @@ namespace NewLife.Configuration
                 // 读取属性值
                 if (reader.HasAttributes)
                 {
+                    var dic = new Dictionary<String, String>();
                     reader.MoveToFirstAttribute();
                     do
                     {
-                        var cfg2 = cfg.AddChild(reader.Name);
-                        cfg2.Value = reader.Value;
+                        //var cfg2 = cfg.AddChild(reader.Name);
+                        //cfg2.Value = reader.Value;
+                        dic[reader.Name] = reader.Value;
                     } while (reader.MoveToNextAttribute());
+
+                    // 如果只有一个Value属性，可能是基元类型数组
+                    if (dic.Count == 1 && dic.TryGetValue("Value", out var val))
+                        cfg.Value = val;
+                    else
+                    {
+                        foreach (var item in dic)
+                        {
+                            var cfg2 = cfg.AddChild(item.Key);
+                            cfg2.Value = item.Value;
+                        }
+                    }
                 }
                 else
                     reader.ReadStartElement();
@@ -163,6 +178,10 @@ namespace NewLife.Configuration
                 {
                     writer.WriteAttributeString(item.Key, item.Value + "");
                 }
+            }
+            else
+            {
+                writer.WriteAttributeString("Value", section.Value + "");
             }
 
             if (writer.WriteState == WriteState.Attribute)
