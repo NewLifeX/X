@@ -77,7 +77,7 @@ namespace NewLife.Yun
         /// <param name="action"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        protected async Task<IDictionary<String, Object>> InvokeAsync(HttpMethod method, String action, Object args = null)
+        protected async Task<TResult> InvokeAsync<TResult>(HttpMethod method, String action, Object args = null)
         {
             var request = ApiHelper.BuildRequest(method, action, args);
 
@@ -97,8 +97,10 @@ namespace NewLife.Yun
             var http = GetClient();
             var rs = await http.SendAsync(request);
 
-            return await ApiHelper.ProcessResponse<IDictionary<String, Object>>(rs);
+            return await ApiHelper.ProcessResponse<TResult>(rs);
         }
+
+        private async Task<IDictionary<String, Object>> GetAsync(String action, Object args = null) => await InvokeAsync<IDictionary<String, Object>>(HttpMethod.Get, action, args);
         #endregion
 
         #region Bucket操作
@@ -108,7 +110,7 @@ namespace NewLife.Yun
         {
             SetBucket(null);
 
-            var rs = await InvokeAsync(HttpMethod.Get, "/");
+            var rs = await GetAsync("/");
 
             var bs = rs?["Buckets"] as IDictionary<String, Object>;
             var bk = bs?["Bucket"];
@@ -128,7 +130,7 @@ namespace NewLife.Yun
         {
             SetBucket(null);
 
-            var rs = await InvokeAsync(HttpMethod.Get, "/", new { prefix, marker, maxKeys });
+            var rs = await GetAsync("/", new { prefix, marker, maxKeys });
 
             var bs = rs?["Buckets"] as IDictionary<String, Object>;
             var bk = bs?["Bucket"] as IList<Object>;
@@ -144,7 +146,7 @@ namespace NewLife.Yun
         {
             SetBucket(BucketName);
 
-            var rs = await InvokeAsync(HttpMethod.Get, "/");
+            var rs = await GetAsync("/");
 
             var contents = rs?["Contents"];
             if (contents is IList<Object> list) return list?.Select(e => (e as IDictionary<String, Object>)["Key"] + "").ToArray();
@@ -162,7 +164,7 @@ namespace NewLife.Yun
         {
             SetBucket(BucketName);
 
-            var rs = await InvokeAsync(HttpMethod.Get, "/", new { prefix, marker, maxKeys });
+            var rs = await GetAsync("/", new { prefix, marker, maxKeys });
 
             var contents = rs?["Contents"];
             if (contents is IList<Object> list) return list;
@@ -173,15 +175,23 @@ namespace NewLife.Yun
         /// <param name="objectName">对象文件名</param>
         /// <param name="data">数据内容</param>
         /// <returns></returns>
-        public async Task<String[]> PutObject(String objectName, Byte[] data)
+        public async Task PutObject(String objectName, Byte[] data)
         {
             SetBucket(BucketName);
 
-            var rs = await InvokeAsync(HttpMethod.Put, "/" + objectName, data);
+            await InvokeAsync<Object>(HttpMethod.Put, "/" + objectName, data);
+        }
 
-            var contents = rs?["Contents"] as IList<Object>;
+        /// <summary>获取文件</summary>
+        /// <param name="objectName"></param>
+        /// <returns></returns>
+        public async Task<Byte[]> GetObject(String objectName)
+        {
+            SetBucket(BucketName);
 
-            return contents?.Select(e => (e as IDictionary<String, Object>)["Key"] + "").ToArray();
+            var rs = await InvokeAsync<Byte[]>(HttpMethod.Get, "/" + objectName);
+
+            return rs;
         }
         #endregion
 

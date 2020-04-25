@@ -90,9 +90,14 @@ namespace XUnitTest.Yun
             client.BucketName = "newlife-x";
 
             var fi = XTrace.LogPath.AsDirectory().GetFiles().FirstOrDefault();
+            var buf = fi.ReadBytes();
 
-            var objects = await client.PutObject("Log/" + fi.Name, fi.ReadBytes());
-            //Assert.NotNull(objects);
+            var objectName = "Log/" + fi.Name;
+            await client.PutObject(objectName, buf);
+
+            var obj = await client.GetObject(objectName);
+            Assert.NotNull(obj);
+            Assert.Equal(buf.ToBase64(), obj.ToBase64());
         }
     }
 }
