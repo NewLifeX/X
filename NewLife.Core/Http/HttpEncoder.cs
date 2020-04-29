@@ -73,7 +73,7 @@ namespace NewLife.Http
                 foreach (var item in dic)
                 {
                     // 当Value是数组或者对象是，序列化为json
-                    if (item.Value is IDictionary<string, object> || item.Value is IEnumerable)
+                    if (item.Value is IDictionary<string, object> || item.Value is IList)
                     {
                         rs[item.Key] = HttpUtility.UrlDecode(item.Value.ToJson());
                     }
