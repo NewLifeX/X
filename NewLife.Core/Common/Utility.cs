@@ -112,6 +112,18 @@ namespace System
         /// <param name="emptyValue">字符串空值时显示的字符串，null表示原样显示最小时间，String.Empty表示不显示</param>
         /// <returns></returns>
         public static String ToString(this DateTime value, String format, String emptyValue) => Convert.ToString(value, format, emptyValue);
+
+        /// <summary>字节单位字符串</summary>
+        /// <param name="value">数值</param>
+        /// <param name="format">格式化字符串</param>
+        /// <returns></returns>
+        public static String ToGMK(this UInt64 value, String format = null) => Convert.ToGMK(value, format);
+
+        /// <summary>字节单位字符串</summary>
+        /// <param name="value">数值</param>
+        /// <param name="format">格式化字符串</param>
+        /// <returns></returns>
+        public static String ToGMK(this Int64 value, String format = null) => value < 0 ? value + "" : Convert.ToGMK((UInt64)value, format);
         #endregion
 
         #region 异常处理
@@ -131,7 +143,7 @@ namespace System
     [EditorBrowsable(EditorBrowsableState.Advanced)]
     public class DefaultConvert
     {
-        private static DateTime _dt1970 = new DateTime(1970, 1, 1);
+        private static readonly DateTime _dt1970 = new DateTime(1970, 1, 1);
         private static DateTimeOffset _dto1970 = new DateTimeOffset(new DateTime(1970, 1, 1));
 
         /// <summary>转为整数，转换失败时返回默认值。支持字符串、全角、字节数组（小端）、时间（Unix秒）</summary>
@@ -369,8 +381,7 @@ namespace System
                     str = str.Substring(0, str.Length - 4);
                 }
 
-                var dt = DateTime.MinValue;
-                if (!DateTime.TryParse(str, out dt) &&
+                if (!DateTime.TryParse(str, out var dt) &&
                     !str.Contains("-") && DateTime.TryParseExact(str, "yyyy-M-d", null, DateTimeStyles.None, out dt) &&
                     !str.Contains("/") && DateTime.TryParseExact(str, "yyyy/M/d", null, DateTimeStyles.None, out dt) &&
                     !DateTime.TryParse(str, out dt))
@@ -442,7 +453,7 @@ namespace System
         /// <remarks>全角半角的关系是相差0xFEE0</remarks>
         /// <param name="str"></param>
         /// <returns></returns>
-        String ToDBC(String str)
+        private String ToDBC(String str)
         {
             var ch = str.ToCharArray();
             for (var i = 0; i < ch.Length; i++)
@@ -519,7 +530,6 @@ namespace System
             m = value.Second;
             cs[k++] = (Char)('0' + (m / 10));
             cs[k++] = (Char)('0' + (m % 10));
-            k++;
 
             var str = new String(cs);
 
@@ -646,11 +656,11 @@ namespace System
         /// <param name="value">数值</param>
         /// <param name="format">格式化字符串</param>
         /// <returns></returns>
-        public virtual String ToGMK(Int64 value, String format = null)
+        public virtual String ToGMK(UInt64 value, String format = null)
         {
             if (value < 1024) return "{0:n0}".F(value);
 
-            if (format.IsNullOrEmpty()) format = "{0:n0}";
+            if (format.IsNullOrEmpty()) format = "{0:n2}";
 
             var val = value / 1024d;
             if (val < 1024) return format.F(val) + "K";

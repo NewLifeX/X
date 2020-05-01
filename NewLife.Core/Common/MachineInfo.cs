@@ -48,6 +48,7 @@ namespace NewLife
 
         /// <summary>内存总量</summary>
         public UInt64 Memory { get; set; }
+
         /// <summary>可用内存</summary>
         public UInt64 AvailableMemory { get; private set; }
 
@@ -247,9 +248,17 @@ namespace NewLife
             UUID = GetInfo("Win32_ComputerSystemProduct", "UUID");
             Product = GetInfo("Win32_ComputerSystemProduct", "Name");
 
-            //// 读取主板温度，不太准。标准方案是ring0通过IOPort读取CPU温度，太难在基础类库实现
-            //var str = GetInfo("MSAcpi_ThermalZoneTemperature", "CurrentTemperature");
-            //if (!str.IsNullOrEmpty()) Temperature = (str.ToDouble() - 2732) / 10.0;
+            // 读取主板温度，不太准。标准方案是ring0通过IOPort读取CPU温度，太难在基础类库实现
+            var str = GetInfo("Win32_TemperatureProbe", "CurrentReading");
+            if (!str.IsNullOrEmpty())
+            {
+                Temperature = str.ToDouble();
+            }
+            else
+            {
+                str = GetInfo("MSAcpi_ThermalZoneTemperature", "CurrentTemperature");
+                if (!str.IsNullOrEmpty()) Temperature = (str.ToDouble() - 2732) / 10.0;
+            }
 #endif
 
             if (!machine_guid.IsNullOrEmpty()) Guid = machine_guid;
@@ -468,6 +477,25 @@ namespace NewLife
 #endif
         #endregion
 
+        #region 磁盘
+        /// <summary>获取指定目录所在盘可用空间，默认当前目录</summary>
+        /// <param name="path"></param>
+        /// <returns>返回可用空间，字节，获取失败返回-1</returns>
+        public static Int64 GetFreeSpace(String path = null)
+        {
+            if (path.IsNullOrEmpty()) path = ".";
+
+            var driveInfo = new DriveInfo(Path.GetPathRoot(path.GetFullPath()));
+            if (driveInfo == null || !driveInfo.IsReady) return -1;
+
+            try
+            {
+                return driveInfo.AvailableFreeSpace;
+            }
+            catch { return -1; }
+        }
+        #endregion
+
         #region Windows辅助
         [DllImport("kernel32.dll", SetLastError = true)]
         private static extern Boolean GetSystemTimes(out FILETIME idleTime, out FILETIME kernelTime, out FILETIME userTime);
@@ -521,7 +549,7 @@ namespace NewLife
             catch (Exception ex)
             {
                 //XTrace.WriteException(ex);
-                XTrace.WriteLine("WMI.GetInfo({0})失败！{1}", path, ex.Message);
+                if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("WMI.GetInfo({0})失败！{1}", path, ex.Message);
                 return "";
             }
 

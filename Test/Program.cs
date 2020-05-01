@@ -37,6 +37,7 @@ namespace Test
             XTrace.UseConsole();
 #if DEBUG
             XTrace.Debug = true;
+            XTrace.Log.Level = LogLevel.All;
 #endif
             while (true)
             {
@@ -104,7 +105,7 @@ namespace Test
             mi = MachineInfo.Current;
             for (var i = 0; i < 100; i++)
             {
-                XTrace.WriteLine("CPU={0:p2} Temp={1} Memory={2:n0}", mi.CpuRate, mi.Temperature, (Double)mi.AvailableMemory / 1024 / 1024);
+                XTrace.WriteLine("CPU={0:p2} Temp={1} Memory={2:n0} Disk={3}", mi.CpuRate, mi.Temperature, mi.AvailableMemory.ToGMK(), MachineInfo.GetFreeSpace().ToGMK());
                 Thread.Sleep(1000);
                 mi.Refresh();
             }
