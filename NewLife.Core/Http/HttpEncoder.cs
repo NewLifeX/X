@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -72,15 +71,10 @@ namespace NewLife.Http
                 var rs = new Dictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
                 foreach (var item in dic)
                 {
-                    // 当Value是数组或者对象是，序列化为json
-                    if (item.Value is IDictionary<string, object> || item.Value is IList)
-                    {
-                        rs[item.Key] = HttpUtility.UrlDecode(item.Value.ToJson());
-                    }
+                    if (item.Value is String str2)
+                        rs[item.Key] = HttpUtility.UrlDecode(str2);
                     else
-                    {
-                        rs[item.Key] = HttpUtility.UrlDecode(item.Value + "");
-                    }
+                        rs[item.Key] = item.Value;
                 }
 
                 return rs;
