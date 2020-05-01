@@ -42,6 +42,9 @@ namespace XCode.Code
             Usings.Add("System");
             Usings.Add("System.Collections.Generic");
             Usings.Add("System.ComponentModel");
+            Usings.Add("System.Runtime.Serialization");
+            Usings.Add("System.Web.Script.Serialization");
+            Usings.Add("System.Xml.Serialization");
         }
         #endregion
 

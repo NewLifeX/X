@@ -20,6 +20,7 @@ using XCode.Membership;
 using XCode.Service;
 using XCode;
 using System.Collections;
+using XCode.Code;
 #if !NET4
 using TaskEx = System.Threading.Tasks.Task;
 #endif
@@ -46,7 +47,7 @@ namespace Test
                 try
                 {
 #endif
-                Test1();
+                Test12();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -611,58 +612,7 @@ namespace Test
         /// <summary>测试序列化</summary>
         private static void Test12()
         {
-            var bdic = new Dictionary<String, Object>
-            {
-                { "x", "1" },
-                { "y", "2" }
-            };
-
-            var flist = new List<foo>
-            {
-                new foo() { A = 3, B = "e", AList = new List<String>() { "E", "F", "G" }, ADic = bdic }
-            };
-
-            var dic = new Dictionary<String, Object>
-            {
-                { "x", "1" },
-                { "y", "2" }
-            };
-
-
-            var entity = new foo()
-            {
-                A = 1,
-                B = "2",
-                C = DateTime.Now,
-                AList = new List<String>() { "A", "B", "C" },
-                BList = flist,
-                CList = new List<String>() { "A1", "B1", "C1" },
-                ADic = dic,
-                BDic = bdic
-            };
-
-            var json = entity.ToJson();
-
-            var fentity = json.ToJsonEntity(typeof(foo));
+            EntityBuilder.Build("../../Src/XCode/model.xml");
         }
-    }
-
-    internal class foo
-    {
-        public Int32 A { get; set; }
-
-        public String B { get; set; }
-
-        public DateTime C { get; set; }
-
-        public IList<String> AList { get; set; }
-
-        public IList<foo> BList { get; set; }
-
-        public List<String> CList { get; set; }
-
-        public Dictionary<String, Object> ADic { get; set; }
-
-        public IDictionary<String, Object> BDic { get; set; }
     }
 }

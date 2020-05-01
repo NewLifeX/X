@@ -311,6 +311,13 @@
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
+    <xs:attribute name="Attribute" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>
+          数据属性的特性，例如忽略序列化的XmlIgnore,ScriptIgnore,IgnoreDataMember，支持{name}替换属性名
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
   </xs:complexType>
   <!--Column-end-->
 

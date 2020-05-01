@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Runtime.Serialization;
+using System.Web.Script.Serialization;
+using System.Xml.Serialization;
 using XCode;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
@@ -212,6 +215,7 @@ namespace XCode.Membership
 
         private String _Ex6;
         /// <summary>扩展6</summary>
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         [DisplayName("扩展6")]
         [Description("扩展6")]
         [DataObjectField(false, false, true, 50)]

@@ -320,7 +320,7 @@ namespace XCode.Code
                 us.Add("System.Text");
                 us.Add("System.Threading.Tasks");
                 us.Add("System.Web");
-                //us.Add("System.Web.Script.Serialization");
+                us.Add("System.Web.Script.Serialization");
                 us.Add("System.Xml.Serialization");
                 us.Add("System.Runtime.Serialization");
 
@@ -374,6 +374,10 @@ namespace XCode.Code
             // 注释
             var des = dc.Description;
             WriteLine("/// <summary>{0}</summary>", des);
+
+            // 附加特性
+            if (dc.Properties.TryGetValue("Attribute", out var att))
+                WriteLine("[{0}]", att.Replace("{name}", dc.Name));
 
             if (!Pure)
             {
