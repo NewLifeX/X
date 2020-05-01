@@ -125,6 +125,7 @@ namespace XUnitTest.Remoting
                         Assert.Equal(dic.Join("&", k => $"{k.Key}={k.Value}"), query);
                     break;
                 case "Post":
+                case "Put":
                     Assert.Equal(action, request.RequestUri + "");
                     Assert.Null(query);
                     Assert.NotNull(request.Content);
