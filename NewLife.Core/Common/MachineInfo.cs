@@ -22,11 +22,7 @@ namespace NewLife
     /// <remarks>
     /// 刷新信息成本较高，建议采用单例模式
     /// </remarks>
-    //#if __WIN__
-    //    public class MachineInfo : IDisposable
-    //#else
     public class MachineInfo
-    //#endif
     {
         #region 属性
         /// <summary>系统名称</summary>
@@ -68,29 +64,7 @@ namespace NewLife
         #endregion
 
         #region 构造
-        //#if __WIN__
-        //        /// <summary>析构函数</summary>
-        //        /// <remarks>
-        //        /// 如果忘记调用Dispose，这里会释放非托管资源
-        //        /// 如果曾经调用过Dispose，因为GC.SuppressFinalize(this)，不会再调用该析构函数
-        //        /// </remarks>
-        //        ~MachineInfo() { Dispose(false); }
-
-        //        /// <summary>释放资源</summary>
-        //        public void Dispose()
-        //        {
-        //            Dispose(true);
-
-        //            // 告诉GC，不要调用析构函数
-        //            GC.SuppressFinalize(this);
-        //        }
-
-        //        /// <summary>销毁</summary>
-        //        /// <param name="disposing"></param>
-        //        protected void Dispose(Boolean disposing) => _cpuCounter.TryDispose();
-        //#endif
-
-        /// <summary>当前机器信息。在RegisterAsync后才能使用</summary>
+        /// <summary>当前机器信息。默认null，在RegisterAsync后才能使用</summary>
         public static MachineInfo Current { get; set; }
 
         private static Task<MachineInfo> _task;
@@ -145,6 +119,10 @@ namespace NewLife
                 return mi;
             });
         }
+
+        /// <summary>获取当前信息，如果未设置则等待异步注册结果</summary>
+        /// <returns></returns>
+        public static MachineInfo GetCurrent() => Current ?? RegisterAsync().Result;
 
         /// <summary>从对象容器中获取一个已注册机器信息实例</summary>
         /// <returns></returns>
