@@ -127,7 +127,7 @@ namespace NewLife.Http
             {
             }
             // 支持IAccessor
-            if (args is IAccessor acc)
+            else if (args is IAccessor acc)
                 pk = acc.ToPacket();
             else if (args is Byte[] buf)
                 pk = new Packet(buf);
