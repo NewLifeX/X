@@ -34,16 +34,16 @@ namespace NewLife
         /// <summary>产品名称。制造商</summary>
         public String Product { get; set; }
 
-        /// <summary>处理器序列号</summary>
+        /// <summary>处理器型号</summary>
         public String Processor { get; set; }
 
         /// <summary>处理器序列号</summary>
         public String CpuID { get; set; }
 
-        /// <summary>唯一标识</summary>
+        /// <summary>硬件唯一标识</summary>
         public String UUID { get; set; }
 
-        /// <summary>机器标识</summary>
+        /// <summary>系统标识</summary>
         public String Guid { get; set; }
 
         /// <summary>内存总量</summary>
