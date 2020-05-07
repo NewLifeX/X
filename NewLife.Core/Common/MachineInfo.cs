@@ -136,12 +136,12 @@ namespace NewLife
         {
             var machine_guid = "";
 
-#if __CORE__
             var osv = Environment.OSVersion;
             if (OSVersion.IsNullOrEmpty()) OSVersion = osv.Version + "";
             if (OSName.IsNullOrEmpty()) OSName = (osv + "").TrimStart("Microsoft").TrimEnd(OSVersion).Trim();
             if (Guid.IsNullOrEmpty()) Guid = "";
 
+#if __CORE__
             if (Runtime.Windows)
             {
                 var str = "";
@@ -237,16 +237,40 @@ namespace NewLife
             }
 
             var ci = new ComputerInfo();
-            OSName = ci.OSFullName.TrimStart("Microsoft").Trim();
-            OSVersion = ci.OSVersion;
-            Memory = ci.TotalPhysicalMemory;
+            try
+            {
+                Memory = ci.TotalPhysicalMemory;
+
+                // 系统名取WMI可能出错
+                OSName = ci.OSFullName.TrimStart("Microsoft").Trim();
+                OSVersion = ci.OSVersion;
+            }
+            catch
+            {
+                var reg2 = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion");
+                if (reg2 != null)
+                {
+                    OSName = reg2.GetValue("ProductName") + "";
+                    OSVersion = reg2.GetValue("ReleaseId") + "";
+                }
+            }
 
             _cinfo = ci;
 
             Processor = GetInfo("Win32_Processor", "Name");
             CpuID = GetInfo("Win32_Processor", "ProcessorId");
-            UUID = GetInfo("Win32_ComputerSystemProduct", "UUID");
+            var uuid = GetInfo("Win32_ComputerSystemProduct", "UUID");
             Product = GetInfo("Win32_ComputerSystemProduct", "Name");
+
+            // UUID取不到时返回 FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF
+            if (!uuid.IsNullOrEmpty() && !uuid.EqualIgnoreCase("FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF")) UUID = uuid;
+
+            //// 可能因WMI导致读取UUID失败
+            //if (UUID.IsNullOrEmpty())
+            //{
+            //    var reg3 = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion");
+            //    if (reg3 != null) UUID = reg3.GetValue("ProductId") + "";
+            //}
 
             // 读取主板温度，不太准。标准方案是ring0通过IOPort读取CPU温度，太难在基础类库实现
             var str = GetInfo("Win32_TemperatureProbe", "CurrentReading");
