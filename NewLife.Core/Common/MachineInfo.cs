@@ -46,6 +46,9 @@ namespace NewLife
         /// <summary>系统标识</summary>
         public String Guid { get; set; }
 
+        /// <summary>磁盘序列号</summary>
+        public String DiskSerial { get; set; }
+
         /// <summary>内存总量</summary>
         public UInt64 Memory { get; set; }
 
@@ -160,6 +163,12 @@ namespace NewLife
                     if (csproduct.TryGetValue("UUID", out str)) UUID = str;
                 }
 
+                var disk = ReadWmic("diskdrive", "serialnumber");
+                if (disk != null)
+                {
+                    if (disk.TryGetValue("serialnumber", out str)) DiskSerial = str;
+                }
+
                 // 不要在刷新里面取CPU负载，因为运行wmic会导致CPU负载很不准确，影响测量
                 var cpu = ReadWmic("cpu", "Name", "ProcessorId", "LoadPercentage");
                 if (cpu != null)
@@ -261,6 +270,7 @@ namespace NewLife
             CpuID = GetInfo("Win32_Processor", "ProcessorId");
             var uuid = GetInfo("Win32_ComputerSystemProduct", "UUID");
             Product = GetInfo("Win32_ComputerSystemProduct", "Name");
+            DiskSerial = GetInfo("Win32_DiskDrive", "SerialNumber");
 
             // UUID取不到时返回 FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF
             if (!uuid.IsNullOrEmpty() && !uuid.EqualIgnoreCase("FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF")) UUID = uuid;
@@ -462,10 +472,27 @@ namespace NewLife
             var dic = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
 
             var args = $"{type} get {keys.Join(",")} /format:list";
-            var str = Execute("wmic", args);
+            var str = Execute("wmic", args)?.Trim();
             if (str.IsNullOrEmpty()) return dic;
 
-            return str.SplitAsDictionary("=", Environment.NewLine);
+            //return str.SplitAsDictionary("=", Environment.NewLine);
+
+            var ss = str.Split(Environment.NewLine);
+            foreach (var item in ss)
+            {
+                var ks = item.Split("=");
+                if (ks != null && ks.Length >= 2)
+                {
+                    var k = ks[0].Trim();
+                    var v = ks[1].Trim();
+                    if (dic.TryGetValue(k, out var val))
+                        dic[k] = val + "," + v;
+                    else
+                        dic[k] = v;
+                }
+            }
+
+            return dic;
         }
         #endregion
 
@@ -567,7 +594,7 @@ namespace NewLife
                 foreach (var mo in moc)
                 {
                     var val = mo?.Properties?[property]?.Value;
-                    if (val != null) bbs.Add(val.ToString());
+                    if (val != null) bbs.Add(val.ToString().Trim());
                 }
             }
             catch (Exception ex)
