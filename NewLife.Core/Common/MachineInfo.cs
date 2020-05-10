@@ -210,6 +210,10 @@ namespace NewLife
                 file = "/sys/class/dmi/id/product_name";
                 if (File.Exists(file)) Product = File.ReadAllText(file).Trim();
 
+                var disks = GetFiles("/dev/disk/by-id", true);
+                if (disks.Count == 0) disks = GetFiles("/dev/disk/by-uuid", false);
+                if (disks.Count > 0) DiskSerial = disks.Join(",");
+
                 var dmi = Execute("dmidecode")?.SplitAsDictionary(":", "\n");
                 if (dmi != null)
                 {
@@ -544,6 +548,34 @@ namespace NewLife
                 return driveInfo.AvailableFreeSpace;
             }
             catch { return -1; }
+        }
+
+        /// <summary>获取指定目录下文件名，支持去掉后缀的去重，主要用于Linux</summary>
+        /// <param name="path"></param>
+        /// <param name="trimSuffix"></param>
+        /// <returns></returns>
+        public static ICollection<String> GetFiles(String path, Boolean trimSuffix = false)
+        {
+            var list = new List<String>();
+            if (path.IsNullOrEmpty()) return list;
+
+            var di = path.AsDirectory();
+            if (!di.Exists) return list;
+
+            var list2 = di.GetFiles().Select(e => e.Name).ToList();
+            foreach (var item in list2)
+            {
+                if (trimSuffix)
+                {
+                    if (!list2.Any(e => e != item && item.StartsWith(e))) list.Add(item);
+                }
+                else
+                {
+                    list.Add(item);
+                }
+            }
+
+            return list;
         }
         #endregion
 
