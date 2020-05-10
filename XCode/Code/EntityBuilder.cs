@@ -400,7 +400,7 @@ namespace XCode.Code
             if (Interface)
                 WriteLine("{0} {1} {{ get; set; }}", type, dc.Name);
             else
-                WriteLine("public {0} {1} {{ get => _{1}; set {{ if (OnPropertyChanging(__.{1}, value)) {{ _{1} = value; OnPropertyChanged(__.{1}); }} }} }}", type, dc.Name);
+                WriteLine("public {0} {1} {{ get => _{1}; set {{ if (OnPropertyChanging(\"{1}\", value)) {{ _{1} = value; OnPropertyChanged(\"{1}\"); }} }} }}", type, dc.Name);
         }
 
         /// <summary>生成主体</summary>
@@ -438,7 +438,7 @@ namespace XCode.Code
                     WriteLine("{");
                     foreach (var dc in Table.Columns)
                     {
-                        WriteLine("case __.{0}: return _{0};", dc.Name);
+                        WriteLine("case \"{0}\": return _{0};", dc.Name);
                     }
                     WriteLine("default: return base[name];");
                     WriteLine("}");
@@ -469,22 +469,22 @@ namespace XCode.Code
                             switch (type)
                             {
                                 case "Int32":
-                                    WriteLine("case __.{0}: _{0} = value.ToInt(); break;", dc.Name);
+                                    WriteLine("case \"{0}\": _{0} = value.ToInt(); break;", dc.Name);
                                     break;
                                 case "Int64":
-                                    WriteLine("case __.{0}: _{0} = value.ToLong(); break;", dc.Name);
+                                    WriteLine("case \"{0}\": _{0} = value.ToLong(); break;", dc.Name);
                                     break;
                                 case "Double":
-                                    WriteLine("case __.{0}: _{0} = value.ToDouble(); break;", dc.Name);
+                                    WriteLine("case \"{0}\": _{0} = value.ToDouble(); break;", dc.Name);
                                     break;
                                 case "Boolean":
-                                    WriteLine("case __.{0}: _{0} = value.ToBoolean(); break;", dc.Name);
+                                    WriteLine("case \"{0}\": _{0} = value.ToBoolean(); break;", dc.Name);
                                     break;
                                 case "DateTime":
-                                    WriteLine("case __.{0}: _{0} = value.ToDateTime(); break;", dc.Name);
+                                    WriteLine("case \"{0}\": _{0} = value.ToDateTime(); break;", dc.Name);
                                     break;
                                 default:
-                                    WriteLine("case __.{0}: _{0} = Convert.To{1}(value); break;", dc.Name, type);
+                                    WriteLine("case \"{0}\": _{0} = Convert.To{1}(value); break;", dc.Name, type);
                                     break;
                             }
                         }
@@ -495,14 +495,14 @@ namespace XCode.Code
                                 // 特殊支持枚举
                                 var type2 = type.GetTypeEx(false);
                                 if (type2 != null && type2.IsEnum)
-                                    WriteLine("case __.{0}: _{0} = ({1})value.ToInt(); break;", dc.Name, type);
+                                    WriteLine("case \"{0}\": _{0} = ({1})value.ToInt(); break;", dc.Name, type);
                                 else
-                                    WriteLine("case __.{0}: _{0} = ({1})value; break;", dc.Name, type);
+                                    WriteLine("case \"{0}\": _{0} = ({1})value; break;", dc.Name, type);
                             }
                             catch (Exception ex)
                             {
                                 XTrace.WriteException(ex);
-                                WriteLine("case __.{0}: _{0} = ({1})value; break;", dc.Name, type);
+                                WriteLine("case \"{0}\": _{0} = ({1})value; break;", dc.Name, type);
                             }
                         }
                     }
@@ -526,7 +526,7 @@ namespace XCode.Code
             foreach (var dc in Table.Columns)
             {
                 WriteLine("/// <summary>{0}</summary>", dc.Description);
-                WriteLine("public static readonly Field {0} = FindByName(__.{0});", dc.Name);
+                WriteLine("public static readonly Field {0} = FindByName(\"{0}\");", dc.Name);
                 WriteLine();
             }
             WriteLine("static Field FindByName(String name) => Meta.Table.FindByName(name);");
@@ -642,7 +642,7 @@ namespace XCode.Code
                 {
                     WriteLine("// 累加字段，生成 Update xx Set Count=Count+1234 Where xxx");
                     WriteLine("//var df = Meta.Factory.AdditionalFields;");
-                    WriteLine("//df.Add(__.{0});", dc.Name);
+                    WriteLine("//df.Add(nameof({0}));", dc.Name);
                 }
 
                 var ns = new HashSet<String>(Table.Columns.Select(e => e.Name), StringComparer.OrdinalIgnoreCase);
@@ -664,7 +664,7 @@ namespace XCode.Code
                     WriteLine();
                     WriteLine("// 单对象缓存");
                     WriteLine("var sc = Meta.SingleCache;");
-                    WriteLine("sc.FindSlaveKeyMethod = k => Find(__.{0}, k);", dc.Name);
+                    WriteLine("sc.FindSlaveKeyMethod = k => Find(_.{0} == k);", dc.Name);
                     WriteLine("sc.GetSlaveKeyMethod = e => e.{0};", dc.Name);
                 }
             }
@@ -751,7 +751,7 @@ namespace XCode.Code
                     foreach (var item in dis)
                     {
                         //WriteLine("if (!_IsFromDatabase) CheckExist(isNew, {0});", Table.GetColumns(item.Columns).Select(e => "__." + e.Name).Join(", "));
-                        WriteLine("// CheckExist(isNew, {0});", Table.GetColumns(item.Columns).Select(e => "__." + e.Name).Join(", "));
+                        WriteLine("// CheckExist(isNew, {0});", Table.GetColumns(item.Columns).Select(e => $"nameof({e.Name})").Join(", "));
                     }
                 }
             }
@@ -865,7 +865,7 @@ namespace XCode.Code
                         WriteLine("[XmlIgnore, IgnoreDataMember]");
                         WriteLine("//[ScriptIgnore]");
                         if (!dis.IsNullOrEmpty()) WriteLine("[DisplayName(\"{0}\")]", dis);
-                        WriteLine("[Map(__.{0}, typeof({1}), \"{2}\")]", dc.Name, dt.Name, pk.Name);
+                        WriteLine("[Map(nameof({0}), typeof({1}), \"{2}\")]", dc.Name, dt.Name, pk.Name);
                         if (master.DataType == typeof(String))
                             WriteLine("public {2} {0}{1} => {0}?.{1};", pname, master.Name, master.DataType.Name);
                         else
@@ -1089,7 +1089,7 @@ namespace XCode.Code
 
                     WriteLine();
                     WriteLine($"// Select Count({pname}) as {pname},{name} From {Table.Name} Where {tname}>'2020-01-24 00:00:00' Group By {name} Order By {pname} Desc limit 20");
-                    WriteLine($"static readonly FieldCache<{returnName}> _{name}Cache = new FieldCache<{returnName}>(__.{name})");
+                    WriteLine($"static readonly FieldCache<{returnName}> _{name}Cache = new FieldCache<{returnName}>(nameof({name}))");
                     WriteLine("{");
                     {
                         WriteLine($"//Where = _.{tname} > DateTime.Today.AddDays(-30) & Expression.Empty");
@@ -1108,7 +1108,7 @@ namespace XCode.Code
                 {
                     WriteLine();
                     WriteLine($"// Select Count({pname}) as {pname},Category From {Table.Name} Where {tname}>'2020-01-24 00:00:00' Group By Category Order By {pname} Desc limit 20");
-                    WriteLine($"//static readonly FieldCache<{returnName}> _CategoryCache = new FieldCache<{returnName}>(__.Category)");
+                    WriteLine($"//static readonly FieldCache<{returnName}> _CategoryCache = new FieldCache<{returnName}>(nameof(Category))");
                     WriteLine("//{");
                     {
                         WriteLine($"//Where = _.{tname} > DateTime.Today.AddDays(-30) & Expression.Empty");

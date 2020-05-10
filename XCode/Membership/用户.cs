@@ -27,7 +27,7 @@ namespace XCode.Membership
         [Description("编号")]
         [DataObjectField(true, true, false, 0)]
         [BindColumn("ID", "编号", "")]
-        public Int32 ID { get => _ID; set { if (OnPropertyChanging(__.ID, value)) { _ID = value; OnPropertyChanged(__.ID); } } }
+        public Int32 ID { get => _ID; set { if (OnPropertyChanging("ID", value)) { _ID = value; OnPropertyChanged("ID"); } } }
 
         private String _Name;
         /// <summary>名称。登录用户名</summary>
@@ -35,7 +35,7 @@ namespace XCode.Membership
         [Description("名称。登录用户名")]
         [DataObjectField(false, false, false, 50)]
         [BindColumn("Name", "名称。登录用户名", "", Master = true)]
-        public String Name { get => _Name; set { if (OnPropertyChanging(__.Name, value)) { _Name = value; OnPropertyChanged(__.Name); } } }
+        public String Name { get => _Name; set { if (OnPropertyChanging("Name", value)) { _Name = value; OnPropertyChanged("Name"); } } }
 
         private String _Password;
         /// <summary>密码</summary>
@@ -43,7 +43,7 @@ namespace XCode.Membership
         [Description("密码")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn("Password", "密码", "")]
-        public String Password { get => _Password; set { if (OnPropertyChanging(__.Password, value)) { _Password = value; OnPropertyChanged(__.Password); } } }
+        public String Password { get => _Password; set { if (OnPropertyChanging("Password", value)) { _Password = value; OnPropertyChanged("Password"); } } }
 
         private String _DisplayName;
         /// <summary>昵称</summary>
@@ -51,7 +51,7 @@ namespace XCode.Membership
         [Description("昵称")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn("DisplayName", "昵称", "")]
-        public String DisplayName { get => _DisplayName; set { if (OnPropertyChanging(__.DisplayName, value)) { _DisplayName = value; OnPropertyChanged(__.DisplayName); } } }
+        public String DisplayName { get => _DisplayName; set { if (OnPropertyChanging("DisplayName", value)) { _DisplayName = value; OnPropertyChanged("DisplayName"); } } }
 
         private SexKinds _Sex;
         /// <summary>性别。未知、男、女</summary>
@@ -59,7 +59,7 @@ namespace XCode.Membership
         [Description("性别。未知、男、女")]
         [DataObjectField(false, false, false, 0)]
         [BindColumn("Sex", "性别。未知、男、女", "")]
-        public SexKinds Sex { get => _Sex; set { if (OnPropertyChanging(__.Sex, value)) { _Sex = value; OnPropertyChanged(__.Sex); } } }
+        public SexKinds Sex { get => _Sex; set { if (OnPropertyChanging("Sex", value)) { _Sex = value; OnPropertyChanged("Sex"); } } }
 
         private String _Mail;
         /// <summary>邮件</summary>
@@ -67,7 +67,7 @@ namespace XCode.Membership
         [Description("邮件")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn("Mail", "邮件", "", ItemType = "mail")]
-        public String Mail { get => _Mail; set { if (OnPropertyChanging(__.Mail, value)) { _Mail = value; OnPropertyChanged(__.Mail); } } }
+        public String Mail { get => _Mail; set { if (OnPropertyChanging("Mail", value)) { _Mail = value; OnPropertyChanged("Mail"); } } }
 
         private String _Mobile;
         /// <summary>手机</summary>
@@ -75,7 +75,7 @@ namespace XCode.Membership
         [Description("手机")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn("Mobile", "手机", "", ItemType = "mobile")]
-        public String Mobile { get => _Mobile; set { if (OnPropertyChanging(__.Mobile, value)) { _Mobile = value; OnPropertyChanged(__.Mobile); } } }
+        public String Mobile { get => _Mobile; set { if (OnPropertyChanging("Mobile", value)) { _Mobile = value; OnPropertyChanged("Mobile"); } } }
 
         private String _Code;
         /// <summary>代码。身份证、员工编号等</summary>
@@ -83,7 +83,7 @@ namespace XCode.Membership
         [Description("代码。身份证、员工编号等")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn("Code", "代码。身份证、员工编号等", "")]
-        public String Code { get => _Code; set { if (OnPropertyChanging(__.Code, value)) { _Code = value; OnPropertyChanged(__.Code); } } }
+        public String Code { get => _Code; set { if (OnPropertyChanging("Code", value)) { _Code = value; OnPropertyChanged("Code"); } } }
 
         private String _Avatar;
         /// <summary>头像</summary>
@@ -91,7 +91,7 @@ namespace XCode.Membership
         [Description("头像")]
         [DataObjectField(false, false, true, 200)]
         [BindColumn("Avatar", "头像", "", ItemType = "image")]
-        public String Avatar { get => _Avatar; set { if (OnPropertyChanging(__.Avatar, value)) { _Avatar = value; OnPropertyChanged(__.Avatar); } } }
+        public String Avatar { get => _Avatar; set { if (OnPropertyChanging("Avatar", value)) { _Avatar = value; OnPropertyChanged("Avatar"); } } }
 
         private Int32 _RoleID;
         /// <summary>角色。主要角色</summary>
@@ -99,7 +99,7 @@ namespace XCode.Membership
         [Description("角色。主要角色")]
         [DataObjectField(false, false, false, 0)]
         [BindColumn("RoleID", "角色。主要角色", "")]
-        public Int32 RoleID { get => _RoleID; set { if (OnPropertyChanging(__.RoleID, value)) { _RoleID = value; OnPropertyChanged(__.RoleID); } } }
+        public Int32 RoleID { get => _RoleID; set { if (OnPropertyChanging("RoleID", value)) { _RoleID = value; OnPropertyChanged("RoleID"); } } }
 
         private String _RoleIDs;
         /// <summary>角色组。次要角色集合</summary>
@@ -107,7 +107,7 @@ namespace XCode.Membership
         [Description("角色组。次要角色集合")]
         [DataObjectField(false, false, true, 200)]
         [BindColumn("RoleIDs", "角色组。次要角色集合", "")]
-        public String RoleIDs { get => _RoleIDs; set { if (OnPropertyChanging(__.RoleIDs, value)) { _RoleIDs = value; OnPropertyChanged(__.RoleIDs); } } }
+        public String RoleIDs { get => _RoleIDs; set { if (OnPropertyChanging("RoleIDs", value)) { _RoleIDs = value; OnPropertyChanged("RoleIDs"); } } }
 
         private Int32 _DepartmentID;
         /// <summary>部门。组织机构</summary>
@@ -115,7 +115,7 @@ namespace XCode.Membership
         [Description("部门。组织机构")]
         [DataObjectField(false, false, false, 0)]
         [BindColumn("DepartmentID", "部门。组织机构", "")]
-        public Int32 DepartmentID { get => _DepartmentID; set { if (OnPropertyChanging(__.DepartmentID, value)) { _DepartmentID = value; OnPropertyChanged(__.DepartmentID); } } }
+        public Int32 DepartmentID { get => _DepartmentID; set { if (OnPropertyChanging("DepartmentID", value)) { _DepartmentID = value; OnPropertyChanged("DepartmentID"); } } }
 
         private Boolean _Online;
         /// <summary>在线</summary>
@@ -123,7 +123,7 @@ namespace XCode.Membership
         [Description("在线")]
         [DataObjectField(false, false, false, 0)]
         [BindColumn("Online", "在线", "")]
-        public Boolean Online { get => _Online; set { if (OnPropertyChanging(__.Online, value)) { _Online = value; OnPropertyChanged(__.Online); } } }
+        public Boolean Online { get => _Online; set { if (OnPropertyChanging("Online", value)) { _Online = value; OnPropertyChanged("Online"); } } }
 
         private Boolean _Enable;
         /// <summary>启用</summary>
@@ -131,7 +131,7 @@ namespace XCode.Membership
         [Description("启用")]
         [DataObjectField(false, false, false, 0)]
         [BindColumn("Enable", "启用", "")]
-        public Boolean Enable { get => _Enable; set { if (OnPropertyChanging(__.Enable, value)) { _Enable = value; OnPropertyChanged(__.Enable); } } }
+        public Boolean Enable { get => _Enable; set { if (OnPropertyChanging("Enable", value)) { _Enable = value; OnPropertyChanged("Enable"); } } }
 
         private Int32 _Logins;
         /// <summary>登录次数</summary>
@@ -139,7 +139,7 @@ namespace XCode.Membership
         [Description("登录次数")]
         [DataObjectField(false, false, false, 0)]
         [BindColumn("Logins", "登录次数", "")]
-        public Int32 Logins { get => _Logins; set { if (OnPropertyChanging(__.Logins, value)) { _Logins = value; OnPropertyChanged(__.Logins); } } }
+        public Int32 Logins { get => _Logins; set { if (OnPropertyChanging("Logins", value)) { _Logins = value; OnPropertyChanged("Logins"); } } }
 
         private DateTime _LastLogin;
         /// <summary>最后登录</summary>
@@ -147,7 +147,7 @@ namespace XCode.Membership
         [Description("最后登录")]
         [DataObjectField(false, false, true, 0)]
         [BindColumn("LastLogin", "最后登录", "")]
-        public DateTime LastLogin { get => _LastLogin; set { if (OnPropertyChanging(__.LastLogin, value)) { _LastLogin = value; OnPropertyChanged(__.LastLogin); } } }
+        public DateTime LastLogin { get => _LastLogin; set { if (OnPropertyChanging("LastLogin", value)) { _LastLogin = value; OnPropertyChanged("LastLogin"); } } }
 
         private String _LastLoginIP;
         /// <summary>最后登录IP</summary>
@@ -155,7 +155,7 @@ namespace XCode.Membership
         [Description("最后登录IP")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn("LastLoginIP", "最后登录IP", "")]
-        public String LastLoginIP { get => _LastLoginIP; set { if (OnPropertyChanging(__.LastLoginIP, value)) { _LastLoginIP = value; OnPropertyChanged(__.LastLoginIP); } } }
+        public String LastLoginIP { get => _LastLoginIP; set { if (OnPropertyChanging("LastLoginIP", value)) { _LastLoginIP = value; OnPropertyChanged("LastLoginIP"); } } }
 
         private DateTime _RegisterTime;
         /// <summary>注册时间</summary>
@@ -163,7 +163,7 @@ namespace XCode.Membership
         [Description("注册时间")]
         [DataObjectField(false, false, true, 0)]
         [BindColumn("RegisterTime", "注册时间", "")]
-        public DateTime RegisterTime { get => _RegisterTime; set { if (OnPropertyChanging(__.RegisterTime, value)) { _RegisterTime = value; OnPropertyChanged(__.RegisterTime); } } }
+        public DateTime RegisterTime { get => _RegisterTime; set { if (OnPropertyChanging("RegisterTime", value)) { _RegisterTime = value; OnPropertyChanged("RegisterTime"); } } }
 
         private String _RegisterIP;
         /// <summary>注册IP</summary>
@@ -171,7 +171,7 @@ namespace XCode.Membership
         [Description("注册IP")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn("RegisterIP", "注册IP", "")]
-        public String RegisterIP { get => _RegisterIP; set { if (OnPropertyChanging(__.RegisterIP, value)) { _RegisterIP = value; OnPropertyChanged(__.RegisterIP); } } }
+        public String RegisterIP { get => _RegisterIP; set { if (OnPropertyChanging("RegisterIP", value)) { _RegisterIP = value; OnPropertyChanged("RegisterIP"); } } }
 
         private Int32 _Ex1;
         /// <summary>扩展1</summary>
@@ -179,7 +179,7 @@ namespace XCode.Membership
         [Description("扩展1")]
         [DataObjectField(false, false, false, 0)]
         [BindColumn("Ex1", "扩展1", "")]
-        public Int32 Ex1 { get => _Ex1; set { if (OnPropertyChanging(__.Ex1, value)) { _Ex1 = value; OnPropertyChanged(__.Ex1); } } }
+        public Int32 Ex1 { get => _Ex1; set { if (OnPropertyChanging("Ex1", value)) { _Ex1 = value; OnPropertyChanged("Ex1"); } } }
 
         private Int32 _Ex2;
         /// <summary>扩展2</summary>
@@ -187,7 +187,7 @@ namespace XCode.Membership
         [Description("扩展2")]
         [DataObjectField(false, false, false, 0)]
         [BindColumn("Ex2", "扩展2", "")]
-        public Int32 Ex2 { get => _Ex2; set { if (OnPropertyChanging(__.Ex2, value)) { _Ex2 = value; OnPropertyChanged(__.Ex2); } } }
+        public Int32 Ex2 { get => _Ex2; set { if (OnPropertyChanging("Ex2", value)) { _Ex2 = value; OnPropertyChanged("Ex2"); } } }
 
         private Double _Ex3;
         /// <summary>扩展3</summary>
@@ -195,7 +195,7 @@ namespace XCode.Membership
         [Description("扩展3")]
         [DataObjectField(false, false, false, 0)]
         [BindColumn("Ex3", "扩展3", "")]
-        public Double Ex3 { get => _Ex3; set { if (OnPropertyChanging(__.Ex3, value)) { _Ex3 = value; OnPropertyChanged(__.Ex3); } } }
+        public Double Ex3 { get => _Ex3; set { if (OnPropertyChanging("Ex3", value)) { _Ex3 = value; OnPropertyChanged("Ex3"); } } }
 
         private String _Ex4;
         /// <summary>扩展4</summary>
@@ -203,7 +203,7 @@ namespace XCode.Membership
         [Description("扩展4")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn("Ex4", "扩展4", "")]
-        public String Ex4 { get => _Ex4; set { if (OnPropertyChanging(__.Ex4, value)) { _Ex4 = value; OnPropertyChanged(__.Ex4); } } }
+        public String Ex4 { get => _Ex4; set { if (OnPropertyChanging("Ex4", value)) { _Ex4 = value; OnPropertyChanged("Ex4"); } } }
 
         private String _Ex5;
         /// <summary>扩展5</summary>
@@ -211,7 +211,7 @@ namespace XCode.Membership
         [Description("扩展5")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn("Ex5", "扩展5", "")]
-        public String Ex5 { get => _Ex5; set { if (OnPropertyChanging(__.Ex5, value)) { _Ex5 = value; OnPropertyChanged(__.Ex5); } } }
+        public String Ex5 { get => _Ex5; set { if (OnPropertyChanging("Ex5", value)) { _Ex5 = value; OnPropertyChanged("Ex5"); } } }
 
         private String _Ex6;
         /// <summary>扩展6</summary>
@@ -220,7 +220,7 @@ namespace XCode.Membership
         [Description("扩展6")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn("Ex6", "扩展6", "")]
-        public String Ex6 { get => _Ex6; set { if (OnPropertyChanging(__.Ex6, value)) { _Ex6 = value; OnPropertyChanged(__.Ex6); } } }
+        public String Ex6 { get => _Ex6; set { if (OnPropertyChanging("Ex6", value)) { _Ex6 = value; OnPropertyChanged("Ex6"); } } }
 
         private String _UpdateUser;
         /// <summary>更新者</summary>
@@ -228,7 +228,7 @@ namespace XCode.Membership
         [Description("更新者")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn("UpdateUser", "更新者", "")]
-        public String UpdateUser { get => _UpdateUser; set { if (OnPropertyChanging(__.UpdateUser, value)) { _UpdateUser = value; OnPropertyChanged(__.UpdateUser); } } }
+        public String UpdateUser { get => _UpdateUser; set { if (OnPropertyChanging("UpdateUser", value)) { _UpdateUser = value; OnPropertyChanged("UpdateUser"); } } }
 
         private Int32 _UpdateUserID;
         /// <summary>更新用户</summary>
@@ -236,7 +236,7 @@ namespace XCode.Membership
         [Description("更新用户")]
         [DataObjectField(false, false, false, 0)]
         [BindColumn("UpdateUserID", "更新用户", "")]
-        public Int32 UpdateUserID { get => _UpdateUserID; set { if (OnPropertyChanging(__.UpdateUserID, value)) { _UpdateUserID = value; OnPropertyChanged(__.UpdateUserID); } } }
+        public Int32 UpdateUserID { get => _UpdateUserID; set { if (OnPropertyChanging("UpdateUserID", value)) { _UpdateUserID = value; OnPropertyChanged("UpdateUserID"); } } }
 
         private String _UpdateIP;
         /// <summary>更新地址</summary>
@@ -244,7 +244,7 @@ namespace XCode.Membership
         [Description("更新地址")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn("UpdateIP", "更新地址", "")]
-        public String UpdateIP { get => _UpdateIP; set { if (OnPropertyChanging(__.UpdateIP, value)) { _UpdateIP = value; OnPropertyChanged(__.UpdateIP); } } }
+        public String UpdateIP { get => _UpdateIP; set { if (OnPropertyChanging("UpdateIP", value)) { _UpdateIP = value; OnPropertyChanged("UpdateIP"); } } }
 
         private DateTime _UpdateTime;
         /// <summary>更新时间</summary>
@@ -252,7 +252,7 @@ namespace XCode.Membership
         [Description("更新时间")]
         [DataObjectField(false, false, false, 0)]
         [BindColumn("UpdateTime", "更新时间", "")]
-        public DateTime UpdateTime { get => _UpdateTime; set { if (OnPropertyChanging(__.UpdateTime, value)) { _UpdateTime = value; OnPropertyChanged(__.UpdateTime); } } }
+        public DateTime UpdateTime { get => _UpdateTime; set { if (OnPropertyChanging("UpdateTime", value)) { _UpdateTime = value; OnPropertyChanged("UpdateTime"); } } }
 
         private String _Remark;
         /// <summary>备注</summary>
@@ -260,7 +260,7 @@ namespace XCode.Membership
         [Description("备注")]
         [DataObjectField(false, false, true, 200)]
         [BindColumn("Remark", "备注", "")]
-        public String Remark { get => _Remark; set { if (OnPropertyChanging(__.Remark, value)) { _Remark = value; OnPropertyChanged(__.Remark); } } }
+        public String Remark { get => _Remark; set { if (OnPropertyChanging("Remark", value)) { _Remark = value; OnPropertyChanged("Remark"); } } }
         #endregion
 
         #region 获取/设置 字段值
@@ -273,36 +273,36 @@ namespace XCode.Membership
             {
                 switch (name)
                 {
-                    case __.ID: return _ID;
-                    case __.Name: return _Name;
-                    case __.Password: return _Password;
-                    case __.DisplayName: return _DisplayName;
-                    case __.Sex: return _Sex;
-                    case __.Mail: return _Mail;
-                    case __.Mobile: return _Mobile;
-                    case __.Code: return _Code;
-                    case __.Avatar: return _Avatar;
-                    case __.RoleID: return _RoleID;
-                    case __.RoleIDs: return _RoleIDs;
-                    case __.DepartmentID: return _DepartmentID;
-                    case __.Online: return _Online;
-                    case __.Enable: return _Enable;
-                    case __.Logins: return _Logins;
-                    case __.LastLogin: return _LastLogin;
-                    case __.LastLoginIP: return _LastLoginIP;
-                    case __.RegisterTime: return _RegisterTime;
-                    case __.RegisterIP: return _RegisterIP;
-                    case __.Ex1: return _Ex1;
-                    case __.Ex2: return _Ex2;
-                    case __.Ex3: return _Ex3;
-                    case __.Ex4: return _Ex4;
-                    case __.Ex5: return _Ex5;
-                    case __.Ex6: return _Ex6;
-                    case __.UpdateUser: return _UpdateUser;
-                    case __.UpdateUserID: return _UpdateUserID;
-                    case __.UpdateIP: return _UpdateIP;
-                    case __.UpdateTime: return _UpdateTime;
-                    case __.Remark: return _Remark;
+                    case "ID": return _ID;
+                    case "Name": return _Name;
+                    case "Password": return _Password;
+                    case "DisplayName": return _DisplayName;
+                    case "Sex": return _Sex;
+                    case "Mail": return _Mail;
+                    case "Mobile": return _Mobile;
+                    case "Code": return _Code;
+                    case "Avatar": return _Avatar;
+                    case "RoleID": return _RoleID;
+                    case "RoleIDs": return _RoleIDs;
+                    case "DepartmentID": return _DepartmentID;
+                    case "Online": return _Online;
+                    case "Enable": return _Enable;
+                    case "Logins": return _Logins;
+                    case "LastLogin": return _LastLogin;
+                    case "LastLoginIP": return _LastLoginIP;
+                    case "RegisterTime": return _RegisterTime;
+                    case "RegisterIP": return _RegisterIP;
+                    case "Ex1": return _Ex1;
+                    case "Ex2": return _Ex2;
+                    case "Ex3": return _Ex3;
+                    case "Ex4": return _Ex4;
+                    case "Ex5": return _Ex5;
+                    case "Ex6": return _Ex6;
+                    case "UpdateUser": return _UpdateUser;
+                    case "UpdateUserID": return _UpdateUserID;
+                    case "UpdateIP": return _UpdateIP;
+                    case "UpdateTime": return _UpdateTime;
+                    case "Remark": return _Remark;
                     default: return base[name];
                 }
             }
@@ -310,36 +310,36 @@ namespace XCode.Membership
             {
                 switch (name)
                 {
-                    case __.ID: _ID = value.ToInt(); break;
-                    case __.Name: _Name = Convert.ToString(value); break;
-                    case __.Password: _Password = Convert.ToString(value); break;
-                    case __.DisplayName: _DisplayName = Convert.ToString(value); break;
-                    case __.Sex: _Sex = (SexKinds)value.ToInt(); break;
-                    case __.Mail: _Mail = Convert.ToString(value); break;
-                    case __.Mobile: _Mobile = Convert.ToString(value); break;
-                    case __.Code: _Code = Convert.ToString(value); break;
-                    case __.Avatar: _Avatar = Convert.ToString(value); break;
-                    case __.RoleID: _RoleID = value.ToInt(); break;
-                    case __.RoleIDs: _RoleIDs = Convert.ToString(value); break;
-                    case __.DepartmentID: _DepartmentID = value.ToInt(); break;
-                    case __.Online: _Online = value.ToBoolean(); break;
-                    case __.Enable: _Enable = value.ToBoolean(); break;
-                    case __.Logins: _Logins = value.ToInt(); break;
-                    case __.LastLogin: _LastLogin = value.ToDateTime(); break;
-                    case __.LastLoginIP: _LastLoginIP = Convert.ToString(value); break;
-                    case __.RegisterTime: _RegisterTime = value.ToDateTime(); break;
-                    case __.RegisterIP: _RegisterIP = Convert.ToString(value); break;
-                    case __.Ex1: _Ex1 = value.ToInt(); break;
-                    case __.Ex2: _Ex2 = value.ToInt(); break;
-                    case __.Ex3: _Ex3 = value.ToDouble(); break;
-                    case __.Ex4: _Ex4 = Convert.ToString(value); break;
-                    case __.Ex5: _Ex5 = Convert.ToString(value); break;
-                    case __.Ex6: _Ex6 = Convert.ToString(value); break;
-                    case __.UpdateUser: _UpdateUser = Convert.ToString(value); break;
-                    case __.UpdateUserID: _UpdateUserID = value.ToInt(); break;
-                    case __.UpdateIP: _UpdateIP = Convert.ToString(value); break;
-                    case __.UpdateTime: _UpdateTime = value.ToDateTime(); break;
-                    case __.Remark: _Remark = Convert.ToString(value); break;
+                    case "ID": _ID = value.ToInt(); break;
+                    case "Name": _Name = Convert.ToString(value); break;
+                    case "Password": _Password = Convert.ToString(value); break;
+                    case "DisplayName": _DisplayName = Convert.ToString(value); break;
+                    case "Sex": _Sex = (SexKinds)value.ToInt(); break;
+                    case "Mail": _Mail = Convert.ToString(value); break;
+                    case "Mobile": _Mobile = Convert.ToString(value); break;
+                    case "Code": _Code = Convert.ToString(value); break;
+                    case "Avatar": _Avatar = Convert.ToString(value); break;
+                    case "RoleID": _RoleID = value.ToInt(); break;
+                    case "RoleIDs": _RoleIDs = Convert.ToString(value); break;
+                    case "DepartmentID": _DepartmentID = value.ToInt(); break;
+                    case "Online": _Online = value.ToBoolean(); break;
+                    case "Enable": _Enable = value.ToBoolean(); break;
+                    case "Logins": _Logins = value.ToInt(); break;
+                    case "LastLogin": _LastLogin = value.ToDateTime(); break;
+                    case "LastLoginIP": _LastLoginIP = Convert.ToString(value); break;
+                    case "RegisterTime": _RegisterTime = value.ToDateTime(); break;
+                    case "RegisterIP": _RegisterIP = Convert.ToString(value); break;
+                    case "Ex1": _Ex1 = value.ToInt(); break;
+                    case "Ex2": _Ex2 = value.ToInt(); break;
+                    case "Ex3": _Ex3 = value.ToDouble(); break;
+                    case "Ex4": _Ex4 = Convert.ToString(value); break;
+                    case "Ex5": _Ex5 = Convert.ToString(value); break;
+                    case "Ex6": _Ex6 = Convert.ToString(value); break;
+                    case "UpdateUser": _UpdateUser = Convert.ToString(value); break;
+                    case "UpdateUserID": _UpdateUserID = value.ToInt(); break;
+                    case "UpdateIP": _UpdateIP = Convert.ToString(value); break;
+                    case "UpdateTime": _UpdateTime = value.ToDateTime(); break;
+                    case "Remark": _Remark = Convert.ToString(value); break;
                     default: base[name] = value; break;
                 }
             }
@@ -351,94 +351,94 @@ namespace XCode.Membership
         public partial class _
         {
             /// <summary>编号</summary>
-            public static readonly Field ID = FindByName(__.ID);
+            public static readonly Field ID = FindByName("ID");
 
             /// <summary>名称。登录用户名</summary>
-            public static readonly Field Name = FindByName(__.Name);
+            public static readonly Field Name = FindByName("Name");
 
             /// <summary>密码</summary>
-            public static readonly Field Password = FindByName(__.Password);
+            public static readonly Field Password = FindByName("Password");
 
             /// <summary>昵称</summary>
-            public static readonly Field DisplayName = FindByName(__.DisplayName);
+            public static readonly Field DisplayName = FindByName("DisplayName");
 
             /// <summary>性别。未知、男、女</summary>
-            public static readonly Field Sex = FindByName(__.Sex);
+            public static readonly Field Sex = FindByName("Sex");
 
             /// <summary>邮件</summary>
-            public static readonly Field Mail = FindByName(__.Mail);
+            public static readonly Field Mail = FindByName("Mail");
 
             /// <summary>手机</summary>
-            public static readonly Field Mobile = FindByName(__.Mobile);
+            public static readonly Field Mobile = FindByName("Mobile");
 
             /// <summary>代码。身份证、员工编号等</summary>
-            public static readonly Field Code = FindByName(__.Code);
+            public static readonly Field Code = FindByName("Code");
 
             /// <summary>头像</summary>
-            public static readonly Field Avatar = FindByName(__.Avatar);
+            public static readonly Field Avatar = FindByName("Avatar");
 
             /// <summary>角色。主要角色</summary>
-            public static readonly Field RoleID = FindByName(__.RoleID);
+            public static readonly Field RoleID = FindByName("RoleID");
 
             /// <summary>角色组。次要角色集合</summary>
-            public static readonly Field RoleIDs = FindByName(__.RoleIDs);
+            public static readonly Field RoleIDs = FindByName("RoleIDs");
 
             /// <summary>部门。组织机构</summary>
-            public static readonly Field DepartmentID = FindByName(__.DepartmentID);
+            public static readonly Field DepartmentID = FindByName("DepartmentID");
 
             /// <summary>在线</summary>
-            public static readonly Field Online = FindByName(__.Online);
+            public static readonly Field Online = FindByName("Online");
 
             /// <summary>启用</summary>
-            public static readonly Field Enable = FindByName(__.Enable);
+            public static readonly Field Enable = FindByName("Enable");
 
             /// <summary>登录次数</summary>
-            public static readonly Field Logins = FindByName(__.Logins);
+            public static readonly Field Logins = FindByName("Logins");
 
             /// <summary>最后登录</summary>
-            public static readonly Field LastLogin = FindByName(__.LastLogin);
+            public static readonly Field LastLogin = FindByName("LastLogin");
 
             /// <summary>最后登录IP</summary>
-            public static readonly Field LastLoginIP = FindByName(__.LastLoginIP);
+            public static readonly Field LastLoginIP = FindByName("LastLoginIP");
 
             /// <summary>注册时间</summary>
-            public static readonly Field RegisterTime = FindByName(__.RegisterTime);
+            public static readonly Field RegisterTime = FindByName("RegisterTime");
 
             /// <summary>注册IP</summary>
-            public static readonly Field RegisterIP = FindByName(__.RegisterIP);
+            public static readonly Field RegisterIP = FindByName("RegisterIP");
 
             /// <summary>扩展1</summary>
-            public static readonly Field Ex1 = FindByName(__.Ex1);
+            public static readonly Field Ex1 = FindByName("Ex1");
 
             /// <summary>扩展2</summary>
-            public static readonly Field Ex2 = FindByName(__.Ex2);
+            public static readonly Field Ex2 = FindByName("Ex2");
 
             /// <summary>扩展3</summary>
-            public static readonly Field Ex3 = FindByName(__.Ex3);
+            public static readonly Field Ex3 = FindByName("Ex3");
 
             /// <summary>扩展4</summary>
-            public static readonly Field Ex4 = FindByName(__.Ex4);
+            public static readonly Field Ex4 = FindByName("Ex4");
 
             /// <summary>扩展5</summary>
-            public static readonly Field Ex5 = FindByName(__.Ex5);
+            public static readonly Field Ex5 = FindByName("Ex5");
 
             /// <summary>扩展6</summary>
-            public static readonly Field Ex6 = FindByName(__.Ex6);
+            public static readonly Field Ex6 = FindByName("Ex6");
 
             /// <summary>更新者</summary>
-            public static readonly Field UpdateUser = FindByName(__.UpdateUser);
+            public static readonly Field UpdateUser = FindByName("UpdateUser");
 
             /// <summary>更新用户</summary>
-            public static readonly Field UpdateUserID = FindByName(__.UpdateUserID);
+            public static readonly Field UpdateUserID = FindByName("UpdateUserID");
 
             /// <summary>更新地址</summary>
-            public static readonly Field UpdateIP = FindByName(__.UpdateIP);
+            public static readonly Field UpdateIP = FindByName("UpdateIP");
 
             /// <summary>更新时间</summary>
-            public static readonly Field UpdateTime = FindByName(__.UpdateTime);
+            public static readonly Field UpdateTime = FindByName("UpdateTime");
 
             /// <summary>备注</summary>
-            public static readonly Field Remark = FindByName(__.Remark);
+            public static readonly Field Remark = FindByName("Remark");
 
             static Field FindByName(String name) => Meta.Table.FindByName(name);
         }
