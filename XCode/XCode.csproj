@@ -7,9 +7,9 @@
     <Description>数据中间件，MySQL、SQLite、SqlServer、Oracle</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2020 NewLife</Copyright>
-    <Version>9.17.2020.0501</Version>
-    <FileVersion>9.17.2020.0501</FileVersion>
-    <AssemblyVersion>9.16.*</AssemblyVersion>
+    <Version>9.17.2020.0510-beta</Version>
+    <FileVersion>9.17.2020.0510</FileVersion>
+    <AssemblyVersion>9.17.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <OutputPath>..\..\Bin</OutputPath>
     <DocumentationFile>$(OutputPath)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
