@@ -23,7 +23,8 @@ namespace XUnitTest.Common
             Assert.NotEmpty(mi.CpuID);
             Assert.NotEmpty(mi.UUID);
             Assert.NotEmpty(mi.Guid);
-            Assert.NotNull(mi.Guid);
+            Assert.NotEmpty(mi.Guid);
+            Assert.NotEmpty(mi.DiskID);
 
             Assert.True(mi.Memory > 1L * 1024 * 1024 * 1024);
             Assert.True(mi.AvailableMemory > 1L * 1024 * 1024);

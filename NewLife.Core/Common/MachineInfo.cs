@@ -47,7 +47,7 @@ namespace NewLife
         public String Guid { get; set; }
 
         /// <summary>磁盘序列号</summary>
-        public String DiskSerial { get; set; }
+        public String DiskID { get; set; }
 
         /// <summary>内存总量</summary>
         public UInt64 Memory { get; set; }
@@ -192,7 +192,7 @@ namespace NewLife
             CpuID = GetInfo("Win32_Processor", "ProcessorId");
             var uuid = GetInfo("Win32_ComputerSystemProduct", "UUID");
             Product = GetInfo("Win32_ComputerSystemProduct", "Name");
-            DiskSerial = GetInfo("Win32_DiskDrive", "SerialNumber");
+            DiskID = GetInfo("Win32_DiskDrive", "SerialNumber");
 
             // UUID取不到时返回 FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF
             if (!uuid.IsNullOrEmpty() && !uuid.EqualIgnoreCase("FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF")) UUID = uuid;
@@ -241,7 +241,7 @@ namespace NewLife
             var disk = ReadWmic("diskdrive", "serialnumber");
             if (disk != null)
             {
-                if (disk.TryGetValue("serialnumber", out str)) DiskSerial = str;
+                if (disk.TryGetValue("serialnumber", out str)) DiskID = str;
             }
 
             // 不要在刷新里面取CPU负载，因为运行wmic会导致CPU负载很不准确，影响测量
@@ -287,7 +287,7 @@ namespace NewLife
 
             var disks = GetFiles("/dev/disk/by-id", true);
             if (disks.Count == 0) disks = GetFiles("/dev/disk/by-uuid", false);
-            if (disks.Count > 0) DiskSerial = disks.Join(",");
+            if (disks.Count > 0) DiskID = disks.Join(",");
 
             var dmi = Execute("dmidecode")?.SplitAsDictionary(":", "\n");
             if (dmi != null)
