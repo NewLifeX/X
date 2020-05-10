@@ -65,10 +65,10 @@ namespace NewLife
         public static Boolean Windows { get; } = Environment.OSVersion.Platform <= PlatformID.WinCE;
 
         /// <summary>是否Linux环境</summary>
-        public static Boolean Linux => false;
+        public static Boolean Linux { get; } = Environment.OSVersion.Platform == PlatformID.Unix;
 
         /// <summary>是否OSX环境</summary>
-        public static Boolean OSX => false;
+        public static Boolean OSX { get; } = Environment.OSVersion.Platform == PlatformID.MacOSX;
 #endif
         #endregion
     }

@@ -60,11 +60,6 @@ namespace NewLife
 
         /// <summary>温度</summary>
         public Double Temperature { get; set; }
-
-#if __WIN__
-        private ComputerInfo _cinfo;
-        //private readonly PerformanceCounter _cpuCounter;
-#endif
         #endregion
 
         #region 构造
@@ -137,8 +132,6 @@ namespace NewLife
         /// <summary>刷新</summary>
         public void Init()
         {
-            var machine_guid = "";
-
             var osv = Environment.OSVersion;
             if (OSVersion.IsNullOrEmpty()) OSVersion = osv.Version + "";
             if (OSName.IsNullOrEmpty()) OSName = (osv + "").TrimStart("Microsoft").TrimEnd(OSVersion).Trim();
@@ -146,104 +139,27 @@ namespace NewLife
 
 #if __CORE__
             if (Runtime.Windows)
-            {
-                var str = "";
-
-                var os = ReadWmic("os", "Caption", "Version");
-                if (os != null)
-                {
-                    if (os.TryGetValue("Caption", out str)) OSName = str.TrimStart("Microsoft").Trim();
-                    if (os.TryGetValue("Version", out str)) OSVersion = str;
-                }
-
-                var csproduct = ReadWmic("csproduct", "Name", "UUID");
-                if (csproduct != null)
-                {
-                    if (csproduct.TryGetValue("Name", out str)) Product = str;
-                    if (csproduct.TryGetValue("UUID", out str)) UUID = str;
-                }
-
-                var disk = ReadWmic("diskdrive", "serialnumber");
-                if (disk != null)
-                {
-                    if (disk.TryGetValue("serialnumber", out str)) DiskSerial = str;
-                }
-
-                // 不要在刷新里面取CPU负载，因为运行wmic会导致CPU负载很不准确，影响测量
-                var cpu = ReadWmic("cpu", "Name", "ProcessorId", "LoadPercentage");
-                if (cpu != null)
-                {
-                    if (cpu.TryGetValue("Name", out str)) Processor = str;
-                    if (cpu.TryGetValue("ProcessorId", out str)) CpuID = str;
-                    if (cpu.TryGetValue("LoadPercentage", out str)) CpuRate = (Single)(str.ToDouble() / 100);
-                }
-
-                // 从注册表读取 MachineGuid
-                str = Execute("reg", @"query HKLM\SOFTWARE\Microsoft\Cryptography /v MachineGuid");
-                if (!str.IsNullOrEmpty() && str.Contains("REG_SZ")) Guid = str.Substring("REG_SZ", null).Trim();
-            }
-            // 特别识别Linux发行版
+                LoadWindowsInfo();
             else if (Runtime.Linux)
-            {
-                var str = GetLinuxName();
-                if (!str.IsNullOrEmpty()) OSName = str;
-
-                // 树莓派的Hardware无法区分P0/P4
-                var dic = ReadInfo("/proc/cpuinfo");
-                if (dic != null)
-                {
-                    if (dic.TryGetValue("Hardware", out str) ||
-                        dic.TryGetValue("cpu model", out str) ||
-                        dic.TryGetValue("model name", out str))
-                        Processor = str;
-
-                    if (dic.TryGetValue("Model", out str)) Product = str;
-                    if (dic.TryGetValue("Serial", out str)) CpuID = str;
-                }
-
-                var mid = "/etc/machine-id";
-                if (!File.Exists(mid)) mid = "/var/lib/dbus/machine-id";
-                if (File.Exists(mid)) Guid = File.ReadAllText(mid).Trim();
-
-                var file = "/sys/class/dmi/id/product_uuid";
-                if (File.Exists(file)) UUID = File.ReadAllText(file).Trim();
-                file = "/sys/class/dmi/id/product_name";
-                if (File.Exists(file)) Product = File.ReadAllText(file).Trim();
-
-                var disks = GetFiles("/dev/disk/by-id", true);
-                if (disks.Count == 0) disks = GetFiles("/dev/disk/by-uuid", false);
-                if (disks.Count > 0) DiskSerial = disks.Join(",");
-
-                var dmi = Execute("dmidecode")?.SplitAsDictionary(":", "\n");
-                if (dmi != null)
-                {
-                    if (dmi.TryGetValue("ID", out str)) CpuID = str.Replace(" ", null);
-                    if (dmi.TryGetValue("UUID", out str)) UUID = str;
-                    if (dmi.TryGetValue("Product Name", out str)) Product = str;
-                    //if (TryFind(dmi, new[] { "Serial Number" }, out str)) Guid = str;
-                }
-
-                // 从release文件读取产品
-                var prd = GetProductByRelease();
-                if (!prd.IsNullOrEmpty()) Product = prd;
-            }
+                LoadLinuxInfo();
 #else
-            //// 性能计数器的初始化非常耗时
-            //Task.Factory.StartNew(() =>
-            //{
-            //    try
-            //    {
-            //        _cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total")
-            //        {
-            //            MachineName = "."
-            //        };
-            //        _cpuCounter.NextValue();
-            //    }
-            //    catch
-            //    {
-            //        _cpuCounter = null;
-            //    }
-            //});
+            if (Runtime.Windows)
+                LoadWindowsInfoFx();
+            else if (Runtime.Linux)
+                LoadLinuxInfo();
+#endif
+
+            // window+netcore 不方便读取注册表，随机生成一个guid，借助文件缓存确保其不变
+            if (Guid.IsNullOrEmpty()) Guid = "0-" + System.Guid.NewGuid().ToString();
+            if (UUID.IsNullOrEmpty()) UUID = "0-" + System.Guid.NewGuid().ToString();
+
+            Refresh();
+        }
+
+        private void LoadWindowsInfoFx()
+        {
+#if !__CORE__
+            var machine_guid = "";
 
             var reg = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Cryptography");
             if (reg != null) machine_guid = reg.GetValue("MachineGuid") + "";
@@ -272,8 +188,6 @@ namespace NewLife
                 }
             }
 
-            _cinfo = ci;
-
             Processor = GetInfo("Win32_Processor", "Name");
             CpuID = GetInfo("Win32_Processor", "ProcessorId");
             var uuid = GetInfo("Win32_ComputerSystemProduct", "UUID");
@@ -301,33 +215,99 @@ namespace NewLife
                 str = GetInfo("MSAcpi_ThermalZoneTemperature", "CurrentTemperature");
                 if (!str.IsNullOrEmpty()) Temperature = (str.ToDouble() - 2732) / 10.0;
             }
-#endif
 
             if (!machine_guid.IsNullOrEmpty()) Guid = machine_guid;
+#endif
+        }
 
-            // window+netcore 不方便读取注册表，随机生成一个guid，借助文件缓存确保其不变
-            if (Guid.IsNullOrEmpty()) Guid = "0-" + System.Guid.NewGuid().ToString();
-            if (UUID.IsNullOrEmpty()) UUID = "0-" + System.Guid.NewGuid().ToString();
+        private void LoadWindowsInfo()
+        {
+            var str = "";
 
-            Refresh();
+            var os = ReadWmic("os", "Caption", "Version");
+            if (os != null)
+            {
+                if (os.TryGetValue("Caption", out str)) OSName = str.TrimStart("Microsoft").Trim();
+                if (os.TryGetValue("Version", out str)) OSVersion = str;
+            }
+
+            var csproduct = ReadWmic("csproduct", "Name", "UUID");
+            if (csproduct != null)
+            {
+                if (csproduct.TryGetValue("Name", out str)) Product = str;
+                if (csproduct.TryGetValue("UUID", out str)) UUID = str;
+            }
+
+            var disk = ReadWmic("diskdrive", "serialnumber");
+            if (disk != null)
+            {
+                if (disk.TryGetValue("serialnumber", out str)) DiskSerial = str;
+            }
+
+            // 不要在刷新里面取CPU负载，因为运行wmic会导致CPU负载很不准确，影响测量
+            var cpu = ReadWmic("cpu", "Name", "ProcessorId", "LoadPercentage");
+            if (cpu != null)
+            {
+                if (cpu.TryGetValue("Name", out str)) Processor = str;
+                if (cpu.TryGetValue("ProcessorId", out str)) CpuID = str;
+                if (cpu.TryGetValue("LoadPercentage", out str)) CpuRate = (Single)(str.ToDouble() / 100);
+            }
+
+            // 从注册表读取 MachineGuid
+            str = Execute("reg", @"query HKLM\SOFTWARE\Microsoft\Cryptography /v MachineGuid");
+            if (!str.IsNullOrEmpty() && str.Contains("REG_SZ")) Guid = str.Substring("REG_SZ", null).Trim();
+        }
+
+        private void LoadLinuxInfo()
+        {
+            var str = GetLinuxName();
+            if (!str.IsNullOrEmpty()) OSName = str;
+
+            // 树莓派的Hardware无法区分P0/P4
+            var dic = ReadInfo("/proc/cpuinfo");
+            if (dic != null)
+            {
+                if (dic.TryGetValue("Hardware", out str) ||
+                    dic.TryGetValue("cpu model", out str) ||
+                    dic.TryGetValue("model name", out str))
+                    Processor = str;
+
+                if (dic.TryGetValue("Model", out str)) Product = str;
+                if (dic.TryGetValue("Serial", out str)) CpuID = str;
+            }
+
+            var mid = "/etc/machine-id";
+            if (!File.Exists(mid)) mid = "/var/lib/dbus/machine-id";
+            if (File.Exists(mid)) Guid = File.ReadAllText(mid).Trim();
+
+            var file = "/sys/class/dmi/id/product_uuid";
+            if (File.Exists(file)) UUID = File.ReadAllText(file).Trim();
+            file = "/sys/class/dmi/id/product_name";
+            if (File.Exists(file)) Product = File.ReadAllText(file).Trim();
+
+            var disks = GetFiles("/dev/disk/by-id", true);
+            if (disks.Count == 0) disks = GetFiles("/dev/disk/by-uuid", false);
+            if (disks.Count > 0) DiskSerial = disks.Join(",");
+
+            var dmi = Execute("dmidecode")?.SplitAsDictionary(":", "\n");
+            if (dmi != null)
+            {
+                if (dmi.TryGetValue("ID", out str)) CpuID = str.Replace(" ", null);
+                if (dmi.TryGetValue("UUID", out str)) UUID = str;
+                if (dmi.TryGetValue("Product Name", out str)) Product = str;
+                //if (TryFind(dmi, new[] { "Serial Number" }, out str)) Guid = str;
+            }
+
+            // 从release文件读取产品
+            var prd = GetProductByRelease();
+            if (!prd.IsNullOrEmpty()) Product = prd;
         }
 
         /// <summary>获取实时数据，如CPU、内存、温度</summary>
         public void Refresh()
         {
-#if __CORE__
             if (Runtime.Windows)
             {
-                //var str = "";
-
-                //var cpu = ReadWmic("cpu", "Name", "ProcessorId", "LoadPercentage");
-                //if (cpu != null)
-                //{
-                //    if (cpu.TryGetValue("Name", out str)) Processor = str;
-                //    if (cpu.TryGetValue("ProcessorId", out str)) CpuID = str;
-                //    if (cpu.TryGetValue("LoadPercentage", out str)) CpuRate = (Single)(str.ToDouble() / 100);
-                //}
-
                 MEMORYSTATUSEX ms = default;
                 ms.Init();
                 if (GlobalMemoryStatusEx(ref ms))
@@ -339,12 +319,10 @@ namespace NewLife
             // 特别识别Linux发行版
             else if (Runtime.Linux)
             {
-                var str = "";
-
                 var dic = ReadInfo("/proc/meminfo");
                 if (dic != null)
                 {
-                    if (dic.TryGetValue("MemTotal", out str))
+                    if (dic.TryGetValue("MemTotal", out var str))
                         Memory = (UInt64)str.TrimEnd(" kB").ToInt() * 1024;
 
                     if (dic.TryGetValue("MemAvailable", out str) ||
@@ -372,14 +350,6 @@ namespace NewLife
                 file = "/proc/loadavg";
                 if (File.Exists(file)) CpuRate = (Single)File.ReadAllText(file).Substring(null, " ").ToDouble();
             }
-#else
-            AvailableMemory = _cinfo.AvailablePhysicalMemory;
-
-            //if (_cpuCounter != null)
-            //    CpuRate = _cpuCounter.NextValue() / 100;
-            //else
-            //    CpuRate = (Single)GetInfo("Win32_PerfFormattedData_PerfOS_Processor where name='_Total'", "PercentProcessorTime").ToDouble() / 100;
-#endif
 
             if (Runtime.Windows)
             {
@@ -523,7 +493,6 @@ namespace NewLife
         #endregion
 
         #region 内存
-#if __CORE__
         [DllImport("Kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         [SecurityCritical]
         [return: MarshalAs(UnmanagedType.Bool)]
@@ -551,7 +520,6 @@ namespace NewLife
 
             internal void Init() => dwLength = checked((UInt32)Marshal.SizeOf(typeof(MEMORYSTATUSEX)));
         }
-#endif
         #endregion
 
         #region 磁盘
