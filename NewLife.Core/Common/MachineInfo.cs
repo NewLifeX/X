@@ -188,16 +188,16 @@ namespace NewLife
                 var str = GetLinuxName();
                 if (!str.IsNullOrEmpty()) OSName = str;
 
-                // 树莓派优先 Model
+                // 树莓派的Hardware无法区分P0/P4
                 var dic = ReadInfo("/proc/cpuinfo");
                 if (dic != null)
                 {
-                    if (dic.TryGetValue("Model", out str) ||
-                        dic.TryGetValue("Hardware", out str) ||
+                    if (dic.TryGetValue("Hardware", out str) ||
                         dic.TryGetValue("cpu model", out str) ||
                         dic.TryGetValue("model name", out str))
                         Processor = str;
 
+                    if (dic.TryGetValue("Model", out str)) Product = str;
                     if (dic.TryGetValue("Serial", out str)) CpuID = str;
                 }
 
@@ -222,6 +222,10 @@ namespace NewLife
                     if (dmi.TryGetValue("Product Name", out str)) Product = str;
                     //if (TryFind(dmi, new[] { "Serial Number" }, out str)) Guid = str;
                 }
+
+                // 从release文件读取产品
+                var prd = GetProductByRelease();
+                if (!prd.IsNullOrEmpty()) Product = prd;
             }
 #else
             //// 性能计数器的初始化非常耗时
@@ -419,6 +423,24 @@ namespace NewLife
 
             var uname = Execute("uname", "-sr")?.Trim();
             if (!uname.IsNullOrEmpty()) return uname;
+
+            return null;
+        }
+
+        private static String GetProductByRelease()
+        {
+            var di = "/etc/".AsDirectory();
+            if (!di.Exists) return null;
+
+            foreach (var fi in di.GetFiles("*-release"))
+            {
+                if (!fi.Name.EqualIgnoreCase("redhat-release", "debian-release", "os-release", "system-release"))
+                {
+                    var dic = File.ReadAllText(fi.FullName).SplitAsDictionary("=", "\n", true);
+                    if (dic.TryGetValue("BOARD", out var str)) return str;
+                    if (dic.TryGetValue("BOARD_NAME", out str)) return str;
+                }
+            }
 
             return null;
         }

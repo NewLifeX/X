@@ -21,6 +21,7 @@ using XCode.Service;
 using XCode;
 using System.Collections;
 using XCode.Code;
+using System.Reflection;
 #if !NET4
 using TaskEx = System.Threading.Tasks.Task;
 #endif
@@ -68,13 +69,13 @@ namespace Test
 
         private static void Test1()
         {
-            foreach (var item in Enum.GetValues(typeof(TypeCode)))
-            {
-                var t = (item + "").GetTypeEx();
-                Console.WriteLine("{0}\t{1}\t{2}", item, t, t?.IsPrimitive);
-            }
+            //foreach (var item in Enum.GetValues(typeof(TypeCode)))
+            //{
+            //    var t = (item + "").GetTypeEx();
+            //    Console.WriteLine("{0}\t{1}\t{2}", item, t, t?.IsPrimitive);
+            //}
 
-            "你好".SpeakAsync();
+            //"你好".SpeakAsync();
 
             XTrace.WriteLine("FullPath:{0}", ".".GetFullPath());
             XTrace.WriteLine("BasePath:{0}", ".".GetBasePath());
@@ -82,7 +83,7 @@ namespace Test
 
             var mi = MachineInfo.Current ?? MachineInfo.RegisterAsync().Result;
 
-            foreach (var pi in mi.GetType().GetProperties())
+            foreach (var pi in mi.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public))
             {
                 XTrace.WriteLine("{0}:\t{1}", pi.Name, mi.GetValue(pi));
             }
