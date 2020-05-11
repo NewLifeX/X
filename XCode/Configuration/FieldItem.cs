@@ -214,6 +214,7 @@ namespace XCode.Configuration
             if (col != null)
             {
                 dc.RawType = col.RawType;
+                dc.ItemType = col.ItemType;
                 dc.Precision = col.Precision;
                 dc.Scale = col.Scale;
             }
