@@ -159,6 +159,8 @@ namespace NewLife.Net
             // 拷贝替换更新
             CopyAndReplace(tmp, DestinationPath);
 
+            WriteLog("更新成功！");
+
             return true;
         }
 
