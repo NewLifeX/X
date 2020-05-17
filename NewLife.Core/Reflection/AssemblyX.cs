@@ -625,8 +625,8 @@ namespace NewLife.Reflection
 
             foreach (var item in ss)
             {
-                // 仅尝试加载dll和exe，不加载vshost文件
-                if (!item.EndsWithIgnoreCase(".dll", ".exe") || item.EndsWithIgnoreCase(".vshost.exe")) continue;
+                // 仅尝试加载dll
+                if (!item.EndsWithIgnoreCase(".dll")) continue;
                 if (_BakImages.Contains(item)) continue;
 
                 if (loadeds.Any(e => e.Location.EqualIgnoreCase(item)) ||
