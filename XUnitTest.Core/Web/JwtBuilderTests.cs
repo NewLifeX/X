@@ -15,7 +15,7 @@ namespace XUnitTest.Web
                 //Subject = "Cube",
                 //Issuer = "NewLife",
                 IssuedAt = 1516239022.ToDateTime(),
-                Expire = TimeSpan.FromHours(0),
+                Expire = DateTime.MinValue,
                 Secret = "Smart",
             };
 
@@ -35,10 +35,12 @@ namespace XUnitTest.Web
         {
             var builder = new JwtBuilder
             {
-                Id = null,
+                Id = Guid.NewGuid() + "",
                 Subject = "Cube",
                 Issuer = "NewLife",
                 IssuedAt = DateTime.Now,
+                Audience = "all",
+                NotBefore = DateTime.Today.AddDays(1),
                 //Expire = TimeSpan.FromHours(0),
                 Secret = "Smart",
             };
@@ -58,8 +60,11 @@ namespace XUnitTest.Web
             Assert.Equal("0201", builder2.Subject);
             Assert.Null(builder2.Type);
 
+            Assert.Equal(builder.Id, builder2.Id);
             Assert.Equal(builder.Issuer, builder2.Issuer);
             Assert.Equal(builder.IssuedAt.Trim(), builder2.IssuedAt.Trim());
+            Assert.Equal(builder.Audience, builder2.Audience);
+            Assert.Equal(builder.NotBefore, builder2.NotBefore);
             Assert.Equal("stone", payload["name"]);
         }
 

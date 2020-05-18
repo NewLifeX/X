@@ -70,7 +70,7 @@ namespace NewLife.Remoting
             var json = data.ToStr();
             WriteLog("{0}<={1}", action, json);
 
-            return new JsonParser(json).Decode() as IDictionary<String, Object>;
+            return JsonParser.Decode(json);
         }
 
         /// <summary>解码结果</summary>

@@ -160,7 +160,7 @@ namespace XCode.DataAccessLayer
                     if (!File.Exists(file)) file = Directory.GetCurrentDirectory() + "/appsettings.json";//Asp.Net Core的Debug模式下配置文件位于项目目录而不是输出目录
                     if (File.Exists(file))
                     {
-                        var dic = new JsonParser(File.ReadAllText(file)).Decode() as IDictionary<String, Object>;
+                        var dic = JsonParser.Decode(File.ReadAllText(file));
                         dic = dic?["ConnectionStrings"] as IDictionary<String, Object>;
                         if (dic != null && dic.Count > 0)
                         {

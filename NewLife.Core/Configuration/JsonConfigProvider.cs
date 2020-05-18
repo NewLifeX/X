@@ -29,8 +29,7 @@ namespace NewLife.Configuration
         protected override void OnRead(String fileName, IConfigSection section)
         {
             var txt = File.ReadAllText(fileName);
-            var json = new JsonParser(txt);
-            var src = json.Decode() as IDictionary<String, Object>;
+            var src = JsonParser.Decode(txt);
 
             Map(src, section);
         }

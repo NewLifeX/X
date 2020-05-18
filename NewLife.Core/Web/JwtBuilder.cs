@@ -8,7 +8,7 @@ namespace NewLife.Web
     /// <summary>JSON Web Token</summary>
     /// <remarks>
     /// 主要问题：
-    /// 1，JWT默认不加密，但可以加密。生成原始令牌后，可以使用改令牌再次对其进行加密。
+    /// 1，JWT默认不加密，但可以加密。生成原始令牌后，可以使用该令牌再次对其进行加密。
     /// 2，当JWT未加密时，私密数据无法通过JWT传输。
     /// 3，JWT不仅可用于认证，还可用于信息交换。善用JWT有助于减少服务器请求数据库的次数。
     /// 4，JWT的最大缺点是服务器不保存会话状态，所以在使用期间不可能取消令牌或更改令牌的权限。也就是说，一旦JWT签发，在有效期内将会一直有效。
@@ -18,17 +18,26 @@ namespace NewLife.Web
     public class JwtBuilder
     {
         #region 属性
-        /// <summary>标识</summary>
-        public String Id { get; set; }
+        /// <summary>颁发者</summary>
+        public String Issuer { get; set; }
 
         /// <summary>主体所有人。可以存放userid/roleid等，作为用户唯一标识</summary>
         public String Subject { get; set; }
 
-        /// <summary>颁发者</summary>
-        public String Issuer { get; set; }
+        /// <summary>受众</summary>
+        public String Audience { get; set; }
+
+        /// <summary>有效期。默认2小时</summary>
+        public DateTime Expire { get; set; }
+
+        /// <summary>生效时间，在此之前是无效的</summary>
+        public DateTime NotBefore { get; set; }
 
         /// <summary>颁发时间</summary>
         public DateTime IssuedAt { get; set; }
+
+        /// <summary>标识</summary>
+        public String Id { get; set; }
 
         /// <summary>算法。默认HS256</summary>
         public String Algorithm { get; set; } = "HS256";
@@ -38,9 +47,6 @@ namespace NewLife.Web
 
         /// <summary>密钥</summary>
         public String Secret { get; set; }
-
-        /// <summary>有效期。默认2小时</summary>
-        public TimeSpan Expire { get; set; } = TimeSpan.FromHours(2);
         #endregion
 
         #region JWT方法
@@ -55,9 +61,11 @@ namespace NewLife.Web
 
             var dic = payload.ToDictionary();
             if (!dic.ContainsKey("iss") && !Issuer.IsNullOrEmpty()) dic["iss"] = Issuer;
-            if (!dic.ContainsKey("iat")) dic["iat"] = (IssuedAt.Year > 2000 ? IssuedAt : now).ToInt();
-            if (!dic.ContainsKey("exp") && Expire.TotalSeconds > 10) dic["exp"] = now.Add(Expire);
             if (!dic.ContainsKey("sub") && !Subject.IsNullOrEmpty()) dic["sub"] = Subject;
+            if (!dic.ContainsKey("aud") && !Audience.IsNullOrEmpty()) dic["aud"] = Audience;
+            if (!dic.ContainsKey("exp") && Expire.Year > 2000) dic["exp"] = Expire.ToInt();
+            if (!dic.ContainsKey("nbf") && NotBefore.Year > 2000) dic["nbf"] = NotBefore.ToInt();
+            if (!dic.ContainsKey("iat")) dic["iat"] = (IssuedAt.Year > 2000 ? IssuedAt : now).ToInt();
             if (!dic.ContainsKey("jti") && !Id.IsNullOrEmpty()) dic["jti"] = Id;
 
             // 头部
@@ -99,19 +107,22 @@ namespace NewLife.Web
             if (ts.Length != 3) return false;
 
             // 头部
-            var header = new JsonParser(ts[0].ToBase64().ToStr()).Decode() as IDictionary<String, Object>;
+            var header = JsonParser.Decode(ts[0].ToBase64().ToStr());
             if (header == null) return false;
 
             if (header.TryGetValue("alg", out var alg) && alg != null) Algorithm = alg + "";
             if (header.TryGetValue("typ", out var typ)) Type = typ + "";
 
             // 主体
-            var body = new JsonParser(ts[1].ToBase64().ToStr()).Decode() as IDictionary<String, Object>;
+            var body = JsonParser.Decode(ts[1].ToBase64().ToStr());
             payload = body;
 
             if (body.TryGetValue("iss", out var value)) Issuer = value + "";
-            if (body.TryGetValue("iat", out value)) IssuedAt = value.ToDateTime();
             if (body.TryGetValue("sub", out value)) Subject = value + "";
+            if (body.TryGetValue("aud", out value)) Audience = value + "";
+            if (body.TryGetValue("exp", out value)) Expire = value.ToDateTime();
+            if (body.TryGetValue("nbf", out value)) NotBefore = value.ToDateTime();
+            if (body.TryGetValue("iat", out value)) IssuedAt = value.ToDateTime();
             if (body.TryGetValue("jti", out value)) Id = value + "";
 
             // 验证签名

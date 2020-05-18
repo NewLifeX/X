@@ -683,7 +683,7 @@ namespace NewLife.Http
             if (Type.GetTypeCode(typeof(TResult)) != TypeCode.Object) return str.ChangeType<TResult>();
 
             // 反序列化
-            var dic = new JsonParser(str).Decode() as IDictionary<String, Object>;
+            var dic = JsonParser.Decode(str);
             if (!dic.TryGetValue("data", out var data)) throw new InvalidDataException("未识别响应数据");
 
             if (dic.TryGetValue("result", out var result))
