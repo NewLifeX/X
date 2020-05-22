@@ -241,7 +241,7 @@ namespace NewLife
             var disk = ReadWmic("diskdrive", "serialnumber");
             if (disk != null)
             {
-                if (disk.TryGetValue("serialnumber", out str)) DiskID = str;
+                if (disk.TryGetValue("serialnumber", out str)) DiskID = str?.Trim();
             }
 
             // 不要在刷新里面取CPU负载，因为运行wmic会导致CPU负载很不准确，影响测量
@@ -555,13 +555,17 @@ namespace NewLife
             var list2 = di.GetFiles().Select(e => e.Name).ToList();
             foreach (var item in list2)
             {
-                if (trimSuffix)
+                var line = item?.Trim();
+                if (!line.IsNullOrEmpty())
                 {
-                    if (!list2.Any(e => e != item && item.StartsWith(e))) list.Add(item);
-                }
-                else
-                {
-                    list.Add(item);
+                    if (trimSuffix)
+                    {
+                        if (!list2.Any(e => e != line && line.StartsWith(e))) list.Add(line);
+                    }
+                    else
+                    {
+                        list.Add(line);
+                    }
                 }
             }
 
