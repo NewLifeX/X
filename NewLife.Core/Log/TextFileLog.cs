@@ -229,7 +229,7 @@ namespace NewLife.Log
                         fis = fis.OrderBy(e => e.CreationTime).Take(retain).ToArray();
                         foreach (var item in fis)
                         {
-                            OnWrite(LogLevel.Info, "日志文件达到上限 {0}，删除 {1}", Backups, item.Name);
+                            OnWrite(LogLevel.Info, "日志文件达到上限 {0}，删除 {1}，大小 {2:n0}Byte", Backups, item.Name, item.Length);
                             try
                             {
                                 item.Delete();
