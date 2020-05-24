@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using NewLife.Data;
 using NewLife.Serialization;
 
 namespace NewLife.Web
@@ -15,7 +16,7 @@ namespace NewLife.Web
     /// 5，JWT本身包含认证信息，因此一旦信息泄露，任何人都可以获得令牌的所有权限。为了减少盗用，JWT的有效期不宜设置太长。对于某些重要操作，用户在使用时应该每次都进行进行身份验证。
     /// 6，为了减少盗用和窃取，JWT不建议使用HTTP协议来传输代码，而是使用加密的HTTPS协议进行传输。
     /// </remarks>
-    public class JwtBuilder
+    public class JwtBuilder : IExtend3
     {
         #region 属性
         /// <summary>颁发者</summary>
@@ -47,6 +48,14 @@ namespace NewLife.Web
 
         /// <summary>密钥</summary>
         public String Secret { get; set; }
+
+        /// <summary>数据项</summary>
+        public IDictionary<String, Object> Items { get; private set; }
+
+        /// <summary>设置 或 获取 数据项</summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public Object this[String key] { get => Items?[key]; set => Items[key] = value; }
         #endregion
 
         #region JWT方法
@@ -95,11 +104,11 @@ namespace NewLife.Web
 
         /// <summary>解码令牌，得到目标对象</summary>
         /// <param name="token"></param>
-        /// <param name="payload"></param>
+        /// <param name="message"></param>
         /// <returns></returns>
-        public Boolean TryDecode(String token, out IDictionary<String, Object> payload)
+        public Boolean TryDecode(String token, out String message)
         {
-            payload = null;
+            message = null;
 
             if (Secret.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Secret));
 
@@ -115,7 +124,7 @@ namespace NewLife.Web
 
             // 主体
             var body = JsonParser.Decode(ts[1].ToBase64().ToStr());
-            payload = body;
+            Items = body;
 
             if (body.TryGetValue("iss", out var value)) Issuer = value + "";
             if (body.TryGetValue("sub", out value)) Subject = value + "";
@@ -124,6 +133,19 @@ namespace NewLife.Web
             if (body.TryGetValue("nbf", out value)) NotBefore = value.ToDateTime();
             if (body.TryGetValue("iat", out value)) IssuedAt = value.ToDateTime();
             if (body.TryGetValue("jti", out value)) Id = value + "";
+
+            // 验证关键字段
+            var now = DateTime.Now;
+            if (Expire.Year > 2000 && Expire < now)
+            {
+                message = "令牌已过期";
+                return false;
+            }
+            if (NotBefore.Year > 2000 && now < NotBefore)
+            {
+                message = "令牌未生效";
+                return false;
+            }
 
             // 验证签名
             var sec = Secret.GetBytes();

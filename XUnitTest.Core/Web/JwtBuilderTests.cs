@@ -65,7 +65,7 @@ namespace XUnitTest.Web
             Assert.Equal(builder.IssuedAt.Trim(), builder2.IssuedAt.Trim());
             Assert.Equal(builder.Audience, builder2.Audience);
             Assert.Equal(builder.NotBefore, builder2.NotBefore);
-            Assert.Equal("stone", payload["name"]);
+            Assert.Equal("stone", builder2["name"]);
         }
 
         [Fact]
@@ -100,7 +100,7 @@ namespace XUnitTest.Web
 
             Assert.Equal(builder.Issuer, builder2.Issuer);
             Assert.Equal(builder.IssuedAt.Trim(), builder2.IssuedAt.Trim());
-            Assert.Equal("stone", payload["name"]);
+            Assert.Equal("stone", builder2["name"]);
         }
     }
 }

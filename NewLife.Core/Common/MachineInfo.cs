@@ -80,7 +80,7 @@ namespace NewLife
                 if (dataPath.IsNullOrEmpty()) dataPath = "Data";
 
                 // 文件缓存，加快机器信息获取
-                var file = Path.GetTempPath().CombinePath("machine_info.json").GetBasePath();
+                var file = Path.GetTempPath().CombinePath("machine_info.json");
                 var file2 = dataPath.CombinePath("machine_info.json").GetBasePath();
                 if (Current == null)
                 {
