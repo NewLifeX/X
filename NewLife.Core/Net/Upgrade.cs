@@ -152,7 +152,7 @@ namespace NewLife.Net
             // 解压更新程序包
             if (!file.EndsWithIgnoreCase(".zip", ".7z")) return false;
 
-            var tmp = Path.GetTempPath().CombinePath(Path.GetFileNameWithoutExtension(file)).GetBasePath();
+            var tmp = Path.GetTempPath().CombinePath(Path.GetFileNameWithoutExtension(file));
             WriteLog("解压缩更新包到临时目录 {0}", tmp);
             file.AsFile().Extract(tmp, true);
 
