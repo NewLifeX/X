@@ -7,8 +7,8 @@
     <Description>算法、日志、网络、RPC、序列化、缓存、线程池</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2020 NewLife</Copyright>
-    <Version>8.7.2020.0519-beta</Version>
-    <FileVersion>8.7.2020.0519</FileVersion>
+    <Version>8.7.2020.0525-rc</Version>
+    <FileVersion>8.7.2020.0525</FileVersion>
     <AssemblyVersion>8.7.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <OutputPath>..\..\Bin</OutputPath>
@@ -27,7 +27,7 @@
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
-    <PackageReleaseNotes>致命错误同步写日志；修正ApiServer高并发时缓冲区覆盖BUG；修正语音BUG；优化CPU使用率计算；支持阿里云OSS</PackageReleaseNotes>
+    <PackageReleaseNotes>机器信息增加磁盘序列号；增加主动式消息服务；优化JWT</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
