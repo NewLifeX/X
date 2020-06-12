@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Xml.Serialization;
 using NewLife.Reflection;
 using NewLife.Serialization;
@@ -308,6 +309,60 @@ namespace NewLife.Data
             }
 
             return list;
+        }
+        #endregion
+
+        #region 反射
+        /// <summary>写入模型列表</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="models"></param>
+        public void WriteModels<T>(IEnumerable<T> models)
+        {
+            // 可用属性
+            var pis = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            pis = pis.Where(e => e.PropertyType.GetTypeCode() != TypeCode.Object).ToArray();
+
+            Rows = new List<Object[]>();
+            foreach (var item in models)
+            {
+                // 头部
+                if (Columns == null)
+                {
+                    Columns = pis.Select(e => e.Name).ToArray();
+                    Types = pis.Select(e => e.PropertyType).ToArray();
+                }
+
+                var row = new Object[Columns.Length];
+                for (var i = 0; i < row.Length; i++)
+                {
+                    // 反射取值
+                    row[i] = pis[i].GetValue(item, null);
+                }
+                Rows.Add(row);
+            }
+        }
+
+        /// <summary>数据表转模型列表。普通反射，便于DAL查询后转任意模型列表</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public IEnumerable<T> ReadModels<T>() where T : class, new()
+        {
+            // 可用属性
+            var pis = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            var dic = pis.ToDictionary(e => e.Name, e => e);
+
+            foreach (var row in Rows)
+            {
+                var model = new T();
+                for (var i = 0; i < row.Length; i++)
+                {
+                    // 反射赋值
+                    if (dic.TryGetValue(Columns[i], out var pi))
+                        pi.SetValue(model, row[i], null);
+                }
+
+                yield return model;
+            }
         }
         #endregion
 
