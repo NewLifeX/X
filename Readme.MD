@@ -3,7 +3,7 @@
 
 2002~2020，成千上万兄弟姐妹们努力的见证！  
 
-详细教程：[https://www.yuque.com/smartstone/nx](https://www.yuque.com/smartstone/nx)  
+核心库教程：[https://www.yuque.com/smartstone/nx](https://www.yuque.com/smartstone/nx)  
 XCode教程：[https://www.yuque.com/smartstone/xcode](https://www.yuque.com/smartstone/xcode)  
 
 ## 新生命开源项目矩阵
