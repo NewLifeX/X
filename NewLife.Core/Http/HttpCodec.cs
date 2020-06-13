@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using NewLife.Data;
 using NewLife.Messaging;
 using NewLife.Model;
+using NewLife.Net;
 
 namespace NewLife.Http
 {
@@ -23,6 +24,9 @@ namespace NewLife.Http
         /// <returns></returns>
         public override Object Write(IHandlerContext context, Object message)
         {
+            // Http编码器仅支持Tcp
+            if (context.Owner is ISocket sock && sock.Local.Type != NetType.Tcp) return base.Write(context, message);
+
             if (message is HttpMessage http)
             {
                 message = http.ToPacket();
@@ -37,6 +41,9 @@ namespace NewLife.Http
         /// <returns></returns>
         public override Object Read(IHandlerContext context, Object message)
         {
+            // Http编码器仅支持Tcp
+            if (context.Owner is ISocket sock && sock.Local.Type != NetType.Tcp) return base.Read(context, message);
+
             if (!(message is Packet pk)) return base.Read(context, message);
 
             // 是否Http请求
