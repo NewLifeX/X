@@ -89,9 +89,9 @@ namespace NewLife.Remoting
         /// <summary>开始会话处理</summary>
         public override void Start()
         {
-            base.Start();
-
             _Host = Host.Host as ApiServer;
+
+            base.Start();
         }
 
         /// <summary>查找Api动作</summary>
