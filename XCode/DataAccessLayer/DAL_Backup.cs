@@ -279,7 +279,7 @@ namespace XCode.DataAccessLayer
             while (true)
             {
                 // 读取数据
-                var count = dt.ReadData(bn, Math.Min(dt.Total - row, pageSize));
+                dt.ReadData(bn, Math.Min(dt.Total - row, pageSize));
 
                 var rs = dt.Rows;
                 if (rs == null || rs.Count == 0) break;
@@ -293,8 +293,8 @@ namespace XCode.DataAccessLayer
                 writeDb.Tell(dt.Clone());
 
                 // 下一页
-                total += count;
-                if (count < pageSize) break;
+                total += rs.Count;
+                if (rs.Count < pageSize) break;
                 row += pageSize;
             }
 
