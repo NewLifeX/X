@@ -59,14 +59,14 @@ namespace NewLife.Net
         /// <summary>管道</summary>
         public IPipeline Pipeline { get; set; }
 
-        /// <summary>会话统计</summary>
-        public ICounter StatSession { get; set; }
+        ///// <summary>会话统计</summary>
+        //public ICounter StatSession { get; set; }
 
-        /// <summary>发送统计</summary>
-        public ICounter StatSend { get; set; }
+        ///// <summary>发送统计</summary>
+        //public ICounter StatSend { get; set; }
 
-        /// <summary>接收统计</summary>
-        public ICounter StatReceive { get; set; }
+        ///// <summary>接收统计</summary>
+        //public ICounter StatReceive { get; set; }
 
         /// <summary>SSL协议。默认None，服务端Default，客户端不启用</summary>
         public SslProtocols SslProtocol { get; set; } = SslProtocols.None;
@@ -112,10 +112,10 @@ namespace NewLife.Net
 
             if (Active || Disposed) return;
 
-            // 统计
-            if (StatSession == null) StatSession = new PerfCounter();
-            if (StatSend == null) StatSend = new PerfCounter();
-            if (StatReceive == null) StatReceive = new PerfCounter();
+            //// 统计
+            //if (StatSession == null) StatSession = new PerfCounter();
+            //if (StatSend == null) StatSend = new PerfCounter();
+            //if (StatReceive == null) StatReceive = new PerfCounter();
 
             var sock = Client;
 
@@ -266,7 +266,7 @@ namespace NewLife.Net
                 session.ID = Interlocked.Increment(ref g_ID);
                 session.WriteLog("New {0}", session.Remote.EndPoint);
 
-                StatSession?.Increment(1, 0);
+                //StatSession?.Increment(1, 0);
 
                 NewSession?.Invoke(this, new SessionEventArgs { Session = session });
 
@@ -297,8 +297,8 @@ namespace NewLife.Net
                 Log = Log,
                 LogSend = LogSend,
                 LogReceive = LogReceive,
-                StatSend = StatSend,
-                StatReceive = StatReceive,
+                //StatSend = StatSend,
+                //StatReceive = StatReceive,
                 ProcessAsync = ProcessAsync,
                 Pipeline = Pipeline
             };

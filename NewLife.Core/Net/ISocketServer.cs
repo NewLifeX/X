@@ -19,8 +19,8 @@ namespace NewLife.Net
         /// </remarks>
         Int32 SessionTimeout { get; set; }
 
-        /// <summary>会话统计</summary>
-        ICounter StatSession { get; set; }
+        ///// <summary>会话统计</summary>
+        //ICounter StatSession { get; set; }
 
         /// <summary>会话集合。用地址端口作为标识，业务应用自己维持地址端口与业务主键的对应关系。</summary>
         IDictionary<String, ISocketSession> Sessions { get; }
@@ -33,21 +33,21 @@ namespace NewLife.Net
     public static class SocketServerHelper
     {
         #region 统计
-        /// <summary>获取统计信息</summary>
-        /// <param name="socket"></param>
-        /// <returns></returns>
-        public static String GetStat(this ISocketServer socket)
-        {
-            if (socket == null) return null;
+        ///// <summary>获取统计信息</summary>
+        ///// <param name="socket"></param>
+        ///// <returns></returns>
+        //public static String GetStat(this ISocketServer socket)
+        //{
+        //    if (socket == null) return null;
 
-            var sb = Pool.StringBuilder.Get();
-            //sb.AppendFormat("在线：{0:n0}/{1:n0} ", socket.SessionCount, socket.MaxSessionCount);
-            if (socket.StatSend.Value > 0) sb.AppendFormat("发送：{0} ", socket.StatSend);
-            if (socket.StatReceive.Value > 0) sb.AppendFormat("接收：{0} ", socket.StatReceive);
-            if (socket.StatSession.Value > 0) sb.AppendFormat("会话：{0} ", socket.StatSession);
+        //    var sb = Pool.StringBuilder.Get();
+        //    //sb.AppendFormat("在线：{0:n0}/{1:n0} ", socket.SessionCount, socket.MaxSessionCount);
+        //    if (socket.StatSend.Value > 0) sb.AppendFormat("发送：{0} ", socket.StatSend);
+        //    if (socket.StatReceive.Value > 0) sb.AppendFormat("接收：{0} ", socket.StatReceive);
+        //    if (socket.StatSession.Value > 0) sb.AppendFormat("会话：{0} ", socket.StatSession);
 
-            return sb.Put(true);
-        }
+        //    return sb.Put(true);
+        //}
         #endregion
     }
 }

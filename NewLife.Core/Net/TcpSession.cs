@@ -247,7 +247,7 @@ namespace NewLife.Net
         {
             var count = pk.Total;
 
-            StatSend?.Increment(count, 0);
+            //StatSend?.Increment(count, 0);
             if (Log != null && Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, pk.ToHex());
 
             var sock = Client;
@@ -385,7 +385,7 @@ namespace NewLife.Net
             var pk = e.Packet;
             if ((pk == null || pk.Count == 0) && e.Message == null && !MatchEmpty) return true;
 
-            if (pk != null) StatReceive?.Increment(pk.Count, 0);
+            //if (pk != null) StatReceive?.Increment(pk.Count, 0);
 
             // 分析处理
             RaiseReceive(this, e);

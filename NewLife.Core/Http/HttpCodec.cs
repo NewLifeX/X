@@ -25,7 +25,7 @@ namespace NewLife.Http
         public override Object Write(IHandlerContext context, Object message)
         {
             // Http编码器仅支持Tcp
-            if (context.Owner is ISocket sock && sock.Local.Type != NetType.Tcp) return base.Write(context, message);
+            if (context?.Owner is ISocket sock && sock.Local != null && sock.Local.Type != NetType.Tcp) return base.Write(context, message);
 
             if (message is HttpMessage http)
             {
@@ -42,7 +42,7 @@ namespace NewLife.Http
         public override Object Read(IHandlerContext context, Object message)
         {
             // Http编码器仅支持Tcp
-            if (context.Owner is ISocket sock && sock.Local.Type != NetType.Tcp) return base.Read(context, message);
+            if (context?.Owner is ISocket sock && sock.Local != null && sock.Local.Type != NetType.Tcp) return base.Read(context, message);
 
             if (!(message is Packet pk)) return base.Read(context, message);
 

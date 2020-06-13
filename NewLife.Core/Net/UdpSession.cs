@@ -75,11 +75,11 @@ namespace NewLife.Net
         /// <remarks>异步处理有可能造成数据包乱序，特别是Tcp。false避免拷贝，提升处理速度</remarks>
         public Boolean ProcessAsync { get => Server.ProcessAsync; set => Server.ProcessAsync = value; }
 
-        /// <summary>发送数据包统计信息</summary>
-        public ICounter StatSend { get; set; }
+        ///// <summary>发送数据包统计信息</summary>
+        //public ICounter StatSend { get; set; }
 
-        /// <summary>接收数据包统计信息</summary>
-        public ICounter StatReceive { get; set; }
+        ///// <summary>接收数据包统计信息</summary>
+        //public ICounter StatReceive { get; set; }
 
         /// <summary>通信开始时间</summary>
         public DateTime StartTime { get; private set; }
@@ -102,8 +102,8 @@ namespace NewLife.Net
             Server = server;
             Remote = new NetUri(NetType.Udp, remote);
 
-            StatSend = server.StatSend;
-            StatReceive = server.StatReceive;
+            //StatSend = server.StatSend;
+            //StatReceive = server.StatReceive;
 
             // 检查并开启广播
             server.Client.CheckBroadcast(remote.Address);

@@ -38,11 +38,11 @@ namespace NewLife.Remoting
         /// <summary>调用统计</summary>
         public ICounter StatInvoke { get; set; }
 
-        /// <summary>发送数据包统计信息</summary>
-        public ICounter StatSend { get; set; }
+        ///// <summary>发送数据包统计信息</summary>
+        //public ICounter StatSend { get; set; }
 
-        /// <summary>接收数据包统计信息</summary>
-        public ICounter StatReceive { get; set; }
+        ///// <summary>接收数据包统计信息</summary>
+        //public ICounter StatReceive { get; set; }
         #endregion
 
         #region 构造
@@ -99,8 +99,8 @@ namespace NewLife.Remoting
                 var ms = StatPeriod * 1000;
                 if (ms > 0)
                 {
-                    if (StatSend == null) StatSend = new PerfCounter();
-                    if (StatReceive == null) StatReceive = new PerfCounter();
+                    //if (StatSend == null) StatSend = new PerfCounter();
+                    //if (StatReceive == null) StatReceive = new PerfCounter();
 
                     _Timer = new TimerX(DoWork, null, ms, ms) { Async = true };
                 }
@@ -362,8 +362,8 @@ namespace NewLife.Remoting
             var client = new NetUri(svr).CreateRemote();
             // 网络层采用消息层超时
             client.Timeout = Timeout;
-            client.StatSend = StatSend;
-            client.StatReceive = StatReceive;
+            //client.StatSend = StatSend;
+            //client.StatReceive = StatReceive;
 
             client.Add(GetMessageCodec());
 
@@ -386,10 +386,10 @@ namespace NewLife.Remoting
             var pf1 = StatInvoke;
             if (pf1 != null && pf1.Value > 0) sb.AppendFormat("请求：{0} ", pf1);
 
-            var st1 = StatSend;
-            var st2 = StatReceive;
-            if (st1 != null && st1.Value > 0) sb.AppendFormat("发送：{0} ", st1);
-            if (st2 != null && st2.Value > 0) sb.AppendFormat("接收：{0} ", st2);
+            //var st1 = StatSend;
+            //var st2 = StatReceive;
+            //if (st1 != null && st1.Value > 0) sb.AppendFormat("发送：{0} ", st1);
+            //if (st2 != null && st2.Value > 0) sb.AppendFormat("接收：{0} ", st2);
 
             var msg = sb.Put(true);
             if (msg.IsNullOrEmpty() || msg == _Last) return;
