@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using NewLife.Data;
 using Xunit;
@@ -34,6 +35,40 @@ namespace XUnitTest.Data
             var dic = list[0];
             Assert.Equal(123, dic["Id"]);
             Assert.Equal("Stone", dic["Name"]);
+        }
+
+        [Fact]
+        public void BinaryTest()
+        {
+            var file = Path.GetTempFileName();
+
+            var dt = new DbTable
+            {
+                Columns = new[] { "ID", "Name", "Time" },
+                Types = new[] { typeof(Int32), typeof(String), typeof(DateTime) },
+                Rows = new List<Object[]>
+                {
+                    new Object[] { 11, "Stone", DateTime.Now.Trim() },
+                    new Object[] { 22, "大石头", DateTime.Today },
+                    new Object[] { 33, "新生命", DateTime.UtcNow.Trim() }
+                }
+            };
+            dt.SaveFile(file, true);
+
+            Assert.True(File.Exists(file));
+
+            var dt2 = new DbTable();
+            dt2.LoadFile(file, true);
+
+            Assert.Equal(3, dt2.Rows.Count);
+            for (var i = 0; i < 3; i++)
+            {
+                var m = dt.Rows[i];
+                var n = dt2.Rows[i];
+                Assert.Equal(m[0], n[0]);
+                Assert.Equal(m[1], n[1]);
+                Assert.Equal(m[2], n[2]);
+            }
         }
 
         [Fact]

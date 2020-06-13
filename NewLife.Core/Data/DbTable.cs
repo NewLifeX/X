@@ -95,10 +95,8 @@ namespace NewLife.Data
 
         /// <summary>从数据流读取</summary>
         /// <param name="stream"></param>
-        public Int64 Read(Stream stream)
+        public void Read(Stream stream)
         {
-            var p = stream.Position;
-
             var bn = new Binary
             {
                 EncodeInt = true,
@@ -110,20 +108,21 @@ namespace NewLife.Data
 
             // 读取全部数据
             ReadData(bn, Total);
-
-            return stream.Position - p;
         }
 
         /// <summary>读取头部</summary>
         /// <param name="bn"></param>
         public void ReadHeader(Binary bn)
         {
-            // 头部，幻数、版本和压缩标记
+            // 头部，幻数、版本和标记
             var magic = bn.ReadBytes(14).ToStr();
             if (magic.Trim() != "NewLifeDbTable") throw new InvalidDataException();
 
             var ver = bn.Read<Byte>();
             var flag = bn.Read<Byte>();
+
+            // 版本兼容
+            if (ver > _Ver) throw new InvalidDataException($"DbTable[ver={_Ver}]无法支持较新的版本[{ver}]");
 
             // 写入头部
             var count = bn.Read<Int32>();
@@ -145,30 +144,22 @@ namespace NewLife.Data
         /// <param name="bn"></param>
         /// <param name="rows"></param>
         /// <returns></returns>
-        public Int32 ReadData(Binary bn, Int32 rows)
+        public void ReadData(Binary bn, Int32 rows)
         {
-            if (rows <= 0) return 0;
+            if (rows <= 0) return;
 
             var ts = Types;
-
-            var total = 0;
-            //var length = bn.Stream.Length;
             var rs = new List<Object[]>(rows);
             for (var k = 0; k < rows; k++)
             {
-                //if (bn.Stream.Position >= length) break;
-
                 var row = new Object[ts.Length];
                 for (var i = 0; i < ts.Length; i++)
                 {
                     row[i] = bn.Read(ts[i]);
                 }
                 rs.Add(row);
-                total++;
             }
             Rows = rs;
-
-            return total;
         }
 
         /// <summary>读取</summary>
@@ -193,10 +184,8 @@ namespace NewLife.Data
         #region 二进制写入
         /// <summary>写入数据流</summary>
         /// <param name="stream"></param>
-        public Int64 Write(Stream stream)
+        public void Write(Stream stream)
         {
-            var p = stream.Position;
-
             var bn = new Binary
             {
                 EncodeInt = true,
@@ -212,8 +201,6 @@ namespace NewLife.Data
 
             // 写入数据行
             WriteData(bn);
-
-            return stream.Position - p;
         }
 
         /// <summary>写入头部到数据流</summary>
@@ -223,7 +210,7 @@ namespace NewLife.Data
             var cs = Columns;
             var ts = Types;
 
-            // 头部，幻数、版本和压缩标记
+            // 头部，幻数、版本和标记
             bn.Write("NewLifeDbTable".GetBytes(), 0, 14);
             bn.Write(_Ver);
             bn.Write(0);
@@ -277,7 +264,7 @@ namespace NewLife.Data
         /// <param name="file"></param>
         /// <param name="compressed">是否压缩</param>
         /// <returns></returns>
-        public Int64 SaveFile(String file, Boolean compressed = false) => file.AsFile().OpenWrite(compressed, s => Write(s));
+        public void SaveFile(String file, Boolean compressed = false) => file.AsFile().OpenWrite(compressed, s => Write(s));
         #endregion
 
         #region Json序列化
