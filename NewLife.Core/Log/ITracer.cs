@@ -14,9 +14,6 @@ namespace NewLife.Log
 
         /// <summary>最大异常采样数。采样周期内，最多只记录指定数量的异常事件，默认10</summary>
         Int32 MaxErrors { get; set; }
-
-        /// <summary>Span构建器</summary>
-        IDictionary<String, ISpanBuilder> Builders { get; }
         #endregion
 
         /// <summary>建立Span构建器</summary>
@@ -28,6 +25,10 @@ namespace NewLife.Log
         /// <param name="name">操作名</param>
         /// <returns></returns>
         ISpan Start(String name);
+
+        /// <summary>截断所有Span构建器数据，重置集合</summary>
+        /// <returns></returns>
+        IDictionary<String, ISpanBuilder> TakeAll();
     }
 
     /// <summary>性能跟踪器。轻量级APM</summary>
@@ -45,9 +46,8 @@ namespace NewLife.Log
         /// <summary>最大异常采样数。采样周期内，最多只记录指定数量的异常事件，默认10</summary>
         public Int32 MaxErrors { get; set; } = 10;
 
-        private readonly ConcurrentDictionary<String, ISpanBuilder> _builders = new ConcurrentDictionary<String, ISpanBuilder>();
-        /// <summary>Span构建器</summary>
-        public IDictionary<String, ISpanBuilder> Builders => _builders;
+        /// <summary>Span构建器集合</summary>
+        private ConcurrentDictionary<String, ISpanBuilder> _builders = new ConcurrentDictionary<String, ISpanBuilder>();
         #endregion
 
         #region 方法
@@ -65,6 +65,22 @@ namespace NewLife.Log
         /// <param name="name">操作名</param>
         /// <returns></returns>
         public virtual ISpan Start(String name) => BuildSpan(name).Start();
+
+        /// <summary>截断所有Span构建器数据，重置集合</summary>
+        /// <returns></returns>
+        public virtual IDictionary<String, ISpanBuilder> TakeAll()
+        {
+            var bs = _builders;
+            _builders = new ConcurrentDictionary<String, ISpanBuilder>();
+
+            // 设置结束时间
+            foreach (var item in bs)
+            {
+                item.Value.EndTime = DateTime.UtcNow.ToLong();
+            }
+
+            return bs;
+        }
         #endregion
     }
 }

@@ -17,6 +17,12 @@ namespace NewLife.Log
         /// <summary>操作名</summary>
         String Name { get; set; }
 
+        /// <summary>开始时间。Unix毫秒</summary>
+        Int64 StartTime { get; set; }
+
+        /// <summary>结束时间。Unix毫秒</summary>
+        Int64 EndTime { get; set; }
+
         /// <summary>采样总数</summary>
         Int32 Total { get; }
 
@@ -57,6 +63,12 @@ namespace NewLife.Log
 
         /// <summary>操作名</summary>
         public String Name { get; set; }
+
+        /// <summary>开始时间。Unix毫秒</summary>
+        public Int64 StartTime { get; set; } = DateTime.UtcNow.ToLong();
+
+        /// <summary>结束时间。Unix毫秒</summary>
+        public Int64 EndTime { get; set; }
 
         private Int32 _Total;
         /// <summary>采样总数</summary>

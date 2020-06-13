@@ -27,6 +27,7 @@ namespace XUnitTest.Log
                 Assert.Equal("test", builder.Name);
 
                 using var span = builder.Start();
+                span.Tag = "任意业务数据";
                 Assert.NotEmpty(span.TraceId);
                 Assert.Equal(DateTime.Today, span.Time.ToDateTime().ToLocalTime().Date);
 
@@ -58,7 +59,8 @@ namespace XUnitTest.Log
                 Assert.Equal(span2.Cost, builder2.MaxCost);
             }
 
-            var js = tracer.Builders.ToJson();
+            var js = tracer.TakeAll().ToJson();
+            Assert.Contains("\"Tag\":\"任意业务数据\"", js);
         }
 
         [Fact]
@@ -96,7 +98,7 @@ namespace XUnitTest.Log
             Assert.Equal(tracer.MaxErrors, errors.Count);
             Assert.NotEqual(errors[0].TraceId, errors[1].TraceId);
 
-            var js = tracer.Builders.ToJson();
+            var js = tracer.TakeAll().ToJson();
         }
 
         [Fact]

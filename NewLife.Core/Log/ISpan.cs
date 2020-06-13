@@ -14,6 +14,9 @@ namespace NewLife.Log
         /// <summary>时间。Unix毫秒</summary>
         Int64 Time { get; set; }
 
+        /// <summary>数据标签。记录一些附加数据</summary>
+        String Tag { get; set; }
+
         /// <summary>错误信息</summary>
         Exception Error { get; set; }
 
@@ -34,6 +37,9 @@ namespace NewLife.Log
 
         /// <summary>时间。Unix毫秒</summary>
         public Int64 Time { get; set; }
+
+        /// <summary>数据标签。记录一些附加数据</summary>
+        public String Tag { get; set; }
 
         /// <summary>错误信息</summary>
         public Exception Error { get; set; }
