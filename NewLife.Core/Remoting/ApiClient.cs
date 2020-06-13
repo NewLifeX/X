@@ -6,6 +6,7 @@ using NewLife.Data;
 using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Net;
+using NewLife.Serialization;
 using NewLife.Threading;
 #if !NET4
 using TaskEx = System.Threading.Tasks.Task;
@@ -43,6 +44,9 @@ namespace NewLife.Remoting
 
         ///// <summary>接收数据包统计信息</summary>
         //public ICounter StatReceive { get; set; }
+
+        /// <summary>性能跟踪器</summary>
+        public ITracer Tracer { get; set; }
         #endregion
 
         #region 构造
@@ -234,6 +238,7 @@ namespace NewLife.Remoting
             var msg = enc.CreateRequest(action, args);
             if (flag > 0 && msg is DefaultMessage dm) dm.Flag = flag;
 
+            var span = Tracer?.NewSpan(action);
             var invoker = client != null ? (client + "") : ToString();
             IMessage rs = null;
             try
@@ -252,6 +257,14 @@ namespace NewLife.Remoting
             catch (AggregateException aggex)
             {
                 var ex = aggex.GetTrue();
+
+                // 跟踪异常
+                if (span != null)
+                {
+                    span.Tag = args?.ToJson()?.Cut(64);
+                    span.Error = ex;
+                }
+
                 if (ex is TaskCanceledException)
                 {
                     throw new TimeoutException($"请求[{action}]超时！", ex);
@@ -266,6 +279,8 @@ namespace NewLife.Remoting
             {
                 var msCost = st.StopCount(sw) / 1000;
                 if (SlowTrace > 0 && msCost >= SlowTrace) WriteLog($"慢调用[{action}]，耗时{msCost:n0}ms");
+
+                span?.Dispose();
             }
 
             // 特殊返回类型
@@ -311,6 +326,7 @@ namespace NewLife.Remoting
                 if (flag > 0) dm.Flag = flag;
             }
 
+            var span = Tracer?.NewSpan(action);
             var sw = st.StartCount();
             try
             {
@@ -321,10 +337,23 @@ namespace NewLife.Remoting
                 else
                     throw new InvalidOperationException();
             }
+            catch (Exception ex)
+            {
+                // 跟踪异常
+                if (span != null)
+                {
+                    span.Tag = args?.ToJson()?.Cut(64);
+                    span.Error = ex.GetTrue();
+                }
+
+                throw;
+            }
             finally
             {
                 var msCost = st.StopCount(sw) / 1000;
                 if (SlowTrace > 0 && msCost >= SlowTrace) WriteLog($"慢调用[{action}]，耗时{msCost:n0}ms");
+
+                span?.Dispose();
             }
         }
         #endregion

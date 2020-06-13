@@ -8,6 +8,7 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using NewLife.Collections;
 using NewLife.Data;
+using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Serialization;
 
@@ -17,6 +18,9 @@ namespace NewLife.Remoting
     public static class ApiHelper
     {
         #region 远程调用
+        /// <summary>性能跟踪器</summary>
+        public static ITracer Tracer { get; set; }
+
         /// <summary>异步调用，等待返回结果</summary>
         /// <param name="client">Http客户端</param>
         /// <param name="action">服务操作</param>
@@ -57,9 +61,28 @@ namespace NewLife.Remoting
             // 可能附加头部
             onRequest?.Invoke(request);
 
-            // 发起请求
-            var msg = await client.SendAsync(request);
-            return await ProcessResponse<TResult>(msg, dataName);
+            var span = action.IsNullOrEmpty() ? null : Tracer?.NewSpan(action);
+            try
+            {
+                // 发起请求
+                var msg = await client.SendAsync(request);
+                return await ProcessResponse<TResult>(msg, dataName);
+            }
+            catch (Exception ex)
+            {
+                // 跟踪异常
+                if (span != null)
+                {
+                    span.Tag = args?.ToJson()?.Cut(64);
+                    span.Error = ex.GetTrue();
+                }
+
+                throw;
+            }
+            finally
+            {
+                span?.Dispose();
+            }
         }
         #endregion
 
