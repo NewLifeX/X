@@ -9,11 +9,75 @@ namespace XUnitTest.Data
 {
     public class DbTableTests
     {
-        //[Fact]
-        //public void ToJson()
-        //{
+        [Fact]
+        public void NomalTest()
+        {
+            var dt = new DbTable
+            {
+                Columns = new[] { "Id", "Name", "CreateTime" },
+                Rows = new List<Object[]>
+                {
+                    new Object[] { 123, "Stone", DateTime.Now },
+                    new Object[] { 456, "NewLife", DateTime.Today }
+                }
+            };
 
-        //}
+            Assert.Equal(123, dt.Get<Int32>(0, "Id"));
+            Assert.Equal(456, dt.Get<Int32>(1, "ID"));
+
+            Assert.Equal("NewLife", dt.Get<String>(1, "Name"));
+            Assert.Equal(DateTime.Today, dt.Get<DateTime>(1, "CreateTime"));
+
+            // 不存在的字段
+            Assert.Equal(DateTime.MinValue, dt.Get<DateTime>(0, "Time"));
+
+            Assert.False(dt.TryGet<DateTime>(1, "Time", out var time));
+
+            var idx = dt.GetColumn("Name");
+            Assert.Equal(1, idx);
+
+            idx = dt.GetColumn("Time");
+            Assert.Equal(-1, idx);
+
+            // 迭代
+            var i = 0;
+            foreach (var row in dt)
+            {
+                if (i == 0)
+                {
+                    Assert.Equal(123, row["ID"]);
+                    Assert.Equal("Stone", row["name"]);
+                }
+                else if (i == 1)
+                {
+                    Assert.Equal(456, row["ID"]);
+                    Assert.Equal("NewLife", row["name"]);
+                    Assert.Equal(DateTime.Today, row["CreateTime"]);
+                }
+                i++;
+            }
+        }
+
+        [Fact]
+        public void ToJson()
+        {
+            var db = new DbTable
+            {
+                Columns = new[] { "Id", "Name", "CreateTime" },
+                Rows = new List<Object[]>
+                {
+                    new Object[] { 123, "Stone", DateTime.Now },
+                    new Object[] { 456, "NewLife", DateTime.Today }
+                }
+            };
+
+            var json = db.ToJson();
+            Assert.NotNull(json);
+            Assert.Contains("\"Id\":123", json);
+            Assert.Contains("\"Name\":\"Stone\"", json);
+            Assert.Contains("\"Id\":456", json);
+            Assert.Contains("\"Name\":\"NewLife\"", json);
+        }
 
         [Fact]
         public void ToDictionary()

@@ -361,7 +361,7 @@ namespace NewLife.Data
         /// <returns></returns>
         public T Get<T>(Int32 row, String name)
         {
-            if (!TryGet<T>(row, name, out var value)) return default(T);
+            if (!TryGet<T>(row, name, out var value)) return default;
 
             return value;
         }
@@ -374,7 +374,7 @@ namespace NewLife.Data
         /// <returns></returns>
         public Boolean TryGet<T>(Int32 row, String name, out T value)
         {
-            value = default(T);
+            value = default;
             var rs = Rows;
 
             if (row < 0 || row >= rs.Count || name.IsNullOrEmpty()) return false;
@@ -486,7 +486,7 @@ namespace NewLife.Data
 
                 if (_row < 0 || _row >= rs.Count)
                 {
-                    _Current = default(DbRow);
+                    _Current = default;
                     return false;
                 }
 
@@ -499,7 +499,7 @@ namespace NewLife.Data
 
             public void Reset()
             {
-                _Current = default(DbRow);
+                _Current = default;
                 _row = -1;
             }
 
