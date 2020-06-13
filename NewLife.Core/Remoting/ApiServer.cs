@@ -232,11 +232,7 @@ namespace NewLife.Remoting
                     }
 
                     // 跟踪异常
-                    if (span != null)
-                    {
-                        span.Tag = args?.ToStr()?.Cut(64);
-                        span.Error = ex;
-                    }
+                    span?.SetError(ex, args?.ToStr());
                 }
 
                 // 单向请求无需响应

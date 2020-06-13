@@ -89,7 +89,7 @@ namespace XUnitTest.Log
             for (var i = 0; i < 20; i++)
             {
                 using var span = tracer.NewSpan("test");
-                span.Error = new Exception("My Error");
+                span.SetError(new Exception("My Error"), null);
             }
 
             var errors = builder.ErrorSamples;
@@ -146,7 +146,7 @@ namespace XUnitTest.Log
                     using var span2 = tracer.NewSpan("test");
                     Thread.Sleep(200);
 
-                    span2.Error = new Exception("My Error");
+                    span2.SetError(new Exception("My Error"), null);
                 }
             }
 

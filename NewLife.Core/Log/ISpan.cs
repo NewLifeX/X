@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
+using NewLife.Serialization;
 
 namespace NewLife.Log
 {
@@ -18,10 +19,15 @@ namespace NewLife.Log
         String Tag { get; set; }
 
         /// <summary>错误信息</summary>
-        Exception Error { get; set; }
+        String Error { get; set; }
 
         /// <summary>片段耗时</summary>
         Int32 Cost { get; }
+
+        /// <summary>设置错误信息</summary>
+        /// <param name="ex">异常</param>
+        /// <param name="tag">标签</param>
+        void SetError(Exception ex, Object tag);
     }
 
     /// <summary>性能跟踪片段。轻量级APM</summary>
@@ -42,7 +48,7 @@ namespace NewLife.Log
         public String Tag { get; set; }
 
         /// <summary>错误信息</summary>
-        public Exception Error { get; set; }
+        public String Error { get; set; }
 
         /// <summary>耗时。单位ms</summary>
         public Int32 Cost { get; private set; }
@@ -102,6 +108,18 @@ namespace NewLife.Log
                 _traceId.Value = TraceId = Guid.NewGuid() + "";
                 _create_traceId = true;
             }
+        }
+
+        /// <summary>设置错误信息</summary>
+        /// <param name="ex">异常</param>
+        /// <param name="tag">标签</param>
+        public void SetError(Exception ex, Object tag)
+        {
+            Error = ex?.GetMessage();
+            if (tag is String str)
+                Tag = str?.Cut(256);
+            else if (tag != null)
+                Tag = tag?.ToJson().Cut(256);
         }
 
         /// <summary>完成跟踪</summary>

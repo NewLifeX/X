@@ -259,11 +259,7 @@ namespace NewLife.Remoting
                 var ex = aggex.GetTrue();
 
                 // 跟踪异常
-                if (span != null)
-                {
-                    span.Tag = args?.ToJson()?.Cut(64);
-                    span.Error = ex;
-                }
+                span?.SetError(ex, args);
 
                 if (ex is TaskCanceledException)
                 {
@@ -340,11 +336,7 @@ namespace NewLife.Remoting
             catch (Exception ex)
             {
                 // 跟踪异常
-                if (span != null)
-                {
-                    span.Tag = args?.ToJson()?.Cut(64);
-                    span.Error = ex.GetTrue();
-                }
+                span?.SetError(ex, args);
 
                 throw;
             }
