@@ -48,7 +48,7 @@ namespace Test
                 try
                 {
 #endif
-                Test1();
+                Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -145,6 +145,7 @@ namespace Test
                     Log = XTrace.Log,
                     //EncoderLog = XTrace.Log,
                     StatPeriod = 10,
+                    Tracer = DefaultTracer.Instance,
                 };
 
                 // http状态

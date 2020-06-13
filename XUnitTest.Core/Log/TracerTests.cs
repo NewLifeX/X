@@ -45,7 +45,7 @@ namespace XUnitTest.Log
 
             // 快速用法
             {
-                using var span2 = tracer.Start("test2");
+                using var span2 = tracer.NewSpan("test2");
                 Thread.Sleep(200);
                 span2.Dispose();
 
@@ -75,7 +75,7 @@ namespace XUnitTest.Log
             // 正常采样
             for (var i = 0; i < 10; i++)
             {
-                using var span = tracer.Start("test");
+                using var span = tracer.NewSpan("test");
             }
 
             var builder = tracer.BuildSpan("test");
@@ -88,7 +88,7 @@ namespace XUnitTest.Log
             // 异常采样
             for (var i = 0; i < 20; i++)
             {
-                using var span = tracer.Start("test");
+                using var span = tracer.NewSpan("test");
                 span.Error = new Exception("My Error");
             }
 
@@ -108,10 +108,10 @@ namespace XUnitTest.Log
 
             // 内嵌片段，应该共用TraceId
             {
-                using var span = tracer.Start("test");
+                using var span = tracer.NewSpan("test");
                 Thread.Sleep(100);
                 {
-                    using var span2 = tracer.Start("test2");
+                    using var span2 = tracer.NewSpan("test2");
 
                     Assert.Equal(span.TraceId, span2.TraceId);
                 }
@@ -119,11 +119,11 @@ namespace XUnitTest.Log
 
             // 内嵌片段，不同线程应该使用不同TraceId
             {
-                using var span = tracer.Start("test");
+                using var span = tracer.NewSpan("test");
                 Thread.Sleep(100);
                 ThreadPool.QueueUserWorkItem(s =>
                 {
-                    using var span2 = tracer.Start("test2");
+                    using var span2 = tracer.NewSpan("test2");
 
                     Assert.NotEqual(span.TraceId, span2.TraceId);
                 });
@@ -140,10 +140,10 @@ namespace XUnitTest.Log
             var tracer = new DefaultTracer();
 
             {
-                using var span = tracer.Start("test");
+                using var span = tracer.NewSpan("test");
                 Thread.Sleep(100);
                 {
-                    using var span2 = tracer.Start("test");
+                    using var span2 = tracer.NewSpan("test");
                     Thread.Sleep(200);
 
                     span2.Error = new Exception("My Error");
