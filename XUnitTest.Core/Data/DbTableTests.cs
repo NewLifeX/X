@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Text;
+using System.Linq;
 using NewLife.Data;
 using Xunit;
 
@@ -66,9 +65,30 @@ namespace XUnitTest.Data
             Assert.Equal(3, dt.Rows.Count);
             Assert.Equal(11, dt.Rows[0][0]);
             Assert.Equal("大石头", dt.Rows[1][1]);
+
+            var list2 = dt.ReadModels<UserModel2>().ToList();
+            Assert.NotNull(list2);
+            Assert.Equal(3, list2.Count);
+            for (var i = 0; i < list2.Count; i++)
+            {
+                var m = list[i];
+                var n = list2[i];
+                Assert.Equal(m.ID, n.ID);
+                Assert.Equal(m.Name, n.Name);
+                Assert.Equal(m.Time, n.Time);
+            }
         }
 
-        class UserModel
+        private class UserModel
+        {
+            public Int32 ID { get; set; }
+
+            public String Name { get; set; }
+
+            public DateTime Time { get; set; }
+        }
+
+        private class UserModel2
         {
             public Int32 ID { get; set; }
 
