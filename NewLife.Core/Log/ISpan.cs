@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Threading;
+using System.Web.Script.Serialization;
+using System.Xml.Serialization;
 
 namespace NewLife.Log
 {
@@ -9,8 +11,8 @@ namespace NewLife.Log
         /// <summary>跟踪标识。可用于关联多个片段，建立依赖关系。当前线程上下文自动关联</summary>
         String TraceId { get; set; }
 
-        /// <summary>时间</summary>
-        DateTime Time { get; set; }
+        /// <summary>时间。Unix毫秒</summary>
+        Int64 Time { get; set; }
 
         /// <summary>错误信息</summary>
         Exception Error { get; set; }
@@ -24,13 +26,14 @@ namespace NewLife.Log
     {
         #region 属性
         /// <summary>构建器</summary>
+        [XmlIgnore, ScriptIgnore]
         public ISpanBuilder Builder { get; }
 
         /// <summary>跟踪标识。可用于关联多个片段，建立依赖关系。当前线程上下文自动关联</summary>
         public String TraceId { get; set; }
 
-        /// <summary>时间</summary>
-        public DateTime Time { get; set; }
+        /// <summary>时间。Unix毫秒</summary>
+        public Int64 Time { get; set; }
 
         /// <summary>错误信息</summary>
         public Exception Error { get; set; }
@@ -50,7 +53,7 @@ namespace NewLife.Log
         public DefaultSpan(ISpanBuilder builder)
         {
             Builder = builder;
-            Time = DateTime.Now;
+            Time = DateTime.UtcNow.ToLong();
         }
 
         /// <summary>释放资源</summary>
@@ -101,8 +104,7 @@ namespace NewLife.Log
             if (_finished) return;
             _finished = true;
 
-            var ts = DateTime.Now - Time;
-            Cost = (Int32)ts.TotalMilliseconds;
+            Cost = (Int32)(DateTime.UtcNow.ToLong() - Time);
 
             // 从本线程中清除跟踪标识
             if (_create_traceId) _traceId.Value = null;

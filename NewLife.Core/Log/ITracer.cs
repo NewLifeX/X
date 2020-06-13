@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 
 namespace NewLife.Log
 {
@@ -12,6 +14,9 @@ namespace NewLife.Log
 
         /// <summary>最大异常采样数。采样周期内，最多只记录指定数量的异常事件，默认10</summary>
         Int32 MaxErrors { get; set; }
+
+        /// <summary>Span构建器</summary>
+        IDictionary<String, ISpanBuilder> Builders { get; }
         #endregion
 
         /// <summary>建立Span构建器</summary>
@@ -41,6 +46,8 @@ namespace NewLife.Log
         public Int32 MaxErrors { get; set; } = 10;
 
         private readonly ConcurrentDictionary<String, ISpanBuilder> _builders = new ConcurrentDictionary<String, ISpanBuilder>();
+        /// <summary>Span构建器</summary>
+        public IDictionary<String, ISpanBuilder> Builders => _builders;
         #endregion
 
         #region 方法

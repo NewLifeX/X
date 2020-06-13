@@ -2,6 +2,7 @@
 using System.Threading;
 using NewLife.Log;
 using Xunit;
+using NewLife.Serialization;
 
 namespace XUnitTest.Log
 {
@@ -27,7 +28,7 @@ namespace XUnitTest.Log
 
                 using var span = builder.Start();
                 Assert.NotEmpty(span.TraceId);
-                Assert.Equal(DateTime.Today, span.Time.Date);
+                Assert.Equal(DateTime.Today, span.Time.ToDateTime().ToLocalTime().Date);
 
                 Thread.Sleep(100);
                 span.Dispose();
@@ -56,6 +57,8 @@ namespace XUnitTest.Log
                 Assert.Equal(span2.Cost, builder2.Cost);
                 Assert.Equal(span2.Cost, builder2.MaxCost);
             }
+
+            var js = tracer.Builders.ToJson();
         }
 
         [Fact]
@@ -92,6 +95,8 @@ namespace XUnitTest.Log
             Assert.Equal(10 + 20, builder.Total);
             Assert.Equal(tracer.MaxErrors, errors.Count);
             Assert.NotEqual(errors[0].TraceId, errors[1].TraceId);
+
+            var js = tracer.Builders.ToJson();
         }
 
         [Fact]

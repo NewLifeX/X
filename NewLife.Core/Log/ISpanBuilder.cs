@@ -2,6 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
+using System.Web.Script.Serialization;
+using System.Xml.Serialization;
 
 namespace NewLife.Log
 {
@@ -50,6 +52,7 @@ namespace NewLife.Log
     {
         #region 属性
         /// <summary>跟踪器</summary>
+        [XmlIgnore, ScriptIgnore]
         public ITracer Tracer { get; }
 
         /// <summary>操作名</summary>
