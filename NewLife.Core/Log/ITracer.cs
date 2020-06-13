@@ -7,7 +7,11 @@ namespace NewLife.Log
     public interface ITracer
     {
         #region 属性
+        /// <summary>最大正常采样数。采样周期内，最多只记录指定数量的正常事件，用于绘制依赖关系</summary>
+        Int32 MaxSamples { get; set; }
 
+        /// <summary>最大异常采样数。采样周期内，最多只记录指定数量的异常事件，默认10</summary>
+        Int32 MaxErrors { get; set; }
         #endregion
 
         /// <summary>建立Span构建器</summary>
@@ -34,7 +38,7 @@ namespace NewLife.Log
         public Int32 MaxSamples { get; set; } = 1;
 
         /// <summary>最大异常采样数。采样周期内，最多只记录指定数量的异常事件，默认10</summary>
-        public Int32 MaxError { get; set; } = 10;
+        public Int32 MaxErrors { get; set; } = 10;
 
         private readonly ConcurrentDictionary<String, ISpanBuilder> _builders = new ConcurrentDictionary<String, ISpanBuilder>();
         #endregion

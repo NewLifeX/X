@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Threading;
 
 namespace NewLife.Log
@@ -24,6 +26,12 @@ namespace NewLife.Log
 
         /// <summary>最大耗时。单位ms</summary>
         Int32 MaxCost { get; }
+
+        /// <summary>正常采样</summary>
+        IList<ISpan> Samples { get; }
+
+        /// <summary>异常采样</summary>
+        IList<ISpan> ErrorSamples { get; }
         #endregion
 
         #region 方法
@@ -61,6 +69,12 @@ namespace NewLife.Log
 
         /// <summary>最大耗时。单位ms</summary>
         public Int32 MaxCost { get; private set; }
+
+        /// <summary>正常采样</summary>
+        public IList<ISpan> Samples { get; } = new List<ISpan>();
+
+        /// <summary>异常采样</summary>
+        public IList<ISpan> ErrorSamples { get; } = new List<ISpan>();
         #endregion
 
         #region 构造
@@ -89,11 +103,33 @@ namespace NewLife.Log
         /// <param name="span"></param>
         public virtual void Finish(ISpan span)
         {
-            Interlocked.Increment(ref _Total);
-            if (span.Error != null) Interlocked.Increment(ref _Errors);
+            var total = Interlocked.Increment(ref _Total);
+            //if (span.Error != null) Interlocked.Increment(ref _Errors);
             Interlocked.Add(ref _Cost, span.Cost);
 
             if (MaxCost < span.Cost) MaxCost = span.Cost;
+
+            // 处理采样
+            if (span.Error != null)
+            {
+                if (Interlocked.Increment(ref _Errors) <= Tracer.MaxErrors)
+                {
+                    lock (ErrorSamples)
+                    {
+                        ErrorSamples.Add(span);
+                    }
+                }
+            }
+            else
+            {
+                if (total <= Tracer.MaxSamples)
+                {
+                    lock (Samples)
+                    {
+                        Samples.Add(span);
+                    }
+                }
+            }
         }
         #endregion
     }

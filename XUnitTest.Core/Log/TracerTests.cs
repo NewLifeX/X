@@ -10,9 +10,11 @@ namespace XUnitTest.Log
         [Fact]
         public void Test1()
         {
-            var tracer = new DefaultTracer();
-            tracer.MaxSamples = 2;
-            tracer.MaxError = 11;
+            var tracer = new DefaultTracer
+            {
+                MaxSamples = 2,
+                MaxErrors = 11
+            };
 
             Assert.Throws<ArgumentNullException>(() => tracer.BuildSpan(null));
 
@@ -54,6 +56,42 @@ namespace XUnitTest.Log
                 Assert.Equal(span2.Cost, builder2.Cost);
                 Assert.Equal(span2.Cost, builder2.MaxCost);
             }
+        }
+
+        [Fact]
+        public void TestSamples()
+        {
+            var tracer = new DefaultTracer
+            {
+                MaxSamples = 2,
+                MaxErrors = 11
+            };
+
+            // 正常采样
+            for (var i = 0; i < 10; i++)
+            {
+                using var span = tracer.Start("test");
+            }
+
+            var builder = tracer.BuildSpan("test");
+            var samples = builder.Samples;
+            Assert.NotNull(samples);
+            Assert.Equal(10, builder.Total);
+            Assert.Equal(tracer.MaxSamples, samples.Count);
+            Assert.NotEqual(samples[0].TraceId, samples[1].TraceId);
+
+            // 异常采样
+            for (var i = 0; i < 20; i++)
+            {
+                using var span = tracer.Start("test");
+                span.Error = new Exception("My Error");
+            }
+
+            var errors = builder.ErrorSamples;
+            Assert.NotNull(errors);
+            Assert.Equal(10 + 20, builder.Total);
+            Assert.Equal(tracer.MaxErrors, errors.Count);
+            Assert.NotEqual(errors[0].TraceId, errors[1].TraceId);
         }
 
         [Fact]
