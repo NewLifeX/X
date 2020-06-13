@@ -72,6 +72,36 @@ namespace XUnitTest.Data
         }
 
         [Fact]
+        public void BinaryVerTest()
+        {
+            var file = Path.GetTempFileName();
+
+            var dt = new DbTable
+            {
+                Columns = new[] { "ID", "Name", "Time" },
+                Types = new[] { typeof(Int32), typeof(String), typeof(DateTime) },
+                Rows = new List<Object[]>
+                {
+                    new Object[] { 11, "Stone", DateTime.Now.Trim() },
+                    new Object[] { 22, "大石头", DateTime.Today },
+                    new Object[] { 33, "新生命", DateTime.UtcNow.Trim() }
+                }
+            };
+            var pk = dt.ToPacket();
+
+            // 修改版本
+            pk[14]++;
+
+            var ex = Assert.Throws<InvalidDataException>(() =>
+            {
+                var dt2 = new DbTable();
+                dt2.Read(pk);
+            });
+
+            Assert.Equal("DbTable[ver=1]无法支持较新的版本[2]", ex.Message);
+        }
+
+        [Fact]
         public void ModelsTest()
         {
             var list = new List<UserModel>
