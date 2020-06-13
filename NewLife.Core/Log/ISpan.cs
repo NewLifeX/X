@@ -7,7 +7,7 @@ namespace NewLife.Log
     public interface ISpan : IDisposable
     {
         /// <summary>跟踪标识。可用于关联多个片段，建立依赖关系。当前线程上下文自动关联</summary>
-        String TracerId { get; set; }
+        String TraceId { get; set; }
 
         /// <summary>时间</summary>
         DateTime Time { get; set; }
@@ -27,7 +27,7 @@ namespace NewLife.Log
         public ISpanBuilder Builder { get; }
 
         /// <summary>跟踪标识。可用于关联多个片段，建立依赖关系。当前线程上下文自动关联</summary>
-        public String TracerId { get; set; }
+        public String TraceId { get; set; }
 
         /// <summary>时间</summary>
         public DateTime Time { get; set; }
@@ -40,8 +40,8 @@ namespace NewLife.Log
 
         private Boolean _finished;
 
-        private static readonly ThreadLocal<String> _tracer_id = new ThreadLocal<String>();
-        private Boolean _create_tracer_id;
+        private static readonly ThreadLocal<String> _traceId = new ThreadLocal<String>();
+        private Boolean _create_traceId;
         #endregion
 
         #region 构造
@@ -86,12 +86,12 @@ namespace NewLife.Log
         public void SetTracerId()
         {
             // 如果本线程已有跟踪标识，则直接使用
-            if (_tracer_id.IsValueCreated) TracerId = _tracer_id.Value;
+            if (_traceId.IsValueCreated) TraceId = _traceId.Value;
             // 否则创新新的跟踪标识，并绑定到本线程
-            if (TracerId.IsNullOrEmpty())
+            if (TraceId.IsNullOrEmpty())
             {
-                _tracer_id.Value = TracerId = Guid.NewGuid() + "";
-                _create_tracer_id = true;
+                _traceId.Value = TraceId = Guid.NewGuid() + "";
+                _create_traceId = true;
             }
         }
 
@@ -105,7 +105,7 @@ namespace NewLife.Log
             Cost = (Int32)ts.TotalMilliseconds;
 
             // 从本线程中清除跟踪标识
-            if (_create_tracer_id) _tracer_id.Value = null;
+            if (_create_traceId) _traceId.Value = null;
 
             Builder.Finish(this);
         }
