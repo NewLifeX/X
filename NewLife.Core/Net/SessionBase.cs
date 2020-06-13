@@ -345,10 +345,10 @@ namespace NewLife.Net
             // 如果当前就是异步线程，直接处理，否则需要开任务处理，不要占用主线程
             if (!rs)
             {
-                if (io)
-                    ProcessEvent(se, -1);
-                else
-                    ThreadPoolX.QueueUserWorkItem(s => ProcessEvent(s, -1), se);
+                //if (io)
+                //    ProcessEvent(se, -1);
+                //else
+                ThreadPoolX.QueueUserWorkItem(s => ProcessEvent(s, -1), se);
             }
 
             return true;
