@@ -7,9 +7,9 @@
     <Description>数据中间件，MySQL、SQLite、SqlServer、Oracle</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2020 NewLife</Copyright>
-    <Version>9.17.2020.0601</Version>
-    <FileVersion>9.17.2020.0601</FileVersion>
-    <AssemblyVersion>9.17.*</AssemblyVersion>
+    <Version>9.18.2020.0615</Version>
+    <FileVersion>9.18.2020.0615</FileVersion>
+    <AssemblyVersion>9.18.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <OutputPath>..\..\Bin</OutputPath>
     <DocumentationFile>$(OutputPath)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
@@ -27,7 +27,7 @@
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
-    <PackageReleaseNotes>修正FieldItem.ItemType拷贝；减少实体内嵌类的使用</PackageReleaseNotes>
+    <PackageReleaseNotes>支持读写分离</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>

@@ -424,10 +424,12 @@ namespace XCode
 
             var session = fact.Session;
             session.InitData();
-            session.Dal.CheckDatabase();
-            var tableName = session.Dal.Db.FormatTableName(session.TableName);
 
-            return session.Dal.Session.Insert(tableName, columns, list.Cast<IIndexAccessor>());
+            var dal = session.Dal;
+            dal.CheckDatabase();
+            var tableName = dal.Db.FormatTableName(session.TableName);
+
+            return dal.Session.Insert(tableName, columns, list.Cast<IIndexAccessor>());
         }
 
         /// <summary>批量更新</summary>
@@ -465,10 +467,12 @@ namespace XCode
 
             var session = fact.Session;
             session.InitData();
-            session.Dal.CheckDatabase();
-            var tableName = session.Dal.Db.FormatTableName(session.TableName);
 
-            return session.Dal.Session.Update(tableName, columns, updateColumns, addColumns, list.Cast<IIndexAccessor>());
+            var dal = session.Dal;
+            dal.CheckDatabase();
+            var tableName = dal.Db.FormatTableName(session.TableName);
+
+            return dal.Session.Update(tableName, columns, updateColumns, addColumns, list.Cast<IIndexAccessor>());
         }
 
         /// <summary>批量插入或更新</summary>
@@ -530,10 +534,12 @@ namespace XCode
 
             var session = fact.Session;
             session.InitData();
-            session.Dal.CheckDatabase();
-            var tableName = session.Dal.Db.FormatTableName(session.TableName);
 
-            return session.Dal.Session.Upsert(tableName, columns, updateColumns, addColumns, list.Cast<IIndexAccessor>());
+            var dal = session.Dal;
+            dal.CheckDatabase();
+            var tableName = dal.Db.FormatTableName(session.TableName);
+
+            return dal.Session.Upsert(tableName, columns, updateColumns, addColumns, list.Cast<IIndexAccessor>());
         }
 
         /// <summary>批量插入或更新</summary>
@@ -571,10 +577,12 @@ namespace XCode
 
             var session = fact.Session;
             session.InitData();
-            session.Dal.CheckDatabase();
-            var tableName = session.Dal.Db.FormatTableName(session.TableName);
 
-            return fact.Session.Dal.Session.Upsert(tableName, columns, updateColumns, addColumns, new[] { entity as IIndexAccessor });
+            var dal = session.Dal;
+            dal.CheckDatabase();
+            var tableName = dal.Db.FormatTableName(session.TableName);
+
+            return dal.Session.Upsert(tableName, columns, updateColumns, addColumns, new[] { entity as IIndexAccessor });
         }
 
         /// <summary>获取脏数据列</summary>
