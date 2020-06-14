@@ -138,7 +138,7 @@ namespace NewLife.Net
 
         public Boolean IsReadOnly => (_dic as IDictionary<Int32, ISocketSession>).IsReadOnly;
 
-        public IEnumerator<ISocketSession> GetEnumerator() => _dic.Values.GetEnumerator() as IEnumerator<ISocketSession>;
+        public IEnumerator<ISocketSession> GetEnumerator() => _dic.Values.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => _dic.GetEnumerator();
         #endregion

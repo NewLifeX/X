@@ -579,7 +579,7 @@ namespace NewLife.Caching
             //var rs = ExecuteCommand("MSET", ps.ToArray());
             var rs = Execute<String>("MSET", ps.ToArray());
 
-            return rs as String == "OK";
+            return rs == "OK";
         }
 
         /// <summary>批量获取</summary>

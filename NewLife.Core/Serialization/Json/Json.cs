@@ -160,7 +160,7 @@ namespace NewLife.Serialization
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
         [DebuggerHidden]
-        public T Read<T>() => (T)(Object)Read(typeof(T));
+        public T Read<T>() => (T)Read(typeof(T));
 
         /// <summary>尝试读取指定类型对象</summary>
         /// <param name="type"></param>

@@ -44,7 +44,7 @@ namespace System
             var mask = (2 << (1 - 1)) - 1;
 
             value &= (Byte)~(mask << position);
-            value |= (Byte)(((flag ? (Byte)1 : (Byte)0) & mask) << position);
+            value |= (Byte)(((flag ? 1 : 0) & mask) << position);
 
             return value;
         }

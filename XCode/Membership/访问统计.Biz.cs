@@ -188,7 +188,7 @@ namespace XCode.Membership
             }
 
             // 并行处理
-            Parallel.ForEach(list, m => ProcessItem(m as VisitStatModel));
+            Parallel.ForEach(list, m => ProcessItem(m));
         }
 
         private static VisitStat ProcessItem(VisitStatModel model)
