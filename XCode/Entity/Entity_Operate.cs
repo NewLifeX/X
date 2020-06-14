@@ -2,15 +2,16 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Threading;
 using XCode.Cache;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 
 namespace XCode
 {
-    partial class Entity<TEntity>
+    public partial class Entity<TEntity>
     {
-        /// <summary>默认的实体操作者</summary>
+        /// <summary>默认的实体工厂</summary>
         public class EntityOperate : IEntityFactory
         {
             #region 主要属性
@@ -30,7 +31,7 @@ namespace XCode
             #region 属性
             private IEntity _Default;
             /// <summary>默认实体</summary>
-            public virtual IEntity Default { get { return _Default ??= new TEntity(); } set { _Default = value; } }
+            public virtual IEntity Default { get => _Default ??= new TEntity(); set => _Default = value; }
 
             /// <summary>数据表元数据</summary>
             public virtual TableItem Table => Meta.Table;
@@ -51,10 +52,10 @@ namespace XCode
             public virtual FieldItem Master => Meta.Master;
 
             /// <summary>连接名</summary>
-            public virtual String ConnName { get { return Meta.ConnName; } set { Meta.ConnName = value; } }
+            public virtual String ConnName { get => Meta.ConnName; set => Meta.ConnName = value; }
 
             /// <summary>表名</summary>
-            public virtual String TableName { get { return Meta.TableName; } set { Meta.TableName = value; } }
+            public virtual String TableName { get => Meta.TableName; set => Meta.TableName = value; }
 
             /// <summary>已格式化的表名，带有中括号等</summary>
             public virtual String FormatedTableName => Session.FormatedTableName;
@@ -83,7 +84,7 @@ namespace XCode
             /// <summary>创建一个实体对象</summary>
             /// <param name="forEdit">是否为了编辑而创建，如果是，可以再次做一些相关的初始化工作</param>
             /// <returns></returns>
-            public virtual IEntity Create(Boolean forEdit = false) => (Default as TEntity).CreateInstance(forEdit) as TEntity;
+            public virtual IEntity Create(Boolean forEdit = false) => (Default as TEntity).CreateInstance(forEdit);
 
             /// <summary>加载记录集</summary>
             /// <param name="ds">记录集</param>
@@ -128,10 +129,7 @@ namespace XCode
             /// <param name="startRowIndex">开始行，0表示第一行</param>
             /// <param name="maximumRows">最大返回行数，0表示所有行</param>
             /// <returns>实体数组</returns>
-            public virtual IList<IEntity> FindAll(String where, String order, String selects, Int64 startRowIndex, Int64 maximumRows)
-            {
-                return Entity<TEntity>.FindAll(where, order, selects, startRowIndex, maximumRows).Cast<IEntity>().ToList();
-            }
+            public virtual IList<IEntity> FindAll(String where, String order, String selects, Int64 startRowIndex, Int64 maximumRows) => Entity<TEntity>.FindAll(where, order, selects, startRowIndex, maximumRows).Cast<IEntity>().ToList();
 
             /// <summary>查询并返回实体对象集合。
             /// 表名以及所有字段名，请使用类名以及字段对应的属性名，方法内转换为表名和列名
@@ -142,10 +140,7 @@ namespace XCode
             /// <param name="startRowIndex">开始行，0表示第一行</param>
             /// <param name="maximumRows">最大返回行数，0表示所有行</param>
             /// <returns>实体数组</returns>
-            public virtual IList<IEntity> FindAll(Expression where, String order, String selects, Int64 startRowIndex, Int64 maximumRows)
-            {
-                return Entity<TEntity>.FindAll(where, order, selects, startRowIndex, maximumRows).Cast<IEntity>().ToList();
-            }
+            public virtual IList<IEntity> FindAll(Expression where, String order, String selects, Int64 startRowIndex, Int64 maximumRows) => Entity<TEntity>.FindAll(where, order, selects, startRowIndex, maximumRows).Cast<IEntity>().ToList();
             #endregion
 
             #region 缓存查询
@@ -166,10 +161,7 @@ namespace XCode
             /// <param name="startRowIndex">开始行，0表示第一行</param>
             /// <param name="maximumRows">最大返回行数，0表示所有行</param>
             /// <returns>总行数</returns>
-            public virtual Int32 FindCount(String where, String order, String selects, Int64 startRowIndex, Int64 maximumRows)
-            {
-                return Entity<TEntity>.FindCount(where, order, selects, startRowIndex, maximumRows);
-            }
+            public virtual Int32 FindCount(String where, String order, String selects, Int64 startRowIndex, Int64 maximumRows) => Entity<TEntity>.FindCount(where, order, selects, startRowIndex, maximumRows);
 
             /// <summary>返回总记录数</summary>
             /// <param name="where">条件，不带Where</param>
@@ -249,10 +241,9 @@ namespace XCode
             /// <summary>是否自增获取自增返回值。默认启用</summary>
             public Boolean AutoIdentity { get; set; } = true;
 
-            [ThreadStatic]
-            private static Boolean _AllowInsertIdentity;
+            private ThreadLocal<Boolean> _AllowInsertIdentity = new ThreadLocal<Boolean>();
             /// <summary>是否允许向自增列插入数据。为免冲突，仅本线程有效</summary>
-            public virtual Boolean AllowInsertIdentity { get => _AllowInsertIdentity; set => _AllowInsertIdentity = value; }
+            public virtual Boolean AllowInsertIdentity { get => _AllowInsertIdentity.IsValueCreated && _AllowInsertIdentity.Value; set => _AllowInsertIdentity.Value = value; }
 
             /// <summary>自动设置Guid的字段。对实体类有效，可在实体类类型构造函数里面设置</summary>
             public virtual FieldItem AutoSetGuidField { get; set; }

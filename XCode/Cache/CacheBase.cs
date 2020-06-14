@@ -63,6 +63,13 @@ namespace XCode.Cache
         public static Int32 Period { get; set; }
         #endregion
 
+        static CacheBase()
+        {
+#if DEBUG
+            Debug = true;
+#endif
+        }
+
         internal static void WriteLog(String format, params Object[] args)
         {
             if (Debug) XTrace.WriteLine(format, args);

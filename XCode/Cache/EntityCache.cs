@@ -108,7 +108,7 @@ namespace XCode.Cache
                 }
             }
             else
-                UpdateCacheAsync("过期{0:n0}秒".F(sec));
+                UpdateCacheAsync("有效期{0}秒，已过期{1:n0}秒".F(Expire, sec));
 
             // 只要访问了实体缓存数据集合，就认为是使用了实体缓存，允许更新缓存数据期间向缓存集合添删数据
             Using = true;
