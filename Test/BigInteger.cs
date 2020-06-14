@@ -313,10 +313,10 @@ public class BigInteger
                                 if(value[0] == '-')
                                         posVal = -posVal;
 
-                                result = result + (multiplier * posVal);
+                                result += (multiplier * posVal);
 
                                 if((i - 1) >= limit)
-                                        multiplier = multiplier * radix;
+                                        multiplier *= radix;
                         }
                 }
 
@@ -1086,7 +1086,7 @@ public class BigInteger
                 for(int i = 0; i < bi1.dataLength; i++)
                         remainder[i] = bi1.data[i];
                 shiftLeft(remainder, shift);
-                bi2 = bi2 << shift;
+                bi2 <<= shift;
 
                 /*
                 Console.WriteLine("bi1 Len = {0}, bi2 Len = {1}", bi1.dataLength, bi2.dataLength);
@@ -1580,7 +1580,7 @@ public class BigInteger
                 constant.data[i] = 0x00000001;
                 constant.dataLength = i + 1;
 
-                constant = constant / n;
+                constant /= n;
                 int totalBits = exp.bitCount();
                 int count = 0;
 
@@ -2232,7 +2232,7 @@ public class BigInteger
                 constant.data[nLen] = 0x00000001;
                 constant.dataLength = nLen + 1;
 
-                constant = constant / thisVal;
+                constant /= thisVal;
 
                 BigInteger[] lucas = LucasSequenceHelper(1, Q, t, thisVal, constant, 0);
                 bool isPrime = false;
@@ -2748,7 +2748,7 @@ public class BigInteger
                 if((numBits & 0x1) != 0)        // odd number of bits
                         numBits = (numBits >> 1) + 1;
                 else
-                        numBits = (numBits >> 1);
+                        numBits >>= 1;
 
                 uint bytePos = numBits >> 5;
                 byte bitPos = (byte)(numBits & 0x1F);
@@ -2835,7 +2835,7 @@ public class BigInteger
                 constant.data[nLen] = 0x00000001;
                 constant.dataLength = nLen + 1;
 
-                constant = constant / n;
+                constant /= n;
 
                 // calculate values of s and t
                 int s = 0;
