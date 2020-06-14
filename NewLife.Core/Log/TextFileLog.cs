@@ -202,24 +202,24 @@ namespace NewLife.Log
             // 检查文件是否超过上限
             if (!_isFile && Backups > 0)
             {
-                // 删除*.del
-                try
-                {
-                    var dels = LogPath.GetBasePath().AsDirectory().GetFiles("*.del");
-                    if (dels != null && dels.Length > 0)
-                    {
-                        foreach (var item in dels)
-                        {
-                            item.Delete();
-                        }
-                    }
-                }
-                catch { }
-
                 // 判断日志目录是否已存在
                 var di = LogPath.GetBasePath().AsDirectory();
                 if (di.Exists)
                 {
+                    // 删除*.del
+                    try
+                    {
+                        var dels = di.GetFiles("*.del");
+                        if (dels != null && dels.Length > 0)
+                        {
+                            foreach (var item in dels)
+                            {
+                                item.Delete();
+                            }
+                        }
+                    }
+                    catch { }
+
                     var ext = Path.GetExtension(FileFormat);
                     var fis = di.GetFiles("*" + ext);
                     if (fis != null && fis.Length > Backups)
