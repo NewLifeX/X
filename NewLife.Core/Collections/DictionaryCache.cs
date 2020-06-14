@@ -148,7 +148,7 @@ namespace NewLife.Collections
                 }
             }
 
-            return default(TValue);
+            return default;
         }
 
         /// <summary>获取 GetOrAdd</summary>
@@ -156,7 +156,7 @@ namespace NewLife.Collections
         /// <returns></returns>
         public virtual TValue Get(TKey key)
         {
-            if (!_cache.TryGetValue(key, out var item) || item.Expired) return default(TValue);
+            if (!_cache.TryGetValue(key, out var item) || item.Expired) return default;
 
             return item.Visit();
         }
@@ -167,7 +167,7 @@ namespace NewLife.Collections
         /// <returns></returns>
         public virtual Boolean TryGetValue(TKey key, out TValue value)
         {
-            value = default(TValue);
+            value = default;
 
             if (!_cache.TryGetValue(key, out var item) || item.Expired) return false;
 
@@ -211,7 +211,7 @@ namespace NewLife.Collections
 
             Interlocked.Increment(ref _count);
 
-            resultingValue = default(TValue);
+            resultingValue = default;
 
             StartTimer();
 

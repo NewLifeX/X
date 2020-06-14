@@ -34,13 +34,13 @@ namespace XCode.Cache
                 return callback(arg);
             }
             // 屏蔽对象销毁异常
-            catch (ObjectDisposedException) { return default(TResult); }
+            catch (ObjectDisposedException) { return default; }
             // 屏蔽线程取消异常
-            catch (ThreadAbortException) { return default(TResult); }
+            catch (ThreadAbortException) { return default; }
             catch (Exception ex)
             {
                 // 无效操作，句柄未初始化，不用出现
-                if (ex is InvalidOperationException && ex.Message.Contains("句柄未初始化")) return default(TResult);
+                if (ex is InvalidOperationException && ex.Message.Contains("句柄未初始化")) return default;
                 if (DAL.Debug) DAL.WriteLog(ex.ToString());
                 throw;
             }

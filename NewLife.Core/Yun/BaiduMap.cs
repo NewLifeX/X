@@ -35,7 +35,7 @@ namespace NewLife.Yun
         protected override async Task<T> InvokeAsync<T>(String url, String result)
         {
             var dic = await base.InvokeAsync<IDictionary<String, Object>>(url, result);
-            if (dic == null || dic.Count == 0) return default(T);
+            if (dic == null || dic.Count == 0) return default;
 
             var status = dic["status"].ToInt();
             if (status != 0)

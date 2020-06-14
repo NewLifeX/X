@@ -441,7 +441,7 @@ namespace XCode.DataAccessLayer
             return Execute(cmd, true, cmd2 =>
             {
                 var rs = cmd.ExecuteScalar();
-                if (rs == null || rs == DBNull.Value) return default(T);
+                if (rs == null || rs == DBNull.Value) return default;
                 if (rs is T) return (T)rs;
 
                 return (T)Reflect.ChangeType(rs, typeof(T));

@@ -86,7 +86,7 @@ namespace NewLife.Serialization
                 if (item is T) return item as T;
             }
 
-            return default(T);
+            return default;
         }
         #endregion
 

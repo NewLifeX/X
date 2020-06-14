@@ -47,7 +47,7 @@ namespace System
             Func<T> methodAccessor = GetMethodAccessor<Func<T>>(ref storage, methodName, true);
             if (methodAccessor == null)
             {
-                returnValue = default(T);
+                returnValue = default;
                 return false;
             }
             returnValue = methodAccessor.Invoke();

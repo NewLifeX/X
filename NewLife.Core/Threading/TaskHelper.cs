@@ -166,7 +166,7 @@ namespace System.Threading.Tasks
         /// <param name="cancellationToken"></param>
         /// <param name="result"></param>
         /// <returns></returns>
-        public static Task<TResult> ToTask<TResult>(this Task task, CancellationToken cancellationToken = default(CancellationToken), TResult result = default(TResult))
+        public static Task<TResult> ToTask<TResult>(this Task task, CancellationToken cancellationToken = default, TResult result = default)
         {
             if (task == null) return null;
 
@@ -236,7 +236,7 @@ namespace System.Threading.Tasks
             if (source.Status == TaskStatus.RanToCompletion)
             {
                 var task = source as Task<TResult>;
-                return tcs.TrySetResult((task == null) ? default(TResult) : task.Result);
+                return tcs.TrySetResult((task == null) ? default : task.Result);
             }
             return false;
         }

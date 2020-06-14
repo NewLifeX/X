@@ -28,7 +28,7 @@ namespace NewLife.Collections
             {
                 if (TryGetValue(item, out var v)) return v;
 
-                return default(TValue);
+                return default;
             }
             set
             {
