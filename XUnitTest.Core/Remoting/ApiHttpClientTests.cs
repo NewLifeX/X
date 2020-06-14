@@ -14,7 +14,7 @@ namespace XUnitTest.Remoting
     public class ApiHttpClientTests : DisposeBase
     {
         private readonly ApiServer _Server;
-        private String _Address;
+        private readonly String _Address;
         private readonly IApiClient _Client;
 
         public ApiHttpClientTests()

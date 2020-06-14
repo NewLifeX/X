@@ -159,8 +159,8 @@ namespace NewLife.Serialization
             return target;
         }
 
-        private Dictionary<Object, Int32> _circobj = new Dictionary<Object, Int32>();
-        private Dictionary<Int32, Object> _cirrev = new Dictionary<Int32, Object>();
+        private readonly Dictionary<Object, Int32> _circobj = new Dictionary<Object, Int32>();
+        private readonly Dictionary<Int32, Object> _cirrev = new Dictionary<Int32, Object>();
         /// <summary>字典转复杂对象，反射属性赋值</summary>
         /// <param name="dic"></param>
         /// <param name="type"></param>

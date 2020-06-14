@@ -15,7 +15,7 @@ namespace XCode.Cache
     [DisplayName("统计字段")]
     public class FieldCache<TEntity> : EntityCache<TEntity> where TEntity : Entity<TEntity>, new()
     {
-        private String _fieldName;
+        private readonly String _fieldName;
         private FieldItem _field;
         private FieldItem _Unique;
 

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using XCode.Cache;
 using XCode.Configuration;
-using XCode.DataAccessLayer;
 
 namespace XCode
 {
@@ -37,11 +36,11 @@ namespace XCode
             [ThreadStatic]
             private static EntitySession<TEntity> _Session;
             /// <summary>实体会话。线程静态</summary>
-            public static EntitySession<TEntity> Session => _Session ?? (_Session = EntitySession<TEntity>.Create(ConnName, TableName));
+            public static EntitySession<TEntity> Session => _Session ??= EntitySession<TEntity>.Create(ConnName, TableName);
             #endregion
 
             #region 基本属性
-            private static Lazy<TableItem> _Table = new Lazy<TableItem>(() => TableItem.Create(ThisType));
+            private static readonly Lazy<TableItem> _Table = new Lazy<TableItem>(() => TableItem.Create(ThisType));
             /// <summary>表信息</summary>
             public static TableItem Table => _Table.Value;
 

@@ -110,7 +110,7 @@ namespace XCode.Membership
             //return Find(_.ID == id);
         }
 
-        private static DictionaryCache<VisitStatModel, VisitStat> _cache = new DictionaryCache<VisitStatModel, VisitStat> { Expire = 20 * 60, Period = 60 };
+        private static readonly DictionaryCache<VisitStatModel, VisitStat> _cache = new DictionaryCache<VisitStatModel, VisitStat> { Expire = 20 * 60, Period = 60 };
         /// <summary>根据模型查找</summary>
         /// <param name="model"></param>
         /// <param name="cache"></param>
@@ -154,7 +154,7 @@ namespace XCode.Membership
             return FindAll(exp, param);
         }
 
-        static FieldCache<VisitStat> PageCache = new FieldCache<VisitStat>(__.Page);
+        static readonly FieldCache<VisitStat> PageCache = new FieldCache<VisitStat>(__.Page);
 
         /// <summary>查找所有</summary>
         /// <returns></returns>

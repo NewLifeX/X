@@ -108,7 +108,7 @@ namespace XCode.Cache
         }
 
         private static TimerX _timer;
-        private static ConcurrentDictionary<String, Action> _dic = new ConcurrentDictionary<String, Action>();
+        private static readonly ConcurrentDictionary<String, Action> _dic = new ConcurrentDictionary<String, Action>();
         private static Boolean NextShow;
 
         private static void Check(Object state)

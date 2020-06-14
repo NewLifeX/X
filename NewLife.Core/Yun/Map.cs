@@ -197,7 +197,7 @@ namespace NewLife.Yun
             _Keys = list.ToArray();
         }
 
-        private String[] _KeyWords = new[] { "INVALID", "LIMIT" };
+        private readonly String[] _KeyWords = new[] { "INVALID", "LIMIT" };
         /// <summary>是否无效Key。可能禁用或超出限制</summary>
         /// <param name="result"></param>
         /// <returns></returns>

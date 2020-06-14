@@ -37,13 +37,13 @@ namespace NewLife.Collections
         public Int32 AllIdleTime { get; set; } = 0;
 
         /// <summary>基础空闲集合。只保存最小个数，最热部分</summary>
-        private ConcurrentStack<Item> _free = new ConcurrentStack<Item>();
+        private readonly ConcurrentStack<Item> _free = new ConcurrentStack<Item>();
 
         /// <summary>扩展空闲集合。保存最小个数以外部分</summary>
-        private ConcurrentQueue<Item> _free2 = new ConcurrentQueue<Item>();
+        private readonly ConcurrentQueue<Item> _free2 = new ConcurrentQueue<Item>();
 
         /// <summary>借出去的放在这</summary>
-        private ConcurrentDictionary<T, Item> _busy = new ConcurrentDictionary<T, Item>();
+        private readonly ConcurrentDictionary<T, Item> _busy = new ConcurrentDictionary<T, Item>();
 
         private readonly Object SyncRoot = new Object();
         #endregion

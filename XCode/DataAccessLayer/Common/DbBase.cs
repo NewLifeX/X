@@ -563,7 +563,7 @@ namespace XCode.DataAccessLayer
             return null;
         }
 
-        private static Regex reg_SimpleSQL = new Regex(@"^\s*select\s+\*\s+from\s+([\w\[\]\""\""\']+)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static readonly Regex reg_SimpleSQL = new Regex(@"^\s*select\s+\*\s+from\s+([\w\[\]\""\""\']+)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         /// <summary>检查简单SQL语句，比如Select * From table</summary>
         /// <param name="sql">待检查SQL语句</param>
         /// <returns>如果是简单SQL语句则返回表名，否则返回子查询(sql) XCode_Temp_a</returns>
@@ -577,7 +577,7 @@ namespace XCode.DataAccessLayer
             return ms[0].Groups[1].Value;
         }
 
-        private static Regex reg_Order = new Regex(@"\border\s*by\b([^)]+)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static readonly Regex reg_Order = new Regex(@"\border\s*by\b([^)]+)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         /// <summary>检查是否以Order子句结尾，如果是，分割sql为前后两部分</summary>
         /// <param name="sql"></param>
         /// <returns></returns>

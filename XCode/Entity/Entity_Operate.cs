@@ -30,7 +30,7 @@ namespace XCode
             #region 属性
             private IEntity _Default;
             /// <summary>默认实体</summary>
-            public virtual IEntity Default { get { return _Default ?? (_Default = new TEntity()); } set { _Default = value; } }
+            public virtual IEntity Default { get { return _Default ??= new TEntity(); } set { _Default = value; } }
 
             /// <summary>数据表元数据</summary>
             public virtual TableItem Table => Meta.Table;

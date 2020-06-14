@@ -54,7 +54,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region SQL拦截器
-        private static ThreadLocal<Action<String>> _filter = new ThreadLocal<Action<String>>();
+        private static readonly ThreadLocal<Action<String>> _filter = new ThreadLocal<Action<String>>();
         /// <summary>本地过滤器（本线程SQL拦截）</summary>
         public static Action<String> LocalFilter { get => _filter.Value; set => _filter.Value = value; }
         #endregion

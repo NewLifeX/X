@@ -679,7 +679,7 @@ namespace NewLife.Caching
     /// <typeparam name="T"></typeparam>
     public class MemoryQueue<T> : IProducerConsumer<T>
     {
-        private IProducerConsumerCollection<T> _Collection;
+        private readonly IProducerConsumerCollection<T> _Collection;
 
         /// <summary>实例化内存队列</summary>
         public MemoryQueue() => _Collection = new ConcurrentQueue<T>();

@@ -10,7 +10,7 @@ namespace NewLife.Serialization
     public class XmlParser
     {
         #region 属性
-        private XmlReader _reader;
+        private readonly XmlReader _reader;
         #endregion
 
         /// <summary>实例化</summary>

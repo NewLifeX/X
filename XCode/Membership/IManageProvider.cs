@@ -170,7 +170,7 @@ namespace XCode.Membership
         #endregion
 
         #region 实体类扩展
-        private static IDictionary<Type, IEntityFactory> _factories = new NullableDictionary<Type, IEntityFactory>();
+        private static readonly IDictionary<Type, IEntityFactory> _factories = new NullableDictionary<Type, IEntityFactory>();
         private static void Register<TIEntity>(IEntityFactory factory) => _factories[typeof(TIEntity)] = factory;
 
         /// <summary>根据实体类接口获取实体工厂</summary>

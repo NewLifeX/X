@@ -8,7 +8,7 @@ namespace XCode.DataAccessLayer
     public class ConnectionStringBuilder /*: Dictionary<String, String>*/
     {
         #region 属性
-        private IDictionary<String, String> _dic;
+        private readonly IDictionary<String, String> _dic;
 
         /// <summary>获取 或 设置 设置项</summary>
         /// <param name="key"></param>

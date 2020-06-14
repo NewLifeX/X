@@ -15,7 +15,6 @@ using NewLife.Threading;
 using XCode.Cache;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
-using XCode.Model;
 
 /*
  * 检查表结构流程：
@@ -85,7 +84,7 @@ namespace XCode
             Queue = new EntityQueue(this);
         }
 
-        private static ConcurrentDictionary<String, EntitySession<TEntity>> _es = new ConcurrentDictionary<String, EntitySession<TEntity>>(StringComparer.OrdinalIgnoreCase);
+        private static readonly ConcurrentDictionary<String, EntitySession<TEntity>> _es = new ConcurrentDictionary<String, EntitySession<TEntity>>(StringComparer.OrdinalIgnoreCase);
         /// <summary>创建指定表名连接名的会话</summary>
         /// <param name="connName"></param>
         /// <param name="tableName"></param>
@@ -111,7 +110,7 @@ namespace XCode
 
         private DAL _Dal;
         /// <summary>数据操作层</summary>
-        public DAL Dal => _Dal ?? (_Dal = DAL.Create(ConnName));
+        public DAL Dal => _Dal ??= DAL.Create(ConnName);
 
         private String _FormatedTableName;
         /// <summary>已格式化的表名，带有中括号等</summary>
@@ -773,8 +772,6 @@ namespace XCode
         #endregion
 
         #region 实体操作
-        //private IEntityPersistence Persistence => XCodeService.Container.ResolveInstance<IEntityPersistence>();
-
         /// <summary>把该对象持久化到数据库，添加/更新实体缓存和单对象缓存，增加总计数</summary>
         /// <param name="entity">实体对象</param>
         /// <returns></returns>
@@ -785,8 +782,7 @@ namespace XCode
             var e = entity as TEntity;
 
             // 加入实体缓存
-            var ec = _cache;
-            if (ec != null) ec.Add(e);
+            _cache?.Add(e);
 
             // 增加计数
             if (_Count >= 0) Interlocked.Increment(ref _Count);
@@ -804,9 +800,7 @@ namespace XCode
             var e = entity as TEntity;
 
             // 更新缓存
-            TEntity old = null;
-            var ec = _cache;
-            if (ec != null) old = ec.Update(e);
+            _cache?.Update(e);
 
             // 干掉缓存项，让它重新获取
             _singleCache?.Remove(e);
@@ -824,9 +818,7 @@ namespace XCode
             var e = entity as TEntity;
 
             // 从实体缓存删除
-            TEntity old = null;
-            var ec = _cache;
-            if (ec != null) old = ec.Remove(e);
+            _cache?.Remove(e);
 
             // 从单对象缓存删除
             _singleCache?.Remove(e);

@@ -14,7 +14,7 @@ namespace XCode
     public static class EntityFactory
     {
         #region 创建实体操作接口
-        private static ConcurrentDictionary<Type, IEntityFactory> _factories = new ConcurrentDictionary<Type, IEntityFactory>();
+        private static readonly ConcurrentDictionary<Type, IEntityFactory> _factories = new ConcurrentDictionary<Type, IEntityFactory>();
         /// <summary>创建实体操作接口</summary>
         /// <remarks>
         /// 因为只用来做实体操作，所以只需要一个实例即可。

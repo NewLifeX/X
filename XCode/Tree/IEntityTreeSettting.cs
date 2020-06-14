@@ -45,7 +45,7 @@ namespace XCode
         #region 设置型属性
         private String _Key;
         /// <summary>关联键名称，一般是主键，如ID</summary>
-        public virtual String Key { get { return _Key ?? (_Key = Factory.Unique.Name); } set { _Key = value; } }
+        public virtual String Key { get { return _Key ??= Factory.Unique.Name; } set { _Key = value; } }
 
         private String _Parent;
         /// <summary>关联父键名，一般是Parent加主键，如ParentID</summary>

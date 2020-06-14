@@ -6,7 +6,7 @@ namespace System.Threading
 {
 	internal static class TimerManager
 	{
-		private static Dictionary<Timer, object> s_rootedTimers = new Dictionary<Timer, object>();
+		private static readonly Dictionary<Timer, object> s_rootedTimers = new Dictionary<Timer, object>();
 
 		public static void Add(Timer timer)
 		{

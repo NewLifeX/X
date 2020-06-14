@@ -257,7 +257,7 @@ namespace NewLife.Net
         /// <param name="handler">处理器</param>
         public static void Add(this ISocket session, IHandler handler) => GetPipe(session).AddLast(handler);
 
-        private static IPipeline GetPipe(ISocket session) => session.Pipeline ?? (session.Pipeline = new Pipeline());
+        private static IPipeline GetPipe(ISocket session) => session.Pipeline ??= new Pipeline();
         #endregion
     }
 }

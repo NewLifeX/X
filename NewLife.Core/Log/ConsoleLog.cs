@@ -53,8 +53,8 @@ namespace NewLife.Log
             Console.WriteLine(msg);
         }
 
-        static ConcurrentDictionary<Int32, ConsoleColor> dic = new ConcurrentDictionary<Int32, ConsoleColor>();
-        static ConsoleColor[] colors = new ConsoleColor[] {
+        static readonly ConcurrentDictionary<Int32, ConsoleColor> dic = new ConcurrentDictionary<Int32, ConsoleColor>();
+        static readonly ConsoleColor[] colors = new ConsoleColor[] {
             ConsoleColor.Green, ConsoleColor.Cyan, ConsoleColor.Magenta, ConsoleColor.White, ConsoleColor.Yellow,
             ConsoleColor.DarkGreen, ConsoleColor.DarkCyan, ConsoleColor.DarkMagenta, ConsoleColor.DarkRed, ConsoleColor.DarkYellow };
         private ConsoleColor GetColor(Int32 threadid)

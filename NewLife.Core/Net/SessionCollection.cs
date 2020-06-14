@@ -12,7 +12,7 @@ namespace NewLife.Net
     class SessionCollection : DisposeBase, IDictionary<String, ISocketSession>
     {
         #region 属性
-        ConcurrentDictionary<String, ISocketSession> _dic = new ConcurrentDictionary<String, ISocketSession>();
+        readonly ConcurrentDictionary<String, ISocketSession> _dic = new ConcurrentDictionary<String, ISocketSession>();
 
         /// <summary>服务端</summary>
         public ISocketServer Server { get; private set; }
@@ -21,7 +21,7 @@ namespace NewLife.Net
         public Int32 ClearPeriod { get; set; } = 10;
 
         /// <summary>清理会话计时器</summary>
-        private TimerX clearTimer;
+        private readonly TimerX clearTimer;
         #endregion
 
         #region 构造

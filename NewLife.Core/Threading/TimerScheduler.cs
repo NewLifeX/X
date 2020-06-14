@@ -13,7 +13,7 @@ namespace NewLife.Threading
         #region 静态
         private TimerScheduler(String name) => Name = name;
 
-        private static Dictionary<String, TimerScheduler> _cache = new Dictionary<String, TimerScheduler>();
+        private static readonly Dictionary<String, TimerScheduler> _cache = new Dictionary<String, TimerScheduler>();
 
         /// <summary>创建指定名称的调度器</summary>
         /// <param name="name"></param>

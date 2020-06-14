@@ -88,7 +88,7 @@ namespace NewLife.Caching
             }
         }
 
-        private DictionaryCache<String, IDbCache> _cache = new DictionaryCache<String, IDbCache>()
+        private readonly DictionaryCache<String, IDbCache> _cache = new DictionaryCache<String, IDbCache>()
         {
             Expire = 60,
             AllowNull = false,

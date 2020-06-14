@@ -39,7 +39,7 @@ namespace NewLife.Net
         /// <summary>本地地址</summary>
         public NetUri Local
         {
-            get => _Local ?? (_Local = Server?.Local);
+            get => _Local ??= Server?.Local;
             set => Server.Local = _Local = value;
         }
 

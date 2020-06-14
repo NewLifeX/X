@@ -8,7 +8,7 @@ namespace XUnitTest.Core
 {
     public class TinyHttpClientTest
     {
-        private TinyHttpClient _Client;
+        private readonly TinyHttpClient _Client;
 
         public TinyHttpClientTest()
         {

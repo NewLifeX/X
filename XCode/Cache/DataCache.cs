@@ -12,7 +12,7 @@ namespace XCode.Cache
     public class DataCache
     {
         #region 静态
-        private static String _File = @"Config\DataCache.config";
+        private static readonly String _File = @"Config\DataCache.config";
         private static DataCache _Current;
         /// <summary>当前实例</summary>
         public static DataCache Current
