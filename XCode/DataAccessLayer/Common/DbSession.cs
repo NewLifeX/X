@@ -669,6 +669,10 @@ namespace XCode.DataAccessLayer
             try
             {
                 var sql = cmd.CommandText;
+
+                // 诊断信息
+                if (XTrace.Log.Level <= LogLevel.Debug) sql = "[{0}]{1}".F(Database.ConnName, sql);
+
                 var ps = cmd.Parameters;
                 if (ps != null && ps.Count > 0)
                 {

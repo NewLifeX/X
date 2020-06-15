@@ -584,6 +584,26 @@ namespace Test
 
         private static void Test9()
         {
+            var r0 = Role.FindByName("Stone");
+            r0?.Delete();
+
+            var r = new Role();
+            r.Name = "Stone";
+            r.Insert();
+
+            var r2 = Role.FindByName("Stone");
+            XTrace.WriteLine("FindByName: {0}", r2.ToJson());
+
+            r.Enable = true;
+            r.Update();
+
+            var r3 = Role.Find(Role._.Name == "STONE");
+            XTrace.WriteLine("Find: {0}", r3.ToJson());
+
+            r.Delete();
+
+            var n = Role.FindCount();
+            XTrace.WriteLine("count={0}", n);
         }
 
         private static void Test10()
