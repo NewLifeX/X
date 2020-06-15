@@ -601,6 +601,7 @@ namespace XCode
         #endregion
 
         #region 数据库操作
+        private String _readonlyConnName;
         /// <summary>获取数据操作对象，根据是否查询以及事务来进行读写分离</summary>
         /// <param name="read"></param>
         /// <returns></returns>
@@ -617,7 +618,15 @@ namespace XCode
 
                 // 根据后缀查找只读连接名
                 var name = ConnName + ".readonly";
-                if (DAL.ConnStrs.ContainsKey(name)) return _readDal = DAL.Create(name);
+                if (DAL.ConnStrs.ContainsKey(name))
+                {
+                    if (_readonlyConnName.IsNullOrEmpty())
+                    {
+                        XTrace.WriteLine("[{0}]读写分离到[{1}]", ConnName, name);
+                        _readonlyConnName = name;
+                    }
+                    return _readDal = DAL.Create(name);
+                }
             }
 
             return dal;

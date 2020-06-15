@@ -48,7 +48,7 @@ namespace Test
                 try
                 {
 #endif
-                Test3();
+                Test9();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -584,12 +584,6 @@ namespace Test
 
         private static void Test9()
         {
-            var str = "学无先后达者为师！学无先后达者为师！学无先后达者为师！学无先后达者为师！学无先后达者为师！学无先后达者为师！学无先后达者为师！学无先后达者为师！";
-
-            for (var i = 0; i < 1_000_000; i++)
-            {
-                XTrace.WriteLine(str);
-            }
         }
 
         private static void Test10()
