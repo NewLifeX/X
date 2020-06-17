@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading;
 using NewLife.Log;
-using Xunit;
 using NewLife.Serialization;
+using Xunit;
 
 namespace XUnitTest.Log
 {
@@ -155,6 +155,34 @@ namespace XUnitTest.Log
             Assert.Equal(1, builder.Errors);
             Assert.True(builder.Cost >= 100 + 200);
             Assert.True(builder.MaxCost >= 200);
+        }
+
+        [Fact]
+        public async void TestHttpClient()
+        {
+            var tracer = new DefaultTracer();
+
+            var http = tracer.CreateHttpClient();
+            await http.GetStringAsync("https://www.newlifex.com");
+            await Assert.ThrowsAnyAsync<Exception>(async () =>
+            {
+                // 故意写错地址，让它抛出异常
+                await http.GetStringAsync("https://www.newlifexxx.com/notfound");
+            });
+
+            // 取出全部跟踪数据
+            var bs = tracer.TakeAll();
+            Assert.Equal(2, bs.Count);
+            Assert.Contains("/", bs.Keys);
+            Assert.Contains("/notfound", bs.Keys);
+
+            // 其中一项
+            var builder = bs["/notfound"];
+            Assert.Equal(1, builder.Total);
+            Assert.Equal(1, builder.Errors);
+
+            var span = builder.ErrorSamples[0];
+            Assert.Equal("https://www.newlifexxx.com/notfound", span.Tag);
         }
     }
 }

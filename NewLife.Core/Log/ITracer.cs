@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Threading;
+using NewLife.Http;
 using NewLife.Threading;
 
 namespace NewLife.Log
@@ -145,6 +147,18 @@ namespace NewLife.Log
         /// <param name="format"></param>
         /// <param name="args"></param>
         public void WriteLog(String format, params Object[] args) => Log?.Info(format, args);
+        #endregion
+
+        #region 扩展方法
+        /// <summary>创建受跟踪的HttpClient</summary>
+        /// <param name="handler"></param>
+        /// <returns></returns>
+        public HttpClient CreateHttpClient(HttpMessageHandler handler = null)
+        {
+            if (handler == null) handler = new HttpClientHandler();
+
+            return new HttpClient(new HttpTraceHandler(handler) { Tracer = this });
+        }
         #endregion
     }
 }
