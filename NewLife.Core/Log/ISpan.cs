@@ -92,28 +92,7 @@ namespace NewLife.Log
         }
 
         /// <summary>释放资源</summary>
-        public void Dispose() => Dispose(true);
-
-        /// <summary>释放资源，参数表示是否由Dispose调用。重载时先调用基类方法</summary>
-        /// <param name="disposing"></param>
-        protected virtual void Dispose(Boolean disposing)
-        {
-            if (disposing)
-            {
-                // 告诉GC，不要调用析构函数
-                GC.SuppressFinalize(this);
-            }
-
-            // 释放非托管资源
-            Finish();
-        }
-
-        /// <summary>析构函数</summary>
-        /// <remarks>
-        /// 如果忘记调用Dispose，这里会释放非托管资源
-        /// 如果曾经调用过Dispose，因为GC.SuppressFinalize(this)，不会再调用该析构函数
-        /// </remarks>
-        ~DefaultSpan() { Dispose(false); }
+        public void Dispose() => Finish();
         #endregion
 
         #region 方法
