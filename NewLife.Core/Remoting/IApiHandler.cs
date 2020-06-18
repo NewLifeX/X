@@ -67,6 +67,9 @@ namespace NewLife.Remoting
             var ctx = Prepare(session, action, args, api, msg);
             ctx.Controller = controller;
 
+            // 释放参数到跟踪片段
+            DefaultSpan.Current.Detach(ctx.Parameters);
+
             Object rs = null;
             try
             {

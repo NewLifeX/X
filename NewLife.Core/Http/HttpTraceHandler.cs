@@ -26,6 +26,7 @@ namespace NewLife.Http
         {
             var uri = request.RequestUri;
             var span = Tracer?.NewSpan(uri.PathAndQuery);
+            span.Attach(request);
             try
             {
                 return await base.SendAsync(request, cancellationToken);

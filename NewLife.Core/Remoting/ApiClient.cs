@@ -233,12 +233,14 @@ namespace NewLife.Remoting
                 args = dic;
             }
 
+            var span = Tracer?.NewSpan(action);
+            args = span.Attach(args);
+
             // 编码请求，构造消息
             var enc = Encoder;
             var msg = enc.CreateRequest(action, args);
             if (flag > 0 && msg is DefaultMessage dm) dm.Flag = flag;
 
-            var span = Tracer?.NewSpan(action);
             var invoker = client != null ? (client + "") : ToString();
             IMessage rs = null;
             try
@@ -313,6 +315,9 @@ namespace NewLife.Remoting
             // 性能计数器，次数、TPS、平均耗时
             var st = StatInvoke;
 
+            var span = Tracer?.NewSpan(action);
+            args = span.Attach(args);
+
             // 编码请求
             var msg = Encoder.CreateRequest(action, args);
 
@@ -322,7 +327,6 @@ namespace NewLife.Remoting
                 if (flag > 0) dm.Flag = flag;
             }
 
-            var span = Tracer?.NewSpan(action);
             var sw = st.StartCount();
             try
             {
