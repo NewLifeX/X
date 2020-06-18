@@ -2,22 +2,21 @@
 using System.Collections.Generic;
 using System.Text;
 using NewLife.Log;
-using XCode.DataAccessLayer;
 using XCode.Membership;
 using Xunit;
 using NewLife.Serialization;
+using XCode.DataAccessLayer;
+using System.Linq;
 
-namespace XUnitTest.XCode.EntityTests
+namespace XUnitTest.XCode.DataAccessLayer
 {
-    /// <summary>读写分离测试</summary>
-    public class ReadWriteTests
+    public class DAL_Trace_Tests
     {
         [Fact]
-        public void RWTest()
+        public void Test1()
         {
-            // 准备连接字符串
-            DAL.AddConnStr("Membership", "Data Source=Membership.db", null, "SQLite");
-            DAL.AddConnStr("Membership.readonly", "Data Source=Membership.db;ReadOnly=true", null, "SQLite");
+            var tracer = DefaultTracer.Instance;
+            DAL.GlobalTracer = tracer;
 
             // 先删掉原来可能有的
             var r0 = Role.FindByName("Stone");
@@ -41,6 +40,14 @@ namespace XUnitTest.XCode.EntityTests
             var n = Role.FindCount();
             XTrace.WriteLine("count={0}", n);
 
+            var bs = tracer.TakeAll();
+            Assert.NotNull(bs);
+            Assert.True(bs.Length >= 3);
+
+            var keys = bs.Select(e => e.Name).ToArray();
+            Assert.Contains("Membership:Query", keys);
+            Assert.Contains("Membership:SelectCount", keys);
+            Assert.Contains("Membership:Execute", keys);
         }
     }
 }

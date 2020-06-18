@@ -143,6 +143,10 @@ namespace NewLife.Log
             else if (tag != null)
                 Tag = tag?.ToJson().Cut(256);
         }
+
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override String ToString() => $"{TraceId}-{Id}";
         #endregion
     }
 }
