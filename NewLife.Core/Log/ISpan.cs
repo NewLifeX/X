@@ -65,10 +65,16 @@ namespace NewLife.Log
         /// <summary>错误信息</summary>
         public String Error { get; set; }
 
+#if NET40 || NET45
         [ThreadStatic]
         private static ISpan _Current;
         /// <summary>当前线程正在使用的上下文</summary>
         public static ISpan Current { get => _Current; set => _Current = value; }
+#else
+        private static readonly System.Threading.AsyncLocal<ISpan> _Current = new System.Threading.AsyncLocal<ISpan>();
+        /// <summary>当前线程正在使用的上下文</summary>
+        public static ISpan Current { get => _Current.Value; set => _Current.Value = value; }
+#endif
 
         private ISpan _parent;
         private Boolean _finished;
@@ -114,12 +120,14 @@ namespace NewLife.Log
         {
             if (Id.IsNullOrEmpty()) Id = Rand.NextString(8);
 
-            // 如果本线程已有跟踪标识，则直接使用
-            _parent = Current;
-            if (_parent != null)
+            // 设置父级
+            var span = Current;
+            if (span != null && span != this)
             {
-                ParentId = _parent.Id;
-                TraceId = _parent.TraceId;
+                _parent = span;
+
+                ParentId = span.Id;
+                TraceId = span.TraceId;
             }
 
             // 否则创建新的跟踪标识

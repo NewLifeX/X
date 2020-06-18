@@ -43,8 +43,8 @@ namespace NewLife.Log
     public class DefaultTracer : DisposeBase, ITracer
     {
         #region 静态
-        /// <summary>全局实例。默认每60秒采样一次</summary>
-        public static ITracer Instance { get; set; } = new DefaultTracer(60) { Log = XTrace.Log };
+        /// <summary>全局实例。默认每15秒采样一次</summary>
+        public static ITracer Instance { get; set; } = new DefaultTracer(15) { Log = XTrace.Log };
         #endregion
 
         #region 属性
@@ -103,6 +103,7 @@ namespace NewLife.Log
                 ProcessSpans(builders);
             }
         }
+
         /// <summary>处理Span集合。默认输出日志，可重定义输出控制台</summary>
         protected virtual void ProcessSpans(ISpanBuilder[] builders)
         {
@@ -115,6 +116,13 @@ namespace NewLife.Log
                     var ms = bd.EndTime - bd.StartTime;
                     var speed = ms == 0 ? 0 : bd.Total * 1000 / ms;
                     WriteLog("Tracer[{0}] Total={1:n0} Errors={2:n0} Speed={3:n0}tps Cost={4:n0}ms MaxCost={5:n0}ms MinCost={6:n0}ms", bd.Name, bd.Total, bd.Errors, speed, bd.Cost / bd.Total, bd.MaxCost, bd.MinCost);
+
+#if DEBUG
+                    foreach (var span in bd.Samples)
+                    {
+                        WriteLog("Span Id={0} ParentId={1} TraceId={2} Tag={3} Error={4}", span.Id, span.ParentId, span.TraceId, span.Tag, span.Error);
+                    }
+#endif
                 }
             }
         }

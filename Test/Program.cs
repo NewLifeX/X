@@ -48,7 +48,7 @@ namespace Test
                 try
                 {
 #endif
-                Test9();
+                Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -133,9 +133,9 @@ namespace Test
 
         private static void Test3()
         {
-            //XTrace.WriteLine("IsConsole={0}", Runtime.IsConsole);
-            //Console.WriteLine("IsConsole={0}", Runtime.IsConsole);
-            //XTrace.WriteLine("MainWindowHandle={0}", Process.GetCurrentProcess().MainWindowHandle);
+            var tracer = DefaultTracer.Instance;
+            tracer.MaxSamples = 100;
+            tracer.MaxErrors = 100;
 
             if (Console.ReadLine() == "1")
             {
@@ -167,6 +167,7 @@ namespace Test
                     Log = XTrace.Log,
                     //EncoderLog = XTrace.Log,
                     StatPeriod = 10,
+                    Tracer = DefaultTracer.Instance,
 
                     UsePool = true,
                 };
