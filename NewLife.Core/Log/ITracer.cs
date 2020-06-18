@@ -199,8 +199,7 @@ namespace NewLife.Log
             if (span == null || request == null) return request;
 
             var headers = request.Headers;
-            if (!headers.Contains("_traceId")) headers.Add("_traceId", span.TraceId);
-            if (!headers.Contains("_spanId")) headers.Add("_spanId", span.Id);
+            if (!headers.Contains("_traceId")) headers.Add("_traceId", $"{span.TraceId}-{span.Id}");
 
             return request;
         }
@@ -212,8 +211,12 @@ namespace NewLife.Log
         {
             if (span == null || headers == null || headers.Count == 0) return;
 
-            if (headers.TryGetValue("_traceId", out var tid)) span.TraceId = tid + "";
-            if (headers.TryGetValue("_spanId", out var sid)) span.ParentId = sid + "";
+            if (headers.TryGetValue("_traceId", out var tid))
+            {
+                var ss = (tid + "").Split('-');
+                if (ss.Length > 0) span.TraceId = ss[0];
+                if (ss.Length > 1) span.ParentId = ss[1];
+            }
         }
 
         /// <summary>把片段信息附加到api请求头上</summary>
@@ -226,8 +229,7 @@ namespace NewLife.Log
             if (args.GetType().GetTypeCode() != TypeCode.Object) return args;
 
             var headers = args.ToDictionary();
-            if (!headers.ContainsKey("_traceId")) headers.Add("_traceId", span.TraceId);
-            if (!headers.ContainsKey("_spanId")) headers.Add("_spanId", span.Id);
+            if (!headers.ContainsKey("_traceId")) headers.Add("_traceId", $"{span.TraceId}-{span.Id}");
 
             return headers;
         }
@@ -239,8 +241,12 @@ namespace NewLife.Log
         {
             if (span == null || parameters == null || parameters.Count == 0) return;
 
-            if (parameters.TryGetValue("_traceId", out var tid)) span.TraceId = tid + "";
-            if (parameters.TryGetValue("_spanId", out var sid)) span.ParentId = sid + "";
+            if (parameters.TryGetValue("_traceId", out var tid))
+            {
+                var ss = (tid + "").Split('-');
+                if (ss.Length > 0) span.TraceId = ss[0];
+                if (ss.Length > 1) span.ParentId = ss[1];
+            }
         }
         #endregion
     }

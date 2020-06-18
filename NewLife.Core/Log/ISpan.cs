@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using NewLife.Security;
@@ -78,6 +79,7 @@ namespace NewLife.Log
 
         private ISpan _parent;
         private Boolean _finished;
+        private static Int64 _gid;
         #endregion
 
         #region 构造
@@ -118,7 +120,7 @@ namespace NewLife.Log
         /// <summary>设置跟踪标识</summary>
         public void Start()
         {
-            if (Id.IsNullOrEmpty()) Id = Rand.NextString(8);
+            if (Id.IsNullOrEmpty()) Id = Interlocked.Increment(ref _gid) + "";
 
             // 设置父级
             var span = Current;
