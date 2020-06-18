@@ -43,8 +43,12 @@ namespace XUnitTest.Log
                 Assert.Null(span.ParentId);
                 Assert.Equal(DateTime.Today, span.StartTime.ToDateTime().ToLocalTime().Date);
 
+                Assert.Equal(span, DefaultSpan.Current);
+
                 Thread.Sleep(100);
                 span.Dispose();
+
+                Assert.Null(DefaultSpan.Current);
 
                 var cost = span.EndTime - span.StartTime;
                 Assert.True(cost >= 100);
@@ -129,10 +133,29 @@ namespace XUnitTest.Log
                 using var span = tracer.NewSpan("test");
                 Thread.Sleep(100);
                 {
+                    Assert.Equal(span, DefaultSpan.Current);
+
                     using var span2 = tracer.NewSpan("test2");
+                    Assert.Equal(span2, DefaultSpan.Current);
 
                     Assert.Equal(span.TraceId, span2.TraceId);
+                    Assert.Equal(span.Id, span2.ParentId);
+                    Assert.NotEqual(span.Id, span2.Id);
+
+                    Thread.Sleep(100);
+                    {
+                        using var span3 = tracer.NewSpan("test3");
+                        Assert.Equal(span3, DefaultSpan.Current);
+
+                        Assert.Equal(span.TraceId, span3.TraceId);
+                        Assert.Equal(span2.Id, span3.ParentId);
+                        Assert.NotEqual(span2.Id, span3.Id);
+                    }
+
+                    Assert.Equal(span2, DefaultSpan.Current);
                 }
+
+                Assert.Equal(span, DefaultSpan.Current);
             }
 
             // 内嵌片段，不同线程应该使用不同TraceId
@@ -144,6 +167,7 @@ namespace XUnitTest.Log
                     using var span2 = tracer.NewSpan("test2");
 
                     Assert.NotEqual(span.TraceId, span2.TraceId);
+                    Assert.NotEqual(span.Id, span2.ParentId);
                 });
             }
 

@@ -68,7 +68,7 @@ namespace NewLife.Log
         [ThreadStatic]
         private static ISpan _Current;
         /// <summary>当前线程正在使用的上下文</summary>
-        public ISpan Current { get => _Current; set => _Current = value; }
+        public static ISpan Current { get => _Current; set => _Current = value; }
 
         private ISpan _parent;
         private Boolean _finished;
