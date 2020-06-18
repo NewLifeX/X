@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using NewLife.Security;
@@ -123,11 +122,11 @@ namespace NewLife.Log
                 TraceId = _parent.TraceId;
             }
 
+            // 否则创建新的跟踪标识
+            if (TraceId.IsNullOrEmpty()) TraceId = Rand.NextString(16);
+
             // 设置当前片段
             Current = this;
-
-            // 否则创建新的跟踪标识，并绑定到本线程
-            if (TraceId.IsNullOrEmpty()) TraceId = Guid.NewGuid() + "";
         }
 
         /// <summary>完成跟踪</summary>

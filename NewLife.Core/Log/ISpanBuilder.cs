@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using System.Web.Script.Serialization;
@@ -29,7 +28,7 @@ namespace NewLife.Log
         /// <summary>错误次数</summary>
         Int32 Errors { get; }
 
-        /// <summary>总耗时。单位ms</summary>
+        /// <summary>总耗时。所有请求耗时累加，单位ms</summary>
         Int64 Cost { get; }
 
         /// <summary>最大耗时。单位ms</summary>
@@ -82,7 +81,7 @@ namespace NewLife.Log
         public Int32 Errors => _Errors;
 
         private Int64 _Cost;
-        /// <summary>总耗时。单位ms</summary>
+        /// <summary>总耗时。所有请求耗时累加，单位ms</summary>
         public Int64 Cost => _Cost;
 
         /// <summary>最大耗时。单位ms</summary>

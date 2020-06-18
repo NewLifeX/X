@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using NewLife.Http;
@@ -31,14 +32,14 @@ namespace NewLife.Log
 
         /// <summary>截断所有Span构建器数据，重置集合</summary>
         /// <returns></returns>
-        IDictionary<String, ISpanBuilder> TakeAll();
+        ISpanBuilder[] TakeAll();
     }
 
     /// <summary>性能跟踪器。轻量级APM</summary>
     public class DefaultTracer : DisposeBase, ITracer
     {
         #region 静态
-        /// <summary>全局实例</summary>
+        /// <summary>全局实例。默认每60秒采样一次</summary>
         public static ITracer Instance { get; set; } = new DefaultTracer(60) { Log = XTrace.Log };
         #endregion
 
@@ -48,6 +49,9 @@ namespace NewLife.Log
 
         /// <summary>最大异常采样数。采样周期内，最多只记录指定数量的异常事件，默认10</summary>
         public Int32 MaxErrors { get; set; } = 10;
+
+        /// <summary>采样结束时等待片段完成的时间。默认1000ms</summary>
+        public Int32 WaitForFinish { get; set; } = 1000;
 
         /// <summary>Span构建器集合</summary>
         private ConcurrentDictionary<String, ISpanBuilder> _builders = new ConcurrentDictionary<String, ISpanBuilder>();
@@ -81,28 +85,32 @@ namespace NewLife.Log
             if (_timer != null)
                 _timer.Period = period * 1000;
             else if (period > 0)
-                _timer = new TimerX(s => ProcessSpans(), null, period * 1000, period * 1000) { Async = true };
+                _timer = new TimerX(s => DoProcessSpans(), null, period * 1000, period * 1000) { Async = true };
         }
 
-        /// <summary>处理Span集合。默认输出日志，可重定义输出控制台</summary>
-        protected virtual void ProcessSpans()
+        private void DoProcessSpans()
         {
             var builders = TakeAll();
-            if (builders.Count > 0)
+            if (builders != null && builders.Length > 0)
             {
                 // 等待未完成Span的时间，默认1000ms
-                var msWait = 1000;
-                Thread.Sleep(msWait);
+                Thread.Sleep(WaitForFinish);
 
-                foreach (var item in builders)
+                ProcessSpans(builders);
+            }
+        }
+        /// <summary>处理Span集合。默认输出日志，可重定义输出控制台</summary>
+        protected virtual void ProcessSpans(ISpanBuilder[] builders)
+        {
+            if (builders == null) return;
+
+            foreach (var bd in builders)
+            {
+                if (bd.Total > 0)
                 {
-                    var bd = item.Value;
-                    if (bd.Total > 0)
-                    {
-                        var ms = bd.EndTime - bd.StartTime;
-                        var speed = ms == 0 ? 0 : bd.Total * 1000 / ms;
-                        WriteLog("Tracer[{0}] Total={1:n0} Errors={2:n0} Speed={3:n0}tps Cost={4:n0}ms MaxCost={5:n0}ms", bd.Name, bd.Total, bd.Errors, speed, bd.Cost / bd.Total, bd.MaxCost);
-                    }
+                    var ms = bd.EndTime - bd.StartTime;
+                    var speed = ms == 0 ? 0 : bd.Total * 1000 / ms;
+                    WriteLog("Tracer[{0}] Total={1:n0} Errors={2:n0} Speed={3:n0}tps Cost={4:n0}ms MaxCost={5:n0}ms MinCost={6:n0}ms", bd.Name, bd.Total, bd.Errors, speed, bd.Cost / bd.Total, bd.MaxCost, bd.MinCost);
                 }
             }
         }
@@ -112,7 +120,8 @@ namespace NewLife.Log
         /// <returns></returns>
         public virtual ISpanBuilder BuildSpan(String name)
         {
-            if (name.IsNullOrEmpty()) throw new ArgumentNullException(nameof(name));
+            //if (name.IsNullOrEmpty()) throw new ArgumentNullException(nameof(name));
+            if (name == null) name = "";
 
             return _builders.GetOrAdd(name, k => new DefaultSpanBuilder(this, k));
         }
@@ -124,18 +133,22 @@ namespace NewLife.Log
 
         /// <summary>截断所有Span构建器数据，重置集合</summary>
         /// <returns></returns>
-        public virtual IDictionary<String, ISpanBuilder> TakeAll()
+        public virtual ISpanBuilder[] TakeAll()
         {
             var bs = _builders;
+            if (bs.Count == 0) return null;
+
             _builders = new ConcurrentDictionary<String, ISpanBuilder>();
 
+            var bs2 = bs.Values.ToArray();
+
             // 设置结束时间
-            foreach (var item in bs)
+            foreach (var item in bs2)
             {
-                item.Value.EndTime = DateTime.UtcNow.ToLong();
+                item.EndTime = DateTime.UtcNow.ToLong();
             }
 
-            return bs;
+            return bs2;
         }
         #endregion
 

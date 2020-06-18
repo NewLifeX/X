@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using NewLife.Log;
 using NewLife.Serialization;
@@ -17,7 +18,14 @@ namespace XUnitTest.Log
                 MaxErrors = 11
             };
 
-            Assert.Throws<ArgumentNullException>(() => tracer.BuildSpan(null));
+            //Assert.Throws<ArgumentNullException>(() => tracer.BuildSpan(null));
+            // 空名称
+            {
+                var builder = tracer.BuildSpan(null);
+                Assert.NotNull(builder);
+                Assert.NotNull(builder.Name);
+                Assert.Empty(builder.Name);
+            }
 
             // 标准用法
             {
@@ -25,10 +33,14 @@ namespace XUnitTest.Log
                 Assert.NotNull(builder);
                 Assert.Equal(tracer, builder.Tracer);
                 Assert.Equal("test", builder.Name);
+                Assert.True(builder.StartTime > 0);
+                Assert.Equal(0, builder.EndTime);
 
                 using var span = builder.Start();
                 span.Tag = "任意业务数据";
                 Assert.NotEmpty(span.TraceId);
+                Assert.NotEmpty(span.Id);
+                Assert.Null(span.ParentId);
                 Assert.Equal(DateTime.Today, span.StartTime.ToDateTime().ToLocalTime().Date);
 
                 Thread.Sleep(100);
@@ -42,6 +54,7 @@ namespace XUnitTest.Log
                 Assert.Equal(0, builder.Errors);
                 Assert.Equal(cost, builder.Cost);
                 Assert.Equal(cost, builder.MaxCost);
+                Assert.Equal(cost, builder.MinCost);
             }
 
             // 快速用法
@@ -59,6 +72,7 @@ namespace XUnitTest.Log
                 Assert.Equal(0, builder2.Errors);
                 Assert.Equal(cost, builder2.Cost);
                 Assert.Equal(cost, builder2.MaxCost);
+                Assert.Equal(cost, builder2.MinCost);
             }
 
             var js = tracer.TakeAll().ToJson();
@@ -86,6 +100,7 @@ namespace XUnitTest.Log
             Assert.Equal(10, builder.Total);
             Assert.Equal(tracer.MaxSamples, samples.Count);
             Assert.NotEqual(samples[0].TraceId, samples[1].TraceId);
+            Assert.NotEqual(samples[0].Id, samples[1].Id);
 
             // 异常采样
             for (var i = 0; i < 20; i++)
@@ -99,6 +114,7 @@ namespace XUnitTest.Log
             Assert.Equal(10 + 20, builder.Total);
             Assert.Equal(tracer.MaxErrors, errors.Count);
             Assert.NotEqual(errors[0].TraceId, errors[1].TraceId);
+            Assert.NotEqual(errors[0].Id, errors[1].Id);
 
             var js = tracer.TakeAll().ToJson();
         }
@@ -174,12 +190,13 @@ namespace XUnitTest.Log
 
             // 取出全部跟踪数据
             var bs = tracer.TakeAll();
-            Assert.Equal(2, bs.Count);
-            Assert.Contains("/", bs.Keys);
-            Assert.Contains("/notfound", bs.Keys);
+            var keys = bs.Select(e => e.Name).ToArray();
+            Assert.Equal(2, bs.Length);
+            Assert.Contains("/", keys);
+            Assert.Contains("/notfound", keys);
 
             // 其中一项
-            var builder = bs["/notfound"];
+            var builder = bs.FirstOrDefault(e => e.Name == "/notfound");
             Assert.Equal(1, builder.Total);
             Assert.Equal(1, builder.Errors);
 
