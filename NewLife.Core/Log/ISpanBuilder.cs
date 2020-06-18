@@ -35,6 +35,9 @@ namespace NewLife.Log
         /// <summary>最大耗时。单位ms</summary>
         Int32 MaxCost { get; }
 
+        /// <summary>最小耗时。单位ms</summary>
+        Int32 MinCost { get; }
+
         /// <summary>正常采样</summary>
         IList<ISpan> Samples { get; }
 
@@ -65,7 +68,7 @@ namespace NewLife.Log
         public String Name { get; set; }
 
         /// <summary>开始时间。Unix毫秒</summary>
-        public Int64 StartTime { get; set; } = DateTime.UtcNow.ToLong();
+        public Int64 StartTime { get; set; }
 
         /// <summary>结束时间。Unix毫秒</summary>
         public Int64 EndTime { get; set; }
@@ -85,11 +88,14 @@ namespace NewLife.Log
         /// <summary>最大耗时。单位ms</summary>
         public Int32 MaxCost { get; private set; }
 
+        /// <summary>最小耗时。单位ms</summary>
+        public Int32 MinCost { get; private set; }
+
         /// <summary>正常采样</summary>
-        public IList<ISpan> Samples { get; } = new List<ISpan>();
+        public IList<ISpan> Samples { get; private set; }
 
         /// <summary>异常采样</summary>
-        public IList<ISpan> ErrorSamples { get; } = new List<ISpan>();
+        public IList<ISpan> ErrorSamples { get; private set; }
         #endregion
 
         #region 构造
@@ -100,6 +106,9 @@ namespace NewLife.Log
         {
             Tracer = tracer;
             Name = name;
+            MinCost = -1;
+
+            StartTime = DateTime.UtcNow.ToLong();
         }
         #endregion
 
@@ -109,7 +118,7 @@ namespace NewLife.Log
         public virtual ISpan Start()
         {
             var span = new DefaultSpan(this);
-            span.SetTracerId();
+            span.Start();
 
             return span;
         }
@@ -118,20 +127,26 @@ namespace NewLife.Log
         /// <param name="span"></param>
         public virtual void Finish(ISpan span)
         {
+            // 总次数
             var total = Interlocked.Increment(ref _Total);
-            //if (span.Error != null) Interlocked.Increment(ref _Errors);
-            Interlocked.Add(ref _Cost, span.Cost);
 
-            if (MaxCost < span.Cost) MaxCost = span.Cost;
+            // 累计耗时
+            var cost = (Int32)(span.EndTime - span.StartTime);
+            Interlocked.Add(ref _Cost, cost);
+
+            // 最大最小耗时
+            if (MaxCost < cost) MaxCost = cost;
+            if (MinCost > cost || MinCost < 0) MinCost = cost;
 
             // 处理采样
             if (span.Error != null)
             {
                 if (Interlocked.Increment(ref _Errors) <= Tracer.MaxErrors)
                 {
-                    lock (ErrorSamples)
+                    var ss = ErrorSamples ??= new List<ISpan>();
+                    lock (ss)
                     {
-                        ErrorSamples.Add(span);
+                        ss.Add(span);
                     }
                 }
             }
@@ -139,9 +154,10 @@ namespace NewLife.Log
             {
                 if (total <= Tracer.MaxSamples)
                 {
-                    lock (Samples)
+                    var ss = Samples ??= new List<ISpan>();
+                    lock (ss)
                     {
-                        Samples.Add(span);
+                        ss.Add(span);
                     }
                 }
             }

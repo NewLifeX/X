@@ -29,18 +29,19 @@ namespace XUnitTest.Log
                 using var span = builder.Start();
                 span.Tag = "任意业务数据";
                 Assert.NotEmpty(span.TraceId);
-                Assert.Equal(DateTime.Today, span.Time.ToDateTime().ToLocalTime().Date);
+                Assert.Equal(DateTime.Today, span.StartTime.ToDateTime().ToLocalTime().Date);
 
                 Thread.Sleep(100);
                 span.Dispose();
 
-                Assert.True(span.Cost >= 100);
+                var cost = span.EndTime - span.StartTime;
+                Assert.True(cost >= 100);
                 Assert.Null(span.Error);
 
                 Assert.Equal(1, builder.Total);
                 Assert.Equal(0, builder.Errors);
-                Assert.Equal(span.Cost, builder.Cost);
-                Assert.Equal(span.Cost, builder.MaxCost);
+                Assert.Equal(cost, builder.Cost);
+                Assert.Equal(cost, builder.MaxCost);
             }
 
             // 快速用法
@@ -49,14 +50,15 @@ namespace XUnitTest.Log
                 Thread.Sleep(200);
                 span2.Dispose();
 
-                Assert.True(span2.Cost >= 200);
+                var cost = span2.EndTime - span2.StartTime;
+                Assert.True(cost >= 200);
                 Assert.Null(span2.Error);
 
                 var builder2 = tracer.BuildSpan("test2");
                 Assert.Equal(1, builder2.Total);
                 Assert.Equal(0, builder2.Errors);
-                Assert.Equal(span2.Cost, builder2.Cost);
-                Assert.Equal(span2.Cost, builder2.MaxCost);
+                Assert.Equal(cost, builder2.Cost);
+                Assert.Equal(cost, builder2.MaxCost);
             }
 
             var js = tracer.TakeAll().ToJson();

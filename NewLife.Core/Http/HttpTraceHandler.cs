@@ -28,8 +28,7 @@ namespace NewLife.Http
             var span = Tracer?.NewSpan(uri.PathAndQuery);
             try
             {
-                var rs = await base.SendAsync(request, cancellationToken);
-                return rs;
+                return await base.SendAsync(request, cancellationToken);
             }
             catch (Exception ex)
             {
