@@ -107,6 +107,10 @@ namespace NewLife.Caching
 
         /// <summary>性能计数器</summary>
         public PerfCounter Counter { get; set; }
+
+        private IDictionary<String, String> _Info;
+        /// <summary>服务器信息</summary>
+        public IDictionary<String, String> Info => _Info ??= GetInfo();
         #endregion
 
         #region 构造
@@ -157,29 +161,6 @@ namespace NewLife.Caching
         /// <summary>已重载。</summary>
         /// <returns></returns>
         public override String ToString() => $"{Name} Server={Server} Db={Db}";
-        #endregion
-
-        #region 子库
-        //private ConcurrentDictionary<Int32, Redis> _sub = new ConcurrentDictionary<Int32, Redis>();
-        ///// <summary>为同一服务器创建不同Db的子级库</summary>
-        ///// <param name="db"></param>
-        ///// <returns></returns>
-        //public virtual Redis CreateSub(Int32 db)
-        //{
-        //    if (Db != 0) throw new ArgumentOutOfRangeException(nameof(Db), "只有Db=0的库才能创建子级库连接");
-        //    if (db == 0) return this;
-
-        //    return _sub.GetOrAdd(db, k =>
-        //    {
-        //        var r = new Redis
-        //        {
-        //            Server = Server,
-        //            Db = db,
-        //            Password = Password,
-        //        };
-        //        return r;
-        //    });
-        //}
         #endregion
 
         #region 客户端池
@@ -539,10 +520,21 @@ namespace NewLife.Caching
         {
             //if (expire < 0) expire = Expire;
 
-            if (expire <= 0)
-                return Execute(key, rds => rds.Execute<Int32>("SETNX", key, value) == 1, true);
-            else
+            // 没有有效期，直接使用SETNX
+            if (expire <= 0) return Execute(key, rds => rds.Execute<Int32>("SETNX", key, value) == 1, true);
+
+            // 带有有效期，需要判断版本是否支持
+            var inf = Info;
+            if (inf != null && inf.TryGetValue("redis_version", out var ver) && ver.CompareTo("4.0") >= 0)
+            {
                 return Execute(key, rds => rds.Execute<Int32>("SETNX", key, value, expire) == 1, true);
+            }
+
+            // 旧版本不支持SETNX带过期时间，需要分为前后两条指令
+            var rs = Execute(key, rds => rds.Execute<Int32>("SETNX", key, value) == 1, true);
+            if (rs) SetExpire(key, TimeSpan.FromSeconds(expire));
+
+            return rs;
         }
 
         /// <summary>设置新值并获取旧值，原子操作</summary>
