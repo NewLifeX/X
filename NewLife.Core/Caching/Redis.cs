@@ -12,77 +12,12 @@ namespace NewLife.Caching
 {
     /// <summary>Redi客户端</summary>
     /// <remarks>
-    /// 强烈建议直接new Redis()，并保持唯一对象
+    /// 强烈建议直接new Redis()，并保持唯一的对象供多次使用。
+    /// Redis内部有连接池并且支持多线程并发访问。
+    /// 高级功能需要引用NewLife.Redis，然后实例化FullRedis类。
     /// </remarks>
     public class Redis : Cache
     {
-        #region 静态
-        static Redis()
-        {
-            //ObjectContainer.Current.AutoRegister<Redis, Redis>();
-        }
-
-        ///// <summary>创建指定服务器的实例</summary>
-        ///// <param name="server">服务器地址。支持前面加上密码，@分隔</param>
-        ///// <param name="db">使用的数据库</param>
-        ///// <returns></returns>
-        //[Obsolete("=>new FullRedis/Redis(\"127.0.0.1\", \"abcd1234\", 3)")]
-        //public static Redis Create(String server, Int32 db)
-        //{
-        //    if (server.IsNullOrEmpty() || server == ".") server = "127.0.0.1";
-
-        //    var pass = "";
-
-        //    // 从后面开始找，密码可能带有@
-        //    var p = server.LastIndexOf('@');
-        //    if (p >= 0)
-        //    {
-        //        pass = server.Substring(0, p);
-        //        server = server.Substring(p + 1);
-        //    }
-        //    //适配多种配置连接字符
-        //    else if (server.Contains(";") && pass.IsNullOrEmpty())
-        //    {
-        //        var dic = server.SplitAsDictionary("=", ";", true);
-        //        pass = dic.ContainsKey("password") ? dic["password"] : "";
-        //        server = dic.ContainsKey("server") ? dic["server"] : "";
-        //    }
-
-        //    // 借助对象容器，支持外部注入Redis实现
-        //    var rds = ObjectContainer.Current.Resolve<Redis>();
-        //    rds.Server = server;
-        //    rds.Password = pass;
-        //    rds.Db = db;
-
-        //    // 执行初始化
-        //    rds.Init(null);
-
-        //    return rds;
-        //}
-
-        ///// <summary>创建指定服务器的实例，支持密码</summary>
-        ///// <param name="server">服务器地址。支持前面加上密码，@分隔</param>
-        ///// <param name="password">密码</param>
-        ///// <param name="db">使用的数据库</param>
-        ///// <returns></returns>
-        //[Obsolete("=>new FullRedis/Redis(\"127.0.0.1\", \"abcd1234\", 3)")]
-        //public static Redis Create(String server, String password, Int32 db)
-        //{
-        //    if (server.IsNullOrEmpty() || server == ".") server = "127.0.0.1";
-
-        //    // 借助对象容器，支持外部注入Redis实现
-        //    var rds = ObjectContainer.Current.Resolve<Redis>();
-        //    rds.Server = server;
-        //    rds.Password = password;
-        //    rds.Db = db;
-
-        //    // 执行初始化
-        //    rds.Init(null);
-
-        //    return rds;
-        //}
-        #endregion
-
         #region 属性
         /// <summary>服务器</summary>
         public String Server { get; set; }

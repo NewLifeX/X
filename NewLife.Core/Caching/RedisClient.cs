@@ -620,6 +620,7 @@ namespace NewLife.Caching
             {
                 TypeCode.Object => value.ToJson().GetBytes(),
                 TypeCode.String => (value as String).GetBytes(),
+                TypeCode.DateTime => ((DateTime)value).ToString("yyyy-MM-dd HH:mm:ss.fff").GetBytes(),
                 _ => "{0}".F(value).GetBytes(),
             };
         }
