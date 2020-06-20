@@ -22,13 +22,13 @@ namespace NewLife.Caching
         }
 
         /// <summary>申请锁</summary>
-        /// <param name="msTimeout"></param>
+        /// <param name="msTimeout">锁等待时间</param>
         /// <returns></returns>
         public Boolean Acquire(Int32 msTimeout)
         {
             var ch = Client;
             var now = TimerX.Now;
-            var sw = new SpinWait();
+            //var sw = new SpinWait();
 
             // 循环等待
             var end = now.AddMilliseconds(msTimeout);
@@ -37,7 +37,7 @@ namespace NewLife.Caching
                 var expire = now.AddMilliseconds(msTimeout);
 
                 // 申请加锁。没有冲突时可以直接返回
-                var rs = ch.Add(Key, expire);
+                var rs = ch.Add(Key, expire, msTimeout / 1000);
                 if (rs) return true;
 
                 now = DateTime.Now;
@@ -51,12 +51,16 @@ namespace NewLife.Caching
                     expire = now.AddMilliseconds(msTimeout);
                     var old = ch.Replace(Key, expire);
                     // 如果拿到超时值，说明抢到了锁。其它线程会抢到一个为超时的值
-                    if (old <= now) return true;
+                    if (old <= now)
+                    {
+                        ch.SetExpire(Key, TimeSpan.FromMilliseconds(msTimeout));
+                        return true;
+                    }
                 }
 
                 // 没抢到，继续
-                //Thread.Sleep(20);
-                sw.SpinOnce();
+                Thread.Sleep(500);
+                //sw.SpinOnce();
             }
 
             return false;

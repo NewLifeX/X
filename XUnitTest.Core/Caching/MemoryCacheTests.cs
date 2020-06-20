@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Threading;
 using NewLife.Caching;
 using NewLife.Data;
 using NewLife.Serialization;
@@ -171,6 +173,68 @@ namespace XUnitTest.Caching
             var pk2 = ic.Get<Packet>(key);
 
             Assert.Equal(pk.ToHex(), pk2.ToHex());
+        }
+
+        [Fact(DisplayName = "正常锁")]
+        public void TestLock1()
+        {
+            var ic = Cache;
+
+            var ck = ic.AcquireLock("TestLock1", 3000);
+            var k2 = ck as CacheLock;
+
+            Assert.NotNull(k2);
+            Assert.Equal("lock:TestLock1", k2.Key);
+
+            // 实际上存在这个key
+            Assert.True(ic.ContainsKey(k2.Key));
+
+            // 取有效期
+            var exp = ic.GetExpire(k2.Key);
+            Assert.True(exp.TotalMilliseconds <= 3000);
+
+            // 释放锁
+            ck.Dispose();
+
+            // 这个key已经不存在
+            Assert.False(ic.ContainsKey(k2.Key));
+        }
+
+        [Fact(DisplayName = "抢锁失败")]
+        public void TestLock2()
+        {
+            var ic = Cache;
+
+            var ck1 = ic.AcquireLock("TestLock2", 3000);
+
+            var sw = Stopwatch.StartNew();
+
+            // 抢相同锁，不可能成功。超时时间必须小于3000，否则前面的锁过期后，这里还是可以抢到的
+            Assert.Throws<InvalidOperationException>(() => ic.AcquireLock("TestLock2", 2000));
+
+            // 耗时必须超过有效期
+            sw.Stop();
+            Assert.True(sw.ElapsedMilliseconds >= 2000);
+
+            Thread.Sleep(3000 - 2000 + 1);
+
+            // 那个锁其实已经不在了，缓存应该把它干掉
+            Assert.False(ic.ContainsKey("lock:TestLock2"));
+        }
+
+        [Fact(DisplayName = "抢死锁")]
+        public void TestLock3()
+        {
+            var ic = Cache;
+
+            var ck = ic.AcquireLock("TestLock3", 3000);
+
+            // 已经过了一点时间
+            Thread.Sleep(2000);
+
+            // 循环多次后，可以抢到
+            var ck2 = ic.AcquireLock("TestLock3", 3000);
+            Assert.NotNull(ck2);
         }
     }
 }

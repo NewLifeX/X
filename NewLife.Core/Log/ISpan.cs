@@ -83,7 +83,7 @@ namespace NewLife.Log
 
         private ISpan _parent;
         private Boolean _finished;
-        private static Int64 _gid;
+        //private static Int64 _gid;
         #endregion
 
         #region 构造
