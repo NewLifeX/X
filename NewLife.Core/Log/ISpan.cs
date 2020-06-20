@@ -1,7 +1,11 @@
 ﻿using System;
-using System.Threading;
+using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Linq;
+using System.Net.Http;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
+using NewLife.Data;
 using NewLife.Security;
 using NewLife.Serialization;
 
@@ -99,7 +103,7 @@ namespace NewLife.Log
         /// <summary>设置跟踪标识</summary>
         public void Start()
         {
-            if (Id.IsNullOrEmpty()) Id = Interlocked.Increment(ref _gid) + "";
+            if (Id.IsNullOrEmpty()) Id = Rand.NextString(8);
 
             // 设置父级
             var span = Current;
@@ -147,6 +151,72 @@ namespace NewLife.Log
         /// <summary>已重载。</summary>
         /// <returns></returns>
         public override String ToString() => $"{TraceId}-{Id}";
+        #endregion
+    }
+
+    /// <summary>跟踪片段扩展</summary>
+    public static class SpanExtension
+    {
+        #region 扩展方法
+        /// <summary>把片段信息附加到http请求头上</summary>
+        /// <param name="span">片段</param>
+        /// <param name="request">http请求</param>
+        /// <returns></returns>
+        public static HttpRequestMessage Attach(this ISpan span, HttpRequestMessage request)
+        {
+            if (span == null || request == null) return request;
+
+            var headers = request.Headers;
+            if (!headers.Contains("_traceId")) headers.Add("_traceId", $"{span.TraceId}-{span.Id}");
+
+            return request;
+        }
+
+        /// <summary>从http请求头释放片段信息</summary>
+        /// <param name="span">片段</param>
+        /// <param name="headers">http请求头</param>
+        public static void Detach(this ISpan span, NameValueCollection headers)
+        {
+            if (span == null || headers == null || headers.Count == 0) return;
+
+            if (headers.AllKeys.Contains("_traceId"))
+            {
+                var tid = headers["_traceId"];
+                var ss = (tid + "").Split('-');
+                if (ss.Length > 0) span.TraceId = ss[0];
+                if (ss.Length > 1) span.ParentId = ss[1];
+            }
+        }
+
+        /// <summary>把片段信息附加到api请求头上</summary>
+        /// <param name="span">片段</param>
+        /// <param name="args">api请求参数</param>
+        /// <returns></returns>
+        public static Object Attach(this ISpan span, Object args)
+        {
+            if (span == null || args == null || args is Packet || args is Byte[] || args is IAccessor) return args;
+            if (Type.GetTypeCode(args.GetType()) != TypeCode.Object) return args;
+
+            var headers = args.ToDictionary();
+            if (!headers.ContainsKey("_traceId")) headers.Add("_traceId", $"{span.TraceId}-{span.Id}");
+
+            return headers;
+        }
+
+        /// <summary>从api请求释放片段信息</summary>
+        /// <param name="span">片段</param>
+        /// <param name="parameters">参数</param>
+        public static void Detach(this ISpan span, IDictionary<String, Object> parameters)
+        {
+            if (span == null || parameters == null || parameters.Count == 0) return;
+
+            if (parameters.TryGetValue("_traceId", out var tid))
+            {
+                var ss = (tid + "").Split('-');
+                if (ss.Length > 0) span.TraceId = ss[0];
+                if (ss.Length > 1) span.ParentId = ss[1];
+            }
+        }
         #endregion
     }
 }
