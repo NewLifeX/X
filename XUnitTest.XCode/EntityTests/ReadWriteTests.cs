@@ -6,39 +6,70 @@ using XCode.DataAccessLayer;
 using XCode.Membership;
 using Xunit;
 using NewLife.Serialization;
+using NewLife.Security;
 
 namespace XUnitTest.XCode.EntityTests
 {
     /// <summary>读写分离测试</summary>
     public class ReadWriteTests
     {
+        static ReadWriteTests()
+        {
+#if DEBUG
+            NewLife.Setting.Current.LogLevel = LogLevel.All;
+#endif
+        }
+
         [Fact]
         public void RWTest()
         {
-            // 准备连接字符串
-            DAL.AddConnStr("Membership", "Data Source=Membership.db", null, "SQLite");
-            DAL.AddConnStr("Membership.readonly", "Data Source=Membership.db;ReadOnly=true", null, "SQLite");
+            // 准备连接字符串。估计放到不同库上
+            DAL.AddConnStr("test", "Data Source=data\\rw_test.db", null, "SQLite");
+            DAL.AddConnStr("test.readonly", "Data Source=data\\rw_test_readonly.db", null, "SQLite");
+
+            // 反向工程建表
+            var d1 = DAL.Create("test");
+            var d2 = DAL.Create("test.readonly");
+            d1.SetTables(Role2.Meta.Table.DataTable);
+            d2.SetTables(Role2.Meta.Table.DataTable);
+
+            var n1 = Role2.Meta.Count;
+
+            var name = Rand.NextString(8);
+            XTrace.WriteLine("开始RWTest name={0}", name);
 
             // 先删掉原来可能有的
-            var r0 = Role.FindByName("Stone");
+            var r0 = Role2.FindByName(name);
             r0?.Delete();
 
-            var r = new Role();
+            // 主库插入数据
+            XTrace.WriteLine("主库插入数据");
+            var r = new Role2();
             r.Name = "Stone";
             r.Insert();
 
-            var r2 = Role.FindByName("Stone");
-            XTrace.WriteLine("FindByName: {0}", r2.ToJson());
+            // 如果查询落在从库，不可能查到。因为这个测试用例故意分开为不同的库
+            XTrace.WriteLine("从库查一下");
+            var r2 = Role2.FindByName(name);
+            //XTrace.WriteLine("FindByName: {0}", r2.ToJson());
+            Assert.Null(r2);
 
-            r.Enable = true;
+            // 更新数据，还在主库
+            XTrace.WriteLine("再次更新主库");
+            r.IsSystem = true;
             r.Update();
 
-            var r3 = Role.Find(Role._.Name == "STONE");
-            XTrace.WriteLine("Find: {0}", r3.ToJson());
+            // 再找一次，理论上还是没有
+            XTrace.WriteLine("再找一次从库");
+            var r3 = Role2.Find(Role2._.Name == name);
+            //XTrace.WriteLine("Find: {0}", r3.ToJson());
+            Assert.Null(r3);
 
+            XTrace.WriteLine("删除数据");
             r.Delete();
 
-            var n = Role.FindCount();
+            XTrace.WriteLine("查从库记录数");
+            var n = Role2.FindCount();
             XTrace.WriteLine("count={0}", n);
 
         }
