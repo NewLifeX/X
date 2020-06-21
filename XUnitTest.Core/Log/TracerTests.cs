@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using NewLife.Log;
 using NewLife.Serialization;
 using Xunit;
@@ -162,17 +163,76 @@ namespace XUnitTest.Log
             {
                 using var span = tracer.NewSpan("test");
                 Thread.Sleep(100);
-                ThreadPool.QueueUserWorkItem(s =>
-                {
-                    using var span2 = tracer.NewSpan("test2");
 
-                    Assert.NotEqual(span.TraceId, span2.TraceId);
-                    Assert.NotEqual(span.Id, span2.ParentId);
-                });
+                // 另一个线程建立span，必须用UnsafeQueueUserWorkItem截断上下文传递，否则还是会建立父子关系
+                ISpan span2 = null;
+                ThreadPool.UnsafeQueueUserWorkItem(s =>
+                {
+                    span2 = tracer.NewSpan("test2");
+                }, null);
+                Thread.Sleep(100);
+                //using var span2 = Task.Factory.StartNew(() => tracer.NewSpan("test2"), TaskCreationOptions.LongRunning).Result;
+                Assert.NotEqual(span.TraceId, span2.TraceId);
+                Assert.NotEqual(span.Id, span2.ParentId);
+                span2.Dispose();
             }
 
             var builder = tracer.BuildSpan("test");
             Assert.Equal(2, builder.Total);
+            Assert.Equal(0, builder.Errors);
+        }
+
+        [Fact]
+        public void TestParentId()
+        {
+            var tracer = new DefaultTracer();
+
+            // QueueUserWorkItem传递上下文
+            {
+                using var span = tracer.NewSpan("test");
+                Thread.Sleep(100);
+
+                // 另一个线程建立span
+                ISpan span2 = null;
+                ThreadPool.QueueUserWorkItem(s =>
+                {
+                    span2 = tracer.NewSpan("test2");
+                }, null);
+                Thread.Sleep(100);
+
+                Assert.Equal(span.TraceId, span2.TraceId);
+                Assert.Equal(span.Id, span2.ParentId);
+                span2.Dispose();
+            }
+
+            // Task传递上下文
+            {
+                using var span = tracer.NewSpan("test");
+                Thread.Sleep(100);
+
+                // 另一个线程建立span
+                using var span2 = Task.Run(() => tracer.NewSpan("test2")).Result;
+                Assert.Equal(span.TraceId, span2.TraceId);
+                Assert.Equal(span.Id, span2.ParentId);
+            }
+
+            // Task传递上下文
+            {
+                using var span = tracer.NewSpan("test");
+                Thread.Sleep(100);
+
+                // 另一个线程建立span
+                using var span2 = Task.Factory.StartNew(() => tracer.NewSpan("test2"), TaskCreationOptions.LongRunning).Result;
+                Assert.Equal(span.TraceId, span2.TraceId);
+                Assert.Equal(span.Id, span2.ParentId);
+            }
+
+            var builder = tracer.BuildSpan("test");
+            Assert.Equal(3, builder.Total);
+            Assert.Equal(0, builder.Errors);
+
+            builder = tracer.BuildSpan("test2");
+            Assert.Equal(3, builder.Total);
             Assert.Equal(0, builder.Errors);
         }
 
