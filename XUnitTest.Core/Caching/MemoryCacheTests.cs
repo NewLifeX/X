@@ -214,7 +214,7 @@ namespace XUnitTest.Caching
 
             // 耗时必须超过有效期
             sw.Stop();
-            Assert.True(sw.ElapsedMilliseconds >= 2000);
+            Assert.True(sw.ElapsedMilliseconds >= 2000 - 200);
 
             Thread.Sleep(3000 - 2000 + 1);
 

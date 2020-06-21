@@ -32,16 +32,13 @@ namespace NewLife.Caching
 
             // 循环等待
             var end = now.AddMilliseconds(msTimeout);
-            while (true)
+            while (now < end)
             {
                 var expire = now.AddMilliseconds(msTimeout);
 
                 // 申请加锁。没有冲突时可以直接返回
                 var rs = ch.Add(Key, expire, msTimeout / 1000);
                 if (rs) return true;
-
-                now = DateTime.Now;
-                if (now > end) break;
 
                 // 死锁超期检测
                 var dt = ch.Get<DateTime>(Key);
@@ -59,8 +56,10 @@ namespace NewLife.Caching
                 }
 
                 // 没抢到，继续
-                Thread.Sleep(500);
+                Thread.Sleep(200);
                 //sw.SpinOnce();
+
+                now = DateTime.Now;
             }
 
             return false;
