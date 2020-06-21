@@ -24,12 +24,13 @@ namespace XUnitTest.XCode.EntityTests
         public void RWTest()
         {
             // 准备连接字符串。估计放到不同库上
-            DAL.AddConnStr("test", "Data Source=data\\rw_test.db", null, "SQLite");
-            DAL.AddConnStr("test.readonly", "Data Source=data\\rw_test_readonly.db", null, "SQLite");
+            DAL.AddConnStr("rw_test", "Data Source=data\\rw_test.db", null, "SQLite");
+            DAL.AddConnStr("rw_test.readonly", "Data Source=data\\rw_test_readonly.db", null, "SQLite");
 
             // 反向工程建表
-            var d1 = DAL.Create("test");
-            var d2 = DAL.Create("test.readonly");
+            var d1 = DAL.Create("rw_test");
+            var d2 = DAL.Create("rw_test.readonly");
+            Role2.Meta.ConnName = "rw_test";
             d1.SetTables(Role2.Meta.Table.DataTable);
             d2.SetTables(Role2.Meta.Table.DataTable);
 
@@ -45,7 +46,7 @@ namespace XUnitTest.XCode.EntityTests
             // 主库插入数据
             XTrace.WriteLine("主库插入数据");
             var r = new Role2();
-            r.Name = "Stone";
+            r.Name = name;
             r.Insert();
 
             // 如果查询落在从库，不可能查到。因为这个测试用例故意分开为不同的库
