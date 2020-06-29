@@ -73,7 +73,7 @@ namespace NewLife.Common
 
                     // 最后编译那一个
                     list = list.OrderByDescending(e => e.Compile)
-                        .ThenByDescending(e => e.Name.EndsWithIgnoreCase(".Web"))
+                        .ThenByDescending(e => e.Name.EndsWithIgnoreCase("Web"))
                         .ToList();
 
                     return list.FirstOrDefault();
