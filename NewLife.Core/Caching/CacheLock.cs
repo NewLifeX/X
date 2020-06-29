@@ -17,6 +17,9 @@ namespace NewLife.Caching
         /// <param name="key"></param>
         public CacheLock(ICache client, String key)
         {
+            if (client == null) throw new ArgumentNullException(nameof(client));
+            if (key.IsNullOrEmpty()) throw new ArgumentNullException(nameof(key));
+
             Client = client;
             Key = "lock:" + key;
         }
@@ -27,7 +30,7 @@ namespace NewLife.Caching
         public Boolean Acquire(Int32 msTimeout)
         {
             var ch = Client;
-            var now = TimerX.Now;
+            var now = DateTime.Now;
             //var sw = new SpinWait();
 
             // 循环等待
@@ -71,7 +74,14 @@ namespace NewLife.Caching
         {
             base.Dispose(disposing);
 
-            Client.Remove(Key);
+            // 如果客户端已释放，则不删除
+            if (Client is DisposeBase db && db.Disposed)
+            {
+            }
+            else
+            {
+                Client.Remove(Key);
+            }
         }
     }
 }

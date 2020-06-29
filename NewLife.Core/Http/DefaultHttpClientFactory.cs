@@ -217,6 +217,7 @@ namespace NewLife.Http
                         catch (Exception ex)
                         {
                             //Log.CleanupItemFailed(_logger, entry.Name, ex);
+                            XTrace.WriteException(ex);
                         }
                     }
                     else

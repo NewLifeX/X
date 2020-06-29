@@ -180,7 +180,7 @@ namespace XUnitTest.Caching
         {
             var ic = Cache;
 
-            var ck = ic.AcquireLock("TestLock1", 3000);
+            using var ck = ic.AcquireLock("TestLock1", 3000);
             var k2 = ck as CacheLock;
 
             Assert.NotNull(k2);
@@ -206,6 +206,8 @@ namespace XUnitTest.Caching
             var ic = Cache;
 
             var ck1 = ic.AcquireLock("TestLock2", 3000);
+            // 故意不用using，验证GC是否能回收
+            //using var ck1 = ic.AcquireLock("TestLock2", 3000);
 
             var sw = Stopwatch.StartNew();
 
@@ -227,13 +229,13 @@ namespace XUnitTest.Caching
         {
             var ic = Cache;
 
-            var ck = ic.AcquireLock("TestLock3", 3000);
+            using var ck = ic.AcquireLock("TestLock3", 3000);
 
             // 已经过了一点时间
             Thread.Sleep(2000);
 
             // 循环多次后，可以抢到
-            var ck2 = ic.AcquireLock("TestLock3", 3000);
+            using var ck2 = ic.AcquireLock("TestLock3", 3000);
             Assert.NotNull(ck2);
         }
     }
