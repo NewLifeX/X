@@ -13,6 +13,9 @@ namespace NewLife.Log
     public interface ITracer
     {
         #region 属性
+        /// <summary>采样周期</summary>
+        Int32 Period { get; set; }
+
         /// <summary>最大正常采样数。采样周期内，最多只记录指定数量的正常事件，用于绘制依赖关系</summary>
         Int32 MaxSamples { get; set; }
 
@@ -40,10 +43,13 @@ namespace NewLife.Log
     {
         #region 静态
         /// <summary>全局实例。默认每15秒采样一次</summary>
-        public static ITracer Instance { get; set; } = new DefaultTracer(15) { Log = XTrace.Log };
+        public static ITracer Instance { get; set; } = new DefaultTracer { Log = XTrace.Log };
         #endregion
 
         #region 属性
+        /// <summary>采样周期。默认15s</summary>
+        public Int32 Period { get; set; } = 15;
+
         /// <summary>最大正常采样数。采样周期内，最多只记录指定数量的正常事件，用于绘制依赖关系</summary>
         public Int32 MaxSamples { get; set; } = 1;
 
@@ -54,18 +60,15 @@ namespace NewLife.Log
         public Int32 WaitForFinish { get; set; } = 1000;
 
         /// <summary>Span构建器集合</summary>
-        private ConcurrentDictionary<String, ISpanBuilder> _builders = new ConcurrentDictionary<String, ISpanBuilder>();
+        protected ConcurrentDictionary<String, ISpanBuilder> _builders = new ConcurrentDictionary<String, ISpanBuilder>();
 
-        private TimerX _timer;
+        /// <summary>采样定时器</summary>
+        protected TimerX _timer;
         #endregion
 
         #region 构造
         /// <summary>实例化</summary>
         public DefaultTracer() { }
-
-        /// <summary>实例化。指定定时采样周期</summary>
-        /// <param name="period">采样周期。单位秒</param>
-        public DefaultTracer(Int32 period) => SetPeriod(period);
 
         /// <summary>销毁</summary>
         /// <param name="disposing"></param>
@@ -78,14 +81,15 @@ namespace NewLife.Log
         #endregion
 
         #region 方法
-        /// <summary>设置采样周期</summary>
-        /// <param name="period">采样周期。单位秒</param>
-        public void SetPeriod(Int32 period)
+        private void InitTimer()
         {
-            if (_timer != null)
-                _timer.Period = period * 1000;
-            else if (period > 0)
-                _timer = new TimerX(s => DoProcessSpans(), null, period * 1000, period * 1000) { Async = true };
+            if (_timer == null)
+            {
+                lock (this)
+                {
+                    if (_timer == null) _timer = new TimerX(s => DoProcessSpans(), null, Period * 1000, Period * 1000) { Async = true };
+                }
+            }
         }
 
         private void DoProcessSpans()
@@ -98,6 +102,9 @@ namespace NewLife.Log
 
                 ProcessSpans(builders);
             }
+
+            // 采样周期可能改变
+            if (Period > 0 && _timer.Period != Period * 1000) _timer.Period = Period * 1000;
         }
 
         /// <summary>处理Span集合。默认输出日志，可重定义输出控制台</summary>
@@ -128,6 +135,8 @@ namespace NewLife.Log
         /// <returns></returns>
         public virtual ISpanBuilder BuildSpan(String name)
         {
+            InitTimer();
+
             //if (name.IsNullOrEmpty()) throw new ArgumentNullException(nameof(name));
             if (name == null) name = "";
 
@@ -144,11 +153,11 @@ namespace NewLife.Log
         public virtual ISpanBuilder[] TakeAll()
         {
             var bs = _builders;
-            if (bs.Count == 0) return null;
+            if (!bs.Any()) return null;
 
             _builders = new ConcurrentDictionary<String, ISpanBuilder>();
 
-            var bs2 = bs.Values.ToArray();
+            var bs2 = bs.Values.Where(e => e.Total > 0).ToArray();
 
             // 设置结束时间
             foreach (var item in bs2)
