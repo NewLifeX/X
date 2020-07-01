@@ -49,7 +49,7 @@ namespace XCode.DataAccessLayer
             base.Dispose(disposing);
 
             //_store.Values.TryDispose();
-            _store.TryDispose();
+            //_store.TryDispose();
 
             if (_metadata != null)
             {
@@ -73,7 +73,7 @@ namespace XCode.DataAccessLayer
             if (st != null && st.IsValueCreated)
             {
                 _store = new ThreadLocal<IDbSession>();
-                st.TryDispose();
+                //st.TryDispose();
             }
         }
         #endregion

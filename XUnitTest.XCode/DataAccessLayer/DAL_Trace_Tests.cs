@@ -45,9 +45,9 @@ namespace XUnitTest.XCode.DataAccessLayer
             Assert.True(bs.Length >= 3);
 
             var keys = bs.Select(e => e.Name).ToArray();
-            Assert.Contains("Membership:Query", keys);
-            Assert.Contains("Membership:SelectCount", keys);
-            Assert.Contains("Membership:Execute", keys);
+            Assert.Contains("db:Membership:Query", keys);
+            Assert.Contains("db:Membership:SelectCount", keys);
+            Assert.Contains("db:Membership:Execute", keys);
         }
     }
 }
