@@ -62,7 +62,7 @@ namespace NewLife.Remoting
             onRequest?.Invoke(request);
 
             // 开始跟踪，注入TraceId
-            var span = action.IsNullOrEmpty() ? null : Tracer?.NewSpan(action);
+            var span = action.IsNullOrEmpty() ? null : Tracer?.NewSpan(action.EnsureStart("/"));
             span.Attach(request);
             try
             {

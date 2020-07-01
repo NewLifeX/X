@@ -209,7 +209,7 @@ namespace NewLife.Remoting
                     if (!enc.Decode(msg, out action, out _, out args)) return null;
 
                     // 根据动作名，开始跟踪
-                    span = Tracer?.NewSpan(action);
+                    span = Tracer?.NewSpan("rpc:" + action);
 
                     result = OnProcess(session, action, args, msg);
                 }

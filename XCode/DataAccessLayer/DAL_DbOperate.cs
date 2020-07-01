@@ -339,7 +339,7 @@ namespace XCode.DataAccessLayer
         private TResult Invoke<T1, T2, T3, TResult>(T1 k1, T2 k2, T3 k3, Func<T1, T2, T3, TResult> callback, String action)
         {
             var tracer = Tracer ?? GlobalTracer;
-            var span = tracer?.NewSpan($"{ConnName}:{action}");
+            var span = tracer?.NewSpan($"db:{ConnName}:{action}");
             try
             {
                 return callback(k1, k2, k3);
