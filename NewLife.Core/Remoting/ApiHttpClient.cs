@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using NewLife.Data;
+using NewLife.Http;
 using NewLife.Log;
 using NewLife.Threading;
 #if !NET4
@@ -18,6 +19,9 @@ namespace NewLife.Remoting
     public class ApiHttpClient : DisposeBase, IApiClient
     {
         #region 属性
+        /// <summary>Http工厂</summary>
+        public IHttpClientFactory Factory { get; set; }
+
         /// <summary>令牌。每次请求携带</summary>
         public String Token { get; set; }
 
@@ -83,6 +87,19 @@ namespace NewLife.Remoting
         /// <param name="name"></param>
         /// <param name="address"></param>
         public void Add(String name, Uri address) => Services.Add(new Service { Name = name, Address = address });
+
+        private HttpClient CreateClient()
+        {
+            var factory = Factory;
+            if (factory == null)
+            {
+                factory = new DefaultHttpClientFactory { InnerHandler = new HttpClientHandler { UseProxy = UseProxy } };
+
+                Factory = factory;
+            }
+
+            return factory.CreateClient("Api");
+        }
         #endregion
 
         #region 核心方法
