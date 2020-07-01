@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Net.Http;
 using System.Threading;
 using NewLife.Log;
-using NewLife.Model;
 using NewLife.Threading;
 
 namespace NewLife.Http
