@@ -19,9 +19,6 @@ namespace NewLife.Remoting
     public class ApiHttpClient : DisposeBase, IApiClient
     {
         #region 属性
-        /// <summary>Http工厂</summary>
-        public IHttpClientFactory Factory { get; set; }
-
         /// <summary>令牌。每次请求携带</summary>
         public String Token { get; set; }
 
@@ -48,6 +45,9 @@ namespace NewLife.Remoting
 
         /// <summary>慢追踪。远程调用或处理时间超过该值时，输出慢调用日志，默认5000ms</summary>
         public Int32 SlowTrace { get; set; } = 5_000;
+
+        /// <summary>跟踪器</summary>
+        public ITracer Tracer { get; set; }
 
         /// <summary>服务列表。用于负载均衡和故障转移</summary>
         public IList<Service> Services { get; } = new List<Service>();
@@ -87,19 +87,6 @@ namespace NewLife.Remoting
         /// <param name="name"></param>
         /// <param name="address"></param>
         public void Add(String name, Uri address) => Services.Add(new Service { Name = name, Address = address });
-
-        private HttpClient CreateClient()
-        {
-            var factory = Factory;
-            if (factory == null)
-            {
-                factory = new DefaultHttpClientFactory { InnerHandler = new HttpClientHandler { UseProxy = UseProxy } };
-
-                Factory = factory;
-            }
-
-            return factory.CreateClient("Api");
-        }
         #endregion
 
         #region 核心方法
@@ -221,11 +208,9 @@ namespace NewLife.Remoting
                 {
                     WriteLog("使用[{0}]：{1}", service.Name, service.Address);
 
-                    service.Client = client = new HttpClient(new HttpClientHandler { UseProxy = UseProxy })
-                    {
-                        BaseAddress = service.Address,
-                        Timeout = TimeSpan.FromMilliseconds(Timeout)
-                    };
+                    client = CreateClient();
+                    client.BaseAddress = service.Address;
+                    service.Client = client;
                 }
 
                 return await SendOnServiceAsync(request, service, client);
@@ -295,6 +280,21 @@ namespace NewLife.Remoting
             return rs;
         }
 
+        /// <summary>创建客户端</summary>
+        /// <returns></returns>
+        protected virtual HttpClient CreateClient()
+        {
+            HttpMessageHandler handler = new HttpClientHandler { UseProxy = UseProxy };
+            if (Tracer != null) handler = new HttpTraceHandler(handler) { Tracer = Tracer };
+
+            var client = new HttpClient(handler)
+            {
+                Timeout = TimeSpan.FromMilliseconds(Timeout)
+            };
+
+            return client;
+        }
+
         private TimerX _timer;
         /// <summary>定时检测网络。优先选择第一个</summary>
         /// <param name="state"></param>
@@ -348,11 +348,8 @@ namespace NewLife.Remoting
                 try
                 {
                     var request = BuildRequest(HttpMethod.Get, "api", null, null);
-                    var client = new HttpClient(new HttpClientHandler { UseProxy = UseProxy })
-                    {
-                        BaseAddress = service.Address,
-                        Timeout = TimeSpan.FromMilliseconds(Timeout)
-                    };
+                    var client = CreateClient();
+                    client.BaseAddress = service.Address;
 
                     var rs = await client.SendAsync(request);
                     if (rs != null)
