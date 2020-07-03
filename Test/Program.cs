@@ -633,14 +633,15 @@ namespace Test
         {
             EntityBuilder.Build("../../Src/XCode/model.xml");
         }
-        /// <summary>
-        /// 测试mysql
-        /// </summary>
-        public static void TestMysql()
-        {
-            Link entity = Link.Find(Link._.Id == 1);
-            XTrace.WriteLine("标题：" + entity?.Title);
-            Console.WriteLine("标题："+entity?.Title);
-        }
+
+        ///// <summary>
+        ///// 测试mysql
+        ///// </summary>
+        //public static void TestMysql()
+        //{
+        //    Link entity = Link.Find(Link._.Id == 1);
+        //    XTrace.WriteLine("标题：" + entity?.Title);
+        //    Console.WriteLine("标题："+entity?.Title);
+        //}
     }
 }

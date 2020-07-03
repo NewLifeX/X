@@ -123,26 +123,32 @@ namespace XCode.DataAccessLayer
         private void CheckAllTables(IDataTable[] tables, Migration mode, Boolean dbExit)
         {
             // 数据库表进入字典
-            var dic = new Dictionary<String, IDataTable>(StringComparer.OrdinalIgnoreCase);
+            //var dic = new Dictionary<String, IDataTable>(StringComparer.OrdinalIgnoreCase);
+            IList<IDataTable> dbtables = null;
             if (dbExit)
             {
-                var dbtables = OnGetTables(tables.Select(t => t.TableName).ToArray());
-                if (dbtables != null && dbtables.Count > 0)
-                {
-                    foreach (var item in dbtables)
-                    {
-                        //dic.Add(item.TableName, item);
-                        dic[item.TableName] = item;
-                    }
-                }
+                dbtables = OnGetTables(tables.Select(t => t.TableName).ToArray());
+                //if (dbtables != null && dbtables.Count > 0)
+                //{
+                //    foreach (var item in dbtables)
+                //    {
+                //        //dic.Add(item.TableName, item);
+                //        dic[item.TableName] = item;
+                //    }
+                //}
             }
 
             foreach (var item in tables)
             {
                 try
                 {
+                    // 在MySql中，可能存在同名表（大小写不一致），需要先做确定查找，再做不区分大小写的查找
+                    var dbtable = dbtables?.FirstOrDefault(e => e.TableName == item.TableName);
+                    if (dbtable == null) dbtable = dbtables?.FirstOrDefault(e => e.TableName.EqualIgnoreCase(item.TableName));
+
                     // 判断指定表是否存在于数据库中，以决定是创建表还是修改表
-                    if (dic.TryGetValue(item.TableName, out var dbtable))
+                    //if (dic.TryGetValue(item.TableName, out var dbtable))
+                    if (dbtable != null)
                         CheckTable(item, dbtable, mode);
                     else
                         CheckTable(item, null, mode);
