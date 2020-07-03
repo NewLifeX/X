@@ -344,7 +344,7 @@ namespace NewLife.Caching
 
             var buf = new Byte[len + 2];
             var p = 0;
-            while (true)
+            while (p < buf.Length)
             {
                 // 等待，直到读完需要的数据，避免大包丢数据
                 var count = ms.Read(buf, p, buf.Length - p);
@@ -403,6 +403,7 @@ namespace NewLife.Caching
             }
 
             var rs = Execute(cmd, args);
+            if (rs is TResult rs2) return rs2;
             if (rs != null && TryChangeType(rs, typeof(TResult), out var target)) return (TResult)target;
 
             return default;
