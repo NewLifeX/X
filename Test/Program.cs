@@ -22,6 +22,7 @@ using XCode;
 using System.Collections;
 using XCode.Code;
 using System.Reflection;
+
 #if !NET4
 using TaskEx = System.Threading.Tasks.Task;
 #endif
@@ -35,6 +36,7 @@ namespace Test
             //Environment.SetEnvironmentVariable("DOTNET_SYSTEM_GLOBALIZATION_INVARIANT", "1");
 
             MachineInfo.RegisterAsync();
+            //TestMysql();
             //XTrace.Log = new NetworkLog();
             XTrace.UseConsole();
 #if DEBUG
@@ -630,6 +632,15 @@ namespace Test
         private static void Test12()
         {
             EntityBuilder.Build("../../Src/XCode/model.xml");
+        }
+        /// <summary>
+        /// 测试mysql
+        /// </summary>
+        public static void TestMysql()
+        {
+            Link entity = Link.Find(Link._.Id == 1);
+            XTrace.WriteLine("标题：" + entity?.Title);
+            Console.WriteLine("标题："+entity?.Title);
         }
     }
 }
