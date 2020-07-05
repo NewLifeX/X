@@ -113,6 +113,9 @@ namespace NewLife.Net
         ///// <summary>接收统计</summary>
         //public ICounter StatReceive { get; set; }
 
+        /// <summary>APM跟踪器</summary>
+        public ITracer Tracer { get; set; }
+
         /// <summary>显示统计信息的周期。默认600秒，0表示不显示统计信息</summary>
         public Int32 StatPeriod { get; set; } = 600;
 
