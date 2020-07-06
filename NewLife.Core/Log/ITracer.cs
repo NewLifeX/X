@@ -146,6 +146,10 @@ namespace NewLife.Log
             //if (name.IsNullOrEmpty()) throw new ArgumentNullException(nameof(name));
             if (name == null) name = "";
 
+            // http 中可能有问号，需要截断。问号开头就不管了
+            var p = name.IndexOf('?');
+            if (p > 0) name = name.Substring(0, p);
+
             return _builders.GetOrAdd(name, k => new DefaultSpanBuilder(this, k));
         }
 

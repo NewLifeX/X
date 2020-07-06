@@ -25,7 +25,7 @@ namespace NewLife.Http
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             var uri = request.RequestUri;
-            var span = Tracer?.NewSpan(uri.PathAndQuery);
+            var span = Tracer?.NewSpan(uri.AbsolutePath);
             span.Attach(request);
             try
             {
