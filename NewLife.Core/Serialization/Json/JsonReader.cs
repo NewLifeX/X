@@ -328,47 +328,52 @@ namespace NewLife.Serialization
             }
 
             //用于解决奇葩json中时间字段使用了utc时间戳，还是用双引号包裹起来的情况。
-            if (value is String)
+            if (value is String str)
             {
-                if (Int64.TryParse(value + "", out var result) && result > 0)
+                if (str.IsNullOrEmpty()) return DateTime.MinValue;
+
+                if (Int64.TryParse(str, out var result) && result > 0)
                 {
                     var sdt = result.ToDateTime();
                     if (UseUTCDateTime) sdt = sdt.ToUniversalTime();
                     return sdt;
                 }
+
+                // 尝试直转时间
+                var dt = str.ToDateTime();
+                if (dt.Year > 1) return UseUTCDateTime ? dt.ToUniversalTime() : dt;
+
+                var utc = false;
+
+                var year = 0;
+                var month = 0;
+                var day = 0;
+                var hour = 0;
+                var min = 0;
+                var sec = 0;
+                var ms = 0;
+
+                year = CreateInteger(str, 0, 4);
+                month = CreateInteger(str, 5, 2);
+                day = CreateInteger(str, 8, 2);
+                if (str.Length >= 19)
+                {
+                    hour = CreateInteger(str, 11, 2);
+                    min = CreateInteger(str, 14, 2);
+                    sec = CreateInteger(str, 17, 2);
+                    if (str.Length > 21 && str[19] == '.')
+                        ms = CreateInteger(str, 20, 3);
+
+                    if (str[str.Length - 1] == 'Z' || str.EndsWithIgnoreCase("UTC")) utc = true;
+                }
+
+                if (!UseUTCDateTime && !utc)
+                    return new DateTime(year, month, day, hour, min, sec, ms);
+                else
+                    return new DateTime(year, month, day, hour, min, sec, ms, DateTimeKind.Utc).ToLocalTime();
             }
 
-            var str = (String)value;
-            if (str.IsNullOrEmpty()) return DateTime.MinValue;
-
-            var utc = false;
-
-            var year = 0;
-            var month = 0;
-            var day = 0;
-            var hour = 0;
-            var min = 0;
-            var sec = 0;
-            var ms = 0;
-
-            year = CreateInteger(str, 0, 4);
-            month = CreateInteger(str, 5, 2);
-            day = CreateInteger(str, 8, 2);
-            if (str.Length >= 19)
-            {
-                hour = CreateInteger(str, 11, 2);
-                min = CreateInteger(str, 14, 2);
-                sec = CreateInteger(str, 17, 2);
-                if (str.Length > 21 && str[19] == '.')
-                    ms = CreateInteger(str, 20, 3);
-
-                if (str[str.Length - 1] == 'Z' || str.EndsWithIgnoreCase("UTC")) utc = true;
-            }
-
-            if (!UseUTCDateTime && !utc)
-                return new DateTime(year, month, day, hour, min, sec, ms);
-            else
-                return new DateTime(year, month, day, hour, min, sec, ms, DateTimeKind.Utc).ToLocalTime();
+            return DateTime.MinValue;
         }
 
         private Object CreateDictionary(IList<Object> list, Type type, Object target)
