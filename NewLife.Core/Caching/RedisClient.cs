@@ -387,7 +387,7 @@ namespace NewLife.Caching
         /// <param name="cmd"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        public virtual Object Execute(String cmd, params Object[] args) => ExecuteCommand(cmd, args.Select(e => ToBytes(e)).ToArray());
+        public virtual Object Execute(String cmd, params Object[] args) => ExecuteCommand(cmd, args.Select(e => Host.Encoder.Encode(e)).ToArray());
 
         /// <summary>执行命令。返回基本类型、对象、对象数组</summary>
         /// <param name="cmd"></param>
@@ -432,7 +432,7 @@ namespace NewLife.Caching
 
             if (value is Packet pk)
             {
-                target = FromBytes(pk, type);
+                target = Host.Encoder.Decode(pk, type);
                 return true;
             }
 
@@ -445,7 +445,7 @@ namespace NewLife.Caching
                 var arr = Array.CreateInstance(elmType, pks.Length);
                 for (var i = 0; i < pks.Length; i++)
                 {
-                    if (pks[i] is Packet pk3) arr.SetValue(FromBytes(pk3, elmType), i);
+                    if (pks[i] is Packet pk3) arr.SetValue(Host.Encoder.Decode(pk3, elmType), i);
                 }
                 target = arr;
                 return true;
@@ -484,7 +484,7 @@ namespace NewLife.Caching
             var ms = Pool.MemoryStream.Get();
             foreach (var item in ps)
             {
-                GetRequest(ms, item.Name, item.Args.Select(e => ToBytes(e)).ToArray());
+                GetRequest(ms, item.Name, item.Args.Select(e => Host.Encoder.Encode(e)).ToArray());
             }
 
             // 整体发出
@@ -597,7 +597,7 @@ namespace NewLife.Caching
 
             for (var i = 0; i < ks.Length && i < rs.Length; i++)
             {
-                if (rs[i] is Packet pk) dic[ks[i]] = FromBytes<T>(pk);
+                if (rs[i] is Packet pk) dic[ks[i]] = (T)Host.Encoder.Decode(pk, typeof(T));
             }
 
             return dic;
@@ -605,52 +605,6 @@ namespace NewLife.Caching
         #endregion
 
         #region 辅助
-        /// <summary>数值转字节数组</summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        protected virtual Packet ToBytes(Object value)
-        {
-            if (value == null) return new Byte[0];
-
-            if (value is Packet pk) return pk;
-            if (value is Byte[] buf) return buf;
-            if (value is IAccessor acc) return acc.ToPacket();
-
-            var type = value.GetType();
-            return (type.GetTypeCode()) switch
-            {
-                TypeCode.Object => value.ToJson().GetBytes(),
-                TypeCode.String => (value as String).GetBytes(),
-                TypeCode.DateTime => ((DateTime)value).ToString("yyyy-MM-dd HH:mm:ss.fff").GetBytes(),
-                _ => "{0}".F(value).GetBytes(),
-            };
-        }
-
-        /// <summary>字节数组转对象</summary>
-        /// <param name="pk"></param>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        protected virtual Object FromBytes(Packet pk, Type type)
-        {
-            //if (pk == null) return null;
-
-            if (type == typeof(Packet)) return pk;
-            if (type == typeof(Byte[])) return pk.ToArray();
-            if (type.As<IAccessor>()) return type.AccessorRead(pk);
-
-            var str = pk.ToStr().Trim('\"');
-            if (type.GetTypeCode() == TypeCode.String) return str;
-            if (type.GetTypeCode() != TypeCode.Object) return str.ChangeType(type);
-
-            return str.ToJsonEntity(type);
-        }
-
-        /// <summary>字节数组转对象</summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="pk"></param>
-        /// <returns></returns>
-        protected T FromBytes<T>(Packet pk) => (T)FromBytes(pk, typeof(T));
-
         private static readonly ConcurrentDictionary<String, Byte[]> _cache0 = new ConcurrentDictionary<String, Byte[]>();
         private static readonly ConcurrentDictionary<String, Byte[]> _cache1 = new ConcurrentDictionary<String, Byte[]>();
         private static readonly ConcurrentDictionary<String, Byte[]> _cache2 = new ConcurrentDictionary<String, Byte[]>();
