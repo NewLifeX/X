@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using NewLife.Data;
+using NewLife.Model;
 using NewLife.Reflection;
 
 namespace NewLife.Serialization
@@ -14,10 +15,34 @@ namespace NewLife.Serialization
         #region 属性
         /// <summary>是否使用UTC时间</summary>
         public Boolean UseUTCDateTime { get; set; }
+
+        ///// <summary>对象工厂集合。用于为指定类创建实例</summary>
+        //public IDictionary<Type, Func<Type, Object>> ObjectFactories { get; } = new Dictionary<Type, Func<Type, Object>>();
         #endregion
 
-        #region 构造
-        //public JsonReader() { }
+        #region 方法
+        ///// <summary>注册对象工厂，创建指定类实例时调用</summary>
+        ///// <param name="type"></param>
+        ///// <param name="func"></param>
+        //public void AddObjectFactory(Type type, Func<Type, Object> func)
+        //{
+        //    ObjectFactories[type] = func;
+        //}
+
+        ///// <summary>注册对象工厂，创建指定类实例时调用</summary>
+        ///// <typeparam name="T"></typeparam>
+        ///// <param name="func"></param>
+        //public void AddObjectFactory<T>(Func<Type, Object> func) => AddObjectFactory(typeof(T), func);
+
+        private Object CreateObject(Type type)
+        {
+            //if (ObjectFactories.TryGetValue(type, out var func)) return func(type);
+
+            var obj = ObjectContainer.Provider.GetService(type);
+            if (obj != null) return obj;
+
+            return type.CreateInstance();
+        }
         #endregion
 
         #region 转换方法
@@ -172,7 +197,7 @@ namespace NewLife.Serialization
             if (type == typeof(StringDictionary)) return CreateSD(dic);
             if (type == typeof(Object)) return dic;
 
-            if (target == null) target = type.CreateInstance();
+            if (target == null) target = CreateObject(type);
 
             if (type.IsDictionary()) return CreateDic(dic, type, target);
 

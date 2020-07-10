@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using NewLife;
 using NewLife.Log;
+using NewLife.Model;
 using NewLife.Serialization;
 using Xunit;
 
@@ -75,6 +78,56 @@ namespace XUnitTest.Serialization
             public Boolean IsGive { get; set; }
             public String AdLinkUrl { get; set; }
             public String AdImgUrl { get; set; }
+        }
+
+        [Fact]
+        public void InterfaceTest()
+        {
+            var list = new List<IDuck>
+            {
+                new DuckB { Name = "123" },
+                new DuckB { Name = "456" },
+                new DuckB { Name = "789" }
+            };
+            var model = new ModelA
+            {
+                ID = 2233,
+                Childs = list,
+            };
+
+            var json = model.ToJson();
+
+            // 直接反序列化会抛出异常
+            Assert.Throws<Exception>(() => json.ToJsonEntity<ModelA>());
+
+            // 上对象容器
+            ObjectContainer.Current.AddTransient<IDuck, DuckB>();
+
+            // 再来一次反序列化
+            var model2 = json.ToJsonEntity<ModelA>();
+            Assert.NotNull(model2);
+            Assert.Equal(2233, model2.ID);
+            Assert.Equal(3, model2.Childs.Count);
+            Assert.Equal("123", model.Childs[0].Name);
+            Assert.Equal("456", model.Childs[1].Name);
+            Assert.Equal("789", model.Childs[2].Name);
+        }
+
+        interface IDuck
+        {
+            public String Name { get; set; }
+        }
+
+        class ModelA
+        {
+            public Int32 ID { get; set; }
+
+            public IList<IDuck> Childs { get; set; }
+        }
+
+        class DuckB : IDuck
+        {
+            public String Name { get; set; }
         }
     }
 }
