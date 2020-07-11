@@ -1037,7 +1037,7 @@ namespace XCode.DataAccessLayer
 
             var sb = new StringBuilder(32 + fs.Count * 20);
 
-            sb.AppendFormat("Create Table {0}(", FormatName(table.TableName));
+            sb.AppendFormat("Create Table {0}(", FormatTableName(table));
             for (var i = 0; i < fs.Count; i++)
             {
                 sb.AppendLine();
@@ -1123,57 +1123,45 @@ namespace XCode.DataAccessLayer
 
         public override String AddColumnSQL(IDataColumn field)
         {
-            var owner = Owner;
-            if (owner.EqualIgnoreCase(UserID))
-                return String.Format("Alter Table {0} Add {1}", FormatName(field.Table.TableName), FieldClause(field, true));
-            else
-                return String.Format("Alter Table {2}.{0} Add {1}", FormatName(field.Table.TableName), FieldClause(field, true), owner);
+            return String.Format("Alter Table {0} Add {1}", FormatTableName(field.Table), FieldClause(field, true));
         }
 
         public override String AlterColumnSQL(IDataColumn field, IDataColumn oldfield)
         {
-            var owner = Owner;
-            if (owner.EqualIgnoreCase(UserID))
-                return String.Format("Alter Table {0} Modify {1}", FormatName(field.Table.TableName), FieldClause(field, false));
-            else
-                return String.Format("Alter Table {2}.{0} Modify {1}", FormatName(field.Table.TableName), FieldClause(field, false), owner);
+            return String.Format("Alter Table {0} Modify {1}", FormatTableName(field.Table), FieldClause(field, false));
         }
 
         public override String DropColumnSQL(IDataColumn field)
         {
-            var owner = Owner;
-            if (owner.EqualIgnoreCase(UserID))
-                return String.Format("Alter Table {0} Drop Column {1}", FormatName(field.Table.TableName), field.ColumnName);
-            else
-                return String.Format("Alter Table {2}.{0} Drop Column {1}", FormatName(field.Table.TableName), field.ColumnName, owner);
+            return String.Format("Alter Table {0} Drop Column {1}", FormatTableName(field.Table), field.ColumnName);
         }
 
         public override String AddTableDescriptionSQL(IDataTable table)
         {
             //return String.Format("Update USER_TAB_COMMENTS Set COMMENTS='{0}' Where TABLE_NAME='{1}'", table.Description, table.Name);
 
-            return String.Format("Comment On Table {0} is '{1}'", FormatName(table.TableName), table.Description);
+            return String.Format("Comment On Table {0} is '{1}'", FormatTableName(table), table.Description);
         }
 
         public override String DropTableDescriptionSQL(IDataTable table)
         {
             //return String.Format("Update USER_TAB_COMMENTS Set COMMENTS='' Where TABLE_NAME='{0}'", table.Name);
 
-            return String.Format("Comment On Table {0} is ''", FormatName(table.TableName));
+            return String.Format("Comment On Table {0} is ''", FormatTableName(table));
         }
 
         public override String AddColumnDescriptionSQL(IDataColumn field)
         {
             //return String.Format("Update USER_COL_COMMENTS Set COMMENTS='{0}' Where TABLE_NAME='{1}' AND COLUMN_NAME='{2}'", field.Description, field.Table.Name, field.Name);
 
-            return String.Format("Comment On Column {0}.{1} is '{2}'", FormatName(field.Table.TableName), FormatName(field.ColumnName), field.Description);
+            return String.Format("Comment On Column {0}.{1} is '{2}'", FormatTableName(field.Table), FormatName(field.ColumnName), field.Description);
         }
 
         public override String DropColumnDescriptionSQL(IDataColumn field)
         {
             //return String.Format("Update USER_COL_COMMENTS Set COMMENTS='' Where TABLE_NAME='{0}' AND COLUMN_NAME='{1}'", field.Table.Name, field.Name);
 
-            return String.Format("Comment On Column {0}.{1} is ''", FormatName(field.Table.TableName), FormatName(field.ColumnName));
+            return String.Format("Comment On Column {0}.{1} is ''", FormatTableName(field.Table), FormatName(field.ColumnName));
         }
         #endregion
     }

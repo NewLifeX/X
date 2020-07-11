@@ -348,7 +348,7 @@ namespace XCode.DataAccessLayer
             var sb = new StringBuilder(32 + fs.Count * 20);
             String key = null;
 
-            sb.AppendFormat("Create Table If Not Exists {0}(", FormatName(table.TableName));
+            sb.AppendFormat("Create Table If Not Exists {0}(", FormatTableName(table));
             for (var i = 0; i < fs.Count; i++)
             {
                 sb.AppendLine();
@@ -373,10 +373,10 @@ namespace XCode.DataAccessLayer
         {
             if (String.IsNullOrEmpty(table.Description)) return null;
 
-            return String.Format("Alter Table {0} Comment '{1}'", FormatName(table.TableName), table.Description);
+            return String.Format("Alter Table {0} Comment '{1}'", FormatTableName(table), table.Description);
         }
 
-        public override String AlterColumnSQL(IDataColumn field, IDataColumn oldfield) => String.Format("Alter Table {0} Modify Column {1}", FormatName(field.Table.TableName), FieldClause(field, false));
+        public override String AlterColumnSQL(IDataColumn field, IDataColumn oldfield) => String.Format("Alter Table {0} Modify Column {1}", FormatTableName(field.Table), FieldClause(field, false));
 
         public override String AddColumnDescriptionSQL(IDataColumn field)
         {

@@ -205,6 +205,25 @@ namespace XCode.DataAccessLayer
 
             return Database.FormatName(name);
         }
+
+        protected String FormatTableName(IDataTable table)
+        {
+            var tableName = table.TableName;
+            switch (Nameformat)
+            {
+                case NameFormats.Upper:
+                    tableName = tableName.ToUpper();
+                    break;
+                case NameFormats.Lower:
+                    tableName = tableName.ToLower();
+                    break;
+                case NameFormats.Default:
+                default:
+                    break;
+            }
+
+            return Database.FormatTableName(tableName);
+        }
         #endregion
 
         #region 日志输出
