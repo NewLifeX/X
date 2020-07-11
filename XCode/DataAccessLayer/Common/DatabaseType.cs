@@ -41,6 +41,10 @@ namespace XCode.DataAccessLayer
         [Description("PostgreSQL数据库")]
         PostgreSQL = 8,
 
+        /// <summary>达梦数据库</summary>
+        [Description("达梦数据库")]
+        DaMeng = 9,
+
         /// <summary>网络虚拟数据库</summary>
         [Description("网络虚拟数据库")]
         Network = 100,
