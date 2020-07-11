@@ -7,11 +7,14 @@ using NewLife.IO;
 using System.IO;
 using System.Reflection;
 using System.Linq;
+using XCode.Membership;
 
 namespace XUnitTest.XCode.DataAccessLayer
 {
     public class DaMengTests
     {
+        private static String _ConnStr = "Server=.;Port=5236;owner=dameng;user=SYSDBA;password=SYSDBA";
+
         [Fact]
         public void LoadDllTest()
         {
@@ -47,6 +50,57 @@ namespace XUnitTest.XCode.DataAccessLayer
 
             var dp = factory.CreateParameter();
             Assert.NotNull(dp);
+        }
+
+        [Fact]
+        public void ConnectTest()
+        {
+            var db = DbFactory.Create(DatabaseType.DaMeng);
+            var factory = db.Factory;
+
+            var conn = factory.CreateConnection();
+            conn.ConnectionString = "Server=localhost;Port=5236;Database=dameng;user=SYSDBA;password=SYSDBA";
+            conn.Open();
+        }
+
+        [Fact]
+        public void DALTest()
+        {
+            DAL.AddConnStr("DaMeng", _ConnStr, null, "DaMeng");
+            var dal = DAL.Create("DaMeng");
+            Assert.NotNull(dal);
+            Assert.Equal("DaMeng", dal.ConnName);
+            Assert.Equal(DatabaseType.DaMeng, dal.DbType);
+
+            var db = dal.Db;
+            var connstr = db.ConnectionString;
+            Assert.Equal("dameng", db.Owner);
+            Assert.Equal("Server=localhost;Port=5236;user=SYSDBA;password=SYSDBA", connstr);
+
+            var ver = db.ServerVersion;
+            Assert.NotEmpty(ver);
+        }
+
+        [Fact]
+        public void MetaTest()
+        {
+            DAL.AddConnStr("DaMeng", _ConnStr, null, "DaMeng");
+            var dal = DAL.Create("DaMeng");
+
+            var tables = dal.Tables;
+            Assert.NotNull(tables);
+            Assert.True(tables.Count > 0);
+        }
+
+        [Fact]
+        public void SelectTest()
+        {
+            DAL.AddConnStr("Membership", _ConnStr, null, "DaMeng");
+
+            var count = Role.Meta.Count;
+            Assert.True(count > 0);
+
+            Area.FetchAndSave();
         }
     }
 }
