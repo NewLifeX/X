@@ -2,7 +2,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Threading;
 using NewLife.Collections;
@@ -397,7 +396,7 @@ namespace NewLife.Caching
             {
                 Value = value;
 
-                var now = VisitTime = TimerX.Now;
+                var now = VisitTime = DateTime.Now;
                 if (expire <= 0)
                     ExpiredTime = DateTime.MaxValue;
                 else

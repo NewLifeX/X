@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using NewLife.Log;
 using NewLife.Threading;
 
 namespace NewLife.Caching
@@ -31,7 +32,7 @@ namespace NewLife.Caching
         {
             var ch = Client;
             var now = DateTime.Now;
-            //var sw = new SpinWait();
+            var sTimeout = msTimeout / 1000;
 
             // 循环等待
             var end = now.AddMilliseconds(msTimeout);
@@ -40,13 +41,16 @@ namespace NewLife.Caching
                 var expire = now.AddMilliseconds(msTimeout);
 
                 // 申请加锁。没有冲突时可以直接返回
-                var rs = ch.Add(Key, expire, msTimeout / 1000);
+                var rs = ch.Add(Key, expire, sTimeout);
                 if (rs) return true;
 
                 // 死锁超期检测
                 var dt = ch.Get<DateTime>(Key);
                 if (dt <= now)
                 {
+#if DEBUG
+                    XTrace.WriteLine("[{0}]抢超期死锁，{1}=>{2}", Key, dt, expire);
+#endif
                     // 开抢死锁。所有竞争者都会修改该锁的时间戳，但是只有一个能拿到旧的超时的值
                     expire = now.AddMilliseconds(msTimeout);
                     var old = ch.Replace(Key, expire);
@@ -60,7 +64,6 @@ namespace NewLife.Caching
 
                 // 没抢到，继续
                 Thread.Sleep(200);
-                //sw.SpinOnce();
 
                 now = DateTime.Now;
             }
