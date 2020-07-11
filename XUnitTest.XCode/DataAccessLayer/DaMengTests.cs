@@ -95,7 +95,11 @@ namespace XUnitTest.XCode.DataAccessLayer
         [Fact]
         public void SelectTest()
         {
-            DAL.AddConnStr("Membership", _ConnStr, null, "DaMeng");
+            //DAL.AddConnStr("Membership", _ConnStr, null, "DaMeng");
+            DAL.AddConnStr("DaMeng", _ConnStr, null, "DaMeng");
+
+            Role.Meta.ConnName = "DaMeng";
+            Area.Meta.ConnName = "DaMeng";
 
             var count = Role.Meta.Count;
             Assert.True(count > 0);
