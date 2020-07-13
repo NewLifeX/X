@@ -515,7 +515,7 @@ namespace XCode.DataAccessLayer
                 var owner = Database.Owner;
                 if (owner.IsNullOrEmpty()) owner = (Database as DaMeng).User;
 
-                return owner.ToUpper();
+                return owner;
             }
         }
 
@@ -543,6 +543,7 @@ namespace XCode.DataAccessLayer
             var owner = Owner;
             //if (owner.IsNullOrEmpty()) owner = UserID;
 
+            //dt = Get("all_tables", owner, tableName);
             dt = GetSchema(_.Tables, new String[] { owner, tableName });
             if (!dt.Columns.Contains("TABLE_TYPE"))
             {
