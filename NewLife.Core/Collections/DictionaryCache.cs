@@ -90,7 +90,7 @@ namespace NewLife.Collections
             {
                 Value = value;
 
-                var now = VisitTime = TimerX.Now;
+                var now = VisitTime = DateTime.Now;
                 if (seconds > 0) ExpiredTime = now.AddSeconds(seconds);
             }
 
