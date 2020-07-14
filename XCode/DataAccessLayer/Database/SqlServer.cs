@@ -835,7 +835,7 @@ namespace XCode.DataAccessLayer
                 sb.Append(FormatName(item.ColumnName));
             }
             sql += "; " + Environment.NewLine;
-            sql += String.Format("Alter Table {0} Add Constraint PK_{1} Primary Key Clustered({2})", FormatName(table.TableName), table.TableName, sb.ToString());
+            sql += String.Format("Alter Table {0} Add Constraint PK_{1} Primary Key Clustered({2})", FormatTableName(table), table.TableName, sb.ToString());
             return sql;
         }
 
@@ -1097,7 +1097,7 @@ namespace XCode.DataAccessLayer
 
         public override String AddColumnSQL(IDataColumn field)
         {
-            return String.Format("Alter Table {0} Add {1}", FormatName(field.Table.TableName), FieldClause(field, true));
+            return String.Format("Alter Table {0} Add {1}", FormatTableName(field.Table), FieldClause(field, true));
         }
 
         public override String AlterColumnSQL(IDataColumn field, IDataColumn oldfield)
@@ -1111,7 +1111,7 @@ namespace XCode.DataAccessLayer
             // 类型改变，必须重建表
             if (IsColumnTypeChanged(field, oldfield)) return ReBuildTable(field.Table, oldfield.Table);
 
-            var sql = String.Format("Alter Table {0} Alter Column {1}", FormatName(field.Table.TableName), FieldClause(field, false));
+            var sql = String.Format("Alter Table {0} Alter Column {1}", FormatTableName(field.Table), FieldClause(field, false));
             var pk = DeletePrimaryKeySQL(field);
             if (field.PrimaryKey)
             {
@@ -1120,7 +1120,7 @@ namespace XCode.DataAccessLayer
                 if (!oldfield.PrimaryKey)
                 {
                     // 增加主键约束
-                    pk = String.Format("Alter Table {0} ADD CONSTRAINT PK_{0} PRIMARY KEY {2}({1}) ON [PRIMARY]", FormatName(field.Table.TableName), FormatName(field.ColumnName), field.Identity ? "CLUSTERED" : "");
+                    pk = String.Format("Alter Table {0} ADD CONSTRAINT PK_{0} PRIMARY KEY {2}({1}) ON [PRIMARY]", FormatTableName(field.Table), FormatName(field.ColumnName), field.Identity ? "CLUSTERED" : "");
                     sql += ";" + Environment.NewLine + pk;
                 }
             }
@@ -1214,7 +1214,7 @@ namespace XCode.DataAccessLayer
             var di = dis.FirstOrDefault(e => e.Columns.Any(x => x.EqualIgnoreCase(field.ColumnName, field.Name)));
             if (di == null) return String.Empty;
 
-            return String.Format("Alter Table {0} Drop CONSTRAINT {1}", FormatName(field.Table.TableName), di.Name);
+            return String.Format("Alter Table {0} Drop CONSTRAINT {1}", FormatTableName(field.Table), di.Name);
         }
 
         public override String DropDatabaseSQL(String dbname)

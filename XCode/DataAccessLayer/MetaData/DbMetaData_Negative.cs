@@ -851,7 +851,7 @@ namespace XCode.DataAccessLayer
             var fs = new List<IDataColumn>(table.Columns);
             var sb = new StringBuilder();
 
-            sb.AppendFormat("Create Table {0}(", FormatName(table.TableName));
+            sb.AppendFormat("Create Table {0}(", FormatTableName(table));
             for (var i = 0; i < fs.Count; i++)
             {
                 sb.AppendLine();
@@ -865,7 +865,7 @@ namespace XCode.DataAccessLayer
             return sb.ToString();
         }
 
-        public virtual String DropTableSQL(IDataTable table) => $"Drop Table {FormatName(table.TableName)}";
+        public virtual String DropTableSQL(IDataTable table) => $"Drop Table {FormatTableName(table)}";
 
         public virtual String TableExistSQL(IDataTable table) => throw new NotSupportedException("该功能未实现！");
 
@@ -873,11 +873,11 @@ namespace XCode.DataAccessLayer
 
         public virtual String DropTableDescriptionSQL(IDataTable table) => null;
 
-        public virtual String AddColumnSQL(IDataColumn field) => $"Alter Table {FormatName(field.Table.TableName)} Add {FieldClause(field, true)}";
+        public virtual String AddColumnSQL(IDataColumn field) => $"Alter Table {FormatTableName(field.Table)} Add {FieldClause(field, true)}";
 
-        public virtual String AlterColumnSQL(IDataColumn field, IDataColumn oldfield) => $"Alter Table {FormatName(field.Table.TableName)} Alter Column {FieldClause(field, false)}";
+        public virtual String AlterColumnSQL(IDataColumn field, IDataColumn oldfield) => $"Alter Table {FormatTableName(field.Table)} Alter Column {FieldClause(field, false)}";
 
-        public virtual String DropColumnSQL(IDataColumn field) => $"Alter Table {FormatName(field.Table.TableName)} Drop Column {FormatName(field.ColumnName)}";
+        public virtual String DropColumnSQL(IDataColumn field) => $"Alter Table {FormatTableName(field.Table)} Drop Column {FormatName(field.ColumnName)}";
 
         public virtual String AddColumnDescriptionSQL(IDataColumn field) => null;
 
@@ -892,7 +892,7 @@ namespace XCode.DataAccessLayer
                 sb.Append("Create Index ");
 
             sb.Append(FormatName(index.Name));
-            sb.AppendFormat(" On {0} (", FormatName(index.Table.TableName));
+            sb.AppendFormat(" On {0} (", FormatTableName(index.Table));
             for (var i = 0; i < index.Columns.Length; i++)
             {
                 if (i > 0) sb.Append(", ");
@@ -903,7 +903,7 @@ namespace XCode.DataAccessLayer
             return sb.ToString();
         }
 
-        public virtual String DropIndexSQL(IDataIndex index) => $"Drop Index {FormatName(index.Name)} On {FormatName(index.Table.TableName)}";
+        public virtual String DropIndexSQL(IDataIndex index) => $"Drop Index {FormatName(index.Name)} On {FormatTableName(index.Table)}";
 
         //public virtual String CompactDatabaseSQL() => null;
         #endregion

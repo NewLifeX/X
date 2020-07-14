@@ -209,18 +209,18 @@ namespace XCode.DataAccessLayer
         protected String FormatTableName(IDataTable table)
         {
             var tableName = table.TableName;
-            switch (Nameformat)
-            {
-                case NameFormats.Upper:
-                    tableName = tableName.ToUpper();
-                    break;
-                case NameFormats.Lower:
-                    tableName = tableName.ToLower();
-                    break;
-                case NameFormats.Default:
-                default:
-                    break;
-            }
+            //switch (Nameformat)
+            //{
+            //    case NameFormats.Upper:
+            //        tableName = tableName.ToUpper();
+            //        break;
+            //    case NameFormats.Lower:
+            //        tableName = tableName.ToLower();
+            //        break;
+            //    case NameFormats.Default:
+            //    default:
+            //        break;
+            //}
 
             return Database.FormatTableName(tableName);
         }
