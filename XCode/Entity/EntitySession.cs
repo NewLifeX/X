@@ -201,49 +201,49 @@ namespace XCode
                 // 已初始化
                 if (hasCheckInitData) return true;
 
-                var name = ThisType.Name;
-                if (name == TableName)
-                    name = String.Format("{0}@{1}", ThisType.Name, ConnName);
-                else
-                    name = String.Format("{0}#{1}@{2}", ThisType.Name, TableName, ConnName);
+                //var name = ThisType.Name;
+                //if (name == TableName)
+                //    name = String.Format("{0}@{1}", ThisType.Name, ConnName);
+                //else
+                //    name = String.Format("{0}#{1}@{2}", ThisType.Name, TableName, ConnName);
 
-                var task = Task.Factory.StartNew(() =>
+                //var task = Task.Factory.StartNew(() =>
+                //{
+                initThread = Thread.CurrentThread.ManagedThreadId;
+
+                // 如果该实体类是首次使用检查模型，则在这个时候检查
+                try
                 {
-                    initThread = Thread.CurrentThread.ManagedThreadId;
+                    CheckModel();
+                }
+                catch (Exception ex) { XTrace.WriteException(ex); }
 
-                    // 如果该实体类是首次使用检查模型，则在这个时候检查
+                //var init = Setting.Current.InitData;
+                //var init = this == Default;
+                //if (init)
+                {
+                    //BeginTrans();
                     try
                     {
-                        CheckModel();
-                    }
-                    catch (Exception ex) { XTrace.WriteException(ex); }
+                        if (Factory.Default is EntityBase entity)
+                        {
+                            entity.InitData();
+                            //// 异步执行初始化，只等一会，避免死锁
+                            //var task = TaskEx.Run(() => entity.InitData());
+                            //if (!task.Wait(ms) && DAL.Debug) DAL.WriteLog("{0}未能在{1:n0}ms内完成数据初始化 Task={2}", ThisType.Name, ms, task.Id);
+                        }
 
-                    //var init = Setting.Current.InitData;
-                    var init = this == Default;
-                    if (init)
+                        //Commit();
+                    }
+                    catch (Exception ex)
                     {
-                        //BeginTrans();
-                        try
-                        {
-                            if (Factory.Default is EntityBase entity)
-                            {
-                                entity.InitData();
-                                //// 异步执行初始化，只等一会，避免死锁
-                                //var task = TaskEx.Run(() => entity.InitData());
-                                //if (!task.Wait(ms) && DAL.Debug) DAL.WriteLog("{0}未能在{1:n0}ms内完成数据初始化 Task={2}", ThisType.Name, ms, task.Id);
-                            }
+                        if (XTrace.Debug) XTrace.WriteLine("初始化数据出错！" + ex.ToString());
 
-                            //Commit();
-                        }
-                        catch (Exception ex)
-                        {
-                            if (XTrace.Debug) XTrace.WriteLine("初始化数据出错！" + ex.ToString());
-
-                            //Rollback();
-                        }
+                        //Rollback();
                     }
-                });
-                task.Wait(3_000);
+                }
+                //});
+                //task.Wait(3_000);
 
                 return true;
             }
