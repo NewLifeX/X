@@ -79,7 +79,7 @@ namespace NewLife.Collections
             public DateTime ExpiredTime { get; private set; }
 
             /// <summary>是否过期</summary>
-            public Boolean Expired => ExpiredTime <= TimerX.Now;
+            public Boolean Expired => ExpiredTime <= DateTime.Now;
 
             /// <summary>访问时间</summary>
             public DateTime VisitTime { get; private set; }

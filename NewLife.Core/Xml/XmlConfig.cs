@@ -149,7 +149,7 @@ namespace NewLife.Xml
                 // 频繁调用File.Exists的性能损耗巨大
                 if (cf.IsNullOrEmpty()) return false;
 
-                var now = TimerX.Now;
+                var now = DateTime.Now;
                 if (_.ReloadTime > 0 && expire < now)
                 {
                     var fi = new FileInfo(cf);
@@ -179,8 +179,8 @@ namespace NewLife.Xml
                     lastWrite = fi.LastWriteTime;
                 }
                 else
-                    lastWrite = TimerX.Now;
-                expire = TimerX.Now.AddMilliseconds(_.ReloadTime);
+                    lastWrite = DateTime.Now;
+                expire = DateTime.Now.AddMilliseconds(_.ReloadTime);
             }
         }
 

@@ -306,7 +306,7 @@ namespace NewLife.Net
                 if (gotLock) _spinLock.Exit();
             }
 
-            LastTime = TimerX.Now;
+            LastTime = DateTime.Now;
 
             return true;
         }

@@ -53,7 +53,7 @@ namespace NewLife.Net
         //public ICounter StatReceive { get; set; }
 
         /// <summary>通信开始时间</summary>
-        public DateTime StartTime { get; private set; } = TimerX.Now;
+        public DateTime StartTime { get; private set; } = DateTime.Now;
 
         /// <summary>最后一次通信时间，主要表示活跃时间，包括收发</summary>
         public DateTime LastTime { get; internal protected set; }
@@ -423,7 +423,7 @@ namespace NewLife.Net
         {
             try
             {
-                LastTime = TimerX.Now;
+                LastTime = DateTime.Now;
 
                 // 预处理，得到将要处理该数据包的会话
                 var ss = OnPreReceive(pk, remote);

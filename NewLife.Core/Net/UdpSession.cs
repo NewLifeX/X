@@ -198,7 +198,7 @@ namespace NewLife.Net
 
         internal void OnReceive(ReceivedEventArgs e)
         {
-            LastTime = TimerX.Now;
+            LastTime = DateTime.Now;
 
             if (e != null) Received?.Invoke(this, e);
         }

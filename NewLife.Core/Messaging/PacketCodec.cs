@@ -21,7 +21,7 @@ namespace NewLife.Messaging
         public Int32 Offset { get; set; }
 
         /// <summary>最后一次解包成功，而不是最后一次接收</summary>
-        public DateTime Last { get; set; } = TimerX.Now;
+        public DateTime Last { get; set; } = DateTime.Now;
 
         /// <summary>缓存有效期。超过该时间后仍未匹配数据包的缓存数据将被抛弃</summary>
         public Int32 Expire { get; set; } = 5_000;
@@ -115,7 +115,7 @@ namespace NewLife.Messaging
             if (ms == null) Stream = ms = new MemoryStream();
 
             // 超过该时间后按废弃数据处理
-            var now = TimerX.Now;
+            var now = DateTime.Now;
             if (ms.Length > ms.Position && Last.AddMilliseconds(Expire) < now && (MaxCache <= 0 || MaxCache <= ms.Length))
             {
                 if (XTrace.Debug) XTrace.Log.Debug("数据包编码器放弃数据 {0:n0}，Last={1}，MaxCache={2:n0}", ms.Length, Last, MaxCache);
