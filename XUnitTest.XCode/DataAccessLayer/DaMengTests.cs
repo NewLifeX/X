@@ -101,9 +101,21 @@ namespace XUnitTest.XCode.DataAccessLayer
             Role.Meta.ConnName = "DaMeng";
             Area.Meta.ConnName = "DaMeng";
 
+            Role.Meta.Session.InitData();
+
             var count = Role.Meta.Count;
             Assert.True(count > 0);
 
+            var list = Role.FindAll();
+            Assert.Equal(4, list.Count);
+
+            var list2 = Role.FindAll(Role._.Name == "管理员");
+            Assert.Equal(1, list2.Count);
+
+            var list3 = Role.Search("用户", null);
+            Assert.Equal(2, list3.Count);
+
+            // 来个耗时操作，把前面堵住
             Area.FetchAndSave();
         }
     }

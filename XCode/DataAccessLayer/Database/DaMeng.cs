@@ -592,7 +592,7 @@ namespace XCode.DataAccessLayer
             data["TableComment"] = Get("all_tab_comments", owner, tableName, mulTable);
 
             // 列注释
-            data["ColumnComment"] = Get("all_col_comments", owner, tableName, mulTable);
+            data["ColumnComment"] = Get("all_col_comments", owner, tableName, mulTable, "SCHEMA_NAME");
 
             var list = GetTables(dt.Rows.ToArray(), names, data);
 
