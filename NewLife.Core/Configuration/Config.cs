@@ -1,6 +1,6 @@
 ﻿using System;
-using System.IO;
 using System.Reflection;
+using System.Runtime.Serialization;
 using System.Xml.Serialization;
 using NewLife.Log;
 using NewLife.Threading;
@@ -96,7 +96,7 @@ namespace NewLife.Configuration
 
         #region 属性
         /// <summary>是否新的配置文件</summary>
-        [XmlIgnore]
+        [XmlIgnore, IgnoreDataMember]
         //[Obsolete("=>_Provider.IsNew")]
         public Boolean IsNew => Provider is FileConfigProvider fprv && fprv.IsNew;
         #endregion

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
@@ -92,25 +93,25 @@ namespace XCode.DataAccessLayer
 
         #region 扩展属性
         /// <summary>字段集合。可以是空集合，但不能为null。</summary>
-        [XmlIgnore]
+        [XmlIgnore, IgnoreDataMember]
         [Category("集合")]
         [DisplayName("字段集合")]
         [Description("字段集合")]
         public List<IDataColumn> Columns { get; private set; }
 
         /// <summary>索引集合。可以是空集合，但不能为null。</summary>
-        [XmlIgnore]
+        [XmlIgnore, IgnoreDataMember]
         [Category("集合")]
         [DisplayName("索引集合")]
         [Description("索引集合")]
         public List<IDataIndex> Indexes { get; private set; }
 
         /// <summary>主字段。主字段作为业务主要字段，代表当前数据行意义</summary>
-        [XmlIgnore]
+        [XmlIgnore, IgnoreDataMember]
         public IDataColumn Master { get { return Columns.FirstOrDefault(e => e.Master) ?? Columns.FirstOrDefault(e => e.PrimaryKey); } }
 
         /// <summary>主键集合。可以是空集合，但不能为null。</summary>
-        [XmlIgnore]
+        [XmlIgnore, IgnoreDataMember]
         public IDataColumn[] PrimaryKeys { get { return Columns.FindAll(item => item.PrimaryKey).ToArray(); } }
 
         private String _DisplayName;
@@ -138,7 +139,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>扩展属性</summary>
-        [XmlIgnore]
+        [XmlIgnore, IgnoreDataMember]
         [Category("扩展")]
         [DisplayName("扩展属性")]
         [Description("扩展属性")]

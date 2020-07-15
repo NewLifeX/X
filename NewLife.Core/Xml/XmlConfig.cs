@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading;
 using System.Xml.Serialization;
@@ -128,18 +129,18 @@ namespace NewLife.Xml
 
         #region 属性
         /// <summary>配置文件</summary>
-        [XmlIgnore]
+        [XmlIgnore, IgnoreDataMember]
         public String ConfigFile { get; set; }
 
         /// <summary>最后写入时间</summary>
-        [XmlIgnore]
+        [XmlIgnore, IgnoreDataMember]
         private DateTime lastWrite;
         /// <summary>过期时间。如果在这个时间之后再次访问，将检查文件修改时间</summary>
-        [XmlIgnore]
+        [XmlIgnore, IgnoreDataMember]
         private DateTime expire;
 
         /// <summary>是否已更新。通过文件写入时间判断</summary>
-        [XmlIgnore]
+        [XmlIgnore, IgnoreDataMember]
         protected Boolean IsUpdated
         {
             get
@@ -185,7 +186,7 @@ namespace NewLife.Xml
         }
 
         /// <summary>是否新的配置文件</summary>
-        [XmlIgnore]
+        [XmlIgnore, IgnoreDataMember]
         public Boolean IsNew { get; set; }
         #endregion
 

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Xml.Serialization;
 
@@ -12,7 +13,7 @@ namespace NewLife
     public interface IDisposable2 : IDisposable
     {
         /// <summary>是否已经释放</summary>
-        [XmlIgnore]
+        [XmlIgnore, IgnoreDataMember]
         Boolean Disposed { get; }
 
         /// <summary>被销毁时触发事件</summary>
@@ -51,7 +52,7 @@ namespace NewLife
         [NonSerialized]
         private Int32 _disposed = 0;
         /// <summary>是否已经释放</summary>
-        [XmlIgnore]
+        [XmlIgnore, IgnoreDataMember]
         public Boolean Disposed => _disposed > 0;
 
         /// <summary>被销毁时触发事件</summary>

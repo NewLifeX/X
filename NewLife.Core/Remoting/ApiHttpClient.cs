@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
@@ -380,7 +381,7 @@ namespace NewLife.Remoting
             public Uri Address { get; set; }
 
             /// <summary>客户端</summary>
-            [XmlIgnore]
+            [XmlIgnore, IgnoreDataMember]
             public HttpClient Client { get; set; }
 
             /// <summary>总次数。可用于负载均衡</summary>

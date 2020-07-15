@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Runtime.Serialization;
 using System.Xml.Serialization;
 using NewLife;
 using NewLife.Reflection;
@@ -35,7 +36,7 @@ namespace System.IO.Compression
 
         private Int32 _LastModified;
         /// <summary>最后修改时间</summary>
-        [XmlIgnore]
+        [XmlIgnore, IgnoreDataMember]
         public DateTime LastModified { get => ZipArchive.DosDateTimeToFileTime(_LastModified); set => _LastModified = ZipArchive.FileTimeToDosDateTime(value); }
 
         /// <summary>CRC校验</summary>
@@ -91,7 +92,7 @@ namespace System.IO.Compression
 
         #region 属性
         /// <summary>是否目录</summary>
-        [XmlIgnore]
+        [XmlIgnore, IgnoreDataMember]
         public Boolean IsDirectory => ("" + FileName).EndsWith(ZipArchive.DirSeparator);
 
         /// <summary>数据源</summary>

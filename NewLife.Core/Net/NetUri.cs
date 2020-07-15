@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.Serialization;
 using System.Xml.Serialization;
 
 namespace NewLife.Net
@@ -43,7 +44,7 @@ namespace NewLife.Net
         public String Host { get; set; }
 
         /// <summary>地址</summary>
-        [XmlIgnore]
+        [XmlIgnore, IgnoreDataMember]
         public IPAddress Address { get { return EndPoint.Address; } set { EndPoint.Address = value; } }
 
         /// <summary>端口</summary>
@@ -52,7 +53,7 @@ namespace NewLife.Net
         [NonSerialized]
         private IPEndPoint _EndPoint;
         /// <summary>终结点</summary>
-        [XmlIgnore]
+        [XmlIgnore, IgnoreDataMember]
         public IPEndPoint EndPoint
         {
             get
@@ -76,11 +77,11 @@ namespace NewLife.Net
 
         #region 扩展属性
         /// <summary>是否Tcp协议</summary>
-        [XmlIgnore]
+        [XmlIgnore, IgnoreDataMember]
         public Boolean IsTcp => Type == NetType.Tcp;
 
         /// <summary>是否Udp协议</summary>
-        [XmlIgnore]
+        [XmlIgnore, IgnoreDataMember]
         public Boolean IsUdp => Type == NetType.Udp;
         #endregion
 

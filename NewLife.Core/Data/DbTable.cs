@@ -5,6 +5,7 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Serialization;
 using System.Xml.Serialization;
 using NewLife.Reflection;
 using NewLife.Serialization;
@@ -19,7 +20,7 @@ namespace NewLife.Data
         public String[] Columns { get; set; }
 
         /// <summary>数据列类型</summary>
-        [XmlIgnore]
+        [XmlIgnore, IgnoreDataMember]
         public Type[] Types { get; set; }
 
         /// <summary>数据行</summary>

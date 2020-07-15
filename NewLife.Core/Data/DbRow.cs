@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.Serialization;
 using System.Xml.Serialization;
 using NewLife.Reflection;
 
@@ -9,7 +10,7 @@ namespace NewLife.Data
     {
         #region 属性
         /// <summary>数据表</summary>
-        [XmlIgnore]
+        [XmlIgnore, IgnoreDataMember]
         public DbTable Table { get; set; }
 
         /// <summary>行索引</summary>

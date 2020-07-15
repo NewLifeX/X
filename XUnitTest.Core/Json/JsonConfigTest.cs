@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.IO;
+using System.Runtime.Serialization;
 using System.Xml.Serialization;
 using Xunit;
 
@@ -79,7 +80,7 @@ namespace NewLife.Json
 
         /// <summary>高度</summary>
         [Description("高度")]
-        [XmlIgnore]
+        [XmlIgnore, IgnoreDataMember]
         public Int32 Height { get; set; } = 520;
     }
 }

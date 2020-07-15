@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Runtime.Serialization;
 using System.Xml;
 using System.Xml.Serialization;
 using NewLife.Collections;
-using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
 {
@@ -33,12 +33,6 @@ namespace XCode.DataAccessLayer
         [DisplayName("数据类型")]
         [Description("数据类型")]
         public Type DataType { get; set; }
-
-        ///// <summary>字段类型</summary>
-        //[XmlIgnore]
-        //[DisplayName("字段类型")]
-        //[Description("字段类型")]
-        //public String FieldType { get { return DataType?.Name; } set { DataType = value.GetTypeEx(); } }
 
         /// <summary>原始数据类型</summary>
         [XmlAttribute]
@@ -77,13 +71,13 @@ namespace XCode.DataAccessLayer
         public Int32 Length { get; set; }
 
         /// <summary>精度</summary>
-        //[XmlIgnore]
+        [XmlAttribute]
         [DisplayName("精度")]
         [Description("精度")]
         public Int32 Precision { get; set; }
 
         /// <summary>位数</summary>
-        //[XmlIgnore]
+        [XmlAttribute]
         [DisplayName("位数")]
         [Description("位数")]
         public Int32 Scale { get; set; }
@@ -112,7 +106,7 @@ namespace XCode.DataAccessLayer
 
         #region 扩展属性
         /// <summary>表</summary>
-        [XmlIgnore]
+        [XmlIgnore, IgnoreDataMember]
         public IDataTable Table { get; set; }
 
         private String _DisplayName;
@@ -130,7 +124,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>扩展属性</summary>
-        [XmlIgnore]
+        [XmlIgnore, IgnoreDataMember]
         [Category("扩展")]
         [DisplayName("扩展属性")]
         [Description("扩展属性")]

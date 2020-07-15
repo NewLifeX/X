@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Runtime.Serialization;
 using System.Xml.Serialization;
 
 namespace XCode.DataAccessLayer
@@ -45,7 +46,7 @@ namespace XCode.DataAccessLayer
 
         #region 扩展属性
         /// <summary>表</summary>
-        [XmlIgnore]
+        [XmlIgnore, IgnoreDataMember]
         public IDataTable Table { get; set; }
         #endregion
 

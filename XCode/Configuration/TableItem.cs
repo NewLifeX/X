@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Serialization;
 using System.Xml.Serialization;
 using NewLife.Collections;
 using XCode.DataAccessLayer;
@@ -146,15 +147,15 @@ namespace XCode.Configuration
         public FieldItem[] Fields { get; private set; }
 
         /// <summary>所有字段</summary>
-        [XmlIgnore]
+        [XmlIgnore, IgnoreDataMember]
         public FieldItem[] AllFields { get; private set; }
 
         /// <summary>标识列</summary>
-        [XmlIgnore]
+        [XmlIgnore, IgnoreDataMember]
         public FieldItem Identity { get; private set; }
 
         /// <summary>主键。不会返回null</summary>
-        [XmlIgnore]
+        [XmlIgnore, IgnoreDataMember]
         public FieldItem[] PrimaryKeys { get; private set; }
 
         /// <summary>主字段。主字段作为业务主要字段，代表当前数据行意义</summary>
@@ -162,7 +163,7 @@ namespace XCode.Configuration
 
         private ICollection<String> _FieldNames;
         /// <summary>字段名集合，不区分大小写的哈希表存储，外部不要修改元素数据</summary>
-        [XmlIgnore]
+        [XmlIgnore, IgnoreDataMember]
         public ICollection<String> FieldNames
         {
             get
@@ -190,7 +191,7 @@ namespace XCode.Configuration
 
         private ICollection<String> _ExtendFieldNames;
         /// <summary>扩展属性集合，不区分大小写的哈希表存储，外部不要修改元素数据</summary>
-        [XmlIgnore]
+        [XmlIgnore, IgnoreDataMember]
         public ICollection<String> ExtendFieldNames
         {
             get
@@ -209,7 +210,7 @@ namespace XCode.Configuration
         }
 
         /// <summary>数据表架构</summary>
-        [XmlIgnore]
+        [XmlIgnore, IgnoreDataMember]
         public IDataTable DataTable { get; private set; }
 
         /// <summary>模型检查模式</summary>
