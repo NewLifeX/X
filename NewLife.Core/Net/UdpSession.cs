@@ -5,11 +5,9 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
-using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Model;
-using NewLife.Threading;
 #if !NET4
 using TaskEx = System.Threading.Tasks.Task;
 #endif
@@ -139,7 +137,7 @@ namespace NewLife.Net
         #endregion
 
         #region 发送
-        public Boolean Send(Packet pk)
+        public Int32 Send(Packet pk)
         {
             if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
@@ -149,7 +147,7 @@ namespace NewLife.Net
         /// <summary>发送消息</summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public virtual Boolean SendMessage(Object message)
+        public virtual Int32 SendMessage(Object message)
         {
             var ctx = Server.CreateContext(this);
             message = Pipeline.Write(ctx, message);
@@ -168,7 +166,8 @@ namespace NewLife.Net
 
             message = Pipeline.Write(ctx, message);
 
-            if (!ctx.FireWrite(message)) return TaskEx.FromResult((Object)null);
+            var rs = ctx.FireWrite(message);
+            if (rs < 0) return TaskEx.FromResult((Object)null);
 
             return source.Task;
         }

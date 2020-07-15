@@ -19,7 +19,7 @@ namespace NewLife.Net
 
         /// <summary>写入数据</summary>
         /// <param name="pk">数据包</param>
-        Boolean Send(Packet pk);
+        Int32 Send(Packet pk);
 
         ///// <summary>异步发送数据并等待响应</summary>
         ///// <param name="pk">数据包</param>

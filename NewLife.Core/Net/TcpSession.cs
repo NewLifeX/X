@@ -243,13 +243,14 @@ namespace NewLife.Net
         /// </remarks>
         /// <param name="pk">数据包</param>
         /// <returns>是否成功</returns>
-        protected override Boolean OnSend(Packet pk)
+        protected override Int32 OnSend(Packet pk)
         {
             var count = pk.Total;
 
             //StatSend?.Increment(count, 0);
             if (Log != null && Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, pk.ToHex());
 
+            var rs = count;
             var sock = Client;
             var gotLock = false;
             try
@@ -261,7 +262,6 @@ namespace NewLife.Net
                 // 加锁发送
                 _spinLock.Enter(ref gotLock);
 
-                var rs = 0;
                 if (_Stream == null)
                 {
                     if (count == 0)
@@ -299,7 +299,7 @@ namespace NewLife.Net
                     if (ThrowException) throw;
                 }
 
-                return false;
+                return -1;
             }
             finally
             {
@@ -308,7 +308,7 @@ namespace NewLife.Net
 
             LastTime = DateTime.Now;
 
-            return true;
+            return rs;
         }
         #endregion
 

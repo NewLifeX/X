@@ -224,10 +224,10 @@ namespace NewLife.Net
         /// </remarks>
         /// <param name="pk">数据包</param>
         /// <returns>是否成功</returns>
-        public Boolean Send(Packet pk)
+        public Int32 Send(Packet pk)
         {
             if (Disposed) throw new ObjectDisposedException(GetType().Name);
-            if (!Open()) return false;
+            if (!Open()) return -1;
 
             return OnSend(pk);
         }
@@ -238,7 +238,7 @@ namespace NewLife.Net
         /// </remarks>
         /// <param name="pk">数据包</param>
         /// <returns>是否成功</returns>
-        protected abstract Boolean OnSend(Packet pk);
+        protected abstract Int32 OnSend(Packet pk);
         #endregion
 
         #region 接收
@@ -514,7 +514,7 @@ namespace NewLife.Net
         /// <summary>通过管道发送消息</summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public virtual Boolean SendMessage(Object message)
+        public virtual Int32 SendMessage(Object message)
         {
             var ctx = CreateContext(this);
             message = Pipeline.Write(ctx, message);
@@ -533,7 +533,8 @@ namespace NewLife.Net
 
             message = Pipeline.Write(ctx, message);
 
-            if (!ctx.FireWrite(message)) return TaskEx.FromResult((Object)null);
+            var rs = ctx.FireWrite(message);
+            if (rs < 0) return TaskEx.FromResult((Object)null);
 
             return source.Task;
         }

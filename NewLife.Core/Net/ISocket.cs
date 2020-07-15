@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
-using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Model;
@@ -34,7 +32,7 @@ namespace NewLife.Net
         /// <summary>端口</summary>
         Int32 Port { get; set; }
 
-        /// <summary>管道</summary>
+        /// <summary>数据包处理管道</summary>
         IPipeline Pipeline { get; set; }
 
         /// <summary>是否抛出异常，默认false不抛出。Send/Receive时可能发生异常，该设置决定是直接抛出异常还是通过<see cref="Error"/>事件</summary>
@@ -91,19 +89,16 @@ namespace NewLife.Net
 
         /// <summary>缓冲区大小</summary>
         Int32 BufferSize { get; set; }
-
-        ///// <summary>数据项</summary>
-        //IDictionary<String, Object> Items { get; }
         #endregion
 
         #region 发送
-        /// <summary>发送数据</summary>
+        /// <summary>发送原始数据包</summary>
         /// <remarks>
         /// 目标地址由<seealso cref="Remote"/>决定
         /// </remarks>
         /// <param name="pk">数据包</param>
         /// <returns>是否成功</returns>
-        Boolean Send(Packet pk);
+        Int32 Send(Packet pk);
         #endregion
 
         #region 接收
@@ -116,7 +111,7 @@ namespace NewLife.Net
         #endregion
 
         #region 消息包
-        /// <summary>异步发送数据并等待响应</summary>
+        /// <summary>异步发送消息并等待响应</summary>
         /// <param name="message">消息</param>
         /// <returns></returns>
         Task<Object> SendMessageAsync(Object message);
@@ -124,9 +119,9 @@ namespace NewLife.Net
         /// <summary>发送消息</summary>
         /// <param name="message">消息</param>
         /// <returns></returns>
-        Boolean SendMessage(Object message);
+        Int32 SendMessage(Object message);
 
-        /// <summary>处理数据帧</summary>
+        /// <summary>处理消息数据帧</summary>
         /// <param name="data">数据帧</param>
         void Process(IData data);
         #endregion
@@ -160,12 +155,13 @@ namespace NewLife.Net
         /// <param name="session">会话</param>
         /// <param name="stream">数据流</param>
         /// <returns>返回是否成功</returns>
-        public static Boolean Send(this ISocketRemote session, Stream stream)
+        public static Int32 Send(this ISocketRemote session, Stream stream)
         {
             // 空数据直接发出
             var remain = stream.Length - stream.Position;
             if (remain == 0) return session.Send(new Byte[0]);
 
+            var rs = 0;
             var buffer = new Byte[session.BufferSize];
             while (true)
             {
@@ -173,11 +169,13 @@ namespace NewLife.Net
                 if (count <= 0) break;
 
                 var pk = new Packet(buffer, 0, count);
-                if (!session.Send(pk)) return false;
+                var count2 = session.Send(pk);
+                if (count2 < 0) break;
+                rs += count2;
 
                 if (count < buffer.Length) break;
             }
-            return true;
+            return rs;
         }
 
         /// <summary>发送字符串</summary>
@@ -185,7 +183,7 @@ namespace NewLife.Net
         /// <param name="msg">要发送的字符串</param>
         /// <param name="encoding">文本编码，默认null表示UTF-8编码</param>
         /// <returns>返回自身，用于链式写法</returns>
-        public static Boolean Send(this ISocketRemote session, String msg, Encoding encoding = null)
+        public static Int32 Send(this ISocketRemote session, String msg, Encoding encoding = null)
         {
             if (String.IsNullOrEmpty(msg)) return session.Send(new Byte[0]);
 

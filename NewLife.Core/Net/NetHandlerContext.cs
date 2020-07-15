@@ -75,9 +75,9 @@ namespace NewLife.Net
 
         /// <summary>写入管道过滤后最终处理消息</summary>
         /// <param name="message"></param>
-        public override Boolean FireWrite(Object message)
+        public override Int32 FireWrite(Object message)
         {
-            if (message == null) return false;
+            if (message == null) return -1;
 
             var session = Session;
 
@@ -90,12 +90,16 @@ namespace NewLife.Net
             // 发送一批数据包
             if (message is IEnumerable<Packet> pks)
             {
+                var rs = 0;
                 foreach (var item in pks)
                 {
-                    if (!session.Send(item)) return false;
+                    var count = session.Send(item);
+                    if (count < 0) break;
+
+                    rs += count;
                 }
 
-                return true;
+                return rs;
             }
 
             throw new XException("无法识别消息[{0}]，可能缺少编码处理器", message?.GetType()?.FullName);

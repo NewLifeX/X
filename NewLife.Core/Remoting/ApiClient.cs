@@ -200,9 +200,9 @@ namespace NewLife.Remoting
         /// <param name="args">参数</param>
         /// <param name="flag">标识</param>
         /// <returns></returns>
-        public virtual Boolean InvokeOneWay(String action, Object args = null, Byte flag = 0)
+        public virtual Int32 InvokeOneWay(String action, Object args = null, Byte flag = 0)
         {
-            if (!Open()) return false;
+            if (!Open()) return -1;
 
             var act = action;
 
@@ -308,9 +308,9 @@ namespace NewLife.Remoting
         /// <param name="args">参数</param>
         /// <param name="flag">标识</param>
         /// <returns></returns>
-        private Boolean Invoke(Object session, String action, Object args, Byte flag = 0)
+        private Int32 Invoke(Object session, String action, Object args, Byte flag = 0)
         {
-            if (session == null) return false;
+            if (session == null) return -1;
 
             // 性能计数器，次数、TPS、平均耗时
             var st = StatInvoke;

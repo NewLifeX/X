@@ -120,9 +120,9 @@ namespace NewLife.Net
         /// </remarks>
         /// <param name="pk">数据包</param>
         /// <returns>是否成功</returns>
-        protected override Boolean OnSend(Packet pk) => OnSend(pk, Remote.EndPoint);
+        protected override Int32 OnSend(Packet pk) => OnSend(pk, Remote.EndPoint);
 
-        internal Boolean OnSend(Packet pk, IPEndPoint remote)
+        internal Int32 OnSend(Packet pk, IPEndPoint remote)
         {
             var count = pk.Total;
 
@@ -130,6 +130,7 @@ namespace NewLife.Net
 
             try
             {
+                var rs = 0;
                 var sock = Client;
                 lock (sock)
                 {
@@ -138,9 +139,9 @@ namespace NewLife.Net
                         if (Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, pk.ToHex());
 
                         if (pk.Next == null)
-                            sock.Send(pk.Data, pk.Offset, count, SocketFlags.None);
+                            rs = sock.Send(pk.Data, pk.Offset, count, SocketFlags.None);
                         else
-                            sock.Send(pk.ToArray(), 0, count, SocketFlags.None);
+                            rs = sock.Send(pk.ToArray(), 0, count, SocketFlags.None);
                     }
                     else
                     {
@@ -148,13 +149,13 @@ namespace NewLife.Net
                         if (Log.Enable && LogSend) WriteLog("Send {2} [{0}]: {1}", count, pk.ToHex(), remote);
 
                         if (pk.Next == null)
-                            sock.SendTo(pk.Data, pk.Offset, count, SocketFlags.None, remote);
+                            rs = sock.SendTo(pk.Data, pk.Offset, count, SocketFlags.None, remote);
                         else
-                            sock.SendTo(pk.ToArray(), 0, count, SocketFlags.None, remote);
+                            rs = sock.SendTo(pk.ToArray(), 0, count, SocketFlags.None, remote);
                     }
                 }
 
-                return true;
+                return rs;
             }
             catch (Exception ex)
             {
@@ -167,7 +168,7 @@ namespace NewLife.Net
 
                     if (ThrowException) throw;
                 }
-                return false;
+                return -1;
             }
         }
 
