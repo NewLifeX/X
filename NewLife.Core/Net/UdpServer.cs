@@ -31,9 +31,6 @@ namespace NewLife.Net
 
         /// <summary>是否接收来自自己广播的环回数据。默认false</summary>
         public Boolean Loopback { get; set; }
-
-        ///// <summary>会话统计</summary>
-        //public ICounter StatSession { get; set; }
         #endregion
 
         #region 构造
@@ -44,7 +41,6 @@ namespace NewLife.Net
             Remote.Type = NetType.Udp;
             _Sessions = new SessionCollection(this);
 
-            //StatSession = new PerfCounter();
             SessionTimeout = Setting.Current.SessionTimeout;
 
             // 处理UDP最大并发接收
@@ -72,8 +68,6 @@ namespace NewLife.Net
                 {
                     Local.Address = Local.Address.GetRightAny(Remote.Address.AddressFamily);
                 }
-
-                //if (StatSession == null) StatSession = new PerfCounter();
 
                 Client = sock = NetHelper.CreateUdp(Local.EndPoint.Address.IsIPv4());
                 sock.Bind(Local.EndPoint);
@@ -125,8 +119,6 @@ namespace NewLife.Net
         internal Int32 OnSend(Packet pk, IPEndPoint remote)
         {
             var count = pk.Total;
-
-            //StatSend?.Increment(count, 0);
 
             try
             {
@@ -212,7 +204,6 @@ namespace NewLife.Net
         protected override Boolean OnReceive(ReceivedEventArgs e)
         {
             var pk = e.Packet;
-            //StatReceive?.Increment(pk.Count, 0);
 
             var remote = e.Remote;
 
@@ -322,10 +313,6 @@ namespace NewLife.Net
                     Log = Log,
                     LogSend = LogSend,
                     LogReceive = LogReceive,
-                    // UDP不好分会话统计
-                    //us.StatSend.Parent = StatSend;
-                    //us.StatReceive.Parent = StatReceive;
-                    //Packet = SessionPacket?.Create()
                 };
 
                 session = us;
@@ -348,8 +335,6 @@ namespace NewLife.Net
                     // 会话改为原子操作，避免多线程冲突
                     us.ID = Interlocked.Increment(ref g_ID);
                     us.Start();
-
-                    //StatSession?.Increment(1, 0);
 
                     // 触发新会话事件
                     NewSession?.Invoke(this, new SessionEventArgs { Session = session });

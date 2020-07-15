@@ -104,15 +104,6 @@ namespace NewLife.Net
         /// <remarks>var cert = new X509Certificate2("file", "pass");</remarks>
         public X509Certificate Certificate { get; set; }
 
-        ///// <summary>会话统计</summary>
-        //public ICounter StatSession { get; set; }
-
-        ///// <summary>发送统计</summary>
-        //public ICounter StatSend { get; set; }
-
-        ///// <summary>接收统计</summary>
-        //public ICounter StatReceive { get; set; }
-
         /// <summary>APM跟踪器</summary>
         public ITracer Tracer { get; set; }
 
@@ -141,10 +132,6 @@ namespace NewLife.Net
             Name = GetType().Name.TrimEnd("Server");
 
             Servers = new List<ISocketServer>();
-
-            //StatSession = new PerfCounter();
-            //StatSend = new PerfCounter();
-            //StatReceive = new PerfCounter();
 
             if (Setting.Current.Debug) Log = XTrace.Log;
         }
@@ -608,9 +595,6 @@ namespace NewLife.Net
         {
             var sb = Pool.StringBuilder.Get();
             if (MaxSessionCount > 0) sb.AppendFormat("在线：{0:n0}/{1:n0} ", SessionCount, MaxSessionCount);
-            //if (StatSend.Value > 0) sb.AppendFormat("发送：{0} ", StatSend);
-            //if (StatReceive.Value > 0) sb.AppendFormat("接收：{0} ", StatReceive);
-            //if (StatSession.Value > 0) sb.AppendFormat("会话：{0} ", StatSession);
 
             return sb.Put(true);
         }

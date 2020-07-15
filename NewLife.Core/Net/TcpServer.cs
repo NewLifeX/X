@@ -103,11 +103,6 @@ namespace NewLife.Net
 
             if (Active || Disposed) return;
 
-            //// 统计
-            //if (StatSession == null) StatSession = new PerfCounter();
-            //if (StatSend == null) StatSend = new PerfCounter();
-            //if (StatReceive == null) StatReceive = new PerfCounter();
-
             var sock = Client;
 
             // 开始监听
@@ -256,8 +251,6 @@ namespace NewLife.Net
                 // 会话改为原子操作，避免多线程冲突
                 session.ID = Interlocked.Increment(ref g_ID);
                 session.WriteLog("New {0}", session.Remote.EndPoint);
-
-                //StatSession?.Increment(1, 0);
 
                 NewSession?.Invoke(this, new SessionEventArgs { Session = session });
 

@@ -19,7 +19,7 @@ namespace NewLife.Net
         /// <returns></returns>
         public static Task<Int32> SendAsync(this Socket socket, Byte[] buffer)
         {
-            var task = Task<Int32>.Factory.FromAsync<Byte[]>((Byte[] buf, AsyncCallback callback, Object state) =>
+            var task = Task<Int32>.Factory.FromAsync((Byte[] buf, AsyncCallback callback, Object state) =>
             {
                 return socket.BeginSend(buf, 0, buf.Length, SocketFlags.None, callback, state);
             }, socket.EndSend, buffer, null);
@@ -34,7 +34,7 @@ namespace NewLife.Net
         /// <returns></returns>
         public static Task<Int32> SendToAsync(this Socket socket, Byte[] buffer, IPEndPoint remote)
         {
-            var task = Task<Int32>.Factory.FromAsync<Byte[], IPEndPoint>((Byte[] buf, IPEndPoint ep, AsyncCallback callback, Object state) =>
+            var task = Task<Int32>.Factory.FromAsync((Byte[] buf, IPEndPoint ep, AsyncCallback callback, Object state) =>
             {
                 return socket.BeginSendTo(buf, 0, buf.Length, SocketFlags.None, ep, callback, state);
             }, socket.EndSendTo, buffer, remote, null);

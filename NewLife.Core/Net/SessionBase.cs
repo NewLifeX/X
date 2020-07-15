@@ -46,12 +46,6 @@ namespace NewLife.Net
         /// <summary>是否抛出异常，默认false不抛出。Send/Receive时可能发生异常，该设置决定是直接抛出异常还是通过<see cref="Error"/>事件</summary>
         public Boolean ThrowException { get; set; }
 
-        ///// <summary>发送数据包统计信息</summary>
-        //public ICounter StatSend { get; set; }
-
-        ///// <summary>接收数据包统计信息</summary>
-        //public ICounter StatReceive { get; set; }
-
         /// <summary>通信开始时间</summary>
         public DateTime StartTime { get; private set; } = DateTime.Now;
 
@@ -140,10 +134,6 @@ namespace NewLife.Net
                     }
                 }
                 Active = true;
-
-                //// 统计
-                //if (StatSend == null) StatSend = new PerfCounter();
-                //if (StatReceive == null) StatReceive = new PerfCounter();
 
                 ReceiveAsync();
 
