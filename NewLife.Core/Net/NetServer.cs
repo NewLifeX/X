@@ -223,10 +223,6 @@ namespace NewLife.Net
             if (SessionTimeout > 0) server.SessionTimeout = SessionTimeout;
             if (Pipeline != null) server.Pipeline = Pipeline;
 
-            //server.StatSession = StatSession;
-            //server.StatSend = StatSend;
-            //server.StatReceive = StatReceive;
-
             server.LogSend = LogSend;
             server.LogReceive = LogReceive;
 

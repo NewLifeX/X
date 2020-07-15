@@ -59,15 +59,6 @@ namespace NewLife.Net
         /// <summary>管道</summary>
         public IPipeline Pipeline { get; set; }
 
-        ///// <summary>会话统计</summary>
-        //public ICounter StatSession { get; set; }
-
-        ///// <summary>发送统计</summary>
-        //public ICounter StatSend { get; set; }
-
-        ///// <summary>接收统计</summary>
-        //public ICounter StatReceive { get; set; }
-
         /// <summary>SSL协议。默认None，服务端Default，客户端不启用</summary>
         public SslProtocols SslProtocol { get; set; } = SslProtocols.None;
 
@@ -297,8 +288,6 @@ namespace NewLife.Net
                 Log = Log,
                 LogSend = LogSend,
                 LogReceive = LogReceive,
-                //StatSend = StatSend,
-                //StatReceive = StatReceive,
                 ProcessAsync = ProcessAsync,
                 Pipeline = Pipeline
             };

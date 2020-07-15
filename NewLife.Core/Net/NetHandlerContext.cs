@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using NewLife.Data;
-using NewLife.Messaging;
 using NewLife.Model;
 using NewLife.Serialization;
-using NewLife.Threading;
 
 namespace NewLife.Net
 {

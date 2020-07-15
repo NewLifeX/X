@@ -17,11 +17,11 @@ namespace NewLife.Net
         #endregion
 
         #region 开关连接
-        /// <summary>打开</summary>
+        /// <summary>打开连接</summary>
         /// <returns>是否成功</returns>
         Boolean Open();
 
-        /// <summary>关闭</summary>
+        /// <summary>关闭连接</summary>
         /// <param name="reason">关闭原因。便于日志分析</param>
         /// <returns>是否成功</returns>
         Boolean Close(String reason);

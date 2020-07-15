@@ -73,35 +73,24 @@ namespace NewLife.Net
         /// <remarks>异步处理有可能造成数据包乱序，特别是Tcp。false避免拷贝，提升处理速度</remarks>
         public Boolean ProcessAsync { get => Server.ProcessAsync; set => Server.ProcessAsync = value; }
 
-        ///// <summary>发送数据包统计信息</summary>
-        //public ICounter StatSend { get; set; }
-
-        ///// <summary>接收数据包统计信息</summary>
-        //public ICounter StatReceive { get; set; }
-
         /// <summary>通信开始时间</summary>
         public DateTime StartTime { get; private set; }
 
         /// <summary>最后一次通信时间，主要表示活跃时间，包括收发</summary>
         public DateTime LastTime { get; private set; }
 
-        /// <summary>缓冲区大小。默认8k</summary>
-        public Int32 BufferSize { get => Server.BufferSize; set => Server.BufferSize = value; }
-
+        ///// <summary>缓冲区大小。默认8k</summary>
+        //public Int32 BufferSize { get => Server.BufferSize; set => Server.BufferSize = value; }
         #endregion
 
         #region 构造
         public UdpSession(UdpServer server, IPEndPoint remote)
         {
             Name = server.Name;
-            //Stream = new MemoryStream();
             StartTime = DateTime.Now;
 
             Server = server;
             Remote = new NetUri(NetType.Udp, remote);
-
-            //StatSend = server.StatSend;
-            //StatReceive = server.StatReceive;
 
             // 检查并开启广播
             server.Client.CheckBroadcast(remote.Address);
@@ -187,7 +176,7 @@ namespace NewLife.Net
             //return task.Result;
 
             var ep = Remote.EndPoint as EndPoint;
-            var buf = new Byte[BufferSize];
+            var buf = new Byte[Server.BufferSize];
             var size = Server.Client.ReceiveFrom(buf, ref ep);
 
             return new Packet(buf, 0, size);

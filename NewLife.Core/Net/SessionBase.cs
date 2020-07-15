@@ -116,10 +116,6 @@ namespace NewLife.Net
             {
                 if (Active) return true;
 
-                LogPrefix = "{0}.".F((Name + "").TrimEnd("Server", "Session", "Client"));
-
-                BufferSize = Setting.Current.BufferSize;
-
                 // 估算完成时间，执行过长时提示
                 using (var tc = new TimeCost(GetType().Name + ".Open", 1500))
                 {

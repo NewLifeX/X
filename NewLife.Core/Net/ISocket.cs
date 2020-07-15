@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Model;
-using NewLife.Threading;
 
 namespace NewLife.Net
 {
@@ -24,7 +23,7 @@ namespace NewLife.Net
         String Name { get; set; }
 
         /// <summary>基础Socket对象</summary>
-        Socket Client { get; /*set;*/ }
+        Socket Client { get; }
 
         /// <summary>本地地址</summary>
         NetUri Local { get; set; }
@@ -41,12 +40,6 @@ namespace NewLife.Net
         /// <summary>异步处理接收到的数据。</summary>
         /// <remarks>异步处理有可能造成数据包乱序，特别是Tcp。true利于提升网络吞吐量。false避免拷贝，提升处理速度</remarks>
         Boolean ProcessAsync { get; set; }
-
-        ///// <summary>发送统计</summary>
-        //ICounter StatSend { get; set; }
-
-        ///// <summary>接收统计</summary>
-        //ICounter StatReceive { get; set; }
 
         /// <summary>日志提供者</summary>
         ILog Log { get; set; }
@@ -87,8 +80,8 @@ namespace NewLife.Net
         /// <summary>最后一次通信时间，主要表示会话活跃时间，包括收发</summary>
         DateTime LastTime { get; }
 
-        /// <summary>缓冲区大小</summary>
-        Int32 BufferSize { get; set; }
+        ///// <summary>缓冲区大小</summary>
+        //Int32 BufferSize { get; set; }
         #endregion
 
         #region 发送
@@ -130,26 +123,6 @@ namespace NewLife.Net
     /// <summary>远程通信Socket扩展</summary>
     public static class SocketRemoteHelper
     {
-        #region 统计
-        ///// <summary>获取统计信息</summary>
-        ///// <param name="socket"></param>
-        ///// <returns></returns>
-        //public static String GetStat(this ISocketRemote socket)
-        //{
-        //    if (socket == null) return null;
-
-        //    var st1 = socket.StatSend;
-        //    var st2 = socket.StatReceive;
-        //    if (st1 == null && st2 == null) return null;
-
-        //    var sb = Pool.StringBuilder.Get();
-        //    if (st1 != null && st1.Value > 0) sb.AppendFormat("发送：{0} ", st1);
-        //    if (st2 != null && st2.Value > 0) sb.AppendFormat("接收：{0} ", st2);
-
-        //    return sb.Put(true);
-        //}
-        #endregion
-
         #region 发送
         /// <summary>发送数据流</summary>
         /// <param name="session">会话</param>
@@ -162,7 +135,7 @@ namespace NewLife.Net
             if (remain == 0) return session.Send(new Byte[0]);
 
             var rs = 0;
-            var buffer = new Byte[session.BufferSize];
+            var buffer = new Byte[8192];
             while (true)
             {
                 var count = stream.Read(buffer, 0, buffer.Length);
@@ -189,44 +162,6 @@ namespace NewLife.Net
 
             if (encoding == null) encoding = Encoding.UTF8;
             return session.Send(encoding.GetBytes(msg));
-        }
-
-        /// <summary>异步多次发送数据</summary>
-        /// <param name="session">会话</param>
-        /// <param name="pk">数据包</param>
-        /// <param name="times">次数</param>
-        /// <param name="msInterval">间隔</param>
-        /// <returns></returns>
-        public static Boolean SendMulti(this ISocketRemote session, Packet pk, Int32 times, Int32 msInterval)
-        {
-            if (times <= 1)
-            {
-                session.Send(pk);
-                return true;
-            }
-
-            if (msInterval < 10)
-            {
-                for (var i = 0; i < times; i++)
-                {
-                    session.Send(pk);
-                }
-                return true;
-            }
-
-            var timer = new TimerX(s =>
-            {
-                session.Send(pk);
-
-                // 如果次数足够，则把定时器周期置空，内部会删除
-                var t = s as TimerX;
-                if (--times <= 0)
-                {
-                    t.Period = 0;
-                }
-            }, null, 0, msInterval);
-
-            return true;
         }
         #endregion
 
