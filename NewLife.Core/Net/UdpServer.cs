@@ -26,8 +26,8 @@ namespace NewLife.Net
         /// </remarks>
         public Int32 SessionTimeout { get; set; }
 
-        /// <summary>最后一次同步接收数据得到的远程地址</summary>
-        public IPEndPoint LastRemote { get; set; }
+        ///// <summary>最后一次同步接收数据得到的远程地址</summary>
+        //public IPEndPoint LastRemote { get; set; }
 
         /// <summary>是否接收来自自己广播的环回数据。默认false</summary>
         public Boolean Loopback { get; set; }
@@ -133,7 +133,7 @@ namespace NewLife.Net
                         if (pk.Next == null)
                             rs = sock.Send(pk.Data, pk.Offset, count, SocketFlags.None);
                         else
-                            rs = sock.Send(pk.ToArray(), 0, count, SocketFlags.None);
+                            rs = sock.Send(pk.ToSegments(), SocketFlags.None);
                     }
                     else
                     {
@@ -171,6 +171,16 @@ namespace NewLife.Net
         #endregion
 
         #region 接收
+        internal override Boolean OnReceiveAsync(SocketAsyncEventArgs se)
+        {
+            if (!Active || Client == null) return false;
+
+            // 每次接收以后，这个会被设置为远程地址，这里重置一下，以防万一
+            se.RemoteEndPoint = new IPEndPoint(IPAddress.Any.GetRightAny(Local.EndPoint.AddressFamily), 0);
+
+            return Client.ReceiveFromAsync(se);
+        }
+
         /// <summary>预处理</summary>
         /// <param name="pk">数据包</param>
         /// <param name="remote">远程地址</param>
@@ -193,7 +203,7 @@ namespace NewLife.Net
                 }
             }
 
-            LastRemote = remote;
+            //LastRemote = remote;
 
             // 为该连接单独创建一个会话，方便直接通信
             return CreateSession(remote);
@@ -250,16 +260,6 @@ namespace NewLife.Net
             }
             // 无论如何，Udp都不关闭自己
             return false;
-        }
-
-        internal override Boolean OnReceiveAsync(SocketAsyncEventArgs se)
-        {
-            if (!Active || Client == null) return false;
-
-            // 每次接收以后，这个会被设置为远程地址，这里重置一下，以防万一
-            se.RemoteEndPoint = new IPEndPoint(IPAddress.Any.GetRightAny(Local.EndPoint.AddressFamily), 0);
-
-            return Client.ReceiveFromAsync(se);
         }
         #endregion
 

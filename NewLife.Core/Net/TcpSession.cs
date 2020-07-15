@@ -204,7 +204,6 @@ namespace NewLife.Net
             var client = Client;
             if (client != null)
             {
-
                 WriteLog("Close {0} {1}", reason, this);
 
                 // 提前关闭这个标识，否则Close时可能触发自动重连机制
@@ -328,6 +327,8 @@ namespace NewLife.Net
             return sock.ReceiveAsync(se);
         }
 
+        /// <summary>异步读取数据流，仅用于SSL</summary>
+        /// <param name="ar"></param>
         private void OnEndRead(IAsyncResult ar)
         {
             var se = ar.AsyncState as SocketAsyncEventArgs;

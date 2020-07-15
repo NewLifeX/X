@@ -62,9 +62,8 @@ namespace NewLife.Net
         /// <remarks>异步处理有可能造成数据包乱序，特别是Tcp。true利于提升网络吞吐量。false避免拷贝，提升处理速度</remarks>
         public Boolean ProcessAsync { get; set; }
 
-        /// <summary>缓冲区大小。默认8k</summary>
+        /// <summary>缓冲区大小。默认64k</summary>
         public Int32 BufferSize { get; set; }
-
         #endregion
 
         #region 构造
@@ -84,7 +83,6 @@ namespace NewLife.Net
             base.Dispose(disposing);
 
             var reason = GetType().Name + (disposing ? "Dispose" : "GC");
-            //_SendQueue?.Release(reason);
 
             try
             {
@@ -126,9 +124,9 @@ namespace NewLife.Net
                         Client.ReceiveTimeout = timeout;
                     }
 
-                    if (!Local.IsUdp)
+                    // Tcp需要初始化管道
+                    if (Local.IsTcp)
                     {
-                        // 管道
                         var pp = Pipeline;
                         pp?.Open(CreateContext(this));
                     }
