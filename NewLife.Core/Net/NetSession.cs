@@ -9,7 +9,7 @@ using NewLife.Log;
 
 namespace NewLife.Net
 {
-    /// <summary>网络服务的会话</summary>
+    /// <summary>网络服务的会话，每个连接一个会话</summary>
     /// <typeparam name="TServer">网络服务类型</typeparam>
     public class NetSession<TServer> : NetSession where TServer : NetServer
     {
@@ -17,14 +17,14 @@ namespace NewLife.Net
         public virtual TServer Host { get => (this as INetSession).Host as TServer; set => (this as INetSession).Host = value; }
     }
 
-    /// <summary>网络服务的会话</summary>
+    /// <summary>网络服务的会话，每个连接一个会话</summary>
     /// <remarks>
     /// 实际应用可通过重载OnReceive实现收到数据时的业务逻辑。
     /// </remarks>
     public class NetSession : DisposeBase, INetSession, IExtend3
     {
         #region 属性
-        /// <summary>编号</summary>
+        /// <summary>唯一会话标识</summary>
         public virtual Int32 ID { get; internal set; }
 
         /// <summary>主服务</summary>
@@ -46,6 +46,9 @@ namespace NewLife.Net
         /// <param name="key"></param>
         /// <returns></returns>
         public virtual Object this[String key] { get => Items[key]; set => Items[key] = value; }
+
+        /// <summary>数据到达事件</summary>
+        public event EventHandler<ReceivedEventArgs> Received;
         #endregion
 
         #region 方法
@@ -53,6 +56,8 @@ namespace NewLife.Net
         public virtual void Start()
         {
             if (LogSession && Log != null && Log.Enable) WriteLog("新会话 {0}", Session);
+
+            OnConnected();
 
             var ss = Session;
             if (ss != null)
@@ -66,23 +71,6 @@ namespace NewLife.Net
             }
         }
 
-        /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
-        /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）</param>
-        protected override void Dispose(Boolean disposing)
-        {
-            if (LogSession && Log != null && Log.Enable) WriteLog("会话结束 {0}", Session);
-
-            base.Dispose(disposing);
-
-            //Session.Dispose();//去掉这句话，因为在释放的时候Session有的时候为null，会出异常报错，导致整个程序退出。去掉后正常。
-            Session.TryDispose();
-
-            Server = null;
-            Session = null;
-        }
-        #endregion
-
-        #region 业务核心
         private void Ss_Received(Object sender, ReceivedEventArgs e)
         {
             var ns = (this as INetSession).Host;
@@ -104,15 +92,42 @@ namespace NewLife.Net
             }
         }
 
-        /// <summary>收到客户端发来的数据，触发<seealso cref="Received"/>事件，重载者可直接处理数据</summary>
+        /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
+        /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）</param>
+        protected override void Dispose(Boolean disposing)
+        {
+            OnDisconnected();
+
+            if (LogSession && Log != null && Log.Enable) WriteLog("会话结束 {0}", Session);
+
+            base.Dispose(disposing);
+
+            //Session.Dispose();//去掉这句话，因为在释放的时候Session有的时候为null，会出异常报错，导致整个程序退出。去掉后正常。
+            Session.TryDispose();
+
+            Server = null;
+            Session = null;
+        }
+        #endregion
+
+        #region 业务核心
+        /// <summary>新的客户端连接</summary>
+        protected virtual void OnConnected() { }
+
+        /// <summary>客户端连接已断开</summary>
+        protected virtual void OnDisconnected() { }
+
+        /// <summary>收到客户端发来的数据</summary>
         /// <param name="e"></param>
         protected virtual void OnReceive(ReceivedEventArgs e) => Received?.Invoke(this, e);
 
-        /// <summary>数据到达事件</summary>
-        public event EventHandler<ReceivedEventArgs> Received;
+        /// <summary>错误发生，可能是连接断开</summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        protected virtual void OnError(Object sender, ExceptionEventArgs e) { }
         #endregion
 
-        #region 收发
+        #region 发送数据
         /// <summary>发送数据</summary>
         /// <param name="pk">数据包</param>
         public virtual INetSession Send(Packet pk)
@@ -146,13 +161,6 @@ namespace NewLife.Net
         /// <param name="message"></param>
         /// <returns></returns>
         public virtual Task<Object> SendAsync(Object message) => Session.SendMessageAsync(message);
-        #endregion
-
-        #region 异常处理
-        /// <summary>错误处理</summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        protected virtual void OnError(Object sender, ExceptionEventArgs e) { }
         #endregion
 
         #region 日志

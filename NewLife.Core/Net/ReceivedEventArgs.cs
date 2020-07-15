@@ -8,7 +8,7 @@ namespace NewLife.Net
     public class ReceivedEventArgs : EventArgs, IData
     {
         #region 属性
-        /// <summary>数据包</summary>
+        /// <summary>原始数据包</summary>
         public Packet Packet { get; set; }
 
         /// <summary>远程地址</summary>
@@ -17,15 +17,8 @@ namespace NewLife.Net
         /// <summary>解码后的消息</summary>
         public Object Message { get; set; }
 
-        /// <summary>用户数据</summary>
+        /// <summary>用户自定义数据</summary>
         public Object UserState { get; set; }
-        #endregion
-
-        #region 方法
-        //public ReceivedEventArgs Clone()
-        //{
-        //    var e=new ReceivedEventArgs { }
-        //}
         #endregion
     }
 }
