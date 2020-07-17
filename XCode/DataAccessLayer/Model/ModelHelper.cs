@@ -9,6 +9,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
+using NewLife;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Serialization;

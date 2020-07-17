@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using NewLife;
 using NewLife.Data;
 using NewLife.Reflection;
 using XCode.Configuration;

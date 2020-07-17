@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data;
 using System.Data.Common;
+using NewLife;
 
 namespace XCode.DataAccessLayer
 {

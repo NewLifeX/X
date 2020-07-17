@@ -6,6 +6,7 @@ using NewLife.Http;
 using NewLife.Model;
 using NewLife.Net;
 using Xunit;
+using NewLife;
 
 namespace XUnitTest.Http
 {

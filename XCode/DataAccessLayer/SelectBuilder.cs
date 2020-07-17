@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using NewLife;
 using NewLife.Caching;
 using NewLife.Collections;
 

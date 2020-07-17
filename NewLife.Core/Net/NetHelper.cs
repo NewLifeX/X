@@ -1,16 +1,18 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using NewLife;
 using NewLife.Collections;
 using NewLife.IP;
 using NewLife.Log;
 using NewLife.Net;
 
-namespace System
+namespace NewLife
 {
     /// <summary>网络工具类</summary>
     public static class NetHelper

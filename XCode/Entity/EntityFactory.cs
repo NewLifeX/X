@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using NewLife;
 using NewLife.Log;
 using NewLife.Reflection;
 using XCode.Configuration;

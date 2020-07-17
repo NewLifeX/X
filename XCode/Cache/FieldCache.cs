@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using XCode.Configuration;
+using NewLife;
 #if !NET4
 using TaskEx = System.Threading.Tasks.Task;
 #endif

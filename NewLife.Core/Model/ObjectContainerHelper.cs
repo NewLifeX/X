@@ -1,7 +1,8 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using NewLife.Model;
 
-namespace System
+namespace NewLife.Model
 {
     /// <summary>对象容器助手。扩展方法专用</summary>
     [EditorBrowsable(EditorBrowsableState.Advanced)]

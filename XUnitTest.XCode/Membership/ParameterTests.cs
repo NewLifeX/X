@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using NewLife.Security;
 using XCode.Membership;
 using Xunit;
+using NewLife;
 
 namespace XUnitTest.XCode.Membership
 {

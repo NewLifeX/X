@@ -5,6 +5,7 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using NewLife;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Reflection;

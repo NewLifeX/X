@@ -7,6 +7,7 @@ using System.Data.OleDb;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using NewLife;
 
 namespace XCode.DataAccessLayer
 {

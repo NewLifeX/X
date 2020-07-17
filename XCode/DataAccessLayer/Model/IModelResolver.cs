@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Linq;
-using System.Text;
+using NewLife;
 using NewLife.Collections;
-using XCode.Model;
 
 namespace XCode.DataAccessLayer
 {

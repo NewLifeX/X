@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using NewLife.Data;
 using Xunit;
+using NewLife;
 
 namespace XUnitTest.Data
 {

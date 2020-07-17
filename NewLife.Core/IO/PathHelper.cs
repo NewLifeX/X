@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO.Compression;
 using System.Text;
+using NewLife;
 using NewLife.Compression;
 using NewLife.IO;
 

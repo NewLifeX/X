@@ -1,4 +1,5 @@
 ﻿using System;
+using NewLife;
 using NewLife.Caching;
 
 namespace XCode.Extension

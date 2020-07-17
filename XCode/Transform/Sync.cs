@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using NewLife.Log;
-using XCode.Membership;
+using NewLife;
 
 namespace XCode.Transform
 {

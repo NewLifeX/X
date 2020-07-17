@@ -5,6 +5,7 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Text;
+using NewLife;
 using NewLife.Collections;
 using NewLife.Reflection;
 using XCode.Configuration;

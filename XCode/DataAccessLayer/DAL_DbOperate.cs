@@ -4,6 +4,7 @@ using System.Data;
 using System.IO;
 using System.Text;
 using System.Threading;
+using NewLife;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net.Sockets;
 using NewLife.Collections;
 using NewLife.Data;
+using NewLife.IO;
 using NewLife.Log;
 using NewLife.Net;
 using NewLife.Reflection;

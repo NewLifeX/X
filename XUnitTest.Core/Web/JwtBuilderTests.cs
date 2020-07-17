@@ -1,6 +1,7 @@
 ﻿using System;
 using NewLife.Web;
 using Xunit;
+using NewLife;
 
 namespace XUnitTest.Web
 {

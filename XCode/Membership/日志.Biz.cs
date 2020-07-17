@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using NewLife;
 using NewLife.Data;
 using XCode.Cache;
 

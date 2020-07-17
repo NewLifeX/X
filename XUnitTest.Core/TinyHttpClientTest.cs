@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using NewLife.Http;
 using Xunit;
+using NewLife;
 
 namespace XUnitTest.Core
 {

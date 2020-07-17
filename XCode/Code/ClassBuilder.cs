@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using NewLife;
 using NewLife.Log;
 using XCode.DataAccessLayer;
 

@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -7,7 +8,7 @@ using NewLife.Collections;
 using NewLife.Log;
 
 #nullable enable
-namespace System
+namespace NewLife
 {
     /// <summary>字符串助手类</summary>
     public static class StringHelper

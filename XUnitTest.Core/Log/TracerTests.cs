@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using NewLife.Log;
 using NewLife.Serialization;
 using Xunit;
+using NewLife;
 
 namespace XUnitTest.Log
 {

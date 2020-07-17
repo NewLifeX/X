@@ -1,11 +1,13 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
+using NewLife;
 using NewLife.Collections;
 using NewLife.Reflection;
 
-namespace System
+namespace NewLife
 {
     /// <summary>特性辅助类</summary>
     public static class AttributeX

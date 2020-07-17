@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using NewLife;
 using XCode.Configuration;
 
 namespace XCode

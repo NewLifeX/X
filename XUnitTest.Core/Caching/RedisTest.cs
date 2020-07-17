@@ -7,6 +7,7 @@ using NewLife.Serialization;
 using NewLife.Data;
 using System.Diagnostics;
 using System.Threading;
+using NewLife;
 
 namespace XUnitTest.Caching
 {

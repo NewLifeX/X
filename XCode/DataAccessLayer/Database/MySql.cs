@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Net;
+using NewLife;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Reflection;

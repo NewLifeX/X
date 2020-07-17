@@ -6,6 +6,7 @@ using System.Runtime.Serialization;
 using System.Security.Principal;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
+using NewLife;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Model;

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using NewLife;
 using NewLife.Data;
 using NewLife.Reflection;
 using NewLife.Remoting;

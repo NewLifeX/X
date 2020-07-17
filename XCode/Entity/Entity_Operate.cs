@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading;
+using NewLife;
 using XCode.Cache;
 using XCode.Configuration;
 using XCode.DataAccessLayer;

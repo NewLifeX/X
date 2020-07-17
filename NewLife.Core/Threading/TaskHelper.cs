@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using NewLife.Log;
+using NewLife;
 
 #if NET4
 namespace System.Threading.Tasks

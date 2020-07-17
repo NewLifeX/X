@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Text;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
+using NewLife;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;

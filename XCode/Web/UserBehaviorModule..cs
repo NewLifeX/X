@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.UI;
+using NewLife;
 using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Model;

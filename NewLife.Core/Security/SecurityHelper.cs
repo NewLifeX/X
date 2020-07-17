@@ -1,9 +1,10 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using NewLife.Security;
 
-namespace System
+namespace NewLife
 {
     /// <summary>安全算法</summary>
     public static class SecurityHelper

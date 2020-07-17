@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using NewLife.Reflection;
+using NewLife;
 
 namespace XCode.Statistics
 {

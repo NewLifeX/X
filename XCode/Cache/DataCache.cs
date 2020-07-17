@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using NewLife;
 using NewLife.Serialization;
 using NewLife.Threading;
 

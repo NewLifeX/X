@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
+using NewLife;
 using NewLife.Collections;
 
 namespace XCode

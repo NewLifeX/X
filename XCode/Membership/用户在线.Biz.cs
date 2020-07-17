@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using NewLife;
 using NewLife.Data;
 using NewLife.Model;
 using NewLife.Threading;

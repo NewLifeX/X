@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using NewLife;
 using NewLife.Log;
 using NewLife.Threading;
 

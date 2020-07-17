@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Xml.Serialization;
+using NewLife;
 using NewLife.Collections;
 using XCode.DataAccessLayer;
 

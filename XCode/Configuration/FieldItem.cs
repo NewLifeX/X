@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
+using NewLife;
 using XCode.DataAccessLayer;
 
 namespace XCode.Configuration
