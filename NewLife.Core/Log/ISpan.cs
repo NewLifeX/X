@@ -42,6 +42,9 @@ namespace NewLife.Log
     }
 
     /// <summary>性能跟踪片段。轻量级APM</summary>
+    /// <remarks>
+    /// spanId/traceId采用W3C标准，https://www.w3.org/TR/trace-context/
+    /// </remarks>
     public class DefaultSpan : ISpan
     {
         #region 属性
@@ -103,7 +106,7 @@ namespace NewLife.Log
         /// <summary>设置跟踪标识</summary>
         public void Start()
         {
-            if (Id.IsNullOrEmpty()) Id = Rand.NextString(8);
+            if (Id.IsNullOrEmpty()) Id = Rand.NextBytes(8).ToHex().ToLower();
 
             // 设置父级
             var span = Current;
@@ -116,7 +119,7 @@ namespace NewLife.Log
             }
 
             // 否则创建新的跟踪标识
-            if (TraceId.IsNullOrEmpty()) TraceId = Rand.NextString(16);
+            if (TraceId.IsNullOrEmpty()) TraceId = Rand.NextBytes(16).ToHex().ToLower();
 
             // 设置当前片段
             Current = this;
@@ -150,7 +153,7 @@ namespace NewLife.Log
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override String ToString() => $"{TraceId}-{Id}";
+        public override String ToString() => $"00-{TraceId}-{Id}-00";
         #endregion
     }
 
@@ -178,29 +181,9 @@ namespace NewLife.Log
             if (name.IsNullOrEmpty()) return request;
 
             var headers = request.Headers;
-            if (!headers.Contains(name)) headers.Add(name, $"{span.TraceId}-{span.Id}");
+            if (!headers.Contains(name)) headers.Add(name, span.ToString());
 
             return request;
-        }
-
-        /// <summary>从http请求头释放片段信息</summary>
-        /// <param name="span">片段</param>
-        /// <param name="headers">http请求头</param>
-        public static void Detach(this ISpan span, NameValueCollection headers)
-        {
-            if (span == null || headers == null || headers.Count == 0) return;
-
-            // 注入参数名
-            var name = GetAttachParameter(span);
-            if (name.IsNullOrEmpty()) name = "_traceId";
-
-            if (headers.AllKeys.Contains(name))
-            {
-                var tid = headers[name];
-                var ss = (tid + "").Split("-");
-                if (ss.Length > 0) span.TraceId = ss[0];
-                if (ss.Length > 1) span.ParentId = ss[1];
-            }
         }
 
         /// <summary>把片段信息附加到api请求头上</summary>
@@ -217,9 +200,32 @@ namespace NewLife.Log
             if (name.IsNullOrEmpty()) return args;
 
             var headers = args.ToDictionary();
-            if (!headers.ContainsKey(name)) headers.Add(name, $"{span.TraceId}-{span.Id}");
+            if (!headers.ContainsKey(name)) headers.Add(name, span.ToString());
 
             return headers;
+        }
+
+        /// <summary>从http请求头释放片段信息</summary>
+        /// <param name="span">片段</param>
+        /// <param name="headers">http请求头</param>
+        public static void Detach(this ISpan span, NameValueCollection headers)
+        {
+            if (span == null || headers == null || headers.Count == 0) return;
+
+            if (headers.AllKeys.Contains("traceparent"))
+            {
+                var tid = headers["traceparent"];
+                var ss = (tid + "").Split("-");
+                if (ss.Length > 1) span.TraceId = ss[1];
+                if (ss.Length > 2) span.ParentId = ss[2];
+            }
+            else if (headers.AllKeys.Contains("Request-Id"))
+            {
+                var tid = headers["Request-Id"];
+                var ss = (tid + "").Split(".", "_");
+                if (ss.Length > 0) span.TraceId = ss[0].TrimStart('|');
+                if (ss.Length > 1) span.ParentId = ss[1];
+            }
         }
 
         /// <summary>从api请求释放片段信息</summary>
@@ -229,14 +235,37 @@ namespace NewLife.Log
         {
             if (span == null || parameters == null || parameters.Count == 0) return;
 
-            // 注入参数名
-            var name = GetAttachParameter(span);
-            if (name.IsNullOrEmpty()) name = "_traceId";
-
-            if (parameters.TryGetValue(name, out var tid))
+            if (parameters.TryGetValue("traceparent", out var tid))
             {
                 var ss = (tid + "").Split("-");
-                if (ss.Length > 0) span.TraceId = ss[0];
+                if (ss.Length > 1) span.TraceId = ss[1];
+                if (ss.Length > 2) span.ParentId = ss[2];
+            }
+            else if (parameters.TryGetValue("Request-Id", out tid))
+            {
+                var ss = (tid + "").Split(".", "_");
+                if (ss.Length > 0) span.TraceId = ss[0].TrimStart('|');
+                if (ss.Length > 1) span.ParentId = ss[1];
+            }
+        }
+
+        /// <summary>从api请求释放片段信息</summary>
+        /// <param name="span">片段</param>
+        /// <param name="parameters">参数</param>
+        public static void Detach<T>(this ISpan span, IDictionary<String, T> parameters)
+        {
+            if (span == null || parameters == null || parameters.Count == 0) return;
+
+            if (parameters.TryGetValue("traceparent", out var tid))
+            {
+                var ss = (tid + "").Split("-");
+                if (ss.Length > 1) span.TraceId = ss[1];
+                if (ss.Length > 2) span.ParentId = ss[2];
+            }
+            else if (parameters.TryGetValue("Request-Id", out tid))
+            {
+                var ss = (tid + "").Split(".", "_");
+                if (ss.Length > 0) span.TraceId = ss[0].TrimStart('|');
                 if (ss.Length > 1) span.ParentId = ss[1];
             }
         }
