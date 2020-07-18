@@ -714,14 +714,6 @@ namespace XCode.DataAccessLayer
 
             tableName = FormatName(tableName);
 
-            // 特殊处理Oracle数据库，在表名前加上方案名（用户名）
-            if (!tableName.Contains("."))
-            {
-                // 角色名作为点前缀来约束表名，支持所有数据库
-                var owner = Owner;
-                if (!owner.IsNullOrEmpty()) tableName = FormatName(owner) + "." + tableName;
-            }
-
             return tableName;
         }
 
