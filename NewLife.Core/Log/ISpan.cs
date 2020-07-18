@@ -146,9 +146,9 @@ namespace NewLife.Log
         {
             Error = ex?.GetMessage();
             if (tag is String str)
-                Tag = str?.Cut(256);
+                Tag = str?.Cut(1024);
             else if (tag != null)
-                Tag = tag?.ToJson().Cut(256);
+                Tag = tag?.ToJson().Cut(1024);
         }
 
         /// <summary>已重载。</summary>
