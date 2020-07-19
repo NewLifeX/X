@@ -32,8 +32,8 @@ namespace NewLife
         [Description("日志文件备份。超过备份数后，最旧的文件将被删除，默认100，0表示不限制个数")]
         public Int32 LogFileBackups { get; set; } = 100;
 
-        /// <summary>日志文件格式。默认{0:yyyy_MM_dd}.log</summary>
-        [Description("日志文件格式。默认{0:yyyy_MM_dd}.log")]
+        /// <summary>日志文件格式。默认{0:yyyy_MM_dd}.log，支持日志等级如 {1}_{0:yyyy_MM_dd}.log</summary>
+        [Description("日志文件格式。默认{0:yyyy_MM_dd}.log，支持日志等级如 {1}_{0:yyyy_MM_dd}.log")]
         public String LogFileFormat { get; set; } = "{0:yyyy_MM_dd}.log";
 
         /// <summary>网络日志。本地子网日志广播255.255.255.255:514</summary>
