@@ -51,7 +51,7 @@ namespace NewLife.Log
                 client.Send(GetHead().GetBytes());
 
                 // 尝试向日志服务器表名身份
-                var buf = "{0} {1}/{2} 准备上报日志".F(DateTime.Now.ToFullString(), Environment.UserName, Environment.MachineName).GetBytes();
+                var buf = $"{DateTime.Now.ToFullString()} {Environment.UserName}/{Environment.MachineName} 准备上报日志".GetBytes();
                 client.Send(buf);
             }
             catch (Exception ex) { client.Send(("读取环境变量错误=>" + ex.Message).GetBytes()); }

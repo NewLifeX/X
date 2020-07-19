@@ -434,7 +434,7 @@ namespace NewLife.Caching
                             newValue = oldValue.ToDouble() + value.ToDouble();
                             break;
                         default:
-                            throw new NotSupportedException("不支持类型[{0}]的递增".F(value.GetType().FullName));
+                            throw new NotSupportedException($"不支持类型[{value.GetType().FullName}]的递增");
                     }
                 } while (Interlocked.CompareExchange(ref _Value, newValue, oldValue) != oldValue);
 
@@ -466,7 +466,7 @@ namespace NewLife.Caching
                             newValue = oldValue.ToDouble() - value.ToDouble();
                             break;
                         default:
-                            throw new NotSupportedException("不支持类型[{0}]的递减".F(value.GetType().FullName));
+                            throw new NotSupportedException($"不支持类型[{value.GetType().FullName}]的递减");
                     }
                 } while (Interlocked.CompareExchange(ref _Value, newValue, oldValue) != oldValue);
 

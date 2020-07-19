@@ -113,7 +113,7 @@ namespace NewLife.Yun
             address = HttpUtility.UrlEncode(address);
             city = HttpUtility.UrlEncode(city);
 
-            var url = _geoUrl.F(address, city);
+            var url = String.Format(_geoUrl, address, city);
 
             var list = await InvokeAsync<IList<Object>>(url, "geocodes");
             return list?.FirstOrDefault() as IDictionary<String, Object>;
@@ -182,7 +182,7 @@ namespace NewLife.Yun
         {
             if (point.Longitude < 0.1 || point.Latitude < 0.1) throw new ArgumentNullException(nameof(point));
 
-            var url = _regeoUrl.F(point.Longitude, point.Latitude);
+            var url = String.Format(_regeoUrl, point.Longitude, point.Latitude);
 
             return await InvokeAsync<IDictionary<String, Object>>(url, "regeocode");
         }
@@ -262,7 +262,7 @@ namespace NewLife.Yun
             if (destination == null || destination.Longitude < 1 && destination.Latitude < 1) throw new ArgumentNullException(nameof(destination));
 
             if (type <= 0) type = 1;
-            var url = _distanceUrl.F(origin.Longitude, origin.Latitude, destination.Longitude, destination.Latitude, type);
+            var url = String.Format(_distanceUrl, origin.Longitude, origin.Latitude, destination.Longitude, destination.Latitude, type);
 
             var list = await InvokeAsync<IList<Object>>(url, "results");
             if (list == null || list.Count == 0) return null;
@@ -298,7 +298,7 @@ namespace NewLife.Yun
             // 编码
             keywords = HttpUtility.UrlEncode(keywords);
 
-            var url = _areaUrl.F(keywords, subdistrict, code);
+            var url = String.Format(_areaUrl, keywords, subdistrict, code);
 
             var list = await InvokeAsync<IList<Object>>(url, "districts");
             if (list == null || list.Count == 0) return null;

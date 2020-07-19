@@ -180,7 +180,7 @@ namespace NewLife.Net
                 {
                     var host = (this as INetSession).Host;
                     var name = host == null ? "" : host.Name;
-                    _LogPrefix = "{0}[{1}] ".F(name, ID);
+                    _LogPrefix = $"{name}[{ID}] ";
                 }
                 return _LogPrefix;
             }

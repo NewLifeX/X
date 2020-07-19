@@ -68,7 +68,7 @@ namespace NewLife.Yun
             address = HttpUtility.UrlEncode(address);
             city = HttpUtility.UrlEncode(city);
 
-            var url = _geoUrl.F(address, city, CoordType);
+            var url = String.Format(_geoUrl, address, city, CoordType);
 
             return await InvokeAsync<IDictionary<String, Object>>(url, "result");
         }
@@ -116,7 +116,7 @@ namespace NewLife.Yun
         {
             if (point == null || point.Longitude < 0.1 || point.Latitude < 0.1) throw new ArgumentNullException(nameof(point));
 
-            var url = _regeoUrl.F(point.Latitude, point.Longitude, CoordType);
+            var url = String.Format(_regeoUrl, point.Latitude, point.Longitude, CoordType);
 
             return await InvokeAsync<IDictionary<String, Object>>(url, "result");
         }
@@ -174,7 +174,7 @@ namespace NewLife.Yun
             if (type <= 0) type = 13;
             var coord = CoordType;
             if (!coord.IsNullOrEmpty() && coord.Length > 6) coord = coord.TrimEnd("ll");
-            var url = _distanceUrl.F(origin.Latitude, origin.Longitude, destination.Latitude, destination.Longitude, type, coord);
+            var url = String.Format(_distanceUrl, origin.Latitude, origin.Longitude, destination.Latitude, destination.Longitude, type, coord);
 
             var list = await InvokeAsync<IList<Object>>(url, "result");
             if (list == null || list.Count == 0) return null;

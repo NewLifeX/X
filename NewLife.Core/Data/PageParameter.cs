@@ -165,7 +165,7 @@ namespace NewLife.Data
 
         /// <summary>获取表示分页参数唯一性的键值，可用作缓存键</summary>
         /// <returns></returns>
-        public virtual String GetKey() => "{0}-{1}-{2}".F(PageIndex, PageCount, OrderBy);
+        public virtual String GetKey() => $"{PageIndex}-{PageCount}-{OrderBy}";
         #endregion
     }
 }

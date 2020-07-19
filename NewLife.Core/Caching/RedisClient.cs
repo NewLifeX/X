@@ -227,7 +227,7 @@ namespace NewLife.Caching
                     else if (header == '-')
                         throw new Exception(str);
                     else
-                        throw new InvalidDataException("无法解析响应 [{0}]".F(header));
+                        throw new InvalidDataException($"无法解析响应 [{header}]");
                 }
             }
 
@@ -427,7 +427,7 @@ namespace NewLife.Caching
                 catch (Exception ex)
                 {
                     //if (type.GetTypeCode() != TypeCode.Object)
-                    throw new Exception("不能把字符串[{0}]转为类型[{1}]".F(str, type.FullName), ex);
+                    throw new Exception($"不能把字符串[{str}]转为类型[{type.FullName}]", ex);
                 }
             }
 
@@ -616,12 +616,12 @@ namespace NewLife.Caching
         /// <returns></returns>
         private static Byte[] GetHeaderBytes(String cmd, Int32 args = 0)
         {
-            if (args == 0) return _cache0.GetOrAdd(cmd, k => "*1\r\n${0}\r\n{1}\r\n".F(k.Length, k).GetBytes());
-            if (args == 1) return _cache1.GetOrAdd(cmd, k => "*2\r\n${0}\r\n{1}\r\n".F(k.Length, k).GetBytes());
-            if (args == 2) return _cache2.GetOrAdd(cmd, k => "*3\r\n${0}\r\n{1}\r\n".F(k.Length, k).GetBytes());
-            if (args == 3) return _cache3.GetOrAdd(cmd, k => "*4\r\n${0}\r\n{1}\r\n".F(k.Length, k).GetBytes());
+            if (args == 0) return _cache0.GetOrAdd(cmd, k => $"*1\r\n${k.Length}\r\n{k}\r\n".GetBytes());
+            if (args == 1) return _cache1.GetOrAdd(cmd, k => $"*2\r\n${k.Length}\r\n{k}\r\n".GetBytes());
+            if (args == 2) return _cache2.GetOrAdd(cmd, k => $"*3\r\n${k.Length}\r\n{k}\r\n".GetBytes());
+            if (args == 3) return _cache3.GetOrAdd(cmd, k => $"*4\r\n${k.Length}\r\n{k}\r\n".GetBytes());
 
-            return "*{2}\r\n${0}\r\n{1}\r\n".F(cmd.Length, cmd, 1 + args).GetBytes();
+            return $"*{1 + args}\r\n${cmd.Length}\r\n{cmd}\r\n".GetBytes();
         }
         #endregion
 

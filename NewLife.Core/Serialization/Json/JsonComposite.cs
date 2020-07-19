@@ -62,7 +62,7 @@ namespace NewLife.Serialization
                     return value + "";
                 case TypeCode.String:
                     if (((String)value).IsNullOrEmpty()) return String.Empty;
-                    return "\"{0}\"".F(value);
+                    return $"\"{value}\"";
                 case TypeCode.Object:
                 default:
                     return null;

@@ -54,7 +54,7 @@ namespace NewLife.Serialization
 
             // 子元素类型
             var gs = type.GetGenericArguments();
-            if (gs.Length != 2) throw new NotSupportedException("字典类型仅支持 {0}".F(typeof(Dictionary<,>).FullName));
+            if (gs.Length != 2) throw new NotSupportedException($"字典类型仅支持 {typeof(Dictionary<,>).FullName}");
 
             var keyType = gs[0];
             var valType = gs[1];

@@ -330,7 +330,7 @@ namespace NewLife.Net
                 if (_LogPrefix == null)
                 {
                     var name = Name == null ? "" : Name.TrimEnd("Server", "Session", "Client");
-                    _LogPrefix = "{0}.".F(name);
+                    _LogPrefix = $"{name}.";
                 }
                 return _LogPrefix;
             }

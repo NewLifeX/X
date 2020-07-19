@@ -529,7 +529,7 @@ namespace NewLife
             {
                 NetType.Tcp => new TcpSession { Local = local },
                 NetType.Udp => new UdpServer { Local = local },
-                _ => throw new NotSupportedException("不支持{0}协议".F(local.Type)),
+                _ => throw new NotSupportedException($"不支持{local.Type}协议"),
             };
         }
 
@@ -553,7 +553,7 @@ namespace NewLife
                 //    //ws.IsSSL = remote.Protocol.EqualIgnoreCase("https");
                 //    ws.IsWebSocket = true;
                 //    return ws;
-                _ => throw new NotSupportedException("不支持{0}协议".F(remote.Type)),
+                _ => throw new NotSupportedException($"不支持{remote.Type}协议"),
             };
         }
 

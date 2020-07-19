@@ -688,11 +688,11 @@ namespace NewLife.Http
 
             if (dic.TryGetValue("result", out var result))
             {
-                if (result is Boolean res && !res) throw new InvalidOperationException("远程错误，{0}".F(data));
+                if (result is Boolean res && !res) throw new InvalidOperationException($"远程错误，{data}");
             }
             else if (dic.TryGetValue("code", out var code))
             {
-                if (code is Int32 cd && cd != 0) throw new InvalidOperationException("远程{1}错误，{0}".F(data, cd));
+                if (code is Int32 cd && cd != 0) throw new InvalidOperationException($"远程{cd}错误，{data}");
             }
             else
             {

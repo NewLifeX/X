@@ -258,7 +258,7 @@ namespace NewLife.Net
                 if (_LogPrefix == null)
                 {
                     var name = Server == null ? "" : Server.Name;
-                    _LogPrefix = "{0}[{1}].".F(name, ID);
+                    _LogPrefix = $"{name}[{ID}].";
                 }
                 return _LogPrefix;
             }

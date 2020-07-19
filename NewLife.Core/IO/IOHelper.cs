@@ -769,7 +769,7 @@ namespace System
             while (true)
             {
                 var bt = stream.ReadByte();
-                if (bt < 0) throw new Exception("数据流超出范围！已读取整数{0:n0}".F(rs));
+                if (bt < 0) throw new Exception($"数据流超出范围！已读取整数{rs:n0}");
                 b = (Byte)bt;
 
                 // 必须转为Int32，否则可能溢出

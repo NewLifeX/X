@@ -417,7 +417,7 @@ namespace NewLife.Net
                 if (_LogPrefix == null)
                 {
                     var name = _Server == null ? "" : _Server.Name;
-                    _LogPrefix = "{0}[{1}].".F(name, ID);
+                    _LogPrefix = $"{name}[{ID}].";
                 }
                 return _LogPrefix;
             }
@@ -431,9 +431,9 @@ namespace NewLife.Net
             if (Remote != null && !Remote.EndPoint.IsAny())
             {
                 if (_Server == null)
-                    return String.Format("{0}=>{1}", Local, Remote.EndPoint);
+                    return $"{Local}=>{Remote.EndPoint}";
                 else
-                    return String.Format("{0}<={1}", Local, Remote.EndPoint);
+                    return $"{Local}<={Remote.EndPoint}";
             }
             else
                 return Local.ToString();

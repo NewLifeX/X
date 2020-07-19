@@ -66,7 +66,7 @@ namespace NewLife.Messaging
             Sequence = buf[1];
 
             var len = (buf[3] << 8) | buf[2];
-            if (size + len > pk.Count) throw new ArgumentOutOfRangeException(nameof(pk), "数据包长度{0}不足{1}字节".F(pk.Count, size + len));
+            if (size + len > pk.Count) throw new ArgumentOutOfRangeException(nameof(pk), $"数据包长度{pk.Count}不足{size + len}字节");
 
             // 支持超过64k的超大包
             if (len == 0xFFFF)
@@ -75,7 +75,7 @@ namespace NewLife.Messaging
                 if (pk.Count < size) throw new ArgumentOutOfRangeException(nameof(pk), "数据包头部长度不足8字节");
 
                 len = pk.ReadBytes(size - 4, 4).ToInt();
-                if (size + len > pk.Count) throw new ArgumentOutOfRangeException(nameof(pk), "数据包长度{0}不足{1}字节".F(pk.Count, size + len));
+                if (size + len > pk.Count) throw new ArgumentOutOfRangeException(nameof(pk), $"数据包长度{pk.Count}不足{size + len}字节");
             }
 
             Payload = new Packet(pk.Data, pk.Offset + size, len);
