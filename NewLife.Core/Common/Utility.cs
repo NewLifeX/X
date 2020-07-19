@@ -659,27 +659,27 @@ namespace System
         /// <returns></returns>
         public virtual String ToGMK(UInt64 value, String format = null)
         {
-            if (value < 1024) return "{0:n0}".F(value);
+            if (value < 1024) return $"{value:n0}";
 
-            if (format.IsNullOrEmpty()) format = "{0:n2}";
+            if (format.IsNullOrEmpty()) format = "n2";
 
             var val = value / 1024d;
-            if (val < 1024) return format.F(val) + "K";
+            if (val < 1024) return val.ToString(format) + "K";
 
             val /= 1024;
-            if (val < 1024) return format.F(val) + "M";
+            if (val < 1024) return val.ToString(format) + "M";
 
             val /= 1024;
-            if (val < 1024) return format.F(val) + "G";
+            if (val < 1024) return val.ToString(format) + "G";
 
             val /= 1024;
-            if (val < 1024) return format.F(val) + "T";
+            if (val < 1024) return val.ToString(format) + "T";
 
             val /= 1024;
-            if (val < 1024) return format.F(val) + "P";
+            if (val < 1024) return val.ToString(format) + "P";
 
             val /= 1024;
-            return format.F(val) + "E";
+            return val.ToString(format) + "E";
         }
     }
 }
