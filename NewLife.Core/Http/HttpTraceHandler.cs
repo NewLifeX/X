@@ -25,15 +25,19 @@ namespace NewLife.Http
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             var uri = request.RequestUri;
-            var span = Tracer?.NewSpan(uri.AbsolutePath);
-            span.Attach(request);
+
+            // 如果父级已经做了ApiHelper.Invoke埋点，这里不需要再做一次
+            var parent = DefaultSpan.Current;
+            if (parent != null && parent.Tag == uri + "") return await base.SendAsync(request, cancellationToken);
+
+            var span = Tracer?.NewSpan(request);
             try
             {
                 return await base.SendAsync(request, cancellationToken);
             }
             catch (Exception ex)
             {
-                span?.SetError(ex, uri + "");
+                span?.SetError(ex, null);
 
                 throw;
             }

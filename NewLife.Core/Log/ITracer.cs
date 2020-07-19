@@ -204,6 +204,22 @@ namespace NewLife.Log
 
             return new HttpClient(new HttpTraceHandler(handler) { Tracer = tracer });
         }
+
+        /// <summary>为Http请求创建Span</summary>
+        /// <param name="tracer">跟踪器</param>
+        /// <param name="request">Http请求</param>
+        /// <returns></returns>
+        public static ISpan NewSpan(this ITracer tracer, HttpRequestMessage request)
+        {
+            if (tracer == null) return null;
+
+            var uri = request.RequestUri;
+            var span = tracer.NewSpan(uri.AbsoluteUri);
+            span.Tag = uri + "";
+            span.Attach(request);
+
+            return span;
+        }
         #endregion
     }
 }
