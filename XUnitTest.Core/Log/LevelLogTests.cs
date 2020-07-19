@@ -5,6 +5,7 @@ using System.Text;
 using NewLife.Log;
 using Xunit;
 using NewLife.Reflection;
+using System.Threading;
 
 namespace XUnitTest.Log
 {
@@ -28,6 +29,9 @@ namespace XUnitTest.Log
             log.Warn("warn");
             log.Error("error");
             log.Fatal("fatal");
+
+            // 等待日志落盘
+            Thread.Sleep(1000);
 
             var f = p + $"debug\\{DateTime.Today:yyyy_MM_dd}.log";
             Assert.True(File.Exists(f.GetFullPath()));
