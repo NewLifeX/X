@@ -98,7 +98,7 @@ namespace NewLife.Log
         public virtual Boolean Enable { get; set; } = true;
 
         private LogLevel? _Level;
-        /// <summary>日志等级，只输出大于等于该级别的日志，默认Info，打开NewLife.Debug时默认为最低的Debug</summary>
+        /// <summary>日志等级，只输出大于等于该级别的日志，默认Info</summary>
         public virtual LogLevel Level
         {
             get

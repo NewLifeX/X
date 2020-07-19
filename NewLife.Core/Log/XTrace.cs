@@ -143,9 +143,13 @@ namespace NewLife.Log
                 if (_Log != null && _Log != Logger.Null) return true;
 
                 _initing = Thread.CurrentThread.ManagedThreadId;
-                _Log = TextFileLog.Create(LogPath);
 
                 var set = Setting.Current;
+                if (set.LogFileFormat.Contains("{1}"))
+                    _Log = new LevelLog(LogPath, set.LogFileFormat);
+                else
+                    _Log = TextFileLog.Create(LogPath);
+
                 if (!set.NetworkLog.IsNullOrEmpty())
                 {
                     var nlog = new NetworkLog(NetHelper.ParseEndPoint(set.NetworkLog, 514));

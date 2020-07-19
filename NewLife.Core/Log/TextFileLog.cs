@@ -41,7 +41,7 @@ namespace NewLife.Log
         /// <summary>该构造函数没有作用，为了继承而设置</summary>
         public TextFileLog() { }
 
-        private TextFileLog(String path, Boolean isfile, String fileFormat = null)
+        internal TextFileLog(String path, Boolean isfile, String fileFormat = null)
         {
             LogPath = path;
             _isFile = isfile;
@@ -132,7 +132,7 @@ namespace NewLife.Log
             if (_isFile) return LogPath.GetBasePath();
 
             // 目录多日志文件
-            var logfile = LogPath.CombinePath(FileFormat.F(TimerX.Now)).GetBasePath();
+            var logfile = LogPath.CombinePath(String.Format(FileFormat, TimerX.Now, Level)).GetBasePath();
 
             // 是否限制文件大小
             if (MaxBytes == 0) return logfile;
