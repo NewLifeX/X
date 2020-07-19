@@ -93,7 +93,7 @@ namespace NewLife.Log
             {
                 lock (this)
                 {
-                    if (_timer == null) _timer = new TimerX(s => DoProcessSpans(), null, Period * 1000, Period * 1000) { Async = true };
+                    if (_timer == null) _timer = new TimerX(s => DoProcessSpans(), null, 10_000, Period * 1000) { Async = true };
                 }
             }
         }
