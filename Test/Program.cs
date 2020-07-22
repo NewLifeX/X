@@ -22,6 +22,11 @@ using XCode;
 using System.Collections;
 using XCode.Code;
 using System.Reflection;
+using System.Security.Cryptography;
+using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.OpenSsl;
+using Org.BouncyCastle.Security;
+using NewLife.Web;
 
 #if !NET4
 using TaskEx = System.Threading.Tasks.Task;
@@ -35,7 +40,9 @@ namespace Test
         {
             //Environment.SetEnvironmentVariable("DOTNET_SYSTEM_GLOBALIZATION_INVARIANT", "1");
 
-            MachineInfo.RegisterAsync();
+            DSAXML2PEM();
+
+            //MachineInfo.RegisterAsync();
             //TestMysql();
             //XTrace.Log = new NetworkLog();
             XTrace.UseConsole();
@@ -632,6 +639,49 @@ namespace Test
         private static void Test12()
         {
             EntityBuilder.Build("../../Src/XCode/model.xml");
+        }
+
+        private static void DSAXML2PEM()
+        {
+            //DSAHelper.GenerateKey(1024);
+
+            //using (var fs = new FileStream("d:\\privateKey.key", FileMode.Open, FileAccess.Read))
+            //{
+            //    using (var fs1 = new FileStream("d:\\private.key", FileMode.OpenOrCreate, FileAccess.ReadWrite))
+            //    {
+            //        var d = new DSACryptoServiceProvider(1024);
+
+            //        var b = fs.ToArray();
+
+            //        //d.FromXmlString
+
+            //        d.ImportCspBlob(b);
+            //        var xml = d.ToXmlStringX(false);
+
+            //        var ws = new StreamWriter(fs1);
+            //        ws.Write(xml);
+            //        ws.Flush();
+            //        ws.Dispose();
+            //    }
+            //}
+
+            //var tp = new TokenProvider();
+            //tp.ReadKey();
+
+
+            DSACryptoServiceProvider dsa = new DSACryptoServiceProvider(1024);
+            using (var fs = new FileStream("D:\\token.prvkey", FileMode.Open, FileAccess.Read))
+            {
+                var sr = new StreamReader(fs);
+                dsa.FromXmlStringX(sr.ReadToEnd());
+            }
+
+            AsymmetricCipherKeyPair dsaKey = DotNetUtilities.GetDsaKeyPair(dsa);
+            using (StreamWriter sw = new StreamWriter("D:\\dsa.pem"))
+            {
+                PemWriter pw = new PemWriter(sw);
+                pw.WriteObject(dsaKey);
+            }
         }
 
         ///// <summary>
