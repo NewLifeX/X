@@ -165,7 +165,7 @@ public class BigInteger
 	1901, 1907, 1913, 1931, 1933, 1949, 1951, 1973, 1979, 1987, 1993, 1997, 1999 };
 
 
-        private uint[] data = null;             // stores bytes from the Big Integer
+        private readonly uint[] data = null;             // stores bytes from the Big Integer
         public int dataLength;                 // number of actual chars used
 
 
@@ -296,7 +296,7 @@ public class BigInteger
 
                 for(int i = value.Length - 1; i >= limit ; i--)
                 {
-                        int posVal = (int)value[i];
+                        int posVal = value[i];
 
                         if(posVal >= '0' && posVal <= '9')
                                 posVal -= '0';
@@ -313,10 +313,10 @@ public class BigInteger
                                 if(value[0] == '-')
                                         posVal = -posVal;
 
-                                result = result + (multiplier * posVal);
+                                result += (multiplier * posVal);
 
                                 if((i - 1) >= limit)
-                                        multiplier = multiplier * radix;
+                                        multiplier *= radix;
                         }
                 }
 
@@ -377,7 +377,7 @@ public class BigInteger
                 }
 
                 if(leftOver == 1)
-                        data[dataLength-1] = (uint)inData[0];
+                        data[dataLength-1] = inData[0];
                 else if(leftOver == 2)
                         data[dataLength-1] = (uint)((inData[0] << 8) + inData[1]);
                 else if(leftOver == 3)
@@ -417,7 +417,7 @@ public class BigInteger
                 }
 
                 if(leftOver == 1)
-                        data[dataLength-1] = (uint)inData[0];
+                        data[dataLength-1] = inData[0];
                 else if(leftOver == 2)
                         data[dataLength-1] = (uint)((inData[0] << 8) + inData[1]);
                 else if(leftOver == 3)
@@ -474,7 +474,7 @@ public class BigInteger
 
         public static implicit operator BigInteger(int value)
         {
-                return (new BigInteger((long)value));
+                return (new BigInteger(value));
         }
 
         public static implicit operator BigInteger(uint value)
@@ -496,7 +496,7 @@ public class BigInteger
                 long carry = 0;
                 for(int i = 0; i < result.dataLength; i++)
                 {
-                        long sum = (long)bi1.data[i] + (long)bi2.data[i] + carry;
+                        long sum = bi1.data[i] + (long)bi2.data[i] + carry;
                         carry  = sum >> 32;
                         result.data[i] = (uint)(sum & 0xFFFFFFFF);
                 }
@@ -536,7 +536,7 @@ public class BigInteger
 
                 while(carry != 0 && index < maxLength)
                 {
-                        val = (long)(result.data[index]);
+                        val = result.data[index];
                         val++;
 
                         result.data[index] = (uint)(val & 0xFFFFFFFF);
@@ -583,7 +583,7 @@ public class BigInteger
                 {
                         long diff;
 
-                        diff = (long)bi1.data[i] - (long)bi2.data[i] - carryIn;
+                        diff = bi1.data[i] - (long)bi2.data[i] - carryIn;
                         result.data[i] = (uint)(diff & 0xFFFFFFFF);
 
                         if(diff < 0)
@@ -631,7 +631,7 @@ public class BigInteger
 
                 while(carryIn && index < maxLength)
                 {
-                        val = (long)(result.data[index]);
+                        val = result.data[index];
                         val--;
 
                         result.data[index] = (uint)(val & 0xFFFFFFFF);
@@ -700,8 +700,8 @@ public class BigInteger
                                 for(int j = 0, k = i; j < bi2.dataLength; j++, k++)
                                 {
                                         // k = i + j
-                                        ulong val = ((ulong)bi1.data[i] * (ulong)bi2.data[j]) +
-                                                     (ulong)result.data[k] + mcarry;
+                                        ulong val = (bi1.data[i] * (ulong)bi2.data[j]) +
+                                                     result.data[k] + mcarry;
 
                                         result.data[k] = (uint)(val & 0xFFFFFFFF);
 			                mcarry = (val >> 32);
@@ -895,7 +895,7 @@ public class BigInteger
                 BigInteger result = new BigInteger(bi1);
 
                 for(int i = 0; i < maxLength; i++)
-                        result.data[i] = (uint)(~(bi1.data[i]));
+                        result.data[i] = ~(bi1.data[i]);
 
                 result.dataLength = maxLength;
 
@@ -922,7 +922,7 @@ public class BigInteger
 
                 // 1's complement
                 for(int i = 0; i < maxLength; i++)
-                        result.data[i] = (uint)(~(bi1.data[i]));
+                        result.data[i] = ~(bi1.data[i]);
 
                 // add one to result of 1's complement
                 long val, carry = 1;
@@ -930,7 +930,7 @@ public class BigInteger
 
                 while(carry != 0 && index < maxLength)
                 {
-                        val = (long)(result.data[index]);
+                        val = result.data[index];
                         val++;
 
                         result.data[index] = (uint)(val & 0xFFFFFFFF);
@@ -1086,7 +1086,7 @@ public class BigInteger
                 for(int i = 0; i < bi1.dataLength; i++)
                         remainder[i] = bi1.data[i];
                 shiftLeft(remainder, shift);
-                bi2 = bi2 << shift;
+                bi2 <<= shift;
 
                 /*
                 Console.WriteLine("bi1 Len = {0}, bi2 Len = {1}", bi1.dataLength, bi2.dataLength);
@@ -1107,7 +1107,7 @@ public class BigInteger
 
                 while(j > 0)
                 {
-                        ulong dividend = ((ulong)remainder[pos] << 32) + (ulong)remainder[pos-1];
+                        ulong dividend = ((ulong)remainder[pos] << 32) + remainder[pos - 1];
                         //Console.WriteLine("dividend = {0}", dividend);
 
                         ulong q_hat = dividend / firstDivisorByte;
@@ -1207,9 +1207,9 @@ public class BigInteger
                 while(outRemainder.dataLength > 1 && outRemainder.data[outRemainder.dataLength-1] == 0)
                         outRemainder.dataLength--;
 
-                ulong divisor = (ulong)bi2.data[0];
+                ulong divisor = bi2.data[0];
                 int pos = outRemainder.dataLength - 1;
-                ulong dividend = (ulong)outRemainder.data[pos];
+                ulong dividend = outRemainder.data[pos];
 
                 //Console.WriteLine("divisor = " + divisor + " dividend = " + dividend);
                 //Console.WriteLine("divisor = " + bi2 + "\ndividend = " + bi1);
@@ -1227,7 +1227,7 @@ public class BigInteger
                 {
                         //Console.WriteLine(pos);
 
-                        dividend = ((ulong)outRemainder.data[pos+1] << 32) + (ulong)outRemainder.data[pos];
+                        dividend = ((ulong)outRemainder.data[pos+1] << 32) + outRemainder.data[pos];
                         ulong quotient = dividend / divisor;
                         result[resultPos++] = (uint)quotient;
 
@@ -1349,7 +1349,7 @@ public class BigInteger
 
                 for(int i = 0; i < len; i++)
                 {
-                        uint sum = (uint)(bi1.data[i] & bi2.data[i]);
+                        uint sum = bi1.data[i] & bi2.data[i];
                         result.data[i] = sum;
                 }
 
@@ -1374,7 +1374,7 @@ public class BigInteger
 
                 for(int i = 0; i < len; i++)
                 {
-                        uint sum = (uint)(bi1.data[i] | bi2.data[i]);
+                        uint sum = bi1.data[i] | bi2.data[i];
                         result.data[i] = sum;
                 }
 
@@ -1399,7 +1399,7 @@ public class BigInteger
 
                 for(int i = 0; i < len; i++)
                 {
-                        uint sum = (uint)(bi1.data[i] ^ bi2.data[i]);
+                        uint sum = bi1.data[i] ^ bi2.data[i];
                         result.data[i] = sum;
                 }
 
@@ -1580,7 +1580,7 @@ public class BigInteger
                 constant.data[i] = 0x00000001;
                 constant.dataLength = i + 1;
 
-                constant = constant / n;
+                constant /= n;
                 int totalBits = exp.bitCount();
                 int count = 0;
 
@@ -1677,8 +1677,8 @@ public class BigInteger
                         for(int j = 0; j < n.dataLength && t < kPlusOne; j++, t++)
                         {
                                 // t = i + j
-                                ulong val = ((ulong)q3.data[i] * (ulong)n.data[j]) +
-                                             (ulong)r2.data[t] + mcarry;
+                                ulong val = (q3.data[i] * (ulong)n.data[j]) +
+                                             r2.data[t] + mcarry;
 
                                 r2.data[t] = (uint)(val & 0xFFFFFFFF);
                                 mcarry = (val >> 32);
@@ -1765,7 +1765,7 @@ public class BigInteger
 		        uint mask = (uint)(0x01 << (remBits-1));
 		        data[dwords-1] |= mask;
 
-		        mask = (uint)(0xFFFFFFFF >> (32 - remBits));
+		        mask = 0xFFFFFFFF >> (32 - remBits);
 		        data[dwords-1] &= mask;
 	        }
 	        else
@@ -2232,7 +2232,7 @@ public class BigInteger
                 constant.data[nLen] = 0x00000001;
                 constant.dataLength = nLen + 1;
 
-                constant = constant / thisVal;
+                constant /= thisVal;
 
                 BigInteger[] lucas = LucasSequenceHelper(1, Q, t, thisVal, constant, 0);
                 bool isPrime = false;
@@ -2465,7 +2465,7 @@ public class BigInteger
         {
                 long val = 0;
 
-                val = (long)data[0];
+                val = data[0];
                 try
                 {       // exception if maxLength = 1
                         val |= (long)data[1] << 32;
@@ -2748,7 +2748,7 @@ public class BigInteger
                 if((numBits & 0x1) != 0)        // odd number of bits
                         numBits = (numBits >> 1) + 1;
                 else
-                        numBits = (numBits >> 1);
+                        numBits >>= 1;
 
                 uint bytePos = numBits >> 5;
                 byte bitPos = (byte)(numBits & 0x1F);
@@ -2835,7 +2835,7 @@ public class BigInteger
                 constant.data[nLen] = 0x00000001;
                 constant.dataLength = nLen + 1;
 
-                constant = constant / n;
+                constant /= n;
 
                 // calculate values of s and t
                 int s = 0;
@@ -3135,31 +3135,31 @@ public class BigInteger
 	        byte[] val = new byte[64];
 
                 byte[] pseudoPrime1 = {
-                        (byte)0x85, (byte)0x84, (byte)0x64, (byte)0xFD, (byte)0x70, (byte)0x6A,
-                        (byte)0x9F, (byte)0xF0, (byte)0x94, (byte)0x0C, (byte)0x3E, (byte)0x2C,
-                        (byte)0x74, (byte)0x34, (byte)0x05, (byte)0xC9, (byte)0x55, (byte)0xB3,
-                        (byte)0x85, (byte)0x32, (byte)0x98, (byte)0x71, (byte)0xF9, (byte)0x41,
-                        (byte)0x21, (byte)0x5F, (byte)0x02, (byte)0x9E, (byte)0xEA, (byte)0x56,
-                        (byte)0x8D, (byte)0x8C, (byte)0x44, (byte)0xCC, (byte)0xEE, (byte)0xEE,
-                        (byte)0x3D, (byte)0x2C, (byte)0x9D, (byte)0x2C, (byte)0x12, (byte)0x41,
-                        (byte)0x1E, (byte)0xF1, (byte)0xC5, (byte)0x32, (byte)0xC3, (byte)0xAA,
-                        (byte)0x31, (byte)0x4A, (byte)0x52, (byte)0xD8, (byte)0xE8, (byte)0xAF,
-                        (byte)0x42, (byte)0xF4, (byte)0x72, (byte)0xA1, (byte)0x2A, (byte)0x0D,
-                        (byte)0x97, (byte)0xB1, (byte)0x31, (byte)0xB3,
+                        0x85, 0x84, 0x64, 0xFD, 0x70, 0x6A,
+                        0x9F, 0xF0, 0x94, 0x0C, 0x3E, 0x2C,
+                        0x74, 0x34, 0x05, 0xC9, 0x55, 0xB3,
+                        0x85, 0x32, 0x98, 0x71, 0xF9, 0x41,
+                        0x21, 0x5F, 0x02, 0x9E, 0xEA, 0x56,
+                        0x8D, 0x8C, 0x44, 0xCC, 0xEE, 0xEE,
+                        0x3D, 0x2C, 0x9D, 0x2C, 0x12, 0x41,
+                        0x1E, 0xF1, 0xC5, 0x32, 0xC3, 0xAA,
+                        0x31, 0x4A, 0x52, 0xD8, 0xE8, 0xAF,
+                        0x42, 0xF4, 0x72, 0xA1, 0x2A, 0x0D,
+                        0x97, 0xB1, 0x31, 0xB3,
                 };
 
                 byte[] pseudoPrime2 = {
-                        (byte)0x99, (byte)0x98, (byte)0xCA, (byte)0xB8, (byte)0x5E, (byte)0xD7,
-                        (byte)0xE5, (byte)0xDC, (byte)0x28, (byte)0x5C, (byte)0x6F, (byte)0x0E,
-                        (byte)0x15, (byte)0x09, (byte)0x59, (byte)0x6E, (byte)0x84, (byte)0xF3,
-                        (byte)0x81, (byte)0xCD, (byte)0xDE, (byte)0x42, (byte)0xDC, (byte)0x93,
-                        (byte)0xC2, (byte)0x7A, (byte)0x62, (byte)0xAC, (byte)0x6C, (byte)0xAF,
-                        (byte)0xDE, (byte)0x74, (byte)0xE3, (byte)0xCB, (byte)0x60, (byte)0x20,
-                        (byte)0x38, (byte)0x9C, (byte)0x21, (byte)0xC3, (byte)0xDC, (byte)0xC8,
-                        (byte)0xA2, (byte)0x4D, (byte)0xC6, (byte)0x2A, (byte)0x35, (byte)0x7F,
-                        (byte)0xF3, (byte)0xA9, (byte)0xE8, (byte)0x1D, (byte)0x7B, (byte)0x2C,
-                        (byte)0x78, (byte)0xFA, (byte)0xB8, (byte)0x02, (byte)0x55, (byte)0x80,
-                        (byte)0x9B, (byte)0xC2, (byte)0xA5, (byte)0xCB,
+                        0x99, 0x98, 0xCA, 0xB8, 0x5E, 0xD7,
+                        0xE5, 0xDC, 0x28, 0x5C, 0x6F, 0x0E,
+                        0x15, 0x09, 0x59, 0x6E, 0x84, 0xF3,
+                        0x81, 0xCD, 0xDE, 0x42, 0xDC, 0x93,
+                        0xC2, 0x7A, 0x62, 0xAC, 0x6C, 0xAF,
+                        0xDE, 0x74, 0xE3, 0xCB, 0x60, 0x20,
+                        0x38, 0x9C, 0x21, 0xC3, 0xDC, 0xC8,
+                        0xA2, 0x4D, 0xC6, 0x2A, 0x35, 0x7F,
+                        0xF3, 0xA9, 0xE8, 0x1D, 0x7B, 0x2C,
+                        0x78, 0xFA, 0xB8, 0x02, 0x55, 0x80,
+                        0x9B, 0xC2, 0xA5, 0xCB,
                 };
 
 
@@ -3261,32 +3261,32 @@ public class BigInteger
                 // Known problem -> these two pseudoprimes passes my implementation of
                 // primality test but failed in JDK's isProbablePrime test.
 
-                byte[] pseudoPrime1 = { (byte)0x00,
-                        (byte)0x85, (byte)0x84, (byte)0x64, (byte)0xFD, (byte)0x70, (byte)0x6A,
-                        (byte)0x9F, (byte)0xF0, (byte)0x94, (byte)0x0C, (byte)0x3E, (byte)0x2C,
-                        (byte)0x74, (byte)0x34, (byte)0x05, (byte)0xC9, (byte)0x55, (byte)0xB3,
-                        (byte)0x85, (byte)0x32, (byte)0x98, (byte)0x71, (byte)0xF9, (byte)0x41,
-                        (byte)0x21, (byte)0x5F, (byte)0x02, (byte)0x9E, (byte)0xEA, (byte)0x56,
-                        (byte)0x8D, (byte)0x8C, (byte)0x44, (byte)0xCC, (byte)0xEE, (byte)0xEE,
-                        (byte)0x3D, (byte)0x2C, (byte)0x9D, (byte)0x2C, (byte)0x12, (byte)0x41,
-                        (byte)0x1E, (byte)0xF1, (byte)0xC5, (byte)0x32, (byte)0xC3, (byte)0xAA,
-                        (byte)0x31, (byte)0x4A, (byte)0x52, (byte)0xD8, (byte)0xE8, (byte)0xAF,
-                        (byte)0x42, (byte)0xF4, (byte)0x72, (byte)0xA1, (byte)0x2A, (byte)0x0D,
-                        (byte)0x97, (byte)0xB1, (byte)0x31, (byte)0xB3,
+                byte[] pseudoPrime1 = { 0x00,
+                        0x85, 0x84, 0x64, 0xFD, 0x70, 0x6A,
+                        0x9F, 0xF0, 0x94, 0x0C, 0x3E, 0x2C,
+                        0x74, 0x34, 0x05, 0xC9, 0x55, 0xB3,
+                        0x85, 0x32, 0x98, 0x71, 0xF9, 0x41,
+                        0x21, 0x5F, 0x02, 0x9E, 0xEA, 0x56,
+                        0x8D, 0x8C, 0x44, 0xCC, 0xEE, 0xEE,
+                        0x3D, 0x2C, 0x9D, 0x2C, 0x12, 0x41,
+                        0x1E, 0xF1, 0xC5, 0x32, 0xC3, 0xAA,
+                        0x31, 0x4A, 0x52, 0xD8, 0xE8, 0xAF,
+                        0x42, 0xF4, 0x72, 0xA1, 0x2A, 0x0D,
+                        0x97, 0xB1, 0x31, 0xB3,
                 };
 
-                byte[] pseudoPrime2 = { (byte)0x00,
-                        (byte)0x99, (byte)0x98, (byte)0xCA, (byte)0xB8, (byte)0x5E, (byte)0xD7,
-                        (byte)0xE5, (byte)0xDC, (byte)0x28, (byte)0x5C, (byte)0x6F, (byte)0x0E,
-                        (byte)0x15, (byte)0x09, (byte)0x59, (byte)0x6E, (byte)0x84, (byte)0xF3,
-                        (byte)0x81, (byte)0xCD, (byte)0xDE, (byte)0x42, (byte)0xDC, (byte)0x93,
-                        (byte)0xC2, (byte)0x7A, (byte)0x62, (byte)0xAC, (byte)0x6C, (byte)0xAF,
-                        (byte)0xDE, (byte)0x74, (byte)0xE3, (byte)0xCB, (byte)0x60, (byte)0x20,
-                        (byte)0x38, (byte)0x9C, (byte)0x21, (byte)0xC3, (byte)0xDC, (byte)0xC8,
-                        (byte)0xA2, (byte)0x4D, (byte)0xC6, (byte)0x2A, (byte)0x35, (byte)0x7F,
-                        (byte)0xF3, (byte)0xA9, (byte)0xE8, (byte)0x1D, (byte)0x7B, (byte)0x2C,
-                        (byte)0x78, (byte)0xFA, (byte)0xB8, (byte)0x02, (byte)0x55, (byte)0x80,
-                        (byte)0x9B, (byte)0xC2, (byte)0xA5, (byte)0xCB,
+                byte[] pseudoPrime2 = { 0x00,
+                        0x99, 0x98, 0xCA, 0xB8, 0x5E, 0xD7,
+                        0xE5, 0xDC, 0x28, 0x5C, 0x6F, 0x0E,
+                        0x15, 0x09, 0x59, 0x6E, 0x84, 0xF3,
+                        0x81, 0xCD, 0xDE, 0x42, 0xDC, 0x93,
+                        0xC2, 0x7A, 0x62, 0xAC, 0x6C, 0xAF,
+                        0xDE, 0x74, 0xE3, 0xCB, 0x60, 0x20,
+                        0x38, 0x9C, 0x21, 0xC3, 0xDC, 0xC8,
+                        0xA2, 0x4D, 0xC6, 0x2A, 0x35, 0x7F,
+                        0xF3, 0xA9, 0xE8, 0x1D, 0x7B, 0x2C,
+                        0x78, 0xFA, 0xB8, 0x02, 0x55, 0x80,
+                        0x9B, 0xC2, 0xA5, 0xCB,
                 };
 
                 Console.WriteLine("List of primes < 2000\n---------------------");

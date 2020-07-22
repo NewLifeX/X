@@ -35,6 +35,9 @@ namespace NewLife.Remoting
 
         /// <summary>处理统计</summary>
         public ICounter StatProcess { get; set; }
+
+        /// <summary>性能跟踪器</summary>
+        public ITracer Tracer { get; set; }
         #endregion
 
         #region 构造
@@ -192,6 +195,7 @@ namespace NewLife.Remoting
             var action = "";
             var code = 0;
 
+            ISpan span = null;
             var st = StatProcess;
             var sw = st.StartCount();
             try
@@ -199,9 +203,13 @@ namespace NewLife.Remoting
                 var enc = session["Encoder"] as IEncoder ?? Encoder;
 
                 Object result;
+                Packet args = null;
                 try
                 {
-                    if (!enc.Decode(msg, out action, out _, out var args)) return null;
+                    if (!enc.Decode(msg, out action, out _, out args)) return null;
+
+                    // 根据动作名，开始跟踪
+                    span = Tracer?.NewSpan("rpc:" + action);
 
                     result = OnProcess(session, action, args, msg);
                 }
@@ -222,6 +230,9 @@ namespace NewLife.Remoting
                         code = 500;
                         result = ex?.Message;
                     }
+
+                    // 跟踪异常
+                    span?.SetError(ex, args?.ToStr());
                 }
 
                 // 单向请求无需响应
@@ -236,6 +247,8 @@ namespace NewLife.Remoting
             {
                 var msCost = st.StopCount(sw) / 1000;
                 if (SlowTrace > 0 && msCost >= SlowTrace) WriteLog($"慢处理[{action}]，Code={code}，耗时{msCost:n0}ms");
+
+                span?.Dispose();
             }
         }
 

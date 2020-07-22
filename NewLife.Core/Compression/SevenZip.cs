@@ -11,7 +11,7 @@ namespace NewLife.Compression
     public class SevenZip
     {
         #region  基础
-        private static String _7z = null;
+        private static readonly String _7z = null;
 
         static SevenZip()
         {

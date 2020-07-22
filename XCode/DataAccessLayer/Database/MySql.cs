@@ -456,7 +456,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>数据类型映射</summary>
-        private static Dictionary<Type, String[]> _DataTypes = new Dictionary<Type, String[]>
+        private static readonly Dictionary<Type, String[]> _DataTypes = new Dictionary<Type, String[]>
         {
             { typeof(Byte[]), new String[] { "BLOB", "TINYBLOB", "MEDIUMBLOB", "LONGBLOB", "binary({0})", "varbinary({0})" } },
             //{ typeof(TimeSpan), new String[] { "TIME" } },
@@ -472,7 +472,8 @@ namespace XCode.DataAccessLayer
             { typeof(Double), new String[] { "DOUBLE" } },
             { typeof(Decimal), new String[] { "DECIMAL({0}, {1})" } },
             { typeof(DateTime), new String[] { "DATETIME", "DATE", "TIMESTAMP", "TIME" } },
-            { typeof(String), new String[] { "NVARCHAR({0})", "LONGTEXT", "TEXT", "CHAR({0})", "NCHAR({0})", "VARCHAR({0})", "SET", "ENUM", "TINYTEXT", "TEXT", "MEDIUMTEXT" } },
+            // mysql中nvarchar会变成utf8字符集的varchar，而不会取数据库的utf8mb4
+            { typeof(String), new String[] { "VARCHAR({0})", "LONGTEXT", "TEXT", "CHAR({0})", "NCHAR({0})", "NVARCHAR({0})", "SET", "ENUM", "TINYTEXT", "TEXT", "MEDIUMTEXT" } },
             { typeof(Boolean), new String[] { "TINYINT" } },
         };
         #endregion

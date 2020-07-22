@@ -1,16 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Reflection;
-using NewLife.Serialization;
 
 namespace XCode.DataAccessLayer
 {
@@ -244,7 +241,7 @@ namespace XCode.DataAccessLayer
             return st;
         }
 
-        private TResult QueryByCache<T1, T2, T3, TResult>(T1 k1, T2 k2, T3 k3, Func<T1, T2, T3, TResult> callback, String prefix = null)
+        private TResult QueryByCache<T1, T2, T3, TResult>(T1 k1, T2 k2, T3 k3, Func<T1, T2, T3, TResult> callback, String prefix)
         {
             CheckDatabase();
 
@@ -289,7 +286,7 @@ namespace XCode.DataAccessLayer
                     }
 
                     Interlocked.Increment(ref _QueryTimes);
-                    var rs = callback(k1, k2, k3);
+                    var rs = Invoke(k1, k2, k3, callback, prefix);
 
                     // 达到60秒后全表查询使用文件缓存
                     if (!dataFile.IsNullOrEmpty())
@@ -303,7 +300,7 @@ namespace XCode.DataAccessLayer
 
             Interlocked.Increment(ref _QueryTimes);
 
-            return callback(k1, k2, k3);
+            return Invoke(k1, k2, k3, callback, prefix);
         }
 
         private TResult ExecuteByCache<T1, T2, T3, TResult>(T1 k1, T2 k2, T3 k3, Func<T1, T2, T3, TResult> callback)
@@ -312,7 +309,7 @@ namespace XCode.DataAccessLayer
 
             CheckDatabase();
 
-            var rs = callback(k1, k2, k3);
+            var rs = Invoke(k1, k2, k3, callback, "Execute");
 
             var st = GetCache();
             if (st != null)
@@ -337,6 +334,26 @@ namespace XCode.DataAccessLayer
             Interlocked.Increment(ref _ExecuteTimes);
 
             return rs;
+        }
+
+        private TResult Invoke<T1, T2, T3, TResult>(T1 k1, T2 k2, T3 k3, Func<T1, T2, T3, TResult> callback, String action)
+        {
+            var tracer = Tracer ?? GlobalTracer;
+            var span = tracer?.NewSpan($"db:{ConnName}:{action}");
+            try
+            {
+                return callback(k1, k2, k3);
+            }
+            catch (Exception ex)
+            {
+                // 使用k1参数作为tag，一般是sql
+                span?.SetError(ex, k1);
+                throw;
+            }
+            finally
+            {
+                span?.Dispose();
+            }
         }
 
         private static void Append(StringBuilder sb, Object value)

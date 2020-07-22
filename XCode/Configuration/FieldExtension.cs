@@ -425,5 +425,21 @@ namespace XCode
         /// <returns></returns>
         public static ConcatExpression Avg(this FieldItem field, String newName = null) => Aggregate(field, "Avg", newName);
         #endregion
+
+        #region 高级聚合
+        /// <summary>sumCase子句，计算等于某个值的数量</summary>
+        /// <param name="field">字段</param>
+        /// <param name="value">值</param>
+        /// <param name="newName">聚合后as的新名称</param>
+        /// <returns></returns>
+        public static FormatExpression SumCase(this FieldItem field, Object value, String newName) => new FormatExpression(field, "sum(case when {0}={1} then 1 else 0 end) " + newName, value);
+
+        /// <summary>sumCase子句，计算大于某个值的数量</summary>
+        /// <param name="field">字段</param>
+        /// <param name="value">值</param>
+        /// <param name="newName">聚合后as的新名称</param>
+        /// <returns></returns>
+        public static FormatExpression SumLarge(this FieldItem field, Object value, String newName) => new FormatExpression(field, "sum(case when {0}>{1} then 1 else 0 end) " + newName, value);
+        #endregion
     }
 }

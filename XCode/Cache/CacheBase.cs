@@ -34,13 +34,13 @@ namespace XCode.Cache
                 return callback(arg);
             }
             // 屏蔽对象销毁异常
-            catch (ObjectDisposedException) { return default(TResult); }
+            catch (ObjectDisposedException) { return default; }
             // 屏蔽线程取消异常
-            catch (ThreadAbortException) { return default(TResult); }
+            catch (ThreadAbortException) { return default; }
             catch (Exception ex)
             {
                 // 无效操作，句柄未初始化，不用出现
-                if (ex is InvalidOperationException && ex.Message.Contains("句柄未初始化")) return default(TResult);
+                if (ex is InvalidOperationException && ex.Message.Contains("句柄未初始化")) return default;
                 if (DAL.Debug) DAL.WriteLog(ex.ToString());
                 throw;
             }
@@ -62,6 +62,13 @@ namespace XCode.Cache
         /// <summary>显示统计信息的周期。默认60*60s，DAL.Debug=true时10*60s，Debug=true时60s</summary>
         public static Int32 Period { get; set; }
         #endregion
+
+        static CacheBase()
+        {
+#if DEBUG
+            Debug = true;
+#endif
+        }
 
         internal static void WriteLog(String format, params Object[] args)
         {
@@ -108,7 +115,7 @@ namespace XCode.Cache
         }
 
         private static TimerX _timer;
-        private static ConcurrentDictionary<String, Action> _dic = new ConcurrentDictionary<String, Action>();
+        private static readonly ConcurrentDictionary<String, Action> _dic = new ConcurrentDictionary<String, Action>();
         private static Boolean NextShow;
 
         private static void Check(Object state)

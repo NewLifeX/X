@@ -8,7 +8,7 @@ namespace NewLife.Serialization
     /// <summary>序列化助手</summary>
     public static class SerialHelper
     {
-        private static ConcurrentDictionary<PropertyInfo, String> _cache = new ConcurrentDictionary<PropertyInfo, String>();
+        private static readonly ConcurrentDictionary<PropertyInfo, String> _cache = new ConcurrentDictionary<PropertyInfo, String>();
         /// <summary>获取序列化名称</summary>
         /// <param name="pi"></param>
         /// <returns></returns>

@@ -8,7 +8,7 @@ namespace NewLife.Security
     /// <summary>随机数</summary>
     public static class Rand
     {
-        private static RandomNumberGenerator _rnd;
+        private static readonly RandomNumberGenerator _rnd;
 
         static Rand()
         {

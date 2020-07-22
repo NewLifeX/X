@@ -69,10 +69,10 @@ namespace XCode.Membership
             // 过滤器 UserModule、TimeModule、IPModule
             Meta.Modules.Add<TimeModule>();
 
-#if !DEBUG
+            //#if !DEBUG
             // 关闭SQL日志
             Meta.Session.Dal.Db.ShowSQL = false;
-#endif
+            //#endif
         }
 
         /// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>
@@ -110,7 +110,7 @@ namespace XCode.Membership
             //return Find(_.ID == id);
         }
 
-        private static DictionaryCache<VisitStatModel, VisitStat> _cache = new DictionaryCache<VisitStatModel, VisitStat> { Expire = 20 * 60, Period = 60 };
+        private static readonly DictionaryCache<VisitStatModel, VisitStat> _cache = new DictionaryCache<VisitStatModel, VisitStat> { Expire = 20 * 60, Period = 60 };
         /// <summary>根据模型查找</summary>
         /// <param name="model"></param>
         /// <param name="cache"></param>
@@ -154,7 +154,7 @@ namespace XCode.Membership
             return FindAll(exp, param);
         }
 
-        static FieldCache<VisitStat> PageCache = new FieldCache<VisitStat>(__.Page);
+        static readonly FieldCache<VisitStat> PageCache = new FieldCache<VisitStat>(__.Page);
 
         /// <summary>查找所有</summary>
         /// <returns></returns>
@@ -188,7 +188,7 @@ namespace XCode.Membership
             }
 
             // 并行处理
-            Parallel.ForEach(list, m => ProcessItem(m as VisitStatModel));
+            Parallel.ForEach(list, m => ProcessItem(m));
         }
 
         private static VisitStat ProcessItem(VisitStatModel model)

@@ -27,7 +27,7 @@ namespace NewLife.Remoting
             if (code != 0) writer.Write(code);
 
             // 参数或结果
-            var pk2 = value as Packet;
+            var pk2 = value;
             if (pk2 != null && pk2.Data != null)
             {
                 var len = pk2.Total;

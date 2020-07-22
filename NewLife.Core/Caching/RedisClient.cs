@@ -579,7 +579,7 @@ namespace NewLife.Caching
             //var rs = ExecuteCommand("MSET", ps.ToArray());
             var rs = Execute<String>("MSET", ps.ToArray());
 
-            return rs as String == "OK";
+            return rs == "OK";
         }
 
         /// <summary>批量获取</summary>
@@ -620,6 +620,7 @@ namespace NewLife.Caching
             {
                 TypeCode.Object => value.ToJson().GetBytes(),
                 TypeCode.String => (value as String).GetBytes(),
+                TypeCode.DateTime => ((DateTime)value).ToString("yyyy-MM-dd HH:mm:ss.fff").GetBytes(),
                 _ => "{0}".F(value).GetBytes(),
             };
         }

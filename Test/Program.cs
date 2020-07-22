@@ -140,9 +140,9 @@ namespace Test
 
         private static void Test3()
         {
-            //XTrace.WriteLine("IsConsole={0}", Runtime.IsConsole);
-            //Console.WriteLine("IsConsole={0}", Runtime.IsConsole);
-            //XTrace.WriteLine("MainWindowHandle={0}", Process.GetCurrentProcess().MainWindowHandle);
+            var tracer = DefaultTracer.Instance;
+            tracer.MaxSamples = 100;
+            tracer.MaxErrors = 100;
 
             if (Console.ReadLine() == "1")
             {
@@ -152,6 +152,7 @@ namespace Test
                     Log = XTrace.Log,
                     //EncoderLog = XTrace.Log,
                     StatPeriod = 10,
+                    Tracer = DefaultTracer.Instance,
                 };
 
                 // http状态
@@ -173,6 +174,7 @@ namespace Test
                     Log = XTrace.Log,
                     //EncoderLog = XTrace.Log,
                     StatPeriod = 10,
+                    Tracer = DefaultTracer.Instance,
 
                     UsePool = true,
                 };
@@ -590,12 +592,26 @@ namespace Test
 
         private static void Test9()
         {
-            var str = "学无先后达者为师！学无先后达者为师！学无先后达者为师！学无先后达者为师！学无先后达者为师！学无先后达者为师！学无先后达者为师！学无先后达者为师！";
+            var r0 = Role.FindByName("Stone");
+            r0?.Delete();
 
-            for (var i = 0; i < 1_000_000; i++)
-            {
-                XTrace.WriteLine(str);
-            }
+            var r = new Role();
+            r.Name = "Stone";
+            r.Insert();
+
+            var r2 = Role.FindByName("Stone");
+            XTrace.WriteLine("FindByName: {0}", r2.ToJson());
+
+            r.Enable = true;
+            r.Update();
+
+            var r3 = Role.Find(Role._.Name == "STONE");
+            XTrace.WriteLine("Find: {0}", r3.ToJson());
+
+            r.Delete();
+
+            var n = Role.FindCount();
+            XTrace.WriteLine("count={0}", n);
         }
 
         private static void Test10()

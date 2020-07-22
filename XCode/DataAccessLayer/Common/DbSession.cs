@@ -441,7 +441,7 @@ namespace XCode.DataAccessLayer
             return Execute(cmd, true, cmd2 =>
             {
                 var rs = cmd.ExecuteScalar();
-                if (rs == null || rs == DBNull.Value) return default(T);
+                if (rs == null || rs == DBNull.Value) return default;
                 if (rs is T) return (T)rs;
 
                 return (T)Reflect.ChangeType(rs, typeof(T));
@@ -669,6 +669,10 @@ namespace XCode.DataAccessLayer
             try
             {
                 var sql = cmd.CommandText;
+
+                // 诊断信息
+                if (XTrace.Log.Level <= LogLevel.Debug) sql = "[{0}]{1}".F(Database.ConnName, sql);
+
                 var ps = cmd.Parameters;
                 if (ps != null && ps.Count > 0)
                 {

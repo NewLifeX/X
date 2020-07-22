@@ -26,7 +26,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 提供者
-        private static IDictionary<DatabaseType, IDatabase> _dbs = new NullableDictionary<DatabaseType, IDatabase>();
+        private static readonly IDictionary<DatabaseType, IDatabase> _dbs = new NullableDictionary<DatabaseType, IDatabase>();
         /// <summary>注册数据库提供者</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="dbType"></param>

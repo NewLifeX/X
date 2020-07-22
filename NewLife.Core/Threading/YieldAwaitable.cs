@@ -41,7 +41,7 @@ namespace Microsoft.Runtime.CompilerServices
         /// <returns></returns>
         public YieldAwaiter GetAwaiter()
         {
-            return default(YieldAwaiter);
+            return default;
         }
     }
 }

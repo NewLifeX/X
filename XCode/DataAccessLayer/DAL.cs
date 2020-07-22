@@ -63,7 +63,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 静态管理
-        private static ConcurrentDictionary<String, DAL> _dals = new ConcurrentDictionary<String, DAL>(StringComparer.OrdinalIgnoreCase);
+        private static readonly ConcurrentDictionary<String, DAL> _dals = new ConcurrentDictionary<String, DAL>(StringComparer.OrdinalIgnoreCase);
         /// <summary>创建一个数据访问层对象。</summary>
         /// <param name="connName">配置名</param>
         /// <returns>对应于指定链接的全局唯一的数据访问层对象</returns>
@@ -108,7 +108,7 @@ namespace XCode.DataAccessLayer
         }
 
         private static Dictionary<String, String> _connStrs;
-        private static Dictionary<String, Type> _connTypes = new Dictionary<String, Type>(StringComparer.OrdinalIgnoreCase);
+        private static readonly Dictionary<String, Type> _connTypes = new Dictionary<String, Type>(StringComparer.OrdinalIgnoreCase);
         /// <summary>链接字符串集合</summary>
         /// <remarks>
         /// 如果需要修改一个DAL的连接字符串，不应该修改这里，而是修改DAL实例的<see cref="ConnStr"/>属性
@@ -226,7 +226,7 @@ namespace XCode.DataAccessLayer
         /// <summary>找不到连接名时调用。支持用户自定义默认连接</summary>
         public static event EventHandler<ResolveEventArgs> OnResolve;
 
-        private static ConcurrentDictionary<String, Tuple<String, String>> _defs = new ConcurrentDictionary<String, Tuple<String, String>>(StringComparer.OrdinalIgnoreCase);
+        private static readonly ConcurrentDictionary<String, Tuple<String, String>> _defs = new ConcurrentDictionary<String, Tuple<String, String>>(StringComparer.OrdinalIgnoreCase);
         /// <summary>注册默认连接字符串。无法从配置文件获取时使用</summary>
         /// <param name="connName">连接名</param>
         /// <param name="connStr">连接字符串</param>

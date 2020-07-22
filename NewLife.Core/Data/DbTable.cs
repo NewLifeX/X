@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Xml.Serialization;
 using NewLife.Reflection;
 using NewLife.Serialization;
@@ -94,10 +95,8 @@ namespace NewLife.Data
 
         /// <summary>从数据流读取</summary>
         /// <param name="stream"></param>
-        public Int64 Read(Stream stream)
+        public void Read(Stream stream)
         {
-            var p = stream.Position;
-
             var bn = new Binary
             {
                 EncodeInt = true,
@@ -109,20 +108,21 @@ namespace NewLife.Data
 
             // 读取全部数据
             ReadData(bn, Total);
-
-            return stream.Position - p;
         }
 
         /// <summary>读取头部</summary>
         /// <param name="bn"></param>
         public void ReadHeader(Binary bn)
         {
-            // 头部，幻数、版本和压缩标记
+            // 头部，幻数、版本和标记
             var magic = bn.ReadBytes(14).ToStr();
             if (magic.Trim() != "NewLifeDbTable") throw new InvalidDataException();
 
             var ver = bn.Read<Byte>();
             var flag = bn.Read<Byte>();
+
+            // 版本兼容
+            if (ver > _Ver) throw new InvalidDataException($"DbTable[ver={_Ver}]无法支持较新的版本[{ver}]");
 
             // 写入头部
             var count = bn.Read<Int32>();
@@ -144,30 +144,22 @@ namespace NewLife.Data
         /// <param name="bn"></param>
         /// <param name="rows"></param>
         /// <returns></returns>
-        public Int32 ReadData(Binary bn, Int32 rows)
+        public void ReadData(Binary bn, Int32 rows)
         {
-            if (rows <= 0) return 0;
+            if (rows <= 0) return;
 
             var ts = Types;
-
-            var total = 0;
-            //var length = bn.Stream.Length;
             var rs = new List<Object[]>(rows);
             for (var k = 0; k < rows; k++)
             {
-                //if (bn.Stream.Position >= length) break;
-
                 var row = new Object[ts.Length];
                 for (var i = 0; i < ts.Length; i++)
                 {
                     row[i] = bn.Read(ts[i]);
                 }
                 rs.Add(row);
-                total++;
             }
             Rows = rs;
-
-            return total;
         }
 
         /// <summary>读取</summary>
@@ -192,10 +184,8 @@ namespace NewLife.Data
         #region 二进制写入
         /// <summary>写入数据流</summary>
         /// <param name="stream"></param>
-        public Int64 Write(Stream stream)
+        public void Write(Stream stream)
         {
-            var p = stream.Position;
-
             var bn = new Binary
             {
                 EncodeInt = true,
@@ -211,8 +201,6 @@ namespace NewLife.Data
 
             // 写入数据行
             WriteData(bn);
-
-            return stream.Position - p;
         }
 
         /// <summary>写入头部到数据流</summary>
@@ -222,7 +210,7 @@ namespace NewLife.Data
             var cs = Columns;
             var ts = Types;
 
-            // 头部，幻数、版本和压缩标记
+            // 头部，幻数、版本和标记
             bn.Write("NewLifeDbTable".GetBytes(), 0, 14);
             bn.Write(_Ver);
             bn.Write(0);
@@ -276,7 +264,7 @@ namespace NewLife.Data
         /// <param name="file"></param>
         /// <param name="compressed">是否压缩</param>
         /// <returns></returns>
-        public Int64 SaveFile(String file, Boolean compressed = false) => file.AsFile().OpenWrite(compressed, s => Write(s));
+        public void SaveFile(String file, Boolean compressed = false) => file.AsFile().OpenWrite(compressed, s => Write(s));
         #endregion
 
         #region Json序列化
@@ -311,6 +299,60 @@ namespace NewLife.Data
         }
         #endregion
 
+        #region 反射
+        /// <summary>写入模型列表</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="models"></param>
+        public void WriteModels<T>(IEnumerable<T> models)
+        {
+            // 可用属性
+            var pis = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            pis = pis.Where(e => e.PropertyType.GetTypeCode() != TypeCode.Object).ToArray();
+
+            Rows = new List<Object[]>();
+            foreach (var item in models)
+            {
+                // 头部
+                if (Columns == null)
+                {
+                    Columns = pis.Select(e => e.Name).ToArray();
+                    Types = pis.Select(e => e.PropertyType).ToArray();
+                }
+
+                var row = new Object[Columns.Length];
+                for (var i = 0; i < row.Length; i++)
+                {
+                    // 反射取值
+                    row[i] = pis[i].GetValue(item, null);
+                }
+                Rows.Add(row);
+            }
+        }
+
+        /// <summary>数据表转模型列表。普通反射，便于DAL查询后转任意模型列表</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public IEnumerable<T> ReadModels<T>() where T : class, new()
+        {
+            // 可用属性
+            var pis = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            var dic = pis.ToDictionary(e => e.Name, e => e);
+
+            foreach (var row in Rows)
+            {
+                var model = new T();
+                for (var i = 0; i < row.Length; i++)
+                {
+                    // 反射赋值
+                    if (dic.TryGetValue(Columns[i], out var pi))
+                        pi.SetValue(model, row[i], null);
+                }
+
+                yield return model;
+            }
+        }
+        #endregion
+
         #region 获取
         /// <summary>读取指定行的字段值</summary>
         /// <typeparam name="T"></typeparam>
@@ -319,7 +361,7 @@ namespace NewLife.Data
         /// <returns></returns>
         public T Get<T>(Int32 row, String name)
         {
-            if (!TryGet<T>(row, name, out var value)) return default(T);
+            if (!TryGet<T>(row, name, out var value)) return default;
 
             return value;
         }
@@ -332,7 +374,7 @@ namespace NewLife.Data
         /// <returns></returns>
         public Boolean TryGet<T>(Int32 row, String name, out T value)
         {
-            value = default(T);
+            value = default;
             var rs = Rows;
 
             if (row < 0 || row >= rs.Count || name.IsNullOrEmpty()) return false;
@@ -444,7 +486,7 @@ namespace NewLife.Data
 
                 if (_row < 0 || _row >= rs.Count)
                 {
-                    _Current = default(DbRow);
+                    _Current = default;
                     return false;
                 }
 
@@ -457,7 +499,7 @@ namespace NewLife.Data
 
             public void Reset()
             {
-                _Current = default(DbRow);
+                _Current = default;
                 _row = -1;
             }
 

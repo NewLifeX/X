@@ -15,7 +15,6 @@ using NewLife.Threading;
 using XCode.Cache;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
-using XCode.Model;
 
 /*
  * 检查表结构流程：
@@ -85,7 +84,7 @@ namespace XCode
             Queue = new EntityQueue(this);
         }
 
-        private static ConcurrentDictionary<String, EntitySession<TEntity>> _es = new ConcurrentDictionary<String, EntitySession<TEntity>>(StringComparer.OrdinalIgnoreCase);
+        private static readonly ConcurrentDictionary<String, EntitySession<TEntity>> _es = new ConcurrentDictionary<String, EntitySession<TEntity>>(StringComparer.OrdinalIgnoreCase);
         /// <summary>创建指定表名连接名的会话</summary>
         /// <param name="connName"></param>
         /// <param name="tableName"></param>
@@ -109,9 +108,10 @@ namespace XCode
 
         IEntityFactory Factory { get; } = typeof(TEntity).AsFactory();
 
+        private DAL _readDal;
         private DAL _Dal;
         /// <summary>数据操作层</summary>
-        public DAL Dal => _Dal ?? (_Dal = DAL.Create(ConnName));
+        public DAL Dal => _Dal ??= DAL.Create(ConnName);
 
         private String _FormatedTableName;
         /// <summary>已格式化的表名，带有中括号等</summary>
@@ -261,8 +261,10 @@ namespace XCode
         {
             //if (Dal.CheckAndAdd(TableName)) return;
 
+            var dal = Dal;
+
 #if DEBUG
-            DAL.WriteLog("开始{2}检查表[{0}/{1}]的数据表架构……", Table.DataTable.Name, Dal.Db.Type, Setting.Current.Migration == Migration.ReadOnly ? "异步" : "同步");
+            DAL.WriteLog("开始{2}检查表[{0}/{1}]的数据表架构……", Table.DataTable.Name, dal.Db.Type, Setting.Current.Migration == Migration.ReadOnly ? "异步" : "同步");
 #endif
 
             var sw = Stopwatch.StartNew();
@@ -284,14 +286,14 @@ namespace XCode
                     FixIndexName(table);
                 }
 
-                Dal.SetTables(table);
+                dal.SetTables(table);
             }
             finally
             {
                 sw.Stop();
 
 #if DEBUG
-                DAL.WriteLog("检查表[{0}/{1}]的数据表架构耗时{2:n0}ms", Table.DataTable.Name, Dal.DbType, sw.Elapsed.TotalMilliseconds);
+                DAL.WriteLog("检查表[{0}/{1}]的数据表架构耗时{2:n0}ms", Table.DataTable.Name, dal.DbType, sw.Elapsed.TotalMilliseconds);
 #endif
             }
         }
@@ -540,15 +542,17 @@ namespace XCode
             //    }
             //}
 
+            var dal = GetDAL(false);
+
             // 第一次访问，SQLite的Select Count非常慢，数据大于阀值时，使用最大ID作为表记录数
-            if (count < 0 && Dal.DbType == DatabaseType.SQLite && Table.Identity != null)
+            if (count < 0 && dal.DbType == DatabaseType.SQLite && Table.Identity != null)
             {
                 var builder = new SelectBuilder
                 {
                     Table = FormatedTableName,
                     OrderBy = Table.Identity.Desc()
                 };
-                var ds = Dal.Query(builder, 0, 1);
+                var ds = dal.Query(builder, 0, 1);
                 if (ds.Columns.Length > 0 && ds.Rows.Count > 0)
                     count = Convert.ToInt64(ds.Rows[0][0]);
                 //var rs = Dal.Query(builder, 0, 0, dr => dr.Read() ? dr[0].ToInt() : -1);
@@ -558,7 +562,7 @@ namespace XCode
             // 100w数据时，没有预热Select Count需要3000ms，预热后需要500ms
             if (count < 500000)
             {
-                if (count <= 0) count = Dal.Session.QueryCountFast(TableNameWithPrefix);
+                if (count <= 0) count = dal.Session.QueryCountFast(TableNameWithPrefix);
 
                 // 查真实记录数，修正FastCount不够准确的情况
                 if (count < 10000000)
@@ -568,13 +572,13 @@ namespace XCode
                         Table = FormatedTableName
                     };
 
-                    count = Dal.SelectCount(builder);
+                    count = dal.SelectCount(builder);
                 }
             }
             else
             {
                 // 异步查询弥补不足，千万数据以内
-                if (count < 10000000) count = Dal.Session.QueryCountFast(TableNameWithPrefix);
+                if (count < 10000000) count = dal.Session.QueryCountFast(TableNameWithPrefix);
             }
 
             return count;
@@ -597,6 +601,37 @@ namespace XCode
         #endregion
 
         #region 数据库操作
+        private String _readonlyConnName;
+        /// <summary>获取数据操作对象，根据是否查询以及事务来进行读写分离</summary>
+        /// <param name="read"></param>
+        /// <returns></returns>
+        public DAL GetDAL(Boolean read)
+        {
+            // 如果主连接已打开事务，则直接使用
+            var dal = Dal;
+            if (dal.Session is DbSession ds && ds.Transaction != null) return dal;
+
+            // 读写分离
+            if (read)
+            {
+                if (_readDal != null) return _readDal;
+
+                // 根据后缀查找只读连接名
+                var name = ConnName + ".readonly";
+                if (DAL.ConnStrs.ContainsKey(name))
+                {
+                    if (_readonlyConnName.IsNullOrEmpty())
+                    {
+                        XTrace.WriteLine("[{0}]读写分离到[{1}]", ConnName, name);
+                        _readonlyConnName = name;
+                    }
+                    return _readDal = DAL.Create(name);
+                }
+            }
+
+            return dal;
+        }
+
         /// <summary>初始化数据</summary>
         public void InitData() => WaitForInitData();
 
@@ -609,7 +644,7 @@ namespace XCode
         {
             InitData();
 
-            return Dal.Query(builder, startRowIndex, maximumRows);
+            return GetDAL(true).Query(builder, startRowIndex, maximumRows);
         }
 
         /// <summary>执行SQL查询，返回记录集</summary>
@@ -619,7 +654,7 @@ namespace XCode
         {
             InitData();
 
-            return Dal.Query(sql);
+            return GetDAL(true).Query(sql);
         }
 
         /// <summary>查询记录数</summary>
@@ -629,7 +664,7 @@ namespace XCode
         {
             InitData();
 
-            return Dal.SelectCount(builder);
+            return GetDAL(true).SelectCount(builder);
         }
 
         /// <summary>查询记录数</summary>
@@ -639,7 +674,7 @@ namespace XCode
         {
             InitData();
 
-            return Dal.SelectCount(sql, CommandType.Text, null);
+            return GetDAL(true).SelectCount(sql, CommandType.Text, null);
         }
 
         /// <summary>执行</summary>
@@ -651,7 +686,7 @@ namespace XCode
         {
             InitData();
 
-            var rs = Dal.Execute(sql, type, ps);
+            var rs = GetDAL(false).Execute(sql, type, ps);
             DataChange("Execute " + type);
             return rs;
         }
@@ -665,7 +700,7 @@ namespace XCode
         {
             InitData();
 
-            var rs = Dal.InsertAndGetIdentity(sql, type, ps);
+            var rs = GetDAL(false).InsertAndGetIdentity(sql, type, ps);
             DataChange("InsertAndGetIdentity " + type);
             return rs;
         }
@@ -703,7 +738,7 @@ namespace XCode
         /// <returns></returns>
         public Int32 Truncate()
         {
-            var rs = Dal.Session.Truncate(TableNameWithPrefix);
+            var rs = GetDAL(false).Session.Truncate(TableNameWithPrefix);
 
             // 干掉所有缓存
             _cache?.Clear("Truncate");
@@ -773,8 +808,6 @@ namespace XCode
         #endregion
 
         #region 实体操作
-        //private IEntityPersistence Persistence => XCodeService.Container.ResolveInstance<IEntityPersistence>();
-
         /// <summary>把该对象持久化到数据库，添加/更新实体缓存和单对象缓存，增加总计数</summary>
         /// <param name="entity">实体对象</param>
         /// <returns></returns>
@@ -785,8 +818,7 @@ namespace XCode
             var e = entity as TEntity;
 
             // 加入实体缓存
-            var ec = _cache;
-            if (ec != null) ec.Add(e);
+            _cache?.Add(e);
 
             // 增加计数
             if (_Count >= 0) Interlocked.Increment(ref _Count);
@@ -804,9 +836,7 @@ namespace XCode
             var e = entity as TEntity;
 
             // 更新缓存
-            TEntity old = null;
-            var ec = _cache;
-            if (ec != null) old = ec.Update(e);
+            _cache?.Update(e);
 
             // 干掉缓存项，让它重新获取
             _singleCache?.Remove(e);
@@ -824,9 +854,7 @@ namespace XCode
             var e = entity as TEntity;
 
             // 从实体缓存删除
-            TEntity old = null;
-            var ec = _cache;
-            if (ec != null) old = ec.Remove(e);
+            _cache?.Remove(e);
 
             // 从单对象缓存删除
             _singleCache?.Remove(e);

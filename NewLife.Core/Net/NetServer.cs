@@ -104,14 +104,14 @@ namespace NewLife.Net
         /// <remarks>var cert = new X509Certificate2("file", "pass");</remarks>
         public X509Certificate Certificate { get; set; }
 
-        /// <summary>会话统计</summary>
-        public ICounter StatSession { get; set; }
+        ///// <summary>会话统计</summary>
+        //public ICounter StatSession { get; set; }
 
-        /// <summary>发送统计</summary>
-        public ICounter StatSend { get; set; }
+        ///// <summary>发送统计</summary>
+        //public ICounter StatSend { get; set; }
 
-        /// <summary>接收统计</summary>
-        public ICounter StatReceive { get; set; }
+        ///// <summary>接收统计</summary>
+        //public ICounter StatReceive { get; set; }
 
         /// <summary>显示统计信息的周期。默认600秒，0表示不显示统计信息</summary>
         public Int32 StatPeriod { get; set; } = 600;
@@ -139,9 +139,9 @@ namespace NewLife.Net
 
             Servers = new List<ISocketServer>();
 
-            StatSession = new PerfCounter();
-            StatSend = new PerfCounter();
-            StatReceive = new PerfCounter();
+            //StatSession = new PerfCounter();
+            //StatSend = new PerfCounter();
+            //StatReceive = new PerfCounter();
 
             if (Setting.Current.Debug) Log = XTrace.Log;
         }
@@ -220,9 +220,9 @@ namespace NewLife.Net
             if (SessionTimeout > 0) server.SessionTimeout = SessionTimeout;
             if (Pipeline != null) server.Pipeline = Pipeline;
 
-            server.StatSession = StatSession;
-            server.StatSend = StatSend;
-            server.StatReceive = StatReceive;
+            //server.StatSession = StatSession;
+            //server.StatSend = StatSend;
+            //server.StatReceive = StatReceive;
 
             server.LogSend = LogSend;
             server.LogReceive = LogReceive;
@@ -609,8 +609,8 @@ namespace NewLife.Net
         {
             var sb = Pool.StringBuilder.Get();
             if (MaxSessionCount > 0) sb.AppendFormat("在线：{0:n0}/{1:n0} ", SessionCount, MaxSessionCount);
-            if (StatSend.Value > 0) sb.AppendFormat("发送：{0} ", StatSend);
-            if (StatReceive.Value > 0) sb.AppendFormat("接收：{0} ", StatReceive);
+            //if (StatSend.Value > 0) sb.AppendFormat("发送：{0} ", StatSend);
+            //if (StatReceive.Value > 0) sb.AppendFormat("接收：{0} ", StatReceive);
             //if (StatSession.Value > 0) sb.AppendFormat("会话：{0} ", StatSession);
 
             return sb.Put(true);

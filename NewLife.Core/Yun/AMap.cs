@@ -80,7 +80,7 @@ namespace NewLife.Yun
         protected override async Task<T> InvokeAsync<T>(String url, String result)
         {
             var dic = await base.InvokeAsync<IDictionary<String, Object>>(url, result);
-            if (dic == null || dic.Count == 0) return default(T);
+            if (dic == null || dic.Count == 0) return default;
 
             var status = dic["status"].ToInt();
             if (status != 1)
@@ -100,7 +100,7 @@ namespace NewLife.Yun
         #endregion
 
         #region 地址编码
-        private String _geoUrl = "http://restapi.amap.com/v3/geocode/geo?address={0}&city={1}&output=json";
+        private readonly String _geoUrl = "http://restapi.amap.com/v3/geocode/geo?address={0}&city={1}&output=json";
         /// <summary>查询地址的经纬度坐标</summary>
         /// <param name="address"></param>
         /// <param name="city"></param>
@@ -171,7 +171,7 @@ namespace NewLife.Yun
         #endregion
 
         #region 逆地址编码
-        private String _regeoUrl = "http://restapi.amap.com/v3/geocode/regeo?location={0},{1}&extensions=base&output=json";
+        private readonly String _regeoUrl = "http://restapi.amap.com/v3/geocode/regeo?location={0},{1}&extensions=base&output=json";
         /// <summary>根据坐标获取地址</summary>
         /// <remarks>
         /// http://lbs.amap.com/api/webservice/guide/api/georegeo/#regeo
@@ -236,7 +236,7 @@ namespace NewLife.Yun
         #endregion
 
         #region 路径规划
-        private String _distanceUrl = "http://restapi.amap.com/v3/distance?origins={0},{1}&destination={2},{3}&type={4}&output=json";
+        private readonly String _distanceUrl = "http://restapi.amap.com/v3/distance?origins={0},{1}&destination={2},{3}&type={4}&output=json";
         /// <summary>计算距离和驾车时间</summary>
         /// <remarks>
         /// http://lbs.amap.com/api/webservice/guide/api/direction
@@ -282,7 +282,7 @@ namespace NewLife.Yun
 
         #region 行政区划
         //private String url3 = "http://restapi.amap.com/v3/config/district?keywords={0}&subdistrict={1}&filter={2}&extensions=all&output=json";
-        private String _areaUrl = "http://restapi.amap.com/v3/config/district?keywords={0}&subdistrict={1}&filter={2}&extensions=base&output=json";
+        private readonly String _areaUrl = "http://restapi.amap.com/v3/config/district?keywords={0}&subdistrict={1}&filter={2}&extensions=base&output=json";
         /// <summary>行政区划</summary>
         /// <remarks>
         /// http://lbs.amap.com/api/webservice/guide/api/district
@@ -341,7 +341,7 @@ namespace NewLife.Yun
         #endregion
 
         #region 密钥管理
-        private String[] _KeyWords = new[] { "TOO_FREQUENT", "LIMIT", "NOMATCH", "RECYCLED" };
+        private readonly String[] _KeyWords = new[] { "TOO_FREQUENT", "LIMIT", "NOMATCH", "RECYCLED" };
         /// <summary>是否无效Key。可能禁用或超出限制</summary>
         /// <param name="result"></param>
         /// <returns></returns>

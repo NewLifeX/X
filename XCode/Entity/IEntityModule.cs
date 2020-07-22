@@ -226,7 +226,7 @@ namespace XCode
             return false;
         }
 
-        private static ConcurrentDictionary<Type, ICollection<FieldItem>> _fieldNames = new ConcurrentDictionary<Type, ICollection<FieldItem>>();
+        private static readonly ConcurrentDictionary<Type, ICollection<FieldItem>> _fieldNames = new ConcurrentDictionary<Type, ICollection<FieldItem>>();
         /// <summary>获取实体类的字段名。带缓存</summary>
         /// <param name="entityType"></param>
         /// <returns></returns>

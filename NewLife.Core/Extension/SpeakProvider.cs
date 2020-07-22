@@ -7,7 +7,7 @@ namespace NewLife.Extension
 {
     class SpeakProvider
     {
-        private static String typeName = "System.Speech.Synthesis.SpeechSynthesizer";
+        private static readonly String typeName = "System.Speech.Synthesis.SpeechSynthesizer";
         private Type _type;
 
         public SpeakProvider()

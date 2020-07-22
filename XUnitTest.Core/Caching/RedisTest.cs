@@ -5,6 +5,8 @@ using NewLife.Log;
 using Xunit;
 using NewLife.Serialization;
 using NewLife.Data;
+using System.Diagnostics;
+using System.Threading;
 
 namespace XUnitTest.Caching
 {
@@ -17,7 +19,9 @@ namespace XUnitTest.Caching
             //Redis = Redis.Create("127.0.0.1:6379", "newlife", 4);
             //Redis = Redis.Create("127.0.0.1:6379", null, 4);
             Redis = new Redis("127.0.0.1:6379", null, 4);
-            //Redis.Log = XTrace.Log;
+#if DEBUG
+            Redis.Log = XTrace.Log;
+#endif
         }
 
         [Fact(DisplayName = "基础测试")]
@@ -227,6 +231,71 @@ namespace XUnitTest.Caching
             Assert.True(ic.Count == 0);
 
             Redis.AutoPipeline = ap;
+        }
+
+        [Fact(DisplayName = "正常锁")]
+        public void TestLock1()
+        {
+            var ic = Redis;
+
+            var ck = ic.AcquireLock("TestLock1", 3000);
+            var k2 = ck as CacheLock;
+
+            Assert.NotNull(k2);
+            Assert.Equal("lock:TestLock1", k2.Key);
+
+            // 实际上存在这个key
+            Assert.True(ic.ContainsKey(k2.Key));
+
+            // 取有效期
+            var exp = ic.GetExpire(k2.Key);
+            Assert.True(exp.TotalMilliseconds <= 3000);
+
+            // 释放锁
+            ck.Dispose();
+
+            // 这个key已经不存在
+            Assert.False(ic.ContainsKey(k2.Key));
+        }
+
+        [Fact(DisplayName = "抢锁失败")]
+        public void TestLock2()
+        {
+            var ic = Redis;
+
+            var ck1 = ic.AcquireLock("TestLock2", 3000);
+            // 故意不用using，验证GC是否能回收
+            //using var ck1 = ic.AcquireLock("TestLock2", 3000);
+
+            var sw = Stopwatch.StartNew();
+
+            // 抢相同锁，不可能成功。超时时间必须小于3000，否则前面的锁过期后，这里还是可以抢到的
+            Assert.Throws<InvalidOperationException>(() => ic.AcquireLock("TestLock2", 2000));
+
+            // 耗时必须超过有效期
+            sw.Stop();
+            XTrace.WriteLine("TestLock2 ElapsedMilliseconds={0}ms", sw.ElapsedMilliseconds);
+            Assert.True(sw.ElapsedMilliseconds >= 2000);
+
+            Thread.Sleep(3000 - 2000 + 1);
+
+            // 那个锁其实已经不在了，缓存应该把它干掉
+            Assert.False(ic.ContainsKey("lock:TestLock2"));
+        }
+
+        [Fact(DisplayName = "抢死锁")]
+        public void TestLock3()
+        {
+            var ic = Redis;
+
+            using var ck = ic.AcquireLock("TestLock3", 3000);
+
+            // 已经过了一点时间
+            Thread.Sleep(2000);
+
+            // 循环多次后，可以抢到
+            using var ck2 = ic.AcquireLock("TestLock3", 3000);
+            Assert.NotNull(ck2);
         }
     }
 }

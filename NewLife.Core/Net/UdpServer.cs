@@ -32,8 +32,8 @@ namespace NewLife.Net
         /// <summary>是否接收来自自己广播的环回数据。默认false</summary>
         public Boolean Loopback { get; set; }
 
-        /// <summary>会话统计</summary>
-        public ICounter StatSession { get; set; }
+        ///// <summary>会话统计</summary>
+        //public ICounter StatSession { get; set; }
         #endregion
 
         #region 构造
@@ -73,7 +73,7 @@ namespace NewLife.Net
                     Local.Address = Local.Address.GetRightAny(Remote.Address.AddressFamily);
                 }
 
-                if (StatSession == null) StatSession = new PerfCounter();
+                //if (StatSession == null) StatSession = new PerfCounter();
 
                 Client = sock = NetHelper.CreateUdp(Local.EndPoint.Address.IsIPv4());
                 sock.Bind(Local.EndPoint);
@@ -126,7 +126,7 @@ namespace NewLife.Net
         {
             var count = pk.Total;
 
-            StatSend?.Increment(count, 0);
+            //StatSend?.Increment(count, 0);
 
             try
             {
@@ -211,7 +211,7 @@ namespace NewLife.Net
         protected override Boolean OnReceive(ReceivedEventArgs e)
         {
             var pk = e.Packet;
-            StatReceive?.Increment(pk.Count, 0);
+            //StatReceive?.Increment(pk.Count, 0);
 
             var remote = e.Remote;
 
@@ -279,7 +279,7 @@ namespace NewLife.Net
         /// <summary>会话集合。用地址端口作为标识，业务应用自己维持地址端口与业务主键的对应关系。</summary>
         public IDictionary<String, ISocketSession> Sessions => _Sessions;
 
-        private IDictionary<Int32, ISocketSession> _broadcasts = new NullableDictionary<Int32, ISocketSession>();
+        private readonly IDictionary<Int32, ISocketSession> _broadcasts = new NullableDictionary<Int32, ISocketSession>();
 
         Int32 g_ID = 0;
         /// <summary>创建会话</summary>
@@ -348,7 +348,7 @@ namespace NewLife.Net
                     us.ID = Interlocked.Increment(ref g_ID);
                     us.Start();
 
-                    StatSession?.Increment(1, 0);
+                    //StatSession?.Increment(1, 0);
 
                     // 触发新会话事件
                     NewSession?.Invoke(this, new SessionEventArgs { Session = session });

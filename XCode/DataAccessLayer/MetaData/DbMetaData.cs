@@ -99,7 +99,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected static Boolean TryGetDataRowValue<T>(DataRow dr, String name, out T value)
         {
-            value = default(T);
+            value = default;
             if (dr == null || !dr.Table.Columns.Contains(name) || dr.IsNull(name)) return false;
 
             var obj = dr[name];
@@ -159,7 +159,7 @@ namespace XCode.DataAccessLayer
                 if (TryGetDataRowValue(dr, item, out T value)) return value;
             }
 
-            return default(T);
+            return default;
         }
 
         protected static DbTable Select(DbTable ds, String name, Object value)

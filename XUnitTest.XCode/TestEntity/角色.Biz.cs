@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -138,8 +138,8 @@ namespace XCode.Membership
         /// <returns>实体对象</returns>
         public static Role2 FindByName(String name)
         {
-            // 实体缓存
-            if (Meta.Session.Count < 1000) return Meta.Cache.Find(e => e.Name == name);
+            //// 实体缓存
+            //if (Meta.Session.Count < 1000) return Meta.Cache.Find(e => e.Name == name);
 
             // 单对象缓存
             //return Meta.SingleCache.GetItemWithSlaveKey(name) as Role2;

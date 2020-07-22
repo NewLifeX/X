@@ -639,7 +639,7 @@ namespace XCode.DataAccessLayer
         class SqlBatcher
         {
             private DataAdapter mAdapter;
-            private static DbProviderFactory _Factory;
+            private static readonly DbProviderFactory _Factory;
             static SqlBatcher() => _Factory = new SqlServer().Factory;
 
             /// <summary>获得批处理是否正在批处理状态。</summary>
@@ -1242,7 +1242,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         /// <summary>数据类型映射</summary>
-        private static Dictionary<Type, String[]> _DataTypes = new Dictionary<Type, String[]>
+        private static readonly Dictionary<Type, String[]> _DataTypes = new Dictionary<Type, String[]>
         {
             { typeof(Byte[]), new String[] { "binary({0})", "image", "varbinary({0})", "timestamp" } },
             //{ typeof(DateTimeOffset), new String[] { "datetimeoffset({0})" } },

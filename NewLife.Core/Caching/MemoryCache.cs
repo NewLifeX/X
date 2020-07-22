@@ -103,7 +103,7 @@ namespace NewLife.Caching
         /// <summary>是否包含缓存项</summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public override Boolean ContainsKey(String key) => _cache.ContainsKey(key);
+        public override Boolean ContainsKey(String key) => _cache.TryGetValue(key, out var item) && item != null && !item.Expired;
 
         /// <summary>添加缓存项，已存在时更新</summary>
         /// <typeparam name="T">值类型</typeparam>
@@ -148,7 +148,7 @@ namespace NewLife.Caching
         /// <returns></returns>
         public override T Get<T>(String key)
         {
-            if (!_cache.TryGetValue(key, out var item) || item == null) return default;
+            if (!_cache.TryGetValue(key, out var item) || item == null || item.Expired) return default;
 
             return item.Visit().ChangeType<T>();
         }
@@ -161,7 +161,7 @@ namespace NewLife.Caching
             var count = 0;
             foreach (var k in keys)
             {
-                if (_cache.TryRemove(k, out var item))
+                if (_cache.TryRemove(k, out _))
                 {
                     count++;
 
@@ -186,7 +186,7 @@ namespace NewLife.Caching
         {
             if (!_cache.TryGetValue(key, out var item) || item == null) return false;
 
-            item.ExpiredTime = TimerX.Now.Add(expire);
+            item.ExpiredTime = DateTime.Now.Add(expire);
 
             return true;
         }
@@ -198,7 +198,7 @@ namespace NewLife.Caching
         {
             if (!_cache.TryGetValue(key, out var item) || item == null) return TimeSpan.Zero;
 
-            return item.ExpiredTime - TimerX.Now;
+            return item.ExpiredTime - DateTime.Now;
         }
         #endregion
 
@@ -374,7 +374,7 @@ namespace NewLife.Caching
         {
             private Object _Value;
             /// <summary>数值</summary>
-            public Object Value { get { return _Value; } set { _Value = value; } }
+            public Object Value { get => _Value; set => _Value = value; }
 
             /// <summary>过期时间</summary>
             public DateTime ExpiredTime { get; set; }
@@ -410,16 +410,6 @@ namespace NewLife.Caching
             {
                 VisitTime = TimerX.Now;
                 return Value;
-            }
-
-            /// <summary>设置过期时间</summary>
-            /// <param name="expire"></param>
-            public void SetExpire(Int32 expire)
-            {
-                if (expire <= 0)
-                    ExpiredTime = DateTime.MaxValue;
-                else
-                    ExpiredTime = TimerX.Now.AddSeconds(expire);
             }
 
             /// <summary>递增</summary>
@@ -495,7 +485,7 @@ namespace NewLife.Caching
         /// <summary>移除过期的缓存项</summary>
         void RemoveNotAlive(Object state)
         {
-            var tx = TimerX.Current;
+            var tx = clearTimer;
             if (tx != null && tx.Period == 60_000) tx.Period = Period * 1000;
 
             var dic = _cache;
@@ -508,7 +498,7 @@ namespace NewLife.Caching
             if (Capacity <= 0 || _count <= Capacity) flag = false;
 
             // 60分钟之内过期的数据，进入LRU淘汰
-            var now = TimerX.Now;
+            var now = DateTime.Now;
             var exp = now.AddSeconds(3600);
             var k = 0;
 
@@ -642,19 +632,13 @@ namespace NewLife.Caching
         /// <param name="file"></param>
         /// <param name="compressed"></param>
         /// <returns></returns>
-        public Int64 Save(String file, Boolean compressed)
-        {
-            return file.AsFile().OpenWrite(compressed, s => Save(s));
-        }
+        public Int64 Save(String file, Boolean compressed) => file.AsFile().OpenWrite(compressed, s => Save(s));
 
         /// <summary>从文件加载</summary>
         /// <param name="file"></param>
         /// <param name="compressed"></param>
         /// <returns></returns>
-        public Int64 Load(String file, Boolean compressed)
-        {
-            return file.AsFile().OpenRead(compressed, s => Load(s));
-        }
+        public Int64 Load(String file, Boolean compressed) => file.AsFile().OpenRead(compressed, s => Load(s));
         #endregion
 
         #region 性能测试
@@ -679,7 +663,7 @@ namespace NewLife.Caching
     /// <typeparam name="T"></typeparam>
     public class MemoryQueue<T> : IProducerConsumer<T>
     {
-        private IProducerConsumerCollection<T> _Collection;
+        private readonly IProducerConsumerCollection<T> _Collection;
 
         /// <summary>实例化内存队列</summary>
         public MemoryQueue() => _Collection = new ConcurrentQueue<T>();

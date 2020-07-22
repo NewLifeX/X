@@ -88,7 +88,7 @@ namespace NewLife.Caching
             }
         }
 
-        private DictionaryCache<String, IDbCache> _cache = new DictionaryCache<String, IDbCache>()
+        private readonly DictionaryCache<String, IDbCache> _cache = new DictionaryCache<String, IDbCache>()
         {
             Expire = 60,
             AllowNull = false,
@@ -142,7 +142,7 @@ namespace NewLife.Caching
         public override T Get<T>(String key)
         {
             var e = Find(key);
-            if (e == null) return default(T);
+            if (e == null) return default;
 
             var value = e.Value;
             //return JsonHelper.Convert<T>(value);

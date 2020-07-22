@@ -154,7 +154,7 @@ namespace NewLife.Configuration
             }
         }
 
-        private IDictionary<Object, String> _models = new Dictionary<Object, String>();
+        private readonly IDictionary<Object, String> _models = new Dictionary<Object, String>();
         private FileSystemWatcher _watcher;
         private DateTime _nextRead;
         private Boolean _reading;

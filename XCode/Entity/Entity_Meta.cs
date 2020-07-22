@@ -22,26 +22,25 @@ namespace XCode
             /// <summary>实体类型</summary>
             public static Type ThisType => typeof(TEntity);
 
+            //private static IEntityFactory _Factory;
             /// <summary>实体操作者</summary>
             public static IEntityFactory Factory
             {
                 get
                 {
+                    // 不能缓存Factory，因为后期可能会改变注册，比如Menu
+                    //if (_Factory != null) return _Factory;
+
                     var type = ThisType;
                     if (type.IsInterface) return null;
 
-                    return type.AsFactory();
+                    return /*_Factory = */type.AsFactory();
                 }
             }
-
-            [ThreadStatic]
-            private static EntitySession<TEntity> _Session;
-            /// <summary>实体会话。线程静态</summary>
-            public static EntitySession<TEntity> Session => _Session ?? (_Session = EntitySession<TEntity>.Create(ConnName, TableName));
             #endregion
 
             #region 基本属性
-            private static Lazy<TableItem> _Table = new Lazy<TableItem>(() => TableItem.Create(ThisType));
+            private static readonly Lazy<TableItem> _Table = new Lazy<TableItem>(() => TableItem.Create(ThisType));
             /// <summary>表信息</summary>
             public static TableItem Table => _Table.Value;
 
@@ -85,6 +84,11 @@ namespace XCode
                 }
             }
 
+            //[ThreadStatic]
+            //private static String _ReadOnlyConnName;
+            ///// <summary>只读链接名。线程内允许修改，修改者负责还原。若要还原默认值，设为null即可</summary>
+            //public static String ReadOnlyConnName { get => _ReadOnlyConnName; set => _ReadOnlyConnName = value; }
+
             /// <summary>所有数据属性</summary>
             public static FieldItem[] AllFields => Table.AllFields;
 
@@ -108,6 +112,53 @@ namespace XCode
 
             /// <summary>主字段。主字段作为业务主要字段，代表当前数据行意义</summary>
             public static FieldItem Master => Table.Master ?? Unique;
+            #endregion
+
+            #region 会话
+            [ThreadStatic]
+            private static EntitySession<TEntity> _Session;
+            //[ThreadStatic]
+            //private static EntitySession<TEntity> _ReadOnlySession;
+
+            /// <summary>实体会话。线程静态</summary>
+            public static EntitySession<TEntity> Session => _Session ??= EntitySession<TEntity>.Create(ConnName, TableName);
+
+            ///// <summary>获取实体会话，用于数据库操作</summary>
+            ///// <param name="readOnly"></param>
+            ///// <returns></returns>
+            //public static EntitySession<TEntity> GetSession(Boolean readOnly)
+            //{
+            //    var tableName = TableName;
+
+            //    // 只读连接
+            //    if (readOnly)
+            //    {
+            //        // 根据后缀查找只读连接名
+            //        var name = ReadOnlyConnName;
+            //        if (name == null)
+            //        {
+            //            name = Table.ConnName + ".readonly";
+            //            if (!DAL.ConnStrs.ContainsKey(name)) name = "";
+
+            //            ReadOnlyConnName = name;
+            //        }
+
+            //        if (name != "")
+            //        {
+            //            // 连接名和表名没有改变
+            //            var rss = _ReadOnlySession;
+            //            if (rss != null && rss.ConnName == name && rss.TableName == tableName) return rss;
+
+            //            return _ReadOnlySession = EntitySession<TEntity>.Create(name, tableName);
+            //        }
+            //    }
+
+            //    // 连接名和表名没有改变
+            //    var ss = _Session;
+            //    if (ss != null && ss.ConnName == ConnName && ss.TableName == tableName) return ss;
+
+            //    return _Session = EntitySession<TEntity>.Create(ConnName, tableName);
+            //}
             #endregion
 
             #region 事务保护

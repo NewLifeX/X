@@ -15,7 +15,7 @@ namespace NewLife.Windows
         #region 属性
         private ISpeech _speech;
 
-        private IDictionary<String, Action> _dic;
+        private readonly IDictionary<String, Action> _dic;
 
         /// <summary>系统名称。用于引导前缀</summary>
         public String Name { get; set; } = "丁丁";

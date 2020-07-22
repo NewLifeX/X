@@ -28,7 +28,7 @@ namespace System
                 if (atts != null && atts.Length > 0) return atts[0];
             }
 
-            return default(TAttribute);
+            return default;
         }
 
         /// <summary>获取自定义属性</summary>
@@ -38,15 +38,15 @@ namespace System
         public static TAttribute GetCustomAttribute<TAttribute>(this Assembly assembly)
         {
             var avs = assembly.GetCustomAttributes<TAttribute>();
-            if (avs == null || avs.Length < 1) return default(TAttribute);
+            if (avs == null || avs.Length < 1) return default;
 
             return avs[0];
         }
 #endif
 
 #if NET4
-        private static DictionaryCache<MemberInfo, DictionaryCache<Type, Array>> _miCache = new DictionaryCache<MemberInfo, DictionaryCache<Type, Array>>();
-        private static DictionaryCache<MemberInfo, DictionaryCache<Type, Array>> _miCache2 = new DictionaryCache<MemberInfo, DictionaryCache<Type, Array>>();
+        private static readonly DictionaryCache<MemberInfo, DictionaryCache<Type, Array>> _miCache = new DictionaryCache<MemberInfo, DictionaryCache<Type, Array>>();
+        private static readonly DictionaryCache<MemberInfo, DictionaryCache<Type, Array>> _miCache2 = new DictionaryCache<MemberInfo, DictionaryCache<Type, Array>>();
 
         /// <summary>获取自定义特性，带有缓存功能，避免因.Net内部GetCustomAttributes没有缓存而带来的损耗</summary>
         /// <typeparam name="TAttribute"></typeparam>
@@ -72,7 +72,7 @@ namespace System
         }
 #endif
 
-        private static ConcurrentDictionary<String, Object> _asmCache = new ConcurrentDictionary<String, Object>();
+        private static readonly ConcurrentDictionary<String, Object> _asmCache = new ConcurrentDictionary<String, Object>();
 
         /// <summary>获取自定义属性，带有缓存功能，避免因.Net内部GetCustomAttributes没有缓存而带来的损耗</summary>
         /// <typeparam name="TAttribute"></typeparam>
@@ -121,13 +121,13 @@ namespace System
         /// <returns></returns>
         public static TResult GetCustomAttributeValue<TAttribute, TResult>(this Assembly target) where TAttribute : Attribute
         {
-            if (target == null) return default(TResult);
+            if (target == null) return default;
 
             // CustomAttributeData可能会导致只反射加载，需要屏蔽内部异常
             try
             {
                 var list = CustomAttributeData.GetCustomAttributes(target);
-                if (list == null || list.Count < 1) return default(TResult);
+                if (list == null || list.Count < 1) return default;
 
                 foreach (var item in list)
                 {
@@ -139,7 +139,7 @@ namespace System
             }
             catch { }
 
-            return default(TResult);
+            return default;
         }
 
         /// <summary>获取自定义属性的值。可用于ReflectionOnly加载的程序集</summary>
@@ -150,7 +150,7 @@ namespace System
         /// <returns></returns>
         public static TResult GetCustomAttributeValue<TAttribute, TResult>(this MemberInfo target, Boolean inherit = true) where TAttribute : Attribute
         {
-            if (target == null) return default(TResult);
+            if (target == null) return default;
 
             try
             {
@@ -187,7 +187,7 @@ namespace System
                 }
             }
 
-            return default(TResult);
+            return default;
         }
 
         #endregion

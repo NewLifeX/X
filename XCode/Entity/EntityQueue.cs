@@ -130,7 +130,7 @@ namespace XCode
         {
             var list = state as ICollection<IEntity>;
             var ss = Session;
-            var dal = ss.Dal;
+            //var dal = ss.Dal;
 
             var speed = Speed;
             if (Debug || list.Count > 100_000)

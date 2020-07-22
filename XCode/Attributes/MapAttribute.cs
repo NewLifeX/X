@@ -18,7 +18,7 @@ namespace XCode
 
         private MapProvider _Provider;
         /// <summary>目标提供者</summary>
-        public MapProvider Provider { get { return _Provider ?? (_Provider = GetProvider(_Type, _Key)); } set { _Provider = value; } }
+        public MapProvider Provider { get { return _Provider ??= GetProvider(_Type, _Key); } set { _Provider = value; } }
         #endregion
 
         #region 构造

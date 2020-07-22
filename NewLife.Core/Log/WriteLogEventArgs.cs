@@ -49,7 +49,7 @@ namespace NewLife.Log
         [ThreadStatic]
         private static WriteLogEventArgs _Current;
         /// <summary>线程专有实例。线程静态，每个线程只用一个，避免GC浪费</summary>
-        public static WriteLogEventArgs Current => _Current ?? (_Current = new WriteLogEventArgs());
+        public static WriteLogEventArgs Current => _Current ??= new WriteLogEventArgs();
         #endregion
 
         #region 方法
@@ -112,7 +112,7 @@ namespace NewLife.Log
         [ThreadStatic]
         private static String _threadName;
         /// <summary>设置当前线程输出日志时的线程名</summary>
-        public static String CurrentThreadName { get { return _threadName; } set { _threadName = value; } }
+        public static String CurrentThreadName { get => _threadName; set => _threadName = value; }
         #endregion
     }
 }

@@ -253,7 +253,7 @@ namespace NewLife.Threading
         }
 
         private Action _callback;
-        private AutoResetEvent waitForTimer;
+        private readonly AutoResetEvent waitForTimer;
         private Int32 _state;
         private void Work()
         {

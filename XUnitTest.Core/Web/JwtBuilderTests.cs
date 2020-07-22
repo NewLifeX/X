@@ -40,7 +40,7 @@ namespace XUnitTest.Web
                 Issuer = "NewLife",
                 IssuedAt = DateTime.Now,
                 Audience = "all",
-                NotBefore = DateTime.Today.AddDays(1),
+                NotBefore = DateTime.Today,
                 //Expire = TimeSpan.FromHours(0),
                 Secret = "Smart",
             };
@@ -48,6 +48,12 @@ namespace XUnitTest.Web
             var token = builder.Encode(new { sub = "0201", name = "stone" });
             Assert.NotNull(token);
             Assert.NotEmpty(token);
+
+            // 有效期默认2小时
+            Assert.True(builder.Expire.Year > 2000);
+            var ts = builder.Expire - DateTime.Now;
+            Assert.True(ts <= TimeSpan.FromHours(2));
+            Assert.True(ts > TimeSpan.FromMinutes(2 * 60 - 1));
 
             var builder2 = new JwtBuilder
             {
@@ -59,6 +65,7 @@ namespace XUnitTest.Web
             Assert.NotEqual(builder.Subject, builder2.Subject);
             Assert.Equal("0201", builder2.Subject);
             Assert.Null(builder2.Type);
+            Assert.Equal(builder.Expire.Trim(), builder2.Expire.Trim());
 
             Assert.Equal(builder.Id, builder2.Id);
             Assert.Equal(builder.Issuer, builder2.Issuer);

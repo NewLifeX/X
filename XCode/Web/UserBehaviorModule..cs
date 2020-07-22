@@ -74,8 +74,9 @@ namespace XCode.Web
             var page = GetPage(req);
 
             // 过滤后缀
-            var ext = Path.GetExtension(page);
-            if (!ext.IsNullOrEmpty() && ExcludeSuffixes.Contains(ext)) return;
+            //var ext = Path.GetExtension(page);
+            //if (!ext.IsNullOrEmpty() && ExcludeSuffixes.Contains(ext)) return;
+            if (page.EndsWithIgnoreCase(ExcludeSuffixes)) return;
 
             var title = GetTitle(ctx, req);
             var msg = GetMessage(ctx, req, title);
@@ -141,13 +142,13 @@ namespace XCode.Web
             if (ss.Length == 0) return p;
 
             // 如果最后一段是数字，则可能是参数，需要去掉
-            if (ss[ss.Length - 1].ToInt() > 0) p = "/" + ss.Take(ss.Length - 1).Join("/");
+            if ((ss.Length == 3 || ss.Length == 4) && ss[ss.Length - 1].ToInt() > 0) p = "/" + ss.Take(ss.Length - 1).Join("/");
 
             return p;
         }
 
         /// <summary>忽略的后缀</summary>
-        public static HashSet<String> ExcludeSuffixes { get; set; } = new HashSet<String>(StringComparer.OrdinalIgnoreCase) {
+        public static String[] ExcludeSuffixes { get; set; } = new[] {
             ".js", ".css", ".png", ".jpg", ".gif", ".ico",  // 脚本样式图片
             ".woff", ".woff2", ".svg", ".ttf", ".otf", ".eot"   // 字体
         };

@@ -583,7 +583,7 @@ namespace NewLife.Serialization
             while (num >= 0x80)
             {
                 _encodes[count++] = (Byte)(num | 0x80);
-                num = num >> 7;
+                num >>= 7;
             }
             _encodes[count++] = (Byte)num;
 
@@ -607,7 +607,7 @@ namespace NewLife.Serialization
             while (num >= 0x80)
             {
                 _encodes[count++] = (Byte)(num | 0x80);
-                num = num >> 7;
+                num >>= 7;
             }
             _encodes[count++] = (Byte)num;
 

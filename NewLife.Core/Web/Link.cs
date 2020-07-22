@@ -36,8 +36,8 @@ namespace NewLife.Web
         #endregion
 
         #region 方法
-        static Regex _regA = new Regex("<a(?<其它1>[^>]*) href=?\"(?<链接>[^>\"]*)?\"(?<其它2>[^>]*)>(?<名称>[^<]*)</a>", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
-        static Regex _regTitle = new Regex("title=(\"?)(?<标题>[^ \']*?)\\1", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
+        static readonly Regex _regA = new Regex("<a(?<其它1>[^>]*) href=?\"(?<链接>[^>\"]*)?\"(?<其它2>[^>]*)>(?<名称>[^<]*)</a>", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
+        static readonly Regex _regTitle = new Regex("title=(\"?)(?<标题>[^ \']*?)\\1", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
 
         /// <summary>分析HTML中的链接</summary>
         /// <param name="html">Html文本</param>

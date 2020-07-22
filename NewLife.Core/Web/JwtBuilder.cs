@@ -29,7 +29,7 @@ namespace NewLife.Web
         public String Audience { get; set; }
 
         /// <summary>有效期。默认2小时</summary>
-        public DateTime Expire { get; set; }
+        public DateTime Expire { get; set; } = DateTime.Now.AddHours(2);
 
         /// <summary>生效时间，在此之前是无效的</summary>
         public DateTime NotBefore { get; set; }

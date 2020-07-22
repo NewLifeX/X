@@ -49,7 +49,7 @@ namespace NewLife.Model
 
         private List<IPlugin> _Plugins;
         /// <summary>插件集合</summary>
-        public List<IPlugin> Plugins { get { return _Plugins ?? (_Plugins = new List<IPlugin>()); } }
+        public List<IPlugin> Plugins { get { return _Plugins ??= new List<IPlugin>(); } }
 
         private ILog _Log = XTrace.Log;
         /// <summary>日志提供者</summary>

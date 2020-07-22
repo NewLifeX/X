@@ -18,12 +18,12 @@ namespace XCode.Configuration
         public Type EntityType { get; }
 
         /// <summary>绑定表特性</summary>
-        private BindTableAttribute _Table;
+        private readonly BindTableAttribute _Table;
 
         /// <summary>绑定索引特性</summary>
-        private BindIndexAttribute[] _Indexes;
+        private readonly BindIndexAttribute[] _Indexes;
 
-        private DescriptionAttribute _Description;
+        private readonly DescriptionAttribute _Description;
         /// <summary>说明</summary>
         public String Description
         {
@@ -232,7 +232,7 @@ namespace XCode.Configuration
             InitFields();
         }
 
-        static ConcurrentDictionary<Type, TableItem> cache = new ConcurrentDictionary<Type, TableItem>();
+        static readonly ConcurrentDictionary<Type, TableItem> cache = new ConcurrentDictionary<Type, TableItem>();
         /// <summary>创建</summary>
         /// <param name="type">类型</param>
         /// <returns></returns>
