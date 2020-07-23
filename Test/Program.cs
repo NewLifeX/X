@@ -19,9 +19,12 @@ using XCode.DataAccessLayer;
 using XCode.Membership;
 using XCode.Service;
 using XCode;
-using System.Collections;
 using XCode.Code;
 using System.Reflection;
+using System.Security.Cryptography;
+using Org.BouncyCastle.Security;
+using Org.BouncyCastle.OpenSsl;
+using Org.BouncyCastle.Crypto.Parameters;
 using System.Security.Cryptography;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.OpenSsl;
@@ -40,11 +43,12 @@ namespace Test
         {
             //Environment.SetEnvironmentVariable("DOTNET_SYSTEM_GLOBALIZATION_INVARIANT", "1");
 
-            DSAXML2PEM();
-
             //MachineInfo.RegisterAsync();
             //TestMysql();
             //XTrace.Log = new NetworkLog();
+
+            DSAXML2PEM();
+
             XTrace.UseConsole();
 #if DEBUG
             XTrace.Debug = true;
@@ -57,7 +61,9 @@ namespace Test
                 try
                 {
 #endif
-                Test3();
+                //Test1();
+                //XMLConvertToPEM();
+                //ExportPublicKeyToPEMFormat();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -641,57 +647,206 @@ namespace Test
             EntityBuilder.Build("../../Src/XCode/model.xml");
         }
 
-        private static void DSAXML2PEM()
+        private static void Test13()
         {
-            //DSAHelper.GenerateKey(1024);
+            //DSACryptoServiceProvider dsa = new DSACryptoServiceProvider(1024);
 
-            //using (var fs = new FileStream("d:\\privateKey.key", FileMode.Open, FileAccess.Read))
+            ////var x = dsa.ExportCspBlob(true);
+
+            //using (var fs = new FileStream("D:\\keys\\private.key", FileMode.Open, FileAccess.Read))
             //{
-            //    using (var fs1 = new FileStream("d:\\private.key", FileMode.OpenOrCreate, FileAccess.ReadWrite))
+            //    var rs = new StreamReader(fs);
+            //    var keystr = rs.ReadToEnd();
+            //    DSAHelper.FromXmlStringX(dsa, keystr);
+
+            //    DsaPublicKeyParameters dsaKey = DotNetUtilities.GetDsaPublicKey(dsa);
+            //    using (StreamWriter sw = new StreamWriter("D:\\keys\\dsa.pem"))
             //    {
-            //        var d = new DSACryptoServiceProvider(1024);
-
-            //        var b = fs.ToArray();
-
-            //        //d.FromXmlString
-
-            //        d.ImportCspBlob(b);
-            //        var xml = d.ToXmlStringX(false);
-
-            //        var ws = new StreamWriter(fs1);
-            //        ws.Write(xml);
-            //        ws.Flush();
-            //        ws.Dispose();
+            //        PemWriter pw = new PemWriter(sw);
+            //        pw.WriteObject(dsaKey);
             //    }
             //}
+        }
 
-            //var tp = new TokenProvider();
-            //tp.ReadKey();
+        /// <summary>
+        /// 私钥XML2PEM
+        /// </summary>
+        private static void XMLConvertToPEM()//XML格式密钥转PEM
+        {
+            var rsa2 = new RSACryptoServiceProvider();
+            using (var sr = new StreamReader("D:\\keys\\private.key"))
+            {
+                rsa2.FromXmlString(sr.ReadToEnd());
+            }
+            var p = rsa2.ExportParameters(true);
+
+            var key = new RsaPrivateCrtKeyParameters(
+                new Org.BouncyCastle.Math.BigInteger(1, p.Modulus), new Org.BouncyCastle.Math.BigInteger(1, p.Exponent), new Org.BouncyCastle.Math.BigInteger(1, p.D),
+                new Org.BouncyCastle.Math.BigInteger(1, p.P), new Org.BouncyCastle.Math.BigInteger(1, p.Q), new Org.BouncyCastle.Math.BigInteger(1, p.DP), new Org.BouncyCastle.Math.BigInteger(1, p.DQ),
+                new Org.BouncyCastle.Math.BigInteger(1, p.InverseQ));
+
+            using (var sw = new StreamWriter("D:\\keys\\PrivateKey.pem"))
+            {
+                var pemWriter = new PemWriter(sw);
+                pemWriter.WriteObject(key);
+            }
+        }
 
 
-            DSACryptoServiceProvider dsa = new DSACryptoServiceProvider(1024);
+        private static void ExportPublicKeyToPEMFormat()
+        {
+
+            var rsa2 = new RSACryptoServiceProvider();
+            using (var sr = new StreamReader("D:\\keys\\private.key"))
+            {
+                rsa2.FromXmlString(sr.ReadToEnd());
+            }
+
+            var str = ExportPublicKeyToPEMFormat(rsa2);
+
+            using (var sw = new StreamWriter("D:\\keys\\PublicKey.pem"))
+            {
+                //var pemWriter = new PemWriter(sw);
+                //pemWriter.WriteObject(str);
+                sw.Write(str);
+            }
+
+        }
+
+        public static String ExportPublicKeyToPEMFormat(RSACryptoServiceProvider csp)
+        {
+            TextWriter outputStream = new StringWriter();
+
+            var parameters = csp.ExportParameters(false);
+            using (var stream = new MemoryStream())
+            {
+                var writer = new BinaryWriter(stream);
+                writer.Write((byte)0x30); // SEQUENCE
+                using (var innerStream = new MemoryStream())
+                {
+                    var innerWriter = new BinaryWriter(innerStream);
+                    EncodeIntegerBigEndian(innerWriter, new byte[] { 0x00 }); // Version
+                    EncodeIntegerBigEndian(innerWriter, parameters.Modulus);
+                    EncodeIntegerBigEndian(innerWriter, parameters.Exponent);
+
+                    //All Parameter Must Have Value so Set Other Parameter Value Whit Invalid Data  (for keeping Key Structure  use "parameters.Exponent" value for invalid data)
+                    EncodeIntegerBigEndian(innerWriter, parameters.Exponent); // instead of parameters.D
+                    EncodeIntegerBigEndian(innerWriter, parameters.Exponent); // instead of parameters.P
+                    EncodeIntegerBigEndian(innerWriter, parameters.Exponent); // instead of parameters.Q
+                    EncodeIntegerBigEndian(innerWriter, parameters.Exponent); // instead of parameters.DP
+                    EncodeIntegerBigEndian(innerWriter, parameters.Exponent); // instead of parameters.DQ
+                    EncodeIntegerBigEndian(innerWriter, parameters.Exponent); // instead of parameters.InverseQ
+
+                    var length = (int)innerStream.Length;
+                    EncodeLength(writer, length);
+                    writer.Write(innerStream.GetBuffer(), 0, length);
+                }
+
+                var base64 = Convert.ToBase64String(stream.GetBuffer(), 0, (int)stream.Length).ToCharArray();
+                outputStream.WriteLine("-----BEGIN PUBLIC KEY-----");
+                // Output as Base64 with lines chopped at 64 characters
+                for (var i = 0; i < base64.Length; i += 64)
+                {
+                    outputStream.WriteLine(base64, i, Math.Min(64, base64.Length - i));
+                }
+                outputStream.WriteLine("-----END PUBLIC KEY-----");
+
+                return outputStream.ToString();
+
+            }
+        }
+
+        private static void EncodeIntegerBigEndian(BinaryWriter stream, byte[] value, bool forceUnsigned = true)
+        {
+            stream.Write((byte)0x02); // INTEGER
+            var prefixZeros = 0;
+            for (var i = 0; i < value.Length; i++)
+            {
+                if (value[i] != 0) break;
+                prefixZeros++;
+            }
+            if (value.Length - prefixZeros == 0)
+            {
+                EncodeLength(stream, 1);
+                stream.Write((byte)0);
+            }
+            else
+            {
+                if (forceUnsigned && value[prefixZeros] > 0x7f)
+                {
+                    // Add a prefix zero to force unsigned if the MSB is 1
+                    EncodeLength(stream, value.Length - prefixZeros + 1);
+                    stream.Write((byte)0);
+                }
+                else
+                {
+                    EncodeLength(stream, value.Length - prefixZeros);
+                }
+                for (var i = prefixZeros; i < value.Length; i++)
+                {
+                    stream.Write(value[i]);
+                }
+            }
+        }
+
+        private static void EncodeLength(BinaryWriter stream, int length)
+        {
+            if (length < 0) throw new ArgumentOutOfRangeException("length", "Length must be non-negative");
+            if (length < 0x80)
+            {
+                // Short form
+                stream.Write((byte)length);
+            }
+            else
+            {
+                // Long form
+                var temp = length;
+                var bytesRequired = 0;
+                while (temp > 0)
+                {
+                    temp >>= 8;
+                    bytesRequired++;
+                }
+                stream.Write((byte)(bytesRequired | 0x80));
+                for (var i = bytesRequired - 1; i >= 0; i--)
+                {
+                    stream.Write((byte)(length >> (8 * i) & 0xff));
+                }
+            }
+        }
+
+        // dsa xml 转 pem
+        private static void DSAXML2PEM()
+        {
+            var dsa = new DSACryptoServiceProvider(1024);
             using (var fs = new FileStream("D:\\token.prvkey", FileMode.Open, FileAccess.Read))
             {
                 var sr = new StreamReader(fs);
                 dsa.FromXmlStringX(sr.ReadToEnd());
             }
 
-            AsymmetricCipherKeyPair dsaKey = DotNetUtilities.GetDsaKeyPair(dsa);
-            using (StreamWriter sw = new StreamWriter("D:\\dsa.pem"))
+            // 私钥转换
+            var dsaKey = DotNetUtilities.GetDsaKeyPair(dsa);
+            using (var sw = new StreamWriter("D:\\dsaprv.pem"))
             {
-                PemWriter pw = new PemWriter(sw);
+                var pw = new PemWriter(sw);
+                pw.WriteObject(dsaKey);
+            }
+
+            // 公钥转换
+            var dsapub = DotNetUtilities.GetDsaPublicKey(dsa);
+            using (var sw = new StreamWriter("D:\\dsapub.pem"))
+            {
+                var pw = new PemWriter(sw);
                 pw.WriteObject(dsaKey);
             }
         }
 
-        ///// <summary>
-        ///// 测试mysql
-        ///// </summary>
-        //public static void TestMysql()
-        //{
-        //    Link entity = Link.Find(Link._.Id == 1);
-        //    XTrace.WriteLine("标题：" + entity?.Title);
-        //    Console.WriteLine("标题："+entity?.Title);
-        //}
+        private static void Test14()
+        {
+            var str = "E59E4316-7E81-4A43-94D6-32480C83ACE7@fa6ad071-6f0a-498f-8875-b9fb65625e15@70-8B-CD-0B-4D-D5,74-C6-3B-87-3F-8D";
+            var result = str.GetBytes().RC4("设备".GetBytes()).Crc().GetBytes().ToHex();
+            Console.WriteLine(result);
+        }
     }
 }
