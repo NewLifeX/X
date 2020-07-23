@@ -266,27 +266,30 @@ namespace XUnitTest.Log
             var tracer = new DefaultTracer();
 
             var http = tracer.CreateHttpClient();
-            await http.GetStringAsync("https://www.newlifex.com");
+            http.DefaultRequestHeaders.UserAgent.ParseAdd("tracer_test v1.3");
+
+            await http.GetStringAsync("https://www.newlifex.com?id=1234");
             await Assert.ThrowsAnyAsync<Exception>(async () =>
             {
                 // 故意写错地址，让它抛出异常
-                await http.GetStringAsync("https://www.newlifexxx.com/notfound");
+                await http.GetStringAsync("https://www.newlifexxx.com/notfound?name=stone");
             });
 
             // 取出全部跟踪数据
             var bs = tracer.TakeAll();
             var keys = bs.Select(e => e.Name).ToArray();
             Assert.Equal(2, bs.Length);
-            Assert.Contains("/", keys);
-            Assert.Contains("/notfound", keys);
+            Assert.Contains("https://www.newlifex.com/", keys);
+            Assert.Contains("https://www.newlifexxx.com/notfound", keys);
 
             // 其中一项
-            var builder = bs.FirstOrDefault(e => e.Name == "/notfound");
+            var builder = bs.FirstOrDefault(e => e.Name == "https://www.newlifexxx.com/notfound");
             Assert.Equal(1, builder.Total);
             Assert.Equal(1, builder.Errors);
 
             var span = builder.ErrorSamples[0];
-            Assert.Equal("https://www.newlifexxx.com/notfound", span.Tag);
+            //Assert.Equal("tracer_test v1.3", span.Tag);
+            Assert.Equal("/notfound?name=stone", span.Tag);
         }
     }
 }

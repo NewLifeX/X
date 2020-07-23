@@ -26,6 +26,11 @@ using System.Security.Cryptography;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.OpenSsl;
 using Org.BouncyCastle.Crypto.Parameters;
+using System.Security.Cryptography;
+using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.OpenSsl;
+using Org.BouncyCastle.Security;
+using NewLife.Web;
 
 #if !NET4
 using TaskEx = System.Threading.Tasks.Task;
@@ -39,7 +44,9 @@ namespace Test
         {
             //Environment.SetEnvironmentVariable("DOTNET_SYSTEM_GLOBALIZATION_INVARIANT", "1");
 
-            MachineInfo.RegisterAsync();
+            DSAXML2PEM();
+
+            //MachineInfo.RegisterAsync();
             //TestMysql();
             //XTrace.Log = new NetworkLog();
             XTrace.UseConsole();

@@ -214,8 +214,9 @@ namespace NewLife.Log
             if (tracer == null) return null;
 
             var uri = request.RequestUri;
-            var span = tracer.NewSpan(uri.AbsoluteUri);
-            span.Tag = uri + "";
+            var span = tracer.NewSpan(uri.ToString().TrimEnd(uri.Query));
+            span.Tag = uri.PathAndQuery;
+            //span.Tag = request.Headers.UserAgent + "";
             span.Attach(request);
 
             return span;
