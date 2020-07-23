@@ -19,7 +19,6 @@ using XCode.DataAccessLayer;
 using XCode.Membership;
 using XCode.Service;
 using XCode;
-using System.Collections;
 using XCode.Code;
 using System.Reflection;
 using System.Security.Cryptography;
@@ -44,11 +43,12 @@ namespace Test
         {
             //Environment.SetEnvironmentVariable("DOTNET_SYSTEM_GLOBALIZATION_INVARIANT", "1");
 
-            DSAXML2PEM();
-
             //MachineInfo.RegisterAsync();
             //TestMysql();
             //XTrace.Log = new NetworkLog();
+
+            DSAXML2PEM();
+
             XTrace.UseConsole();
 #if DEBUG
             XTrace.Debug = true;
@@ -63,7 +63,7 @@ namespace Test
 #endif
                 //Test1();
                 //XMLConvertToPEM();
-                ExportPublicKeyToPEMFormat();
+                //ExportPublicKeyToPEMFormat();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -815,8 +815,32 @@ namespace Test
             }
         }
 
+        // dsa xml 转 pem
+        private static void DSAXML2PEM()
+        {
+            var dsa = new DSACryptoServiceProvider(1024);
+            using (var fs = new FileStream("D:\\token.prvkey", FileMode.Open, FileAccess.Read))
+            {
+                var sr = new StreamReader(fs);
+                dsa.FromXmlStringX(sr.ReadToEnd());
+            }
 
-        
+            // 私钥转换
+            var dsaKey = DotNetUtilities.GetDsaKeyPair(dsa);
+            using (var sw = new StreamWriter("D:\\dsaprv.pem"))
+            {
+                var pw = new PemWriter(sw);
+                pw.WriteObject(dsaKey);
+            }
+
+            // 公钥转换
+            var dsapub = DotNetUtilities.GetDsaPublicKey(dsa);
+            using (var sw = new StreamWriter("D:\\dsapub.pem"))
+            {
+                var pw = new PemWriter(sw);
+                pw.WriteObject(dsaKey);
+            }
+        }
 
         private static void Test14()
         {
