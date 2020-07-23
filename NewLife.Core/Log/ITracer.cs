@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
@@ -201,7 +202,7 @@ namespace NewLife.Log
         public static HttpClient CreateHttpClient(this ITracer tracer, HttpMessageHandler handler = null)
         {
             if (handler == null) handler = new HttpClientHandler();
-
+            
             return new HttpClient(new HttpTraceHandler(handler) { Tracer = tracer });
         }
 
