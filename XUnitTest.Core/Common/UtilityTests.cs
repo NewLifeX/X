@@ -44,5 +44,25 @@ namespace XUnitTest.Common
             Assert.Equal(dt4.Trim(), dt4.ToInt().ToDateTimeOffset());
             Assert.Equal(dt4.Trim("ms"), dt4.ToLong().ToDateTimeOffset());
         }
+
+        [Fact]
+        public void DateTimeTest()
+        {
+            var str = "2020-03-09T21:16:17.88";
+            var dt = str.ToDateTime();
+            Assert.Equal(new DateTime(2020, 3, 9, 21, 16, 17, 880), dt);
+        }
+
+        [Fact]
+        public void DateTimeOffsetTest()
+        {
+            var str = "2020-03-09T21:16:25.905+08:00";
+            var dt = str.ToDateTime();
+            Assert.Equal(new DateTime(2020, 3, 9, 21, 16, 25, 905, DateTimeKind.Local), dt);
+
+            str = "2020-03-09T21:16:25.9052764+08:00";
+            var df = str.ToDateTimeOffset();
+            Assert.Equal(new DateTimeOffset(2020, 3, 9, 21, 16, 25, 905, TimeSpan.FromHours(8)).AddTicks(2764), df);
+        }
     }
 }

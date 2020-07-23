@@ -698,6 +698,20 @@ namespace XCode.DataAccessLayer
             var pf = TablePrefix;
             if (!pf.IsNullOrEmpty()) tableName = pf + tableName;
 
+            // 大小写
+            switch (NameFormat)
+            {
+                case NameFormats.Upper:
+                    tableName = tableName.ToUpper();
+                    break;
+                case NameFormats.Lower:
+                    tableName = tableName.ToLower();
+                    break;
+                case NameFormats.Default:
+                default:
+                    break;
+            }
+
             tableName = FormatName(tableName);
 
             // 特殊处理Oracle数据库，在表名前加上方案名（用户名）

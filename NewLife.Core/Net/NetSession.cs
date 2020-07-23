@@ -60,7 +60,7 @@ namespace NewLife.Net
                 // 网络会话和Socket会话共用用户会话数据
                 Items = ss.Items;
 
-                ss.Received += (s, e2) => OnReceive(e2);
+                ss.Received += Ss_Received;
                 ss.OnDisposed += (s, e2) => Dispose();
                 ss.Error += OnError;
             }
@@ -83,6 +83,27 @@ namespace NewLife.Net
         #endregion
 
         #region 业务核心
+        private void Ss_Received(Object sender, ReceivedEventArgs e)
+        {
+            var ns = (this as INetSession).Host;
+            var tracer = ns?.Tracer;
+            var span = tracer?.NewSpan($"net:{ns.Name}:Receive");
+
+            try
+            {
+                OnReceive(e);
+            }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, Remote + "");
+                throw;
+            }
+            finally
+            {
+                span?.Dispose();
+            }
+        }
+
         /// <summary>收到客户端发来的数据，触发<seealso cref="Received"/>事件，重载者可直接处理数据</summary>
         /// <param name="e"></param>
         protected virtual void OnReceive(ReceivedEventArgs e) => Received?.Invoke(this, e);

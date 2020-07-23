@@ -40,6 +40,7 @@ namespace Test
             //Environment.SetEnvironmentVariable("DOTNET_SYSTEM_GLOBALIZATION_INVARIANT", "1");
 
             MachineInfo.RegisterAsync();
+            //TestMysql();
             //XTrace.Log = new NetworkLog();
             XTrace.UseConsole();
 #if DEBUG

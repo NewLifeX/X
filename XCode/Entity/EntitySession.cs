@@ -191,59 +191,37 @@ namespace XCode
 
             if (!Monitor.TryEnter(_wait_lock, ms))
             {
-                //if (DAL.Debug) DAL.WriteLog("等待初始化{0}数据{1}ms，调用栈：{2}", ThisType.Name, ms, XTrace.GetCaller(1, 8));
                 if (DAL.Debug) DAL.WriteLog("等待初始化{0}数据{1:n0}ms失败 initThread={2}", ThisType.Name, ms, initThread);
                 return false;
             }
-            //initThread = tid;
             try
             {
                 // 已初始化
                 if (hasCheckInitData) return true;
 
-                var name = ThisType.Name;
-                if (name == TableName)
-                    name = String.Format("{0}@{1}", ThisType.Name, ConnName);
-                else
-                    name = String.Format("{0}#{1}@{2}", ThisType.Name, TableName, ConnName);
+                initThread = Thread.CurrentThread.ManagedThreadId;
 
-                var task = Task.Factory.StartNew(() =>
+                // 如果该实体类是首次使用检查模型，则在这个时候检查
+                try
                 {
-                    initThread = Thread.CurrentThread.ManagedThreadId;
+                    CheckModel();
+                }
+                catch (Exception ex)
+                {
+                    XTrace.WriteException(ex);
+                }
 
-                    // 如果该实体类是首次使用检查模型，则在这个时候检查
-                    try
+                try
+                {
+                    if (Factory.Default is EntityBase entity)
                     {
-                        CheckModel();
+                        entity.InitData();
                     }
-                    catch (Exception ex) { XTrace.WriteException(ex); }
-
-                    //var init = Setting.Current.InitData;
-                    var init = this == Default;
-                    if (init)
-                    {
-                        //BeginTrans();
-                        try
-                        {
-                            if (Factory.Default is EntityBase entity)
-                            {
-                                entity.InitData();
-                                //// 异步执行初始化，只等一会，避免死锁
-                                //var task = TaskEx.Run(() => entity.InitData());
-                                //if (!task.Wait(ms) && DAL.Debug) DAL.WriteLog("{0}未能在{1:n0}ms内完成数据初始化 Task={2}", ThisType.Name, ms, task.Id);
-                            }
-
-                            //Commit();
-                        }
-                        catch (Exception ex)
-                        {
-                            if (XTrace.Debug) XTrace.WriteLine("初始化数据出错！" + ex.ToString());
-
-                            //Rollback();
-                        }
-                    }
-                });
-                task.Wait(3_000);
+                }
+                catch (Exception ex)
+                {
+                    if (XTrace.Debug) XTrace.WriteLine("初始化数据出错！" + ex.ToString());
+                }
 
                 return true;
             }
@@ -259,8 +237,6 @@ namespace XCode
         #region 架构检查
         private void CheckTable()
         {
-            //if (Dal.CheckAndAdd(TableName)) return;
-
             var dal = Dal;
 
 #if DEBUG
@@ -330,21 +306,17 @@ namespace XCode
                 if (_hasCheckModel) return;
 
                 // 是否默认连接和默认表名，非默认则强制检查，并且不允许异步检查（异步检查会导致ConnName和TableName不对）
-                var def = Default;
+                //var def = Default;
                 var cname = ConnName;
                 var tname = TableName;
-                if (def == this)
+                //if (def == this)
+                //{
+                if (Dal.Db.Migration == Migration.Off || IsGenerated)
                 {
-                    //if (!Setting.Current.Negative.Enable ||
-                    //    DAL.NegativeExclude.Contains(cname) ||
-                    //    DAL.NegativeExclude.Contains(tname) ||
-                    //    IsGenerated)
-                    if (Dal.Db.Migration == Migration.Off || IsGenerated)
-                    {
-                        _hasCheckModel = true;
-                        return;
-                    }
+                    _hasCheckModel = true;
+                    return;
                 }
+                //}
 #if DEBUG
                 else
                 {
@@ -352,8 +324,6 @@ namespace XCode
                 }
 #endif
 
-                // 输出调用者，方便调试
-                //if (DAL.Debug) DAL.WriteLog("检查实体{0}的数据表架构，模式：{1}，调用栈：{2}", ThisType.FullName, Table.ModelCheckMode, XTrace.GetCaller(1, 0, "\r\n<-"));
                 // CheckTableWhenFirstUse的实体类，在这里检查，有点意思，记下来
                 var mode = Table.ModelCheckMode;
                 if (DAL.Debug && mode == ModelCheckModes.CheckTableWhenFirstUse)
@@ -383,7 +353,7 @@ namespace XCode
                 {
                     // 打开了开关，并且设置为true时，使用同步方式检查
                     // 设置为false时，使用异步方式检查，因为上级的意思是不大关心数据库架构
-                    if (dal.Db.Migration > Migration.ReadOnly || def != this)
+                    if (dal.Db.Migration > Migration.ReadOnly /*|| def != this*/)
                         CheckTable();
                     else
                         ThreadPoolX.QueueUserWorkItem(CheckTable);

@@ -123,26 +123,32 @@ namespace XCode.DataAccessLayer
         private void CheckAllTables(IDataTable[] tables, Migration mode, Boolean dbExit)
         {
             // 数据库表进入字典
-            var dic = new Dictionary<String, IDataTable>();
+            //var dic = new Dictionary<String, IDataTable>(StringComparer.OrdinalIgnoreCase);
+            IList<IDataTable> dbtables = null;
             if (dbExit)
             {
-                var dbtables = OnGetTables(tables.Select(t => t.TableName).ToArray());
-                if (dbtables != null && dbtables.Count > 0)
-                {
-                    foreach (var item in dbtables)
-                    {
-                        //dic.Add(item.TableName, item);
-                        dic[item.TableName] = item;
-                    }
-                }
+                dbtables = OnGetTables(tables.Select(t => t.TableName).ToArray());
+                //if (dbtables != null && dbtables.Count > 0)
+                //{
+                //    foreach (var item in dbtables)
+                //    {
+                //        //dic.Add(item.TableName, item);
+                //        dic[item.TableName] = item;
+                //    }
+                //}
             }
 
             foreach (var item in tables)
             {
                 try
                 {
+                    // 在MySql中，可能存在同名表（大小写不一致），需要先做确定查找，再做不区分大小写的查找
+                    var dbtable = dbtables?.FirstOrDefault(e => e.TableName == item.TableName);
+                    if (dbtable == null) dbtable = dbtables?.FirstOrDefault(e => e.TableName.EqualIgnoreCase(item.TableName));
+
                     // 判断指定表是否存在于数据库中，以决定是创建表还是修改表
-                    if (dic.TryGetValue(item.TableName, out var dbtable))
+                    //if (dic.TryGetValue(item.TableName, out var dbtable))
+                    if (dbtable != null)
                         CheckTable(item, dbtable, mode);
                     else
                         CheckTable(item, null, mode);
@@ -845,7 +851,7 @@ namespace XCode.DataAccessLayer
             var fs = new List<IDataColumn>(table.Columns);
             var sb = new StringBuilder();
 
-            sb.AppendFormat("Create Table {0}(", FormatName(table.TableName));
+            sb.AppendFormat("Create Table {0}(", FormatTableName(table));
             for (var i = 0; i < fs.Count; i++)
             {
                 sb.AppendLine();
@@ -859,7 +865,7 @@ namespace XCode.DataAccessLayer
             return sb.ToString();
         }
 
-        public virtual String DropTableSQL(IDataTable table) => $"Drop Table {FormatName(table.TableName)}";
+        public virtual String DropTableSQL(IDataTable table) => $"Drop Table {FormatTableName(table)}";
 
         public virtual String TableExistSQL(IDataTable table) => throw new NotSupportedException("该功能未实现！");
 
@@ -867,11 +873,11 @@ namespace XCode.DataAccessLayer
 
         public virtual String DropTableDescriptionSQL(IDataTable table) => null;
 
-        public virtual String AddColumnSQL(IDataColumn field) => $"Alter Table {FormatName(field.Table.TableName)} Add {FieldClause(field, true)}";
+        public virtual String AddColumnSQL(IDataColumn field) => $"Alter Table {FormatTableName(field.Table)} Add {FieldClause(field, true)}";
 
-        public virtual String AlterColumnSQL(IDataColumn field, IDataColumn oldfield) => $"Alter Table {FormatName(field.Table.TableName)} Alter Column {FieldClause(field, false)}";
+        public virtual String AlterColumnSQL(IDataColumn field, IDataColumn oldfield) => $"Alter Table {FormatTableName(field.Table)} Alter Column {FieldClause(field, false)}";
 
-        public virtual String DropColumnSQL(IDataColumn field) => $"Alter Table {FormatName(field.Table.TableName)} Drop Column {FormatName(field.ColumnName)}";
+        public virtual String DropColumnSQL(IDataColumn field) => $"Alter Table {FormatTableName(field.Table)} Drop Column {FormatName(field.ColumnName)}";
 
         public virtual String AddColumnDescriptionSQL(IDataColumn field) => null;
 
@@ -886,7 +892,7 @@ namespace XCode.DataAccessLayer
                 sb.Append("Create Index ");
 
             sb.Append(FormatName(index.Name));
-            sb.AppendFormat(" On {0} (", FormatName(index.Table.TableName));
+            sb.AppendFormat(" On {0} (", FormatTableName(index.Table));
             for (var i = 0; i < index.Columns.Length; i++)
             {
                 if (i > 0) sb.Append(", ");
@@ -897,7 +903,7 @@ namespace XCode.DataAccessLayer
             return sb.ToString();
         }
 
-        public virtual String DropIndexSQL(IDataIndex index) => $"Drop Index {FormatName(index.Name)} On {FormatName(index.Table.TableName)}";
+        public virtual String DropIndexSQL(IDataIndex index) => $"Drop Index {FormatName(index.Name)} On {FormatTableName(index.Table)}";
 
         //public virtual String CompactDatabaseSQL() => null;
         #endregion

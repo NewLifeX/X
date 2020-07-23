@@ -13,6 +13,9 @@ namespace NewLife.Model
         #region 静态
         /// <summary>当前容器</summary>
         public static IObjectContainer Current { get; set; } = new ObjectContainer();
+
+        /// <summary>当前容器提供者</summary>
+        public static IServiceProvider Provider { get; set; } = new ServiceProvider(Current);
         #endregion
 
         #region 属性

@@ -40,6 +40,9 @@ namespace NewLife.Caching
         /// <summary>自动管道。管道操作达到一定数量时，自动提交，默认0</summary>
         public Int32 AutoPipeline { get; set; }
 
+        /// <summary>编码器。决定对象存储在redis中的格式，默认json</summary>
+        public IRedisEncoder Encoder { get; set; } = new RedisJsonEncoder();
+
         /// <summary>性能计数器</summary>
         public PerfCounter Counter { get; set; }
 

@@ -158,6 +158,13 @@ namespace NewLife.Log
     public static class SpanExtension
     {
         #region 扩展方法
+        private static String GetAttachParameter(ISpan span)
+        {
+            var builder = (span as DefaultSpan)?.Builder;
+            var tracer = (builder as DefaultSpanBuilder)?.Tracer;
+            return tracer?.AttachParameter;
+        }
+
         /// <summary>把片段信息附加到http请求头上</summary>
         /// <param name="span">片段</param>
         /// <param name="request">http请求</param>
@@ -166,8 +173,12 @@ namespace NewLife.Log
         {
             if (span == null || request == null) return request;
 
+            // 注入参数名
+            var name = GetAttachParameter(span);
+            if (name.IsNullOrEmpty()) return request;
+
             var headers = request.Headers;
-            if (!headers.Contains("_traceId")) headers.Add("_traceId", $"{span.TraceId}-{span.Id}");
+            if (!headers.Contains(name)) headers.Add(name, $"{span.TraceId}-{span.Id}");
 
             return request;
         }
@@ -179,10 +190,14 @@ namespace NewLife.Log
         {
             if (span == null || headers == null || headers.Count == 0) return;
 
-            if (headers.AllKeys.Contains("_traceId"))
+            // 注入参数名
+            var name = GetAttachParameter(span);
+            if (name.IsNullOrEmpty()) name = "_traceId";
+
+            if (headers.AllKeys.Contains(name))
             {
-                var tid = headers["_traceId"];
-                var ss = (tid + "").Split('-');
+                var tid = headers[name];
+                var ss = (tid + "").Split("-");
                 if (ss.Length > 0) span.TraceId = ss[0];
                 if (ss.Length > 1) span.ParentId = ss[1];
             }
@@ -197,8 +212,12 @@ namespace NewLife.Log
             if (span == null || args == null || args is Packet || args is Byte[] || args is IAccessor) return args;
             if (Type.GetTypeCode(args.GetType()) != TypeCode.Object) return args;
 
+            // 注入参数名
+            var name = GetAttachParameter(span);
+            if (name.IsNullOrEmpty()) return args;
+
             var headers = args.ToDictionary();
-            if (!headers.ContainsKey("_traceId")) headers.Add("_traceId", $"{span.TraceId}-{span.Id}");
+            if (!headers.ContainsKey(name)) headers.Add(name, $"{span.TraceId}-{span.Id}");
 
             return headers;
         }
@@ -210,9 +229,13 @@ namespace NewLife.Log
         {
             if (span == null || parameters == null || parameters.Count == 0) return;
 
-            if (parameters.TryGetValue("_traceId", out var tid))
+            // 注入参数名
+            var name = GetAttachParameter(span);
+            if (name.IsNullOrEmpty()) name = "_traceId";
+
+            if (parameters.TryGetValue(name, out var tid))
             {
-                var ss = (tid + "").Split('-');
+                var ss = (tid + "").Split("-");
                 if (ss.Length > 0) span.TraceId = ss[0];
                 if (ss.Length > 1) span.ParentId = ss[1];
             }

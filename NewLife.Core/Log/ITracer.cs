@@ -21,6 +21,9 @@ namespace NewLife.Log
 
         /// <summary>最大异常采样数。采样周期内，最多只记录指定数量的异常事件，默认10</summary>
         Int32 MaxErrors { get; set; }
+
+        /// <summary>向http/rpc请求注入TraceId的参数名，为空表示不注入，默认_traceId</summary>
+        String AttachParameter { get; set; }
         #endregion
 
         /// <summary>建立Span构建器</summary>
@@ -58,6 +61,9 @@ namespace NewLife.Log
 
         /// <summary>采样结束时等待片段完成的时间。默认1000ms</summary>
         public Int32 WaitForFinish { get; set; } = 1000;
+
+        /// <summary>向http/rpc请求注入TraceId的参数名，为空表示不注入，默认_traceId</summary>
+        public String AttachParameter { get; set; } = "_traceId";
 
         /// <summary>Span构建器集合</summary>
         protected ConcurrentDictionary<String, ISpanBuilder> _builders = new ConcurrentDictionary<String, ISpanBuilder>();
@@ -139,6 +145,10 @@ namespace NewLife.Log
 
             //if (name.IsNullOrEmpty()) throw new ArgumentNullException(nameof(name));
             if (name == null) name = "";
+
+            // http 中可能有问号，需要截断。问号开头就不管了
+            var p = name.IndexOf('?');
+            if (p > 0) name = name.Substring(0, p);
 
             return _builders.GetOrAdd(name, k => new DefaultSpanBuilder(this, k));
         }

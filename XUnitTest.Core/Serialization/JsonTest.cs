@@ -1,5 +1,9 @@
-﻿using NewLife;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using NewLife;
 using NewLife.Log;
+using NewLife.Model;
 using NewLife.Serialization;
 using Xunit;
 
@@ -23,6 +27,107 @@ namespace XUnitTest.Serialization
 
             Assert.Equal(LogLevel.Error, set2.LogLevel);
             Assert.Equal("xxx", set2.LogPath);
+        }
+
+        [Fact]
+        public void DateTimeTest()
+        {
+            var str = @"[
+    {
+        ""ID"": 0,
+        ""Userid"": 27,
+        ""ClickTime"": ""2020-03-09T21:16:17.88"",
+        ""AdID"": 39,
+        ""AdAmount"": 0.43,
+        ""isGive"": false,
+        ""AdLinkUrl"": ""http://www.baidu.com"",
+        ""AdImgUrl"": ""/uploader/swiperPic/405621836.jpg""
+    },
+    {
+        ""ID"": 0,
+        ""Userid"": 27,
+        ""ClickTime"": ""2020-03-09T21:16:25.9052764+08:00"",
+        ""AdID"": 40,
+        ""AdAmount"": 0.41,
+        ""isGive"": false,
+        ""AdLinkUrl"": ""http://www.baidu.com"",
+        ""AdImgUrl"": ""/uploader/swiperPic/1978468752.jpg""
+    }
+]";
+
+            var models = str.ToJsonEntity<Model[]>();
+            Assert.Equal(2, models.Length);
+
+            var m = models[0];
+            Assert.Equal(27, m.UserId);
+            Assert.Equal(new DateTime(2020, 3, 9, 21, 16, 17, 880), m.ClickTime);
+            Assert.Equal(39, m.AdId);
+            Assert.Equal(0.43, m.AdAmount);
+            Assert.False(m.IsGive);
+            Assert.Equal("http://www.baidu.com", m.AdLinkUrl);
+            Assert.Equal("/uploader/swiperPic/405621836.jpg", m.AdImgUrl);
+        }
+
+        class Model
+        {
+            public Int32 ID { get; set; }
+            public Int32 UserId { get; set; }
+            public DateTime ClickTime { get; set; }
+            public Int32 AdId { get; set; }
+            public Double AdAmount { get; set; }
+            public Boolean IsGive { get; set; }
+            public String AdLinkUrl { get; set; }
+            public String AdImgUrl { get; set; }
+        }
+
+        [Fact]
+        public void InterfaceTest()
+        {
+            var list = new List<IDuck>
+            {
+                new DuckB { Name = "123" },
+                new DuckB { Name = "456" },
+                new DuckB { Name = "789" }
+            };
+            var model = new ModelA
+            {
+                ID = 2233,
+                Childs = list,
+            };
+
+            var json = model.ToJson();
+
+            // 直接反序列化会抛出异常
+            Assert.Throws<Exception>(() => json.ToJsonEntity<ModelA>());
+
+            // 上对象容器
+            ObjectContainer.Current.AddTransient<IDuck, DuckB>();
+
+            // 再来一次反序列化
+            var model2 = json.ToJsonEntity<ModelA>();
+            Assert.NotNull(model2);
+            Assert.Equal(2233, model2.ID);
+            Assert.Equal(3, model2.Childs.Count);
+            Assert.Equal("123", model.Childs[0].Name);
+            Assert.Equal("456", model.Childs[1].Name);
+            Assert.Equal("789", model.Childs[2].Name);
+        }
+
+        interface IDuck
+        {
+            public String Name { get; set; }
+        }
+
+        class ModelA
+        {
+            public Int32 ID { get; set; }
+
+            public IList<IDuck> Childs { get; set; }
+        }
+
+        class DuckB : IDuck
+        {
+            public String Name { get; set; }
         }
     }
 }
