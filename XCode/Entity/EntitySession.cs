@@ -125,26 +125,26 @@ namespace XCode
             }
         }
 
-        private String _TableNameWithPrefix;
-        /// <summary>带前缀的表名</summary>
-        public virtual String TableNameWithPrefix
-        {
-            get
-            {
-                if (_TableNameWithPrefix.IsNullOrEmpty())
-                {
-                    var str = TableName;
+        //private String _TableNameWithPrefix;
+        ///// <summary>带前缀的表名</summary>
+        //public virtual String TableNameWithPrefix
+        //{
+        //    get
+        //    {
+        //        if (_TableNameWithPrefix.IsNullOrEmpty())
+        //        {
+        //            var str = TableName;
 
-                    // 检查自动表前缀
-                    var db = Dal.Db;
-                    var pf = db.TablePrefix;
-                    if (!pf.IsNullOrEmpty() && !str.StartsWithIgnoreCase(pf)) str = pf + str;
+        //            // 检查自动表前缀
+        //            var db = Dal.Db;
+        //            var pf = db.TablePrefix;
+        //            if (!pf.IsNullOrEmpty() && !str.StartsWithIgnoreCase(pf)) str = pf + str;
 
-                    _TableNameWithPrefix = str;
-                }
-                return _TableNameWithPrefix;
-            }
-        }
+        //            _TableNameWithPrefix = str;
+        //        }
+        //        return _TableNameWithPrefix;
+        //    }
+        //}
 
         private EntitySession<TEntity> _Default;
         /// <summary>该实体类的默认会话。</summary>
@@ -532,7 +532,7 @@ namespace XCode
             // 100w数据时，没有预热Select Count需要3000ms，预热后需要500ms
             if (count < 500000)
             {
-                if (count <= 0) count = dal.Session.QueryCountFast(TableNameWithPrefix);
+                if (count <= 0) count = dal.Session.QueryCountFast(FormatedTableName);
 
                 // 查真实记录数，修正FastCount不够准确的情况
                 if (count < 10000000)
@@ -548,7 +548,7 @@ namespace XCode
             else
             {
                 // 异步查询弥补不足，千万数据以内
-                if (count < 10000000) count = dal.Session.QueryCountFast(TableNameWithPrefix);
+                if (count < 10000000) count = dal.Session.QueryCountFast(FormatedTableName);
             }
 
             return count;
@@ -708,7 +708,7 @@ namespace XCode
         /// <returns></returns>
         public Int32 Truncate()
         {
-            var rs = GetDAL(false).Session.Truncate(TableNameWithPrefix);
+            var rs = GetDAL(false).Session.Truncate(FormatedTableName);
 
             // 干掉所有缓存
             _cache?.Clear("Truncate");

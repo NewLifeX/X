@@ -509,15 +509,15 @@ namespace XCode.DataAccessLayer
         {
             if (Db is DbBase db2 && !db2.SupportSchema) return;
 
-            // 构建DataTable时也要注意表前缀，避免反向工程用错
-            var pf = Db.TablePrefix;
-            if (!pf.IsNullOrEmpty())
-            {
-                foreach (var tbl in tables)
-                {
-                    if (!tbl.TableName.StartsWithIgnoreCase(pf)) tbl.TableName = pf + tbl.TableName;
-                }
-            }
+            //// 构建DataTable时也要注意表前缀，避免反向工程用错
+            //var pf = Db.TablePrefix;
+            //if (!pf.IsNullOrEmpty())
+            //{
+            //    foreach (var tbl in tables)
+            //    {
+            //        if (!tbl.TableName.StartsWithIgnoreCase(pf)) tbl.TableName = pf + tbl.TableName;
+            //    }
+            //}
 
             Db.CreateMetaData().SetTables(Db.Migration, tables);
         }

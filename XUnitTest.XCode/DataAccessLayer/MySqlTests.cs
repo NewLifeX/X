@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using NewLife.Log;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 using Xunit;
@@ -7,7 +9,16 @@ namespace XUnitTest.XCode.DataAccessLayer
 {
     public class MySqlTests
     {
-        private static String _ConnStr = "Server=.;Port=3306;Database=Membership;Uid=root;Pwd=Pass@word";
+        private static String _ConnStr = "Server=.;Port=3306;Database=sys;Uid=root;Pwd=Pass@word";
+
+        public MySqlTests()
+        {
+            var f = "Config\\mysql.config".GetFullPath();
+            if (File.Exists(f))
+                _ConnStr = File.ReadAllText(f);
+            else
+                File.WriteAllText(f, _ConnStr);
+        }
 
         [Fact]
         public void InitTest()
@@ -38,23 +49,24 @@ namespace XUnitTest.XCode.DataAccessLayer
             var factory = db.Factory;
 
             var conn = factory.CreateConnection();
-            conn.ConnectionString = "Server=localhost;Port=3306;Database=Membership;Uid=root;Pwd=Pass@word";
+            //conn.ConnectionString = "Server=localhost;Port=3306;Database=Membership;Uid=root;Pwd=Pass@word";
+            conn.ConnectionString = _ConnStr;
             conn.Open();
         }
 
         [Fact]
         public void DALTest()
         {
-            DAL.AddConnStr("MySql", _ConnStr, null, "MySql");
-            var dal = DAL.Create("MySql");
+            DAL.AddConnStr("sysMySql", _ConnStr, null, "MySql");
+            var dal = DAL.Create("sysMySql");
             Assert.NotNull(dal);
-            Assert.Equal("MySql", dal.ConnName);
+            Assert.Equal("sysMySql", dal.ConnName);
             Assert.Equal(DatabaseType.MySql, dal.DbType);
 
             var db = dal.Db;
             var connstr = db.ConnectionString;
-            Assert.Equal("Membership", db.DatabaseName);
-            Assert.Equal("Server=127.0.0.1;Port=3306;Database=Membership;Uid=root;Pwd=Pass@word;CharSet=utf8mb4;Sslmode=none", connstr);
+            Assert.Equal("sys", db.DatabaseName);
+            Assert.EndsWith(";Port=3306;Database=sys;Uid=root;Pwd=Pass@word;CharSet=utf8mb4;Sslmode=none", connstr);
 
             var ver = db.ServerVersion;
             Assert.NotEmpty(ver);
@@ -63,8 +75,9 @@ namespace XUnitTest.XCode.DataAccessLayer
         [Fact]
         public void MetaTest()
         {
-            DAL.AddConnStr("MySql", _ConnStr, null, "MySql");
-            var dal = DAL.Create("MySql");
+            var connStr = _ConnStr.Replace("Database=sys;", "Database=Membership;");
+            DAL.AddConnStr("MySql_Meta", connStr, null, "MySql");
+            var dal = DAL.Create("MySql_Meta");
 
             var tables = dal.Tables;
             Assert.NotNull(tables);
@@ -74,10 +87,19 @@ namespace XUnitTest.XCode.DataAccessLayer
         [Fact]
         public void SelectTest()
         {
-            DAL.AddConnStr("MySql", _ConnStr, null, "MySql");
+            DAL.AddConnStr("sysMySql", _ConnStr, null, "MySql");
+            var dal = DAL.Create("sysMySql");
+            try
+            {
+                dal.Execute("drop database membership_test");
+            }
+            catch (Exception ex) { XTrace.WriteException(ex); }
 
-            Role.Meta.ConnName = "MySql";
-            Area.Meta.ConnName = "MySql";
+            var connStr = _ConnStr.Replace("Database=sys;", "Database=Membership_Test;");
+            DAL.AddConnStr("MySql_Select", connStr, null, "MySql");
+
+            Role.Meta.ConnName = "MySql_Select";
+            Area.Meta.ConnName = "MySql_Select";
 
             Role.Meta.Session.InitData();
 
@@ -95,6 +117,53 @@ namespace XUnitTest.XCode.DataAccessLayer
 
             // 来个耗时操作，把前面堵住
             Area.FetchAndSave();
+
+            // 清理现场
+            try
+            {
+                dal.Execute("drop database membership_test");
+            }
+            catch (Exception ex) { XTrace.WriteException(ex); }
+        }
+
+        [Fact]
+        public void TablePrefixTest()
+        {
+            DAL.AddConnStr("sysMySql", _ConnStr, null, "MySql");
+            var dal = DAL.Create("sysMySql");
+            try
+            {
+                dal.Execute("drop database membership_table_prefix");
+            }
+            catch (Exception ex) { XTrace.WriteException(ex); }
+
+            var connStr = _ConnStr.Replace("Database=sys;", "Database=Membership_Table_Prefix;");
+            connStr += ";TablePrefix=member_";
+            DAL.AddConnStr("MySql_Table_Prefix", connStr, null, "MySql");
+
+            Role.Meta.ConnName = "MySql_Table_Prefix";
+            //Area.Meta.ConnName = "MySql_Table_Prefix";
+
+            Role.Meta.Session.InitData();
+
+            var count = Role.Meta.Count;
+            Assert.True(count > 0);
+
+            var list = Role.FindAll();
+            Assert.Equal(4, list.Count);
+
+            var list2 = Role.FindAll(Role._.Name == "管理员");
+            Assert.Equal(1, list2.Count);
+
+            var list3 = Role.Search("用户", null);
+            Assert.Equal(2, list3.Count);
+
+            // 清理现场
+            try
+            {
+                dal.Execute("drop database membership_table_prefix");
+            }
+            catch (Exception ex) { XTrace.WriteException(ex); }
         }
     }
 }

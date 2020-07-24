@@ -7,8 +7,8 @@
     <Description>算法、日志、网络、RPC、序列化、缓存、线程池</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2020 NewLife</Copyright>
-    <Version>8.8.2020.0719-beta</Version>
-    <FileVersion>8.8.2020.0719</FileVersion>
+    <Version>8.8.2020.0724-beta</Version>
+    <FileVersion>8.8.2020.0724</FileVersion>
     <AssemblyVersion>8.8.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <OutputPath>..\..\Bin</OutputPath>
@@ -83,6 +83,9 @@
     <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="System.Management" />
     <PackageReference Include="System.Net.Http" Version="2.0.20710" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' != 'net40'">
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="4.7.1" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="Agent\**" />

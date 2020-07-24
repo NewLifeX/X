@@ -15,10 +15,13 @@ namespace XUnitTest.Remoting
     {
         private readonly ApiServer _Server;
         private readonly ApiClient _Client;
+        private String _Uri;
 
         public ApiTest()
         {
-            _Server = new ApiServer(12345)
+            var port = Rand.Next(10000, 65535);
+
+            _Server = new ApiServer(port)
             {
                 //Log = XTrace.Log,
                 //EncoderLog = XTrace.Log,
@@ -26,7 +29,9 @@ namespace XUnitTest.Remoting
             _Server.Handler = new TokenApiHandler { Host = _Server };
             _Server.Start();
 
-            var client = new ApiClient("tcp://127.0.0.1:12345")
+            _Uri = $"tcp://127.0.0.1:{port}";
+
+            var client = new ApiClient(_Uri)
             {
                 //Log = XTrace.Log
             };
@@ -45,12 +50,6 @@ namespace XUnitTest.Remoting
         [Fact(DisplayName = "基础Api测试")]
         public async void BasicTest()
         {
-            //var client = new ApiClient("tcp://127.0.0.1:12345")
-            //{
-            //    Log = XTrace.Log
-            //};
-            //client.EncoderLog = XTrace.Log;
-
             var apis = await _Client.InvokeAsync<String[]>("api/all");
             Assert.NotNull(apis);
             Assert.Equal(3, apis.Length);
@@ -65,14 +64,6 @@ namespace XUnitTest.Remoting
         [InlineData("ABCDEFG", "12345678")]
         public async void InfoTest(String state, String state2)
         {
-            //var client = new ApiClient("tcp://127.0.0.1:12345")
-            //{
-            //    Log = XTrace.Log
-            //};
-
-            //var state = Rand.NextString(8);
-            //var state2 = Rand.NextString(8);
-
             var infs = await _Client.InvokeAsync<IDictionary<String, Object>>("api/info", new { state, state2 });
             Assert.NotNull(infs);
             Assert.Equal(Environment.MachineName, infs["MachineName"]);
@@ -86,11 +77,6 @@ namespace XUnitTest.Remoting
         [Fact(DisplayName = "二进制测试")]
         public async void Info2Test()
         {
-            //var client = new ApiClient("tcp://127.0.0.1:12345")
-            //{
-            //    Log = XTrace.Log
-            //};
-
             var buf = Rand.NextBytes(32);
 
             var pk = await _Client.InvokeAsync<Packet>("api/info2", buf);
@@ -103,11 +89,6 @@ namespace XUnitTest.Remoting
         [Fact(DisplayName = "异常请求")]
         public async void ErrorTest()
         {
-            //var client = new ApiClient("tcp://127.0.0.1:12345")
-            //{
-            //    Log = XTrace.Log
-            //};
-
             try
             {
                 var msg = await _Client.InvokeAsync<Object>("api/info3");
@@ -129,7 +110,7 @@ namespace XUnitTest.Remoting
         [InlineData("ABCDEFG", "12345678")]
         public async void TokenTest(String token, String state)
         {
-            var client = new ApiClient("tcp://127.0.0.1:12345")
+            var client = new ApiClient(_Uri)
             {
                 //Log = XTrace.Log,
                 Token = token,
@@ -140,7 +121,7 @@ namespace XUnitTest.Remoting
             Assert.Equal(token, infs["token"]);
 
             // 另一个客户端，共用令牌，应该可以拿到上一次状态数据
-            var client2 = new ApiClient("tcp://127.0.0.1:12345")
+            var client2 = new ApiClient(_Uri)
             {
                 //Log = XTrace.Log,
                 Token = token,

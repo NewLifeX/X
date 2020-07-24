@@ -484,86 +484,90 @@ namespace XCode.DataAccessLayer
         {
             var ss = Database.CreateSession();
             var db = Database.DatabaseName;
+            var list = new List<IDataTable>();
 
             var old = ss.ShowSQL;
             ss.ShowSQL = false;
-
-            var sql = $"SHOW TABLE STATUS FROM `{db}`";
-            var dt = ss.Query(sql, null);
-            if (dt.Rows.Count == 0) return null;
-
-            var list = new List<IDataTable>();
-            var hs = new HashSet<String>(names ?? new String[0], StringComparer.OrdinalIgnoreCase);
-
-            // 所有表
-            foreach (var dr in dt)
+            try
             {
-                var name = dr["Name"] + "";
-                if (name.IsNullOrEmpty() || hs.Count > 0 && !hs.Contains(name)) continue;
+                var sql = $"SHOW TABLE STATUS FROM `{db}`";
+                var dt = ss.Query(sql, null);
+                if (dt.Rows.Count == 0) return null;
 
-                var table = DAL.CreateTable();
-                table.TableName = name;
-                table.Description = dr["Comment"] + "";
+                var hs = new HashSet<String>(names ?? new String[0], StringComparer.OrdinalIgnoreCase);
 
-                #region 字段
-                sql = $"SHOW FULL COLUMNS FROM `{db}`.`{name}`";
-                var dcs = ss.Query(sql, null);
-                foreach (var dc in dcs)
+                // 所有表
+                foreach (var dr in dt)
                 {
-                    var field = table.CreateColumn();
+                    var name = dr["Name"] + "";
+                    if (name.IsNullOrEmpty() || hs.Count > 0 && !hs.Contains(name)) continue;
 
-                    field.ColumnName = dc["Field"] + "";
-                    field.RawType = dc["Type"] + "";
-                    field.DataType = GetDataType(field.RawType);
-                    field.Description = dc["Comment"] + "";
+                    var table = DAL.CreateTable();
+                    table.TableName = name;
+                    table.Description = dr["Comment"] + "";
 
-                    if (dc["Extra"] + "" == "auto_increment") field.Identity = true;
-                    if (dc["Key"] + "" == "PRI") field.PrimaryKey = true;
-                    if (dc["Null"] + "" == "YES") field.Nullable = true;
-
-                    field.Length = field.RawType.Substring("(", ")").ToInt();
-
-                    if (field.DataType == null)
+                    #region 字段
+                    sql = $"SHOW FULL COLUMNS FROM `{db}`.`{name}`";
+                    var dcs = ss.Query(sql, null);
+                    foreach (var dc in dcs)
                     {
-                        if (field.RawType.StartsWithIgnoreCase("varchar", "nvarchar")) field.DataType = typeof(String);
+                        var field = table.CreateColumn();
+
+                        field.ColumnName = dc["Field"] + "";
+                        field.RawType = dc["Type"] + "";
+                        field.DataType = GetDataType(field.RawType);
+                        field.Description = dc["Comment"] + "";
+
+                        if (dc["Extra"] + "" == "auto_increment") field.Identity = true;
+                        if (dc["Key"] + "" == "PRI") field.PrimaryKey = true;
+                        if (dc["Null"] + "" == "YES") field.Nullable = true;
+
+                        field.Length = field.RawType.Substring("(", ")").ToInt();
+
+                        if (field.DataType == null)
+                        {
+                            if (field.RawType.StartsWithIgnoreCase("varchar", "nvarchar")) field.DataType = typeof(String);
+                        }
+
+                        // MySql中没有布尔型，这里处理YN枚举作为布尔型
+                        if (field.RawType == "enum('N','Y')" || field.RawType == "enum('Y','N')") field.DataType = typeof(Boolean);
+
+                        field.Fix();
+
+                        table.Columns.Add(field);
                     }
+                    #endregion
 
-                    // MySql中没有布尔型，这里处理YN枚举作为布尔型
-                    if (field.RawType == "enum('N','Y')" || field.RawType == "enum('Y','N')") field.DataType = typeof(Boolean);
+                    #region 索引
+                    sql = $"SHOW INDEX FROM `{db}`.`{name}`";
+                    var dis = ss.Query(sql, null);
+                    foreach (var dr2 in dis)
+                    {
+                        var dname = dr2["Key_name"] + "";
+                        var di = table.Indexes.FirstOrDefault(e => e.Name == dname) ?? table.CreateIndex();
+                        di.Name = dname;
+                        di.Unique = dr2.Get<Int32>("Non_unique") == 0;
 
-                    field.Fix();
-                    
-                    table.Columns.Add(field);
+                        var cname = dr2.Get<String>("Column_name");
+                        var cs = new List<String>();
+                        if (di.Columns != null && di.Columns.Length > 0) cs.AddRange(di.Columns);
+                        cs.Add(cname);
+                        di.Columns = cs.ToArray();
+
+                        table.Indexes.Add(di);
+                    }
+                    #endregion
+
+                    // 修正关系数据
+                    table.Fix();
+
+                    list.Add(table);
                 }
-                #endregion
-
-                #region 索引
-                sql = $"SHOW INDEX FROM `{db}`.`{name}`";
-                var dis = ss.Query(sql, null);
-                foreach (var dr2 in dis)
-                {
-                    var dname = dr2["Key_name"] + "";
-                    var di = table.Indexes.FirstOrDefault(e => e.Name == dname) ?? table.CreateIndex();
-                    di.Name = dname;
-                    di.Unique = dr2.Get<Int32>("Non_unique") == 0;
-
-                    var cname = dr2.Get<String>("Column_name");
-                    var cs = new List<String>();
-                    if (di.Columns != null && di.Columns.Length > 0) cs.AddRange(di.Columns);
-                    cs.Add(cname);
-                    di.Columns = cs.ToArray();
-
-                    table.Indexes.Add(di);
-                }
-                #endregion
-
-                // 修正关系数据
-                table.Fix();
-
-                list.Add(table);
             }
-
-            ss.ShowSQL = old;
+            finally
+            {
+                ss.ShowSQL = old;
+            }
 
             // 找到使用枚举作为布尔型的旧表
             var es = (Database as MySql).EnumTables;
