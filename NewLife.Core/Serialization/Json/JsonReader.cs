@@ -212,7 +212,7 @@ namespace NewLife.Serialization
             var ext = target as IExtend;
 
             // 遍历所有可用于序列化的属性
-            var props = type.GetProperties(true).ToDictionary(e => SerialHelper.GetName(e), e => e);
+            var props = target.GetType().GetProperties(true).ToDictionary(e => SerialHelper.GetName(e), e => e);
             foreach (var item in dic)
             {
                 var v = item.Value;

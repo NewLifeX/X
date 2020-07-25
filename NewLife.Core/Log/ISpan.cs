@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.Serialization;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using NewLife.Data;
@@ -49,7 +50,7 @@ namespace NewLife.Log
     {
         #region 属性
         /// <summary>构建器</summary>
-        [XmlIgnore, ScriptIgnore]
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public ISpanBuilder Builder { get; }
 
         /// <summary>唯一标识。随线程上下文、Http、Rpc传递，作为内部片段的父级</summary>
@@ -91,6 +92,9 @@ namespace NewLife.Log
 
         #region 构造
         /// <summary>实例化</summary>
+        public DefaultSpan() { }
+
+        /// <summary>实例化</summary>
         /// <param name="builder"></param>
         public DefaultSpan(ISpanBuilder builder)
         {
@@ -104,7 +108,7 @@ namespace NewLife.Log
 
         #region 方法
         /// <summary>设置跟踪标识</summary>
-        public void Start()
+        public virtual void Start()
         {
             if (Id.IsNullOrEmpty()) Id = Rand.NextBytes(8).ToHex().ToLower();
 
@@ -126,7 +130,7 @@ namespace NewLife.Log
         }
 
         /// <summary>完成跟踪</summary>
-        private void Finish()
+        protected virtual void Finish()
         {
             if (_finished) return;
             _finished = true;
@@ -142,7 +146,7 @@ namespace NewLife.Log
         /// <summary>设置错误信息</summary>
         /// <param name="ex">异常</param>
         /// <param name="tag">标签</param>
-        public void SetError(Exception ex, Object tag)
+        public virtual void SetError(Exception ex, Object tag)
         {
             Error = ex?.GetMessage();
             if (tag is String str)

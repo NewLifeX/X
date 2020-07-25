@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using NewLife.Http;
+using NewLife.Model;
 using NewLife.Threading;
 
 namespace NewLife.Log
@@ -48,6 +48,15 @@ namespace NewLife.Log
         #region 静态
         /// <summary>全局实例。默认每15秒采样一次</summary>
         public static ITracer Instance { get; set; } = new DefaultTracer { Log = XTrace.Log };
+
+        static DefaultTracer()
+        {
+            // 注册默认类型，便于Json反序列化时为接口属性创造实例
+            var ioc = ObjectContainer.Current;
+            ioc.AddTransient<ITracer, DefaultTracer>();
+            ioc.AddTransient<ISpanBuilder, DefaultSpanBuilder>();
+            ioc.AddTransient<ISpan, DefaultSpan>();
+        }
         #endregion
 
         #region 属性
@@ -105,7 +114,7 @@ namespace NewLife.Log
             if (builders != null && builders.Length > 0)
             {
                 // 等待未完成Span的时间，默认1000ms
-                Thread.Sleep(WaitForFinish);
+                if (WaitForFinish > 0) Thread.Sleep(WaitForFinish);
 
                 ProcessSpans(builders);
             }
@@ -151,8 +160,13 @@ namespace NewLife.Log
             var p = name.IndexOf('?');
             if (p > 0) name = name.Substring(0, p);
 
-            return _builders.GetOrAdd(name, k => new DefaultSpanBuilder(this, k));
+            return _builders.GetOrAdd(name, k => OnBuildSpan(k));
         }
+
+        /// <summary>实例化Span构建器</summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        protected virtual ISpanBuilder OnBuildSpan(String name) => new DefaultSpanBuilder(this, name);
 
         /// <summary>开始一个Span</summary>
         /// <param name="name">操作名</param>
@@ -202,7 +216,7 @@ namespace NewLife.Log
         public static HttpClient CreateHttpClient(this ITracer tracer, HttpMessageHandler handler = null)
         {
             if (handler == null) handler = new HttpClientHandler();
-            
+
             return new HttpClient(new HttpTraceHandler(handler) { Tracer = tracer });
         }
 

@@ -295,6 +295,42 @@ namespace XUnitTest.Log
         }
 
         [Fact]
+        public void TestJson()
+        {
+            var tracer = new DefaultTracer();
+
+            {
+                using var span = tracer.NewSpan("test");
+                Thread.Sleep(100);
+                {
+                    using var span2 = tracer.NewSpan("test2");
+                    Thread.Sleep(200);
+
+                    span2.SetError(new Exception("My Error"), null);
+                }
+            }
+
+            var m = new MyModel { AppId = "Test", Builders = tracer.TakeAll() };
+            var json = m.ToJson();
+
+            var model = json.ToJsonEntity<MyModel>();
+            Assert.NotNull(model);
+            Assert.NotEmpty(model.Builders);
+            Assert.Equal(2, model.Builders.Length);
+            //Assert.Equal("test", model.Builders[0].Name);
+            //Assert.Equal("test2", model.Builders[1].Name);
+            var test2 = model.Builders.First(e => e.Name == "test2");
+            Assert.Equal(1, test2.ErrorSamples.Count);
+        }
+
+        class MyModel
+        {
+            public String AppId { get; set; }
+
+            public ISpanBuilder[] Builders { get; set; }
+        }
+
+        [Fact]
         public async void TestActivity()
         {
             var tracer = DefaultTracer.Instance;
