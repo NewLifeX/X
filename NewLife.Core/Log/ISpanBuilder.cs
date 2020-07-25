@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
@@ -60,7 +61,7 @@ namespace NewLife.Log
     {
         #region 属性
         /// <summary>跟踪器</summary>
-        [XmlIgnore, ScriptIgnore]
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public ITracer Tracer { get; }
 
         /// <summary>操作名</summary>
@@ -74,15 +75,15 @@ namespace NewLife.Log
 
         private Int32 _Total;
         /// <summary>采样总数</summary>
-        public Int32 Total => _Total;
+        public Int32 Total { get => _Total; private set => _Total = value; }
 
         private Int32 _Errors;
         /// <summary>错误次数</summary>
-        public Int32 Errors => _Errors;
+        public Int32 Errors { get => _Errors; private set => _Errors = value; }
 
         private Int64 _Cost;
         /// <summary>总耗时。所有请求耗时累加，单位ms</summary>
-        public Int64 Cost => _Cost;
+        public Int64 Cost { get => _Cost; private set => _Cost = value; }
 
         /// <summary>最大耗时。单位ms</summary>
         public Int32 MaxCost { get; private set; }
@@ -97,7 +98,10 @@ namespace NewLife.Log
         public IList<ISpan> ErrorSamples { get; private set; }
         #endregion
 
-        #region 构造
+        #region 
+        /// <summary>实例化</summary>
+        public DefaultSpanBuilder() { }
+
         /// <summary>实例化</summary>
         /// <param name="tracer"></param>
         /// <param name="name"></param>

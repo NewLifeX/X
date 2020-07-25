@@ -295,57 +295,39 @@ namespace XUnitTest.Log
         }
 
         [Fact]
-        public async void TestActivity()
+        public void TestJson()
         {
-            var tracer = DefaultTracer.Instance;
+            var tracer = new DefaultTracer();
 
-            var observer = new DiagnosticListenerObserver { Tracer = tracer };
-            observer.Subscribe("HttpHandlerDiagnosticListener");
-            DiagnosticListener.AllListeners.Subscribe(observer);
+            {
+                using var span = tracer.NewSpan("test");
+                Thread.Sleep(100);
+                {
+                    using var span2 = tracer.NewSpan("test2");
+                    Thread.Sleep(200);
 
-            var http = new HttpClient();
-            await http.GetStringAsync("https://www.newlifex.com?id=1234");
+                    span2.SetError(new Exception("My Error"), null);
+                }
+            }
+
+            var m = new MyModel { AppId = "Test", Builders = tracer.TakeAll() };
+            var json = m.ToJson();
+
+            var model = json.ToJsonEntity<MyModel>();
+            Assert.NotNull(model);
+            Assert.NotEmpty(model.Builders);
+            Assert.Equal(2, model.Builders.Length);
+            //Assert.Equal("test", model.Builders[0].Name);
+            //Assert.Equal("test2", model.Builders[1].Name);
+            var test2 = model.Builders.First(e => e.Name == "test2");
+            Assert.Equal(1, test2.ErrorSamples.Count);
         }
 
-        //private class MyObserver : IObserver<DiagnosticListener>
-        //{
-        //    private readonly Dictionary<String, MyObserver2> _listeners = new Dictionary<String, MyObserver2>();
+        class MyModel
+        {
+            public String AppId { get; set; }
 
-        //    public void Subscribe(String listenerName, String startName, String endName, String errorName)
-        //    {
-        //        _listeners.Add(listenerName, new MyObserver2
-        //        {
-        //            StartName = startName,
-        //            EndName = endName,
-        //            ErrorName = errorName,
-        //        });
-        //    }
-
-        //    public void OnCompleted() => throw new NotImplementedException();
-
-        //    public void OnError(Exception error) => throw new NotImplementedException();
-
-        //    public void OnNext(DiagnosticListener value)
-        //    {
-        //        if (_listeners.TryGetValue(value.Name, out var listener)) value.Subscribe(listener);
-        //    }
-        //}
-
-        //private class MyObserver2 : IObserver<KeyValuePair<String, Object>>
-        //{
-        //    #region 属性
-        //    public String StartName { get; set; }
-
-        //    public String EndName { get; set; }
-
-        //    public String ErrorName { get; set; }
-        //    #endregion
-
-        //    public void OnCompleted() => throw new NotImplementedException();
-
-        //    public void OnError(Exception error) => throw new NotImplementedException();
-
-        //    public void OnNext(KeyValuePair<String, Object> value) => XTrace.WriteLine(value.Key);
-        //}
+            public ISpanBuilder[] Builders { get; set; }
+        }
     }
 }

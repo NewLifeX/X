@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.Serialization;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using NewLife.Data;
@@ -49,7 +50,7 @@ namespace NewLife.Log
     {
         #region 属性
         /// <summary>构建器</summary>
-        [XmlIgnore, ScriptIgnore]
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public ISpanBuilder Builder { get; }
 
         /// <summary>唯一标识。随线程上下文、Http、Rpc传递，作为内部片段的父级</summary>
@@ -73,11 +74,19 @@ namespace NewLife.Log
         /// <summary>错误信息</summary>
         public String Error { get; set; }
 
-#if NET40 || NET45
+#if NET40
         [ThreadStatic]
         private static ISpan _Current;
         /// <summary>当前线程正在使用的上下文</summary>
         public static ISpan Current { get => _Current; set => _Current = value; }
+#elif NET45
+        private static readonly String FieldKey = typeof(DefaultSpan).FullName;
+        /// <summary>当前线程正在使用的上下文</summary>
+        public static ISpan Current
+        {
+            get => ((System.Runtime.Remoting.ObjectHandle)System.Runtime.Remoting.Messaging.CallContext.LogicalGetData(FieldKey))?.Unwrap() as ISpan;
+            set => System.Runtime.Remoting.Messaging.CallContext.LogicalSetData(FieldKey, new System.Runtime.Remoting.ObjectHandle(value));
+        }
 #else
         private static readonly System.Threading.AsyncLocal<ISpan> _Current = new System.Threading.AsyncLocal<ISpan>();
         /// <summary>当前线程正在使用的上下文</summary>
@@ -90,6 +99,9 @@ namespace NewLife.Log
         #endregion
 
         #region 构造
+        /// <summary>实例化</summary>
+        public DefaultSpan() { }
+
         /// <summary>实例化</summary>
         /// <param name="builder"></param>
         public DefaultSpan(ISpanBuilder builder)
@@ -104,7 +116,7 @@ namespace NewLife.Log
 
         #region 方法
         /// <summary>设置跟踪标识</summary>
-        public void Start()
+        public virtual void Start()
         {
             if (Id.IsNullOrEmpty()) Id = Rand.NextBytes(8).ToHex().ToLower();
 
@@ -126,7 +138,7 @@ namespace NewLife.Log
         }
 
         /// <summary>完成跟踪</summary>
-        private void Finish()
+        protected virtual void Finish()
         {
             if (_finished) return;
             _finished = true;
@@ -142,7 +154,7 @@ namespace NewLife.Log
         /// <summary>设置错误信息</summary>
         /// <param name="ex">异常</param>
         /// <param name="tag">标签</param>
-        public void SetError(Exception ex, Object tag)
+        public virtual void SetError(Exception ex, Object tag)
         {
             Error = ex?.GetMessage();
             if (tag is String str)
@@ -221,10 +233,11 @@ namespace NewLife.Log
             }
             else if (headers.AllKeys.Contains("Request-Id"))
             {
+                // HierarchicalId编码取最后一段作为父级
                 var tid = headers["Request-Id"];
                 var ss = (tid + "").Split(".", "_");
                 if (ss.Length > 0) span.TraceId = ss[0].TrimStart('|');
-                if (ss.Length > 1) span.ParentId = ss[1];
+                if (ss.Length > 1) span.ParentId = ss[ss.Length - 1];
             }
         }
 
@@ -243,9 +256,10 @@ namespace NewLife.Log
             }
             else if (parameters.TryGetValue("Request-Id", out tid))
             {
+                // HierarchicalId编码取最后一段作为父级
                 var ss = (tid + "").Split(".", "_");
                 if (ss.Length > 0) span.TraceId = ss[0].TrimStart('|');
-                if (ss.Length > 1) span.ParentId = ss[1];
+                if (ss.Length > 1) span.ParentId = ss[ss.Length - 1];
             }
         }
 
@@ -264,9 +278,10 @@ namespace NewLife.Log
             }
             else if (parameters.TryGetValue("Request-Id", out tid))
             {
+                // HierarchicalId编码取最后一段作为父级
                 var ss = (tid + "").Split(".", "_");
                 if (ss.Length > 0) span.TraceId = ss[0].TrimStart('|');
-                if (ss.Length > 1) span.ParentId = ss[1];
+                if (ss.Length > 1) span.ParentId = ss[ss.Length - 1];
             }
         }
         #endregion
