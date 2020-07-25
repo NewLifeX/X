@@ -84,9 +84,6 @@
     <Reference Include="System.Management" />
     <PackageReference Include="System.Net.Http" Version="2.0.20710" />
   </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' != 'net40'">
-    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="4.7.1" />
-  </ItemGroup>
   <ItemGroup>
     <Compile Remove="Agent\**" />
     <Compile Remove="Web\OAuth\**" />

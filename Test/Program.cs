@@ -825,21 +825,21 @@ namespace Test
                 dsa.FromXmlStringX(sr.ReadToEnd());
             }
 
-            // 私钥转换
-            var dsaKey = DotNetUtilities.GetDsaKeyPair(dsa);
-            using (var sw = new StreamWriter("D:\\dsaprv.pem"))
-            {
-                var pw = new PemWriter(sw);
-                pw.WriteObject(dsaKey);
-            }
+            //// 私钥转换
+            //var dsaKey = DotNetUtilities.GetDsaKeyPair(dsa);
+            //using (var sw = new StreamWriter("D:\\dsaprv.pem"))
+            //{
+            //    var pw = new PemWriter(sw);
+            //    pw.WriteObject(dsaKey);
+            //}
 
-            // 公钥转换
-            var dsapub = DotNetUtilities.GetDsaPublicKey(dsa);
-            using (var sw = new StreamWriter("D:\\dsapub.pem"))
-            {
-                var pw = new PemWriter(sw);
-                pw.WriteObject(dsaKey);
-            }
+            //// 公钥转换
+            //var dsapub = DotNetUtilities.GetDsaPublicKey(dsa);
+            //using (var sw = new StreamWriter("D:\\dsapub.pem"))
+            //{
+            //    var pw = new PemWriter(sw);
+            //    pw.WriteObject(dsaKey);
+            //}
         }
 
         private static void Test14()

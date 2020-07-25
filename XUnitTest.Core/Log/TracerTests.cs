@@ -329,59 +329,5 @@ namespace XUnitTest.Log
 
             public ISpanBuilder[] Builders { get; set; }
         }
-
-        [Fact]
-        public async void TestActivity()
-        {
-            var tracer = DefaultTracer.Instance;
-
-            var observer = new DiagnosticListenerObserver { Tracer = tracer };
-            observer.Subscribe("HttpHandlerDiagnosticListener");
-            DiagnosticListener.AllListeners.Subscribe(observer);
-
-            var http = new HttpClient();
-            await http.GetStringAsync("https://www.newlifex.com?id=1234");
-        }
-
-        //private class MyObserver : IObserver<DiagnosticListener>
-        //{
-        //    private readonly Dictionary<String, MyObserver2> _listeners = new Dictionary<String, MyObserver2>();
-
-        //    public void Subscribe(String listenerName, String startName, String endName, String errorName)
-        //    {
-        //        _listeners.Add(listenerName, new MyObserver2
-        //        {
-        //            StartName = startName,
-        //            EndName = endName,
-        //            ErrorName = errorName,
-        //        });
-        //    }
-
-        //    public void OnCompleted() => throw new NotImplementedException();
-
-        //    public void OnError(Exception error) => throw new NotImplementedException();
-
-        //    public void OnNext(DiagnosticListener value)
-        //    {
-        //        if (_listeners.TryGetValue(value.Name, out var listener)) value.Subscribe(listener);
-        //    }
-        //}
-
-        //private class MyObserver2 : IObserver<KeyValuePair<String, Object>>
-        //{
-        //    #region 属性
-        //    public String StartName { get; set; }
-
-        //    public String EndName { get; set; }
-
-        //    public String ErrorName { get; set; }
-        //    #endregion
-
-        //    public void OnCompleted() => throw new NotImplementedException();
-
-        //    public void OnError(Exception error) => throw new NotImplementedException();
-
-        //    public void OnNext(KeyValuePair<String, Object> value) => XTrace.WriteLine(value.Key);
-        //}
     }
 }
