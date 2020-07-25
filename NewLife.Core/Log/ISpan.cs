@@ -225,10 +225,11 @@ namespace NewLife.Log
             }
             else if (headers.AllKeys.Contains("Request-Id"))
             {
+                // HierarchicalId编码取最后一段作为父级
                 var tid = headers["Request-Id"];
                 var ss = (tid + "").Split(".", "_");
                 if (ss.Length > 0) span.TraceId = ss[0].TrimStart('|');
-                if (ss.Length > 1) span.ParentId = ss[1];
+                if (ss.Length > 1) span.ParentId = ss[ss.Length - 1];
             }
         }
 
@@ -247,9 +248,10 @@ namespace NewLife.Log
             }
             else if (parameters.TryGetValue("Request-Id", out tid))
             {
+                // HierarchicalId编码取最后一段作为父级
                 var ss = (tid + "").Split(".", "_");
                 if (ss.Length > 0) span.TraceId = ss[0].TrimStart('|');
-                if (ss.Length > 1) span.ParentId = ss[1];
+                if (ss.Length > 1) span.ParentId = ss[ss.Length - 1];
             }
         }
 
@@ -268,9 +270,10 @@ namespace NewLife.Log
             }
             else if (parameters.TryGetValue("Request-Id", out tid))
             {
+                // HierarchicalId编码取最后一段作为父级
                 var ss = (tid + "").Split(".", "_");
                 if (ss.Length > 0) span.TraceId = ss[0].TrimStart('|');
-                if (ss.Length > 1) span.ParentId = ss[1];
+                if (ss.Length > 1) span.ParentId = ss[ss.Length - 1];
             }
         }
         #endregion
