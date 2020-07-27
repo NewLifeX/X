@@ -125,11 +125,7 @@ namespace NewLife.Net
                     }
 
                     // Tcp需要初始化管道
-                    if (Local.IsTcp)
-                    {
-                        var pp = Pipeline;
-                        pp?.Open(CreateContext(this));
-                    }
+                    if (Local.IsTcp) Pipeline?.Open(CreateContext(this));
                 }
                 Active = true;
 
@@ -167,8 +163,7 @@ namespace NewLife.Net
                 if (!Active) return true;
 
                 // 管道
-                var pp = Pipeline;
-                pp?.Close(CreateContext(this), reason);
+                Pipeline?.Close(CreateContext(this), reason);
 
                 var rs = true;
                 if (OnClose(reason ?? (GetType().Name + "Close"))) rs = false;
@@ -495,7 +490,7 @@ namespace NewLife.Net
             return context;
         }
 
-        /// <summary>通过管道发送消息</summary>
+        /// <summary>通过管道发送消息，不等待响应</summary>
         /// <param name="message"></param>
         /// <returns></returns>
         public virtual Int32 SendMessage(Object message)
@@ -537,8 +532,7 @@ namespace NewLife.Net
         /// <param name="ex">异常</param>
         internal protected virtual void OnError(String action, Exception ex)
         {
-            var pp = Pipeline;
-            if (pp != null) pp.Error(CreateContext(this), ex);
+            Pipeline?.Error(CreateContext(this), ex);
 
             if (Log != null) Log.Error("{0}{1}Error {2} {3}", LogPrefix, action, this, ex?.Message);
             Error?.Invoke(this, new ExceptionEventArgs { Action = action, Exception = ex });

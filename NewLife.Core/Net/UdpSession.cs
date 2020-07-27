@@ -106,8 +106,7 @@ namespace NewLife.Net
             WriteLog("New {0}", Remote.EndPoint);
 
             // 管道
-            var pp = Pipeline;
-            pp?.Open(Server.CreateContext(this));
+            Pipeline?.Open(Server.CreateContext(this));
         }
 
         protected override void Dispose(Boolean disposing)
@@ -117,8 +116,7 @@ namespace NewLife.Net
             WriteLog("Close {0}", Remote.EndPoint);
 
             // 管道
-            var pp = Pipeline;
-            pp?.Close(Server.CreateContext(this), disposing ? "Dispose" : "GC");
+            Pipeline?.Close(Server.CreateContext(this), disposing ? "Dispose" : "GC");
 
             // 释放对服务对象的引用，如果没有其它引用，服务对象将会被回收
             Server = null;
@@ -133,7 +131,7 @@ namespace NewLife.Net
             return Server.OnSend(pk, Remote.EndPoint);
         }
 
-        /// <summary>发送消息</summary>
+        /// <summary>发送消息，不等待响应</summary>
         /// <param name="message"></param>
         /// <returns></returns>
         public virtual Int32 SendMessage(Object message)

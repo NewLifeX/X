@@ -80,8 +80,7 @@ namespace NewLife.Net
         internal void Start()
         {
             // 管道
-            var pp = Pipeline;
-            pp?.Open(CreateContext(this));
+            Pipeline?.Open(base.CreateContext(this));
 
             // 服务端SSL
             var sock = Client;
