@@ -234,12 +234,22 @@ namespace NewLife.Security
                     .Replace("\n", null).Replace("\r", null);
 
                 var data = Convert.FromBase64String(content);
-                if (data.Length < 162) throw new ArgumentException(nameof(content));
+                var key1024 = data.Length == 162;
+                var key2048 = data.Length == 294;
+                if (!key1024 && !key2048) throw new ArgumentException(nameof(content));
 
-                var modulus = new Byte[128];
+                var modulus = new Byte[key1024 ? 128 : 256];
                 var exponent = new Byte[3];
-                Array.Copy(data, 29, modulus, 0, 128);
-                Array.Copy(data, 159, exponent, 0, 3);
+                if (key1024)
+                {
+                    Array.Copy(data, 29, modulus, 0, 128);
+                    Array.Copy(data, 159, exponent, 0, 3);
+                }
+                else
+                {
+                    Array.Copy(data, 33, modulus, 0, 256);
+                    Array.Copy(data, 291, exponent, 0, 3);
+                }
 
                 return new RSAParameters
                 {
