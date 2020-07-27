@@ -264,7 +264,7 @@ namespace NewLife.Net
         {
             if (Pipeline == null) Pipeline = new Pipeline();
 
-            Pipeline.AddLast(new THandler());
+            Pipeline.Add(new THandler());
         }
 
         /// <summary>添加处理器</summary>
@@ -273,7 +273,7 @@ namespace NewLife.Net
         {
             if (Pipeline == null) Pipeline = new Pipeline();
 
-            Pipeline.AddLast(handler);
+            Pipeline.Add(handler);
         }
         #endregion
 

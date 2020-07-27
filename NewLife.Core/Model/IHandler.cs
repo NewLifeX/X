@@ -57,16 +57,16 @@ namespace NewLife.Model
 
         /// <summary>打开连接</summary>
         /// <param name="context">上下文</param>
-        public virtual Boolean Open(IHandlerContext context) => Next == null ? true : Next.Open(context);
+        public virtual Boolean Open(IHandlerContext context) => Next == null || Next.Open(context);
 
         /// <summary>关闭连接</summary>
         /// <param name="context">上下文</param>
         /// <param name="reason">原因</param>
-        public virtual Boolean Close(IHandlerContext context, String reason) => Next == null ? true : Next.Close(context, reason);
+        public virtual Boolean Close(IHandlerContext context, String reason) => Next == null || Next.Close(context, reason);
 
         /// <summary>发生错误</summary>
         /// <param name="context">上下文</param>
         /// <param name="exception">异常</param>
-        public virtual Boolean Error(IHandlerContext context, Exception exception) => Next == null ? true : Next.Error(context, exception);
+        public virtual Boolean Error(IHandlerContext context, Exception exception) => Next == null || Next.Error(context, exception);
     }
 }

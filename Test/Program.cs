@@ -839,19 +839,19 @@ namespace Test
                 dsa.FromXmlStringX(sr.ReadToEnd());
             }
 
-            // 私钥
-            var dsaKey = DotNetUtilities.GetDsaKeyPair(dsa);
-            using (var sw = new StreamWriter("D:\\dsaprv.pem"))
-            {
-                var pw = new PemWriter(sw);
-                pw.WriteObject(dsaKey.Private);
-            }
-            // 公钥
-            using (var sw = new StreamWriter("D:\\dsapub.pem"))
-            {
-                var pw = new PemWriter(sw);
-                pw.WriteObject(dsaKey.Public);
-            }
+            //// 私钥
+            //var dsaKey = DotNetUtilities.GetDsaKeyPair(dsa);
+            //using (var sw = new StreamWriter("D:\\dsaprv.pem"))
+            //{
+            //    var pw = new PemWriter(sw);
+            //    pw.WriteObject(dsaKey.Private);
+            //}
+            //// 公钥
+            //using (var sw = new StreamWriter("D:\\dsapub.pem"))
+            //{
+            //    var pw = new PemWriter(sw);
+            //    pw.WriteObject(dsaKey.Public);
+            //}
 
 
             //// 公钥转换
