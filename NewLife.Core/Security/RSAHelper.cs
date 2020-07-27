@@ -157,6 +157,99 @@ namespace NewLife.Security
         }
         #endregion
 
+        #region PEM
+        /// <summary>读取PEM文件到RSA参数</summary>
+        /// <param name="content"></param>
+        /// <returns></returns>
+        public static RSAParameters ReadPem(String content)
+        {
+            if (String.IsNullOrEmpty(content)) throw new ArgumentNullException(nameof(content));
+
+            // 公钥私钥分别处理
+            content = content.Trim();
+            if (content.StartsWith("-----BEGIN RSA PRIVATE KEY-----"))
+            {
+                content = content.Replace("-----BEGIN RSA PRIVATE KEY-----", null)
+                    .Replace("-----END RSA PRIVATE KEY-----", null)
+                    .Replace("\n", null).Replace("\r", null);
+
+                var data = Convert.FromBase64String(content);
+                if (data.Length < 609) throw new ArgumentException(nameof(content));
+
+                var index = 11;
+                var modulus = new Byte[128];
+                Array.Copy(data, index, modulus, 0, 128);
+
+                index += 128;
+                index += 2;//141
+                var exponent = new Byte[3];
+                Array.Copy(data, index, exponent, 0, 3);
+
+                index += 3;
+                index += 4;//148
+                var d = new Byte[128];
+                Array.Copy(data, index, d, 0, 128);
+
+                index += 128;
+                index += data[index + 1] == 64 ? 2 : 3;//279
+                var p = new Byte[64];
+                Array.Copy(data, index, p, 0, 64);
+
+                index += 64;
+                index += data[index + 1] == 64 ? 2 : 3;//346
+                var q = new Byte[64];
+                Array.Copy(data, index, q, 0, 64);
+
+                index += 64;
+                index += data[index + 1] == 64 ? 2 : 3;//412/413
+                var dp = new Byte[64];
+                Array.Copy(data, index, dp, 0, 64);
+
+                index += 64;
+                index += data[index + 1] == 64 ? 2 : 3;//479/480
+                var dq = new Byte[64];
+                Array.Copy(data, index, dq, 0, 64);
+
+                index += 64;
+                index += data[index + 1] == 64 ? 2 : 3;//545/546
+                var iq = new Byte[64];
+                Array.Copy(data, index, iq, 0, 64);
+
+                return new RSAParameters
+                {
+                    Modulus = modulus,
+                    Exponent = exponent,
+                    D = d,
+                    P = p,
+                    Q = q,
+                    DP = dp,
+                    DQ = dq,
+                    InverseQ = iq
+                };
+            }
+            else
+            {
+                content = content.Replace("-----BEGIN PUBLIC KEY-----", null)
+                    .Replace("-----END PUBLIC KEY-----", null)
+                    .Replace("\n", null).Replace("\r", null);
+
+                var data = Convert.FromBase64String(content);
+                if (data.Length < 162) throw new ArgumentException(nameof(content));
+
+                var modulus = new Byte[128];
+                var exponent = new Byte[3];
+                Array.Copy(data, 29, modulus, 0, 128);
+                Array.Copy(data, 159, exponent, 0, 3);
+
+                return new RSAParameters
+                {
+                    Modulus = modulus,
+                    Exponent = exponent
+                };
+            }
+        }
+        #endregion
+
         #region 辅助
         private static RNGCryptoServiceProvider _rng;
         /// <summary>使用随机数设置</summary>
