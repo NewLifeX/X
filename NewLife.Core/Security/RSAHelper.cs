@@ -174,46 +174,64 @@ namespace NewLife.Security
                     .Replace("\n", null).Replace("\r", null);
 
                 var data = Convert.FromBase64String(content);
-                if (data.Length < 609) throw new ArgumentException(nameof(content));
+                var key1024 = data.Length == 609 || data.Length == 610;
+                var key2048 = data.Length == 1190 || data.Length == 1192;
+                if (!key1024 && !key2048) throw new ArgumentException(nameof(content));
 
-                var index = 11;
-                var modulus = new Byte[128];
-                Array.Copy(data, index, modulus, 0, 128);
+                var index = key1024 ? 11 : 12;
+                var modulus = new Byte[key1024 ? 128 : 256];
+                Array.Copy(data, index, modulus, 0, modulus.Length);
 
-                index += 128;
-                index += 2;//141
+                index += modulus.Length;
+                index += 2;
                 var exponent = new Byte[3];
                 Array.Copy(data, index, exponent, 0, 3);
 
                 index += 3;
-                index += 4;//148
-                var d = new Byte[128];
-                Array.Copy(data, index, d, 0, 128);
+                index += 4;
+                if (data[index] == 0) index++;
+                var d = new Byte[key1024 ? 128 : 256];
+                Array.Copy(data, index, d, 0, d.Length);
 
-                index += 128;
-                index += data[index + 1] == 64 ? 2 : 3;//279
-                var p = new Byte[64];
-                Array.Copy(data, index, p, 0, 64);
+                index += d.Length;
+                if (key1024)
+                    index += data[index + 1] == 64 ? 2 : 3;
+                else
+                    index += data[index + 2] == 128 ? 3 : 4;
+                var p = new Byte[key1024 ? 64 : 128];
+                Array.Copy(data, index, p, 0, p.Length);
 
-                index += 64;
-                index += data[index + 1] == 64 ? 2 : 3;//346
-                var q = new Byte[64];
-                Array.Copy(data, index, q, 0, 64);
+                index += p.Length;
+                if (key1024)
+                    index += data[index + 1] == 64 ? 2 : 3;
+                else
+                    index += data[index + 2] == 128 ? 3 : 4;
+                var q = new Byte[key1024 ? 64 : 128];
+                Array.Copy(data, index, q, 0, q.Length);
 
-                index += 64;
-                index += data[index + 1] == 64 ? 2 : 3;//412/413
-                var dp = new Byte[64];
-                Array.Copy(data, index, dp, 0, 64);
+                index += q.Length;
+                if (key1024)
+                    index += data[index + 1] == 64 ? 2 : 3;
+                else
+                    index += data[index + 2] == 128 ? 3 : 4;
+                var dp = new Byte[key1024 ? 64 : 128];
+                Array.Copy(data, index, dp, 0, dp.Length);
 
-                index += 64;
-                index += data[index + 1] == 64 ? 2 : 3;//479/480
-                var dq = new Byte[64];
-                Array.Copy(data, index, dq, 0, 64);
+                index += dp.Length;
+                if (key1024)
+                    index += data[index + 1] == 64 ? 2 : 3;
+                else
+                    index += data[index + 2] == 128 ? 3 : 4;
+                var dq = new Byte[key1024 ? 64 : 128];
+                Array.Copy(data, index, dq, 0, dp.Length);
 
-                index += 64;
-                index += data[index + 1] == 64 ? 2 : 3;//545/546
-                var iq = new Byte[64];
-                Array.Copy(data, index, iq, 0, 64);
+                index += dp.Length;
+                if (key1024)
+                    index += data[index + 1] == 64 ? 2 : 3;
+                else
+                    index += data[index + 2] == 128 ? 3 : 4;
+                var iq = new Byte[key1024 ? 64 : 128];
+                Array.Copy(data, index, iq, 0, iq.Length);
 
                 return new RSAParameters
                 {
