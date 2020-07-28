@@ -50,7 +50,7 @@ namespace XUnitTest.XCode.DataAccessLayer
 
             var conn = factory.CreateConnection();
             //conn.ConnectionString = "Server=localhost;Port=3306;Database=Membership;Uid=root;Pwd=Pass@word";
-            conn.ConnectionString = _ConnStr;
+            conn.ConnectionString = _ConnStr.Replace("Server=.;", "Server=localhost;");
             conn.Open();
         }
 

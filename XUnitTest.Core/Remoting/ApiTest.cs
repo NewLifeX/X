@@ -23,8 +23,9 @@ namespace XUnitTest.Remoting
 
             _Server = new ApiServer(port)
             {
-                //Log = XTrace.Log,
+                Log = XTrace.Log,
                 //EncoderLog = XTrace.Log,
+                ShowError = true,
             };
             _Server.Handler = new TokenApiHandler { Host = _Server };
             _Server.Start();
