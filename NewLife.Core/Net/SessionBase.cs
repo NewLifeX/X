@@ -473,6 +473,10 @@ namespace NewLife.Net
 
         #region 消息处理
         /// <summary>消息管道。收发消息都经过管道处理器</summary>
+        /// <remarks>
+        /// 1，接收数据解码时，从前向后通过管道处理器；
+        /// 2，发送数据编码时，从后向前通过管道处理器；
+        /// </remarks>
         public IPipeline Pipeline { get; set; }
 
         /// <summary>创建上下文</summary>
@@ -496,9 +500,7 @@ namespace NewLife.Net
         public virtual Int32 SendMessage(Object message)
         {
             var ctx = CreateContext(this);
-            message = Pipeline.Write(ctx, message);
-
-            return ctx.FireWrite(message);
+            return (Int32)Pipeline.Write(ctx, message);
         }
 
         /// <summary>通过管道发送消息并等待响应</summary>
@@ -510,9 +512,7 @@ namespace NewLife.Net
             var source = new TaskCompletionSource<Object>();
             ctx["TaskSource"] = source;
 
-            message = Pipeline.Write(ctx, message);
-
-            var rs = ctx.FireWrite(message);
+            var rs = (Int32)Pipeline.Write(ctx, message);
             if (rs < 0) return TaskEx.FromResult((Object)null);
 
             return source.Task;

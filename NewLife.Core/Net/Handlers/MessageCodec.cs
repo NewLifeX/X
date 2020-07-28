@@ -113,7 +113,8 @@ namespace NewLife.Net.Handlers
 
                 // 匹配输入回调，让上层事件收到分包信息。
                 // 这里很可能处于网络IO线程，阻塞了下一个Tcp包的接收
-                context.FireRead(rs);
+                //context.FireRead(rs);
+                base.Read(context, rs);
             }
 
             return null;

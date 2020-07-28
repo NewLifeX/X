@@ -48,12 +48,28 @@ namespace NewLife.Model
         /// <summary>读取数据，返回结果作为下一个处理器消息</summary>
         /// <param name="context">上下文</param>
         /// <param name="message">消息</param>
-        public virtual Object Read(IHandlerContext context, Object message) => Next == null ? message : Next.Read(context, message);
+        public virtual Object Read(IHandlerContext context, Object message)
+        {
+            if (Next != null) return Next.Read(context, message);
+
+            // 最后一个处理器，截断
+            if (context != null) context.FireRead(message);
+
+            return message;
+        }
 
         /// <summary>写入数据，返回结果作为下一个处理器消息</summary>
         /// <param name="context">上下文</param>
         /// <param name="message">消息</param>
-        public virtual Object Write(IHandlerContext context, Object message) => Prev == null ? message : Prev.Write(context, message);
+        public virtual Object Write(IHandlerContext context, Object message)
+        {
+            if (Prev != null) return Prev.Write(context, message);
+
+            // 最后一个处理器，截断
+            if (context != null) return context.FireWrite(message);
+
+            return message;
+        }
 
         /// <summary>打开连接</summary>
         /// <param name="context">上下文</param>

@@ -137,9 +137,7 @@ namespace NewLife.Net
         public virtual Int32 SendMessage(Object message)
         {
             var ctx = Server.CreateContext(this);
-            message = Pipeline.Write(ctx, message);
-
-            return ctx.FireWrite(message);
+            return (Int32)Pipeline.Write(ctx, message);
         }
 
         /// <summary>发送消息并等待响应</summary>
@@ -151,9 +149,7 @@ namespace NewLife.Net
             var source = new TaskCompletionSource<Object>();
             ctx["TaskSource"] = source;
 
-            message = Pipeline.Write(ctx, message);
-
-            var rs = ctx.FireWrite(message);
+            var rs = (Int32)Pipeline.Write(ctx, message);
             if (rs < 0) return TaskEx.FromResult((Object)null);
 
             return source.Task;
