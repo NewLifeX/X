@@ -201,23 +201,23 @@ namespace NewLife.Net
         /// <remarks>
         /// 目标地址由<seealso cref="Remote"/>决定
         /// </remarks>
-        /// <param name="pk">数据包</param>
+        /// <param name="data">数据包</param>
         /// <returns>是否成功</returns>
-        public Int32 Send(Packet pk)
+        public Int32 Send(Packet data)
         {
             if (Disposed) throw new ObjectDisposedException(GetType().Name);
             if (!Open()) return -1;
 
-            return OnSend(pk);
+            return OnSend(data);
         }
 
         /// <summary>发送数据</summary>
         /// <remarks>
         /// 目标地址由<seealso cref="Remote"/>决定
         /// </remarks>
-        /// <param name="pk">数据包</param>
+        /// <param name="data">数据包</param>
         /// <returns>是否成功</returns>
-        protected abstract Int32 OnSend(Packet pk);
+        protected abstract Int32 OnSend(Packet data);
         #endregion
 
         #region 接收

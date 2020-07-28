@@ -93,9 +93,9 @@ namespace NewLife.Net
         /// <remarks>
         /// 目标地址由<seealso cref="Remote"/>决定
         /// </remarks>
-        /// <param name="pk">数据包</param>
+        /// <param name="data">数据包</param>
         /// <returns>是否成功</returns>
-        Int32 Send(Packet pk);
+        Int32 Send(Packet data);
         #endregion
 
         #region 接收
@@ -113,7 +113,7 @@ namespace NewLife.Net
         /// <returns></returns>
         Task<Object> SendMessageAsync(Object message);
 
-        /// <summary>发送消息</summary>
+        /// <summary>发送消息，不等待响应</summary>
         /// <param name="message">消息</param>
         /// <returns></returns>
         Int32 SendMessage(Object message);

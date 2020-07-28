@@ -128,11 +128,11 @@ namespace NewLife.Net
         #endregion
 
         #region 发送
-        public Int32 Send(Packet pk)
+        public Int32 Send(Packet data)
         {
             if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
-            return Server.OnSend(pk, Remote.EndPoint);
+            return Server.OnSend(data, Remote.EndPoint);
         }
 
         /// <summary>发送消息，不等待响应</summary>

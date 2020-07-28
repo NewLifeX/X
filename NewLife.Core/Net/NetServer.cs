@@ -207,13 +207,13 @@ namespace NewLife.Net
             if (Servers.Contains(server)) return false;
 
             server.Name = String.Format("{0}{1}{2}", Name, server.Local.IsTcp ? "Tcp" : "Udp", server.Local.Address.IsIPv4() ? "" : "6");
-            // 内部服务器日志更多是为了方便网络库调试，而网络服务器日志用于应用开发
-            if (SocketLog != null) server.Log = SocketLog;
             server.NewSession += Server_NewSession;
 
             if (SessionTimeout > 0) server.SessionTimeout = SessionTimeout;
             if (Pipeline != null) server.Pipeline = Pipeline;
 
+            // 内部服务器日志更多是为了方便网络库调试，而网络服务器日志用于应用开发
+            if (SocketLog != null) server.Log = SocketLog;
             server.LogSend = LogSend;
             server.LogReceive = LogReceive;
 
@@ -277,7 +277,6 @@ namespace NewLife.Net
         /// <summary>开始服务</summary>
         public void Start()
         {
-            //if (Active) throw new InvalidOperationException("服务已经开始！");
             if (Active) return;
 
             OnStart();
@@ -305,7 +304,6 @@ namespace NewLife.Net
 
             foreach (var item in Servers)
             {
-                //if (item.Port > 0) WriteLog("开始监听 {0}", item);
                 item.Start();
 
                 // 如果是随机端口，反写回来，并且修改其它服务器的端口
@@ -318,7 +316,6 @@ namespace NewLife.Net
                         if (elm != item && elm.Port == 0) elm.Port = Port;
                     }
                 }
-                /*if (item.Port <= 0)*/
                 WriteLog("开始监听 {0}", item);
             }
 
@@ -329,9 +326,6 @@ namespace NewLife.Net
         /// <param name="reason">关闭原因。便于日志分析</param>
         public void Stop(String reason)
         {
-            //if (!Active) throw new InvalidOperationException("服务没有开始！");
-            //if (!Active) return;
-
             _Timer.TryDispose();
 
             var ss = Servers.Where(e => e.Active).ToArray();
@@ -359,11 +353,8 @@ namespace NewLife.Net
         /// <summary>新会话，对于TCP是新连接，对于UDP是新客户端</summary>
         public event EventHandler<NetSessionEventArgs> NewSession;
 
-        /// <summary>某个会话的数据到达。sender是ISocketSession</summary>
+        /// <summary>某个会话的数据到达。sender是INetSession</summary>
         public event EventHandler<ReceivedEventArgs> Received;
-
-        ///// <summary>消息到达事件</summary>
-        //public event EventHandler<MessageEventArgs> MessageReceived;
 
         /// <summary>接受连接时，对于Udp是收到数据时（同时触发OnReceived）。</summary>
         /// <param name="sender"></param>
@@ -377,7 +368,7 @@ namespace NewLife.Net
             NewSession?.Invoke(sender, new NetSessionEventArgs { Session = ns });
         }
 
-        private Int32 sessionID = 0;
+        private Int32 _sessionID = 0;
         /// <summary>收到连接时，建立会话，并挂接数据接收和错误处理事件</summary>
         /// <param name="session"></param>
         protected virtual INetSession OnNewSession(ISocketSession session)
@@ -390,11 +381,14 @@ namespace NewLife.Net
             // sessionID变大后，可能达到最大值，然后变为-1，再变为0，所以不用担心
             //ns.ID = ++sessionID;
             // 网络会话改为原子操作，避免多线程冲突
-            if (ns is NetSession) (ns as NetSession).ID = Interlocked.Increment(ref sessionID);
+            if (ns is NetSession ns2)
+            {
+                ns2.ID = Interlocked.Increment(ref _sessionID);
+                ns2.Log = SessionLog ?? Log;
+            }
             ns.Host = this;
             ns.Server = session.Server;
             ns.Session = session;
-            if (ns is NetSession ns2) ns2.Log = SessionLog ?? Log;
 
             if (UseSession) AddSession(ns);
 
@@ -482,23 +476,22 @@ namespace NewLife.Net
         {
             if (sessionid == 0) return null;
 
-            if (!Sessions.TryGetValue(sessionid, out var ns)) return null;
-            return ns;
+            return Sessions.TryGetValue(sessionid, out var ns) ? ns : null;
         }
         #endregion
 
         #region 群发
-        /// <summary>异步群发</summary>
-        /// <param name="buffer"></param>
-        /// <returns></returns>
-        public virtual Task<Int32> SendAllAsync(Byte[] buffer)
+        /// <summary>异步群发数据给所有客户端</summary>
+        /// <param name="data"></param>
+        /// <returns>已群发客户端总数</returns>
+        public virtual Task<Int32> SendAllAsync(Packet data)
         {
             if (!UseSession) throw new ArgumentOutOfRangeException(nameof(UseSession), true, "群发需要使用会话集合");
 
             var ts = new List<Task>();
             foreach (var item in Sessions)
             {
-                ts.Add(TaskEx.Run(() => item.Value.Send(buffer)));
+                ts.Add(TaskEx.Run(() => item.Value.Send(data)));
             }
 
             return TaskEx.WhenAll(ts).ContinueWith(t => Sessions.Count);

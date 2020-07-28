@@ -129,10 +129,10 @@ namespace NewLife.Net
 
         #region 发送数据
         /// <summary>发送数据</summary>
-        /// <param name="pk">数据包</param>
-        public virtual INetSession Send(Packet pk)
+        /// <param name="data">数据包</param>
+        public virtual INetSession Send(Packet data)
         {
-            Session.Send(pk);
+            Session.Send(data);
 
             return this;
         }

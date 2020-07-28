@@ -38,8 +38,8 @@ namespace NewLife.Net
 
         #region 收发
         /// <summary>发送数据</summary>
-        /// <param name="pk">数据包</param>
-        INetSession Send(Packet pk);
+        /// <param name="data">数据包</param>
+        INetSession Send(Packet data);
 
         /// <summary>发送数据流</summary>
         /// <param name="stream"></param>
