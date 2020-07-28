@@ -472,7 +472,7 @@ namespace NewLife.Net
         #endregion
 
         #region 消息处理
-        /// <summary>消息管道。收发消息都经过管道处理器</summary>
+        /// <summary>消息管道。收发消息都经过管道处理器，进行协议编码解码</summary>
         /// <remarks>
         /// 1，接收数据解码时，从前向后通过管道处理器；
         /// 2，发送数据编码时，从后向前通过管道处理器；

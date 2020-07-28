@@ -31,7 +31,11 @@ namespace NewLife.Net
         /// <summary>端口</summary>
         Int32 Port { get; set; }
 
-        /// <summary>数据包处理管道</summary>
+        /// <summary>消息管道。收发消息都经过管道处理器，进行协议编码解码</summary>
+        /// <remarks>
+        /// 1，接收数据解码时，从前向后通过管道处理器；
+        /// 2，发送数据编码时，从后向前通过管道处理器；
+        /// </remarks>
         IPipeline Pipeline { get; set; }
 
         /// <summary>是否抛出异常，默认false不抛出。Send/Receive时可能发生异常，该设置决定是直接抛出异常还是通过<see cref="Error"/>事件</summary>

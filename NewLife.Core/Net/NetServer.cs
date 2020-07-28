@@ -26,13 +26,13 @@ namespace NewLife.Net
     /// 
     /// 收到请求<see cref="Server_NewSession"/>后，会建立<see cref="CreateSession"/>会话，并加入到会话集合<see cref="Sessions"/>中，然后启动<see cref="Start"/>会话处理；
     /// 
-    /// 快速用法：
+    /// 标准用法：
     /// 指定端口后直接<see cref="Start"/>，NetServer将同时监听Tcp/Udp和IPv4/IPv6（会检查是否支持）四个端口。
     /// 
-    /// 简单用法：
+    /// 高级用法：
     /// 重载方法<see cref="EnsureCreateServer"/>来创建一个SocketServer并赋值给<see cref="Server"/>属性，<see cref="EnsureCreateServer"/>将会在<see cref="OnStart"/>时首先被调用。
     /// 
-    /// 标准用法：
+    /// 超级用法：
     /// 使用<see cref="AttachServer"/>方法向网络服务器添加Socket服务，其中第一个将作为默认Socket服务<see cref="Server"/>。
     /// 如果Socket服务集合<see cref="Servers"/>为空，将依据地址<see cref="Local"/>、端口<see cref="Port"/>、地址族<see cref="AddressFamily"/>、协议<see cref="ProtocolType"/>创建默认Socket服务。
     /// 如果地址族<see cref="AddressFamily"/>指定为IPv4和IPv6以外的值，将同时创建IPv4和IPv6两个Socket服务；
@@ -91,7 +91,11 @@ namespace NewLife.Net
         /// </remarks>
         public Int32 SessionTimeout { get; set; }
 
-        /// <summary>管道</summary>
+        /// <summary>消息管道。收发消息都经过管道处理器，进行协议编码解码</summary>
+        /// <remarks>
+        /// 1，接收数据解码时，从前向后通过管道处理器；
+        /// 2，发送数据编码时，从后向前通过管道处理器；
+        /// </remarks>
         public IPipeline Pipeline { get; set; }
 
         /// <summary>使用会话集合，允许遍历会话。默认true</summary>
@@ -260,21 +264,13 @@ namespace NewLife.Net
 
         /// <summary>添加处理器</summary>
         /// <typeparam name="THandler"></typeparam>
-        public void Add<THandler>() where THandler : IHandler, new()
-        {
-            if (Pipeline == null) Pipeline = new Pipeline();
-
-            Pipeline.Add(new THandler());
-        }
+        public void Add<THandler>() where THandler : IHandler, new() => GetPipe().Add(new THandler());
 
         /// <summary>添加处理器</summary>
         /// <param name="handler">处理器</param>
-        public void Add(IHandler handler)
-        {
-            if (Pipeline == null) Pipeline = new Pipeline();
+        public void Add(IHandler handler) => GetPipe().Add(handler);
 
-            Pipeline.Add(handler);
-        }
+        private IPipeline GetPipe() => Pipeline ??= new Pipeline();
         #endregion
 
         #region 方法
