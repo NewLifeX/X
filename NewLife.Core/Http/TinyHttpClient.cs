@@ -52,7 +52,7 @@ namespace NewLife.Http
         public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(15);
 
         /// <summary>头部集合</summary>
-        public IDictionary<String, String> Headers { get; set; } = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+        public IDictionary<String, String> Headers { get; set; } = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
 
         private Stream _stream;
         #endregion
@@ -221,7 +221,7 @@ namespace NewLife.Http
             }
 
             // chunk编码
-            if (rs.Count > 0 && Headers["Transfer-Encoding"].EqualIgnoreCase("chunked"))
+            if (rs.Count > 0 && Headers.TryGetValue("Transfer-Encoding", out var s) && s.EqualIgnoreCase("chunked"))
             {
                 rs = await ReadChunkAsync(rs);
             }
@@ -409,7 +409,7 @@ namespace NewLife.Http
             }
 
             // chunk编码
-            if (rs.Count > 0 && Headers["Transfer-Encoding"].EqualIgnoreCase("chunked"))
+            if (rs.Count > 0 && Headers.TryGetValue("Transfer-Encoding", out var s) && s.EqualIgnoreCase("chunked"))
             {
                 rs = ReadChunk(rs);
             }
@@ -522,7 +522,7 @@ namespace NewLife.Http
             if (code >= 400) throw new Exception($"{code} {StatusDescription}");
 
             // 分析头部
-            var hs = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+            var hs = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
             foreach (var item in lines)
             {
                 var p2 = item.IndexOf(':');

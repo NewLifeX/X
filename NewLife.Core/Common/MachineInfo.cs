@@ -419,7 +419,7 @@ namespace NewLife
         {
             if (file.IsNullOrEmpty() || !File.Exists(file)) return null;
 
-            var dic = new NullableDictionary<String, String>();
+            var dic = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
 
             using var reader = new StreamReader(file);
             while (!reader.EndOfStream)

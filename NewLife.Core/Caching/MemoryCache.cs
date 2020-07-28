@@ -310,7 +310,7 @@ namespace NewLife.Caching
         /// <returns></returns>
         public override IDictionary<String, T> GetDictionary<T>(String key)
         {
-            var item = GetOrAddItem(key, k => new NullableDictionary<String, T>());
+            var item = GetOrAddItem(key, k => new ConcurrentDictionary<String, T>());
             return item.Visit() as IDictionary<String, T>;
         }
 

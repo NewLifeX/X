@@ -271,7 +271,7 @@ namespace NewLife.Net
         /// <summary>会话集合。用地址端口作为标识，业务应用自己维持地址端口与业务主键的对应关系。</summary>
         public IDictionary<String, ISocketSession> Sessions => _Sessions;
 
-        private readonly IDictionary<Int32, ISocketSession> _broadcasts = new NullableDictionary<Int32, ISocketSession>();
+        private readonly IDictionary<Int32, ISocketSession> _broadcasts = new Dictionary<Int32, ISocketSession>();
 
         Int32 g_ID = 0;
         /// <summary>创建会话</summary>
@@ -297,16 +297,15 @@ namespace NewLife.Net
             // 需要查找已有会话，已有会话不存在时才创建新会话
             var session = sessions.Get(remoteEP + "");
             // 是否匹配广播端口
-            if (session == null) session = _broadcasts[remoteEP.Port];
-            if (session != null) return session;
+            var port = remoteEP.Port;
+            if (session != null || _broadcasts.TryGetValue(port, out session)) return session;
 
             // 相同远程地址可能同时发来多个数据包，而底层采取多线程方式同时调度，导致创建多个会话
             lock (sessions)
             {
                 // 需要查找已有会话，已有会话不存在时才创建新会话
                 session = sessions.Get(remoteEP + "");
-                if (session == null) session = _broadcasts[remoteEP.Port];
-                if (session != null) return session;
+                if (session != null || _broadcasts.TryGetValue(port, out session)) return session;
 
                 var us = new UdpSession(this, remoteEP)
                 {
@@ -321,7 +320,7 @@ namespace NewLife.Net
                     // 广播地址，接受任何地址响应数据
                     if (Equals(remoteEP.Address, IPAddress.Broadcast))
                     {
-                        _broadcasts[remoteEP.Port] = session;
+                        _broadcasts[port] = session;
                         session.OnDisposed += (s, e) =>
                         {
                             lock (_broadcasts)

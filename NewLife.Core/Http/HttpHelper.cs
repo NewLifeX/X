@@ -107,7 +107,7 @@ namespace NewLife.Http
         public static IDictionary<String, Object> ParseHeader(Packet pk)
         {
             // 客户端收到响应，服务端收到请求
-            var headers = new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
+            var headers = new Dictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
 
             var p = pk.IndexOf(NewLine);
             if (p < 0) return headers;
@@ -140,7 +140,7 @@ namespace NewLife.Http
                 headers["Method"] = ss[0];
 
                 // 构造资源路径
-                var host = headers["Host"] + "";
+                var host = headers.TryGetValue("Host", out var s) ? s : "";
                 var uri = $"http://{host}";
                 //var uri = "{0}://{1}".F(IsSSL ? "https" : "http", host);
                 //if (host.IsNullOrEmpty() || !host.Contains(":"))

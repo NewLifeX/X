@@ -1,7 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using System.Reflection;
-using System.Runtime.Serialization;
-using System.Xml.Serialization;
 using NewLife.Collections;
 using NewLife.Reflection;
 
@@ -116,10 +113,6 @@ namespace System.Collections.Generic
                 {
                     foreach (var pi in target.GetType().GetProperties(true))
                     {
-                        //if (pi.GetIndexParameters().Length > 0) continue;
-                        //if (pi.GetCustomAttribute<IgnoreDataMemberAttribute>(false) != null) continue;
-                        //if (pi.GetCustomAttribute<XmlIgnoreAttribute>() != null) continue;
-
                         dic[pi.Name] = target.GetValue(pi);
                     }
                 }
@@ -158,7 +151,7 @@ namespace System.Collections.Generic
         {
             if (collection == null) return null;
 
-            if (collection is NullableDictionary<TKey, TValue> dic && (comparer != null || dic.Comparer == comparer)) return collection as NullableDictionary<TKey, TValue>;
+            if (collection is NullableDictionary<TKey, TValue> dic && (comparer == null || dic.Comparer == comparer)) return dic;
 
             return new NullableDictionary<TKey, TValue>(collection, comparer);
         }
