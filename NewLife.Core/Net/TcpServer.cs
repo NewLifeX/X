@@ -53,6 +53,9 @@ namespace NewLife.Net
         /// <summary>最大并行接收连接数。默认CPU*1.6</summary>
         public Int32 MaxAsync { get; set; }
 
+        /// <summary>不延迟直接发送。Tcp为了合并小包而设计，客户端默认false，服务端默认true</summary>
+        public Boolean NoDelay { get; set; } = true;
+
         /// <summary>启用Http，数据处理时截去请求响应头，默认false</summary>
         public Boolean EnableHttp { get; set; }
 
@@ -281,7 +284,7 @@ namespace NewLife.Net
             {
                 // 服务端不支持掉线重连
                 AutoReconnect = 0,
-                NoDelay = true,
+                NoDelay = NoDelay,
                 Log = Log,
                 LogSend = LogSend,
                 LogReceive = LogReceive,
@@ -290,7 +293,7 @@ namespace NewLife.Net
             };
 
             // 为了降低延迟，服务端不要合并小包
-            client.NoDelay = true;
+            client.NoDelay = NoDelay;
 
             return session;
         }
