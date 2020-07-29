@@ -99,6 +99,9 @@ namespace NewLife.Net
         /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）</param>
         protected override void Dispose(Boolean disposing)
         {
+            var ns = (this as INetSession).Host;
+            using var span = ns?.Tracer?.NewSpan($"net:{ns.Name}:Disconnect");
+
             OnDisconnected();
 
             if (LogSession && Log != null && Log.Enable) WriteLog("会话结束 {0}", Session);
