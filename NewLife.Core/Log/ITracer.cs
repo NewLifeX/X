@@ -133,8 +133,8 @@ namespace NewLife.Log
                 if (bd.Total > 0)
                 {
                     var ms = bd.EndTime - bd.StartTime;
-                    var speed = ms == 0 ? 0 : bd.Total * 1000 * 60 / ms;
-                    WriteLog("Tracer[{0}] Total={1:n0} Errors={2:n0} Speed={3:n0}cpm Cost={4:n0}ms MaxCost={5:n0}ms MinCost={6:n0}ms", bd.Name, bd.Total, bd.Errors, speed, bd.Cost / bd.Total, bd.MaxCost, bd.MinCost);
+                    var speed = ms == 0 ? 0 : bd.Total * 1000d / ms;
+                    WriteLog("Tracer[{0}] Total={1:n0} Errors={2:n0} Throughput={3:n2}tps Cost={4:n0}ms MaxCost={5:n0}ms MinCost={6:n0}ms", bd.Name, bd.Total, bd.Errors, speed, bd.Cost / bd.Total, bd.MaxCost, bd.MinCost);
 
 #if DEBUG
                     foreach (var span in bd.Samples)

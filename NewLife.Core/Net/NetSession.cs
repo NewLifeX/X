@@ -57,6 +57,9 @@ namespace NewLife.Net
         {
             if (LogSession && Log != null && Log.Enable) WriteLog("新会话 {0}", Session);
 
+            var ns = (this as INetSession).Host;
+            using var span = ns?.Tracer?.NewSpan($"net:{ns.Name}:Connect");
+
             OnConnected();
 
             var ss = Session;
@@ -132,6 +135,9 @@ namespace NewLife.Net
         /// <param name="data">数据包</param>
         public virtual INetSession Send(Packet data)
         {
+            var ns = (this as INetSession).Host;
+            using var span = ns?.Tracer?.NewSpan($"net:{ns.Name}:Send");
+
             Session.Send(data);
 
             return this;
@@ -142,6 +148,9 @@ namespace NewLife.Net
         /// <returns></returns>
         public virtual INetSession Send(Stream stream)
         {
+            var ns = (this as INetSession).Host;
+            using var span = ns?.Tracer?.NewSpan($"net:{ns.Name}:Send");
+
             Session.Send(stream);
 
             return this;
@@ -152,6 +161,10 @@ namespace NewLife.Net
         /// <param name="encoding"></param>
         public virtual INetSession Send(String msg, Encoding encoding = null)
         {
+            var ns = (this as INetSession).Host;
+            using var span = ns?.Tracer?.NewSpan($"net:{ns.Name}:Send");
+            if (span != null) span.Tag = msg?.Cut(1024);
+
             Session.Send(msg, encoding);
 
             return this;
