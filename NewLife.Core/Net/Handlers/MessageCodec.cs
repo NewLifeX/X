@@ -8,7 +8,7 @@ using NewLife.Model;
 
 namespace NewLife.Net.Handlers
 {
-    /// <summary>消息封包</summary>
+    /// <summary>消息封包编码器</summary>
     public class MessageCodec<T> : Handler
     {
         /// <summary>消息队列。用于匹配请求响应包</summary>
@@ -92,15 +92,16 @@ namespace NewLife.Net.Handlers
                     message = msg;
 
                 // 后续处理器，得到最终结果，匹配请求队列
-                var rs = base.Read(context, message);
+                //var rs = base.Read(context, message);
+                var rs = message;
 
                 if (msg is IMessage msg3)
                 {
                     // 匹配
                     if (msg3.Reply)
                     {
-                        //!!! 处理结果的Packet需要拷贝一份，否则交给另一个线程使用会有冲突
-                        if (rs is IMessage msg4 && msg4.Payload != null && msg4.Payload == msg3.Payload) msg4.Payload = msg4.Payload.Clone();
+                        ////!!! 处理结果的Packet需要拷贝一份，否则交给另一个线程使用会有冲突
+                        //if (rs is IMessage msg4 && msg4.Payload != null && msg4.Payload == msg3.Payload) msg4.Payload = msg4.Payload.Clone();
 
                         Queue.Match(context.Owner, msg, rs, IsMatch);
                     }
@@ -142,7 +143,6 @@ namespace NewLife.Net.Handlers
         {
             if (offset < 0) return pk.Total - pk.Offset;
 
-            var p = pk.Offset;
             // 数据不够，连长度都读取不了
             if (offset >= pk.Total) return 0;
 
@@ -154,6 +154,8 @@ namespace NewLife.Net.Handlers
                     var ms = pk.GetStream();
                     if (offset > 0) ms.Seek(offset, SeekOrigin.Current);
                     len = ms.ReadEncodedInt();
+
+                    // 计算变长的头部长度
                     len += (Int32)(ms.Position - offset);
                     break;
                 case 1:

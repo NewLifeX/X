@@ -103,6 +103,10 @@
     <Compile Remove="Properties\AssemblyInfo.cs" />
     <Compile Remove="Reflection\EmitHelper.cs" />
     <Compile Remove="Reflection\EmitReflect.cs" />
+    <Compile Remove="Serialization\BinaryCodec.cs" />
+    <Compile Remove="Serialization\BinaryCodec2.cs" />
+    <Compile Remove="Serialization\JsonCodec.cs" />
+    <Compile Remove="Serialization\JsonCodec2.cs" />
     <Compile Remove="Web\OAuthClient.cs" />
     <Compile Remove="Web\OAuthConfig.cs" />
     <Compile Remove="Web\OAuthServer.cs" />

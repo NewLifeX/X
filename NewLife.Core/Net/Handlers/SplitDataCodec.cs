@@ -43,11 +43,11 @@ namespace NewLife.Net.Handlers
             foreach (var msg in list)
             {
                 // 把数据发送给后续处理器
-                var rs = base.Read(context, msg);
+                //var rs = base.Read(context, msg);
 
                 // 匹配输入回调，让上层事件收到分包信息
                 //context.FireRead(rs);
-                base.Read(context, rs);
+                base.Read(context, msg);
             }
 
             return null;

@@ -84,16 +84,84 @@ namespace XUnitTest.Http
 
         [Theory(DisplayName = "读取编码")]
         [InlineData("GET /123.html HTTP/1.1\r\nHost: www.newlifex.com\r\n\r\n", null)]
-        [InlineData("POST /123.ashx HTTP/1.1\r\nHost: www.newlifex.com\r\nContent-Length:9\r\n\r\ncode=abcd", null)]
-        [InlineData("POST /123.ashx HTTP/1.1\r\nHost: www.newlifex.com\r\nContent-Length:9\r\n\r\n", "code=abcd")]
         public void ReadCodec(String http, String http2)
         {
             var pk = new Packet(http.GetBytes());
             var pk2 = new Packet(http2.GetBytes());
 
-            //var msg = new HttpMessage();
-            //var rs = msg.Read(pk);
-            //Assert.True(rs);
+            var context = new MyHandlerContext
+            {
+                Owner = new HandlerContext()
+            };
+
+            var codec = new HttpCodec();
+            var rm = codec.Read(context, pk);
+            Assert.NotNull(rm);
+            if (pk2.Total > 0) rm = codec.Read(context, pk2);
+            Assert.NotNull(rm);
+
+            var context2 = new MyHandlerContext
+            {
+                Owner = new HandlerContext(),
+                AllowParseHeader = true,
+            };
+
+            var codec2 = new HttpCodec { AllowParseHeader = true };
+            var rm2 = codec2.Read(context2, pk);
+            Assert.NotNull(rm2);
+            if (pk2.Total > 0) rm2 = codec2.Read(context2, pk2);
+            Assert.NotNull(rm2);
+
+            var rs = context2.Result;
+            Assert.NotNull(rs);
+
+            var str = rs.ToPacket().ToStr();
+            Assert.Equal(http + http2, str);
+        }
+
+        [Theory(DisplayName = "读取编码")]
+        [InlineData("POST /123.ashx HTTP/1.1\r\nHost: www.newlifex.com\r\nContent-Length:9\r\n\r\ncode=abcd", null)]
+        public void ReadCodec2(String http, String http2)
+        {
+            var pk = new Packet(http.GetBytes());
+            var pk2 = new Packet(http2.GetBytes());
+
+            var context = new MyHandlerContext
+            {
+                Owner = new HandlerContext()
+            };
+
+            var codec = new HttpCodec();
+            var rm = codec.Read(context, pk);
+            Assert.Null(rm);
+            if (pk2.Total > 0) rm = codec.Read(context, pk2);
+            Assert.Null(rm);
+
+            var context2 = new MyHandlerContext
+            {
+                Owner = new HandlerContext(),
+                AllowParseHeader = true,
+            };
+
+            var codec2 = new HttpCodec { AllowParseHeader = true };
+            var rm2 = codec2.Read(context2, pk);
+            Assert.NotNull(rm2);
+            if (pk2.Total > 0) rm2 = codec2.Read(context2, pk2);
+            Assert.NotNull(rm2);
+
+            var rs = context2.Result;
+            Assert.NotNull(rs);
+
+            var str = rs.ToPacket().ToStr();
+            Assert.Equal(http + http2, str);
+        }
+
+        [Theory(DisplayName = "读取编码")]
+        [InlineData("POST /123.ashx HTTP/1.1\r\nHost: www.newlifex.com\r\nContent-Length:9\r\n\r\n", "code=abcd")]
+        public void ReadCodec3(String http, String http2)
+        {
+            var pk = new Packet(http.GetBytes());
+            var pk2 = new Packet(http2.GetBytes());
 
             var context = new MyHandlerContext
             {
@@ -116,7 +184,7 @@ namespace XUnitTest.Http
             var rm2 = codec2.Read(context2, pk);
             Assert.Null(rm2);
             if (pk2.Total > 0) rm2 = codec2.Read(context2, pk2);
-            Assert.Null(rm2);
+            Assert.NotNull(rm2);
 
             var rs = context2.Result;
             Assert.NotNull(rs);
