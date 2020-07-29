@@ -45,17 +45,6 @@ namespace Test
         {
             //Environment.SetEnvironmentVariable("DOTNET_SYSTEM_GLOBALIZATION_INVARIANT", "1");
 
-            //MachineInfo.RegisterAsync();
-            //TestMysql();
-            //XTrace.Log = new NetworkLog();
-
-            //DSAXML2PEM();
-            //DSAPublicPEM2XML();
-
-            //DSAPrivatePEM2XML();
-
-            Test15();
-
             XTrace.UseConsole();
 #if DEBUG
             XTrace.Debug = true;
@@ -68,9 +57,9 @@ namespace Test
                 try
                 {
 #endif
-                //Test1();
-                //XMLConvertToPEM();
-                //ExportPublicKeyToPEMFormat();
+                    Test3();
+                    //XMLConvertToPEM();
+                    //ExportPublicKeyToPEMFormat();
 #if !DEBUG
                 }
                 catch (Exception ex)
