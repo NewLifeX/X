@@ -90,20 +90,14 @@ namespace XUnitTest.Remoting
         [Fact(DisplayName = "异常请求")]
         public async void ErrorTest()
         {
-            try
-            {
-                var msg = await _Client.InvokeAsync<Object>("api/info3");
-            }
-            catch (Exception ex)
-            {
-                var aex = ex as ApiException;
-                Assert.NotNull(aex);
-                Assert.Equal(404, aex.Code);
-                Assert.Equal("无法找到名为[api/info3]的服务！", ex.Message);
+            var ex = await Assert.ThrowsAsync<ApiException>(() => _Client.InvokeAsync<Object>("api/info3"));
 
-                var uri = new NetUri(_Client.Servers[0]);
-                Assert.Equal(uri + "/api/info3", ex.Source);
-            }
+            Assert.NotNull(ex);
+            Assert.Equal(404, ex.Code);
+            Assert.Equal("无法找到名为[api/info3]的服务！", ex.Message);
+
+            var uri = new NetUri(_Client.Servers[0]);
+            Assert.Equal(uri + "/api/info3", ex.Source);
         }
 
         [Theory(DisplayName = "令牌测试")]

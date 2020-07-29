@@ -366,16 +366,11 @@ namespace XUnitTest.Remoting
             //var str = await msg.Content.ReadAsStringAsync();
             //Assert.Equal("\"无法找到名为[api/info3]的服务！\"", str);
 
-            try
-            {
-                var dic = await _Client.GetAsync<Object>("api/info3");
-            }
-            catch (ApiException ex)
-            {
-                Assert.Equal(404, ex.Code);
-                Assert.Equal("无法找到名为[api/info3]的服务！", ex.Message);
-                //Assert.Equal(_Client.BaseAddress + "api/info3", ex.Source);
-            }
+            var ex = await Assert.ThrowsAsync<ApiException>(() => _Client.GetAsync<Object>("api/info3"));
+
+            Assert.Equal(404, ex.Code);
+            Assert.Equal("无法找到名为[api/info3]的服务！", ex.Message);
+            //Assert.Equal(_Client.BaseAddress + "api/info3", ex.Source);
         }
 
         [Fact(DisplayName = "上传数据")]
