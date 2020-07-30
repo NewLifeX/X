@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
@@ -114,13 +115,7 @@ namespace NewLife.Net
             var sock = Client;
             if (sock == null || !sock.IsBound)
             {
-                // 根据目标地址适配本地IPv4/IPv6
-                if (uri != null && !uri.Address.IsAny())
-                {
-                    Local.Address = Local.Address.GetRightAny(uri.Address.AddressFamily);
-                }
-
-                sock = Client = NetHelper.CreateTcp(Local.EndPoint.Address.IsIPv4());
+                sock = Client = NetHelper.CreateTcp(Local.Address.IsIPv4());
                 //sock.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, true);
                 if (NoDelay) sock.NoDelay = true;
                 if (timeout > 0)

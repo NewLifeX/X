@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -114,6 +115,37 @@ namespace NewLife.Net
                     tc.Log = Log;
 
                     _RecvCount = 0;
+
+                    var uri = Remote;
+                    var remote = uri?.Address;
+                    var local = Local.Address;
+                    // 本地和远程协议栈不一致时需要配对
+                    if (remote != null && !remote.IsAny() && local.AddressFamily != remote.AddressFamily)
+                    {
+                        if (remote.AddressFamily == AddressFamily.InterNetwork)
+                        {
+                            if (local == IPAddress.IPv6Any)
+                                local = IPAddress.Any;
+                            else if (local == IPAddress.IPv6Loopback)
+                                local = IPAddress.Loopback;
+                            else
+                                remote = uri.GetAddresses().FirstOrDefault(e => e.AddressFamily == AddressFamily.InterNetworkV6);
+                        }
+                        else if (remote.AddressFamily == AddressFamily.InterNetworkV6)
+                        {
+                            if (local == IPAddress.Any)
+                                local = IPAddress.IPv6Any;
+                            else if (local == IPAddress.Loopback)
+                                local = IPAddress.IPv6Loopback;
+                            else
+                                remote = uri.GetAddresses().FirstOrDefault(e => e.AddressFamily == AddressFamily.InterNetworkV6);
+                        }
+
+                        if (remote == null) throw new ArgumentOutOfRangeException(nameof(Remote), $"在{uri}中找不到适配本地{local}的可用地址！");
+                        Local.Address = local;
+                        Remote.Address = remote;
+                    }
+
                     var rs = OnOpen();
                     if (!rs) return false;
 

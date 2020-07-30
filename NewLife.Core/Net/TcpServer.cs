@@ -122,7 +122,8 @@ namespace NewLife.Net
             // 在我（大石头）的开发机器上，实际上这里的最大值只能是200，大于200跟200一个样
             //Server.Start();
             sock.Bind(Local.EndPoint);
-            sock.Listen(Int32.MaxValue);
+            //sock.Listen(Int32.MaxValue);
+            sock.Listen(256);
 
             if (Runtime.Windows)
             {

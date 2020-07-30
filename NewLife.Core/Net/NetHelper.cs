@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using System.Security.Authentication;
 using NewLife;
 using NewLife.Collections;
 using NewLife.IP;
@@ -544,15 +545,10 @@ namespace NewLife
             {
                 NetType.Tcp => new TcpSession { Remote = remote },
                 NetType.Udp => new UdpServer { Remote = remote },
-                //case NetType.Http:
-                //    var http = new HttpClient { Remote = remote };
-                //    //http.IsSSL = remote.Protocol.EqualIgnoreCase("https");
-                //    return http;
-                //case NetType.WebSocket:
-                //    var ws = new HttpClient { Remote = remote };
-                //    //ws.IsSSL = remote.Protocol.EqualIgnoreCase("https");
-                //    ws.IsWebSocket = true;
-                //    return ws;
+#if !NET4
+                NetType.Http => new TcpSession { Remote = remote, SslProtocol = remote.Port == 443 ? SslProtocols.Tls12 : SslProtocols.None },
+                NetType.WebSocket => new TcpSession { Remote = remote, SslProtocol = remote.Port == 443 ? SslProtocols.Tls12 : SslProtocols.None },
+#endif
                 _ => throw new NotSupportedException($"不支持{remote.Type}协议"),
             };
         }
