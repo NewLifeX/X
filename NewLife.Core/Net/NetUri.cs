@@ -202,7 +202,7 @@ namespace NewLife.Net
 
         /// <summary>获取该域名下所有IP地址</summary>
         /// <returns></returns>
-        public IPAddress[] GetAddresses() => ParseAddress(Host);
+        public IPAddress[] GetAddresses() => ParseAddress(Host) ?? new[] { Address };
         #endregion
 
         #region 辅助

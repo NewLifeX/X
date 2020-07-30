@@ -138,7 +138,7 @@ namespace NewLife.Net
                             else if (local == IPAddress.Loopback)
                                 local = IPAddress.IPv6Loopback;
                             else
-                                remote = uri.GetAddresses().FirstOrDefault(e => e.AddressFamily == AddressFamily.InterNetworkV6);
+                                remote = uri.GetAddresses().FirstOrDefault(e => e.AddressFamily == AddressFamily.InterNetwork);
                         }
 
                         if (remote == null) throw new ArgumentOutOfRangeException(nameof(Remote), $"在{uri}中找不到适配本地{local}的可用地址！");
