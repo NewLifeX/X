@@ -223,11 +223,7 @@ namespace NewLife.Net
         #region 辅助
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override String ToString()
-        {
-            var host = (this as INetSession).Host;
-            return String.Format("{0}[{1}] {2}", host == null ? "" : host.Name, ID, Session);
-        }
+        public override String ToString() => $"{ (this as INetSession).Host?.Name}[{ID}] {Session}";
         #endregion
     }
 }

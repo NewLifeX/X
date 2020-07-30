@@ -54,10 +54,11 @@ namespace NewLife.Net
         public Boolean Add(ISocketSession session)
         {
             var key = session.Remote.EndPoint + "";
-            if (_dic.ContainsKey(key)) return false;
+            //if (_dic.ContainsKey(key)) return false;
+
+            if (!_dic.TryAdd(key, session)) return false;
 
             session.OnDisposed += (s, e) => { _dic.Remove((s as ISocketSession).Remote.EndPoint + ""); };
-            _dic.TryAdd(key, session);
 
             return true;
         }

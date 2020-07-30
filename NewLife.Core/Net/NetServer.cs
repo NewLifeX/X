@@ -448,12 +448,9 @@ namespace NewLife.Net
         protected virtual void AddSession(INetSession session)
         {
             if (session.Host == null) session.Host = this;
-            session.OnDisposed += (s, e) =>
-            {
-                var id = (s as INetSession).ID;
-                if (id > 0) _Sessions.Remove(id);
-            };
-            _Sessions.TryAdd(session.ID, session);
+
+            if (_Sessions.TryAdd(session.ID, session))
+                session.OnDisposed += (s, e) => _Sessions.Remove((s as INetSession).ID);
         }
 
         /// <summary>创建会话</summary>
