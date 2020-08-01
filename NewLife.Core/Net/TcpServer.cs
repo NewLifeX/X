@@ -123,7 +123,7 @@ namespace NewLife.Net
             //Server.Start();
             sock.Bind(Local.EndPoint);
             //sock.Listen(Int32.MaxValue);
-            sock.Listen(256);
+            sock.Listen(65535);
 
             if (Runtime.Windows)
             {
