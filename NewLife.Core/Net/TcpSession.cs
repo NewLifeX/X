@@ -397,7 +397,11 @@ namespace NewLife.Net
 
             WriteLog("Reconnect {0}", this);
 
-            Open();
+            try
+            {
+                Open();
+            }
+            catch { }
         }
         #endregion
 
