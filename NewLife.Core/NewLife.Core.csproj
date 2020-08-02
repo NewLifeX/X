@@ -7,9 +7,9 @@
     <Description>算法、日志、网络、RPC、序列化、缓存、线程池</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2020 NewLife</Copyright>
-    <Version>8.8.2020.0730-rc6</Version>
-    <FileVersion>8.8.2020.0730</FileVersion>
-    <AssemblyVersion>8.8.*</AssemblyVersion>
+    <Version>8.9.2020.0802</Version>
+    <FileVersion>8.9.2020.0802</FileVersion>
+    <AssemblyVersion>8.9.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <OutputPath>..\..\Bin</OutputPath>
     <DocumentationFile>$(OutputPath)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
@@ -27,7 +27,7 @@
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
-    <PackageReleaseNotes>设计APM核心架构;优化分布式锁</PackageReleaseNotes>
+    <PackageReleaseNotes>网络库优化压测支持404万长连接；APM性能跟踪优化；RPC支持下行消息</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
