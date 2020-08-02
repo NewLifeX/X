@@ -345,6 +345,22 @@ namespace NewLife.Remoting
         }
         #endregion
 
+        #region 异步接收
+        /// <summary>客户端收到服务端主动下发消息</summary>
+        /// <param name="message"></param>
+        protected virtual void OnReceive(IMessage message) { }
+
+        private void Client_Received(Object sender, ReceivedEventArgs e)
+        {
+            LastActive = DateTime.Now;
+
+            // Api解码消息得到Action和参数
+            if (!(e.Message is IMessage msg) || msg.Reply) return;
+
+            OnReceive(msg);
+        }
+        #endregion
+
         #region 登录
         /// <summary>新会话。客户端每次连接或断线重连后，可用InvokeWithClientAsync做登录</summary>
         /// <param name="client">会话</param>
@@ -382,6 +398,7 @@ namespace NewLife.Remoting
             client.Add(GetMessageCodec());
 
             client.Opened += (s, e) => OnNewSession(s as ISocketClient);
+            client.Received += Client_Received;
 
             return client;
         }

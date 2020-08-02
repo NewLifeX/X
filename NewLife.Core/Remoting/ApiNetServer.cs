@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using NewLife.Http;
+using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Net;
 using NewLife.Reflection;
@@ -145,5 +147,45 @@ namespace NewLife.Remoting
                 if (rs != null && Session != null && !Session.Disposed) Session?.SendMessage(rs);
             }
         }
+
+        /// <summary>单向远程调用，无需等待返回</summary>
+        /// <param name="action">服务操作</param>
+        /// <param name="args">参数</param>
+        /// <param name="flag">标识</param>
+        /// <returns></returns>
+        public Int32 InvokeOneWay(String action, Object args = null, Byte flag = 0)
+        {
+            var span = Host.Tracer?.NewSpan("rpc:" + action);
+            args = span.Attach(args);
+
+            // 编码请求
+            var msg = Host.Host.Encoder.CreateRequest(action, args);
+
+            if (msg is DefaultMessage dm)
+            {
+                dm.OneWay = true;
+                if (flag > 0) dm.Flag = flag;
+            }
+
+            try
+            {
+                return Session.SendMessage(msg);
+            }
+            catch (Exception ex)
+            {
+                // 跟踪异常
+                span?.SetError(ex, args);
+
+                throw;
+            }
+            finally
+            {
+                span?.Dispose();
+            }
+        }
+
+        //async Task<IMessage> IApiSession.SendAsync(IMessage msg) => await Session.SendMessageAsync(msg).ConfigureAwait(false) as IMessage;
+
+        //Boolean IApiSession.Send(IMessage msg) => Session.SendMessage(msg);
     }
 }
