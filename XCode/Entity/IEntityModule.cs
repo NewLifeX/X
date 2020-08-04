@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using NewLife;
+using NewLife.Reflection;
 using XCode.Configuration;
 
 namespace XCode
@@ -76,7 +77,7 @@ namespace XCode
             var type = EntityType;
             if (type != null && !module.Init(type)) return;
 
-            lock (Modules)
+            lock (this)
             {
                 var list = new List<IEntityModule>(Modules)
                 {
@@ -227,19 +228,42 @@ namespace XCode
             return false;
         }
 
-        private static readonly ConcurrentDictionary<Type, ICollection<FieldItem>> _fieldNames = new ConcurrentDictionary<Type, ICollection<FieldItem>>();
+        /// <summary>如果是默认值则覆盖，无视脏数据，此时很可能是新增</summary>
+        /// <param name="fields"></param>
+        /// <param name="entity"></param>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        /// <returns>返回是否成功设置了数据</returns>
+        protected virtual Boolean SetItem(ICollection<FieldItem> fields, IEntity entity, String name, Object value)
+        {
+            // 没有这个字段，就不想了
+            var fi = fields.FirstOrDefault(e => e.Name.EqualIgnoreCase(name));
+            if (fi == null) return false;
+
+            // 如果是默认值则覆盖，无视脏数据，此时很可能是新增
+            if (fi.Type.IsInt())
+            {
+                if (entity[name].ToLong() != 0) return false;
+            }
+            else if (fi.Type == typeof(String))
+            {
+                if (entity[name] is String str && !str.IsNullOrEmpty()) return false;
+            }
+            else if (fi.Type == typeof(DateTime))
+            {
+                if (entity[name] is DateTime dt && dt.Year > 2000) return false;
+            }
+
+            return entity.SetItem(name, value);
+        }
+
+        private static readonly ConcurrentDictionary<Type, FieldItem[]> _fieldNames = new ConcurrentDictionary<Type, FieldItem[]>();
         /// <summary>获取实体类的字段名。带缓存</summary>
         /// <param name="entityType"></param>
         /// <returns></returns>
-        protected static ICollection<FieldItem> GetFields(Type entityType)
+        protected static FieldItem[] GetFields(Type entityType)
         {
-            return _fieldNames.GetOrAdd(entityType, t =>
-            {
-                var fact = t.AsFactory();
-                if (fact == null) return null;
-
-                return new HashSet<FieldItem>(fact.Fields);
-            });
+            return _fieldNames.GetOrAdd(entityType, t => t.AsFactory().Fields);
         }
         #endregion
     }
