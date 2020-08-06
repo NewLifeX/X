@@ -534,7 +534,9 @@ namespace System
 
             var str = new String(cs);
 
-            if (value.Kind == DateTimeKind.Utc) str += " UTC";
+            // 此格式不受其它工具识别只存不包含时区的格式
+            // 取出后，业务上存的是utc取出来再当utc即可
+            //if (value.Kind == DateTimeKind.Utc) str += " UTC";
 
             return str;
         }
