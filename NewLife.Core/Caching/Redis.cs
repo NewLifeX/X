@@ -46,6 +46,9 @@ namespace NewLife.Caching
         /// <summary>性能计数器</summary>
         public PerfCounter Counter { get; set; }
 
+        /// <summary>性能跟踪器。仅记录read/write，形成调用链，key在tag中，没有记录异常。高速海量操作时不建议开启</summary>
+        public ITracer Tracer { get; set; }
+
         private IDictionary<String, String> _Info;
         /// <summary>服务器信息</summary>
         public IDictionary<String, String> Info => _Info ??= GetInfo();
@@ -173,6 +176,9 @@ namespace NewLife.Caching
         /// <returns></returns>
         public virtual TResult Execute<TResult>(String key, Func<RedisClient, TResult> func, Boolean write = false)
         {
+            using var span = Tracer?.NewSpan($"redis:{(write ? "write" : "read")}");
+            if (span != null) span.Tag = key;
+
             // 写入或完全管道模式时，才处理管道操作
             if (write || FullPipeline)
             {
