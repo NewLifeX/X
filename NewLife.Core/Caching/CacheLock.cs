@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Threading;
-using NewLife.Log;
-using NewLife.Threading;
 
 namespace NewLife.Caching
 {
@@ -22,7 +20,7 @@ namespace NewLife.Caching
             if (key.IsNullOrEmpty()) throw new ArgumentNullException(nameof(key));
 
             Client = client;
-            Key = "lock:" + key;
+            Key = key;
         }
 
         /// <summary>申请锁</summary>
