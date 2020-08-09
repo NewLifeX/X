@@ -770,7 +770,7 @@ namespace NewLife.Reflection
             {
                 if (XTrace.Log.Level <= LogLevel.Debug)
                 {
-                    XTrace.WriteLine("asm.GetTypes 出错：{0}", asm.Location);
+                    XTrace.WriteLine("asm.GetTypes({1}) 出错：{0}", asm.Location, baseType.FullName);
                     XTrace.WriteException(ex);
                 }
                 yield break;

@@ -47,7 +47,7 @@ namespace NewLife.Caching
                 if (dt <= now)
                 {
 #if DEBUG
-                    XTrace.WriteLine("[{0}]抢超期死锁，{1}=>{2}", Key, dt, expire);
+                    Log.XTrace.WriteLine("[{0}]抢超期死锁，{1}=>{2}", Key, dt, expire);
 #endif
                     // 开抢死锁。所有竞争者都会修改该锁的时间戳，但是只有一个能拿到旧的超时的值
                     expire = now.AddMilliseconds(msTimeout);

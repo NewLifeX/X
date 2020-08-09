@@ -22,16 +22,6 @@ using XCode;
 using XCode.Code;
 using System.Reflection;
 using System.Security.Cryptography;
-using Org.BouncyCastle.Security;
-using Org.BouncyCastle.OpenSsl;
-using Org.BouncyCastle.Crypto.Parameters;
-using System.Security.Cryptography;
-using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.OpenSsl;
-using Org.BouncyCastle.Security;
-using NewLife.Web;
-using NewLife.Xml;
-using System.Text;
 
 #if !NET4
 using TaskEx = System.Threading.Tasks.Task;
@@ -49,6 +39,13 @@ namespace Test
 #if DEBUG
             XTrace.Debug = true;
             XTrace.Log.Level = LogLevel.All;
+
+            var set = NewLife.Setting.Current;
+            set.Debug = true;
+            set.LogLevel = LogLevel.All;
+
+            var set2 = XCode.Setting.Current;
+            set2.Debug = true;
 #endif
             while (true)
             {
@@ -57,7 +54,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test3();
+                    Test7();
                     //XMLConvertToPEM();
                     //ExportPublicKeyToPEMFormat();
 #if !DEBUG
@@ -671,29 +668,29 @@ namespace Test
             Console.WriteLine(result);
         }
 
-        /// <summary>
-        /// 私钥XML2PEM
-        /// </summary>
-        private static void XMLConvertToPEM()//XML格式密钥转PEM
-        {
-            var rsa2 = new RSACryptoServiceProvider();
-            using (var sr = new StreamReader("D:\\keys\\private.key"))
-            {
-                rsa2.FromXmlString(sr.ReadToEnd());
-            }
-            var p = rsa2.ExportParameters(true);
+        ///// <summary>
+        ///// 私钥XML2PEM
+        ///// </summary>
+        //private static void XMLConvertToPEM()//XML格式密钥转PEM
+        //{
+        //    var rsa2 = new RSACryptoServiceProvider();
+        //    using (var sr = new StreamReader("D:\\keys\\private.key"))
+        //    {
+        //        rsa2.FromXmlString(sr.ReadToEnd());
+        //    }
+        //    var p = rsa2.ExportParameters(true);
 
-            var key = new RsaPrivateCrtKeyParameters(
-                new Org.BouncyCastle.Math.BigInteger(1, p.Modulus), new Org.BouncyCastle.Math.BigInteger(1, p.Exponent), new Org.BouncyCastle.Math.BigInteger(1, p.D),
-                new Org.BouncyCastle.Math.BigInteger(1, p.P), new Org.BouncyCastle.Math.BigInteger(1, p.Q), new Org.BouncyCastle.Math.BigInteger(1, p.DP), new Org.BouncyCastle.Math.BigInteger(1, p.DQ),
-                new Org.BouncyCastle.Math.BigInteger(1, p.InverseQ));
+        //    var key = new RsaPrivateCrtKeyParameters(
+        //        new Org.BouncyCastle.Math.BigInteger(1, p.Modulus), new Org.BouncyCastle.Math.BigInteger(1, p.Exponent), new Org.BouncyCastle.Math.BigInteger(1, p.D),
+        //        new Org.BouncyCastle.Math.BigInteger(1, p.P), new Org.BouncyCastle.Math.BigInteger(1, p.Q), new Org.BouncyCastle.Math.BigInteger(1, p.DP), new Org.BouncyCastle.Math.BigInteger(1, p.DQ),
+        //        new Org.BouncyCastle.Math.BigInteger(1, p.InverseQ));
 
-            using (var sw = new StreamWriter("D:\\keys\\PrivateKey.pem"))
-            {
-                var pemWriter = new PemWriter(sw);
-                pemWriter.WriteObject(key);
-            }
-        }
+        //    using (var sw = new StreamWriter("D:\\keys\\PrivateKey.pem"))
+        //    {
+        //        var pemWriter = new PemWriter(sw);
+        //        pemWriter.WriteObject(key);
+        //    }
+        //}
 
         private static void ExportPublicKeyToPEMFormat()
         {
@@ -859,120 +856,120 @@ namespace Test
             //}
         }
 
-        // dsa public pem 转 xml
-        private static void DSAPublicPEM2XML()
-        {
-            DSA dsa;
-            using (var rdr = new StreamReader("D:\\dsapub.pem"))
-            {
-                var pr = new PemReader(rdr);
-                var o = pr.ReadObject() as DsaPublicKeyParameters;
-                var prm = new CspParameters(13);
-                prm.Flags = CspProviderFlags.UseMachineKeyStore;
+        //// dsa public pem 转 xml
+        //private static void DSAPublicPEM2XML()
+        //{
+        //    DSA dsa;
+        //    using (var rdr = new StreamReader("D:\\dsapub.pem"))
+        //    {
+        //        var pr = new PemReader(rdr);
+        //        var o = pr.ReadObject() as DsaPublicKeyParameters;
+        //        var prm = new CspParameters(13);
+        //        prm.Flags = CspProviderFlags.UseMachineKeyStore;
 
-                dsa = new DSACryptoServiceProvider(prm);
-                var dp = new DSAParameters
-                {
-                    G = o.Parameters.G.ToByteArrayUnsigned(),
-                    P = o.Parameters.P.ToByteArrayUnsigned(),
-                    Q = o.Parameters.Q.ToByteArrayUnsigned(),
-                    Y = o.Y.ToByteArrayUnsigned()
-                };
+        //        dsa = new DSACryptoServiceProvider(prm);
+        //        var dp = new DSAParameters
+        //        {
+        //            G = o.Parameters.G.ToByteArrayUnsigned(),
+        //            P = o.Parameters.P.ToByteArrayUnsigned(),
+        //            Q = o.Parameters.Q.ToByteArrayUnsigned(),
+        //            Y = o.Y.ToByteArrayUnsigned()
+        //        };
 
-                if (o.Parameters.ValidationParameters != null)
-                {
-                    dp.Counter = o.Parameters.ValidationParameters.Counter;
-                    dp.Seed = o.Parameters.ValidationParameters.GetSeed();
-                }
+        //        if (o.Parameters.ValidationParameters != null)
+        //        {
+        //            dp.Counter = o.Parameters.ValidationParameters.Counter;
+        //            dp.Seed = o.Parameters.ValidationParameters.GetSeed();
+        //        }
 
-                dsa.ImportParameters(dp);
-            }
+        //        dsa.ImportParameters(dp);
+        //    }
 
-            // 写入xml文件
-            using (var fs = new FileStream("D:\\xtoken.pubkey", FileMode.Create, FileAccess.Write))
-            {
-                var sw = new StreamWriter(fs);
+        //    // 写入xml文件
+        //    using (var fs = new FileStream("D:\\xtoken.pubkey", FileMode.Create, FileAccess.Write))
+        //    {
+        //        var sw = new StreamWriter(fs);
 
-                var xml = dsa.ToXmlString(false);
-                sw.Write(xml);
-                sw.Flush();
-                sw.Dispose();
-            }
-        }
+        //        var xml = dsa.ToXmlString(false);
+        //        sw.Write(xml);
+        //        sw.Flush();
+        //        sw.Dispose();
+        //    }
+        //}
 
-        // dsa private pem 转 xml
-        private static void DSAPrivatePEM2XML()
-        {
-            DSA prvDsa;
-            DSA pubDsa;
+        //// dsa private pem 转 xml
+        //private static void DSAPrivatePEM2XML()
+        //{
+        //    DSA prvDsa;
+        //    DSA pubDsa;
 
-            using (var rdr = new StreamReader("D:\\dsaprv.pem"))
-            {
-                var pr = new PemReader(rdr);
-                var opair = pr.ReadObject() as AsymmetricCipherKeyPair;
+        //    using (var rdr = new StreamReader("D:\\dsaprv.pem"))
+        //    {
+        //        var pr = new PemReader(rdr);
+        //        var opair = pr.ReadObject() as AsymmetricCipherKeyPair;
 
-                var prm = new CspParameters(13);
-                prm.Flags = CspProviderFlags.UseMachineKeyStore;
+        //        var prm = new CspParameters(13);
+        //        prm.Flags = CspProviderFlags.UseMachineKeyStore;
 
-                //var prm1 = new CspParameters(13);
-                //prm1.Flags = CspProviderFlags.UseMachineKeyStore;
+        //        //var prm1 = new CspParameters(13);
+        //        //prm1.Flags = CspProviderFlags.UseMachineKeyStore;
 
-                prvDsa = new DSACryptoServiceProvider(prm);
-                pubDsa = new DSACryptoServiceProvider(prm);
+        //        prvDsa = new DSACryptoServiceProvider(prm);
+        //        pubDsa = new DSACryptoServiceProvider(prm);
 
-                // 私钥
-                var prvpara = opair.Private as DsaPrivateKeyParameters;
-                var prvdp = new DSAParameters
-                {
-                    G = prvpara.Parameters.G.ToByteArrayUnsigned(),
-                    P = prvpara.Parameters.P.ToByteArrayUnsigned(),
-                    Q = prvpara.Parameters.Q.ToByteArrayUnsigned(),
-                    X = prvpara.X.ToByteArrayUnsigned()
-                };
-                if (prvpara.Parameters.ValidationParameters != null)
-                {
-                    prvdp.Counter = prvpara.Parameters.ValidationParameters.Counter;
-                    prvdp.Seed = prvpara.Parameters.ValidationParameters.GetSeed();
-                }
-                prvDsa.ImportParameters(prvdp);
+        //        // 私钥
+        //        var prvpara = opair.Private as DsaPrivateKeyParameters;
+        //        var prvdp = new DSAParameters
+        //        {
+        //            G = prvpara.Parameters.G.ToByteArrayUnsigned(),
+        //            P = prvpara.Parameters.P.ToByteArrayUnsigned(),
+        //            Q = prvpara.Parameters.Q.ToByteArrayUnsigned(),
+        //            X = prvpara.X.ToByteArrayUnsigned()
+        //        };
+        //        if (prvpara.Parameters.ValidationParameters != null)
+        //        {
+        //            prvdp.Counter = prvpara.Parameters.ValidationParameters.Counter;
+        //            prvdp.Seed = prvpara.Parameters.ValidationParameters.GetSeed();
+        //        }
+        //        prvDsa.ImportParameters(prvdp);
 
-                // 公钥
-                var pubpara = opair.Public as DsaPublicKeyParameters;
-                var pubdp = new DSAParameters
-                {
-                    G = pubpara.Parameters.G.ToByteArrayUnsigned(),
-                    P = pubpara.Parameters.P.ToByteArrayUnsigned(),
-                    Q = pubpara.Parameters.Q.ToByteArrayUnsigned(),
-                    Y = pubpara.Y.ToByteArrayUnsigned()
-                };
-                if (pubpara.Parameters.ValidationParameters != null)
-                {
-                    pubdp.Counter = pubpara.Parameters.ValidationParameters.Counter;
-                    pubdp.Seed = pubpara.Parameters.ValidationParameters.GetSeed();
-                }
-                pubDsa.ImportParameters(pubdp);
-            }
+        //        // 公钥
+        //        var pubpara = opair.Public as DsaPublicKeyParameters;
+        //        var pubdp = new DSAParameters
+        //        {
+        //            G = pubpara.Parameters.G.ToByteArrayUnsigned(),
+        //            P = pubpara.Parameters.P.ToByteArrayUnsigned(),
+        //            Q = pubpara.Parameters.Q.ToByteArrayUnsigned(),
+        //            Y = pubpara.Y.ToByteArrayUnsigned()
+        //        };
+        //        if (pubpara.Parameters.ValidationParameters != null)
+        //        {
+        //            pubdp.Counter = pubpara.Parameters.ValidationParameters.Counter;
+        //            pubdp.Seed = pubpara.Parameters.ValidationParameters.GetSeed();
+        //        }
+        //        pubDsa.ImportParameters(pubdp);
+        //    }
 
-            // 写入xml文件 private
-            using (var sw = new StreamWriter("D:\\xtoken.prvkey"))
-            {
-                //var sw = new StreamWriter(fs);
+        //    // 写入xml文件 private
+        //    using (var sw = new StreamWriter("D:\\xtoken.prvkey"))
+        //    {
+        //        //var sw = new StreamWriter(fs);
 
-                var xml = prvDsa.ToXmlString(true);
-                sw.Write(xml);
-                sw.Flush();
-                //sw.Dispose();
-            }
-            // 写入xml文件 public
-            using (var fs = new FileStream("D:\\xtoken.pubkey", FileMode.Create, FileAccess.Write))
-            {
-                var sw = new StreamWriter(fs);
-                var xml = pubDsa.ToXmlString(false);
-                sw.Write(xml);
-                sw.Flush();
-                sw.Dispose();
-            }
-        }
+        //        var xml = prvDsa.ToXmlString(true);
+        //        sw.Write(xml);
+        //        sw.Flush();
+        //        //sw.Dispose();
+        //    }
+        //    // 写入xml文件 public
+        //    using (var fs = new FileStream("D:\\xtoken.pubkey", FileMode.Create, FileAccess.Write))
+        //    {
+        //        var sw = new StreamWriter(fs);
+        //        var xml = pubDsa.ToXmlString(false);
+        //        sw.Write(xml);
+        //        sw.Flush();
+        //        sw.Dispose();
+        //    }
+        //}
 
         // 测试加密
         private static void Test15()
