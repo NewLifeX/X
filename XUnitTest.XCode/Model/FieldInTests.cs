@@ -13,7 +13,7 @@ namespace XUnitTest.XCode.Model
         {
             var fi = UserX._.RoleID;
             var exp = fi.In(new[] { 1, 2, 3, 4 });
-            var where = exp.GetString(null);
+            var where = exp.GetString(UserX.Meta.Session, null);
             Assert.Equal("RoleID In(1,2,3,4)", where);
         }
 
@@ -22,7 +22,7 @@ namespace XUnitTest.XCode.Model
         {
             var fi = Log._.Category;
             var exp = fi.In(new[] { "登录", "注册", "同步" });
-            var where = exp.GetString(null);
+            var where = exp.GetString(Log.Meta.Session, null);
             Assert.Equal("Category In('登录','注册','同步')", where);
         }
 
@@ -31,7 +31,7 @@ namespace XUnitTest.XCode.Model
         {
             var fi = Log._.Category;
             var exp = fi.In("登录,注册,同步");
-            var where = exp.GetString(null);
+            var where = exp.GetString(Log.Meta.Session, null);
             Assert.Equal("Category In('登录','注册','同步')", where);
         }
 
@@ -40,7 +40,7 @@ namespace XUnitTest.XCode.Model
         {
             var fi = UserX._.RoleID;
             var exp = fi.NotIn(new[] { 1, 2, 3, 4 });
-            var where = exp.GetString(null);
+            var where = exp.GetString(UserX.Meta.Session, null);
             Assert.Equal("RoleID Not In(1,2,3,4)", where);
         }
 
@@ -49,7 +49,7 @@ namespace XUnitTest.XCode.Model
         {
             var fi = Log._.Category;
             var exp = fi.NotIn(new[] { "登录", "注册", "同步" });
-            var where = exp.GetString(null);
+            var where = exp.GetString(Log.Meta.Session, null);
             Assert.Equal("Category Not In('登录','注册','同步')", where);
         }
 
@@ -58,7 +58,7 @@ namespace XUnitTest.XCode.Model
         {
             var fi = Log._.Category;
             var exp = fi.NotIn("登录,注册,同步");
-            var where = exp.GetString(null);
+            var where = exp.GetString(Log.Meta.Session, null);
             Assert.Equal("Category Not In('登录','注册','同步')", where);
         }
 
@@ -67,7 +67,7 @@ namespace XUnitTest.XCode.Model
         {
             var fi = UserX._.RoleID;
             var exp = fi.In(Role.FindSQLWithKey());
-            var where = exp.GetString(null);
+            var where = exp.GetString(UserX.Meta.Session, null);
             Assert.Equal("RoleID In(Select ID From Role)", where);
         }
 
@@ -76,7 +76,7 @@ namespace XUnitTest.XCode.Model
         {
             var fi = UserX._.RoleID;
             var exp = fi.NotIn(Role.FindSQLWithKey());
-            var where = exp.GetString(null);
+            var where = exp.GetString(UserX.Meta.Session, null);
             Assert.Equal("RoleID Not In(Select ID From Role)", where);
         }
     }

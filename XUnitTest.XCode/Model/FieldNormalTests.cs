@@ -13,7 +13,7 @@ namespace XUnitTest.XCode.Model
         {
             var fi = Log._.Category;
             var exp = fi.Equal("登录");
-            var where = exp.GetString(null);
+            var where = exp.GetString(Log.Meta.Session, null);
             Assert.Equal("Category='登录'", where);
         }
 
@@ -22,7 +22,7 @@ namespace XUnitTest.XCode.Model
         {
             var fi = Log._.Category;
             var exp = fi == "登录";
-            var where = exp.GetString(null);
+            var where = exp.GetString(Log.Meta.Session, null);
             Assert.Equal("Category='登录'", where);
         }
 
@@ -32,7 +32,7 @@ namespace XUnitTest.XCode.Model
             var fi = Log._.Category;
             var exp = fi == "登录";
             var ps = new Dictionary<String, Object>();
-            var where = exp.GetString(ps);
+            var where = exp.GetString(Log.Meta.Session, ps);
             Assert.Equal("Category=@Category", where);
             Assert.Single(ps);
             Assert.True(ps.ContainsKey("Category"));
@@ -44,7 +44,7 @@ namespace XUnitTest.XCode.Model
         {
             var fi = Log._.Category;
             var exp = fi.NotEqual("登录");
-            var where = exp.GetString(null);
+            var where = exp.GetString(Log.Meta.Session, null);
             Assert.Equal("Category<>'登录'", where);
         }
 
@@ -53,7 +53,7 @@ namespace XUnitTest.XCode.Model
         {
             var fi = Log._.Category;
             var exp = fi != "登录";
-            var where = exp.GetString(null);
+            var where = exp.GetString(Log.Meta.Session, null);
             Assert.Equal("Category<>'登录'", where);
         }
 
@@ -63,7 +63,7 @@ namespace XUnitTest.XCode.Model
             var fi = Log._.Category;
             var exp = fi != "登录";
             var ps = new Dictionary<String, Object>();
-            var where = exp.GetString(ps);
+            var where = exp.GetString(Log.Meta.Session, ps);
             Assert.Equal("Category<>@Category", where);
             Assert.Single(ps);
             Assert.True(ps.ContainsKey("Category"));
@@ -75,7 +75,7 @@ namespace XUnitTest.XCode.Model
         {
             var fi = Log._.Category;
             var exp = fi.IsNull();
-            var where = exp.GetString(null);
+            var where = exp.GetString(Log.Meta.Session, null);
             Assert.Equal("Category Is Null", where);
         }
 
@@ -84,7 +84,7 @@ namespace XUnitTest.XCode.Model
         {
             var fi = Log._.Category;
             var exp = fi.NotIsNull();
-            var where = exp.GetString(null);
+            var where = exp.GetString(Log.Meta.Session, null);
             Assert.Equal("Not Category Is Null", where);
         }
 
@@ -93,7 +93,7 @@ namespace XUnitTest.XCode.Model
         {
             var fi = Log._.Category;
             var exp = fi.IsNullOrEmpty();
-            var where = exp.GetString(null);
+            var where = exp.GetString(Log.Meta.Session, null);
             Assert.Equal("Category Is Null Or Category=''", where);
         }
 
@@ -102,7 +102,7 @@ namespace XUnitTest.XCode.Model
         {
             var fi = Log._.Category;
             var exp = fi.NotIsNullOrEmpty();
-            var where = exp.GetString(null);
+            var where = exp.GetString(Log.Meta.Session, null);
             Assert.Equal("Not Category Is Null And Category<>''", where);
         }
 
@@ -114,7 +114,7 @@ namespace XUnitTest.XCode.Model
         {
             var fi = Log._.Success;
             var exp = fi.IsTrue(flag);
-            var where = exp?.GetString(null);
+            var where = exp?.GetString(Log.Meta.Session, null);
             if (flag == null)
                 Assert.Null(where);
             else if (flag.Value)
@@ -131,7 +131,7 @@ namespace XUnitTest.XCode.Model
         {
             var fi = Log._.Success;
             var exp = fi.IsFalse(flag);
-            var where = exp?.GetString(null);
+            var where = exp?.GetString(Log.Meta.Session, null);
             if (flag == null)
                 Assert.Null(where);
             else if (flag.Value)
@@ -145,7 +145,7 @@ namespace XUnitTest.XCode.Model
         {
             var fi = Area._.Level;
             var exp = fi > 1;
-            var where = exp.GetString(null);
+            var where = exp.GetString(Area.Meta.Session, null);
             Assert.Equal("Level>1", where);
         }
 
@@ -154,7 +154,7 @@ namespace XUnitTest.XCode.Model
         {
             var fi = Area._.Level;
             var exp = fi >= 2;
-            var where = exp.GetString(null);
+            var where = exp.GetString(Area.Meta.Session, null);
             Assert.Equal("Level>=2", where);
         }
 
@@ -163,7 +163,7 @@ namespace XUnitTest.XCode.Model
         {
             var fi = Area._.Level;
             var exp = fi < 3;
-            var where = exp.GetString(null);
+            var where = exp.GetString(Area.Meta.Session, null);
             Assert.Equal("Level<3", where);
         }
 
@@ -172,7 +172,7 @@ namespace XUnitTest.XCode.Model
         {
             var fi = Area._.Level;
             var exp = fi <= 2;
-            var where = exp.GetString(null);
+            var where = exp.GetString(Area.Meta.Session, null);
             Assert.Equal("Level<=2", where);
         }
     }
