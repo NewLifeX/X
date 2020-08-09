@@ -694,6 +694,8 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual String FormatName(IDataTable table)
         {
+            if (table == null) return null;
+
             var tableName = table.TableName;
 
             // 检查自动表前缀
@@ -722,6 +724,8 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual String FormatName(IDataColumn column)
         {
+            if (column == null) return null;
+
             var name = column.ColumnName;
 
             // 大小写
@@ -740,7 +744,6 @@ namespace XCode.DataAccessLayer
 
             return FormatName(name);
         }
-
 
         /// <summary>格式化数据为SQL数据</summary>
         /// <param name="column">字段</param>

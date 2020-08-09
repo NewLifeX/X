@@ -992,8 +992,8 @@ namespace XCode
         /// <returns></returns>
         public static SelectBuilder FindSQLWithKey(String where = null)
         {
-            var f = Meta.Unique;
-            return FindSQL(where, null, f != null ? Meta.FormatName(f.ColumnName) : null, 0, 0);
+            var columnName = Meta.Session.Dal.Db.FormatName(Meta.Unique.Field);
+            return FindSQL(where, null, columnName, 0, 0);
         }
         #endregion
 
@@ -1186,10 +1186,14 @@ namespace XCode
 
         static SelectBuilder CreateBuilder(String where, String order, String selects, Boolean needOrderByID)
         {
+            var factory = Meta.Factory;
+            var session = Meta.Session;
+            var db = session.Dal.Db;
+
             var builder = new SelectBuilder
             {
                 Column = selects,
-                Table = Meta.Session.FormatedTableName,
+                Table = session.FormatedTableName,
                 OrderBy = order,
                 // 谨记：某些项目中可能在where中使用了GroupBy，在分页时可能报错
                 Where = where
@@ -1198,22 +1202,22 @@ namespace XCode
             // chenqi [2018-5-7] 
             // 处理Select列
             // SQL Server数据库特殊处理：由于T-SQL查询列为*号，order by未使用索引字段，将导致索引不会被命中。
-            if (Meta.Session.Dal.DbType == DatabaseType.SqlServer)
+            if (session.Dal.DbType == DatabaseType.SqlServer)
             {
                 if (builder.Column.IsNullOrEmpty() || builder.Column.Equals("*"))
                 {
-                    var fields = Meta.Factory.Selects;
+                    var fields = factory.Selects;
                     if (fields.IsNullOrWhiteSpace())
                         //fields = Meta.Factory.FieldNames.Select(Meta.FormatName).Join(",");
                         //不能直接通过获取FieldNames的方式拼接查询字段，如果列名和实际的属性名称存在差异的情况下会导致查询错误 By Xiyunfei
-                        fields = Meta.Factory.Fields.Select(e => Meta.FormatName(e.ColumnName)).Join(",");
+                        fields = factory.Fields.Join(",", e => db.FormatName(e.Field));
                     builder.Column = fields;
                 }
             }
             else
             {
                 if (builder.Column.IsNullOrEmpty())
-                    builder.Column = Meta.Factory.Selects;
+                    builder.Column = factory.Selects;
             }
 
             // XCode对于默认排序的规则：自增主键降序，其它情况默认
@@ -1223,7 +1227,7 @@ namespace XCode
             var fi = Meta.Table.Identity;
             if (fi != null)
             {
-                builder.Key = Meta.FormatName(fi.ColumnName);
+                builder.Key = db.FormatName(fi.Field);
 
                 // 默认获取数据时，还是需要指定按照自增字段降序，符合使用习惯
                 // 有GroupBy也不能加排序
@@ -1245,12 +1249,12 @@ namespace XCode
             else
             {
                 // 如果找不到唯一键，并且排序又为空，则采用全部字段一起，确保MSSQL能够分页
-                if (builder.OrderBy.IsNullOrEmpty() && Meta.Session.Dal.DbType == DatabaseType.SqlServer)
+                if (builder.OrderBy.IsNullOrEmpty() && session.Dal.DbType == DatabaseType.SqlServer)
                 {
                     var pks = Meta.Table.PrimaryKeys;
                     if (pks != null && pks.Length > 0)
                     {
-                        builder.Key = Meta.FormatName(pks[0].ColumnName);
+                        builder.Key = db.FormatName(pks[0].Field);
 
                         //chenqi [2017-5-7] 非自增列 + order为空时，指定order by 主键
                         builder.OrderBy = builder.Key;

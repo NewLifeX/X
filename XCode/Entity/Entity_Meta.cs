@@ -4,7 +4,6 @@ using System.ComponentModel;
 using NewLife;
 using XCode.Cache;
 using XCode.Configuration;
-using XCode.DataAccessLayer;
 
 namespace XCode
 {
@@ -186,10 +185,10 @@ namespace XCode
             #endregion
 
             #region 辅助方法
-            /// <summary>格式化关键字</summary>
-            /// <param name="name">名称</param>
-            /// <returns></returns>
-            public static String FormatName(String name) => Session.Dal.Db.FormatName(name);
+            ///// <summary>格式化关键字</summary>
+            ///// <param name="name">名称</param>
+            ///// <returns></returns>
+            //public static String FormatName(String name) => Session.Dal.Db.FormatName(name);
 
             ///// <summary>格式化时间</summary>
             ///// <param name="dateTime"></param>
@@ -202,11 +201,11 @@ namespace XCode
             ///// <returns></returns>
             //public static String FormatValue(String name, Object value) => FormatValue(Table.FindByName(name), value);
 
-            /// <summary>格式化数据为SQL数据</summary>
-            /// <param name="field">字段</param>
-            /// <param name="value">数值</param>
-            /// <returns></returns>
-            public static String FormatValue(FieldItem field, Object value) => Session.Dal.Db.FormatValue(field?.Field, value);
+            ///// <summary>格式化数据为SQL数据</summary>
+            ///// <param name="field">字段</param>
+            ///// <param name="value">数值</param>
+            ///// <returns></returns>
+            //public static String FormatValue(FieldItem field, Object value) => Session.Dal.Db.FormatValue(field?.Field, value);
             #endregion
 
             #region 缓存

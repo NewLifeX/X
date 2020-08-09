@@ -127,10 +127,10 @@ namespace XCode
         ///// <returns></returns>
         //IDataParameter CreateParameter();
 
-        /// <summary>格式化参数名</summary>
-        /// <param name="name">名称</param>
-        /// <returns></returns>
-        String FormatParameterName(String name);
+        ///// <summary>格式化参数名</summary>
+        ///// <param name="name">名称</param>
+        ///// <returns></returns>
+        //String FormatParameterName(String name);
         #endregion
 
         #region 实体操作

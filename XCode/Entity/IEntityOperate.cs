@@ -187,10 +187,10 @@ namespace XCode
         #endregion
 
         #region 辅助方法
-        /// <summary>格式化关键字</summary>
-        /// <param name="name">名称</param>
-        /// <returns></returns>
-        String FormatName(String name);
+        ///// <summary>格式化关键字</summary>
+        ///// <param name="name">名称</param>
+        ///// <returns></returns>
+        //String FormatName(String name);
 
         ///// <summary>
         ///// 取得一个值的Sql值。
@@ -201,11 +201,11 @@ namespace XCode
         ///// <returns>Sql值的字符串形式</returns>
         //String FormatValue(String name, Object value);
 
-        /// <summary>格式化数据为SQL数据</summary>
-        /// <param name="field">字段</param>
-        /// <param name="value">数值</param>
-        /// <returns></returns>
-        String FormatValue(FieldItem field, Object value);
+        ///// <summary>格式化数据为SQL数据</summary>
+        ///// <param name="field">字段</param>
+        ///// <param name="value">数值</param>
+        ///// <returns></returns>
+        //String FormatValue(FieldItem field, Object value);
         #endregion
 
         #region 一些设置

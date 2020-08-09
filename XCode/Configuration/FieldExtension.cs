@@ -371,10 +371,7 @@ namespace XCode
             if (field == null) return null;
 
             var name = field.FormatedName;
-            if (String.IsNullOrEmpty(newName))
-                newName = name;
-            else
-                newName = field.Factory.FormatName(newName);
+            if (newName.IsNullOrEmpty()) newName = name;
 
             return new ConcatExpression($"{action}({name}) as {newName}");
         }
@@ -388,10 +385,7 @@ namespace XCode
             if (field == null) return null;
 
             var name = field.FormatedName;
-            if (String.IsNullOrEmpty(newName))
-                newName = name;
-            else
-                newName = field.Factory.FormatName(newName);
+            if (newName.IsNullOrEmpty()) newName = name;
 
             return new ConcatExpression($"{name} as {newName}");
         }

@@ -115,7 +115,7 @@ namespace XCode
 
                         ps[name] = item.ChangeType(type);
 
-                        pns.Add(session.FormatParameterName(name));
+                        pns.Add(db.FormatParameterName(name));
                     }
                     builder.AppendFormat(Format, columnName, pns.Join());
 
@@ -135,7 +135,7 @@ namespace XCode
                 // 数值留给字典
                 ps[name] = Value.ChangeType(type);
 
-                builder.AppendFormat(Format, columnName, session.FormatParameterName(name));
+                builder.AppendFormat(Format, columnName, db.FormatParameterName(name));
             }
             else
             {

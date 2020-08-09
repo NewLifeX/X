@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using System.Threading.Tasks;
 using NewLife;
 using NewLife.Collections;
 using NewLife.Data;
@@ -778,10 +777,10 @@ namespace XCode
         #endregion
 
         #region 参数化
-        /// <summary>格式化参数名</summary>
-        /// <param name="name">名称</param>
-        /// <returns></returns>
-        public virtual String FormatParameterName(String name) => Dal.Db.FormatParameterName(name);
+        ///// <summary>格式化参数名</summary>
+        ///// <param name="name">名称</param>
+        ///// <returns></returns>
+        //public virtual String FormatParameterName(String name) => Dal.Db.FormatParameterName(name);
         #endregion
 
         #region 实体操作

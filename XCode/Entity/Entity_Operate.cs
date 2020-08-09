@@ -4,7 +4,6 @@ using System.Data;
 using System.Linq;
 using System.Threading;
 using NewLife;
-using XCode.Cache;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 
@@ -179,20 +178,13 @@ namespace XCode
             /// <returns></returns>
             public virtual IEntity GetOrAdd<TKey>(TKey key, Func<TKey, Boolean, IEntity> find = null, Func<TKey, IEntity> create = null)
             {
-                if (find != null)
-                {
-                    if (create != null)
-                        return Entity<TEntity>.GetOrAdd(key, (k, b) => find(k, b) as TEntity, k => create(k) as TEntity);
-                    else
-                        return Entity<TEntity>.GetOrAdd(key, (k, b) => find(k, b) as TEntity, null);
-                }
-                else
-                {
-                    if (create != null)
-                        return Entity<TEntity>.GetOrAdd(key, null, k => create(k) as TEntity);
-                    else
-                        return Entity<TEntity>.GetOrAdd(key, null, null);
-                }
+                return find != null
+                    ? create != null
+                        ? Entity<TEntity>.GetOrAdd(key, (k, b) => find(k, b) as TEntity, k => create(k) as TEntity)
+                        : Entity<TEntity>.GetOrAdd(key, (k, b) => find(k, b) as TEntity, null)
+                    : create != null
+                        ? Entity<TEntity>.GetOrAdd(key, null, k => create(k) as TEntity)
+                        : Entity<TEntity>.GetOrAdd(key, null, null);
                 //return Entity<TEntity>.GetOrAdd(key,
                 //    (k, b) => find?.Invoke(k, b) as TEntity,
                 //    k => create?.Invoke(k) as TEntity);
@@ -217,10 +209,10 @@ namespace XCode
             #endregion
 
             #region 辅助方法
-            /// <summary>格式化关键字</summary>
-            /// <param name="name">名称</param>
-            /// <returns></returns>
-            public virtual String FormatName(String name) => Meta.FormatName(name);
+            ///// <summary>格式化关键字</summary>
+            ///// <param name="name">名称</param>
+            ///// <returns></returns>
+            //public virtual String FormatName(String name) => Meta.FormatName(name);
 
             ///// <summary>
             ///// 取得一个值的Sql值。
@@ -231,11 +223,11 @@ namespace XCode
             ///// <returns>Sql值的字符串形式</returns>
             //public virtual String FormatValue(String name, Object value) => Meta.FormatValue(name, value);
 
-            /// <summary>格式化数据为SQL数据</summary>
-            /// <param name="field">字段</param>
-            /// <param name="value">数值</param>
-            /// <returns></returns>
-            public virtual String FormatValue(FieldItem field, Object value) => Meta.FormatValue(field, value);
+            ///// <summary>格式化数据为SQL数据</summary>
+            ///// <param name="field">字段</param>
+            ///// <param name="value">数值</param>
+            ///// <returns></returns>
+            //public virtual String FormatValue(FieldItem field, Object value) => Meta.FormatValue(field, value);
             #endregion
 
             #region 一些设置
