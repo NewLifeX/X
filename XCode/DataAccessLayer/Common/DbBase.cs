@@ -714,15 +714,33 @@ namespace XCode.DataAccessLayer
                     break;
             }
 
-            tableName = FormatName(tableName);
-
-            return tableName;
+            return FormatName(tableName);
         }
 
         /// <summary>格式化字段名，考虑大小写</summary>
         /// <param name="column">字段</param>
         /// <returns></returns>
-        public virtual String FormatName(IDataColumn column) => FormatName(column.Name);
+        public virtual String FormatName(IDataColumn column)
+        {
+            var name = column.ColumnName;
+
+            // 大小写
+            switch (NameFormat)
+            {
+                case NameFormats.Upper:
+                    name = name.ToUpper();
+                    break;
+                case NameFormats.Lower:
+                    name = name.ToLower();
+                    break;
+                case NameFormats.Default:
+                default:
+                    break;
+            }
+
+            return FormatName(name);
+        }
+
 
         /// <summary>格式化数据为SQL数据</summary>
         /// <param name="column">字段</param>

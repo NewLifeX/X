@@ -69,9 +69,6 @@ namespace XCode.DataAccessLayer
                 }
             }
         }
-
-        /// <summary>名称大小写格式化</summary>
-        public NameFormats Nameformat => Database.NameFormat;
         #endregion
 
         #region GetSchema方法
@@ -190,7 +187,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected String FormatName(String name)
         {
-            switch (Nameformat)
+            switch (Database.NameFormat)
             {
                 case NameFormats.Upper:
                     name = name.ToUpper();
