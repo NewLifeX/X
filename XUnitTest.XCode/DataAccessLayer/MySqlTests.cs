@@ -66,7 +66,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             var db = dal.Db;
             var connstr = db.ConnectionString;
             Assert.Equal("sys", db.DatabaseName);
-            Assert.EndsWith(";Port=3306;Database=sys;Uid=root;Pwd=Pass@word;CharSet=utf8mb4;Sslmode=none", connstr);
+            Assert.EndsWith(";Port=3306;Database=sys;Uid=root;Pwd=Pass@word;CharSet=utf8mb4;Sslmode=none;AllowPublicKeyRetrieval=true", connstr);
 
             var ver = db.ServerVersion;
             Assert.NotEmpty(ver);
