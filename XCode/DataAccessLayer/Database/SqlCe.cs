@@ -279,23 +279,7 @@ namespace XCode.DataAccessLayer
             var sb = new StringBuilder(sql.Length + 32 + pks.Length * 16);
             sb.Append(sql);
             sb.Append(";\r\n");
-            sb.AppendFormat("Alter Table {0} Add Constraint PK_{1} Primary Key (", FormatName(table.TableName), table.TableName);
-
-            //foreach (var item in pks)
-            //{
-            //    sb.Append(FormatName(item.ColumnName));
-            //    sb.Append(",");
-            //}
-            //sb.Remove(sb.Length - 1, 1);
-
-            // sb.Remove涉及内存复制
-            for (var i = 0; i < pks.Length; i++)
-            {
-                if (i > 0) sb.Append(", ");
-                sb.Append(FormatName(pks[i].ColumnName));
-            }
-
-            sb.Append(")");
+            sb.AppendFormat("Alter Table {0} Add Constraint PK_{1} Primary Key ({2})", FormatName(table), table.TableName, pks.Join(",", FormatName));
 
             //sql += ";" + Environment.NewLine;
             //sql += String.Format("Alter Table {0} Add Constraint PK_{1} Primary Key ({2})", FormatName(table.TableName), table.TableName, sb);

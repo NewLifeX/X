@@ -143,29 +143,29 @@ namespace XCode.DataAccessLayer
 
         #region 批量操作
         /// <summary>批量插入</summary>
-        /// <param name="tableName">表名</param>
+        /// <param name="table">数据表</param>
         /// <param name="columns">要插入的字段，默认所有字段</param>
         /// <param name="list">实体列表</param>
         /// <returns></returns>
-        Int32 Insert(String tableName, IDataColumn[] columns, IEnumerable<IIndexAccessor> list);
+        Int32 Insert(IDataTable table, IDataColumn[] columns, IEnumerable<IIndexAccessor> list);
 
         /// <summary>批量更新</summary>
-        /// <param name="tableName">表名</param>
+        /// <param name="table">数据表</param>
         /// <param name="columns">要更新的字段，默认所有字段</param>
         /// <param name="updateColumns">要更新的字段，默认脏数据</param>
         /// <param name="addColumns">要累加更新的字段，默认累加</param>
         /// <param name="list">实体列表</param>
         /// <returns></returns>
-        Int32 Update(String tableName, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list);
+        Int32 Update(IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list);
 
         /// <summary>批量插入或更新</summary>
-        /// <param name="tableName">表名</param>
+        /// <param name="table">数据表</param>
         /// <param name="columns">要插入的字段，默认所有字段</param>
         /// <param name="updateColumns">主键已存在时，要更新的字段</param>
         /// <param name="addColumns">主键已存在时，要累加更新的字段</param>
         /// <param name="list">实体列表</param>
         /// <returns></returns>
-        Int32 Upsert(String tableName, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list);
+        Int32 Upsert(IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list);
         #endregion
 
         #region 高级

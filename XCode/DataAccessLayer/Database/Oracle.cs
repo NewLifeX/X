@@ -461,27 +461,27 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 批量操作
-        public override Int32 Insert(String tableName, IDataColumn[] columns, IEnumerable<IIndexAccessor> list)
+        public override Int32 Insert(IDataTable table, IDataColumn[] columns, IEnumerable<IIndexAccessor> list)
         {
             var ps = new HashSet<String>();
-            var sql = GetInsertSql(tableName, columns, ps);
+            var sql = GetInsertSql(table, columns, ps);
             var dps = GetParameters(columns, ps, list);
 
             return Execute(sql, CommandType.Text, dps);
         }
 
-        private String GetInsertSql(String tableName, IDataColumn[] columns, ICollection<String> ps)
+        private String GetInsertSql(IDataTable table, IDataColumn[] columns, ICollection<String> ps)
         {
             var sb = Pool.StringBuilder.Get();
             var db = Database as DbBase;
 
             // 字段列表
-            sb.AppendFormat("Insert Into {0}(", db.FormatName(tableName));
+            sb.AppendFormat("Insert Into {0}(", db.FormatName(table));
             foreach (var dc in columns)
             {
                 //if (dc.Identity) continue;
 
-                sb.Append(db.FormatName(dc.ColumnName));
+                sb.Append(db.FormatName(dc));
                 sb.Append(",");
             }
             sb.Length--;
@@ -531,11 +531,11 @@ namespace XCode.DataAccessLayer
             return dps.ToArray();
         }
 
-        public override Int32 Upsert(String tableName, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list)
+        public override Int32 Upsert(IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list)
         {
             var ps = new HashSet<String>();
-            var insert = GetInsertSql(tableName, columns, ps);
-            var update = GetUpdateSql(tableName, columns, updateColumns, addColumns, ps);
+            var insert = GetInsertSql(table, columns, ps);
+            var update = GetUpdateSql(table, columns, updateColumns, addColumns, ps);
 
             var sb = Pool.StringBuilder.Get();
             sb.AppendLine("BEGIN");
@@ -562,7 +562,7 @@ namespace XCode.DataAccessLayer
             return Execute(sql, CommandType.Text, dps);
         }
 
-        private String GetUpdateSql(String tableName, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, ICollection<String> ps)
+        private String GetUpdateSql(IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, ICollection<String> ps)
         {
             if ((updateColumns == null || updateColumns.Count == 0)
                 && (addColumns == null || addColumns.Count == 0)) return null;
@@ -571,20 +571,20 @@ namespace XCode.DataAccessLayer
             var db = Database as DbBase;
 
             // 字段列表
-            sb.AppendFormat("Update {0} Set ", db.FormatName(tableName));
+            sb.AppendFormat("Update {0} Set ", db.FormatName(table));
             foreach (var dc in columns)
             {
                 if (dc.Identity || dc.PrimaryKey) continue;
 
                 if (addColumns != null && addColumns.Contains(dc.Name))
                 {
-                    sb.AppendFormat("{0}={0}+{1},", db.FormatName(dc.ColumnName), db.FormatParameterName(dc.Name));
+                    sb.AppendFormat("{0}={0}+{1},", db.FormatName(dc), db.FormatParameterName(dc.Name));
 
                     if (!ps.Contains(dc.Name)) ps.Add(dc.Name);
                 }
                 else if (updateColumns != null && updateColumns.Contains(dc.Name))
                 {
-                    sb.AppendFormat("{0}={1},", db.FormatName(dc.ColumnName), db.FormatParameterName(dc.Name));
+                    sb.AppendFormat("{0}={1},", db.FormatName(dc), db.FormatParameterName(dc.Name));
 
                     if (!ps.Contains(dc.Name)) ps.Add(dc.Name);
                 }
@@ -597,7 +597,7 @@ namespace XCode.DataAccessLayer
             {
                 if (!dc.PrimaryKey) continue;
 
-                sb.AppendFormat("{0}={1}", db.FormatName(dc.ColumnName), db.FormatParameterName(dc.Name));
+                sb.AppendFormat("{0}={1}", db.FormatName(dc), db.FormatParameterName(dc.Name));
                 sb.Append(" And ");
 
                 if (!ps.Contains(dc.Name)) ps.Add(dc.Name);
@@ -607,17 +607,10 @@ namespace XCode.DataAccessLayer
             return sb.Put(true);
         }
 
-        /// <summary>批量更新</summary>
-        /// <param name="tableName">表名</param>
-        /// <param name="columns">要更新的字段，默认所有字段</param>
-        /// <param name="updateColumns">要更新的字段，默认脏数据</param>
-        /// <param name="addColumns">要累加更新的字段，默认累加</param>
-        /// <param name="list">实体列表</param>
-        /// <returns></returns>
-        public override Int32 Update(String tableName, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list)
+        public override Int32 Update(IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list)
         {
             var ps = new HashSet<String>();
-            var sql = GetUpdateSql(tableName, columns, updateColumns, addColumns, ps);
+            var sql = GetUpdateSql(table, columns, updateColumns, addColumns, ps);
             var dps = GetParameters(columns, ps, list);
 
             return Execute(sql, CommandType.Text, dps);
@@ -1038,7 +1031,7 @@ namespace XCode.DataAccessLayer
 
             var sb = new StringBuilder(32 + fs.Count * 20);
 
-            sb.AppendFormat("Create Table {0}(", FormatTableName(table));
+            sb.AppendFormat("Create Table {0}(", FormatName(table));
             for (var i = 0; i < fs.Count; i++)
             {
                 sb.AppendLine();
@@ -1051,15 +1044,7 @@ namespace XCode.DataAccessLayer
             var pks = table.PrimaryKeys;
             if (pks != null && pks.Length > 0)
             {
-                sb.AppendLine(",");
-                sb.Append("\t");
-                sb.AppendFormat("constraint pk_{0} primary key (", table.TableName);
-                for (var i = 0; i < pks.Length; i++)
-                {
-                    if (i > 0) sb.Append(",");
-                    sb.Append(FormatName(pks[i].ColumnName));
-                }
-                sb.Append(")");
+                sb.AppendFormat(",\r\n\tconstraint pk_{0} primary key ({1})", table.TableName, pks.Join(",", FormatName));
             }
 
             sb.AppendLine();
@@ -1122,48 +1107,19 @@ namespace XCode.DataAccessLayer
         //    return sql + "; " + Environment.NewLine + sqlSeq;
         //}
 
-        public override String AddColumnSQL(IDataColumn field)
-        {
-            return String.Format("Alter Table {0} Add {1}", FormatTableName(field.Table), FieldClause(field, true));
-        }
+        public override String AddColumnSQL(IDataColumn field) => $"Alter Table {FormatName(field.Table)} Add {FieldClause(field, true)}";
 
-        public override String AlterColumnSQL(IDataColumn field, IDataColumn oldfield)
-        {
-            return String.Format("Alter Table {0} Modify {1}", FormatTableName(field.Table), FieldClause(field, false));
-        }
+        public override String AlterColumnSQL(IDataColumn field, IDataColumn oldfield) => $"Alter Table {FormatName(field.Table)} Modify {FieldClause(field, false)}";
 
-        public override String DropColumnSQL(IDataColumn field)
-        {
-            return String.Format("Alter Table {0} Drop Column {1}", FormatTableName(field.Table), field.ColumnName);
-        }
+        public override String DropColumnSQL(IDataColumn field) => $"Alter Table {FormatName(field.Table)} Drop Column {field}";
 
-        public override String AddTableDescriptionSQL(IDataTable table)
-        {
-            //return String.Format("Update USER_TAB_COMMENTS Set COMMENTS='{0}' Where TABLE_NAME='{1}'", table.Description, table.Name);
+        public override String AddTableDescriptionSQL(IDataTable table) => $"Comment On Table {FormatName(table)} is '{table.Description}'";
 
-            return String.Format("Comment On Table {0} is '{1}'", FormatTableName(table), table.Description);
-        }
+        public override String DropTableDescriptionSQL(IDataTable table) => $"Comment On Table {FormatName(table)} is ''";
 
-        public override String DropTableDescriptionSQL(IDataTable table)
-        {
-            //return String.Format("Update USER_TAB_COMMENTS Set COMMENTS='' Where TABLE_NAME='{0}'", table.Name);
+        public override String AddColumnDescriptionSQL(IDataColumn field) => $"Comment On Column {FormatName(field.Table)}.{FormatName(field)} is '{field.Description}'";
 
-            return String.Format("Comment On Table {0} is ''", FormatTableName(table));
-        }
-
-        public override String AddColumnDescriptionSQL(IDataColumn field)
-        {
-            //return String.Format("Update USER_COL_COMMENTS Set COMMENTS='{0}' Where TABLE_NAME='{1}' AND COLUMN_NAME='{2}'", field.Description, field.Table.Name, field.Name);
-
-            return String.Format("Comment On Column {0}.{1} is '{2}'", FormatTableName(field.Table), FormatName(field.ColumnName), field.Description);
-        }
-
-        public override String DropColumnDescriptionSQL(IDataColumn field)
-        {
-            //return String.Format("Update USER_COL_COMMENTS Set COMMENTS='' Where TABLE_NAME='{0}' AND COLUMN_NAME='{1}'", field.Table.Name, field.Name);
-
-            return String.Format("Comment On Column {0}.{1} is ''", FormatTableName(field.Table), FormatName(field.ColumnName));
-        }
+        public override String DropColumnDescriptionSQL(IDataColumn field) => $"Comment On Column {FormatName(field.Table)}.{FormatName(field)} is ''";
         #endregion
     }
 }

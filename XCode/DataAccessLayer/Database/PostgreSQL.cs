@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Text;
+using NewLife;
 
 namespace XCode.DataAccessLayer
 {
@@ -339,30 +340,23 @@ namespace XCode.DataAccessLayer
         //    return String.Format("Create Database Binary {0}", FormatKeyWord(dbname));
         //}
 
-        public override String DropDatabaseSQL(String dbname) => String.Format("Drop Database If Exists {0}", FormatName(dbname));
+        public override String DropDatabaseSQL(String dbname) => $"Drop Database If Exists {FormatName(dbname)}";
 
         public override String CreateTableSQL(IDataTable table)
         {
             var fs = new List<IDataColumn>(table.Columns);
 
             var sb = new StringBuilder(32 + fs.Count * 20);
-            String key = null;
 
-            sb.AppendFormat("Create Table If Not Exists {0}(", FormatTableName(table));
+            sb.AppendFormat("Create Table If Not Exists {0}(", FormatName(table));
             for (var i = 0; i < fs.Count; i++)
             {
                 sb.AppendLine();
                 sb.Append("\t");
                 sb.Append(FieldClause(fs[i], true));
                 if (i < fs.Count - 1) sb.Append(",");
-
-                if (fs[i].PrimaryKey) key = fs[i].ColumnName;
             }
-            if (!String.IsNullOrEmpty(key))
-            {
-                sb.AppendLine(",");
-                sb.AppendFormat("\tPrimary Key ({0})", FormatName(key));
-            }
+            if (table.PrimaryKeys.Length > 0) sb.AppendFormat(",\r\n\tPrimary Key ({0})", table.PrimaryKeys.Join(",", FormatName));
             sb.AppendLine();
             sb.Append(")");
 
@@ -373,10 +367,10 @@ namespace XCode.DataAccessLayer
         {
             if (String.IsNullOrEmpty(table.Description)) return null;
 
-            return String.Format("Alter Table {0} Comment '{1}'", FormatTableName(table), table.Description);
+            return String.Format("Alter Table {0} Comment '{1}'", FormatName(table), table.Description);
         }
 
-        public override String AlterColumnSQL(IDataColumn field, IDataColumn oldfield) => String.Format("Alter Table {0} Modify Column {1}", FormatTableName(field.Table), FieldClause(field, false));
+        public override String AlterColumnSQL(IDataColumn field, IDataColumn oldfield) => $"Alter Table {FormatName(field.Table)} Modify Column {FieldClause(field, false)}";
 
         public override String AddColumnDescriptionSQL(IDataColumn field)
         {

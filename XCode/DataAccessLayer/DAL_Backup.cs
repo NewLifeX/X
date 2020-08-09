@@ -47,7 +47,7 @@ namespace XCode.DataAccessLayer
 
             var sb = new SelectBuilder
             {
-                Table = Db.FormatTableName(table.TableName)
+                Table = Db.FormatName(table)
             };
 
             // 总行数
@@ -380,7 +380,6 @@ namespace XCode.DataAccessLayer
             public DAL Dal { get; set; }
             public IDataTable Table { get; set; }
 
-            private String _TableName;
             private IDataColumn[] _Columns;
 
             protected override void Receive(ActorContext context)
@@ -388,17 +387,16 @@ namespace XCode.DataAccessLayer
                 if (!(context.Message is DbTable dt)) return;
 
                 // 匹配要写入的列
-                if (_TableName == null)
+                if (_Columns == null)
                 {
-                    _TableName = Table.TableName;
                     _Columns = Table.GetColumns(dt.Columns);
 
-                    WriteLog("数据表：{0}/{1}", Table.Name, _TableName);
+                    WriteLog("数据表：{0}/{1}", Table.Name, Table);
                     WriteLog("匹配列：{0}", _Columns.Join(",", e => e.ColumnName));
                 }
 
                 // 批量插入
-                Dal.Session.Insert(_TableName, _Columns, dt.Cast<IIndexAccessor>());
+                Dal.Session.Insert(Table, _Columns, dt.Cast<IIndexAccessor>());
             }
         }
         #endregion
@@ -442,7 +440,7 @@ namespace XCode.DataAccessLayer
 
             var sb = new SelectBuilder
             {
-                Table = Db.FormatTableName(table.TableName)
+                Table = Db.FormatName(table)
             };
 
             var row = 0L;

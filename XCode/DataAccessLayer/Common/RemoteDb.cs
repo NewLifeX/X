@@ -81,23 +81,23 @@ namespace XCode.DataAccessLayer
         //    builder.TryAdd(Pooling, "false");
         //}
 
-        /// <summary>格式化表名，考虑表前缀和Owner</summary>
-        /// <param name="tableName">名称</param>
-        /// <returns></returns>
-        public override String FormatTableName(String tableName)
-        {
-            tableName = base.FormatTableName(tableName);
+        ///// <summary>格式化表名，考虑表前缀和Owner</summary>
+        ///// <param name="tableName">名称</param>
+        ///// <returns></returns>
+        //public override String FormatTableName(String tableName)
+        //{
+        //    tableName = base.FormatTableName(tableName);
 
-            // 特殊处理Oracle数据库，在表名前加上方案名（用户名）
-            if (!tableName.Contains("."))
-            {
-                // 角色名作为点前缀来约束表名，支持所有数据库
-                var owner = Owner;
-                if (!owner.IsNullOrEmpty() && !owner.EqualIgnoreCase(User)) tableName = FormatKeyWord(owner) + "." + tableName;
-            }
+        //    // 特殊处理Oracle数据库，在表名前加上方案名（用户名）
+        //    if (!tableName.Contains("."))
+        //    {
+        //        // 角色名作为点前缀来约束表名，支持所有数据库
+        //        var owner = Owner;
+        //        if (!owner.IsNullOrEmpty() && !owner.EqualIgnoreCase(User)) tableName = FormatKeyWord(owner) + "." + tableName;
+        //    }
 
-            return tableName;
-        }
+        //    return tableName;
+        //}
         #endregion
     }
 

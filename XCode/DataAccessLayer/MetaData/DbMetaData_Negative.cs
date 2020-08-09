@@ -431,8 +431,8 @@ namespace XCode.DataAccessLayer
             // 通过重建表的方式修改字段
             var tableName = dbtable.TableName;
             var tempTableName = "Temp_" + tableName + "_" + Rand.Next(1000, 10000);
-            tableName = FormatName(tableName);
-            tempTableName = FormatName(tempTableName);
+            tableName = FormatName(dbtable);
+            //tempTableName = FormatName(tempTableName);
 
             // 每个分号后面故意加上空格，是为了让DbMetaData执行SQL时，不要按照分号加换行来拆分这个SQL语句
             var sb = new StringBuilder();
@@ -451,8 +451,7 @@ namespace XCode.DataAccessLayer
                 var sbValue = new StringBuilder();
                 foreach (var item in entitytable.Columns)
                 {
-                    var name = item.ColumnName;
-                    var fname = FormatName(name);
+                    var fname = FormatName(item);
                     var type = item.DataType;
                     var field = dbtable.GetColumn(item.ColumnName);
                     if (field == null)
@@ -783,7 +782,7 @@ namespace XCode.DataAccessLayer
             var sb = new StringBuilder();
 
             //字段名
-            sb.AppendFormat("{0} ", FormatName(field.ColumnName));
+            sb.AppendFormat("{0} ", FormatName(field));
 
             String typeName = null;
             // 如果还是原来的数据库类型，则直接使用
@@ -852,7 +851,7 @@ namespace XCode.DataAccessLayer
             var fs = new List<IDataColumn>(table.Columns);
             var sb = new StringBuilder();
 
-            sb.AppendFormat("Create Table {0}(", FormatTableName(table));
+            sb.AppendFormat("Create Table {0}(", FormatName(table));
             for (var i = 0; i < fs.Count; i++)
             {
                 sb.AppendLine();
@@ -866,7 +865,7 @@ namespace XCode.DataAccessLayer
             return sb.ToString();
         }
 
-        public virtual String DropTableSQL(IDataTable table) => $"Drop Table {FormatTableName(table)}";
+        public virtual String DropTableSQL(IDataTable table) => $"Drop Table {FormatName(table)}";
 
         public virtual String TableExistSQL(IDataTable table) => throw new NotSupportedException("该功能未实现！");
 
@@ -874,11 +873,11 @@ namespace XCode.DataAccessLayer
 
         public virtual String DropTableDescriptionSQL(IDataTable table) => null;
 
-        public virtual String AddColumnSQL(IDataColumn field) => $"Alter Table {FormatTableName(field.Table)} Add {FieldClause(field, true)}";
+        public virtual String AddColumnSQL(IDataColumn field) => $"Alter Table {FormatName(field.Table)} Add {FieldClause(field, true)}";
 
-        public virtual String AlterColumnSQL(IDataColumn field, IDataColumn oldfield) => $"Alter Table {FormatTableName(field.Table)} Alter Column {FieldClause(field, false)}";
+        public virtual String AlterColumnSQL(IDataColumn field, IDataColumn oldfield) => $"Alter Table {FormatName(field.Table)} Alter Column {FieldClause(field, false)}";
 
-        public virtual String DropColumnSQL(IDataColumn field) => $"Alter Table {FormatTableName(field.Table)} Drop Column {FormatName(field.ColumnName)}";
+        public virtual String DropColumnSQL(IDataColumn field) => $"Alter Table {FormatName(field.Table)} Drop Column {FormatName(field)}";
 
         public virtual String AddColumnDescriptionSQL(IDataColumn field) => null;
 
@@ -893,18 +892,13 @@ namespace XCode.DataAccessLayer
                 sb.Append("Create Index ");
 
             sb.Append(FormatName(index.Name));
-            sb.AppendFormat(" On {0} (", FormatTableName(index.Table));
-            for (var i = 0; i < index.Columns.Length; i++)
-            {
-                if (i > 0) sb.Append(", ");
-                sb.Append(FormatName(index.Columns[i]));
-            }
-            sb.Append(")");
+            var dcs = index.Table.GetColumns(index.Columns);
+            sb.AppendFormat(" On {0} ({1})", FormatName(index.Table), dcs.Join(",", FormatName));
 
             return sb.ToString();
         }
 
-        public virtual String DropIndexSQL(IDataIndex index) => $"Drop Index {FormatName(index.Name)} On {FormatTableName(index.Table)}";
+        public virtual String DropIndexSQL(IDataIndex index) => $"Drop Index {FormatName(index.Name)} On {FormatName(index.Table)}";
 
         //public virtual String CompactDatabaseSQL() => null;
         #endregion

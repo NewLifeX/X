@@ -144,15 +144,20 @@ namespace XCode.DataAccessLayer
         String FormatName(String name);
 
         /// <summary>格式化表名，考虑表前缀和Owner</summary>
-        /// <param name="tableName">名称</param>
+        /// <param name="table">表</param>
         /// <returns></returns>
-        String FormatTableName(String tableName);
+        String FormatName(IDataTable table);
+
+        /// <summary>格式化字段名，考虑大小写</summary>
+        /// <param name="column">字段</param>
+        /// <returns></returns>
+        String FormatName(IDataColumn column);
 
         /// <summary>格式化数据为SQL数据</summary>
-        /// <param name="field">字段</param>
+        /// <param name="column">字段</param>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        String FormatValue(IDataColumn field, Object value);
+        String FormatValue(IDataColumn column, Object value);
 
         ///// <summary>格式化标识列，返回插入数据时所用的表达式，如果字段本身支持自增，则返回空</summary>
         ///// <param name="field">字段</param>

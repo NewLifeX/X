@@ -17,6 +17,9 @@ namespace XCode
         /// <summary>表名</summary>
         String TableName { get; }
 
+        /// <summary>数据表</summary>
+        IDataTable Table { get; }
+
         /// <summary>用于标识会话的键值</summary>
         String Key { get; }
 

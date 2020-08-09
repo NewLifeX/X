@@ -336,12 +336,12 @@ namespace XCode.DataAccessLayer
                 var orderBy = DbBase.CheckOrderClause(ref sql);
                 var ms = reg_QueryCount.Matches(sql);
                 if (ms != null && ms.Count > 0)
-                    sql = String.Format("Select Count(*) From {0}", ms[0].Groups[1].Value);
+                    sql = $"Select Count(*) From {ms[0].Groups[1].Value}";
                 else
-                    sql = String.Format("Select Count(*) From {0}", DbBase.CheckSimpleSQL(sql));
+                    sql = $"Select Count(*) From {DbBase.CheckSimpleSQL(sql)}";
             }
             else
-                sql = String.Format("Select Count(*) From {0}", Database.FormatName(sql));
+                sql = $"Select Count(*) From {Database.FormatName(sql)}";
 
             return ExecuteScalar<Int64>(sql, type, ps);
         }
@@ -524,29 +524,29 @@ namespace XCode.DataAccessLayer
 
         #region 批量操作
         /// <summary>批量插入</summary>
-        /// <param name="tableName">表名</param>
+        /// <param name="table">数据表</param>
         /// <param name="columns">要插入的字段，默认所有字段</param>
         /// <param name="list">实体列表</param>
         /// <returns></returns>
-        public virtual Int32 Insert(String tableName, IDataColumn[] columns, IEnumerable<IIndexAccessor> list) => throw new NotSupportedException();
+        public virtual Int32 Insert(IDataTable table, IDataColumn[] columns, IEnumerable<IIndexAccessor> list) => throw new NotSupportedException();
 
         /// <summary>批量更新</summary>
-        /// <param name="tableName">表名</param>
+        /// <param name="table">数据表</param>
         /// <param name="columns">要更新的字段，默认所有字段</param>
         /// <param name="updateColumns">要更新的字段，默认脏数据</param>
         /// <param name="addColumns">要累加更新的字段，默认累加</param>
         /// <param name="list">实体列表</param>
         /// <returns></returns>
-        public virtual Int32 Update(String tableName, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list) => throw new NotSupportedException();
+        public virtual Int32 Update(IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list) => throw new NotSupportedException();
 
         /// <summary>批量插入或更新</summary>
-        /// <param name="tableName">表名</param>
+        /// <param name="table">数据表</param>
         /// <param name="columns">要插入的字段，默认所有字段</param>
         /// <param name="updateColumns">主键已存在时，要更新的字段</param>
         /// <param name="addColumns">主键已存在时，要累加更新的字段</param>
         /// <param name="list">实体列表</param>
         /// <returns></returns>
-        public virtual Int32 Upsert(String tableName, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list) => throw new NotSupportedException();
+        public virtual Int32 Upsert(IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list) => throw new NotSupportedException();
         #endregion
 
         #region 高级

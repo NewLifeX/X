@@ -427,9 +427,9 @@ namespace XCode
 
             var dal = session.Dal;
             dal.CheckDatabase();
-            var tableName = dal.Db.FormatTableName(session.TableName);
+            //var tableName = dal.Db.FormatTableName(session.TableName);
 
-            return dal.Session.Insert(tableName, columns, list.Cast<IIndexAccessor>());
+            return dal.Session.Insert(session.Table, columns, list.Cast<IIndexAccessor>());
         }
 
         /// <summary>批量更新</summary>
@@ -470,9 +470,9 @@ namespace XCode
 
             var dal = session.Dal;
             dal.CheckDatabase();
-            var tableName = dal.Db.FormatTableName(session.TableName);
+            //var tableName = dal.Db.FormatTableName(session.TableName);
 
-            return dal.Session.Update(tableName, columns, updateColumns, addColumns, list.Cast<IIndexAccessor>());
+            return dal.Session.Update(session.Table, columns, updateColumns, addColumns, list.Cast<IIndexAccessor>());
         }
 
         /// <summary>批量插入或更新</summary>
@@ -537,9 +537,9 @@ namespace XCode
 
             var dal = session.Dal;
             dal.CheckDatabase();
-            var tableName = dal.Db.FormatTableName(session.TableName);
+            //var tableName = dal.Db.FormatTableName(session.TableName);
 
-            return dal.Session.Upsert(tableName, columns, updateColumns, addColumns, list.Cast<IIndexAccessor>());
+            return dal.Session.Upsert(session.Table, columns, updateColumns, addColumns, list.Cast<IIndexAccessor>());
         }
 
         /// <summary>批量插入或更新</summary>
@@ -580,9 +580,9 @@ namespace XCode
 
             var dal = session.Dal;
             dal.CheckDatabase();
-            var tableName = dal.Db.FormatTableName(session.TableName);
+            //var tableName = dal.Db.FormatTableName(session.TableName);
 
-            return dal.Session.Upsert(tableName, columns, updateColumns, addColumns, new[] { entity as IIndexAccessor });
+            return dal.Session.Upsert(session.Table, columns, updateColumns, addColumns, new[] { entity as IIndexAccessor });
         }
 
         /// <summary>获取脏数据列</summary>

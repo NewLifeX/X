@@ -81,6 +81,10 @@ namespace XCode
             TableName = tableName;
             Key = connName + "###" + tableName;
 
+            TableItem = TableItem.Create(ThisType);
+            Table = TableItem.DataTable.Clone() as IDataTable;
+            Table.TableName = tableName;
+
             Queue = new EntityQueue(this);
         }
 
@@ -104,7 +108,10 @@ namespace XCode
         private Type ThisType => typeof(TEntity);
 
         /// <summary>表信息</summary>
-        TableItem Table => TableItem.Create(ThisType);
+        TableItem TableItem { get; }
+
+        /// <summary>数据表</summary>
+        public IDataTable Table { get; }
 
         IEntityFactory Factory { get; } = typeof(TEntity).AsFactory();
 
@@ -119,7 +126,7 @@ namespace XCode
         {
             get
             {
-                if (_FormatedTableName.IsNullOrEmpty()) _FormatedTableName = Dal.Db.FormatTableName(TableName);
+                if (_FormatedTableName.IsNullOrEmpty()) _FormatedTableName = Dal.Db.FormatName(Table);
 
                 return _FormatedTableName;
             }
@@ -154,8 +161,8 @@ namespace XCode
             {
                 if (_Default != null) return _Default;
 
-                var cname = Table.ConnName;
-                var tname = Table.TableName;
+                var cname = TableItem.ConnName;
+                var tname = TableItem.TableName;
 
                 if (ConnName == cname && TableName == tname)
                     _Default = this;
@@ -248,7 +255,7 @@ namespace XCode
             try
             {
                 // 检查新表名对应的数据表
-                var table = Table.DataTable;
+                var table = TableItem.DataTable;
                 // 克隆一份，防止修改
                 table = table.Clone() as IDataTable;
 
@@ -325,7 +332,7 @@ namespace XCode
 #endif
 
                 // CheckTableWhenFirstUse的实体类，在这里检查，有点意思，记下来
-                var mode = Table.ModelCheckMode;
+                var mode = TableItem.ModelCheckMode;
                 if (DAL.Debug && mode == ModelCheckModes.CheckTableWhenFirstUse)
                     DAL.WriteLog("检查实体{0}的数据表架构，模式：{1}", ThisType.FullName, mode);
 
@@ -515,12 +522,12 @@ namespace XCode
             var dal = GetDAL(false);
 
             // 第一次访问，SQLite的Select Count非常慢，数据大于阀值时，使用最大ID作为表记录数
-            if (count < 0 && dal.DbType == DatabaseType.SQLite && Table.Identity != null)
+            if (count < 0 && dal.DbType == DatabaseType.SQLite && TableItem.Identity != null)
             {
                 var builder = new SelectBuilder
                 {
                     Table = FormatedTableName,
-                    OrderBy = Table.Identity.Desc()
+                    OrderBy = TableItem.Identity.Desc()
                 };
                 var ds = dal.Query(builder, 0, 1);
                 if (ds.Columns.Length > 0 && ds.Rows.Count > 0)

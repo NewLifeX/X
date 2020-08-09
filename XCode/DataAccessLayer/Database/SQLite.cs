@@ -333,19 +333,19 @@ namespace XCode.DataAccessLayer
         updatetime=values(updatetime);
          */
 
-        private String GetBatchSql(String tableName, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list)
+        private String GetBatchSql(IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list)
         {
             var sb = Pool.StringBuilder.Get();
             var db = Database as DbBase;
 
             // 字段列表
             //if (columns == null) columns = table.Columns.ToArray();
-            sb.AppendFormat("Insert Into {0}(", db.FormatName(tableName));
+            sb.AppendFormat("Insert Into {0}(", db.FormatName(table));
             foreach (var dc in columns)
             {
                 //if (dc.Identity) continue;
 
-                sb.Append(db.FormatName(dc.ColumnName));
+                sb.Append(db.FormatName(dc));
                 sb.Append(",");
             }
             sb.Length--;
@@ -416,17 +416,18 @@ namespace XCode.DataAccessLayer
                 sb.Append(" On Conflict");
 
                 // 先找唯一索引，再用主键
-                var table = columns.FirstOrDefault()?.Table;
+                //var table = columns.FirstOrDefault()?.Table;
                 var di = table.Indexes?.FirstOrDefault(e => e.Unique);
                 if (di != null && di.Columns != null && di.Columns.Length > 0)
                 {
-                    sb.AppendFormat("({0})", di.Columns.Join(",", e => db.FormatName(e)));
+                    var dcs = table.GetColumns(di.Columns);
+                    sb.AppendFormat("({0})", dcs.Join(",", e => db.FormatName(e)));
                 }
                 else
                 {
                     var pks = table.PrimaryKeys;
                     if (pks != null && pks.Length > 0)
-                        sb.AppendFormat("({0})", pks.Join(",", e => db.FormatName(e.ColumnName)));
+                        sb.AppendFormat("({0})", pks.Join(",", e => db.FormatName(e)));
                 }
 
                 sb.Append(" Do Update Set ");
@@ -437,7 +438,7 @@ namespace XCode.DataAccessLayer
                         if (dc.Identity || dc.PrimaryKey) continue;
 
                         if (updateColumns.Contains(dc.Name) && (addColumns == null || !addColumns.Contains(dc.Name)))
-                            sb.AppendFormat("{0}=excluded.{0},", db.FormatName(dc.ColumnName));
+                            sb.AppendFormat("{0}=excluded.{0},", db.FormatName(dc));
                     }
                     sb.Length--;
                 }
@@ -449,7 +450,7 @@ namespace XCode.DataAccessLayer
                         if (dc.Identity || dc.PrimaryKey) continue;
 
                         if (addColumns.Contains(dc.Name))
-                            sb.AppendFormat("{0}={0}+excluded.{0},", db.FormatName(dc.ColumnName));
+                            sb.AppendFormat("{0}={0}+excluded.{0},", db.FormatName(dc));
                     }
                     sb.Length--;
                 }
@@ -458,7 +459,7 @@ namespace XCode.DataAccessLayer
             return sb.Put(true);
         }
 
-        public override Int32 Insert(String tableName, IDataColumn[] columns, IEnumerable<IIndexAccessor> list)
+        public override Int32 Insert(IDataTable table, IDataColumn[] columns, IEnumerable<IIndexAccessor> list)
         {
             // 分批
             var batchSize = 10_000;
@@ -466,7 +467,7 @@ namespace XCode.DataAccessLayer
             for (var i = 0; i < list.Count();)
             {
                 var es = list.Skip(i).Take(batchSize).ToList();
-                var sql = GetBatchSql(tableName, columns, null, null, es);
+                var sql = GetBatchSql(table, columns, null, null, es);
                 rs += Execute(sql);
 
                 i += es.Count;
@@ -475,7 +476,7 @@ namespace XCode.DataAccessLayer
             return rs;
         }
 
-        public override Int32 Upsert(String tableName, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list)
+        public override Int32 Upsert(IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list)
         {
             // 分批
             var batchSize = 10_000;
@@ -483,7 +484,7 @@ namespace XCode.DataAccessLayer
             for (var i = 0; i < list.Count();)
             {
                 var es = list.Skip(i).Take(batchSize).ToList();
-                var sql = GetBatchSql(tableName, columns, updateColumns, addColumns, es);
+                var sql = GetBatchSql(table, columns, updateColumns, addColumns, es);
                 rs += Execute(sql);
 
                 i += es.Count;
@@ -812,14 +813,15 @@ namespace XCode.DataAccessLayer
             {
                 // SQLite中不同表的索引名也不能相同
                 sb.Append("IX_");
-                sb.Append(FormatName(index.Table.TableName));
+                sb.Append(index.Table.TableName);
                 foreach (var item in index.Columns)
                 {
                     sb.AppendFormat("_{0}", item);
                 }
             }
 
-            sb.AppendFormat(" On {0} ({1})", FormatName(index.Table.TableName), index.Columns.Select(e => FormatName(e)).Join(", "));
+            var dcs = index.Table.GetColumns(index.Columns);
+            sb.AppendFormat(" On {0} ({1})", FormatName(index.Table), dcs.Join(", ", FormatName));
 
             return sb.ToString();
         }

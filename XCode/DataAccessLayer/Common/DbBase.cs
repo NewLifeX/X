@@ -690,10 +690,12 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>格式化表名，考虑表前缀和Owner</summary>
-        /// <param name="tableName">名称</param>
+        /// <param name="table">表</param>
         /// <returns></returns>
-        public virtual String FormatTableName(String tableName)
+        public virtual String FormatName(IDataTable table)
         {
+            var tableName = table.TableName;
+
             // 检查自动表前缀
             var pf = TablePrefix;
             if (!pf.IsNullOrEmpty()) tableName = pf + tableName;
@@ -717,18 +719,23 @@ namespace XCode.DataAccessLayer
             return tableName;
         }
 
+        /// <summary>格式化字段名，考虑大小写</summary>
+        /// <param name="column">字段</param>
+        /// <returns></returns>
+        public virtual String FormatName(IDataColumn column) => FormatName(column.Name);
+
         /// <summary>格式化数据为SQL数据</summary>
-        /// <param name="field">字段</param>
+        /// <param name="column">字段</param>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        public virtual String FormatValue(IDataColumn field, Object value)
+        public virtual String FormatValue(IDataColumn column, Object value)
         {
             var isNullable = true;
             Type type = null;
-            if (field != null)
+            if (column != null)
             {
-                type = field.DataType;
-                isNullable = field.Nullable;
+                type = column.DataType;
+                isNullable = column.Nullable;
             }
             else if (value != null)
                 type = value.GetType();
@@ -764,7 +771,7 @@ namespace XCode.DataAccessLayer
 
                 return "0x" + BitConverter.ToString(bts).Replace("-", null);
             }
-            else if (field.DataType == typeof(Guid))
+            else if (column.DataType == typeof(Guid))
             {
                 if (value == null) return isNullable ? "null" : "''";
 

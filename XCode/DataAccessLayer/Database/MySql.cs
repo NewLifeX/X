@@ -294,20 +294,20 @@ namespace XCode.DataAccessLayer
         updatetime=values(updatetime);
          */
 
-        private String GetBatchSql(String tableName, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list)
+        private String GetBatchSql(IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list)
         {
             var sb = Pool.StringBuilder.Get();
             var db = Database as DbBase;
 
             // 字段列表
             //if (columns == null) columns = table.Columns.ToArray();
-            sb.AppendFormat("Insert Into {0}(", db.FormatName(tableName));
+            sb.AppendFormat("Insert Into {0}(", db.FormatName(table));
             foreach (var dc in columns)
             {
                 // 取消对主键的过滤，避免列名和值无法一一对应的问题
                 //if (dc.Identity) continue;
 
-                sb.Append(db.FormatName(dc.ColumnName));
+                sb.Append(db.FormatName(dc));
                 sb.Append(",");
             }
             sb.Length--;
@@ -383,7 +383,7 @@ namespace XCode.DataAccessLayer
                         if (dc.Identity || dc.PrimaryKey) continue;
 
                         if (updateColumns.Contains(dc.Name) && (addColumns == null || !addColumns.Contains(dc.Name)))
-                            sb.AppendFormat("{0}=Values({0}),", db.FormatName(dc.ColumnName));
+                            sb.AppendFormat("{0}=Values({0}),", db.FormatName(dc));
                     }
                     sb.Length--;
                 }
@@ -395,7 +395,7 @@ namespace XCode.DataAccessLayer
                         if (dc.Identity || dc.PrimaryKey) continue;
 
                         if (addColumns.Contains(dc.Name))
-                            sb.AppendFormat("{0}={0}+Values({0}),", db.FormatName(dc.ColumnName));
+                            sb.AppendFormat("{0}={0}+Values({0}),", db.FormatName(dc));
                     }
                     sb.Length--;
                 }
@@ -404,7 +404,7 @@ namespace XCode.DataAccessLayer
             return sb.Put(true);
         }
 
-        public override Int32 Insert(String tableName, IDataColumn[] columns, IEnumerable<IIndexAccessor> list)
+        public override Int32 Insert(IDataTable table, IDataColumn[] columns, IEnumerable<IIndexAccessor> list)
         {
             // 分批
             var batchSize = 10_000;
@@ -412,7 +412,7 @@ namespace XCode.DataAccessLayer
             for (var i = 0; i < list.Count();)
             {
                 var es = list.Skip(i).Take(batchSize).ToList();
-                var sql = GetBatchSql(tableName, columns, null, null, es);
+                var sql = GetBatchSql(table, columns, null, null, es);
                 rs += Execute(sql);
 
                 i += es.Count;
@@ -421,7 +421,7 @@ namespace XCode.DataAccessLayer
             return rs;
         }
 
-        public override Int32 Upsert(String tableName, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list)
+        public override Int32 Upsert(IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list)
         {
             // 分批
             var batchSize = 10_000;
@@ -429,7 +429,7 @@ namespace XCode.DataAccessLayer
             for (var i = 0; i < list.Count();)
             {
                 var es = list.Skip(i).Take(batchSize).ToList();
-                var sql = GetBatchSql(tableName, columns, updateColumns, addColumns, es);
+                var sql = GetBatchSql(table, columns, updateColumns, addColumns, es);
                 rs += Execute(sql);
 
                 i += es.Count;
@@ -629,33 +629,16 @@ namespace XCode.DataAccessLayer
 
             //var sb = new StringBuilder(32 + fs.Count * 20);
             var sb = Pool.StringBuilder.Get();
-            var pks = new List<String>();
 
-            sb.AppendFormat("Create Table If Not Exists {0}(", FormatTableName(table));
+            sb.AppendFormat("Create Table If Not Exists {0}(", FormatName(table));
             for (var i = 0; i < fs.Count; i++)
             {
                 sb.AppendLine();
                 sb.Append("\t");
                 sb.Append(FieldClause(fs[i], true));
                 if (i < fs.Count - 1) sb.Append(",");
-
-                if (fs[i].PrimaryKey) pks.Add(FormatName(fs[i].ColumnName));
             }
-            // 如果有自增，则自增必须作为主键
-            foreach (var item in table.Columns)
-            {
-                if (item.Identity && !item.PrimaryKey)
-                {
-                    pks.Clear();
-                    pks.Add(FormatName(item.ColumnName));
-                    break;
-                }
-            }
-            if (pks.Count > 0)
-            {
-                sb.AppendLine(",");
-                sb.AppendFormat("\tPrimary Key ({0})", String.Join(",", pks.ToArray()));
-            }
+            if (table.PrimaryKeys.Length > 0) sb.AppendFormat(",\r\n\tPrimary Key ({0})", table.PrimaryKeys.Join(",", FormatName));
             sb.AppendLine();
             sb.Append(")");
 
@@ -671,10 +654,10 @@ namespace XCode.DataAccessLayer
         {
             if (String.IsNullOrEmpty(table.Description)) return null;
 
-            return $"Alter Table {FormatTableName(table)} Comment '{table.Description}'";
+            return $"Alter Table {FormatName(table)} Comment '{table.Description}'";
         }
 
-        public override String AlterColumnSQL(IDataColumn field, IDataColumn oldfield) => $"Alter Table {FormatTableName(field.Table)} Modify Column {FieldClause(field, false)}";
+        public override String AlterColumnSQL(IDataColumn field, IDataColumn oldfield) => $"Alter Table {FormatName(field.Table)} Modify Column {FieldClause(field, false)}";
 
         public override String AddColumnDescriptionSQL(IDataColumn field)
         {
