@@ -42,10 +42,11 @@ namespace XCode
 
         #region 输出
         /// <summary>已重载。输出字段表达式的字符串形式</summary>
+        /// <param name="session">实体会话</param>
         /// <param name="builder">字符串构建器</param>
         /// <param name="ps">参数字典</param>
         /// <returns></returns>
-        public override void GetString(StringBuilder builder, IDictionary<String, Object> ps)
+        public override void GetString(IEntitySession session, StringBuilder builder, IDictionary<String, Object> ps)
         {
             if (Field == null) return;
 
@@ -55,18 +56,18 @@ namespace XCode
                 return;
             }
 
-            var op = Field.Factory;
+            var db = session.Dal.Db;
 
             // 右值是字段
             if (Value is FieldItem fi)
             {
-                builder.AppendFormat("{0}{1}{2}", Field.FormatedName, Action, op.FormatName(fi.ColumnName));
+                builder.AppendFormat("{0}{1}{2}", Field.FormatedName, Action, db.FormatName(fi.Field));
                 return;
             }
 
             if (ps == null)
             {
-                builder.AppendFormat("{0}{1}{2}", Field.FormatedName, Action, op.FormatValue(Field, Value));
+                builder.AppendFormat("{0}{1}{2}", Field.FormatedName, Action, db.FormatValue(Field.Field, Value));
                 return;
             }
 
@@ -78,7 +79,7 @@ namespace XCode
             // 数值留给字典
             ps[name] = Value;
 
-            builder.AppendFormat("{0}{1}{2}", Field.FormatedName, Action, op.Session.FormatParameterName(name));
+            builder.AppendFormat("{0}{1}{2}", Field.FormatedName, Action, db.FormatParameterName(name));
         }
         #endregion
     }

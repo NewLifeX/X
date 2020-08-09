@@ -58,14 +58,14 @@ namespace XCode
             /// <summary>表名</summary>
             public virtual String TableName { get => Meta.TableName; set => Meta.TableName = value; }
 
-            /// <summary>已格式化的表名，带有中括号等</summary>
-            public virtual String FormatedTableName => Session.FormatedTableName;
+            ///// <summary>已格式化的表名，带有中括号等</summary>
+            //public virtual String FormatedTableName => Session.FormatedTableName;
 
-            /// <summary>实体缓存</summary>
-            public virtual IEntityCache Cache => Session.Cache;
+            ///// <summary>实体缓存</summary>
+            //public virtual IEntityCache Cache => Session.Cache;
 
-            /// <summary>单对象实体缓存</summary>
-            public virtual ISingleEntityCache SingleCache => Session.SingleCache;
+            ///// <summary>单对象实体缓存</summary>
+            //public virtual ISingleEntityCache SingleCache => Session.SingleCache;
 
             /// <summary>总记录数</summary>
             public virtual Int32 Count => Session.Count;
@@ -200,17 +200,17 @@ namespace XCode
             #endregion
 
             #region 事务
-            /// <summary>开始事务</summary>
-            /// <returns></returns>
-            public virtual Int32 BeginTransaction() => Session.BeginTrans();
+            ///// <summary>开始事务</summary>
+            ///// <returns></returns>
+            //public virtual Int32 BeginTransaction() => Session.BeginTrans();
 
-            /// <summary>提交事务</summary>
-            /// <returns></returns>
-            public virtual Int32 Commit() => Session.Commit();
+            ///// <summary>提交事务</summary>
+            ///// <returns></returns>
+            //public virtual Int32 Commit() => Session.Commit();
 
-            /// <summary>回滚事务</summary>
-            /// <returns></returns>
-            public virtual Int32 Rollback() => Session.Rollback();
+            ///// <summary>回滚事务</summary>
+            ///// <returns></returns>
+            //public virtual Int32 Rollback() => Session.Rollback();
 
             /// <summary>创建事务</summary>
             public virtual EntityTransaction CreateTrans() => new EntityTransaction<TEntity>();

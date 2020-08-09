@@ -452,7 +452,7 @@ namespace XCode
 
             var exp = GetPrimaryCondition(entity);
             var ps = !db.UseParameter ? null : new Dictionary<String, Object>();
-            var def = exp?.GetString(ps);
+            var def = exp?.GetString(session, ps);
             if (def.IsNullOrEmpty()) return null;
 
             // 处理累加字段
@@ -541,7 +541,7 @@ namespace XCode
             // 标识列作为删除关键字
             var exp = GetPrimaryCondition(entity);
             var ps = !db.UseParameter ? null : new Dictionary<String, Object>();
-            var def = exp?.GetString(ps);
+            var def = exp?.GetString(session, ps);
             if (def.IsNullOrEmpty()) return null;
 
             if (ps != null && ps.Count > 0)

@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Log;
 using NewLife.Security;
-using XCode.Model;
 
 namespace XCode.Common
 {
@@ -15,7 +14,7 @@ namespace XCode.Common
     public class DataSimulation<T> : DataSimulation where T : Entity<T>, new()
     {
         /// <summary>实例化</summary>
-        public DataSimulation() { Factory = Entity<T>.Meta.Factory; }
+        public DataSimulation() => Factory = Entity<T>.Meta.Factory;
     }
 
     /// <summary>数据模拟</summary>

@@ -43,13 +43,16 @@ namespace XCode
 
         #region 输出
         /// <summary>已重载。输出字段表达式的字符串形式</summary>
+        /// <param name="session">实体会话</param>
         /// <param name="builder">字符串构建器</param>
         /// <param name="ps">参数字典</param>
         /// <returns></returns>
-        public override void GetString(StringBuilder builder, IDictionary<String, Object> ps)
+        public override void GetString(IEntitySession session, StringBuilder builder, IDictionary<String, Object> ps)
         {
             var fi = Field;
             if (fi == null || Format.IsNullOrWhiteSpace()) return;
+
+            var factory = fi.Factory;
 
             // 非参数化
             if (ps == null)
@@ -58,19 +61,18 @@ namespace XCode
                 var val = "";
                 if (Format.Contains("{1}"))
                 {
-                    var op = fi.Factory;
                     if (Value is SelectBuilder sb)
                         val = sb;
                     else if (Value is IList<Object> ems)
-                        val = ems.Join(",", e => op.FormatValue(fi, e));
+                        val = ems.Join(",", e => factory.FormatValue(fi, e));
                     else if (Value is String)
                     {
                         var list = (Value + "").Split(",").ToList();
                         list.RemoveAll(e => (e + "").Trim().IsNullOrEmpty() || e.Contains("%")); //处理类似 in("xxx,xxx,xxx"),和 like "%,xxxx,%" 这两种情况下无法正常格式化查询字符串
-                        val = list.Count > 1 ? list.Join(",", e => op.FormatValue(fi, e)) : op.FormatValue(fi, Value);
+                        val = list.Count > 1 ? list.Join(",", e => factory.FormatValue(fi, e)) : factory.FormatValue(fi, Value);
                     }
                     else
-                        val = op.FormatValue(fi, Value);
+                        val = factory.FormatValue(fi, Value);
                 }
 
                 builder.AppendFormat(Format, fi.FormatedName, val);
@@ -86,7 +88,7 @@ namespace XCode
                 // String/SelectBuilder 不走参数化
                 if (Value is String)
                 {
-                    var val = fi.Factory.FormatValue(fi, Value);
+                    var val = factory.FormatValue(fi, Value);
                     builder.AppendFormat(Format, fi.FormatedName, val);
                     return;
                 }
@@ -110,8 +112,7 @@ namespace XCode
 
                         ps[name] = item.ChangeType(type);
 
-                        var op = fi.Factory;
-                        pns.Add(op.Session.FormatParameterName(name));
+                        pns.Add(session.FormatParameterName(name));
                     }
                     builder.AppendFormat(Format, fi.FormatedName, pns.Join());
 
@@ -131,8 +132,7 @@ namespace XCode
                 // 数值留给字典
                 ps[name] = Value.ChangeType(type);
 
-                var op = fi.Factory;
-                builder.AppendFormat(Format, fi.FormatedName, op.Session.FormatParameterName(name));
+                builder.AppendFormat(Format, fi.FormatedName, session.FormatParameterName(name));
             }
             else
             {

@@ -183,7 +183,7 @@ namespace XCode
                     // 根据是否来自数据库，拆分为两组
                     var ts = Split(list);
                     list = ts.Item1;
-                    rs += BatchSave(fact, ts.Item2.Valid());
+                    rs += BatchSave(fact.Session, ts.Item2.Valid());
                 }
             }
 
@@ -212,7 +212,7 @@ namespace XCode
                     // 根据是否来自数据库，拆分为两组
                     var ts = Split(list);
                     list = ts.Item1;
-                    rs += BatchSave(fact, ts.Item2);
+                    rs += BatchSave(fact.Session, ts.Item2);
                 }
             }
 
@@ -234,11 +234,11 @@ namespace XCode
             return new Tuple<IList<T>, IList<T>>(updates, others);
         }
 
-        private static Int32 BatchSave<T>(IEntityFactory fact, IEnumerable<T> list) where T : IEntity
+        private static Int32 BatchSave<T>(IEntitySession session, IEnumerable<T> list) where T : IEntity
         {
             // 没有其它唯一索引，且主键为空时，走批量插入
             var rs = 0;
-            if (!fact.Table.DataTable.Indexes.Any(di => di.Unique))
+            if (!session.Table.Indexes.Any(di => di.Unique))
             {
                 var inserts = new List<T>();
                 var updates = new List<T>();
@@ -261,7 +261,7 @@ namespace XCode
                 if (updates.Count > 0)
                 {
                     // 只有Oracle支持批量Update
-                    if (fact.Session.Dal.DbType == DatabaseType.Oracle)
+                    if (session.Dal.DbType == DatabaseType.Oracle)
                         rs += BatchUpdate(updates);
                     else
                         upserts.AddRange(upserts);
@@ -293,7 +293,7 @@ namespace XCode
                 var count = 0;
                 var rs = 0;
                 var ks = new List<Object>();
-                var sql = $"Delete From {fact.FormatedTableName} Where ";
+                var sql = $"Delete From {session.FormatedTableName} Where ";
                 foreach (var item in list)
                 {
                     ks.Add(item[pk.Name]);

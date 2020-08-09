@@ -34,20 +34,22 @@ namespace XCode
         /// <summary>用于匹配Or关键字的正则表达式</summary>
         internal protected static Regex _regOr = new Regex(@"\bOr\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         /// <summary>获取表达式的文本表示</summary>
+        /// <param name="session">实体会话</param>
         /// <param name="ps">参数字典</param>
         /// <returns></returns>
-        public String GetString(IDictionary<String, Object> ps)
+        public String GetString(IEntitySession session, IDictionary<String, Object> ps)
         {
             var sb = Pool.StringBuilder.Get();
-            GetString(sb, ps);
+            GetString(session, sb, ps);
 
             return sb.Put(true);
         }
 
         /// <summary>获取字符串</summary>
+        /// <param name="session">实体会话</param>
         /// <param name="builder">字符串构建器</param>
         /// <param name="ps">参数字典</param>
-        public virtual void GetString(StringBuilder builder, IDictionary<String, Object> ps)
+        public virtual void GetString(IEntitySession session, StringBuilder builder, IDictionary<String, Object> ps)
         {
             var txt = Text;
             if (txt.IsNullOrEmpty()) return;
@@ -60,7 +62,7 @@ namespace XCode
 
         /// <summary>输出该表达式的字符串形式</summary>
         /// <returns></returns>
-        public override String ToString() => GetString(null);
+        public override String ToString() => GetString(null, null);
 
         /// <summary>类型转换</summary>
         /// <param name="obj"></param>

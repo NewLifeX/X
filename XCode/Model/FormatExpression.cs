@@ -42,13 +42,16 @@ namespace XCode
 
         #region 输出
         /// <summary>已重载。输出字段表达式的字符串形式</summary>
+        /// <param name="session">实体会话</param>
         /// <param name="builder">字符串构建器</param>
         /// <param name="ps">参数字典</param>
         /// <returns></returns>
-        public override void GetString(StringBuilder builder, IDictionary<String, Object> ps)
+        public override void GetString(IEntitySession session, StringBuilder builder, IDictionary<String, Object> ps)
         {
             var fi = Field;
             if (fi == null || Format.IsNullOrWhiteSpace()) return;
+
+            var db = session.Dal.Db;
 
             // 非参数化
             if (ps == null)
@@ -61,9 +64,9 @@ namespace XCode
                     if (Value is SelectBuilder sb)
                         val = sb;
                     else if (Value is IList<Object> ems)
-                        val = ems.Join(",", e => op.FormatValue(fi, e));
+                        val = ems.Join(",", e => db.FormatValue(fi.Field, e));
                     else
-                        val = op.FormatValue(fi, Value);
+                        val = db.FormatValue(fi.Field, Value);
                 }
 
                 builder.AppendFormat(Format, fi.FormatedName, val);
@@ -85,8 +88,7 @@ namespace XCode
                 // 数值留给字典
                 ps[name] = Value.ChangeType(type);
 
-                var op = fi.Factory;
-                builder.AppendFormat(Format, fi.FormatedName, op.Session.FormatParameterName(name));
+                builder.AppendFormat(Format, fi.FormatedName, db.FormatParameterName(name));
             }
             else
             {

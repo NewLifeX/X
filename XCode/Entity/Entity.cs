@@ -485,7 +485,7 @@ namespace XCode
         {
             var session = Meta.Session;
             var ps = session.Dal.Db.UseParameter ? new Dictionary<String, Object>() : null;
-            var wh = where?.GetString(ps);
+            var wh = where?.GetString(session, ps);
 
             var builder = new SelectBuilder
             {
@@ -939,7 +939,7 @@ namespace XCode
         {
             var session = Meta.Session;
             var ps = session.Dal.Db.UseParameter ? new Dictionary<String, Object>() : null;
-            var wh = where?.GetString(ps);
+            var wh = where?.GetString(session, ps);
 
             //// 如果总记录数超过10万，为了提高性能，返回快速查找且带有缓存的总记录数
             //if (String.IsNullOrEmpty(wh) && session.LongCount > 100000) return session.LongCount;
@@ -1176,7 +1176,7 @@ namespace XCode
         {
             var session = Meta.Session;
             var ps = session.Dal.Db.UseParameter ? new Dictionary<String, Object>() : null;
-            var wh = where?.GetString(ps);
+            var wh = where?.GetString(session, ps);
             var builder = CreateBuilder(wh, order, selects, true);
 
             builder = FixParam(builder, ps);

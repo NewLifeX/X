@@ -56,10 +56,11 @@ namespace XCode
         }
 
         /// <summary>已重载。</summary>
+        /// <param name="session">实体会话</param>
         /// <param name="builder">字符串构建器</param>
         /// <param name="ps">参数字典</param>
         /// <returns></returns>
-        public override void GetString(StringBuilder builder, IDictionary<String, Object> ps)
+        public override void GetString(IEntitySession session, StringBuilder builder, IDictionary<String, Object> ps)
         {
             //if (Builder == null || Builder.Length <= 0) return;
 
@@ -74,7 +75,7 @@ namespace XCode
                 if (!first) builder.Append(",");
                 first = false;
 
-                exp.GetString(builder, ps);
+                exp.GetString(session, builder, ps);
             }
         }
         #endregion

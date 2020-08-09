@@ -55,14 +55,14 @@ namespace XCode
         /// <summary>表名</summary>
         String TableName { get; set; }
 
-        /// <summary>已格式化的表名，带有中括号等</summary>
-        String FormatedTableName { get; }
+        ///// <summary>已格式化的表名，带有中括号等</summary>
+        //String FormatedTableName { get; }
 
-        /// <summary>实体缓存</summary>
-        IEntityCache Cache { get; }
+        ///// <summary>实体缓存</summary>
+        //IEntityCache Cache { get; }
 
-        /// <summary>单对象实体缓存</summary>
-        ISingleEntityCache SingleCache { get; }
+        ///// <summary>单对象实体缓存</summary>
+        //ISingleEntityCache SingleCache { get; }
 
         /// <summary>总记录数</summary>
         Int32 Count { get; }
@@ -170,17 +170,17 @@ namespace XCode
         #endregion
 
         #region 事务
-        /// <summary>开始事务</summary>
-        /// <returns></returns>
-        Int32 BeginTransaction();
+        ///// <summary>开始事务</summary>
+        ///// <returns></returns>
+        //Int32 BeginTransaction();
 
-        /// <summary>提交事务</summary>
-        /// <returns></returns>
-        Int32 Commit();
+        ///// <summary>提交事务</summary>
+        ///// <returns></returns>
+        //Int32 Commit();
 
-        /// <summary>回滚事务</summary>
-        /// <returns></returns>
-        Int32 Rollback();
+        ///// <summary>回滚事务</summary>
+        ///// <returns></returns>
+        //Int32 Rollback();
 
         /// <summary>创建事务</summary>
         EntityTransaction CreateTrans();

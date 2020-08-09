@@ -53,10 +53,11 @@ namespace XCode
 
         #region 方法
         /// <summary>输出条件表达式的字符串表示，遍历表达式集合并拼接起来</summary>
+        /// <param name="session">实体会话</param>
         /// <param name="builder"></param>
         /// <param name="ps">参数字典</param>
         /// <returns></returns>
-        public override void GetString(StringBuilder builder, IDictionary<String, Object> ps)
+        public override void GetString(IEntitySession session, StringBuilder builder, IDictionary<String, Object> ps)
         {
             if (IsEmpty) return;
 
@@ -65,11 +66,11 @@ namespace XCode
             var len = builder.Length;
 
             // 左侧表达式
-            GetString(builder, ps, Left);
+            GetString(session, builder, ps, Left);
 
             // 右侧表达式
             var sb = Pool.StringBuilder.Get();
-            GetString(sb, ps, Right);
+            GetString(session, sb, ps, Right);
 
             // 中间运算符
             if (builder.Length > len && sb.Length > 0)
@@ -86,7 +87,7 @@ namespace XCode
             builder.Append(sb.Put(true));
         }
 
-        private void GetString(StringBuilder builder, IDictionary<String, Object> ps, Expression exp)
+        private void GetString(IEntitySession session, StringBuilder builder, IDictionary<String, Object> ps, Expression exp)
         {
             exp = Flatten(exp);
             if (exp == null || exp.IsEmpty) return;
@@ -101,7 +102,7 @@ namespace XCode
             }
 
             if (bracket) builder.Append("(");
-            exp.GetString(builder, ps);
+            exp.GetString(session, builder, ps);
             if (bracket) builder.Append(")");
         }
 
