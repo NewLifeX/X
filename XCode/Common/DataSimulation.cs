@@ -56,14 +56,14 @@ namespace XCode.Common
             set.TraceSQLTime = 0;
 
             var fact = Factory;
+            var session = fact.Session;
             //var pst = XCodeService.Container.ResolveInstance<IEntityPersistence>();
             var pst = fact.Persistence;
             var conn = fact.ConnName;
 
             // 关闭SQL日志
             //XCode.Setting.Current.ShowSQL = false;
-            //fact.Session.Dal.Session.ShowSQL = false;
-            fact.Session.Dal.Db.ShowSQL = false;
+            session.Dal.Db.ShowSQL = false;
             // 不必获取自增返回值
             fact.AutoIdentity = false;
 
@@ -103,7 +103,7 @@ namespace XCode.Common
                             e.SetItem(item.Name, DateTime.Now.AddSeconds(Rand.Next(-10000, 10000)));
                     }
                     var sql = "";
-                    if (UseSql) sql = pst.GetSql(e, DataObjectMethodType.Insert);
+                    if (UseSql) sql = pst.GetSql(session, e, DataObjectMethodType.Insert);
                     lock (list)
                     {
                         list.Add(e);
@@ -128,7 +128,7 @@ namespace XCode.Common
 
                 var k = 0;
                 EntityTransaction tr = null;
-                var dal = fact.Session.Dal;
+                var dal = session.Dal;
                 for (var i = n; i < list.Count; i += ths, k++)
                 {
                     if (k % BatchSize == 0)
@@ -152,11 +152,11 @@ namespace XCode.Common
             WriteLog("数据写入完毕！");
             ms = sw.Elapsed.TotalMilliseconds;
             var speed = list.Count * 1000L / ms;
-            WriteLog("{2}插入{3:n0}行数据，耗时：{0:n0}ms 速度：{1:n0}tps", ms, speed, fact.Session.Dal.DbType, list.Count);
+            WriteLog("{2}插入{3:n0}行数据，耗时：{0:n0}ms 速度：{1:n0}tps", ms, speed, session.Dal.DbType, list.Count);
 
             Score = (Int32)speed;
 
-            fact.Session.ClearCache("SqlInsert");
+            session.ClearCache("SqlInsert");
             var t = fact.Count;
             Thread.Sleep(100);
             WriteLog("{0} 共有数据：{1:n0}", fact.TableName, fact.Count);

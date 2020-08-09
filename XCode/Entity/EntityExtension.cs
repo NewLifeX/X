@@ -288,6 +288,7 @@ namespace XCode
             var pks = fact.Table.PrimaryKeys;
             if (pks != null && pks.Length == 1)
             {
+                var session = fact.Session;
                 var pk = pks[0];
                 var count = 0;
                 var rs = 0;
@@ -301,7 +302,7 @@ namespace XCode
                     // 分批执行
                     if (count >= 1000)
                     {
-                        rs += fact.Session.Execute(sql + pk.In(ks));
+                        rs += session.Execute(sql + pk.In(ks));
 
                         ks.Clear();
                         count = 0;
@@ -309,7 +310,7 @@ namespace XCode
                 }
                 if (count > 0)
                 {
-                    rs += fact.Session.Execute(sql + pk.In(ks));
+                    rs += session.Execute(sql + pk.In(ks));
                 }
 
                 return rs;
@@ -494,11 +495,12 @@ namespace XCode
 
             var entity = list.First();
             var fact = entity.GetType().AsFactory();
+            var session = fact.Session;
 
             // SqlServer的批量Upsert需要主键参与，哪怕是自增，构建update的where时用到主键
             if (columns == null)
             {
-                var dbt = fact.Session.Dal.DbType;
+                var dbt = session.Dal.DbType;
                 if (dbt == DatabaseType.SqlServer || dbt == DatabaseType.Oracle)
                     columns = fact.Fields.Select(e => e.Field).Where(e => !e.Identity || e.PrimaryKey).ToArray();
                 else if (dbt == DatabaseType.MySql)
@@ -532,7 +534,6 @@ namespace XCode
             // 没有任何数据变更则直接返回0
             if ((updateColumns == null || updateColumns.Count <= 0) && (addColumns == null || addColumns.Count <= 0)) return 0;
 
-            var session = fact.Session;
             session.InitData();
 
             var dal = session.Dal;

@@ -790,7 +790,7 @@ namespace XCode
         /// <returns></returns>
         public virtual Int32 Insert(IEntity entity)
         {
-            var rs = Factory.Persistence.Insert(entity);
+            var rs = Factory.Persistence.Insert(this, entity);
 
             var e = entity as TEntity;
 
@@ -808,7 +808,7 @@ namespace XCode
         /// <returns></returns>
         public virtual Int32 Update(IEntity entity)
         {
-            var rs = Factory.Persistence.Update(entity);
+            var rs = Factory.Persistence.Update(this, entity);
 
             var e = entity as TEntity;
 
@@ -826,7 +826,7 @@ namespace XCode
         /// <returns></returns>
         public virtual Int32 Delete(IEntity entity)
         {
-            var rs = Factory.Persistence.Delete(entity);
+            var rs = Factory.Persistence.Delete(this, entity);
 
             var e = entity as TEntity;
 

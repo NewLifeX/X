@@ -1110,7 +1110,7 @@ namespace XCode
         /// <param name="values">更新值列表</param>
         /// <returns>返回受影响的行数</returns>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public static Int32 Insert(String[] names, Object[] values) => Persistence.Insert(names, values);
+        public static Int32 Insert(String[] names, Object[] values) => Persistence.Insert(Meta.Session, names, values);
 
         /// <summary>把一个实体对象更新到数据库</summary>
         /// <param name="obj">实体对象</param>
@@ -1124,7 +1124,7 @@ namespace XCode
         /// <param name="whereClause">指定要更新的实体</param>
         /// <returns></returns>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public static Int32 Update(String setClause, String whereClause) => Persistence.Update(setClause, whereClause);
+        public static Int32 Update(String setClause, String whereClause) => Persistence.Update(Meta.Session, setClause, whereClause);
 
         /// <summary>更新一批实体数据</summary>
         /// <param name="setNames">更新属性列表</param>
@@ -1133,7 +1133,7 @@ namespace XCode
         /// <param name="whereValues">条件值列表</param>
         /// <returns>返回受影响的行数</returns>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public static Int32 Update(String[] setNames, Object[] setValues, String[] whereNames, Object[] whereValues) => Persistence.Update(setNames, setValues, whereNames, whereValues);
+        public static Int32 Update(String[] setNames, Object[] setValues, String[] whereNames, Object[] whereValues) => Persistence.Update(Meta.Session, setNames, setValues, whereNames, whereValues);
 
         /// <summary>
         /// 从数据库中删除指定实体对象。
@@ -1149,14 +1149,14 @@ namespace XCode
         /// <param name="whereClause">限制条件</param>
         /// <returns></returns>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public static Int32 Delete(String whereClause) => Persistence.Delete(whereClause);
+        public static Int32 Delete(String whereClause) => Persistence.Delete(Meta.Session, whereClause);
 
         /// <summary>从数据库中删除指定属性列表和值列表所限定的实体对象。</summary>
         /// <param name="names">属性列表</param>
         /// <param name="values">值列表</param>
         /// <returns></returns>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public static Int32 Delete(String[] names, Object[] values) => Persistence.Delete(names, values);
+        public static Int32 Delete(String[] names, Object[] values) => Persistence.Delete(Meta.Session, names, values);
 
         /// <summary>把一个实体对象更新到数据库</summary>
         /// <param name="obj">实体对象</param>
