@@ -50,9 +50,10 @@ namespace XCode
         {
             if (Field == null) return;
 
+            var columnName = session.Dal.Db.FormatName(Field.Field);
             if (Action.IsNullOrEmpty())
             {
-                builder.Append(Field.FormatedName);
+                builder.Append(columnName);
                 return;
             }
 
@@ -61,13 +62,13 @@ namespace XCode
             // 右值是字段
             if (Value is FieldItem fi)
             {
-                builder.AppendFormat("{0}{1}{2}", Field.FormatedName, Action, db.FormatName(fi.Field));
+                builder.AppendFormat("{0}{1}{2}", columnName, Action, db.FormatName(fi.Field));
                 return;
             }
 
             if (ps == null)
             {
-                builder.AppendFormat("{0}{1}{2}", Field.FormatedName, Action, db.FormatValue(Field.Field, Value));
+                builder.AppendFormat("{0}{1}{2}", columnName, Action, db.FormatValue(Field.Field, Value));
                 return;
             }
 
@@ -79,7 +80,7 @@ namespace XCode
             // 数值留给字典
             ps[name] = Value;
 
-            builder.AppendFormat("{0}{1}{2}", Field.FormatedName, Action, db.FormatParameterName(name));
+            builder.AppendFormat("{0}{1}{2}", columnName, Action, db.FormatParameterName(name));
         }
         #endregion
     }

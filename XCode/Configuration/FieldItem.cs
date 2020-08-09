@@ -124,7 +124,7 @@ namespace XCode.Configuration
         }
 
         /// <summary>已格式化的字段名，可字节用于SQL中。主要用于处理关键字，比如MSSQL里面的[User]</summary>
-        public String FormatedName => Factory.FormatName(ColumnName);
+        public String FormatedName => Factory.Session.Dal.Db.FormatName(Field);
 
         /// <summary>跟当前字段有关系的原始字段</summary>
         public FieldItem OriField { get; internal set; }
@@ -317,8 +317,8 @@ namespace XCode.Configuration
         {
             if (value == null) return new Expression();
 
-            var op = Factory;
-            var name = op.FormatName(ColumnName);
+            //var op = Factory;
+            //var name = op.FormatName(ColumnName);
 
             var vs = new List<Object>();
             var list = new List<Object>();

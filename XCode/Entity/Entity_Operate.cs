@@ -222,14 +222,14 @@ namespace XCode
             /// <returns></returns>
             public virtual String FormatName(String name) => Meta.FormatName(name);
 
-            /// <summary>
-            /// 取得一个值的Sql值。
-            /// 当这个值是字符串类型时，会在该值前后加单引号；
-            /// </summary>
-            /// <param name="name">字段</param>
-            /// <param name="value">对象</param>
-            /// <returns>Sql值的字符串形式</returns>
-            public virtual String FormatValue(String name, Object value) => Meta.FormatValue(name, value);
+            ///// <summary>
+            ///// 取得一个值的Sql值。
+            ///// 当这个值是字符串类型时，会在该值前后加单引号；
+            ///// </summary>
+            ///// <param name="name">字段</param>
+            ///// <param name="value">对象</param>
+            ///// <returns>Sql值的字符串形式</returns>
+            //public virtual String FormatValue(String name, Object value) => Meta.FormatValue(name, value);
 
             /// <summary>格式化数据为SQL数据</summary>
             /// <param name="field">字段</param>

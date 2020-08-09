@@ -191,16 +191,16 @@ namespace XCode
             /// <returns></returns>
             public static String FormatName(String name) => Session.Dal.Db.FormatName(name);
 
-            /// <summary>格式化时间</summary>
-            /// <param name="dateTime"></param>
-            /// <returns></returns>
-            public static String FormatDateTime(DateTime dateTime) => Session.Dal.Db.FormatDateTime(dateTime);
+            ///// <summary>格式化时间</summary>
+            ///// <param name="dateTime"></param>
+            ///// <returns></returns>
+            //public static String FormatDateTime(DateTime dateTime) => Session.Dal.Db.FormatDateTime(dateTime);
 
-            /// <summary>格式化数据为SQL数据</summary>
-            /// <param name="name">名称</param>
-            /// <param name="value">数值</param>
-            /// <returns></returns>
-            public static String FormatValue(String name, Object value) => FormatValue(Table.FindByName(name), value);
+            ///// <summary>格式化数据为SQL数据</summary>
+            ///// <param name="name">名称</param>
+            ///// <param name="value">数值</param>
+            ///// <returns></returns>
+            //public static String FormatValue(String name, Object value) => FormatValue(Table.FindByName(name), value);
 
             /// <summary>格式化数据为SQL数据</summary>
             /// <param name="field">字段</param>

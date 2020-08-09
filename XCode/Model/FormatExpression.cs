@@ -52,6 +52,7 @@ namespace XCode
             if (fi == null || Format.IsNullOrWhiteSpace()) return;
 
             var db = session.Dal.Db;
+            var columnName = db.FormatName(fi.Field);
 
             // 非参数化
             if (ps == null)
@@ -69,7 +70,7 @@ namespace XCode
                         val = db.FormatValue(fi.Field, Value);
                 }
 
-                builder.AppendFormat(Format, fi.FormatedName, val);
+                builder.AppendFormat(Format, columnName, val);
                 return;
             }
 
@@ -88,11 +89,11 @@ namespace XCode
                 // 数值留给字典
                 ps[name] = Value.ChangeType(type);
 
-                builder.AppendFormat(Format, fi.FormatedName, db.FormatParameterName(name));
+                builder.AppendFormat(Format, columnName, db.FormatParameterName(name));
             }
             else
             {
-                builder.AppendFormat(Format, fi.FormatedName);
+                builder.AppendFormat(Format, columnName);
             }
         }
         #endregion

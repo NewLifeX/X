@@ -52,7 +52,10 @@ namespace XCode
             var fi = Field;
             if (fi == null || Format.IsNullOrWhiteSpace()) return;
 
-            var factory = fi.Factory;
+            //var factory = fi.Factory;
+            var db = session.Dal.Db;
+            var column = fi.Field;
+            var columnName = db.FormatName(fi.Field);
 
             // 非参数化
             if (ps == null)
@@ -64,18 +67,18 @@ namespace XCode
                     if (Value is SelectBuilder sb)
                         val = sb;
                     else if (Value is IList<Object> ems)
-                        val = ems.Join(",", e => factory.FormatValue(fi, e));
+                        val = ems.Join(",", e => db.FormatValue(column, e));
                     else if (Value is String)
                     {
                         var list = (Value + "").Split(",").ToList();
                         list.RemoveAll(e => (e + "").Trim().IsNullOrEmpty() || e.Contains("%")); //处理类似 in("xxx,xxx,xxx"),和 like "%,xxxx,%" 这两种情况下无法正常格式化查询字符串
-                        val = list.Count > 1 ? list.Join(",", e => factory.FormatValue(fi, e)) : factory.FormatValue(fi, Value);
+                        val = list.Count > 1 ? list.Join(",", e => db.FormatValue(column, e)) : db.FormatValue(column, Value);
                     }
                     else
-                        val = factory.FormatValue(fi, Value);
+                        val = db.FormatValue(column, Value);
                 }
 
-                builder.AppendFormat(Format, fi.FormatedName, val);
+                builder.AppendFormat(Format, columnName, val);
                 return;
             }
 
@@ -88,13 +91,13 @@ namespace XCode
                 // String/SelectBuilder 不走参数化
                 if (Value is String)
                 {
-                    var val = factory.FormatValue(fi, Value);
-                    builder.AppendFormat(Format, fi.FormatedName, val);
+                    var val = db.FormatValue(column, Value);
+                    builder.AppendFormat(Format, columnName, val);
                     return;
                 }
                 if (Value is SelectBuilder)
                 {
-                    builder.AppendFormat(Format, fi.FormatedName, Value);
+                    builder.AppendFormat(Format, columnName, Value);
                     return;
                 }
 
@@ -114,7 +117,7 @@ namespace XCode
 
                         pns.Add(session.FormatParameterName(name));
                     }
-                    builder.AppendFormat(Format, fi.FormatedName, pns.Join());
+                    builder.AppendFormat(Format, columnName, pns.Join());
 
                     return;
                 }
@@ -132,11 +135,11 @@ namespace XCode
                 // 数值留给字典
                 ps[name] = Value.ChangeType(type);
 
-                builder.AppendFormat(Format, fi.FormatedName, session.FormatParameterName(name));
+                builder.AppendFormat(Format, columnName, session.FormatParameterName(name));
             }
             else
             {
-                builder.AppendFormat(Format, fi.FormatedName);
+                builder.AppendFormat(Format, columnName);
             }
         }
         #endregion

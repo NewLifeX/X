@@ -319,7 +319,7 @@ namespace XCode
         #region 分组选择
         /// <summary>分组。有条件的分组请使用WhereExpression.GroupBy</summary>
         /// <returns></returns>
-        public static ConcatExpression GroupBy(this FieldItem field) => field == null ? null : new ConcatExpression(String.Format("Group By {0}", field.FormatedName));
+        public static ConcatExpression GroupBy(this FieldItem field) => field == null ? null : new ConcatExpression($"Group By {field.FormatedName}");
 
         ///// <summary>按照指定若干个字段分组。没有条件时使用分组请用FieldItem的GroupBy</summary>
         ///// <param name="where"></param>
@@ -376,7 +376,7 @@ namespace XCode
             else
                 newName = field.Factory.FormatName(newName);
 
-            return new ConcatExpression(String.Format("{2}({0}) as {1}", name, newName, action));
+            return new ConcatExpression($"{action}({name}) as {newName}");
         }
 
         /// <summary>作为新的列</summary>
@@ -393,7 +393,7 @@ namespace XCode
             else
                 newName = field.Factory.FormatName(newName);
 
-            return new ConcatExpression(String.Format("{0} as {1}", name, newName));
+            return new ConcatExpression($"{name} as {newName}");
         }
 
         /// <summary>数量</summary>
