@@ -239,7 +239,7 @@ namespace XUnitTest.Caching
         {
             var ic = Redis;
 
-            var ck = ic.AcquireLock("TestLock1", 3000);
+            var ck = ic.AcquireLock("lock:TestLock1", 3000);
             var k2 = ck as CacheLock;
 
             Assert.NotNull(k2);
@@ -264,14 +264,14 @@ namespace XUnitTest.Caching
         {
             var ic = Redis;
 
-            var ck1 = ic.AcquireLock("TestLock2", 3000);
+            var ck1 = ic.AcquireLock("lock:TestLock2", 3000);
             // 故意不用using，验证GC是否能回收
             //using var ck1 = ic.AcquireLock("TestLock2", 3000);
 
             var sw = Stopwatch.StartNew();
 
             // 抢相同锁，不可能成功。超时时间必须小于3000，否则前面的锁过期后，这里还是可以抢到的
-            Assert.Throws<InvalidOperationException>(() => ic.AcquireLock("TestLock2", 2000));
+            Assert.Throws<InvalidOperationException>(() => ic.AcquireLock("lock:TestLock2", 2000));
 
             // 耗时必须超过有效期
             sw.Stop();
