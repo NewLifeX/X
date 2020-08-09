@@ -28,7 +28,7 @@ namespace XUnitTest.Serialization
 
             var str2 = dic["time"];
             Assert.EndsWith(" UTC", str2 + "");
-            Assert.Equal(dt.ToFullString(), str2);
+            Assert.Equal(dt.ToFullString() + " UTC", str2);
 
             var dt2 = dic["time"].ToDateTime();
             Assert.Equal(DateTimeKind.Utc, dt2.Kind);
@@ -56,7 +56,7 @@ namespace XUnitTest.Serialization
             {
                 var str2 = dic["time"];
                 Assert.EndsWith(" UTC", str2 + "");
-                Assert.Equal(dt.ToUniversalTime().ToFullString(), str2);
+                Assert.Equal(dt.ToUniversalTime().ToFullString() + " UTC", str2);
 
                 var dt2 = dic["time"].ToDateTime();
                 Assert.Equal(DateTimeKind.Utc, dt2.Kind);

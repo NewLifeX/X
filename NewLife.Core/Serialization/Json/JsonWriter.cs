@@ -224,12 +224,12 @@ namespace NewLife.Serialization
                 if (dt.Hour == 0 && dt.Minute == 0 && dt.Second == 0)
                 {
                     str = dt.ToString("yyyy-MM-dd");
-
-                    // 处理UTC
-                    if (dt.Kind == DateTimeKind.Utc) str += " UTC";
                 }
                 else
                     str = dt.ToFullString();
+
+                // 处理UTC
+                if (dt.Kind == DateTimeKind.Utc) str += " UTC";
             }
 
             _Builder.AppendFormat("\"{0}\"", str);
