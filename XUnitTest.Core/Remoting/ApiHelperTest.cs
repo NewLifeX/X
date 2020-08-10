@@ -307,16 +307,16 @@ namespace XUnitTest.Remoting
         public void ProcessResponse_Text(String content)
         {
             var token = ApiHelper.ProcessResponse<MyToken>(content);
-            Assert.Equal("12345678", token.access_token);
-            Assert.Equal(7200, token.expires_in);
+            Assert.Equal("12345678", token.AccessToken);
+            Assert.Equal(7200, token.ExpiresIn);
         }
 
         class MyToken
         {
             [DataMember(Name = "access_token")]
-            public String access_token { get; set; }
+            public String AccessToken { get; set; }
             [DataMember(Name = "expires_in")]
-            public Int32 expires_in { get; set; }
+            public Int32 ExpiresIn { get; set; }
         }
 
         [Theory(DisplayName = "处理异常响应")]
