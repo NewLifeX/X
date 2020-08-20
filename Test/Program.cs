@@ -54,7 +54,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test7();
+                    Test4();
                     //XMLConvertToPEM();
                     //ExportPublicKeyToPEMFormat();
 #if !DEBUG
