@@ -83,7 +83,7 @@ namespace XCode.Membership
         public static IManageProvider Provider { get; set; }
 
         /// <summary>当前登录用户</summary>
-        public static IUser User { get => Provider.Current as IUser; set => Provider.Current = value as IManageUser; }
+        public static IUser User { get => Provider?.Current as IUser; set => Provider.Current = value as IManageUser; }
 
         /// <summary>菜单工厂</summary>
         public static IMenuFactory Menu => GetFactory<IMenu>() as IMenuFactory;
