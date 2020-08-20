@@ -405,7 +405,7 @@ namespace NewLife.Caching
 
             var rs = Execute(cmd, args);
             if (rs is TResult rs2) return rs2;
-            if (rs == null || rs is Object[] objs && objs.Length == 0) return default;
+            if (rs == null) return default;
             if (rs != null && TryChangeType(rs, typeof(TResult), out var target)) return (TResult)target;
 
             return default;
@@ -418,6 +418,8 @@ namespace NewLife.Caching
         /// <returns></returns>
         public virtual Boolean TryChangeType(Object value, Type type, out Object target)
         {
+            target = null;
+
             if (value is String str)
             {
                 try
@@ -443,6 +445,9 @@ namespace NewLife.Caching
                 if (type == typeof(Object[])) { target = value; return true; }
                 if (type == typeof(Packet[])) { target = objs.Cast<Packet>().ToArray(); return true; }
 
+                // 基础类型遇到空结果时返回默认值
+                if (objs.Length == 0 && Type.GetTypeCode(type) != TypeCode.Object) return false;
+
                 var elmType = type.GetElementTypeEx();
                 var arr = Array.CreateInstance(elmType, objs.Length);
                 for (var i = 0; i < objs.Length; i++)
@@ -453,7 +458,6 @@ namespace NewLife.Caching
                 return true;
             }
 
-            target = null;
             return false;
         }
 

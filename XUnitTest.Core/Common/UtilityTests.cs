@@ -117,5 +117,44 @@ namespace XUnitTest.Common
             n = (Int64)(1.46 * 1024 * 1024 * 1024 * 1024 * 1024 * 1024);
             Assert.Equal("1.5E", n.ToGMK(format));
         }
+
+        [Fact]
+        public void PrimitiveTest()
+        {
+            foreach (TypeCode item in Enum.GetValues(typeof(TypeCode)))
+            {
+                var type = Type.GetType("System." + item);
+                Assert.NotNull(type);
+                switch (item)
+                {
+                    case TypeCode.Empty:
+                    case TypeCode.Object:
+                    case TypeCode.DBNull:
+                        Assert.False(type.IsPrimitive);
+                        break;
+                    case TypeCode.Boolean:
+                    case TypeCode.Char:
+                    case TypeCode.SByte:
+                    case TypeCode.Byte:
+                    case TypeCode.Int16:
+                    case TypeCode.UInt16:
+                    case TypeCode.Int32:
+                    case TypeCode.UInt32:
+                    case TypeCode.Int64:
+                    case TypeCode.UInt64:
+                    case TypeCode.Single:
+                    case TypeCode.Double:
+                        Assert.True(type.IsPrimitive);
+                        break;
+                    case TypeCode.Decimal:
+                    case TypeCode.DateTime:
+                    case TypeCode.String:
+                        Assert.False(type.IsPrimitive);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
     }
 }
