@@ -11,6 +11,7 @@ using NewLife.Security;
 using Xunit;
 using NewLife.Serialization;
 using System.Collections;
+using System.Runtime.Serialization;
 
 namespace XUnitTest.Remoting
 {
@@ -299,6 +300,23 @@ namespace XUnitTest.Remoting
 
             var token = await ApiHelper.ProcessResponse<String>(msg, "access_token");
             Assert.Equal("12345678", token);
+        }
+
+        [Theory(DisplayName = "处理复杂响应")]
+        [InlineData("{errcode:0,errmsg:\"ok\",access_token:\"12345678\",\"expires_in\": 7200}")]
+        public void ProcessResponse_Text(String content)
+        {
+            var token = ApiHelper.ProcessResponse<MyToken>(content);
+            Assert.Equal("12345678", token.AccessToken);
+            Assert.Equal(7200, token.ExpiresIn);
+        }
+
+        class MyToken
+        {
+            [DataMember(Name = "access_token")]
+            public String AccessToken { get; set; }
+            [DataMember(Name = "expires_in")]
+            public Int32 ExpiresIn { get; set; }
         }
 
         [Theory(DisplayName = "处理异常响应")]

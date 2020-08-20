@@ -405,6 +405,7 @@ namespace NewLife.Caching
 
             var rs = Execute(cmd, args);
             if (rs is TResult rs2) return rs2;
+            if (rs == null) return default;
             if (rs != null && TryChangeType(rs, typeof(TResult), out var target)) return (TResult)target;
 
             return default;
@@ -417,6 +418,8 @@ namespace NewLife.Caching
         /// <returns></returns>
         public virtual Boolean TryChangeType(Object value, Type type, out Object target)
         {
+            target = null;
+
             if (value is String str)
             {
                 try
@@ -437,22 +440,24 @@ namespace NewLife.Caching
                 return true;
             }
 
-            if (value is Object[] pks)
+            if (value is Object[] objs)
             {
                 if (type == typeof(Object[])) { target = value; return true; }
-                if (type == typeof(Packet[])) { target = pks.Cast<Packet>().ToArray(); return true; }
+                if (type == typeof(Packet[])) { target = objs.Cast<Packet>().ToArray(); return true; }
+
+                // 基础类型遇到空结果时返回默认值
+                if (objs.Length == 0 && Type.GetTypeCode(type) != TypeCode.Object) return false;
 
                 var elmType = type.GetElementTypeEx();
-                var arr = Array.CreateInstance(elmType, pks.Length);
-                for (var i = 0; i < pks.Length; i++)
+                var arr = Array.CreateInstance(elmType, objs.Length);
+                for (var i = 0; i < objs.Length; i++)
                 {
-                    if (pks[i] is Packet pk3) arr.SetValue(Host.Encoder.Decode(pk3, elmType), i);
+                    if (objs[i] is Packet pk3) arr.SetValue(Host.Encoder.Decode(pk3, elmType), i);
                 }
                 target = arr;
                 return true;
             }
 
-            target = null;
             return false;
         }
 

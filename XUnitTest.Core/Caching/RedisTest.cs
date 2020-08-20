@@ -8,6 +8,7 @@ using NewLife.Data;
 using System.Diagnostics;
 using System.Threading;
 using NewLife;
+using System.Linq;
 
 namespace XUnitTest.Caching
 {
@@ -297,6 +298,52 @@ namespace XUnitTest.Caching
             // 循环多次后，可以抢到
             using var ck2 = ic.AcquireLock("TestLock3", 3000);
             Assert.NotNull(ck2);
+        }
+
+        [Fact(DisplayName = "搜索测试")]
+        public void SearchTest()
+        {
+            var ic = Redis;
+
+            // 添加删除
+            ic.Set("username", Environment.UserName, 60);
+
+            //var ss = ic.Search("*");
+            var ss = ic.Execute(null, r => r.Execute<String[]>("KEYS", "*"));
+            Assert.NotNull(ss);
+            Assert.NotEmpty(ss);
+
+            var ss2 = ic.Execute(null, r => r.Execute<String[]>("KEYS", "abcdefg*"));
+            Assert.NotNull(ss2);
+            Assert.Empty(ss2);
+
+            var n = 0;
+            var ss3 = Search(ic, "*", 10, ref n);
+            //var ss3 = ic.Execute(null, r => r.Execute<Object[]>("SCAN", n, "MATCH", "*", "COUNT", 10));
+            Assert.NotNull(ss3);
+            Assert.NotEmpty(ss3);
+
+            var ss4 = Search(ic, "wwee*", 10, ref n);
+            //var ss4 = ic.Execute(null, r => r.Execute<Object[]>("SCAN", n, "MATCH", "wwee*", "COUNT", 10));
+            Assert.NotNull(ss4);
+            Assert.Empty(ss4);
+        }
+
+        private String[] Search(Redis rds, String pattern, Int32 count, ref Int32 position)
+        {
+            var p = position;
+            var rs = rds.Execute(null, r => r.Execute<Object[]>("SCAN", p, "MATCH", pattern + "", "COUNT", count));
+
+            if (rs != null)
+            {
+                position = (rs[0] as Packet).ToStr().ToInt();
+
+                var ps = rs[1] as Object[];
+                var ss = ps.Select(e => (e as Packet).ToStr()).ToArray();
+                return ss;
+            }
+
+            return null;
         }
     }
 }

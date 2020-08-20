@@ -172,12 +172,28 @@ namespace NewLife.Remoting
             if (rtype == typeof(Packet)) return (TResult)(Object)new Packet(buf);
 
             var str = buf.ToStr()?.Trim();
-            var dic = str.StartsWith("<") && str.EndsWith(">") ? XmlParser.Decode(str) : JsonParser.Decode(str);
+            return ProcessResponse<TResult>(str, dataName);
+        }
+
+        /// <summary>处理响应。</summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="response">文本响应消息</param>
+        /// <param name="dataName">数据字段名称，默认data。同一套rpc体系不同接口的code/message一致，但data可能不同</param>
+        /// <returns></returns>
+        public static TResult ProcessResponse<TResult>(String response, String dataName = "data")
+        {
+            if (response.IsNullOrEmpty()) return default;
+
+            var rtype = typeof(TResult);
+
+            var dic = response.StartsWith("<") && response.EndsWith(">") ? XmlParser.Decode(response) : JsonParser.Decode(response);
 
             // 未指定有效数据名时，整体返回
             if (!dic.ContainsKey(dataName) && rtype == typeof(IDictionary<String, Object>)) return (TResult)dic;
 
-            var data = dic[dataName];
+            // 如果没有指定数据名，或者结果中不包含数据名，则整个字典作为结果数据
+            var data = (dataName.IsNullOrEmpty() || !dic.ContainsKey(dataName)) ? dic : dic[dataName];
+
             var code = 0;
             foreach (var item in CodeNames)
             {
