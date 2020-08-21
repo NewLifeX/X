@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace NewLife.Caching
 {
@@ -16,11 +17,26 @@ namespace NewLife.Caching
         /// <summary>生产添加</summary>
         /// <param name="values"></param>
         /// <returns></returns>
-        Int32 Add(IEnumerable<T> values);
+        Int32 Add(params T[] values);
 
-        /// <summary>消费获取</summary>
+        /// <summary>消费获取一批</summary>
         /// <param name="count"></param>
         /// <returns></returns>
         IEnumerable<T> Take(Int32 count = 1);
+
+        /// <summary>消费一个</summary>
+        /// <param name="timeout">超时。默认0秒，永久等待</param>
+        /// <returns></returns>
+        T TakeOne(Int32 timeout = 0);
+
+        /// <summary>消费获取</summary>
+        /// <param name="timeout">超时。默认0秒，永久等待</param>
+        /// <returns></returns>
+        Task<T> TakeOneAsync(Int32 timeout = 0);
+
+        /// <summary>确认消费</summary>
+        /// <param name="keys"></param>
+        /// <returns></returns>
+        Int32 Acknowledge(params String[] keys);
     }
 }

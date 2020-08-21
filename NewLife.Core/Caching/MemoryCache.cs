@@ -4,12 +4,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Serialization;
 using NewLife.Threading;
+#if !NET4
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 //#nullable enable
 namespace NewLife.Caching
@@ -689,7 +693,7 @@ namespace NewLife.Caching
         /// <summary>生产添加</summary>
         /// <param name="values"></param>
         /// <returns></returns>
-        public Int32 Add(IEnumerable<T> values)
+        public Int32 Add(params T[] values)
         {
             var count = 0;
             foreach (var item in values)
@@ -714,6 +718,21 @@ namespace NewLife.Caching
                 yield return item;
             }
         }
+
+        /// <summary>消费一个</summary>
+        /// <param name="timeout">超时。默认0秒，永久等待</param>
+        /// <returns></returns>
+        public T TakeOne(Int32 timeout = 0) => _Collection.TryTake(out var item) ? item : default;
+
+        /// <summary>消费获取</summary>
+        /// <param name="timeout">超时。默认0秒，永久等待</param>
+        /// <returns></returns>
+        public Task<T> TakeOneAsync(Int32 timeout = 0) => TaskEx.FromResult(TakeOne(timeout));
+
+        /// <summary>确认消费</summary>
+        /// <param name="keys"></param>
+        /// <returns></returns>
+        public Int32 Acknowledge(params String[] keys) => 0;
     }
 }
 //#nullable restore
