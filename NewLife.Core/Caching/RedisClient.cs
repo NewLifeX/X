@@ -4,13 +4,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
+using System.Threading;
+using System.Threading.Tasks;
 using NewLife.Collections;
 using NewLife.Data;
-using NewLife.IO;
 using NewLife.Log;
 using NewLife.Net;
 using NewLife.Reflection;
-using NewLife.Serialization;
 
 //#nullable enable
 namespace NewLife.Caching
@@ -73,7 +73,7 @@ namespace NewLife.Caching
         #endregion
 
         #region 核心方法
-        /// <summary>异步请求</summary>
+        /// <summary>新建连接获取数据流</summary>
         /// <param name="create">新建连接</param>
         /// <returns></returns>
         private Stream GetStream(Boolean create)
@@ -123,14 +123,56 @@ namespace NewLife.Caching
             return ns;
         }
 
+#if !NET4
+        private async Task<Stream> GetStreamAsync(Boolean create)
+        {
+            var tc = Client;
+            NetworkStream ns = null;
+
+            // 判断连接是否可用
+            var active = false;
+            try
+            {
+                ns = tc?.GetStream();
+                active = ns != null && tc != null && tc.Connected && ns != null && ns.CanWrite && ns.CanRead;
+            }
+            catch { }
+
+            // 如果连接不可用，则重新建立连接
+            if (!active)
+            {
+                Logined = false;
+
+                Client = null;
+                tc.TryDispose();
+                if (!create) return null;
+
+                var timeout = Host.Timeout;
+                tc = new TcpClient
+                {
+                    SendTimeout = timeout,
+                    ReceiveTimeout = timeout
+                };
+
+                await tc.ConnectAsync(Server.Address, Server.Port);
+
+                Client = tc;
+                ns = tc.GetStream();
+            }
+
+            return ns;
+        }
+#endif
+
         private static readonly Byte[] _NewLine = new[] { (Byte)'\r', (Byte)'\n' };
 
         /// <summary>发出请求</summary>
         /// <param name="ms"></param>
         /// <param name="cmd"></param>
         /// <param name="args"></param>
+        /// <param name="oriArgs">原始参数，仅用于输出日志</param>
         /// <returns></returns>
-        protected virtual void GetRequest(Stream ms, String cmd, Packet[] args)
+        protected virtual void GetRequest(Stream ms, String cmd, Packet[] args, Object[] oriArgs)
         {
             // *<number of arguments>\r\n$<number of bytes of argument 1>\r\n<argument data>\r\n
             // *1\r\n$4\r\nINFO\r\n
@@ -156,18 +198,21 @@ namespace NewLife.Caching
                 //var str = "*{2}\r\n${0}\r\n{1}\r\n".F(cmd.Length, cmd, 1 + args.Length);
                 ms.Write(GetHeaderBytes(cmd, args.Length));
 
-                foreach (var item in args)
+                for (var i = 0; i < args.Length; i++)
                 {
+                    var item = args[i];
                     var size = item.Total;
                     var sizes = size.ToString().GetBytes();
-                    var len = 1 + sizes.Length + _NewLine.Length * 2 + size;
 
+                    // 指令日志。简单类型显示原始值，复杂类型显示序列化后字符串
                     if (log != null)
                     {
-                        if (size <= 32)
-                            log.AppendFormat(" {0}", item.ToStr());
+                        log.Append(" ");
+                        var ori = oriArgs?[i];
+                        if (ori.GetType().GetTypeCode() != TypeCode.Object)
+                            log.Append(ori);
                         else
-                            log.AppendFormat(" [{0}]", size);
+                            log.AppendFormat("[{0}]{1}", size, item.ToStr(null, 0, 1024)?.TrimEnd());
                     }
 
                     //str = "${0}\r\n".F(item.Length);
@@ -234,11 +279,12 @@ namespace NewLife.Caching
             return list;
         }
 
-        /// <summary>发出请求</summary>
+        /// <summary>执行命令，发请求，取响应</summary>
         /// <param name="cmd"></param>
         /// <param name="args"></param>
+        /// <param name="oriArgs">原始参数，仅用于输出日志</param>
         /// <returns></returns>
-        protected virtual Object ExecuteCommand(String cmd, Packet[] args)
+        protected virtual Object ExecuteCommand(String cmd, Packet[] args, Object[] oriArgs)
         {
             var isQuit = cmd == "QUIT";
 
@@ -249,8 +295,10 @@ namespace NewLife.Caching
             CheckLogin(cmd);
 
             var ms = Pool.MemoryStream.Get();
-            GetRequest(ms, cmd, args);
+            GetRequest(ms, cmd, args, oriArgs);
 
+            // WriteTo与位置无关，CopyTo与位置相关
+            //ms.Position = 0;
             if (ms.Length > 0) ms.WriteTo(ns);
             ms.Put();
 
@@ -260,6 +308,99 @@ namespace NewLife.Caching
 
             return rs.FirstOrDefault();
         }
+
+#if !NET4
+        /// <summary>接收响应</summary>
+        /// <param name="ns"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        protected virtual async Task<IList<Object>> GetResponseAsync(Stream ns, Int32 count)
+        {
+            /*
+             * 响应格式
+             * 1：简单字符串，非二进制安全字符串，一般是状态回复。  +开头，例：+OK\r\n 
+             * 2: 错误信息。-开头， 例：-ERR unknown command 'mush'\r\n
+             * 3: 整型数字。:开头， 例：:1\r\n
+             * 4：大块回复值，最大512M。  $开头+数据长度。 例：$4\r\mush\r\n
+             * 5：多条回复。*开头， 例：*2\r\n$3\r\nfoo\r\n$3\r\nbar\r\n
+             */
+
+            var list = new List<Object>();
+            var ms = ns;
+
+            // 取巧进行异步操作，只要异步读取到第一个字节，后续同步读取
+            var buf = new Byte[1];
+            var source = new CancellationTokenSource(Host.Timeout);
+            var n = await ms.ReadAsync(buf, 0, buf.Length, source.Token);
+            if (n <= 0) return list;
+
+            var header = (Char)buf[0];
+
+            // 多行响应
+            for (var i = 0; i < count; i++)
+            {
+                // 解析响应
+                if (i > 0) header = (Char)ms.ReadByte();
+                if (header == '$')
+                {
+                    list.Add(ReadBlock(ms));
+                }
+                else if (header == '*')
+                {
+                    list.Add(ReadBlocks(ms));
+                }
+                else
+                {
+                    // 字符串以换行为结束符
+                    var str = ReadLine(ms);
+
+                    var log = Log == null || Log == Logger.Null ? null : Pool.StringBuilder.Get();
+                    if (log != null) WriteLog("=> {0}", str);
+
+                    if (header == '+' || header == ':')
+                        list.Add(str);
+                    else if (header == '-')
+                        throw new Exception(str);
+                    else
+                        throw new InvalidDataException($"无法解析响应 [{header}]");
+                }
+            }
+
+            return list;
+        }
+
+        /// <summary>异步执行命令，发请求，取响应</summary>
+        /// <param name="cmd"></param>
+        /// <param name="args"></param>
+        /// <param name="oriArgs">原始参数，仅用于输出日志</param>
+        /// <returns></returns>
+        protected virtual async Task<Object> ExecuteCommandAsync(String cmd, Packet[] args, Object[] oriArgs)
+        {
+            var isQuit = cmd == "QUIT";
+
+            var ns = await GetStreamAsync(!isQuit);
+            if (ns == null) return null;
+
+            // 验证登录
+            CheckLogin(cmd);
+
+            var ms = Pool.MemoryStream.Get();
+            GetRequest(ms, cmd, args, oriArgs);
+
+            // WriteTo与位置无关，CopyTo与位置相关
+            ms.Position = 0;
+            if (ms.Length > 0) await ms.CopyToAsync(ns, 4096);
+            ms.Put();
+
+            await ns.FlushAsync();
+
+            var rs = await GetResponseAsync(ns, 1);
+
+            if (isQuit) Logined = false;
+
+            return rs.FirstOrDefault();
+        }
+#endif
 
         private void CheckLogin(String cmd)
         {
@@ -302,12 +443,9 @@ namespace NewLife.Caching
         {
             var rs = ReadPacket(ms);
 
-            if (rs != null && Log != null && Log != Logger.Null)
+            if (rs is Packet pk && Log != null && Log != Logger.Null)
             {
-                if (rs.Count <= 32)
-                    WriteLog("=> {0}", rs.ToStr());
-                else
-                    WriteLog("=> [{0}]", rs.Count);
+                WriteLog("=> [{0}]{1}", pk.Count, pk.ToStr(null, 0, 1024)?.TrimEnd());
             }
 
             return rs;
@@ -331,6 +469,11 @@ namespace NewLife.Caching
                 else if (header == '*')
                 {
                     arr[i] = ReadBlocks(ms);
+                }
+
+                if (arr[i] is Packet pk && Log != null && Log != Logger.Null)
+                {
+                    WriteLog("=> [{0}]{1}", pk.Count, pk.ToStr(null, 0, 1024)?.TrimEnd());
                 }
             }
 
@@ -388,7 +531,7 @@ namespace NewLife.Caching
         /// <param name="cmd"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        public virtual Object Execute(String cmd, params Object[] args) => ExecuteCommand(cmd, args.Select(e => Host.Encoder.Encode(e)).ToArray());
+        public virtual Object Execute(String cmd, params Object[] args) => ExecuteCommand(cmd, args.Select(e => Host.Encoder.Encode(e)).ToArray(), args);
 
         /// <summary>执行命令。返回基本类型、对象、对象数组</summary>
         /// <param name="cmd"></param>
@@ -410,6 +553,35 @@ namespace NewLife.Caching
 
             return default;
         }
+
+#if !NET4
+        /// <summary>执行命令。返回字符串、Packet、Packet[]</summary>
+        /// <param name="cmd"></param>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        public virtual async Task<Object> ExecuteAsync(String cmd, params Object[] args) => await ExecuteCommandAsync(cmd, args.Select(e => Host.Encoder.Encode(e)).ToArray(), args);
+
+        /// <summary>执行命令。返回基本类型、对象、对象数组</summary>
+        /// <param name="cmd"></param>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        public virtual async Task<TResult> ExecuteAsync<TResult>(String cmd, params Object[] args)
+        {
+            // 管道模式
+            if (_ps != null)
+            {
+                _ps.Add(new Command(cmd, args, typeof(TResult)));
+                return default;
+            }
+
+            var rs = await ExecuteAsync(cmd, args);
+            if (rs is TResult rs2) return rs2;
+            if (rs == null) return default;
+            if (rs != null && TryChangeType(rs, typeof(TResult), out var target)) return (TResult)target;
+
+            return default;
+        }
+#endif
 
         /// <summary>尝试转换类型</summary>
         /// <param name="value"></param>
@@ -490,7 +662,7 @@ namespace NewLife.Caching
             var ms = Pool.MemoryStream.Get();
             foreach (var item in ps)
             {
-                GetRequest(ms, item.Name, item.Args.Select(e => Host.Encoder.Encode(e)).ToArray());
+                GetRequest(ms, item.Name, item.Args.Select(e => Host.Encoder.Encode(e)).ToArray(), item.Args);
             }
 
             // 整体发出

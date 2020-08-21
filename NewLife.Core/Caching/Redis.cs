@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
@@ -228,6 +229,69 @@ namespace NewLife.Caching
                 }
             } while (true);
         }
+
+#if !NET4
+        /// <summary>执行命令</summary>
+        /// <typeparam name="TResult">返回类型</typeparam>
+        /// <param name="key">命令key，用于选择集群节点</param>
+        /// <param name="func">回调函数</param>
+        /// <param name="write">是否写入操作</param>
+        /// <returns></returns>
+        public virtual async Task<TResult> ExecuteAsync<TResult>(String key, Func<RedisClient, Task<TResult>> func, Boolean write = false)
+        {
+            using var span = Tracer?.NewSpan($"redis:{(write ? "writeAsync" : "readAsync")}");
+            if (span != null) span.Tag = key;
+
+            // 写入或完全管道模式时，才处理管道操作
+            if (write || FullPipeline)
+            {
+                // 管道模式直接执行
+                var rds = _client.Value;
+                if (rds == null && AutoPipeline > 0) rds = StartPipeline();
+                if (rds != null)
+                {
+                    var rs = await func(rds);
+
+                    // 命令数足够，自动提交
+                    if (AutoPipeline > 0 && rds.PipelineCommands >= AutoPipeline)
+                    {
+                        StopPipeline(true);
+                        StartPipeline();
+                    }
+
+                    return rs;
+                }
+            }
+
+            // 读操作遇到未完成管道队列时，立马执行管道操作
+            if (!write) StopPipeline(true);
+
+            // 统计性能
+            var sw = Counter?.StartCount();
+
+            var i = 0;
+            do
+            {
+                // 每次重试都需要重新从池里借出连接
+                var client = Pool.Get();
+                try
+                {
+                    client.Reset();
+                    return await func(client);
+                }
+                catch (InvalidDataException)
+                {
+                    if (i++ >= Retry) throw;
+                }
+                finally
+                {
+                    Pool.Put(client);
+
+                    Counter?.StopCount(sw);
+                }
+            } while (true);
+        }
+#endif
 
         private readonly ThreadLocal<RedisClient> _client = new ThreadLocal<RedisClient>();
         /// <summary>开始管道模式</summary>

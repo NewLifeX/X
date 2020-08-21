@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Threading;
 using NewLife;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace XUnitTest.Caching
 {
@@ -344,6 +345,33 @@ namespace XUnitTest.Caching
             }
 
             return null;
+        }
+
+        [Fact]
+        public async void PopAsync()
+        {
+            var rds = Redis;
+            var key = "async_test";
+
+            rds.Remove(key);
+
+            var sw = Stopwatch.StartNew();
+
+            // 异步发送
+            ThreadPool.QueueUserWorkItem(s =>
+            {
+                Thread.Sleep(1000);
+
+                rds.Execute(key, r => r.Execute<Int32>("LPUSH", key, "xxx"), true);
+            });
+
+            var rs = await rds.ExecuteAsync(key, r => r.ExecuteAsync<String[]>("BRPOP", key, 2));
+
+            sw.Stop();
+
+            Assert.Equal(key, rs[0]);
+            Assert.Equal("xxx", rs[1]);
+            Assert.True(sw.ElapsedMilliseconds >= 1000);
         }
     }
 }
