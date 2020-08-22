@@ -311,10 +311,11 @@ namespace NewLife.Caching
 
 #if !NET4
         /// <summary>异步接收响应</summary>
-        /// <param name="ns"></param>
-        /// <param name="count"></param>
+        /// <param name="ns">网络数据流</param>
+        /// <param name="count">响应个数</param>
+        /// <param name="cancellationToken">取消通知</param>
         /// <returns></returns>
-        protected virtual async Task<IList<Object>> GetResponseAsync(Stream ns, Int32 count)
+        protected virtual async Task<IList<Object>> GetResponseAsync(Stream ns, Int32 count, CancellationToken cancellationToken)
         {
             /*
              * 响应格式
@@ -330,8 +331,8 @@ namespace NewLife.Caching
 
             // 取巧进行异步操作，只要异步读取到第一个字节，后续同步读取
             var buf = new Byte[1];
-            var source = new CancellationTokenSource(Host.Timeout);
-            var n = await ms.ReadAsync(buf, 0, buf.Length, source.Token);
+            if (cancellationToken == CancellationToken.None) cancellationToken = new CancellationTokenSource(Host.Timeout).Token;
+            var n = await ms.ReadAsync(buf, 0, buf.Length, cancellationToken);
             if (n <= 0) return list;
 
             var header = (Char)buf[0];
@@ -370,11 +371,12 @@ namespace NewLife.Caching
         }
 
         /// <summary>异步执行命令，发请求，取响应</summary>
-        /// <param name="cmd"></param>
-        /// <param name="args"></param>
+        /// <param name="cmd">命令</param>
+        /// <param name="args">参数数组</param>
         /// <param name="oriArgs">原始参数，仅用于输出日志</param>
+        /// <param name="cancellationToken">取消通知</param>
         /// <returns></returns>
-        protected virtual async Task<Object> ExecuteCommandAsync(String cmd, Packet[] args, Object[] oriArgs)
+        protected virtual async Task<Object> ExecuteCommandAsync(String cmd, Packet[] args, Object[] oriArgs, CancellationToken cancellationToken)
         {
             var isQuit = cmd == "QUIT";
 
@@ -394,7 +396,7 @@ namespace NewLife.Caching
 
             await ns.FlushAsync();
 
-            var rs = await GetResponseAsync(ns, 1);
+            var rs = await GetResponseAsync(ns, 1, cancellationToken);
 
             if (isQuit) Logined = false;
 
@@ -556,22 +558,31 @@ namespace NewLife.Caching
 
 #if NET4
         /// <summary>异步执行命令。返回基本类型、对象、对象数组</summary>
-        /// <param name="cmd"></param>
-        /// <param name="args"></param>
+        /// <param name="cmd">命令</param>
+        /// <param name="args">参数数组</param>
+        /// <param name="cancellationToken">取消通知</param>
         /// <returns></returns>
-        public virtual Task<TResult> ExecuteAsync<TResult>(String cmd, params Object[] args) => throw new NotSupportedException();
+        public virtual Task<TResult> ExecuteAsync<TResult>(String cmd, Object[] args, CancellationToken cancellationToken = default) => throw new NotSupportedException();
 #else
         /// <summary>异步执行命令。返回字符串、Packet、Packet[]</summary>
-        /// <param name="cmd"></param>
-        /// <param name="args"></param>
+        /// <param name="cmd">命令</param>
+        /// <param name="args">参数数组</param>
+        /// <param name="cancellationToken">取消通知</param>
         /// <returns></returns>
-        public virtual async Task<Object> ExecuteAsync(String cmd, params Object[] args) => await ExecuteCommandAsync(cmd, args.Select(e => Host.Encoder.Encode(e)).ToArray(), args);
+        public virtual async Task<Object> ExecuteAsync(String cmd, Object[] args, CancellationToken cancellationToken = default) => await ExecuteCommandAsync(cmd, args.Select(e => Host.Encoder.Encode(e)).ToArray(), args, cancellationToken);
 
         /// <summary>异步执行命令。返回基本类型、对象、对象数组</summary>
-        /// <param name="cmd"></param>
-        /// <param name="args"></param>
+        /// <param name="cmd">命令</param>
+        /// <param name="args">参数数组</param>
         /// <returns></returns>
-        public virtual async Task<TResult> ExecuteAsync<TResult>(String cmd, params Object[] args)
+        public virtual async Task<TResult> ExecuteAsync<TResult>(String cmd, params Object[] args) => await ExecuteAsync<TResult>(cmd, args, CancellationToken.None);
+
+        /// <summary>异步执行命令。返回基本类型、对象、对象数组</summary>
+        /// <param name="cmd">命令</param>
+        /// <param name="args">参数数组</param>
+        /// <param name="cancellationToken">取消通知</param>
+        /// <returns></returns>
+        public virtual async Task<TResult> ExecuteAsync<TResult>(String cmd, Object[] args, CancellationToken cancellationToken = default)
         {
             // 管道模式
             if (_ps != null)
@@ -580,7 +591,7 @@ namespace NewLife.Caching
                 return default;
             }
 
-            var rs = await ExecuteAsync(cmd, args);
+            var rs = await ExecuteAsync(cmd, args, cancellationToken);
             if (rs is TResult rs2) return rs2;
             if (rs == null) return default;
             if (rs != null && TryChangeType(rs, typeof(TResult), out var target)) return (TResult)target;

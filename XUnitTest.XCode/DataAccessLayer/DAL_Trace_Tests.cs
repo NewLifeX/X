@@ -15,7 +15,7 @@ namespace XUnitTest.XCode.DataAccessLayer
         [Fact]
         public void Test1()
         {
-            var tracer = DefaultTracer.Instance;
+            var tracer = new DefaultTracer { Log = XTrace.Log };
             DAL.GlobalTracer = tracer;
 
             // 先删掉原来可能有的
