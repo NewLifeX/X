@@ -711,6 +711,9 @@ namespace XCode.DataAccessLayer
                 case NameFormats.Lower:
                     tableName = tableName.ToLower();
                     break;
+                case NameFormats.Underline:
+                    tableName = ChangeUnderline(tableName).ToLower();
+                    break;
                 case NameFormats.Default:
                 default:
                     break;
@@ -737,12 +740,41 @@ namespace XCode.DataAccessLayer
                 case NameFormats.Lower:
                     name = name.ToLower();
                     break;
+                case NameFormats.Underline:
+                    name = ChangeUnderline(name).ToLower();
+                    break;
                 case NameFormats.Default:
                 default:
                     break;
             }
 
             return FormatName(name);
+        }
+
+        /// <summary>把驼峰命名转为下划线</summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        private static String ChangeUnderline(String name)
+        {
+            var sb = Pool.StringBuilder.Get();
+
+            // 遇到大写字母时，表示新一段开始，增加下划线
+            for (var i = 0; i < name.Length; i++)
+            {
+                var ch = name[i];
+                if (i > 0 && Char.IsUpper(ch))
+                {
+                    // 前一个小写字母，新的开始
+                    if (Char.IsLower(name[i - 1]))
+                        sb.Append('_');
+                    // 后一个字母小写，新的开始
+                    else if (i < name.Length - 1 && Char.IsLower(name[i + 1]))
+                        sb.Append('_');
+                }
+                sb.Append(ch);
+            }
+
+            return sb.Put(true);
         }
 
         /// <summary>格式化数据为SQL数据</summary>

@@ -32,7 +32,10 @@ namespace XCode.DataAccessLayer
         Upper,
 
         /// <summary>全小写</summary>
-        Lower
+        Lower,
+
+        /// <summary>下划线</summary>
+        Underline,
     }
 
     /// <summary>数据库接口</summary>
