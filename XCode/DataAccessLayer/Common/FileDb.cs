@@ -96,7 +96,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override Int32 Truncate(String tableName)
         {
-            var sql = "Delete From {0}".F(Database.FormatName(tableName));
+            var sql = $"Delete From {Database.FormatName(tableName)}";
             return Execute(sql);
         }
         #endregion

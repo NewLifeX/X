@@ -840,9 +840,9 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据定义语句
-        public virtual String CreateDatabaseSQL(String dbname, String file) => $"Create Database {FormatName(dbname)}";
+        public virtual String CreateDatabaseSQL(String dbname, String file) => $"Create Database {Database.FormatName(dbname)}";
 
-        public virtual String DropDatabaseSQL(String dbname) => $"Drop Database {FormatName(dbname)}";
+        public virtual String DropDatabaseSQL(String dbname) => $"Drop Database {Database.FormatName(dbname)}";
 
         public virtual String DatabaseExistSQL(String dbname) => null;
 
@@ -891,14 +891,14 @@ namespace XCode.DataAccessLayer
             else
                 sb.Append("Create Index ");
 
-            sb.Append(FormatName(index.Name));
+            sb.Append(index.Name);
             var dcs = index.Table.GetColumns(index.Columns);
             sb.AppendFormat(" On {0} ({1})", FormatName(index.Table), dcs.Join(",", FormatName));
 
             return sb.ToString();
         }
 
-        public virtual String DropIndexSQL(IDataIndex index) => $"Drop Index {FormatName(index.Name)} On {FormatName(index.Table)}";
+        public virtual String DropIndexSQL(IDataIndex index) => $"Drop Index {index.Name} On {FormatName(index.Table)}";
 
         //public virtual String CompactDatabaseSQL() => null;
         #endregion

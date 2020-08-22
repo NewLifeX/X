@@ -285,16 +285,16 @@ namespace XCode.DataAccessLayer
             return keyWord.Substring(0, pos + 1) + "\"" + tn + "\"";
         }
 
-        /// <summary>是否忽略大小写，如果不忽略则在表名字段名外面加上双引号</summary>
-        public Boolean IgnoreCase { get; set; } = true;
+        ///// <summary>是否忽略大小写，如果不忽略则在表名字段名外面加上双引号</summary>
+        //public Boolean IgnoreCase { get; set; } = true;
 
-        public override String FormatName(String name)
-        {
-            if (IgnoreCase)
-                return base.FormatName(name);
-            else
-                return FormatKeyWord(name);
-        }
+        //public override String FormatName(String name)
+        //{
+        //    if (IgnoreCase)
+        //        return base.FormatName(name);
+        //    else
+        //        return FormatKeyWord(name);
+        //}
         #endregion
 
         #region 辅助
@@ -648,7 +648,7 @@ namespace XCode.DataAccessLayer
             if (names != null)
             {
                 var db = Database as Oracle;
-                if (db.IgnoreCase) names = names.Select(e => db.IsReservedWord(e) ? e : e.ToUpper()).ToArray();
+                /*if (db.IgnoreCase)*/ names = names.Select(e => db.IsReservedWord(e) ? e : e.ToUpper()).ToArray();
             }
 
             // 采用集合过滤，提高效率

@@ -340,7 +340,7 @@ namespace XCode.DataAccessLayer
         //    return String.Format("Create Database Binary {0}", FormatKeyWord(dbname));
         //}
 
-        public override String DropDatabaseSQL(String dbname) => $"Drop Database If Exists {FormatName(dbname)}";
+        public override String DropDatabaseSQL(String dbname) => $"Drop Database If Exists {Database.FormatName(dbname)}";
 
         public override String CreateTableSQL(IDataTable table)
         {

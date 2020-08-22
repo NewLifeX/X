@@ -621,7 +621,7 @@ namespace XCode.DataAccessLayer
 
         public override String CreateDatabaseSQL(String dbname, String file) => base.CreateDatabaseSQL(dbname, file) + " DEFAULT CHARACTER SET utf8mb4";
 
-        public override String DropDatabaseSQL(String dbname) => $"Drop Database If Exists {FormatName(dbname)}";
+        public override String DropDatabaseSQL(String dbname) => $"Drop Database If Exists {Database.FormatName(dbname)}";
 
         public override String CreateTableSQL(IDataTable table)
         {

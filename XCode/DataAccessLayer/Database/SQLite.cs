@@ -304,13 +304,13 @@ namespace XCode.DataAccessLayer
         public override Int32 Truncate(String tableName)
         {
             // 先删除数据再收缩
-            var sql = "Delete From {0}".F(Database.FormatName(tableName));
+            var sql = $"Delete From {Database.FormatName(tableName)}";
             var rs = Execute(sql);
 
             // 该数据库没有任何表用到自增时，序列表不存在
             try
             {
-                Execute("Update sqlite_sequence Set seq=0 where name='{0}'".F(Database.FormatName(tableName)));
+                Execute($"Update sqlite_sequence Set seq=0 where name='{tableName}'");
             }
             catch (Exception ex) { XTrace.WriteException(ex); }
 
@@ -808,7 +808,7 @@ namespace XCode.DataAccessLayer
 
             // SQLite索引优先采用自带索引名
             if (!String.IsNullOrEmpty(index.Name) && index.Name.Contains(index.Table.TableName))
-                sb.Append(FormatName(index.Name));
+                sb.Append(index.Name);
             else
             {
                 // SQLite中不同表的索引名也不能相同
@@ -829,7 +829,7 @@ namespace XCode.DataAccessLayer
         /// <summary>删除索引方法</summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        public override String DropIndexSQL(IDataIndex index) => $"Drop Index {FormatName(index.Name)}";
+        public override String DropIndexSQL(IDataIndex index) => $"Drop Index {index.Name}";
 
         protected override String CheckColumnsChange(IDataTable entitytable, IDataTable dbtable, Boolean onlySql, Boolean noDelete)
         {

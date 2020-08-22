@@ -182,26 +182,26 @@ namespace XCode.DataAccessLayer
             return ds2;
         }
 
-        /// <summary>格式化关键字</summary>
-        /// <param name="name">名称</param>
-        /// <returns></returns>
-        protected String FormatName(String name)
-        {
-            switch (Database.NameFormat)
-            {
-                case NameFormats.Upper:
-                    name = name.ToUpper();
-                    break;
-                case NameFormats.Lower:
-                    name = name.ToLower();
-                    break;
-                case NameFormats.Default:
-                default:
-                    break;
-            }
+        ///// <summary>格式化关键字</summary>
+        ///// <param name="name">名称</param>
+        ///// <returns></returns>
+        //protected String FormatName(String name)
+        //{
+        //    switch (Database.NameFormat)
+        //    {
+        //        case NameFormats.Upper:
+        //            name = name.ToUpper();
+        //            break;
+        //        case NameFormats.Lower:
+        //            name = name.ToLower();
+        //            break;
+        //        case NameFormats.Default:
+        //        default:
+        //            break;
+        //    }
 
-            return Database.FormatName(name);
-        }
+        //    return Database.FormatName(name);
+        //}
 
         protected String FormatName(IDataTable table) => Database.FormatName(table);
 

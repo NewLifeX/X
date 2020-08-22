@@ -312,7 +312,7 @@ namespace XCode.DataAccessLayer
         public override String FormatName(String name)
         {
             // SqlServer数据库名和表名可以用横线。。。
-            if (name.Contains("-")) return "[{0}]".F(name);
+            if (name.Contains("-")) return $"[{name}]";
 
             return base.FormatName(name);
         }
@@ -961,7 +961,7 @@ namespace XCode.DataAccessLayer
 
             if (String.IsNullOrEmpty(file))
             {
-                if (String.IsNullOrEmpty(dp)) return $"CREATE DATABASE [{FormatName(dbname)}]";
+                if (String.IsNullOrEmpty(dp)) return $"CREATE DATABASE {Database.FormatName(dbname)}";
 
                 file = dbname + ".mdf";
             }
@@ -983,7 +983,7 @@ namespace XCode.DataAccessLayer
 
             var sb = new StringBuilder();
 
-            sb.AppendFormat("CREATE DATABASE {0} ON  PRIMARY", FormatName(dbname));
+            sb.AppendFormat("CREATE DATABASE {0} ON  PRIMARY", Database.FormatName(dbname));
             sb.AppendLine();
             sb.AppendFormat(@"( NAME = N'{0}', FILENAME = N'{1}', SIZE = 10 , MAXSIZE = UNLIMITED, FILEGROWTH = 10%)", dbname, file);
             sb.AppendLine();
@@ -1164,7 +1164,7 @@ namespace XCode.DataAccessLayer
             return sql;
         }
 
-        public override String DropIndexSQL(IDataIndex index) => $"Drop Index {FormatName(index.Table)}.{FormatName(index.Name)}";
+        public override String DropIndexSQL(IDataIndex index) => $"Drop Index {FormatName(index.Table)}.{index.Name}";
 
         public override String DropColumnSQL(IDataColumn field)
         {
@@ -1220,7 +1220,7 @@ namespace XCode.DataAccessLayer
             sb.AppendLine("close   #spid");
             sb.AppendLine("deallocate   #spid");
             sb.AppendLine(";");
-            sb.AppendFormat("Drop Database {0}", FormatName(dbname));
+            sb.AppendFormat("Drop Database {0}", Database.FormatName(dbname));
             return sb.ToString();
         }
         #endregion

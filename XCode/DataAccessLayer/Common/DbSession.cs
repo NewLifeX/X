@@ -555,7 +555,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual Int32 Truncate(String tableName)
         {
-            var sql = "Truncate Table {0}".F(Database.FormatName(tableName));
+            var sql = $"Truncate Table {Database.FormatName(tableName)}";
             return Execute(sql);
         }
         #endregion
