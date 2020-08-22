@@ -230,8 +230,16 @@ namespace NewLife.Caching
             } while (true);
         }
 
-#if !NET4
-        /// <summary>执行命令</summary>
+#if NET4
+        /// <summary>异步执行命令</summary>
+        /// <typeparam name="TResult">返回类型</typeparam>
+        /// <param name="key">命令key，用于选择集群节点</param>
+        /// <param name="func">回调函数</param>
+        /// <param name="write">是否写入操作</param>
+        /// <returns></returns>
+        public virtual Task<TResult> ExecuteAsync<TResult>(String key, Func<RedisClient, Task<TResult>> func, Boolean write = false) => throw new NotSupportedException();
+#else
+        /// <summary>异步执行命令</summary>
         /// <typeparam name="TResult">返回类型</typeparam>
         /// <param name="key">命令key，用于选择集群节点</param>
         /// <param name="func">回调函数</param>

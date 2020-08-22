@@ -310,7 +310,7 @@ namespace NewLife.Caching
         }
 
 #if !NET4
-        /// <summary>接收响应</summary>
+        /// <summary>异步接收响应</summary>
         /// <param name="ns"></param>
         /// <param name="count"></param>
         /// <returns></returns>
@@ -555,13 +555,13 @@ namespace NewLife.Caching
         }
 
 #if !NET4
-        /// <summary>执行命令。返回字符串、Packet、Packet[]</summary>
+        /// <summary>异步执行命令。返回字符串、Packet、Packet[]</summary>
         /// <param name="cmd"></param>
         /// <param name="args"></param>
         /// <returns></returns>
         public virtual async Task<Object> ExecuteAsync(String cmd, params Object[] args) => await ExecuteCommandAsync(cmd, args.Select(e => Host.Encoder.Encode(e)).ToArray(), args);
 
-        /// <summary>执行命令。返回基本类型、对象、对象数组</summary>
+        /// <summary>异步执行命令。返回基本类型、对象、对象数组</summary>
         /// <param name="cmd"></param>
         /// <param name="args"></param>
         /// <returns></returns>

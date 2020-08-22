@@ -24,12 +24,12 @@ namespace NewLife.Caching
         /// <returns></returns>
         IEnumerable<T> Take(Int32 count = 1);
 
-        /// <summary>消费一个</summary>
+        /// <summary>消费获取一个</summary>
         /// <param name="timeout">超时。默认0秒，永久等待</param>
         /// <returns></returns>
         T TakeOne(Int32 timeout = 0);
 
-        /// <summary>消费获取</summary>
+        /// <summary>异步消费获取一个</summary>
         /// <param name="timeout">超时。默认0秒，永久等待</param>
         /// <returns></returns>
         Task<T> TakeOneAsync(Int32 timeout = 0);
