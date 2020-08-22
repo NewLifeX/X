@@ -28,6 +28,7 @@ namespace XUnitTest.XCode.DataAccessLayer
         public void FormatUnderlineName(String name, String result)
         {
             var table = ObjectContainer.Current.Resolve<IDataTable>();
+            table.Name = name;
             table.TableName = name;
 
             var db = DbFactory.Create(DatabaseType.SQLite);

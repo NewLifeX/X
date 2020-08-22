@@ -9,7 +9,7 @@ namespace XUnitTest.XCode.DataAccessLayer
 {
     public class MySqlTests
     {
-        private static String _ConnStr = "Server=.;Port=3306;Database=sys;Uid=root;Pwd=Pass@word";
+        private static String _ConnStr = "Server=.;Port=3306;Database=sys;Uid=root;Pwd=root";
 
         public MySqlTests()
         {

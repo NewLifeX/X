@@ -696,30 +696,33 @@ namespace XCode.DataAccessLayer
         {
             if (table == null) return null;
 
-            var tableName = table.TableName;
+            var name = table.TableName;
 
             // 检查自动表前缀
             var pf = TablePrefix;
-            if (!pf.IsNullOrEmpty()) tableName = pf + tableName;
+            if (!pf.IsNullOrEmpty()) name = pf + name;
 
-            // 大小写
+            // 名称格式化，只有表名跟名称相同时才处理。否则认为用户指定了表名
             switch (NameFormat)
             {
                 case NameFormats.Upper:
-                    tableName = tableName.ToUpper();
+                    name = name.ToUpper();
                     break;
                 case NameFormats.Lower:
-                    tableName = tableName.ToLower();
+                    name = name.ToLower();
                     break;
                 case NameFormats.Underline:
-                    tableName = ChangeUnderline(tableName).ToLower();
+                    if (table.TableName == table.Name)
+                        name = ChangeUnderline(name).ToLower();
+                    else
+                        name = name.ToLower();
                     break;
                 case NameFormats.Default:
                 default:
                     break;
             }
 
-            return FormatName(tableName);
+            return FormatName(name);
         }
 
         /// <summary>格式化字段名，考虑大小写</summary>
@@ -731,7 +734,7 @@ namespace XCode.DataAccessLayer
 
             var name = column.ColumnName;
 
-            // 大小写
+            // 名称格式化，只有字段名名跟名称相同时才处理。否则认为用户指定了字段名
             switch (NameFormat)
             {
                 case NameFormats.Upper:
@@ -741,7 +744,10 @@ namespace XCode.DataAccessLayer
                     name = name.ToLower();
                     break;
                 case NameFormats.Underline:
-                    name = ChangeUnderline(name).ToLower();
+                    if (column.ColumnName == column.Name)
+                        name = ChangeUnderline(name).ToLower();
+                    else
+                        name = name.ToLower();
                     break;
                 case NameFormats.Default:
                 default:
