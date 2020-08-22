@@ -1,6 +1,7 @@
 ﻿using System;
 using NewLife.Model;
 using XCode.DataAccessLayer;
+using XCode.Membership;
 using Xunit;
 
 namespace XUnitTest.XCode.DataAccessLayer
@@ -9,7 +10,7 @@ namespace XUnitTest.XCode.DataAccessLayer
     {
         static DbBaseTests()
         {
-            DAL.WriteLog("Init DAL");
+            DAL.WriteLog("Init DbBaseTests");
         }
 
         [Theory]
