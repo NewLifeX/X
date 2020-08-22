@@ -17,6 +17,8 @@ namespace XUnitTest.XCode.DataAccessLayer
         [InlineData("Name", "name")]
         [InlineData("NickName", "nick_name")]
         [InlineData("ID", "id")]
+        [InlineData("Id", "id")]
+        [InlineData("id", "id")]
         [InlineData("ProductID", "product_id")]
         [InlineData("CreateIP", "create_ip")]
         [InlineData("IPStart", "ip_start")]
