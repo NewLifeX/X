@@ -101,13 +101,13 @@ namespace XCode.Membership
         [BindColumn("RoleID", "角色。主要角色", "")]
         public Int32 RoleID { get => _RoleID; set { if (OnPropertyChanging("RoleID", value)) { _RoleID = value; OnPropertyChanged("RoleID"); } } }
 
-        private String _RoleIDs;
+        private String _RoleIds;
         /// <summary>角色组。次要角色集合</summary>
         [DisplayName("角色组")]
         [Description("角色组。次要角色集合")]
         [DataObjectField(false, false, true, 200)]
-        [BindColumn("RoleIDs", "角色组。次要角色集合", "")]
-        public String RoleIDs { get => _RoleIDs; set { if (OnPropertyChanging("RoleIDs", value)) { _RoleIDs = value; OnPropertyChanged("RoleIDs"); } } }
+        [BindColumn("RoleIds", "角色组。次要角色集合", "")]
+        public String RoleIds { get => _RoleIds; set { if (OnPropertyChanging("RoleIds", value)) { _RoleIds = value; OnPropertyChanged("RoleIds"); } } }
 
         private Int32 _DepartmentID;
         /// <summary>部门。组织机构</summary>
@@ -283,7 +283,7 @@ namespace XCode.Membership
                     case "Code": return _Code;
                     case "Avatar": return _Avatar;
                     case "RoleID": return _RoleID;
-                    case "RoleIDs": return _RoleIDs;
+                    case "RoleIds": return _RoleIds;
                     case "DepartmentID": return _DepartmentID;
                     case "Online": return _Online;
                     case "Enable": return _Enable;
@@ -320,7 +320,7 @@ namespace XCode.Membership
                     case "Code": _Code = Convert.ToString(value); break;
                     case "Avatar": _Avatar = Convert.ToString(value); break;
                     case "RoleID": _RoleID = value.ToInt(); break;
-                    case "RoleIDs": _RoleIDs = Convert.ToString(value); break;
+                    case "RoleIds": _RoleIds = Convert.ToString(value); break;
                     case "DepartmentID": _DepartmentID = value.ToInt(); break;
                     case "Online": _Online = value.ToBoolean(); break;
                     case "Enable": _Enable = value.ToBoolean(); break;
@@ -381,7 +381,7 @@ namespace XCode.Membership
             public static readonly Field RoleID = FindByName("RoleID");
 
             /// <summary>角色组。次要角色集合</summary>
-            public static readonly Field RoleIDs = FindByName("RoleIDs");
+            public static readonly Field RoleIds = FindByName("RoleIds");
 
             /// <summary>部门。组织机构</summary>
             public static readonly Field DepartmentID = FindByName("DepartmentID");
@@ -477,7 +477,7 @@ namespace XCode.Membership
             public const String RoleID = "RoleID";
 
             /// <summary>角色组。次要角色集合</summary>
-            public const String RoleIDs = "RoleIDs";
+            public const String RoleIds = "RoleIds";
 
             /// <summary>部门。组织机构</summary>
             public const String DepartmentID = "DepartmentID";
@@ -574,7 +574,7 @@ namespace XCode.Membership
         Int32 RoleID { get; set; }
 
         /// <summary>角色组。次要角色集合</summary>
-        String RoleIDs { get; set; }
+        String RoleIds { get; set; }
 
         /// <summary>部门。组织机构</summary>
         Int32 DepartmentID { get; set; }

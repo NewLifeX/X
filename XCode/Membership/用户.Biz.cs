@@ -109,7 +109,7 @@ namespace XCode.Membership
                 RoleID = ids[0];
                 var str = ids.Skip(1).Join();
                 if (!str.IsNullOrEmpty()) str = "," + str + ",";
-                RoleIDs = str;
+                RoleIds = str;
             }
         }
 
@@ -137,6 +137,10 @@ namespace XCode.Membership
         [Map(__.DepartmentID, typeof(Department), __.ID)]
         [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public String DepartmentName => Department?.ToString();
+
+        /// <summary>兼容旧版角色组</summary>
+        [Obsolete("=>RoleIds")]
+        public String RoleIDs { get => RoleIds; set => RoleIds = value; }
         #endregion
 
         #region 扩展查询
@@ -223,7 +227,7 @@ namespace XCode.Membership
         public static IList<TEntity> Search(String key, Int32 roleId, Boolean? isEnable, DateTime start, DateTime end, PageParameter p)
         {
             var exp = _.LastLogin.Between(start, end);
-            if (roleId > 0) exp &= _.RoleID == roleId | _.RoleIDs.Contains("," + roleId + ",");
+            if (roleId > 0) exp &= _.RoleID == roleId | _.RoleIds.Contains("," + roleId + ",");
             if (isEnable != null) exp &= _.Enable == isEnable;
 
             // 先精确查询，再模糊
@@ -250,7 +254,7 @@ namespace XCode.Membership
         public static IList<TEntity> Search(Int32 roleId, Int32 departmentId, Boolean? enable, DateTime start, DateTime end, String key, PageParameter page)
         {
             var exp = new WhereExpression();
-            if (roleId >= 0) exp &= _.RoleID == roleId | _.RoleIDs.Contains("," + roleId + ",");
+            if (roleId >= 0) exp &= _.RoleID == roleId | _.RoleIds.Contains("," + roleId + ",");
             if (departmentId >= 0) exp &= _.DepartmentID == departmentId;
             if (enable != null) exp &= _.Enable == enable.Value;
             exp &= _.LastLogin.Between(start, end);
@@ -464,7 +468,7 @@ namespace XCode.Membership
         /// <returns></returns>
         public virtual Int32[] GetRoleIDs()
         {
-            var ids = RoleIDs.SplitAsInt().OrderBy(e => e).ToList();
+            var ids = RoleIds.SplitAsInt().OrderBy(e => e).ToList();
             if (RoleID > 0) ids.Insert(0, RoleID);
 
             return ids.Distinct().ToArray();
