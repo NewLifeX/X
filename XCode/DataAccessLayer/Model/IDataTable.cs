@@ -40,8 +40,8 @@ namespace XCode.DataAccessLayer
         /// <summary>仅插入的日志型数据</summary>
         Boolean InsertOnly { get; set; }
 
-        /// <summary>忽略表名/字段名大小写</summary>
-        String IgnoreNameCase { get; set; }
+        ///// <summary>忽略表名/字段名大小写</summary>
+        //String IgnoreNameCase { get; set; }
         #endregion
 
         #region 扩展属性

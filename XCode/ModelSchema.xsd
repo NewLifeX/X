@@ -60,13 +60,6 @@
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
-    <xs:attribute name="IgnoreNameCase" type="BooleanType">
-      <xs:annotation>
-        <xs:documentation xml:lang="zh-cn">
-          是否忽略表名/字段名大小写，默认false，表示类名和表名采用不区分大小写来判断是否相等
-        </xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
   </xs:complexType>
 
   <!--Table-start-->
@@ -167,13 +160,6 @@
       <xs:annotation>
         <xs:documentation xml:lang="zh-cn">
           是否生成泛型，生成泛型自动添加模型检查模式（控制实体类是在初始化连接时还是第一次使用该实体类的数据表时检查模型）
-        </xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="IgnoreNameCase" type="BooleanType">
-      <xs:annotation>
-        <xs:documentation xml:lang="zh-cn">
-          是否忽略表名/字段名大小写，默认false，表示类名和表名采用不区分大小写来判断是否相等
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
