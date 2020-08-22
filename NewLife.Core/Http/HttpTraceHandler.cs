@@ -30,7 +30,7 @@ namespace NewLife.Http
             var parent = DefaultSpan.Current;
             if (parent != null && parent.Tag == uri + "") return await base.SendAsync(request, cancellationToken);
 
-            var span = Tracer?.NewSpan(request);
+            using var span = Tracer?.NewSpan(request);
             try
             {
                 return await base.SendAsync(request, cancellationToken);
@@ -40,10 +40,6 @@ namespace NewLife.Http
                 span?.SetError(ex, null);
 
                 throw;
-            }
-            finally
-            {
-                span?.Dispose();
             }
         }
     }

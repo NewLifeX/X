@@ -62,7 +62,7 @@ namespace XCode.DataAccessLayer
         public ITracer Tracer { get; set; }
 
         /// <summary>全局APM跟踪器</summary>
-        public static ITracer GlobalTracer { get; set; }
+        public static ITracer GlobalTracer { get; set; } = DefaultTracer.Instance;
         #endregion
 
         #region 辅助函数

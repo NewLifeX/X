@@ -46,8 +46,8 @@ namespace NewLife.Log
     public class DefaultTracer : DisposeBase, ITracer
     {
         #region 静态
-        /// <summary>全局实例。默认每15秒采样一次</summary>
-        public static ITracer Instance { get; set; } = new DefaultTracer { Log = XTrace.Log };
+        /// <summary>全局实例。可影响X组件各模块的跟踪器</summary>
+        public static ITracer Instance { get; set; }
 
         static DefaultTracer()
         {
@@ -215,7 +215,7 @@ namespace NewLife.Log
         /// <returns></returns>
         public static HttpClient CreateHttpClient(this ITracer tracer, HttpMessageHandler handler = null)
         {
-            if (handler == null) handler = new HttpClientHandler();
+            if (handler == null) handler = new HttpClientHandler { UseProxy = false };
 
             return new HttpClient(new HttpTraceHandler(handler) { Tracer = tracer });
         }

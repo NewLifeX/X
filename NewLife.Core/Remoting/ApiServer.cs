@@ -37,7 +37,7 @@ namespace NewLife.Remoting
         public ICounter StatProcess { get; set; }
 
         /// <summary>性能跟踪器</summary>
-        public ITracer Tracer { get; set; }
+        public ITracer Tracer { get; set; } = DefaultTracer.Instance;
         #endregion
 
         #region 构造
@@ -209,7 +209,7 @@ namespace NewLife.Remoting
                     if (!enc.Decode(msg, out action, out _, out args)) return null;
 
                     // 根据动作名，开始跟踪
-                    span = Tracer?.NewSpan("rpc:" + action);
+                    span = Tracer?.NewSpan("rps:" + action);
 
                     result = OnProcess(session, action, args, msg);
                 }

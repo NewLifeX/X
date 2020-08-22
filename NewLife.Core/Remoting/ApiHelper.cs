@@ -19,7 +19,7 @@ namespace NewLife.Remoting
     {
         #region 远程调用
         /// <summary>性能跟踪器</summary>
-        public static ITracer Tracer { get; set; }
+        public static ITracer Tracer { get; set; } = DefaultTracer.Instance;
 
         /// <summary>异步调用，等待返回结果</summary>
         /// <param name="client">Http客户端</param>

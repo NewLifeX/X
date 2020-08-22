@@ -98,7 +98,7 @@ namespace NewLife.Log
         public IList<ISpan> ErrorSamples { get; private set; }
         #endregion
 
-        #region 
+        #region 构造函数
         /// <summary>实例化</summary>
         public DefaultSpanBuilder() { }
 

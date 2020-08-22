@@ -97,39 +97,49 @@ namespace NewLife.Web
                 http.Method = data == null || data.Length == 0 ? "GET" : "POST";
 
                 Log.Info("WebClientX.SendAsync {0}", address);
+                using var span = DefaultTracer.Instance?.NewSpan(address);
 
-                // 发送请求
-                var rs = (await Task.Factory.FromAsync(http.BeginGetResponse, http.EndGetResponse, null)) as HttpWebResponse;
-
-                // 如果是重定向
-                switch (rs.StatusCode)
+                try
                 {
-                    case HttpStatusCode.MovedPermanently:
-                    case HttpStatusCode.Redirect:
-                    case HttpStatusCode.RedirectMethod:
-                        var url = rs.Headers[HttpResponseHeader.Location + ""] + "";
-                        if (!url.IsNullOrEmpty())
-                        {
-                            address = url;
-                            data = null;
-                            continue;
-                        }
-                        break;
-                    default:
-                        break;
-                }
+                    // 发送请求
+                    var rs = (await Task.Factory.FromAsync(http.BeginGetResponse, http.EndGetResponse, null)) as HttpWebResponse;
 
-                var ms = NewLife.Collections.Pool.MemoryStream.Get();
-                var ns = rs.GetResponseStream();
+                    // 如果是重定向
+                    switch (rs.StatusCode)
+                    {
+                        case HttpStatusCode.MovedPermanently:
+                        case HttpStatusCode.Redirect:
+                        case HttpStatusCode.RedirectMethod:
+                            var url = rs.Headers[HttpResponseHeader.Location + ""] + "";
+                            if (!url.IsNullOrEmpty())
+                            {
+                                address = url;
+                                data = null;
+                                continue;
+                            }
+                            break;
+                        default:
+                            break;
+                    }
 
-                ns.CopyTo(ms);
-                while (rs.ContentLength > 0 && ms.Length < rs.ContentLength)
-                {
-                    Thread.Sleep(10);
+                    var ms = Pool.MemoryStream.Get();
+                    var ns = rs.GetResponseStream();
+
                     ns.CopyTo(ms);
-                }
+                    while (rs.ContentLength > 0 && ms.Length < rs.ContentLength)
+                    {
+                        Thread.Sleep(10);
+                        ns.CopyTo(ms);
+                    }
 
-                return ms.Put(true);
+                    return ms.Put(true);
+                }
+                catch (Exception ex)
+                {
+                    span?.SetError(ex, data?.ToBase64());
+
+                    throw;
+                }
             }
         }
 
@@ -163,10 +173,9 @@ namespace NewLife.Web
             var http = _client;
             if (http == null)
             {
-                http = new HttpClient(new HttpClientHandler { UseProxy = UseProxy })
-                {
-                    Timeout = TimeSpan.FromMilliseconds(Timeout)
-                };
+                var handler = new HttpClientHandler { UseProxy = UseProxy };
+                http = DefaultTracer.Instance?.CreateHttpClient(handler) ?? new HttpClient(handler);
+                http.Timeout = TimeSpan.FromMilliseconds(Timeout);
 
                 _client = http;
             }

@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using NewLife.Data;
+using NewLife.Log;
 using NewLife.Remoting;
 
 namespace NewLife.Yun
@@ -37,10 +38,9 @@ namespace NewLife.Yun
         {
             if (_Client != null) return _Client;
 
-            var http = new HttpClient(new HttpClientHandler { UseProxy = false })
-            {
-                BaseAddress = new Uri(_baseAddress ?? Endpoint)
-            };
+            var handler = new HttpClientHandler { UseProxy = false };
+            var http = DefaultTracer.Instance?.CreateHttpClient(handler) ?? new HttpClient(handler);
+            http.BaseAddress = new Uri(_baseAddress ?? Endpoint);
 
             var asm = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
             var asmName = asm?.GetName();

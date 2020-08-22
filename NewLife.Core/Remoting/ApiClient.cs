@@ -40,7 +40,7 @@ namespace NewLife.Remoting
         public ICounter StatInvoke { get; set; }
 
         /// <summary>性能跟踪器</summary>
-        public ITracer Tracer { get; set; }
+        public ITracer Tracer { get; set; } = DefaultTracer.Instance;
         #endregion
 
         #region 构造
