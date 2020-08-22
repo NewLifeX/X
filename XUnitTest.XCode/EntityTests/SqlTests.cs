@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
+using XCode;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 using Xunit;
+using static XCode.Membership.UserX;
 
 namespace XUnitTest.XCode.EntityTests
 {
@@ -132,6 +134,26 @@ namespace XUnitTest.XCode.EntityTests
 
             var sql = factory.Persistence.GetSql(session, user, DataObjectMethodType.Delete);
             Assert.Equal(@"Delete From `user` Where id=2", sql);
+        }
+
+        [Fact]
+        public void SelectTestSQLite()
+        {
+            var exp = UserX._.Name == "Stone" & UserX._.DisplayName == "大石头" & UserX._.Logins > 0 & UserX._.RegisterTime < new DateTime(2020, 9, 1);
+            var builder = UserX.CreateBuilder(exp, UserX._.UpdateUserID.Desc(), null);
+            var sql = builder.ToString();
+            Assert.Equal(@"Select * From User Where Name='Stone' And DisplayName='大石头' And Logins>0 And RegisterTime<'2020-09-01 00:00:00' Order By UpdateUserID Desc", sql);
+        }
+
+        [Fact]
+        public void SelectTestMySqlUnderline()
+        {
+            using var split = UserX.Meta.CreateSplit("mysql_underline", null);
+
+            var exp = UserX._.Name == "Stone" & UserX._.DisplayName == "大石头" & UserX._.Logins > 0 & UserX._.RegisterTime < new DateTime(2020, 9, 1);
+            var builder = UserX.CreateBuilder(exp, UserX._.UpdateUserID.Desc(), null);
+            var sql = builder.ToString();
+            Assert.Equal(@"Select * From `user` Where name='Stone' And display_name='大石头' And logins>0 And register_time<'2020-09-01 00:00:00' Order By update_user_id Desc", sql);
         }
     }
 }
