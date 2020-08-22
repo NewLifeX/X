@@ -582,7 +582,7 @@ namespace NewLife.Caching
         /// <param name="args">参数数组</param>
         /// <param name="cancellationToken">取消通知</param>
         /// <returns></returns>
-        public virtual async Task<TResult> ExecuteAsync<TResult>(String cmd, Object[] args, CancellationToken cancellationToken = default)
+        public virtual async Task<TResult> ExecuteAsync<TResult>(String cmd, Object[] args, CancellationToken cancellationToken)
         {
             // 管道模式
             if (_ps != null)
