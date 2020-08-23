@@ -141,8 +141,8 @@ namespace NewLife.Log
             if (MaxCost < cost) MaxCost = cost;
             if (MinCost > cost || MinCost < 0) MinCost = cost;
 
-            // 处理采样
-            if (span.Error != null)
+            // 处理采样，超时操作当作异常采样
+            if (span.Error != null || cost > Tracer.Timeout)
             {
                 if (Interlocked.Increment(ref _Errors) <= Tracer.MaxErrors)
                 {

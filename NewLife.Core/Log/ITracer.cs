@@ -23,6 +23,9 @@ namespace NewLife.Log
         /// <summary>最大异常采样数。采样周期内，最多只记录指定数量的异常事件，默认10</summary>
         Int32 MaxErrors { get; set; }
 
+        /// <summary>超时时间。超过该时间时，当作异常来进行采样，毫秒</summary>
+        Int32 Timeout { get; set; }
+
         /// <summary>向http/rpc请求注入TraceId的参数名，为空表示不注入，默认W3C标准的traceparent</summary>
         String AttachParameter { get; set; }
         #endregion
@@ -68,6 +71,9 @@ namespace NewLife.Log
 
         /// <summary>最大异常采样数。采样周期内，最多只记录指定数量的异常事件，默认10</summary>
         public Int32 MaxErrors { get; set; } = 10;
+
+        /// <summary>超时时间。超过该时间时，当作异常来进行采样，默认15000毫秒</summary>
+        public Int32 Timeout { get; set; } = 15000;
 
         /// <summary>采样结束时等待片段完成的时间。默认1000ms</summary>
         public Int32 WaitForFinish { get; set; } = 1000;
