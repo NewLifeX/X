@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using NewLife;
 using XCode.Configuration;
+using XCode.DataAccessLayer;
 
 namespace XCode
 {
@@ -42,22 +43,20 @@ namespace XCode
 
         #region 输出
         /// <summary>已重载。输出字段表达式的字符串形式</summary>
-        /// <param name="session">实体会话</param>
+        /// <param name="db">实体会话</param>
         /// <param name="builder">字符串构建器</param>
         /// <param name="ps">参数字典</param>
         /// <returns></returns>
-        public override void GetString(IEntitySession session, StringBuilder builder, IDictionary<String, Object> ps)
+        public override void GetString(IDatabase db, StringBuilder builder, IDictionary<String, Object> ps)
         {
             if (Field == null) return;
 
-            var columnName = session.Dal.Db.FormatName(Field.Field);
+            var columnName = db.FormatName(Field.Field);
             if (Action.IsNullOrEmpty())
             {
                 builder.Append(columnName);
                 return;
             }
-
-            var db = session.Dal.Db;
 
             // 右值是字段
             if (Value is FieldItem fi)

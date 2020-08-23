@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using XCode.DataAccessLayer;
 using XCode.Membership;
 using Xunit;
 
@@ -8,12 +9,20 @@ namespace XUnitTest.XCode.Model
 {
     public class FieldLikeTests
     {
+        private IDatabase _dbUser;
+        private IDatabase _dbLog;
+        public FieldLikeTests()
+        {
+            _dbUser = UserX.Meta.Session.Dal.Db;
+            _dbLog = Log.Meta.Session.Dal.Db;
+        }
+
         [Fact]
         public void Contains()
         {
             var fi = UserX._.RoleIds;
             var exp = fi.Contains(",1,2,3,");
-            var where = exp.GetString(UserX.Meta.Session, null);
+            var where = exp.GetString(_dbUser, null);
             Assert.Equal("RoleIds Like '%,1,2,3,%'", where);
         }
 
@@ -23,7 +32,7 @@ namespace XUnitTest.XCode.Model
             var fi = UserX._.RoleIds;
             var exp = fi.Contains(",1,");
             var ps = new Dictionary<String, Object>();
-            var where = exp.GetString(UserX.Meta.Session, ps);
+            var where = exp.GetString(_dbUser, ps);
             Assert.Equal("RoleIds Like @RoleIds", where);
             Assert.Single(ps);
             Assert.True(ps.ContainsKey("RoleIds"));
@@ -35,7 +44,7 @@ namespace XUnitTest.XCode.Model
         {
             var fi = UserX._.RoleIds;
             var exp = fi.NotContains(",1,2,3,");
-            var where = exp.GetString(UserX.Meta.Session, null);
+            var where = exp.GetString(_dbUser, null);
             Assert.Equal("RoleIds Not Like '%,1,2,3,%'", where);
         }
 
@@ -45,7 +54,7 @@ namespace XUnitTest.XCode.Model
             var fi = UserX._.RoleIds;
             var exp = fi.NotContains(",1,2,3,");
             var ps = new Dictionary<String, Object>();
-            var where = exp.GetString(UserX.Meta.Session, ps);
+            var where = exp.GetString(_dbUser, ps);
             Assert.Equal("RoleIds Not Like @RoleIds", where);
             Assert.Single(ps);
             Assert.True(ps.ContainsKey("RoleIds"));
@@ -57,7 +66,7 @@ namespace XUnitTest.XCode.Model
         {
             var fi = UserX._.RoleIds;
             var exp = fi.StartsWith(",1,2,3,");
-            var where = exp.GetString(UserX.Meta.Session, null);
+            var where = exp.GetString(_dbUser, null);
             Assert.Equal("RoleIds Like ',1,2,3,%'", where);
         }
 
@@ -67,7 +76,7 @@ namespace XUnitTest.XCode.Model
             var fi = UserX._.RoleIds;
             var exp = fi.StartsWith(",1,2,3,");
             var ps = new Dictionary<String, Object>();
-            var where = exp.GetString(UserX.Meta.Session, ps);
+            var where = exp.GetString(_dbUser, ps);
             Assert.Equal("RoleIds Like @RoleIds", where);
             Assert.Single(ps);
             Assert.True(ps.ContainsKey("RoleIds"));
@@ -79,7 +88,7 @@ namespace XUnitTest.XCode.Model
         {
             var fi = UserX._.RoleIds;
             var exp = fi.EndsWith(",1,2,3,");
-            var where = exp.GetString(UserX.Meta.Session, null);
+            var where = exp.GetString(_dbUser, null);
             Assert.Equal("RoleIds Like '%,1,2,3,'", where);
         }
 
@@ -89,7 +98,7 @@ namespace XUnitTest.XCode.Model
             var fi = UserX._.RoleIds;
             var exp = fi.EndsWith(",1,2,3,");
             var ps = new Dictionary<String, Object>();
-            var where = exp.GetString(UserX.Meta.Session, ps);
+            var where = exp.GetString(_dbUser, ps);
             Assert.Equal("RoleIds Like @RoleIds", where);
             Assert.Single(ps);
             Assert.True(ps.ContainsKey("RoleIds"));

@@ -43,17 +43,15 @@ namespace XCode
 
         #region 输出
         /// <summary>已重载。输出字段表达式的字符串形式</summary>
-        /// <param name="session">实体会话</param>
+        /// <param name="db">实体会话</param>
         /// <param name="builder">字符串构建器</param>
         /// <param name="ps">参数字典</param>
         /// <returns></returns>
-        public override void GetString(IEntitySession session, StringBuilder builder, IDictionary<String, Object> ps)
+        public override void GetString(IDatabase db, StringBuilder builder, IDictionary<String, Object> ps)
         {
             var fi = Field;
             if (fi == null || Format.IsNullOrWhiteSpace()) return;
 
-            //var factory = fi.Factory;
-            var db = session.Dal.Db;
             var column = fi.Field;
             var columnName = db.FormatName(fi.Field);
 

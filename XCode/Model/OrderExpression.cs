@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using XCode.DataAccessLayer;
 
 namespace XCode
 {
@@ -39,11 +40,11 @@ namespace XCode
         }
 
         /// <summary>已重载。</summary>
-        /// <param name="session">实体会话</param>
+        /// <param name="db">实体会话</param>
         /// <param name="builder">字符串构建器</param>
         /// <param name="ps">参数字典</param>
         /// <returns></returns>
-        public override void GetString(IEntitySession session, StringBuilder builder, IDictionary<String, Object> ps)
+        public override void GetString(IDatabase db, StringBuilder builder, IDictionary<String, Object> ps)
         {
             if (Builder == null || Builder.Length <= 0) return;
 
