@@ -340,8 +340,9 @@ namespace System.IO
         /// <param name="overwrite">是否覆盖目标同名文件</param>
         public static void Extract(this FileInfo fi, String destDir, Boolean overwrite = false)
         {
-            if (destDir.IsNullOrEmpty()) destDir = Path.GetDirectoryName(fi.FullName).CombinePath(fi.Name).GetFullPath();
+            if (destDir.IsNullOrEmpty()) destDir = Path.GetDirectoryName(fi.FullName).CombinePath(fi.Name);
 
+            destDir = destDir.GetFullPath();
             //ZipFile.ExtractToDirectory(fi.FullName, destDir);
 
             if (fi.Name.EndsWithIgnoreCase(".zip"))
@@ -385,6 +386,7 @@ namespace System.IO
         {
             if (destFile.IsNullOrEmpty()) destFile = fi.Name + ".zip";
 
+            destFile = destFile.GetFullPath();
             if (File.Exists(destFile)) File.Delete(destFile);
 
             if (destFile.EndsWithIgnoreCase(".zip"))
