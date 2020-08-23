@@ -43,13 +43,16 @@ namespace XCode
 
         #region 输出
         /// <summary>已重载。输出字段表达式的字符串形式</summary>
-        /// <param name="db">实体会话</param>
+        /// <param name="db">数据库</param>
         /// <param name="builder">字符串构建器</param>
         /// <param name="ps">参数字典</param>
         /// <returns></returns>
         public override void GetString(IDatabase db, StringBuilder builder, IDictionary<String, Object> ps)
         {
             if (Field == null) return;
+
+            // 部分场景外部未能传入数据库，此时内部尽力获取
+            if (db == null) db = Field?.Factory.Session.Dal.Db;
 
             var columnName = db.FormatName(Field.Field);
             if (Action.IsNullOrEmpty())

@@ -42,16 +42,18 @@ namespace XCode
 
         #region 输出
         /// <summary>已重载。输出字段表达式的字符串形式</summary>
-        /// <param name="db">实体会话</param>
+        /// <param name="db">数据库</param>
         /// <param name="builder">字符串构建器</param>
         /// <param name="ps">参数字典</param>
         /// <returns></returns>
         public override void GetString(IDatabase db, StringBuilder builder, IDictionary<String, Object> ps)
         {
-            var fi = Field;
-            if (fi == null || Format.IsNullOrWhiteSpace()) return;
+            if (Field == null || Format.IsNullOrWhiteSpace()) return;
 
-            var columnName = db.FormatName(fi.Field);
+            // 部分场景外部未能传入数据库，此时内部尽力获取
+            if (db == null) db = Field?.Factory.Session.Dal.Db;
+
+            var columnName = db.FormatName(Field.Field);
 
             // 非参数化
             if (ps == null)
@@ -60,30 +62,30 @@ namespace XCode
                 var val = "";
                 if (Format.Contains("{1}"))
                 {
-                    var op = fi.Factory;
+                    //var op = fi.Factory;
                     if (Value is SelectBuilder sb)
                         val = sb;
                     else if (Value is IList<Object> ems)
-                        val = ems.Join(",", e => db.FormatValue(fi.Field, e));
+                        val = ems.Join(",", e => db.FormatValue(Field.Field, e));
                     else
-                        val = db.FormatValue(fi.Field, Value);
+                        val = db.FormatValue(Field.Field, Value);
                 }
 
                 builder.AppendFormat(Format, columnName, val);
                 return;
             }
 
-            var type = fi.Type;
+            var type = Field.Type;
             if (type.IsEnum) type = typeof(Int32);
 
             // 可能不需要参数，比如 Is Null
             if (Format.Contains("{1}"))
             {
                 // 参数化处理
-                var name = fi.Name;
+                var name = Field.Name;
 
                 var i = 2;
-                while (ps.ContainsKey(name)) name = fi.Name + i++;
+                while (ps.ContainsKey(name)) name = Field.Name + i++;
 
                 // 数值留给字典
                 ps[name] = Value.ChangeType(type);

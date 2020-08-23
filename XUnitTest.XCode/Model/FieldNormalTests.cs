@@ -26,6 +26,8 @@ namespace XUnitTest.XCode.Model
             var exp = fi.Equal("登录");
             var where = exp.GetString(_dbLog, null);
             Assert.Equal("Category='登录'", where);
+
+            Assert.Equal("Category='登录'", exp);
         }
 
         [Fact]
@@ -35,6 +37,8 @@ namespace XUnitTest.XCode.Model
             var exp = fi == "登录";
             var where = exp.GetString(_dbLog, null);
             Assert.Equal("Category='登录'", where);
+
+            Assert.Equal("Category='登录'", exp);
         }
 
         [Fact]
@@ -48,6 +52,8 @@ namespace XUnitTest.XCode.Model
             Assert.Single(ps);
             Assert.True(ps.ContainsKey("Category"));
             Assert.Equal("登录", ps["Category"]);
+
+            Assert.Equal("Category='登录'", exp);
         }
 
         [Fact]
@@ -57,6 +63,8 @@ namespace XUnitTest.XCode.Model
             var exp = fi.NotEqual("登录");
             var where = exp.GetString(_dbLog, null);
             Assert.Equal("Category<>'登录'", where);
+
+            Assert.Equal("Category<>'登录'", exp);
         }
 
         [Fact]
@@ -66,6 +74,8 @@ namespace XUnitTest.XCode.Model
             var exp = fi != "登录";
             var where = exp.GetString(_dbLog, null);
             Assert.Equal("Category<>'登录'", where);
+
+            Assert.Equal("Category<>'登录'", exp);
         }
 
         [Fact]
@@ -79,6 +89,8 @@ namespace XUnitTest.XCode.Model
             Assert.Single(ps);
             Assert.True(ps.ContainsKey("Category"));
             Assert.Equal("登录", ps["Category"]);
+
+            Assert.Equal("Category<>'登录'", exp);
         }
 
         [Fact]
@@ -88,6 +100,8 @@ namespace XUnitTest.XCode.Model
             var exp = fi.IsNull();
             var where = exp.GetString(_dbLog, null);
             Assert.Equal("Category Is Null", where);
+
+            Assert.Equal("Category Is Null", exp);
         }
 
         [Fact]
@@ -97,6 +111,8 @@ namespace XUnitTest.XCode.Model
             var exp = fi.NotIsNull();
             var where = exp.GetString(_dbLog, null);
             Assert.Equal("Not Category Is Null", where);
+
+            Assert.Equal("Not Category Is Null", exp);
         }
 
         [Fact]
@@ -106,6 +122,8 @@ namespace XUnitTest.XCode.Model
             var exp = fi.IsNullOrEmpty();
             var where = exp.GetString(_dbLog, null);
             Assert.Equal("Category Is Null Or Category=''", where);
+
+            Assert.Equal("Category Is Null Or Category=''", exp);
         }
 
         [Fact]
@@ -115,6 +133,8 @@ namespace XUnitTest.XCode.Model
             var exp = fi.NotIsNullOrEmpty();
             var where = exp.GetString(_dbLog, null);
             Assert.Equal("Not Category Is Null And Category<>''", where);
+
+            Assert.Equal("Not Category Is Null And Category<>''", exp);
         }
 
         [Theory]
@@ -127,11 +147,20 @@ namespace XUnitTest.XCode.Model
             var exp = fi.IsTrue(flag);
             var where = exp?.GetString(_dbLog, null);
             if (flag == null)
+            {
                 Assert.Null(where);
+                Assert.Null(exp?.ToString());
+            }
             else if (flag.Value)
+            {
                 Assert.Equal("Success=1", where);
+                Assert.Equal("Success=1", exp);
+            }
             else
+            {
                 Assert.Equal("Success<>1 Or Success Is Null", where);
+                Assert.Equal("Success<>1 Or Success Is Null", exp);
+            }
         }
 
         [Theory]
@@ -144,11 +173,20 @@ namespace XUnitTest.XCode.Model
             var exp = fi.IsFalse(flag);
             var where = exp?.GetString(_dbLog, null);
             if (flag == null)
+            {
                 Assert.Null(where);
+                Assert.Null(exp?.ToString());
+            }
             else if (flag.Value)
+            {
                 Assert.Equal("Success<>0 Or Success Is Null", where);
+                Assert.Equal("Success<>0 Or Success Is Null", exp);
+            }
             else
+            {
                 Assert.Equal("Success=0", where);
+                Assert.Equal("Success=0", exp);
+            }
         }
 
         [Fact]
@@ -158,6 +196,8 @@ namespace XUnitTest.XCode.Model
             var exp = fi > 1;
             var where = exp.GetString(_dbArea, null);
             Assert.Equal("Level>1", where);
+
+            Assert.Equal("Level>1", exp);
         }
 
         [Fact]
@@ -167,6 +207,8 @@ namespace XUnitTest.XCode.Model
             var exp = fi >= 2;
             var where = exp.GetString(_dbArea, null);
             Assert.Equal("Level>=2", where);
+
+            Assert.Equal("Level>=2", exp);
         }
 
         [Fact]
@@ -176,6 +218,8 @@ namespace XUnitTest.XCode.Model
             var exp = fi < 3;
             var where = exp.GetString(_dbArea, null);
             Assert.Equal("Level<3", where);
+
+            Assert.Equal("Level<3", exp);
         }
 
         [Fact]
@@ -185,6 +229,8 @@ namespace XUnitTest.XCode.Model
             var exp = fi <= 2;
             var where = exp.GetString(_dbArea, null);
             Assert.Equal("Level<=2", where);
+
+            Assert.Equal("Level<=2", exp);
         }
     }
 }

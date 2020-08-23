@@ -22,7 +22,7 @@ namespace XCode
 
         /// <summary>实例化</summary>
         /// <param name="exp"></param>
-        public OrderExpression(String exp) { Builder.Append(exp); }
+        public OrderExpression(String exp) => Builder.Append(exp);
         #endregion
 
         #region 方法
@@ -40,7 +40,7 @@ namespace XCode
         }
 
         /// <summary>已重载。</summary>
-        /// <param name="db">实体会话</param>
+        /// <param name="db">数据库</param>
         /// <param name="builder">字符串构建器</param>
         /// <param name="ps">参数字典</param>
         /// <returns></returns>

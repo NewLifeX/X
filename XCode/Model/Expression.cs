@@ -35,7 +35,7 @@ namespace XCode
         /// <summary>用于匹配Or关键字的正则表达式</summary>
         internal protected static Regex _regOr = new Regex(@"\bOr\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         /// <summary>获取表达式的文本表示</summary>
-        /// <param name="db">实体会话</param>
+        /// <param name="db">数据库</param>
         /// <param name="ps">参数字典</param>
         /// <returns></returns>
         public String GetString(IDatabase db, IDictionary<String, Object> ps)
@@ -47,7 +47,7 @@ namespace XCode
         }
 
         /// <summary>获取字符串</summary>
-        /// <param name="db">实体会话</param>
+        /// <param name="db">数据库</param>
         /// <param name="builder">字符串构建器</param>
         /// <param name="ps">参数字典</param>
         public virtual void GetString(IDatabase db, StringBuilder builder, IDictionary<String, Object> ps)
