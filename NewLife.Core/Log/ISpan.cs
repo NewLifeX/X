@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Runtime.Serialization;
+using System.Threading;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
+using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Security;
 using NewLife.Serialization;
@@ -110,6 +114,21 @@ namespace NewLife.Log
             StartTime = DateTime.UtcNow.ToLong();
         }
 
+        static DefaultSpan()
+        {
+            IPAddress ip;
+            try
+            {
+                ip = NetHelper.MyIP();
+            }
+            catch
+            {
+                ip = IPAddress.Loopback;
+            }
+            _myip = ip.GetAddressBytes().ToHex().ToLower().PadLeft(8, '0');
+            _pid = Process.GetCurrentProcess().Id.ToString("x4").PadLeft(4, '0');
+        }
+
         /// <summary>释放资源</summary>
         public void Dispose() => Finish();
         #endregion
@@ -131,10 +150,36 @@ namespace NewLife.Log
             }
 
             // 否则创建新的跟踪标识
-            if (TraceId.IsNullOrEmpty()) TraceId = Rand.NextBytes(16).ToHex().ToLower();
+            if (TraceId.IsNullOrEmpty()) TraceId = CreateTraceId();
 
             // 设置当前片段
             Current = this;
+        }
+
+        private static String _myip;
+        private static Int32 _seq;
+        private static String _pid;
+
+        /// <summary>创建跟踪编号</summary>
+        /// <returns></returns>
+        protected virtual String CreateTraceId()
+        {
+            /*
+             * 阿里云EagleEye全链路追踪
+             * 7ae122a215982779017518707e
+             * IPv4(8) + 毫秒时间(13) + 顺序数(4) + 标识位(1) + PID(4)
+             * 7ae122a2 + 1598277901751 + 8707 + e
+             */
+
+            var sb = Pool.StringBuilder.Get();
+            sb.Append(_myip);
+            sb.Append(DateTime.UtcNow.ToLong());
+            sb.Append(Interlocked.Increment(ref _seq));
+            sb.Append('e');
+            sb.Append(_pid);
+
+            //return _myip + DateTime.UtcNow.ToLong() + Interlocked.Increment(ref _seq) + "e" + _pid;
+            return sb.Put(true);
         }
 
         /// <summary>完成跟踪</summary>
@@ -260,6 +305,12 @@ namespace NewLife.Log
                 var ss = (tid + "").Split(".", "_");
                 if (ss.Length > 0) span.TraceId = ss[0].TrimStart('|');
                 if (ss.Length > 1) span.ParentId = ss[ss.Length - 1];
+            }
+            else if (parameters.TryGetValue("Eagleeye-Traceid", out tid))
+            {
+                var ss = (tid + "").Split("-");
+                if (ss.Length > 0) span.TraceId = ss[0];
+                if (ss.Length > 1) span.ParentId = ss[1];
             }
         }
 

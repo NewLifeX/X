@@ -329,5 +329,14 @@ namespace XUnitTest.Log
 
             public ISpanBuilder[] Builders { get; set; }
         }
+
+        [Fact]
+        public void TestTraceId()
+        {
+            var span = new DefaultSpan();
+            span.Start();
+
+            Assert.NotEmpty(span.TraceId);
+        }
     }
 }
