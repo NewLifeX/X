@@ -108,7 +108,7 @@ namespace NewLife.Web
         /// <returns></returns>
         public Boolean TryDecode(String token, out String message)
         {
-            message = null;
+            message = "JWT格式不正确";
 
             if (Secret.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Secret));
 
