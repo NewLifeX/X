@@ -1007,8 +1007,9 @@ namespace XCode.Code
             WriteLine("#region 高级查询");
             if (cs.Count > 0)
             {
-                // 时间字段
+                // 时间字段。无差别支持UpdateTime/CreateTime
                 var dcTime = cs.FirstOrDefault(e => e.DataType == typeof(DateTime));
+                if (dcTime == null) dcTime = Table.GetColumns(new[] { "UpdateTime", "CreateTime" })?.FirstOrDefault();
                 cs.Remove(dcTime);
 
                 // 可用于关键字模糊搜索的字段
