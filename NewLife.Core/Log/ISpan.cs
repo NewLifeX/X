@@ -269,21 +269,14 @@ namespace NewLife.Log
         {
             if (span == null || headers == null || headers.Count == 0) return;
 
-            if (headers.AllKeys.Contains("traceparent"))
+            // 不区分大小写比较头部
+            var dic = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+            foreach (var item in headers.AllKeys)
             {
-                var tid = headers["traceparent"];
-                var ss = (tid + "").Split("-");
-                if (ss.Length > 1) span.TraceId = ss[1];
-                if (ss.Length > 2) span.ParentId = ss[2];
+                dic[item] = headers[item];
             }
-            else if (headers.AllKeys.Contains("Request-Id"))
-            {
-                // HierarchicalId编码取最后一段作为父级
-                var tid = headers["Request-Id"];
-                var ss = (tid + "").Split(".", "_");
-                if (ss.Length > 0) span.TraceId = ss[0].TrimStart('|');
-                if (ss.Length > 1) span.ParentId = ss[ss.Length - 1];
-            }
+
+            Detach2(span, dic);
         }
 
         /// <summary>从api请求释放片段信息</summary>
@@ -293,25 +286,9 @@ namespace NewLife.Log
         {
             if (span == null || parameters == null || parameters.Count == 0) return;
 
-            if (parameters.TryGetValue("traceparent", out var tid))
-            {
-                var ss = (tid + "").Split("-");
-                if (ss.Length > 1) span.TraceId = ss[1];
-                if (ss.Length > 2) span.ParentId = ss[2];
-            }
-            else if (parameters.TryGetValue("Request-Id", out tid))
-            {
-                // HierarchicalId编码取最后一段作为父级
-                var ss = (tid + "").Split(".", "_");
-                if (ss.Length > 0) span.TraceId = ss[0].TrimStart('|');
-                if (ss.Length > 1) span.ParentId = ss[ss.Length - 1];
-            }
-            else if (parameters.TryGetValue("Eagleeye-Traceid", out tid))
-            {
-                var ss = (tid + "").Split("-");
-                if (ss.Length > 0) span.TraceId = ss[0];
-                if (ss.Length > 1) span.ParentId = ss[1];
-            }
+            // 不区分大小写比较头部
+            var dic = parameters.ToDictionary(e => e.Key, e => e.Value, StringComparer.OrdinalIgnoreCase);
+            Detach2(span, dic);
         }
 
         /// <summary>从api请求释放片段信息</summary>
@@ -321,18 +298,38 @@ namespace NewLife.Log
         {
             if (span == null || parameters == null || parameters.Count == 0) return;
 
-            if (parameters.TryGetValue("traceparent", out var tid))
+            // 不区分大小写比较头部
+            var dic = parameters.ToDictionary(e => e.Key, e => e.Value, StringComparer.OrdinalIgnoreCase);
+            Detach2(span, dic);
+        }
+
+        private static void Detach2<T>(ISpan span, IDictionary<String, T> dic)
+        {
+            // 不区分大小写比较头部
+            if (dic.TryGetValue("traceparent", out var tid))
             {
                 var ss = (tid + "").Split("-");
                 if (ss.Length > 1) span.TraceId = ss[1];
                 if (ss.Length > 2) span.ParentId = ss[2];
             }
-            else if (parameters.TryGetValue("Request-Id", out tid))
+            else if (dic.TryGetValue("Request-Id", out tid))
             {
                 // HierarchicalId编码取最后一段作为父级
                 var ss = (tid + "").Split(".", "_");
                 if (ss.Length > 0) span.TraceId = ss[0].TrimStart('|');
                 if (ss.Length > 1) span.ParentId = ss[ss.Length - 1];
+            }
+            else if (dic.TryGetValue("Eagleeye-Traceid", out tid))
+            {
+                var ss = (tid + "").Split("-");
+                if (ss.Length > 0) span.TraceId = ss[0];
+                if (ss.Length > 1) span.ParentId = ss[1];
+            }
+            else if (dic.TryGetValue("TraceId", out tid))
+            {
+                var ss = (tid + "").Split("-");
+                if (ss.Length > 0) span.TraceId = ss[0];
+                if (ss.Length > 1) span.ParentId = ss[1];
             }
         }
         #endregion
