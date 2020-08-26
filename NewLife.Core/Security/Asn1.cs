@@ -26,10 +26,20 @@ namespace NewLife.Security
         public override String ToString() => $"{_Tag} {Value}";
         #endregion
 
+        /// <summary>读取</summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public static Asn1 Read(Byte[] data) => Read(new BinaryReader(new MemoryStream(data)));
+
+        /// <summary>读取</summary>
+        /// <param name="stream"></param>
+        /// <returns></returns>
+        public static Asn1 Read(Stream stream) => Read(new BinaryReader(stream));
+
         /// <summary>读取对象</summary>
         /// <param name="reader"></param>
         /// <returns></returns>
-        public static Asn1 ReadObject(BinaryReader reader)
+        public static Asn1 Read(BinaryReader reader)
         {
             var len = ReadTLV(reader, out var tag);
             if (len < 0) return null;
@@ -54,12 +64,12 @@ namespace NewLife.Security
                         var list = new List<Asn1>();
                         while (true)
                         {
-                            var obj = ReadObject(reader2);
+                            var obj = Read(reader2);
                             if (obj == null) break;
 
                             list.Add(obj);
                         }
-                        asn.Value = list;
+                        asn.Value = list.ToArray();
                         return asn;
                     case Asn1Tags.Set:
                         break;
@@ -67,24 +77,27 @@ namespace NewLife.Security
             }
 
             // 基础类型
-            //var buf = reader.ReadBytes(len);
+            var buf = reader.ReadBytes(len);
+            asn.Value = buf;
             switch (asn._Tag)
             {
                 case Asn1Tags.Boolean:
                     break;
                 case Asn1Tags.Integer:
-                    asn.Value = reader.ReadBytes(len).ToInt();
+                    asn.Value = buf;
                     break;
                 case Asn1Tags.BitString:
+                    if (buf.Length > 0 && buf[0] == 0) buf = buf.ReadBytes(1);
+                    asn.Value = buf;
                     break;
                 case Asn1Tags.OctetString:
-                    asn.Value = reader.ReadBytes(len);
+                    asn.Value = buf;
                     break;
                 case Asn1Tags.Null:
                     break;
                 case Asn1Tags.ObjectIdentifier:
                     //asn.Value = reader.ReadBytes(len);
-                    asn.Value = MakeOidStringFromBytes(reader.ReadBytes(len));
+                    asn.Value = MakeOidStringFromBytes(buf);
                     break;
                 case Asn1Tags.External:
                     break;
@@ -135,6 +148,17 @@ namespace NewLife.Security
             }
 
             return asn;
+        }
+
+        /// <summary>获取字节数组</summary>
+        /// <param name="trimZero"></param>
+        /// <returns></returns>
+        public Byte[] GetByteArray(Boolean trimZero = false)
+        {
+            var buf = Value as Byte[];
+            if (buf != null && trimZero && buf[0] == 0) buf = buf.ReadBytes(1);
+
+            return buf;
         }
 
         #region 辅助
