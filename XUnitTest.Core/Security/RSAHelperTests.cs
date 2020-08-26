@@ -58,5 +58,44 @@ Ttwu1OULHlmUg9eW31wRI2uiXcFCJMHuro6iOQ1VJ4Qs
             var sign = rsa.SignData("NewLife".GetBytes(), MD5.Create());
             Assert.Equal("WfMouV+yZ0EmATNiFVsgMIsMzx1sS7zSKcOZ1FmSiUnkq7nB4wEKcketdakn859/pTWZ31l8XF1+GelhdNHjwjuQmsawdTW+imnn5Z1J+XzhNgxdnpJ6O1txcE8oHKCTd2bS2Yv55Mezu4Ih9BbX0JovSnFCsGMxLS6afYQqXUU=", sign.ToBase64());
         }
+
+        [Fact]
+        public void TestPem()
+        {
+            var prvKey = @"-----BEGIN PRIVATE KEY-----
+MIICdgIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBAMu4IDG1XU6a7bXo
+4V1jSnbKk9Eum2WguAyq+maCRcP9JoHlE/HmhPOjl91aN5gDHw3pgB7QMMkPkuyY
+0aG9UiIo7PbBgjXsNBErprKa8G7GKhDN4B3m8jxEi1NLtCk2H8AEf8H/deGFXCde
+fjQx0NDEDcTbJ8STfbsqrLhOq2xzAgMBAAECgYEAg1kZMNOd8IOFxqb7P2o4ZbUh
+b1rciL8CS/CleBiAgOgkvtWDcZFOoYQV83sqoxFIIYEuwS88dTZcZb32U5EsdYEx
+JvJwAAYnzpch/YAz0llvXSHzZwNfGGvs4qt0d74bFpPfveli82wSKMlykeajP2Ro
+RQpOniTYOWrJ01UHdUECQQDt1KTj/Xs5BNmEZAkJVmGekQROADk+ztceAe9UMj/J
+s5xECdXVwuFh2Rm62MMQNNoW2Pjz4Y5NqhjRu0MMZnlTAkEA20hZsgA78aqTO7s+
++y/CLgP3Cd7uG/5RkcmjBWq2eXkt6wmazZl0BMYb7vshblnMjFXJwuOmfBJl7rTr
+1fg8YQJAEo4Jg0QObgdj1QFc9x6HJTDZLiC0VqMag1vRSTdWZK0fnutJhJDctp6S
+dFJe/Y+yCCBLY/OP/50qrIo4k+oWwwJAIn8hTTVoOL6C5xSv9cgvnhmVlYHyp4i8
+wFieQs3k4vtDVARwzANmExIvdssfGUMbQMCGOxihKkeirYjcyQ6CQQJAbsbpzCjD
+wd9JCogmTu/xYqtL898ek7LeNkhgIY2KhYtlptxlHfzgLBUgiSTNTcD1YWtSSp6u
+A5ImxrryDYPmfg==
+-----END PRIVATE KEY-----";
+            var pubKey = @"-----BEGIN PUBLIC KEY-----
+MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDLuCAxtV1Omu216OFdY0p2ypPR
+LptloLgMqvpmgkXD/SaB5RPx5oTzo5fdWjeYAx8N6YAe0DDJD5LsmNGhvVIiKOz2
+wYI17DQRK6aymvBuxioQzeAd5vI8RItTS7QpNh/ABH/B/3XhhVwnXn40MdDQxA3E
+2yfEk327Kqy4TqtscwIDAQAB
+-----END PUBLIC KEY-----";
+
+            var prvRsa = new RSACryptoServiceProvider();
+            var prv = RSAHelper.ReadPem(prvKey);
+            prvRsa.ImportParameters(prv);
+            var key1 = prvRsa.ToXmlString(false);
+
+            var pubRsa = new RSACryptoServiceProvider();
+            var pub = RSAHelper.ReadPem(pubKey);
+            pubRsa.ImportParameters(pub);
+            var key2 = pubRsa.ToXmlString(false);
+
+            Assert.Equal(key1, key2);
+        }
     }
 }

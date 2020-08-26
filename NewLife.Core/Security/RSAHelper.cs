@@ -167,15 +167,19 @@ namespace NewLife.Security
 
             // 公钥私钥分别处理
             content = content.Trim();
-            if (content.StartsWith("-----BEGIN RSA PRIVATE KEY-----"))
+            if (content.StartsWithIgnoreCase("-----BEGIN RSA PRIVATE KEY-----", "-----BEGIN PRIVATE KEY-----"))
             {
                 content = content.Replace("-----BEGIN RSA PRIVATE KEY-----", null)
                     .Replace("-----END RSA PRIVATE KEY-----", null)
+                    .Replace("-----BEGIN PRIVATE KEY-----", null)
+                    .Replace("-----END PRIVATE KEY-----", null)
                     .Replace("\n", null).Replace("\r", null);
 
                 var data = Convert.FromBase64String(content);
-                var key1024 = data.Length == 609 || data.Length == 610;
-                var key2048 = data.Length == 1190 || data.Length == 1192;
+                //var key1024 = data.Length == 609 || data.Length == 610;
+                //var key2048 = data.Length == 1190 || data.Length == 1192;
+                var key1024 = data.Length < 640;
+                var key2048 = data.Length > 1024;
                 if (!key1024 && !key2048) throw new ArgumentException(nameof(content));
 
                 var index = key1024 ? 11 : 12;
