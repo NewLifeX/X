@@ -170,20 +170,16 @@ namespace NewLife.Security
             content = content.Trim();
             if (content.StartsWithIgnoreCase("-----BEGIN RSA PRIVATE KEY-----", "-----BEGIN PRIVATE KEY-----"))
             {
-                content = content.Replace("-----BEGIN RSA PRIVATE KEY-----", null)
-                    .Replace("-----END RSA PRIVATE KEY-----", null)
-                    .Replace("-----BEGIN PRIVATE KEY-----", null)
-                    .Replace("-----END PRIVATE KEY-----", null)
+                content = content.TrimStart("-----BEGIN RSA PRIVATE KEY-----")
+                    .TrimEnd("-----END RSA PRIVATE KEY-----")
+                    .TrimStart("-----BEGIN PRIVATE KEY-----")
+                    .TrimEnd("-----END PRIVATE KEY-----")
                     .Replace("\n", null).Replace("\r", null);
 
                 var data = Convert.FromBase64String(content);
-                //var key1024 = data.Length == 609 || data.Length == 610;
-                //var key2048 = data.Length == 1190 || data.Length == 1192;
-                var key1024 = data.Length < 640;
-                var key2048 = data.Length > 1024;
-                if (!key1024 && !key2048) throw new ArgumentException(nameof(content));
-
                 var reader = new BinaryReader(new MemoryStream(data));
+
+                var asn = Asn1.ReadObject(reader);
 
                 // 头部版本
                 var total = reader.ReadTLV(out var tag);
@@ -210,10 +206,6 @@ namespace NewLife.Security
                     .Replace("\n", null).Replace("\r", null);
 
                 var data = Convert.FromBase64String(content);
-                var key1024 = data.Length == 162;
-                var key2048 = data.Length == 294;
-                if (!key1024 && !key2048) throw new ArgumentException(nameof(content));
-
                 var reader = new BinaryReader(new MemoryStream(data));
 
                 // 头部版本
@@ -247,7 +239,9 @@ namespace NewLife.Security
             if (len == 0x81)
                 len = reader.ReadByte();
             else if (len == 0x82)
-                len = reader.ReadUInt16();
+                len = reader.ReadBytes(2).ToUInt16(0, false);
+            else if (len == 0x84)
+                len = (Int32)reader.ReadBytes(4).ToUInt32(0, false);
 
             return len;
         }
