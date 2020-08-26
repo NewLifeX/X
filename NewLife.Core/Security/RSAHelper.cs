@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Security.Cryptography;
 
@@ -178,71 +179,24 @@ namespace NewLife.Security
                 var key2048 = data.Length == 1190 || data.Length == 1192;
                 if (!key1024 && !key2048) throw new ArgumentException(nameof(content));
 
-                var index = key1024 ? 11 : 12;
-                var modulus = new Byte[key1024 ? 128 : 256];
-                Array.Copy(data, index, modulus, 0, modulus.Length);
+                var reader = new BinaryReader(new MemoryStream(data));
 
-                index += modulus.Length;
-                index += 2;
-                var exponent = new Byte[3];
-                Array.Copy(data, index, exponent, 0, 3);
+                // 头部版本
+                var total = reader.ReadTLV(out var tag);
+                Debug.Assert(tag == 0x30);
+                var version = reader.ReadTLV(false);
 
-                index += 3;
-                index += 4;
-                if (data[index] == 0) index++;
-                var d = new Byte[key1024 ? 128 : 256];
-                Array.Copy(data, index, d, 0, d.Length);
-
-                index += d.Length;
-                if (key1024)
-                    index += data[index + 1] == 64 ? 2 : 3;
-                else
-                    index += data[index + 2] == 128 ? 3 : 4;
-                var p = new Byte[key1024 ? 64 : 128];
-                Array.Copy(data, index, p, 0, p.Length);
-
-                index += p.Length;
-                if (key1024)
-                    index += data[index + 1] == 64 ? 2 : 3;
-                else
-                    index += data[index + 2] == 128 ? 3 : 4;
-                var q = new Byte[key1024 ? 64 : 128];
-                Array.Copy(data, index, q, 0, q.Length);
-
-                index += q.Length;
-                if (key1024)
-                    index += data[index + 1] == 64 ? 2 : 3;
-                else
-                    index += data[index + 2] == 128 ? 3 : 4;
-                var dp = new Byte[key1024 ? 64 : 128];
-                Array.Copy(data, index, dp, 0, dp.Length);
-
-                index += dp.Length;
-                if (key1024)
-                    index += data[index + 1] == 64 ? 2 : 3;
-                else
-                    index += data[index + 2] == 128 ? 3 : 4;
-                var dq = new Byte[key1024 ? 64 : 128];
-                Array.Copy(data, index, dq, 0, dp.Length);
-
-                index += dp.Length;
-                if (key1024)
-                    index += data[index + 1] == 64 ? 2 : 3;
-                else
-                    index += data[index + 2] == 128 ? 3 : 4;
-                var iq = new Byte[key1024 ? 64 : 128];
-                Array.Copy(data, index, iq, 0, iq.Length);
-
+                // 参数数据
                 return new RSAParameters
                 {
-                    Modulus = modulus,
-                    Exponent = exponent,
-                    D = d,
-                    P = p,
-                    Q = q,
-                    DP = dp,
-                    DQ = dq,
-                    InverseQ = iq
+                    Modulus = reader.ReadTLV(),
+                    Exponent = reader.ReadTLV(),
+                    D = reader.ReadTLV(),
+                    P = reader.ReadTLV(),
+                    Q = reader.ReadTLV(),
+                    DP = reader.ReadTLV(),
+                    DQ = reader.ReadTLV(),
+                    InverseQ = reader.ReadTLV()
                 };
             }
             else
@@ -256,25 +210,57 @@ namespace NewLife.Security
                 var key2048 = data.Length == 294;
                 if (!key1024 && !key2048) throw new ArgumentException(nameof(content));
 
-                var modulus = new Byte[key1024 ? 128 : 256];
-                var exponent = new Byte[3];
-                if (key1024)
-                {
-                    Array.Copy(data, 29, modulus, 0, 128);
-                    Array.Copy(data, 159, exponent, 0, 3);
-                }
-                else
-                {
-                    Array.Copy(data, 33, modulus, 0, 256);
-                    Array.Copy(data, 291, exponent, 0, 3);
-                }
+                var reader = new BinaryReader(new MemoryStream(data));
 
+                // 头部版本
+                var total = reader.ReadTLV(out var tag);
+                Debug.Assert(tag == 0x30);
+                var version = reader.ReadTLV(false);
+
+                var total2 = reader.ReadTLV(out tag);
+                if (reader.PeekChar() == 0) { reader.ReadByte(); }
+                var total3 = reader.ReadTLV(out tag);
+
+                // 参数数据
                 return new RSAParameters
                 {
-                    Modulus = modulus,
-                    Exponent = exponent
+                    Modulus = reader.ReadTLV(),
+                    Exponent = reader.ReadTLV(),
                 };
             }
+        }
+
+        /// <summary>读取TLV，Tag+Length+Value</summary>
+        /// <param name="reader">读取器</param>
+        /// <param name="tag"></param>
+        /// <returns>返回长度，数据流指针移到Value第一个字节</returns>
+        private static Int32 ReadTLV(this BinaryReader reader, out Byte tag)
+        {
+            tag = reader.ReadByte();
+            //Debug.Assert(tag == 0x02);
+
+            var len = (Int32)reader.ReadByte();
+            if (len == 0x81)
+                len = reader.ReadByte();
+            else if (len == 0x82)
+                len = reader.ReadUInt16();
+
+            return len;
+        }
+
+        /// <summary>读取TLV，Tag+Length+Value</summary>
+        /// <param name="reader">读取器</param>
+        /// <param name="trimZero">是否剔除头部的0x00</param>
+        /// <returns></returns>
+        private static Byte[] ReadTLV(this BinaryReader reader, Boolean trimZero = true)
+        {
+            var len = reader.ReadTLV(out var tag);
+            //Debug.Assert(tag == 0x02);
+
+            //if (offset > 0) reader.BaseStream.Seek(1, SeekOrigin.Current);
+            if (trimZero && reader.PeekChar() == 0) { reader.ReadByte(); len--; }
+
+            return reader.ReadBytes(len);
         }
         #endregion
 
