@@ -34,6 +34,7 @@ namespace XUnitTest.XCode.Code
             var builder = new ClassBuilder();
             builder.Table = UserX.Meta.Table.DataTable;
             builder.BaseClass = "MyEntityBase";
+            builder.Partial = false;
 
             builder.Execute();
 

@@ -32,6 +32,9 @@ namespace XCode.Code
 
         /// <summary>基类</summary>
         public String BaseClass { get; set; }
+
+        /// <summary>是否分部类</summary>
+        public Boolean Partial { get; set; } = true;
         #endregion
 
         #region 构造
@@ -97,11 +100,14 @@ namespace XCode.Code
             var bc = GetBaseClass();
             if (!bc.IsNullOrEmpty()) bc = " : " + bc;
 
+            // 分部类
+            var pc = Partial ? " partial" : "";
+
             // 类接口
             if (Interface)
-                WriteLine("public partial interface {0}{1}", cn, bc);
+                WriteLine("public{2} interface {0}{1}", cn, bc, pc);
             else
-                WriteLine("public partial class {0}{1}", cn, bc);
+                WriteLine("public{2} class {0}{1}", cn, bc, pc);
             WriteLine("{");
         }
 

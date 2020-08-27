@@ -11,7 +11,7 @@ namespace XCode.Code
     [Serializable]
     [DataObject]
     [Description("用户")]
-    public partial class UserX : MyEntityBase
+    public class UserX : MyEntityBase
     {
         #region 属性
         /// <summary>编号</summary>
