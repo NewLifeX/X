@@ -56,6 +56,9 @@ namespace XCode.Code
                 ["xs:schemaLocation"] = "http://www.newlifex.com http://www.newlifex.com/Model2020.xsd"
             };
 
+            // 导入模型
+            var tables = ModelHelper.FromXml(xmlContent, DAL.CreateTable, atts);
+
             if (option != null)
             {
                 option.Output = atts["Output"] ?? Path.GetDirectoryName(xmlFile);
@@ -64,8 +67,7 @@ namespace XCode.Code
                 option.BaseClass = atts["BaseClass"];
             }
 
-            // 导入模型
-            return ModelHelper.FromXml(xmlContent, DAL.CreateTable, atts);
+            return tables;
         }
 
         /// <summary>生成简易版模型</summary>

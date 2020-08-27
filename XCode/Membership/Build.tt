@@ -9,18 +9,22 @@
     // 设置当前工作目录
 	PathHelper.BasePath = Host.ResolvePath(".");
 
-	// 导入模型文件并生成实体类，模型文件、输出目录、命名空间、连接名、中文文件名
-	//EntityBuilder.Build(String xmlFile = null, String output = null, String nameSpace = null, String connName = null, Boolean? chineseFileName = true);
-	EntityBuilder.Build();
-
     // 加载模型文件，得到数据表
-    //var tables = ClassBuilder.LoadModels(null, out _);
+    var option = new BuilderOption();
+    var tables = ClassBuilder.LoadModels(null, option, out _);
+
+	// 生成实体类
+	EntityBuilder.BuildTables(tables, option);
 
     // 生成简易模型类
-    //ClassBuilder.BuildModels(tables, @"..\Models\", "Model");
+    option.Output = @"..\Models\";
+    option.ClassPrefix = "Model";
+    ClassBuilder.BuildModels(tables, option);
 
     // 生成简易接口
-    //ClassBuilder.BuildInterfaces(tables, @"..\Interfaces\");
+    option.Output = @"..\Interfaces\";
+    option.ClassPrefix = null;
+    ClassBuilder.BuildInterfaces(tables, option);
 
     // 精确控制生成
     /*foreach (var item in tables)
@@ -28,9 +32,7 @@
         var builder = new ClassBuilder
         {
             Table = item,
-            Output = @"..\Models\",
-            Pure = true,
-            ClassName = item.Name + "Model",
+            Option = option,
         };
         builder.Execute();
         builder.Save(null, true, false);
