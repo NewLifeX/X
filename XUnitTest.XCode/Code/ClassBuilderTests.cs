@@ -131,6 +131,7 @@ namespace XUnitTest.XCode.Code
             if (Directory.Exists(dir.GetFullPath())) Directory.Delete(dir.GetFullPath(), true);
 
             ClassBuilder.BuildModels(_tables, dir, "Model");
+            ClassBuilder.BuildInterfaces(_tables, dir, "Model");
 
             foreach (var item in _tables)
             {
@@ -138,6 +139,29 @@ namespace XUnitTest.XCode.Code
                 Assert.True(File.Exists(file));
 
                 file = dir.CombinePath("I" + item.Name + "Model.cs").GetFullPath();
+                Assert.True(File.Exists(file));
+            }
+
+            // 清理
+            //Directory.Delete(dir.GetFullPath(), true);
+        }
+
+        [Fact]
+        public void BuildDtos()
+        {
+            //var dir = ".\\Output\\" + Rand.NextString(8);
+            var dir = ".\\Output\\Dtos\\";
+            if (Directory.Exists(dir.GetFullPath())) Directory.Delete(dir.GetFullPath(), true);
+
+            ClassBuilder.BuildModels(_tables, dir, "Dto");
+            ClassBuilder.BuildInterfaces(_tables, dir);
+
+            foreach (var item in _tables)
+            {
+                var file = dir.CombinePath(item.Name + "Dto.cs").GetFullPath();
+                Assert.True(File.Exists(file));
+
+                file = dir.CombinePath("I" + item.Name + ".cs").GetFullPath();
                 Assert.True(File.Exists(file));
             }
 

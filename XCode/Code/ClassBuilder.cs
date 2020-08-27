@@ -90,43 +90,51 @@ namespace XCode.Code
             return ModelHelper.FromXml(xmlContent, DAL.CreateTable, atts);
         }
 
-        /// <summary>生成简易版模型和实体接口</summary>
-        /// <param name="tables"></param>
-        /// <param name="output"></param>
-        /// <param name="prefix"></param>
-        /// <param name="model"></param>
-        /// <param name="interface"></param>
+        /// <summary>生成简易版模型</summary>
+        /// <param name="tables">表集合</param>
+        /// <param name="output">输出目录</param>
+        /// <param name="prefix">后缀。附在实体类名和文件名后面</param>
         /// <returns></returns>
-        public static Int32 BuildModels(IList<IDataTable> tables, String output, String prefix, Boolean model = true, Boolean @interface = true)
+        public static Int32 BuildModels(IList<IDataTable> tables, String output, String prefix = null)
         {
             var count = 0;
             foreach (var item in tables)
             {
-                if (model)
+                var builder = new ClassBuilder
                 {
-                    var builder = new ClassBuilder
-                    {
-                        Table = item,
-                        Output = output,
-                        Pure = true,
-                    };
-                    if (!prefix.IsNullOrEmpty()) builder.ClassName = item.Name + prefix;
-                    builder.Execute();
-                    builder.Save(prefix, true, false);
-                }
+                    Table = item,
+                    Output = output,
+                    Pure = true,
+                };
+                if (!prefix.IsNullOrEmpty()) builder.ClassName = item.Name + prefix;
+                builder.Execute();
+                builder.Save(prefix, true, false);
 
-                if (@interface)
+                count++;
+            }
+
+            return count;
+        }
+
+        /// <summary>生成简易版实体接口</summary>
+        /// <param name="tables">表集合</param>
+        /// <param name="output">输出目录</param>
+        /// <param name="prefix">后缀。附在实体类名和文件名后面</param>
+        /// <returns></returns>
+        public static Int32 BuildInterfaces(IList<IDataTable> tables, String output, String prefix = null)
+        {
+            var count = 0;
+            foreach (var item in tables)
+            {
+                var builder = new ClassBuilder
                 {
-                    var builder = new ClassBuilder
-                    {
-                        Table = item,
-                        Output = output,
-                        Interface = true,
-                    };
-                    if (!prefix.IsNullOrEmpty()) builder.ClassName = "I" + item.Name + prefix;
-                    builder.Execute();
-                    builder.Save(prefix, true, false);
-                }
+                    Table = item,
+                    Output = output,
+                    Interface = true,
+                };
+                if (!prefix.IsNullOrEmpty()) builder.ClassName = "I" + item.Name + prefix;
+                builder.Execute();
+                builder.Save(prefix, true, false);
 
                 count++;
             }
