@@ -13,22 +13,29 @@ namespace XUnitTest.XCode.Code
     public class EntityBuilderTests
     {
         private IDataTable _table;
+        private BuilderOption _option;
+
         public EntityBuilderTests()
         {
-            var tables = EntityBuilder.LoadModels(@"..\..\XCode\Membership\Member.xml", out _);
+            var tables = EntityBuilder.LoadModels(@"..\..\XCode\Membership\Member.xml", _option, out _);
             _table = tables.FirstOrDefault(e => e.Name == "User");
         }
 
         [Fact]
         public void Normal()
         {
-            var builder = new EntityBuilder
+            var option = new BuilderOption
             {
-                Table = _table,
                 ConnName = "MyConn",
                 Namespace = "Company.MyName"
             };
-            builder.Usings.Add("NewLife.Remoting");
+            option.Usings.Add("NewLife.Remoting");
+
+            var builder = new EntityBuilder
+            {
+                Table = _table,
+                Option = option,
+            };
 
             // 数据类
             builder.Execute();
@@ -53,11 +60,17 @@ namespace XUnitTest.XCode.Code
         [Fact]
         public void GenericType()
         {
+            var option = new BuilderOption
+            {
+                ConnName = "MyConn",
+                Namespace = "Company.MyName"
+            };
+
             var builder = new EntityBuilder
             {
                 Table = _table,
                 GenericType = true,
-                Namespace = "Company.MyName"
+                Option = option,
             };
 
             builder.Execute();

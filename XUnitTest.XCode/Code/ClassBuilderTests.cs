@@ -15,9 +15,12 @@ namespace XUnitTest.XCode.Code
     {
         private IList<IDataTable> _tables;
         private IDataTable _table;
+        private BuilderOption _option;
+
         public ClassBuilderTests()
         {
-            _tables = ClassBuilder.LoadModels(@"..\..\XCode\Membership\Member.xml", out _);
+            _option = new BuilderOption();
+            _tables = ClassBuilder.LoadModels(@"..\..\XCode\Membership\Member.xml", _option, out _);
             _table = _tables.FirstOrDefault(e => e.Name == "User");
         }
 
@@ -27,9 +30,9 @@ namespace XUnitTest.XCode.Code
             var builder = new ClassBuilder
             {
                 Table = _table,
-                Namespace = "Company.MyName"
             };
-            builder.Usings.Add("NewLife.Remoting");
+            builder.Option.Namespace = "Company.MyName";
+            builder.Option.Usings.Add("NewLife.Remoting");
 
             builder.Execute();
 
@@ -46,9 +49,9 @@ namespace XUnitTest.XCode.Code
             var builder = new ClassBuilder
             {
                 Table = _table,
-                BaseClass = "MyEntityBase",
-                Partial = false
             };
+            builder.Option.BaseClass = "MyEntityBase";
+            builder.Option.Partial = false;
 
             builder.Execute();
 
@@ -65,8 +68,8 @@ namespace XUnitTest.XCode.Code
             var builder = new ClassBuilder
             {
                 Table = _table,
-                Pure = true
             };
+            builder.Option.Pure = true;
 
             builder.Execute();
 
@@ -83,8 +86,8 @@ namespace XUnitTest.XCode.Code
             var builder = new ClassBuilder
             {
                 Table = _table,
-                Interface = true
             };
+            builder.Option.Interface = true;
 
             builder.Execute();
 
@@ -101,26 +104,29 @@ namespace XUnitTest.XCode.Code
             var builder = new ClassBuilder
             {
                 Table = _table,
-                Pure = true,
-                Output = ".\\Output\\" + Rand.NextString(8)
             };
+            var option = builder.Option;
+            option.Pure = true;
+            option.Output = ".\\Output\\" + Rand.NextString(8);
+
+            if (Directory.Exists(option.Output.GetFullPath())) Directory.Delete(option.Output.GetFullPath(), true);
 
             builder.Execute();
 
-            var file = (builder.Output + "\\" + builder.Table.DisplayName + ".cs").GetFullPath();
+            var file = (option.Output + "\\" + builder.Table.DisplayName + ".cs").GetFullPath();
             if (File.Exists(file)) File.Delete(file);
 
             builder.Save();
             Assert.True(File.Exists(file));
 
-            file = (builder.Output + "\\" + builder.Table.Name + ".xs").GetFullPath();
+            file = (option.Output + "\\" + builder.Table.Name + ".xs").GetFullPath();
             if (File.Exists(file)) File.Delete(file);
 
             builder.Save(".xs", false, false);
             Assert.True(File.Exists(file));
 
-            // 清理
-            Directory.Delete(builder.Output.GetFullPath(), true);
+            //// 清理
+            //Directory.Delete(option.Output.GetFullPath(), true);
         }
 
         [Fact]
@@ -130,8 +136,14 @@ namespace XUnitTest.XCode.Code
             var dir = ".\\Output\\Models\\";
             if (Directory.Exists(dir.GetFullPath())) Directory.Delete(dir.GetFullPath(), true);
 
-            ClassBuilder.BuildModels(_tables, dir, "Model");
-            ClassBuilder.BuildInterfaces(_tables, dir, "Model");
+            var option = new BuilderOption
+            {
+                Output = dir,
+                ClassPrefix = "Model"
+            };
+
+            ClassBuilder.BuildModels(_tables, option);
+            ClassBuilder.BuildInterfaces(_tables, option);
 
             foreach (var item in _tables)
             {
@@ -149,8 +161,16 @@ namespace XUnitTest.XCode.Code
             var dir = ".\\Output\\Dtos\\";
             if (Directory.Exists(dir.GetFullPath())) Directory.Delete(dir.GetFullPath(), true);
 
-            ClassBuilder.BuildModels(_tables, dir, "Dto");
-            ClassBuilder.BuildInterfaces(_tables, dir);
+            var option = new BuilderOption
+            {
+                Output = dir,
+                ClassPrefix = "Dto"
+            };
+
+            ClassBuilder.BuildModels(_tables, option);
+
+            option.ClassPrefix = null;
+            ClassBuilder.BuildInterfaces(_tables, option);
 
             foreach (var item in _tables)
             {
@@ -168,15 +188,19 @@ namespace XUnitTest.XCode.Code
             var dir = ".\\Output\\BuildTT\\";
             if (Directory.Exists(dir.GetFullPath())) Directory.Delete(dir.GetFullPath(), true);
 
+            var option = new BuilderOption
+            {
+                Output = dir,
+                ClassPrefix = "TT"
+            };
+
             // 测试Built.tt
             foreach (var item in _tables)
             {
                 var builder = new ClassBuilder
                 {
                     Table = item,
-                    Output = dir,
-                    Pure = true,
-                    ClassName = item.Name + "TT",
+                    Option = option,
                 };
                 builder.Execute();
                 builder.Save(null, true, false);

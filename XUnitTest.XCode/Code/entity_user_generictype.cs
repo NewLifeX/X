@@ -17,7 +17,7 @@ namespace Company.MyName
     [BindIndex("IU_User_Name", true, "Name")]
     [BindIndex("IX_User_RoleID", false, "RoleID")]
     [BindIndex("IX_User_UpdateTime", false, "UpdateTime")]
-    [BindTable("User", Description = "用户", ConnName = "", DbType = DatabaseType.None)]
+    [BindTable("User", Description = "用户", ConnName = "MyConn", DbType = DatabaseType.None)]
     public partial class User<TEntity> : IUser
     {
         #region 属性

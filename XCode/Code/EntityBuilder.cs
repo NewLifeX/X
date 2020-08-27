@@ -15,9 +15,6 @@ namespace XCode.Code
     public class EntityBuilder : ClassBuilder
     {
         #region 属性
-        /// <summary>连接名</summary>
-        public String ConnName { get; set; }
-
         /// <summary>泛型实体类。泛型参数名TEntity</summary>
         public Boolean GenericType { get; set; }
 
@@ -26,20 +23,6 @@ namespace XCode.Code
 
         /// <summary>所有表类型名。用于扩展属性</summary>
         public IList<IDataTable> AllTables { get; set; } = new List<IDataTable>();
-        #endregion
-
-        #region 构造
-        /// <summary>实例化</summary>
-        public EntityBuilder()
-        {
-            Usings.Add("XCode");
-            Usings.Add("XCode.Configuration");
-            Usings.Add("XCode.DataAccessLayer");
-
-            Pure = false;
-
-            if (Debug) Log = XTrace.Log;
-        }
         #endregion
 
         #region 静态快速
@@ -60,72 +43,32 @@ namespace XCode.Code
             xmlFile = xmlFile.GetBasePath();
             if (!File.Exists(xmlFile)) throw new FileNotFoundException("指定模型文件不存在！", xmlFile);
 
+            var option = new BuilderOption
+            {
+                Output = output,
+                Namespace = nameSpace,
+                ConnName = connName,
+            };
+
             // 导入模型
-            var tables = LoadModels(xmlFile, out var atts);
+            var tables = LoadModels(xmlFile, option, out var atts);
             if (tables.Count == 0) return 0;
 
-            // 输出
-            if (!output.IsNullOrEmpty())
-                atts["Output"] = output;
-            else
-                output = atts["Output"];
-            if (output.IsNullOrEmpty()) output = Path.GetDirectoryName(xmlFile);
-
-            // 命名空间
-            if (!nameSpace.IsNullOrEmpty())
-                atts["NameSpace"] = nameSpace;
-            else
-                nameSpace = atts["NameSpace"];
-            if (nameSpace.IsNullOrEmpty()) nameSpace = Path.GetFileNameWithoutExtension(xmlFile);
-
-            // 连接名
-            if (!connName.IsNullOrEmpty())
-                atts["ConnName"] = connName;
-            else
-                connName = atts["ConnName"];
-            if (connName.IsNullOrEmpty() && !nameSpace.IsNullOrEmpty()) connName = nameSpace.Split(".").LastOrDefault(e => !e.EqualIgnoreCase("Entity"));
-
-            // 基类
-            var baseClass = "";
-            if (!baseClass.IsNullOrEmpty())
-                atts["BaseClass"] = baseClass;
-            else
-                baseClass = atts["BaseClass"];
+            // 反哺。确保输出空特性
+            atts["Output"] = option.Output + "";
+            atts["NameSpace"] = option.Namespace + "";
+            atts["ConnName"] = option.ConnName + "";
+            atts["BaseClass"] = option.BaseClass + "";
+            atts.Remove("NameIgnoreCase");
+            atts.Remove("IgnoreNameCase");
 
             // 中文文件名
             if (chineseFileName != null)
-            {
                 atts["ChineseFileName"] = chineseFileName.Value ? "True" : "False";
-            }
             else
-            {
                 chineseFileName = atts["ChineseFileName"].ToBoolean(true);
-            }
 
-            //// 忽略表名/字段名称大小写
-            //if (ignoreNameCase != null)
-            //{
-            //    atts["IgnoreNameCase"] = ignoreNameCase.Value ? "True" : "False";
-            //}
-            //else
-            //{
-            //    var str = atts["IgnoreNameCase"];
-            //    if (str.IsNullOrEmpty()) str = atts["NameIgnoreCase"];
-            //    ignoreNameCase = str.ToBoolean();
-            //}
-
-            //XTrace.WriteLine("代码生成源：{0}", xmlFile);
-
-            var rs = BuildTables(tables, output, nameSpace, connName, baseClass, chineseFileName.Value);
-
-            // 确保输出空特性
-            if (atts["Output"].IsNullOrEmpty()) atts["Output"] = "";
-            if (atts["NameSpace"].IsNullOrEmpty()) atts["NameSpace"] = "";
-            if (atts["ConnName"].IsNullOrEmpty()) atts["ConnName"] = "";
-            if (atts["BaseClass"].IsNullOrEmpty()) atts["BaseClass"] = "Entity";
-            //if (atts["IgnoreNameCase"].IsNullOrEmpty()) atts["IgnoreNameCase"] = true + "";
-            atts.Remove("NameIgnoreCase");
-            atts.Remove("IgnoreNameCase");
+            var rs = BuildTables(tables, option, chineseFileName.Value);
 
             // 更新xsd
             atts["xmlns"] = atts["xmlns"].Replace("ModelSchema", "Model2020");
@@ -141,19 +84,16 @@ namespace XCode.Code
 
         /// <summary>为Xml模型文件生成实体类</summary>
         /// <param name="tables">模型文件</param>
-        /// <param name="output">输出目录</param>
-        /// <param name="nameSpace">命名空间</param>
-        /// <param name="connName">连接名</param>
-        /// <param name="baseClass">基类</param>
+        /// <param name="option">生成可选项</param>
         /// <param name="chineseFileName">是否中文名称</param>
-        public static Int32 BuildTables(IList<IDataTable> tables, String output = null, String nameSpace = null, String connName = null, String baseClass = null, Boolean chineseFileName = true)
+        public static Int32 BuildTables(IList<IDataTable> tables, BuilderOption option, Boolean chineseFileName = true)
         {
             if (tables == null || tables.Count == 0) return 0;
 
-            output = output.GetBasePath();
+            //output = output.GetBasePath();
 
-            // 连接名
-            if (connName.IsNullOrEmpty() && !nameSpace.IsNullOrEmpty() && nameSpace.Contains(".")) connName = nameSpace.Substring(nameSpace.LastIndexOf(".") + 1);
+            //// 连接名
+            //if (connName.IsNullOrEmpty() && !nameSpace.IsNullOrEmpty() && nameSpace.Contains(".")) connName = nameSpace.Substring(nameSpace.LastIndexOf(".") + 1);
 
             //XTrace.WriteLine("代码生成：{0} 输出：{1} 命名空间：{2} 连接名：{3} 基类：{4}", tables.Count, output, nameSpace, connName, baseClass);
 
@@ -161,13 +101,15 @@ namespace XCode.Code
             foreach (var item in tables)
             {
                 var builder = new EntityBuilder { AllTables = tables, };
+                if (option != null) builder.Option = option;
 
                 builder.Load(item);
 
-                if (!output.IsNullOrEmpty()) builder.Output = output;
-                if (!nameSpace.IsNullOrEmpty()) builder.Namespace = nameSpace;
-                if (!connName.IsNullOrEmpty()) builder.ConnName = connName;
-                if (!baseClass.IsNullOrEmpty()) builder.BaseClass = baseClass;
+                //var option = builder.Option;
+                //if (!output.IsNullOrEmpty()) option.Output = output;
+                //if (!nameSpace.IsNullOrEmpty()) option.Namespace = nameSpace;
+                //if (!connName.IsNullOrEmpty()) builder.ConnName = connName;
+                //if (!baseClass.IsNullOrEmpty()) option.BaseClass = baseClass;
 
                 builder.Execute();
                 builder.Save(null, true, chineseFileName);
@@ -175,31 +117,6 @@ namespace XCode.Code
                 builder.Business = true;
                 builder.Execute();
                 builder.Save(null, false, chineseFileName);
-
-                count++;
-            }
-
-            return count;
-        }
-
-        /// <summary>为Xml模型文件生成实体类</summary>
-        /// <param name="tables">模型文件</param>
-        /// <returns></returns>
-        public static Int32 BuildTables(IList<IDataTable> tables)
-        {
-            var count = 0;
-            foreach (var item in tables)
-            {
-                var builder = new EntityBuilder { AllTables = tables, };
-
-                builder.Load(item);
-
-                builder.Execute();
-                builder.Save(null, true, true);
-
-                builder.Business = true;
-                builder.Execute();
-                builder.Save(null, false, true);
 
                 count++;
             }
@@ -215,22 +132,24 @@ namespace XCode.Code
         {
             Table = table;
 
+            var option = Option;
+
             // 命名空间
             var str = table.Properties["Namespace"];
-            if (!str.IsNullOrEmpty()) Namespace = str;
+            if (!str.IsNullOrEmpty()) option.Namespace = str;
 
             // 连接名
             var connName = table.ConnName;
-            if (connName.IsNullOrEmpty() && !Namespace.IsNullOrEmpty())
+            if (connName.IsNullOrEmpty() && !option.Namespace.IsNullOrEmpty())
             {
-                var p = Namespace.LastIndexOf('.');
-                if (p > 0) connName = Namespace.Substring(p + 1);
+                var p = option.Namespace.LastIndexOf('.');
+                if (p > 0) connName = option.Namespace.Substring(p + 1);
             }
-            if (!connName.IsNullOrEmpty()) ConnName = connName;
+            if (!connName.IsNullOrEmpty()) option.ConnName = connName;
 
             // 基类
             str = table.Properties["BaseClass"];
-            if (!str.IsNullOrEmpty()) BaseClass = str;
+            if (!str.IsNullOrEmpty()) option.BaseClass = str;
 
             // 泛型实体类
             str = table.Properties["RenderGenEntity"];
@@ -242,7 +161,7 @@ namespace XCode.Code
 
             // 输出目录
             str = table.Properties["Output"];
-            if (!str.IsNullOrEmpty()) Output = str.GetBasePath();
+            if (!str.IsNullOrEmpty()) option.Output = str.GetBasePath();
         }
         #endregion
 
@@ -251,9 +170,9 @@ namespace XCode.Code
         public override void Execute()
         {
             // 增加常用命名空间
-            if (Business) AddNameSpace();
+            AddNameSpace();
 
-            if (ClassName.IsNullOrEmpty()) ClassName = Interface ? ("I" + Table.Name) : Table.Name;
+            if (ClassName.IsNullOrEmpty()) ClassName = (Option.Interface ? ("I" + Table.Name) : Table.Name) + Option.ClassPrefix;
             if (GenericType) ClassName += "<TEntity>";
 
             base.Execute();
@@ -293,7 +212,7 @@ namespace XCode.Code
             // 数据类的基类只有接口，业务类基类则比较复杂
             if (!Business) return "I" + Table.Name;
 
-            var name = BaseClass;
+            var name = Option.BaseClass;
             if (name.IsNullOrEmpty()) name = "Entity";
 
             if (GenericType)
@@ -333,8 +252,7 @@ namespace XCode.Code
                 BuildInterface();
             }
 
-            var ns = Namespace;
-            if (!ns.IsNullOrEmpty())
+            if (!Option.Namespace.IsNullOrEmpty())
             {
                 Writer.Write("}");
             }
@@ -343,8 +261,13 @@ namespace XCode.Code
         /// <summary>增加常用命名空间</summary>
         protected virtual void AddNameSpace()
         {
-            var us = Usings;
-            if (!Pure && !us.Contains("System.Web"))
+            var us = Option.Usings;
+
+            us.Add("XCode");
+            us.Add("XCode.Configuration");
+            us.Add("XCode.DataAccessLayer");
+
+            if (Business && !Option.Pure && !us.Contains("System.Web"))
             {
                 us.Add("System.IO");
                 us.Add("System.Linq");
@@ -388,7 +311,7 @@ namespace XCode.Code
             }
 
             var cn = dt.Properties["ConnName"];
-            if (cn.IsNullOrEmpty()) cn = ConnName;
+            if (cn.IsNullOrEmpty()) cn = Option.ConnName;
             WriteLine("[BindTable(\"{0}\", Description = \"{1}\", ConnName = \"{2}\", DbType = DatabaseType.{3})]", dt.TableName, dt.Description, cn, dt.DbType);
         }
 
@@ -411,7 +334,7 @@ namespace XCode.Code
             if (dc.Properties.TryGetValue("Attribute", out var att))
                 WriteLine("[{0}]", att.Replace("{name}", dc.Name));
 
-            if (!Pure)
+            if (!Option.Pure)
             {
                 var dis = dc.DisplayName;
                 if (!dis.IsNullOrEmpty()) WriteLine("[DisplayName(\"{0}\")]", dis);
@@ -429,7 +352,7 @@ namespace XCode.Code
             else
                 WriteLine("[BindColumn(\"{0}\", \"{1}\", \"{2}\"{3})]", dc.ColumnName, dc.Description, dc.RawType, dc.Master ? ", Master = true" : "");
 
-            if (Interface)
+            if (Option.Interface)
                 WriteLine("{0} {1} {{ get; set; }}", type, dc.Name);
             else
                 WriteLine("public {0} {1} {{ get => _{1}; set {{ if (OnPropertyChanging(\"{1}\", value)) {{ _{1} = value; OnPropertyChanged(\"{1}\"); }} }} }}", type, dc.Name);

@@ -22,46 +22,17 @@ namespace XCode.Code
         /// <summary>类名。默认Table.Name</summary>
         public String ClassName { get; set; }
 
-        /// <summary>命名空间</summary>
-        public String Namespace { get; set; }
-
-        /// <summary>引用命名空间</summary>
-        public HashSet<String> Usings { get; } = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
-
-        /// <summary>纯净类</summary>
-        public Boolean Pure { get; set; }
-
-        /// <summary>生成接口</summary>
-        public Boolean Interface { get; set; }
-
-        /// <summary>基类</summary>
-        public String BaseClass { get; set; }
-
-        /// <summary>是否分部类</summary>
-        public Boolean Partial { get; set; } = true;
-        #endregion
-
-        #region 构造
-        /// <summary>实例化</summary>
-        public ClassBuilder()
-        {
-            Namespace = GetType().Namespace;
-
-            Usings.Add("System");
-            Usings.Add("System.Collections.Generic");
-            Usings.Add("System.ComponentModel");
-            Usings.Add("System.Runtime.Serialization");
-            Usings.Add("System.Web.Script.Serialization");
-            Usings.Add("System.Xml.Serialization");
-        }
+        /// <summary>生成器选项</summary>
+        public BuilderOption Option { get; set; } = new BuilderOption();
         #endregion
 
         #region 静态快速
         /// <summary>加载模型文件</summary>
-        /// <param name="xmlFile"></param>
-        /// <param name="atts"></param>
+        /// <param name="xmlFile">Xml模型文件</param>
+        /// <param name="option">生成可选项</param>
+        /// <param name="atts">扩展属性字典</param>
         /// <returns></returns>
-        public static IList<IDataTable> LoadModels(String xmlFile, out IDictionary<String, String> atts)
+        public static IList<IDataTable> LoadModels(String xmlFile, BuilderOption option, out IDictionary<String, String> atts)
         {
             if (xmlFile.IsNullOrEmpty())
             {
@@ -85,27 +56,36 @@ namespace XCode.Code
                 ["xs:schemaLocation"] = "http://www.newlifex.com http://www.newlifex.com/Model2020.xsd"
             };
 
+            if (option != null)
+            {
+                option.Output = atts["Output"] ?? Path.GetDirectoryName(xmlFile);
+                option.Namespace = atts["NameSpace"] ?? Path.GetFileNameWithoutExtension(xmlFile);
+                option.ConnName = atts["ConnName"];
+                option.BaseClass = atts["BaseClass"];
+            }
+
             // 导入模型
             return ModelHelper.FromXml(xmlContent, DAL.CreateTable, atts);
         }
 
         /// <summary>生成简易版模型</summary>
         /// <param name="tables">表集合</param>
-        /// <param name="output">输出目录</param>
-        /// <param name="prefix">后缀。附在实体类名和文件名后面</param>
+        /// <param name="option">可选项</param>
         /// <returns></returns>
-        public static Int32 BuildModels(IList<IDataTable> tables, String output, String prefix = null)
+        public static Int32 BuildModels(IList<IDataTable> tables, BuilderOption option = null)
         {
+            if (option == null) option = new BuilderOption();
+
+            option.Pure = true;
+
             var count = 0;
             foreach (var item in tables)
             {
                 var builder = new ClassBuilder
                 {
                     Table = item,
-                    Output = output,
-                    Pure = true,
+                    Option = option,
                 };
-                if (!prefix.IsNullOrEmpty()) builder.ClassName = item.Name + prefix;
                 builder.Execute();
                 builder.Save(null, true, false);
 
@@ -117,21 +97,22 @@ namespace XCode.Code
 
         /// <summary>生成简易版实体接口</summary>
         /// <param name="tables">表集合</param>
-        /// <param name="output">输出目录</param>
-        /// <param name="prefix">后缀。附在实体类名和文件名后面</param>
+        /// <param name="option">可选项</param>
         /// <returns></returns>
-        public static Int32 BuildInterfaces(IList<IDataTable> tables, String output, String prefix = null)
+        public static Int32 BuildInterfaces(IList<IDataTable> tables, BuilderOption option = null)
         {
+            if (option == null) option = new BuilderOption();
+
+            option.Interface = true;
+
             var count = 0;
             foreach (var item in tables)
             {
                 var builder = new ClassBuilder
                 {
                     Table = item,
-                    Output = output,
-                    Interface = true,
+                    Option = option,
                 };
-                if (!prefix.IsNullOrEmpty()) builder.ClassName = "I" + item.Name + prefix;
                 builder.Execute();
                 builder.Save(null, true, false);
 
@@ -146,7 +127,7 @@ namespace XCode.Code
         /// <summary>执行生成</summary>
         public virtual void Execute()
         {
-            if (ClassName.IsNullOrEmpty()) ClassName = Interface ? ("I" + Table.Name) : Table.Name;
+            if (ClassName.IsNullOrEmpty()) ClassName = (Option.Interface ? ("I" + Table.Name) : Table.Name) + Option.ClassPrefix;
             //WriteLog("生成 {0} {1}", Table.Name, Table.DisplayName);
 
             Clear();
@@ -163,14 +144,14 @@ namespace XCode.Code
         protected virtual void OnExecuting()
         {
             // 引用命名空间
-            var us = Usings.OrderBy(e => e.StartsWith("System") ? 0 : 1).ThenBy(e => e).ToArray();
+            var us = Option.Usings.OrderBy(e => e.StartsWith("System") ? 0 : 1).ThenBy(e => e).ToArray();
             foreach (var item in us)
             {
                 WriteLine("using {0};", item);
             }
             WriteLine();
 
-            var ns = Namespace;
+            var ns = Option.Namespace;
             if (!ns.IsNullOrEmpty())
             {
                 WriteLine("namespace {0}", ns);
@@ -192,10 +173,10 @@ namespace XCode.Code
             if (!bc.IsNullOrEmpty()) bc = " : " + bc;
 
             // 分部类
-            var pc = Partial ? " partial" : "";
+            var pc = Option.Partial ? " partial" : "";
 
             // 类接口
-            if (Interface)
+            if (Option.Interface)
                 WriteLine("public{2} interface {0}{1}", cn, bc, pc);
             else
                 WriteLine("public{2} class {0}{1}", cn, bc, pc);
@@ -208,7 +189,7 @@ namespace XCode.Code
 
         /// <summary>获取基类</summary>
         /// <returns></returns>
-        protected virtual String GetBaseClass() => BaseClass;
+        protected virtual String GetBaseClass() => Option.BaseClass;
 
         /// <summary>实体类头部</summary>
         protected virtual void BuildAttribute()
@@ -217,7 +198,7 @@ namespace XCode.Code
             var des = Table.Description;
             WriteLine("/// <summary>{0}</summary>", des);
 
-            if (!Pure && !Interface)
+            if (!Option.Pure && !Option.Interface)
             {
                 WriteLine("[Serializable]");
                 WriteLine("[DataObject]");
@@ -232,8 +213,7 @@ namespace XCode.Code
             // 类接口
             WriteLine("}");
 
-            var ns = Namespace;
-            if (!ns.IsNullOrEmpty())
+            if (!Option.Namespace.IsNullOrEmpty())
             {
                 Writer.Write("}");
             }
@@ -260,7 +240,7 @@ namespace XCode.Code
             var des = dc.Description;
             WriteLine("/// <summary>{0}</summary>", des);
 
-            if (!Pure && !Interface)
+            if (!Option.Pure && !Option.Interface)
             {
                 if (!des.IsNullOrEmpty()) WriteLine("[Description(\"{0}\")]", des);
 
@@ -271,7 +251,7 @@ namespace XCode.Code
             var type = dc.Properties["Type"];
             if (type.IsNullOrEmpty()) type = dc.DataType?.Name;
 
-            if (Interface)
+            if (Option.Interface)
                 WriteLine("{0} {1} {{ get; set; }}", type, dc.Name);
             else
                 WriteLine("public {0} {1} {{ get; set; }}", type, dc.Name);
@@ -338,20 +318,17 @@ namespace XCode.Code
         #endregion
 
         #region 保存
-        /// <summary>输出目录</summary>
-        public String Output { get; set; }
-
         /// <summary>保存文件，返回文件路径</summary>
         public virtual String Save(String ext = null, Boolean overwrite = true, Boolean chineseFileName = true)
         {
-            var p = Output;
+            var p = Option.Output;
 
             if (ext.IsNullOrEmpty())
                 ext = ".cs";
             else if (!ext.Contains("."))
                 ext += ".cs";
 
-            if (Interface)
+            if (Option.Interface)
                 p = p.CombinePath(ClassName + ext);
             else if (chineseFileName && !Table.DisplayName.IsNullOrEmpty())
                 p = p.CombinePath(Table.DisplayName + ext);
