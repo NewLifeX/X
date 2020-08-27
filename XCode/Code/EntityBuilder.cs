@@ -37,17 +37,18 @@ namespace XCode.Code
             Usings.Add("XCode.DataAccessLayer");
 
             Pure = false;
+
+            if (Debug) Log = XTrace.Log;
         }
         #endregion
 
         #region 静态快速
-        /// <summary>为Xml模型文件生成实体类</summary>
-        /// <param name="xmlFile">模型文件</param>
-        /// <param name="output">输出目录</param>
-        /// <param name="nameSpace">命名空间</param>
-        /// <param name="connName">连接名</param>
-        /// <param name="chineseFileName">中文文件名</param>
-        public static Int32 Build(String xmlFile = null, String output = null, String nameSpace = null, String connName = null, Boolean? chineseFileName = null)
+        /// <summary>加载模型文件</summary>
+        /// <param name="xmlFile"></param>
+        /// <param name="xmlContent"></param>
+        /// <param name="atts"></param>
+        /// <returns></returns>
+        public static IList<IDataTable> LoadModels(String xmlFile, out String xmlContent, out IDictionary<String, String> atts)
         {
             if (xmlFile.IsNullOrEmpty())
             {
@@ -63,8 +64,8 @@ namespace XCode.Code
             if (!File.Exists(xmlFile)) throw new FileNotFoundException("指定模型文件不存在！", xmlFile);
 
             // 导入模型
-            var xml = File.ReadAllText(xmlFile);
-            var atts = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase)
+            xmlContent = File.ReadAllText(xmlFile);
+            atts = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase)
             {
                 ["xmlns"] = "http://www.newlifex.com/Model2020.xsd",
                 ["xmlns:xs"] = "http://www.w3.org/2001/XMLSchema-instance",
@@ -72,7 +73,19 @@ namespace XCode.Code
             };
 
             // 导入模型
-            var tables = ModelHelper.FromXml(xml, DAL.CreateTable, atts);
+            return ModelHelper.FromXml(xmlContent, DAL.CreateTable, atts);
+        }
+
+        /// <summary>为Xml模型文件生成实体类</summary>
+        /// <param name="xmlFile">模型文件</param>
+        /// <param name="output">输出目录</param>
+        /// <param name="nameSpace">命名空间</param>
+        /// <param name="connName">连接名</param>
+        /// <param name="chineseFileName">中文文件名</param>
+        public static Int32 Build(String xmlFile = null, String output = null, String nameSpace = null, String connName = null, Boolean? chineseFileName = null)
+        {
+            // 导入模型
+            var tables = LoadModels(xmlFile, out var xmlContent, out var atts);
             if (tables.Count == 0) return 0;
 
             // 输出
@@ -144,7 +157,7 @@ namespace XCode.Code
 
             // 保存模型文件
             var xml2 = ModelHelper.ToXml(tables, atts);
-            if (xml != xml2) File.WriteAllText(xmlFile, xml2);
+            if (xmlContent != xml2) File.WriteAllText(xmlFile, xml2);
 
             return rs;
         }
@@ -170,40 +183,16 @@ namespace XCode.Code
             var count = 0;
             foreach (var item in tables)
             {
-                var builder = new EntityBuilder
-                {
-                    Table = item,
-                    AllTables = tables,
-                    GenericType = item.Properties["RenderGenEntity"].ToBoolean()
-                };
+                var builder = new EntityBuilder { AllTables = tables, };
 
-                // 命名空间
-                var str = item.Properties["Namespace"];
-                if (str.IsNullOrEmpty()) str = nameSpace;
-                builder.Namespace = str;
+                builder.Load(item);
 
-                // 连接名
-                str = item.ConnName;
-                if (str.IsNullOrEmpty()) str = connName;
-                builder.ConnName = str;
-
-                // 基类
-                str = item.Properties["BaseClass"];
-                if (str.IsNullOrEmpty()) str = baseClass;
-                builder.BaseClass = str;
-
-                //// 名称忽略大小写(默认忽略)
-                //if (item.IgnoreNameCase.IsNullOrEmpty() && !ignoreNameCase) item.IgnoreNameCase = ignoreNameCase + "";
-                //item.Properties.Remove("NameIgnoreCase");
-
-                if (Debug) builder.Log = XTrace.Log;
+                if (!output.IsNullOrEmpty()) builder.Output = output;
+                if (!nameSpace.IsNullOrEmpty()) builder.Namespace = nameSpace;
+                if (!connName.IsNullOrEmpty()) builder.ConnName = connName;
+                if (!baseClass.IsNullOrEmpty()) builder.BaseClass = baseClass;
 
                 builder.Execute();
-
-                // 输出目录
-                str = item.Properties["Output"];
-                str = str.IsNullOrEmpty() ? output : str.GetBasePath();
-                builder.Output = str;
                 builder.Save(null, true, chineseFileName);
 
                 builder.Business = true;
@@ -214,6 +203,44 @@ namespace XCode.Code
             }
 
             return count;
+        }
+        #endregion
+
+        #region 方法
+        /// <summary>加载数据表</summary>
+        /// <param name="table"></param>
+        public void Load(IDataTable table)
+        {
+            Table = table;
+
+            // 命名空间
+            var str = table.Properties["Namespace"];
+            if (!str.IsNullOrEmpty()) Namespace = str;
+
+            // 连接名
+            var connName = table.ConnName;
+            if (connName.IsNullOrEmpty() && !Namespace.IsNullOrEmpty())
+            {
+                var p = Namespace.LastIndexOf('.');
+                if (p > 0) connName = Namespace.Substring(p + 1);
+            }
+            if (!connName.IsNullOrEmpty()) ConnName = connName;
+
+            // 基类
+            str = table.Properties["BaseClass"];
+            if (!str.IsNullOrEmpty()) BaseClass = str;
+
+            // 泛型实体类
+            str = table.Properties["RenderGenEntity"];
+            if (!str.IsNullOrEmpty()) GenericType = str.ToBoolean();
+
+            //// 名称忽略大小写(默认忽略)
+            //if (item.IgnoreNameCase.IsNullOrEmpty() && !ignoreNameCase) item.IgnoreNameCase = ignoreNameCase + "";
+            //item.Properties.Remove("NameIgnoreCase");
+
+            // 输出目录
+            str = table.Properties["Output"];
+            if (!str.IsNullOrEmpty()) Output = str.GetBasePath();
         }
         #endregion
 

@@ -6,17 +6,28 @@ using XCode.Membership;
 using Xunit;
 using System.IO;
 using NewLife.Security;
+using XCode.DataAccessLayer;
+using System.Linq;
 
 namespace XUnitTest.XCode.Code
 {
     public class ClassBuilderTests
     {
+        private IDataTable _table;
+        public ClassBuilderTests()
+        {
+            var tables = EntityBuilder.LoadModels(@"..\..\XCode\Membership\Member.xml", out _, out _);
+            _table = tables.FirstOrDefault(e => e.Name == "User");
+        }
+
         [Fact]
         public void Normal()
         {
-            var builder = new ClassBuilder();
-            builder.Table = UserX.Meta.Table.DataTable;
-            builder.Namespace = "Company.MyName";
+            var builder = new ClassBuilder
+            {
+                Table = _table,
+                Namespace = "Company.MyName"
+            };
             builder.Usings.Add("NewLife.Remoting");
 
             builder.Execute();
@@ -31,10 +42,12 @@ namespace XUnitTest.XCode.Code
         [Fact]
         public void BaseClass()
         {
-            var builder = new ClassBuilder();
-            builder.Table = UserX.Meta.Table.DataTable;
-            builder.BaseClass = "MyEntityBase";
-            builder.Partial = false;
+            var builder = new ClassBuilder
+            {
+                Table = _table,
+                BaseClass = "MyEntityBase",
+                Partial = false
+            };
 
             builder.Execute();
 
@@ -48,9 +61,11 @@ namespace XUnitTest.XCode.Code
         [Fact]
         public void Pure()
         {
-            var builder = new ClassBuilder();
-            builder.Table = UserX.Meta.Table.DataTable;
-            builder.Pure = true;
+            var builder = new ClassBuilder
+            {
+                Table = _table,
+                Pure = true
+            };
 
             builder.Execute();
 
@@ -64,9 +79,11 @@ namespace XUnitTest.XCode.Code
         [Fact]
         public void Interface()
         {
-            var builder = new ClassBuilder();
-            builder.Table = UserX.Meta.Table.DataTable;
-            builder.Interface = true;
+            var builder = new ClassBuilder
+            {
+                Table = _table,
+                Interface = true
+            };
 
             builder.Execute();
 
@@ -80,10 +97,12 @@ namespace XUnitTest.XCode.Code
         [Fact]
         public void Save()
         {
-            var builder = new ClassBuilder();
-            builder.Table = UserX.Meta.Table.DataTable;
-            builder.Pure = true;
-            builder.Output = ".\\Output\\" + Rand.NextString(8);
+            var builder = new ClassBuilder
+            {
+                Table = _table,
+                Pure = true,
+                Output = ".\\Output\\" + Rand.NextString(8)
+            };
 
             builder.Execute();
 

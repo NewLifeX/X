@@ -19,7 +19,7 @@ namespace Company.MyName
     [BindIndex("IX_User_RoleID", false, "RoleID")]
     [BindIndex("IX_User_UpdateTime", false, "UpdateTime")]
     [BindTable("User", Description = "用户", ConnName = "MyConn", DbType = DatabaseType.None)]
-    public partial class UserX : IUserX
+    public partial class User : IUser
     {
         #region 属性
         private Int32 _ID;
@@ -216,6 +216,7 @@ namespace Company.MyName
 
         private String _Ex6;
         /// <summary>扩展6</summary>
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         [DisplayName("扩展6")]
         [Description("扩展6")]
         [DataObjectField(false, false, true, 50)]
@@ -540,7 +541,7 @@ namespace Company.MyName
     }
 
     /// <summary>用户接口</summary>
-    public partial interface IUserX
+    public partial interface IUser
     {
         #region 属性
         /// <summary>编号</summary>

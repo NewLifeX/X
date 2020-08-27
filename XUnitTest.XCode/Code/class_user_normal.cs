@@ -12,7 +12,7 @@ namespace Company.MyName
     [Serializable]
     [DataObject]
     [Description("用户")]
-    public partial class UserX
+    public partial class User
     {
         #region 属性
         /// <summary>编号</summary>
