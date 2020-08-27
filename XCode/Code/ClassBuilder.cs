@@ -107,7 +107,7 @@ namespace XCode.Code
                 };
                 if (!prefix.IsNullOrEmpty()) builder.ClassName = item.Name + prefix;
                 builder.Execute();
-                builder.Save(prefix, true, false);
+                builder.Save(null, true, false);
 
                 count++;
             }
@@ -133,7 +133,7 @@ namespace XCode.Code
                 };
                 if (!prefix.IsNullOrEmpty()) builder.ClassName = "I" + item.Name + prefix;
                 builder.Execute();
-                builder.Save(prefix, true, false);
+                builder.Save(null, true, false);
 
                 count++;
             }
@@ -352,7 +352,7 @@ namespace XCode.Code
                 ext += ".cs";
 
             if (Interface)
-                p = p.CombinePath("I" + ClassName + ext);
+                p = p.CombinePath(ClassName + ext);
             else if (chineseFileName && !Table.DisplayName.IsNullOrEmpty())
                 p = p.CombinePath(Table.DisplayName + ext);
             else

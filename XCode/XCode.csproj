@@ -42,12 +42,18 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="build\**" />
+    <Compile Remove="Membership\Config\**" />
+    <Compile Remove="Membership\Log\**" />
     <Compile Remove="Sync\**" />
     <Compile Remove="tools\**" />
     <EmbeddedResource Remove="build\**" />
+    <EmbeddedResource Remove="Membership\Config\**" />
+    <EmbeddedResource Remove="Membership\Log\**" />
     <EmbeddedResource Remove="Sync\**" />
     <EmbeddedResource Remove="tools\**" />
     <None Remove="build\**" />
+    <None Remove="Membership\Config\**" />
+    <None Remove="Membership\Log\**" />
     <None Remove="Sync\**" />
     <None Remove="tools\**" />
   </ItemGroup>
