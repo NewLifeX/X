@@ -15,7 +15,7 @@ namespace XUnitTest.XCode.Code
         private IDataTable _table;
         public EntityBuilderTests()
         {
-            var tables = EntityBuilder.LoadModels(@"..\..\XCode\Membership\Member.xml", out _, out _);
+            var tables = EntityBuilder.LoadModels(@"..\..\XCode\Membership\Member.xml", out _);
             _table = tables.FirstOrDefault(e => e.Name == "User");
         }
 

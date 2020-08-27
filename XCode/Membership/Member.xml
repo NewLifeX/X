@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Tables Version="9.19.7539.41090" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:schemaLocation="http://www.newlifex.com http://www.newlifex.com/Model2020.xsd" NameSpace="XCode.Membership" ConnName="Membership" Output="" BaseClass="Entity" ChineseFileName="True" xmlns="http://www.newlifex.com/Model2020.xsd">
+<Tables Version="9.19.7544.29461" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:schemaLocation="http://www.newlifex.com http://www.newlifex.com/Model2020.xsd" NameSpace="XCode.Membership" ConnName="Membership" Output="" BaseClass="Entity" ChineseFileName="True" xmlns="http://www.newlifex.com/Model2020.xsd">
   <Table Name="User" Description="用户" RenderGenEntity="True">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />

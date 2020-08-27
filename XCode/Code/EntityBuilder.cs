@@ -51,8 +51,17 @@ namespace XCode.Code
         /// <param name="chineseFileName">中文文件名</param>
         public static Int32 Build(String xmlFile = null, String output = null, String nameSpace = null, String connName = null, Boolean? chineseFileName = null)
         {
+            if (xmlFile.IsNullOrEmpty())
+            {
+                var di = ".".GetBasePath().AsDirectory();
+                xmlFile = di.GetFiles("*.xml", SearchOption.TopDirectoryOnly).FirstOrDefault()?.FullName;
+            }
+
+            xmlFile = xmlFile.GetBasePath();
+            if (!File.Exists(xmlFile)) throw new FileNotFoundException("指定模型文件不存在！", xmlFile);
+
             // 导入模型
-            var tables = LoadModels(xmlFile, out var xmlContent, out var atts);
+            var tables = LoadModels(xmlFile, out var atts);
             if (tables.Count == 0) return 0;
 
             // 输出
@@ -123,6 +132,7 @@ namespace XCode.Code
             atts["xs:schemaLocation"] = atts["xs:schemaLocation"].Replace("ModelSchema", "Model2020");
 
             // 保存模型文件
+            var xmlContent = File.ReadAllText(xmlFile);
             var xml2 = ModelHelper.ToXml(tables, atts);
             if (xmlContent != xml2) File.WriteAllText(xmlFile, xml2);
 

@@ -59,10 +59,9 @@ namespace XCode.Code
         #region 静态快速
         /// <summary>加载模型文件</summary>
         /// <param name="xmlFile"></param>
-        /// <param name="xmlContent"></param>
         /// <param name="atts"></param>
         /// <returns></returns>
-        public static IList<IDataTable> LoadModels(String xmlFile, out String xmlContent, out IDictionary<String, String> atts)
+        public static IList<IDataTable> LoadModels(String xmlFile, out IDictionary<String, String> atts)
         {
             if (xmlFile.IsNullOrEmpty())
             {
@@ -78,7 +77,7 @@ namespace XCode.Code
             if (!File.Exists(xmlFile)) throw new FileNotFoundException("指定模型文件不存在！", xmlFile);
 
             // 导入模型
-            xmlContent = File.ReadAllText(xmlFile);
+            var xmlContent = File.ReadAllText(xmlFile);
             atts = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase)
             {
                 ["xmlns"] = "http://www.newlifex.com/Model2020.xsd",
@@ -353,11 +352,11 @@ namespace XCode.Code
                 ext += ".cs";
 
             if (Interface)
-                p = p.CombinePath("I" + Table.Name + ext);
+                p = p.CombinePath("I" + ClassName + ext);
             else if (chineseFileName && !Table.DisplayName.IsNullOrEmpty())
                 p = p.CombinePath(Table.DisplayName + ext);
             else
-                p = p.CombinePath(Table.Name + ext);
+                p = p.CombinePath(ClassName + ext);
 
             p = p.GetBasePath();
 

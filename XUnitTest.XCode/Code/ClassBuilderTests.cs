@@ -17,7 +17,7 @@ namespace XUnitTest.XCode.Code
         private IDataTable _table;
         public ClassBuilderTests()
         {
-            _tables = EntityBuilder.LoadModels(@"..\..\XCode\Membership\Member.xml", out _, out _);
+            _tables = ClassBuilder.LoadModels(@"..\..\XCode\Membership\Member.xml", out _);
             _table = _tables.FirstOrDefault(e => e.Name == "User");
         }
 
@@ -141,15 +141,11 @@ namespace XUnitTest.XCode.Code
                 file = dir.CombinePath("I" + item.Name + "Model.cs").GetFullPath();
                 Assert.True(File.Exists(file));
             }
-
-            // 清理
-            //Directory.Delete(dir.GetFullPath(), true);
         }
 
         [Fact]
         public void BuildDtos()
         {
-            //var dir = ".\\Output\\" + Rand.NextString(8);
             var dir = ".\\Output\\Dtos\\";
             if (Directory.Exists(dir.GetFullPath())) Directory.Delete(dir.GetFullPath(), true);
 
@@ -162,6 +158,33 @@ namespace XUnitTest.XCode.Code
                 Assert.True(File.Exists(file));
 
                 file = dir.CombinePath("I" + item.Name + ".cs").GetFullPath();
+                Assert.True(File.Exists(file));
+            }
+        }
+
+        [Fact]
+        public void BuildTT()
+        {
+            var dir = ".\\Output\\BuildTT\\";
+            if (Directory.Exists(dir.GetFullPath())) Directory.Delete(dir.GetFullPath(), true);
+
+            // 测试Built.tt
+            foreach (var item in _tables)
+            {
+                var builder = new ClassBuilder
+                {
+                    Table = item,
+                    Output = dir,
+                    Pure = true,
+                    ClassName = item.Name + "TT",
+                };
+                builder.Execute();
+                builder.Save(null, true, false);
+            }
+
+            foreach (var item in _tables)
+            {
+                var file = dir.CombinePath(item.Name + "TT.cs").GetFullPath();
                 Assert.True(File.Exists(file));
             }
 
