@@ -96,19 +96,18 @@ namespace XCode.Code
 
             //XTrace.WriteLine("代码生成：{0} 输出：{1} 命名空间：{2} 连接名：{3} 基类：{4}", tables.Count, output, nameSpace, connName, baseClass);
 
+            if (option == null) option = new BuilderOption();
+
             var count = 0;
             foreach (var item in tables)
             {
-                var builder = new EntityBuilder { AllTables = tables, };
-                if (option != null) builder.Option = option;
+                var builder = new EntityBuilder
+                {
+                    AllTables = tables,
+                    Option = option.Clone(),
+                };
 
                 builder.Load(item);
-
-                //var option = builder.Option;
-                //if (!output.IsNullOrEmpty()) option.Output = output;
-                //if (!nameSpace.IsNullOrEmpty()) option.Namespace = nameSpace;
-                //if (!connName.IsNullOrEmpty()) builder.ConnName = connName;
-                //if (!baseClass.IsNullOrEmpty()) option.BaseClass = baseClass;
 
                 builder.Execute();
                 builder.Save(null, true, chineseFileName);
@@ -139,11 +138,6 @@ namespace XCode.Code
 
             // 连接名
             var connName = table.ConnName;
-            if (connName.IsNullOrEmpty() && !option.Namespace.IsNullOrEmpty())
-            {
-                var p = option.Namespace.LastIndexOf('.');
-                if (p > 0) connName = option.Namespace.Substring(p + 1);
-            }
             if (!connName.IsNullOrEmpty()) option.ConnName = connName;
 
             // 基类
@@ -266,7 +260,7 @@ namespace XCode.Code
             us.Add("XCode.Configuration");
             us.Add("XCode.DataAccessLayer");
 
-            if (Business && !Option.Pure && !us.Contains("System.Web"))
+            if (Business && !Option.Pure)
             {
                 us.Add("System.IO");
                 us.Add("System.Linq");

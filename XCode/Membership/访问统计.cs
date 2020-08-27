@@ -16,7 +16,7 @@ namespace XCode.Membership
     [Description("访问统计")]
     [BindIndex("IU_VisitStat_Page_Level_Time", true, "Page,Level,Time")]
     [BindIndex("IX_VisitStat_Level_Time", false, "Level,Time")]
-    [BindTable("VisitStat", Description = "访问统计", ConnName = "Membership", DbType = DatabaseType.None)]
+    [BindTable("VisitStat", Description = "访问统计", ConnName = "Log", DbType = DatabaseType.None)]
     public partial class VisitStat : IVisitStat
     {
         #region 属性

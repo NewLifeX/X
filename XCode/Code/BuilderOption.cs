@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace XCode.Code
 {
@@ -13,7 +11,7 @@ namespace XCode.Code
         public String Namespace { get; set; }
 
         /// <summary>引用命名空间</summary>
-        public HashSet<String> Usings { get; } = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
+        public IList<String> Usings { get; set; } = new List<String>();
 
         /// <summary>纯净类</summary>
         public Boolean Pure { get; set; }
@@ -55,7 +53,15 @@ namespace XCode.Code
         #region 方法
         /// <summary>克隆</summary>
         /// <returns></returns>
-        public BuilderOption Clone() => MemberwiseClone() as BuilderOption;
+        public BuilderOption Clone()
+        {
+            var option = MemberwiseClone() as BuilderOption;
+            var list = new List<String>();
+            list.AddRange(Usings);
+            option.Usings = list;
+
+            return option;
+        }
         #endregion
     }
 }

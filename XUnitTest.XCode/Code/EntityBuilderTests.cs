@@ -86,10 +86,10 @@ namespace XUnitTest.XCode.Code
         [Fact]
         public void BuildTT()
         {
-            var dir = @".\Output\Models\".GetFullPath();
+            var dir = @".\Output\EntityModels\".GetFullPath();
             if (Directory.Exists(dir)) Directory.Delete(dir, true);
 
-            dir = @".\Output\Interfaces\".GetFullPath();
+            dir = @".\Output\EntityInterfaces\".GetFullPath();
             if (Directory.Exists(dir)) Directory.Delete(dir, true);
 
             // 加载模型文件，得到数据表
@@ -102,12 +102,12 @@ namespace XUnitTest.XCode.Code
             EntityBuilder.Build(file);
 
             // 生成简易模型类
-            option.Output = @"Output\Models\";
+            option.Output = @"Output\EntityModels\";
             option.ClassPrefix = "Model";
             ClassBuilder.BuildModels(tables, option);
 
             // 生成简易接口
-            option.Output = @"Output\Interfaces\";
+            option.Output = @"Output\EntityInterfaces\";
             option.ClassPrefix = null;
             ClassBuilder.BuildInterfaces(tables, option);
 

@@ -86,7 +86,7 @@ namespace XCode.Code
                 var builder = new ClassBuilder
                 {
                     Table = item,
-                    Option = option,
+                    Option = option.Clone(),
                 };
                 builder.Execute();
                 builder.Save(null, true, false);
@@ -113,7 +113,7 @@ namespace XCode.Code
                 var builder = new ClassBuilder
                 {
                     Table = item,
-                    Option = option,
+                    Option = option.Clone(),
                 };
                 builder.Execute();
                 builder.Save(null, true, false);

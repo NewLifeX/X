@@ -14,17 +14,19 @@
     var tables = ClassBuilder.LoadModels(null, option, out _);
 
 	// 生成实体类
-	EntityBuilder.BuildTables(tables, option);
+    EntityBuilder.Build();
+	//EntityBuilder.BuildTables(tables, option);
 
     // 生成简易模型类
     option.Output = @"..\Models\";
     option.ClassPrefix = "Model";
-    ClassBuilder.BuildModels(tables, option);
+    //ClassBuilder.BuildModels(tables, option);
 
     // 生成简易接口
     option.Output = @"..\Interfaces\";
     option.ClassPrefix = null;
-    ClassBuilder.BuildInterfaces(tables, option);
+    option.BaseClass = null;
+    //ClassBuilder.BuildInterfaces(tables, option);
 
     // 精确控制生成
     /*foreach (var item in tables)
@@ -32,7 +34,7 @@
         var builder = new ClassBuilder
         {
             Table = item,
-            Option = option,
+            Option = option.Clone(),
         };
         builder.Execute();
         builder.Save(null, true, false);
