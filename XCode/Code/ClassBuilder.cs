@@ -99,7 +99,7 @@ namespace XCode.Code
 
             // 类接口
             if (Interface)
-                WriteLine("public interface {0}{1}", cn, bc);
+                WriteLine("public partial interface {0}{1}", cn, bc);
             else
                 WriteLine("public partial class {0}{1}", cn, bc);
             WriteLine("{");
@@ -107,17 +107,11 @@ namespace XCode.Code
 
         /// <summary>获取类名</summary>
         /// <returns></returns>
-        protected virtual String GetClassName()
-        {
-            var name = Table.Name;
-            if (Interface) name = "I" + name;
-
-            return name;
-        }
+        protected virtual String GetClassName() => Interface ? ("I" + Table.Name) : Table.Name;
 
         /// <summary>获取基类</summary>
         /// <returns></returns>
-        protected virtual String GetBaseClass() { return BaseClass; }
+        protected virtual String GetBaseClass() => BaseClass;
 
         /// <summary>实体类头部</summary>
         protected virtual void BuildAttribute()
@@ -126,7 +120,7 @@ namespace XCode.Code
             var des = Table.Description;
             WriteLine("/// <summary>{0}</summary>", des);
 
-            if (!Pure)
+            if (!Pure && !Interface)
             {
                 WriteLine("[Serializable]");
                 WriteLine("[DataObject]");
@@ -169,7 +163,7 @@ namespace XCode.Code
             var des = dc.Description;
             WriteLine("/// <summary>{0}</summary>", des);
 
-            if (!Pure)
+            if (!Pure && !Interface)
             {
                 if (!des.IsNullOrEmpty()) WriteLine("[Description(\"{0}\")]", des);
 
@@ -185,18 +179,6 @@ namespace XCode.Code
             else
                 WriteLine("public {0} {1} {{ get; set; }}", type, dc.Name);
         }
-
-        ///// <summary>属性头部特性</summary>
-        //protected virtual void BuildItemAttribute(IDataColumn column)
-        //{
-        //    // 注释
-        //    var des = column.Description;
-        //    WriteLine("/// <summary>{0}</summary>", des);
-        //    if (!des.IsNullOrEmpty()) WriteLine("[Description(\"{0}\")]", des);
-
-        //    WriteLine("[Serializable]");
-        //    WriteLine("[DataObject]");
-        //}
         #endregion
 
         #region 写入缩进方法
@@ -255,10 +237,7 @@ namespace XCode.Code
 
         /// <summary>输出结果</summary>
         /// <returns></returns>
-        public override String ToString()
-        {
-            return Writer.ToString();
-        }
+        public override String ToString() => Writer.ToString();
         #endregion
 
         #region 保存
@@ -269,8 +248,6 @@ namespace XCode.Code
         public virtual String Save(String ext = null, Boolean overwrite = true, Boolean chineseFileName = true)
         {
             var p = Output;
-            //if (Table.Properties.ContainsKey("Output")) p = p.CombinePath(Table.Properties["Output"]);
-            //if (Table.Properties.ContainsKey("分类")) p = p.CombinePath(Table.Properties["分类"]);
 
             if (ext.IsNullOrEmpty()) ext = ".cs";
 

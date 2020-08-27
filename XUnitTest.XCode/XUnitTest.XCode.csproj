@@ -4,6 +4,12 @@
     <OutputPath>..\BinXCodeTest</OutputPath>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="Code\class_user_baseclass.cs" />
+    <Compile Remove="Code\class_user_interface.cs" />
+    <Compile Remove="Code\class_user_normal.cs" />
+    <Compile Remove="Code\class_user_pure.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <None Remove="TestEntity\Build.tt" />
     <None Remove="TestEntity\Model.xml" />
   </ItemGroup>
@@ -18,6 +24,20 @@
       <PackagePath>content\Entity\</PackagePath>
       <Pack>true</Pack>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Code\class_user_baseclass.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Code\class_user_interface.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Code\class_user_normal.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Code\class_user_pure.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.6.1" />
