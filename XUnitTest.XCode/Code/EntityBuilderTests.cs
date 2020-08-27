@@ -30,12 +30,23 @@ namespace XUnitTest.XCode.Code
             };
             builder.Usings.Add("NewLife.Remoting");
 
+            // 数据类
             builder.Execute();
 
             var rs = builder.ToString();
             Assert.NotEmpty(rs);
 
             var target = File.ReadAllText("Code\\entity_user_normal.cs".GetFullPath());
+            Assert.Equal(target, rs);
+
+            // 业务类
+            builder.Business = true;
+            builder.Execute();
+
+            rs = builder.ToString();
+            Assert.NotEmpty(rs);
+
+            target = File.ReadAllText("Code\\entity_user_normal_biz.cs".GetFullPath());
             Assert.Equal(target, rs);
         }
 

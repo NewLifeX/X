@@ -10,6 +10,7 @@
     <Compile Remove="Code\class_user_pure.cs" />
     <Compile Remove="Code\entity_user_generictype.cs" />
     <Compile Remove="Code\entity_user_normal.cs" />
+    <Compile Remove="Code\entity_user_normal_biz.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="TestEntity\Build.tt" />
@@ -32,6 +33,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Code\class_user_interface.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Code\entity_user_normal_biz.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Code\entity_user_generictype.cs">
