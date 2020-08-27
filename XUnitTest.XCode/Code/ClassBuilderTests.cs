@@ -13,11 +13,12 @@ namespace XUnitTest.XCode.Code
 {
     public class ClassBuilderTests
     {
+        private IList<IDataTable> _tables;
         private IDataTable _table;
         public ClassBuilderTests()
         {
-            var tables = EntityBuilder.LoadModels(@"..\..\XCode\Membership\Member.xml", out _, out _);
-            _table = tables.FirstOrDefault(e => e.Name == "User");
+            _tables = EntityBuilder.LoadModels(@"..\..\XCode\Membership\Member.xml", out _, out _);
+            _table = _tables.FirstOrDefault(e => e.Name == "User");
         }
 
         [Fact]
@@ -120,6 +121,28 @@ namespace XUnitTest.XCode.Code
 
             // 清理
             Directory.Delete(builder.Output.GetFullPath(), true);
+        }
+
+        [Fact]
+        public void BuildModels()
+        {
+            //var dir = ".\\Output\\" + Rand.NextString(8);
+            var dir = ".\\Output\\Models\\";
+            if (Directory.Exists(dir.GetFullPath())) Directory.Delete(dir.GetFullPath(), true);
+
+            ClassBuilder.BuildModels(_tables, dir, "Model");
+
+            foreach (var item in _tables)
+            {
+                var file = dir.CombinePath(item.Name + "Model.cs").GetFullPath();
+                Assert.True(File.Exists(file));
+
+                file = dir.CombinePath("I" + item.Name + "Model.cs").GetFullPath();
+                Assert.True(File.Exists(file));
+            }
+
+            // 清理
+            //Directory.Delete(dir.GetFullPath(), true);
         }
     }
 }

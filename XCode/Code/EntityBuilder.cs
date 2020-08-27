@@ -43,39 +43,6 @@ namespace XCode.Code
         #endregion
 
         #region 静态快速
-        /// <summary>加载模型文件</summary>
-        /// <param name="xmlFile"></param>
-        /// <param name="xmlContent"></param>
-        /// <param name="atts"></param>
-        /// <returns></returns>
-        public static IList<IDataTable> LoadModels(String xmlFile, out String xmlContent, out IDictionary<String, String> atts)
-        {
-            if (xmlFile.IsNullOrEmpty())
-            {
-                var di = ".".GetBasePath().AsDirectory();
-                //XTrace.WriteLine("未指定模型文件，准备从目录中查找第一个xml文件 {0}", di.FullName);
-                // 选当前目录第一个
-                xmlFile = di.GetFiles("*.xml", SearchOption.TopDirectoryOnly).FirstOrDefault()?.FullName;
-            }
-
-            if (xmlFile.IsNullOrEmpty()) throw new Exception("找不到任何模型文件！");
-
-            xmlFile = xmlFile.GetBasePath();
-            if (!File.Exists(xmlFile)) throw new FileNotFoundException("指定模型文件不存在！", xmlFile);
-
-            // 导入模型
-            xmlContent = File.ReadAllText(xmlFile);
-            atts = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase)
-            {
-                ["xmlns"] = "http://www.newlifex.com/Model2020.xsd",
-                ["xmlns:xs"] = "http://www.w3.org/2001/XMLSchema-instance",
-                ["xs:schemaLocation"] = "http://www.newlifex.com http://www.newlifex.com/Model2020.xsd"
-            };
-
-            // 导入模型
-            return ModelHelper.FromXml(xmlContent, DAL.CreateTable, atts);
-        }
-
         /// <summary>为Xml模型文件生成实体类</summary>
         /// <param name="xmlFile">模型文件</param>
         /// <param name="output">输出目录</param>
@@ -204,6 +171,31 @@ namespace XCode.Code
 
             return count;
         }
+
+        /// <summary>为Xml模型文件生成实体类</summary>
+        /// <param name="tables">模型文件</param>
+        /// <returns></returns>
+        public static Int32 BuildTables(IList<IDataTable> tables)
+        {
+            var count = 0;
+            foreach (var item in tables)
+            {
+                var builder = new EntityBuilder { AllTables = tables, };
+
+                builder.Load(item);
+
+                builder.Execute();
+                builder.Save(null, true, true);
+
+                builder.Business = true;
+                builder.Execute();
+                builder.Save(null, false, true);
+
+                count++;
+            }
+
+            return count;
+        }
         #endregion
 
         #region 方法
@@ -251,6 +243,9 @@ namespace XCode.Code
             // 增加常用命名空间
             if (Business) AddNameSpace();
 
+            if (ClassName.IsNullOrEmpty()) ClassName = Interface ? ("I" + Table.Name) : Table.Name;
+            if (GenericType) ClassName += "<TEntity>";
+
             base.Execute();
         }
 
@@ -270,16 +265,16 @@ namespace XCode.Code
             base.BuildClassHeader();
         }
 
-        /// <summary>获取类名</summary>
-        /// <returns></returns>
-        protected override String GetClassName()
-        {
-            // 类名
-            var name = base.GetClassName();
-            if (GenericType) name += "<TEntity>";
+        ///// <summary>获取类名</summary>
+        ///// <returns></returns>
+        //protected override String GetClassName()
+        //{
+        //    // 类名
+        //    var name = base.GetClassName();
+        //    if (GenericType) name += "<TEntity>";
 
-            return name;
-        }
+        //    return name;
+        //}
 
         /// <summary>获取基类</summary>
         /// <returns></returns>

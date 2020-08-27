@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using NewLife;
+using NewLife.Collections;
 using NewLife.Log;
 using XCode.DataAccessLayer;
 
@@ -17,6 +18,9 @@ namespace XCode.Code
 
         /// <summary>数据表</summary>
         public IDataTable Table { get; set; }
+
+        /// <summary>类名。默认Table.Name</summary>
+        public String ClassName { get; set; }
 
         /// <summary>命名空间</summary>
         public String Namespace { get; set; }
@@ -52,10 +56,90 @@ namespace XCode.Code
         }
         #endregion
 
+        #region 静态快速
+        /// <summary>加载模型文件</summary>
+        /// <param name="xmlFile"></param>
+        /// <param name="xmlContent"></param>
+        /// <param name="atts"></param>
+        /// <returns></returns>
+        public static IList<IDataTable> LoadModels(String xmlFile, out String xmlContent, out IDictionary<String, String> atts)
+        {
+            if (xmlFile.IsNullOrEmpty())
+            {
+                var di = ".".GetBasePath().AsDirectory();
+                //XTrace.WriteLine("未指定模型文件，准备从目录中查找第一个xml文件 {0}", di.FullName);
+                // 选当前目录第一个
+                xmlFile = di.GetFiles("*.xml", SearchOption.TopDirectoryOnly).FirstOrDefault()?.FullName;
+            }
+
+            if (xmlFile.IsNullOrEmpty()) throw new Exception("找不到任何模型文件！");
+
+            xmlFile = xmlFile.GetBasePath();
+            if (!File.Exists(xmlFile)) throw new FileNotFoundException("指定模型文件不存在！", xmlFile);
+
+            // 导入模型
+            xmlContent = File.ReadAllText(xmlFile);
+            atts = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["xmlns"] = "http://www.newlifex.com/Model2020.xsd",
+                ["xmlns:xs"] = "http://www.w3.org/2001/XMLSchema-instance",
+                ["xs:schemaLocation"] = "http://www.newlifex.com http://www.newlifex.com/Model2020.xsd"
+            };
+
+            // 导入模型
+            return ModelHelper.FromXml(xmlContent, DAL.CreateTable, atts);
+        }
+
+        /// <summary>生成简易版模型和实体接口</summary>
+        /// <param name="tables"></param>
+        /// <param name="output"></param>
+        /// <param name="prefix"></param>
+        /// <param name="model"></param>
+        /// <param name="interface"></param>
+        /// <returns></returns>
+        public static Int32 BuildModels(IList<IDataTable> tables, String output, String prefix, Boolean model = true, Boolean @interface = true)
+        {
+            var count = 0;
+            foreach (var item in tables)
+            {
+                if (model)
+                {
+                    var builder = new ClassBuilder
+                    {
+                        Table = item,
+                        Output = output,
+                        Pure = true,
+                    };
+                    if (!prefix.IsNullOrEmpty()) builder.ClassName = item.Name + prefix;
+                    builder.Execute();
+                    builder.Save(prefix, true, false);
+                }
+
+                if (@interface)
+                {
+                    var builder = new ClassBuilder
+                    {
+                        Table = item,
+                        Output = output,
+                        Interface = true,
+                    };
+                    if (!prefix.IsNullOrEmpty()) builder.ClassName = "I" + item.Name + prefix;
+                    builder.Execute();
+                    builder.Save(prefix, true, false);
+                }
+
+                count++;
+            }
+
+            return count;
+        }
+        #endregion
+
         #region 主方法
         /// <summary>执行生成</summary>
         public virtual void Execute()
         {
+            if (ClassName.IsNullOrEmpty()) ClassName = Interface ? ("I" + Table.Name) : Table.Name;
             //WriteLog("生成 {0} {1}", Table.Name, Table.DisplayName);
 
             Clear();
@@ -96,7 +180,7 @@ namespace XCode.Code
             BuildAttribute();
 
             // 类名和基类
-            var cn = GetClassName();
+            var cn = ClassName;
             var bc = GetBaseClass();
             if (!bc.IsNullOrEmpty()) bc = " : " + bc;
 
@@ -111,9 +195,9 @@ namespace XCode.Code
             WriteLine("{");
         }
 
-        /// <summary>获取类名</summary>
-        /// <returns></returns>
-        protected virtual String GetClassName() => Interface ? ("I" + Table.Name) : Table.Name;
+        ///// <summary>获取类名</summary>
+        ///// <returns></returns>
+        //protected virtual String GetClassName() => Interface ? ("I" + Table.Name) : Table.Name;
 
         /// <summary>获取基类</summary>
         /// <returns></returns>
@@ -255,7 +339,10 @@ namespace XCode.Code
         {
             var p = Output;
 
-            if (ext.IsNullOrEmpty()) ext = ".cs";
+            if (ext.IsNullOrEmpty())
+                ext = ".cs";
+            else if (!ext.Contains("."))
+                ext += ".cs";
 
             if (Interface)
                 p = p.CombinePath("I" + Table.Name + ext);
