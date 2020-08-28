@@ -121,7 +121,7 @@ namespace XUnitTest.XCode.Code
             };
             var option = builder.Option;
             option.Pure = true;
-            option.Output = ".\\Output\\" + Rand.NextString(8);
+            option.Output = ".\\Output\\Save";
 
             if (Directory.Exists(option.Output.GetFullPath())) Directory.Delete(option.Output.GetFullPath(), true);
 
@@ -150,7 +150,6 @@ namespace XUnitTest.XCode.Code
         [Fact]
         public void BuildModels()
         {
-            //var dir = ".\\Output\\" + Rand.NextString(8);
             var dir = ".\\Output\\Models\\";
             if (Directory.Exists(dir.GetFullPath())) Directory.Delete(dir.GetFullPath(), true);
 

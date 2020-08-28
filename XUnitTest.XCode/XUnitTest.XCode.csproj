@@ -12,6 +12,10 @@
     <Compile Remove="Code\class_user_save.cs" />
     <Compile Remove="Code\Dtos\IUser.cs" />
     <Compile Remove="Code\Dtos\UserDto.cs" />
+    <Compile Remove="Code\EntityInterfaces\IUser.cs" />
+    <Compile Remove="Code\EntityModels\UserModel.cs" />
+    <Compile Remove="Code\Entity\用户.Biz.cs" />
+    <Compile Remove="Code\Entity\用户.cs" />
     <Compile Remove="Code\entity_user_normal.cs" />
     <Compile Remove="Code\entity_user_normal_biz.cs" />
     <Compile Remove="Code\Models\IUserModel.cs" />
@@ -50,6 +54,18 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Code\Dtos\UserDto.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Code\EntityInterfaces\IUser.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Code\EntityModels\UserModel.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Code\Entity\用户.Biz.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Code\Entity\用户.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Code\entity_user_normal_biz.cs">

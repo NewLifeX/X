@@ -87,7 +87,10 @@ namespace XUnitTest.XCode.Code
         [Fact]
         public void BuildTT()
         {
-            var dir = @".\Output\EntityModels\".GetFullPath();
+            var dir = @".\Entity\".GetFullPath();
+            if (Directory.Exists(dir)) Directory.Delete(dir, true);
+
+            dir = @".\Output\EntityModels\".GetFullPath();
             if (Directory.Exists(dir)) Directory.Delete(dir, true);
 
             dir = @".\Output\EntityInterfaces\".GetFullPath();
@@ -105,7 +108,7 @@ namespace XUnitTest.XCode.Code
 
             // 生成简易模型类
             option.Output = @"Output\EntityModels\";
-            option.ClassTemplate = "Model";
+            option.ClassTemplate = "{name}Model";
             ClassBuilder.BuildModels(tables, option);
 
             // 生成简易接口
@@ -124,6 +127,30 @@ namespace XUnitTest.XCode.Code
                 builder.Execute();
                 builder.Save(null, true, false);
             }*/
+
+            {
+                var rs = File.ReadAllText("Entity\\用户.cs".GetFullPath());
+                var target = File.ReadAllText("Code\\Entity\\用户.cs".GetFullPath());
+                Assert.Equal(target, rs);
+            }
+
+            {
+                var rs = File.ReadAllText("Entity\\用户.Biz.cs".GetFullPath());
+                var target = File.ReadAllText("Code\\Entity\\用户.Biz.cs".GetFullPath());
+                Assert.Equal(target, rs);
+            }
+
+            {
+                var rs = File.ReadAllText("Output\\EntityModels\\UserModel.cs".GetFullPath());
+                var target = File.ReadAllText("Code\\EntityModels\\UserModel.cs".GetFullPath());
+                Assert.Equal(target, rs);
+            }
+
+            {
+                var rs = File.ReadAllText("Output\\EntityInterfaces\\IUser.cs".GetFullPath());
+                var target = File.ReadAllText("Code\\EntityInterfaces\\IUser.cs".GetFullPath());
+                Assert.Equal(target, rs);
+            }
         }
     }
 }
