@@ -146,7 +146,7 @@ namespace XCode.Code
         protected virtual void OnExecuting()
         {
             // 引用命名空间
-            var us = Option.Usings.OrderBy(e => e.StartsWith("System") ? 0 : 1).ThenBy(e => e).ToArray();
+            var us = Option.Usings.Distinct().OrderBy(e => e.StartsWith("System") ? 0 : 1).ThenBy(e => e).ToArray();
             foreach (var item in us)
             {
                 WriteLine("using {0};", item);
