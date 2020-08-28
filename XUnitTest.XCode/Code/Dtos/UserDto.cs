@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.Serialization;
@@ -8,7 +8,7 @@ using System.Xml.Serialization;
 namespace XCode.Code
 {
     /// <summary>用户</summary>
-    public partial class UserDto
+    public class UserDto
     {
         #region 属性
         /// <summary>编号</summary>

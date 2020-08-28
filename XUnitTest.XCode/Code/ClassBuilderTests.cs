@@ -68,6 +68,7 @@ namespace XUnitTest.XCode.Code
             var option = new BuilderOption
             {
                 Pure = true,
+                Partial = true,
                 BaseClass = "Object, Ixx{name}",
             };
 

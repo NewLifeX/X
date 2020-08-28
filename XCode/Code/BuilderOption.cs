@@ -25,8 +25,8 @@ namespace XCode.Code
         /// <summary>基类。可能包含基类和接口，其中{name}替换为Table.Name</summary>
         public String BaseClass { get; set; }
 
-        /// <summary>是否分部类。默认true</summary>
-        public Boolean Partial { get; set; } = true;
+        /// <summary>是否分部类</summary>
+        public Boolean Partial { get; set; }
 
         /// <summary>输出目录</summary>
         public String Output { get; set; }

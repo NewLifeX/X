@@ -35,6 +35,7 @@ namespace XCode.Code
                 Output = output,
                 Namespace = nameSpace,
                 ConnName = connName,
+                Partial = true,
             };
 
             return BuildFile(xmlFile, option, chineseFileName);
@@ -56,7 +57,7 @@ namespace XCode.Code
             if (!File.Exists(xmlFile)) throw new FileNotFoundException("指定模型文件不存在！", xmlFile);
 
             // 导入模型
-            if (option == null) option = new BuilderOption();
+            if (option == null) option = new BuilderOption { Partial = true };
             var tables = LoadModels(xmlFile, option, out var atts);
             if (tables.Count == 0) return 0;
 
@@ -96,14 +97,7 @@ namespace XCode.Code
         {
             if (tables == null || tables.Count == 0) return 0;
 
-            //output = output.GetBasePath();
-
-            //// 连接名
-            //if (connName.IsNullOrEmpty() && !nameSpace.IsNullOrEmpty() && nameSpace.Contains(".")) connName = nameSpace.Substring(nameSpace.LastIndexOf(".") + 1);
-
-            //XTrace.WriteLine("代码生成：{0} 输出：{1} 命名空间：{2} 连接名：{3} 基类：{4}", tables.Count, output, nameSpace, connName, baseClass);
-
-            if (option == null) option = new BuilderOption();
+            if (option == null) option = new BuilderOption { Partial = true };
 
             var count = 0;
             foreach (var item in tables)

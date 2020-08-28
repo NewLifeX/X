@@ -28,7 +28,8 @@ namespace XUnitTest.XCode.Code
             var option = new BuilderOption
             {
                 ConnName = "MyConn",
-                Namespace = "Company.MyName"
+                Namespace = "Company.MyName",
+                Partial = true,
             };
             option.Usings.Add("NewLife.Remoting");
 
