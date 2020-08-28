@@ -8,7 +8,7 @@ using System.Xml.Serialization;
 namespace XCode.Code
 {
     /// <summary>用户</summary>
-    public partial class User
+    public partial class User : Object, IxxUser
     {
         #region 属性
         /// <summary>编号</summary>

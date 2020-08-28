@@ -175,7 +175,7 @@ namespace XCode.Code
             //if (!Business) return "I" + ClassName;
             if (!Business) return null;
 
-            var name = Option.BaseClass;
+            var name = Option.BaseClass?.Replace("{name}", Table.Name);
             if (name.IsNullOrEmpty()) name = "Entity";
 
             name = "{0}<{1}>".F(name, ClassName);

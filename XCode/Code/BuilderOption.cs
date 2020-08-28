@@ -13,19 +13,19 @@ namespace XCode.Code
         /// <summary>引用命名空间</summary>
         public IList<String> Usings { get; set; } = new List<String>();
 
-        /// <summary>纯净类</summary>
+        /// <summary>纯净类。去除属性上的Description等特性</summary>
         public Boolean Pure { get; set; }
 
-        /// <summary>生成接口</summary>
+        /// <summary>纯净接口。不带其它特性</summary>
         public Boolean Interface { get; set; }
 
-        /// <summary>类名后缀。如Model/Dto等</summary>
-        public String ClassPrefix { get; set; }
+        /// <summary>类名模板。其中{name}替换为Table.Name，如{name}Model/I{name}Dto等</summary>
+        public String ClassTemplate { get; set; }
 
-        /// <summary>基类</summary>
+        /// <summary>基类。可能包含基类和接口，其中{name}替换为Table.Name</summary>
         public String BaseClass { get; set; }
 
-        /// <summary>是否分部类</summary>
+        /// <summary>是否分部类。默认true</summary>
         public Boolean Partial { get; set; } = true;
 
         /// <summary>输出目录</summary>

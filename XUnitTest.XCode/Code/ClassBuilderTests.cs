@@ -65,11 +65,17 @@ namespace XUnitTest.XCode.Code
         [Fact]
         public void Pure()
         {
+            var option = new BuilderOption
+            {
+                Pure = true,
+                BaseClass = "Object, Ixx{name}",
+            };
+
             var builder = new ClassBuilder
             {
                 Table = _table,
+                Option = option,
             };
-            builder.Option.Pure = true;
 
             builder.Execute();
 
@@ -83,11 +89,18 @@ namespace XUnitTest.XCode.Code
         [Fact]
         public void Interface()
         {
+            var option = new BuilderOption
+            {
+                Interface = true,
+                BaseClass = "IAuthUser",
+                ClassTemplate = "Ixx{name}",
+            };
+
             var builder = new ClassBuilder
             {
                 Table = _table,
+                Option = option,
             };
-            builder.Option.Interface = true;
 
             builder.Execute();
 
@@ -139,10 +152,12 @@ namespace XUnitTest.XCode.Code
             var option = new BuilderOption
             {
                 Output = dir,
-                ClassPrefix = "Model"
+                ClassTemplate = "{name}Model"
             };
 
             ClassBuilder.BuildModels(_tables, option);
+
+            option.ClassTemplate = "I{name}Model";
             ClassBuilder.BuildInterfaces(_tables, option);
 
             foreach (var item in _tables)
@@ -164,12 +179,12 @@ namespace XUnitTest.XCode.Code
             var option = new BuilderOption
             {
                 Output = dir,
-                ClassPrefix = "Dto"
+                ClassTemplate = "{name}Dto",
             };
 
             ClassBuilder.BuildModels(_tables, option);
 
-            option.ClassPrefix = null;
+            option.ClassTemplate = null;
             ClassBuilder.BuildInterfaces(_tables, option);
 
             foreach (var item in _tables)
@@ -191,7 +206,7 @@ namespace XUnitTest.XCode.Code
             var option = new BuilderOption
             {
                 Output = dir,
-                ClassPrefix = "TT"
+                ClassTemplate = "{name}TT"
             };
 
             // 测试Built.tt

@@ -8,7 +8,7 @@ using System.Xml.Serialization;
 namespace XCode.Code
 {
     /// <summary>用户</summary>
-    public partial interface IUser
+    public partial interface IxxUser : IAuthUser
     {
         #region 属性
         /// <summary>编号</summary>

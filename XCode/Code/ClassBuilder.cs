@@ -129,7 +129,13 @@ namespace XCode.Code
         /// <summary>执行生成</summary>
         public virtual void Execute()
         {
-            if (ClassName.IsNullOrEmpty()) ClassName = (Option.Interface ? ("I" + Table.Name) : Table.Name) + Option.ClassPrefix;
+            if (ClassName.IsNullOrEmpty())
+            {
+                if (!Option.ClassTemplate.IsNullOrEmpty())
+                    ClassName = Option.ClassTemplate.Replace("{name}", Table.Name);
+                else
+                    ClassName = Option.Interface ? ("I" + Table.Name) : Table.Name;
+            }
             //WriteLog("生成 {0} {1}", Table.Name, Table.DisplayName);
 
             Clear();
@@ -169,19 +175,18 @@ namespace XCode.Code
             // 头部
             BuildAttribute();
 
-            // 类名和基类
-            var cn = ClassName;
-            var bc = GetBaseClass();
-            if (!bc.IsNullOrEmpty()) bc = " : " + bc;
+            // 基类
+            var baseClass = GetBaseClass();
+            if (!baseClass.IsNullOrEmpty()) baseClass = " : " + baseClass;
 
             // 分部类
-            var pc = Option.Partial ? " partial" : "";
+            var partialClass = Option.Partial ? " partial" : "";
 
             // 类接口
             if (Option.Interface)
-                WriteLine("public{2} interface {0}{1}", cn, bc, pc);
+                WriteLine("public{2} interface {0}{1}", ClassName, baseClass, partialClass);
             else
-                WriteLine("public{2} class {0}{1}", cn, bc, pc);
+                WriteLine("public{2} class {0}{1}", ClassName, baseClass, partialClass);
             WriteLine("{");
         }
 
@@ -191,7 +196,7 @@ namespace XCode.Code
 
         /// <summary>获取基类</summary>
         /// <returns></returns>
-        protected virtual String GetBaseClass() => Option.BaseClass;
+        protected virtual String GetBaseClass() => Option.BaseClass?.Replace("{name}", Table.Name);
 
         /// <summary>实体类头部</summary>
         protected virtual void BuildAttribute()
