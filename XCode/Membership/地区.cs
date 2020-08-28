@@ -18,7 +18,7 @@ namespace XCode.Membership
     [BindIndex("IX_Area_Name", false, "Name")]
     [BindIndex("IX_Area_UpdateTime_ID", false, "UpdateTime,ID")]
     [BindTable("Area", Description = "地区。行政区划数据", ConnName = "Membership", DbType = DatabaseType.None)]
-    public partial class Area : IArea
+    public partial class Area
     {
         #region 属性
         private Int32 _ID;
@@ -263,58 +263,6 @@ namespace XCode.Membership
             /// <summary>备注</summary>
             public const String Remark = "Remark";
         }
-        #endregion
-    }
-
-    /// <summary>地区。行政区划数据接口</summary>
-    public partial interface IArea
-    {
-        #region 属性
-        /// <summary>编码。行政区划编码</summary>
-        Int32 ID { get; set; }
-
-        /// <summary>名称</summary>
-        String Name { get; set; }
-
-        /// <summary>全名</summary>
-        String FullName { get; set; }
-
-        /// <summary>父级</summary>
-        Int32 ParentID { get; set; }
-
-        /// <summary>层级</summary>
-        Int32 Level { get; set; }
-
-        /// <summary>经度</summary>
-        Double Longitude { get; set; }
-
-        /// <summary>纬度</summary>
-        Double Latitude { get; set; }
-
-        /// <summary>启用</summary>
-        Boolean Enable { get; set; }
-
-        /// <summary>更新者</summary>
-        String UpdateUser { get; set; }
-
-        /// <summary>更新用户</summary>
-        Int32 UpdateUserID { get; set; }
-
-        /// <summary>更新地址</summary>
-        String UpdateIP { get; set; }
-
-        /// <summary>更新时间</summary>
-        DateTime UpdateTime { get; set; }
-
-        /// <summary>备注</summary>
-        String Remark { get; set; }
-        #endregion
-
-        #region 获取/设置 字段值
-        /// <summary>获取/设置 字段值</summary>
-        /// <param name="name">字段名</param>
-        /// <returns></returns>
-        Object this[String name] { get; set; }
         #endregion
     }
 }

@@ -42,7 +42,7 @@ namespace XCode.Membership
     }
 
     /// <summary>角色</summary>
-    public partial class Role : LogEntity<Role>
+    public partial class Role : LogEntity<Role>, IRole
     {
         #region 对象操作
         static Role()
@@ -101,9 +101,8 @@ namespace XCode.Membership
             var list = FindAll();
 
             // 如果某些菜单已经被删除，但是角色权限表仍然存在，则删除
-            var fact = ManageProvider.GetFactory<IMenu>();
-            var menus = fact.FindAll().Cast<IMenu>().ToList();
-            var ids = menus.Select(e => (Int32)e["ID"]).ToArray();
+            var menus = Menu.FindAll();
+            var ids = menus.Select(e => e.ID).ToArray();
             foreach (var role in list)
             {
                 if (!role.CheckValid(ids)) XTrace.WriteLine("删除[{0}]中的无效资源权限！", role);
@@ -242,7 +241,7 @@ namespace XCode.Membership
         /// <summary>根据编号查找角色</summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        IRole IRole.FindByID(Int32 id) { return FindByID(id); }
+        IRole IRole.FindByID(Int32 id) => FindByID(id);
 
         /// <summary>根据名称查找角色</summary>
         /// <param name="name">名称</param>
@@ -430,8 +429,71 @@ namespace XCode.Membership
         #endregion
     }
 
+    /// <summary>角色</summary>
     public partial interface IRole
     {
+        #region 属性
+        /// <summary>编号</summary>
+        Int32 ID { get; set; }
+
+        /// <summary>名称</summary>
+        String Name { get; set; }
+
+        /// <summary>启用</summary>
+        Boolean Enable { get; set; }
+
+        /// <summary>系统。用于业务系统开发使用，不受数据权限约束，禁止修改名称或删除</summary>
+        Boolean IsSystem { get; set; }
+
+        /// <summary>权限。对不同资源的权限，逗号分隔，每个资源的权限子项竖线分隔</summary>
+        String Permission { get; set; }
+
+        /// <summary>扩展1</summary>
+        Int32 Ex1 { get; set; }
+
+        /// <summary>扩展2</summary>
+        Int32 Ex2 { get; set; }
+
+        /// <summary>扩展3</summary>
+        Double Ex3 { get; set; }
+
+        /// <summary>扩展4</summary>
+        String Ex4 { get; set; }
+
+        /// <summary>扩展5</summary>
+        String Ex5 { get; set; }
+
+        /// <summary>扩展6</summary>
+        String Ex6 { get; set; }
+
+        /// <summary>创建者</summary>
+        String CreateUser { get; set; }
+
+        /// <summary>创建用户</summary>
+        Int32 CreateUserID { get; set; }
+
+        /// <summary>创建地址</summary>
+        String CreateIP { get; set; }
+
+        /// <summary>创建时间</summary>
+        DateTime CreateTime { get; set; }
+
+        /// <summary>更新者</summary>
+        String UpdateUser { get; set; }
+
+        /// <summary>更新用户</summary>
+        Int32 UpdateUserID { get; set; }
+
+        /// <summary>更新地址</summary>
+        String UpdateIP { get; set; }
+
+        /// <summary>更新时间</summary>
+        DateTime UpdateTime { get; set; }
+
+        /// <summary>备注</summary>
+        String Remark { get; set; }
+        #endregion
+
         /// <summary>本角色权限集合</summary>
         IDictionary<Int32, PermissionFlags> Permissions { get; }
 

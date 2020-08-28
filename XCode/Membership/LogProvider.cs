@@ -44,7 +44,7 @@ namespace XCode.Membership
         {
             if (!Enable) return;
             var factory = EntityFactory.CreateOperate(typeof(Log));
-            var log = factory.Create() as ILog;
+            var log = factory.Create() as Log;
             log.Category = category ?? throw new ArgumentNullException(nameof(category));
             log.Action = action;
             log.Success = success;

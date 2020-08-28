@@ -18,7 +18,7 @@ namespace XCode.Membership
     [BindIndex("IX_UserOnline_SessionID", false, "SessionID")]
     [BindIndex("IX_UserOnline_CreateTime", false, "CreateTime")]
     [BindTable("UserOnline", Description = "用户在线", ConnName = "Log", DbType = DatabaseType.None)]
-    public partial class UserOnline : IUserOnline
+    public partial class UserOnline
     {
         #region 属性
         private Int32 _ID;
@@ -231,52 +231,6 @@ namespace XCode.Membership
             /// <summary>修改时间</summary>
             public const String UpdateTime = "UpdateTime";
         }
-        #endregion
-    }
-
-    /// <summary>用户在线接口</summary>
-    public partial interface IUserOnline
-    {
-        #region 属性
-        /// <summary>编号</summary>
-        Int32 ID { get; set; }
-
-        /// <summary>用户</summary>
-        Int32 UserID { get; set; }
-
-        /// <summary>名称</summary>
-        String Name { get; set; }
-
-        /// <summary>会话。Web的SessionID或Server的会话编号</summary>
-        String SessionID { get; set; }
-
-        /// <summary>次数</summary>
-        Int32 Times { get; set; }
-
-        /// <summary>页面</summary>
-        String Page { get; set; }
-
-        /// <summary>状态</summary>
-        String Status { get; set; }
-
-        /// <summary>在线时间。本次在线总时间，秒</summary>
-        Int32 OnlineTime { get; set; }
-
-        /// <summary>创建地址</summary>
-        String CreateIP { get; set; }
-
-        /// <summary>创建时间</summary>
-        DateTime CreateTime { get; set; }
-
-        /// <summary>修改时间</summary>
-        DateTime UpdateTime { get; set; }
-        #endregion
-
-        #region 获取/设置 字段值
-        /// <summary>获取/设置 字段值</summary>
-        /// <param name="name">字段名</param>
-        /// <returns></returns>
-        Object this[String name] { get; set; }
         #endregion
     }
 }

@@ -17,7 +17,7 @@ namespace XCode.Membership
     [BindIndex("IU_VisitStat_Page_Level_Time", true, "Page,Level,Time")]
     [BindIndex("IX_VisitStat_Level_Time", false, "Level,Time")]
     [BindTable("VisitStat", Description = "访问统计", ConnName = "Log", DbType = DatabaseType.None)]
-    public partial class VisitStat : IVisitStat
+    public partial class VisitStat
     {
         #region 属性
         private Int32 _ID;
@@ -278,61 +278,6 @@ namespace XCode.Membership
             /// <summary>详细信息</summary>
             public const String Remark = "Remark";
         }
-        #endregion
-    }
-
-    /// <summary>访问统计接口</summary>
-    public partial interface IVisitStat
-    {
-        #region 属性
-        /// <summary>编号</summary>
-        Int32 ID { get; set; }
-
-        /// <summary>层级</summary>
-        XCode.Statistics.StatLevels Level { get; set; }
-
-        /// <summary>时间</summary>
-        DateTime Time { get; set; }
-
-        /// <summary>页面</summary>
-        String Page { get; set; }
-
-        /// <summary>标题</summary>
-        String Title { get; set; }
-
-        /// <summary>次数</summary>
-        Int32 Times { get; set; }
-
-        /// <summary>用户</summary>
-        Int32 Users { get; set; }
-
-        /// <summary>IP</summary>
-        Int32 IPs { get; set; }
-
-        /// <summary>错误</summary>
-        Int32 Error { get; set; }
-
-        /// <summary>耗时。毫秒</summary>
-        Int32 Cost { get; set; }
-
-        /// <summary>最大耗时。毫秒</summary>
-        Int32 MaxCost { get; set; }
-
-        /// <summary>创建时间</summary>
-        DateTime CreateTime { get; set; }
-
-        /// <summary>更新时间</summary>
-        DateTime UpdateTime { get; set; }
-
-        /// <summary>详细信息</summary>
-        String Remark { get; set; }
-        #endregion
-
-        #region 获取/设置 字段值
-        /// <summary>获取/设置 字段值</summary>
-        /// <param name="name">字段名</param>
-        /// <returns></returns>
-        Object this[String name] { get; set; }
         #endregion
     }
 }

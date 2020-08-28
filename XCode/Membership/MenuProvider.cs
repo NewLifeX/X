@@ -17,8 +17,8 @@ namespace XCode.Membership
 
             if (type == null) throw new ArgumentNullException(nameof(type));
 
-            var factory = EntityFactory.CreateOperate(typeof(Menu));
-            var log = factory.Create() as ILog;
+            var factory = EntityFactory.CreateOperate(typeof(Log));
+            var log = factory.Create() as Log;
             log.Category = type.GetDisplayName() ?? type.GetDescription() ?? type.Name;
             log.Action = action;
             log.Remark = remark;

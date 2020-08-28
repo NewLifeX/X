@@ -172,7 +172,8 @@ namespace XCode.Code
         protected override String GetBaseClass()
         {
             // 数据类的基类只有接口，业务类基类则比较复杂
-            if (!Business) return "I" + ClassName;
+            //if (!Business) return "I" + ClassName;
+            if (!Business) return null;
 
             var name = Option.BaseClass;
             if (name.IsNullOrEmpty()) name = "Entity";
@@ -203,11 +204,11 @@ namespace XCode.Code
             // 类接口
             WriteLine("}");
 
-            if (!Business)
-            {
-                WriteLine();
-                BuildInterface();
-            }
+            //if (!Business)
+            //{
+            //    WriteLine();
+            //    BuildInterface();
+            //}
 
             if (!Option.Namespace.IsNullOrEmpty())
             {

@@ -18,7 +18,7 @@ namespace XCode.Membership
     [BindIndex("IX_Log_CreateUserID_CreateTime", false, "CreateUserID,CreateTime")]
     [BindIndex("IX_Log_CreateTime", false, "CreateTime")]
     [BindTable("Log", Description = "日志", ConnName = "Log", DbType = DatabaseType.None)]
-    public partial class Log : ILog
+    public partial class Log
     {
         #region 属性
         private Int32 _ID;
@@ -327,70 +327,6 @@ namespace XCode.Membership
             /// <summary>详细信息</summary>
             public const String Remark = "Remark";
         }
-        #endregion
-    }
-
-    /// <summary>日志接口</summary>
-    public partial interface ILog
-    {
-        #region 属性
-        /// <summary>编号</summary>
-        Int32 ID { get; set; }
-
-        /// <summary>类别</summary>
-        String Category { get; set; }
-
-        /// <summary>操作</summary>
-        String Action { get; set; }
-
-        /// <summary>链接</summary>
-        Int32 LinkID { get; set; }
-
-        /// <summary>成功</summary>
-        Boolean Success { get; set; }
-
-        /// <summary>用户名</summary>
-        String UserName { get; set; }
-
-        /// <summary>扩展1</summary>
-        Int32 Ex1 { get; set; }
-
-        /// <summary>扩展2</summary>
-        Int32 Ex2 { get; set; }
-
-        /// <summary>扩展3</summary>
-        Double Ex3 { get; set; }
-
-        /// <summary>扩展4</summary>
-        String Ex4 { get; set; }
-
-        /// <summary>扩展5</summary>
-        String Ex5 { get; set; }
-
-        /// <summary>扩展6</summary>
-        String Ex6 { get; set; }
-
-        /// <summary>创建者</summary>
-        String CreateUser { get; set; }
-
-        /// <summary>创建用户</summary>
-        Int32 CreateUserID { get; set; }
-
-        /// <summary>创建地址</summary>
-        String CreateIP { get; set; }
-
-        /// <summary>时间</summary>
-        DateTime CreateTime { get; set; }
-
-        /// <summary>详细信息</summary>
-        String Remark { get; set; }
-        #endregion
-
-        #region 获取/设置 字段值
-        /// <summary>获取/设置 字段值</summary>
-        /// <param name="name">字段名</param>
-        /// <returns></returns>
-        Object this[String name] { get; set; }
         #endregion
     }
 }
