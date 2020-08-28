@@ -8,7 +8,6 @@
     <Compile Remove="Code\class_user_interface.cs" />
     <Compile Remove="Code\class_user_normal.cs" />
     <Compile Remove="Code\class_user_pure.cs" />
-    <Compile Remove="Code\entity_user_generictype.cs" />
     <Compile Remove="Code\entity_user_normal.cs" />
     <Compile Remove="Code\entity_user_normal_biz.cs" />
   </ItemGroup>
@@ -36,9 +35,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Code\entity_user_normal_biz.cs">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Code\entity_user_generictype.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Code\entity_user_normal.cs">
