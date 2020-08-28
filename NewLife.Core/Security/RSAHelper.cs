@@ -30,6 +30,23 @@ namespace NewLife.Security
             return ss;
         }
 
+        /// <summary>创建RSA对象，支持Xml密钥和Pem密钥</summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public static RSACryptoServiceProvider Create(String key)
+        {
+            key = key?.Trim();
+            if (key.IsNullOrEmpty()) return null;
+
+            var rsa = new RSACryptoServiceProvider();
+            if (key.StartsWith("-----") && key.EndsWith("-----"))
+                rsa.ImportParameters(ReadPem(key));
+            else
+                rsa.FromXmlString(key);
+
+            return rsa;
+        }
+
         /// <summary>RSA加密</summary>
         /// <param name="buf"></param>
         /// <param name="pubKey"></param>
@@ -37,8 +54,7 @@ namespace NewLife.Security
         /// <returns></returns>
         public static Byte[] Encrypt(Byte[] buf, String pubKey, Boolean fOAEP = true)
         {
-            var rsa = new RSACryptoServiceProvider();
-            rsa.FromXmlString(pubKey);
+            var rsa = Create(pubKey);
 
             return rsa.Encrypt(buf, fOAEP);
         }
@@ -50,8 +66,7 @@ namespace NewLife.Security
         /// <returns></returns>
         public static Byte[] Decrypt(Byte[] buf, String priKey, Boolean fOAEP = true)
         {
-            var rsa = new RSACryptoServiceProvider();
-            rsa.FromXmlString(priKey);
+            var rsa = Create(priKey);
 
             return rsa.Decrypt(buf, fOAEP);
         }
@@ -138,8 +153,7 @@ namespace NewLife.Security
         /// <returns></returns>
         public static Byte[] Sign(Byte[] buf, String priKey)
         {
-            var rsa = new RSACryptoServiceProvider();
-            rsa.FromXmlString(priKey);
+            var rsa = Create(priKey);
 
             return rsa.SignData(buf, MD5.Create());
         }
@@ -151,11 +165,16 @@ namespace NewLife.Security
         /// <returns></returns>
         public static Boolean Verify(Byte[] buf, String pukKey, Byte[] rgbSignature)
         {
-            var rsa = new RSACryptoServiceProvider();
-            rsa.FromXmlString(pukKey);
+            var rsa = Create(pukKey);
 
             return rsa.VerifyData(buf, MD5.Create(), rgbSignature);
         }
+
+        /// <summary>RS256</summary>
+        /// <param name="data"></param>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public static Byte[] RSASHA256(this Byte[] data, Byte[] key) => new HMACSHA256(key).ComputeHash(data);
         #endregion
 
         #region PEM
@@ -239,41 +258,6 @@ namespace NewLife.Security
                     Exponent = key[1].GetByteArray(false),
                 };
             }
-        }
-
-        /// <summary>读取TLV，Tag+Length+Value</summary>
-        /// <param name="reader">读取器</param>
-        /// <param name="tag"></param>
-        /// <returns>返回长度，数据流指针移到Value第一个字节</returns>
-        private static Int32 ReadTLV(this BinaryReader reader, out Byte tag)
-        {
-            tag = reader.ReadByte();
-            //Debug.Assert(tag == 0x02);
-
-            var len = (Int32)reader.ReadByte();
-            if (len == 0x81)
-                len = reader.ReadByte();
-            else if (len == 0x82)
-                len = reader.ReadBytes(2).ToUInt16(0, false);
-            else if (len == 0x84)
-                len = (Int32)reader.ReadBytes(4).ToUInt32(0, false);
-
-            return len;
-        }
-
-        /// <summary>读取TLV，Tag+Length+Value</summary>
-        /// <param name="reader">读取器</param>
-        /// <param name="trimZero">是否剔除头部的0x00</param>
-        /// <returns></returns>
-        private static Byte[] ReadTLV(this BinaryReader reader, Boolean trimZero = true)
-        {
-            var len = reader.ReadTLV(out var tag);
-            //Debug.Assert(tag == 0x02);
-
-            //if (offset > 0) reader.BaseStream.Seek(1, SeekOrigin.Current);
-            if (trimZero && reader.PeekChar() == 0) { reader.ReadByte(); len--; }
-
-            return reader.ReadBytes(len);
         }
         #endregion
 
