@@ -132,14 +132,18 @@ namespace XUnitTest.XCode.Code
             builder.Save();
             Assert.True(File.Exists(file));
 
+            var rs = File.ReadAllText(file);
+            var target = File.ReadAllText("Code\\class_user_save.cs".GetFullPath());
+            Assert.Equal(target, rs);
+
             file = (option.Output + "\\" + builder.Table.Name + ".xs").GetFullPath();
             if (File.Exists(file)) File.Delete(file);
 
             builder.Save(".xs", false, false);
             Assert.True(File.Exists(file));
 
-            //// 清理
-            //Directory.Delete(option.Output.GetFullPath(), true);
+            rs = File.ReadAllText(file);
+            Assert.Equal(target, rs);
         }
 
         [Fact]
@@ -165,8 +169,22 @@ namespace XUnitTest.XCode.Code
                 var file = dir.CombinePath(item.Name + "Model.cs").GetFullPath();
                 Assert.True(File.Exists(file));
 
+                if (item.Name == "User")
+                {
+                    var rs = File.ReadAllText(file);
+                    var target = File.ReadAllText("Code\\Models\\UserModel.cs".GetFullPath());
+                    Assert.Equal(target, rs);
+                }
+
                 file = dir.CombinePath("I" + item.Name + "Model.cs").GetFullPath();
                 Assert.True(File.Exists(file));
+
+                if (item.Name == "User")
+                {
+                    var rs = File.ReadAllText(file);
+                    var target = File.ReadAllText("Code\\Models\\IUserModel.cs".GetFullPath());
+                    Assert.Equal(target, rs);
+                }
             }
         }
 
@@ -192,8 +210,22 @@ namespace XUnitTest.XCode.Code
                 var file = dir.CombinePath(item.Name + "Dto.cs").GetFullPath();
                 Assert.True(File.Exists(file));
 
+                if (item.Name == "User")
+                {
+                    var rs = File.ReadAllText(file);
+                    var target = File.ReadAllText("Code\\Dtos\\UserDto.cs".GetFullPath());
+                    Assert.Equal(target, rs);
+                }
+
                 file = dir.CombinePath("I" + item.Name + ".cs").GetFullPath();
                 Assert.True(File.Exists(file));
+
+                if (item.Name == "User")
+                {
+                    var rs = File.ReadAllText(file);
+                    var target = File.ReadAllText("Code\\Dtos\\IUser.cs".GetFullPath());
+                    Assert.Equal(target, rs);
+                }
             }
         }
 
@@ -225,6 +257,13 @@ namespace XUnitTest.XCode.Code
             {
                 var file = dir.CombinePath(item.Name + "TT.cs").GetFullPath();
                 Assert.True(File.Exists(file));
+
+                if (item.Name == "User")
+                {
+                    var rs = File.ReadAllText(file);
+                    var target = File.ReadAllText("Code\\BuildTT\\UserTT.cs".GetFullPath());
+                    Assert.Equal(target, rs);
+                }
             }
 
             // 清理
