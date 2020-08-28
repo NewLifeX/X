@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
-using System.IO;
 using System.Security.Cryptography;
 
 namespace NewLife.Security
@@ -47,102 +45,36 @@ namespace NewLife.Security
             return rsa;
         }
 
-        /// <summary>RSA加密</summary>
-        /// <param name="buf"></param>
-        /// <param name="pubKey"></param>
+        /// <summary>RSA公钥加密。仅用于加密少量数据</summary>
+        /// <remarks>
+        /// (PKCS # 1 v2) 的 OAEP 填充	模数大小-2-2 * hLen，其中 hLen 是哈希的大小。
+        /// 直接加密 (PKCS # 1 1.5 版)	模数大小-11。 (11 个字节是可能的最小填充。 )
+        /// </remarks>
+        /// <param name="data">数据明文</param>
+        /// <param name="pubKey">公钥</param>
         /// <param name="fOAEP">如果为 true，则使用 OAEP 填充（仅可用于运行 Windows XP 及更高版本的计算机）执行直接 System.Security.Cryptography.RSA加密；否则，如果为 false，则使用 PKCS#1 v1.5 填充。</param>
         /// <returns></returns>
-        public static Byte[] Encrypt(Byte[] buf, String pubKey, Boolean fOAEP = true)
+        public static Byte[] Encrypt(Byte[] data, String pubKey, Boolean fOAEP = true)
         {
             var rsa = Create(pubKey);
 
-            return rsa.Encrypt(buf, fOAEP);
+            return rsa.Encrypt(data, fOAEP);
         }
 
-        /// <summary>RSA解密</summary>
-        /// <param name="buf"></param>
-        /// <param name="priKey"></param>
+        /// <summary>RSA私钥解密。仅用于加密少量数据</summary>
+        /// <remarks>
+        /// (PKCS # 1 v2) 的 OAEP 填充	模数大小-2-2 * hLen，其中 hLen 是哈希的大小。
+        /// 直接加密 (PKCS # 1 1.5 版)	模数大小-11。 (11 个字节是可能的最小填充。 )
+        /// </remarks>
+        /// <param name="data">数据密文</param>
+        /// <param name="priKey">私钥</param>
         /// <param name="fOAEP">如果为 true，则使用 OAEP 填充（仅可用于运行 Microsoft Windows XP 及更高版本的计算机）执行直接 System.Security.Cryptography.RSA解密；否则，如果为 false 则使用 PKCS#1 v1.5 填充。</param>
         /// <returns></returns>
-        public static Byte[] Decrypt(Byte[] buf, String priKey, Boolean fOAEP = true)
+        public static Byte[] Decrypt(Byte[] data, String priKey, Boolean fOAEP = true)
         {
             var rsa = Create(priKey);
 
-            return rsa.Decrypt(buf, fOAEP);
-        }
-        #endregion
-
-        #region 复合加解密
-        /// <summary>配合DES加密</summary>
-        /// <param name="buf"></param>
-        /// <param name="pubKey"></param>
-        /// <returns></returns>
-        public static Byte[] EncryptWithDES(Byte[] buf, String pubKey) => Encrypt<DESCryptoServiceProvider>(buf, pubKey);
-
-        /// <summary>配合DES解密</summary>
-        /// <param name="buf"></param>
-        /// <param name="priKey"></param>
-        /// <returns></returns>
-        public static Byte[] DecryptWithDES(Byte[] buf, String priKey) => Decrypt<DESCryptoServiceProvider>(buf, priKey);
-
-        /// <summary>配合对称算法加密</summary>
-        /// <typeparam name="TSymmetricAlgorithm"></typeparam>
-        /// <param name="buf"></param>
-        /// <param name="pubKey"></param>
-        /// <returns></returns>
-        public static Byte[] Encrypt<TSymmetricAlgorithm>(Byte[] buf, String pubKey) where TSymmetricAlgorithm : SymmetricAlgorithm, new()
-        {
-            // 随机产生对称加密密钥
-            var sa = new TSymmetricAlgorithm();
-            sa.GenerateIV();
-            sa.GenerateKey();
-
-            // 对称加密
-            buf = sa.Encrypt(buf);
-
-            var ms = new MemoryStream();
-            ms.WriteWithLength(sa.Key)
-                .WriteWithLength(sa.IV);
-            var keys = ms.ToArray();
-
-            // 非对称加密前面的随机密钥
-            keys = Encrypt(keys, pubKey);
-
-            // 组合起来
-            ms = new MemoryStream();
-            ms.WriteWithLength(keys)
-                .WriteWithLength(buf);
-
-            return ms.ToArray();
-        }
-
-        /// <summary>配合对称算法解密</summary>
-        /// <typeparam name="TSymmetricAlgorithm"></typeparam>
-        /// <param name="buf"></param>
-        /// <param name="priKey"></param>
-        /// <returns></returns>
-        public static Byte[] Decrypt<TSymmetricAlgorithm>(Byte[] buf, String priKey) where TSymmetricAlgorithm : SymmetricAlgorithm, new()
-        {
-            var ms = new MemoryStream(buf);
-
-            // 读取已加密的对称密钥
-            var keys = ms.ReadWithLength();
-            // 读取已加密的数据
-            buf = ms.ReadWithLength();
-
-            // 非对称解密密钥
-            keys = Decrypt(keys, priKey);
-
-            ms = new MemoryStream(keys);
-
-            var sa = new TSymmetricAlgorithm
-            {
-                Key = ms.ReadWithLength(),
-                IV = ms.ReadWithLength()
-            };
-
-            // 对称解密
-            return sa.Decrypt(buf);
+            return rsa.Decrypt(data, fOAEP);
         }
         #endregion
 
@@ -258,54 +190,6 @@ namespace NewLife.Security
                     Exponent = key[1].GetByteArray(false),
                 };
             }
-        }
-        #endregion
-
-        #region 辅助
-        private static RNGCryptoServiceProvider _rng;
-        /// <summary>使用随机数设置</summary>
-        /// <param name="buf"></param>
-        /// <returns></returns>
-        public static Byte[] SetRandom(this Byte[] buf)
-        {
-            if (_rng == null) _rng = new RNGCryptoServiceProvider();
-
-            _rng.GetBytes(buf);
-
-            return buf;
-        }
-
-        private static Stream WriteWithLength(this Stream stream, Byte[] buf)
-        {
-            var bts = BitConverter.GetBytes(buf.Length);
-            stream.Write(bts);
-            stream.Write(buf);
-
-            return stream;
-        }
-
-        private static Byte[] ReadWithLength(this Stream stream)
-        {
-            var bts = new Byte[4];
-            stream.Read(bts, 0, bts.Length);
-
-            var len = BitConverter.ToInt32(bts, 0);
-            bts = new Byte[len];
-
-            stream.Read(bts, 0, bts.Length);
-
-            return bts;
-        }
-
-        private static Stream Write(this Stream stream, params Byte[][] bufs)
-        {
-            //stream.Write(buf, 0, buf.Length);
-            foreach (var buf in bufs)
-            {
-                stream.Write(buf, 0, buf.Length);
-            }
-
-            return stream;
         }
         #endregion
     }
