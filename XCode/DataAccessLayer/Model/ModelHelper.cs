@@ -169,11 +169,13 @@ namespace XCode.DataAccessLayer
 
             var hasAttr = atts != null && atts.Count > 0;
             // 如果含有命名空间则添加
-            if (hasAttr && atts.TryGetValue("xmlns", out var xmlns)) { writer.WriteStartElement("Tables", xmlns); }
-            else writer.WriteStartElement("Tables");
+            if (hasAttr && atts.TryGetValue("xmlns", out var xmlns))
+                writer.WriteStartElement("Tables", xmlns);
+            else
+                writer.WriteStartElement("Tables");
 
             // 写入版本
-            writer.WriteAttributeString("Version", Assembly.GetExecutingAssembly().GetName().Version.ToString());
+            //writer.WriteAttributeString("Version", Assembly.GetExecutingAssembly().GetName().Version.ToString());
             if (hasAttr)
             {
                 foreach (var item in atts)
@@ -184,11 +186,10 @@ namespace XCode.DataAccessLayer
                     {
                         var keys = item.Key.Split(':');
                         if (keys.Length != 2) continue;
-                        var frefix = keys[0];
-                        var localName = keys[1];
-                        writer.WriteAttributeString(frefix, localName, null, item.Value);
+
+                        writer.WriteAttributeString(keys[0], keys[1], null, item.Value);
                     }
-                    else if (!item.Key.EqualIgnoreCase("Version")) writer.WriteAttributeString(item.Key, item.Value);
+                    //else if (!item.Key.EqualIgnoreCase("Version")) writer.WriteAttributeString(item.Key, item.Value);
                     //if (!String.IsNullOrEmpty(item.Value)) writer.WriteElementString(item.Key, item.Value);
                     //writer.WriteElementString(item.Key, item.Value);
                 }
