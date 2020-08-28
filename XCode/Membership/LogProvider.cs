@@ -9,7 +9,7 @@ using NewLife.Reflection;
 namespace XCode.Membership
 {
     /// <summary>日志提供者。提供业务日志输出到数据库的功能</summary>
-    public abstract class LogProvider
+    public class LogProvider
     {
         #region 基本功能
         /// <summary>写日志</summary>
@@ -40,7 +40,45 @@ namespace XCode.Membership
         /// <param name="userid">用户</param>
         /// <param name="name">名称</param>
         /// <param name="ip">地址</param>
-        public abstract void WriteLog(String category, String action, Boolean success, String remark, Int32 userid = 0, String name = null, String ip = null);
+        public virtual void WriteLog(String category, String action, Boolean success, String remark, Int32 userid = 0, String name = null, String ip = null)
+        {
+            if (!Enable) return;
+            var factory = EntityFactory.CreateOperate(typeof(Log));
+            var log = factory.Create() as ILog;
+            log.Category = category ?? throw new ArgumentNullException(nameof(category));
+            log.Action = action;
+            log.Success = success;
+
+            // 加上关联编号
+            if (remark.StartsWithIgnoreCase("ID="))
+            {
+                var fi = factory.Table.Identity;
+                if (fi != null) log.LinkID = remark.Substring("ID=", ",").ToInt();
+            }
+
+            if (userid > 0) log.CreateUserID = userid;
+            if (!name.IsNullOrEmpty()) log.UserName = name;
+            if (!ip.IsNullOrEmpty()) log.CreateIP = ip;
+
+            // 获取当前登录信息
+            if (log.CreateUserID == 0 || name.IsNullOrEmpty())
+            {
+                // 当前登录用户
+                var prv = Provider2 ?? ManageProvider.Provider;
+                //var user = prv?.Current ?? HttpContext.Current?.User?.Identity as IManageUser;
+                var user = prv?.Current;
+                if (user != null)
+                {
+                    if (log.CreateUserID == 0) log.CreateUserID = user.ID;
+                    if (log.UserName.IsNullOrEmpty()) log.UserName = user + "";
+                }
+            }
+
+            log.Remark = remark;
+            log.CreateTime = DateTime.Now;
+
+            log.SaveAsync();
+        }
 
         /// <summary>写日志</summary>
         /// <param name="type">类型</param>
@@ -141,68 +179,10 @@ namespace XCode.Membership
 
         #region 静态属性
         /// <summary>当前成员提供者</summary>
-        public static LogProvider Provider { get; set; } = new DefaultLogProvider();
-        #endregion
-    }
-
-    /// <summary>泛型日志提供者，使用泛型日志实体基类作为派生</summary>
-    /// <typeparam name="TLog"></typeparam>
-    public class LogProvider<TLog> : LogProvider where TLog : Log<TLog>, new()
-    {
-        #region 提供者
+        public static LogProvider Provider { get; set; } = new LogProvider();
+      
         /// <summary>当前用户提供者</summary>
         public IManageProvider Provider2 { get; set; }
         #endregion
-
-        /// <summary>写日志</summary>
-        /// <param name="category">类型</param>
-        /// <param name="action">操作</param>
-        /// <param name="success">成功</param>
-        /// <param name="remark">备注</param>
-        /// <param name="userid">用户</param>
-        /// <param name="name">名称</param>
-        /// <param name="ip">地址</param>
-        public override void WriteLog(String category, String action, Boolean success, String remark, Int32 userid = 0, String name = null, String ip = null)
-        {
-            if (!Enable) return;
-            var factory = EntityFactory.CreateOperate(typeof(TLog));
-            var log = factory.Create() as ILog;
-            log.Category = category ?? throw new ArgumentNullException(nameof(category));
-            log.Action = action;
-            log.Success = success;
-
-            // 加上关联编号
-            if (remark.StartsWithIgnoreCase("ID="))
-            {
-                var fi = factory.Table.Identity;
-                if (fi != null) log.LinkID = remark.Substring("ID=", ",").ToInt();
-            }
-
-            if (userid > 0) log.CreateUserID = userid;
-            if (!name.IsNullOrEmpty()) log.UserName = name;
-            if (!ip.IsNullOrEmpty()) log.CreateIP = ip;
-
-            // 获取当前登录信息
-            if (log.CreateUserID == 0 || name.IsNullOrEmpty())
-            {
-                // 当前登录用户
-                var prv = Provider2 ?? ManageProvider.Provider;
-                //var user = prv?.Current ?? HttpContext.Current?.User?.Identity as IManageUser;
-                var user = prv?.Current;
-                if (user != null)
-                {
-                    if (log.CreateUserID == 0) log.CreateUserID = user.ID;
-                    if (log.UserName.IsNullOrEmpty()) log.UserName = user + "";
-                }
-            }
-
-            log.Remark = remark;
-            log.CreateTime = DateTime.Now;
-
-            log.SaveAsync();
-        }
     }
-
-    /// <summary>默认日志提供者，使用实体类<seealso cref="Log"/></summary>
-    class DefaultLogProvider : LogProvider<Log> { }
 }

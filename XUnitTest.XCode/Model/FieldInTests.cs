@@ -13,14 +13,14 @@ namespace XUnitTest.XCode.Model
         private IDatabase _dbLog;
         public FieldInTests()
         {
-            _dbUser = UserX.Meta.Session.Dal.Db;
+            _dbUser = User.Meta.Session.Dal.Db;
             _dbLog = Log.Meta.Session.Dal.Db;
         }
 
         [Fact]
         public void In()
         {
-            var fi = UserX._.RoleID;
+            var fi = User._.RoleID;
             var exp = fi.In(new[] { 1, 2, 3, 4 });
             var where = exp.GetString(_dbUser, null);
             Assert.Equal("RoleID In(1,2,3,4)", where);
@@ -53,7 +53,7 @@ namespace XUnitTest.XCode.Model
         [Fact]
         public void NotIn()
         {
-            var fi = UserX._.RoleID;
+            var fi = User._.RoleID;
             var exp = fi.NotIn(new[] { 1, 2, 3, 4 });
             var where = exp.GetString(_dbUser, null);
             Assert.Equal("RoleID Not In(1,2,3,4)", where);
@@ -86,7 +86,7 @@ namespace XUnitTest.XCode.Model
         [Fact]
         public void InForSelectBuilder()
         {
-            var fi = UserX._.RoleID;
+            var fi = User._.RoleID;
             var exp = fi.In(Role.FindSQLWithKey());
             var where = exp.GetString(_dbUser, null);
             Assert.Equal("RoleID In(Select ID From Role)", where);
@@ -97,7 +97,7 @@ namespace XUnitTest.XCode.Model
         [Fact]
         public void NotInForSelectBuilder()
         {
-            var fi = UserX._.RoleID;
+            var fi = User._.RoleID;
             var exp = fi.NotIn(Role.FindSQLWithKey());
             var where = exp.GetString(_dbUser, null);
             Assert.Equal("RoleID Not In(Select ID From Role)", where);

@@ -14,7 +14,7 @@
     var tables = ClassBuilder.LoadModels(null, option, out _);
 
 	// 生成实体类
-    EntityBuilder.Build();
+    EntityBuilder.BuildFile();
 	//EntityBuilder.BuildTables(tables, option);
 
     // 生成简易模型类

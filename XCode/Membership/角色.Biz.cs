@@ -8,7 +8,6 @@ using System.Xml.Serialization;
 using NewLife;
 using NewLife.Collections;
 using NewLife.Log;
-using NewLife.Threading;
 
 namespace XCode.Membership
 {
@@ -43,21 +42,11 @@ namespace XCode.Membership
     }
 
     /// <summary>角色</summary>
-    [Serializable]
-    [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
-    public class Role : Role<Role> { }
-
-    /// <summary>角色</summary>
-    /// <typeparam name="TEntity"></typeparam>
-    public abstract partial class Role<TEntity> : LogEntity<TEntity>
-          where TEntity : Role<TEntity>, new()
+    public partial class Role : LogEntity<Role>
     {
         #region 对象操作
         static Role()
         {
-            // 用于引发基类的静态构造函数
-            var entity = new TEntity();
-
             //Meta.Factory.FullInsert = false;
 
             Meta.Modules.Add<UserModule>();
@@ -90,14 +79,14 @@ namespace XCode.Membership
             }
             else
             {
-                if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}角色数据……", typeof(TEntity).Name);
+                if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}角色数据……", typeof(Role).Name);
 
                 Add("管理员", true, "默认拥有全部最高权限，由系统工程师使用，安装配置整个系统");
                 Add("高级用户", false, "业务管理人员，可以管理业务模块，可以分配授权用户等级");
                 Add("普通用户", false, "普通业务人员，可以使用系统常规业务模块功能");
                 Add("游客", false, "新注册默认属于游客");
 
-                if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}角色数据！", typeof(TEntity).Name);
+                if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}角色数据！", typeof(Role).Name);
             }
 
             //CheckRole();
@@ -243,7 +232,7 @@ namespace XCode.Membership
         /// <summary>根据编号查找角色</summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public static TEntity FindByID(Int32 id)
+        public static Role FindByID(Int32 id)
         {
             if (id <= 0 || Meta.Cache.Entities == null || Meta.Cache.Entities.Count < 1) return null;
 
@@ -258,7 +247,7 @@ namespace XCode.Membership
         /// <summary>根据名称查找角色</summary>
         /// <param name="name">名称</param>
         /// <returns></returns>
-        public static TEntity FindByName(String name)
+        public static Role FindByName(String name)
         {
             if (String.IsNullOrEmpty(name) || Meta.Cache.Entities == null || Meta.Cache.Entities.Count < 1) return null;
 
@@ -421,13 +410,13 @@ namespace XCode.Membership
         /// <param name="issys"></param>
         /// <param name="remark"></param>
         /// <returns></returns>
-        public static TEntity Add(String name, Boolean issys, String remark = null)
+        public static Role Add(String name, Boolean issys, String remark = null)
         {
             //var entity = FindByName(name);
             var entity = Find(__.Name, name);
             if (entity != null) return entity;
 
-            entity = new TEntity
+            entity = new Role
             {
                 Name = name,
                 IsSystem = issys,

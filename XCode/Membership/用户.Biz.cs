@@ -27,23 +27,20 @@ namespace XCode.Membership
     }
 
     /// <summary>管理员</summary>
-    [Serializable]
-    [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
-    public class UserX : User<UserX> { }
+    [Obsolete("UserX=>User")]
+    public class UserX : User { }
 
     /// <summary>管理员</summary>
     /// <remarks>
     /// 基础实体类应该是只有一个泛型参数的，需要用到别的类型时，可以继承一个，也可以通过虚拟重载等手段让基类实现
     /// </remarks>
-    /// <typeparam name="TEntity">管理员类型</typeparam>
-    public abstract partial class User<TEntity> : LogEntity<TEntity>, IUser, IAuthUser, IIdentity
-        where TEntity : User<TEntity>, new()
+    public  partial class User : LogEntity<User>, IUser, IAuthUser, IIdentity
     {
         #region 对象操作
         static User()
         {
-            // 用于引发基类的静态构造函数
-            var entity = new TEntity();
+            //// 用于引发基类的静态构造函数
+            //var entity = new TEntity();
 
             //!!! 曾经这里导致产生死锁
             // 这里是静态构造函数，访问Factory引发EntityFactory.CreateOperate，
@@ -67,13 +64,13 @@ namespace XCode.Membership
 
             if (Meta.Count > 0) return;
 
-            if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}用户数据……", typeof(TEntity).Name);
+            if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}用户数据……", typeof(User).Name);
 
             Add("admin", null, 1, "管理员");
             //Add("poweruser", null, 2, "高级用户");
             //Add("user", null, 3, "普通用户");
 
-            if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}用户数据！", typeof(TEntity).Name);
+            if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}用户数据！", typeof(User).Name);
         }
 
         /// <summary>验证</summary>
@@ -147,7 +144,7 @@ namespace XCode.Membership
         /// <summary>根据编号查找</summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public static TEntity FindByID(Int32 id)
+        public static User FindByID(Int32 id)
         {
             if (id <= 0) return null;
 
@@ -160,20 +157,20 @@ namespace XCode.Membership
         /// <summary>根据名称查找</summary>
         /// <param name="name">名称</param>
         /// <returns></returns>
-        public static TEntity FindByName(String name)
+        public static User FindByName(String name)
         {
             if (name.IsNullOrEmpty()) return null;
 
             if (Meta.Count < 1000) return Meta.Cache.Find(e => e.Name.EqualIgnoreCase(name));
 
             // 单对象缓存
-            return Meta.SingleCache.GetItemWithSlaveKey(name) as TEntity;
+            return Meta.SingleCache.GetItemWithSlaveKey(name) as User;
         }
 
         /// <summary>根据邮箱地址查找</summary>
         /// <param name="mail"></param>
         /// <returns></returns>
-        public static TEntity FindByMail(String mail)
+        public static User FindByMail(String mail)
         {
             if (mail.IsNullOrEmpty()) return null;
 
@@ -185,7 +182,7 @@ namespace XCode.Membership
         /// <summary>根据手机号码查找</summary>
         /// <param name="mobile"></param>
         /// <returns></returns>
-        public static TEntity FindByMobile(String mobile)
+        public static User FindByMobile(String mobile)
         {
             if (mobile.IsNullOrEmpty()) return null;
 
@@ -197,7 +194,7 @@ namespace XCode.Membership
         /// <summary>根据唯一代码查找</summary>
         /// <param name="code"></param>
         /// <returns></returns>
-        public static TEntity FindByCode(String code)
+        public static User FindByCode(String code)
         {
             if (code.IsNullOrEmpty()) return null;
 
@@ -214,7 +211,7 @@ namespace XCode.Membership
         /// <param name="isEnable"></param>
         /// <param name="p"></param>
         /// <returns></returns>
-        public static IList<TEntity> Search(String key, Int32 roleId, Boolean? isEnable, PageParameter p) => Search(key, roleId, isEnable, DateTime.MinValue, DateTime.MinValue, p);
+        public static IList<User> Search(String key, Int32 roleId, Boolean? isEnable, PageParameter p) => Search(key, roleId, isEnable, DateTime.MinValue, DateTime.MinValue, p);
 
         /// <summary>高级查询</summary>
         /// <param name="key"></param>
@@ -224,7 +221,7 @@ namespace XCode.Membership
         /// <param name="end"></param>
         /// <param name="p"></param>
         /// <returns></returns>
-        public static IList<TEntity> Search(String key, Int32 roleId, Boolean? isEnable, DateTime start, DateTime end, PageParameter p)
+        public static IList<User> Search(String key, Int32 roleId, Boolean? isEnable, DateTime start, DateTime end, PageParameter p)
         {
             var exp = _.LastLogin.Between(start, end);
             if (roleId > 0) exp &= _.RoleID == roleId | _.RoleIds.Contains("," + roleId + ",");
@@ -251,7 +248,7 @@ namespace XCode.Membership
         /// <param name="key">关键字，搜索代码、名称、昵称、手机、邮箱</param>
         /// <param name="page"></param>
         /// <returns></returns>
-        public static IList<TEntity> Search(Int32 roleId, Int32 departmentId, Boolean? enable, DateTime start, DateTime end, String key, PageParameter page)
+        public static IList<User> Search(Int32 roleId, Int32 departmentId, Boolean? enable, DateTime start, DateTime end, String key, PageParameter page)
         {
             var exp = new WhereExpression();
             if (roleId >= 0) exp &= _.RoleID == roleId | _.RoleIds.Contains("," + roleId + ",");
@@ -271,14 +268,14 @@ namespace XCode.Membership
         /// <param name="roleid"></param>
         /// <param name="display"></param>
         /// <returns></returns>
-        public static TEntity Add(String name, String pass, Int32 roleid = 1, String display = null)
+        public static User Add(String name, String pass, Int32 roleid = 1, String display = null)
         {
             //var entity = Find(_.Name == name);
             //if (entity != null) return entity;
 
             if (pass.IsNullOrEmpty()) pass = name;
 
-            var entity = new TEntity
+            var entity = new User
             {
                 Name = name,
                 Password = pass.MD5(),
@@ -303,7 +300,7 @@ namespace XCode.Membership
         /// <param name="password"></param>
         /// <param name="rememberme">是否记住密码</param>
         /// <returns></returns>
-        public static TEntity Login(String username, String password, Boolean rememberme = false)
+        public static User Login(String username, String password, Boolean rememberme = false)
         {
             if (String.IsNullOrEmpty(username)) throw new ArgumentNullException(nameof(username));
             //if (String.IsNullOrEmpty(password)) throw new ArgumentNullException("password");
@@ -319,7 +316,7 @@ namespace XCode.Membership
             }
         }
 
-        static TEntity Login(String username, String password, Int32 hashTimes)
+        static User Login(String username, String password, Int32 hashTimes)
         {
             if (String.IsNullOrEmpty(username)) throw new ArgumentNullException(nameof(username), "该帐号不存在！");
 

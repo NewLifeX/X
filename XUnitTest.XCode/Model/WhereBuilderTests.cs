@@ -92,7 +92,7 @@ namespace XUnitTest.XCode.Model
         [Fact(DisplayName = "多层变量")]
         public void ParseVar()
         {
-            var user = new UserX { ID = 1234 };
+            var user = new User { ID = 1234 };
             var dic = new Dictionary<String, Object>(StringComparer.OrdinalIgnoreCase)
             {
                 ["user"] = user
@@ -146,7 +146,7 @@ namespace XUnitTest.XCode.Model
         [Fact(DisplayName = "未支持表达式")]
         public void ParseUnknown()
         {
-            var user = new UserX { ID = 1234 };
+            var user = new User { ID = 1234 };
             var dic = new Dictionary<String, Object>(StringComparer.OrdinalIgnoreCase)
             {
                 ["user"] = user

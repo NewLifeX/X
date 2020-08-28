@@ -58,30 +58,30 @@ namespace XUnitTest.XCode.Code
             Assert.Equal(target, rs);
         }
 
-        [Fact]
-        public void GenericType()
-        {
-            var option = new BuilderOption
-            {
-                ConnName = "MyConn",
-                Namespace = "Company.MyName"
-            };
+        //[Fact]
+        //public void GenericType()
+        //{
+        //    var option = new BuilderOption
+        //    {
+        //        ConnName = "MyConn",
+        //        Namespace = "Company.MyName"
+        //    };
 
-            var builder = new EntityBuilder
-            {
-                Table = _table,
-                GenericType = true,
-                Option = option,
-            };
+        //    var builder = new EntityBuilder
+        //    {
+        //        Table = _table,
+        //        GenericType = true,
+        //        Option = option,
+        //    };
 
-            builder.Execute();
+        //    builder.Execute();
 
-            var rs = builder.ToString();
-            Assert.NotEmpty(rs);
+        //    var rs = builder.ToString();
+        //    Assert.NotEmpty(rs);
 
-            var target = File.ReadAllText("Code\\entity_user_generictype.cs".GetFullPath());
-            Assert.Equal(target, rs);
-        }
+        //    var target = File.ReadAllText("Code\\entity_user_generictype.cs".GetFullPath());
+        //    Assert.Equal(target, rs);
+        //}
 
         [Fact]
         public void BuildTT()
@@ -99,7 +99,8 @@ namespace XUnitTest.XCode.Code
 
             // 生成实体类
             //EntityBuilder.BuildTables(tables, option);
-            EntityBuilder.Build(file);
+            //EntityBuilder.Build(file);
+            EntityBuilder.BuildFile(file);
 
             // 生成简易模型类
             option.Output = @"Output\EntityModels\";

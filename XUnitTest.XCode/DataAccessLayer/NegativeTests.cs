@@ -17,7 +17,7 @@ namespace XUnitTest.XCode.DataAccessLayer
         [Fact]
         public void CreateUpperTableSQLite()
         {
-            var table = UserX.Meta.Table.DataTable;
+            var table = User.Meta.Table.DataTable;
 
             var db = DbFactory.Create(DatabaseType.SQLite);
             db.NameFormat = NameFormats.Upper;
@@ -60,7 +60,7 @@ namespace XUnitTest.XCode.DataAccessLayer
         [Fact]
         public void CreateUpperTableMySql()
         {
-            var table = UserX.Meta.Table.DataTable;
+            var table = User.Meta.Table.DataTable;
 
             var db = DbFactory.Create(DatabaseType.MySql);
             db.NameFormat = NameFormats.Upper;
@@ -104,7 +104,7 @@ namespace XUnitTest.XCode.DataAccessLayer
         [Fact]
         public void CreateLowerTableSQLite()
         {
-            var table = UserX.Meta.Table.DataTable;
+            var table = User.Meta.Table.DataTable;
 
             var db = DbFactory.Create(DatabaseType.SQLite);
             db.NameFormat = NameFormats.Lower;
@@ -147,7 +147,7 @@ namespace XUnitTest.XCode.DataAccessLayer
         [Fact]
         public void CreateLowerTableMySql()
         {
-            var table = UserX.Meta.Table.DataTable;
+            var table = User.Meta.Table.DataTable;
 
             var db = DbFactory.Create(DatabaseType.MySql);
             db.NameFormat = NameFormats.Lower;
@@ -191,7 +191,7 @@ namespace XUnitTest.XCode.DataAccessLayer
         [Fact]
         public void CreateUnderlineTableSQLite()
         {
-            var table = UserX.Meta.Table.DataTable;
+            var table = User.Meta.Table.DataTable;
 
             var db = DbFactory.Create(DatabaseType.SQLite);
             db.NameFormat = NameFormats.Underline;
@@ -234,7 +234,7 @@ namespace XUnitTest.XCode.DataAccessLayer
         [Fact]
         public void CreateUnderlineTableMySql()
         {
-            var table = UserX.Meta.Table.DataTable;
+            var table = User.Meta.Table.DataTable;
 
             var db = DbFactory.Create(DatabaseType.MySql);
             db.NameFormat = NameFormats.Underline;

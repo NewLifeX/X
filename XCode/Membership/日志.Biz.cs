@@ -7,11 +7,7 @@ using XCode.Cache;
 namespace XCode.Membership
 {
     /// <summary>日志</summary>
-    [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
-    public class Log : Log<Log> { }
-
-    /// <summary>日志</summary>
-    public partial class Log<TEntity> : Entity<TEntity> where TEntity : Log<TEntity>, new()
+    public partial class Log : Entity<Log>
     {
         #region 对象操作
         static Log()
@@ -73,7 +69,7 @@ namespace XCode.Membership
         /// <param name="p"></param>
         /// <returns></returns>
         [Obsolete]
-        public static IList<TEntity> Search(String key, Int32 userid, String category, DateTime start, DateTime end, PageParameter p)
+        public static IList<Log> Search(String key, Int32 userid, String category, DateTime start, DateTime end, PageParameter p)
         {
             var exp = new WhereExpression();
             //if (!key.IsNullOrEmpty()) exp &= (_.Action == key | _.Remark.Contains(key));
@@ -103,7 +99,7 @@ namespace XCode.Membership
         /// <param name="key"></param>
         /// <param name="p"></param>
         /// <returns></returns>
-        public static IList<TEntity> Search(String category, String action, Boolean? success, Int32 userid, DateTime start, DateTime end, String key, PageParameter p)
+        public static IList<Log> Search(String category, String action, Boolean? success, Int32 userid, DateTime start, DateTime end, String key, PageParameter p)
         {
             var exp = new WhereExpression();
 
@@ -121,7 +117,7 @@ namespace XCode.Membership
 
         #region 扩展操作
         // Select Count(ID) as ID,Category From Log Where CreateTime>'2020-01-24 00:00:00' Group By Category Order By ID Desc limit 20
-        static readonly FieldCache<TEntity> CategoryCache = new FieldCache<TEntity>(__.Category)
+        static readonly FieldCache<Log> CategoryCache = new FieldCache<Log>(__.Category)
         {
             Where = _.CreateTime > DateTime.Today.AddDays(-30) & Expression.Empty
         };
@@ -130,7 +126,7 @@ namespace XCode.Membership
         /// <returns></returns>
         public static IDictionary<String, String> FindAllCategoryName() => CategoryCache.FindAllName();
 
-        static readonly FieldCache<TEntity> ActionCache = new FieldCache<TEntity>(__.Action)
+        static readonly FieldCache<Log> ActionCache = new FieldCache<Log>(__.Action)
         {
             Where = _.CreateTime > DateTime.Today.AddDays(-30) & Expression.Empty
         };

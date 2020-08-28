@@ -13,9 +13,9 @@ namespace XUnitTest.XCode.DataAccessLayer
         [Fact]
         public void BackupTest()
         {
-            var n = UserX.Meta.Count;
-            var dal = UserX.Meta.Session.Dal;
-            var table = UserX.Meta.Table.DataTable;
+            var n = User.Meta.Count;
+            var dal = User.Meta.Session.Dal;
+            var table = User.Meta.Table.DataTable;
 
             dal.Backup(table, $"data/{table.Name}.table");
             dal.Backup(table, $"data/{table.Name}.gz");
@@ -24,8 +24,8 @@ namespace XUnitTest.XCode.DataAccessLayer
         [Fact]
         public void BackupAllTest()
         {
-            var n = UserX.Meta.Count;
-            var dal = UserX.Meta.Session.Dal;
+            var n = User.Meta.Count;
+            var dal = User.Meta.Session.Dal;
             var tables = EntityFactory.GetTables(dal.ConnName, false);
 
             dal.BackupAll(tables, $"data/{dal.ConnName}.zip");
@@ -36,19 +36,19 @@ namespace XUnitTest.XCode.DataAccessLayer
         {
             try
             {
-                var dal = UserX.Meta.Session.Dal;
+                var dal = User.Meta.Session.Dal;
 
                 // 随机连接名，得到SQLite连接字符串，实行导入
-                UserX.Meta.ConnName = Rand.NextString(8);
+                User.Meta.ConnName = Rand.NextString(8);
 
-                var dal2 = UserX.Meta.Session.Dal;
+                var dal2 = User.Meta.Session.Dal;
 
                 var rs = dal2.RestoreAll($"data/{dal.ConnName}.zip", null);
                 Assert.NotNull(rs);
             }
             finally
             {
-                UserX.Meta.ConnName = null;
+                User.Meta.ConnName = null;
             }
         }
     }

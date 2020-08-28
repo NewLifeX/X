@@ -74,9 +74,9 @@ namespace XCode.Membership
         static ManageProvider()
         {
             Register<IRole>(Role.Meta.Factory);
-            Register<IMenu>(XCode.Membership.Menu.Meta.Factory);
+            Register<IMenu>(Membership.Menu.Meta.Factory);
             Register<ILog>(Log.Meta.Factory);
-            Register<IUser>(UserX.Meta.Factory);
+            Register<IUser>(Membership.User.Meta.Factory);
         }
 
         /// <summary>当前管理提供者</summary>
@@ -110,12 +110,12 @@ namespace XCode.Membership
         /// <summary>根据用户编号查找</summary>
         /// <param name="userid"></param>
         /// <returns></returns>
-        public virtual IManageUser FindByID(Object userid) => UserX.FindByID((userid + "").ToInt(-1));
+        public virtual IManageUser FindByID(Object userid) => Membership.User.FindByID((userid + "").ToInt(-1));
 
         /// <summary>根据用户帐号查找</summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public virtual IManageUser FindByName(String name) => UserX.FindByName(name);
+        public virtual IManageUser FindByName(String name) => Membership.User.FindByName(name);
 
         /// <summary>登录</summary>
         /// <param name="name"></param>
@@ -124,7 +124,7 @@ namespace XCode.Membership
         /// <returns></returns>
         public virtual IManageUser Login(String name, String password, Boolean rememberme)
         {
-            var user = UserX.Login(name, password, rememberme);
+            var user = Membership.User.Login(name, password, rememberme);
 
             Current = user;
 
@@ -146,7 +146,7 @@ namespace XCode.Membership
         /// <returns></returns>
         public virtual IManageUser Register(String name, String password, Int32 roleid, Boolean enable)
         {
-            var user = new UserX
+            var user = new User
             {
                 Name = name,
                 Password = password,

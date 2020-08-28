@@ -17,7 +17,7 @@ namespace XCode.Membership
     [BindIndex("IX_Menu_Name", false, "Name")]
     [BindIndex("IU_Menu_ParentID_Name", true, "ParentID,Name")]
     [BindTable("Menu", Description = "菜单", ConnName = "Membership", DbType = DatabaseType.None)]
-    public partial class Menu<TEntity> : IMenu
+    public partial class Menu : IMenu
     {
         #region 属性
         private Int32 _ID;

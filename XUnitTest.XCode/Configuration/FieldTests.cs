@@ -11,7 +11,7 @@ namespace XUnitTest.XCode.Configuration
         [Fact(DisplayName = "基础测试")]
         public void BasicTest()
         {
-            var fi = UserX._.Password;
+            var fi = User._.Password;
             Assert.Equal("Password", fi.Name);
             Assert.Equal("密码", fi.DisplayName);
             Assert.Equal("密码", fi.Description);
@@ -32,12 +32,12 @@ namespace XUnitTest.XCode.Configuration
             Assert.Null(fi.OriField);
             Assert.Null(fi.Map);
 
-            Assert.True(UserX._.ID.IsIdentity);
-            Assert.True(UserX._.ID.PrimaryKey);
-            Assert.True(UserX._.Name.Master);
-            Assert.False(UserX._.Name.IsNullable);
+            Assert.True(User._.ID.IsIdentity);
+            Assert.True(User._.ID.PrimaryKey);
+            Assert.True(User._.Name.Master);
+            Assert.False(User._.Name.IsNullable);
 
-            fi = UserX.Meta.Table.FindByName("DepartmentName");
+            fi = User.Meta.Table.FindByName("DepartmentName");
             Assert.NotNull(fi);
             Assert.NotNull(fi.OriField);
             Assert.Equal("DepartmentID", fi.OriField.Name);

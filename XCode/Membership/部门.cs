@@ -19,7 +19,7 @@ namespace XCode.Membership
     [BindIndex("IX_Department_Code", false, "Code")]
     [BindIndex("IX_Department_UpdateTime", false, "UpdateTime")]
     [BindTable("Department", Description = "部门。组织机构，多级树状结构", ConnName = "Membership", DbType = DatabaseType.None)]
-    public partial class Department<TEntity> : IDepartment
+    public partial class Department : IDepartment
     {
         #region 属性
         private Int32 _ID;

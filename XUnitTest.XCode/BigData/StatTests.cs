@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using XCode.Membership;
 using Xunit;
-using static XCode.Membership.UserX;
+using static XCode.Membership.User;
 
 namespace XUnitTest.XCode.BigData
 {
@@ -12,7 +12,7 @@ namespace XUnitTest.XCode.BigData
         [Fact(DisplayName = "聚合")]
         public void AggregateTest()
         {
-            //var list = UserX.FindAll(null, null, UserX._.Logins.Sum());
+            //var list = User.FindAll(null, null, User._.Logins.Sum());
         }
     }
 }

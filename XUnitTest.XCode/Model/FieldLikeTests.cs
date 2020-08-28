@@ -13,14 +13,14 @@ namespace XUnitTest.XCode.Model
         private IDatabase _dbLog;
         public FieldLikeTests()
         {
-            _dbUser = UserX.Meta.Session.Dal.Db;
+            _dbUser = User.Meta.Session.Dal.Db;
             _dbLog = Log.Meta.Session.Dal.Db;
         }
 
         [Fact]
         public void Contains()
         {
-            var fi = UserX._.RoleIds;
+            var fi = User._.RoleIds;
             var exp = fi.Contains(",1,2,3,");
             var where = exp.GetString(_dbUser, null);
             Assert.Equal("RoleIds Like '%,1,2,3,%'", where);
@@ -31,7 +31,7 @@ namespace XUnitTest.XCode.Model
         [Fact]
         public void ContainsWithParameter()
         {
-            var fi = UserX._.RoleIds;
+            var fi = User._.RoleIds;
             var exp = fi.Contains(",1,");
             var ps = new Dictionary<String, Object>();
             var where = exp.GetString(_dbUser, ps);
@@ -47,7 +47,7 @@ namespace XUnitTest.XCode.Model
         [Fact]
         public void NotContains()
         {
-            var fi = UserX._.RoleIds;
+            var fi = User._.RoleIds;
             var exp = fi.NotContains(",1,2,3,");
             var where = exp.GetString(_dbUser, null);
             Assert.Equal("RoleIds Not Like '%,1,2,3,%'", where);
@@ -58,7 +58,7 @@ namespace XUnitTest.XCode.Model
         [Fact]
         public void NotContainsWithParameter()
         {
-            var fi = UserX._.RoleIds;
+            var fi = User._.RoleIds;
             var exp = fi.NotContains(",1,2,3,");
             var ps = new Dictionary<String, Object>();
             var where = exp.GetString(_dbUser, ps);
@@ -74,7 +74,7 @@ namespace XUnitTest.XCode.Model
         [Fact]
         public void StartsWith()
         {
-            var fi = UserX._.RoleIds;
+            var fi = User._.RoleIds;
             var exp = fi.StartsWith(",1,2,3,");
             var where = exp.GetString(_dbUser, null);
             Assert.Equal("RoleIds Like ',1,2,3,%'", where);
@@ -85,7 +85,7 @@ namespace XUnitTest.XCode.Model
         [Fact]
         public void StartsWithWithParameter()
         {
-            var fi = UserX._.RoleIds;
+            var fi = User._.RoleIds;
             var exp = fi.StartsWith(",1,2,3,");
             var ps = new Dictionary<String, Object>();
             var where = exp.GetString(_dbUser, ps);
@@ -101,7 +101,7 @@ namespace XUnitTest.XCode.Model
         [Fact]
         public void EndsWith()
         {
-            var fi = UserX._.RoleIds;
+            var fi = User._.RoleIds;
             var exp = fi.EndsWith(",1,2,3,");
             var where = exp.GetString(_dbUser, null);
             Assert.Equal("RoleIds Like '%,1,2,3,'", where);
@@ -112,7 +112,7 @@ namespace XUnitTest.XCode.Model
         [Fact]
         public void EndsWithWithParameter()
         {
-            var fi = UserX._.RoleIds;
+            var fi = User._.RoleIds;
             var exp = fi.EndsWith(",1,2,3,");
             var ps = new Dictionary<String, Object>();
             var where = exp.GetString(_dbUser, ps);

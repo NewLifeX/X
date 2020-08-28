@@ -14,7 +14,7 @@ namespace XUnitTest.XCode.Model
         private IDatabase _dbArea;
         public FieldNormalTests()
         {
-            _dbUser = UserX.Meta.Session.Dal.Db;
+            _dbUser = User.Meta.Session.Dal.Db;
             _dbLog = Log.Meta.Session.Dal.Db;
             _dbArea = Area.Meta.Session.Dal.Db;
         }

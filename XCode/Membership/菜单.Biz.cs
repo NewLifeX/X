@@ -8,26 +8,18 @@ using System.Xml.Serialization;
 using NewLife;
 using NewLife.Collections;
 using NewLife.Log;
-using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Threading;
 
 namespace XCode.Membership
 {
     /// <summary>菜单</summary>
-    [Serializable]
-    [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
-    public class Menu : Menu<Menu> { }
-
-    /// <summary>菜单</summary>
-    public partial class Menu<TEntity> : EntityTree<TEntity>, IMenu where TEntity : Menu<TEntity>, new()
+    public partial class Menu : EntityTree<Menu>, IMenu
     {
         #region 对象操作
         static Menu()
         {
-            new TEntity();
-
-            EntityFactory.Register(typeof(TEntity), new MenuFactory());
+            EntityFactory.Register(typeof(Menu), new MenuFactory());
 
             //ObjectContainer.Current.AutoRegister<IMenuFactory, MenuFactory>();
         }
@@ -162,7 +154,7 @@ namespace XCode.Membership
         /// <summary>根据编号查找</summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public static TEntity FindByID(Int32 id)
+        public static Menu FindByID(Int32 id)
         {
             if (id <= 0) return null;
 
@@ -172,22 +164,22 @@ namespace XCode.Membership
         /// <summary>根据名字查找</summary>
         /// <param name="name">名称</param>
         /// <returns></returns>
-        public static TEntity FindByName(String name) => Meta.Cache.Find(e => e.Name.EqualIgnoreCase(name));
+        public static Menu FindByName(String name) => Meta.Cache.Find(e => e.Name.EqualIgnoreCase(name));
 
         /// <summary>根据全名查找</summary>
         /// <param name="name">全名</param>
         /// <returns></returns>
-        public static TEntity FindByFullName(String name) => Meta.Cache.Find(e => e.FullName.EqualIgnoreCase(name));
+        public static Menu FindByFullName(String name) => Meta.Cache.Find(e => e.FullName.EqualIgnoreCase(name));
 
         /// <summary>根据Url查找</summary>
         /// <param name="url"></param>
         /// <returns></returns>
-        public static TEntity FindByUrl(String url) => Meta.Cache.Find(e => e.Url.EqualIgnoreCase(url));
+        public static Menu FindByUrl(String url) => Meta.Cache.Find(e => e.Url.EqualIgnoreCase(url));
 
         /// <summary>根据名字查找，支持路径查找</summary>
         /// <param name="name">名称</param>
         /// <returns></returns>
-        public static TEntity FindForName(String name)
+        public static Menu FindForName(String name)
         {
             var entity = FindByName(name);
             if (entity != null) return entity;
@@ -198,7 +190,7 @@ namespace XCode.Membership
         /// <summary>查找指定菜单的子菜单</summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public static List<TEntity> FindAllByParentID(Int32 id) => Meta.Cache.FindAll(e => e.ParentID == id).OrderByDescending(e => e.Sort).ThenBy(e => e.ID).ToList();
+        public static List<Menu> FindAllByParentID(Int32 id) => Meta.Cache.FindAll(e => e.ParentID == id).OrderByDescending(e => e.Sort).ThenBy(e => e.ID).ToList();
 
         /// <summary>取得当前角色的子菜单，有权限、可显示、排序</summary>
         /// <param name="filters"></param>
@@ -224,14 +216,13 @@ namespace XCode.Membership
         /// <returns></returns>
         public IMenu Add(String name, String displayName, String fullName, String url)
         {
-            var entity = new TEntity
+            var entity = new Menu
             {
                 Name = name,
                 DisplayName = displayName,
                 FullName = fullName,
                 Url = url,
                 ParentID = ID,
-                //Parent = this as TEntity,
 
                 Visible = ID == 0 || displayName != null
             };
@@ -286,7 +277,7 @@ namespace XCode.Membership
         ///// <summary>写日志</summary>
         ///// <param name="action">操作</param>
         ///// <param name="remark">备注</param>
-        //public static void WriteLog(String action, String remark) => LogProvider.Provider.WriteLog(typeof(TEntity), action, remark);
+        //public static void WriteLog(String action, String remark) => LogProvider.Provider.WriteLog(typeof(Menu), action, remark);
         #endregion
 
         #region 辅助
@@ -309,7 +300,7 @@ namespace XCode.Membership
         /// <returns></returns>
         String IMenu.GetFullPath(Boolean includeSelf, String separator, Func<IMenu, String> func)
         {
-            Func<TEntity, String> d = null;
+            Func<Menu, String> d = null;
             if (func != null) d = item => func(item);
 
             return GetFullPath(includeSelf, separator, d);
@@ -458,7 +449,7 @@ namespace XCode.Membership
                         var method = item.Key;
 
                         var dn = method.GetDisplayName();
-                        if (!dn.IsNullOrEmpty()) dn = dn.Replace("{type}", (controller as TEntity)?.FriendName);
+                        if (!dn.IsNullOrEmpty()) dn = dn.Replace("{type}", (controller as Menu)?.FriendName);
 
                         var pmName = !dn.IsNullOrEmpty() ? dn : method.Name;
                         if (item.Value <= (Int32)PermissionFlags.Delete) pmName = ((PermissionFlags)item.Value).GetDescription();

@@ -14,9 +14,6 @@ namespace XCode.Code
     public class EntityBuilder : ClassBuilder
     {
         #region 属性
-        /// <summary>泛型实体类。泛型参数名TEntity</summary>
-        public Boolean GenericType { get; set; }
-
         /// <summary>业务类。</summary>
         public Boolean Business { get; set; }
 
@@ -33,6 +30,22 @@ namespace XCode.Code
         /// <param name="chineseFileName">中文文件名</param>
         public static Int32 Build(String xmlFile = null, String output = null, String nameSpace = null, String connName = null, Boolean? chineseFileName = null)
         {
+            var option = new BuilderOption
+            {
+                Output = output,
+                Namespace = nameSpace,
+                ConnName = connName,
+            };
+
+            return BuildFile(xmlFile, option, chineseFileName);
+        }
+
+        /// <summary>为Xml模型文件生成实体类</summary>
+        /// <param name="xmlFile">模型文件</param>
+        /// <param name="option">生成可选项</param>
+        /// <param name="chineseFileName">中文文件名</param>
+        public static Int32 BuildFile(String xmlFile = null, BuilderOption option = null, Boolean? chineseFileName = null)
+        {
             if (xmlFile.IsNullOrEmpty())
             {
                 var di = ".".GetBasePath().AsDirectory();
@@ -42,14 +55,8 @@ namespace XCode.Code
             xmlFile = xmlFile.GetBasePath();
             if (!File.Exists(xmlFile)) throw new FileNotFoundException("指定模型文件不存在！", xmlFile);
 
-            var option = new BuilderOption
-            {
-                Output = output,
-                Namespace = nameSpace,
-                ConnName = connName,
-            };
-
             // 导入模型
+            if (option == null) option = new BuilderOption();
             var tables = LoadModels(xmlFile, option, out var atts);
             if (tables.Count == 0) return 0;
 
@@ -144,14 +151,6 @@ namespace XCode.Code
             str = table.Properties["BaseClass"];
             if (!str.IsNullOrEmpty()) option.BaseClass = str;
 
-            // 泛型实体类
-            str = table.Properties["RenderGenEntity"];
-            if (!str.IsNullOrEmpty()) GenericType = str.ToBoolean();
-
-            //// 名称忽略大小写(默认忽略)
-            //if (item.IgnoreNameCase.IsNullOrEmpty() && !ignoreNameCase) item.IgnoreNameCase = ignoreNameCase + "";
-            //item.Properties.Remove("NameIgnoreCase");
-
             // 输出目录
             str = table.Properties["Output"];
             if (!str.IsNullOrEmpty()) option.Output = str.GetBasePath();
@@ -165,57 +164,22 @@ namespace XCode.Code
             // 增加常用命名空间
             AddNameSpace();
 
-            if (ClassName.IsNullOrEmpty()) ClassName = (Option.Interface ? ("I" + Table.Name) : Table.Name) + Option.ClassPrefix;
-            if (GenericType) ClassName += "<TEntity>";
-
             base.Execute();
         }
-
-        /// <summary>实体类头部</summary>
-        protected override void BuildClassHeader()
-        {
-            // 泛型实体类增加默认实例
-            if (GenericType && Business)
-            {
-                WriteLine("/// <summary>{0}</summary>", Table.DisplayName);
-                WriteLine("[Serializable]");
-                WriteLine("[ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]");
-                WriteLine("public class {0} : {0}<{0}> {{ }}", Table.Name);
-                WriteLine();
-            }
-
-            base.BuildClassHeader();
-        }
-
-        ///// <summary>获取类名</summary>
-        ///// <returns></returns>
-        //protected override String GetClassName()
-        //{
-        //    // 类名
-        //    var name = base.GetClassName();
-        //    if (GenericType) name += "<TEntity>";
-
-        //    return name;
-        //}
 
         /// <summary>获取基类</summary>
         /// <returns></returns>
         protected override String GetBaseClass()
         {
             // 数据类的基类只有接口，业务类基类则比较复杂
-            if (!Business) return "I" + Table.Name;
+            if (!Business) return "I" + ClassName;
 
             var name = Option.BaseClass;
             if (name.IsNullOrEmpty()) name = "Entity";
 
-            if (GenericType)
-                name = "{0}<TEntity> where TEntity : {1}<TEntity>, new()".F(name, Table.Name);
-            else
-                name = "{0}<{1}>".F(name, Table.Name);
+            name = "{0}<{1}>".F(name, ClassName);
 
             return name;
-
-            //return base.GetBaseClass();
         }
 
         /// <summary>保存</summary>
@@ -501,7 +465,7 @@ namespace XCode.Code
         {
             var dt = Table;
             WriteLine("/// <summary>{0}接口</summary>", dt.Description);
-            WriteLine("public partial interface I{0}", dt.Name);
+            WriteLine("public partial interface I{0}", ClassName);
             WriteLine("{");
 
             WriteLine("#region 属性");
@@ -574,16 +538,9 @@ namespace XCode.Code
         /// <summary>生成静态构造函数</summary>
         protected virtual void BuildCctor()
         {
-            WriteLine("static {0}()", Table.Name);
+            WriteLine("static {0}()", ClassName);
             WriteLine("{");
             {
-                if (GenericType)
-                {
-                    WriteLine("// 用于引发基类的静态构造函数，所有层次的泛型实体类都应该有一个");
-                    WriteLine("var entity = new TEntity();");
-                    WriteLine();
-                }
-
                 // 第一个非自增非主键整型字段，生成累加字段代码
                 var dc = Table.Columns.FirstOrDefault(e => !e.Identity && !e.PrimaryKey && (e.DataType == typeof(Int32) || e.DataType == typeof(Int64)));
                 if (dc != null)
@@ -709,7 +666,7 @@ namespace XCode.Code
         /// <summary>初始化数据</summary>
         protected virtual void BuildInitData()
         {
-            var name = GenericType ? "TEntity" : Table.Name;
+            var name = ClassName;
 
             WriteLine("///// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>");
             WriteLine("//[EditorBrowsable(EditorBrowsableState.Never)]");
@@ -840,7 +797,7 @@ namespace XCode.Code
                 WriteLine("/// <summary>根据{0}查找</summary>", pk.DisplayName);
                 WriteLine("/// <param name=\"{0}\">{1}</param>", name, pk.DisplayName);
                 WriteLine("/// <returns>实体对象</returns>");
-                WriteLine("public static {3} FindBy{0}({1} {2})", pk.Name, pk.DataType.Name, name, GenericType ? "TEntity" : Table.Name);
+                WriteLine("public static {3} FindBy{0}({1} {2})", pk.Name, pk.DataType.Name, name, ClassName);
                 WriteLine("{");
                 {
                     if (pk.DataType.IsInt())
@@ -882,7 +839,7 @@ namespace XCode.Code
                 }
 
                 // 返回类型
-                var rt = GenericType ? "TEntity" : Table.Name;
+                var rt = ClassName;
                 if (!di.Unique) rt = "IList<{0}>".F(rt);
 
                 WriteLine("/// <returns>{0}</returns>", di.Unique ? "实体对象" : "实体列表");
@@ -950,7 +907,7 @@ namespace XCode.Code
                 }
             }
 
-            var returnName = GenericType ? "TEntity" : Table.Name;
+            var returnName = ClassName;
 
             WriteLine("#region 高级查询");
             if (cs.Count > 0)
@@ -1037,7 +994,7 @@ namespace XCode.Code
                     var name = dc.Name;
 
                     WriteLine();
-                    WriteLine($"// Select Count({pname}) as {pname},{name} From {Table.Name} Where {tname}>'2020-01-24 00:00:00' Group By {name} Order By {pname} Desc limit 20");
+                    WriteLine($"// Select Count({pname}) as {pname},{name} From {Table.TableName} Where {tname}>'2020-01-24 00:00:00' Group By {name} Order By {pname} Desc limit 20");
                     WriteLine($"static readonly FieldCache<{returnName}> _{name}Cache = new FieldCache<{returnName}>(nameof({name}))");
                     WriteLine("{");
                     {
@@ -1056,7 +1013,7 @@ namespace XCode.Code
                 if (count == 0)
                 {
                     WriteLine();
-                    WriteLine($"// Select Count({pname}) as {pname},Category From {Table.Name} Where {tname}>'2020-01-24 00:00:00' Group By Category Order By {pname} Desc limit 20");
+                    WriteLine($"// Select Count({pname}) as {pname},Category From {Table.TableName} Where {tname}>'2020-01-24 00:00:00' Group By Category Order By {pname} Desc limit 20");
                     WriteLine($"//static readonly FieldCache<{returnName}> _CategoryCache = new FieldCache<{returnName}>(nameof(Category))");
                     WriteLine("//{");
                     {

@@ -6,7 +6,7 @@ using XCode;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 using Xunit;
-using static XCode.Membership.UserX;
+using static XCode.Membership.User;
 
 namespace XUnitTest.XCode.EntityTests
 {
@@ -21,10 +21,10 @@ namespace XUnitTest.XCode.EntityTests
         [Fact]
         public void InsertTestSQLite()
         {
-            var factory = UserX.Meta.Factory;
-            var session = UserX.Meta.Session;
+            var factory = User.Meta.Factory;
+            var session = User.Meta.Session;
 
-            var user = new UserX
+            var user = new User
             {
                 Name = "Stone",
                 DisplayName = "大石头",
@@ -41,12 +41,12 @@ namespace XUnitTest.XCode.EntityTests
         [Fact]
         public void InsertTestMySqlUnderline()
         {
-            using var split = UserX.Meta.CreateSplit("mysql_underline", null);
+            using var split = User.Meta.CreateSplit("mysql_underline", null);
 
-            var factory = UserX.Meta.Factory;
-            var session = UserX.Meta.Session;
+            var factory = User.Meta.Factory;
+            var session = User.Meta.Session;
 
-            var user = new UserX
+            var user = new User
             {
                 Name = "Stone",
                 DisplayName = "大石头",
@@ -63,10 +63,10 @@ namespace XUnitTest.XCode.EntityTests
         [Fact]
         public void UpdateTestSQLite()
         {
-            var factory = UserX.Meta.Factory;
-            var session = UserX.Meta.Session;
+            var factory = User.Meta.Factory;
+            var session = User.Meta.Session;
 
-            var user = new UserX
+            var user = new User
             {
                 ID = 2,
                 Name = "Stone",
@@ -84,12 +84,12 @@ namespace XUnitTest.XCode.EntityTests
         [Fact]
         public void UpdateTestMySqlUnderline()
         {
-            using var split = UserX.Meta.CreateSplit("mysql_underline", null);
+            using var split = User.Meta.CreateSplit("mysql_underline", null);
 
-            var factory = UserX.Meta.Factory;
-            var session = UserX.Meta.Session;
+            var factory = User.Meta.Factory;
+            var session = User.Meta.Session;
 
-            var user = new UserX
+            var user = new User
             {
                 ID = 2,
                 Name = "Stone",
@@ -107,10 +107,10 @@ namespace XUnitTest.XCode.EntityTests
         [Fact]
         public void DeleteTestSQLite()
         {
-            var factory = UserX.Meta.Factory;
-            var session = UserX.Meta.Session;
+            var factory = User.Meta.Factory;
+            var session = User.Meta.Session;
 
-            var user = new UserX
+            var user = new User
             {
                 ID = 2,
             };
@@ -122,12 +122,12 @@ namespace XUnitTest.XCode.EntityTests
         [Fact]
         public void DeleteTestMySqlUnderline()
         {
-            using var split = UserX.Meta.CreateSplit("mysql_underline", null);
+            using var split = User.Meta.CreateSplit("mysql_underline", null);
 
-            var factory = UserX.Meta.Factory;
-            var session = UserX.Meta.Session;
+            var factory = User.Meta.Factory;
+            var session = User.Meta.Session;
 
-            var user = new UserX
+            var user = new User
             {
                 ID = 2,
             };
@@ -139,8 +139,8 @@ namespace XUnitTest.XCode.EntityTests
         [Fact]
         public void SelectTestSQLite()
         {
-            var exp = UserX._.Name == "Stone" & UserX._.DisplayName == "大石头" & UserX._.Logins > 0 & UserX._.RegisterTime < new DateTime(2020, 9, 1);
-            var builder = UserX.CreateBuilder(exp, UserX._.UpdateUserID.Desc(), null);
+            var exp = User._.Name == "Stone" & User._.DisplayName == "大石头" & User._.Logins > 0 & User._.RegisterTime < new DateTime(2020, 9, 1);
+            var builder = User.CreateBuilder(exp, User._.UpdateUserID.Desc(), null);
             var sql = builder.ToString();
             Assert.Equal(@"Select * From User Where Name='Stone' And DisplayName='大石头' And Logins>0 And RegisterTime<'2020-09-01 00:00:00' Order By UpdateUserID Desc", sql);
         }
@@ -148,10 +148,10 @@ namespace XUnitTest.XCode.EntityTests
         [Fact]
         public void SelectTestMySqlUnderline()
         {
-            using var split = UserX.Meta.CreateSplit("mysql_underline", null);
+            using var split = User.Meta.CreateSplit("mysql_underline", null);
 
-            var exp = UserX._.Name == "Stone" & UserX._.DisplayName == "大石头" & UserX._.Logins > 0 & UserX._.RegisterTime < new DateTime(2020, 9, 1);
-            var builder = UserX.CreateBuilder(exp, UserX._.UpdateUserID.Desc(), null);
+            var exp = User._.Name == "Stone" & User._.DisplayName == "大石头" & User._.Logins > 0 & User._.RegisterTime < new DateTime(2020, 9, 1);
+            var builder = User.CreateBuilder(exp, User._.UpdateUserID.Desc(), null);
             var sql = builder.ToString();
             Assert.Equal(@"Select * From `user` Where name='Stone' And display_name='大石头' And logins>0 And register_time<'2020-09-01 00:00:00' Order By update_user_id Desc", sql);
         }

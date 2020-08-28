@@ -10,19 +10,14 @@ using NewLife.Log;
 
 namespace XCode.Membership
 {
-    /// <summary>部门</summary>
-    [Serializable]
-    [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
-    public class Department : Department<Department> { }
-
     /// <summary>部门。组织机构，多级树状结构</summary>
-    public partial class Department<TEntity> : Entity<TEntity> where TEntity : Department<TEntity>, new()
+    public partial class Department : Entity<Department>
     {
         #region 对象操作
         static Department()
         {
-            // 用于引发基类的静态构造函数，所有层次的泛型实体类都应该有一个
-            var entity = new TEntity();
+            //// 用于引发基类的静态构造函数，所有层次的泛型实体类都应该有一个
+            //var entity = new Department();
 
             // 累加字段
             //var df = Meta.Factory.AdditionalFields;
@@ -53,7 +48,7 @@ namespace XCode.Membership
 
             if (Meta.Count > 0) return;
 
-            if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}数据……", typeof(TEntity).Name);
+            if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}数据……", typeof(Department).Name);
 
             var root = Add("总公司", "001", 0);
             Add("行政部", "011", root.ID);
@@ -64,7 +59,7 @@ namespace XCode.Membership
             Add("行政部", "111", root.ID);
             Add("市场部", "112", root.ID);
 
-            if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}数据！", typeof(TEntity).Name);
+            if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}数据！", typeof(Department).Name);
         }
 
         /// <summary>添加用户，如果存在则直接返回</summary>
@@ -72,9 +67,9 @@ namespace XCode.Membership
         /// <param name="code"></param>
         /// <param name="parentid"></param>
         /// <returns></returns>
-        public static TEntity Add(String name, String code, Int32 parentid)
+        public static Department Add(String name, String code, Int32 parentid)
         {
-            var entity = new TEntity
+            var entity = new Department
             {
                 Name = name,
                 Code = code,
@@ -92,10 +87,10 @@ namespace XCode.Membership
         #region 扩展属性
         /// <summary>管理者</summary>
         [XmlIgnore, ScriptIgnore, IgnoreDataMember]
-        public UserX Manager => Extends.Get(nameof(Manager), k => UserX.FindByID(ManagerID));
+        public User Manager => Extends.Get(nameof(Manager), k => User.FindByID(ManagerID));
 
         /// <summary>管理者</summary>
-        [Map(__.ManagerID, typeof(UserX), __.ID)]
+        [Map(__.ManagerID, typeof(User), __.ID)]
         public String ManagerName => Manager?.ToString();
         #endregion
 
@@ -103,7 +98,7 @@ namespace XCode.Membership
         /// <summary>根据编号查找</summary>
         /// <param name="id">编号</param>
         /// <returns>实体对象</returns>
-        public static TEntity FindByID(Int32 id)
+        public static Department FindByID(Int32 id)
         {
             if (id <= 0) return null;
 
@@ -119,7 +114,7 @@ namespace XCode.Membership
         /// <summary>根据名称查找</summary>
         /// <param name="name">名称</param>
         /// <returns>实体列表</returns>
-        public static IList<TEntity> FindAllByName(String name)
+        public static IList<Department> FindAllByName(String name)
         {
             // 实体缓存
             if (Meta.Session.Count < 1000) return Meta.Cache.FindAll(e => e.Name == name);
@@ -131,7 +126,7 @@ namespace XCode.Membership
         /// <param name="name">名称</param>
         /// <param name="parentid">父级</param>
         /// <returns>实体对象</returns>
-        public static TEntity FindByNameAndParentID(String name, Int32 parentid)
+        public static Department FindByNameAndParentID(String name, Int32 parentid)
         {
             // 实体缓存
             if (Meta.Session.Count < 1000) return Meta.Cache.Find(e => e.Name == name && e.ParentID == parentid);
@@ -142,7 +137,7 @@ namespace XCode.Membership
         /// <summary>根据代码查找</summary>
         /// <param name="code">代码</param>
         /// <returns>实体对象</returns>
-        public static TEntity FindByCode(String code)
+        public static Department FindByCode(String code)
         {
             if (code.IsNullOrEmpty()) return null;
 
@@ -161,7 +156,7 @@ namespace XCode.Membership
         /// <param name="key"></param>
         /// <param name="page"></param>
         /// <returns></returns>
-        public static IList<TEntity> Search(Int32 parentId, Boolean? enable, Boolean? visible, String key, PageParameter page)
+        public static IList<Department> Search(Int32 parentId, Boolean? enable, Boolean? visible, String key, PageParameter page)
         {
             var exp = new WhereExpression();
             if (parentId >= 0) exp &= _.ParentID == parentId;
