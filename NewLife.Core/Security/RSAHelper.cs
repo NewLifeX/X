@@ -79,34 +79,94 @@ namespace NewLife.Security
         #endregion
 
         #region 数字签名
-        /// <summary>签名</summary>
-        /// <param name="buf"></param>
+        /// <summary>签名，MD5散列</summary>
+        /// <param name="data"></param>
         /// <param name="priKey"></param>
         /// <returns></returns>
-        public static Byte[] Sign(Byte[] buf, String priKey)
+        public static Byte[] Sign(Byte[] data, String priKey)
         {
             var rsa = Create(priKey);
 
-            return rsa.SignData(buf, MD5.Create());
+            return rsa.SignData(data, MD5.Create());
         }
 
-        /// <summary>验证</summary>
-        /// <param name="buf"></param>
+        /// <summary>验证，MD5散列</summary>
+        /// <param name="data"></param>
         /// <param name="pukKey"></param>
         /// <param name="rgbSignature"></param>
         /// <returns></returns>
-        public static Boolean Verify(Byte[] buf, String pukKey, Byte[] rgbSignature)
+        public static Boolean Verify(Byte[] data, String pukKey, Byte[] rgbSignature)
         {
             var rsa = Create(pukKey);
 
-            return rsa.VerifyData(buf, MD5.Create(), rgbSignature);
+            return rsa.VerifyData(data, MD5.Create(), rgbSignature);
+        }
+
+        private static HashAlgorithm _sha256 = SHA256.Create();
+        /// <summary>RS256</summary>
+        /// <param name="data"></param>
+        /// <param name="priKey"></param>
+        /// <returns></returns>
+        public static Byte[] SignRS256(this Byte[] data, String priKey)
+        {
+            var rsa = Create(priKey);
+            return rsa.SignData(data, _sha256);
         }
 
         /// <summary>RS256</summary>
         /// <param name="data"></param>
-        /// <param name="key"></param>
+        /// <param name="pukKey"></param>
+        /// <param name="rgbSignature"></param>
         /// <returns></returns>
-        public static Byte[] RSASHA256(this Byte[] data, Byte[] key) => new HMACSHA256(key).ComputeHash(data);
+        public static Boolean VerifyRS256(this Byte[] data, String pukKey, Byte[] rgbSignature)
+        {
+            var rsa = Create(pukKey);
+            return rsa.VerifyData(data, _sha256, rgbSignature);
+        }
+
+        private static HashAlgorithm _sha384 = SHA384.Create();
+        /// <summary>RS384</summary>
+        /// <param name="data"></param>
+        /// <param name="priKey"></param>
+        /// <returns></returns>
+        public static Byte[] SignRS384(this Byte[] data, String priKey)
+        {
+            var rsa = Create(priKey);
+            return rsa.SignData(data, _sha384);
+        }
+
+        /// <summary>RS384</summary>
+        /// <param name="data"></param>
+        /// <param name="pukKey"></param>
+        /// <param name="rgbSignature"></param>
+        /// <returns></returns>
+        public static Boolean VerifyRS384(this Byte[] data, String pukKey, Byte[] rgbSignature)
+        {
+            var rsa = Create(pukKey);
+            return rsa.VerifyData(data, _sha384, rgbSignature);
+        }
+
+        private static HashAlgorithm _sha512 = SHA512.Create();
+        /// <summary>RS512</summary>
+        /// <param name="data"></param>
+        /// <param name="priKey"></param>
+        /// <returns></returns>
+        public static Byte[] SignRS512(this Byte[] data, String priKey)
+        {
+            var rsa = Create(priKey);
+            return rsa.SignData(data, _sha512);
+        }
+
+        /// <summary>RS512</summary>
+        /// <param name="data"></param>
+        /// <param name="pukKey"></param>
+        /// <param name="rgbSignature"></param>
+        /// <returns></returns>
+        public static Boolean VerifyRS512(this Byte[] data, String pukKey, Byte[] rgbSignature)
+        {
+            var rsa = Create(pukKey);
+            return rsa.VerifyData(data, _sha512, rgbSignature);
+        }
         #endregion
 
         #region PEM

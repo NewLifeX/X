@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using NewLife.Data;
+using NewLife.Security;
 using NewLife.Serialization;
 
 namespace NewLife.Web
@@ -90,13 +91,15 @@ namespace NewLife.Web
             var body = dic.ToJson().GetBytes().ToUrlBase64();
 
             // 签名
-            var sec = Secret.GetBytes();
             var data = $"{header}.{body}".GetBytes();
             var sign = alg switch
             {
-                "HS256" => data.SHA256(sec),
-                "HS384" => data.SHA384(sec),
-                "HS512" => data.SHA512(sec),
+                "HS256" => data.SHA256(Secret.GetBytes()),
+                "HS384" => data.SHA384(Secret.GetBytes()),
+                "HS512" => data.SHA512(Secret.GetBytes()),
+                "RS256" => data.SignRS256(Secret),
+                "RS384" => data.SignRS384(Secret),
+                "RS512" => data.SignRS512(Secret),
                 _ => throw new InvalidOperationException($"不支持的算法[{alg}]"),
             };
             return $"{header}.{body}.{sign.ToUrlBase64()}";
@@ -147,10 +150,19 @@ namespace NewLife.Web
                 return false;
             }
 
+            message = null;
+
             // 验证签名
-            var sec = Secret.GetBytes();
             var data = $"{ts[0]}.{ts[1]}".GetBytes();
-            var sign = alg switch
+            switch (Algorithm)
+            {
+                case "RS256": return data.VerifyRS256(Secret, ts[2].ToBase64());
+                case "RS384": return data.VerifyRS384(Secret, ts[2].ToBase64());
+                case "RS512": return data.VerifyRS512(Secret, ts[2].ToBase64());
+            }
+
+            var sec = Secret.GetBytes();
+            var sign = Algorithm switch
             {
                 "HS256" => data.SHA256(sec),
                 "HS384" => data.SHA384(sec),
