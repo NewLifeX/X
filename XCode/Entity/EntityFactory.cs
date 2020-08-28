@@ -76,6 +76,9 @@ namespace XCode
         {
             foreach (var item in typeof(IEntity).GetAllSubclasses())
             {
+                // 实体类的基类必须是泛型，避免多级继承导致误判
+                if (!item.BaseType.IsGenericType) continue;
+
                 var ti = TableItem.Create(item);
                 if (ti == null)
                     XTrace.WriteLine("实体类[{0}]无法创建TableItem", item.FullName);
