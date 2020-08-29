@@ -32,7 +32,7 @@ namespace NewLife.Security
             if (key.StartsWith("-----") && key.EndsWith("-----"))
             {
                 var ec = new ECDsaCng();
-                //var p = ReadPem(key);
+                var p = ReadPem(key);
                 //ec.ImportParameters(ReadPem(key));
                 return ec;
             }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Security.Cryptography;
 
 namespace NewLife.Security
@@ -37,10 +38,10 @@ namespace NewLife.Security
             if (key.IsNullOrEmpty()) return null;
 
             var rsa = new RSACryptoServiceProvider();
-            if (key.StartsWith("-----") && key.EndsWith("-----"))
-                rsa.ImportParameters(ReadPem(key));
-            else
+            if (key.StartsWith("<RSAKeyValue>") && key.EndsWith("</RSAKeyValue>"))
                 rsa.FromXmlString(key);
+            else
+                rsa.ImportParameters(ReadPem(key));
 
             return rsa;
         }
@@ -188,37 +189,26 @@ namespace NewLife.Security
                      .Replace("\n", null).Replace("\r", null);
 
                 var data = Convert.FromBase64String(content2);
-                //var reader = new BinaryReader(new MemoryStream(data));
 
                 var asn = Asn1.Read(data);
+                var keys = asn.Value as Asn1[];
 
-                var key = asn.Value as Asn1[];
-                //var version = seq[0].Value;
-                //var privateKey = seq[2].Value as Byte[];
-
-                //var seq2 = seq[1].Value as Asn1[];
-                //var algorithm = seq2[0].Value;
-                //var parameters = seq2[1].Value;
-
-                if (content.StartsWithIgnoreCase("-----BEGIN PRIVATE KEY-----"))
-                    key = Asn1.Read(key[2].Value as Byte[]).Value as Asn1[];
-
-                //// 头部版本
-                //var total = reader.ReadTLV(out var tag);
-                //Debug.Assert(tag == 0x30);
-                //var version = reader.ReadTLV(false);
+                // 可能直接key，也可能有Oid包装
+                var oids = asn.GetOids();
+                if (oids.Any(e => e.FriendlyName == "RSA"))
+                    keys = Asn1.Read(keys.FirstOrDefault(e => e.Tag == Asn1Tags.OctetString).Value as Byte[]).Value as Asn1[];
 
                 // 参数数据
                 return new RSAParameters
                 {
-                    Modulus = key[1].GetByteArray(true),
-                    Exponent = key[2].GetByteArray(false),
-                    D = key[3].GetByteArray(true),
-                    P = key[4].GetByteArray(true),
-                    Q = key[5].GetByteArray(true),
-                    DP = key[6].GetByteArray(true),
-                    DQ = key[7].GetByteArray(true),
-                    InverseQ = key[8].GetByteArray(true)
+                    Modulus = keys[1].GetByteArray(true),
+                    Exponent = keys[2].GetByteArray(false),
+                    D = keys[3].GetByteArray(true),
+                    P = keys[4].GetByteArray(true),
+                    Q = keys[5].GetByteArray(true),
+                    DP = keys[6].GetByteArray(true),
+                    DQ = keys[7].GetByteArray(true),
+                    InverseQ = keys[8].GetByteArray(true)
                 };
             }
             else
@@ -228,26 +218,20 @@ namespace NewLife.Security
                     .Replace("\n", null).Replace("\r", null);
 
                 var data = Convert.FromBase64String(content);
-                //var reader = new BinaryReader(new MemoryStream(data));
 
                 var asn = Asn1.Read(data);
-                var seq = asn.Value as Asn1[];
-                var key = Asn1.Read(seq[1].Value as Byte[]).Value as Asn1[];
+                var keys = asn.Value as Asn1[];
 
-                //// 头部版本
-                //var total = reader.ReadTLV(out var tag);
-                //Debug.Assert(tag == 0x30);
-                //var version = reader.ReadTLV(false);
-
-                //var total2 = reader.ReadTLV(out tag);
-                //if (reader.PeekChar() == 0) { reader.ReadByte(); }
-                //var total3 = reader.ReadTLV(out tag);
+                // 可能直接key，也可能有Oid包装
+                var oids = asn.GetOids();
+                if (oids.Any(e => e.FriendlyName == "RSA"))
+                    keys = Asn1.Read(keys.FirstOrDefault(e => e.Tag == Asn1Tags.BitString).Value as Byte[]).Value as Asn1[];
 
                 // 参数数据
                 return new RSAParameters
                 {
-                    Modulus = key[0].GetByteArray(true),
-                    Exponent = key[1].GetByteArray(false),
+                    Modulus = keys[0].GetByteArray(true),
+                    Exponent = keys[1].GetByteArray(false),
                 };
             }
         }

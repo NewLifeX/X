@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace NewLife.Security
@@ -9,9 +10,8 @@ namespace NewLife.Security
     public class Asn1
     {
         #region 属性
-        private Asn1Tags _Tag;
         /// <summary>标签</summary>
-        public Byte Tag { get => (Byte)_Tag; set => _Tag = (Asn1Tags)value; }
+        public Asn1Tags Tag { get; set; }
 
         /// <summary>长度</summary>
         public Int32 Length { get; set; }
@@ -23,9 +23,50 @@ namespace NewLife.Security
         #region 构造
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override String ToString() => $"{_Tag} {Value}";
+        public override String ToString()
+        {
+            switch (Tag)
+            {
+                case Asn1Tags.Boolean:
+                    break;
+                case Asn1Tags.Integer: return "0x" + (Value as Byte[]).ToHex(0, 32);
+                case Asn1Tags.BitString:
+                case Asn1Tags.OctetString: return (Value as Byte[]).ToHex(0, 32);
+                case Asn1Tags.Null: return "Null";
+                case Asn1Tags.ObjectIdentifier:
+                    if (Value is Oid oid) return oid.FriendlyName + " " + oid.Value;
+                    break;
+                case Asn1Tags.Sequence:
+                    if (Value is Asn1[] arr) return arr.Join();
+                    break;
+            }
+
+            return $"{Tag} {Value}";
+        }
         #endregion
 
+        #region 方法
+        /// <summary>获取OID</summary>
+        /// <returns></returns>
+        public Oid[] GetOids()
+        {
+            if (Value is Oid oid) return new[] { oid };
+
+            var list = new List<Oid>();
+            if (Value is Asn1[] arr)
+            {
+                foreach (var item in arr)
+                {
+                    var ds = item.GetOids();
+                    if (ds != null && ds.Length > 0) list.AddRange(ds);
+                }
+            }
+
+            return list.ToArray();
+        }
+        #endregion
+
+        #region 读取
         /// <summary>读取</summary>
         /// <param name="data"></param>
         /// <returns></returns>
@@ -50,10 +91,10 @@ namespace NewLife.Security
             //if (tagNo == 0x1F) tagNo = reader.BaseStream.ReadEncodedInt();
 
             // isConstructed
-            asn._Tag = (Asn1Tags)tagNo;
+            asn.Tag = (Asn1Tags)tagNo;
             if ((tag & (Byte)Asn1Tags.Constructed) != 0)
             {
-                switch (asn._Tag)
+                switch (asn.Tag)
                 {
                     case Asn1Tags.OctetString:
                         break;
@@ -79,7 +120,7 @@ namespace NewLife.Security
             // 基础类型
             var buf = reader.ReadBytes(len);
             asn.Value = buf;
-            switch (asn._Tag)
+            switch (asn.Tag)
             {
                 case Asn1Tags.Boolean:
                     break;
@@ -97,7 +138,7 @@ namespace NewLife.Security
                     break;
                 case Asn1Tags.ObjectIdentifier:
                     //asn.Value = reader.ReadBytes(len);
-                    asn.Value = MakeOidStringFromBytes(buf);
+                    asn.Value = new Oid(MakeOidStringFromBytes(buf));
                     break;
                 case Asn1Tags.External:
                     break;
@@ -160,6 +201,7 @@ namespace NewLife.Security
 
             return buf;
         }
+        #endregion
 
         #region 辅助
         /// <summary>读取TLV，Tag+Length+Value</summary>
