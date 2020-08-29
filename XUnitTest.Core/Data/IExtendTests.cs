@@ -145,8 +145,12 @@ namespace XUnitTest.Data
 
             var dic = ext.ToDictionary();
             Assert.NotNull(dic);
-            Assert.Equal(typeof(Dictionary<String, Object>), dic.GetType());
+            //Assert.Equal(typeof(Dictionary<String, Object>), dic.GetType());
             Assert.Equal(1234, dic["Id"]);
+
+            // 引用型
+            dic["Name"] = "xxx";
+            Assert.Equal("xxx", ext.Name);
         }
 
         class ExtendTest4 : IExtend
