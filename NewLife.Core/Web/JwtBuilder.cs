@@ -97,9 +97,9 @@ namespace NewLife.Web
                 "HS256" => data.SHA256(Secret.GetBytes()),
                 "HS384" => data.SHA384(Secret.GetBytes()),
                 "HS512" => data.SHA512(Secret.GetBytes()),
-                "RS256" => data.SignRS256(Secret),
-                "RS384" => data.SignRS384(Secret),
-                "RS512" => data.SignRS512(Secret),
+                "RS256" => RSAHelper.SignSha256(data, Secret),
+                "RS384" => RSAHelper.SignSha384(data, Secret),
+                "RS512" => RSAHelper.SignSha512(data, Secret),
                 _ => throw new InvalidOperationException($"不支持的算法[{alg}]"),
             };
             return $"{header}.{body}.{sign.ToUrlBase64()}";
@@ -156,9 +156,9 @@ namespace NewLife.Web
             var data = $"{ts[0]}.{ts[1]}".GetBytes();
             switch (Algorithm)
             {
-                case "RS256": return data.VerifyRS256(Secret, ts[2].ToBase64());
-                case "RS384": return data.VerifyRS384(Secret, ts[2].ToBase64());
-                case "RS512": return data.VerifyRS512(Secret, ts[2].ToBase64());
+                case "RS256": return RSAHelper.VerifySha256(data, Secret, ts[2].ToBase64());
+                case "RS384": return RSAHelper.VerifySha384(data, Secret, ts[2].ToBase64());
+                case "RS512": return RSAHelper.VerifySha512(data, Secret, ts[2].ToBase64());
             }
 
             var sec = Secret.GetBytes();

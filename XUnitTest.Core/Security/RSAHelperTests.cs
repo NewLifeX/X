@@ -168,11 +168,38 @@ MwIDAQAB
 -----END PUBLIC KEY-----";
 
             var data = Rand.NextBytes(1000);
-            var sign = RSAHelper.Sign(data, prvKey);
-            Assert.NotNull(sign);
 
-            var rs = RSAHelper.Verify(data, pubKey, sign);
-            Assert.True(rs);
+            {
+                var sign = RSAHelper.Sign(data, prvKey);
+                Assert.NotNull(sign);
+
+                var rs = RSAHelper.Verify(data, pubKey, sign);
+                Assert.True(rs);
+            }
+
+            {
+                var sign = RSAHelper.SignSha256(data, prvKey);
+                Assert.NotNull(sign);
+
+                var rs = RSAHelper.VerifySha256(data, pubKey, sign);
+                Assert.True(rs);
+            }
+
+            {
+                var sign = RSAHelper.SignSha384(data, prvKey);
+                Assert.NotNull(sign);
+
+                var rs = RSAHelper.VerifySha384(data, pubKey, sign);
+                Assert.True(rs);
+            }
+
+            {
+                var sign = RSAHelper.SignSha512(data, prvKey);
+                Assert.NotNull(sign);
+
+                var rs = RSAHelper.VerifySha512(data, pubKey, sign);
+                Assert.True(rs);
+            }
         }
 
         [Fact]

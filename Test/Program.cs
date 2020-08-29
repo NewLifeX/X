@@ -54,9 +54,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test4();
-                    //XMLConvertToPEM();
-                    //ExportPublicKeyToPEMFormat();
+                Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -77,11 +75,9 @@ namespace Test
 
         private static void Test1()
         {
-            //foreach (var item in Enum.GetValues(typeof(TypeCode)))
-            //{
-            //    var t = (item + "").GetTypeEx();
-            //    Console.WriteLine("{0}\t{1}\t{2}", item, t, t?.IsPrimitive);
-            //}
+            var keys = ECDsaHelper.GenerateKey();
+            XTrace.WriteLine("prvKey:{0}", keys[0]);
+            XTrace.WriteLine("pubKey:{0}", keys[1]);
 
             //"你好".SpeakAsync();
 

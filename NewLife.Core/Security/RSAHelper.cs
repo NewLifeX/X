@@ -107,7 +107,7 @@ namespace NewLife.Security
         /// <param name="data"></param>
         /// <param name="priKey"></param>
         /// <returns></returns>
-        public static Byte[] SignRS256(this Byte[] data, String priKey)
+        public static Byte[] SignSha256(this Byte[] data, String priKey)
         {
             var rsa = Create(priKey);
             return rsa.SignData(data, _sha256);
@@ -118,7 +118,7 @@ namespace NewLife.Security
         /// <param name="pukKey"></param>
         /// <param name="rgbSignature"></param>
         /// <returns></returns>
-        public static Boolean VerifyRS256(this Byte[] data, String pukKey, Byte[] rgbSignature)
+        public static Boolean VerifySha256(this Byte[] data, String pukKey, Byte[] rgbSignature)
         {
             var rsa = Create(pukKey);
             return rsa.VerifyData(data, _sha256, rgbSignature);
@@ -129,7 +129,7 @@ namespace NewLife.Security
         /// <param name="data"></param>
         /// <param name="priKey"></param>
         /// <returns></returns>
-        public static Byte[] SignRS384(this Byte[] data, String priKey)
+        public static Byte[] SignSha384(this Byte[] data, String priKey)
         {
             var rsa = Create(priKey);
             return rsa.SignData(data, _sha384);
@@ -140,7 +140,7 @@ namespace NewLife.Security
         /// <param name="pukKey"></param>
         /// <param name="rgbSignature"></param>
         /// <returns></returns>
-        public static Boolean VerifyRS384(this Byte[] data, String pukKey, Byte[] rgbSignature)
+        public static Boolean VerifySha384(this Byte[] data, String pukKey, Byte[] rgbSignature)
         {
             var rsa = Create(pukKey);
             return rsa.VerifyData(data, _sha384, rgbSignature);
@@ -151,7 +151,7 @@ namespace NewLife.Security
         /// <param name="data"></param>
         /// <param name="priKey"></param>
         /// <returns></returns>
-        public static Byte[] SignRS512(this Byte[] data, String priKey)
+        public static Byte[] SignSha512(this Byte[] data, String priKey)
         {
             var rsa = Create(priKey);
             return rsa.SignData(data, _sha512);
@@ -162,7 +162,7 @@ namespace NewLife.Security
         /// <param name="pukKey"></param>
         /// <param name="rgbSignature"></param>
         /// <returns></returns>
-        public static Boolean VerifyRS512(this Byte[] data, String pukKey, Byte[] rgbSignature)
+        public static Boolean VerifySha512(this Byte[] data, String pukKey, Byte[] rgbSignature)
         {
             var rsa = Create(pukKey);
             return rsa.VerifyData(data, _sha512, rgbSignature);
