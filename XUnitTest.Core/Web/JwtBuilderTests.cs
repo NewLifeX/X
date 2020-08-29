@@ -351,5 +351,131 @@ MwIDAQAB
             Assert.Equal("NewLife", builder2["name"]);
             Assert.True(builder2["admin"].ToBoolean());
         }
+
+        [Fact]
+        public void ES256()
+        {
+            var prvKey = @"RUNTMiAAAAAoECDSEE7PqKvRx+FXWXhpTXIm/ZquCKDa6UXA9+PMQRugM35vcgKAXR2pelQ2SqYjOFktBMm84x194VyepthORPQDRkEIcGIonNbCtCg+Y62sV9prPsXACNS//2huX38=";
+            var pubKey = @"RUNTMSAAAAAoECDSEE7PqKvRx+FXWXhpTXIm/ZquCKDa6UXA9+PMQRugM35vcgKAXR2pelQ2SqYjOFktBMm84x194VyepthO";
+
+            var builder = new JwtBuilder
+            {
+                Algorithm = "ES256",
+                Type = "JWT",
+
+                IssuedAt = 1516239022.ToDateTime(),
+                Expire = DateTime.MinValue,
+                Secret = prvKey,
+            };
+
+            var token = builder.Encode(new { sub = "1234567890", name = "NewLife", admin = true });
+            Assert.NotNull(token);
+            Assert.NotEmpty(token);
+
+            var ts = token.Split('.');
+            Assert.Equal(3, ts.Length);
+            Assert.Equal("eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9", ts[0]);
+            Assert.Equal("eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ik5ld0xpZmUiLCJhZG1pbiI6dHJ1ZSwiaWF0IjoxNTE2MjM5MDIyfQ", ts[1]);
+            //Assert.Equal("xyCWz7tNjH4UUkxi7BqlWE4V857XA6SYC-ZFukvexvIgsGQt9SBcpdglz3NfhhrslOwF7HzWZHOJu3RrIFrDFA", ts[2]);
+
+            var builder2 = new JwtBuilder
+            {
+                Algorithm = "ES256",
+
+                Secret = pubKey,
+            };
+            var rs = builder2.TryDecode(token, out var msg);
+            Assert.True(rs);
+            Assert.Null(msg);
+
+            Assert.Equal("JWT", builder2.Type);
+            Assert.Equal("1234567890", builder2.Subject);
+            Assert.Equal("NewLife", builder2["name"]);
+            Assert.True(builder2["admin"].ToBoolean());
+        }
+
+        [Fact]
+        public void ES384()
+        {
+            var prvKey = @"RUNTMiAAAAAoECDSEE7PqKvRx+FXWXhpTXIm/ZquCKDa6UXA9+PMQRugM35vcgKAXR2pelQ2SqYjOFktBMm84x194VyepthORPQDRkEIcGIonNbCtCg+Y62sV9prPsXACNS//2huX38=";
+            var pubKey = @"RUNTMSAAAAAoECDSEE7PqKvRx+FXWXhpTXIm/ZquCKDa6UXA9+PMQRugM35vcgKAXR2pelQ2SqYjOFktBMm84x194VyepthO";
+
+            var builder = new JwtBuilder
+            {
+                Algorithm = "ES384",
+                Type = "JWT",
+
+                IssuedAt = 1516239022.ToDateTime(),
+                Expire = DateTime.MinValue,
+                Secret = prvKey,
+            };
+
+            var token = builder.Encode(new { sub = "1234567890", name = "NewLife", admin = true });
+            Assert.NotNull(token);
+            Assert.NotEmpty(token);
+
+            var ts = token.Split('.');
+            Assert.Equal(3, ts.Length);
+            Assert.Equal("eyJhbGciOiJFUzM4NCIsInR5cCI6IkpXVCJ9", ts[0]);
+            Assert.Equal("eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ik5ld0xpZmUiLCJhZG1pbiI6dHJ1ZSwiaWF0IjoxNTE2MjM5MDIyfQ", ts[1]);
+            //Assert.Equal("xyCWz7tNjH4UUkxi7BqlWE4V857XA6SYC-ZFukvexvIgsGQt9SBcpdglz3NfhhrslOwF7HzWZHOJu3RrIFrDFA", ts[2]);
+
+            var builder2 = new JwtBuilder
+            {
+                Algorithm = "ES384",
+
+                Secret = pubKey,
+            };
+            var rs = builder2.TryDecode(token, out var msg);
+            Assert.True(rs);
+            Assert.Null(msg);
+
+            Assert.Equal("JWT", builder2.Type);
+            Assert.Equal("1234567890", builder2.Subject);
+            Assert.Equal("NewLife", builder2["name"]);
+            Assert.True(builder2["admin"].ToBoolean());
+        }
+
+        [Fact]
+        public void ES512()
+        {
+            var prvKey = @"RUNTMiAAAAAoECDSEE7PqKvRx+FXWXhpTXIm/ZquCKDa6UXA9+PMQRugM35vcgKAXR2pelQ2SqYjOFktBMm84x194VyepthORPQDRkEIcGIonNbCtCg+Y62sV9prPsXACNS//2huX38=";
+            var pubKey = @"RUNTMSAAAAAoECDSEE7PqKvRx+FXWXhpTXIm/ZquCKDa6UXA9+PMQRugM35vcgKAXR2pelQ2SqYjOFktBMm84x194VyepthO";
+
+            var builder = new JwtBuilder
+            {
+                Algorithm = "ES512",
+                Type = "JWT",
+
+                IssuedAt = 1516239022.ToDateTime(),
+                Expire = DateTime.MinValue,
+                Secret = prvKey,
+            };
+
+            var token = builder.Encode(new { sub = "1234567890", name = "NewLife", admin = true });
+            Assert.NotNull(token);
+            Assert.NotEmpty(token);
+
+            var ts = token.Split('.');
+            Assert.Equal(3, ts.Length);
+            Assert.Equal("eyJhbGciOiJFUzUxMiIsInR5cCI6IkpXVCJ9", ts[0]);
+            Assert.Equal("eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ik5ld0xpZmUiLCJhZG1pbiI6dHJ1ZSwiaWF0IjoxNTE2MjM5MDIyfQ", ts[1]);
+            //Assert.Equal("xyCWz7tNjH4UUkxi7BqlWE4V857XA6SYC-ZFukvexvIgsGQt9SBcpdglz3NfhhrslOwF7HzWZHOJu3RrIFrDFA", ts[2]);
+
+            var builder2 = new JwtBuilder
+            {
+                Algorithm = "ES512",
+
+                Secret = pubKey,
+            };
+            var rs = builder2.TryDecode(token, out var msg);
+            Assert.True(rs);
+            Assert.Null(msg);
+
+            Assert.Equal("JWT", builder2.Type);
+            Assert.Equal("1234567890", builder2.Subject);
+            Assert.Equal("NewLife", builder2["name"]);
+            Assert.True(builder2["admin"].ToBoolean());
+        }
     }
 }
