@@ -135,34 +135,53 @@ namespace XUnitTest.Data
             }
         }
 
-        //[Fact]
-        //public void ToDictionary_RefrectField()
-        //{
-        //    var ext = new ExtendTest4
-        //    {
-        //        ["aaa"] = 1234
-        //    };
+        [Fact]
+        public void ToDictionary_RefrectProperties()
+        {
+            var ext = new ExtendTest4
+            {
+                Id = 1234
+            };
 
-        //    var dic = ext.ToDictionary();
-        //    Assert.NotNull(dic);
-        //    Assert.Equal(typeof(NullableDictionary<String, Object>), dic.GetType());
-        //    Assert.Equal(1234, dic["aaa"]);
+            var dic = ext.ToDictionary();
+            Assert.NotNull(dic);
+            Assert.Equal(typeof(Dictionary<String, Object>), dic.GetType());
+            Assert.Equal(1234, dic["Id"]);
+        }
 
-        //    // 引用型
-        //    dic["bbb"] = "xxx";
-        //    Assert.Equal("xxx", ext["bbb"]);
-        //}
+        class ExtendTest4 : IExtend
+        {
+            public Int32 Id { get; set; }
 
-        //class ExtendTest4 : IExtend
-        //{
-        //    private NullableDictionary<String, Object> Items = new NullableDictionary<String, Object>();
+            public String Name { get; set; }
 
-        //    public Object this[String item]
-        //    {
-        //        get => Items[item];
-        //        set => Items[item] = value;
-        //    }
-        //}
+            public Object this[String item]
+            {
+                get
+                {
+                    return item switch
+                    {
+                        "Id" => Id,
+                        "Name" => Name,
+                        _ => null,
+                    };
+                }
+                set
+                {
+                    switch (item)
+                    {
+                        case "Id":
+                            Id = value.ToInt();
+                            break;
+                        case "Name":
+                            Name = value as String;
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+        }
 
         [Fact]
         public void ToDictionary_NotSupported()
@@ -172,7 +191,9 @@ namespace XUnitTest.Data
                 ["aaa"] = 1234
             };
 
-            Assert.Throws<NotSupportedException>(() => ext.ToDictionary());
+            //Assert.Throws<NotSupportedException>(() => ext.ToDictionary());
+            var dic = ext.ToDictionary();
+            Assert.Empty(dic);
         }
 
         class ExtendTest5 : IExtend

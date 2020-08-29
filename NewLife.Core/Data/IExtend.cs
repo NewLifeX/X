@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Reflection;
+using System.Linq;
 using NewLife.Reflection;
 
 namespace NewLife.Data
@@ -44,10 +44,11 @@ namespace NewLife.Data
 
         /// <summary>扩展接口转名值字典</summary>
         /// <param name="extend"></param>
-        /// <param name="throwOnError">出错时是否抛出异常</param>
         /// <returns></returns>
-        public static IDictionary<String, Object> ToDictionary(this IExtend extend, Boolean throwOnError = true)
+        public static IDictionary<String, Object> ToDictionary(this IExtend extend)
         {
+            if (extend == null) return null;
+
             // 泛型字典
             if (extend is IDictionary<String, Object> dictionary) return dictionary;
             if (extend is ExtendDictionary edic) return edic.Items;
@@ -76,15 +77,18 @@ namespace NewLife.Data
             }
 
             // 反射 Items
-            var pi = extend.GetType().GetProperty("Items", BindingFlags.Instance | BindingFlags.Public /*| BindingFlags.NonPublic*/);
+            var pis = extend.GetType().GetProperties(true);
+            var pi = pis.FirstOrDefault(e => e.Name == "Items");
             if (pi != null && pi.PropertyType.As<IDictionary<String, Object>>()) return pi.GetValue(extend, null) as IDictionary<String, Object>;
 
-            //var fi = extend.GetType().GetField("Items", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            //if (fi != null && fi.FieldType.As<IDictionary<String, Object>>()) return fi.GetValue(extend) as IDictionary<String, Object>;
+            // 反射属性
+            var dic2 = new Dictionary<String, Object>();
+            foreach (var item in pis)
+            {
+                dic2[item.Name] = extend[item.Name];
+            }
 
-            if (throwOnError) throw new NotSupportedException($"不支持从类型[{extend.GetType().FullName}]中获取字典！");
-
-            return null;
+            return dic2;
         }
     }
 
