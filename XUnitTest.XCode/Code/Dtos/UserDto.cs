@@ -7,7 +7,7 @@ using System.Xml.Serialization;
 
 namespace XCode.Code
 {
-    /// <summary>用户</summary>
+    /// <summary>用户。用户帐号信息</summary>
     public class UserDto
     {
         #region 属性
@@ -24,7 +24,7 @@ namespace XCode.Code
         public String DisplayName { get; set; }
 
         /// <summary>性别。未知、男、女</summary>
-        public SexKinds Sex { get; set; }
+        public XCode.Membership.SexKinds Sex { get; set; }
 
         /// <summary>邮件</summary>
         public String Mail { get; set; }

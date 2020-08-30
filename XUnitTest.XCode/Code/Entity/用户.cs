@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.Serialization;
@@ -10,14 +10,14 @@ using XCode.DataAccessLayer;
 
 namespace XCode.Membership
 {
-    /// <summary>用户</summary>
+    /// <summary>用户。用户帐号信息</summary>
     [Serializable]
     [DataObject]
-    [Description("用户")]
+    [Description("用户。用户帐号信息")]
     [BindIndex("IU_User_Name", true, "Name")]
     [BindIndex("IX_User_RoleID", false, "RoleID")]
     [BindIndex("IX_User_UpdateTime", false, "UpdateTime")]
-    [BindTable("User", Description = "用户", ConnName = "Membership", DbType = DatabaseType.None)]
+    [BindTable("User", Description = "用户。用户帐号信息", ConnName = "Membership", DbType = DatabaseType.None)]
     public partial class User
     {
         #region 属性
@@ -53,13 +53,13 @@ namespace XCode.Membership
         [BindColumn("DisplayName", "昵称", "")]
         public String DisplayName { get => _DisplayName; set { if (OnPropertyChanging("DisplayName", value)) { _DisplayName = value; OnPropertyChanged("DisplayName"); } } }
 
-        private SexKinds _Sex;
+        private XCode.Membership.SexKinds _Sex;
         /// <summary>性别。未知、男、女</summary>
         [DisplayName("性别")]
         [Description("性别。未知、男、女")]
         [DataObjectField(false, false, false, 0)]
         [BindColumn("Sex", "性别。未知、男、女", "")]
-        public SexKinds Sex { get => _Sex; set { if (OnPropertyChanging("Sex", value)) { _Sex = value; OnPropertyChanged("Sex"); } } }
+        public XCode.Membership.SexKinds Sex { get => _Sex; set { if (OnPropertyChanging("Sex", value)) { _Sex = value; OnPropertyChanged("Sex"); } } }
 
         private String _Mail;
         /// <summary>邮件</summary>
@@ -314,7 +314,7 @@ namespace XCode.Membership
                     case "Name": _Name = Convert.ToString(value); break;
                     case "Password": _Password = Convert.ToString(value); break;
                     case "DisplayName": _DisplayName = Convert.ToString(value); break;
-                    case "Sex": _Sex = (SexKinds)value.ToInt(); break;
+                    case "Sex": _Sex = (XCode.Membership.SexKinds)value.ToInt(); break;
                     case "Mail": _Mail = Convert.ToString(value); break;
                     case "Mobile": _Mobile = Convert.ToString(value); break;
                     case "Code": _Code = Convert.ToString(value); break;

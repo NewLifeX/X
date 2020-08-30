@@ -19,12 +19,12 @@
 
     // 生成简易模型类
     option.Output = @"..\Models\";
-    option.ClassTemplate = "{name}Model";
+    option.ClassNameTemplate = "{name}Model";
     //ClassBuilder.BuildModels(tables, option);
 
     // 生成简易接口
     option.Output = @"..\Interfaces\";
-    option.ClassTemplate = null;
+    option.ClassNameTemplate = null;
     option.BaseClass = null;
     //ClassBuilder.BuildInterfaces(tables, option);
 

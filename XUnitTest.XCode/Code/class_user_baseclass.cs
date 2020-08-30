@@ -7,10 +7,10 @@ using System.Xml.Serialization;
 
 namespace XCode.Code
 {
-    /// <summary>用户</summary>
+    /// <summary>用户。用户帐号信息</summary>
     [Serializable]
     [DataObject]
-    [Description("用户")]
+    [Description("用户。用户帐号信息")]
     public class User : MyEntityBase
     {
         #region 属性
@@ -37,7 +37,7 @@ namespace XCode.Code
         /// <summary>性别。未知、男、女</summary>
         [Description("性别。未知、男、女")]
         [DisplayName("性别")]
-        public SexKinds Sex { get; set; }
+        public XCode.Membership.SexKinds Sex { get; set; }
 
         /// <summary>邮件</summary>
         [Description("邮件")]

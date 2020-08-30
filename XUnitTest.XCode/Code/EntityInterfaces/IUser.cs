@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.Serialization;
@@ -7,7 +7,7 @@ using System.Xml.Serialization;
 
 namespace XCode.Membership
 {
-    /// <summary>用户</summary>
+    /// <summary>用户。用户帐号信息</summary>
     public interface IUser : Entity
     {
         #region 属性
@@ -24,7 +24,7 @@ namespace XCode.Membership
         String DisplayName { get; set; }
 
         /// <summary>性别。未知、男、女</summary>
-        SexKinds Sex { get; set; }
+        XCode.Membership.SexKinds Sex { get; set; }
 
         /// <summary>邮件</summary>
         String Mail { get; set; }

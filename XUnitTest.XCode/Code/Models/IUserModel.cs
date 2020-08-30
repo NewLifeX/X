@@ -7,7 +7,7 @@ using System.Xml.Serialization;
 
 namespace XCode.Code
 {
-    /// <summary>用户</summary>
+    /// <summary>用户。用户帐号信息</summary>
     public interface IUserModel
     {
         #region 属性
@@ -24,7 +24,7 @@ namespace XCode.Code
         String DisplayName { get; set; }
 
         /// <summary>性别。未知、男、女</summary>
-        SexKinds Sex { get; set; }
+        XCode.Membership.SexKinds Sex { get; set; }
 
         /// <summary>邮件</summary>
         String Mail { get; set; }
