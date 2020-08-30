@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -33,10 +34,21 @@ namespace NewLife.Security
 
             if (key.StartsWith("-----") && key.EndsWith("-----"))
             {
+                var ek = ReadPem(key);
+
+#if __CORE__
+                // netcore下优先使用ExportParameters，CngKey.Import有兼容问题
                 var ec = new ECDsaCng();
-                var p = ReadPem(key);
-                //ec.ImportParameters(ReadPem(key));
+                ec.ImportParameters(ek.ExportParameters());
+
                 return ec;
+#else
+                var buf = ek.ToArray();
+
+                var ckey = CngKey.Import(buf, ek.D == null ? CngKeyBlobFormat.EccPublicBlob : CngKeyBlobFormat.EccPrivateBlob);
+
+                return new ECDsaCng(ckey);
+#endif
             }
             else
             {
@@ -154,7 +166,7 @@ namespace NewLife.Security
         /// <summary>读取PEM文件到RSA参数</summary>
         /// <param name="content"></param>
         /// <returns></returns>
-        public static Byte[] ReadPem(String content)
+        public static ECKey ReadPem(String content)
         {
             if (String.IsNullOrEmpty(content)) throw new ArgumentNullException(nameof(content));
 
@@ -182,19 +194,21 @@ namespace NewLife.Security
                 if (algorithm.FriendlyName != "ECC") throw new InvalidDataException($"Invalid key {algorithm}");
 
                 keys = Asn1.Read(keys[2].Value as Byte[]).Value as Asn1[];
-                var k2 = Asn1.Read(keys[2].Value as Byte[]);
 
-                // 参数数据
-                //return new ECParameters
-                //{
-                //    Curve = ECCurve.CreateFromOid(parameters),
-                //    D = keys[1].Value as Byte[],
-                //};
-                var buf = new Byte[32 * 3];
-                buf.Write(0, keys[1].Value as Byte[]);
-                buf.Write(32, k2.Value as Byte[], 1, -1);
+                // 里面是一个字节前缀，后面X+Y
+                var k2 = Asn1.Read(keys[2].Value as Byte[]).Value as Byte[];
+                var len = (k2.Length - 1) / 2;
 
-                return buf;
+                // 参数
+                var ek = new ECKey
+                {
+                    D = keys[1].Value as Byte[],
+                    X = k2.ReadBytes(1, len),
+                    Y = k2.ReadBytes(1 + len, len),
+                };
+                ek.SetAlgorithm(parameters, true);
+
+                return ek;
             }
             else
             {
@@ -214,14 +228,19 @@ namespace NewLife.Security
 
                 if (algorithm.FriendlyName != "ECC") throw new InvalidDataException($"Invalid key {algorithm}");
 
-                // 参数数据
-                //return new ECParameters
-                //{
-                //    D = keys[1].Value as Byte[],
-                //};
-                var buf = keys[1].Value as Byte[];
+                // 里面是一个字节前缀，后面X+Y
+                var k2 = keys[1].Value as Byte[];
+                var len = (k2.Length - 1) / 2;
 
-                return buf.ReadBytes(1);
+                // 参数
+                var ek = new ECKey
+                {
+                    X = k2.ReadBytes(1, len),
+                    Y = k2.ReadBytes(1 + len, len),
+                };
+                ek.SetAlgorithm(parameters, false);
+
+                return ek;
             }
         }
         #endregion

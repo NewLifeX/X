@@ -40,20 +40,15 @@ q9UU8I5mEovUf86QZ7kOBIjJwqnzD1omageEHWwHdBO6B+dFabmdT9POxg==
                 var ec = new ECDsaCng(key);
 
                 // 解码KeyBlob格式
-                var reader = new BinaryReader(new MemoryStream(data));
+                var eckey = new ECKey();
+                eckey.Read(data);
+                Assert.Equal(data.ToBase64(), eckey.ToArray().ToBase64());
 
                 // 幻数(4) + 长度len(4) + X(len) + Y(len) + D(len)
-                var magic = (KeyBlobMagicNumber)reader.ReadInt32();
-                Assert.Equal($"ECDSA_PRIVATE_P{keySize}", magic + "");
-
-                var len = reader.ReadInt32();
+                Assert.Equal($"ECDSA_PRIVATE_P{keySize}", eckey.Algorithm);
 
                 // 构造参数
-                var ecp = new ECParameters();
-                ecp.Q.X = reader.ReadBytes(len);
-                ecp.Q.Y = reader.ReadBytes(len);
-                ecp.D = reader.ReadBytes(len);
-                ecp.Curve = ECCurve.CreateFromFriendlyName($"ECDSA_P{keySize}");
+                var ecp = eckey.ExportParameters();
 
                 // 再次以参数导入，然后导出key进行对比
                 var ec2 = new ECDsaCng();
@@ -69,20 +64,15 @@ q9UU8I5mEovUf86QZ7kOBIjJwqnzD1omageEHWwHdBO6B+dFabmdT9POxg==
                 var ec = new ECDsaCng(key);
 
                 // 解码KeyBlob格式
-                var reader = new BinaryReader(new MemoryStream(data));
+                var eckey = new ECKey();
+                eckey.Read(data);
+                Assert.Equal(data.ToBase64(), eckey.ToArray().ToBase64());
 
                 // 幻数(4) + 长度len(4) + X(len) + Y(len) + D(len)
-                var magic = (KeyBlobMagicNumber)reader.ReadInt32();
-                Assert.Equal($"ECDSA_PUBLIC_P{keySize}", magic + "");
-
-                var len = reader.ReadInt32();
+                Assert.Equal($"ECDSA_PUBLIC_P{keySize}", eckey.Algorithm);
 
                 // 构造参数
-                var ecp = new ECParameters();
-                ecp.Q.X = reader.ReadBytes(len);
-                ecp.Q.Y = reader.ReadBytes(len);
-                if (reader.BaseStream.Position < reader.BaseStream.Length) ecp.D = reader.ReadBytes(len);
-                ecp.Curve = ECCurve.CreateFromFriendlyName($"ECDSA_P{keySize}");
+                var ecp = eckey.ExportParameters();
 
                 // 再次以参数导入，然后导出key进行对比
                 var ec2 = new ECDsaCng();
@@ -100,11 +90,11 @@ q9UU8I5mEovUf86QZ7kOBIjJwqnzD1omageEHWwHdBO6B+dFabmdT9POxg==
             var ec = ECDsaHelper.Create(ks[0]);
             Assert.NotNull(ec);
 
-            //var ec2 = ECDsaHelper.Create(prvKey);
-            //Assert.NotNull(ec2);
+            var ec2 = ECDsaHelper.Create(prvKey);
+            Assert.NotNull(ec2);
 
-            //var ec3 = ECDsaHelper.Create(pubKey);
-            //Assert.NotNull(ec3);
+            var ec3 = ECDsaHelper.Create(pubKey);
+            Assert.NotNull(ec3);
         }
 
         [Fact]
@@ -150,20 +140,7 @@ q9UU8I5mEovUf86QZ7kOBIjJwqnzD1omageEHWwHdBO6B+dFabmdT9POxg==
         [Fact]
         public void TestPublicPem()
         {
-            var pem = ECDsaHelper.ReadPem(pubKey);
-
-            var p = new ECParameters
-            {
-                Curve = ECCurve.CreateFromFriendlyName("ECDSA_P256"),
-                Q = new ECPoint
-                {
-                    X = pem.ReadBytes(0, 32),
-                    Y = pem.ReadBytes(32, 32),
-                }
-            };
-
-            var ec = new ECDsaCng();
-            ec.ImportParameters(p);
+            var ec = ECDsaHelper.Create(pubKey);
 
             var key = ec.Key.Export(CngKeyBlobFormat.EccPublicBlob).ToBase64();
             Assert.Equal("RUNTMSAAAAARWz+jn65BtOMvdyHKcvjBeBSDZH2r1RTwjmYSi9R/zpBnuQ4EiMnCqfMPWiZqB4QdbAd0E7oH50VpuZ1P087G", key);
@@ -175,21 +152,7 @@ q9UU8I5mEovUf86QZ7kOBIjJwqnzD1omageEHWwHdBO6B+dFabmdT9POxg==
         [Fact]
         public void TestPrivatePem()
         {
-            var pem = ECDsaHelper.ReadPem(prvKey);
-
-            var p = new ECParameters
-            {
-                Curve = ECCurve.CreateFromFriendlyName("ECDSA_P256"),
-                D = pem.ReadBytes(0, 32),
-                Q = new ECPoint
-                {
-                    X = pem.ReadBytes(32, 32),
-                    Y = pem.ReadBytes(64, 32),
-                }
-            };
-
-            var ec = new ECDsaCng();
-            ec.ImportParameters(p);
+            var ec = ECDsaHelper.Create(prvKey);
 
             var key = ec.Key.Export(CngKeyBlobFormat.EccPrivateBlob).ToBase64();
             Assert.Equal("RUNTMiAAAAARWz+jn65BtOMvdyHKcvjBeBSDZH2r1RTwjmYSi9R/zpBnuQ4EiMnCqfMPWiZqB4QdbAd0E7oH50VpuZ1P087GevZzL1gdAFr88hb2OF/2NxApJCzGCEDdfSp6VQO30hw=", key);
@@ -205,21 +168,7 @@ q9UU8I5mEovUf86QZ7kOBIjJwqnzD1omageEHWwHdBO6B+dFabmdT9POxg==
             Byte[] sign;
 
             {
-                var pem = ECDsaHelper.ReadPem(prvKey);
-
-                var p = new ECParameters
-                {
-                    Curve = ECCurve.CreateFromFriendlyName("ECDSA_P256"),
-                    D = pem.ReadBytes(0, 32),
-                    Q = new ECPoint
-                    {
-                        X = pem.ReadBytes(32, 32),
-                        Y = pem.ReadBytes(64, 32),
-                    }
-                };
-
-                var ec = new ECDsaCng();
-                ec.ImportParameters(p);
+                var ec = ECDsaHelper.Create(prvKey);
 
                 var key = ec.Key.Export(CngKeyBlobFormat.EccPrivateBlob).ToBase64();
                 Assert.Equal("RUNTMiAAAAARWz+jn65BtOMvdyHKcvjBeBSDZH2r1RTwjmYSi9R/zpBnuQ4EiMnCqfMPWiZqB4QdbAd0E7oH50VpuZ1P087GevZzL1gdAFr88hb2OF/2NxApJCzGCEDdfSp6VQO30hw=", key);
@@ -228,20 +177,7 @@ q9UU8I5mEovUf86QZ7kOBIjJwqnzD1omageEHWwHdBO6B+dFabmdT9POxg==
             }
 
             {
-                var pem = ECDsaHelper.ReadPem(pubKey);
-
-                var p = new ECParameters
-                {
-                    Curve = ECCurve.CreateFromFriendlyName("ECDSA_P256"),
-                    Q = new ECPoint
-                    {
-                        X = pem.ReadBytes(0, 32),
-                        Y = pem.ReadBytes(32, 32),
-                    }
-                };
-
-                var ec = new ECDsaCng();
-                ec.ImportParameters(p);
+                var ec = ECDsaHelper.Create(pubKey);
 
                 var key = ec.Key.Export(CngKeyBlobFormat.EccPublicBlob).ToBase64();
                 Assert.Equal("RUNTMSAAAAARWz+jn65BtOMvdyHKcvjBeBSDZH2r1RTwjmYSi9R/zpBnuQ4EiMnCqfMPWiZqB4QdbAd0E7oH50VpuZ1P087G", key);
