@@ -8,8 +8,8 @@ using NewLife.Data;
 
 namespace XCode.Code
 {
-    /// <summary>用户</summary>
-    public class ExtendUser : Object, IExtend
+    /// <summary>用户模型。帐号信息</summary>
+    public class ExtendUser2 : IExtend
     {
         #region 属性
         /// <summary>编号</summary>

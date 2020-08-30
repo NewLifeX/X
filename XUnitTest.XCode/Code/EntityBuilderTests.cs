@@ -108,12 +108,12 @@ namespace XUnitTest.XCode.Code
 
             // 生成简易模型类
             option.Output = @"Output\EntityModels\";
-            option.ClassTemplate = "{name}Model";
+            option.ClassNameTemplate = "{name}Model";
             ClassBuilder.BuildModels(tables, option);
 
             // 生成简易接口
             option.Output = @"Output\EntityInterfaces\";
-            option.ClassTemplate = null;
+            option.ClassNameTemplate = null;
             ClassBuilder.BuildInterfaces(tables, option);
 
             // 精确控制生成

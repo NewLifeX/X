@@ -132,8 +132,8 @@ namespace XCode.Code
         {
             if (ClassName.IsNullOrEmpty())
             {
-                if (!Option.ClassTemplate.IsNullOrEmpty())
-                    ClassName = Option.ClassTemplate.Replace("{name}", Table.Name);
+                if (!Option.ClassNameTemplate.IsNullOrEmpty())
+                    ClassName = Option.ClassNameTemplate.Replace("{name}", Table.Name);
                 else
                     ClassName = Option.Interface ? ("I" + Table.Name) : Table.Name;
             }
@@ -196,13 +196,28 @@ namespace XCode.Code
 
         /// <summary>获取基类</summary>
         /// <returns></returns>
-        protected virtual String GetBaseClass() => Option.BaseClass?.Replace("{name}", Table.Name);
+        protected virtual String GetBaseClass()
+        {
+            var baseClass = Option.BaseClass?.Replace("{name}", Table.Name);
+            if (Option.Extend)
+            {
+                if (!baseClass.IsNullOrEmpty()) baseClass += ", ";
+                baseClass += "IExtend";
+            }
+
+            return baseClass;
+        }
 
         /// <summary>实体类头部</summary>
         protected virtual void BuildAttribute()
         {
             // 注释
             var des = Table.Description;
+            if (!Option.DisplayNameTemplate.IsNullOrEmpty())
+            {
+                des = Table.Description.TrimStart(Table.DisplayName, "。");
+                des = Option.DisplayNameTemplate.Replace("{displayName}", Table.DisplayName) + "。" + des;
+            }
             WriteLine("/// <summary>{0}</summary>", des);
 
             if (!Option.Pure && !Option.Interface)

@@ -94,7 +94,7 @@ namespace XUnitTest.XCode.Code
             {
                 Interface = true,
                 BaseClass = "IAuthUser",
-                ClassTemplate = "Ixx{name}",
+                ClassNameTemplate = "Ixx{name}",
             };
 
             var builder = new ClassBuilder
@@ -120,7 +120,7 @@ namespace XUnitTest.XCode.Code
                 Pure = true,
                 Extend = true,
                 BaseClass = "Object",
-                ClassTemplate = "Extend{name}",
+                ClassNameTemplate = "Extend{name}",
             };
 
             var builder = new ClassBuilder
@@ -135,6 +135,33 @@ namespace XUnitTest.XCode.Code
             Assert.NotEmpty(rs);
 
             var target = File.ReadAllText("Code\\class_user_extend.cs".GetFullPath());
+            Assert.Equal(target, rs);
+        }
+
+        [Fact]
+        public void Extend2()
+        {
+            var option = new BuilderOption
+            {
+                Pure = true,
+                Extend = true,
+                BaseClass = null,
+                ClassNameTemplate = "Extend{name}2",
+                DisplayNameTemplate = "{displayName}模型",
+            };
+
+            var builder = new ClassBuilder
+            {
+                Table = _table,
+                Option = option,
+            };
+
+            builder.Execute();
+
+            var rs = builder.ToString();
+            Assert.NotEmpty(rs);
+
+            var target = File.ReadAllText("Code\\class_user_extend2.cs".GetFullPath());
             Assert.Equal(target, rs);
         }
 
@@ -182,12 +209,12 @@ namespace XUnitTest.XCode.Code
             var option = new BuilderOption
             {
                 Output = dir,
-                ClassTemplate = "{name}Model"
+                ClassNameTemplate = "{name}Model"
             };
 
             ClassBuilder.BuildModels(_tables, option);
 
-            option.ClassTemplate = "I{name}Model";
+            option.ClassNameTemplate = "I{name}Model";
             ClassBuilder.BuildInterfaces(_tables, option);
 
             foreach (var item in _tables)
@@ -223,12 +250,12 @@ namespace XUnitTest.XCode.Code
             var option = new BuilderOption
             {
                 Output = dir,
-                ClassTemplate = "{name}Dto",
+                ClassNameTemplate = "{name}Dto",
             };
 
             ClassBuilder.BuildModels(_tables, option);
 
-            option.ClassTemplate = null;
+            option.ClassNameTemplate = null;
             ClassBuilder.BuildInterfaces(_tables, option);
 
             foreach (var item in _tables)
@@ -264,7 +291,7 @@ namespace XUnitTest.XCode.Code
             var option = new BuilderOption
             {
                 Output = dir,
-                ClassTemplate = "{name}TT"
+                ClassNameTemplate = "{name}TT"
             };
 
             // 测试Built.tt

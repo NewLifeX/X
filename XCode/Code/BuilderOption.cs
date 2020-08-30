@@ -20,10 +20,13 @@ namespace XCode.Code
         public Boolean Interface { get; set; }
 
         /// <summary>类名模板。其中{name}替换为Table.Name，如{name}Model/I{name}Dto等</summary>
-        public String ClassTemplate { get; set; }
+        public String ClassNameTemplate { get; set; }
 
         /// <summary>基类。可能包含基类和接口，其中{name}替换为Table.Name</summary>
         public String BaseClass { get; set; }
+
+        /// <summary>显示名模板。其中{displayName}替换为Table.DisplayName</summary>
+        public String DisplayNameTemplate { get; set; }
 
         /// <summary>是否分部类</summary>
         public Boolean Partial { get; set; }
