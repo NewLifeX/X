@@ -150,29 +150,105 @@ q9UU8I5mEovUf86QZ7kOBIjJwqnzD1omageEHWwHdBO6B+dFabmdT9POxg==
         [Fact]
         public void TestPublicPem()
         {
-            var p = ECDsaHelper.ReadPem(pubKey);
-            var rsa = new ECDsaCng();
-            //rsa.ImportParameters(p);
+            var pem = ECDsaHelper.ReadPem(pubKey);
 
-            var key = rsa.ToXmlString(false);
-            Assert.Equal("<RSAKeyValue><Modulus>6bA6/luOWhRyJL6LWWhiv0x5RRabmX1LYIYVpBwJtx+8ry+NieMR606+iHlAwpeHinuqoiIL2EjaC97uEhERjnmJldRfnKHLvSDBpzaInG4dc1VunvP4hk98WmEIsyaFblgP0wv83XbNooQiXxwwQ7KLjgl3nD2qclghkDbB+bE=</Modulus><Exponent>AQAB</Exponent></RSAKeyValue>", key);
+            var p = new ECParameters
+            {
+                Curve = ECCurve.CreateFromFriendlyName("ECDSA_P256"),
+                Q = new ECPoint
+                {
+                    X = pem.ReadBytes(0, 32),
+                    Y = pem.ReadBytes(32, 32),
+                }
+            };
 
-            //var rs = rsa.VerifyData("NewLife".GetBytes(), MD5.Create(), "WfMouV+yZ0EmATNiFVsgMIsMzx1sS7zSKcOZ1FmSiUnkq7nB4wEKcketdakn859/pTWZ31l8XF1+GelhdNHjwjuQmsawdTW+imnn5Z1J+XzhNgxdnpJ6O1txcE8oHKCTd2bS2Yv55Mezu4Ih9BbX0JovSnFCsGMxLS6afYQqXUU=".ToBase64());
+            var ec = new ECDsaCng();
+            ec.ImportParameters(p);
+
+            var key = ec.Key.Export(CngKeyBlobFormat.EccPublicBlob).ToBase64();
+            Assert.Equal("RUNTMSAAAAARWz+jn65BtOMvdyHKcvjBeBSDZH2r1RTwjmYSi9R/zpBnuQ4EiMnCqfMPWiZqB4QdbAd0E7oH50VpuZ1P087G", key);
+
+            //var rs = ec.VerifyData("NewLife".GetBytes(), "9rW9GddDi0jjVMnbAulgqiPpXQJR3oJIz/XX9mYVI9uIMePlmW9eNbwdq34AMFa5pp31513AR2WxQ1Nz6K2aZQ==".ToBase64());
             //Assert.True(rs);
         }
 
         [Fact]
         public void TestPrivatePem()
         {
-            var p = ECDsaHelper.ReadPem(prvKey);
+            var pem = ECDsaHelper.ReadPem(prvKey);
+
+            var p = new ECParameters
+            {
+                Curve = ECCurve.CreateFromFriendlyName("ECDSA_P256"),
+                D = pem.ReadBytes(0, 32),
+                Q = new ECPoint
+                {
+                    X = pem.ReadBytes(32, 32),
+                    Y = pem.ReadBytes(64, 32),
+                }
+            };
+
             var ec = new ECDsaCng();
             ec.ImportParameters(p);
 
-            var key = ec.ToXmlString(true);
-            Assert.Equal("<RSAKeyValue><Modulus>6bA6/luOWhRyJL6LWWhiv0x5RRabmX1LYIYVpBwJtx+8ry+NieMR606+iHlAwpeHinuqoiIL2EjaC97uEhERjnmJldRfnKHLvSDBpzaInG4dc1VunvP4hk98WmEIsyaFblgP0wv83XbNooQiXxwwQ7KLjgl3nD2qclghkDbB+bE=</Modulus><Exponent>AQAB</Exponent><P>/flrxJSy1Z+nY1RPgDOeDqyG6MhwU1Jl0yJ1sw3Or4qGRXhjTeGsCrKqV0/ajqdkDEM7FNkqnmsB+vPd116J6w==</P><Q>641jeg5a/LZ9DfaaPpdX5La9wbWiwRRoS5a8SCQaon1yjrXTRCmPXnTfoBAQQOpuN2pLRKF95FLB69Mlkhqn0w==</Q><DP>J4wYMOMqucMDkJ8HRiJDgWtyEntrqj3RZ0AdbcU/ouwCHn0xkWYLoRrTFYd0s/Pyy0oIwCVU0pg9FbO1npy1Aw==</DP><DQ>vIlm3gMvgKbwYYTI4OByUXaTW8DujGyxLg9wlK2RRA3065VNjHlXb9tMQumYmN0Lav+BT2WTRnWXEhLnN5JuUQ==</DQ><InverseQ>KRpGZlnrTcAyTHFCW0ga0DBX60Dm6jDwT3voBJ4kKk7cLtTlCx5ZlIPXlt9cESNrol3BQiTB7q6OojkNVSeELA==</InverseQ><D>z8lsWzjLlZsydyuaOlCP5Ss5dU4J4uu+tz/iRD7OAK9OlbLBtoZaK5Gj5zNxetVDpsYZTfrZ72Gvx/hcVWIp6YMvhKYluBINrUrvWL78uefMXqyOIMEVD+MD1Irg9itjtrciR4FCcmaSdqfKS6DJDXGYKNu6Hnnp855E9oeeHHU=</D></RSAKeyValue>", key);
+            var key = ec.Key.Export(CngKeyBlobFormat.EccPrivateBlob).ToBase64();
+            Assert.Equal("RUNTMiAAAAARWz+jn65BtOMvdyHKcvjBeBSDZH2r1RTwjmYSi9R/zpBnuQ4EiMnCqfMPWiZqB4QdbAd0E7oH50VpuZ1P087GevZzL1gdAFr88hb2OF/2NxApJCzGCEDdfSp6VQO30hw=", key);
 
-            //var sign = rsa.SignData("NewLife".GetBytes(), MD5.Create());
-            //Assert.Equal("WfMouV+yZ0EmATNiFVsgMIsMzx1sS7zSKcOZ1FmSiUnkq7nB4wEKcketdakn859/pTWZ31l8XF1+GelhdNHjwjuQmsawdTW+imnn5Z1J+XzhNgxdnpJ6O1txcE8oHKCTd2bS2Yv55Mezu4Ih9BbX0JovSnFCsGMxLS6afYQqXUU=", sign.ToBase64());
+            //var sign = ec.SignData("NewLife".GetBytes());
+            //Assert.Equal("9rW9GddDi0jjVMnbAulgqiPpXQJR3oJIz/XX9mYVI9uIMePlmW9eNbwdq34AMFa5pp31513AR2WxQ1Nz6K2aZQ==", sign.ToBase64());
+        }
+
+        [Fact]
+        public void SignAndVerifyWithPem()
+        {
+            var data = "NewLife".GetBytes();
+            Byte[] sign;
+
+            {
+                var pem = ECDsaHelper.ReadPem(prvKey);
+
+                var p = new ECParameters
+                {
+                    Curve = ECCurve.CreateFromFriendlyName("ECDSA_P256"),
+                    D = pem.ReadBytes(0, 32),
+                    Q = new ECPoint
+                    {
+                        X = pem.ReadBytes(32, 32),
+                        Y = pem.ReadBytes(64, 32),
+                    }
+                };
+
+                var ec = new ECDsaCng();
+                ec.ImportParameters(p);
+
+                var key = ec.Key.Export(CngKeyBlobFormat.EccPrivateBlob).ToBase64();
+                Assert.Equal("RUNTMiAAAAARWz+jn65BtOMvdyHKcvjBeBSDZH2r1RTwjmYSi9R/zpBnuQ4EiMnCqfMPWiZqB4QdbAd0E7oH50VpuZ1P087GevZzL1gdAFr88hb2OF/2NxApJCzGCEDdfSp6VQO30hw=", key);
+
+                sign = ec.SignData(data);
+            }
+
+            {
+                var pem = ECDsaHelper.ReadPem(pubKey);
+
+                var p = new ECParameters
+                {
+                    Curve = ECCurve.CreateFromFriendlyName("ECDSA_P256"),
+                    Q = new ECPoint
+                    {
+                        X = pem.ReadBytes(0, 32),
+                        Y = pem.ReadBytes(32, 32),
+                    }
+                };
+
+                var ec = new ECDsaCng();
+                ec.ImportParameters(p);
+
+                var key = ec.Key.Export(CngKeyBlobFormat.EccPublicBlob).ToBase64();
+                Assert.Equal("RUNTMSAAAAARWz+jn65BtOMvdyHKcvjBeBSDZH2r1RTwjmYSi9R/zpBnuQ4EiMnCqfMPWiZqB4QdbAd0E7oH50VpuZ1P087G", key);
+
+                var rs = ec.VerifyData(data, sign);
+                Assert.True(rs);
+            }
         }
     }
 }

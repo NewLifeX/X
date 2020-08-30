@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 
@@ -153,7 +154,7 @@ namespace NewLife.Security
         /// <summary>读取PEM文件到RSA参数</summary>
         /// <param name="content"></param>
         /// <returns></returns>
-        public static RSAParameters ReadPem(String content)
+        public static Byte[] ReadPem(String content)
         {
             if (String.IsNullOrEmpty(content)) throw new ArgumentNullException(nameof(content));
 
@@ -169,26 +170,31 @@ namespace NewLife.Security
 
                 var data = Convert.FromBase64String(content2);
 
+                // PrivateKeyInfo: version + Algorithm(algorithm + parameters) + privateKey
                 var asn = Asn1.Read(data);
                 var keys = asn.Value as Asn1[];
 
-                // 可能直接key，也可能有Oid包装
+                // Algorithm(algorithm + parameters)
                 var oids = asn.GetOids();
-                if (oids.Any(e => e.FriendlyName == "ECC" || e.FriendlyName == "ECDSA_P256"))
-                    keys = Asn1.Read(keys.FirstOrDefault(e => e.Tag == Asn1Tags.OctetString).Value as Byte[]).Value as Asn1[];
+                var algorithm = oids[0];
+                var parameters = oids[1];
+
+                if (algorithm.FriendlyName != "ECC") throw new InvalidDataException($"Invalid key {algorithm}");
+
+                keys = Asn1.Read(keys[2].Value as Byte[]).Value as Asn1[];
+                var k2 = Asn1.Read(keys[2].Value as Byte[]);
 
                 // 参数数据
-                return new RSAParameters
-                {
-                    Modulus = keys[1].GetByteArray(true),
-                    Exponent = keys[2].GetByteArray(false),
-                    D = keys[3].GetByteArray(true),
-                    P = keys[4].GetByteArray(true),
-                    Q = keys[5].GetByteArray(true),
-                    DP = keys[6].GetByteArray(true),
-                    DQ = keys[7].GetByteArray(true),
-                    InverseQ = keys[8].GetByteArray(true)
-                };
+                //return new ECParameters
+                //{
+                //    Curve = ECCurve.CreateFromOid(parameters),
+                //    D = keys[1].Value as Byte[],
+                //};
+                var buf = new Byte[32 * 3];
+                buf.Write(0, keys[1].Value as Byte[]);
+                buf.Write(32, k2.Value as Byte[], 1, -1);
+
+                return buf;
             }
             else
             {
@@ -201,17 +207,21 @@ namespace NewLife.Security
                 var asn = Asn1.Read(data);
                 var keys = asn.Value as Asn1[];
 
-                // 可能直接key，也可能有Oid包装
+                // Algorithm(algorithm + parameters)
                 var oids = asn.GetOids();
-                if (oids.Any(e => e.FriendlyName == "ECC" || e.FriendlyName == "ECDSA_P256"))
-                    asn = Asn1.Read(keys.FirstOrDefault(e => e.Tag == Asn1Tags.BitString).Value as Byte[]);
+                var algorithm = oids[0];
+                var parameters = oids[1];
+
+                if (algorithm.FriendlyName != "ECC") throw new InvalidDataException($"Invalid key {algorithm}");
 
                 // 参数数据
-                return new RSAParameters
-                {
-                    Modulus = keys[0].GetByteArray(true),
-                    Exponent = keys[1].GetByteArray(false),
-                };
+                //return new ECParameters
+                //{
+                //    D = keys[1].Value as Byte[],
+                //};
+                var buf = keys[1].Value as Byte[];
+
+                return buf.ReadBytes(1);
             }
         }
         #endregion

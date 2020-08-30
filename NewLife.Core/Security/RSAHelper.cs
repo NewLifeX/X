@@ -190,13 +190,14 @@ namespace NewLife.Security
 
                 var data = Convert.FromBase64String(content2);
 
+                // PrivateKeyInfo: version + Algorithm(algorithm + parameters) + privateKey
                 var asn = Asn1.Read(data);
                 var keys = asn.Value as Asn1[];
 
                 // 可能直接key，也可能有Oid包装
                 var oids = asn.GetOids();
                 if (oids.Any(e => e.FriendlyName == "RSA"))
-                    keys = Asn1.Read(keys.FirstOrDefault(e => e.Tag == Asn1Tags.OctetString).Value as Byte[]).Value as Asn1[];
+                    keys = Asn1.Read(keys[2].Value as Byte[]).Value as Asn1[];
 
                 // 参数数据
                 return new RSAParameters
