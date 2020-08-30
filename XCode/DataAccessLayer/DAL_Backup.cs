@@ -364,7 +364,7 @@ namespace XCode.DataAccessLayer
             foreach (var item in tables)
             {
                 var entry = zip.GetEntry(item.Name + ".table");
-                if (entry != null)
+                if (entry != null && entry.Length > 0)
                 {
                     using var ms = entry.Open();
                     Restore(ms, item);
