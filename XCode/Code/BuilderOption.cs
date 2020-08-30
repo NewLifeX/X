@@ -28,6 +28,9 @@ namespace XCode.Code
         /// <summary>是否分部类</summary>
         public Boolean Partial { get; set; }
 
+        /// <summary>可扩展。实现IExtend接口</summary>
+        public Boolean Extend { get; set; }
+
         /// <summary>输出目录</summary>
         public String Output { get; set; }
 

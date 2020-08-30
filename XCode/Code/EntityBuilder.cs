@@ -153,12 +153,45 @@ namespace XCode.Code
 
         #region 基础
         /// <summary>执行生成</summary>
-        public override void Execute()
+        protected override void OnExecuting()
         {
             // 增加常用命名空间
             AddNameSpace();
 
-            base.Execute();
+            base.OnExecuting();
+        }
+
+        /// <summary>增加常用命名空间</summary>
+        protected virtual void AddNameSpace()
+        {
+            var us = Option.Usings;
+
+            us.Add("XCode");
+            us.Add("XCode.Configuration");
+            us.Add("XCode.DataAccessLayer");
+
+            if (Business && !Option.Pure)
+            {
+                us.Add("System.IO");
+                us.Add("System.Linq");
+                us.Add("System.Reflection");
+                us.Add("System.Text");
+                us.Add("System.Threading.Tasks");
+                us.Add("System.Web");
+                us.Add("System.Web.Script.Serialization");
+                us.Add("System.Xml.Serialization");
+                us.Add("System.Runtime.Serialization");
+
+                us.Add("NewLife");
+                us.Add("NewLife.Data");
+                us.Add("NewLife.Model");
+                us.Add("NewLife.Log");
+                us.Add("NewLife.Reflection");
+                us.Add("NewLife.Threading");
+                us.Add("NewLife.Web");
+                us.Add("XCode.Cache");
+                us.Add("XCode.Membership");
+            }
         }
 
         /// <summary>获取基类</summary>
@@ -207,39 +240,6 @@ namespace XCode.Code
             if (!Option.Namespace.IsNullOrEmpty())
             {
                 Writer.Write("}");
-            }
-        }
-
-        /// <summary>增加常用命名空间</summary>
-        protected virtual void AddNameSpace()
-        {
-            var us = Option.Usings;
-
-            us.Add("XCode");
-            us.Add("XCode.Configuration");
-            us.Add("XCode.DataAccessLayer");
-
-            if (Business && !Option.Pure)
-            {
-                us.Add("System.IO");
-                us.Add("System.Linq");
-                us.Add("System.Reflection");
-                us.Add("System.Text");
-                us.Add("System.Threading.Tasks");
-                us.Add("System.Web");
-                us.Add("System.Web.Script.Serialization");
-                us.Add("System.Xml.Serialization");
-                us.Add("System.Runtime.Serialization");
-
-                us.Add("NewLife");
-                us.Add("NewLife.Data");
-                us.Add("NewLife.Model");
-                us.Add("NewLife.Log");
-                us.Add("NewLife.Reflection");
-                us.Add("NewLife.Threading");
-                us.Add("NewLife.Web");
-                us.Add("XCode.Cache");
-                us.Add("XCode.Membership");
             }
         }
         #endregion
@@ -320,14 +320,14 @@ namespace XCode.Code
                 base.BuildItems();
 
                 WriteLine();
-                BuildIndex();
+                BuildExtend();
 
                 WriteLine();
                 BuildFieldName();
             }
         }
 
-        private void BuildIndex()
+        private void BuildExtend()
         {
             WriteLine("#region 获取/设置 字段值");
             WriteLine("/// <summary>获取/设置 字段值</summary>");

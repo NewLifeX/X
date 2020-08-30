@@ -113,6 +113,32 @@ namespace XUnitTest.XCode.Code
         }
 
         [Fact]
+        public void Extend()
+        {
+            var option = new BuilderOption
+            {
+                Pure = true,
+                Extend = true,
+                BaseClass = "Object",
+                ClassTemplate = "Extend{name}",
+            };
+
+            var builder = new ClassBuilder
+            {
+                Table = _table,
+                Option = option,
+            };
+
+            builder.Execute();
+
+            var rs = builder.ToString();
+            Assert.NotEmpty(rs);
+
+            var target = File.ReadAllText("Code\\class_user_extend.cs".GetFullPath());
+            Assert.Equal(target, rs);
+        }
+
+        [Fact]
         public void Save()
         {
             var builder = new ClassBuilder

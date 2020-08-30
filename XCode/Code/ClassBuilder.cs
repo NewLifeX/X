@@ -5,6 +5,7 @@ using System.Linq;
 using NewLife;
 using NewLife.Collections;
 using NewLife.Log;
+using NewLife.Reflection;
 using XCode.DataAccessLayer;
 
 namespace XCode.Code
@@ -152,7 +153,10 @@ namespace XCode.Code
         protected virtual void OnExecuting()
         {
             // 引用命名空间
-            var us = Option.Usings.Distinct().OrderBy(e => e.StartsWith("System") ? 0 : 1).ThenBy(e => e).ToArray();
+            var us = Option.Usings;
+            if (Option.Extend && !us.Contains("NewLife.Data")) us.Add("NewLife.Data");
+
+            us = us.Distinct().OrderBy(e => e.StartsWith("System") ? 0 : 1).ThenBy(e => e).ToArray();
             foreach (var item in us)
             {
                 WriteLine("using {0};", item);
@@ -189,10 +193,6 @@ namespace XCode.Code
                 WriteLine("public{2} class {0}{1}", ClassName, baseClass, partialClass);
             WriteLine("{");
         }
-
-        ///// <summary>获取类名</summary>
-        ///// <returns></returns>
-        //protected virtual String GetClassName() => Interface ? ("I" + Table.Name) : Table.Name;
 
         /// <summary>获取基类</summary>
         /// <returns></returns>
@@ -236,6 +236,12 @@ namespace XCode.Code
                 BuildItem(Table.Columns[i]);
             }
             WriteLine("#endregion");
+
+            if (Option.Extend)
+            {
+                WriteLine();
+                BuildExtend();
+            }
         }
 
         /// <summary>生成每一项</summary>
@@ -262,6 +268,100 @@ namespace XCode.Code
                 WriteLine("{0} {1} {{ get; set; }}", type, dc.Name);
             else
                 WriteLine("public {0} {1} {{ get; set; }}", type, dc.Name);
+        }
+
+        private void BuildExtend()
+        {
+            WriteLine("#region 获取/设置 字段值");
+            WriteLine("/// <summary>获取/设置 字段值</summary>");
+            WriteLine("/// <param name=\"name\">字段名</param>");
+            WriteLine("/// <returns></returns>");
+            WriteLine("public virtual Object this[String name]");
+            WriteLine("{");
+
+            // get
+            WriteLine("get");
+            WriteLine("{");
+            {
+                WriteLine("switch (name)");
+                WriteLine("{");
+                foreach (var dc in Table.Columns)
+                {
+                    WriteLine("case \"{0}\": return {0};", dc.Name);
+                }
+                WriteLine("default: throw new KeyNotFoundException($\"{name} not found\");");
+                WriteLine("}");
+            }
+            WriteLine("}");
+
+            // set
+            WriteLine("set");
+            WriteLine("{");
+            {
+                WriteLine("switch (name)");
+                WriteLine("{");
+                var conv = typeof(Convert);
+                foreach (var dc in Table.Columns)
+                {
+                    var type = dc.Properties["Type"];
+                    if (type.IsNullOrEmpty()) type = dc.DataType?.Name;
+
+                    if (!type.IsNullOrEmpty())
+                    {
+                        if (!type.Contains("."))
+                        {
+
+                        }
+                        if (!type.Contains(".") && conv.GetMethod("To" + type, new Type[] { typeof(Object) }) != null)
+                        {
+                            switch (type)
+                            {
+                                case "Int32":
+                                    WriteLine("case \"{0}\": {0} = value.ToInt(); break;", dc.Name);
+                                    break;
+                                case "Int64":
+                                    WriteLine("case \"{0}\": {0} = value.ToLong(); break;", dc.Name);
+                                    break;
+                                case "Double":
+                                    WriteLine("case \"{0}\": {0} = value.ToDouble(); break;", dc.Name);
+                                    break;
+                                case "Boolean":
+                                    WriteLine("case \"{0}\": {0} = value.ToBoolean(); break;", dc.Name);
+                                    break;
+                                case "DateTime":
+                                    WriteLine("case \"{0}\": {0} = value.ToDateTime(); break;", dc.Name);
+                                    break;
+                                default:
+                                    WriteLine("case \"{0}\": {0} = Convert.To{1}(value); break;", dc.Name, type);
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            try
+                            {
+                                // 特殊支持枚举
+                                var type2 = type.GetTypeEx(false);
+                                if (type2 != null && type2.IsEnum)
+                                    WriteLine("case \"{0}\": {0} = ({1})value.ToInt(); break;", dc.Name, type);
+                                else
+                                    WriteLine("case \"{0}\": {0} = ({1})value; break;", dc.Name, type);
+                            }
+                            catch (Exception ex)
+                            {
+                                XTrace.WriteException(ex);
+                                WriteLine("case \"{0}\": {0} = ({1})value; break;", dc.Name, type);
+                            }
+                        }
+                    }
+                }
+                WriteLine("default: throw new KeyNotFoundException($\"{name} not found\");");
+                WriteLine("}");
+            }
+            WriteLine("}");
+
+            WriteLine("}");
+            WriteLine("#endregion");
         }
         #endregion
 
