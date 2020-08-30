@@ -66,7 +66,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             var db = dal.Db;
             var connstr = db.ConnectionString;
             Assert.Equal("sys", db.DatabaseName);
-            Assert.EndsWith(";Port=3306;Database=sys;Uid=root;Pwd=Pass@word;CharSet=utf8mb4;Sslmode=none;AllowPublicKeyRetrieval=true", connstr);
+            Assert.EndsWith(";Port=3306;Database=sys;Uid=root;Pwd=root;CharSet=utf8mb4;Sslmode=none;AllowPublicKeyRetrieval=true", connstr);
 
             var ver = db.ServerVersion;
             Assert.NotEmpty(ver);
@@ -78,6 +78,9 @@ namespace XUnitTest.XCode.DataAccessLayer
             var connStr = _ConnStr.Replace("Database=sys;", "Database=Membership;");
             DAL.AddConnStr("MySql_Meta", connStr, null, "MySql");
             var dal = DAL.Create("MySql_Meta");
+
+            // 反向工程
+            dal.SetTables(User.Meta.Table.DataTable);
 
             var tables = dal.Tables;
             Assert.NotNull(tables);
