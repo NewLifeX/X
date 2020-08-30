@@ -93,7 +93,7 @@ namespace XUnitTest.XCode.Code
             var option = new BuilderOption
             {
                 Interface = true,
-                BaseClass = "IAuthUser",
+                BaseClass = "NewLife.Data.IExtend",
                 ClassNameTemplate = "Ixx{name}",
             };
 
@@ -119,7 +119,7 @@ namespace XUnitTest.XCode.Code
             {
                 Pure = true,
                 Extend = true,
-                BaseClass = "Object",
+                BaseClass = "Object, Ixx{name}",
                 ClassNameTemplate = "Extend{name}",
             };
 

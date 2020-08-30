@@ -9,7 +9,7 @@ using NewLife.Data;
 namespace XCode.Code
 {
     /// <summary>用户。用户帐号信息</summary>
-    public class ExtendUser : Object, IExtend
+    public class ExtendUser : Object, IxxUser, IExtend
     {
         #region 属性
         /// <summary>编号</summary>

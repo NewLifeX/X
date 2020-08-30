@@ -8,7 +8,7 @@ using System.Xml.Serialization;
 namespace XCode.Code
 {
     /// <summary>用户。用户帐号信息</summary>
-    public interface IxxUser : IAuthUser
+    public interface IxxUser : NewLife.Data.IExtend
     {
         #region 属性
         /// <summary>编号</summary>

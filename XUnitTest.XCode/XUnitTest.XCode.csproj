@@ -6,7 +6,6 @@
   <ItemGroup>
     <Compile Remove="Code\BuildTT\UserTT.cs" />
     <Compile Remove="Code\class_user_baseclass.cs" />
-    <Compile Remove="Code\class_user_interface.cs" />
     <Compile Remove="Code\class_user_normal.cs" />
     <Compile Remove="Code\class_user_pure.cs" />
     <Compile Remove="Code\class_user_save.cs" />
@@ -42,9 +41,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Code\class_user_baseclass.cs">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Code\class_user_interface.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Code\class_user_save.cs">
@@ -107,6 +103,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
     <Compile Update="Code\class_user_extend.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Code\class_user_interface.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
   </ItemGroup>
