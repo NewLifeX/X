@@ -26,8 +26,9 @@ namespace NewLife.Security
 
         /// <summary>创建ECDsa对象，支持Base64密钥和Pem密钥</summary>
         /// <param name="key"></param>
+        /// <param name="privateKey"></param>
         /// <returns></returns>
-        public static ECDsaCng Create(String key)
+        public static ECDsaCng Create(String key, Boolean? privateKey = null)
         {
             key = key?.Trim();
             if (key.IsNullOrEmpty()) return null;
@@ -53,7 +54,10 @@ namespace NewLife.Security
             else
             {
                 var buf = key.ToBase64();
-                var ckey = CngKey.Import(buf, buf.Length < 100 ? CngKeyBlobFormat.EccPublicBlob : CngKeyBlobFormat.EccPrivateBlob);
+                var ckey =
+                    privateKey != null ?
+                    CngKey.Import(buf, !privateKey.Value ? CngKeyBlobFormat.EccPublicBlob : CngKeyBlobFormat.EccPrivateBlob) :
+                    CngKey.Import(buf, buf.Length < 100 ? CngKeyBlobFormat.EccPublicBlob : CngKeyBlobFormat.EccPrivateBlob);
 
                 return new ECDsaCng(ckey);
             }
@@ -67,8 +71,8 @@ namespace NewLife.Security
         /// <returns></returns>
         public static Byte[] Sign(Byte[] data, String priKey)
         {
-            var key = CngKey.Import(priKey.ToBase64(), CngKeyBlobFormat.EccPrivateBlob);
-            var ecc = new ECDsaCng(key) { HashAlgorithm = CngAlgorithm.MD5 };
+            var ecc = Create(priKey, true);
+            ecc.HashAlgorithm = CngAlgorithm.MD5;
 
             return ecc.SignData(data);
         }
@@ -80,8 +84,8 @@ namespace NewLife.Security
         /// <returns></returns>
         public static Boolean Verify(Byte[] data, String pukKey, Byte[] rgbSignature)
         {
-            var key = CngKey.Import(pukKey.ToBase64(), CngKeyBlobFormat.EccPublicBlob);
-            var ecc = new ECDsaCng(key) { HashAlgorithm = CngAlgorithm.MD5 };
+            var ecc = Create(pukKey, false);
+            ecc.HashAlgorithm = CngAlgorithm.MD5;
 
             return ecc.VerifyData(data, rgbSignature);
         }
@@ -92,8 +96,8 @@ namespace NewLife.Security
         /// <returns></returns>
         public static Byte[] SignSha256(this Byte[] data, String priKey)
         {
-            var key = CngKey.Import(priKey.ToBase64(), CngKeyBlobFormat.EccPrivateBlob);
-            var ecc = new ECDsaCng(key) { HashAlgorithm = CngAlgorithm.Sha256 };
+            var ecc = Create(priKey, true);
+            ecc.HashAlgorithm = CngAlgorithm.Sha256;
 
             return ecc.SignData(data);
         }
@@ -105,8 +109,8 @@ namespace NewLife.Security
         /// <returns></returns>
         public static Boolean VerifySha256(this Byte[] data, String pukKey, Byte[] rgbSignature)
         {
-            var key = CngKey.Import(pukKey.ToBase64(), CngKeyBlobFormat.EccPublicBlob);
-            var ecc = new ECDsaCng(key) { HashAlgorithm = CngAlgorithm.Sha256 };
+            var ecc = Create(pukKey, false);
+            ecc.HashAlgorithm = CngAlgorithm.Sha256;
 
             return ecc.VerifyData(data, rgbSignature);
         }
@@ -117,8 +121,8 @@ namespace NewLife.Security
         /// <returns></returns>
         public static Byte[] SignSha384(this Byte[] data, String priKey)
         {
-            var key = CngKey.Import(priKey.ToBase64(), CngKeyBlobFormat.EccPrivateBlob);
-            var ecc = new ECDsaCng(key) { HashAlgorithm = CngAlgorithm.Sha384 };
+            var ecc = Create(priKey, true);
+            ecc.HashAlgorithm = CngAlgorithm.Sha384;
 
             return ecc.SignData(data);
         }
@@ -130,8 +134,8 @@ namespace NewLife.Security
         /// <returns></returns>
         public static Boolean VerifySha384(this Byte[] data, String pukKey, Byte[] rgbSignature)
         {
-            var key = CngKey.Import(pukKey.ToBase64(), CngKeyBlobFormat.EccPublicBlob);
-            var ecc = new ECDsaCng(key) { HashAlgorithm = CngAlgorithm.Sha384 };
+            var ecc = Create(pukKey, false);
+            ecc.HashAlgorithm = CngAlgorithm.Sha384;
 
             return ecc.VerifyData(data, rgbSignature);
         }
@@ -142,8 +146,8 @@ namespace NewLife.Security
         /// <returns></returns>
         public static Byte[] SignSha512(this Byte[] data, String priKey)
         {
-            var key = CngKey.Import(priKey.ToBase64(), CngKeyBlobFormat.EccPrivateBlob);
-            var ecc = new ECDsaCng(key) { HashAlgorithm = CngAlgorithm.Sha512 };
+            var ecc = Create(priKey, true);
+            ecc.HashAlgorithm = CngAlgorithm.Sha512;
 
             return ecc.SignData(data);
         }
@@ -155,8 +159,8 @@ namespace NewLife.Security
         /// <returns></returns>
         public static Boolean VerifySha512(this Byte[] data, String pukKey, Byte[] rgbSignature)
         {
-            var key = CngKey.Import(pukKey.ToBase64(), CngKeyBlobFormat.EccPublicBlob);
-            var ecc = new ECDsaCng(key) { HashAlgorithm = CngAlgorithm.Sha512 };
+            var ecc = Create(pukKey, false);
+            ecc.HashAlgorithm = CngAlgorithm.Sha512;
 
             return ecc.VerifyData(data, rgbSignature);
         }

@@ -1,7 +1,6 @@
 ﻿using System;
 using NewLife.Web;
 using Xunit;
-using NewLife;
 
 namespace XUnitTest.Web
 {
@@ -355,8 +354,15 @@ MwIDAQAB
         [Fact]
         public void ES256()
         {
-            var prvKey = @"RUNTMiAAAAAoECDSEE7PqKvRx+FXWXhpTXIm/ZquCKDa6UXA9+PMQRugM35vcgKAXR2pelQ2SqYjOFktBMm84x194VyepthORPQDRkEIcGIonNbCtCg+Y62sV9prPsXACNS//2huX38=";
-            var pubKey = @"RUNTMSAAAAAoECDSEE7PqKvRx+FXWXhpTXIm/ZquCKDa6UXA9+PMQRugM35vcgKAXR2pelQ2SqYjOFktBMm84x194VyepthO";
+            var prvKey = @"-----BEGIN PRIVATE KEY-----
+MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgevZzL1gdAFr88hb2
+OF/2NxApJCzGCEDdfSp6VQO30hyhRANCAAQRWz+jn65BtOMvdyHKcvjBeBSDZH2r
+1RTwjmYSi9R/zpBnuQ4EiMnCqfMPWiZqB4QdbAd0E7oH50VpuZ1P087G
+-----END PRIVATE KEY-----";
+            var pubKey = @"-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEEVs/o5+uQbTjL3chynL4wXgUg2R9
+q9UU8I5mEovUf86QZ7kOBIjJwqnzD1omageEHWwHdBO6B+dFabmdT9POxg==
+-----END PUBLIC KEY-----";
 
             var builder = new JwtBuilder
             {
@@ -439,8 +445,15 @@ MwIDAQAB
         [Fact]
         public void ES512()
         {
-            var prvKey = @"RUNTMiAAAAAoECDSEE7PqKvRx+FXWXhpTXIm/ZquCKDa6UXA9+PMQRugM35vcgKAXR2pelQ2SqYjOFktBMm84x194VyepthORPQDRkEIcGIonNbCtCg+Y62sV9prPsXACNS//2huX38=";
-            var pubKey = @"RUNTMSAAAAAoECDSEE7PqKvRx+FXWXhpTXIm/ZquCKDa6UXA9+PMQRugM35vcgKAXR2pelQ2SqYjOFktBMm84x194VyepthO";
+            var prvKey = @"-----BEGIN PRIVATE KEY-----
+MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgevZzL1gdAFr88hb2
+OF/2NxApJCzGCEDdfSp6VQO30hyhRANCAAQRWz+jn65BtOMvdyHKcvjBeBSDZH2r
+1RTwjmYSi9R/zpBnuQ4EiMnCqfMPWiZqB4QdbAd0E7oH50VpuZ1P087G
+-----END PRIVATE KEY-----";
+            var pubKey = @"-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEEVs/o5+uQbTjL3chynL4wXgUg2R9
+q9UU8I5mEovUf86QZ7kOBIjJwqnzD1omageEHWwHdBO6B+dFabmdT9POxg==
+-----END PUBLIC KEY-----";
 
             var builder = new JwtBuilder
             {
