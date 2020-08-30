@@ -29,7 +29,7 @@ namespace NewLife.Security
             {
                 case Asn1Tags.Boolean:
                     break;
-                case Asn1Tags.Integer: return "0x" + (Value as Byte[]).ToHex(0, 32);
+                case Asn1Tags.Integer: return "#" + (Value as Byte[]).ToHex(0, 32);
                 case Asn1Tags.BitString:
                 case Asn1Tags.OctetString: return (Value as Byte[]).ToHex(0, 32);
                 case Asn1Tags.Null: return "Null";
