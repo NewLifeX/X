@@ -96,6 +96,10 @@ namespace XUnitTest.XCode.Code
                 BaseClass = "NewLife.Data.IExtend",
                 ClassNameTemplate = "Ixx{name}",
             };
+            option.Excludes.Add("UpdateUser");
+            option.Excludes.Add("UpdateUserID");
+            option.Excludes.Add("UpdateIP");
+            option.Excludes.Add("UpdateTime");
 
             var builder = new ClassBuilder
             {
@@ -149,6 +153,10 @@ namespace XUnitTest.XCode.Code
                 ClassNameTemplate = "Extend{name}2",
                 DisplayNameTemplate = "{displayName}模型",
             };
+            option.Excludes.Add("UpdateUser");
+            option.Excludes.Add("UpdateUserID");
+            option.Excludes.Add("UpdateIP");
+            option.Excludes.Add("UpdateTime");
 
             var builder = new ClassBuilder
             {

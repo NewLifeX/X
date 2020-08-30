@@ -102,6 +102,10 @@ namespace XCode.Code
             var count = 0;
             foreach (var item in tables)
             {
+                // 跳过排除项
+                if (option.Excludes.Contains(item.Name)) continue;
+                if (option.Excludes.Contains(item.TableName)) continue;
+
                 var builder = new EntityBuilder
                 {
                     AllTables = tables,
@@ -337,21 +341,23 @@ namespace XCode.Code
             WriteLine("{");
 
             // get
+            WriteLine("get");
+            WriteLine("{");
             {
-                WriteLine("get");
+                WriteLine("switch (name)");
                 WriteLine("{");
+                foreach (var column in Table.Columns)
                 {
-                    WriteLine("switch (name)");
-                    WriteLine("{");
-                    foreach (var dc in Table.Columns)
-                    {
-                        WriteLine("case \"{0}\": return _{0};", dc.Name);
-                    }
-                    WriteLine("default: return base[name];");
-                    WriteLine("}");
+                    // 跳过排除项
+                    if (Option.Excludes.Contains(column.Name)) continue;
+                    if (Option.Excludes.Contains(column.ColumnName)) continue;
+
+                    WriteLine("case \"{0}\": return _{0};", column.Name);
                 }
+                WriteLine("default: return base[name];");
                 WriteLine("}");
             }
+            WriteLine("}");
 
             // set
             WriteLine("set");
@@ -360,10 +366,14 @@ namespace XCode.Code
                 WriteLine("switch (name)");
                 WriteLine("{");
                 var conv = typeof(Convert);
-                foreach (var dc in Table.Columns)
+                foreach (var column in Table.Columns)
                 {
-                    var type = dc.Properties["Type"];
-                    if (type.IsNullOrEmpty()) type = dc.DataType?.Name;
+                    // 跳过排除项
+                    if (Option.Excludes.Contains(column.Name)) continue;
+                    if (Option.Excludes.Contains(column.ColumnName)) continue;
+
+                    var type = column.Properties["Type"];
+                    if (type.IsNullOrEmpty()) type = column.DataType?.Name;
 
                     if (!type.IsNullOrEmpty())
                     {
@@ -376,22 +386,22 @@ namespace XCode.Code
                             switch (type)
                             {
                                 case "Int32":
-                                    WriteLine("case \"{0}\": _{0} = value.ToInt(); break;", dc.Name);
+                                    WriteLine("case \"{0}\": _{0} = value.ToInt(); break;", column.Name);
                                     break;
                                 case "Int64":
-                                    WriteLine("case \"{0}\": _{0} = value.ToLong(); break;", dc.Name);
+                                    WriteLine("case \"{0}\": _{0} = value.ToLong(); break;", column.Name);
                                     break;
                                 case "Double":
-                                    WriteLine("case \"{0}\": _{0} = value.ToDouble(); break;", dc.Name);
+                                    WriteLine("case \"{0}\": _{0} = value.ToDouble(); break;", column.Name);
                                     break;
                                 case "Boolean":
-                                    WriteLine("case \"{0}\": _{0} = value.ToBoolean(); break;", dc.Name);
+                                    WriteLine("case \"{0}\": _{0} = value.ToBoolean(); break;", column.Name);
                                     break;
                                 case "DateTime":
-                                    WriteLine("case \"{0}\": _{0} = value.ToDateTime(); break;", dc.Name);
+                                    WriteLine("case \"{0}\": _{0} = value.ToDateTime(); break;", column.Name);
                                     break;
                                 default:
-                                    WriteLine("case \"{0}\": _{0} = Convert.To{1}(value); break;", dc.Name, type);
+                                    WriteLine("case \"{0}\": _{0} = Convert.To{1}(value); break;", column.Name, type);
                                     break;
                             }
                         }
@@ -402,14 +412,14 @@ namespace XCode.Code
                                 // 特殊支持枚举
                                 var type2 = type.GetTypeEx(false);
                                 if (type2 != null && type2.IsEnum)
-                                    WriteLine("case \"{0}\": _{0} = ({1})value.ToInt(); break;", dc.Name, type);
+                                    WriteLine("case \"{0}\": _{0} = ({1})value.ToInt(); break;", column.Name, type);
                                 else
-                                    WriteLine("case \"{0}\": _{0} = ({1})value; break;", dc.Name, type);
+                                    WriteLine("case \"{0}\": _{0} = ({1})value; break;", column.Name, type);
                             }
                             catch (Exception ex)
                             {
                                 XTrace.WriteException(ex);
-                                WriteLine("case \"{0}\": _{0} = ({1})value; break;", dc.Name, type);
+                                WriteLine("case \"{0}\": _{0} = ({1})value; break;", column.Name, type);
                             }
                         }
                     }
@@ -430,10 +440,14 @@ namespace XCode.Code
             WriteLine("/// <summary>取得{0}字段信息的快捷方式</summary>", Table.DisplayName);
             WriteLine("public partial class _");
             WriteLine("{");
-            foreach (var dc in Table.Columns)
+            foreach (var column in Table.Columns)
             {
-                WriteLine("/// <summary>{0}</summary>", dc.Description);
-                WriteLine("public static readonly Field {0} = FindByName(\"{0}\");", dc.Name);
+                // 跳过排除项
+                if (Option.Excludes.Contains(column.Name)) continue;
+                if (Option.Excludes.Contains(column.ColumnName)) continue;
+
+                WriteLine("/// <summary>{0}</summary>", column.Description);
+                WriteLine("public static readonly Field {0} = FindByName(\"{0}\");", column.Name);
                 WriteLine();
             }
             WriteLine("static Field FindByName(String name) => Meta.Table.FindByName(name);");
@@ -445,10 +459,14 @@ namespace XCode.Code
             WriteLine("public partial class __");
             WriteLine("{");
             var k = Table.Columns.Count;
-            foreach (var dc in Table.Columns)
+            foreach (var column in Table.Columns)
             {
-                WriteLine("/// <summary>{0}</summary>", dc.Description);
-                WriteLine("public const String {0} = \"{0}\";", dc.Name);
+                // 跳过排除项
+                if (Option.Excludes.Contains(column.Name)) continue;
+                if (Option.Excludes.Contains(column.ColumnName)) continue;
+
+                WriteLine("/// <summary>{0}</summary>", column.Description);
+                WriteLine("public const String {0} = \"{0}\";", column.Name);
                 if (--k > 0) WriteLine();
             }
             WriteLine("}");
@@ -465,13 +483,17 @@ namespace XCode.Code
 
             WriteLine("#region 属性");
             var k = Table.Columns.Count;
-            foreach (var dc in Table.Columns)
+            foreach (var column in Table.Columns)
             {
-                var type = dc.Properties["Type"];
-                if (type.IsNullOrEmpty()) type = dc.DataType?.Name;
+                // 跳过排除项
+                if (Option.Excludes.Contains(column.Name)) continue;
+                if (Option.Excludes.Contains(column.ColumnName)) continue;
 
-                WriteLine("/// <summary>{0}</summary>", dc.Description);
-                WriteLine("{0} {1} {{ get; set; }}", type, dc.Name);
+                var type = column.Properties["Type"];
+                if (type.IsNullOrEmpty()) type = column.DataType?.Name;
+
+                WriteLine("/// <summary>{0}</summary>", column.Description);
+                WriteLine("{0} {1} {{ get; set; }}", type, column.Name);
                 if (--k > 0) WriteLine();
             }
             WriteLine("#endregion");
@@ -674,12 +696,16 @@ namespace XCode.Code
             WriteLine("//    if (XTrace.Debug) XTrace.WriteLine(\"开始初始化{0}[{1}]数据……\");", name, Table.DisplayName);
             WriteLine();
             WriteLine("//    var entity = new {0}();", name);
-            foreach (var dc in Table.Columns)
+            foreach (var column in Table.Columns)
             {
-                switch (dc.DataType.GetTypeCode())
+                // 跳过排除项
+                if (Option.Excludes.Contains(column.Name)) continue;
+                if (Option.Excludes.Contains(column.ColumnName)) continue;
+
+                switch (column.DataType.GetTypeCode())
                 {
                     case TypeCode.Boolean:
-                        WriteLine("//    entity.{0} = true;", dc.Name);
+                        WriteLine("//    entity.{0} = true;", column.Name);
                         break;
                     case TypeCode.SByte:
                     case TypeCode.Byte:
@@ -689,18 +715,18 @@ namespace XCode.Code
                     case TypeCode.UInt32:
                     case TypeCode.Int64:
                     case TypeCode.UInt64:
-                        WriteLine("//    entity.{0} = 0;", dc.Name);
+                        WriteLine("//    entity.{0} = 0;", column.Name);
                         break;
                     case TypeCode.Single:
                     case TypeCode.Double:
                     case TypeCode.Decimal:
-                        WriteLine("//    entity.{0} = 0.0;", dc.Name);
+                        WriteLine("//    entity.{0} = 0.0;", column.Name);
                         break;
                     case TypeCode.DateTime:
-                        WriteLine("//    entity.{0} = DateTime.Now;", dc.Name);
+                        WriteLine("//    entity.{0} = DateTime.Now;", column.Name);
                         break;
                     case TypeCode.String:
-                        WriteLine("//    entity.{0} = \"abc\";", dc.Name);
+                        WriteLine("//    entity.{0} = \"abc\";", column.Name);
                         break;
                     default:
                         break;
@@ -735,17 +761,21 @@ namespace XCode.Code
         {
             WriteLine("#region 扩展属性");
 
-            foreach (var dc in Table.Columns)
+            foreach (var column in Table.Columns)
             {
+                // 跳过排除项
+                if (Option.Excludes.Contains(column.Name)) continue;
+                if (Option.Excludes.Contains(column.ColumnName)) continue;
+
                 // 找到名字映射
-                var dt = AllTables.FirstOrDefault(e => e.PrimaryKeys.Length == 1 && e.PrimaryKeys[0].DataType == dc.DataType && (e.Name + e.PrimaryKeys[0].Name).EqualIgnoreCase(dc.Name));
+                var dt = AllTables.FirstOrDefault(e => e.PrimaryKeys.Length == 1 && e.PrimaryKeys[0].DataType == column.DataType && (e.Name + e.PrimaryKeys[0].Name).EqualIgnoreCase(column.Name));
                 if (dt != null)
                 {
                     // 属性名
                     var pname = dt.Name;
 
                     // 备注
-                    var dis = dc.DisplayName;
+                    var dis = column.DisplayName;
                     if (dis.IsNullOrEmpty()) dis = dt.DisplayName;
 
                     var pk = dt.PrimaryKeys[0];
@@ -753,7 +783,7 @@ namespace XCode.Code
                     WriteLine("/// <summary>{0}</summary>", dis);
                     WriteLine("[XmlIgnore, IgnoreDataMember]");
                     WriteLine("//[ScriptIgnore]");
-                    WriteLine("public {1} {1} => Extends.Get({0}, k => {1}.FindBy{3}({2}));", NameOf(pname), dt.Name, dc.Name, pk.Name);
+                    WriteLine("public {1} {1} => Extends.Get({0}, k => {1}.FindBy{3}({2}));", NameOf(pname), dt.Name, column.Name, pk.Name);
 
                     // 主字段
                     var master = dt.Master ?? dt.GetColumn("Name");
@@ -765,7 +795,7 @@ namespace XCode.Code
                         WriteLine("[XmlIgnore, IgnoreDataMember]");
                         WriteLine("//[ScriptIgnore]");
                         if (!dis.IsNullOrEmpty()) WriteLine("[DisplayName(\"{0}\")]", dis);
-                        WriteLine("[Map(nameof({0}), typeof({1}), \"{2}\")]", dc.Name, dt.Name, pk.Name);
+                        WriteLine("[Map(nameof({0}), typeof({1}), \"{2}\")]", column.Name, dt.Name, pk.Name);
                         if (master.DataType == typeof(String))
                             WriteLine("public {2} {0}{1} => {0}?.{1};", pname, master.Name, master.DataType.Name);
                         else

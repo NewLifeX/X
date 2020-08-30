@@ -7,11 +7,20 @@ namespace XCode.Code
     public class BuilderOption
     {
         #region 属性
+        /// <summary>类名模板。其中{name}替换为Table.Name，如{name}Model/I{name}Dto等</summary>
+        public String ClassNameTemplate { get; set; }
+
+        /// <summary>显示名模板。其中{displayName}替换为Table.DisplayName</summary>
+        public String DisplayNameTemplate { get; set; }
+
+        /// <summary>基类。可能包含基类和接口，其中{name}替换为Table.Name</summary>
+        public String BaseClass { get; set; }
+
         /// <summary>命名空间</summary>
         public String Namespace { get; set; }
 
-        /// <summary>引用命名空间</summary>
-        public IList<String> Usings { get; set; } = new List<String>();
+        /// <summary>引用命名空间。区分大小写</summary>
+        public ICollection<String> Usings { get; set; } = new List<String>();
 
         /// <summary>纯净类。去除属性上的Description等特性</summary>
         public Boolean Pure { get; set; }
@@ -19,20 +28,14 @@ namespace XCode.Code
         /// <summary>纯净接口。不带其它特性</summary>
         public Boolean Interface { get; set; }
 
-        /// <summary>类名模板。其中{name}替换为Table.Name，如{name}Model/I{name}Dto等</summary>
-        public String ClassNameTemplate { get; set; }
-
-        /// <summary>基类。可能包含基类和接口，其中{name}替换为Table.Name</summary>
-        public String BaseClass { get; set; }
-
-        /// <summary>显示名模板。其中{displayName}替换为Table.DisplayName</summary>
-        public String DisplayNameTemplate { get; set; }
-
         /// <summary>是否分部类</summary>
         public Boolean Partial { get; set; }
 
         /// <summary>可扩展。实现IExtend接口</summary>
         public Boolean Extend { get; set; }
+
+        /// <summary>排除项。要排除的表或者字段，不区分大小写</summary>
+        public ICollection<String> Excludes { get; set; } = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>输出目录</summary>
         public String Output { get; set; }
@@ -62,9 +65,9 @@ namespace XCode.Code
         public BuilderOption Clone()
         {
             var option = MemberwiseClone() as BuilderOption;
-            var list = new List<String>();
-            list.AddRange(Usings);
-            option.Usings = list;
+
+            option.Usings = new List<String>(Usings);
+            option.Excludes = new HashSet<String>(Excludes, StringComparer.OrdinalIgnoreCase);
 
             return option;
         }

@@ -84,6 +84,10 @@ namespace XCode.Code
             var count = 0;
             foreach (var item in tables)
             {
+                // 跳过排除项
+                if (option.Excludes.Contains(item.Name)) continue;
+                if (option.Excludes.Contains(item.TableName)) continue;
+
                 var builder = new ClassBuilder
                 {
                     Table = item,
@@ -111,6 +115,10 @@ namespace XCode.Code
             var count = 0;
             foreach (var item in tables)
             {
+                // 跳过排除项
+                if (option.Excludes.Contains(item.Name)) continue;
+                if (option.Excludes.Contains(item.TableName)) continue;
+
                 var builder = new ClassBuilder
                 {
                     Table = item,
@@ -247,8 +255,14 @@ namespace XCode.Code
             WriteLine("#region 属性");
             for (var i = 0; i < Table.Columns.Count; i++)
             {
+                var column = Table.Columns[i];
+
+                // 跳过排除项
+                if (Option.Excludes.Contains(column.Name)) continue;
+                if (Option.Excludes.Contains(column.ColumnName)) continue;
+
                 if (i > 0) WriteLine();
-                BuildItem(Table.Columns[i]);
+                BuildItem(column);
             }
             WriteLine("#endregion");
 
@@ -300,9 +314,13 @@ namespace XCode.Code
             {
                 WriteLine("switch (name)");
                 WriteLine("{");
-                foreach (var dc in Table.Columns)
+                foreach (var column in Table.Columns)
                 {
-                    WriteLine("case \"{0}\": return {0};", dc.Name);
+                    // 跳过排除项
+                    if (Option.Excludes.Contains(column.Name)) continue;
+                    if (Option.Excludes.Contains(column.ColumnName)) continue;
+
+                    WriteLine("case \"{0}\": return {0};", column.Name);
                 }
                 WriteLine("default: throw new KeyNotFoundException($\"{name} not found\");");
                 WriteLine("}");
@@ -316,10 +334,14 @@ namespace XCode.Code
                 WriteLine("switch (name)");
                 WriteLine("{");
                 var conv = typeof(Convert);
-                foreach (var dc in Table.Columns)
+                foreach (var column in Table.Columns)
                 {
-                    var type = dc.Properties["Type"];
-                    if (type.IsNullOrEmpty()) type = dc.DataType?.Name;
+                    // 跳过排除项
+                    if (Option.Excludes.Contains(column.Name)) continue;
+                    if (Option.Excludes.Contains(column.ColumnName)) continue;
+
+                    var type = column.Properties["Type"];
+                    if (type.IsNullOrEmpty()) type = column.DataType?.Name;
 
                     if (!type.IsNullOrEmpty())
                     {
@@ -332,22 +354,22 @@ namespace XCode.Code
                             switch (type)
                             {
                                 case "Int32":
-                                    WriteLine("case \"{0}\": {0} = value.ToInt(); break;", dc.Name);
+                                    WriteLine("case \"{0}\": {0} = value.ToInt(); break;", column.Name);
                                     break;
                                 case "Int64":
-                                    WriteLine("case \"{0}\": {0} = value.ToLong(); break;", dc.Name);
+                                    WriteLine("case \"{0}\": {0} = value.ToLong(); break;", column.Name);
                                     break;
                                 case "Double":
-                                    WriteLine("case \"{0}\": {0} = value.ToDouble(); break;", dc.Name);
+                                    WriteLine("case \"{0}\": {0} = value.ToDouble(); break;", column.Name);
                                     break;
                                 case "Boolean":
-                                    WriteLine("case \"{0}\": {0} = value.ToBoolean(); break;", dc.Name);
+                                    WriteLine("case \"{0}\": {0} = value.ToBoolean(); break;", column.Name);
                                     break;
                                 case "DateTime":
-                                    WriteLine("case \"{0}\": {0} = value.ToDateTime(); break;", dc.Name);
+                                    WriteLine("case \"{0}\": {0} = value.ToDateTime(); break;", column.Name);
                                     break;
                                 default:
-                                    WriteLine("case \"{0}\": {0} = Convert.To{1}(value); break;", dc.Name, type);
+                                    WriteLine("case \"{0}\": {0} = Convert.To{1}(value); break;", column.Name, type);
                                     break;
                             }
                         }
@@ -358,14 +380,14 @@ namespace XCode.Code
                                 // 特殊支持枚举
                                 var type2 = type.GetTypeEx(false);
                                 if (type2 != null && type2.IsEnum)
-                                    WriteLine("case \"{0}\": {0} = ({1})value.ToInt(); break;", dc.Name, type);
+                                    WriteLine("case \"{0}\": {0} = ({1})value.ToInt(); break;", column.Name, type);
                                 else
-                                    WriteLine("case \"{0}\": {0} = ({1})value; break;", dc.Name, type);
+                                    WriteLine("case \"{0}\": {0} = ({1})value; break;", column.Name, type);
                             }
                             catch (Exception ex)
                             {
                                 XTrace.WriteException(ex);
-                                WriteLine("case \"{0}\": {0} = ({1})value; break;", dc.Name, type);
+                                WriteLine("case \"{0}\": {0} = ({1})value; break;", column.Name, type);
                             }
                         }
                     }
