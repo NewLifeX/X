@@ -59,6 +59,30 @@ namespace NewLife.Data
 
             return (time << (10 + 12)) | (Int64)(nid << 12) | (Int64)seq;
         }
+
+        /// <summary>时间转为Id。可用于构建时间片段查询</summary>
+        /// <param name="time">时间</param>
+        /// <returns></returns>
+        public virtual Int64 GetId(DateTime time)
+        {
+            var t = (Int64)(time - StartTimestamp).TotalMilliseconds;
+            return t << (10 + 12);
+        }
+
+        /// <summary>尝试分析</summary>
+        /// <param name="id"></param>
+        /// <param name="time">时间</param>
+        /// <param name="workerId">节点</param>
+        /// <param name="sequence">序列号</param>
+        /// <returns></returns>
+        public virtual Boolean TryParse(Int64 id, out DateTime time, out Int32 workerId, out Int32 sequence)
+        {
+            time = StartTimestamp.AddMilliseconds(id >> (10 + 12));
+            workerId = (Int32)((id >> 12) & 0x3FF);
+            sequence = (Int32)(id & 0x0FFF);
+
+            return true;
+        }
         #endregion
     }
 }

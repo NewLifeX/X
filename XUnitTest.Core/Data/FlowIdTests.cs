@@ -2,7 +2,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Collections;
 using NewLife.Data;
@@ -16,17 +15,29 @@ namespace XUnitTest.Data
         [Fact]
         public void NewId()
         {
-            var fid = new FlowId();
-            var id = fid.NewId();
+            var f = new FlowId();
+            var id = f.NewId();
 
             var time = id >> 22;
-            Assert.True(fid.StartTimestamp.AddMilliseconds(time) <= DateTime.Now);
+            var tt = f.StartTimestamp.AddMilliseconds(time);
+            Assert.True(tt <= DateTime.Now);
 
             var wid = (id >> 12) & 0x3FF;
-            Assert.Equal(fid.WorkerId, wid);
+            Assert.Equal(f.WorkerId, wid);
 
             var seq = id & 0x0FFF;
-            Assert.Equal(fid.Sequence, seq);
+            Assert.Equal(f.Sequence, seq);
+
+            // 时间转编号
+            var id2 = f.GetId(tt);
+            Assert.Equal(id >> 22, id2 >> 22);
+
+            // 分析
+            var rs = f.TryParse(id, out var t, out var w, out var s);
+            Assert.True(rs);
+            Assert.Equal(tt, t);
+            Assert.Equal(wid, w);
+            Assert.Equal(seq, s);
         }
 
         [Fact]
