@@ -33,7 +33,7 @@ namespace NewLife.Data
     public static class ExtendHelper
     {
         /// <summary>名值字典转扩展接口</summary>
-        /// <param name="dictionary"></param>
+        /// <param name="dictionary">字典</param>
         /// <returns></returns>
         public static IExtend ToExtend(this IDictionary<String, Object> dictionary)
         {
@@ -43,7 +43,7 @@ namespace NewLife.Data
         }
 
         /// <summary>扩展接口转名值字典</summary>
-        /// <param name="extend"></param>
+        /// <param name="extend">扩展对象</param>
         /// <returns></returns>
         public static IDictionary<String, Object> ToDictionary(this IExtend extend)
         {
@@ -91,6 +91,19 @@ namespace NewLife.Data
             //}
 
             //return dic2;
+        }
+
+        /// <summary>从源对象拷贝数据到目标对象</summary>
+        /// <param name="target">目标对象</param>
+        /// <param name="source">源对象</param>
+        public static void Copy(this IExtend target, IExtend source)
+        {
+            var dst = target.ToDictionary();
+            var src = source.ToDictionary();
+            foreach (var item in src)
+            {
+                if (dst.ContainsKey(item.Key)) dst[item.Key] = item.Value;
+            }
         }
     }
 

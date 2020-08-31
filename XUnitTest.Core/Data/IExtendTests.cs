@@ -210,5 +210,55 @@ namespace XUnitTest.Data
                 set => _ms[item] = value;
             }
         }
+
+        [Fact]
+        public void Copy()
+        {
+            var ext = new ExtendTest4
+            {
+                Id = 1234,
+                Name = "Stone",
+            };
+
+            var ext2 = new ExtendTest6();
+            ext2.Copy(ext);
+
+            Assert.Equal(ext.Id, ext2.Id);
+            Assert.Equal(ext.Name, ext2.Name);
+        }
+
+        class ExtendTest6 : IExtend
+        {
+            public Int32 Id { get; set; }
+
+            public String Name { get; set; }
+
+            public Object this[String item]
+            {
+                get
+                {
+                    return item switch
+                    {
+                        "Id" => Id,
+                        "Name" => Name,
+                        _ => null,
+                    };
+                }
+                set
+                {
+                    switch (item)
+                    {
+                        case "Id":
+                            Id = value.ToInt();
+                            break;
+                        case "Name":
+                            Name = value as String;
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+        }
     }
 }
