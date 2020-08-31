@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
@@ -32,26 +33,22 @@ namespace XUnitTest.Data
         {
             var sw = Stopwatch.StartNew();
 
-            var ws = new List<Int32>();
+            var ws = new ConcurrentBag<Int32>();
+            var repeat = new ConcurrentBag<Int64>();
             var hash = new ConcurrentHashSet<Int64>();
 
-            var repeat = 0;
             var ts = new List<Task>();
             for (var k = 0; k < 10; k++)
             {
                 ts.Add(Task.Run(() =>
                 {
-                    var f = new FlowId();
-                    Assert.True(!ws.Contains(f.WorkerId));
+                    var f = new FlowId { StartTimestamp = new DateTime(2020, 1, 1) };
                     ws.Add(f.WorkerId);
 
                     for (var i = 0; i < 1_000_000; i++)
                     {
                         var id = f.NewId();
-                        if (hash.Contain(id))
-                            Interlocked.Increment(ref repeat);
-                        else
-                            hash.TryAdd(id);
+                        if (!hash.TryAdd(id)) repeat.Add(id);
                     }
                 }));
             }
@@ -60,7 +57,8 @@ namespace XUnitTest.Data
             sw.Stop();
 
             Assert.True(sw.ElapsedMilliseconds < 10_000);
-            Assert.Equal(0, repeat);
+            var count = repeat.Count;
+            Assert.Equal(0, count);
         }
 
         [Fact]

@@ -24,6 +24,8 @@ namespace NewLife.Data
         private Int32 _Sequence;
         /// <summary>序列号，取12位</summary>
         public Int32 Sequence { get => _Sequence; set => _Sequence = value; }
+
+        private Int64 _lastTime;
         #endregion
 
         #region 构造
@@ -35,15 +37,24 @@ namespace NewLife.Data
         #endregion
 
         #region 核心方法
-        /// <summary>获取下一个雪花Id</summary>
+        /// <summary>获取下一个Id</summary>
         /// <returns></returns>
-        public Int64 NewId()
+        public virtual Int64 NewId()
         {
-            var time = ((Int64)(DateTime.Now - StartTimestamp).TotalMilliseconds) << 22;
-            var nid = (WorkerId & 0x3FF) << 12;
+            var time = (Int64)(DateTime.Now - StartTimestamp).TotalMilliseconds;
+            var nid = WorkerId & 0x3FF;
             var seq = Interlocked.Increment(ref _Sequence) & 0x0FFF;
 
-            return time | (Int64)nid | (Int64)seq;
+            // 相同毫秒内，如果序列号用尽，则可能超过4096，导致生成重复Id
+            // 睡眠1毫秒，抢占它的位置 @656092719（广西-风吹面）
+            if (_lastTime == time && seq == 0)
+            {
+                time++;
+                Thread.Sleep(1);
+            }
+            _lastTime = time;
+
+            return (time << (10 + 12)) | (Int64)(nid << 12) | (Int64)seq;
         }
         #endregion
     }
