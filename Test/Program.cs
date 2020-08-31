@@ -23,6 +23,7 @@ using XCode.Code;
 using System.Reflection;
 using System.Security.Cryptography;
 using NewLife.Data;
+using System.Threading.Tasks;
 
 #if !NET4
 using TaskEx = System.Threading.Tasks.Task;
@@ -122,17 +123,29 @@ namespace Test
 
         private static void Test2()
         {
-            var f = new FlowId();
-
             var sw = Stopwatch.StartNew();
 
             var count = 100_000_000L;
-            for (var i = 0; i < count; i++)
+
+            var ts = new List<Task>();
+            for (var i = 0; i < Environment.ProcessorCount; i++)
             {
-                var id = f.NewId();
+                ts.Add(Task.Run(() =>
+                {
+                    var f = new FlowId();
+
+                    for (var i = 0; i < count; i++)
+                    {
+                        var id = f.NewId();
+                    }
+                }));
             }
 
+            Task.WaitAll(ts.ToArray());
+
             sw.Stop();
+
+            count *= ts.Count;
 
             XTrace.WriteLine("生成 {0:n0}，耗时 {1}，速度 {2:n0}tps", count, sw.Elapsed, count * 1000 / sw.ElapsedMilliseconds);
         }

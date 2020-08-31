@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Collections;
 using NewLife.Data;
+using NewLife.Log;
 using Xunit;
 
 namespace XUnitTest.Data
@@ -45,7 +46,7 @@ namespace XUnitTest.Data
                     var f = new FlowId { StartTimestamp = new DateTime(2020, 1, 1) };
                     ws.Add(f.WorkerId);
 
-                    for (var i = 0; i < 1_000_000; i++)
+                    for (var i = 0; i < 100_000; i++)
                     {
                         var id = f.NewId();
                         if (!hash.TryAdd(id)) repeat.Add(id);
@@ -64,18 +65,32 @@ namespace XUnitTest.Data
         [Fact]
         public void Benchmark()
         {
-            var f = new FlowId();
-
             var sw = Stopwatch.StartNew();
 
-            for (var i = 0; i < 10_000_000; i++)
+            var count = 10_000_000L;
+
+            var ts = new List<Task>();
+            for (var i = 0; i < Environment.ProcessorCount; i++)
             {
-                var id = f.NewId();
+                ts.Add(Task.Run(() =>
+                {
+                    var f = new FlowId { BlockOnSampleTime = false };
+
+                    for (var i = 0; i < count; i++)
+                    {
+                        var id = f.NewId();
+                    }
+                }));
             }
+
+            Task.WaitAll(ts.ToArray());
 
             sw.Stop();
 
             Assert.True(sw.ElapsedMilliseconds < 10_000);
+
+            count *= ts.Count;
+            XTrace.WriteLine("生成 {0:n0}，耗时 {1}，速度 {2:n0}tps", count, sw.Elapsed, count * 1000 / sw.ElapsedMilliseconds);
         }
     }
 }
