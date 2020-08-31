@@ -22,6 +22,7 @@ using XCode;
 using XCode.Code;
 using System.Reflection;
 using System.Security.Cryptography;
+using NewLife.Data;
 
 #if !NET4
 using TaskEx = System.Threading.Tasks.Task;
@@ -54,7 +55,7 @@ namespace Test
                 try
                 {
 #endif
-                Test1();
+                    Test2();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -121,18 +122,19 @@ namespace Test
 
         private static void Test2()
         {
-            XTrace.WriteLine("FullPath:{0}", ".".GetFullPath());
-            XTrace.WriteLine("BasePath:{0}", ".".GetBasePath());
-            XTrace.WriteLine("TempPath:{0}", Path.GetTempPath());
-            Console.WriteLine();
+            var f = new FlowId();
 
-            var set = NewLife.Setting.Current;
-            for (var i = 0; i < 100; i++)
+            var sw = Stopwatch.StartNew();
+
+            var count = 100_000_000L;
+            for (var i = 0; i < count; i++)
             {
-                XTrace.WriteLine(set.DataPath);
-
-                Thread.Sleep(1000);
+                var id = f.NewId();
             }
+
+            sw.Stop();
+
+            XTrace.WriteLine("生成 {0:n0}，耗时 {1}，速度 {2:n0}tps", count, sw.Elapsed, count * 1000 / sw.ElapsedMilliseconds);
         }
 
         private static void Test3()
