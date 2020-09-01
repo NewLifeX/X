@@ -56,7 +56,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test2();
+                Test7();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -324,87 +324,7 @@ namespace Test
 
         private static void Test5()
         {
-            var set = XCode.Setting.Current;
-            set.Debug = true;
-            set.ShowSQL = true;
 
-            Console.WriteLine("1，服务端；2，客户端");
-            if (Console.ReadKey().KeyChar == '1')
-            {
-                var n = UserOnline.Meta.Count;
-
-                var svr = new DbServer
-                {
-                    Log = XTrace.Log,
-                    StatPeriod = 5
-                };
-                svr.Start();
-            }
-            else
-            {
-                DAL.AddConnStr("net", "Server=tcp://admin:newlife@127.0.0.1:3305/Log", null, "network");
-                var dal = DAL.Create("net");
-
-                UserOnline.Meta.ConnName = "net";
-
-                var count = UserOnline.Meta.Count;
-                Console.WriteLine("count={0}", count);
-
-                var entity = new UserOnline
-                {
-                    Name = "新生命",
-                    OnlineTime = 12345
-                };
-                entity.Insert();
-
-                Console.WriteLine("id={0}", entity.ID);
-
-                var entity2 = UserOnline.FindByKey(entity.ID);
-                Console.WriteLine("user={0}", entity2);
-
-                entity2.Page = Rand.NextString(8);
-                entity2.Update();
-
-                entity2.Delete();
-
-                for (var i = 0; i < 100; i++)
-                {
-                    entity2 = new UserOnline
-                    {
-                        Name = Rand.NextString(8),
-                        Page = Rand.NextString(8)
-                    };
-                    entity2.Insert();
-
-                    Thread.Sleep(5000);
-                }
-            }
-
-            //var client = new DbClient();
-            //client.Log = XTrace.Log;
-            //client.EncoderLog = client.Log;
-            //client.StatPeriod = 5;
-
-            //client.Servers.Add("tcp://127.0.0.1:3305");
-            //client.Open();
-
-            //var db = "Membership";
-            //var rs = client.LoginAsync(db, "admin", "newlife").Result;
-            //Console.WriteLine((DatabaseType)rs["DbType"].ToInt());
-
-            //var ds = client.QueryAsync("Select * from User").Result;
-            //Console.WriteLine(ds);
-
-            //var count = client.QueryCountAsync("User").Result;
-            //Console.WriteLine("count={0}", count);
-
-            //var ps = new Dictionary<String, Object>
-            //{
-            //    { "Logins", 3 },
-            //    { "id", 1 }
-            //};
-            //var es = client.ExecuteAsync("update user set Logins=Logins+@Logins where id=@id", ps).Result;
-            //Console.WriteLine("Execute={0}", es);
         }
 
         private static void Test6()

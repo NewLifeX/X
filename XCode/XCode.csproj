@@ -46,16 +46,19 @@
     <Compile Remove="Membership\Log\**" />
     <Compile Remove="Sync\**" />
     <Compile Remove="tools\**" />
+    <Compile Remove="Web\**" />
     <EmbeddedResource Remove="build\**" />
     <EmbeddedResource Remove="Membership\Config\**" />
     <EmbeddedResource Remove="Membership\Log\**" />
     <EmbeddedResource Remove="Sync\**" />
     <EmbeddedResource Remove="tools\**" />
+    <EmbeddedResource Remove="Web\**" />
     <None Remove="build\**" />
     <None Remove="Membership\Config\**" />
     <None Remove="Membership\Log\**" />
     <None Remove="Sync\**" />
     <None Remove="tools\**" />
+    <None Remove="Web\**" />
   </ItemGroup>
   <PropertyGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
     <DefineConstants>$(DefineConstants);STD20;NETSTANDARD2_0;__CORE__</DefineConstants>
@@ -92,6 +95,10 @@
   <ItemGroup>
     <Compile Remove="DataAccessLayer\Common\ConnectionPool.cs" />
     <Compile Remove="DataAccessLayer\Database\Firebird.cs" />
+    <Compile Remove="Membership\用户在线.Biz.cs" />
+    <Compile Remove="Membership\用户在线.cs" />
+    <Compile Remove="Membership\访问统计.Biz.cs" />
+    <Compile Remove="Membership\访问统计.cs" />
     <Compile Remove="Model\XCodeService.cs" />
     <Compile Remove="Properties\AssemblyInfo.cs" />
   </ItemGroup>
