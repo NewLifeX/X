@@ -52,6 +52,11 @@ namespace NewLife.Data
             }
             _lastTime = time;
 
+            /*
+             * 每个毫秒内_Sequence没有归零，主要是为了安全，避免被人猜测得到前后Id。
+             * 而毫秒内的顺序，重要性不大。
+             */
+
             return (time << (10 + 12)) | (Int64)(nid << 12) | (Int64)seq;
         }
 
