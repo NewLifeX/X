@@ -19,6 +19,9 @@ namespace XCode.Membership
         #region 对象操作
         static Menu()
         {
+            // 引发内部
+            new Menu();
+
             EntityFactory.Register(typeof(Menu), new MenuFactory());
 
             //ObjectContainer.Current.AutoRegister<IMenuFactory, MenuFactory>();
