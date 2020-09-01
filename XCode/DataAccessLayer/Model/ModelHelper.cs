@@ -38,7 +38,15 @@ namespace XCode.DataAccessLayer
         {
             if (names == null || names.Length < 1) return new IDataColumn[0];
 
-            return table.Columns.Where(c => names.Any(n => c.Is(n))).ToArray();
+            //return table.Columns.Where(c => names.Any(n => c.Is(n))).ToArray();
+            var dcs = new IDataColumn[names.Length];
+            for (var i = 0; i < names.Length; i++)
+            {
+                dcs[i] = table.GetColumn(names[i]);
+                if (dcs[i] == null) return new IDataColumn[0];
+            }
+
+            return dcs;
         }
 
         /// <summary>获取全部字段，包括继承的父类</summary>
@@ -188,7 +196,7 @@ namespace XCode.DataAccessLayer
 
                         writer.WriteAttributeString(keys[0], keys[1], null, item.Value);
                     }
-                    else if (!item.Key.EqualIgnoreCase("Version")) 
+                    else if (!item.Key.EqualIgnoreCase("Version"))
                         writer.WriteAttributeString(item.Key, item.Value);
                     //if (!String.IsNullOrEmpty(item.Value)) writer.WriteElementString(item.Key, item.Value);
                     //writer.WriteElementString(item.Key, item.Value);
