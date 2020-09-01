@@ -69,7 +69,9 @@ namespace XUnitTest.XCode.Code
             {
                 Pure = true,
                 Partial = true,
+                ClassNameTemplate = "Pure{name}",
                 BaseClass = "Object, Ixx{name}",
+                ModelNameForCopy = "Ixx{name}",
             };
 
             var builder = new ClassBuilder
@@ -125,6 +127,7 @@ namespace XUnitTest.XCode.Code
                 Extend = true,
                 BaseClass = "Object, Ixx{name}",
                 ClassNameTemplate = "Extend{name}",
+                ModelNameForCopy = "Extend{name}",
             };
 
             var builder = new ClassBuilder

@@ -8,7 +8,7 @@ using System.Xml.Serialization;
 namespace XCode.Code
 {
     /// <summary>用户。用户帐号信息</summary>
-    public partial class User : Object, IxxUser
+    public partial class PureUser : Object, IxxUser
     {
         #region 属性
         /// <summary>编号</summary>
@@ -100,6 +100,44 @@ namespace XCode.Code
 
         /// <summary>备注</summary>
         public String Remark { get; set; }
+        #endregion
+
+        #region 拷贝
+        /// <summary>拷贝模型对象</summary>
+        /// <param name="model">模型</param>
+        public void Copy(IxxUser model)
+        {
+            ID = model.ID;
+            Name = model.Name;
+            Password = model.Password;
+            DisplayName = model.DisplayName;
+            Sex = model.Sex;
+            Mail = model.Mail;
+            Mobile = model.Mobile;
+            Code = model.Code;
+            Avatar = model.Avatar;
+            RoleID = model.RoleID;
+            RoleIds = model.RoleIds;
+            DepartmentID = model.DepartmentID;
+            Online = model.Online;
+            Enable = model.Enable;
+            Logins = model.Logins;
+            LastLogin = model.LastLogin;
+            LastLoginIP = model.LastLoginIP;
+            RegisterTime = model.RegisterTime;
+            RegisterIP = model.RegisterIP;
+            Ex1 = model.Ex1;
+            Ex2 = model.Ex2;
+            Ex3 = model.Ex3;
+            Ex4 = model.Ex4;
+            Ex5 = model.Ex5;
+            Ex6 = model.Ex6;
+            UpdateUser = model.UpdateUser;
+            UpdateUserID = model.UpdateUserID;
+            UpdateIP = model.UpdateIP;
+            UpdateTime = model.UpdateTime;
+            Remark = model.Remark;
+        }
         #endregion
     }
 }

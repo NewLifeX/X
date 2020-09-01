@@ -271,6 +271,16 @@ namespace XCode.Code
                 WriteLine();
                 BuildExtend();
             }
+
+            // 生成拷贝函数。需要有基类
+            //var bs = Option.BaseClass.Split(",").Select(e => e.Trim()).ToArray();
+            //var model = bs.FirstOrDefault(e => e[0] == 'I' && e.Contains("{name}"));
+            var model = Option.ModelNameForCopy;
+            if (!Option.Interface && !model.IsNullOrEmpty())
+            {
+                WriteLine();
+                BuildCopy(model.Replace("{name}", Table.Name));
+            }
         }
 
         /// <summary>生成每一项</summary>
@@ -397,6 +407,27 @@ namespace XCode.Code
             }
             WriteLine("}");
 
+            WriteLine("}");
+            WriteLine("#endregion");
+        }
+
+        /// <summary>生成拷贝函数</summary>
+        /// <param name="model">模型类</param>
+        protected virtual void BuildCopy(String model)
+        {
+            WriteLine("#region 拷贝");
+            WriteLine("/// <summary>拷贝模型对象</summary>");
+            WriteLine("/// <param name=\"model\">模型</param>");
+            WriteLine("public void Copy({0} model)", model);
+            WriteLine("{");
+            foreach (var column in Table.Columns)
+            {
+                // 跳过排除项
+                if (Option.Excludes.Contains(column.Name)) continue;
+                if (Option.Excludes.Contains(column.ColumnName)) continue;
+
+                WriteLine("{0} = model.{0};", column.Name);
+            }
             WriteLine("}");
             WriteLine("#endregion");
         }

@@ -38,29 +38,19 @@ namespace XCode.Code
                 Partial = true,
             };
 
-            return BuildFile(xmlFile, option, chineseFileName);
+            var tables = ClassBuilder.LoadModels(xmlFile, option, out var atts);
+            FixModelFile(xmlFile, option, atts, tables);
+
+            return BuildTables(tables, option, chineseFileName ?? true);
         }
 
-        /// <summary>为Xml模型文件生成实体类</summary>
-        /// <param name="xmlFile">模型文件</param>
-        /// <param name="option">生成可选项</param>
-        /// <param name="chineseFileName">中文文件名</param>
-        public static Int32 BuildFile(String xmlFile = null, BuilderOption option = null, Boolean? chineseFileName = null)
+        /// <summary>修正模型文件</summary>
+        /// <param name="xmlFile"></param>
+        /// <param name="option"></param>
+        /// <param name="atts"></param>
+        /// <param name="tables"></param>
+        public static void FixModelFile(String xmlFile, BuilderOption option, IDictionary<String, String> atts, IList<IDataTable> tables)
         {
-            if (xmlFile.IsNullOrEmpty())
-            {
-                var di = ".".GetBasePath().AsDirectory();
-                xmlFile = di.GetFiles("*.xml", SearchOption.TopDirectoryOnly).FirstOrDefault()?.FullName;
-            }
-
-            xmlFile = xmlFile.GetBasePath();
-            if (!File.Exists(xmlFile)) throw new FileNotFoundException("指定模型文件不存在！", xmlFile);
-
-            // 导入模型
-            if (option == null) option = new BuilderOption { Partial = true };
-            var tables = LoadModels(xmlFile, option, out var atts);
-            if (tables.Count == 0) return 0;
-
             // 反哺。确保输出空特性
             atts["Output"] = option.Output + "";
             atts["NameSpace"] = option.Namespace + "";
@@ -68,14 +58,7 @@ namespace XCode.Code
             atts["BaseClass"] = option.BaseClass + "";
             atts.Remove("NameIgnoreCase");
             atts.Remove("IgnoreNameCase");
-
-            // 中文文件名
-            if (chineseFileName != null)
-                atts["ChineseFileName"] = chineseFileName.Value ? "True" : "False";
-            else
-                chineseFileName = atts["ChineseFileName"].ToBoolean(true);
-
-            var rs = BuildTables(tables, option, chineseFileName.Value);
+            atts.Remove("ChineseFileName");
 
             // 更新xsd
             atts["xmlns"] = atts["xmlns"].Replace("ModelSchema", "Model2020");
@@ -85,8 +68,6 @@ namespace XCode.Code
             var xmlContent = File.ReadAllText(xmlFile);
             var xml2 = ModelHelper.ToXml(tables, atts);
             if (xmlContent != xml2) File.WriteAllText(xmlFile, xml2);
-
-            return rs;
         }
 
         /// <summary>为Xml模型文件生成实体类</summary>
@@ -97,7 +78,11 @@ namespace XCode.Code
         {
             if (tables == null || tables.Count == 0) return 0;
 
-            if (option == null) option = new BuilderOption { Partial = true };
+            if (option == null)
+                option = new BuilderOption();
+            else
+                option = option.Clone();
+            option.Partial = true;
 
             var count = 0;
             foreach (var item in tables)

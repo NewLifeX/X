@@ -99,12 +99,13 @@ namespace XUnitTest.XCode.Code
             // 加载模型文件，得到数据表
             var file = @"..\..\XUnitTest.XCode\Code\Member.xml";
             var option = new BuilderOption();
-            var tables = ClassBuilder.LoadModels(file, option, out _);
+            var tables = ClassBuilder.LoadModels(file, option, out var atts);
+            EntityBuilder.FixModelFile(file, option, atts, tables);
 
             // 生成实体类
-            //EntityBuilder.BuildTables(tables, option);
+            EntityBuilder.BuildTables(tables, option, chineseFileName: true);
             //EntityBuilder.Build(file);
-            EntityBuilder.BuildFile(file);
+            //EntityBuilder.BuildFile(file);
 
             // 生成简易模型类
             option.Output = @"Output\EntityModels\";
