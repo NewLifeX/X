@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using NewLife.Security;
 
@@ -32,11 +29,8 @@ namespace NewLife.Data
         #endregion
 
         #region 构造
-        /// <summary>实例化</summary>
-        public FlowId()
-        {
-            WorkerId = Rand.Next() & 0x3FF;
-        }
+        /// <summary>实例化雪花Id生成器</summary>
+        public FlowId() => WorkerId = Rand.Next() & 0x3FF;
         #endregion
 
         #region 核心方法

@@ -21,13 +21,13 @@ namespace XCode.Membership
     public partial class Log
     {
         #region 属性
-        private Int32 _ID;
+        private Int64 _ID;
         /// <summary>编号</summary>
         [DisplayName("编号")]
         [Description("编号")]
-        [DataObjectField(true, true, false, 0)]
+        [DataObjectField(true, false, false, 0)]
         [BindColumn("ID", "编号", "")]
-        public Int32 ID { get => _ID; set { if (OnPropertyChanging("ID", value)) { _ID = value; OnPropertyChanged("ID"); } } }
+        public Int64 ID { get => _ID; set { if (OnPropertyChanging("ID", value)) { _ID = value; OnPropertyChanged("ID"); } } }
 
         private String _Category;
         /// <summary>类别</summary>
@@ -192,7 +192,7 @@ namespace XCode.Membership
             {
                 switch (name)
                 {
-                    case "ID": _ID = value.ToInt(); break;
+                    case "ID": _ID = value.ToLong(); break;
                     case "Category": _Category = Convert.ToString(value); break;
                     case "Action": _Action = Convert.ToString(value); break;
                     case "LinkID": _LinkID = value.ToInt(); break;

@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Runtime.Serialization;
+using System.Web.Script.Serialization;
+using System.Xml.Serialization;
 using XCode;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
@@ -14,7 +17,7 @@ namespace XCode.Membership
     [BindIndex("IX_Menu2_Name", false, "Name")]
     [BindIndex("IU_Menu2_ParentID_Name", true, "ParentID,Name")]
     [BindTable("Menu2", Description = "菜单", ConnName = "test", DbType = DatabaseType.None)]
-    public partial class Menu2 : IMenu2
+    public partial class Menu2
     {
         #region 属性
         private Int32 _ID;
@@ -23,7 +26,7 @@ namespace XCode.Membership
         [Description("编号")]
         [DataObjectField(true, true, false, 0)]
         [BindColumn("ID", "编号", "")]
-        public Int32 ID { get => _ID; set { if (OnPropertyChanging(__.ID, value)) { _ID = value; OnPropertyChanged(__.ID); } } }
+        public Int32 ID { get => _ID; set { if (OnPropertyChanging("ID", value)) { _ID = value; OnPropertyChanged("ID"); } } }
 
         private String _Name;
         /// <summary>名称</summary>
@@ -31,7 +34,7 @@ namespace XCode.Membership
         [Description("名称")]
         [DataObjectField(false, false, false, 50)]
         [BindColumn("Name", "名称", "", Master = true)]
-        public String Name { get => _Name; set { if (OnPropertyChanging(__.Name, value)) { _Name = value; OnPropertyChanged(__.Name); } } }
+        public String Name { get => _Name; set { if (OnPropertyChanging("Name", value)) { _Name = value; OnPropertyChanged("Name"); } } }
 
         private String _DisplayName;
         /// <summary>显示名</summary>
@@ -39,7 +42,7 @@ namespace XCode.Membership
         [Description("显示名")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn("DisplayName", "显示名", "")]
-        public String DisplayName { get => _DisplayName; set { if (OnPropertyChanging(__.DisplayName, value)) { _DisplayName = value; OnPropertyChanged(__.DisplayName); } } }
+        public String DisplayName { get => _DisplayName; set { if (OnPropertyChanging("DisplayName", value)) { _DisplayName = value; OnPropertyChanged("DisplayName"); } } }
 
         private String _FullName;
         /// <summary>全名</summary>
@@ -47,7 +50,7 @@ namespace XCode.Membership
         [Description("全名")]
         [DataObjectField(false, false, true, 200)]
         [BindColumn("FullName", "全名", "")]
-        public String FullName { get => _FullName; set { if (OnPropertyChanging(__.FullName, value)) { _FullName = value; OnPropertyChanged(__.FullName); } } }
+        public String FullName { get => _FullName; set { if (OnPropertyChanging("FullName", value)) { _FullName = value; OnPropertyChanged("FullName"); } } }
 
         private Int32 _ParentID;
         /// <summary>父编号</summary>
@@ -55,7 +58,7 @@ namespace XCode.Membership
         [Description("父编号")]
         [DataObjectField(false, false, false, 0)]
         [BindColumn("ParentID", "父编号", "")]
-        public Int32 ParentID { get => _ParentID; set { if (OnPropertyChanging(__.ParentID, value)) { _ParentID = value; OnPropertyChanged(__.ParentID); } } }
+        public Int32 ParentID { get => _ParentID; set { if (OnPropertyChanging("ParentID", value)) { _ParentID = value; OnPropertyChanged("ParentID"); } } }
 
         private String _Url;
         /// <summary>链接</summary>
@@ -63,7 +66,7 @@ namespace XCode.Membership
         [Description("链接")]
         [DataObjectField(false, false, true, 200)]
         [BindColumn("Url", "链接", "")]
-        public String Url { get => _Url; set { if (OnPropertyChanging(__.Url, value)) { _Url = value; OnPropertyChanged(__.Url); } } }
+        public String Url { get => _Url; set { if (OnPropertyChanging("Url", value)) { _Url = value; OnPropertyChanged("Url"); } } }
 
         private Int32 _Sort;
         /// <summary>排序</summary>
@@ -71,7 +74,7 @@ namespace XCode.Membership
         [Description("排序")]
         [DataObjectField(false, false, false, 0)]
         [BindColumn("Sort", "排序", "")]
-        public Int32 Sort { get => _Sort; set { if (OnPropertyChanging(__.Sort, value)) { _Sort = value; OnPropertyChanged(__.Sort); } } }
+        public Int32 Sort { get => _Sort; set { if (OnPropertyChanging("Sort", value)) { _Sort = value; OnPropertyChanged("Sort"); } } }
 
         private String _Icon;
         /// <summary>图标</summary>
@@ -79,7 +82,7 @@ namespace XCode.Membership
         [Description("图标")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn("Icon", "图标", "")]
-        public String Icon { get => _Icon; set { if (OnPropertyChanging(__.Icon, value)) { _Icon = value; OnPropertyChanged(__.Icon); } } }
+        public String Icon { get => _Icon; set { if (OnPropertyChanging("Icon", value)) { _Icon = value; OnPropertyChanged("Icon"); } } }
 
         private Boolean _Visible;
         /// <summary>可见</summary>
@@ -87,7 +90,7 @@ namespace XCode.Membership
         [Description("可见")]
         [DataObjectField(false, false, false, 0)]
         [BindColumn("Visible", "可见", "")]
-        public Boolean Visible { get => _Visible; set { if (OnPropertyChanging(__.Visible, value)) { _Visible = value; OnPropertyChanged(__.Visible); } } }
+        public Boolean Visible { get => _Visible; set { if (OnPropertyChanging("Visible", value)) { _Visible = value; OnPropertyChanged("Visible"); } } }
 
         private Boolean _Necessary;
         /// <summary>必要。必要的菜单，必须至少有角色拥有这些权限，如果没有则自动授权给系统角色</summary>
@@ -95,7 +98,7 @@ namespace XCode.Membership
         [Description("必要。必要的菜单，必须至少有角色拥有这些权限，如果没有则自动授权给系统角色")]
         [DataObjectField(false, false, false, 0)]
         [BindColumn("Necessary", "必要。必要的菜单，必须至少有角色拥有这些权限，如果没有则自动授权给系统角色", "")]
-        public Boolean Necessary { get => _Necessary; set { if (OnPropertyChanging(__.Necessary, value)) { _Necessary = value; OnPropertyChanged(__.Necessary); } } }
+        public Boolean Necessary { get => _Necessary; set { if (OnPropertyChanging("Necessary", value)) { _Necessary = value; OnPropertyChanged("Necessary"); } } }
 
         private String _Permission;
         /// <summary>权限子项。逗号分隔，每个权限子项名值竖线分隔</summary>
@@ -103,7 +106,7 @@ namespace XCode.Membership
         [Description("权限子项。逗号分隔，每个权限子项名值竖线分隔")]
         [DataObjectField(false, false, true, 200)]
         [BindColumn("Permission", "权限子项。逗号分隔，每个权限子项名值竖线分隔", "")]
-        public String Permission { get => _Permission; set { if (OnPropertyChanging(__.Permission, value)) { _Permission = value; OnPropertyChanged(__.Permission); } } }
+        public String Permission { get => _Permission; set { if (OnPropertyChanging("Permission", value)) { _Permission = value; OnPropertyChanged("Permission"); } } }
 
         private String _Remark;
         /// <summary>备注</summary>
@@ -111,7 +114,7 @@ namespace XCode.Membership
         [Description("备注")]
         [DataObjectField(false, false, true, 200)]
         [BindColumn("Remark", "备注", "")]
-        public String Remark { get => _Remark; set { if (OnPropertyChanging(__.Remark, value)) { _Remark = value; OnPropertyChanged(__.Remark); } } }
+        public String Remark { get => _Remark; set { if (OnPropertyChanging("Remark", value)) { _Remark = value; OnPropertyChanged("Remark"); } } }
         #endregion
 
         #region 获取/设置 字段值
@@ -124,18 +127,18 @@ namespace XCode.Membership
             {
                 switch (name)
                 {
-                    case __.ID: return _ID;
-                    case __.Name: return _Name;
-                    case __.DisplayName: return _DisplayName;
-                    case __.FullName: return _FullName;
-                    case __.ParentID: return _ParentID;
-                    case __.Url: return _Url;
-                    case __.Sort: return _Sort;
-                    case __.Icon: return _Icon;
-                    case __.Visible: return _Visible;
-                    case __.Necessary: return _Necessary;
-                    case __.Permission: return _Permission;
-                    case __.Remark: return _Remark;
+                    case "ID": return _ID;
+                    case "Name": return _Name;
+                    case "DisplayName": return _DisplayName;
+                    case "FullName": return _FullName;
+                    case "ParentID": return _ParentID;
+                    case "Url": return _Url;
+                    case "Sort": return _Sort;
+                    case "Icon": return _Icon;
+                    case "Visible": return _Visible;
+                    case "Necessary": return _Necessary;
+                    case "Permission": return _Permission;
+                    case "Remark": return _Remark;
                     default: return base[name];
                 }
             }
@@ -143,18 +146,18 @@ namespace XCode.Membership
             {
                 switch (name)
                 {
-                    case __.ID: _ID = value.ToInt(); break;
-                    case __.Name: _Name = Convert.ToString(value); break;
-                    case __.DisplayName: _DisplayName = Convert.ToString(value); break;
-                    case __.FullName: _FullName = Convert.ToString(value); break;
-                    case __.ParentID: _ParentID = value.ToInt(); break;
-                    case __.Url: _Url = Convert.ToString(value); break;
-                    case __.Sort: _Sort = value.ToInt(); break;
-                    case __.Icon: _Icon = Convert.ToString(value); break;
-                    case __.Visible: _Visible = value.ToBoolean(); break;
-                    case __.Necessary: _Necessary = value.ToBoolean(); break;
-                    case __.Permission: _Permission = Convert.ToString(value); break;
-                    case __.Remark: _Remark = Convert.ToString(value); break;
+                    case "ID": _ID = value.ToInt(); break;
+                    case "Name": _Name = Convert.ToString(value); break;
+                    case "DisplayName": _DisplayName = Convert.ToString(value); break;
+                    case "FullName": _FullName = Convert.ToString(value); break;
+                    case "ParentID": _ParentID = value.ToInt(); break;
+                    case "Url": _Url = Convert.ToString(value); break;
+                    case "Sort": _Sort = value.ToInt(); break;
+                    case "Icon": _Icon = Convert.ToString(value); break;
+                    case "Visible": _Visible = value.ToBoolean(); break;
+                    case "Necessary": _Necessary = value.ToBoolean(); break;
+                    case "Permission": _Permission = Convert.ToString(value); break;
+                    case "Remark": _Remark = Convert.ToString(value); break;
                     default: base[name] = value; break;
                 }
             }
@@ -166,40 +169,40 @@ namespace XCode.Membership
         public partial class _
         {
             /// <summary>编号</summary>
-            public static readonly Field ID = FindByName(__.ID);
+            public static readonly Field ID = FindByName("ID");
 
             /// <summary>名称</summary>
-            public static readonly Field Name = FindByName(__.Name);
+            public static readonly Field Name = FindByName("Name");
 
             /// <summary>显示名</summary>
-            public static readonly Field DisplayName = FindByName(__.DisplayName);
+            public static readonly Field DisplayName = FindByName("DisplayName");
 
             /// <summary>全名</summary>
-            public static readonly Field FullName = FindByName(__.FullName);
+            public static readonly Field FullName = FindByName("FullName");
 
             /// <summary>父编号</summary>
-            public static readonly Field ParentID = FindByName(__.ParentID);
+            public static readonly Field ParentID = FindByName("ParentID");
 
             /// <summary>链接</summary>
-            public static readonly Field Url = FindByName(__.Url);
+            public static readonly Field Url = FindByName("Url");
 
             /// <summary>排序</summary>
-            public static readonly Field Sort = FindByName(__.Sort);
+            public static readonly Field Sort = FindByName("Sort");
 
             /// <summary>图标</summary>
-            public static readonly Field Icon = FindByName(__.Icon);
+            public static readonly Field Icon = FindByName("Icon");
 
             /// <summary>可见</summary>
-            public static readonly Field Visible = FindByName(__.Visible);
+            public static readonly Field Visible = FindByName("Visible");
 
             /// <summary>必要。必要的菜单，必须至少有角色拥有这些权限，如果没有则自动授权给系统角色</summary>
-            public static readonly Field Necessary = FindByName(__.Necessary);
+            public static readonly Field Necessary = FindByName("Necessary");
 
             /// <summary>权限子项。逗号分隔，每个权限子项名值竖线分隔</summary>
-            public static readonly Field Permission = FindByName(__.Permission);
+            public static readonly Field Permission = FindByName("Permission");
 
             /// <summary>备注</summary>
-            public static readonly Field Remark = FindByName(__.Remark);
+            public static readonly Field Remark = FindByName("Remark");
 
             static Field FindByName(String name) => Meta.Table.FindByName(name);
         }
@@ -243,55 +246,6 @@ namespace XCode.Membership
             /// <summary>备注</summary>
             public const String Remark = "Remark";
         }
-        #endregion
-    }
-
-    /// <summary>菜单接口</summary>
-    public partial interface IMenu2
-    {
-        #region 属性
-        /// <summary>编号</summary>
-        Int32 ID { get; set; }
-
-        /// <summary>名称</summary>
-        String Name { get; set; }
-
-        /// <summary>显示名</summary>
-        String DisplayName { get; set; }
-
-        /// <summary>全名</summary>
-        String FullName { get; set; }
-
-        /// <summary>父编号</summary>
-        Int32 ParentID { get; set; }
-
-        /// <summary>链接</summary>
-        String Url { get; set; }
-
-        /// <summary>排序</summary>
-        Int32 Sort { get; set; }
-
-        /// <summary>图标</summary>
-        String Icon { get; set; }
-
-        /// <summary>可见</summary>
-        Boolean Visible { get; set; }
-
-        /// <summary>必要。必要的菜单，必须至少有角色拥有这些权限，如果没有则自动授权给系统角色</summary>
-        Boolean Necessary { get; set; }
-
-        /// <summary>权限子项。逗号分隔，每个权限子项名值竖线分隔</summary>
-        String Permission { get; set; }
-
-        /// <summary>备注</summary>
-        String Remark { get; set; }
-        #endregion
-
-        #region 获取/设置 字段值
-        /// <summary>获取/设置 字段值</summary>
-        /// <param name="name">字段名</param>
-        /// <returns></returns>
-        Object this[String name] { get; set; }
         #endregion
     }
 }

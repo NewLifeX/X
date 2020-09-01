@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using NewLife.Data;
 using XCode.Cache;
 using XCode.Configuration;
 
@@ -235,6 +236,9 @@ namespace XCode
 
         /// <summary>是否完全插入所有字段。false表示不插入没有脏数据的字段，默认true</summary>
         Boolean FullInsert { get; set; }
+
+        /// <summary>雪花Id生成器。Int64主键非自增时，自动填充</summary>
+        FlowId FlowId { get; }
         #endregion
     }
 }

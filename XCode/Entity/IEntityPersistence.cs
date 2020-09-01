@@ -116,6 +116,17 @@ namespace XCode
         {
             var factory = Factory;
 
+            // 雪花Id生成器。Int64主键非自增时，自动填充
+            var pks = factory.Table.PrimaryKeys;
+            if (pks != null && pks.Length == 1)
+            {
+                var pk = pks[0];
+                if (pk.Type == typeof(Int64) && entity[pk.Name].ToLong() == 0)
+                {
+                    entity[pk.Name] = factory.FlowId.NewId();
+                }
+            }
+
             // 添加数据前，处理Guid
             SetGuidField(factory.AutoSetGuidField, entity);
 

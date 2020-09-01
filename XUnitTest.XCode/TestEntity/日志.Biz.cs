@@ -103,7 +103,7 @@ namespace XCode.Membership
         /// <summary>根据编号查找</summary>
         /// <param name="id">编号</param>
         /// <returns>实体对象</returns>
-        public static Log2 FindByID(Int32 id)
+        public static Log2 FindByID(Int64 id)
         {
             if (id <= 0) return null;
 

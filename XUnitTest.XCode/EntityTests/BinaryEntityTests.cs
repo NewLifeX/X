@@ -19,6 +19,8 @@ namespace XUnitTest.XCode.EntityTests
             };
             log.Insert();
 
+            Assert.True(log.ID > 0);
+
             var log2 = Log2.FindByID(log.ID);
             Assert.Equal(buf, log2.Remark);
 

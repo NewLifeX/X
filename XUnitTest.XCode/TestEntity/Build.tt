@@ -9,10 +9,35 @@
 <#
     // 设置当前工作目录
 	PathHelper.BasePath = Host.ResolvePath(".");
-	// 导入模型文件并生成实体类，模型文件、输出目录、命名空间、连接名、中文文件名、表名字段名大小写
-	//EntityBuilder.Build(String xmlFile = null, String output = null, String nameSpace = null, String connName = null, Boolean? chineseFileName = true,Boolean? nameIgnoreCase = null);
-	EntityBuilder.Build();
 
-	//var tables = DAL.ImportFrom("Company.Project.xml");
-	//EntityBuilder.Build(tables);
+    // 加载模型文件，得到数据表
+    var option = new BuilderOption();
+    var tables = ClassBuilder.LoadModels(null, option, out _);
+
+	// 生成实体类
+    EntityBuilder.BuildFile();
+	//EntityBuilder.BuildTables(tables, option);
+
+    // 生成简易模型类
+    option.Output = @"..\Models\";
+    option.ClassNameTemplate = "{name}Model";
+    //ClassBuilder.BuildModels(tables, option);
+
+    // 生成简易接口
+    option.Output = @"..\Interfaces\";
+    option.ClassNameTemplate = null;
+    option.BaseClass = null;
+    //ClassBuilder.BuildInterfaces(tables, option);
+
+    // 精确控制生成
+    /*foreach (var item in tables)
+    {
+        var builder = new ClassBuilder
+        {
+            Table = item,
+            Option = option.Clone(),
+        };
+        builder.Execute();
+        builder.Save(null, true, false);
+    }*/
 #>

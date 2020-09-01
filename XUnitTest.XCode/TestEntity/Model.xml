@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Tables Version="9.15.7358.34608" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:schemaLocation="http://www.newlifex.com http://www.newlifex.com/Model2020.xsd" NameSpace="XCode.Membership" ConnName="test" Output="" BaseClass="Entity" ChineseFileName="True" IgnoreNameCase="True" xmlns="http://www.newlifex.com/Model2020.xsd">
+<Tables xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:schemaLocation="http://www.newlifex.com http://www.newlifex.com/Model2020.xsd" NameSpace="XCode.Membership" ConnName="test" Output="" BaseClass="Entity" ChineseFileName="True" xmlns="http://www.newlifex.com/Model2020.xsd">
   <Table Name="User2" Description="用户">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
@@ -66,7 +66,7 @@
   </Table>
   <Table Name="Log2" Description="日志">
     <Columns>
-      <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
+      <Column Name="ID" DataType="Int64" PrimaryKey="True" Description="编号" />
       <Column Name="Category" DataType="String" Description="类别" />
       <Column Name="Action" DataType="String" Description="操作" />
       <Column Name="LinkID" DataType="Int32" Description="链接" />

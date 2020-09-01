@@ -191,7 +191,7 @@
   </Table>
   <Table Name="Log" Description="日志" ConnName="Log" RenderGenEntity="True">
     <Columns>
-      <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
+      <Column Name="ID" DataType="Int64" PrimaryKey="True" Description="编号" />
       <Column Name="Category" DataType="String" Description="类别" />
       <Column Name="Action" DataType="String" Description="操作" />
       <Column Name="LinkID" DataType="Int32" Description="链接" />

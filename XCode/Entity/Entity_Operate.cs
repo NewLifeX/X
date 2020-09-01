@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using System.Threading;
 using NewLife;
+using NewLife.Data;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 
@@ -350,6 +351,10 @@ namespace XCode
 
             /// <summary>是否完全插入所有字段。false表示不插入没有脏数据的字段，默认true</summary>
             public Boolean FullInsert { get; set; } = true;
+
+            private FlowId _flow;
+            /// <summary>雪花Id生成器。Int64主键非自增时，自动填充</summary>
+            public FlowId FlowId => _flow ??= new FlowId();
             #endregion
         }
     }
