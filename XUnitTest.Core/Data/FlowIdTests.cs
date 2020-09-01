@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
+using NewLife.Security;
 using Xunit;
 
 namespace XUnitTest.Data
@@ -54,7 +55,7 @@ namespace XUnitTest.Data
             {
                 ts.Add(Task.Run(() =>
                 {
-                    var f = new FlowId { StartTimestamp = new DateTime(2020, 1, 1) };
+                    var f = new FlowId { StartTimestamp = new DateTime(2020, 1, 1), WorkerId = Rand.Next() & 0x3FF };
                     ws.Add(f.WorkerId);
 
                     for (var i = 0; i < 100_000; i++)

@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Linq;
 using NewLife.Configuration;
 using NewLife.Reflection;
+using NewLife.Security;
 
 namespace NewLife.Common
 {
@@ -28,6 +29,10 @@ namespace NewLife.Common
         /// <summary>公司</summary>
         [DisplayName("公司")]
         public String Company { get; set; } = "";
+
+        /// <summary>应用实例。单应用多实例部署时用于唯一标识实例节点</summary>
+        [DisplayName("应用实例。单应用多实例部署时用于唯一标识实例节点")]
+        public Int32 Instance { get; set; }
 
         /// <summary>开发者模式</summary>
         [DisplayName("开发者模式")]
@@ -57,6 +62,22 @@ namespace NewLife.Common
                 //Address = "新生命开发团队";
 
                 if (DisplayName.IsNullOrEmpty()) DisplayName = "系统设置";
+            }
+
+            // 本地实例，取IPv4地址后两段
+            if (Instance <= 0)
+            {
+                try
+                {
+                    var ip = NetHelper.MyIP();
+                    var buf = ip.GetAddressBytes();
+                    Instance = (buf[2] << 8) | buf[3];
+                }
+                catch
+                {
+                    // 异常时随机
+                    Instance = Rand.Next(1, 1024);
+                }
             }
 
             base.OnLoaded();

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using NewLife.Common;
 using NewLife.Security;
 
 namespace NewLife.Data
@@ -28,16 +29,13 @@ namespace NewLife.Data
         private Int64 _lastTime;
         #endregion
 
-        #region 构造
-        /// <summary>实例化雪花Id生成器</summary>
-        public FlowId() => WorkerId = Rand.Next() & 0x3FF;
-        #endregion
-
         #region 核心方法
         /// <summary>获取下一个Id</summary>
         /// <returns></returns>
         public virtual Int64 NewId()
         {
+            if (WorkerId <= 0) WorkerId = SysConfig.Current.Instance & 0x3FF;
+
             var time = (Int64)(DateTime.Now - StartTimestamp).TotalMilliseconds;
             var nid = WorkerId & 0x3FF;
             var seq = Interlocked.Increment(ref _Sequence) & 0x0FFF;
