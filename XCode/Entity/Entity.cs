@@ -298,40 +298,23 @@ namespace XCode
         [NonSerialized]
         Boolean enableValid = true;
 
-        /// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>
+        /// <summary>验证并修补数据，通过抛出异常的方式提示验证失败。</summary>
         /// <remarks>建议重写者调用基类的实现，因为基类根据数据字段的唯一索引进行数据验证。</remarks>
         /// <param name="isNew">是否新数据</param>
         public override void Valid(Boolean isNew)
         {
-            //// 实体来自数据库时，不要对唯一索引进行校验
-            //if (_IsFromDatabase) return;
+            var factory = Meta.Factory;
 
-            //// 根据索引，判断唯一性
-            //var table = Meta.Table.DataTable;
-            //var dis = table.Indexes;
-            //if (dis != null && dis.Count > 0)
-            //{
-            //    // 遍历所有索引
-            //    foreach (var item in dis)
-            //    {
-            //        // 只处理唯一索引
-            //        if (!item.Unique) continue;
-
-            //        // 需要转为别名，也就是字段名
-            //        var columns = table.GetColumns(item.Columns);
-            //        if (columns == null || columns.Length < 1) continue;
-
-            //        // 不处理自增
-            //        if (columns.All(c => c.Identity)) continue;
-
-            //        // 记录字段是否有更新
-            //        var changed = false;
-            //        if (!isNew) changed = columns.Any(c => Dirtys[c.Name]);
-
-            //        // 存在检查
-            //        if (isNew || changed) CheckExist(isNew, columns.Select(c => c.Name).Distinct().ToArray());
-            //    }
-            //}
+            // 雪花Id生成器。Int64主键非自增时，自动填充
+            var pks = factory.Table.PrimaryKeys;
+            if (pks != null && pks.Length == 1)
+            {
+                var pk = pks[0];
+                if (!pk.IsIdentity && pk.Type == typeof(Int64) && this[pk.Name].ToLong() == 0)
+                {
+                    this[pk.Name] = factory.FlowId.NewId();
+                }
+            }
         }
 
         /// <summary>根据指定键检查数据，返回数据是否已存在</summary>

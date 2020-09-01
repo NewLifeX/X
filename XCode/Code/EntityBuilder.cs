@@ -596,7 +596,7 @@ namespace XCode.Code
         /// <summary>数据验证</summary>
         protected virtual void BuildValid()
         {
-            WriteLine("/// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>");
+            WriteLine("/// <summary>验证并修补数据，通过抛出异常的方式提示验证失败。</summary>");
             WriteLine("/// <param name=\"isNew\">是否插入</param>");
             WriteLine("public override void Valid(Boolean isNew)");
             WriteLine("{");
