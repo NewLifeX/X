@@ -75,7 +75,13 @@ namespace XCode.Membership
             //if (!key.IsNullOrEmpty()) exp &= (_.Action == key | _.Remark.Contains(key));
             if (!category.IsNullOrEmpty() && category != "全部") exp &= _.Category == category;
             if (userid >= 0) exp &= _.CreateUserID == userid;
-            exp &= _.CreateTime.Between(start, end);
+
+            // 主键带有时间戳
+            var flow = Meta.Factory.FlowId;
+            if (flow != null)
+                exp &= _.ID.Between(start, end, flow);
+            else
+                exp &= _.CreateTime.Between(start, end);
 
             // 先精确查询，再模糊
             if (!key.IsNullOrEmpty())
@@ -107,7 +113,13 @@ namespace XCode.Membership
             if (!action.IsNullOrEmpty() && action != "全部") exp &= _.Action == action;
             if (success != null) exp &= _.Success == success;
             if (userid >= 0) exp &= _.CreateUserID == userid;
-            exp &= _.CreateTime.Between(start, end);
+
+            // 主键带有时间戳
+            var flow = Meta.Factory.FlowId;
+            if (flow != null)
+                exp &= _.ID.Between(start, end, flow);
+            else
+                exp &= _.CreateTime.Between(start, end);
 
             if (!key.IsNullOrEmpty()) exp &= _.Remark.Contains(key);
 
