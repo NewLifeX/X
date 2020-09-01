@@ -28,6 +28,7 @@ namespace XCode.Code
         /// <param name="nameSpace">命名空间</param>
         /// <param name="connName">连接名</param>
         /// <param name="chineseFileName">中文文件名</param>
+        [Obsolete("=>BuildTables")]
         public static Int32 Build(String xmlFile = null, String output = null, String nameSpace = null, String connName = null, Boolean? chineseFileName = null)
         {
             var option = new BuilderOption
@@ -51,6 +52,9 @@ namespace XCode.Code
         /// <param name="tables"></param>
         public static void FixModelFile(String xmlFile, BuilderOption option, IDictionary<String, String> atts, IList<IDataTable> tables)
         {
+            // 保存文件名
+            if (xmlFile.IsNullOrEmpty()) xmlFile = atts["ModelFile"];
+
             // 反哺。确保输出空特性
             atts["Output"] = option.Output + "";
             atts["NameSpace"] = option.Namespace + "";
@@ -59,6 +63,7 @@ namespace XCode.Code
             atts.Remove("NameIgnoreCase");
             atts.Remove("IgnoreNameCase");
             atts.Remove("ChineseFileName");
+            atts.Remove("ModelFile");
 
             // 更新xsd
             atts["xmlns"] = atts["xmlns"].Replace("ModelSchema", "Model2020");
@@ -187,16 +192,32 @@ namespace XCode.Code
         /// <returns></returns>
         protected override String GetBaseClass()
         {
+            var baseClass = Option.BaseClass;
+            if (Option.Extend)
+            {
+                if (!baseClass.IsNullOrEmpty()) baseClass += ", ";
+                baseClass += "IExtend";
+            }
+
+            var bs = baseClass.Split(",").Select(e => e.Trim()).ToArray();
+
             // 数据类的基类只有接口，业务类基类则比较复杂
-            //if (!Business) return "I" + ClassName;
-            if (!Business) return null;
+            var name = "";
+            if (Business)
+            {
+                // 数据类只要实体基类
+                name = bs.FirstOrDefault(e => e.Contains("Entity"));
+                if (name.IsNullOrEmpty()) name = "Entity";
 
-            var name = Option.BaseClass?.Replace("{name}", Table.Name);
-            if (name.IsNullOrEmpty()) name = "Entity";
+                name = "{0}<{1}>".F(name, ClassName);
+            }
+            else
+            {
+                // 数据类不要实体基类
+                name = bs.Where(e => !e.Contains("Entity")).Join(", ");
+            }
 
-            name = "{0}<{1}>".F(name, ClassName);
-
-            return name;
+            return name.Replace("{name}", ClassName);
         }
 
         /// <summary>保存</summary>

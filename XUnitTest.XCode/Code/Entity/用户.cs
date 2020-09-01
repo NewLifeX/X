@@ -18,7 +18,7 @@ namespace XCode.Membership
     [BindIndex("IX_User_RoleID", false, "RoleID")]
     [BindIndex("IX_User_UpdateTime", false, "UpdateTime")]
     [BindTable("User", Description = "用户。用户帐号信息", ConnName = "Membership", DbType = DatabaseType.None)]
-    public partial class User
+    public partial class User : IUser
     {
         #region 属性
         private Int32 _ID;
@@ -261,6 +261,44 @@ namespace XCode.Membership
         [DataObjectField(false, false, true, 200)]
         [BindColumn("Remark", "备注", "")]
         public String Remark { get => _Remark; set { if (OnPropertyChanging("Remark", value)) { _Remark = value; OnPropertyChanged("Remark"); } } }
+        #endregion
+
+        #region 拷贝
+        /// <summary>拷贝模型对象</summary>
+        /// <param name="model">模型</param>
+        public void Copy(IUser model)
+        {
+            ID = model.ID;
+            Name = model.Name;
+            Password = model.Password;
+            DisplayName = model.DisplayName;
+            Sex = model.Sex;
+            Mail = model.Mail;
+            Mobile = model.Mobile;
+            Code = model.Code;
+            Avatar = model.Avatar;
+            RoleID = model.RoleID;
+            RoleIds = model.RoleIds;
+            DepartmentID = model.DepartmentID;
+            Online = model.Online;
+            Enable = model.Enable;
+            Logins = model.Logins;
+            LastLogin = model.LastLogin;
+            LastLoginIP = model.LastLoginIP;
+            RegisterTime = model.RegisterTime;
+            RegisterIP = model.RegisterIP;
+            Ex1 = model.Ex1;
+            Ex2 = model.Ex2;
+            Ex3 = model.Ex3;
+            Ex4 = model.Ex4;
+            Ex5 = model.Ex5;
+            Ex6 = model.Ex6;
+            UpdateUser = model.UpdateUser;
+            UpdateUserID = model.UpdateUserID;
+            UpdateIP = model.UpdateIP;
+            UpdateTime = model.UpdateTime;
+            Remark = model.Remark;
+        }
         #endregion
 
         #region 获取/设置 字段值

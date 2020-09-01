@@ -68,6 +68,9 @@ namespace XCode.Code
                 option.BaseClass = atts["BaseClass"];
             }
 
+            // 保存文件名
+            atts["ModelFile"] = xmlFile;
+
             return tables;
         }
 
@@ -77,7 +80,10 @@ namespace XCode.Code
         /// <returns></returns>
         public static Int32 BuildModels(IList<IDataTable> tables, BuilderOption option = null)
         {
-            if (option == null) option = new BuilderOption();
+            if (option == null)
+                option = new BuilderOption();
+            else
+                option = option.Clone();
 
             option.Pure = true;
 
@@ -108,7 +114,10 @@ namespace XCode.Code
         /// <returns></returns>
         public static Int32 BuildInterfaces(IList<IDataTable> tables, BuilderOption option = null)
         {
-            if (option == null) option = new BuilderOption();
+            if (option == null)
+                option = new BuilderOption();
+            else
+                option = option.Clone();
 
             option.Interface = true;
 
