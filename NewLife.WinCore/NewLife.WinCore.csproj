@@ -8,9 +8,9 @@
     <Description>算法、日志、网络、RPC、序列化、缓存、Windows服务、线程池</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2020 NewLife</Copyright>
-    <Version>8.9.2020.0802</Version>
-    <FileVersion>8.9.2020.0802</FileVersion>
-    <AssemblyVersion>8.9.*</AssemblyVersion>
+    <Version>8.10.2020.0901</Version>
+    <FileVersion>8.10.2020.0901</FileVersion>
+    <AssemblyVersion>8.10.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <OutputPath>..\..\Bin</OutputPath>
     <DocumentationFile>$(OutputPath)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
