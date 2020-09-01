@@ -42,6 +42,9 @@ namespace NewLife.Data
             var nid = WorkerId & 0x3FF;
             var seq = Interlocked.Increment(ref _Sequence) & 0x0FFF;
 
+            //!!! 避免时间倒退
+            if (time < _lastTime) time = _lastTime;
+
             // 相同毫秒内，如果序列号用尽，则可能超过4096，导致生成重复Id
             // 睡眠1毫秒，抢占它的位置 @656092719（广西-风吹面）
             if (BlockOnSampleTime && _lastTime == time && seq == 0)
