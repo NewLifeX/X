@@ -23,7 +23,7 @@ namespace XUnitTest.XCode.EntityTests
         [Fact]
         public void RWTest()
         {
-            // 准备连接字符串。估计放到不同库上
+            // 准备连接字符串。故意放到不同库上
             DAL.AddConnStr("rw_test", "Data Source=data\\rw_test.db", null, "SQLite");
             DAL.AddConnStr("rw_test.readonly", "Data Source=data\\rw_test_readonly.db", null, "SQLite");
 
@@ -51,7 +51,7 @@ namespace XUnitTest.XCode.EntityTests
 
             // 如果查询落在从库，不可能查到。因为这个测试用例故意分开为不同的库
             XTrace.WriteLine("从库查一下");
-            var r2 = Role2.FindByName(name);
+            var r2 = Role2.Find(Role2._.Name == name);
             //XTrace.WriteLine("FindByName: {0}", r2.ToJson());
             Assert.Null(r2);
 

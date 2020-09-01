@@ -616,9 +616,9 @@ namespace XCode.Code
                     }
                 }
 
-                //WriteLine();
-                //WriteLine("// 建议先调用基类方法，基类方法会对唯一索引的数据进行验证");
-                //WriteLine("base.Valid(isNew);");
+                WriteLine();
+                WriteLine("// 建议先调用基类方法，基类方法会做一些统一处理");
+                WriteLine("base.Valid(isNew);");
 
                 WriteLine();
                 WriteLine("// 在新插入数据或者修改了指定字段时进行修正");

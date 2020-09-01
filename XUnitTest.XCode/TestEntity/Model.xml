@@ -82,46 +82,4 @@
       <Index Columns="CreateTime" />
     </Indexes>
   </Table>
-  <Table Name="UserOnline2" Description="用户在线">
-    <Columns>
-      <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
-      <Column Name="UserID" DataType="Int32" Description="用户" />
-      <Column Name="Name" DataType="String" Master="True" Description="名称" />
-      <Column Name="SessionID" DataType="String" Description="会话。Web的SessionID或Server的会话编号" />
-      <Column Name="Times" DataType="Int32" Description="次数" />
-      <Column Name="Page" DataType="String" Description="页面" />
-      <Column Name="Status" DataType="String" Length="200" Description="状态" />
-      <Column Name="OnlineTime" DataType="Int32" Description="在线时间。本次在线总时间，秒" />
-      <Column Name="CreateIP" DataType="String" Description="创建地址" />
-      <Column Name="CreateTime" DataType="DateTime" Description="创建时间" />
-      <Column Name="UpdateTime" DataType="DateTime" Description="修改时间" />
-    </Columns>
-    <Indexes>
-      <Index Columns="UserID" />
-      <Index Columns="SessionID" />
-      <Index Columns="CreateTime" />
-    </Indexes>
-  </Table>
-  <Table Name="VisitStat2" Description="访问统计">
-    <Columns>
-      <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
-      <Column Name="Level" DataType="Int32" Description="层级" Type="XCode.Statistics.StatLevels" />
-      <Column Name="Time" DataType="DateTime" Description="时间" />
-      <Column Name="Page" DataType="String" Nullable="False" Description="页面" />
-      <Column Name="Title" DataType="String" Master="True" Description="标题" />
-      <Column Name="Times" DataType="Int32" Description="次数" />
-      <Column Name="Users" DataType="Int32" Description="用户" />
-      <Column Name="IPs" DataType="Int32" Description="IP" />
-      <Column Name="Error" DataType="Int32" Description="错误" />
-      <Column Name="Cost" DataType="Int32" Description="耗时。毫秒" />
-      <Column Name="MaxCost" DataType="Int32" Description="最大耗时。毫秒" />
-      <Column Name="CreateTime" DataType="DateTime" Description="创建时间" />
-      <Column Name="UpdateTime" DataType="DateTime" Description="更新时间" />
-      <Column Name="Remark" DataType="String" Length="500" Description="详细信息" />
-    </Columns>
-    <Indexes>
-      <Index Columns="Page,Level,Time" Unique="True" />
-      <Index Columns="Level,Time" />
-    </Indexes>
-  </Table>
 </Tables>

@@ -8,6 +8,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
+using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using NewLife;
 using NewLife.Data;
@@ -30,14 +31,14 @@ namespace XCode.Membership
         #region 对象操作
         static Menu2()
         {
-            // 累加字段
+            // 累加字段，生成 Update xx Set Count=Count+1234 Where xxx
             //var df = Meta.Factory.AdditionalFields;
-            //df.Add(__.ParentID);
+            //df.Add(nameof(ParentID));
 
             // 过滤器 UserModule、TimeModule、IPModule
         }
 
-        /// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>
+        /// <summary>验证并修补数据，通过抛出异常的方式提示验证失败。</summary>
         /// <param name="isNew">是否插入</param>
         public override void Valid(Boolean isNew)
         {
@@ -47,15 +48,18 @@ namespace XCode.Membership
             // 这里验证参数范围，建议抛出参数异常，指定参数名，前端用户界面可以捕获参数异常并聚焦到对应的参数输入框
             if (Name.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Name), "名称不能为空！");
 
+            // 建议先调用基类方法，基类方法会做一些统一处理
+            base.Valid(isNew);
+
             // 在新插入数据或者修改了指定字段时进行修正
 
             // 检查唯一索引
-            // CheckExist(isNew, __.Name, __.ParentID);
+            // CheckExist(isNew, nameof(ParentID), nameof(Name));
         }
 
         ///// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>
         //[EditorBrowsable(EditorBrowsableState.Never)]
-        //protected internal override void InitData()
+        //protected override void InitData()
         //{
         //    // InitData一般用于当数据表没有数据时添加一些默认数据，该实体类的任何第一次数据库操作都会触发该方法，默认异步调用
         //    if (Meta.Session.Count > 0) return;
@@ -126,16 +130,16 @@ namespace XCode.Membership
             return FindAll(_.Name == name);
         }
 
-        /// <summary>根据名称、父编号查找</summary>
-        /// <param name="name">名称</param>
+        /// <summary>根据父编号、名称查找</summary>
         /// <param name="parentId">父编号</param>
+        /// <param name="name">名称</param>
         /// <returns>实体对象</returns>
-        public static Menu2 FindByNameAndParentID(String name, Int32 parentId)
+        public static Menu2 FindByParentIDAndName(Int32 parentId, String name)
         {
             // 实体缓存
-            if (Meta.Session.Count < 1000) return Meta.Cache.Find(e => e.Name == name && e.ParentID == parentId);
+            if (Meta.Session.Count < 1000) return Meta.Cache.Find(e => e.ParentID == parentId && e.Name == name);
 
-            return Find(_.Name == name & _.ParentID == parentId);
+            return Find(_.ParentID == parentId & _.Name == name);
         }
         #endregion
 
@@ -156,6 +160,16 @@ namespace XCode.Membership
 
             return FindAll(exp, page);
         }
+
+        // Select Count(ID) as ID,Category From Menu2 Where CreateTime>'2020-01-24 00:00:00' Group By Category Order By ID Desc limit 20
+        //static readonly FieldCache<Menu2> _CategoryCache = new FieldCache<Menu2>(nameof(Category))
+        //{
+        //Where = _.CreateTime > DateTime.Today.AddDays(-30) & Expression.Empty
+        //};
+
+        ///// <summary>获取类别列表，字段缓存10分钟，分组统计数据最多的前20种，用于魔方前台下拉选择</summary>
+        ///// <returns></returns>
+        //public static IDictionary<String, String> GetCategoryList() => _CategoryCache.FindAllName();
         #endregion
 
         #region 业务操作

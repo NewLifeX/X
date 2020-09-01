@@ -155,6 +155,7 @@ namespace XCode.Membership
         #endregion
     }
 
+    /// <summary>日志接口</summary>
     public partial interface ILog
     {
         /// <summary>保存</summary>

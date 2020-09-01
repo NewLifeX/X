@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -8,6 +8,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
+using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using NewLife;
 using NewLife.Data;
@@ -32,7 +33,7 @@ namespace XCode.Membership
         {
             // 累加字段，生成 Update xx Set Count=Count+1234 Where xxx
             //var df = Meta.Factory.AdditionalFields;
-            //df.Add(__.LinkID);
+            //df.Add(nameof(LinkID));
 
             // 过滤器 UserModule、TimeModule、IPModule
             Meta.Modules.Add<UserModule>();
@@ -40,12 +41,15 @@ namespace XCode.Membership
             Meta.Modules.Add<IPModule>();
         }
 
-        /// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>
+        /// <summary>验证并修补数据，通过抛出异常的方式提示验证失败。</summary>
         /// <param name="isNew">是否插入</param>
         public override void Valid(Boolean isNew)
         {
             // 如果没有脏数据，则不需要进行任何处理
             if (!HasDirty) return;
+
+            // 建议先调用基类方法，基类方法会做一些统一处理
+            base.Valid(isNew);
 
             // 在新插入数据或者修改了指定字段时进行修正
             // 处理当前已登录用户信息，可以由UserModule过滤器代劳
@@ -60,7 +64,7 @@ namespace XCode.Membership
 
         ///// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>
         //[EditorBrowsable(EditorBrowsableState.Never)]
-        //protected internal override void InitData()
+        //protected override void InitData()
         //{
         //    // InitData一般用于当数据表没有数据时添加一些默认数据，该实体类的任何第一次数据库操作都会触发该方法，默认异步调用
         //    if (Meta.Session.Count > 0) return;
@@ -160,8 +164,8 @@ namespace XCode.Membership
             return FindAll(exp, page);
         }
 
-        // Select Count(ID) as ID,Category From Log2 Where CreateTime>'2020-01-24 00:00:00' Group By Category Order By ID Desc limit 20
-        static readonly FieldCache<Log2> _CategoryCache = new FieldCache<Log2>(__.Category)
+        // Select Count(Id) as Id,Category From Log2 Where CreateTime>'2020-01-24 00:00:00' Group By Category Order By Id Desc limit 20
+        static readonly FieldCache<Log2> _CategoryCache = new FieldCache<Log2>(nameof(Category))
         {
             //Where = _.CreateTime > DateTime.Today.AddDays(-30) & Expression.Empty
         };
