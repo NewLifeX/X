@@ -165,8 +165,7 @@ namespace NewLife.Net
         public virtual INetSession Send(String msg, Encoding encoding = null)
         {
             var ns = (this as INetSession).Host;
-            using var span = ns?.Tracer?.NewSpan($"net:{ns.Name}:Send");
-            if (span != null) span.Tag = msg?.Cut(1024);
+            using var span = ns?.Tracer?.NewSpan($"net:{ns.Name}:Send", msg);
 
             Session.Send(msg, encoding);
 

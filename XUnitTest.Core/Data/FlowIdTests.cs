@@ -82,11 +82,11 @@ namespace XUnitTest.Data
             var count = 10_000_000L;
 
             var ts = new List<Task>();
-            for (var i = 0; i < Environment.ProcessorCount; i++)
+            for (var i = 0; i < 1; i++)
             {
                 ts.Add(Task.Run(() =>
                 {
-                    var f = new FlowId { BlockOnSampleTime = false };
+                    var f = new FlowId { BlockOnSampleTime = true };
 
                     for (var i = 0; i < count; i++)
                     {
