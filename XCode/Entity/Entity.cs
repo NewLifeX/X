@@ -276,8 +276,8 @@ namespace XCode
             var isnew = false;
 
             // 优先使用自增字段判断
-            var fi = Meta.Table.Identity;
-            if (fi != null)
+            var fi = Meta.Unique;
+            if (fi != null && fi.Type.IsInt())
                 isnew = Convert.ToInt64(this[fi.Name]) == 0;
             // 如果唯一主键不为空，应该通过后面判断，而不是直接Update
             else if (IsNullKey)
@@ -1206,12 +1206,12 @@ namespace XCode
                     builder.Column = factory.Selects;
             }
 
-            // XCode对于默认排序的规则：自增主键降序，其它情况默认
+            // XCode对于默认排序的规则：整型主键降序，其它情况默认
             // 返回所有记录
             if (!needOrderByID) return builder;
 
-            var fi = Meta.Table.Identity;
-            if (fi != null)
+            var fi = Meta.Unique;
+            if (fi != null && fi.Type.IsInt())
             {
                 builder.Key = db.FormatName(fi.Field);
 
