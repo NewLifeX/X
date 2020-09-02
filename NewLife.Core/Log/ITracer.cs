@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Threading;
 using NewLife.Http;
 using NewLife.Model;
+using NewLife.Serialization;
 using NewLife.Threading;
 
 namespace NewLife.Log
@@ -39,6 +40,12 @@ namespace NewLife.Log
         /// <param name="name">操作名</param>
         /// <returns></returns>
         ISpan NewSpan(String name);
+
+        /// <summary>开始一个Span，指定数据标签</summary>
+        /// <param name="name">操作名</param>
+        /// <param name="tag">数据</param>
+        /// <returns></returns>
+        ISpan NewSpan(String name, Object tag);
 
         /// <summary>截断所有Span构建器数据，重置集合</summary>
         /// <returns></returns>
@@ -178,6 +185,21 @@ namespace NewLife.Log
         /// <param name="name">操作名</param>
         /// <returns></returns>
         public virtual ISpan NewSpan(String name) => BuildSpan(name).Start();
+
+        /// <summary>开始一个Span，指定数据标签</summary>
+        /// <param name="name">操作名</param>
+        /// <param name="tag">数据</param>
+        /// <returns></returns>
+        public virtual ISpan NewSpan(String name, Object tag)
+        {
+            var span = BuildSpan(name).Start();
+            if (tag is String str)
+                span.Tag = str?.Cut(1024);
+            else if (tag != null)
+                span.Tag = tag?.ToJson().Cut(1024);
+
+            return span;
+        }
 
         /// <summary>截断所有Span构建器数据，重置集合</summary>
         /// <returns></returns>

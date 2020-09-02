@@ -339,10 +339,9 @@ namespace XCode.DataAccessLayer
 
         private TResult Invoke<T1, T2, T3, TResult>(T1 k1, T2 k2, T3 k3, Func<T1, T2, T3, TResult> callback, String action)
         {
-            var tracer = Tracer ?? GlobalTracer;
-            var span = tracer?.NewSpan($"db:{ConnName}:{action}");
             // 使用k1参数作为tag，一般是sql
-            if (span != null) span.Tag = (k1 + "").Cut(1024);
+            var tracer = Tracer ?? GlobalTracer;
+            var span = tracer?.NewSpan($"db:{ConnName}:{action}", k1 + "");
             try
             {
                 return callback(k1, k2, k3);
