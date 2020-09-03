@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using NewLife.Common;
-using NewLife.Security;
 
 namespace NewLife.Data
 {
@@ -36,31 +35,45 @@ namespace NewLife.Data
         {
             if (WorkerId <= 0) WorkerId = SysConfig.Current.Instance & 0x3FF;
 
-            var time = (Int64)(DateTime.Now - StartTimestamp).TotalMilliseconds;
+            var ms = (Int64)(DateTime.Now - StartTimestamp).TotalMilliseconds;
             var nid = WorkerId & 0x3FF;
             var seq = Interlocked.Increment(ref _Sequence) & 0x0FFF;
 
             //!!! 避免时间倒退
-            if (time < _lastTime) time = _lastTime;
+            if (ms < _lastTime) ms = _lastTime;
 
             // 相同毫秒内，如果序列号用尽，则可能超过4096，导致生成重复Id
             // 睡眠1毫秒，抢占它的位置 @656092719（广西-风吹面）
-            if (BlockOnSampleTime && _lastTime == time && seq == 0)
+            if (BlockOnSampleTime && _lastTime == ms && seq == 0)
             {
-                time++;
+                ms++;
                 Thread.Sleep(1);
             }
-            _lastTime = time;
+            _lastTime = ms;
 
             /*
              * 每个毫秒内_Sequence没有归零，主要是为了安全，避免被人猜测得到前后Id。
              * 而毫秒内的顺序，重要性不大。
              */
 
-            return (time << (10 + 12)) | (Int64)(nid << 12) | (Int64)seq;
+            return (ms << (10 + 12)) | (Int64)(nid << 12) | (Int64)seq;
         }
 
-        /// <summary>时间转为Id。可用于构建时间片段查询</summary>
+        /// <summary>获取指定时间的Id，带上节点和序列号。可用于根据业务时间构造插入Id</summary>
+        /// <param name="time">时间</param>
+        /// <returns></returns>
+        public virtual Int64 NewId(DateTime time)
+        {
+            if (WorkerId <= 0) WorkerId = SysConfig.Current.Instance & 0x3FF;
+
+            var ms = (Int64)(time - StartTimestamp).TotalMilliseconds;
+            var nid = WorkerId & 0x3FF;
+            var seq = Interlocked.Increment(ref _Sequence) & 0x0FFF;
+
+            return (ms << (10 + 12)) | (Int64)(nid << 12) | (Int64)seq;
+        }
+
+        /// <summary>时间转为Id，不带节点和序列号。可用于构建时间片段查询</summary>
         /// <param name="time">时间</param>
         /// <returns></returns>
         public virtual Int64 GetId(DateTime time)
