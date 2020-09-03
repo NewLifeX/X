@@ -407,7 +407,7 @@ namespace XCode.DataAccessLayer
         public override Int32 Insert(IDataTable table, IDataColumn[] columns, IEnumerable<IIndexAccessor> list)
         {
             // 分批
-            var batchSize = 10_000;
+            var batchSize = (Database as DbBase).BatchSize;
             var rs = 0;
             for (var i = 0; i < list.Count();)
             {
@@ -424,7 +424,7 @@ namespace XCode.DataAccessLayer
         public override Int32 Upsert(IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list)
         {
             // 分批
-            var batchSize = 10_000;
+            var batchSize = (Database as DbBase).BatchSize;
             var rs = 0;
             for (var i = 0; i < list.Count();)
             {
