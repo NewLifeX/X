@@ -55,7 +55,7 @@ namespace XCode.DataAccessLayer
             WriteLog("备份[{0}/{1}]开始，共[{2:n0}]行", table, ConnName, writeFile.Total);
 
             var row = 0L;
-            var pageSize = 10_000;
+            var pageSize = (Db as DbBase).BatchSize;
             var total = 0;
             var sw = Stopwatch.StartNew();
             while (total < writeFile.Total)
@@ -275,7 +275,7 @@ namespace XCode.DataAccessLayer
             WriteLog("类型[{0}]：{1}", ts.Length, ts.Join(",", e => e.Name));
 
             var row = 0;
-            var pageSize = 10_000;
+            var pageSize = (Db as DbBase).BatchSize;
             var total = 0;
             while (true)
             {
@@ -444,7 +444,7 @@ namespace XCode.DataAccessLayer
             };
 
             var row = 0L;
-            var pageSize = 10_000;
+            var pageSize = (Db as DbBase).BatchSize;
             var total = 0;
             while (true)
             {

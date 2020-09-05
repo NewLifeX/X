@@ -240,6 +240,9 @@ namespace XCode.DataAccessLayer
 
         /// <summary>反向工程表名、字段名大小写设置</summary>
         public NameFormats NameFormat { get; set; } = Setting.Current.NameFormat;
+
+        /// <summary>批大小。用于批量操作数据，默认5000</summary>
+        public Int32 BatchSize { get; set; } = 5_000;
         #endregion
 
         #region 方法

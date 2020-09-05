@@ -92,6 +92,14 @@ namespace XCode.Membership
         /// <summary>管理者</summary>
         [Map(__.ManagerID, typeof(User), __.ID)]
         public String ManagerName => Manager?.ToString();
+
+        /// <summary>父级</summary>
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
+        public Department Parent => Extends.Get(nameof(Department), k => FindByID(ParentID));
+
+        /// <summary>父级</summary>
+        [Map(__.ParentID, typeof(Department), __.ID)]
+        public String ParentName => Parent?.ToString();
         #endregion
 
         #region 扩展查询
