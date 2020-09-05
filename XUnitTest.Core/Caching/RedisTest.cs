@@ -106,6 +106,30 @@ namespace XUnitTest.Caching
             Assert.NotEqual(Environment.UserName, name);
         }
 
+        [Fact]
+        public void TryGet()
+        {
+            var ic = Redis;
+            var key = "TryGetName";
+
+            ic.Set(key, Environment.UserName, 1);
+            var v1 = ic.Get<String>(key);
+            Assert.NotNull(v1);
+
+            var rs1 = ic.TryGet<String>(key, out var v2);
+            Assert.True(rs1);
+            Assert.Equal(v1, v2);
+
+            Thread.Sleep(1100);
+
+            var v3 = ic.Get<String>(key);
+            Assert.Null(v3);
+
+            var rs2 = ic.TryGet<String>(key, out var v4);
+            Assert.False(rs2);
+            Assert.Null(v4);
+        }
+
         [Fact(DisplayName = "累加累减")]
         public void IncDec()
         {

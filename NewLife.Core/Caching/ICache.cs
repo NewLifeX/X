@@ -132,6 +132,13 @@ namespace NewLife.Caching
         /// <returns></returns>
         T Replace<T>(String key, T value);
 
+        /// <summary>尝试获取指定键，返回是否包含有效值。若有值，即使过期也可以返回，用户可以异步更新缓存</summary>
+        /// <typeparam name="T">值类型</typeparam>
+        /// <param name="key">键</param>
+        /// <param name="value">值。即使过期也可以返回旧值</param>
+        /// <returns>返回是否包含有效值，过期表示无效</returns>
+        Boolean TryGet<T>(String key, out T value);
+
         /// <summary>累加，原子操作</summary>
         /// <param name="key">键</param>
         /// <param name="value">变化量</param>
