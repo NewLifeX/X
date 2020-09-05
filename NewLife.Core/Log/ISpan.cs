@@ -193,7 +193,9 @@ namespace NewLife.Log
             // 从本线程中清除跟踪标识
             Current = _parent;
 
-            Builder.Finish(this);
+            // Builder这一批可能已经上传，重新取一次，以防万一
+            var builder = Builder.Tracer.BuildSpan(Builder.Name);
+            builder.Finish(this);
         }
 
         /// <summary>设置错误信息</summary>
