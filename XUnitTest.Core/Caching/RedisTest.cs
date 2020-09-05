@@ -110,24 +110,41 @@ namespace XUnitTest.Caching
         public void TryGet()
         {
             var ic = Redis;
-            var key = "TryGetName";
+            var key = "tcUser";
 
-            ic.Set(key, Environment.UserName, 1);
-            var v1 = ic.Get<String>(key);
+            var user = new User { Name = "Stone" };
+
+            ic.Set(key, user, 1);
+            var v1 = ic.Get<User>(key);
             Assert.NotNull(v1);
 
-            var rs1 = ic.TryGet<String>(key, out var v2);
+            var rs1 = ic.TryGet<User>(key, out var v2);
             Assert.True(rs1);
-            Assert.Equal(v1, v2);
+            Assert.NotEqual(v1, v2);
+            Assert.Equal(v1.Name, v2.Name);
 
+            // 等过期，再试
+            XTrace.WriteLine("等过期，再试");
             Thread.Sleep(1100);
 
-            var v3 = ic.Get<String>(key);
+            var v3 = ic.Get<User>(key);
             Assert.Null(v3);
 
-            var rs2 = ic.TryGet<String>(key, out var v4);
-            Assert.False(rs2);
+            var rs4 = ic.TryGet<User>(key, out var v4);
+            Assert.False(rs4);
             Assert.Null(v4);
+
+            // 写入一个无效字符串
+            XTrace.WriteLine("写入一个无效字符串");
+            ic.Set(key, "xxx", 3);
+
+            var v5 = ic.Get<User>(key);
+            Assert.Null(v5);
+
+            // 实际有值，但解码失败
+            var rs6 = ic.TryGet<User>(key, out var v6);
+            Assert.True(rs6);
+            Assert.Null(v6);
         }
 
         [Fact(DisplayName = "累加累减")]

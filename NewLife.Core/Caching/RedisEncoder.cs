@@ -23,6 +23,11 @@ namespace NewLife.Caching
     /// <summary>Redis编码器</summary>
     public class RedisJsonEncoder : IRedisEncoder
     {
+        #region 属性
+        /// <summary>解码出错时抛出异常。默认false不抛出异常，仅返回默认值</summary>
+        public Boolean ThrowOnError { get; set; }
+        #endregion
+
         /// <summary>数值转字节数组</summary>
         /// <param name="value"></param>
         /// <returns></returns>
@@ -52,15 +57,24 @@ namespace NewLife.Caching
         {
             //if (pk == null) return null;
 
-            if (type == typeof(Packet)) return pk;
-            if (type == typeof(Byte[])) return pk.ToArray();
-            if (type.As<IAccessor>()) return type.AccessorRead(pk);
+            try
+            {
+                if (type == typeof(Packet)) return pk;
+                if (type == typeof(Byte[])) return pk.ToArray();
+                if (type.As<IAccessor>()) return type.AccessorRead(pk);
 
-            var str = pk.ToStr().Trim('\"');
-            if (type.GetTypeCode() == TypeCode.String) return str;
-            if (type.GetTypeCode() != TypeCode.Object) return str.ChangeType(type);
+                var str = pk.ToStr().Trim('\"');
+                if (type.GetTypeCode() == TypeCode.String) return str;
+                if (type.GetTypeCode() != TypeCode.Object) return str.ChangeType(type);
 
-            return str.ToJsonEntity(type);
+                return str.ToJsonEntity(type);
+            }
+            catch
+            {
+                if (ThrowOnError) throw;
+
+                return null;
+            }
         }
     }
 }
