@@ -11,6 +11,9 @@ using NewLife.Data;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Serialization;
+#if !NET4
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 namespace NewLife.Remoting
 {
@@ -28,12 +31,26 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public static async Task<TResult> GetAsync<TResult>(this HttpClient client, String action, Object args = null) => await client.InvokeAsync<TResult>(HttpMethod.Get, action, args);
 
+        /// <summary>同步获取，参数构造在Url</summary>
+        /// <param name="client">Http客户端</param>
+        /// <param name="action">服务操作</param>
+        /// <param name="args">参数</param>
+        /// <returns></returns>
+        public static TResult Get<TResult>(this HttpClient client, String action, Object args = null) => TaskEx.Run(() => GetAsync<TResult>(client, action, args)).Result;
+
         /// <summary>异步调用，等待返回结果</summary>
         /// <param name="client">Http客户端</param>
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
         /// <returns></returns>
         public static async Task<TResult> PostAsync<TResult>(this HttpClient client, String action, Object args = null) => await client.InvokeAsync<TResult>(HttpMethod.Post, action, args);
+
+        /// <summary>同步提交，参数Json打包在Body</summary>
+        /// <param name="client">Http客户端</param>
+        /// <param name="action">服务操作</param>
+        /// <param name="args">参数</param>
+        /// <returns></returns>
+        public static TResult Post<TResult>(this HttpClient client, String action, Object args = null) => TaskEx.Run(() => PostAsync<TResult>(client, action, args)).Result;
 
         /// <summary>异步调用，等待返回结果</summary>
         /// <param name="client">Http客户端</param>

@@ -97,11 +97,23 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public async Task<TResult> GetAsync<TResult>(String action, Object args = null) => await InvokeAsync<TResult>(HttpMethod.Get, action, args);
 
+        /// <summary>同步获取，参数构造在Url</summary>
+        /// <param name="action">服务操作</param>
+        /// <param name="args">参数</param>
+        /// <returns></returns>
+        public TResult Get<TResult>(String action, Object args = null) => TaskEx.Run(() => GetAsync<TResult>(action, args)).Result;
+
         /// <summary>异步提交，参数Json打包在Body</summary>
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
         /// <returns></returns>
         public async Task<TResult> PostAsync<TResult>(String action, Object args = null) => await InvokeAsync<TResult>(HttpMethod.Post, action, args);
+
+        /// <summary>同步提交，参数Json打包在Body</summary>
+        /// <param name="action">服务操作</param>
+        /// <param name="args">参数</param>
+        /// <returns></returns>
+        public TResult Post<TResult>(String action, Object args = null) => TaskEx.Run(() => PostAsync<TResult>(action, args)).Result;
 
         /// <summary>异步调用，等待返回结果</summary>
         /// <typeparam name="TResult"></typeparam>
