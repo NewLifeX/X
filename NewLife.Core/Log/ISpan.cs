@@ -338,16 +338,26 @@ namespace NewLife.Log
             }
             else if (dic.TryGetValue("TraceId", out tid))
             {
-                var ss = (tid + "").Split('-');
-                if (ss.Length > 1) span.TraceId = ss[1];
-                if (ss.Length > 2) span.ParentId = ss[2];
+                span.Detach(tid + "");
+            }
+        }
 
-                if (span is DefaultSpan ds)
-                {
-                    // 识别跟踪标识，该TraceId之下，全量采样，确保链路采样完整
-                    //if (ss.Length > 0) ds.Version = (Byte)ss[0].ToInt();
-                    if (ss.Length > 3) ds.TraceFlag = (Byte)ss[3].ToInt();
-                }
+        /// <summary>从数据流traceId中释放片段信息</summary>
+        /// <param name="span">片段</param>
+        /// <param name="traceId">W3C标准TraceId</param>
+        public static void Detach(this ISpan span, String traceId)
+        {
+            if (span == null || traceId.IsNullOrEmpty()) return;
+
+            var ss = traceId.Split('-');
+            if (ss.Length > 1) span.TraceId = ss[1];
+            if (ss.Length > 2) span.ParentId = ss[2];
+
+            if (span is DefaultSpan ds)
+            {
+                // 识别跟踪标识，该TraceId之下，全量采样，确保链路采样完整
+                //if (ss.Length > 0) ds.Version = (Byte)ss[0].ToInt();
+                if (ss.Length > 3) ds.TraceFlag = (Byte)ss[3].ToInt();
             }
         }
         #endregion
