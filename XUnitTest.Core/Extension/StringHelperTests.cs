@@ -28,20 +28,29 @@ namespace XUnitTest.Extension
             // 头部
             rs = "*.zip".IsMatch("7788.zip");
             Assert.True(rs);
+            rs = "*.zip".IsMatch("7788.zipxx");
+            Assert.False(rs);
 
             // 大小写
             rs = "*.zip".IsMatch("4455.Zip");
             Assert.False(rs);
-
             rs = "*.zip".IsMatch("4455.Zip", StringComparison.OrdinalIgnoreCase);
             Assert.True(rs);
 
             // 中间
             rs = "build*.zip".IsMatch("build7788.zip");
             Assert.True(rs);
+            rs = "build*.zip".IsMatch("mybuild7788.zip");
+            Assert.False(rs);
+            rs = "build*.zip".IsMatch("build7788.zipxxx");
+            Assert.False(rs);
 
             // 尾部
             rs = "build.*".IsMatch("build.zip");
+            Assert.True(rs);
+            rs = "build.*".IsMatch("mybuild.zip");
+            Assert.False(rs);
+            rs = "build.*".IsMatch("build.zipxxx");
             Assert.True(rs);
 
             // 多个

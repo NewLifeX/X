@@ -339,18 +339,34 @@ namespace NewLife
             var p = pattern.IndexOf('*');
             if (p < 0) return input.IndexOf(pattern, comparisonType) >= 0;
 
-            // 表达式分组，逐项匹配
+            // 表达式分组
             var ps = pattern.Split('*');
+
+            // 头尾专用匹配
+            if (ps.Length == 2)
+            {
+                if (p == 0) return input.EndsWith(ps[1], comparisonType);
+                if (p == pattern.Length - 1) return input.StartsWith(ps[0], comparisonType);
+            }
+
+            // 逐项跳跃式匹配
             p = 0;
             for (var i = 0; i < ps.Length; i++)
             {
                 p = input.IndexOf(ps[i], p, comparisonType);
                 if (p < 0) return false;
 
+                // 第一组必须开头
+                if (i == 0 && p > 0) return false;
+
                 p += ps[i].Length;
             }
 
-            return true;
+            // 最后一组*允许不到边界
+            if (ps[ps.Length - 1].IsNullOrEmpty()) return p <= input.Length;
+
+            // 最后一组必须结尾
+            return p == input.Length;
         }
         #endregion
 
