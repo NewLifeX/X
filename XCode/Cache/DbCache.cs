@@ -41,7 +41,7 @@ namespace NewLife.Caching
             var name = factory.EntityType.Name;
 
             var key = !keyName.IsNullOrEmpty() ? factory.Table.FindByName(keyName) : factory.Unique;
-            if (key == null || key.Type != typeof(String)) throw new XCodeException("[{0}]没有字符串类型的主键".F(name));
+            if (key == null || key.Type != typeof(String)) throw new XCodeException($"[{name}]没有字符串类型的主键");
 
             TimeField = (!timeName.IsNullOrEmpty() ? factory.Table.FindByName(timeName) : factory.MasterTime) as Field;
 

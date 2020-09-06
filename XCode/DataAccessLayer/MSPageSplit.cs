@@ -248,7 +248,7 @@ namespace XCode.DataAccessLayer
             var builder1 = builder.CloneWithGroupBy("XCode_T0", true);
             //builder1.Column = String.Format("{0}, row_number() over(Order By {1}) as rowNumber", builder.ColumnOrDefault, builder.OrderBy ?? builder.KeyOrder);
             // 不必追求极致，把所有列放出来
-            builder1.Column = "*, row_number() over(Order By {0}) as rowNumber".F(builder.OrderBy ?? builder.KeyOrder);
+            builder1.Column = $"*, row_number() over(Order By {builder.OrderBy ?? builder.KeyOrder}) as rowNumber";
 
             var builder2 = builder1.AsChild("XCode_T1", true);
             // 结果列处理
@@ -264,9 +264,9 @@ namespace XCode.DataAccessLayer
             // row_number()直接影响了排序，这里不再需要
             builder2.OrderBy = null;
             if (maximumRows < 1)
-                builder2.Where = String.Format("rowNumber>={0}", startRowIndex + 1);
+                builder2.Where = $"rowNumber>={startRowIndex + 1}";
             else
-                builder2.Where = String.Format("rowNumber Between {0} And {1}", startRowIndex + 1, startRowIndex + maximumRows);
+                builder2.Where = $"rowNumber Between {startRowIndex + 1} And {startRowIndex + maximumRows}";
 
             return builder2;
         }

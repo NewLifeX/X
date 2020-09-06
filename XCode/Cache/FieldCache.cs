@@ -49,7 +49,7 @@ namespace XCode.Cache
                 var tb = field.Table;
                 var id = tb.Identity;
                 if (id == null && tb.PrimaryKeys.Length == 1) id = tb.PrimaryKeys[0];
-                _Unique = id ?? throw new Exception("{0}缺少唯一主键，无法使用缓存".F(tb.TableName));
+                _Unique = id ?? throw new Exception($"{tb.TableName}缺少唯一主键，无法使用缓存");
             }
         }
 
@@ -75,7 +75,7 @@ namespace XCode.Cache
                 var tb = _field.Table;
                 var id = tb.Identity;
                 if (id == null && tb.PrimaryKeys.Length == 1) id = tb.PrimaryKeys[0];
-                _Unique = id ?? throw new Exception("{0}缺少唯一主键，无法使用缓存".F(tb.TableName));
+                _Unique = id ?? throw new Exception($"{tb.TableName}缺少唯一主键，无法使用缓存");
             }
         }
 
@@ -86,7 +86,7 @@ namespace XCode.Cache
         {
             Init();
 
-            var key = "{0}_{1}".F(typeof(TEntity).Name, _field?.Name);
+            var key = $"{typeof(TEntity).Name}_{_field?.Name}";
             var dc = DataCache.Current;
 
             if (_task == null || _task.Status == TaskStatus.RanToCompletion) _task = TaskEx.Run(() =>
@@ -102,10 +102,10 @@ namespace XCode.Cache
                     if (GetDisplay != null)
                     {
                         v = GetDisplay(entity);
-                        if (v.IsNullOrEmpty()) v = "[{0}]".F(k);
+                        if (v.IsNullOrEmpty()) v = $"[{k}]";
                     }
 
-                    dic[k] = DisplayFormat.F(v, entity[_Unique.Name]);
+                    dic[k] = String.Format(DisplayFormat, v, entity[_Unique.Name]);
                 }
 
                 // 更新缓存
@@ -132,7 +132,8 @@ namespace XCode.Cache
         public override String ToString()
         {
             var type = GetType();
-            return "{0}<{1}>[{2}]".F(type.GetDisplayName() ?? type.Name, typeof(TEntity).FullName, _field.Name);
+            var name = type.GetDisplayName() ?? type.Name;
+            return $"{name}<{typeof(TEntity).FullName}>[{_field.Name}]";
         }
         #endregion
     }

@@ -537,7 +537,7 @@ namespace XCode.Code
         protected String NameOf(String name)
         {
             var v = CSharp;
-            if (v == null || v.Major == 0 || v.Major > 5) return "nameof({0})".F(name);
+            if (v == null || v.Major == 0 || v.Major > 5) return $"nameof({name})";
 
             return "\"" + name + "\"";
         }

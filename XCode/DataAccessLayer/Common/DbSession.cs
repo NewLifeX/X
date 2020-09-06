@@ -671,7 +671,7 @@ namespace XCode.DataAccessLayer
                 var sql = cmd.CommandText;
 
                 // 诊断信息
-                if (XTrace.Log.Level <= LogLevel.Debug) sql = "[{0}]{1}".F(Database.ConnName, sql);
+                if (XTrace.Log.Level <= LogLevel.Debug) sql = $"[{Database.ConnName}]{sql}";
 
                 var ps = cmd.Parameters;
                 if (ps != null && ps.Count > 0)
@@ -695,7 +695,7 @@ namespace XCode.DataAccessLayer
                         else if (v is String str && str.Length > 64)
                             sv = String.Format("[{0}]{1}...", str.Length, str.Substring(0, 64));
                         else
-                            sv = "{0}".F(v);
+                            sv = v is DateTime dt ? dt.ToFullString() : (v + "");
                         sb.AppendFormat("{0}={1}", ps[i].ParameterName, sv);
                     }
                     sb.Append("]");

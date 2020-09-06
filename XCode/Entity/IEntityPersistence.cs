@@ -411,7 +411,7 @@ namespace XCode
 
             if (dps.Count > 0) parameters = dps.ToArray();
 
-            return "Insert Into {0}({1}) Values({2})".F(session.FormatedTableName, ns, vs);
+            return $"Insert Into {session.FormatedTableName}({ns}) Values({vs})";
         }
 
         Boolean CheckIdentity(IDatabase db, FieldItem fi, Object value, StringBuilder sbNames, StringBuilder sbValues)
@@ -530,7 +530,7 @@ namespace XCode
             }
 
             if (dps.Count > 0) parameters = dps.ToArray();
-            return "Update {0} Set {1} Where {2}".F(session.FormatedTableName, str, def);
+            return $"Update {session.FormatedTableName} Set {str} Where {def}";
         }
 
         String DeleteSQL(IEntitySession session, IEntity entity, ref IDataParameter[] parameters)

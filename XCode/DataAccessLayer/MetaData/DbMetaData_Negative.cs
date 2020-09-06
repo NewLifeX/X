@@ -503,14 +503,14 @@ namespace XCode.DataAccessLayer
                         {
                             flag = true;
                             if (type == typeof(String))
-                                sbValue.Append("ifnull({0}, \'\')".F(fname));
+                                sbValue.Append($"ifnull({fname}, \'\')");
                             else if (type == typeof(Int16) || type == typeof(Int32) || type == typeof(Int64) ||
                                type == typeof(Single) || type == typeof(Double) || type == typeof(Decimal))
-                                sbValue.Append("ifnull({0}, 0)".F(fname));
+                                sbValue.Append($"ifnull({fname}, 0)");
                             else if (type == typeof(DateTime))
-                                sbValue.Append("ifnull({0}, {1})".F(fname, db.FormatDateTime(DateTime.MinValue)));
+                                sbValue.Append($"ifnull({fname}, {db.FormatDateTime(DateTime.MinValue)})");
                             else if (type == typeof(Boolean))
-                                sbValue.Append("ifnull({0}, {1})".F(fname, db.FormatValue(item, false)));
+                                sbValue.Append($"ifnull({fname}, { db.FormatValue(item, false)})");
                             else
                                 flag = false;
                         }
@@ -527,7 +527,7 @@ namespace XCode.DataAccessLayer
                         }
                     }
                 }
-                sb.AppendFormat("Insert Into {0}({2}) Select {3} From {1}", tableName, tempTableName, sbName.ToString(), sbValue.ToString());
+                sb.AppendFormat("Insert Into {0}({2}) Select {3} From {1}", tableName, tempTableName, sbName, sbValue);
             }
             else
             {

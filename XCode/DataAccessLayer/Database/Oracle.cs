@@ -110,14 +110,14 @@ namespace XCode.DataAccessLayer
             {
                 if (maximumRows <= 0) return sql;
 
-                if (!sql.ToLower().Contains("order by")) return "Select * From ({1}) T0 Where rownum<={0}".F(maximumRows, sql);
+                if (!sql.ToLower().Contains("order by")) return $"Select * From ({sql}) T0 Where rownum<={maximumRows}";
             }
 
             //if (maximumRows <= 0)
             //    sql = String.Format("Select * From ({1}) XCode_T0 Where rownum>={0}", startRowIndex + 1, sql);
             //else
-            sql = "Select * From (Select T0.*, rownum as rowNumber From ({1}) T0) T1 Where rowNumber>{0}".F(startRowIndex, sql);
-            if (maximumRows > 0) sql += " And rowNumber<={0}".F(startRowIndex + maximumRows);
+            sql = $"Select * From (Select T0.*, rownum as rowNumber From ({sql}) T0) T1 Where rowNumber>{startRowIndex}";
+            if (maximumRows > 0) sql += $" And rowNumber<={startRowIndex + maximumRows}";
 
             return sql;
         }
@@ -176,9 +176,9 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override String FormatDateTime(DateTime dt)
         {
-            if (dt.Hour == 0 && dt.Minute == 0 && dt.Second == 0) return "To_Date('{0:yyyy-MM-dd}', 'YYYY-MM-DD')".F(dt);
+            if (dt.Hour == 0 && dt.Minute == 0 && dt.Second == 0) return $"To_Date('{dt:yyyy-MM-dd}', 'YYYY-MM-DD')";
 
-            return "To_Date('{0:yyyy-MM-dd HH:mm:ss}', 'YYYY-MM-DD HH24:MI:SS')".F(dt);
+            return $"To_Date('{dt:yyyy-MM-dd HH:mm:ss}', 'YYYY-MM-DD HH24:MI:SS')";
         }
 
         public override String FormatValue(IDataColumn field, Object value)
@@ -648,7 +648,8 @@ namespace XCode.DataAccessLayer
             if (names != null)
             {
                 var db = Database as Oracle;
-                /*if (db.IgnoreCase)*/ names = names.Select(e => db.IsReservedWord(e) ? e : e.ToUpper()).ToArray();
+                /*if (db.IgnoreCase)*/
+                names = names.Select(e => db.IsReservedWord(e) ? e : e.ToUpper()).ToArray();
             }
 
             // 采用集合过滤，提高效率
@@ -692,7 +693,7 @@ namespace XCode.DataAccessLayer
             {
                 //var tablenames = dt.Rows.ToArray().Select(e => "'{0}'".F(e["TABLE_NAME"]));
                 //mulTable = " And TABLE_NAME in ({0})".F(tablenames.Join(","));
-                mulTable = " And TABLE_NAME in ({0})".F(names.Select(e => "'{0}'".F(e)).Join(","));
+                mulTable = $" And TABLE_NAME in ({names.Select(e => $"'{e}'").Join(",")})";
             }
 
             // 列和索引
@@ -720,9 +721,9 @@ namespace XCode.DataAccessLayer
         private DataTable Get(String name, String owner, String tableName, String mulTable = null, String ownerName = null)
         {
             if (ownerName.IsNullOrEmpty()) ownerName = "Owner";
-            var sql = "Select * From {0} Where {2}='{1}'".F(name, owner, ownerName);
+            var sql = $"Select * From {name} Where {ownerName}='{owner}'";
             if (!tableName.IsNullOrEmpty())
-                sql += " And TABLE_NAME='{0}'".F(tableName);
+                sql += $" And TABLE_NAME='{tableName}'";
             else if (!mulTable.IsNullOrEmpty())
                 sql += mulTable;
 
@@ -737,7 +738,7 @@ namespace XCode.DataAccessLayer
             var dt = data?["PrimaryKeys"];
             if (dt != null && dt.Rows.Count > 0)
             {
-                var drs = dt.Select(String.Format("{0}='{1}'", _.TalbeName, table.TableName));
+                var drs = dt.Select($"{_.TalbeName}='{table.TableName}'");
                 if (drs != null && drs.Length > 0)
                 {
                     // 找到主键所在索引，这个索引的列才是主键
@@ -847,7 +848,7 @@ namespace XCode.DataAccessLayer
             var dt = data?["ColumnComment"];
             if (dt?.Rows == null || dt.Rows.Count < 1) return null;
 
-            var where = String.Format("{0}='{1}' AND {2}='{3}'", _.TalbeName, tableName, _.ColumnName, columnName);
+            var where = $"{_.TalbeName}='{tableName}' AND {_.ColumnName}='{columnName}'";
             var drs = dt.Select(where);
             if (drs != null && drs.Length > 0) return Convert.ToString(drs[0]["COMMENTS"]);
             return null;
@@ -899,7 +900,7 @@ namespace XCode.DataAccessLayer
                             type = typeof(Decimal);
                     }
                     field.DataType = type;
-                    if (prec > 0 && field.RawType.EqualIgnoreCase("NUMBER")) field.RawType += "({0},{1})".F(prec, fi.Scale);
+                    if (prec > 0 && field.RawType.EqualIgnoreCase("NUMBER")) field.RawType += $"({prec},{fi.Scale})";
                 }
             }
 

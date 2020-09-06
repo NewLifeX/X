@@ -244,13 +244,13 @@ namespace NewLife
         /// <param name="separator">组合分隔符，默认逗号</param>
         /// <param name="func">把对象转为字符串的委托</param>
         /// <returns></returns>
-        //[Obsolete]
+        [Obsolete]
         public static String Join<T>(this IEnumerable<T> value, String separator, Func<T, String>? func)
         {
             var sb = Pool.StringBuilder.Get();
             if (value != null)
             {
-                if (func == null) func = obj => "{0}".F(obj);
+                if (func == null) func = obj => obj + "";
                 foreach (var item in value)
                 {
                     sb.Separate(separator).Append(func(item));
@@ -264,12 +264,12 @@ namespace NewLife
         /// <param name="separator">组合分隔符，默认逗号</param>
         /// <param name="func">把对象转为字符串的委托</param>
         /// <returns></returns>
-        public static String Join<T>(this IEnumerable<T> value, String separator = ",", Func<T, Object>? func = null)
+        public static String Join<T>(this IEnumerable<T> value, String separator = ",", Func<T, Object?>? func = null)
         {
             var sb = Pool.StringBuilder.Get();
             if (value != null)
             {
-                if (func == null) func = obj => "{0}".F(obj);
+                if (func == null) func = obj => obj;
                 foreach (var item in value)
                 {
                     sb.Separate(separator).Append(func(item));
@@ -308,6 +308,7 @@ namespace NewLife
         /// <param name="value">格式字符串</param>
         /// <param name="args">参数</param>
         /// <returns></returns>
+        [Obsolete]
         public static String F(this String value, params Object?[] args)
         {
             if (String.IsNullOrEmpty(value)) return value;

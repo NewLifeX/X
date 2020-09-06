@@ -127,9 +127,9 @@ namespace XCode.DataAccessLayer
                     var file = "web.config".GetFullPath();
                     var fname = AppDomain.CurrentDomain.FriendlyName;
                     if (!File.Exists(file)) file = "app.config".GetFullPath();
-                    if (!File.Exists(file)) file = "{0}.config".F(fname).GetFullPath();
-                    if (!File.Exists(file)) file = "{0}.exe.config".F(fname).GetFullPath();
-                    if (!File.Exists(file)) file = "{0}.dll.config".F(fname).GetFullPath();
+                    if (!File.Exists(file)) file = $"{fname}.config".GetFullPath();
+                    if (!File.Exists(file)) file = $"{fname}.exe.config".GetFullPath();
+                    if (!File.Exists(file)) file = $"{fname}.dll.config".GetFullPath();
 
                     if (File.Exists(file))
                     {

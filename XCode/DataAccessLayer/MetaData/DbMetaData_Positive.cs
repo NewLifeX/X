@@ -274,7 +274,7 @@ namespace XCode.DataAccessLayer
                     else if (indexColumns.Columns.Contains(_.ColumnPosition))
                         orderby = _.ColumnPosition;
 
-                    var dics = indexColumns.Select(String.Format("{0}='{1}' And {2}='{3}'", _.TalbeName, table.TableName, _.IndexName, di.Name), orderby);
+                    var dics = indexColumns.Select($"{_.TalbeName}='{table.TableName}' And {_.IndexName}='{di.Name}'", orderby);
                     if (dics != null && dics.Length > 0)
                     {
                         var ns = new List<String>();
@@ -383,9 +383,9 @@ namespace XCode.DataAccessLayer
             if (typeName.Contains("{0}"))
             {
                 if (typeName.Contains("{1}"))
-                    typeName = typeName.F(field.Precision, field.Scale);
+                    typeName = String.Format(typeName, field.Precision, field.Scale);
                 else
-                    typeName = typeName.F(field.Length);
+                    typeName = String.Format(typeName, field.Length);
             }
 
             return typeName;
@@ -423,10 +423,10 @@ namespace XCode.DataAccessLayer
                         if (dbtype.Contains("{1}"))
                         {
                             if (field is XField xf)
-                                field.RawType = dbtype.F(xf.Precision, xf.Scale);
+                                field.RawType = String.Format(dbtype, xf.Precision, xf.Scale);
                         }
                         else
-                            field.RawType = dbtype.F(field.Length);
+                            field.RawType = String.Format(dbtype, field.Length);
                     }
 
                     return item.Key;

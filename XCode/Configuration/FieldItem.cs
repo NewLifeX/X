@@ -265,7 +265,7 @@ namespace XCode.Configuration
 
             if (value == null || value + "" == "") return new Expression();
 
-            return CreateFormat("{0} Like {1}", "{0}%".F(value));
+            return CreateFormat("{0} Like {1}", value + "%");
         }
 
         /// <summary>以某个字符串结束，%{0}操作</summary>
@@ -278,7 +278,7 @@ namespace XCode.Configuration
 
             if (value == null || value + "" == "") return new Expression();
 
-            return CreateFormat("{0} Like {1}", "%{0}".F(value));
+            return CreateFormat("{0} Like {1}", "%" + value);
         }
 
         /// <summary>包含某个字符串，%{0}%操作</summary>
@@ -291,7 +291,7 @@ namespace XCode.Configuration
 
             if (value == null || value + "" == "") return new Expression();
 
-            return CreateFormat("{0} Like {1}", "%{0}%".F(value));
+            return CreateFormat("{0} Like {1}", $"%{value}%");
         }
 
         /// <summary>不包含某个字符串，%{0}%操作</summary>
@@ -304,7 +304,7 @@ namespace XCode.Configuration
 
             if (value == null || value + "" == "") return new Expression();
 
-            return CreateFormat("{0} Not Like {1}", "%{0}%".F(value));
+            return CreateFormat("{0} Not Like {1}", $"%{value}%");
         }
 
         /// <summary>In操作</summary>

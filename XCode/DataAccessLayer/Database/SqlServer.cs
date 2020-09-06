@@ -187,7 +187,7 @@ namespace XCode.DataAccessLayer
                 if (maximumRows < 1)
                     return sql;
                 else
-                    return String.Format("Select Top {0} * From {1} {2}", maximumRows, CheckSimpleSQL(sql2), orderBy);
+                    return $"Select Top {maximumRows} * From {CheckSimpleSQL(sql2)} {orderBy}";
                 //return String.Format("Select Top {0} * From {1} {2}", maximumRows, CheckSimpleSQL(sql.Substring(0, ms[0].Index)), orderBy);
             }
 
@@ -207,9 +207,9 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(keyColumn)) throw new ArgumentNullException("keyColumn", "分页要求指定主键列或者排序字段！");
 
             if (maximumRows < 1)
-                sql = String.Format("Select * From {1} Where {2} Not In(Select Top {0} {2} From {1} {3}) {3}", startRowIndex, sql, keyColumn, orderBy);
+                sql = $"Select * From {sql} Where {keyColumn} Not In(Select Top {startRowIndex} {keyColumn} From {sql} {orderBy}) {orderBy}";
             else
-                sql = String.Format("Select Top {0} * From {1} Where {2} Not In(Select Top {3} {2} From {1} {4}) {4}", maximumRows, sql, keyColumn, startRowIndex, orderBy);
+                sql = $"Select Top {maximumRows} * From {sql} Where {keyColumn} Not In(Select Top {startRowIndex} {keyColumn} From {sql} {orderBy}) {orderBy}";
             return sql;
         }
 
@@ -264,7 +264,7 @@ namespace XCode.DataAccessLayer
             var builder1 = builder.CloneWithGroupBy("XCode_T0", true);
             //builder1.Column = String.Format("{0}, row_number() over(Order By {1}) as rowNumber", builder.ColumnOrDefault, builder.OrderBy ?? builder.KeyOrder);
             // 不必追求极致，把所有列放出来
-            builder1.Column = "*, row_number() over(Order By {0}) as rowNumber".F(builder.OrderBy ?? builder.KeyOrder);
+            builder1.Column = $"*, row_number() over(Order By {builder.OrderBy ?? builder.KeyOrder}) as rowNumber";
 
             var builder2 = builder1.AsChild("XCode_T1", true);
             // 结果列处理
@@ -280,9 +280,9 @@ namespace XCode.DataAccessLayer
             // row_number()直接影响了排序，这里不再需要
             builder2.OrderBy = null;
             if (maximumRows < 1)
-                builder2.Where = String.Format("rowNumber>={0}", startRowIndex + 1);
+                builder2.Where = $"rowNumber>={startRowIndex + 1}";
             else
-                builder2.Where = String.Format("rowNumber Between {0} And {1}", startRowIndex + 1, startRowIndex + maximumRows);
+                builder2.Where = $"rowNumber Between {startRowIndex + 1} And {startRowIndex + maximumRows}";
 
             return builder2;
         }

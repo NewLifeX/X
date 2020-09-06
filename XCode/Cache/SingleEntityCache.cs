@@ -234,7 +234,7 @@ namespace XCode.Cache
             if (Total > 0)
             {
                 var sb = Pool.StringBuilder.Get();
-                var name = "<{0}>({1:n0})".F(typeof(TEntity).Name, Entities.Count);
+                var name = $"<{typeof(TEntity).Name}>({Entities.Count:n0})";
                 sb.AppendFormat("对象缓存{0,-20}", name);
                 sb.AppendFormat("总次数{0,11:n0}", Total);
                 if (Success > 0) sb.AppendFormat("，命中{0,11:n0}（{1,6:P02}）", Success, (Double)Success / Total);
@@ -493,7 +493,7 @@ namespace XCode.Cache
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override String ToString() => "SingleEntityCache<{0}, {1}>[{2}]".F(typeof(TKey).Name, typeof(TEntity).Name, Entities.Count);
+        public override String ToString() => $"SingleEntityCache<{typeof(TKey).Name}, {typeof(TEntity).Name}>[{Entities.Count}]";
         #endregion
     }
 }

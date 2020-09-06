@@ -129,7 +129,7 @@ namespace XCode.Membership
                 // 日志里面不要出现密码
                 if (fi.Name.EqualIgnoreCase("pass", "password")) v = null;
 
-                sb.Separate(",").Append("{0}={1}".F(fi.Name, v));
+                sb.Separate(",").AppendFormat("{0}={1}", fi.Name, v);
             }
 
             var userid = 0;
@@ -160,7 +160,7 @@ namespace XCode.Membership
 
             protected override void OnWrite(LogLevel level, String format, params Object[] args)
             {
-                var msg = format.F(args);
+                var msg = String.Format(format, args);
                 var act = "";
                 var p = msg.IndexOf(' ');
                 if (p > 0)
@@ -180,7 +180,7 @@ namespace XCode.Membership
         #region 静态属性
         /// <summary>当前成员提供者</summary>
         public static LogProvider Provider { get; set; } = new LogProvider();
-      
+
         /// <summary>当前用户提供者</summary>
         public IManageProvider Provider2 { get; set; }
         #endregion

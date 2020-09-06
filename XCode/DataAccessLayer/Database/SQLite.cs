@@ -746,9 +746,9 @@ namespace XCode.DataAccessLayer
                 if (ext.IsNullOrEmpty()) ext = ".db";
 
                 if (compressed)
-                    bf = "{0}{1}".F(name, ext);
+                    bf = $"{name}{ext}";
                 else
-                    bf = "{0}_{1:yyyyMMddHHmmss}{2}".F(name, DateTime.Now, ext);
+                    bf = $"{name}_{DateTime.Now:yyyyMMddHHmmss}{ext}";
             }
             if (!Path.IsPathRooted(bf)) bf = NewLife.Setting.Current.BackupPath.CombinePath(bf).GetBasePath();
 
@@ -764,7 +764,7 @@ namespace XCode.DataAccessLayer
             using (var conn = Database.Factory.CreateConnection())
             using (var conn2 = Database.OpenConnection())
             {
-                conn.ConnectionString = "Data Source={0}".F(bf);
+                conn.ConnectionString = $"Data Source={bf}";
                 conn.Open();
 
                 //conn2.ConnectionString = Database.ConnectionString;
@@ -780,7 +780,7 @@ namespace XCode.DataAccessLayer
             if (compressed)
             {
                 var zipfile = Path.ChangeExtension(bf, "zip");
-                if (bakfile.IsNullOrEmpty()) zipfile = zipfile.TrimEnd(".zip") + "_{0:yyyyMMddHHmmss}.zip".F(DateTime.Now);
+                if (bakfile.IsNullOrEmpty()) zipfile = zipfile.TrimEnd(".zip") + $"_{DateTime.Now:yyyyMMddHHmmss}.zip";
 
                 var fi = bf.AsFile();
                 fi.Compress(zipfile);

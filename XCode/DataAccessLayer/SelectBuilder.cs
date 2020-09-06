@@ -357,7 +357,7 @@ $";
             if (!Where.IsNullOrEmpty())
             {
                 if (Where.Contains(" ") && Where.ToLower().Contains("or"))
-                    Where = String.Format("({0}) And ", Where);
+                    Where = $"({Where}) And ";
                 else
                     Where += " And ";
             }

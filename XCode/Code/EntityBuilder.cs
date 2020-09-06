@@ -209,7 +209,7 @@ namespace XCode.Code
                 name = bs.FirstOrDefault(e => e.Contains("Entity"));
                 if (name.IsNullOrEmpty()) name = "Entity";
 
-                name = "{0}<{1}>".F(name, ClassName);
+                name = $"{name}<{ClassName}>";
             }
             else
             {
@@ -871,7 +871,7 @@ namespace XCode.Code
 
                 // 返回类型
                 var rt = ClassName;
-                if (!di.Unique) rt = "IList<{0}>".F(rt);
+                if (!di.Unique) rt = $"IList<{rt}>";
 
                 WriteLine("/// <returns>{0}</returns>", di.Unique ? "实体对象" : "实体列表");
                 WriteLine("public static {2} Find{3}By{0}({1})", cs.Select(e => e.Name).Join("And"), cs.Select(e => e.DataType.Name + " " + e.CamelName()).Join(", "), rt, di.Unique ? "" : "All");

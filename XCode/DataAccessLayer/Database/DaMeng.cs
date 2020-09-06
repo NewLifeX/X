@@ -101,11 +101,11 @@ namespace XCode.DataAccessLayer
             {
                 if (maximumRows < 1) return sql;
 
-                return "{0} limit {1}".F(sql, maximumRows);
+                return $"{sql} limit {maximumRows}";
             }
             if (maximumRows < 1) throw new NotSupportedException("不支持取第几条数据之后的所有数据！");
 
-            return "{0} limit {1}, {2}".F(sql, startRowIndex, maximumRows);
+            return $"{sql} limit {startRowIndex}, {maximumRows}";
         }
 
         /// <summary>构造分页SQL</summary>
@@ -118,12 +118,12 @@ namespace XCode.DataAccessLayer
             // 从第一行开始，不需要分页
             if (startRowIndex <= 0)
             {
-                if (maximumRows > 0) builder.Limit = "limit {0}".F(maximumRows);
+                if (maximumRows > 0) builder.Limit = $"limit {maximumRows}";
                 return builder;
             }
             if (maximumRows < 1) throw new NotSupportedException("不支持取第几条数据之后的所有数据！");
 
-            builder.Limit = "limit {0}, {1}".F(startRowIndex, maximumRows);
+            builder.Limit = $"limit {startRowIndex}, {maximumRows}";
             return builder;
         }
         #endregion
@@ -568,7 +568,7 @@ namespace XCode.DataAccessLayer
             {
                 //var tablenames = dt.Rows.ToArray().Select(e => "'{0}'".F(e["TABLE_NAME"]));
                 //mulTable = " And TABLE_NAME in ({0})".F(tablenames.Join(","));
-                mulTable = " And TABLE_NAME in ({0})".F(names.Select(e => "'{0}'".F(e)).Join(","));
+                mulTable = $" And TABLE_NAME in ({names.Select(e => $"'{e}'").Join(",")})";
             }
 
             // 列和索引
@@ -596,9 +596,9 @@ namespace XCode.DataAccessLayer
         private DataTable Get(String name, String owner, String tableName, String mulTable = null, String ownerName = null)
         {
             if (ownerName.IsNullOrEmpty()) ownerName = "Owner";
-            var sql = "Select * From {0} Where {2}='{1}'".F(name, owner, ownerName);
+            var sql = $"Select * From {name} Where {ownerName}='{owner}'";
             if (!tableName.IsNullOrEmpty())
-                sql += " And TABLE_NAME='{0}'".F(tableName);
+                sql += $" And TABLE_NAME='{tableName}'";
             else if (!mulTable.IsNullOrEmpty())
                 sql += mulTable;
 
@@ -613,7 +613,7 @@ namespace XCode.DataAccessLayer
             var dt = data?["PrimaryKeys"];
             if (dt != null && dt.Rows.Count > 0)
             {
-                var drs = dt.Select(String.Format("{0}='{1}'", _.TalbeName, table.TableName));
+                var drs = dt.Select($"{_.TalbeName}='{table.TableName}'");
                 if (drs != null && drs.Length > 0)
                 {
                     // 找到主键所在索引，这个索引的列才是主键
@@ -695,7 +695,7 @@ namespace XCode.DataAccessLayer
             var dt = data?["ColumnComment"];
             if (dt?.Rows == null || dt.Rows.Count < 1) return null;
 
-            var where = String.Format("{0}='{1}' AND {2}='{3}'", _.TalbeName, tableName, _.ColumnName, columnName);
+            var where = $"{_.TalbeName}='{tableName}' AND {_.ColumnName}='{columnName}'";
             var drs = dt.Select(where);
             if (drs != null && drs.Length > 0) return Convert.ToString(drs[0]["COMMENTS"]);
             return null;

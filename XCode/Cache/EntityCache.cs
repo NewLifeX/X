@@ -109,7 +109,7 @@ namespace XCode.Cache
                 }
             }
             else
-                UpdateCacheAsync("有效期{0}秒，已过期{1:n0}秒".F(Expire, sec));
+                UpdateCacheAsync($"有效期{Expire}秒，已过期{sec:n0}秒");
 
             // 只要访问了实体缓存数据集合，就认为是使用了实体缓存，允许更新缓存数据期间向缓存集合添删数据
             Using = true;
@@ -293,7 +293,7 @@ namespace XCode.Cache
             {
                 var sb = Pool.StringBuilder.Get();
                 var type = GetType();
-                var name = "{2}<{0}>({1:n0})".F(typeof(TEntity).Name, _Entities.Length, type.GetDisplayName() ?? type.Name);
+                var name = $"{type.GetDisplayName() ?? type.Name}<{typeof(TEntity).Name}>({_Entities.Length:n0})";
                 sb.AppendFormat("{0,-24}", name);
                 sb.AppendFormat("总次数{0,11:n0}", Total);
                 if (Success > 0) sb.AppendFormat("，命中{0,11:n0}（{1,6:P02}）", Success, (Double)Success / Total);
@@ -322,7 +322,7 @@ namespace XCode.Cache
         public override String ToString()
         {
             var type = GetType();
-            return "{0}<{1}>".F(type.GetDisplayName() ?? type.Name, typeof(TEntity).Name);
+            return $"{type.GetDisplayName() ?? type.Name}<{typeof(TEntity).Name}>";
         }
         #endregion
     }

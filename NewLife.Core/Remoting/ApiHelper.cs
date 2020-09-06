@@ -255,7 +255,8 @@ namespace NewLife.Remoting
                     if (!first) sb.Append("&");
                     first = false;
 
-                    sb.AppendFormat("{0}={1}", Encode(item.Key), Encode("{0}".F(item.Value)));
+                    var v = item.Value is DateTime dt ? dt.ToFullString() : (item.Value + "");
+                    sb.AppendFormat("{0}={1}", Encode(item.Key), Encode(v));
                 }
 
                 url = sb.Put(true);

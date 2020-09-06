@@ -118,11 +118,11 @@ namespace XCode.DataAccessLayer
             {
                 if (maximumRows < 1) return sql;
 
-                return "{0} limit {1}".F(sql, maximumRows);
+                return $"{sql} limit {maximumRows}";
             }
             if (maximumRows < 1) throw new NotSupportedException("不支持取第几条数据之后的所有数据！");
 
-            return "{0} limit {1}, {2}".F(sql, startRowIndex, maximumRows);
+            return $"{sql} limit {startRowIndex}, {maximumRows}";
         }
 
         /// <summary>构造分页SQL</summary>
@@ -135,12 +135,13 @@ namespace XCode.DataAccessLayer
             // 从第一行开始，不需要分页
             if (startRowIndex <= 0)
             {
-                if (maximumRows > 0) builder.Limit = "limit {0}".F(maximumRows);
+                if (maximumRows > 0) builder.Limit = $"limit {maximumRows}";
                 return builder;
             }
             if (maximumRows < 1) throw new NotSupportedException("不支持取第几条数据之后的所有数据！");
 
-            builder.Limit = "limit {0}, {1}".F(startRowIndex, maximumRows);
+            builder.Limit = $"limit {startRowIndex}, {maximumRows}";
+
             return builder;
         }
         #endregion

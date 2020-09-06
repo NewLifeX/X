@@ -149,9 +149,9 @@ namespace XCode.DataAccessLayer
         public override String ToString()
         {
             if (!String.IsNullOrEmpty(DisplayName) && DisplayName != Name)
-                return String.Format("Name={0} DataType={1} RawType={2} DisplayName={3}", ColumnName, DataType?.Name, RawType, DisplayName);
+                return $"Name={ColumnName} DataType={DataType?.Name} RawType={RawType} DisplayName={DisplayName}";
             else
-                return String.Format("Name={0} DataType={1} RawType={2}", ColumnName, DataType?.Name, RawType);
+                return $"Name={ColumnName} DataType={DataType?.Name} RawType={RawType}";
         }
         #endregion
 

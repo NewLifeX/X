@@ -468,9 +468,9 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(keyColumn)) throw new ArgumentNullException("keyColumn", "这里用的not in分页算法要求指定主键列！");
 
             if (maximumRows < 1)
-                sql = String.Format("Select * From {1} Where {2} Not In(Select Top {0} {2} From {1})", startRowIndex, sql, keyColumn);
+                sql = $"Select * From {sql} Where {keyColumn} Not In(Select Top {startRowIndex} {keyColumn} From {sql})";
             else
-                sql = String.Format("Select Top {0} * From {1} Where {2} Not In(Select Top {3} {2} From {1})", maximumRows, sql, keyColumn, startRowIndex);
+                sql = $"Select Top {maximumRows} * From {sql} Where {keyColumn} Not In(Select Top {startRowIndex} {keyColumn} From {sql})";
             return sql;
         }
 
@@ -546,9 +546,9 @@ namespace XCode.DataAccessLayer
                     //但是，在第一页的时候，没有用到keyColumn，而数据库一般默认是升序
                     //这时候就会出现第一页是升序，后面页是降序的情况了。这里改正这个BUG
                     if (keyColumn.ToLower().EndsWith(" desc") || keyColumn.ToLower().EndsWith(" asc"))
-                        return String.Format("Select Top {0} * From {1} Order By {2}", maximumRows, CheckSimpleSQL(sql), keyColumn);
+                        return $"Select Top {maximumRows} * From {CheckSimpleSQL(sql)} Order By {keyColumn}";
                     else
-                        return String.Format("Select Top {0} * From {1}", maximumRows, CheckSimpleSQL(sql));
+                        return $"Select Top {maximumRows} * From {CheckSimpleSQL(sql)}";
                 }
 
                 if (!keyColumn.ToLower().EndsWith(" unknown")) canMaxMin = true;
@@ -559,9 +559,9 @@ namespace XCode.DataAccessLayer
             if (canMaxMin)
             {
                 if (maximumRows < 1)
-                    sql = String.Format("Select * From {1} Where {2}{3}(Select {4}({2}) From (Select Top {0} {2} From {1} Order By {2} {5}) XCode_Temp_a) Order By {2} {5}", startRowIndex, CheckSimpleSQL(sql), keyColumn, isAscOrder ? ">" : "<", isAscOrder ? "max" : "min", isAscOrder ? "Asc" : "Desc");
+                    sql = $"Select * From {CheckSimpleSQL(sql)} Where {keyColumn}{(isAscOrder ? ">" : "<")}(Select {(isAscOrder ? "max" : "min")}({keyColumn}) From (Select Top {startRowIndex} {keyColumn} From {CheckSimpleSQL(sql)} Order By {keyColumn} {(isAscOrder ? "Asc" : "Desc")}) XCode_Temp_a) Order By {keyColumn} {(isAscOrder ? "Asc" : "Desc")}";
                 else
-                    sql = String.Format("Select Top {0} * From {1} Where {2}{4}(Select {5}({2}) From (Select Top {3} {2} From {1} Order By {2} {6}) XCode_Temp_a) Order By {2} {6}", maximumRows, CheckSimpleSQL(sql), keyColumn, startRowIndex, isAscOrder ? ">" : "<", isAscOrder ? "max" : "min", isAscOrder ? "Asc" : "Desc");
+                    sql = $"Select Top {maximumRows} * From {CheckSimpleSQL(sql)} Where {keyColumn}{(isAscOrder ? ">" : "<")}(Select {(isAscOrder ? "max" : "min")}({keyColumn}) From (Select Top {startRowIndex} {keyColumn} From {CheckSimpleSQL(sql)} Order By {keyColumn} {(isAscOrder ? "Asc" : "Desc")}) XCode_Temp_a) Order By {keyColumn} {(isAscOrder ? "Asc" : "Desc")}";
                 return sql;
             }
             return null;

@@ -658,7 +658,8 @@ namespace NewLife.Http
                         if (!first) sb.Append("&");
                         first = false;
 
-                        sb.AppendFormat("{0}={1}", item.Key, HttpUtility.UrlEncode("{0}".F(item.Value)));
+                        var v = item.Value is DateTime dt ? dt.ToFullString() : (item.Value + "");
+                        sb.AppendFormat("{0}={1}", item.Key, HttpUtility.UrlEncode(v));
                     }
 
                     uri = new Uri(sb.Put(true));
