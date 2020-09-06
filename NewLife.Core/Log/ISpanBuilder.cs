@@ -123,6 +123,9 @@ namespace NewLife.Log
             var span = new DefaultSpan(this);
             span.Start();
 
+            // 指示当前节点开始的后续节点强制采样
+            if (span.TraceFlag == 0 && Total < Tracer.MaxSamples) span.TraceFlag = 1;
+
             return span;
         }
 
@@ -141,10 +144,14 @@ namespace NewLife.Log
             if (MaxCost < cost) MaxCost = cost;
             if (MinCost > cost || MinCost < 0) MinCost = cost;
 
+            // 检查跟踪标识，上游指示强制采样，确保链路采样完整
+            var force = false;
+            if (span is DefaultSpan ds && ds.TraceFlag > 0) force = true;
+
             // 处理采样，超时操作当作异常采样
             if (span.Error != null || Tracer.Timeout > 0 && cost > Tracer.Timeout)
             {
-                if (Interlocked.Increment(ref _Errors) <= Tracer.MaxErrors)
+                if (Interlocked.Increment(ref _Errors) <= Tracer.MaxErrors || force)
                 {
                     var ss = ErrorSamples ??= new List<ISpan>();
                     lock (ss)
@@ -155,7 +162,7 @@ namespace NewLife.Log
             }
             else
             {
-                if (total <= Tracer.MaxSamples)
+                if (force || total <= Tracer.MaxSamples)
                 {
                     var ss = Samples ??= new List<ISpan>();
                     lock (ss)

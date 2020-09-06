@@ -75,6 +75,12 @@ namespace NewLife.Log
         /// <summary>数据标签。记录一些附加数据</summary>
         public String Tag { get; set; }
 
+        /// <summary>版本</summary>
+        public Byte Version { get; set; }
+
+        /// <summary>跟踪标识。强制采样，确保链路采样完整，上下文传递</summary>
+        public Byte TraceFlag { get; set; }
+
         /// <summary>错误信息</summary>
         public String Error { get; set; }
 
@@ -147,6 +153,9 @@ namespace NewLife.Log
 
                 ParentId = span.Id;
                 TraceId = span.TraceId;
+
+                // 继承跟踪标识，该TraceId下全量采样，确保链路采样完整
+                if (span is DefaultSpan ds) TraceFlag = ds.TraceFlag;
             }
 
             // 否则创建新的跟踪标识
@@ -212,7 +221,7 @@ namespace NewLife.Log
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override String ToString() => $"00-{TraceId}-{Id}-00";
+        public override String ToString() => $"{Version:x2}-{TraceId}-{Id}-{TraceFlag:x2}";
         #endregion
     }
 
@@ -329,9 +338,16 @@ namespace NewLife.Log
             }
             else if (dic.TryGetValue("TraceId", out tid))
             {
-                var ss = (tid + "").Split("-");
-                if (ss.Length > 0) span.TraceId = ss[0];
-                if (ss.Length > 1) span.ParentId = ss[1];
+                var ss = (tid + "").Split('-');
+                if (ss.Length > 1) span.TraceId = ss[1];
+                if (ss.Length > 2) span.ParentId = ss[2];
+
+                if (span is DefaultSpan ds)
+                {
+                    // 识别跟踪标识，该TraceId之下，全量采样，确保链路采样完整
+                    //if (ss.Length > 0) ds.Version = (Byte)ss[0].ToInt();
+                    if (ss.Length > 3) ds.TraceFlag = (Byte)ss[3].ToInt();
+                }
             }
         }
         #endregion
