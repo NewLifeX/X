@@ -200,7 +200,7 @@ namespace XCode
             }
 
             // 自动分库分表
-            if(Meta)
+            using var split = Meta.AutoSplit(this as TEntity);
 
             if (enableValid)
             {
@@ -230,6 +230,9 @@ namespace XCode
         /// <returns></returns>
         public override Int32 Save()
         {
+            // 自动分库分表
+            using var split = Meta.AutoSplit(this as TEntity);
+
             // 来自数据库直接Update
             if (IsFromDatabase) return Update();
 
@@ -276,6 +279,9 @@ namespace XCode
         /// <returns>是否成功加入异步队列，实体对象已存在于队列中则返回false</returns>
         public override Boolean SaveAsync(Int32 msDelay = 0)
         {
+            // 自动分库分表
+            using var split = Meta.AutoSplit(this as TEntity);
+
             var isnew = false;
 
             // 优先使用自增字段判断

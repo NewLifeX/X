@@ -227,11 +227,18 @@ namespace XCode
             #endregion
 
             #region 分表分库
+            /// <summary>自动分库，用于添删改操作</summary>
+            public static Func<TEntity, String> ShardConnName { get; set; }
+
+            /// <summary>自动分表，用于添删改操作</summary>
+            public static Func<TEntity, String> ShardTableName { get; set; }
+
             /// <summary>在分库上执行操作，自动还原</summary>
             /// <param name="connName"></param>
             /// <param name="tableName"></param>
             /// <param name="func"></param>
             /// <returns></returns>
+            [Obsolete("=>CreateSplit")]
             public static T ProcessWithSplit<T>(String connName, String tableName, Func<T> func)
             {
                 using var split = CreateSplit(connName, tableName);
@@ -243,6 +250,18 @@ namespace XCode
             /// <param name="tableName">表名</param>
             /// <returns></returns>
             public static IDisposable CreateSplit(String connName, String tableName) => new SplitPackge(connName, tableName);
+
+            /// <summary>针对实体对象自动分库分表</summary>
+            /// <param name="entity"></param>
+            /// <returns></returns>
+            public static IDisposable AutoSplit(TEntity entity)
+            {
+                var connName = ShardConnName?.Invoke(entity);
+                var tableName = ShardTableName?.Invoke(entity);
+                if (connName.IsNullOrEmpty() && tableName.IsNullOrEmpty()) return null;
+
+                return new SplitPackge(connName, tableName);
+            }
 
             class SplitPackge : IDisposable
             {

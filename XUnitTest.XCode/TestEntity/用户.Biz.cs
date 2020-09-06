@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -169,7 +169,7 @@ namespace XCode.Membership
 
             if (!name.IsNullOrEmpty()) exp &= _.Name == name;
             if (roleId >= 0) exp &= _.RoleID == roleId;
-            if (!key.IsNullOrEmpty()) exp &= _.Password.Contains(key) | _.DisplayName.Contains(key) | _.Mail.Contains(key) | _.Mobile.Contains(key) | _.Code.Contains(key) | _.Avatar.Contains(key) | _.RoleIDs.Contains(key) | _.LastLoginIP.Contains(key) | _.RegisterIP.Contains(key);
+            if (!key.IsNullOrEmpty()) exp &= _.Password.Contains(key) | _.DisplayName.Contains(key) | _.Mail.Contains(key) | _.Mobile.Contains(key) | _.Code.Contains(key) | _.Avatar.Contains(key) | _.RoleIds.Contains(key) | _.LastLoginIP.Contains(key) | _.RegisterIP.Contains(key);
 
             return FindAll(exp, page);
         }

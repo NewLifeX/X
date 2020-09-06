@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Text;
 using XCode;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 using Xunit;
-using static XCode.Membership.User;
 
 namespace XUnitTest.XCode.EntityTests
 {
@@ -154,6 +151,39 @@ namespace XUnitTest.XCode.EntityTests
             var builder = User.CreateBuilder(exp, User._.UpdateUserID.Desc(), null);
             var sql = builder.ToString();
             Assert.Equal(@"Select * From `user` Where name='Stone' And display_name='大石头' And logins>0 And register_time<'2020-09-01 00:00:00' Order By update_user_id Desc", sql);
+        }
+
+        [Fact]
+        public void SplitTestSQLite()
+        {
+            User2.Meta.ShardTableName = e => $"User_{e.RegisterTime:yyyyMM}";
+
+            var user = new User2
+            {
+                Name = "Stone",
+                DisplayName = "大石头",
+                Enable = true,
+
+                RegisterTime = new DateTime(2020, 8, 22),
+                UpdateTime = new DateTime(2020, 9, 1),
+            };
+            User2.Meta.AutoSplit(user);
+
+            var factory = User2.Meta.Factory;
+            var session = User2.Meta.Session;
+
+            var sql = factory.Persistence.GetSql(session, user, DataObjectMethodType.Insert);
+            Assert.Equal(@"Insert Into User_202008(Name,Password,DisplayName,Sex,Mail,Mobile,Code,Avatar,RoleID,RoleIds,DepartmentID,Online,Enable,Logins,LastLogin,LastLoginIP,RegisterTime,RegisterIP,Ex1,Ex2,Ex3,Ex4,Ex5,Ex6,UpdateUser,UpdateUserID,UpdateIP,UpdateTime,Remark) Values('Stone',null,'大石头',0,null,null,null,null,0,null,0,0,1,0,null,null,'2020-08-22 00:00:00',null,0,0,0,null,null,null,null,0,null,'2020-09-01 00:00:00',null)", sql);
+
+            user.ID = 2;
+            sql = factory.Persistence.GetSql(session, user, DataObjectMethodType.Update);
+            Assert.Equal(@"Update User_202008 Set Name='Stone',DisplayName='大石头',Enable=1,RegisterTime='2020-08-22 00:00:00',UpdateTime='2020-09-01 00:00:00' Where ID=2", sql);
+
+            sql = factory.Persistence.GetSql(session, user, DataObjectMethodType.Delete);
+            Assert.Equal(@"Delete From User_202008 Where ID=2", sql);
+
+            // 恢复现场，避免影响其它测试用例
+            User2.Meta.ShardTableName = null;
         }
     }
 }
