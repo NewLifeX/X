@@ -239,25 +239,25 @@ namespace NewLife
             return sb.Put(true);
         }
 
-        /// <summary>把一个列表组合成为一个字符串，默认逗号分隔</summary>
-        /// <param name="value"></param>
-        /// <param name="separator">组合分隔符，默认逗号</param>
-        /// <param name="func">把对象转为字符串的委托</param>
-        /// <returns></returns>
-        [Obsolete]
-        public static String Join<T>(this IEnumerable<T> value, String separator, Func<T, String>? func)
-        {
-            var sb = Pool.StringBuilder.Get();
-            if (value != null)
-            {
-                if (func == null) func = obj => obj + "";
-                foreach (var item in value)
-                {
-                    sb.Separate(separator).Append(func(item));
-                }
-            }
-            return sb.Put(true);
-        }
+        ///// <summary>把一个列表组合成为一个字符串，默认逗号分隔</summary>
+        ///// <param name="value"></param>
+        ///// <param name="separator">组合分隔符，默认逗号</param>
+        ///// <param name="func">把对象转为字符串的委托</param>
+        ///// <returns></returns>
+        //[Obsolete]
+        //public static String Join<T>(this IEnumerable<T> value, String separator, Func<T, String>? func)
+        //{
+        //    var sb = Pool.StringBuilder.Get();
+        //    if (value != null)
+        //    {
+        //        if (func == null) func = obj => obj + "";
+        //        foreach (var item in value)
+        //        {
+        //            sb.Separate(separator).Append(func(item));
+        //        }
+        //    }
+        //    return sb.Put(true);
+        //}
 
         /// <summary>把一个列表组合成为一个字符串，默认逗号分隔</summary>
         /// <param name="value"></param>
@@ -324,6 +324,33 @@ namespace NewLife
             }
 
             return String.Format(value, args);
+        }
+
+        /// <summary>指定输入是否匹配目标表达式，支持*匹配</summary>
+        /// <param name="pattern">匹配表达式</param>
+        /// <param name="input">输入字符串</param>
+        /// <param name="comparisonType">字符串比较方式</param>
+        /// <returns></returns>
+        public static Boolean IsMatch(this String pattern, String input, StringComparison comparisonType = StringComparison.CurrentCulture)
+        {
+            if (pattern.IsNullOrEmpty() || input.IsNullOrEmpty()) return false;
+
+            // 普通表达式，直接包含
+            var p = pattern.IndexOf('*');
+            if (p < 0) return input.IndexOf(pattern, comparisonType) >= 0;
+
+            // 表达式分组，逐项匹配
+            var ps = pattern.Split('*');
+            p = 0;
+            for (var i = 0; i < ps.Length; i++)
+            {
+                p = input.IndexOf(ps[i], p, comparisonType);
+                if (p < 0) return false;
+
+                p += ps[i].Length;
+            }
+
+            return true;
         }
         #endregion
 
