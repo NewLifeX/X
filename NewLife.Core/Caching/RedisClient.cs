@@ -556,6 +556,28 @@ namespace NewLife.Caching
             return default;
         }
 
+        /// <summary>尝试执行命令。返回基本类型、对象、对象数组</summary>
+        /// <param name="cmd"></param>
+        /// <param name="args"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public virtual Boolean TryExecute<TResult>(String cmd, Object[] args, out TResult value)
+        {
+            var rs = Execute(cmd, args);
+            if (rs is TResult rs2)
+            {
+                value = rs2;
+                return true;
+            }
+
+            value = default;
+            if (rs == null) return false;
+
+            if (rs != null && TryChangeType(rs, typeof(TResult), out var target)) value = (TResult)target;
+
+            return true;
+        }
+
 #if NET4
         /// <summary>异步执行命令。返回基本类型、对象、对象数组</summary>
         /// <param name="cmd">命令</param>

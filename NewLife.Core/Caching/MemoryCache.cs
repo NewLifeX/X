@@ -256,6 +256,28 @@ namespace NewLife.Caching
             return default;
         }
 
+        /// <summary>尝试获取指定键，返回是否包含值。有可能缓存项刚好是默认值，或者只是反序列化失败</summary>
+        /// <remarks>
+        /// 在 MemoryCache 中，如果某个key过期，在清理之前仍然可以通过TryGet访问，并且更新访问时间，避免被清理。
+        /// </remarks>
+        /// <typeparam name="T">值类型</typeparam>
+        /// <param name="key">键</param>
+        /// <param name="value">值。即使有值也不一定能够返回，可能缓存项刚好是默认值，或者只是反序列化失败</param>
+        /// <returns>返回是否包含值，即使反序列化失败</returns>
+        public override Boolean TryGet<T>(String key, out T value)
+        {
+            value = default;
+
+            // 没有值，直接结束
+            if (!_cache.TryGetValue(key, out var item) || item == null) return false;
+
+            // 得到已有值
+            value = item.Visit().ChangeType<T>();
+
+            // 是否未过期的有效值
+            return !item.Expired;
+        }
+
         /// <summary>累加，原子操作</summary>
         /// <param name="key">键</param>
         /// <param name="value">变化量</param>
@@ -489,7 +511,7 @@ namespace NewLife.Caching
         void RemoveNotAlive(Object state)
         {
             var tx = clearTimer;
-            if (tx != null && tx.Period == 60_000) tx.Period = Period * 1000;
+            if (tx != null /*&& tx.Period == 60_000*/) tx.Period = Period * 1000;
 
             var dic = _cache;
             if (_count == 0 && !dic.Any()) return;

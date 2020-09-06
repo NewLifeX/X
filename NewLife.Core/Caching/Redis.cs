@@ -558,6 +558,28 @@ namespace NewLife.Caching
         /// <returns></returns>
         public override T Replace<T>(String key, T value) => Execute(key, rds => rds.Execute<T>("GETSET", key, value), true);
 
+        /// <summary>尝试获取指定键，返回是否包含值。有可能缓存项刚好是默认值，或者只是反序列化失败</summary>
+        /// <remarks>
+        /// 在 Redis 中，可能有key（此时TryGet返回true），但是因为反序列化失败，从而得不到value。
+        /// </remarks>
+        /// <typeparam name="T">值类型</typeparam>
+        /// <param name="key">键</param>
+        /// <param name="value">值。即使有值也不一定能够返回，可能缓存项刚好是默认值，或者只是反序列化失败</param>
+        /// <returns>返回是否包含值，即使反序列化失败</returns>
+        public override Boolean TryGet<T>(String key, out T value)
+        {
+            T v1 = default;
+            var rs1 = Execute(key, rds =>
+            {
+                var rs2 = rds.TryExecute("GET", new[] { key }, out T v2);
+                v1 = v2;
+                return rs2;
+            });
+            value = v1;
+
+            return rs1;
+        }
+
         /// <summary>累加，原子操作</summary>
         /// <param name="key">键</param>
         /// <param name="value">变化量</param>
