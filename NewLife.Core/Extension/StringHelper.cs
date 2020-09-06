@@ -353,7 +353,11 @@ namespace NewLife
             p = 0;
             for (var i = 0; i < ps.Length; i++)
             {
-                p = input.IndexOf(ps[i], p, comparisonType);
+                // 最后一组反向匹配
+                if (i == ps.Length - 1)
+                    p = input.LastIndexOf(ps[i], input.Length - 1, input.Length - p, comparisonType);
+                else
+                    p = input.IndexOf(ps[i], p, comparisonType);
                 if (p < 0) return false;
 
                 // 第一组必须开头

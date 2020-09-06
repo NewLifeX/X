@@ -56,6 +56,18 @@ namespace XUnitTest.Extension
             // 多个
             rs = "build*.*".IsMatch("build7788.zip");
             Assert.True(rs);
+            rs = "*build*.*".IsMatch("mybuild7788.zip");
+            Assert.True(rs);
+            rs = "build**.*".IsMatch("build7788.zip");
+            Assert.True(rs);
+
+            // 其它
+            rs = "aa*aa".IsMatch("aaa");
+            Assert.False(rs);
+            rs = "aa*aa".IsMatch("aaaa");
+            Assert.True(rs);
+            rs = "aa*aa".IsMatch("aaaaa");
+            Assert.True(rs);
         }
     }
 }
