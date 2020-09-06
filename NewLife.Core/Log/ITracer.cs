@@ -82,8 +82,8 @@ namespace NewLife.Log
         /// <summary>超时时间。超过该时间时，当作异常来进行采样，默认15000毫秒</summary>
         public Int32 Timeout { get; set; } = 15000;
 
-        /// <summary>采样结束时等待片段完成的时间。默认1000ms</summary>
-        public Int32 WaitForFinish { get; set; } = 1000;
+        ///// <summary>采样结束时等待片段完成的时间。默认1000ms</summary>
+        //public Int32 WaitForFinish { get; set; } = 1000;
 
         /// <summary>向http/rpc请求注入TraceId的参数名，为空表示不注入，默认是W3C标准的traceparent</summary>
         public String AttachParameter { get; set; } = "traceparent";
@@ -126,8 +126,8 @@ namespace NewLife.Log
             var builders = TakeAll();
             if (builders != null && builders.Length > 0)
             {
-                // 等待未完成Span的时间，默认1000ms
-                if (WaitForFinish > 0) Thread.Sleep(WaitForFinish);
+                //// 等待未完成Span的时间，默认1000ms
+                //if (WaitForFinish > 0) Thread.Sleep(WaitForFinish);
 
                 ProcessSpans(builders);
             }
