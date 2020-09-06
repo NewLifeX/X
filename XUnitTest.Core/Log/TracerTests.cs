@@ -154,6 +154,15 @@ namespace XUnitTest.Log
                         Assert.Equal(span.TraceId, span3.TraceId);
                         Assert.Equal(span2.Id, span3.ParentId);
                         Assert.NotEqual(span2.Id, span3.Id);
+
+                        // 检查强制采样
+                        var ds1 = span as DefaultSpan;
+                        var ds2 = span2 as DefaultSpan;
+                        var ds3 = span3 as DefaultSpan;
+
+                        Assert.Equal(1, ds1.TraceFlag);
+                        Assert.Equal(1, ds2.TraceFlag);
+                        Assert.Equal(1, ds3.TraceFlag);
                     }
 
                     Assert.Equal(span2, DefaultSpan.Current);
@@ -178,6 +187,13 @@ namespace XUnitTest.Log
                 Assert.NotEqual(span.TraceId, span2.TraceId);
                 Assert.NotEqual(span.Id, span2.ParentId);
                 span2.Dispose();
+
+                // 检查强制采样
+                var ds1 = span as DefaultSpan;
+                var ds2 = span2 as DefaultSpan;
+
+                Assert.Equal(0, ds1.TraceFlag);
+                Assert.Equal(0, ds2.TraceFlag);
             }
 
             var builder = tracer.BuildSpan("test");

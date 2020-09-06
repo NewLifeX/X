@@ -75,8 +75,8 @@ namespace NewLife.Log
         /// <summary>数据标签。记录一些附加数据</summary>
         public String Tag { get; set; }
 
-        /// <summary>版本</summary>
-        public Byte Version { get; set; }
+        ///// <summary>版本</summary>
+        //public Byte Version { get; set; }
 
         /// <summary>跟踪标识。强制采样，确保链路采样完整，上下文传递</summary>
         public Byte TraceFlag { get; set; }
@@ -221,7 +221,7 @@ namespace NewLife.Log
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override String ToString() => $"{Version:x2}-{TraceId}-{Id}-{TraceFlag:x2}";
+        public override String ToString() => $"00-{TraceId}-{Id}-{TraceFlag:x2}";
         #endregion
     }
 
