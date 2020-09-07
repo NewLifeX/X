@@ -365,7 +365,8 @@ namespace NewLife.Configuration
                     cfg.Comment = att2?.DisplayName;
                 }
 
-                if (val == null) continue;
+                //!! 即使模型字段值为空，也必须拷贝，否则修改设置时，无法清空某字段
+                //if (val == null) continue;
 
                 // 分别处理基本类型、数组类型、复杂类型
                 if (pi.PropertyType.GetTypeCode() != TypeCode.Object)
