@@ -96,6 +96,19 @@ namespace NewLife.Configuration
             return true;
         }
 
+        /// <summary>保存模型实例</summary>
+        /// <typeparam name="T">模型</typeparam>
+        /// <param name="model">模型实例</param>
+        /// <param name="nameSpace">命名空间。配置树位置</param>
+        public override Boolean Save<T>(T model, String nameSpace = null)
+        {
+            // 文件存储，直接覆盖Root
+            Root.Childs.Clear();
+            MapFrom(Root, model);
+
+            return SaveAll();
+        }
+
         /// <summary>写入配置文件</summary>
         /// <param name="fileName">文件名</param>
         /// <param name="section">配置段</param>
