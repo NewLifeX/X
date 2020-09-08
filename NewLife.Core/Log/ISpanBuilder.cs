@@ -75,27 +75,27 @@ namespace NewLife.Log
 
         private Int32 _Total;
         /// <summary>采样总数</summary>
-        public Int32 Total { get => _Total; private set => _Total = value; }
+        public Int32 Total { get => _Total; set => _Total = value; }
 
         private Int32 _Errors;
         /// <summary>错误次数</summary>
-        public Int32 Errors { get => _Errors; private set => _Errors = value; }
+        public Int32 Errors { get => _Errors; set => _Errors = value; }
 
         private Int64 _Cost;
         /// <summary>总耗时。所有请求耗时累加，单位ms</summary>
-        public Int64 Cost { get => _Cost; private set => _Cost = value; }
+        public Int64 Cost { get => _Cost; set => _Cost = value; }
 
         /// <summary>最大耗时。单位ms</summary>
-        public Int32 MaxCost { get; private set; }
+        public Int32 MaxCost { get; set; }
 
         /// <summary>最小耗时。单位ms</summary>
-        public Int32 MinCost { get; private set; }
+        public Int32 MinCost { get; set; }
 
         /// <summary>正常采样</summary>
-        public IList<ISpan> Samples { get; private set; }
+        public IList<ISpan> Samples { get; set; }
 
         /// <summary>异常采样</summary>
-        public IList<ISpan> ErrorSamples { get; private set; }
+        public IList<ISpan> ErrorSamples { get; set; }
         #endregion
 
         #region 构造函数
