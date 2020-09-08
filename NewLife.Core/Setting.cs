@@ -36,8 +36,8 @@ namespace NewLife
         [Description("日志文件格式。默认{0:yyyy_MM_dd}.log，支持日志等级如 {1}_{0:yyyy_MM_dd}.log")]
         public String LogFileFormat { get; set; } = "{0:yyyy_MM_dd}.log";
 
-        /// <summary>网络日志。本地子网日志广播255.255.255.255:514</summary>
-        [Description("网络日志。本地子网日志广播255.255.255.255:514")]
+        /// <summary>网络日志。本地子网日志广播udp://255.255.255.255:514，或者http://xxx:80/log</summary>
+        [Description("网络日志。本地子网日志广播udp://255.255.255.255:514，或者http://xxx:80/log")]
         public String NetworkLog { get; set; } = "";
 
         /// <summary>数据目录。本地数据库目录，默认Data子目录，web上一级Data</summary>

@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 #if __WIN__
 using System.Windows.Forms;
+using NewLife.Net;
 #endif
 using NewLife.Reflection;
 using NewLife.Threading;
@@ -152,7 +153,7 @@ namespace NewLife.Log
 
                 if (!set.NetworkLog.IsNullOrEmpty())
                 {
-                    var nlog = new NetworkLog(NetHelper.ParseEndPoint(set.NetworkLog, 514));
+                    var nlog = new NetworkLog(set.NetworkLog);
                     _Log = new CompositeLog(_Log, nlog);
                 }
 
