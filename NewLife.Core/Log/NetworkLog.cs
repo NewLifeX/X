@@ -119,12 +119,15 @@ namespace NewLife.Log
         {
             Init();
 
+            // Tcp/Udp 和 Http 推送日志时需要不同的包大小
+            var max = _http != null ? 8192 : 1460;
+
             var sb = new StringBuilder();
             while (_Logs.TryDequeue(out var msg))
             {
                 Interlocked.Decrement(ref _logCount);
 
-                if (sb.Length + msg.Length >= 1500)
+                if (sb.Length > 0 && sb.Length + msg.Length >= max)
                 {
                     Send(sb.ToString());
                     sb.Clear();
