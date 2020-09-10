@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "XCodeTool": {
+      "commandName": "Project",
+      "commandLineArgs": "show"
+    }
+  }
+}
