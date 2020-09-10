@@ -131,6 +131,7 @@ namespace NewLife.Log
             {
                 ip = IPAddress.Loopback;
             }
+            if (ip == null) ip = IPAddress.Parse("127.0.0.1");
             _myip = ip.GetAddressBytes().ToHex().ToLower().PadLeft(8, '0');
             _pid = Process.GetCurrentProcess().Id.ToString("x4").PadLeft(4, '0');
         }
