@@ -416,7 +416,7 @@ namespace Test
         {
             Area.Meta.Session.Dal.Db.ShowSQL = false;
 
-            var url = "http://www.mca.gov.cn/article/sj/xzqh/2019/2019/201912251506.html";
+            var url = "http://www.mca.gov.cn/article/sj/xzqh/2020/2020/20200908007001.html";
             //var file = "area.html".GetFullPath();
             //if (!File.Exists(file))
             //{
