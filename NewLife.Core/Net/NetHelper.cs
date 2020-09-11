@@ -7,7 +7,6 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Security.Authentication;
-using NewLife;
 using NewLife.Collections;
 using NewLife.IP;
 using NewLife.Log;
