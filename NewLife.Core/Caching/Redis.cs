@@ -65,8 +65,9 @@ namespace NewLife.Caching
         /// <param name="db"></param>
         public Redis(String server, String password, Int32 db)
         {
-            Server = server;
-            Password = password;
+            // 有人多输入了一个空格，酿成大祸
+            Server = server?.Trim();
+            Password = password?.Trim();
             Db = db;
         }
 
@@ -79,8 +80,8 @@ namespace NewLife.Caching
             var dic = config.SplitAsDictionary("=", ";", true);
             if (dic.Count > 0)
             {
-                Server = dic["Server"];
-                Password = dic["Password"];
+                Server = dic["Server"]?.Trim();
+                Password = dic["Password"]?.Trim();
                 Db = dic["Db"].ToInt();
             }
         }
@@ -125,7 +126,7 @@ namespace NewLife.Caching
         /// <returns></returns>
         protected virtual RedisClient OnCreate()
         {
-            var svr = Server;
+            var svr = Server?.Trim();
             if (svr.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Server));
 
             if (!svr.Contains("://")) svr = "tcp://" + svr;
