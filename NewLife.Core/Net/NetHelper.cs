@@ -188,6 +188,10 @@ namespace NewLife
         /// <param name="uri"></param>
         /// <returns></returns>
         public static Boolean CheckPort(this NetUri uri) => CheckPort(uri.Address, uri.Type, uri.Port);
+
+        /// <summary>获取所有Tcp连接，带进程Id</summary>
+        /// <returns></returns>
+        public static TcpConnectionInformation2[] GetAllTcpConnections() => TcpConnectionInformation2.GetAllTcpConnections();
         #endregion
 
         #region 本机信息
