@@ -139,9 +139,9 @@ namespace NewLife.Net
             var array = uri.Split(Sep);
             if (array.Length >= 2)
             {
-                protocol = array[0];
+                protocol = array[0]?.Trim();
                 Type = ParseType(protocol);
-                uri = array[1];
+                uri = array[1]?.Trim();
             }
 
             Host = null;
@@ -164,7 +164,7 @@ namespace NewLife.Net
             var p = uri.IndexOf('/');
             if (p < 0) p = uri.IndexOf('\\');
             if (p < 0) p = uri.IndexOf('?');
-            if (p >= 0) uri = uri.Substring(0, p);
+            if (p >= 0) uri = uri.Substring(0, p)?.Trim();
 
             // 分析端口，冒号前一个不能是冒号
             p = uri.LastIndexOf(':');
@@ -174,7 +174,7 @@ namespace NewLife.Net
                 if (Int32.TryParse(pt, out var port))
                 {
                     Port = port;
-                    uri = uri.Substring(0, p);
+                    uri = uri.Substring(0, p)?.Trim();
                 }
             }
 
