@@ -191,7 +191,12 @@ namespace NewLife
 
         /// <summary>获取所有Tcp连接，带进程Id</summary>
         /// <returns></returns>
-        public static TcpConnectionInformation2[] GetAllTcpConnections() => TcpConnectionInformation2.GetAllTcpConnections();
+        public static TcpConnectionInformation2[] GetAllTcpConnections()
+        {
+            if (!Runtime.Windows) return new TcpConnectionInformation2[0];
+
+            return TcpConnectionInformation2.GetAllTcpConnections();
+        }
         #endregion
 
         #region 本机信息
