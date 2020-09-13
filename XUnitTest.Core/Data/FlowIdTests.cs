@@ -16,7 +16,7 @@ namespace XUnitTest.Data
         [Fact]
         public void NewId()
         {
-            var f = new FlowId();
+            var f = new SnowFlake();
             var id = f.NewId();
 
             var time = id >> 22;
@@ -55,7 +55,7 @@ namespace XUnitTest.Data
             {
                 ts.Add(Task.Run(() =>
                 {
-                    var f = new FlowId { StartTimestamp = new DateTime(2020, 1, 1), WorkerId = Rand.Next() & 0x3FF };
+                    var f = new SnowFlake { StartTimestamp = new DateTime(2020, 1, 1), WorkerId = Rand.Next() & 0x3FF };
                     ws.Add(f.WorkerId);
 
                     for (var i = 0; i < 100_000; i++)
@@ -86,7 +86,7 @@ namespace XUnitTest.Data
             {
                 ts.Add(Task.Run(() =>
                 {
-                    var f = new FlowId { BlockOnSampleTime = true };
+                    var f = new SnowFlake { BlockOnSampleTime = true };
 
                     for (var i = 0; i < count; i++)
                     {

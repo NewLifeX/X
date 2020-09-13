@@ -238,7 +238,11 @@ namespace XCode
         Boolean FullInsert { get; set; }
 
         /// <summary>雪花Id生成器。Int64主键非自增时，自动填充</summary>
-        FlowId FlowId { get; }
+        SnowFlake Snow { get; }
+
+        /// <summary>流式Id</summary>
+        [Obsolete("=>Snow")]
+        SnowFlake FlowId { get; }
         #endregion
     }
 }

@@ -46,9 +46,9 @@ namespace XCode
         /// <param name="fi"></param>
         /// <param name="start">起始时间，大于等于</param>
         /// <param name="end">结束时间，小于。如果是日期，则加一天</param>
-        /// <param name="flow"></param>
+        /// <param name="snow"></param>
         /// <returns></returns>
-        public static Expression Between(this FieldItem fi, DateTime start, DateTime end, FlowId flow)
+        public static Expression Between(this FieldItem fi, DateTime start, DateTime end, SnowFlake snow)
         {
             if (fi.Type != typeof(Int64)) throw new NotSupportedException($"[{nameof(Between)}]函数仅支持Int64字段！");
 
@@ -62,17 +62,17 @@ namespace XCode
                 // 如果只有日期，则加一天，表示包含这一天
                 if (end == end.Date) end = end.AddDays(1);
 
-                return fi < flow.GetId(end);
+                return fi < snow.GetId(end);
             }
             else
             {
-                exp &= fi >= flow.GetId(start);
+                exp &= fi >= snow.GetId(start);
                 if (end <= DateTime.MinValue || end >= DateTime.MaxValue) return exp;
 
                 // 如果只有日期，则加一天，表示包含这一天
                 if (start == start.Date && end == end.Date) end = end.AddDays(1);
 
-                return exp & fi < flow.GetId(end);
+                return exp & fi < snow.GetId(end);
             }
         }
 

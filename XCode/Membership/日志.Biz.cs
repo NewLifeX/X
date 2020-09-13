@@ -77,9 +77,9 @@ namespace XCode.Membership
             if (userid >= 0) exp &= _.CreateUserID == userid;
 
             // 主键带有时间戳
-            var flow = Meta.Factory.FlowId;
-            if (flow != null)
-                exp &= _.ID.Between(start, end, flow);
+            var snow = Meta.Factory.Snow;
+            if (snow != null)
+                exp &= _.ID.Between(start, end, snow);
             else
                 exp &= _.CreateTime.Between(start, end);
 
@@ -115,9 +115,9 @@ namespace XCode.Membership
             if (userid >= 0) exp &= _.CreateUserID == userid;
 
             // 主键带有时间戳
-            var flow = Meta.Factory.FlowId;
-            if (flow != null)
-                exp &= _.ID.Between(start, end, flow);
+            var snow = Meta.Factory.Snow;
+            if (snow != null)
+                exp &= _.ID.Between(start, end, snow);
             else
                 exp &= _.CreateTime.Between(start, end);
 
