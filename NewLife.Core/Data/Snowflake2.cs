@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading;
 using NewLife.Common;
 
@@ -6,14 +7,14 @@ namespace NewLife.Data
 {
     /// <summary>流式Id</summary>
     [Obsolete("=>SnowFlake")]
-    public class FlowId: SnowFlake { }
+    public class FlowId : Snowflake { }
 
     /// <summary>雪花算法。分布式Id</summary>
     /// <remarks>
     /// 使用一个 64 bit 的 long 型的数字作为全局唯一 id。在分布式系统中的应用十分广泛，且ID 引入了时间戳，基本上保持自增。
     /// 1bit保留 + 41bit时间戳 + 10bit机器 + 12bit序列号
     /// </remarks>
-    public class SnowFlake
+    public class Snowflake
     {
         #region 属性
         /// <summary>开始时间戳。默认1970-1-1</summary>
@@ -33,14 +34,25 @@ namespace NewLife.Data
         #endregion
 
         #region 核心方法
+        private void InitWorkerId()
+        {
+            // 初始化WorkerId，取5位实例加上5位进程，确保同一台机器的WorkerId不同
+            if (WorkerId <= 0)
+            {
+                var nodeId = SysConfig.Current.Instance;
+                var pid = Process.GetCurrentProcess().Id;
+                WorkerId = ((nodeId & 0x1F) << 5) | (pid & 0x1F);
+            }
+        }
+
         /// <summary>获取下一个Id</summary>
         /// <returns></returns>
         public virtual Int64 NewId()
         {
-            if (WorkerId <= 0) WorkerId = SysConfig.Current.Instance & 0x3FF;
+            InitWorkerId();
 
             var ms = (Int64)(DateTime.Now - StartTimestamp).TotalMilliseconds;
-            var nid = WorkerId & 0x3FF;
+            var wid = WorkerId & 0x3FF;
             var seq = Interlocked.Increment(ref _Sequence) & 0x0FFF;
 
             //!!! 避免时间倒退
@@ -60,7 +72,7 @@ namespace NewLife.Data
              * 而毫秒内的顺序，重要性不大。
              */
 
-            return (ms << (10 + 12)) | (Int64)(nid << 12) | (Int64)seq;
+            return (ms << (10 + 12)) | (Int64)(wid << 12) | (Int64)seq;
         }
 
         /// <summary>获取指定时间的Id，带上节点和序列号。可用于根据业务时间构造插入Id</summary>
@@ -68,13 +80,13 @@ namespace NewLife.Data
         /// <returns></returns>
         public virtual Int64 NewId(DateTime time)
         {
-            if (WorkerId <= 0) WorkerId = SysConfig.Current.Instance & 0x3FF;
+            InitWorkerId();
 
             var ms = (Int64)(time - StartTimestamp).TotalMilliseconds;
-            var nid = WorkerId & 0x3FF;
+            var wid = WorkerId & 0x3FF;
             var seq = Interlocked.Increment(ref _Sequence) & 0x0FFF;
 
-            return (ms << (10 + 12)) | (Int64)(nid << 12) | (Int64)seq;
+            return (ms << (10 + 12)) | (Int64)(wid << 12) | (Int64)seq;
         }
 
         /// <summary>时间转为Id，不带节点和序列号。可用于构建时间片段查询</summary>

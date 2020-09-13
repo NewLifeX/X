@@ -48,7 +48,7 @@ namespace XCode
         /// <param name="end">结束时间，小于。如果是日期，则加一天</param>
         /// <param name="snow"></param>
         /// <returns></returns>
-        public static Expression Between(this FieldItem fi, DateTime start, DateTime end, SnowFlake snow)
+        public static Expression Between(this FieldItem fi, DateTime start, DateTime end, Snowflake snow)
         {
             if (fi.Type != typeof(Int64)) throw new NotSupportedException($"[{nameof(Between)}]函数仅支持Int64字段！");
 
