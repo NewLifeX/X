@@ -27,9 +27,6 @@ namespace NewLife.Data
         /// <summary>序列号，取12位</summary>
         public Int32 Sequence { get => _Sequence; set => _Sequence = value; }
 
-        /// <summary>相同时间耗尽序列号时阻塞。默认true</summary>
-        public Boolean BlockOnSampleTime { get; set; } = true;
-
         private Int64 _lastTime;
         #endregion
 
@@ -60,10 +57,10 @@ namespace NewLife.Data
 
             // 相同毫秒内，如果序列号用尽，则可能超过4096，导致生成重复Id
             // 睡眠1毫秒，抢占它的位置 @656092719（广西-风吹面）
-            if (BlockOnSampleTime && _lastTime == ms && seq == 0)
+            if (_lastTime == ms && seq == 0)
             {
                 ms++;
-                Thread.Sleep(1);
+                Thread.SpinWait(1);
             }
             _lastTime = ms;
 

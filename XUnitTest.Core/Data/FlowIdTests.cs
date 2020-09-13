@@ -79,14 +79,14 @@ namespace XUnitTest.Data
         {
             var sw = Stopwatch.StartNew();
 
-            var count = 1_000_000L;
+            var count = 10_000_000L;
 
             var ts = new List<Task>();
             for (var i = 0; i < 1; i++)
             {
                 ts.Add(Task.Run(() =>
                 {
-                    var f = new Snowflake { BlockOnSampleTime = true };
+                    var f = new Snowflake();
 
                     for (var i = 0; i < count; i++)
                     {
