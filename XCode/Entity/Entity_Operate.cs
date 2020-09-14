@@ -352,9 +352,13 @@ namespace XCode
             /// <summary>是否完全插入所有字段。false表示不插入没有脏数据的字段，默认true</summary>
             public Boolean FullInsert { get; set; } = true;
 
-            private FlowId _flow;
+            private Snowflake _snow;
             /// <summary>雪花Id生成器。Int64主键非自增时，自动填充</summary>
-            public FlowId FlowId => _flow ??= new FlowId();
+            public Snowflake Snow => _snow ??= new Snowflake();
+
+            /// <summary>流式Id</summary>
+            [Obsolete("=>Snow")]
+            public Snowflake FlowId => Snow;
             #endregion
         }
     }

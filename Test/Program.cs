@@ -132,7 +132,7 @@ namespace Test
             {
                 ts.Add(Task.Run(() =>
                 {
-                    var f = new FlowId();
+                    var f = new Snowflake();
 
                     for (var i = 0; i < count; i++)
                     {
