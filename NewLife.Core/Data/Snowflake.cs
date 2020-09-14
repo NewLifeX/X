@@ -17,7 +17,7 @@ namespace NewLife.Data
     public class Snowflake
     {
         #region 属性
-        /// <summary>开始时间戳。默认1970-1-1</summary>
+        /// <summary>开始时间戳。首次使用前设置，否则无效，默认1970-1-1</summary>
         public DateTime StartTimestamp { get; set; } = new DateTime(1970, 1, 1);
 
         /// <summary>机器Id，取10位</summary>
@@ -27,11 +27,13 @@ namespace NewLife.Data
         /// <summary>序列号，取12位</summary>
         public Int32 Sequence { get => _Sequence; set => _Sequence = value; }
 
+        private Int64 _msStart;
+        private Stopwatch _watch;
         private Int64 _lastTime;
         #endregion
 
         #region 核心方法
-        private void InitWorkerId()
+        private void Init()
         {
             // 初始化WorkerId，取5位实例加上5位进程，确保同一台机器的WorkerId不同
             if (WorkerId <= 0)
@@ -40,15 +42,24 @@ namespace NewLife.Data
                 var pid = Process.GetCurrentProcess().Id;
                 WorkerId = ((nodeId & 0x1F) << 5) | (pid & 0x1F);
             }
+
+            // 记录此时距离起点的毫秒数以及开机嘀嗒数
+            if (_watch == null)
+            {
+                _msStart = (Int64)(DateTime.Now - StartTimestamp).TotalMilliseconds;
+                _watch = Stopwatch.StartNew();
+            }
         }
 
         /// <summary>获取下一个Id</summary>
         /// <returns></returns>
         public virtual Int64 NewId()
         {
-            InitWorkerId();
+            Init();
 
-            var ms = (Int64)(DateTime.Now - StartTimestamp).TotalMilliseconds;
+            // 此时嘀嗒数减去起点嘀嗒数，加上七点毫秒数
+            //var ms = (Int64)(DateTime.Now - StartTimestamp).TotalMilliseconds;
+            var ms = _watch.ElapsedMilliseconds + _msStart;
             var wid = WorkerId & 0x3FF;
             var seq = Interlocked.Increment(ref _Sequence) & 0x0FFF;
 
@@ -60,7 +71,8 @@ namespace NewLife.Data
             if (_lastTime == ms && seq == 0)
             {
                 ms++;
-                Thread.SpinWait(1);
+                // spin等1000次耗时141us，10000次耗时397us，100000次耗时3231us。@i9-10900k
+                Thread.SpinWait(1000);
             }
             _lastTime = ms;
 
@@ -77,7 +89,7 @@ namespace NewLife.Data
         /// <returns></returns>
         public virtual Int64 NewId(DateTime time)
         {
-            InitWorkerId();
+            Init();
 
             var ms = (Int64)(time - StartTimestamp).TotalMilliseconds;
             var wid = WorkerId & 0x3FF;

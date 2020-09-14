@@ -336,7 +336,7 @@ namespace NewLife.Caching
             finally
             {
                 // 如果不需要结果，则暂停一会，有效清理残留
-                if (!requireResult) Thread.SpinWait(1);
+                if (!requireResult) Thread.Sleep(10);
 
                 rds.Reset();
                 Pool.Put(rds);
