@@ -236,9 +236,9 @@ namespace XCode
             // 来自数据库直接Update
             if (IsFromDatabase) return Update();
 
-            // 优先使用整型主键字段判断
-            var fi = Meta.Unique;
-            if (fi != null && fi.Type.IsInt()) return Convert.ToInt64(this[fi.Name]) > 0 ? Update() : Insert();
+            // 优先使用自增字段判断
+            var fi = Meta.Table.Identity;
+            if (fi != null) return Convert.ToInt64(this[fi.Name]) > 0 ? Update() : Insert();
 
             /*
              * 慈母手中线，游子身上衣。
