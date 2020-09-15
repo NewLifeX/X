@@ -396,12 +396,12 @@ namespace NewLife.Caching
             }
         }
 
-        /// <summary>所有键</summary>
+        /// <summary>获取所有键，限制10000项，超额请使用FullRedis.Search</summary>
         public override ICollection<String> Keys
         {
             get
             {
-                if (Count > 10000) throw new InvalidOperationException("数量过大时，禁止获取所有键");
+                if (Count > 10000) throw new InvalidOperationException("数量过大时，禁止获取所有键，请使用FullRedis.Search");
 
                 var client = Pool.Get();
                 try
