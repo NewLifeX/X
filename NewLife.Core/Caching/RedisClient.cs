@@ -476,6 +476,10 @@ namespace NewLife.Caching
                 {
                     arr[i] = ReadPacket(ms);
                 }
+                else if (header == ':')
+                {
+                    arr[i] = ReadLine(ms);
+                }
                 else if (header == '*')
                 {
                     arr[i] = ReadBlocks(ms);
@@ -671,7 +675,10 @@ namespace NewLife.Caching
                 var arr = Array.CreateInstance(elmType, objs.Length);
                 for (var i = 0; i < objs.Length; i++)
                 {
-                    if (objs[i] is Packet pk3) arr.SetValue(Host.Encoder.Decode(pk3, elmType), i);
+                    if (objs[i] is Packet pk3)
+                        arr.SetValue(Host.Encoder.Decode(pk3, elmType), i);
+                    else if (objs[i] != null && objs[i].GetType().As(elmType))
+                        arr.SetValue(objs[i], i);
                 }
                 target = arr;
                 return true;
