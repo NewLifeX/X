@@ -562,20 +562,20 @@ namespace NewLife.Caching
             //if (expire < 0) expire = Expire;
 
             // 没有有效期，直接使用SETNX
-            if (expire <= 0) return Execute(key, rds => rds.Execute<Int32>("SETNX", key, value) == 1, true);
+            if (expire <= 0) return Execute(key, rds => rds.Execute<Int32>("SETNX", key, value), true) > 0;
 
             // 带有有效期，需要判断版本是否支持
             var inf = Info;
-            if (inf != null && inf.TryGetValue("redis_version", out var ver) && ver.CompareTo("4.0") >= 0)
+            if (inf != null && inf.TryGetValue("redis_version", out var ver) && ver.CompareTo("4.") >= 0 && ver.CompareTo("6.") < 0)
             {
-                return Execute(key, rds => rds.Execute<Int32>("SETNX", key, value, expire) == 1, true);
+                return Execute(key, rds => rds.Execute<Int32>("SETNX", key, value, expire), true) > 0;
             }
 
             // 旧版本不支持SETNX带过期时间，需要分为前后两条指令
-            var rs = Execute(key, rds => rds.Execute<Int32>("SETNX", key, value) == 1, true);
-            if (rs) SetExpire(key, TimeSpan.FromSeconds(expire));
+            var rs = Execute(key, rds => rds.Execute<Int32>("SETNX", key, value), true);
+            if (rs > 0) SetExpire(key, TimeSpan.FromSeconds(expire));
 
-            return rs;
+            return rs > 0;
         }
 
         /// <summary>设置新值并获取旧值，原子操作</summary>
