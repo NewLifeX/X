@@ -209,10 +209,18 @@ namespace NewLife.Caching
                     {
                         log.Append(" ");
                         var ori = oriArgs?[i];
-                        if (ori.GetType().GetTypeCode() != TypeCode.Object)
-                            log.Append(ori);
-                        else
-                            log.AppendFormat("[{0}]{1}", size, item.ToStr(null, 0, 1024)?.TrimEnd());
+                        switch (ori.GetType().GetTypeCode())
+                        {
+                            case TypeCode.Object:
+                                log.AppendFormat("[{0}]{1}", size, item.ToStr(null, 0, 1024)?.TrimEnd());
+                                break;
+                            case TypeCode.DateTime:
+                                log.Append(((DateTime)ori).ToString("yyyy-MM-dd HH:mm:ss.fff"));
+                                break;
+                            default:
+                                log.Append(ori);
+                                break;
+                        }
                     }
 
                     //str = "${0}\r\n".F(item.Length);
@@ -414,7 +422,7 @@ namespace NewLife.Caching
                 //var ars = ExecuteCommand("AUTH", new Packet[] { Host.Password.GetBytes() });
                 //if (ars as String != "OK") throw new Exception("登录失败！" + ars);
 
-                if (!Auth(Host.Password)) throw new Exception("登录失败！");
+                if (!Auth(Host.UserName, Host.Password)) throw new Exception("登录失败！");
             }
 
             if (Host.Db > 0) Select(Host.Db);
@@ -746,9 +754,17 @@ namespace NewLife.Caching
         public Boolean Select(Int32 db) => Execute<String>("SELECT", db + "") == "OK";
 
         /// <summary>验证密码</summary>
+        /// <param name="username"></param>
         /// <param name="password"></param>
         /// <returns></returns>
-        public Boolean Auth(String password) => Execute<String>("AUTH", password) == "OK";
+        public Boolean Auth(String username, String password)
+        {
+            var rs = username.IsNullOrEmpty() ?
+                Execute<String>("AUTH", password) :
+                Execute<String>("AUTH", username, password);
+
+            return rs == "OK";
+        }
 
         /// <summary>退出</summary>
         /// <returns></returns>

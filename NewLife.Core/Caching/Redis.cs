@@ -23,6 +23,9 @@ namespace NewLife.Caching
         /// <summary>服务器</summary>
         public String Server { get; set; }
 
+        /// <summary>用户名。Redis6.0支持</summary>
+        public String UserName { get; set; }
+
         /// <summary>密码</summary>
         public String Password { get; set; }
 
@@ -71,6 +74,20 @@ namespace NewLife.Caching
             Db = db;
         }
 
+        /// <summary>实例化Redis，指定服务器地址、用户、密码、库</summary>
+        /// <param name="server"></param>
+        /// <param name="username"></param>
+        /// <param name="password"></param>
+        /// <param name="db"></param>
+        public Redis(String server, String username, String password, Int32 db)
+        {
+            // 有人多输入了一个空格，酿成大祸
+            Server = server?.Trim();
+            UserName = username?.Trim();
+            Password = password?.Trim();
+            Db = db;
+        }
+
         /// <summary>使用连接字符串初始化</summary>
         /// <param name="config"></param>
         public override void Init(String config)
@@ -81,6 +98,7 @@ namespace NewLife.Caching
             if (dic.Count > 0)
             {
                 Server = dic["Server"]?.Trim();
+                UserName = dic["UserName"]?.Trim();
                 Password = dic["Password"]?.Trim();
                 Db = dic["Db"].ToInt();
 

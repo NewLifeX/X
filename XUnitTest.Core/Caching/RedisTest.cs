@@ -10,27 +10,37 @@ using System.Threading;
 using NewLife;
 using System.Linq;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace XUnitTest.Caching
 {
     public class RedisTest
     {
-        public Redis Redis { get; set; }
+        public Redis _redis { get; set; }
 
         public RedisTest()
         {
+            var config = "";
+            var file = @"config\redis.config";
+            if (File.Exists(file)) config = File.ReadAllText(file.GetFullPath())?.Trim();
+            if (config.IsNullOrEmpty()) config = "server=127.0.0.1:6379;db=3";
+            File.WriteAllText(file.GetFullPath(), config);
+
             //Redis = Redis.Create("127.0.0.1:6379", "newlife", 4);
             //Redis = Redis.Create("127.0.0.1:6379", null, 4);
-            Redis = new Redis("127.0.0.1:6379", null, 4);
+            //Redis = new Redis("127.0.0.1:6379", null, 4);
+
+            _redis = new Redis();
+            _redis.Init(config);
 #if DEBUG
-            Redis.Log = XTrace.Log;
+            _redis.Log = XTrace.Log;
 #endif
         }
 
         [Fact(DisplayName = "基础测试")]
         public void BasicTest()
         {
-            var ic = Redis;
+            var ic = _redis;
             var key = "Name";
             var key2 = "Company";
 
@@ -65,7 +75,7 @@ namespace XUnitTest.Caching
         [Fact(DisplayName = "集合测试")]
         public void DictionaryTest()
         {
-            var ic = Redis;
+            var ic = _redis;
 
             var dic = new Dictionary<String, String>
             {
@@ -87,7 +97,7 @@ namespace XUnitTest.Caching
         [Fact(DisplayName = "高级添加")]
         public void AddReplace()
         {
-            var ic = Redis;
+            var ic = _redis;
             var key = "Name";
 
             ic.Set(key, Environment.UserName);
@@ -109,7 +119,7 @@ namespace XUnitTest.Caching
         [Fact]
         public void TryGet()
         {
-            var ic = Redis;
+            var ic = _redis;
             var key = "tcUser";
 
             var user = new User { Name = "Stone" };
@@ -150,7 +160,7 @@ namespace XUnitTest.Caching
         [Fact(DisplayName = "累加累减")]
         public void IncDec()
         {
-            var ic = Redis;
+            var ic = _redis;
             var key = "CostInt";
             var key2 = "CostDouble";
 
@@ -175,7 +185,7 @@ namespace XUnitTest.Caching
                 UpdateTime = DateTime.Now,
             };
 
-            var ic = Redis;
+            var ic = _redis;
             var key = "user";
 
             ic.Set(key, obj);
@@ -196,7 +206,7 @@ namespace XUnitTest.Caching
         [Fact(DisplayName = "字节数组")]
         public void TestBuffer()
         {
-            var ic = Redis;
+            var ic = _redis;
             var key = "buf";
 
             var str = "学无先后达者为师";
@@ -211,7 +221,7 @@ namespace XUnitTest.Caching
         [Fact(DisplayName = "数据包")]
         public void TestPacket()
         {
-            var ic = Redis;
+            var ic = _redis;
             var key = "buf";
 
             var str = "学无先后达者为师";
@@ -226,21 +236,21 @@ namespace XUnitTest.Caching
         [Fact(DisplayName = "管道")]
         public void TestPipeline()
         {
-            var ap = Redis.AutoPipeline;
-            Redis.AutoPipeline = 100;
+            var ap = _redis.AutoPipeline;
+            _redis.AutoPipeline = 100;
 
             BasicTest();
 
-            Redis.AutoPipeline = ap;
+            _redis.AutoPipeline = ap;
         }
 
         [Fact(DisplayName = "管道2")]
         public void TestPipeline2()
         {
-            var ap = Redis.AutoPipeline;
-            Redis.AutoPipeline = 100;
+            var ap = _redis.AutoPipeline;
+            _redis.AutoPipeline = 100;
 
-            var ic = Redis;
+            var ic = _redis;
             var key = "Name";
             var key2 = "Company";
 
@@ -274,13 +284,13 @@ namespace XUnitTest.Caching
             ic.StopPipeline(true);
             Assert.True(ic.Count == 0);
 
-            Redis.AutoPipeline = ap;
+            _redis.AutoPipeline = ap;
         }
 
         [Fact(DisplayName = "正常锁")]
         public void TestLock1()
         {
-            var ic = Redis;
+            var ic = _redis;
 
             var ck = ic.AcquireLock("lock:TestLock1", 3000);
             var k2 = ck as CacheLock;
@@ -305,7 +315,7 @@ namespace XUnitTest.Caching
         [Fact(DisplayName = "抢锁失败")]
         public void TestLock2()
         {
-            var ic = Redis;
+            var ic = _redis;
 
             var ck1 = ic.AcquireLock("lock:TestLock2", 3000);
             // 故意不用using，验证GC是否能回收
@@ -330,7 +340,7 @@ namespace XUnitTest.Caching
         [Fact(DisplayName = "抢死锁")]
         public void TestLock3()
         {
-            var ic = Redis;
+            var ic = _redis;
 
             using var ck = ic.AcquireLock("TestLock3", 3000);
 
@@ -345,7 +355,7 @@ namespace XUnitTest.Caching
         [Fact(DisplayName = "搜索测试")]
         public void SearchTest()
         {
-            var ic = Redis;
+            var ic = _redis;
 
             // 添加删除
             ic.Set("username", Environment.UserName, 60);
@@ -391,7 +401,7 @@ namespace XUnitTest.Caching
         [Fact]
         public async void PopAsync()
         {
-            var rds = Redis;
+            var rds = _redis;
             var key = "async_test";
 
             rds.Remove(key);
