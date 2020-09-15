@@ -83,6 +83,10 @@ namespace NewLife.Caching
                 Server = dic["Server"]?.Trim();
                 Password = dic["Password"]?.Trim();
                 Db = dic["Db"].ToInt();
+
+                // 连接字符串可能独立写了port
+                var port = dic["Port"].ToInt();
+                if (port > 0 && !Server.Contains(":")) Server += ":" + port;
             }
         }
 
