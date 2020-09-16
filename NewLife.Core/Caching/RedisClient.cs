@@ -476,7 +476,7 @@ namespace NewLife.Caching
                 {
                     arr[i] = ReadPacket(ms);
                 }
-                else if (header == ':')
+                else if (header == '+' || header == ':')
                 {
                     arr[i] = ReadLine(ms);
                 }
