@@ -4,7 +4,10 @@ using System.Threading.Tasks;
 
 namespace NewLife.Caching
 {
-    /// <summary>生产者消费者接口</summary>
+    /// <summary>轻量级生产者消费者接口</summary>
+    /// <remarks>
+    /// 不一定支持Ack机制；也不支持消息体与消息键分离
+    /// </remarks>
     /// <typeparam name="T"></typeparam>
     public interface IProducerConsumer<T>
     {
