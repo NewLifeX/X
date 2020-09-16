@@ -82,7 +82,7 @@ namespace NewLife.Caching
         /// <typeparam name="T">值类型</typeparam>
         /// <param name="key">键</param>
         /// <param name="value">值</param>
-        /// <param name="expire">过期时间，秒</param>
+        /// <param name="expire">过期时间，秒。小于0时采用默认缓存时间<seealso cref="Cache.Expire"/></param>
         /// <returns></returns>
         public virtual T GetOrAdd<T>(String key, T value, Int32 expire = -1)
         {
@@ -112,7 +112,7 @@ namespace NewLife.Caching
         /// <typeparam name="T">值类型</typeparam>
         /// <param name="key">键</param>
         /// <param name="value">值</param>
-        /// <param name="expire">过期时间，秒</param>
+        /// <param name="expire">过期时间，秒。小于0时采用默认缓存时间<seealso cref="Cache.Expire"/></param>
         /// <returns></returns>
         public override Boolean Set<T>(String key, T value, Int32 expire = -1)
         {
@@ -210,7 +210,7 @@ namespace NewLife.Caching
         /// <typeparam name="T">值类型</typeparam>
         /// <param name="key">键</param>
         /// <param name="value">值</param>
-        /// <param name="expire">过期时间，秒</param>
+        /// <param name="expire">过期时间，秒。小于0时采用默认缓存时间<seealso cref="Cache.Expire"/></param>
         /// <returns></returns>
         public override Boolean Add<T>(String key, T value, Int32 expire = -1)
         {
@@ -284,7 +284,7 @@ namespace NewLife.Caching
         /// <returns></returns>
         public override Int64 Increment(String key, Int64 value)
         {
-            var item = GetOrAddItem(key, k => 0L, -1);
+            var item = GetOrAddItem(key, k => 0L);
             return (Int64)item.Inc(value);
         }
 
@@ -294,7 +294,7 @@ namespace NewLife.Caching
         /// <returns></returns>
         public override Double Increment(String key, Double value)
         {
-            var item = GetOrAddItem(key, k => 0d, -1);
+            var item = GetOrAddItem(key, k => 0d);
             return (Double)item.Inc(value);
         }
 
@@ -304,7 +304,7 @@ namespace NewLife.Caching
         /// <returns></returns>
         public override Int64 Decrement(String key, Int64 value)
         {
-            var item = GetOrAddItem(key, k => 0L, -1);
+            var item = GetOrAddItem(key, k => 0L);
             return (Int64)item.Dec(value);
         }
 
@@ -314,7 +314,7 @@ namespace NewLife.Caching
         /// <returns></returns>
         public override Double Decrement(String key, Double value)
         {
-            var item = GetOrAddItem(key, k => 0d, -1);
+            var item = GetOrAddItem(key, k => 0d);
             return (Double)item.Dec(value);
         }
         #endregion
@@ -322,68 +322,62 @@ namespace NewLife.Caching
         #region 集合操作
         /// <summary>获取列表</summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="key">键</param>
-        /// <param name="expire">过期时间，秒</param>
+        /// <param name="key"></param>
         /// <returns></returns>
-        public override IList<T> GetList<T>(String key, Int32 expire = -1)
+        public override IList<T> GetList<T>(String key)
         {
-            var item = GetOrAddItem(key, k => new List<T>(), expire);
+            var item = GetOrAddItem(key, k => new List<T>());
             return item.Visit() as IList<T>;
         }
 
         /// <summary>获取哈希</summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="key">键</param>
-        /// <param name="expire">过期时间，秒</param>
+        /// <param name="key"></param>
         /// <returns></returns>
-        public override IDictionary<String, T> GetDictionary<T>(String key, Int32 expire = -1)
+        public override IDictionary<String, T> GetDictionary<T>(String key)
         {
-            var item = GetOrAddItem(key, k => new ConcurrentDictionary<String, T>(), expire);
+            var item = GetOrAddItem(key, k => new ConcurrentDictionary<String, T>());
             return item.Visit() as IDictionary<String, T>;
         }
 
         /// <summary>获取队列</summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="key">键</param>
-        /// <param name="expire">过期时间，秒</param>
+        /// <param name="key"></param>
         /// <returns></returns>
-        public override IProducerConsumer<T> GetQueue<T>(String key, Int32 expire = -1)
+        public override IProducerConsumer<T> GetQueue<T>(String key)
         {
-            var item = GetOrAddItem(key, k => new MemoryQueue<T>(), expire);
+            var item = GetOrAddItem(key, k => new MemoryQueue<T>());
             return item.Visit() as IProducerConsumer<T>;
         }
 
         /// <summary>获取栈</summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="key">键</param>
-        /// <param name="expire">过期时间，秒</param>
+        /// <param name="key"></param>
         /// <returns></returns>
-        public override IProducerConsumer<T> GetStack<T>(String key, Int32 expire = -1)
+        public override IProducerConsumer<T> GetStack<T>(String key)
         {
-            var item = GetOrAddItem(key, k => new MemoryQueue<T>(new ConcurrentStack<T>()), expire);
+            var item = GetOrAddItem(key, k => new MemoryQueue<T>(new ConcurrentStack<T>()));
             return item.Visit() as IProducerConsumer<T>;
         }
 
         /// <summary>获取Set</summary>
         /// <remarks>基于HashSet，非线程安全</remarks>
         /// <typeparam name="T"></typeparam>
-        /// <param name="key">键</param>
-        /// <param name="expire">过期时间，秒</param>
+        /// <param name="key"></param>
         /// <returns></returns>
-        public override ICollection<T> GetSet<T>(String key, Int32 expire = -1)
+        public override ICollection<T> GetSet<T>(String key)
         {
-            var item = GetOrAddItem(key, k => new HashSet<T>(), expire);
+            var item = GetOrAddItem(key, k => new HashSet<T>());
             return item.Visit() as ICollection<T>;
         }
 
         /// <summary>获取 或 添加 缓存项</summary>
-        /// <param name="key">键</param>
+        /// <param name="key"></param>
         /// <param name="valueFactory"></param>
-        /// <param name="expire">过期时间，秒</param>
         /// <returns></returns>
-        protected CacheItem GetOrAddItem(String key, Func<String, Object> valueFactory, Int32 expire)
+        protected CacheItem GetOrAddItem(String key, Func<String, Object> valueFactory)
         {
-            if (expire < 0) expire = Expire;
+            var expire = Expire;
 
             CacheItem ci = null;
             do

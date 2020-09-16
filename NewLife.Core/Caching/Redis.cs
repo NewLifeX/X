@@ -431,7 +431,7 @@ namespace NewLife.Caching
         /// <summary>单个实体项</summary>
         /// <param name="key">键</param>
         /// <param name="value">值</param>
-        /// <param name="expire">过期时间，秒</param>
+        /// <param name="expire">过期时间，秒。小于0时采用默认缓存时间<seealso cref="Cache.Expire"/></param>
         public override Boolean Set<T>(String key, T value, Int32 expire = -1)
         {
             if (expire < 0) expire = Expire;
@@ -482,7 +482,7 @@ namespace NewLife.Caching
         /// <summary>批量设置缓存项</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="values"></param>
-        /// <param name="expire">过期时间，秒</param>
+        /// <param name="expire">过期时间，秒。小于0时采用默认缓存时间<seealso cref="Cache.Expire"/></param>
         public override void SetAll<T>(IDictionary<String, T> values, Int32 expire = -1)
         {
             if (values == null || values.Count == 0) return;
@@ -524,30 +524,26 @@ namespace NewLife.Caching
         /// <summary>获取哈希</summary>
         /// <typeparam name="T">元素类型</typeparam>
         /// <param name="key">键</param>
-        /// <param name="expire">过期时间，秒</param>
         /// <returns></returns>
-        public override IDictionary<String, T> GetDictionary<T>(String key, Int32 expire = -1) => throw new NotSupportedException("Redis未支持该功能，需要new FullRedis");
+        public override IDictionary<String, T> GetDictionary<T>(String key) => throw new NotSupportedException("Redis未支持该功能，需要new FullRedis");
 
         /// <summary>获取队列</summary>
         /// <typeparam name="T">元素类型</typeparam>
         /// <param name="key">键</param>
-        /// <param name="expire">过期时间，秒</param>
         /// <returns></returns>
-        public override IProducerConsumer<T> GetQueue<T>(String key, Int32 expire = -1) => throw new NotSupportedException("Redis未支持该功能，需要new FullRedis");
+        public override IProducerConsumer<T> GetQueue<T>(String key) => throw new NotSupportedException("Redis未支持该功能，需要new FullRedis");
 
         /// <summary>获取栈</summary>
         /// <typeparam name="T">元素类型</typeparam>
         /// <param name="key">键</param>
-        /// <param name="expire">过期时间，秒</param>
         /// <returns></returns>
-        public override IProducerConsumer<T> GetStack<T>(String key, Int32 expire = -1) => throw new NotSupportedException("Redis未支持该功能，需要new FullRedis");
+        public override IProducerConsumer<T> GetStack<T>(String key) => throw new NotSupportedException("Redis未支持该功能，需要new FullRedis");
 
         /// <summary>获取Set</summary>
-        /// <typeparam name="T">元素类型</typeparam>
-        /// <param name="key">键</param>
-        /// <param name="expire">过期时间，秒</param>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="key"></param>
         /// <returns></returns>
-        public override ICollection<T> GetSet<T>(String key, Int32 expire = -1) => throw new NotSupportedException("Redis未支持该功能，需要new FullRedis");
+        public override ICollection<T> GetSet<T>(String key) => throw new NotSupportedException("Redis未支持该功能，需要new FullRedis");
         #endregion
 
         #region 高级操作
@@ -555,7 +551,7 @@ namespace NewLife.Caching
         /// <typeparam name="T">值类型</typeparam>
         /// <param name="key">键</param>
         /// <param name="value">值</param>
-        /// <param name="expire">过期时间，秒</param>
+        /// <param name="expire">过期时间，秒。小于0时采用默认缓存时间<seealso cref="Cache.Expire"/></param>
         /// <returns></returns>
         public override Boolean Add<T>(String key, T value, Int32 expire = -1)
         {
