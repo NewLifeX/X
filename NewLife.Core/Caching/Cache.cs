@@ -53,7 +53,7 @@ namespace NewLife.Caching
         /// <summary>设置缓存项</summary>
         /// <param name="key">键</param>
         /// <param name="value">值</param>
-        /// <param name="expire">过期时间，秒。小于0时采用默认缓存时间<seealso cref="Expire"/></param>
+        /// <param name="expire">过期时间，秒</param>
         /// <returns></returns>
         public abstract Boolean Set<T>(String key, T value, Int32 expire = -1);
 
@@ -107,7 +107,7 @@ namespace NewLife.Caching
         /// <summary>批量设置缓存项</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="values"></param>
-        /// <param name="expire">过期时间，秒。小于0时采用默认缓存时间<seealso cref="Expire"/></param>
+        /// <param name="expire">过期时间，秒</param>
         public virtual void SetAll<T>(IDictionary<String, T> values, Int32 expire = -1)
         {
             foreach (var item in values)
@@ -152,7 +152,7 @@ namespace NewLife.Caching
         /// <typeparam name="T">值类型</typeparam>
         /// <param name="key">键</param>
         /// <param name="value">值</param>
-        /// <param name="expire">过期时间，秒。小于0时采用默认缓存时间<seealso cref="Cache.Expire"/></param>
+        /// <param name="expire">过期时间，秒</param>
         /// <returns></returns>
         public virtual Boolean Add<T>(String key, T value, Int32 expire = -1)
         {
