@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Collections;
@@ -20,7 +21,7 @@ namespace NewLife.Caching
     public class Redis : Cache
     {
         #region 属性
-        /// <summary>服务器</summary>
+        /// <summary>服务器，带端口。例如127.0.0.1:6397，支持逗号分隔的多地址，网络异常时，自动切换到其它节点，60秒后切回来</summary>
         public String Server { get; set; }
 
         /// <summary>用户名。Redis6.0支持</summary>
@@ -129,7 +130,7 @@ namespace NewLife.Caching
         #endregion
 
         #region 客户端池
-        class MyPool : ObjectPool<RedisClient>
+        private class MyPool : ObjectPool<RedisClient>
         {
             public Redis Instance { get; set; }
 
@@ -144,6 +145,10 @@ namespace NewLife.Caching
             }
         }
 
+        private NetUri[] _servers;
+        private Int32 _idxServer;
+        private DateTime _nextTrace;
+
         /// <summary>创建连接客户端</summary>
         /// <returns></returns>
         protected virtual RedisClient OnCreate()
@@ -151,12 +156,47 @@ namespace NewLife.Caching
             var svr = Server?.Trim();
             if (svr.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Server));
 
-            if (!svr.Contains("://")) svr = "tcp://" + svr;
+            if (_servers == null)
+            {
+                var ss = svr.Split(",");
+                var uris = new NetUri[ss.Length];
+                for (var i = 0; i < ss.Length; i++)
+                {
+                    var svr2 = ss[i];
+                    if (!svr2.Contains("://")) svr2 = "tcp://" + svr2;
 
-            var uri = new NetUri(svr);
-            if (uri.Port == 0) uri.Port = 6379;
+                    var uri = new NetUri(svr2);
+                    if (uri.Port == 0) uri.Port = 6379;
+                    uris[i] = uri;
+                }
+                _servers = uris;
+            }
 
-            var rc = new RedisClient(this, uri)
+            // 一定时间后，切换回来主节点
+            if (_idxServer > 0)
+            {
+                var now = DateTime.Now;
+                if (_nextTrace.Year < 2000)
+                {
+                    _nextTrace = now.AddSeconds(60);
+
+                    var m = (_idxServer - 1) % _servers.Length;
+                    var n = _idxServer % _servers.Length;
+                    XTrace.WriteLine("Redis切换 {0} => {1}", _servers[m], _servers[n]);
+                }
+
+                if (now > _nextTrace)
+                {
+                    _idxServer = 0;
+                    _nextTrace = DateTime.MinValue;
+
+                    var m = (_idxServer - 1) % _servers.Length;
+                    var n = _idxServer % _servers.Length;
+                    XTrace.WriteLine("Redis恢复 {0} => {1}", _servers[m], _servers[n]);
+                }
+            }
+
+            var rc = new RedisClient(this, _servers[_idxServer % _servers.Length])
             {
                 Log = Log
             };
@@ -243,6 +283,12 @@ namespace NewLife.Caching
                 {
                     if (i++ >= Retry) throw;
                 }
+                catch (SocketException)
+                {
+                    // 网络异常时，自动切换到其它节点
+                    _idxServer++;
+                    if (++i >= _servers.Length) throw;
+                }
                 finally
                 {
                     Pool.Put(client);
@@ -312,6 +358,12 @@ namespace NewLife.Caching
                 {
                     if (i++ >= Retry) throw;
                 }
+                catch (SocketException)
+                {
+                    // 网络异常时，自动切换到其它节点
+                    _idxServer++;
+                    if (++i >= _servers.Length) throw;
+                }
                 finally
                 {
                     Pool.Put(client);
@@ -380,21 +432,7 @@ namespace NewLife.Caching
 
         #region 基础操作
         /// <summary>缓存个数</summary>
-        public override Int32 Count
-        {
-            get
-            {
-                var client = Pool.Get();
-                try
-                {
-                    return client.Execute<Int32>("DBSIZE");
-                }
-                finally
-                {
-                    Pool.Put(client);
-                }
-            }
-        }
+        public override Int32 Count => Execute(null, rds => rds.Execute<Int32>("DBSIZE"));
 
         /// <summary>获取所有键，限制10000项，超额请使用FullRedis.Search</summary>
         public override ICollection<String> Keys
@@ -403,17 +441,7 @@ namespace NewLife.Caching
             {
                 if (Count > 10000) throw new InvalidOperationException("数量过大时，禁止获取所有键，请使用FullRedis.Search");
 
-                var client = Pool.Get();
-                try
-                {
-                    var rs = client.Execute<String[]>("KEYS", "*");
-                    //return rs.Split(Environment.NewLine).ToList();
-                    return rs;
-                }
-                finally
-                {
-                    Pool.Put(client);
-                }
+                return Execute(null, rds => rds.Execute<String[]>("KEYS", "*"));
             }
         }
 
@@ -637,11 +665,9 @@ namespace NewLife.Caching
         /// <param name="key">键</param>
         /// <param name="value">变化量</param>
         /// <returns></returns>
-        public override Double Decrement(String key, Double value)
-        {
+        public override Double Decrement(String key, Double value) =>
             //return (Double)Decrement(key, (Int64)(value * 100)) / 100;
-            return Increment(key, -value);
-        }
+            Increment(key, -value);
         #endregion
 
         #region 性能测试

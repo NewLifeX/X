@@ -424,5 +424,53 @@ namespace XUnitTest.Caching
             Assert.Equal("xxx", rs[1]);
             Assert.True(sw.ElapsedMilliseconds >= 1000);
         }
+
+        [Fact(DisplayName = "从机测试")]
+        public void SlaveTest()
+        {
+            // 配置两个地址，第一个地址是不可访问的，它会自动切换到第二地址
+            var config = "server=127.0.0.1:6000,127.0.0.1:6379;db=3";
+
+            var redis = new Redis();
+            redis.Init(config);
+#if DEBUG
+            redis.Log = XTrace.Log;
+#endif
+
+            var ic = redis;
+            var key = "Name";
+            var key2 = "Company";
+
+            //// 第一次失败
+            //var ex = Assert.ThrowsAny<Exception>(() => ic.Count);
+            //XTrace.WriteException(ex);
+
+            ic.Set(key, "大石头");
+            ic.Set(key2, "新生命");
+            Assert.Equal("大石头", ic.Get<String>(key));
+            Assert.Equal("新生命", ic.Get<String>(key2));
+
+            var count = ic.Count;
+            Assert.True(count >= 2);
+
+            // Keys
+            var keys = ic.Keys;
+            Assert.True(keys.Contains(key));
+
+            // 过期时间
+            ic.SetExpire(key, TimeSpan.FromSeconds(1));
+            var ts = ic.GetExpire(key);
+            Assert.True(ts.TotalSeconds > 0 && ts.TotalSeconds < 2, "过期时间");
+
+            var rs = ic.Remove(key2);
+            if (ic.AutoPipeline > 0) rs = (Int32)ic.StopPipeline(true)[0];
+            Assert.Equal(1, rs);
+
+            Assert.False(ic.ContainsKey(key2));
+
+            ic.Clear();
+            ic.StopPipeline(true);
+            Assert.True(ic.Count == 0);
+        }
     }
 }
