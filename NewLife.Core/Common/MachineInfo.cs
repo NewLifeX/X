@@ -137,23 +137,34 @@ namespace NewLife
             if (OSName.IsNullOrEmpty()) OSName = (osv + "").TrimStart("Microsoft").TrimEnd(OSVersion).Trim();
             if (Guid.IsNullOrEmpty()) Guid = "";
 
+            try
+            {
 #if __CORE__
-            if (Runtime.Windows)
-                LoadWindowsInfo();
-            else if (Runtime.Linux)
-                LoadLinuxInfo();
+                if (Runtime.Windows)
+                    LoadWindowsInfo();
+                else if (Runtime.Linux)
+                    LoadLinuxInfo();
 #else
-            if (Runtime.Windows)
-                LoadWindowsInfoFx();
-            else if (Runtime.Linux)
-                LoadLinuxInfo();
+                if (Runtime.Windows)
+                    LoadWindowsInfoFx();
+                else if (Runtime.Linux)
+                    LoadLinuxInfo();
 #endif
+            }
+            catch (Exception ex)
+            {
+                XTrace.WriteException(ex);
+            }
 
             // window+netcore 不方便读取注册表，随机生成一个guid，借助文件缓存确保其不变
             if (Guid.IsNullOrEmpty()) Guid = "0-" + System.Guid.NewGuid().ToString();
             if (UUID.IsNullOrEmpty()) UUID = "0-" + System.Guid.NewGuid().ToString();
 
-            Refresh();
+            try
+            {
+                Refresh();
+            }
+            catch { }
         }
 
         private void LoadWindowsInfoFx()
