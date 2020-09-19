@@ -106,18 +106,28 @@ namespace NewLife.Caching
                     ReceiveTimeout = timeout
                 };
                 //tc.Connect(Server.Address, Server.Port);
-                // 采用异步来解决连接超时设置问题
-                var ar = tc.BeginConnect(Server.Address, Server.Port, null, null);
-                if (!ar.AsyncWaitHandle.WaitOne(timeout, true))
+
+                try
                 {
-                    tc.Close();
-                    throw new TimeoutException($"连接[{Server}][{timeout}ms]超时！");
+                    // 采用异步来解决连接超时设置问题
+                    var ar = tc.BeginConnect(Server.Address, Server.Port, null, null);
+                    if (!ar.AsyncWaitHandle.WaitOne(timeout, true))
+                    {
+                        tc.Close();
+                        throw new TimeoutException($"连接[{Server}][{timeout}ms]超时！");
+                    }
+
+                    tc.EndConnect(ar);
+
+                    Client = tc;
+                    ns = tc.GetStream();
                 }
-
-                tc.EndConnect(ar);
-
-                Client = tc;
-                ns = tc.GetStream();
+                catch
+                {
+                    // 连接异常时，放弃该客户端连接对象。上层连接池将切换新的服务端节点
+                    Dispose();
+                    throw;
+                }
             }
 
             return ns;
