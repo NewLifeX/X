@@ -56,7 +56,7 @@ namespace Test
                 try
                 {
 #endif
-                Test7();
+                    Test4();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -295,7 +295,8 @@ namespace Test
                 case '3':
                     var rds = new Redis("127.0.0.1", null, 9)
                     {
-                        Counter = new PerfCounter()
+                        Counter = new PerfCounter(),
+                        Tracer = new DefaultTracer { Log = XTrace.Log },
                     };
                     ch = rds;
                     break;

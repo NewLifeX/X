@@ -545,7 +545,12 @@ namespace NewLife.Caching
         /// <param name="cmd"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        public virtual Object Execute(String cmd, params Object[] args) => ExecuteCommand(cmd, args.Select(e => Host.Encoder.Encode(e)).ToArray(), args);
+        public virtual Object Execute(String cmd, params Object[] args)
+        {
+            using var span = Host.Tracer?.NewSpan($"redis:{Server.Host ?? Server.Address.ToString()}:{cmd}", args.FirstOrDefault());
+
+            return ExecuteCommand(cmd, args.Select(e => Host.Encoder.Encode(e)).ToArray(), args);
+        }
 
         /// <summary>执行命令。返回基本类型、对象、对象数组</summary>
         /// <param name="cmd"></param>
@@ -603,7 +608,12 @@ namespace NewLife.Caching
         /// <param name="args">参数数组</param>
         /// <param name="cancellationToken">取消通知</param>
         /// <returns></returns>
-        public virtual async Task<Object> ExecuteAsync(String cmd, Object[] args, CancellationToken cancellationToken = default) => await ExecuteCommandAsync(cmd, args.Select(e => Host.Encoder.Encode(e)).ToArray(), args, cancellationToken);
+        public virtual async Task<Object> ExecuteAsync(String cmd, Object[] args, CancellationToken cancellationToken = default)
+        {
+            using var span = Host.Tracer?.NewSpan($"redis:{Server.Host ?? Server.Address.ToString()}:{cmd}", args.FirstOrDefault());
+
+            return await ExecuteCommandAsync(cmd, args.Select(e => Host.Encoder.Encode(e)).ToArray(), args, cancellationToken);
+        }
 
         /// <summary>异步执行命令。返回基本类型、对象、对象数组</summary>
         /// <param name="cmd">命令</param>

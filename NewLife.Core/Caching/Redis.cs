@@ -200,8 +200,6 @@ namespace NewLife.Caching
         /// <returns></returns>
         public virtual TResult Execute<TResult>(String key, Func<RedisClient, TResult> func, Boolean write = false)
         {
-            using var span = Tracer?.NewSpan($"redis:{(write ? "write" : "read")}", key);
-
             // 写入或完全管道模式时，才处理管道操作
             if (write || FullPipeline)
             {
@@ -269,8 +267,6 @@ namespace NewLife.Caching
         /// <returns></returns>
         public virtual async Task<TResult> ExecuteAsync<TResult>(String key, Func<RedisClient, Task<TResult>> func, Boolean write = false)
         {
-            using var span = Tracer?.NewSpan($"redis:{(write ? "writeAsync" : "readAsync")}", key);
-
             // 写入或完全管道模式时，才处理管道操作
             if (write || FullPipeline)
             {
