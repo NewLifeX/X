@@ -339,9 +339,27 @@ namespace XCode.DataAccessLayer
 
         private TResult Invoke<T1, T2, T3, TResult>(T1 k1, T2 k2, T3 k3, Func<T1, T2, T3, TResult> callback, String action)
         {
-            // 使用k1参数作为tag，一般是sql
             var tracer = Tracer ?? GlobalTracer;
-            var span = tracer?.NewSpan($"db:{ConnName}:{action}", k1 + "");
+            var traceName = $"db:{ConnName}:{action}";
+
+            // 从sql解析表名，作为跟踪名一部分
+            if (tracer != null && k1 is String sql)
+            {
+                var p = sql.IndexOf(" from ", StringComparison.OrdinalIgnoreCase);
+                if (p > 0)
+                {
+                    p += " from ".Length;
+                    var p2 = sql.IndexOf(" ", p);
+                    var tableName = p2 < 0 ? sql.Substring(p) : sql.Substring(p, p2 - p);
+                    if (!tableName.IsNullOrEmpty() && tableName.Length < 32)
+                    {
+                        traceName += ":" + tableName;
+                    }
+                }
+            }
+
+            // 使用k1参数作为tag，一般是sql
+            var span = tracer?.NewSpan(traceName, k1 + "");
             try
             {
                 return callback(k1, k2, k3);
