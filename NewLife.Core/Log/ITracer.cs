@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using NewLife.Http;
@@ -253,6 +254,23 @@ namespace NewLife.Log
         /// <param name="request">Http请求</param>
         /// <returns></returns>
         public static ISpan NewSpan(this ITracer tracer, HttpRequestMessage request)
+        {
+            if (tracer == null) return null;
+
+            var uri = request.RequestUri;
+            var span = tracer.NewSpan(uri.ToString().TrimEnd(uri.Query));
+            span.Tag = uri.PathAndQuery;
+            //span.Tag = request.Headers.UserAgent + "";
+            span.Attach(request);
+
+            return span;
+        }
+
+        /// <summary>为Http请求创建Span</summary>
+        /// <param name="tracer">跟踪器</param>
+        /// <param name="request">Http请求</param>
+        /// <returns></returns>
+        public static ISpan NewSpan(this ITracer tracer, WebRequest request)
         {
             if (tracer == null) return null;
 

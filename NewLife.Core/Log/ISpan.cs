@@ -255,6 +255,24 @@ namespace NewLife.Log
             return request;
         }
 
+        /// <summary>把片段信息附加到http请求头上</summary>
+        /// <param name="span">片段</param>
+        /// <param name="request">http请求</param>
+        /// <returns></returns>
+        public static WebRequest Attach(this ISpan span, WebRequest request)
+        {
+            if (span == null || request == null) return request;
+
+            // 注入参数名
+            var name = GetAttachParameter(span);
+            if (name.IsNullOrEmpty()) return request;
+
+            var headers = request.Headers;
+            if (!headers.AllKeys.Contains(name)) headers.Add(name, span.ToString());
+
+            return request;
+        }
+
         /// <summary>把片段信息附加到api请求头上</summary>
         /// <param name="span">片段</param>
         /// <param name="args">api请求参数</param>
