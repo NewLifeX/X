@@ -56,7 +56,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test4();
+                Test10();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -551,17 +551,27 @@ namespace Test
 
         private static void Test10()
         {
-            var dt1 = new DateTime(1970, 1, 1);
-            //var x = dt1.ToFileTimeUtc();
+            var args = Environment.GetCommandLineArgs();
+            if (args == null || args.Length < 2) return;
 
-            var yy = Int64.Parse("-1540795502468");
+            XTrace.WriteLine(args[1]);
 
-            //var yy = "1540795502468".ToInt();
-            Console.WriteLine(yy);
+            var count = 10 * 1024 * 1024;
+#if DEBUG
+            count = 1024;
+#endif
+            var fi = args[1].AsFile();
+            if (!fi.Exists || fi.Length < count) return;
 
-            var dt = 1540795502468.ToDateTime();
-            var y = dt.ToUniversalTime();
-            Console.WriteLine(dt1.ToLong());
+            // 取最后1M
+            using var fs = fi.OpenRead();
+            var count2 = count;
+            if (count2 > fs.Length) count2 = (Int32)fs.Length;
+            //fs.Seek(count2, SeekOrigin.End);
+            fs.Position = fs.Length - count2;
+
+            var buf = fs.ReadBytes();
+            File.WriteAllBytes($"{DateTime.Now:yyyyMMddHHmmss}.log".GetFullPath(), buf);
         }
 
         private static void Test11()
