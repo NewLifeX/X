@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using NewLife;
 using NewLife.Collections;
@@ -337,25 +338,29 @@ namespace XCode.DataAccessLayer
             return rs;
         }
 
+        private static readonly Regex reg_table = new Regex(@"\s+from\s+([\w]+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private TResult Invoke<T1, T2, T3, TResult>(T1 k1, T2 k2, T3 k3, Func<T1, T2, T3, TResult> callback, String action)
         {
             var tracer = Tracer ?? GlobalTracer;
             var traceName = $"db:{ConnName}:{action}";
 
-            // 从sql解析表名，作为跟踪名一部分
-            if (tracer != null && k1 is String sql)
+            // 从sql解析表名，作为跟踪名一部分。正则避免from前后换行的情况
+            if (tracer != null)
             {
-                var p = sql.IndexOf(" from ", StringComparison.OrdinalIgnoreCase);
-                if (p > 0)
-                {
-                    p += " from ".Length;
-                    var p2 = sql.IndexOf(" ", p);
-                    var tableName = p2 < 0 ? sql.Substring(p) : sql.Substring(p, p2 - p);
-                    if (!tableName.IsNullOrEmpty() && tableName.Length < 32)
-                    {
-                        traceName += ":" + tableName;
-                    }
-                }
+                var sql = k1 + "";
+                var m = reg_table.Match(sql);
+                if (m != null && m.Groups.Count > 0) traceName += ":" + m.Groups[1].Value;
+                //var p = sql.IndexOf(" from ", StringComparison.OrdinalIgnoreCase);
+                //if (p > 0)
+                //{
+                //    p += " from ".Length;
+                //    var p2 = sql.IndexOf(" ", p);
+                //    var tableName = p2 < 0 ? sql.Substring(p) : sql.Substring(p, p2 - p);
+                //    if (!tableName.IsNullOrEmpty() && tableName.Length < 32)
+                //    {
+                //        traceName += ":" + tableName;
+                //    }
+                //}
             }
 
             // 使用k1参数作为tag，一般是sql
