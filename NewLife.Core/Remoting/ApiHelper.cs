@@ -79,7 +79,7 @@ namespace NewLife.Remoting
             onRequest?.Invoke(request);
 
             // 开始跟踪，注入TraceId
-            var span = Tracer?.NewSpan(request);
+            using var span = Tracer?.NewSpan(request);
             try
             {
                 // 发起请求
@@ -92,10 +92,6 @@ namespace NewLife.Remoting
                 span?.SetError(ex, args);
 
                 throw;
-            }
-            finally
-            {
-                span?.Dispose();
             }
         }
         #endregion

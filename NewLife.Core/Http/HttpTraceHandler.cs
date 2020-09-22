@@ -37,7 +37,7 @@ namespace NewLife.Http
             }
             catch (Exception ex)
             {
-                span?.SetError(ex, null);
+                span?.SetError(ex, request.Content?.ReadAsStringAsync().Result);
 
                 throw;
             }
