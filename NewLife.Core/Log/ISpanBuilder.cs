@@ -148,8 +148,8 @@ namespace NewLife.Log
             var force = false;
             if (span is DefaultSpan ds && ds.TraceFlag > 0) force = true;
 
-            // 处理采样，超时操作当作异常采样
-            if (span.Error != null || Tracer.Timeout > 0 && cost > Tracer.Timeout)
+            // 处理采样
+            if (span.Error != null)
             {
                 if (Interlocked.Increment(ref _Errors) <= Tracer.MaxErrors || force)
                 {
@@ -160,15 +160,13 @@ namespace NewLife.Log
                     }
                 }
             }
-            else
+            // 强制采样，未达最大数采样，超时采样
+            else if (force || total <= Tracer.MaxSamples || Tracer.Timeout > 0 && cost > Tracer.Timeout)
             {
-                if (force || total <= Tracer.MaxSamples)
+                var ss = Samples ??= new List<ISpan>();
+                lock (ss)
                 {
-                    var ss = Samples ??= new List<ISpan>();
-                    lock (ss)
-                    {
-                        ss.Add(span);
-                    }
+                    ss.Add(span);
                 }
             }
         }

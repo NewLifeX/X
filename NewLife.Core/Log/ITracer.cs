@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Threading;
 using NewLife.Http;
 using NewLife.Model;
@@ -25,7 +26,7 @@ namespace NewLife.Log
         /// <summary>最大异常采样数。采样周期内，最多只记录指定数量的异常事件，默认10</summary>
         Int32 MaxErrors { get; set; }
 
-        /// <summary>超时时间。超过该时间时，当作异常来进行采样，毫秒</summary>
+        /// <summary>超时时间。超过该时间时强制采样，毫秒</summary>
         Int32 Timeout { get; set; }
 
         /// <summary>向http/rpc请求注入TraceId的参数名，为空表示不注入，默认W3C标准的traceparent</summary>
@@ -80,11 +81,8 @@ namespace NewLife.Log
         /// <summary>最大异常采样数。采样周期内，最多只记录指定数量的异常事件，默认10</summary>
         public Int32 MaxErrors { get; set; } = 10;
 
-        /// <summary>超时时间。超过该时间时，当作异常来进行采样，默认15000毫秒</summary>
+        /// <summary>超时时间。超过该时间时强制采样，默认15000毫秒</summary>
         public Int32 Timeout { get; set; } = 15000;
-
-        ///// <summary>采样结束时等待片段完成的时间。默认1000ms</summary>
-        //public Int32 WaitForFinish { get; set; } = 1000;
 
         /// <summary>向http/rpc请求注入TraceId的参数名，为空表示不注入，默认是W3C标准的traceparent</summary>
         public String AttachParameter { get; set; } = "traceparent";
@@ -127,9 +125,6 @@ namespace NewLife.Log
             var builders = TakeAll();
             if (builders != null && builders.Length > 0)
             {
-                //// 等待未完成Span的时间，默认1000ms
-                //if (WaitForFinish > 0) Thread.Sleep(WaitForFinish);
-
                 ProcessSpans(builders);
             }
 
@@ -195,9 +190,11 @@ namespace NewLife.Log
         {
             var span = BuildSpan(name).Start();
             if (tag is String str)
-                span.Tag = str?.Cut(1024);
+                span.Tag = str.Cut(1024);
+            else if (tag is StringBuilder builder)
+                span.Tag = builder.ToString().Cut(1024);
             else if (tag != null)
-                span.Tag = tag?.ToJson().Cut(1024);
+                span.Tag = tag.ToJson().Cut(1024);
 
             return span;
         }

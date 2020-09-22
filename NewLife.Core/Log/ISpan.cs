@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Runtime.Serialization;
+using System.Text;
 using System.Threading;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
@@ -215,9 +216,11 @@ namespace NewLife.Log
         {
             Error = ex?.GetMessage();
             if (tag is String str)
-                Tag = str?.Cut(1024);
+                Tag = str.Cut(1024);
+            else if (tag is StringBuilder builder)
+                Tag = builder.ToString().Cut(1024);
             else if (tag != null)
-                Tag = tag?.ToJson().Cut(1024);
+                Tag = tag.ToJson().Cut(1024);
         }
 
         /// <summary>已重载。</summary>
