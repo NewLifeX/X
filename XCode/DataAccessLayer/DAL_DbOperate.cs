@@ -338,7 +338,6 @@ namespace XCode.DataAccessLayer
             return rs;
         }
 
-        private static readonly Regex reg_table = new Regex(@"\s+from\s+([\w]+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private TResult Invoke<T1, T2, T3, TResult>(T1 k1, T2 k2, T3 k3, Func<T1, T2, T3, TResult> callback, String action)
         {
             var tracer = Tracer ?? GlobalTracer;
@@ -347,20 +346,8 @@ namespace XCode.DataAccessLayer
             // 从sql解析表名，作为跟踪名一部分。正则避免from前后换行的情况
             if (tracer != null)
             {
-                var sql = k1 + "";
-                var m = reg_table.Match(sql);
-                if (m != null && m.Groups.Count > 0) traceName += ":" + m.Groups[1].Value;
-                //var p = sql.IndexOf(" from ", StringComparison.OrdinalIgnoreCase);
-                //if (p > 0)
-                //{
-                //    p += " from ".Length;
-                //    var p2 = sql.IndexOf(" ", p);
-                //    var tableName = p2 < 0 ? sql.Substring(p) : sql.Substring(p, p2 - p);
-                //    if (!tableName.IsNullOrEmpty() && tableName.Length < 32)
-                //    {
-                //        traceName += ":" + tableName;
-                //    }
-                //}
+                var tables = GetTables(k1 + "");
+                if (tables.Length > 0) traceName += ":" + tables.Join("-");
             }
 
             // 使用k1参数作为tag，一般是sql
@@ -378,6 +365,21 @@ namespace XCode.DataAccessLayer
             {
                 span?.Dispose();
             }
+        }
+
+        private static readonly Regex reg_table = new Regex(@"(?:\s+from|insert\s+into|update|\s+join)\s+([\w]+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        /// <summary>从Sql语句中截取表名</summary>
+        /// <param name="sql"></param>
+        /// <returns></returns>
+        private static String[] GetTables(String sql)
+        {
+            var list = new List<String>();
+            var ms = reg_table.Matches(sql);
+            foreach (Match item in ms)
+            {
+                list.Add(item.Groups[1].Value);
+            }
+            return list.ToArray();
         }
 
         private static void Append(StringBuilder sb, Object value)
