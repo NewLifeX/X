@@ -359,7 +359,7 @@ namespace NewLife
                 //}
 
                 file = "/proc/loadavg";
-                if (File.Exists(file)) CpuRate = (Single)File.ReadAllText(file).Substring(null, " ").ToDouble();
+                if (File.Exists(file)) CpuRate = (Single)File.ReadAllText(file).Substring(null, " ").ToDouble() / Environment.ProcessorCount;
             }
 
             if (Runtime.Windows)
