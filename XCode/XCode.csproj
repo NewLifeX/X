@@ -102,6 +102,11 @@
     <Compile Remove="Membership\访问统计.cs" />
     <Compile Remove="Model\XCodeService.cs" />
     <Compile Remove="Properties\AssemblyInfo.cs" />
+    <Compile Remove="Transform\ETL.cs" />
+    <Compile Remove="Transform\IdentityExtracter.cs" />
+    <Compile Remove="Transform\Sync.cs" />
+    <Compile Remove="Transform\TimeExtracter.cs" />
+    <Compile Remove="Transform\TimeSpanExtracter.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="Build.tt" />

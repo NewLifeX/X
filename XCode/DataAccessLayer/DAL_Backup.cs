@@ -11,6 +11,7 @@ using NewLife.Data;
 using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Serialization;
+using XCode.Transform;
 
 namespace XCode.DataAccessLayer
 {
@@ -25,7 +26,7 @@ namespace XCode.DataAccessLayer
         /// <param name="stream">目标数据流</param>
         /// <param name="progress">进度回调，参数为已处理行数和当前页表</param>
         /// <returns></returns>
-        public Int32 Backup(IDataTable table, Stream stream, Action<Int32, DbTable> progress = null)
+        public Int32 Backup(IDataTable table, Stream stream, Action<Int64, DbTable> progress = null)
         {
             var writeFile = new WriteFileActor
             {
@@ -34,65 +35,40 @@ namespace XCode.DataAccessLayer
                 // 最多同时堆积数
                 BoundedCapacity = 4,
             };
-            //writeFile.Start();
 
             // 自增
             var id = table.Columns.FirstOrDefault(e => e.Identity);
-            // 主键
             if (id == null)
             {
                 var pks = table.PrimaryKeys;
                 if (pks != null && pks.Length == 1 && pks[0].DataType.IsInt()) id = pks[0];
             }
-
-            var sb = new SelectBuilder
-            {
-                Table = Db.FormatName(table)
-            };
+            var tableName = Db.FormatName(table);
+            var sb = new SelectBuilder { Table = tableName };
 
             // 总行数
             writeFile.Total = SelectCount(sb);
             WriteLog("备份[{0}/{1}]开始，共[{2:n0}]行", table, ConnName, writeFile.Total);
 
-            var row = 0L;
-            var pageSize = (Db as DbBase).BatchSize;
-            var total = 0;
+            IExtracter<DbTable> extracer = new PagingExtracter(this, tableName);
+            if (id != null)
+                extracer = new IdExtracter(this, tableName, id.ColumnName);
+
             var sw = Stopwatch.StartNew();
-            while (total < writeFile.Total)
+            var total = 0;
+            foreach (var dt in extracer.Fetch())
             {
-                var sql = "";
-                // 分割数据页，自增或分页
-                if (id != null)
-                {
-                    sb.Where = $"{id.ColumnName}>={row}";
-                    sql = PageSplit(sb, 0, pageSize);
-                }
-                else
-                    sql = PageSplit(sb, row, pageSize);
-
-                // 查询数据
-                var dt = Session.Query(sql, null);
-                if (dt == null) break;
-
                 var count = dt.Rows.Count;
-                WriteLog("备份[{0}/{1}]数据 {2:n0} + {3:n0}", table, ConnName, row, count);
+                WriteLog("备份[{0}/{1}]数据 {2:n0} + {3:n0}", table, ConnName, extracer.Row, count);
                 if (count == 0) break;
 
                 // 进度报告
-                progress?.Invoke((Int32)row, dt);
+                progress?.Invoke(extracer.Row, dt);
 
                 // 消费数据
                 writeFile.Tell(dt);
 
-                // 下一页
                 total += count;
-                //if (count < pageSize) break;
-
-                // 自增分割时，取最后一行
-                if (id != null)
-                    row = dt.Get<Int64>(count - 1, id.ColumnName) + 1;
-                else
-                    row += pageSize;
             }
 
             // 通知写入完成

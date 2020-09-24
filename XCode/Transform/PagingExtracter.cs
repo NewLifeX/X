@@ -10,7 +10,7 @@ namespace XCode.Transform
     /// 通用抽取器，既没有Id序列也没有时间戳时使用。
     /// 采用分页技术抽取，通用性很强，但是随着页数增加，速度也会下降。
     /// </remarks>
-    public class PagingExtracter
+    public class PagingExtracter : IExtracter<DbTable>
     {
         #region 属性
         /// <summary>数据层</summary>

@@ -10,7 +10,7 @@ namespace XCode.Transform
     /// <remarks>
     /// 适用于带有自增字段或雪花Id字段的数据抽取器，速度飞快。
     /// </remarks>
-    public class IdExtracter
+    public class IdExtracter : IExtracter<DbTable>
     {
         #region 属性
         /// <summary>数据层</summary>
