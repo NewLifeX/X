@@ -19,14 +19,26 @@ namespace XCode.Transform
         /// <summary>查询表达式</summary>
         public SelectBuilder Builder { get; set; }
 
-        /// <summary>开始行</summary>
-        public Int64 StartRow { get; set; }
+        /// <summary>开始行。默认0</summary>
+        public Int64 Row { get; set; }
 
         /// <summary>批大小。默认5000</summary>
         public Int32 BatchSize { get; set; } = 5000;
         #endregion
 
         #region 构造
+        /// <summary>实例化分页抽取器</summary>
+        public PagingExtracter() { }
+
+        /// <summary>实例化分页抽取器</summary>
+        /// <param name="dal"></param>
+        /// <param name="tableName"></param>
+        public PagingExtracter(DAL dal, String tableName)
+        {
+            Dal = dal;
+            Builder = new SelectBuilder { Table = tableName };
+            BatchSize = (dal.Db as DbBase).BatchSize;
+        }
         #endregion
 
         #region 抽取数据
@@ -37,7 +49,7 @@ namespace XCode.Transform
             while (true)
             {
                 // 查询数据
-                var dt = Dal.Query(Builder, StartRow, BatchSize);
+                var dt = Dal.Query(Builder, Row, BatchSize);
                 if (dt == null) break;
 
                 var count = dt.Rows.Count;
@@ -46,10 +58,10 @@ namespace XCode.Transform
                 // 返回数据
                 yield return dt;
 
+                Row += BatchSize;
+
                 // 下一页
                 if (count < BatchSize) break;
-
-                StartRow += BatchSize;
             }
         }
         #endregion
