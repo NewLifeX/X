@@ -14,7 +14,7 @@ namespace XCode
     /// <summary>数据实体基类的基类</summary>
     [Serializable]
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public abstract partial class EntityBase : IEntity, IExtend2, IExtend3, ICloneable
+    public abstract partial class EntityBase : IEntity, IExtend, IExtend2, IExtend3, ICloneable
     {
         #region 初始化数据
         /// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>

@@ -1,10 +1,10 @@
 ﻿using System;
-using NewLife.Reflection;
+using NewLife.Data;
 
 namespace XCode
 {
     /// <summary>数据实体接口</summary>
-    public interface IEntity : IIndexAccessor
+    public interface IEntity : IExtend
     {
         #region 属性
         /// <summary>脏属性。存储哪些属性的数据被修改过了。</summary>

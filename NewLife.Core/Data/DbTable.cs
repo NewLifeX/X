@@ -342,11 +342,17 @@ namespace NewLife.Data
             foreach (var row in Rows)
             {
                 var model = new T();
+                var ext = model as IExtend;
                 for (var i = 0; i < row.Length; i++)
                 {
-                    // 反射赋值
+                    // 扩展赋值，或 反射赋值
                     if (dic.TryGetValue(Columns[i], out var pi))
-                        pi.SetValue(model, row[i], null);
+                    {
+                        if (ext != null)
+                            ext[Columns[i]] = row[i].ChangeType(pi.PropertyType);
+                        else
+                            pi.SetValue(model, row[i], null);
+                    }
                 }
 
                 yield return model;

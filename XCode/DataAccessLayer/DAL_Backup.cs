@@ -372,7 +372,7 @@ namespace XCode.DataAccessLayer
                 }
 
                 // 批量插入
-                Dal.Session.Insert(Table, _Columns, dt.Cast<IIndexAccessor>());
+                Dal.Session.Insert(Table, _Columns, dt.Cast<IExtend>());
             }
         }
         #endregion

@@ -333,7 +333,7 @@ namespace XCode.DataAccessLayer
         updatetime=values(updatetime);
          */
 
-        private String GetBatchSql(IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list)
+        private String GetBatchSql(IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IExtend> list)
         {
             var sb = Pool.StringBuilder.Get();
             var db = Database as DbBase;
@@ -459,7 +459,7 @@ namespace XCode.DataAccessLayer
             return sb.Put(true);
         }
 
-        public override Int32 Insert(IDataTable table, IDataColumn[] columns, IEnumerable<IIndexAccessor> list)
+        public override Int32 Insert(IDataTable table, IDataColumn[] columns, IEnumerable<IExtend> list)
         {
             // 分批
             var batchSize = (Database as DbBase).BatchSize;
@@ -476,7 +476,7 @@ namespace XCode.DataAccessLayer
             return rs;
         }
 
-        public override Int32 Upsert(IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list)
+        public override Int32 Upsert(IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IExtend> list)
         {
             // 分批
             var batchSize = (Database as DbBase).BatchSize;

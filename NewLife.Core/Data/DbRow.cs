@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Runtime.Serialization;
 using System.Xml.Serialization;
-using NewLife.Reflection;
 
 namespace NewLife.Data
 {
     /// <summary>数据行</summary>
-    public struct DbRow : IIndexAccessor
+    public struct DbRow : IExtend
     {
         #region 属性
         /// <summary>数据表</summary>
