@@ -40,6 +40,8 @@ namespace XCode.DataAccessLayer
         {
             var ps = param?.ToDictionary();
             var cmd = Session.CreateCommand(sql, CommandType.Text, Db.CreateParameters(ps));
+            cmd.Connection = Db.OpenConnection();
+
             return cmd.ExecuteReader(CommandBehavior.CloseConnection);
         }
 
@@ -97,7 +99,7 @@ namespace XCode.DataAccessLayer
 
                     var p = Db.CreateParameter(item.Key, item.Value);
                     dps.Add(p);
-                    sb.AppendFormat("{0}={1}", item.Key, p);
+                    sb.AppendFormat("{0}={1}", item.Key, p.ParameterName);
                 }
             }
             // Where条件
@@ -111,7 +113,7 @@ namespace XCode.DataAccessLayer
                  
                     var p = Db.CreateParameter(item.Key, item.Value);
                     dps.Add(p);
-                    sb.AppendFormat("{0}={1}", item.Key, p);
+                    sb.AppendFormat("{0}={1}", item.Key, p.ParameterName);
                 }
             }
 
@@ -143,7 +145,7 @@ namespace XCode.DataAccessLayer
                   
                     var p = Db.CreateParameter(item.Key, item.Value);
                     dps.Add(p);
-                    sb.AppendFormat("{0}={1}", item.Key, p);
+                    sb.AppendFormat("{0}={1}", item.Key, p.ParameterName);
                 }
             }
             var sql = sb.Put(true);
