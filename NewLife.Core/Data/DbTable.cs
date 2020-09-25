@@ -337,7 +337,7 @@ namespace NewLife.Data
         {
             // 可用属性
             var pis = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
-            var dic = pis.ToDictionary(e => e.Name, e => e);
+            var dic = pis.ToDictionary(e => e.Name, e => e, StringComparer.OrdinalIgnoreCase);
 
             foreach (var row in Rows)
             {

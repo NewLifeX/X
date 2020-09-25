@@ -96,6 +96,7 @@ namespace System.Collections.Generic
         /// <returns></returns>
         public static IDictionary<String, Object> ToDictionary(this Object target)
         {
+            if (target == null) return null;
             if (target is IDictionary<String, Object> dic) return dic;
 
             dic = new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
