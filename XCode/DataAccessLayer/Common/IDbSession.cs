@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Threading.Tasks;
 using NewLife;
 using NewLife.Data;
-using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
 {
@@ -18,9 +16,6 @@ namespace XCode.DataAccessLayer
         #region 属性
         /// <summary>数据库</summary>
         IDatabase Database { get; }
-
-        ///// <summary>链接字符串</summary>
-        //String ConnectionString { get; set; }
 
         /// <summary>查询次数</summary>
         Int32 QueryTimes { get; set; }

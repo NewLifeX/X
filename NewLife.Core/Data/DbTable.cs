@@ -348,10 +348,11 @@ namespace NewLife.Data
                     // 扩展赋值，或 反射赋值
                     if (dic.TryGetValue(Columns[i], out var pi))
                     {
+                        var val = row[i].ChangeType(pi.PropertyType);
                         if (ext != null)
-                            ext[Columns[i]] = row[i].ChangeType(pi.PropertyType);
+                            ext[Columns[i]] = val;
                         else
-                            pi.SetValue(model, row[i], null);
+                            pi.SetValue(model, val, null);
                     }
                 }
 
