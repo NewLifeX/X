@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using NewLife.Model;
-using XCode.DataAccessLayer;
 
 namespace XCode.Model
 {
@@ -121,31 +119,6 @@ namespace XCode.Model
 
             return rs;
         }
-
-        ///// <summary>获取Upsert列，默认选择脏数据列</summary>
-        ///// <param name="list"></param>
-        ///// <returns></returns>
-        //protected virtual IDataColumn[] GetColumns(IList<IEntity> list)
-        //{
-        //    var fact = list.FirstOrDefault().GetType().AsFactory();
-
-        //    // 获取所有带有脏数据的字段
-        //    var cs = new List<IDataColumn>();
-        //    var ns = new List<String>();
-        //    foreach (var entity in list)
-        //    {
-        //        foreach (var fi in fact.Fields)
-        //        {
-        //            if (!ns.Contains(fi.Name) && entity.Dirtys[fi.Name])
-        //            {
-        //                ns.Add(fi.Name);
-        //                cs.Add(fi.Field);
-        //            }
-        //        }
-        //    }
-
-        //    return cs.ToArray();
-        //}
         #endregion
     }
 }
