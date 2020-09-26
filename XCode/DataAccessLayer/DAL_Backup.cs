@@ -183,7 +183,7 @@ namespace XCode.DataAccessLayer
                 return base.Start();
             }
 
-            protected override void Receive(ActorContext context)
+            protected override Task ReceiveAsync(ActorContext context)
             {
                 var dt = context.Message as DbTable;
                 var bn = _Binary;
@@ -204,11 +204,13 @@ namespace XCode.DataAccessLayer
                 }
 
                 var rs = dt.Rows;
-                if (rs == null || rs.Count == 0) return;
+                if (rs == null || rs.Count == 0) return null;
 
                 // 写入文件
                 dt.WriteData(bn);
                 Stream.Flush();
+
+                return null;
             }
         }
         #endregion
@@ -358,9 +360,9 @@ namespace XCode.DataAccessLayer
 
             private IDataColumn[] _Columns;
 
-            protected override void Receive(ActorContext context)
+            protected override Task ReceiveAsync(ActorContext context)
             {
-                if (!(context.Message is DbTable dt)) return;
+                if (!(context.Message is DbTable dt)) return null;
 
                 // 匹配要写入的列
                 if (_Columns == null)
@@ -373,6 +375,8 @@ namespace XCode.DataAccessLayer
 
                 // 批量插入
                 Dal.Session.Insert(Table, _Columns, dt.Cast<IExtend>());
+
+                return null;
             }
         }
         #endregion

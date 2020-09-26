@@ -48,7 +48,7 @@ namespace XUnitTest.Data
 
             var ws = new ConcurrentBag<Int32>();
             var repeat = new ConcurrentBag<Int64>();
-            var hash = new ConcurrentHashSet<Int64>();
+            var hash = new ConcurrentDictionary<Int64, Snowflake>();
 
             var ts = new List<Task>();
             for (var k = 0; k < 10; k++)
@@ -61,7 +61,7 @@ namespace XUnitTest.Data
                     for (var i = 0; i < 100_000; i++)
                     {
                         var id = f.NewId();
-                        if (!hash.TryAdd(id)) repeat.Add(id);
+                        if (!hash.TryAdd(id, f)) repeat.Add(id);
                     }
                 }));
             }
