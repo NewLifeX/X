@@ -99,10 +99,10 @@ namespace XUnitTest.Data
 
             sw.Stop();
 
-            Assert.True(sw.ElapsedMilliseconds < 10_000);
-
             count *= ts.Count;
             XTrace.WriteLine("生成 {0:n0}，耗时 {1}，速度 {2:n0}tps", count, sw.Elapsed, count * 1000 / sw.ElapsedMilliseconds);
+
+            Assert.True(sw.ElapsedMilliseconds < 10_000);
         }
     }
 }

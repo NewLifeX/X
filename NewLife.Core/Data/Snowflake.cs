@@ -70,9 +70,10 @@ namespace NewLife.Data
             // 睡眠1毫秒，抢占它的位置 @656092719（广西-风吹面）
             if (_lastTime == ms && seq == 0)
             {
-                ms++;
+                //ms++;
                 // spin等1000次耗时141us，10000次耗时397us，100000次耗时3231us。@i9-10900k
-                Thread.SpinWait(1000);
+                //Thread.SpinWait(1000);
+                while (_lastTime == ms) ms = _watch.ElapsedMilliseconds + _msStart;
             }
             _lastTime = ms;
 
