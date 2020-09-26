@@ -20,7 +20,7 @@ namespace XUnitTest.Threading
         {
             var now = DateTime.Now;
             var count = 0;
-            var timer = new TimerX(s =>
+            using var timer = new TimerX(s =>
             {
                 Interlocked.Increment(ref count);
 
@@ -47,7 +47,7 @@ namespace XUnitTest.Threading
         [Fact]
         public void AsyncTest()
         {
-            var timer = new TimerX(DoAsyncTest, "Stone", 10, 100);
+            using var timer = new TimerX(DoAsyncTest, "Stone", 10, 100);
 
             Thread.Sleep(1000);
         }
@@ -65,7 +65,7 @@ namespace XUnitTest.Threading
         [Fact]
         public void AsyncTest2()
         {
-            var timer = new TimerX(DoAsyncTest2, "Stone2", DateTime.Now, 100);
+            using var timer = new TimerX(DoAsyncTest2, "Stone2", DateTime.Now, 100);
 
             Thread.Sleep(1000);
         }

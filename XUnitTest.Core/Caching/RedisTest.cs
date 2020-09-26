@@ -317,21 +317,21 @@ namespace XUnitTest.Caching
         {
             var ic = _redis;
 
-            var ck1 = ic.AcquireLock("lock:TestLock2", 3000);
+            var ck1 = ic.AcquireLock("lock:TestLock2", 1500);
             // 故意不用using，验证GC是否能回收
             //using var ck1 = ic.AcquireLock("TestLock2", 3000);
 
             var sw = Stopwatch.StartNew();
 
             // 抢相同锁，不可能成功。超时时间必须小于3000，否则前面的锁过期后，这里还是可以抢到的
-            Assert.Throws<InvalidOperationException>(() => ic.AcquireLock("lock:TestLock2", 2000));
+            Assert.Throws<InvalidOperationException>(() => ic.AcquireLock("lock:TestLock2", 1000));
 
             // 耗时必须超过有效期
             sw.Stop();
             XTrace.WriteLine("TestLock2 ElapsedMilliseconds={0}ms", sw.ElapsedMilliseconds);
-            Assert.True(sw.ElapsedMilliseconds >= 2000);
+            Assert.True(sw.ElapsedMilliseconds >= 1000);
 
-            Thread.Sleep(3000 - 2000 + 1);
+            Thread.Sleep(1500 - 1000 + 1);
 
             // 那个锁其实已经不在了，缓存应该把它干掉
             Assert.False(ic.ContainsKey("lock:TestLock2"));
@@ -342,13 +342,13 @@ namespace XUnitTest.Caching
         {
             var ic = _redis;
 
-            using var ck = ic.AcquireLock("TestLock3", 3000);
+            using var ck = ic.AcquireLock("TestLock3", 500);
 
             // 已经过了一点时间
-            Thread.Sleep(2000);
+            Thread.Sleep(100);
 
             // 循环多次后，可以抢到
-            using var ck2 = ic.AcquireLock("TestLock3", 3000);
+            using var ck2 = ic.AcquireLock("TestLock3", 500);
             Assert.NotNull(ck2);
         }
 
@@ -411,7 +411,7 @@ namespace XUnitTest.Caching
             // 异步发送
             ThreadPool.QueueUserWorkItem(s =>
             {
-                Thread.Sleep(1000);
+                Thread.Sleep(100);
 
                 rds.Execute(key, r => r.Execute<Int32>("LPUSH", key, "xxx"), true);
             });
@@ -422,14 +422,14 @@ namespace XUnitTest.Caching
 
             Assert.Equal(key, rs[0]);
             Assert.Equal("xxx", rs[1]);
-            Assert.True(sw.ElapsedMilliseconds >= 1000);
+            Assert.True(sw.ElapsedMilliseconds >= 100);
         }
 
         [Fact(DisplayName = "从机测试")]
         public void SlaveTest()
         {
             // 配置两个地址，第一个地址是不可访问的，它会自动切换到第二地址
-            var config = "server=127.0.0.1:6000,127.0.0.1:6379;db=3";
+            var config = "server=127.0.0.1:6000,127.0.0.1:6379;db=3;timeout=7000";
 
             var redis = new Redis();
             redis.Init(config);
@@ -440,6 +440,8 @@ namespace XUnitTest.Caching
             var ic = redis;
             var key = "Name";
             var key2 = "Company";
+
+            Assert.Equal(7000, ic.Timeout);
 
             //// 第一次失败
             //var ex = Assert.ThrowsAny<Exception>(() => ic.Count);
