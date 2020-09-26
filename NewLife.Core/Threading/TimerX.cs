@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 
 #nullable enable
 namespace NewLife.Threading
@@ -9,6 +11,7 @@ namespace NewLife.Threading
     /// 为了避免系统的Timer可重入的问题，差别在于本地调用完成后才开始计算时间间隔。这实际上也是经常用到的。
     /// 
     /// 因为挂载在静态列表上，必须从外部主动调用<see cref="IDisposable.Dispose"/>才能销毁定时器。
+    /// 但是要注意GC回收定时器实例。
     /// 
     /// 该定时器不能放入太多任务，否则适得其反！
     /// 
@@ -23,8 +26,16 @@ namespace NewLife.Threading
         /// <summary>所属调度器</summary>
         public TimerScheduler Scheduler { get; private set; }
 
-        /// <summary>获取/设置 回调</summary>
-        public WeakAction<Object> Callback { get; set; }
+        ///// <summary>获取/设置 回调</summary>
+        //public WeakAction<Object> Callback { get; set; }
+
+        /// <summary>目标对象。弱引用，使得调用方对象可以被GC回收</summary>
+        internal readonly WeakReference Target;
+
+        /// <summary>委托方法</summary>
+        internal readonly MethodInfo Method;
+
+        internal readonly Boolean IsAsyncTask;
 
         /// <summary>获取/设置 用户数据</summary>
         public Object? State { get; set; }
@@ -70,12 +81,40 @@ namespace NewLife.Threading
         /// <param name="dueTime">多久之后开始。毫秒</param>
         /// <param name="period">间隔周期。毫秒</param>
         /// <param name="scheduler">调度器</param>
-        public TimerX(WaitCallback callback, Object? state, Int32 dueTime, Int32 period, String? scheduler = null)
+        public TimerX(TimerCallback callback, Object? state, Int32 dueTime, Int32 period, String? scheduler = null)
         {
+            if (callback == null) throw new ArgumentNullException(nameof(callback));
             if (dueTime < 0) throw new ArgumentOutOfRangeException(nameof(dueTime));
             //if (period < 0) throw new ArgumentOutOfRangeException("period");
 
-            Callback = new WeakAction<Object>(callback) ?? throw new ArgumentNullException(nameof(callback));
+            //Callback = new WeakAction<Object>(callback) ?? throw new ArgumentNullException(nameof(callback));
+            Target = new WeakReference(callback.Target);
+            Method = callback.Method;
+            State = state;
+            Period = period;
+
+            NextTime = DateTime.Now.AddMilliseconds(dueTime);
+
+            Scheduler = (scheduler == null || scheduler.IsNullOrEmpty()) ? TimerScheduler.Default : TimerScheduler.Create(scheduler);
+            Scheduler.Add(this);
+        }
+
+        /// <summary>实例化一个不可重入的定时器</summary>
+        /// <param name="callback">委托</param>
+        /// <param name="state">用户数据</param>
+        /// <param name="dueTime">多久之后开始。毫秒</param>
+        /// <param name="period">间隔周期。毫秒</param>
+        /// <param name="scheduler">调度器</param>
+        public TimerX(Func<Object, Task> callback, Object? state, Int32 dueTime, Int32 period, String? scheduler = null)
+        {
+            if (callback == null) throw new ArgumentNullException(nameof(callback));
+            if (dueTime < 0) throw new ArgumentOutOfRangeException(nameof(dueTime));
+            //if (period < 0) throw new ArgumentOutOfRangeException("period");
+
+            Target = new WeakReference(callback.Target);
+            Method = callback.Method;
+            IsAsyncTask = true;
+            Async = true;
             State = state;
             Period = period;
 
@@ -91,12 +130,46 @@ namespace NewLife.Threading
         /// <param name="startTime">绝对开始时间</param>
         /// <param name="period">间隔周期。毫秒</param>
         /// <param name="scheduler">调度器</param>
-        public TimerX(WaitCallback callback, Object state, DateTime startTime, Int32 period, String? scheduler = null)
+        public TimerX(TimerCallback callback, Object state, DateTime startTime, Int32 period, String? scheduler = null)
         {
+            if (callback == null) throw new ArgumentNullException(nameof(callback));
             if (startTime <= DateTime.MinValue) throw new ArgumentOutOfRangeException(nameof(startTime));
             //if (period < 0) throw new ArgumentOutOfRangeException("period");
 
-            Callback = new WeakAction<Object>(callback) ?? throw new ArgumentNullException(nameof(callback));
+            //Callback = new WeakAction<Object>(callback) ?? throw new ArgumentNullException(nameof(callback));
+            Target = new WeakReference(callback.Target);
+            Method = callback.Method;
+            State = state;
+            Period = period;
+            Absolutely = true;
+
+            var now = DateTime.Now;
+            var next = startTime;
+            while (next < now) next = next.AddMilliseconds(period);
+            NextTime = next;
+            _AbsolutelyNext = next;
+
+            Scheduler = (scheduler == null || scheduler.IsNullOrEmpty()) ? TimerScheduler.Default : TimerScheduler.Create(scheduler);
+            Scheduler.Add(this);
+        }
+
+        /// <summary>实例化一个绝对定时器，指定时刻执行，跟当前时间和SetNext无关</summary>
+        /// <param name="callback">委托</param>
+        /// <param name="state">用户数据</param>
+        /// <param name="startTime">绝对开始时间</param>
+        /// <param name="period">间隔周期。毫秒</param>
+        /// <param name="scheduler">调度器</param>
+        public TimerX(Func<Object, Task> callback, Object state, DateTime startTime, Int32 period, String? scheduler = null)
+        {
+            if (callback == null) throw new ArgumentNullException(nameof(callback));
+            if (startTime <= DateTime.MinValue) throw new ArgumentOutOfRangeException(nameof(startTime));
+            //if (period < 0) throw new ArgumentOutOfRangeException("period");
+
+            //Callback = new WeakAction<Object>(callback) ?? throw new ArgumentNullException(nameof(callback));
+            Target = new WeakReference(callback.Target);
+            Method = callback.Method;
+            IsAsyncTask = true;
+            Async = true;
             State = state;
             Period = period;
             Absolutely = true;
@@ -180,7 +253,7 @@ namespace NewLife.Threading
         /// <param name="callback"></param>
         /// <param name="ms"></param>
         /// <returns></returns>
-        public static TimerX Delay(WaitCallback callback, Int32 ms) => new TimerX(callback, null, ms, 0) { Async = true };
+        public static TimerX Delay(TimerCallback callback, Int32 ms) => new TimerX(callback, null, ms, 0) { Async = true };
 
         private static TimerX? _NowTimer;
         private static DateTime _Now;
@@ -213,7 +286,7 @@ namespace NewLife.Threading
         #region 辅助
         /// <summary>已重载</summary>
         /// <returns></returns>
-        public override String ToString() => $"[{Id}]{Callback}";
+        public override String ToString() => $"[{Id}]{Method}";
         #endregion
     }
 }

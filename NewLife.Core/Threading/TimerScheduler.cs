@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using NewLife.Log;
+using NewLife.Reflection;
 
 #nullable enable
 namespace NewLife.Threading
@@ -170,7 +172,9 @@ namespace NewLife.Threading
                             {
                                 // 必须在主线程设置状态，否则可能异步线程还没来得及设置开始状态，主线程又开始了新的一轮调度
                                 timer.Calling = true;
-                                if (!timer.Async)
+                                if (timer.IsAsyncTask)
+                                    Task.Factory.StartNew(ExecuteAsync, timer);
+                                else if (!timer.Async)
                                     Execute(timer);
                                 else
                                     //Task.Factory.StartNew(() => ProcessItem(timer));
@@ -247,8 +251,8 @@ namespace NewLife.Threading
             try
             {
                 // 弱引用判断
-                var tc = timer.Callback;
-                if (tc == null || !tc.IsAlive)
+                var target = timer.Target.Target;
+                if (target == null && !timer.Method.IsStatic)
                 {
                     Remove(timer, "委托已不存在（GC回收委托所在对象）");
                     timer.Dispose();
@@ -257,7 +261,18 @@ namespace NewLife.Threading
 
                 //timer.Calling = true;
 
-                tc.Invoke(timer.State ?? timer);
+                //target.Invoke(timer.State ?? timer);
+
+                if (timer.IsAsyncTask)
+                {
+                    var func = timer.Method.As<Func<Object?, Task>>(target);
+                    func(timer.State).Wait();
+                }
+                else
+                {
+                    var func = timer.Method.As<TimerCallback>(target);
+                    func(timer.State);
+                }
             }
             catch (ThreadAbortException) { throw; }
             catch (ThreadInterruptedException) { throw; }
@@ -267,27 +282,73 @@ namespace NewLife.Threading
             {
                 sw.Stop();
 
-                var d = (Int32)sw.ElapsedMilliseconds;
-                if (timer.Cost == 0)
-                    timer.Cost = d;
-                else
-                    timer.Cost = (timer.Cost + d) / 2;
-
-                if (d > MaxCost && !timer.Async) XTrace.WriteLine("任务 {0} 耗时过长 {1:n0}ms，建议使用异步任务Async=true", timer, d);
-
-                timer.Timers++;
-                OnFinish(timer);
-
-                timer.Calling = false;
-
-                TimerX.Current = null;
-
-                // 控制日志显示
-                WriteLogEventArgs.CurrentThreadName = null;
-
-                // 调度线程可能在等待，需要唤醒
-                Wake();
+                OnExecuted(timer, (Int32)sw.ElapsedMilliseconds);
             }
+        }
+
+        /// <summary>处理每一个定时器</summary>
+        /// <param name="state"></param>
+        private async void ExecuteAsync(Object state)
+        {
+            var timer = state as TimerX;
+            if (timer == null) return;
+
+            TimerX.Current = timer;
+
+            // 控制日志显示
+            WriteLogEventArgs.CurrentThreadName = Name == "Default" ? "T" : Name;
+
+            timer.hasSetNext = false;
+
+            var sw = Stopwatch.StartNew();
+
+            try
+            {
+                // 弱引用判断
+                var target = timer.Target.Target;
+                if (target == null && !timer.Method.IsStatic)
+                {
+                    Remove(timer, "委托已不存在（GC回收委托所在对象）");
+                    timer.Dispose();
+                    return;
+                }
+
+                var func = timer.Method.As<Func<Object?, Task>>(target);
+                await func(timer.State);
+            }
+            catch (ThreadAbortException) { throw; }
+            catch (ThreadInterruptedException) { throw; }
+            // 如果用户代码没有拦截错误，则这里拦截，避免出错了都不知道怎么回事
+            catch (Exception ex) { XTrace.WriteException(ex); }
+            finally
+            {
+                sw.Stop();
+
+                OnExecuted(timer, (Int32)sw.ElapsedMilliseconds);
+            }
+        }
+
+        private void OnExecuted(TimerX timer, Int32 ms)
+        {
+            if (timer.Cost == 0)
+                timer.Cost = ms;
+            else
+                timer.Cost = (timer.Cost + ms) / 2;
+
+            if (ms > MaxCost && !timer.Async && !timer.IsAsyncTask) XTrace.WriteLine("任务 {0} 耗时过长 {1:n0}ms，建议使用异步任务Async=true", timer, ms);
+
+            timer.Timers++;
+            OnFinish(timer);
+
+            timer.Calling = false;
+
+            TimerX.Current = null;
+
+            // 控制日志显示
+            WriteLogEventArgs.CurrentThreadName = null;
+
+            // 调度线程可能在等待，需要唤醒
+            Wake();
         }
 
         private void OnFinish(TimerX timer)
