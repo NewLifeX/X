@@ -167,7 +167,7 @@
       <Index Columns="UpdateTime" />
     </Indexes>
   </Table>
-  <Table Name="Area" Description="地区。行政区划数据">
+  <Table Name="Area" Description="地区。行政区划数据，最高支持四级地址，9位数字">
     <Columns>
       <Column Name="ID" DataType="Int32" PrimaryKey="True" Description="编码。行政区划编码" />
       <Column Name="Name" DataType="String" Master="True" Description="名称" />
@@ -176,6 +176,7 @@
       <Column Name="Level" DataType="Int32" Description="层级" />
       <Column Name="Longitude" DataType="Double" Description="经度" />
       <Column Name="Latitude" DataType="Double" Description="纬度" />
+      <Column Name="GeoHash" DataType="String" Description="地址编码。字符串前缀相同越多，地理距离越近，8位精度19米，6位610米" />
       <Column Name="Enable" DataType="Boolean" Description="启用" />
       <Column Name="UpdateUser" DataType="String" Description="更新者" />
       <Column Name="UpdateUserID" DataType="Int32" Description="更新用户" />
@@ -186,6 +187,7 @@
     <Indexes>
       <Index Columns="ParentID" />
       <Index Columns="Name" />
+      <Index Columns="GeoHash" />
       <Index Columns="UpdateTime,ID" />
     </Indexes>
   </Table>

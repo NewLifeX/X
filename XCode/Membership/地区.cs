@@ -10,14 +10,15 @@ using XCode.DataAccessLayer;
 
 namespace XCode.Membership
 {
-    /// <summary>地区。行政区划数据</summary>
+    /// <summary>地区。行政区划数据，最高支持四级地址，9位数字</summary>
     [Serializable]
     [DataObject]
-    [Description("地区。行政区划数据")]
+    [Description("地区。行政区划数据，最高支持四级地址，9位数字")]
     [BindIndex("IX_Area_ParentID", false, "ParentID")]
     [BindIndex("IX_Area_Name", false, "Name")]
+    [BindIndex("IX_Area_GeoHash", false, "GeoHash")]
     [BindIndex("IX_Area_UpdateTime_ID", false, "UpdateTime,ID")]
-    [BindTable("Area", Description = "地区。行政区划数据", ConnName = "Membership", DbType = DatabaseType.None)]
+    [BindTable("Area", Description = "地区。行政区划数据，最高支持四级地址，9位数字", ConnName = "Membership", DbType = DatabaseType.None)]
     public partial class Area
     {
         #region 属性
@@ -76,6 +77,14 @@ namespace XCode.Membership
         [DataObjectField(false, false, false, 0)]
         [BindColumn("Latitude", "纬度", "")]
         public Double Latitude { get => _Latitude; set { if (OnPropertyChanging("Latitude", value)) { _Latitude = value; OnPropertyChanged("Latitude"); } } }
+
+        private String _GeoHash;
+        /// <summary>地址编码。字符串前缀相同越多，地理距离越近，8位精度19米，6位610米</summary>
+        [DisplayName("地址编码")]
+        [Description("地址编码。字符串前缀相同越多，地理距离越近，8位精度19米，6位610米")]
+        [DataObjectField(false, false, true, 50)]
+        [BindColumn("GeoHash", "地址编码。字符串前缀相同越多，地理距离越近，8位精度19米，6位610米", "")]
+        public String GeoHash { get => _GeoHash; set { if (OnPropertyChanging("GeoHash", value)) { _GeoHash = value; OnPropertyChanged("GeoHash"); } } }
 
         private Boolean _Enable;
         /// <summary>启用</summary>
@@ -143,6 +152,7 @@ namespace XCode.Membership
                     case "Level": return _Level;
                     case "Longitude": return _Longitude;
                     case "Latitude": return _Latitude;
+                    case "GeoHash": return _GeoHash;
                     case "Enable": return _Enable;
                     case "UpdateUser": return _UpdateUser;
                     case "UpdateUserID": return _UpdateUserID;
@@ -163,6 +173,7 @@ namespace XCode.Membership
                     case "Level": _Level = value.ToInt(); break;
                     case "Longitude": _Longitude = value.ToDouble(); break;
                     case "Latitude": _Latitude = value.ToDouble(); break;
+                    case "GeoHash": _GeoHash = Convert.ToString(value); break;
                     case "Enable": _Enable = value.ToBoolean(); break;
                     case "UpdateUser": _UpdateUser = Convert.ToString(value); break;
                     case "UpdateUserID": _UpdateUserID = value.ToInt(); break;
@@ -199,6 +210,9 @@ namespace XCode.Membership
 
             /// <summary>纬度</summary>
             public static readonly Field Latitude = FindByName("Latitude");
+
+            /// <summary>地址编码。字符串前缀相同越多，地理距离越近，8位精度19米，6位610米</summary>
+            public static readonly Field GeoHash = FindByName("GeoHash");
 
             /// <summary>启用</summary>
             public static readonly Field Enable = FindByName("Enable");
@@ -244,6 +258,9 @@ namespace XCode.Membership
 
             /// <summary>纬度</summary>
             public const String Latitude = "Latitude";
+
+            /// <summary>地址编码。字符串前缀相同越多，地理距离越近，8位精度19米，6位610米</summary>
+            public const String GeoHash = "GeoHash";
 
             /// <summary>启用</summary>
             public const String Enable = "Enable";
