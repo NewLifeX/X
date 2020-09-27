@@ -1504,9 +1504,9 @@ namespace XCode
         #endregion
 
         #region 高并发
-        /// <summary>获取 或 新增 对象，常用于统计等高并发更新的情况，一般配合SaveAsync</summary>
+        /// <summary>获取 或 新增 对象，带缓存查询，常用于统计等高并发更新的情况，一般配合SaveAsync</summary>
         /// <typeparam name="TKey"></typeparam>
-        /// <param name="key">业务主键</param>
+        /// <param name="key">业务主键，如果是多字段混合索引，则建立一个模型类</param>
         /// <param name="find">查找函数</param>
         /// <param name="create">创建对象</param>
         /// <returns></returns>
@@ -1534,6 +1534,37 @@ namespace XCode
                 catch (Exception ex)
                 {
                     entity = find != null ? find(key, false) : FindByKey(key);
+                    if (entity == null) throw ex.GetTrue();
+                }
+            }
+
+            return entity;
+        }
+
+        /// <summary>获取 或 新增 对象，不带缓存查询，常用于统计等高并发更新的情况，一般配合SaveAsync</summary>
+        /// <typeparam name="TKey"></typeparam>
+        /// <param name="key">业务主键，如果是多字段混合索引，则建立一个模型类</param>
+        /// <param name="find">查找函数</param>
+        /// <param name="create">创建对象</param>
+        /// <returns></returns>
+        public static TEntity GetOrAdd<TKey>(TKey key, Func<TKey, TEntity> find, Func<TKey, TEntity> create)
+        {
+            if (key == null) return null;
+
+            var entity = find(key);
+            // 查不到时新建
+            if (entity == null)
+            {
+                entity = create(key);
+
+                // 插入失败时，再次查询
+                try
+                {
+                    entity.Insert();
+                }
+                catch (Exception ex)
+                {
+                    entity = find(key);
                     if (entity == null) throw ex.GetTrue();
                 }
             }
