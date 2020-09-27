@@ -299,6 +299,8 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual DbConnection OpenConnection()
         {
+            if (Factory == null) throw new InvalidOperationException($"无法找到{Type}的ADO.NET驱动，是否漏了从Nuget引用？");
+
             var conn = Factory.CreateConnection();
             conn.ConnectionString = ConnectionString;
             conn.Open();
