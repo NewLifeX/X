@@ -167,7 +167,7 @@ namespace XCode
         /// <param name="find">查找函数</param>
         /// <param name="create">创建对象</param>
         /// <returns></returns>
-        IEntity GetOrAdd<TKey>(TKey key, Func<TKey, Boolean, IEntity> find = null, Func<TKey, IEntity> create = null);
+        IEntity GetOrAdd<TKey>(TKey key, Func<TKey, Boolean, IEntity> find, Func<TKey, IEntity> create);
         #endregion
 
         #region 事务

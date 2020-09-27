@@ -1510,7 +1510,7 @@ namespace XCode
         /// <param name="find">查找函数</param>
         /// <param name="create">创建对象</param>
         /// <returns></returns>
-        public static TEntity GetOrAdd<TKey>(TKey key, Func<TKey, Boolean, TEntity> find = null, Func<TKey, TEntity> create = null)
+        public static TEntity GetOrAdd<TKey>(TKey key, Func<TKey, Boolean, TEntity> find, Func<TKey, TEntity> create)
         {
             if (key == null) return null;
 

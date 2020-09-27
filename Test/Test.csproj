@@ -28,9 +28,6 @@
     <DefineConstants>$(DefineConstants);__WIN__;NET4</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="BouncyCastle" Version="1.8.6.1" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj" />
     <ProjectReference Include="..\XCode\XCode.csproj" />
   </ItemGroup>

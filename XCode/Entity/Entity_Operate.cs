@@ -177,18 +177,9 @@ namespace XCode
             /// <param name="find">查找函数</param>
             /// <param name="create">创建对象</param>
             /// <returns></returns>
-            public virtual IEntity GetOrAdd<TKey>(TKey key, Func<TKey, Boolean, IEntity> find = null, Func<TKey, IEntity> create = null)
+            public virtual IEntity GetOrAdd<TKey>(TKey key, Func<TKey, Boolean, IEntity> find, Func<TKey, IEntity> create)
             {
-                return find != null
-                    ? create != null
-                        ? Entity<TEntity>.GetOrAdd(key, (k, b) => find(k, b) as TEntity, k => create(k) as TEntity)
-                        : Entity<TEntity>.GetOrAdd(key, (k, b) => find(k, b) as TEntity, null)
-                    : create != null
-                        ? Entity<TEntity>.GetOrAdd(key, null, k => create(k) as TEntity)
-                        : Entity<TEntity>.GetOrAdd(key, null, null);
-                //return Entity<TEntity>.GetOrAdd(key,
-                //    (k, b) => find?.Invoke(k, b) as TEntity,
-                //    k => create?.Invoke(k) as TEntity);
+                return Entity<TEntity>.GetOrAdd(key, (k, b) => find?.Invoke(k, b) as TEntity, k => create?.Invoke(k) as TEntity);
             }
             #endregion
 
