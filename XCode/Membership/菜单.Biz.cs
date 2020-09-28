@@ -132,7 +132,7 @@ namespace XCode.Membership
 
         /// <summary>父菜单名</summary>
         [XmlIgnore, ScriptIgnore, IgnoreDataMember]
-        public virtual String ParentMenuName { get { return Parent?.Name; } set { } }
+        public virtual String ParentMenuName { get => Parent?.Name; set { } }
 
         /// <summary>必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色</summary>
         internal static Int32[] Necessaries
@@ -241,7 +241,7 @@ namespace XCode.Membership
         [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public Dictionary<Int32, String> Permissions { get; set; } = new Dictionary<Int32, String>();
 
-        void LoadPermission()
+        private void LoadPermission()
         {
             Permissions.Clear();
             if (String.IsNullOrEmpty(Permission)) return;
@@ -254,7 +254,7 @@ namespace XCode.Membership
             }
         }
 
-        void SavePermission()
+        private void SavePermission()
         {
             // 不能这样子直接清空，因为可能没有任何改变，而这么做会两次改变脏数据，让系统以为有改变
             //Permission = null;
@@ -440,7 +440,12 @@ namespace XCode.Membership
                     var func = type.GetMethodEx("ScanActionMenu");
                     if (func == null) continue;
 
-                    var acts = func.As<Func<IMenu, IDictionary<MethodInfo, Int32>>>(type.CreateInstance()).Invoke(controller);
+                    // 由于控制器使用IOC，无法直接实例化控制器，需要给各个参数传入空
+                    var ctor = type.GetConstructors()?.FirstOrDefault();
+                    var ctrl = ctor.Invoke(new Object[ctor.GetParameters().Length]);
+                    //var ctrl = type.CreateInstance();
+
+                    var acts = func.As<Func<IMenu, IDictionary<MethodInfo, Int32>>>(ctrl).Invoke(controller);
                     if (acts == null || acts.Count == 0) continue;
 
                     // 可选权限子项
@@ -607,7 +612,7 @@ namespace XCode.Membership
         /// <summary>备注</summary>
         String Remark { get; set; }
         #endregion
-        
+
         /// <summary>取得全路径的实体，由上向下排序</summary>
         /// <param name="includeSelf">是否包含自己</param>
         /// <param name="separator">分隔符</param>
