@@ -468,6 +468,10 @@ namespace XCode
                 //脏数据判断
                 if (!entity.IsDirty(fi.Name)) continue;
 
+                // 检查累加，如果累加且累加值为0，则跳过更新
+                var flag = TryCheckAdditionalValue(dfs, fi.Name, out var val, out var sign);
+                if (flag && Convert.ToDecimal(val) == 0) continue;
+
                 var value = entity[fi.Name];
 
                 sb.Separate(","); // 加逗号
@@ -475,9 +479,6 @@ namespace XCode
                 var name = db.FormatName(fi.Field);
                 sb.Append(name);
                 sb.Append("=");
-
-                // 检查累加
-                var flag = TryCheckAdditionalValue(dfs, fi.Name, out var val, out var sign);
 
                 if (db.UseParameter || UseParam(fi, value))
                 {
