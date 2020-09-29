@@ -704,10 +704,16 @@ namespace XCode
             using (var csv = new CsvFile(stream, true))
             {
                 var fs = fact.Fields;
-                if (displayName)
-                    csv.WriteLine(fs.Select(e => e.DisplayName));
-                else
-                    csv.WriteLine(fs.Select(e => e.Name));
+
+                // 判断是否需要输出头部
+                if (p < 8)
+                {
+                    if (displayName)
+                        csv.WriteLine(fs.Select(e => e.DisplayName));
+                    else
+                        csv.WriteLine(fs.Select(e => e.Name));
+                }
+
                 foreach (var entity in list)
                 {
                     csv.WriteLine(fs.Select(e => entity[e.Name]));

@@ -227,10 +227,10 @@ namespace XCode
             #endregion
 
             #region 分表分库
-            /// <summary>自动分库，用于添删改操作</summary>
+            /// <summary>自动分库回调，用于添删改操作</summary>
             public static Func<TEntity, String> ShardConnName { get; set; }
 
-            /// <summary>自动分表，用于添删改操作</summary>
+            /// <summary>自动分表回调，用于添删改操作</summary>
             public static Func<TEntity, String> ShardTableName { get; set; }
 
             /// <summary>在分库上执行操作，自动还原</summary>

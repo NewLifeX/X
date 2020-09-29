@@ -8,8 +8,10 @@ using System.Xml.Serialization;
 using NewLife;
 using NewLife.Collections;
 using NewLife.Data;
+using NewLife.IO;
 using NewLife.Log;
 using NewLife.Threading;
+using XCode.Transform;
 #if !NET4
 using TaskEx = System.Threading.Tasks.Task;
 #endif
@@ -73,7 +75,7 @@ namespace XCode.Membership
 
             // 坐标
             //if (Longitude != 0 || Latitude != 0) GeoHash = NewLife.Data.GeoHash.Encode(Longitude, Latitude);
-            if (Dirtys[nameof(Longitude)] || Dirtys[nameof(Latitude)])
+            if (isNew || Dirtys[nameof(Longitude)] || Dirtys[nameof(Latitude)])
             {
                 if (Math.Abs(Longitude) > 0.001 || Math.Abs(Latitude) > 0.001)
                     GeoHash = NewLife.Data.GeoHash.Encode(Longitude, Latitude);
@@ -716,12 +718,12 @@ namespace XCode.Membership
                 {
                     if (!addLose) continue;
 
-                    XTrace.WriteLine("找不到 {0} {1} {2}", r.ID, r.Name, r.FullName);
+                    XTrace.WriteLine("新增 {0} {1} {2}", r.ID, r.Name, r.FullName);
 
                     r.Enable = false;
                     r.CreateTime = DateTime.Now;
                     r.UpdateTime = DateTime.Now;
-                    r.Insert();
+                    r.SaveAsync();
 
                     count++;
                 }
@@ -746,11 +748,99 @@ namespace XCode.Membership
                         XTrace.WriteLine(re.Dirtys.Join(",", e => $"{e}={r2[e]}"));
 
                         r2.SaveAsync();
+
+                        count++;
                     }
                 }
             }
 
             return count;
+        }
+
+        /// <summary>合并四级地区的数据</summary>
+        /// <param name="list">外部数据源</param>
+        /// <param name="addLose">是否添加缺失数据</param>
+        /// <returns></returns>
+        public static Int32 MergeLevel4(IList<Area> list, Boolean addLose)
+        {
+            var count = 0;
+            foreach (var r in list)
+            {
+                if (r.ID < 10_00_00_000 || r.ID > 99_99_99_999) continue;
+
+                var r2 = FindByID(r.ID);
+                if (r2 == null)
+                {
+                    if (!addLose) continue;
+
+                    //XTrace.WriteLine("新增 {0} {1} {2}", r.ID, r.Name, r.FullName);
+
+                    r.Enable = false;
+                    r.CreateTime = DateTime.Now;
+                    r.UpdateTime = DateTime.Now;
+                    r.SaveAsync();
+
+                    count++;
+                }
+                else
+                {
+                    if (r.FullName != r2.FullName) XTrace.WriteLine("{0} {1} {2} => {3} {4}", r.ID, r.Name, r.FullName, r2.Name, r2.FullName);
+                    if (r.Name != r2.Name && r.Name.TrimEnd("市", "矿区", "林区", "区", "县") != r2.Name) XTrace.WriteLine("{0} {1} {2} => {3} {4}", r.ID, r.Name, r.FullName, r2.Name, r2.FullName);
+
+                    // 合并字段
+                    if (!r.English.IsNullOrEmpty()) r2.English = r.English;
+                    if (!r.TelCode.IsNullOrEmpty()) r2.TelCode = r.TelCode;
+                    if (!r.ZipCode.IsNullOrEmpty()) r2.ZipCode = r.ZipCode;
+                    if (!r.Kind.IsNullOrEmpty()) r2.Kind = r.Kind;
+                    if (Math.Abs(r.Longitude) > 0.001) r2.Longitude = r.Longitude;
+                    if (Math.Abs(r.Latitude) > 0.001) r2.Latitude = r.Latitude;
+
+                    // 脏数据
+                    if (r2 is IEntity re && re.HasDirty)
+                    {
+                        //r2.Valid(false);
+
+                        XTrace.WriteLine(re.Dirtys.Join(",", e => $"{e}={r2[e]}"));
+
+                        r2.SaveAsync();
+
+                        count++;
+                    }
+                }
+            }
+
+            return count;
+        }
+
+        /// <summary>从Csv文件导入并合并数据</summary>
+        /// <param name="csvFile">Csv文件</param>
+        /// <param name="addLose">是否添加缺失数据</param>
+        /// <returns></returns>
+        public static Int32 Import(String csvFile, Boolean addLose)
+        {
+            var list = new List<Area>();
+            list.LoadCsv(csvFile);
+
+            var count = 0;
+            count += MergeLevel3(list, addLose);
+            count += MergeLevel4(list, addLose);
+
+            return count;
+        }
+
+        /// <summary>导出数据到Csv文件</summary>
+        /// <param name="csvFile"></param>
+        /// <param name="level"></param>
+        /// <returns></returns>
+        public static Int32 Export(String csvFile, Int32 level = 4)
+        {
+            var extracter = new IdExtracter(Meta.Session.Dal, Meta.TableName, nameof(ID));
+            extracter.Builder.Where = _.Level <= level;
+
+            var data = extracter.Fetch().Select(e => LoadData(e)).SelectMany(e => e);
+            data.SaveCsv(csvFile);
+
+            return (Int32)extracter.Row;
         }
         #endregion
 

@@ -422,86 +422,15 @@ namespace Test
 
             var file = "../Area20200929.csv";
             //var file = "Area.csv";
-            var list = new List<Area>();
-            list.LoadCsv(file);
+            //var list = new List<Area>();
+            //list.LoadCsv(file);
 
-            Area.MergeLevel3(list, true);
+            //Area.MergeLevel3(list, true);
+            //Area.MergeLevel4(list, true);
 
-            return;
-            foreach (var r in list)
-            {
-                r.UpdateTime = DateTime.Now;
-                if (r.ID > 70_00_00)
-                {
-                    r.Enable = true;
-                    r.SaveAsync();
-                }
-                else
-                {
-                    var r2 = Area.FindByID(r.ID);
-                    //if (r.ParentID != r2.ParentID || r.FullName != r2.FullName || r.Name != r2.Name) XTrace.WriteLine("{0} {1} {2}", r.ID, r.Name, r.FullName);
-                    if (r2 == null)
-                    {
-                        XTrace.WriteLine("找不到 {0} {1} {2}", r.ID, r.Name, r.FullName);
-                        r.Enable = false;
-                        r.SaveAsync();
-                    }
-                    else
-                    {
-                        if (r.FullName != r2.FullName) XTrace.WriteLine("{0} {1} {2} => {3} {4}", r.ID, r.Name, r.FullName, r2.Name, r2.FullName);
-                        if (r.Name != r2.Name && r.Name.TrimEnd("市", "矿区", "林区", "区", "县") != r2.Name) XTrace.WriteLine("{0} {1} {2} => {3} {4}", r.ID, r.Name, r.FullName, r2.Name, r2.FullName);
+            Area.Import(file, true);
 
-                        //r2.Longitude = r.Longitude;
-                        //r2.Latitude = r.Latitude;
-                        //r2.SaveAsync();
-                        r.Enable = true;
-                        r.SaveAsync();
-                    }
-                }
-            }
-
-            //using var csv = new CsvFile(file);
-            //csv.ReadLine();
-
-            //while (true)
-            //{
-            //    var ss = csv.ReadLine();
-            //    if (ss == null) break;
-
-            //    var r = new Area
-            //    {
-            //        ID = ss[0].ToInt(),
-            //        ParentID = ss[1].ToInt(),
-            //        FullName = ss[2].Trim(),
-            //        Name = ss[3].Trim(),
-            //        Longitude = ss[4].ToDouble(),
-            //        Latitude = ss[5].ToDouble(),
-            //        Enable = true,
-            //    };
-            //    if (r.ID > 70_00_00)
-            //    {
-            //        r.SaveAsync();
-            //    }
-            //    else
-            //    {
-            //        var r2 = Area.FindByID(r.ID);
-            //        //if (r.ParentID != r2.ParentID || r.FullName != r2.FullName || r.Name != r2.Name) XTrace.WriteLine("{0} {1} {2}", r.ID, r.Name, r.FullName);
-            //        if (r2 == null)
-            //        {
-            //            XTrace.WriteLine("找不到 {0} {1} {2}", r.ID, r.Name, r.FullName);
-            //            r.Enable = false;
-            //            r.SaveAsync();
-            //        }
-            //        else
-            //        {
-            //            if (r.FullName != r2.FullName) XTrace.WriteLine("{0} {1} {2} => {3} {4}", r.ID, r.Name, r.FullName, r2.Name, r2.FullName);
-
-            //            r2.Longitude = r.Longitude;
-            //            r2.Latitude = r.Latitude;
-            //            r2.SaveAsync();
-            //        }
-            //    }
-            //}
+            Area.Export($"Area_{DateTime.Now:yyyyMMddHHmmss}.csv");
         }
 
         private static void Test9()
