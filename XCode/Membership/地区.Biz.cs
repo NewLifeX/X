@@ -57,8 +57,16 @@ namespace XCode.Membership
             if (FullName.IsNullOrEmpty()) FullName = Name;
 
             // 拼音
-            if (PinYin.IsNullOrEmpty()) PinYin = NewLife.Common.PinYin.Get(Name);
-            if (JianPin.IsNullOrEmpty()) JianPin = NewLife.Common.PinYin.GetFirst(Name);
+            if (PinYin.IsNullOrEmpty())
+            {
+                var py = NewLife.Common.PinYin.Get(Name);
+                if (!py.IsNullOrEmpty()) PinYin = py;
+            }
+            if (JianPin.IsNullOrEmpty())
+            {
+                var py = NewLife.Common.PinYin.GetFirst(Name);
+                if (!py.IsNullOrEmpty()) PinYin = JianPin;
+            }
 
             // 坐标
             if (Longitude != 0 || Latitude != 0) GeoHash = NewLife.Data.GeoHash.Encode(Longitude, Latitude);
