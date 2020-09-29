@@ -597,9 +597,6 @@ namespace XCode.Membership
                             r3.FixLevel();
                             r3.FixName();
 
-                            r3.CreateTime = DateTime.Now;
-                            r3.UpdateTime = DateTime.Now;
-
                             rs.Add(r3);
                             list.Add(r3);
                         }
@@ -619,9 +616,6 @@ namespace XCode.Membership
 
                 r.FixLevel();
                 r.FixName();
-
-                r.CreateTime = DateTime.Now;
-                r.UpdateTime = DateTime.Now;
 
                 rs.Add(r);
             }

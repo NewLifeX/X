@@ -148,7 +148,7 @@ namespace XCode
                 var db = fact.Session.Dal;
 
                 // Oracle批量更新
-                if (db.DbType == DatabaseType.Oracle) return BatchUpdate(list.Valid());
+                if (db.DbType == DatabaseType.Oracle) return BatchUpdate(list.Valid(false));
             }
 
             return DoAction(list, useTransition, e => e.Update());
@@ -183,7 +183,7 @@ namespace XCode
                     // 根据是否来自数据库，拆分为两组
                     var ts = Split(list);
                     list = ts.Item1;
-                    rs += BatchSave(fact.Session, ts.Item2.Valid());
+                    rs += BatchSave(fact.Session, ts.Item2.Valid(true));
                 }
             }
 
@@ -362,8 +362,9 @@ namespace XCode
         /// <summary>批量验证对象</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="list"></param>
+        /// <param name="isNew"></param>
         /// <returns></returns>
-        public static IList<T> Valid<T>(this IEnumerable<T> list) where T : IEntity
+        public static IList<T> Valid<T>(this IEnumerable<T> list, Boolean isNew) where T : IEntity
         {
             var rs = new List<T>();
 
@@ -376,8 +377,8 @@ namespace XCode
             // 验证对象
             foreach (IEntity item in list)
             {
-                if (item is EntityBase entity2) entity2.Valid(item.IsNullKey);
-                if (modules.Valid(item, item.IsNullKey)) rs.Add((T)item);
+                if (item is EntityBase entity2) entity2.Valid(isNew);
+                if (modules.Valid(item, isNew)) rs.Add((T)item);
             }
 
             return rs;
