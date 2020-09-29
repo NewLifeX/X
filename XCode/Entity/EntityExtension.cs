@@ -696,14 +696,18 @@ namespace XCode
         {
             if (list == null) return 0;
 
+            var count = 0;
+
             using var csv = new CsvFile(stream, true);
             csv.WriteLine(fields);
             foreach (var entity in list)
             {
                 csv.WriteLine(fields.Select(e => entity[e]));
+
+                count++;
             }
 
-            return list.Count();
+            return count;
         }
 
         /// <summary>写入文件，Csv格式</summary>
@@ -825,7 +829,7 @@ namespace XCode
                 if (line == null || line.Length == 0) break;
 
                 var entity = (T)fact.Create();
-                for (var i = 0; i < fields.Length; i++)
+                for (var i = 0; i < fields.Length && i < line.Length; i++)
                 {
                     var fi = fields[i];
                     if (fi != null && !line[i].IsNullOrEmpty()) entity[fi.Name] = line[i].ChangeType(fi.Type);

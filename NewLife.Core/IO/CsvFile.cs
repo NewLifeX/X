@@ -57,11 +57,13 @@ namespace NewLife.IO
         {
             base.Dispose(disposing);
 
+            // 必须刷新写入器，否则可能丢失一截数据
+            _writer?.Flush();
+
             if (!_leaveOpen && _stream != null)
             {
                 _reader.TryDispose();
 
-                //_writer?.Flush();
                 _writer.TryDispose();
 
                 _stream.Close();

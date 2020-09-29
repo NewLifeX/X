@@ -852,16 +852,20 @@ namespace XCode.Membership
         /// <returns></returns>
         public static Int32 Export(String csvFile, Int32 level = 4)
         {
+            // Id抽取器
             var extracter = new IdExtracter(Meta.Session.Dal, Meta.TableName, nameof(ID));
             extracter.Builder.Where = _.Level <= level;
 
+            // 得到数据迭代
             var data = extracter.Fetch().Select(e => LoadData(e)).SelectMany(e => e);
 
+            // 不要某些字段
             var fields = Meta.Factory.FieldNames.ToList();
             fields.Remove(nameof(CreateTime));
             fields.Remove(nameof(UpdateTime));
             fields.Remove(nameof(Remark));
 
+            // 数据迭代保存到文件
             data.SaveCsv(csvFile, fields.ToArray());
 
             return (Int32)extracter.Row;

@@ -418,19 +418,19 @@ namespace Test
             Area.Meta.Session.Dal.Db.ShowSQL = false;
 
             var url = "http://www.mca.gov.cn/article/sj/xzqh/2020/2020/2020092500801.html";
-            Area.FetchAndSave(url);
+            //Area.FetchAndSave(url);
 
             var file = "../Area20200929.csv";
-            //var file = "Area.csv";
+            //var file = "Area.gz";
             //var list = new List<Area>();
             //list.LoadCsv(file);
 
             //Area.MergeLevel3(list, true);
             //Area.MergeLevel4(list, true);
 
-            Area.Import(file, true);
+            //Area.Import(file, true);
 
-            Area.Export($"Area_{DateTime.Now:yyyyMMddHHmmss}.gz");
+            Area.Export($"Area_{DateTime.Now:yyyyMMddHHmmss}.csv.gz");
         }
 
         private static void Test9()
