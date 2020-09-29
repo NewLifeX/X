@@ -46,7 +46,7 @@ namespace XCode.Membership
             // 实体缓存三级地区
             var ec = Meta.Cache;
             ec.Expire = 60 * 60;
-            ec.FillListMethod = () => FindAll(_.ID >= 100000 & _.ID <= 999999, null, null, 0, 0);
+            ec.FillListMethod = () => FindAll(_.ID >= 100000 & _.ID <= 999999, _.ID.Asc(), null, 0, 0);
         }
 
         /// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>
@@ -157,7 +157,7 @@ namespace XCode.Membership
             }
         }
 
-        /// <summary>下级网点</summary>
+        /// <summary>下级地区</summary>
         [XmlIgnore, ScriptIgnore]
         public IList<Area> Childs => Extends.Get(nameof(Childs), k => FindAllByParentID(ID).Where(e => e.Enable).ToList());
 
@@ -311,7 +311,7 @@ namespace XCode.Membership
             // 有子节点，并且都是启用状态，则直接使用
             if (rs.Count > 0 && rs.Any(e => e.Enable)) return rs;
 
-            if (_pcache.FindMethod == null) _pcache.FindMethod = k => FindAll(_.ParentID == k);
+            if (_pcache.FindMethod == null) _pcache.FindMethod = k => FindAll(_.ParentID == k, _.ID.Asc(), null, 0, 0);
 
             return _pcache[parentid];
         }
@@ -713,6 +713,7 @@ namespace XCode.Membership
 
             // 一次性加载三级地址
             var rs = FindAll(_.ID < 99_99_99);
+            var first = rs.Count == 0;
 
             var count = 0;
             foreach (var r in list)
@@ -728,7 +729,9 @@ namespace XCode.Membership
                     XTrace.WriteLine("新增 {0} {1} {2}", r.ID, r.Name, r.FullName);
                     if (r.ParentID > 0 && !rs.Any(e => e.ID == r.ParentID)) XTrace.WriteLine("未知父级 {0}", r.ParentID);
 
-                    r.Enable = false;
+                    r.PinYin = null;
+                    r.JianPin = null;
+                    r.Enable = first;
                     r.CreateTime = DateTime.Now;
                     r.UpdateTime = DateTime.Now;
                     r.Valid(true);
@@ -793,6 +796,8 @@ namespace XCode.Membership
                     //XTrace.WriteLine("新增 {0} {1} {2}", r.ID, r.Name, r.FullName);
                     if (r.ParentID > 0 && !rs.Any(e => e.ID == r.ParentID)) XTrace.WriteLine("未知父级 {0}", r.ParentID);
 
+                    r.PinYin = null;
+                    r.JianPin = null;
                     r.Enable = true;
                     r.CreateTime = DateTime.Now;
                     r.UpdateTime = DateTime.Now;
@@ -931,6 +936,7 @@ namespace XCode.Membership
 
         private static readonly Dictionary<String, String> _map = new Dictionary<String, String> {
             { "万柏林区", "万柏林" },
+            { "市辖区", "市辖区" },
             { "白云鄂博矿区", "白云矿区" },
             { "沈北新区", "沈北新区" },
             { "金林区", "金林区" },
@@ -1038,7 +1044,10 @@ namespace XCode.Membership
                 }
                 else if (Level == 4)
                 {
-                    if (name.Length > 3) name = name.TrimEnd("街道");
+                    if (name.Length > 3)
+                        name = name.TrimEnd("街道");
+                    else if (name.Length > 2)
+                        name = name.TrimEnd("乡", "镇");
                 }
             }
 
