@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -837,7 +838,16 @@ namespace XCode.Membership
         public static Int32 Import(String csvFile, Boolean addLose)
         {
             var list = new List<Area>();
-            list.LoadCsv(csvFile);
+
+            if (csvFile.StartsWithIgnoreCase("http://", "https://"))
+            {
+                var http = new HttpClient();
+                var stream = TaskEx.Run(() => http.GetStreamAsync(csvFile)).Result;
+                if (csvFile.EndsWithIgnoreCase(".gz")) stream = new GZipStream(stream, CompressionMode.Decompress, true);
+                list.LoadCsv(stream);
+            }
+            else
+                list.LoadCsv(csvFile);
 
             var count = 0;
             count += MergeLevel3(list, addLose);
