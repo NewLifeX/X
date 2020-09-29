@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
@@ -729,6 +730,18 @@ namespace XCode.Membership
                         r.ParentID = 442000;
                         r.Enable = true;
                     }
+                    else if (r.ID == 460499 && r.Name == "儋州")
+                    {
+                        r.Name = r.FullName = "直辖镇";
+                        r.ParentID = 460400;
+                        r.Enable = true;
+                    }
+                    else if (r.ID == 620299 && r.Name == "嘉峪关")
+                    {
+                        r.Name = r.FullName = "直辖镇";
+                        r.ParentID = 620200;
+                        r.Enable = true;
+                    }
 
                     XTrace.Log.Debug("新增 {0} {1} {2}", r.ID, r.Name, r.FullName);
                     if (r.ParentID > 0 && !rs.Any(e => e.ID == r.ParentID)) XTrace.Log.Debug("未知父级 {0}", r.ParentID);
@@ -861,6 +874,13 @@ namespace XCode.Membership
 
             var count = 0;
             count += MergeLevel3(list, addLose);
+
+            Meta.Session.ClearCache("Import");
+
+            // 等待异步写入的数据，导入四级地址时要做校验
+            var retry = 10;
+            while (retry-- > 0 && Area.FindCount() < 3639) Thread.Sleep(500);
+
             if (level >= 4) count += MergeLevel4(list, addLose);
 
             Meta.Session.ClearCache("Import");

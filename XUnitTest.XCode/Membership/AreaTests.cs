@@ -113,6 +113,22 @@ namespace XUnitTest.XCode.Membership
                 Assert.Equal("直辖镇", rs[0].Name);
             }
             {
+                var rs = Area.FindAllByName("儋州");
+                Assert.Single(rs);
+
+                rs = rs[0].Childs;
+                Assert.Single(rs);
+                Assert.Equal("直辖镇", rs[0].Name);
+            }
+            {
+                var rs = Area.FindAllByName("嘉峪关");
+                Assert.Single(rs);
+
+                rs = rs[0].Childs;
+                Assert.Single(rs);
+                Assert.Equal("直辖镇", rs[0].Name);
+            }
+            {
                 var rs = Area.FindAllByName("仙桃");
                 Assert.Single(rs);
                 Assert.Equal("县级市", rs[0].Kind);
@@ -221,9 +237,6 @@ namespace XUnitTest.XCode.Membership
             Assert.Equal(46533, rs);
 
             Area.Meta.Session.Dal.Db.ShowSQL = true;
-
-            var retry = 5;
-            while (retry-- > 0 && Area.FindCount() < 46533) Thread.Sleep(1000);
         }
 
         [Fact]
