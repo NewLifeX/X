@@ -677,17 +677,14 @@ namespace XCode
         {
             if (list == null) return 0;
 
-            // 确保创建目录
-            file.EnsureDirectory(true);
-
-            using var fs = new FileStream(file.GetFullPath(), FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite);
-            foreach (var item in list)
+            var compressed = file.EndsWithIgnoreCase(".gz");
+            return file.AsFile().OpenWrite(compressed, fs =>
             {
-                (item as IAccessor).Write(fs, null);
-            }
-
-            fs.SetLength(fs.Position);
-            return fs.Position;
+                foreach (var item in list)
+                {
+                    (item as IAccessor).Write(fs, null);
+                }
+            });
         }
 
         /// <summary>写入数据流，Csv格式</summary>
@@ -699,18 +696,14 @@ namespace XCode
         {
             if (list == null) return 0;
 
-            var p = stream.Position;
             using var csv = new CsvFile(stream, true);
-
-            // 判断是否需要输出头部
-            if (p < 8) csv.WriteLine(fields);
-
+            csv.WriteLine(fields);
             foreach (var entity in list)
             {
                 csv.WriteLine(fields.Select(e => entity[e]));
             }
 
-            return stream.Position - p;
+            return list.Count();
         }
 
         /// <summary>写入文件，Csv格式</summary>
@@ -722,14 +715,8 @@ namespace XCode
         {
             if (list == null) return 0;
 
-            // 确保创建目录
-            file.EnsureDirectory(true);
-
-            using var fs = new FileStream(file.GetFullPath(), FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite);
-            SaveCsv(list, fs, fields);
-
-            fs.SetLength(fs.Position);
-            return fs.Position;
+            var compressed = file.EndsWithIgnoreCase(".gz");
+            return file.AsFile().OpenWrite(compressed, fs => SaveCsv(list, fs, fields));
         }
 
         /// <summary>写入文件，Csv格式</summary>
@@ -798,9 +785,10 @@ namespace XCode
             file = file.GetFullPath();
             if (!File.Exists(file)) return list;
 
-            var fact = typeof(T).AsFactory();
-            using (var fs = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            var compressed = file.EndsWithIgnoreCase(".gz");
+            file.AsFile().OpenRead(compressed, fs =>
             {
+                var fact = typeof(T).AsFactory();
                 while (fs.Position < fs.Length)
                 {
                     var entity = (T)fact.Create();
@@ -808,7 +796,7 @@ namespace XCode
 
                     list.Add(entity);
                 }
-            }
+            });
 
             return list;
         }
@@ -820,31 +808,30 @@ namespace XCode
         public static IList<T> LoadCsv<T>(this IList<T> list, Stream stream) where T : IEntity
         {
             var fact = typeof(T).AsFactory();
-            using (var csv = new CsvFile(stream, true))
+            using var csv = new CsvFile(stream, true);
+
+            // 匹配字段
+            var names = csv.ReadLine();
+            var fields = new FieldItem[names.Length];
+            for (var i = 0; i < names.Length; i++)
             {
-                // 匹配字段
-                var names = csv.ReadLine();
-                var fields = new FieldItem[names.Length];
-                for (var i = 0; i < names.Length; i++)
+                fields[i] = fact.Fields.FirstOrDefault(e => names[i].EqualIgnoreCase(e.Name, e.DisplayName, e.ColumnName));
+            }
+
+            // 读取数据
+            while (true)
+            {
+                var line = csv.ReadLine();
+                if (line == null || line.Length == 0) break;
+
+                var entity = (T)fact.Create();
+                for (var i = 0; i < fields.Length; i++)
                 {
-                    fields[i] = fact.Fields.FirstOrDefault(e => names[i].EqualIgnoreCase(e.Name, e.DisplayName, e.ColumnName));
+                    var fi = fields[i];
+                    if (fi != null && !line[i].IsNullOrEmpty()) entity[fi.Name] = line[i].ChangeType(fi.Type);
                 }
 
-                // 读取数据
-                while (true)
-                {
-                    var line = csv.ReadLine();
-                    if (line == null || line.Length == 0) break;
-
-                    var entity = (T)fact.Create();
-                    for (var i = 0; i < fields.Length; i++)
-                    {
-                        var fi = fields[i];
-                        if (fi != null && !line[i].IsNullOrEmpty()) entity[fi.Name] = line[i].ChangeType(fi.Type);
-                    }
-
-                    list.Add(entity);
-                }
+                list.Add(entity);
             }
 
             return list;
@@ -860,8 +847,10 @@ namespace XCode
             file = file.GetFullPath();
             if (!File.Exists(file)) return list;
 
-            using var fs = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-            return LoadCsv(list, fs);
+            var compressed = file.EndsWithIgnoreCase(".gz");
+            file.AsFile().OpenRead(compressed, fs => LoadCsv(list, fs));
+
+            return list;
         }
         #endregion
 

@@ -430,7 +430,7 @@ namespace Test
 
             Area.Import(file, true);
 
-            Area.Export($"Area_{DateTime.Now:yyyyMMddHHmmss}.csv");
+            Area.Export($"Area_{DateTime.Now:yyyyMMddHHmmss}.gz");
         }
 
         private static void Test9()

@@ -803,7 +803,7 @@ namespace XCode.Membership
                 else
                 {
                     if (r.FullName != r2.FullName) XTrace.WriteLine("{0} {1} {2} => {3} {4}", r.ID, r.Name, r.FullName, r2.Name, r2.FullName);
-                    if (r.Name != r2.Name && r.Name.TrimEnd("市", "矿区", "林区", "区", "县") != r2.Name) XTrace.WriteLine("{0} {1} {2} => {3} {4}", r.ID, r.Name, r.FullName, r2.Name, r2.FullName);
+                    if (r.Name != r2.Name && r.Name.TrimEnd("街道") != r2.Name) XTrace.WriteLine("{0} {1} {2} => {3} {4}", r.ID, r.Name, r.FullName, r2.Name, r2.FullName);
 
                     // 合并字段
                     if (!r.English.IsNullOrEmpty()) r2.English = r.English;
@@ -900,12 +900,15 @@ namespace XCode.Membership
         {
             // 计算父级编号和层级
             var id = ID;
-            if (id % 10000 == 0)
-                Level = 1;
-            else if (id % 100 == 0)
-                Level = 2;
-            else if (id <= 99_99_99)
-                Level = 3;
+            if (id <= 99_99_99)
+            {
+                if (id % 10000 == 0)
+                    Level = 1;
+                else if (id % 100 == 0)
+                    Level = 2;
+                else
+                    Level = 3;
+            }
             else if (id <= 99_99_99_999)
                 Level = 4;
         }
