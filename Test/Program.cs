@@ -56,7 +56,7 @@ namespace Test
                 try
                 {
 #endif
-                Test9();
+                Test8();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -415,38 +415,13 @@ namespace Test
 
         private static async void Test8()
         {
-            Area.Meta.Session.Dal.Db.ShowSQL = false;
+            //Area.Meta.Session.Dal.Db.ShowSQL = false;
 
-            var url = "http://www.mca.gov.cn/article/sj/xzqh/2020/2020/20200908007001.html";
-            //var file = "area.html".GetFullPath();
-            //if (!File.Exists(file))
-            //{
-            //    var http = new HttpClient();
-            //    await http.DownloadFileAsync(url, file);
-            //}
-
-            //var txt = File.ReadAllText(file);
-            //foreach (var item in Area.Parse(txt))
-            //{
-            //    XTrace.WriteLine("{0} {1}", item.ID, item.Name);
-            //}
-
-            //#if __CORE__
-            //            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            //#endif
+            var url = "http://www.mca.gov.cn/article/sj/xzqh/2020/2020/2020092500801.html";
             Area.FetchAndSave(url);
 
-            //            var list = Area.FindAll();
-            //            foreach (var item in list)
-            //            {
-            //                if (item.ParentID > 0 && item.Level - 1 != item.Parent.Level)
-            //                {
-            //                    XTrace.WriteLine("{0} {1} {2}", item.ID, item.Level, item.Name);
-            //                }
-            //            }
-
-            //var file = "../2020年02月四级行政区划库.csv";
-            var file = "Area.csv";
+            var file = "../2020年02月四级行政区划库.csv";
+            //var file = "Area.csv";
             var list = new List<Area>();
             list.LoadCsv(file);
 

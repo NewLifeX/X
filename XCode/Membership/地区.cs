@@ -16,6 +16,8 @@ namespace XCode.Membership
     [Description("地区。行政区划数据，最高支持四级地址，9位数字")]
     [BindIndex("IX_Area_ParentID", false, "ParentID")]
     [BindIndex("IX_Area_Name", false, "Name")]
+    [BindIndex("IX_Area_PinYin", false, "PinYin")]
+    [BindIndex("IX_Area_JianPin", false, "JianPin")]
     [BindIndex("IX_Area_GeoHash", false, "GeoHash")]
     [BindIndex("IX_Area_UpdateTime_ID", false, "UpdateTime,ID")]
     [BindTable("Area", Description = "地区。行政区划数据，最高支持四级地址，9位数字", ConnName = "Membership", DbType = DatabaseType.None)]
@@ -62,6 +64,54 @@ namespace XCode.Membership
         [BindColumn("Level", "层级", "")]
         public Int32 Level { get => _Level; set { if (OnPropertyChanging("Level", value)) { _Level = value; OnPropertyChanged("Level"); } } }
 
+        private String _Kind;
+        /// <summary>类型。省市县，自治州等</summary>
+        [DisplayName("类型")]
+        [Description("类型。省市县，自治州等")]
+        [DataObjectField(false, false, true, 50)]
+        [BindColumn("Kind", "类型。省市县，自治州等", "")]
+        public String Kind { get => _Kind; set { if (OnPropertyChanging("Kind", value)) { _Kind = value; OnPropertyChanged("Kind"); } } }
+
+        private String _EnglishName;
+        /// <summary>英文名</summary>
+        [DisplayName("英文名")]
+        [Description("英文名")]
+        [DataObjectField(false, false, true, 50)]
+        [BindColumn("EnglishName", "英文名", "")]
+        public String EnglishName { get => _EnglishName; set { if (OnPropertyChanging("EnglishName", value)) { _EnglishName = value; OnPropertyChanged("EnglishName"); } } }
+
+        private String _PinYin;
+        /// <summary>拼音</summary>
+        [DisplayName("拼音")]
+        [Description("拼音")]
+        [DataObjectField(false, false, true, 50)]
+        [BindColumn("PinYin", "拼音", "")]
+        public String PinYin { get => _PinYin; set { if (OnPropertyChanging("PinYin", value)) { _PinYin = value; OnPropertyChanged("PinYin"); } } }
+
+        private String _JianPin;
+        /// <summary>简拼</summary>
+        [DisplayName("简拼")]
+        [Description("简拼")]
+        [DataObjectField(false, false, true, 50)]
+        [BindColumn("JianPin", "简拼", "")]
+        public String JianPin { get => _JianPin; set { if (OnPropertyChanging("JianPin", value)) { _JianPin = value; OnPropertyChanged("JianPin"); } } }
+
+        private Int32 _AreaCode;
+        /// <summary>区号。电话区号</summary>
+        [DisplayName("区号")]
+        [Description("区号。电话区号")]
+        [DataObjectField(false, false, false, 0)]
+        [BindColumn("AreaCode", "区号。电话区号", "")]
+        public Int32 AreaCode { get => _AreaCode; set { if (OnPropertyChanging("AreaCode", value)) { _AreaCode = value; OnPropertyChanged("AreaCode"); } } }
+
+        private Int32 _ZipCode;
+        /// <summary>邮编。邮政编码</summary>
+        [DisplayName("邮编")]
+        [Description("邮编。邮政编码")]
+        [DataObjectField(false, false, false, 0)]
+        [BindColumn("ZipCode", "邮编。邮政编码", "")]
+        public Int32 ZipCode { get => _ZipCode; set { if (OnPropertyChanging("ZipCode", value)) { _ZipCode = value; OnPropertyChanged("ZipCode"); } } }
+
         private Double _Longitude;
         /// <summary>经度</summary>
         [DisplayName("经度")]
@@ -94,29 +144,13 @@ namespace XCode.Membership
         [BindColumn("Enable", "启用", "")]
         public Boolean Enable { get => _Enable; set { if (OnPropertyChanging("Enable", value)) { _Enable = value; OnPropertyChanged("Enable"); } } }
 
-        private String _UpdateUser;
-        /// <summary>更新者</summary>
-        [DisplayName("更新者")]
-        [Description("更新者")]
-        [DataObjectField(false, false, true, 50)]
-        [BindColumn("UpdateUser", "更新者", "")]
-        public String UpdateUser { get => _UpdateUser; set { if (OnPropertyChanging("UpdateUser", value)) { _UpdateUser = value; OnPropertyChanged("UpdateUser"); } } }
-
-        private Int32 _UpdateUserID;
-        /// <summary>更新用户</summary>
-        [DisplayName("更新用户")]
-        [Description("更新用户")]
-        [DataObjectField(false, false, false, 0)]
-        [BindColumn("UpdateUserID", "更新用户", "")]
-        public Int32 UpdateUserID { get => _UpdateUserID; set { if (OnPropertyChanging("UpdateUserID", value)) { _UpdateUserID = value; OnPropertyChanged("UpdateUserID"); } } }
-
-        private String _UpdateIP;
-        /// <summary>更新地址</summary>
-        [DisplayName("更新地址")]
-        [Description("更新地址")]
-        [DataObjectField(false, false, true, 50)]
-        [BindColumn("UpdateIP", "更新地址", "")]
-        public String UpdateIP { get => _UpdateIP; set { if (OnPropertyChanging("UpdateIP", value)) { _UpdateIP = value; OnPropertyChanged("UpdateIP"); } } }
+        private DateTime _CreateTime;
+        /// <summary>创建时间</summary>
+        [DisplayName("创建时间")]
+        [Description("创建时间")]
+        [DataObjectField(false, false, true, 0)]
+        [BindColumn("CreateTime", "创建时间", "")]
+        public DateTime CreateTime { get => _CreateTime; set { if (OnPropertyChanging("CreateTime", value)) { _CreateTime = value; OnPropertyChanged("CreateTime"); } } }
 
         private DateTime _UpdateTime;
         /// <summary>更新时间</summary>
@@ -150,13 +184,17 @@ namespace XCode.Membership
                     case "FullName": return _FullName;
                     case "ParentID": return _ParentID;
                     case "Level": return _Level;
+                    case "Kind": return _Kind;
+                    case "EnglishName": return _EnglishName;
+                    case "PinYin": return _PinYin;
+                    case "JianPin": return _JianPin;
+                    case "AreaCode": return _AreaCode;
+                    case "ZipCode": return _ZipCode;
                     case "Longitude": return _Longitude;
                     case "Latitude": return _Latitude;
                     case "GeoHash": return _GeoHash;
                     case "Enable": return _Enable;
-                    case "UpdateUser": return _UpdateUser;
-                    case "UpdateUserID": return _UpdateUserID;
-                    case "UpdateIP": return _UpdateIP;
+                    case "CreateTime": return _CreateTime;
                     case "UpdateTime": return _UpdateTime;
                     case "Remark": return _Remark;
                     default: return base[name];
@@ -171,13 +209,17 @@ namespace XCode.Membership
                     case "FullName": _FullName = Convert.ToString(value); break;
                     case "ParentID": _ParentID = value.ToInt(); break;
                     case "Level": _Level = value.ToInt(); break;
+                    case "Kind": _Kind = Convert.ToString(value); break;
+                    case "EnglishName": _EnglishName = Convert.ToString(value); break;
+                    case "PinYin": _PinYin = Convert.ToString(value); break;
+                    case "JianPin": _JianPin = Convert.ToString(value); break;
+                    case "AreaCode": _AreaCode = value.ToInt(); break;
+                    case "ZipCode": _ZipCode = value.ToInt(); break;
                     case "Longitude": _Longitude = value.ToDouble(); break;
                     case "Latitude": _Latitude = value.ToDouble(); break;
                     case "GeoHash": _GeoHash = Convert.ToString(value); break;
                     case "Enable": _Enable = value.ToBoolean(); break;
-                    case "UpdateUser": _UpdateUser = Convert.ToString(value); break;
-                    case "UpdateUserID": _UpdateUserID = value.ToInt(); break;
-                    case "UpdateIP": _UpdateIP = Convert.ToString(value); break;
+                    case "CreateTime": _CreateTime = value.ToDateTime(); break;
                     case "UpdateTime": _UpdateTime = value.ToDateTime(); break;
                     case "Remark": _Remark = Convert.ToString(value); break;
                     default: base[name] = value; break;
@@ -205,6 +247,24 @@ namespace XCode.Membership
             /// <summary>层级</summary>
             public static readonly Field Level = FindByName("Level");
 
+            /// <summary>类型。省市县，自治州等</summary>
+            public static readonly Field Kind = FindByName("Kind");
+
+            /// <summary>英文名</summary>
+            public static readonly Field EnglishName = FindByName("EnglishName");
+
+            /// <summary>拼音</summary>
+            public static readonly Field PinYin = FindByName("PinYin");
+
+            /// <summary>简拼</summary>
+            public static readonly Field JianPin = FindByName("JianPin");
+
+            /// <summary>区号。电话区号</summary>
+            public static readonly Field AreaCode = FindByName("AreaCode");
+
+            /// <summary>邮编。邮政编码</summary>
+            public static readonly Field ZipCode = FindByName("ZipCode");
+
             /// <summary>经度</summary>
             public static readonly Field Longitude = FindByName("Longitude");
 
@@ -217,14 +277,8 @@ namespace XCode.Membership
             /// <summary>启用</summary>
             public static readonly Field Enable = FindByName("Enable");
 
-            /// <summary>更新者</summary>
-            public static readonly Field UpdateUser = FindByName("UpdateUser");
-
-            /// <summary>更新用户</summary>
-            public static readonly Field UpdateUserID = FindByName("UpdateUserID");
-
-            /// <summary>更新地址</summary>
-            public static readonly Field UpdateIP = FindByName("UpdateIP");
+            /// <summary>创建时间</summary>
+            public static readonly Field CreateTime = FindByName("CreateTime");
 
             /// <summary>更新时间</summary>
             public static readonly Field UpdateTime = FindByName("UpdateTime");
@@ -253,6 +307,24 @@ namespace XCode.Membership
             /// <summary>层级</summary>
             public const String Level = "Level";
 
+            /// <summary>类型。省市县，自治州等</summary>
+            public const String Kind = "Kind";
+
+            /// <summary>英文名</summary>
+            public const String EnglishName = "EnglishName";
+
+            /// <summary>拼音</summary>
+            public const String PinYin = "PinYin";
+
+            /// <summary>简拼</summary>
+            public const String JianPin = "JianPin";
+
+            /// <summary>区号。电话区号</summary>
+            public const String AreaCode = "AreaCode";
+
+            /// <summary>邮编。邮政编码</summary>
+            public const String ZipCode = "ZipCode";
+
             /// <summary>经度</summary>
             public const String Longitude = "Longitude";
 
@@ -265,14 +337,8 @@ namespace XCode.Membership
             /// <summary>启用</summary>
             public const String Enable = "Enable";
 
-            /// <summary>更新者</summary>
-            public const String UpdateUser = "UpdateUser";
-
-            /// <summary>更新用户</summary>
-            public const String UpdateUserID = "UpdateUserID";
-
-            /// <summary>更新地址</summary>
-            public const String UpdateIP = "UpdateIP";
+            /// <summary>创建时间</summary>
+            public const String CreateTime = "CreateTime";
 
             /// <summary>更新时间</summary>
             public const String UpdateTime = "UpdateTime";

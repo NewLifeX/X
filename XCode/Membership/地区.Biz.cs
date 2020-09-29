@@ -15,7 +15,7 @@ namespace XCode.Membership
 {
     /// <summary>地区。行政区划数据</summary>
     /// <remarks>
-    /// 民政局 http://www.mca.gov.cn/article/sj/xzqh/2020/2020/20200908007001.html
+    /// 民政局 http://www.mca.gov.cn/article/sj/xzqh/2020/2020/2020092500801.html
     /// 统计局 http://www.stats.gov.cn/tjsj/tjbz/tjyqhdmhcxhfdm/2019/index.html
     /// 
     /// 民政局 http://www.mca.gov.cn/article/sj/xzqh/2019/2019/201912251506.html
@@ -28,9 +28,7 @@ namespace XCode.Membership
         static Area()
         {
             // 过滤器 UserModule、TimeModule、IPModule
-            Meta.Modules.Add<UserModule>();
             Meta.Modules.Add<TimeModule>();
-            Meta.Modules.Add<IPModule>();
 
             Meta.Factory.MasterTime = _.UpdateTime;
 
@@ -54,9 +52,16 @@ namespace XCode.Membership
 
             FixLevel();
 
+            // 名称
             if (Name.IsNullOrEmpty() || Name == FullName) FixName();
-
             if (FullName.IsNullOrEmpty()) FullName = Name;
+
+            // 拼音
+            if (PinYin.IsNullOrEmpty()) PinYin = NewLife.Common.PinYin.Get(Name);
+            if (JianPin.IsNullOrEmpty()) JianPin = NewLife.Common.PinYin.GetFirst(Name);
+
+            // 坐标
+            if (Longitude != 0 || Latitude != 0) GeoHash = NewLife.Data.GeoHash.Encode(Longitude, Latitude);
         }
 
         /// <summary>初始化数据</summary>
@@ -591,6 +596,10 @@ namespace XCode.Membership
 
                             r3.FixLevel();
                             r3.FixName();
+
+                            r3.CreateTime = DateTime.Now;
+                            r3.UpdateTime = DateTime.Now;
+
                             rs.Add(r3);
                             list.Add(r3);
                         }
@@ -611,9 +620,13 @@ namespace XCode.Membership
                 r.FixLevel();
                 r.FixName();
 
+                r.CreateTime = DateTime.Now;
+                r.UpdateTime = DateTime.Now;
+
                 rs.Add(r);
             }
 
+            // 有可能需要覆盖数据
             rs.Save(true);
 
             return rs;
@@ -629,11 +642,11 @@ namespace XCode.Membership
         }
 
         /// <summary>抓取并保存数据</summary>
-        /// <param name="url">民政局。http://www.mca.gov.cn/article/sj/xzqh/2020/2020/20200908007001.html</param>
+        /// <param name="url">民政局。http://www.mca.gov.cn/article/sj/xzqh/2020/2020/2020092500801.html</param>
         /// <returns></returns>
         public static Int32 FetchAndSave(String url = null)
         {
-            if (url.IsNullOrEmpty()) url = "http://www.mca.gov.cn/article/sj/xzqh/2020/2020/20200908007001.html";
+            if (url.IsNullOrEmpty()) url = "http://www.mca.gov.cn/article/sj/xzqh/2020/2020/2020092500801.html";
 
             var http = new HttpClient();
             var html = http.GetStringAsync(url).Result;

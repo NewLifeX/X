@@ -49,7 +49,7 @@ namespace XUnitTest.XCode.Membership
         [Fact]
         public async void Download()
         {
-            var url = "http://www.mca.gov.cn/article/sj/xzqh/2020/2020/20200908007001.html";
+            var url = "http://www.mca.gov.cn/article/sj/xzqh/2020/2020/2020092500801.html";
             var file = "area.html".GetFullPath();
             //if (!File.Exists(file))
             {
