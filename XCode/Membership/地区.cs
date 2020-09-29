@@ -96,13 +96,13 @@ namespace XCode.Membership
         [BindColumn("JianPin", "简拼", "")]
         public String JianPin { get => _JianPin; set { if (OnPropertyChanging("JianPin", value)) { _JianPin = value; OnPropertyChanged("JianPin"); } } }
 
-        private Int32 _AreaCode;
+        private Int32 _TelCode;
         /// <summary>区号。电话区号</summary>
         [DisplayName("区号")]
         [Description("区号。电话区号")]
         [DataObjectField(false, false, false, 0)]
-        [BindColumn("AreaCode", "区号。电话区号", "")]
-        public Int32 AreaCode { get => _AreaCode; set { if (OnPropertyChanging("AreaCode", value)) { _AreaCode = value; OnPropertyChanged("AreaCode"); } } }
+        [BindColumn("TelCode", "区号。电话区号", "")]
+        public Int32 TelCode { get => _TelCode; set { if (OnPropertyChanging("TelCode", value)) { _TelCode = value; OnPropertyChanged("TelCode"); } } }
 
         private Int32 _ZipCode;
         /// <summary>邮编。邮政编码</summary>
@@ -188,7 +188,7 @@ namespace XCode.Membership
                     case "EnglishName": return _EnglishName;
                     case "PinYin": return _PinYin;
                     case "JianPin": return _JianPin;
-                    case "AreaCode": return _AreaCode;
+                    case "TelCode": return _TelCode;
                     case "ZipCode": return _ZipCode;
                     case "Longitude": return _Longitude;
                     case "Latitude": return _Latitude;
@@ -213,7 +213,7 @@ namespace XCode.Membership
                     case "EnglishName": _EnglishName = Convert.ToString(value); break;
                     case "PinYin": _PinYin = Convert.ToString(value); break;
                     case "JianPin": _JianPin = Convert.ToString(value); break;
-                    case "AreaCode": _AreaCode = value.ToInt(); break;
+                    case "TelCode": _TelCode = value.ToInt(); break;
                     case "ZipCode": _ZipCode = value.ToInt(); break;
                     case "Longitude": _Longitude = value.ToDouble(); break;
                     case "Latitude": _Latitude = value.ToDouble(); break;
@@ -260,7 +260,7 @@ namespace XCode.Membership
             public static readonly Field JianPin = FindByName("JianPin");
 
             /// <summary>区号。电话区号</summary>
-            public static readonly Field AreaCode = FindByName("AreaCode");
+            public static readonly Field TelCode = FindByName("TelCode");
 
             /// <summary>邮编。邮政编码</summary>
             public static readonly Field ZipCode = FindByName("ZipCode");
@@ -320,7 +320,7 @@ namespace XCode.Membership
             public const String JianPin = "JianPin";
 
             /// <summary>区号。电话区号</summary>
-            public const String AreaCode = "AreaCode";
+            public const String TelCode = "TelCode";
 
             /// <summary>邮编。邮政编码</summary>
             public const String ZipCode = "ZipCode";

@@ -178,7 +178,7 @@
       <Column Name="EnglishName" DataType="String" Description="英文名" />
       <Column Name="PinYin" DataType="String" Description="拼音" />
       <Column Name="JianPin" DataType="String" Description="简拼" />
-      <Column Name="AreaCode" DataType="Int32" Description="区号。电话区号" />
+      <Column Name="TelCode" DataType="Int32" Description="区号。电话区号" />
       <Column Name="ZipCode" DataType="Int32" Description="邮编。邮政编码" />
       <Column Name="Longitude" DataType="Double" Description="经度" />
       <Column Name="Latitude" DataType="Double" Description="纬度" />
