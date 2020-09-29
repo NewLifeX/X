@@ -704,7 +704,7 @@ namespace XCode.Membership
 
             // 一次性加载三级地址
             var rs = FindAll(_.ID < 99_99_99);
-            var first = rs.Count == 0;
+            //var first = rs.Count == 0;
 
             var count = 0;
             foreach (var r in list)
@@ -717,12 +717,25 @@ namespace XCode.Membership
                 {
                     if (!addLose) continue;
 
+                    if (r.ID == 441999 && r.Name == "东莞")
+                    {
+                        r.Name = r.FullName = "直辖镇";
+                        r.ParentID = 441900;
+                        r.Enable = true;
+                    }
+                    else if (r.ID == 442099 && r.Name == "中山")
+                    {
+                        r.Name = r.FullName = "直辖镇";
+                        r.ParentID = 442000;
+                        r.Enable = true;
+                    }
+
                     XTrace.Log.Debug("新增 {0} {1} {2}", r.ID, r.Name, r.FullName);
                     if (r.ParentID > 0 && !rs.Any(e => e.ID == r.ParentID)) XTrace.Log.Debug("未知父级 {0}", r.ParentID);
 
                     r.PinYin = null;
                     r.JianPin = null;
-                    r.Enable = first;
+                    //r.Enable = first;
                     r.CreateTime = DateTime.Now;
                     r.UpdateTime = DateTime.Now;
                     r.Valid(true);
@@ -931,6 +944,7 @@ namespace XCode.Membership
         private static readonly Dictionary<String, String> _map = new Dictionary<String, String> {
             { "市辖区", "市辖区" },
             { "直辖县", "直辖县" },
+            { "直辖镇", "直辖镇" },
             { "万柏林区", "万柏林" },
             { "白云鄂博矿区", "白云矿区" },
             { "沈北新区", "沈北新区" },

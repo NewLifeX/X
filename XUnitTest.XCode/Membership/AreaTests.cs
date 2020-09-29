@@ -93,6 +93,33 @@ namespace XUnitTest.XCode.Membership
             Assert.Equal("湖北/神农架", r.Path);
         }
 
+        [Fact]
+        public void VirtualTest()
+        {
+            {
+                var rs = Area.FindAllByName("东莞");
+                Assert.Single(rs);
+
+                rs = rs[0].Childs;
+                Assert.Single(rs);
+                Assert.Equal("直辖镇", rs[0].Name);
+            }
+            {
+                var rs = Area.FindAllByName("中山市");
+                Assert.Single(rs);
+
+                rs = rs[0].Childs;
+                Assert.Single(rs);
+                Assert.Equal("直辖镇", rs[0].Name);
+            }
+            {
+                var rs = Area.FindAllByName("仙桃");
+                Assert.Single(rs);
+                Assert.Equal("县级市", rs[0].Kind);
+                Assert.Equal("直辖县", rs[0].Parent.Name);
+            }
+        }
+
         //[Fact]
         //public async void Download()
         //{
@@ -202,12 +229,14 @@ namespace XUnitTest.XCode.Membership
         [Fact]
         public void Export()
         {
-            var file = $"Data/Area_{DateTime.Now:yyyyMMddHHmmss}.csv.gz";
+            var file = $"Data/Area_{DateTime.Now:yyyyMMdd}.csv.gz";
+            if (File.Exists(file.GetFullPath())) File.Delete(file.GetFullPath());
+
             var rs = Area.Export(file);
             Assert.Equal(46533, rs);
             Assert.True(File.Exists(file.GetFullPath()));
 
-            File.Delete(file.GetFullPath());
+            //File.Delete(file.GetFullPath());
         }
     }
 }

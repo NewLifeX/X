@@ -429,7 +429,7 @@ namespace Test
             //Area.MergeLevel3(list, true);
             //Area.MergeLevel4(list, true);
 
-            //Area.Import(file, true);
+            Area.Import(file, true);
 
             Area.Export($"Area_{DateTime.Now:yyyyMMddHHmmss}.csv.gz");
         }
