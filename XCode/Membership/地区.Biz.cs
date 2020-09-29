@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using NewLife;
@@ -737,60 +736,116 @@ namespace XCode.Membership
 
         private static readonly String[] minzu = new String[] { "汉族", "壮族", "满族", "回族", "苗族", "维吾尔族", "土家族", "彝族", "蒙古族", "藏族", "布依族", "侗族", "瑶族", "朝鲜族", "白族", "哈尼族", "哈萨克族", "黎族", "傣族", "畲族", "傈僳族", "仡佬族", "东乡族", "高山族", "拉祜族", "水族", "佤族", "纳西族", "羌族", "土族", "仫佬族", "锡伯族", "柯尔克孜族", "达斡尔族", "景颇族", "毛南族", "撒拉族", "布朗族", "塔吉克族", "阿昌族", "普米族", "鄂温克族", "怒族", "京族", "基诺族", "德昂族", "保安族", "俄罗斯族", "裕固族", "乌孜别克族", "门巴族", "鄂伦春族", "独龙族", "塔塔尔族", "赫哲族", "珞巴族" };
 
+        private static readonly Dictionary<String, String> _map = new Dictionary<String, String> {
+            { "巴林左旗", "左旗" },
+            { "巴林右旗", "右旗" },
+            { "克什克腾旗", "克旗" },
+            { "土默特左旗", "土左旗" },
+            { "土默特右旗", "土右旗" },
+            { "达尔罕茂明安联合旗", "达茂旗" },
+            { "阿鲁科尔沁旗", "阿旗" },
+            { "翁牛特旗", "翁旗" },
+            { "喀喇沁旗", "喀旗" },
+            { "科尔沁左翼中旗", "科左中旗" },
+            { "科尔沁左翼后旗", "科左后旗" },
+            { "鄂托克前旗", "鄂前旗" },
+            { "杭锦旗", "杭锦旗" },
+            { "乌审旗", "乌审旗" },
+            { "阿荣旗", "阿荣旗" },
+            { "莫力达瓦达斡尔族自治旗", "莫旗" },
+            { "鄂温克族自治旗", "鄂温克旗" },
+            { "陈巴尔虎旗", "陈旗" },
+            { "新巴尔虎左旗", "新左旗" },
+            { "新巴尔虎右旗", "新右旗" },
+            { "乌拉特前旗", "乌前旗" },
+            { "乌拉特中旗", "乌中旗" },
+            { "乌拉特后旗", "乌后旗" },
+            { "杭锦后旗", "杭锦后旗" },
+            { "察哈尔右翼前旗", "察右前旗" },
+            { "察哈尔右翼中旗", "察右中旗" },
+            { "察哈尔右翼后旗", "察右后旗" },
+            { "四子王旗", "四子王旗" },
+            { "科尔沁右翼前旗", "科右前旗" },
+            { "科尔沁右翼中旗", "科右中旗" },
+            { "扎赉特旗", "扎赉特旗" },
+            { "阿巴嘎旗", "阿巴嘎旗" },
+            { "苏尼特左旗", "东苏旗" },
+            { "苏尼特右旗", "西苏旗" },
+            { "东乌珠穆沁旗", "东乌旗" },
+            { "西乌珠穆沁旗", "西乌旗" },
+            { "太仆寺旗", "太旗" },
+            { "镶黄旗", "镶黄旗" },
+            { "正镶白旗", "正镶白旗" },
+            { "正蓝旗", "正蓝旗" },
+            { "阿拉善左旗", "阿左旗" },
+            { "阿拉善右旗", "阿右旗" },
+            { "六枝特区", "六枝" },
+            { "博尔塔拉蒙古自治州", "博州" },
+            { "巴音郭楞蒙古自治州", "巴州" },
+            { "克孜勒苏柯尔克孜自治州", "克州" },
+        };
+
         /// <summary>修正名称</summary>
         public void FixName()
         {
             if (FullName.IsNullOrEmpty()) return;
 
             var name = FullName;
-
-            if (ParentID == 0)
+            if (_map.TryGetValue(name, out var shortName))
             {
-                name = name.TrimEnd("省", "市", "自治区", "壮族", "回族", "维吾尔", "特别行政区");
+                name = shortName;
             }
-            else if (Level <= 3)
+            else
             {
-                if (name.Length > 8) name = name.TrimEnd("经济技术开发区");
-                if (name.Length > 6) name = name.TrimEnd("技术开发区", "经济开发区", "产业开发区", "旅游开发区");
-                if (name.Length > 4) name = name.TrimEnd("开发区", "管理区", "风景区");
-                if (name.Length > 3) name = name.TrimEnd("地区", "林区", "矿区", "新区");
-                if (name.Length > 2) name = name.TrimName("县", "市", "区", "盟", "旗", "州");
-
-                if (name.Length > 3) name = name.TrimEnd("自治", "联合", "各族");
-
-                for (var i = 0; i < minzu.Length; i++)
+                if (ParentID == 0)
                 {
-                    var item = minzu[i];
-                    // 去掉结尾的民族名称
-                    if (name.Length > item.Length + 1 && name.EndsWith(item))
+                    name = name.TrimEnd("省", "市", "自治区", "壮族", "回族", "维吾尔", "特别行政区");
+                }
+                else if (Level <= 3)
+                {
+                    if (name.Length > 8) name = name.TrimEnd("经济技术开发区");
+                    if (name.Length > 6) name = name.TrimEnd("技术开发区", "经济开发区", "产业开发区", "旅游开发区");
+                    if (name.Length > 4) name = name.TrimEnd("开发区", "管理区", "风景区");
+                    if (name.Length > 3) name = name.TrimEnd("地区", "林区", "矿区", "新区");
+                    if (name.Length > 2) name = name.TrimName("县", "市", "区", "盟", "旗", "州");
+
+                    if (name.Length > 3) name = name.TrimEnd("自治", "联合", "各族");
+
+                    for (var i = 0; i < minzu.Length; i++)
                     {
-                        name = name.TrimEnd(item);
-                        i = -1;
-                    }
-                    else if (item.Length >= 3 && item.EndsWith("族"))
-                    {
-                        item = item.TrimEnd('族');
+                        var item = minzu[i];
+                        // 去掉结尾的民族名称
                         if (name.Length > item.Length + 1 && name.EndsWith(item))
                         {
                             name = name.TrimEnd(item);
                             i = -1;
                         }
+                        else if (item.Length >= 3 && item.EndsWith("族"))
+                        {
+                            item = item.TrimEnd('族');
+                            if (name.Length > item.Length + 1 && name.EndsWith(item))
+                            {
+                                name = name.TrimEnd(item);
+                                i = -1;
+                            }
+                        }
                     }
-                }
 
-                // 数据错误导致多一个字
-                if (name.Length > 2) name = name.TrimEnd("自");
+                    // 数据错误导致多一个字
+                    if (name.Length > 2) name = name.TrimEnd("自");
+                }
+                else if (Level == 4)
+                {
+                    if (name.Length > 3) name = name.TrimEnd("街道");
+                }
             }
-            else if (Level == 4)
-            {
-                if (name.Length > 3) name = name.TrimEnd("街道");
-            }
+
             Name = name;
         }
         #endregion
     }
 
-    static class FixHelper
+    internal static class FixHelper
     {
         public static String TrimName(this String name, params String[] ss)
         {

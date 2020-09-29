@@ -415,12 +415,12 @@ namespace Test
 
         private static async void Test8()
         {
-            //Area.Meta.Session.Dal.Db.ShowSQL = false;
+            Area.Meta.Session.Dal.Db.ShowSQL = false;
 
             var url = "http://www.mca.gov.cn/article/sj/xzqh/2020/2020/2020092500801.html";
             Area.FetchAndSave(url);
 
-            var file = "../2020年02月四级行政区划库.csv";
+            var file = "../Area202008.csv";
             //var file = "Area.csv";
             var list = new List<Area>();
             list.LoadCsv(file);
@@ -445,7 +445,8 @@ namespace Test
                     }
                     else
                     {
-                        if (r.FullName != r2.FullName || r.Name != r2.Name) XTrace.WriteLine("{0} {1} {2} => {3} {4}", r.ID, r.Name, r.FullName, r2.Name, r2.FullName);
+                        if (r.FullName != r2.FullName) XTrace.WriteLine("{0} {1} {2} => {3} {4}", r.ID, r.Name, r.FullName, r2.Name, r2.FullName);
+                        if (r.Name != r2.Name && r.Name.TrimEnd("市", "矿区", "林区", "区", "县") != r2.Name) XTrace.WriteLine("{0} {1} {2} => {3} {4}", r.ID, r.Name, r.FullName, r2.Name, r2.FullName);
 
                         //r2.Longitude = r.Longitude;
                         //r2.Latitude = r.Latitude;
