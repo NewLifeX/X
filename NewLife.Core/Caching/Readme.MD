@@ -19,9 +19,9 @@ Redis实现标准协议以及基础字符串操作，完整实现由独立开源
 
 ```csharp
 // 实例化Redis，默认端口6379可以省略，密码有两种写法
-//var ic = Redis.Create("127.0.0.1", 7);
-var ic = Redis.Create("pass@127.0.0.1:6379", 7);
-//var ic = Redis.Create("server=127.0.0.1:6379;password=pass", 7);
+//var ic = new Redis("127.0.0.1", 7);
+var ic = new Redis("pass@127.0.0.1:6379", 7);
+//var ic = new Redis("server=127.0.0.1:6379;password=pass", 7);
 ic.Log = XTrace.Log; // 调试日志。正式使用时注释
 ```
 

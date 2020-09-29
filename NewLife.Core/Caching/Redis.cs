@@ -585,21 +585,23 @@ namespace NewLife.Caching
             // 没有有效期，直接使用SETNX
             if (expire <= 0) return Execute(key, rds => rds.Execute<Int32>("SETNX", key, value), true) > 0;
 
-            //!!! 重构Redis.Add实现，早期的SETNX支持设置过期时间，后来不支持了，并且连资料都找不到了，改用新版 SET key value EX expire NX
-            return Execute(key, rds => rds.Execute<Int32>("SET", key, value, "EX", expire, "NX"), true) > 0;
-
-            //// 带有有效期，需要判断版本是否支持
-            //var inf = Info;
+            // 带有有效期，需要判断版本是否支持
+            var inf = Info;
             //if (inf != null && inf.TryGetValue("redis_version", out var ver) && ver.CompareTo("4.") >= 0 && ver.CompareTo("6.") < 0)
             //{
             //    return Execute(key, rds => rds.Execute<Int32>("SETNX", key, value, expire), true) > 0;
             //}
+            if (inf != null && inf.TryGetValue("redis_version", out var ver) && ver.CompareTo("2.6.12") >= 0)
+            {
+                //!!! 重构Redis.Add实现，早期的SETNX支持设置过期时间，后来不支持了，并且连资料都找不到了，改用2.6.12新版 SET key value EX expire NX
+                return Execute(key, rds => rds.Execute<String>("SET", key, value, "EX", expire, "NX"), true) == "OK";
+            }
 
-            //// 旧版本不支持SETNX带过期时间，需要分为前后两条指令
-            //var rs = Execute(key, rds => rds.Execute<Int32>("SETNX", key, value), true);
-            //if (rs > 0) SetExpire(key, TimeSpan.FromSeconds(expire));
+            // 旧版本不支持SETNX带过期时间，需要分为前后两条指令
+            var rs = Execute(key, rds => rds.Execute<Int32>("SETNX", key, value), true);
+            if (rs > 0) SetExpire(key, TimeSpan.FromSeconds(expire));
 
-            //return rs > 0;
+            return rs > 0;
         }
 
         /// <summary>设置新值并获取旧值，原子操作</summary>

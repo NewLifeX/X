@@ -100,6 +100,8 @@ namespace XUnitTest.Caching
             var ic = _redis;
             var key = "Name";
 
+            XTrace.WriteLine("redis_version:{0}", ic.Info["redis_version"]);
+
             ic.Set(key, Environment.UserName);
             var rs = ic.Add(key, Environment.MachineName, 30);
             Assert.False(rs);
@@ -342,13 +344,13 @@ namespace XUnitTest.Caching
         {
             var ic = _redis;
 
-            using var ck = ic.AcquireLock("TestLock3", 500);
+            using var ck = ic.AcquireLock("TestLock3", 1000);
 
             // 已经过了一点时间
             Thread.Sleep(100);
 
             // 循环多次后，可以抢到
-            using var ck2 = ic.AcquireLock("TestLock3", 500);
+            using var ck2 = ic.AcquireLock("TestLock3", 1000);
             Assert.NotNull(ck2);
         }
 
