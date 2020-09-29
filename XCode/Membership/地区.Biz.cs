@@ -9,7 +9,6 @@ using System.Xml.Serialization;
 using NewLife;
 using NewLife.Collections;
 using NewLife.Data;
-using NewLife.IO;
 using NewLife.Log;
 using NewLife.Threading;
 using XCode.Transform;
@@ -45,7 +44,7 @@ namespace XCode.Membership
 
             // 实体缓存三级地区
             var ec = Meta.Cache;
-            ec.Expire = 60 * 60;
+            ec.Expire = 10 * 60;
             ec.FillListMethod = () => FindAll(_.ID >= 100000 & _.ID <= 999999, _.ID.Asc(), null, 0, 0);
         }
 
@@ -117,7 +116,7 @@ namespace XCode.Membership
                                                            var entity = Parent;
                                                            while (entity != null)
                                                            {
-                                                               if (list.Contains(entity)) break;
+                                                               if (entity.ID == 0 || list.Contains(entity)) break;
 
                                                                list.Add(entity);
 
@@ -169,7 +168,7 @@ namespace XCode.Membership
                                                           foreach (var item in Childs)
                                                           {
                                                               list.Add(item);
-                                                              if (item.ID % 100 == 0) list.AddRange(item.AllChilds);
+                                                              if (item.Level < 3) list.AddRange(item.AllChilds);
                                                           }
                                                           return list;
                                                       });
@@ -341,10 +340,10 @@ namespace XCode.Membership
 
             if (!key.IsNullOrEmpty())
             {
-                var exp2 = _.Name.StartsWith(key) | _.FullName.StartsWith(key);
-                if (key.ToLong() > 0) exp2 |= _.ID == key;
-
-                exp &= exp2;
+                if (key.ToLong() > 0)
+                    exp &= _.ID == key | _.TelCode == key | _.ZipCode == key;
+                else
+                    exp &= _.Name == key | _.FullName.StartsWith(key) | _.Kind == key | _.PinYin.StartsWith(key) | _.JianPin == key | _.GeoHash.StartsWith(key);
             }
 
             return FindAll(exp, page);
@@ -354,9 +353,9 @@ namespace XCode.Membership
         /// <param name="parentid"></param>
         /// <param name="key"></param>
         /// <param name="enable"></param>
-        /// <param name="page"></param>
+        /// <param name="count"></param>
         /// <returns></returns>
-        public static IList<Area> Search(Int32 parentid, String key, Boolean? enable, PageParameter page)
+        public static IList<Area> Search(Int32 parentid, String key, Boolean? enable, Int32 count)
         {
             // 找到父节点所在位置，向后搜索子节点
             var r = parentid == 0 ? Root : FindByID(parentid);
@@ -364,34 +363,24 @@ namespace XCode.Membership
 
             if (r != null)
             {
-                var start = (page.PageIndex - 1) * page.PageSize;
-                var count = page.PageSize;
-
-                if (key.IsNullOrEmpty()) return r.Childs.Where(e => e.Enable).Skip(start).Take(count).ToList();
+                if (key.IsNullOrEmpty()) return r.Childs.Where(e => e.Enable).Take(count).ToList();
 
                 var list = r.AllChilds
                     .Where(e => e.Enable)
-                    .Where(e => !e.Name.IsNullOrEmpty() && e.Name.Contains(key) || !e.FullName.IsNullOrEmpty() && e.FullName.Contains(key))
-                    .Skip(start)
+                    .Where(e => !e.Name.IsNullOrEmpty() && e.Name.Contains(key)
+                        || !e.FullName.IsNullOrEmpty() && e.FullName.Contains(key)
+                        || e.PinYin.StartsWithIgnoreCase(key)
+                        || e.JianPin.EqualIgnoreCase(key)
+                        || e.TelCode == key
+                        || e.ZipCode == key
+                        || e.GeoHash.StartsWithIgnoreCase(key)
+                        )
                     .Take(count)
                     .ToList();
                 if (list.Count > 0 || r.ID > 0) return list;
             }
 
-            var exp = new WhereExpression();
-
-            if (parentid >= 0) exp &= _.ParentID == parentid;
-            if (enable != null) exp &= _.Enable == enable;
-
-            if (!key.IsNullOrEmpty())
-            {
-                var exp2 = _.Name == key | _.FullName == key;
-                if (key.ToLong() > 0) exp2 |= _.ID == key;
-
-                exp &= exp2;
-            }
-
-            return FindAll(exp, page);
+            return Search(parentid, -1, -1, -1, enable, key, DateTime.MinValue, DateTime.MinValue, new PageParameter { PageSize = count });
         }
         #endregion
 
@@ -668,6 +657,8 @@ namespace XCode.Membership
             var rs = ParseAndSave(html);
             var count = rs.Count;
 
+            Meta.Session.ClearCache("FetchAndSave");
+
             //            // 拉取四级地区
             //            if (level4)
             //            {
@@ -726,8 +717,8 @@ namespace XCode.Membership
                 {
                     if (!addLose) continue;
 
-                    XTrace.WriteLine("新增 {0} {1} {2}", r.ID, r.Name, r.FullName);
-                    if (r.ParentID > 0 && !rs.Any(e => e.ID == r.ParentID)) XTrace.WriteLine("未知父级 {0}", r.ParentID);
+                    XTrace.Log.Debug("新增 {0} {1} {2}", r.ID, r.Name, r.FullName);
+                    if (r.ParentID > 0 && !rs.Any(e => e.ID == r.ParentID)) XTrace.Log.Debug("未知父级 {0}", r.ParentID);
 
                     r.PinYin = null;
                     r.JianPin = null;
@@ -743,8 +734,8 @@ namespace XCode.Membership
                 }
                 else
                 {
-                    if (r.FullName != r2.FullName) XTrace.WriteLine("{0} {1} {2} => {3} {4}", r.ID, r.Name, r.FullName, r2.Name, r2.FullName);
-                    if (r.Name != r2.Name && r.Name.TrimEnd("市", "矿区", "林区", "区", "县") != r2.Name) XTrace.WriteLine("{0} {1} {2} => {3} {4}", r.ID, r.Name, r.FullName, r2.Name, r2.FullName);
+                    if (r.FullName != r2.FullName) XTrace.Log.Debug("{0} {1} {2} => {3} {4}", r.ID, r.Name, r.FullName, r2.Name, r2.FullName);
+                    if (r.Name != r2.Name && r.Name.TrimEnd("市", "矿区", "林区", "区", "县") != r2.Name) XTrace.Log.Debug("{0} {1} {2} => {3} {4}", r.ID, r.Name, r.FullName, r2.Name, r2.FullName);
 
                     // 合并字段
                     if (!r.English.IsNullOrEmpty()) r2.English = r.English;
@@ -759,7 +750,7 @@ namespace XCode.Membership
                     {
                         //r2.Valid(false);
 
-                        XTrace.WriteLine(re.Dirtys.Join(",", e => $"{e}={r2[e]}"));
+                        XTrace.Log.Debug(re.Dirtys.Join(",", e => $"{e}={r2[e]}"));
 
                         r2.SaveAsync();
 
@@ -794,7 +785,7 @@ namespace XCode.Membership
                     if (!addLose) continue;
 
                     //XTrace.WriteLine("新增 {0} {1} {2}", r.ID, r.Name, r.FullName);
-                    if (r.ParentID > 0 && !rs.Any(e => e.ID == r.ParentID)) XTrace.WriteLine("未知父级 {0}", r.ParentID);
+                    if (r.ParentID > 0 && !rs.Any(e => e.ID == r.ParentID)) XTrace.Log.Debug("未知父级 {0}", r.ParentID);
 
                     r.PinYin = null;
                     r.JianPin = null;
@@ -808,8 +799,8 @@ namespace XCode.Membership
                 }
                 else
                 {
-                    if (r.FullName != r2.FullName) XTrace.WriteLine("{0} {1} {2} => {3} {4}", r.ID, r.Name, r.FullName, r2.Name, r2.FullName);
-                    if (r.Name != r2.Name && r.Name.TrimEnd("街道") != r2.Name) XTrace.WriteLine("{0} {1} {2} => {3} {4}", r.ID, r.Name, r.FullName, r2.Name, r2.FullName);
+                    if (r.FullName != r2.FullName) XTrace.Log.Debug("{0} {1} {2} => {3} {4}", r.ID, r.Name, r.FullName, r2.Name, r2.FullName);
+                    if (r.Name != r2.Name && r.Name.TrimEnd("街道") != r2.Name) XTrace.Log.Debug("{0} {1} {2} => {3} {4}", r.ID, r.Name, r.FullName, r2.Name, r2.FullName);
 
                     // 合并字段
                     if (!r.English.IsNullOrEmpty()) r2.English = r.English;
@@ -824,7 +815,7 @@ namespace XCode.Membership
                     {
                         //r2.Valid(false);
 
-                        XTrace.WriteLine(re.Dirtys.Join(",", e => $"{e}={r2[e]}"));
+                        XTrace.Log.Debug(re.Dirtys.Join(",", e => $"{e}={r2[e]}"));
 
                         r2.SaveAsync();
 
@@ -839,8 +830,9 @@ namespace XCode.Membership
         /// <summary>从Csv文件导入并合并数据</summary>
         /// <param name="csvFile">Csv文件</param>
         /// <param name="addLose">是否添加缺失数据</param>
+        /// <param name="level">需要导入的最高等级</param>
         /// <returns></returns>
-        public static Int32 Import(String csvFile, Boolean addLose)
+        public static Int32 Import(String csvFile, Boolean addLose, Int32 level = 4)
         {
             var list = new List<Area>();
 
@@ -856,7 +848,9 @@ namespace XCode.Membership
 
             var count = 0;
             count += MergeLevel3(list, addLose);
-            count += MergeLevel4(list, addLose);
+            if (level >= 4) count += MergeLevel4(list, addLose);
+
+            Meta.Session.ClearCache("Import");
 
             return count;
         }
@@ -883,7 +877,7 @@ namespace XCode.Membership
             // 数据迭代保存到文件
             data.SaveCsv(csvFile, fields.ToArray());
 
-            return (Int32)extracter.Row;
+            return extracter.TotalCount;
         }
         #endregion
 
@@ -935,8 +929,9 @@ namespace XCode.Membership
         private static readonly String[] minzu = new String[] { "汉族", "壮族", "满族", "回族", "苗族", "维吾尔族", "土家族", "彝族", "蒙古族", "藏族", "布依族", "侗族", "瑶族", "朝鲜族", "白族", "哈尼族", "哈萨克族", "黎族", "傣族", "畲族", "傈僳族", "仡佬族", "东乡族", "高山族", "拉祜族", "水族", "佤族", "纳西族", "羌族", "土族", "仫佬族", "锡伯族", "柯尔克孜族", "达斡尔族", "景颇族", "毛南族", "撒拉族", "布朗族", "塔吉克族", "阿昌族", "普米族", "鄂温克族", "怒族", "京族", "基诺族", "德昂族", "保安族", "俄罗斯族", "裕固族", "乌孜别克族", "门巴族", "鄂伦春族", "独龙族", "塔塔尔族", "赫哲族", "珞巴族" };
 
         private static readonly Dictionary<String, String> _map = new Dictionary<String, String> {
-            { "万柏林区", "万柏林" },
             { "市辖区", "市辖区" },
+            { "直辖县", "直辖县" },
+            { "万柏林区", "万柏林" },
             { "白云鄂博矿区", "白云矿区" },
             { "沈北新区", "沈北新区" },
             { "金林区", "金林区" },

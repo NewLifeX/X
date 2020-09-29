@@ -27,6 +27,9 @@ namespace XCode.Transform
 
         /// <summary>批大小。默认5000</summary>
         public Int32 BatchSize { get; set; } = 5000;
+
+        /// <summary>总行数</summary>
+        public Int32 TotalCount { get; set; }
         #endregion
 
         #region 构造
@@ -72,6 +75,7 @@ namespace XCode.Transform
                 Row = dt.Get<Int64>(count - 1, IdField) + 1;
 
                 // 下一页
+                TotalCount += count;
                 if (count < BatchSize) break;
             }
         }

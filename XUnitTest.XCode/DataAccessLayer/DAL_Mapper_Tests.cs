@@ -8,19 +8,19 @@ namespace XUnitTest.XCode.DataAccessLayer
 {
     public class DAL_Mapper_Tests
     {
-        [Fact]
-        public void Query()
-        {
-            var dal = User.Meta.Session.Dal;
+        //[Fact]
+        //public void Query()
+        //{
+        //    var dal = User.Meta.Session.Dal;
 
-            var list = dal.Query<MyUser>("select * from user where name=@name", new { Name = "admin" }).ToList();
-            Assert.NotNull(list);
-            Assert.Single(list);
+        //    var list = dal.Query<MyUser>("select * from user where name=@name", new { Name = "admin" }).ToList();
+        //    Assert.NotNull(list);
+        //    Assert.Single(list);
 
-            var user = list[0];
-            Assert.Equal(1, user.Id);
-            Assert.Equal("admin", user.Name);
-        }
+        //    var user = list[0];
+        //    Assert.Equal(1, user.Id);
+        //    Assert.Equal("admin", user.Name);
+        //}
 
         [Fact]
         public void Execute()
@@ -39,6 +39,14 @@ namespace XUnitTest.XCode.DataAccessLayer
             dal.Insert("user", user);
 
             dal.Update("user", new { enable = true }, new { id = user.Id });
+
+            var list = dal.Query<MyUser>("select * from user where name=@name", new { Name = user.Name }).ToList();
+            Assert.NotNull(list);
+            Assert.Single(list);
+
+            var user2 = list[0];
+            Assert.Equal(user.Id, user2.Id);
+            Assert.Equal(user.Name, user2.Name);
 
             dal.Delete("user", new { id = user.Id });
         }
