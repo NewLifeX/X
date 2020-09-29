@@ -101,7 +101,7 @@ namespace XUnitTest.Caching
             var key = "Name";
 
             ic.Set(key, Environment.UserName);
-            var rs = ic.Add(key, Environment.MachineName);
+            var rs = ic.Add(key, Environment.MachineName, 30);
             Assert.False(rs);
 
             var name = ic.Get<String>(key);
