@@ -57,13 +57,13 @@ namespace NewLife.IO
         {
             base.Dispose(disposing);
 
-            _reader.TryDispose();
-
-            //_writer?.Flush();
-            _writer.TryDispose();
-
             if (!_leaveOpen && _stream != null)
             {
+                _reader.TryDispose();
+
+                //_writer?.Flush();
+                _writer.TryDispose();
+
                 _stream.Close();
             }
         }
