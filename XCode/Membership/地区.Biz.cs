@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using NewLife;
@@ -9,6 +10,9 @@ using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Threading;
+#if !NET4
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 namespace XCode.Membership
 {
@@ -64,11 +68,16 @@ namespace XCode.Membership
             if (JianPin.IsNullOrEmpty())
             {
                 var py = NewLife.Common.PinYin.GetFirst(Name);
-                if (!py.IsNullOrEmpty()) PinYin = JianPin;
+                if (!py.IsNullOrEmpty()) JianPin = py;
             }
 
             // 坐标
-            if (Longitude != 0 || Latitude != 0) GeoHash = NewLife.Data.GeoHash.Encode(Longitude, Latitude);
+            //if (Longitude != 0 || Latitude != 0) GeoHash = NewLife.Data.GeoHash.Encode(Longitude, Latitude);
+            if (Dirtys[nameof(Longitude)] || Dirtys[nameof(Latitude)])
+            {
+                if (Math.Abs(Longitude) > 0.001 || Math.Abs(Latitude) > 0.001)
+                    GeoHash = NewLife.Data.GeoHash.Encode(Longitude, Latitude);
+            }
         }
 
         /// <summary>初始化数据</summary>
@@ -650,7 +659,7 @@ namespace XCode.Membership
             if (url.IsNullOrEmpty()) url = "http://www.mca.gov.cn/article/sj/xzqh/2020/2020/2020092500801.html";
 
             var http = new HttpClient();
-            var html = http.GetStringAsync(url).Result;
+            var html = TaskEx.Run(() => http.GetStringAsync(url)).Result;
             if (html.IsNullOrEmpty()) return 0;
 
             var rs = ParseAndSave(html);
@@ -687,6 +696,59 @@ namespace XCode.Membership
             //                    }
             //                }
             //            }
+
+            return count;
+        }
+
+        /// <summary>合并三级地区的数据</summary>
+        /// <param name="list">外部数据源</param>
+        /// <param name="addLose">是否添加缺失数据</param>
+        /// <returns></returns>
+        public static Int32 MergeLevel3(IList<Area> list, Boolean addLose)
+        {
+            var count = 0;
+            foreach (var r in list)
+            {
+                if (r.ID < 10_00_00 || r.ID > 99_99_99) continue;
+
+                var r2 = FindByID(r.ID);
+                if (r2 == null)
+                {
+                    if (!addLose) continue;
+
+                    XTrace.WriteLine("找不到 {0} {1} {2}", r.ID, r.Name, r.FullName);
+
+                    r.Enable = false;
+                    r.CreateTime = DateTime.Now;
+                    r.UpdateTime = DateTime.Now;
+                    r.Insert();
+
+                    count++;
+                }
+                else
+                {
+                    if (r.FullName != r2.FullName) XTrace.WriteLine("{0} {1} {2} => {3} {4}", r.ID, r.Name, r.FullName, r2.Name, r2.FullName);
+                    if (r.Name != r2.Name && r.Name.TrimEnd("市", "矿区", "林区", "区", "县") != r2.Name) XTrace.WriteLine("{0} {1} {2} => {3} {4}", r.ID, r.Name, r.FullName, r2.Name, r2.FullName);
+
+                    // 合并字段
+                    if (!r.English.IsNullOrEmpty()) r2.English = r.English;
+                    if (!r.TelCode.IsNullOrEmpty()) r2.TelCode = r.TelCode;
+                    if (!r.ZipCode.IsNullOrEmpty()) r2.ZipCode = r.ZipCode;
+                    if (!r.Kind.IsNullOrEmpty()) r2.Kind = r.Kind;
+                    if (Math.Abs(r.Longitude) > 0.001) r2.Longitude = r.Longitude;
+                    if (Math.Abs(r.Latitude) > 0.001) r2.Latitude = r.Latitude;
+
+                    // 脏数据
+                    if (r2 is IEntity re && re.HasDirty)
+                    {
+                        //r2.Valid(false);
+
+                        XTrace.WriteLine(re.Dirtys.Join(",", e => $"{e}={r2[e]}"));
+
+                        r2.SaveAsync();
+                    }
+                }
+            }
 
             return count;
         }
@@ -737,6 +799,15 @@ namespace XCode.Membership
         private static readonly String[] minzu = new String[] { "汉族", "壮族", "满族", "回族", "苗族", "维吾尔族", "土家族", "彝族", "蒙古族", "藏族", "布依族", "侗族", "瑶族", "朝鲜族", "白族", "哈尼族", "哈萨克族", "黎族", "傣族", "畲族", "傈僳族", "仡佬族", "东乡族", "高山族", "拉祜族", "水族", "佤族", "纳西族", "羌族", "土族", "仫佬族", "锡伯族", "柯尔克孜族", "达斡尔族", "景颇族", "毛南族", "撒拉族", "布朗族", "塔吉克族", "阿昌族", "普米族", "鄂温克族", "怒族", "京族", "基诺族", "德昂族", "保安族", "俄罗斯族", "裕固族", "乌孜别克族", "门巴族", "鄂伦春族", "独龙族", "塔塔尔族", "赫哲族", "珞巴族" };
 
         private static readonly Dictionary<String, String> _map = new Dictionary<String, String> {
+            { "万柏林区", "万柏林" },
+            { "白云鄂博矿区", "白云矿区" },
+            { "沈北新区", "沈北新区" },
+            { "金林区", "金林区" },
+            { "士林区", "士林区" },
+            { "杉林区", "杉林区" },
+            { "茂林区", "茂林区" },
+            { "坪林区", "坪林区" },
+            { "树林区", "树林区" },
             { "巴林左旗", "左旗" },
             { "巴林右旗", "右旗" },
             { "克什克腾旗", "克旗" },

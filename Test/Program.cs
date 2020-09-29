@@ -420,11 +420,14 @@ namespace Test
             var url = "http://www.mca.gov.cn/article/sj/xzqh/2020/2020/2020092500801.html";
             Area.FetchAndSave(url);
 
-            var file = "../Area202008.csv";
+            var file = "../Area20200929.csv";
             //var file = "Area.csv";
             var list = new List<Area>();
             list.LoadCsv(file);
 
+            Area.MergeLevel3(list, true);
+
+            return;
             foreach (var r in list)
             {
                 r.UpdateTime = DateTime.Now;

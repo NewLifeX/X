@@ -72,13 +72,13 @@ namespace XCode.Membership
         [BindColumn("Kind", "类型。省市县，自治州等", "")]
         public String Kind { get => _Kind; set { if (OnPropertyChanging("Kind", value)) { _Kind = value; OnPropertyChanged("Kind"); } } }
 
-        private String _EnglishName;
+        private String _English;
         /// <summary>英文名</summary>
         [DisplayName("英文名")]
         [Description("英文名")]
         [DataObjectField(false, false, true, 50)]
-        [BindColumn("EnglishName", "英文名", "")]
-        public String EnglishName { get => _EnglishName; set { if (OnPropertyChanging("EnglishName", value)) { _EnglishName = value; OnPropertyChanged("EnglishName"); } } }
+        [BindColumn("English", "英文名", "")]
+        public String English { get => _English; set { if (OnPropertyChanging("English", value)) { _English = value; OnPropertyChanged("English"); } } }
 
         private String _PinYin;
         /// <summary>拼音</summary>
@@ -96,21 +96,21 @@ namespace XCode.Membership
         [BindColumn("JianPin", "简拼", "")]
         public String JianPin { get => _JianPin; set { if (OnPropertyChanging("JianPin", value)) { _JianPin = value; OnPropertyChanged("JianPin"); } } }
 
-        private Int32 _TelCode;
+        private String _TelCode;
         /// <summary>区号。电话区号</summary>
         [DisplayName("区号")]
         [Description("区号。电话区号")]
-        [DataObjectField(false, false, false, 0)]
+        [DataObjectField(false, false, true, 50)]
         [BindColumn("TelCode", "区号。电话区号", "")]
-        public Int32 TelCode { get => _TelCode; set { if (OnPropertyChanging("TelCode", value)) { _TelCode = value; OnPropertyChanged("TelCode"); } } }
+        public String TelCode { get => _TelCode; set { if (OnPropertyChanging("TelCode", value)) { _TelCode = value; OnPropertyChanged("TelCode"); } } }
 
-        private Int32 _ZipCode;
+        private String _ZipCode;
         /// <summary>邮编。邮政编码</summary>
         [DisplayName("邮编")]
         [Description("邮编。邮政编码")]
-        [DataObjectField(false, false, false, 0)]
+        [DataObjectField(false, false, true, 50)]
         [BindColumn("ZipCode", "邮编。邮政编码", "")]
-        public Int32 ZipCode { get => _ZipCode; set { if (OnPropertyChanging("ZipCode", value)) { _ZipCode = value; OnPropertyChanged("ZipCode"); } } }
+        public String ZipCode { get => _ZipCode; set { if (OnPropertyChanging("ZipCode", value)) { _ZipCode = value; OnPropertyChanged("ZipCode"); } } }
 
         private Double _Longitude;
         /// <summary>经度</summary>
@@ -185,7 +185,7 @@ namespace XCode.Membership
                     case "ParentID": return _ParentID;
                     case "Level": return _Level;
                     case "Kind": return _Kind;
-                    case "EnglishName": return _EnglishName;
+                    case "English": return _English;
                     case "PinYin": return _PinYin;
                     case "JianPin": return _JianPin;
                     case "TelCode": return _TelCode;
@@ -210,11 +210,11 @@ namespace XCode.Membership
                     case "ParentID": _ParentID = value.ToInt(); break;
                     case "Level": _Level = value.ToInt(); break;
                     case "Kind": _Kind = Convert.ToString(value); break;
-                    case "EnglishName": _EnglishName = Convert.ToString(value); break;
+                    case "English": _English = Convert.ToString(value); break;
                     case "PinYin": _PinYin = Convert.ToString(value); break;
                     case "JianPin": _JianPin = Convert.ToString(value); break;
-                    case "TelCode": _TelCode = value.ToInt(); break;
-                    case "ZipCode": _ZipCode = value.ToInt(); break;
+                    case "TelCode": _TelCode = Convert.ToString(value); break;
+                    case "ZipCode": _ZipCode = Convert.ToString(value); break;
                     case "Longitude": _Longitude = value.ToDouble(); break;
                     case "Latitude": _Latitude = value.ToDouble(); break;
                     case "GeoHash": _GeoHash = Convert.ToString(value); break;
@@ -251,7 +251,7 @@ namespace XCode.Membership
             public static readonly Field Kind = FindByName("Kind");
 
             /// <summary>英文名</summary>
-            public static readonly Field EnglishName = FindByName("EnglishName");
+            public static readonly Field English = FindByName("English");
 
             /// <summary>拼音</summary>
             public static readonly Field PinYin = FindByName("PinYin");
@@ -311,7 +311,7 @@ namespace XCode.Membership
             public const String Kind = "Kind";
 
             /// <summary>英文名</summary>
-            public const String EnglishName = "EnglishName";
+            public const String English = "English";
 
             /// <summary>拼音</summary>
             public const String PinYin = "PinYin";
