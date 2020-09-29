@@ -708,22 +708,32 @@ namespace XCode.Membership
         /// <returns></returns>
         public static Int32 MergeLevel3(IList<Area> list, Boolean addLose)
         {
+            XTrace.WriteLine("合并三级地址：{0:n0}", list.Count);
+
+            // 一次性加载三级地址
+            var rs = FindAll(_.ID < 99_99_99);
+
             var count = 0;
             foreach (var r in list)
             {
                 if (r.ID < 10_00_00 || r.ID > 99_99_99) continue;
 
-                var r2 = FindByID(r.ID);
+                //var r2 = FindByID(r.ID);
+                var r2 = rs.FirstOrDefault(e => e.ID == r.ID);
                 if (r2 == null)
                 {
                     if (!addLose) continue;
 
                     XTrace.WriteLine("新增 {0} {1} {2}", r.ID, r.Name, r.FullName);
+                    if (r.ParentID > 0 && !rs.Any(e => e.ID == r.ParentID)) XTrace.WriteLine("未知父级 {0}", r.ParentID);
 
                     r.Enable = false;
                     r.CreateTime = DateTime.Now;
                     r.UpdateTime = DateTime.Now;
+                    r.Valid(true);
                     r.SaveAsync();
+
+                    rs.Add(r);
 
                     count++;
                 }
@@ -763,21 +773,29 @@ namespace XCode.Membership
         /// <returns></returns>
         public static Int32 MergeLevel4(IList<Area> list, Boolean addLose)
         {
+            XTrace.WriteLine("合并四级地址：{0:n0}", list.Count);
+
+            // 一次性加载四级地址
+            var rs = FindAll(_.ID < 99_99_99_999);
+
             var count = 0;
             foreach (var r in list)
             {
                 if (r.ID < 10_00_00_000 || r.ID > 99_99_99_999) continue;
 
-                var r2 = FindByID(r.ID);
+                //var r2 = FindByID(r.ID);
+                var r2 = rs.FirstOrDefault(e => e.ID == r.ID);
                 if (r2 == null)
                 {
                     if (!addLose) continue;
 
                     //XTrace.WriteLine("新增 {0} {1} {2}", r.ID, r.Name, r.FullName);
+                    if (r.ParentID > 0 && !rs.Any(e => e.ID == r.ParentID)) XTrace.WriteLine("未知父级 {0}", r.ParentID);
 
-                    r.Enable = false;
+                    r.Enable = true;
                     r.CreateTime = DateTime.Now;
                     r.UpdateTime = DateTime.Now;
+                    r.Valid(true);
                     r.SaveAsync();
 
                     count++;
@@ -838,7 +856,13 @@ namespace XCode.Membership
             extracter.Builder.Where = _.Level <= level;
 
             var data = extracter.Fetch().Select(e => LoadData(e)).SelectMany(e => e);
-            data.SaveCsv(csvFile);
+
+            var fields = Meta.Factory.FieldNames.ToList();
+            fields.Remove(nameof(CreateTime));
+            fields.Remove(nameof(UpdateTime));
+            fields.Remove(nameof(Remark));
+
+            data.SaveCsv(csvFile, fields.ToArray());
 
             return (Int32)extracter.Row;
         }
