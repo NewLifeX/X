@@ -17,6 +17,7 @@ namespace NewLife.Data
     /// 6位，+-610m；
     /// 7位，+-76m；
     /// 8位，+-19m；
+    /// 9位，+-2m；
     /// </remarks>
     public static class GeoHash
     {
@@ -38,17 +39,19 @@ namespace NewLife.Data
 
         #region 方法
         /// <summary>编码坐标点为GeoHash字符串</summary>
-        /// <param name="longitude"></param>
-        /// <param name="latitude"></param>
+        /// <param name="longitude">经度</param>
+        /// <param name="latitude">纬度</param>
+        /// <param name="charCount">字符个数。默认9位字符编码，精度2米</param>
         /// <returns></returns>
-        public static String Encode(Double longitude, Double latitude)
+        public static String Encode(Double longitude, Double latitude, Int32 charCount = 9)
         {
             Double[] longitudeRange = { -180, 180 };
             Double[] latitudeRange = { -90, 90 };
 
             var isEvenBit = true;
             UInt64 bits = 0;
-            for (var i = 0; i < 40; i++)
+            var len = charCount * 5;
+            for (var i = 0; i < len; i++)
             {
                 bits <<= 1;
 
@@ -70,11 +73,11 @@ namespace NewLife.Data
                 isEvenBit = !isEvenBit;
             }
 
-            bits <<= (64 - 40);
+            bits <<= (64 - len);
 
             // base32编码
             var sb = new StringBuilder();
-            for (var i = 0; i < 40 / 5; i++)
+            for (var i = 0; i < charCount; i++)
             {
                 var pointer = (Int32)((bits & 0xf800000000000000L) >> 59);
                 sb.Append(_base32[pointer]);
