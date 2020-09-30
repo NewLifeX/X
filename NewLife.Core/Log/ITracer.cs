@@ -193,7 +193,7 @@ namespace NewLife.Log
                 span.Tag = str.Cut(1024);
             else if (tag is StringBuilder builder)
                 span.Tag = builder.ToString().Cut(1024);
-            else if (tag != null)
+            else if (tag != null && span is DefaultSpan ds && ds.TraceFlag > 0)
                 span.Tag = tag.ToJson().Cut(1024);
 
             return span;
