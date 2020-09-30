@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading;
@@ -257,6 +258,23 @@ namespace NewLife.Log
 
             return request;
         }
+
+        ///// <summary>把片段信息附加到http请求头上</summary>
+        ///// <param name="span">片段</param>
+        ///// <param name="headers">http请求头</param>
+        ///// <returns></returns>
+        //public static HttpRequestHeaders Attach(this ISpan span, HttpRequestHeaders headers)
+        //{
+        //    if (span == null || headers == null) return headers;
+
+        //    // 注入参数名
+        //    var name = GetAttachParameter(span);
+        //    if (name.IsNullOrEmpty()) return headers;
+
+        //    if (!headers.Contains(name)) headers.Add(name, span.ToString());
+
+        //    return headers;
+        //}
 
         /// <summary>把片段信息附加到http请求头上</summary>
         /// <param name="span">片段</param>

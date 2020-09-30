@@ -8,12 +8,23 @@ using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Security;
 using System.Net.Http;
+using NewLife.Serialization;
+using System.Text;
+using NewLife.Xml;
+using NewLife.Log;
+using System.Linq;
+#if !NET4
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 namespace NewLife.Http
 {
     /// <summary>Http帮助类</summary>
     public static class HttpHelper
     {
+        /// <summary>性能跟踪器</summary>
+        public static ITracer Tracer { get; set; } = DefaultTracer.Instance;
+
         #region Http封包解包
         /// <summary>创建请求包</summary>
         /// <param name="method"></param>
@@ -163,6 +174,151 @@ namespace NewLife.Http
         #endregion
 
         #region 高级功能扩展
+        /// <summary>异步提交Json</summary>
+        /// <param name="client">Http客户端</param>
+        /// <param name="requestUri">请求资源地址</param>
+        /// <param name="data">数据</param>
+        /// <param name="headers">附加头部</param>
+        /// <returns></returns>
+        public static async Task<String> PostJsonAsync(this HttpClient client, String requestUri, Object data, IDictionary<String, String> headers = null)
+        {
+            HttpContent content = null;
+            if (data != null)
+            {
+                content = data is String str
+                    ? new StringContent(str, Encoding.UTF8, "application/json")
+                    : new StringContent(data.ToJson(), Encoding.UTF8, "application/json");
+            }
+
+            if (headers == null && client.DefaultRequestHeaders.Accept.Count == 0) client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+            client.AddHeaders(headers);
+
+            return await PostAsync(client, requestUri, content);
+        }
+
+        /// <summary>同步提交Json</summary>
+        /// <param name="client">Http客户端</param>
+        /// <param name="requestUri">请求资源地址</param>
+        /// <param name="data">数据</param>
+        /// <param name="headers">附加头部</param>
+        /// <returns></returns>
+        public static String PostJson(this HttpClient client, String requestUri, Object data, IDictionary<String, String> headers = null) => TaskEx.Run(() => client.PostJsonAsync(requestUri, data, headers)).Result;
+
+        /// <summary>异步提交Xml</summary>
+        /// <param name="client">Http客户端</param>
+        /// <param name="requestUri">请求资源地址</param>
+        /// <param name="data">数据</param>
+        /// <param name="headers">附加头部</param>
+        /// <returns></returns>
+        public static async Task<String> PostXmlAsync(this HttpClient client, String requestUri, Object data, IDictionary<String, String> headers = null)
+        {
+            HttpContent content = null;
+            if (data != null)
+            {
+                content = data is String str
+                    ? new StringContent(str, Encoding.UTF8, "application/xml")
+                    : new StringContent(data.ToXml(), Encoding.UTF8, "application/xml");
+            }
+
+            if (headers == null && client.DefaultRequestHeaders.Accept.Count == 0) client.DefaultRequestHeaders.Accept.ParseAdd("application/xml");
+            client.AddHeaders(headers);
+
+            return await PostAsync(client, requestUri, content);
+        }
+
+        /// <summary>同步提交Xml</summary>
+        /// <param name="client">Http客户端</param>
+        /// <param name="requestUri">请求资源地址</param>
+        /// <param name="data">数据</param>
+        /// <param name="headers">附加头部</param>
+        /// <returns></returns>
+        public static String PostXml(this HttpClient client, String requestUri, Object data, IDictionary<String, String> headers = null) => TaskEx.Run(() => client.PostXmlAsync(requestUri, data, headers)).Result;
+
+        /// <summary>异步提交表单</summary>
+        /// <param name="client">Http客户端</param>
+        /// <param name="requestUri">请求资源地址</param>
+        /// <param name="data">数据</param>
+        /// <param name="headers">附加头部</param>
+        /// <returns></returns>
+        public static async Task<String> PostFormAsync(this HttpClient client, String requestUri, Object data, IDictionary<String, String> headers = null)
+        {
+            HttpContent content = null;
+            if (data != null)
+            {
+                content = data is IDictionary<String, String> dic
+                    ? new FormUrlEncodedContent(dic)
+                    : new FormUrlEncodedContent(data.ToDictionary().ToDictionary(e => e.Key, e => e.Value + ""));
+            }
+
+            client.AddHeaders(headers);
+
+            return await PostAsync(client, requestUri, content);
+        }
+
+        /// <summary>同步提交表单</summary>
+        /// <param name="client">Http客户端</param>
+        /// <param name="requestUri">请求资源地址</param>
+        /// <param name="data">数据</param>
+        /// <param name="headers">附加头部</param>
+        /// <returns></returns>
+        public static String PostForm(this HttpClient client, String requestUri, Object data, IDictionary<String, String> headers = null) => TaskEx.Run(() => client.PostFormAsync(requestUri, data, headers)).Result;
+
+        /// <summary>同步获取字符串</summary>
+        /// <param name="client">Http客户端</param>
+        /// <param name="requestUri">请求资源地址</param>
+        /// <param name="headers">附加头部</param>
+        /// <returns></returns>
+        public static String GetString(this HttpClient client, String requestUri, IDictionary<String, String> headers = null)
+        {
+            client.AddHeaders(headers);
+            return TaskEx.Run(() => client.GetStringAsync(requestUri)).Result;
+        }
+
+        private static async Task<String> PostAsync(HttpClient client, String requestUri, HttpContent content)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Post, requestUri)
+            {
+                Content = content
+            };
+
+            // 设置接受 mediaType
+            if (content.Headers.TryGetValues("Content-Type", out var vs))
+            {
+                // application/json; charset=utf-8
+                var type = vs.FirstOrDefault()?.Split(";").FirstOrDefault();
+                if (type.EqualIgnoreCase("application/json", "application/xml")) request.Headers.Accept.ParseAdd(type);
+            }
+
+            // 开始跟踪，注入TraceId
+            using var span = Tracer?.NewSpan(request);
+            if (span != null) span.SetError(null, content.ReadAsStringAsync().Result);
+            try
+            {
+                var rs = await client.SendAsync(request);
+                return await rs.Content.ReadAsStringAsync();
+            }
+            catch (Exception ex)
+            {
+                // 跟踪异常
+                span?.SetError(ex, null);
+
+                throw;
+            }
+        }
+
+        private static HttpClient AddHeaders(this HttpClient client, IDictionary<String, String> headers)
+        {
+            if (client == null) return null;
+            if (headers == null || headers.Count == 0) return client;
+
+            foreach (var item in headers)
+            {
+                client.DefaultRequestHeaders.Add(item.Key, item.Value);
+            }
+
+            return client;
+        }
+
         /// <summary>下载文件</summary>
         /// <param name="client"></param>
         /// <param name="address"></param>
@@ -174,8 +330,10 @@ namespace NewLife.Http
             using var fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
 #if NET4
             rs.CopyTo(fs);
+            rs.Flush();
 #else
             await rs.CopyToAsync(fs);
+            await rs.FlushAsync();
 #endif
         }
         #endregion

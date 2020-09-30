@@ -557,7 +557,7 @@ namespace NewLife.Caching
         /// <returns></returns>
         public virtual Object Execute(String cmd, params Object[] args)
         {
-            using var span = Host.Tracer?.NewSpan($"redis:{Server.Host ?? Server.Address.ToString()}:{cmd}", args.FirstOrDefault());
+            using var span = Host.Tracer?.NewSpan($"redis:{Server.Host ?? Server.Address.ToString()}:{cmd}", args);
 
             return ExecuteCommand(cmd, args.Select(e => Host.Encoder.Encode(e)).ToArray(), args);
         }
@@ -620,7 +620,7 @@ namespace NewLife.Caching
         /// <returns></returns>
         public virtual async Task<Object> ExecuteAsync(String cmd, Object[] args, CancellationToken cancellationToken = default)
         {
-            using var span = Host.Tracer?.NewSpan($"redis:{Server.Host ?? Server.Address.ToString()}:{cmd}", args.FirstOrDefault());
+            using var span = Host.Tracer?.NewSpan($"redis:{Server.Host ?? Server.Address.ToString()}:{cmd}", args);
 
             return await ExecuteCommandAsync(cmd, args.Select(e => Host.Encoder.Encode(e)).ToArray(), args, cancellationToken);
         }
