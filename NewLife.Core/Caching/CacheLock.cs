@@ -30,7 +30,7 @@ namespace NewLife.Caching
         {
             var ch = Client;
             var now = DateTime.Now;
-            var sTimeout = msTimeout / 1000;
+            var sTimeout = (Int32)Math.Round((Double)msTimeout / 1000);
 
             // 循环等待
             var end = now.AddMilliseconds(msTimeout);

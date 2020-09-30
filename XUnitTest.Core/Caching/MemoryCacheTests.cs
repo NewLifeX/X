@@ -107,7 +107,7 @@ namespace XUnitTest.Caching
             var v1 = ic.Get<String>(key);
             Assert.NotNull(v1);
 
-            var rs1 = ic.TryGet<String>(key, out var v2);
+            var rs1 = ic.TryGetValue<String>(key, out var v2);
             Assert.True(rs1);
             Assert.Equal(v1, v2);
 
@@ -116,7 +116,7 @@ namespace XUnitTest.Caching
             var v3 = ic.Get<String>(key);
             Assert.Null(v3);
 
-            var rs2 = ic.TryGet<String>(key, out var v4);
+            var rs2 = ic.TryGetValue<String>(key, out var v4);
             Assert.False(rs2);
             Assert.Equal(v1, v4);
         }
@@ -231,7 +231,7 @@ namespace XUnitTest.Caching
         {
             var ic = Cache;
 
-            var ck1 = ic.AcquireLock("lock:TestLock2", 1500);
+            var ck1 = ic.AcquireLock("lock:TestLock2", 2000);
             // 故意不用using，验证GC是否能回收
             //using var ck1 = ic.AcquireLock("TestLock2", 3000);
 
@@ -245,7 +245,7 @@ namespace XUnitTest.Caching
             XTrace.WriteLine("TestLock2 ElapsedMilliseconds={0}ms", sw.ElapsedMilliseconds);
             Assert.True(sw.ElapsedMilliseconds >= 1000);
 
-            Thread.Sleep(1500 - 1000 + 1);
+            Thread.Sleep(2000 - 1000 + 1);
 
             // 那个锁其实已经不在了，缓存应该把它干掉
             Assert.False(ic.ContainsKey("lock:TestLock2"));
