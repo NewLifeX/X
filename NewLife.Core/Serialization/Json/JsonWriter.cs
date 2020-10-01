@@ -221,12 +221,12 @@ namespace NewLife.Serialization
             var str = "";
             if (dt.Year > 1000)
             {
-                if (dt.Hour == 0 && dt.Minute == 0 && dt.Second == 0)
-                {
-                    str = dt.ToString("yyyy-MM-dd");
-                }
-                else
-                    str = dt.ToFullString();
+                //if (dt.Hour == 0 && dt.Minute == 0 && dt.Second == 0)
+                //{
+                //    str = dt.ToString("yyyy-MM-dd");
+                //}
+                //else
+                str = dt.ToFullString();
 
                 // 处理UTC
                 if (dt.Kind == DateTimeKind.Utc) str += " UTC";
