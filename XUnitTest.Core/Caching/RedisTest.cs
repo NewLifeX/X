@@ -347,7 +347,7 @@ namespace XUnitTest.Caching
             using var ck = ic.AcquireLock("TestLock3", 1000);
 
             // 已经过了一点时间
-            Thread.Sleep(100);
+            Thread.Sleep(500);
 
             // 循环多次后，可以抢到
             using var ck2 = ic.AcquireLock("TestLock3", 1000);
