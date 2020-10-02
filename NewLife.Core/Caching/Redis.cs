@@ -148,7 +148,7 @@ namespace NewLife.Caching
 
         private NetUri[] _servers;
         private Int32 _idxServer;
-        private Int32 _idxLast;
+        private Int32 _idxLast = -1;
         private DateTime _nextTrace;
 
         /// <summary>创建连接客户端</summary>
@@ -180,23 +180,20 @@ namespace NewLife.Caching
             if (idx > 0)
             {
                 var now = DateTime.Now;
-                if (_nextTrace.Year < 2000) _nextTrace = now.AddSeconds(60);
-
+                if (_nextTrace.Year < 2000) _nextTrace = now.AddSeconds(300);
                 if (now > _nextTrace)
                 {
                     _nextTrace = DateTime.MinValue;
 
                     idx = _idxServer = 0;
                 }
+            }
 
-                if (idx != _idxLast)
-                {
-                    var m = _idxLast % svrs.Length;
-                    var n = idx % svrs.Length;
-                    XTrace.WriteLine("Redis切换 {0} => {1}", svrs[m], svrs[n]);
+            if (idx != _idxLast)
+            {
+                XTrace.WriteLine("Redis使用 {0}", svrs[idx % svrs.Length]);
 
-                    _idxLast = idx;
-                }
+                _idxLast = idx;
             }
 
             var rc = new RedisClient(this, svrs[idx % svrs.Length])

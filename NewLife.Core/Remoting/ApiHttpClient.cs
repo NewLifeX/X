@@ -3,13 +3,11 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Runtime.Serialization;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using NewLife.Data;
 using NewLife.Http;
 using NewLife.Log;
-using NewLife.Threading;
 #if !NET4
 using TaskEx = System.Threading.Tasks.Task;
 #endif
@@ -17,7 +15,7 @@ using TaskEx = System.Threading.Tasks.Task;
 namespace NewLife.Remoting
 {
     /// <summary>Http应用接口客户端</summary>
-    public class ApiHttpClient : DisposeBase, IApiClient
+    public class ApiHttpClient : IApiClient
     {
         #region 属性
         /// <summary>令牌。每次请求携带</summary>
@@ -25,12 +23,6 @@ namespace NewLife.Remoting
 
         /// <summary>超时时间。默认15000ms</summary>
         public Int32 Timeout { get; set; } = 15_000;
-
-        /// <summary>探测节点可用性的周期。默认600_000ms</summary>
-        public Int32 TracePeriod { get; set; } = 600_000;
-
-        /// <summary>探测次数。每个节点连续探测多次，任意一次成功即认为该节点可用，默认3</summary>
-        public Int32 TraceTimes { get; set; } = 3;
 
         /// <summary>是否使用系统代理设置。默认false不检查系统代理设置，在某些系统上可以大大改善初始化速度</summary>
         public Boolean UseProxy { get; set; }
@@ -71,15 +63,6 @@ namespace NewLife.Remoting
                     Add("service" + (i + 1), new Uri(ss[i]));
                 }
             }
-        }
-
-        /// <summary>销毁</summary>
-        /// <param name="disposing"></param>
-        protected override void Dispose(Boolean disposing)
-        {
-            base.Dispose(disposing);
-
-            _timer.TryDispose();
         }
         #endregion
 
@@ -126,23 +109,31 @@ namespace NewLife.Remoting
         {
             var returnType = typeof(TResult);
 
-            // 发起请求
-            //var msg = await SendAsync(method, action, args, rtype, onRequest);
-
-            // 建立请求
-            var request = BuildRequest(method, action, args, returnType);
-            onRequest?.Invoke(request);
-            var msg = await SendAsync(request);
-
-            try
+            var i = 0;
+            do
             {
-                return await ApiHelper.ProcessResponse<TResult>(msg);
-            }
-            catch (ApiException ex)
-            {
-                ex.Source = Services[_Index]?.Address + "/" + action;
-                throw;
-            }
+                // 建立请求
+                var request = BuildRequest(method, action, args, returnType);
+                onRequest?.Invoke(request);
+
+                try
+                {
+                    var msg = await SendAsync(request);
+
+                    return await ApiHelper.ProcessResponse<TResult>(msg);
+                }
+                catch (ApiException ex)
+                {
+                    ex.Source = Services[_idxServer]?.Address + "/" + action;
+                    throw;
+                }
+                catch (HttpRequestException)
+                {
+                    // 网络异常时，自动切换到其它节点
+                    _idxServer++;
+                    if (++i >= Services.Count) throw;
+                }
+            } while (true);
         }
 
         /// <summary>异步调用，等待返回结果</summary>
@@ -150,13 +141,13 @@ namespace NewLife.Remoting
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
         /// <returns></returns>
-        async Task<TResult> IApiClient.InvokeAsync<TResult>(String action, Object args) => await InvokeAsync<TResult>(HttpMethod.Post, action, args);
+        async Task<TResult> IApiClient.InvokeAsync<TResult>(String action, Object args) => await InvokeAsync<TResult>(args == null ? HttpMethod.Get : HttpMethod.Post, action, args);
 
         /// <summary>同步调用，阻塞等待</summary>
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
         /// <returns></returns>
-        TResult IApiClient.Invoke<TResult>(String action, Object args) => TaskEx.Run(() => InvokeAsync<TResult>(HttpMethod.Post, action, args)).Result;
+        TResult IApiClient.Invoke<TResult>(String action, Object args) => TaskEx.Run(() => InvokeAsync<TResult>(args == null ? HttpMethod.Get : HttpMethod.Post, action, args)).Result;
         #endregion
 
         #region 构造请求
@@ -187,7 +178,9 @@ namespace NewLife.Remoting
 
         #region 调度池
         /// <summary>调度索引，当前使用该索引处的服务</summary>
-        protected volatile Int32 _Index;
+        protected volatile Int32 _idxServer;
+        private Int32 _idxLast = -1;
+        private DateTime _nextTrace;
 
         /// <summary>异步发送</summary>
         /// <param name="request">请求</param>
@@ -197,18 +190,8 @@ namespace NewLife.Remoting
             var ms = Services;
             if (ms.Count == 0) throw new InvalidOperationException("未添加服务地址！");
 
-            // 设置了重置周期，且地址池有两个或以上时，才启用定时重置
-            if (TracePeriod > 0 && ms.Count > 1 && _timer == null)
-            {
-                lock (this)
-                {
-                    if (_timer == null) _timer = new TimerX(DoTrace, null, TracePeriod, TracePeriod) { Async = true };
-                }
-            }
-
             // 获取一个处理当前请求的服务，此处实现负载均衡LoadBalance和故障转移Failover
             var service = GetService();
-            service.Total++;
             Source = service.Name;
 
             // 性能计数器，次数、TPS、平均耗时
@@ -228,25 +211,15 @@ namespace NewLife.Remoting
 
                 return await SendOnServiceAsync(request, service, client);
             }
-            catch (Exception)
+            catch
             {
                 service.Client = null;
-                service.Error++;
-                service.LastError = DateTime.Now;
-
-                // 异常发生，马上安排检查网络
-                if (_timer != null)
-                {
-                    _timer.Period = 5_000;
-                    _timer.SetNext(-1);
-                }
 
                 throw;
             }
             finally
             {
                 var msCost = st.StopCount(sw) / 1000;
-                service.TotalCost += msCost;
                 if (SlowTrace > 0 && msCost >= SlowTrace) WriteLog($"慢调用[{request.RequestUri.AbsoluteUri}]，耗时{msCost:n0}ms");
 
                 // 归还服务
@@ -261,23 +234,35 @@ namespace NewLife.Remoting
         /// <returns></returns>
         protected virtual Service GetService()
         {
-            var ms = Services;
-            if (_Index >= ms.Count) _Index = 0;
+            var svrs = Services;
 
-            return ms[_Index];
+            // 一定时间后，切换回来主节点
+            var idx = _idxServer;
+            if (idx > 0)
+            {
+                var now = DateTime.Now;
+                if (_nextTrace.Year < 2000) _nextTrace = now.AddSeconds(300);
+                if (now > _nextTrace)
+                {
+                    _nextTrace = DateTime.MinValue;
+
+                    idx = _idxServer = 0;
+                }
+            }
+
+            if (idx != _idxLast)
+            {
+                XTrace.WriteLine("Http使用 {0}", svrs[idx % svrs.Count].Address);
+
+                _idxLast = idx;
+            }
+
+            return svrs[_idxServer % svrs.Count];
         }
 
         /// <summary>归还服务，此处实现故障转移Failover，服务的客户端被清空，说明当前服务不可用</summary>
         /// <param name="service"></param>
-        protected virtual void PutService(Service service)
-        {
-            if (service.Client == null)
-            {
-                var idx = _Index + 1;
-                if (idx >= Services.Count) idx = 0;
-                _Index = idx;
-            }
-        }
+        protected virtual void PutService(Service service) { }
 
         /// <summary>在指定服务地址上发生请求</summary>
         /// <param name="request">请求消息</param>
@@ -307,79 +292,6 @@ namespace NewLife.Remoting
 
             return client;
         }
-
-        private TimerX _timer;
-        /// <summary>定时检测网络。优先选择第一个</summary>
-        /// <param name="state"></param>
-        protected virtual void DoTrace(Object state)
-        {
-            var ms = Services;
-            if (ms.Count < 1) return;
-
-            var times = TraceTimes;
-            if (times <= 0) times = 1;
-
-            // 打开多个任务，同时检测节点
-            var source = new CancellationTokenSource();
-            var ts = new List<Task<Int32>>();
-            foreach (var service in ms)
-            {
-                ts.Add(TaskEx.Run(() => TraceService(service, times, source.Token)));
-            }
-
-            // 依次等待完成
-            for (var i = 0; i < ts.Count; i++)
-            {
-                ts[i].Wait();
-
-                // 如果成功，则直接使用
-                if (ts[i].Result >= 0)
-                {
-                    if (i != _Index) WriteLog("ApiHttp.DoTrace 地址切换 {0} => {1}", ms[_Index]?.Address, ms[i]?.Address);
-
-                    _Index = i;
-                    source.Cancel();
-
-                    // 调整定时器周期。第一节点时，恢复默认定时，非第一节点时，每分钟探测一次，希望能够尽快回到第一节点
-                    _timer.Period = i == 0 ? TracePeriod : 60_000;
-
-                    return;
-                }
-            }
-        }
-
-        /// <summary>探测服务节点</summary>
-        /// <param name="service"></param>
-        /// <param name="times"></param>
-        /// <param name="cancellation"></param>
-        /// <returns></returns>
-        protected virtual async Task<Int32> TraceService(Service service, Int32 times, CancellationToken cancellation)
-        {
-            // 每个任务若干次，任意一次成功
-            for (var i = 0; i < times && !cancellation.IsCancellationRequested; i++)
-            {
-                try
-                {
-                    var request = BuildRequest(HttpMethod.Get, "api", null, null);
-                    var client = CreateClient();
-                    client.BaseAddress = service.Address;
-
-                    var rs = await client.SendAsync(request);
-                    if (rs != null)
-                    {
-                        // 该地址可用
-                        service.Client = client;
-                        return i;
-                    }
-                }
-                catch { }
-            }
-
-            // 当前地址不可用
-            WriteLog("ApiHttp.TraceService 地址不可用 :{0}", service.Address);
-
-            return -1;
-        }
         #endregion
 
         #region 内嵌
@@ -395,21 +307,6 @@ namespace NewLife.Remoting
             /// <summary>客户端</summary>
             [XmlIgnore, IgnoreDataMember]
             public HttpClient Client { get; set; }
-
-            /// <summary>总次数。可用于负载均衡</summary>
-            public Int32 Total { get; set; }
-
-            /// <summary>错误次数。可用于故障转移</summary>
-            public Int32 Error { get; set; }
-
-            /// <summary>最后出错时间</summary>
-            public DateTime LastError { get; set; }
-
-            /// <summary>总耗时</summary>
-            public Int64 TotalCost { get; set; }
-
-            /// <summary>平均耗时。可用于负载均衡</summary>
-            public Int32 AverageCost => Total == 0 ? 0 : (Int32)(TotalCost / Total);
         }
         #endregion
 
