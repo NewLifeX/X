@@ -148,6 +148,7 @@ namespace NewLife.Caching
 
         private NetUri[] _servers;
         private Int32 _idxServer;
+        private Int32 _idxLast;
         private DateTime _nextTrace;
 
         /// <summary>创建连接客户端</summary>
@@ -157,7 +158,8 @@ namespace NewLife.Caching
             var svr = Server?.Trim();
             if (svr.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Server));
 
-            if (_servers == null)
+            var svrs = _servers;
+            if (svrs == null)
             {
                 var ss = svr.Split(",");
                 var uris = new NetUri[ss.Length];
@@ -170,34 +172,34 @@ namespace NewLife.Caching
                     if (uri.Port == 0) uri.Port = 6379;
                     uris[i] = uri;
                 }
-                _servers = uris;
+                svrs = _servers = uris;
             }
 
             // 一定时间后，切换回来主节点
-            if (_idxServer > 0)
+            var idx = _idxServer;
+            if (idx > 0)
             {
                 var now = DateTime.Now;
-                if (_nextTrace.Year < 2000)
-                {
-                    _nextTrace = now.AddSeconds(60);
-
-                    var m = (_idxServer - 1) % _servers.Length;
-                    var n = _idxServer % _servers.Length;
-                    XTrace.WriteLine("Redis切换 {0} => {1}", _servers[m], _servers[n]);
-                }
+                if (_nextTrace.Year < 2000) _nextTrace = now.AddSeconds(60);
 
                 if (now > _nextTrace)
                 {
-                    _idxServer = 0;
                     _nextTrace = DateTime.MinValue;
 
-                    var m = (_idxServer - 1) % _servers.Length;
-                    var n = _idxServer % _servers.Length;
-                    XTrace.WriteLine("Redis恢复 {0} => {1}", _servers[m], _servers[n]);
+                    idx = _idxServer = 0;
+                }
+
+                if (idx != _idxLast)
+                {
+                    var m = _idxLast % svrs.Length;
+                    var n = idx % svrs.Length;
+                    XTrace.WriteLine("Redis切换 {0} => {1}", svrs[m], svrs[n]);
+
+                    _idxLast = idx;
                 }
             }
 
-            var rc = new RedisClient(this, _servers[_idxServer % _servers.Length])
+            var rc = new RedisClient(this, svrs[idx % svrs.Length])
             {
                 Log = Log
             };

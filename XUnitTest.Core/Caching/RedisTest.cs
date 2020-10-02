@@ -431,7 +431,7 @@ namespace XUnitTest.Caching
         public void SlaveTest()
         {
             // 配置两个地址，第一个地址是不可访问的，它会自动切换到第二地址
-            var config = "server=127.0.0.1:6000,127.0.0.1:6379;db=3;timeout=7000";
+            var config = "server=127.0.0.1:6000,127.0.0.1:7000,127.0.0.1:6379;db=3;timeout=7000";
 
             var redis = new Redis();
             redis.Init(config);
