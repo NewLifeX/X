@@ -7,8 +7,8 @@
     <Description>算法、日志、网络、RPC、序列化、缓存、线程池</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2020 NewLife</Copyright>
-    <Version>8.10.2020.0930-rc4</Version>
-    <FileVersion>8.10.2020.0930</FileVersion>
+    <Version>8.10.2020.1002</Version>
+    <FileVersion>8.10.2020.1002</FileVersion>
     <AssemblyVersion>8.10.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <OutputPath>..\..\Bin</OutputPath>
@@ -27,7 +27,7 @@
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
-    <PackageReleaseNotes>强化雪花算法Snowflake;ICache增加TryGet;新增字符串扩展IsMatch;Tracer识别持续跟踪标识;重构网络日志库NetworkLog</PackageReleaseNotes>
+    <PackageReleaseNotes>支持Redis6.0;强化雪花算法Snowflake;ICache增加TryGet;新增字符串扩展IsMatch;Tracer识别持续跟踪标识;重构网络日志库NetworkLog;新增地理编码GeoHash;强化对HttpClient的支持</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>

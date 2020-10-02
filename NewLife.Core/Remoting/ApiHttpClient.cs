@@ -15,7 +15,7 @@ using TaskEx = System.Threading.Tasks.Task;
 namespace NewLife.Remoting
 {
     /// <summary>Http应用接口客户端</summary>
-    public class ApiHttpClient : IApiClient
+    public class ApiHttpClient : DisposeBase, IApiClient
     {
         #region 属性
         /// <summary>令牌。每次请求携带</summary>
@@ -62,6 +62,18 @@ namespace NewLife.Remoting
                 {
                     Add("service" + (i + 1), new Uri(ss[i]));
                 }
+            }
+        }
+
+        /// <summary>销毁</summary>
+        /// <param name="disposing"></param>
+        protected override void Dispose(Boolean disposing)
+        {
+            base.Dispose(disposing);
+
+            foreach (var item in Services)
+            {
+                item.Client?.TryDispose();
             }
         }
         #endregion
