@@ -123,11 +123,49 @@ namespace XUnitTest.Serialization
             public Int32 ID { get; set; }
 
             public IList<IDuck> Childs { get; set; }
+
+            public Object Body { get; set; }
         }
 
         class DuckB : IDuck
         {
             public String Name { get; set; }
+        }
+
+        [Fact]
+        public void ObjectTest()
+        {
+            var model = new ModelB
+            {
+                ID = 2233,
+                Body = new
+                {
+                    aaa = 123,
+                    bbb = 456,
+                    ccc = 789,
+                },
+            };
+
+            // 序列化
+            var json = model.ToJson();
+
+            // 反序列化
+            var model2 = json.ToJsonEntity<ModelB>();
+            Assert.NotNull(model2);
+            Assert.Equal(2233, model2.ID);
+
+            var dic = model2.Body as IDictionary<String, Object>;
+            Assert.Equal(3, dic.Count);
+            Assert.Equal(123, dic["aaa"]);
+            Assert.Equal(456, dic["bbb"]);
+            Assert.Equal(789, dic["ccc"]);
+        }
+
+        class ModelB
+        {
+            public Int32 ID { get; set; }
+
+            public Object Body { get; set; }
         }
     }
 }
