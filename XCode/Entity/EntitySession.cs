@@ -431,29 +431,18 @@ namespace XCode
         private DateTime _NextCount;
         /// <summary>总记录数较小时，使用静态字段，较大时增加使用Cache</summary>
         private Int64 _Count = -2L;
-        /// <summary>总记录数，小于1000时是精确的，大于1000时缓存10分钟</summary>
-        /// <remarks>
-        /// 1，检查静态字段，如果有数据且小于1000，直接返回，否则=>3
-        /// 2，如果有数据但大于1000，则返回缓存里面的有效数据
-        /// 3，来到这里，有可能是第一次访问，静态字段没有缓存，也有可能是大于1000的缓存过期
-        /// 4，检查模型
-        /// 5，根据需要查询数据
-        /// 6，如果大于1000，缓存数据
-        /// 7，检查数据初始化
-        /// </remarks>
+        /// <summary>总记录数，小于100w时精确查询，否则取索引行数，缓存60秒</summary>
         public Int64 LongCount
         {
             get
             {
-                var key = CacheKey;
-
                 // 当前缓存的值
                 var n = _Count;
-                var now = TimerX.Now;
 
                 // 如果有缓存，则考虑返回吧
                 if (n >= 0)
                 {
+                    var now = TimerX.Now;
                     if (_NextCount < now)
                     {
                         _NextCount = now.AddSeconds(60);
@@ -469,27 +458,20 @@ namespace XCode
                 CheckModel();
 
                 // 从配置读取
-                var dc = DataCache.Current;
                 if (n < 0)
                 {
-                    if (dc.Counts.TryGetValue(key, out var c)) n = c;
+                    if (DataCache.Current.Counts.TryGetValue(CacheKey, out var c)) n = c;
                 }
 
                 if (DAL.Debug) DAL.WriteLog("{0}.Count 快速计算表记录数（非精确）[{1}/{2}] 参考值 {3:n0}", ThisType.Name, TableName, ConnName, n);
 
-                var m = GetCount(n);
-                _Count = m;
-
-                dc.Counts[key] = m;
-                dc.SaveAsync();
-
-                _NextCount = now.AddSeconds(60);
+                LongCount = GetCount(n);
 
                 // 先拿到记录数再初始化，因为初始化时会用到记录数，同时也避免了死循环
                 //WaitForInitData();
                 InitData();
 
-                return m;
+                return _Count;
             }
             private set
             {
@@ -502,22 +484,11 @@ namespace XCode
             }
         }
 
+        /// <summary>获取总行数，基于参考值采取不同策略</summary>
+        /// <param name="count"></param>
+        /// <returns></returns>
         private Int64 GetCount(Int64 count)
         {
-            //if (count >= 0)
-            //{
-            //    // 小于1000的精确查询，大于1000的快速查询
-            //    if (count <= 1000L)
-            //    {
-            //        var builder = new SelectBuilder
-            //        {
-            //            Table = FormatedTableName
-            //        };
-
-            //        return Dal.SelectCount(builder);
-            //    }
-            //}
-
             var dal = GetDAL(false);
 
             // 第一次访问，SQLite的Select Count非常慢，数据大于阀值时，使用最大ID作为表记录数
@@ -531,30 +502,20 @@ namespace XCode
                 var ds = dal.Query(builder, 0, 1);
                 if (ds.Columns.Length > 0 && ds.Rows.Count > 0)
                     count = Convert.ToInt64(ds.Rows[0][0]);
-                //var rs = Dal.Query(builder, 0, 0, dr => dr.Read() ? dr[0].ToInt() : -1);
-                //if (rs > 0) count = rs;
             }
 
             // 100w数据时，没有预热Select Count需要3000ms，预热后需要500ms
-            if (count < 500000)
-            {
-                if (count <= 0) count = dal.Session.QueryCountFast(FormatedTableName);
+            if (count < 0 || count >= 1_000_000) count = dal.Session.QueryCountFast(FormatedTableName);
 
-                // 查真实记录数，修正FastCount不够准确的情况
-                if (count < 10000000)
+            // 查真实记录数，修正FastCount不够准确的情况
+            if (count >= 0 && count < 10_000_000)
+            {
+                var builder = new SelectBuilder
                 {
-                    var builder = new SelectBuilder
-                    {
-                        Table = FormatedTableName
-                    };
+                    Table = FormatedTableName
+                };
 
-                    count = dal.SelectCount(builder);
-                }
-            }
-            else
-            {
-                // 异步查询弥补不足，千万数据以内
-                if (count < 10000000) count = dal.Session.QueryCountFast(FormatedTableName);
+                count = dal.SelectCount(builder);
             }
 
             return count;
