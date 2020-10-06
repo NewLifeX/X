@@ -70,6 +70,10 @@ namespace NewLife.Caching
 
             Client.TryDispose();
         }
+
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override String ToString() => Server + "";
         #endregion
 
         #region 核心方法

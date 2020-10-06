@@ -281,11 +281,19 @@ namespace NewLife.Caching
                 {
                     if (i++ >= Retry) throw;
                 }
-                catch (SocketException)
+                catch (Exception ex)
                 {
-                    // 网络异常时，自动切换到其它节点
-                    _idxServer++;
-                    if (++i >= _servers.Length) throw;
+                    if (ex is SocketException || ex is IOException)
+                    {
+                        // 销毁连接
+                        client.TryDispose();
+
+                        // 网络异常时，自动切换到其它节点
+                        _idxServer++;
+                        if (++i < _servers.Length) continue;
+                    }
+
+                    throw;
                 }
                 finally
                 {
