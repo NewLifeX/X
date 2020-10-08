@@ -17,8 +17,6 @@ using NewLife.Security;
 using NewLife.Serialization;
 using XCode.DataAccessLayer;
 using XCode.Membership;
-using XCode.Service;
-using XCode;
 using XCode.Code;
 using System.Reflection;
 using System.Security.Cryptography;
@@ -56,7 +54,7 @@ namespace Test
                 try
                 {
 #endif
-                Test8();
+                Test5();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -325,7 +323,23 @@ namespace Test
 
         private static void Test5()
         {
+            var set = XCode.Setting.Current;
+            set.EntityCacheExpire = 5;
 
+            Log.Meta.Session.Dal.Db.ShowSQL = true;
+
+            for (var i = 0; i < 10; i++)
+            {
+                LogProvider.Provider.WriteLog("test" + i, "test", true, "xxx");
+            }
+
+            for (var i = 0; i < 1000; i++)
+            {
+                var names = Log.FindAllCategoryName();
+                XTrace.WriteLine("names: {0}", names.Count);
+
+                Thread.Sleep(1000);
+            }
         }
 
         private static void Test6()
@@ -439,8 +453,10 @@ namespace Test
             var r0 = Role.FindByName("Stone");
             r0?.Delete();
 
-            var r = new Role();
-            r.Name = "Stone";
+            var r = new Role
+            {
+                Name = "Stone"
+            };
             r.Insert();
 
             var r2 = Role.FindByName("Stone");
@@ -488,10 +504,7 @@ namespace Test
         }
 
         /// <summary>测试序列化</summary>
-        private static void Test12()
-        {
-            EntityBuilder.Build("../../Src/XCode/model.xml");
-        }
+        private static void Test12() => EntityBuilder.Build("../../Src/XCode/model.xml");
 
         private static void Test13()
         {
@@ -573,11 +586,11 @@ namespace Test
             using (var stream = new MemoryStream())
             {
                 var writer = new BinaryWriter(stream);
-                writer.Write((byte)0x30); // SEQUENCE
+                writer.Write((Byte)0x30); // SEQUENCE
                 using (var innerStream = new MemoryStream())
                 {
                     var innerWriter = new BinaryWriter(innerStream);
-                    EncodeIntegerBigEndian(innerWriter, new byte[] { 0x00 }); // Version
+                    EncodeIntegerBigEndian(innerWriter, new Byte[] { 0x00 }); // Version
                     EncodeIntegerBigEndian(innerWriter, parameters.Modulus);
                     EncodeIntegerBigEndian(innerWriter, parameters.Exponent);
 
@@ -589,12 +602,12 @@ namespace Test
                     EncodeIntegerBigEndian(innerWriter, parameters.Exponent); // instead of parameters.DQ
                     EncodeIntegerBigEndian(innerWriter, parameters.Exponent); // instead of parameters.InverseQ
 
-                    var length = (int)innerStream.Length;
+                    var length = (Int32)innerStream.Length;
                     EncodeLength(writer, length);
                     writer.Write(innerStream.GetBuffer(), 0, length);
                 }
 
-                var base64 = Convert.ToBase64String(stream.GetBuffer(), 0, (int)stream.Length).ToCharArray();
+                var base64 = Convert.ToBase64String(stream.GetBuffer(), 0, (Int32)stream.Length).ToCharArray();
                 outputStream.WriteLine("-----BEGIN PUBLIC KEY-----");
                 // Output as Base64 with lines chopped at 64 characters
                 for (var i = 0; i < base64.Length; i += 64)
@@ -608,9 +621,9 @@ namespace Test
             }
         }
 
-        private static void EncodeIntegerBigEndian(BinaryWriter stream, byte[] value, bool forceUnsigned = true)
+        private static void EncodeIntegerBigEndian(BinaryWriter stream, Byte[] value, Boolean forceUnsigned = true)
         {
-            stream.Write((byte)0x02); // INTEGER
+            stream.Write((Byte)0x02); // INTEGER
             var prefixZeros = 0;
             for (var i = 0; i < value.Length; i++)
             {
@@ -620,7 +633,7 @@ namespace Test
             if (value.Length - prefixZeros == 0)
             {
                 EncodeLength(stream, 1);
-                stream.Write((byte)0);
+                stream.Write((Byte)0);
             }
             else
             {
@@ -628,7 +641,7 @@ namespace Test
                 {
                     // Add a prefix zero to force unsigned if the MSB is 1
                     EncodeLength(stream, value.Length - prefixZeros + 1);
-                    stream.Write((byte)0);
+                    stream.Write((Byte)0);
                 }
                 else
                 {
@@ -641,13 +654,13 @@ namespace Test
             }
         }
 
-        private static void EncodeLength(BinaryWriter stream, int length)
+        private static void EncodeLength(BinaryWriter stream, Int32 length)
         {
             if (length < 0) throw new ArgumentOutOfRangeException("length", "Length must be non-negative");
             if (length < 0x80)
             {
                 // Short form
-                stream.Write((byte)length);
+                stream.Write((Byte)length);
             }
             else
             {
@@ -659,10 +672,10 @@ namespace Test
                     temp >>= 8;
                     bytesRequired++;
                 }
-                stream.Write((byte)(bytesRequired | 0x80));
+                stream.Write((Byte)(bytesRequired | 0x80));
                 for (var i = bytesRequired - 1; i >= 0; i--)
                 {
-                    stream.Write((byte)(length >> (8 * i) & 0xff));
+                    stream.Write((Byte)(length >> (8 * i) & 0xff));
                 }
             }
         }
@@ -827,7 +840,7 @@ namespace Test
         // 测试加密
         private static void Test15()
         {
-            byte[] signStr;
+            Byte[] signStr;
 
             using (var prvfs = new FileStream("D:\\xtoken.prvkey", FileMode.Open, FileAccess.Read))
             {

@@ -38,19 +38,10 @@ namespace XCode.Cache
         public FieldCache(FieldItem field)
         {
             WaitFirst = false;
-            Expire = 10 * 60;
-            FillListMethod = () =>
-            {
-                return Entity<TEntity>.FindAll(Where.GroupBy(_field), _Unique.Desc(), _Unique.Count() & _field, 0, MaxRows);
-            };
+            //Expire = 10 * 60;
+            FillListMethod = Search;
 
             _field = field;
-            {
-                var tb = field.Table;
-                var id = tb.Identity;
-                if (id == null && tb.PrimaryKeys.Length == 1) id = tb.PrimaryKeys[0];
-                _Unique = id ?? throw new Exception($"{tb.TableName}缺少唯一主键，无法使用缓存");
-            }
         }
 
         /// <summary>对指定字段使用实体缓存</summary>
@@ -58,28 +49,70 @@ namespace XCode.Cache
         public FieldCache(String fieldName)
         {
             WaitFirst = false;
-            Expire = 10 * 60;
-            FillListMethod = () =>
-            {
-                return Entity<TEntity>.FindAll(Where.GroupBy(_field), _Unique.Desc(), _Unique.Count() & _field, 0, MaxRows);
-            };
+            //Expire = 10 * 60;
+            FillListMethod = Search;
             _fieldName = fieldName;
         }
 
         private void Init()
         {
-            if (_field == null || !_fieldName.IsNullOrEmpty())
-            {
-                _field = Entity<TEntity>.Meta.Table.FindByName(_fieldName);
+            if (_field == null && !_fieldName.IsNullOrEmpty()) _field = Entity<TEntity>.Meta.Table.FindByName(_fieldName);
 
+            if (_Unique == null)
+            {
                 var tb = _field.Table;
                 var id = tb.Identity;
                 if (id == null && tb.PrimaryKeys.Length == 1) id = tb.PrimaryKeys[0];
                 _Unique = id ?? throw new Exception($"{tb.TableName}缺少唯一主键，无法使用缓存");
+
+                // 数据量较大时，扩大有效期
+                var count = Entity<TEntity>.Meta.Count;
+                if (count > 1_000_000)
+                    Expire *= 60;
+                else if (count > 10_000)
+                    Expire *= 10;
+                else
+                    Expire *= 3;
             }
         }
 
-        private Task<Dictionary<String, String>> _task;
+        private IList<TEntity> Search() => Entity<TEntity>.FindAll(Where.GroupBy(_field), _Unique.Desc(), _Unique.Count("group_count") & _field, 0, MaxRows);
+
+        private IDictionary<String, String> GetAll()
+        {
+            //var id = _field.Table.Identity;
+            var list = Entities.Take(MaxRows).ToList();
+
+            var dic = new Dictionary<String, String>();
+            foreach (var entity in list)
+            {
+                var k = entity[_field.Name] + "";
+                var v = k;
+                if (GetDisplay != null)
+                {
+                    v = GetDisplay(entity);
+                    if (v.IsNullOrEmpty()) v = $"[{k}]";
+                }
+
+                dic[k] = String.Format(DisplayFormat, v, entity["group_count"]);
+            }
+
+            // 更新缓存
+            if (dic.Count > 0)
+            {
+                var key = $"{typeof(TEntity).Name}_{_field?.Name}";
+                var dc = DataCache.Current;
+
+                dc.FieldCache[key] = dic;
+                dc.SaveAsync();
+            }
+
+            _task = null;
+
+            return dic;
+        }
+
+        private Task<IDictionary<String, String>> _task;
         /// <summary>获取所有类别名称</summary>
         /// <returns></returns>
         public IDictionary<String, String> FindAllName()
@@ -89,36 +122,7 @@ namespace XCode.Cache
             var key = $"{typeof(TEntity).Name}_{_field?.Name}";
             var dc = DataCache.Current;
 
-            if (_task == null || _task.Status == TaskStatus.RanToCompletion) _task = TaskEx.Run(() =>
-            {
-                //var id = _field.Table.Identity;
-                var list = Entities.Take(MaxRows).ToList();
-
-                var dic = new Dictionary<String, String>();
-                foreach (var entity in list)
-                {
-                    var k = entity[_field.Name] + "";
-                    var v = k;
-                    if (GetDisplay != null)
-                    {
-                        v = GetDisplay(entity);
-                        if (v.IsNullOrEmpty()) v = $"[{k}]";
-                    }
-
-                    dic[k] = String.Format(DisplayFormat, v, entity[_Unique.Name]);
-                }
-
-                // 更新缓存
-                if (dic.Count > 0)
-                {
-                    dc.FieldCache[key] = dic;
-                    dc.SaveAsync();
-                }
-
-                _task = null;
-
-                return dic;
-            });
+            if (_task == null || _task.IsCompleted) _task = TaskEx.Run(GetAll);
 
             // 优先从缓存读取
             if (dc.FieldCache.TryGetValue(key, out var rs)) return rs;
