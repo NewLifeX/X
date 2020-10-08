@@ -76,7 +76,7 @@ namespace XCode.Cache
             }
         }
 
-        private IList<TEntity> Search() => Entity<TEntity>.FindAll(Where.GroupBy(_field), _Unique.Desc(), _Unique.Count("group_count") & _field, 0, MaxRows);
+        private IList<TEntity> Search() => Entity<TEntity>.FindAll(Where.GroupBy(_field), "group_count desc", _Unique.Count("group_count") & _field, 0, MaxRows);
 
         private IDictionary<String, String> GetAll()
         {

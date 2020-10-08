@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using NewLife;
 using NewLife.Log;
 using NewLife.Threading;
 
@@ -150,7 +149,11 @@ namespace XCode
 
                 try
                 {
-                    batch.SaveWithoutValid();
+                    // 实体队列SaveAsync异步保存时，如果只插入表，直接走批量Insert，而不是Upsert
+                    if (Session.Table.InsertOnly)
+                        batch.Insert(true);
+                    else
+                        batch.SaveWithoutValid();
                 }
                 catch (Exception ex)
                 {
