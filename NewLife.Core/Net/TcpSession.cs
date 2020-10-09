@@ -27,8 +27,8 @@ namespace NewLife.Net
         /// <summary>自动重连次数，默认3。发生异常断开连接时，自动重连服务端。</summary>
         public Int32 AutoReconnect { get; set; } = 3;
 
-        /// <summary>是否匹配空包。Http协议需要</summary>
-        protected Boolean MatchEmpty { get; set; }
+        ///// <summary>是否匹配空包。Http协议需要</summary>
+        //protected Boolean MatchEmpty { get; set; }
 
         /// <summary>不延迟直接发送。Tcp为了合并小包而设计，客户端默认false，服务端默认true</summary>
         public Boolean NoDelay { get; set; }
@@ -348,7 +348,7 @@ namespace NewLife.Net
             ProcessEvent(se, bytes);
         }
 
-        private Int32 _empty;
+        //private Int32 _empty;
         /// <summary>预处理</summary>
         /// <param name="pk">数据包</param>
         /// <param name="remote">远程地址</param>
@@ -358,7 +358,7 @@ namespace NewLife.Net
             if (pk.Count == 0)
             {
                 // 连续多次空数据，则断开
-                if ((DisconnectWhenEmptyData || _empty++ > 3))
+                if (DisconnectWhenEmptyData /*|| _empty++ > 3*/)
                 {
                     Close("收到空数据");
                     Dispose();
@@ -366,8 +366,8 @@ namespace NewLife.Net
                     return null;
                 }
             }
-            else
-                _empty = 0;
+            //else
+            //    _empty = 0;
 
             return this;
         }
@@ -376,8 +376,8 @@ namespace NewLife.Net
         /// <param name="e">接收事件参数</param>
         protected override Boolean OnReceive(ReceivedEventArgs e)
         {
-            var pk = e.Packet;
-            if ((pk == null || pk.Count == 0) && e.Message == null && !MatchEmpty) return true;
+            //var pk = e.Packet;
+            //if ((pk == null || pk.Count == 0) && e.Message == null && !MatchEmpty) return true;
 
             // 分析处理
             RaiseReceive(this, e);

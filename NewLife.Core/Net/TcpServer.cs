@@ -13,7 +13,7 @@ namespace NewLife.Net
 {
     /// <summary>TCP服务器</summary>
     /// <remarks>
-    /// 核心工作：启动服务<see cref="Start"/>时，监听端口，并启用多个（逻辑处理器数的10倍）异步接受操作<see cref="AcceptAsync"/>。
+    /// 核心工作：启动服务<see cref="Start"/>时，监听端口，并启用多个（逻辑处理器数的10倍）异步接受操作<see cref="StartAccept"/>。
     /// 
     /// 服务器完全处于异步工作状态，任何操作都不可能被阻塞。
     /// 
@@ -138,7 +138,7 @@ namespace NewLife.Net
                 var se = new SocketAsyncEventArgs();
                 se.Completed += (s, e) => ProcessAccept(e);
 
-                AcceptAsync(se, false);
+                StartAccept(se, false);
             }
         }
 
@@ -168,7 +168,7 @@ namespace NewLife.Net
         /// <param name="se"></param>
         /// <param name="io">是否IO线程</param>
         /// <returns>开启异步是否成功</returns>
-        Boolean AcceptAsync(SocketAsyncEventArgs se, Boolean io)
+        Boolean StartAccept(SocketAsyncEventArgs se, Boolean io)
         {
             if (!Active || Client == null)
             {
@@ -179,7 +179,7 @@ namespace NewLife.Net
             var rs = false;
             try
             {
-                //_Async = Server.BeginAcceptTcpClient(OnAccept, null);
+                se.AcceptSocket = null;
                 rs = Client.AcceptAsync(se);
             }
             catch (Exception ex)
@@ -234,14 +234,10 @@ namespace NewLife.Net
                 {
                     if (!ex.IsDisposed()) OnError("EndAccept", ex);
                 }
-                finally
-                {
-                    se.AcceptSocket = null;
-                }
             }
 
             // 开始新的征程
-            AcceptAsync(se, true);
+            StartAccept(se, true);
         }
 
         Int32 g_ID = 0;

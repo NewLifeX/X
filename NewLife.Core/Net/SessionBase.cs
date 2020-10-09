@@ -301,7 +301,7 @@ namespace NewLife.Net
 
                 if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("创建RecvSA {0}", count);
 
-                ReceiveAsync(se, false);
+                StartReceive(se, false);
             }
 
             return true;
@@ -324,7 +324,7 @@ namespace NewLife.Net
         /// <param name="se">事件参数</param>
         /// <param name="io">是否在IO线程调用</param>
         /// <returns></returns>
-        Boolean ReceiveAsync(SocketAsyncEventArgs se, Boolean io)
+        Boolean StartReceive(SocketAsyncEventArgs se, Boolean io)
         {
             if (Disposed)
             {
@@ -350,6 +350,14 @@ namespace NewLife.Net
                     // 异常一般是网络错误，UDP不需要关闭
                     if (!io && ThrowException) throw;
                 }
+                return false;
+            }
+
+            // 同步返回0数据包，断开连接
+            if (!rs && se.BytesTransferred == 0 && se.SocketError == SocketError.Success)
+            {
+                Close("BytesTransferred == 0");
+                Dispose();
                 return false;
             }
 
@@ -417,7 +425,7 @@ namespace NewLife.Net
 
                 // 开始新的监听
                 if (Active && !Disposed)
-                    ReceiveAsync(se, true);
+                    StartReceive(se, true);
                 else
                     ReleaseRecv(se, "!Active || Disposed");
             }
