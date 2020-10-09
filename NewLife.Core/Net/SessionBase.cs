@@ -63,7 +63,7 @@ namespace NewLife.Net
         /// <remarks>异步处理有可能造成数据包乱序，特别是Tcp。true利于提升网络吞吐量。false避免拷贝，提升处理速度</remarks>
         public Boolean ProcessAsync { get; set; }
 
-        /// <summary>缓冲区大小。默认64k</summary>
+        /// <summary>缓冲区大小。默认8k</summary>
         public Int32 BufferSize { get; set; }
         #endregion
 
