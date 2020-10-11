@@ -856,6 +856,9 @@ namespace XCode.Code
                 // 跳过主键
                 if (di.Columns.Length == 1 && pk != null && di.Columns[0].EqualIgnoreCase(pk.Name, pk.ColumnName)) continue;
 
+                // 超过2字段索引，不要生成查询函数
+                if (di.Columns.Length > 2) continue;
+
                 var cs = Table.GetColumns(di.Columns);
                 if (cs == null || cs.Length != di.Columns.Length) continue;
 
