@@ -151,7 +151,7 @@ namespace XCode
                 {
                     // 实体队列SaveAsync异步保存时，如果只插入表，直接走批量Insert，而不是Upsert
                     if (Session.Table.InsertOnly)
-                        batch.Insert(true);
+                        batch.Insert();
                     else
                         batch.SaveWithoutValid();
                 }

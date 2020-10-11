@@ -112,10 +112,10 @@ namespace XCode.Model
                 }
             }
 
-            if (us.Count > 0) rs += us.Update(true);
-            if (ns.Count > 0) rs += ns.Insert(true);
+            if (us.Count > 0) rs += us.Update();
+            if (ns.Count > 0) rs += ns.Insert();
             if (ps.Count > 0) rs += ps.Valid(true).Upsert();
-            if (ds.Count > 0) rs += ds.Delete(true);
+            if (ds.Count > 0) rs += ds.Delete();
 
             return rs;
         }
