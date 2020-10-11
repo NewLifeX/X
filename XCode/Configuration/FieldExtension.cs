@@ -9,7 +9,7 @@ namespace XCode
     public static class FieldExtension
     {
         #region 时间复杂运算
-        /// <summary>时间专用区间函数</summary>
+        /// <summary>时间专用区间函数，左闭合右开放，开始结束都是日期时包含结束日期（也即结束日期加一天）</summary>
         /// <param name="fi"></param>
         /// <param name="start">起始时间，大于等于</param>
         /// <param name="end">结束时间，小于。如果是日期，则加一天</param>
@@ -25,8 +25,8 @@ namespace XCode
             {
                 if (end <= DateTime.MinValue || end >= DateTime.MaxValue) return exp;
 
-                // 如果只有日期，则加一天，表示包含这一天
-                if (end == end.Date) end = end.AddDays(1);
+                //// 如果只有日期，则加一天，表示包含这一天
+                //if (end == end.Date) end = end.AddDays(1);
 
                 return fi < end;
             }
@@ -42,7 +42,7 @@ namespace XCode
             }
         }
 
-        /// <summary>时间专用区间函数</summary>
+        /// <summary>时间专用区间函数，左闭合右开放，开始结束都是日期时包含结束日期（也即结束日期加一天）</summary>
         /// <param name="fi"></param>
         /// <param name="start">起始时间，大于等于</param>
         /// <param name="end">结束时间，小于。如果是日期，则加一天</param>
@@ -59,8 +59,8 @@ namespace XCode
             {
                 if (end <= DateTime.MinValue || end >= DateTime.MaxValue) return exp;
 
-                // 如果只有日期，则加一天，表示包含这一天
-                if (end == end.Date) end = end.AddDays(1);
+                //// 如果只有日期，则加一天，表示包含这一天
+                //if (end == end.Date) end = end.AddDays(1);
 
                 return fi < snow.GetId(end);
             }
