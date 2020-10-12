@@ -15,7 +15,7 @@ namespace XCode.DataAccessLayer
         /// <param name="sql">Sql语句</param>
         /// <param name="param">参数对象</param>
         /// <returns></returns>
-        public IEnumerable<T> Query<T>(String sql, Object param = null) where T : class, new()
+        public IEnumerable<T> Query<T>(String sql, Object param = null) where T : new()
         {
             var ps = param?.ToDictionary();
             var dt = QueryByCache(sql, ps, "", (s, p, k3) => Session.Query(s, Db.CreateParameters(p)), nameof(Query));
@@ -110,7 +110,7 @@ namespace XCode.DataAccessLayer
                 foreach (var item in ps)
                 {
                     if (i++ > 0) sb.Append(" And ");
-                 
+
                     var p = Db.CreateParameter(item.Key, item.Value);
                     dps.Add(p);
                     sb.AppendFormat("{0}={1}", item.Key, p.ParameterName);
@@ -142,7 +142,7 @@ namespace XCode.DataAccessLayer
                 foreach (var item in ps)
                 {
                     if (i++ > 0) sb.Append("And ");
-                  
+
                     var p = Db.CreateParameter(item.Key, item.Value);
                     dps.Add(p);
                     sb.AppendFormat("{0}={1}", item.Key, p.ParameterName);

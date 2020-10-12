@@ -333,7 +333,7 @@ namespace NewLife.Data
         /// <summary>数据表转模型列表。普通反射，便于DAL查询后转任意模型列表</summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public IEnumerable<T> ReadModels<T>() where T : class, new()
+        public IEnumerable<T> ReadModels<T>() where T : new()
         {
             // 可用属性
             var pis = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
