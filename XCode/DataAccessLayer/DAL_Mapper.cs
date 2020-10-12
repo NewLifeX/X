@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using NewLife;
 using NewLife.Collections;
+using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
 {
@@ -15,10 +16,14 @@ namespace XCode.DataAccessLayer
         /// <param name="sql">Sql语句</param>
         /// <param name="param">参数对象</param>
         /// <returns></returns>
-        public IEnumerable<T> Query<T>(String sql, Object param = null) where T : new()
+        public IEnumerable<T> Query<T>(String sql, Object param = null)
         {
             var ps = param?.ToDictionary();
             var dt = QueryByCache(sql, ps, "", (s, p, k3) => Session.Query(s, Db.CreateParameters(p)), nameof(Query));
+
+            // 优先特殊处理基础类型，选择第一字段
+            if (Type.GetTypeCode(typeof(T)) != TypeCode.Object) return dt.Rows.Select(e => e[0].ChangeType<T>());
+
             return dt.ReadModels<T>();
         }
 
