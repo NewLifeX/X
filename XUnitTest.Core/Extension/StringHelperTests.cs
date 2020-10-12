@@ -18,12 +18,18 @@ namespace XUnitTest.Extension
             Assert.False(rs);
 
             // 常量
-            rs = ".zip".IsMatch("7788.zip");
+            rs = ".zip".IsMatch(".zip");
             Assert.True(rs);
             rs = ".zip".IsMatch("7788.Zip");
             Assert.False(rs);
-            rs = ".zip".IsMatch("7788.Zip", StringComparison.OrdinalIgnoreCase);
+            rs = ".zip".IsMatch(".Zip", StringComparison.OrdinalIgnoreCase);
             Assert.True(rs);
+            rs = "/".IsMatch("/");
+            Assert.True(rs);
+            rs = "/".IsMatch("/api");
+            Assert.False(rs);
+            rs = "/".IsMatch("/api/");
+            Assert.False(rs);
 
             // 头部
             rs = "*.zip".IsMatch("7788.zip");

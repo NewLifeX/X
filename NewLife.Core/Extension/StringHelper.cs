@@ -337,7 +337,7 @@ namespace NewLife
 
             // 普通表达式，直接包含
             var p = pattern.IndexOf('*');
-            if (p < 0) return input.IndexOf(pattern, comparisonType) >= 0;
+            if (p < 0) return String.Equals(input, pattern, comparisonType);
 
             // 表达式分组
             var ps = pattern.Split('*');
