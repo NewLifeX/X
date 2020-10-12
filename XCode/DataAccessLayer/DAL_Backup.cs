@@ -440,7 +440,7 @@ namespace XCode.DataAccessLayer
 
                 // 查询数据
                 var dt = Session.Query(sql, null);
-                if (dt == null) break;
+                if (dt == null || dt.Rows.Count == 0) break;
 
                 var count = dt.Rows.Count;
                 WriteLog("同步[{0}/{1}]数据 {2:n0} + {3:n0}", table.Name, ConnName, row, count);
