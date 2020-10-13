@@ -48,6 +48,8 @@ namespace XCode.Cache
             if (exp <= 0) exp = 60;
 
             Expire = exp;
+
+            LogPrefix = $"EntityCache<{typeof(TEntity).Name}>";
         }
         #endregion
 
@@ -159,7 +161,7 @@ namespace XCode.Cache
             // 设置时间放在获取缓存之前，让其它线程不要空等
             if (ts > 0) ExpiredTime = TimerX.Now.AddSeconds(Expire);
 
-            WriteLog("更新{0}（第{2}次） 原因：{1}", ToString(), reason, ts + 1);
+            WriteLog("更新（第{0}次） 原因：{1}", ts + 1, reason);
 
             try
             {
@@ -176,7 +178,7 @@ namespace XCode.Cache
 
             ts = Interlocked.Increment(ref _Times);
             ExpiredTime = TimerX.Now.AddSeconds(Expire);
-            WriteLog("完成{0}[{1}]（第{2}次）", ToString(), _Entities.Length, ts);
+            WriteLog("完成[{0}]（第{1}次）", _Entities.Length, ts);
         }
 
         /// <summary>清除缓存</summary>

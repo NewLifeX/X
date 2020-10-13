@@ -52,6 +52,8 @@ namespace XCode.Cache
             //Expire = 10 * 60;
             FillListMethod = Search;
             _fieldName = fieldName;
+
+            LogPrefix = $"FieldCache<{typeof(TEntity).Name}+{_fieldName}>";
         }
 
         private void Init()
