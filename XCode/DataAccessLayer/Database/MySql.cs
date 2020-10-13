@@ -205,25 +205,25 @@ namespace XCode.DataAccessLayer
         /// <summary>创建参数</summary>
         /// <param name="name">名称</param>
         /// <param name="value">值</param>
-        /// <param name="field">字段</param>
+        /// <param name="type">类型</param>
         /// <returns></returns>
-        public override IDataParameter CreateParameter(String name, Object value, IDataColumn field = null)
+        public override IDataParameter CreateParameter(String name, Object value, Type type = null)
         {
-            var dp = base.CreateParameter(name, value, field);
+            var dp = base.CreateParameter(name, value, type);
 
-            var type = field?.DataType;
+            //var type = field?.DataType;
             if (type == null) type = value?.GetType();
 
             // MySql的枚举要用 DbType.String
             if (type == typeof(Boolean))
             {
                 var v = value.ToBoolean();
-                if (field?.Table != null && EnumTables.Contains(field.Table.TableName))
-                {
-                    dp.DbType = DbType.String;
-                    dp.Value = value.ToBoolean() ? 'Y' : 'N';
-                }
-                else
+                //if (field?.Table != null && EnumTables.Contains(field.Table.TableName))
+                //{
+                //    dp.DbType = DbType.String;
+                //    dp.Value = value.ToBoolean() ? 'Y' : 'N';
+                //}
+                //else
                 {
                     dp.DbType = DbType.Int16;
                     dp.Value = v ? 1 : 0;

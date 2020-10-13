@@ -886,10 +886,17 @@ namespace XCode.DataAccessLayer
         /// <param name="value">值</param>
         /// <param name="field">字段</param>
         /// <returns></returns>
-        public virtual IDataParameter CreateParameter(String name, Object value, IDataColumn field = null)
+        public virtual IDataParameter CreateParameter(String name, Object value, IDataColumn field) => CreateParameter(name, value, field?.DataType);
+
+        /// <summary>创建参数</summary>
+        /// <param name="name">名称</param>
+        /// <param name="value">值</param>
+        /// <param name="type">类型</param>
+        /// <returns></returns>
+        public virtual IDataParameter CreateParameter(String name, Object value, Type type = null)
         {
-            var type = field?.DataType;
-            if (value == null && type == null) throw new ArgumentNullException(nameof(field));
+            //var type = field?.DataType;
+            if (value == null && type == null) throw new ArgumentNullException(nameof(value));
 
             var dp = Factory.CreateParameter();
             dp.ParameterName = FormatParameterName(name);
@@ -961,6 +968,22 @@ namespace XCode.DataAccessLayer
         /// <param name="ps"></param>
         /// <returns></returns>
         public virtual IDataParameter[] CreateParameters(IDictionary<String, Object> ps) => ps?.Select(e => CreateParameter(e.Key, e.Value)).ToArray();
+
+        /// <summary>根据对象成员创建参数数组</summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        public virtual IDataParameter[] CreateParameters(Object model)
+        {
+            if (model == null) return new IDataParameter[0];
+
+            var list = new List<IDataParameter>();
+            foreach (var pi in model.GetType().GetProperties(true))
+            {
+                list.Add(CreateParameter(pi.Name, pi.GetValue(model, null), pi.PropertyType));
+            }
+
+            return list.ToArray();
+        }
 
         /// <summary>获取 或 设置 自动关闭。每次使用完数据库连接后，是否自动关闭连接，高频操作时设为false可提升性能。默认true</summary>
         public Boolean AutoClose { get; set; } = true;

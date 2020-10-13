@@ -52,6 +52,23 @@ namespace XUnitTest.XCode.DataAccessLayer
         }
 
         [Fact]
+        public void InsertNullMember()
+        {
+            var dal = User.Meta.Session.Dal;
+
+            dal.Delete("user", new { Name = "" });
+
+            var user = new { Id = Rand.Next(), Name = Rand.NextString(8), Mobile = (String)null };
+            dal.Insert("user", user);
+
+            var list = dal.Query<MyUser>("select * from user where id=@id", new { user.Id }).ToList();
+            Assert.NotNull(list);
+            Assert.Single(list);
+
+            dal.Delete("user", new { id = user.Id });
+        }
+
+        [Fact]
         public void ExecuteScalar()
         {
             var dal = User.Meta.Session.Dal;
