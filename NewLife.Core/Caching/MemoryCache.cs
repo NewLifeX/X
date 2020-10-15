@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Reflection;
@@ -30,6 +29,11 @@ namespace NewLife.Caching
 
         /// <summary>定时清理时间，默认60秒</summary>
         public Int32 Period { get; set; } = 60;
+        #endregion
+      
+        #region 静态默认实现
+        /// <summary>默认缓存</summary>
+        public static ICache Instance { get; set; } = new MemoryCache();
         #endregion
 
         #region 构造

@@ -8,6 +8,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using NewLife;
+using NewLife.Caching;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
@@ -573,7 +574,7 @@ namespace XCode.DataAccessLayer
             if (restrictionValues != null && restrictionValues.Length > 0) key += "_" + String.Join("_", restrictionValues);
 
             var db = Database as DbBase;
-            var dt = db._SchemaCache[key];
+            var dt = db._SchemaCache.Get<DataTable>(key);
             if (dt == null)
             {
                 /*
@@ -586,7 +587,7 @@ namespace XCode.DataAccessLayer
                 else
                     dt = Process(conn2 => GetSchemaInternal(conn2, key, collectionName, restrictionValues));
 
-                db._SchemaCache[key] = dt;
+                db._SchemaCache.Set(key, dt, 10);
             }
 
             return dt;

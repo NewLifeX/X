@@ -40,7 +40,7 @@ namespace NewLife.Collections
     {
         #region 属性
         /// <summary>数据存储</summary>
-        public ICache Cache { get; set; } = MemoryCache.Default;
+        public ICache Cache { get; set; } = MemoryCache.Instance;
 
         /// <summary>每个主题的所有订阅者</summary>
         private readonly ConcurrentDictionary<String, ConcurrentDictionary<String, IProducerConsumer<T>>> _topics = new ConcurrentDictionary<String, ConcurrentDictionary<String, IProducerConsumer<T>>>();

@@ -258,7 +258,7 @@ $";
         }
 
         /// <summary>缓存存储</summary>
-        public static ICache Store { get; set; } = NewLife.Caching.Cache.Default;
+        public static ICache Store { get; set; } = MemoryCache.Instance;
 
         /// <summary>根据SQL创建，带缓存</summary>
         /// <remarks>
