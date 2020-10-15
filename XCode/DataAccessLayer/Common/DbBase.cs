@@ -980,6 +980,9 @@ namespace XCode.DataAccessLayer
         public virtual IDataParameter[] CreateParameters(Object model)
         {
             if (model == null) return new IDataParameter[0];
+            if (model is IDataParameter[] dps) return dps;
+            if (model is IDataParameter dp) return new[] { dp };
+            if (model is IDictionary<String, Object> dic) return CreateParameters(dic);
 
             var list = new List<IDataParameter>();
             foreach (var pi in model.GetType().GetProperties(true))
