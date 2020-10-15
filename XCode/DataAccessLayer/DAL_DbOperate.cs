@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using NewLife;
+using NewLife.Caching;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
@@ -212,12 +213,12 @@ namespace XCode.DataAccessLayer
 
         #region 缓存
         /// <summary>缓存存储</summary>
-        public DictionaryCache<String, Object> Store { get; set; }
+        public ICache Store { get; set; }
 
         /// <summary>数据层缓存。默认10秒</summary>
         public Int32 Expire { get; set; }
 
-        private DictionaryCache<String, Object> GetCache()
+        private ICache GetCache()
         {
             var st = Store;
             if (st != null) return st;
@@ -236,7 +237,7 @@ namespace XCode.DataAccessLayer
                     var p = exp / 2;
                     if (p < 30) p = 30;
 
-                    st = Store = new DictionaryCache<String, Object> { Period = p, Expire = exp };
+                    st = Store = new MemoryCache { Period = p, Expire = exp };
                 }
             }
 
@@ -249,6 +250,7 @@ namespace XCode.DataAccessLayer
 
             // 读缓存
             var cache = GetCache();
+            var key = "";
             if (cache != null)
             {
                 var sb = Pool.StringBuilder.Get();
@@ -260,49 +262,17 @@ namespace XCode.DataAccessLayer
                 Append(sb, k1);
                 Append(sb, k2);
                 Append(sb, k3);
-                var key = sb.Put(true);
+                key = sb.Put(true);
 
-                //if (cache.TryGetValue(key, out var value)) return value.ChangeType<TResult>();
-
-                return cache.GetItem(key, k =>
-                {
-                    // 达到60秒后全表查询使用文件缓存
-                    var dataFile = "";
-                    if ((Expire >= 60 || Db.Readonly) && prefix == nameof(Query))
-                    {
-                        var builder = k1 as SelectBuilder;
-                        var start = (Int64)(Object)k2;
-                        var max = (Int64)(Object)k3;
-                        if (start <= 0 && max <= 0 && builder != null && builder.Where.IsNullOrEmpty())
-                        {
-                            dataFile = NewLife.Setting.Current.DataPath.CombinePath(ConnName, builder.Table.Trim('[', ']', '`', '"') + ".dt");
-
-                            // 首次缓存加载时采用文件缓存替代，避免读取数据库耗时过长
-                            if (!cache.ContainsKey(k) && File.Exists(dataFile.GetFullPath()))
-                            {
-                                var dt = new DbTable();
-                                dt.LoadFile(dataFile);
-                                return dt;
-                            }
-                        }
-                    }
-
-                    Interlocked.Increment(ref _QueryTimes);
-                    var rs = Invoke(k1, k2, k3, callback, prefix);
-
-                    // 达到60秒后全表查询使用文件缓存
-                    if (!dataFile.IsNullOrEmpty())
-                    {
-                        (rs as DbTable).SaveFile(dataFile);
-                    }
-
-                    return rs;
-                }).ChangeType<TResult>();
+                if (cache.TryGetValue<TResult>(key, out var value)) return value;
             }
 
             Interlocked.Increment(ref _QueryTimes);
+            var rs = Invoke(k1, k2, k3, callback, prefix);
 
-            return Invoke(k1, k2, k3, callback, prefix);
+            cache?.Set(key, rs, Expire);
+
+            return rs;
         }
 
         private TResult ExecuteByCache<T1, T2, T3, TResult>(T1 k1, T2 k2, T3 k3, Func<T1, T2, T3, TResult> callback)
@@ -313,25 +283,7 @@ namespace XCode.DataAccessLayer
 
             var rs = Invoke(k1, k2, k3, callback, "Execute");
 
-            var st = GetCache();
-            if (st != null)
-            {
-                st?.Clear();
-
-                // 删除文件缓存
-                var dataDir = NewLife.Setting.Current.DataPath.CombinePath(ConnName);
-                if (Directory.Exists(dataDir))
-                {
-                    try
-                    {
-                        Directory.Delete(dataDir, true);
-                    }
-                    catch (Exception ex)
-                    {
-                        XTrace.WriteException(ex);
-                    }
-                }
-            }
+            GetCache()?.Clear();
 
             Interlocked.Increment(ref _ExecuteTimes);
 

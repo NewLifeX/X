@@ -48,7 +48,7 @@ namespace NewLife
 
             address = NetUri.ParseAddress(hostname)?.FirstOrDefault();
 
-            _Cache.Set(key, 60);
+            _Cache.Set(key, address, 60);
 
             return address;
         }
